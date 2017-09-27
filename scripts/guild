@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+
+import glob
+import os
+import sys
+
+def main():
+    root = module_space()
+    import_paths = (
+        guild_import_paths(root) +
+        special_import_paths(root) +
+        module_space_import_paths(root)
+    )
+    sys.path.extend(import_paths)
+    import guild.guild_main
+    guild.guild_main.main()
+
+def module_space():
+    script_home = os.path.abspath(os.path.dirname(sys.argv[0]))
+    module_space = os.path.join(script_home, 'guild.runfiles')
+    if os.path.isdir(module_space):
+        return module_space
+    raise AssertionError('Cannot find .runfiles directory for %s' % sys.argv[0])
+
+def guild_import_paths(root):
+    return [
+        os.path.join(root, "org_guildai_guild")
+    ]
+
+def special_import_paths(root):
+    return [
+        os.path.join(root, "protobuf/python"),
+        os.path.join(root, yaml_path_for_python_version()),
+    ]
+
+def yaml_path_for_python_version():
+    major_ver = sys.version_info[0]
+    if major_ver == 2:
+        return "org_pyyaml/lib"
+    elif major_ver == 3:
+        return "org_pyyaml/lib3"
+    else:
+        raise AssertionError("Unsupported Python version for YAML: %i" % major_ver)
+
+def module_space_import_paths(root):
+    package_markers = glob.glob(os.path.join(root, "*", "__init__.py"))
+    return [os.path.dirname(marker) for marker in package_markers]
+
+if __name__ == '__main__':
+    main()
