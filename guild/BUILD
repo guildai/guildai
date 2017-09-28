@@ -62,3 +62,11 @@ py_library(
         ":app",
     ],
 )
+
+py_library(
+    name = "project",
+    srcs = ["project.py"],
+    deps = [
+        "@org_pyyaml",
+    ]
+)

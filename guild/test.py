@@ -24,7 +24,7 @@ def run_all():
     return run(all_tests())
 
 def all_tests():
-    test_pattern = os.path.join(_tests_dir(), "*.rst")
+    test_pattern = os.path.join(_tests_dir(), "*.md")
     return sorted(
         [_test_name_from_path(path)
          for path in glob.glob(test_pattern)])
@@ -59,7 +59,7 @@ def _run_test(name):
 
 def _test_filename(name):
     # Path must be relative to module
-    return os.path.join("..", "tests", name + ".rst")
+    return os.path.join("..", "tests", name + ".md")
 
 def _run_test_file(filename):
     return _run_test_file_with_config(
@@ -68,7 +68,6 @@ def _run_test_file(filename):
         optionflags=(
             doctest.REPORT_ONLY_FIRST_FAILURE |
             doctest.ELLIPSIS |
-            doctest.IGNORE_EXCEPTION_DETAIL |
             doctest.NORMALIZE_WHITESPACE))
 
 def _run_test_file_with_config(filename, globs, optionflags):

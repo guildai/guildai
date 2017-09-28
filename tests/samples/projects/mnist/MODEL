@@ -1,0 +1,9 @@
+- name: mnist-intro
+  operations:
+    train: intro
+    evaluate: intro --test
+
+- name: mnist-expert
+  operations:
+    train: expert
+    evaluate: expert --test

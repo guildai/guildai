@@ -1,6 +1,16 @@
 package(default_visibility = ["//visibility:public"])
 
-filegroup(
+py_library(
     name = "tests",
-    srcs = glob(["*.rst", "samples/**"]),
+    deps = [
+        ":project",
+    ],
+)
+
+py_library(
+    name = "project",
+    data = ["project.md"] + glob(["samples/projects/**"]),
+    deps = [
+        "//guild:project",
+    ],
 )
