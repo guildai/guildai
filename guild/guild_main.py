@@ -30,43 +30,11 @@ class Args(object):
         for name in kw:
             setattr(self, name, kw[name])
 
-def project_options(flag_support=False):
-    # pylint: disable=protected-access
-    def decorator(f):
-        if flag_support:
-            click.decorators._param_memo(f, click.Option(
-                ["flags", "-F", "--flag"],
-                help="Define a project flag; may be used multiple times.",
-                multiple=True,
-                metavar="NAME[=VAL]"))
-            click.decorators._param_memo(f, click.Option(
-                ["profiles", "-p", "--profile"],
-                help="Use alternate flags profile.",
-                multiple=True,
-                metavar="NAME"))
-        click.decorators._param_memo(f, click.Option(
-            ["project_dir", "-P", "--project"],
-            help="Project directory (default is current directory).",
-            metavar="DIR",
-            default="."))
-        return f
-    return decorator
-
-def preview_option():
-    # pylint: disable=protected-access
-    def decorator(f):
-        click.decorators._param_memo(f, click.Option(
-            ["--preview"],
-            help="Show operation details but do not perform the operation.",
-            is_flag=True))
-        return f
-    return decorator
-
 ###################################################################
-# Check command
+# check command
 ###################################################################
 
-@click.command(short_help="Check Guild setup and run tests.")
+@click.command()
 @click.option(
     "-T", "--tests", "all_tests",
     help="Run Guild test suite.",
@@ -86,7 +54,7 @@ def preview_option():
     is_flag=True)
 
 def check(**kw):
-    """Checks Guild setup.
+    """Check Guild setup and optionally run tests.
 
     This command performs a number of checks and prints information
     about the Guild setup.
