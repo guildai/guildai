@@ -66,3 +66,45 @@ def check(**kw):
     guild.check_cmd.main(Args(kw))
 
 cli.add_command(check)
+
+###################################################################
+# run command
+###################################################################
+
+@click.command()
+@click.argument("operation", metavar="[MODEL:]OPERATION")
+@click.argument("args", metavar="[ARG...]", nargs=-1)
+
+def run(**kw):
+    """Run a model operation.
+    """
+    import guild.run_cmd
+    guild.run_cmd.main(Args(kw))
+
+cli.add_command(run)
+
+###################################################################
+# runs command
+###################################################################
+
+@click.group(invoke_without_command=True)
+
+def runs(**kw):
+    """List or manage runs.
+    """
+    print("TODO: list runs")
+
+cli.add_command(runs)
+
+###################################################################
+# runs rm command
+###################################################################
+
+@click.command("rm")
+@click.argument("runs", metavar="RUN [RUN...]", nargs=-1)
+
+def rm_runs(**kw):
+    """Delete one or more runs."""
+    print("TODO: rm runs")
+
+runs.add_command(rm_runs)

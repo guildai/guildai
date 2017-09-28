@@ -14,6 +14,7 @@ py_library(
     deps = [
         "@org_click",
         ":check_cmd",
+        ":run_cmd",
     ]
 )
 
@@ -60,6 +61,14 @@ py_library(
     ],
     deps = [
         ":app",
+    ],
+)
+
+py_library(
+    name = "run_cmd",
+    srcs = ["run_cmd.py"],
+    deps = [
+        ":cli",
     ],
 )
 
