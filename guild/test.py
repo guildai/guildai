@@ -68,6 +68,7 @@ def _run_test_file(filename):
         optionflags=(
             doctest.REPORT_ONLY_FIRST_FAILURE |
             doctest.ELLIPSIS |
+            doctest.IGNORE_EXCEPTION_DETAIL |
             doctest.NORMALIZE_WHITESPACE))
 
 def _run_test_file_with_config(filename, globs, optionflags):

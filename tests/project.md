@@ -27,10 +27,10 @@ Use `from_file` to load a project from a file directly:
 
 >>> guild.project.from_dir(sample("projects/invalid-format"))
 Traceback (most recent call last):
-ProjectFormatError: .../samples/projects/invalid-format/MODEL
+ProjectFormatError: ...
 
 ### No sources (i.e. MODEL or MODELS)
 
 >>> guild.project.from_dir(sample("projects/missing-sources"))
 Traceback (most recent call last):
-NoSourcesError: .../samples/projects/missing-sources
+NoSourcesError: ...
