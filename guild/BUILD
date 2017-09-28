@@ -4,17 +4,20 @@ sh_binary(
     name = "guild",
     srcs = ["//scripts:guild-exe"],
     data = [
-        ":guild_main",
+        ":main",
     ]
 )
 
 py_library(
-    name = "guild_main",
-    srcs = ["guild_main.py"],
+    name = "main",
+    srcs = ["main.py"],
     deps = [
         "@org_click",
         ":check_cmd",
         ":run_cmd",
+        ":runs_cmd",
+        ":shell_cmd",
+        ":sources_cmd",
     ]
 )
 
@@ -73,9 +76,50 @@ py_library(
 )
 
 py_library(
+    name = "runs_cmd",
+    srcs = ["runs_cmd.py"],
+    deps = [
+        ":cli",
+    ],
+)
+
+py_library(
     name = "project",
     srcs = ["project.py"],
     deps = [
         "@org_pyyaml",
     ]
 )
+
+py_library(
+    name = "sources_cmd",
+    srcs = ["sources_cmd.py"],
+    deps = [
+        ":config",
+        ":cli",
+        "@org_pandas",
+    ],
+)
+
+py_library(
+    name = "config",
+    srcs = ["config.py"],
+    deps = [
+        ":var",
+    ],
+)
+
+py_library(
+    name = "var",
+    srcs = ["var.py"],
+    deps = [
+    ],
+)
+
+py_library(
+    name = "shell_cmd",
+    srcs = ["shell_cmd.py"],
+    deps = [
+    ],
+)
+

@@ -92,7 +92,8 @@ cli.add_command(run)
 def runs(**kw):
     """List or manage runs.
     """
-    print("TODO: list runs")
+    import guild.runs
+    guild.runs.list(Args(kw))
 
 cli.add_command(runs)
 
@@ -105,6 +106,65 @@ cli.add_command(runs)
 
 def rm_runs(**kw):
     """Delete one or more runs."""
-    print("TODO: rm runs")
+    import guild.runs
+    guild.runs.remove(Args(kw))
 
 runs.add_command(rm_runs)
+
+###################################################################
+# shell command
+###################################################################
+
+@click.command()
+
+def shell(**kw):
+    """Start a Python shell for API experimentation.
+    """
+    import guild.shell_cmd
+    guild.shell_cmd.main(Args(kw))
+
+cli.add_command(shell)
+
+###################################################################
+# sources command
+###################################################################
+
+@click.group(invoke_without_command=True)
+
+def sources(**kw):
+    """List or manage package sources.
+    """
+    import guild.sources_cmd
+    guild.sources_cmd.list(Args(kw))
+
+cli.add_command(sources)
+
+###################################################################
+# sources add command
+###################################################################
+
+@click.command("add")
+@click.argument("name")
+@click.argument("url")
+
+def add_source(**kw):
+    """Add a package source.
+
+    NAME must be a unique source identifier for this system. Use
+    'guild sources' to show a list of configured package sources.
+
+    URL must be a GitHub repository URL or a local directory. GitHub
+    repository URLs may be provided in shorthand using
+    ACCOUNT/REPOSITORY. For example, the URL 'guildai/guild-packages'
+    will be interpreted as
+    'https://github.com/guildai/guild-packages'.
+
+    Local directories must be absolute paths. Use a local directory
+    will avoid having to sync with an upstream source each time a
+    change is made to a package. This is useful for package
+    development.
+    """
+    import guild.sources_cmd
+    guild.sources_cmd.add(Args(kw))
+
+sources.add_command(add_source)

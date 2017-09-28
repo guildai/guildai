@@ -12,8 +12,8 @@ def main():
         module_space_import_paths(root)
     )
     sys.path.extend(import_paths)
-    import guild.guild_main
-    guild.guild_main.main()
+    import guild.main
+    guild.main.main()
 
 def module_space():
     script_home = os.path.abspath(os.path.dirname(sys.argv[0]))
