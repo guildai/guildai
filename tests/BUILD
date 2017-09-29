@@ -20,6 +20,6 @@ py_library(
     name = "tables",
     data = ["tables.md"],
     deps = [
-        "//guild:table",
+        "//guild:cli",
     ],
 )
