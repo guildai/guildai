@@ -21,13 +21,3 @@ def guild_python_workspace():
         strip_prefix = "PyYAML-3.12",
         sha256 = "592766c6303207a20efc445587778322d7f73b161bd994f227adaa341ba212ab",
     )
-
-    native.new_http_archive(
-        name = "org_pandas",
-        build_file = "//third-party:pandas.BUILD",
-        urls = [
-            "https://pypi.python.org/packages/ee/aa/90c06f249cf4408fa75135ad0df7d64c09cf74c9870733862491ed5f3a50/pandas-0.20.3.tar.gz"
-        ],
-        strip_prefix = "pandas-0.20.3",
-        sha256 = "a777e07633d83d546c55706420179551c8e01075b53c497dcf8ae4036766bc66",
-    )
