@@ -71,30 +71,29 @@ cli.add_command(check)
 # models command
 ###################################################################
 
-@click.command("models")
-@click.argument("project_or_package", required=False)
+@click.command()
 @click.option(
-    "-v", "--verbose",
-    help="Show model details including operations.",
-    is_flag=True)
+    "-p", "--project", "project_location",
+    help="Project location (file system directory) for models.",
+    metavar="LOCATION")
 @click.option(
     "--installed",
-    help="Show available installed packages. PROJECT_OR_PACKAGE is ignore.",
+    help="Show available installed packages. --project is ignore.",
+    is_flag=True)
+@click.option(
+    "-v", "--verbose",
+    help="Show model details.",
     is_flag=True)
 
 def models(**kw):
-    """List available models.
+    """Show available models.
 
-    By default Guild will show models defined in the current
-    directory. You may use PROJECT_OR_PACKAGE to specify an
+    By default Guild will show models defined in the current directory
+    (in a MODEL or MODELS file). You may use --project to specify an
     alternative project location.
 
-    To show models defined in an installed package, use
-    PROJECT_OR_PACKAGE to specify the package name.
-
-    To show installed models along with their associated packages, use
-    the --installed option. PROJECT_OR_PACKAGE, if specified, will be
-    ignored if this option is used.
+    To show installed models, use the --installed option. Any location
+    specified by --project, will be ignored if --installed is used.
     """
     import guild.models_cmd
     guild.models_cmd.main(Args(kw))

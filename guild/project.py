@@ -88,7 +88,7 @@ def _coerce_op_data(data):
 
 def from_dir(path, filenames=["MODELS", "MODEL"]):
     for name in filenames:
-        modelfile = os.path.abspath(os.path.join(path, name))x
+        modelfile = os.path.abspath(os.path.join(path, name))
         if os.path.isfile(modelfile):
             return Project(_load_modelfile(modelfile), modelfile)
     raise MissingSourceError(path)

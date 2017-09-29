@@ -69,9 +69,16 @@ def _format_no_such_option_error(e):
 
 def _format_usage_error(e):
     msg = e.format_message()
-    m = re.match('No such command "(.+)"', msg)
-    if m:
-        return "unrecognized command '%s'" % m.groups()[0]
+    replacements = [
+        ('No such command "(.+)"',
+         "unrecognized command '%s'"),
+        ("Got unexpected extra argument \\((.+?)\\)",
+         "unexpected extra argument '%s'")
+    ]
+    for msg_pattern, new_msg_pattern in replacements:
+        m = re.match(msg_pattern, msg)
+        if m:
+            return new_msg_pattern % m.groups()
     else:
         return msg
 
