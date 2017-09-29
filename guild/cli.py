@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import sys
 
 import click
@@ -30,7 +31,7 @@ def apply_main(cmd):
     except click.exceptions.ClickException as e:
         _handle_click_exception(e, prog)
     except Exit as e:
-        _print_error_and_exit(e.msg, e.exit_status)
+        _print_error_and_exit(prog, e.msg, e.exit_status)
 
 def _handle_keyboard_interrupt():
     sys.exit(1)
@@ -47,8 +48,10 @@ def _handle_click_exception(e, prog):
 def _format_click_error_message(e):
     if isinstance(e, click.exceptions.MissingParameter):
         return _format_missing_parameter_error(e)
-    if isinstance(e, click.exceptions.NoSuchOption):
+    elif isinstance(e, click.exceptions.NoSuchOption):
         return _format_no_such_option_error(e)
+    elif isinstance(e, click.exceptions.UsageError):
+        return _format_usage_error(e)
     else:
         return e.format_message()
 
@@ -62,9 +65,17 @@ def _format_no_such_option_error(e):
         more_help = ""
     return "unrecognized option '%s'%s" % (e.option_name, more_help)
 
-def _print_error_and_exit(msg, exit_status):
+def _format_usage_error(e):
+    msg = e.format_message()
+    m = re.match('No such command "(.+)"', msg)
+    if m:
+        return "unrecognized command '%s'" % m.groups()[0]
+    else:
+        return msg
+
+def _print_error_and_exit(prog, msg, exit_status):
     if msg:
-        click.echo("Error: %s" % msg, err=True)
+        click.echo("%s: %s" % (prog, msg), err=True)
     sys.exit(exit_status)
 
 def error(msg=None, exit_status=1):
