@@ -88,12 +88,14 @@ cli.add_command(run)
 ###################################################################
 
 @click.group(invoke_without_command=True)
+@click.pass_context
 
-def runs(**kw):
+def runs(ctx, **kw):
     """List or manage runs.
     """
-    import guild.runs
-    guild.runs.list(Args(kw))
+    if not ctx.invoked_subcommand:
+        import guild.runs
+        guild.runs.list(Args(kw))
 
 cli.add_command(runs)
 
