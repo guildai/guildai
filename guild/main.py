@@ -72,11 +72,50 @@ cli.add_command(check)
 ###################################################################
 
 @click.command()
-@click.argument("operation", metavar="[MODEL:]OPERATION")
+@click.argument("opspec", metavar="[MODEL:]OPERATION")
 @click.argument("args", metavar="[ARG...]", nargs=-1)
+@click.option(
+    "-p", "--project",
+    metavar="LOCATION",
+    help="Project location (file system directory) for MODEL.")
+@click.option(
+    "--noinstall",
+    help="Don't attempt to install MODEL if not found.",
+    is_flag=True)
 
 def run(**kw):
     """Run a model operation.
+
+    By default Guild will try to run OPERATION for the default model
+    defined in a project. If a project location is not specified (see
+    --project option below), Guild looks for a project in the current
+    directory.
+
+    If MODEL is specified, Guild will use it instead of the default
+    model defined in a project.
+
+    if MODEL is specified but cannot be found in a project, either
+    because a project is not specified, is not in the current
+    directory, or MODEL is not available, Guild will look for an
+    installed model matching MODEL. If found, Guild will run OPERATION
+    for the installed model.
+
+    If Guild cannot find MODEL, either defined in a project or
+    installed, it will prompt the user to search for and install a
+    model matching MODEL. This behavior can be skipped by specifying
+    the --noinstall option.
+
+    MODEL may contain an optional repository component in the form
+    REPOSITORY/NAME in cases where the model name itself is
+    ambigous.
+
+    Operations on any installed model may be run by specifying the
+    fully qualified model name and its operation. Use 'guild models'
+    to list installed models. If a model doesn't appear in the list of
+    installed models, try 'guild search MODEL' to search for the model
+    in an available package repository. You may install a model using
+    'guild install'. Refer to the help for these commands for more
+    information.
     """
     import guild.run_cmd
     guild.run_cmd.main(Args(kw))

@@ -27,37 +27,44 @@ def apply_main(cmd):
         cmd.main(standalone_mode=False)
     except click.exceptions.Abort:
         _handle_keyboard_interrupt()
-    except click.exceptions.MissingParameter as e:
-        _handle_missing_parameter(e)
     except click.exceptions.ClickException as e:
-        _handle_click_exception(e)
+        _handle_click_exception(e, prog)
     except Exit as e:
-        _print_error_and_exit(prog, e.msg, e.exit_status)
+        _print_error_and_exit(e.msg, e.exit_status)
 
 def _handle_keyboard_interrupt():
     sys.exit(1)
 
-def _handle_missing_parameter(e):
-    """Workaround for https://github.com/pallets/click/issues/855"""
-    click.echo(
-        "%s\n"
-        "Try '%s %s' for help.\n"
-        "\n"
-        "Error: missing argument for %s"
-        % (e.ctx.get_usage(),
-           e.ctx.command_path,
-           e.ctx.help_option_names[0],
-           e.param.human_readable_name),
-        err=True)
+def _handle_click_exception(e, prog):
+    click.echo("%s: %s" % (prog, _format_click_error_message(e)), err=True)
+    if e.ctx:
+        click.echo(
+            "Try '%s %s' for more information."
+            % (e.ctx.command_path, e.ctx.help_option_names[0]),
+            err=True)
     sys.exit(e.exit_code)
 
-def _handle_click_exception(e):
-    e.show()
-    sys.exit(e.exit_code)
+def _format_click_error_message(e):
+    if isinstance(e, click.exceptions.MissingParameter):
+        return _format_missing_parameter_error(e)
+    if isinstance(e, click.exceptions.NoSuchOption):
+        return _format_no_such_option_error(e)
+    else:
+        return e.format_message()
 
-def _print_error_and_exit(prog, msg, exit_status):
+def _format_missing_parameter_error(e):
+    return "missing argument for %s" % e.param.human_readable_name
+
+def _format_no_such_option_error(e):
+    if e.possibilities:
+        more_help = " (did you mean %s?)" % e.possibilities[0]
+    else:
+        more_help = ""
+    return "unrecognized option '%s'%s" % (e.option_name, more_help)
+
+def _print_error_and_exit(msg, exit_status):
     if msg:
-        click.echo("%s: %s" % (prog, msg), err=True)
+        click.echo("Error: %s" % msg, err=True)
     sys.exit(exit_status)
 
 def error(msg=None, exit_status=1):
