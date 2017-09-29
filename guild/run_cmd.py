@@ -1,6 +1,7 @@
 import os
 
 import guild.cli
+import guild.op
 import guild.project
 
 DEFAULT_PROJECT_LOCATION = "."
@@ -9,7 +10,7 @@ def main(args):
     model_name, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_name, args)
     op = _resolve_op(op_name, model)
-    print("TODO: run %s" % op)
+    guild.op.from_project_op(op).run()
 
 def _parse_opspec(spec):
     parts = spec.split(":", 1)

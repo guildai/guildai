@@ -73,6 +73,7 @@ py_library(
     srcs = ["run_cmd.py"],
     deps = [
         ":cli",
+        ":op",
         ":project",
     ],
 )
@@ -138,5 +139,20 @@ py_library(
     deps = [
         ":cli",
         ":project",
+    ],
+)
+
+py_library(
+    name = "op",
+    srcs = ["op.py"],
+    deps = [
+        ":util",
+    ],
+)
+
+py_library(
+    name = "util",
+    srcs = ["util.py"],
+    deps = [
     ],
 )

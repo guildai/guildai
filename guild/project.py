@@ -69,6 +69,7 @@ class Operation(object):
 
     def __init__(self, model, name, data):
         self.model = model
+        self.project = model.project
         self.name = name
         data = _coerce_op_data(data)
         self._data = data
