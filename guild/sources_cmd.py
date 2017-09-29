@@ -1,10 +1,9 @@
 import guild.cli
 import guild.config
-import guild.table
 
 def list(_args):
     sources = guild.config.sources()
-    guild.table.out(sources, ["name", "source"])
+    guild.cli.table(sources, ["name", "source"])
 
 def add(args):
     try:

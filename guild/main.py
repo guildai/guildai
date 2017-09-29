@@ -54,7 +54,7 @@ class Args(object):
     is_flag=True)
 
 def check(**kw):
-    """Check Guild setup and optionally run tests.
+    """Check the Guild setup.
 
     This command performs a number of checks and prints information
     about the Guild setup.
@@ -68,6 +68,40 @@ def check(**kw):
 cli.add_command(check)
 
 ###################################################################
+# models command
+###################################################################
+
+@click.command("models")
+@click.argument("project_or_package", required=False)
+@click.option(
+    "-v", "--verbose",
+    help="Show model details including operations.",
+    is_flag=True)
+@click.option(
+    "--installed",
+    help="Show available installed packages. PROJECT_OR_PACKAGE is ignore.",
+    is_flag=True)
+
+def models(**kw):
+    """List available models.
+
+    By default Guild will show models defined in the current
+    directory. You may use PROJECT_OR_PACKAGE to specify an
+    alternative project location.
+
+    To show models defined in an installed package, use
+    PROJECT_OR_PACKAGE to specify the package name.
+
+    To show installed models along with their associated packages, use
+    the --installed option. PROJECT_OR_PACKAGE, if specified, will be
+    ignored if this option is used.
+    """
+    import guild.models_cmd
+    guild.models_cmd.main(Args(kw))
+
+cli.add_command(models)
+
+###################################################################
 # run command
 ###################################################################
 
@@ -75,7 +109,7 @@ cli.add_command(check)
 @click.argument("opspec", metavar="[MODEL:]OPERATION")
 @click.argument("args", metavar="[ARG...]", nargs=-1)
 @click.option(
-    "-p", "--project",
+    "-p", "--project", "project_location",
     metavar="LOCATION",
     help="Project location (file system directory) for MODEL.")
 @click.option(

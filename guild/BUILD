@@ -14,6 +14,7 @@ py_library(
     deps = [
         "@org_click",
         ":check_cmd",
+        ":models_cmd",
         ":run_cmd",
         ":runs_cmd",
         ":shell_cmd",
@@ -52,7 +53,6 @@ py_library(
     name = "cli",
     srcs = ["cli.py"],
     deps = [
-        ":app",
     ],
 )
 
@@ -72,6 +72,7 @@ py_library(
     srcs = ["run_cmd.py"],
     deps = [
         ":cli",
+        ":project",
     ],
 )
 
@@ -97,7 +98,6 @@ py_library(
     deps = [
         ":config",
         ":cli",
-        ":table",
     ],
 )
 
@@ -124,9 +124,9 @@ py_library(
 )
 
 py_library(
-    name = "table",
-    srcs = ["table.py"],
+    name = "models_cmd",
+    srcs = ["models_cmd.py"],
     deps = [
-        "@org_click",
+        ":cli",
     ],
 )
