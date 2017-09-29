@@ -101,6 +101,29 @@ def models(**kw):
 cli.add_command(models)
 
 ###################################################################
+# operations command
+###################################################################
+
+@click.command()
+@click.argument("model", required=False)
+@click.option(
+    "-p", "--project", "project_location",
+    help="Project location (file system directory) for MODEL.",
+    metavar="LOCATION")
+@click.option(
+    "-v", "--verbose",
+    help="Show operation details.",
+    is_flag=True)
+
+def operations(**kw):
+    """Show model operations.
+    """
+    import guild.operations_cmd
+    guild.operations_cmd.main(Args(kw))
+
+cli.add_command(operations)
+
+###################################################################
 # run command
 ###################################################################
 

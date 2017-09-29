@@ -15,6 +15,7 @@ py_library(
         "@org_click",
         ":check_cmd",
         ":models_cmd",
+        ":operations_cmd",
         ":run_cmd",
         ":runs_cmd",
         ":shell_cmd",
@@ -128,5 +129,14 @@ py_library(
     srcs = ["models_cmd.py"],
     deps = [
         ":cli",
+    ],
+)
+
+py_library(
+    name = "operations_cmd",
+    srcs = ["operations_cmd.py"],
+    deps = [
+        ":cli",
+        ":project",
     ],
 )
