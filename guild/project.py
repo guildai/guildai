@@ -72,6 +72,7 @@ class Operation(object):
         self.name = name
         data = _coerce_op_data(data)
         self._data = data
+        self.description = data.get("description")
         self.cmd = data.get("cmd")
 
     def __repr__(self):
