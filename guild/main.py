@@ -109,8 +109,9 @@ cli.add_command(models)
 @click.argument("args", metavar="[ARG...]", nargs=-1)
 @click.option(
     "-p", "--project", "project_location",
-    metavar="LOCATION",
-    help="Project location (file system directory) for MODEL.")
+    help="Project location (file system directory) for MODEL.",
+    metavar="LOCATION"
+)
 @click.option(
     "--noinstall",
     help="Don't attempt to install MODEL if not found.",
@@ -170,7 +171,7 @@ class RunsGroup(click.Group):
 @click.pass_context
 
 def runs(ctx, **kw):
-    """List or manage runs.
+    """Show or manage runs.
     """
     if not ctx.invoked_subcommand:
         import guild.runs_cmd
@@ -221,7 +222,7 @@ class SourcesGroup(click.Group):
 @click.pass_context
 
 def sources(ctx, **kw):
-    """List or manage package sources.
+    """Show or manage package sources.
     """
     if not ctx.invoked_subcommand:
         import guild.sources_cmd
