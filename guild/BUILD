@@ -97,7 +97,7 @@ py_library(
     deps = [
         ":config",
         ":cli",
-        "@org_pandas",
+        ":table",
     ],
 )
 
@@ -123,3 +123,10 @@ py_library(
     ],
 )
 
+py_library(
+    name = "table",
+    srcs = ["table.py"],
+    deps = [
+        "@org_click",
+    ],
+)

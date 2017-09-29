@@ -5,6 +5,7 @@ py_library(
     deps = [
         ":dataframe",
         ":project",
+        ":tables",
     ],
 )
 
@@ -21,5 +22,13 @@ py_library(
     data = ["project.md"] + glob(["samples/projects/**"]),
     deps = [
         "//guild:project",
+    ],
+)
+
+py_library(
+    name = "tables",
+    data = ["tables.md"],
+    deps = [
+        "//guild:table",
     ],
 )

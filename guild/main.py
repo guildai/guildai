@@ -129,13 +129,22 @@ cli.add_command(shell)
 # sources command
 ###################################################################
 
-@click.group(invoke_without_command=True)
+class Sources(click.Group):
 
-def sources(**kw):
+    def get_command(self, ctx, cmd_name):
+        if cmd_name == "rm":
+            cmd_name = "remove"
+        return super(Sources, self).get_command(ctx, cmd_name)
+
+@click.group(invoke_without_command=True, cls=Sources)
+@click.pass_context
+
+def sources(ctx, **kw):
     """List or manage package sources.
     """
-    import guild.sources_cmd
-    guild.sources_cmd.list(Args(kw))
+    if not ctx.invoked_subcommand:
+        import guild.sources_cmd
+        guild.sources_cmd.list(Args(kw))
 
 cli.add_command(sources)
 
@@ -168,3 +177,20 @@ def add_source(**kw):
     guild.sources_cmd.add(Args(kw))
 
 sources.add_command(add_source)
+
+###################################################################
+# sources remove command
+###################################################################
+
+@click.command("remove", short_help="Remove a package source (alias: rm).")
+@click.argument("name")
+
+def remove_source(**kw):
+    """Remove a package source. Alternatively, use 'rm'.
+
+    Use 'guild sources' for a list of package sources.
+    """
+    import guild.sources_cmd
+    guild.sources_cmd.remove(Args(kw))
+
+sources.add_command(remove_source)
