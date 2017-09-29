@@ -1,3 +1,5 @@
+import os
+
 import guild.cli
 import guild.project
 
@@ -7,7 +9,7 @@ def main(args):
     model_name, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_name, args)
     op = _resolve_op(op_name, model)
-    print("TODO: run %s on %s" % (op, model))
+    print("TODO: run %s" % op)
 
 def _parse_opspec(spec):
     parts = spec.split(":", 1)
@@ -74,11 +76,12 @@ def _no_such_model_error(name, project):
         "Try 'guild models%s' for a list of available models."
         % (name, project.src, _project_opt(project.src)))
 
-def _project_opt(model_src):
-    if model_src == "./MODEL" or model_src == "./MODELS":
+def _project_opt(project_src):
+    relpath = os.path.relpath(project_src)
+    if relpath == "MODEL" or relpath == "MODELS":
         return ""
     else:
-        return " -p %s" % model_src
+        return " -p %s" % relpath
 
 def _package_for_args(_args):
     # TODO: package resolve here!
