@@ -163,7 +163,7 @@ cli.add_command(sources)
 
 @click.command("add")
 @click.argument("name")
-@click.argument("url")
+@click.argument("source")
 
 def add_source(**kw):
     """Add a package source.
@@ -171,10 +171,10 @@ def add_source(**kw):
     NAME must be a unique source identifier for this system. Use
     'guild sources' to show a list of configured package sources.
 
-    URL must be a GitHub repository URL or a local directory. GitHub
-    repository URLs may be provided in shorthand using
-    ACCOUNT/REPOSITORY. For example, the URL 'guildai/guild-packages'
-    will be interpreted as
+    SOURCE must be a GitHub repository URL or a local
+    directory. GitHub repository URLs may be provided in shorthand
+    using ACCOUNT/REPOSITORY. For example, the SOURCE
+    'guildai/guild-packages' will be interpreted as
     'https://github.com/guildai/guild-packages'.
 
     Local directories must be absolute paths. Use a local directory

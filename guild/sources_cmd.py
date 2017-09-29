@@ -4,11 +4,11 @@ import guild.table
 
 def list(_args):
     sources = guild.config.sources()
-    guild.table.out(sources, ["name", "url"])
+    guild.table.out(sources, ["name", "source"])
 
 def add(args):
     try:
-        guild.config.add_source(args.name, args.url)
+        guild.config.add_source(args.name, args.source)
     except guild.config.SourceExistsError:
         guild.cli.error("source '%s' already exists" % args.name)
 

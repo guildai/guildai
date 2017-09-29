@@ -15,17 +15,24 @@ def sources():
     return load_config().get("package-sources", [])
 
 def load_config():
-    with open(config_source_path(), "r") as f:
-        return yaml.load(f)
+    try:
+        f = open(config_source_path(), "r")
+    except IOError as e:
+        if e.errno != errno.ENOENT:
+            raise
+        return {}
+    else:
+        with f:
+            return yaml.load(f)
 
 def config_source_path():
     return guild.var.path("config.yml")
 
-def add_source(name, url):
+def add_source(name, source):
     config = load_config()
-    sources = config.get("package-sources", [])
+    sources = config.setdefault("package-sources", [])
     _verify_source_not_exists(name, sources)
-    sources.append({"name": name, "url": url})
+    sources.append({"name": name, "source": source})
     write_config(config)
 
 def remove_source(name):
