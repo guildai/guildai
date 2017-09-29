@@ -87,31 +87,38 @@ cli.add_command(run)
 # runs command
 ###################################################################
 
-@click.group(invoke_without_command=True)
+class RunsGroup(click.Group):
+
+    def get_command(self, ctx, cmd_name):
+        if cmd_name == "rm":
+            cmd_name = "delete"
+        return super(RunsGroup, self).get_command(ctx, cmd_name)
+
+@click.group(invoke_without_command=True, cls=RunsGroup)
 @click.pass_context
 
 def runs(ctx, **kw):
     """List or manage runs.
     """
     if not ctx.invoked_subcommand:
-        import guild.runs
-        guild.runs.list(Args(kw))
+        import guild.runs_cmd
+        guild.runs_cmd.list(Args(kw))
 
 cli.add_command(runs)
 
 ###################################################################
-# runs rm command
+# runs delete command
 ###################################################################
 
-@click.command("rm")
-@click.argument("runs", metavar="RUN [RUN...]", nargs=-1)
+@click.command("delete", short_help="Delete one or more runs (alias: rm).")
+@click.argument("runs", metavar="RUN [RUN...]", nargs=-1, required=True)
 
-def rm_runs(**kw):
-    """Delete one or more runs."""
-    import guild.runs
-    guild.runs.remove(Args(kw))
+def delete_runs(**kw):
+    """Delete one or more runs. Alternatively, use 'rm'."""
+    import guild.runs_cmd
+    guild.runs_cmd.delete(Args(kw))
 
-runs.add_command(rm_runs)
+runs.add_command(delete_runs)
 
 ###################################################################
 # shell command
@@ -131,14 +138,14 @@ cli.add_command(shell)
 # sources command
 ###################################################################
 
-class Sources(click.Group):
+class SourcesGroup(click.Group):
 
     def get_command(self, ctx, cmd_name):
         if cmd_name == "rm":
             cmd_name = "remove"
-        return super(Sources, self).get_command(ctx, cmd_name)
+        return super(SourcesGroup, self).get_command(ctx, cmd_name)
 
-@click.group(invoke_without_command=True, cls=Sources)
+@click.group(invoke_without_command=True, cls=SourcesGroup)
 @click.pass_context
 
 def sources(ctx, **kw):
