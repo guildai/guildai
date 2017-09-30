@@ -76,11 +76,19 @@ class Operation(object):
         self.description = data.get("description")
         self.cmd = data.get("cmd")
 
+    @property
+    def full_name(self):
+        return "%s:%s" % (self.model.name, self.name)
+
     def __repr__(self):
-        return ("<guild.project.Operation '%s:%s'>"
-                % (self.model.name, self.name))
+        return "<guild.project.Operation '%s'>" % self.full_name
 
 def _coerce_op_data(data):
+    """Return a cmd map for data.
+
+    Ops may be strings, in which case the value is implied as the cmd
+    attribute of the op map.
+    """
     if isinstance(data, str):
         return {
             "cmd": data

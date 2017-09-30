@@ -57,7 +57,11 @@ def _all_runs(root):
     ]
 
 def _iter_dirs(root):
-    for name in os.listdir(root):
+    try:
+        names = os.listdir(root)
+    except OSError:
+        names = []
+    for name in names:
         path = os.path.join(root, name)
         if os.path.isdir(path):
             yield name, path

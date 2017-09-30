@@ -14,9 +14,10 @@ class InvalidCmdSpec(ValueError):
 
 class Operation(object):
 
-    def __init__(self, cmd_args, cmd_env):
-        self.cmd_args = cmd_args
-        self.cmd_env = cmd_env
+    def __init__(self, cmd_args, cmd_env, project_op):
+        self._cmd_args = cmd_args
+        self._cmd_env = cmd_env
+        self._project_op = project_op
         self._running = False
         self._run = None
         self._proc = None
@@ -26,14 +27,14 @@ class Operation(object):
         if self._running:
             raise AssertionError("op already running")
         self._running = True
-        self._started = time.time()
+        self._started = int(time.time())
         self._init_run()
-        #self._init_meta()
+        self._init_attrs()
         #self._init_db()
         self._start_proc()
         #self._start_tasks()
         self._wait_for_proc()
-        #self._finalize_meta()
+        self._finalize_attrs()
         #self._stop_tasks()
         #self._finalize_db()
         return self._exit_status
@@ -45,21 +46,36 @@ class Operation(object):
         self._run.init_skel()
         logging.debug("Initialized run in %s", path)
 
+    def _init_attrs(self):
+        assert self._run is not None
+        self._run.write_attr("cmd", self._cmd_args)
+        self._run.write_attr("env", self._cmd_env)
+        self._run.write_attr("started", self._started)
+        self._run.write_attr("op", self._project_op.full_name)
+
     def _start_proc(self):
         assert self._proc is None
         assert self._run is not None
-        env = self.cmd_env
-        args = _resolve_cmd_args(self.cmd_args, env)
+        env = self._cmd_env
+        args = _resolve_cmd_args(self._cmd_args, env)
         cwd = self._run.path
         logging.debug("Starting process %s" % (args,))
         self._proc = subprocess.Popen(args, env=env, cwd=cwd)
-        _write_proc_lock(self._proc, self._rundir.path)
+        _write_proc_lock(self._proc, self._run)
 
     def _wait_for_proc(self):
         assert self._proc is not None
         self._exit_status = self._proc.wait()
-        _delete_proc_lock(self._rundir.path)
+        self._stopped = int(time.time())
+        _delete_proc_lock(self._run)
 
+    def _finalize_attrs(self):
+        assert self._run is not None
+        assert self._exit_status is not None
+        assert self._stopped is not None
+        self._run.write_attr("exit_status", self._exit_status)
+        self._run.write_attr("stopped", self._stopped)
+        
 def _resolve_cmd_args(args, env):
     return [_resolve_arg_env_refs(arg, env) for arg in args]
 
@@ -68,20 +84,20 @@ def _resolve_arg_env_refs(arg, env):
         arg = re.sub(r"\$" + name, val, arg)
     return arg
 
-def _write_proc_lock(proc, rundir):
-    with open(rundir.guild_path("LOCK"), "w") as f:
+def _write_proc_lock(proc, run):
+    with open(run.guild_path("LOCK"), "w") as f:
         f.write(str(proc.pid))
 
-def _delete_proc_lock(rundir):
+def _delete_proc_lock(run):
     try:
-        os.remove(rundir.guild_path("LOCK"))
+        os.remove(run.guild_path("LOCK"))
     except OSError:
         pass
 
 def from_project_op(project_op):
     cmd_args = _python_cmd_for_project_op(project_op)
     cmd_env = {}
-    return Operation(cmd_args, cmd_env)
+    return Operation(cmd_args, cmd_env, project_op)
 
 def _python_cmd_for_project_op(project_op):
     spec = project_op.cmd

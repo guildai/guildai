@@ -198,10 +198,17 @@ class RunsGroup(click.Group):
         return super(RunsGroup, self).get_command(ctx, cmd_name)
 
 @click.group(invoke_without_command=True, cls=RunsGroup)
+@click.option(
+    "-v", "--verbose",
+    help="Show run details.",
+    is_flag=True)
 @click.pass_context
 
 def runs(ctx, **kw):
     """Show or manage runs.
+
+    Shows runs by default. Use one of the commands below to manage
+    runs.
     """
     if not ctx.invoked_subcommand:
         import guild.runs_cmd
