@@ -115,6 +115,7 @@ py_library(
     name = "var",
     srcs = ["var.py"],
     deps = [
+        ":run",
     ],
 )
 
@@ -148,6 +149,7 @@ py_library(
     srcs = ["op.py"],
     deps = [
         ":util",
+        ":run",
     ],
 )
 
@@ -164,5 +166,13 @@ py_library(
     deps = [
         ":project",
         ":util",
+    ],
+)
+
+py_library(
+    name = "run",
+    srcs = ["run.py"],
+    deps = [
+         ":util",
     ],
 )

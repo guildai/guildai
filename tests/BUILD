@@ -5,7 +5,9 @@ py_library(
     deps = [
         ":op",
         ":project",
+        ":runs",
         ":tables",
+        ":var",
     ],
 )
 
@@ -27,9 +29,25 @@ py_library(
 )
 
 py_library(
+    name = "runs",
+    data = ["runs.md"] + glob(["samples/runs/**"]),
+    deps = [
+        "//guild:var",
+    ],
+)
+
+py_library(
     name = "tables",
     data = ["tables.md"],
     deps = [
         "//guild:cli",
+    ],
+)
+
+py_library(
+    name = "var",
+    data = ["var.md"],
+    deps = [
+        "//guild:var",
     ],
 )

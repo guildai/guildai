@@ -9,7 +9,14 @@ guild.app.init()
 # Main
 ###################################################################
 
-@click.group()
+class CLIGroup(click.Group):
+
+    def get_command(self, ctx, cmd_name):
+        if cmd_name in ["operations", "ops"]:
+            cmd_name = "operations, ops"
+        return super(CLIGroup, self).get_command(ctx, cmd_name)
+
+@click.group(cls=CLIGroup)
 @click.version_option(
     version=guild.app.version(),
     prog_name="guild",
@@ -104,7 +111,7 @@ cli.add_command(models)
 # operations command
 ###################################################################
 
-@click.command()
+@click.command(name="operations, ops")
 @click.argument("model", required=False)
 @click.option(
     "-p", "--project", "project_location",
@@ -186,8 +193,8 @@ cli.add_command(run)
 class RunsGroup(click.Group):
 
     def get_command(self, ctx, cmd_name):
-        if cmd_name == "rm":
-            cmd_name = "delete"
+        if cmd_name in ["delete", "rm"]:
+            cmd_name = "delete, rm"
         return super(RunsGroup, self).get_command(ctx, cmd_name)
 
 @click.group(invoke_without_command=True, cls=RunsGroup)
@@ -206,7 +213,7 @@ cli.add_command(runs)
 # runs delete command
 ###################################################################
 
-@click.command("delete", short_help="Delete one or more runs (alias: rm).")
+@click.command("delete, rm")
 @click.argument("runs", metavar="RUN [RUN...]", nargs=-1, required=True)
 
 def delete_runs(**kw):
@@ -237,8 +244,8 @@ cli.add_command(shell)
 class SourcesGroup(click.Group):
 
     def get_command(self, ctx, cmd_name):
-        if cmd_name == "rm":
-            cmd_name = "remove"
+        if cmd_name in ["rm", "remove"]:
+            cmd_name = "remove, rm"
         return super(SourcesGroup, self).get_command(ctx, cmd_name)
 
 @click.group(invoke_without_command=True, cls=SourcesGroup)
@@ -287,11 +294,11 @@ sources.add_command(add_source)
 # sources remove command
 ###################################################################
 
-@click.command("remove", short_help="Remove a package source (alias: rm).")
+@click.command("remove, rm")
 @click.argument("name")
 
 def remove_source(**kw):
-    """Remove a package source. Alternatively, use 'rm'.
+    """Remove a package source.
 
     Use 'guild sources' for a list of package sources.
     """

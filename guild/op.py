@@ -1,6 +1,10 @@
+import logging
 import os
 import shlex
+import time
+import uuid
 
+import guild.run
 import guild.util
 
 class InvalidCmdSpec(ValueError):
@@ -8,19 +12,74 @@ class InvalidCmdSpec(ValueError):
 
 class Operation(object):
 
-    def __init__(self, cmd_args, cmd_env, cmd_cwd):
+    def __init__(self, cmd_args, cmd_env):
         self.cmd_args = cmd_args
         self.cmd_env = cmd_env
-        self.cmd_cwd = cmd_cwd
+        self._running = False
+        self._run = None
+        self._proc = None
+        self._exit_status = None
 
     def run(self):
-        print("Run %s and wait" % self.cmd_args)
+        if self._running:
+            raise AssertionError("op already running")
+        self._running = True
+        self._started = time.time()
+        self._init_run()
+        #self._init_meta()
+        #self._init_db()
+        self._start_proc()
+        #self._start_tasks()
+        self._wait_for_proc()
+        #self._finalize_meta()
+        #self._stop_tasks()
+        #self._finalize_db()
+        return self._exit_status
+
+    def _init_run(self):
+        id = uuid.uuid1().get_hex()
+        path = os.path.join(guild.var.runs_dir(), run_id)
+        self._run = Run(id, path)
+        self._run.init_skel()
+        logging.debug("Initialized run in %s", path)
+
+    def _start_proc(self):
+        assert self._proc is None
+        assert self._rundir is not None
+        env = self.cmd_env
+        args = _resolve_cmd_args(self.cmd_args, env)
+        cwd = self._rundir.path
+        logging.debug("Starting process %s" % (args,))
+        self._proc = subprocess.Popen(args, env=env, cwd=cwd)
+        _write_proc_lock(self._proc, self._rundir.path)
+
+    def _wait_for_proc(self):
+        assert self._proc is not None
+        self._exit_status = self._proc.wait()
+        _delete_proc_lock(self._rundir.path)
+
+def _resolve_cmd_args(args, env):
+    return [_resolve_arg_env_refs(arg, env) for arg in args]
+
+def _resolve_arg_env_refs(arg, env):
+    for name, val in env.items():
+        arg = re.sub(r"\$" + name, val, arg)
+    return arg
+
+def _write_proc_lock(proc, rundir):
+    with open(rundir.guild_path("LOCK"), "w") as f:
+        f.write(str(proc.pid))
+
+def _delete_proc_lock(rundir):
+    try:
+        os.remove(rundir.guild_path("LOCK"))
+    except OSError:
+        pass
 
 def from_project_op(project_op):
     cmd_args = _python_cmd_for_project_op(project_op)
     cmd_env = {}
-    cmd_cwd = "."
-    return Operation(cmd_args, cmd_env, cmd_cwd)
+    return Operation(cmd_args, cmd_env)
 
 def _python_cmd_for_project_op(project_op):
     spec = project_op.cmd
