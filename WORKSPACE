@@ -4,10 +4,10 @@ workspace(name = "org_guildai_guild")
 
 http_archive(
     name = "io_bazel_rules_closure",
-    sha256 = "2b43d9b683ba8c34811b31cc4afebbce3cf3beae528fc678bb37e23054942b8a",
-    strip_prefix = "rules_closure-4c559574447f90751f05155faba4f3344668f666",
+    sha256 = "f73b1b3974e7639183e1646737d446d73a966ff57f853a896e19bcccc40e9b7b",
+    strip_prefix = "rules_closure-4af89ef1db659eb41f110df189b67d4cf14073e1",
     urls = [
-        "https://github.com/bazelbuild/rules_closure/archive/4c559574447f90751f05155faba4f3344668f666.tar.gz",  # 2017-06-21
+        "https://github.com/bazelbuild/rules_closure/archive/4af89ef1db659eb41f110df189b67d4cf14073e1.zip",
     ],
 )
 
