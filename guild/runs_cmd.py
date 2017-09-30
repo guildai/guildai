@@ -24,8 +24,8 @@ def _format_run(run):
 def _format_timestamp(ts):
     if not ts:
         return ""
-    struct_time = time.gmtime(float(ts))
-    return time.strftime("%Y-%m-%dT%H-%M-%SZ", struct_time)
+    struct_time = time.localtime(float(ts))
+    return time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
 
 def delete(args):
     print("TODO: delete runs %s" % (args.runs,))
