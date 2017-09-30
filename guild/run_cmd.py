@@ -44,7 +44,7 @@ def _project_for_args(args):
 
 def _missing_source_error(location):
     guild.cli.error(
-        "'%s' does not contain a MODEL (or MODELS) file\n"
+        "'%s' does not contain any models\n"
         "Try a different location or 'guild run --help' "
         "for more information."
         % location)
