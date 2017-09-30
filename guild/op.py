@@ -35,7 +35,8 @@ def _resolve_script_path(script, project_src):
     return guild.util.find_apply(
         [_explicit_path,
          _path_missing_py_ext,
-         _unmodified_path], script_path)
+         _unmodified_path],
+        script_path)
 
 def _script_path_for_project_src(script, project_src):
     project_dir = os.path.dirname(project_src)

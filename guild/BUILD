@@ -130,6 +130,7 @@ py_library(
     srcs = ["models_cmd.py"],
     deps = [
         ":cli",
+        ":cmd_support",
     ],
 )
 
@@ -154,5 +155,14 @@ py_library(
     name = "util",
     srcs = ["util.py"],
     deps = [
+    ],
+)
+
+py_library(
+    name = "cmd_support",
+    srcs = ["cmd_support.py"],
+    deps = [
+        ":project",
+        ":util",
     ],
 )

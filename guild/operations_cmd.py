@@ -1,34 +1,19 @@
 import os
 
 import guild.cli
+import guild.cmd_support
 import guild.project
 
 DEFAULT_PROJECT_LOCATION = "."
 
 def main(args):
-    location = args.project_location or DEFAULT_PROJECT_LOCATION
-    try:
-        project = guild.project.from_file_or_dir(location)
-    except (guild.project.MissingSourceError, IOError):
-        _no_such_project_error(args)
-    else:
-        guild.cli.table(
-            [_format_op(op) for op in _iter_ops(project, args)],
-            cols=["full_name", "description"],
-            detail=(["cmd"] if args.verbose else []))
-
-def _no_such_project_error(args):
-    if not args.project_location:
-        guild.cli.error(
-            "the current directory does not contain a MODEL (or MODELS) file\n"
-            "Try specifying a project location or "
-            "'guild operations --help' for more information.")
-    else:
-        guild.cli.error(
-            "'%s' does not contain a MODEL (or MODELS) file\n"
-            "Try a different location or 'guild operations --help' "
-            "for more information."
-            % args.project_location)
+    project = guild.cmd_support.project_for_location(
+        args.project_location,
+        "guild operations --help")
+    guild.cli.table(
+        [_format_op(op) for op in _iter_ops(project, args)],
+        cols=["full_name", "description"],
+        detail=(["cmd"] if args.verbose else []))
 
 def _iter_ops(project, args):
     for model in _project_models(project, args):
