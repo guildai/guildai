@@ -11,11 +11,12 @@ def _root():
 def runs_dir():
     return path("runs")
 
-def list_runs(root=None, sort=None, filter=None):
+def runs(root=None, sort=None, filter=None):
     root = root or runs_dir()
     filter_run = _run_filter(filter)
     runs = [run for run in _all_runs(root) if filter_run(run)]
-    runs.sort(_runs_cmp(sort))
+    if sort:
+        runs.sort(_runs_cmp(sort))
     return runs
 
 def _run_filter(f):
@@ -62,10 +63,7 @@ def _iter_dirs(root):
             yield name, path
 
 def _runs_cmp(sort):
-    if sort is None:
-        return lambda x, y: cmp(x.id, y.id)
-    else:
-        return lambda x, y: _run_cmp(x, y, sort)
+    return lambda x, y: _run_cmp(x, y, sort)
 
 def _run_cmp(x, y, sort):
     for attr in sort:
@@ -82,7 +80,7 @@ def _run_attr_cmp(x, y, attr):
         return cmp(_run_attr(x, attr), _run_attr(y, attr))
 
 def _run_attr(run, name):
-    if name in ["id", "short_id"]:
+    if name in guild.run.Run.__properties__:
         return getattr(run, name)
     else:
         return run.get(name)

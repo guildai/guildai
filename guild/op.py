@@ -1,11 +1,13 @@
 import logging
 import os
 import shlex
+import subprocess
 import time
 import uuid
 
 import guild.run
 import guild.util
+import guild.var
 
 class InvalidCmdSpec(ValueError):
     pass
@@ -38,17 +40,17 @@ class Operation(object):
 
     def _init_run(self):
         id = uuid.uuid1().get_hex()
-        path = os.path.join(guild.var.runs_dir(), run_id)
-        self._run = Run(id, path)
+        path = os.path.join(guild.var.runs_dir(), id)
+        self._run = guild.run.Run(id, path)
         self._run.init_skel()
         logging.debug("Initialized run in %s", path)
 
     def _start_proc(self):
         assert self._proc is None
-        assert self._rundir is not None
+        assert self._run is not None
         env = self.cmd_env
         args = _resolve_cmd_args(self.cmd_args, env)
-        cwd = self._rundir.path
+        cwd = self._run.path
         logging.debug("Starting process %s" % (args,))
         self._proc = subprocess.Popen(args, env=env, cwd=cwd)
         _write_proc_lock(self._proc, self._rundir.path)

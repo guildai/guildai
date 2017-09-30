@@ -41,11 +41,11 @@ For testing purposes, we'll create a set of objects that mimic the
     ...     return self.attrs.get(name)
 
     >>> runs = [
-    ...   Run("a", {"op": "train", "status": "0"}),
-    ...   Run("b", {"op": "train", "status": "1"}),
-    ...   Run("c", {"op": "test", "status": "0"}),
+    ...   Run("a", {"op": "train", "exit_status": "0"}),
+    ...   Run("b", {"op": "train", "exit_status": "1"}),
+    ...   Run("c", {"op": "test", "exit_status": "0"}),
     ...   Run("d", {"op": "train"}),
-    ...   Run("e", {"op": "train", "status": "0"}),
+    ...   Run("e", {"op": "train", "exit_status": "0"}),
     ... ]
 
 Next we'll create a function that will filter a list of runs given a
@@ -60,22 +60,22 @@ filter spec:
     >>> filter_runs(None)
     [<Run 'a'>, <Run 'b'>, <Run 'c'>, <Run 'd'>, <Run 'e'>]
 
-### status is "0"
+### exit_status is "0"
 
-    >>> filter_runs([("status", "0")])
+    >>> filter_runs([("exit_status", "0")])
     [<Run 'a'>, <Run 'c'>, <Run 'e'>]
 
-### status is not "0"
+### exit_status is not "0"
 
-    >>> filter_runs([("status", "!=", "0")])
+    >>> filter_runs([("exit_status", "!=", "0")])
     [<Run 'b'>, <Run 'd'>]
 
-### op is "train" and status is "0"
+### op is "train" and exit_status is "0"
 
-    >>> filter_runs([("op", "train"), ("status", "0")])
+    >>> filter_runs([("op", "train"), ("exit_status", "0")])
     [<Run 'a'>, <Run 'e'>]
 
-### op is "train" and status is not "0"
+### op is "train" and exit_status is not "0"
 
-    >>> filter_runs([("op", "train"), ("status", "!=", "0")])
+    >>> filter_runs([("op", "train"), ("exit_status", "!=", "0")])
     [<Run 'b'>, <Run 'd'>]

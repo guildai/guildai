@@ -14,3 +14,11 @@ def ensure_dir(d):
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
+
+def pid_exists(pid):
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
