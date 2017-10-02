@@ -5,6 +5,7 @@ py_library(
     deps = [
         ":op",
         ":project",
+        ":plugins",
         ":runs",
         ":tables",
         ":var",
@@ -17,6 +18,15 @@ py_library(
     deps = [
         "//guild:op",
         "//guild:project",
+    ],
+)
+
+py_library(
+    name = "plugins",
+    data = ["plugins.md"],
+    deps = [
+        "//guild/plugins",
+        "//guild:plugin",
     ],
 )
 

@@ -178,3 +178,10 @@ py_library(
          ":util",
     ],
 )
+
+py_library(
+    name = "plugin",
+    srcs = ["plugin.py"],
+    deps = [
+    ],
+)
