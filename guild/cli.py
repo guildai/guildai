@@ -93,12 +93,12 @@ def error(msg=None, exit_status=1):
 def out(s, **kw):
     click.echo(s, **kw)
 
-def table(data, cols, sort=None, detail=None):
+def table(data, cols, sort=None, detail=None, indent=0, err=False):
     data = sorted(data, _data_cmp(sort))
     formatted = _format_data(data, cols + (detail or []))
     col_info = _col_info(formatted, cols)
     for item in formatted:
-        _item_out(item, cols, col_info, detail)
+        _item_out(item, cols, col_info, detail, indent, err)
 
 def _data_cmp(sort):
     if sort is None:
@@ -140,15 +140,30 @@ def _col_info(data, cols):
             coli["width"] = max(coli.get("width", 0), len(item[col]))
     return info
 
-def _item_out(item, cols, col_info, detail):
+def _item_out(item, cols, col_info, detail, indent, err):
+    indent_padding = " " * indent
+    click.echo(indent_padding, nl=False, err=err)
     for i, col in enumerate(cols):
         val = item[col]
         last_col = i == len(cols) - 1
         padded = _pad_col_val(val, col, col_info) if not last_col else val
-        click.echo(padded, nl=False)
-    click.echo("")
+        click.echo(padded, nl=False, err=err)
+    click.echo(err=err)
     for key in (detail or []):
-        click.echo("  %s: %s" % (key, item[key]))
+        click.echo(indent_padding, nl=False, err=err)
+        click.echo("  %s: %s" % (key, item[key]), err=err)
 
 def _pad_col_val(val, col, col_info):
     return val.ljust(col_info[col]["width"] + TABLE_COL_SPACING)
+
+def confirm(prompt):
+    click.echo(prompt, nl=False)
+    click.echo(" (y/N) ", nl=False)
+    c = input()
+    return c.lower() in ["y", "yes"]
+
+def input(prompt=""):
+    try:
+        return raw_input(prompt)
+    except NameError:
+        return input(prompt)

@@ -118,6 +118,7 @@ py_library(
     srcs = ["var.py"],
     deps = [
         ":run",
+        ":util",
     ],
 )
 

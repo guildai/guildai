@@ -1,6 +1,8 @@
 import os
+import shutil
 
 import guild.run
+import guild.util
 
 def path(subpath):
     return os.path.join(_root(), subpath)
@@ -78,3 +80,16 @@ def _run_attr(run, name):
         return getattr(run, name)
     else:
         return run.get(name)
+
+def delete_runs(runs):
+    for run in runs:
+        src = os.path.join(runs_dir(), run.id)
+        dest = os.path.join(trash_dir(), "runs", run.id)
+        _move_file(src, dest)
+
+def trash_dir():
+    return path("trash")
+
+def _move_file(src, dest):
+    guild.util.ensure_dir(os.path.dirname(dest))
+    shutil.move(src, dest)

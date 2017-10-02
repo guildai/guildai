@@ -37,6 +37,10 @@ class Args(object):
         for name in kw:
             setattr(self, name, kw[name])
 
+def append_params(fn, params):
+    fn.__click_params__ = getattr(fn, "__click_params__", [])
+    fn.__click_params__[:0] = reversed(params)
+
 ###################################################################
 # check command
 ###################################################################
@@ -199,7 +203,33 @@ class RunsGroup(click.Group):
             cmd_name = "list, ls"
         return super(RunsGroup, self).get_command(ctx, cmd_name)
 
+def runs_filter_options(fn):
+    append_params(fn, [
+        click.Option(
+            ("-p", "--project", "project_location"),
+            help=("Project location (file system directory) for filtering "
+                  "runs."),
+            metavar="LOCATION"),
+        click.Option(
+            ("-a", "--all"),
+            help=("Apply filter to all runs rather than limit to runs "
+                  "associated with a project location. Ignores LOCATION."),
+            is_flag=True),
+    ])
+    return fn
+
+def runs_list_options(fn):
+    runs_filter_options(fn)
+    append_params(fn, [
+        click.Option(
+            ("-v", "--verbose"),
+            help="Show run details.",
+            is_flag=True),
+    ])
+    return fn
+
 @click.group(invoke_without_command=True, cls=RunsGroup)
+@runs_list_options
 @click.pass_context
 
 def runs(ctx, **kw):
@@ -210,7 +240,7 @@ def runs(ctx, **kw):
     the 'list' command explicitly.
     """
     if not ctx.invoked_subcommand:
-        ctx.invoke(list_runs)
+        ctx.invoke(list_runs, **kw)
 
 cli.add_command(runs)
 
@@ -219,16 +249,7 @@ cli.add_command(runs)
 ###################################################################
 
 @click.command("list, ls")
-@click.option(
-    "-p", "--project", "project_location",
-    help="Project location (file system directory) to list runs.",
-    metavar="LOCATION")
-@click.option(
-    "-a", "--all",
-    help=("Show runs for all models rather than just models for a project. "
-          "Ignores LOCATION."),
-    is_flag=True)
-@click.option("-v", "--verbose", help="Show run details.", is_flag=True)
+@runs_list_options
 
 def list_runs(**kw):
     """List runs.
@@ -249,12 +270,16 @@ runs.add_command(list_runs)
 
 @click.command("delete, rm")
 @click.argument("runs", metavar="RUN [RUN...]", nargs=-1, required=True)
+@runs_filter_options
+@click.option("--yes", help="Do not prompt before deleting.", is_flag=True)
 
 def delete_runs(**kw):
     """Delete one or more runs.
+
+    RUN may be a run ID
     """
     import guild.runs_cmd
-    guild.runs_cmd.delete(Args(kw))
+    guild.runs_cmd.delete_runs(Args(kw))
 
 runs.add_command(delete_runs)
 
