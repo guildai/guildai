@@ -93,9 +93,9 @@ def error(msg=None, exit_status=1):
 def out(s, **kw):
     click.echo(s, **kw)
 
-def table(data, cols, sort=None, detail=[]):
+def table(data, cols, sort=None, detail=None):
     data = sorted(data, _data_cmp(sort))
-    formatted = _format_data(data, cols + detail)
+    formatted = _format_data(data, cols + (detail or []))
     col_info = _col_info(formatted, cols)
     for item in formatted:
         _item_out(item, cols, col_info, detail)
@@ -147,7 +147,7 @@ def _item_out(item, cols, col_info, detail):
         padded = _pad_col_val(val, col, col_info) if not last_col else val
         click.echo(padded, nl=False)
     click.echo("")
-    for key in detail:
+    for key in (detail or []):
         click.echo("  %s: %s" % (key, item[key]))
 
 def _pad_col_val(val, col, col_info):

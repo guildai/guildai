@@ -195,26 +195,53 @@ class RunsGroup(click.Group):
     def get_command(self, ctx, cmd_name):
         if cmd_name in ["delete", "rm"]:
             cmd_name = "delete, rm"
+        elif cmd_name in ["list", "ls"]:
+            cmd_name = "list, ls"
         return super(RunsGroup, self).get_command(ctx, cmd_name)
 
 @click.group(invoke_without_command=True, cls=RunsGroup)
-@click.option(
-    "-v", "--verbose",
-    help="Show run details.",
-    is_flag=True)
 @click.pass_context
 
 def runs(ctx, **kw):
     """Show or manage runs.
 
-    Shows runs by default. Use one of the commands below to manage
-    runs.
+    By default lists runs for models defined in a project (equivalent
+    to 'guild runs list'). For the complete list functionality, use
+    the 'list' command explicitly.
     """
     if not ctx.invoked_subcommand:
-        import guild.runs_cmd
-        guild.runs_cmd.list(Args(kw))
+        ctx.invoke(list_runs)
 
 cli.add_command(runs)
+
+###################################################################
+# runs list command
+###################################################################
+
+@click.command("list, ls")
+@click.option(
+    "-p", "--project", "project_location",
+    help="Project location (file system directory) to list runs.",
+    metavar="LOCATION")
+@click.option(
+    "-a", "--all",
+    help=("Show runs for all models rather than just models for a project. "
+          "Ignores LOCATION."),
+    is_flag=True)
+@click.option("-v", "--verbose", help="Show run details.", is_flag=True)
+
+def list_runs(**kw):
+    """List runs.
+
+    By default lists runs for models defined in the current
+    project. To specify a different project, use the --project option.
+
+    To list all runs, specify the --all option.
+    """
+    import guild.runs_cmd
+    guild.runs_cmd.list_runs(Args(kw))
+
+runs.add_command(list_runs)
 
 ###################################################################
 # runs delete command
@@ -224,7 +251,8 @@ cli.add_command(runs)
 @click.argument("runs", metavar="RUN [RUN...]", nargs=-1, required=True)
 
 def delete_runs(**kw):
-    """Delete one or more runs. Alternatively, use 'rm'."""
+    """Delete one or more runs.
+    """
     import guild.runs_cmd
     guild.runs_cmd.delete(Args(kw))
 

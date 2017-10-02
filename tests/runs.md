@@ -39,9 +39,56 @@ Sort by date, latest first:
      ('7d145216', '1506790401'),
      ('360192fd', '1506790385')]
 
-We can also filter runs. Here are runs that have an exit code of 0
-(i.e. ran successfully to completion):
+## Run filters
+
+We can filter runs by specifying a `filter` argument to the `runs`
+function. A filter is a function that takes a run as a single argument
+and returns True if the run should be returned or False if it should
+not be returned.
+
+Here we'll filter runs with an exist_status of "0" (i.e. run
+successfully to completion):
 
     >>> [(run.short_id, run["exit_status"])
-    ...  for run in runs(filter=[("exit_status", "0")])]
+    ...  for run in runs(filter=lambda r: r.get("exit_status") == "0")]
     [('42803252', '0')]
+
+`guild.var` provides a helper function that returns various named
+filters:
+
+- attr - true if a run attribute matches an expected value
+- all - true if all filters are true
+- any - true if any filters are true
+
+Filter names may be preceded by '!' to negate them.
+
+Here is the same filter as above, but using `run_filter`:
+
+    >>> filter = guild.var.run_filter("attr", "exit_status", "0")
+    >>> [(run.short_id, run["exit_status"]) for run in runs(filter=filter)]
+    [('42803252', '0')]
+
+Here's a list of runs with an exit_status not equals to "0":
+
+    >>> filter = guild.var.run_filter("!attr", "exit_status", "0")
+    >>> [(run.short_id, run.get("exit_status")) for run in runs(filter=filter)]
+    [('360192fd', None), ('7d145216', '1')]
+
+Runs with op equal to "mnist:evaluate" and exit_status equal to "0"
+(i.e. successful evaluate operations):
+
+    >>> filter = guild.var.run_filter(
+    ...   "all",
+    ...   [guild.var.run_filter("attr", "op", "mnist:evaluate"),
+    ...    guild.var.run_filter("attr", "exit_status", "0")])
+    >>> [(run.short_id, run.get("exit_status")) for run in runs(filter=filter)]
+    [('42803252', '0')]
+
+Runs with exit_status equal to "0" or "1":
+
+    >>> filter = guild.var.run_filter(
+    ...   "any",
+    ...   [guild.var.run_filter("attr", "exit_status", "0"),
+    ...    guild.var.run_filter("attr", "exit_status", "1")])
+    >>> [(run.short_id, run.get("exit_status")) for run in runs(filter=filter)]
+    [('42803252', '0'), ('7d145216', '1')]

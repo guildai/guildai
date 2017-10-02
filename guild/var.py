@@ -13,42 +13,32 @@ def runs_dir():
 
 def runs(root=None, sort=None, filter=None):
     root = root or runs_dir()
-    filter_run = _run_filter(filter)
-    runs = [run for run in _all_runs(root) if filter_run(run)]
+    filter = filter or (lambda _: True)
+    runs = [run for run in _all_runs(root) if filter(run)]
     if sort:
         runs.sort(_runs_cmp(sort))
     return runs
 
-def _run_filter(f):
-    if f is None:
-        return _run_filter_true()
-    if isinstance(f, list):
-        return _run_filter_all(f)
-    elif isinstance(f, tuple):
-        if len(f) == 2:
-            return _run_filter_equals(f)
-        elif len(f) == 3:
-            return _run_filter_cond(f)
-    raise ValueError(f)
-
-def _run_filter_all(l):
-    return lambda x: all([_run_filter(f)(x) for f in l])
-
-def _run_filter_equals(f):
-    attr, val = f
-    return lambda x: _run_attr(x, attr) == val
-
-def _run_filter_cond(f):
-    attr, cond, val = f
-    if cond == "=":
-        return lambda x: _run_attr(x, attr) == val
-    elif cond == "!=":
-        return lambda x: _run_attr(x, attr) != val
+def run_filter(name, *args):
+    if name.startswith("!"):
+        name = name[1:]
+        maybe_negate = lambda f: lambda r: not f(r)
     else:
-        raise ValueError(f)
-
-def _run_filter_true():
-    return lambda _: True
+        maybe_negate = lambda f: lambda r: f(r)
+    if name == "true":
+        filter = lambda _: True
+    elif name == "attr":
+        name, expected = args
+        filter = lambda r: _run_attr(r, name) == expected
+    elif name == "all":
+        filters, = args
+        filter = lambda r: all([f(r) for f in filters])
+    elif name == "any":
+        filters, = args
+        filter = lambda r: any([f(r) for f in filters])
+    else:
+        raise ValueError(name)
+    return maybe_negate(filter)
 
 def _all_runs(root):
     return [

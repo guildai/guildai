@@ -83,6 +83,7 @@ py_library(
     srcs = ["runs_cmd.py"],
     deps = [
         ":cli",
+        ":cmd_support",
         ":var",
     ],
 )
