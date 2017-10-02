@@ -30,13 +30,9 @@ class Operation(object):
         self._started = int(time.time())
         self._init_run()
         self._init_attrs()
-        #self._init_db()
         self._start_proc()
-        #self._start_tasks()
         self._wait_for_proc()
         self._finalize_attrs()
-        #self._stop_tasks()
-        #self._finalize_db()
         return self._exit_status
 
     def _init_run(self):
