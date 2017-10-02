@@ -1,7 +1,7 @@
 import guild.cli
 import guild.config
 
-def list(_args):
+def list_sources(_args):
     sources = guild.config.sources()
     guild.cli.table(sources, ["name", "source"])
 

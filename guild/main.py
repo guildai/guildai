@@ -291,7 +291,7 @@ def sources(ctx, **kw):
     """
     if not ctx.invoked_subcommand:
         import guild.sources_cmd
-        guild.sources_cmd.list(Args(kw))
+        guild.sources_cmd.list_sources(Args(kw))
 
 cli.add_command(sources)
 
