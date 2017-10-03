@@ -11,7 +11,7 @@ def main():
         special_import_paths(root) +
         module_space_import_paths(root)
     )
-    sys.path.extend(import_paths)
+    sys.path[:0] = import_paths
     import guild.main
     guild.main.main()
 
