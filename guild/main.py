@@ -441,11 +441,13 @@ def train(**kw):
 
     You may omit MODEL (i.e. for training the default model) while
     providing one or more ARG values provided the first ARG value
-    contains an equals sign ('='). When specifying a boolean flag in
-    such cases, use 'NAME=true'.
+    contains an equals sign ('='). When specifying a switch (i.e. an
+    argument that doesn't accept a value) as the first ARG, you must
+    provide MODEL.
 
     Refer to help for the run command ('guild run --help') for more
     information.
+
     """
     import guild.run_cmd
     args = Args(kw)

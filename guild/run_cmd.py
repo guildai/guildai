@@ -10,6 +10,7 @@ def main(args):
     model_name, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_name, args)
     project_op = _resolve_op(op_name, model)
+    _apply_flags(args, project_op)
     op = guild.op.from_project_op(project_op)
     if args.yes or _confirm_op(op):
         op.run()
@@ -111,8 +112,54 @@ def _no_such_operation_error(name, model):
         "Try 'guild operations %s%s' for a list of available operations."
         % (name, model.name, model.name, _project_opt(model.project.src)))
 
+def _apply_flags(args, op):
+    for arg in args.args:
+        name, val = _parse_flag(arg)
+        op.flags[name] = val
+
+def _parse_flag(s):
+    parts = s.split("=", 1)
+    if len(parts) == 1:
+        return parts[0], None
+    else:
+        return parts
+
 def _confirm_op(op):
-    return guild.cli.confirm(
-        "You are about to run %s\nContinue?"
-        % op.project_op.full_name,
-        default=True)
+    flags = _op_flags(op)
+    if flags:
+        prompt = (
+            "You are about to run %s with the following flags:\n"
+            "%s\n"
+            "Continue?"
+            % (op.name, _format_op_flags(flags)))
+    else:
+        prompt = (
+            "You are about to run %s:\n"
+            "Continue?" % op.name)
+    return guild.cli.confirm(prompt, default=True)
+
+def _op_flags(op):
+    flags = []
+    args = op.cmd_args
+    i = 1
+    while i < len(args):
+        cur_arg = args[i]
+        i = i + 1
+        next_arg = args[i] if i < len(args) else None
+        if cur_arg[0:2] == "--":
+            if next_arg and next_arg[0:2] != "--":
+                flags.append((cur_arg[2:], next_arg))
+                i = i + 1
+            else:
+                flags.append((cur_arg[2:], None))
+    return flags
+
+def _format_op_flags(flags):
+    return "\n".join(["  %s" % _format_flag(name, val)
+                      for name, val in flags])
+
+def _format_flag(name, val):
+    if val is None:
+        return "%s: (boolean switch)" % name
+    else:
+        return "%s: %s" % (name, val)
