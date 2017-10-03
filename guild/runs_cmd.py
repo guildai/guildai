@@ -62,9 +62,9 @@ def _format_timestamp(ts):
     struct_time = time.localtime(float(ts))
     return time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
 
-def delete_runs(args):
-    runs = _runs_for_args(args, "delete")
-    selected = _selected_runs(runs, args.runs)
+def delete_runs(args, ctx):
+    runs = _runs_for_args(args, ctx)
+    selected = _selected_runs(runs, args.runs, ctx)
     if not selected:
         _no_selected_runs_error()
     formatted = [_format_run(run) for run in selected]
@@ -76,18 +76,18 @@ def delete_runs(args):
         guild.var.delete_runs(selected)
         guild.cli.out("Deleted %i run(s)" % len(selected))
 
-def _selected_runs(all_runs, selected_specs):
+def _selected_runs(all_runs, selected_specs, cmd_ctx):
     selected = []
     for spec in selected_specs:
         try:
             slice_start, slice_end = _parse_slice(spec)
         except ValueError:
-            selected.append(_find_run_by_id(spec, all_runs))
+            selected.append(_find_run_by_id(spec, all_runs, cmd_ctx))
         else:
             if _in_range(slice_start, slice_end, all_runs):
                 selected.extend(all_runs[slice_start:slice_end])
             else:
-                selected.append(_find_run_by_id(spec, all_runs))
+                selected.append(_find_run_by_id(spec, all_runs, cmd_ctx))
     return selected
 
 def _parse_slice(spec):
@@ -102,28 +102,28 @@ def _parse_slice(spec):
                 pass
         raise ValueError(spec)
     else:
-        return index, index + 1
+        return index, 1
 
 def _slice_part(s):
     return None if s is None else int(s)
 
-def _find_run_by_id(id_part, runs):
+def _find_run_by_id(id_part, runs, cmd_ctx):
     matches = []
     for run in runs:
         if run.id.startswith(id_part):
             matches.append(run)
     if len(matches) == 0:
-        _no_matching_run_error(id_part)
+        _no_matching_run_error(id_part, cmd_ctx)
     elif len(matches) > 1:
         _non_unique_run_id_error(matches)
     else:
         return matches[0]
 
-def _no_matching_run_error(id_part):
+def _no_matching_run_error(id_part, cmd_ctx):
     guild.cli.error(
         "could not find run matching '%s'\n"
-        "Try 'guild runs list' to list available runs."
-        % id_part)
+        "Try 'guild runs list' for a list or '%s' for more information."
+        % (id_part, guild.cli.ctx_cmd_help(cmd_ctx)))
 
 def _non_unique_run_id_error(matches):
     guild.cli.out("'%s' matches multiple runs:\n", err=True)
@@ -131,10 +131,10 @@ def _non_unique_run_id_error(matches):
     cols = ["id", "op", "started", "status"]
     guild.cli.table(formatted, cols=cols, err=True)
 
-def _in_range(start, end, l):
+def _in_range(start, count, l):
     return (
         start is None or start >= 0 and
-        end is None or end < len(l))
+        count is None or (start + count) <= len(l))
 
 def _no_selected_runs_error():
     guild.cli.error(
@@ -143,7 +143,7 @@ def _no_selected_runs_error():
 
 def restore_runs(args, ctx):
     runs = _runs_for_args(args, ctx, force_deleted=True)
-    selected = _selected_runs(runs, args.runs)
+    selected = _selected_runs(runs, args.runs, ctx)
     if not selected:
         _no_selected_runs_error()
     formatted = [_format_run(run) for run in selected]

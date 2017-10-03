@@ -20,5 +20,5 @@ def remove_source(args):
     except guild.config.SourceNameError:
         guild.cli.error(
             "source '%s' does not exist\n"
-            "Try 'guild sources' to list package sources."
+            "Try 'guild sources' for a list."
             % args.name)

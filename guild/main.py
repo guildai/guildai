@@ -296,11 +296,12 @@ Delete one or more runs.
     "-y", "--yes",
     help="Do not prompt before deleting.",
     is_flag=True)
+@click.pass_context
 
-def delete_runs(**kw):
+def delete_runs(ctx, **kw):
     # Help defined in command decorator.
     import guild.runs_cmd
-    guild.runs_cmd.delete_runs(Args(kw))
+    guild.runs_cmd.delete_runs(Args(kw), ctx)
 
 runs.add_command(delete_runs)
 
