@@ -64,9 +64,10 @@ def _project_args(args, ctx):
     return guild.cmd_support.project_for_location(args.project_location, ctx)
 
 def _apply_status_filter(args, filters):
-    if not args.status:
+    status = getattr(args, "status", None)
+    if not status:
         return
-    if args.status == "stopped":
+    if status == "stopped":
         # Special case, filter on any of "terminated" or "error"
         filters.append(
             guild.var.run_filter("any", [
@@ -75,7 +76,7 @@ def _apply_status_filter(args, filters):
             ]))
     else:
         filters.append(
-            guild.var.run_filter("attr", "extended_status", args.status))
+            guild.var.run_filter("attr", "extended_status", status))
 
 def _format_run(run, index=None):
     return {

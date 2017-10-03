@@ -20,6 +20,7 @@ py_library(
         ":runs_cmd",
         ":shell_cmd",
         ":sources_cmd",
+        ":tensorboard_cmd",
     ]
 )
 
@@ -184,6 +185,13 @@ py_library(
 py_library(
     name = "plugin",
     srcs = ["plugin.py"],
+    deps = [
+    ],
+)
+
+py_library(
+    name = "tensorboard_cmd",
+    srcs = ["tensorboard_cmd.py"],
     deps = [
     ],
 )

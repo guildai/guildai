@@ -14,6 +14,8 @@ class CLIGroup(click.Group):
     def get_command(self, ctx, cmd_name):
         if cmd_name in ["operations", "ops"]:
             cmd_name = "operations, ops"
+        elif cmd_name in ["tensorboard", "tb"]:
+            cmd_name = "tensorboard, tb"
         return super(CLIGroup, self).get_command(ctx, cmd_name)
 
 @click.group(cls=CLIGroup)
@@ -531,3 +533,19 @@ def train(**kw):
     guild.run_cmd.main(args)
 
 cli.add_command(train)
+
+###################################################################
+# tensorboard command
+###################################################################
+
+@click.command("tensorboard, tb")
+@runs_filter_options(status_filters=False)
+@click.pass_context
+
+def tensorboard(ctx, **kw):
+    """Start TensorBoard to view runs.
+    """
+    import guild.tensorboard_cmd
+    guild.tensorboard_cmd.main(Args(kw), ctx)
+
+cli.add_command(tensorboard)
