@@ -370,8 +370,9 @@ cli.add_command(sources)
 @click.command("add")
 @click.argument("name")
 @click.argument("source")
+@click.pass_context
 
-def add_source(**kw):
+def add_source(ctx, **kw):
     """Add a package source.
 
     NAME must be a unique source identifier for this system. Use
@@ -389,7 +390,7 @@ def add_source(**kw):
     development.
     """
     import guild.sources_cmd
-    guild.sources_cmd.add(Args(kw))
+    guild.sources_cmd.add_source(Args(kw), ctx)
 
 sources.add_command(add_source)
 
@@ -406,6 +407,6 @@ def remove_source(**kw):
     Use 'guild sources' for a list of package sources.
     """
     import guild.sources_cmd
-    guild.sources_cmd.remove(Args(kw))
+    guild.sources_cmd.remove_source(Args(kw))
 
 sources.add_command(remove_source)
