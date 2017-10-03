@@ -146,8 +146,11 @@ cli.add_command(operations)
 @click.option(
     "-p", "--project", "project_location",
     help="Project location (file system directory) for MODEL.",
-    metavar="LOCATION"
-)
+    metavar="LOCATION")
+@click.option(
+    "-y", "--yes",
+    help="Do not prompt before running operation.",
+    is_flag=True)
 @click.option(
     "--noinstall",
     help="Don't attempt to install MODEL if not found.",
