@@ -13,7 +13,8 @@ def main(args):
     _apply_flags(args, project_op)
     op = guild.op.from_project_op(project_op)
     if args.yes or _confirm_op(op):
-        op.run()
+        result = op.run()
+        _handle_run_result(result)
 
 def _parse_opspec(spec):
     parts = spec.split(":", 1)
@@ -163,3 +164,7 @@ def _format_flag(name, val):
         return "%s: (boolean switch)" % name
     else:
         return "%s: %s" % (name, val)
+
+def _handle_run_result(exit_status):
+    if exit_status != 0:
+        guild.cli.error(exit_status=exit_status)
