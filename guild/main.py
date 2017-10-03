@@ -216,10 +216,31 @@ def runs_filter_options(fn):
                   "runs."),
             metavar="LOCATION"),
         click.Option(
-            ("-a", "--all"),
-            help=("Apply filter to all runs rather than limit to runs "
+            ("-S", "--system"),
+            help=("Apply filter runs system wide rather than limit to runs "
                   "associated with a project location. Ignores LOCATION."),
             is_flag=True),
+        click.Option(
+            ("-r", "--running", "status"),
+            help="Show only runs that are still running.",
+            flag_value="running"),
+        click.Option(
+            ("-c", "--completed", "status"),
+            help="Show only completed runs.",
+            flag_value="completed"),
+        click.Option(
+            ("-s", "--stopped", "status"),
+            help=("Show only runs that exited with an error or were "
+                  "terminated by the user."),
+            flag_value="stopped"),
+        click.Option(
+            ("-e", "--error", "status"),
+            help="Show only runs that exited with an error.",
+            flag_value="error"),
+        click.Option(
+            ("-t", "--terminated", "status"),
+            help="Show only runs terminated by the user.",
+            flag_value="terminated"),
     ])
     return fn
 

@@ -24,10 +24,11 @@ def _runs_root_for_args(args, force_deleted):
 def _runs_filter(args, ctx):
     filters = []
     _apply_project_models_filter(args, filters, ctx)
+    _apply_status_filter(args, filters)
     return guild.var.run_filter("all", filters)
 
 def _apply_project_models_filter(args, filters, ctx):
-    if args.all:
+    if args.system:
         _maybe_warn_project_location_ignored(args)
     else:
         project = _project_args(args, ctx)
@@ -40,11 +41,25 @@ def _model_filter(model):
 def _maybe_warn_project_location_ignored(args):
     if args.project_location:
         guild.cli.out(
-            "--all option specified, ignoring project location",
+            "Warning: --system option specified, ignoring project location",
             err=True)
 
 def _project_args(args, ctx):
     return guild.cmd_support.project_for_location(args.project_location, ctx)
+
+def _apply_status_filter(args, filters):
+    if not args.status:
+        return
+    if args.status == "stopped":
+        # Special case, filter on any of "terminated" or "error"
+        filters.append(
+            guild.var.run_filter("any", [
+                guild.var.run_filter("attr", "extended_status", "terminated"),
+                guild.var.run_filter("attr", "extended_status", "error"),
+            ]))
+    else:
+        filters.append(
+            guild.var.run_filter("attr", "extended_status", args.status))
 
 def _format_run(run):
     return {
