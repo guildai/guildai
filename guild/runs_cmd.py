@@ -5,27 +5,32 @@ import guild.cli
 import guild.cmd_support
 import guild.var
 
-def list_runs(args):
-    runs = [_format_run(run) for run in _runs_for_args(args, "list")]
+def list_runs(args, ctx):
+    runs = [_format_run(run) for run in _runs_for_args(args, ctx)]
     cols = ["id", "op", "started", "status"]
     detail = ["pid", "stopped"] if args.verbose else None
     guild.cli.table(runs, cols=cols, detail=detail)
 
-def _runs_for_args(args, context_cmd):
+def _runs_for_args(args, ctx, force_deleted=False):
     return guild.var.runs(
+        _runs_root_for_args(args, force_deleted),
         sort=["-started"],
-        filter=_runs_filter(args, context_cmd))
+        filter=_runs_filter(args, ctx))
 
-def _runs_filter(args, context_cmd):
+def _runs_root_for_args(args, force_deleted):
+    deleted = force_deleted or getattr(args, "deleted", False)
+    return guild.var.runs_dir(deleted=deleted)
+
+def _runs_filter(args, ctx):
     filters = []
-    _apply_project_models_filter(args, filters, context_cmd)
+    _apply_project_models_filter(args, filters, ctx)
     return guild.var.run_filter("all", filters)
 
-def _apply_project_models_filter(args, filters, context_cmd):
+def _apply_project_models_filter(args, filters, ctx):
     if args.all:
         _maybe_warn_project_location_ignored(args)
     else:
-        project = _project_args(args, context_cmd)
+        project = _project_args(args, ctx)
         model_filters = [_model_filter(model) for model in project]
         filters.append(guild.var.run_filter("any", model_filters))
 
@@ -38,10 +43,8 @@ def _maybe_warn_project_location_ignored(args):
             "--all option specified, ignoring project location",
             err=True)
 
-def _project_args(args, context_cmd):
-    return guild.cmd_support.project_for_location(
-        args.project_location,
-        "guild runs %s --help" % context_cmd)
+def _project_args(args, ctx):
+    return guild.cmd_support.project_for_location(args.project_location, ctx)
 
 def _format_run(run):
     return {
@@ -69,10 +72,10 @@ def delete_runs(args):
         guild.cli.out("You are about to delete the following runs:")
         cols = ["id", "op", "started", "status"]
         guild.cli.table(formatted, cols=cols, indent=2)
-    if guild.cli.confirm("Delete these runs?"):
+    if args.yes or guild.cli.confirm("Delete these runs?"):
         guild.var.delete_runs(selected)
         guild.cli.out("Deleted %i run(s)" % len(selected))
-    
+
 def _selected_runs(all_runs, selected_specs):
     selected = []
     for spec in selected_specs:
@@ -84,7 +87,7 @@ def _selected_runs(all_runs, selected_specs):
             if _in_range(slice_start, slice_end, all_runs):
                 selected.extend(all_runs[slice_start:slice_end])
             else:
-                selected.append(_find_run_by_id(spec, all_runs)) 
+                selected.append(_find_run_by_id(spec, all_runs))
     return selected
 
 def _parse_slice(spec):
@@ -97,7 +100,7 @@ def _parse_slice(spec):
                 return _slice_part(m.group(1)), _slice_part(m.group(2))
             except ValueError:
                 pass
-        raise ValueError(spec)    
+        raise ValueError(spec)
     else:
         return index, index + 1
 
@@ -137,3 +140,17 @@ def _no_selected_runs_error():
     guild.cli.error(
         "no matching runs\n"
         "Try 'guild runs list' to list available runs.")
+
+def restore_runs(args, ctx):
+    runs = _runs_for_args(args, ctx, force_deleted=True)
+    selected = _selected_runs(runs, args.runs)
+    if not selected:
+        _no_selected_runs_error()
+    formatted = [_format_run(run) for run in selected]
+    if not args.yes:
+        guild.cli.out("You are about to restore the following runs:")
+        cols = ["id", "op", "started", "status"]
+        guild.cli.table(formatted, cols=cols, indent=2)
+    if args.yes or guild.cli.confirm("Restore these runs?"):
+        guild.var.restore_runs(selected)
+        guild.cli.out("Restored %i run(s)" % len(selected))

@@ -10,8 +10,14 @@ def path(subpath):
 def _root():
     return os.path.expanduser(os.path.join("~", ".guild"))
 
-def runs_dir():
-    return path("runs")
+def runs_dir(deleted=False):
+    if deleted:
+        return trash_dir("runs")
+    else:
+        return path("runs")
+
+def trash_dir(name=None):
+    return os.path.join(path("trash"), name) if name else path("trash")
 
 def runs(root=None, sort=None, filter=None):
     root = root or runs_dir()
@@ -84,12 +90,15 @@ def _run_attr(run, name):
 def delete_runs(runs):
     for run in runs:
         src = os.path.join(runs_dir(), run.id)
-        dest = os.path.join(trash_dir(), "runs", run.id)
+        dest = os.path.join(runs_dir(deleted=True), run.id)
         _move_file(src, dest)
-
-def trash_dir():
-    return path("trash")
 
 def _move_file(src, dest):
     guild.util.ensure_dir(os.path.dirname(dest))
     shutil.move(src, dest)
+
+def restore_runs(runs):
+    for run in runs:
+        src = os.path.join(runs_dir(deleted=True), run.id)
+        dest = os.path.join(runs_dir(), run.id)
+        _move_file(src, dest)

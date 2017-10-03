@@ -6,10 +6,9 @@ import guild.project
 
 DEFAULT_PROJECT_LOCATION = "."
 
-def main(args):
+def main(args, ctx):
     project = guild.cmd_support.project_for_location(
-        args.project_location,
-        "guild operations --help")
+        args.project_location, ctx)
     guild.cli.table(
         [_format_op(op) for op in _iter_ops(project, args)],
         cols=["full_name", "description"],

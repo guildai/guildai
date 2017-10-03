@@ -167,6 +167,7 @@ py_library(
     name = "cmd_support",
     srcs = ["cmd_support.py"],
     deps = [
+        ":cli",
         ":project",
         ":util",
     ],

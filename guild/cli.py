@@ -42,10 +42,17 @@ def _handle_click_exception(e, prog):
     click.echo("%s: %s" % (prog, _format_click_error_message(e)), err=True)
     if e.ctx:
         click.echo(
-            "Try '%s %s' for more information."
-            % (e.ctx.command_path, e.ctx.help_option_names[0]),
+            "Try '%s' for more information." % ctx_cmd_help(e.ctx),
             err=True)
     sys.exit(e.exit_code)
+
+def ctx_cmd_help(ctx):
+    return "%s %s" % (_normalize_command_name(ctx.command_path),
+                     ctx.help_option_names[0])
+
+def _normalize_command_name(cmd_path):
+    m = re.match("^(.+?), .+$", cmd_path)
+    return m.group(1) if m else cmd_path
 
 def _format_click_error_message(e):
     if isinstance(e, click.exceptions.MissingParameter):

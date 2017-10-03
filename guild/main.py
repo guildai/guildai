@@ -95,8 +95,9 @@ cli.add_command(check)
     "-v", "--verbose",
     help="Show model details.",
     is_flag=True)
+@click.pass_context
 
-def models(**kw):
+def models(ctx, **kw):
     """Show available models.
 
     By default Guild will show models defined in the current directory
@@ -107,7 +108,7 @@ def models(**kw):
     specified by --project, will be ignored if --installed is used.
     """
     import guild.models_cmd
-    guild.models_cmd.main(Args(kw))
+    guild.models_cmd.main(Args(kw), ctx)
 
 cli.add_command(models)
 
@@ -125,12 +126,13 @@ cli.add_command(models)
     "-v", "--verbose",
     help="Show operation details.",
     is_flag=True)
+@click.pass_context
 
-def operations(**kw):
+def operations(ctx, **kw):
     """Show model operations.
     """
     import guild.operations_cmd
-    guild.operations_cmd.main(Args(kw))
+    guild.operations_cmd.main(Args(kw), ctx)
 
 cli.add_command(operations)
 
@@ -225,6 +227,10 @@ def runs_list_options(fn):
             ("-v", "--verbose"),
             help="Show run details.",
             is_flag=True),
+        click.Option(
+            ("-d", "--deleted"),
+            help="Show deleted runs.",
+            is_flag=True),
     ])
     return fn
 
@@ -250,8 +256,9 @@ cli.add_command(runs)
 
 @click.command("list, ls")
 @runs_list_options
+@click.pass_context
 
-def list_runs(**kw):
+def list_runs(ctx, **kw):
     """List runs.
 
     By default lists runs for models defined in the current
@@ -260,7 +267,7 @@ def list_runs(**kw):
     To list all runs, specify the --all option.
     """
     import guild.runs_cmd
-    guild.runs_cmd.list_runs(Args(kw))
+    guild.runs_cmd.list_runs(Args(kw), ctx)
 
 runs.add_command(list_runs)
 
@@ -268,20 +275,56 @@ runs.add_command(list_runs)
 # runs delete command
 ###################################################################
 
-@click.command("delete, rm")
+RUN_ARG_HELP = """
+RUN may be a run ID (or the unique start of a run ID) or a
+zero-based index corresponding to a run returned by the list
+command. Indexes may also be specified in ranges in the form
+START:COUNT where START is the start index.
+"""
+
+@click.command("delete, rm", help="""
+Delete one or more runs.
+
+%s
+""" % RUN_ARG_HELP)
 @click.argument("runs", metavar="RUN [RUN...]", nargs=-1, required=True)
 @runs_filter_options
-@click.option("--yes", help="Do not prompt before deleting.", is_flag=True)
+@click.option(
+    "-y", "--yes",
+    help="Do not prompt before deleting.",
+    is_flag=True)
 
 def delete_runs(**kw):
-    """Delete one or more runs.
-
-    RUN may be a run ID
-    """
+    # Help defined in command decorator.
     import guild.runs_cmd
     guild.runs_cmd.delete_runs(Args(kw))
 
 runs.add_command(delete_runs)
+
+###################################################################
+# runs restore command
+###################################################################
+
+@click.command("restore", help="""
+Restores one or more deleted runs.
+
+%s
+""" % RUN_ARG_HELP)
+
+@click.argument("runs", metavar="RUN [RUN...]", nargs=-1, required=True)
+@runs_filter_options
+@click.option(
+    "-y", "--yes",
+    help="Do not prompt before restoring.",
+    is_flag=True)
+@click.pass_context
+
+def restore_runs(ctx, **kw):
+    # Help defined in command decorator.
+    import guild.runs_cmd
+    guild.runs_cmd.restore_runs(Args(kw), ctx)
+
+runs.add_command(restore_runs)
 
 ###################################################################
 # shell command

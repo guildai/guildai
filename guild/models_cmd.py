@@ -3,12 +3,12 @@ import guild.cmd_support
 import guild.project
 
 
-def main(args):
+def main(args, ctx):
     if args.installed:
         _maybe_ignore_project(args)
         _print_installed_models()
     else:
-        _print_project_models(args)
+        _print_project_models(args, ctx)
 
 def _maybe_ignore_project(args):
     if args.project_location:
@@ -20,10 +20,9 @@ def _maybe_ignore_project(args):
 def _print_installed_models():
     print("TODO: print installed models")
 
-def _print_project_models(args):
+def _print_project_models(args, ctx):
     project = guild.cmd_support.project_for_location(
-        args.project_location,
-        "guild models --help")
+        args.project_location, ctx)
     guild.cli.table(
         [_format_model(model) for model in project],
         cols=["name", "description"],
