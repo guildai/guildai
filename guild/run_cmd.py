@@ -114,4 +114,5 @@ def _no_such_operation_error(name, model):
 def _confirm_op(op):
     return guild.cli.confirm(
         "You are about to run %s\nContinue?"
-        % op.project_op.full_name)
+        % op.project_op.full_name,
+        default=True)

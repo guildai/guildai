@@ -163,11 +163,14 @@ def _item_out(item, cols, col_info, detail, indent, err):
 def _pad_col_val(val, col, col_info):
     return val.ljust(col_info[col]["width"] + TABLE_COL_SPACING)
 
-def confirm(prompt):
+def confirm(prompt, default=False):
     click.echo(prompt, nl=False)
-    click.echo(" (y/N) ", nl=False)
+    click.echo(" %s " % ("(Y/n)" if default else "(y/N)"), nl=False)
     c = input()
-    return c.lower() in ["y", "yes"]
+    yes_vals = ["y", "yes"]
+    if default:
+        yes_vals.append("")
+    return c.lower().strip() in yes_vals
 
 def input(prompt=""):
     try:
