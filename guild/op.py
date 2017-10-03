@@ -57,12 +57,24 @@ class Operation(object):
     def _start_proc(self):
         assert self._proc is None
         assert self._run is not None
-        env = _op_proc_env(self.cmd_env)
-        args = _resolve_cmd_args(self.cmd_args, env)
+        args = self._proc_args()
+        env = self._proc_env()
         cwd = self._run.path
         logging.debug("Starting process %s" % (args,))
         self._proc = subprocess.Popen(args, env=env, cwd=cwd)
         _write_proc_lock(self._proc, self._run)
+
+    def _proc_args(self):
+        assert self._run
+        return self.cmd_args + ["--rundir", self._run.path]
+
+    def _proc_env(self):
+        assert self._run
+        env = {}
+        env.update(self.cmd_env)
+        env.update(_op_os_env())
+        env["RUNDIR"] = self._run.path
+        return env
 
     def _wait_for_proc(self):
         assert self._proc is not None
@@ -77,20 +89,6 @@ class Operation(object):
         self._run.write_attr("exit_status", self._exit_status)
         self._run.write_attr("stopped", self._stopped)
         
-def _resolve_cmd_args(args, env):
-    return [_resolve_arg_env_refs(arg, env) for arg in args]
-
-def _resolve_arg_env_refs(arg, env):
-    for name, val in env.items():
-        arg = re.sub(r"\$" + name, val, arg)
-    return arg
-
-def _op_proc_env(cmd_env):
-    env = {}
-    env.update(cmd_env)
-    env.update(_op_os_env())
-    return env
-
 def _op_os_env():
     return {
         name: val
