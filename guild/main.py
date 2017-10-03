@@ -167,7 +167,7 @@ def run(**kw):
     If MODEL is specified, Guild will use it instead of the default
     model defined in a project.
 
-    if MODEL is specified but cannot be found in a project, either
+    If MODEL is specified but cannot be found in a project, either
     because a project is not specified, is not in the current
     directory, or MODEL is not available, Guild will look for an
     installed model matching MODEL. If found, Guild will run OPERATION
