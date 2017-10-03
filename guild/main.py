@@ -358,7 +358,6 @@ runs.add_command(restore_runs)
 @click.command("info")
 @click.argument("run", required=False)
 @runs_filter_options
-@click.option("--attrs", help="Include run attrs", is_flag=True)
 @click.option("--files", help="Include run files", is_flag=True)
 @click.pass_context
 

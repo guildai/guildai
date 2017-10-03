@@ -201,22 +201,30 @@ def run_info(args, ctx):
     out("id: %s" % run.id)
     out("operation: %s" % run.get("op", "?"))
     out("status: %s" % run.extended_status)
-    out("pid: %s" % (run.pid or "(not running)"))
     out("started: %s" % _format_timestamp(run.get("started")))
     out("stopped: %s" % _format_timestamp(run.get("stopped")))
     out("rundir: %s" % run.path)
-    if args.attrs:
-        out("attrs:")
-        for name, val in run.iter_attrs():
-            out("  %s:%s" % (name, _format_attr_val(val)))
+    out("command: %s" % _format_cmd(run.get("cmd", "")))
+    out("environ:%s" % _format_attr_val(run.get("env", "")))
+    out("exit_status: %s" % run.get("exit_status", ""))
+    out("pid: %s" % (run.pid or "(not running)"))
     if args.files:
         out("files:")
         for path in run.iter_files():
             out("  %s" % path)
+
+def _format_cmd(cmd):
+    args = cmd.split("\n")
+    return " ".join([_maybe_quote_cmd_arg(arg) for arg in args])
+
+def _maybe_quote_cmd_arg(arg):
+    return '"%s"' % arg if " " in arg else arg
 
 def _format_attr_val(s):
     parts = s.split("\n")
     if len(parts) == 1:
         return " %s" % parts[0]
     else:
-        return "\n%s" % "\n".join(["    %s" % part for part in parts])
+        return "\n%s" % "\n".join(
+            ["    %s" % part for part in parts]
+        )
