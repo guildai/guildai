@@ -5,16 +5,29 @@ import guild.cli
 import guild.cmd_support
 import guild.var
 
+RUN_DETAIL = [
+    "id",
+    "operation",
+    "status",
+    "started",
+    "stopped",
+    "rundir",
+    "command",
+    "environ",
+    "exit_status",
+    "pid",
+]
+
 def list_runs(args, ctx):
     runs = [
         _format_run(run, i)
-        for i, run in enumerate(_runs_for_args(args, ctx))
+        for i, run in enumerate(runs_for_args(args, ctx))
     ]
-    cols = ["id", "op", "started", "status"]
-    detail = ["pid", "stopped"] if args.verbose else None
+    cols = ["index", "operation", "started", "status"]
+    detail = RUN_DETAIL if args.verbose else None
     guild.cli.table(runs, cols=cols, detail=detail)
 
-def _runs_for_args(args, ctx, force_deleted=False):
+def runs_for_args(args, ctx, force_deleted=False):
     return guild.var.runs(
         _runs_root_for_args(args, force_deleted),
         sort=["-started"],
@@ -66,15 +79,20 @@ def _apply_status_filter(args, filters):
 
 def _format_run(run, index=None):
     return {
-        "id": _format_run_id(run, index),
-        "op": run.get("op", "?"),
+        "id": run.id,
+        "index": _format_run_index(run, index),
+        "operation": run.get("op", "?"),
         "status": run.extended_status,
-        "pid": run.pid or "",
+        "pid": run.pid or "(not running)",
         "started": _format_timestamp(run.get("started")),
         "stopped": _format_timestamp(run.get("stopped")),
+        "rundir": run.path,
+        "command": _format_cmd(run.get("cmd", "")),
+        "environ": _format_attr_val(run.get("env", "")),
+        "exit_status": run.get("exit_status", ""),
     }
 
-def _format_run_id(run, index):
+def _format_run_index(run, index):
     if index is not None:
         return "[%i:%s]" % (index, run.short_id)
     else:
@@ -86,9 +104,25 @@ def _format_timestamp(ts):
     struct_time = time.localtime(float(ts))
     return time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
 
+def _format_cmd(cmd):
+    args = cmd.split("\n")
+    return " ".join([_maybe_quote_cmd_arg(arg) for arg in args])
+
+def _maybe_quote_cmd_arg(arg):
+    return '"%s"' % arg if " " in arg else arg
+
+def _format_attr_val(s):
+    parts = s.split("\n")
+    if len(parts) == 1:
+        return " %s" % parts[0]
+    else:
+        return "\n%s" % "\n".join(
+            ["    %s" % part for part in parts]
+        )
+
 def delete_runs(args, ctx):
-    runs = _runs_for_args(args, ctx)
-    selected = _selected_runs(runs, args.runs, ctx)
+    runs = runs_for_args(args, ctx)
+    selected = selected_runs(runs, args.runs, ctx)
     if not selected:
         _no_selected_runs_error()
     preview = [_format_run(run) for run in selected]
@@ -100,7 +134,7 @@ def delete_runs(args, ctx):
         guild.var.delete_runs(selected)
         guild.cli.out("Deleted %i run(s)" % len(selected))
 
-def _selected_runs(all_runs, selected_specs, cmd_ctx):
+def selected_runs(all_runs, selected_specs, cmd_ctx):
     selected = []
     for spec in selected_specs:
         try:
@@ -159,7 +193,7 @@ def _no_matching_run_error(id_part, cmd_ctx):
 
 def _non_unique_run_id_error(matches):
     guild.cli.out("'%s' matches multiple runs:\n", err=True)
-    formatted = [_format_run(run) for run in _runs_for_args(args, "list")]
+    formatted = [_format_run(run) for run in runs_for_args(args, "list")]
     cols = ["id", "op", "started", "status"]
     guild.cli.table(formatted, cols=cols, err=True)
 
@@ -175,8 +209,8 @@ def _no_selected_runs_error():
         "Try 'guild runs list' to list available runs.")
 
 def restore_runs(args, ctx):
-    runs = _runs_for_args(args, ctx, force_deleted=True)
-    selected = _selected_runs(runs, args.runs, ctx)
+    runs = runs_for_args(args, ctx, force_deleted=True)
+    selected = selected_runs(runs, args.runs, ctx)
     if not selected:
         _no_selected_runs_error()
     preview = [_format_run(run) for run in selected]
@@ -189,42 +223,19 @@ def restore_runs(args, ctx):
         guild.cli.out("Restored %i run(s)" % len(selected))
 
 def run_info(args, ctx):
-    runs = _runs_for_args(args, ctx)
+    runs = runs_for_args(args, ctx)
     runspec = args.run or "0"
-    selected = _selected_runs(runs, [runspec], ctx)
+    selected = selected_runs(runs, [runspec], ctx)
     if len(selected) == 0:
         _no_selected_runs_error()
     elif len(selected) > 1:
         _non_unique_run_id_error(matches)
     run = selected[0]
+    formatted = _format_run(run)
     out = guild.cli.out
-    out("id: %s" % run.id)
-    out("operation: %s" % run.get("op", "?"))
-    out("status: %s" % run.extended_status)
-    out("started: %s" % _format_timestamp(run.get("started")))
-    out("stopped: %s" % _format_timestamp(run.get("stopped")))
-    out("rundir: %s" % run.path)
-    out("command: %s" % _format_cmd(run.get("cmd", "")))
-    out("environ:%s" % _format_attr_val(run.get("env", "")))
-    out("exit_status: %s" % run.get("exit_status", ""))
-    out("pid: %s" % (run.pid or "(not running)"))
+    for name in RUN_DETAIL:
+        out("%s: %s" % (name, formatted[name]))
     if args.files:
         out("files:")
         for path in run.iter_files():
             out("  %s" % path)
-
-def _format_cmd(cmd):
-    args = cmd.split("\n")
-    return " ".join([_maybe_quote_cmd_arg(arg) for arg in args])
-
-def _maybe_quote_cmd_arg(arg):
-    return '"%s"' % arg if " " in arg else arg
-
-def _format_attr_val(s):
-    parts = s.split("\n")
-    if len(parts) == 1:
-        return " %s" % parts[0]
-    else:
-        return "\n%s" % "\n".join(
-            ["    %s" % part for part in parts]
-        )

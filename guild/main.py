@@ -208,58 +208,65 @@ class RunsGroup(click.Group):
             cmd_name = "list, ls"
         return super(RunsGroup, self).get_command(ctx, cmd_name)
 
-def runs_filter_options(fn):
-    append_params(fn, [
-        click.Option(
-            ("-p", "--project", "project_location"),
-            help=("Project location (file system directory) for filtering "
-                  "runs."),
-            metavar="LOCATION"),
-        click.Option(
-            ("-S", "--system"),
-            help=("Include system wide runs rather than limit to runs "
-                  "associated with a project location. Ignores LOCATION."),
-            is_flag=True),
-        click.Option(
-            ("-r", "--running", "status"),
-            help="Include only runs that are still running.",
-            flag_value="running"),
-        click.Option(
-            ("-c", "--completed", "status"),
-            help="Include only completed runs.",
-            flag_value="completed"),
-        click.Option(
-            ("-s", "--stopped", "status"),
-            help=("Include only runs that exited with an error or were "
-                  "terminated by the user."),
-            flag_value="stopped"),
-        click.Option(
-            ("-e", "--error", "status"),
-            help="Include only runs that exited with an error.",
-            flag_value="error"),
-        click.Option(
-            ("-t", "--terminated", "status"),
-            help="Include only runs terminated by the user.",
-            flag_value="terminated"),
-    ])
-    return fn
+def runs_filter_options(status_filters=True):
+    def decorator(fn):
+        append_params(fn, [
+            click.Option(
+                ("-p", "--project", "project_location"),
+                help=("Project location (file system directory) for filtering "
+                      "runs."),
+                metavar="LOCATION"),
+            click.Option(
+                ("-S", "--system"),
+                help=("Include system wide runs rather than limit to runs "
+                      "associated with a project location. Ignores LOCATION."),
+                is_flag=True)
+            ])
+        if status_filters:
+            append_params(fn, [
+                click.Option(
+                    ("-r", "--running", "status"),
+                    help="Include only runs that are still running.",
+                    flag_value="running"),
+                click.Option(
+                    ("-c", "--completed", "status"),
+                    help="Include only completed runs.",
+                    flag_value="completed"),
+                click.Option(
+                    ("-s", "--stopped", "status"),
+                    help=("Include only runs that exited with an error or were "
+                          "terminated by the user."),
+                    flag_value="stopped"),
+                click.Option(
+                    ("-e", "--error", "status"),
+                    help="Include only runs that exited with an error.",
+                    flag_value="error"),
+                click.Option(
+                    ("-t", "--terminated", "status"),
+                    help="Include only runs terminated by the user.",
+                    flag_value="terminated"),
+            ])
+        return fn
+    return decorator
 
-def runs_list_options(fn):
-    runs_filter_options(fn)
-    append_params(fn, [
-        click.Option(
-            ("-v", "--verbose"),
-            help="Show run details.",
-            is_flag=True),
-        click.Option(
-            ("-d", "--deleted"),
-            help="Show deleted runs.",
-            is_flag=True),
-    ])
-    return fn
+def runs_list_options(status_filters=True):
+    def decorator(fn):
+        runs_filter_options(status_filters)(fn)
+        append_params(fn, [
+            click.Option(
+                ("-v", "--verbose"),
+                help="Show run details.",
+                is_flag=True),
+            click.Option(
+                ("-d", "--deleted"),
+                help="Show deleted runs.",
+                is_flag=True),
+        ])
+        return fn
+    return decorator
 
 @click.group(invoke_without_command=True, cls=RunsGroup)
-@runs_list_options
+@runs_list_options()
 @click.pass_context
 
 def runs(ctx, **kw):
@@ -279,7 +286,7 @@ cli.add_command(runs)
 ###################################################################
 
 @click.command("list, ls")
-@runs_list_options
+@runs_list_options()
 @click.pass_context
 
 def list_runs(ctx, **kw):
@@ -312,7 +319,7 @@ Delete one or more runs.
 %s
 """ % RUN_ARG_HELP)
 @click.argument("runs", metavar="RUN [RUN...]", nargs=-1, required=True)
-@runs_filter_options
+@runs_filter_options()
 @click.option(
     "-y", "--yes",
     help="Do not prompt before deleting.",
@@ -357,7 +364,7 @@ runs.add_command(restore_runs)
 
 @click.command("info")
 @click.argument("run", required=False)
-@runs_filter_options
+@runs_filter_options()
 @click.option("--files", help="Include run files", is_flag=True)
 @click.pass_context
 
