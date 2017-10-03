@@ -15,6 +15,15 @@ load("@io_bazel_rules_closure//closure:defs.bzl", "closure_repositories")
 
 closure_repositories()
 
+http_archive(
+    name = "org_tensorflow_tensorboard",
+    sha256 = "d39df0e0314bbe5849a498f511c390529929c939e9524e1a43ef1f2918dde24b",
+    strip_prefix = "tensorboard-b58a82d99ec5a30c34e24075b5ccdfc3a6c651d9",
+    urls = [
+        "https://github.com/tensorflow/tensorboard/archive/b58a82d99ec5a30c34e24075b5ccdfc3a6c651d9.zip",
+    ],
+)
+
 load("//third-party:workspace.bzl", "third_party_workspace")
 
 third_party_workspace()

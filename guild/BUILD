@@ -193,5 +193,16 @@ py_library(
     name = "tensorboard_cmd",
     srcs = ["tensorboard_cmd.py"],
     deps = [
+        ":tensorboard_proxy",
+    ],
+)
+
+py_library(
+    name = "tensorboard_proxy",
+    srcs = ["tensorboard_proxy.py"],
+    data = [
+        "@org_tensorflow_tensorboard//tensorboard",
+    ],
+    deps = [
     ],
 )
