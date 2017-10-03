@@ -217,29 +217,29 @@ def runs_filter_options(fn):
             metavar="LOCATION"),
         click.Option(
             ("-S", "--system"),
-            help=("Apply filter runs system wide rather than limit to runs "
+            help=("Include system wide runs rather than limit to runs "
                   "associated with a project location. Ignores LOCATION."),
             is_flag=True),
         click.Option(
             ("-r", "--running", "status"),
-            help="Show only runs that are still running.",
+            help="Include only runs that are still running.",
             flag_value="running"),
         click.Option(
             ("-c", "--completed", "status"),
-            help="Show only completed runs.",
+            help="Include only completed runs.",
             flag_value="completed"),
         click.Option(
             ("-s", "--stopped", "status"),
-            help=("Show only runs that exited with an error or were "
+            help=("Include only runs that exited with an error or were "
                   "terminated by the user."),
             flag_value="stopped"),
         click.Option(
             ("-e", "--error", "status"),
-            help="Show only runs that exited with an error.",
+            help="Include only runs that exited with an error.",
             flag_value="error"),
         click.Option(
             ("-t", "--terminated", "status"),
-            help="Show only runs terminated by the user.",
+            help="Include only runs terminated by the user.",
             flag_value="terminated"),
     ])
     return fn
@@ -300,10 +300,10 @@ runs.add_command(list_runs)
 ###################################################################
 
 RUN_ARG_HELP = """
-RUN may be a run ID (or the unique start of a run ID) or a
-zero-based index corresponding to a run returned by the list
-command. Indexes may also be specified in ranges in the form
-START:COUNT where START is the start index.
+RUN may be a run ID (or the unique start of a run ID) or a zero-based
+index corresponding to a run returned by the list command. Indexes may
+also be specified in ranges in the form START:END where START is the
+start index and END is the end index.
 """
 
 @click.command("delete, rm", help="""
@@ -350,6 +350,50 @@ def restore_runs(ctx, **kw):
     guild.runs_cmd.restore_runs(Args(kw), ctx)
 
 runs.add_command(restore_runs)
+
+###################################################################
+# runs info command
+###################################################################
+
+@click.command("info")
+@click.argument("run", required=False)
+@runs_filter_options
+@click.option("--attrs", help="Include run attrs", is_flag=True)
+@click.option("--files", help="Include run files", is_flag=True)
+@click.pass_context
+
+def run_info(ctx, **kw):
+    """Show run details.
+
+    RUN must be a run ID (or the start of a run ID that uniquely
+    identifies a run) or a zero-based index corresponding to the run
+    as it appears in the list of filtered runs.
+
+    By default the latest run is selected (index 0).
+
+    EXAMPLES
+
+    Show info for the latest run in the current project:
+
+        guild runs info
+
+    Show info for the latest run system wide:
+
+        guild runs info -S
+
+    Show info for the latest completed run in the current project:
+
+        guild runs info -c
+
+    Show info for run a64b1710:
+
+        guild runs info a64b1710
+
+    """
+    import guild.runs_cmd
+    guild.runs_cmd.run_info(Args(kw), ctx)
+
+runs.add_command(run_info)
 
 ###################################################################
 # shell command

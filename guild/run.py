@@ -49,6 +49,13 @@ class Run(object):
         except KeyError:
             return default
 
+    def iter_attrs(self):
+        for name in sorted(os.listdir(self._attrs_dir())):
+            try:
+                yield name, self[name]
+            except KeyError:
+                pass
+
     def __getitem__(self, name):
         try:
             raw = open(self._attr_path(name), "r").read()
@@ -58,7 +65,10 @@ class Run(object):
             return _parse_attr(raw)
 
     def _attr_path(self, name):
-        return os.path.join(self._guild_dir, "attrs", name)
+        return os.path.join(self._attrs_dir(), name)
+
+    def _attrs_dir(self):
+        return os.path.join(self._guild_dir, "attrs")
 
     def __repr__(self):
         return "<guild.run.Run '%s'>" % self.id
@@ -87,6 +97,11 @@ class Run(object):
     def write_attr(self, name, val):
         with open(self._attr_path(name), "w") as f:
             f.write(_encode_attr(val))
+
+    def iter_files(self):
+        for root, _dirs, files in os.walk(self.path):
+            for name in files:
+                yield os.path.join(root, name)
 
 def _parse_attr(raw):
     return raw.strip()

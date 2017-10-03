@@ -6,7 +6,10 @@ import guild.cmd_support
 import guild.var
 
 def list_runs(args, ctx):
-    runs = [_format_run(run) for run in _runs_for_args(args, ctx)]
+    runs = [
+        _format_run(run, i)
+        for i, run in enumerate(_runs_for_args(args, ctx))
+    ]
     cols = ["id", "op", "started", "status"]
     detail = ["pid", "stopped"] if args.verbose else None
     guild.cli.table(runs, cols=cols, detail=detail)
@@ -61,15 +64,21 @@ def _apply_status_filter(args, filters):
         filters.append(
             guild.var.run_filter("attr", "extended_status", args.status))
 
-def _format_run(run):
+def _format_run(run, index=None):
     return {
-        "id": "[%s]" % run.short_id,
+        "id": _format_run_id(run, index),
         "op": run.get("op", "?"),
         "status": run.extended_status,
         "pid": run.pid or "",
         "started": _format_timestamp(run.get("started")),
         "stopped": _format_timestamp(run.get("stopped")),
     }
+
+def _format_run_id(run, index):
+    if index is not None:
+        return "[%i:%s]" % (index, run.short_id)
+    else:
+        return "[%s]" % run.short_id
 
 def _format_timestamp(ts):
     if not ts:
@@ -82,11 +91,11 @@ def delete_runs(args, ctx):
     selected = _selected_runs(runs, args.runs, ctx)
     if not selected:
         _no_selected_runs_error()
-    formatted = [_format_run(run) for run in selected]
+    preview = [_format_run(run) for run in selected]
     if not args.yes:
         guild.cli.out("You are about to delete the following runs:")
         cols = ["id", "op", "started", "status"]
-        guild.cli.table(formatted, cols=cols, indent=2)
+        guild.cli.table(preview, cols=cols, indent=2)
     if args.yes or guild.cli.confirm("Delete these runs?"):
         guild.var.delete_runs(selected)
         guild.cli.out("Deleted %i run(s)" % len(selected))
@@ -112,15 +121,23 @@ def _parse_slice(spec):
         m = re.match("(\\d+)?:(\\d+)?", spec)
         if m:
             try:
-                return _slice_part(m.group(1)), _slice_part(m.group(2))
+                return (
+                    _slice_part(m.group(1)),
+                    _slice_part(m.group(2), incr=True)
+                )
             except ValueError:
                 pass
         raise ValueError(spec)
     else:
-        return index, 1
+        return index, index + 1
 
-def _slice_part(s):
-    return None if s is None else int(s)
+def _slice_part(s, incr=False):
+    if s is None:
+        return None
+    elif incr:
+        return int(s) + 1
+    else:
+        return int(s)
 
 def _find_run_by_id(id_part, runs, cmd_ctx):
     matches = []
@@ -146,10 +163,11 @@ def _non_unique_run_id_error(matches):
     cols = ["id", "op", "started", "status"]
     guild.cli.table(formatted, cols=cols, err=True)
 
-def _in_range(start, count, l):
+def _in_range(slice_start, slice_end, l):
     return (
-        start is None or start >= 0 and
-        count is None or (start + count) <= len(l))
+        (slice_start is None or slice_start >= 0) and
+        (slice_end is None or slice_end <= len(l))
+    )
 
 def _no_selected_runs_error():
     guild.cli.error(
@@ -161,11 +179,44 @@ def restore_runs(args, ctx):
     selected = _selected_runs(runs, args.runs, ctx)
     if not selected:
         _no_selected_runs_error()
-    formatted = [_format_run(run) for run in selected]
+    preview = [_format_run(run) for run in selected]
     if not args.yes:
         guild.cli.out("You are about to restore the following runs:")
         cols = ["id", "op", "started", "status"]
-        guild.cli.table(formatted, cols=cols, indent=2)
+        guild.cli.table(preview, cols=cols, indent=2)
     if args.yes or guild.cli.confirm("Restore these runs?"):
         guild.var.restore_runs(selected)
         guild.cli.out("Restored %i run(s)" % len(selected))
+
+def run_info(args, ctx):
+    runs = _runs_for_args(args, ctx)
+    runspec = args.run or "0"
+    selected = _selected_runs(runs, [runspec], ctx)
+    if len(selected) == 0:
+        _no_selected_runs_error()
+    elif len(selected) > 1:
+        _non_unique_run_id_error(matches)
+    run = selected[0]
+    out = guild.cli.out
+    out("id: %s" % run.id)
+    out("operation: %s" % run.get("op", "?"))
+    out("status: %s" % run.extended_status)
+    out("pid: %s" % (run.pid or "(not running)"))
+    out("started: %s" % _format_timestamp(run.get("started")))
+    out("stopped: %s" % _format_timestamp(run.get("stopped")))
+    out("rundir: %s" % run.path)
+    if args.attrs:
+        out("attrs:")
+        for name, val in run.iter_attrs():
+            out("  %s:%s" % (name, _format_attr_val(val)))
+    if args.files:
+        out("files:")
+        for path in run.iter_files():
+            out("  %s" % path)
+
+def _format_attr_val(s):
+    parts = s.split("\n")
+    if len(parts) == 1:
+        return " %s" % parts[0]
+    else:
+        return "\n%s" % "\n".join(["    %s" % part for part in parts])
