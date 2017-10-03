@@ -15,9 +15,9 @@ class InvalidCmdSpec(ValueError):
 class Operation(object):
 
     def __init__(self, cmd_args, cmd_env, project_op):
-        self._cmd_args = cmd_args
-        self._cmd_env = cmd_env
-        self._project_op = project_op
+        self.cmd_args = cmd_args
+        self.cmd_env = cmd_env
+        self.project_op = project_op
         self._running = False
         self._run = None
         self._proc = None
@@ -44,16 +44,16 @@ class Operation(object):
 
     def _init_attrs(self):
         assert self._run is not None
-        self._run.write_attr("cmd", self._cmd_args)
-        self._run.write_attr("env", self._cmd_env)
+        self._run.write_attr("cmd", self.cmd_args)
+        self._run.write_attr("env", self.cmd_env)
         self._run.write_attr("started", self._started)
-        self._run.write_attr("op", self._project_op.full_name)
+        self._run.write_attr("op", self.project_op.full_name)
 
     def _start_proc(self):
         assert self._proc is None
         assert self._run is not None
-        env = self._cmd_env
-        args = _resolve_cmd_args(self._cmd_args, env)
+        env = self.cmd_env
+        args = _resolve_cmd_args(self.cmd_args, env)
         cwd = self._run.path
         logging.debug("Starting process %s" % (args,))
         self._proc = subprocess.Popen(args, env=env, cwd=cwd)
