@@ -51,31 +51,40 @@ For testing purposes, we'll create a set of objects that mimic the
 Next we'll create a function that will filter a list of runs given a
 filter spec:
 
-    >>> def filter_runs(spec):
-    ...   filter_run = guild.var._run_filter(spec)
-    ...   return [run for run in runs if filter_run(run)]
+    >>> def filter_runs(run_filter):
+    ...   return [run for run in runs if run_filter(run)]
 
-### All runs (no filter)
+    >>> run_filter = guild.var.run_filter
 
-    >>> filter_runs(None)
+### All runs
+
+    >>> filter_runs(run_filter("true"))
     [<Run 'a'>, <Run 'b'>, <Run 'c'>, <Run 'd'>, <Run 'e'>]
 
 ### exit_status is "0"
 
-    >>> filter_runs([("exit_status", "0")])
+    >>> filter_runs(run_filter("attr", "exit_status", "0"))
     [<Run 'a'>, <Run 'c'>, <Run 'e'>]
 
 ### exit_status is not "0"
 
-    >>> filter_runs([("exit_status", "!=", "0")])
+    >>> filter_runs(run_filter("!attr", "exit_status", "0"))
     [<Run 'b'>, <Run 'd'>]
 
 ### op is "train" and exit_status is "0"
 
-    >>> filter_runs([("op", "train"), ("exit_status", "0")])
+    >>> filter_runs(
+    ...   run_filter("all", [
+    ...     run_filter("attr", "op", "train"),
+    ...     run_filter("attr", "exit_status", "0"),
+    ...   ]))
     [<Run 'a'>, <Run 'e'>]
 
 ### op is "train" and exit_status is not "0"
 
-    >>> filter_runs([("op", "train"), ("exit_status", "!=", "0")])
+    >>> filter_runs(
+    ...   run_filter("all", [
+    ...     run_filter("attr", "op", "train"),
+    ...     run_filter("!attr", "exit_status", "0"),
+    ...   ]))
     [<Run 'b'>, <Run 'd'>]

@@ -38,14 +38,14 @@ name with or without a py extension.
 Here's an operation with a simple "train" cmd:
 
     >>> op = Operation(cmd="train")
-    >>> op._cmd_args
+    >>> op.cmd_args
     ['python', '-u', './train']
 
 Command specs may contain additional arguments, which will be included
 in the Python command.
 
     >>> op = Operation(cmd="train epoch=10 tags='tag1 tag2'")
-    >>> op._cmd_args
+    >>> op.cmd_args
     ['python', '-u', './train', 'epoch=10', 'tags=tag1 tag2']
 
 Command specs cannot be empty:
