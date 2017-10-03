@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import shlex
 import subprocess
 import time
@@ -8,6 +9,10 @@ import uuid
 import guild.run
 import guild.util
 import guild.var
+
+OS_ENVIRON_WHITELIST = [
+    "LD_LIBRARY_PATH",
+]
 
 class InvalidCmdSpec(ValueError):
     pass
@@ -52,7 +57,7 @@ class Operation(object):
     def _start_proc(self):
         assert self._proc is None
         assert self._run is not None
-        env = self.cmd_env
+        env = _op_proc_env(self.cmd_env)
         args = _resolve_cmd_args(self.cmd_args, env)
         cwd = self._run.path
         logging.debug("Starting process %s" % (args,))
@@ -80,6 +85,19 @@ def _resolve_arg_env_refs(arg, env):
         arg = re.sub(r"\$" + name, val, arg)
     return arg
 
+def _op_proc_env(cmd_env):
+    env = {}
+    env.update(cmd_env)
+    env.update(_op_os_env())
+    return env
+
+def _op_os_env():
+    return {
+        name: val
+        for name, val in os.environ.items()
+        if name in OS_ENVIRON_WHITELIST
+    }
+
 def _write_proc_lock(proc, run):
     with open(run.guild_path("LOCK"), "w") as f:
         f.write(str(proc.pid))
@@ -92,7 +110,7 @@ def _delete_proc_lock(run):
 
 def from_project_op(project_op):
     cmd_args = _python_cmd_for_project_op(project_op)
-    cmd_env = {}
+    cmd_env = _op_cmd_env()
     return Operation(
         project_op.full_name,
         cmd_args,
@@ -154,3 +172,7 @@ def _sorted_flags(flags):
 def _opt_args(name, val):
     opt = "--%s" % name
     return [opt] if val is None else [opt, str(val)]
+
+def _op_cmd_env():
+    # TODO or delete
+    return {}
