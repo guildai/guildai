@@ -139,7 +139,7 @@ def _maybe_quote_arg(arg):
 
 def _print_op_env(op):
     for name,val in sorted(op.cmd_env.items()):
-        guild.cli.out("%s=%s" % (name, val))
+        guild.cli.out("export %s=%s" % (name, val))
 
 def _confirm_op(op):
     flags = _op_flags(op)

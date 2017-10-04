@@ -155,6 +155,9 @@ py_library(
         ":util",
         ":run",
     ],
+    data = [
+        ":op_main",
+    ],
 )
 
 py_library(
@@ -207,6 +210,13 @@ py_library(
     data = [
         "@org_tensorflow_tensorboard//tensorboard",
     ],
+    deps = [
+    ],
+)
+
+py_library(
+    name = "op_main",
+    srcs = ["op_main.py"],
     deps = [
     ],
 )

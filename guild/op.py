@@ -3,6 +3,7 @@ import os
 import re
 import shlex
 import subprocess
+import sys
 import time
 import uuid
 
@@ -102,21 +103,24 @@ def _delete_proc_lock(run):
         pass
 
 def from_project_op(project_op):
-    cmd_args = _python_cmd_for_project_op(project_op)
+    cmd_args = _op_cmd_args(project_op)
     cmd_env = _op_cmd_env(project_op)
     return Operation(
         project_op.full_name,
         cmd_args,
         cmd_env)
 
-def _python_cmd_for_project_op(project_op):
-    spec = project_op.cmd
-    spec_parts = shlex.split(spec)
-    if len(spec_parts) < 1:
-        raise InvalidCmdSpec(spec)
-    script = _resolve_script_path(spec_parts[0], project_op.project.src)
+def _op_cmd_args(project_op):
+    python_parts = [_python_cmd(project_op), "-um", "guild.op_main"]
+    cmd_parts = shlex.split(project_op.cmd)
     flags = flag_args(all_op_flags(project_op))
-    return ["python", "-u", script] + spec_parts[1:] + flags
+    return python_parts + cmd_parts + flags
+
+def _python_cmd(_project_op):
+    # TODO: This is an important operation that should be controlled
+    # by the model (e.g. does it run under Python 2 or 3, etc.) and
+    # not by whatever Python runtime is configured in the user env.
+    return "python"
 
 def _resolve_script_path(script, project_src):
     script_path = _script_path_for_project_src(script, project_src)
@@ -169,7 +173,7 @@ def _opt_args(name, val):
 def _op_cmd_env(project_op):
     env = {}
     env.update(_op_os_env())
-    env["PYTHONPATH"] = _python_path_for_op(project_op)
+    env["PYTHONPATH"] = _python_path(project_op)
     return env
 
 def _op_os_env():
@@ -179,8 +183,15 @@ def _op_os_env():
         if name in OS_ENVIRON_WHITELIST
     }
 
-def _python_path_for_op(project_op):
-    paths = [
-        os.path.dirname(project_op.project.src),
-    ]
+def _python_path(project_op):
+    paths = _model_paths(project_op) + _guild_paths()
     return os.path.pathsep.join(paths)
+
+def _model_paths(project_op):
+    return [os.path.dirname(project_op.project.src)]
+
+def _guild_paths():
+    return [path for path in sys.path if _is_guild_path(path)]
+
+def _is_guild_path(path):
+    return path.endswith("org_guildai_guild")
