@@ -15,7 +15,7 @@ OS_ENVIRON_WHITELIST = [
     "LD_LIBRARY_PATH",
 ]
 
-class InvalidCmdSpec(ValueError):
+class InvalidCmd(ValueError):
     pass
 
 class Operation(object):
@@ -113,6 +113,8 @@ def from_project_op(project_op):
 def _op_cmd_args(project_op):
     python_parts = [_python_cmd(project_op), "-um", "guild.op_main"]
     cmd_parts = shlex.split(project_op.cmd)
+    if not cmd_parts:
+        raise InvalidCmd(project_op.cmd)
     flags = flag_args(all_op_flags(project_op))
     return python_parts + cmd_parts + flags
 
