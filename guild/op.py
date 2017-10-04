@@ -44,8 +44,8 @@ class Operation(object):
         id = uuid.uuid1().get_hex()
         path = os.path.join(guild.var.runs_dir(), id)
         self._run = guild.run.Run(id, path)
+        logging.info("Initializing run in %s", path)
         self._run.init_skel()
-        logging.debug("Initialized run in %s", path)
 
     def _init_attrs(self):
         assert self._run is not None
@@ -60,7 +60,7 @@ class Operation(object):
         args = self._proc_args()
         env = self._proc_env()
         cwd = self._run.path
-        logging.debug("Starting process %s" % (args,))
+        logging.info("Starting process %s" % (args,))
         self._proc = subprocess.Popen(args, env=env, cwd=cwd)
         _write_proc_lock(self._proc, self._run)
 

@@ -17,11 +17,11 @@ class Exit(Exception):
     def __str__(self):
         return "(%i) %s" % (self.exit_status, self.msg)
 
-def main(debug):
-    _init_logging(debug)
+def main(args):
+    _init_logging(args)
 
-def _init_logging(debug):
-    level = logging.DEBUG if debug else logging.INFO
+def _init_logging(args):
+    level = args.log_level or logging.WARN
     logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
 
 def apply_main(cmd):
@@ -97,7 +97,7 @@ def _print_error_and_exit(prog, msg, exit_status):
 def error(msg=None, exit_status=1):
     raise Exit(msg, exit_status)
 
-def out(s, **kw):
+def out(s="", **kw):
     click.echo(s, **kw)
 
 def table(data, cols, sort=None, detail=None, indent=0, err=False):

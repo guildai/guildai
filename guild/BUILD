@@ -193,7 +193,11 @@ py_library(
     name = "tensorboard_cmd",
     srcs = ["tensorboard_cmd.py"],
     deps = [
+        "@org_click",
+        ":cli",
+        ":runs_cmd",
         ":tensorboard",
+        ":util",
     ],
 )
 

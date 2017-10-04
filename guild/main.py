@@ -1,9 +1,21 @@
+import logging
+
 import click
 
 import guild.app
 import guild.cli
 
 guild.app.init()
+
+class Args(object):
+
+    def __init__(self, kw):
+        for name in kw:
+            setattr(self, name, kw[name])
+
+def append_params(fn, params):
+    fn.__click_params__ = getattr(fn, "__click_params__", [])
+    fn.__click_params__.extend(reversed(params))
 
 ###################################################################
 # Main
@@ -24,24 +36,21 @@ class CLIGroup(click.Group):
     prog_name="guild",
     message="%(prog)s %(version)s"
 )
-@click.option("--debug", hidden=True, is_flag=True)
+@click.option(
+    "--info", "log_level",
+    help="Log information during command.",
+    flag_value=logging.INFO)
+@click.option(
+    "--debug", "log_level",
+    help="Log more information during command.",
+    flag_value=logging.DEBUG)
 
 def cli(**kw):
     """Guild AI command line interface."""
-    guild.cli.main(**kw)
+    guild.cli.main(Args(kw))
 
 def main():
     guild.cli.apply_main(cli)
-
-class Args(object):
-
-    def __init__(self, kw):
-        for name in kw:
-            setattr(self, name, kw[name])
-
-def append_params(fn, params):
-    fn.__click_params__ = getattr(fn, "__click_params__", [])
-    fn.__click_params__[:0] = reversed(params)
 
 ###################################################################
 # check command
@@ -210,73 +219,71 @@ class RunsGroup(click.Group):
             cmd_name = "list, ls"
         return super(RunsGroup, self).get_command(ctx, cmd_name)
 
-def runs_filter_options(status_filters=True):
-    def decorator(fn):
-        append_params(fn, [
-            click.Option(
-                ("-p", "--project", "project_location"),
-                help=("Project location (file system directory) for filtering "
-                      "runs."),
-                metavar="LOCATION"),
-            click.Option(
-                ("-S", "--system"),
-                help=("Include system wide runs rather than limit to runs "
-                      "associated with a project location. Ignores LOCATION."),
-                is_flag=True)
-            ])
-        if status_filters:
-            append_params(fn, [
-                click.Option(
-                    ("-r", "--running", "status"),
-                    help="Include only runs that are still running.",
-                    flag_value="running"),
-                click.Option(
-                    ("-c", "--completed", "status"),
-                    help="Include only completed runs.",
-                    flag_value="completed"),
-                click.Option(
-                    ("-s", "--stopped", "status"),
-                    help=("Include only runs that exited with an error or were "
-                          "terminated by the user."),
-                    flag_value="stopped"),
-                click.Option(
-                    ("-e", "--error", "status"),
-                    help="Include only runs that exited with an error.",
-                    flag_value="error"),
-                click.Option(
-                    ("-t", "--terminated", "status"),
-                    help="Include only runs terminated by the user.",
-                    flag_value="terminated"),
-            ])
-        return fn
-    return decorator
+def run_scope_options(fn):
+    append_params(fn, [
+        click.Option(
+            ("-p", "--project", "project_location"),
+            help=("Project location (file system directory) for filtering "
+                  "runs."),
+            metavar="LOCATION"),
+        click.Option(
+            ("-S", "--system"),
+            help=("Include system wide runs rather than limit to runs "
+                  "associated with a project location. Ignores LOCATION."),
+            is_flag=True)
+    ])
+    return fn
 
-def runs_list_options(status_filters=True):
-    def decorator(fn):
-        runs_filter_options(status_filters)(fn)
-        append_params(fn, [
-            click.Option(
-                ("-v", "--verbose"),
-                help="Show run details.",
-                is_flag=True),
-            click.Option(
-                ("-d", "--deleted"),
-                help="Show deleted runs.",
-                is_flag=True),
-        ])
-        return fn
-    return decorator
+def run_filters(fn):
+    append_params(fn, [
+        click.Option(
+            ("-r", "--running", "status"),
+            help="Include only runs that are still running.",
+            flag_value="running"),
+        click.Option(
+            ("-c", "--completed", "status"),
+            help="Include only completed runs.",
+            flag_value="completed"),
+        click.Option(
+            ("-s", "--stopped", "status"),
+            help=("Include only runs that exited with an error or were "
+                  "terminated by the user."),
+            flag_value="stopped"),
+        click.Option(
+            ("-e", "--error", "status"),
+            help="Include only runs that exited with an error.",
+            flag_value="error"),
+        click.Option(
+            ("-t", "--terminated", "status"),
+            help="Include only runs terminated by the user.",
+            flag_value="terminated"),
+    ])
+    return fn
+
+def runs_list_options(fn):
+    run_scope_options(fn)
+    run_filters(fn)
+    append_params(fn, [
+        click.Option(
+            ("-v", "--verbose"),
+            help="Show run details.",
+            is_flag=True),
+        click.Option(
+            ("-d", "--deleted"),
+            help="Show deleted runs.",
+            is_flag=True),
+    ])
+    return fn
 
 @click.group(invoke_without_command=True, cls=RunsGroup)
-@runs_list_options()
+@runs_list_options
 @click.pass_context
 
 def runs(ctx, **kw):
     """Show or manage runs.
 
-    By default lists runs for models defined in a project (equivalent
-    to 'guild runs list'). For the complete list functionality, use
-    the 'list' command explicitly.
+    If COMMAND is omitted, lists run. Refer to 'guild runs list
+    --help' for more information on the list command.
     """
     if not ctx.invoked_subcommand:
         ctx.invoke(list_runs, **kw)
@@ -288,16 +295,22 @@ cli.add_command(runs)
 ###################################################################
 
 @click.command("list, ls")
-@runs_list_options()
+@runs_list_options
 @click.pass_context
 
 def list_runs(ctx, **kw):
     """List runs.
 
-    By default lists runs for models defined in the current
-    project. To specify a different project, use the --project option.
+    By default lists runs associated with models defined in the
+    current directory, or LOCATION if specified. To list all runs, use
+    the --system option.
 
-    To list all runs, specify the --all option.
+    To list deleted runs, use the --deleted option. Note that runs are
+    still limited to the specified project unless --system is
+    specified.
+
+    You may apply any of the filter options below to limit the runs
+    listed.
     """
     import guild.runs_cmd
     guild.runs_cmd.list_runs(Args(kw), ctx)
@@ -312,7 +325,10 @@ RUN_ARG_HELP = """
 RUN may be a run ID (or the unique start of a run ID) or a zero-based
 index corresponding to a run returned by the list command. Indexes may
 also be specified in ranges in the form START:END where START is the
-start index and END is the end index.
+start index and END is the end index. Either START or END may be
+omitted. If START is omitted, all runs up to END are selected. If END
+id omitted, all runs from START on are selected. If both START and END
+are omitted (i.e. the ':' char is used by itself) all runs are selected.
 """
 
 @click.command("delete, rm", help="""
@@ -321,7 +337,8 @@ Delete one or more runs.
 %s
 """ % RUN_ARG_HELP)
 @click.argument("runs", metavar="RUN [RUN...]", nargs=-1, required=True)
-@runs_filter_options()
+@run_scope_options
+@run_filters
 @click.option(
     "-y", "--yes",
     help="Do not prompt before deleting.",
@@ -346,7 +363,8 @@ Restores one or more deleted runs.
 """ % RUN_ARG_HELP)
 
 @click.argument("runs", metavar="RUN [RUN...]", nargs=-1, required=True)
-@runs_filter_options
+@run_scope_options
+@run_filters
 @click.option(
     "-y", "--yes",
     help="Do not prompt before restoring.",
@@ -366,7 +384,8 @@ runs.add_command(restore_runs)
 
 @click.command("info")
 @click.argument("run", required=False)
-@runs_filter_options()
+@run_scope_options
+@run_filters
 @click.option("--files", help="Include run files", is_flag=True)
 @click.pass_context
 
@@ -539,7 +558,7 @@ cli.add_command(train)
 ###################################################################
 
 @click.command("tensorboard, tb")
-@runs_filter_options(status_filters=False)
+@run_scope_options
 @click.pass_context
 
 def tensorboard(ctx, **kw):

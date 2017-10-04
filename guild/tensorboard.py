@@ -44,12 +44,14 @@ def make_simple_server(app, host, port):
     tensorboard_url = "http://%s:%d" % (final_host, final_port)
     return server, tensorboard_url
 
-def run_simple_server(tb_app, host, port):
+def run_simple_server(tb_app, host, port, ready_cb):
     server, url = make_simple_server(tb_app, host, port)
     sys.stderr.write(
         "TensorBoard %s at %s (Press CTRL+C to quit)\n"
         % (version.VERSION, url))
     sys.stderr.flush()
+    if ready_cb:
+        ready_cb(url)
     server.serve_forever()
 
 def _handle_error(unused_request, client_address):
@@ -60,7 +62,9 @@ def _handle_error(unused_request, client_address):
     else:
         tf.logging.error('HTTP serving error', exc_info=exc_info)
 
-def main(logdir, host, port, reload_interval=DEFAULT_RELOAD_INTERVAL):
+def main(logdir, host, port,
+         reload_interval=DEFAULT_RELOAD_INTERVAL,
+         ready_cb=None):
     util.setup_logging()
     plugins = [
         core_plugin.CorePlugin,
@@ -76,4 +80,4 @@ def main(logdir, host, port, reload_interval=DEFAULT_RELOAD_INTERVAL):
         profile_plugin.ProfilePlugin,
     ]
     app = create_app(plugins, logdir, reload_interval)
-    run_simple_server(app, host, port)
+    run_simple_server(app, host, port, ready_cb)
