@@ -559,6 +559,22 @@ cli.add_command(train)
 
 @click.command("tensorboard, tb")
 @run_scope_options
+@click.option(
+    "--host",
+    help="Name of host interface to listen on.")
+@click.option(
+    "--port",
+    help="Port to listen on.",
+    type=click.IntRange(0, 65535))
+@click.option(
+    "--refresh-interval",
+    help="TensorBoard refresh interval (defaults to 5 seconds).",
+    type=click.IntRange(1, None),
+    default=5)
+@click.option(
+    "-n", "--dont-open",
+    help="Don't open the TensorBoard URL.",
+    is_flag=True)
 @click.pass_context
 
 def tensorboard(ctx, **kw):

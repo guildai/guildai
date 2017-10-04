@@ -1,6 +1,12 @@
+from __future__ import division
+
 import errno
 import os
 import sys
+import time
+
+class Stop(Exception):
+    """Raise to stop loops started with `loop`."""
 
 def find_apply(funs, *args, **kw):
     for f in funs:
@@ -65,3 +71,33 @@ def _open_url_with_cmd(url):
 def _open_url_with_webbrowser(url):
     import webbrowser
     webbrowser.open(url)
+
+def loop(cb, wait, interval, first_interval=None):
+    try:
+        _loop(cb, wait, interval, first_interval)
+    except Stop:
+        pass
+    except KeyboardInterrupt:
+        pass
+
+def _loop(cb, wait, interval, first_interval):
+    loop_interval = first_interval if first_interval is not None else interval
+    start = time.time()
+    while True:
+        sleep = _sleep_interval(loop_interval, start)
+        loop_interval = interval
+        should_stop = wait(sleep)
+        if should_stop:
+            break
+        cb()
+
+def _sleep_interval(interval, start):
+    if interval <= 0:
+        return 0
+    now_ms = int(time.time() * 1000)
+    interval_ms = int(interval * 1000)
+    start_ms = int(start * 1000)
+    sleep_ms = (
+        ((now_ms - start_ms) // interval_ms + 1)
+        * interval_ms + start_ms - now_ms)
+    return sleep_ms / 1000

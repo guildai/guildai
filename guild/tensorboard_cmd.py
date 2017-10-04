@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 import tempfile
+import threading
 import time
 
 import guild.cli
@@ -9,17 +10,81 @@ import guild.runs_cmd
 import guild.tensorboard
 import guild.util
 
+class RunsMonitor(threading.Thread):
+
+    STOP_TIMEOUT = 5
+
+    def __init__(self, logdir, args, cmd_ctx):
+        """Create a RunsMonitor.
+
+        Note that run links are created initially by this
+        function. Any errors result from user input will propagate
+        during this call. Similar errors occuring after the monitor is
+        started will be logged but will not propagate.
+        """
+        super(RunsMonitor, self).__init__()
+        self.logdir = logdir
+        self.args = args
+        self.cmd_ctx = cmd_ctx
+        self.run_once(exit_on_error=True)
+        self._stop = threading.Event()
+        self._stopped = threading.Event()
+
+    def run(self):
+        guild.util.loop(
+            cb=self.run_once,
+            wait=self._stop.wait,
+            interval=self.args.refresh_interval,
+            first_interval=self.args.refresh_interval)
+        self._stopped.set()
+
+    def stop(self):
+        self._stop.set()
+        self._stopped.wait(self.STOP_TIMEOUT)
+
+    def run_once(self, exit_on_error=False):
+        logging.debug("Refreshing runs")
+        try:
+            runs = guild.runs_cmd.runs_for_args(self.args, self.cmd_ctx)
+        except guild.cli.Exit as e:
+            if exit_on_error:
+                raise
+            logging.error(
+                "An error occurred while reading runs. "
+                "Use --debug for details.")
+            logging.debug(e)
+        else:
+            self._refresh_run_links(runs)
+
+    def _refresh_run_links(self, runs):
+        to_delete = os.listdir(self.logdir)
+        for run in runs:
+            link_name = _format_run_name(run)
+            link_path = os.path.join(self.logdir, link_name)
+            if not os.path.exists(link_path):
+                logging.info("Linking %s to %s", link_name, run.path)
+                os.symlink(run.path, link_path)
+            try:
+                to_delete.remove(link_name)
+            except ValueError:
+                pass
+        for link_name in to_delete:
+            logging.info("Removing %s" % link_name)
+            os.remove(os.path.join(self.logdir, link_name))
+
 def main(args, ctx):
-    runs = guild.runs_cmd.runs_for_args(args, ctx)
     logdir = tempfile.mkdtemp(prefix="guild-tensorboard-logdir-")
-    logging.info("Using logdir %s" % logdir)
-    for run in runs:
-        run_name = _format_run_name(run)
-        link_path = os.path.join(logdir, run_name)
-        os.symlink(run.path, link_path)
-    # TODO: monitor runs_for_args and update links in logdir accordingly
-    port = guild.util.free_port()
-    guild.tensorboard.main(logdir, "", port, ready_cb=_launch_url)
+    logging.info("Using logdir %s", logdir)
+    monitor = RunsMonitor(logdir, args, ctx)
+    monitor.start()
+    guild.tensorboard.main(
+        logdir=logdir,
+        host=(args.host or ""),
+        port=(args.port or guild.util.free_port()),
+        reload_interval=args.refresh_interval,
+        ready_cb=(_open_url if not args.dont_open else None))
+    logging.info("Stopping")
+    monitor.stop()
     _cleanup(logdir)
     guild.cli.out()
 
@@ -31,9 +96,10 @@ def _format_run_name(run):
         time.localtime(float(started)))
     return "%s %s" % (model, formatted_started)
 
-def _launch_url(url):
+def _open_url(url):
     guild.util.open_url(url)
 
 def _cleanup(logdir):
     assert os.path.dirname(logdir) == tempfile.gettempdir()
+    logging.info("Deleting logdir %s", logdir)
     shutil.rmtree(logdir)
