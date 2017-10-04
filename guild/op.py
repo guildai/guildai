@@ -41,7 +41,7 @@ class Operation(object):
         return self._exit_status
 
     def _init_run(self):
-        id = uuid.uuid1().get_hex()
+        id = unique_run_id()
         path = os.path.join(guild.var.runs_dir(), id)
         self._run = guild.run.Run(id, path)
         logging.info("Initializing run in %s", path)
@@ -88,7 +88,10 @@ class Operation(object):
         assert self._stopped is not None
         self._run.write_attr("exit_status", self._exit_status)
         self._run.write_attr("stopped", self._stopped)
-        
+
+def unique_run_id():
+    return uuid.uuid1().get_hex()
+
 def _op_os_env():
     return {
         name: val
