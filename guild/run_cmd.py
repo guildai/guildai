@@ -12,9 +12,14 @@ def main(args):
     project_op = _resolve_op(op_name, model)
     _apply_flags(args, project_op)
     op = guild.op.from_project_op(project_op)
-    if args.yes or _confirm_op(op):
-        result = op.run()
-        _handle_run_result(result)
+    if args.print_command:
+        _print_op_command(op)
+    elif args.print_env:
+        _print_op_env(op)
+    else:
+        if args.yes or _confirm_op(op):
+            result = op.run()
+            _handle_run_result(result)
 
 def _parse_opspec(spec):
     parts = spec.split(":", 1)
@@ -124,6 +129,17 @@ def _parse_flag(s):
         return parts[0], None
     else:
         return parts
+
+def _print_op_command(op):
+    formatted = " ".join([_maybe_quote_arg(arg) for arg in op.cmd_args])
+    guild.cli.out(formatted)
+
+def _maybe_quote_arg(arg):
+    return '"%s"' % arg if " " in arg else arg
+
+def _print_op_env(op):
+    for name,val in sorted(op.cmd_env.items()):
+        guild.cli.out("%s=%s" % (name, val))
 
 def _confirm_op(op):
     flags = _op_flags(op)

@@ -72,7 +72,6 @@ class Operation(object):
         assert self._run
         env = {}
         env.update(self.cmd_env)
-        env.update(_op_os_env())
         env["RUNDIR"] = self._run.path
         return env
 
@@ -92,13 +91,6 @@ class Operation(object):
 def unique_run_id():
     return uuid.uuid1().get_hex()
 
-def _op_os_env():
-    return {
-        name: val
-        for name, val in os.environ.items()
-        if name in OS_ENVIRON_WHITELIST
-    }
-
 def _write_proc_lock(proc, run):
     with open(run.guild_path("LOCK"), "w") as f:
         f.write(str(proc.pid))
@@ -111,7 +103,7 @@ def _delete_proc_lock(run):
 
 def from_project_op(project_op):
     cmd_args = _python_cmd_for_project_op(project_op)
-    cmd_env = _op_cmd_env()
+    cmd_env = _op_cmd_env(project_op)
     return Operation(
         project_op.full_name,
         cmd_args,
@@ -174,6 +166,21 @@ def _opt_args(name, val):
     opt = "--%s" % name
     return [opt] if val is None else [opt, str(val)]
 
-def _op_cmd_env():
-    # TODO or delete
-    return {}
+def _op_cmd_env(project_op):
+    env = {}
+    env.update(_op_os_env())
+    env["PYTHONPATH"] = _python_path_for_op(project_op)
+    return env
+
+def _op_os_env():
+    return {
+        name: val
+        for name, val in os.environ.items()
+        if name in OS_ENVIRON_WHITELIST
+    }
+
+def _python_path_for_op(project_op):
+    paths = [
+        os.path.dirname(project_op.project.src),
+    ]
+    return os.path.pathsep.join(paths)

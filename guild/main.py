@@ -151,21 +151,31 @@ cli.add_command(operations)
 # run command
 ###################################################################
 
+def run_params(fn):
+    append_params(fn, [
+        click.Argument(("args",), metavar="[ARG...]", nargs=-1),
+        click.Option(
+            ("-p", "--project", "project_location"),
+            help="Project location (file system directory) for MODEL.",
+            metavar="LOCATION"),
+        click.Option(
+            ("-y", "--yes"),
+            help="Do not prompt before running operation.",
+            is_flag=True),
+        click.Option(
+            ("--print-command",),
+            help="Show the operation command and exit (does not run).",
+            is_flag=True),
+        click.Option(
+            ("--print-env",),
+            help="Show the operation environment and exit (does not run).",
+            is_flag=True),
+    ])
+    return fn
+
 @click.command()
 @click.argument("opspec", metavar="[MODEL:]OPERATION")
-@click.argument("args", metavar="[ARG...]", nargs=-1)
-@click.option(
-    "-p", "--project", "project_location",
-    help="Project location (file system directory) for MODEL.",
-    metavar="LOCATION")
-@click.option(
-    "-y", "--yes",
-    help="Do not prompt before running operation.",
-    is_flag=True)
-@click.option(
-    "--noinstall",
-    help="Don't attempt to install MODEL if not found.",
-    is_flag=True)
+@run_params
 
 def run(**kw):
     """Run a model operation.
@@ -177,29 +187,6 @@ def run(**kw):
 
     If MODEL is specified, Guild will use it instead of the default
     model defined in a project.
-
-    If MODEL is specified but cannot be found in a project, either
-    because a project is not specified, is not in the current
-    directory, or MODEL is not available, Guild will look for an
-    installed model matching MODEL. If found, Guild will run OPERATION
-    for the installed model.
-
-    If Guild cannot find MODEL, either defined in a project or
-    installed, it will prompt the user to search for and install a
-    model matching MODEL. This behavior can be skipped by specifying
-    the --noinstall option.
-
-    MODEL may contain an optional repository component in the form
-    REPOSITORY/NAME in cases where the model name itself is
-    ambigous.
-
-    Operations on any installed model may be run by specifying the
-    fully qualified model name and its operation. Use 'guild models'
-    to list installed models. If a model doesn't appear in the list of
-    installed models, try 'guild search MODEL' to search for the model
-    in an available package repository. You may install a model using
-    'guild install'. Refer to the help for these commands for more
-    information.
     """
     import guild.run_cmd
     guild.run_cmd.main(Args(kw))
@@ -513,16 +500,7 @@ sources.add_command(remove_source)
 
 @click.command("train")
 @click.argument("model", required=False)
-@click.argument("args", metavar="[ARG...]", nargs=-1)
-@click.option(
-    "-p", "--project", "project_location",
-    help="Project location (file system directory) for MODEL.",
-    metavar="LOCATION"
-)
-@click.option(
-    "-y", "--yes",
-    help="Do not prompt before running operation.",
-    is_flag=True)
+@run_params
 
 def train(**kw):
     """Train a model.
