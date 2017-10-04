@@ -53,7 +53,17 @@ def _full_class_name(pkg_mod, class_name):
     else:
         return class_name
 
-def plugin(class_name):
+def for_name(plugin_name):
+    """Returns a Guild plugin instance for a plugin name.
+
+    Name must be a valid plugin name as returned by `iter_plugins`.
+    """
+    for name, class_name in iter_plugins():
+        if name == plugin_name:
+            return for_class(class_name)
+    raise ValueError(plugin_name)
+
+def for_class(class_name):
     """Returns a Guild plugin instance for a class name.
 
     Class names must be full qualified class names consisting of a

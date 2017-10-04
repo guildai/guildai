@@ -4,7 +4,16 @@ py_library(
     name = "plugins",
     srcs = ["__init__.py"],
     deps = [
+        ":gpu",
         ":keras",
+    ],
+)
+
+py_library(
+    name = "gpu",
+    srcs = ["gpu.py"],
+    deps = [
+        "//guild:plugin",
     ],
 )
 
