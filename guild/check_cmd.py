@@ -7,7 +7,7 @@ import guild.cli
 import guild.test
 
 def main(args):
-    if not args.skip_info:
+    if not args.no_info:
         _print_info(args.verbose)
     if args.all_tests or args.tests:
         _run_tests(args)

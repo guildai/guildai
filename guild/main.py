@@ -67,7 +67,7 @@ def main():
     metavar="TEST",
     multiple=True)
 @click.option(
-    "-s", "--skip-info",
+    "-s", "--no-info",
     help="Don't print info (useful when just running tests).",
     is_flag=True)
 @click.option(
@@ -550,8 +550,8 @@ cli.add_command(train)
     type=click.IntRange(1, None),
     default=5)
 @click.option(
-    "-n", "--dont-open",
-    help="Don't open the TensorBoard URL.",
+    "-n", "--no-open",
+    help="Don't open the TensorBoard URL in a brower.",
     is_flag=True)
 @click.pass_context
 
