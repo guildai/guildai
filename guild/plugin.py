@@ -6,6 +6,9 @@ PLUGIN_PACKAGES = [
     "guild.plugins",
 ]
 
+__plugin_classes__ = None
+__plugin_instances__ = {}
+
 class Plugin(object):
     """Abstract interface for a Guild plugin."""
 
@@ -18,7 +21,7 @@ class Plugin(object):
         pass
 
 def iter_plugins():
-    """Iterates Guild plugins.
+    """Returns an interation of available plugin names.
 
     Uses a list of plugin packages to enumerate named plugin
     classes. Plugin packages must provide a `__plugins__` attribute
@@ -33,10 +36,16 @@ def iter_plugins():
     limited to 'guild.plugins'. This will be modified as support for
     user-defined plugins is added.
 
-    Each iteration yields a tuple of name and fully qualified class
-    name. Use `plugin` to create an instance of a plugin
-    using the class name returned by this function.
+    Use 'for_name' to return a plugin instance for an iteration value.
     """
+    _ensure_plugin_classes()
+    return iter(__plugin_classes__)
+
+def _ensure_plugin_classes():
+    global __plugin_classes__
+    if __plugin_classes__ is not None:
+        return
+    __plugin_classes__ = {}
     for pkg in PLUGIN_PACKAGES:
         try:
             pkg_mod = importlib.import_module(pkg)
@@ -45,7 +54,8 @@ def iter_plugins():
         else:
             plugins_map = getattr(pkg_mod, "__plugins__", {})
             for plugin_name, class_name in plugins_map.items():
-                yield plugin_name, _full_class_name(pkg_mod, class_name)
+                full_class_name = _full_class_name(pkg_mod, class_name)
+                __plugin_classes__[plugin_name] = full_class_name
 
 def _full_class_name(pkg_mod, class_name):
     if class_name.startswith("."):
@@ -53,17 +63,21 @@ def _full_class_name(pkg_mod, class_name):
     else:
         return class_name
 
-def for_name(plugin_name):
-    """Returns a Guild plugin instance for a plugin name.
+def for_name(name):
+    """Returns a Guild plugin instance for a name.
 
     Name must be a valid plugin name as returned by `iter_plugins`.
     """
-    for name, class_name in iter_plugins():
-        if name == plugin_name:
-            return for_class(class_name)
-    raise ValueError(plugin_name)
+    try:
+        return __plugin_instances__[name]
+    except KeyError:
+        _ensure_plugin_classes()
+        plugin_class = __plugin_classes__[name]
+        plugin = _for_class(plugin_class)
+        __plugin_instances__[name] = plugin
+        return plugin
 
-def for_class(class_name):
+def _for_class(class_name):
     """Returns a Guild plugin instance for a class name.
 
     Class names must be full qualified class names consisting of a

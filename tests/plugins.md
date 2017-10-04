@@ -9,26 +9,16 @@ Plugin support is providedy by `guild.plugin`:
 Use `iter_plugins` to iterate through the list of available plugins:
 
     >>> sorted(guild.plugin.iter_plugins())
-    [('gpu', 'guild.plugins.gpu.GPUPlugin'),
-     ('keras', 'guild.plugins.keras.KerasPlugin')]
+    ['gpu', 'keras']
 
-## Instantiating plugins
+## Plugin instances
 
-Plugins can be instantiated using a plugin name or a fully qualified
-class name.
-
-Here's a plugin instance for the "gpu" plugin:
+You can get the plugin instance using `for_name`:
 
     >>> guild.plugin.for_name("gpu")
     <guild.plugins.gpu.GPUPlugin object at ...>
 
-Here's a plugin instance for the class name corresponding to the "gpu"
-plugin:
+There is only ever one plugin instance for a given name:
 
-    >>> guild.plugin.for_class("guild.plugins.gpu.GPUPlugin")
-    <guild.plugins.gpu.GPUPlugin object at ...>
-
-Each plugin instance is separate:
-
-    >>> guild.plugin.for_name("gpu") != guild.plugin.for_name("gpu")
+    >>> guild.plugin.for_name("gpu") is guild.plugin.for_name("gpu")
     True
