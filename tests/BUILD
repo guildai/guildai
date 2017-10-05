@@ -3,12 +3,42 @@ package(default_visibility = ["//visibility:public"])
 py_library(
     name = "tests",
     deps = [
+        ":cpu-plugin",
+        ":disk-plugin",
+        ":memory-plugin",
         ":op",
         ":project",
         ":plugins",
         ":runs",
         ":tables",
         ":var",
+    ],
+)
+
+py_library(
+    name = "cpu-plugin",
+    data = ["cpu-plugin.md"],
+    deps = [
+        "//guild/plugins",
+        "//guild:plugin",
+    ],
+)
+
+py_library(
+    name = "disk-plugin",
+    data = ["disk-plugin.md"],
+    deps = [
+        "//guild/plugins",
+        "//guild:plugin",
+    ],
+)
+
+py_library(
+    name = "memory-plugin",
+    data = ["memory-plugin.md"],
+    deps = [
+        "//guild/plugins",
+        "//guild:plugin",
     ],
 )
 

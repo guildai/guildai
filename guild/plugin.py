@@ -147,29 +147,3 @@ class MethodWrapper(object):
 
     def _unwrap(self):
         setattr(self._m.im_class, self._m.im_func.__name__, self._m)
-
-def tf_scalar_summary(vals):
-    from tensorflow.core.framework.summary_pb2 import Summary
-    return Summary(value=[
-        Summary.Value(tag=key, simple_value=val)
-        for key, val in vals.items()
-    ])
-
-class SummaryCache(object):
-
-    def __init__(self, timeout):
-        self._timeout = timeout
-        self._expires = None
-        self._step = None
-        self._val = None
-
-    def expired(self):
-        return self._expires is None or time.time() >= self._expires
-
-    def reset_for_step(self, step, val):
-        self._expires = time.time() + self._timeout
-        self._step = step
-        self._val = val
-
-    def for_step(self, step):
-        return self._val if step == self._step else None

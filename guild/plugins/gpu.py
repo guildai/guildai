@@ -1,12 +1,12 @@
+from __future__ import division
+
 import csv
 import io
 import logging
 import subprocess
 import sys
 
-import guild.plugin
-
-SUMMARY_TIMEOUT = 5
+from guild.plugins.tensorflow import SummaryPlugin
 
 STATS = [
     "index",
@@ -20,48 +20,34 @@ STATS = [
     "power.draw"
 ]
 
-class GPUPlugin(guild.plugin.Plugin):
+class GPUPlugin(SummaryPlugin):
+
+    SUMMARY_NAME = "gpu stats"
 
     def init(self):
         self._stats_cmd = _stats_cmd()
-        self._summary_cache = guild.plugin.SummaryCache(SUMMARY_TIMEOUT)
 
     def enabled_for_op(self, _op):
         return self._stats_cmd is not None
 
-    def patch_env(self):
-        import tensorflow
-        guild.plugin.listen_method(
-            tensorflow.summary.FileWriter.add_summary,
-            self._summary)
+    def read_summary_values(self):
+        return _gpu_stats(self._stats_cmd) if self._stats_cmd else {}
 
-    def _summary(self, add_summary, _summary, step):
-        if self._summary_cache.expired():
-            logging.info("reading GPU stats")
-            self._summary_cache.reset_for_step(step, self._gpu_stats())
-        stats = self._summary_cache.for_step(step)
-        if stats:
-            logging.debug("GPU stats: %s", stats)
-            summary = guild.plugin.tf_scalar_summary(stats)
-            add_summary(summary, step)
+def _gpu_stats(stats_cmd):
+    stats = {}
+    for raw in _read_raw_gpu_stats(stats_cmd):
+        stats.update(_calc_gpu_stats(raw))
+    return stats
 
-    def _gpu_stats(self):
-        stats = {}
-        for raw in self._read_raw_gpu_stats():
-            stats.update(_calc_gpu_stats(raw))
-        return stats
-
-    def _read_raw_gpu_stats(self):
-        p = subprocess.Popen(
-            self._stats_cmd,
-            stdout=subprocess.PIPE)
-        raw_lines = _read_csv_lines(p.stdout)
-        result = p.wait()
-        if result == 0:
-            return raw_lines
-        else:
-            logging.error("reading GPU stats (smi output: '%s')", raw_lines)
-            return []
+def _read_raw_gpu_stats(stats_cmd):
+    p = subprocess.Popen(stats_cmd, stdout=subprocess.PIPE)
+    raw_lines = _read_csv_lines(p.stdout)
+    result = p.wait()
+    if result == 0:
+        return raw_lines
+    else:
+        logging.error("reading GPU stats (smi output: '%s')", raw_lines)
+        return []
 
 def _stats_cmd():
     try:
@@ -124,4 +110,4 @@ def _parse_watts(val):
     return float(val[0:-2])
 
 def _gpu_val_key(index, name):
-    return "system/gpu/%s/%s" % (index, name)
+    return "system/gpu%s/%s" % (index, name)

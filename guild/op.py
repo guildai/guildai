@@ -15,6 +15,11 @@ OS_ENVIRON_WHITELIST = [
     "LD_LIBRARY_PATH",
 ]
 
+GUILD_PACKAGES = [
+    "org_guildai_guild",
+    "org_psutil",
+]
+
 class InvalidCmd(ValueError):
     pass
 
@@ -194,9 +199,9 @@ def _op_plugins(project_op):
             logging.info("plugin '%s' disabled for operation", name)
             continue
         if plugin.enabled_for_op(project_op):
-            logging.info("plugin '%s' selected for operation", name)
+            logging.info("plugin '%s' enabled for operation", name)
             op_plugins.append(name)
-    return ":".join(op_plugins)
+    return ",".join(op_plugins)
 
 def _plugin_disabled(name, project_op):
     return (name in project_op.disabled_plugins
@@ -213,4 +218,7 @@ def _guild_paths():
     return [path for path in sys.path if _is_guild_path(path)]
 
 def _is_guild_path(path):
-    return path.endswith("org_guildai_guild")
+    for pkg in GUILD_PACKAGES:
+        if path.endswith(pkg):
+            return True
+    return False
