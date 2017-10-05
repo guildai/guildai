@@ -12,6 +12,7 @@ def main(args):
     model = _resolve_model(model_name, args)
     project_op = _resolve_op(op_name, model)
     _apply_flags(args, project_op)
+    _apply_disable_plugins(args, project_op)
     op = guild.op.from_project_op(project_op)
     if args.print_command:
         _print_op_command(op)
@@ -108,6 +109,12 @@ def _parse_flag(s):
         return parts[0], None
     else:
         return parts
+
+def _apply_disable_plugins(args, op):
+    if args.disable_plugins:
+        op.disabled_plugins.extend([
+            name.strip() for name in args.disable_plugins.split(",")
+        ])
 
 def _print_op_command(op):
     formatted = " ".join([_maybe_quote_arg(arg) for arg in op.cmd_args])

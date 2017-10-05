@@ -159,6 +159,9 @@ def run_params(fn):
             help="Project location (file system directory) for MODEL.",
             metavar="LOCATION"),
         click.Option(
+            ("--disable-plugins",),
+            help="A comma separated list of plugin names to disable."),
+        click.Option(
             ("-y", "--yes"),
             help="Do not prompt before running operation.",
             is_flag=True),

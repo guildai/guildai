@@ -176,6 +176,7 @@ def _op_cmd_env(project_op):
     env = {}
     env.update(_op_os_env())
     env["GUILD_PLUGINS"] = _op_plugins(project_op)
+    env["LOG_LEVEL"] = str(logging.getLogger().getEffectiveLevel())
     env["PYTHONPATH"] = _python_path(project_op)
     return env
 
@@ -189,9 +190,17 @@ def _op_os_env():
 def _op_plugins(project_op):
     op_plugins = []
     for name, plugin in guild.plugin.iter_plugins():
+        if _plugin_disabled(name, project_op):
+            logging.info("plugin '%s' disabled for operation", name)
+            continue
         if plugin.enabled_for_op(project_op):
+            logging.info("plugin '%s' selected for operation", name)
             op_plugins.append(name)
     return ":".join(op_plugins)
+
+def _plugin_disabled(name, project_op):
+    return (name in project_op.disabled_plugins
+            or name in project_op.model.disabled_plugins)
 
 def _python_path(project_op):
     paths = _model_paths(project_op) + _guild_paths()

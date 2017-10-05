@@ -54,6 +54,7 @@ class Model(object):
         self.description = data.get("description")
         self.operations = _sorted_ops(data.get("operations", {}), self)
         self.flags = data.get("flags", {})
+        self.disabled_plugins = data.get("disabled-plugins", [])
 
     def get_op(self, name):
         for op in self.operations:
@@ -79,6 +80,7 @@ class Operation(object):
         self.description = data.get("description")
         self.cmd = data.get("cmd")
         self.flags = data.get("flags", {})
+        self.disabled_plugins = data.get("disabled-plugins", [])
 
     @property
     def full_name(self):

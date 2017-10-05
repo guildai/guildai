@@ -1,6 +1,7 @@
 import importlib
 import os
 import sys
+import time
 
 PLUGIN_PACKAGES = [
     "guild.plugins",
@@ -119,6 +120,8 @@ class MethodWrapper(object):
             for cb in self._cbs:
                 try:
                     cb_result = cb(wrapped_bound, *args, **kw)
+                except KeyboardInterrupt:
+                    raise
                 except:
                     import logging
                     logging.exception("callback error")
@@ -144,3 +147,22 @@ class MethodWrapper(object):
 
     def _unwrap(self):
         setattr(self._m.im_class, self._m.im_func.__name__, self._m)
+
+def tf_scalar_summary(vals):
+    from tensorflow.core.framework.summary_pb2 import Summary
+    return Summary(value=[
+        Summary.Value(tag=key, simple_value=val)
+        for key, val in vals.items()
+    ])
+
+class Timer(object):
+
+    def __init__(self, seconds):
+        self._seconds = seconds
+        self._expires = None
+
+    def expired(self):
+        return self._expires is None or time.time() >= self._expires
+
+    def reset(self):
+        self._expires = time.time() + self._seconds
