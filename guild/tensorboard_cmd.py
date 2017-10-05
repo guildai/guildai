@@ -89,12 +89,12 @@ def main(args, ctx):
     guild.cli.out()
 
 def _format_run_name(run):
-    model = run.get("op", "").split(":", 1)[0]
+    op = run.get("op", "")
     started = run.get("started", "")
     formatted_started = time.strftime(
         "%Y-%m-%d %H:%M:%S",
         time.localtime(float(started)))
-    return "%s %s" % (model, formatted_started)
+    return "[%s] %s %s" % (run.short_id, op, formatted_started)
 
 def _open_url(url):
     guild.util.open_url(url)
