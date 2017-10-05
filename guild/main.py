@@ -347,7 +347,7 @@ runs.add_command(delete_runs)
 ###################################################################
 
 @click.command("restore", help="""
-Restores one or more deleted runs.
+Restore one or more deleted runs.
 
 %s
 """ % RUN_ARG_HELP)
