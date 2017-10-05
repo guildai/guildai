@@ -82,7 +82,7 @@ def main(args, ctx):
         host=(args.host or ""),
         port=(args.port or guild.util.free_port()),
         reload_interval=args.refresh_interval,
-        ready_cb=(_open_url if not args.dont_open else None))
+        ready_cb=(_open_url if not args.no_open else None))
     logging.info("Stopping")
     monitor.stop()
     _cleanup(logdir)
