@@ -37,59 +37,67 @@ def iter_plugins():
     user-defined plugins is added.
 
     Use 'for_name' to return a plugin instance for an iteration value.
+
     """
-    _ensure_plugin_classes()
-    return iter(__plugin_classes__)
-
-def _ensure_plugin_classes():
-    global __plugin_classes__
-    if __plugin_classes__ is not None:
-        return
-    __plugin_classes__ = {}
-    for pkg in PLUGIN_PACKAGES:
-        try:
-            pkg_mod = importlib.import_module(pkg)
-        except ImportError:
-            logging.exception("plugin package: " % pkg)
-        else:
-            plugins_map = getattr(pkg_mod, "__plugins__", {})
-            for plugin_name, class_name in plugins_map.items():
-                full_class_name = _full_class_name(pkg_mod, class_name)
-                __plugin_classes__[plugin_name] = full_class_name
-
-def _full_class_name(pkg_mod, class_name):
-    if class_name.startswith("."):
-        return pkg_mod.__name__ + class_name
-    else:
-        return class_name
+    for name in __plugins__:
+        yield name, __plugins__[name]
 
 def for_name(name):
     """Returns a Guild plugin instance for a name.
 
+    `init_plugins` must be called before calling this function.
+
     Name must be a valid plugin name as returned by `iter_plugins`.
     """
-    try:
-        return __plugin_instances__[name]
-    except KeyError:
-        _ensure_plugin_classes()
-        plugin_class = __plugin_classes__[name]
-        plugin = _for_class(plugin_class)
-        __plugin_instances__[name] = plugin
-        return plugin
+    return __plugins__[name]
 
-def _for_class(class_name):
-    """Returns a Guild plugin instance for a class name.
+def listen_method(method, cb):
+    MethodWrapper.for_method(method).add_cb(cb)
 
-    Class names must be full qualified class names consisting of a
-    fully qualified module name + "." + class name.
+def remove_listeners(method):
+    MethodWrapper.unwrap(method)
 
-    Raises ImportError if an error occurs loading the class module.
+class MethodWrapper(object):
 
-    Raises AttributeError if the plugin class is not defined in the
-    class module.
+    @staticmethod
+    def for_method(m):
+        wrapper = getattr(m.im_func, "__method_wrapper__", None)
+        return wrapper if wrapper else MethodWrapper(m)
 
-    """
-    mod_name, class_attr = class_name.rsplit(".", 1)
-    plugin_mod = importlib.import_module(mod_name)
-    plugin_class = getattr(plugin_mod, class_attr)
-    return plugin_class()
+    @staticmethod
+    def unwrap(m):
+        wrapper = getattr(m.im_func, "__method_wrapper__", None)
+        if wrapper:
+            wrapper._unwrap()
+
+    def __init__(self, m):
+        self._m = m
+        self._cbs = []
+        self._wrap()
+
+    def _wrap(self):
+        wrapper = self._wrapper()
+        name = self._m.im_func.__name__
+        wrapper.__name__ = "%s_wrapper" % name
+        wrapper.__method_wrapper__ = self
+        setattr(self._m.im_class, name, wrapper)
+
+    def _wrapper(self):
+        def wrapper(wrapped_self, *args, **kw):
+            wrapped_bound = self._bind(wrapped_self)
+            call_wrapped = True
+            for cb in self._cbs:
+                cb_result = cb(wrapped_bound, *args, **kw)
+                call_wrapped = call_wrapped and not cb_result is False
+            if call_wrapped:
+                wrapped_bound(*args, **kw)
+        return wrapper
+
+    def _bind(self, wrapped_self):
+        return lambda *args, **kw: self._m(wrapped_self, *args, **kw)
+
+    def add_cb(self, cb):
+        self._cbs.append(cb)
+
+    def _unwrap(self):
+        setattr(self._m.im_class, self._m.im_func.__name__, self._m)
