@@ -19,23 +19,10 @@ def find_project_for_location(location):
         return None
 
 def _project_for_location(location):
-    return guild.util.find_apply(
-        [_project_from_file_or_dir,
-         _project_from_plugins,
-         _raise_no_project],
-        location)
-
-def _project_from_file_or_dir(location):
     try:
         return guild.project.from_file_or_dir(location)
-    except (guild.project.MissingSourceError, IOError):
-        return None
-
-def _project_from_plugins(location):
-    return None
-
-def _raise_no_project(_):
-    raise NoProject()
+    except (guild.project.NoModels, IOError):
+        raise NoProject()
 
 def _no_project_error(location, cmd_ctx):
     msg_parts = [

@@ -3,6 +3,8 @@ import os
 
 import yaml
 
+import guild.plugin
+
 class ProjectError(Exception):
 
     def __init__(self, path):
@@ -12,7 +14,7 @@ class ProjectError(Exception):
 class ProjectFormatError(ProjectError):
     pass
 
-class MissingSourceError(ProjectError):
+class NoModels(ProjectError):
     pass
 
 class Project(object):
@@ -98,12 +100,30 @@ def _coerce_op_data(data):
     else:
         return data
 
-def from_dir(path, filenames=["MODELS", "MODEL"]):
+def from_dir(path, filenames=["MODELS", "MODEL"], use_plugins=True):
+    return guild.util.find_apply([
+        lambda: _try_from_dir_file(path, filenames),
+        lambda: _try_from_plugin(path) if use_plugins else None,
+        lambda: _raise_no_models(path)])
+
+def _try_from_dir_file(path, filenames):
     for name in filenames:
-        modelfile = os.path.abspath(os.path.join(path, name))
-        if os.path.isfile(modelfile):
-            return Project(_load_modelfile(modelfile), modelfile)
-    raise MissingSourceError(path)
+        model_file = os.path.abspath(os.path.join(path, name))
+        if os.path.isfile(model_file):
+            return Project(_load_modelfile(model_file), model_file)
+    return None
+
+def _try_from_plugin(path):
+    data = []
+    for _, plugin in guild.plugin.iter_plugins():
+        data.extend(plugin.models_for_location(path))
+    if data:
+        return Project(data, os.path.join(path, "__generated__"))
+    else:
+        return None
+
+def _raise_no_models(path):
+    raise NoModels(path)
 
 def from_file(src):
     return Project(_load_modelfile(src), src)

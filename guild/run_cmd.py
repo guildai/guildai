@@ -1,6 +1,7 @@
 import os
 
 import guild.cli
+import guild.cmd_support
 import guild.op
 import guild.project
 
@@ -31,32 +32,23 @@ def _parse_opspec(spec):
 def _resolve_model(name, args):
     project = _project_for_args(args)
     if name is None:
-        if project is None:
-            _project_required_error()
         return _project_default_model(project)
-    elif project is not None:
-        return _project_model(name, project)
     else:
-        package = _package_for_args(args)
-        if package is None:
-            _package_not_installed_error(package)
-        return _package_model(name, package)
+        return _project_model(name, project)
 
 def _project_for_args(args):
     location = args.project_location or DEFAULT_PROJECT_LOCATION
     try:
         return guild.project.from_file_or_dir(location)
-    except guild.project.MissingSourceError:
-        if args.project_location:
-            _missing_source_error(args.project_location)
-        return None
+    except guild.project.NoModels:
+        _missing_source_error(args.project_location)
 
 def _missing_source_error(location):
     guild.cli.error(
-        "'%s' does not contain any models\n"
+        "%s does not contain any models\n"
         "Try a different location or 'guild run --help' "
         "for more information."
-        % location)
+        % guild.cmd_support.project_location_desc(location))
 
 def _project_required_error():
     guild.cli.error(
@@ -92,19 +84,6 @@ def _project_opt(project_src):
         return ""
     else:
         return " -p %s" % relpath
-
-def _package_for_args(_args):
-    # TODO: package resolve here!
-    return None
-
-def _package_not_installed_error(name):
-    guild.cli.error(
-        "package '%s' is not installed\n"
-        "Try 'guild install %s' to install it first."
-        % name)
-
-def _package_model(name, package):
-    raise AssertionError("TODO")
 
 def _resolve_op(name, model):
     op = model.get_op(name)

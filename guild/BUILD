@@ -43,6 +43,7 @@ py_library(
     srcs = ["app.py"],
     deps = [
         ":__init__",
+        ":plugin",
     ]
 )
 
@@ -74,6 +75,7 @@ py_library(
     srcs = ["run_cmd.py"],
     deps = [
         ":cli",
+        ":cmd_support",
         ":op",
         ":project",
     ],
@@ -94,6 +96,7 @@ py_library(
     srcs = ["project.py"],
     deps = [
         "@org_pyyaml",
+        ":plugin",
     ]
 )
 

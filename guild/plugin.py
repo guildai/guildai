@@ -6,22 +6,49 @@ PLUGIN_PACKAGES = [
     "guild.plugins",
 ]
 
-__plugin_classes__ = None
-__plugin_instances__ = {}
+__plugins__ = {}
 
 class Plugin(object):
     """Abstract interface for a Guild plugin."""
 
-    name = None
-
-    def project_models(self, project):
+    def init(self):
         pass
 
-    def yyy(self):
+    def models_for_location(self, location):
+        return []
+
+    def enabled_for_op(self, _op):
+        return False
+
+    def patch_env(self):
         pass
+
+def init_plugins():
+    for pkg in PLUGIN_PACKAGES:
+        pkg_mod = importlib.import_module(pkg)
+        plugins_map = getattr(pkg_mod, "__plugins__", {})
+        for plugin_name, class_name in plugins_map.items():
+            full_class_name = _full_class_name(pkg_mod, class_name)
+            __plugins__[plugin_name] = _init_plugin(full_class_name)
+
+def _full_class_name(pkg_mod, class_name):
+    if class_name.startswith("."):
+        return pkg_mod.__name__ + class_name
+    else:
+        return class_name
+
+def _init_plugin(class_name):
+    mod_name, class_attr = class_name.rsplit(".", 1)
+    plugin_mod = importlib.import_module(mod_name)
+    plugin_class = getattr(plugin_mod, class_attr)
+    plugin = plugin_class()
+    plugin.init()
+    return plugin
 
 def iter_plugins():
     """Returns an interation of available plugin names.
+
+    `init_plugins` must be called before calling this function.
 
     Uses a list of plugin packages to enumerate named plugin
     classes. Plugin packages must provide a `__plugins__` attribute

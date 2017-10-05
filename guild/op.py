@@ -175,6 +175,7 @@ def _opt_args(name, val):
 def _op_cmd_env(project_op):
     env = {}
     env.update(_op_os_env())
+    env["GUILD_PLUGINS"] = _op_plugins(project_op)
     env["PYTHONPATH"] = _python_path(project_op)
     return env
 
@@ -184,6 +185,13 @@ def _op_os_env():
         for name, val in os.environ.items()
         if name in OS_ENVIRON_WHITELIST
     }
+
+def _op_plugins(project_op):
+    op_plugins = []
+    for name, plugin in guild.plugin.iter_plugins():
+        if plugin.enabled_for_op(project_op):
+            op_plugins.append(name)
+    return ":".join(op_plugins)
 
 def _python_path(project_op):
     paths = _model_paths(project_op) + _guild_paths()

@@ -2,9 +2,11 @@ import os
 import subprocess
 
 import guild
+import guild.plugin
 
 def init():
     init_git_commit_info()
+    guild.plugin.init_plugins()
 
 def init_git_commit_info():
     guild.__git_commit__ = _git_commit()

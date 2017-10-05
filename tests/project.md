@@ -92,11 +92,11 @@ Find an operation using a model's `get_op` method:
     Traceback (most recent call last):
     ProjectFormatError: ...
 
-### No sources (i.e. MODEL or MODELS)
+### No models (i.e. MODEL or MODELS)
 
     >>> guild.project.from_dir(sample("projects/missing-sources"))
     Traceback (most recent call last):
-    MissingSourceError: ...
+    NoModels: ...
 
     >>> guild.project.from_file(sample("projects/missing-sources/MODEL"))
     Traceback (most recent call last):
