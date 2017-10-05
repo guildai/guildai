@@ -36,6 +36,8 @@ def apply_main(cmd):
         _print_error_and_exit(prog, e.msg, e.exit_status)
 
 def _handle_keyboard_interrupt():
+    sys.stdout.write("\n")
+    sys.stdout.flush()
     sys.exit(1)
 
 def _handle_click_exception(e, prog):
