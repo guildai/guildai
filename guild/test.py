@@ -1,5 +1,6 @@
 import doctest
 import glob
+import logging
 import os
 import pprint
 import re
@@ -116,6 +117,7 @@ def _load_testfile(filename):
 def test_globals():
     return {
         "cat": cat,
+        "LogCapture": LogCapture,
         "find": find,
         "mkdtemp": mkdtemp,
         "pprint": pprint.pprint,
@@ -145,3 +147,22 @@ def find(root):
 def cat(file_path):
     with open(file_path, "r") as f:
         return f.read()
+
+class LogCapture(object):
+
+    def __init__(self):
+        self._records = []
+
+    def __enter__(self):
+        logging.getLogger().addFilter(self)
+
+    def __exit__(self, *exc):
+        logging.getLogger().removeFilter(self)
+
+    def filter(self, record):
+        self._records.append(record)
+
+    def print_all(self):
+        format = logging.Formatter().format
+        for r in self._records:
+            print(format(r))

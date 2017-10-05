@@ -54,7 +54,10 @@ def for_name(name):
 def listen_method(method, cb):
     MethodWrapper.for_method(method).add_cb(cb)
 
-def remove_listeners(method):
+def remove_method_listener(method, cb):
+    MethodWrapper.for_method(method).remove_cb(cb)
+
+def remove_method_listeners(method):
     MethodWrapper.unwrap(method)
 
 class MethodWrapper(object):
@@ -87,8 +90,13 @@ class MethodWrapper(object):
             wrapped_bound = self._bind(wrapped_self)
             call_wrapped = True
             for cb in self._cbs:
-                cb_result = cb(wrapped_bound, *args, **kw)
-                call_wrapped = call_wrapped and not cb_result is False
+                try:
+                    cb_result = cb(wrapped_bound, *args, **kw)
+                except:
+                    import logging
+                    logging.exception("callback error")
+                else:
+                    call_wrapped = call_wrapped and not cb_result is False
             if call_wrapped:
                 wrapped_bound(*args, **kw)
         return wrapper
@@ -98,6 +106,14 @@ class MethodWrapper(object):
 
     def add_cb(self, cb):
         self._cbs.append(cb)
+
+    def remove_cb(self, cb):
+        try:
+            self._cbs.remove(cb)
+        except ValueError:
+            pass
+        if not self._cbs:
+            self._unwrap()
 
     def _unwrap(self):
         setattr(self._m.im_class, self._m.im_func.__name__, self._m)
