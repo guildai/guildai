@@ -6,7 +6,7 @@ import sys
 
 import guild.plugin
 
-MIN_SUMMARY_INTERVAL = 5
+SUMMARY_TIMEOUT = 5
 
 STATS = [
     "index",
@@ -24,8 +24,7 @@ class GPUPlugin(guild.plugin.Plugin):
 
     def init(self):
         self._stats_cmd = _stats_cmd()
-        self._last_summary = None
-        self._summary_timer = guild.plugin.Timer(MIN_SUMMARY_INTERVAL)
+        self._summary_cache = guild.plugin.SummaryCache(SUMMARY_TIMEOUT)
 
     def enabled_for_op(self, _op):
         return self._stats_cmd is not None
@@ -37,13 +36,14 @@ class GPUPlugin(guild.plugin.Plugin):
             self._summary)
 
     def _summary(self, add_summary, _summary, step):
-        if self._summary_timer.expired():
-            self._summary_timer.reset()
+        if self._summary_cache.expired():
             logging.info("reading GPU stats")
-            stats = self._gpu_stats()
+            self._summary_cache.reset_for_step(step, self._gpu_stats())
+        stats = self._summary_cache.for_step(step)
+        if stats:
             logging.debug("GPU stats: %s", stats)
-            if stats:
-                add_summary(guild.plugin.tf_scalar_summary(stats), step)
+            summary = guild.plugin.tf_scalar_summary(stats)
+            add_summary(summary, step)
 
     def _gpu_stats(self):
         stats = {}

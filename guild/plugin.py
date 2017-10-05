@@ -155,14 +155,21 @@ def tf_scalar_summary(vals):
         for key, val in vals.items()
     ])
 
-class Timer(object):
+class SummaryCache(object):
 
-    def __init__(self, seconds):
-        self._seconds = seconds
+    def __init__(self, timeout):
+        self._timeout = timeout
         self._expires = None
+        self._step = None
+        self._val = None
 
     def expired(self):
         return self._expires is None or time.time() >= self._expires
 
-    def reset(self):
-        self._expires = time.time() + self._seconds
+    def reset_for_step(self, step, val):
+        self._expires = time.time() + self._timeout
+        self._step = step
+        self._val = val
+
+    def for_step(self, step):
+        return self._val if step == self._step else None
