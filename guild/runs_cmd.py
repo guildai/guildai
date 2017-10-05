@@ -82,6 +82,7 @@ def _format_run(run, index=None):
     return {
         "id": run.id,
         "index": _format_run_index(run, index),
+        "short_index": _format_run_index(run),
         "operation": run.get("op", "?"),
         "status": run.extended_status,
         "pid": run.pid or "(not running)",
@@ -93,7 +94,7 @@ def _format_run(run, index=None):
         "exit_status": run.get("exit_status", ""),
     }
 
-def _format_run_index(run, index):
+def _format_run_index(run, index=None):
     if index is not None:
         return "[%i:%s]" % (index, run.short_id)
     else:
@@ -129,7 +130,7 @@ def delete_runs(args, ctx):
     preview = [_format_run(run) for run in selected]
     if not args.yes:
         guild.cli.out("You are about to delete the following runs:")
-        cols = ["id", "op", "started", "status"]
+        cols = ["short_index", "operation", "started", "status"]
         guild.cli.table(preview, cols=cols, indent=2)
     if args.yes or guild.cli.confirm("Delete these runs?"):
         guild.var.delete_runs(selected)
@@ -217,7 +218,7 @@ def restore_runs(args, ctx):
     preview = [_format_run(run) for run in selected]
     if not args.yes:
         guild.cli.out("You are about to restore the following runs:")
-        cols = ["id", "op", "started", "status"]
+        cols = ["short_index", "operation", "started", "status"]
         guild.cli.table(preview, cols=cols, indent=2)
     if args.yes or guild.cli.confirm("Restore these runs?"):
         guild.var.restore_runs(selected)
