@@ -1,6 +1,6 @@
 from __future__ import division
 
-from guild.plugins.tensorflow import SummaryPlugin
+from guild.plugins.tensorflow_util import SummaryPlugin
 
 class MemoryPlugin(SummaryPlugin):
 

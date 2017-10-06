@@ -6,7 +6,7 @@ import logging
 import subprocess
 import sys
 
-from guild.plugins.tensorflow import SummaryPlugin
+from guild.plugins.tensorflow_util import SummaryPlugin
 
 STATS = [
     "index",

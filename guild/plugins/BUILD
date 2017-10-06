@@ -13,8 +13,8 @@ py_library(
 )
 
 py_library(
-    name = "tensorflow",
-    srcs = ["tensorflow.py"],
+    name = "tensorflow_util",
+    srcs = ["tensorflow_util.py"],
     deps = [
         "//guild:plugin",
     ],
@@ -24,7 +24,7 @@ py_library(
     name = "gpu",
     srcs = ["gpu.py"],
     deps = [
-        ":tensorflow",
+        ":tensorflow_util",
     ],
 )
 
@@ -40,7 +40,7 @@ py_library(
     name = "cpu",
     srcs = ["cpu.py"],
     deps = [
-        ":tensorflow",
+        ":tensorflow_util",
         "@org_psutil",
     ],
 )
@@ -49,7 +49,7 @@ py_library(
     name = "memory",
     srcs = ["memory.py"],
     deps = [
-        ":tensorflow",
+        ":tensorflow_util",
         "@org_psutil",
     ],
 )
@@ -58,7 +58,7 @@ py_library(
     name = "disk",
     srcs = ["disk.py"],
     deps = [
-        ":tensorflow",
+        ":tensorflow_util",
         "@org_psutil",
     ],
 )

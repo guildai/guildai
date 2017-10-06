@@ -2,7 +2,7 @@ from __future__ import division
 
 import time
 
-from guild.plugins.tensorflow import SummaryPlugin
+from guild.plugins.tensorflow_util import SummaryPlugin
 
 class DiskPlugin(SummaryPlugin):
 
