@@ -16,6 +16,11 @@ class Plugin(object):
         pass
 
     def models_for_location(self, location):
+        """Return a list or generator of models for location.
+
+        A model must be a Python dict containing model attributes. See
+        guild.project.Project for the expected structure.
+        """
         return []
 
     def enabled_for_op(self, _op):
