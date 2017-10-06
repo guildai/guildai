@@ -136,7 +136,7 @@ def _confirm_op(op):
             % (op.name, _format_op_flags(flags)))
     else:
         prompt = (
-            "You are about to run %s:\n"
+            "You are about to run %s\n"
             "Continue?" % op.name)
     return guild.cli.confirm(prompt, default=True)
 
