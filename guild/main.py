@@ -339,8 +339,11 @@ are omitted (i.e. the ':' char is used by itself) all runs are selected.
 Delete one or more runs.
 
 %s
+
+If a RUN is not specified, assumes all runs (i.e. as if ':' was
+specified).
 """ % RUN_ARG_HELP)
-@click.argument("runs", metavar="RUN [RUN...]", nargs=-1, required=True)
+@click.argument("runs", metavar="[RUN...]",  nargs=-1)
 @run_scope_options
 @run_filters
 @click.option(
@@ -364,6 +367,9 @@ runs.add_command(delete_runs)
 Restore one or more deleted runs.
 
 %s
+
+If a RUN is not specified, assumes all runs (i.e. as if ':' was
+specified).
 """ % RUN_ARG_HELP)
 
 @click.argument("runs", metavar="RUN [RUN...]", nargs=-1, required=True)

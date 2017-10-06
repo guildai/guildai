@@ -18,6 +18,8 @@ RUN_DETAIL = [
     "pid",
 ]
 
+ALL_RUNS_ARG = [":"]
+
 def list_runs(args, ctx):
     runs = [
         _format_run(run, i)
@@ -132,7 +134,8 @@ def _format_attr_val(s):
 
 def delete_runs(args, ctx):
     runs = runs_for_args(args, ctx)
-    selected = selected_runs(runs, args.runs, ctx)
+    runs_arg = args.runs or ALL_RUNS_ARG
+    selected = selected_runs(runs, runs_arg, ctx)
     if not selected:
         _no_selected_runs_error()
     preview = [_format_run(run) for run in selected]
@@ -220,7 +223,8 @@ def _no_selected_runs_error():
 
 def restore_runs(args, ctx):
     runs = runs_for_args(args, ctx, force_deleted=True)
-    selected = selected_runs(runs, args.runs, ctx)
+    runs_arg = args.runs or ALL_RUNS_ARG
+    selected = selected_runs(runs, runs_arg, ctx)
     if not selected:
         _no_selected_runs_error()
     preview = [_format_run(run) for run in selected]
