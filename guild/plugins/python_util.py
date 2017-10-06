@@ -145,7 +145,7 @@ class MethodWrapper(object):
 def scripts_for_location(location):
     return [
         Script(src)
-        for src in sorted(glob.glob(os.path.join(location, "*.py")))
+        for src in glob.glob(os.path.join(location, "*.py"))
     ]
 
 def listen_method(method, cb):
