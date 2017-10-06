@@ -77,14 +77,13 @@ def _no_such_model_error(name, project):
     guild.cli.error(
         "model '%s' is not defined in %s\n"
         "Try 'guild models%s' for a list of available models."
-        % (name, project.src, _project_opt(project.src)))
+        % (name,
+           guild.cmd_support.project_location_desc(project.src),
+           _project_opt(project.src)))
 
 def _project_opt(project_src):
-    relpath = os.path.relpath(project_src)
-    if relpath == "MODEL" or relpath == "MODELS":
-        return ""
-    else:
-        return " -p %s" % relpath
+    location = guild.cmd_support.project_location_option(project_src)
+    return " -p %s" % location if location else ""
 
 def _resolve_op(name, model):
     op = model.get_op(name)

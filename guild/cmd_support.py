@@ -1,3 +1,5 @@
+import os
+
 import guild.cli
 import guild.project
 import guild.util
@@ -39,7 +41,16 @@ def _no_project_error(location, cmd_ctx):
     guild.cli.error("".join(msg_parts))
 
 def project_location_desc(location):
-    if not location or location == ".":
-        return "the current directory"
+    location = project_location_option(location)
+    return ("'%s'" % location if location
+            else "the current directory")
+
+def project_location_option(location):
+    location = os.path.abspath(location or "")
+    basename = os.path.basename(location)
+    if basename in ["MODEL", "MODELS", "__generated__"]:
+        location = os.path.dirname(location)
+    if location == os.getcwd():
+        return ""
     else:
-        return "'%s'" % location
+        return location
