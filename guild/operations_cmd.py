@@ -50,6 +50,6 @@ def _format_op(op):
         "name": op.name,
         "model": op.model.name,
         "full_name": "%s:%s" % (op.model.name, op.name),
-        "description": op.description,
+        "description": op.description or "",
         "cmd": op.cmd,
     }
