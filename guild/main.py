@@ -26,8 +26,6 @@ class CLIGroup(click.Group):
     def get_command(self, ctx, cmd_name):
         if cmd_name in ["operations", "ops"]:
             cmd_name = "operations, ops"
-        elif cmd_name in ["tensorboard", "tb"]:
-            cmd_name = "tensorboard, tb"
         return super(CLIGroup, self).get_command(ctx, cmd_name)
 
 @click.group(cls=CLIGroup)
@@ -555,10 +553,10 @@ def train(**kw):
 cli.add_command(train)
 
 ###################################################################
-# tensorboard command
+# view command
 ###################################################################
 
-@click.command("tensorboard, tb")
+@click.command("view")
 @run_scope_options
 @click.option(
     "--host",
@@ -569,19 +567,19 @@ cli.add_command(train)
     type=click.IntRange(0, 65535))
 @click.option(
     "--refresh-interval",
-    help="TensorBoard refresh interval (defaults to 5 seconds).",
+    help="View refresh interval (defaults to 5 seconds).",
     type=click.IntRange(1, None),
     default=5)
 @click.option(
     "-n", "--no-open",
-    help="Don't open the TensorBoard URL in a brower.",
+    help="Don't open View in a brower.",
     is_flag=True)
 @click.pass_context
 
-def tensorboard(ctx, **kw):
-    """Start TensorBoard to view runs.
+def view(ctx, **kw):
+    """Start Guild View.
     """
-    import guild.tensorboard_cmd
-    guild.tensorboard_cmd.main(Args(kw), ctx)
+    import guild.view_cmd
+    guild.view_cmd.main(Args(kw), ctx)
 
-cli.add_command(tensorboard)
+cli.add_command(view)

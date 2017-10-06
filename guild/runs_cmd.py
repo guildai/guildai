@@ -67,7 +67,7 @@ def _project_args(args, ctx):
     return guild.cmd_support.project_for_location(args.project_location, ctx)
 
 def _apply_arg_models_filter(args, filters, ctx):
-    for model_name in args.models:
+    for model_name in getattr(args, "models", []):
         filters.append(_model_name_filter(model_name))
 
 def _model_name_filter(model_name):

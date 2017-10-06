@@ -20,7 +20,7 @@ py_library(
         ":runs_cmd",
         ":shell_cmd",
         ":sources_cmd",
-        ":tensorboard_cmd",
+        ":view_cmd",
     ]
 )
 
@@ -197,8 +197,8 @@ py_library(
 )
 
 py_library(
-    name = "tensorboard_cmd",
-    srcs = ["tensorboard_cmd.py"],
+    name = "view_cmd",
+    srcs = ["view_cmd.py"],
     deps = [
         "@org_click",
         ":cli",

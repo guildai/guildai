@@ -73,7 +73,7 @@ class RunsMonitor(threading.Thread):
             os.remove(os.path.join(self.logdir, link_name))
 
 def main(args, ctx):
-    logdir = tempfile.mkdtemp(prefix="guild-tensorboard-logdir-")
+    logdir = tempfile.mkdtemp(prefix="guild-view-logdir-")
     logging.info("Using logdir %s", logdir)
     monitor = RunsMonitor(logdir, args, ctx)
     monitor.start()
