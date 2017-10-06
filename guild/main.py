@@ -567,17 +567,17 @@ cli.add_command(train)
     type=click.IntRange(0, 65535))
 @click.option(
     "--refresh-interval",
-    help="View refresh interval (defaults to 5 seconds).",
+    help="Refresh interval (defaults to 5 seconds).",
     type=click.IntRange(1, None),
     default=5)
 @click.option(
     "-n", "--no-open",
-    help="Don't open View in a brower.",
+    help="Don't open the TensorBoard URL in a brower.",
     is_flag=True)
 @click.pass_context
 
 def view(ctx, **kw):
-    """Start Guild View.
+    """Visualize runs with TensorBoard.
     """
     import guild.view_cmd
     guild.view_cmd.main(Args(kw), ctx)
