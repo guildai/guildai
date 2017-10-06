@@ -1,7 +1,5 @@
 import guild.cli
 import guild.cmd_support
-import guild.project
-
 
 def main(args, ctx):
     if args.installed:
