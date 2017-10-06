@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-import logging
 import time
 
 from guild.plugin import Plugin
@@ -17,34 +16,28 @@ class SummaryPlugin(Plugin):
 
     def patch_env(self):
         import tensorflow
+        self.log("wrapping tensorflow.summary.FileWriter.add_summary")
         python_util.listen_method(
             tensorflow.summary.FileWriter.add_summary,
             self._handle_summary)
 
     def _handle_summary(self, add_summary, _summary, step):
         if self._summary_cache.expired():
-            self._log(logging.info, "reading %(name)s")
+            self.log("reading summary values")
             try:
                 vals = self.read_summary_values()
             except:
-                logging.exception(
-                    "reading %s", self.SUMMARY_NAME or "summary values")
+                self.log("reading summary values", exception=True)
                 vals = {}
             self._summary_cache.reset_for_step(step, vals)
         vals = self._summary_cache.for_step(step)
         if vals:
-            self._log(logging.debug, "%(name)s: %(vals)s", vals=vals)
+            self.log("summary values: %s", vals)
             summary = tf_scalar_summary(vals)
             add_summary(summary, step)
 
     def read_summary_values(self):
         return {}
-
-    def _log(self, f, msg, **kw):
-        if self.SUMMARY_NAME:
-            args = dict(kw)
-            args["name"] = self.SUMMARY_NAME
-            f(msg, args)
 
 def tf_scalar_summary(vals):
     from tensorflow.core.framework.summary_pb2 import Summary

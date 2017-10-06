@@ -1,4 +1,5 @@
 import importlib
+import logging
 import os
 import sys
 import time
@@ -11,6 +12,8 @@ __plugins__ = {}
 
 class Plugin(object):
     """Abstract interface for a Guild plugin."""
+
+    name = None
 
     def init(self):
         pass
@@ -29,13 +32,38 @@ class Plugin(object):
     def patch_env(self):
         pass
 
+    def log(self, msg,
+            debug=True, info=False, warning=False,
+            error=False, exception=False,
+            *args, **kw):
+        if exception:
+            log = logging.exception
+        elif error:
+            log = logging.error
+        elif warning:
+            log = logging.warn
+        elif info:
+            log = logging.info
+        elif debug:
+            log = logging.debug
+        else:
+            raise ValueError(
+                "at least one of debug, info, warning, "
+                "error, or exception must be true")
+        log(msg, *args, **kw)
+
 def init_plugins():
     for pkg in PLUGIN_PACKAGES:
         pkg_mod = importlib.import_module(pkg)
         plugins_map = getattr(pkg_mod, "__plugins__", {})
         for plugin_name, class_name in plugins_map.items():
             full_class_name = _full_class_name(pkg_mod, class_name)
-            __plugins__[plugin_name] = _init_plugin(full_class_name)
+            logging.debug(
+                "initializing plugin '%s' (%s)",
+                class_name, full_class_name)
+            plugin = _init_plugin(full_class_name)
+            plugin.name = plugin_name
+            __plugins__[plugin_name] = plugin
 
 def _full_class_name(pkg_mod, class_name):
     if class_name.startswith("."):
@@ -82,4 +110,7 @@ def for_name(name):
 
     Name must be a valid plugin name as returned by `iter_plugins`.
     """
-    return __plugins__[name]
+    try:
+        return __plugins__[name]
+    except KeyError:
+        raise LookupError(name)

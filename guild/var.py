@@ -40,10 +40,10 @@ def run_filter(name, *args):
         filter = lambda r: _run_attr(r, name) == expected
     elif name == "all":
         filters, = args
-        filter = lambda r: all([f(r) for f in filters])
+        filter = lambda r: all((f(r) for f in filters))
     elif name == "any":
         filters, = args
-        filter = lambda r: any([f(r) for f in filters])
+        filter = lambda r: any((f(r) for f in filters))
     else:
         raise ValueError(name)
     return maybe_negate(filter)
