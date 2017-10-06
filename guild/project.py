@@ -124,7 +124,7 @@ def _try_from_plugin(path):
         logging.debug(
             "checking '%s' for models with plugin '%s'",
             path, name)
-        plugin_models = plugin.models_for_location(path) or []
+        plugin_models = _plugin_models_for_location(plugin, path)
         for model in plugin_models:
             logging.debug(
                 "found model '%s' with plugin '%s'",

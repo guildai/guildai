@@ -3,9 +3,10 @@ from __future__ import absolute_import
 import logging
 import time
 
-import guild.plugin
+from guild.plugin import Plugin
+from guild.plugins import python_util
 
-class SummaryPlugin(guild.plugin.Plugin):
+class SummaryPlugin(Plugin):
 
     MIN_SUMMARY_INTERVAL = 5
 
@@ -16,7 +17,7 @@ class SummaryPlugin(guild.plugin.Plugin):
 
     def patch_env(self):
         import tensorflow
-        guild.plugin.listen_method(
+        python_util.listen_method(
             tensorflow.summary.FileWriter.add_summary,
             self._handle_summary)
 

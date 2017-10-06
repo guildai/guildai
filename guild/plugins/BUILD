@@ -17,6 +17,7 @@ py_library(
     srcs = ["tensorflow_util.py"],
     deps = [
         "//guild:plugin",
+        "python_util",
     ],
 )
 
@@ -60,5 +61,12 @@ py_library(
     deps = [
         ":tensorflow_util",
         "@org_psutil",
+    ],
+)
+
+py_library(
+    name = "python_util",
+    srcs = ["python_util.py"],
+    deps = [
     ],
 )
