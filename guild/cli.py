@@ -5,6 +5,8 @@ import sys
 
 import click
 
+import guild.plugin
+
 TABLE_COL_SPACING = 2
 
 class Exit(Exception):
@@ -19,6 +21,7 @@ class Exit(Exception):
 
 def main(args):
     _init_logging(args)
+    guild.plugin.init_plugins()
 
 def _init_logging(args):
     level = args.log_level or logging.WARN

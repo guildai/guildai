@@ -43,7 +43,6 @@ py_library(
     srcs = ["app.py"],
     deps = [
         ":__init__",
-        ":plugin",
     ]
 )
 
@@ -56,6 +55,8 @@ py_library(
     name = "cli",
     srcs = ["cli.py"],
     deps = [
+        "@org_click",
+        ":plugin",
     ],
 )
 
