@@ -227,6 +227,11 @@ def run_scope_options(fn):
 def run_filters(fn):
     append_params(fn, [
         click.Option(
+            ("-m", "--model", "models"),
+            metavar="MODEL",
+            help="Include only runs for MODEL.",
+            multiple=True),
+        click.Option(
             ("-r", "--running", "status"),
             help="Include only runs that are still running.",
             flag_value="running"),

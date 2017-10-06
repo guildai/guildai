@@ -40,6 +40,7 @@ def _runs_root_for_args(args, force_deleted):
 def _runs_filter(args, ctx):
     filters = []
     _apply_project_models_filter(args, filters, ctx)
+    _apply_arg_models_filter(args, filters, ctx)
     _apply_status_filter(args, filters)
     return guild.var.run_filter("all", filters)
 
@@ -62,6 +63,13 @@ def _maybe_warn_project_location_ignored(args):
 
 def _project_args(args, ctx):
     return guild.cmd_support.project_for_location(args.project_location, ctx)
+
+def _apply_arg_models_filter(args, filters, ctx):
+    for model_name in args.models:
+        filters.append(_model_name_filter(model_name))
+
+def _model_name_filter(model_name):
+    return lambda r: r.get("op", "").startswith(model_name + ":")
 
 def _apply_status_filter(args, filters):
     status = getattr(args, "status", None)
