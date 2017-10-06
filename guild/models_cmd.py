@@ -34,6 +34,6 @@ def _format_model(model):
         "source": model.project.src,
         "name": model.name,
         "version": model.version,
-        "description": model.description,
+        "description": model.description or "",
         "operations": ", ".join([op.name for op in model.operations])
     }
