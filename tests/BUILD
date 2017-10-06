@@ -8,6 +8,7 @@ py_library(
         ":memory-plugin",
         ":op",
         ":project",
+        ":plugin-python-utils",
         ":plugins",
         ":runs",
         ":tables",
@@ -48,6 +49,14 @@ py_library(
     deps = [
         "//guild:op",
         "//guild:project",
+    ],
+)
+
+py_library(
+    name = "plugin-python-utils",
+    data = ["plugin-python-utils.md"] + glob(["samples/scripts/**"]),
+    deps = [
+        "//guild/plugins:python_util",
     ],
 )
 
