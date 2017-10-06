@@ -282,6 +282,15 @@ def runs(ctx, **kw):
     """
     if not ctx.invoked_subcommand:
         ctx.invoke(list_runs, **kw)
+    else:
+        if _params_specified(kw):
+            # TODO: It'd be nice to move kw over to the subcommand.
+            guild.cli.error(
+                "options cannot be listed before command ('%s')"
+                % ctx.invoked_subcommand)
+
+def _params_specified(kw):
+    return any((kw[key] for key in kw))
 
 cli.add_command(runs)
 
