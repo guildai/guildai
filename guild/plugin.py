@@ -29,6 +29,9 @@ class Plugin(object):
     def enabled_for_op(self, _op):
         return False
 
+    def run_op(self, name, _args):
+        raise NotImplementedError(name)
+
     def patch_env(self):
         pass
 
@@ -60,7 +63,7 @@ def init_plugins():
             full_class_name = _full_class_name(pkg_mod, class_name)
             logging.debug(
                 "initializing plugin '%s' (%s)",
-                class_name, full_class_name)
+                plugin_name, full_class_name)
             plugin = _init_plugin(full_class_name)
             plugin.name = plugin_name
             __plugins__[plugin_name] = plugin

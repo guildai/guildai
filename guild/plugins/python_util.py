@@ -148,6 +148,11 @@ def scripts_for_location(location):
         for src in glob.glob(os.path.join(location, "*.py"))
     ]
 
+def script_models(location, is_model_script, script_model):
+    for script in sorted(scripts_for_location(location)):
+        if is_model_script(script):
+            yield script_model(script)
+
 def listen_method(method, cb):
     MethodWrapper.for_method(method).add_cb(cb)
 

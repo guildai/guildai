@@ -8,12 +8,13 @@ import guild.plugin
 def main():
     _init_logging()
     logging.debug("sys.path: %s", os.path.pathsep.join(sys.path))
-    module_name, rest_args = _parse_args()
-    module_info = imp.find_module(module_name)
-    _shift_argv(module_info, rest_args)
+    arg1, rest_args = _parse_args()
     _init_plugins()
     _apply_plugins()
-    _load_module_as_main(module_info)
+    if arg1[0] == "@":
+        _try_plugin(arg1[1:], rest_args)
+    else:
+        _try_module(arg1, rest_args);
 
 def _init_logging():
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
@@ -22,13 +23,8 @@ def _init_logging():
 
 def _parse_args():
     if len(sys.argv) < 2:
-        sys.stderr.write("missing required arg\n")
-        sys.exit(1)
+        _error("missing required arg\n")
     return sys.argv[1], sys.argv[2:]
-
-def _shift_argv(module_info, rest_args):
-    _, path, _ = module_info
-    sys.argv = [os.path.abspath(path)] + rest_args
 
 def _init_plugins():
     guild.plugin.init_plugins()
@@ -43,9 +39,47 @@ def _apply_plugin(name):
     plugin = guild.plugin.for_name(name)
     plugin.patch_env()
 
+def _try_plugin(plugin_op, args):
+    plugin_name, op_spec = _parse_plugin_op(plugin_op)
+    try:
+        plugin = guild.plugin.for_name(plugin_name)
+    except LookupError:
+        _error("plugin '%s' not available" % plugin_name)
+    else:
+        _run_plugin_op(plugin, op_spec, args)
+
+def _parse_plugin_op(plugin_op):
+    parts = plugin_op.split(":", 1)
+    if len(parts) == 1:
+        _error("invalid plugin op: %s" % pligin_op)
+    return parts
+
+def _run_plugin_op(plugin, op_spec, args):
+    try:
+        plugin.run_op(op_spec, args)
+    except NotImplementedError:
+        _error(
+            "plugin '%s' does not support operation '%s'"
+            % (plugin_name, op_spec))
+
+def _try_module(module_name, args):
+    logging.debug("finding module '%s'", module_name)
+    try:
+        module_info = imp.find_module(module_name)
+    except ImportError as e:
+        _error(e.message)
+    else:
+        _load_module_as_main(module_info)
+
 def _load_module_as_main(module_info):
     f, path, desc = module_info
+    logging.debug("loading module from '%s'", path)
     imp.load_module("__main__", f, path, desc)
+
+def _error(msg):
+    sys.stderr.write(msg)
+    sys.stderr.write("\n")
+    sys.exit(1)
 
 if __name__ == "__main__":
     main()
