@@ -1,4 +1,5 @@
 import errno
+import logging
 import os
 
 import yaml
@@ -109,16 +110,26 @@ def from_dir(path, filenames=["MODELS", "MODEL"], use_plugins=True):
         lambda: _raise_no_models(path)])
 
 def _try_from_dir_file(path, filenames):
+    logging.debug("checking '%s' for model sources", path)
     for name in filenames:
         model_file = os.path.abspath(os.path.join(path, name))
         if os.path.isfile(model_file):
+            logging.debug("found model source '%s'", model_file)
             return Project(_load_modelfile(model_file), model_file)
     return None
 
 def _try_from_plugin(path):
     data = []
-    for _, plugin in guild.plugin.iter_plugins():
-        data.extend(plugin.models_for_location(path))
+    for name, plugin in guild.plugin.iter_plugins():
+        logging.debug(
+            "checking '%s' for models with plugin '%s'",
+            path, name)
+        plugin_models = plugin.models_for_location(path) or []
+        for model in plugin_models:
+            logging.debug(
+                "found model '%s' with plugin '%s'",
+                model.get("name"), name)
+        data.extend(plugin_models)
     if data:
         return Project(data, os.path.join(path, "__generated__"))
     else:
