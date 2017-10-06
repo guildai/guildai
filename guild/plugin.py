@@ -35,25 +35,18 @@ class Plugin(object):
     def patch_env(self):
         pass
 
-    def log(self, msg,
-            debug=True, info=False, warning=False,
-            error=False, exception=False,
-            *args, **kw):
-        if exception:
+    def log(self, msg, *args, **kw):
+        if kw.get("exception"):
             log = logging.exception
-        elif error:
+        elif kw.get("error"):
             log = logging.error
-        elif warning:
+        elif kw.get("warning"):
             log = logging.warn
-        elif info:
+        elif kw.get("info"):
             log = logging.info
-        elif debug:
-            log = logging.debug
         else:
-            raise ValueError(
-                "at least one of debug, info, warning, "
-                "error, or exception must be true")
-        log(msg, *args, **kw)
+            log = logging.debug
+        log("[%s] %s" % (self.name, msg), *args, **kw)
 
 def init_plugins():
     for pkg in PLUGIN_PACKAGES:
