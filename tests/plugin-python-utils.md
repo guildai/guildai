@@ -77,6 +77,19 @@ Calls:
      'RMSprop',
      'keras.callbacks.TensorBoard']
 
+## Sorting script objects
+
+Script objects returned by `python_util` can be sorted according to
+their path.
+
+    >>> [script.src for script in sorted([
+    ...   python_util.Script("c"),
+    ...   python_util.Script("a"),
+    ...   python_util.Script("d"),
+    ...   python_util.Script("b"),
+    ... ])]
+    ['a', 'b', 'c', 'd']
+
 ## Wrapping methods
 
 Plugins routinely patch the environment to perform additional

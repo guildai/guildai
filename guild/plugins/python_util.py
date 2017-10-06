@@ -10,6 +10,9 @@ class Script(object):
         self.name = _script_name(src)
         self._parsed = None
 
+    def __cmp__(self, x):
+        return cmp(self.src, x.src) if isinstance(x, Script) else -1
+
     def imports(self):
         self._ensure_parsed()
         return self._parsed.get("imports", [])
@@ -142,7 +145,7 @@ class MethodWrapper(object):
 def scripts_for_location(location):
     return [
         Script(src)
-        for src in glob.glob(os.path.join(location, "*.py"))
+        for src in sorted(glob.glob(os.path.join(location, "*.py")))
     ]
 
 def listen_method(method, cb):
