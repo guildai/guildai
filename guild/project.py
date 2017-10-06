@@ -135,6 +135,9 @@ def _try_from_plugin(path):
     else:
         return None
 
+def _plugin_models_for_location(plugin, path):
+    return list(plugin.models_for_location(path) or [])
+
 def _raise_no_models(path):
     raise NoModels(path)
 
