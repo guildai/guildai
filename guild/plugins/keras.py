@@ -92,6 +92,7 @@ def _ensure_tensorboard_callback(kw):
     else:
         cb = keras.callbacks.TensorBoard(write_graph=True)
         callbacks.append(cb)
+    cb.log_dir = current_run().path
 
 def _find_tensorboard_cb(callbacks_list):
     import keras
