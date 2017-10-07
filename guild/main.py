@@ -560,6 +560,7 @@ cli.add_command(train)
 
 @click.command("view")
 @run_scope_options
+@run_filters
 @click.option(
     "--host",
     help="Name of host interface to listen on.")
