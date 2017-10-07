@@ -137,7 +137,7 @@ def _acc_flags(project_flags, flags):
 
 def _op_cmd_args(project_op, flags):
     python_args = [_python_cmd(project_op), "-um", "guild.op_main"]
-    cmd_args = shlex.split(project_op.cmd)
+    cmd_args = _cmd_args(project_op)
     if not cmd_args:
         raise InvalidCmd(project_op.cmd)
     flag_args = _flag_args(flags)
@@ -148,6 +148,15 @@ def _python_cmd(_project_op):
     # by the model (e.g. does it run under Python 2 or 3, etc.) and
     # not by whatever Python runtime is configured in the user env.
     return "python"
+
+def _cmd_args(project_op):
+    cmd = project_op.cmd
+    if isinstance(cmd, str):
+        return shlex.split(cmd)
+    elif isinstance(cmd, list):
+        return cmd
+    else:
+        raise AssertionError(cmd)
 
 def _flag_args(flags):
     return [
