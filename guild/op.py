@@ -25,10 +25,11 @@ class InvalidCmd(ValueError):
 
 class Operation(object):
 
-    def __init__(self, name, cmd_args, cmd_env):
+    def __init__(self, name, cmd_args, cmd_env, attrs={}):
         self.name = name
         self.cmd_args = cmd_args
         self.cmd_env = cmd_env
+        self.attrs = attrs
         self._running = False
         self._run = None
         self._proc = None
@@ -55,6 +56,8 @@ class Operation(object):
 
     def _init_attrs(self):
         assert self._run is not None
+        for name, val in self.attrs.items():
+            self._run.write_attr(name, val)
         self._run.write_attr("cmd", self.cmd_args)
         self._run.write_attr("env", self.cmd_env)
         self._run.write_attr("started", self._started)
@@ -108,20 +111,37 @@ def _delete_proc_lock(run):
         pass
 
 def from_project_op(project_op):
-    cmd_args = _op_cmd_args(project_op)
+    flags = _op_flags(project_op)
+    cmd_args = _op_cmd_args(project_op, flags)
     cmd_env = _op_cmd_env(project_op)
+    attrs = {
+        "flags": flags
+    }
     return Operation(
         project_op.full_name,
         cmd_args,
-        cmd_env)
+        cmd_env,
+        attrs)
 
-def _op_cmd_args(project_op):
-    python_parts = [_python_cmd(project_op), "-um", "guild.op_main"]
-    cmd_parts = shlex.split(project_op.cmd)
-    if not cmd_parts:
+def _op_flags(op):
+    flags = {}
+    _acc_flags(op.model.flags, flags)
+    _acc_flags(op.flags, flags)
+    return flags
+
+def _acc_flags(project_flags, flags):
+    for name, val in project_flags.items():
+        if isinstance(val, dict):
+            val = val.get("value", None)
+        flags[name] = val
+
+def _op_cmd_args(project_op, flags):
+    python_args = [_python_cmd(project_op), "-um", "guild.op_main"]
+    cmd_args = shlex.split(project_op.cmd)
+    if not cmd_args:
         raise InvalidCmd(project_op.cmd)
-    flags = flag_args(all_op_flags(project_op))
-    return python_parts + cmd_parts + flags
+    flag_args = _flag_args(flags)
+    return python_args + cmd_args + flag_args
 
 def _python_cmd(_project_op):
     # TODO: This is an important operation that should be controlled
@@ -129,40 +149,7 @@ def _python_cmd(_project_op):
     # not by whatever Python runtime is configured in the user env.
     return "python"
 
-def _resolve_script_path(script, project_src):
-    script_path = _script_path_for_project_src(script, project_src)
-    return guild.util.find_apply(
-        [_explicit_path,
-         _path_missing_py_ext,
-         _unmodified_path],
-        script_path)
-
-def _script_path_for_project_src(script, project_src):
-    project_dir = os.path.dirname(project_src)
-    return os.path.join(project_dir, script)
-
-def _explicit_path(path):
-    return path if os.path.isfile(path) else None
-
-def _path_missing_py_ext(part_path):
-    return _explicit_path(part_path + ".py")
-
-def _unmodified_path(val):
-    return val
-
-def all_op_flags(op):
-    flags = {}
-    _apply_flags(op.model.flags, flags)
-    _apply_flags(op.flags, flags)
-    return flags
-
-def _apply_flags(project_flags, flags):
-    for name, val in project_flags.items():
-        if isinstance(val, dict):
-            val = val.get("value", None)
-        flags[name] = val
-
-def flag_args(flags):
+def _flag_args(flags):
     return [
         arg for args in
         [_opt_args(name, val) for name, val in _sorted_flags(flags)]
