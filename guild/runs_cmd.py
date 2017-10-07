@@ -13,7 +13,6 @@ RUN_DETAIL = [
     "stopped",
     "rundir",
     "command",
-    "environ",
     "exit_status",
     "pid",
 ]
@@ -100,7 +99,6 @@ def _format_run(run, index=None):
         "stopped": _format_timestamp(run.get("stopped")),
         "rundir": run.path,
         "command": _format_cmd(run.get("cmd", "")),
-        "environ": _format_attr_val(run.get("env", "")),
         "exit_status": run.get("exit_status", ""),
     }
 
@@ -129,7 +127,7 @@ def _format_attr_val(s):
         return " %s" % parts[0]
     else:
         return "\n%s" % "\n".join(
-            ["    %s" % part for part in parts]
+            ["  %s" % part for part in parts]
         )
 
 def delete_runs(args, ctx):
@@ -249,6 +247,12 @@ def run_info(args, ctx):
     out = guild.cli.out
     for name in RUN_DETAIL:
         out("%s: %s" % (name, formatted[name]))
+    if args.environ:
+        out("environment:", nl=False)
+        out(_format_attr_val(run.get("env", "")))
+    if args.flags:
+        out("flags:", nl=False)
+        out(_format_attr_val(run.get("flags", "")))
     if args.files:
         out("files:")
         for path in run.iter_files():

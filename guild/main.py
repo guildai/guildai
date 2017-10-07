@@ -394,6 +394,8 @@ runs.add_command(restore_runs)
 @click.argument("run", required=False)
 @run_scope_options
 @run_filters
+@click.option("--environ", help="Include run environment", is_flag=True)
+@click.option("--flags", help="Include run flags", is_flag=True)
 @click.option("--files", help="Include run files", is_flag=True)
 @click.pass_context
 
