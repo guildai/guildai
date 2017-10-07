@@ -193,6 +193,7 @@ py_library(
     name = "plugin",
     srcs = ["plugin.py"],
     deps = [
+        ":run",
     ],
 )
 

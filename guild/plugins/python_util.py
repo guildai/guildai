@@ -168,3 +168,10 @@ def remove_method_listener(method, cb):
 
 def remove_method_listeners(method):
     MethodWrapper.unwrap(method)
+
+def exec_script(filename):
+    import __future__
+    src = open(filename, "r").read()
+    flags = __future__.absolute_import.compiler_flag
+    code = compile(src, filename, "exec", flags=flags, dont_inherit=True)
+    exec(code)

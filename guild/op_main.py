@@ -61,6 +61,21 @@ def _run_plugin_op(plugin, op_spec, args):
         _error(
             "plugin '%s' does not support operation '%s'"
             % (plugin_name, op_spec))
+    except SystemExit as e:
+        _handle_system_exit(e)
+
+def _handle_system_exit(e):
+    if isinstance(e.code, tuple) and len(e.code) == 2:
+        msg, code = e.code
+        sys.stderr.write(str(msg))
+        sys.stderr.write("\n")
+        sys.exit(code)
+    elif isinstance(e.code, int):
+        sys.exit(e.code)
+    else:
+        sys.stderr.write(str(e.message))
+        sys.stderr.write("\n")
+        sys.exit(1)
 
 def _try_module(module_name, args):
     logging.debug("finding module '%s'", module_name)
