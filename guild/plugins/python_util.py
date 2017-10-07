@@ -82,6 +82,12 @@ def _script_name(src):
     name, _ = os.path.splitext(basename)
     return name
 
+class Result(Exception):
+
+    def __init__(self, value):
+        super(Result, self).__init__(value)
+        self.value = value
+
 class MethodWrapper(object):
 
     @staticmethod
@@ -110,19 +116,20 @@ class MethodWrapper(object):
     def _wrapper(self):
         def wrapper(wrapped_self, *args, **kw):
             wrapped_bound = self._bind(wrapped_self)
-            call_wrapped = True
+            marker = object()
+            result = marker
             for cb in self._cbs:
                 try:
-                    cb_result = cb(wrapped_bound, *args, **kw)
+                    cb(wrapped_bound, *args, **kw)
+                except Result as e:
+                    result = e.value
                 except KeyboardInterrupt:
                     raise
                 except:
-                    import logging
                     logging.exception("callback error")
-                else:
-                    call_wrapped = call_wrapped and not cb_result is False
-            if call_wrapped:
-                wrapped_bound(*args, **kw)
+            return (wrapped_bound(*args, **kw)
+                    if result is marker
+                    else result)
         return wrapper
 
     def _bind(self, wrapped_self):

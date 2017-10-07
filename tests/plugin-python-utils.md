@@ -135,12 +135,12 @@ instance method:
     I've also wrapped 'Hello again!'
     Hello again!
 
-A wrapper can prevent the call to the wrapped function by returning
-False.
+A wrapper can circumvent the call to the original method and return
+its own value by raising `python_util.Result`:
 
     >>> def wrap_and_prevent(say, msg):
     ...   say("I've wrapped '%s' and prevented the original call!" % msg)
-    ...   return False
+    ...   raise python_util.Result(None)
     >>> python_util.listen_method(Hello.say, wrap_and_prevent)
     >>> hello.say("Hello once more!")
     I've wrapped 'Hello once more!'
@@ -189,3 +189,48 @@ Finally, we can remove all listeners on a method:
     >>> python_util.remove_method_listeners(hello.say)
     >>> hello.say("Hello, without listeners!")
     Hello, without listeners!
+
+In our final example, we'll replace a method that increments a value
+with a new function.
+
+Here's our class and method:
+
+    >>> class Calc(object):
+    ...   def incr(self, x):
+    ...     return x + 1
+
+And our class and method in action:
+
+    >>> calc = Calc()
+    >>> calc.incr(1)
+    2
+
+Here's a function that supports a second argument, which specifies the
+amount to increment by. Note we return a result by raising
+`python_util.Result` (as in the previous example). Note we don't use
+the original method (represented by the `_incr` argument) because
+we're replacing it altogether.
+
+    >>> def incr2(_incr, x, incr_by=1):
+    ...   raise python_util.Result(x + incr_by)
+
+We wrap the original:
+
+    >>> python_util.listen_method(Calc.incr, incr2)
+
+And here's our new behavior:
+
+    >>> calc.incr(1)
+    2
+    >>> calc.incr(1, 2)
+    3
+
+Let's unwrap and confirm that we no longer have access to the new
+function:
+
+    >>> python_util.remove_method_listener(Calc.incr, incr2)
+    >>> calc.incr(1)
+    2
+    >>> calc.incr(1, 2)
+    Traceback (most recent call last):
+    TypeError: incr() takes exactly 2 arguments (3 given)
