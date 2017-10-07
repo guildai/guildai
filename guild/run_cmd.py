@@ -11,7 +11,7 @@ def main(args):
     model_name, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_name, args)
     project_op = _resolve_op(op_name, model)
-    _apply_flags(args, project_op)
+    _apply_flags_to_op(args, project_op)
     _apply_disable_plugins(args, project_op)
     op = guild.op.from_project_op(project_op)
     if args.print_cmd:
@@ -97,7 +97,7 @@ def _no_such_operation_error(name, model):
         "Try 'guild operations %s%s' for a list of available operations."
         % (name, model.name, model.name, _project_opt(model.project.src)))
 
-def _apply_flags(args, op):
+def _apply_flags_to_op(args, op):
     for arg in args.args:
         name, val = _parse_flag(arg)
         op.flags[name] = val
