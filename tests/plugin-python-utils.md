@@ -234,3 +234,47 @@ function:
     >>> calc.incr(1, 2)
     Traceback (most recent call last):
     TypeError: incr() takes exactly 2 arguments (3 given)
+
+What happens when we add two listeners that both provide results? The
+behavior is as follows:
+
+- All listeners are notified, regardless of whether any have raised
+  Result exceptions
+
+- The last raised Result is returned as the result of the method call
+
+Here are two listeners, both of which provide results:
+
+    >>> def incr_by_2(_incr, x):
+    ...    print("incr_by_2 called")
+    ...    raise python_util.Result(x + 2)
+
+    >>> def incr_by_3(_incr, x):
+    ...    print("incr_by_3 called")
+    ...    raise python_util.Result(x + 3)
+
+Let's add both as listeners:
+
+    >>> python_util.listen_method(Calc.incr, incr_by_2)
+    >>> python_util.listen_method(Calc.incr, incr_by_3)
+
+And test our method:
+
+    >>> calc.incr(1)
+    incr_by_2 called
+    incr_by_3 called
+    4
+
+Here we see that both listeners were called, but result is returned
+from the last to provide a result.
+
+Let re-order our listeners to confirm:
+
+    >>> python_util.remove_method_listeners(Calc.incr)
+    >>> python_util.listen_method(Calc.incr, incr_by_3)
+    >>> python_util.listen_method(Calc.incr, incr_by_2)
+
+    >>> calc.incr(1)
+    incr_by_3 called
+    incr_by_2 called
+    3
