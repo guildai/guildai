@@ -14,7 +14,7 @@ def main(args):
     _apply_flags(args, project_op)
     _apply_disable_plugins(args, project_op)
     op = guild.op.from_project_op(project_op)
-    if args.print_command:
+    if args.print_cmd:
         _print_op_command(op)
     elif args.print_env:
         _print_op_env(op)

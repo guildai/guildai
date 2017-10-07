@@ -247,7 +247,7 @@ def run_info(args, ctx):
     out = guild.cli.out
     for name in RUN_DETAIL:
         out("%s: %s" % (name, formatted[name]))
-    if args.environ:
+    if args.env:
         out("environment:", nl=False)
         out(_format_attr_val(run.get("env", "")))
     if args.flags:
