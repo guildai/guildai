@@ -20,6 +20,7 @@ py_library(
         ":runs_cmd",
         ":shell_cmd",
         ":sources_cmd",
+        ":install_cmd",
         ":view_cmd",
     ]
 )
@@ -223,5 +224,22 @@ py_library(
     name = "op_main",
     srcs = ["op_main.py"],
     deps = [
+    ],
+)
+
+py_library(
+    name = "install_cmd",
+    srcs = ["install_cmd.py"],
+    deps = [
+        ":package"
+    ],
+)
+
+py_library(
+    name = "package",
+    srcs = ["package.py"],
+    deps = [
+        "@org_pip",
+        ":var",
     ],
 )

@@ -19,6 +19,17 @@ def runs_dir(deleted=False):
 def trash_dir(name=None):
     return os.path.join(path("trash"), name) if name else path("trash")
 
+def cache_dir(name=None):
+    return os.path.join(path("cache"), name) if name else path("cache")
+
+def pkg_dir(pkg_name=None, pkg_version=None):
+    if pkg_name is None:
+        return path("pkg")
+    elif pkg_version is None:
+        return os.path.join(path("pkg"), pkg_name)
+    else:
+        return os.path.join(path("pkg"), pkg_name, pkg_version)
+
 def runs(root=None, sort=None, filter=None):
     root = root or runs_dir()
     filter = filter or (lambda _: True)

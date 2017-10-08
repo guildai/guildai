@@ -31,6 +31,7 @@ def special_import_paths(root):
     return [
         os.path.join(root, "protobuf/python"),
         os.path.join(root, yaml_path_for_python_version()),
+        os.path.join(root, "org_pip/src"),
     ]
 
 def yaml_path_for_python_version():

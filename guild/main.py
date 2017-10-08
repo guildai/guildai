@@ -586,3 +586,21 @@ def view(ctx, **kw):
     guild.view_cmd.main(Args(kw), ctx)
 
 cli.add_command(view)
+
+###################################################################
+# install command
+###################################################################
+
+@click.command()
+@click.argument("packages", metavar="PACKAGE...", nargs=-1, required=True)
+
+def install(**kw):
+    """Install one or more packages.
+
+    Packages are installed into the Guild environment and will not
+    effect other applications.
+    """
+    import guild.install_cmd
+    guild.install_cmd.main(Args(kw))
+
+cli.add_command(install)

@@ -31,3 +31,13 @@ def guild_python_workspace():
         strip_prefix = "psutil-5.3.1",
         sha256 = "12dd9c8abbad15f055e9579130035b38617020ce176f4a498b7870e6321ffa67",
     )
+
+    native.new_http_archive(
+        name = "org_pip",
+        build_file = "//third-party:pip.BUILD",
+        urls = [
+            "https://github.com/pypa/pip/archive/2243562b0e022b576bfdd9c08190657eab55a363.zip",
+        ],
+        strip_prefix = "pip-2243562b0e022b576bfdd9c08190657eab55a363",
+        sha256 = "87e334e95f51e907604877fff07c50290b2f5d3a724b20795b1d112a68e41073",
+    )
