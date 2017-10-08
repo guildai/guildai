@@ -72,8 +72,7 @@ class Call(object):
         while isinstance(node, ast.Attribute):
             parts.append(node.attr)
             node = node.value
-        if not isinstance(node, ast.Name):
-            raise AssertionError(node)
+        assert isinstance(node, ast.Name), node
         parts.append(node.id)
         return ".".join(reversed(parts))
 

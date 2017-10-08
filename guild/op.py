@@ -36,8 +36,7 @@ class Operation(object):
         self._exit_status = None
 
     def run(self):
-        if self._running:
-            raise AssertionError("op already running")
+        assert not self._running:
         self._running = True
         self._started = int(time.time())
         self._init_run()

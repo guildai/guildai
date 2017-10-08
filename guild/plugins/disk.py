@@ -43,8 +43,7 @@ def _zip_physical_disk_stats(all_last, all_cur):
     import psutil
     for device in psutil.disk_partitions():
         full_name = device.device
-        if not full_name.startswith('/dev/'):
-            raise AssertionError(full_name)
+        assert full_name.startswith('/dev/'), full_name
         name = full_name[5:]
         dev_last = all_last.get(name)
         dev_cur = all_cur.get(name)
