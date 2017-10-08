@@ -51,7 +51,7 @@ class Operation(object):
         id = unique_run_id()
         path = os.path.join(guild.var.runs_dir(), id)
         self._run = guild.run.Run(id, path)
-        logging.info("Initializing run in %s", path)
+        logging.debug("Initializing run in %s", path)
         self._run.init_skel()
 
     def _init_attrs(self):
@@ -69,7 +69,7 @@ class Operation(object):
         args = self._proc_args()
         env = self._proc_env()
         cwd = self._run.path
-        logging.info("Starting process %s" % (args,))
+        logging.debug("Starting process %s" % (args,))
         self._proc = subprocess.Popen(args, env=env, cwd=cwd)
         _write_proc_lock(self._proc, self._run)
 
@@ -192,10 +192,10 @@ def _op_plugins(project_op):
     op_plugins = []
     for name, plugin in guild.plugin.iter_plugins():
         if _plugin_disabled(name, project_op):
-            logging.info("plugin '%s' disabled for operation", name)
+            logging.debug("plugin '%s' disabled for operation", name)
             continue
         if plugin.enabled_for_op(project_op):
-            logging.info("plugin '%s' enabled for operation", name)
+            logging.debug("plugin '%s' enabled for operation", name)
             op_plugins.append(name)
     return ",".join(op_plugins)
 

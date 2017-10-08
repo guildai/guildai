@@ -62,19 +62,19 @@ class RunsMonitor(threading.Thread):
             link_name = _format_run_name(run)
             link_path = os.path.join(self.logdir, link_name)
             if not os.path.exists(link_path):
-                logging.info("Linking %s to %s", link_name, run.path)
+                logging.debug("Linking %s to %s", link_name, run.path)
                 os.symlink(run.path, link_path)
             try:
                 to_delete.remove(link_name)
             except ValueError:
                 pass
         for link_name in to_delete:
-            logging.info("Removing %s" % link_name)
+            logging.debug("Removing %s" % link_name)
             os.remove(os.path.join(self.logdir, link_name))
 
 def main(args, ctx):
     logdir = tempfile.mkdtemp(prefix="guild-view-logdir-")
-    logging.info("Using logdir %s", logdir)
+    logging.debug("Using logdir %s", logdir)
     monitor = RunsMonitor(logdir, args, ctx)
     monitor.start()
     guild.tensorboard.main(
@@ -83,7 +83,7 @@ def main(args, ctx):
         port=(args.port or guild.util.free_port()),
         reload_interval=args.refresh_interval,
         ready_cb=(_open_url if not args.no_open else None))
-    logging.info("Stopping")
+    logging.debug("Stopping")
     monitor.stop()
     _cleanup(logdir)
     guild.cli.out()
@@ -101,5 +101,5 @@ def _open_url(url):
 
 def _cleanup(logdir):
     assert os.path.dirname(logdir) == tempfile.gettempdir()
-    logging.info("Deleting logdir %s", logdir)
+    logging.debug("Deleting logdir %s", logdir)
     shutil.rmtree(logdir)

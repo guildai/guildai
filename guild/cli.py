@@ -24,8 +24,8 @@ def main(args):
     guild.plugin.init_plugins()
 
 def _init_logging(args):
-    level = args.log_level or logging.WARN
-    logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
+    level = args.log_level or logging.INFO
+    logging.basicConfig(level=level, format="%(message)s")
 
 def apply_main(cmd):
     prog = os.path.basename(sys.argv[0])

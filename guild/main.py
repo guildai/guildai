@@ -35,10 +35,6 @@ class CLIGroup(click.Group):
     message="%(prog)s %(version)s"
 )
 @click.option(
-    "--info", "log_level",
-    help="Log information during command.",
-    flag_value=logging.INFO)
-@click.option(
     "--debug", "log_level",
     help="Log more information during command.",
     flag_value=logging.DEBUG)
