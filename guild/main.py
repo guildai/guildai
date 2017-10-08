@@ -517,7 +517,7 @@ sources.add_command(remove_source)
 # train command
 ###################################################################
 
-@click.command("train")
+@click.command()
 @click.argument("model", required=False)
 @run_params
 
@@ -554,7 +554,7 @@ cli.add_command(train)
 # view command
 ###################################################################
 
-@click.command("view")
+@click.command()
 @run_scope_options
 @run_filters
 @click.option(
