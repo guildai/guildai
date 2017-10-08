@@ -92,10 +92,7 @@ cli.add_command(check)
     "-p", "--project", "project_location",
     help="Project location (file system directory) for models.",
     metavar="LOCATION")
-@click.option(
-    "--installed",
-    help="Show available installed packages. --project is ignore.",
-    is_flag=True)
+# TODO: add system option to show models system wide
 @click.option(
     "-v", "--verbose",
     help="Show model details.",
@@ -589,6 +586,10 @@ cli.add_command(view)
 
 @click.command()
 @click.argument("packages", metavar="PACKAGE...", nargs=-1, required=True)
+@click.option(
+    "--force",
+    help="Install over existing packages.",
+    is_flag=True)
 
 def install(**kw):
     """Install one or more packages.
@@ -600,3 +601,41 @@ def install(**kw):
     guild.install_cmd.main(Args(kw))
 
 cli.add_command(install)
+
+###################################################################
+# packages command
+###################################################################
+
+class PackagesGroup(click.Group):
+
+    def get_command(self, ctx, cmd_name):
+        if cmd_name in ["uninstall", "rm"]:
+            cmd_name = "uninstall, rm"
+        elif cmd_name in ["list", "ls"]:
+            cmd_name = "list, ls"
+        return super(PackagesGroup, self).get_command(ctx, cmd_name)
+
+@click.group(invoke_without_command=True, cls=PackagesGroup)
+@click.pass_context
+
+def packages(ctx, **kw):
+    """Show or manage packages.
+    """
+    if not ctx.invoked_subcommand:
+        ctx.invoke(list_packages, **kw)
+
+cli.add_command(packages)
+
+###################################################################
+# packages list command
+###################################################################
+
+@click.command("list, ls")
+
+def list_packages(**kw):
+    """List installed packages.
+    """
+    import guild.packages_cmd
+    guild.packages_cmd.list_packages(Args(kw))
+
+packages.add_command(list_packages)

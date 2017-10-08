@@ -16,6 +16,7 @@ py_library(
         ":check_cmd",
         ":models_cmd",
         ":operations_cmd",
+        ":packages_cmd",
         ":run_cmd",
         ":runs_cmd",
         ":shell_cmd",
@@ -124,6 +125,7 @@ py_library(
     srcs = ["var.py"],
     deps = [
         ":run",
+        ":package",
         ":util",
     ],
 )
@@ -231,7 +233,24 @@ py_library(
     name = "install_cmd",
     srcs = ["install_cmd.py"],
     deps = [
-        ":package"
+        ":install"
+    ],
+)
+
+py_library(
+    name = "install",
+    srcs = ["install.py"],
+    deps = [
+        "@org_pip",
+        ":var",
+    ],
+)
+
+py_library(
+    name = "packages_cmd",
+    srcs = ["packages_cmd.py"],
+    deps = [
+        ":var",
     ],
 )
 
@@ -239,7 +258,5 @@ py_library(
     name = "package",
     srcs = ["package.py"],
     deps = [
-        "@org_pip",
-        ":var",
     ],
 )
