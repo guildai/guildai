@@ -68,12 +68,20 @@ class Call(object):
 
     @staticmethod
     def _call_path(node):
+        node0_DELME = node
         parts = []
-        while isinstance(node, ast.Attribute):
-            parts.append(node.attr)
-            node = node.value
-        assert isinstance(node, ast.Name), node
-        parts.append(node.id)
+        while True:
+            if isinstance(node, ast.Attribute):
+                parts.append(node.attr)
+                node = node.value
+            elif isinstance(node, ast.Call):
+                parts.append("%s()" % node.func.attr)
+                node = node.func.value
+            elif isinstance(node, ast.Name):
+                parts.append(node.id)
+                break
+            else:
+                raise AssertionError(node)
         return ".".join(reversed(parts))
 
 def _script_name(src):
