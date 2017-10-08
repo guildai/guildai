@@ -51,31 +51,22 @@ class Plugin(object):
         log("[%s] %s" % (self.name, msg), *args, **kw)
 
 def init_plugins():
+    """Called by system to initialize the list of available plugins.
+
+    This function must be called prior to using `iter_plugins` or
+    `for_name`.
+    """
     for pkg in PLUGIN_PACKAGES:
         pkg_mod = importlib.import_module(pkg)
         plugins_map = getattr(pkg_mod, "__plugins__", {})
         for plugin_name, class_name in plugins_map.items():
-            full_class_name = _full_class_name(pkg_mod, class_name)
-            logging.debug(
-                "initializing plugin '%s' (%s)",
-                plugin_name, full_class_name)
-            plugin = _init_plugin(full_class_name)
-            plugin.name = plugin_name
-            __plugins__[plugin_name] = plugin
+            __plugins__[plugin_name] = _full_class_name(pkg_mod, class_name)
 
 def _full_class_name(pkg_mod, class_name):
     if class_name.startswith("."):
         return pkg_mod.__name__ + class_name
     else:
         return class_name
-
-def _init_plugin(class_name):
-    mod_name, class_attr = class_name.rsplit(".", 1)
-    plugin_mod = importlib.import_module(mod_name)
-    plugin_class = getattr(plugin_mod, class_attr)
-    plugin = plugin_class()
-    plugin.init()
-    return plugin
 
 def iter_plugins():
     """Returns an interation of available plugin names.
@@ -99,7 +90,7 @@ def iter_plugins():
 
     """
     for name in __plugins__:
-        yield name, __plugins__[name]
+        yield name, for_name(name)
 
 def for_name(name):
     """Returns a Guild plugin instance for a name.
@@ -109,9 +100,23 @@ def for_name(name):
     Name must be a valid plugin name as returned by `iter_plugins`.
     """
     try:
-        return __plugins__[name]
+        plugin = __plugins__[name]
     except KeyError:
         raise LookupError(name)
+    else:
+        if isinstance(plugin, str):
+            logging.debug("initializing plugin '%s' (%s)", name, plugin)
+            plugin = _init_plugin(plugin)
+            __plugins__[name] = plugin
+        return plugin
+
+def _init_plugin(class_name):
+    mod_name, class_attr = class_name.rsplit(".", 1)
+    plugin_mod = importlib.import_module(mod_name)
+    plugin_class = getattr(plugin_mod, class_attr)
+    plugin = plugin_class()
+    plugin.init()
+    return plugin
 
 def exit(msg, exit_status=1):
     """Exit the Python runtime with a message.
