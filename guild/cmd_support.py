@@ -27,11 +27,18 @@ def _project_for_location(location):
         raise NoProject()
 
 def _no_project_error(location, cmd_ctx):
-    msg_parts = [
-        ("%s does not contain any models\n"
-         "Try specifying a project location"
-         % project_location_desc(location))
-    ]
+    location = project_location_option(location) or "."
+    msg_parts = []
+    if os.path.exists(location):
+        msg_parts.append(
+            "%s does not contain any models\n"
+            % project_location_desc(location))
+    else:
+        msg_parts.append("%s does not exist\n" % location)
+    if location:
+        msg_parts.append("Try specifying a different location")
+    else:
+         msg_parts.append("Try specifying a project location")
     if cmd_ctx:
         msg_parts.append(
             " or '%s' for more information."
@@ -42,7 +49,7 @@ def _no_project_error(location, cmd_ctx):
 
 def project_location_desc(location):
     location = project_location_option(location)
-    return ("'%s'" % location if location
+    return ("%s" % location if location
             else "the current directory")
 
 def project_location_option(location):
