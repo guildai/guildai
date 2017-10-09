@@ -32,7 +32,7 @@ setup(
     package_data={
         "guild": (
             ["guild"] +
-            package_files("guild", ["tests", "scripts"])
+            package_files("guild", ["tests", "scripts", "external"])
         ),
         "tensorboard": ["webfiles.zip",],
     },
