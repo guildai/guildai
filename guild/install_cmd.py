@@ -1,7 +1,6 @@
 import pip
 
-import guild.install
+import guild.pip_util
 
 def main(args):
-    for pkg in args.packages:
-        guild.install.install_package(pkg, args.force)
+    guild.pip_util.install(args.packages, args.upgrade)

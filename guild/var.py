@@ -2,7 +2,6 @@ import os
 import shutil
 
 import guild.run
-import guild.package
 import guild.util
 
 def path(subpath):
@@ -23,13 +22,8 @@ def trash_dir(name=None):
 def cache_dir(name=None):
     return os.path.join(path("cache"), name) if name else path("cache")
 
-def pkg_dir(pkg_name=None, pkg_version=None):
-    if pkg_name is None:
-        return path("pkg")
-    elif pkg_version is None:
-        return os.path.join(path("pkg"), pkg_name)
-    else:
-        return os.path.join(path("pkg"), pkg_name, pkg_version)
+def dist_packages_dir():
+    return path("dist-packages")
 
 def runs(root=None, sort=None, filter=None):
     root = root or runs_dir()
@@ -114,13 +108,3 @@ def restore_runs(runs):
         src = os.path.join(runs_dir(deleted=True), run.id)
         dest = os.path.join(runs_dir(), run.id)
         _move_file(src, dest)
-
-def packages():
-    root = pkg_dir()
-    for pkg_name in os.listdir(root):
-        pkg_path = os.path.join(root, pkg_name)
-        if not os.path.isdir(pkg_path):
-            continue
-        for pkg_ver in os.listdir(pkg_path):
-            if os.path.isdir(os.path.join(pkg_path, pkg_ver)):
-                yield guild.package.Package(pkg_name, pkg_ver)
