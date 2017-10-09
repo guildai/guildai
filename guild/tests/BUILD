@@ -39,7 +39,7 @@ py_library(
     name = "imports",
     data = ["imports.md"],
     deps = [
-        # Intentially leaving empty - should catch missing modules.9
+        "//guild:__init__",
     ],
 )
 
