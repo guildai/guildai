@@ -9,6 +9,8 @@
     ...   for root, dirs, files in os.walk(guild_root, topdown=True):
     ...     if "tests" in dirs:
     ...       dirs.remove("tests")
+    ...     if "external" in dirs:
+    ...       dirs.remove("external")
     ...     for name in files:
     ...       if name.endswith(".py"):
     ...         mod_path = os.path.join(root, name)
