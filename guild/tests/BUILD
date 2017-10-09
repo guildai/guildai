@@ -5,6 +5,7 @@ py_library(
     deps = [
         ":cpu-plugin",
         ":disk-plugin",
+        ":imports",
         ":memory-plugin",
         ":op",
         ":project",
@@ -31,6 +32,14 @@ py_library(
     deps = [
         "//guild/plugins",
         "//guild:plugin",
+    ],
+)
+
+py_library(
+    name = "imports",
+    data = ["imports.md"],
+    deps = [
+        # Intentially leaving empty - should catch missing modules.9
     ],
 )
 
