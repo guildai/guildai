@@ -2,7 +2,7 @@ package(default_visibility = ["//visibility:public"])
 
 sh_binary(
     name = "guild",
-    srcs = ["//scripts:guild-exe"],
+    srcs = ["//guild/scripts:guild-exe"],
     data = [
         ":main",
     ]
@@ -30,8 +30,8 @@ py_library(
     name = "check_cmd",
     srcs = ["check_cmd.py"],
     data = [
-        "//scripts:nvidia-tools-check",
-        "//scripts:tensorflow-check",
+        "//guild/scripts:nvidia-tools-check",
+        "//guild/scripts:tensorflow-check",
     ],
     deps = [
         ":app",
@@ -66,10 +66,9 @@ py_library(
     name = "test",
     srcs = ["test.py"],
     data = [
-        "//tests",
+        "//guild/tests",
     ],
     deps = [
-        ":app",
     ],
 )
 

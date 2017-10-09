@@ -7,8 +7,6 @@ import re
 import sys
 import tempfile
 
-import guild.app
-
 class Py23DocChecker(doctest.OutputChecker):
     """Output checker that works around Python 2/3 unicode representations.
 
@@ -25,13 +23,13 @@ def run_all():
     return run(all_tests())
 
 def all_tests():
-    test_pattern = os.path.join(_tests_dir(), "*.md")
+    test_pattern = os.path.join(tests_dir(), "*.md")
     return sorted(
         [_test_name_from_path(path)
          for path in glob.glob(test_pattern)])
 
-def _tests_dir():
-    return os.path.join(guild.app.home(), "tests")
+def tests_dir():
+    return os.path.join(os.path.dirname(__file__), "tests")
 
 def _test_name_from_path(path):
     name, _ = os.path.splitext(os.path.basename(path))
@@ -60,7 +58,7 @@ def _run_test(name):
 
 def _test_filename(name):
     # Path must be relative to module
-    return os.path.join("..", "tests", name + ".md")
+    return os.path.join("tests", name + ".md")
 
 def _run_test_file(filename):
     return _run_test_file_with_config(
@@ -129,7 +127,7 @@ def sample(name):
     return os.path.join(samples_dir(), name)
 
 def samples_dir():
-    return os.path.join(guild.app.home(), "tests", "samples")
+    return os.path.join(tests_dir(), "samples")
 
 def mkdtemp():
     return tempfile.mkdtemp(prefix="guildtest-")
