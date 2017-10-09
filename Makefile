@@ -24,3 +24,6 @@ commit-check:
 	make
 	make check
 	make lint
+
+pip-package:
+	bazel build packaging/pip

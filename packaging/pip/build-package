@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eu
+
+OUT_DIR=$(realpath ${1})
+
+cp packaging/pip/setup.py .
+cp packaging/pip/README.rst .
+cp -R bazel-out/host/bin/guild/guild.runfiles/org_guildai_guild/* .
+
+#echo '############'
+#(cd bazel-out/host/bin/guild/ && find)
+#echo '############'
+
+python setup.py bdist_wheel -d "$OUT_DIR"
