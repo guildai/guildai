@@ -5,6 +5,7 @@ import sys
 
 import click
 
+import guild.log
 import guild.plugin
 
 TABLE_COL_SPACING = 2
@@ -20,12 +21,8 @@ class Exit(Exception):
         return "(%i) %s" % (self.exit_status, self.msg)
 
 def main(args):
-    _init_logging(args)
+    guild.log.init_logging(args.log_level or logging.INFO)
     guild.plugin.init_plugins()
-
-def _init_logging(args):
-    level = args.log_level or logging.INFO
-    logging.basicConfig(level=level, format="%(message)s")
 
 def apply_main(cmd):
     prog = os.path.basename(sys.argv[0])

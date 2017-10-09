@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 
+import guild.log
 import guild.plugin
 
 def main():
@@ -19,7 +20,7 @@ def main():
 def _init_logging():
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
     format = os.getenv("LOG_FORMAT", "%(levelname)s: %(message)s")
-    logging.basicConfig(level=level, format=format)
+    guild.log.init_logging(level, {"_": format})
 
 def _parse_args():
     if len(sys.argv) < 2:

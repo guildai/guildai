@@ -59,6 +59,7 @@ py_library(
     deps = [
         "@org_click",
         ":plugin",
+        ":log",
     ],
 )
 
@@ -225,6 +226,8 @@ py_library(
     name = "op_main",
     srcs = ["op_main.py"],
     deps = [
+        ":log",
+        ":plugin",
     ],
 )
 
@@ -248,6 +251,13 @@ py_library(
 py_library(
     name = "packages_cmd",
     srcs = ["packages_cmd.py"],
+    deps = [
+    ],
+)
+
+py_library(
+    name = "log",
+    srcs = ["log.py"],
     deps = [
     ],
 )

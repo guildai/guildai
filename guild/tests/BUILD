@@ -6,6 +6,7 @@ py_library(
         ":cpu-plugin",
         ":disk-plugin",
         ":imports",
+        ":logging",
         ":memory-plugin",
         ":op",
         ":project",
@@ -40,6 +41,14 @@ py_library(
     data = ["imports.md"],
     deps = [
         "//guild:__init__",
+    ],
+)
+
+py_library(
+    name = "logging",
+    data = ["logging.md"],
+    deps = [
+        "//guild:log",
     ],
 )
 
