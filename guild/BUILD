@@ -2,7 +2,7 @@ package(default_visibility = ["//visibility:public"])
 
 sh_binary(
     name = "guild",
-    srcs = ["//guild/scripts:guild-exe"],
+    srcs = ["//guild/scripts:guild"],
     data = [
         ":main",
     ]
@@ -69,6 +69,7 @@ py_library(
         "//guild/tests",
     ],
     deps = [
+        ":app",
     ],
 )
 

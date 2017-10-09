@@ -4,48 +4,63 @@ import glob
 import os
 import sys
 
+EXTERNAL_PATHS = [
+    "org_click",
+    "org_html5lib",
+    "org_mozilla_bleach",
+    "org_pip/src",
+    "org_pocoo_werkzeug",
+    "org_psutil",
+    "org_pythonhosted_markdown",
+    ("org_pyyaml/lib", "org_pyyaml/lib3"),
+    "org_tensorflow_tensorboard",
+    "protobuf/python",
+]
+
 def main():
-    root = module_space()
-    import_paths = (
-        guild_import_paths(root) +
-        special_import_paths(root) +
-        module_space_import_paths(root)
-    )
-    sys.path[:0] = import_paths
+    sys.path[:0] = _import_paths()
     import guild.main
     guild.main.main()
 
-def module_space():
-    script_home = os.path.abspath(os.path.dirname(sys.argv[0]))
-    module_space = os.path.join(script_home, 'guild.runfiles')
-    if os.path.isdir(module_space):
-        return module_space
-    raise AssertionError('Cannot find .runfiles directory for %s' % sys.argv[0])
+def _import_paths():
+    script_home = os.path.abspath(os.path.dirname(__file__))
+    return (
+        [_guild_import_path(script_home)] +
+        _external_import_paths(script_home))
 
-def guild_import_paths(root):
+def _guild_import_path(script_home):
+    return _try_find_dir(
+        ["guild.runfiles/org_guildai_guild",
+         ".."],
+        script_home)
+
+def _external_import_paths(script_home):
+    external_root = _external_root(script_home)
     return [
-        os.path.join(root, "org_guildai_guild")
+        _external_import_path(path, external_root)
+        for path in EXTERNAL_PATHS
     ]
 
-def special_import_paths(root):
-    return [
-        os.path.join(root, "protobuf/python"),
-        os.path.join(root, yaml_path_for_python_version()),
-        os.path.join(root, "org_pip/src"),
-    ]
+def _external_root(script_home):
+    return _try_find_dir(
+        ["guild.runfiles",
+         "external"],
+        script_home)
 
-def yaml_path_for_python_version():
-    major_ver = sys.version_info[0]
-    if major_ver == 2:
-        return "org_pyyaml/lib"
-    elif major_ver == 3:
-        return "org_pyyaml/lib3"
-    else:
-        raise AssertionError("Unsupported Python version for YAML: %i" % major_ver)
+def _external_import_path(path, root):
+    if isinstance(path, tuple):
+        if sys.version_info[0] == 2:
+            path = path[0]
+        else:
+            path = path[1]
+    return os.path.join(root, path)
 
-def module_space_import_paths(root):
-    package_markers = glob.glob(os.path.join(root, "*", "__init__.py"))
-    return [os.path.dirname(marker) for marker in package_markers]
+def _try_find_dir(paths, root):
+    for path in paths:
+        full_path = os.path.join(root, path)
+        if os.path.exists(full_path):
+            return full_path
+    raise AssertionError((paths, root))
 
 if __name__ == '__main__':
     main()
