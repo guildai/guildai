@@ -153,6 +153,7 @@ class LogCapture(object):
 
     def __enter__(self):
         logging.getLogger().addFilter(self)
+        self._records = []
 
     def __exit__(self, *exc):
         logging.getLogger().removeFilter(self)
@@ -161,6 +162,6 @@ class LogCapture(object):
         self._records.append(record)
 
     def print_all(self):
-        format = logging.Formatter().format
+        format = logging.getLogger().handlers[0].format
         for r in self._records:
             print(format(r))

@@ -107,6 +107,7 @@ def for_name(name):
         if isinstance(plugin, str):
             logging.debug("initializing plugin '%s' (%s)", name, plugin)
             plugin = _init_plugin(plugin)
+            plugin.name = name
             __plugins__[name] = plugin
         return plugin
 
