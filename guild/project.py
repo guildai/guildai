@@ -122,8 +122,8 @@ def _try_from_plugin(path):
     data = []
     for name, plugin in guild.plugin.iter_plugins():
         logging.debug(
-            "checking '%s' for models with plugin '%s'",
-            path, name)
+            "using plugin '%s' to check '%s' for models",
+            name, path)
         plugin_models = _plugin_models_for_location(plugin, path)
         for model in plugin_models:
             logging.debug(
