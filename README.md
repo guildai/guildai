@@ -23,7 +23,7 @@ $ pip install guildai --upgrade
 If your platform isn't support, you can compile Guild AI from source
 (see steps below).
 
-## Comppiling Guild AI from source
+## Compiling Guild AI from source
 
 Guild Python requires Bazel 0.5.4 or higher to build. See [Installing
 Bazel](https://docs.bazel.build/versions/master/install.html) for help
@@ -41,7 +41,7 @@ Build Guild Python using the `bazel` command:
 You may alternatively simply run `make`.
 
 The initial Guild Python build will take some time as Bazel will
-download serveral dependencies, including TensorBoard. Subsequent
+download several dependencies, including TensorBoard. Subsequent
 builds will run faster.
 
 If Guild Python builds successfully, run the `check` command with
