@@ -28,6 +28,7 @@
      'guild.install_cmd',
      'guild.log',
      'guild.main',
+     'guild.main_bootstrap',
      'guild.models_cmd',
      'guild.op',
      'guild.op_main',

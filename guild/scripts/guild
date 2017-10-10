@@ -1,66 +1,16 @@
 #!/usr/bin/env python
 
-import glob
 import os
 import sys
 
-EXTERNAL_PATHS = [
-    "org_click",
-    "org_html5lib",
-    "org_mozilla_bleach",
-    "org_pip/src",
-    "org_pocoo_werkzeug",
-    "org_psutil",
-    "org_pythonhosted_markdown",
-    ("org_pyyaml/lib", "org_pyyaml/lib3"),
-    "org_tensorflow_tensorboard",
-    "protobuf/python",
-]
-
 def main():
-    sys.path[:0] = _import_paths()
-    import guild.main
-    guild.main.main()
+    sys.path.insert(0, _guild_import_path())
+    import guild.main_bootstrap
+    guild.main_bootstrap.main()
 
-def _import_paths():
-    script_home = os.path.abspath(os.path.dirname(__file__))
-    return (
-        [_guild_import_path(script_home)] +
-        _external_import_paths(script_home))
-
-def _guild_import_path(script_home):
-    return _try_find_dir(
-        ["guild.runfiles/org_guildai_guild",
-         ".."],
-        script_home)
-
-def _external_import_paths(script_home):
-    external_root = _external_root(script_home)
-    return [
-        _external_import_path(path, external_root)
-        for path in EXTERNAL_PATHS
-    ]
-
-def _external_root(script_home):
-    return _try_find_dir(
-        ["guild.runfiles",
-         "external"],
-        script_home)
-
-def _external_import_path(path, root):
-    if isinstance(path, tuple):
-        if sys.version_info[0] == 2:
-            path = path[0]
-        else:
-            path = path[1]
-    return os.path.join(root, path)
-
-def _try_find_dir(paths, root):
-    for path in paths:
-        full_path = os.path.join(root, path)
-        if os.path.exists(full_path):
-            return full_path
-    raise AssertionError((paths, root))
+def _guild_import_path():
+    script_home = os.path.dirname(__file__)
+    return os.path.dirname(os.path.dirname(script_home))
 
 if __name__ == '__main__':
     main()

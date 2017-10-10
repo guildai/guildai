@@ -4,8 +4,15 @@ sh_binary(
     name = "guild",
     srcs = ["//guild/scripts:guild"],
     data = [
+        ":main_bootstrap",
+    ]
+)
+
+py_library(
+    name = "main_bootstrap",
+    srcs = ["main_bootstrap.py"],
+    deps = [
         ":main",
-        "__guild_op_package__",
     ]
 )
 
@@ -52,6 +59,7 @@ py_library(
 py_library(
     name = "__init__",
     srcs = ["__init__.py"],
+    data = ["__guild_op_package__"],
 )
 
 py_library(
