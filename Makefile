@@ -3,6 +3,8 @@ GUILD = bazel-bin/guild/guild
 build:
 	bazel build guild
 
+$(GUILD): build
+
 check: $(GUILD)
 	@if [ -z "$(TESTS)" ]; then \
 	  opts="--tests"; \
