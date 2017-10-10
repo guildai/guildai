@@ -1,6 +1,8 @@
 import logging
 import logging.config
 
+__last_init_kw = None
+
 class ConsoleLogHandler(logging.StreamHandler):
 
     DEFAULT_FORMATS = {
@@ -39,3 +41,7 @@ def init_logging(level=logging.INFO, formats=None):
             "handlers": ["console"]
         }
     })
+    globals()["__last_init_kw"] = dict(level=level, formats=formats)
+
+def current_settings():
+    return __last_init_kw
