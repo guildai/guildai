@@ -26,6 +26,7 @@
      'guild.cmd_support',
      'guild.config',
      'guild.install_cmd',
+     'guild.log',
      'guild.main',
      'guild.models_cmd',
      'guild.op',
