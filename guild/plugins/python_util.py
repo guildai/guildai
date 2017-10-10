@@ -1,5 +1,4 @@
 import ast
-import glob
 import logging
 import os
 
@@ -156,10 +155,12 @@ class MethodWrapper(object):
     def _unwrap(self):
         setattr(self._m.im_class, self._m.im_func.__name__, self._m)
 
-def scripts_for_location(location):
+def scripts_for_location(location, exclude=[]):
+    import glob, fnmatch
     return [
         Script(src)
         for src in glob.glob(os.path.join(location, "*.py"))
+        if not any((fnmatch.fnmatch(src, pattern) for pattern in exclude))
     ]
 
 def script_models(location, is_model_script, script_model):
