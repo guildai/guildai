@@ -1,8 +1,11 @@
 py_library(
     name = "org_psutil",
-    srcs = glob(["psutil/*.py", "psutil/*.so"]),
+    srcs = glob(["psutil/*.py"]),
     visibility = ["//visibility:public"],
-    data = [":psutil_native"],
+    data = [
+        ":psutil_native",
+        ":guild_op_package_marker"
+    ],
 )
 
 genrule(
@@ -25,5 +28,17 @@ genrule(
         "python2 setup.py build_ext -i && " +
         "python3 setup.py build_ext -i && " +
         "popd && " +
-        "cp `dirname $(location setup.py)`/psutil/*.so $(@D)/psutil/")
+        "cp `dirname $(location setup.py)`/psutil/*.so $(@D)/psutil/"
+    )
+)
+
+genrule(
+    name = "guild_op_package_marker",
+    outs = ["psutil/__guild_op_package__"],
+    # Not sure why $(@D) here is pointing to 'psutil/' whereas it's
+    # pointing to 'psutil/..' in the psutil_native rule but this is
+    # the case.
+    cmd = (
+        "touch $(@D)/__guild_op_package__"
+    )
 )

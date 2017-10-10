@@ -5,6 +5,7 @@ sh_binary(
     srcs = ["//guild/scripts:guild"],
     data = [
         ":main",
+        "__guild_op_package__",
     ]
 )
 

@@ -15,11 +15,6 @@ OS_ENVIRON_WHITELIST = [
     "LD_LIBRARY_PATH",
 ]
 
-GUILD_PACKAGES = [
-    "org_guildai_guild",
-    "org_psutil",
-]
-
 class InvalidCmd(ValueError):
     pass
 
@@ -215,10 +210,14 @@ def _model_paths(project_op):
     return [os.path.dirname(project_op.project.src)]
 
 def _guild_paths():
-    return [path for path in sys.path if _is_guild_path(path)]
+    return [path for path in sys.path if _is_guild_op_pkg(path)]
 
-def _is_guild_path(path):
-    for pkg in GUILD_PACKAGES:
-        if path.endswith(pkg):
-            return True
+def _is_guild_op_pkg(path):
+    if os.path.isdir(path):
+        for maybe_pkg in os.listdir(path):
+            marker = os.path.join(path, maybe_pkg, "__guild_op_package__")
+            if os.path.exists(marker):
+                logging.debug("including '%s' as op package", path)
+                return True
+    logging.debug("excluding '%s' as op package", path)
     return False
