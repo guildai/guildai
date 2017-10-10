@@ -7,14 +7,15 @@ OUT_DIR=$(realpath ${1})
 # Package file
 cp packaging/pip/setup.py .
 cp packaging/pip/README.rst .
+cp packaging/pip/MANIFEST.in .
 
 # Guild source
 rm -rf guild
 cp -R bazel-out/host/bin/guild/guild.runfiles/org_guildai_guild/guild guild
 cp -R bazel-out/host/bin/guild/guild.runfiles/org_guildai_guild/external guild/external
 
-#echo '############'
-#find guild/
-#echo '############'
+echo "### BEGIN FIND of setup dir (`pwd`)"
+find .
+echo "### END FIND"
 
 python setup.py bdist_wheel -d "$OUT_DIR"
