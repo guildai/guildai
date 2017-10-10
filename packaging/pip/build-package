@@ -14,8 +14,8 @@ rm -rf guild
 cp -R bazel-out/host/bin/guild/guild.runfiles/org_guildai_guild/guild guild
 cp -R bazel-out/host/bin/guild/guild.runfiles/org_guildai_guild/external guild/external
 
-echo "### BEGIN FIND of setup dir (`pwd`)"
-find .
-echo "### END FIND"
+#echo "### BEGIN FIND of setup dir (`pwd`)"
+#find .
+#echo "### END FIND"
 
 python setup.py bdist_wheel -d "$OUT_DIR"
