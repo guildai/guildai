@@ -29,12 +29,10 @@ def _find_source_home():
     return None
 
 def version():
-    if guild.__version__:
-        return guild.__version__
-    elif guild.__git_commit__:
-        return "git@%s" % guild.__git_commit__
+    if guild.__git_commit__:
+        return "%s (%s)" % (guild.__version__, guild.__git_commit__)
     else:
-        return "UNKNOWN"
+        return guild.__version__
 
 def home():
     abs_file = os.path.abspath(__file__)
