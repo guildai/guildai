@@ -10,6 +10,8 @@ import guild.runs_cmd
 import guild.tensorboard
 import guild.util
 
+MIN_MONITOR_INTERVAL = 5
+
 class RunsMonitor(threading.Thread):
 
     STOP_TIMEOUT = 5
@@ -34,7 +36,8 @@ class RunsMonitor(threading.Thread):
         guild.util.loop(
             cb=self.run_once,
             wait=self._stop.wait,
-            interval=self.args.refresh_interval,
+            interval=min(self.args.refresh_interval,
+                         MIN_MONITOR_INTERVAL),
             first_interval=self.args.refresh_interval)
         self._stopped.set()
 
