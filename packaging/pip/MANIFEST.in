@@ -1,0 +1,6 @@
+include guild/guild
+include guild/__guild_op_package__
+recursive-include guild/external *
+recursive-include guild/scripts *
+recursive-include guild/tests *
+include guild/external/org_tensorflow_tensorboard/tensorboard/webfiles.zip

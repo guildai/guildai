@@ -10,16 +10,6 @@ def README():
 def packages():
     return find_packages(exclude=["guild.tests", "guild.tests.*"])
 
-def package_files(pkg, dirs):
-    return list(_iter_package_files(pkg, dirs))
-
-def _iter_package_files(pkg, dirs):
-    for dir in dirs:
-        for root, _, files in os.walk(os.path.join(pkg, dir)):
-            pkg_relative_root = root[len(pkg) + 1:]
-            for name in files:
-                yield os.path.join(pkg_relative_root, name)
-
 setup(
     name="guildai",
     version="0.1.0",
@@ -29,13 +19,7 @@ setup(
     author="TensorHub, Inc.",
     author_email="garrett@guild.ai",
     packages=packages(),
-    package_data={
-        "guild": (
-            ["guild"] +
-            package_files("guild", ["tests", "scripts", "external"])
-        ),
-        "tensorboard": ["webfiles.zip",],
-    },
+    include_package_data=True,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

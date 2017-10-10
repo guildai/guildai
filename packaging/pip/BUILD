@@ -12,6 +12,7 @@ genrule(
     ],
     srcs = [
         "LICENSE",
+        "MANIFEST.in",
         "README.rst",
         "setup.py",
     ],
