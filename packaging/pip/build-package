@@ -13,9 +13,10 @@ cp packaging/pip/MANIFEST.in .
 rm -rf guild
 cp -R bazel-out/host/bin/guild/guild.runfiles/org_guildai_guild/guild guild
 cp -R bazel-out/host/bin/guild/guild.runfiles/org_guildai_guild/external guild/external
+cp packaging/pip/LICENSE.txt guild
 
 #echo "### BEGIN FIND of setup dir (`pwd`)"
 #find .
 #echo "### END FIND"
 
-python setup.py bdist_wheel -d "$OUT_DIR"
+python setup.py bdist_wheel --plat-name manylinux1_x86_64 -d "$OUT_DIR"

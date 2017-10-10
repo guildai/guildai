@@ -11,12 +11,12 @@ genrule(
         "//guild",
     ],
     srcs = [
-        "LICENSE",
+        "LICENSE.txt",
         "MANIFEST.in",
         "README.rst",
         "setup.py",
     ],
     outs = [
-        "guildai-0.1.0-cp27-cp27mu-linux_x86_64.whl",
+        "guildai-0.1.0-cp27-cp27mu-manylinux1_x86_64.whl",
     ],
 )
