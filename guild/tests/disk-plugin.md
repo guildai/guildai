@@ -13,14 +13,31 @@ We can read disk stats using the `read_summary_values` method:
 The initial stats are empty because stats are reported across
 intervals. Let's read them again:
 
-    >>> pprint(plugin.read_summary_values())
-    {'system/devsda1/rkbps': ...,
-     'system/devsda1/rps': ...,
-     'system/devsda1/util': ...,
-     'system/devsda1/wkbps': ...,
-     'system/devsda1/wps': ...,
-     'system/devsda2/rkbps': ...,
-     'system/devsda2/rps': ...,
-     'system/devsda2/util': ...,
-     'system/devsda2/wkbps': ...,
-     'system/devsda2/wps': ...}
+    >>> vals = plugin.read_summary_values()
+
+Each system is different and some architectures don't support disk
+states (e.g. OSX). We need to be explicit about our tests.
+
+    >>> import sys
+    >>> platform = sys.platform
+
+Disk stats aren't supported on OSX:
+
+    >>> if sys == "darwin":
+    ...   assert len(vals) == 0, vals
+
+They are supported on Linux:
+
+    >>> if sys.platform == "linux2":
+    ...   keys = sorted(vals.keys())
+    ...   attrs = [key.rsplit("/", 1)[1] for key in keys]
+    ...   assert attrs[0] == "rkbps", attrs
+    ...   assert attrs[1] == "rps", attrs
+    ...   assert attrs[2] == "util", attrs
+    ...   assert attrs[3] == "wkbps", attrs
+    ...   assert attrs[4] == "wps", attrs
+
+Here we read the first five results and assert their attribute
+values. Each value is in the form "system/DEVICE/ATTTR". As each
+system has different devices and names, this is as much as we can
+assert generally.
