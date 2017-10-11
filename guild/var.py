@@ -22,9 +22,6 @@ def trash_dir(name=None):
 def cache_dir(name=None):
     return os.path.join(path("cache"), name) if name else path("cache")
 
-def dist_packages_dir():
-    return path("dist-packages")
-
 def runs(root=None, sort=None, filter=None):
     root = root or runs_dir()
     filter = filter or (lambda _: True)

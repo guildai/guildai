@@ -33,6 +33,7 @@
      'guild.op',
      'guild.op_main',
      'guild.operations_cmd',
+     'guild.package',
      'guild.packages_cmd',
      'guild.pip_util',
      'guild.plugin',

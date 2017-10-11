@@ -86,6 +86,7 @@ py_library(
     name = "install_cmd",
     srcs = ["install_cmd.py"],
     deps = [
+        ":package",
         ":pip_util"
     ],
 )
@@ -211,6 +212,13 @@ py_library(
     deps = [
         ":log",
         ":plugin",
+    ],
+)
+
+py_library(
+    name = "package",
+    srcs = ["package.py"],
+    deps = [
     ],
 )
 

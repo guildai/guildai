@@ -4,11 +4,9 @@ import os
 from pip._internal.commands.install import InstallCommand
 from pip._internal.wheel import Wheel
 
-import guild.var
-
 def install(reqs, upgrade=False):
     cmd = InstallCommand()
-    args = ["-t", guild.var.dist_packages_dir()]
+    args = ["--user"]
     if upgrade:
         args.append("--upgrade")
     args.extend(reqs)
