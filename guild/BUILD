@@ -8,6 +8,16 @@ sh_binary(
     ]
 )
 
+###################################################################
+# Core modules
+###################################################################
+
+py_library(
+    name = "__init__",
+    srcs = ["__init__.py"],
+    data = ["__guild_op_package__"],
+)
+
 py_library(
     name = "main_bootstrap",
     srcs = ["main_bootstrap.py"],
@@ -21,6 +31,8 @@ py_library(
     srcs = ["main.py"],
     deps = [
         "@org_click",
+        ":app",
+        ":cli",
         ":check_cmd",
         ":models_cmd",
         ":operations_cmd",
@@ -33,6 +45,28 @@ py_library(
         ":view_cmd",
     ]
 )
+
+py_library(
+    name = "app",
+    srcs = ["app.py"],
+    deps = [
+        ":__init__",
+    ]
+)
+
+py_library(
+    name = "cli",
+    srcs = ["cli.py"],
+    deps = [
+        "@org_click",
+        ":plugin",
+        ":log",
+    ],
+)
+
+###################################################################
+# Commands
+###################################################################
 
 py_library(
     name = "check_cmd",
@@ -49,37 +83,35 @@ py_library(
 )
 
 py_library(
-    name = "app",
-    srcs = ["app.py"],
+    name = "install_cmd",
+    srcs = ["install_cmd.py"],
     deps = [
-        ":__init__",
-    ]
-)
-
-py_library(
-    name = "__init__",
-    srcs = ["__init__.py"],
-    data = ["__guild_op_package__"],
-)
-
-py_library(
-    name = "cli",
-    srcs = ["cli.py"],
-    deps = [
-        "@org_click",
-        ":plugin",
-        ":log",
+        ":pip_util"
     ],
 )
 
 py_library(
-    name = "test",
-    srcs = ["test.py"],
-    data = [
-        "//guild/tests",
-    ],
+    name = "models_cmd",
+    srcs = ["models_cmd.py"],
     deps = [
-        ":app",
+        ":cli",
+        ":cmd_support",
+    ],
+)
+
+py_library(
+    name = "operations_cmd",
+    srcs = ["operations_cmd.py"],
+    deps = [
+        ":cli",
+        ":project",
+    ],
+)
+
+py_library(
+    name = "packages_cmd",
+    srcs = ["packages_cmd.py"],
+    deps = [
     ],
 )
 
@@ -105,12 +137,10 @@ py_library(
 )
 
 py_library(
-    name = "project",
-    srcs = ["project.py"],
+    name = "shell_cmd",
+    srcs = ["shell_cmd.py"],
     deps = [
-        "@org_pyyaml",
-        ":plugin",
-    ]
+    ],
 )
 
 py_library(
@@ -123,6 +153,32 @@ py_library(
 )
 
 py_library(
+    name = "view_cmd",
+    srcs = ["view_cmd.py"],
+    deps = [
+        "@org_click",
+        ":cli",
+        ":runs_cmd",
+        ":tensorboard",
+        ":util",
+    ],
+)
+
+###################################################################
+# API
+###################################################################
+
+py_library(
+    name = "cmd_support",
+    srcs = ["cmd_support.py"],
+    deps = [
+        ":cli",
+        ":project",
+        ":util",
+    ],
+)
+
+py_library(
     name = "config",
     srcs = ["config.py"],
     deps = [
@@ -131,36 +187,9 @@ py_library(
 )
 
 py_library(
-    name = "var",
-    srcs = ["var.py"],
+    name = "log",
+    srcs = ["log.py"],
     deps = [
-        ":run",
-        ":util",
-    ],
-)
-
-py_library(
-    name = "shell_cmd",
-    srcs = ["shell_cmd.py"],
-    deps = [
-    ],
-)
-
-py_library(
-    name = "models_cmd",
-    srcs = ["models_cmd.py"],
-    deps = [
-        ":cli",
-        ":cmd_support",
-    ],
-)
-
-py_library(
-    name = "operations_cmd",
-    srcs = ["operations_cmd.py"],
-    deps = [
-        ":cli",
-        ":project",
     ],
 )
 
@@ -177,27 +206,20 @@ py_library(
 )
 
 py_library(
-    name = "util",
-    srcs = ["util.py"],
+    name = "op_main",
+    srcs = ["op_main.py"],
     deps = [
+        ":log",
+        ":plugin",
     ],
 )
 
 py_library(
-    name = "cmd_support",
-    srcs = ["cmd_support.py"],
+    name = "pip_util",
+    srcs = ["pip_util.py"],
     deps = [
-        ":cli",
-        ":project",
-        ":util",
-    ],
-)
-
-py_library(
-    name = "run",
-    srcs = ["run.py"],
-    deps = [
-         ":util",
+        "@org_pip",
+        ":var",
     ],
 )
 
@@ -210,14 +232,19 @@ py_library(
 )
 
 py_library(
-    name = "view_cmd",
-    srcs = ["view_cmd.py"],
+    name = "project",
+    srcs = ["project.py"],
     deps = [
-        "@org_click",
-        ":cli",
-        ":runs_cmd",
-        ":tensorboard",
-        ":util",
+        "@org_pyyaml",
+        ":plugin",
+    ]
+)
+
+py_library(
+    name = "run",
+    srcs = ["run.py"],
+    deps = [
+         ":util",
     ],
 )
 
@@ -232,41 +259,28 @@ py_library(
 )
 
 py_library(
-    name = "op_main",
-    srcs = ["op_main.py"],
+    name = "test",
+    srcs = ["test.py"],
+    data = [
+        "//guild/tests",
+    ],
     deps = [
-        ":log",
-        ":plugin",
+        ":app",
     ],
 )
 
 py_library(
-    name = "install_cmd",
-    srcs = ["install_cmd.py"],
-    deps = [
-        ":pip_util"
-    ],
-)
-
-py_library(
-    name = "pip_util",
-    srcs = ["pip_util.py"],
-    deps = [
-        "@org_pip",
-        ":var",
-    ],
-)
-
-py_library(
-    name = "packages_cmd",
-    srcs = ["packages_cmd.py"],
+    name = "util",
+    srcs = ["util.py"],
     deps = [
     ],
 )
 
 py_library(
-    name = "log",
-    srcs = ["log.py"],
+    name = "var",
+    srcs = ["var.py"],
     deps = [
+        ":run",
+        ":util",
     ],
 )
