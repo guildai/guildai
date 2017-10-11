@@ -30,7 +30,7 @@ def _find_source_home():
 
 def version():
     if guild.__git_commit__:
-        return "%s (%s)" % (guild.__version__, guild.__git_commit__)
+        return "%s (git commit %s)" % (guild.__version__, guild.__git_commit__)
     else:
         return guild.__version__
 

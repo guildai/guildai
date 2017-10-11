@@ -4,6 +4,8 @@ import sys
 from setuptools import find_packages, setup
 from setuptools.dist import Distribution
 
+import guild
+
 class BinaryDistribution(Distribution):
   def has_ext_modules(self):
     return True
@@ -17,7 +19,7 @@ def packages():
 
 setup(
     name="guildai",
-    version="0.1.0",
+    version=guild.__version__,
     description="The essential TensorFlow developer toolkit",
     long_description=README(),
     url="https://github.com/guildai/guild-python",
