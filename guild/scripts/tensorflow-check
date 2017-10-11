@@ -24,9 +24,9 @@ except ImportError as e:
     tf = None
 
 def print_info():
-    sys.stdout.write("tf_version:             %s\n" % version())
-    sys.stdout.write("tf_cuda_support:        %s\n" % cuda_support())
-    sys.stdout.write("tf_gpu_available:       %s\n" % gpu_available())
+    sys.stdout.write("tensorflow_version:        %s\n" % version())
+    sys.stdout.write("tenorflow_cuda_support:    %s\n" % cuda_support())
+    sys.stdout.write("tensorflow_gpu_available:  %s\n" % gpu_available())
     sys.stdout.flush()
 
 def version():

@@ -34,13 +34,13 @@ def _print_info(verbose):
     _print_pyyaml_info()
 
 def _print_guild_info():
-    guild.cli.out("guild_version:          %s" % guild.app.version())
-    guild.cli.out("guild_home:             %s" % guild.app.home())
+    guild.cli.out("guild_version:             %s" % guild.app.version())
+    guild.cli.out("guild_home:                %s" % guild.app.home())
 
 def _print_python_info(verbose):
-    guild.cli.out("python_version:         %s" % _python_version())
+    guild.cli.out("python_version:            %s" % _python_version())
     if verbose:
-        guild.cli.out("python_path:            %s" % _python_path())
+        guild.cli.out("python_path:           %s" % _python_path())
 
 def _python_version():
     return sys.version.replace("\n", "")
@@ -63,15 +63,15 @@ def _print_check_results(script_name, verbose=False):
 
 def _print_werkzeug_info():
     ver = _try_module_version("werkzeug")
-    guild.cli.out("werkzeug_version:       %s" % ver)
+    guild.cli.out("werkzeug_version:          %s" % ver)
 
 def _print_psutil_info():
     ver = _try_module_version("psutil")
-    guild.cli.out("psutil_version:         %s" % ver)
+    guild.cli.out("psutil_version:            %s" % ver)
 
 def _print_pyyaml_info():
     ver = _try_module_version("yaml")
-    guild.cli.out("pyyaml_version:         %s" % ver)
+    guild.cli.out("pyyaml_version:            %s" % ver)
 
 def _try_module_version(name):
     try:

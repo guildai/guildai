@@ -22,4 +22,4 @@ function smi-available() {
     fi
 }
 
-echo "nvidia_smi_available:   $(smi-available)"
+echo "nvidia_smi_available:      $(smi-available)"

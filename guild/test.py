@@ -44,7 +44,7 @@ def run(tests):
     return success
 
 def _run_test(name):
-    sys.stdout.write(" %s:" % name)
+    sys.stdout.write("  %s:" % name)
     try:
         failures, _tests = _run_test_file(_test_filename(name))
     except IOError:
@@ -52,7 +52,7 @@ def _run_test(name):
         return False
     else:
         if not failures:
-            sys.stdout.write(" " * (21 - len(name)))
+            sys.stdout.write(" " * (23 - len(name)))
             sys.stdout.write(" ok\n")
         return failures == 0
 
