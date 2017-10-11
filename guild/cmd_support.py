@@ -1,6 +1,7 @@
 import os
 
 import guild.cli
+import guild.click_util
 import guild.project
 import guild.util
 
@@ -42,7 +43,7 @@ def _no_project_error(location, cmd_ctx):
     if cmd_ctx:
         msg_parts.append(
             " or '%s' for more information."
-            % guild.cli.ctx_cmd_help(cmd_ctx))
+            % guild.click_util.ctx_cmd_help(cmd_ctx))
     else:
         msg_parts.append(".")
     guild.cli.error("".join(msg_parts))

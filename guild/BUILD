@@ -31,20 +31,184 @@ py_library(
     srcs = ["main.py"],
     deps = [
         "@org_click",
-        ":app",
-        ":cli",
+        ":click_util",
+        ":main_cmd",
+    ]
+)
+
+py_library(
+    name = "main_cmd",
+    srcs = [
+        "main_cmd.py",
+        "main_cmd_impl.py",
+    ],
+    deps = [
+        "@org_click",
+         ":plugin",
+        ":log",
+        ":click_util",
         ":check_cmd",
+        ":install_cmd",
         ":models_cmd",
         ":operations_cmd",
         ":packages_cmd",
         ":run_cmd",
         ":runs_cmd",
         ":shell_cmd",
-        ":sources_cmd",
-        ":install_cmd",
+        ":train_cmd",
         ":view_cmd",
     ]
 )
+
+###################################################################
+# Commands
+###################################################################
+
+py_library(
+    name = "check_cmd",
+    srcs = [
+        "check_cmd.py",
+        "check_cmd_impl.py",
+    ],
+    data = [
+        "//guild/scripts:nvidia-tools-check",
+        "//guild/scripts:tensorflow-check",
+    ],
+    deps = [
+        "@org_click",
+        ":click_util",
+        ":app",
+        ":cli",
+        ":test",
+    ],
+)
+
+py_library(
+    name = "install_cmd",
+    srcs = [
+        "install_cmd.py",
+        "install_cmd_impl.py",
+    ],
+    deps = [
+        "@org_click",
+        ":click_util",
+        ":package",
+        ":pip_util"
+    ],
+)
+
+py_library(
+    name = "models_cmd",
+    srcs = [
+        "models_cmd.py",
+        "models_cmd_impl.py",
+    ],
+    deps = [
+        "@org_click",
+        ":click_util",
+        ":cli",
+        ":cmd_support",
+    ],
+)
+
+py_library(
+    name = "operations_cmd",
+    srcs = [
+        "operations_cmd.py",
+        "operations_cmd_impl.py",
+    ],
+    deps = [
+        "@org_click",
+        ":click_util",
+        ":cli",
+        ":cmd_support",
+        ":project",
+    ],
+)
+
+py_library(
+    name = "packages_cmd",
+    srcs = [
+        "packages_cmd.py",
+        "packages_cmd_impl.py",
+    ],
+    deps = [
+        "@org_click",
+        ":click_util",
+    ],
+)
+
+py_library(
+    name = "run_cmd",
+    srcs = [
+        "run_cmd.py",
+        "run_cmd_impl.py",
+    ],
+    deps = [
+        "@org_click",
+        ":click_util",
+        ":cli",
+        ":cmd_support",
+        ":op",
+        ":project",
+    ],
+)
+
+py_library(
+    name = "runs_cmd",
+    srcs = [
+        "runs_cmd.py",
+        "runs_cmd_impl.py",
+    ],
+    deps = [
+        "@org_click",
+        ":click_util",
+        ":cmd_support",
+        ":var",
+    ],
+)
+
+py_library(
+    name = "shell_cmd",
+    srcs = [
+        "shell_cmd.py",
+        "shell_cmd_impl.py",
+    ],
+    deps = [
+        "@org_click",
+        ":click_util",
+    ],
+)
+
+py_library(
+    name = "train_cmd",
+    srcs = ["train_cmd.py"],
+    deps = [
+        "@org_click",
+        ":click_util",
+        ":run_cmd",
+    ],
+)
+
+py_library(
+    name = "view_cmd",
+    srcs = [
+        "view_cmd.py",
+        "view_cmd_impl.py",
+    ],
+    deps = [
+        "@org_click",
+        ":click_util",
+        ":cli",
+        ":runs_cmd",
+        ":tensorboard",
+        ":util",
+    ],
+)
+
+###################################################################
+# API
+###################################################################
 
 py_library(
     name = "app",
@@ -59,121 +223,23 @@ py_library(
     srcs = ["cli.py"],
     deps = [
         "@org_click",
-        ":plugin",
-        ":log",
-    ],
-)
-
-###################################################################
-# Commands
-###################################################################
-
-py_library(
-    name = "check_cmd",
-    srcs = ["check_cmd.py"],
-    data = [
-        "//guild/scripts:nvidia-tools-check",
-        "//guild/scripts:tensorflow-check",
-    ],
-    deps = [
-        ":app",
-        ":cli",
-        ":test",
     ],
 )
 
 py_library(
-    name = "install_cmd",
-    srcs = ["install_cmd.py"],
-    deps = [
-        ":package",
-        ":pip_util"
-    ],
-)
-
-py_library(
-    name = "models_cmd",
-    srcs = ["models_cmd.py"],
-    deps = [
-        ":cli",
-        ":cmd_support",
-    ],
-)
-
-py_library(
-    name = "operations_cmd",
-    srcs = ["operations_cmd.py"],
-    deps = [
-        ":cli",
-        ":project",
-    ],
-)
-
-py_library(
-    name = "packages_cmd",
-    srcs = ["packages_cmd.py"],
-    deps = [
-    ],
-)
-
-py_library(
-    name = "run_cmd",
-    srcs = ["run_cmd.py"],
-    deps = [
-        ":cli",
-        ":cmd_support",
-        ":op",
-        ":project",
-    ],
-)
-
-py_library(
-    name = "runs_cmd",
-    srcs = ["runs_cmd.py"],
-    deps = [
-        ":cli",
-        ":cmd_support",
-        ":var",
-    ],
-)
-
-py_library(
-    name = "shell_cmd",
-    srcs = ["shell_cmd.py"],
-    deps = [
-    ],
-)
-
-py_library(
-    name = "sources_cmd",
-    srcs = ["sources_cmd.py"],
-    deps = [
-        ":config",
-        ":cli",
-    ],
-)
-
-py_library(
-    name = "view_cmd",
-    srcs = ["view_cmd.py"],
+    name = "click_util",
+    srcs = ["click_util.py"],
     deps = [
         "@org_click",
-        ":cli",
-        ":runs_cmd",
-        ":tensorboard",
-        ":util",
-    ],
+    ]
 )
-
-###################################################################
-# API
-###################################################################
 
 py_library(
     name = "cmd_support",
     srcs = ["cmd_support.py"],
     deps = [
         ":cli",
+        ":click_util",
         ":project",
         ":util",
     ],
@@ -234,6 +300,13 @@ py_library(
 py_library(
     name = "plugin",
     srcs = ["plugin.py"],
+    deps = [
+    ],
+)
+
+py_library(
+    name = "plugin_util",
+    srcs = ["plugin_util.py"],
     deps = [
         ":run",
     ],

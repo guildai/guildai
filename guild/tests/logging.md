@@ -36,8 +36,8 @@ Debug is not logged by default:
     ...   log_sample_messages()
     >>> log_capture.print_all()
     info entry
-    warning entry
-    error entry
+    WARNING: warning entry
+    ERROR: error entry
 
 ## Enable debug
 
@@ -49,8 +49,8 @@ Let's reinit with debug enabled:
     >>> log_capture.print_all()
     DEBUG: debug entry
     info entry
-    warning entry
-    error entry
+    WARNING: warning entry
+    ERROR: error entry
 
 ## Custom formats
 

@@ -170,7 +170,7 @@ Note the other three callbacks were called successfully.
 Here's what was logged during that call:
 
     >>> log_capture.print_all()
-    callback error
+    ERROR: callback
     Traceback (most recent call last):
     ...
     ZeroDivisionError: integer division or modulo by zero

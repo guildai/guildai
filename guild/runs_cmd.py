@@ -1,259 +1,244 @@
-import re
-import time
+import click
 
-import guild.cli
-import guild.cmd_support
-import guild.var
+import guild.click_util
 
-RUN_DETAIL = [
-    "id",
-    "operation",
-    "status",
-    "started",
-    "stopped",
-    "rundir",
-    "command",
-    "exit_status",
-    "pid",
-]
+class RunsGroup(click.Group):
 
-ALL_RUNS_ARG = [":"]
+    def get_command(self, ctx, cmd_name):
+        if cmd_name in ["delete", "rm"]:
+            cmd_name = "delete, rm"
+        elif cmd_name in ["list", "ls"]:
+            cmd_name = "list, ls"
+        return super(RunsGroup, self).get_command(ctx, cmd_name)
 
-def list_runs(args, ctx):
-    runs = [
-        _format_run(run, i)
-        for i, run in enumerate(runs_for_args(args, ctx))
-    ]
-    cols = ["index", "operation", "started", "status"]
-    detail = RUN_DETAIL if args.verbose else None
-    guild.cli.table(runs, cols=cols, detail=detail)
+def run_scope_options(fn):
+    guild.click_util.append_params(fn, [
+        click.Option(
+            ("-p", "--project", "project_location"),
+            help=("Project location (file system directory) for filtering "
+                  "runs."),
+            metavar="LOCATION"),
+        click.Option(
+            ("-S", "--system"),
+            help=("Include system wide runs rather than limit to runs "
+                  "associated with a project location. Ignores LOCATION."),
+            is_flag=True)
+    ])
+    return fn
 
-def runs_for_args(args, ctx, force_deleted=False):
-    return guild.var.runs(
-        _runs_root_for_args(args, force_deleted),
-        sort=["-started"],
-        filter=_runs_filter(args, ctx))
+def run_filters(fn):
+    guild.click_util.append_params(fn, [
+        click.Option(
+            ("-m", "--model", "models"),
+            metavar="MODEL",
+            help="Include only runs for MODEL.",
+            multiple=True),
+        click.Option(
+            ("-r", "--running", "status"),
+            help="Include only runs that are still running.",
+            flag_value="running"),
+        click.Option(
+            ("-c", "--completed", "status"),
+            help="Include only completed runs.",
+            flag_value="completed"),
+        click.Option(
+            ("-s", "--stopped", "status"),
+            help=("Include only runs that exited with an error or were "
+                  "terminated by the user."),
+            flag_value="stopped"),
+        click.Option(
+            ("-e", "--error", "status"),
+            help="Include only runs that exited with an error.",
+            flag_value="error"),
+        click.Option(
+            ("-t", "--terminated", "status"),
+            help="Include only runs terminated by the user.",
+            flag_value="terminated"),
+    ])
+    return fn
 
-def _runs_root_for_args(args, force_deleted):
-    deleted = force_deleted or getattr(args, "deleted", False)
-    return guild.var.runs_dir(deleted=deleted)
+def runs_list_options(fn):
+    run_scope_options(fn)
+    run_filters(fn)
+    guild.click_util.append_params(fn, [
+        click.Option(
+            ("-v", "--verbose"),
+            help="Show run details.",
+            is_flag=True),
+        click.Option(
+            ("-d", "--deleted"),
+            help="Show deleted runs.",
+            is_flag=True),
+    ])
+    return fn
 
-def _runs_filter(args, ctx):
-    filters = []
-    _apply_project_models_filter(args, filters, ctx)
-    _apply_arg_models_filter(args, filters, ctx)
-    _apply_status_filter(args, filters)
-    return guild.var.run_filter("all", filters)
+@click.group(invoke_without_command=True, cls=RunsGroup)
+@runs_list_options
 
-def _apply_project_models_filter(args, filters, ctx):
-    if args.system:
-        _maybe_warn_project_location_ignored(args)
+@click.pass_context
+
+def runs(ctx, **kw):
+    """Show or manage runs.
+
+    If COMMAND is omitted, lists run. Refer to 'guild runs list
+    --help' for more information on the list command.
+    """
+    if not ctx.invoked_subcommand:
+        ctx.invoke(list_runs, **kw)
     else:
-        project = _project_args(args, ctx)
-        model_filters = [_model_filter(model) for model in project]
-        filters.append(guild.var.run_filter("any", model_filters))
+        if _params_specified(kw):
+            # TODO: It'd be nice to move kw over to the subcommand.
+            guild.cli.error(
+                "options cannot be listed before command ('%s')"
+                % ctx.invoked_subcommand)
 
-def _model_filter(model):
-    return lambda r: r.get("op", "").startswith(model.name + ":")
+def _params_specified(kw):
+    return any((kw[key] for key in kw))
 
-def _maybe_warn_project_location_ignored(args):
-    if args.project_location:
-        guild.cli.out(
-            "Warning: --system option specified, ignoring project location",
-            err=True)
+###################################################################
+# runs list command
+###################################################################
 
-def _project_args(args, ctx):
-    return guild.cmd_support.project_for_location(args.project_location, ctx)
+@click.command("list, ls")
+@runs_list_options
 
-def _apply_arg_models_filter(args, filters, ctx):
-    for model_name in getattr(args, "models", []):
-        filters.append(_model_name_filter(model_name))
+@click.pass_context
+@guild.click_util.use_args
 
-def _model_name_filter(model_name):
-    return lambda r: r.get("op", "").startswith(model_name + ":")
+def list_runs(ctx, args):
+    """List runs.
 
-def _apply_status_filter(args, filters):
-    status = getattr(args, "status", None)
-    if not status:
-        return
-    if status == "stopped":
-        # Special case, filter on any of "terminated" or "error"
-        filters.append(
-            guild.var.run_filter("any", [
-                guild.var.run_filter("attr", "extended_status", "terminated"),
-                guild.var.run_filter("attr", "extended_status", "error"),
-            ]))
-    else:
-        filters.append(
-            guild.var.run_filter("attr", "extended_status", status))
+    By default lists runs associated with models defined in the
+    current directory, or LOCATION if specified. To list all runs, use
+    the --system option.
 
-def _format_run(run, index=None):
-    return {
-        "id": run.id,
-        "index": _format_run_index(run, index),
-        "short_index": _format_run_index(run),
-        "operation": run.get("op", "?"),
-        "status": run.extended_status,
-        "pid": run.pid or "(not running)",
-        "started": _format_timestamp(run.get("started")),
-        "stopped": _format_timestamp(run.get("stopped")),
-        "rundir": run.path,
-        "command": _format_cmd(run.get("cmd", "")),
-        "exit_status": run.get("exit_status", ""),
-    }
+    To list deleted runs, use the --deleted option. Note that runs are
+    still limited to the specified project unless --system is
+    specified.
 
-def _format_run_index(run, index=None):
-    if index is not None:
-        return "[%i:%s]" % (index, run.short_id)
-    else:
-        return "[%s]" % run.short_id
+    You may apply any of the filter options below to limit the runs
+    listed.
+    """
+    import guild.runs_cmd_impl
+    guild.runs_cmd_impl.list_runs(args, ctx)
 
-def _format_timestamp(ts):
-    if not ts:
-        return ""
-    struct_time = time.localtime(float(ts))
-    return time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
+runs.add_command(list_runs)
 
-def _format_cmd(cmd):
-    args = cmd.split("\n")
-    return " ".join([_maybe_quote_cmd_arg(arg) for arg in args])
+###################################################################
+# runs delete command
+###################################################################
 
-def _maybe_quote_cmd_arg(arg):
-    return '"%s"' % arg if " " in arg else arg
+RUN_ARG_HELP = """
+RUN may be a run ID (or the unique start of a run ID) or a zero-based
+index corresponding to a run returned by the list command. Indexes may
+also be specified in ranges in the form START:END where START is the
+start index and END is the end index. Either START or END may be
+omitted. If START is omitted, all runs up to END are selected. If END
+id omitted, all runs from START on are selected. If both START and END
+are omitted (i.e. the ':' char is used by itself) all runs are selected.
+"""
 
-def _format_attr_val(s):
-    parts = s.split("\n")
-    if len(parts) == 1:
-        return " %s" % parts[0]
-    else:
-        return "\n%s" % "\n".join(
-            ["  %s" % part for part in parts]
-        )
+@click.command("delete, rm", help="""
+Delete one or more runs.
 
-def delete_runs(args, ctx):
-    runs = runs_for_args(args, ctx)
-    runs_arg = args.runs or ALL_RUNS_ARG
-    selected = selected_runs(runs, runs_arg, ctx)
-    if not selected:
-        _no_selected_runs_error()
-    preview = [_format_run(run) for run in selected]
-    if not args.yes:
-        guild.cli.out("You are about to delete the following runs:")
-        cols = ["short_index", "operation", "started", "status"]
-        guild.cli.table(preview, cols=cols, indent=2)
-    if args.yes or guild.cli.confirm("Delete these runs?"):
-        guild.var.delete_runs(selected)
-        guild.cli.out("Deleted %i run(s)" % len(selected))
+%s
 
-def selected_runs(all_runs, selected_specs, cmd_ctx):
-    selected = []
-    for spec in selected_specs:
-        try:
-            slice_start, slice_end = _parse_slice(spec)
-        except ValueError:
-            selected.append(_find_run_by_id(spec, all_runs, cmd_ctx))
-        else:
-            if _in_range(slice_start, slice_end, all_runs):
-                selected.extend(all_runs[slice_start:slice_end])
-            else:
-                selected.append(_find_run_by_id(spec, all_runs, cmd_ctx))
-    return selected
+If a RUN is not specified, assumes all runs (i.e. as if ':' was
+specified).
+""" % RUN_ARG_HELP)
+@click.argument("runs", metavar="[RUN...]",  nargs=-1)
+@run_scope_options
+@run_filters
+@click.option(
+    "-y", "--yes",
+    help="Do not prompt before deleting.",
+    is_flag=True)
 
-def _parse_slice(spec):
-    try:
-        index = int(spec)
-    except ValueError:
-        m = re.match("(\\d+)?:(\\d+)?", spec)
-        if m:
-            try:
-                return (
-                    _slice_part(m.group(1)),
-                    _slice_part(m.group(2), incr=True)
-                )
-            except ValueError:
-                pass
-        raise ValueError(spec)
-    else:
-        return index, index + 1
+@click.pass_context
+@guild.click_util.use_args
 
-def _slice_part(s, incr=False):
-    if s is None:
-        return None
-    elif incr:
-        return int(s) + 1
-    else:
-        return int(s)
+def delete_runs(ctx, args):
+    # Help defined in command decorator.
+    import guild.runs_cmd_impl
+    guild.runs_cmd_impl.delete_runs(args, ctx)
 
-def _find_run_by_id(id_part, runs, cmd_ctx):
-    matches = []
-    for run in runs:
-        if run.id.startswith(id_part):
-            matches.append(run)
-    if len(matches) == 0:
-        _no_matching_run_error(id_part, cmd_ctx)
-    elif len(matches) > 1:
-        _non_unique_run_id_error(matches)
-    else:
-        return matches[0]
+runs.add_command(delete_runs)
 
-def _no_matching_run_error(id_part, cmd_ctx):
-    guild.cli.error(
-        "could not find run matching '%s'\n"
-        "Try 'guild runs list' for a list or '%s' for more information."
-        % (id_part, guild.cli.ctx_cmd_help(cmd_ctx)))
+###################################################################
+# runs restore command
+###################################################################
 
-def _non_unique_run_id_error(matches):
-    guild.cli.out("'%s' matches multiple runs:\n", err=True)
-    formatted = [_format_run(run) for run in runs_for_args(args, "list")]
-    cols = ["id", "op", "started", "status"]
-    guild.cli.table(formatted, cols=cols, err=True)
+@click.command("restore", help="""
+Restore one or more deleted runs.
 
-def _in_range(slice_start, slice_end, l):
-    return (
-        (slice_start is None or slice_start >= 0) and
-        (slice_end is None or slice_end <= len(l))
-    )
+%s
 
-def _no_selected_runs_error():
-    guild.cli.error(
-        "no matching runs\n"
-        "Try 'guild runs list' to list available runs.")
+If a RUN is not specified, assumes all runs (i.e. as if ':' was
+specified).
+""" % RUN_ARG_HELP)
 
-def restore_runs(args, ctx):
-    runs = runs_for_args(args, ctx, force_deleted=True)
-    runs_arg = args.runs or ALL_RUNS_ARG
-    selected = selected_runs(runs, runs_arg, ctx)
-    if not selected:
-        _no_selected_runs_error()
-    preview = [_format_run(run) for run in selected]
-    if not args.yes:
-        guild.cli.out("You are about to restore the following runs:")
-        cols = ["short_index", "operation", "started", "status"]
-        guild.cli.table(preview, cols=cols, indent=2)
-    if args.yes or guild.cli.confirm("Restore these runs?"):
-        guild.var.restore_runs(selected)
-        guild.cli.out("Restored %i run(s)" % len(selected))
+@click.argument("runs", metavar="RUN [RUN...]", nargs=-1, required=True)
+@run_scope_options
+@run_filters
+@click.option(
+    "-y", "--yes",
+    help="Do not prompt before restoring.",
+    is_flag=True)
 
-def run_info(args, ctx):
-    runs = runs_for_args(args, ctx)
-    runspec = args.run or "0"
-    selected = selected_runs(runs, [runspec], ctx)
-    if len(selected) == 0:
-        _no_selected_runs_error()
-    elif len(selected) > 1:
-        _non_unique_run_id_error(matches)
-    run = selected[0]
-    formatted = _format_run(run)
-    out = guild.cli.out
-    for name in RUN_DETAIL:
-        out("%s: %s" % (name, formatted[name]))
-    if args.env:
-        out("environment:", nl=False)
-        out(_format_attr_val(run.get("env", "")))
-    if args.flags:
-        out("flags:", nl=False)
-        out(_format_attr_val(run.get("flags", "")))
-    if args.files:
-        out("files:")
-        for path in run.iter_files():
-            out("  %s" % path)
+@click.pass_context
+@guild.click_util.use_args
+
+def restore_runs(ctx, args):
+    # Help defined in command decorator.
+    import guild.runs_cmd_impl
+    guild.runs_cmd_impl.restore_runs(args, ctx)
+
+runs.add_command(restore_runs)
+
+###################################################################
+# runs info command
+###################################################################
+
+@click.command("info")
+@click.argument("run", required=False)
+@run_scope_options
+@run_filters
+@click.option("--env", help="Include run environment", is_flag=True)
+@click.option("--flags", help="Include run flags", is_flag=True)
+@click.option("--files", help="Include run files", is_flag=True)
+
+@click.pass_context
+@guild.click_util.use_args
+
+def run_info(ctx, args):
+    """Show run details.
+
+    RUN must be a run ID (or the start of a run ID that uniquely
+    identifies a run) or a zero-based index corresponding to the run
+    as it appears in the list of filtered runs.
+
+    By default the latest run is selected (index 0).
+
+    EXAMPLES
+
+    Show info for the latest run in the current project:
+
+        guild runs info
+
+    Show info for the latest run system wide:
+
+        guild runs info -S
+
+    Show info for the latest completed run in the current project:
+
+        guild runs info -c
+
+    Show info for run a64b1710:
+
+        guild runs info a64b1710
+
+    """
+    import guild.runs_cmd_impl
+    guild.runs_cmd_impl.run_info(args, ctx)
+
+runs.add_command(run_info)

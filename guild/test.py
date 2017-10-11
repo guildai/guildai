@@ -19,8 +19,8 @@ class Py23DocChecker(doctest.OutputChecker):
             want = re.sub('u"(.*?)"', '"\\1"', want)
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
-def run_all():
-    return run(all_tests())
+def run_all(skip=None):
+    run(all_tests(), skip)
 
 def all_tests():
     test_pattern = os.path.join(tests_dir(), "*.md")
@@ -35,12 +35,18 @@ def _test_name_from_path(path):
     name, _ = os.path.splitext(os.path.basename(path))
     return name
 
-def run(tests):
+def run(tests, skip=None):
+    skip = skip or []
     sys.stdout.write("internal tests:\n")
     success = True
     for test in tests:
-        run_success = _run_test(test)
-        success = success and run_success
+        if test not in skip:
+            run_success = _run_test(test)
+            success = success and run_success
+        else:
+            sys.stdout.write(
+                "  %s:%s skipped\n"
+                % (test, " " * (23 - len(test))))
     return success
 
 def _run_test(name):

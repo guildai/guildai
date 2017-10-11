@@ -17,7 +17,7 @@ py_library(
     srcs = ["tensorflow_util.py"],
     deps = [
         "//guild:plugin",
-        "python_util",
+        ":python_util",
     ],
 )
 
@@ -34,6 +34,8 @@ py_library(
     srcs = ["keras.py"],
     deps = [
         "//guild:plugin",
+        "//guild:plugin_util",
+        ":python_util",
     ],
 )
 

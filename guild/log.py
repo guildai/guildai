@@ -6,8 +6,8 @@ __last_init_kw = None
 class ConsoleLogHandler(logging.StreamHandler):
 
     DEFAULT_FORMATS = {
-        "_": "%(message)s",
-        "DEBUG": "%(levelname)s: %(message)s",
+        "_": "%(levelname)s: %(message)s",
+        "INFO": "%(message)s",
     }
 
     def __init__(self, formats=None):

@@ -3,8 +3,8 @@ from __future__ import absolute_import
 import os
 import sys
 
+from guild import plugin_util
 from guild.plugin import Plugin
-from guild.plugin import current_run
 from guild.plugins import python_util
 
 class KerasPlugin(Plugin):
@@ -48,7 +48,7 @@ def _train(args0):
     try:
         import keras
     except ImportError:
-        raise SystemExit("error: could not import keras - is it installed?")
+        plugin_util.exit("error: could not import keras - is it installed?")
     args = _parse_args(args0)
     _patch_keras(args)
     _exec_script(args)
@@ -92,7 +92,7 @@ def _ensure_tensorboard_callback(kw):
     else:
         cb = keras.callbacks.TensorBoard(write_graph=True)
         callbacks.append(cb)
-    cb.log_dir = current_run().path
+    cb.log_dir = plugin_util.current_run().path
 
 def _find_tensorboard_cb(callbacks_list):
     import keras

@@ -1,13 +1,13 @@
-import os
-import subprocess
-import sys
+import click
 
-def main(_args):
-    env = {
-        "PYTHONPATH": os.path.pathsep.join(sys.path),
-        "LD_LIBRARY_PATH": os.getenv("LD_LIBRARY_PATH"),
-    }
-    p = subprocess.Popen(
-        [sys.executable, "-Ssic", "import guild.app;guild.app.init()"],
-        env=env)
-    p.communicate()
+import guild.click_util
+
+@click.command()
+
+@guild.click_util.use_args
+
+def shell(args):
+    """Start a Python shell for API experimentation.
+    """
+    import guild.shell_cmd_impl
+    guild.shell_cmd_impl.main(args)

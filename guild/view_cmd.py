@@ -1,108 +1,33 @@
-import logging
-import os
-import shutil
-import tempfile
-import threading
-import time
+import click
 
-import guild.cli
+import guild.click_util
 import guild.runs_cmd
-import guild.tensorboard
-import guild.util
 
-MIN_MONITOR_INTERVAL = 5
+@click.command()
+@guild.runs_cmd.run_scope_options
+@guild.runs_cmd.run_filters
+@click.option(
+    "--host",
+    help="Name of host interface to listen on.")
+@click.option(
+    "--port",
+    help="Port to listen on.",
+    type=click.IntRange(0, 65535))
+@click.option(
+    "--refresh-interval",
+    help="Refresh interval (defaults to 5 seconds).",
+    type=click.IntRange(1, None),
+    default=5)
+@click.option(
+    "-n", "--no-open",
+    help="Don't open the TensorBoard URL in a brower.",
+    is_flag=True)
 
-class RunsMonitor(threading.Thread):
+@click.pass_context
+@guild.click_util.use_args
 
-    STOP_TIMEOUT = 5
-
-    def __init__(self, logdir, args, cmd_ctx):
-        """Create a RunsMonitor.
-
-        Note that run links are created initially by this
-        function. Any errors result from user input will propagate
-        during this call. Similar errors occuring after the monitor is
-        started will be logged but will not propagate.
-        """
-        super(RunsMonitor, self).__init__()
-        self.logdir = logdir
-        self.args = args
-        self.cmd_ctx = cmd_ctx
-        self.run_once(exit_on_error=True)
-        self._stop = threading.Event()
-        self._stopped = threading.Event()
-
-    def run(self):
-        guild.util.loop(
-            cb=self.run_once,
-            wait=self._stop.wait,
-            interval=min(self.args.refresh_interval,
-                         MIN_MONITOR_INTERVAL),
-            first_interval=self.args.refresh_interval)
-        self._stopped.set()
-
-    def stop(self):
-        self._stop.set()
-        self._stopped.wait(self.STOP_TIMEOUT)
-
-    def run_once(self, exit_on_error=False):
-        logging.debug("Refreshing runs")
-        try:
-            runs = guild.runs_cmd.runs_for_args(self.args, self.cmd_ctx)
-        except guild.cli.Exit as e:
-            if exit_on_error:
-                raise
-            logging.error(
-                "An error occurred while reading runs. "
-                "Use --debug for details.")
-            logging.debug(e)
-        else:
-            self._refresh_run_links(runs)
-
-    def _refresh_run_links(self, runs):
-        to_delete = os.listdir(self.logdir)
-        for run in runs:
-            link_name = _format_run_name(run)
-            link_path = os.path.join(self.logdir, link_name)
-            if not os.path.exists(link_path):
-                logging.debug("Linking %s to %s", link_name, run.path)
-                os.symlink(run.path, link_path)
-            try:
-                to_delete.remove(link_name)
-            except ValueError:
-                pass
-        for link_name in to_delete:
-            logging.debug("Removing %s" % link_name)
-            os.remove(os.path.join(self.logdir, link_name))
-
-def main(args, ctx):
-    logdir = tempfile.mkdtemp(prefix="guild-view-logdir-")
-    logging.debug("Using logdir %s", logdir)
-    monitor = RunsMonitor(logdir, args, ctx)
-    monitor.start()
-    guild.tensorboard.main(
-        logdir=logdir,
-        host=(args.host or ""),
-        port=(args.port or guild.util.free_port()),
-        reload_interval=args.refresh_interval,
-        ready_cb=(_open_url if not args.no_open else None))
-    logging.debug("Stopping")
-    monitor.stop()
-    _cleanup(logdir)
-    guild.cli.out()
-
-def _format_run_name(run):
-    op = run.get("op", "")
-    started = run.get("started", "")
-    formatted_started = time.strftime(
-        "%Y-%m-%d %H:%M:%S",
-        time.localtime(float(started)))
-    return "[%s] %s %s" % (run.short_id, op, formatted_started)
-
-def _open_url(url):
-    guild.util.open_url(url)
-
-def _cleanup(logdir):
-    assert os.path.dirname(logdir) == tempfile.gettempdir()
-    logging.debug("Deleting logdir %s", logdir)
-    shutil.rmtree(logdir)
+def view(ctx, args):
+    """Visualize runs with TensorBoard.
+    """
+    import guild.view_cmd_impl
+    guild.view_cmd_impl.main(args, ctx)

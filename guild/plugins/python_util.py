@@ -132,7 +132,7 @@ class MethodWrapper(object):
                 except KeyboardInterrupt:
                     raise
                 except:
-                    logging.exception("callback error")
+                    logging.exception("callback")
             return (wrapped_bound(*args, **kw)
                     if result is marker
                     else result)

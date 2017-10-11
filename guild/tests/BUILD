@@ -4,6 +4,7 @@ py_library(
     name = "tests",
     deps = [
         ":cpu-plugin",
+        ":config",
         ":disk-plugin",
         ":imports",
         ":logging",
@@ -24,6 +25,14 @@ py_library(
     deps = [
         "//guild/plugins",
         "//guild:plugin",
+    ],
+)
+
+py_library(
+    name = "config",
+    data = ["config.md"],
+    deps = [
+        "//guild:config",
     ],
 )
 

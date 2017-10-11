@@ -3,11 +3,16 @@ import subprocess
 
 import guild
 
-def init():
-    init_git_commit_info()
+def version():
+    _maybe_init_git_commit()
+    if guild.__git_commit__:
+        return "%s (git commit %s)" % (guild.__version__, guild.__git_commit__)
+    else:
+        return guild.__version__
 
-def init_git_commit_info():
-    guild.__git_commit__ = _git_commit()
+def _maybe_init_git_commit():
+    if not hasattr(guild, "__git_commit__"):
+        guild.__git_commit__ = _git_commit()
 
 def _git_commit():
     src_home = _find_source_home()
@@ -28,18 +33,9 @@ def _find_source_home():
         cur = os.path.dirname(cur)
     return None
 
-def version():
-    if guild.__git_commit__:
-        return "%s (git commit %s)" % (guild.__version__, guild.__git_commit__)
-    else:
-        return guild.__version__
-
 def home():
     abs_file = os.path.abspath(__file__)
     return os.path.dirname(abs_file)
 
 def script(name):
     return os.path.join(home(), "scripts", name)
-
-def include_src(name):
-    return os.path.join(home(), "include", name)

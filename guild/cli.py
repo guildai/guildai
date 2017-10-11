@@ -5,97 +5,10 @@ import sys
 
 import click
 
-import guild.log
-import guild.plugin
-
 TABLE_COL_SPACING = 2
 
-class Exit(Exception):
-
-    def __init__(self, msg, exit_status):
-        super(Exit, self).__init__()
-        self.msg = msg
-        self.exit_status = exit_status
-
-    def __str__(self):
-        return "(%i) %s" % (self.exit_status, self.msg)
-
-def main(args):
-    guild.log.init_logging(args.log_level or logging.INFO)
-    guild.plugin.init_plugins()
-
-def apply_main(cmd):
-    prog = os.path.basename(sys.argv[0])
-    try:
-        cmd.main(standalone_mode=False)
-    except click.exceptions.Abort:
-        _handle_keyboard_interrupt()
-    except click.exceptions.ClickException as e:
-        _handle_click_exception(e, prog)
-    except Exit as e:
-        _print_error_and_exit(prog, e.msg, e.exit_status)
-
-def _handle_keyboard_interrupt():
-    sys.exit(1)
-
-def _handle_click_exception(e, prog):
-    click.echo("%s: %s" % (prog, _format_click_error_message(e)), err=True)
-    if e.ctx:
-        click.echo(
-            "Try '%s' for more information." % ctx_cmd_help(e.ctx),
-            err=True)
-    sys.exit(e.exit_code)
-
-def ctx_cmd_help(ctx):
-    return "%s %s" % (_normalize_command_name(ctx.command_path),
-                     ctx.help_option_names[0])
-
-def _normalize_command_name(cmd_path):
-    m = re.match("^(.+?), .+$", cmd_path)
-    return m.group(1) if m else cmd_path
-
-def _format_click_error_message(e):
-    if isinstance(e, click.exceptions.MissingParameter):
-        return _format_missing_parameter_error(e)
-    elif isinstance(e, click.exceptions.NoSuchOption):
-        return _format_no_such_option_error(e)
-    elif isinstance(e, click.exceptions.UsageError):
-        return _format_usage_error(e)
-    else:
-        return e.format_message()
-
-def _format_missing_parameter_error(e):
-    return "missing argument for %s" % e.param.human_readable_name
-
-def _format_no_such_option_error(e):
-    if e.possibilities:
-        more_help = " (did you mean %s?)" % e.possibilities[0]
-    else:
-        more_help = ""
-    return "unrecognized option '%s'%s" % (e.option_name, more_help)
-
-def _format_usage_error(e):
-    msg = e.format_message()
-    replacements = [
-        ('No such command "(.+)"',
-         "unrecognized command '%s'"),
-        ("Got unexpected extra argument \\((.+?)\\)",
-         "unexpected extra argument '%s'")
-    ]
-    for msg_pattern, new_msg_pattern in replacements:
-        m = re.match(msg_pattern, msg)
-        if m:
-            return new_msg_pattern % m.groups()
-    else:
-        return msg
-
-def _print_error_and_exit(prog, msg, exit_status):
-    if msg:
-        click.echo("%s: %s" % (prog, msg), err=True)
-    sys.exit(exit_status)
-
 def error(msg=None, exit_status=1):
-    raise Exit(msg, exit_status)
+    raise SystemExit(msg, exit_status)
 
 def out(s="", **kw):
     click.echo(s, **kw)
