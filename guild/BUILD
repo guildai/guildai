@@ -44,8 +44,9 @@ py_library(
     ],
     deps = [
         "@org_click",
-         ":plugin",
         ":log",
+        ":namespace",
+        ":plugin",
         ":click_util",
         ":check_cmd",
         ":install_cmd",
@@ -91,8 +92,8 @@ py_library(
     ],
     deps = [
         "@org_click",
+        ":cmd_support",
         ":click_util",
-        ":package",
         ":pip_util"
     ],
 )
@@ -134,7 +135,10 @@ py_library(
     ],
     deps = [
         "@org_click",
+        ":cli",
         ":click_util",
+        ":package",
+        ":pip_util",
     ],
 )
 
@@ -240,6 +244,7 @@ py_library(
     deps = [
         ":cli",
         ":click_util",
+        ":package",
         ":project",
         ":util",
     ],
@@ -292,6 +297,7 @@ py_library(
     name = "package",
     srcs = ["package.py"],
     deps = [
+        ":namespace",
     ],
 )
 

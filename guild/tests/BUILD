@@ -11,6 +11,7 @@ py_library(
         ":memory-plugin",
         ":namespaces",
         ":op",
+        ":packages",
         ":project",
         ":plugin-python-utils",
         ":plugins",
@@ -85,6 +86,14 @@ py_library(
     deps = [
         "//guild:op",
         "//guild:project",
+    ],
+)
+
+py_library(
+    name = "packages",
+    data = ["packages.md"],
+    deps = [
+        "//guild:package",
     ],
 )
 

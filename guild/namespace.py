@@ -1,3 +1,4 @@
+import enum
 import importlib
 
 __namespace_classes__ = {
@@ -7,41 +8,63 @@ __namespace_classes__ = {
 
 __namespaces__ = {}
 
-DEFAULT_NAMESPACE = "gpkg"
+class NamespaceError(LookupError):
+    """Raised if a namespace doesn't exist."""
+
+    def __init__(self, value):
+        super(NamespaceError, self).__init__(value)
+        self.value = value
+
+Membership = enum.Enum("guild.namespace.Membership", "yes no maybe")
 
 class Namespace(object):
 
     name = None
 
-    def python_project(_self, _val):
+    def pip_install_info(_self, _req):
+        """Returns info for use in the pip install command.
+
+        Return value is a tuple of name and a list of index URLs. The
+        first index URL should be used as the primary index URL and
+        subsequent URLs should be used as "extra" index URLs.
+        """
         raise NotImplementedException()
 
-    def index_install_urls(_self):
+    def is_member(_self, _project_name):
+        """Returns a tuple of membership and package name for project name.
+
+        Membership may be yes, no, or mabye.
+
+        If a namespace returns no, package name must be None.
+
+        If a namespace returns yes or maybe, package name must be the
+        package name under the namespace.
+        """
         raise NotImplementedException()
 
-    def index_search_urls(_self):
-        raise NotImplementedException()
 
 class pypi(Namespace):
 
-    INDEX_INSTALL_URL = "https://https://pypi.python.org/simple"
-    INDEX_SEARCH_URL = "https://pypi.python.org/pypi"
+    INDEX_INSTALL_URL = "https://pypi.python.org/simple"
+
+    def pip_install_info(self, req):
+        return (req, [self.INDEX_INSTALL_URL])
 
     @staticmethod
-    def python_project(val):
-        return val
-
-    def index_install_urls(self):
-        return [self.INDEX_INSTALL_URL]
-
-    def index_search_urls(self):
-        return [self.INDEX_SEARCH_URL]
+    def is_member(name):
+        return Membership.maybe, name
 
 class gpkg(pypi):
 
+    def pip_install_info(self, req):
+        return ("gpkg." + req, [self.INDEX_INSTALL_URL])
+
     @staticmethod
-    def python_project(val):
-        return "gpkg." + val
+    def is_member(name):
+        if name.startswith("gpkg."):
+            return Membership.yes, name[5:]
+        else:
+            return Membership.no, None
 
 def init_namespaces():
     """Called by system to initialize the list of available namespaces.
@@ -69,11 +92,8 @@ def iter_namespaces():
     for name in __namespace_classes__:
         yield name, for_name(name)
 
-def default_namespace():
-    return for_name(DEFAULT_NAMESPACE)
-
 def for_name(name):
     try:
         return __namespaces__[name]
     except KeyError:
-        raise LookupError(name)
+        raise NamespaceError(name)

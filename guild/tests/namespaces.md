@@ -19,53 +19,75 @@ The following namespaces are supported:
     [('gpkg', <guild.namespace.gpkg object ...>),
      ('pypi', <guild.namespace.pypi object ...>)]
 
-Namespaces implement functions related to Guild packages. These
-include translating a Guild package name into a Python project and
-providing install and search URLs for pip compatible indexes.
+Namespaces implement functions that are used in conjunction with
+package operations, including install and searching.
 
 ## pypi
 
-Let's look at the `pypi` namespace:
+Packages that start with `@pypi/` fall under the `pypi` namespace.
 
     >>> pypi_ns = guild.namespace.for_name("pypi")
+    >>> pypi_ns.name
+    'pypi'
 
-A Guild package `@pypy/keras` is translated to a Python project as
-follows:
+To install a Guild package `@pypi/mnist`, we can use `pip` with the
+following information:
 
-    >>> pypi_ns.python_project("keras")
-    'keras'
+    >>> pypi_ns.pip_install_info("mnist")
+    ('mnist', ['https://pypi.python.org/simple'])
 
-Here we see that any package specified under the `pypi` namespace is
-unmodified.
+Namespaces can also be used to test a project name for namespace
+membership. Membership can have one of three values:
 
-The `pypi` namespace provides the following index URLs:
+- guild.namespace.Membersip.yes
+- guild.namespace.Membership.no
+- guild.namespace.Membership.maybe
 
-    >>> pypi_ns.index_install_urls()
-    ['https://https://pypi.python.org/simple']
+The test also returns the package name
 
-    >>> pypi_ns.index_search_urls()
-    ['https://pypi.python.org/pypi']
+The `pypi` namespace test always returns maybe:
+
+    >>> pypi_ns.is_member("mnist")
+    (<guild.namespace.Membership.maybe: 3>, 'mnist')
+
+    >>> pypi_ns.is_member("guild.mnist")
+    (<guild.namespace.Membership.maybe: 3>, 'guild.mnist')
 
 ## gpkg
 
-Let's now look at the `gpkg` namespace:
+Packages that start with `@gpkg/` fall under the `gpkg` namespace.
 
     >>> gpkg_ns = guild.namespace.for_name("gpkg")
+    >>> gpkg_ns.name
+    'gpkg'
 
-A Guild package `@gpkg/mnist` is translated to a Python project as
-follows:
+To install a Guild package `@gpkg/mnist`, we can use `pip` with the
+following information:
 
-    >>> gpkg_ns.python_project("mnist")
-    'gpkg.mnist'
+    >>> gpkg_ns.pip_install_info("mnist")
+    ('gpkg.mnist', ['https://pypi.python.org/simple'])
 
 Here we see that any package specified under the `gpkg` namespace is
-translated into a project with a `gpkg.` prefix. This is the standard
+translated into a value with a `gpkg.` prefix. This is the standard
 naming convention for all Guild packages.
 
-The `gpkg` namespace provides the same URLs as the `pypi` namespace:
+We also see that Guild packages are installed from PyPI.
 
-    >>> gpkg_ns.index_install_urls() == pypi_ns.index_install_urls()
-    True
+The `gpkg` namespace will consider a project to be a member if it
+starts with `gpkg.`:
 
-    >>> gpkg_ns.index_search_urls() == pypi_ns.index_search_urls()
-    True
+    >>> gpkg_ns.is_member("gpkg.mnist")
+    (<guild.namespace.Membership.yes: 1>, 'mnist')
+
+But not otherwise:
+
+    >>> gpkg_ns.is_member("mnist")
+    (<guild.namespace.Membership.no: 2>, None)
+
+## Other namespaces
+
+`for_name` raises `NamespaceError` if a namespace doesn't exist:
+
+    >>> guild.namespace.for_name("other")
+    Traceback (most recent call last):
+    NamespaceError: other

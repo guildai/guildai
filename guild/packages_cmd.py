@@ -17,6 +17,8 @@ class PackagesGroup(click.Group):
 
 def packages(ctx, **kw):
     """Show or manage packages.
+
+    If COMMAND is not specified, lists packages.
     """
     if not ctx.invoked_subcommand:
         ctx.invoke(list_packages, **kw)

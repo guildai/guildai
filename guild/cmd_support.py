@@ -2,6 +2,7 @@ import os
 
 import guild.cli
 import guild.click_util
+import guild.package
 import guild.project
 import guild.util
 
@@ -62,3 +63,14 @@ def project_location_option(location):
         return ""
     else:
         return location
+
+def split_pkg(pkg):
+    try:
+        return guild.package.split_name(pkg)
+    except guild.namespace.NamespaceError as e:
+        namespaces = ", ".join(
+            [name for name, _ in guild.namespace.iter_namespaces()])
+        guild.cli.error(
+        "unknown namespace '%s' in %s\n"
+        "Supported namespaces: %s"
+        % (e.value, pkg, namespaces))
