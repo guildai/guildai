@@ -261,6 +261,13 @@ py_library(
 )
 
 py_library(
+    name = "namespace",
+    srcs = ["namespace.py"],
+    deps = [
+    ],
+)
+
+py_library(
     name = "op",
     srcs = ["op.py"],
     deps = [

@@ -9,6 +9,7 @@ py_library(
         ":imports",
         ":logging",
         ":memory-plugin",
+        ":namespaces",
         ":op",
         ":project",
         ":plugin-python-utils",
@@ -67,6 +68,14 @@ py_library(
     deps = [
         "//guild/plugins",
         "//guild:plugin",
+    ],
+)
+
+py_library(
+    name = "namespaces",
+    data = ["namespaces.md"],
+    deps = [
+        "//guild:namespace",
     ],
 )
 

@@ -36,6 +36,7 @@
      'guild.main_cmd_impl',
      'guild.models_cmd',
      'guild.models_cmd_impl',
+     'guild.namespace',
      'guild.op',
      'guild.op_main',
      'guild.operations_cmd',
