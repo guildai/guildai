@@ -35,3 +35,6 @@ def delete_packages(args):
 
 def uninstall_packages(args):
     print("TODO: uninstall %s" % (args.packages,))
+
+def package_info(args):
+    print("TODO: show info for %s" % args.package)

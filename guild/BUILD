@@ -134,6 +134,7 @@ py_library(
         "packages_cmd.py",
         "packages_cmd_impl.py",
         "packages_delete_cmd.py",
+        "packages_info_cmd.py",
         "packages_list_cmd.py",
         "pip_util.py",
     ],

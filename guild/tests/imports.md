@@ -43,6 +43,7 @@
     ...   'guild.package',
     ...   'guild.packages_cmd',
     ...   'guild.packages_delete_cmd',
+    ...   'guild.packages_info_cmd',
     ...   'guild.packages_list_cmd',
     ...   'guild.packages_cmd_impl',
     ...   'guild.pip_util',
