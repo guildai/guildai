@@ -88,13 +88,11 @@ py_library(
     name = "install_cmd",
     srcs = [
         "install_cmd.py",
-        "install_cmd_impl.py",
     ],
     deps = [
         "@org_click",
-        ":cmd_support",
         ":click_util",
-        ":pip_util"
+        ":packages_cmd",
     ],
 )
 
@@ -130,8 +128,14 @@ py_library(
 py_library(
     name = "packages_cmd",
     srcs = [
+        "cli.py",
+        "cmd_support.py",
+        "package.py",
         "packages_cmd.py",
         "packages_cmd_impl.py",
+        "packages_delete_cmd.py",
+        "packages_list_cmd.py",
+        "pip_util.py",
     ],
     deps = [
         "@org_click",

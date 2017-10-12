@@ -14,6 +14,7 @@ from guild.run_cmd import run
 from guild.runs_cmd import runs
 from guild.shell_cmd import shell
 from guild.train_cmd import train
+from guild.uninstall_cmd import uninstall
 from guild.view_cmd import view
 
 class CLIGroup(click.Group):
@@ -50,4 +51,5 @@ main.add_command(run)
 main.add_command(runs)
 main.add_command(shell)
 main.add_command(train)
+main.add_command(uninstall)
 main.add_command(view)

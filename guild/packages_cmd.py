@@ -2,11 +2,14 @@ import click
 
 import guild.click_util
 
+from guild.packages_delete_cmd import delete_packages
+from guild.packages_list_cmd import list_packages
+
 class PackagesGroup(click.Group):
 
     def get_command(self, ctx, cmd_name):
-        if cmd_name in ["uninstall", "rm"]:
-            cmd_name = "uninstall, rm"
+        if cmd_name in ["delete", "rm"]:
+            cmd_name = "delete, rm"
         elif cmd_name in ["list", "ls"]:
             cmd_name = "list, ls"
         return super(PackagesGroup, self).get_command(ctx, cmd_name)
@@ -23,18 +26,5 @@ def packages(ctx, **kw):
     if not ctx.invoked_subcommand:
         ctx.invoke(list_packages, **kw)
 
-###################################################################
-# packages list command
-###################################################################
-
-@click.command("list, ls")
-
-@guild.click_util.use_args
-
-def list_packages(args):
-    """List installed packages.
-    """
-    import guild.packages_cmd_impl
-    guild.packages_cmd_impl.list_packages(args)
-
 packages.add_command(list_packages)
+packages.add_command(delete_packages)
