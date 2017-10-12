@@ -41,3 +41,13 @@ def guild_python_workspace():
         strip_prefix = "pip-2243562b0e022b576bfdd9c08190657eab55a363",
         sha256 = "87e334e95f51e907604877fff07c50290b2f5d3a724b20795b1d112a68e41073",
     )
+
+    native.new_http_archive(
+        name = "org_setuptools",
+        build_file = "//third-party:setuptools.BUILD",
+        urls = [
+            "https://pypi.python.org/packages/bd/4c/b06ab3abfc8bc93b87b70f4cab22352c3c72deba7b71390d14bfffa97c85/setuptools-36.6.0-py2.py3-none-any.whl",
+        ],
+        type = "zip",
+        sha256 = "904356c95cf90e6fdc21915afafbc9ad3d11409c7afeee7c85156f469b353efb",
+    )

@@ -1,6 +1,10 @@
 import re
+import os
+import subprocess
+import sys
 
 import guild.namespace
+import guild.package_main
 
 DEFAULT_NAMESPACE = "gpkg"
 
@@ -42,3 +46,17 @@ def apply_namespace(project_name):
         return pkg_name
     else:
         return "@%s/%s" % (ns.name, pkg_name)
+
+def create_package(package_file, dist_dir=None):
+    # Use a separate OS process as setup assumes it's running as a
+    # command line op
+    cmd = [sys.executable, guild.package_main.__file__]
+    env = {
+        "PYTHONPATH": os.path.pathsep.join(sys.path),
+        "PACKAGE_FILE": package_file,
+        "DIST_DIR": dist_dir or "",
+    }
+    p = subprocess.Popen(cmd, env=env)
+    exit_code = p.wait()
+    if exit_code != 0:
+        raise SystemExit(exit_code)

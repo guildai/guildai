@@ -9,6 +9,7 @@ from guild.check_cmd import check
 from guild.install_cmd import install
 from guild.operations_cmd import operations
 from guild.models_cmd import models
+from guild.package_cmd import package
 from guild.packages_cmd import packages
 from guild.run_cmd import run
 from guild.runs_cmd import runs
@@ -46,6 +47,7 @@ main.add_command(check)
 main.add_command(install)
 main.add_command(models)
 main.add_command(operations)
+main.add_command(package)
 main.add_command(packages)
 main.add_command(run)
 main.add_command(runs)

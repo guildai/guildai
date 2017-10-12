@@ -52,6 +52,7 @@ py_library(
         ":install_cmd",
         ":models_cmd",
         ":operations_cmd",
+        ":package_cmd",
         ":packages_cmd",
         ":run_cmd",
         ":runs_cmd",
@@ -126,22 +127,34 @@ py_library(
 )
 
 py_library(
+    name = "package_cmd",
+    srcs = [
+        "package_cmd.py",
+        "package_cmd_impl.py",
+
+    ],
+    deps = [
+        "@org_click",
+        ":click_util",
+        ":cmd_support",
+        ":package",
+    ],
+)
+
+py_library(
     name = "packages_cmd",
     srcs = [
-        "cli.py",
-        "cmd_support.py",
-        "package.py",
         "packages_cmd.py",
         "packages_cmd_impl.py",
         "packages_delete_cmd.py",
         "packages_info_cmd.py",
         "packages_list_cmd.py",
-        "pip_util.py",
     ],
     deps = [
         "@org_click",
         ":cli",
         ":click_util",
+        ":cmd_support",
         ":package",
         ":pip_util",
     ],
@@ -308,6 +321,16 @@ py_library(
     srcs = ["package.py"],
     deps = [
         ":namespace",
+        ":package_main",
+    ],
+)
+
+py_library(
+    name = "package_main",
+    srcs = ["package_main.py"],
+    deps = [
+        "@org_setuptools",
+        "@org_pyyaml",
     ],
 )
 

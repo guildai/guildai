@@ -1,0 +1,80 @@
+import glob
+import os
+import sys
+
+import setuptools
+import yaml
+
+class Pkg(object):
+
+    def __init__(self, src, data):
+        self.src = src
+        self.data = data
+
+    def __getitem__(self, attr):
+        try:
+            return self.data[attr]
+        except KeyError:
+            _exit(
+                "%s is missing required '%s' attribute"
+                % (self.src, attr))
+
+    def get(self, attr, default=None):
+        return self.data.get(attr, default)
+
+def main():
+    pkg_file = os.getenv("PACKAGE_FILE")
+    pkg = _load_pkg(pkg_file)
+    sys.argv = _bdist_wheel_cmd_args()
+    setuptools.setup(**_setup_kw(pkg))
+
+def _load_pkg(path):
+    try:
+        f = open(path, "r")
+    except IOError as e:
+        _exit("error reading %s\n%s" % (path, e))
+    else:
+        try:
+            data = yaml.load(f)
+        except yaml.YAMLError as e:
+            _exit("error reading %s\n%s" % (path, e))
+        else:
+            return Pkg(path, data)
+
+def _bdist_wheel_cmd_args():
+    args = [sys.argv[0], "bdist_wheel"]
+    dist_dir = os.getenv("DIST_DIR")
+    if dist_dir:
+        args.extend(["--dist-dir", dist_dir])
+    return args
+
+def _setup_kw(pkg):
+    pkg_name = "gpkg." + pkg["name"]
+    project_dir = os.path.dirname(pkg.src)
+    return dict(
+        name=pkg_name,
+        version=pkg["version"],
+        description=pkg.get("description"),
+        packages=[pkg_name],
+        package_dir={pkg_name: project_dir},
+        namespace_packages=["gpkg"],
+        package_data={
+            pkg_name: _package_data(pkg)
+        }
+    )
+
+def _package_data(pkg):
+    user_defined = pkg.get("data")
+    return (user_defined if user_defined
+            else _default_package_data(pkg))
+
+def _default_package_data(pkg):
+    return ["MODEL", "MODELS"]
+
+def _exit(msg):
+    sys.stderr.write(msg)
+    sys.stderr.write("\n")
+    sys.exit(1)
+
+if __name__ == "__main__":
+    main()

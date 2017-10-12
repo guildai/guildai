@@ -37,22 +37,28 @@ def _no_project_error(location, cmd_ctx):
             % project_location_desc(location))
     else:
         msg_parts.append("%s does not exist\n" % location)
-    if location:
-        msg_parts.append("Try specifying a different location")
-    else:
-         msg_parts.append("Try specifying a project location")
-    if cmd_ctx:
-        msg_parts.append(
-            " or '%s' for more information."
-            % guild.click_util.ctx_cmd_help(cmd_ctx))
-    else:
-        msg_parts.append(".")
+    msg_parts.append(try_project_location_help(location, cmd_ctx))
     guild.cli.error("".join(msg_parts))
 
 def project_location_desc(location):
     location = project_location_option(location)
     return ("%s" % location if location
             else "the current directory")
+
+def try_project_location_help(location, cmd_ctx=None):
+    location = project_location_option(location)
+    help_parts = []
+    if location:
+        help_parts.append("Try specifying a different location")
+    else:
+         help_parts.append("Try specifying a project location")
+    if cmd_ctx:
+        help_parts.append(
+            " or '%s' for more information."
+            % guild.click_util.ctx_cmd_help(cmd_ctx))
+    else:
+        help_parts.append(".")
+    return "".join(help_parts)
 
 def project_location_option(location):
     location = os.path.abspath(location or "")

@@ -145,14 +145,13 @@ def from_file(src):
     return Project(_load_modelfile(src), src)
 
 def _load_modelfile(path):
-    with open(path, "r") as f:
-        data = yaml.load(f)
-        if isinstance(data, list):
-            return data
-        elif isinstance(data, dict):
-            return [data]
-        else:
-            raise ProjectFormatError(path)
+    data = yaml.load(open(path, "r"))
+    if isinstance(data, list):
+        return data
+    elif isinstance(data, dict):
+        return [data]
+    else:
+        raise ProjectFormatError(path)
 
 def from_file_or_dir(src):
     try:

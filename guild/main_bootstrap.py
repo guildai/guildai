@@ -10,6 +10,7 @@ EXTERNAL_PATHS = [
     "org_psutil",
     "org_pythonhosted_markdown",
     ("org_pyyaml/lib", "org_pyyaml/lib3"),
+    "org_setuptools",
     "org_tensorflow_tensorboard",
     "protobuf/python",
 ]
