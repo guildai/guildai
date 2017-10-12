@@ -15,10 +15,9 @@ are omitted (i.e. the ':' char is used by itself) all runs are selected.
 def run_scope_options(fn):
     guild.click_util.append_params(fn, [
         click.Option(
-            ("-p", "--project", "project_location"),
+            ("-p", "--project", "project_location"), metavar="LOCATION",
             help=("Project location (file system directory) for filtering "
-                  "runs."),
-            metavar="LOCATION"),
+                  "runs.")),
         click.Option(
             ("-S", "--system"),
             help=("Include system wide runs rather than limit to runs "
@@ -30,8 +29,7 @@ def run_scope_options(fn):
 def run_filters(fn):
     guild.click_util.append_params(fn, [
         click.Option(
-            ("-m", "--model", "models"),
-            metavar="MODEL",
+            ("-m", "--model", "models"), metavar="MODEL",
             help="Include only runs for MODEL.",
             multiple=True),
         click.Option(

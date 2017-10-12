@@ -6,9 +6,8 @@ def run_params(fn):
     guild.click_util.append_params(fn, [
         click.Argument(("args",), metavar="[ARG...]", nargs=-1),
         click.Option(
-            ("-p", "--project", "project_location"),
-            help="Project location (file system directory) for MODEL.",
-            metavar="LOCATION"),
+            ("-p", "--project", "project_location"), metavar="LOCATION",
+            help="Project location (file system directory) for MODEL."),
         click.Option(
             ("--disable-plugins",),
             help="A comma separated list of plugin names to disable."),

@@ -4,9 +4,8 @@ import guild.click_util
 
 @click.command()
 @click.option(
-    "-p", "--project", "project_location",
-    help="Project location (file system directory) for models.",
-    metavar="LOCATION")
+    "-p", "--project", "project_location", metavar="LOCATION",
+    help="Project location (file system directory) for models.")
 # TODO: add system option to show models system wide
 @click.option(
     "-v", "--verbose",
