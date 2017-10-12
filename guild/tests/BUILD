@@ -10,9 +10,9 @@ py_library(
         ":logging",
         ":memory-plugin",
         ":namespaces",
-        ":op",
+        ":ops",
         ":packages",
-        ":project",
+        ":projects",
         ":plugin-python-utils",
         ":plugins",
         ":runs",
@@ -81,8 +81,8 @@ py_library(
 )
 
 py_library(
-    name = "op",
-    data = ["op.md"],
+    name = "ops",
+    data = ["ops.md"],
     deps = [
         "//guild:op",
         "//guild:project",
@@ -115,8 +115,8 @@ py_library(
 )
 
 py_library(
-    name = "project",
-    data = ["project.md"] + glob(["samples/projects/**"]),
+    name = "projects",
+    data = ["projects.md"] + glob(["samples/projects/**"]),
     deps = [
         "//guild:project",
     ],
