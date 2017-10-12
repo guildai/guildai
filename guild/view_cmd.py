@@ -1,11 +1,11 @@
 import click
 
 import guild.click_util
-import guild.runs_cmd
+import guild.runs_cmd_support
 
 @click.command()
-@guild.runs_cmd.run_scope_options
-@guild.runs_cmd.run_filters
+@guild.runs_cmd_support.run_scope_options
+@guild.runs_cmd_support.run_filters
 @click.option(
     "--host",
     help="Name of host interface to listen on.")

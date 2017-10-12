@@ -163,6 +163,11 @@ py_library(
     srcs = [
         "runs_cmd.py",
         "runs_cmd_impl.py",
+        "runs_cmd_support.py",
+        "runs_delete_cmd.py",
+        "runs_info_cmd.py",
+        "runs_list_cmd.py",
+        "runs_restore_cmd.py",
     ],
     deps = [
         "@org_click",
