@@ -52,7 +52,9 @@ def _format_usage_error(e):
         ('No such command "(.+)"',
          "unrecognized command '%s'"),
         ("Got unexpected extra argument \\((.+?)\\)",
-         "unexpected extra argument '%s'")
+         "unexpected extra argument '%s'"),
+        ("Got unexpected extra arguments \\((.+?)\\)",
+         "unexpected extra arguments '%s'"),
     ]
     for msg_pattern, new_msg_pattern in replacements:
         m = re.match(msg_pattern, msg)
