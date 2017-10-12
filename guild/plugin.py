@@ -106,15 +106,15 @@ def for_name(name):
     else:
         if isinstance(plugin, str):
             logging.debug("initializing plugin '%s' (%s)", name, plugin)
-            plugin = _init_plugin(plugin)
-            plugin.name = name
+            plugin = _init_plugin(plugin, name)
             __plugins__[name] = plugin
         return plugin
 
-def _init_plugin(class_name):
+def _init_plugin(class_name, name):
     mod_name, class_attr = class_name.rsplit(".", 1)
     plugin_mod = importlib.import_module(mod_name)
     plugin_class = getattr(plugin_mod, class_attr)
     plugin = plugin_class()
+    plugin.name = name
     plugin.init()
     return plugin
