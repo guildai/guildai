@@ -1,3 +1,6 @@
+import os
+import re
+
 import click
 
 def print_info():
@@ -29,6 +32,7 @@ def _print_info(tf):
     click.echo("tensorflow_version:        %s" % _version(tf))
     click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
     click.echo("tensorflow_gpu_available:  %s" % _gpu_available(tf))
+    _print_cuda_info()
 
 def _version(tf):
     return tf.__version__
@@ -38,6 +42,23 @@ def _cuda_support(tf):
 
 def _gpu_available(tf):
     return "yes" if tf.test.is_gpu_available() else "no"
+
+def _print_cuda_info():
+    proc_maps = "/proc/%s/maps" % os.getpid()
+    if not os.path.exists(proc_maps):
+        return
+    raw = open(proc_maps, "r").read()
+    version_patterns = [
+        ("libcuda", "libcuda\\.so\\.([\\S]+)"),
+        ("libcudnn", "libcudnn\\.so\\.([\\S]+)"),
+    ]
+    for name, pattern in version_patterns:
+        m = re.search(pattern, raw)
+        space = " " * (18 - len(name))
+        if m:
+            click.echo("%s_version:%s%s" % (name, space, m.group(1)))
+        else:
+            click.echo("%s_version:%snot loaded" % (name, space))
 
 if __name__ == "__main__":
     print_info()
