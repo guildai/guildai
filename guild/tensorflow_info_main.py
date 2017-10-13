@@ -7,6 +7,16 @@ def print_info():
     else:
         _print_info(tf)
 
+def _try_import_tensorflow():
+    try:
+        import tensorflow
+    except ImportError as e:
+        if e.message != "No module named tensorflow":
+            click.echo(str(e))
+        return None
+    else:
+        return tensorflow
+
 def _handle_tf_not_installed():
     click.echo("tensorflow_version:        %s" % _warn("NOT INSTALLED"))
     raise SystemExit(1)
@@ -18,16 +28,6 @@ def _print_info(tf):
     click.echo("tensorflow_version:        %s" % _version(tf))
     click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
     click.echo("tensorflow_gpu_available:  %s" % _gpu_available(tf))
-
-def _try_import_tensorflow():
-    try:
-        import tensorflow
-    except ImportError as e:
-        click.echo(_warn("Error importing tensorflow:"))
-        click.echo(str(e))
-        return None
-    else:
-        return tensorflow
 
 def _version(tf):
     return tf.__version__
