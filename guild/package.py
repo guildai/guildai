@@ -5,6 +5,7 @@ import sys
 
 import guild.namespace
 import guild.package_main
+import guild.util
 
 DEFAULT_NAMESPACE = "gpkg"
 
@@ -47,15 +48,24 @@ def apply_namespace(project_name):
     else:
         return "@%s/%s" % (ns.name, pkg_name)
 
-def create_package(package_file, dist_dir=None):
+def create_package(package_file, dist_dir=None, upload=False, sign=False,
+                   identity=None, user=None, password=None, comment=None):
     # Use a separate OS process as setup assumes it's running as a
     # command line op
     cmd = [sys.executable, guild.package_main.__file__]
-    env = {
+    env = {}
+    env.update(guild.util.safe_osenv())
+    env.update({
         "PYTHONPATH": os.path.pathsep.join(sys.path),
         "PACKAGE_FILE": package_file,
         "DIST_DIR": dist_dir or "",
-    }
+        "UPLOAD": "1" if upload else "",
+        "SIGN": "1" if sign else "",
+        "IDENTITY": identity or "",
+        "USER": user or "",
+        "PASSWORD": password or "",
+        "COMMENT": comment or "",
+    })
     p = subprocess.Popen(cmd, env=env)
     exit_code = p.wait()
     if exit_code != 0:

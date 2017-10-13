@@ -5,6 +5,17 @@ import os
 import sys
 import time
 
+OS_ENVIRON_WHITELIST = [
+    "DISPLAY",
+    "EDITOR",
+    "LANG",
+    "LD_LIBRARY_PATH",
+    "SHELL",
+    "SSH_AGENT",
+    "SSH_AUTH_SOCK",
+    "TERM",
+]
+
 class Stop(Exception):
     """Raise to stop loops started with `loop`."""
 
@@ -101,3 +112,10 @@ def _sleep_interval(interval, start):
         ((now_ms - start_ms) // interval_ms + 1)
         * interval_ms + start_ms - now_ms)
     return sleep_ms / 1000
+
+def safe_osenv():
+    return {
+        name: val
+        for name, val in os.environ.items()
+        if name in OS_ENVIRON_WHITELIST
+    }

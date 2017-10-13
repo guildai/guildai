@@ -51,3 +51,13 @@ def guild_python_workspace():
         type = "zip",
         sha256 = "904356c95cf90e6fdc21915afafbc9ad3d11409c7afeee7c85156f469b353efb",
     )
+
+    native.new_http_archive(
+        name = "org_twine",
+        build_file = "//third-party:twine.BUILD",
+        urls = [
+            "https://pypi.python.org/packages/f8/11/4fb94a084b49cd68eb831f97f3744a89d8bac505755bdcec84372cf21a68/twine-1.9.1-py2.py3-none-any.whl",
+        ],
+        type = "zip",
+        sha256 = "d3ce5c480c22ccfb761cd358526e862b32546d2fe4bc93d46b5cf04ea3cc46ca",
+    )

@@ -1,9 +1,10 @@
-import glob
 import os
 import sys
 
+import requests
 import setuptools
 import yaml
+import twine.commands.upload
 
 class Pkg(object):
 
@@ -23,12 +24,16 @@ class Pkg(object):
         return self.data.get(attr, default)
 
 def main():
-    pkg_file = os.getenv("PACKAGE_FILE")
-    pkg = _load_pkg(pkg_file)
-    sys.argv = _bdist_wheel_cmd_args(pkg)
-    setuptools.setup(**_setup_kw(pkg))
+    pkg = _load_pkg()
+    dist = _create_dist(pkg)
+    _maybe_upload(dist)
 
-def _load_pkg(path):
+def _create_dist(pkg):
+    sys.argv = _bdist_wheel_cmd_args(pkg)
+    return setuptools.setup(**_setup_kw(pkg))
+
+def _load_pkg():
+    path = os.getenv("PACKAGE_FILE")
     try:
         f = open(path, "r")
     except IOError as e:
@@ -104,10 +109,32 @@ def _default_package_data(pkg):
         "README.*",
     ]
 
-def _exit(msg):
-    sys.stderr.write(msg)
+def _maybe_upload(dist):
+    if os.getenv("UPLOAD") == "1":
+        _upload(dist)
+
+def _upload(dist):
+    args = _twine_upload_args(dist)
+    try:
+        twine.commands.upload.main(args)
+    except requests.exceptions.HTTPError as e:
+        _handle_twine_http_error(e)
+
+def _twine_upload_args(dist):
+    args = []
+    args.extend(_dist_files(dist))
+    return args
+
+def _handle_twine_http_error(e):
+    _exit(e)
+
+def _dist_files(dist):
+    return [df[2] for df in dist.dist_files]
+
+def _exit(msg, exit_code=1):
+    sys.stderr.write(str(msg))
     sys.stderr.write("\n")
-    sys.exit(1)
+    sys.exit(exit_code)
 
 if __name__ == "__main__":
     main()

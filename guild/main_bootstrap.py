@@ -12,6 +12,7 @@ EXTERNAL_PATHS = [
     ("org_pyyaml/lib", "org_pyyaml/lib3"),
     "org_setuptools",
     "org_tensorflow_tensorboard",
+    "org_twine",
     "protobuf/python",
 ]
 

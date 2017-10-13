@@ -322,6 +322,7 @@ py_library(
     deps = [
         ":namespace",
         ":package_main",
+        ":util",
     ],
 )
 

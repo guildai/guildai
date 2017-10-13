@@ -11,10 +11,6 @@ import guild.run
 import guild.util
 import guild.var
 
-OS_ENVIRON_WHITELIST = [
-    "LD_LIBRARY_PATH",
-]
-
 class InvalidCmd(ValueError):
     pass
 
@@ -174,18 +170,11 @@ def _opt_args(name, val):
 
 def _op_cmd_env(project_op):
     env = {}
-    env.update(_op_os_env())
+    env.update(guild.util.safe_osenv())
     env["GUILD_PLUGINS"] = _op_plugins(project_op)
     env["LOG_LEVEL"] = str(logging.getLogger().getEffectiveLevel())
     env["PYTHONPATH"] = _python_path(project_op)
     return env
-
-def _op_os_env():
-    return {
-        name: val
-        for name, val in os.environ.items()
-        if name in OS_ENVIRON_WHITELIST
-    }
 
 def _op_plugins(project_op):
     op_plugins = []

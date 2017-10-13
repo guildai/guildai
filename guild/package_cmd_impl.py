@@ -11,4 +11,12 @@ def create_package(args, ctx):
             "a PACKAGE file does not exist in %s\n%s"
             % (guild.cmd_support.project_location_desc(project_dir),
                guild.cmd_support.try_project_location_help(project_dir, ctx)))
-    guild.package.create_package(package_file, args.dist_dir)
+    guild.package.create_package(
+        package_file,
+        dist_dir=args.dist_dir,
+        upload=args.upload,
+        sign=args.sign,
+        identity=args.identity,
+        user=args.user,
+        password=args.password,
+        comment=args.comment)
