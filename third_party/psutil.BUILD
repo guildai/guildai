@@ -5,7 +5,6 @@ py_library(
     data = [
         #":psutil_native_darwin",
         ":psutil_native_linux",
-        ":guild_op_package_marker"
     ],
 )
 
@@ -49,17 +48,6 @@ genrule(
         "psutil/_psutil_posix.cpython-35m-x86_64-linux-gnu.so",
     ],
     cmd = psutil_native_cmd,
-)
-
-genrule(
-    name = "guild_op_package_marker",
-    outs = ["psutil/__guild_op_package__"],
-    # Not sure why $(@D) here is pointing to 'psutil/' whereas it's
-    # pointing to 'psutil/..' in the psutil_native rule but this is
-    # the case.
-    cmd = (
-        "touch $(@D)/__guild_op_package__"
-    )
 )
 
 config_setting(

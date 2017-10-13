@@ -11,6 +11,10 @@ import guild.run
 import guild.util
 import guild.var
 
+OP_RUNFILES = [
+    "org_psutil"
+]
+
 class InvalidCmd(ValueError):
     pass
 
@@ -202,11 +206,4 @@ def _guild_paths():
     return [path for path in sys.path if _is_guild_op_pkg(path)]
 
 def _is_guild_op_pkg(path):
-    if os.path.isdir(path):
-        for maybe_pkg in os.listdir(path):
-            marker = os.path.join(path, maybe_pkg, "__guild_op_package__")
-            if os.path.exists(marker):
-                logging.debug("including '%s' as op package", path)
-                return True
-    logging.debug("excluding '%s' as op package", path)
-    return False
+    return os.path.split(path)[-1] in OP_RUNFILES

@@ -1,9 +1,9 @@
 import logging
 import os
 
-from pip._internal.commands.install import InstallCommand
-from pip._internal.utils.misc import get_installed_distributions
-from pip._internal.wheel import Wheel
+from pip.commands.install import InstallCommand
+from pip.utils import get_installed_distributions
+from pip.wheel import Wheel
 
 class Distribution(object):
 

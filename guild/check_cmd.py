@@ -19,10 +19,7 @@ import guild.click_util
     "-s", "--skip", metavar="TEST",
     help="Skip TEST when running Guild test suite. Ignored otherwise.",
     multiple=True)
-@click.option(
-    "-v", "--verbose",
-    help="Show check details.",
-    is_flag=True)
+@click.option("-v", "--verbose", help="Show more information.", is_flag=True)
 
 @guild.click_util.use_args
 

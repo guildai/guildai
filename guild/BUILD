@@ -15,7 +15,6 @@ sh_binary(
 py_library(
     name = "__init__",
     srcs = ["__init__.py"],
-    data = ["__guild_op_package__"],
 )
 
 py_library(
@@ -330,8 +329,9 @@ py_library(
     name = "package_main",
     srcs = ["package_main.py"],
     deps = [
-        "@org_setuptools",
-        "@org_pyyaml",
+        "//third_party:setuptools",
+        "//third_party:twine",
+        "//third_party:yaml",
     ],
 )
 
@@ -339,7 +339,7 @@ py_library(
     name = "pip_util",
     srcs = ["pip_util.py"],
     deps = [
-        "@org_pip",
+        "//third_party:pip",
         ":var",
     ],
 )
@@ -363,7 +363,7 @@ py_library(
     name = "project",
     srcs = ["project.py"],
     deps = [
-        "@org_pyyaml",
+        "//third_party:yaml",
         ":plugin",
     ]
 )

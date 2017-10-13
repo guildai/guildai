@@ -4,7 +4,6 @@ import subprocess
 import sys
 
 import guild.namespace
-import guild.package_main
 import guild.util
 
 DEFAULT_NAMESPACE = "gpkg"
@@ -51,7 +50,10 @@ def apply_namespace(project_name):
 def create_package(package_file, dist_dir=None, upload=False, sign=False,
                    identity=None, user=None, password=None, comment=None):
     # Use a separate OS process as setup assumes it's running as a
-    # command line op
+    # command line op. We make sure to import package_main lazily here
+    # because it incurs various runtime deps that we don't want to
+    # load actively.
+    import guild.package_main
     cmd = [sys.executable, guild.package_main.__file__]
     env = {}
     env.update(guild.util.safe_osenv())

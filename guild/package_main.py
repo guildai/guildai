@@ -1,7 +1,6 @@
 import os
 import sys
 
-import requests
 import setuptools
 import yaml
 import twine.commands.upload
@@ -117,15 +116,15 @@ def _upload(dist):
     args = _twine_upload_args(dist)
     try:
         twine.commands.upload.main(args)
-    except requests.exceptions.HTTPError as e:
-        _handle_twine_http_error(e)
+    except Exception as e:
+        _handle_twine_error(e)
 
 def _twine_upload_args(dist):
     args = []
     args.extend(_dist_files(dist))
     return args
 
-def _handle_twine_http_error(e):
+def _handle_twine_error(e):
     _exit(e)
 
 def _dist_files(dist):

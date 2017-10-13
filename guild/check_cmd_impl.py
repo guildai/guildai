@@ -3,13 +3,24 @@ import os
 import subprocess
 import sys
 
+import click
+
 import guild.app
 import guild.cli
 import guild.test
 
+CHECK_MODS = [
+    "pip",
+    "psutil",
+    "setuptools",
+    "twine",
+    "werkzeug",
+    "yaml",
+]
+
 def main(args):
     if not args.no_info:
-        _print_info(args.verbose)
+        _print_info(args)
     if args.all_tests or args.tests:
         _run_tests(args)
 
@@ -28,14 +39,12 @@ def _run_tests(args):
     if not success:
         guild.cli.error()
 
-def _print_info(verbose):
+def _print_info(args):
     _print_guild_info()
-    _print_python_info(verbose)
-    _print_tensorflow_info(verbose)
+    _print_python_info(args.verbose)
+    _print_tensorflow_info(args.verbose)
     _print_nvidia_tools_info()
-    _print_werkzeug_info()
-    _print_psutil_info()
-    _print_pyyaml_info()
+    _print_mods_info()
 
 def _print_guild_info():
     guild.cli.out("guild_version:             %s" % guild.app.version())
@@ -69,22 +78,23 @@ def _print_check_results(script_name, verbose=False):
     out = subprocess.check_output(script_path, stderr=stderr)
     sys.stdout.write(out.decode(sys.stdout.encoding or "UTF-8"))
 
-def _print_werkzeug_info():
-    ver = _try_module_version("werkzeug")
-    guild.cli.out("werkzeug_version:          %s" % ver)
-
-def _print_psutil_info():
-    ver = _try_module_version("psutil")
-    guild.cli.out("psutil_version:            %s" % ver)
-
-def _print_pyyaml_info():
-    ver = _try_module_version("yaml")
-    guild.cli.out("pyyaml_version:            %s" % ver)
+def _print_mods_info():
+    for mod in CHECK_MODS:
+        ver = _try_module_version(mod)
+        space = " " * (18 - len(mod))
+        guild.cli.out("%s_version:%s%s" % (mod, space, ver))
 
 def _try_module_version(name):
     try:
         mod = __import__(name)
     except ImportError:
-        return "NOT INSTALLED"
+        return _warn("NOT INSTALLED")
+
     else:
-        return mod.__version__
+        try:
+            return mod.__version__
+        except AttributeError:
+            return _warn("UNKNOWN")
+
+def _warn(msg):
+    return click.style(msg, fg="red", bold=True)

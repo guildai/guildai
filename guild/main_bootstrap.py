@@ -5,14 +5,9 @@ EXTERNAL_PATHS = [
     "org_click",
     "org_html5lib",
     "org_mozilla_bleach",
-    "org_pip/src",
-    "org_pocoo_werkzeug",
     "org_psutil",
     "org_pythonhosted_markdown",
-    ("org_pyyaml/lib", "org_pyyaml/lib3"),
-    "org_setuptools",
     "org_tensorflow_tensorboard",
-    "org_twine",
     "protobuf/python",
 ]
 
