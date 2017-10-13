@@ -18,33 +18,51 @@ CHECK_MODS = [
     "yaml",
 ]
 
-def main(args):
-    if not args.no_info:
-        _print_info(args)
-    if args.all_tests or args.tests:
-        _run_tests(args)
+class Context(object):
 
-def _run_tests(args):
-    if args.all_tests:
-        if args.tests:
+    def __init__(self, args):
+        self.args = args
+        self._errors = False
+
+    def error(self):
+        self._errors = True
+
+    @property
+    def has_error(self):
+        return self._errors
+
+def main(args):
+    ctx = Context(args)
+    if not args.no_info:
+        _print_info(ctx)
+    if args.all_tests or args.tests:
+        _run_tests(ctx)
+    if ctx.has_error:
+        guild.cli.error(
+            "there are problems with your Guild setup\n"
+            "Refer to the issues above for more information.")
+
+def _run_tests(ctx):
+    if ctx.args.all_tests:
+        if ctx.args.tests:
             logging.warn(
                 "running all tests (--all-tests specified) - "
                 "ignoring individual tests")
-        success = guild.test.run_all(skip=args.skip)
-    elif args.tests:
-        if args.skip:
+        success = guild.test.run_all(skip=ctx.args.skip)
+    elif ctx.args.tests:
+        if ctx.args.skip:
             logging.warn(
                 "running individual tests - ignoring --skip")
         success = guild.test.run(args.tests)
     if not success:
-        guild.cli.error()
+        ctx.errors = True
 
-def _print_info(args):
+def _print_info(ctx):
     _print_guild_info()
-    _print_python_info(args.verbose)
-    _print_tensorflow_info(args.verbose)
+    _print_python_info(ctx)
+    _print_tensorflow_info(ctx)
     _print_nvidia_tools_info()
-    _print_mods_info()
+    _print_mods_info(ctx)
 
 def _print_guild_info():
     guild.cli.out("guild_version:             %s" % guild.app.version())
@@ -54,9 +72,9 @@ def _print_guild_info():
 def _format_plugins():
     return ", ".join([name for name, _ in guild.plugin.iter_plugins()])
 
-def _print_python_info(verbose):
+def _print_python_info(ctx):
     guild.cli.out("python_version:            %s" % _python_version())
-    if verbose:
+    if ctx.args.verbose:
         guild.cli.out("python_path:           %s" % _python_path())
 
 def _python_version():
@@ -65,31 +83,43 @@ def _python_version():
 def _python_path():
     return os.path.pathsep.join(sys.path)
 
-def _print_tensorflow_info(verbose):
+def _print_tensorflow_info(ctx):
     # Run externally to avoid tf logging to our stderr
-    _print_check_results("tensorflow-check", verbose)
+    import guild.tensorflow_info_main
+    cmd = [sys.executable, guild.tensorflow_info_main.__file__]
+    env = {
+        "PYTHONPATH": os.path.pathsep.join(sys.path)
+    }
+    env.update(guild.util.safe_osenv())
+    stderr = None if ctx.args.verbose else open(os.devnull, "w")
+    p = subprocess.Popen(cmd, stderr=stderr, env=env)
+    exit_status = p.wait()
+    if exit_status != 0:
+        ctx.error()
 
 def _print_nvidia_tools_info():
-    _print_check_results("nvidia-tools-check")
+    guild.cli.out("nvidia_smi_available:      %s" % _nvidia_smi_available())
 
-def _print_check_results(script_name, verbose=False):
-    script_path = guild.app.script(script_name)
-    stderr = None if verbose else open(os.devnull, "w")
-    out = subprocess.check_output(script_path, stderr=stderr)
-    sys.stdout.write(out.decode(sys.stdout.encoding or "UTF-8"))
+def _nvidia_smi_available():
+    try:
+        subprocess.check_output(["which", "nvidia-smi"])
+    except subprocess.CalledProcessError:
+        return "no"
+    else:
+        return "yes"
 
-def _print_mods_info():
+def _print_mods_info(ctx):
     for mod in CHECK_MODS:
-        ver = _try_module_version(mod)
+        ver = _try_module_version(mod, ctx)
         space = " " * (18 - len(mod))
         guild.cli.out("%s_version:%s%s" % (mod, space, ver))
 
-def _try_module_version(name):
+def _try_module_version(name, ctx):
     try:
         mod = __import__(name)
     except ImportError:
+        ctx.error()
         return _warn("NOT INSTALLED")
-
     else:
         try:
             return mod.__version__

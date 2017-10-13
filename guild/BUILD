@@ -71,15 +71,12 @@ py_library(
         "check_cmd.py",
         "check_cmd_impl.py",
     ],
-    data = [
-        "//guild/scripts:nvidia-tools-check",
-        "//guild/scripts:tensorflow-check",
-    ],
     deps = [
         "@org_click",
         ":click_util",
         ":app",
         ":cli",
+        ":tensorflow_info_main",
         ":test",
     ],
 )
@@ -383,6 +380,14 @@ py_library(
         "@org_tensorflow_tensorboard//tensorboard",
     ],
     deps = [
+    ],
+)
+
+py_library(
+    name = "tensorflow_info_main",
+    srcs = ["tensorflow_info_main.py"],
+    deps = [
+        "@org_click",
     ],
 )
 
