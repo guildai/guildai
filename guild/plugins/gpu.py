@@ -52,7 +52,7 @@ def _read_raw_gpu_stats(stats_cmd):
 def _stats_cmd():
     try:
         out = subprocess.check_output(["which", "nvidia-smi"])
-    except OSError:
+    except subprocess.CalledProcessError:
         return None
     else:
         return [
