@@ -12,6 +12,7 @@ def _try_import_tensorflow():
         import tensorflow
     except ImportError as e:
         if e.message != "No module named tensorflow":
+            click.echo(_warn("Error importing tensorflow:"))
             click.echo(str(e))
         return None
     else:
