@@ -74,6 +74,7 @@
     ...   'guild.shell_cmd',
     ...   'guild.shell_cmd_impl',
     ...   'guild.tensorboard',
+    ...   'guild.tensorflow_info_main',
     ...   'guild.test',
     ...   'guild.train_cmd',
     ...   'guild.uninstall_cmd',
