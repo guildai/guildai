@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Lazy use of keras so disable some pylint checks.
-#
-# pylint: disable=import-error
-
 from __future__ import absolute_import
 
 import os
@@ -61,6 +57,7 @@ def _script_model(script):
     }
 
 def _train(args0):
+    # pylint: disable=import-error
     try:
         import keras
     except ImportError:
@@ -79,6 +76,7 @@ def _parse_args(args0):
     return args
 
 def _patch_keras(args):
+    # pylint: disable=import-error
     import keras
     python_util.listen_method(
         keras.models.Sequential.fit,
@@ -100,6 +98,7 @@ def _maybe_apply_kw(name, val, kw):
         kw[name] = val
 
 def _ensure_tensorboard_callback(kw):
+    # pylint: disable=import-error
     import keras
     callbacks = kw.setdefault("callbacks", [])
     for cb in callbacks:
@@ -111,6 +110,7 @@ def _ensure_tensorboard_callback(kw):
     cb.log_dir = plugin_util.current_run().path
 
 def _find_tensorboard_cb(callbacks_list):
+    # pylint: disable=import-error
     import keras
     for cb in callbacks_list:
         if isinstance(cb, keras.callbacks.TensorBoard):

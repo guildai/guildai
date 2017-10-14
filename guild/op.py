@@ -112,7 +112,7 @@ class Operation(object):
         self._run.write_attr("stopped", self._stopped)
 
 def unique_run_id():
-    return uuid.uuid1().get_hex()
+    return uuid.uuid1().hex
 
 def _write_proc_lock(proc, run):
     with open(run.guild_path("LOCK"), "w") as f:

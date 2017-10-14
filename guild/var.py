@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import functools
 import logging
 import os
 import shutil
@@ -42,7 +43,7 @@ def runs(root=None, sort=None, filter=None):
     filter = filter or (lambda _: True)
     runs = [run for run in _all_runs(root) if filter(run)]
     if sort:
-        runs.sort(_runs_cmp(sort))
+        runs = sorted(runs, key=_run_sort_key(sort))
     return runs
 
 def run_filter(name, *args):
@@ -85,8 +86,8 @@ def _iter_dirs(root):
         if os.path.isdir(path):
             yield name, path
 
-def _runs_cmp(sort):
-    return lambda x, y: _run_cmp(x, y, sort)
+def _run_sort_key(sort):
+    return functools.cmp_to_key(lambda x, y: _run_cmp(x, y, sort))
 
 def _run_cmp(x, y, sort):
     for attr in sort:
@@ -98,9 +99,12 @@ def _run_cmp(x, y, sort):
 def _run_attr_cmp(x, y, attr):
     if attr.startswith("-"):
         attr = attr[1:]
-        return -cmp(_run_attr(x, attr), _run_attr(y, attr))
+        rev = -1
     else:
-        return cmp(_run_attr(x, attr), _run_attr(y, attr))
+        rev = 1
+    x_val = _run_attr(x, attr)
+    y_val = _run_attr(y, attr)
+    return rev * ((x_val > y_val) - (x_val < y_val))
 
 def _run_attr(run, name):
     if name in guild.run.Run.__properties__:

@@ -20,8 +20,9 @@ import os
 import subprocess
 import sys
 
-import click
 import pkg_resources
+
+import click
 
 import guild
 import guild.cli
@@ -63,13 +64,13 @@ def main(args):
 def _run_tests(ctx):
     if ctx.args.all_tests:
         if ctx.args.tests:
-            logging.warn(
+            logging.warning(
                 "running all tests (--all-tests specified) - "
                 "ignoring individual tests")
         success = guild.test.run_all(skip=ctx.args.skip)
     elif ctx.args.tests:
         if ctx.args.skip:
-            logging.warn(
+            logging.warning(
                 "running individual tests - ignoring --skip")
         success = guild.test.run(ctx.args.tests)
     if not success:

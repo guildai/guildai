@@ -98,6 +98,12 @@ Find an operation using a model's `get_op` method:
     Traceback (most recent call last):
     NoModels: ...
 
-    >>> guild.project.from_file(sample("projects/missing-sources/MODEL"))
-    Traceback (most recent call last):
-    IOError: ...
+A file not found error is Python version specific (FileNotFoundError
+in Python 3 and IOError in Python 2) so we'll assert using exception
+content.
+
+    >>> try:
+    ...   guild.project.from_file(sample("projects/missing-sources/MODEL"))
+    ... except IOError as e:
+    ...   print(str(e))
+    [Errno 2] No such file or directory: '.../projects/missing-sources/MODEL'

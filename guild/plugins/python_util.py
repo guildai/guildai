@@ -15,6 +15,20 @@
 import ast
 import logging
 import os
+import sys
+
+if sys.version_info[0] == 2:
+    def _im_func(m):
+        return m.im_func
+
+    def _im_class(m):
+        return m.im_class
+else:
+    def _im_func(m):
+        return m.__func__
+
+    def _im_class(m):
+        return m.__self__.__class__
 
 class Script(object):
 
@@ -23,8 +37,11 @@ class Script(object):
         self.name = _script_name(src)
         self._parsed = None
 
+    def __lt__(self, x):
+        return self.__cmp__(x) < 0
+
     def __cmp__(self, x):
-        return cmp(self.src, x.src) if isinstance(x, Script) else -1
+        return (self.src > x.src) - (self.src < x.src)
 
     def imports(self):
         self._ensure_parsed()
@@ -113,12 +130,12 @@ class MethodWrapper(object):
 
     @staticmethod
     def for_method(m):
-        wrapper = getattr(m.im_func, "__method_wrapper__", None)
+        wrapper = getattr(_im_func(m), "__method_wrapper__", None)
         return wrapper if wrapper else MethodWrapper(m)
 
     @staticmethod
     def unwrap(m):
-        wrapper = getattr(m.im_func, "__method_wrapper__", None)
+        wrapper = getattr(_im_func(m), "__method_wrapper__", None)
         if wrapper:
             wrapper._unwrap()
 
@@ -129,10 +146,10 @@ class MethodWrapper(object):
 
     def _wrap(self):
         wrapper = self._wrapper()
-        name = self._m.im_func.__name__
+        name = _im_func(self._m).__name__
         wrapper.__name__ = "%s_wrapper" % name
         wrapper.__method_wrapper__ = self
-        setattr(self._m.im_class, name, wrapper)
+        setattr(_im_class(self._m), name, wrapper)
 
     def _wrapper(self):
         def wrapper(wrapped_self, *args, **kw):
@@ -168,7 +185,7 @@ class MethodWrapper(object):
             self._unwrap()
 
     def _unwrap(self):
-        setattr(self._m.im_class, self._m.im_func.__name__, self._m)
+        setattr(_im_class(self._m), _im_func(self._m).__name__, self._m)
 
 def scripts_for_location(location, exclude=None):
     import glob

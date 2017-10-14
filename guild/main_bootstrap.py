@@ -73,12 +73,7 @@ def _sort_reqs(required):
     # Make sure pip is listed first. pip is used to install other
     # required packages and we want to check it first to direct
     # the user to install it before checking other reqs.
-    def _cmp(x, y):
-        return (
-            -1 if x == "pip"
-            else cmp(x.lower(), y.lower())
-        )
-    return sorted(required, _cmp)
+    return sorted(required, key=lambda x: "" if x == "pip" else x.lower())
 
 def _handle_missing_req(req):
     msg_parts = ["guild: missing required package '%s'\n" % req]

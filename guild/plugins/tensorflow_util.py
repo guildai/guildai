@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Lazy use of tensorflow so disable some pylint checks.
-#
-# pylint: disable=no-name-in-module
-
 from __future__ import absolute_import
 
 import time
@@ -33,6 +29,7 @@ class SummaryPlugin(Plugin):
         self._summary_cache = SummaryCache(self.MIN_SUMMARY_INTERVAL)
 
     def patch_env(self):
+        # pylint: disable=import-error
         import tensorflow
         self.log("wrapping tensorflow.summary.FileWriter.add_summary")
         python_util.listen_method(
@@ -59,6 +56,7 @@ class SummaryPlugin(Plugin):
         return {}
 
 def tf_scalar_summary(vals):
+    # pylint: disable=import-error,no-name-in-module
     from tensorflow.core.framework.summary_pb2 import Summary
     return Summary(value=[
         Summary.Value(tag=key, simple_value=val)

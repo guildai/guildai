@@ -97,7 +97,7 @@ def _try_module(module_name, _args):
     try:
         module_info = imp.find_module(module_name)
     except ImportError as e:
-        _error(e.message)
+        _error(str(e))
     else:
         _load_module_as_main(module_info)
 

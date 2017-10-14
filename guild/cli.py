@@ -12,7 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
+import functools
+
 import click
+
+from guild import util
 
 TABLE_COL_SPACING = 2
 
@@ -23,17 +29,17 @@ def out(s="", **kw):
     click.echo(s, **kw)
 
 def table(data, cols, sort=None, detail=None, indent=0, err=False):
-    data = sorted(data, _data_cmp(sort))
+    data = sorted(data, key=_table_row_sort_key(sort))
     formatted = _format_data(data, cols + (detail or []))
     col_info = _col_info(formatted, cols)
     for item in formatted:
         _item_out(item, cols, col_info, detail, indent, err)
 
-def _data_cmp(sort):
-    if sort is None:
-        return lambda _x, _y: 0
+def _table_row_sort_key(sort):
+    if not sort:
+        return lambda _: 0
     else:
-        return lambda x, y: _item_cmp(x, y, sort)
+        return functools.cmp_to_key(lambda x, y: _item_cmp(x, y, sort))
 
 def _item_cmp(x, y, sort):
     if isinstance(sort, str):
@@ -48,9 +54,12 @@ def _item_cmp(x, y, sort):
 def _val_cmp(x, y, sort):
     if sort.startswith("-"):
         sort = sort[1:]
-        return -cmp(x.get(sort), y.get(sort))
+        rev = -1
     else:
-        return cmp(x.get(sort), y.get(sort))
+        rev = 1
+    x_val = x.get(sort)
+    y_val = y.get(sort)
+    return rev * ((x_val > y_val) - (x_val < y_val))
 
 def _format_data(data, cols):
     formatted = []
