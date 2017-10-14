@@ -1,0 +1,46 @@
+# Copyright 2017 TensorHub, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import absolute_import
+from __future__ import division
+
+import click
+
+from guild import click_util
+from . import runs_cmd_support
+
+@click.command("restore", help="""
+Restore one or more deleted runs.
+
+%s
+
+If a RUN is not specified, assumes all runs (i.e. as if ':' was
+specified).
+""" % runs_cmd_support.RUN_ARG_HELP)
+
+@click.argument("runs", metavar="RUN [RUN...]", nargs=-1, required=True)
+@runs_cmd_support.run_scope_options
+@runs_cmd_support.run_filters
+@click.option(
+    "-y", "--yes",
+    help="Do not prompt before restoring.",
+    is_flag=True)
+
+@click.pass_context
+@click_util.use_args
+
+def restore_runs(ctx, args):
+    # Help defined in command decorator.
+    from . import runs_cmd_impl
+    guild.runs_cmd_impl.restore_runs(args, ctx)

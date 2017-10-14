@@ -25,7 +25,7 @@ py_library(
     name = "cpu-plugin",
     data = ["cpu-plugin.md"],
     deps = [
-        "//guild/plugins",
+        "//guild/plugins:cpu",
         "//guild:plugin",
     ],
 )
@@ -42,7 +42,7 @@ py_library(
     name = "disk-plugin",
     data = ["disk-plugin.md"],
     deps = [
-        "//guild/plugins",
+        "//guild/plugins:disk",
         "//guild:plugin",
     ],
 )
@@ -67,7 +67,7 @@ py_library(
     name = "memory-plugin",
     data = ["memory-plugin.md"],
     deps = [
-        "//guild/plugins",
+        "//guild/plugins:memory",
         "//guild:plugin",
     ],
 )
