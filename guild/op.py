@@ -221,7 +221,11 @@ def _model_paths(project_op):
     return [os.path.dirname(project_op.project.src)]
 
 def _guild_paths():
-    return [path for path in sys.path if _is_guild_op_pkg(path)]
+    guild_path = os.path.dirname(os.path.dirname(__file__))
+    return [guild_path] + _runfile_paths()
 
-def _is_guild_op_pkg(path):
+def _runfile_paths():
+    return [path for path in sys.path if _is_runfile_pkg(path)]
+
+def _is_runfile_pkg(path):
     return os.path.split(path)[-1] in OP_RUNFILES
