@@ -20,7 +20,7 @@ def _init_git_commit():
 
 def _init_git_status():
     raw = _git_cmd("git -C \"%(repo)s\" status -s")
-    globals()["__git_status__"] = raw.split("\n")
+    globals()["__git_status__"] = raw.split("\n") if raw else []
 
 def _git_cmd(cmd, **kw):
     repo = os.path.dirname(__file__)
