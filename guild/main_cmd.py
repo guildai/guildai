@@ -2,7 +2,7 @@ import logging
 
 import click
 
-import guild.app
+import guild
 import guild.click_util
 
 from guild.check_cmd import check
@@ -27,7 +27,7 @@ class CLIGroup(click.Group):
 
 @click.group(cls=CLIGroup)
 @click.version_option(
-    version=guild.app.version(),
+    version=guild.version(),
     prog_name="guild",
     message="%(prog)s %(version)s"
 )

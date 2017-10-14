@@ -4,8 +4,9 @@ import subprocess
 import sys
 
 import click
+import pkg_resources
 
-import guild.app
+import guild
 import guild.cli
 import guild.test
 
@@ -65,9 +66,12 @@ def _print_info(ctx):
     _print_mods_info(ctx)
 
 def _print_guild_info():
-    guild.cli.out("guild_version:             %s" % guild.app.version())
-    guild.cli.out("guild_home:                %s" % guild.app.home())
+    guild.cli.out("guild_version:             %s" % guild.version())
+    guild.cli.out("guild_home:                %s" % _guild_home())
     guild.cli.out("installed_plugins:         %s" % _format_plugins())
+
+def _guild_home():
+    return pkg_resources.resource_filename("guild", "")
 
 def _format_plugins():
     return ", ".join([name for name, _ in guild.plugin.iter_plugins()])

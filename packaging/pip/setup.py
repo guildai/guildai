@@ -18,6 +18,7 @@ def packages():
     return find_packages(exclude=["guild.tests", "guild.tests.*"])
 
 DEPS = [
+    "pkg_resources",
     "pip",
     "PyYAML",
     "requests",

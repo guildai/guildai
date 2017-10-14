@@ -20,7 +20,6 @@
 
     >>> expected = [
     ...   'guild.__init__',
-    ...   'guild.app',
     ...   'guild.check_cmd',
     ...   'guild.check_cmd_impl',
     ...   'guild.cli',

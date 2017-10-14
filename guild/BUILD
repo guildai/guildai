@@ -43,6 +43,7 @@ py_library(
     ],
     deps = [
         "//third_party:click",
+        ":__init__",
         ":log",
         ":namespace",
         ":plugin",
@@ -73,8 +74,9 @@ py_library(
     ],
     deps = [
         "//third_party:click",
+        "//third_party:pkg_resources",
+        ":__init__",
         ":click_util",
-        ":app",
         ":cli",
         ":tensorflow_info_main",
         ":test",
@@ -234,14 +236,6 @@ py_library(
 ###################################################################
 
 py_library(
-    name = "app",
-    srcs = ["app.py"],
-    deps = [
-        ":__init__",
-    ]
-)
-
-py_library(
     name = "cli",
     srcs = ["cli.py"],
     deps = [
@@ -398,7 +392,6 @@ py_library(
         "//guild/tests",
     ],
     deps = [
-        ":app",
     ],
 )
 
