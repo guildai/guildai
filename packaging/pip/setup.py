@@ -17,19 +17,11 @@ def README():
 def packages():
     return find_packages(exclude=["guild.tests", "guild.tests.*"])
 
-DEPS = [
-    "pkg_resources",
-    "pip",
-    "PyYAML",
-    "requests",
-    "setuptools",
-    "twine",
-],
-
 setup(
     name="guildai",
     version=guild.__version__,
     description="The essential TensorFlow developer toolkit",
+    install_required=guild.__requires__,
     long_description=README(),
     url="https://github.com/guildai/guild-python",
     maintainer="Guild AI",
@@ -67,5 +59,4 @@ setup(
     ],
     license="Apache 2.0",
     keywords="guild guildai tensorflow machine learning",
-    install_required=DEPS,
 )

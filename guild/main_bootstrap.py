@@ -13,6 +13,7 @@ EXTERNAL_PATHS = [
 
 def main():
     sys.path[:0] = _external_import_paths()
+    _check_requires()
     import guild.main
     guild.main.main()
 
@@ -45,3 +46,23 @@ def _external_import_path(path, root):
         else:
             path = path[1]
     return os.path.join(root, path)
+
+def _check_requires():
+    import pkg_resources
+    import guild
+    try:
+        pkg_resources.require(*guild.__requires__)
+    except pkg_resources.DistributionNotFound as e:
+        _handle_missing_req(e.req)
+
+def _handle_missing_req(req):
+    msg_parts = ["guild: missing required package '%s'\n" % req]
+    if req.project_name == "pip":
+        msg_parts.append(
+            "Refer to https://pip.pypa.io/en/stable/installing "
+            "for more information.")
+    else:
+        msg_parts.append("Try 'pip install %s' to install the package." % req)
+    sys.stderr.write("".join(msg_parts))
+    sys.stderr.write("\n")
+    sys.exit(1)
