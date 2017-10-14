@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-__version__ = "0.1.0-1"
+__version__ = "0.1.0-2"
 
 def _try_init_git_attrs():
     try:
