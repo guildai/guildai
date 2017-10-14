@@ -19,13 +19,17 @@ import click
 
 from guild import click_util
 
-@click.command("info")
-@click.argument("package", True)
+@click.command()
+@click.argument("packages", metavar="PACKAGE...", nargs=-1, required=True)
+@click.option(
+    "-U", "--upgrade",
+    help="Upgrade specified packages to the newest available version.",
+    is_flag=True)
 
 @click_util.use_args
 
-def package_info(args):
-    """Show package details.
+def install(args):
+    """Install one or more packages.
     """
-    from . import packages_cmd_impl
-    packages_cmd_impl.package_info(args)
+    from . import packages_impl
+    packages_impl.install_packages(args)

@@ -28,7 +28,7 @@ py_library(
     deps = [
         "//third_party:click",
         ":click_util",
-        "//guild/commands:main_cmd",
+        "//guild/commands:main",
     ]
 )
 

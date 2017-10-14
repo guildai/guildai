@@ -18,27 +18,21 @@ from __future__ import division
 import click
 
 from guild import click_util
-from . import runs_cmd_support
 
-@click.command("list, ls")
-@runs_cmd_support.runs_list_options
+@click.command("delete, rm")
+@click.argument("packages", metavar="PACKAGE...")
+@click.option(
+    "-y", "--yes",
+    help="Do not prompt before deleting.",
+    is_flag=True)
 
-@click.pass_context
 @click_util.use_args
 
-def list_runs(ctx, args):
-    """List runs.
+def delete_packages(args):
+    """Uninstall one or more packages.
 
-    By default lists runs associated with models defined in the
-    current directory, or LOCATION if specified. To list all runs, use
-    the --system option.
-
-    To list deleted runs, use the --deleted option. Note that runs are
-    still limited to the specified project unless --system is
-    specified.
-
-    You may apply any of the filter options below to limit the runs
-    listed.
+    This command is equivalent to 'guild uninstall [options]
+    PACKAGE...'.
     """
-    from . import runs_cmd_impl
-    runs_cmd_impl.list_runs(args, ctx)
+    from . import packages_impl
+    packages_impl.uninstall_packages(args)

@@ -49,5 +49,5 @@ def package(ctx, args):
     Packages are built from projects that contain a PACKAGE file that
     describes the package to be built.
     """
-    from . import package_cmd_impl
-    package_cmd_impl.create_package(args, ctx)
+    from . import package_impl
+    package_impl.create_package(args, ctx)

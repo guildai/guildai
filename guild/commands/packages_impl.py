@@ -31,11 +31,11 @@ def _format_pkg(pkg):
     }
 
 def install_packages(args):
-    for reqs, index_urls in _install_cmds(args):
+    for reqs, index_urls in _installs(args):
         print("*****", reqs, index_urls)
         #guild.pip_util.install(reqs, index_urls, args.upgrade)
 
-def _install_cmds(args):
+def _installs(args):
     index_urls = {}
     for pkg in args.packages:
         ns, req_in = guild.cmd_support.split_pkg(pkg)

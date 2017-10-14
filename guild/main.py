@@ -18,11 +18,11 @@ import sys
 import click
 
 import guild.click_util
-import guild.commands.main_cmd
+import guild.commands.main
 
 def main():
     try:
-        guild.commands.main_cmd.main(standalone_mode=False)
+        guild.commands.main.main(standalone_mode=False)
     except click.exceptions.Abort:
         _handle_keyboard_interrupt()
     except click.exceptions.ClickException as e:

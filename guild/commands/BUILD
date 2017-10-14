@@ -1,10 +1,10 @@
 package(default_visibility = ["//visibility:public"])
 
 py_library(
-    name = "main_cmd",
+    name = "main",
     srcs = [
-        "main_cmd.py",
-        "main_cmd_impl.py",
+        "main.py",
+        "main_impl.py",
     ],
     deps = [
         "//third_party:click",
@@ -13,26 +13,26 @@ py_library(
         "//guild:namespace",
         "//guild:plugin",
         "//guild:click_util",
-        ":check_cmd",
-        ":install_cmd",
-        ":models_cmd",
-        ":operations_cmd",
-        ":package_cmd",
-        ":packages_cmd",
-        ":run_cmd",
-        ":runs_cmd",
-        ":shell_cmd",
-        ":train_cmd",
-        ":uninstall_cmd",
-        ":view_cmd",
+        ":check",
+        ":install",
+        ":models",
+        ":operations",
+        ":package",
+        ":packages",
+        ":run",
+        ":runs",
+        ":shell",
+        ":train",
+        ":uninstall",
+        ":view",
     ]
 )
 
 py_library(
-    name = "check_cmd",
+    name = "check",
     srcs = [
-        "check_cmd.py",
-        "check_cmd_impl.py",
+        "check.py",
+        "check_impl.py",
         "tensorflow_info_main.py"
     ],
     deps = [
@@ -46,22 +46,22 @@ py_library(
 )
 
 py_library(
-    name = "install_cmd",
+    name = "install",
     srcs = [
-        "install_cmd.py",
+        "install.py",
     ],
     deps = [
         "//third_party:click",
         "//guild:click_util",
-        ":packages_cmd",
+        ":packages",
     ],
 )
 
 py_library(
-    name = "models_cmd",
+    name = "models",
     srcs = [
-        "models_cmd.py",
-        "models_cmd_impl.py",
+        "models.py",
+        "models_impl.py",
     ],
     deps = [
         "//third_party:click",
@@ -72,10 +72,10 @@ py_library(
 )
 
 py_library(
-    name = "operations_cmd",
+    name = "operations",
     srcs = [
-        "operations_cmd.py",
-        "operations_cmd_impl.py",
+        "operations.py",
+        "operations_impl.py",
     ],
     deps = [
         "//third_party:click",
@@ -87,10 +87,10 @@ py_library(
 )
 
 py_library(
-    name = "package_cmd",
+    name = "package",
     srcs = [
-        "package_cmd.py",
-        "package_cmd_impl.py",
+        "package.py",
+        "package_impl.py",
 
     ],
     deps = [
@@ -102,13 +102,13 @@ py_library(
 )
 
 py_library(
-    name = "packages_cmd",
+    name = "packages",
     srcs = [
-        "packages_cmd.py",
-        "packages_cmd_impl.py",
-        "packages_delete_cmd.py",
-        "packages_info_cmd.py",
-        "packages_list_cmd.py",
+        "packages.py",
+        "packages_impl.py",
+        "packages_delete.py",
+        "packages_info.py",
+        "packages_list.py",
     ],
     deps = [
         "//third_party:click",
@@ -121,10 +121,10 @@ py_library(
 )
 
 py_library(
-    name = "run_cmd",
+    name = "run",
     srcs = [
-        "run_cmd.py",
-        "run_cmd_impl.py",
+        "run.py",
+        "run_impl.py",
     ],
     deps = [
         "//third_party:click",
@@ -137,15 +137,15 @@ py_library(
 )
 
 py_library(
-    name = "runs_cmd",
+    name = "runs",
     srcs = [
-        "runs_cmd.py",
-        "runs_cmd_impl.py",
-        "runs_cmd_support.py",
-        "runs_delete_cmd.py",
-        "runs_info_cmd.py",
-        "runs_list_cmd.py",
-        "runs_restore_cmd.py",
+        "runs.py",
+        "runs_impl.py",
+        "runs_support.py",
+        "runs_delete.py",
+        "runs_info.py",
+        "runs_list.py",
+        "runs_restore.py",
     ],
     deps = [
         "//third_party:click",
@@ -156,10 +156,10 @@ py_library(
 )
 
 py_library(
-    name = "shell_cmd",
+    name = "shell",
     srcs = [
-        "shell_cmd.py",
-        "shell_cmd_impl.py",
+        "shell.py",
+        "shell_impl.py",
     ],
     deps = [
         "//third_party:click",
@@ -169,32 +169,32 @@ py_library(
 )
 
 py_library(
-    name = "train_cmd",
-    srcs = ["train_cmd.py"],
+    name = "train",
+    srcs = ["train.py"],
     deps = [
         "//third_party:click",
         "//guild:click_util",
-        ":run_cmd",
+        ":run",
     ],
 )
 
 py_library(
-    name = "uninstall_cmd",
+    name = "uninstall",
     srcs = [
-        "uninstall_cmd.py",
+        "uninstall.py",
     ],
     deps = [
         "//third_party:click",
         "//guild:click_util",
-        ":package_cmd",
+        ":package",
     ],
 )
 
 py_library(
-    name = "view_cmd",
+    name = "view",
     srcs = [
-        "view_cmd.py",
-        "view_cmd_impl.py",
+        "view.py",
+        "view_impl.py",
     ],
     deps = [
         "//third_party:click",
@@ -202,6 +202,6 @@ py_library(
         "//guild:cli",
         "//guild:tensorboard",
         "//guild:util",
-        ":runs_cmd",
+        ":runs",
     ],
 )

@@ -73,7 +73,7 @@ def _run_tests(ctx):
                 "running individual tests - ignoring --skip")
         success = guild.test.run(args.tests)
     if not success:
-        ctx.errors = True
+        ctx.error()
 
 def _print_info(ctx):
     _print_guild_info()

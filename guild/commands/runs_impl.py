@@ -115,7 +115,7 @@ def _format_run(run, index=None):
         "started": _format_timestamp(run.get("started")),
         "stopped": _format_timestamp(run.get("stopped")),
         "rundir": run.path,
-        "command": _format_cmd(run.get("cmd", "")),
+        "command": _format(run.get("cmd", "")),
         "exit_status": run.get("exit_status", ""),
     }
 
@@ -131,11 +131,11 @@ def _format_timestamp(ts):
     struct_time = time.localtime(float(ts))
     return time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
 
-def _format_cmd(cmd):
+def _format(cmd):
     args = cmd.split("\n")
-    return " ".join([_maybe_quote_cmd_arg(arg) for arg in args])
+    return " ".join([_maybe_quote_arg(arg) for arg in args])
 
-def _maybe_quote_cmd_arg(arg):
+def _maybe_quote_arg(arg):
     return '"%s"' % arg if " " in arg else arg
 
 def _format_attr_val(s):
@@ -147,20 +147,19 @@ def _format_attr_val(s):
             ["  %s" % part for part in parts]
         )
 
-def delete_runs(args, ctx):
-    runs = runs_for_args(args, ctx)
+def runs_op(args, ctx, force_delete, preview_msg, confirm_prompt, op_callback):
+    runs = runs_for_args(args, ctx, force_delete)
     runs_arg = args.runs or ALL_RUNS_ARG
     selected = selected_runs(runs, runs_arg, ctx)
     if not selected:
         _no_selected_runs_error()
     preview = [_format_run(run) for run in selected]
     if not args.yes:
-        guild.cli.out("You are about to delete the following runs:")
+        guild.cli.out(preview_msg)
         cols = ["short_index", "operation", "started", "status"]
         guild.cli.table(preview, cols=cols, indent=2)
-    if args.yes or guild.cli.confirm("Delete these runs?"):
-        guild.var.delete_runs(selected)
-        guild.cli.out("Deleted %i run(s)" % len(selected))
+    if args.yes or guild.cli.confirm(confirm_prompt):
+        op_callback(selected)
 
 def selected_runs(all_runs, selected_specs, cmd_ctx):
     selected = []
@@ -217,7 +216,7 @@ def _no_matching_run_error(id_part, cmd_ctx):
     guild.cli.error(
         "could not find run matching '%s'\n"
         "Try 'guild runs list' for a list or '%s' for more information."
-        % (id_part, click_util.ctx_cmd_help(cmd_ctx)))
+        % (id_part, click_util.ctx_help(cmd_ctx)))
 
 def _non_unique_run_id_error(matches):
     guild.cli.out("'%s' matches multiple runs:\n", err=True)
@@ -236,7 +235,42 @@ def _no_selected_runs_error():
         "no matching runs\n"
         "Try 'guild runs list' to list available runs.")
 
+def delete_runs(args, ctx):
+    if args.purge:
+        preview = (
+            "WARNING: You are about to permanently delete "
+            "the following runs:")
+        confirm = "Permanently delete these runs?"
+    else:
+        preview = "You are about to delete the following runs:"
+        confirm = "Delete these runs?"
+    def delete(selected):
+        guild.var.delete_runs(selected, args.purge)
+        if args.purge:
+            guild.cli.out("Permanently deleted %i run(s)" % len(selected))
+        else:
+            guild.cli.out("Deleted %i run(s)" % len(selected))
+    runs_op(args, ctx, False, preview, confirm, delete)
+
+def purge_runs(args, ctx):
+    preview = (
+        "WARNING: You are about to permanently delete "
+        "the following runs:")
+    confirm = "Permanently delete these runs?"
+    def purge(selected):
+        guild.var.purge_runs(selected)
+        guild.cli.out("Permanently deleted %i run(s)" % len(selected))
+    runs_op(args, ctx, True, preview, confirm, purge)
+
 def restore_runs(args, ctx):
+    preview = "You are about to permanently restore the following runs:"
+    confirm = "Restore these runs?"
+    def restore(selected):
+        guild.var.restore_runs(selected)
+        guild.cli.out("Restored %i run(s)" % len(selected))
+    runs_op(args, ctx, True, preview, confirm, restore)
+
+def restore_runs_delme(args, ctx):
     runs = runs_for_args(args, ctx, force_deleted=True)
     runs_arg = args.runs or ALL_RUNS_ARG
     selected = selected_runs(runs, runs_arg, ctx)

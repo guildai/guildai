@@ -49,5 +49,5 @@ def check(args):
     You can also run the Guild test suite by specifying the --tests
     option.
     """
-    from . import check_cmd_impl
-    check_cmd_impl.main(args)
+    from . import check_impl
+    check_impl.main(args)

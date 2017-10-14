@@ -19,17 +19,21 @@ import click
 
 from guild import click_util
 
-@click.command()
-@click.argument("packages", metavar="PACKAGE...", nargs=-1, required=True)
+@click.command(name="operations, ops")
+@click.argument("model", required=False)
 @click.option(
-    "-U", "--upgrade",
-    help="Upgrade specified packages to the newest available version.",
+    "-p", "--project", "project_location", metavar="LOCATION",
+    help="Project location (file system directory) for MODEL.")
+@click.option(
+    "-v", "--verbose",
+    help="Show operation details.",
     is_flag=True)
 
+@click.pass_context
 @click_util.use_args
 
-def install(args):
-    """Install one or more packages.
+def operations(ctx, args):
+    """Show model operations.
     """
-    from . import packages_cmd_impl
-    packages_cmd_impl.install_packages(args)
+    from . import operations_impl
+    operations_impl.main(args, ctx)

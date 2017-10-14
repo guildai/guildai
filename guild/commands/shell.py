@@ -18,28 +18,13 @@ from __future__ import division
 import click
 
 from guild import click_util
-from . import runs_cmd_support
 
-@click.command("delete, rm", help="""
-Delete one or more runs.
+@click.command()
 
-%s
-
-If a RUN is not specified, assumes all runs (i.e. as if ':' was
-specified).
-""" % runs_cmd_support.RUN_ARG_HELP)
-@click.argument("runs", metavar="[RUN...]",  nargs=-1)
-@runs_cmd_support.run_scope_options
-@runs_cmd_support.run_filters
-@click.option(
-    "-y", "--yes",
-    help="Do not prompt before deleting.",
-    is_flag=True)
-
-@click.pass_context
 @click_util.use_args
 
-def delete_runs(ctx, args):
-    # Help defined in command decorator.
-    from . import runs_cmd_impl
-    runs_cmd_impl.delete_runs(args, ctx)
+def shell(args):
+    """Start a Python shell for API experimentation.
+    """
+    from . import shell_impl
+    shell_impl.main(args)

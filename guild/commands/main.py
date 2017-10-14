@@ -22,18 +22,18 @@ import click
 from guild import version as guild_version
 from guild import click_util
 
-from .check_cmd import check
-from .install_cmd import install
-from .operations_cmd import operations
-from .models_cmd import models
-from .package_cmd import package
-from .packages_cmd import packages
-from .run_cmd import run
-from .runs_cmd import runs
-from .shell_cmd import shell
-from .train_cmd import train
-from .uninstall_cmd import uninstall
-from .view_cmd import view
+from .check import check
+from .install import install
+from .operations import operations
+from .models import models
+from .package import package
+from .packages import packages
+from .run import run
+from .runs import runs
+from .shell import shell
+from .train import train
+from .uninstall import uninstall
+from .view import view
 
 class CLIGroup(click.Group):
 
@@ -57,8 +57,8 @@ class CLIGroup(click.Group):
 
 def main(args):
     """Guild AI command line interface."""
-    from . import main_cmd_impl
-    main_cmd_impl.main(args)
+    from . import main_impl
+    main_impl.main(args)
 
 main.add_command(check)
 main.add_command(install)

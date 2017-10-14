@@ -18,22 +18,32 @@ from __future__ import division
 import click
 
 from guild import click_util
+from . import runs_support
 
-@click.command(name="operations, ops")
-@click.argument("model", required=False)
+@click.command("delete, rm", help="""
+Delete one or more runs.
+
+%s
+
+If a RUN is not specified, assumes all runs (i.e. as if ':' was
+specified).
+""" % runs_support.RUN_ARG_HELP)
+@click.argument("runs", metavar="[RUN...]",  nargs=-1)
+@runs_support.run_scope_options
+@runs_support.run_filters
 @click.option(
-    "-p", "--project", "project_location", metavar="LOCATION",
-    help="Project location (file system directory) for MODEL.")
+    "-y", "--yes",
+    help="Do not prompt before deleting.",
+    is_flag=True)
 @click.option(
-    "-v", "--verbose",
-    help="Show operation details.",
+    "-P", "--purge",
+    help="Permanentaly delete runs so they cannot be recovered.",
     is_flag=True)
 
 @click.pass_context
 @click_util.use_args
 
-def operations(ctx, args):
-    """Show model operations.
-    """
-    from . import operations_cmd_impl
-    operations_cmd_impl.main(args, ctx)
+def delete_runs(ctx, args):
+    # Help defined in command decorator.
+    from . import runs_impl
+    runs_impl.delete_runs(args, ctx)

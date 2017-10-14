@@ -19,20 +19,28 @@ import click
 
 from guild import click_util
 
-@click.command("delete, rm")
-@click.argument("packages", metavar="PACKAGE...")
+@click.command()
 @click.option(
-    "-y", "--yes",
-    help="Do not prompt before deleting.",
+    "-p", "--project", "project_location", metavar="LOCATION",
+    help="Project location (file system directory) for models.")
+# TODO: add system option to show models system wide
+@click.option(
+    "-v", "--verbose",
+    help="Show model details.",
     is_flag=True)
 
+@click.pass_context
 @click_util.use_args
 
-def delete_packages(args):
-    """Uninstall one or more packages.
+def models(ctx, args):
+    """Show available models.
 
-    This command is equivalent to 'guild uninstall [options]
-    PACKAGE...'.
+    By default Guild will show models defined in the current directory
+    (in a MODEL or MODELS file). You may use --project to specify an
+    alternative project location.
+
+    To show installed models, use the --installed option. Any location
+    specified by --project, will be ignored if --installed is used.
     """
-    from . import packages_cmd_impl
-    packages_cmd_impl.uninstall_packages(args)
+    from . import models_impl
+    models_impl.main(args, ctx)

@@ -19,13 +19,13 @@ import click
 
 from guild import click_util
 
-@click.command()
-@click.argument("packages", metavar="PACKAGE...", nargs=-1, required=True)
+@click.command("info")
+@click.argument("package", True)
 
 @click_util.use_args
 
-def uninstall(args):
-    """Uninstall one or more packages.
+def package_info(args):
+    """Show package details.
     """
-    from . import packages_cmd_impl
-    packages_cmd_impl.uninstall_packages(args)
+    from . import packages_impl
+    packages_impl.package_info(args)

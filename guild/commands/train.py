@@ -18,11 +18,11 @@ from __future__ import division
 import click
 
 from guild import click_util
-from . import run_cmd
+from . import run
 
 @click.command()
 @click.argument("model", required=False)
-@run_cmd.run_params
+@run.run_params
 
 @click_util.use_args
 
@@ -43,11 +43,11 @@ def train(args):
     information.
 
     """
-    from . import run_cmd_impl
+    from . import run_impl
     # MODEL is treated as an ARG if it contains an equal sign (see
     # help text above).
     if args.model and "=" in args.model:
         args.args = (args.model,) + args.args
         args.model = None
     args.opspec = "%s:train" % args.model if args.model else "train"
-    run_cmd_impl.main(args)
+    run_impl.main(args)

@@ -18,13 +18,29 @@ from __future__ import division
 import click
 
 from guild import click_util
+from . import runs_support
 
-@click.command()
+@click.command("restore", help="""
+Restore one or more deleted runs.
 
+%s
+
+If a RUN is not specified, assumes all runs (i.e. as if ':' was
+specified).
+""" % runs_support.RUN_ARG_HELP)
+
+@click.argument("runs", metavar="RUN [RUN...]", nargs=-1)
+@runs_support.run_scope_options
+@runs_support.run_filters
+@click.option(
+    "-y", "--yes",
+    help="Do not prompt before restoring.",
+    is_flag=True)
+
+@click.pass_context
 @click_util.use_args
 
-def shell(args):
-    """Start a Python shell for API experimentation.
-    """
-    from . import shell_cmd_impl
-    shell_cmd_impl.main(args)
+def restore_runs(ctx, args):
+    # Help defined in command decorator.
+    from . import runs_impl
+    runs_impl.restore_runs(args, ctx)

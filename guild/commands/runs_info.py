@@ -18,12 +18,12 @@ from __future__ import division
 import click
 
 from guild import click_util
-from . import runs_cmd_support
+from . import runs_support
 
 @click.command("info")
 @click.argument("run", required=False)
-@runs_cmd_support.run_scope_options
-@runs_cmd_support.run_filters
+@runs_support.run_scope_options
+@runs_support.run_filters
 @click.option("--env", help="Include run environment", is_flag=True)
 @click.option("--flags", help="Include run flags", is_flag=True)
 @click.option("--files", help="Include run files", is_flag=True)
@@ -59,5 +59,5 @@ def run_info(ctx, args):
         guild runs info a64b1710
 
     """
-    from . import runs_cmd_impl
-    runs_cmd_impl.run_info(args, ctx)
+    from . import runs_impl
+    runs_impl.run_info(args, ctx)

@@ -60,5 +60,5 @@ def run(args):
     If MODEL is specified, Guild will use it instead of the default
     model defined in a project.
     """
-    from . import run_cmd_impl
-    run_cmd_impl.main(args)
+    from . import run_impl
+    run_impl.main(args)

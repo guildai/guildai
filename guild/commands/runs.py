@@ -18,12 +18,13 @@ from __future__ import division
 import click
 
 from guild import click_util
-from . import runs_cmd_support
+from . import runs_support
 
-from .runs_delete_cmd import delete_runs
-from .runs_info_cmd import run_info
-from .runs_list_cmd import list_runs
-from .runs_restore_cmd import restore_runs
+from .runs_delete import delete_runs
+from .runs_info import run_info
+from .runs_list import list_runs
+from .runs_purge import purge_runs
+from .runs_restore import restore_runs
 
 class RunsGroup(click.Group):
 
@@ -35,7 +36,7 @@ class RunsGroup(click.Group):
         return super(RunsGroup, self).get_command(ctx, cmd_name)
 
 @click.group(invoke_without_command=True, cls=RunsGroup)
-@runs_cmd_support.runs_list_options
+@runs_support.runs_list_options
 
 @click.pass_context
 
@@ -60,4 +61,5 @@ def _params_specified(kw):
 runs.add_command(delete_runs)
 runs.add_command(run_info)
 runs.add_command(list_runs)
+runs.add_command(purge_runs)
 runs.add_command(restore_runs)

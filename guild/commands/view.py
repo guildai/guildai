@@ -18,11 +18,11 @@ from __future__ import division
 import click
 
 from guild import click_util
-from . import runs_cmd_support
+from . import runs_support
 
 @click.command()
-@runs_cmd_support.run_scope_options
-@runs_cmd_support.run_filters
+@runs_support.run_scope_options
+@runs_support.run_filters
 @click.option(
     "--host",
     help="Name of host interface to listen on.")
@@ -46,5 +46,5 @@ from . import runs_cmd_support
 def view(ctx, args):
     """Visualize runs with TensorBoard.
     """
-    from . import view_cmd_impl
-    view_cmd_impl.main(args, ctx)
+    from . import view_impl
+    view_impl.main(args, ctx)

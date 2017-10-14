@@ -26,7 +26,7 @@ import guild.cli
 import guild.tensorboard
 import guild.util
 
-from . import runs_cmd_impl
+from . import runs_impl
 
 MIN_MONITOR_INTERVAL = 5
 
@@ -66,7 +66,7 @@ class RunsMonitor(threading.Thread):
     def run_once(self, exit_on_error=False):
         logging.debug("Refreshing runs")
         try:
-            runs = runs_cmd_impl.runs_for_args(self.args, self.cmd_ctx)
+            runs = runs_impl.runs_for_args(self.args, self.cmd_ctx)
         except SystemExit as e:
             if exit_on_error:
                 raise

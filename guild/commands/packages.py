@@ -19,9 +19,9 @@ import click
 
 from guild import click_util
 
-from .packages_delete_cmd import delete_packages
-from .packages_info_cmd import package_info
-from .packages_list_cmd import list_packages
+from .packages_delete import delete_packages
+from .packages_info import package_info
+from .packages_list import list_packages
 
 class PackagesGroup(click.Group):
 
