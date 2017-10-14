@@ -74,7 +74,7 @@ py_library(
     ],
     deps = [
         "//third_party:click",
-        "//third_party:pkg_resources",
+        "//third_party:setuptools",
         ":__init__",
         ":click_util",
         ":cli",

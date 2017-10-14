@@ -5,10 +5,6 @@ package(default_visibility = ["//visibility:public"])
 # installed via 'pip install' but may be available in other ways.
 
 py_library(
-    name = "pkg_resources"
-)
-
-py_library(
     name = "pip"
 )
 
