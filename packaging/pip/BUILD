@@ -1,8 +1,8 @@
 package(default_visibility = ["//visibility:private"])
 
 genrule(
-    name = "pip",
-    cmd = "$(location build-package) $(@D)",
+    name = "linux",
+    cmd = "$(location build-package) $(@D) manylinux1_x86_64",
     tools = [
         "build-package",
         # Hacking tools here to introduce a "data" like dependency for
@@ -17,6 +17,6 @@ genrule(
         "setup.py",
     ],
     outs = [
-        "guildai-0.1.0.post1-cp27-cp27mu-manylinux1_x86_64.whl",
+        "guildai-0.1.0.post2-cp27-cp27mu-manylinux1_x86_64.whl",
     ],
 )

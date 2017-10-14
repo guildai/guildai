@@ -3,6 +3,7 @@
 set -eu
 
 OUT_DIR=$(realpath ${1})
+PLATFORM_NAME=${2}
 
 # Package file
 cp packaging/pip/setup.py .
@@ -19,4 +20,4 @@ cp packaging/pip/LICENSE.txt guild
 #find .
 #echo "### END FIND"
 
-python setup.py bdist_wheel --plat-name manylinux1_x86_64 -d "$OUT_DIR"
+python setup.py bdist_wheel --plat-name $PLATFORM_NAME -d "$OUT_DIR"

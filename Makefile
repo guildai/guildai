@@ -27,5 +27,5 @@ commit-check:
 	make check
 	make lint
 
-pip-package:
-	bazel build packaging/pip
+pip-package-linux:
+	bazel build packaging/pip:linux
