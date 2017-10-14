@@ -79,10 +79,10 @@ def _patch_keras(args):
     # pylint: disable=import-error
     import keras
     python_util.listen_method(
-        keras.models.Sequential.fit,
+        keras.models.Sequential, "fit",
         _fit_wrapper(args.batch_size, args.epochs))
     python_util.listen_method(
-        keras.callbacks.TensorBoard.set_params,
+        keras.callbacks.TensorBoard, "set_params",
         _on_set_tensorboard_params)
 
 def _fit_wrapper(batch_size, epochs):

@@ -33,7 +33,7 @@ class SummaryPlugin(Plugin):
         import tensorflow
         self.log("wrapping tensorflow.summary.FileWriter.add_summary")
         python_util.listen_method(
-            tensorflow.summary.FileWriter.add_summary,
+            tensorflow.summary.FileWriter, "add_summary",
             self._handle_summary)
 
     def _handle_summary(self, add_summary, _summary, step):

@@ -15,20 +15,6 @@
 import ast
 import logging
 import os
-import sys
-
-if sys.version_info[0] == 2:
-    def _im_func(m):
-        return m.im_func
-
-    def _im_class(m):
-        return m.im_class
-else:
-    def _im_func(m):
-        return m.__func__
-
-    def _im_class(m):
-        return m.__self__.__class__
 
 class Script(object):
 
@@ -129,27 +115,21 @@ class MethodWrapper(object):
     # pylint: disable=protected-access
 
     @staticmethod
-    def for_method(m):
-        wrapper = getattr(_im_func(m), "__method_wrapper__", None)
-        return wrapper if wrapper else MethodWrapper(m)
+    def for_method(method):
+        return getattr(method, "__wrapper__", None)
 
-    @staticmethod
-    def unwrap(m):
-        wrapper = getattr(_im_func(m), "__method_wrapper__", None)
-        if wrapper:
-            wrapper._unwrap()
-
-    def __init__(self, m):
-        self._m = m
+    def __init__(self, func, cls, name):
+        self._func = func
+        self._cls = cls
+        self._name = name
         self._cbs = []
         self._wrap()
 
     def _wrap(self):
         wrapper = self._wrapper()
-        name = _im_func(self._m).__name__
-        wrapper.__name__ = "%s_wrapper" % name
-        wrapper.__method_wrapper__ = self
-        setattr(_im_class(self._m), name, wrapper)
+        wrapper.__name__ = "%s_wrapper" % self._name
+        wrapper.__wrapper__ = self
+        setattr(self._cls, self._name, wrapper)
 
     def _wrapper(self):
         def wrapper(wrapped_self, *args, **kw):
@@ -165,13 +145,14 @@ class MethodWrapper(object):
                     raise
                 except:
                     logging.exception("callback")
-            return (wrapped_bound(*args, **kw)
-                    if result is marker
-                    else result)
+            if result is marker:
+                return wrapped_bound(*args, **kw)
+            else:
+                return result
         return wrapper
 
     def _bind(self, wrapped_self):
-        return lambda *args, **kw: self._m(wrapped_self, *args, **kw)
+        return lambda *args, **kw: self._func(wrapped_self, *args, **kw)
 
     def add_cb(self, cb):
         self._cbs.append(cb)
@@ -182,10 +163,27 @@ class MethodWrapper(object):
         except ValueError:
             pass
         if not self._cbs:
-            self._unwrap()
+            self.unwrap()
 
-    def _unwrap(self):
-        setattr(_im_class(self._m), _im_func(self._m).__name__, self._m)
+    def unwrap(self):
+        setattr(self._cls, self._name, self._func)
+
+def listen_method(cls, method_name, cb):
+    method = getattr(cls, method_name)
+    wrapper = MethodWrapper.for_method(method)
+    if wrapper is None:
+        wrapper = MethodWrapper(method, cls, method_name)
+    wrapper.add_cb(cb)
+
+def remove_method_listener(method, cb):
+    wrapper = MethodWrapper.for_method(method)
+    if wrapper is not None:
+        wrapper.remove_cb(cb)
+
+def remove_method_listeners(method):
+    wrapper = MethodWrapper.for_method(method)
+    if wrapper is not None:
+        wrapper.unwrap()
 
 def scripts_for_location(location, exclude=None):
     import glob
@@ -201,15 +199,6 @@ def script_models(location, is_model_script, script_model):
     for script in sorted(scripts_for_location(location)):
         if is_model_script(script):
             yield script_model(script)
-
-def listen_method(method, cb):
-    MethodWrapper.for_method(method).add_cb(cb)
-
-def remove_method_listener(method, cb):
-    MethodWrapper.for_method(method).remove_cb(cb)
-
-def remove_method_listeners(method):
-    MethodWrapper.unwrap(method)
 
 def exec_script(filename):
     import __future__

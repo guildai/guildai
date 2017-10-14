@@ -18,8 +18,6 @@ import functools
 
 import click
 
-from guild import util
-
 TABLE_COL_SPACING = 2
 
 def error(msg=None, exit_status=1):

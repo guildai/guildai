@@ -108,7 +108,7 @@ Let's patch `say`:
 
     >>> def wrap_say(say, msg):
     ...   say("I've wrapped '%s'" % msg)
-    >>> python_util.listen_method(Hello.say, wrap_say)
+    >>> python_util.listen_method(Hello, "say", wrap_say)
 
 When we call `hello` on an object:
 
@@ -124,13 +124,13 @@ We can wrap a method multiple times. In this case we'll wrap using an
 instance method:
 
     >>> class Wrapper(object):
-    ...   def __init__(self, method):
-    ...     python_util.listen_method(method, self.wrap_say)
+    ...   def __init__(self, cls, method_name):
+    ...     python_util.listen_method(cls, method_name, self.wrap_say)
     ...
     ...   def wrap_say(self, say, msg):
     ...     say("I've also wrapped '%s'" % msg)
 
-    >>> wrapper = Wrapper(Hello.say)
+    >>> wrapper = Wrapper(Hello, "say")
     >>> hello.say("Hello again!")
     I've wrapped 'Hello again!'
     I've also wrapped 'Hello again!'
@@ -142,7 +142,7 @@ its own value by raising `python_util.Result`:
     >>> def wrap_and_prevent(say, msg):
     ...   say("I've wrapped '%s' and prevented the original call!" % msg)
     ...   raise python_util.Result(None)
-    >>> python_util.listen_method(Hello.say, wrap_and_prevent)
+    >>> python_util.listen_method(Hello, "say", wrap_and_prevent)
     >>> hello.say("Hello once more!")
     I've wrapped 'Hello once more!'
     I've also wrapped 'Hello once more!'
@@ -156,7 +156,7 @@ illustrate by creating a wrapper that generates an error:
 
 Let's add this function and call `say` while capturing logs:
 
-    >>> python_util.listen_method(Hello.say, wrap_error)
+    >>> python_util.listen_method(Hello, "say", wrap_error)
 
     >>> log_capture = LogCapture()
     >>> with log_capture:
@@ -173,7 +173,7 @@ Here's what was logged during that call:
     ERROR: callback
     Traceback (most recent call last):
     ...
-    ZeroDivisionError: integer division or modulo by zero
+    ZeroDivisionError: ...
 
 We can remove wrappers using `remove_method_listener`:
 
@@ -217,7 +217,7 @@ we're replacing it altogether.
 
 We wrap the original:
 
-    >>> python_util.listen_method(Calc.incr, incr2)
+    >>> python_util.listen_method(Calc, "incr", incr2)
 
 And here's our new behavior:
 
@@ -256,8 +256,8 @@ Here are two listeners, both of which provide results:
 
 Let's add both as listeners:
 
-    >>> python_util.listen_method(Calc.incr, incr_by_2)
-    >>> python_util.listen_method(Calc.incr, incr_by_3)
+    >>> python_util.listen_method(Calc, "incr", incr_by_2)
+    >>> python_util.listen_method(Calc, "incr", incr_by_3)
 
 And test our method:
 
@@ -272,8 +272,8 @@ from the last to provide a result.
 Let re-order our listeners to confirm:
 
     >>> python_util.remove_method_listeners(Calc.incr)
-    >>> python_util.listen_method(Calc.incr, incr_by_3)
-    >>> python_util.listen_method(Calc.incr, incr_by_2)
+    >>> python_util.listen_method(Calc, "incr", incr_by_3)
+    >>> python_util.listen_method(Calc, "incr", incr_by_2)
 
     >>> calc.incr(1)
     incr_by_3 called
