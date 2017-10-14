@@ -34,7 +34,7 @@ class Py23DocChecker(doctest.OutputChecker):
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
 def run_all(skip=None):
-    run(all_tests(), skip)
+    return run(all_tests(), skip)
 
 def all_tests():
     test_pattern = os.path.join(tests_dir(), "*.md")
