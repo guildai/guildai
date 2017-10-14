@@ -43,8 +43,8 @@ py_library(
     name = "cpu",
     srcs = ["cpu.py"],
     deps = [
+        "//third_party:psutil",
         ":tensorflow_util",
-        "@org_psutil",
     ],
 )
 
@@ -52,8 +52,8 @@ py_library(
     name = "memory",
     srcs = ["memory.py"],
     deps = [
+        "//third_party:psutil",
         ":tensorflow_util",
-        "@org_psutil",
     ],
 )
 
@@ -61,8 +61,8 @@ py_library(
     name = "disk",
     srcs = ["disk.py"],
     deps = [
+        "//third_party:psutil",
         ":tensorflow_util",
-        "@org_psutil",
     ],
 )
 

@@ -19,3 +19,21 @@ py_library(
 py_library(
     name = "yaml"
 )
+
+# The aliases below are used to normalize our references to third
+# party libraries.
+
+alias(
+    name = "click",
+    actual = "@org_click",
+)
+
+alias(
+    name = "tensorboard",
+    actual = "@org_tensorflow_tensorboard//tensorboard",
+)
+
+alias(
+    name = "psutil",
+    actual = "@org_psutil",
+)

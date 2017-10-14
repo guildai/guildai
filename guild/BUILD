@@ -29,7 +29,7 @@ py_library(
     name = "main",
     srcs = ["main.py"],
     deps = [
-        "@org_click",
+        "//third_party:click",
         ":click_util",
         ":main_cmd",
     ]
@@ -42,7 +42,7 @@ py_library(
         "main_cmd_impl.py",
     ],
     deps = [
-        "@org_click",
+        "//third_party:click",
         ":log",
         ":namespace",
         ":plugin",
@@ -72,7 +72,7 @@ py_library(
         "check_cmd_impl.py",
     ],
     deps = [
-        "@org_click",
+        "//third_party:click",
         ":click_util",
         ":app",
         ":cli",
@@ -87,7 +87,7 @@ py_library(
         "install_cmd.py",
     ],
     deps = [
-        "@org_click",
+        "//third_party:click",
         ":click_util",
         ":packages_cmd",
     ],
@@ -100,7 +100,7 @@ py_library(
         "models_cmd_impl.py",
     ],
     deps = [
-        "@org_click",
+        "//third_party:click",
         ":click_util",
         ":cli",
         ":cmd_support",
@@ -114,7 +114,7 @@ py_library(
         "operations_cmd_impl.py",
     ],
     deps = [
-        "@org_click",
+        "//third_party:click",
         ":click_util",
         ":cli",
         ":cmd_support",
@@ -130,7 +130,7 @@ py_library(
 
     ],
     deps = [
-        "@org_click",
+        "//third_party:click",
         ":click_util",
         ":cmd_support",
         ":package",
@@ -147,7 +147,7 @@ py_library(
         "packages_list_cmd.py",
     ],
     deps = [
-        "@org_click",
+        "//third_party:click",
         ":cli",
         ":click_util",
         ":cmd_support",
@@ -163,7 +163,7 @@ py_library(
         "run_cmd_impl.py",
     ],
     deps = [
-        "@org_click",
+        "//third_party:click",
         ":click_util",
         ":cli",
         ":cmd_support",
@@ -184,7 +184,7 @@ py_library(
         "runs_restore_cmd.py",
     ],
     deps = [
-        "@org_click",
+        "//third_party:click",
         ":click_util",
         ":cmd_support",
         ":var",
@@ -198,7 +198,7 @@ py_library(
         "shell_cmd_impl.py",
     ],
     deps = [
-        "@org_click",
+        "//third_party:click",
         ":click_util",
     ],
 )
@@ -207,7 +207,7 @@ py_library(
     name = "train_cmd",
     srcs = ["train_cmd.py"],
     deps = [
-        "@org_click",
+        "//third_party:click",
         ":click_util",
         ":run_cmd",
     ],
@@ -220,7 +220,7 @@ py_library(
         "view_cmd_impl.py",
     ],
     deps = [
-        "@org_click",
+        "//third_party:click",
         ":click_util",
         ":cli",
         ":runs_cmd",
@@ -245,7 +245,7 @@ py_library(
     name = "cli",
     srcs = ["cli.py"],
     deps = [
-        "@org_click",
+        "//third_party:click",
     ],
 )
 
@@ -253,7 +253,7 @@ py_library(
     name = "click_util",
     srcs = ["click_util.py"],
     deps = [
-        "@org_click",
+        "//third_party:click",
     ]
 )
 
@@ -377,7 +377,7 @@ py_library(
     name = "tensorboard",
     srcs = ["tensorboard.py"],
     data = [
-        "@org_tensorflow_tensorboard//tensorboard",
+        "//third_party:tensorboard",
     ],
     deps = [
     ],
@@ -387,7 +387,7 @@ py_library(
     name = "tensorflow_info_main",
     srcs = ["tensorflow_info_main.py"],
     deps = [
-        "@org_click",
+        "//third_party:click",
     ],
 )
 
