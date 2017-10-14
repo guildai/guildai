@@ -21,6 +21,11 @@ import click
 
 TABLE_COL_SPACING = 2
 
+try:
+    input = raw_input
+except NameError:
+    input = input
+
 def error(msg=None, exit_status=1):
     raise SystemExit(msg, exit_status)
 
@@ -101,9 +106,3 @@ def confirm(prompt, default=False):
     if default:
         yes_vals.append("")
     return c.lower().strip() in yes_vals
-
-def input(prompt=""):
-    try:
-        return raw_input(prompt)
-    except NameError:
-        return input(prompt)
