@@ -107,7 +107,7 @@ def _print_nvidia_tools_info():
 def _nvidia_smi_available():
     try:
         subprocess.check_output(["which", "nvidia-smi"])
-    except subprocess.CalledProcessError:
+    except (OSError, subprocess.CalledProcessError):
         return "no"
     else:
         return "yes"
