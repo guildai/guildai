@@ -1,0 +1,40 @@
+#!/bin/bash -eux
+
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+GUILD="$(realpath $(dirname $0)/../../bazel-bin/guild/guild)"
+EXAMPLES=https://github.com/guildai/guild-examples.git
+MODEL=mnist2
+
+check-guild() {
+    $GUILD check --tests
+}
+
+init-project() {
+    PROJECT=`mktemp -d --tmpdir guild-smoke-test-XXXXX`
+    git clone $EXAMPLES $PROJECT
+}
+
+train() {
+    cd $PROJECT/$MODEL
+    $GUILD train mnist-intro epochs=1 --yes
+    $GUILD runs info 0
+    $GUILD runs rm 0 --yes --purge
+}
+
+cleanup() {
+    if [[ "$PROJECT" != *"guild-smoke-test"* ]]; then
+        echo "unexpected project dir $PROJECT, refusing to cleanup"
+        exit 1
+    fi
+    rm -rf "$PROJECT"
+}
+
+check-guild
+init-project
+train
+if [ -z "${KEEP:-}" ] ; then
+    cleanup
+fi

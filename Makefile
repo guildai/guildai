@@ -22,9 +22,11 @@ lint:
 clean:
 	bazel clean
 
+smoke-test:
+	guild/tests/smoke-test
+
 commit-check:
-	make
-	make check
+	make smoke-test
 	make lint
 
 pip-package-linux:
