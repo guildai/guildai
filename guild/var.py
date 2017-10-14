@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 import shutil
 
@@ -104,18 +105,34 @@ def _run_attr(run, name):
     else:
         return run.get(name)
 
-def delete_runs(runs):
+def delete_runs(runs, permanent=False):
     for run in runs:
         src = os.path.join(runs_dir(), run.id)
-        dest = os.path.join(runs_dir(deleted=True), run.id)
-        _move_file(src, dest)
+        if permanent:
+            _delete_run(src)
+        else:
+            dest = os.path.join(runs_dir(deleted=True), run.id)
+            _move(src, dest)
 
-def _move_file(src, dest):
+def purge_runs(runs):
+    for run in runs:
+        src = os.path.join(runs_dir(deleted=True), run.id)
+        _delete_run(src)
+
+def _delete_run(src):
+    assert src and src != os.path.sep, src
+    assert (src.startswith(runs_dir()) or
+            src.startswith(runs_dir(deleted=True))), src
+    logging.debug("deleting %s", src)
+    shutil.rmtree(src)
+
+def _move(src, dest):
     guild.util.ensure_dir(os.path.dirname(dest))
+    logging.debug("moving %s to %s", src, dest)
     shutil.move(src, dest)
 
 def restore_runs(runs):
     for run in runs:
         src = os.path.join(runs_dir(deleted=True), run.id)
         dest = os.path.join(runs_dir(), run.id)
-        _move_file(src, dest)
+        _move(src, dest)
