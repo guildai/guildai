@@ -58,6 +58,7 @@ py_library(
         ":runs_cmd",
         ":shell_cmd",
         ":train_cmd",
+        ":uninstall_cmd",
         ":view_cmd",
     ]
 )
@@ -213,6 +214,18 @@ py_library(
         "//third_party:click",
         ":click_util",
         ":run_cmd",
+    ],
+)
+
+py_library(
+    name = "uninstall_cmd",
+    srcs = [
+        "uninstall_cmd.py",
+    ],
+    deps = [
+        "//third_party:click",
+        ":click_util",
+        ":package_cmd",
     ],
 )
 
