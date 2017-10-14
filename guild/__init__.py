@@ -33,7 +33,8 @@ def _init_git_status():
 def _git_cmd(cmd, **kw):
     repo = os.path.dirname(__file__)
     cmd = cmd % dict(repo=repo, **kw)
-    return subprocess.check_output(cmd, shell=True).strip()
+    null = open(os.devnull, "w")
+    return subprocess.check_output(cmd, stderr=null, shell=True).strip()
 
 def version():
     git_commit = globals().get("__git_commit__")
