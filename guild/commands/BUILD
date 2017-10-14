@@ -145,6 +145,7 @@ py_library(
         "runs_delete.py",
         "runs_info.py",
         "runs_list.py",
+        "runs_purge.py",
         "runs_restore.py",
     ],
     deps = [
