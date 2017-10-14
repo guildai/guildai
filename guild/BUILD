@@ -15,24 +15,6 @@ py_library(
 )
 
 py_library(
-    name = "main_bootstrap",
-    srcs = ["main_bootstrap.py"],
-    deps = [
-        ":main",
-    ]
-)
-
-py_library(
-    name = "main",
-    srcs = ["main.py"],
-    deps = [
-        "//third_party:click",
-        ":click_util",
-        "//guild/commands:main",
-    ]
-)
-
-py_library(
     name = "cli",
     srcs = ["cli.py"],
     deps = [
@@ -76,9 +58,28 @@ py_library(
 )
 
 py_library(
+    name = "main",
+    srcs = ["main.py"],
+    deps = [
+        "//third_party:click",
+        ":click_util",
+        "//guild/commands:main",
+    ]
+)
+
+py_library(
+    name = "main_bootstrap",
+    srcs = ["main_bootstrap.py"],
+    deps = [
+        ":main",
+    ]
+)
+
+py_library(
     name = "namespace",
     srcs = ["namespace.py"],
     deps = [
+        "//third_party:enum",
     ],
 )
 

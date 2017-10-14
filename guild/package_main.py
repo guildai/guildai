@@ -112,7 +112,7 @@ def _package_data(pkg):
     return (user_defined if user_defined
             else _default_package_data(pkg))
 
-def _default_package_data(pkg):
+def _default_package_data(_pkg):
     return [
         "MODEL",
         "MODELS",

@@ -1,0 +1,2 @@
+lint:
+	cd ../..; make lint

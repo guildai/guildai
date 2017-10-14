@@ -14,27 +14,26 @@
 
 import importlib
 import logging
-import os
-import sys
-import time
-
-import guild.run
-
 PLUGIN_PACKAGES = [
     "guild.plugins",
 ]
 
 __plugins__ = {}
 
+class NotSupported(Exception):
+    pass
+
 class Plugin(object):
     """Abstract interface for a Guild plugin."""
+
+    # pylint: disable=no-self-use
 
     name = None
 
     def init(self):
         pass
 
-    def models_for_location(self, location):
+    def models_for_location(self, _location):
         """Return a list or generator of models for location.
 
         A model must be a Python dict containing model attributes. See
@@ -45,8 +44,13 @@ class Plugin(object):
     def enabled_for_op(self, _op):
         return False
 
-    def run_op(self, name, _args):
-        raise NotImplementedError(name)
+    def run_op(self, op_spec, args):
+        """The plugin should run the specified operation.
+
+        Raises NotSupported if the plugin doesn't support the
+        operation.
+        """
+        raise NotSupported(op_spec, args)
 
     def patch_env(self):
         pass

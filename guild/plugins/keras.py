@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Lazy use of keras so disable some pylint checks.
+#
+# pylint: disable=import-error
+
 from __future__ import absolute_import
 
 import os
-import sys
-
 from guild import plugin_util
-from guild.plugin import Plugin
+from guild import plugin
 from guild.plugins import python_util
 
-class KerasPlugin(Plugin):
+class KerasPlugin(plugin.Plugin):
 
     def models_for_location(self, path):
         return python_util.script_models(
@@ -34,7 +36,7 @@ class KerasPlugin(Plugin):
         if name == "train":
             _train(args)
         else:
-            raise NotImplementedError(name)
+            raise plugin.NotSupported(name)
 
 def _is_keras_script(script):
     return _imports_keras(script) and _calls_fit_method(script)
@@ -116,7 +118,7 @@ def _find_tensorboard_cb(callbacks_list):
     return None
 
 def _on_set_tensorboard_params(_set_params, params):
-    run = current_run()
+    run = plugin_util.current_run()
     flags = {
         name: val
         for name, val in params.items()

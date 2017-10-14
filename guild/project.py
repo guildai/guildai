@@ -117,7 +117,8 @@ def _coerce_op_data(data):
     else:
         return data
 
-def from_dir(path, filenames=["MODELS", "MODEL"], use_plugins=True):
+def from_dir(path, filenames=None, use_plugins=True):
+    filenames = ["MODELS", "MODEL"] if filenames is None else filenames
     return guild.util.find_apply([
         lambda: _try_from_dir_file(path, filenames),
         lambda: _try_from_plugin(path) if use_plugins else None,

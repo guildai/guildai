@@ -40,7 +40,7 @@ class Script(object):
             try:
                 parsed = ast.parse(open(self.src, "r").read())
             except SyntaxError:
-                logging.exception("parsing %s", src)
+                logging.exception("parsing %s", self.src)
             else:
                 for node in ast.walk(parsed):
                     self._apply_node(node)
@@ -81,7 +81,6 @@ class Call(object):
 
     @staticmethod
     def _call_path(node):
-        node0_DELME = node
         parts = []
         while True:
             if isinstance(node, ast.Attribute):
@@ -109,6 +108,8 @@ class Result(Exception):
         self.value = value
 
 class MethodWrapper(object):
+
+    # pylint: disable=protected-access
 
     @staticmethod
     def for_method(m):
@@ -169,8 +170,10 @@ class MethodWrapper(object):
     def _unwrap(self):
         setattr(self._m.im_class, self._m.im_func.__name__, self._m)
 
-def scripts_for_location(location, exclude=[]):
-    import glob, fnmatch
+def scripts_for_location(location, exclude=None):
+    import glob
+    import fnmatch
+    exclude = [] if exclude is None else exclude
     return [
         Script(src)
         for src in glob.glob(os.path.join(location, "*.py"))

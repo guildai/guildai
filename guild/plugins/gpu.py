@@ -38,6 +38,8 @@ class GPUPlugin(SummaryPlugin):
 
     SUMMARY_NAME = "gpu stats"
 
+    _stats_cmd = None
+
     def init(self):
         self._stats_cmd = _stats_cmd()
 

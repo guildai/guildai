@@ -29,7 +29,7 @@ def main():
     if arg1[0] == "@":
         _try_plugin(arg1[1:], rest_args)
     else:
-        _try_module(arg1, rest_args);
+        _try_module(arg1, rest_args)
 
 def _init_logging():
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
@@ -66,16 +66,16 @@ def _try_plugin(plugin_op, args):
 def _parse_plugin_op(plugin_op):
     parts = plugin_op.split(":", 1)
     if len(parts) == 1:
-        _error("invalid plugin op: %s" % pligin_op)
+        _error("invalid plugin op: %s" % plugin_op)
     return parts
 
 def _run_plugin_op(plugin, op_spec, args):
     try:
-        plugin.run_op(op_spec, args)
-    except NotImplementedError:
+        plugin.op_for_spec(op_spec, args)
+    except guild.plugin.NotSupported:
         _error(
             "plugin '%s' does not support operation '%s'"
-            % (plugin_name, op_spec))
+            % (plugin.name, op_spec))
     except SystemExit as e:
         _handle_system_exit(e)
 
@@ -92,7 +92,7 @@ def _handle_system_exit(e):
         sys.stderr.write("\n")
         sys.exit(1)
 
-def _try_module(module_name, args):
+def _try_module(module_name, _args):
     logging.debug("finding module '%s'", module_name)
     try:
         module_info = imp.find_module(module_name)

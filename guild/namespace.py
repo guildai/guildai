@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import enum
 import importlib
 
 __namespace_classes__ = {
@@ -29,22 +28,29 @@ class NamespaceError(LookupError):
         super(NamespaceError, self).__init__(value)
         self.value = value
 
-Membership = enum.Enum("guild.namespace.Membership", "yes no maybe")
+
+class Membership(object):
+
+    yes = "yes"
+    no = "no"
+    maybe = "maybe"
 
 class Namespace(object):
 
+    # pylint: disable=no-self-use
+
     name = None
 
-    def pip_install_info(_self, _req):
+    def pip_install_info(self, _req):
         """Returns info for use in the pip install command.
 
         Return value is a tuple of name and a list of index URLs. The
         first index URL should be used as the primary index URL and
         subsequent URLs should be used as "extra" index URLs.
         """
-        raise NotImplementedException()
+        raise NotImplementedError()
 
-    def is_member(_self, _project_name):
+    def is_member(self, _project_name):
         """Returns a tuple of membership and package name for project name.
 
         Membership may be yes, no, or mabye.
@@ -54,8 +60,7 @@ class Namespace(object):
         If a namespace returns yes or maybe, package name must be the
         package name under the namespace.
         """
-        raise NotImplementedException()
-
+        raise NotImplementedError()
 
 class pypi(Namespace):
 

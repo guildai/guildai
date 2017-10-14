@@ -46,6 +46,9 @@ def runs(root=None, sort=None, filter=None):
     return runs
 
 def run_filter(name, *args):
+    # Disabling undefined-variable check to work around
+    # https://github.com/PyCQA/pylint/issues/760
+    # pylint: disable=undefined-variable
     if name.startswith("!"):
         name = name[1:]
         maybe_negate = lambda f: lambda r: not f(r)

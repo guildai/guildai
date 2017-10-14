@@ -14,12 +14,11 @@
 
 from __future__ import absolute_import
 
-import errno
+import logging
 import os
 import socket
 import sys
 
-import tensorflow as tf
 from werkzeug import serving
 
 from tensorboard import util
@@ -68,13 +67,8 @@ def run_simple_server(tb_app, host, port, ready_cb):
         ready_cb(url)
     server.serve_forever()
 
-def _handle_error(unused_request, client_address):
-    exc_info = sys.exc_info()
-    e = exc_info[1]
-    if isinstance(e, IOError) and e.errno == errno.EPIPE:
-        tf.logging.warn('EPIPE caused by %s:%d in HTTP serving' % client_address)
-    else:
-        tf.logging.error('HTTP serving error', exc_info=exc_info)
+def _handle_error(request, _client_address):
+    logging.exception("HTTP serving error: %s", request)
 
 def main(logdir, host, port,
          reload_interval=DEFAULT_RELOAD_INTERVAL,

@@ -65,7 +65,7 @@ def try_project_location_help(location, cmd_ctx=None):
     if location:
         help_parts.append("Try specifying a different location")
     else:
-         help_parts.append("Try specifying a project location")
+        help_parts.append("Try specifying a project location")
     if cmd_ctx:
         help_parts.append(
             " or '%s' for more information."

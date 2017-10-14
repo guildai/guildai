@@ -30,7 +30,7 @@ WARNING: Purged runs cannot be recovered!
 If a RUN is not specified, assumes all runs (i.e. as if ':' was
 specified).
 """ % runs_support.RUN_ARG_HELP)
-@click.argument("runs", metavar="[RUN...]",  nargs=-1)
+@click.argument("runs", metavar="[RUN...]", nargs=-1)
 @runs_support.run_scope_options
 @runs_support.run_filters
 @click.option(

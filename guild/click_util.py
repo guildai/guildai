@@ -74,8 +74,7 @@ def _format_usage_error(e):
         m = re.match(msg_pattern, msg)
         if m:
             return new_msg_pattern % m.groups()
-    else:
-        return msg
+    return msg
 
 def ctx_cmd_help(ctx):
     return "%s %s" % (_normalize_command_name(ctx.command_path),

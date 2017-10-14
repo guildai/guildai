@@ -150,6 +150,7 @@ py_library(
     ],
     deps = [
         "//third_party:click",
+        "//guild:cli",
         "//guild:click_util",
         "//guild:cmd_support",
         "//guild:var",

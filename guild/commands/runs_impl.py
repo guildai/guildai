@@ -58,7 +58,7 @@ def _runs_root_for_args(args, force_deleted):
 def _runs_filter(args, ctx):
     filters = []
     _apply_project_models_filter(args, filters, ctx)
-    _apply_arg_models_filter(args, filters, ctx)
+    _apply_arg_models_filter(args, filters)
     _apply_status_filter(args, filters)
     return guild.var.run_filter("all", filters)
 
@@ -82,7 +82,7 @@ def _maybe_warn_project_location_ignored(args):
 def _project_args(args, ctx):
     return guild.cmd_support.project_for_location(args.project_location, ctx)
 
-def _apply_arg_models_filter(args, filters, ctx):
+def _apply_arg_models_filter(args, filters):
     for model_name in getattr(args, "models", []):
         filters.append(_model_name_filter(model_name))
 
@@ -216,11 +216,11 @@ def _no_matching_run_error(id_part, cmd_ctx):
     guild.cli.error(
         "could not find run matching '%s'\n"
         "Try 'guild runs list' for a list or '%s' for more information."
-        % (id_part, click_util.ctx_help(cmd_ctx)))
+        % (id_part, click_util.ctx_cmd_help(cmd_ctx)))
 
 def _non_unique_run_id_error(matches):
     guild.cli.out("'%s' matches multiple runs:\n", err=True)
-    formatted = [_format_run(run) for run in runs_for_args(args, "list")]
+    formatted = [_format_run(run) for run in matches]
     cols = ["id", "op", "started", "status"]
     guild.cli.table(formatted, cols=cols, err=True)
 
@@ -292,7 +292,7 @@ def run_info(args, ctx):
     if len(selected) == 0:
         _no_selected_runs_error()
     elif len(selected) > 1:
-        _non_unique_run_id_error(matches)
+        _non_unique_run_id_error(selected)
     run = selected[0]
     formatted = _format_run(run)
     out = guild.cli.out

@@ -90,7 +90,7 @@ class RunsMonitor(threading.Thread):
             except ValueError:
                 pass
         for link_name in to_delete:
-            logging.debug("Removing %s" % link_name)
+            logging.debug("Removing %s", link_name)
             os.remove(os.path.join(self.logdir, link_name))
 
 def main(args, ctx):

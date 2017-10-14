@@ -15,8 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import os
-
 import guild.cli
 import guild.cmd_support
 import guild.op
@@ -140,7 +138,7 @@ def _maybe_quote_arg(arg):
     return '"%s"' % arg if " " in arg else arg
 
 def _print_op_env(op):
-    for name,val in sorted(op.cmd_env.items()):
+    for name, val in sorted(op.cmd_env.items()):
         guild.cli.out("export %s=%s" % (name, val))
 
 def _confirm_op(op):

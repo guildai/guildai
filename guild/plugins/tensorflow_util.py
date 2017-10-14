@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Lazy use of tensorflow so disable some pylint checks.
+#
+# pylint: disable=no-name-in-module
+
 from __future__ import absolute_import
 
 import time
@@ -50,7 +54,8 @@ class SummaryPlugin(Plugin):
             summary = tf_scalar_summary(vals)
             add_summary(summary, step)
 
-    def read_summary_values(self):
+    @staticmethod
+    def read_summary_values():
         return {}
 
 def tf_scalar_summary(vals):

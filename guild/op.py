@@ -14,7 +14,6 @@
 
 import logging
 import os
-import re
 import shlex
 import subprocess
 import sys
@@ -34,12 +33,14 @@ class InvalidCmd(ValueError):
 
 class Operation(object):
 
-    def __init__(self, name, cmd_args, cmd_env, attrs={}):
+    def __init__(self, name, cmd_args, cmd_env, attrs=None):
         self.name = name
         self.cmd_args = cmd_args
         self.cmd_env = cmd_env
-        self.attrs = attrs
+        self.attrs = attrs or {}
         self._running = False
+        self._started = None
+        self._stopped = None
         self._run = None
         self._proc = None
         self._exit_status = None

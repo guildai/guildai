@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-import os
-
 from pip.commands.install import InstallCommand
 from pip.utils import get_installed_distributions
-from pip.wheel import Wheel
 
 class Distribution(object):
 

@@ -17,8 +17,6 @@ from __future__ import division
 
 import click
 
-from guild import click_util
-
 from .packages_delete import delete_packages
 from .packages_info import package_info
 from .packages_list import list_packages

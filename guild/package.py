@@ -54,7 +54,7 @@ def apply_namespace(project_name):
             # Possible match, keep looking
             ns = maybe_ns
             pkg_name = maybe_pkg_name
-    assert ns, name
+    assert ns, project_name
     assert pkg_name
     if ns.name == DEFAULT_NAMESPACE:
         return pkg_name

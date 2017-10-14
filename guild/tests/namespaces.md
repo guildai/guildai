@@ -48,10 +48,10 @@ The test also returns the package name
 The `pypi` namespace test always returns maybe:
 
     >>> pypi_ns.is_member("mnist")
-    (<guild.namespace.Membership.maybe: 3>, 'mnist')
+    ('maybe', 'mnist')
 
     >>> pypi_ns.is_member("guild.mnist")
-    (<guild.namespace.Membership.maybe: 3>, 'guild.mnist')
+    ('maybe', 'guild.mnist')
 
 ## gpkg
 
@@ -77,12 +77,12 @@ The `gpkg` namespace will consider a project to be a member if it
 starts with `gpkg.`:
 
     >>> gpkg_ns.is_member("gpkg.mnist")
-    (<guild.namespace.Membership.yes: 1>, 'mnist')
+    ('yes', 'mnist')
 
 But not otherwise:
 
     >>> gpkg_ns.is_member("mnist")
-    (<guild.namespace.Membership.no: 2>, None)
+    ('no', None)
 
 ## Other namespaces
 

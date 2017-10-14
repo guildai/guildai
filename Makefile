@@ -17,7 +17,7 @@ check: $(GUILD)
 	$(GUILD) check $$opts; \
 
 lint:
-	PYTHONPATH=bazel-bin/guild/guild.runfiles/org_click pylint -rn guild
+	PYTHONPATH=bazel-bin/guild/guild.runfiles/org_click:bazel-bin/guild/guild.runfiles/org_tensorflow_tensorboard:bazel-bin/guild/guild.runfiles/org_psutil pylint -rn -f parseable guild
 
 clean:
 	bazel clean

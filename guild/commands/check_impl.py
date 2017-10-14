@@ -71,7 +71,7 @@ def _run_tests(ctx):
         if ctx.args.skip:
             logging.warn(
                 "running individual tests - ignoring --skip")
-        success = guild.test.run(args.tests)
+        success = guild.test.run(ctx.args.tests)
     if not success:
         ctx.error()
 
@@ -106,8 +106,8 @@ def _python_path():
 
 def _print_tensorflow_info(ctx):
     # Run externally to avoid tf logging to our stderr
-    import guild.tensorflow_info_main
-    cmd = [sys.executable, guild.tensorflow_info_main.__file__]
+    from . import tensorflow_info_main
+    cmd = [sys.executable, tensorflow_info_main.__file__]
     env = {
         "PYTHONPATH": os.path.pathsep.join(sys.path)
     }

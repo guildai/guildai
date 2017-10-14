@@ -15,6 +15,7 @@
 """Util functions used by plugins at op runtime.
 """
 
+import os
 import sys
 
 import guild.run

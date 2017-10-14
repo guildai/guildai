@@ -65,9 +65,20 @@ def _check_requires():
     import pkg_resources
     import guild
     try:
-        pkg_resources.require(*guild.__requires__)
+        pkg_resources.require(*_sort_reqs(guild.__requires__))
     except pkg_resources.DistributionNotFound as e:
         _handle_missing_req(e.req)
+
+def _sort_reqs(required):
+    # Make sure pip is listed first. pip is used to install other
+    # required packages and we want to check it first to direct
+    # the user to install it before checking other reqs.
+    def _cmp(x, y):
+        return (
+            -1 if x == "pip"
+            else cmp(x.lower(), y.lower())
+        )
+    return sorted(required, _cmp)
 
 def _handle_missing_req(req):
     msg_parts = ["guild: missing required package '%s'\n" % req]
