@@ -23,9 +23,9 @@ __version__ = "0.1.0-2"
 __requires__ = [
     "pip",
     "PyYAML",
-    "requests",
     "setuptools",
     "twine",
+    "werkzeug",
 ]
 
 def _try_init_git_attrs():

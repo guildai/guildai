@@ -170,6 +170,7 @@ py_library(
     srcs = ["tensorboard.py"],
     data = [
         "//third_party:tensorboard",
+        "//third_party:werkzeug",
     ],
     deps = [
     ],

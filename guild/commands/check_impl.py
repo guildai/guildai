@@ -33,8 +33,8 @@ CHECK_MODS = [
     "psutil",
     "setuptools",
     "twine",
-    "werkzeug",
     "yaml",
+    "werkzeug",
 ]
 
 class Context(object):

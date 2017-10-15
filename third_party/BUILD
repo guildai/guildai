@@ -24,6 +24,10 @@ py_library(
     name = "yaml"
 )
 
+py_library(
+    name = "werkzeug"
+)
+
 # The aliases below are used to normalize our references to third
 # party libraries.
 
