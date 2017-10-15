@@ -72,6 +72,8 @@ def free_port():
         sock.settimeout(0.1)
         try:
             sock.connect(('localhost', port))
+        except socket.timeout:
+            return port
         except socket.error as e:
             if e.errno == errno.ECONNREFUSED:
                 return port
