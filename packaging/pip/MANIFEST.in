@@ -1,6 +1,5 @@
 include guild/LICENSE.txt
 include guild/guild
-include guild/__guild_op_package__
 recursive-include guild/external *
 recursive-include guild/scripts *
 recursive-include guild/tests *

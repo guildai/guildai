@@ -20,4 +20,11 @@ cp packaging/pip/LICENSE.txt guild
 #find .
 #echo "### END FIND"
 
-python setup.py bdist_wheel --plat-name $PLATFORM_NAME -d "$OUT_DIR"
+python2 setup.py bdist_wheel --plat-name $PLATFORM_NAME -d "$OUT_DIR"
+python3 setup.py bdist_wheel --plat-name $PLATFORM_NAME -d "$OUT_DIR"
+
+echo "==================================================================="
+echo "Generated files"
+echo "==================================================================="
+ls "$OUT_DIR"
+echo "==================================================================="
