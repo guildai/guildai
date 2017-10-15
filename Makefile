@@ -29,5 +29,5 @@ commit-check:
 	make smoke-test
 	make lint
 
-pip-package-linux:
-	bazel build packaging/pip:linux
+pip-package:
+	bazel build packaging/pip
