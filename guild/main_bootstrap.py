@@ -84,7 +84,7 @@ def _handle_missing_req(req):
     if req.project_name == "pip":
         msg_parts.append(
             "Refer to https://pip.pypa.io/en/stable/installing "
-            "for more information.")
+            "for help installing pip.")
     else:
         msg_parts.append("Try 'pip install %s' to install the package." % req)
     sys.stderr.write("".join(msg_parts))
