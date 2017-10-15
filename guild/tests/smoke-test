@@ -13,7 +13,7 @@ check-guild() {
 }
 
 init-project() {
-    PROJECT=`mktemp -d --tmpdir guild-smoke-test-XXXXX`
+    PROJECT=`mktemp -d -t guild-smoke-test-XXXXX`
     git clone $EXAMPLES $PROJECT
 }
 
