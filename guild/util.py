@@ -20,16 +20,7 @@ import os
 import sys
 import time
 
-OS_ENVIRON_WHITELIST = [
-    "DISPLAY",
-    "EDITOR",
-    "LANG",
-    "LD_LIBRARY_PATH",
-    "SHELL",
-    "SSH_AGENT",
-    "SSH_AUTH_SOCK",
-    "TERM",
-]
+OS_ENVIRON_BLACKLIST = []
 
 class Stop(Exception):
     """Raise to stop loops started with `loop`."""
@@ -134,5 +125,5 @@ def safe_osenv():
     return {
         name: val
         for name, val in os.environ.items()
-        if name in OS_ENVIRON_WHITELIST
+        if name not in OS_ENVIRON_BLACKLIST
     }
