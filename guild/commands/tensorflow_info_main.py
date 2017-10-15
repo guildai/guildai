@@ -17,6 +17,7 @@ from __future__ import division
 
 import os
 import re
+import sys
 
 import click
 
@@ -26,6 +27,7 @@ def print_info():
     except ImportError as e:
         err = _warn("NOT INSTALLED (%s)" % e)
         click.echo("tensorflow_version:        %s" % err)
+        sys.exit(1)
     else:
         click.echo("tensorflow_version:        %s" % _version(tf))
         click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
