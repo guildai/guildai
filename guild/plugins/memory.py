@@ -22,7 +22,7 @@ class MemoryPlugin(SummaryPlugin):
     SUMMARY_NAME = "memory stats"
 
     def enabled_for_op(self, _op):
-        return True
+        return True, ""
 
     def read_summary_values(self):
         return _mem_stats()

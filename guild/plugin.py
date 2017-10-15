@@ -70,7 +70,7 @@ class Plugin(object):
             log = logging.info
         else:
             log = logging.debug
-        log("[%s] %s" % (self.name, msg), *args, **kw)
+        log("plugin '%s' %s" % (self.name, msg), *args, **kw)
 
 def init_plugins():
     """Called by system to initialize the list of available plugins.

@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import sys
 import time
 
 from guild.plugins.tensorflow_util import SummaryPlugin
@@ -28,7 +29,9 @@ class DiskPlugin(SummaryPlugin):
         self._last_disk = None
 
     def enabled_for_op(self, _op):
-        return True
+        if sys.platform == "darwin":
+            return False, "disk stats not supported on darwin platform (Mac)"
+        return True, ""
 
     def read_summary_values(self):
         return self._disk_stats()

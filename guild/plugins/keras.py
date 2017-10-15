@@ -27,7 +27,9 @@ class KerasPlugin(plugin.Plugin):
             path, _is_keras_script, _script_model)
 
     def enabled_for_op(self, op):
-        return op.cmd == "@keras:train"
+        if op.cmd != "@keras:train":
+            return False, "operation not supported by plugin"
+        return True, ""
 
     def run_op(self, name, args):
         if name == "train":

@@ -26,7 +26,7 @@ class CPUPlugin(SummaryPlugin):
         self._cpu_percent_init = False
 
     def enabled_for_op(self, _op):
-        return True
+        return True, ""
 
     def read_summary_values(self):
         return self._cpu_stats()

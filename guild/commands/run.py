@@ -26,8 +26,9 @@ def run_params(fn):
             ("-p", "--project", "project_location"), metavar="LOCATION",
             help="Project location (file system directory) for MODEL."),
         click.Option(
-            ("--disable-plugins",),
-            help="A comma separated list of plugin names to disable."),
+            ("--disable-plugins",), metavar="LIST",
+            help=("A comma separated list of plugin names to disable. "
+                  "Use 'all' to disable all plugins.")),
         click.Option(
             ("-y", "--yes"),
             help="Do not prompt before running operation.",

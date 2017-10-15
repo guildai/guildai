@@ -201,21 +201,23 @@ def _op_cmd_env(project_op):
 def _op_plugins(project_op):
     op_plugins = []
     for name, plugin in guild.plugin.iter_plugins():
-        enabled = (not _plugin_disabled_in_project(name, project_op) and
-                   _plugin_enabled_for_op(plugin, project_op))
+        if _plugin_disabled_in_project(name, project_op):
+            plugin_enabled = False
+            reason = "disabled by user config or model"
+        else:
+            plugin_enabled, reason = plugin.enabled_for_op(project_op)
         logging.debug(
-            "plugin '%s' %s for operation"
-            % (name, "enabled" if enabled else "disabled"))
-        if enabled:
+            "plugin '%s' %s%s" % (
+                name,
+                "enabled" if plugin_enabled else "disabled",
+                " (%s)" % reason if reason else ""))
+        if plugin_enabled:
             op_plugins.append(name)
     return ",".join(op_plugins)
 
 def _plugin_disabled_in_project(name, project_op):
-    return (name in project_op.disabled_plugins
-            or name in project_op.model.disabled_plugins)
-
-def _plugin_enabled_for_op(plugin, project_op):
-    return plugin.enabled_for_op(project_op)
+    disabled = project_op.disabled_plugins + project_op.model.disabled_plugins
+    return any([disabled_name in (name, "all") for disabled_name in disabled])
 
 def _python_path(project_op):
     paths = _model_paths(project_op) + _guild_paths()
