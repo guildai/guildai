@@ -203,7 +203,7 @@ def _op_plugins(project_op):
     for name, plugin in guild.plugin.iter_plugins():
         if _plugin_disabled_in_project(name, project_op):
             plugin_enabled = False
-            reason = "disabled by user config or model"
+            reason = "explicitly disabled by model or user config"
         else:
             plugin_enabled, reason = plugin.enabled_for_op(project_op)
         logging.debug(
