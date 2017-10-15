@@ -77,7 +77,7 @@ genrule(
     name = "ext_darwin_py2",
     srcs = psutil_srcs,
     outs = [
-        "psutil/_psutil_darwin.so",
+        "psutil/_psutil_osx.so",
     ],
     cmd = psutil_ext_cmd("python2", ""),
 )
@@ -86,8 +86,8 @@ genrule(
     name = "ext_darwin_py3",
     srcs = psutil_srcs,
     outs = [
-        "psutil/_psutil_linux.cpython-35m-x86_64-darwin.so",
-        "psutil/_psutil_posix.cpython-35m-x86_64-darwin.so",
+        "psutil/_psutil_osx.cpython-36m-darwin.so",
+        "psutil/_psutil_posix.cpython-36m-darwin.so",
     ],
     cmd = psutil_ext_cmd("python3", "psutil"),
 )
