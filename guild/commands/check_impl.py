@@ -139,9 +139,9 @@ def _print_mods_info(ctx):
 def _try_module_version(name, ctx):
     try:
         mod = __import__(name)
-    except ImportError:
+    except ImportError as e:
         ctx.error()
-        return _warn("NOT INSTALLED")
+        return _warn("NOT INSTALLED (%s)" % e)
     else:
         try:
             return mod.__version__

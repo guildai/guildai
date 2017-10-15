@@ -21,36 +21,16 @@ import re
 import click
 
 def print_info():
-    tf = _try_import_tensorflow()
-    if tf is None:
-        _handle_tf_not_installed()
-    else:
-        _print_info(tf)
-
-def _try_import_tensorflow():
     try:
-        import tensorflow
+        import tensorflow as tf
     except ImportError as e:
-        msg = str(e)
-        if not msg.startswith("No module named "):
-            click.echo(_warn("Error importing tensorflow:"))
-            click.echo(msg)
-        return None
+        err = _warn("NOT INSTALLED (%s)" % e)
+        click.echo("tensorflow_version:        %s" % err)
     else:
-        return tensorflow
-
-def _handle_tf_not_installed():
-    click.echo("tensorflow_version:        %s" % _warn("NOT INSTALLED"))
-    raise SystemExit(1)
-
-def _warn(msg, bold=False):
-    return click.style(msg, fg="red", bold=bold)
-
-def _print_info(tf):
-    click.echo("tensorflow_version:        %s" % _version(tf))
-    click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
-    click.echo("tensorflow_gpu_available:  %s" % _gpu_available(tf))
-    _print_cuda_info()
+        click.echo("tensorflow_version:        %s" % _version(tf))
+        click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
+        click.echo("tensorflow_gpu_available:  %s" % _gpu_available(tf))
+        _print_cuda_info()
 
 def _version(tf):
     return tf.__version__
@@ -77,6 +57,9 @@ def _print_cuda_info():
             click.echo("%s_version:%s%s" % (name, space, m.group(1)))
         else:
             click.echo("%s_version:%snot loaded" % (name, space))
+
+def _warn(msg):
+    return click.style(msg, fg="red", bold=True)
 
 if __name__ == "__main__":
     print_info()
