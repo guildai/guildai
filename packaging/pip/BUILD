@@ -47,8 +47,8 @@ genrule(
         "setup.py",
     ],
     outs = [
-        "guildai-0.1.1.cp27-cp27m-macosx_10_13_x86_64.whl",
-        "guildai-0.1.1.cp36-cp36m-macosx_10_13_x86_64.whl",
+        "guildai-0.1.1-cp27-cp27m-macosx_10_13_x86_64.whl",
+        "guildai-0.1.1-cp36-cp36m-macosx_10_13_x86_64.whl",
     ],
 )
 
