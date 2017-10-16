@@ -8,6 +8,11 @@ $(GUILD): build
 pip-package:
 	bazel build packaging/pip
 
+pip-upload:
+	rm -f bazel-genfiles/packaging/pip/*
+	make pip-package
+	twine upload -si packages@guild.ai -u guildai bazel-genfiles/packaging/pip/*.whl
+
 check: $(GUILD)
 	@if [ -z "$(TESTS)" ]; then \
 	  opts="--tests"; \
