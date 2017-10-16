@@ -8,10 +8,6 @@ GUILD="$(realpath $(dirname $0)/../../bazel-bin/guild/guild)"
 EXAMPLES=https://github.com/guildai/guild-examples.git
 MODEL=mnist2
 
-check-guild() {
-    $GUILD check --tests
-}
-
 init-project() {
     PROJECT=`mktemp -d -t guild-smoke-test-XXXXX`
     git clone $EXAMPLES $PROJECT
@@ -32,7 +28,6 @@ cleanup() {
     rm -rf "$PROJECT"
 }
 
-check-guild
 init-project
 train
 if [ -z "${KEEP:-}" ] ; then
