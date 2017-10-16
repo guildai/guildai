@@ -23,7 +23,6 @@ import threading
 import time
 
 import guild.cli
-import guild.tensorboard
 import guild.util
 
 from . import runs_impl
@@ -94,11 +93,12 @@ class RunsMonitor(threading.Thread):
             os.remove(os.path.join(self.logdir, link_name))
 
 def main(args, ctx):
+    tensorboard = _load_guild_tensorboard_module()
     logdir = tempfile.mkdtemp(prefix="guild-view-logdir-")
     logging.debug("Using logdir %s", logdir)
     monitor = RunsMonitor(logdir, args, ctx)
     monitor.start()
-    guild.tensorboard.main(
+    tensorboard.main(
         logdir=logdir,
         host=(args.host or ""),
         port=(args.port or guild.util.free_port()),
@@ -108,6 +108,26 @@ def main(args, ctx):
     monitor.stop()
     _cleanup(logdir)
     guild.cli.out()
+
+def _load_guild_tensorboard_module():
+    try:
+        from guild import tensorboard
+    except ImportError as e:
+        _handle_tensorboard_import_error(e)
+    else:
+        return tensorboard
+
+def _handle_tensorboard_import_error(e):
+    if e.message == 'No module named tensorflow':
+        guild.cli.out(
+            "TensorBoard cannot not be started because TensorFlow is not "
+            "installed.\n"
+            "Refer to https://www.tensorflow.org/install/ for help "
+            "installing TensorFlow on your system.",
+            err=True)
+    else:
+        guild.cli.out("TensorBoard could not be started (%s)" % e, err=True)
+    guild.cli.error()
 
 def _format_run_name(run):
     op = run.get("op", "")

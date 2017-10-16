@@ -16,6 +16,7 @@ py_library(
     name = "tensorflow_util",
     srcs = ["tensorflow_util.py"],
     deps = [
+        "//third_party:tensorflow",
         "//guild:plugin",
         ":python_util",
     ],

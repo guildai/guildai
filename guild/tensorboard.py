@@ -20,10 +20,31 @@ import os
 import socket
 import sys
 
+import pkg_resources
 from werkzeug import serving
 
-from tensorboard import util
+# Proactively check imports for tensorflow and tensorboard. Check
+# tensorflow first because import problems with tensorboard are likely
+# a result of TensorFlow not being installed.
+
+# pylint: disable=unused-import,wrong-import-order
+
+import tensorflow as _dummy
 from tensorboard import version
+
+# Check tensorboard version against our requirements. Indicate error
+# as ImportError with the current version and unmet requirement as
+# additional arguments.
+
+_req = pkg_resources.Requirement("tensorflow-tensorboard >= 0.1.5, < 0.5.0")
+if version.VERSION not in _req:
+    logging.warning(
+        "installed version of tensorboard (%s) does not meet the "
+        "requirement %s", version.VERSION, _req)
+
+# pylint: disable=wrong-import-position
+
+from tensorboard import util
 from tensorboard.backend import application
 from tensorboard.plugins.audio import audio_plugin
 from tensorboard.plugins.core import core_plugin
@@ -31,7 +52,6 @@ from tensorboard.plugins.distribution import distributions_plugin
 from tensorboard.plugins.graph import graphs_plugin
 from tensorboard.plugins.histogram import histograms_plugin
 from tensorboard.plugins.image import images_plugin
-from tensorboard.plugins.pr_curve import pr_curves_plugin
 from tensorboard.plugins.profile import profile_plugin
 from tensorboard.plugins.projector import projector_plugin
 from tensorboard.plugins.scalar import scalars_plugin
@@ -46,8 +66,7 @@ def create_app(plugins, logdir, reload_interval):
         logdir=os.path.expanduser(logdir),
         purge_orphaned_data=False,
         reload_interval=reload_interval,
-        plugins=plugins,
-        path_prefix="")
+        plugins=plugins)
 
 def make_simple_server(app, host, port):
     server = serving.make_server(host, port, app, threaded=True)
@@ -83,7 +102,6 @@ def main(logdir, host, port,
         graphs_plugin.GraphsPlugin,
         distributions_plugin.DistributionsPlugin,
         histograms_plugin.HistogramsPlugin,
-        pr_curves_plugin.PrCurvesPlugin,
         projector_plugin.ProjectorPlugin,
         text_plugin.TextPlugin,
         profile_plugin.ProfilePlugin,

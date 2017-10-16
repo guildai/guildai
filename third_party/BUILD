@@ -17,6 +17,14 @@ py_library(
 )
 
 py_library(
+    name = "tensorboard"
+)
+
+py_library(
+    name = "tensorflow"
+)
+
+py_library(
     name = "twine"
 )
 
@@ -28,17 +36,12 @@ py_library(
     name = "werkzeug"
 )
 
-# The aliases below are used to normalize our references to third
-# party libraries.
+# The aliases below are used to normalize references to third party
+# libraries that are included with Guild.
 
 alias(
     name = "click",
     actual = "@org_click",
-)
-
-alias(
-    name = "tensorboard",
-    actual = "@org_tensorflow_tensorboard//tensorboard",
 )
 
 alias(

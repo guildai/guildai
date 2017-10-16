@@ -168,11 +168,11 @@ py_library(
 py_library(
     name = "tensorboard",
     srcs = ["tensorboard.py"],
-    data = [
-        "//third_party:tensorboard",
-        "//third_party:werkzeug",
-    ],
     deps = [
+        "//third_party:setuptools",
+        "//third_party:tensorboard",
+        "//third_party:tensorflow",
+        "//third_party:werkzeug",
     ],
 )
 

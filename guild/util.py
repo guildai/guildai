@@ -20,7 +20,9 @@ import os
 import sys
 import time
 
-OS_ENVIRON_BLACKLIST = []
+OS_ENVIRON_BLACKLIST = [
+    "PYTHONPATH", # unsafe - must be set explicitly
+]
 
 class Stop(Exception):
     """Raise to stop loops started with `loop`."""

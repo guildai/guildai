@@ -19,15 +19,9 @@ import imp
 import os
 import sys
 
-EXTERNAL_PATHS = [
-    # Paths required by tensorboard.
+runfile_import_paths = [
     "org_click",
-    "org_html5lib",
-    "org_mozilla_bleach",
     "org_psutil",
-    "org_pythonhosted_markdown",
-    "org_tensorflow_tensorboard",
-    "protobuf/python",
 ]
 
 def main():
@@ -37,34 +31,19 @@ def main():
     guild.main.main()
 
 def _external_import_paths():
-    external_root = _external_root()
-    return [
-        _external_import_path(path, external_root)
-        for path in EXTERNAL_PATHS
-    ]
+    paths = _external_dirs() or _bazel_runfile_dirs()
+    assert paths, "count not find external paths"
+    return paths
 
-def _external_root():
-    root = _package_external_dir() or _bazel_runfiles_dir()
-    assert root, "could not find external root"
-    return root
-
-def _package_external_dir():
+def _external_dirs():
     guild_pkg_dir = os.path.dirname(__file__)
     external_dir = os.path.join(guild_pkg_dir, "external")
-    return external_dir if os.path.exists(external_dir) else None
+    return [external_dir] if os.path.exists(external_dir) else None
 
-def _bazel_runfiles_dir():
+def _bazel_runfile_dirs():
     script_dir = os.path.dirname(sys.argv[0])
     runfiles_dir = os.path.join(script_dir, "guild.runfiles")
-    return runfiles_dir if os.path.exists(runfiles_dir) else None
-
-def _external_import_path(path, root):
-    if isinstance(path, tuple):
-        if sys.version_info[0] == 2:
-            path = path[0]
-        else:
-            path = path[1]
-    return os.path.join(root, path)
+    return [os.path.join(runfiles_dir, path) for path in runfile_import_paths]
 
 def _check_requires():
     import guild

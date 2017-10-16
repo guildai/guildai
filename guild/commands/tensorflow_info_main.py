@@ -22,6 +22,10 @@ import sys
 import click
 
 def print_info():
+    _print_tensorflow_info()
+    _print_tensorboard_info()
+
+def _print_tensorflow_info():
     try:
         import tensorflow as tf
     except ImportError as e:
@@ -29,12 +33,12 @@ def print_info():
         click.echo("tensorflow_version:        %s" % err)
         sys.exit(1)
     else:
-        click.echo("tensorflow_version:        %s" % _version(tf))
+        click.echo("tensorflow_version:        %s" % _tf_version(tf))
         click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
         click.echo("tensorflow_gpu_available:  %s" % _gpu_available(tf))
         _print_cuda_info()
 
-def _version(tf):
+def _tf_version(tf):
     return tf.__version__
 
 def _cuda_support(tf):
@@ -59,6 +63,14 @@ def _print_cuda_info():
             click.echo("%s_version:%s%s" % (name, space, m.group(1)))
         else:
             click.echo("%s_version:%snot loaded" % (name, space))
+
+def _print_tensorboard_info():
+    try:
+        import tensorboard.version as version
+    except ImportError as e:
+        click.echo("tensorboard_version:       %s" % _warn("NOT INSTALLED (%s)" % e))
+    else:
+        click.echo("tensorboard_version:       %s" % version.VERSION)
 
 def _warn(msg):
     return click.style(msg, fg="red", bold=True)

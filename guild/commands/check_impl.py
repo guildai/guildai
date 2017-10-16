@@ -111,10 +111,8 @@ def _print_tensorflow_info(ctx):
     # Run externally to avoid tf logging to our stderr
     from . import tensorflow_info_main
     cmd = [sys.executable, tensorflow_info_main.__file__]
-    env = {
-        "PYTHONPATH": os.path.pathsep.join(sys.path)
-    }
-    env.update(guild.util.safe_osenv())
+    env = guild.util.safe_osenv()
+    env["PYTHONPATH"] = os.path.pathsep.join(sys.path)
     stderr = None if ctx.args.verbose else open(os.devnull, "w")
     p = subprocess.Popen(cmd, stderr=stderr, env=env)
     exit_status = p.wait()

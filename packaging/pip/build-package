@@ -17,15 +17,23 @@ cp packaging/pip/MANIFEST.in .
 # Guild source
 rm -rf guild
 cp -R bazel-out/host/bin/guild/guild.runfiles/org_guildai_guild/guild guild
-cp -R bazel-out/host/bin/guild/guild.runfiles/org_guildai_guild/external guild/external
 cp packaging/pip/LICENSE.txt guild
 
+# External deps shipped with Guild
+mkdir guild/external
+for path in bazel-out/host/bin/guild/guild.runfiles/org_guildai_guild/external/*; do
+    maybe_pkg=$path
+    if [ -d $maybe_pkg ]; then
+        cp -R $maybe_pkg/* guild/external/
+    fi
+done
+
+# Build wheels
 if [ -z "$PLATFORM_NAME" ]; then
     PLATFORM_NAME_OPT=""
 else
     PLATFORM_NAME_OPT="--plat-name=$PLATFORM_NAME"
 fi
-
 python2 setup.py bdist_wheel $PLATFORM_NAME_OPT -d "$OUT_DIR"
 python3 setup.py bdist_wheel $PLATFORM_NAME_OPT -d "$OUT_DIR"
 
