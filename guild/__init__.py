@@ -26,7 +26,7 @@ __requires__ = [
     ("yaml", "PyYAML"),
     ("setuptools", "setuptools"),
     ("twine", "twine"),
-    ("werkzeug", "werkzeug"),
+    ("werkzeug", "Werkzeug"),
 ]
 
 def _try_init_git_attrs():
