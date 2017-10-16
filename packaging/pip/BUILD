@@ -1,5 +1,7 @@
 package(default_visibility = ["//visibility:private"])
 
+guild_version = "0.1.2"
+
 filegroup(
     name = "pip",
     srcs = select({
@@ -25,8 +27,8 @@ genrule(
         "setup.py",
     ],
     outs = [
-        "guildai-0.1.1-cp27-cp27mu-manylinux1_x86_64.whl",
-        "guildai-0.1.1-cp35-cp35m-manylinux1_x86_64.whl",
+        "guildai-" + guild_version + "-cp27-cp27mu-manylinux1_x86_64.whl",
+        "guildai-" + guild_version + "-cp35-cp35m-manylinux1_x86_64.whl",
     ],
 )
 
@@ -47,8 +49,8 @@ genrule(
         "setup.py",
     ],
     outs = [
-        "guildai-0.1.1-cp27-cp27m-macosx_10_13_x86_64.whl",
-        "guildai-0.1.1-cp36-cp36m-macosx_10_13_x86_64.whl",
+        "guildai-" + guild_version + "-cp27-cp27m-macosx_10_13_x86_64.whl",
+        "guildai-" + guild_version + "-cp36-cp36m-macosx_10_13_x86_64.whl",
     ],
 )
 
