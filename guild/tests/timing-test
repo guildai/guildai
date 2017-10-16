@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+import os
+import subprocess
+import sys
+import time
+
+# We need to make sure Guild starts quickly by default (no
+# command). This threshold needs to be below what a user would
+# consider even a "sligh pause" in start time.
+#
+# See the error message below for help resolving a failed test.
+
+START_THRESHOLD = 0.08
+
+t0 = time.time()
+subprocess.check_call("bazel-bin/guild/guild", stdout=open(os.devnull, "w"))
+t1 = time.time()
+
+run_time = t1 - t0
+print("Guild took %s seconds to start: " % run_time, end="")
+if run_time > START_THRESHOLD:
+    print("FAILED")
+    print(
+        "\nThis fails the start threshold of %.3f seconds! Check recently added import\n"
+        "statements or other code that is being executed in the startup chain (i.e. \n"
+        "main_bootstrap -> main -> main_cmd -> commands.xxx_cmd). None of this code\n"
+        "should do anything beyond setting up sys.path, very basic and fast env checks,\n"
+        "and CLI interface buildout."
+        % START_THRESHOLD
+    )
+    sys.exit(1)
+else:
+    print("OK")

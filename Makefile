@@ -5,6 +5,9 @@ build:
 
 $(GUILD): build
 
+pip-package:
+	bazel build packaging/pip
+
 check: $(GUILD)
 	@if [ -z "$(TESTS)" ]; then \
 	  opts="--tests"; \
@@ -25,9 +28,12 @@ clean:
 smoke-test:
 	guild/tests/smoke-test
 
-commit-check:
-	make smoke-test
-	make lint
+timing-test:
+	guild/tests/timing-test
 
-pip-package:
-	bazel build packaging/pip
+commit-check:
+	make check
+	make lint
+	make timing-test
+	make smoke-test
+	@echo "Commit check passed on `python --version 2>&1`!"

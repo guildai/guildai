@@ -21,11 +21,12 @@ import subprocess
 __version__ = "0.1.0-2"
 
 __requires__ = [
-    "pip",
-    "PyYAML",
-    "setuptools",
-    "twine",
-    "werkzeug",
+    # (<required module>, <distutils package req>)
+    ("pip", "pip"),
+    ("yaml", "PyYAML"),
+    ("setuptools", "setuptools"),
+    ("twine", "twine"),
+    ("werkzeug", "werkzeug"),
 ]
 
 def _try_init_git_attrs():
