@@ -21,7 +21,7 @@ train() {
 }
 
 cleanup() {
-    if [[ "$PROJECT" != *"guild-smoke-test"* ]]; then
+    if [[ "$PROJECT" != */guild-smoke-test* ]]; then
         echo "unexpected project dir $PROJECT, refusing to cleanup"
         exit 1
     fi
