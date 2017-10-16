@@ -207,10 +207,10 @@ def _op_plugins(project_op):
         else:
             plugin_enabled, reason = plugin.enabled_for_op(project_op)
         logging.debug(
-            "plugin '%s' %s%s" % (
-                name,
-                "enabled" if plugin_enabled else "disabled",
-                " (%s)" % reason if reason else ""))
+            "plugin '%s' %s%s",
+            name,
+            "enabled" if plugin_enabled else "disabled",
+            " (%s)" % reason if reason else "")
         if plugin_enabled:
             op_plugins.append(name)
     return ",".join(op_plugins)
