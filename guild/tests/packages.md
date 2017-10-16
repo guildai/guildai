@@ -8,12 +8,6 @@ installed and managed using `pip` commands.
 
     >>> import guild.package
 
-Because packages are tied to namespace support, we have to initialize
-Guild namespaces before running tests.
-
-    >>> import guild.namespace
-    >>> guild.namespace.init_namespaces()
-
 Package names include namespaces, either by explicitly including a
 namespace, or implicitly by way of a default namespace.
 

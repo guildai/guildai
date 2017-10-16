@@ -27,7 +27,6 @@ def main():
     _init_logging()
     logging.debug("sys.path: %s", os.path.pathsep.join(sys.path))
     arg1, rest_args = _parse_args()
-    _init_plugins()
     _apply_plugins()
     if arg1[0] == "@":
         _try_plugin(arg1[1:], rest_args)
@@ -43,9 +42,6 @@ def _parse_args():
     if len(sys.argv) < 2:
         _error("missing required arg\n")
     return sys.argv[1], sys.argv[2:]
-
-def _init_plugins():
-    guild.plugin.init_plugins()
 
 def _apply_plugins():
     env = os.getenv("GUILD_PLUGINS")

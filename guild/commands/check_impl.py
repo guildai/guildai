@@ -26,7 +26,9 @@ import click
 
 import guild
 import guild.cli
+import guild.plugin
 import guild.test
+import guild.util
 
 CHECK_MODS = [
     "pip",

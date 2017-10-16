@@ -41,7 +41,9 @@ py_library(
         "//guild:__init__",
         "//guild:click_util",
         "//guild:cli",
+        "//guild:plugin",
         "//guild:test",
+        "//guild:util",
     ],
 )
 

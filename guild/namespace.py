@@ -88,20 +88,6 @@ class gpkg(pypi):
         else:
             return Membership.no, None
 
-def init_namespaces():
-    """Called by system to initialize the list of available namespaces.
-
-    This function must be called prior to using `iter_namespaces` or
-    `for_name`.
-    """
-    # As there's no overhead in creating any of the namespaces here,
-    # we preemptively create them in init. If at any point we open
-    # this up to custom namespaces, or any of our namespaces perform
-    # work during init, we need to be lazy with our init here (see
-    # e.g. guild.plugin.init_plugins).
-    for name, cls in __namespace_classes__.items():
-        __namespaces__[name] = _init_namespace(cls, name)
-
 def _init_namespace(class_name, name):
     mod_name, class_attr = class_name.rsplit(".", 1)
     ns_mod = importlib.import_module(mod_name)
@@ -119,3 +105,9 @@ def for_name(name):
         return __namespaces__[name]
     except KeyError:
         raise NamespaceError(name)
+
+# Actively init namespaces here as there's no overhead to any of them
+# currently.
+
+for name, cls in __namespace_classes__.items():
+    __namespaces__[name] = _init_namespace(cls, name)

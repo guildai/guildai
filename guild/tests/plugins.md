@@ -4,10 +4,6 @@ Plugin support is providedy by `guild.plugin`:
 
     >>> import guild.plugin
 
-We need to explicitly initialize plugins by calling `init_plugins`:
-
-    >>> guild.plugin.init_plugins()
-
 ## Enumerating plugins
 
 Use `iter_plugins` to iterate through the list of available plugins:

@@ -22,7 +22,7 @@ PLUGIN_PACKAGES = [
     "guild.plugins",
 ]
 
-__plugins__ = {}
+__plugins__ = None
 
 class NotSupported(Exception):
     pass
@@ -75,14 +75,17 @@ class Plugin(object):
 def init_plugins():
     """Called by system to initialize the list of available plugins.
 
-    This function must be called prior to using `iter_plugins` or
-    `for_name`.
-    """
+def _plugins():
+    if __plugins__ is not None:
+        return __plugins__
+    plugins = {}
     for pkg in PLUGIN_PACKAGES:
         pkg_mod = importlib.import_module(pkg)
         plugins_map = getattr(pkg_mod, "__plugins__", {})
         for plugin_name, class_name in plugins_map.items():
-            __plugins__[plugin_name] = _full_class_name(pkg_mod, class_name)
+            plugins[plugin_name] = _full_class_name(pkg_mod, class_name)
+    globals()["__plugins__"] = plugins
+    return plugins
 
 def _full_class_name(pkg_mod, class_name):
     if class_name.startswith("."):
@@ -92,8 +95,6 @@ def _full_class_name(pkg_mod, class_name):
 
 def iter_plugins():
     """Returns an interation of available plugin names.
-
-    `init_plugins` must be called before calling this function.
 
     Uses a list of plugin packages to enumerate named plugin
     classes. Plugin packages must provide a `__plugins__` attribute
@@ -111,25 +112,24 @@ def iter_plugins():
     Use 'for_name' to return a plugin instance for an iteration value.
 
     """
-    for name in __plugins__:
+    for name in _plugins():
         yield name, for_name(name)
 
 def for_name(name):
     """Returns a Guild plugin instance for a name.
 
-    `init_plugins` must be called before calling this function.
-
     Name must be a valid plugin name as returned by `iter_plugins`.
     """
+    plugins = _plugins()
     try:
-        plugin = __plugins__[name]
+        plugin = plugins[name]
     except KeyError:
         raise LookupError(name)
     else:
         if isinstance(plugin, str):
             logging.debug("initializing plugin '%s' (%s)", name, plugin)
             plugin = _init_plugin(plugin, name)
-            __plugins__[name] = plugin
+            plugins[name] = plugin
         return plugin
 
 def _init_plugin(class_name, name):

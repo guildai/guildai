@@ -8,11 +8,6 @@ A namespace is a component of a Guild package reference. A namespace
 is a package term (alpha-numeric string that may include dashes and
 underscores) preceded by a '@' character.
 
-Before using namespaces in Guild, we need to explicitly initialize
-them.
-
-    >>> guild.namespace.init_namespaces()
-
 The following namespaces are supported:
 
     >>> sorted(guild.namespace.iter_namespaces())
