@@ -34,6 +34,6 @@ timing-test:
 commit-check:
 	make check
 	make lint
-	make timing-test
 	make smoke-test
+	make timing-test
 	@echo "Commit check passed on `python --version 2>&1`!"
