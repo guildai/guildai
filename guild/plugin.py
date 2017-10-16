@@ -72,9 +72,6 @@ class Plugin(object):
             log = logging.debug
         log("plugin '%s' %s" % (self.name, msg), *args, **kw)
 
-def init_plugins():
-    """Called by system to initialize the list of available plugins.
-
 def _plugins():
     if __plugins__ is not None:
         return __plugins__
