@@ -36,7 +36,9 @@ from tensorboard import version
 # as ImportError with the current version and unmet requirement as
 # additional arguments.
 
-_req = pkg_resources.Requirement("tensorflow-tensorboard >= 0.1.5, < 0.5.0")
+_req = pkg_resources.Requirement.parse(
+    "tensorflow-tensorboard >= 0.1.5, < 0.5.0")
+
 if version.VERSION not in _req:
     logging.warning(
         "installed version of tensorboard (%s) does not meet the "
