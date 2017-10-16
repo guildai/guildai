@@ -31,11 +31,11 @@ class KerasPlugin(plugin.Plugin):
             return False, "operation not supported by plugin"
         return True, ""
 
-    def run_op(self, name, args):
-        if name == "train":
+    def run_op(self, op_spec, args):
+        if op_spec == "train":
             _train(args)
         else:
-            raise plugin.NotSupported(name)
+            raise plugin.NotSupported(op_spec)
 
 def _is_keras_script(script):
     return _imports_keras(script) and _calls_fit_method(script)
@@ -60,7 +60,7 @@ def _script_model(script):
     }
 
 def _train(args0):
-    # pylint: disable=import-error
+    # pylint: disable=import-error,unused-variable
     try:
         import keras
     except ImportError:
