@@ -35,7 +35,7 @@ setup(
     name="guildai",
     version=guild.__version__,
     description="The essential TensorFlow developer toolkit",
-    install_requires=guild.__requires__,
+    install_requires=[req for _, req in guild.__requires__],
     long_description=README(),
     url="https://github.com/guildai/guild-python",
     maintainer="Guild AI",

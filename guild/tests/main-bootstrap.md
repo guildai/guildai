@@ -21,9 +21,18 @@ Here is the order that Guild requirements are checked:
 
     >>> import guild
     >>> pprint(main_bootstrap._sort_reqs(guild.__requires__))
-    ['pip', 'PyYAML', 'setuptools', 'twine', 'werkzeug']
+    [('pip', 'pip'),
+     ('setuptools', 'setuptools'),
+     ('twine', 'twine'),
+     ('werkzeug', 'werkzeug'),
+     ('yaml', 'PyYAML')]
 
 Here's a fake list where pip is listed first:
 
-    >>> pprint(main_bootstrap._sort_reqs(["a", "b", "z", "pip"]))
-    ['pip', 'a', 'b', 'z']
+    >>> pprint(main_bootstrap._sort_reqs([
+    ...   ("a", "a"),
+    ...   ("b", "b"),
+    ...   ("z", "z"),
+    ...   ("pip", "pip")
+    ... ]))
+    [('pip', 'pip'), ('a', 'a'), ('b', 'b'), ('z', 'z')]

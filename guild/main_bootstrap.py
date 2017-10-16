@@ -15,10 +15,12 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import imp
 import os
 import sys
 
 EXTERNAL_PATHS = [
+    # Paths required by tensorboard.
     "org_click",
     "org_html5lib",
     "org_mozilla_bleach",
@@ -65,23 +67,25 @@ def _external_import_path(path, root):
     return os.path.join(root, path)
 
 def _check_requires():
-    import pkg_resources
     import guild
-    for pkg in _sort_reqs(guild.__requires__):
+    for mod_name, req in _sort_reqs(guild.__requires__):
         try:
-            pkg_resources.require(pkg)
-        except pkg_resources.DistributionNotFound as e:
-            _handle_missing_req(e.req)
+            imp.find_module(mod_name)
+        except ImportError:
+            _handle_missing_req(req)
 
 def _sort_reqs(required):
     # Make sure pip is listed first. pip is used to install other
     # required packages and we want to check it first to direct
     # the user to install it before checking other reqs.
-    return sorted(required, key=lambda x: "" if x == "pip" else x.lower())
+    return sorted(
+        required,
+        key=lambda spec: ("" if spec[0] == "pip"
+                          else spec[0].lower()))
 
 def _handle_missing_req(req):
     msg_parts = ["guild: missing required package '%s'\n" % req]
-    if req.project_name == "pip":
+    if req.startswith("pip"):
         msg_parts.append(
             "Refer to https://pip.pypa.io/en/stable/installing "
             "for help installing pip.")
