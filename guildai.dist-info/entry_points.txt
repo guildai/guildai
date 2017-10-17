@@ -1,3 +1,11 @@
 [console_scripts]
+
 guild = guild.main_bootstrap:main
 
+[guild.plugins]
+
+cpu = guild.plugins.cpu:CPUPlugin
+disk = guild.plugins.disk:DiskPlugin
+gpu = guild.plugins.gpu:GPUPlugin
+keras = guild.plugins.keras:KerasPlugin
+memory = guild.plugins.memory:MemoryPlugin

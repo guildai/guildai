@@ -16,6 +16,7 @@ py_library(
         ":projects",
         ":plugin-python-utils",
         ":plugins",
+        ":resources",
         ":runs",
         ":tables",
         ":var",
@@ -128,6 +129,15 @@ py_library(
     deps = [
         "//guild:project",
     ],
+)
+
+py_library(
+    name = "resources",
+    data = ["resources.md"],
+    deps = [
+        "//third_party:setuptools",
+        "//guild/plugins",
+   ],
 )
 
 py_library(

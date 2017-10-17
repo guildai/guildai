@@ -25,7 +25,11 @@ def guild_dist_info():
     metadata = PathMetadata(".", guild_dist_basename)
     dist = PkgDist.from_filename(guild_dist_basename, metadata)
     assert dist.project_name == "guildai", dist
-    return dist, dist._parsed_pkg_info
+    entry_points = {
+        group: [str(ep) for ep in eps.values()]
+        for group, eps in dist.get_entry_map().items()
+    }
+    return dist._parsed_pkg_info, entry_points
 
 def guild_packages():
     return find_packages(exclude=["guild.tests", "guild.tests.*"])
@@ -34,7 +38,7 @@ class BinaryDistribution(Distribution):
     def has_ext_modules(self):
         return True
 
-DIST, PKG_INFO = guild_dist_info()
+PKG_INFO, ENTRY_POINTS = guild_dist_info()
 
 setup(
     # Attributes from dist-info
@@ -46,7 +50,7 @@ setup(
     url=PKG_INFO.get("Home-page"),
     maintainer=PKG_INFO.get("Author"),
     maintainer_email=PKG_INFO.get("Author-email"),
-    entry_points=DIST.get_entry_map(),
+    entry_points=ENTRY_POINTS,
     classifiers=PKG_INFO.get_all("Classifier"),
     license=PKG_INFO.get("License"),
     keywords=PKG_INFO.get("Keywords"),
