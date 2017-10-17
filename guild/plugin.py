@@ -18,11 +18,7 @@ from __future__ import division
 import importlib
 import logging
 
-PLUGIN_PACKAGES = [
-    "guild.plugins",
-]
-
-__plugins__ = None
+__plugins = None
 
 class NotSupported(Exception):
     pass
@@ -73,22 +69,44 @@ class Plugin(object):
         log("plugin '%s' %s" % (self.name, msg), *args, **kw)
 
 def _plugins():
-    if __plugins__ is not None:
-        return __plugins__
-    plugins = {}
-    for pkg in PLUGIN_PACKAGES:
-        pkg_mod = importlib.import_module(pkg)
-        plugins_map = getattr(pkg_mod, "__plugins__", {})
-        for plugin_name, class_name in plugins_map.items():
-            plugins[plugin_name] = _full_class_name(pkg_mod, class_name)
-    globals()["__plugins__"] = plugins
+    if __plugins is not None:
+        return __plugins
+    globals()["__plugins"] = plugins = _init_plugins()
     return plugins
 
-def _full_class_name(pkg_mod, class_name):
-    if class_name.startswith("."):
-        return pkg_mod.__name__ + class_name
-    else:
-        return class_name
+class UnresolvedPlugin(object):
+
+    def __init__(self, ep):
+        self._ep = ep
+
+    def resolve(self):
+        plugin = self._ep.resolve()()
+        plugin.name = self._ep.name
+        plugin.init()
+        return plugin
+
+    def __str__(self):
+        parts = [self._ep.module_name]
+        if self._ep.attrs:
+            parts.extend([":", ".".join(self._ep.attrs)])
+        if self._ep.extras:
+            parts.extend([" [", ','.join(self._ep.extras), "]"])
+        return "".join(parts)
+
+def _init_plugins():
+    """Returns a map of plugin name to UnresolvedPlugin.
+
+    Guild's plugin scheme uses entry points in group "guild.plugins"
+    to lookup available plugins. There should be one plugin per name
+    registered. This init algorithm does not consider the case where
+    there is more than one plugin with the same name. In that case,
+    the selected process is undefined.
+    """
+    import pkg_resources # expensive
+    return {
+        ep.name: UnresolvedPlugin(ep)
+        for ep in pkg_resources.iter_entry_points("guild.plugins")
+    }
 
 def iter_plugins():
     """Returns an interation of available plugin names.
@@ -107,7 +125,6 @@ def iter_plugins():
     user-defined plugins is added.
 
     Use 'for_name' to return a plugin instance for an iteration value.
-
     """
     for name in _plugins():
         yield name, for_name(name)
@@ -123,10 +140,9 @@ def for_name(name):
     except KeyError:
         raise LookupError(name)
     else:
-        if isinstance(plugin, str):
+        if isinstance(plugin, UnresolvedPlugin):
             logging.debug("initializing plugin '%s' (%s)", name, plugin)
-            plugin = _init_plugin(plugin, name)
-            plugins[name] = plugin
+            plugins[name] = plugin = plugin.resolve()
         return plugin
 
 def _init_plugin(class_name, name):
