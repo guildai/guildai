@@ -15,10 +15,9 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import importlib
 import logging
 
-__plugins = None
+from . import entry_point_util
 
 class NotSupported(Exception):
     pass
@@ -68,71 +67,13 @@ class Plugin(object):
             log = logging.debug
         log("plugin '%s' %s" % (self.name, msg), *args, **kw)
 
-def _plugins():
-    if __plugins is not None:
-        return __plugins
-    globals()["__plugins"] = plugins = _init_plugins()
-    return plugins
-
-class UnresolvedPlugin(object):
-
-    def __init__(self, ep):
-        self._ep = ep
-
-    def resolve(self):
-        plugin = self._ep.resolve()()
-        plugin.name = self._ep.name
-        plugin.init()
-        return plugin
-
-    def __str__(self):
-        parts = [self._ep.module_name]
-        if self._ep.attrs:
-            parts.extend([":", ".".join(self._ep.attrs)])
-        if self._ep.extras:
-            parts.extend([" [", ','.join(self._ep.extras), "]"])
-        return "".join(parts)
-
-def _init_plugins():
-    """Returns a map of plugin name to UnresolvedPlugin.
-
-    Guild's plugin scheme uses entry points in group "guild.plugins"
-    to lookup available plugins. There should be one plugin per name
-    registered. This init algorithm does not consider the case where
-    there is more than one plugin with the same name. In that case,
-    the selected process is undefined.
-    """
-    import pkg_resources # expensive
-    return {
-        ep.name: UnresolvedPlugin(ep)
-        for ep in pkg_resources.iter_entry_points("guild.plugins")
-    }
-
-def iter_plugins():
-    for name in _plugins():
-        yield name, for_name(name)
-
-def for_name(name):
-    """Returns a Guild plugin instance for a name.
-
-    Name must be a valid plugin name as returned by `iter_plugins`.
-    """
-    plugins = _plugins()
-    try:
-        plugin = plugins[name]
-    except KeyError:
-        raise LookupError(name)
-    else:
-        if isinstance(plugin, UnresolvedPlugin):
-            logging.debug("initializing plugin '%s' (%s)", name, plugin)
-            plugins[name] = plugin = plugin.resolve()
-        return plugin
-
-def _init_plugin(class_name, name):
-    mod_name, class_attr = class_name.rsplit(".", 1)
-    plugin_mod = importlib.import_module(mod_name)
-    plugin_class = getattr(plugin_mod, class_attr)
-    plugin = plugin_class()
+def _init_plugin(plugin, name):
     plugin.name = name
     plugin.init()
-    return plugin
+
+_plugins = entry_point_util.EntryPointResources(
+    "guild.plugins", "plugin", _init_plugin)
+
+iter_plugins = _plugins.__iter__
+
+for_name = _plugins.for_name

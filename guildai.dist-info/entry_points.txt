@@ -9,3 +9,8 @@ disk = guild.plugins.disk:DiskPlugin
 gpu = guild.plugins.gpu:GPUPlugin
 keras = guild.plugins.keras:KerasPlugin
 memory = guild.plugins.memory:MemoryPlugin
+
+[guild.namespaces]
+
+gpkg = guild.namespace:gpkg
+pypi = guild.namespace:pypi

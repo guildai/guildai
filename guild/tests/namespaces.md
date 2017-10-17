@@ -81,8 +81,8 @@ But not otherwise:
 
 ## Other namespaces
 
-`for_name` raises `NamespaceError` if a namespace doesn't exist:
+`for_name` raises `LookupError` if a namespace doesn't exist:
 
     >>> guild.namespace.for_name("other")
     Traceback (most recent call last):
-    NamespaceError: other
+    LookupError: other

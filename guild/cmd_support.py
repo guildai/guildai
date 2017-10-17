@@ -90,7 +90,7 @@ def project_location_option(location):
 def split_pkg(pkg):
     try:
         return guild.package.split_name(pkg)
-    except guild.namespace.NamespaceError as e:
+    except guild.package.NamespaceError as e:
         namespaces = ", ".join(
             [name for name, _ in guild.namespace.iter_namespaces()])
         guild.cli.error(

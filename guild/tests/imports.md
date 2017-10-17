@@ -58,6 +58,7 @@
     ...   'guild.commands.view',
     ...   'guild.commands.view_impl',
     ...   'guild.config',
+    ...   'guild.entry_point_util',
     ...   'guild.log',
     ...   'guild.main',
     ...   'guild.main_bootstrap',

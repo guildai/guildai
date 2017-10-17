@@ -32,6 +32,13 @@ class Package(object):
         self.name = name
         self.version = version
 
+class NamespaceError(LookupError):
+    """Raised if a namespace doesn't exist."""
+
+    def __init__(self, value):
+        super(NamespaceError, self).__init__(value)
+        self.value = value
+
 def split_name(name):
     """Returns a tuple of namespace and split name.
 
@@ -39,9 +46,15 @@ def split_name(name):
     """
     m = re.match("@(.+?)/(.+)", name)
     if m:
-        return guild.namespace.for_name(m.group(1)), m.group(2)
+        return _ns_for_name(m.group(1)), m.group(2)
     else:
-        return guild.namespace.for_name(DEFAULT_NAMESPACE), name
+        return _ns_for_name(DEFAULT_NAMESPACE), name
+
+def _ns_for_name(name):
+    try:
+        return guild.namespace.for_name(name)
+    except LookupError:
+        raise NamespaceError(name)
 
 def apply_namespace(project_name):
     ns = None

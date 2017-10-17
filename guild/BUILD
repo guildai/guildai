@@ -51,6 +51,14 @@ py_library(
 )
 
 py_library(
+    name = "entry_point_util",
+    srcs = ["entry_point_util.py"],
+    deps = [
+        "//third_party:setuptools",
+    ],
+)
+
+py_library(
     name = "log",
     srcs = ["log.py"],
     deps = [
@@ -79,7 +87,7 @@ py_library(
     name = "namespace",
     srcs = ["namespace.py"],
     deps = [
-        "//third_party:enum",
+        ":entry_point_util",
     ],
 )
 
@@ -137,6 +145,7 @@ py_library(
     name = "plugin",
     srcs = ["plugin.py"],
     deps = [
+        ":entry_point_util",
     ],
 )
 

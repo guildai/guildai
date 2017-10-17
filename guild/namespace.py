@@ -15,25 +15,9 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import importlib
-
-__namespace_classes__ = {
-    "gpkg": "guild.namespace.gpkg",
-    "pypi": "guild.namespace.pypi",
-}
-
-__namespaces__ = {}
-
-class NamespaceError(LookupError):
-    """Raised if a namespace doesn't exist."""
-
-    def __init__(self, value):
-        super(NamespaceError, self).__init__(value)
-        self.value = value
-
+from . import entry_point_util
 
 class Membership(object):
-
     yes = "yes"
     no = "no"
     maybe = "maybe"
@@ -88,26 +72,12 @@ class gpkg(pypi):
         else:
             return Membership.no, None
 
-def _init_namespace(class_name, name):
-    mod_name, class_attr = class_name.rsplit(".", 1)
-    ns_mod = importlib.import_module(mod_name)
-    ns_class = getattr(ns_mod, class_attr)
-    ns = ns_class()
+def _init_ns(ns, name):
     ns.name = name
-    return ns
 
-def iter_namespaces():
-    for name in __namespace_classes__:
-        yield name, for_name(name)
+_ns = entry_point_util.EntryPointResources(
+    "guild.namespaces", "namespace", _init_ns)
 
-def for_name(name):
-    try:
-        return __namespaces__[name]
-    except KeyError:
-        raise NamespaceError(name)
+iter_namespaces = _ns.__iter__
 
-# Actively init namespaces here as there's no overhead to any of them
-# currently.
-
-for name, cls in __namespace_classes__.items():
-    __namespaces__[name] = _init_namespace(cls, name)
+for_name = _ns.for_name
