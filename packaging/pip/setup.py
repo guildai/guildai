@@ -12,72 +12,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
-
+from pkg_resources import PathMetadata
+from pkg_resources import Distribution as PkgDist
 from setuptools import find_packages, setup
 from setuptools.dist import Distribution
 
 import guild
 
+guild_dist_basename = "guildai.dist-info"
+
+def guild_dist_info():
+    metadata = PathMetadata(".", guild_dist_basename)
+    dist = PkgDist.from_filename(guild_dist_basename, metadata)
+    assert dist.project_name == "guildai", dist
+    return dist, dist._parsed_pkg_info
+
+def guild_packages():
+    return find_packages(exclude=["guild.tests", "guild.tests.*"])
+
 class BinaryDistribution(Distribution):
     def has_ext_modules(self):
         return True
 
-def README():
-    path = os.path.join(os.path.dirname(__file__), "README.rst")
-    return open(path).read()
-
-def packages():
-    return find_packages(exclude=["guild.tests", "guild.tests.*"])
+DIST, PKG_INFO = guild_dist_info()
 
 setup(
+    # Attributes from dist-info
     name="guildai",
     version=guild.__version__,
-    description="The essential TensorFlow developer toolkit",
-    install_requires=[req for _, req in guild.__requires__],
-    long_description=README(),
-    url="https://github.com/guildai/guild-python",
-    maintainer="Guild AI",
-    maintainer_email="packages@guild.ai",
-    packages=packages(),
+    description=PKG_INFO.get("Summary"),
+    install_requires=PKG_INFO.get_all("Requires-Dist"),
+    long_description=PKG_INFO.get_payload(),
+    url=PKG_INFO.get("Home-page"),
+    maintainer=PKG_INFO.get("Author"),
+    maintainer_email=PKG_INFO.get("Author-email"),
+    entry_points=DIST.get_entry_map(),
+    classifiers=PKG_INFO.get_all("Classifier"),
+    license=PKG_INFO.get("License"),
+    keywords=PKG_INFO.get("Keywords"),
+
+    # Package data
+    packages=guild_packages(),
     include_package_data=True,
+
+    # Other package info
     zip_safe=False,
     distclass=BinaryDistribution,
-    entry_points={
-        "console_scripts": [
-            "guild = guild.main_bootstrap:main",
-        ],
-        "guild.plugins": [
-            "cpu = guild.plugins.cpu:CPUPlugin",
-            "disk = guild.plugins.disk:Disklugin",
-            "gpu = guild.plugins.gpu:GPUPlugin",
-            "keras = guild.plugins.keras:KerasPlugin",
-            "memory = guild.plugins.memory:MemoryPlugin",
-        ],
-    },
-    classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
-        "Environment :: Console",
-        "Intended Audience :: Developers",
-        "Intended Audience :: Education",
-        "Intended Audience :: Information Technology",
-        "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: Apache Software License",
-        "Natural Language :: English",
-        "Operating System :: POSIX :: Linux",
-        # TODO: Operating System :: MacOS
-        # TODO: Operating System :: Microsoft :: Windows
-        "Programming Language :: Python :: 2.7",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence",
-        "Topic :: Scientific/Engineering :: Image Recognition",
-        "Topic :: Scientific/Engineering :: Information Analysis",
-        "Topic :: Scientific/Engineering :: Mathematics",
-        "Topic :: Scientific/Engineering :: Visualization",
-        "Topic :: Software Development :: Libraries",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Topic :: Utilities",
-    ],
-    license="Apache 2.0",
-    keywords="guild guildai tensorflow machine learning",
 )

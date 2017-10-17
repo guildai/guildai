@@ -1,0 +1,3 @@
+[console_scripts]
+guild = guild.main_bootstrap:main
+

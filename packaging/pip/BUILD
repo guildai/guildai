@@ -10,22 +10,25 @@ filegroup(
     }),
 )
 
-genrule(
-    name = "linux_whl",
-    cmd = "$(location build-package) $(@D) manylinux1_x86_64",
-    tools = [
-        "build-package",
-        # Hacking tools here to introduce a "data" like dependency for
-        # our genrule. For some reason, listing //guild under srcs
-        # only resolve to a single file.
-        "//guild",
-    ],
+filegroup(
+    name = "setup-srcs",
     srcs = [
         "LICENSE.txt",
         "MANIFEST.in",
-        "README.rst",
         "setup.py",
     ],
+)
+
+genrule(
+    name = "linux_whl",
+    cmd = "$(location build-package) $(@D) manylinux1_x86_64",
+    # These must be explicitly listed here as tools for bazel to build
+    tools = [
+        "//guild",
+        "//guildai.dist-info",
+        "build-package"
+    ],
+    srcs = [":setup-srcs"],
     outs = [
         "guildai-" + guild_version + "-cp27-cp27mu-manylinux1_x86_64.whl",
         "guildai-" + guild_version + "-cp35-cp35m-manylinux1_x86_64.whl",
@@ -35,19 +38,13 @@ genrule(
 genrule(
     name = "darwin_whl",
     cmd = "$(location build-package) $(@D)",
+    # These must be explicitly listed here as tools for bazel to build
     tools = [
-        "build-package",
-        # Hacking tools here to introduce a "data" like dependency for
-        # our genrule. For some reason, listing //guild under srcs
-        # only resolve to a single file.
         "//guild",
+        "//guildai.dist-info",
+        "build-package"
     ],
-    srcs = [
-        "LICENSE.txt",
-        "MANIFEST.in",
-        "README.rst",
-        "setup.py",
-    ],
+    srcs = [":setup-srcs"],
     outs = [
         "guildai-" + guild_version + "-cp27-cp27m-macosx_10_13_x86_64.whl",
         "guildai-" + guild_version + "-cp36-cp36m-macosx_10_13_x86_64.whl",

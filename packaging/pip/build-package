@@ -11,7 +11,6 @@ PLATFORM_NAME=${2:-}
 
 # Package file
 cp packaging/pip/setup.py .
-cp packaging/pip/README.rst .
 cp packaging/pip/MANIFEST.in .
 
 # Guild source

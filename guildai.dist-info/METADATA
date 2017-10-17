@@ -1,0 +1,40 @@
+Metadata-Version: 2.0
+Name: guildai
+Version: 1!0
+Summary: The essential TensorFlow developer toolkit
+Home-page: https://github.com/guildai/guild-python
+Author: Guild AI
+Author-email: packages@guild.ai
+License: Apache 2.0
+Keywords: guild guildai tensorflow machine learning
+Platform: UNKNOWN
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: Information Technology
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Natural Language :: English
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Scientific/Engineering :: Image Recognition
+Classifier: Topic :: Scientific/Engineering :: Information Analysis
+Classifier: Topic :: Scientific/Engineering :: Mathematics
+Classifier: Topic :: Scientific/Engineering :: Visualization
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Utilities
+Requires-Dist: pip
+Requires-Dist: PyYAML
+Requires-Dist: setuptools
+Requires-Dist: twine
+Requires-Dist: Werkzeug
+
+Guild AI is a command line toolkit that improves TensorFlow developer
+productivity.
+
+DISCLAIMER: Guild AI is in a pre-release state and is under active
+development! If you have questions about the project, please email its
+author.

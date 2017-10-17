@@ -3,4 +3,3 @@ include guild/guild
 recursive-include guild/external *
 recursive-include guild/scripts *
 recursive-include guild/tests *
-include guild/external/org_tensorflow_tensorboard/tensorboard/webfiles.zip
