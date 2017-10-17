@@ -1,4 +1,5 @@
 import logging
+import os
 
 class UnresolvedResource(object):
 
@@ -26,6 +27,7 @@ class EntryPointResources(object):
         self._group = group
         self._desc = resource_desc
         self._init = resource_init
+        self._working_set = None
         self.__resources = None
 
     @property
@@ -35,10 +37,11 @@ class EntryPointResources(object):
         return self.__resources
 
     def _init_resources(self):
-        import pkg_resources # expensive
+        import pkg_resources
+        working_set = self._working_set or pkg_resources.working_set
         return {
             ep.name: UnresolvedResource(ep, self._init)
-            for ep in pkg_resources.iter_entry_points(self._group)
+            for ep in working_set.iter_entry_points(self._group)
         }
 
     def __iter__(self):
@@ -55,3 +58,9 @@ class EntryPointResources(object):
                 logging.debug("initializing %s '%s' (%s)", self._desc, name, res)
                 self._resources[name] = res = res.resolve()
         return res
+
+    def limit_to_builtin(self):
+        import guild
+        import pkg_resources
+        guild_pkg_path = os.path.dirname(guild.__path__[0])
+        self._working_set = pkg_resources.WorkingSet([guild_pkg_path])

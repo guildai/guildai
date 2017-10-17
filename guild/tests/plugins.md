@@ -6,6 +6,12 @@ Plugin support is providedy by `guild.plugin`:
 
 ## Enumerating plugins
 
+Plugins can be registered by installing packages that provide entry
+points for the "guil.plugins" group. To ensure we are testing built-in
+plugins, we need to hack the plugin module:
+
+    >>> guild.plugin._plugins.limit_to_builtin()
+
 Use `iter_plugins` to iterate through the list of available plugins:
 
     >>> sorted(guild.plugin.iter_plugins())

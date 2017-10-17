@@ -8,7 +8,12 @@ A namespace is a component of a Guild package reference. A namespace
 is a package term (alpha-numeric string that may include dashes and
 underscores) preceded by a '@' character.
 
-The following namespaces are supported:
+To ensure we're testing Guild's built-in namespaces, we need to hack
+the namespace module before using it.
+
+    >>> guild.namespace._ns.limit_to_builtin()
+
+Let's use `iter_namespaces` to list the supported namespaces:
 
     >>> sorted(guild.namespace.iter_namespaces())
     [('gpkg', <guild.namespace.gpkg object ...>),
