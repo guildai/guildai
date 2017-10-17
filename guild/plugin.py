@@ -76,4 +76,4 @@ _plugins = entry_point_util.EntryPointResources(
 
 iter_plugins = _plugins.__iter__
 
-for_name = _plugins.for_name
+for_name = _plugins.one_for_name

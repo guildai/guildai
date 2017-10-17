@@ -1,17 +1,19 @@
 import logging
 import os
 
-class UnresolvedResource(object):
+class Resource(object):
 
     def __init__(self, ep, init):
         self._ep = ep
         self._init = init
+        self._inst = None
 
-    def resolve(self):
-        res = self._ep.resolve()()
-        if self._init:
-            self._init(res, self._ep)
-        return res
+    def inst(self):
+        if self._inst is None:
+            self._inst = self._ep.resolve()()
+            if self._init:
+                self._init(self._inst, self._ep)
+        return self._inst
 
     def __str__(self):
         parts = [self._ep.module_name]
@@ -39,28 +41,34 @@ class EntryPointResources(object):
     def _init_resources(self):
         import pkg_resources
         working_set = self._working_set or pkg_resources.working_set
-        return {
-            ep.name: UnresolvedResource(ep, self._init)
-            for ep in working_set.iter_entry_points(self._group)
-        }
+        resources = {}
+        for ep in working_set.iter_entry_points(self._group):
+            res_list = resources.setdefault(ep.name, [])
+            res_list.append(Resource(ep, self._init))
+        return resources
 
     def __iter__(self):
         for name in self._resources:
-            yield name, self.for_name(name)
+            for res_inst in self.for_name(name):
+                yield name, res_inst
+
+    def one_for_name(self, name):
+        return self.for_name(name)[0]
 
     def for_name(self, name):
         try:
-            res = self._resources[name]
+            name_resources = self._resources[name]
         except KeyError:
             raise LookupError(name)
         else:
-            if isinstance(res, UnresolvedResource):
-                logging.debug("initializing %s '%s' (%s)", self._desc, name, res)
-                self._resources[name] = res = res.resolve()
-        return res
+            return [res.inst() for res in name_resources]
 
     def limit_to_builtin(self):
         import guild
         import pkg_resources
         guild_pkg_path = os.path.dirname(guild.__path__[0])
         self._working_set = pkg_resources.WorkingSet([guild_pkg_path])
+
+    def limit_to_paths(self, paths):
+        import pkg_resources
+        self._working_set = pkg_resources.WorkingSet(paths)
