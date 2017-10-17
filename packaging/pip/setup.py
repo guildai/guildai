@@ -46,8 +46,15 @@ setup(
     distclass=BinaryDistribution,
     entry_points={
         "console_scripts": [
-            "guild=guild.main_bootstrap:main",
-        ]
+            "guild = guild.main_bootstrap:main",
+        ],
+        "guild.plugins": [
+            "cpu = guild.plugins.cpu:CPUPlugin",
+            "disk = guild.plugins.disk:Disklugin",
+            "gpu = guild.plugins.gpu:GPUPlugin",
+            "keras = guild.plugins.keras:KerasPlugin",
+            "memory = guild.plugins.memory:MemoryPlugin",
+        ],
     },
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",

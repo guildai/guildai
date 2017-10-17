@@ -102,6 +102,11 @@ def _setup_kw(pkg):
         namespace_packages=["gpkg"],
         package_data={
             pkg_name: _package_data(pkg)
+        },
+        entry_points={
+            "guild.models": [
+                "%s = guild.model:Model" % pkg_name
+            ]
         }
     )
 
