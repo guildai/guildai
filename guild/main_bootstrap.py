@@ -12,6 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Bootstraps env for guild.main.
+
+The primary bootstrap task is to configure sys.path with the location
+of Guild's external dependencies. This module supports two modes:
+distribution and dev.
+
+External dependencies in distribution mode are assumed to be located
+in a single `GUILD_PKG_HOME/external` directory where `GUILD_PKG_HOME`
+is the `guild` directory within the Guild distribution location.
+
+External dependencies in dev mode are assumed be in multiple
+directories, one for each dependency, under
+`SCRIPT_DIR/guild.runfiles` where `SCRIPT_DIR` is the directory
+containing `sys.argv[0]` (i.e. the Guild executable script).
+
+This module confirms that it can find each of the modules listed in
+guild.__requires__ but does not load the modules. The module exits
+with an error and a user facing message for any missing requirements.
+
+As the bootstrap process is used for every Guild command, it must
+execute as quickly as possible.
+"""
+
 from __future__ import absolute_import
 from __future__ import division
 
@@ -31,16 +54,16 @@ def main():
     guild.main.main()
 
 def _external_import_paths():
-    paths = _external_dirs() or _bazel_runfile_dirs()
+    paths = _external_distribution() or _external_dev()
     assert paths, "count not find external paths"
     return paths
 
-def _external_dirs():
+def _external_distribution():
     guild_pkg_dir = os.path.dirname(__file__)
     external_dir = os.path.join(guild_pkg_dir, "external")
     return [external_dir] if os.path.exists(external_dir) else None
 
-def _bazel_runfile_dirs():
+def _external_dev():
     script_dir = os.path.dirname(sys.argv[0])
     runfiles_dir = os.path.join(script_dir, "guild.runfiles")
     return [os.path.join(runfiles_dir, path) for path in runfile_import_paths]
