@@ -79,5 +79,5 @@ _ns = entry_point_util.EntryPointResources(
     "guild.namespaces", "namespace", _init_ns)
 
 iter_namespaces = _ns.__iter__
-
 for_name = _ns.one_for_name
+limit_to_builtin = _ns.limit_to_builtin

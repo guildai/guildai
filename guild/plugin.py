@@ -75,5 +75,5 @@ _plugins = entry_point_util.EntryPointResources(
     "guild.plugins", "plugin", _init_plugin)
 
 iter_plugins = _plugins.__iter__
-
 for_name = _plugins.one_for_name
+limit_to_builtin = _plugins.limit_to_builtin

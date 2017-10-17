@@ -19,3 +19,8 @@ module:
     >>> guild.model._models.limit_to_paths([
     ...   sample("projects/mnist"),
     ...   sample("models")])
+
+We use `iter_models` to list all available models:
+
+    >>> list(guild.model.iter_models())
+    [('mnist', <guild.model.Model object ...>)]

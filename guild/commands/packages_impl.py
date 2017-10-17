@@ -32,7 +32,9 @@ def _format_pkg(pkg):
 
 def install_packages(args):
     for reqs, index_urls in _installs(args):
-        print("*****", reqs, index_urls)
+        print(
+            "TODO: install %s (index=%s, upgrade=%s)"
+            % (reqs, index_urls, args.upgrade))
         #guild.pip_util.install(reqs, index_urls, args.upgrade)
 
 def _installs(args):

@@ -1,0 +1,3 @@
+[guild.models]
+mnist = guild.model:Model
+

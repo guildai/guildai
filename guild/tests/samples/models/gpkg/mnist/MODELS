@@ -1,0 +1,31 @@
+- name: mnist-softmax
+  description: Softmax regression classifier for MNIST
+
+  operations:
+    train:
+      description: Train the softmax regression
+      cmd: softmax
+
+  flags:
+    batch-size:
+      help: "Number of images to include in a training batch."
+      value: 100
+    epochs:
+      help: "Number of epochs to train."
+      value: 10
+
+- name: mnist-cnn
+  description: CNN classifier for MNIST
+
+  operations:
+    train:
+      description: Train the CNN
+      cmd: cnn
+
+  flags:
+    batch-size:
+      help: "Number of images to include in a training batch."
+      value: 100
+    epochs:
+      help: "Number of epochs to train."
+      value: 10

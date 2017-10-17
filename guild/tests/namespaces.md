@@ -8,10 +8,11 @@ A namespace is a component of a Guild package reference. A namespace
 is a package term (alpha-numeric string that may include dashes and
 underscores) preceded by a '@' character.
 
-To ensure we're testing Guild's built-in namespaces, we need to hack
-the namespace module before using it.
+Namespaces can be registered by installing packages that provide entry
+points for the "guild.namespaces" group. For these tests, we want to
+ensure we are only working with built-ins:
 
-    >>> guild.namespace._ns.limit_to_builtin()
+    >>> guild.namespace.limit_to_builtin()
 
 Let's use `iter_namespaces` to list the supported namespaces:
 

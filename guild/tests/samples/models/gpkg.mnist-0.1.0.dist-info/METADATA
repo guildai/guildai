@@ -1,0 +1,15 @@
+Metadata-Version: 2.0
+Name: gpkg.mnist
+Version: 0.1.0
+Summary: CNN and softmax regression classifiers for MNIST digits
+Home-page: https://github.com/guildai/index/tree/master/mnist
+Author: Guild AI
+Author-email: packages@guild.ai
+License: Apache 2.0
+Description-Content-Type: UNKNOWN
+Keywords: mnist cnn softmax images
+Platform: UNKNOWN
+
+UNKNOWN
+
+
