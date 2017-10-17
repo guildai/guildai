@@ -62,6 +62,7 @@
     ...   'guild.log',
     ...   'guild.main',
     ...   'guild.main_bootstrap',
+    ...   'guild.model',
     ...   'guild.namespace',
     ...   'guild.op',
     ...   'guild.op_main',

@@ -9,7 +9,7 @@ py_library(
         ":imports",
         ":logging",
         ":memory-plugin",
-        ":model-discovery",
+        ":models",
         ":namespaces",
         ":ops",
         ":packages",
@@ -75,8 +75,8 @@ py_library(
 )
 
 py_library(
-    name = "model-discovery",
-    data = ["model-discovery.md"],
+    name = "models",
+    data = ["models.md"],
     deps = [
     ],
 )
