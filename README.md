@@ -17,6 +17,12 @@ Preliminary releases of Linux wheels are available on PyPI. To install
 the latest version, run:
 
 ```
+$ pip install tensorflow
+```
+```
+$ pip install psutil
+```
+```
 $ pip install guildai --upgrade
 ```
 
