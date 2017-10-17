@@ -9,6 +9,7 @@ py_library(
         ":imports",
         ":logging",
         ":memory-plugin",
+        ":model-discovery",
         ":namespaces",
         ":ops",
         ":packages",
@@ -69,6 +70,13 @@ py_library(
     deps = [
         "//guild/plugins:memory",
         "//guild:plugin",
+    ],
+)
+
+py_library(
+    name = "model-discovery",
+    data = ["model-discovery.md"],
+    deps = [
     ],
 )
 
