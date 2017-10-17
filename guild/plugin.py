@@ -109,23 +109,6 @@ def _init_plugins():
     }
 
 def iter_plugins():
-    """Returns an interation of available plugin names.
-
-    Uses a list of plugin packages to enumerate named plugin
-    classes. Plugin packages must provide a `__plugins__` attribute
-    that is a map of plugin name to class name. Class must be string
-    values consisting of either a fully qualified class name (fully
-    qualified module + "." + class name) or relative class name
-    (module name relative to the plugin package + "." + class name).
-
-    See `guild/plugins/__init__.py` for an example.
-
-    The list of plugin packages is not currently extensible and is
-    limited to 'guild.plugins'. This will be modified as support for
-    user-defined plugins is added.
-
-    Use 'for_name' to return a plugin instance for an iteration value.
-    """
     for name in _plugins():
         yield name, for_name(name)
 
