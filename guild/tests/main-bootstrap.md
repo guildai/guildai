@@ -24,7 +24,7 @@ Here is the order that Guild requirements are checked:
     [('pip', 'pip'),
      ('setuptools', 'setuptools'),
      ('twine', 'twine'),
-     ('werkzeug', 'werkzeug'),
+     ('werkzeug', 'Werkzeug'),
      ('yaml', 'PyYAML')]
 
 Here's a fake list where pip is listed first:
