@@ -67,8 +67,8 @@ class Plugin(object):
             log = logging.debug
         log("plugin '%s' %s" % (self.name, msg), *args, **kw)
 
-def _init_plugin(plugin, name):
-    plugin.name = name
+def _init_plugin(plugin, ep):
+    plugin.name = ep.name
     plugin.init()
 
 _plugins = entry_point_util.EntryPointResources(

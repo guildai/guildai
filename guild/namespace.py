@@ -72,8 +72,8 @@ class gpkg(pypi):
         else:
             return Membership.no, None
 
-def _init_ns(ns, name):
-    ns.name = name
+def _init_ns(ns, ep):
+    ns.name = ep.name
 
 _ns = entry_point_util.EntryPointResources(
     "guild.namespaces", "namespace", _init_ns)

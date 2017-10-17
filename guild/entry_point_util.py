@@ -9,7 +9,7 @@ class UnresolvedResource(object):
     def resolve(self):
         res = self._ep.resolve()()
         if self._init:
-            self._init(res, self._ep.name)
+            self._init(res, self._ep)
         return res
 
     def __str__(self):
