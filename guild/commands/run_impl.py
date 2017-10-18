@@ -16,9 +16,9 @@ from __future__ import absolute_import
 from __future__ import division
 
 import guild.cli
-import guild.cmd_support
+import guild.cmd_impl_support
 import guild.op
-import guild.project
+import guild.modelfile
 
 DEFAULT_PROJECT_LOCATION = "."
 
@@ -55,8 +55,8 @@ def _resolve_model(name, args):
 def _project_for_args(args):
     location = args.project_location or DEFAULT_PROJECT_LOCATION
     try:
-        return guild.project.from_file_or_dir(location)
-    except guild.project.NoModels:
+        return guild.modelfile.from_file_or_dir(location)
+    except guild.modelfile.NoModels:
         _missing_source_error(args.project_location)
 
 def _missing_source_error(location):
@@ -64,7 +64,7 @@ def _missing_source_error(location):
         "%s does not contain any models\n"
         "Try a different location or 'guild run --help' "
         "for more information."
-        % guild.cmd_support.project_location_desc(location))
+        % guild.cmd_impl_support.project_location_desc(location))
 
 def _project_required_error():
     guild.cli.error(
@@ -93,11 +93,11 @@ def _no_such_model_error(name, project):
         "model '%s' is not defined in %s\n"
         "Try 'guild models%s' for a list of available models."
         % (name,
-           guild.cmd_support.project_location_desc(project.src),
+           guild.cmd_impl_support.project_location_desc(project.src),
            _project_opt(project.src)))
 
 def _project_opt(project_src):
-    location = guild.cmd_support.project_location_option(project_src)
+    location = guild.cmd_impl_support.project_location_option(project_src)
     return " -p %s" % location if location else ""
 
 def _resolve_op(name, model):

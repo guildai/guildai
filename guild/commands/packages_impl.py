@@ -16,7 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import guild.cli
-import guild.cmd_support
+import guild.cmd_impl_support
 import guild.package
 import guild.pip_util
 
@@ -40,7 +40,7 @@ def install_packages(args):
 def _installs(args):
     index_urls = {}
     for pkg in args.packages:
-        ns, req_in = guild.cmd_support.split_pkg(pkg)
+        ns, req_in = guild.cmd_impl_support.split_pkg(pkg)
         req, urls = ns.pip_install_info(req_in)
         urls_key = "\n".join(urls)
         index_urls.setdefault(urls_key, []).append(req)

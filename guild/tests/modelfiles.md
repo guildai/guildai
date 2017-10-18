@@ -1,22 +1,25 @@
-# Projects
+# Model files
 
-Support for Guild projects is provided by the `project` module:
+Model files are files that contain model definitions. By convention
+model files are named `MODEL` or `MODELS`.
 
-    >>> import guild.project
+Support for model files is provided by the `modelfile` module:
 
-## Loading projects from a directory
+    >>> from guild import modelfile
 
-Use `from_dir` to load a project from a directory:
+## Loading a model file from a directory
 
-    >>> project = guild.project.from_dir(sample("projects/mnist"))
-    >>> project.src
+Use `from_dir` to load a model file from a directory:
+
+    >>> models = modelfile.from_dir(sample("projects/mnist"))
+    >>> models.src
     '.../samples/projects/mnist/MODELS'
 
 ## Loading projects from a file
 
 Use `from_file` to load a project from a file directly:
 
-    >>> project = guild.project.from_file(sample("projects/mnist/MODELS"))
+    >>> project = modelfile.from_file(sample("projects/mnist/MODELS"))
     >>> [model.name for model in project]
     ['mnist-intro', 'mnist-expert']
 
@@ -25,8 +28,8 @@ Use `from_file` to load a project from a file directly:
 By definition projects are lists of models:
 
     >>> list(project)
-    [<guild.project.Model 'mnist-intro'>,
-     <guild.project.Model 'mnist-expert'>]
+    [<guild.modelfile.Model 'mnist-intro'>,
+     <guild.modelfile.Model 'mnist-expert'>]
 
     >>> [m.name for m in project]
     ['mnist-intro', 'mnist-expert']
@@ -34,16 +37,16 @@ By definition projects are lists of models:
 We can lookup a model by name using dictionary semantics:
 
     >>> project["mnist-intro"]
-    <guild.project.Model 'mnist-intro'>
+    <guild.modelfile.Model 'mnist-intro'>
 
     >>> project.get("mnist-intro")
-    <guild.project.Model 'mnist-intro'>
+    <guild.modelfile.Model 'mnist-intro'>
 
 The first model defined in a project is considered to be the *default
 model*:
 
     >>> project.default_model()
-    <guild.project.Model 'mnist-intro'>
+    <guild.modelfile.Model 'mnist-intro'>
 
 ## Model attributes
 
@@ -60,7 +63,7 @@ We'll use the 'expert' model for these examples:
     >>> model.description
     'Sample model'
 
-    >>> model.project == project
+    >>> model.modelfile == project
     True
 
 ## Model operations
@@ -77,7 +80,7 @@ Operations are ordered by name:
 Find an operation using a model's `get_op` method:
 
     >>> model.get_op("train")
-    <guild.project.Operation 'mnist-intro:train'>
+    <guild.modelfile.Operation 'mnist-intro:train'>
 
 `get_op` returns None if the operation isn't defined for the model:
 
@@ -88,13 +91,13 @@ Find an operation using a model's `get_op` method:
 
 ### Invalid format
 
-    >>> guild.project.from_dir(sample("projects/invalid-format"))
+    >>> modelfile.from_dir(sample("projects/invalid-format"))
     Traceback (most recent call last):
-    ProjectFormatError: ...
+    ModelfileFormatError: ...
 
 ### No models (i.e. MODEL or MODELS)
 
-    >>> guild.project.from_dir(sample("projects/missing-sources"))
+    >>> modelfile.from_dir(sample("projects/missing-sources"))
     Traceback (most recent call last):
     NoModels: ...
 
@@ -103,7 +106,7 @@ in Python 3 and IOError in Python 2) so we'll assert using exception
 content.
 
     >>> try:
-    ...   guild.project.from_file(sample("projects/missing-sources/MODEL"))
+    ...   modelfile.from_file(sample("projects/missing-sources/MODEL"))
     ... except IOError as e:
     ...   print(str(e))
     [Errno 2] No such file or directory: '.../projects/missing-sources/MODEL'

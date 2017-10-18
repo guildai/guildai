@@ -25,22 +25,19 @@ import guild.plugin
 
 NAMES = ["MODEL", "MODELS"]
 
-class ProjectError(Exception):
+class ModelfileError(Exception):
 
     def __init__(self, path):
-        super(ProjectError, self).__init__(path)
+        super(ModelfileError, self).__init__(path)
         self.path = path
 
-class ProjectFormatError(ProjectError):
+class ModelfileFormatError(ModelfileError):
     pass
 
-# Alias until we rename this module
-ModelFormatError = ProjectFormatError
-
-class NoModels(ProjectError):
+class NoModels(ModelfileError):
     pass
 
-class Project(object):
+class Modelfile(object):
 
     def __init__(self, data, src):
         self._data = data
@@ -69,8 +66,8 @@ class Project(object):
 
 class Model(object):
 
-    def __init__(self, project, data):
-        self.project = project
+    def __init__(self, modelfile, data):
+        self.modelfile = modelfile
         self._data = data
         self.name = data.get("name")
         self.version = data.get("version")
@@ -86,7 +83,7 @@ class Model(object):
         return None
 
     def __repr__(self):
-        return "<guild.project.Model '%s'>" % self.name
+        return "<guild.modelfile.Model '%s'>" % self.name
 
 def _sorted_ops(data, model):
     keys = sorted(data.keys())
@@ -96,7 +93,7 @@ class Operation(object):
 
     def __init__(self, model, name, data):
         self.model = model
-        self.project = model.project
+        self.modelfile = model.modelfile
         self.name = name
         data = _coerce_op_data(data)
         self._data = data
@@ -110,7 +107,7 @@ class Operation(object):
         return "%s:%s" % (self.model.name, self.name)
 
     def __repr__(self):
-        return "<guild.project.Operation '%s'>" % self.full_name
+        return "<guild.modelfile.Operation '%s'>" % self.full_name
 
 def _coerce_op_data(data):
     """Return a cmd map for data.
@@ -138,7 +135,7 @@ def _try_from_dir_file(path, filenames):
         model_file = os.path.abspath(os.path.join(path, name))
         if os.path.isfile(model_file):
             logging.debug("found model source '%s'", model_file)
-            return Project(_load_modelfile(model_file), model_file)
+            return Modelfile(_load_modelfile(model_file), model_file)
     return None
 
 def _try_from_plugin(path):
@@ -154,7 +151,7 @@ def _try_from_plugin(path):
                 model.get("name"), name)
         data.extend(plugin_models)
     if data:
-        return Project(data, os.path.join(path, "__generated__"))
+        return Modelfile(data, os.path.join(path, "__generated__"))
     else:
         return None
 
@@ -165,7 +162,7 @@ def _raise_no_models(path):
     raise NoModels(path)
 
 def from_file(src):
-    return Project(_load_modelfile(src), src)
+    return Modelfile(_load_modelfile(src), src)
 
 def _load_modelfile(path):
     data = yaml.load(open(path, "r"))
@@ -174,7 +171,7 @@ def _load_modelfile(path):
     elif isinstance(data, dict):
         return [data]
     else:
-        raise ProjectFormatError(path)
+        raise ModelfileFormatError(path)
 
 def from_file_or_dir(src):
     try:

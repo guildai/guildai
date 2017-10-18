@@ -18,13 +18,13 @@ from __future__ import division
 import os
 
 import guild.cli
-import guild.cmd_support
-import guild.project
+import guild.cmd_impl_support
+import guild.modelfile
 
 DEFAULT_PROJECT_LOCATION = "."
 
 def main(args, ctx):
-    project = guild.cmd_support.project_for_location(
+    project = guild.cmd_impl_support.project_for_location(
         args.project_location, ctx)
     guild.cli.table(
         [_format_op(op) for op in _iter_ops(project, args)],

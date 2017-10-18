@@ -78,7 +78,7 @@ py_library(
     srcs = ["models_impl.py"],
     deps = [
         "//guild:cli",
-        "//guild:cmd_support",
+        "//guild:cmd_impl_support",
     ],
 )
 
@@ -97,8 +97,8 @@ py_library(
     srcs = ["operations_impl.py"],
     deps = [
         "//guild:cli",
-        "//guild:cmd_support",
-        "//guild:project",
+        "//guild:cmd_impl_support",
+        "//guild:modelfile",
     ],
 )
 
@@ -116,7 +116,7 @@ py_library(
     name = "package_impl",
     srcs = ["package_impl.py"],
     deps = [
-        "//guild:cmd_support",
+        "//guild:cmd_impl_support",
         "//guild:package",
     ],
 )
@@ -147,7 +147,7 @@ py_library(
     srcs = ["packages_impl.py"],
     deps = [
         "//guild:cli",
-        "//guild:cmd_support",
+        "//guild:cmd_impl_support",
         "//guild:package",
         "//guild:pip_util",
     ],
@@ -188,9 +188,9 @@ py_library(
     srcs = ["run_impl.py"],
     deps = [
         "//guild:cli",
-        "//guild:cmd_support",
+        "//guild:cmd_impl_support",
+        "//guild:modelfile",
         "//guild:op",
-        "//guild:project",
     ],
 )
 
@@ -225,7 +225,7 @@ py_library(
     srcs = ["runs_impl.py"],
     deps = [
         "//guild:click_util",
-        "//guild:cmd_support",
+        "//guild:cmd_impl_support",
         "//guild:var",
     ],
 )

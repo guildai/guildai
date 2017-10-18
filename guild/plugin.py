@@ -40,7 +40,7 @@ class Plugin(object):
         """Return a list or generator of models for location.
 
         A model must be a Python dict containing model attributes. See
-        guild.project.Project for the expected structure.
+        guild.modelfile.Modelfile for the expected structure.
         """
         return []
 

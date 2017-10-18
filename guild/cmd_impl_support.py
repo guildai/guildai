@@ -20,10 +20,10 @@ import os
 import guild.cli
 import guild.click_util
 import guild.package
-import guild.project
+import guild.modelfile
 import guild.util
 
-class NoProject(Exception):
+class NoModelfile(Exception):
     pass
 
 def project_for_location(location, cmd_ctx=None):
@@ -36,14 +36,14 @@ def find_project_for_location(location):
     location = location or "."
     try:
         return _project_for_location(location)
-    except NoProject:
+    except NoModelfile:
         return None
 
 def _project_for_location(location):
     try:
-        return guild.project.from_file_or_dir(location)
-    except (guild.project.NoModels, IOError):
-        raise NoProject()
+        return guild.modelfile.from_file_or_dir(location)
+    except (guild.modelfile.NoModels, IOError):
+        raise NoModelfile()
 
 def _no_project_error(location, cmd_ctx):
     location = project_location_option(location) or "."

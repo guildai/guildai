@@ -17,7 +17,7 @@ from __future__ import division
 
 import os
 
-import guild.cmd_support
+import guild.cmd_impl_support
 import guild.package
 
 def create_package(args, ctx):
@@ -26,8 +26,8 @@ def create_package(args, ctx):
     if not os.path.exists(package_file):
         guild.cli.error(
             "a PACKAGE file does not exist in %s\n%s"
-            % (guild.cmd_support.project_location_desc(project_dir),
-               guild.cmd_support.try_project_location_help(project_dir, ctx)))
+            % (guild.cmd_impl_support.project_location_desc(project_dir),
+               guild.cmd_impl_support.try_project_location_help(project_dir, ctx)))
     guild.package.create_package(
         package_file,
         dist_dir=args.dist_dir,

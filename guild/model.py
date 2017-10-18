@@ -19,7 +19,7 @@ import sys
 from pkg_resources import Distribution, EntryPoint, register_finder
 
 from .entry_point_util import EntryPointResources
-from . import project as modelfile
+from . import modelfile
 
 _models = EntryPointResources("guild.models", "model")
 
@@ -74,7 +74,7 @@ class ModelImporter(object):
 def _model_finder(_importer, path, _only=False):
     try:
         models = modelfile.from_file(path)
-    except (IOError, modelfile.ModelFormatError) as e:
+    except (IOError, modelfile.ModelfileFormatError) as e:
         logging.warning(
             "unable to load model file '%s': %s",
             path, e)

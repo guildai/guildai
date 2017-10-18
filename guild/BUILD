@@ -31,13 +31,13 @@ py_library(
 )
 
 py_library(
-    name = "cmd_support",
-    srcs = ["cmd_support.py"],
+    name = "cmd_impl_support",
+    srcs = ["cmd_impl_support.py"],
     deps = [
         ":cli",
         ":click_util",
+        ":modelfile",
         ":package",
-        ":project",
         ":util",
     ],
 )
@@ -80,6 +80,25 @@ py_library(
     srcs = ["main_bootstrap.py"],
     deps = [
         ":main",
+    ]
+)
+
+py_library(
+    name = "model",
+    srcs = ["model.py"],
+    deps = [
+        "//third_party:setuptools",
+        ":entry_point",
+        ":modelfile",
+    ]
+)
+
+py_library(
+    name = "modelfile",
+    srcs = ["modelfile.py"],
+    deps = [
+        "//third_party:yaml",
+        ":plugin",
     ]
 )
 
@@ -155,15 +174,6 @@ py_library(
     deps = [
         ":run",
     ],
-)
-
-py_library(
-    name = "project",
-    srcs = ["project.py"],
-    deps = [
-        "//third_party:yaml",
-        ":plugin",
-    ]
 )
 
 py_library(

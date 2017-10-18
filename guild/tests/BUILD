@@ -9,11 +9,11 @@ py_library(
         ":imports",
         ":logging",
         ":memory-plugin",
+        ":modelfiles",
         ":models",
         ":namespaces",
         ":ops",
         ":packages",
-        ":projects",
         ":plugin-python-utils",
         ":plugins",
         ":resources",
@@ -75,6 +75,14 @@ py_library(
 )
 
 py_library(
+    name = "modelfiles",
+    data = ["modelfiles.md"] + glob(["samples/projects/**"]),
+    deps = [
+        "//guild:modelfile",
+    ],
+)
+
+py_library(
     name = "models",
     data = ["models.md"],
     deps = [
@@ -94,7 +102,7 @@ py_library(
     data = ["ops.md"],
     deps = [
         "//guild:op",
-        "//guild:project",
+        "//guild:modelfile",
     ],
 )
 
@@ -120,14 +128,6 @@ py_library(
     deps = [
         "//guild/plugins",
         "//guild:plugin",
-    ],
-)
-
-py_library(
-    name = "projects",
-    data = ["projects.md"] + glob(["samples/projects/**"]),
-    deps = [
-        "//guild:project",
     ],
 )
 

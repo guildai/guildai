@@ -7,7 +7,7 @@ Operation support is implemented by the `op` module:
 For our tests, we'll use a helper function that returns an instance of
 guild.project.Operation:
 
-    >>> import guild.project
+    >>> import guild.modelfile
 
     >>> def ProjectOp(cmd, name="op"):
     ...     data = [
@@ -20,8 +20,8 @@ guild.project.Operation:
     ...         }
     ...       }
     ...     ]
-    ...     project = guild.project.Project(data, "./MODEL")
-    ...     return project["model"].get_op(name)
+    ...     models = guild.modelfile.Modelfile(data, "./MODEL")
+    ...     return models["model"].get_op(name)
 
 We'll also create a helper function that returns and instance of
 guild.op.Operation given arguments to ProjectOp:

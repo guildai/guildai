@@ -16,10 +16,10 @@ from __future__ import absolute_import
 from __future__ import division
 
 import guild.cli
-import guild.cmd_support
+import guild.cmd_impl_support
 
 def main(args, ctx):
-    project = guild.cmd_support.project_for_location(
+    project = guild.cmd_impl_support.project_for_location(
         args.project_location, ctx)
     guild.cli.table(
         [_format_model(model) for model in project],

@@ -224,7 +224,7 @@ def _python_path(project_op):
     return os.path.pathsep.join(paths)
 
 def _model_paths(project_op):
-    return [os.path.dirname(project_op.project.src)]
+    return [os.path.dirname(project_op.modelfile.src)]
 
 def _guild_paths():
     guild_path = os.path.dirname(os.path.dirname(__file__))

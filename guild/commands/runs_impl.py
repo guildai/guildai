@@ -19,7 +19,7 @@ import re
 import time
 
 from guild import click_util
-import guild.cmd_support
+import guild.cmd_impl_support
 import guild.var
 
 RUN_DETAIL = [
@@ -80,7 +80,7 @@ def _maybe_warn_project_location_ignored(args):
             err=True)
 
 def _project_args(args, ctx):
-    return guild.cmd_support.project_for_location(args.project_location, ctx)
+    return guild.cmd_impl_support.project_for_location(args.project_location, ctx)
 
 def _apply_arg_models_filter(args, filters):
     for model_name in getattr(args, "models", []):
