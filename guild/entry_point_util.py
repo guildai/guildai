@@ -1,18 +1,30 @@
+# Copyright 2017 TensorHub, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import logging
-import os
+
+import pkg_resources
 
 class Resource(object):
 
-    def __init__(self, ep, init):
+    def __init__(self, ep):
         self._ep = ep
-        self._init = init
         self._inst = None
 
     def inst(self):
         if self._inst is None:
-            self._inst = self._ep.resolve()()
-            if self._init:
-                self._init(self._inst, self._ep)
+            self._inst = self._ep.resolve()(self._ep)
         return self._inst
 
     def __str__(self):
@@ -25,11 +37,10 @@ class Resource(object):
 
 class EntryPointResources(object):
 
-    def __init__(self, group, resource_desc="resource", resource_init=None):
+    def __init__(self, group, desc="resource"):
         self._group = group
-        self._desc = resource_desc
-        self._init = resource_init
-        self._working_set = None
+        self._desc = desc
+        self.__working_set = None
         self.__resources = None
 
     @property
@@ -38,13 +49,21 @@ class EntryPointResources(object):
             self.__resources = self._init_resources()
         return self.__resources
 
+    @property
+    def _working_set(self):
+        if self.__working_set is not None:
+            return self.__working_set
+        return pkg_resources.working_set
+
+    @_working_set.setter
+    def _working_set(self, val):
+        self.__working_set = val
+
     def _init_resources(self):
-        import pkg_resources
-        working_set = self._working_set or pkg_resources.working_set
         resources = {}
-        for ep in working_set.iter_entry_points(self._group):
+        for ep in self._working_set.iter_entry_points(self._group):
             res_list = resources.setdefault(ep.name, [])
-            res_list.append(Resource(ep, self._init))
+            res_list.append(Resource(ep))
         return resources
 
     def __iter__(self):
@@ -53,7 +72,10 @@ class EntryPointResources(object):
                 yield name, res_inst
 
     def one_for_name(self, name):
-        return self.for_name(name)[0]
+        try:
+            return next(self.for_name(name))
+        except GeneratorExit:
+            raise ValueError()
 
     def for_name(self, name):
         try:
@@ -61,14 +83,18 @@ class EntryPointResources(object):
         except KeyError:
             raise LookupError(name)
         else:
-            return [res.inst() for res in name_resources]
+            for res in name_resources:
+                try:
+                    inst = res.inst()
+                except:
+                    logging.exception(
+                        "error initializing %s '%s' (%s)",
+                        self._desc, name, res)
+                else:
+                    yield inst
 
-    def limit_to_builtin(self):
-        import guild
-        import pkg_resources
-        guild_pkg_path = os.path.dirname(guild.__path__[0])
-        self._working_set = pkg_resources.WorkingSet([guild_pkg_path])
+    def path(self):
+        return self._working_set.entries
 
-    def limit_to_paths(self, paths):
-        import pkg_resources
-        self._working_set = pkg_resources.WorkingSet(paths)
+    def set_path(self, val):
+        self._working_set = pkg_resources.WorkingSet(val)

@@ -23,6 +23,8 @@ import yaml
 
 import guild.plugin
 
+NAMES = ["MODEL", "MODELS"]
+
 class ProjectError(Exception):
 
     def __init__(self, path):
@@ -31,6 +33,9 @@ class ProjectError(Exception):
 
 class ProjectFormatError(ProjectError):
     pass
+
+# Alias until we rename this module
+ModelFormatError = ProjectFormatError
 
 class NoModels(ProjectError):
     pass
@@ -121,7 +126,7 @@ def _coerce_op_data(data):
         return data
 
 def from_dir(path, filenames=None, use_plugins=True):
-    filenames = ["MODELS", "MODEL"] if filenames is None else filenames
+    filenames = NAMES if filenames is None else filenames
     return guild.util.find_apply([
         lambda: _try_from_dir_file(path, filenames),
         lambda: _try_from_plugin(path) if use_plugins else None,

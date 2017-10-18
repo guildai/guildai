@@ -19,10 +19,8 @@ from guild.plugins.tensorflow_util import SummaryPlugin
 
 class CPUPlugin(SummaryPlugin):
 
-    SUMMARY_NAME = "cpu stats"
-
-    def __init__(self):
-        super(CPUPlugin, self).__init__()
+    def __init__(self, ep):
+        super(CPUPlugin, self).__init__(ep)
         self._cpu_percent_init = False
 
     def enabled_for_op(self, _op):

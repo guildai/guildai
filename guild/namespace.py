@@ -15,7 +15,10 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from . import entry_point_util
+import guild
+from .entry_point_util import EntryPointResources
+
+_namespaces = EntryPointResources("guild.namespaces", "namespace")
 
 class Membership(object):
     yes = "yes"
@@ -26,7 +29,8 @@ class Namespace(object):
 
     # pylint: disable=no-self-use
 
-    name = None
+    def __init__(self, ep):
+        self.name = ep.name
 
     def pip_install_info(self, _req):
         """Returns info for use in the pip install command.
@@ -72,12 +76,11 @@ class gpkg(pypi):
         else:
             return Membership.no, None
 
-def _init_ns(ns, ep):
-    ns.name = ep.name
+def iter_namespaces():
+    return iter(_namespaces)
 
-_ns = entry_point_util.EntryPointResources(
-    "guild.namespaces", "namespace", _init_ns)
+def for_name(name):
+    return _namespaces.one_for_name(name)
 
-iter_namespaces = _ns.__iter__
-for_name = _ns.one_for_name
-limit_to_builtin = _ns.limit_to_builtin
+def limit_to_builtin():
+    _namespaces.set_path([guild.__pkgdir__])

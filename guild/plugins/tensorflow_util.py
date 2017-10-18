@@ -24,9 +24,8 @@ class SummaryPlugin(Plugin):
 
     MIN_SUMMARY_INTERVAL = 5
 
-    SUMMARY_NAME = None
-
-    def __init__(self):
+    def __init__(self, ep):
+        super(SummaryPlugin, self).__init__(ep)
         self._summary_cache = SummaryCache(self.MIN_SUMMARY_INTERVAL)
 
     def patch_env(self):

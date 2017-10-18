@@ -17,7 +17,11 @@ from __future__ import division
 
 import logging
 
-from . import entry_point_util
+import guild
+
+from .entry_point_util import EntryPointResources
+
+_plugins = EntryPointResources("guild.plugins", "plugin")
 
 class NotSupported(Exception):
     pass
@@ -29,8 +33,8 @@ class Plugin(object):
 
     name = None
 
-    def init(self):
-        pass
+    def __init__(self, ep):
+        self.name = ep.name
 
     def models_for_location(self, _location):
         """Return a list or generator of models for location.
@@ -67,13 +71,11 @@ class Plugin(object):
             log = logging.debug
         log("plugin '%s' %s" % (self.name, msg), *args, **kw)
 
-def _init_plugin(plugin, ep):
-    plugin.name = ep.name
-    plugin.init()
+def iter_plugins():
+    return iter(_plugins)
 
-_plugins = entry_point_util.EntryPointResources(
-    "guild.plugins", "plugin", _init_plugin)
+def for_name(name):
+    return _plugins.one_for_name(name)
 
-iter_plugins = _plugins.__iter__
-for_name = _plugins.one_for_name
-limit_to_builtin = _plugins.limit_to_builtin
+def limit_to_builtin():
+    _plugins.set_path([guild.__pkgdir__])

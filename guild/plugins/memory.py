@@ -19,8 +19,6 @@ from guild.plugins.tensorflow_util import SummaryPlugin
 
 class MemoryPlugin(SummaryPlugin):
 
-    SUMMARY_NAME = "memory stats"
-
     def enabled_for_op(self, _op):
         return True, ""
 

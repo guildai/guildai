@@ -37,11 +37,10 @@ STATS = [
 
 class GPUPlugin(SummaryPlugin):
 
-    SUMMARY_NAME = "gpu stats"
-
     _stats_cmd = None
 
-    def init(self):
+    def __init__(self, ep):
+        super(GPUPlugin, self).__init__(ep)
         self._stats_cmd = _stats_cmd()
 
     def enabled_for_op(self, _op):

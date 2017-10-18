@@ -29,6 +29,8 @@ __requires__ = [
     ("werkzeug", "Werkzeug"),
 ]
 
+__pkgdir__ = os.path.dirname(os.path.dirname(__file__))
+
 def _try_init_git_attrs():
     try:
         _init_git_commit()

@@ -22,10 +22,8 @@ from guild.plugins.tensorflow_util import SummaryPlugin
 
 class DiskPlugin(SummaryPlugin):
 
-    SUMMARY_NAME = "disk stats"
-
-    def __init__(self):
-        super(DiskPlugin, self).__init__()
+    def __init__(self, ep):
+        super(DiskPlugin, self).__init__(ep)
         self._last_disk = None
 
     def enabled_for_op(self, _op):
