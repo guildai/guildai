@@ -28,12 +28,64 @@ class Model(object):
     def __init__(self, ep):
         self.name = ep.name
         self.dist = ep.dist
+        self._modeldef = None
+
+    @property
+    def modeldef(self):
+        if self._modeldef is None:
+            self._modeldef = _modeldef_for_dist(self.name, self.dist)
+        return self._modeldef
+
+    def __repr__(self):
+        return "<guild.model.Model '%s'>" % self.name
+
+def _modeldef_for_dist(name, dist):
+    if isinstance(dist, ModelfileDistribution):
+        return dist.get_model(name)
+    else:
+        for modeldef in _ensure_dist_modeldefs(dist):
+            if modeldef.name == name:
+                return modeldef
+        raise ValueError("'%s' is not defined in '%s'" % (name, dist))
+
+def _ensure_dist_modeldefs(dist):
+    if not hasattr(dist, "_modelefs"):
+        dist._modeldefs = _load_dist_modeldefs(dist)
+    return dist._modeldefs
+
+def _load_dist_modeldefs(dist):
+    modeldefs = []
+    try:
+        record = dist.get_metadata_lines("RECORD")
+    except IOError:
+        logging.warning(
+            "distribution %s missing RECORD metadata - unable to find models",
+            dist)
+    else:
+        for line in record:
+            path = line.split(",", 1)[0]
+            if os.path.basename(path) in modelfile.NAMES:
+                fullpath = os.path.join(dist.location, path)
+                _try_acc_modeldefs(fullpath, modeldefs)
+    return modeldefs
+
+def _try_acc_modeldefs(path, acc):
+    try:
+        models = modelfile.from_file(path)
+    except Exception as e:
+        logging.warning("unable to load models from %s: %s", path, e)
+    else:
+        for modeldef in models:
+            acc.append(modeldef)
 
 class ModelfileDistribution(Distribution):
 
     def __init__(self, models):
         super(ModelfileDistribution, self).__init__(
-            location=os.path.dirname(models.src))
+            location=os.path.dirname(models.src),
+            project_name=os.path.basename(models.src),
+            version="-")
+        self.models = models
         self._entry_map = _entry_map_for_models(models, self)
 
     def get_entry_map(self, group=None):
@@ -41,6 +93,12 @@ class ModelfileDistribution(Distribution):
             return self._entry_map
         else:
             return self._entry_map.get(group, {})
+
+    def get_model(self, name):
+        for model in self.models:
+            if model.name == name:
+                return model
+        raise ValueError(name)
 
 def _entry_map_for_models(models, dist):
     return {
@@ -82,7 +140,8 @@ def _model_finder(_importer, path, _only=False):
         yield ModelfileDistribution(models)
 
 def iter_models():
-    return iter(_models)
+    for _name, model in _models:
+        yield model
 
 def for_name(name):
     return _models.for_name(name)

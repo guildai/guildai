@@ -51,9 +51,93 @@ Here's our new path:
 
 ## Iterating models
 
-We can iterate through all available models using `iter_models1`:
+We can iterate through all available models using `iter_models`:
 
-    >>> sorted(guild.model.iter_models())
-    [('mnist', <guild.model.Model object ...>),
-     ('mnist-expert', <guild.model.Model object ...>),
-     ('mnist-intro', <guild.model.Model object ...>)]
+    >>> sorted(guild.model.iter_models(), key=lambda m: m.name)
+    [<guild.model.Model 'mnist-cnn'>,
+     <guild.model.Model 'mnist-expert'>,
+     <guild.model.Model 'mnist-intro'>,
+     <guild.model.Model 'mnist-softmax'>]
+
+## Models by name
+
+We can lookup models matching a name:
+
+    >>> list(guild.model.for_name("mnist-cnn"))
+    [<guild.model.Model 'mnist-cnn'>]
+
+If there are no models matching `name` we get an error:
+
+    >>> list(guild.model.for_name("other"))
+    Traceback (most recent call last):
+    LookupError: other
+
+## Model distributions
+
+Models are associated with the distributions in which they're
+defined. Guild supports two types of distributions:
+
+- Standard Python distributions as outlined in
+  [Packaging and Distributing Projects]
+  (https://packaging.python.org/tutorials/distributing-packages/)
+
+- Modelfile distributions, which are based on modelfiles
+
+The `mnist-cnn` model is defined in a standard Python distribution:
+
+    >>> cnn = next(guild.model.for_name("mnist-cnn"))
+
+    >>> cnn.dist
+    gpkg.mnist 0.1.0 (.../samples/model-packages)
+
+    >>> cnn.dist.__class__
+    <class 'pkg_resources.DistInfoDistribution'>
+
+Here we see that the project name is `gpkg.dist` and the distribution
+is located in the sample `model-packages` directory. Standard
+distributions have versions as they were explicitly packaged using
+`setuptools` (e.g. by way of the `guild package` command).
+
+The `mnist-intro` model is defined in a modelfile:
+
+    >>> intro = next(guild.model.for_name("mnist-intro"))
+
+    >>> intro.dist
+    MODELS - (.../samples/projects/mnist)
+
+    >>> intro.dist.__class__
+    <class 'guild.model.ModelfileDistribution'>
+
+Modelfile distributions are not versioned.
+
+## Model defs
+
+Models are associated with modeldefs that provide the details
+associated with a model, including their operations. Modeldefs
+implemented as YAML files that are on the model path
+
+The `mnist-cnn` modeldef looks like this:
+
+    >>> cnn_def = cnn.modeldef
+
+    >>> cnn_def.name
+    'mnist-cnn'
+
+    >>> cnn_def.description
+    'CNN classifier for MNIST'
+
+    >>> [(op.name, op.description) for op in cnn_def.operations]
+    [('train', 'Train the CNN')]
+
+Here's the `mnist-intro` def:
+
+    >>> intro_def = intro.modeldef
+
+    >>> intro_def.name
+    'mnist-intro'
+
+    >>> print(intro_def.description)
+    None
+
+    >>> [(op.name, op.description) for op in intro_def.operations]
+    [('evaluate', None), ('train', None)]

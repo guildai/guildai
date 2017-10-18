@@ -23,7 +23,8 @@ import yaml
 
 import guild.plugin
 
-NAMES = ["MODEL", "MODELS"]
+# The order here should be based on priority of selection.
+NAMES = ["MODELS", "MODEL"]
 
 class ModelfileError(Exception):
 
@@ -43,7 +44,7 @@ class Modelfile(object):
         self._data = data
         self.src = src
         self.models = [
-            Model(self, model_data) for model_data in data
+            ModelDef(self, model_data) for model_data in data
         ]
 
     def __iter__(self):
@@ -64,13 +65,12 @@ class Modelfile(object):
     def default_model(self):
         return self.models[0] if self.models else None
 
-class Model(object):
+class ModelDef(object):
 
     def __init__(self, modelfile, data):
         self.modelfile = modelfile
         self._data = data
         self.name = data.get("name")
-        self.version = data.get("version")
         self.description = data.get("description")
         self.operations = _sorted_ops(data.get("operations", {}), self)
         self.flags = data.get("flags", {})
@@ -87,13 +87,13 @@ class Model(object):
 
 def _sorted_ops(data, model):
     keys = sorted(data.keys())
-    return [Operation(model, key, data[key]) for key in keys]
+    return [OpDef(model, key, data[key]) for key in keys]
 
-class Operation(object):
+class OpDef(object):
 
-    def __init__(self, model, name, data):
-        self.model = model
-        self.modelfile = model.modelfile
+    def __init__(self, modeldef, name, data):
+        self.modeldef = modeldef
+        self.modelfile = modeldef.modelfile
         self.name = name
         data = _coerce_op_data(data)
         self._data = data

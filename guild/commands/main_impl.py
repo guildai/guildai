@@ -16,8 +16,11 @@ from __future__ import absolute_import
 from __future__ import division
 
 import logging
+import os
 
 import guild.log
 
 def main(args):
     guild.log.init_logging(args.log_level or logging.INFO)
+    if args.chdir:
+        os.chdir(args.chdir)

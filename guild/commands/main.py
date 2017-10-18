@@ -49,6 +49,10 @@ class CLIGroup(click.Group):
     message="%(prog)s %(version)s"
 )
 @click.option(
+    "-C", "chdir", metavar="PATH",
+    help=("Run as if guild was started in PATH instead of the current "
+          "directory."))
+@click.option(
     "--debug", "log_level",
     help="Log more information during command.",
     flag_value=logging.DEBUG)

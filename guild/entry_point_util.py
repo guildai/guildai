@@ -55,10 +55,6 @@ class EntryPointResources(object):
             return self.__working_set
         return pkg_resources.working_set
 
-    @_working_set.setter
-    def _working_set(self, val):
-        self.__working_set = val
-
     def _init_resources(self):
         resources = {}
         for ep in self._working_set.iter_entry_points(self._group):
@@ -97,4 +93,5 @@ class EntryPointResources(object):
         return self._working_set.entries
 
     def set_path(self, val):
-        self._working_set = pkg_resources.WorkingSet(val)
+        self.__working_set = pkg_resources.WorkingSet(val)
+        self.__resources = None

@@ -17,6 +17,27 @@ from __future__ import division
 
 import os
 
+import guild.model
+
+def init_model_path(all_models=False):
+    if not all_models:
+        guild.model.set_path([])
+    maybe_model_src = _find_model_source(".")
+    if maybe_model_src:
+        guild.model.add_model_source(maybe_model_src)
+
+def _find_model_source(path):
+    # Note that the order of NAMES matters as the first match is used
+    # over subsequent names.
+    for name in guild.modelfile.NAMES:
+        filename = os.path.join(path, name)
+        if os.path.isfile(filename):
+            return filename
+    return None
+
+"""
+import os
+
 import guild.cli
 import guild.click_util
 import guild.package
@@ -97,3 +118,4 @@ def split_pkg(pkg):
         "unknown namespace '%s' in %s\n"
         "Supported namespaces: %s"
         % (e.value, pkg, namespaces))
+"""
