@@ -23,6 +23,7 @@ import setuptools
 import yaml
 import twine.commands.upload
 
+import guild.help
 from guild import modelfile
 
 class Pkg(object):
@@ -137,8 +138,10 @@ def _pkg_description(pkg, models):
     desc_lines = pkg.get("description", "").strip().split("\n")
     desc = desc_lines[0]
     long_desc = "\n\n".join(desc_lines[1:])
-    models_desc = guild.help.package_description(
-        models, modelfile=pkg.get("modelfile"))
+    refs = [
+        ("Modelfile", pkg.get("modelfile", "UNKNOWN")),
+    ]
+    models_desc = guild.help.package_description(models, refs)
     return desc, "\n\n".join([long_desc, models_desc])
 
 def _package_data(pkg):

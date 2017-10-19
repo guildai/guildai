@@ -19,10 +19,13 @@ import guild.help
 
 def main(args, ctx):
     models = cmd_impl_support.modelfile(ctx)
+    refs = {
+        ("Modelfile", models.src)
+    }
     if args.package_description:
-        help = guild.help.package_description(models)
+        help = guild.help.package_description(models, refs)
     else:
-        help = guild.help.models_console_help(models)
+        help = guild.help.models_console_help(models, refs)
     if args.no_pager:
         click.echo(help)
     else:
