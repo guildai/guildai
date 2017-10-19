@@ -50,7 +50,7 @@ class RestFormatter(click.HelpFormatter):
     def write_description(self, val):
         self.write_text("*%s*" % val)
 
-    def write_dl(self, rows):
+    def write_dl(self, rows, _col_max=None, _col_spacing=None):
         for i, (name, desc) in enumerate(rows):
             if i > 0:
                 self.write_paragraph()

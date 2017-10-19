@@ -40,6 +40,7 @@ def install_packages(args):
 def _installs(args):
     index_urls = {}
     for pkg in args.packages:
+        # TODO: fix
         ns, req_in = guild.cmd_impl_support.split_pkg(pkg)
         req, urls = ns.pip_install_info(req_in)
         urls_key = "\n".join(urls)

@@ -201,7 +201,7 @@ def _dist_file_args(dist):
 def _handle_twine_error(e):
     try:
         msg = e.message
-    except AttrError:
+    except AttributeError:
         msg = str(e)
     _exit(msg)
 

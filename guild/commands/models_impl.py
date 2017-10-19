@@ -20,7 +20,7 @@ from guild.cmd_impl_support import init_model_path
 from guild.model import iter_models
 
 def main(args, ctx):
-    init_model_path(args.all)
+    init_model_path(ctx, args.all)
     cli.table(
         [_format_model(model, long_names=args.all) for model in iter_models()],
         cols=["fullname", "description"],

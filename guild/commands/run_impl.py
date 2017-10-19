@@ -115,7 +115,7 @@ def _no_such_operation_error(name, model):
 def _apply_flags_to_op(args, op):
     for arg in args.args:
         name, val = _parse_flag(arg)
-        op.flags[name] = val
+        op.set_flag_value(name, val)
 
 def _parse_flag(s):
     parts = s.split("=", 1)

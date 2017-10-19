@@ -69,15 +69,47 @@ class Modelfile(object):
     def default_model(self):
         return self.models[0] if self.models else None
 
-class ModelDef(object):
+class FlagValHost(object):
+
+    def __init__(self, parent_host=None):
+        self._parent = parent_host
+        self._flag_vals = {}
+
+    def all_flag_values(self):
+        seen = set()
+        for name in self._flag_vals:
+            yield name, self._flag_vals[name]
+            seen.add(name)
+        if self._parent:
+            # pylint: disable=protected-access
+            for name in self._parent._flag_vals:
+                if name not in seen:
+                    yield name, self._parent._flag_vals[name]
+                    seen.add(name)
+
+    def set_flag_value(self, name, val):
+        self._flag_vals[name] = val
+
+    def get_flag_value(self, name, default=None):
+        try:
+            return self._flag_vals[name]
+        except KeyError:
+            return (self._parent.get_flag_val(name)
+                    if self._parent
+                    else default)
+
+class ModelDef(FlagValHost):
 
     def __init__(self, modelfile, data):
+        super(ModelDef, self).__init__()
         self.modelfile = modelfile
         self._data = data
         self.name = data.get("name")
         self.description = data.get("description")
         self.operations = _sorted_ops(data.get("operations", {}), self)
         self.flags = _sorted_flags(data.get("flags", {}), self)
+        for flag in self.flags:
+            self.set_flag_value(flag.name, flag.value)
         self.disabled_plugins = data.get("disabled-plugins", [])
 
     def __repr__(self):
@@ -108,9 +140,10 @@ def _sorted_ops(data, model):
     keys = sorted(data.keys())
     return [OpDef(model, key, data[key]) for key in keys]
 
-class OpDef(object):
+class OpDef(FlagValHost):
 
     def __init__(self, modeldef, name, data):
+        super(OpDef, self).__init__(modeldef)
         self.modeldef = modeldef
         self.modelfile = modeldef.modelfile
         self.name = name
@@ -119,6 +152,8 @@ class OpDef(object):
         self.description = data.get("description")
         self.cmd = data.get("cmd")
         self.flags = _sorted_flags(data.get("flags", {}), self)
+        for flag in self.flags:
+            self.set_flag_value(flag.name, flag.value)
         self.disabled_plugins = data.get("disabled-plugins", [])
 
     def __repr__(self):

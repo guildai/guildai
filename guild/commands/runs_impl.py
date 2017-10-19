@@ -216,7 +216,7 @@ def _no_matching_run_error(id_part, cmd_ctx):
     guild.cli.error(
         "could not find run matching '%s'\n"
         "Try 'guild runs list' for a list or '%s' for more information."
-        % (id_part, click_util.ctx_cmd_help(cmd_ctx)))
+        % (id_part, click_util.cmd_help(cmd_ctx)))
 
 def _non_unique_run_id_error(matches):
     guild.cli.out("'%s' matches multiple runs:\n", err=True)

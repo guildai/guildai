@@ -43,6 +43,7 @@ def _modeldef_for_dist(name, dist):
         raise ValueError("undefined model '%s'" % name)
 
 def _ensure_dist_modeldefs(dist):
+    # pylint: disable=protected-access
     if not hasattr(dist, "_modelefs"):
         dist._modeldefs = _load_dist_modeldefs(dist)
     return dist._modeldefs

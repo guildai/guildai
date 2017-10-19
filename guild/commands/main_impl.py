@@ -15,7 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import errno
 import logging
 import os
 
@@ -25,5 +24,5 @@ from guild import log
 def main(args, ctx):
     log.init_logging(args.log_level or logging.INFO)
     if args.chdir and not os.path.exists(args.chdir):
-        cli.error("%s does not exist" % e.filename)
+        cli.error("%s does not exist" % args.chdir)
     ctx.obj["cwd"] = args.chdir or "."

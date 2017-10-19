@@ -128,7 +128,7 @@ def _delete_proc_lock(run):
         pass
 
 def from_project_op(project_op):
-    flags = _op_flags(project_op)
+    flags = project_op.all_flag_values()
     cmd_args = _op_cmd_args(project_op, flags)
     cmd_env = _op_cmd_env(project_op)
     attrs = {
@@ -139,18 +139,6 @@ def from_project_op(project_op):
         cmd_args,
         cmd_env,
         attrs)
-
-def _op_flags(op):
-    flags = {}
-    _acc_flags(op.modeldef.flags, flags)
-    _acc_flags(op.flags, flags)
-    return flags
-
-def _acc_flags(project_flags, flags):
-    for name, val in project_flags.items():
-        if isinstance(val, dict):
-            val = val.get("value", None)
-        flags[name] = val
 
 def _op_cmd_args(project_op, flags):
     python_args = [_python_cmd(project_op), "-um", "guild.op_main"]
@@ -178,13 +166,9 @@ def _cmd_args(project_op):
 def _flag_args(flags):
     return [
         arg for args in
-        [_opt_args(name, val) for name, val in _sorted_flags(flags)]
+        [_opt_args(name, val) for name, val in sorted(flags)]
         for arg in args
     ]
-
-def _sorted_flags(flags):
-    flags = flags or {}
-    return [(key, flags[key]) for key in sorted(flags)]
 
 def _opt_args(name, val):
     opt = "--%s" % name
