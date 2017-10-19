@@ -28,17 +28,32 @@ from guild import click_util
     "-d", "--dist-dir", metavar="DIR",
     help="Directory to create the package distribution in.")
 @click.option(
-    "--upload",
-    help="Upload the package distribution to PyPI after creating it.",
-    is_flag=True)
+    "--upload", "upload",
+    help="Upload to PyPI after creating the package.",
+    flag_value="https://upload.pypi.org/legacy/")
+@click.option(
+    "--upload-test", "upload",
+    help="Upload to the PyPI test site after creating the package.",
+    flag_value="https://test.pypi.org/legacy/")
+@click.option(
+    "--upload-repo", "upload", metavar="REPO",
+    help="Upload to REPO after creating the package.")
 @click.option(
     "-s", "--sign",
     help="Sign a package distribution upload with gpg.",
     is_flag=True)
-@click.option("-i", "--identity", help="GPG identity used to sign upload.")
-@click.option("-u", "--user", help="PyPI user name for upload.")
-@click.option("-p", "--password", help="PyPI password for upload.")
-@click.option("-c", "--comment", help="Comment to include with upload.")
+@click.option(
+    "-i", "--identity", metavar="IDENTITY",
+    help="GPG identity used to sign upload.")
+@click.option(
+    "-u", "--user", metavar="USERNAME",
+    help="PyPI user name for upload.")
+@click.option(
+    "-p", "--password", metavar="PASSWORD",
+    help="PyPI password for upload.")
+@click.option(
+    "-c", "--comment", metavar="COMMENT",
+    help="Comment to include with upload.")
 
 @click.pass_context
 @click_util.use_args
@@ -48,6 +63,16 @@ def package(ctx, args):
 
     Packages are built from projects that contain a PACKAGE file that
     describes the package to be built.
+
+    You may upload the generated package distribution to a PyPI
+    repository by using the --upload option or to the PyPI test site
+    by using --upload-test.
+
+    You may upload to an alternative repository using
+    --upload-repo. REPO may be a URL or the name of a section in
+    ~/.pypirc. For more information on the .pypirc file, see:
+
+        https://docs.python.org/2/distutils/packageindex.html#pypirc
     """
     from . import package_impl
     package_impl.create_package(args, ctx)

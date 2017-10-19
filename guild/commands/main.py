@@ -23,6 +23,7 @@ from guild import version as guild_version
 from guild import click_util
 
 from .check import check
+from .help import help
 from .install import install
 from .operations import operations
 from .models import models
@@ -57,14 +58,16 @@ class CLIGroup(click.Group):
     help="Log more information during command.",
     flag_value=logging.DEBUG)
 
+@click.pass_context
 @click_util.use_args
 
-def main(args):
+def main(ctx, args):
     """Guild AI command line interface."""
     from . import main_impl
-    main_impl.main(args)
+    main_impl.main(args, ctx)
 
 main.add_command(check)
+main.add_command(help)
 main.add_command(install)
 main.add_command(models)
 main.add_command(operations)

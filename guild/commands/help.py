@@ -15,15 +15,31 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import errno
-import logging
-import os
+import click
 
-from guild import cli
-from guild import log
+from guild import click_util
 
-def main(args, ctx):
-    log.init_logging(args.log_level or logging.INFO)
-    if args.chdir and not os.path.exists(args.chdir):
-        cli.error("%s does not exist" % e.filename)
-    ctx.obj["cwd"] = args.chdir or "."
+@click.command()
+@click.option(
+    "--package-description",
+    help="Show the package description.",
+    is_flag=True)
+@click.option(
+    "-n", "--no-pager",
+    help="Do not use a pager when showing help.",
+    is_flag=True)
+
+@click.pass_context
+@click_util.use_args
+
+def help(ctx, args):
+    """Show help for a project.
+
+    By default shows information about the models defined in the
+    project.
+
+    To display the description for distributions generated using the
+    package command, specify the --package-description option.
+    """
+    from . import help_impl
+    help_impl.main(args, ctx)

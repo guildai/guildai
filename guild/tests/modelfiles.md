@@ -57,9 +57,6 @@ We'll use the 'expert' model for these examples:
     >>> model.name
     'mnist-expert'
 
-    >>> model.version
-    '0.1.0'
-
     >>> model.description
     'Sample model'
 

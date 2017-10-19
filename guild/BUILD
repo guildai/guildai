@@ -36,9 +36,8 @@ py_library(
     deps = [
         ":cli",
         ":click_util",
+        ":model",
         ":modelfile",
-        ":package",
-        ":util",
     ],
 )
 
@@ -55,6 +54,14 @@ py_library(
     srcs = ["entry_point_util.py"],
     deps = [
         "//third_party:setuptools",
+    ],
+)
+
+py_library(
+    name = "help",
+    srcs = ["help.py"],
+    deps = [
+        "//third_party:click",
     ],
 )
 
@@ -88,7 +95,7 @@ py_library(
     srcs = ["model.py"],
     deps = [
         "//third_party:setuptools",
-        ":entry_point",
+        ":entry_point_util",
         ":modelfile",
     ]
 )
@@ -99,6 +106,7 @@ py_library(
     deps = [
         "//third_party:yaml",
         ":plugin",
+        ":util",
     ]
 )
 
@@ -148,6 +156,7 @@ py_library(
         "//third_party:setuptools",
         "//third_party:twine",
         "//third_party:yaml",
+        ":modelfile",
     ],
 )
 

@@ -40,7 +40,7 @@ def format_error_message(e):
     if e.ctx:
         msg_parts.append(
             "\nTry '%s' for more information."
-            % ctx_cmd_help(e.ctx))
+            % cmd_help(e.ctx))
     return "".join(msg_parts)
 
 def _format_click_error_message(e):
@@ -79,7 +79,7 @@ def _format_usage_error(e):
             return new_msg_pattern % m.groups()
     return msg
 
-def ctx_cmd_help(ctx):
+def cmd_help(ctx):
     return "%s %s" % (_normalize_command_name(ctx.command_path),
                      ctx.help_option_names[0])
 

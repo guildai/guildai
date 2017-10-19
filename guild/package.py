@@ -77,8 +77,9 @@ def apply_namespace(project_name):
     else:
         return "@%s/%s" % (ns.name, pkg_name)
 
-def create_package(package_file, dist_dir=None, upload=False, sign=False,
-                   identity=None, user=None, password=None, comment=None):
+def create_package(package_file, dist_dir=None, upload_repo=False,
+                   sign=False, identity=None, user=None, password=None,
+                   comment=None):
     # Use a separate OS process as setup assumes it's running as a
     # command line op. We make sure to import package_main lazily here
     # because it incurs various runtime deps that we don't want to
@@ -91,7 +92,7 @@ def create_package(package_file, dist_dir=None, upload=False, sign=False,
         "PYTHONPATH": os.path.pathsep.join(sys.path),
         "PACKAGE_FILE": package_file,
         "DIST_DIR": dist_dir or "",
-        "UPLOAD": "1" if upload else "",
+        "UPLOAD_REPO": upload_repo or "",
         "SIGN": "1" if sign else "",
         "IDENTITY": identity or "",
         "USER": user or "",

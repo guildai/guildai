@@ -22,6 +22,7 @@ import os
 import yaml
 
 import guild.plugin
+import guild.util
 
 # The order here should be based on priority of selection.
 NAMES = ["MODELS", "MODEL"]
@@ -46,6 +47,9 @@ class Modelfile(object):
         self.models = [
             ModelDef(self, model_data) for model_data in data
         ]
+
+    def __repr__(self):
+        return "<guild.modelfile.Modelfile '%s'>" % self.src
 
     def __iter__(self):
         return iter(self.models)
@@ -73,8 +77,11 @@ class ModelDef(object):
         self.name = data.get("name")
         self.description = data.get("description")
         self.operations = _sorted_ops(data.get("operations", {}), self)
-        self.flags = data.get("flags", {})
+        self.flags = _sorted_flags(data.get("flags", {}), self)
         self.disabled_plugins = data.get("disabled-plugins", [])
+
+    def __repr__(self):
+        return "<guild.modelfile.Model '%s'>" % self.name
 
     def get_op(self, name):
         for op in self.operations:
@@ -82,8 +89,20 @@ class ModelDef(object):
                 return op
         return None
 
+def _sorted_flags(data, parent):
+    keys = sorted(data.keys())
+    return [FlagDef(parent, key, data[key]) for key in keys]
+
+class FlagDef(object):
+
+    def __init__(self, parent, name, data):
+        self.parent = parent
+        self.name = name
+        self.description = data.get("description")
+        self.value = data.get("value")
+
     def __repr__(self):
-        return "<guild.modelfile.Model '%s'>" % self.name
+        return "<guild.modelfile.Flag '%s'>" % self.name
 
 def _sorted_ops(data, model):
     keys = sorted(data.keys())
@@ -99,15 +118,15 @@ class OpDef(object):
         self._data = data
         self.description = data.get("description")
         self.cmd = data.get("cmd")
-        self.flags = data.get("flags", {})
+        self.flags = _sorted_flags(data.get("flags", {}), self)
         self.disabled_plugins = data.get("disabled-plugins", [])
-
-    @property
-    def full_name(self):
-        return "%s:%s" % (self.model.name, self.name)
 
     def __repr__(self):
         return "<guild.modelfile.Operation '%s'>" % self.full_name
+
+    @property
+    def full_name(self):
+        return "%s:%s" % (self.modeldef.name, self.name)
 
 def _coerce_op_data(data):
     """Return a cmd map for data.

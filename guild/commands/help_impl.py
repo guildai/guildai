@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
+import click
 
-import errno
-import logging
-import os
-
-from guild import cli
-from guild import log
+from guild import cmd_impl_support
+import guild.help
 
 def main(args, ctx):
-    log.init_logging(args.log_level or logging.INFO)
-    if args.chdir and not os.path.exists(args.chdir):
-        cli.error("%s does not exist" % e.filename)
-    ctx.obj["cwd"] = args.chdir or "."
+    models = cmd_impl_support.modelfile(ctx)
+    if args.package_description:
+        help = guild.help.package_description(models)
+    else:
+        help = guild.help.models_console_help(models)
+    if args.no_pager:
+        click.echo(help)
+    else:
+        click.echo_via_pager(help)

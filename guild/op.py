@@ -142,7 +142,7 @@ def from_project_op(project_op):
 
 def _op_flags(op):
     flags = {}
-    _acc_flags(op.model.flags, flags)
+    _acc_flags(op.modeldef.flags, flags)
     _acc_flags(op.flags, flags)
     return flags
 
@@ -216,7 +216,8 @@ def _op_plugins(project_op):
     return ",".join(op_plugins)
 
 def _plugin_disabled_in_project(name, project_op):
-    disabled = project_op.disabled_plugins + project_op.model.disabled_plugins
+    disabled = (project_op.disabled_plugins +
+                project_op.modeldef.disabled_plugins)
     return any([disabled_name in (name, "all") for disabled_name in disabled])
 
 def _python_path(project_op):

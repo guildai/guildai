@@ -26,7 +26,7 @@ import guild.commands.main
 def main():
     try:
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-        guild.commands.main.main(standalone_mode=False)
+        guild.commands.main.main(standalone_mode=False, obj={})
     except click.exceptions.Abort:
         _handle_keyboard_interrupt()
     except click.exceptions.ClickException as e:

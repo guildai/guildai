@@ -103,12 +103,19 @@ The `mnist-intro` model is defined in a modelfile:
     >>> intro = next(guild.model.for_name("mnist-intro"))
 
     >>> intro.dist
-    MODELS - (.../samples/projects/mnist)
+    <guild.model.ModelfileDistribution '.../samples/projects/mnist/MODELS'>
 
-    >>> intro.dist.__class__
-    <class 'guild.model.ModelfileDistribution'>
+Modelfile distributions are not versioned and trying to read the
+version will generate an error:
 
-Modelfile distributions are not versioned.
+    >>> intro.dist.version
+    Traceback (most recent call last):
+    ValueError: ("Missing 'Version:' header and/or PKG-INFO file"...
+
+Modelfile distribution project names are always 'Unknown':
+
+    >>> intro.dist.project_name
+    'Unknown'
 
 ## Model defs
 

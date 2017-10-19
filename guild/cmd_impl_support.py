@@ -17,12 +17,15 @@ from __future__ import division
 
 import os
 
+import guild.cli
+import guild.click_util
 import guild.model
+import guild.modelfile
 
-def init_model_path(all_models=False):
+def init_model_path(ctx, all_models=False):
     if not all_models:
         guild.model.set_path([])
-    maybe_model_src = _find_model_source(".")
+    maybe_model_src = _find_model_source(_cwd(ctx))
     if maybe_model_src:
         guild.model.add_model_source(maybe_model_src)
 
@@ -34,6 +37,24 @@ def _find_model_source(path):
         if os.path.isfile(filename):
             return filename
     return None
+
+def modelfile(ctx):
+    try:
+        return guild.modelfile.from_dir(_cwd(ctx))
+    except (guild.modelfile.NoModels, IOError):
+        _no_models_error(ctx)
+
+def _no_models_error(ctx):
+    cmd_path = ctx.command_path.split(" ")
+    guild.cli.error(
+        "this directory does not contain any models\n"
+        "Try a different directory with '%s -C DIR %s' "
+        "or '%s' for more information."
+        % (cmd_path[0], " ".join(cmd_path[1:]),
+           guild.click_util.cmd_help(ctx)))
+
+def _cwd(ctx):
+    return ctx.obj["cwd"]
 
 """
 import os
@@ -47,10 +68,10 @@ import guild.util
 class NoModelfile(Exception):
     pass
 
-def project_for_location(location, cmd_ctx=None):
+def project_for_location(location, ctx=None):
     project = find_project_for_location(location)
     if project is None:
-        _no_project_error(location, cmd_ctx)
+        _no_project_error(location, ctx)
     return project
 
 def find_project_for_location(location):
@@ -66,7 +87,7 @@ def _project_for_location(location):
     except (guild.modelfile.NoModels, IOError):
         raise NoModelfile()
 
-def _no_project_error(location, cmd_ctx):
+def _no_project_error(location, ctx):
     location = project_location_option(location) or "."
     msg_parts = []
     if os.path.exists(location):
@@ -75,7 +96,7 @@ def _no_project_error(location, cmd_ctx):
             % project_location_desc(location))
     else:
         msg_parts.append("%s does not exist\n" % location)
-    msg_parts.append(try_project_location_help(location, cmd_ctx))
+    msg_parts.append(try_project_location_help(location, ctx))
     guild.cli.error("".join(msg_parts))
 
 def project_location_desc(location):
@@ -83,17 +104,17 @@ def project_location_desc(location):
     return ("%s" % location if location
             else "the current directory")
 
-def try_project_location_help(location, cmd_ctx=None):
+def try_project_location_help(location, ctx=None):
     location = project_location_option(location)
     help_parts = []
     if location:
         help_parts.append("Try specifying a different location")
     else:
         help_parts.append("Try specifying a project location")
-    if cmd_ctx:
+    if ctx:
         help_parts.append(
             " or '%s' for more information."
-            % guild.click_util.ctx_cmd_help(cmd_ctx))
+            % guild.click_util.ctx_cmd_help(ctx))
     else:
         help_parts.append(".")
     return "".join(help_parts)

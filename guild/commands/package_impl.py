@@ -31,7 +31,7 @@ def create_package(args, ctx):
     guild.package.create_package(
         package_file,
         dist_dir=args.dist_dir,
-        upload=args.upload,
+        upload_repo=args.upload,
         sign=args.sign,
         identity=args.identity,
         user=args.user,

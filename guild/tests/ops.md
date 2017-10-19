@@ -104,7 +104,7 @@ Our sample project op doesn't define any flags:
 
 Let's define a flag at the model level:
 
-    >>> project_op.model.flags["epochs"] = 100
+    >>> project_op.modeldef.flags["epochs"] = 100
     >>> guild.op._op_flags(project_op)
     {'epochs': 100}
 
@@ -118,6 +118,6 @@ Here are a couple additional flags, one defined in the model and the
 other in the operations:
 
     >>> project_op.flags["batch-size"] = 50
-    >>> project_op.model.flags["learning-rate"] = 0.1
+    >>> project_op.modeldef.flags["learning-rate"] = 0.1
     >>> pprint(guild.op._op_flags(project_op))
     {'batch-size': 50, 'epochs': 200, 'learning-rate': 0.1}

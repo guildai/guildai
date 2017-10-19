@@ -22,23 +22,21 @@ from guild.model import iter_models
 def main(args, ctx):
     init_model_path(args.all)
     cli.table(
-        [_format_modeldef(m.modeldef) for m in iter_models()],
-        cols=["name", "description"]
+        [_format_model(model, long_names=args.all) for model in iter_models()],
+        cols=["fullname", "description"],
+        detail=(["name", "source", "operations"] if args.verbose else [])
     )
 
-    """
-    cli.table(
-        [_format_model(model) for model in iter_models()],
-        cols=["name", "description"],
-        detail=(["source", "version", "operations"]
-                if args.verbose else []))
-    """
-
-def _format_modeldef(modeldef):
+def _format_model(model, long_names):
+    modeldef = model.modeldef
+    if long_names:
+        fullname = "%s/%s"  % (model.dist.project_name, modeldef.name)
+    else:
+        fullname = modeldef.name
     return {
-        #"source": model.project.src,
+        "fullname": fullname,
+        "source": modeldef.modelfile.src,
         "name": modeldef.name,
-        #"version": model.version,
         "description": modeldef.description or "",
-        #"operations": ", ".join([op.name for op in model.operations])
+        "operations": ", ".join([op.name for op in modeldef.operations])
     }

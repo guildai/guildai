@@ -28,13 +28,7 @@ class Model(object):
     def __init__(self, ep):
         self.name = ep.name
         self.dist = ep.dist
-        self._modeldef = None
-
-    @property
-    def modeldef(self):
-        if self._modeldef is None:
-            self._modeldef = _modeldef_for_dist(self.name, self.dist)
-        return self._modeldef
+        self.modeldef = _modeldef_for_dist(ep.name, ep.dist)
 
     def __repr__(self):
         return "<guild.model.Model '%s'>" % self.name
@@ -46,7 +40,7 @@ def _modeldef_for_dist(name, dist):
         for modeldef in _ensure_dist_modeldefs(dist):
             if modeldef.name == name:
                 return modeldef
-        raise ValueError("'%s' is not defined in '%s'" % (name, dist))
+        raise ValueError("undefined model '%s'" % name)
 
 def _ensure_dist_modeldefs(dist):
     if not hasattr(dist, "_modelefs"):
@@ -81,12 +75,12 @@ def _try_acc_modeldefs(path, acc):
 class ModelfileDistribution(Distribution):
 
     def __init__(self, models):
-        super(ModelfileDistribution, self).__init__(
-            location=os.path.dirname(models.src),
-            project_name=os.path.basename(models.src),
-            version="-")
+        super(ModelfileDistribution, self).__init__(models.src)
         self.models = models
         self._entry_map = _entry_map_for_models(models, self)
+
+    def __repr__(self):
+        return "<guild.model.ModelfileDistribution '%s'>" % self.models.src
 
     def get_entry_map(self, group=None):
         if group is None:

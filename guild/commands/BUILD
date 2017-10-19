@@ -2,18 +2,13 @@ package(default_visibility = ["//visibility:public"])
 
 py_library(
     name = "main",
-    srcs = [
-        "main.py",
-        "main_impl.py",
-    ],
+    srcs = ["main.py"],
     deps = [
         "//third_party:click",
         "//guild:__init__",
-        "//guild:log",
-        "//guild:namespace",
-        "//guild:plugin",
         "//guild:click_util",
         ":check",
+        ":help",
         ":install",
         ":models",
         ":operations",
@@ -25,6 +20,15 @@ py_library(
         ":train",
         ":uninstall",
         ":view",
+    ]
+)
+
+py_library(
+    name = "main_impl",
+    srcs = ["main_impl.py"],
+    deps = [
+        "//guild:cli",
+        "//guild:log",
     ]
 )
 
@@ -50,6 +54,25 @@ py_library(
         "//guild:test",
         "//guild:util",
         ":tensorflow_info_main",
+    ],
+)
+
+py_library(
+    name = "help",
+    srcs = ["help.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:click_util",
+        ":help_impl",
+    ],
+)
+
+py_library(
+    name = "help_impl",
+    srcs = ["help_impl.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:cmd_impl_support",
     ],
 )
 

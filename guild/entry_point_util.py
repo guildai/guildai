@@ -28,12 +28,7 @@ class Resource(object):
         return self._inst
 
     def __str__(self):
-        parts = [self._ep.module_name]
-        if self._ep.attrs:
-            parts.extend([":", ".".join(self._ep.attrs)])
-        if self._ep.extras:
-            parts.extend([" [", ','.join(self._ep.extras), "]"])
-        return "".join(parts)
+        return "'%s' in %s" % (self._ep, self._ep.dist)
 
 class EntryPointResources(object):
 
@@ -82,10 +77,8 @@ class EntryPointResources(object):
             for res in name_resources:
                 try:
                     inst = res.inst()
-                except:
-                    logging.exception(
-                        "error initializing %s '%s' (%s)",
-                        self._desc, name, res)
+                except Exception as e:
+                    logging.warning("error initializing %s: %s", res, e)
                 else:
                     yield inst
 

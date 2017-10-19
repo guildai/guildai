@@ -55,7 +55,7 @@ def main():
 
 def _external_import_paths():
     paths = _external_distribution() or _external_dev()
-    assert paths, "count not find external paths"
+    assert paths, "could not find external paths"
     return paths
 
 def _external_distribution():
