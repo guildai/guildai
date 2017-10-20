@@ -19,6 +19,7 @@ py_library(
         ":resources",
         ":runs",
         ":tables",
+        ":utils",
         ":var",
     ],
 )
@@ -153,6 +154,14 @@ py_library(
     data = ["tables.md"],
     deps = [
         "//guild:cli",
+    ],
+)
+
+py_library(
+    name = "utils",
+    data = ["utils.md"],
+    deps = [
+        "//guild:util",
     ],
 )
 
