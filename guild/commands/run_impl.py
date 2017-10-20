@@ -21,15 +21,15 @@ from guild import cmd_impl_support
 
 def main(args, ctx):
     model_ref, op_name = _parse_opspec(args.opspec)
-    model, package_name = _resolve_model(model_ref, ctx)
+    model = _resolve_model(model_ref, ctx)
     opdef = _resolve_opdef(op_name, model)
-    op = _init_op(opdef, args)
+    op = _init_op(opdef, model, args)
     if args.print_command:
         _print_command(op)
     elif args.print_env:
         _print_env(op)
     else:
-        _maybe_run(op, args, package_name)
+        _maybe_run(op, model, args)
 
 def _parse_opspec(spec):
     parts = spec.split(":", 1)
@@ -40,11 +40,17 @@ def _parse_opspec(spec):
 
 def _resolve_model(model_ref, ctx):
     for model in cmd_impl_support.iter_all_models(ctx):
-        if model_ref is None and cmd_impl_support.is_cwd_model(model, ctx):
-            return model.modeldef.modelfile.default_model, None
-        if _match_model_ref(model_ref, model):
-            return model.modeldef, model.package_name
+        if model_ref is None:
+            if _is_default_cwd_model(model, ctx):
+                return model
+        else:
+            if _match_model_ref(model_ref, model):
+                return model
     _no_model_error(model_ref, ctx)
+
+def _is_default_cwd_model(model, ctx):
+    return (cmd_impl_support.is_cwd_model(model, ctx) and
+            model.name == model.modeldef.modelfile.default_model.name)
 
 def _match_model_ref(model_ref, model):
     if '/' in model_ref:
@@ -62,7 +68,7 @@ def _no_model_error(model_ref, ctx):
             % model_ref)
 
 def _resolve_opdef(name, model):
-    opdef = model.get_op(name)
+    opdef = model.modeldef.get_op(name)
     if opdef is None:
         _no_such_operation_error(name, model)
     return opdef
@@ -73,10 +79,11 @@ def _no_such_operation_error(name, model):
         "Try 'guild operations %s' for a list of available operations."
         % (name, model.name, model.name))
 
-def _init_op(opdef, args):
+def _init_op(opdef, model, args):
     _apply_flags(args, opdef)
     _apply_disable_plugins(args, opdef)
-    return guild.op.from_opdef(opdef)
+    ref = "%s %s" % (model.reference, opdef.name)
+    return guild.op.from_opdef(opdef, ref)
 
 def _apply_flags(args, opdef):
     for arg in args.args:
@@ -107,16 +114,14 @@ def _print_env(op):
     for name, val in sorted(op.cmd_env.items()):
         cli.out("export %s=%s" % (name, val))
 
-def _maybe_run(op, args, package_name):
-    if args.yes or _confirm_run(op, package_name):
+def _maybe_run(op, model, args):
+    if args.yes or _confirm_run(op, model):
         result = op.run()
         if result != 0:
             cli.error(exit_status=result)
 
-def _confirm_run(op, package_name):
-    op_desc = (
-        op.name if package_name is None
-        else "%s/%s" % (package_name, op.name))
+def _confirm_run(op, model):
+    op_desc = "%s/%s" % (model.package_name, op.name)
     flags = _op_flags(op)
     if flags:
         prompt = (

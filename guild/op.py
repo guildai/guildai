@@ -125,18 +125,15 @@ def _delete_proc_lock(run):
     except OSError:
         pass
 
-def from_opdef(opdef):
+def from_opdef(opdef, reference):
     flags = opdef.all_flag_values()
     cmd_args = _op_cmd_args(opdef, flags)
     cmd_env = _op_cmd_env(opdef)
     attrs = {
-        "flags": flags
+        "flags": flags,
+        "opref": reference,
     }
-    return Operation(
-        opdef.fullname,
-        cmd_args,
-        cmd_env,
-        attrs)
+    return Operation(opdef.fullname, cmd_args, cmd_env, attrs)
 
 def _op_cmd_args(opdef, flags):
     python_args = [_python_cmd(opdef), "-um", "guild.op_main"]

@@ -164,6 +164,33 @@ Here are the respective names of the `cnn` model:
     >>> cnn.package_name
     'mnist'
 
+## Model references
+
+Models provide a `reference` that can be used to identify the
+model. This is used by operation runs to tie a run back to its model.
+
+References are in the form:
+
+    PACKAGE_REF VERSION MODEL_NAME
+
+Here's the reference for the `intro` model:
+
+    >>> intro.reference
+    '/.../samples/projects/mnist/MODELS ...56597b2 mnist-intro'
+
+Note that the package reference in this case is an absolute path to
+the modelfile. The version is a hash (md5) of the modelfile. This
+information can be used to locate the model definition and optionally
+verify that it has not been modified since the reference was
+generated.
+
+Here's the reference for the `cnn` model:
+
+    >>> cnn.reference
+    'gpkg.mnist 0.1.0 mnist-cnn'
+
+This is a model reference for a PyPI packaged model.
+
 ## Model definitions
 
 Models are associated with modeldefs that provide the details

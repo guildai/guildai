@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import base64
+import hashlib
 import logging
 import os
 import sys
@@ -36,6 +37,15 @@ class Model(object):
 
     def __repr__(self):
         return "<guild.model.Model '%s'>" % self.name
+
+    @property
+    def reference(self):
+        try:
+            modelfile = self.dist.modelfile
+        except AttributeError:
+            return "%s %s" % (self.dist, self.name)
+        else:
+            return "%s %s" % (_modelfile_dist_ref(modelfile), self.name)
 
 def _modeldef_for_dist(name, dist):
     if isinstance(dist, ModelfileDistribution):
@@ -76,6 +86,19 @@ def _try_acc_modeldefs(path, acc):
     else:
         for modeldef in models:
             acc.append(modeldef)
+
+def _modelfile_dist_ref(modelfile):
+    path = os.path.abspath(modelfile.src)
+    return "%s %s" % (path, _modelfile_hash(path))
+
+def _modelfile_hash(path):
+    try:
+        path_bytes = open(path, "r").read()
+    except IOError:
+        logging.warning("unable to read %s to calculate modelfile hash", path)
+        return "-"
+    else:
+        return hashlib.md5(path_bytes).hexdigest()
 
 class ModelfileDistribution(Distribution):
 
