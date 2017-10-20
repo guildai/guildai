@@ -81,12 +81,10 @@ class Operation(object):
         args = self._proc_args()
         env = self._proc_env()
         cwd = self._run.path
-        logging.debug(
-            "Starting op %s\n"
-            " cmd: %s\n"
-            " env: %s\n"
-            " cwd: %s",
-            self.name, args, env, cwd)
+        logging.debug("Starting op %s as run %s", self.name, self._run.id)
+        logging.debug("Op %s command: %s", self.name, args)
+        logging.debug("Op %s env: %s", self.name, env)
+        logging.debug("Op %s cwd: %s", self.name, cwd)
         self._proc = subprocess.Popen(args, env=env, cwd=cwd)
         _write_proc_lock(self._proc, self._run)
 
@@ -127,35 +125,35 @@ def _delete_proc_lock(run):
     except OSError:
         pass
 
-def from_project_op(project_op):
-    flags = project_op.all_flag_values()
-    cmd_args = _op_cmd_args(project_op, flags)
-    cmd_env = _op_cmd_env(project_op)
+def from_opdef(opdef):
+    flags = opdef.all_flag_values()
+    cmd_args = _op_cmd_args(opdef, flags)
+    cmd_env = _op_cmd_env(opdef)
     attrs = {
         "flags": flags
     }
     return Operation(
-        project_op.full_name,
+        opdef.fullname,
         cmd_args,
         cmd_env,
         attrs)
 
-def _op_cmd_args(project_op, flags):
-    python_args = [_python_cmd(project_op), "-um", "guild.op_main"]
-    cmd_args = _cmd_args(project_op)
+def _op_cmd_args(opdef, flags):
+    python_args = [_python_cmd(opdef), "-um", "guild.op_main"]
+    cmd_args = _cmd_args(opdef)
     if not cmd_args:
-        raise InvalidCmd(project_op.cmd)
+        raise InvalidCmd(opdef.cmd)
     flag_args = _flag_args(flags)
     return python_args + cmd_args + flag_args
 
-def _python_cmd(_project_op):
+def _python_cmd(_opdef):
     # TODO: This is an important operation that should be controlled
     # by the model (e.g. does it run under Python 2 or 3, etc.) and
     # not by whatever Python runtime is configured in the user env.
     return "python"
 
-def _cmd_args(project_op):
-    cmd = project_op.cmd
+def _cmd_args(opdef):
+    cmd = opdef.cmd
     if isinstance(cmd, str):
         return shlex.split(cmd)
     elif isinstance(cmd, list):
@@ -174,22 +172,22 @@ def _opt_args(name, val):
     opt = "--%s" % name
     return [opt] if val is None else [opt, str(val)]
 
-def _op_cmd_env(project_op):
+def _op_cmd_env(opdef):
     env = {}
     env.update(guild.util.safe_osenv())
-    env["GUILD_PLUGINS"] = _op_plugins(project_op)
+    env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["LOG_LEVEL"] = str(logging.getLogger().getEffectiveLevel())
-    env["PYTHONPATH"] = _python_path(project_op)
+    env["PYTHONPATH"] = _python_path(opdef)
     return env
 
-def _op_plugins(project_op):
+def _op_plugins(opdef):
     op_plugins = []
     for name, plugin in guild.plugin.iter_plugins():
-        if _plugin_disabled_in_project(name, project_op):
+        if _plugin_disabled_in_project(name, opdef):
             plugin_enabled = False
             reason = "explicitly disabled by model or user config"
         else:
-            plugin_enabled, reason = plugin.enabled_for_op(project_op)
+            plugin_enabled, reason = plugin.enabled_for_op(opdef)
         logging.debug(
             "plugin '%s' %s%s",
             name,
@@ -199,17 +197,19 @@ def _op_plugins(project_op):
             op_plugins.append(name)
     return ",".join(op_plugins)
 
-def _plugin_disabled_in_project(name, project_op):
-    disabled = (project_op.disabled_plugins +
-                project_op.modeldef.disabled_plugins)
+def _plugin_disabled_in_project(name, opdef):
+    disabled = (opdef.disabled_plugins +
+                opdef.modeldef.disabled_plugins)
     return any([disabled_name in (name, "all") for disabled_name in disabled])
 
-def _python_path(project_op):
-    paths = _model_paths(project_op) + _guild_paths()
+def _python_path(opdef):
+    paths = _model_paths(opdef) + _guild_paths()
     return os.path.pathsep.join(paths)
 
-def _model_paths(project_op):
-    return [os.path.dirname(project_op.modelfile.src)]
+def _model_paths(opdef):
+    model_path = os.path.dirname(opdef.modelfile.src)
+    abs_model_path = os.path.abspath(model_path)
+    return [abs_model_path]
 
 def _guild_paths():
     guild_path = os.path.dirname(os.path.dirname(__file__))

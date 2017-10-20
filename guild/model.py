@@ -21,6 +21,7 @@ from pkg_resources import Distribution, EntryPoint, register_finder
 
 from .entry_point_util import EntryPointResources
 from . import modelfile
+from .package import apply_namespace
 
 _models = EntryPointResources("guild.models", "model")
 
@@ -30,13 +31,11 @@ class Model(object):
         self.name = ep.name
         self.dist = ep.dist
         self.modeldef = _modeldef_for_dist(ep.name, ep.dist)
+        self.package_name = apply_namespace(self.dist.project_name)
+        self.fullname = "%s/%s" % (self.package_name, self.name)
 
     def __repr__(self):
         return "<guild.model.Model '%s'>" % self.name
-
-    @property
-    def fullname(self):
-        return "%s/%s" % (self.dist.project_name, self.name)
 
 def _modeldef_for_dist(name, dist):
     if isinstance(dist, ModelfileDistribution):

@@ -66,6 +66,7 @@ class Modelfile(object):
             raise KeyError(model_name)
         return model
 
+    @property
     def default_model(self):
         return self.models[0] if self.models else None
 
@@ -157,10 +158,10 @@ class OpDef(FlagValHost):
         self.disabled_plugins = data.get("disabled-plugins", [])
 
     def __repr__(self):
-        return "<guild.modelfile.Operation '%s'>" % self.full_name
+        return "<guild.modelfile.Operation '%s'>" % self.fullname
 
     @property
-    def full_name(self):
+    def fullname(self):
         return "%s:%s" % (self.modeldef.name, self.name)
 
 def _coerce_op_data(data):

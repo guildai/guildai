@@ -97,6 +97,7 @@ py_library(
         "//third_party:setuptools",
         ":entry_point_util",
         ":modelfile",
+        ":package",
     ]
 )
 

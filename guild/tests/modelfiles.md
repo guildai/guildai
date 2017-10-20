@@ -45,7 +45,7 @@ We can lookup a model by name using dictionary semantics:
 The first model defined in a project is considered to be the *default
 model*:
 
-    >>> project.default_model()
+    >>> project.default_model
     <guild.modelfile.Model 'mnist-intro'>
 
 ## Model attributes

@@ -32,13 +32,8 @@ are omitted (i.e. the ':' char is used by itself) all runs are selected.
 def run_scope_options(fn):
     click_util.append_params(fn, [
         click.Option(
-            ("-p", "--project", "project_location"), metavar="LOCATION",
-            help=("Project location (file system directory) for filtering "
-                  "runs.")),
-        click.Option(
-            ("-S", "--system"),
-            help=("Include system wide runs rather than limit to runs "
-                  "associated with a project location. Ignores LOCATION."),
+            ("-a", "--all"),
+            help="Include all runs.",
             is_flag=True)
     ])
     return fn

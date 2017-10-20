@@ -19,7 +19,6 @@ import os
 
 from guild import cli
 from guild.cmd_impl_support import iter_models
-from guild.package import apply_namespace
 from guild.util import match_filter
 
 def main(args, ctx):
@@ -34,7 +33,7 @@ def main(args, ctx):
 def _format_model(model):
     modeldef = model.modeldef
     return {
-        "fullname": apply_namespace(model.fullname),
+        "fullname": model.fullname,
         "name": modeldef.name,
         "source": modeldef.modelfile.src,
         "description": modeldef.description or "",

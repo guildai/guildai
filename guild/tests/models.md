@@ -130,7 +130,7 @@ Modelfile distribution package paths always start with '.':
     >>> intro_pkg_path[0]
     '.'
 
-## Model names
+## Model names and packages
 
 Models have names, which must correspond to the names in their
 associated model definition.
@@ -139,10 +139,19 @@ associated model definition.
     True
 
 As models are associated with distributions, they also have a fully
-qualified name that includes their distribution's project name:
+qualified name that includes their package name:
 
     >>> intro.fullname
-    '.modelfile.../mnist-intro'
+    './.../samples/projects/mnist/mnist-intro'
+
+We can read the package name directly:
+
+    >>> intro.package_name
+    './.../samples/projects/mnist'
+
+Note that the `intro` model package name starts with a '.' and
+contains a path to the modelfile directory. This is the naming
+convention used for modelfile distributions.
 
 Here are the respective names of the `cnn` model:
 
@@ -150,7 +159,10 @@ Here are the respective names of the `cnn` model:
     'mnist-cnn'
 
     >>> cnn.fullname
-    'gpkg.mnist/mnist-cnn'
+    'mnist/mnist-cnn'
+
+    >>> cnn.package_name
+    'mnist'
 
 ## Model definitions
 
@@ -183,3 +195,12 @@ Here's the `mnist-intro` def:
 
     >>> [(op.name, op.description) for op in intro_def.operations]
     [('evaluate', None), ('train', None)]
+
+Model definitions in turn are associated with the modelfiles they're
+defined in.
+
+    >>> cnn_def.modelfile.src
+    '.../samples/model-packages/gpkg/mnist/MODELS'
+
+    >>> intro_def.modelfile.src
+    '.../samples/projects/mnist/MODELS'

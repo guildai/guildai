@@ -19,7 +19,7 @@ import re
 import time
 
 from guild import click_util
-import guild.cmd_impl_support
+from guild.cmd_impl_support import init_model_path
 import guild.var
 
 RUN_DETAIL = [
@@ -37,6 +37,7 @@ RUN_DETAIL = [
 ALL_RUNS_ARG = [":"]
 
 def list_runs(args, ctx):
+    init_model_path(ctx, args.all)
     runs = [
         _format_run(run, i)
         for i, run in enumerate(runs_for_args(args, ctx))
@@ -57,37 +58,13 @@ def _runs_root_for_args(args, force_deleted):
 
 def _runs_filter(args, ctx):
     filters = []
-    _apply_project_models_filter(args, filters, ctx)
-    _apply_arg_models_filter(args, filters)
+    _apply_models_filter(args, filters, ctx)
     _apply_status_filter(args, filters)
     return guild.var.run_filter("all", filters)
 
-def _apply_project_models_filter(args, filters, ctx):
-    if args.system:
-        _maybe_warn_project_location_ignored(args)
-    else:
-        project = _project_args(args, ctx)
-        model_filters = [_model_filter(model) for model in project]
-        filters.append(guild.var.run_filter("any", model_filters))
-
-def _model_filter(model):
-    return lambda r: r.get("op", "").startswith(model.name + ":")
-
-def _maybe_warn_project_location_ignored(args):
-    if args.project_location:
-        guild.cli.out(
-            "Warning: --system option specified, ignoring project location",
-            err=True)
-
-def _project_args(args, ctx):
-    return guild.cmd_impl_support.project_for_location(args.project_location, ctx)
-
-def _apply_arg_models_filter(args, filters):
-    for model_name in getattr(args, "models", []):
-        filters.append(_model_name_filter(model_name))
-
-def _model_name_filter(model_name):
-    return lambda r: r.get("op", "").startswith(model_name + ":")
+def _apply_models_filter(args, filters, ctx):
+    print("TODO: somehow filter using models from iter_models and from args")
+    pass
 
 def _apply_status_filter(args, filters):
     status = getattr(args, "status", None)

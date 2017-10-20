@@ -23,9 +23,6 @@ def run_params(fn):
     click_util.append_params(fn, [
         click.Argument(("args",), metavar="[ARG...]", nargs=-1),
         click.Option(
-            ("-p", "--project", "project_location"), metavar="LOCATION",
-            help="Project location (file system directory) for MODEL."),
-        click.Option(
             ("--disable-plugins",), metavar="LIST",
             help=("A comma separated list of plugin names to disable. "
                   "Use 'all' to disable all plugins.")),
@@ -34,7 +31,7 @@ def run_params(fn):
             help="Do not prompt before running operation.",
             is_flag=True),
         click.Option(
-            ("--print-cmd",),
+            ("--print-command",),
             help="Show the operation command and exit (does not run).",
             is_flag=True),
         click.Option(
@@ -48,9 +45,10 @@ def run_params(fn):
 @click.argument("opspec", metavar="[MODEL:]OPERATION")
 @run_params
 
+@click.pass_context
 @click_util.use_args
 
-def run(args):
+def run(ctx, args):
     """Run a model operation.
 
     By default Guild will try to run OPERATION for the default model
@@ -62,4 +60,4 @@ def run(args):
     model defined in a project.
     """
     from . import run_impl
-    run_impl.main(args)
+    run_impl.main(args, ctx)

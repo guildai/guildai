@@ -25,15 +25,30 @@ import guild.modelfile
 def init_model_path(args, ctx):
     if not args.all:
         guild.model.set_path([])
-    maybe_model_src = _find_model_source(_cwd(ctx))
-    if maybe_model_src:
-        guild.model.add_model_source(maybe_model_src)
+    _try_add_model_source(ctx)
+
+def _try_add_model_source(ctx):
+    maybe_model_source = _find_model_source(_cwd(ctx))
+    if maybe_model_source:
+        guild.model.add_model_source(maybe_model_source)
+
+def _cwd(ctx):
+    return ctx.obj["cwd"]
+
+def _find_model_source(path):
+    # Note that the order of NAMES matters as the first match is used
+    # over subsequent names.
+    for name in guild.modelfile.NAMES:
+        filename = os.path.join(path, name)
+        if os.path.isfile(filename):
+            return filename
+    return None
 
 def iter_models(args, ctx):
     init_model_path(args, ctx)
     models = list(guild.model.iter_models())
     if not models:
-        _no_models_error(ctx)
+        no_models_error(ctx)
     return models
 
 def _handle_no_models(args):
@@ -46,32 +61,35 @@ def _handle_no_models(args):
             "installed models.")
     cli.error()
 
-def _find_model_source(path):
-    # Note that the order of NAMES matters as the first match is used
-    # over subsequent names.
-    for name in guild.modelfile.NAMES:
-        filename = os.path.join(path, name)
-        if os.path.isfile(filename):
-            return filename
-    return None
+def iter_all_models(ctx):
+    _try_add_model_source(ctx)
+    return guild.model.iter_models()
 
 def modelfile(ctx):
     try:
         return guild.modelfile.from_dir(_cwd(ctx))
     except (guild.modelfile.NoModels, IOError):
-        _no_models_error(ctx)
+        no_models_error(ctx)
 
-def _no_models_error(ctx):
+def no_models_error(ctx):
     cmd_path = ctx.command_path.split(" ")
     guild.cli.error(
-        "this directory does not contain any models\n"
-        "Try a different directory with '%s -C DIR %s' "
-        "or '%s' for more information."
-        % (cmd_path[0], " ".join(cmd_path[1:]),
-           guild.click_util.cmd_help(ctx)))
+        "%s does not contain any models\n"
+        "Try a different directory or '%s' for more information."
+        % (_cwd_desc(ctx), guild.click_util.cmd_help(ctx)))
 
-def _cwd(ctx):
-    return ctx.obj["cwd"]
+def _cwd_desc(ctx):
+    cwd = _cwd(ctx)
+    if os.path.abspath(cwd) == os.path.abspath(os.getcwd()):
+        return "this directory"
+    else:
+        return "'%s'" % cwd
+
+def is_cwd_model(model, ctx):
+    return (
+        model.package_name[0] == '.' and
+        os.path.abspath(model.package_name[0])
+        == os.path.abspath(_cwd(ctx)))
 
 """
 import os

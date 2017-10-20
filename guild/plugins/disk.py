@@ -58,9 +58,9 @@ def _timed_disk_io_counters():
 def _zip_physical_disk_stats(all_last, all_cur):
     import psutil
     for device in psutil.disk_partitions():
-        full_name = device.device
-        assert full_name.startswith('/dev/'), full_name
-        name = full_name[5:]
+        fullname = device.device
+        assert fullname.startswith('/dev/'), fullname
+        name = fullname[5:]
         dev_last = all_last.get(name)
         dev_cur = all_cur.get(name)
         if dev_last and dev_cur:

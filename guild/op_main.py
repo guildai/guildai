@@ -25,6 +25,7 @@ import guild.plugin
 
 def main():
     _init_logging()
+    logging.debug("cwd: %s", os.getcwd())
     logging.debug("sys.path: %s", os.path.pathsep.join(sys.path))
     arg1, rest_args = _parse_args()
     _apply_plugins()

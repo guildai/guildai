@@ -17,7 +17,6 @@ from __future__ import division
 
 from guild import cli
 from guild.cmd_impl_support import iter_models
-from guild.package import apply_namespace
 from guild.util import match_filter
 
 def main(args, ctx):
@@ -35,11 +34,10 @@ def _iter_ops(args, ctx):
             yield op, model
 
 def _format_op(op, model):
-    model_fullname = apply_namespace(model.fullname)
     return {
-        "fullname": "%s:%s" % (model_fullname, op.name),
+        "fullname": "%s:%s" % (model.fullname, op.name),
         "description": op.description or "",
-        "model": model_fullname,
+        "model": model.fullname,
         "name": op.name,
         "cmd": op.cmd,
     }

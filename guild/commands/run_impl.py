@@ -15,28 +15,21 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import guild.cli
-import guild.cmd_impl_support
 import guild.op
-import guild.modelfile
+from guild import cli
+from guild import cmd_impl_support
 
-DEFAULT_PROJECT_LOCATION = "."
-
-def main(args):
-    model_name, op_name = _parse_opspec(args.opspec)
-    model = _resolve_model(model_name, args)
-    project_op = _resolve_op(op_name, model)
-    _apply_flags_to_op(args, project_op)
-    _apply_disable_plugins(args, project_op)
-    op = guild.op.from_project_op(project_op)
-    if args.print_cmd:
-        _print_op_command(op)
+def main(args, ctx):
+    model_ref, op_name = _parse_opspec(args.opspec)
+    model, package_name = _resolve_model(model_ref, ctx)
+    opdef = _resolve_opdef(op_name, model)
+    op = _init_op(opdef, args)
+    if args.print_command:
+        _print_command(op)
     elif args.print_env:
-        _print_op_env(op)
+        _print_env(op)
     else:
-        if args.yes or _confirm_op(op):
-            result = op.run()
-            _handle_run_result(result)
+        _maybe_run(op, args, package_name)
 
 def _parse_opspec(spec):
     parts = spec.split(":", 1)
@@ -45,77 +38,50 @@ def _parse_opspec(spec):
     else:
         return parts
 
-def _resolve_model(name, args):
-    project = _project_for_args(args)
-    if name is None:
-        return _project_default_model(project)
+def _resolve_model(model_ref, ctx):
+    for model in cmd_impl_support.iter_all_models(ctx):
+        if model_ref is None and cmd_impl_support.is_cwd_model(model, ctx):
+            return model.modeldef.modelfile.default_model, None
+        if _match_model_ref(model_ref, model):
+            return model.modeldef, model.package_name
+    _no_model_error(model_ref, ctx)
+
+def _match_model_ref(model_ref, model):
+    if '/' in model_ref:
+        return model_ref == model.fullname
     else:
-        return _project_model(name, project)
+        return model_ref == model.name
 
-def _project_for_args(args):
-    location = args.project_location or DEFAULT_PROJECT_LOCATION
-    try:
-        return guild.modelfile.from_file_or_dir(location)
-    except guild.modelfile.NoModels:
-        _missing_source_error(args.project_location)
-
-def _missing_source_error(location):
-    guild.cli.error(
-        "%s does not contain any models\n"
-        "Try a different location or 'guild run --help' "
-        "for more information."
-        % guild.cmd_impl_support.project_location_desc(location))
-
-def _project_required_error():
-    guild.cli.error(
-        "cannot find a model for this operation\n"
-        "Try specifying a project, a package or 'guild run --help' "
-        "for more information.")
-
-def _project_default_model(project):
-    default = project.default_model()
-    if default:
-        return default
+def _no_model_error(model_ref, ctx):
+    if model_ref is None:
+        cmd_impl_support.no_models_error(ctx)
     else:
-        _no_models_for_project_error(project)
+        cli.error(
+            "cannot find model '%s'\n"
+            "Try 'guild models -a' for a list of available models."
+            % model_ref)
 
-def _no_models_for_project_error(project):
-    guild.cli.error("%s does not define any models" % project.src)
-
-def _project_model(name, project):
-    try:
-        return project[name]
-    except KeyError:
-        _no_such_model_error(name, project)
-
-def _no_such_model_error(name, project):
-    guild.cli.error(
-        "model '%s' is not defined in %s\n"
-        "Try 'guild models%s' for a list of available models."
-        % (name,
-           guild.cmd_impl_support.project_location_desc(project.src),
-           _project_opt(project.src)))
-
-def _project_opt(project_src):
-    location = guild.cmd_impl_support.project_location_option(project_src)
-    return " -p %s" % location if location else ""
-
-def _resolve_op(name, model):
-    op = model.get_op(name)
-    if op is None:
+def _resolve_opdef(name, model):
+    opdef = model.get_op(name)
+    if opdef is None:
         _no_such_operation_error(name, model)
-    return op
+    return opdef
 
 def _no_such_operation_error(name, model):
-    guild.cli.error(
+    cli.error(
         "operation '%s' is not defined for model '%s'\n"
-        "Try 'guild operations %s%s' for a list of available operations."
-        % (name, model.name, model.name, _project_opt(model.project.src)))
+        "Try 'guild operations %s' for a list of available operations."
+        % (name, model.name, model.name))
 
-def _apply_flags_to_op(args, op):
+def _init_op(opdef, args):
+    _apply_flags(args, opdef)
+    _apply_disable_plugins(args, opdef)
+    return guild.op.from_opdef(opdef)
+
+def _apply_flags(args, opdef):
     for arg in args.args:
         name, val = _parse_flag(arg)
-        op.set_flag_value(name, val)
+        opdef.set_flag_value(name, val)
 
 def _parse_flag(s):
     parts = s.split("=", 1)
@@ -124,35 +90,44 @@ def _parse_flag(s):
     else:
         return parts
 
-def _apply_disable_plugins(args, op):
+def _apply_disable_plugins(args, opdef):
     if args.disable_plugins:
-        op.disabled_plugins.extend([
+        opdef.disabled_plugins.extend([
             name.strip() for name in args.disable_plugins.split(",")
         ])
 
-def _print_op_command(op):
+def _print_command(op):
     formatted = " ".join([_maybe_quote_arg(arg) for arg in op.cmd_args])
-    guild.cli.out(formatted)
+    cli.out(formatted)
 
 def _maybe_quote_arg(arg):
     return '"%s"' % arg if " " in arg else arg
 
-def _print_op_env(op):
+def _print_env(op):
     for name, val in sorted(op.cmd_env.items()):
-        guild.cli.out("export %s=%s" % (name, val))
+        cli.out("export %s=%s" % (name, val))
 
-def _confirm_op(op):
+def _maybe_run(op, args, package_name):
+    if args.yes or _confirm_run(op, package_name):
+        result = op.run()
+        if result != 0:
+            cli.error(exit_status=result)
+
+def _confirm_run(op, package_name):
+    op_desc = (
+        op.name if package_name is None
+        else "%s/%s" % (package_name, op.name))
     flags = _op_flags(op)
     if flags:
         prompt = (
             "You are about to run %s with the following flags:\n"
             "%s\n"
             "Continue?"
-            % (op.name, _format_op_flags(flags)))
+            % (op_desc, _format_op_flags(flags)))
     else:
         prompt = (
             "You are about to run %s\n"
-            "Continue?" % op.name)
+            "Continue?" % op_desc)
     return guild.cli.confirm(prompt, default=True)
 
 def _op_flags(op):
@@ -180,7 +155,3 @@ def _format_flag(name, val):
         return "%s: (boolean switch)" % name
     else:
         return "%s: %s" % (name, val)
-
-def _handle_run_result(exit_status):
-    if exit_status != 0:
-        guild.cli.error(exit_status=exit_status)
