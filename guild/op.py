@@ -166,7 +166,7 @@ def _cmd_args(project_op):
 def _flag_args(flags):
     return [
         arg for args in
-        [_opt_args(name, val) for name, val in sorted(flags)]
+        [_opt_args(name, val) for name, val in flags]
         for arg in args
     ]
 

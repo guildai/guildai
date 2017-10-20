@@ -62,27 +62,24 @@ line arg for a map of flag values.
 
 Empty flags:
 
-    >>> guild.op._flag_args(None)
-    []
-
-    >>> guild.op._flag_args({})
+    >>> guild.op._flag_args([])
     []
 
 Single flag:
 
-    >>> guild.op._flag_args({"epochs": 100})
+    >>> guild.op._flag_args([("epochs", 100)])
     ['--epochs', '100']
 
-Multiple flags (flags are always returned sorted by name):
+Multiple flags are always returned in the order presented:
 
-    >>> guild.op._flag_args({"epochs": 100, "data": "my-data"})
-    ['--data', 'my-data', '--epochs', '100']
+    >>> guild.op._flag_args([("epochs", 100), ("data", "my-data")])
+    ['--epochs', '100', '--data', 'my-data']
 
 Flag options (i.e. options with implicit values) may be specified with
 None values:
 
-    >>> guild.op._flag_args({"test": None, "batch-sie": 50})
-    ['--batch-sie', '50', '--test']
+    >>> guild.op._flag_args([("test", None), ("batch-size", 50)])
+    ['--test', '--batch-size', '50']
 
 ## Operation flags
 
