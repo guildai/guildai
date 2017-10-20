@@ -18,17 +18,15 @@ from __future__ import division
 import os
 
 from guild import cli
-from guild import package
-from guild.cmd_impl_support import init_model_path
-from guild.model import iter_models
+from guild.cmd_impl_support import iter_models
+from guild.package import apply_namespace
+from guild.util import match_filter
 
 def main(args, ctx):
-    init_model_path(ctx, args.all)
-    formatted = [_format_model(m) for m in iter_models()]
-    if not formatted:
-        _handle_no_models(args)
+    formatted = [_format_model(m) for m in iter_models(args, ctx)]
+    filtered = [m for m in formatted if _filter_model(m, args)]
     cli.table(
-        sorted(formatted, key=lambda m: m["fullname"]),
+        sorted(filtered, key=lambda m: m["fullname"]),
         cols=["fullname", "description"],
         detail=(["name", "source", "operations"] if args.verbose else [])
     )
@@ -36,22 +34,16 @@ def main(args, ctx):
 def _format_model(model):
     modeldef = model.modeldef
     return {
-        "fullname": _format_fullname(model),
+        "fullname": apply_namespace(model.fullname),
         "name": modeldef.name,
         "source": modeldef.modelfile.src,
         "description": modeldef.description or "",
         "operations": ", ".join([op.name for op in modeldef.operations])
     }
 
-def _format_fullname(model):
-    return package.apply_namespace(model.fullname)
-
-def _handle_no_models(args):
-    if args.all:
-        cli.out("There are no models installed on this system.")
-    else:
-        cli.out(
-            "There are no models defined in this directory.\n"
-            "Try a different directory or specify --all to list all "
-            "installed models.")
-    cli.error()
+def _filter_model(model, args):
+    filter_vals = [
+        model["fullname"],
+        model["description"],
+    ]
+    return match_filter(args.filters, filter_vals)

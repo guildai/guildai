@@ -20,7 +20,8 @@ import click
 from guild import click_util
 
 @click.command()
-@click.option("-a", "--all", help="Show all models", is_flag=True)
+@click.argument("filters", metavar="[FILTER]...", required=False, nargs=-1)
+@click.option("-a", "--all", help="Show all models.", is_flag=True)
 @click.option("-v", "--verbose", help="Show model details.", is_flag=True)
 
 @click.pass_context
@@ -30,8 +31,10 @@ def models(ctx, args):
     """Show available models.
 
     By default Guild will show models defined in the current directory
-    (in a MODEL or MODELS file). Use --all to show all models system
-    wide.
+    Use --all to show all models.
+
+    Use one or more FILTER arguments to show only models that match
+    the specified values.
     """
     from . import models_impl
     models_impl.main(args, ctx)

@@ -18,23 +18,21 @@ from __future__ import division
 from guild import cli
 from guild.cmd_impl_support import iter_models
 from guild.package import apply_namespace
+from guild.util import match_filter
 
 def main(args, ctx):
-    formatted = [_format_op(op, model) for op, model in iter_ops(args, ctx)]
+    formatted = [_format_op(op, model) for op, model in _iter_ops(args, ctx)]
+    filtered = [op for op in formatted if _filter_op(op, args)]
     cli.table(
-        sorted(formatted, key=lambda m: m["fullname"]),
+        sorted(filtered, key=lambda m: m["fullname"]),
         cols=["fullname", "description"],
         detail=(["name", "model", "cmd"] if args.verbose else [])
     )
 
-def iter_ops(args, ctx):
+def _iter_ops(args, ctx):
     for model in iter_models(args, ctx):
         for op in model.modeldef.operations:
-            if _filter_op(op, model, args):
-                yield op, model
-
-def _filter_op(op, model, args):
-    return all((f in op.name or f in model.name for f in args.filters))
+            yield op, model
 
 def _format_op(op, model):
     model_fullname = apply_namespace(model.fullname)
@@ -45,3 +43,10 @@ def _format_op(op, model):
         "name": op.name,
         "cmd": op.cmd,
     }
+
+def _filter_op(op, args):
+    filter_vals = [
+        op["fullname"],
+        op["description"],
+    ]
+    return match_filter(args.filters, filter_vals)
