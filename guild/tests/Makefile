@@ -1,0 +1,2 @@
+check:
+	cd ../..; make check

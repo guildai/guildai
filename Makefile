@@ -17,7 +17,7 @@ check: $(GUILD)
 	@if [ -z "$(TESTS)" ]; then \
 	  opts="--tests"; \
 	else \
-	  opts="-s "; \
+	  opts="-n "; \
 	  for test in $(TESTS); do \
 	    opts="$$opts -t $$test"; \
 	  done; \
