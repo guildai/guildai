@@ -80,9 +80,9 @@ def _format_usage_error(e):
     return msg
 
 def cmd_help(ctx):
-    return "%s %s" % (_normalize_command_name(ctx.command_path),
+    return "%s %s" % (normalize_command_path(ctx.command_path),
                      ctx.help_option_names[0])
 
-def _normalize_command_name(cmd_path):
+def normalize_command_path(cmd_path):
     m = re.match("^(.+?), .+$", cmd_path)
     return m.group(1) if m else cmd_path

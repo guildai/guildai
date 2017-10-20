@@ -65,7 +65,7 @@ class RunsMonitor(threading.Thread):
     def run_once(self, exit_on_error=False):
         logging.debug("Refreshing runs")
         try:
-            runs = runs_impl.runs_for_args(self.args, self.cmd_ctx)
+            runs = runs_impl.runs_for_args(self.args)
         except SystemExit as e:
             if exit_on_error:
                 raise

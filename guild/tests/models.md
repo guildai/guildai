@@ -176,7 +176,7 @@ References are in the form:
 Here's the reference for the `intro` model:
 
     >>> intro.reference
-    '/.../samples/projects/mnist/MODELS ...56597b2 mnist-intro'
+    'file:/.../samples/projects/mnist/MODELS ...56597b2 mnist-intro'
 
 Note that the package reference in this case is an absolute path to
 the modelfile. The version is a hash (md5) of the modelfile. This
@@ -187,7 +187,7 @@ generated.
 Here's the reference for the `cnn` model:
 
     >>> cnn.reference
-    'gpkg.mnist 0.1.0 mnist-cnn'
+    'dist:gpkg.mnist 0.1.0 mnist-cnn'
 
 This is a model reference for a PyPI packaged model.
 

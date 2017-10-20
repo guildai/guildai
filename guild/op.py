@@ -73,7 +73,6 @@ class Operation(object):
         self._run.write_attr("cmd", self.cmd_args)
         self._run.write_attr("env", self.cmd_env)
         self._run.write_attr("started", self._started)
-        self._run.write_attr("op", self.name)
 
     def _start_proc(self):
         assert self._proc is None

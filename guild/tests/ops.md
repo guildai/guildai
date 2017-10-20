@@ -27,7 +27,10 @@ We'll also create a helper function that returns and instance of
 guild.op.Operation given arguments to ProjectOp:
 
     >>> def Operation(*args, **kw):
-    ...     return guild.op.from_project_op(ProjectOp(*args, **kw))
+    ...     return guild.op.from_opdef(ProjectOp(*args, **kw), "test")
+
+Note that the `"test"` argument is an operation reference, which is
+not used in our tests.
 
 ## Command specs
 

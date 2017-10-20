@@ -43,9 +43,9 @@ class Model(object):
         try:
             modelfile = self.dist.modelfile
         except AttributeError:
-            return "%s %s" % (self.dist, self.name)
+            return "dist:%s %s" % (self.dist, self.name)
         else:
-            return "%s %s" % (_modelfile_dist_ref(modelfile), self.name)
+            return "file:%s %s" % (_modelfile_dist_ref(modelfile), self.name)
 
 def _modeldef_for_dist(name, dist):
     if isinstance(dist, ModelfileDistribution):

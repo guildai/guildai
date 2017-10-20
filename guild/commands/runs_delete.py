@@ -36,7 +36,7 @@ specified).
     help="Do not prompt before deleting.",
     is_flag=True)
 @click.option(
-    "-P", "--purge",
+    "-p", "--permanent",
     help="Permanentaly delete runs so they cannot be recovered.",
     is_flag=True)
 

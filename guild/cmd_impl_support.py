@@ -28,11 +28,11 @@ def init_model_path(args, ctx):
     _try_add_model_source(ctx)
 
 def _try_add_model_source(ctx):
-    maybe_model_source = _find_model_source(_cwd(ctx))
+    maybe_model_source = _find_model_source(cwd(ctx))
     if maybe_model_source:
         guild.model.add_model_source(maybe_model_source)
 
-def _cwd(ctx):
+def cwd(ctx):
     return ctx.obj["cwd"]
 
 def _find_model_source(path):
@@ -53,13 +53,14 @@ def iter_models(args, ctx):
 
 def _handle_no_models(args):
     if args.all:
-        cli.out("There are no models installed on this system.")
+        guild.cli.out(
+            "There are no models installed on this system.")
     else:
-        cli.out(
+        guild.cli.out(
             "There are no models defined in this directory.\n"
             "Try a different directory or specify --all to list all "
             "installed models.")
-    cli.error()
+    guild.cli.error()
 
 def iter_all_models(ctx):
     _try_add_model_source(ctx)
@@ -67,111 +68,25 @@ def iter_all_models(ctx):
 
 def modelfile(ctx):
     try:
-        return guild.modelfile.from_dir(_cwd(ctx))
+        return guild.modelfile.from_dir(cwd(ctx))
     except (guild.modelfile.NoModels, IOError):
         no_models_error(ctx)
 
 def no_models_error(ctx):
-    cmd_path = ctx.command_path.split(" ")
     guild.cli.error(
         "%s does not contain any models\n"
         "Try a different directory or '%s' for more information."
-        % (_cwd_desc(ctx), guild.click_util.cmd_help(ctx)))
+        % (cwd_desc(ctx), guild.click_util.cmd_help(ctx)))
 
-def _cwd_desc(ctx):
-    cwd = _cwd(ctx)
-    if os.path.abspath(cwd) == os.path.abspath(os.getcwd()):
+def cwd_desc(ctx):
+    cwd_ = cwd(ctx)
+    if os.path.abspath(cwd_) == os.path.abspath(os.getcwd()):
         return "this directory"
     else:
-        return "'%s'" % cwd
+        return "'%s'" % cwd_
 
 def is_cwd_model(model, ctx):
     return (
         model.package_name[0] == '.' and
-        os.path.abspath(model.package_name[0])
-        == os.path.abspath(_cwd(ctx)))
-
-"""
-import os
-
-import guild.cli
-import guild.click_util
-import guild.package
-import guild.modelfile
-import guild.util
-
-class NoModelfile(Exception):
-    pass
-
-def project_for_location(location, ctx=None):
-    project = find_project_for_location(location)
-    if project is None:
-        _no_project_error(location, ctx)
-    return project
-
-def find_project_for_location(location):
-    location = location or "."
-    try:
-        return _project_for_location(location)
-    except NoModelfile:
-        return None
-
-def _project_for_location(location):
-    try:
-        return guild.modelfile.from_file_or_dir(location)
-    except (guild.modelfile.NoModels, IOError):
-        raise NoModelfile()
-
-def _no_project_error(location, ctx):
-    location = project_location_option(location) or "."
-    msg_parts = []
-    if os.path.exists(location):
-        msg_parts.append(
-            "%s does not contain any models\n"
-            % project_location_desc(location))
-    else:
-        msg_parts.append("%s does not exist\n" % location)
-    msg_parts.append(try_project_location_help(location, ctx))
-    guild.cli.error("".join(msg_parts))
-
-def project_location_desc(location):
-    location = project_location_option(location)
-    return ("%s" % location if location
-            else "the current directory")
-
-def try_project_location_help(location, ctx=None):
-    location = project_location_option(location)
-    help_parts = []
-    if location:
-        help_parts.append("Try specifying a different location")
-    else:
-        help_parts.append("Try specifying a project location")
-    if ctx:
-        help_parts.append(
-            " or '%s' for more information."
-            % guild.click_util.ctx_cmd_help(ctx))
-    else:
-        help_parts.append(".")
-    return "".join(help_parts)
-
-def project_location_option(location):
-    location = os.path.abspath(location or "")
-    basename = os.path.basename(location)
-    if basename in ["MODEL", "MODELS", "__generated__"]:
-        location = os.path.dirname(location)
-    if location == os.getcwd():
-        return ""
-    else:
-        return location
-
-def split_pkg(pkg):
-    try:
-        return guild.package.split_name(pkg)
-    except guild.package.NamespaceError as e:
-        namespaces = ", ".join(
-            [name for name, _ in guild.namespace.iter_namespaces()])
-        guild.cli.error(
-        "unknown namespace '%s' in %s\n"
-        "Supported namespaces: %s"
-        % (e.value, pkg, namespaces))
-"""
+        (os.path.abspath(model.package_name[0])
+         == os.path.abspath(cwd(ctx))))

@@ -15,8 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import os
-
 from guild import cli
 from guild.cmd_impl_support import iter_models
 from guild.util import match_filter

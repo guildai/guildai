@@ -247,8 +247,11 @@ py_library(
     name = "runs_impl",
     srcs = ["runs_impl.py"],
     deps = [
+        "//guild:cli",
         "//guild:click_util",
         "//guild:cmd_impl_support",
+        "//guild:modelfile",
+        "//guild:package",
         "//guild:var",
     ],
 )

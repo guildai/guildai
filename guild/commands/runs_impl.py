@@ -15,12 +15,17 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
+import os
 import re
 import time
 
+from guild import cli
 from guild import click_util
-from guild.cmd_impl_support import init_model_path
-import guild.var
+from guild import cmd_impl_support
+from guild import modelfile
+from guild import package
+from guild import var
 
 RUN_DETAIL = [
     "id",
@@ -32,39 +37,53 @@ RUN_DETAIL = [
     "command",
     "exit_status",
     "pid",
+    "opref",
 ]
 
 ALL_RUNS_ARG = [":"]
 
 def list_runs(args, ctx):
-    init_model_path(ctx, args.all)
-    runs = [
-        _format_run(run, i)
-        for i, run in enumerate(runs_for_args(args, ctx))
+    _check_no_cwd_models_to_list(args, ctx)
+    runs = runs_for_args(args)
+    formatted = [
+        _format_run(run, ctx, i)
+        for i, run in enumerate(runs)
     ]
+    filtered = _filter_runs_for_models(formatted, args, ctx)
     cols = ["index", "operation", "started", "status"]
     detail = RUN_DETAIL if args.verbose else None
-    guild.cli.table(runs, cols=cols, detail=detail)
+    cli.table(filtered, cols=cols, detail=detail)
 
-def runs_for_args(args, ctx, force_deleted=False):
-    return guild.var.runs(
+def _check_no_cwd_models_to_list(args, ctx):
+    if not args.all and not _cwd_has_modelfile(ctx):
+        cli.error(
+            "%s does not contain any models\n"
+            "Try a different directory or '%s --all' "
+            "to show all runs."
+            % (cmd_impl_support.cwd_desc(ctx),
+               click_util.normalize_command_path(ctx.command_path)))
+
+def _cwd_has_modelfile(ctx):
+    cwd = cmd_impl_support.cwd(ctx)
+    for name in modelfile.NAMES:
+        if os.path.exists(os.path.join(cwd, name)):
+            return True
+    return False
+
+def runs_for_args(args, force_deleted=False):
+    return var.runs(
         _runs_root_for_args(args, force_deleted),
         sort=["-started"],
-        filter=_runs_filter(args, ctx))
+        filter=_runs_filter(args))
 
 def _runs_root_for_args(args, force_deleted):
     deleted = force_deleted or getattr(args, "deleted", False)
-    return guild.var.runs_dir(deleted=deleted)
+    return var.runs_dir(deleted=deleted)
 
-def _runs_filter(args, ctx):
+def _runs_filter(args):
     filters = []
-    _apply_models_filter(args, filters, ctx)
     _apply_status_filter(args, filters)
-    return guild.var.run_filter("all", filters)
-
-def _apply_models_filter(args, filters, ctx):
-    print("TODO: somehow filter using models from iter_models and from args")
-    pass
+    return var.run_filter("all", filters)
 
 def _apply_status_filter(args, filters):
     status = getattr(args, "status", None)
@@ -73,28 +92,43 @@ def _apply_status_filter(args, filters):
     if status == "stopped":
         # Special case, filter on any of "terminated" or "error"
         filters.append(
-            guild.var.run_filter("any", [
-                guild.var.run_filter("attr", "extended_status", "terminated"),
-                guild.var.run_filter("attr", "extended_status", "error"),
+            var.run_filter("any", [
+                var.run_filter("attr", "extended_status", "terminated"),
+                var.run_filter("attr", "extended_status", "error"),
             ]))
     else:
         filters.append(
-            guild.var.run_filter("attr", "extended_status", status))
+            var.run_filter("attr", "extended_status", status))
 
-def _format_run(run, index=None):
+def _format_run(run, ctx, index=None):
+    opref = run.get("opref")
+    pkg_info, model, op_name = _parse_opref(opref)
     return {
         "id": run.id,
         "index": _format_run_index(run, index),
         "short_index": _format_run_index(run),
-        "operation": run.get("op", "?"),
+        "model": model,
+        "pkg_info": pkg_info,
+        "operation": _format_op_desc(pkg_info, model, op_name, ctx),
         "status": run.extended_status,
         "pid": run.pid or "(not running)",
         "started": _format_timestamp(run.get("started")),
         "stopped": _format_timestamp(run.get("stopped")),
         "rundir": run.path,
-        "command": _format(run.get("cmd", "")),
+        "command": _format_command(run.get("cmd", "")),
         "exit_status": run.get("exit_status", ""),
+        "opref": _format_opref(opref),
     }
+
+def _parse_opref(opref):
+    if not opref:
+        logging.warning("cannot format opref, missing opref run attr")
+        return "", "", ""
+    parts = opref.split(" ")
+    if len(parts) != 4:
+        logging.warning("cannot format opref, bad format: %s", opref)
+    pkg, _ver, model, op = parts
+    return pkg, model, op
 
 def _format_run_index(run, index=None):
     if index is not None:
@@ -102,13 +136,33 @@ def _format_run_index(run, index=None):
     else:
         return "[%s]" % run.short_id
 
+def _format_op_desc(pkg, model, op, ctx):
+    if pkg.startswith("file:"):
+        return _format_opref_for_file(pkg[5:], model, op, ctx)
+    elif pkg.startswith("dist:"):
+        return _format_opref_for_dist(pkg[5:], model, op)
+    else:
+        logging.warning("cannot format op desc, unexpected pkg: %s", pkg)
+        return "?"
+
+def _format_opref_for_file(path, model, op, ctx):
+    cwd = cmd_impl_support.cwd(ctx)
+    relpath = os.path.relpath(os.path.dirname(path), cwd)
+    if relpath[0] != '.':
+        relpath = os.path.join('.', relpath)
+    return "%s/%s:%s" % (relpath, model, op)
+
+def _format_opref_for_dist(project_name, model, op):
+    pkg = package.apply_namespace(project_name)
+    return "%s/%s:%s" % (pkg, model, op)
+
 def _format_timestamp(ts):
     if not ts:
         return ""
     struct_time = time.localtime(float(ts))
     return time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
 
-def _format(cmd):
+def _format_command(cmd):
     args = cmd.split("\n")
     return " ".join([_maybe_quote_arg(arg) for arg in args])
 
@@ -124,32 +178,71 @@ def _format_attr_val(s):
             ["  %s" % part for part in parts]
         )
 
+def _format_opref(opref):
+    if opref.startswith("file:"):
+        return opref[5:]
+    elif opref.startswith("dist:"):
+        return opref[5:]
+    else:
+        return opref
+
+def _filter_runs_for_models(runs, args, ctx):
+    if args.all and not args.models:
+        return runs
+    abs_cwd = os.path.abspath(cmd_impl_support.cwd(ctx))
+    return [
+        run for run in runs
+        if _filter_run_for_models(run, args, abs_cwd)
+    ]
+
+def _filter_run_for_models(run, args, abs_cwd):
+    return (
+        _run_matches_models(run, args.models) and
+        (args.all or _is_cwd_run(run, abs_cwd))
+    )
+
+def _run_matches_models(run, models):
+    return not models or any((run["model"] == m for m in models))
+
+def _is_cwd_run(run, abs_cwd):
+    pkg_info = run["pkg_info"]
+    if pkg_info.startswith("file:"):
+        model_path = os.path.dirname(pkg_info[5:])
+        if os.path.isabs(model_path):
+            if model_path == abs_cwd:
+                return True
+        else:
+            logging.warning(
+                "unexpected non-absolute modelfile path for run %s: %s",
+                run["id"], model_path)
+    return False
+
 def runs_op(args, ctx, force_delete, preview_msg, confirm_prompt, op_callback):
-    runs = runs_for_args(args, ctx, force_delete)
+    runs = runs_for_args(args, force_delete)
     runs_arg = args.runs or ALL_RUNS_ARG
     selected = selected_runs(runs, runs_arg, ctx)
     if not selected:
         _no_selected_runs_error()
-    preview = [_format_run(run) for run in selected]
+    preview = [_format_run(run, ctx) for run in selected]
     if not args.yes:
-        guild.cli.out(preview_msg)
+        cli.out(preview_msg)
         cols = ["short_index", "operation", "started", "status"]
-        guild.cli.table(preview, cols=cols, indent=2)
-    if args.yes or guild.cli.confirm(confirm_prompt):
+        cli.table(preview, cols=cols, indent=2)
+    if args.yes or cli.confirm(confirm_prompt):
         op_callback(selected)
 
-def selected_runs(all_runs, selected_specs, cmd_ctx):
+def selected_runs(all_runs, selected_specs, ctx):
     selected = []
     for spec in selected_specs:
         try:
             slice_start, slice_end = _parse_slice(spec)
         except ValueError:
-            selected.append(_find_run_by_id(spec, all_runs, cmd_ctx))
+            selected.append(_find_run_by_id(spec, all_runs, ctx))
         else:
             if _in_range(slice_start, slice_end, all_runs):
                 selected.extend(all_runs[slice_start:slice_end])
             else:
-                selected.append(_find_run_by_id(spec, all_runs, cmd_ctx))
+                selected.append(_find_run_by_id(spec, all_runs, ctx))
     return selected
 
 def _parse_slice(spec):
@@ -177,29 +270,29 @@ def _slice_part(s, incr=False):
     else:
         return int(s)
 
-def _find_run_by_id(id_part, runs, cmd_ctx):
+def _find_run_by_id(id_part, runs, ctx):
     matches = []
     for run in runs:
         if run.id.startswith(id_part):
             matches.append(run)
     if len(matches) == 0:
-        _no_matching_run_error(id_part, cmd_ctx)
+        _no_matching_run_error(id_part, ctx)
     elif len(matches) > 1:
-        _non_unique_run_id_error(matches)
+        _non_unique_run_id_error(matches, ctx)
     else:
         return matches[0]
 
-def _no_matching_run_error(id_part, cmd_ctx):
-    guild.cli.error(
+def _no_matching_run_error(id_part, ctx):
+    cli.error(
         "could not find run matching '%s'\n"
         "Try 'guild runs list' for a list or '%s' for more information."
-        % (id_part, click_util.cmd_help(cmd_ctx)))
+        % (id_part, click_util.cmd_help(ctx)))
 
-def _non_unique_run_id_error(matches):
-    guild.cli.out("'%s' matches multiple runs:\n", err=True)
-    formatted = [_format_run(run) for run in matches]
+def _non_unique_run_id_error(matches, ctx):
+    cli.out("'%s' matches multiple runs:\n", err=True)
+    formatted = [_format_run(run, ctx) for run in matches]
     cols = ["id", "op", "started", "status"]
-    guild.cli.table(formatted, cols=cols, err=True)
+    cli.table(formatted, cols=cols, err=True)
 
 def _in_range(slice_start, slice_end, l):
     return (
@@ -208,12 +301,12 @@ def _in_range(slice_start, slice_end, l):
     )
 
 def _no_selected_runs_error():
-    guild.cli.error(
+    cli.error(
         "no matching runs\n"
         "Try 'guild runs list' to list available runs.")
 
 def delete_runs(args, ctx):
-    if args.purge:
+    if args.permanent:
         preview = (
             "WARNING: You are about to permanently delete "
             "the following runs:")
@@ -222,11 +315,11 @@ def delete_runs(args, ctx):
         preview = "You are about to delete the following runs:"
         confirm = "Delete these runs?"
     def delete(selected):
-        guild.var.delete_runs(selected, args.purge)
-        if args.purge:
-            guild.cli.out("Permanently deleted %i run(s)" % len(selected))
+        var.delete_runs(selected, args.permanent)
+        if args.permanent:
+            cli.out("Permanently deleted %i run(s)" % len(selected))
         else:
-            guild.cli.out("Deleted %i run(s)" % len(selected))
+            cli.out("Deleted %i run(s)" % len(selected))
     runs_op(args, ctx, False, preview, confirm, delete)
 
 def purge_runs(args, ctx):
@@ -235,44 +328,44 @@ def purge_runs(args, ctx):
         "the following runs:")
     confirm = "Permanently delete these runs?"
     def purge(selected):
-        guild.var.purge_runs(selected)
-        guild.cli.out("Permanently deleted %i run(s)" % len(selected))
+        var.purge_runs(selected)
+        cli.out("Permanently deleted %i run(s)" % len(selected))
     runs_op(args, ctx, True, preview, confirm, purge)
 
 def restore_runs(args, ctx):
     preview = "You are about to permanently restore the following runs:"
     confirm = "Restore these runs?"
     def restore(selected):
-        guild.var.restore_runs(selected)
-        guild.cli.out("Restored %i run(s)" % len(selected))
+        var.restore_runs(selected)
+        cli.out("Restored %i run(s)" % len(selected))
     runs_op(args, ctx, True, preview, confirm, restore)
 
 def restore_runs_delme(args, ctx):
-    runs = runs_for_args(args, ctx, force_deleted=True)
+    runs = runs_for_args(args, force_deleted=True)
     runs_arg = args.runs or ALL_RUNS_ARG
     selected = selected_runs(runs, runs_arg, ctx)
     if not selected:
         _no_selected_runs_error()
-    preview = [_format_run(run) for run in selected]
+    preview = [_format_run(run, ctx) for run in selected]
     if not args.yes:
-        guild.cli.out("You are about to restore the following runs:")
+        cli.out("You are about to restore the following runs:")
         cols = ["short_index", "operation", "started", "status"]
-        guild.cli.table(preview, cols=cols, indent=2)
-    if args.yes or guild.cli.confirm("Restore these runs?"):
-        guild.var.restore_runs(selected)
-        guild.cli.out("Restored %i run(s)" % len(selected))
+        cli.table(preview, cols=cols, indent=2)
+    if args.yes or cli.confirm("Restore these runs?"):
+        var.restore_runs(selected)
+        cli.out("Restored %i run(s)" % len(selected))
 
 def run_info(args, ctx):
-    runs = runs_for_args(args, ctx)
+    runs = runs_for_args(args)
     runspec = args.run or "0"
     selected = selected_runs(runs, [runspec], ctx)
     if len(selected) == 0:
         _no_selected_runs_error()
     elif len(selected) > 1:
-        _non_unique_run_id_error(selected)
+        _non_unique_run_id_error(selected, ctx)
     run = selected[0]
-    formatted = _format_run(run)
-    out = guild.cli.out
+    formatted = _format_run(run, ctx)
+    out = cli.out
     for name in RUN_DETAIL:
         out("%s: %s" % (name, formatted[name]))
     if args.env:
