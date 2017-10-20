@@ -87,9 +87,6 @@ The `mnist-cnn` model is defined in a standard Python distribution:
 
     >>> cnn = next(guild.model.for_name("mnist-cnn"))
 
-    >>> cnn.dist
-    gpkg.mnist 0.1.0 (.../samples/model-packages)
-
     >>> cnn.dist.__class__
     <class 'pkg_resources.DistInfoDistribution'>
 
@@ -102,8 +99,8 @@ The `mnist-intro` model is defined in a modelfile:
 
     >>> intro = next(guild.model.for_name("mnist-intro"))
 
-    >>> intro.dist
-    <guild.model.ModelfileDistribution '.../samples/projects/mnist/MODELS'>
+    >>> intro.dist.__class__
+    <class 'guild.model.ModelfileDistribution'>
 
 Modelfile distributions are not versioned and trying to read the
 version will generate an error:
@@ -112,12 +109,50 @@ version will generate an error:
     Traceback (most recent call last):
     ValueError: ("Missing 'Version:' header and/or PKG-INFO file"...
 
-Modelfile distribution project names are always 'Unknown':
+Modelfile distribution project names start with '.modelfile.' to
+distinguish them from standard distributions:
 
-    >>> intro.dist.project_name
-    'Unknown'
+    >>> intro.dist.project_name[:11]
+    '.modelfile.'
 
-## Model defs
+The part of the project name that follows the '.modelfile.' prefix is
+an escaped relative directory that contains the model's
+modelfile. This value can be unescaped using
+`model.unescape_project_name`:
+
+    >>> intro_pkg_path = guild.model.unescape_project_name(
+    ...                    intro.dist.project_name[11:])
+    >>> intro_pkg_path
+    '.../samples/projects/mnist'
+
+Modelfile distribution package paths always start with '.':
+
+    >>> intro_pkg_path[0]
+    '.'
+
+## Model names
+
+Models have names, which must correspond to the names in their
+associated model definition.
+
+    >>> intro.name == intro.modeldef.name == "mnist-intro"
+    True
+
+As models are associated with distributions, they also have a fully
+qualified name that includes their distribution's project name:
+
+    >>> intro.fullname
+    '.modelfile.../mnist-intro'
+
+Here are the respective names of the `cnn` model:
+
+    >>> cnn.name
+    'mnist-cnn'
+
+    >>> cnn.fullname
+    'gpkg.mnist/mnist-cnn'
+
+## Model definitions
 
 Models are associated with modeldefs that provide the details
 associated with a model, including their operations. Modeldefs

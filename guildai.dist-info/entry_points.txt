@@ -13,4 +13,5 @@ memory = guild.plugins.memory:MemoryPlugin
 [guild.namespaces]
 
 gpkg = guild.namespace:gpkg
+modelfile = guild.namespace:modelfile
 pypi = guild.namespace:pypi

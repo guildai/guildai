@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import guild
+import guild.model
 from .entry_point_util import EntryPointResources
 
 _namespaces = EntryPointResources("guild.namespaces", "namespace")
@@ -32,6 +33,9 @@ class Namespace(object):
     def __init__(self, ep):
         self.name = ep.name
 
+    def __repr__(self):
+        return "<guild.namespace.Namespace '%s'>" % self.name
+
     def pip_install_info(self, _req):
         """Returns info for use in the pip install command.
 
@@ -41,15 +45,16 @@ class Namespace(object):
         """
         raise NotImplementedError()
 
-    def is_member(self, _project_name):
+    def is_project_name_member(self, _project_name):
         """Returns a tuple of membership and package name for project name.
 
-        Membership may be yes, no, or mabye.
+        Membership may be 'yes', 'no', or 'mabye'. Use Membership.ATTR
+        to test values.
 
-        If a namespace returns no, package name must be None.
+        If a namespace returns 'no', package name must be None.
 
-        If a namespace returns yes or maybe, package name must be the
-        package name under the namespace.
+        If a namespace returns 'yes' or 'maybe', package name must be
+        the name of the Guild package under the namespace.
         """
         raise NotImplementedError()
 
@@ -60,9 +65,8 @@ class pypi(Namespace):
     def pip_install_info(self, req):
         return (req, [self.INDEX_INSTALL_URL])
 
-    @staticmethod
-    def is_member(name):
-        return Membership.maybe, name
+    def is_project_name_member(self, name):
+        return Membership.maybe, self.name + "/" + name
 
 class gpkg(pypi):
 
@@ -70,9 +74,25 @@ class gpkg(pypi):
         return ("gpkg." + req, [self.INDEX_INSTALL_URL])
 
     @staticmethod
-    def is_member(name):
+    def is_project_name_member(name):
         if name.startswith("gpkg."):
             return Membership.yes, name[5:]
+        else:
+            return Membership.no, None
+
+class modelfile(Namespace):
+
+    @staticmethod
+    def pip_install_info(_name):
+        raise TypeError("modelfiles cannot be installed using pip")
+
+    @staticmethod
+    def is_project_name_member(name):
+        if name.startswith(".modelfile."):
+            parts = name[11:].split("/", 1)
+            project_name = guild.model.unescape_project_name(parts[0])
+            rest = "/" + parts[1] if len(parts) == 2 else ""
+            return Membership.yes, project_name + rest
         else:
             return Membership.no, None
 

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
 import logging
 import os
 import sys
@@ -32,6 +33,10 @@ class Model(object):
 
     def __repr__(self):
         return "<guild.model.Model '%s'>" % self.name
+
+    @property
+    def fullname(self):
+        return "%s/%s" % (self.dist.project_name, self.name)
 
 def _modeldef_for_dist(name, dist):
     if isinstance(dist, ModelfileDistribution):
@@ -75,13 +80,14 @@ def _try_acc_modeldefs(path, acc):
 
 class ModelfileDistribution(Distribution):
 
-    def __init__(self, models):
-        super(ModelfileDistribution, self).__init__(models.src)
-        self.models = models
-        self._entry_map = _entry_map_for_models(models, self)
+    def __init__(self, modelfile):
+        super(ModelfileDistribution, self).__init__(
+            modelfile.src, project_name=_modelfile_project_name(modelfile))
+        self.modelfile = modelfile
+        self._entry_map = _modelfile_entry_map(modelfile, self)
 
     def __repr__(self):
-        return "<guild.model.ModelfileDistribution '%s'>" % self.models.src
+        return "<guild.model.ModelfileDistribution '%s'>" % self.modelfile.src
 
     def get_entry_map(self, group=None):
         if group is None:
@@ -90,20 +96,51 @@ class ModelfileDistribution(Distribution):
             return self._entry_map.get(group, {})
 
     def get_model(self, name):
-        for model in self.models:
+        for model in self.modelfile:
             if model.name == name:
                 return model
         raise ValueError(name)
 
-def _entry_map_for_models(models, dist):
+def _modelfile_project_name(modelfile):
+    """Returns a project name for a modelfile distribution.
+
+    Modelfile distribution project names are of the format:
+
+        '.modelfile.' + ESCAPED_MODELFILE_PATH
+
+    ESCAPED_MODELFILE_PATH is a 'safe' project name (i.e. will not be
+    modified in a call to `pkg_resources.safe_name`) that, when
+    unescaped using `unescape_project_name`, is the relative path of
+    the directory containing the modelfile. The modefile name itself
+    (e.g. 'MODEL' or 'MODELS') is not contained in the path.
+
+    Modelfile paths are relative to the current working directory
+    (i.e. the value of os.getcwd() at the time they are generated) and
+    always start with '.'.
+    """
+    pkg_path = os.path.relpath(os.path.dirname(modelfile.src))
+    if pkg_path[0] != ".":
+        pkg_path = os.path.join(".", pkg_path)
+    safe_path = escape_project_name(pkg_path)
+    return ".modelfile.%s" % safe_path
+
+def escape_project_name(name):
+    """Escapes name for use as a valie pkg_resources project name."""
+    return base64.b16encode(name)
+
+def unescape_project_name(escaped_name):
+    """Unescapes names escaped with `escape_project_name`."""
+    return base64.b16decode(escaped_name)
+
+def _modelfile_entry_map(modelfile, dist):
     return {
         "guild.models": {
-            model.name: _entry_point_for_model(model, dist)
-            for model in models
+            model.name: _model_entry_point(model, dist)
+            for model in modelfile
         }
     }
 
-def _entry_point_for_model(model, dist):
+def _model_entry_point(model, dist):
     return EntryPoint(
         name=model.name,
         module_name=__name__,

@@ -44,7 +44,7 @@ def split_name(name):
 
     Raises NamespaceError if a specified namespace doesn't exist.
     """
-    m = re.match("@(.+?)/(.+)", name)
+    m = re.match("(.+?)/(.+)", name)
     if m:
         return _ns_for_name(m.group(1)), m.group(2)
     else:
@@ -60,7 +60,8 @@ def apply_namespace(project_name):
     ns = None
     pkg_name = None
     for _, maybe_ns in guild.namespace.iter_namespaces():
-        membership, maybe_pkg_name = maybe_ns.is_member(project_name)
+        membership, maybe_pkg_name = (
+            maybe_ns.is_project_name_member(project_name))
         if membership == guild.namespace.Membership.yes:
             # Match, stop looking
             ns = maybe_ns
@@ -72,10 +73,7 @@ def apply_namespace(project_name):
             pkg_name = maybe_pkg_name
     assert ns, project_name
     assert pkg_name
-    if ns.name == DEFAULT_NAMESPACE:
-        return pkg_name
-    else:
-        return "@%s/%s" % (ns.name, pkg_name)
+    return pkg_name
 
 def create_package(package_file, dist_dir=None, upload_repo=False,
                    sign=False, identity=None, user=None, password=None,
