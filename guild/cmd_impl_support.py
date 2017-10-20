@@ -22,12 +22,29 @@ import guild.click_util
 import guild.model
 import guild.modelfile
 
-def init_model_path(ctx, all_models=False):
-    if not all_models:
+def init_model_path(args, ctx):
+    if not args.all:
         guild.model.set_path([])
     maybe_model_src = _find_model_source(_cwd(ctx))
     if maybe_model_src:
         guild.model.add_model_source(maybe_model_src)
+
+def iter_models(args, ctx):
+    init_model_path(args, ctx)
+    models = list(guild.model.iter_models())
+    if not models:
+        _no_models_error(ctx)
+    return models
+
+def _handle_no_models(args):
+    if args.all:
+        cli.out("There are no models installed on this system.")
+    else:
+        cli.out(
+            "There are no models defined in this directory.\n"
+            "Try a different directory or specify --all to list all "
+            "installed models.")
+    cli.error()
 
 def _find_model_source(path):
     # Note that the order of NAMES matters as the first match is used

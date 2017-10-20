@@ -15,58 +15,33 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import os
-
-import guild.cli
-import guild.cmd_impl_support
-import guild.modelfile
-
-DEFAULT_PROJECT_LOCATION = "."
+from guild import cli
+from guild.cmd_impl_support import iter_models
+from guild.package import apply_namespace
 
 def main(args, ctx):
-    project = guild.cmd_impl_support.project_for_location(
-        args.project_location, ctx)
-    guild.cli.table(
-        [_format_op(op) for op in _iter_ops(project, args)],
-        cols=["full_name", "description"],
-        detail=(["cmd"] if args.verbose else []))
+    formatted = [_format_op(op, model) for op, model in iter_ops(args, ctx)]
+    cli.table(
+        sorted(formatted, key=lambda m: m["fullname"]),
+        cols=["fullname", "description"],
+        detail=(["name", "model", "cmd"] if args.verbose else [])
+    )
 
-def _iter_ops(project, args):
-    for model in _project_models(project, args):
-        for op in model.operations:
-            yield op
+def iter_ops(args, ctx):
+    for model in iter_models(args, ctx):
+        for op in model.modeldef.operations:
+            if _filter_op(op, model, args):
+                yield op, model
 
-def _project_models(project, args):
-    if args.model:
-        return [_try_model(args.model, project)]
-    else:
-        return list(project)
+def _filter_op(op, model, args):
+    return all((f in op.name or f in model.name for f in args.filters))
 
-def _try_model(name, project):
-    try:
-        return project[name]
-    except KeyError:
-        _no_such_model_error(name, project)
-
-def _no_such_model_error(name, project):
-    guild.cli.error(
-        "model '%s' is not defined in %s\n"
-        "Try 'guild models%s' for a list of models."
-        % (name, os.path.relpath(project.src),
-           _project_opt(project.src)))
-
-def _project_opt(project_src):
-    relpath = os.path.relpath(project_src)
-    if relpath == "MODEL" or relpath == "MODELS":
-        return ""
-    else:
-        return " -p %s" % relpath
-
-def _format_op(op):
+def _format_op(op, model):
+    model_fullname = apply_namespace(model.fullname)
     return {
-        "name": op.name,
-        "model": op.model.name,
-        "full_name": "%s:%s" % (op.model.name, op.name),
+        "fullname": "%s:%s" % (model_fullname, op.name),
         "description": op.description or "",
+        "model": model_fullname,
+        "name": op.name,
         "cmd": op.cmd,
     }

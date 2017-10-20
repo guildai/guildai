@@ -20,20 +20,21 @@ import click
 from guild import click_util
 
 @click.command(name="operations, ops")
-@click.argument("model", required=False)
-@click.option(
-    "-p", "--project", "project_location", metavar="LOCATION",
-    help="Project location (file system directory) for MODEL.")
-@click.option(
-    "-v", "--verbose",
-    help="Show operation details.",
-    is_flag=True)
+@click.argument("filters", metavar="[FILTER]...", required=False, nargs=-1)
+@click.option("-a", "--all", help="Include all operations.", is_flag=True)
+@click.option("-v", "--verbose", help="Show operation details.", is_flag=True)
 
 @click.pass_context
 @click_util.use_args
 
 def operations(ctx, args):
     """Show model operations.
+
+    By default shows operations for the models in the current
+    directory. Use --all to list operations for all models.
+
+    Use one or more FILTER arguments to show only operations whose
+    names or models match all of the specified values.
     """
     from . import operations_impl
     operations_impl.main(args, ctx)
