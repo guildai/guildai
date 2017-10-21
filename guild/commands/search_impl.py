@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 from guild import cli
+from guild import namespace
 from guild import package
 from guild import pip_util
 
@@ -35,7 +36,7 @@ def _filter_packages(pkgs, args):
 
 def _format_package(pkg):
     return {
-        "name": package.apply_namespace(pkg["name"]),
+        "name": namespace.apply_namespace(pkg["name"]),
         "version": pkg["version"],
         "description": pkg["summary"],
     }

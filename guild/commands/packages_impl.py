@@ -18,6 +18,7 @@ from __future__ import division
 from guild import cli
 from guild import cmd_impl_support
 from guild import pip_util
+from guild import namespace
 from guild import package
 
 def list_packages(args):
@@ -33,7 +34,7 @@ def _filter_packages(pkgs, args):
 
 def _format_pkg(pkg):
     return {
-        "name": package.apply_namespace(pkg.project_name),
+        "name": namespace.apply_namespace(pkg.project_name),
         "version": pkg.version,
     }
 

@@ -104,3 +104,22 @@ def for_name(name):
 
 def limit_to_builtin():
     _namespaces.set_path([guild.__pkgdir__])
+
+def apply_namespace(project_name):
+    ns = None
+    pkg_name = None
+    for _, maybe_ns in iter_namespaces():
+        membership, maybe_pkg_name = (
+            maybe_ns.is_project_name_member(project_name))
+        if membership == Membership.yes:
+            # Match, stop looking
+            ns = maybe_ns
+            pkg_name = maybe_pkg_name
+            break
+        elif membership == Membership.maybe:
+            # Possible match, keep looking
+            ns = maybe_ns
+            pkg_name = maybe_pkg_name
+    assert ns, project_name
+    assert pkg_name
+    return pkg_name

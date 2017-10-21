@@ -166,3 +166,14 @@ Here we see that our modelfile project name is the `foo/bar` package.
 
 For more information about modelfile package names, see the [packages
 test](packages.md).
+
+## Applying namespaces
+
+The function `apply_namespace` can be used to apply a namespace to a
+project name and return a package name:
+
+    >>> namespace.apply_namespace("mnist")
+    'pypi/mnist'
+
+    >>> namespace.apply_namespace("gpkg.mnist")
+    'mnist'

@@ -1,7 +1,7 @@
-from . import package
+from . import namespace
 
 def model_fullname(model):
-    pkg_name = package.apply_namespace(model.dist.project_name)
+    pkg_name = namespace.apply_namespace(model.dist.project_name)
     return "%s/%s" % (pkg_name, model.name)
 
 def op_fullname(model, op):

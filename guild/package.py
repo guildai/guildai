@@ -56,25 +56,6 @@ def _ns_for_name(name):
     except LookupError:
         raise NamespaceError(name)
 
-def apply_namespace(project_name):
-    ns = None
-    pkg_name = None
-    for _, maybe_ns in namespace.iter_namespaces():
-        membership, maybe_pkg_name = (
-            maybe_ns.is_project_name_member(project_name))
-        if membership == namespace.Membership.yes:
-            # Match, stop looking
-            ns = maybe_ns
-            pkg_name = maybe_pkg_name
-            break
-        elif membership == namespace.Membership.maybe:
-            # Possible match, keep looking
-            ns = maybe_ns
-            pkg_name = maybe_pkg_name
-    assert ns, project_name
-    assert pkg_name
-    return pkg_name
-
 def create_package(package_file, dist_dir=None, upload_repo=False,
                    sign=False, identity=None, user=None, password=None,
                    comment=None):

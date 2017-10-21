@@ -143,6 +143,7 @@ py_library(
     srcs = ["package_impl.py"],
     deps = [
         "//guild:cmd_impl_support",
+        "//guild:namespace",
         "//guild:package",
     ],
 )
@@ -254,7 +255,7 @@ py_library(
         "//guild:click_util",
         "//guild:cmd_impl_support",
         "//guild:modelfile",
-        "//guild:package",
+        "//guild:namespace",
         "//guild:var",
     ],
 )
@@ -327,6 +328,7 @@ py_library(
     srcs = ["search_impl.py"],
     deps = [
         "//guild:cli",
+        "//guild:namespace",
         "//guild:package",
         "//guild:pip_util",
     ],

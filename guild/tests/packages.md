@@ -45,14 +45,3 @@ error:
     >>> package.split_name("other/mnist")
     Traceback (most recent call last):
     NamespaceError: other
-
-## Applying namespaces to projects
-
-A PyPI project may implicitly fall under a namespace. We can apply a
-namespace to a project name using `apply_namespace`.
-
-    >>> package.apply_namespace("mnist")
-    'pypi/mnist'
-
-    >>> package.apply_namespace("gpkg.mnist")
-    'mnist'

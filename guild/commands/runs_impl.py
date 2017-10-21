@@ -24,7 +24,7 @@ from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
 from guild import modelfile
-from guild import package
+from guild import namespace
 from guild import var
 
 RUN_DETAIL = [
@@ -193,7 +193,7 @@ def _format_modelfile_op(path, model, op, ctx):
     return "%s/%s:%s" % (relpath, model, op)
 
 def _format_package_op(project_name, model, op):
-    pkg = package.apply_namespace(project_name)
+    pkg = namespace.apply_namespace(project_name)
     return "%s/%s:%s" % (pkg, model, op)
 
 def _format_pkg_info(pkg_info):
