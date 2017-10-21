@@ -15,79 +15,70 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import os
 
-import guild.cli
-import guild.click_util
 import guild.model
-import guild.modelfile
 
-def init_model_path(args, ctx):
-    if not args.all:
-        guild.model.set_path([])
-    _try_add_model_source(ctx)
-
-def _try_add_model_source(ctx):
-    maybe_model_source = _find_model_source(cwd(ctx))
-    if maybe_model_source:
-        guild.model.add_model_source(maybe_model_source)
+from guild import cli
+from guild import modelfile
 
 def cwd(ctx):
+    """Returns the cwd for a command context."""
     return ctx.obj["cwd"]
 
-def _find_model_source(path):
-    # Note that the order of NAMES matters as the first match is used
-    # over subsequent names.
-    for name in guild.modelfile.NAMES:
-        filename = os.path.join(path, name)
-        if os.path.isfile(filename):
-            return filename
-    return None
-
-def iter_models(args, ctx):
-    init_model_path(args, ctx)
-    models = list(guild.model.iter_models())
-    if not models:
-        no_models_error(args, ctx)
-    return models
-
-def iter_all_models(ctx):
-    _try_add_model_source(ctx)
-    return guild.model.iter_models()
-
-def cwd_modelfile(ctx):
-    try:
-        return guild.modelfile.from_dir(cwd(ctx))
-    except (guild.modelfile.NoModels, IOError):
-        no_models_error(ctx)
-
-def no_models_error(args, ctx):
-    if args.all:
-        guild.cli.error("there are no models installed on this system")
-    else:
-        guild.cli.error(
-            "there are no models defined in %s\n"
-            "Try '%s --all' or '%s' for more information."
-            % (cwd_desc(ctx),
-               guild.click_util.normalize_command_path(ctx.command_path),
-               guild.click_util.cmd_help(ctx)))
-
 def cwd_desc(ctx):
+    """Returns a description for the context cwd.
+
+    If the context is the same as the system cwd, returns "this
+    directory" otherwise returns the quoted cwd.
+
+    This is used in messages to the user where the cwd is referenced.
+    """
     cwd_ = cwd(ctx)
     if os.path.abspath(cwd_) == os.path.abspath(os.getcwd()):
-        return "this directory"
+        return "the current directory"
     else:
         return "'%s'" % cwd_
 
-def is_cwd_model(model, ctx):
-    return (
-        model.package_name[0] == '.' and
-        (os.path.abspath(model.package_name[0])
-         == os.path.abspath(cwd(ctx))))
-
-def cwd_has_modelfile(ctx):
+def cwd_modelfile(ctx):
+    """Returns a modelfile for a context cwd or None if one doesn't exit."""
     cwd_ = cwd(ctx)
-    for name in guild.modelfile.NAMES:
-        if os.path.exists(os.path.join(cwd_, name)):
-            return True
-    return False
+    for name in modelfile.NAMES:
+        path = os.path.join(cwd_, name)
+        if os.path.exists(path):
+            return path
+    return None
+
+def cwd_modeldef(ctx):
+    cwd_ = cwd(ctx)
+    try:
+        return modelfile.from_dir(cwd_)
+    except (modelfile.NoModels, IOError):
+        return None
+    except Exception as e:
+        logging.warning("unable to load modeldef from %s: %s", cwd_, e)
+        return None
+
+def init_model_path(ctx, force_all=False, notify_force_all_option=None):
+    """Initializes the model path given a command context.
+
+    If the context cwd contains a model def, the path is initialized
+    so that only models associated with the cwd are available via
+    `guild.model`. An exception to this is when `force_all` is true,
+    in which case all models including those in the cwd will be
+    available.
+    """
+    model_source = cwd_modelfile(ctx)
+    if model_source:
+        if force_all:
+            guild.model.add_model_source(model_source)
+        else:
+            _maybe_notify_models_limited(notify_force_all_option, ctx)
+            guild.model.set_path([model_source])
+
+def _maybe_notify_models_limited(force_all_option, ctx):
+    if force_all_option:
+        cli.note(
+            "Limiting models to %s (use %s to include all)."
+            % (cwd_desc(ctx), force_all_option))

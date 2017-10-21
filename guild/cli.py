@@ -32,6 +32,9 @@ def error(msg=None, exit_status=1):
 def out(s="", **kw):
     click.echo(s, **kw)
 
+def note(msg):
+    click.echo(click.style(msg, dim=True), err=True)
+
 def table(data, cols, sort=None, detail=None, indent=0, err=False):
     data = sorted(data, key=_table_row_sort_key(sort))
     formatted = _format_data(data, cols + (detail or []))

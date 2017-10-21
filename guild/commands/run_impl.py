@@ -16,11 +16,13 @@ from __future__ import absolute_import
 from __future__ import division
 
 import guild.op
+
 from guild import cli
 from guild import cmd_impl_support
 from guild import model_util
 
 def main(args, ctx):
+    cmd_impl_support.init_model_path(ctx)
     model_ref, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_ref, ctx)
     opdef = _resolve_opdef(op_name, model)
@@ -49,37 +51,42 @@ def _resolve_model(model_ref, ctx):
         return matches[0]
 
 def _iter_matching_models(model_ref, ctx):
-    for model in cmd_impl_support.iter_all_models(ctx):
+    cwd_modeldef = cmd_impl_support.cwd_modeldef(ctx)
+    for model in guild.model.iter_models():
         if model_ref is None:
-            if _is_default_cwd_model(model, ctx):
+            if _is_default_cwd_model(model, cwd_modeldef):
                 yield model
                 break
         else:
             if _match_model_ref(model_ref, model):
                 yield model
 
-def _is_default_cwd_model(model, ctx):
-    return (cmd_impl_support.is_cwd_model(model, ctx) and
-            model.name == model.modeldef.modelfile.default_model.name)
+def _is_default_cwd_model(model, cwd_modeldef):
+    default_model = cwd_modeldef and cwd_modeldef.default_model
+    return (default_model and
+            default_model.modelfile == model.modeldef.modelfile and
+            default_model.name == model.name)
 
 def _match_model_ref(model_ref, model):
     if '/' in model_ref:
+        # If user includes a '/' assume it's a complete name
         return model_ref == model_util.model_fullname(model)
     else:
+        # otherwise treat as a match term
         return model_ref in model.name
 
 def _no_model_error(model_ref, ctx):
     if model_ref is None:
-        cmd_impl_support.no_models_error(ctx)
+        cli.error(
+            "there are no models in %s\n"
+            "Try a different directory or 'guild operations' for "
+            "available operations."
+            % cmd_impl_support.cwd_desc(ctx))
     else:
-        if cmd_impl_support.cwd_has_modelfile(ctx):
-            ls_cmd = "guild models"
-        else:
-            ls_cmd = "guild models --all"
         cli.error(
             "cannot find a model matching '%s'\n"
-            "Try '%s' for a list of available models."
-            % (model_ref, ls_cmd))
+            "Try 'guild models' for a list of available models."
+            % model_ref)
 
 def _multiple_models_error(model_ref, models, ctx):
     models_list = "\n".join([
@@ -87,8 +94,8 @@ def _multiple_models_error(model_ref, models, ctx):
         for m in models
     ])
     cli.error(
-        "multiple models match '%s'\n"
-        "Try specifying one of the following models:\n"
+        "there are multiple models that match '%s'\n"
+        "Try specifying one of the following:\n"
         "%s"
         % (model_ref, models_list))
 

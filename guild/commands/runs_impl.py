@@ -43,7 +43,6 @@ RUN_DETAIL = [
 ALL_RUNS_ARG = [":"]
 
 def list_runs(args, ctx):
-    _check_no_cwd_models_to_list(args, ctx)
     runs = runs_for_args(args, ctx)
     formatted = [
         _format_run(run, ctx, i)
@@ -52,10 +51,6 @@ def list_runs(args, ctx):
     cols = ["index", "operation", "started", "status"]
     detail = RUN_DETAIL if args.verbose else None
     cli.table(formatted, cols=cols, detail=detail)
-
-def _check_no_cwd_models_to_list(args, ctx):
-    if not args.all and not cmd_impl_support.cwd_has_modelfile(ctx):
-        cmd_impl_support.no_models_error(args, ctx)
 
 def runs_for_args(args, ctx, force_deleted=False):
     return var.runs(
@@ -89,11 +84,19 @@ def _apply_status_filter(args, filters):
             var.run_filter("attr", "extended_status", status))
 
 def _apply_model_filter(args, ctx, filters):
-    if not args.all:
-        abs_cwd = os.path.abspath(cmd_impl_support.cwd(ctx))
-        filters.append(_cwd_run_filter(abs_cwd))
+    cwd_modelfile = cmd_impl_support.cwd_modelfile(ctx)
+    if cwd_modelfile:
+        if not args.all:
+            _notify_runs_limited(ctx)
+            modelfile_dir = os.path.abspath(os.path.dirname(cwd_modelfile))
+            filters.append(_cwd_run_filter(modelfile_dir))
     if args.models:
         filters.append(_model_run_filter(args.models))
+
+def _notify_runs_limited(ctx):
+    cli.note(
+        "Limiting runs to %s (use --all to include all)."
+        % cmd_impl_support.cwd_desc(ctx))
 
 def _cwd_run_filter(abs_cwd):
     def f(run):
@@ -339,7 +342,7 @@ def purge_runs(args, ctx):
     _runs_op(args, ctx, True, preview, confirm, no_runs_help, purge)
 
 def restore_runs(args, ctx):
-    preview = "You are about to permanently restore the following runs:"
+    preview = "You are about to restore the following runs:"
     confirm = "Restore these runs?"
     no_runs_help = "Nothing to restore."
     def restore(selected):

@@ -30,8 +30,8 @@ lint:
 clean:
 	bazel clean
 
-smoke-test:
-	guild/tests/smoke-test
+user-acceptance-test:
+	guild/tests/user_acceptance.py
 
 timing-test:
 	guild/tests/timing-test
@@ -39,6 +39,6 @@ timing-test:
 commit-check:
 	make check
 	make lint
-	make smoke-test
+	make user-acceptance-test
 	make timing-test
 	@echo "Commit check passed on `python --version 2>&1`!"

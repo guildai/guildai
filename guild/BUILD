@@ -35,7 +35,6 @@ py_library(
     srcs = ["cmd_impl_support.py"],
     deps = [
         ":cli",
-        ":click_util",
         ":model",
         ":modelfile",
     ],

@@ -15,11 +15,15 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import guild.model
+
 from guild import cli
-from guild.cmd_impl_support import iter_models
-from guild.util import match_filter
+from guild import cmd_impl_support
+from guild import model_util
+from guild import util
 
 def main(args, ctx):
+    cmd_impl_support.init_model_path(ctx, args.all, "--all")
     formatted = [_format_op(op, model) for op, model in _iter_ops(args, ctx)]
     filtered = [op for op in formatted if _filter_op(op, args)]
     cli.table(
@@ -29,15 +33,16 @@ def main(args, ctx):
     )
 
 def _iter_ops(args, ctx):
-    for model in iter_models(args, ctx):
+    for model in guild.model.iter_models():
         for op in model.modeldef.operations:
             yield op, model
 
 def _format_op(op, model):
+    model_fullname = model_util.model_fullname(model)
     return {
-        "fullname": "%s:%s" % (model.fullname, op.name),
+        "fullname": "%s:%s" % (model_fullname, op.name),
         "description": op.description or "",
-        "model": model.fullname,
+        "model": model_fullname,
         "name": op.name,
         "cmd": op.cmd,
     }
@@ -47,4 +52,4 @@ def _filter_op(op, args):
         op["fullname"],
         op["description"],
     ]
-    return match_filter(args.filters, filter_vals)
+    return util.match_filter(args.filters, filter_vals)

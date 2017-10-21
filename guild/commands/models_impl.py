@@ -17,14 +17,13 @@ from __future__ import division
 
 from guild import cli
 from guild import cmd_impl_support
+from guild import model
 from guild import model_util
 from guild import util
 
 def main(args, ctx):
-    formatted = [
-        _format_model(m)
-        for m in cmd_impl_support.iter_models(args, ctx)
-    ]
+    cmd_impl_support.init_model_path(ctx, args.all, "--all")
+    formatted = [_format_model(m) for m in model.iter_models()]
     filtered = [m for m in formatted if _filter_model(m, args)]
     cli.table(
         sorted(filtered, key=lambda m: m["fullname"]),

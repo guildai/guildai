@@ -54,6 +54,11 @@ class Modelfile(object):
     def __iter__(self):
         return iter(self.models)
 
+    def __eq__(self, x):
+        if isinstance(x, Modelfile):
+            return os.path.abspath(self.src) == os.path.abspath(x.src)
+        return False
+
     def get(self, model_name, default=None):
         for model in self.models:
             if model.name == model_name:
