@@ -24,6 +24,12 @@ import guild.click_util
 import guild.commands.main
 
 def main():
+    if os.getenv("PROFILE"):
+        _profile_main()
+    else:
+        _main()
+
+def _main():
     try:
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         guild.commands.main.main(standalone_mode=False, obj={})
@@ -55,3 +61,18 @@ def _handle_system_exit(e):
     else:
         msg, code = e.message, 1
     _print_error_and_exit(msg, code)
+
+def _profile_main():
+    import cProfile
+    import tempfile
+    p = cProfile.Profile()
+    sys.stderr.write("Profiling command\n")
+    p.enable()
+    try:
+        _main()
+    finally:
+        p.disable()
+        _, tmp = tempfile.mkstemp(".profile")
+        sys.stderr.write("Writing profile stats to %s\n" % tmp)
+        p.dump_stats(tmp)
+        sys.stderr.write("Use 'python -m pstats %s' to view stats\n" % tmp)
