@@ -16,6 +16,7 @@ py_library(
         ":packages",
         ":run",
         ":runs",
+        ":search",
         ":shell",
         ":train",
         ":uninstall",
@@ -306,6 +307,26 @@ py_library(
     deps = [
         "//third_party:click",
         "//guild:click_util",
+    ],
+)
+
+py_library(
+    name = "search",
+    srcs = ["search.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:click_util",
+        ":search_impl",
+    ],
+)
+
+py_library(
+    name = "search_impl",
+    srcs = ["search_impl.py"],
+    deps = [
+        "//guild:cli",
+        "//guild:package",
+        "//guild:pip_util",
     ],
 )
 

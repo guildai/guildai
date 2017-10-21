@@ -31,6 +31,7 @@ from .package import package
 from .packages import packages
 from .run import run
 from .runs import runs
+from .search import search
 from .shell import shell
 from .train import train
 from .uninstall import uninstall
@@ -75,6 +76,7 @@ main.add_command(package)
 main.add_command(packages)
 main.add_command(run)
 main.add_command(runs)
+main.add_command(search)
 main.add_command(shell)
 main.add_command(train)
 main.add_command(uninstall)
