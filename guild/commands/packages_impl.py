@@ -15,18 +15,25 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import guild.cli
-import guild.cmd_impl_support
-import guild.package
-import guild.pip_util
+from guild import cli
+from guild import cmd_impl_support
+from guild import pip_util
+from guild import package
 
-def list_packages(_args):
-    pkgs = [_format_pkg(pkg) for pkg in guild.pip_util.get_installed()]
-    guild.cli.table(pkgs, cols=["name", "version"], sort=["name"])
+def list_packages(args):
+    installed = pip_util.get_installed()
+    filtered = _filter_packages(installed, args)
+    pkgs = [_format_pkg(pkg) for pkg in filtered]
+    cli.table(pkgs, cols=["name", "version"], sort=["name"])
+
+def _filter_packages(pkgs, args):
+    if args.all:
+        return pkgs
+    return [pkg for pkg in pkgs if package.is_gpkg(pkg.project_name)]
 
 def _format_pkg(pkg):
     return {
-        "name": guild.package.apply_namespace(pkg.name),
+        "name": package.apply_namespace(pkg.project_name),
         "version": pkg.version,
     }
 
@@ -35,13 +42,13 @@ def install_packages(args):
         print(
             "TODO: install %s (index=%s, upgrade=%s)"
             % (reqs, index_urls, args.upgrade))
-        #guild.pip_util.install(reqs, index_urls, args.upgrade)
+        #pip_util.install(reqs, index_urls, args.upgrade)
 
 def _installs(args):
     index_urls = {}
     for pkg in args.packages:
         # TODO: fix
-        ns, req_in = guild.cmd_impl_support.split_pkg(pkg)
+        ns, req_in = cmd_impl_support.split_pkg(pkg)
         req, urls = ns.pip_install_info(req_in)
         urls_key = "\n".join(urls)
         index_urls.setdefault(urls_key, []).append(req)

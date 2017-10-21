@@ -16,23 +16,8 @@ from __future__ import absolute_import
 from __future__ import division
 
 from pip.commands.install import InstallCommand
+from pip.commands.search import SearchCommand
 from pip.utils import get_installed_distributions
-
-class Distribution(object):
-
-    def __init__(self, d):
-        self._d = d
-
-    def __str__(self):
-        return str(self._d)
-
-    @property
-    def name(self):
-        return self._d.project_name
-
-    @property
-    def version(self):
-        return self._d.version
 
 def install(reqs, index_urls=None, upgrade=False):
     cmd = InstallCommand()
@@ -47,5 +32,10 @@ def install(reqs, index_urls=None, upgrade=False):
     cmd.run(*cmd.parse_args(args))
 
 def get_installed():
-    installed = get_installed_distributions(user_only=True)
-    return [Distribution(d) for d in installed]
+    return get_installed_distributions(user_only=True)
+
+def search(terms):
+    cmd = SearchCommand()
+    args = terms
+    options, query = cmd.parse_args(args)
+    return cmd.search(query, options)

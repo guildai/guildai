@@ -18,13 +18,12 @@ import logging
 import os
 import sys
 
-from pkg_resources import Distribution, EntryPoint, register_finder
+import pkg_resources
 
-from .entry_point_util import EntryPointResources
+from . import entry_point_util
 from . import modelfile
-from .package import apply_namespace
 
-_models = EntryPointResources("guild.models", "model")
+_models = entry_point_util.EntryPointResources("guild.models", "model")
 
 class Model(object):
 
@@ -32,8 +31,6 @@ class Model(object):
         self.name = ep.name
         self.dist = ep.dist
         self.modeldef = _modeldef_for_dist(ep.name, ep.dist)
-        self.package_name = apply_namespace(self.dist.project_name)
-        self.fullname = "%s/%s" % (self.package_name, self.name)
 
     def __repr__(self):
         return "<guild.model.Model '%s'>" % self.name
@@ -100,7 +97,7 @@ def _modelfile_hash(path):
     else:
         return hashlib.md5(path_bytes).hexdigest()
 
-class ModelfileDistribution(Distribution):
+class ModelfileDistribution(pkg_resources.Distribution):
 
     def __init__(self, modelfile):
         super(ModelfileDistribution, self).__init__(
@@ -163,7 +160,7 @@ def _modelfile_entry_map(modelfile, dist):
     }
 
 def _model_entry_point(model, dist):
-    return EntryPoint(
+    return pkg_resources.EntryPoint(
         name=model.name,
         module_name=__name__,
         attrs=(Model.__name__,),
@@ -217,6 +214,6 @@ def add_model_source(filename):
 
 def _register_model_finder():
     sys.path_hooks.insert(0, ModelImporter)
-    register_finder(ModelImporter, _model_finder)
+    pkg_resources.register_finder(ModelImporter, _model_finder)
 
 _register_model_finder()

@@ -31,6 +31,7 @@ class PackagesGroup(click.Group):
         return super(PackagesGroup, self).get_command(ctx, cmd_name)
 
 @click.group(invoke_without_command=True, cls=PackagesGroup)
+@click.option("-a", "--all", help="Show all packages.", is_flag=True)
 
 @click.pass_context
 

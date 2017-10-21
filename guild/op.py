@@ -36,8 +36,8 @@ class InvalidCmd(ValueError):
 
 class Operation(object):
 
-    def __init__(self, name, cmd_args, cmd_env, attrs=None):
-        self.name = name
+    def __init__(self, opdef, cmd_args, cmd_env, attrs=None):
+        self.opdef = opdef
         self.cmd_args = cmd_args
         self.cmd_env = cmd_env
         self.attrs = attrs or {}
@@ -80,10 +80,10 @@ class Operation(object):
         args = self._proc_args()
         env = self._proc_env()
         cwd = self._run.path
-        logging.debug("Starting op %s as run %s", self.name, self._run.id)
-        logging.debug("Op %s command: %s", self.name, args)
-        logging.debug("Op %s env: %s", self.name, env)
-        logging.debug("Op %s cwd: %s", self.name, cwd)
+        logging.debug("Starting operation run %s", self._run.id)
+        logging.debug("  command: %s", args)
+        logging.debug("  env: %s", env)
+        logging.debug("  cwd: %s", cwd)
         self._proc = subprocess.Popen(args, env=env, cwd=cwd)
         _write_proc_lock(self._proc, self._run)
 
@@ -132,7 +132,7 @@ def from_opdef(opdef, reference):
         "flags": flags,
         "opref": reference,
     }
-    return Operation(opdef.fullname, cmd_args, cmd_env, attrs)
+    return Operation(opdef, cmd_args, cmd_env, attrs)
 
 def _op_cmd_args(opdef, flags):
     python_args = [_python_cmd(opdef), "-um", "guild.op_main"]

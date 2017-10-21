@@ -20,10 +20,10 @@ import os
 import subprocess
 import sys
 
-import guild.namespace
-import guild.util
+from guild import namespace
+from guild import util
 
-DEFAULT_NAMESPACE = "gpkg"
+GPKG_NAMESPACE = "gpkg"
 
 class Package(object):
 
@@ -48,26 +48,26 @@ def split_name(name):
     if m:
         return _ns_for_name(m.group(1)), m.group(2)
     else:
-        return _ns_for_name(DEFAULT_NAMESPACE), name
+        return _ns_for_name(GPKG_NAMESPACE), name
 
 def _ns_for_name(name):
     try:
-        return guild.namespace.for_name(name)
+        return namespace.for_name(name)
     except LookupError:
         raise NamespaceError(name)
 
 def apply_namespace(project_name):
     ns = None
     pkg_name = None
-    for _, maybe_ns in guild.namespace.iter_namespaces():
+    for _, maybe_ns in namespace.iter_namespaces():
         membership, maybe_pkg_name = (
             maybe_ns.is_project_name_member(project_name))
-        if membership == guild.namespace.Membership.yes:
+        if membership == namespace.Membership.yes:
             # Match, stop looking
             ns = maybe_ns
             pkg_name = maybe_pkg_name
             break
-        elif membership == guild.namespace.Membership.maybe:
+        elif membership == namespace.Membership.maybe:
             # Possible match, keep looking
             ns = maybe_ns
             pkg_name = maybe_pkg_name
@@ -85,7 +85,7 @@ def create_package(package_file, dist_dir=None, upload_repo=False,
     import guild.package_main
     cmd = [sys.executable, guild.package_main.__file__]
     env = {}
-    env.update(guild.util.safe_osenv())
+    env.update(util.safe_osenv())
     env.update({
         "PYTHONPATH": os.path.pathsep.join(sys.path),
         "PACKAGE_FILE": package_file,
@@ -101,3 +101,8 @@ def create_package(package_file, dist_dir=None, upload_repo=False,
     exit_code = p.wait()
     if exit_code != 0:
         raise SystemExit(exit_code)
+
+def is_gpkg(project_name):
+    gpkg = namespace.for_name(GPKG_NAMESPACE)
+    return (gpkg.is_project_name_member(project_name)[0]
+            == namespace.Membership.yes)

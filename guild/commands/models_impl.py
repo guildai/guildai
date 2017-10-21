@@ -16,11 +16,15 @@ from __future__ import absolute_import
 from __future__ import division
 
 from guild import cli
-from guild.cmd_impl_support import iter_models
-from guild.util import match_filter
+from guild import cmd_impl_support
+from guild import model_util
+from guild import util
 
 def main(args, ctx):
-    formatted = [_format_model(m) for m in iter_models(args, ctx)]
+    formatted = [
+        _format_model(m)
+        for m in cmd_impl_support.iter_models(args, ctx)
+    ]
     filtered = [m for m in formatted if _filter_model(m, args)]
     cli.table(
         sorted(filtered, key=lambda m: m["fullname"]),
@@ -31,7 +35,7 @@ def main(args, ctx):
 def _format_model(model):
     modeldef = model.modeldef
     return {
-        "fullname": model.fullname,
+        "fullname": model_util.model_fullname(model),
         "name": modeldef.name,
         "source": modeldef.modelfile.src,
         "description": modeldef.description or "",
@@ -43,4 +47,4 @@ def _filter_model(model, args):
         model["fullname"],
         model["description"],
     ]
-    return match_filter(args.filters, filter_vals)
+    return util.match_filter(args.filters, filter_vals)

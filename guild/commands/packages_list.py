@@ -20,6 +20,7 @@ import click
 from guild import click_util
 
 @click.command("list, ls")
+@click.option("-a", "--all", help="Show all packages.", is_flag=True)
 
 @click_util.use_args
 

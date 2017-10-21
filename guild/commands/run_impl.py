@@ -18,6 +18,7 @@ from __future__ import division
 import guild.op
 from guild import cli
 from guild import cmd_impl_support
+from guild import model_util
 
 def main(args, ctx):
     model_ref, op_name = _parse_opspec(args.opspec)
@@ -63,7 +64,7 @@ def _is_default_cwd_model(model, ctx):
 
 def _match_model_ref(model_ref, model):
     if '/' in model_ref:
-        return model_ref == model.fullname
+        return model_ref == model_util.model_fullname(model)
     else:
         return model_ref in model.name
 
@@ -81,7 +82,10 @@ def _no_model_error(model_ref, ctx):
             % (model_ref, ls_cmd))
 
 def _multiple_models_error(model_ref, models, ctx):
-    models_list = "\n".join(["  %s" % m.fullname for m in models])
+    models_list = "\n".join([
+        "  %s" % model_util.model_fullname(m)
+        for m in models
+    ])
     cli.error(
         "multiple models match '%s'\n"
         "Try specifying one of the following models:\n"
@@ -142,7 +146,7 @@ def _maybe_run(op, model, args):
             cli.error(exit_status=result)
 
 def _confirm_run(op, model):
-    op_desc = "%s/%s" % (model.package_name, op.name)
+    op_desc = model_util.op_fullname(model, op)
     flags = _op_flags(op)
     if flags:
         prompt = (

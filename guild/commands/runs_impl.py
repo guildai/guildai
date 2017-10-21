@@ -223,7 +223,7 @@ def _format_attr_val(s):
 
 def _runs_op(args, ctx, force_delete, preview_msg, confirm_prompt,
              no_runs_help, op_callback):
-    runs = runs_for_args(args, force_delete)
+    runs = runs_for_args(args, ctx, force_delete)
     runs_arg = args.runs or ALL_RUNS_ARG
     selected = selected_runs(runs, runs_arg, ctx)
     if not selected:
@@ -348,7 +348,7 @@ def restore_runs(args, ctx):
     _runs_op(args, ctx, True, preview, confirm, no_runs_help, restore)
 
 def run_info(args, ctx):
-    runs = runs_for_args(args)
+    runs = runs_for_args(args, ctx)
     runspec = args.run or "0"
     selected = selected_runs(runs, [runspec], ctx)
     if len(selected) == 0:

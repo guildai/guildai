@@ -103,6 +103,7 @@ py_library(
     deps = [
         "//guild:cli",
         "//guild:cmd_impl_support",
+        "//guild:model_util",
         "//guild:util",
     ],
 )
@@ -214,6 +215,7 @@ py_library(
     deps = [
         "//guild:cli",
         "//guild:cmd_impl_support",
+        "//guild:model_util",
         "//guild:op",
     ],
 )

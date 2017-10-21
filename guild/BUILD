@@ -97,6 +97,13 @@ py_library(
         "//third_party:setuptools",
         ":entry_point_util",
         ":modelfile",
+    ]
+)
+
+py_library(
+    name = "model_util",
+    srcs = ["model_util.py"],
+    deps = [
         ":package",
     ]
 )
@@ -115,7 +122,9 @@ py_library(
     name = "namespace",
     srcs = ["namespace.py"],
     deps = [
+        ":__init__",
         ":entry_point_util",
+        ":model",
     ],
 )
 

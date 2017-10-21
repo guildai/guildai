@@ -130,7 +130,7 @@ Modelfile distribution package paths always start with '.':
     >>> intro_pkg_path[0]
     '.'
 
-## Model names and packages
+## Model names
 
 Models have names, which must correspond to the names in their
 associated model definition.
@@ -138,31 +138,31 @@ associated model definition.
     >>> intro.name == intro.modeldef.name == "mnist-intro"
     True
 
-As models are associated with distributions, they also have a fully
-qualified name that includes their package name:
+    >>> cnn.name == cnn.modeldef.name == "mnist-cnn"
+    True
 
-    >>> intro.fullname
-    './.../samples/projects/mnist/mnist-intro'
+While models themselves are not associated with Guild packages, we can
+use helper functions to apply package formatting to their names.
 
-We can read the package name directly:
+    >>> from guild import model_util
 
-    >>> intro.package_name
-    './.../samples/projects/mnist'
+The function `model_fullname` applies namespaces to the model's
+distribution project name along with the model name to provide a fully
+qualified, user facing name for the model:
 
-Note that the `intro` model package name starts with a '.' and
-contains a path to the modelfile directory. This is the naming
-convention used for modelfile distributions.
+    >>> model_util.model_fullname(intro)
+    './guild/tests/samples/projects/mnist/mnist-intro'
 
-Here are the respective names of the `cnn` model:
+Models from local modelfiles (i.e. not installed from standard Python
+packages) are named with a starting '.' and a path leading to the
+model name. Paths in these names are always relative to the current
+working directory.
 
-    >>> cnn.name
-    'mnist-cnn'
-
-    >>> cnn.fullname
+    >>> model_util.model_fullname(cnn)
     'mnist/mnist-cnn'
 
-    >>> cnn.package_name
-    'mnist'
+Models from installed packages are named with their Guild package
+names (i.e. after namespaces are applied) and do not start with a '.'.
 
 ## Model references
 
