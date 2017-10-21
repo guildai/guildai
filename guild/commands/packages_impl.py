@@ -40,19 +40,23 @@ def _format_pkg(pkg):
 
 def install_packages(args):
     for reqs, index_urls in _installs(args):
-        print(
-            "TODO: install %s (index=%s, upgrade=%s)"
-            % (reqs, index_urls, args.upgrade))
-        #pip_util.install(reqs, index_urls, args.upgrade)
+        pip_util.install(reqs, index_urls, args.upgrade)
 
 def _installs(args):
     index_urls = {}
     for pkg in args.packages:
-        # TODO: fix
-        ns, req_in = cmd_impl_support.split_pkg(pkg)
-        req, urls = ns.pip_install_info(req_in)
-        urls_key = "\n".join(urls)
-        index_urls.setdefault(urls_key, []).append(req)
+        try:
+            ns, req = package.split_name(pkg)
+        except package.NamespaceError as e:
+            terms = " ".join(pkg.split("/")[1:])
+            cli.error(
+                "unsupported namespace %s in '%s'\n"
+                "Try 'guild search %s -a' to find matching packages."
+                % (e.value, pkg, terms))
+        else:
+            pip_req, urls = ns.pip_install_info(req)
+            urls_key = "\n".join(urls)
+            index_urls.setdefault(urls_key, []).append(pip_req)
     return [
         (reqs, urls_key.split("\n"))
         for urls_key, reqs in index_urls.items()

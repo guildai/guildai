@@ -25,9 +25,9 @@ def install(reqs, index_urls=None, upgrade=False):
     if upgrade:
         args.append("--upgrade")
     if index_urls:
-        args.append("--index-url", index_urls[0])
+        args.extend(["--index-url", index_urls[0]])
         for url in index_urls[1:]:
-            args.append("--extra-index-url", url)
+            args.extend(["--extra-index-url", url])
     args.extend(reqs)
     cmd.run(*cmd.parse_args(args))
 
