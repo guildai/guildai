@@ -48,35 +48,29 @@ def iter_models(args, ctx):
     init_model_path(args, ctx)
     models = list(guild.model.iter_models())
     if not models:
-        no_models_error(ctx)
+        no_models_error(args, ctx)
     return models
-
-def _handle_no_models(args):
-    if args.all:
-        guild.cli.out(
-            "There are no models installed on this system.")
-    else:
-        guild.cli.out(
-            "There are no models defined in this directory.\n"
-            "Try a different directory or specify --all to list all "
-            "installed models.")
-    guild.cli.error()
 
 def iter_all_models(ctx):
     _try_add_model_source(ctx)
     return guild.model.iter_models()
 
-def modelfile(ctx):
+def cwd_modelfile(ctx):
     try:
         return guild.modelfile.from_dir(cwd(ctx))
     except (guild.modelfile.NoModels, IOError):
         no_models_error(ctx)
 
-def no_models_error(ctx):
-    guild.cli.error(
-        "%s does not contain any models\n"
-        "Try a different directory or '%s' for more information."
-        % (cwd_desc(ctx), guild.click_util.cmd_help(ctx)))
+def no_models_error(args, ctx):
+    if args.all:
+        guild.cli.error("there are no models installed on this system")
+    else:
+        guild.cli.error(
+            "there are no models defined in %s\n"
+            "Try '%s --all' or '%s' for more information."
+            % (cwd_desc(ctx),
+               guild.click_util.normalize_command_path(ctx.command_path),
+               guild.click_util.cmd_help(ctx)))
 
 def cwd_desc(ctx):
     cwd_ = cwd(ctx)
@@ -90,3 +84,10 @@ def is_cwd_model(model, ctx):
         model.package_name[0] == '.' and
         (os.path.abspath(model.package_name[0])
          == os.path.abspath(cwd(ctx))))
+
+def cwd_has_modelfile(ctx):
+    cwd_ = cwd(ctx)
+    for name in guild.modelfile.NAMES:
+        if os.path.exists(os.path.join(cwd_, name)):
+            return True
+    return False

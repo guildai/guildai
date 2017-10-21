@@ -39,14 +39,23 @@ def _parse_opspec(spec):
         return parts
 
 def _resolve_model(model_ref, ctx):
+    matches = list(_iter_matching_models(model_ref, ctx))
+    if not matches:
+        _no_model_error(model_ref, ctx)
+    elif len(matches) > 1:
+        _multiple_models_error(model_ref, matches, ctx)
+    else:
+        return matches[0]
+
+def _iter_matching_models(model_ref, ctx):
     for model in cmd_impl_support.iter_all_models(ctx):
         if model_ref is None:
             if _is_default_cwd_model(model, ctx):
-                return model
+                yield model
+                break
         else:
             if _match_model_ref(model_ref, model):
-                return model
-    _no_model_error(model_ref, ctx)
+                yield model
 
 def _is_default_cwd_model(model, ctx):
     return (cmd_impl_support.is_cwd_model(model, ctx) and
@@ -56,16 +65,28 @@ def _match_model_ref(model_ref, model):
     if '/' in model_ref:
         return model_ref == model.fullname
     else:
-        return model_ref == model.name
+        return model_ref in model.name
 
 def _no_model_error(model_ref, ctx):
     if model_ref is None:
         cmd_impl_support.no_models_error(ctx)
     else:
+        if cmd_impl_support.cwd_has_modelfile(ctx):
+            ls_cmd = "guild models"
+        else:
+            ls_cmd = "guild models --all"
         cli.error(
-            "cannot find model '%s'\n"
-            "Try 'guild models -a' for a list of available models."
-            % model_ref)
+            "cannot find a model matching '%s'\n"
+            "Try '%s' for a list of available models."
+            % (model_ref, ls_cmd))
+
+def _multiple_models_error(model_ref, models, ctx):
+    models_list = "\n".join(["  %s" % m.fullname for m in models])
+    cli.error(
+        "multiple models match '%s'\n"
+        "Try specifying one of the following models:\n"
+        "%s"
+        % (model_ref, models_list))
 
 def _resolve_opdef(name, model):
     opdef = model.modeldef.get_op(name)

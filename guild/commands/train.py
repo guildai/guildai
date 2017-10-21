@@ -24,14 +24,18 @@ from . import run
 @click.argument("model", required=False)
 @run.run_params
 
+@click.pass_context
 @click_util.use_args
 
-def train(args):
+def train(ctx, args):
     """Train a model.
 
     Equivalent to running 'guild run [MODEL:]train [ARG...]'.
 
-    By default MODEL is the default model for project in LOCATION.
+    By default MODEL is the default model defined in the directory.
+
+    MODEL may be a partial name of a matching model provided it
+    matches only one model.
 
     You may omit MODEL (i.e. for training the default model) while
     providing one or more ARG values provided the first ARG value
@@ -50,4 +54,4 @@ def train(args):
         args.args = (args.model,) + args.args
         args.model = None
     args.opspec = "%s:train" % args.model if args.model else "train"
-    run_impl.main(args)
+    run_impl.main(args, ctx)

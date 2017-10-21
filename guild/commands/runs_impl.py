@@ -55,20 +55,8 @@ def list_runs(args, ctx):
     cli.table(filtered, cols=cols, detail=detail)
 
 def _check_no_cwd_models_to_list(args, ctx):
-    if not args.all and not _cwd_has_modelfile(ctx):
-        cli.error(
-            "%s does not contain any models\n"
-            "Try a different directory or '%s --all' "
-            "to show all runs."
-            % (cmd_impl_support.cwd_desc(ctx),
-               click_util.normalize_command_path(ctx.command_path)))
-
-def _cwd_has_modelfile(ctx):
-    cwd = cmd_impl_support.cwd(ctx)
-    for name in modelfile.NAMES:
-        if os.path.exists(os.path.join(cwd, name)):
-            return True
-    return False
+    if not args.all and not cmd_impl_support.cwd_has_modelfile(ctx):
+        cmd_impl_support.no_models_error(args, ctx)
 
 def runs_for_args(args, force_deleted=False):
     return var.runs(
@@ -217,12 +205,13 @@ def _is_cwd_run(run, abs_cwd):
                 run["id"], model_path)
     return False
 
-def runs_op(args, ctx, force_delete, preview_msg, confirm_prompt, op_callback):
+def _runs_op(args, ctx, force_delete, preview_msg, confirm_prompt,
+             no_runs_help, op_callback):
     runs = runs_for_args(args, force_delete)
     runs_arg = args.runs or ALL_RUNS_ARG
     selected = selected_runs(runs, runs_arg, ctx)
     if not selected:
-        _no_selected_runs_error()
+        _no_selected_runs_error(no_runs_help)
     preview = [_format_run(run, ctx) for run in selected]
     if not args.yes:
         cli.out(preview_msg)
@@ -300,10 +289,9 @@ def _in_range(slice_start, slice_end, l):
         (slice_end is None or slice_end <= len(l))
     )
 
-def _no_selected_runs_error():
-    cli.error(
-        "no matching runs\n"
-        "Try 'guild runs list' to list available runs.")
+def _no_selected_runs_error(help_msg=None):
+    help_msg = help_msg or "Try 'guild runs list' to list available runs."
+    cli.error("no matching runs\n%s" % help_msg)
 
 def delete_runs(args, ctx):
     if args.permanent:
@@ -314,46 +302,34 @@ def delete_runs(args, ctx):
     else:
         preview = "You are about to delete the following runs:"
         confirm = "Delete these runs?"
+    no_runs_help = "Nothing to delete."
     def delete(selected):
         var.delete_runs(selected, args.permanent)
         if args.permanent:
             cli.out("Permanently deleted %i run(s)" % len(selected))
         else:
             cli.out("Deleted %i run(s)" % len(selected))
-    runs_op(args, ctx, False, preview, confirm, delete)
+    _runs_op(args, ctx, False, preview, confirm, no_runs_help, delete)
 
 def purge_runs(args, ctx):
     preview = (
         "WARNING: You are about to permanently delete "
         "the following runs:")
     confirm = "Permanently delete these runs?"
+    no_runs_help = "Nothing to purge."
     def purge(selected):
         var.purge_runs(selected)
         cli.out("Permanently deleted %i run(s)" % len(selected))
-    runs_op(args, ctx, True, preview, confirm, purge)
+    _runs_op(args, ctx, True, preview, confirm, no_runs_help, purge)
 
 def restore_runs(args, ctx):
     preview = "You are about to permanently restore the following runs:"
     confirm = "Restore these runs?"
+    no_runs_help = "Nothing to restore."
     def restore(selected):
         var.restore_runs(selected)
         cli.out("Restored %i run(s)" % len(selected))
-    runs_op(args, ctx, True, preview, confirm, restore)
-
-def restore_runs_delme(args, ctx):
-    runs = runs_for_args(args, force_deleted=True)
-    runs_arg = args.runs or ALL_RUNS_ARG
-    selected = selected_runs(runs, runs_arg, ctx)
-    if not selected:
-        _no_selected_runs_error()
-    preview = [_format_run(run, ctx) for run in selected]
-    if not args.yes:
-        cli.out("You are about to restore the following runs:")
-        cols = ["short_index", "operation", "started", "status"]
-        cli.table(preview, cols=cols, indent=2)
-    if args.yes or cli.confirm("Restore these runs?"):
-        var.restore_runs(selected)
-        cli.out("Restored %i run(s)" % len(selected))
+    _runs_op(args, ctx, True, preview, confirm, no_runs_help, restore)
 
 def run_info(args, ctx):
     runs = runs_for_args(args)

@@ -18,7 +18,7 @@ from guild import cmd_impl_support
 import guild.help
 
 def main(args, ctx):
-    models = cmd_impl_support.modelfile(ctx)
+    models = cmd_impl_support.cwd_modelfile(ctx)
     refs = {
         ("Modelfile", models.src)
     }
