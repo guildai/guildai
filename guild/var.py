@@ -27,6 +27,9 @@ def path(subpath):
     return os.path.join(_root(), subpath)
 
 def _root():
+    root = os.getenv("GUILD_HOME")
+    if root:
+        return root
     return os.path.expanduser(os.path.join("~", ".guild"))
 
 def runs_dir(deleted=False):
