@@ -31,7 +31,7 @@ clean:
 	bazel clean
 
 user-acceptance-test:
-	guild/tests/user_acceptance.py
+	$(GUILD) check --uat
 
 timing-test:
 	guild/tests/timing-test
