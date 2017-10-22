@@ -81,9 +81,9 @@ class Operation(object):
         env = self._proc_env()
         cwd = self._run.path
         logging.debug("Starting operation run %s", self._run.id)
-        logging.debug("  command: %s", args)
-        logging.debug("  env: %s", env)
-        logging.debug("  cwd: %s", cwd)
+        logging.debug("Operation command: %s", args)
+        logging.debug("Operation env: %s", env)
+        logging.debug("Operation cwd: %s", cwd)
         self._proc = subprocess.Popen(args, env=env, cwd=cwd)
         _write_proc_lock(self._proc, self._run)
 
