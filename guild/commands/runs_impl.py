@@ -95,7 +95,7 @@ def _apply_model_filter(args, ctx, filters):
 
 def _notify_runs_limited(ctx):
     cli.note(
-        "Limiting runs to %s (use --all to include all)."
+        "Limiting runs to %s (use --all to include all)"
         % cmd_impl_support.cwd_desc(ctx))
 
 def _cwd_run_filter(abs_cwd):
