@@ -3,6 +3,7 @@ from __future__ import print_function
 import doctest
 import inspect
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -10,47 +11,25 @@ import tempfile
 
 import guild.test
 
+INDEX = "guild/tests/uat/README.md"
 WORKSPACE = os.path.join(tempfile.gettempdir(), "guild-uat")
 GUILD_PATH = os.path.abspath("./bazel-bin/guild")
 EXAMPLES_REPO = os.path.abspath("../guild-examples")
 
 _cwd = None
 
-TESTS = [
-    "fresh-install",
-    "install-required-pip-packages",
-    "check-without-tensorflow",
-    "install-tensorflow",
-    "check-with-tensorflow",
-    "guild-tests",
-    "initial-packages",
-    "initial-models",
-    "initial-ops",
-    "initial-runs",
-    "train-missing-model",
-    "run-with-missing-default-model",
-    "install-mnist-packages",
-    "packages-after-mnist-install",
-    "models-after-mnist-install",
-    "ops-after-mnist-install",
-    "train-multiple-matches",
-    "train-mnist-softmax",
-    "runs-after-mnist-softmax-train",
-    "install-examples",
-    "mnist-example-models",
-    "mnist-example-ops",
-    "mnist-example-initial-runs",
-    "train-mnist-intro-example",
-    "mnist-example-runs-after-intro-train",
-]
-
 def run():
+    tests = _tests_from_index()
     if os.path.exists(WORKSPACE):
         print("Found workspace at %s, resuming tests" % WORKSPACE)
     else:
         _init_workspace()
-    _run_tests()
+    _run_tests(tests)
     _maybe_delete_workspace()
+
+def _tests_from_index():
+    readme = open(INDEX).read()
+    return re.findall("\((.+?)\.md\)", readme)
 
 def _init_workspace():
     print("Initializing workspace %s" % WORKSPACE)
@@ -58,9 +37,9 @@ def _init_workspace():
     os.mkdir(os.path.join(WORKSPACE, "passed-tests"))
     os.mkdir(os.path.join(WORKSPACE, ".guild"))
 
-def _run_tests():
+def _run_tests(tests):
     globs = _test_globals()
-    for name in TESTS:
+    for name in tests:
         print("Running %s:" % name)
         if _test_passed(name):
             print("  skipped (already passed)")
