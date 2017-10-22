@@ -84,7 +84,7 @@ def _apply_status_filter(args, filters):
             var.run_filter("attr", "extended_status", status))
 
 def _apply_model_filter(args, ctx, filters):
-    cwd_modelfile = cmd_impl_support.cwd_modelfile(ctx)
+    cwd_modelfile = cmd_impl_support.cwd_modelfile_path(ctx)
     if cwd_modelfile:
         if not args.all:
             _notify_runs_limited(ctx)

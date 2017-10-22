@@ -65,17 +65,17 @@ class RestFormatter(click.HelpFormatter):
     def dedent(self):
         pass
 
-def models_console_help(models, refs):
+def modelfile_console_help(modelfile, refs):
     out = ConsoleFormatter()
     out.start_section("OVERVIEW")
-    _write_console_help_overview(models, out)
+    _write_console_help_overview(modelfile, out)
     out.start_section("MODELS")
-    _write_models(models, out)
+    _write_models(modelfile, out)
     out.start_section("REFERENCES")
     _write_references(refs, out)
     return "".join(out.buffer)
 
-def _write_console_help_overview(models, out):
+def _write_console_help_overview(modelfile, out):
     out.write_text(textwrap.dedent(
         """
 
@@ -91,24 +91,24 @@ def _write_console_help_overview(models, out):
         For more help, try 'guild run --help' or 'guild --help'.
 
         """
-        % _format_models_src(models.src)))
+        % _format_modelfile_src(modelfile.src)))
 
-def _format_models_src(path):
+def _format_modelfile_src(path):
     relpath = os.path.relpath(path)
     if relpath[0] != '.':
         relpath = os.path.join(".", relpath)
     return relpath
 
-def package_description(models, refs):
+def package_description(modelfile, refs):
     out = RestFormatter()
     out.start_section("Models")
-    _write_models(models, out)
+    _write_models(modelfile, out)
     out.start_section("References")
     _write_references(refs or [], out)
     return "".join(out.buffer)
 
-def _write_models(models, out):
-    for i, model in enumerate(models):
+def _write_models(modelfile, out):
+    for i, model in enumerate(modelfile):
         if i > 0:
             out.write_paragraph()
         _write_model(model, out)

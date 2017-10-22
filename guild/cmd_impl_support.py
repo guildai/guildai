@@ -41,14 +41,27 @@ def cwd_desc(ctx_or_dir):
     else:
         return "'%s'" % cwd_
 
-def cwd_modelfile(ctx):
-    """Returns a modelfile for a context cwd or None if one doesn't exit."""
+def cwd_modelfile_path(ctx):
+    """Returns the path of the current modelfile for a context cwd.
+
+    Returns None if a modefile doesn't exist in the cwd.
+    """
     cwd_ = cwd(ctx)
     for name in modelfile.NAMES:
         path = os.path.join(cwd_, name)
         if os.path.exists(path):
             return path
     return None
+
+def cwd_modelfile(ctx):
+    """Returns the modelfile of the context cwd.
+
+    Returns None if a modelfile doesn't exist in the cwd.
+    """
+    try:
+        return modelfile.from_dir(cwd(ctx))
+    except (modelfile.NoModels, IOError):
+        return None
 
 def cwd_modeldef(ctx):
     cwd_ = cwd(ctx)
@@ -69,7 +82,7 @@ def init_model_path(ctx, force_all=False, notify_force_all_option=None):
     in which case all models including those in the cwd will be
     available.
     """
-    model_source = cwd_modelfile(ctx)
+    model_source = cwd_modelfile_path(ctx)
     if model_source:
         if force_all:
             guild.model.add_model_source(model_source)

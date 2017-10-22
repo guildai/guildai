@@ -14,18 +14,23 @@
 
 import click
 
-from guild import cmd_impl_support
 import guild.help
 
+from guild import cli
+from guild import cmd_impl_support
+
 def main(args, ctx):
-    models = cmd_impl_support.cwd_modelfile(ctx)
+    modelfile = cmd_impl_support.cwd_modelfile(ctx)
+    if modelfile is None:
+        cli.out("%s does not contain a modeldef, no help available")
+        return
     refs = {
-        ("Modelfile", models.src)
+        ("Modelfile", modelfile.src)
     }
     if args.package_description:
-        help = guild.help.package_description(models, refs)
+        help = guild.help.package_description(modelfile, refs)
     else:
-        help = guild.help.models_console_help(models, refs)
+        help = guild.help.modelfile_console_help(modelfile, refs)
     if args.no_pager:
         click.echo(help)
     else:
