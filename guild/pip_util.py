@@ -17,11 +17,15 @@ from __future__ import division
 
 from pip.commands.install import InstallCommand
 from pip.commands.search import SearchCommand
+from pip.locations import virtualenv_no_global
 from pip.utils import get_installed_distributions
 
 def install(reqs, index_urls=None, upgrade=False):
     cmd = InstallCommand()
-    args = ["--user"]
+    if virtualenv_no_global():
+        args = []
+    else:
+        args = ["--user"]
     if upgrade:
         args.append("--upgrade")
     if index_urls:
@@ -29,10 +33,14 @@ def install(reqs, index_urls=None, upgrade=False):
         for url in index_urls[1:]:
             args.extend(["--extra-index-url", url])
     args.extend(reqs)
-    cmd.run(*cmd.parse_args(args))
+    options, cmd_args = cmd.parse_args(args)
+    cmd.run(options, cmd_args)
 
 def get_installed():
-    return get_installed_distributions(user_only=True)
+    user_only = not virtualenv_no_global()
+    return get_installed_distributions(
+        local_only=False,
+        user_only=user_only)
 
 def search(terms):
     cmd = SearchCommand()
