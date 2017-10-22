@@ -151,7 +151,7 @@ distribution project name along with the model name to provide a fully
 qualified, user facing name for the model:
 
     >>> model_util.model_fullname(intro)
-    './guild/tests/samples/projects/mnist/mnist-intro'
+    '.../samples/projects/mnist/mnist-intro'
 
 Models from local modelfiles (i.e. not installed from standard Python
 packages) are named with a starting '.' and a path leading to the
