@@ -23,6 +23,13 @@ from guild import log
 
 def main(args, ctx):
     log.init_logging(args.log_level or logging.INFO)
-    if args.chdir and not os.path.exists(args.chdir):
-        cli.error("%s does not exist" % args.chdir)
-    ctx.obj["cwd"] = args.chdir or "."
+    ctx.obj["cwd"] = _validated_cwd(args)
+
+def _validated_cwd(args):
+    if not args.chdir:
+        return "."
+    if not os.path.exists(args.chdir):
+        cli.error("directory '%s' does not exist" % args.chdir)
+    if not os.path.isdir(args.chdir):
+        cli.error("'%s' is not a directory" % args.chdir)
+    return args.chdir
