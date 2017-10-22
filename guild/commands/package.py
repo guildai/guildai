@@ -21,10 +21,6 @@ from guild import click_util
 
 @click.command()
 @click.option(
-    "-p", "--project", "project_location", metavar="LOCATION",
-    help=("Project location (file system directory) of the "
-          "project to package. Defaults to current directory."))
-@click.option(
     "-d", "--dist-dir", metavar="DIR",
     help="Directory to create the package distribution in.")
 @click.option(

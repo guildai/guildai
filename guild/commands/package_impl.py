@@ -17,18 +17,19 @@ from __future__ import division
 
 import os
 
-import guild.cmd_impl_support
-import guild.package
+from guild import cli
+from guild import cmd_impl_support
+from guild import package
 
 def create_package(args, ctx):
-    project_dir = args.project_location or "."
-    package_file = os.path.join(project_dir, "PACKAGE")
+    cwd = cmd_impl_support.cwd(ctx)
+    package_file = os.path.join(cwd, "PACKAGE")
     if not os.path.exists(package_file):
-        guild.cli.error(
-            "a PACKAGE file does not exist in %s\n%s"
-            % (guild.cmd_impl_support.project_location_desc(project_dir),
-               guild.cmd_impl_support.try_project_location_help(project_dir, ctx)))
-    guild.package.create_package(
+        cli.error(
+            "%s does not contain a PACKAGE file"
+            "Try specifying a different directory."
+            % cmd_impl_support.cwd_desc(cwd))
+    package.create_package(
         package_file,
         dist_dir=args.dist_dir,
         upload_repo=args.upload,
