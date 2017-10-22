@@ -1,7 +1,5 @@
 from __future__ import print_function
 
-import doctest
-import inspect
 import os
 import re
 import shutil
@@ -29,7 +27,7 @@ def run():
 
 def _tests_from_index():
     readme = open(INDEX).read()
-    return re.findall("\((.+?)\.md\)", readme)
+    return re.findall(r"\((.+?)\.md\)", readme)
 
 def _init_workspace():
     print("Initializing workspace %s" % WORKSPACE)

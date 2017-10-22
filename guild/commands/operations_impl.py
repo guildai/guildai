@@ -24,7 +24,7 @@ from guild import util
 
 def main(args, ctx):
     cmd_impl_support.init_model_path(ctx, args.all, "--all")
-    formatted = [_format_op(op, model) for op, model in _iter_ops(args, ctx)]
+    formatted = [_format_op(op, model) for op, model in _iter_ops()]
     filtered = [op for op in formatted if _filter_op(op, args)]
     cli.table(
         sorted(filtered, key=lambda m: m["fullname"]),
@@ -32,7 +32,7 @@ def main(args, ctx):
         detail=(["name", "model", "cmd"] if args.verbose else [])
     )
 
-def _iter_ops(args, ctx):
+def _iter_ops():
     for model in guild.model.iter_models():
         for op in model.modeldef.operations:
             yield op, model

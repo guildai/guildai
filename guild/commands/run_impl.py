@@ -46,7 +46,7 @@ def _resolve_model(model_ref, ctx):
     if not matches:
         _no_model_error(model_ref, ctx)
     elif len(matches) > 1:
-        _multiple_models_error(model_ref, matches, ctx)
+        _multiple_models_error(model_ref, matches)
     else:
         return matches[0]
 
@@ -88,7 +88,7 @@ def _no_model_error(model_ref, ctx):
             "Try 'guild models' for a list of available models."
             % model_ref)
 
-def _multiple_models_error(model_ref, models, ctx):
+def _multiple_models_error(model_ref, models):
     models_list = "\n".join([
         "  %s" % model_util.model_fullname(m)
         for m in models

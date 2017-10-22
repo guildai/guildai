@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 from guild import cli
-from guild import cmd_impl_support
 from guild import pip_util
 from guild import namespace
 from guild import package

@@ -33,7 +33,7 @@ class RunsMonitor(threading.Thread):
 
     STOP_TIMEOUT = 5
 
-    def __init__(self, logdir, args, cmd_ctx):
+    def __init__(self, logdir, args, ctx):
         """Create a RunsMonitor.
 
         Note that run links are created initially by this
@@ -44,7 +44,7 @@ class RunsMonitor(threading.Thread):
         super(RunsMonitor, self).__init__()
         self.logdir = logdir
         self.args = args
-        self.cmd_ctx = cmd_ctx
+        self.ctx = ctx
         self.run_once(exit_on_error=True)
         self._stop = threading.Event()
         self._stopped = threading.Event()
@@ -65,7 +65,7 @@ class RunsMonitor(threading.Thread):
     def run_once(self, exit_on_error=False):
         logging.debug("Refreshing runs")
         try:
-            runs = runs_impl.runs_for_args(self.args)
+            runs = runs_impl.runs_for_args(self.args, self.ctx)
         except SystemExit as e:
             if exit_on_error:
                 raise

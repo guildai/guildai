@@ -23,7 +23,6 @@ import time
 from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
-from guild import modelfile
 from guild import namespace
 from guild import var
 
