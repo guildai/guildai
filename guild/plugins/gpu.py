@@ -51,6 +51,18 @@ class GPUPlugin(SummaryPlugin):
     def read_summary_values(self):
         return _gpu_stats(self._stats_cmd) if self._stats_cmd else {}
 
+def _stats_cmd():
+    try:
+        out = subprocess.check_output(["which", "nvidia-smi"])
+    except subprocess.CalledProcessError:
+        return None
+    else:
+        return [
+            out.strip(),
+             "--format=csv,noheader",
+             "--query-gpu=%s" % ",".join(STATS),
+        ]
+
 def _gpu_stats(stats_cmd):
     stats = {}
     for raw in _read_raw_gpu_stats(stats_cmd):
@@ -66,18 +78,6 @@ def _read_raw_gpu_stats(stats_cmd):
     else:
         logging.error("reading GPU stats (smi output: '%s')", raw_lines)
         return []
-
-def _stats_cmd():
-    try:
-        out = subprocess.check_output(["which", "nvidia-smi"])
-    except subprocess.CalledProcessError:
-        return None
-    else:
-        return [
-            out.strip(),
-             "--format=csv,noheader",
-             "--query-gpu=%s" % ",".join(STATS),
-        ]
 
 def _read_csv_lines(raw_in):
     csv_in = raw_in if sys.version_info[0] == 2 else io.TextIOWrapper(raw_in)
