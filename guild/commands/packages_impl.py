@@ -34,6 +34,8 @@ def _filter_packages(pkgs, args):
 
 def _filter_pkg(pkg, args):
     return (pkg.project_name not in INTERNAL_PACKAGES
+            and (not args.terms or
+                 any((term in pkg.project_name for term in args.terms)))
             and (args.all or package.is_gpkg(pkg.project_name)))
 
 def _format_pkg(pkg):
