@@ -21,6 +21,8 @@ from guild import pip_util
 from guild import namespace
 from guild import package
 
+INTERNAL_PACKAGES = ["guildai"]
+
 def list_packages(args):
     installed = pip_util.get_installed()
     filtered = _filter_packages(installed, args)
@@ -28,9 +30,11 @@ def list_packages(args):
     cli.table(pkgs, cols=["name", "version"], sort=["name"])
 
 def _filter_packages(pkgs, args):
-    if args.all:
-        return pkgs
-    return [pkg for pkg in pkgs if package.is_gpkg(pkg.project_name)]
+    return [pkg for pkg in pkgs if _filter_pkg(pkg, args)]
+
+def _filter_pkg(pkg, args):
+    return (pkg.project_name not in INTERNAL_PACKAGES
+            and (args.all or package.is_gpkg(pkg.project_name)))
 
 def _format_pkg(pkg):
     return {
