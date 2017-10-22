@@ -27,7 +27,7 @@ def cwd(ctx):
     """Returns the cwd for a command context."""
     return ctx.obj["cwd"]
 
-def cwd_desc(ctx):
+def cwd_desc(ctx_or_dir):
     """Returns a description for the context cwd.
 
     If the context is the same as the system cwd, returns "this
@@ -35,7 +35,7 @@ def cwd_desc(ctx):
 
     This is used in messages to the user where the cwd is referenced.
     """
-    cwd_ = cwd(ctx)
+    cwd_ = ctx_or_dir if isinstance(ctx_or_dir, str) else cwd(ctx_or_dir)
     if os.path.abspath(cwd_) == os.path.abspath(os.getcwd()):
         return "the current directory"
     else:
