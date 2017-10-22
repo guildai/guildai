@@ -1,10 +1,9 @@
 # Train `mnist-intro` example
 
-    >>> cd("guild-examples/mnist2")
+We can train the MNIST example model `mnist-intro` (using shortcut
+`intro`) provided we reference the MNIST modelfile directory.
 
-We can train the `mnist-intro` example using the shortcut `intro`:
-
-    >>> run("guild train -y intro epochs=1")
+    >>> run("guild -C guild-examples/mnist2 train -y intro epochs=1")
     Extracting /tmp/MNIST_data/train-images-idx3-ubyte.gz
     ...
     Step 0: training=...

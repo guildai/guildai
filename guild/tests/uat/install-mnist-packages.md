@@ -1,7 +1,8 @@
 # Install MNIST packages
 
-In this test we'll install two `mnist` packages - one under the
-default namespace (`gpkg`) and another under the `pypi` namespace.
+In this test we'll install two `mnist` packages - one under the `gpkg`
+namespace (Guild's default namespace) and another under the `pypi`
+namespace.
 
 The package `mnist` contains MNIST models:
 

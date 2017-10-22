@@ -45,7 +45,7 @@ def _run_tests(tests):
             print("  skipped (already passed)")
             continue
         filename = os.path.join("tests", "uat", name + ".md")
-        _cd(WORKSPACE)
+        _reset_cwd()
         failed, attempted = guild.test.run_test_file(filename, globs)
         if not failed:
             print("  %i test(s) passed" % attempted)
@@ -80,12 +80,13 @@ def _test_passed_marker(name):
 def _mark_test_passed(name):
     open(_test_passed_marker(name), "w").close()
 
+def _reset_cwd():
+    globals()["_cwd"] = None
+
 def _cd(path):
     globals()["_cwd"] = path
 
 def _run(cmd, quiet=False):
-    if _cwd:
-        cmd = "cd %s && %s" % (os.path.join(WORKSPACE, _cwd), cmd)
     cmd = "set -eu && %s" % cmd
     cmd_env = {}
     cmd_env.update(_global_vars())
@@ -95,11 +96,13 @@ def _run(cmd, quiet=False):
         GUILD_PATH,
         "/usr/bin",
     ])
+    cmd_cwd = WORKSPACE if not _cwd else os.path.join(WORKSPACE, _cwd)
     try:
         out = subprocess.check_output(
             [cmd],
             shell=True,
             env=cmd_env,
+            cwd=cmd_cwd,
             stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         out = e.output

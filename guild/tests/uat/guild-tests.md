@@ -1,5 +1,9 @@
 # Guild tests
 
+Guild tests can be run with the `check` command using the `-T` option
+(`-n` here skips the general check info as we're just interested in
+tests).
+
     >>> run("guild check -nT")
     internal tests:
       config:                  ok

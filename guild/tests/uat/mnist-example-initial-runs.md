@@ -1,14 +1,20 @@
 # MNIST initial runs
 
-    >>> cd("guild-examples/mnist2")
-
 When we list runs for a directory containing a modelfile, the runs are
-limited to those that were generated from that modelfile. In this case
-we haven't trained anything for this modelfile so our list is empty.
+limited to those that were generated from that modelfile.
 
-Note we get a message from Guild letting us know that the list is
-limited.
+Let's show runs for the MNIST example:
 
+    >>> run("guild -C guild-examples/mnist2 runs")
+    Limiting runs to 'guild-examples/mnist2' (use --all to include all)
+    <exit 0>
+
+We can alternatively change to that directory and see the same results:
+
+    >>> cd("guild-examples/mnist2")
     >>> run("guild runs")
     Limiting runs to the current directory (use --all to include all)
     <exit 0>
+
+Note that Guild prints a message letting the user know the results are
+limited.

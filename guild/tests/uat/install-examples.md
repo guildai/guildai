@@ -1,3 +1,5 @@
 # Install examples
 
-    >>> quiet("git -C $WORKSPACE clone %s" % abspath(EXAMPLES_REPO))
+We'll use `git` to clone our examples repository.
+
+    >>> quiet("git -C $WORKSPACE clone %s" % EXAMPLES_REPO)

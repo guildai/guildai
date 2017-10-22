@@ -30,3 +30,9 @@ will modify the acceptance test.
 1. [mnist-example-initial-runs](mnist-example-initial-runs.md)
 1. [train-mnist-intro-example](train-mnist-intro-example.md)
 1. [mnist-example-runs-after-intro-train](mnist-example-runs-after-intro-train.md)
+
+## Error cases
+
+*Guild behavior with various error cases*
+
+- [invalid-chdir](invalid-chdir.md)

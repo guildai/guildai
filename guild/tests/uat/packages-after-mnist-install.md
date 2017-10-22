@@ -1,12 +1,15 @@
 # Packages after `mnist` install
 
-Here are the packages installed after we've installed `mnist`:
+The `packages` command shows Guild packages (i.e. packages in the
+`gpkg` namespace) by default. Here the list of currently installed
+Guild packages:
 
     >>> run("guild packages")
     mnist  ...
     <exit 0>
 
-Here are the packages that match `mnist` when we list all packages:
+Here's the list of all packages (using the `-a` option with the
+`packages` command):
 
     >>> run("guild packages ls -a mnist")
     mnist       ...
