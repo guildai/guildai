@@ -12,7 +12,7 @@ import tempfile
 
 from os.path import abspath, dirname, exists
 
-WORKSPACE = None
+WORKSPACE = os.getenv("WORKSPACE")
 
 GUILD = abspath("bazel-bin/guild/guild")
 
@@ -24,19 +24,215 @@ else:
 _cwd = None
 
 def main():
-    init_workspace()
-    clone_examples()
+    if WORKSPACE is None:
+        init_workspace()
+    fresh_install_test()
+    install_required_pip_packages()
+    check_guild_without_tensorflow_test()
+    install_tensorflow()
+    check_guild_with_tensorflow_test()
+    run_guild_tests_test()
+    initial_packages_test()
+    install_mnist_packages_test()
+    install_examples()
     no_cwd_modelfile_tests()
     mnist_tests()
-    #keras_zero_config_tests()
+    keras_zero_config_tests()
     delete_workspace()
 
+def test_env():
+    env_root = "/tmp/guild-uat-hhwPZw"
+    path = [
+        os.path.join(env_root, "bin"),
+        "./bazel-bin/guild",
+    ]
+    cmd_env = {
+        "PATH": os.path.pathsep.join(path)
+    }
+    subprocess.call("pip list --user --format=legacy", shell=True, env=cmd_env)
+    subprocess.call("guild packages", shell=True, env=cmd_env)
+
 def init_workspace():
-    path = tempfile.mkdtemp(prefix="guild-test-")
+    print("Initializing workspace")
+    path = tempfile.mkdtemp(prefix="guild-uat-")
+    subprocess.call(["virtualenv", path])
     print("Created workspace %s" % path)
     globals()["WORKSPACE"] = path
 
-def clone_examples():
+def fresh_install_test():
+    """Guild behavior on a fresh install.
+
+    Guild require a number of Python packages. If any of these aren't
+    installed it will exit with a user message.
+
+    >>> run("$GUILD check")
+    guild: missing required package 'twine'
+    Try 'pip install twine' to install the package.
+    <exit 1>
+
+    Guild will continue to display these messages until all of its
+    requires packages are installed.
+
+    """
+    rundoc()
+
+def install_required_pip_packages():
+    print("Installing required pip packages")
+    run("pip install twine")
+    run("pip install Werkzeug")
+    run("pip install PyYAML")
+
+def check_guild_without_tensorflow_test():
+    """Runs guild check assuming that tensorflow is not installed.
+
+    Guild check should display information but note that tensorflow is
+    not installed and display an error message.
+
+    >>> run("$GUILD check")
+    guild_version:             ...
+    guild_home:                ...
+    installed_plugins:         gpu, keras, disk, cpu, memory
+    python_version:            ...
+    tensorflow_version:        NOT INSTALLED (No module named tensorflow)
+    nvidia_smi_available:      ...
+    pip_version:               ...
+    psutil_version:            ...
+    setuptools_version:        ...
+    twine_version:             ...
+    yaml_version:              ...
+    werkzeug_version:          ...
+    guild: there are problems with your Guild setup
+    Refer to the issues above for more information.
+    <exit 1>
+    """
+    rundoc()
+
+def install_tensorflow():
+    print("Installing tensorflow")
+    run("pip install tensorflow")
+
+def check_guild_with_tensorflow_test():
+    """Runs guild check assuming that tensorflow is installed.
+
+    >>> run("$GUILD check")
+    guild_version:             ...
+    guild_home:                ...
+    installed_plugins:         gpu, keras, disk, cpu, memory
+    python_version:            ...
+    tensorflow_version:        ...
+    tensorflow_cuda_support:   no
+    tensorflow_gpu_available:  no
+    libcuda_version:           not loaded
+    libcudnn_version:          not loaded
+    tensorboard_version:       ...
+    nvidia_smi_available:      ...
+    pip_version:               ...
+    psutil_version:            ...
+    setuptools_version:        ...
+    twine_version:             ...
+    yaml_version:              ...
+    werkzeug_version:          ...
+    <exit 0>
+
+    """
+    rundoc()
+
+def run_guild_tests_test():
+    """Runs guild tests.
+
+    >>> run("$GUILD check -nT")
+    internal tests:
+      config:                  ok
+      cpu-plugin:              ok
+      disk-plugin:             ok
+      imports:                 ok
+      logging:                 ok
+      main-bootstrap:          ok
+      memory-plugin:           ok
+      modelfiles:              ok
+      models:                  ok
+      namespaces:              ok
+      ops:                     ok
+      packages:                ok
+      plugin-python-utils:     ok
+      plugins:                 ok
+      resources:               ok
+      runs:                    ok
+      tables:                  ok
+      utils:                   ok
+      var:                     ok
+    <exit 0>
+
+    """
+    rundoc()
+
+def initial_packages_test():
+    """Lists packages within a fresh environment.
+
+    By default the packages command lists Guild packages (i.e. within
+    the gpkg namespace). We don't have any installed yet so this is an
+    empty list.
+
+    >>> run("$GUILD packages")
+    <BLANKLINE>
+    <exit 0>
+
+    If we use the -a option, we get all packages, which at this point
+    consists of all of the pip packages that have been installed in
+    the env.
+
+    >>> run("$GUILD packages -a")
+    pypi/Markdown                ...
+    pypi/PyYAML                  ...
+    pypi/Werkzeug                ...
+    pypi/backports.weakref       ...
+    pypi/bleach                  ...
+    pypi/certifi                 ...
+    pypi/chardet                 ...
+    pypi/funcsigs                ...
+    pypi/html5lib                ...
+    pypi/idna                    ...
+    pypi/mock                    ...
+    pypi/numpy                   ...
+    pypi/pbr                     ...
+    pypi/pip                     ...
+    pypi/pkginfo                 ...
+    pypi/protobuf                ...
+    pypi/requests                ...
+    pypi/requests-toolbelt       ...
+    pypi/setuptools              ...
+    pypi/six                     ...
+    pypi/tensorflow              ...
+    pypi/tensorflow-tensorboard  ...
+    pypi/tqdm                    ...
+    pypi/twine                   ...
+    pypi/urllib3                 ...
+    pypi/wheel                   ...
+    <exit 0>
+
+    """
+    rundoc()
+
+def install_mnist_packages_test():
+    """Installs Guild and PyPI mnist packages.
+
+    >>> run("$GUILD install mnist")
+    Collecting gpkg.mnist
+    ...
+    Successfully installed gpkg.mnist-...
+    <exit 0>
+
+    >>> run("$GUILD install pypi/mnist")
+    Collecting mnist
+    ...
+    Successfully installed mnist-...
+    <exit 0>
+
+    """
+    rundoc()
+
+def install_examples():
+    """Installs the examples repo into the workspace."""
     run("git -C $WORKSPACE clone $EXAMPLES_REPO")
 
 def no_cwd_modelfile_tests():
@@ -47,6 +243,7 @@ def no_cwd_modelfile_tests():
     >>> run("$GUILD run train")
     guild: there are no models in the current directory
     Try a different directory or 'guild operations' for available operations.
+    <exit 1>
 
     """
     cd("$WORKSPACE")
@@ -62,19 +259,21 @@ def mnist_tests():
 def mnist_invalid_commands_tests():
     """Attempts various invalid Guild commands.
 
-    Let's try to train a model that doesn't exist:
+    Train a model that doesn't exist:
 
     >>> run("$GUILD train foobar")
     guild: cannot find a model matching 'foobar'
     Try 'guild models' for a list of available models.
+    <exit 1>
 
-    Let's try to train a model that has multiple matches:
+    Train with multiple model candidates:
 
     >>> run("$GUILD train mnist")
     guild: there are multiple models that match 'mnist'
     Try specifying one of the following:
       ./mnist-expert
       ./mnist-intro
+    <exit 1>
 
     """
     rundoc()
@@ -89,12 +288,14 @@ def mnist_empty_project_tests():
     Limiting models to the current directory (use --all to include all).
     ./mnist-expert  MNIST model from TensorFlow expert tutorial
     ./mnist-intro   MNIST model from TensorFlow intro tutorial
+    <exit 0>
 
     Running `runs` for a new project will return an empty
     list. Because there aren't any runs.
 
     >>> run("$GUILD runs")
     Limiting runs to the current directory (use --all to include all).
+    <exit 0>
 
     """
     rundoc()
@@ -117,6 +318,7 @@ def mnist_train_intro_tests():
     ...
     Step 540: training=...
     Step 540: validate=...
+    <exit 0>
 
     """
     rundoc()
@@ -130,6 +332,7 @@ def mnist_single_run_tests():
     >>> run("$GUILD runs")
     Limiting runs to the current directory (use --all to include all).
     [0:...]  ./mnist-intro:train  ... ...  completed
+    <exit 0>
 
     """
     rundoc()
@@ -170,15 +373,26 @@ def run(cmd):
     if _cwd:
         cmd = "cd %s && %s" % (_cwd, cmd)
     cmd = "set -eu && %s" % cmd
+    cmd_env = {}
+    cmd_env.update(_globals_env())
+    cmd_env["PATH"] = os.path.pathsep.join([
+        os.path.join(WORKSPACE, "bin"),
+        os.path.join(os.path.dirname(__file__), "../../bazel-bin/guild"),
+        "/usr/bin",
+    ])
     try:
         out = subprocess.check_output(
             [cmd],
             shell=True,
-            env=_globals_env(),
+            env=cmd_env,
             stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         out = e.output
+        exit_code = e.returncode
+    else:
+        exit_code = 0
     print(out.strip())
+    print("<exit %i>" % exit_code)
 
 def _globals_env():
     return {
