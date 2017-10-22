@@ -209,10 +209,14 @@ def _model_paths(opdef):
 
 def _guild_paths():
     guild_path = os.path.dirname(os.path.dirname(__file__))
-    return [guild_path] + _runfile_paths()
+    abs_guild_path = os.path.abspath(guild_path)
+    return [abs_guild_path] + _runfile_paths()
 
 def _runfile_paths():
-    return [path for path in sys.path if _is_runfile_pkg(path)]
+    return [
+        os.path.abspath(path)
+        for path in sys.path if _is_runfile_pkg(path)
+    ]
 
 def _is_runfile_pkg(path):
     return os.path.split(path)[-1] in OP_RUNFILES
