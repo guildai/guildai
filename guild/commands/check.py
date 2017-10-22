@@ -37,6 +37,7 @@ from guild import click_util
     help="Skip TEST when running Guild test suite. Ignored otherwise.",
     multiple=True)
 @click.option("-v", "--verbose", help="Show more information.", is_flag=True)
+@click.option("--uat", hidden=True, is_flag=True)
 
 @click_util.use_args
 

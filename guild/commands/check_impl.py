@@ -28,6 +28,7 @@ import guild
 import guild.cli
 import guild.plugin
 import guild.test
+import guild.uat
 import guild.util
 
 CHECK_MODS = [
@@ -39,7 +40,7 @@ CHECK_MODS = [
     "werkzeug",
 ]
 
-class Context(object):
+class Check(object):
 
     def __init__(self, args):
         self.args = args
@@ -53,37 +54,43 @@ class Context(object):
         return self._errors
 
 def main(args):
-    ctx = Context(args)
+    if args.uat:
+        _uat_and_exit()
+    check = Check(args)
     if not args.no_info:
-        _print_info(ctx)
+        _print_info(check)
     if args.all_tests or args.tests:
-        _run_tests(ctx)
-    if ctx.has_error:
+        _run_tests(check)
+    if check.has_error:
         guild.cli.error(
             "there are problems with your Guild setup\n"
             "Refer to the issues above for more information.")
 
-def _run_tests(ctx):
-    if ctx.args.all_tests:
-        if ctx.args.tests:
+def _uat_and_exit():
+    guild.uat.run()
+    sys.exit(0)
+
+def _run_tests(check):
+    if check.args.all_tests:
+        if check.args.tests:
             logging.warning(
                 "running all tests (--all-tests specified) - "
                 "ignoring individual tests")
-        success = guild.test.run_all(skip=ctx.args.skip)
-    elif ctx.args.tests:
-        if ctx.args.skip:
+        success = guild.test.run_all(skip=check.args.skip)
+    elif check.args.tests:
+        if check.args.skip:
             logging.warning(
                 "running individual tests - ignoring --skip")
-        success = guild.test.run(ctx.args.tests)
+        success = guild.test.run(check.args.tests)
     if not success:
-        ctx.error()
+        check.error()
 
-def _print_info(ctx):
+def _print_info(check):
     _print_guild_info()
-    _print_python_info(ctx)
-    _print_tensorflow_info(ctx)
+    _print_python_info(check)
+    _print_tensorflow_info(check)
     _print_nvidia_tools_info()
-    _print_mods_info(ctx)
+    _print_mods_info(check)
 
 def _print_guild_info():
     guild.cli.out("guild_version:             %s" % guild.version())
@@ -96,9 +103,9 @@ def _guild_home():
 def _format_plugins():
     return ", ".join([name for name, _ in guild.plugin.iter_plugins()])
 
-def _print_python_info(ctx):
+def _print_python_info(check):
     guild.cli.out("python_version:            %s" % _python_version())
-    if ctx.args.verbose:
+    if check.args.verbose:
         guild.cli.out("python_path:           %s" % _python_path())
 
 def _python_version():
@@ -107,17 +114,17 @@ def _python_version():
 def _python_path():
     return os.path.pathsep.join(sys.path)
 
-def _print_tensorflow_info(ctx):
+def _print_tensorflow_info(check):
     # Run externally to avoid tf logging to our stderr
     from . import tensorflow_info_main
     cmd = [sys.executable, tensorflow_info_main.__file__]
     env = guild.util.safe_osenv()
     env["PYTHONPATH"] = os.path.pathsep.join(sys.path)
-    stderr = None if ctx.args.verbose else open(os.devnull, "w")
+    stderr = None if check.args.verbose else open(os.devnull, "w")
     p = subprocess.Popen(cmd, stderr=stderr, env=env)
     exit_status = p.wait()
     if exit_status != 0:
-        ctx.error()
+        check.error()
 
 def _print_nvidia_tools_info():
     guild.cli.out("nvidia_smi_available:      %s" % _nvidia_smi_available())
@@ -130,17 +137,17 @@ def _nvidia_smi_available():
     else:
         return "yes"
 
-def _print_mods_info(ctx):
+def _print_mods_info(check):
     for mod in CHECK_MODS:
-        ver = _try_module_version(mod, ctx)
+        ver = _try_module_version(mod, check)
         space = " " * (18 - len(mod))
         guild.cli.out("%s_version:%s%s" % (mod, space, ver))
 
-def _try_module_version(name, ctx):
+def _try_module_version(name, check):
     try:
         mod = __import__(name)
     except ImportError as e:
-        ctx.error()
+        check.error()
         return _warn("NOT INSTALLED (%s)" % e)
     else:
         try:

@@ -53,6 +53,7 @@ py_library(
         "//guild:cli",
         "//guild:plugin",
         "//guild:test",
+        "//guild:uat",
         "//guild:util",
         ":tensorflow_info_main",
     ],

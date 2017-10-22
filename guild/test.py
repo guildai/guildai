@@ -68,8 +68,10 @@ def run(tests, skip=None):
 
 def _run_test(name):
     sys.stdout.write("  %s:" % name)
+    filename = _test_filename(name)
+    globs = _test_globals()
     try:
-        failures, _tests = _run_test_file(_test_filename(name))
+        failures, _tests = run_test_file(filename, globs)
     except IOError:
         sys.stdout.write(" ERROR test not found\n")
         return False
@@ -83,17 +85,17 @@ def _test_filename(name):
     # Path must be relative to module
     return os.path.join("tests", name + ".md")
 
-def _run_test_file(filename):
-    return _run_test_file_with_config(
+def run_test_file(filename, globs):
+    return run_test_file_with_config(
         filename,
-        globs=test_globals(),
+        globs=globs,
         optionflags=(
             doctest.REPORT_ONLY_FIRST_FAILURE |
             doctest.ELLIPSIS |
             doctest.IGNORE_EXCEPTION_DETAIL |
             doctest.NORMALIZE_WHITESPACE))
 
-def _run_test_file_with_config(filename, globs, optionflags):
+def run_test_file_with_config(filename, globs, optionflags):
     """Modified from doctest.py to use custom checker."""
 
     text, filename = _load_testfile(filename)
@@ -135,7 +137,7 @@ def _load_testfile(filename):
         # pylint: disable=too-many-function-args
         return doctest._load_testfile(filename, None, True, "utf-8")
 
-def test_globals():
+def _test_globals():
     return {
         "LogCapture": LogCapture,
         "cat": cat,

@@ -224,6 +224,17 @@ py_library(
 )
 
 py_library(
+    name = "uat",
+    srcs = ["uat.py"],
+    deps = [
+        ":test",
+    ],
+    data = [
+        "//guild/tests/uat"
+    ],
+)
+
+py_library(
     name = "util",
     srcs = ["util.py"],
     deps = [

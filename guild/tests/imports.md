@@ -89,6 +89,7 @@
     ...   'guild.commands.search_impl',
     ...   'guild.tensorboard',
     ...   'guild.test',
+    ...   'guild.uat',
     ...   'guild.util',
     ...   'guild.var']
     >>> compare_sets(set(expected), set([m.__name__ for m in iter_mods()]))
