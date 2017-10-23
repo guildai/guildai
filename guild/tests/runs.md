@@ -1,4 +1,217 @@
-# Runs
+## Runs
+
+Runs are represented by the class `guild.run.Run`.
+
+    >>> import guild.run
+
+They are used to manage information in a run directory ("rundir"). For
+our tests we'll create a temporary directory that represents our
+rundir:
+
+    >>> rundir = mkdtemp()
+
+Runs have IDs that uniquely identify them. The `op` module has a
+function `unique_run_id` that can be used to generate unique run IDs:
+
+    >>> from guild.op import unique_run_id
+
+With a run ID and a rundir, we can create a run:
+
+    >>> run = guild.run.Run(unique_run_id(), rundir)
+
+### Run IDs
+
+Unique run IDs are 32 chars long:
+
+    >>> len(run.id)
+    32
+
+Runs have short IDs, which are 8 chars long:
+
+    >>> len(run.short_id)
+    8
+
+### Rundir files
+
+We can iterate files under a rundir using the `iter_files` method. For
+our tests we'll use a helpder that normalizes output for our tests:
+
+    >>> def run_files(run):
+    ...   return sorted([
+    ...     relpath(path, rundir)
+    ...     for path in run.iter_files(include_dirs=True)
+    ...   ])
+
+We can iterate files under a rundir. Initially the directory is empty:
+
+    >>> run_files(run)
+    []
+
+We can initialize the rundir using `init_skel`:
+
+    >>> run.init_skel()
+    >>> run_files(run)
+    ['.guild',
+     '.guild/attrs',
+     '.guild/logs']
+
+Note that Guild manages files under a rundir inside a `.guild`
+directory ("guild directory").
+
+### Run attributes
+
+Run attributes are stored in the `attrs` guild sub-directory.
+
+We can iterate attributes using `iter_attrs`:
+
+    >>> list(run.iter_attrs())
+    []
+
+We can read attribute values as run items or using the `get` method:
+
+    >>> run["msg"]
+    Traceback (most recent call last):
+    KeyError: 'msg'
+
+    >>> print(run.get("msg"))
+    None
+
+    >>> run.get("msg", "no msg!")
+    'no msg!'
+
+We can write them using the `write_attr` method:
+
+    >>> run.write_attr("msg", "hello")
+
+Here are the run files after writing the attribute:
+
+    >>> run_files(run)
+    ['.guild',
+     '.guild/attrs',
+     '.guild/attrs/msg',
+     '.guild/logs']
+
+And the value of our attribute:
+
+    >>> run["msg"]
+    'hello'
+
+    >>> run.get("msg")
+    'hello'
+
+We can store attributes provided they're primitive Python
+types. Values are encoded using YAML. Let's create a helper function
+that shows us the attribute file contents.
+
+    >>> def cat_attr(name):
+    ...   cat(rundir, ".guild", "attrs", name)
+
+Here's the encoding of a string attribute:
+
+    >>> cat_attr("msg")
+    hello
+
+Integer:
+
+    >>> run.write_attr("int", 123)
+    >>> run["int"]
+    123
+    >>> cat_attr("int")
+    123
+
+Float:
+
+    >>> run.write_attr("float", 123.456)
+    >>> run["float"]
+    123.456
+    >>> cat_attr("float")
+    123.456
+
+None:
+
+    >>> run.write_attr("none", None)
+    >>> print(run["none"])
+    None
+    >>> cat_attr("none")
+    null
+
+List:
+
+    >>> run.write_attr("list", [1, 2, 3, 4.567, "foo", "bar"])
+    >>> run["list"]
+    [1, 2, 3, 4.567, 'foo', 'bar']
+    >>> cat_attr("list")
+    - 1
+    - 2
+    - 3
+    - 4.567
+    - foo
+    - bar
+
+Tuples (stored and returned as lists):
+
+    >>> run.write_attr("tuple", (1, 2, 3, "foo"))
+    >>> run["tuple"]
+    [1, 2, 3, 'foo']
+    >>> cat_attr("tuple")
+    - 1
+    - 2
+    - 3
+    - foo
+
+Dict:
+
+    >>> run.write_attr("dict", {"num": 123, "str": "hello", "float": 123.456})
+    >>> pprint(run["dict"])
+    {'float': 123.456, 'num': 123, 'str': 'hello'}
+    >>> cat_attr("dict")
+    float: 123.456
+    num: 123
+    str: hello
+
+List of lists:
+
+    >>> run.write_attr("lol", [["num", 123],
+    ...                        ["str", "hello"],
+    ...                        ["float", 123.456]])
+    >>> run["lol"]
+    [['num', 123], ['str', 'hello'], ['float', 123.456]]
+    >>> cat_attr("lol")
+    - - num
+      - 123
+    - - str
+      - hello
+    - - float
+      - 123.456
+
+List of tuples (stored and returned as list of lists):
+
+    >>> run.write_attr("tuple-list", [("foo", 123), ("bar", 456)])
+    >>> run["tuple-list"]
+    [['foo', 123], ['bar', 456]]
+    >>> cat_attr("tuple-list")
+    - - foo
+      - 123
+    - - bar
+      - 456
+
+Non-primitive values can't be written as run attributes:
+
+    >>> run.write_attr("module", guild.run)
+    Traceback (most recent call last):
+    RepresenterError: ...
+
+    >>> run.write_attr("function", cat_attr)
+    Traceback (most recent call last):
+    RepresenterError: ...
+
+    >>> class Foo(object):
+    ...   pass
+    >>> run.write_attr("class", Foo)
+    Traceback (most recent call last):
+    RepresenterError: ...
+
+## Managing runs
 
 Runs are managed by the `var` module:
 
@@ -27,17 +240,17 @@ Sort by operation, then date:
 
     >>> [(run.short_id, run["op"], run["started"])
     ...  for run in runs(sort=["op", "started"])]
-    [('42803252', 'mnist:evaluate', '1506790419'),
-     ('360192fd', 'mnist:train', '1506790385'),
-     ('7d145216', 'mnist:train', '1506790401')]
+    [('42803252', 'mnist:evaluate', 1506790419),
+     ('360192fd', 'mnist:train', 1506790385),
+     ('7d145216', 'mnist:train', 1506790401)]
 
 Sort by date, latest first:
 
     >>> [(run.short_id, run["started"])
     ...  for run in runs(sort=["-started"])]
-    [('42803252', '1506790419'),
-     ('7d145216', '1506790401'),
-     ('360192fd', '1506790385')]
+    [('42803252', 1506790419),
+     ('7d145216', 1506790401),
+     ('360192fd', 1506790385)]
 
 ## Run filters
 
@@ -50,8 +263,8 @@ Here we'll filter runs with an exist_status of "0" (i.e. run
 successfully to completion):
 
     >>> [(run.short_id, run["exit_status"])
-    ...  for run in runs(filter=lambda r: r.get("exit_status") == "0")]
-    [('42803252', '0')]
+    ...  for run in runs(filter=lambda r: r.get("exit_status") == 0)]
+    [('42803252', 0)]
 
 `guild.var` provides a helper function that returns various named
 filters:
@@ -64,15 +277,15 @@ Filter names may be preceded by '!' to negate them.
 
 Here is the same filter as above, but using `run_filter`:
 
-    >>> filter = guild.var.run_filter("attr", "exit_status", "0")
+    >>> filter = guild.var.run_filter("attr", "exit_status", 0)
     >>> [(run.short_id, run["exit_status"]) for run in runs(filter=filter)]
-    [('42803252', '0')]
+    [('42803252', 0)]
 
 Here's a list of runs with an exit_status not equals to "0":
 
-    >>> filter = guild.var.run_filter("!attr", "exit_status", "0")
+    >>> filter = guild.var.run_filter("!attr", "exit_status", 0)
     >>> [(run.short_id, run.get("exit_status")) for run in runs(filter=filter)]
-    [('360192fd', None), ('7d145216', '1')]
+    [('360192fd', None), ('7d145216', 1)]
 
 Runs with op equal to "mnist:evaluate" and exit_status equal to "0"
 (i.e. successful evaluate operations):
@@ -80,15 +293,15 @@ Runs with op equal to "mnist:evaluate" and exit_status equal to "0"
     >>> filter = guild.var.run_filter(
     ...   "all",
     ...   [guild.var.run_filter("attr", "op", "mnist:evaluate"),
-    ...    guild.var.run_filter("attr", "exit_status", "0")])
+    ...    guild.var.run_filter("attr", "exit_status", 0)])
     >>> [(run.short_id, run.get("exit_status")) for run in runs(filter=filter)]
-    [('42803252', '0')]
+    [('42803252', 0)]
 
 Runs with exit_status equal to "0" or "1":
 
     >>> filter = guild.var.run_filter(
     ...   "any",
-    ...   [guild.var.run_filter("attr", "exit_status", "0"),
-    ...    guild.var.run_filter("attr", "exit_status", "1")])
+    ...   [guild.var.run_filter("attr", "exit_status", 0),
+    ...    guild.var.run_filter("attr", "exit_status", 1)])
     >>> [(run.short_id, run.get("exit_status")) for run in runs(filter=filter)]
-    [('42803252', '0'), ('7d145216', '1')]
+    [('42803252', 0), ('7d145216', 1)]

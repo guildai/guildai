@@ -82,7 +82,7 @@ class FlagValHost(object):
         self._flag_vals = {}
 
     def all_flag_values(self):
-        return list(self._iter_all_flag_values())
+        return dict(self._iter_all_flag_values())
 
     def _iter_all_flag_values(self):
         seen = set()

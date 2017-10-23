@@ -65,24 +65,24 @@ line arg for a map of flag values.
 
 Empty flags:
 
-    >>> guild.op._flag_args([])
+    >>> guild.op._flag_args({})
     []
 
 Single flag:
 
-    >>> guild.op._flag_args([("epochs", 100)])
+    >>> guild.op._flag_args({"epochs": 100})
     ['--epochs', '100']
 
-Multiple flags are always returned in the order presented:
+Multiple flags are returned in sorted order:
 
-    >>> guild.op._flag_args([("epochs", 100), ("data", "my-data")])
-    ['--epochs', '100', '--data', 'my-data']
+    >>> guild.op._flag_args({"epochs": 100, "data": "my-data"})
+    ['--data', 'my-data', '--epochs', '100']
 
 Flag options (i.e. options with implicit values) may be specified with
 None values:
 
-    >>> guild.op._flag_args([("test", None), ("batch-size", 50)])
-    ['--test', '--batch-size', '50']
+    >>> guild.op._flag_args({"test": None, "batch-size": 50})
+    ['--batch-size', '50', '--test']
 
 ## Operation flags
 
@@ -100,8 +100,8 @@ For our tests we'll use the train operation:
 We can get the flags defined for this op using the `all_flag_values`
 method:
 
-    >>> list(project_op.all_flag_values())
-    []
+    >>> project_op.all_flag_values()
+    {}
 
 Our sample operations aren't initialized with any flags, so we expect
 this list to be empty.
@@ -113,19 +113,21 @@ Let's add some flags, starting with the operation model. We'll use the
 
 And now enumerate flag values for the operation:
 
-    >>> list(project_op.all_flag_values())
-    [('epochs', 100)]
+    >>> project_op.all_flag_values()
+    {'epochs': 100}
 
 Let's define the same flag at the operation level:
 
     >>> project_op.set_flag_value("epochs", 200)
-    >>> list(project_op.all_flag_values())
-    [('epochs', 200)]
+    >>> project_op.all_flag_values()
+    {'epochs': 200}
 
 Here are a couple additional flags, one defined in the model and the
 other in the operations:
 
     >>> project_op.set_flag_value("batch-size", 50)
     >>> project_op.modeldef.set_flag_value("learning-rate", 0.1)
-    >>> sorted(project_op.all_flag_values())
-    [('batch-size', 50), ('epochs', 200), ('learning-rate', 0.1)]
+    >>> pprint(project_op.all_flag_values())
+    {'batch-size': 50,
+     'epochs': 200,
+     'learning-rate': 0.1}

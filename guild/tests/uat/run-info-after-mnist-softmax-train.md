@@ -9,7 +9,7 @@ Use `guild runs info` to show information about the latest run:
     started: ...
     stopped: ...
     rundir: ...
-    command: python -um guild.op_main softmax --epochs 1 --batch-size 100
+    command: python -um guild.op_main softmax --batch-size 100 --epochs 1
     exit_status: 0
     pid: (not running)
     <exit 0>
@@ -23,7 +23,7 @@ We can optionally show files, flags, and env for a run:
     started: ...
     stopped: ...
     rundir: ...
-    command: python -um guild.op_main softmax --epochs 1 --batch-size 100
+    command: python -um guild.op_main softmax --batch-size 100 --epochs 1
     exit_status: 0
     pid: (not running)
     environment:
@@ -40,8 +40,8 @@ We can optionally show files, flags, and env for a run:
       PYTHONPATH: ...
       WORKSPACE: ...
     flags:
-      (u'epochs', u'1')
-      ('batch-size', 100)
+      batch-size: 100
+      epochs: 1
     files:
       /.../.guild/attrs/cmd
       /.../.guild/attrs/env

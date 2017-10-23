@@ -122,12 +122,12 @@ def _op_info(run):
     opref = run.get("opref")
     if not opref:
         logging.warning("cannot format opref, missing opref run attr")
-        parts = [None, None, None, None]
+        parts = ["", None, None, None]
     else:
         parts = opref.split(" ")
         if len(parts) != 4:
             logging.warning("cannot format opref, bad format: %s", opref)
-            parts = [None, None, None, None]
+            parts = ["", None, None, None]
     pkg_info, version, model, op_name = parts
     return click_util.Args(
         dict(
@@ -207,20 +207,30 @@ def _format_timestamp(ts):
     return time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
 
 def _format_command(cmd):
-    args = cmd.split("\n")
-    return " ".join([_maybe_quote_arg(arg) for arg in args])
+    if not cmd:
+        return ""
+    return " ".join([_maybe_quote_arg(arg) for arg in cmd])
 
 def _maybe_quote_arg(arg):
     return '"%s"' % arg if " " in arg else arg
 
-def _format_attr_val(s):
-    parts = s.split("\n")
-    if len(parts) == 1:
-        return " %s" % parts[0]
+def _format_attr_val(val):
+    if isinstance(val, list):
+        return _format_attr_list(val)
+    elif isinstance(val, dict):
+        return _format_attr_dict(val)
     else:
-        return "\n%s" % "\n".join(
-            ["  %s" % part for part in parts]
-        )
+        return str(val)
+
+def _format_attr_list(l):
+    return "\n%s" % "\n".join([
+        "  %s" % item for item in l
+    ])
+
+def _format_attr_dict(d):
+    return "\n%s" % "\n".join([
+        "  %s: %s" % (key, d[key]) for key in sorted(d)
+    ])
 
 def _runs_op(args, ctx, force_delete, preview_msg, confirm_prompt,
              no_runs_help, op_callback):

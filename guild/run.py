@@ -17,6 +17,8 @@ from __future__ import division
 
 import os
 
+import yaml
+
 import guild.util
 
 class Run(object):
@@ -75,11 +77,11 @@ class Run(object):
 
     def __getitem__(self, name):
         try:
-            raw = open(self._attr_path(name), "r").read()
+            f = open(self._attr_path(name), "r")
         except IOError:
             raise KeyError(name)
         else:
-            return _parse_attr(raw)
+            return yaml.safe_load(f)
 
     def _attr_path(self, name):
         return os.path.join(self._attrs_dir(), name)
@@ -112,27 +114,23 @@ class Run(object):
         return os.path.join(self._guild_dir, subpath)
 
     def write_attr(self, name, val):
+        encoded = yaml.safe_dump(
+            val,
+            default_flow_style=False,
+            indent=2).strip()
+        if encoded.endswith("\n..."):
+            encoded = encoded[:-4]
         with open(self._attr_path(name), "w") as f:
-            f.write(_encode_attr(val))
+            f.write(encoded)
+            f.close()
 
-    def iter_files(self):
-        for root, _dirs, files in os.walk(self.path):
+    def iter_files(self, include_dirs=False):
+        for root, dirs, files in os.walk(self.path):
+            if include_dirs:
+                for name in dirs:
+                    yield os.path.join(root, name)
             for name in files:
                 yield os.path.join(root, name)
-
-def _parse_attr(raw):
-    return raw.strip()
-
-def _encode_attr(val):
-    if isinstance(val, list):
-        return "\n".join([str(x) for x in val])
-    elif isinstance(val, dict):
-        return "\n".join([
-            "%s: %s" % (str(key), str(val[key]))
-            for key in sorted(val)
-        ])
-    else:
-        return str(val)
 
 def _op_pid(run):
     lockfile = run.guild_path("LOCK")
@@ -160,7 +158,7 @@ def _extended_op_status(run):
     elif base_status == "crashed":
         return "terminated"
     elif base_status == "stopped":
-        if run.get("exit_status") == "0":
+        if run.get("exit_status") == 0:
             return "completed"
         else:
             return "error"

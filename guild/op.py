@@ -160,7 +160,7 @@ def _cmd_args(opdef):
 def _flag_args(flags):
     return [
         arg for args in
-        [_opt_args(name, val) for name, val in flags]
+        [_opt_args(name, flags[name]) for name in sorted(flags)]
         for arg in args
     ]
 

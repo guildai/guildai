@@ -146,6 +146,10 @@ def _test_globals():
         "pprint": pprint.pprint,
         "sample": sample,
         "samples_dir": samples_dir,
+        "dirname": os.path.dirname,
+        "abspath": os.path.abspath,
+        "relpath": os.path.relpath,
+        "join_path": os.path.join,
     }
 
 def sample(name):
@@ -167,9 +171,9 @@ def find(root):
     all.sort()
     return all
 
-def cat(file_path):
-    with open(file_path, "r") as f:
-        return f.read()
+def cat(*parts):
+    with open(os.path.join(*parts), "r") as f:
+        print(f.read())
 
 class LogCapture(object):
 
