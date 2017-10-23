@@ -12,7 +12,8 @@ import guild.test
 INDEX = "guild/tests/uat/README.md"
 WORKSPACE = os.path.join(tempfile.gettempdir(), "guild-uat")
 GUILD_PATH = os.path.abspath("./bazel-bin/guild")
-EXAMPLES_REPO = os.path.abspath("../guild-examples")
+
+GIT_REPOS = os.path.abspath("../")
 
 _cwd = None
 
@@ -84,7 +85,7 @@ def _reset_cwd():
 def _cd(path):
     globals()["_cwd"] = path
 
-def _run(cmd, quiet=False):
+def _run(cmd, quiet=False, ignore=None):
     cmd = "set -eu && %s" % cmd
     cmd_env = {}
     cmd_env.update(_global_vars())
@@ -108,8 +109,18 @@ def _run(cmd, quiet=False):
     else:
         exit_code = 0
     if not quiet or exit_code != 0:
-        print(out.strip())
+        out = out.strip()
+        if ignore:
+            out = _strip_lines(out, ignore)
+        print(out)
         print("<exit %i>" % exit_code)
+
+def _strip_lines(out, patterns):
+    stripped_lines = [
+        line for line in out.split("\n")
+        if not any((re.search(p, line) for p in patterns))
+    ]
+    return "\n".join(stripped_lines)
 
 def _maybe_delete_workspace():
     if os.getenv("KEEP_WORKSPACE"):

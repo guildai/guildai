@@ -7,7 +7,7 @@ will modify the acceptance test.
 
 ## Partial Guild install
 
-*Guild behavior in a partially configured environment*
+*Guild behavior in a partially configured environment.*
 
 - [fresh-install](fresh-install.md)
 - [install-required-pip-packages](install-required-pip-packages.md)
@@ -15,7 +15,7 @@ will modify the acceptance test.
 
 ## Working Guild install
 
-*Complete Guild configuration and initial checks*
+*Complete Guild configuration and initial checks.*
 
 - [install-tensorflow](install-tensorflow.md)
 - [check-with-tensorflow](check-with-tensorflow.md)
@@ -23,7 +23,7 @@ will modify the acceptance test.
 
 ## Empty environment
 
-*Guild behavior without packages, models, or runs*
+*Guild behavior without packages, models, or runs.*
 
 - [initial-packages](initial-packages.md)
 - [initial-models](initial-models.md)
@@ -34,7 +34,7 @@ will modify the acceptance test.
 
 ## Training a Guild package
 
-*Installing and training a model from a Guild package*
+*Installing and training a model from a Guild package.*
 
 - [install-mnist-packages](install-mnist-packages.md)
 - [packages-after-mnist-install](packages-after-mnist-install.md)
@@ -46,7 +46,7 @@ will modify the acceptance test.
 
 ## Training a Guild example
 
-*Installing and training a Guild example*
+*Installing and training a Guild example.*
 
 - [install-examples](install-examples.md)
 - [mnist-example-models](mnist-example-models.md)
@@ -55,8 +55,19 @@ will modify the acceptance test.
 - [train-mnist-intro-example](train-mnist-intro-example.md)
 - [mnist-example-runs-after-intro-train](mnist-example-runs-after-intro-train.md)
 
+## Packaging
+
+*Creating and installing packages.*
+
+TODO: use a different package when one is available (e.g. keras, etc.)
+
+- [install-index-source](install-index-source.md)
+- [create-mnist-package](create-mnist-package.md)
+- [uninstall-mnist-package](uninstall-mnist-package.md)
+- [install-generated-mnist-package](install-generated-mnist-package.md)
+
 ## Error cases
 
-*Guild behavior with various error cases*
+*Guild behavior with various error cases.*
 
 - [invalid-chdir](invalid-chdir.md)
