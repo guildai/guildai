@@ -95,6 +95,8 @@ def _run(cmd, quiet=False, ignore=None):
         GUILD_PATH,
         "/usr/bin",
     ])
+    cmd_env["COLUMNS"] = "999"
+    cmd_env["LANG"] = os.getenv("LANG", "")
     cmd_cwd = WORKSPACE if not _cwd else os.path.join(WORKSPACE, _cwd)
     try:
         out = subprocess.check_output(
