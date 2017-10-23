@@ -145,11 +145,11 @@ def _modelfile_project_name(modelfile):
 
 def escape_project_name(name):
     """Escapes name for use as a valie pkg_resources project name."""
-    return base64.b16encode(name.encode("utf-8")).decode("utf-8")
+    return str(base64.b16encode(name.encode("utf-8")).decode("utf-8"))
 
 def unescape_project_name(escaped_name):
     """Unescapes names escaped with `escape_project_name`."""
-    return base64.b16decode(escaped_name).decode("utf-8")
+    return str(base64.b16decode(escaped_name).decode("utf-8"))
 
 def _modelfile_entry_map(modelfile, dist):
     return {

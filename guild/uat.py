@@ -111,7 +111,7 @@ def _run(cmd, quiet=False, ignore=None):
     else:
         exit_code = 0
     if not quiet or exit_code != 0:
-        out = out.strip().decode("utf-8")
+        out = str(out.strip().decode("utf-8"))
         if ignore:
             out = _strip_lines(out, ignore)
         print(out)
