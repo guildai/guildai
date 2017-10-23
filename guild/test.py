@@ -141,7 +141,6 @@ def _test_globals():
     return {
         "LogCapture": LogCapture,
         "cat": cat,
-        "compare_sets": compare_sets,
         "find": find,
         "mkdtemp": mkdtemp,
         "pprint": pprint.pprint,
@@ -191,14 +190,3 @@ class LogCapture(object):
         format = logging.getLogger().handlers[0].format
         for r in self._records:
             print(format(r))
-
-def compare_sets(expected, actual):
-    missing = expected - actual
-    unexpected = actual - expected
-    if not missing and not unexpected:
-        print("Sets are the same")
-    else:
-        if missing:
-            print("Missing: %s" % list(missing))
-        if unexpected:
-            print("Unexpected: %s" % list(unexpected))

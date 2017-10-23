@@ -18,79 +18,78 @@
     ...         mod_name = "guild." + mod_relpath.replace(os.path.sep, ".")[:-3]
     ...         yield importlib.import_module(mod_name)
 
-    >>> expected = [
-    ...   'guild.__init__',
-    ...   'guild.cli',
-    ...   'guild.click_util',
-    ...   'guild.cmd_impl_support',
-    ...   'guild.commands.run',
-    ...   'guild.commands.__init__',
-    ...   'guild.commands.check',
-    ...   'guild.commands.check_impl',
-    ...   'guild.commands.help',
-    ...   'guild.commands.help_impl',
-    ...   'guild.commands.install',
-    ...   'guild.commands.main',
-    ...   'guild.commands.main_impl',
-    ...   'guild.commands.models',
-    ...   'guild.commands.models_impl',
-    ...   'guild.commands.operations',
-    ...   'guild.commands.operations_impl',
-    ...   'guild.commands.package',
-    ...   'guild.commands.package_impl',
-    ...   'guild.commands.packages',
-    ...   'guild.commands.packages_impl',
-    ...   'guild.commands.packages_delete',
-    ...   'guild.commands.packages_info',
-    ...   'guild.commands.packages_list',
-    ...   'guild.commands.run_impl',
-    ...   'guild.commands.runs',
-    ...   'guild.commands.runs_impl',
-    ...   'guild.commands.runs_support',
-    ...   'guild.commands.runs_delete',
-    ...   'guild.commands.runs_info',
-    ...   'guild.commands.runs_list',
-    ...   'guild.commands.runs_purge',
-    ...   'guild.commands.runs_restore',
-    ...   'guild.commands.shell',
-    ...   'guild.commands.shell_impl',
-    ...   'guild.commands.tensorflow_info_main',
-    ...   'guild.commands.train',
-    ...   'guild.commands.uninstall',
-    ...   'guild.commands.view',
-    ...   'guild.commands.view_impl',
-    ...   'guild.config',
-    ...   'guild.entry_point_util',
-    ...   'guild.help',
-    ...   'guild.log',
-    ...   'guild.main',
-    ...   'guild.main_bootstrap',
-    ...   'guild.model',
-    ...   'guild.model_util',
-    ...   'guild.modelfile',
-    ...   'guild.namespace',
-    ...   'guild.op',
-    ...   'guild.op_main',
-    ...   'guild.package',
-    ...   'guild.package_main',
-    ...   'guild.pip_util',
-    ...   'guild.plugin',
-    ...   'guild.plugin_util',
-    ...   'guild.plugins.__init__',
-    ...   'guild.plugins.cpu',
-    ...   'guild.plugins.disk',
-    ...   'guild.plugins.gpu',
-    ...   'guild.plugins.keras',
-    ...   'guild.plugins.memory',
-    ...   'guild.plugins.python_util',
-    ...   'guild.plugins.tensorflow_util',
-    ...   'guild.run',
-    ...   'guild.commands.search',
-    ...   'guild.commands.search_impl',
-    ...   'guild.tensorboard',
-    ...   'guild.test',
-    ...   'guild.uat',
-    ...   'guild.util',
-    ...   'guild.var']
-    >>> compare_sets(set(expected), set([m.__name__ for m in iter_mods()]))
-    Sets are the same
+    >>> for name in sorted([m.__name__ for m in iter_mods()]):
+    ...   print(name) # doctest: +REPORT_UDIFF
+    guild.__init__
+    guild.cli
+    guild.click_util
+    guild.cmd_impl_support
+    guild.commands.__init__
+    guild.commands.check
+    guild.commands.check_impl
+    guild.commands.help
+    guild.commands.help_impl
+    guild.commands.install
+    guild.commands.main
+    guild.commands.main_impl
+    guild.commands.models
+    guild.commands.models_impl
+    guild.commands.operations
+    guild.commands.operations_impl
+    guild.commands.package
+    guild.commands.package_impl
+    guild.commands.packages
+    guild.commands.packages_delete
+    guild.commands.packages_impl
+    guild.commands.packages_info
+    guild.commands.packages_list
+    guild.commands.run
+    guild.commands.run_impl
+    guild.commands.runs
+    guild.commands.runs_delete
+    guild.commands.runs_impl
+    guild.commands.runs_info
+    guild.commands.runs_list
+    guild.commands.runs_purge
+    guild.commands.runs_restore
+    guild.commands.runs_support
+    guild.commands.search
+    guild.commands.search_impl
+    guild.commands.shell
+    guild.commands.shell_impl
+    guild.commands.tensorflow_info_main
+    guild.commands.train
+    guild.commands.uninstall
+    guild.commands.view
+    guild.commands.view_impl
+    guild.config
+    guild.entry_point_util
+    guild.help
+    guild.log
+    guild.main
+    guild.main_bootstrap
+    guild.model
+    guild.model_util
+    guild.modelfile
+    guild.namespace
+    guild.op
+    guild.op_main
+    guild.package
+    guild.package_main
+    guild.pip_util
+    guild.plugin
+    guild.plugin_util
+    guild.plugins.__init__
+    guild.plugins.cpu
+    guild.plugins.disk
+    guild.plugins.gpu
+    guild.plugins.keras
+    guild.plugins.memory
+    guild.plugins.python_util
+    guild.plugins.tensorflow_util
+    guild.run
+    guild.tensorboard
+    guild.test
+    guild.uat
+    guild.util
+    guild.var
