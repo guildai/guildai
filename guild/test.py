@@ -159,7 +159,7 @@ def samples_dir():
     return os.path.join(tests_dir(), "samples")
 
 def mkdtemp():
-    return tempfile.mkdtemp(prefix="guildtest-")
+    return tempfile.mkdtemp(prefix="guild-test-")
 
 def find(root):
     all = []
