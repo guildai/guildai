@@ -32,7 +32,7 @@ def _tests_from_index():
 
 def _init_workspace():
     print("Initializing workspace %s" % WORKSPACE)
-    subprocess.call(["virtualenv", WORKSPACE])
+    subprocess.check_call(["virtualenv", WORKSPACE])
     os.mkdir(os.path.join(WORKSPACE, "passed-tests"))
     os.mkdir(os.path.join(WORKSPACE, ".guild"))
 
@@ -109,7 +109,7 @@ def _run(cmd, quiet=False, ignore=None):
     else:
         exit_code = 0
     if not quiet or exit_code != 0:
-        out = out.strip()
+        out = out.strip().decode("utf-8")
         if ignore:
             out = _strip_lines(out, ignore)
         print(out)

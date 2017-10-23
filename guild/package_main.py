@@ -17,7 +17,11 @@ from __future__ import division
 
 import os
 import sys
-import urlparse
+
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib import parse as urlparse
 
 import setuptools
 import yaml
@@ -179,7 +183,7 @@ def _twine_upload_args(dist, repo):
     return args
 
 def _repo_args(repo):
-    if urlparse.urlparse(repo).scheme:
+    if urlparse(repo).scheme:
         rc_section = _pypirc_section_for_repo(repo)
         if rc_section:
             return ["--repository", rc_section]
