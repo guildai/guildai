@@ -191,7 +191,7 @@ def _op_plugins(opdef):
             " (%s)" % reason if reason else "")
         if plugin_enabled:
             op_plugins.append(name)
-    return ",".join(op_plugins)
+    return ",".join(sorted(op_plugins))
 
 def _plugin_disabled_in_project(name, opdef):
     disabled = (opdef.disabled_plugins +

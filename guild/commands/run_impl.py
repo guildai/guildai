@@ -90,8 +90,8 @@ def _no_model_error(model_ref, ctx):
 
 def _multiple_models_error(model_ref, models):
     models_list = "\n".join([
-        "  %s" % model_util.model_fullname(m)
-        for m in models
+        "  %s" % name
+        for name in sorted([model_util.model_fullname(m) for m in models])
     ])
     cli.error(
         "there are multiple models that match '%s'\n"

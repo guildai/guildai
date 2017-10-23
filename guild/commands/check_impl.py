@@ -101,7 +101,10 @@ def _guild_home():
     return pkg_resources.resource_filename("guild", "")
 
 def _format_plugins():
-    return ", ".join([name for name, _ in guild.plugin.iter_plugins()])
+    return ", ".join([
+        name
+        for name, _ in sorted(guild.plugin.iter_plugins())
+    ])
 
 def _print_python_info(check):
     guild.cli.out("python_version:            %s" % _python_version())

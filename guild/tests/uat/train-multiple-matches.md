@@ -7,6 +7,6 @@ an error message.
     >>> run("guild train -y mnist epochs=1")
     guild: there are multiple models that match 'mnist'
     Try specifying one of the following:
-      mnist/mnist-softmax
       mnist/mnist-cnn
+      mnist/mnist-softmax
     <exit 1>

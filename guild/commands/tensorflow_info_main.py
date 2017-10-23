@@ -68,9 +68,17 @@ def _print_tensorboard_info():
     try:
         import tensorboard.version as version
     except ImportError as e:
-        click.echo("tensorboard_version:       %s" % _warn("NOT INSTALLED (%s)" % e))
+        msg = _normalize_import_error_msg(e)
+        click.echo("tensorboard_version:       %s" % _warn("NOT INSTALLED (%s)" % msg))
     else:
         click.echo("tensorboard_version:       %s" % version.VERSION)
+
+def _normalize_import_error_msg(e):
+    msg = str(e)
+    m = re.match("No module named ([^']+)")
+    if m:
+        return "No module named '%s'" % m.group(1)
+    return msg
 
 def _warn(msg):
     return click.style(msg, fg="red", bold=True)
