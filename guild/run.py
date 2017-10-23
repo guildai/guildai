@@ -128,8 +128,8 @@ def _encode_attr(val):
         return "\n".join([str(x) for x in val])
     elif isinstance(val, dict):
         return "\n".join([
-            "%s: %s" % (str(item_key), str(item_val))
-            for item_key, item_val in val.items()
+            "%s: %s" % (str(key), str(val[key]))
+            for key in sorted(val)
         ])
     else:
         return str(val)

@@ -369,5 +369,5 @@ def run_info(args, ctx):
         out(_format_attr_val(run.get("flags", "")))
     if args.files:
         out("files:")
-        for path in run.iter_files():
+        for path in sorted(run.iter_files()):
             out("  %s" % path)

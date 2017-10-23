@@ -67,7 +67,7 @@ def _global_vars():
     return {
         name: str(val)
         for name, val in globals().items()
-        if isinstance(val, str)
+        if name[0] != "_" and isinstance(val, str)
     }
 
 def _test_passed(name):
