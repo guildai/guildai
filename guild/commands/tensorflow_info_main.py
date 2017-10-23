@@ -75,7 +75,7 @@ def _print_tensorboard_info():
 
 def _normalize_import_error_msg(e):
     msg = str(e)
-    m = re.match("No module named ([^']+)")
+    m = re.match("No module named ([^']+)", msg)
     if m:
         return "No module named '%s'" % m.group(1)
     return msg
