@@ -21,6 +21,7 @@ import sys
 try:
     from urlparse import urlparse
 except ImportError:
+    # pylint: disable=no-name-in-module
     from urllib import parse as urlparse
 
 import setuptools
