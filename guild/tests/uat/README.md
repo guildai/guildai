@@ -43,6 +43,7 @@ will modify the acceptance test.
 - [train-multiple-matches](train-multiple-matches.md)
 - [train-mnist-softmax](train-mnist-softmax.md)
 - [runs-after-mnist-softmax-train](runs-after-mnist-softmax-train.md)
+- [run-info-after-mnist-softmax-train](run-info-after-mnist-softmax-train.md)
 
 ## Training a Guild example
 

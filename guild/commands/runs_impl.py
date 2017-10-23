@@ -36,7 +36,6 @@ RUN_DETAIL = [
     "command",
     "exit_status",
     "pid",
-    "opref",
 ]
 
 ALL_RUNS_ARG = [":"]
