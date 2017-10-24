@@ -43,6 +43,8 @@
     guild.commands.packages_impl
     guild.commands.packages_info
     guild.commands.packages_list
+    guild.commands.resources
+    guild.commands.resources_impl
     guild.commands.run
     guild.commands.run_impl
     guild.commands.runs
@@ -87,6 +89,8 @@
     guild.plugins.memory
     guild.plugins.python_util
     guild.plugins.tensorflow_util
+    guild.resource
+    guild.resourcedef
     guild.run
     guild.tensorboard
     guild.test

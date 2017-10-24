@@ -156,14 +156,30 @@ def _modelfile_entry_map(modelfile, dist):
         "guild.models": {
             model.name: _model_entry_point(model, dist)
             for model in modelfile
+        },
+        "guild.resources": {
+            name: _resource_entry_point(name, dist)
+            for name in _iter_resources(modelfile)
         }
     }
 
 def _model_entry_point(model, dist):
     return pkg_resources.EntryPoint(
         name=model.name,
-        module_name=__name__,
-        attrs=(Model.__name__,),
+        module_name='guild.model',
+        attrs=('Model',),
+        dist=dist)
+
+def _iter_resources(modelfile):
+    for model in modelfile:
+        for name in model.resources:
+            yield name
+
+def _resource_entry_point(name, dist):
+    return pkg_resources.EntryPoint(
+        name=name,
+        module_name='guild.resource',
+        attrs=('Resource',),
         dist=dist)
 
 class ModelImportError(ImportError):

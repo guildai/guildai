@@ -38,6 +38,7 @@ py_library(
         ":config",
         ":model",
         ":modelfile",
+        ":resource",
     ],
 )
 
@@ -113,6 +114,7 @@ py_library(
     deps = [
         "//third_party:yaml",
         ":plugin",
+        ":resourcedef",
         ":util",
     ]
 )
@@ -191,6 +193,21 @@ py_library(
     srcs = ["plugin_util.py"],
     deps = [
         ":run",
+    ],
+)
+
+py_library(
+    name = "resource",
+    srcs = ["resource.py"],
+    deps = [
+        ":entry_point_util",
+    ],
+)
+
+py_library(
+    name = "resourcedef",
+    srcs = ["resourcedef.py"],
+    deps = [
     ],
 )
 

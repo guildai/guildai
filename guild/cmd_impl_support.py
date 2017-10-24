@@ -19,6 +19,7 @@ import logging
 import os
 
 import guild.model
+import guild.resource
 
 from guild import cli
 from guild import config
@@ -101,4 +102,25 @@ def _maybe_notify_models_limited(force_all_option, cwd):
     if force_all_option:
         cli.note_once(
             "Limiting models to %s (use %s to include all)"
+            % (cwd_desc(cwd), force_all_option))
+
+def init_resource_path(force_all=False, notify_force_all_option=None, cwd=None):
+    """Initializes the resource path.
+
+    The same rules in `init_model_path` are applied here to the
+    resource path.
+    """
+    maybe_model_path = cwd or config.cwd()
+    if cwd_modelfile_path(maybe_model_path):
+        model_path = maybe_model_path
+        if force_all:
+            guild.resource.add_model_path(model_path)
+        else:
+            _maybe_notify_resources_limited(notify_force_all_option, model_path)
+            guild.resource.set_path([model_path])
+
+def _maybe_notify_resources_limited(force_all_option, cwd):
+    if force_all_option:
+        cli.note_once(
+            "Limiting resources to %s (use %s to include all)"
             % (cwd_desc(cwd), force_all_option))

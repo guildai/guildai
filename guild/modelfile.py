@@ -24,6 +24,8 @@ import yaml
 import guild.plugin
 import guild.util
 
+from guild import resourcedef
+
 # The order here should be based on priority of selection.
 NAMES = ["MODELS", "MODEL"]
 
@@ -201,6 +203,7 @@ class ModelDef(FlagHost):
         self.description = data.get("description")
         self.visibility = data.get("visibility", Visibility.public)
         self.operations = _sorted_ops(data.get("operations", {}), self)
+        self.resources = resourcedef.from_data(data.get("resources"), self.modelfile)
         self.disabled_plugins = data.get("disabled-plugins", [])
 
     def __repr__(self):

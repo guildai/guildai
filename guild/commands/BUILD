@@ -1,40 +1,6 @@
 package(default_visibility = ["//visibility:public"])
 
 py_library(
-    name = "main",
-    srcs = ["main.py"],
-    deps = [
-        "//third_party:click",
-        "//guild:__init__",
-        "//guild:click_util",
-        ":check",
-        ":help",
-        ":install",
-        ":models",
-        ":operations",
-        ":package",
-        ":packages",
-        ":run",
-        ":runs",
-        ":search",
-        ":shell",
-        ":train",
-        ":uninstall",
-        ":view",
-    ]
-)
-
-py_library(
-    name = "main_impl",
-    srcs = ["main_impl.py"],
-    deps = [
-        "//guild:cli",
-        "//guild:config",
-        "//guild:log",
-    ]
-)
-
-py_library(
     name = "check",
     srcs = ["check.py"],
     deps = [
@@ -87,6 +53,41 @@ py_library(
         "//guild:click_util",
         ":packages_impl",
     ],
+)
+
+py_library(
+    name = "main",
+    srcs = ["main.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:__init__",
+        "//guild:click_util",
+        ":check",
+        ":help",
+        ":install",
+        ":models",
+        ":operations",
+        ":package",
+        ":packages",
+        ":resources",
+        ":run",
+        ":runs",
+        ":search",
+        ":shell",
+        ":train",
+        ":uninstall",
+        ":view",
+    ]
+)
+
+py_library(
+    name = "main_impl",
+    srcs = ["main_impl.py"],
+    deps = [
+        "//guild:cli",
+        "//guild:config",
+        "//guild:log",
+    ]
 )
 
 py_library(
@@ -200,6 +201,26 @@ py_library(
         "//third_party:click",
         "//guild:click_util",
         ":packages_impl",
+    ],
+)
+
+py_library(
+    name = "resources",
+    srcs = ["resources.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:click_util",
+        ":resources_impl",
+    ],
+)
+
+py_library(
+    name = "resources_impl",
+    srcs = ["resources_impl.py"],
+    deps = [
+        "//guild:cli",
+        "//guild:cmd_impl_support",
+        "//guild:resource",
     ],
 )
 
