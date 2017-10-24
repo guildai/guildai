@@ -172,8 +172,13 @@ class ModelImportError(ImportError):
 class ModelImporter(object):
 
     def __init__(self, path):
-        if (not os.path.isfile(path) or
-            os.path.basename(path) not in modelfile.NAMES):
+        if not os.path.isdir(path):
+            raise ModelImportError(path)
+        path_names = os.listdir(path)
+        for modelfile_name in modelfile.NAMES:
+            if modelfile_name in path_names:
+                break
+        else:
             raise ModelImportError(path)
 
     @staticmethod
@@ -182,10 +187,10 @@ class ModelImporter(object):
 
 def _model_finder(_importer, path, _only=False):
     try:
-        models = modelfile.from_file(path)
+        models = modelfile.from_dir(path)
     except (IOError, modelfile.ModelfileFormatError) as e:
         logging.warning(
-            "unable to load model file '%s': %s",
+            "unable to load model from path '%s': %s",
             path, e)
     else:
         yield ModelfileDistribution(models)
@@ -204,7 +209,7 @@ def path():
 def set_path(path):
     _models.set_path(path)
 
-def add_model_source(filename):
+def add_model_path(filename):
     path = _models.path()
     try:
         path.remove(filename)

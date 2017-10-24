@@ -88,13 +88,14 @@ def init_model_path(force_all=False, notify_force_all_option=None, cwd=None):
     in which case all models including those in the cwd will be
     available.
     """
-    model_source = cwd_modelfile_path(cwd)
-    if model_source:
+    maybe_model_path = cwd or config.cwd()
+    if cwd_modelfile_path(maybe_model_path):
+        model_path = maybe_model_path
         if force_all:
-            guild.model.add_model_source(model_source)
+            guild.model.add_model_path(model_path)
         else:
-            _maybe_notify_models_limited(notify_force_all_option, cwd)
-            guild.model.set_path([model_source])
+            _maybe_notify_models_limited(notify_force_all_option, model_path)
+            guild.model.set_path([model_path])
 
 def _maybe_notify_models_limited(force_all_option, cwd):
     if force_all_option:
