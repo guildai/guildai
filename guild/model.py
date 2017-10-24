@@ -20,8 +20,8 @@ import sys
 
 import pkg_resources
 
-from . import entry_point_util
-from . import modelfile
+from guild import entry_point_util
+from guild import modelfile
 
 _models = entry_point_util.EntryPointResources("guild.models", "model")
 
@@ -211,6 +211,21 @@ def _model_finder(_importer, path, _only=False):
     else:
         yield ModelfileDistribution(models)
 
+def path():
+    return _models.path()
+
+def set_path(path):
+    _models.set_path(path)
+
+def add_model_path(model_path):
+    path = _models.path()
+    try:
+        path.remove(model_path)
+    except ValueError:
+        pass
+    path.insert(0, model_path)
+    _models.set_path(path)
+
 def iter_models():
     for _name, model in _models:
         if model.modeldef.visibility == "public":
@@ -219,20 +234,10 @@ def iter_models():
 def for_name(name):
     return _models.for_name(name)
 
-def path():
-    return _models.path()
-
-def set_path(path):
-    _models.set_path(path)
-
-def add_model_path(filename):
-    path = _models.path()
-    try:
-        path.remove(filename)
-    except ValueError:
-        pass
-    path.insert(0, filename)
-    _models.set_path(path)
+def iter_():
+    for _name, model in _models:
+        if model.modeldef.visibility == "public":
+            yield model
 
 def _register_model_finder():
     sys.path_hooks.insert(0, ModelImporter)
