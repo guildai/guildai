@@ -188,7 +188,7 @@ def _format_op_desc(op_info):
         return "?"
 
 def _format_modelfile_op(path, model, op):
-    relpath = os.path.relpath(os.path.dirname(path), config.cwd)
+    relpath = os.path.relpath(os.path.dirname(path), config.cwd())
     if relpath[0] != '.':
         relpath = os.path.join('.', relpath)
     return "%s/%s:%s" % (relpath, model, op)

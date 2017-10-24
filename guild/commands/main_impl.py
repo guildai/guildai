@@ -24,13 +24,13 @@ from guild import log
 
 def main(args):
     log.init_logging(args.log_level or logging.INFO)
-    config.cwd = _validated_cwd(args)
+    config.set_cwd(_validated_dir(args.cwd))
+    config.set_guild_home(_validated_dir(args.guild_home))
 
-def _validated_cwd(args):
-    if not args.cwd:
-        return "."
-    if not os.path.exists(args.cwd):
-        cli.error("directory '%s' does not exist" % args.cwd)
-    if not os.path.isdir(args.cwd):
-        cli.error("'%s' is not a directory" % args.cwd)
-    return args.cwd
+def _validated_dir(path):
+    path = os.path.expanduser(path)
+    if not os.path.exists(path):
+        cli.error("directory '%s' does not exist" % path)
+    if not os.path.isdir(path):
+        cli.error("'%s' is not a directory" % path)
+    return path

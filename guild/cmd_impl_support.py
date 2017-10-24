@@ -33,7 +33,7 @@ def cwd_desc(cwd=None):
 
     This is used in messages to the user where the cwd is referenced.
     """
-    cwd = cwd or config.cwd
+    cwd = cwd or config.cwd()
     if os.path.abspath(cwd) == os.path.abspath(os.getcwd()):
         return "the current directory"
     else:
@@ -44,7 +44,7 @@ def cwd_modelfile_path(cwd=None):
 
     Returns None if a modefile doesn't exist in the cwd.
     """
-    cwd = cwd or config.cwd
+    cwd = cwd or config.cwd()
     for name in modelfile.NAMES:
         path = os.path.join(cwd, name)
         if os.path.exists(path):
@@ -56,7 +56,7 @@ def cwd_modelfile(cwd=None):
 
     Returns None if a modelfile doesn't exist in the cwd.
     """
-    cwd = cwd or config.cwd
+    cwd = cwd or config.cwd()
     try:
         return modelfile.from_dir(cwd)
     except (modelfile.NoModels, IOError):
@@ -70,7 +70,7 @@ def cwd_modeldef(cwd=None):
     If an error occurs when loading the modelfile, logs a warning
     message and returns None.
     """
-    cwd = cwd or config.cwd
+    cwd = cwd or config.cwd()
     try:
         return modelfile.from_dir(cwd)
     except (modelfile.NoModels, IOError):

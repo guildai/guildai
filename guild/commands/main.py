@@ -52,7 +52,13 @@ class CLIGroup(click.Group):
 )
 @click.option(
     "-C", "cwd", metavar="PATH",
-    help=("Use PATH as current directory for referencing modelfiles"))
+    help="Use PATH as current directory for referencing modelfiles.",
+    default=".")
+@click.option(
+    "-H", "guild_home", metavar="PATH",
+    help="Use PATH as Guild home (default is ~/.guild).",
+    default="~/.guild",
+    envvar="GUILD_HOME")
 @click.option(
     "--debug", "log_level",
     help="Log more information during command.",

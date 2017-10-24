@@ -15,4 +15,21 @@
 from __future__ import absolute_import
 from __future__ import division
 
-cwd = None
+_cwd = None
+_guild_home = None
+
+def set_cwd(cwd):
+    globals()["_cwd"] = cwd
+
+def set_guild_home(path):
+    globals()["_guild_home"] = path
+
+def cwd():
+    if _cwd is None:
+        raise SystemExit("cwd is not configured")
+    return _cwd
+
+def guild_home():
+    if _guild_home is None:
+        raise SystemExit("guild_home is not configured")
+    return _guild_home

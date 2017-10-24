@@ -20,6 +20,7 @@ import logging
 import os
 import shutil
 
+import guild.config
 import guild.run
 import guild.util
 
@@ -27,10 +28,7 @@ def path(subpath):
     return os.path.join(_root(), subpath)
 
 def _root():
-    root = os.getenv("GUILD_HOME")
-    if root:
-        return root
-    return os.path.expanduser(os.path.join("~", ".guild"))
+    return guild.config.guild_home()
 
 def runs_dir(deleted=False):
     if deleted:
