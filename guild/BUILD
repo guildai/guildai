@@ -245,6 +245,7 @@ py_library(
     name = "var",
     srcs = ["var.py"],
     deps = [
+        ":config",
         ":run",
         ":util",
     ],
