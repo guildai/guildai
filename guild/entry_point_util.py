@@ -77,8 +77,8 @@ class EntryPointResources(object):
             for res in name_resources:
                 try:
                     inst = res.inst()
-                except Exception as e:
-                    logging.warning("error initializing %s: %s", res, e)
+                except Exception:
+                    logging.exception("error initializing %s", res)
                 else:
                     yield inst
 
