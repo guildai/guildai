@@ -93,7 +93,7 @@ def _apply_model_filter(args, filters):
         filters.append(_model_run_filter(args.models))
 
 def _notify_runs_limited():
-    cli.note(
+    cli.note_once(
         "Limiting runs to %s (use --all to include all)"
         % cmd_impl_support.cwd_desc())
 

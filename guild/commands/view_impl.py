@@ -33,7 +33,7 @@ class RunsMonitor(threading.Thread):
 
     STOP_TIMEOUT = 5
 
-    def __init__(self, logdir, args, ctx):
+    def __init__(self, logdir, args):
         """Create a RunsMonitor.
 
         Note that run links are created initially by this
@@ -44,7 +44,6 @@ class RunsMonitor(threading.Thread):
         super(RunsMonitor, self).__init__()
         self.logdir = logdir
         self.args = args
-        self.ctx = ctx
         self.run_once(exit_on_error=True)
         self._stop = threading.Event()
         self._stopped = threading.Event()
@@ -65,7 +64,7 @@ class RunsMonitor(threading.Thread):
     def run_once(self, exit_on_error=False):
         logging.debug("Refreshing runs")
         try:
-            runs = runs_impl.runs_for_args(self.args, self.ctx)
+            runs = runs_impl.runs_for_args(self.args)
         except SystemExit as e:
             if exit_on_error:
                 raise
@@ -92,11 +91,11 @@ class RunsMonitor(threading.Thread):
             logging.debug("Removing %s", link_name)
             os.remove(os.path.join(self.logdir, link_name))
 
-def main(args, ctx):
+def main(args):
     tensorboard = _load_guild_tensorboard_module()
     logdir = tempfile.mkdtemp(prefix="guild-view-logdir-")
     logging.debug("Using logdir %s", logdir)
-    monitor = RunsMonitor(logdir, args, ctx)
+    monitor = RunsMonitor(logdir, args)
     monitor.start()
     tensorboard.main(
         logdir=logdir,

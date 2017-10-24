@@ -26,6 +26,8 @@ try:
 except NameError:
     input = input
 
+_noted = set()
+
 def error(msg=None, exit_status=1):
     raise SystemExit(msg, exit_status)
 
@@ -34,6 +36,11 @@ def out(s="", **kw):
 
 def note(msg):
     click.echo(click.style(msg, dim=True), err=True)
+    _noted.add(msg)
+
+def note_once(msg):
+    if msg not in _noted:
+        note(msg)
 
 def table(data, cols, sort=None, detail=None, indent=0, err=False):
     data = sorted(data, key=_table_row_sort_key(sort))

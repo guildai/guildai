@@ -98,6 +98,6 @@ def init_model_path(force_all=False, notify_force_all_option=None, cwd=None):
 
 def _maybe_notify_models_limited(force_all_option, cwd):
     if force_all_option:
-        cli.note(
+        cli.note_once(
             "Limiting models to %s (use %s to include all)"
             % (cwd_desc(cwd), force_all_option))

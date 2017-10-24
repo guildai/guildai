@@ -40,11 +40,10 @@ from . import runs_support
     help="Don't open the TensorBoard URL in a brower.",
     is_flag=True)
 
-@click.pass_context
 @click_util.use_args
 
-def view(ctx, args):
+def view(args):
     """Visualize runs with TensorBoard.
     """
     from . import view_impl
-    view_impl.main(args, ctx)
+    view_impl.main(args)
