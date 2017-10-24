@@ -108,10 +108,14 @@ def package_description(modelfile, refs):
     return "".join(out.buffer)
 
 def _write_models(modelfile, out):
-    for i, model in enumerate(modelfile):
+    i = 0
+    for model in modelfile:
+        if model.visibility != "public":
+            continue
         if i > 0:
             out.write_paragraph()
         _write_model(model, out)
+        i += 1
 
 def _write_model(m, out):
     out.write_heading(m.name)
@@ -143,8 +147,8 @@ def _write_flags(m, out):
     out.indent()
     if m.flags:
         out.write_dl([
-            (flag.name, _flag_desc(flag))
-            for flag in m.flags])
+            (name, _flag_desc(flag))
+            for name, flag in m.flags.items()])
     else:
         out.write_text("There are no flags defined for this model.")
     out.dedent()

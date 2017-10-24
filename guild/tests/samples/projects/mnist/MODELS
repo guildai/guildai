@@ -1,10 +1,31 @@
 - name: mnist-intro
   operations:
     train: intro
-    evaluate: intro --test
+    evaluate:
+      cmd: intro --test
+      flags:
+        epochs: 1
+        batch-size: 50000
+  flags:
+    $include: common
+    epochs: 10
+    learning-rate:
+      value: 0.001
+      description: Learning rate for training
 
 - name: mnist-expert
   description: Sample model
+  flags: common
   operations:
     train: expert
     evaluate: expert --test
+
+- name: common
+  visibility: private
+  flags:
+    batch-size:
+      value: 100
+      description: Number of images per batch
+    epochs:
+      value: 5
+      description: Number of epochs to train

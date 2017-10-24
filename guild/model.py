@@ -192,7 +192,8 @@ def _model_finder(_importer, path, _only=False):
 
 def iter_models():
     for _name, model in _models:
-        yield model
+        if model.modeldef.visibility == "public":
+            yield model
 
 def for_name(name):
     return _models.for_name(name)

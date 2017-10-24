@@ -39,10 +39,13 @@ class ModelfileFormatError(ModelfileError):
 class NoModels(ModelfileError):
     pass
 
+class ModelfileReferenceError(ModelfileError):
+    pass
+
 class Modelfile(object):
 
     def __init__(self, data, src):
-        self._data = data
+        self.data = data
         self.src = src
         self.models = [
             ModelDef(self, model_data) for model_data in data
@@ -75,11 +78,12 @@ class Modelfile(object):
     def default_model(self):
         return self.models[0] if self.models else None
 
-class FlagValHost(object):
+class FlagHost(object):
 
-    def __init__(self, parent_host=None):
+    def __init__(self, host_data, modelfile, parent_host=None):
+        self.flags = _init_flags(host_data, modelfile)
         self._parent = parent_host
-        self._flag_vals = {}
+        self._flag_vals = _init_flag_values(self.flags)
 
     def all_flag_values(self):
         return dict(self._iter_all_flag_values())
@@ -107,22 +111,100 @@ class FlagValHost(object):
                     if self._parent
                     else default)
 
-class ModelDef(FlagValHost):
+def _init_flags(host_data, modelfile):
+    flags = {}
+    seen_includes = set()
+    if isinstance(host_data, dict):
+        flags_data = host_data.get("flags", {})
+        if isinstance(flags_data, str):
+            _apply_flag_includes(flags_data.split(), modelfile, seen_includes, flags)
+        elif isinstance(flags_data, dict):
+            _apply_flag_data(flags_data, modelfile, seen_includes, flags)
+        else:
+            raise ModelfileFormatError("invalid flag data: %s" % flags_data)
+    return flags
+
+def _apply_flag_includes(includes, modelfile, seen_includes, flags):
+    # This init scheme is a bit fiddly. We're accessing modelfile.data
+    # here rather than use the modefile interface because the modefile
+    # is still being initialized. By accessing the underlying data we
+    # can resolve includes without resorting to a two-pass flag init
+    # process (i.e. load include refs in one pass and resolve them in
+    # a second pass).
+    assert hasattr(modelfile, "data"), "refer to source code comment"
+    for ref in includes:
+        if ref in seen_includes:
+            break
+        seen_includes.add(ref)
+        for model in modelfile.data:
+            if model.get("name") == ref:
+                flag_data = model.get("flags", {})
+                _apply_flag_data(flag_data, modelfile, seen_includes, flags)
+                break
+        else:
+            raise ModelfileReferenceError(
+                "model '%s' for flag include doesn't exist" % ref)
+
+def _apply_flag_data(data, modelfile, seen_includes, flags):
+    # Apply includes before other defs to support redefining included
+    # values.
+    for name in _includes_first(data):
+        if name == "$include":
+            _apply_flag_includes(data[name].split(), modelfile, seen_includes, flags)
+        else:
+            _apply_flag_def(FlagDef(data[name]), name, flags)
+
+def _includes_first(names):
+    return sorted(names, key=lambda x: "\x00" if x == "$include" else x)
+
+def _apply_flag_def(flagdef, name, flags):
+    try:
+        cur = flags[name]
+    except KeyError:
+        flags[name] = flagdef
+    else:
+        if flagdef.value is not None:
+            cur.value = flagdef.value
+        if flagdef.description is not None:
+            cur.description = flagdef.description
+
+def _init_flag_values(flagdefs):
+    return {
+        name: flagdef.value
+        for name, flagdef in flagdefs.items()
+    }
+
+class FlagDef(object):
+
+    def __init__(self, data):
+        if isinstance(data, dict):
+            self.value = data.get("value")
+            self.description = data.get("description")
+        elif isinstance(data, (str, int, float, bool)):
+            self.value = data
+            self.description = None
+        else:
+            raise ModelfileFormatError("unsupported flag data: %s" % data)
+
+class Visibility(object):
+
+    public = "public"
+    private = "private"
+
+class ModelDef(FlagHost):
 
     def __init__(self, modelfile, data):
-        super(ModelDef, self).__init__()
+        super(ModelDef, self).__init__(data, modelfile)
         self.modelfile = modelfile
         self._data = data
         self.name = data.get("name")
         self.description = data.get("description")
+        self.visibility = data.get("visibility", Visibility.public)
         self.operations = _sorted_ops(data.get("operations", {}), self)
-        self.flags = _sorted_flags(data.get("flags", {}), self)
-        for flag in self.flags:
-            self.set_flag_value(flag.name, flag.value)
         self.disabled_plugins = data.get("disabled-plugins", [])
 
     def __repr__(self):
-        return "<guild.modelfile.Model '%s'>" % self.name
+        return "<guild.modelfile.ModelDef '%s'>" % self.name
 
     def get_op(self, name):
         for op in self.operations:
@@ -130,29 +212,14 @@ class ModelDef(FlagValHost):
                 return op
         return None
 
-def _sorted_flags(data, parent):
-    keys = sorted(data.keys())
-    return [FlagDef(parent, key, data[key]) for key in keys]
-
-class FlagDef(object):
-
-    def __init__(self, parent, name, data):
-        self.parent = parent
-        self.name = name
-        self.description = data.get("description")
-        self.value = data.get("value")
-
-    def __repr__(self):
-        return "<guild.modelfile.Flag '%s'>" % self.name
-
 def _sorted_ops(data, model):
     keys = sorted(data.keys())
     return [OpDef(model, key, data[key]) for key in keys]
 
-class OpDef(FlagValHost):
+class OpDef(FlagHost):
 
     def __init__(self, modeldef, name, data):
-        super(OpDef, self).__init__(modeldef)
+        super(OpDef, self).__init__(data, modeldef.modelfile, modeldef)
         self.modeldef = modeldef
         self.modelfile = modeldef.modelfile
         self.name = name
@@ -160,13 +227,10 @@ class OpDef(FlagValHost):
         self._data = data
         self.description = data.get("description")
         self.cmd = data.get("cmd")
-        self.flags = _sorted_flags(data.get("flags", {}), self)
-        for flag in self.flags:
-            self.set_flag_value(flag.name, flag.value)
         self.disabled_plugins = data.get("disabled-plugins", [])
 
     def __repr__(self):
-        return "<guild.modelfile.Operation '%s'>" % self.fullname
+        return "<guild.modelfile.OpDef '%s'>" % self.fullname
 
     @property
     def fullname(self):
