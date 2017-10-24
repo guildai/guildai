@@ -11,12 +11,4 @@ directory:
     >>> run("guild package", ignore=['Normalizing', 'normalized_version,'])
     running bdist_wheel
     ...
-    creating '.../guild-index/mnist/dist/gpkg.mnist-...-py2.py3-none-any.whl'
-    ...
-    adding 'gpkg/mnist/MODELS'
-    adding 'gpkg/mnist/README.md'
-    adding 'gpkg/mnist/__init__.py'
-    adding 'gpkg/mnist/cnn.py'
-    adding 'gpkg/mnist/softmax.py'
-    ...
     <exit 0>
