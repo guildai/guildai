@@ -4,7 +4,7 @@ We'll train the `mnist-softmax` model with one epoch. Noe that we
 don't have to specify the full model name as long as our term refers
 to one and only one model.
 
-    >>> run("guild train -y softmax epochs=1")
+    >>> run("guild train -y softmax epochs=1", ignore="Successfully downloaded")
     Extracting /tmp/MNIST_data/train-images-idx3-ubyte.gz
     ...
     Step 0: training=...
