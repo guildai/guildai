@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
+
 _cwd = None
 _guild_home = None
 
@@ -25,11 +27,7 @@ def set_guild_home(path):
     globals()["_guild_home"] = path
 
 def cwd():
-    if _cwd is None:
-        raise SystemExit("cwd is not configured")
-    return _cwd
+    return _cwd or "."
 
 def guild_home():
-    if _guild_home is None:
-        raise SystemExit("guild_home is not configured")
-    return _guild_home
+    return _guild_home or os.path.expanduser("~/.guild")
