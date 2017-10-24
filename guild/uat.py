@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 
 import os
@@ -132,6 +134,8 @@ def _run(cmd, quiet=False, ignore=None):
         print("<exit %i>" % exit_code)
 
 def _strip_lines(out, patterns):
+    if isinstance(patterns, str):
+        patterns = [patterns]
     stripped_lines = [
         line for line in out.split("\n")
         if not any((re.search(p, line) for p in patterns))
