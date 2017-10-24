@@ -56,6 +56,9 @@ class Modelfile(object):
     def __repr__(self):
         return "<guild.modelfile.Modelfile '%s'>" % self.src
 
+    def __str__(self):
+        return self.src
+
     def __iter__(self):
         return iter(self.models)
 
