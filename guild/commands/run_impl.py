@@ -21,10 +21,10 @@ from guild import cli
 from guild import cmd_impl_support
 from guild import model_util
 
-def main(args, ctx):
-    cmd_impl_support.init_model_path(ctx)
+def main(args):
+    cmd_impl_support.init_model_path()
     model_ref, op_name = _parse_opspec(args.opspec)
-    model = _resolve_model(model_ref, ctx)
+    model = _resolve_model(model_ref)
     opdef = _resolve_opdef(op_name, model)
     op = _init_op(opdef, model, args)
     if args.print_command:
@@ -41,17 +41,17 @@ def _parse_opspec(spec):
     else:
         return parts
 
-def _resolve_model(model_ref, ctx):
-    matches = list(_iter_matching_models(model_ref, ctx))
+def _resolve_model(model_ref):
+    matches = list(_iter_matching_models(model_ref))
     if not matches:
-        _no_model_error(model_ref, ctx)
+        _no_model_error(model_ref)
     elif len(matches) > 1:
         _multiple_models_error(model_ref, matches)
     else:
         return matches[0]
 
-def _iter_matching_models(model_ref, ctx):
-    cwd_modeldef = cmd_impl_support.cwd_modeldef(ctx)
+def _iter_matching_models(model_ref):
+    cwd_modeldef = cmd_impl_support.cwd_modeldef()
     for model in guild.model.iter_models():
         if model_ref is None:
             if _is_default_cwd_model(model, cwd_modeldef):
@@ -75,13 +75,13 @@ def _match_model_ref(model_ref, model):
         # otherwise treat as a match term
         return model_ref in model.name
 
-def _no_model_error(model_ref, ctx):
+def _no_model_error(model_ref):
     if model_ref is None:
         cli.error(
             "there are no models in %s\n"
             "Try a different directory or 'guild operations' for "
             "available operations."
-            % cmd_impl_support.cwd_desc(ctx))
+            % cmd_impl_support.cwd_desc())
     else:
         cli.error(
             "cannot find a model matching '%s'\n"

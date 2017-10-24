@@ -51,10 +51,9 @@ from guild import click_util
     "-c", "--comment", metavar="COMMENT",
     help="Comment to include with upload.")
 
-@click.pass_context
 @click_util.use_args
 
-def package(ctx, args):
+def package(args):
     """Create a package for distribution.
 
     Packages are built from projects that contain a PACKAGE file that
@@ -71,4 +70,4 @@ def package(ctx, args):
         https://docs.python.org/2/distutils/packageindex.html#pypirc
     """
     from . import package_impl
-    package_impl.create_package(args, ctx)
+    package_impl.create_package(args)

@@ -29,6 +29,7 @@ py_library(
     srcs = ["main_impl.py"],
     deps = [
         "//guild:cli",
+        "//guild:config",
         "//guild:log",
     ]
 )
@@ -144,6 +145,7 @@ py_library(
     srcs = ["package_impl.py"],
     deps = [
         "//guild:cmd_impl_support",
+        "//guild:config",
         "//guild:namespace",
         "//guild:package",
     ],
@@ -255,6 +257,7 @@ py_library(
         "//guild:cli",
         "//guild:click_util",
         "//guild:cmd_impl_support",
+        "//guild:config",
         "//guild:modelfile",
         "//guild:namespace",
         "//guild:var",

@@ -35,6 +35,7 @@ py_library(
     srcs = ["cmd_impl_support.py"],
     deps = [
         ":cli",
+        ":config",
         ":model",
         ":modelfile",
     ],
@@ -44,7 +45,6 @@ py_library(
     name = "config",
     srcs = ["config.py"],
     deps = [
-        ":var",
     ],
 )
 

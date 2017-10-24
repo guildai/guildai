@@ -19,8 +19,8 @@ import guild.help
 from guild import cli
 from guild import cmd_impl_support
 
-def main(args, ctx):
-    modelfile = cmd_impl_support.cwd_modelfile(ctx)
+def main(args):
+    modelfile = cmd_impl_support.cwd_modelfile()
     if modelfile is None:
         cli.out("%s does not contain a modeldef, no help available")
         return

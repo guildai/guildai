@@ -51,21 +51,19 @@ class CLIGroup(click.Group):
     message="%(prog)s %(version)s"
 )
 @click.option(
-    "-C", "chdir", metavar="PATH",
-    help=("Run as if guild was started in PATH instead of the current "
-          "directory."))
+    "-C", "cwd", metavar="PATH",
+    help=("Use PATH as current directory for referencing modelfiles"))
 @click.option(
     "--debug", "log_level",
     help="Log more information during command.",
     flag_value=logging.DEBUG)
 
-@click.pass_context
 @click_util.use_args
 
-def main(ctx, args):
+def main(args):
     """Guild AI command line interface."""
     from . import main_impl
-    main_impl.main(args, ctx)
+    main_impl.main(args)
 
 main.add_command(check)
 main.add_command(help)

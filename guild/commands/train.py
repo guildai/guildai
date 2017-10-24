@@ -24,10 +24,9 @@ from . import run
 @click.argument("model", required=False)
 @run.run_params
 
-@click.pass_context
 @click_util.use_args
 
-def train(ctx, args):
+def train(args):
     """Train a model.
 
     Equivalent to running 'guild run [MODEL:]train [ARG...]'.
@@ -54,4 +53,4 @@ def train(ctx, args):
         args.args = (args.model,) + args.args
         args.model = None
     args.opspec = "%s:train" % args.model if args.model else "train"
-    run_impl.main(args, ctx)
+    run_impl.main(args)

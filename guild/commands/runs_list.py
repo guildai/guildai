@@ -23,10 +23,9 @@ from . import runs_support
 @click.command("list, ls")
 @runs_support.runs_list_options
 
-@click.pass_context
 @click_util.use_args
 
-def list_runs(ctx, args):
+def list_runs(args):
     """List runs.
 
     By default lists runs associated with models defined in the
@@ -41,4 +40,4 @@ def list_runs(ctx, args):
     listed.
     """
     from . import runs_impl
-    runs_impl.list_runs(args, ctx)
+    runs_impl.list_runs(args)

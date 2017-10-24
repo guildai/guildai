@@ -23,6 +23,7 @@ import time
 from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
+from guild import config
 from guild import namespace
 from guild import var
 
@@ -40,30 +41,30 @@ RUN_DETAIL = [
 
 ALL_RUNS_ARG = [":"]
 
-def list_runs(args, ctx):
-    runs = runs_for_args(args, ctx)
+def list_runs(args):
+    runs = runs_for_args(args)
     formatted = [
-        _format_run(run, ctx, i)
+        _format_run(run, i)
         for i, run in enumerate(runs)
     ]
     cols = ["index", "operation", "started", "status"]
     detail = RUN_DETAIL if args.verbose else None
     cli.table(formatted, cols=cols, detail=detail)
 
-def runs_for_args(args, ctx, force_deleted=False):
+def runs_for_args(args, force_deleted=False):
     return var.runs(
         _runs_root_for_args(args, force_deleted),
         sort=["-started"],
-        filter=_runs_filter(args, ctx))
+        filter=_runs_filter(args))
 
 def _runs_root_for_args(args, force_deleted):
     deleted = force_deleted or getattr(args, "deleted", False)
     return var.runs_dir(deleted=deleted)
 
-def _runs_filter(args, ctx):
+def _runs_filter(args):
     filters = []
     _apply_status_filter(args, filters)
-    _apply_model_filter(args, ctx, filters)
+    _apply_model_filter(args, filters)
     return var.run_filter("all", filters)
 
 def _apply_status_filter(args, filters):
@@ -81,20 +82,20 @@ def _apply_status_filter(args, filters):
         filters.append(
             var.run_filter("attr", "extended_status", status))
 
-def _apply_model_filter(args, ctx, filters):
-    cwd_modelfile = cmd_impl_support.cwd_modelfile_path(ctx)
+def _apply_model_filter(args, filters):
+    cwd_modelfile = cmd_impl_support.cwd_modelfile_path()
     if cwd_modelfile:
         if not args.all:
-            _notify_runs_limited(ctx)
+            _notify_runs_limited()
             modelfile_dir = os.path.abspath(os.path.dirname(cwd_modelfile))
             filters.append(_cwd_run_filter(modelfile_dir))
     if args.models:
         filters.append(_model_run_filter(args.models))
 
-def _notify_runs_limited(ctx):
+def _notify_runs_limited():
     cli.note(
         "Limiting runs to %s (use --all to include all)"
-        % cmd_impl_support.cwd_desc(ctx))
+        % cmd_impl_support.cwd_desc())
 
 def _cwd_run_filter(abs_cwd):
     def f(run):
@@ -150,14 +151,14 @@ def _model_run_filter(models):
         return any((op_info.model == m for m in models))
     return f
 
-def _format_run(run, ctx, index=None):
+def _format_run(run, index=None):
     op_info = _ensure_op_info(run)
     return {
         "id": run.id,
         "index": _format_run_index(run, index),
         "short_index": _format_run_index(run),
         "model": op_info.model,
-        "operation": _format_op_desc(op_info, ctx),
+        "operation": _format_op_desc(op_info),
         "pkg": _format_pkg_info(op_info.pkg_info),
         "status": run.extended_status,
         "pid": run.pid or "(not running)",
@@ -174,10 +175,10 @@ def _format_run_index(run, index=None):
     else:
         return "[%s]" % run.short_id
 
-def _format_op_desc(op_info, ctx):
+def _format_op_desc(op_info):
     pkg_type, pkg = op_info.pkg_info
     if pkg_type == "file":
-        return _format_modelfile_op(pkg, op_info.model, op_info.op_name, ctx)
+        return _format_modelfile_op(pkg, op_info.model, op_info.op_name)
     elif pkg_type == "dist":
         return _format_package_op(pkg, op_info.model, op_info.op_name)
     else:
@@ -186,9 +187,8 @@ def _format_op_desc(op_info, ctx):
             pkg_type, pkg)
         return "?"
 
-def _format_modelfile_op(path, model, op, ctx):
-    cwd = cmd_impl_support.cwd(ctx)
-    relpath = os.path.relpath(os.path.dirname(path), cwd)
+def _format_modelfile_op(path, model, op):
+    relpath = os.path.relpath(os.path.dirname(path), config.cwd)
     if relpath[0] != '.':
         relpath = os.path.join('.', relpath)
     return "%s/%s:%s" % (relpath, model, op)
@@ -234,12 +234,12 @@ def _format_attr_dict(d):
 
 def _runs_op(args, ctx, force_delete, preview_msg, confirm_prompt,
              no_runs_help, op_callback):
-    runs = runs_for_args(args, ctx, force_delete)
+    runs = runs_for_args(args, force_delete)
     runs_arg = args.runs or ALL_RUNS_ARG
     selected = selected_runs(runs, runs_arg, ctx)
     if not selected:
         _no_selected_runs_error(no_runs_help)
-    preview = [_format_run(run, ctx) for run in selected]
+    preview = [_format_run(run) for run in selected]
     if not args.yes:
         cli.out(preview_msg)
         cols = ["short_index", "operation", "started", "status"]
@@ -294,7 +294,7 @@ def _find_run_by_id(id_part, runs, ctx):
     if len(matches) == 0:
         _no_matching_run_error(id_part, ctx)
     elif len(matches) > 1:
-        _non_unique_run_id_error(matches, ctx)
+        _non_unique_run_id_error(matches)
     else:
         return matches[0]
 
@@ -304,9 +304,9 @@ def _no_matching_run_error(id_part, ctx):
         "Try 'guild runs list' for a list or '%s' for more information."
         % (id_part, click_util.cmd_help(ctx)))
 
-def _non_unique_run_id_error(matches, ctx):
+def _non_unique_run_id_error(matches):
     cli.out("'%s' matches multiple runs:\n", err=True)
-    formatted = [_format_run(run, ctx) for run in matches]
+    formatted = [_format_run(run) for run in matches]
     cols = ["id", "op", "started", "status"]
     cli.table(formatted, cols=cols, err=True)
 
@@ -359,15 +359,15 @@ def restore_runs(args, ctx):
     _runs_op(args, ctx, True, preview, confirm, no_runs_help, restore)
 
 def run_info(args, ctx):
-    runs = runs_for_args(args, ctx)
+    runs = runs_for_args(args)
     runspec = args.run or "0"
     selected = selected_runs(runs, [runspec], ctx)
     if len(selected) == 0:
         _no_selected_runs_error()
     elif len(selected) > 1:
-        _non_unique_run_id_error(selected, ctx)
+        _non_unique_run_id_error(selected)
     run = selected[0]
-    formatted = _format_run(run, ctx)
+    formatted = _format_run(run)
     out = cli.out
     for name in RUN_DETAIL:
         out("%s: %s" % (name, formatted[name]))

@@ -22,8 +22,8 @@ from guild import cmd_impl_support
 from guild import model_util
 from guild import util
 
-def main(args, ctx):
-    cmd_impl_support.init_model_path(ctx, args.all, "--all")
+def main(args):
+    cmd_impl_support.init_model_path(args.all, "--all")
     formatted = [_format_op(op, model) for op, model in _iter_ops()]
     filtered = [op for op in formatted if _filter_op(op, args)]
     cli.table(

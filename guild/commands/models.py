@@ -24,10 +24,9 @@ from guild import click_util
 @click.option("-a", "--all", help="Show all models.", is_flag=True)
 @click.option("-v", "--verbose", help="Show model details.", is_flag=True)
 
-@click.pass_context
 @click_util.use_args
 
-def models(ctx, args):
+def models(args):
     """Show available models.
 
     By default Guild will show models defined in the current directory
@@ -37,4 +36,4 @@ def models(ctx, args):
     the specified values.
     """
     from . import models_impl
-    models_impl.main(args, ctx)
+    models_impl.main(args)

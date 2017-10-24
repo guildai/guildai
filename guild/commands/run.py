@@ -45,10 +45,9 @@ def run_params(fn):
 @click.argument("opspec", metavar="[MODEL:]OPERATION")
 @run_params
 
-@click.pass_context
 @click_util.use_args
 
-def run(ctx, args):
+def run(args):
     """Run a model operation.
 
     By default Guild will try to run OPERATION for the default model
@@ -60,4 +59,4 @@ def run(ctx, args):
     model defined in a project.
     """
     from . import run_impl
-    run_impl.main(args, ctx)
+    run_impl.main(args)

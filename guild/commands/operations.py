@@ -24,10 +24,9 @@ from guild import click_util
 @click.option("-a", "--all", help="Include all operations.", is_flag=True)
 @click.option("-v", "--verbose", help="Show operation details.", is_flag=True)
 
-@click.pass_context
 @click_util.use_args
 
-def operations(ctx, args):
+def operations(args):
     """Show model operations.
 
     By default shows operations for the models in the current
@@ -37,4 +36,4 @@ def operations(ctx, args):
     names or models match the specified values.
     """
     from . import operations_impl
-    operations_impl.main(args, ctx)
+    operations_impl.main(args)
