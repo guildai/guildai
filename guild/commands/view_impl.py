@@ -20,7 +20,6 @@ import os
 import shutil
 import tempfile
 import threading
-import time
 
 import guild.cli
 import guild.util
@@ -129,12 +128,8 @@ def _handle_tensorboard_import_error(e):
     guild.cli.error()
 
 def _format_run_name(run):
-    op = run.get("op", "")
-    started = run.get("started", "")
-    formatted_started = time.strftime(
-        "%Y-%m-%d %H:%M:%S",
-        time.localtime(float(started)))
-    return "[%s] %s %s" % (run.short_id, op, formatted_started)
+    formatted = runs_impl.format_run(run)
+    return "%(index)s %(model)s:%(op_name)s %(started)s" % formatted
 
 def _open_url(url):
     guild.util.open_url(url)

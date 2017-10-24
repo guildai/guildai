@@ -44,7 +44,7 @@ ALL_RUNS_ARG = [":"]
 def list_runs(args):
     runs = runs_for_args(args)
     formatted = [
-        _format_run(run, i)
+        format_run(run, i)
         for i, run in enumerate(runs)
     ]
     cols = ["index", "operation", "started", "status"]
@@ -151,13 +151,14 @@ def _model_run_filter(models):
         return any((op_info.model == m for m in models))
     return f
 
-def _format_run(run, index=None):
+def format_run(run, index=None):
     op_info = _ensure_op_info(run)
     return {
         "id": run.id,
         "index": _format_run_index(run, index),
         "short_index": _format_run_index(run),
         "model": op_info.model,
+        "op_name": op_info.op_name,
         "operation": _format_op_desc(op_info),
         "pkg": _format_pkg_info(op_info.pkg_info),
         "status": run.extended_status,
@@ -239,7 +240,7 @@ def _runs_op(args, ctx, force_delete, preview_msg, confirm_prompt,
     selected = selected_runs(runs, runs_arg, ctx)
     if not selected:
         _no_selected_runs_error(no_runs_help)
-    preview = [_format_run(run) for run in selected]
+    preview = [format_run(run) for run in selected]
     if not args.yes:
         cli.out(preview_msg)
         cols = ["short_index", "operation", "started", "status"]
@@ -306,7 +307,7 @@ def _no_matching_run_error(id_part, ctx):
 
 def _non_unique_run_id_error(matches):
     cli.out("'%s' matches multiple runs:\n", err=True)
-    formatted = [_format_run(run) for run in matches]
+    formatted = [format_run(run) for run in matches]
     cols = ["id", "op", "started", "status"]
     cli.table(formatted, cols=cols, err=True)
 
@@ -367,7 +368,7 @@ def run_info(args, ctx):
     elif len(selected) > 1:
         _non_unique_run_id_error(selected)
     run = selected[0]
-    formatted = _format_run(run)
+    formatted = format_run(run)
     out = cli.out
     for name in RUN_DETAIL:
         out("%s: %s" % (name, formatted[name]))
