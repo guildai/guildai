@@ -22,9 +22,9 @@ import os
 import yaml
 
 import guild.plugin
-import guild.util
 
 from guild import resourcedef
+from guild import util
 
 # The order here should be based on priority of selection.
 NAMES = ["MODELS", "MODEL"]
@@ -254,7 +254,7 @@ def _coerce_op_data(data):
 
 def from_dir(path, filenames=None, use_plugins=True):
     filenames = NAMES if filenames is None else filenames
-    return guild.util.find_apply([
+    return util.find_apply([
         lambda: _try_from_dir_file(path, filenames),
         lambda: _try_from_plugin(path) if use_plugins else None,
         lambda: _raise_no_models(path)])

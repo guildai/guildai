@@ -17,7 +17,7 @@ from __future__ import division
 
 import guild
 import guild.model
-from .entry_point_util import EntryPointResources
+from guild.entry_point_util import EntryPointResources
 
 _namespaces = EntryPointResources("guild.namespaces", "namespace")
 

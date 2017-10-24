@@ -19,7 +19,7 @@ import logging
 
 import guild
 
-from .entry_point_util import EntryPointResources
+from guild.entry_point_util import EntryPointResources
 
 _plugins = EntryPointResources("guild.plugins", "plugin")
 

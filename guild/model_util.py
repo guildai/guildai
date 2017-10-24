@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import namespace
+from guild import namespace
 
 def model_fullname(model):
     pkg_name = namespace.apply_namespace(model.dist.project_name)
