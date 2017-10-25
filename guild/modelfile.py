@@ -96,10 +96,10 @@ class FlagHost(object):
                 return flag
         return None
 
-    def all_flag_values(self):
-        return dict(self._iter_all_flag_values())
+    def flag_values(self):
+        return dict(self._iter_flag_values())
 
-    def _iter_all_flag_values(self):
+    def _iter_flag_values(self):
         seen = set()
         for name in self._flag_vals:
             yield name, self._flag_vals[name]
@@ -210,7 +210,7 @@ class ModelDef(FlagHost):
         self.modelfile = modelfile
         self._data = data
         self.name = data.get("name")
-        self.description = data.get("description")
+        self.description = data.get("description", "").strip()
         self.visibility = data.get("visibility", Visibility.public)
         self.operations = _init_ops(data.get("operations", {}), self)
         self.resources = resourcedef.from_data(data.get("resources"), self.modelfile)
@@ -241,6 +241,7 @@ class OpDef(FlagHost):
         self.description = data.get("description")
         self.cmd = data.get("cmd")
         self.disabled_plugins = data.get("disabled-plugins", [])
+        self.requires = _coerce_string_list(data.get("requires"))
 
     def __repr__(self):
         return "<guild.modelfile.OpDef '%s'>" % self.fullname
@@ -261,6 +262,12 @@ def _coerce_op_data(data):
         }
     else:
         return data
+
+def _coerce_string_list(data):
+    if isinstance(data, list):
+        return [str(x) for x in data]
+    else:
+        return [str(data)]
 
 def from_dir(path, filenames=None, use_plugins=True):
     filenames = NAMES if filenames is None else filenames

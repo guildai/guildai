@@ -113,8 +113,13 @@ def _no_such_operation_error(name, model):
 def _init_op(opdef, model, args):
     _apply_flags(args, opdef)
     _apply_disable_plugins(args, opdef)
-    ref = "%s %s" % (model.reference, opdef.name)
-    return guild.op.from_opdef(opdef, ref)
+    return guild.op.Operation(opdef, _op_attrs(opdef, model))
+
+def _op_attrs(opdef, model):
+    return {
+        "flags": opdef.flag_values(),
+        "opref": "%s %s" % (model.reference, opdef.name)
+    }
 
 def _apply_flags(args, opdef):
     for arg in args.args:
@@ -147,12 +152,9 @@ def _print_env(op):
 
 def _maybe_run(op, model, args):
     if args.yes or _confirm_run(op, model):
-        _run(op)
-
-def _run(op):
-    result = op.run()
-    if result != 0:
-        cli.error(exit_status=result)
+        result = op.run()
+        if result != 0:
+            cli.error(exit_status=result)
 
 def _confirm_run(op, model):
     op_desc = "%s:%s" % (model.fullname, op.opdef.name)

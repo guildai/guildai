@@ -211,8 +211,8 @@ Here's the `mnist-intro` def:
     >>> intro_def.name
     'mnist-intro'
 
-    >>> print(intro_def.description)
-    None
+    >>> intro_def.description
+    ''
 
     >>> [(op.name, op.description) for op in intro_def.operations]
     [('evaluate', None), ('train', None)]

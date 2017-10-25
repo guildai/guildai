@@ -183,36 +183,36 @@ all of the flag values associated with a model or op definition.
 
 Flag values for `mnist-intro` model:
 
-    >>> pprint(mf["mnist-intro"].all_flag_values())
+    >>> pprint(mf["mnist-intro"].flag_values())
     {'batch-size': 100, 'epochs': 10, 'learning-rate': 0.001}
 
 Flag values for `evaluate` op of `mnist-intro` model:
 
-    >>> pprint(mf["mnist-intro"].get_op("evaluate").all_flag_values())
+    >>> pprint(mf["mnist-intro"].get_op("evaluate").flag_values())
     {'batch-size': 50000, 'epochs': 1, 'learning-rate': 0.001}
 
 Flag values for `mnist-expert` model:
 
-    >>> pprint(mf["mnist-expert"].all_flag_values())
+    >>> pprint(mf["mnist-expert"].flag_values())
     {'batch-size': 100, 'epochs': 5}
 
 Flag values for `train` op of `mnist-expert` model:
 
-    >>> pprint(mf["mnist-expert"].get_op("train").all_flag_values())
+    >>> pprint(mf["mnist-expert"].get_op("train").flag_values())
     {'batch-size': 100, 'epochs': 5}
 
 If we set the value of a flag defined on a model that is not defined
 by the model's operation, the operation inherits that value:
 
     >>> mf["mnist-intro"].set_flag_value("learning-rate", 0.002)
-    >>> pprint(mf["mnist-intro"].get_op("evaluate").all_flag_values())
+    >>> pprint(mf["mnist-intro"].get_op("evaluate").flag_values())
     {'batch-size': 50000, 'epochs': 1, 'learning-rate': 0.002}
 
 However, if the operation defines a flag value, setting the value on
 the operation's model doesn't modify the operation's flag value:
 
     >>> mf["mnist-intro"].set_flag_value("epochs", 4)
-    >>> pprint(mf["mnist-intro"].get_op("evaluate").all_flag_values())
+    >>> pprint(mf["mnist-intro"].get_op("evaluate").flag_values())
     {'batch-size': 50000, 'epochs': 1, 'learning-rate': 0.002}
 
 ### Operations

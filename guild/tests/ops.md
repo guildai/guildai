@@ -27,7 +27,7 @@ We'll also create a helper function that returns and instance of
 guild.op.Operation given arguments to ProjectOp:
 
     >>> def Operation(*args, **kw):
-    ...     return guild.op.from_opdef(ProjectOp(*args, **kw), "test")
+    ...     return guild.op.Operation(ProjectOp(*args, **kw))
 
 Note that the `"test"` argument is an operation reference, which is
 not used in our tests.
@@ -127,7 +127,7 @@ For our tests we'll use the train operation:
 We can get the flags defined for this op using the `all_flag_values`
 method:
 
-    >>> project_op.all_flag_values()
+    >>> project_op.flag_values()
     {}
 
 Our sample operations aren't initialized with any flags, so we expect
@@ -140,13 +140,13 @@ Let's add some flags, starting with the operation model. We'll use the
 
 And now enumerate flag values for the operation:
 
-    >>> project_op.all_flag_values()
+    >>> project_op.flag_values()
     {'epochs': 100}
 
 Let's define the same flag at the operation level:
 
     >>> project_op.set_flag_value("epochs", 200)
-    >>> project_op.all_flag_values()
+    >>> project_op.flag_values()
     {'epochs': 200}
 
 Here are a couple additional flags, one defined in the model and the
@@ -154,7 +154,7 @@ other in the operations:
 
     >>> project_op.set_flag_value("batch-size", 50)
     >>> project_op.modeldef.set_flag_value("learning-rate", 0.1)
-    >>> pprint(project_op.all_flag_values())
+    >>> pprint(project_op.flag_values())
     {'batch-size': 50,
      'epochs': 200,
      'learning-rate': 0.1}

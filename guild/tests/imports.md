@@ -65,6 +65,7 @@
     guild.commands.view
     guild.commands.view_impl
     guild.config
+    guild.deps
     guild.entry_point_util
     guild.help
     guild.log

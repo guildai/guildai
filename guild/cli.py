@@ -119,9 +119,11 @@ def _item_out(item, cols, col_info, detail, indent, max_width, err):
 def _format_detail_val(val, indent):
     if isinstance(val, list):
         if val:
-            indent_padding = " " * (indent + 4)
+            val_indent = " " * (indent + 4)
+            val_width = click.get_terminal_size()[0] - len(val_indent)
             return "\n" + "\n".join([
-                "%s%s" % (indent_padding, x) for x in val
+                click.wrap_text(x, val_width, val_indent, val_indent )
+                for x in val
             ])
         else:
             return " -"

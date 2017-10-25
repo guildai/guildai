@@ -50,6 +50,14 @@ py_library(
 )
 
 py_library(
+    name = "deps",
+    srcs = ["deps.py"],
+    deps = [
+        ":util",
+    ],
+)
+
+py_library(
     name = "entry_point_util",
     srcs = ["entry_point_util.py"],
     deps = [
@@ -125,8 +133,10 @@ py_library(
     name = "op",
     srcs = ["op.py"],
     deps = [
-        ":util",
+        ":deps",
         ":run",
+        ":util",
+        ":var",
     ],
     data = [
         ":op_main",
