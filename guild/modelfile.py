@@ -90,6 +90,12 @@ class FlagHost(object):
         self._parent = parent_host
         self._flag_vals = _init_flag_values(self.flags)
 
+    def get_flagdef(self, name):
+        for flag in self.flags:
+            if flag.name == name:
+                return flag
+        return None
+
     def all_flag_values(self):
         return dict(self._iter_all_flag_values())
 
@@ -127,7 +133,7 @@ def _init_flags(host_data, modelfile):
             _apply_flag_data(flags_data, modelfile, seen_includes, flags)
         else:
             raise ModelfileFormatError("invalid flag data: %s" % flags_data)
-    return flags
+    return [flags[name] for name in sorted(flags)]
 
 def _apply_flag_includes(includes, modelfile, seen_includes, flags):
     # This init scheme is a bit fiddly. We're accessing modelfile.data
@@ -157,31 +163,32 @@ def _apply_flag_data(data, modelfile, seen_includes, flags):
         if name == "$include":
             _apply_flag_includes(data[name].split(), modelfile, seen_includes, flags)
         else:
-            _apply_flag_def(FlagDef(data[name]), name, flags)
+            _apply_flag(FlagDef(name, data[name]), flags)
 
 def _includes_first(names):
     return sorted(names, key=lambda x: "\x00" if x == "$include" else x)
 
-def _apply_flag_def(flagdef, name, flags):
+def _apply_flag(flag, flags):
     try:
-        cur = flags[name]
+        cur = flags[flag.name]
     except KeyError:
-        flags[name] = flagdef
+        flags[flag.name] = flag
     else:
-        if flagdef.value is not None:
-            cur.value = flagdef.value
-        if flagdef.description is not None:
-            cur.description = flagdef.description
+        if flag.value is not None:
+            cur.value = flag.value
+        if flag.description is not None:
+            cur.description = flag.description
 
 def _init_flag_values(flagdefs):
     return {
-        name: flagdef.value
-        for name, flagdef in flagdefs.items()
+        flag.name: flag.value
+        for flag in flagdefs
     }
 
 class FlagDef(object):
 
-    def __init__(self, data):
+    def __init__(self, name, data):
+        self.name = name
         if isinstance(data, dict):
             self.value = data.get("value")
             self.description = data.get("description")

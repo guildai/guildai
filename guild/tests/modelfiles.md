@@ -93,14 +93,19 @@ definitions from one model into another model. Refer to
 [samples/projects/mnist/MODELS](samples/projects/mnist/MODELS) for
 details on how this is structured.
 
-We can enumerate flags at both the model and operation level. Let's
-first look at the flags defined for the `common` model, which is a
+We'll use a helper function to print the flagdefs:
+
+    >>> def print_flagdefs(flags):
+    ...   for flag in flags:
+    ...     print("%s: %s (default %r)"
+    ...           % (flag.name, flag.description, flag.value))
+
+Let's look at the flags defined for the `common` model, which is a
 private modeldef that the two `mnist` models reference.
 
-    >>> sorted([(name, flag.value, flag.description)
-    ...         for name, flag in mf["common"].flags.items()])
-    [('batch-size', 100, 'Number of images per batch'),
-     ('epochs', 5, 'Number of epochs to train')]
+    >>> print_flagdefs(mf["common"].flags)
+    batch-size: Number of images per batch (default 100)
+    epochs: Number of epochs to train (default 5)
 
 Flag *values* are distinct from flag *definitions*. The value
 associated with a flag definition is used as the initial flag
@@ -117,7 +122,7 @@ These values can be modified without effecting the flag definitions.
     >>> mf["common"].set_flag_value("epochs", 3)
     >>> mf["common"].get_flag_value("epochs")
     3
-    >>> mf["common"].flags["epochs"].value
+    >>> mf["common"].get_flagdef("epochs").value
     5
 
 The `mnist-expert` model has the following `flags` spec:
@@ -134,10 +139,9 @@ be included in the referencing model.
 
 Here are the flag defs for `mnist-expert`:
 
-    >>> sorted([(name, flag.value, flag.description)
-    ...         for name, flag in mf["mnist-expert"].flags.items()])
-    [('batch-size', 100, 'Number of images per batch'),
-     ('epochs', 5, 'Number of epochs to train')]
+    >>> print_flagdefs(mf["mnist-expert"].flags)
+    batch-size: Number of images per batch (default 100)
+    epochs: Number of epochs to train (default 5)
 
 In this case the `mnist-expert` model included all of the `common`
 flag definitions without redefining any.
@@ -154,11 +158,10 @@ value of one and adds another. Here's the flags spec for that model:
 
 And the corresponding flag defs:
 
-    >>> sorted([(name, flag.value, flag.description)
-    ...         for name, flag in mf["mnist-intro"].flags.items()])
-    [('batch-size', 100, 'Number of images per batch'),
-     ('epochs', 10, 'Number of epochs to train'),
-     ('learning-rate', 0.001, 'Learning rate for training')]
+    >>> print_flagdefs(mf["mnist-intro"].flags)
+    batch-size: Number of images per batch (default 100)
+    epochs: Number of epochs to train (default 10)
+    learning-rate: Learning rate for training (default 0.001)
 
 Note that while the value for `epochs` is redefined, the original flag
 description is not.
@@ -167,9 +170,9 @@ The third set of flags defined in the modelfile is associated with the
 `evaluate` operation of the `intro` model.
 
     >>> eval_op = mf["mnist-intro"].get_op("evaluate")
-    >>> sorted([(name, flag.value, flag.description)
-    ...         for name, flag in eval_op.flags.items()])
-    [('batch-size', 50000, None), ('epochs', 1, None)]
+    >>> print_flagdefs(eval_op.flags)
+    batch-size: None (default 50000)
+    epochs: None (default 1)
 
 In this case the operation did not include flagdefs and did not
 provide descriptions for its flags, so those are none.
