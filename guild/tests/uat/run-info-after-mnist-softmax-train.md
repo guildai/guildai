@@ -43,13 +43,6 @@ We can optionally show files, flags, and env for a run:
       batch-size: 100
       epochs: 1
     files:
-      /.../.guild/attrs/cmd
-      /.../.guild/attrs/env
-      /.../.guild/attrs/exit_status
-      /.../.guild/attrs/flags
-      /.../.guild/attrs/opref
-      /.../.guild/attrs/started
-      /.../.guild/attrs/stopped
       /.../train/events.out.tfevents...
       /.../validate/events.out.tfevents...
     <exit 0>

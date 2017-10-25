@@ -124,8 +124,13 @@ class Run(object):
             f.write(encoded)
             f.close()
 
-    def iter_files(self, include_dirs=False):
+    def iter_files(self, all_files=False, include_dirs=False):
         for root, dirs, files in os.walk(self.path):
+            if not all_files and root == self.path:
+                try:
+                    dirs.remove(".guild")
+                except ValueError:
+                    pass
             if include_dirs:
                 for name in dirs:
                     yield os.path.join(root, name)
