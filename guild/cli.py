@@ -82,8 +82,11 @@ def _format_data(data, cols):
         item = {}
         formatted.append(item)
         for col in cols:
-            item[col] = str(item0.get(col, ""))
+            item[col] = _str_or_list(item0.get(col, ""))
     return formatted
+
+def _str_or_list(x):
+    return x if isinstance(x, list) else str(x)
 
 def _col_info(data, cols):
     info = {}
@@ -110,7 +113,20 @@ def _item_out(item, cols, col_info, detail, indent, max_width, err):
     click.echo(err=err)
     for key in (detail or []):
         click.echo(indent_padding, nl=False, err=err)
-        click.echo("  %s: %s" % (key, item[key]), err=err)
+        formatted = _format_detail_val(item[key], indent)
+        click.echo("  %s:%s" % (key, formatted), err=err)
+
+def _format_detail_val(val, indent):
+    if isinstance(val, list):
+        if val:
+            indent_padding = " " * (indent + 4)
+            return "\n" + "\n".join([
+                "%s%s" % (indent_padding, x) for x in val
+            ])
+        else:
+            return " -"
+    else:
+        return (" %s" % val)
 
 def _pad_col_val(val, col, col_info):
     return val.ljust(col_info[col]["width"] + TABLE_COL_SPACING)
