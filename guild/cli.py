@@ -116,8 +116,10 @@ def _pad_col_val(val, col, col_info):
     return val.ljust(col_info[col]["width"] + TABLE_COL_SPACING)
 
 def confirm(prompt, default=False):
-    click.echo(prompt, nl=False)
-    click.echo(" %s " % ("(Y/n)" if default else "(y/N)"), nl=False)
+    click.echo(prompt, nl=False, err=True)
+    click.echo(
+        " %s " % ("(Y/n)" if default else "(y/N)"),
+        nl=False, err=True)
     c = input()
     yes_vals = ["y", "yes"]
     if default:
