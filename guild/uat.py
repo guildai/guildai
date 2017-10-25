@@ -137,7 +137,7 @@ def _run(cmd, quiet=False, ignore=None, timeout=300):
         print(out)
         print("<exit %i>" % exit_code)
 
-class _kill_after(threading.Thread):
+class _kill_after(object):
 
     def __init__(self, p, timeout):
         self._p = p
