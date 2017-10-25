@@ -43,6 +43,7 @@ will modify the acceptance test.
 - [models-after-mnist-install](models-after-mnist-install.md)
 - [ops-after-mnist-install](ops-after-mnist-install.md)
 - [train-multiple-matches](train-multiple-matches.md)
+- [train-mnist-softmax-preview](train-mnist-softmax-preview.md)
 - [train-mnist-softmax](train-mnist-softmax.md)
 - [runs-after-mnist-softmax-train](runs-after-mnist-softmax-train.md)
 - [run-info-after-mnist-softmax-train](run-info-after-mnist-softmax-train.md)

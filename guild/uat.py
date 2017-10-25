@@ -19,9 +19,11 @@ from __future__ import print_function
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
+import threading
 
 import guild.test
 
@@ -101,7 +103,7 @@ def _reset_cwd():
 def _cd(path):
     globals()["_cwd"] = path
 
-def _run(cmd, quiet=False, ignore=None):
+def _run(cmd, quiet=False, ignore=None, timeout=300):
     cmd = "set -eu && %s" % cmd
     cmd_env = {}
     cmd_env.update(_global_vars())
@@ -109,29 +111,46 @@ def _run(cmd, quiet=False, ignore=None):
     cmd_env["PATH"] = os.path.pathsep.join([
         os.path.join(WORKSPACE, "bin"),
         GUILD_PATH,
+        "/bin",
         "/usr/bin",
     ])
     cmd_env["COLUMNS"] = "999"
     cmd_env["LANG"] = os.getenv("LANG", "")
     cmd_cwd = WORKSPACE if not _cwd else os.path.join(WORKSPACE, _cwd)
-    try:
-        out = subprocess.check_output(
-            [cmd],
-            shell=True,
-            env=cmd_env,
-            cwd=cmd_cwd,
-            stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        out = e.output
-        exit_code = e.returncode
-    else:
-        exit_code = 0
+    p = subprocess.Popen(
+        [cmd],
+        shell=True,
+        env=cmd_env,
+        cwd=cmd_cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        preexec_fn=os.setsid)
+    with _kill_after(p, timeout):
+        exit_code = p.wait()
+        out = p.stdout.read()
+        #out = p.communicate()[0]
+        #exit_code = p.returncode
     if not quiet or exit_code != 0:
         out = str(out.strip().decode("utf-8"))
         if ignore:
             out = _strip_lines(out, ignore)
         print(out)
         print("<exit %i>" % exit_code)
+
+class _kill_after(threading.Thread):
+
+    def __init__(self, p, timeout):
+        self._p = p
+        self._timer = threading.Timer(timeout, self._kill)
+
+    def _kill(self):
+        os.killpg(os.getpgid(self._p.pid), signal.SIGKILL)
+
+    def __enter__(self):
+        self._timer.start()
+
+    def __exit__(self, _type, _val, _tb):
+        self._timer.cancel()
 
 def _strip_lines(out, patterns):
     if isinstance(patterns, str):
