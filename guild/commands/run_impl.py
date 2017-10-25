@@ -171,7 +171,7 @@ def _confirm_run(op, model):
 
 def _op_flags(op):
     flags = []
-    args = op.cmd_args
+    args = _expand_option_values(op.cmd_args)
     i = 1
     while i < len(args):
         cur_arg = args[i]
@@ -184,6 +184,15 @@ def _op_flags(op):
             else:
                 flags.append((cur_arg[2:], None))
     return flags
+
+def _expand_option_values(args):
+    expanded = []
+    for arg in args:
+        if arg[:2] == "--":
+            expanded.extend(arg.split("=", 1))
+        else:
+            expanded.append(arg)
+    return expanded
 
 def _format_op_flags(flags):
     return "\n".join(["  %s" % _format_flag(name, val)
