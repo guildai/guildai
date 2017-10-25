@@ -44,22 +44,27 @@ class ConsoleFormatter(click.HelpFormatter):
 class RestFormatter(click.HelpFormatter):
 
     _in_section = False
+    _heading_chars = "#=^-`"
+    _indent_level = 0
 
     def start_section(self, val):
         if self._in_section:
             self.write_paragraph()
         self.write_text(val)
-        self.write_text("=" * len(val))
+        self.write_text(self._heading_char() * len(val))
         self.write_paragraph()
         self._in_section = True
 
+    def _heading_char(self):
+        assert self._indent_level < len(self._heading_chars)
+        return self._heading_chars[self._indent_level]
+
     def write_heading(self, val):
         self.write_text(val)
-        self.write_text("-" * len(val))
+        self.write_text(self._heading_char() * len(val))
 
     def write_subheading(self, val):
-        self.write_text(val)
-        self.write_text("`" * len(val))
+        self.write_heading(val)
 
     def write_description(self, val):
         self.write_text("*%s*" % val)
@@ -74,10 +79,10 @@ class RestFormatter(click.HelpFormatter):
             super(RestFormatter, self).dedent()
 
     def indent(self):
-        pass
+        self._indent_level += 1
 
     def dedent(self):
-        pass
+        self._indent_level -= 1
 
 def modelfile_console_help(modelfile, refs):
     out = ConsoleFormatter()
@@ -93,14 +98,15 @@ def _write_console_help_overview(modelfile, out):
     out.write_text(textwrap.dedent(
         """
 
-        You are viewing help models defined in %s.
+        You are viewing help for models defined in %s.
 
-        To run an operation, use 'guild run MODEL:OPERATION' where
+        To run a model operation use 'guild run MODEL:OPERATION' where
         MODEL is one of the model names listed below and OPERATION is
         an associated operation.
 
         You may set operation flags using 'FLAG=VALUE' arguments to
-        the run command.
+        the run command. Refer to the operations below for a list of
+        supported flags. Model flags apply to all operations.
 
         For more help, try 'guild run --help' or 'guild --help'.
 
@@ -140,7 +146,9 @@ def _write_model(m, out):
     out.write_paragraph()
     _write_operations(m, out)
     out.write_paragraph()
-    _write_flags(m, out)
+    _write_flags(
+        m.flags, "Model flags", out,
+        "No flags defined at the model level")
     out.dedent()
 
 def _write_operations(m, out):
@@ -148,31 +156,43 @@ def _write_operations(m, out):
     out.write_paragraph()
     out.indent()
     if m.operations:
-        out.write_dl([
-            (op.name, op.description or "")
-            for op in m.operations])
+        for i, op in enumerate(m.operations):
+            if i > 0:
+                out.write_paragraph()
+            _write_operation(op, out)
     else:
-        out.write_text("There are no operations defined for this model.")
+        out.write_text(
+            "There are no operations defined for this model.")
     out.dedent()
 
-def _write_flags(m, out):
-    out.write_subheading("Flags")
+def _write_operation(op, out):
+    out.write_heading(op.name)
+    out.indent()
+    if op.description:
+        out.write_paragraph()
+        out.write_description(op.description)
+    if op.flags:
+        if op.description:
+            out.write_paragraph()
+        _write_flags(op.flags, "Flags", out)
+    out.dedent()
+
+def _write_flags(flags, heading, out, no_flags_msg=None):
+    out.write_subheading(heading)
     out.write_paragraph()
     out.indent()
-    if m.flags:
-        out.write_dl([
-            (name, _flag_desc(flag))
-            for name, flag in m.flags.items()])
+    if flags:
+        out.write_dl([(flag.name, _flag_desc(flag)) for flag in flags])
     else:
-        out.write_text("There are no flags defined for this model.")
+        if no_flags_msg:
+            out.write_description(no_flags_msg)
     out.dedent()
 
 def _flag_desc(flag):
-    desc = flag.description or ""
-    if flag.value is None:
-        return desc
-    else:
-        return "%s (default is %s)" % (desc, flag.value)
+    desc = flag.description
+    if flag.value is not None:
+        desc += " (default is %r)" % flag.value
+    return desc
 
 def _write_references(refs, out):
     for i, (name, val) in enumerate(refs):
