@@ -147,9 +147,12 @@ def _print_env(op):
 
 def _maybe_run(op, model, args):
     if args.yes or _confirm_run(op, model):
-        result = op.run()
-        if result != 0:
-            cli.error(exit_status=result)
+        _run(op)
+
+def _run(op):
+    result = op.run()
+    if result != 0:
+        cli.error(exit_status=result)
 
 def _confirm_run(op, model):
     op_desc = "%s:%s" % (model.fullname, op.opdef.name)
