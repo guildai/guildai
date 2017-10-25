@@ -23,7 +23,7 @@ from guild.entry_point_util import EntryPointResources
 
 _plugins = EntryPointResources("guild.plugins", "plugin")
 
-class NotSupported(Exception):
+class NotSupported(TypeError):
     pass
 
 class Plugin(object):

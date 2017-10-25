@@ -21,7 +21,8 @@ import os
 import sys
 
 import guild.log
-import guild.plugin
+
+# Avoid expensive imports here as load times directly add to runs.
 
 def main():
     _init_logging()
@@ -51,13 +52,18 @@ def _apply_plugins():
             _apply_plugin(name)
 
 def _apply_plugin(name):
-    plugin = guild.plugin.for_name(name)
+    import guild.plugin
+    plugin = _plugin_for_name(name)
     plugin.patch_env()
+
+def _plugin_for_name(name):
+    from guild import plugin # expensive
+    return plugin.for_name(name)
 
 def _try_plugin(plugin_op, args):
     plugin_name, op_spec = _parse_plugin_op(plugin_op)
     try:
-        plugin = guild.plugin.for_name(plugin_name)
+        plugin = _plugin_for_name(plugin_name)
     except LookupError:
         _error("plugin '%s' not available" % plugin_name)
     else:
@@ -72,7 +78,7 @@ def _parse_plugin_op(plugin_op):
 def _run_plugin_op(plugin, op_spec, args):
     try:
         plugin.op_for_spec(op_spec, args)
-    except guild.plugin.NotSupported:
+    except TypeError:
         _error(
             "plugin '%s' does not support operation '%s'"
             % (plugin.name, op_spec))
