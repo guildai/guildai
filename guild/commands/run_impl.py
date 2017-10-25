@@ -19,7 +19,6 @@ import guild.op
 
 from guild import cli
 from guild import cmd_impl_support
-from guild import model_util
 
 def main(args):
     cmd_impl_support.init_model_path()
@@ -70,7 +69,7 @@ def _is_default_cwd_model(model, cwd_modeldef):
 def _match_model_ref(model_ref, model):
     if '/' in model_ref:
         # If user includes a '/' assume it's a complete name
-        return model_ref == model_util.model_fullname(model)
+        return model_ref == model.fullname
     else:
         # otherwise treat as a match term
         return model_ref in model.name
@@ -91,7 +90,7 @@ def _no_model_error(model_ref):
 def _multiple_models_error(model_ref, models):
     models_list = "\n".join([
         "  %s" % name
-        for name in sorted([model_util.model_fullname(m) for m in models])
+        for name in sorted([m.fullname for m in models])
     ])
     cli.error(
         "there are multiple models that match '%s'\n"
@@ -153,7 +152,7 @@ def _maybe_run(op, model, args):
             cli.error(exit_status=result)
 
 def _confirm_run(op, model):
-    op_desc = model_util.op_fullname(model, op)
+    op_desc = "%s:%s" % (model.fullname, op.name)
     flags = _op_flags(op)
     if flags:
         prompt = (

@@ -18,7 +18,6 @@ from __future__ import division
 from guild import cli
 from guild import cmd_impl_support
 from guild import model
-from guild import model_util
 from guild import util
 
 def main(args):
@@ -34,7 +33,7 @@ def main(args):
 def _format_model(model):
     modeldef = model.modeldef
     return {
-        "fullname": model_util.model_fullname(model),
+        "fullname": model.fullname,
         "name": modeldef.name,
         "source": modeldef.modelfile.src,
         "description": modeldef.description or "",

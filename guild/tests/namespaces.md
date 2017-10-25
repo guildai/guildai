@@ -151,11 +151,11 @@ considered a member:
 
 Let's create a modefile project name. We'll need a helper:
 
-    >>> from guild.model import escape_project_name
+    >>> from guild.model import _escape_project_name
 
 And our project name:
 
-    >>> modelfile_project = ".modelfile." + escape_project_name("foo/bar")
+    >>> modelfile_project = ".modelfile." + _escape_project_name("foo/bar")
 
 Let's test it!
 

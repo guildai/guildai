@@ -71,7 +71,6 @@
     guild.main
     guild.main_bootstrap
     guild.model
-    guild.model_util
     guild.modelfile
     guild.namespace
     guild.op

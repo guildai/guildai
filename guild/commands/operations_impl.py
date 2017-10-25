@@ -19,7 +19,6 @@ import guild.model
 
 from guild import cli
 from guild import cmd_impl_support
-from guild import model_util
 from guild import util
 
 def main(args):
@@ -38,11 +37,10 @@ def _iter_ops():
             yield op, model
 
 def _format_op(op, model):
-    model_fullname = model_util.model_fullname(model)
     return {
-        "fullname": "%s:%s" % (model_fullname, op.name),
+        "fullname": "%s:%s" % (model.fullname, op.name),
         "description": op.description or "",
-        "model": model_fullname,
+        "model": model.fullname,
         "name": op.name,
         "cmd": op.cmd,
     }

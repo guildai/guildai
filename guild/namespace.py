@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 import guild
-import guild.model
 from guild.entry_point_util import EntryPointResources
 
 _namespaces = EntryPointResources("guild.namespaces", "namespace")
@@ -58,7 +57,7 @@ class Namespace(object):
         """
         raise NotImplementedError()
 
-class pypi(Namespace):
+class PypiNamespace(Namespace):
 
     INDEX_INSTALL_URL = "https://pypi.python.org/simple"
 
@@ -68,31 +67,15 @@ class pypi(Namespace):
     def is_project_name_member(self, name):
         return Membership.maybe, self.name + "/" + name
 
-class gpkg(pypi):
+class GpkgNamespace(Namespace):
 
     def pip_install_info(self, req):
-        return ("gpkg." + req, [self.INDEX_INSTALL_URL])
+        return ("gpkg." + req, [PypiNamespace.INDEX_INSTALL_URL])
 
     @staticmethod
     def is_project_name_member(name):
         if name.startswith("gpkg."):
             return Membership.yes, name[5:]
-        else:
-            return Membership.no, None
-
-class modelfile(Namespace):
-
-    @staticmethod
-    def pip_install_info(_name):
-        raise TypeError("modelfiles cannot be installed using pip")
-
-    @staticmethod
-    def is_project_name_member(name):
-        if name.startswith(".modelfile."):
-            parts = name[11:].split("/", 1)
-            project_name = guild.model.unescape_project_name(parts[0])
-            rest = "/" + parts[1] if len(parts) == 2 else ""
-            return Membership.yes, project_name + rest
         else:
             return Membership.no, None
 

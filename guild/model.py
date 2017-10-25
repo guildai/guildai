@@ -22,6 +22,7 @@ import pkg_resources
 
 from guild import entry_point_util
 from guild import modelfile
+from guild import namespace
 
 _models = entry_point_util.EntryPointResources("guild.models", "model")
 
@@ -31,9 +32,17 @@ class Model(object):
         self.name = ep.name
         self.dist = ep.dist
         self.modeldef = _modeldef_for_dist(ep.name, ep.dist)
+        self._fullname = None # lazy
 
     def __repr__(self):
         return "<guild.model.Model '%s'>" % self.name
+
+    @property
+    def fullname(self):
+        if self._fullname is None:
+            pkg_name = namespace.apply_namespace(self.dist.project_name)
+            self._fullname = "%s/%s" % (pkg_name, self.name)
+        return self._fullname
 
     @property
     def reference(self):
@@ -129,7 +138,7 @@ def _modelfile_project_name(modelfile):
 
     ESCAPED_MODELFILE_PATH is a 'safe' project name (i.e. will not be
     modified in a call to `pkg_resources.safe_name`) that, when
-    unescaped using `unescape_project_name`, is the relative path of
+    unescaped using `_unescape_project_name`, is the relative path of
     the directory containing the modelfile. The modefile name itself
     (e.g. 'MODEL' or 'MODELS') is not contained in the path.
 
@@ -140,15 +149,15 @@ def _modelfile_project_name(modelfile):
     pkg_path = os.path.relpath(os.path.dirname(modelfile.src))
     if pkg_path[0] != ".":
         pkg_path = os.path.join(".", pkg_path)
-    safe_path = escape_project_name(pkg_path)
+    safe_path = _escape_project_name(pkg_path)
     return ".modelfile.%s" % safe_path
 
-def escape_project_name(name):
+def _escape_project_name(name):
     """Escapes name for use as a valie pkg_resources project name."""
     return str(base64.b16encode(name.encode("utf-8")).decode("utf-8"))
 
-def unescape_project_name(escaped_name):
-    """Unescapes names escaped with `escape_project_name`."""
+def _unescape_project_name(escaped_name):
+    """Unescapes names escaped with `_escape_project_name`."""
     return str(base64.b16decode(escaped_name).decode("utf-8"))
 
 def _modelfile_entry_map(modelfile, dist):
@@ -210,6 +219,22 @@ def _model_finder(_importer, path, _only=False):
             path, e)
     else:
         yield ModelfileDistribution(models)
+
+class ModelfileNamespace(namespace.Namespace):
+
+    @staticmethod
+    def pip_install_info(_name):
+        raise TypeError("modelfiles cannot be installed using pip")
+
+    @staticmethod
+    def is_project_name_member(name):
+        if name.startswith(".modelfile."):
+            parts = name[11:].split("/", 1)
+            project_name = _unescape_project_name(parts[0])
+            rest = "/" + parts[1] if len(parts) == 2 else ""
+            return namespace.Membership.yes, project_name + rest
+        else:
+            return namespace.Membership.no, None
 
 def path():
     return _models.path()

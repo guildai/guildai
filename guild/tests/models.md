@@ -118,9 +118,9 @@ distinguish them from standard distributions:
 The part of the project name that follows the '.modelfile.' prefix is
 an escaped relative directory that contains the model's
 modelfile. This value can be unescaped using
-`model.unescape_project_name`:
+`model._unescape_project_name`.
 
-    >>> intro_pkg_path = guild.model.unescape_project_name(
+    >>> intro_pkg_path = guild.model._unescape_project_name(
     ...                    intro.dist.project_name[11:])
     >>> intro_pkg_path
     '.../samples/projects/mnist'
@@ -141,16 +141,10 @@ associated model definition.
     >>> cnn.name == cnn.modeldef.name == "mnist-cnn"
     True
 
-While models themselves are not associated with Guild packages, we can
-use helper functions to apply package formatting to their names.
+Models also provide a `fullname` attribute that applies namespaces to
+the model distribution project name:
 
-    >>> from guild import model_util
-
-The function `model_fullname` applies namespaces to the model's
-distribution project name along with the model name to provide a fully
-qualified, user facing name for the model:
-
-    >>> model_util.model_fullname(intro)
+    >>> intro.fullname
     '.../samples/projects/mnist/mnist-intro'
 
 Models from local modelfiles (i.e. not installed from standard Python
@@ -158,7 +152,7 @@ packages) are named with a starting '.' and a path leading to the
 model name. Paths in these names are always relative to the current
 working directory.
 
-    >>> model_util.model_fullname(cnn)
+    >>> cnn.fullname
     'mnist/mnist-cnn'
 
 Models from installed packages are named with their Guild package
