@@ -72,7 +72,9 @@ def _profile_main():
         _main()
     finally:
         p.disable()
-        _, tmp = tempfile.mkstemp(".profile")
+        _, tmp = tempfile.mkstemp(prefix="guild-profile-")
         sys.stderr.write("Writing profile stats to %s\n" % tmp)
         p.dump_stats(tmp)
-        sys.stderr.write("Use 'python -m pstats %s' to view stats\n" % tmp)
+        sys.stderr.write(
+            "Use 'python -m pstats %s' or 'snakeviz %s' "
+            "to view stats\n" % (tmp, tmp))
