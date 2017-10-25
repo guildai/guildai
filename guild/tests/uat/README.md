@@ -11,6 +11,7 @@ will modify the acceptance test.
 
 - [fresh-install](fresh-install.md)
 - [install-required-pip-packages](install-required-pip-packages.md)
+- [guild-version](guild-version.md)
 - [check-without-tensorflow](check-without-tensorflow.md)
 
 ## Working Guild install
