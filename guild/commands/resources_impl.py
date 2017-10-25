@@ -31,7 +31,7 @@ def main(args):
 def _format_resource(res):
     resdef = res.resourcedef
     return {
-        "name": resdef.name,
+        "name": res.fullname,
         "description": resdef.description or "",
         "sources": "\n".join([
             "  %s\n" % source

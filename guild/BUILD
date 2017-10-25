@@ -193,6 +193,8 @@ py_library(
     srcs = ["resource.py"],
     deps = [
         ":entry_point_util",
+        ":model",
+        ":namespace",
     ],
 )
 

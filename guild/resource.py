@@ -14,6 +14,7 @@
 
 from guild import entry_point_util
 from guild.model import ModelfileDistribution
+from guild import namespace
 
 _resources = entry_point_util.EntryPointResources("guild.resources", "resource")
 
@@ -23,6 +24,17 @@ class Resource(object):
         self.name = ep.name
         self.dist = ep.dist
         self.resourcedef = _resourcedef_for_dist(ep.name, ep.dist)
+        self._fullname = None # lazy
+
+    def __repr__(self):
+        return "<guild.resource.Resource '%s'>" % self.name
+
+    @property
+    def fullname(self):
+        if self._fullname is None:
+            package_name = namespace.apply_namespace(self.dist.project_name)
+            self._fullname = "%s/%s" % (package_name, self.name)
+        return self._fullname
 
 def _resourcedef_for_dist(name, dist):
     if isinstance(dist, ModelfileDistribution):
