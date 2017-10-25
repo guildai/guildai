@@ -92,14 +92,19 @@ def _handle_system_exit(e):
         sys.stderr.write("\n")
         sys.exit(1)
 
-def _try_module(module_name, _args):
+def _try_module(module_name, args):
     logging.debug("finding module '%s'", module_name)
     try:
         module_info = imp.find_module(module_name)
     except ImportError as e:
         _error(str(e))
     else:
+        _set_argv_for_module(module_info, args)
         _load_module_as_main(module_info)
+
+def _set_argv_for_module(module_info, args):
+    _, path, _ = module_info
+    sys.argv = [path] + args
 
 def _load_module_as_main(module_info):
     f, path, desc = module_info
