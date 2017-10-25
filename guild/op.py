@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -136,11 +137,19 @@ def from_opdef(opdef, reference):
 
 def _op_cmd_args(opdef, flags):
     python_args = [_python_cmd(opdef), "-um", "guild.op_main"]
-    cmd_args = _cmd_args(opdef)
+    cmd_args = _split_cmd(opdef.cmd)
     if not cmd_args:
         raise InvalidCmd(opdef.cmd)
-    flag_args = _flag_args(flags)
+    flag_args = _flag_args(flags, cmd_args)
     return python_args + cmd_args + flag_args
+
+def _split_cmd(cmd):
+    if isinstance(cmd, str):
+        return shlex.split(cmd)
+    elif isinstance(cmd, list):
+        return cmd
+    else:
+        raise ValueError(cmd)
 
 def _python_cmd(_opdef):
     # TODO: This is an important operation that should be controlled
@@ -148,23 +157,24 @@ def _python_cmd(_opdef):
     # not by whatever Python runtime is configured in the user env.
     return "python"
 
-def _cmd_args(opdef):
-    cmd = opdef.cmd
-    if isinstance(cmd, str):
-        return shlex.split(cmd)
-    elif isinstance(cmd, list):
-        return cmd
-    else:
-        raise AssertionError(cmd)
+def _flag_args(flags, cmd_args):
+    flag_args = []
+    cmd_options = _cmd_options(cmd_args)
+    for name in sorted(flags):
+        value = flags[name]
+        if name in cmd_options:
+            logging.warning(
+                "ignoring flag '%s = %s' because it's shadowed "
+                "in the operation cmd", name, value)
+            continue
+        flag_args.extend(_cmd_option_args(name, value))
+    return flag_args
 
-def _flag_args(flags):
-    return [
-        arg for args in
-        [_opt_args(name, flags[name]) for name in sorted(flags)]
-        for arg in args
-    ]
+def _cmd_options(args):
+    p = re.compile("--([^=]+)")
+    return [m.group(1) for m in [p.match(arg) for arg in args] if m]
 
-def _opt_args(name, val):
+def _cmd_option_args(name, val):
     opt = "--%s" % name
     return [opt] if val is None else [opt, str(val)]
 

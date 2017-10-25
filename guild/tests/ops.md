@@ -60,29 +60,56 @@ Command specs cannot be empty:
 ## Flag args
 
 Flags are defined in MODEL files and provided as command line
-arguments to the run command. `flag_args` returns a list of command
+arguments to the run command. `_flag_args` returns a list of command
 line arg for a map of flag values.
 
 Empty flags:
 
-    >>> guild.op._flag_args({})
+    >>> guild.op._flag_args({}, [])
     []
 
 Single flag:
 
-    >>> guild.op._flag_args({"epochs": 100})
+    >>> guild.op._flag_args({"epochs": 100}, [])
     ['--epochs', '100']
 
 Multiple flags are returned in sorted order:
 
-    >>> guild.op._flag_args({"epochs": 100, "data": "my-data"})
+    >>> guild.op._flag_args({"epochs": 100, "data": "my-data"}, [])
     ['--data', 'my-data', '--epochs', '100']
 
 Flag options (i.e. options with implicit values) may be specified with
 None values:
 
-    >>> guild.op._flag_args({"test": None, "batch-size": 50})
+    >>> guild.op._flag_args({"test": None, "batch-size": 50}, [])
     ['--batch-size', '50', '--test']
+
+The second argument to the `_flag_args` function is a list of command
+arguments. The function uses this list to check for shadowed flags. A
+shadowed flag is a flag that is defined directly in the operation
+`cmd` spec as an option. Guild prevents redefining command options
+with flags.
+
+Consider an operation definition that looks like this:
+
+    operation:
+      train:
+        cmd: train --epochs=100
+
+The cmd arg in this case are:
+
+    >>> cmd_args = ["train", "--epochs=1000"]
+
+Given this cmd, `_flag_args` prevents the `epochs` option from being
+redefined and logs a warning. Let's capture output to verify.
+
+    >>> log_capture = LogCapture()
+    >>> with log_capture:
+    ...   guild.op._flag_args({"epochs": 100, "batch-size": 50}, cmd_args)
+    ['--batch-size', '50']
+
+    >>> log_capture.print_all()
+    WARNING: ignoring flag 'epochs = 100' because it's shadowed in the operation cmd
 
 ## Operation flags
 
