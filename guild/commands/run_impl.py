@@ -152,7 +152,7 @@ def _maybe_run(op, model, args):
             cli.error(exit_status=result)
 
 def _confirm_run(op, model):
-    op_desc = "%s:%s" % (model.fullname, op.name)
+    op_desc = "%s:%s" % (model.fullname, op.opdef.name)
     flags = _op_flags(op)
     if flags:
         prompt = (
