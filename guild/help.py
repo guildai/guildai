@@ -39,7 +39,10 @@ class ConsoleFormatter(click.HelpFormatter):
         self.write_text("%s:" % val)
 
     def write_description(self, val):
-        self.write_text(val)
+        for i, par in enumerate(val.split("\n")):
+            if i > 0:
+                self.write_paragraph()
+            self.write_text(par)
 
 class RestFormatter(click.HelpFormatter):
 
@@ -67,7 +70,12 @@ class RestFormatter(click.HelpFormatter):
         self.write_heading(val)
 
     def write_description(self, val):
-        self.write_text("*%s*" % val)
+        for i, par in enumerate(val.split("\n")):
+            if i == 0:
+                self.write_text("*%s*" % par)
+            else:
+                self.write_paragraph()
+                self.write_text(par)
 
     def write_dl(self, rows, _col_max=None, _col_spacing=None):
         for i, (name, desc) in enumerate(rows):

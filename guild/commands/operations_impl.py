@@ -28,7 +28,7 @@ def main(args):
     cli.table(
         sorted(filtered, key=lambda m: m["fullname"]),
         cols=["fullname", "description"],
-        detail=(["cmd", "flags"] if args.verbose else [])
+        detail=(["cmd", "flags", "details"] if args.verbose else [])
     )
 
 def _iter_ops():
@@ -37,9 +37,11 @@ def _iter_ops():
             yield op, model
 
 def _format_op(op, model):
+    description, details = util.split_description(op.description)
     return {
         "fullname": "%s:%s" % (model.fullname, op.name),
-        "description": op.description or "",
+        "description": description,
+        "details": details,
         "model": model.fullname,
         "name": op.name,
         "cmd": op.cmd,

@@ -122,7 +122,7 @@ def _format_detail_val(val, indent):
             val_indent = " " * (indent + 4)
             val_width = click.get_terminal_size()[0] - len(val_indent)
             return "\n" + "\n".join([
-                click.wrap_text(x, val_width, val_indent, val_indent )
+                click.wrap_text(x, val_width, val_indent, val_indent)
                 for x in val
             ])
         else:

@@ -27,16 +27,18 @@ def main(args):
     cli.table(
         sorted(filtered, key=lambda m: m["fullname"]),
         cols=["fullname", "description"],
-        detail=(["name", "source", "operations"] if args.verbose else [])
+        detail=(["source", "operations", "details"] if args.verbose else [])
     )
 
 def _format_model(model):
     modeldef = model.modeldef
+    description, details = util.split_description(modeldef.description)
     return {
         "fullname": model.fullname,
         "name": modeldef.name,
         "source": modeldef.modelfile.src,
-        "description": modeldef.description or "",
+        "description": description,
+        "details": details,
         "operations": ", ".join([op.name for op in modeldef.operations])
     }
 

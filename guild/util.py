@@ -138,3 +138,15 @@ def match_filter(filters, vals, match_any=False):
         (any((f in val for val in vals_lower))
          for f in filters_lower)
     )
+
+def split_description(s):
+    lines = s.split("\n")
+    return lines[0], _format_details(lines[1:])
+
+def _format_details(details):
+    lines = []
+    for i, line in enumerate(details):
+        if i > 0:
+            lines.append("")
+        lines.append(line)
+    return lines
