@@ -28,7 +28,7 @@ def main(args):
     cli.table(
         sorted(filtered, key=lambda m: m["fullname"]),
         cols=["fullname", "description"],
-        detail=(["name", "model", "cmd"] if args.verbose else [])
+        detail=(["cmd", "flags"] if args.verbose else [])
     )
 
 def _iter_ops():
@@ -43,7 +43,20 @@ def _format_op(op, model):
         "model": model.fullname,
         "name": op.name,
         "cmd": op.cmd,
+        "flags": [
+            "%s:%s%s" % (
+                flag.name,
+                _format_flag_desc(flag),
+                _format_flag_value(flag))
+            for flag in op.flags
+        ]
     }
+
+def _format_flag_desc(flag):
+    return " %s" % flag.description if flag.description else ""
+
+def _format_flag_value(flag):
+    return " (default is %r)" % flag.value if flag.value is not None else ""
 
 def _filter_op(op, args):
     filter_vals = [
