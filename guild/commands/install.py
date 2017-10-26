@@ -25,6 +25,18 @@ from guild import click_util
     "-U", "--upgrade",
     help="Upgrade specified packages to the newest available version.",
     is_flag=True)
+@click.option(
+    "--no-cache",
+    help="Don't use cached packages.",
+    is_flag=True)
+@click.option(
+    "--reinstall",
+    help="Resinstall the package if it's already installed.",
+    is_flag=True)
+@click.option(
+    "--pre",
+    help="Install pre-release versions.",
+    is_flag=True)
 
 @click_util.use_args
 

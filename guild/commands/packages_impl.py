@@ -45,7 +45,13 @@ def _format_pkg(pkg):
 
 def install_packages(args):
     for reqs, index_urls in _installs(args):
-        pip_util.install(reqs, index_urls, args.upgrade)
+        pip_util.install(
+            reqs,
+            index_urls=index_urls,
+            upgrade=args.upgrade,
+            pre_releases=args.pre,
+            no_cache=args.no_cache,
+            reinstall=args.reinstall)
 
 def _installs(args):
     index_urls = {}
@@ -67,11 +73,13 @@ def _installs(args):
         for urls_key, reqs in index_urls.items()
     ]
 
-def delete_packages(args):
-    print("TODO: delete %s" % args.packages)
-
 def uninstall_packages(args):
-    print("TODO: uninstall %s" % (args.packages,))
+    for reqs, _ in _installs(args):
+        try:
+            pip_util.uninstall(reqs, dont_prompt=args.yes)
+        except pip_util.NotInstalledError as e:
+            pkg_name = namespace.apply_namespace(e.req)
+            cli.error("package '%s' it not installed" % pkg_name)
 
 def package_info(args):
     print("TODO: show info for %s" % args.package)

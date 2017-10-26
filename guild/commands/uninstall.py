@@ -18,9 +18,11 @@ from __future__ import division
 import click
 
 from guild import click_util
+from .packages_delete import delete_params
 
 @click.command()
-@click.argument("packages", metavar="PACKAGE...", nargs=-1, required=True)
+
+@delete_params
 
 @click_util.use_args
 
