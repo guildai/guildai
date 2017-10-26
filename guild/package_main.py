@@ -179,7 +179,7 @@ def _twine_upload_args(dist, repo):
     return args
 
 def _repo_args(repo):
-    if guild.parse_url(repo).scheme:
+    if util.parse_url(repo).scheme:
         rc_section = _pypirc_section_for_repo(repo)
         if rc_section:
             return ["--repository", rc_section]
