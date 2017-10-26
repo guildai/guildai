@@ -375,6 +375,35 @@ class OpDependency(object):
     def __repr__(self):
         return "<guild.modelfile.OpDependency '%s'>" % self.spec
 
+    def iter_sources(self):
+        if self.spec[0] == ":":
+            res_name = self.spec[1:]
+            model = self.opdef.modeldef
+            for res in model.resources:
+                if res.name == res_name:
+                    if res.sources:
+                        for source in res.sources:
+                            yield source
+                    else:
+                        logging.warning(
+                            "'%s' resource in model '%s' "
+                            "does not define any sources",
+                            res_name, model.name)
+                    break
+            else:
+                raise NoSuchResourceError(res_name, self)
+        else:
+            yield ResourceSource({"url": "file:%s" % self.spec})
+
+class NoSuchResourceError(ValueError):
+
+    def __init__(self, name, dep):
+        super(NoSuchResourceError, self).__init__(
+            "resource '%s' is not defined in model '%s'"
+            % (name, dep.opdef.modeldef.name))
+        self.resource_name = name
+        self.dependency = dep
+
 ###################################################################
 # Resource def
 ###################################################################
@@ -386,7 +415,7 @@ class ResourceDef(object):
         self.modeldef = modeldef
         self.description = data.get("description", "")
         self.sources = [
-            ResourceSource(res) for res in data.get("resources", [])
+            ResourceSource(res) for res in data.get("sources", [])
         ]
 
     def __repr__(self):

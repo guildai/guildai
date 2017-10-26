@@ -25,32 +25,28 @@ def _dep_desc(dep):
 
 def resolve(deps, ctx):
     for dep in deps:
-        for source in _iter_dep_sources(dep):
+        for source in dep.iter_sources():
             url = util.parse_url(source.url)
             if url.scheme == "file":
-                return _resolve_file(url.path, source, ctx)
+                return _resolve_file(url.path, source, dep, ctx)
             else:
                 raise DependencyError(
                     "unsupported URL scheme '%s' in '%s'"
                     % (url.scheme, source.url), dep)
 
-def _iter_dep_sources(dep):
-    if False:
-        yield None
-
-def _resolve_file(path, source, ctx):
+def _resolve_file(path, source, dep, ctx):
     source_path = os.path.join(ctx.source_dir, path)
-    _validate_file(source_path, source)
+    _validate_file(source_path, source, dep)
     target_path = os.path.join(ctx.target_dir, os.path.basename(path))
     util.ensure_dir(os.path.dirname(target_path))
     logging.debug("linking %s to %s", source_path, target_path)
     os.symlink(source_path, target_path)
 
-def _validate_file(path, source):
+def _validate_file(path, source, dep):
     logging.debug("validating file '%s'", path)
-    _validate_file_exists(path, source.dep)
+    _validate_file_exists(path, dep)
     if source.sha256:
-        _validate_file_sha256(path, source.sha256, source.dep)
+        _validate_file_sha256(path, source.sha256, dep)
 
 def _validate_file_exists(path, dep):
     if not os.path.isfile(path):
