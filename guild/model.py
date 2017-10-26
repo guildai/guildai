@@ -167,8 +167,8 @@ def _modelfile_entry_map(modelfile, dist):
             for model in modelfile
         },
         "guild.resources": {
-            name: _resource_entry_point(name, dist)
-            for name in _iter_resources(modelfile)
+            res.name: _resource_entry_point(res.name, dist)
+            for res in _iter_resources(modelfile)
         }
     }
 
@@ -181,8 +181,8 @@ def _model_entry_point(model, dist):
 
 def _iter_resources(modelfile):
     for model in modelfile:
-        for name in model.resources:
-            yield name
+        for res in model.resources:
+            yield res
 
 def _resource_entry_point(name, dist):
     return pkg_resources.EntryPoint(

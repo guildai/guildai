@@ -18,18 +18,13 @@ from __future__ import division
 import os
 import sys
 
-try:
-    from urlparse import urlparse
-except ImportError:
-    # pylint: disable=no-name-in-module
-    from urllib import parse as urlparse
-
 import setuptools
 import yaml
 import twine.commands.upload
 
 import guild.help
 from guild import modelfile
+from guild import util
 
 class Pkg(object):
 
@@ -184,7 +179,7 @@ def _twine_upload_args(dist, repo):
     return args
 
 def _repo_args(repo):
-    if urlparse(repo).scheme:
+    if guild.parse_url(repo).scheme:
         rc_section = _pypirc_section_for_repo(repo)
         if rc_section:
             return ["--repository", rc_section]

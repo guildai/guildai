@@ -21,7 +21,7 @@ guild.project.Operation:
     ...       }
     ...     ]
     ...     models = guild.modelfile.Modelfile(data, "./MODEL")
-    ...     return models["model"].get_op(name)
+    ...     return models["model"].get_operation(name)
 
 We'll also create a helper function that returns and instance of
 guild.op.Operation given arguments to ProjectOp:

@@ -39,12 +39,12 @@ class Resource(object):
 def _resourcedef_for_dist(name, dist):
     if isinstance(dist, ModelfileDistribution):
         for model in dist.modelfile:
-            for res_name in model.resources:
-                if res_name == name:
-                    return model.resources[res_name]
+            for res in model.resources:
+                if res.name == name:
+                    return res
         raise ValueError(
             "cannot find resource '%s' in modefile %s"
-            % name, dist.modelfile.src)
+            % (name, dist.modelfile.src))
     else:
         raise ValueError("unsupported resource distribution: %s" % dist)
 

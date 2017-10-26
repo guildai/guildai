@@ -2,7 +2,7 @@
 
 Use `guild runs info` to show information about the latest run:
 
-    >>> run("guild runs info") # doctest: +REPORT_NDIFF
+    >>> run("guild runs info") # doctest: +REPORT_UDIFF
     id: ...
     operation: mnist/mnist-softmax:train
     status: completed
@@ -16,7 +16,7 @@ Use `guild runs info` to show information about the latest run:
 
 We can optionally show files, flags, and env for a run:
 
-    >>> run("guild runs info --files --flags --env") # doctest: +REPORT_NDIFF
+    >>> run("guild runs info --files --flags --env") # doctest: +REPORT_UDIFF
     id: ...
     operation: mnist/mnist-softmax:train
     status: completed

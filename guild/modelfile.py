@@ -29,6 +29,10 @@ from guild import util
 # The order here should be based on priority of selection.
 NAMES = ["MODELS", "MODEL"]
 
+###################################################################
+# Exceptions
+###################################################################
+
 class ModelfileError(Exception):
 
     def __init__(self, path):
@@ -44,17 +48,21 @@ class NoModels(ModelfileError):
 class ModelfileReferenceError(ModelfileError):
     pass
 
+###################################################################
+# Modelfile
+###################################################################
+
 class Modelfile(object):
 
     def __init__(self, data, src):
-        self.data = data
+        self.data = _coerce_modelfile_data(data, src)
         self.src = src
         self.models = [
-            ModelDef(self, model_data) for model_data in data
+            ModelDef(model_data, self) for model_data in self.data
         ]
 
     def __repr__(self):
-        return "<guild.modelfile.Modelfile '%s'>" % self.src
+        return "<guild.modelfile.Modelfile %r>" % self.src
 
     def __str__(self):
         return self.src
@@ -68,7 +76,7 @@ class Modelfile(object):
         return False
 
     def get(self, model_name, default=None):
-        for model in self.models:
+        for model in self:
             if model.name == model_name:
                 return model
         return default
@@ -83,10 +91,115 @@ class Modelfile(object):
     def default_model(self):
         return self.models[0] if self.models else None
 
+def _coerce_modelfile_data(data, src):
+    if isinstance(data, list):
+        return data
+    elif isinstance(data, dict):
+        return [data]
+    else:
+        raise ModelfileFormatError("invalid modelfile '%s'" % src)
+
+###################################################################
+# Includes support
+###################################################################
+
+def _resolve_includes(data, section_name, modelfile, coerce_data):
+    assert isinstance(data, dict), data
+    resolved = {}
+    seen_includes = set()
+    section_data = data.get(section_name, {})
+    if isinstance(section_data, str):
+        _apply_includes(
+            section_data.split(),
+            modelfile,
+            section_name,
+            coerce_data,
+            seen_includes,
+            resolved)
+    elif isinstance(section_data, dict):
+        _apply_section_data(
+            section_data,
+            modelfile,
+            section_name,
+            coerce_data,
+            seen_includes,
+            resolved)
+    else:
+        raise ModelfileFormatError(
+            "invalid %s data: %s" % (section_name, flags_data))
+    return resolved
+
+def _apply_includes(includes, modelfile, section_name, coerce_data,
+                    seen_includes, resolved):
+    _assert_modelfile_data(modelfile)
+    for ref in includes:
+        if ref in seen_includes:
+            break
+        seen_includes.add(ref)
+        # Have to access modelfile.data here rather than use
+        # modelfile.get because modelfile may not be initialized at
+        # this point.
+        for model_data in modelfile.data:
+            if model_data.get("name") == ref:
+                section_data = model_data.get(section_name, {})
+                _apply_section_data(
+                    section_data,
+                    modelfile,
+                    section_name,
+                    coerce_data,
+                    seen_includes,
+                    resolved)
+                break
+        else:
+            raise ModelfileReferenceError(
+                "model '%s' for include doesn't exist" % ref)
+
+def _assert_modelfile_data(modelfile):
+    # This is called by modelfile components that need to access
+    # modelfile data before the modefile is fully initialized.
+    assert hasattr(modelfile, "data"), "modesfile data not initialized"
+
+def _apply_section_data(data, modelfile, section_name, coerce_data,
+                        seen_includes, resolved):
+    for name in _includes_first(data):
+        if name == "$include":
+            _apply_includes(
+                data[name].split(),
+                modelfile,
+                section_name,
+                coerce_data,
+                seen_includes,
+                resolved)
+        else:
+            _apply_data(name, data[name], resolved, coerce_data)
+
+def _includes_first(names):
+    return sorted(names, key=lambda x: "\x00" if x == "$include" else x)
+
+def _apply_data(name, data, resolved, coerce_data):
+    try:
+        cur = resolved[name]
+    except KeyError:
+        new = {}
+        new.update(coerce_data(data))
+        resolved[name] = new
+    else:
+        _apply_missing_vals(cur, coerce_data(data))
+
+def _apply_missing_vals(target, source):
+    assert isinstance(target, dict), target
+    assert isinstance(source, dict), source
+    for name in source:
+        target[name] = source[name]
+
+###################################################################
+# Flag support
+###################################################################
+
 class FlagHost(object):
 
-    def __init__(self, host_data, modelfile, parent_host=None):
-        self.flags = _init_flags(host_data, modelfile)
+    def __init__(self, data, modelfile, parent_host=None):
+        self.flags = _init_flags(data, modelfile)
         self._parent = parent_host
         self._flag_vals = _init_flag_values(self.flags)
 
@@ -122,62 +235,31 @@ class FlagHost(object):
                     if self._parent
                     else default)
 
-def _init_flags(host_data, modelfile):
-    flags = {}
-    seen_includes = set()
-    if isinstance(host_data, dict):
-        flags_data = host_data.get("flags", {})
-        if isinstance(flags_data, str):
-            _apply_flag_includes(flags_data.split(), modelfile, seen_includes, flags)
-        elif isinstance(flags_data, dict):
-            _apply_flag_data(flags_data, modelfile, seen_includes, flags)
-        else:
-            raise ModelfileFormatError("invalid flag data: %s" % flags_data)
-    return [flags[name] for name in sorted(flags)]
+def _init_flags(data, modelfile):
+    flags_data = _resolve_includes(
+        data,
+        "flags",
+        modelfile,
+        _coerce_flag_data)
+    return [
+        FlagDef(name, flags_data[name])
+        for name in sorted(flags_data)
+    ]
 
-def _apply_flag_includes(includes, modelfile, seen_includes, flags):
-    # This init scheme is a bit fiddly. We're accessing modelfile.data
-    # here rather than use the modefile interface because the modefile
-    # is still being initialized. By accessing the underlying data we
-    # can resolve includes without resorting to a two-pass flag init
-    # process (i.e. load include refs in one pass and resolve them in
-    # a second pass).
-    assert hasattr(modelfile, "data"), "refer to source code comment"
-    for ref in includes:
-        if ref in seen_includes:
-            break
-        seen_includes.add(ref)
-        for model in modelfile.data:
-            if model.get("name") == ref:
-                flag_data = model.get("flags", {})
-                _apply_flag_data(flag_data, modelfile, seen_includes, flags)
-                break
-        else:
-            raise ModelfileReferenceError(
-                "model '%s' for flag include doesn't exist" % ref)
-
-def _apply_flag_data(data, modelfile, seen_includes, flags):
-    # Apply includes before other defs to support redefining included
-    # values.
-    for name in _includes_first(data):
-        if name == "$include":
-            _apply_flag_includes(data[name].split(), modelfile, seen_includes, flags)
-        else:
-            _apply_flag(FlagDef(name, data[name]), flags)
-
-def _includes_first(names):
-    return sorted(names, key=lambda x: "\x00" if x == "$include" else x)
-
-def _apply_flag(flag, flags):
-    try:
-        cur = flags[flag.name]
-    except KeyError:
-        flags[flag.name] = flag
+def _coerce_flag_data(data):
+    if isinstance(data, dict):
+        return data
+    elif isinstance(data, (str, int, float, bool)):
+        return {"value": data}
     else:
-        if flag.value is not None:
-            cur.value = flag.value
-        if flag.description is not None:
-            cur.description = flag.description
+        raise ModelfileFormatError("unsupported flag data: %s" % data)
+
+class FlagDef(object):
+
+    def __init__(self, name, data):
+        self.name = name
+        self.value = data.get("value")
+        self.description = data.get("description", "")
 
 def _init_flag_values(flagdefs):
     return {
@@ -185,18 +267,9 @@ def _init_flag_values(flagdefs):
         for flag in flagdefs
     }
 
-class FlagDef(object):
-
-    def __init__(self, name, data):
-        self.name = name
-        if isinstance(data, dict):
-            self.value = data.get("value")
-            self.description = data.get("description")
-        elif isinstance(data, (str, int, float, bool)):
-            self.value = data
-            self.description = None
-        else:
-            raise ModelfileFormatError("unsupported flag data: %s" % data)
+###################################################################
+# Model def
+###################################################################
 
 class Visibility(object):
 
@@ -205,50 +278,30 @@ class Visibility(object):
 
 class ModelDef(FlagHost):
 
-    def __init__(self, modelfile, data):
+    def __init__(self, data, modelfile):
         super(ModelDef, self).__init__(data, modelfile)
         self.modelfile = modelfile
-        self._data = data
         self.name = data.get("name")
         self.description = data.get("description", "").strip()
         self.visibility = data.get("visibility", Visibility.public)
         self.operations = _init_ops(data.get("operations", {}), self)
-        self.resources = resourcedef.from_data(data.get("resources"), self.modelfile)
+        self.resources = _init_resources(data, self)
         self.disabled_plugins = data.get("disabled-plugins", [])
 
     def __repr__(self):
         return "<guild.modelfile.ModelDef '%s'>" % self.name
 
-    def get_op(self, name):
+    def get_operation(self, name):
         for op in self.operations:
             if op.name == name:
                 return op
         return None
 
 def _init_ops(data, modeldef):
-    keys = sorted(data.keys())
-    return [OpDef(modeldef, key, data[key]) for key in keys]
-
-class OpDef(FlagHost):
-
-    def __init__(self, modeldef, name, data):
-        super(OpDef, self).__init__(data, modeldef.modelfile, modeldef)
-        self.modeldef = modeldef
-        self.modelfile = modeldef.modelfile
-        self.name = name
-        data = _coerce_op_data(data)
-        self._data = data
-        self.description = data.get("description").strip()
-        self.cmd = data.get("cmd")
-        self.disabled_plugins = data.get("disabled-plugins", [])
-        self.requires = _coerce_string_list(data.get("requires"))
-
-    def __repr__(self):
-        return "<guild.modelfile.OpDef '%s'>" % self.fullname
-
-    @property
-    def fullname(self):
-        return "%s:%s" % (self.modeldef.name, self.name)
+    return [
+        OpDef(key, _coerce_op_data(data[key]), modeldef)
+        for key in sorted(data)
+    ]
 
 def _coerce_op_data(data):
     """Return a cmd map for data.
@@ -263,11 +316,95 @@ def _coerce_op_data(data):
     else:
         return data
 
-def _coerce_string_list(data):
-    if isinstance(data, list):
-        return [str(x) for x in data]
+def _init_resources(data, modeldef):
+    res_data = _resolve_includes(
+        data,
+        "resources",
+        modeldef.modelfile,
+        _coerce_resource_data)
+    return [
+        ResourceDef(name, res_data[name], modeldef)
+        for name in sorted(res_data)
+    ]
+
+def _coerce_resource_data(data):
+    if isinstance(data, dict):
+        return data
+    elif isinstance(data, str):
+        return {"url": data}
     else:
-        return [str(data)]
+        raise ModelfileFormatError("unsupported resource data: %s" % data)
+
+###################################################################
+# Op def
+###################################################################
+
+class OpDef(FlagHost):
+
+    def __init__(self, name, data, modeldef):
+        super(OpDef, self).__init__(data, modeldef.modelfile, modeldef)
+        self.modeldef = modeldef
+        self.modelfile = modeldef.modelfile
+        self.name = name
+        data = _coerce_op_data(data)
+        self.description = data.get("description", "").strip()
+        self.cmd = data.get("cmd")
+        self.disabled_plugins = data.get("disabled-plugins", [])
+        self.dependencies = _init_dependencies(data.get("requires"), self)
+
+    def __repr__(self):
+        return "<guild.modelfile.OpDef '%s'>" % self.fullname
+
+    @property
+    def fullname(self):
+        return "%s:%s" % (self.modeldef.name, self.name)
+
+def _init_dependencies(requires, opdef):
+    if not requires:
+        return []
+    if isinstance(requires, str):
+        requires = [requires]
+    return [OpDependency(spec, opdef) for spec in requires]
+
+class OpDependency(object):
+
+    def __init__(self, spec, opdef):
+        self.spec = spec
+        self.opdef = opdef
+
+    def __repr__(self):
+        return "<guild.modelfile.OpDependency '%s'>" % self.spec
+
+###################################################################
+# Resource def
+###################################################################
+
+class ResourceDef(object):
+
+    def __init__(self, name, data, modeldef):
+        self.name = name
+        self.modeldef = modeldef
+        self.description = data.get("description", "")
+        self.sources = [
+            ResourceSource(res) for res in data.get("resources", [])
+        ]
+
+    def __repr__(self):
+        return "<guild.modelfile.ResourceDef '%s'>" % self.name
+
+class ResourceSource(object):
+
+    def __init__(self, data):
+        self.url = data.get("url")
+        self.sha256 = data.get("sha256")
+        self.unpack = bool(data.get("unpack"))
+
+    def __str__(self):
+        return self.url
+
+###################################################################
+# Module API
+###################################################################
 
 def from_dir(path, filenames=None, use_plugins=True):
     filenames = NAMES if filenames is None else filenames
@@ -282,7 +419,7 @@ def _try_from_dir_file(path, filenames):
         model_file = os.path.abspath(os.path.join(path, name))
         if os.path.isfile(model_file):
             logging.debug("found model source '%s'", model_file)
-            return Modelfile(_load_modelfile(model_file), model_file)
+            return _load_modelfile(model_file)
     return None
 
 def _try_from_plugin(path):
@@ -309,16 +446,10 @@ def _raise_no_models(path):
     raise NoModels(path)
 
 def from_file(src):
-    return Modelfile(_load_modelfile(src), src)
+    return _load_modelfile(src)
 
-def _load_modelfile(path):
-    data = yaml.load(open(path, "r"))
-    if isinstance(data, list):
-        return data
-    elif isinstance(data, dict):
-        return [data]
-    else:
-        raise ModelfileFormatError(path)
+def _load_modelfile(src):
+    return Modelfile(yaml.load(open(src, "r")), src)
 
 def from_file_or_dir(src):
     try:
@@ -327,3 +458,6 @@ def from_file_or_dir(src):
         if e.errno == errno.EISDIR:
             return from_dir(src)
         raise
+
+def from_string(s, src=None):
+    return Modelfile(yaml.load(s), src)

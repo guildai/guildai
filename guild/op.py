@@ -83,7 +83,7 @@ class Operation(object):
             target_dir=self._run.path,
             source_dir=os.path.dirname(self.opdef.modelfile.src)
         )
-        guild.deps.resolve(self.opdef.requires, ctx)
+        guild.deps.resolve(self.opdef.dependencies, ctx)
 
     def _start_proc(self):
         assert self._proc is None

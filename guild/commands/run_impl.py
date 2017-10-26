@@ -19,6 +19,7 @@ import guild.op
 
 from guild import cli
 from guild import cmd_impl_support
+from guild import deps
 
 def main(args):
     cmd_impl_support.init_model_path()
@@ -99,7 +100,7 @@ def _multiple_models_error(model_ref, models):
         % (model_ref, models_list))
 
 def _resolve_opdef(name, model):
-    opdef = model.modeldef.get_op(name)
+    opdef = model.modeldef.get_operation(name)
     if opdef is None:
         _no_such_operation_error(name, model)
     return opdef
@@ -152,9 +153,23 @@ def _print_env(op):
 
 def _maybe_run(op, model, args):
     if args.yes or _confirm_run(op, model):
+        _run(op)
+
+def _run(op):
+    try:
         result = op.run()
-        if result != 0:
-            cli.error(exit_status=result)
+    except deps.DependencyError as e:
+        _handle_dependency_error(e)
+    else:
+        _handle_run_result(result)
+
+def _handle_dependency_error(e):
+    cli.error(
+        "run failed because a dependency was not met: %s" % e)
+
+def _handle_run_result(exit_status):
+    if exit_status != 0:
+        cli.error(exit_status=exit_status)
 
 def _confirm_run(op, model):
     op_desc = "%s:%s" % (model.fullname, op.opdef.name)

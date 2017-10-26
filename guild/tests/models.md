@@ -54,9 +54,9 @@ Here's our new path:
 We can iterate through all available models using `iter_models`:
 
     >>> sorted(guild.model.iter_models(), key=lambda m: m.name)
-    [<guild.model.Model 'mnist-cnn'>,
-     <guild.model.Model 'mnist-expert'>,
-     <guild.model.Model 'mnist-intro'>,
+    [<guild.model.Model 'expert'>,
+     <guild.model.Model 'intro'>,
+     <guild.model.Model 'mnist-cnn'>,
      <guild.model.Model 'mnist-softmax'>]
 
 ## Models by name
@@ -97,7 +97,7 @@ distributions have versions as they were explicitly packaged using
 
 The `mnist-intro` model is defined in a modelfile:
 
-    >>> intro = next(guild.model.for_name("mnist-intro"))
+    >>> intro = next(guild.model.for_name("intro"))
 
     >>> intro.dist.__class__
     <class 'guild.model.ModelfileDistribution'>
@@ -135,7 +135,7 @@ Modelfile distribution package paths always start with '.':
 Models have names, which must correspond to the names in their
 associated model definition.
 
-    >>> intro.name == intro.modeldef.name == "mnist-intro"
+    >>> intro.name == intro.modeldef.name == "intro"
     True
 
     >>> cnn.name == cnn.modeldef.name == "mnist-cnn"
@@ -145,7 +145,7 @@ Models also provide a `fullname` attribute that applies namespaces to
 the model distribution project name:
 
     >>> intro.fullname
-    '.../samples/projects/mnist/mnist-intro'
+    '.../samples/projects/mnist/intro'
 
 Models from local modelfiles (i.e. not installed from standard Python
 packages) are named with a starting '.' and a path leading to the
@@ -170,7 +170,7 @@ References are in the form:
 Here's the reference for the `intro` model:
 
     >>> intro.reference
-    'file:/.../samples/projects/mnist/MODELS ...789dea mnist-intro'
+    'file:/.../samples/projects/mnist/MODELS ... intro'
 
 Note that the package reference in this case is an absolute path to
 the modelfile. The version is a hash (md5) of the modelfile. This
@@ -204,18 +204,18 @@ The `mnist-cnn` modeldef looks like this:
     >>> [(op.name, op.description) for op in cnn_def.operations]
     [('train', 'Train the CNN')]
 
-Here's the `mnist-intro` def:
+Here's the `intro` def:
 
     >>> intro_def = intro.modeldef
 
     >>> intro_def.name
-    'mnist-intro'
+    'intro'
 
     >>> intro_def.description
     ''
 
     >>> [(op.name, op.description) for op in intro_def.operations]
-    [('evaluate', None), ('train', None)]
+    [('evaluate', ''), ('train', '')]
 
 Model definitions in turn are associated with the modelfiles they're
 defined in.

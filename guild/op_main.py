@@ -25,6 +25,12 @@ import guild.log
 # Avoid expensive imports here as load times directly add to runs.
 
 def main():
+    if os.getenv("PROFILE"):
+        _profile_main()
+    else:
+        _main()
+
+def _main():
     _init_logging()
     logging.debug("cwd: %s", os.getcwd())
     logging.debug("sys.path: %s", os.path.pathsep.join(sys.path))
@@ -121,6 +127,23 @@ def _error(msg):
     sys.stderr.write(msg)
     sys.stderr.write("\n")
     sys.exit(1)
+
+def _profile_main():
+    import cProfile
+    import tempfile
+    p = cProfile.Profile()
+    sys.stderr.write("Profiling operation\n")
+    p.enable()
+    try:
+        _main()
+    finally:
+        p.disable()
+        _, tmp = tempfile.mkstemp(prefix="guild-op-profile-")
+        sys.stderr.write("Writing profile stats to %s\n" % tmp)
+        p.dump_stats(tmp)
+        sys.stderr.write(
+            "Use 'python -m pstats %s' or 'snakeviz %s' "
+            "to view stats\n" % (tmp, tmp))
 
 if __name__ == "__main__":
     main()

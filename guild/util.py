@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import errno
+import hashlib
 import os
 import sys
 import time
@@ -150,3 +151,21 @@ def _format_details(details):
             lines.append("")
         lines.append(line)
     return lines
+
+def file_sha256(path):
+    hash = hashlib.sha256()
+    with open(path, "rb") as f:
+        while True:
+            data = f.read(1024)
+            if not data:
+                break
+            hash.update(data)
+    return hash.hexdigest()
+
+def parse_url(url):
+    try:
+        from urlparse import urlparse
+    except ImportError:
+        # pylint: disable=no-name-in-module
+        from urllib.parse import urlparse
+    return urlparse(url)

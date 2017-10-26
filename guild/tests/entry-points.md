@@ -1,7 +1,8 @@
-# Guild resources
+# Entry points
 
-Guild resources are discoverable using `pkg_resources`. For details on
-this module, see [Package Discovery and Resource Access using
+Various Guild "objects" (internal code resources) are discoverable
+using `pkg_resources`. For details on this module, see [Package
+Discovery and Resource Access using
 pkg_resources](http://setuptools.readthedocs.io/en/latest/pkg_resources.html).
 
     >>> import pkg_resources
@@ -17,8 +18,6 @@ Here's a function that returns a sorted list of Guild entry points.
     ...     [ep for ep in pkg_resources.iter_entry_points(group, name)
     ...      if ep.dist.project_name == "guildai"],
     ...     key=lambda ep: ep.name)
-
-## Entry points
 
 Guild uses entry points to discover various resources including
 plugins, namespaces, and models. Guid defines its built-in resources

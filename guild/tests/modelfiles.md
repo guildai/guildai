@@ -21,7 +21,7 @@ Use `from_file` to load a modelfile from a file directly:
 
     >>> mf = modelfile.from_file(sample("projects/mnist/MODELS"))
     >>> [model.name for model in mf]
-    ['mnist-intro', 'mnist-expert', 'common']
+    ['intro', 'expert', 'common']
 
 ## Model defs
 
@@ -29,19 +29,19 @@ By definition a modelfile is a list of modeldefs ("models" in this
 context):
 
     >>> list(mf)
-    [<guild.modelfile.ModelDef 'mnist-intro'>,
-     <guild.modelfile.ModelDef 'mnist-expert'>,
+    [<guild.modelfile.ModelDef 'intro'>,
+     <guild.modelfile.ModelDef 'expert'>,
      <guild.modelfile.ModelDef 'common'>]
 
 ### Accessing modeldefs
 
 We can lookup a modeld by name using dictionary semantics:
 
-    >>> mf["mnist-intro"]
-    <guild.modelfile.ModelDef 'mnist-intro'>
+    >>> mf["intro"]
+    <guild.modelfile.ModelDef 'intro'>
 
-    >>> mf.get("mnist-intro")
-    <guild.modelfile.ModelDef 'mnist-intro'>
+    >>> mf.get("intro")
+    <guild.modelfile.ModelDef 'intro'>
 
 ### Default model
 
@@ -49,31 +49,31 @@ The first model defined in a project is considered to be the default
 model:
 
     >>> mf.default_model
-    <guild.modelfile.ModelDef 'mnist-intro'>
+    <guild.modelfile.ModelDef 'intro'>
 
 ### Attributes
 
 The model name is used to identify the model:
 
-    >>> mf["mnist-expert"].name
-    'mnist-expert'
+    >>> mf["expert"].name
+    'expert'
 
-    >>> mf["mnist-intro"].name
-    'mnist-intro'
+    >>> mf["intro"].name
+    'intro'
 
 The description provides additional details:
 
-    >>> mf["mnist-expert"].description
+    >>> mf["expert"].description
     'Sample model'
 
 Models support visibility. By default model visibility is
 "public". Models that have a visibility of "private" are not displayed
 in lists. The two `mnist` models are public (default visibility):
 
-    >>> mf["mnist-expert"].visibility
+    >>> mf["expert"].visibility
     'public'
 
-    >>> mf["mnist-intro"].visibility
+    >>> mf["intro"].visibility
     'public'
 
 The `common` model, which is used to define flags that are common to
@@ -95,17 +95,17 @@ details on how this is structured.
 
 We'll use a helper function to print the flagdefs:
 
-    >>> def print_flagdefs(flags):
-    ...   for flag in flags:
-    ...     print("%s: %s (default %r)"
-    ...           % (flag.name, flag.description, flag.value))
+    >>> def flagdefs(flags):
+    ...   return [
+    ...     (flag.name, flag.description, flag.value)
+    ...     for flag in flags]
 
 Let's look at the flags defined for the `common` model, which is a
 private modeldef that the two `mnist` models reference.
 
-    >>> print_flagdefs(mf["common"].flags)
-    batch-size: Number of images per batch (default 100)
-    epochs: Number of epochs to train (default 5)
+    >>> flagdefs(mf["common"].flags)
+    [('batch-size', 'Number of images per batch', 100),
+     ('epochs', 'Number of epochs to train', 5)]
 
 Flag *values* are distinct from flag *definitions*. The value
 associated with a flag definition is used as the initial flag
@@ -125,7 +125,7 @@ These values can be modified without effecting the flag definitions.
     >>> mf["common"].get_flagdef("epochs").value
     5
 
-The `mnist-expert` model has the following `flags` spec:
+The `expert` model has the following `flags` spec:
 
     flags: common
 
@@ -137,31 +137,22 @@ This is short-hand for:
 This indicates that the flag definitions for the `common` model should
 be included in the referencing model.
 
-Here are the flag defs for `mnist-expert`:
+Here are the flag defs for `expert`:
 
-    >>> print_flagdefs(mf["mnist-expert"].flags)
-    batch-size: Number of images per batch (default 100)
-    epochs: Number of epochs to train (default 5)
+    >>> flagdefs(mf["expert"].flags)
+    [('batch-size', 'Number of images per batch', 100),
+     ('epochs', 'Number of epochs to train', 5)]
 
-In this case the `mnist-expert` model included all of the `common`
+In this case the `expert` model included all of the `common`
 flag definitions without redefining any.
 
-The `mnist-intro` model also includes `common` flags, redefines the
-value of one and adds another. Here's the flags spec for that model:
+The `intro` model also includes `common` flags but redefines the value
+of one flag and adds another:
 
-    flags:
-      $include: common
-      epochs: 10
-      learning-rate:
-        value: 0.001
-        description: Learning rate for training
-
-And the corresponding flag defs:
-
-    >>> print_flagdefs(mf["mnist-intro"].flags)
-    batch-size: Number of images per batch (default 100)
-    epochs: Number of epochs to train (default 10)
-    learning-rate: Learning rate for training (default 0.001)
+    >>> flagdefs(mf["intro"].flags)
+    [('batch-size', 'Number of images per batch', 100),
+     ('epochs', 'Number of epochs to train', 10),
+     ('learning-rate', 'Learning rate for training', 0.001)]
 
 Note that while the value for `epochs` is redefined, the original flag
 description is not.
@@ -169,10 +160,10 @@ description is not.
 The third set of flags defined in the modelfile is associated with the
 `evaluate` operation of the `intro` model.
 
-    >>> eval_op = mf["mnist-intro"].get_op("evaluate")
-    >>> print_flagdefs(eval_op.flags)
-    batch-size: None (default 50000)
-    epochs: None (default 1)
+    >>> eval_op = mf["intro"].get_operation("evaluate")
+    >>> flagdefs(eval_op.flags)
+    [('batch-size', '', 50000),
+     ('epochs', '', 1)]
 
 In this case the operation did not include flagdefs and did not
 provide descriptions for its flags, so those are none.
@@ -181,56 +172,74 @@ Returning to flag values, operations inherit the values of flags
 defined in their host models. We can use `all_flag_values` to retrieve
 all of the flag values associated with a model or op definition.
 
-Flag values for `mnist-intro` model:
+Flag values for `intro` model:
 
-    >>> pprint(mf["mnist-intro"].flag_values())
+    >>> pprint(mf["intro"].flag_values())
     {'batch-size': 100, 'epochs': 10, 'learning-rate': 0.001}
 
-Flag values for `evaluate` op of `mnist-intro` model:
+Flag values for `evaluate` op of `intro` model:
 
-    >>> pprint(mf["mnist-intro"].get_op("evaluate").flag_values())
+    >>> pprint(mf["intro"].get_operation("evaluate").flag_values())
     {'batch-size': 50000, 'epochs': 1, 'learning-rate': 0.001}
 
-Flag values for `mnist-expert` model:
+Flag values for `expert` model:
 
-    >>> pprint(mf["mnist-expert"].flag_values())
+    >>> pprint(mf["expert"].flag_values())
     {'batch-size': 100, 'epochs': 5}
 
-Flag values for `train` op of `mnist-expert` model:
+Flag values for `train` op of `expert` model:
 
-    >>> pprint(mf["mnist-expert"].get_op("train").flag_values())
+    >>> pprint(mf["expert"].get_operation("train").flag_values())
     {'batch-size': 100, 'epochs': 5}
 
 If we set the value of a flag defined on a model that is not defined
 by the model's operation, the operation inherits that value:
 
-    >>> mf["mnist-intro"].set_flag_value("learning-rate", 0.002)
-    >>> pprint(mf["mnist-intro"].get_op("evaluate").flag_values())
+    >>> mf["intro"].set_flag_value("learning-rate", 0.002)
+    >>> pprint(mf["intro"].get_operation("evaluate").flag_values())
     {'batch-size': 50000, 'epochs': 1, 'learning-rate': 0.002}
 
 However, if the operation defines a flag value, setting the value on
 the operation's model doesn't modify the operation's flag value:
 
-    >>> mf["mnist-intro"].set_flag_value("epochs", 4)
-    >>> pprint(mf["mnist-intro"].get_op("evaluate").flag_values())
+    >>> mf["intro"].set_flag_value("epochs", 4)
+    >>> pprint(mf["intro"].get_operation("evaluate").flag_values())
     {'batch-size': 50000, 'epochs': 1, 'learning-rate': 0.002}
 
 ### Operations
 
 Operations are ordered by name:
 
-    >>> [op.name for op in mf["mnist-expert"].operations]
+    >>> [op.name for op in mf["expert"].operations]
     ['evaluate', 'train']
 
 Find an operation using a model's `get_op` method:
 
-    >>> mf["mnist-expert"].get_op("train")
-    <guild.modelfile.OpDef 'mnist-expert:train'>
+    >>> mf["expert"].get_operation("train")
+    <guild.modelfile.OpDef 'expert:train'>
 
 `get_op` returns None if the operation isn't defined for the model:
 
-    >>> print(mf["mnist-expert"].get_op("not-defined"))
+    >>> print(mf["expert"].get_operation("not-defined"))
     None
+
+## Resources
+
+Model resources are are named lists of sources that may be required by
+operations. Our sample models each have the following resources:
+
+    >>> mf["common"].resources
+    [<guild.modelfile.ResourceDef 'data'>]
+
+    >>> mf["expert"].resources
+    [<guild.modelfile.ResourceDef 'data'>]
+
+    >>> mf["intro"].resources
+    [<guild.modelfile.ResourceDef 'data'>]
+
+In the same way that models can include flag definitions from other
+models, they can include resources. In our example, both the `intro`
+and `expert` models include resources from the `common` model.
 
 ## Errors
 

@@ -5,7 +5,9 @@ py_library(
     deps = [
         ":cpu-plugin",
         ":config",
+        ":dependencies",
         ":disk-plugin",
+        ":entry-points",
         ":imports",
         ":logging",
         ":memory-plugin",
@@ -16,7 +18,6 @@ py_library(
         ":packages",
         ":plugin-python-utils",
         ":plugins",
-        ":resources",
         ":runs",
         ":tables",
         ":utils",
@@ -42,12 +43,30 @@ py_library(
 )
 
 py_library(
+    name = "dependencies",
+    data = ["dependencies.md"],
+    deps = [
+        "//guild:deps",
+        "//guild:modelfile",
+   ],
+)
+
+py_library(
     name = "disk-plugin",
     data = ["disk-plugin.md"],
     deps = [
         "//guild/plugins:disk",
         "//guild:plugin",
     ],
+)
+
+py_library(
+    name = "entry-points",
+    data = ["entry-points.md"],
+    deps = [
+        "//third_party:setuptools",
+        "//guild/plugins",
+   ],
 )
 
 py_library(
@@ -130,15 +149,6 @@ py_library(
         "//guild/plugins",
         "//guild:plugin",
     ],
-)
-
-py_library(
-    name = "resources",
-    data = ["resources.md"],
-    deps = [
-        "//third_party:setuptools",
-        "//guild/plugins",
-   ],
 )
 
 py_library(
