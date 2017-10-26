@@ -122,12 +122,16 @@ def _ensure_op_info(run):
 def _op_info(run):
     opref = run.get("opref")
     if not opref:
-        logging.warning("cannot format opref, missing opref run attr")
+        logging.warning(
+            "cannot read opref for run %s: missing opref run attr",
+            run.id)
         parts = ["", None, None, None]
     else:
         parts = opref.split(" ")
         if len(parts) != 4:
-            logging.warning("cannot format opref, bad format: %s", opref)
+            logging.warning(
+                "cannot format opref for run %s: bad format in '%s'",
+                run.id, opref)
             parts = ["", None, None, None]
     pkg_info, version, model, op_name = parts
     return click_util.Args(
