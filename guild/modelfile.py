@@ -238,7 +238,7 @@ class OpDef(FlagHost):
         self.name = name
         data = _coerce_op_data(data)
         self._data = data
-        self.description = data.get("description")
+        self.description = data.get("description").strip()
         self.cmd = data.get("cmd")
         self.disabled_plugins = data.get("disabled-plugins", [])
         self.requires = _coerce_string_list(data.get("requires"))
