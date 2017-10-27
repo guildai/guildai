@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 import errno
-import hashlib
 import os
 import sys
 import time
@@ -153,6 +152,7 @@ def _format_details(details):
     return lines
 
 def file_sha256(path):
+    import hashlib
     hash = hashlib.sha256()
     with open(path, "rb") as f:
         while True:
@@ -169,3 +169,20 @@ def parse_url(url):
         # pylint: disable=no-name-in-module
         from urllib.parse import urlparse
     return urlparse(url)
+
+class TempDir(object):
+
+    def __init__(self, prefix=None):
+        self._prefix = prefix
+        self.path = None
+
+    def __enter__(self):
+        import tempfile
+        self.path = tempfile.mkdtemp(prefix=self._prefix)
+        return self.path
+
+    def __exit__(self, *_exc):
+        import shutil
+        import tempfile
+        assert os.path.dirname(self.path) == tempfile.gettempdir(), self.path
+        shutil.rmtree(self.path)

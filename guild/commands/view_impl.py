@@ -21,8 +21,8 @@ import shutil
 import tempfile
 import threading
 
-import guild.cli
-import guild.util
+from guild import cli
+from guild import util
 
 from . import runs_impl
 
@@ -48,7 +48,7 @@ class RunsMonitor(threading.Thread):
         self._stopped = threading.Event()
 
     def run(self):
-        guild.util.loop(
+        util.loop(
             cb=self.run_once,
             wait=self._stop.wait,
             interval=min(self.args.refresh_interval,
@@ -92,20 +92,20 @@ class RunsMonitor(threading.Thread):
 
 def main(args):
     tensorboard = _load_guild_tensorboard_module()
-    logdir = tempfile.mkdtemp(prefix="guild-view-logdir-")
-    logging.debug("Using logdir %s", logdir)
-    monitor = RunsMonitor(logdir, args)
-    monitor.start()
-    tensorboard.main(
-        logdir=logdir,
-        host=(args.host or ""),
-        port=(args.port or guild.util.free_port()),
-        reload_interval=args.refresh_interval,
-        ready_cb=(_open_url if not args.no_open else None))
-    logging.debug("Stopping")
-    monitor.stop()
-    _cleanup(logdir)
-    guild.cli.out()
+    with util.TempDir("guild-view-logdir-") as logdir:
+        logging.debug("Using logdir %s", logdir)
+        monitor = RunsMonitor(logdir, args)
+        monitor.start()
+        tensorboard.main(
+            logdir=logdir,
+            host=(args.host or ""),
+            port=(args.port or util.free_port()),
+            reload_interval=args.refresh_interval,
+            ready_cb=(_open_url if not args.no_open else None))
+        logging.debug("Stopping")
+        monitor.stop()
+        logging.debug("Removing logdir %s", logdir) # Handled by ctx mgr
+    cli.out()
 
 def _load_guild_tensorboard_module():
     try:
@@ -117,24 +117,19 @@ def _load_guild_tensorboard_module():
 
 def _handle_tensorboard_import_error(e):
     if e.message == 'No module named tensorflow':
-        guild.cli.out(
+        cli.out(
             "TensorBoard cannot not be started because TensorFlow is not "
             "installed.\n"
             "Refer to https://www.tensorflow.org/install/ for help "
             "installing TensorFlow on your system.",
             err=True)
     else:
-        guild.cli.out("TensorBoard could not be started (%s)" % e, err=True)
-    guild.cli.error()
+        cli.out("TensorBoard could not be started (%s)" % e, err=True)
+    cli.error()
 
 def _format_run_name(run):
     formatted = runs_impl.format_run(run)
     return "%(index)s %(model)s:%(op_name)s %(started)s" % formatted
 
 def _open_url(url):
-    guild.util.open_url(url)
-
-def _cleanup(logdir):
-    assert os.path.dirname(logdir) == tempfile.gettempdir()
-    logging.debug("Deleting logdir %s", logdir)
-    shutil.rmtree(logdir)
+    util.open_url(url)
