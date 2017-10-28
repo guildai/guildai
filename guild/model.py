@@ -212,9 +212,11 @@ class ModelImporter(object):
 def _model_finder(_importer, path, _only=False):
     try:
         models = modelfile.from_dir(path)
-    except (IOError, modelfile.ModelfileFormatError) as e:
+    except (IOError,
+            modelfile.ModelfileFormatError,
+            modelfile.ModelfileReferenceError) as e:
         logging.warning(
-            "unable to load model from path '%s': %s",
+            "unable to load model from '%s': %s",
             path, e)
     else:
         yield ModelfileDistribution(models)

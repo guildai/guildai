@@ -77,7 +77,7 @@ def cwd_modeldef(cwd=None):
     except (modelfile.NoModels, IOError):
         return None
     except Exception as e:
-        logging.warning("unable to load modeldef from %s: %s", cwd, e)
+        logging.warning("unable to load modelfile from %s: %s", cwd, e)
         return None
 
 def init_model_path(force_all=False, notify_force_all_option=None, cwd=None):
