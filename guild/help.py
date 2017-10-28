@@ -138,7 +138,7 @@ def package_description(modelfile, refs):
 def _write_models(modelfile, out):
     i = 0
     for model in modelfile:
-        if model.visibility != "public":
+        if model.private:
             continue
         if i > 0:
             out.write_paragraph()
@@ -197,7 +197,7 @@ def _write_flags(flags, heading, out, no_flags_msg=None):
     out.dedent()
 
 def _flag_desc(flag):
-    desc = flag.description
+    desc = flag.description.strip()
     if flag.value is not None:
         desc += " (default is %r)" % flag.value
     return desc

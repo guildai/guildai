@@ -26,6 +26,7 @@ import tempfile
 import threading
 
 import guild.test
+import guild.var
 
 INDEX = "guild/tests/uat/README.md"
 WORKSPACE = os.path.join(tempfile.gettempdir(), "guild-uat")
@@ -53,6 +54,9 @@ def _init_workspace():
     subprocess.check_call(["virtualenv", WORKSPACE])
     os.mkdir(os.path.join(WORKSPACE, "passed-tests"))
     os.mkdir(os.path.join(WORKSPACE, ".guild"))
+    os.symlink(
+        guild.var.cache_dir(),
+        os.path.join(WORKSPACE, ".guild", "cache"))
 
 def _run_tests(tests):
     globs = _test_globals()

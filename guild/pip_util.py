@@ -17,12 +17,18 @@ from __future__ import division
 
 import re
 
-from pip.exceptions import UninstallationError
+from pip.commands.download import DownloadCommand
 from pip.commands.install import InstallCommand
 from pip.commands.search import SearchCommand
 from pip.commands.uninstall import UninstallCommand
+from pip.download import _check_download_dir
+from pip.download import _download_http_url
+from pip.exceptions import HashMismatch as HashMismatch0
+from pip.exceptions import UninstallationError
+from pip.index import Link
 from pip.locations import virtualenv_no_global
 from pip.utils import get_installed_distributions
+from pip.utils.hashes import Hashes
 
 class NotInstalledError(Exception):
 
@@ -77,40 +83,37 @@ def uninstall(reqs, dont_prompt=False):
     except UninstallationError as e:
         m = re.match(
             "Cannot uninstall requirement (.+?), not installed",
-            e.message)
+            str(e))
         if m:
             raise NotInstalledError(m.group(1))
         raise
 
-def download(url):
-    from pip.commands.download import DownloadCommand
-    from pip.download import _check_download_dir
-    from pip.download import _download_http_url
-    from pip.exceptions import HashMismatch
-    from pip.index import Link
-    from pip.utils.hashes import Hashes
+class HashMismatch(Exception):
 
+    def __init__(self, url, expected, actual):
+        super(HashMismatch, self).__init__()
+        self.path = url
+        self.expected = expected
+        self.actual = actual
+
+def download_url(url, download_dir, sha256=None):
     cmd = DownloadCommand()
     options, _ = cmd.parse_args([])
     link = Link(url)
     session = cmd._build_session(options)
-    hashes = Hashes({
-        "sha256": ["9d2dc0e26d4c57322390c96eaa241d176e2c47871717855378ca9021ba35ab8f"]
-    })
-    download_dir = "/tmp/guild-download"
+    hashes = Hashes({"sha256": [sha256]}) if sha256 else None
     downloaded_path = _check_download_dir(link, download_dir, hashes)
     if downloaded_path:
-        print("File already downloaded to %s" % downloaded_path)
+        return downloaded_path
+    try:
+        downloaded_path, _ = _download_http_url(
+            Link(url),
+            session,
+            download_dir,
+            hashes)
+    except HashMismatch0 as e:
+        expected = e.allowed["sha256"][0]
+        actual = e.gots["sha256"].hexdigest()
+        raise HashMismatch(url, expected, actual)
     else:
-        try:
-            downloaded_path, _ = _download_http_url(
-                Link(url),
-                session,
-                download_dir,
-                hashes)
-        except HashMismatch as e:
-            print(e)
-            import sys
-            sys.exit(1)
-        else:
-            print("File downloaded to %s" % downloaded_path)
+        return downloaded_path

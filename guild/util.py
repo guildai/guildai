@@ -166,7 +166,7 @@ def parse_url(url):
     try:
         from urlparse import urlparse
     except ImportError:
-        # pylint: disable=import-error
+        # pylint: disable=import-error,no-name-in-module
         from urllib.parse import urlparse
     return urlparse(url)
 

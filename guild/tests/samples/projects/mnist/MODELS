@@ -21,7 +21,7 @@
     evaluate: expert --test
 
 - name: common
-  visibility: private
+  private: yes
   flags:
     batch-size:
       value: 100

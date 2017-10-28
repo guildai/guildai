@@ -217,7 +217,6 @@ class FlagHost(object):
             yield name, self._flag_vals[name]
             seen.add(name)
         if self._parent:
-            # pylint: disable=protected-access
             for name in self._parent._flag_vals:
                 if name not in seen:
                     yield name, self._parent._flag_vals[name]
@@ -270,11 +269,6 @@ def _init_flag_values(flagdefs):
 # Model def
 ###################################################################
 
-class Visibility(object):
-
-    public = "public"
-    private = "private"
-
 class ModelDef(FlagHost):
 
     def __init__(self, data, modelfile):
@@ -282,7 +276,7 @@ class ModelDef(FlagHost):
         self.modelfile = modelfile
         self.name = data.get("name")
         self.description = data.get("description", "").strip()
-        self.visibility = data.get("visibility", Visibility.public)
+        self.private = bool(data.get("private"))
         self.operations = _init_ops(data.get("operations", {}), self)
         self.resources = _init_resources(data.get("resources", {}), self)
         self.disabled_plugins = data.get("disabled-plugins", [])
@@ -386,6 +380,7 @@ class ResourceDef(object):
         self.modeldef = modeldef
         self.modelfile = modeldef.modelfile
         self.description = data.get("description", "")
+        self.path = data.get("path")
         self.sources = _init_sources(data.get("sources", []), self)
 
     def __repr__(self):
@@ -407,16 +402,16 @@ def _init_sources(data, resdef):
 
 def _init_resource_source(data, resdef):
     if isinstance(data, dict):
-        file_path = data.get("file")
-        url = data.get("url")
+        file_path = data.pop("file", None)
+        url = data.pop("url", None)
         if file_path and url:
             raise ModelfileFormatError(
                 "invalid source in resource '%s': cannot specify "
                 "both file and url" % resdef.fullname)
         if file_path:
-            return FileSource(resdef, **data)
+            return FileSource(resdef, file_path, **data)
         elif url:
-            return URLSource(resdef, **data)
+            return URLSource(resdef, url, **data)
         else:
             raise ModelfileFormatError(
                 "missing source file or url in resource '%s'"
@@ -442,9 +437,9 @@ class ResourceSource(object):
 
 class FileSource(ResourceSource):
 
-    def __init__(self, resdef, file, **kw):
+    def __init__(self, resdef, path, **kw):
         super(FileSource, self).__init__(resdef, **kw)
-        self.path = file
+        self.path = path
 
     def __repr__(self):
         return "<guild.modelfile.FileSource '%s'>" % self.path
@@ -454,6 +449,13 @@ class URLSource(ResourceSource):
     def __init__(self, resdef, url, **kw):
         super(URLSource, self).__init__(resdef, **kw)
         self.url = url
+        self._parsed_url = None
+
+    @property
+    def parsed_url(self):
+        if self._parsed_url is None:
+            self._parsed_url = util.parse_url(self.url)
+        return self._parsed_url
 
     def __repr__(self):
         return "<guild.modelfile.URLSource '%s'>" % self.url

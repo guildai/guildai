@@ -70,17 +70,17 @@ Models support visibility. By default model visibility is
 "public". Models that have a visibility of "private" are not displayed
 in lists. The two `mnist` models are public (default visibility):
 
-    >>> mf["expert"].visibility
-    'public'
+    >>> mf["expert"].private
+    False
 
-    >>> mf["intro"].visibility
-    'public'
+    >>> mf["intro"].private
+    False
 
 The `common` model, which is used to define flags that are common to
 both `mnist` models, is designated as private:
 
-    >>> mf["common"].visibility
-    'private'
+    >>> mf["common"].private
+    True
 
 ### Flags
 

@@ -48,9 +48,9 @@ will modify the acceptance test.
 - [runs-after-mnist-softmax-train](runs-after-mnist-softmax-train.md)
 - [run-info-after-mnist-softmax-train](run-info-after-mnist-softmax-train.md)
 
-## Training a Guild example
+## Training Guild examples
 
-*Installing and training a Guild example.*
+*Installing and training Guild examples.*
 
 - [install-examples](install-examples.md)
 - [mnist-example-models](mnist-example-models.md)

@@ -129,7 +129,6 @@ def run_test_file_with_config(filename, globs, optionflags):
 
 def _load_testfile(filename):
     # Wrapper to handle Python 2/3 differences
-    # pylint: disable=protected-access
     try:
         # pylint: disable=no-value-for-parameter
         return doctest._load_testfile(filename, None, True)

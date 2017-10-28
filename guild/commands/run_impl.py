@@ -173,7 +173,7 @@ def _handle_run_result(exit_status):
 
 def _confirm_run(op, model):
     op_desc = "%s:%s" % (model.fullname, op.opdef.name)
-    flags = _op_flags(op)
+    flags = op.opdef.flag_values()
     if flags:
         prompt = (
             "You are about to run %s with the following flags:\n"
@@ -186,34 +186,11 @@ def _confirm_run(op, model):
             "Continue?" % op_desc)
     return guild.cli.confirm(prompt, default=True)
 
-def _op_flags(op):
-    flags = []
-    args = _expand_option_values(op.cmd_args)
-    i = 1
-    while i < len(args):
-        cur_arg = args[i]
-        i = i + 1
-        next_arg = args[i] if i < len(args) else None
-        if cur_arg[0:2] == "--":
-            if next_arg and next_arg[0:2] != "--":
-                flags.append((cur_arg[2:], next_arg))
-                i = i + 1
-            else:
-                flags.append((cur_arg[2:], None))
-    return flags
-
-def _expand_option_values(args):
-    expanded = []
-    for arg in args:
-        if arg[:2] == "--":
-            expanded.extend(arg.split("=", 1))
-        else:
-            expanded.append(arg)
-    return expanded
-
 def _format_op_flags(flags):
-    return "\n".join(["  %s" % _format_flag(name, val)
-                      for name, val in flags])
+    return "\n".join([
+        "  %s" % _format_flag(name, flags[name])
+        for name in sorted(flags)
+    ])
 
 def _format_flag(name, val):
     if val is None:

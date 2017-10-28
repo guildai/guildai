@@ -63,7 +63,6 @@ def _modeldef_for_dist(name, dist):
         raise ValueError("undefined model '%s'" % name)
 
 def _ensure_dist_modeldefs(dist):
-    # pylint: disable=protected-access
     if not hasattr(dist, "_modelefs"):
         dist._modeldefs = _load_dist_modeldefs(dist)
     return dist._modeldefs
@@ -253,7 +252,7 @@ def add_model_path(model_path):
 
 def iter_models():
     for _name, model in _models:
-        if model.modeldef.visibility == "public":
+        if not model.modeldef.private:
             yield model
 
 def for_name(name):
@@ -261,7 +260,7 @@ def for_name(name):
 
 def iter_():
     for _name, model in _models:
-        if model.modeldef.visibility == "public":
+        if not model.modeldef.private:
             yield model
 
 def _register_model_finder():

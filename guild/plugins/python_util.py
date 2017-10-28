@@ -115,8 +115,6 @@ class Result(Exception):
 
 class MethodWrapper(object):
 
-    # pylint: disable=protected-access
-
     @staticmethod
     def for_method(method):
         return getattr(method, "__wrapper__", None)
