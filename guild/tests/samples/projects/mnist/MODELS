@@ -1,4 +1,10 @@
 - name: intro
+  flags:
+    $include: common
+    epochs: 10
+    learning-rate:
+      value: 0.001
+      description: Learning rate for training
   operations:
     train: intro
     evaluate:
@@ -6,16 +12,10 @@
       flags:
         epochs: 1
         batch-size: 50000
-  flags:
-    $include: common
-    epochs: 10
-    learning-rate:
-      value: 0.001
-      description: Learning rate for training
 
 - name: expert
   description: Sample model
-  flags: common
+  flags: use common
   operations:
     train: expert
     evaluate: expert --test

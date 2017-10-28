@@ -18,6 +18,7 @@ from __future__ import division
 import errno
 import logging
 import os
+import re
 
 import yaml
 
@@ -108,8 +109,9 @@ def _resolve_includes(data, section_name, modelfile, coerce_data):
     seen_includes = set()
     section_data = data.get(section_name, {})
     if isinstance(section_data, str):
+        includes = _parse_use_stmt(section_data, section_name, modelfile)
         _apply_includes(
-            section_data.split(),
+            includes,
             modelfile,
             section_name,
             coerce_data,
@@ -127,6 +129,14 @@ def _resolve_includes(data, section_name, modelfile, coerce_data):
         raise ModelfileFormatError(
             "invalid %s data: %s" % (section_name, data))
     return resolved
+
+def _parse_use_stmt(s, section_name, modelfile):
+    m = re.match("use (.+)", s.strip())
+    if not m:
+        raise ModelfileFormatError(
+            "invalid string value for for '%s' in %s: expected 'use ...'"
+            % (section_name, modelfile.src))
+    return [part.strip() for part in m.group(1).split(",")]
 
 def _apply_includes(includes, modelfile, section_name, coerce_data,
                     seen_includes, resolved):
