@@ -241,6 +241,65 @@ In the same way that models can include flag definitions from other
 models, they can include resources. In our example, both the `intro`
 and `expert` models include resources from the `common` model.
 
+A resource source consists of a URI and other information that Guild
+uses to fully resolve the source. URIs are specified indirectly using
+one of three source type attributes:
+
+- file
+- url
+- operation
+
+Here's a model definition that contains various resource sources:
+
+    >>> mf = modelfile.from_string("""
+    ... name: sample
+    ... resources:
+    ...   sample:
+    ...     sources:
+    ...       - foo.txt
+    ...       - file: bar.tar.gz
+    ...       - url: https://files.com/bar.tar.gz
+    ...       - operation: train/model.meta
+    ... """)
+
+Here are the associated resource sources:
+
+    >>> mf["sample"].get_resource("sample").sources
+    [<guild.modelfile.ResourceSource 'file:foo.txt'>,
+     <guild.modelfile.ResourceSource 'file:bar.tar.gz'>,
+     <guild.modelfile.ResourceSource 'https://files.com/bar.tar.gz'>,
+     <guild.modelfile.ResourceSource 'operation:train/model.meta'>]
+
+Note that when a source is specified as a string it is treated as a
+file.
+
+At least one of the three type attributes is required:
+
+    >>> modelfile.from_string("""
+    ... name: sample
+    ... resources:
+    ...   sample:
+    ...     sources:
+    ...       - foo: bar.txt
+    ... """)
+    Traceback (most recent call last):
+    ModelfileFormatError: invalid source in resource 'sample:sample': missing
+    required attribute (one of file, url, operation)
+
+However, no more than one is allowed:
+
+    >>> modelfile.from_string("""
+    ... name: sample
+    ... resources:
+    ...   sample:
+    ...     sources:
+    ...       - file: foo.txt
+    ...         url: http://files.com/bar.txt
+    ... """)
+    Traceback (most recent call last):
+    ModelfileFormatError: invalid source in resource 'sample:sample':
+    conflicting attributes (file, url)
+
 ## Errors
 
 ### Invalid format

@@ -53,12 +53,19 @@ will modify the acceptance test.
 *Installing and training Guild examples.*
 
 - [install-examples](install-examples.md)
+
+### mnist
+
 - [mnist-example-models](mnist-example-models.md)
 - [mnist-example-ops](mnist-example-ops.md)
 - [mnist-example-resources](mnist-example-resources.md)
 - [mnist-example-initial-runs](mnist-example-initial-runs.md)
 - [train-mnist-intro-example](train-mnist-intro-example.md)
 - [mnist-example-runs-after-intro-train](mnist-example-runs-after-intro-train.md)
+
+### hello
+
+- [run-hello-examples](run-hello-examples.md)
 
 ## Packaging
 

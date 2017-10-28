@@ -65,4 +65,4 @@ Let's look at the required resource:
 This resource has the following sources:
 
     >>> data_res.sources
-    [<guild.modelfile.FileSource 'abcdef'>]
+    [<guild.modelfile.ResourceSource 'file:abcdef'>]

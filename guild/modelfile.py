@@ -412,22 +412,32 @@ def _init_sources(data, resdef):
 
 def _init_resource_source(data, resdef):
     if isinstance(data, dict):
-        file_path = data.pop("file", None)
-        url = data.pop("url", None)
-        if file_path and url:
+        type_attrs = ["file", "url", "operation"]
+        type_vals = [data.pop(attr, None) for attr in type_attrs]
+        type_count = sum([bool(val) for val in type_vals])
+        if type_count == 0:
             raise ModelfileFormatError(
-                "invalid source in resource '%s': cannot specify "
-                "both file and url" % resdef.fullname)
+                "invalid source in resource '%s': missing required "
+                "attribute (one of %s)"
+                % (resdef.fullname, ", ".join(type_attrs)))
+        elif type_count > 1:
+            conflicting = ", ".join([
+                x[1] for x in zip(type_vals, type_attrs) if x[0]
+            ])
+            raise ModelfileFormatError(
+                "invalid source in resource '%s': conflicting attributes (%s)"
+                % (resdef.fullname, conflicting))
+        file_path, url, operation = type_vals
         if file_path:
-            return FileSource(resdef, file_path, **data)
+            return ResourceSource(resdef, "file:%s" % file_path, **data)
         elif url:
-            return URLSource(resdef, url, **data)
+            return ResourceSource(resdef, url, **data)
+        elif operation:
+            return ResourceSource(resdef, "operation:%s" % operation, **data)
         else:
-            raise ModelfileFormatError(
-                "missing source file or url in resource '%s'"
-                % resdef.fullname)
+            raise AssertionError(data)
     elif isinstance(data, str):
-        return FileSource(resdef, data)
+        return ResourceSource(resdef, "file:%s" % data)
     else:
         raise ModelfileFormatError(
             "invalid source for resource '%s': %s"
@@ -435,40 +445,24 @@ def _init_resource_source(data, resdef):
 
 class ResourceSource(object):
 
-    def __init__(self, resdef, sha256=None, file_type=None, unpack=None, **kw):
+    def __init__(self, resdef, uri, sha256=None, **kw):
         self.resdef = resdef
+        self.uri = uri
+        self._parsed_uri = None
         self.sha256 = sha256
-        self.file_type = file_type
-        self.unpack = unpack
         for key in kw:
             logging.warning(
                 "unexpected source attribute '%s' in resource '%s'",
                 key, resdef.fullname)
 
-class FileSource(ResourceSource):
-
-    def __init__(self, resdef, path, **kw):
-        super(FileSource, self).__init__(resdef, **kw)
-        self.path = path
-
-    def __repr__(self):
-        return "<guild.modelfile.FileSource '%s'>" % self.path
-
-class URLSource(ResourceSource):
-
-    def __init__(self, resdef, url, **kw):
-        super(URLSource, self).__init__(resdef, **kw)
-        self.url = url
-        self._parsed_url = None
-
     @property
-    def parsed_url(self):
-        if self._parsed_url is None:
-            self._parsed_url = util.parse_url(self.url)
-        return self._parsed_url
+    def parsed_uri(self):
+        if self._parsed_uri is None:
+            self._parsed_uri = util.parse_url(self.uri)
+        return self._parsed_uri
 
     def __repr__(self):
-        return "<guild.modelfile.URLSource '%s'>" % self.url
+        return "<guild.modelfile.ResourceSource '%s'>" % self.uri
 
 ###################################################################
 # Module API

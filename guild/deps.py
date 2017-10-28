@@ -4,7 +4,6 @@ import os
 import re
 
 from guild import cli
-from guild import modelfile
 from guild import pip_util
 from guild import util
 from guild import var
@@ -44,24 +43,33 @@ class Resource(object):
     def resolve(self):
         cli.out("Resolving %s requirement" % self.resdef.name)
         for source in self.resdef.sources:
-            if isinstance(source, modelfile.FileSource):
+            scheme = source.parsed_uri.scheme
+            if scheme == "file":
                 self._resolve_file_source(source)
-            elif isinstance(source, modelfile.URLSource):
+            elif scheme in ["http", "https"]:
                 self._resolve_url_source(source)
+            elif scheme == "operation":
+                self._resolve_operation_source(source)
             else:
-                raise AssertionError(source)
+                raise DependencyError(
+                    "unsupported scheme in URL '%s' in resource '%s'"
+                    % (source.uri, self.resdef.name))
 
     def _resolve_file_source(self, source):
-        assert isinstance(source, modelfile.FileSource), source
         working_dir = os.path.dirname(self.resdef.modelfile.src)
-        source_path = os.path.join(working_dir, source.path)
+        source_path = os.path.join(working_dir, source.parsed_uri.path)
         _verify_file(source_path, source.sha256, self.ctx)
         self._link_to_source(source_path)
 
     def _resolve_url_source(self, source):
-        assert isinstance(source, modelfile.URLSource), source
         source_path = _ensure_url_source(source)
         self._link_to_source(source_path)
+
+    @staticmethod
+    def _resolve_operation_source(source):
+        raise AssertionError(
+            "TODO: resolve operation source %s"
+            % source.parse_uri.path)
 
 def _verify_file(path, sha256, ctx):
     _verify_file_exists(path, ctx)
@@ -82,10 +90,10 @@ def _verify_file_hash(path, sha256):
             % (path, sha256, actual))
 
 def _ensure_url_source(source):
-    download_dir = _download_dir_for_url(source.parsed_url)
+    download_dir = _download_dir_for_url(source.parsed_uri)
     util.ensure_dir(download_dir)
     try:
-        return pip_util.download_url(source.url, download_dir, source.sha256)
+        return pip_util.download_url(source.uri, download_dir, source.sha256)
     except pip_util.HashMismatch as e:
         raise DependencyError(
             "bad sha256 for '%s' (expected %s but got %s)"
