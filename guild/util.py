@@ -166,7 +166,7 @@ def parse_url(url):
     try:
         from urlparse import urlparse
     except ImportError:
-        # pylint: disable=no-name-in-module
+        # pylint: disable=import-error
         from urllib.parse import urlparse
     return urlparse(url)
 
@@ -186,3 +186,7 @@ class TempDir(object):
         import tempfile
         assert os.path.dirname(self.path) == tempfile.gettempdir(), self.path
         shutil.rmtree(self.path)
+
+def mktempdir(prefix=None):
+    import tempfile
+    return tempfile.mkdtemp(prefix=prefix)

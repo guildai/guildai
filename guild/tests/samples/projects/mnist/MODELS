@@ -12,7 +12,6 @@
     learning-rate:
       value: 0.001
       description: Learning rate for training
-  resources: common
 
 - name: expert
   description: Sample model
@@ -20,7 +19,6 @@
   operations:
     train: expert
     evaluate: expert --test
-  resources: common
 
 - name: common
   visibility: private

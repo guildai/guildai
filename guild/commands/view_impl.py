@@ -17,8 +17,6 @@ from __future__ import division
 
 import logging
 import os
-import shutil
-import tempfile
 import threading
 
 from guild import cli

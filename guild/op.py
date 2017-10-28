@@ -81,8 +81,7 @@ class Operation(object):
         assert self._run is not None
         ctx = guild.deps.ResolutionContext(
             target_dir=self._run.path,
-            source_dir=os.path.dirname(self.opdef.modelfile.src)
-        )
+            opdef=self.opdef)
         guild.deps.resolve(self.opdef.dependencies, ctx)
 
     def _start_proc(self):

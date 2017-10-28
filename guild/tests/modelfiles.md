@@ -232,10 +232,10 @@ operations. Our sample models each have the following resources:
     [<guild.modelfile.ResourceDef 'data'>]
 
     >>> mf["expert"].resources
-    [<guild.modelfile.ResourceDef 'data'>]
+    []
 
     >>> mf["intro"].resources
-    [<guild.modelfile.ResourceDef 'data'>]
+    []
 
 In the same way that models can include flag definitions from other
 models, they can include resources. In our example, both the `intro`

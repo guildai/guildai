@@ -23,7 +23,6 @@ import yaml
 
 import guild.plugin
 
-from guild import resourcedef
 from guild import util
 
 # The order here should be based on priority of selection.
@@ -126,7 +125,7 @@ def _resolve_includes(data, section_name, modelfile, coerce_data):
             resolved)
     else:
         raise ModelfileFormatError(
-            "invalid %s data: %s" % (section_name, flags_data))
+            "invalid %s data: %s" % (section_name, data))
     return resolved
 
 def _apply_includes(includes, modelfile, section_name, coerce_data,
@@ -285,7 +284,7 @@ class ModelDef(FlagHost):
         self.description = data.get("description", "").strip()
         self.visibility = data.get("visibility", Visibility.public)
         self.operations = _init_ops(data.get("operations", {}), self)
-        self.resources = _init_resources(data, self)
+        self.resources = _init_resources(data.get("resources", {}), self)
         self.disabled_plugins = data.get("disabled-plugins", [])
 
     def __repr__(self):
@@ -297,6 +296,12 @@ class ModelDef(FlagHost):
                 return op
         return None
 
+    def get_resource(self, name):
+        for res in self.resources:
+            if res.name == name:
+                return res
+        return None
+
 def _init_ops(data, modeldef):
     return [
         OpDef(key, _coerce_op_data(data[key]), modeldef)
@@ -304,11 +309,6 @@ def _init_ops(data, modeldef):
     ]
 
 def _coerce_op_data(data):
-    """Return a cmd map for data.
-
-    Ops may be strings, in which case the value is implied as the cmd
-    attribute of the op map.
-    """
     if isinstance(data, str):
         return {
             "cmd": data
@@ -317,23 +317,10 @@ def _coerce_op_data(data):
         return data
 
 def _init_resources(data, modeldef):
-    res_data = _resolve_includes(
-        data,
-        "resources",
-        modeldef.modelfile,
-        _coerce_resource_data)
     return [
-        ResourceDef(name, res_data[name], modeldef)
-        for name in sorted(res_data)
+        ResourceDef(key, data[key], modeldef)
+        for key in sorted(data)
     ]
-
-def _coerce_resource_data(data):
-    if isinstance(data, dict):
-        return data
-    elif isinstance(data, str):
-        return {"url": data}
-    else:
-        raise ModelfileFormatError("unsupported resource data: %s" % data)
 
 ###################################################################
 # Op def
@@ -375,26 +362,6 @@ class OpDependency(object):
     def __repr__(self):
         return "<guild.modelfile.OpDependency '%s'>" % self.spec
 
-    def iter_sources(self):
-        if self.spec[0] == ":":
-            res_name = self.spec[1:]
-            model = self.opdef.modeldef
-            for res in model.resources:
-                if res.name == res_name:
-                    if res.sources:
-                        for source in res.sources:
-                            yield source
-                    else:
-                        logging.warning(
-                            "'%s' resource in model '%s' "
-                            "does not define any sources",
-                            res_name, model.name)
-                    break
-            else:
-                raise NoSuchResourceError(res_name, self)
-        else:
-            yield ResourceSource({"url": "file:%s" % self.spec})
-
 class NoSuchResourceError(ValueError):
 
     def __init__(self, name, dep):
@@ -408,28 +375,88 @@ class NoSuchResourceError(ValueError):
 # Resource def
 ###################################################################
 
+# TODO: need to move this to resourcedef as we add support for
+# resources defined in packages - or otherwise resolve resources that
+# aren't associated with a model.
+
 class ResourceDef(object):
 
     def __init__(self, name, data, modeldef):
         self.name = name
         self.modeldef = modeldef
+        self.modelfile = modeldef.modelfile
         self.description = data.get("description", "")
-        self.sources = [
-            ResourceSource(res) for res in data.get("sources", [])
-        ]
+        self.sources = _init_sources(data.get("sources", []), self)
 
     def __repr__(self):
         return "<guild.modelfile.ResourceDef '%s'>" % self.name
 
+    @property
+    def fullname(self):
+        return "%s:%s" % (self.modeldef.name, self.name)
+
+def _init_sources(data, resdef):
+    if isinstance(data, list):
+        return [_init_resource_source(src_data, resdef) for src_data in data]
+    elif isinstance(data, str):
+        return [_init_resource_source(data, resdef)]
+    else:
+        raise ModelfileFormatError(
+            "invalid sources for resource '%s'"
+            % resdef.fullname)
+
+def _init_resource_source(data, resdef):
+    if isinstance(data, dict):
+        file_path = data.get("file")
+        url = data.get("url")
+        if file_path and url:
+            raise ModelfileFormatError(
+                "invalid source in resource '%s': cannot specify "
+                "both file and url" % resdef.fullname)
+        if file_path:
+            return FileSource(resdef, **data)
+        elif url:
+            return URLSource(resdef, **data)
+        else:
+            raise ModelfileFormatError(
+                "missing source file or url in resource '%s'"
+                % resdef.fullname)
+    elif isinstance(data, str):
+        return FileSource(resdef, data)
+    else:
+        raise ModelfileFormatError(
+            "invalid source for resource '%s': %s"
+            % (resdef.fullname, data))
+
 class ResourceSource(object):
 
-    def __init__(self, data):
-        self.url = data.get("url")
-        self.sha256 = data.get("sha256")
-        self.unpack = bool(data.get("unpack"))
+    def __init__(self, resdef, sha256=None, file_type=None, unpack=None, **kw):
+        self.resdef = resdef
+        self.sha256 = sha256
+        self.file_type = file_type
+        self.unpack = unpack
+        for key in kw:
+            logging.warning(
+                "unexpected source attribute '%s' in resource '%s'",
+                key, resdef.fullname)
 
-    def __str__(self):
-        return self.url
+class FileSource(ResourceSource):
+
+    def __init__(self, resdef, file, **kw):
+        super(FileSource, self).__init__(resdef, **kw)
+        self.path = file
+
+    def __repr__(self):
+        return "<guild.modelfile.FileSource '%s'>" % self.path
+
+class URLSource(ResourceSource):
+
+    def __init__(self, resdef, url, **kw):
+        super(URLSource, self).__init__(resdef, **kw)
+        self.url = url
+
+    def __repr__(self):
+        return "<guild.modelfile.URLSource '%s'>" % self.url
 
 ###################################################################
 # Module API
