@@ -48,12 +48,22 @@ class Resource(object):
         print("TODO: resolve %s" % source)
 
 def _verify_file(path, sha256, ctx):
+    _verify_file_exists(path, ctx)
+    if sha256:
+        _verify_file_hash(path, sha256)
+
+def _verify_file_exists(path, ctx):
     if not os.path.exists(path):
         raise DependencyError(
             "'%s' required by operation '%s' does not exist"
             % (path, ctx.opdef.fullname))
-    if sha256:
-        print("TODO: check hash on %s" % path)
+
+def _verify_file_hash(path, expected_sha256):
+    actual = util.file_sha256(path)
+    if actual != expected_sha256:
+        raise DependencyError(
+            "unexpected sha256 hash for '%s' (expected %s but got %s)"
+            % (path, expected_sha256, actual))
 
 def _dep_desc(dep):
     return "%s:%s" % (dep.opdef.modeldef.name, dep.opdef.name)
