@@ -42,7 +42,7 @@ class Resource(object):
         return os.path.join(self.ctx.target_dir, res_path, basename)
 
     def resolve(self):
-        logging.info("Resolving '%s' resource" % self.resdef.name)
+        logging.info("Resolving '%s' resource", self.resdef.name)
         for source in self.resdef.sources:
             scheme = source.parsed_uri.scheme
             if scheme == "file":
