@@ -20,12 +20,13 @@ import os
 import re
 import time
 
+import guild.opref
+
 from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
 from guild import config
 from guild import namespace
-from guild import op
 from guild import var
 
 RUN_DETAIL = [
@@ -120,9 +121,9 @@ def _model_run_filter(model_names):
 
 def _init_run(run):
     try:
-        opref = op.OpRef.from_run(run)
-    except op.OpRefError as e:
-        logging.warning(e)
+        opref = guild.opref.OpRef.from_run(run)
+    except guild.opref.OpRefError as e:
+        logging.warning("unable to read opref for run %s: %s", run.id, e)
         return None
     else:
         run.opref = opref

@@ -18,9 +18,10 @@ We'll run through the various operations in this test.
 
     >>> run("guild operations")
     Limiting models to the current directory (use --all to include all)
-    ./hello:default    Print a default message
-    ./hello:from-file  Print a message from a file
-    ./hello:from-flag  Print a message
+    ./hello:default           Print a default message
+    ./hello:from-file         Print a message from a file
+    ./hello:from-file-output  Print output from last file-output operation
+    ./hello:from-flag         Print a message
     <exit 0>
 
 ### `default`
@@ -47,13 +48,25 @@ And the output when we provide a value for the message flag:
     Howdy Guild!
     <exit 0>
 
+### `from-file-output` part 1
+
+The `from-file-output` operation requires output from the `from-file`
+operation. When we try to run it without first having a completed run
+for `from-file` we get an error.
+
+    >>> run("guild run from-file-output -y")
+    Resolving 'file-output' resource
+    guild: run failed because a dependency was not met: no completed run
+    for ./hello:from-file (operation source in resource 'file-output')
+    <exit 1>
+
 ### `from-file`
 
 The `from-file` operation prints a message contained in a file. By
 default it will print the contents of a default file:
 
     >>> run("guild run from-file -y")
-    Resolving msg-file requirement
+    Resolving 'msg-file' resource
     Hello Guild, from a required file!
     <exit 0>
 
@@ -63,6 +76,17 @@ We can provide an alternative.
 
     >>> quiet("echo 'Yo yo, what up Guild!' > $WORKSPACE/alt-msg")
     >>> run("guild run from-file file=$WORKSPACE/alt-msg -y")
-    Resolving msg-file requirement
+    Resolving 'msg-file' resource
+    Yo yo, what up Guild!
+    <exit 0>
+
+### `from-file-output` part 2
+
+Now that we have a successful run of `from-file` we can run
+`from-from-output`:
+
+    >>> run("guild run from-file-output -y")
+    Resolving 'file-output' resource
+    Latest from-file output:
     Yo yo, what up Guild!
     <exit 0>

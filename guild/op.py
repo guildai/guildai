@@ -15,7 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import collections
 import logging
 import os
 import re
@@ -25,10 +24,12 @@ import sys
 import time
 import uuid
 
-import guild.deps
 import guild.run
-import guild.util
-import guild.var
+
+from guild import deps
+from guild import opref
+from guild import util
+from guild import var
 
 OP_RUNFILES = [
     "org_psutil"
@@ -65,7 +66,7 @@ class Operation(object):
 
     def _init_run(self):
         id = unique_run_id()
-        path = os.path.join(guild.var.runs_dir(), id)
+        path = os.path.join(var.runs_dir(), id)
         self._run = guild.run.Run(id, path)
         logging.debug("initializing run in %s", path)
         self._run.init_skel()
@@ -79,15 +80,15 @@ class Operation(object):
         self._run.write_attr("started", self._started)
 
     def _opref_attr(self):
-        ref = OpRef.from_op(self.opdef.name, self.model.reference)
+        ref = opref.OpRef.from_op(self.opdef.name, self.model.reference)
         return str(ref)
 
     def _resolve_deps(self):
         assert self._run is not None
-        ctx = guild.deps.ResolutionContext(
+        ctx = deps.ResolutionContext(
             target_dir=self._run.path,
             opdef=self.opdef)
-        guild.deps.resolve(self.opdef.dependencies, ctx)
+        deps.resolve(self.opdef.dependencies, ctx)
 
     def _start_proc(self):
         assert self._proc is None
@@ -171,7 +172,7 @@ def _cmd_option_args(name, val):
 
 def _init_cmd_env(opdef):
     env = {}
-    env.update(guild.util.safe_osenv())
+    env.update(util.safe_osenv())
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["LOG_LEVEL"] = str(logging.getLogger().getEffectiveLevel())
     env["PYTHONPATH"] = _python_path(opdef)
@@ -234,57 +235,3 @@ def _delete_proc_lock(run):
         os.remove(run.guild_path("LOCK"))
     except OSError:
         pass
-
-class OpRefError(ValueError):
-    pass
-
-OpRef = collections.namedtuple(
-    "OpRef", [
-        "pkg_type",
-        "pkg_name",
-        "pkg_version",
-        "model_name",
-        "op_name"
-    ])
-
-def _opref_from_op(op_name, model_ref):
-    (pkg_type,
-     pkg_name,
-     pkg_version,
-     model_name) = model_ref
-    return OpRef(pkg_type, pkg_name, pkg_version, model_name, op_name)
-
-def _opref_from_run(run):
-    opref_attr = run.get("opref")
-    if not opref_attr:
-        raise OpRefError(
-            "run %s does not have attr 'opref')"
-            % run.id)
-    m = re.match(
-        r"([^ :]+):([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)\s*$",
-        opref_attr)
-    if not m:
-        raise OpRefError(
-            "bad opref attr for run %s: %s"
-            % (run.id, opref_attr))
-    return OpRef(*m.groups())
-
-def _opref_from_string(s):
-    m = re.match(r"(?:(?:([^/]+)/)?([^:]+):)?([a-zA-Z0-9-_\.]+)(.*)$", s)
-    if not m:
-        raise OpRefError("invalid reference: %r" % s)
-    pkg_name, model_name, op_name, extra = m.groups()
-    return OpRef(None, pkg_name, None, model_name, op_name), extra
-
-def _opref_to_string(opref):
-    return "%s:%s %s %s %s" % (
-        opref.pkg_type or "?",
-        opref.pkg_name or "?",
-        opref.pkg_version or "?",
-        opref.model_name or "?",
-        opref.op_name or "?")
-
-OpRef.from_op = staticmethod(_opref_from_op)
-OpRef.from_run = staticmethod(_opref_from_run)
-OpRef.from_string = staticmethod(_opref_from_string)
-OpRef.__str__ = _opref_to_string

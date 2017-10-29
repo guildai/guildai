@@ -84,7 +84,7 @@ be defined for the source model, another model in the modelfile, or a
 model defined in a package. Operation references must be in a format
 that can be parsed using `op.OpRef.from_string`.
 
-    >>> from guild.op import OpRef
+    >>> from guild.opref import OpRef
 
 `OpRef.from_string` returns a tuple of `OpRef` instance and any string
 content following the reference.

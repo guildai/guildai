@@ -53,7 +53,10 @@ py_library(
     name = "deps",
     srcs = ["deps.py"],
     deps = [
+        ":opref",
+        ":pip_util",
         ":util",
+        ":var",
     ],
 )
 
@@ -134,6 +137,7 @@ py_library(
     srcs = ["op.py"],
     deps = [
         ":deps",
+        ":opref",
         ":run",
         ":util",
         ":var",
@@ -149,6 +153,13 @@ py_library(
     deps = [
         ":log",
         ":plugin",
+    ],
+)
+
+py_library(
+    name = "opref",
+    srcs = ["opref.py"],
+    deps = [
     ],
 )
 

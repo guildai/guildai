@@ -76,6 +76,7 @@
     guild.namespace
     guild.op
     guild.op_main
+    guild.opref
     guild.package
     guild.package_main
     guild.pip_util

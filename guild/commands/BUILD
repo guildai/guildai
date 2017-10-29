@@ -241,7 +241,7 @@ py_library(
         "//guild:cmd_impl_support",
         "//guild:deps",
         "//guild:model",
-        "//guild:op",
+        "//guild:opref",
     ],
 )
 

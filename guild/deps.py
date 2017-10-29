@@ -3,7 +3,8 @@ import logging
 import os
 import re
 
-from guild import cli
+import guild.opref
+
 from guild import pip_util
 from guild import util
 from guild import var
@@ -41,7 +42,7 @@ class Resource(object):
         return os.path.join(self.ctx.target_dir, res_path, basename)
 
     def resolve(self):
-        cli.out("Resolving %s requirement" % self.resdef.name)
+        logging.info("Resolving '%s' resource" % self.resdef.name)
         for source in self.resdef.sources:
             scheme = source.parsed_uri.scheme
             if scheme == "file":
@@ -65,12 +66,54 @@ class Resource(object):
         source_path = _ensure_url_source(source)
         self._link_to_source(source_path)
 
+    def _resolve_operation_source(self, source):
+        opref, path = self._parse_opref(source.parsed_uri.path)
+        rundir = self._latest_op_rundir(opref)
+        source_path = os.path.join(rundir, path)
+        self._link_to_source(source_path)
+
+    def _parse_opref(self, opref_spec):
+        try:
+            opref, path = guild.opref.OpRef.from_string(opref_spec)
+        except guild.opref.OpRefError:
+            raise DependencyError(
+                "inavlid operation reference '%s' in resource '%s'"
+                % (opref_spec, self.resdef.name))
+        else:
+            if not path or path[0] != '/':
+                raise DependencyError(
+                    "invalid operation source path '%s' in resource '%s'"
+                    % (path, self.resdef.name))
+            normalized_path = os.path.join(*path.split("/"))
+            return opref, normalized_path
+
+    def _latest_op_rundir(self, opref):
+        resolved_opref = self._fully_resolve_opref(opref)
+        completed_op_runs = var.run_filter("all", [
+            var.run_filter("attr", "extended_status", "completed"),
+            resolved_opref.is_op_run])
+        runs = var.runs(sort=["-started"], filter=completed_op_runs)
+        if runs:
+            return runs[0].path
+        raise DependencyError(
+            "no completed run for %s (operation source "
+            "in resource '%s')"
+            % (self._opref_desc(resolved_opref), self.resdef.name))
+
     @staticmethod
-    def _resolve_operation_source(source):
-        m = re.match("()", source.parsed_uri.path)
-        raise AssertionError(
-            "TODO: resolve operation source %s"
-            % source.parsed_uri.path)
+    def _opref_desc(opref):
+        pkg = "." if opref.pkg_type == "modelfile"  else opref.pkg_name
+        return "%s/%s:%s" % (pkg, opref.model_name, opref.op_name)
+
+    def _fully_resolve_opref(self, opref):
+        assert opref.op_name, opref
+        package_version = None
+        return guild.opref.OpRef(
+            opref.pkg_type or "modelfile",
+            opref.pkg_name or os.path.abspath(self.resdef.modelfile.src),
+            package_version,
+            opref.model_name or self.resdef.modeldef.name,
+            opref.op_name)
 
 def _verify_file(path, sha256, ctx):
     _verify_file_exists(path, ctx)
