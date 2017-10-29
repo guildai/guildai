@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import base64
+import collections
 import hashlib
 import logging
 import os
@@ -26,6 +27,14 @@ from guild import namespace
 
 _models = entry_point_util.EntryPointResources("guild.models", "model")
 
+ModelRef = collections.namedtuple(
+    "ModelRef", [
+        "dist_type",
+        "dist_name",
+        "dist_version",
+        "model_name"
+    ])
+
 class Model(object):
 
     def __init__(self, ep):
@@ -33,6 +42,7 @@ class Model(object):
         self.dist = ep.dist
         self.modeldef = _modeldef_for_dist(ep.name, ep.dist)
         self._fullname = None # lazy
+        self._reference = None # lazy
 
     def __repr__(self):
         return "<guild.model.Model '%s'>" % self.name
@@ -46,12 +56,29 @@ class Model(object):
 
     @property
     def reference(self):
+        if self._reference is None:
+            self._reference = self._init_reference()
+        return self._reference
+
+    def _init_reference(self):
         try:
             modelfile = self.dist.modelfile
         except AttributeError:
-            return "dist:%s %s" % (self.dist, self.name)
+            # Dist doesn't have modelfile attr, it's a Python package.
+            return ModelRef(
+                "project",
+                self.dist.project_name,
+                self.dist.version,
+                self.name)
         else:
-            return "file:%s %s" % (_modelfile_dist_ref(modelfile), self.name)
+            # Dist has modelfile attr, it's from a local modelfile
+            modelfile_path = os.path.abspath(modelfile.src)
+            modelfile_hash = _modelfile_hash(modelfile_path)
+            return ModelRef(
+                "modelfile",
+                modelfile_path,
+                modelfile_hash,
+                self.name)
 
 def _modeldef_for_dist(name, dist):
     if isinstance(dist, ModelfileDistribution):
@@ -91,10 +118,6 @@ def _try_acc_modeldefs(path, acc):
     else:
         for modeldef in models:
             acc.append(modeldef)
-
-def _modelfile_dist_ref(modelfile):
-    path = os.path.abspath(modelfile.src)
-    return "%s %s" % (path, _modelfile_hash(path))
 
 def _modelfile_hash(path):
     try:

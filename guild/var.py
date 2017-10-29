@@ -42,10 +42,10 @@ def trash_dir(name=None):
 def cache_dir(name=None):
     return os.path.join(path("cache"), name) if name else path("cache")
 
-def runs(root=None, sort=None, filter=None):
+def runs(root=None, sort=None, filter=None, run_init=None):
     root = root or runs_dir()
     filter = filter or (lambda _: True)
-    runs = [run for run in _all_runs(root) if filter(run)]
+    runs = [run for run in _all_runs(root, run_init) if filter(run)]
     if sort:
         runs = sorted(runs, key=_run_sort_key(sort))
     return runs
@@ -74,9 +74,13 @@ def run_filter(name, *args):
         raise ValueError(name)
     return maybe_negate(filter)
 
-def _all_runs(root):
+def _all_runs(root, run_init):
+    return [run for run in _all_init_runs(root, run_init) if run]
+
+def _all_init_runs(root, run_init):
+    run_init = run_init if run_init else lambda x: x
     return [
-        guild.run.Run(name, path)
+        run_init(guild.run.Run(name, path))
         for name, path in _iter_dirs(root)
     ]
 

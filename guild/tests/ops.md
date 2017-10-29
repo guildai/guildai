@@ -5,11 +5,11 @@ Operation support is implemented by the `op` module:
     >>> import guild.op
 
 For our tests, we'll use a helper function that returns an instance of
-guild.project.Operation:
+`guild.modelfile.OpDef`:
 
     >>> import guild.modelfile
 
-    >>> def ProjectOp(cmd, name="op"):
+    >>> def OpDef(cmd, name="op"):
     ...     data = [
     ...       {
     ...         "name": "model",
@@ -24,10 +24,11 @@ guild.project.Operation:
     ...     return models["model"].get_operation(name)
 
 We'll also create a helper function that returns and instance of
-guild.op.Operation given arguments to ProjectOp:
+`guild.op.Operation` given arguments to `OpDef` above:
 
     >>> def Operation(*args, **kw):
-    ...     return guild.op.Operation(ProjectOp(*args, **kw))
+    ...     model = None # not used
+    ...     return guild.op.Operation(model, OpDef(*args, **kw))
 
 Note that the `"test"` argument is an operation reference, which is
 not used in our tests.
@@ -122,12 +123,12 @@ Flags defined in the operation override flags defined in the model.
 
 For our tests we'll use the train operation:
 
-    >>> project_op = ProjectOp("train")
+    >>> opdef = OpDef("train")
 
 We can get the flags defined for this op using the `all_flag_values`
 method:
 
-    >>> project_op.flag_values()
+    >>> opdef.flag_values()
     {}
 
 Our sample operations aren't initialized with any flags, so we expect
@@ -136,25 +137,25 @@ this list to be empty.
 Let's add some flags, starting with the operation model. We'll use the
 `set_flag_value` method:
 
-    >>> project_op.modeldef.set_flag_value("epochs", 100)
+    >>> opdef.modeldef.set_flag_value("epochs", 100)
 
 And now enumerate flag values for the operation:
 
-    >>> project_op.flag_values()
+    >>> opdef.flag_values()
     {'epochs': 100}
 
 Let's define the same flag at the operation level:
 
-    >>> project_op.set_flag_value("epochs", 200)
-    >>> project_op.flag_values()
+    >>> opdef.set_flag_value("epochs", 200)
+    >>> opdef.flag_values()
     {'epochs': 200}
 
 Here are a couple additional flags, one defined in the model and the
 other in the operations:
 
-    >>> project_op.set_flag_value("batch-size", 50)
-    >>> project_op.modeldef.set_flag_value("learning-rate", 0.1)
-    >>> pprint(project_op.flag_values())
+    >>> opdef.set_flag_value("batch-size", 50)
+    >>> opdef.modeldef.set_flag_value("learning-rate", 0.1)
+    >>> pprint(opdef.flag_values())
     {'batch-size': 50,
      'epochs': 200,
      'learning-rate': 0.1}

@@ -25,6 +25,7 @@ from guild import click_util
 from guild import cmd_impl_support
 from guild import config
 from guild import namespace
+from guild import op
 from guild import var
 
 RUN_DETAIL = [
@@ -55,7 +56,8 @@ def runs_for_args(args, force_deleted=False):
     return var.runs(
         _runs_root_for_args(args, force_deleted),
         sort=["-started"],
-        filter=_runs_filter(args))
+        filter=_runs_filter(args),
+        run_init=_init_run)
 
 def _runs_root_for_args(args, force_deleted):
     deleted = force_deleted or getattr(args, "deleted", False)
@@ -99,72 +101,42 @@ def _notify_runs_limited():
 
 def _cwd_run_filter(abs_cwd):
     def f(run):
-        op_info = _ensure_op_info(run)
-        if op_info.pkg_info[0] == "file":
-            model_path = os.path.dirname(op_info.pkg_info[1])
+        if run.opref.pkg_type == "file":
+            model_path = os.path.dirname(run.opref.pkg_name)
             if os.path.isabs(model_path):
                 if model_path == abs_cwd:
                     return True
             else:
                 logging.warning(
                     "unexpected non-absolute modelfile path for run %s: %s",
-                    run["id"], model_path)
+                    run.id, model_path)
         return False
     return f
 
-def _ensure_op_info(run):
-    try:
-        return run.op_info
-    except AttributeError:
-        run.op_info = op_info = _op_info(run)
-        return op_info
-
-def _op_info(run):
-    opref = run.get("opref")
-    if not opref:
-        logging.warning(
-            "cannot read opref for run %s: missing opref run attr",
-            run.id)
-        parts = ["", None, None, None]
-    else:
-        parts = opref.split(" ")
-        if len(parts) != 4:
-            logging.warning(
-                "cannot format opref for run %s: bad format in '%s'",
-                run.id, opref)
-            parts = ["", None, None, None]
-    pkg_info, version, model, op_name = parts
-    return click_util.Args(
-        dict(
-            pkg_info=_split_pkg_info(pkg_info),
-            version=version,
-            model=model,
-            op_name=op_name
-        ))
-
-def _split_pkg_info(info):
-    parts = info.split(":", 1)
-    if len(parts) == 2:
-        return tuple(parts)
-    else:
-        return (None, parts[0])
-
-def _model_run_filter(models):
+def _model_run_filter(model_names):
     def f(run):
-        op_info = _ensure_op_info(run)
-        return any((op_info.model == m for m in models))
+        return any((run.opref.model_name == name for name in model_names))
     return f
 
+def _init_run(run):
+    try:
+        opref = op.OpRef.from_run(run)
+    except op.OpRefError as e:
+        logging.warning(e)
+        return None
+    else:
+        run.opref = opref
+        return run
+
 def format_run(run, index=None):
-    op_info = _ensure_op_info(run)
     return {
         "id": run.id,
         "index": _format_run_index(run, index),
         "short_index": _format_run_index(run),
-        "model": op_info.model,
-        "op_name": op_info.op_name,
-        "operation": _format_op_desc(op_info),
-        "pkg": _format_pkg_info(op_info.pkg_info),
+        "model": run.opref.model_name,
+        "op_name": run.opref.op_name,
+        "operation": _format_op_desc(run.opref),
+        "pkg": run.opref.pkg_name,
         "status": run.extended_status,
         "pid": run.pid or "(not running)",
         "started": _format_timestamp(run.get("started")),
@@ -180,30 +152,26 @@ def _format_run_index(run, index=None):
     else:
         return "[%s]" % run.short_id
 
-def _format_op_desc(op_info):
-    pkg_type, pkg = op_info.pkg_info
-    if pkg_type == "file":
-        return _format_modelfile_op(pkg, op_info.model, op_info.op_name)
-    elif pkg_type == "dist":
-        return _format_package_op(pkg, op_info.model, op_info.op_name)
+def _format_op_desc(opref):
+    if opref.pkg_type == "modelfile":
+        return _format_modelfile_op(opref)
+    elif opref.pkg_type == "project":
+        return _format_package_op(opref)
     else:
         logging.warning(
             "cannot format op desc, unexpected pkg type: %s (%s)",
-            pkg_type, pkg)
+            opref.pkg_type, opref.pkg_name)
         return "?"
 
-def _format_modelfile_op(path, model, op):
-    relpath = os.path.relpath(os.path.dirname(path), config.cwd())
+def _format_modelfile_op(opref):
+    relpath = os.path.relpath(os.path.dirname(opref.pkg_name), config.cwd())
     if relpath[0] != '.':
         relpath = os.path.join('.', relpath)
-    return "%s/%s:%s" % (relpath, model, op)
+    return "%s/%s:%s" % (relpath, opref.model_name, opref.op_name)
 
-def _format_package_op(project_name, model, op):
-    pkg = namespace.apply_namespace(project_name)
-    return "%s/%s:%s" % (pkg, model, op)
-
-def _format_pkg_info(pkg_info):
-    return pkg_info[1]
+def _format_package_op(opref):
+    pkg = namespace.apply_namespace(opref.pkg_name)
+    return "%s/%s:%s" % (pkg, opref.model_name, opref.op_name)
 
 def _format_timestamp(ts):
     if not ts:

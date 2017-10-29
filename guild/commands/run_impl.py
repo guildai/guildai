@@ -137,17 +137,11 @@ def _no_such_operation_error(name, model):
         % (name, model.name, model.name))
 
 def _init_op(opdef, model, args):
-    _apply_flags(args, opdef)
-    _apply_disable_plugins(args, opdef)
-    return guild.op.Operation(opdef, _op_attrs(opdef, model))
+    _apply_arg_flags(args, opdef)
+    _apply_arg_disable_plugins(args, opdef)
+    return guild.op.Operation(model, opdef)
 
-def _op_attrs(opdef, model):
-    return {
-        "flags": opdef.flag_values(),
-        "opref": "%s %s" % (model.reference, opdef.name)
-    }
-
-def _apply_flags(args, opdef):
+def _apply_arg_flags(args, opdef):
     for arg in args.args:
         name, val = _parse_flag(arg)
         opdef.set_flag_value(name, val)
@@ -159,7 +153,7 @@ def _parse_flag(s):
     else:
         return parts
 
-def _apply_disable_plugins(args, opdef):
+def _apply_arg_disable_plugins(args, opdef):
     if args.disable_plugins:
         opdef.disabled_plugins.extend([
             name.strip() for name in args.disable_plugins.split(",")

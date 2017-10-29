@@ -38,11 +38,11 @@ class InvalidCmd(ValueError):
 
 class Operation(object):
 
-    def __init__(self, opdef, attrs=None):
+    def __init__(self, model, opdef):
+        self.model = model
         self.opdef = opdef
         self.cmd_args = _init_cmd_args(opdef)
         self.cmd_env = _init_cmd_env(opdef)
-        self.attrs = attrs or {}
         self._running = False
         self._started = None
         self._stopped = None
@@ -71,11 +71,15 @@ class Operation(object):
 
     def _init_attrs(self):
         assert self._run is not None
-        for name, val in self.attrs.items():
-            self._run.write_attr(name, val)
+        self._run.write_attr("opref", self._opref_attr())
+        self._run.write_attr("flags", self.opdef.flag_values())
         self._run.write_attr("cmd", self.cmd_args)
         self._run.write_attr("env", self.cmd_env)
         self._run.write_attr("started", self._started)
+
+    def _opref_attr(self):
+        ref = OpRef.from_op(self.opdef.name, self.model.reference)
+        return str(ref)
 
     def _resolve_deps(self):
         assert self._run is not None
@@ -229,3 +233,44 @@ def _delete_proc_lock(run):
         os.remove(run.guild_path("LOCK"))
     except OSError:
         pass
+
+class OpRefError(ValueError):
+    pass
+
+class OpRef(object):
+
+    @classmethod
+    def from_op(cls, op_name, model_ref):
+        (pkg_type,
+         pkg_name,
+         pkg_version,
+         model_name) = model_ref
+        return cls(pkg_type, pkg_name, pkg_version, model_name, op_name)
+
+    @classmethod
+    def from_run(cls, run):
+        opref_attr = run.get("opref")
+        if not opref_attr:
+            raise OpRefError(
+                "run %s does not have attr 'opref')"
+                % run.id)
+        m = re.match(
+            r"([^ :]+):([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)\s*$",
+            opref_attr)
+        if not m:
+            raise OpRefError(
+                "bad opref attr for run %s: %s"
+                % (run.id, opref_attr))
+        return cls(*m.groups())
+
+    def __init__(self, pkg_type, pkg_name, pkg_version, model_name, op_name):
+        self.pkg_type = pkg_type
+        self.pkg_name = pkg_name
+        self.pkg_version = pkg_version
+        self.model_name = model_name
+        self.op_name = op_name
+
+    def __str__(self):
+        return "%s:%s %s %s %s" % (
+            self.pkg_type, self.pkg_name, self.pkg_version,
+            self.model_name, self.op_name)
