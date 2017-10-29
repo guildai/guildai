@@ -108,7 +108,7 @@ class Resource(object):
         if runs:
             return runs[0]
         raise DependencyError(
-            "completed run for %s does not exist (operation source "
+            "could not find a suitable run for %s (operation source "
             "in resource '%s')"
             % (self._opref_desc(resolved_opref), self.resdef.name))
 
