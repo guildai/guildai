@@ -19,7 +19,11 @@ resource:
     ...    requires: data
     ... resources:
     ...   data:
-    ...     sources: abcdef
+    ...     sources:
+    ...     - abc.txt
+    ...     - file: def.txt
+    ...     - url: http://foo.com/bar.tar.gz
+    ...     - operation: foo/bar:baz
     ... """)
 
 We can get the list of dependencies for an operation with the
@@ -65,4 +69,80 @@ Let's look at the required resource:
 This resource has the following sources:
 
     >>> data_res.sources
-    [<guild.modelfile.ResourceSource 'file:abcdef'>]
+    [<guild.modelfile.ResourceSource 'file:abc.txt'>,
+     <guild.modelfile.ResourceSource 'file:def.txt'>,
+     <guild.modelfile.ResourceSource 'http://foo.com/bar.tar.gz'>,
+     <guild.modelfile.ResourceSource 'operation:foo/bar:baz'>]
+
+## Operation sources
+
+The sample `data` resource above provides a source generated from an
+operation. These are known as *operation sources*.
+
+Operation sources must reference a model operation. The operation may
+be defined for the source model, another model in the modelfile, or a
+model defined in a package. Operation references must be in a format
+that can be parsed using `op.OpRef.from_string`.
+
+    >>> from guild.op import OpRef
+
+`OpRef.from_string` returns a tuple of `OpRef` instance and any string
+content following the reference.
+
+Below are various examples.
+
+Operation name only:
+
+    >>> OpRef.from_string("foo")
+    (OpRef(pkg_type=None,
+           pkg_name=None,
+           pkg_version=None,
+           model_name=None,
+           op_name='foo'), '')
+
+Operation of a model in the same modelfile:
+
+    >>> OpRef.from_string("foo:bar")
+    (OpRef(pkg_type=None,
+           pkg_name=None,
+           pkg_version=None,
+           model_name='foo',
+           op_name='bar'), '')
+
+Operation in a packaged model:
+
+    >>> OpRef.from_string("foo/bar:baz")
+    (OpRef(pkg_type=None,
+           pkg_name='foo',
+           pkg_version=None,
+           model_name='bar',
+           op_name='baz'), '')
+
+Operations with various paths:
+
+    >>> OpRef.from_string("foo/bar")
+    (OpRef(pkg_type=None,
+           pkg_name=None,
+           pkg_version=None,
+           model_name=None,
+           op_name='foo'), '/bar')
+
+    >>> OpRef.from_string("foo:bar/baz")
+    (OpRef(pkg_type=None,
+           pkg_name=None,
+           pkg_version=None,
+           model_name='foo',
+           op_name='bar'), '/baz')
+
+    >>> OpRef.from_string("foo/bar:baz/bam")
+    (OpRef(pkg_type=None,
+           pkg_name='foo',
+           pkg_version=None,
+           model_name='bar',
+           op_name='baz'), '/bam')
+
+Some invalid op references:
+
+    >>> OpRef.from_string("")
+    Traceback (most recent call last):
+    OpRefError: invalid reference: ''

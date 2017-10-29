@@ -67,9 +67,10 @@ class Resource(object):
 
     @staticmethod
     def _resolve_operation_source(source):
+        m = re.match("()", source.parsed_uri.path)
         raise AssertionError(
             "TODO: resolve operation source %s"
-            % source.parse_uri.path)
+            % source.parsed_uri.path)
 
 def _verify_file(path, sha256, ctx):
     _verify_file_exists(path, ctx)

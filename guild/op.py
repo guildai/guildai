@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import collections
 import logging
 import os
 import re
@@ -237,40 +238,53 @@ def _delete_proc_lock(run):
 class OpRefError(ValueError):
     pass
 
-class OpRef(object):
+OpRef = collections.namedtuple(
+    "OpRef", [
+        "pkg_type",
+        "pkg_name",
+        "pkg_version",
+        "model_name",
+        "op_name"
+    ])
 
-    @classmethod
-    def from_op(cls, op_name, model_ref):
-        (pkg_type,
-         pkg_name,
-         pkg_version,
-         model_name) = model_ref
-        return cls(pkg_type, pkg_name, pkg_version, model_name, op_name)
+def _opref_from_op(op_name, model_ref):
+    (pkg_type,
+     pkg_name,
+     pkg_version,
+     model_name) = model_ref
+    return OpRef(pkg_type, pkg_name, pkg_version, model_name, op_name)
 
-    @classmethod
-    def from_run(cls, run):
-        opref_attr = run.get("opref")
-        if not opref_attr:
-            raise OpRefError(
-                "run %s does not have attr 'opref')"
-                % run.id)
-        m = re.match(
-            r"([^ :]+):([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)\s*$",
-            opref_attr)
-        if not m:
-            raise OpRefError(
-                "bad opref attr for run %s: %s"
-                % (run.id, opref_attr))
-        return cls(*m.groups())
+def _opref_from_run(run):
+    opref_attr = run.get("opref")
+    if not opref_attr:
+        raise OpRefError(
+            "run %s does not have attr 'opref')"
+            % run.id)
+    m = re.match(
+        r"([^ :]+):([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)\s*$",
+        opref_attr)
+    if not m:
+        raise OpRefError(
+            "bad opref attr for run %s: %s"
+            % (run.id, opref_attr))
+    return OpRef(*m.groups())
 
-    def __init__(self, pkg_type, pkg_name, pkg_version, model_name, op_name):
-        self.pkg_type = pkg_type
-        self.pkg_name = pkg_name
-        self.pkg_version = pkg_version
-        self.model_name = model_name
-        self.op_name = op_name
+def _opref_from_string(s):
+    m = re.match(r"(?:(?:([^/]+)/)?([^:]+):)?([a-zA-Z0-9-_\.]+)(.*)$", s)
+    if not m:
+        raise OpRefError("invalid reference: %r" % s)
+    pkg_name, model_name, op_name, extra = m.groups()
+    return OpRef(None, pkg_name, None, model_name, op_name), extra
 
-    def __str__(self):
-        return "%s:%s %s %s %s" % (
-            self.pkg_type, self.pkg_name, self.pkg_version,
-            self.model_name, self.op_name)
+def _opref_to_string(opref):
+    return "%s:%s %s %s %s" % (
+        opref.pkg_type or "?",
+        opref.pkg_name or "?",
+        opref.pkg_version or "?",
+        opref.model_name or "?",
+        opref.op_name or "?")
+
+OpRef.from_op = staticmethod(_opref_from_op)
+OpRef.from_run = staticmethod(_opref_from_run)
+OpRef.from_string = staticmethod(_opref_from_string)
+OpRef.__str__ = _opref_to_string
