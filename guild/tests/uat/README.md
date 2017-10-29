@@ -62,6 +62,8 @@ will modify the acceptance test.
 - [mnist-example-initial-runs](mnist-example-initial-runs.md)
 - [train-mnist-intro-example](train-mnist-intro-example.md)
 - [mnist-example-runs-after-intro-train](mnist-example-runs-after-intro-train.md)
+- [evaluate-mnist-intro-example](evaluate-mnist-intro-example.md)
+- [mnist-example-runs-after-intro-evaluate](mnist-example-runs-after-intro-evaluate.md)
 
 ### hello
 
