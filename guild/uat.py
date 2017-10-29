@@ -107,7 +107,7 @@ def _reset_cwd():
 def _cd(path):
     globals()["_cwd"] = path
 
-def _run(cmd, quiet=False, ignore=None, timeout=300):
+def _run(cmd, quiet=False, ignore=None, timeout=60):
     cmd = "set -eu && %s" % cmd
     cmd_env = {}
     cmd_env.update(_global_vars())
