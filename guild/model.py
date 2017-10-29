@@ -237,7 +237,7 @@ class ModelfileNamespace(namespace.Namespace):
         else:
             return namespace.Membership.no, None
 
-def path():
+def get_path():
     return _models.path()
 
 def set_path(path):

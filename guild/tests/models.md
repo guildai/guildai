@@ -16,7 +16,7 @@ path to make models in that directory discoverable.
 
 We can view the current model path using the `path` function:
 
-    >>> guild.model.path()
+    >>> guild.model.get_path()
     [...]
 
 By default, this path is identical to the Python path
@@ -32,7 +32,7 @@ Let's modify the model path by adding a sample model path:
 This has the effect of inserting the project location at the beginning
 of the model path:
 
-    >>> guild.model.path()
+    >>> guild.model.get_path()
     ['.../samples/projects/mnist', ...]
 
 We can alternatively set the entire model path using `set_path`. We'll
@@ -45,7 +45,7 @@ defined in `model-packages`.
 
 Here's our new path:
 
-    >>> guild.model.path()
+    >>> guild.model.get_path()
     ['.../samples/projects/mnist',
      '.../samples/model-packages']
 

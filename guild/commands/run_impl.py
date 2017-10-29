@@ -15,6 +15,9 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
+
+import guild.model
 import guild.op
 
 from guild import cli
@@ -22,7 +25,6 @@ from guild import cmd_impl_support
 from guild import deps
 
 def main(args):
-    cmd_impl_support.init_model_path()
     model_ref, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_ref)
     opdef = _resolve_opdef(op_name, model)
@@ -42,9 +44,32 @@ def _parse_opspec(spec):
         return parts
 
 def _resolve_model(model_ref):
+    model = _try_resolve_cwd_model(model_ref)
+    if model:
+        return model
+    return _resolve_system_model(model_ref)
+
+def _try_resolve_cwd_model(model_ref):
+    cwd_modelfile_path = cmd_impl_support.cwd_modelfile_path()
+    if cwd_modelfile_path:
+        path_save = guild.model.get_path()
+        guild.model.set_path([os.path.dirname(cwd_modelfile_path)])
+        model = _match_one_model(model_ref)
+        guild.model.set_path(path_save)
+        if model:
+            return model
+    return None
+
+def _resolve_system_model(model_ref):
+    model = _match_one_model(model_ref)
+    if not model:
+        _no_model_error(model_ref)
+    return model
+
+def _match_one_model(model_ref):
     matches = list(_iter_matching_models(model_ref))
     if not matches:
-        _no_model_error(model_ref)
+        return None
     elif len(matches) > 1:
         _multiple_models_error(model_ref, matches)
     else:
