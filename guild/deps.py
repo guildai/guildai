@@ -59,6 +59,10 @@ class Resource(object):
     def _resolve_file_source(self, source):
         working_dir = os.path.dirname(self.resdef.modelfile.src)
         source_path = os.path.join(working_dir, source.parsed_uri.path)
+        if not os.path.exists(source_path):
+            raise DependencyError(
+                "required file '%s' does not exist (file source "
+                "in resource '%s')" % (source_path, self.resdef.name))
         _verify_file(source_path, source.sha256, self.ctx)
         self._link_to_source(source_path)
 
@@ -68,8 +72,13 @@ class Resource(object):
 
     def _resolve_operation_source(self, source):
         opref, path = self._parse_opref(source.parsed_uri.path)
-        rundir = self._latest_op_rundir(opref)
-        source_path = os.path.join(rundir, path)
+        run = self._latest_op_run(opref)
+        source_path = os.path.join(run.path, path)
+        if not os.path.exists(source_path):
+            raise DependencyError(
+                "required output '%s' (operation source in resource '%s') "
+                "was not generated in the latest run (%s)"
+                % (path, self.resdef.name, run.id))
         self._link_to_source(source_path)
 
     def _parse_opref(self, opref_spec):
@@ -87,16 +96,16 @@ class Resource(object):
             normalized_path = os.path.join(*path.split("/"))
             return opref, normalized_path
 
-    def _latest_op_rundir(self, opref):
+    def _latest_op_run(self, opref):
         resolved_opref = self._fully_resolve_opref(opref)
         completed_op_runs = var.run_filter("all", [
             var.run_filter("attr", "extended_status", "completed"),
             resolved_opref.is_op_run])
         runs = var.runs(sort=["-started"], filter=completed_op_runs)
         if runs:
-            return runs[0].path
+            return runs[0]
         raise DependencyError(
-            "no completed run for %s (operation source "
+            "completed run for %s does not exist (operation source "
             "in resource '%s')"
             % (self._opref_desc(resolved_opref), self.resdef.name))
 
