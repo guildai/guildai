@@ -52,6 +52,8 @@ def _tests_from_index():
 def _init_workspace():
     print("Initializing workspace %s" % WORKSPACE)
     subprocess.check_call(["virtualenv", WORKSPACE])
+    open(os.path.join(WORKSPACE, "bin/activate"), "a").write(
+        "export GUILD_HOME=%s/.guild\n" % WORKSPACE)
     os.mkdir(os.path.join(WORKSPACE, "passed-tests"))
     os.mkdir(os.path.join(WORKSPACE, ".guild"))
     os.symlink(
