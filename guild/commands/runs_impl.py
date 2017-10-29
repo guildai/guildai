@@ -101,7 +101,7 @@ def _notify_runs_limited():
 
 def _cwd_run_filter(abs_cwd):
     def f(run):
-        if run.opref.pkg_type == "file":
+        if run.opref.pkg_type == "modelfile":
             model_path = os.path.dirname(run.opref.pkg_name)
             if os.path.isabs(model_path):
                 if model_path == abs_cwd:
