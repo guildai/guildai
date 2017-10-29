@@ -121,10 +121,7 @@ def _pkg_models(pkg):
     try:
         return modelfile.from_dir(pkg_dir)
     except modelfile.NoModels:
-        _handle_no_models(pkg_dir)
-
-def _handle_no_models(path):
-    _exit("PACKAGE directory %s does not contain any models" % path)
+        return []
 
 def _pkg_description(pkg, models):
     """Returns a tuple of the package description and long description.
@@ -138,11 +135,12 @@ def _pkg_description(pkg, models):
     desc_lines = pkg.get("description", "").strip().split("\n")
     desc = desc_lines[0]
     long_desc = "\n\n".join(desc_lines[1:])
-    refs = [
-        ("Modelfile", pkg.get("modelfile", "UNKNOWN")),
-    ]
-    models_desc = guild.help.package_description(models, refs)
-    return desc, "\n\n".join([long_desc, models_desc])
+    if models:
+        refs = [
+            ("Modelfile", pkg.get("modelfile", "UNKNOWN")),
+        ]
+        long_desc += "\n\n" + guild.help.package_description(models, refs)
+    return desc, long_desc
 
 def _package_data(pkg):
     user_defined = pkg.get("data")

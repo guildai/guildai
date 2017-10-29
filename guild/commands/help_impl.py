@@ -22,7 +22,10 @@ from guild import cmd_impl_support
 def main(args):
     modelfile = cmd_impl_support.cwd_modelfile()
     if modelfile is None:
-        cli.out("%s does not contain a modeldef, no help available")
+        cli.out(
+            "No help available (%s does not contain a modelfile)"
+            % cmd_impl_support.cwd_desc(),
+            err=True)
         return
     refs = {
         ("Modelfile", modelfile.src)
