@@ -26,6 +26,7 @@ import click
 
 import guild
 import guild.cli
+import guild.config
 import guild.plugin
 import guild.test
 import guild.uat
@@ -94,10 +95,11 @@ def _print_info(check):
 
 def _print_guild_info():
     guild.cli.out("guild_version:             %s" % guild.version())
-    guild.cli.out("guild_home:                %s" % _guild_home())
+    guild.cli.out("guild_home:                %s" % guild.config.guild_home())
+    guild.cli.out("guild_install_location:    %s" % _guild_install_location())
     guild.cli.out("installed_plugins:         %s" % _format_plugins())
 
-def _guild_home():
+def _guild_install_location():
     return pkg_resources.resource_filename("guild", "")
 
 def _format_plugins():
