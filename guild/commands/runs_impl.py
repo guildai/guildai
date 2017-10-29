@@ -114,9 +114,9 @@ def _cwd_run_filter(abs_cwd):
         return False
     return f
 
-def _model_run_filter(model_names):
+def _model_run_filter(model_refs):
     def f(run):
-        return any((run.opref.model_name == name for name in model_names))
+        return any((ref in run.opref.model_name for ref in model_refs))
     return f
 
 def _init_run(run):
