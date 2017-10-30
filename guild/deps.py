@@ -89,11 +89,12 @@ class Resource(object):
                 "inavlid operation reference '%s' in resource '%s'"
                 % (opref_spec, self.resdef.name))
         else:
-            if not path or path[0] != '/':
+            if path[:2] != "//":
                 raise DependencyError(
-                    "invalid operation source path '%s' in resource '%s'"
+                    "invalid operation source path '%s' in resource '%s' "
+                    "(paths must start with '//')"
                     % (path, self.resdef.name))
-            normalized_path = os.path.join(*path.split("/"))
+            normalized_path = os.path.join(*path[2:].split("/"))
             return opref, normalized_path
 
     def _latest_op_run(self, opref):
