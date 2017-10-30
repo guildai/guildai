@@ -206,7 +206,7 @@ def _modelfile_entry_map(modelfile, dist):
             for model in modelfile
         },
         "guild.resources": {
-            res.name: _modelfile_resource_entry_point(res.name, dist)
+            res.fullname: _modelfile_resource_entry_point(res.fullname, dist)
             for res in _modelfile_resources(modelfile)
         }
     }

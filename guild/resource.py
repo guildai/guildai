@@ -33,21 +33,25 @@ class Resource(object):
     def fullname(self):
         if self._fullname is None:
             package_name = namespace.apply_namespace(self.dist.project_name)
-            model_name = self.resdef.modeldef.name
-            self._fullname = "%s/%s:%s" % (package_name, model_name, self.name)
+            self._fullname = "%s/%s" % (package_name, self.name)
         return self._fullname
 
 def _resdef_for_dist(name, dist):
     if isinstance(dist, ModelfileDistribution):
-        for model in dist.modelfile:
-            for res in model.resources:
-                if res.name == name:
-                    return res
-        raise ValueError(
-            "cannot find resource '%s' in modefile %s"
-            % (name, dist.modelfile.src))
+        model_name, res_name = _split_modelfile_res_name(name)
+        modeldef = dist.modelfile.get(model_name)
+        assert modeldef, (name, dist)
+        resdef = modeldef.get_resource(res_name)
+        assert resdef, (name, dist)
+        return resdef
     else:
         raise ValueError("unsupported resource distribution: %s" % dist)
+
+def _split_modelfile_res_name(name):
+    parts = name.split(":", 1)
+    if len(parts) != 2:
+        raise ValueError("invalid modelfile resource name: %s" % name)
+    return parts
 
 def set_path(path):
     _resources.set_path(path)
