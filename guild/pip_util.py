@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import re
 
 from pip.commands.download import DownloadCommand
@@ -70,10 +71,23 @@ def get_installed():
         user_only=user_only)
 
 def search(terms):
+    _ensure_search_logger()
     cmd = SearchCommand()
     args = terms
     options, query = cmd.parse_args(args)
     return cmd.search(query, options)
+
+class QuietLogger(logging.Logger):
+
+    def __init__(self, parent):
+        super(QuietLogger, self).__init__(parent.name)
+        self.parent = parent
+        self.level = logging.WARNING
+
+def _ensure_search_logger():
+    from pip._vendor.requests.packages.urllib3 import connectionpool
+    if not isinstance(connectionpool.log, QuietLogger):
+        connectionpool.log = QuietLogger(connectionpool.log)
 
 def uninstall(reqs, dont_prompt=False):
     cmd = UninstallCommand()
