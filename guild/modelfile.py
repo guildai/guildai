@@ -389,15 +389,15 @@ class ResourceDef(resourcedef.ResourceDef):
         super(ResourceDef, self).__init__(name, data)
         self.fullname = "%s:%s" % (modeldef.name, name)
         self.private = modeldef.private
-        self._modeldef = modeldef
+        self.modeldef = modeldef
 
     def get_source_resolver(self, source):
         scheme = source.parsed_uri.scheme
         if scheme == "file":
-            modelfile_dir = os.path.dirname(self._modeldef.modelfile.src)
+            modelfile_dir = os.path.dirname(self.modeldef.modelfile.src)
             return resolve.FileResolver(source, modelfile_dir)
         elif scheme == "operation":
-            return resolve.OperationOutputResolver(source, self._modeldef)
+            return resolve.OperationOutputResolver(source, self.modeldef)
         else:
             return super(ResourceDef, self).get_source_resolver(source)
 

@@ -121,10 +121,17 @@ class OperationOutputResolver(Resolver):
 
     def _fully_resolve_opref(self, opref):
         assert opref.op_name, opref
-        package_version = None
+        pkg_type = (
+            opref.pkg_type or
+            "project" if opref.pkg_name else "modelfile")
+        pkg_name = (
+            opref.pkg_name or
+            os.path.abspath(self.modeldef.modelfile.src))
+        model_name = opref.model_name or self.modeldef.name
+        op_name = opref.op_name
         return guild.opref.OpRef(
-            opref.pkg_type or "modelfile",
-            opref.pkg_name or os.path.abspath(self.modeldef.modelfile.src),
-            package_version,
-            opref.model_name or self.modeldef.name,
-            opref.op_name)
+            pkg_type=pkg_type,
+            pkg_name=pkg_name,
+            pkg_version=None,
+            model_name=model_name,
+            op_name=op_name)

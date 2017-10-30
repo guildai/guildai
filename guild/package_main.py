@@ -169,10 +169,10 @@ def _model_resource_eps(pkg):
     return [
         ("%s:%s = guild.model:PackageModelResource"
          % (resdef.modeldef.name, resdef.name))
-        for resdef in _iter_pkg_resdefs(pkg)
+        for resdef in _iter_modelfile_resdefs(pkg)
     ]
 
-def _iter_pkg_resdefs(pkg):
+def _iter_modelfile_resdefs(pkg):
     pkg_dir = os.path.dirname(pkg.src)
     try:
         mf = modelfile.from_dir(pkg_dir)
