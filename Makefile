@@ -41,4 +41,4 @@ commit-check:
 	make lint
 	make user-acceptance-test
 	make timing-test
-	@echo "Commit check passed on `python --version 2>&1`!"
+	@echo "Commit check passed on `python --version 2>&1`"
