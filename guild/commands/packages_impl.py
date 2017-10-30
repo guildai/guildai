@@ -28,7 +28,7 @@ def list_packages(args):
     installed = pip_util.get_installed()
     filtered = _filter_packages(installed, args)
     pkgs = [_format_pkg(pkg) for pkg in filtered]
-    cli.table(pkgs, cols=["name", "version"], sort=["name"])
+    cli.table(pkgs, cols=["name", "version", "summary"], sort=["name"])
 
 def _filter_packages(pkgs, args):
     return [pkg for pkg in pkgs if _filter_pkg(pkg, args)]
@@ -42,8 +42,18 @@ def _filter_pkg(pkg, args):
 def _format_pkg(pkg):
     return {
         "name": namespace.apply_namespace(pkg.project_name),
+        "summary": _pkg_summary(pkg),
         "version": pkg.version,
     }
+
+def _pkg_summary(pkg):
+    # For efficiency, just look at the first few lines for Summary
+    for i, line in enumerate(pkg._get_metadata("METADATA")):
+        if line[:9] == "Summary: ":
+            return line[9:]
+        if i == 5:
+            break
+    return ""
 
 def install_packages(args):
     for reqs, index_urls in _installs(args):
