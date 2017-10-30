@@ -265,10 +265,10 @@ Here's a model definition that contains various resource sources:
 Here are the associated resource sources:
 
     >>> mf["sample"].get_resource("sample").sources
-    [<guild.modelfile.ResourceSource 'file:foo.txt'>,
-     <guild.modelfile.ResourceSource 'file:bar.tar.gz'>,
-     <guild.modelfile.ResourceSource 'https://files.com/bar.tar.gz'>,
-     <guild.modelfile.ResourceSource 'operation:train/model.meta'>]
+    [<guild.resourcedef.ResourceSource 'file:foo.txt'>,
+     <guild.resourcedef.ResourceSource 'file:bar.tar.gz'>,
+     <guild.resourcedef.ResourceSource 'https://files.com/bar.tar.gz'>,
+     <guild.resourcedef.ResourceSource 'operation:train/model.meta'>]
 
 Note that when a source is specified as a string it is treated as a
 file.
@@ -283,7 +283,7 @@ At least one of the three type attributes is required:
     ...       - foo: bar.txt
     ... """)
     Traceback (most recent call last):
-    ModelfileFormatError: invalid source in resource 'sample:sample': missing
+    ResourceFormatError: invalid source in resource 'sample:sample': missing
     required attribute (one of file, url, operation)
 
 However, no more than one is allowed:
@@ -297,7 +297,7 @@ However, no more than one is allowed:
     ...         url: http://files.com/bar.txt
     ... """)
     Traceback (most recent call last):
-    ModelfileFormatError: invalid source in resource 'sample:sample':
+    ResourceFormatError: invalid source in resource 'sample:sample':
     conflicting attributes (file, url)
 
 ## Errors

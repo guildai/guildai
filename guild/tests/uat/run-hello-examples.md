@@ -56,8 +56,9 @@ for `from-file` we get an error.
 
     >>> run("guild run from-file-output -y")
     Resolving 'file-output' resource
-    guild: run failed because a dependency was not met: could not find a suitable
-    run for ./hello:from-file (operation source in resource 'file-output')
+    guild: run failed because a dependency was not met: could not resolve
+    'operation:from-file//output' in 'file-output' resource: no suitable
+    run for ./hello:from-file
     <exit 1>
 
 ### `from-file`

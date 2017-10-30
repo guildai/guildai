@@ -1,13 +1,26 @@
-import hashlib
+# Copyright 2017 TensorHub, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import absolute_import
+from __future__ import division
+
 import logging
 import os
 import re
 
-import guild.opref
-
-from guild import pip_util
 from guild import util
-from guild import var
+from guild.resolve import ResolutionError
 
 RESOURCE_TERM = r"[a-zA-Z0-9_\-\.]+"
 
@@ -44,122 +57,42 @@ class Resource(object):
     def resolve(self):
         logging.info("Resolving '%s' resource", self.resdef.name)
         for source in self.resdef.sources:
-            scheme = source.parsed_uri.scheme
-            if scheme == "file":
-                self._resolve_file_source(source)
-            elif scheme in ["http", "https"]:
-                self._resolve_url_source(source)
-            elif scheme == "operation":
-                self._resolve_operation_source(source)
-            else:
-                raise DependencyError(
-                    "unsupported scheme in URL '%s' in resource '%s'"
-                    % (source.uri, self.resdef.name))
+            self._resolve_source(source)
 
-    def _resolve_file_source(self, source):
-        working_dir = os.path.dirname(self.resdef.modelfile.src)
-        source_path = os.path.join(working_dir, source.parsed_uri.path)
-        if not os.path.exists(source_path):
+    def _resolve_source(self, source):
+        resolver = self.resdef.get_source_resolver(source)
+        if not resolver:
             raise DependencyError(
-                "file '%s' does not exist (defined in resource '%s')"
-                % (source_path, self.resdef.name))
-        _verify_file(source_path, source.sha256, self.ctx)
-        self._link_to_source(source_path)
-
-    def _resolve_url_source(self, source):
-        source_path = _ensure_url_source(source)
-        self._link_to_source(source_path)
-
-    def _resolve_operation_source(self, source):
-        opref, path = self._parse_opref(source.parsed_uri.path)
-        run = self._latest_op_run(opref)
-        source_path = os.path.join(run.path, path)
-        if not os.path.exists(source_path):
-            raise DependencyError(
-                "required output '%s' (operation source in resource '%s') "
-                "was not generated in the latest run (%s)"
-                % (path, self.resdef.name, run.id))
-        self._link_to_source(source_path)
-
-    def _parse_opref(self, opref_spec):
+                "unsupported source '%s' in resource '%s'"
+                % (source, self.resdef.name))
         try:
-            opref, path = guild.opref.OpRef.from_string(opref_spec)
-        except guild.opref.OpRefError:
+            source_path = resolver.resolve()
+        except ResolutionError as e:
             raise DependencyError(
-                "inavlid operation reference '%s' in resource '%s'"
-                % (opref_spec, self.resdef.name))
+                "could not resolve '%s' in '%s' resource: %s"
+                % (source, self.resdef.name, e))
         else:
-            if path[:2] != "//":
-                raise DependencyError(
-                    "invalid operation source path '%s' in resource '%s' "
-                    "(paths must start with '//')"
-                    % (path, self.resdef.name))
-            normalized_path = os.path.join(*path[2:].split("/"))
-            return opref, normalized_path
+            self._verify_file(source_path, source.sha256)
+            self._link_to_source(source_path)
 
-    def _latest_op_run(self, opref):
-        resolved_opref = self._fully_resolve_opref(opref)
-        completed_op_runs = var.run_filter("all", [
-            var.run_filter("any", [
-                var.run_filter("attr", "extended_status", "completed"),
-                var.run_filter("attr", "extended_status", "running"),
-            ]),
-            resolved_opref.is_op_run])
-        runs = var.runs(sort=["-started"], filter=completed_op_runs)
-        if runs:
-            return runs[0]
-        raise DependencyError(
-            "could not find a suitable run for %s (operation source "
-            "in resource '%s')"
-            % (self._opref_desc(resolved_opref), self.resdef.name))
+    def _verify_file(self, path, sha256):
+        self._verify_file_exists(path)
+        if sha256:
+            self._verify_file_hash(path, sha256)
 
-    @staticmethod
-    def _opref_desc(opref):
-        pkg = "." if opref.pkg_type == "modelfile"  else opref.pkg_name
-        return "%s/%s:%s" % (pkg, opref.model_name, opref.op_name)
+    def _verify_file_exists(self, path):
+        if not os.path.exists(path):
+            raise DependencyError(
+                "'%s' required by operation '%s' does not exist"
+                % (path, self.ctx.opdef.fullname))
 
-    def _fully_resolve_opref(self, opref):
-        assert opref.op_name, opref
-        package_version = None
-        return guild.opref.OpRef(
-            opref.pkg_type or "modelfile",
-            opref.pkg_name or os.path.abspath(self.resdef.modelfile.src),
-            package_version,
-            opref.model_name or self.resdef.modeldef.name,
-            opref.op_name)
-
-def _verify_file(path, sha256, ctx):
-    _verify_file_exists(path, ctx)
-    if sha256:
-        _verify_file_hash(path, sha256)
-
-def _verify_file_exists(path, ctx):
-    if not os.path.exists(path):
-        raise DependencyError(
-            "'%s' required by operation '%s' does not exist"
-            % (path, ctx.opdef.fullname))
-
-def _verify_file_hash(path, sha256):
-    actual = util.file_sha256(path)
-    if actual != sha256:
-        raise DependencyError(
-            "unexpected sha256 for '%s' (expected %s but got %s)"
-            % (path, sha256, actual))
-
-def _ensure_url_source(source):
-    download_dir = _download_dir_for_url(source.parsed_uri)
-    util.ensure_dir(download_dir)
-    try:
-        return pip_util.download_url(source.uri, download_dir, source.sha256)
-    except pip_util.HashMismatch as e:
-        raise DependencyError(
-            "bad sha256 for '%s' (expected %s but got %s)"
-            % (source.url, e.expected, e.actual))
-
-def _download_dir_for_url(parsed_url):
-    key = "\n".join(parsed_url).encode("utf-8")
-    digest = hashlib.sha224(key).hexdigest()
-    return os.path.join(var.cache_dir("resources"), digest)
+    def _verify_file_hash(self, path, sha256):
+        actual = util.file_sha256(path)
+        if actual != sha256:
+            raise DependencyError(
+                "'%s' required by operation '%s' has an unexpected sha256 "
+                "(expected %s but got %s)"
+                % (path, self.ctx.opdef.fullname, sha256, actual))
 
 def _dep_desc(dep):
     return "%s:%s" % (dep.opdef.modeldef.name, dep.opdef.name)

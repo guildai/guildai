@@ -24,6 +24,7 @@ import pkg_resources
 from guild import entry_point_util
 from guild import modelfile
 from guild import namespace
+from guild import resource
 
 _models = entry_point_util.EntryPointResources("guild.models", "model")
 
@@ -77,6 +78,7 @@ class ModelfileModel(Model):
     """
 
     def _init_modeldef(self):
+        assert isinstance(self.dist, ModelfileDistribution), self.dist
         return self.dist.get_modeldef(self.name)
 
     def _init_reference(self):
@@ -89,7 +91,8 @@ class ModelfileModel(Model):
         try:
             path_bytes = open(path, "rb").read()
         except IOError:
-            logging.warning("unable to read %s to calculate modelfile hash", path)
+            logging.warning(
+                "unable to read %s to calculate modelfile hash", path)
             return "-"
         else:
             return hashlib.md5(path_bytes).hexdigest()
@@ -102,41 +105,11 @@ class PackageModel(Model):
     """
 
     def _init_modeldef(self):
-        for modeldef in self._ensure_dist_modeldefs():
-            if modeldef.name == self.name:
-                return modeldef
-        raise ValueError("undefined model '%s'" % self.name)
-
-    def _ensure_dist_modeldefs(self):
-        if not hasattr(self.dist, "_modelefs"):
-            self.dist._modeldefs = self._load_dist_modeldefs()
-        return self.dist._modeldefs
-
-    def _load_dist_modeldefs(self):
-        modeldefs = []
-        try:
-            record = self.dist.get_metadata_lines("RECORD")
-        except IOError:
-            logging.warning(
-                "distribution %s missing RECORD metadata - unable to find models",
-                self.dist)
-        else:
-            for line in record:
-                path = line.split(",", 1)[0]
-                if os.path.basename(path) in modelfile.NAMES:
-                    fullpath = os.path.join(self.dist.location, path)
-                    self._try_acc_modeldefs(fullpath, modeldefs)
-        return modeldefs
-
-    @staticmethod
-    def _try_acc_modeldefs(path, acc):
-        try:
-            models = modelfile.from_file(path)
-        except Exception as e:
-            logging.warning("unable to load models from %s: %s", path, e)
-        else:
-            for modeldef in models:
-                acc.append(modeldef)
+        modeldef = _find_dist_modeldef(self.name, self.dist)
+        if modeldef is None:
+            raise ValueError(
+                "undefined model '%s' in %s" % (self.name, self.dist))
+        return modeldef
 
     def _init_reference(self):
         return ModelRef(
@@ -144,6 +117,42 @@ class PackageModel(Model):
             self.dist.project_name,
             self.dist.version,
             self.name)
+
+def _find_dist_modeldef(name, dist):
+    for modeldef in _ensure_dist_modeldefs(dist):
+        if modeldef.name == name:
+            return modeldef
+    return None
+
+def _ensure_dist_modeldefs(dist):
+    if not hasattr(dist, "_modelefs"):
+        dist._modeldefs = _load_dist_modeldefs(dist)
+    return dist._modeldefs
+
+def _load_dist_modeldefs(dist):
+    modeldefs = []
+    try:
+        record = dist.get_metadata_lines("RECORD")
+    except IOError:
+        logging.warning(
+            "distribution %s missing RECORD metadata - unable to find models",
+            dist)
+    else:
+        for line in record:
+            path = line.split(",", 1)[0]
+            if os.path.basename(path) in modelfile.NAMES:
+                fullpath = os.path.join(dist.location, path)
+                _try_acc_modeldefs(fullpath, modeldefs)
+    return modeldefs
+
+def _try_acc_modeldefs(path, acc):
+    try:
+        models = modelfile.from_file(path)
+    except Exception as e:
+        logging.warning("unable to load models from %s: %s", path, e)
+    else:
+        for modeldef in models:
+            acc.append(modeldef)
 
 class ModelfileDistribution(pkg_resources.Distribution):
 
@@ -223,11 +232,44 @@ def _modelfile_resources(modelfile):
         for res in modeldef.resources:
             yield res
 
+class ModelfileResource(resource.Resource):
+
+    def _init_resdef(self):
+        assert isinstance(self.dist, ModelfileDistribution), self.dist
+        model_name, res_name = _split_res_name(self.name)
+        modeldef = self.dist.modelfile.get(model_name)
+        assert modeldef, (self.name, self.dist)
+        resdef = modeldef.get_resource(res_name)
+        assert resdef, (self.name, self.dist)
+        return resdef
+
+def _split_res_name(name):
+    parts = name.split(":", 1)
+    if len(parts) != 2:
+        raise ValueError("invalid resource name: %s" % name)
+    return parts
+
+class PackageModelResource(resource.Resource):
+
+    def _init_resdef(self):
+        model_name, res_name = _split_res_name(self.name)
+        modeldef = _find_dist_modeldef(model_name, self.dist)
+        if modeldef is None:
+            raise ValueError(
+                "undefined model '%s' in %s"
+                % (model_name, self.dist))
+        resdef = modeldef.get_resource(res_name)
+        if resdef is None:
+            raise ValueError(
+                "undefined resource '%s%s' in %s"
+                % (model_name, res_name, self.dist))
+        return resdef
+
 def _modelfile_resource_entry_point(name, dist):
     return pkg_resources.EntryPoint(
         name=name,
-        module_name='guild.resource',
-        attrs=('Resource',),
+        module_name='guild.model',
+        attrs=('ModelfileResource',),
         dist=dist)
 
 class ModelImportError(ImportError):

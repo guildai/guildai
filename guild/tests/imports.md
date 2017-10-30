@@ -90,6 +90,7 @@
     guild.plugins.memory
     guild.plugins.python_util
     guild.plugins.tensorflow_util
+    guild.resolve
     guild.resource
     guild.resourcedef
     guild.run

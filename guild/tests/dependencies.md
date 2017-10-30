@@ -69,10 +69,10 @@ Let's look at the required resource:
 This resource has the following sources:
 
     >>> data_res.sources
-    [<guild.modelfile.ResourceSource 'file:abc.txt'>,
-     <guild.modelfile.ResourceSource 'file:def.txt'>,
-     <guild.modelfile.ResourceSource 'http://foo.com/bar.tar.gz'>,
-     <guild.modelfile.ResourceSource 'operation:foo/bar:baz'>]
+    [<guild.resourcedef.ResourceSource 'file:abc.txt'>,
+     <guild.resourcedef.ResourceSource 'file:def.txt'>,
+     <guild.resourcedef.ResourceSource 'http://foo.com/bar.tar.gz'>,
+     <guild.resourcedef.ResourceSource 'operation:foo/bar:baz'>]
 
 ## Operation sources
 

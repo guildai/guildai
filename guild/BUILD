@@ -53,10 +53,8 @@ py_library(
     name = "deps",
     srcs = ["deps.py"],
     deps = [
-        ":opref",
-        ":pip_util",
+        ":resolve",
         ":util",
-        ":var",
     ],
 )
 
@@ -109,6 +107,7 @@ py_library(
         ":entry_point_util",
         ":modelfile",
         ":namespace",
+        ":resource",
     ]
 )
 
@@ -169,6 +168,7 @@ py_library(
     deps = [
         ":namespace",
         ":package_main",
+        ":resource",
         ":util",
     ],
 )
@@ -212,11 +212,21 @@ py_library(
 )
 
 py_library(
+    name = "resolve",
+    srcs = ["resolve.py"],
+    deps = [
+        ":opref",
+        ":pip_util",
+        ":util",
+        ":var",
+    ],
+)
+
+py_library(
     name = "resource",
     srcs = ["resource.py"],
     deps = [
         ":entry_point_util",
-        ":model",
         ":namespace",
     ],
 )
@@ -225,6 +235,8 @@ py_library(
     name = "resourcedef",
     srcs = ["resourcedef.py"],
     deps = [
+        ":resolve",
+        ":util",
     ],
 )
 

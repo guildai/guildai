@@ -24,6 +24,8 @@ import yaml
 
 import guild.plugin
 
+from guild import resolve
+from guild import resourcedef
 from guild import util
 
 # The order here should be based on priority of selection.
@@ -379,90 +381,32 @@ class NoSuchResourceError(ValueError):
 # Resource def
 ###################################################################
 
-# TODO: need to move this to resourcedef as we add support for
-# resources defined in packages - or otherwise resolve resources that
-# aren't associated with a model.
+class ResourceDef(resourcedef.ResourceDef):
 
-class ResourceDef(object):
+    source_types = resourcedef.ResourceDef.source_types + ["operation"]
 
     def __init__(self, name, data, modeldef):
-        self.name = name
-        self.modeldef = modeldef
-        self.modelfile = modeldef.modelfile
-        self.fullname = "%s:%s" % (self.modeldef.name, self.name)
-        self.description = data.get("description", "")
-        self.path = data.get("path")
-        self.sources = _init_sources(data.get("sources", []), self)
+        super(ResourceDef, self).__init__(name, data)
+        self.fullname = "%s:%s" % (modeldef.name, name)
+        self.private = modeldef.private
+        self._modeldef = modeldef
 
-    def __repr__(self):
-        return "<guild.modelfile.ResourceDef '%s'>" % self.name
-
-def _init_sources(data, resdef):
-    if isinstance(data, list):
-        return [_init_resource_source(src_data, resdef) for src_data in data]
-    elif isinstance(data, str):
-        return [_init_resource_source(data, resdef)]
-    else:
-        raise ModelfileFormatError(
-            "invalid sources for resource '%s'"
-            % resdef.fullname)
-
-def _init_resource_source(data, resdef):
-    if isinstance(data, dict):
-        type_attrs = ["file", "url", "operation"]
-        type_vals = [data.pop(attr, None) for attr in type_attrs]
-        type_count = sum([bool(val) for val in type_vals])
-        if type_count == 0:
-            raise ModelfileFormatError(
-                "invalid source in resource '%s': missing required "
-                "attribute (one of %s)"
-                % (resdef.fullname, ", ".join(type_attrs)))
-        elif type_count > 1:
-            conflicting = ", ".join([
-                x[1] for x in zip(type_vals, type_attrs) if x[0]
-            ])
-            raise ModelfileFormatError(
-                "invalid source in resource '%s': conflicting attributes (%s)"
-                % (resdef.fullname, conflicting))
-        file_path, url, operation = type_vals
-        if file_path:
-            return ResourceSource(resdef, "file:%s" % file_path, **data)
-        elif url:
-            return ResourceSource(resdef, url, **data)
-        elif operation:
-            return ResourceSource(resdef, "operation:%s" % operation, **data)
+    def get_source_resolver(self, source):
+        scheme = source.parsed_uri.scheme
+        if scheme == "file":
+            modelfile_dir = os.path.dirname(self._modeldef.modelfile.src)
+            return resolve.FileResolver(source, modelfile_dir)
+        elif scheme == "operation":
+            return resolve.OperationOutputResolver(source, self._modeldef)
         else:
-            raise AssertionError(data)
-    elif isinstance(data, str):
-        return ResourceSource(resdef, "file:%s" % data)
-    else:
-        raise ModelfileFormatError(
-            "invalid source for resource '%s': %s"
-            % (resdef.fullname, data))
+            return super(ResourceDef, self).get_source_resolver(source)
 
-class ResourceSource(object):
-
-    def __init__(self, resdef, uri, sha256=None, **kw):
-        self.resdef = resdef
-        self.uri = uri
-        self._parsed_uri = None
-        self.sha256 = sha256
-        for key in kw:
-            logging.warning(
-                "unexpected source attribute '%s' in resource '%s'",
-                key, resdef.fullname)
-
-    @property
-    def parsed_uri(self):
-        if self._parsed_uri is None:
-            self._parsed_uri = util.parse_url(self.uri)
-        return self._parsed_uri
-
-    def __repr__(self):
-        return "<guild.modelfile.ResourceSource '%s'>" % self.uri
-
-    def __str__(self):
-        return self.uri
+    def _source_for_type(self, type, val, data):
+        if type == "operation":
+            return resourcedef.ResourceSource(
+                self, "operation:%s" % val, **data)
+        else:
+            return super(ResourceDef, self)._source_for_type(type, val, data)
 
 ###################################################################
 # Module API

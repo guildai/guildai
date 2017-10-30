@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from guild import entry_point_util
-from guild.model import ModelfileDistribution
 from guild import namespace
 
 _resources = entry_point_util.EntryPointResources("guild.resources", "resource")
@@ -23,7 +22,7 @@ class Resource(object):
     def __init__(self, ep):
         self.name = ep.name
         self.dist = ep.dist
-        self.resdef = _resdef_for_dist(ep.name, ep.dist)
+        self.resdef = self._init_resdef()
         self._fullname = None # lazy
 
     def __repr__(self):
@@ -36,22 +35,8 @@ class Resource(object):
             self._fullname = "%s/%s" % (package_name, self.name)
         return self._fullname
 
-def _resdef_for_dist(name, dist):
-    if isinstance(dist, ModelfileDistribution):
-        model_name, res_name = _split_modelfile_res_name(name)
-        modeldef = dist.modelfile.get(model_name)
-        assert modeldef, (name, dist)
-        resdef = modeldef.get_resource(res_name)
-        assert resdef, (name, dist)
-        return resdef
-    else:
-        raise ValueError("unsupported resource distribution: %s" % dist)
-
-def _split_modelfile_res_name(name):
-    parts = name.split(":", 1)
-    if len(parts) != 2:
-        raise ValueError("invalid modelfile resource name: %s" % name)
-    return parts
+    def _init_resdef(self):
+        raise NotImplementedError()
 
 def set_path(path):
     _resources.set_path(path)
@@ -67,5 +52,5 @@ def add_model_path(model_path):
 
 def iter_resources():
     for _name, res in _resources:
-        if not res.resdef.modeldef.private:
+        if not res.resdef.private:
             yield res

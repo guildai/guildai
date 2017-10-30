@@ -109,19 +109,10 @@ def _setup_kw(pkg):
             pkg_name: _package_data(pkg)
         },
         entry_points={
-            "guild.models": [
-                "%s = guild.model:PackageModel" % model.name
-                for model in _pkg_models(pkg)
-            ]
+            "guild.models": _model_eps(pkg),
+            "guild.resources": _resource_eps(pkg)
         }
     )
-
-def _pkg_models(pkg):
-    pkg_dir = os.path.dirname(pkg.src)
-    try:
-        return modelfile.from_dir(pkg_dir)
-    except modelfile.NoModels:
-        return []
 
 def _pkg_description(pkg, models):
     """Returns a tuple of the package description and long description.
@@ -143,12 +134,12 @@ def _pkg_description(pkg, models):
     return desc, long_desc
 
 def _package_data(pkg):
-    user_defined = pkg.get("data-files")
-    return (
-        user_defined if user_defined
-        else _default_package_data(pkg))
+    return _pkg_data_files(pkg) + _default_pkg_files()
 
-def _default_package_data(_pkg):
+def _pkg_data_files(pkg):
+    return pkg.get("data-files") or []
+
+def _default_pkg_files():
     return [
         "MODEL",
         "MODELS",
@@ -156,6 +147,46 @@ def _default_package_data(_pkg):
         "LICENSE.*",
         "README",
         "README.*",
+    ]
+
+def _model_eps(pkg):
+    return [
+        "%s = guild.model:PackageModel" % model.name
+        for model in _pkg_models(pkg)
+    ]
+
+def _pkg_models(pkg):
+    pkg_dir = os.path.dirname(pkg.src)
+    try:
+        return modelfile.from_dir(pkg_dir)
+    except modelfile.NoModels:
+        return []
+
+def _resource_eps(pkg):
+    return _model_resource_eps(pkg) + _package_resource_eps(pkg)
+
+def _model_resource_eps(pkg):
+    return [
+        ("%s:%s = guild.model:PackageModelResource"
+         % (resdef.modeldef.name, resdef.name))
+        for resdef in _iter_pkg_resdefs(pkg)
+    ]
+
+def _iter_pkg_resdefs(pkg):
+    pkg_dir = os.path.dirname(pkg.src)
+    try:
+        mf = modelfile.from_dir(pkg_dir)
+    except modelfile.NoModels:
+        pass
+    else:
+        for modeldef in mf:
+            for resdef in modeldef.resources:
+                yield resdef
+
+def _package_resource_eps(pkg):
+    return [
+        "%s = guild.package:PackageModel" % res_name
+        for res_name in pkg.get("resources", {})
     ]
 
 def _maybe_upload(dist):

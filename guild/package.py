@@ -20,6 +20,7 @@ import subprocess
 import sys
 
 from guild import namespace
+from guild import resource
 from guild import util
 
 class Package(object):
@@ -28,6 +29,11 @@ class Package(object):
         self.ns = ns
         self.name = name
         self.version = version
+
+class PackageResource(resource.Resource):
+
+    def _init_resdef(self):
+        raise AssertionError("TODO")
 
 def create_package(package_file, dist_dir=None, upload_repo=False,
                    sign=False, identity=None, user=None, password=None,
