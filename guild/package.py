@@ -15,7 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import re
 import os
 import subprocess
 import sys
@@ -23,38 +22,12 @@ import sys
 from guild import namespace
 from guild import util
 
-GPKG_NAMESPACE = "gpkg"
-
 class Package(object):
 
     def __init__(self, ns, name, version):
         self.ns = ns
         self.name = name
         self.version = version
-
-class NamespaceError(LookupError):
-    """Raised if a namespace doesn't exist."""
-
-    def __init__(self, value):
-        super(NamespaceError, self).__init__(value)
-        self.value = value
-
-def split_name(name):
-    """Returns a tuple of namespace and split name.
-
-    Raises NamespaceError if a specified namespace doesn't exist.
-    """
-    m = re.match("(.+?)/(.+)", name)
-    if m:
-        return _ns_for_name(m.group(1)), m.group(2)
-    else:
-        return _ns_for_name(GPKG_NAMESPACE), name
-
-def _ns_for_name(name):
-    try:
-        return namespace.for_name(name)
-    except LookupError:
-        raise NamespaceError(name)
 
 def create_package(package_file, dist_dir=None, upload_repo=False,
                    sign=False, identity=None, user=None, password=None,
@@ -84,6 +57,5 @@ def create_package(package_file, dist_dir=None, upload_repo=False,
         raise SystemExit(exit_code)
 
 def is_gpkg(project_name):
-    gpkg = namespace.for_name(GPKG_NAMESPACE)
-    return (gpkg.is_project_name_member(project_name)[0]
-            == namespace.Membership.yes)
+    ns = namespace.for_name("gpkg")
+    return ns.project_name_membership(project_name) == namespace.Membership.yes

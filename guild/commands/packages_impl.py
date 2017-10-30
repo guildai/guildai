@@ -57,17 +57,17 @@ def _installs(args):
     index_urls = {}
     for pkg in args.packages:
         try:
-            ns, req = package.split_name(pkg)
-        except package.NamespaceError as e:
+            ns, req = namespace.split_name(pkg)
+        except namespace.NamespaceError as e:
             terms = " ".join(pkg.split("/")[1:])
             cli.error(
                 "unsupported namespace %s in '%s'\n"
                 "Try 'guild search %s -a' to find matching packages."
                 % (e.value, pkg, terms))
         else:
-            pip_req, urls = ns.pip_install_info(req)
-            urls_key = "\n".join(urls)
-            index_urls.setdefault(urls_key, []).append(pip_req)
+            info = ns.pip_info(req)
+            urls_key = "\n".join(info.install_urls)
+            index_urls.setdefault(urls_key, []).append(info.project_name)
     return [
         (reqs, urls_key.split("\n"))
         for urls_key, reqs in index_urls.items()

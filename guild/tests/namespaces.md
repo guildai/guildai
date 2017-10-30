@@ -43,12 +43,11 @@ We can use `for_name` to lookup namespaces by name:
     >>> pypi = namespace.for_name("pypi")
     >>> gpkg = namespace.for_name("gpkg")
 
-If a name isn't registered as a namespace, `for_name` raises a lookup
-error:
+If a name isn't registered as a namespace, `for_name` raises an error:
 
     >>> namespace.for_name("other")
     Traceback (most recent call last):
-    LookupError: other
+    NamespaceError: other
 
 ## Package names and pip
 
@@ -67,53 +66,75 @@ the appropriate PyPI packages.
 Using the `mnist` package example, let's use namespaces to get the
 information we need for working with pip packages:
 
-    >>> pypi.pip_install_info("mnist")
-    ('mnist', ['https://pypi.python.org/simple'])
+    >>> pypi.pip_info("mnist")
+    PipInfo(project_name='mnist',
+            install_urls=['https://pypi.python.org/simple'])
 
-    >>> gpkg.pip_install_info("mnist")
-    ('gpkg.mnist', ['https://pypi.python.org/simple'])
+    >>> gpkg.pip_info("mnist")
+    PipInfo(project_name='gpkg.mnist',
+            install_urls=['https://pypi.python.org/simple'])
 
 Here we see that, under the `pypi` namespace, `mnist` refers to the
 same project name whereas, under `gpkg`, it refers to `gpkg.mnist`.
 
-## Pip project name membershiup
+## Pip project name membership
 
 Namespaces can be used to test if a pip project name is a member using
-`is_project_name_member`. Namespace membership falls into one of three
+`project_name_membership`. Namespace membership falls into one of three
 values:
 
 - "yes", the project name is a member of the namespace
 - "no", the project name is not a member
 - "maybe", the project name might be a member
 
-In addition to membership, the test returns the Guild package name
-that references the pip project under the namespace.
-
 Let's test the `mnist` package:
 
-    >>> pypi.is_project_name_member("mnist")
-    ('maybe', 'pypi/mnist')
+    >>> pypi.project_name_membership("mnist")
+    'maybe'
 
-    >>> gpkg.is_project_name_member("mnist")
-    ('no', None)
+    >>> gpkg.project_name_membership("mnist")
+    'no'
 
 Here we see that the package `mnist` might be a member of the `pypi`
-namespace and if it is would be named `pypi/mnist` under the
 namespace. The package is not however a member of the `gpkg`
 namespace.
 
 Let's test `gpkg.mnist`:
 
-    >>> pypi.is_project_name_member("gpkg.mnist")
-    ('maybe', 'pypi/gpkg.mnist')
+    >>> pypi.project_name_membership("gpkg.mnist")
+    'maybe'
 
-    >>> gpkg.is_project_name_member("gpkg.mnist")
-    ('yes', 'mnist')
+    >>> gpkg.project_name_membership("gpkg.mnist")
+    'yes'
 
 Here we see that the project name `gpkg.mnist` might be a member of
 the `pypi` namespace and would be named `pypi/gpig.mnist` if it
 is. However, `gpkg` is laying full claim to the project and names it
 `mnist`.
+
+## Package names
+
+Namespaces can be used to generate Guild package names given a Python
+project name.
+
+The `pypi` namespace appends a prefix to project names:
+
+    >>> pypi.package_name("mnist")
+    'pypi/mnist'
+
+    >>> pypi.package_name("gpkg.mnist")
+    'pypi/gpkg.mnist'
+
+The `gpkg` namespace removes it's qualifying prefix:
+
+    >>> gpkg.package_name("gpkg.mnist")
+    'mnist'
+
+If a project name is not in a namespace, the namespace raises TypeError:
+
+    >>> gpkg.package_name("mnist")
+    Traceback (most recent call last):
+    TypeError: mnist is not a namespace member
 
 ## Modelfile namespace
 
@@ -126,7 +147,7 @@ Guild will see any models defined in it.
 
 Modelfile packages cannot be installed using pip:
 
-    >>> modelfile.pip_install_info("mnist")
+    >>> modelfile.pip_info("mnist")
     Traceback (most recent call last):
     TypeError: modelfiles cannot be installed using pip
 
@@ -143,11 +164,11 @@ that are disallowed in standard project names.
 Any project name that doesn't start with '.modelfile.' is not
 considered a member:
 
-    >>> modelfile.is_project_name_member("mnist")
-    ('no', None)
+    >>> modelfile.project_name_membership("mnist")
+    'no'
 
-    >>> modelfile.is_project_name_member("gpkg.mnist")
-    ('no', None)
+    >>> modelfile.project_name_membership("gpkg.mnist")
+    'no'
 
 Let's create a modefile project name. We'll need a helper:
 
@@ -159,8 +180,11 @@ And our project name:
 
 Let's test it!
 
-    >>> modelfile.is_project_name_member(modelfile_project)
-    ('yes', 'foo/bar')
+    >>> modelfile.project_name_membership(modelfile_project)
+    'yes'
+
+    >>> modelfile.package_name(modelfile_project)
+    'foo/bar'
 
 Here we see that our modelfile project name is the `foo/bar` package.
 
@@ -177,3 +201,31 @@ project name and return a package name:
 
     >>> namespace.apply_namespace("gpkg.mnist")
     'mnist'
+
+## Splitting package names
+
+The function `split_name` can be used to split a Guild package name
+into a tuple of namespace and split name:
+
+    >>> namespace.split_name("mnist")
+    (<guild.namespace.Namespace 'gpkg'>, 'mnist')
+
+Here we see that the Guild package `mnist` is implicitly a part of the
+`gpkg` namespace. It it equivalent to `gpkg/mnist`:
+
+    >>> namespace.split_name("gpkg/mnist")
+    (<guild.namespace.Namespace 'gpkg'>, 'mnist')
+
+The other namespace currently supported by Guild is `pypi`. This
+namespace is used to explicitly reference a package installable from
+PyPI.
+
+    >>> namespace.split_name("pypi/mnist")
+    (<guild.namespace.Namespace 'pypi'>, 'mnist')
+
+If we try to split a name containing an unknown namespace, we get an
+error:
+
+    >>> namespace.split_name("other/mnist")
+    Traceback (most recent call last):
+    NamespaceError: other

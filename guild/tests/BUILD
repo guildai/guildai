@@ -15,7 +15,6 @@ py_library(
         ":models",
         ":namespaces",
         ":ops",
-        ":packages",
         ":plugin-python-utils",
         ":plugins",
         ":runs",
@@ -123,14 +122,6 @@ py_library(
     deps = [
         "//guild:op",
         "//guild:modelfile",
-    ],
-)
-
-py_library(
-    name = "packages",
-    data = ["packages.md"],
-    deps = [
-        "//guild:package",
     ],
 )
 

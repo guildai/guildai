@@ -15,15 +15,30 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import re
+
+from collections import namedtuple
+
 import guild
 from guild.entry_point_util import EntryPointResources
 
 _namespaces = EntryPointResources("guild.namespaces", "namespace")
 
+DEFAULT_NAMESPACE = "gpkg"
+
 class Membership(object):
     yes = "yes"
     no = "no"
     maybe = "maybe"
+
+PipInfo = namedtuple("PipInfo", ["project_name", "install_urls"])
+
+class NamespaceError(LookupError):
+    """Raised if a namespace doesn't exist."""
+
+    def __init__(self, value):
+        super(NamespaceError, self).__init__(value)
+        self.value = value
 
 class Namespace(object):
 
@@ -35,25 +50,26 @@ class Namespace(object):
     def __repr__(self):
         return "<guild.namespace.Namespace '%s'>" % self.name
 
-    def pip_install_info(self, _req):
-        """Returns info for use in the pip install command.
-
-        Return value is a tuple of name and a list of index URLs. The
-        first index URL should be used as the primary index URL and
-        subsequent URLs should be used as "extra" index URLs.
-        """
-        raise NotImplementedError()
-
-    def is_project_name_member(self, _project_name):
-        """Returns a tuple of membership and package name for project name.
+    def project_name_membership(self, _project_name):
+        """Returns a Membership value for a project name.
 
         Membership may be 'yes', 'no', or 'mabye'. Use Membership.ATTR
         to test values.
 
-        If a namespace returns 'no', package name must be None.
+        If a namespace returns 'no' calls to `package_name` must raise
+        TypeError.
+        """
+        raise NotImplementedError()
 
-        If a namespace returns 'yes' or 'maybe', package name must be
-        the name of the Guild package under the namespace.
+    def pip_info(self, _req):
+        """Returns PipInfo for a package or requirement spec.
+        """
+        raise NotImplementedError()
+
+    def package_name(self, _project_name):
+        """Returns Guild package name for a given project name.
+
+        Raises TypeError if project name is not a namespace member.
         """
         raise NotImplementedError()
 
@@ -61,48 +77,72 @@ class PypiNamespace(Namespace):
 
     INDEX_INSTALL_URL = "https://pypi.python.org/simple"
 
-    def pip_install_info(self, req):
-        return (req, [self.INDEX_INSTALL_URL])
+    def project_name_membership(self, _name):
+        return Membership.maybe
 
-    def is_project_name_member(self, name):
-        return Membership.maybe, self.name + "/" + name
+    def pip_info(self, req):
+        return PipInfo(req, [self.INDEX_INSTALL_URL])
 
-class GpkgNamespace(Namespace):
+    def package_name(self, project_name):
+        return self.name + "/" + project_name
 
-    def pip_install_info(self, req):
-        return ("gpkg." + req, [PypiNamespace.INDEX_INSTALL_URL])
+class PrefixNamespace(Namespace):
 
-    @staticmethod
-    def is_project_name_member(name):
-        if name.startswith("gpkg."):
-            return Membership.yes, name[5:]
-        else:
-            return Membership.no, None
+    prefix = None
+    pip_install_urls = [PypiNamespace.INDEX_INSTALL_URL]
+
+    def project_name_membership(self, name):
+        return (Membership.yes if name.startswith(self.prefix)
+                else Membership.no)
+
+    def pip_info(self, req):
+        return PipInfo(self.prefix + req, self.pip_install_urls)
+
+    def package_name(self, project_name):
+        if not project_name.startswith(self.prefix):
+            raise TypeError(
+                "%s is not a member of %s namespace"
+                % (project_name, self.name))
+        return project_name[len(self.prefix):]
+
+class GpkgNamespace(PrefixNamespace):
+
+    prefix = "gpkg."
 
 def iter_namespaces():
     return iter(_namespaces)
 
 def for_name(name):
-    return _namespaces.one_for_name(name)
+    try:
+        return _namespaces.one_for_name(name)
+    except LookupError:
+        raise NamespaceError(name)
+
+def for_project_name(project_name):
+    ns = None
+    for _, maybe_ns in iter_namespaces():
+        membership = maybe_ns.project_name_membership(project_name)
+        if membership == Membership.yes:
+            ns = maybe_ns
+            break
+        elif membership == Membership.maybe:
+            ns = maybe_ns
+    assert ns, project_name
+    return ns
+
+def apply_namespace(project_name):
+    return for_project_name(project_name).package_name(project_name)
+
+def split_name(name):
+    """Returns a tuple of namespace and split name.
+
+    Raises NamespaceError if a specified namespace doesn't exist.
+    """
+    m = re.match("(.+?)/(.+)", name)
+    if m:
+        return for_name(m.group(1)), m.group(2)
+    else:
+        return for_name(DEFAULT_NAMESPACE), name
 
 def limit_to_builtin():
     _namespaces.set_path([guild.__pkgdir__])
-
-def apply_namespace(project_name):
-    ns = None
-    pkg_name = None
-    for _, maybe_ns in iter_namespaces():
-        membership, maybe_pkg_name = (
-            maybe_ns.is_project_name_member(project_name))
-        if membership == Membership.yes:
-            # Match, stop looking
-            ns = maybe_ns
-            pkg_name = maybe_pkg_name
-            break
-        elif membership == Membership.maybe:
-            # Possible match, keep looking
-            ns = maybe_ns
-            pkg_name = maybe_pkg_name
-    assert ns, project_name
-    assert pkg_name
-    return pkg_name

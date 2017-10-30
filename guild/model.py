@@ -261,21 +261,20 @@ def _model_finder(_importer, path, _only=False):
     else:
         yield ModelfileDistribution(models)
 
-class ModelfileNamespace(namespace.Namespace):
+class ModelfileNamespace(namespace.PrefixNamespace):
+
+    prefix = ".modelfile."
 
     @staticmethod
-    def pip_install_info(_name):
+    def pip_info(_name):
         raise TypeError("modelfiles cannot be installed using pip")
 
-    @staticmethod
-    def is_project_name_member(name):
-        if name.startswith(".modelfile."):
-            parts = name[11:].split("/", 1)
-            project_name = _unescape_project_name(parts[0])
-            rest = "/" + parts[1] if len(parts) == 2 else ""
-            return namespace.Membership.yes, project_name + rest
-        else:
-            return namespace.Membership.no, None
+    def package_name(self, project_name):
+        pkg = super(ModelfileNamespace, self).package_name(project_name)
+        parts = pkg.split("/", 1)
+        decoded_project_name = _unescape_project_name(parts[0])
+        rest = "/" + parts[1] if len(parts) == 2 else ""
+        return decoded_project_name + rest
 
 def get_path():
     return _models.path()
