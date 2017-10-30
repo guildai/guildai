@@ -1,4 +1,0 @@
-[guild.models]
-
-mnist-softmax = guild.model:Model
-mnist-cnn = guild.model:Model

@@ -110,7 +110,7 @@ def _setup_kw(pkg):
         },
         entry_points={
             "guild.models": [
-                "%s = guild.model:Model" % model.name
+                "%s = guild.model:PackageModel" % model.name
                 for model in _pkg_models(pkg)
             ]
         }

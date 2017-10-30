@@ -6,7 +6,7 @@ namespace.
 
 The package `mnist` contains MNIST models:
 
-    >>> quiet("guild install mnist")
+    >>> quiet("guild install mnist --upgrade")
 
 The package `pypi/mnist` contains tools for working with MNIST
 data. We don't use this package, but it illustrates how the Guild

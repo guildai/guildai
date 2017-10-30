@@ -37,34 +37,37 @@ of the model path:
 
 We can alternatively set the entire model path using `set_path`. We'll
 include both our sample MNIST project as well as the sample models
-defined in `model-packages`.
+defined in `packages`.
 
     >>> guild.model.set_path([
     ...   sample("projects/mnist"),
-    ...   sample("model-packages")])
+    ...   sample("packages")])
 
 Here's our new path:
 
     >>> guild.model.get_path()
     ['.../samples/projects/mnist',
-     '.../samples/model-packages']
+     '.../samples/packages']
 
 ## Iterating models
 
 We can iterate through all available models using `iter_models`:
 
     >>> sorted(guild.model.iter_models(), key=lambda m: m.name)
-    [<guild.model.Model 'expert'>,
-     <guild.model.Model 'intro'>,
-     <guild.model.Model 'mnist-cnn'>,
-     <guild.model.Model 'mnist-softmax'>]
+    [<guild.model.ModelfileModel 'expert'>,
+     <guild.model.ModelfileModel 'intro'>,
+     <guild.model.PackageModel 'mnist-cnn'>,
+     <guild.model.PackageModel 'mnist-softmax'>]
+
+Note that models derived from modelfiles are distinguished from models
+derived from packages.
 
 ## Models by name
 
 We can lookup models matching a name:
 
     >>> list(guild.model.for_name("mnist-cnn"))
-    [<guild.model.Model 'mnist-cnn'>]
+    [<guild.model.PackageModel 'mnist-cnn'>]
 
 If there are no models matching `name` we get an error:
 
@@ -91,7 +94,7 @@ The `mnist-cnn` model is defined in a standard Python distribution:
     <class 'pkg_resources.DistInfoDistribution'>
 
 Here we see that the project name is `gpkg.dist` and the distribution
-is located in the sample `model-packages` directory. Standard
+is located in the sample `packages` directory. Standard
 distributions have versions as they were explicitly packaged using
 `setuptools` (e.g. by way of the `guild package` command).
 
@@ -227,7 +230,7 @@ Model definitions in turn are associated with the modelfiles they're
 defined in.
 
     >>> cnn_def.modelfile.src
-    '.../samples/model-packages/gpkg/mnist/MODELS'
+    '.../samples/packages/gpkg/mnist/MODELS'
 
     >>> intro_def.modelfile.src
     '.../samples/projects/mnist/MODELS'
