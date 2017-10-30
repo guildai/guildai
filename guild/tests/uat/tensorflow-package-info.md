@@ -14,5 +14,5 @@ installed `pypi/tensorflow` package.
     author-email: opensource@google.com
     license: Apache 2.0
     location: ...
-    requires: wheel, numpy, tensorflow-tensorboard, six, protobuf
+    requires: ...
     <exit 0>
