@@ -143,7 +143,7 @@ def _pkg_description(pkg, models):
     return desc, long_desc
 
 def _package_data(pkg):
-    user_defined = pkg.get("data")
+    user_defined = pkg.get("data-files")
     return (
         user_defined if user_defined
         else _default_package_data(pkg))
