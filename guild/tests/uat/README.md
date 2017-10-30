@@ -27,6 +27,7 @@ will modify the acceptance test.
 *Guild behavior without packages, models, or runs.*
 
 - [initial-packages](initial-packages.md)
+- [tensorflow-package-info](tensorflow-package-info.md)
 - [initial-models](initial-models.md)
 - [initial-ops](initial-ops.md)
 - [initial-resources](initial-resources.md)
@@ -40,6 +41,7 @@ will modify the acceptance test.
 
 - [install-mnist-packages](install-mnist-packages.md)
 - [packages-after-mnist-install](packages-after-mnist-install.md)
+- [mnist-package-info](mnist-package-info.md)
 - [models-after-mnist-install](models-after-mnist-install.md)
 - [ops-after-mnist-install](ops-after-mnist-install.md)
 - [train-multiple-matches](train-multiple-matches.md)

@@ -190,7 +190,8 @@ py_library(
     srcs = ["pip_util.py"],
     deps = [
         "//third_party:pip",
-        ":var",
+        ":cli",
+        ":namespace",
     ],
 )
 

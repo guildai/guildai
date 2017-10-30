@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
+
 from guild import cli
 from guild import pip_util
 from guild import namespace
@@ -82,4 +84,21 @@ def uninstall_packages(args):
             cli.error("package '%s' it not installed" % pkg_name)
 
 def package_info(args):
-    print("TODO: show info for %s" % args.package)
+    for i, (project, pkg) in enumerate(_iter_project_names(args.packages)):
+        if i > 0:
+            cli.out("---")
+        exit_status = pip_util.print_package_info(
+            project,
+            verbose=args.verbose,
+            show_files=args.files)
+        if exit_status != 0:
+            logging.warning("unknown package %s", pkg)
+
+def _iter_project_names(pkgs):
+    for pkg in pkgs:
+        try:
+            ns, name = namespace.split_name(pkg)
+        except namespace.NamespaceError:
+            logging.warning("unknown namespace in '%s', ignoring", pkg)
+        else:
+            yield ns.pip_info(name).project_name, pkg

@@ -20,12 +20,14 @@ import click
 from guild import click_util
 
 @click.command("info")
-@click.argument("package", True)
+@click.argument("packages", metavar="PACKAGE...", nargs=-1, required=True)
+@click.option("-v", "--verbose", help="Show more information.", is_flag=True)
+@click.option("-f", "--files", help="Show packages files.", is_flag=True)
 
 @click_util.use_args
 
 def package_info(args):
-    """Show package details.
+    """Show information for one or more packages.
     """
     from . import packages_impl
     packages_impl.package_info(args)

@@ -20,6 +20,7 @@ import re
 from pip.commands.download import DownloadCommand
 from pip.commands.install import InstallCommand
 from pip.commands.search import SearchCommand
+from pip.commands.show import ShowCommand
 from pip.commands.uninstall import UninstallCommand
 from pip.download import _check_download_dir
 from pip.download import _download_http_url
@@ -29,6 +30,9 @@ from pip.index import Link
 from pip.locations import virtualenv_no_global
 from pip.utils import get_installed_distributions
 from pip.utils.hashes import Hashes
+
+from guild import cli
+from guild import namespace
 
 class NotInstalledError(Exception):
 
@@ -117,3 +121,42 @@ def download_url(url, download_dir, sha256=None):
         raise HashMismatch(url, expected, actual)
     else:
         return downloaded_path
+
+def print_package_info(pkg, verbose=False, show_files=False):
+    _ensure_print_package_logger()
+    cmd = ShowCommand()
+    args = []
+    if verbose:
+        args.append("--verbose")
+    if show_files:
+        args.append("--files")
+    args.append(pkg)
+    return cmd.run(*cmd.parse_args(args))
+
+class PrintPackageLogger(object):
+
+    def info(self, msg, args=None):
+        args = args or []
+        out = self._normalize_attr_case(msg % args)
+        out = self._apply_namespace(out)
+        cli.out(out)
+
+    @staticmethod
+    def _normalize_attr_case(s):
+        m = re.match("([^:]+:)(.*)", s)
+        if m:
+            return m.group(1).lower() + m.group(2)
+        return s
+
+    @staticmethod
+    def _apply_namespace(s):
+        if s[:6] == "name: ":
+            project_name = s[6:]
+            package_name = namespace.apply_namespace(project_name)
+            return "name: %s" % package_name
+        return s
+
+def _ensure_print_package_logger():
+    from pip.commands import show
+    if not isinstance(show.logger, PrintPackageLogger):
+        show.logger = PrintPackageLogger()
