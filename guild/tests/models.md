@@ -187,8 +187,8 @@ generated.
 Here's the reference for the `cnn` model:
 
     >>> cnn.reference
-    ModelRef(dist_type='project',
-             dist_name='gpkg.mnist',
+    ModelRef(dist_type='package',
+             dist_name='mnist',
              dist_version='0.1.0',
              model_name='mnist-cnn')
 

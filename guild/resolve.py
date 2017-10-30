@@ -123,7 +123,7 @@ class OperationOutputResolver(Resolver):
         assert opref.op_name, opref
         pkg_type = (
             opref.pkg_type or
-            "project" if opref.pkg_name else "modelfile")
+            "package" if opref.pkg_name else "modelfile")
         pkg_name = (
             opref.pkg_name or
             os.path.abspath(self.modeldef.modelfile.src))

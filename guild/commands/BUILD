@@ -280,7 +280,6 @@ py_library(
         "//guild:cmd_impl_support",
         "//guild:config",
         "//guild:modelfile",
-        "//guild:namespace",
         "//guild:var",
     ],
 )

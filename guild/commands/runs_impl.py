@@ -26,7 +26,6 @@ from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
 from guild import config
-from guild import namespace
 from guild import var
 
 RUN_DETAIL = [
@@ -156,7 +155,7 @@ def _format_run_index(run, index=None):
 def _format_op_desc(opref):
     if opref.pkg_type == "modelfile":
         return _format_modelfile_op(opref)
-    elif opref.pkg_type == "project":
+    elif opref.pkg_type == "package":
         return _format_package_op(opref)
     else:
         logging.warning(
@@ -171,8 +170,7 @@ def _format_modelfile_op(opref):
     return "%s/%s:%s" % (relpath, opref.model_name, opref.op_name)
 
 def _format_package_op(opref):
-    pkg = namespace.apply_namespace(opref.pkg_name)
-    return "%s/%s:%s" % (pkg, opref.model_name, opref.op_name)
+    return "%s/%s:%s" % (opref.pkg_name, opref.model_name, opref.op_name)
 
 def _format_timestamp(ts):
     if not ts:

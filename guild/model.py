@@ -114,7 +114,7 @@ class PackageModel(Model):
     def _init_reference(self):
         pkg_name = namespace.apply_namespace(self.dist.project_name)
         return ModelRef(
-            "project",
+            "package",
             pkg_name,
             self.dist.version,
             self.name)
