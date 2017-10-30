@@ -389,16 +389,13 @@ class ResourceDef(object):
         self.name = name
         self.modeldef = modeldef
         self.modelfile = modeldef.modelfile
+        self.fullname = "%s:%s" % (self.modeldef.name, self.name)
         self.description = data.get("description", "")
         self.path = data.get("path")
         self.sources = _init_sources(data.get("sources", []), self)
 
     def __repr__(self):
         return "<guild.modelfile.ResourceDef '%s'>" % self.name
-
-    @property
-    def fullname(self):
-        return "%s:%s" % (self.modeldef.name, self.name)
 
 def _init_sources(data, resdef):
     if isinstance(data, list):
@@ -463,6 +460,9 @@ class ResourceSource(object):
 
     def __repr__(self):
         return "<guild.modelfile.ResourceSource '%s'>" % self.uri
+
+    def __str__(self):
+        return self.uri
 
 ###################################################################
 # Module API

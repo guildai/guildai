@@ -23,7 +23,7 @@ class Resource(object):
     def __init__(self, ep):
         self.name = ep.name
         self.dist = ep.dist
-        self.resourcedef = _resourcedef_for_dist(ep.name, ep.dist)
+        self.resdef = _resdef_for_dist(ep.name, ep.dist)
         self._fullname = None # lazy
 
     def __repr__(self):
@@ -33,10 +33,11 @@ class Resource(object):
     def fullname(self):
         if self._fullname is None:
             package_name = namespace.apply_namespace(self.dist.project_name)
-            self._fullname = "%s/%s" % (package_name, self.name)
+            model_name = self.resdef.modeldef.name
+            self._fullname = "%s/%s:%s" % (package_name, model_name, self.name)
         return self._fullname
 
-def _resourcedef_for_dist(name, dist):
+def _resdef_for_dist(name, dist):
     if isinstance(dist, ModelfileDistribution):
         for model in dist.modelfile:
             for res in model.resources:
@@ -61,5 +62,6 @@ def add_model_path(model_path):
     _resources.set_path(path)
 
 def iter_resources():
-    for _name, resource in _resources:
-        yield resource
+    for _name, res in _resources:
+        if not res.resdef.modeldef.private:
+            yield res
