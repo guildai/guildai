@@ -61,8 +61,8 @@ class Resource(object):
         source_path = os.path.join(working_dir, source.parsed_uri.path)
         if not os.path.exists(source_path):
             raise DependencyError(
-                "required file '%s' does not exist (file source "
-                "in resource '%s')" % (source_path, self.resdef.name))
+                "file '%s' does not exist (defined in resource '%s')"
+                % (source_path, self.resdef.name))
         _verify_file(source_path, source.sha256, self.ctx)
         self._link_to_source(source_path)
 
