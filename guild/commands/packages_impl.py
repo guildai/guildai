@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import logging
+import os
 
 from guild import cli
 from guild import pip_util
@@ -68,22 +69,28 @@ def install_packages(args):
 def _installs(args):
     index_urls = {}
     for pkg in args.packages:
-        try:
-            ns, req = namespace.split_name(pkg)
-        except namespace.NamespaceError as e:
-            terms = " ".join(pkg.split("/")[1:])
-            cli.error(
-                "unsupported namespace %s in '%s'\n"
-                "Try 'guild search %s -a' to find matching packages."
-                % (e.value, pkg, terms))
+        if os.path.exists(pkg):
+            index_urls.setdefault("", []).append(pkg)
         else:
-            info = ns.pip_info(req)
+            info = _pip_info(pkg)
             urls_key = "\n".join(info.install_urls)
             index_urls.setdefault(urls_key, []).append(info.project_name)
     return [
         (reqs, urls_key.split("\n"))
         for urls_key, reqs in index_urls.items()
     ]
+
+def _pip_info(pkg):
+    try:
+        ns, req = namespace.split_name(pkg)
+    except namespace.NamespaceError as e:
+        terms = " ".join(pkg.split("/")[1:])
+        cli.error(
+            "unsupported namespace %s in '%s'\n"
+            "Try 'guild search %s -a' to find matching packages."
+            % (e.value, pkg, terms))
+    else:
+        return ns.pip_info(req)
 
 def uninstall_packages(args):
     for reqs, _ in _installs(args):
