@@ -18,6 +18,7 @@ from __future__ import division
 import ast
 import logging
 import os
+import types
 
 class Script(object):
 
@@ -272,3 +273,25 @@ def exec_script(filename):
     flags = __future__.absolute_import.compiler_flag
     code = compile(src, filename, "exec", flags=flags, dont_inherit=True)
     exec(code)
+
+def update_refs(module, ref_spec, new_val, recurse=False, seen=None):
+    seen = seen or set()
+    if module in seen:
+        return
+    seen.add(module)
+    for name, val in module.__dict__.items():
+        if _match_ref(name, val, ref_spec):
+            module.__dict__[name] = new_val
+        elif recurse and isinstance(val, types.ModuleType):
+            update_refs(val, ref_spec, new_val, recurse, seen)
+
+def _match_ref(name, val, ref_spec):
+    target_name, target_type, target_attrs = ref_spec
+    return (
+        name == target_name and
+        isinstance(val, target_type) and
+        _match_ref_attrs(val, target_attrs))
+
+def _match_ref_attrs(val, attrs):
+    undef = object()
+    return all((getattr(val, name, undef) == attrs[name] for name in attrs))
