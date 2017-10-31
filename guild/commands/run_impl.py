@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import os
 
 import guild.model
@@ -139,7 +140,11 @@ def _no_such_operation_error(name, model):
 def _init_op(opdef, model, args):
     _apply_arg_flags(args, opdef)
     _apply_arg_disable_plugins(args, opdef)
-    return guild.op.Operation(model, opdef)
+    if args.run_dir:
+        logging.warning(
+            "run directory is '%s' - results will not be visible to Guild",
+            args.run_dir)
+    return guild.op.Operation(model, opdef, args.run_dir)
 
 def _apply_arg_flags(args, opdef):
     for arg in args.args:

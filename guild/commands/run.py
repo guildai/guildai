@@ -23,6 +23,9 @@ def run_params(fn):
     click_util.append_params(fn, [
         click.Argument(("args",), metavar="[ARG...]", nargs=-1),
         click.Option(
+            ("-d", "--run-dir"), metavar="DIR",
+            help="Use an alternative run directory."),
+        click.Option(
             ("--disable-plugins",), metavar="LIST",
             help=("A comma separated list of plugin names to disable. "
                   "Use 'all' to disable all plugins.")),

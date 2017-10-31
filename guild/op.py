@@ -38,17 +38,22 @@ class InvalidCmd(ValueError):
 
 class Operation(object):
 
-    def __init__(self, model, opdef):
+    def __init__(self, model, opdef, rundir=None):
         self.model = model
         self.opdef = opdef
         self.cmd_args = _init_cmd_args(opdef)
         self.cmd_env = _init_cmd_env(opdef)
+        self._rundir = rundir
         self._running = False
         self._started = None
         self._stopped = None
         self._run = None
         self._proc = None
         self._exit_status = None
+
+    @property
+    def rundir(self):
+        return self._rundir or (self._run.path if self._run else None)
 
     def run(self):
         assert not self._running
@@ -63,8 +68,12 @@ class Operation(object):
         return self._exit_status
 
     def _init_run(self):
-        run_id = guild.run.mkid()
-        path = os.path.join(var.runs_dir(), run_id)
+        if self._rundir:
+            run_id = os.path.basename(self._rundir)
+            path = self._rundir
+        else:
+            run_id = guild.run.mkid()
+            path = os.path.join(var.runs_dir(), run_id)
         self._run = guild.run.Run(run_id, path)
         logging.debug("initializing run in %s", path)
         self._run.init_skel()
