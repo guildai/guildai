@@ -170,7 +170,7 @@ Note the other three callbacks were called successfully.
 Here's what was logged during that call:
 
     >>> log_capture.print_all()
-    ERROR: callback
+    ERROR: method listener callback
     Traceback (most recent call last):
     ...
     ZeroDivisionError: ...
@@ -279,3 +279,91 @@ Let re-order our listeners to confirm:
     incr_by_3 called
     incr_by_2 called
     3
+
+## Wrapping functions
+
+Python util supports wrapping module functions as well as class
+method.
+
+Let's dynamically create a module for our tests:
+
+    >>> import imp
+    >>> howdy = imp.new_module("howdy")
+    >>> howdy_def = """
+    ... def say(msg):
+    ...   print(msg)
+    ... """
+    >>> exec howdy_def in howdy.__dict__
+    >>> import sys
+    >>> sys.modules["howdy"] = howdy
+
+Here's our function in action:
+
+    >>> from howdy import say
+    >>> say("Howdy!")
+    Howdy!
+
+We can wrap using a listener:
+
+    >>> def say_again(say0, msg):
+    ...   print(msg)
+
+    >>> python_util.listen_function(howdy, "say", say_again)
+
+Our current function remains unmodified:
+
+    >>> say("Hi!")
+    Hi!
+
+To get our wrapper version we need to reimport the function.
+
+    >>> from howdy import say
+    >>> say("Hi!")
+    Hi!
+    Hi!
+
+We can use multiple listeners.
+
+    >>> python_util.listen_function(howdy, "say", say_again)
+    >>> from howdy import say
+    >>> say("Yo!")
+    Yo!
+    Yo!
+    Yo!
+
+To remove a listener, we use `remove_function_listener`:
+
+    >>> python_util.remove_function_listener(say, say_again)
+    >>> from howdy import say
+    >>> say("What up?")
+    What up?
+    What up?
+
+And to remove all listeners as use `remove_function_listeners`:
+
+    >>> python_util.remove_function_listeners(say)
+    >>> from howdy import say
+    >>> say("How goes?")
+    How goes?
+
+A listener can circumvent a call to the wrapped function by raising a
+`Result`.
+
+    >>> def say_instead(_say0, msg):
+    ...    print("I'm saying '%s' now!" % msg)
+    ...    raise python_util.Result(None)
+    >>> python_util.listen_function(howdy, "say", say_instead)
+    >>> from howdy import say
+    >>> howdy.say("Yop")
+    I'm saying 'Yop' now!
+
+Additional listeners still get notified.
+
+    >>> python_util.listen_function(howdy, "say", say_again)
+
+In this final test we'll just call the function directoy from our
+module without reimporting it.
+
+    >>> howdy.say("Bye!")
+    I'm saying 'Bye!' now!
+    Bye!

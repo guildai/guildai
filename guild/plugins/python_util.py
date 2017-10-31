@@ -145,7 +145,7 @@ class MethodWrapper(object):
                 except KeyboardInterrupt:
                     raise
                 except:
-                    logging.exception("callback")
+                    logging.exception("method listener callback")
             if result is marker:
                 return wrapped_bound(*args, **kw)
             else:
@@ -183,6 +183,75 @@ def remove_method_listener(method, cb):
 
 def remove_method_listeners(method):
     wrapper = MethodWrapper.for_method(method)
+    if wrapper is not None:
+        wrapper.unwrap()
+
+class FunctionWrapper(object):
+
+    @staticmethod
+    def for_function(function):
+        return getattr(function, "__wrapper__", None)
+
+    def __init__(self, func, mod, name):
+        self._func = func
+        self._mod = mod
+        self._name = name
+        self._cbs = []
+        self._wrap()
+
+    def _wrap(self):
+        wrapper = self._wrapper()
+        wrapper.__name__ = "%s_wrapper" % self._name
+        wrapper.__wrapper__ = self
+        setattr(self._mod, self._name, wrapper)
+
+    def _wrapper(self):
+        def wrapper(*args, **kw):
+            marker = object()
+            result = marker
+            for cb in self._cbs:
+                try:
+                    cb(self._func, *args, **kw)
+                except Result as e:
+                    result = e.value
+                except KeyboardInterrupt:
+                    raise
+                except:
+                    logging.exception("function listener callback")
+            if result is marker:
+                return self._func(*args, **kw)
+            else:
+                return result
+        return wrapper
+
+    def add_cb(self, cb):
+        self._cbs.append(cb)
+
+    def remove_cb(self, cb):
+        try:
+            self._cbs.remove(cb)
+        except ValueError:
+            pass
+        if not self._cbs:
+            self.unwrap()
+
+    def unwrap(self):
+        setattr(self._mod, self._name, self._func)
+
+def listen_function(module, function_name, cb):
+    function = getattr(module, function_name)
+    wrapper = FunctionWrapper.for_function(function)
+    if wrapper is None:
+        wrapper = FunctionWrapper(function, module, function_name)
+    wrapper.add_cb(cb)
+
+def remove_function_listener(function, cb):
+    wrapper = FunctionWrapper.for_function(function)
+    if wrapper is not None:
+        wrapper.remove_cb(cb)
+
+def remove_function_listeners(function):
+    wrapper = FunctionWrapper.for_function(function)
     if wrapper is not None:
         wrapper.unwrap()
 
