@@ -58,13 +58,16 @@ def _pkg_summary(pkg):
 
 def install_packages(args):
     for reqs, index_urls in _installs(args):
-        pip_util.install(
-            reqs,
-            index_urls=index_urls,
-            upgrade=args.upgrade,
-            pre_releases=args.pre,
-            no_cache=args.no_cache,
-            reinstall=args.reinstall)
+        try:
+            pip_util.install(
+                reqs,
+                index_urls=index_urls,
+                upgrade=args.upgrade,
+                pre_releases=args.pre,
+                no_cache=args.no_cache,
+                reinstall=args.reinstall)
+        except pip_util.DependencyError:
+            cli.error("installation failed (see above for details)")
 
 def _installs(args):
     index_urls = {}
