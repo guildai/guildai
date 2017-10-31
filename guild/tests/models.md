@@ -27,7 +27,7 @@ By default, this path is identical to the Python path
 
 Let's modify the model path by adding a sample model path:
 
-    >>> guild.model.add_model_path(sample("projects/mnist"))
+    >>> guild.model.insert_path(sample("projects/mnist"))
 
 This has the effect of inserting the project location at the beginning
 of the model path:
