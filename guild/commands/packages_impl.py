@@ -75,13 +75,13 @@ def _installs(args):
     index_urls = {}
     for pkg in args.packages:
         if os.path.exists(pkg):
-            index_urls.setdefault("", []).append(pkg)
+            index_urls.setdefault(None, []).append(pkg)
         else:
             info = _pip_info(pkg)
             urls_key = "\n".join(info.install_urls)
             index_urls.setdefault(urls_key, []).append(info.project_name)
     return [
-        (reqs, urls_key.split("\n"))
+        (reqs, urls_key.split("\n") if urls_key else [])
         for urls_key, reqs in index_urls.items()
     ]
 
