@@ -19,8 +19,11 @@ import os
 import subprocess
 import sys
 
+import yaml
+
 from guild import namespace
 from guild import resource
+from guild import resourcedef
 from guild import util
 
 class Package(object):
@@ -33,7 +36,13 @@ class Package(object):
 class PackageResource(resource.Resource):
 
     def _init_resdef(self):
-        raise AssertionError("TODO")
+        pkg = yaml.load(self.dist.get_metadata("PACKAGE"))
+        data = pkg.get("resources", {}).get(self.name)
+        if not data:
+            raise ValueError(
+                "undefined resource '%s' in %s"
+                % self.name, self.dist)
+        return resourcedef.ResourceDef(self.name, data)
 
 def create_package(package_file, dist_dir=None, upload_repo=False,
                    sign=False, identity=None, user=None, password=None,

@@ -166,9 +166,11 @@ py_library(
     name = "package",
     srcs = ["package.py"],
     deps = [
+        "//third_party:yaml",
         ":namespace",
         ":package_main",
         ":resource",
+        ":resourcedef",
         ":util",
     ],
 )

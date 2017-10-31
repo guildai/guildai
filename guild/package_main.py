@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import os
+import shutil
 import sys
 
 import setuptools
@@ -64,7 +65,9 @@ def _load_pkg():
 
 def _create_dist(pkg):
     sys.argv = _bdist_wheel_cmd_args(pkg)
-    return setuptools.setup(**_setup_kw(pkg))
+    kw = _setup_kw(pkg)
+    _write_package_metadata(kw)
+    return setuptools.setup(**kw)
 
 def _bdist_wheel_cmd_args(pkg):
     args = [sys.argv[0], "bdist_wheel"]
@@ -185,9 +188,16 @@ def _iter_modelfile_resdefs(pkg):
 
 def _package_resource_eps(pkg):
     return [
-        "%s = guild.package:PackageModel" % res_name
+        "%s = guild.package:PackageResource" % res_name
         for res_name in pkg.get("resources", {})
     ]
+
+def _write_package_metadata(setup_kw):
+    source = os.getenv("PACKAGE_FILE")
+    egg_info_dir = "%s.egg-info" % setup_kw["name"]
+    util.ensure_dir(egg_info_dir)
+    dest = os.path.join(egg_info_dir, "PACKAGE")
+    shutil.copyfile(source, dest)
 
 def _maybe_upload(dist):
     upload_repo = os.getenv("UPLOAD_REPO")
