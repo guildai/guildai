@@ -49,7 +49,7 @@ def _format_pkg(pkg):
 
 def _pkg_summary(pkg):
     # For efficiency, just look at the first few lines for Summary
-    for i, line in enumerate(pkg._get_metadata("METADATA")):
+    for i, line in enumerate(pkg.get_metadata_lines("METADATA")):
         if line[:9] == "Summary: ":
             return line[9:]
         if i == 5:
