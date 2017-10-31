@@ -39,6 +39,8 @@ will modify the acceptance test.
 
 *Installing and training a model from a Guild package.*
 
+### MNIST
+
 - [install-mnist-packages](install-mnist-packages.md)
 - [packages-after-mnist-install](packages-after-mnist-install.md)
 - [mnist-package-info](mnist-package-info.md)
@@ -49,6 +51,11 @@ will modify the acceptance test.
 - [train-mnist-softmax](train-mnist-softmax.md)
 - [runs-after-mnist-softmax-train](runs-after-mnist-softmax-train.md)
 - [run-info-after-mnist-softmax-train](run-info-after-mnist-softmax-train.md)
+
+### hello
+
+- [install-hello-package](install-hello-package.md)
+- [run-hello-package-examples](run-hello-package-examples.md)
 
 ## Training Guild examples
 

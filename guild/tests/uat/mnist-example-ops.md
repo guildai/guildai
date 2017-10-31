@@ -28,7 +28,7 @@ limited.
 
 We can view all ops using -a:
 
-    >>> run("guild ops -a")
+    >>> run("guild ops -a mnist")
     ./mnist-expert:evaluate    Evaluate a trained model using test data
     ./mnist-expert:train       Train the MNIST model
     ./mnist-intro:evaluate     Evaluate a trained model using test data

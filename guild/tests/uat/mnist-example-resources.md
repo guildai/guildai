@@ -19,7 +19,7 @@ The same list after changing directories:
 
 And listing all resources with the `-a` option:
 
-    >>> run("guild resources -a")
+    >>> run("guild resources mnist -a")
     ./mnist-expert:model  Exported expert model
     ./mnist-intro:model   Exported intro model
     <exit 0>
