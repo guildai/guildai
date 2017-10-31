@@ -156,7 +156,7 @@ def _write_model(m, out):
     out.write_paragraph()
     _write_flags(
         m.flags, "Model flags", out,
-        "There are no flags defined at the model level.")
+        "No flags defined at the model level")
     out.dedent()
 
 def _write_operations(m, out):
@@ -170,7 +170,7 @@ def _write_operations(m, out):
             _write_operation(op, out)
     else:
         out.write_text(
-            "There are no operations defined for this model.")
+            "No operations defined for this model")
     out.dedent()
 
 def _write_operation(op, out):
