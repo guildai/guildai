@@ -144,8 +144,6 @@ class MethodWrapper(object):
                     result = e.value
                 except KeyboardInterrupt:
                     raise
-                except:
-                    logging.exception("method listener callback")
             if result is marker:
                 return wrapped_bound(*args, **kw)
             else:
@@ -216,8 +214,6 @@ class FunctionWrapper(object):
                     result = e.value
                 except KeyboardInterrupt:
                     raise
-                except:
-                    logging.exception("function listener callback")
             if result is marker:
                 return self._func(*args, **kw)
             else:
