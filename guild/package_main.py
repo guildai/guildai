@@ -144,10 +144,10 @@ def _pkg_data_files(pkg):
 
 def _default_pkg_files():
     return [
-        "MODEL",
-        "MODELS",
         "LICENSE",
         "LICENSE.*",
+        "MODEL",
+        "MODELS",
         "README",
         "README.*",
     ]
