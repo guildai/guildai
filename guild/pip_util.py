@@ -44,6 +44,7 @@ class NotInstalledError(Exception):
 
 def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
             no_cache=False, reinstall=False):
+    _ensure_patch_pip_get_entry_points()
     cmd = InstallCommand()
     args = []
     if pre_releases:
@@ -63,6 +64,56 @@ def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
     args.extend(reqs)
     options, cmd_args = cmd.parse_args(args)
     cmd.run(options, cmd_args)
+
+def _ensure_patch_pip_get_entry_points():
+    """Patch pip's get_entrypoints function.
+
+    Older versions of pip use configparse to load the entrypoints file
+    in a wheel, which imposes its own syntax requirements on entry
+    point keys causing problems for our key naming conventions.
+
+    We replace their `get_entrypoints` which is
+    `_get_entrypoints_patch`, which is copied from their more recent
+    source.
+    """
+    import pip.wheel
+    if pip.wheel.get_entrypoints != _pip_get_entrypoints_patch:
+        pip.wheel.get_entrypoints = _pip_get_entrypoints_patch
+
+def _pip_get_entrypoints_patch(filename):
+    """See `_ensure_pip_get_entrypoints_patch` for details."""
+    import os
+    from pip._vendor.six import StringIO
+    from pip._vendor import pkg_resources
+
+    if not os.path.exists(filename):
+        return {}, {}
+
+    # This is done because you can pass a string to entry_points wrappers which
+    # means that they may or may not be valid INI files. The attempt here is to
+    # strip leading and trailing whitespace in order to make them valid INI
+    # files.
+    with open(filename) as fp:
+        data = StringIO()
+        for line in fp:
+            data.write(line.strip())
+            data.write("\n")
+        data.seek(0)
+
+    # get the entry points and then the script names
+    entry_points = pkg_resources.EntryPoint.parse_map(data)
+    console = entry_points.get('console_scripts', {})
+    gui = entry_points.get('gui_scripts', {})
+
+    def _split_ep(s):
+        """get the string representation of EntryPoint, remove space and split
+        on '='"""
+        return str(s).replace(" ", "").split("=")
+
+    # convert the EntryPoint objects into strings with module:function
+    console = dict(_split_ep(v) for v in console.values())
+    gui = dict(_split_ep(v) for v in gui.values())
+    return console, gui
 
 def get_installed():
     user_only = not virtualenv_no_global()
