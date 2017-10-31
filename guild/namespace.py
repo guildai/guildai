@@ -84,7 +84,7 @@ class PypiNamespace(Namespace):
         return PipInfo(req, [self.INDEX_INSTALL_URL])
 
     def package_name(self, project_name):
-        return self.name + "/" + project_name
+        return self.name + "." + project_name
 
 class PrefixNamespace(Namespace):
 
@@ -138,7 +138,7 @@ def split_name(name):
 
     Raises NamespaceError if a specified namespace doesn't exist.
     """
-    m = re.match("(.+?)/(.+)", name)
+    m = re.match(r"(.+?)\.(.+)", name)
     if m:
         return for_name(m.group(1)), m.group(2)
     else:

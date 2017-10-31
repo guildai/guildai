@@ -120,10 +120,10 @@ project name.
 The `pypi` namespace appends a prefix to project names:
 
     >>> pypi.package_name("mnist")
-    'pypi/mnist'
+    'pypi.mnist'
 
     >>> pypi.package_name("gpkg.mnist")
-    'pypi/gpkg.mnist'
+    'pypi.gpkg.mnist'
 
 The `gpkg` namespace removes it's qualifying prefix:
 
@@ -197,7 +197,7 @@ The function `apply_namespace` can be used to apply a namespace to a
 project name and return a package name:
 
     >>> namespace.apply_namespace("mnist")
-    'pypi/mnist'
+    'pypi.mnist'
 
     >>> namespace.apply_namespace("gpkg.mnist")
     'mnist'
@@ -213,19 +213,19 @@ into a tuple of namespace and split name:
 Here we see that the Guild package `mnist` is implicitly a part of the
 `gpkg` namespace. It it equivalent to `gpkg/mnist`:
 
-    >>> namespace.split_name("gpkg/mnist")
+    >>> namespace.split_name("gpkg.mnist")
     (<guild.namespace.Namespace 'gpkg'>, 'mnist')
 
 The other namespace currently supported by Guild is `pypi`. This
 namespace is used to explicitly reference a package installable from
 PyPI.
 
-    >>> namespace.split_name("pypi/mnist")
+    >>> namespace.split_name("pypi.mnist")
     (<guild.namespace.Namespace 'pypi'>, 'mnist')
 
 If we try to split a name containing an unknown namespace, we get an
 error:
 
-    >>> namespace.split_name("other/mnist")
+    >>> namespace.split_name("other.mnist")
     Traceback (most recent call last):
     NamespaceError: other
