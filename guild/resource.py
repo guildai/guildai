@@ -26,7 +26,7 @@ class Resource(object):
         self._fullname = None # lazy
 
     def __repr__(self):
-        return "<guild.resource.Resource '%s'>" % self.name
+        return "<guild.resource.Resource '%s'>" % self.fullname
 
     @property
     def fullname(self):
