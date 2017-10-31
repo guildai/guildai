@@ -12,8 +12,8 @@ of the package reference with '/'. Namespaces are used to:
 
 Examples of namespaces in package names:
 
-    pypi/mnist
-    gpig/mnist
+    pypi.mnist
+    gpkg.mnist
     ./mnist
 
 Each of these fully qualified package names refers to a different
@@ -108,7 +108,7 @@ Let's test `gpkg.mnist`:
     'yes'
 
 Here we see that the project name `gpkg.mnist` might be a member of
-the `pypi` namespace and would be named `pypi/gpig.mnist` if it
+the `pypi` namespace and would be named `pypi.gpig.mnist` if it
 is. However, `gpkg` is laying full claim to the project and names it
 `mnist`.
 

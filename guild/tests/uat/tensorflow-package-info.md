@@ -3,10 +3,10 @@
 Projects from PyPI are under the `pypi` namespace.
 
 We can use `guild packages info PKG` to show details about the
-installed `pypi/tensorflow` package.
+installed `pypi.tensorflow` package.
 
-    >>> run("guild packages info pypi/tensorflow")
-    name: pypi/tensorflow
+    >>> run("guild packages info pypi.tensorflow")
+    name: pypi.tensorflow
     version: ...
     summary: TensorFlow helps the tensors flow
     home-page: http://tensorflow.org/
