@@ -43,6 +43,9 @@ class Resource(object):
 
     def _link_to_source(self, source_path):
         link = self._link_path(source_path)
+        if os.path.exists(link):
+            logging.warning("source '%s' already exists, skipping link", link)
+            return
         util.ensure_dir(os.path.dirname(link))
         logging.debug("resolving source '%s' as link '%s'", source_path, link)
         os.symlink(source_path, link)
