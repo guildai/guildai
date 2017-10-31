@@ -86,7 +86,7 @@ def _parse_plugin_op(plugin_op):
 
 def _run_plugin_op(plugin, op_spec, args):
     try:
-        plugin.op_for_spec(op_spec, args)
+        plugin.run_op(op_spec, args)
     except TypeError:
         _error(
             "plugin '%s' does not support operation '%s'"
