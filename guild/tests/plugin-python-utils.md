@@ -279,7 +279,7 @@ Let's dynamically create a module for our tests:
     ... def say(msg):
     ...   print(msg)
     ... """
-    >>> exec howdy_def in howdy.__dict__
+    >>> exec(howdy_def, howdy.__dict__)
     >>> import sys
     >>> sys.modules["howdy"] = howdy
 
