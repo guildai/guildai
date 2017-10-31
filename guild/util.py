@@ -130,7 +130,7 @@ def safe_osenv():
         if name not in OS_ENVIRON_BLACKLIST
     }
 
-def match_filter(filters, vals, match_any=False):
+def match_filters(filters, vals, match_any=False):
     test_fun = any if match_any else all
     vals_lower = [val.lower() for val in vals]
     filters_lower = [f.lower() for f in filters]

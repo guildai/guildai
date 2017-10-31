@@ -47,4 +47,4 @@ def _filter_model(model, args):
         model["fullname"],
         model["description"],
     ]
-    return util.match_filter(args.filters, filter_vals)
+    return util.match_filters(args.filters, filter_vals)

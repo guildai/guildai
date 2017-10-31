@@ -19,26 +19,25 @@ import logging
 import os
 
 from guild import cli
-from guild import pip_util
 from guild import namespace
 from guild import package
+from guild import pip_util
+from guild import util
 
 INTERNAL_PACKAGES = ["guildai"]
 
 def list_packages(args):
     installed = pip_util.get_installed()
-    filtered = _filter_packages(installed, args)
-    pkgs = [_format_pkg(pkg) for pkg in filtered]
-    cli.table(pkgs, cols=["name", "version", "summary"], sort=["name"])
+    scope_filtered = [pkg for pkg in installed if _filter_scope(pkg, args)]
+    formatted = [_format_pkg(pkg) for pkg in scope_filtered]
+    filtered = [pkg for pkg in formatted if _filter_model(pkg, args)]
+    cli.table(filtered, cols=["name", "version", "summary"], sort=["name"])
 
-def _filter_packages(pkgs, args):
-    return [pkg for pkg in pkgs if _filter_pkg(pkg, args)]
-
-def _filter_pkg(pkg, args):
-    return (pkg.project_name not in INTERNAL_PACKAGES
-            and (not args.terms or
-                 any((term in pkg.project_name for term in args.terms)))
-            and (args.all or package.is_gpkg(pkg.project_name)))
+def _filter_scope(pkg, args):
+    return (
+        pkg.project_name not in INTERNAL_PACKAGES
+        and (args.all or package.is_gpkg(pkg.project_name))
+    )
 
 def _format_pkg(pkg):
     return {
@@ -55,6 +54,9 @@ def _pkg_summary(pkg):
         if i == 5:
             break
     return ""
+
+def _filter_model(pkg, args):
+    return util.match_filters(args.terms, [pkg["name"], pkg["summary"]])
 
 def install_packages(args):
     for reqs, index_urls in _installs(args):

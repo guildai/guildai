@@ -180,6 +180,7 @@ py_library(
         "//guild:cmd_impl_support",
         "//guild:package",
         "//guild:pip_util",
+        "//guild:util",
     ],
 )
 

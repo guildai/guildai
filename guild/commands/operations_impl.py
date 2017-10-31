@@ -65,4 +65,4 @@ def _filter_op(op, args):
         op["fullname"],
         op["description"],
     ]
-    return util.match_filter(args.filters, filter_vals)
+    return util.match_filters(args.filters, filter_vals)

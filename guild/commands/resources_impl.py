@@ -42,4 +42,4 @@ def _filter_resource(res, args):
         res["name"],
         res["description"],
     ]
-    return util.match_filter(args.filters, filter_vals)
+    return util.match_filters(args.filters, filter_vals)
