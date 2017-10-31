@@ -220,6 +220,7 @@ py_library(
         "//guild:cli",
         "//guild:cmd_impl_support",
         "//guild:resource",
+        "//guild:util",
     ],
 )
 
