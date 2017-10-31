@@ -24,6 +24,8 @@ import guild.log
 
 # Avoid expensive imports here as load times directly add to runs.
 
+log = None # initialized in _init_logging
+
 def main():
     if os.getenv("PROFILE"):
         _profile_main()
@@ -32,8 +34,8 @@ def main():
 
 def _main():
     _init_logging()
-    logging.debug("cwd: %s", os.getcwd())
-    logging.debug("sys.path: %s", os.path.pathsep.join(sys.path))
+    log.debug("cwd: %s", os.getcwd())
+    log.debug("sys.path: %s", os.path.pathsep.join(sys.path))
     arg1, rest_args = _parse_args()
     _apply_plugins()
     if arg1[0] == "@":
@@ -43,8 +45,9 @@ def _main():
 
 def _init_logging():
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
-    format = os.getenv("LOG_FORMAT", "%(levelname)s: %(message)s")
+    format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     guild.log.init_logging(level, {"_": format})
+    globals()["log"] = logging.getLogger("main")
 
 def _parse_args():
     if len(sys.argv) < 2:
@@ -105,7 +108,7 @@ def _handle_system_exit(e):
         sys.exit(1)
 
 def _try_module(module_name, args):
-    logging.debug("finding module '%s'", module_name)
+    log.debug("finding module '%s'", module_name)
     try:
         module_info = imp.find_module(module_name)
     except ImportError as e:
@@ -120,7 +123,7 @@ def _set_argv_for_module(module_info, args):
 
 def _load_module_as_main(module_info):
     f, path, desc = module_info
-    logging.debug("loading module from '%s'", path)
+    log.debug("loading module from '%s'", path)
     imp.load_module("__main__", f, path, desc)
 
 def _error(msg):

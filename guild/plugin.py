@@ -35,6 +35,7 @@ class Plugin(object):
 
     def __init__(self, ep):
         self.name = ep.name
+        self.log = logging.getLogger(self.name)
 
     def models_for_location(self, _location):
         """Return a list or generator of models for location.
@@ -57,19 +58,6 @@ class Plugin(object):
 
     def patch_env(self):
         pass
-
-    def log(self, msg, *args, **kw):
-        if kw.get("exception"):
-            log = logging.exception
-        elif kw.get("error"):
-            log = logging.error
-        elif kw.get("warning"):
-            log = logging.warn
-        elif kw.get("info"):
-            log = logging.info
-        else:
-            log = logging.debug
-        log("plugin '%s' %s" % (self.name, msg), *args, **kw)
 
 def iter_plugins():
     return iter(_plugins)

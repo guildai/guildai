@@ -31,23 +31,23 @@ class SummaryPlugin(Plugin):
     def patch_env(self):
         # pylint: disable=import-error
         import tensorflow
-        self.log("wrapping tensorflow.summary.FileWriter.add_summary")
+        self.log.debug("wrapping tensorflow.summary.FileWriter.add_summary")
         python_util.listen_method(
             tensorflow.summary.FileWriter, "add_summary",
             self._handle_summary)
 
     def _handle_summary(self, add_summary, _summary, step):
         if self._summary_cache.expired():
-            self.log("reading summary values")
+            self.log.debug("reading summary values")
             try:
                 vals = self.read_summary_values()
             except:
-                self.log("reading summary values", exception=True)
+                self.log.exception("reading summary values")
                 vals = {}
             self._summary_cache.reset_for_step(step, vals)
         vals = self._summary_cache.for_step(step)
         if vals:
-            self.log("summary values: %s", vals)
+            self.log.debug("summary values: %s", vals)
             summary = tf_scalar_summary(vals)
             add_summary(summary, step)
 

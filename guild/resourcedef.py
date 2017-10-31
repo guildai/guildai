@@ -60,8 +60,6 @@ class ResourceDef(object):
     def _init_sources(self, data):
         if isinstance(data, list):
             return [self._init_resource_source(src_data) for src_data in data]
-        elif isinstance(data, str):
-            return [self._init_resource_source(data)]
         else:
             raise ResourceFormatError(
                 "invalid sources for resource '%s'"
