@@ -53,7 +53,9 @@ py_library(
     name = "deps",
     srcs = ["deps.py"],
     deps = [
+        ":namespace",
         ":resolve",
+        ":resource",
         ":util",
     ],
 )

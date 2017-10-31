@@ -54,3 +54,6 @@ def iter_resources():
     for _name, res in _resources:
         if not res.resdef.private:
             yield res
+
+def for_name(name):
+    return _resources.for_name(name)

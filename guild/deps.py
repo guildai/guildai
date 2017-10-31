@@ -19,6 +19,8 @@ import logging
 import os
 import re
 
+from guild import namespace
+from guild import resource
 from guild import util
 from guild.resolve import ResolutionError
 
@@ -143,6 +145,13 @@ def _modelfile_resource(spec, ctx):
     res_name = m.group(2)
     return _modeldef_resource(modeldef, res_name, ctx)
 
-def _packaged_resource(_spec, _ctx):
-    # TODO
+def _packaged_resource(spec, ctx):
+    m = re.match(r"(%s)/(%s)$" % (RESOURCE_TERM, RESOURCE_TERM), spec)
+    if m is None:
+        return None
+    pkg_name = m.group(1)
+    res_name = m.group(2)
+    for res in resource.for_name(res_name):
+        if namespace.apply_namespace(res.dist.project_name) == pkg_name:
+            return Resource(res.resdef, ctx)
     return None
