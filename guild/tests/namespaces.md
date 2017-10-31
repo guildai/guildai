@@ -223,9 +223,8 @@ PyPI.
     >>> namespace.split_name("pypi.mnist")
     (<guild.namespace.Namespace 'pypi'>, 'mnist')
 
-If we try to split a name containing an unknown namespace, we get an
-error:
+If we try to split a name that doesn't contain a known namespace, we
+get the default namespace.
 
     >>> namespace.split_name("other.mnist")
-    Traceback (most recent call last):
-    NamespaceError: other
+    (<guild.namespace.Namespace 'gpkg'>, 'other.mnist')

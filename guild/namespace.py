@@ -135,14 +135,16 @@ def apply_namespace(project_name):
 
 def split_name(name):
     """Returns a tuple of namespace and split name.
-
-    Raises NamespaceError if a specified namespace doesn't exist.
     """
     m = re.match(r"(.+?)\.(.+)", name)
     if m:
-        return for_name(m.group(1)), m.group(2)
-    else:
-        return for_name(DEFAULT_NAMESPACE), name
+        try:
+            ns = for_name(m.group(1))
+        except NamespaceError:
+            pass
+        else:
+            return ns, m.group(2)
+    return for_name(DEFAULT_NAMESPACE), name
 
 def limit_to_builtin():
     _namespaces.set_path([guild.__pkgdir__])
