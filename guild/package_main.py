@@ -104,7 +104,8 @@ def _setup_kw(pkg):
         maintainer_email=pkg["maintainer-email"],
         license=pkg.get("license"),
         keywords=" ".join(pkg.get("tags", [])),
-        python_requires=", ".join(pkg.get("python-requires", [])),
+        python_requires=_pkg_python_requires(pkg),
+        install_requires=_pkg_install_requires(pkg),
         packages=[pkg_name],
         package_dir={pkg_name: project_dir},
         namespace_packages=["gpkg"],
@@ -191,6 +192,12 @@ def _package_resource_eps(pkg):
         "%s = guild.package:PackageResource" % res_name
         for res_name in pkg.get("resources", {})
     ]
+
+def _pkg_python_requires(pkg):
+    return ", ".join(pkg.get("python-requires", []))
+
+def _pkg_install_requires(pkg):
+    return pkg.get("requires", [])
 
 def _write_package_metadata(setup_kw):
     source = os.getenv("PACKAGE_FILE")
