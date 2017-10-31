@@ -325,13 +325,13 @@ def get_path():
 def set_path(path):
     _models.set_path(path)
 
-def add_model_path(model_path):
+def insert_path(item):
     path = _models.path()
     try:
-        path.remove(model_path)
+        path.remove(item)
     except ValueError:
         pass
-    path.insert(0, model_path)
+    path.insert(0, item)
     _models.set_path(path)
 
 def iter_models():

@@ -41,13 +41,13 @@ class Resource(object):
 def set_path(path):
     _resources.set_path(path)
 
-def add_model_path(model_path):
+def insert_path(item):
     path = _resources.path()
     try:
-        path.remove(model_path)
+        path.remove(item)
     except ValueError:
         pass
-    path.insert(0, model_path)
+    path.insert(0, item)
     _resources.set_path(path)
 
 def iter_resources():

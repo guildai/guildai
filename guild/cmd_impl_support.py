@@ -93,7 +93,7 @@ def init_model_path(force_all=False, notify_force_all_option=None, cwd=None):
     if cwd_modelfile_path(maybe_model_path):
         model_path = maybe_model_path
         if force_all:
-            guild.model.add_model_path(model_path)
+            guild.model.insert_path(model_path)
         else:
             _maybe_notify_models_limited(notify_force_all_option, model_path)
             guild.model.set_path([model_path])
@@ -114,7 +114,7 @@ def init_resource_path(force_all=False, notify_force_all_option=None, cwd=None):
     if cwd_modelfile_path(maybe_model_path):
         model_path = maybe_model_path
         if force_all:
-            guild.resource.add_model_path(model_path)
+            guild.resource.insert_path(model_path)
         else:
             _maybe_notify_resources_limited(notify_force_all_option, model_path)
             guild.resource.set_path([model_path])
