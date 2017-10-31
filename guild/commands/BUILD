@@ -279,7 +279,8 @@ py_library(
         "//guild:click_util",
         "//guild:cmd_impl_support",
         "//guild:config",
-        "//guild:modelfile",
+        "//guild:opref",
+        "//guild:run",
         "//guild:var",
     ],
 )

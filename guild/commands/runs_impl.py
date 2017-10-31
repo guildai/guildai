@@ -21,6 +21,7 @@ import re
 import time
 
 import guild.opref
+import guild.run
 
 from guild import cli
 from guild import click_util
@@ -175,7 +176,7 @@ def _format_package_op(opref):
 def _format_timestamp(ts):
     if not ts:
         return ""
-    struct_time = time.localtime(float(ts))
+    struct_time = time.localtime(guild.run.timestamp_seconds(ts))
     return time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
 
 def _format_command(cmd):

@@ -10,14 +10,10 @@ rundir:
 
     >>> rundir = mkdtemp()
 
-Runs have IDs that uniquely identify them. The `op` module has a
-function `unique_run_id` that can be used to generate unique run IDs:
+Runs have IDs that uniquely identify them. The `mkdir` function can be
+used to generate unique run IDs.
 
-    >>> from guild.op import unique_run_id
-
-With a run ID and a rundir, we can create a run:
-
-    >>> run = guild.run.Run(unique_run_id(), rundir)
+    >>> run = guild.run.Run(guild.run.mkid(), rundir)
 
 ### Run IDs
 

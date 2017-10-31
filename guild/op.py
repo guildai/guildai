@@ -21,8 +21,6 @@ import re
 import shlex
 import subprocess
 import sys
-import time
-import uuid
 
 import guild.run
 
@@ -55,7 +53,7 @@ class Operation(object):
     def run(self):
         assert not self._running
         self._running = True
-        self._started = int(time.time())
+        self._started = guild.run.timestamp()
         self._init_run()
         self._init_attrs()
         self._resolve_deps()
@@ -65,9 +63,9 @@ class Operation(object):
         return self._exit_status
 
     def _init_run(self):
-        id = unique_run_id()
-        path = os.path.join(var.runs_dir(), id)
-        self._run = guild.run.Run(id, path)
+        run_id = guild.run.mkid()
+        path = os.path.join(var.runs_dir(), run_id)
+        self._run = guild.run.Run(run_id, path)
         logging.debug("initializing run in %s", path)
         self._run.init_skel()
 
@@ -117,7 +115,7 @@ class Operation(object):
     def _wait_for_proc(self):
         assert self._proc is not None
         self._exit_status = self._proc.wait()
-        self._stopped = int(time.time())
+        self._stopped = guild.run.timestamp()
         _delete_proc_lock(self._run)
 
     def _finalize_attrs(self):
@@ -222,9 +220,6 @@ def _runfile_paths():
 
 def _is_runfile_pkg(path):
     return os.path.split(path)[-1] in OP_RUNFILES
-
-def unique_run_id():
-    return uuid.uuid1().hex
 
 def _write_proc_lock(proc, run):
     with open(run.guild_path("LOCK"), "w") as f:
