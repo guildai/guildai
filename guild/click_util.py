@@ -30,6 +30,16 @@ class Args(object):
     def __repr__(self):
         return "<guild.click_util.Args %s>" % self.__kw
 
+class Group(click.Group):
+
+    def get_command(self, ctx, cmd_name):
+        for cmd in self.commands.values():
+            names = re.split(", ?", cmd.name)
+            if cmd_name in names:
+                cmd_name = cmd.name
+                break
+        return super(Group, self).get_command(ctx, cmd_name)
+
 def use_args(fn0):
     def fn(*args, **kw):
         return fn0(*(args + (Args(kw),)))

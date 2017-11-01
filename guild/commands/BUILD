@@ -156,6 +156,7 @@ py_library(
     srcs = ["packages.py"],
     deps = [
         "//third_party:click",
+        "//guild:click_util",
         ":packages_delete",
         ":packages_info",
         ":packages_list",
@@ -253,6 +254,7 @@ py_library(
     deps = [
         "//third_party:click",
         "//guild:cli",
+        "//guild:click_util",
         ":runs_delete",
         ":runs_info",
         ":runs_list",

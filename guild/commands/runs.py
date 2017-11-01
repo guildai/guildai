@@ -17,7 +17,9 @@ from __future__ import division
 
 import click
 
-import guild.cli
+from guild import cli
+from guild import click_util
+
 from . import runs_support
 
 from .runs_delete import delete_runs
@@ -26,16 +28,7 @@ from .runs_list import list_runs
 from .runs_purge import purge_runs
 from .runs_restore import restore_runs
 
-class RunsGroup(click.Group):
-
-    def get_command(self, ctx, cmd_name):
-        if cmd_name in ["delete", "rm"]:
-            cmd_name = "delete, rm"
-        elif cmd_name in ["list", "ls"]:
-            cmd_name = "list, ls"
-        return super(RunsGroup, self).get_command(ctx, cmd_name)
-
-@click.group(invoke_without_command=True, cls=RunsGroup)
+@click.group(invoke_without_command=True, cls=click_util.Group)
 @runs_support.runs_list_options
 
 @click.pass_context
@@ -51,7 +44,7 @@ def runs(ctx, **kw):
     else:
         if _params_specified(kw):
             # TODO: It'd be nice to move kw over to the subcommand.
-            guild.cli.error(
+            cli.error(
                 "options cannot be listed before command ('%s')"
                 % ctx.invoked_subcommand)
 

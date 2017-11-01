@@ -38,14 +38,7 @@ from .train import train
 from .uninstall import uninstall
 from .view import view
 
-class CLIGroup(click.Group):
-
-    def get_command(self, ctx, cmd_name):
-        if cmd_name in ["operations", "ops"]:
-            cmd_name = "operations, ops"
-        return super(CLIGroup, self).get_command(ctx, cmd_name)
-
-@click.group(cls=CLIGroup)
+@click.group(cls=click_util.Group)
 @click.version_option(
     version=guild_version(),
     prog_name="guild",

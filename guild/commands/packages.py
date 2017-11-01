@@ -17,20 +17,13 @@ from __future__ import division
 
 import click
 
+from guild import click_util
+
 from .packages_delete import delete_packages
 from .packages_info import package_info
 from .packages_list import list_packages
 
-class PackagesGroup(click.Group):
-
-    def get_command(self, ctx, cmd_name):
-        if cmd_name in ["delete", "rm"]:
-            cmd_name = "delete, rm"
-        elif cmd_name in ["list", "ls"]:
-            cmd_name = "list, ls"
-        return super(PackagesGroup, self).get_command(ctx, cmd_name)
-
-@click.group(invoke_without_command=True, cls=PackagesGroup)
+@click.group(invoke_without_command=True, cls=click_util.Group)
 @click.option("-a", "--all", help="Show all packages.", is_flag=True)
 
 @click.pass_context
