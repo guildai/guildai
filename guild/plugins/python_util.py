@@ -20,6 +20,8 @@ import logging
 import os
 import types
 
+log = logging.getLogger("plugins")
+
 class Script(object):
 
     def __init__(self, src):
@@ -47,7 +49,7 @@ class Script(object):
             try:
                 parsed = ast.parse(open(self.src, "r").read())
             except SyntaxError:
-                logging.exception("parsing %s", self.src)
+                log.exception("parsing %s", self.src)
             else:
                 for node in ast.walk(parsed):
                     self._apply_node(node)

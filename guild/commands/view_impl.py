@@ -24,6 +24,8 @@ from guild import util
 
 from . import runs_impl
 
+log = logging.getLogger("core")
+
 MIN_MONITOR_INTERVAL = 5
 
 class RunsMonitor(threading.Thread):
@@ -59,16 +61,16 @@ class RunsMonitor(threading.Thread):
         self._stopped.wait(self.STOP_TIMEOUT)
 
     def run_once(self, exit_on_error=False):
-        logging.debug("Refreshing runs")
+        log.debug("Refreshing runs")
         try:
             runs = runs_impl.runs_for_args(self.args)
         except SystemExit as e:
             if exit_on_error:
                 raise
-            logging.error(
+            log.error(
                 "An error occurred while reading runs. "
                 "Use --debug for details.")
-            logging.debug(e)
+            log.debug(e)
         else:
             self._refresh_run_links(runs)
 
@@ -78,20 +80,20 @@ class RunsMonitor(threading.Thread):
             link_name = _format_run_name(run)
             link_path = os.path.join(self.logdir, link_name)
             if not os.path.exists(link_path):
-                logging.debug("Linking %s to %s", link_name, run.path)
+                log.debug("Linking %s to %s", link_name, run.path)
                 os.symlink(run.path, link_path)
             try:
                 to_delete.remove(link_name)
             except ValueError:
                 pass
         for link_name in to_delete:
-            logging.debug("Removing %s", link_name)
+            log.debug("Removing %s", link_name)
             os.remove(os.path.join(self.logdir, link_name))
 
 def main(args):
     tensorboard = _load_guild_tensorboard_module()
     with util.TempDir("guild-view-logdir-") as logdir:
-        logging.debug("Using logdir %s", logdir)
+        log.debug("Using logdir %s", logdir)
         monitor = RunsMonitor(logdir, args)
         monitor.start()
         tensorboard.main(
@@ -100,9 +102,9 @@ def main(args):
             port=(args.port or util.free_port()),
             reload_interval=args.refresh_interval,
             ready_cb=(_open_url if not args.no_open else None))
-        logging.debug("Stopping")
+        log.debug("Stopping")
         monitor.stop()
-        logging.debug("Removing logdir %s", logdir) # Handled by ctx mgr
+        log.debug("Removing logdir %s", logdir) # Handled by ctx mgr
     cli.out()
 
 def _load_guild_tensorboard_module():

@@ -32,6 +32,8 @@ from werkzeug import serving
 import tensorflow as _dummy
 from tensorboard import version
 
+log = logging.getLogger("core")
+
 # Check tensorboard version against our requirements. Indicate error
 # as ImportError with the current version and unmet requirement as
 # additional arguments.
@@ -40,7 +42,7 @@ _req = pkg_resources.Requirement.parse(
     "tensorflow-tensorboard >= 0.1.5, < 0.5.0")
 
 if version.VERSION not in _req:
-    logging.warning(
+    log.warning(
         "installed version of tensorboard (%s) does not meet the "
         "requirement %s", version.VERSION, _req)
 
@@ -90,7 +92,7 @@ def run_simple_server(tb_app, host, port, ready_cb):
     server.serve_forever()
 
 def _handle_error(request, _client_address):
-    logging.exception("HTTP serving error: %s", request)
+    log.exception("HTTP serving error: %s", request)
 
 def main(logdir, host, port,
          reload_interval=DEFAULT_RELOAD_INTERVAL,

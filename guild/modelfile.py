@@ -28,6 +28,8 @@ from guild import resolve
 from guild import resourcedef
 from guild import util
 
+log = logging.getLogger("core")
+
 # The order here should be based on priority of selection.
 NAMES = ["MODELS", "MODEL"]
 
@@ -420,23 +422,23 @@ def from_dir(path, filenames=None, use_plugins=True):
         lambda: _raise_no_models(path)])
 
 def _try_from_dir_file(path, filenames):
-    logging.debug("checking '%s' for model sources", path)
+    log.debug("checking '%s' for model sources", path)
     for name in filenames:
         model_file = os.path.abspath(os.path.join(path, name))
         if os.path.isfile(model_file):
-            logging.debug("found model source '%s'", model_file)
+            log.debug("found model source '%s'", model_file)
             return _load_modelfile(model_file)
     return None
 
 def _try_from_plugin(path):
     data = []
     for name, plugin in guild.plugin.iter_plugins():
-        logging.debug(
+        log.debug(
             "using plugin '%s' to check '%s' for models",
             name, path)
         plugin_models = _plugin_models_for_location(plugin, path)
         for model in plugin_models:
-            logging.debug(
+            log.debug(
                 "found model '%s' with plugin '%s'",
                 model.get("name"), name)
         data.extend(plugin_models)

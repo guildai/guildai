@@ -24,6 +24,8 @@ from guild import resource
 from guild import util
 from guild.resolve import ResolutionError
 
+log = logging.getLogger("core")
+
 RESOURCE_TERM = r"[a-zA-Z0-9_\-\.]+"
 
 class DependencyError(Exception):
@@ -44,10 +46,10 @@ class Resource(object):
     def _link_to_source(self, source_path):
         link = self._link_path(source_path)
         if os.path.exists(link):
-            logging.warning("source '%s' already exists, skipping link", link)
+            log.warning("source '%s' already exists, skipping link", link)
             return
         util.ensure_dir(os.path.dirname(link))
-        logging.debug("resolving source '%s' as link '%s'", source_path, link)
+        log.debug("resolving source '%s' as link '%s'", source_path, link)
         os.symlink(source_path, link)
 
     def _link_path(self, source_path):
@@ -60,7 +62,7 @@ class Resource(object):
         return os.path.join(self.ctx.target_dir, res_path, basename)
 
     def resolve(self):
-        logging.info("Resolving '%s' resource", self.resdef.name)
+        log.info("Resolving '%s' resource", self.resdef.name)
         for source in self.resdef.sources:
             self._resolve_source(source)
 

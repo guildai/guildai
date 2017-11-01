@@ -16,6 +16,8 @@ import logging
 
 import pkg_resources
 
+log = logging.getLogger("core")
+
 class Resource(object):
 
     def __init__(self, ep):
@@ -78,7 +80,7 @@ class EntryPointResources(object):
                 try:
                     inst = res.inst()
                 except Exception:
-                    logging.exception("error initializing %s", res)
+                    log.exception("error initializing %s", res)
                 else:
                     yield inst
 

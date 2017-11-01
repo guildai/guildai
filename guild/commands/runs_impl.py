@@ -29,6 +29,8 @@ from guild import cmd_impl_support
 from guild import config
 from guild import var
 
+log = logging.getLogger("core")
+
 RUN_DETAIL = [
     "id",
     "operation",
@@ -108,7 +110,7 @@ def _cwd_run_filter(abs_cwd):
                 if model_path == abs_cwd:
                     return True
             else:
-                logging.warning(
+                log.warning(
                     "unexpected non-absolute modelfile path for run %s: %s",
                     run.id, model_path)
         return False
@@ -123,7 +125,7 @@ def _init_run(run):
     try:
         opref = guild.opref.OpRef.from_run(run)
     except guild.opref.OpRefError as e:
-        logging.warning("unable to read opref for run %s: %s", run.id, e)
+        log.warning("unable to read opref for run %s: %s", run.id, e)
         return None
     else:
         run.opref = opref
@@ -159,7 +161,7 @@ def _format_op_desc(opref):
     elif opref.pkg_type == "package":
         return _format_package_op(opref)
     else:
-        logging.warning(
+        log.warning(
             "cannot format op desc, unexpected pkg type: %s (%s)",
             opref.pkg_type, opref.pkg_name)
         return "?"

@@ -32,6 +32,8 @@ import guild.test
 import guild.uat
 import guild.util
 
+log = logging.getLogger("core")
+
 CHECK_MODS = [
     "pip",
     "psutil",
@@ -74,13 +76,13 @@ def _uat_and_exit():
 def _run_tests(check):
     if check.args.all_tests:
         if check.args.tests:
-            logging.warning(
+            log.warning(
                 "running all tests (--all-tests specified) - "
                 "ignoring individual tests")
         success = guild.test.run_all(skip=check.args.skip)
     elif check.args.tests:
         if check.args.skip:
-            logging.warning(
+            log.warning(
                 "running individual tests - ignoring --skip")
         success = guild.test.run(check.args.tests)
     if not success:

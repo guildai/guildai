@@ -24,6 +24,8 @@ from guild import package
 from guild import pip_util
 from guild import util
 
+log = logging.getLogger("core")
+
 INTERNAL_PACKAGES = ["guildai"]
 
 def list_packages(args):
@@ -114,13 +116,13 @@ def package_info(args):
             verbose=args.verbose,
             show_files=args.files)
         if exit_status != 0:
-            logging.warning("unknown package %s", pkg)
+            log.warning("unknown package %s", pkg)
 
 def _iter_project_names(pkgs):
     for pkg in pkgs:
         try:
             ns, name = namespace.split_name(pkg)
         except namespace.NamespaceError:
-            logging.warning("unknown namespace in '%s', ignoring", pkg)
+            log.warning("unknown namespace in '%s', ignoring", pkg)
         else:
             yield ns.pip_info(name).project_name, pkg

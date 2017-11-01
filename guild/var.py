@@ -24,6 +24,8 @@ import guild.config
 import guild.run
 import guild.util
 
+log = logging.getLogger("core")
+
 def path(subpath):
     return os.path.join(_root(), subpath)
 
@@ -138,12 +140,12 @@ def _delete_run(src):
     assert src and src != os.path.sep, src
     assert (src.startswith(runs_dir()) or
             src.startswith(runs_dir(deleted=True))), src
-    logging.debug("deleting %s", src)
+    log.debug("deleting %s", src)
     shutil.rmtree(src)
 
 def _move(src, dest):
     guild.util.ensure_dir(os.path.dirname(dest))
-    logging.debug("moving %s to %s", src, dest)
+    log.debug("moving %s to %s", src, dest)
     shutil.move(src, dest)
 
 def restore_runs(runs):

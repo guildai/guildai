@@ -26,6 +26,8 @@ from guild import modelfile
 from guild import namespace
 from guild import resource
 
+log = logging.getLogger("core")
+
 _models = entry_point_util.EntryPointResources("guild.models", "model")
 
 ModelRef = collections.namedtuple(
@@ -91,7 +93,7 @@ class ModelfileModel(Model):
         try:
             path_bytes = open(path, "rb").read()
         except IOError:
-            logging.warning(
+            log.warning(
                 "unable to read %s to calculate modelfile hash", path)
             return "-"
         else:
@@ -135,7 +137,7 @@ def _load_dist_modeldefs(dist):
     try:
         record = dist.get_metadata_lines("RECORD")
     except IOError:
-        logging.warning(
+        log.warning(
             "distribution %s missing RECORD metadata - unable to find models",
             dist)
     else:
@@ -150,7 +152,7 @@ def _try_acc_modeldefs(path, acc):
     try:
         models = modelfile.from_file(path)
     except Exception as e:
-        logging.warning("unable to load models from %s: %s", path, e)
+        log.warning("unable to load models from %s: %s", path, e)
     else:
         for modeldef in models:
             acc.append(modeldef)
@@ -298,7 +300,7 @@ def _model_finder(_importer, path, _only=False):
     except (IOError,
             modelfile.ModelfileFormatError,
             modelfile.ModelfileReferenceError) as e:
-        logging.warning(
+        log.warning(
             "unable to load model from '%s': %s",
             path, e)
     else:

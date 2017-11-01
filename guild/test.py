@@ -180,16 +180,25 @@ class LogCapture(object):
         self._records = []
 
     def __enter__(self):
-        logging.getLogger().addFilter(self)
+        for logger in self._iter_loggers():
+            logger.addFilter(self)
         self._records = []
 
     def __exit__(self, *exc):
-        logging.getLogger().removeFilter(self)
+        for logger in self._iter_loggers():
+            logger.removeFilter(self)
+
+    @staticmethod
+    def _iter_loggers():
+        yield logging.root
+        for logger in logging.Logger.manager.loggerDict.values():
+            if isinstance(logger, logging.Logger):
+                yield logger
 
     def filter(self, record):
         self._records.append(record)
 
     def print_all(self):
-        format = logging.getLogger().handlers[0].format
+        format = logging.root.handlers[0].format
         for r in self._records:
             print(format(r))

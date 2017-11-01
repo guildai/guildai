@@ -26,6 +26,8 @@ import logging
 from guild import resolve
 from guild import util
 
+log = logging.getLogger("core")
+
 class ResourceFormatError(ValueError):
     pass
 
@@ -110,7 +112,7 @@ class ResourceSource(object):
         self._parsed_uri = None
         self.sha256 = sha256
         for key in kw:
-            logging.warning(
+            log.warning(
                 "unexpected source attribute '%s' in resource '%s'",
                 key, resdef.fullname)
 

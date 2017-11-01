@@ -9,13 +9,20 @@ The module `guild.log` is used to initialize this facility.
 
     >>> import guild.log
 
-For our tests, we'll create a function that logs various messages:
+For our tests, we'll create a function that logs various messages
+using a logger named `test`.
+
+Here's our test logger:
+
+    >>> test_logger = logging.getLogger("test")
+
+and our logging function:
 
     >>> def log_sample_messages():
-    ...   logging.debug("debug entry")
-    ...   logging.info("info entry")
-    ...   logging.warn("warning entry")
-    ...   logging.error("error entry")
+    ...   test_logger.debug("debug entry")
+    ...   test_logger.info("info entry")
+    ...   test_logger.warn("warning entry")
+    ...   test_logger.error("error entry")
 
 ## Initializing logging
 
@@ -47,7 +54,7 @@ Let's reinit with debug enabled:
     >>> with log_capture:
     ...   log_sample_messages()
     >>> log_capture.print_all()
-    DEBUG: debug entry
+    DEBUG: [test] debug entry
     info entry
     WARNING: warning entry
     ERROR: error entry

@@ -29,6 +29,8 @@ from guild import opref
 from guild import util
 from guild import var
 
+log = logging.getLogger("core")
+
 OP_RUNFILES = [
     "org_psutil"
 ]
@@ -75,7 +77,7 @@ class Operation(object):
             run_id = guild.run.mkid()
             path = os.path.join(var.runs_dir(), run_id)
         self._run = guild.run.Run(run_id, path)
-        logging.debug("initializing run in %s", path)
+        log.debug("initializing run in %s", path)
         self._run.init_skel()
 
     def _init_attrs(self):
@@ -103,10 +105,10 @@ class Operation(object):
         args = self._proc_args()
         env = self._proc_env()
         cwd = self._run.path
-        logging.debug("starting operation run %s", self._run.id)
-        logging.debug("operation command: %s", args)
-        logging.debug("operation env: %s", env)
-        logging.debug("operation cwd: %s", cwd)
+        log.debug("starting operation run %s", self._run.id)
+        log.debug("operation command: %s", args)
+        log.debug("operation env: %s", env)
+        log.debug("operation cwd: %s", cwd)
         self._proc = subprocess.Popen(args, env=env, cwd=cwd)
         _write_proc_lock(self._proc, self._run)
 
@@ -162,7 +164,7 @@ def _flag_args(flags, cmd_args):
     for name in sorted(flags):
         value = flags[name]
         if name in cmd_options:
-            logging.warning(
+            log.warning(
                 "ignoring flag '%s = %s' because it's shadowed "
                 "in the operation cmd", name, value)
             continue
@@ -193,7 +195,7 @@ def _op_plugins(opdef):
             reason = "explicitly disabled by model or user config"
         else:
             plugin_enabled, reason = plugin.enabled_for_op(opdef)
-        logging.debug(
+        log.debug(
             "plugin '%s' %s%s",
             name,
             "enabled" if plugin_enabled else "disabled",

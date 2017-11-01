@@ -19,6 +19,8 @@ import collections
 import logging
 import re
 
+log = logging.getLogger("core")
+
 class OpRefError(ValueError):
     pass
 
@@ -64,7 +66,7 @@ def _opref_is_op_run(opref, run):
     try:
         run_opref = _opref_from_run(run)
     except OpRefError as e:
-        logging.warning("unable to read opref for run %s: %s", run.id, e)
+        log.warning("unable to read opref for run %s: %s", run.id, e)
         return False
     else:
         return (
