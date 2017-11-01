@@ -7,7 +7,7 @@ can also be run using the `-C` option.
 For our tests we'll just run the command in the `mnist` package
 directory:
 
-    >>> cd("guild-index/mnist")
+    >>> cd("guild-packages/mnist")
     >>> run("guild package", ignore=['Normalizing', 'normalized_version,'])
     running bdist_wheel
     ...

@@ -28,11 +28,13 @@ limited.
 
 We can view all ops using -a:
 
-    >>> run("guild ops -a mnist")
+    >>> run("guild ops -a")
     ./mnist-expert:evaluate    Evaluate a trained model using test data
     ./mnist-expert:train       Train the MNIST model
     ./mnist-intro:evaluate     Evaluate a trained model using test data
     ./mnist-intro:train        Train the MNIST model
-    mnist/mnist-cnn:train      Train the CNN
-    mnist/mnist-softmax:train  Train the softmax regression
+    hello/hello:default           Print a default message
+    hello/hello:from-file         Print a message from a file
+    hello/hello:from-file-output  Print output from last file-output operation
+    hello/hello:from-flag         Print a message
     <exit 0>

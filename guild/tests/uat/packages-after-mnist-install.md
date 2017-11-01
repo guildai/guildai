@@ -8,8 +8,7 @@ Guild packages:
     mnist  ...
     <exit 0>
 
-Here's the list of all packages (using the `-a` option with the
-`packages` command):
+Here's the list of all packages matching `mnist`:
 
     >>> run("guild packages ls -a mnist")
     mnist       ...

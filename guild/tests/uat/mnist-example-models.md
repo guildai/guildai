@@ -32,9 +32,8 @@ Note that Guild prints a message letting the user know the results are
 limited. We can show all models, including those in the example
 directory, using the `-a` option:
 
-    >>> run("guild models mnist -a")
+    >>> run("guild models -a")
     ./mnist-expert       MNIST model from TensorFlow expert tutorial
     ./mnist-intro        MNIST model from TensorFlow intro tutorial
-    mnist/mnist-cnn      CNN classifier for MNIST
-    mnist/mnist-softmax  Softmax regression classifier for MNIST
+    hello/hello     A "hello world" sample model
     <exit 0>

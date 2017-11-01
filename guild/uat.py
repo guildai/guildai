@@ -107,6 +107,8 @@ def _reset_cwd():
     globals()["_cwd"] = None
 
 def _cd(path):
+    if not os.path.isdir(os.path.join(WORKSPACE, path)):
+        raise ValueError("'%s' does not exist" % path)
     globals()["_cwd"] = path
 
 def _run(cmd, quiet=False, ignore=None, timeout=60):
