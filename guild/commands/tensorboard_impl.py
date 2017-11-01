@@ -92,7 +92,7 @@ class RunsMonitor(threading.Thread):
 
 def main(args):
     tensorboard = _load_guild_tensorboard_module()
-    with util.TempDir("guild-view-logdir-") as logdir:
+    with util.TempDir("guild-tensorboard-logdir-") as logdir:
         log.debug("Using logdir %s", logdir)
         monitor = RunsMonitor(logdir, args)
         monitor.start()

@@ -34,9 +34,9 @@ from .run import run
 from .runs import runs
 from .search import search
 from .shell import shell
+from .tensorboard import tensorboard
 from .train import train
 from .uninstall import uninstall
-from .view import view
 
 @click.group(cls=click_util.Group)
 @click.version_option(
@@ -77,6 +77,6 @@ main.add_command(run)
 main.add_command(runs)
 main.add_command(search)
 main.add_command(shell)
+main.add_command(tensorboard)
 main.add_command(train)
 main.add_command(uninstall)
-main.add_command(view)

@@ -74,9 +74,9 @@ py_library(
         ":runs",
         ":search",
         ":shell",
+        ":tensorboard",
         ":train",
         ":uninstall",
-        ":view",
     ]
 )
 
@@ -382,6 +382,27 @@ py_library(
 )
 
 py_library(
+    name = "tensorboard",
+    srcs = ["tensorboard.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:click_util",
+        ":runs_support",
+        ":tensorboard_impl",
+    ],
+)
+
+py_library(
+    name = "tensorboard_impl",
+    srcs = ["tensorboard_impl.py"],
+    deps = [
+        "//guild:cli",
+        "//guild:tensorboard",
+        "//guild:util",
+        ":runs_impl",
+    ],
+)
+py_library(
     name = "train",
     srcs = ["train.py"],
     deps = [
@@ -410,27 +431,5 @@ py_library(
         "//third_party:click",
         "//guild:click_util",
         ":package",
-    ],
-)
-
-py_library(
-    name = "view",
-    srcs = ["view.py"],
-    deps = [
-        "//third_party:click",
-        "//guild:click_util",
-        ":runs_support",
-        ":view_impl",
-    ],
-)
-
-py_library(
-    name = "view_impl",
-    srcs = ["view_impl.py"],
-    deps = [
-        "//guild:cli",
-        "//guild:tensorboard",
-        "//guild:util",
-        ":runs_impl",
     ],
 )

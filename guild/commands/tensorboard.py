@@ -20,7 +20,7 @@ import click
 from guild import click_util
 from . import runs_support
 
-@click.command()
+@click.command(name="tensorboard, tb")
 @runs_support.run_scope_options
 @runs_support.run_filters
 @click.option(
@@ -42,8 +42,8 @@ from . import runs_support
 
 @click_util.use_args
 
-def view(args):
+def tensorboard(args):
     """Visualize runs with TensorBoard.
     """
-    from . import view_impl
-    view_impl.main(args)
+    from . import tensorboard_impl
+    tensorboard_impl.main(args)
