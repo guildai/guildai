@@ -25,8 +25,8 @@ from pip.commands.show import ShowCommand
 from pip.commands.uninstall import UninstallCommand
 from pip.download import _check_download_dir
 from pip.download import _download_http_url
-from pip.exceptions import DistributionNotFound
 from pip.exceptions import HashMismatch as HashMismatch0
+from pip.exceptions import InstallationError
 from pip.exceptions import UninstallationError
 from pip.index import Link
 from pip.locations import virtualenv_no_global
@@ -43,12 +43,8 @@ class NotInstalledError(Exception):
             "%s is not installed" % req)
         self.req = req
 
-class DependencyError(Exception):
-
-    def __init__(self, req):
-        super(DependencyError, self).__init__(
-            "cannot resolve dependency '%s'" % req)
-        self.req = req
+class InstallError(Exception):
+    pass
 
 def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
             no_cache=False, reinstall=False):
@@ -73,13 +69,8 @@ def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
     options, cmd_args = cmd.parse_args(args)
     try:
         cmd.run(options, cmd_args)
-    except DistributionNotFound as e:
-        m = re.match(
-            "No matching distribution found for (.+?) ",
-            str(e))
-        if m:
-            raise DependencyError(m.group(1))
-        raise
+    except InstallationError as e:
+        raise InstallError(str(e))
 
 def _ensure_patch_pip_get_entry_points():
     """Patch pip's get_entrypoints function.

@@ -70,8 +70,8 @@ def install_packages(args):
                 pre_releases=args.pre,
                 no_cache=args.no_cache,
                 reinstall=args.reinstall)
-        except pip_util.DependencyError:
-            cli.error("installation failed (see above for details)")
+        except pip_util.InstallError as e:
+            cli.error(str(e))
 
 def _installs(args):
     index_urls = {}
