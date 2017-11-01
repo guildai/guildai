@@ -18,9 +18,13 @@ check: $(GUILD)
 	  opts="--tests"; \
 	else \
 	  opts="-n "; \
-	  for test in $(TESTS); do \
-	    opts="$$opts -t $$test"; \
-	  done; \
+	  if [ "$(TESTS)" = "all" ]; then \
+	    opts="$$opts --tests"; \
+	  else \
+	    for test in $(TESTS); do \
+	      opts="$$opts -t $$test"; \
+	    done; \
+	  fi; \
 	fi; \
 	$(GUILD) check $$opts; \
 
