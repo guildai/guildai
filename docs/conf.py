@@ -9,6 +9,7 @@ master_doc = 'index'
 html_theme = 'sphinx_rtd_theme'
 html_context = {
     "show_source": False,
+    "display_github": False,
 }
 templates_path = ['templates']
 exclude_patterns = ['build']
