@@ -283,9 +283,8 @@ class ModelImporter(object):
     def __init__(self, path):
         if not os.path.isdir(path):
             raise ModelImportError(path)
-        path_names = os.listdir(path)
-        for modelfile_name in modelfile.NAMES:
-            if modelfile_name in path_names:
+        for name in os.listdir(path):
+            if name in modelfile.NAMES:
                 break
         else:
             raise ModelImportError(path)
