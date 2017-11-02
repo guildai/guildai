@@ -1,0 +1,2 @@
+html:
+	cd ..; make html
