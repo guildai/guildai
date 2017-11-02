@@ -1,20 +1,21 @@
-.. Guild AI documentation master file, created by
-   sphinx-quickstart on Fri Oct 27 08:22:00 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Guild AI
+========
 
-Welcome to Guild AI's documentation!
-====================================
+.. highlights::
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   Model management for TensorFlow
 
+Guild AI is a toolset for managing and training TensorFlow
+models. It's in active development and documentation is limited at
+this time.
 
+Refer to `Guild AI's GitHub project
+<https://github.com/guildai/guild>`_ for the latest updates.
 
-Indices and tables
-==================
+If you're interested in seeing Guild in action, read through the
+project's `User acceptance test
+<https://github.com/guildai/guild/blob/master/guild/tests/uat/README.md>`_,
+which demonstrates working functionality.
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+If you have any questions about the project, please `open an issue on
+GitHub <https://github.com/guildai/guild/issues>`_.
