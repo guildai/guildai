@@ -17,11 +17,10 @@ from __future__ import division
 
 import logging
 
-import guild
+from guild import __pkgdir__
+from guild import entry_point_util
 
-from guild.entry_point_util import EntryPointResources
-
-_plugins = EntryPointResources("guild.plugins", "plugin")
+_plugins = entry_point_util.EntryPointResources("guild.plugins", "plugin")
 
 class NotSupported(TypeError):
     pass
@@ -66,4 +65,4 @@ def for_name(name):
     return _plugins.one_for_name(name)
 
 def limit_to_builtin():
-    _plugins.set_path([guild.__pkgdir__])
+    _plugins.set_path([__pkgdir__])
