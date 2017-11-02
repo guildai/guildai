@@ -51,8 +51,7 @@ def create_package(package_file, dist_dir=None, upload_repo=False,
     # command line op. We make sure to import package_main lazily here
     # because it incurs various runtime deps that we don't want to
     # load actively.
-    import guild.package_main
-    cmd = [sys.executable, guild.package_main.__file__]
+    cmd = [sys.executable, "-um", "guild.package_main"]
     env = {}
     env.update(util.safe_osenv())
     env.update({
