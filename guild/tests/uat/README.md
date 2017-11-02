@@ -46,7 +46,7 @@ commands and helpfulness to the user for operations on missing models.
 - [train-missing-model](train-missing-model.md)
 - [run-with-missing-default-model](run-with-missing-default-model.md)
 
-## Training a Guild package
+## Training Guild package models
 
 *Installing and training a model from a Guild package.*
 
@@ -108,7 +108,7 @@ contained in a single file file.
 
 - [run-hello-package-examples](run-hello-package-examples.md)
 
-## Training Guild examples
+## Training Guild example models
 
 *Installing and training Guild examples.*
 
