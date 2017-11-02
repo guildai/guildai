@@ -173,6 +173,12 @@ identical to the distributed package we tested earlier.
 - [install-generated-mnist-package](install-generated-mnist-package.md)
 - [verify-installed-generate-mnist-package](verify-installed-generate-mnist-package.md)
 
+## Other tests
+
+*Tests covering miscellaneous behavior.*
+
+[alt-run-dir](alt-run-dir.md)
+
 ## Error cases
 
 *Guild behavior with various error cases.*
