@@ -8,7 +8,8 @@ author = u'Guild AI'
 master_doc = 'index'
 html_theme = 'sphinx_rtd_theme'
 html_context = {
-    "show_sphinx": False
+    "show_sphinx": False,
+    "commit": False,
 }
 
 # The following are temporarily disabled until the docs fill in. Will
