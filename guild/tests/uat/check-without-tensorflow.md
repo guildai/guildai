@@ -18,5 +18,5 @@ it will note the problem and exit with an error.
     yaml_version:              ...
     werkzeug_version:          ...
     guild: there are problems with your Guild setup
-    Refer to the issues above for more information.
+    Refer to the issues above for more information or rerun check with the --verbose option.
     <exit 1>
