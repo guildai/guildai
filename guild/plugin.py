@@ -36,8 +36,8 @@ class Plugin(object):
         self.name = ep.name
         self.log = logging.getLogger(self.name)
 
-    def models_for_location(self, _location):
-        """Return a list or generator of models for location.
+    def find_models(self, _path):
+        """Return a list or generator of models for path.
 
         A model must be a Python dict containing model attributes. See
         guild.modelfile.Modelfile for the expected structure.

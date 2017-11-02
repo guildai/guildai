@@ -22,11 +22,8 @@ import re
 
 import yaml
 
-import guild.plugin
-
 from guild import resolve
 from guild import resourcedef
-from guild import util
 
 log = logging.getLogger("core")
 
@@ -414,43 +411,14 @@ class ResourceDef(resourcedef.ResourceDef):
 # Module API
 ###################################################################
 
-def from_dir(path, filenames=None, use_plugins=True):
-    filenames = NAMES if filenames is None else filenames
-    return util.find_apply([
-        lambda: _try_from_dir_file(path, filenames),
-        lambda: _try_from_plugin(path) if use_plugins else None,
-        lambda: _raise_no_models(path)])
-
-def _try_from_dir_file(path, filenames):
+def from_dir(path, filenames=None):
     log.debug("checking '%s' for model sources", path)
+    filenames = NAMES if filenames is None else filenames
     for name in filenames:
         model_file = os.path.abspath(os.path.join(path, name))
         if os.path.isfile(model_file):
             log.debug("found model source '%s'", model_file)
             return _load_modelfile(model_file)
-    return None
-
-def _try_from_plugin(path):
-    data = []
-    for name, plugin in guild.plugin.iter_plugins():
-        log.debug(
-            "using plugin '%s' to check '%s' for models",
-            name, path)
-        plugin_models = _plugin_models_for_location(plugin, path)
-        for model in plugin_models:
-            log.debug(
-                "found model '%s' with plugin '%s'",
-                model.get("name"), name)
-        data.extend(plugin_models)
-    if data:
-        return Modelfile(data, os.path.join(path, "__generated__"))
-    else:
-        return None
-
-def _plugin_models_for_location(plugin, path):
-    return list(plugin.models_for_location(path) or [])
-
-def _raise_no_models(path):
     raise NoModels(path)
 
 def from_file(src):

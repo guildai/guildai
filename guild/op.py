@@ -22,6 +22,7 @@ import shlex
 import subprocess
 import sys
 
+import guild.plugin
 import guild.run
 
 from guild import deps

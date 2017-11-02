@@ -25,7 +25,7 @@ from guild.plugins import python_util
 
 class KerasPlugin(plugin.Plugin):
 
-    def models_for_location(self, path):
+    def find_models(self, path):
         return python_util.script_models(
             path, self._is_keras_script, self._script_model)
 

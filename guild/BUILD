@@ -139,6 +139,7 @@ py_library(
     deps = [
         ":deps",
         ":opref",
+        ":plugin",
         ":run",
         ":util",
         ":var",
