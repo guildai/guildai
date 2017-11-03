@@ -2,7 +2,7 @@
 
 After running `evaluate` on `mnist-intro` we get a second run.
 
-    >>> cd("guild-examples/mnist2")
+    >>> cd("examples/mnist2")
     >>> run("guild runs")
     Limiting runs to the current directory (use --all to include all)
     [0:...]  ./mnist-intro:evaluate  ... ...  completed

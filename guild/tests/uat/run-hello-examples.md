@@ -5,7 +5,7 @@ it operations.
 
 We'll run through the various operations in this test.
 
-    >>> cd("guild-examples/hello")
+    >>> cd("examples/hello")
 
 ## Models
 

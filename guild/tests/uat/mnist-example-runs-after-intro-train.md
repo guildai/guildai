@@ -4,8 +4,8 @@ Once we've trained the MNIST intro example, we can see an associated
 run:
 
     >>> run("guild runs")
-    [0:...]  ./guild-examples/mnist2/mnist-intro:train  ... ...  completed
-    [1:...]  mnist/mnist-softmax:train                  ... ...  completed
+    [0:...]  ./examples/mnist2/mnist-intro:train  ... ...  completed
+    [1:...]  mnist/mnist-softmax:train            ... ...  completed
     <exit 0>
 
 Here we see the run for the MNIST example `mnist-intro` model along
@@ -14,15 +14,15 @@ with a run for the `mnist` package `mnist-softmax` model.
 We can limit the result by running the command in the context of the
 example modelfile directory:
 
-    >>> run("guild -C guild-examples/mnist2 runs")
-    Limiting runs to 'guild-examples/mnist2' (use --all to include all)
+    >>> run("guild -C examples/mnist2 runs")
+    Limiting runs to 'examples/mnist2' (use --all to include all)
     [0:...]  ./mnist-intro:train  ... ...  completed
     <exit 0>
 
 We can alternatively change to the example directory and see the run
 without having to specify the `-C` option:
 
-    >>> cd("guild-examples/mnist2")
+    >>> cd("examples/mnist2")
     >>> run("guild runs")
     Limiting runs to the current directory (use --all to include all)
     [0:...]  ./mnist-intro:train  ... ...  completed

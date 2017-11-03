@@ -18,7 +18,7 @@ Let's confirm that Keras is not installed.
 
 Let's next attempt to train a Keras example.
 
-    >>> cd("guild-examples/keras/mnist")
+    >>> cd("examples/keras/mnist")
     >>> run("guild train -y mnist_irnn", timeout=10)
     error: could not import keras - is it installed?
     <exit 1>

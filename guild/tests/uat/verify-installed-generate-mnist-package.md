@@ -1,4 +1,4 @@
-# Verify installed generatedl `mnist` package
+# Verify installed generated `mnist` package
 
     >>> run("guild packages info mnist")
     name: mnist

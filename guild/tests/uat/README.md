@@ -174,7 +174,7 @@ model files and training scripts.
 For our tests, we'll build and install packages using sources from the
 [`guild-index` GitHub repository](https://github.com/guildai/index).
 
-- [install-index-source](install-index-source.md)
+- [install-package-source](install-package-source.md)
 
 Here we build and install the `mnist` package, which is otherwise
 identical to the distributed package we tested earlier.

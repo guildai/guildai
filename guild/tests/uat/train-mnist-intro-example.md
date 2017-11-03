@@ -3,7 +3,7 @@
 We can train the MNIST example model `mnist-intro` (using shortcut
 `intro`) provided we reference the MNIST modelfile directory.
 
-    >>> run("guild -C guild-examples/mnist2 train -y intro epochs=1")
+    >>> run("guild -C examples/mnist2 train -y intro epochs=1")
     Resolving 'data' resource
     ...
     Extracting data/train-images-idx3-ubyte.gz

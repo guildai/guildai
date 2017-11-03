@@ -5,13 +5,13 @@ limited to those that were generated from that modelfile.
 
 Let's show runs for the MNIST example:
 
-    >>> run("guild -C guild-examples/mnist2 runs")
-    Limiting runs to 'guild-examples/mnist2' (use --all to include all)
+    >>> run("guild -C examples/mnist2 runs")
+    Limiting runs to 'examples/mnist2' (use --all to include all)
     <exit 0>
 
 We can alternatively change to that directory and see the same results:
 
-    >>> cd("guild-examples/mnist2")
+    >>> cd("examples/mnist2")
     >>> run("guild runs")
     Limiting runs to the current directory (use --all to include all)
     <exit 0>

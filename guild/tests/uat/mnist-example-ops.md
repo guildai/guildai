@@ -11,7 +11,7 @@ For more information on this logic, see
 In this test, we'll limit our operations by changing the current
 directory to the MNIST example:
 
-    >>> cd("guild-examples/mnist2")
+    >>> cd("examples/mnist2")
 
 The ops available in this context example are:
 

@@ -4,7 +4,7 @@ Guild plugins can enumerate models when there is no modefile.
 
 We can illustrate this using the Keras `mnist` example.
 
-    >>> cd("guild-examples/keras/mnist")
+    >>> cd("examples/keras/mnist")
 
 This example doesn't have a modelfile:
 

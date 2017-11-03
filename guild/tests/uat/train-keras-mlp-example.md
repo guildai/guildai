@@ -4,7 +4,7 @@ The keras plugin supports a single `train` operation for Keras models
 that it detects. We can use the `mnist_mlp` Keras example to
 illustrate.
 
-    >>> cd("guild-examples/keras/mnist")
+    >>> cd("examples/keras/mnist")
 
 Let's train the model with one epoch:
 

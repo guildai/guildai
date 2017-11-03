@@ -13,15 +13,15 @@ We can reference a modelfile in one of two ways:
 Here are the models associated with the MNIST example (using the `-C`
 option):
 
-    >>> run("guild -C guild-examples/mnist2 models")
-    Limiting models to 'guild-examples/mnist2' (use --all to include all)
-    ./guild-examples/mnist2/mnist-expert  MNIST model from TensorFlow expert tutorial
-    ./guild-examples/mnist2/mnist-intro   MNIST model from TensorFlow intro tutorial
+    >>> run("guild -C examples/mnist2 models")
+    Limiting models to 'examples/mnist2' (use --all to include all)
+    ./examples/mnist2/mnist-expert  MNIST model from TensorFlow expert tutorial
+    ./examples/mnist2/mnist-intro   MNIST model from TensorFlow intro tutorial
     <exit 0>
 
 Here's the same list after we've changed to that directory:
 
-    >>> cd("guild-examples/mnist2")
+    >>> cd("examples/mnist2")
     >>> run("guild models")
     Limiting models to the current directory (use --all to include all)
     ./mnist-expert  MNIST model from TensorFlow expert tutorial
