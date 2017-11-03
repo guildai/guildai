@@ -80,9 +80,6 @@ def _init_path(mod, desc, args, cwd):
         else:
             _notify_path_limited(cwd, desc)
             mod.set_path([cwd_mf.dir])
-    elif args.local:
-        _notify_path_limited(cwd, desc)
-        mod.set_path([cwd or config.cwd()])
 
 def _notify_path_limited(path, what):
     cli.note_once(
