@@ -17,7 +17,7 @@ Use `guild packages info PKG` to show information about a package:
 We can use the `--verbose` and `--files` flags to get more
 information.
 
-    >>> run("guild packages info mnist --verbose --files")
+    >>> run("guild packages info mnist --verbose --files") # doctest: +REPORT_UDIFF
     name: mnist
     version: 0.1.0.post10
     summary: CNN and softmax regression classifiers for MNIST digits
@@ -35,9 +35,5 @@ information.
       mnist-cnn = guild.model:PackageModel
       mnist-softmax = guild.model:PackageModel
     files:
-      ...
-      gpkg/mnist/cnn.py
-      ...
-      gpkg/mnist/softmax.py
       ...
     <exit 0>

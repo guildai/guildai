@@ -10,11 +10,11 @@ the availability of Keras but can't otherwise satisfy the dependency.
 
 Let's confirm that Keras is not installed.
 
-    >>> run("python -c 'import keras' | sed s/\\'//")
+    >>> run("python -c 'import keras'")
     Traceback (most recent call last):
       File "<string>", line 1, in <module>
-    ImportError: No module named keras
-    <exit 0>
+    ImportError: No module named ...keras...
+    <exit 1>
 
 Let's next attempt to train a Keras example.
 
