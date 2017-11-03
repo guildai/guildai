@@ -106,6 +106,7 @@ py_library(
     srcs = ["model.py"],
     deps = [
         "//third_party:setuptools",
+        ":config",
         ":entry_point_util",
         ":modelfile",
         ":namespace",

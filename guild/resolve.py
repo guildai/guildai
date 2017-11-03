@@ -126,7 +126,7 @@ class OperationOutputResolver(Resolver):
             "package" if opref.pkg_name else "modelfile")
         pkg_name = (
             opref.pkg_name or
-            os.path.abspath(self.modeldef.modelfile.src))
+            os.path.abspath(self.modeldef.modelfile.dir))
         model_name = opref.model_name or self.modeldef.name
         op_name = opref.op_name
         return guild.opref.OpRef(

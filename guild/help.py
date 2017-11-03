@@ -119,13 +119,16 @@ def _write_console_help_overview(modelfile, out):
         For more help, try 'guild run --help' or 'guild --help'.
 
         """
-        % _format_modelfile_src(modelfile.src)))
+        % _format_modelfile_dir(modelfile)))
 
-def _format_modelfile_src(path):
-    relpath = os.path.relpath(path)
-    if relpath[0] != '.':
-        relpath = os.path.join(".", relpath)
-    return relpath
+def _format_modelfile_dir(mf):
+    if mf.dir == ".":
+        return "the current directory"
+    else:
+        relpath = os.path.relpath(mf.dir)
+        if relpath[0] != '.':
+            relpath = os.path.join(".", relpath)
+        return "'%s'" % relpath
 
 def package_description(modelfile, refs):
     out = RestFormatter()

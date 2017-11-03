@@ -153,6 +153,16 @@ For simplicity we maintain a single test file.
 
 - [run-hello-examples](run-hello-examples.md)
 
+### `keras` example
+
+The `keras` example demonstrates how plugins can enumerate models in a
+directory and provide operations for compatible models.
+
+- [keras-example-models](keras-example-models.md)
+- [train-keras-example-with-missing-dep](train-keras-example-with-missing-dep.md)
+- [install-keras](install-keras.md)
+- [train-keras-mlp-example](train-keras-mlp-example.md)
+
 ## Packaging
 
 *Creating and installing packages.*

@@ -21,7 +21,7 @@ from guild import cmd_impl_support
 from guild import util
 
 def main(args):
-    cmd_impl_support.init_resource_path(args.all, "--all")
+    cmd_impl_support.init_resource_path(args)
     formatted = [_format_resource(r) for r in resource.iter_resources()]
     filtered = [r for r in formatted if _filter_resource(r, args)]
     cli.table(

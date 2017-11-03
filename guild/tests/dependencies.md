@@ -24,7 +24,7 @@ resource:
     ...     - file: def.txt
     ...     - url: http://foo.com/bar.tar.gz
     ...     - operation: foo/bar:baz
-    ... """)
+    ... """, "test")
 
 We can get the list of dependencies for an operation with the
 `dependencies` attribute:

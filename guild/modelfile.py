@@ -55,26 +55,37 @@ class ModelfileReferenceError(ModelfileError):
 
 class Modelfile(object):
 
-    def __init__(self, data, src):
-        self.data = _coerce_modelfile_data(data, src)
+    def __init__(self, data, src=None, dir=None):
+        if src is None and dir is None:
+            raise ValueError("either src or dir must be specified")
+        dir = os.path.dirname(src) if src else dir
         self.src = src
+        self.dir = dir
+        self.data = self._coerce_modelfile_data(data)
         self.models = [
             ModelDef(model_data, self) for model_data in self.data
         ]
 
+    def _coerce_modelfile_data(self, data):
+        if isinstance(data, list):
+            return data
+        elif isinstance(data, dict):
+            return [data]
+        else:
+            raise ModelfileFormatError(
+                "invalid modelfile data in '%s': %r" % (self, data))
+
     def __repr__(self):
-        return "<guild.modelfile.Modelfile %r>" % self.src
+        return "<guild.modelfile.Modelfile '%s'>" % self
 
     def __str__(self):
-        return self.src
+        return self.src or self.dir
 
     def __iter__(self):
         return iter(self.models)
 
-    def __eq__(self, x):
-        if isinstance(x, Modelfile):
-            return os.path.abspath(self.src) == os.path.abspath(x.src)
-        return False
+    def __eq__(self, _x):
+        raise AssertionError()
 
     def get(self, model_name, default=None):
         for model in self:
@@ -91,14 +102,6 @@ class Modelfile(object):
     @property
     def default_model(self):
         return self.models[0] if self.models else None
-
-def _coerce_modelfile_data(data, src):
-    if isinstance(data, list):
-        return data
-    elif isinstance(data, dict):
-        return [data]
-    else:
-        raise ModelfileFormatError("invalid modelfile '%s'" % src)
 
 ###################################################################
 # Includes support
@@ -393,8 +396,7 @@ class ResourceDef(resourcedef.ResourceDef):
     def get_source_resolver(self, source):
         scheme = source.parsed_uri.scheme
         if scheme == "file":
-            modelfile_dir = os.path.dirname(self.modeldef.modelfile.src)
-            return resolve.FileResolver(source, modelfile_dir)
+            return resolve.FileResolver(source, self.modeldef.modelfile.dir)
         elif scheme == "operation":
             return resolve.OperationOutputResolver(source, self.modeldef)
         else:
@@ -421,6 +423,12 @@ def from_dir(path, filenames=None):
             return _load_modelfile(model_file)
     raise NoModels(path)
 
+def dir_has_modelfile(path):
+    for name in os.listdir(path):
+        if name in NAMES:
+            return True
+    return False
+
 def from_file(src):
     return _load_modelfile(src)
 
@@ -435,5 +443,5 @@ def from_file_or_dir(src):
             return from_dir(src)
         raise
 
-def from_string(s, src=None):
+def from_string(s, src):
     return Modelfile(yaml.load(s), src)

@@ -22,7 +22,7 @@ from guild import cmd_impl_support
 from guild import util
 
 def main(args):
-    cmd_impl_support.init_model_path(args.all, "--all")
+    cmd_impl_support.init_model_path(args)
     formatted = [_format_op(op, model) for op, model in _iter_ops()]
     filtered = [op for op in formatted if _filter_op(op, args)]
     cli.table(

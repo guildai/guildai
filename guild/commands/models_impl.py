@@ -21,7 +21,7 @@ from guild import model
 from guild import util
 
 def main(args):
-    cmd_impl_support.init_model_path(args.all, "--all")
+    cmd_impl_support.init_model_path(args)
     formatted = [_format_model(m) for m in model.iter_models()]
     filtered = [m for m in formatted if _filter_model(m, args)]
     cli.table(

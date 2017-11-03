@@ -79,31 +79,13 @@ class Script(object):
 class Call(object):
 
     def __init__(self, node):
+        self.node = node
         if isinstance(node.func, ast.Name):
             self.name = node.func.id
-            self.path = self.name
         elif isinstance(node.func, ast.Attribute):
             self.name = node.func.attr
-            self.path = self._call_path(node.func)
         else:
             raise AssertionError(node.func)
-
-    @staticmethod
-    def _call_path(node):
-        parts = []
-        while True:
-            if isinstance(node, ast.Attribute):
-                parts.append(node.attr)
-                node = node.value
-            elif isinstance(node, ast.Call):
-                parts.append("%s()" % node.func.attr)
-                node = node.func.value
-            elif isinstance(node, ast.Name):
-                parts.append(node.id)
-                break
-            else:
-                raise AssertionError(node)
-        return ".".join(reversed(parts))
 
 def _script_name(src):
     basename = os.path.basename(src)
@@ -254,18 +236,18 @@ def remove_function_listeners(function):
     if wrapper is not None:
         wrapper.unwrap()
 
-def scripts_for_location(location, exclude=None):
+def scripts_for_dir(dir, exclude=None):
     import glob
     import fnmatch
     exclude = [] if exclude is None else exclude
     return [
         Script(src)
-        for src in glob.glob(os.path.join(location, "*.py"))
+        for src in glob.glob(os.path.join(dir, "*.py"))
         if not any((fnmatch.fnmatch(src, pattern) for pattern in exclude))
     ]
 
-def script_models(location, is_model_script, script_model):
-    for script in sorted(scripts_for_location(location)):
+def script_models(dir, is_model_script, script_model):
+    for script in sorted(scripts_for_dir(dir)):
         if is_model_script(script):
             yield script_model(script)
 

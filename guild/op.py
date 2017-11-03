@@ -152,12 +152,10 @@ def _python_cmd(_opdef):
     return "python"
 
 def _split_cmd(cmd):
-    if isinstance(cmd, str):
-        return shlex.split(cmd)
-    elif isinstance(cmd, list):
+    if isinstance(cmd, list):
         return cmd
     else:
-        raise ValueError(cmd)
+        return shlex.split(cmd)
 
 def _flag_args(flags, cmd_args):
     flag_args = []
@@ -215,9 +213,7 @@ def _python_path(opdef):
     return os.path.pathsep.join(paths)
 
 def _model_paths(opdef):
-    model_path = os.path.dirname(opdef.modelfile.src)
-    abs_model_path = os.path.abspath(model_path)
-    return [abs_model_path]
+    return [os.path.abspath(opdef.modelfile.dir)]
 
 def _guild_paths():
     guild_path = os.path.dirname(os.path.dirname(__file__))

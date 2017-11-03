@@ -174,8 +174,8 @@ Here's the reference for the `intro` model:
 
     >>> intro.reference
     ModelRef(dist_type='modelfile',
-             dist_name='.../samples/projects/mnist/MODELS',
-             dist_version='...',
+             dist_name='.../samples/projects/mnist',
+             dist_version='f305c...',
              model_name='intro')
 
 Note that the package reference in this case is an absolute path to

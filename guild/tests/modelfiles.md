@@ -260,7 +260,7 @@ Here's a model definition that contains various resource sources:
     ...       - file: bar.tar.gz
     ...       - url: https://files.com/bar.tar.gz
     ...       - operation: train/model.meta
-    ... """)
+    ... """, "test")
 
 Here are the associated resource sources:
 
@@ -281,7 +281,7 @@ At least one of the three type attributes is required:
     ...   sample:
     ...     sources:
     ...       - foo: bar.txt
-    ... """)
+    ... """, "test")
     Traceback (most recent call last):
     ResourceFormatError: invalid source in resource 'sample:sample': missing
     required attribute (one of file, url, operation)
@@ -295,7 +295,7 @@ However, no more than one is allowed:
     ...     sources:
     ...       - file: foo.txt
     ...         url: http://files.com/bar.txt
-    ... """)
+    ... """, "test")
     Traceback (most recent call last):
     ResourceFormatError: invalid source in resource 'sample:sample':
     conflicting attributes (file, url)

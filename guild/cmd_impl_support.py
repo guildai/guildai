@@ -23,7 +23,6 @@ import guild.resource
 
 from guild import cli
 from guild import config
-from guild import modelfile
 
 log = logging.getLogger("core")
 
@@ -41,18 +40,6 @@ def cwd_desc(cwd=None):
     else:
         return "'%s'" % cwd
 
-def cwd_modelfile_path(cwd=None):
-    """Returns the path of the modelfile for the cwd.
-
-    Returns None if a modefile doesn't exist in the cwd.
-    """
-    cwd = cwd or config.cwd()
-    for name in modelfile.NAMES:
-        path = os.path.join(cwd, name)
-        if os.path.exists(path):
-            return path
-    return None
-
 def cwd_modelfile(cwd=None):
     """Returns the modelfile of the context cwd.
 
@@ -60,28 +47,13 @@ def cwd_modelfile(cwd=None):
     """
     cwd = cwd or config.cwd()
     try:
-        return modelfile.from_dir(cwd)
-    except (modelfile.NoModels, IOError):
+        importer = guild.model.ModelImporter(cwd)
+    except ImportError:
         return None
+    else:
+        return getattr(importer.dist, "modelfile", None)
 
-def cwd_modeldef(cwd=None):
-    """Returns a loaded modeldef for the cwd.
-
-    If a modelfile doesn't exist in the cwd returns None.
-
-    If an error occurs when loading the modelfile, logs a warning
-    message and returns None.
-    """
-    cwd = cwd or config.cwd()
-    try:
-        return modelfile.from_dir(cwd)
-    except (modelfile.NoModels, IOError):
-        return None
-    except Exception as e:
-        log.warning("unable to load modelfile from %s: %s", cwd, e)
-        return None
-
-def init_model_path(force_all=False, notify_force_all_option=None, cwd=None):
+def init_model_path(args, cwd=None):
     """Initializes the model path.
 
     If the context cwd contains a model def, the path is initialized
@@ -90,38 +62,29 @@ def init_model_path(force_all=False, notify_force_all_option=None, cwd=None):
     in which case all models including those in the cwd will be
     available.
     """
-    maybe_model_path = cwd or config.cwd()
-    if cwd_modelfile_path(maybe_model_path):
-        model_path = maybe_model_path
-        if force_all:
-            guild.model.insert_path(model_path)
-        else:
-            _maybe_notify_models_limited(notify_force_all_option, model_path)
-            guild.model.set_path([model_path])
+    _init_path(guild.model, "models", args, cwd)
 
-def _maybe_notify_models_limited(force_all_option, cwd):
-    if force_all_option:
-        cli.note_once(
-            "Limiting models to %s (use %s to include all)"
-            % (cwd_desc(cwd), force_all_option))
-
-def init_resource_path(force_all=False, notify_force_all_option=None, cwd=None):
+def init_resource_path(args, cwd=None):
     """Initializes the resource path.
 
     The same rules in `init_model_path` are applied here to the
     resource path.
     """
-    maybe_model_path = cwd or config.cwd()
-    if cwd_modelfile_path(maybe_model_path):
-        model_path = maybe_model_path
-        if force_all:
-            guild.resource.insert_path(model_path)
-        else:
-            _maybe_notify_resources_limited(notify_force_all_option, model_path)
-            guild.resource.set_path([model_path])
+    _init_path(guild.resource, "resources", args, cwd)
 
-def _maybe_notify_resources_limited(force_all_option, cwd):
-    if force_all_option:
-        cli.note_once(
-            "Limiting resources to %s (use %s to include all)"
-            % (cwd_desc(cwd), force_all_option))
+def _init_path(mod, desc, args, cwd):
+    cwd_mf = cwd_modelfile(cwd)
+    if cwd_mf:
+        if args.all:
+            mod.insert_path(cwd_mf.dir)
+        else:
+            _notify_path_limited(cwd, desc)
+            mod.set_path([cwd_mf.dir])
+    elif args.local:
+        _notify_path_limited(cwd, desc)
+        mod.set_path([cwd or config.cwd()])
+
+def _notify_path_limited(path, what):
+    cli.note_once(
+        "Limiting %s to %s (use --all to include all)"
+        % (what, cwd_desc(path)))

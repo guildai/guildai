@@ -21,6 +21,9 @@ import sys
 
 import pkg_resources
 
+import guild.plugin
+
+from guild import config
 from guild import entry_point_util
 from guild import modelfile
 from guild import namespace
@@ -84,9 +87,12 @@ class ModelfileModel(Model):
         return self.dist.get_modeldef(self.name)
 
     def _init_reference(self):
-        path = os.path.abspath(self.dist.modelfile.src)
-        hash = self._modelfile_hash(path)
-        return ModelRef("modelfile", path, hash, self.name)
+        if self.dist.modelfile.src:
+            version = self._modelfile_hash(self.dist.modelfile.src)
+        else:
+            version = "unknown"
+        path = os.path.abspath(self.dist.modelfile.dir)
+        return ModelRef("modelfile", path, version, self.name)
 
     @staticmethod
     def _modelfile_hash(path):
@@ -98,7 +104,6 @@ class ModelfileModel(Model):
             return "-"
         else:
             return hashlib.md5(path_bytes).hexdigest()
-
 
 class PackageModel(Model):
     """A model associated with a package.
@@ -161,12 +166,13 @@ class ModelfileDistribution(pkg_resources.Distribution):
 
     def __init__(self, modelfile):
         super(ModelfileDistribution, self).__init__(
-            modelfile.src, project_name=_modelfile_project_name(modelfile))
+            modelfile.dir,
+            project_name=self._init_project_name(modelfile))
         self.modelfile = modelfile
-        self._entry_map = _modelfile_entry_map(modelfile, self)
+        self._entry_map = self._init_entry_map()
 
     def __repr__(self):
-        return "<guild.model.ModelfileDistribution '%s'>" % self.modelfile.src
+        return "<guild.model.ModelfileDistribution '%s'>" % self.modelfile.dir
 
     def get_entry_map(self, group=None):
         if group is None:
@@ -180,28 +186,60 @@ class ModelfileDistribution(pkg_resources.Distribution):
                 return modeldef
         raise ValueError(name)
 
-def _modelfile_project_name(modelfile):
-    """Returns a project name for a modelfile distribution.
+    @staticmethod
+    def _init_project_name(modelfile):
+        """Returns a project name for a modelfile distribution.
 
-    Modelfile distribution project names are of the format:
+        Modelfile distribution project names are of the format:
 
-        '.modelfile.' + ESCAPED_MODELFILE_PATH
+            '.modelfile.' + ESCAPED_MODELFILE_PATH
 
-    ESCAPED_MODELFILE_PATH is a 'safe' project name (i.e. will not be
-    modified in a call to `pkg_resources.safe_name`) that, when
-    unescaped using `_unescape_project_name`, is the relative path of
-    the directory containing the modelfile. The modefile name itself
-    (e.g. 'MODEL' or 'MODELS') is not contained in the path.
+        ESCAPED_MODELFILE_PATH is a 'safe' project name (i.e. will not be
+        modified in a call to `pkg_resources.safe_name`) that, when
+        unescaped using `_unescape_project_name`, is the relative path of
+        the directory containing the modelfile. The modefile name itself
+        (e.g. 'MODEL' or 'MODELS') is not contained in the path.
 
-    Modelfile paths are relative to the current working directory
-    (i.e. the value of os.getcwd() at the time they are generated) and
-    always start with '.'.
-    """
-    pkg_path = os.path.relpath(os.path.dirname(modelfile.src))
-    if pkg_path[0] != ".":
-        pkg_path = os.path.join(".", pkg_path)
-    safe_path = _escape_project_name(pkg_path)
-    return ".modelfile.%s" % safe_path
+        Modelfile paths are relative to the current working directory
+        (i.e. the value of os.getcwd() at the time they are generated) and
+        always start with '.'.
+        """
+        pkg_path = os.path.relpath(modelfile.dir)
+        if pkg_path[0] != ".":
+            pkg_path = os.path.join(".", pkg_path)
+        safe_path = _escape_project_name(pkg_path)
+        return ".modelfile.%s" % safe_path
+
+    def _init_entry_map(self):
+        return {
+            "guild.models": {
+                model.name: self._model_entry_point(model)
+                for model in self.modelfile
+            },
+            "guild.resources": {
+                res.fullname: self._resource_entry_point(res.fullname)
+                for res in self._modelfile_resources()
+            }
+        }
+
+    def _model_entry_point(self, model):
+        return pkg_resources.EntryPoint(
+            name=model.name,
+            module_name="guild.model",
+            attrs=("ModelfileModel",),
+            dist=self)
+
+    def _modelfile_resources(self):
+        for modeldef in self.modelfile:
+            for res in modeldef.resources:
+                yield res
+
+    def _resource_entry_point(self, name):
+        return pkg_resources.EntryPoint(
+            name=name,
+            module_name="guild.model",
+            attrs=("ModelfileResource",),
+            dist=self)
 
 def _escape_project_name(name):
     """Escapes name for use as a valie pkg_resources project name."""
@@ -210,30 +248,6 @@ def _escape_project_name(name):
 def _unescape_project_name(escaped_name):
     """Unescapes names escaped with `_escape_project_name`."""
     return str(base64.b16decode(escaped_name).decode("utf-8"))
-
-def _modelfile_entry_map(modelfile, dist):
-    return {
-        "guild.models": {
-            model.name: _modelfile_model_entry_point(model, dist)
-            for model in modelfile
-        },
-        "guild.resources": {
-            res.fullname: _modelfile_resource_entry_point(res.fullname, dist)
-            for res in _modelfile_resources(modelfile)
-        }
-    }
-
-def _modelfile_model_entry_point(model, dist):
-    return pkg_resources.EntryPoint(
-        name=model.name,
-        module_name='guild.model',
-        attrs=('ModelfileModel',),
-        dist=dist)
-
-def _modelfile_resources(modelfile):
-    for modeldef in modelfile:
-        for res in modeldef.resources:
-            yield res
 
 class ModelfileResource(resource.Resource):
 
@@ -268,42 +282,60 @@ class PackageModelResource(resource.Resource):
                 % (model_name, res_name, self.dist))
         return resdef
 
-def _modelfile_resource_entry_point(name, dist):
-    return pkg_resources.EntryPoint(
-        name=name,
-        module_name='guild.model',
-        attrs=('ModelfileResource',),
-        dist=dist)
-
 class ModelImportError(ImportError):
     pass
 
 class ModelImporter(object):
 
+    undef = object()
+
     def __init__(self, path):
-        if not os.path.isdir(path):
+        if not self._is_modelfile_dir(path):
             raise ModelImportError(path)
-        for name in os.listdir(path):
-            if name in modelfile.NAMES:
-                break
+        self.path = path
+        self._dist = self.undef # lazy
+
+    @staticmethod
+    def _is_modelfile_dir(path):
+        return (modelfile.dir_has_modelfile(path) or
+                os.path.abspath(path) == os.path.abspath(config.cwd()))
+
+    @property
+    def dist(self):
+        if self._dist is self.undef:
+            self._dist = self._init_dist()
+        return self._dist
+
+    def _init_dist(self):
+        if not os.path.isdir(self.path):
+            return None
+        try:
+            mf = modelfile.from_dir(self.path)
+        except modelfile.NoModels:
+            return self._plugin_model_dist()
         else:
-            raise ModelImportError(path)
+            return ModelfileDistribution(mf)
+
+    def _plugin_model_dist(self):
+        models_data = []
+        for _, plugin in guild.plugin.iter_plugins():
+            for data in plugin.find_models(self.path):
+                models_data.append(data)
+        if models_data:
+            mf = modelfile.Modelfile(models_data, dir=self.path)
+            return ModelfileDistribution(mf)
+        else:
+            return None
 
     @staticmethod
     def find_module(_fullname, _path=None):
         return None
 
-def _model_finder(_importer, path, _only=False):
-    try:
-        models = modelfile.from_dir(path)
-    except (IOError,
-            modelfile.ModelfileFormatError,
-            modelfile.ModelfileReferenceError) as e:
-        log.warning(
-            "unable to load model from '%s': %s",
-            path, e)
-    else:
-        yield ModelfileDistribution(models)
+def _model_finder(importer, path, _only=False):
+    assert isinstance(importer, ModelImporter)
+    assert importer.path == path, (importer.path, path)
+    if importer.dist:
+        yield importer.dist
 
 class ModelfileNamespace(namespace.PrefixNamespace):
 

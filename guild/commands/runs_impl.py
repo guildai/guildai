@@ -88,11 +88,11 @@ def _apply_status_filter(args, filters):
             var.run_filter("attr", "extended_status", status))
 
 def _apply_model_filter(args, filters):
-    cwd_modelfile = cmd_impl_support.cwd_modelfile_path()
+    cwd_modelfile = cmd_impl_support.cwd_modelfile()
     if cwd_modelfile:
         if not args.all:
             _notify_runs_limited()
-            modelfile_dir = os.path.abspath(os.path.dirname(cwd_modelfile))
+            modelfile_dir = os.path.abspath(cwd_modelfile.dir)
             filters.append(_cwd_run_filter(modelfile_dir))
     if args.models:
         filters.append(_model_run_filter(args.models))
@@ -105,14 +105,14 @@ def _notify_runs_limited():
 def _cwd_run_filter(abs_cwd):
     def f(run):
         if run.opref.pkg_type == "modelfile":
-            model_path = os.path.dirname(run.opref.pkg_name)
-            if os.path.isabs(model_path):
-                if model_path == abs_cwd:
+            model_dir = run.opref.pkg_name
+            if os.path.isabs(model_dir):
+                if model_dir == abs_cwd:
                     return True
             else:
                 log.warning(
                     "unexpected non-absolute modelfile path for run %s: %s",
-                    run.id, model_path)
+                    run.id, model_dir)
         return False
     return f
 
@@ -167,7 +167,7 @@ def _format_op_desc(opref):
         return "?"
 
 def _format_modelfile_op(opref):
-    relpath = os.path.relpath(os.path.dirname(opref.pkg_name), config.cwd())
+    relpath = os.path.relpath(opref.pkg_name, config.cwd())
     if relpath[0] != '.':
         relpath = os.path.join('.', relpath)
     return "%s/%s:%s" % (relpath, opref.model_name, opref.op_name)

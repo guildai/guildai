@@ -10,7 +10,7 @@ working with Python scripts and modules.
 Some plugins can enumerate models in a location. To assist with this,
 python utils provides `scripts_for_location`.
 
-    >>> scripts = python_util.scripts_for_location(
+    >>> scripts = python_util.scripts_for_dir(
     ...   sample("scripts"), exclude=["*/__init__.py"])
     >>> sorted([script.name for script in scripts])
     ['mnist_mlp']
@@ -48,26 +48,26 @@ Imports:
 
 Calls:
 
-    >>> pprint([call.path for call in mnist_mlp.calls()])
-    ['mnist.load_data',
-     'x_train.reshape',
-     'x_test.reshape',
-     'x_train.astype',
-     'x_test.astype',
+    >>> pprint([call.name for call in mnist_mlp.calls()])
+    ['load_data',
+     'reshape',
+     'reshape',
+     'astype',
+     'astype',
      'print',
      'print',
-     'keras.utils.to_categorical',
-     'keras.utils.to_categorical',
+     'to_categorical',
+     'to_categorical',
      'Sequential',
-     'model.add',
-     'model.add',
-     'model.add',
-     'model.add',
-     'model.add',
-     'model.summary',
-     'model.compile',
-     'model.fit',
-     'model.evaluate',
+     'add',
+     'add',
+     'add',
+     'add',
+     'add',
+     'summary',
+     'compile',
+     'fit',
+     'evaluate',
      'print',
      'print',
      'Dense',
@@ -76,7 +76,7 @@ Calls:
      'Dropout',
      'Dense',
      'RMSprop',
-     'keras.callbacks.TensorBoard']
+     'TensorBoard']
 
 ## Sorting script objects
 
