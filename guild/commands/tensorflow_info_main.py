@@ -29,7 +29,8 @@ def _print_tensorflow_info():
     try:
         import tensorflow as tf
     except ImportError as e:
-        err = _warn("NOT INSTALLED (%s)" % e)
+        msg = _normalize_import_error_msg(e)
+        err = _warn("NOT INSTALLED (%s)" % msg)
         click.echo("tensorflow_version:        %s" % err)
         sys.exit(1)
     else:

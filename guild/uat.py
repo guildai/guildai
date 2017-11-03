@@ -50,8 +50,8 @@ def _tests_from_index():
     return re.findall(r"\((.+?)\.md\)", readme)
 
 def _init_workspace():
-    print("Initializing workspace %s" % WORKSPACE)
-    subprocess.check_call(["virtualenv", WORKSPACE])
+    print("Initializing workspace %s under %s" % (WORKSPACE, sys.executable))
+    subprocess.check_call(["virtualenv", "-p", sys.executable, WORKSPACE])
     open(os.path.join(WORKSPACE, "bin/activate"), "a").write(
         "export GUILD_HOME=%s/.guild\n" % WORKSPACE)
     os.mkdir(os.path.join(WORKSPACE, "passed-tests"))

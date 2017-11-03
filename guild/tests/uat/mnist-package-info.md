@@ -10,7 +10,7 @@ Use `guild packages info PKG` to show information about a package:
     author: Guild AI
     author-email: packages@guild.ai
     license: Apache 2.0
-    location: /tmp/guild-uat/lib/python3.5/site-packages
+    location: /.../guild-uat/lib/python.../site-packages
     requires: []
     <exit 0>
 
@@ -25,7 +25,7 @@ information.
     author: Guild AI
     author-email: packages@guild.ai
     license: Apache 2.0
-    location: /tmp/guild-uat/lib/python3.5/site-packages
+    location: /.../guild-uat/lib/python.../site-packages
     requires: []
     metadata-version: 2.0
     installer: pip
@@ -37,5 +37,7 @@ information.
     files:
       ...
       gpkg/mnist/cnn.py
+      ...
       gpkg/mnist/softmax.py
+      ...
     <exit 0>
