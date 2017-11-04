@@ -230,11 +230,12 @@ def _upload(dist, upload_repo):
 
 def _twine_upload_args(dist, repo):
     args = []
-    args.extend(_repo_args(repo))
-    args.extend(_dist_file_args(dist))
+    args.extend(_twine_repo_args(repo))
+    args.extend(_twine_sign_args())
+    args.extend(_twine_dist_file_args(dist))
     return args
 
-def _repo_args(repo):
+def _twine_repo_args(repo):
     if util.parse_url(repo).scheme:
         rc_section = _pypirc_section_for_repo(repo)
         if rc_section:
@@ -251,7 +252,16 @@ def _pypirc_section_for_repo(repo):
             return section
     return None
 
-def _dist_file_args(dist):
+def _twine_sign_args():
+    args = []
+    if os.getenv("SIGN"):
+        args.append("--sign")
+        sign_id = os.getenv("IDENTITY")
+        if sign_id:
+            args.extend(["--identity", sign_id])
+    return args
+
+def _twine_dist_file_args(dist):
     return [df[2] for df in dist.dist_files]
 
 def _handle_twine_error(e):
