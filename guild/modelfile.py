@@ -30,6 +30,8 @@ log = logging.getLogger("core")
 # The order here should be based on priority of selection.
 NAMES = ["MODELS", "MODEL"]
 
+_cache = {}
+
 ###################################################################
 # Exceptions
 ###################################################################
@@ -430,7 +432,15 @@ def dir_has_modelfile(path):
     return False
 
 def from_file(src):
-    return _load_modelfile(src)
+    cache_key = _cache_key(src)
+    cached = _cache.get(cache_key)
+    if cached:
+        return cached
+    _cache[cache_key] = mf = _load_modelfile(src)
+    return mf
+
+def _cache_key(src):
+    return os.path.abspath(src)
 
 def _load_modelfile(src):
     return Modelfile(yaml.load(open(src, "r")), src)
