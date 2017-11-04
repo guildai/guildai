@@ -114,10 +114,7 @@ def _setup_kw(pkg):
         package_data={
             pkg_name: _package_data(pkg)
         },
-        entry_points={
-            "guild.models": _model_eps(pkg),
-            "guild.resources": _resource_eps(pkg)
-        }
+        entry_points=_entry_points(pkg),
     )
 
 def _pkg_description(pkg, models):
@@ -154,6 +151,16 @@ def _default_pkg_files():
         "README",
         "README.*",
     ]
+
+def _entry_points(pkg):
+    return {
+        name: eps
+        for name, eps in [
+                ("guild.models", _model_eps(pkg)),
+                ("guild.resources", _resource_eps(pkg))
+        ]
+        if eps
+    }
 
 def _model_eps(pkg):
     return [
