@@ -156,7 +156,12 @@ def _packaged_resource(spec, ctx):
         return None
     pkg_name = m.group(1)
     res_name = m.group(2)
-    for res in resource.for_name(res_name):
-        if namespace.apply_namespace(res.dist.project_name) == pkg_name:
-            return Resource(res.resdef, ctx)
-    return None
+    try:
+        for res in resource.for_name(res_name):
+            if namespace.apply_namespace(res.dist.project_name) == pkg_name:
+                return Resource(res.resdef, ctx)
+        return None
+    except LookupError:
+        raise DependencyError(
+            "resource '%s' required by operation '%s' is not installed"
+            % (spec, ctx.opdef.fullname))
