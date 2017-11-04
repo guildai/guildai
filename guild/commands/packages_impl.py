@@ -101,11 +101,7 @@ def _pip_info(pkg):
 
 def uninstall_packages(args):
     for reqs, _ in _installs(args):
-        try:
-            pip_util.uninstall(reqs, dont_prompt=args.yes)
-        except pip_util.NotInstalledError as e:
-            pkg_name = namespace.apply_namespace(e.req)
-            cli.error("package '%s' is not installed" % pkg_name)
+        pip_util.uninstall(reqs, dont_prompt=args.yes)
 
 def package_info(args):
     for i, (project, pkg) in enumerate(_iter_project_names(args.packages)):

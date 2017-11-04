@@ -36,12 +36,7 @@ from pip.utils.hashes import Hashes
 from guild import cli
 from guild import namespace
 
-class NotInstalledError(Exception):
-
-    def __init__(self, req):
-        super(NotInstalledError, self).__init__(
-            "%s is not installed" % req)
-        self.req = req
+log = logging.getLogger("core")
 
 class InstallError(Exception):
     pass
@@ -149,20 +144,20 @@ def _ensure_search_logger():
 
 def uninstall(reqs, dont_prompt=False):
     cmd = UninstallCommand()
-    args = []
+    for req in reqs:
+        _uninstall(req, cmd, dont_prompt)
+
+def _uninstall(req, cmd, dont_prompt):
+    args = [req]
     if dont_prompt:
         args.append("--yes")
-    args.extend(reqs)
     options, cmd_args = cmd.parse_args(args)
     try:
         cmd.run(options, cmd_args)
     except UninstallationError as e:
-        m = re.match(
-            "Cannot uninstall requirement (.+?), not installed",
-            str(e))
-        if m:
-            raise NotInstalledError(m.group(1))
-        raise
+        if "not installed" not in str(e):
+            raise
+        log.warning("%s is not installed, skipping", req)
 
 class HashMismatch(Exception):
 
