@@ -24,6 +24,8 @@ import yaml
 import twine.commands.upload
 
 import guild.help
+
+from guild import namespace
 from guild import modelfile
 from guild import util
 
@@ -197,7 +199,15 @@ def _pkg_python_requires(pkg):
     return ", ".join(pkg.get("python-requires", []))
 
 def _pkg_install_requires(pkg):
-    return pkg.get("requires", [])
+    return [
+        _project_name(req)
+        for req in pkg.get("requires", [])
+    ]
+
+def _project_name(req):
+    ns, project_name = namespace.split_name(req)
+    pip_info = ns.pip_info(project_name)
+    return pip_info.project_name
 
 def _write_package_metadata(setup_kw):
     source = os.getenv("PACKAGE_FILE")

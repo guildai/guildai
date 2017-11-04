@@ -187,6 +187,7 @@ py_library(
         "//third_party:twine",
         "//third_party:yaml",
         ":modelfile",
+        ":namespace",
         ":util",
     ],
 )
