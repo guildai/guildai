@@ -110,6 +110,25 @@ contained in a single file file.
 
 - [run-hello-package-examples](run-hello-package-examples.md)
 
+### `keras.mnist`
+
+Guild provides Keras packages under the `keras` package
+namespace. These tests demonstrate installing and training the
+`keras-mlp` model provided in the `keras.mnist` package.
+
+First we'll install the package and confirm the availbility of models,
+operations and resources.
+
+- [install-keras-mnist-package](install-keras-mnist-package.md)
+- [packages-after-keras-mnist-install](packages-after-keras-mnist-install.md)
+- [models-after-keras-mnist-install](models-after-keras-mnist-install.md)
+- [operations-after-keras-mnist-install](operations-after-keras-mnist-install.md)
+- [resources-after-keras-mnist-install](resources-after-keras-mnist-install.md)
+
+Next we'll train the `mnist-mlp` model.
+
+- [train-keras-mnist-mlp](train-keras-mnist-mlp.md)
+
 ## Training Guild example models
 
 *Installing and training Guild examples.*
@@ -165,6 +184,13 @@ For simplicity we maintain a single test file.
 
 The `keras` example demonstrates how plugins can enumerate models in a
 directory and provide operations for compatible models.
+
+For our tests of the example model, we'll first uninstall some
+packages that were installed in pervious tests.
+
+- [uninstall-keras-packages](uninstall-keras-packages.md)
+
+And test the `keras` example.
 
 - [keras-example-models](keras-example-models.md)
 - [train-keras-example-with-missing-dep](train-keras-example-with-missing-dep.md)

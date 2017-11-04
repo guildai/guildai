@@ -35,5 +35,6 @@ directory, using the `-a` option:
     >>> run("guild models -a")
     ./mnist-expert       MNIST model from TensorFlow expert tutorial
     ./mnist-intro        MNIST model from TensorFlow intro tutorial
-    hello/hello     A "hello world" sample model
+    hello/...
+    keras.mnist/...
     <exit 0>

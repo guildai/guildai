@@ -33,8 +33,6 @@ We can view all ops using -a:
     ./mnist-expert:train       Train the MNIST model
     ./mnist-intro:evaluate     Evaluate a trained model using test data
     ./mnist-intro:train        Train the MNIST model
-    hello/hello:default           Print a default message
-    hello/hello:from-file         Print a message from a file
-    hello/hello:from-file-output  Print output from last file-output operation
-    hello/hello:from-flag         Print a message
+    hello/...
+    keras.mnist/...
     <exit 0>

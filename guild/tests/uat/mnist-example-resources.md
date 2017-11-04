@@ -22,4 +22,5 @@ And listing all resources with the `-a` option:
     >>> run("guild resources mnist -a")
     ./mnist-expert:model  Exported expert model
     ./mnist-intro:model   Exported intro model
+    keras.datasets/...
     <exit 0>
