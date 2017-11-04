@@ -392,7 +392,7 @@ class ResourceDef(resourcedef.ResourceDef):
     def __init__(self, name, data, modeldef):
         super(ResourceDef, self).__init__(name, data)
         self.fullname = "%s:%s" % (modeldef.name, name)
-        self.private = modeldef.private
+        self.private = self.private or modeldef.private
         self.modeldef = modeldef
 
     def get_source_resolver(self, source):
