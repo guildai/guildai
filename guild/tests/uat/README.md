@@ -74,10 +74,12 @@ Then we confirm we have the expected models, operations and resources.
 
 Next we train the `softmax` model and view the results.
 
+- [tmp-mnist-data-before-softmax-train](tmp-mnist-data-before-softmax-train.md)
 - [train-mnist-softmax-preview](train-mnist-softmax-preview.md)
 - [train-mnist-softmax](train-mnist-softmax.md)
 - [runs-after-mnist-softmax-train](runs-after-mnist-softmax-train.md)
 - [run-info-after-mnist-softmax-train](run-info-after-mnist-softmax-train.md)
+- [tmp-mnist-data-after-softmax-train](tmp-mnist-data-after-softmax-train.md)
 
 Before we uninstall the package, we'll take advantage of the fact we
 have multiple models containing the term "mnist" and test an error
@@ -142,6 +144,12 @@ it.
 
 - [evaluate-mnist-intro-example](evaluate-mnist-intro-example.md)
 - [mnist-example-runs-after-intro-evaluate](mnist-example-runs-after-intro-evaluate.md)
+
+As a final check, we want to ensure that the example operations used
+the data provided by the model file resource.
+
+- [tmp-mnist-data-after-mnist-example](tmp-mnist-data-after-mnist-example.md)
+
 
 ### `hello` example
 

@@ -31,6 +31,7 @@ import guild.var
 INDEX = "guild/tests/uat/README.md"
 WORKSPACE = os.path.join(tempfile.gettempdir(), "guild-uat")
 GUILD_PATH = os.path.abspath("./bazel-bin/guild")
+TEMP = tempfile.gettempdir()
 
 GIT_REPOS = os.path.abspath("../")
 
@@ -139,7 +140,9 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
         #out = p.communicate()[0]
         #exit_code = p.returncode
     if not quiet or exit_code != 0:
-        out = str(out.strip().decode("utf-8"))
+        out = out.strip()
+        if sys.version_info[0] > 2:
+            out = out.decode("utf-8")
         if ignore:
             out = _strip_lines(out, ignore)
         print(out)

@@ -4,5 +4,5 @@ Once we've installed the `mnist` package, we have the following
 resources available:
 
     >>> run("guild resources")
-    <BLANKLINE>
+    mnist-dataset/idx  Yann Lecun's MNIST dataset in compressed IDX format
     <exit 0>
