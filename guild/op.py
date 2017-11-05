@@ -176,7 +176,12 @@ def _cmd_options(args):
 
 def _cmd_option_args(name, val):
     opt = "--%s" % name
-    return [opt] if val is None else [opt, str(val)]
+    if val is None:
+        return []
+    elif val is True:
+        return [opt]
+    else:
+        return [opt, str(val)]
 
 def _init_cmd_env(opdef):
     env = {}

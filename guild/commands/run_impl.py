@@ -212,10 +212,11 @@ def _format_op_flags(flags):
     return "\n".join([
         "  %s" % _format_flag(name, flags[name])
         for name in sorted(flags)
+        if flags[name] is not None
     ])
 
 def _format_flag(name, val):
-    if val is None:
+    if val is True:
         return "%s: (boolean switch)" % name
     else:
         return "%s: %s" % (name, val)

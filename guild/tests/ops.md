@@ -79,10 +79,14 @@ Multiple flags are returned in sorted order:
     >>> guild.op._flag_args({"epochs": 100, "data": "my-data"}, [])
     ['--data', 'my-data', '--epochs', '100']
 
-Flag options (i.e. options with implicit values) may be specified with
-None values:
+If a flag value is None, the flag will not be included as an option.
 
     >>> guild.op._flag_args({"test": None, "batch-size": 50}, [])
+    ['--batch-size', '50']
+
+If a flag value is True, the flag will be listed a flag option.
+
+    >>> guild.op._flag_args({"test": True, "batch-size": 50}, [])
     ['--batch-size', '50', '--test']
 
 The second argument to the `_flag_args` function is a list of command
