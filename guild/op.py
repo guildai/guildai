@@ -33,6 +33,7 @@ from guild import var
 log = logging.getLogger("core")
 
 OP_RUNFILES = [
+    "org_click",
     "org_psutil"
 ]
 
