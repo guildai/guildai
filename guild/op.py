@@ -115,8 +115,7 @@ class Operation(object):
         _write_proc_lock(self._proc, self._run)
 
     def _proc_args(self):
-        assert self._run
-        return self.cmd_args + ["--rundir", self._run.path]
+        return self.cmd_args
 
     def _proc_env(self):
         assert self._run is not None
