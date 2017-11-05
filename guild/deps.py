@@ -43,24 +43,6 @@ class Resource(object):
         self.resdef = resdef
         self.ctx = ctx
 
-    def _link_to_source(self, source_path):
-        link = self._link_path(source_path)
-        if os.path.exists(link):
-            log.warning("source '%s' already exists, skipping link", link)
-            return
-        util.ensure_dir(os.path.dirname(link))
-        log.debug("resolving source '%s' as link '%s'", source_path, link)
-        os.symlink(source_path, link)
-
-    def _link_path(self, source_path):
-        basename = os.path.basename(source_path)
-        res_path = self.resdef.path or ""
-        if os.path.isabs(res_path):
-            raise DependencyError(
-                "invalid path '%s' in resource '%s' (path must be relative)"
-                % (res_path, self.resdef.name))
-        return os.path.join(self.ctx.target_dir, res_path, basename)
-
     def resolve(self):
         log.info("Resolving '%s' resource", self.resdef.name)
         for source in self.resdef.sources:
@@ -100,6 +82,24 @@ class Resource(object):
                 "'%s' required by operation '%s' has an unexpected sha256 "
                 "(expected %s but got %s)"
                 % (path, self.ctx.opdef.fullname, sha256, actual))
+
+    def _link_to_source(self, source_path):
+        link = self._link_path(source_path)
+        if os.path.exists(link):
+            log.warning("source '%s' already exists, skipping link", link)
+            return
+        util.ensure_dir(os.path.dirname(link))
+        log.debug("resolving source '%s' as link '%s'", source_path, link)
+        os.symlink(source_path, link)
+
+    def _link_path(self, source_path):
+        basename = os.path.basename(source_path)
+        res_path = self.resdef.path or ""
+        if os.path.isabs(res_path):
+            raise DependencyError(
+                "invalid path '%s' in resource '%s' (path must be relative)"
+                % (res_path, self.resdef.name))
+        return os.path.join(self.ctx.target_dir, res_path, basename)
 
 def _dep_desc(dep):
     return "%s:%s" % (dep.opdef.modeldef.name, dep.opdef.name)
