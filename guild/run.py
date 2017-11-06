@@ -127,7 +127,7 @@ class Run(object):
             f.close()
 
     def iter_files(self, all_files=False, include_dirs=False):
-        for root, dirs, files in os.walk(self.path):
+        for root, dirs, files in os.walk(self.path, followlinks=True):
             if not all_files and root == self.path:
                 try:
                     dirs.remove(".guild")
