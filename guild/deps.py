@@ -62,7 +62,10 @@ class Resource(object):
                 % (source, self.resdef.name, e))
         else:
             self._verify_file(source_path, source.sha256)
-            self._link_to_source(source_path)
+            unpacked = self._maybe_unpack(source_path, source)
+            to_link = [source_path] if unpacked is None else unpacked
+            for path in to_link:
+                self._link_to_source(path)
 
     def _verify_file(self, path, sha256):
         self._verify_file_exists(path)
@@ -82,6 +85,77 @@ class Resource(object):
                 "'%s' required by operation '%s' has an unexpected sha256 "
                 "(expected %s but got %s)"
                 % (path, self.ctx.opdef.fullname, sha256, actual))
+
+    def _maybe_unpack(self, source_path, source):
+        if not source.unpack:
+            return None
+        archive_type = self._archive_type(source_path, source)
+        if not archive_type:
+            return None
+        return self._unpack(source_path, archive_type, source.extract)
+
+    @staticmethod
+    def _archive_type(source_path, source):
+        if source.type:
+            return source.type
+        parts = source_path.lower().split(".")
+        if parts[-1] == "zip":
+            return "zip"
+        elif parts[-1] == "tar" or parts[-2:-1] == "tar":
+            return "tar"
+        else:
+            return None
+
+    def _unpack(self, source_path, type, prefix):
+        if type == "zip":
+            return self._unzip(source_path, prefix)
+        elif type == "tar":
+            return self._untar(source_path, prefix)
+        else:
+            raise DependencyError(
+                "'%s' required by operation '%s' cannot be unpacked "
+                "(unsupported archive type '%s')"
+                % (source_path, self.ctx.opdef.fullname, type))
+
+    def _unzip(self, source_path, prefix):
+        import zipfile
+        zf = zipfile.ZipFile(source_path)
+        return self._gen_unpack(
+            os.path.dirname(source_path), zf.namelist, zf.extractall, prefix)
+
+    def _untar(self, source_path, prefix):
+        import tarfile
+        tf = tarfile.TarFile(source_path)
+        return self._gen_unpack(
+            os.path.dirname(source_path), tf.getnames, tf.extractall, prefix)
+
+    def _gen_unpack(self, dest, list_files, extract_all, prefix):
+        files = list_files()
+        to_extract = [
+            name for name in files
+            if not os.path.exists(os.path.join(dest, name))
+        ]
+        extract_all(dest, to_extract)
+        if prefix:
+            return self._prefixed_source_paths(dest, files, prefix)
+        else:
+            return self._all_source_paths(dest, files)
+
+    @staticmethod
+    def _prefixed_source_paths(dest, files, prefix):
+        prefixed = [
+            name[len(prefix):] for name in files
+            if name.startswith(prefix)
+        ]
+        root_names = [name.split("/")[0] for name in prefixed]
+        return [
+            os.path.join(dest, prefix + name) for name in set(root_names)
+        ]
+
+    @staticmethod
+    def _all_source_paths(dest, files):
+        root_names = [name.split("/")[0] for name in files]
+        return [os.path.join(dest, name) for name in set(root_names)]
 
     def _link_to_source(self, source_path):
         link = self._link_path(source_path)
