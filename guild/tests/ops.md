@@ -43,14 +43,15 @@ Here's an operation with a simple "train" cmd:
 
     >>> op = Operation(cmd="train")
     >>> op.cmd_args
-    ['python', '-um', 'guild.op_main', 'train']
+    ['.../python...', '-u', 'guild/scripts/run', 'train']
 
 Command specs may contain additional arguments, which will be included
 in the Python command.
 
     >>> op = Operation(cmd="train epoch=10 tags='tag1 tag2'")
     >>> op.cmd_args
-    ['python', '-um', 'guild.op_main', 'train', 'epoch=10', 'tags=tag1 tag2']
+    ['.../python...', '-u', 'guild/scripts/run', 'train', 'epoch=10',
+     'tags=tag1 tag2']
 
 Command specs cannot be empty:
 
