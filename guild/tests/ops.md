@@ -43,15 +43,27 @@ Here's an operation with a simple "train" cmd:
 
     >>> op = Operation(cmd="train")
     >>> op.cmd_args
-    ['.../python...', '-u', 'guild/scripts/run', 'train']
+    ['.../python...', '-u',
+     '...guild/scripts/run', 'train']
+
+NOTE: The above formatting, with the line feed after '-u' is required
+when running tests in Python 3. The regex that formats unicode refs as
+strings is fooled by the example. We need to break the line as a work
+around.
 
 Command specs may contain additional arguments, which will be included
 in the Python command.
 
     >>> op = Operation(cmd="train epoch=10 tags='tag1 tag2'")
     >>> op.cmd_args
-    ['.../python...', '-u', 'guild/scripts/run', 'train', 'epoch=10',
+    ['.../python...', '-u',
+     '...guild/scripts/run', 'train', 'epoch=10',
      'tags=tag1 tag2']
+
+NOTE: The above formatting, with the line feed after '-u' is required
+when running tests in Python 3. The regex that formats unicode refs as
+strings is fooled by the example. We need to break the line as a work
+around.
 
 Command specs cannot be empty:
 

@@ -3,7 +3,7 @@
 The `hello` package is used to test some basic functionality without
 actually training anything.
 
-    >>> quiet("guild install hello --upgrade")
+    >>> quiet("guild install hello --pre")
 
 Once installed we have a `hello` model:
 
