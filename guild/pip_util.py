@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import logging
+import os
 import re
 
 from pip.commands.download import DownloadCommand
@@ -187,7 +188,13 @@ def download_url(url, download_dir, sha256=None):
         actual = e.gots["sha256"].hexdigest()
         raise HashMismatch(url, expected, actual)
     else:
-        return downloaded_path
+        return _ensure_expected_download_path(downloaded_path, link)
+
+def _ensure_expected_download_path(downloaded, link):
+    expected = os.path.join(os.path.dirname(downloaded), link.filename)
+    if downloaded != expected:
+        os.rename(downloaded, expected)
+    return expected
 
 def print_package_info(pkg, verbose=False, show_files=False):
     _ensure_print_package_logger()
