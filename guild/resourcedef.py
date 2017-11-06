@@ -97,6 +97,7 @@ class ResourceDef(object):
                 % (self.fullname, data))
 
     def _source_for_type(self, type, val, data):
+        data = self._coerce_source_data(data)
         if type == "file":
             return ResourceSource(self, "file:%s" % val, **data)
         elif type == "url":
@@ -104,17 +105,24 @@ class ResourceDef(object):
         else:
             raise AssertionError(type, val, data)
 
+    @staticmethod
+    def _coerce_source_data(data):
+        return {
+            name.replace("-", "_"): data[name]
+            for name in data
+        }
+
 class ResourceSource(object):
 
     def __init__(self, resdef, uri, sha256=None, unpack=True,
-                 type=None, extract=None, **kw):
+                 archive_type=None, archive_path=None, **kw):
         self.resdef = resdef
         self.uri = uri
         self._parsed_uri = None
         self.sha256 = sha256
         self.unpack = unpack
-        self.type = type
-        self.extract = extract
+        self.archive_type = archive_type
+        self.archive_path = archive_path
         for key in kw:
             log.warning(
                 "unexpected source attribute '%s' in resource '%s'",
