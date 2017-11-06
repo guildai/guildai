@@ -138,7 +138,7 @@ class Operation(object):
         self._run.write_attr("stopped", self._stopped)
 
 def _init_cmd_args(opdef):
-    python_args = [_python_cmd(opdef), "-um", "guild.op_main"]
+    python_args = [_python_cmd(opdef), "-u", _run_script_path()]
     cmd_args = _split_cmd(opdef.cmd)
     if not cmd_args:
         raise InvalidCmd(opdef.cmd)
@@ -149,7 +149,10 @@ def _python_cmd(_opdef):
     # TODO: This is an important operation that should be controlled
     # by the model (e.g. does it run under Python 2 or 3, etc.) and
     # not by whatever Python runtime is configured in the user env.
-    return "python"
+    return sys.executable
+
+def _run_script_path():
+    return os.path.join(os.path.dirname(__file__), "scripts", "run")
 
 def _split_cmd(cmd):
     if isinstance(cmd, list):

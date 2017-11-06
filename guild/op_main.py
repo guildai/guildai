@@ -107,21 +107,32 @@ def _handle_system_exit(e):
         sys.stderr.write("\n")
         sys.exit(1)
 
-def _try_module(module_name, args):
-    log.debug("finding module '%s'", module_name)
+def _try_module(module_spec, args):
+    package_path, module_path = _split_module(module_spec)
+    if package_path:
+        log.debug("using package path '%s'", package_path)
+        sys.path.insert(0, package_path)
+    log.debug("finding module '%s'", module_path)
     try:
-        module_info = imp.find_module(module_name)
+        module_info = imp.find_module(module_path)
     except ImportError as e:
         _error(str(e))
     else:
         _set_argv_for_module(module_info, args)
-        _load_module_as_main(module_info)
+        _module_main(module_info)
+
+def _split_module(spec):
+    parts = spec.rsplit("/", 1)
+    if len(parts) == 2:
+        return parts[0], parts[1].replace(".", os.path.pathsep)
+    else:
+        return None, parts[0].replace(".", os.path.pathsep)
 
 def _set_argv_for_module(module_info, args):
     _, path, _ = module_info
     sys.argv = [path] + args
 
-def _load_module_as_main(module_info):
+def _module_main(module_info):
     f, path, desc = module_info
     log.debug("loading module from '%s'", path)
     imp.load_module("__main__", f, path, desc)
@@ -147,6 +158,3 @@ def _profile_main():
         sys.stderr.write(
             "Use 'python -m pstats %s' or 'snakeviz %s' "
             "to view stats\n" % (tmp, tmp))
-
-if __name__ == "__main__":
-    main()
