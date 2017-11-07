@@ -137,6 +137,7 @@ def _no_such_operation_error(name, model):
 
 def _init_op(opdef, model, args):
     _apply_arg_flags(args, opdef)
+    _validate_opdef_flags(opdef)
     _apply_arg_disable_plugins(args, opdef)
     if args.run_dir:
         cli.note(
@@ -155,6 +156,18 @@ def _parse_flag(s):
         return parts[0], None
     else:
         return parts
+
+def _validate_opdef_flags(opdef):
+    vals = opdef.flag_values()
+    missing = []
+    for flag in opdef.flags:
+        if flag.required and not vals.get(flag.name):
+            missing.append(flag.name)
+    if missing:
+        cli.error(
+            "operation '%s' requires the following missing flags: %s\n"
+            "Try again specifying each missing flag with a NAME=VAL argument."
+            % (opdef.fullname, ", ".join(missing)))
 
 def _apply_arg_disable_plugins(args, opdef):
     if args.disable_plugins:
