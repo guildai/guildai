@@ -141,7 +141,7 @@ class Training(object):
 
     def write_lock(self):
         with open(self.run.guild_path("LOCK.remote"), "w") as f:
-            f.write("plugin:cloudml")
+            f.write("cloudml:job:%s" % self.job_name)
 
     def watch_logs(self):
         args = [
