@@ -73,7 +73,7 @@ class Operation(object):
 
     def _init_run(self):
         if self._rundir:
-            run_id = os.path.basename(self._rundir)
+            run_id = _rundir_hash(self._rundir)
             path = self._rundir
         else:
             run_id = guild.run.mkid()
@@ -122,6 +122,7 @@ class Operation(object):
         env = {}
         env.update(self.cmd_env)
         env["RUNDIR"] = self._run.path
+        env["RUNID"] = self._run.id
         return env
 
     def _wait_for_proc(self):
@@ -236,6 +237,10 @@ def _runfile_paths():
 
 def _is_runfile_pkg(path):
     return os.path.split(path)[-1] in OP_RUNFILES
+
+def _rundir_hash(path):
+    import md5
+    return md5.md5(path).hexdigest()
 
 def _write_proc_lock(proc, run):
     with open(run.guild_path("LOCK"), "w") as f:
