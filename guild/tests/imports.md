@@ -91,6 +91,7 @@
     guild.plugins.memory
     guild.plugins.python_util
     guild.plugins.tensorflow_util
+    guild.plugins.training_pkg_main
     guild.resolve
     guild.resource
     guild.resourcedef
