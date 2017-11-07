@@ -4,6 +4,7 @@ py_library(
     name = "plugins",
     srcs = ["__init__.py"],
     deps = [
+        ":cloudml",
         ":cpu",
         ":disk",
         ":gpu",
@@ -13,12 +14,29 @@ py_library(
 )
 
 py_library(
-    name = "tensorflow_util",
-    srcs = ["tensorflow_util.py"],
+    name = "cloudml",
+    srcs = ["cloudml.py"],
     deps = [
-        "//third_party:tensorflow",
         "//guild:plugin",
-        ":python_util",
+        "//guild:plugin_util",
+    ],
+)
+
+py_library(
+    name = "cpu",
+    srcs = ["cpu.py"],
+    deps = [
+        "//third_party:psutil",
+        ":tensorflow_util",
+    ],
+)
+
+py_library(
+    name = "disk",
+    srcs = ["disk.py"],
+    deps = [
+        "//third_party:psutil",
+        ":tensorflow_util",
     ],
 )
 
@@ -41,26 +59,8 @@ py_library(
 )
 
 py_library(
-    name = "cpu",
-    srcs = ["cpu.py"],
-    deps = [
-        "//third_party:psutil",
-        ":tensorflow_util",
-    ],
-)
-
-py_library(
     name = "memory",
     srcs = ["memory.py"],
-    deps = [
-        "//third_party:psutil",
-        ":tensorflow_util",
-    ],
-)
-
-py_library(
-    name = "disk",
-    srcs = ["disk.py"],
     deps = [
         "//third_party:psutil",
         ":tensorflow_util",
@@ -71,5 +71,15 @@ py_library(
     name = "python_util",
     srcs = ["python_util.py"],
     deps = [
+    ],
+)
+
+py_library(
+    name = "tensorflow_util",
+    srcs = ["tensorflow_util.py"],
+    deps = [
+        "//third_party:tensorflow",
+        "//guild:plugin",
+        ":python_util",
     ],
 )

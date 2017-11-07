@@ -15,7 +15,8 @@ ensure we are only working with built-ins:
 Use `iter_plugins` to iterate through the list of available plugins:
 
     >>> sorted(guild.plugin.iter_plugins())
-    [('cpu', <guild.plugins.cpu.CPUPlugin object ...>),
+    [('cloudml', <guild.plugins.cloudml.CloudMLPlugin object ...>),
+     ('cpu', <guild.plugins.cpu.CPUPlugin object ...>),
      ('disk', <guild.plugins.disk.DiskPlugin object ...>),
      ('gpu', <guild.plugins.gpu.GPUPlugin object ...>),
      ('keras', <guild.plugins.keras.KerasPlugin object ...>),

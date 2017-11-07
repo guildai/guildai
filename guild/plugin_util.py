@@ -43,5 +43,4 @@ def current_run():
     path = os.getenv("RUNDIR")
     if not path:
         raise NoCurrentRun()
-    run_id = os.path.basename(path)
-    return guild.run.Run(run_id, path)
+    return guild.run.Run(os.getenv("RUNID"), path)
