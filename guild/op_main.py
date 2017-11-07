@@ -88,12 +88,13 @@ def _run_plugin_op(plugin, op_spec, args):
     log.debug("running plugin op '@%s:%s' %r", plugin.name, op_spec, args)
     try:
         plugin.run_op(op_spec, args)
-    except TypeError:
-        if log.getEffectiveLevel() <= logging.DEBUG:
-            log.exception("plugin run op")
-        _error(
-            "plugin '%s' does not support operation '%s'"
-            % (plugin.name, op_spec))
+    except Exception as e:
+        from guild.plugin import NotSupported # expensive
+        if isinstance(e, NotSupported):
+            _error(
+                "plugin '%s' does not support operation '%s'"
+                % (plugin.name, op_spec))
+        raise
     except SystemExit as e:
         _handle_system_exit(e)
 
