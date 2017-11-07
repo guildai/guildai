@@ -143,6 +143,16 @@ class Training(object):
         with open(self.run.guild_path("LOCK.remote"), "w") as f:
             f.write("plugin:cloudml")
 
+    def watch_logs(self):
+        args = [
+            "/usr/bin/gcloud", "ml-engine", "jobs",
+            "stream-logs", self.job_name
+        ]
+        try:
+            subprocess.call(args)
+        except KeyboardInterrupt:
+            pass
+
 class CloudMLPlugin(plugin.Plugin):
 
     def enabled_for_op(self, op):
@@ -164,3 +174,4 @@ class CloudMLPlugin(plugin.Plugin):
         training.init_package()
         training.submit_job()
         training.write_lock()
+        training.watch_logs()
