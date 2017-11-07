@@ -72,11 +72,10 @@ class Operation(object):
         return self._exit_status
 
     def _init_run(self):
+        run_id = guild.run.mkid()
         if self._rundir:
-            run_id = _rundir_hash(self._rundir)
             path = self._rundir
         else:
-            run_id = guild.run.mkid()
             path = os.path.join(var.runs_dir(), run_id)
         self._run = guild.run.Run(run_id, path)
         log.debug("initializing run in %s", path)
@@ -237,10 +236,6 @@ def _runfile_paths():
 
 def _is_runfile_pkg(path):
     return os.path.split(path)[-1] in OP_RUNFILES
-
-def _rundir_hash(path):
-    import md5
-    return md5.md5(path).hexdigest()
 
 def _write_proc_lock(proc, run):
     with open(run.guild_path("LOCK"), "w") as f:
