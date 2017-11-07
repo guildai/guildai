@@ -85,7 +85,6 @@ def _ensure_patch_pip_get_entry_points():
 
 def _pip_get_entrypoints_patch(filename):
     """See `_ensure_pip_get_entrypoints_patch` for details."""
-    import os
     from pip._vendor.six import StringIO
     from pip._vendor import pkg_resources
 
