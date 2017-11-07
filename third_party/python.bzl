@@ -13,8 +13,8 @@ def guild_python_workspace():
         urls = [
             "https://github.com/guildai/click/archive/1520fa44dcbe20ebed03f634ddfdffe48c46a799.zip"
         ],
-        strip_prefix = "click-1520fa44dcbe20ebed03f634ddfdffe48c46a799",
-        sha256 = "cdc599a630613e905770d5d4e87d67a160618541de565d0dc267f11202ca1670",
+        strip_prefix = "_click-1520fa44dcbe20ebed03f634ddfdffe48c46a799",
+        sha256 = "82744d5595e477b8a74347c4a872d9e8280502ca91badae080e2dd60075ac57f",
     )
 
     # We're building native extensions for our binary releases.
