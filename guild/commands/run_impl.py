@@ -162,12 +162,21 @@ def _validate_opdef_flags(opdef):
     missing = []
     for flag in opdef.flags:
         if flag.required and not vals.get(flag.name):
-            missing.append(flag.name)
+            missing.append(flag)
     if missing:
-        cli.error(
-            "operation '%s' requires the following missing flags: %s\n"
-            "Try again specifying each missing flag with a NAME=VAL argument."
-            % (opdef.fullname, ", ".join(missing)))
+        cli.out(
+            "Operation '%s' requires the following missing flags:\n"
+            % opdef.fullname, err=True)
+        cli.table(
+            [{"name": flag.name, "desc": flag.description}
+             for flag in missing],
+            ["name", "desc"],
+            indent=2,
+            err=True)
+        cli.out(
+            "\nRun the command again with missing flags specified as NAME=VAL.",
+            err=True)
+        cli.error()
 
 def _apply_arg_disable_plugins(args, opdef):
     if args.disable_plugins:
