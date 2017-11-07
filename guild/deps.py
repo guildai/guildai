@@ -92,12 +92,12 @@ class Resource(object):
         archive_type = self._archive_type(source_path, source)
         if not archive_type:
             return None
-        return self._unpack(source_path, archive_type, source.archive_path)
+        return self._unpack(source_path, archive_type, source.select)
 
     @staticmethod
     def _archive_type(source_path, source):
-        if source.archive_type:
-            return source.archive_type
+        if source.type:
+            return source.type
         parts = source_path.lower().split(".")
         if parts[-1] == "zip":
             return "zip"
