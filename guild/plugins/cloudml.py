@@ -68,23 +68,14 @@ class Training(object):
         self.run.write_attr("cloudml-job-name", self.job_name)
         self.run.write_attr("cloudml-job-dir", self.job_dir)
 
-    def upload_data(self):
-        src = self.run.path
-        dest = self.job_dir
-        subprocess.check_call(
-            ["/usr/bin/gsutil", "-m", "cp", "-r", src, dest])
-        # Work around for gutils decision to not follow links
-        # inrecursive copies (see
-        # https://github.com/GoogleCloudPlatform/gsutil/issues/412)
-        for root, dirs, _files in os.walk(src):
-            for name in dirs:
-                dir_path = os.path.join(root, name)
-                if os.path.islink(dir_path):
-                    rel_path = dir_path[len(src):]
-                    dest_dir_path = dest + rel_path
-                    subprocess.check_call(
-                        ["/usr/bin/gsutil", "-m", "cp", "-r",
-                         dir_path, dest_dir_path])
+    def upload_files(self):
+        for name in os.listdir(self.run.path):
+            if name == ".guild":
+                continue
+            src = os.path.join(self.run.path, name)
+            dest = self.job_dir + "/" + name
+            subprocess.check_call(
+                ["/usr/bin/gsutil", "-m", "cp", "-r", src, dest])
 
     def init_package(self):
         env = {
@@ -146,12 +137,21 @@ class Training(object):
     def watch_logs(self):
         args = [
             "/usr/bin/gcloud", "ml-engine", "jobs",
-            "stream-logs", self.job_name
+            "stream-logs", "--polling-interval", "10",
+            self.job_name
         ]
         try:
             subprocess.call(args)
         except KeyboardInterrupt:
             pass
+
+    def download_files(self):
+        subprocess.check_call(
+            ["/usr/bin/gsutil", "-m", "rsync", "-r",
+             self.job_dir, self.run.path])
+
+    def delete_lock(self):
+        os.remove(self.run.guild_path("LOCK.remote"))
 
 class CloudMLPlugin(plugin.Plugin):
 
@@ -170,8 +170,10 @@ class CloudMLPlugin(plugin.Plugin):
     def _train(self, args):
         training = Training(args, self.log)
         training.write_run_attrs()
-        training.upload_data()
+        training.upload_files()
         training.init_package()
         training.submit_job()
         training.write_lock()
         training.watch_logs()
+        training.download_files()
+        training.delete_lock()
