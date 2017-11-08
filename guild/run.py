@@ -30,16 +30,19 @@ class Run(object):
         "path",
         "short_id",
         "pid",
-        "status",
-        "extended_status"
+        "status"
     ]
 
     def __init__(self, id, path):
         self.id = id
-        self.short_id = id[:8]
         self.path = path
         self._guild_dir = os.path.join(self.path, ".guild")
 
+    @property
+    def short_id(self):
+        return self.id[:8]
+
+    @property
     def pid(self):
         lockfile = self.guild_path("LOCK")
         try:
@@ -49,29 +52,18 @@ class Run(object):
         else:
             return int(raw)
 
+    @property
     def status(self):
-        pid = self.pid()
+        pid = self.pid
         if pid is None:
-            return "stopped"
-        elif guild.util.pid_exists(pid):
-            return "running"
-        else:
-            return "crashed"
-
-    def extended_status(self):
-        """Uses exit_status to extend the status to include error or success."""
-        base_status = self.status()
-        if base_status == "running":
-            return "running"
-        elif base_status == "crashed":
-            return "terminated"
-        elif base_status == "stopped":
             if self.get("exit_status") == 0:
                 return "completed"
             else:
                 return "error"
+        elif guild.util.pid_exists(pid):
+            return "running"
         else:
-            raise AssertionError(base_status)
+            return "terminated"
 
     def get(self, name, default=None):
         try:

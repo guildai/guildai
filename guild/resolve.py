@@ -104,8 +104,8 @@ class OperationOutputResolver(Resolver):
         resolved_opref = self._fully_resolve_opref(opref)
         completed_op_runs = var.run_filter("all", [
             var.run_filter("any", [
-                var.run_filter("attr", "extended_status", "completed"),
-                var.run_filter("attr", "extended_status", "running"),
+                var.run_filter("attr", "status", "completed"),
+                var.run_filter("attr", "status", "running"),
             ]),
             resolved_opref.is_op_run])
         runs = var.runs(sort=["-started"], filter=completed_op_runs)

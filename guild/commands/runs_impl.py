@@ -80,12 +80,12 @@ def _apply_status_filter(args, filters):
         # Special case, filter on any of "terminated" or "error"
         filters.append(
             var.run_filter("any", [
-                var.run_filter("attr", "extended_status", "terminated"),
-                var.run_filter("attr", "extended_status", "error"),
+                var.run_filter("attr", "status", "terminated"),
+                var.run_filter("attr", "status", "error"),
             ]))
     else:
         filters.append(
-            var.run_filter("attr", "extended_status", status))
+            var.run_filter("attr", "status", status))
 
 def _apply_model_filter(args, filters):
     cwd_modelfile = cmd_impl_support.cwd_modelfile()
@@ -140,8 +140,8 @@ def format_run(run, index=None):
         "op_name": run.opref.op_name,
         "operation": _format_op_desc(run.opref),
         "pkg": run.opref.pkg_name,
-        "status": run.extended_status(),
-        "pid": run.pid() or "(not running)",
+        "status": run.status,
+        "pid": run.pid or "(not running)",
         "started": _format_timestamp(run.get("started")),
         "stopped": _format_timestamp(run.get("stopped")),
         "rundir": run.path,
