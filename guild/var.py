@@ -118,7 +118,8 @@ def _run_attr_cmp(x, y, attr):
 
 def _run_attr(run, name):
     if name in guild.run.Run.__properties__:
-        return getattr(run, name)
+        val = getattr(run, name)
+        return val() if callable(val) else val
     else:
         return run.get(name)
 
