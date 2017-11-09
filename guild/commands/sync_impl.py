@@ -19,19 +19,43 @@ import logging
 
 import guild.plugin
 
+from guild import cli
 from . import runs_impl
 
 log = logging.getLogger("core")
 
 def main(args):
-    for run in runs_impl.runs_for_args(args):
-        _maybe_sync_run(run)
+    runs = _runs(args)
+    if args.watch:
+        _watch(runs)
+    else:
+        for run in runs:
+            _maybe_sync_run(run, False)
 
-def _maybe_sync_run(run):
+def _runs(args):
+    runs = runs_impl.runs_for_args(args)
+    if not args.runs:
+        return runs
+    return runs_impl.selected_runs(runs, args.runs)
+
+def _watch(runs):
+    if not runs:
+        cli.error(
+            "cannot find any runs to watch\n"
+            "Try 'guild runs list' for a list of runs.")
+    if len(runs) > 1:
+        cli.error(
+            "--watch may only be used with one run (found %i)\n"
+            "Try 'guild runs list' and specify the ID of the run you want to watch."
+            % len(runs))
+    assert len(runs) == 1, runs
+    _maybe_sync_run(runs[0], True)
+
+def _maybe_sync_run(run, watch):
     remote_lock = _remote_lock_for_run(run)
     if remote_lock:
         plugin_name, lock_config = _parse_remote_lock(remote_lock)
-        _try_sync(run, plugin_name, lock_config)
+        _try_sync(run, plugin_name, lock_config, watch)
 
 def _remote_lock_for_run(run):
     try:
@@ -48,7 +72,7 @@ def _parse_remote_lock(raw):
     else:
         return parts[0], parts[1]
 
-def _try_sync(run, plugin_name, lock_config):
+def _try_sync(run, plugin_name, lock_config, watch):
     try:
         plugin = guild.plugin.for_name(plugin_name)
     except LookupError:
@@ -56,4 +80,8 @@ def _try_sync(run, plugin_name, lock_config):
             "error syncing run '%s': plugin '%s' not available",
             run.id, plugin_name)
     else:
-        plugin.sync_run(run, lock_config)
+        kw = dict(
+            lock_config=lock_config,
+            watch=watch,
+        )
+        plugin.sync_run(run, **kw)

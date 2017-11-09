@@ -397,6 +397,8 @@ py_library(
     name = "sync_impl",
     srcs = ["sync_impl.py"],
     deps = [
+        "//guild:cli",
+        "//guild:plugin",
         ":runs_impl",
     ],
 )

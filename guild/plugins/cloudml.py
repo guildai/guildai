@@ -30,6 +30,7 @@ from guild import util
 
 BACKGROUND_SYNC_INTERVAL = 60
 BACKGROUND_SYNC_STOP_TIMEOUT = 10
+WATCH_POLLING_INTERVAL = 5
 
 class Train(object):
 
@@ -76,7 +77,6 @@ class Train(object):
         self._init_package()
         self._submit_job()
         self._write_lock()
-        self._watch_logs()
         self._sync()
 
     def _write_run_attrs(self):
@@ -153,45 +153,60 @@ class Train(object):
         with open(self.run.guild_path("LOCK.remote"), "w") as f:
             f.write("cloudml")
 
-    def _watch_logs(self):
-        args = [
-            "/usr/bin/gcloud", "ml-engine", "jobs",
-            "stream-logs", "--polling-interval", "10",
-            self.job_name
-        ]
-        background_sync = BackgroundSync(self.run, self.log)
-        background_sync.start()
-        try:
-            subprocess.check_call(args)
-        except KeyboardInterrupt:
-            cli.out("Stopping job monitor")
-        finally:
-            background_sync.stop()
-            sys.stdout.write("\n")
-            sys.stdout.flush()
-
     def _sync(self):
-        sync = Sync(self.run, self.log)
+        sync = Sync(self.run, True, self.log)
         sync()
-
-class BackgroundSync(util.LoopingThread):
-
-    def __init__(self, run, log):
-        sync = Sync(run, log)
-        super(BackgroundSync, self).__init__(
-            cb=sync.__call__,
-            interval=BACKGROUND_SYNC_INTERVAL,
-            stop_timeout=BACKGROUND_SYNC_STOP_TIMEOUT)
 
 class Sync(object):
 
-    def __init__(self, run, log):
+    def __init__(self, run, watch, log):
         self.run = run
+        self.watch = watch
         self.log = log
+        self._sync_run = False
 
     def __call__(self):
+        if self.watch:
+            self._watch()
+        else:
+            self._run_once()
+
+    def _watch(self):
+        job_name = self.run.get("cloudml-job-name")
+        if not job_name:
+            self.log.error(
+                "cloudml-job-name not defined for run %s, cannot watch job",
+                self.run.id)
+            return
+        background_sync = util.LoopingThread(
+            self._run_once,
+            interval=BACKGROUND_SYNC_INTERVAL,
+            stop_timeout=BACKGROUND_SYNC_STOP_TIMEOUT)
+        background_sync.start()
+        args = [
+            "/usr/bin/gcloud", "ml-engine", "jobs", "stream-logs",
+            "--polling-interval", str(WATCH_POLLING_INTERVAL),
+            job_name
+        ]
+        try:
+            subprocess.check_call(args)
+        except KeyboardInterrupt:
+            pass
+        finally:
+            self._sync_run = False
+            background_sync.stop()
+            self._maybe_sync_after_watch()
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+
+    def _maybe_sync_after_watch(self):
+        if not self._sync_run:
+            self._run_once()
+
+    def _run_once(self):
         self._sync_files()
         self._sync_status()
+        self._sync_run = True
 
     def _sync_files(self):
         job_dir = self.run.get("cloudml-job-dir")
@@ -280,6 +295,6 @@ class CloudMLPlugin(plugin.Plugin):
         train = Train(args, self.log)
         train()
 
-    def sync_run(self, run, _lock_config):
-        sync = Sync(run, self.log)
+    def sync_run(self, run, watch=False, **_kw):
+        sync = Sync(run, watch, self.log)
         sync()

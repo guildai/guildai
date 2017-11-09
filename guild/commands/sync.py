@@ -23,6 +23,10 @@ from . import runs_support
 @click.command(name="sync")
 @click.argument("runs", metavar="[RUN...]", nargs=-1)
 @runs_support.run_scope_options
+@click.option(
+    "-w", "--watch",
+    is_flag=True,
+    help="Watch a remote run and synchronize in the background.")
 
 @click_util.use_args
 
