@@ -45,6 +45,16 @@ RUN_DETAIL = [
 
 ALL_RUNS_ARG = [":"]
 
+CORE_RUN_ATTRS = [
+    "cmd",
+    "env",
+    "exit_status",
+    "flags",
+    "opref",
+    "started",
+    "stopped",
+]
+
 def list_runs(args):
     runs = runs_for_args(args)
     formatted = [
@@ -94,8 +104,9 @@ def _apply_model_filter(args, filters):
             _notify_runs_limited()
             modelfile_dir = os.path.abspath(cwd_modelfile.dir)
             filters.append(_cwd_run_filter(modelfile_dir))
-    if args.models:
-        filters.append(_model_run_filter(args.models))
+    models = getattr(args, "models", [])
+    if models:
+        filters.append(_model_run_filter(models))
 
 def _notify_runs_limited():
     cli.note_once(
@@ -349,6 +360,9 @@ def run_info(args, ctx):
     out = cli.out
     for name in RUN_DETAIL:
         out("%s: %s" % (name, formatted[name]))
+    for name in run.attr_names():
+        if name not in CORE_RUN_ATTRS:
+            out("%s: %s" % (name, run.get(name, "")))
     if args.env:
         out("environment:", nl=False)
         out(_format_attr_val(run.get("env", "")))

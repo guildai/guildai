@@ -74,8 +74,11 @@ class Run(object):
         except KeyError:
             return default
 
+    def attr_names(self):
+        return sorted(os.listdir(self._attrs_dir()))
+
     def iter_attrs(self):
-        for name in sorted(os.listdir(self._attrs_dir())):
+        for name in self.attr_names():
             try:
                 yield name, self[name]
             except KeyError:
