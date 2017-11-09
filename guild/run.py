@@ -54,6 +54,9 @@ class Run(object):
 
     @property
     def status(self):
+        remote_lock = self.guild_path("LOCK.remote")
+        if os.path.exists(remote_lock):
+            return "running"
         pid = self.pid
         if pid is None:
             if self.get("exit_status") == 0:

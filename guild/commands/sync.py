@@ -20,31 +20,14 @@ import click
 from guild import click_util
 from . import runs_support
 
-@click.command(name="tensorboard, tb")
+@click.command(name="sync")
 @click.argument("runs", metavar="[RUN...]", nargs=-1)
 @runs_support.run_scope_options
-@runs_support.run_filters
-@click.option(
-    "--host",
-    help="Name of host interface to listen on.")
-@click.option(
-    "--port",
-    help="Port to listen on.",
-    type=click.IntRange(0, 65535))
-@click.option(
-    "--refresh-interval",
-    help="Refresh interval (defaults to 5 seconds).",
-    type=click.IntRange(1, None),
-    default=5)
-@click.option(
-    "-n", "--no-open",
-    help="Don't open the TensorBoard URL in a brower.",
-    is_flag=True)
 
 @click_util.use_args
 
-def tensorboard(args):
-    """Visualize runs with TensorBoard.
+def sync(args):
+    """Synchronize remote runs.
     """
-    from . import tensorboard_impl
-    tensorboard_impl.main(args)
+    from . import sync_impl
+    sync_impl.main(args)

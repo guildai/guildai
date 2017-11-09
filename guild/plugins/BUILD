@@ -17,8 +17,10 @@ py_library(
     name = "cloudml",
     srcs = ["cloudml.py"],
     deps = [
+        "//guild:cli",
         "//guild:plugin",
         "//guild:plugin_util",
+        "//guild:util",
     ],
 )
 

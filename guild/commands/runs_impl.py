@@ -222,18 +222,18 @@ def _runs_op(args, ctx, force_delete, preview_msg, confirm_prompt,
     if args.yes or cli.confirm(confirm_prompt):
         op_callback(selected)
 
-def selected_runs(all_runs, selected_specs, ctx):
+def selected_runs(runs, select_specs, ctx=None):
     selected = []
-    for spec in selected_specs:
+    for spec in select_specs:
         try:
             slice_start, slice_end = _parse_slice(spec)
         except ValueError:
-            selected.append(_find_run_by_id(spec, all_runs, ctx))
+            selected.append(_find_run_by_id(spec, runs, ctx))
         else:
-            if _in_range(slice_start, slice_end, all_runs):
-                selected.extend(all_runs[slice_start:slice_end])
+            if _in_range(slice_start, slice_end, runs):
+                selected.extend(runs[slice_start:slice_end])
             else:
-                selected.append(_find_run_by_id(spec, all_runs, ctx))
+                selected.append(_find_run_by_id(spec, runs, ctx))
     return selected
 
 def _parse_slice(spec):
@@ -274,10 +274,13 @@ def _find_run_by_id(id_part, runs, ctx):
         return matches[0]
 
 def _no_matching_run_error(id_part, ctx):
+    help_msg = (
+        " or '%s' for more information" % click_util.cmd_help(ctx)
+        if ctx else "")
     cli.error(
         "could not find run matching '%s'\n"
-        "Try 'guild runs list' for a list or '%s' for more information."
-        % (id_part, click_util.cmd_help(ctx)))
+        "Try 'guild runs list' for a list%s."
+        % (id_part, help_msg))
 
 def _non_unique_run_id_error(matches):
     cli.out("'%s' matches multiple runs:\n", err=True)

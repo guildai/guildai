@@ -19,6 +19,7 @@ import errno
 import os
 import sys
 import time
+import threading
 
 OS_ENVIRON_BLACKLIST = [
     "PYTHONPATH", # unsafe - must be set explicitly
@@ -122,6 +123,29 @@ def _sleep_interval(interval, start):
         ((now_ms - start_ms) // interval_ms + 1)
         * interval_ms + start_ms - now_ms)
     return sleep_ms / 1000
+
+class LoopingThread(threading.Thread):
+
+    def __init__(self, cb, interval, first_interval=None, stop_timeout=0):
+        super(LoopingThread, self).__init__()
+        self._cb = cb
+        self._interval = interval
+        self._first_interval = first_interval
+        self._stop_timeout = stop_timeout
+        self._stop = threading.Event()
+        self._stopped = threading.Event()
+
+    def run(self):
+        loop(
+            cb=self._cb,
+            wait=self._stop.wait,
+            interval=self._interval,
+            first_interval=self._first_interval)
+        self._stopped.set()
+
+    def stop(self):
+        self._stop.set()
+        self._stopped.wait(self._stop_timeout)
 
 def safe_osenv():
     return {

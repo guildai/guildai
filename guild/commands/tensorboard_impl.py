@@ -17,7 +17,6 @@ from __future__ import division
 
 import logging
 import os
-import threading
 
 from guild import cli
 from guild import util
@@ -28,7 +27,7 @@ log = logging.getLogger("core")
 
 MIN_MONITOR_INTERVAL = 5
 
-class RunsMonitor(threading.Thread):
+class RunsMonitor(util.LoopingThread):
 
     STOP_TIMEOUT = 5
 
@@ -40,30 +39,19 @@ class RunsMonitor(threading.Thread):
         during this call. Similar errors occuring after the monitor is
         started will be logged but will not propagate.
         """
-        super(RunsMonitor, self).__init__()
+        interval = min(args.refresh_interval, MIN_MONITOR_INTERVAL)
+        super(RunsMonitor, self).__init__(
+            cb=self.run_once,
+            interval=interval,
+            stop_timeout=self.STOP_TIMEOUT)
         self.logdir = logdir
         self.args = args
         self.run_once(exit_on_error=True)
-        self._stop = threading.Event()
-        self._stopped = threading.Event()
-
-    def run(self):
-        util.loop(
-            cb=self.run_once,
-            wait=self._stop.wait,
-            interval=min(self.args.refresh_interval,
-                         MIN_MONITOR_INTERVAL),
-            first_interval=self.args.refresh_interval)
-        self._stopped.set()
-
-    def stop(self):
-        self._stop.set()
-        self._stopped.wait(self.STOP_TIMEOUT)
 
     def run_once(self, exit_on_error=False):
         log.debug("Refreshing runs")
         try:
-            runs = runs_impl.runs_for_args(self.args)
+            runs = self._runs()
         except SystemExit as e:
             if exit_on_error:
                 raise
@@ -73,6 +61,12 @@ class RunsMonitor(threading.Thread):
             log.debug(e)
         else:
             self._refresh_run_links(runs)
+
+    def _runs(self):
+        runs = runs_impl.runs_for_args(self.args)
+        if not self.args.runs:
+            return runs
+        return runs_impl.selected_runs(runs, self.args.runs)
 
     def _refresh_run_links(self, runs):
         to_delete = os.listdir(self.logdir)

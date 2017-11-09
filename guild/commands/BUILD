@@ -74,6 +74,7 @@ py_library(
         ":runs",
         ":search",
         ":shell",
+        ":sync",
         ":tensorboard",
         ":train",
         ":uninstall",
@@ -378,6 +379,25 @@ py_library(
     srcs = ["shell_impl.py"],
     deps = [
         "//guild:util",
+    ],
+)
+
+py_library(
+    name = "sync",
+    srcs = ["sync.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:click_util",
+        ":runs_support",
+        ":sync_impl",
+    ],
+)
+
+py_library(
+    name = "sync_impl",
+    srcs = ["sync_impl.py"],
+    deps = [
+        ":runs_impl",
     ],
 )
 

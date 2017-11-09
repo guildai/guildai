@@ -67,8 +67,8 @@ class EntryPointResources(object):
     def one_for_name(self, name):
         try:
             return next(self.for_name(name))
-        except GeneratorExit:
-            raise ValueError()
+        except StopIteration:
+            raise LookupError(name)
 
     def for_name(self, name):
         try:

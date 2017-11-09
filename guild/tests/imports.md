@@ -59,6 +59,8 @@
     guild.commands.search_impl
     guild.commands.shell
     guild.commands.shell_impl
+    guild.commands.sync
+    guild.commands.sync_impl
     guild.commands.tensorboard
     guild.commands.tensorboard_impl
     guild.commands.tensorflow_info_main
