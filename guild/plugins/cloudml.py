@@ -54,12 +54,7 @@ class Train(object):
         self.run = plugin_util.current_run()
         self.job_name = job_args.job_name or self._job_name()
         self.job_dir = "gs://%s/%s" % (job_args.bucket_name, self.job_name)
-        self.runtime_version = job_args.runtime_version
-        self.module_name = job_args.module_name
-        self.package_path = job_args.package_path
-        self.region = job_args.region
-        self.scale_tier = job_args.scale_tier
-        self.config = job_args.config
+        self.args = job_args
         self.flag_args = flag_args
         self.package_name = self._package_name()
         self.package_version = self._package_version()
@@ -139,17 +134,17 @@ class Train(object):
             "submit", "training", self.job_name,
             "--job-dir", self.job_dir,
             "--packages", self._find_package_name(),
-            "--module-name", self.module_name,
-            "--region", self.region,
+            "--module-name", self.args.module_name,
+            "--region", self.args.region,
         ]
-        if self.runtime_version:
-            args.extend(["--runtime-version", self.runtime_version])
-        if self.package_path:
-            args.extend(["--package-path", self.package_path])
-        if self.scale_tier:
-            args.extend(["--scale-tier", self.scale_tier])
-        if self.config:
-            args.extend(["--config", self.config])
+        if self.args.runtime_version:
+            args.extend(["--runtime-version", self.args.runtime_version])
+        if self.args.package_path:
+            args.extend(["--package-path", self.args.package_path])
+        if self.args.scale_tier:
+            args.extend(["--scale-tier", self.args.scale_tier])
+        if self.args.config:
+            args.extend(["--config", self.args.config])
         if self.flag_args:
             args.append("--")
             args.extend(self._resolved_flag_args())
@@ -189,8 +184,9 @@ class Deploy(object):
 
     def __init__(self, args, sdk, log):
         self.args = self._parse_args(args)
-        self.run = self._run()
-        self.opref = guild.opref.OpRef.from_run(self.run)
+        self.run = plugin_util.current_run()
+        self.deploying_run = self._deploying_run()
+        self.opref = guild.opref.OpRef.from_run(self.deploying_run)
         self.model_name = self.args.model or self.opref.model_name
         self.safe_model_name = _safe_name(self.model_name)
         self.region = self.args.region or self._run_region() or DEFAULT_REGION
@@ -211,12 +207,12 @@ class Deploy(object):
         args, _ = p.parse_known_args(args)
         return args
 
-    def _run(self):
+    def _deploying_run(self):
         matches = var.find_runs(self.args.run)
         if not matches:
             cli.error(
                 "cannot find a run for '%s'\n"
-                "Try 'guild runs list -a' for a list of available runs."
+                "Try 'guild runs list' for a list of available runs."
                 % self.args.run)
         elif len(matches) > 1:
             cli.error(
@@ -227,9 +223,10 @@ class Deploy(object):
         return guild.run.Run(run_id, path)
 
     def _run_region(self):
-        return self.run.get("flags", {}).get("region")
+        return self.deploying_run.get("flags", {}).get("region")
 
-    def _model_version(self):
+    @staticmethod
+    def _model_version():
         return "v_%i" % time.time()
 
     def __call__(self):
@@ -237,6 +234,7 @@ class Deploy(object):
         self._create_version()
 
     def _ensure_model(self):
+        self.run.write_attr("cloudml-model-name", self.safe_model_name)
         args = [
             self.sdk.gcloud, "ml-engine", "models", "create",
             self.safe_model_name, "--regions", self.region
@@ -254,6 +252,8 @@ class Deploy(object):
 
     def _create_version(self):
         model_binaries = self._ensure_model_binaries()
+        self.run.write_attr("cloudml-model-binaries", model_binaries)
+        self.run.write_attr("cloudml-model-version", self.model_version)
         args = [
             self.sdk.gcloud, "ml-engine", "versions", "create",
             self.model_version,
@@ -270,7 +270,7 @@ class Deploy(object):
             sys.exit(e.returncode)
 
     def _ensure_model_binaries(self):
-        job_dir = self.run.get("cloudml-job-dir")
+        job_dir = self.deploying_run.get("cloudml-job-dir")
         if not job_dir:
             return self._upload_model_binaries()
         else:
@@ -284,18 +284,19 @@ class Deploy(object):
         remote_model_binaries = "gs://%s/guild_model_%s_%s" % (
             self.args.bucket,
             self.safe_model_name,
-            os.path.basename(local_models_binaries))
+            os.path.basename(local_model_binaries))
         try:
             subprocess.check_call(
                 [self.sdk.gsutil, "-m", "rsync", "-r",
                  local_model_binaries, remote_model_binaries])
+
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
         else:
             return remote_model_binaries
 
     def _run_model_binaries_path(self):
-        servo_path = os.path.join(self.run.path, "export", "Servo")
+        servo_path = os.path.join(self.deploying_run.path, "export", "Servo")
         timestamp_dirs = (
             sorted(os.listdir(servo_path), reversed=True)
             if os.path.exists(servo_path) else [])
@@ -303,7 +304,7 @@ class Deploy(object):
             cli.error(
                 "cannot find model binaries in run %s "
                 "(expected files under export/Servo)"
-                % self.run.id)
+                % self.deploying_run.id)
         timestamp_dir = timestamp_dirs[0]
         if len(timestamp_dirs) > 1:
             self.log.warning(
@@ -430,7 +431,7 @@ class Sync(object):
                 [self.sdk.gcloud, "--format", "json", "ml-engine", "jobs",
                  "describe", job_name])
         except subprocess.CalledProcessError as e:
-            log.error("error reading job info for %s: %s", job_name, e)
+            self.log.error("error reading job info for %s: %s", job_name, e)
             return None
         else:
             return json.loads(out)
