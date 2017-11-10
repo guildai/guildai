@@ -285,6 +285,18 @@ class PackageModelResource(resource.Resource):
 class ModelImportError(ImportError):
     pass
 
+class BadModelfileDistribution(pkg_resources.Distribution):
+    """Distribution for a modelfile that can't be read."""
+
+    def __init__(self, path):
+        super(BadModelfileDistribution, self).__init__(path)
+
+    def __repr__(self):
+        return "<guild.model.BadModelfileDistribution '%s'>" % self.location
+
+    def get_entry_map(self, group=None):
+        return {}
+
 class ModelImporter(object):
 
     undef = object()
@@ -313,6 +325,10 @@ class ModelImporter(object):
             mf = modelfile.from_dir(self.path)
         except modelfile.NoModels:
             return self._plugin_model_dist()
+        except Exception as e:
+            log.warning(
+                "error loading modelfile %s: %s", self.path, e)
+            return BadModelfileDistribution(self.path)
         else:
             return ModelfileDistribution(mf)
 
