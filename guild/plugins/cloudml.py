@@ -37,6 +37,7 @@ BACKGROUND_SYNC_STOP_TIMEOUT = 10
 WATCH_POLLING_INTERVAL = 5
 
 DEFAULT_REGION = "us-central1"
+DEFAULT_RUNTIME_VERSION = "1.2"
 
 def _safe_name(s):
     return re.sub(r"[^0-9a-zA-Z]+", "_", s)
@@ -67,7 +68,7 @@ class Train(object):
         p.add_argument("--bucket-name", required=True)
         p.add_argument("--region", default=DEFAULT_REGION)
         p.add_argument("--job-name")
-        p.add_argument("--runtime-version")
+        p.add_argument("--runtime-version", default=DEFAULT_RUNTIME_VERSION)
         p.add_argument("--module-name", required=True)
         p.add_argument("--package-path")
         p.add_argument("--scale-tier")
@@ -136,9 +137,8 @@ class Train(object):
             "--packages", self._find_package_name(),
             "--module-name", self.args.module_name,
             "--region", self.args.region,
+            "--runtime-version", self.args.runtime_version,
         ]
-        if self.args.runtime_version:
-            args.extend(["--runtime-version", self.args.runtime_version])
         if self.args.package_path:
             args.extend(["--package-path", self.args.package_path])
         if self.args.scale_tier:
@@ -201,8 +201,9 @@ class Deploy(object):
         p.add_argument("--version")
         p.add_argument("--region")
         p.add_argument("--bucket")
+        p.add_argument("--model-binaries")
         p.add_argument("--model")
-        p.add_argument("--runtime-version")
+        p.add_argument("--runtime-version", default=DEFAULT_RUNTIME_VERSION)
         p.add_argument("--config")
         args, _ = p.parse_known_args(args)
         return args
@@ -230,8 +231,18 @@ class Deploy(object):
         return "v_%i" % time.time()
 
     def __call__(self):
+        self._validate_args()
         self._ensure_model()
         self._create_version()
+
+    def _validate_args(self):
+        job_dir = self.deploying_run.get("cloudml-job-dir")
+        if (not job_dir and
+            not self.args.bucket and
+            not self.args.model_binaries):
+            cli.error(
+                "missing required flags 'bucket' or 'model-binaries' (specifies "
+                "where model binaries should be uploaded for deployment)")
 
     def _ensure_model(self):
         self.run.write_attr("cloudml-model-name", self.safe_model_name)
@@ -258,10 +269,9 @@ class Deploy(object):
             self.sdk.gcloud, "ml-engine", "versions", "create",
             self.model_version,
             "--model", self.safe_model_name,
-            "--origin", model_binaries
+            "--origin", model_binaries,
+            "--runtime-version", self.args.runtime_version,
         ]
-        if self.args.runtime_version:
-            args.extend(["--runtime-version", self.args.runtime_version])
         if self.args.config:
             args.extend(["--config", self.args.config])
         try:
@@ -277,28 +287,20 @@ class Deploy(object):
             return self._job_dir_model_binaries(job_dir)
 
     def _upload_model_binaries(self):
-        local_model_binaries = self._run_model_binaries_path()
-        if not self.args.bucket:
-            cli.error(
-                "cannot upload model binaries: missing required flag 'bucket'")
-        remote_model_binaries = "gs://%s/guild_model_%s_%s" % (
-            self.args.bucket,
-            self.safe_model_name,
-            os.path.basename(local_model_binaries))
+        src = self._run_model_binaries_path()
+        dest = self._remote_model_binaries(src)
         try:
             subprocess.check_call(
-                [self.sdk.gsutil, "-m", "rsync", "-r",
-                 local_model_binaries, remote_model_binaries])
-
+                [self.sdk.gsutil, "-m", "rsync", "-r", src, dest])
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
         else:
-            return remote_model_binaries
+            return dest
 
     def _run_model_binaries_path(self):
         servo_path = os.path.join(self.deploying_run.path, "export", "Servo")
         timestamp_dirs = (
-            sorted(os.listdir(servo_path), reversed=True)
+            sorted(os.listdir(servo_path), reverse=True)
             if os.path.exists(servo_path) else [])
         if not timestamp_dirs:
             cli.error(
@@ -312,6 +314,15 @@ class Deploy(object):
                 servo_path, timestamp_dir)
         return os.path.join(servo_path, timestamp_dir)
 
+    def _remote_model_binaries(self, local_model_path):
+        # Should be validated before we get here.
+        assert self.args.bucket or self.args.model_binaries
+        return self.args.model_binaries or (
+            "gs://%s/guild_model_%s_%s" % (
+                self.args.bucket,
+                self.safe_model_name,
+                os.path.basename(local_model_path)))
+
     def _job_dir_model_binaries(self, job_dir):
         servo_path = job_dir + "/export/Servo"
         try:
@@ -320,7 +331,7 @@ class Deploy(object):
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
         else:
-            paths = sorted(out.split("\n"))
+            paths = sorted(out.split("\n"), reverse=True)
             assert (len(paths) >= 2 and
                     paths[0] == "" and
                     paths[1].endswith("/Servo/")), paths
