@@ -97,7 +97,6 @@ def _stats_cmd():
              "--query-gpu=%s" % ",".join(STATS),
         ]
 
-
 def _read_csv_lines(raw_in):
     csv_in = raw_in if sys.version_info[0] == 2 else io.TextIOWrapper(raw_in)
     return list(csv.reader(csv_in))
