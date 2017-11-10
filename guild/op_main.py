@@ -101,12 +101,14 @@ def _run_plugin_op(plugin, op_spec, args):
 def _handle_system_exit(e):
     if isinstance(e.code, tuple) and len(e.code) == 2:
         msg, code = e.code
+        sys.stderr.write("guild: ")
         sys.stderr.write(str(msg))
         sys.stderr.write("\n")
         sys.exit(code)
     elif isinstance(e.code, int):
         sys.exit(e.code)
     else:
+        sys.stderr.write("guild: ")
         sys.stderr.write(str(e.message))
         sys.stderr.write("\n")
         sys.exit(1)
