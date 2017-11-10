@@ -69,6 +69,7 @@ def _create_dist(pkg):
     sys.argv = _bdist_wheel_cmd_args(pkg)
     kw = _setup_kw(pkg)
     _write_package_metadata(kw)
+    _patch_setuptools_namespaces()
     return setuptools.setup(**kw)
 
 def _bdist_wheel_cmd_args(pkg):
@@ -222,6 +223,19 @@ def _write_package_metadata(setup_kw):
     util.ensure_dir(egg_info_dir)
     dest = os.path.join(egg_info_dir, "PACKAGE")
     shutil.copyfile(source, dest)
+
+def _patch_setuptools_namespaces():
+    """Prevent creation of *.nspkg.pth entry for packages.
+
+    Guild uses namespaces simply to tuck packages inside a namespace
+    and not for real Python package namespaces. The nspkg.pth entry
+    created by setuptools can break Python systems in some cases, so
+    we disable its creation altogether.
+
+    E.g. https://github.com/pypa/setuptools/issues/805
+    """
+    from setuptools.namespaces import Installer
+    Installer.install_namespaces = lambda *_args: None
 
 def _maybe_upload(dist):
     upload_repo = os.getenv("UPLOAD_REPO")
