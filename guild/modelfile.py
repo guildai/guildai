@@ -154,9 +154,18 @@ def _apply_includes(includes, modelfile, section_name, coerce_data,
         # Have to access modelfile.data here rather than use
         # modelfile.get because modelfile may not be initialized at
         # this point.
+        include_model, include_op = _split_include_ref(ref)
         for model_data in modelfile.data:
-            if model_data.get("name") == ref:
-                section_data = model_data.get(section_name, {})
+            if model_data.get("name") == include_model:
+                if include_op:
+                    op_data = _op_data(model_data, include_op)
+                    if op_data is None:
+                        raise ModelfileReferenceError(
+                            "invalid include reference '%s': operation "
+                            "%s is not defined" % (ref, include_op))
+                    section_data = op_data.get(section_name, {})
+                else:
+                    section_data = model_data.get(section_name, {})
                 _apply_section_data(
                     section_data,
                     modelfile,
@@ -167,12 +176,27 @@ def _apply_includes(includes, modelfile, section_name, coerce_data,
                 break
         else:
             raise ModelfileReferenceError(
-                "model '%s' for include doesn't exist" % ref)
+                "invalid include reference '%s': model %s is not defined"
+                % (ref, include_model))
 
 def _assert_modelfile_data(modelfile):
     # This is called by modelfile components that need to access
     # modelfile data before the modefile is fully initialized.
     assert hasattr(modelfile, "data"), "modesfile data not initialized"
+
+def _split_include_ref(ref):
+    parts = ref.split(":", 1)
+    if len(parts) == 1:
+        return parts[0], None
+    else:
+        if not parts[0]:
+            raise ModelfileReferenceError(
+                "invalid include reference '%s': operation references must "
+                "be specified as MODEL:OPERATION" % ref)
+        return parts
+
+def _op_data(model_data, op_name):
+    return model_data.get("operations", {}).get(op_name)
 
 def _apply_section_data(data, modelfile, section_name, coerce_data,
                         seen_includes, resolved):
