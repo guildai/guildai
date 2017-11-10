@@ -115,14 +115,14 @@ class ResourceDef(object):
 class ResourceSource(object):
 
     def __init__(self, resdef, uri, sha256=None, unpack=True,
-                 type=None, select=None, **kw):
+                 type=None, prefix=None, **kw):
         self.resdef = resdef
         self.uri = uri
         self._parsed_uri = None
         self.sha256 = sha256
         self.unpack = unpack
         self.type = type
-        self.select = select
+        self.prefix = prefix
         for key in kw:
             log.warning(
                 "unexpected source attribute '%s' in resource '%s'",

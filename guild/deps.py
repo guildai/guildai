@@ -92,7 +92,7 @@ class Resource(object):
         archive_type = self._archive_type(source_path, source)
         if not archive_type:
             return None
-        return self._unpack(source_path, archive_type, source.select)
+        return self._unpack(source_path, archive_type, source.prefix)
 
     @staticmethod
     def _archive_type(source_path, source):
