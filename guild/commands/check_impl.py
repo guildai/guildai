@@ -97,7 +97,8 @@ def _print_info(check):
     _print_python_info(check)
     _print_tensorflow_info(check)
     _print_nvidia_tools_info()
-    _print_mods_info(check)
+    if check.args.verbose:
+        _print_mods_info(check)
 
 def _print_guild_info():
     guild.cli.out("guild_version:             %s" % guild.version())
