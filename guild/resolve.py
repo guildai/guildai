@@ -98,6 +98,10 @@ class OperationOutputResolver(Resolver):
                     "invalid operation source path '%s' "
                     "(paths must start with '//')" % path)
             normalized_path = os.path.join(*path[2:].split("/"))
+            if not normalized_path:
+                raise ResolutionError(
+                    "invalid operation source path '%s' "
+                    "(paths may not be empty)" % path)
             return opref, normalized_path
 
     def _latest_op_run(self, opref):
