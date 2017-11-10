@@ -27,6 +27,7 @@ from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
 from guild import config
+from guild import util
 from guild import var
 
 log = logging.getLogger("core")
@@ -61,9 +62,10 @@ def list_runs(args):
         format_run(run, i)
         for i, run in enumerate(runs)
     ]
+    filtered = _filter_runs(formatted, args.filters)
     cols = ["index", "operation", "started", "status"]
     detail = RUN_DETAIL if args.verbose else None
-    cli.table(formatted, cols=cols, detail=detail)
+    cli.table(filtered, cols=cols, detail=detail)
 
 def runs_for_args(args, force_deleted=False):
     return var.runs(
@@ -217,6 +219,16 @@ def _format_attr_dict(d):
     return "\n%s" % "\n".join([
         "  %s: %s" % (key, d[key]) for key in sorted(d)
     ])
+
+def _filter_runs(runs, filters):
+    return [run for run in runs if _filter_run(run, filters)]
+
+def _filter_run(run, filters):
+    filter_vals = [
+        run["model"],
+        run["op_name"],
+    ]
+    return util.match_filters(filters, filter_vals)
 
 def _runs_op(args, ctx, force_delete, preview_msg, confirm_prompt,
              no_runs_help, op_callback):

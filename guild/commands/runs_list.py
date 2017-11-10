@@ -21,6 +21,7 @@ from guild import click_util
 from . import runs_support
 
 @click.command("list, ls")
+@click.argument("filters", metavar="[FILTER]...", required=False, nargs=-1)
 @runs_support.runs_list_options
 
 @click_util.use_args
@@ -37,7 +38,8 @@ def list_runs(args):
     specified.
 
     You may apply any of the filter options below to limit the runs
-    listed.
+    listed. Additionally, you may specify FILTER arguments to further
+    limit the results.
     """
     from . import runs_impl
     runs_impl.list_runs(args)

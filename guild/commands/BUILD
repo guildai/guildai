@@ -286,6 +286,7 @@ py_library(
         "//guild:config",
         "//guild:opref",
         "//guild:run",
+        "//guild:util",
         "//guild:var",
     ],
 )
