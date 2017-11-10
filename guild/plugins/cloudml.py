@@ -32,9 +32,15 @@ BACKGROUND_SYNC_INTERVAL = 60
 BACKGROUND_SYNC_STOP_TIMEOUT = 10
 WATCH_POLLING_INTERVAL = 5
 
+class CloudSDK(object):
+
+    def __init__(self, gsutil, gcloud):
+        self.gsutil = gsutil
+        self.gcloud = gcloud
+
 class Train(object):
 
-    def __init__(self, args, log):
+    def __init__(self, args, sdk, log):
         job_args, flag_args = self._parse_args(args)
         self.run = plugin_util.current_run()
         self.job_name = job_args.job_name or self._job_name()
@@ -43,9 +49,12 @@ class Train(object):
         self.module_name = job_args.module_name
         self.package_path = job_args.package_path
         self.region = job_args.region
+        self.scale_tier = job_args.scale_tier
+        self.config = job_args.config
         self.flag_args = flag_args
         self.package_name = self._package_name()
         self.package_version = self._package_version()
+        self.sdk = sdk
         self.log = log
 
     @staticmethod
@@ -57,7 +66,8 @@ class Train(object):
         p.add_argument("--runtime-version")
         p.add_argument("--module-name", required=True)
         p.add_argument("--package-path")
-        p.add_argument("--data-dir")
+        p.add_argument("--scale-tier")
+        p.add_argument("--config")
         return p.parse_known_args(args)
 
     def _job_name(self):
@@ -91,10 +101,9 @@ class Train(object):
             dest = self.job_dir + "/" + name
             self._recursive_copy_files(src, dest)
 
-    @staticmethod
-    def _recursive_copy_files(src, dest):
+    def _recursive_copy_files(self, src, dest):
         subprocess.check_call(
-            ["/usr/bin/gsutil", "-m", "cp", "-r", src, dest])
+            [self.sdk.gsutil, "-m", "cp", "-r", src, dest])
 
     def _init_package(self):
         env = {
@@ -111,7 +120,7 @@ class Train(object):
 
     def _submit_job(self):
         args = [
-            "/usr/bin/gcloud", "ml-engine", "jobs",
+            self.sdk.gcloud, "ml-engine", "jobs",
             "submit", "training", self.job_name,
             "--job-dir", self.job_dir,
             "--packages", self._find_package_name(),
@@ -122,6 +131,10 @@ class Train(object):
             args.extend(["--runtime-version", self.runtime_version])
         if self.package_path:
             args.extend(["--package-path", self.package_path])
+        if self.scale_tier:
+            args.extend(["--scale-tier", self.scale_tier])
+        if self.config:
+            args.extend(["--config", self.config])
         if self.flag_args:
             args.append("--")
             args.extend(self._resolved_flag_args())
@@ -154,14 +167,15 @@ class Train(object):
             f.write("cloudml")
 
     def _sync(self):
-        sync = Sync(self.run, True, self.log)
+        sync = Sync(self.run, True, self.sdk, self.log)
         sync()
 
 class Sync(object):
 
-    def __init__(self, run, watch, log):
+    def __init__(self, run, watch, sdk, log):
         self.run = run
         self.watch = watch
+        self.sdk = sdk
         self.log = log
         self._sync_run = False
 
@@ -184,7 +198,7 @@ class Sync(object):
             stop_timeout=BACKGROUND_SYNC_STOP_TIMEOUT)
         background_sync.start()
         args = [
-            "/usr/bin/gcloud", "ml-engine", "jobs", "stream-logs",
+            self.sdk.gcloud, "ml-engine", "jobs", "stream-logs",
             "--polling-interval", str(WATCH_POLLING_INTERVAL),
             job_name
         ]
@@ -221,7 +235,7 @@ class Sync(object):
     def _rsync_files(self, src, dest):
         try:
             subprocess.check_call(
-                ["/usr/bin/gsutil", "-m", "rsync", "-r", src, dest])
+                [self.sdk.gsutil, "-m", "rsync", "-Cr", src, dest])
         except subprocess.CalledProcessError:
             self.log.error(
                 "error syncing run %s files from %s (see above for details)",
@@ -242,10 +256,9 @@ class Sync(object):
         if state not in ["RUNNING", "PREPARING"]:
             self._finalize_run(state)
 
-    @staticmethod
-    def _job_info(job_name):
+    def _job_info(self, job_name):
         out = subprocess.check_output(
-            ["/usr/bin/gcloud", "--format", "json", "ml-engine", "jobs",
+            [self.sdk.gcloud, "--format", "json", "ml-engine", "jobs",
              "describe", job_name])
         return json.loads(out)
 
@@ -292,9 +305,33 @@ class CloudMLPlugin(plugin.Plugin):
             raise plugin.NotSupported(op_spec)
 
     def _train(self, args):
-        train = Train(args, self.log)
+        train = Train(args, self._init_sdk(), self.log)
         train()
 
     def sync_run(self, run, watch=False, **_kw):
-        sync = Sync(run, watch, self.log)
+        sync = Sync(run, watch, self._init_sdk(), self.log)
         sync()
+
+    def _init_sdk(self):
+        gsutil = self._find_exe("gsutil")
+        if not gsutil:
+            cli.error(
+                "cannot find required Google Cloud Storage utility 'gsutil'\n"
+                "Refer to https://cloud.google.com/storage/docs/gsutil_install"
+                " for more information.")
+        gcloud = self._find_exe("gcloud")
+        if not gcloud:
+            cli.error(
+                "cannot find required Google Cloud SDK utility 'gcloud'\n"
+                "Refer to https://cloud.google.com/sdk/docs/quickstarts "
+                "for more information.")
+        return CloudSDK(gsutil, gcloud)
+
+    @staticmethod
+    def _find_exe(name):
+        try:
+            out = subprocess.check_output(["which", name])
+        except subprocess.CalledProcessError:
+            return None
+        else:
+            return out.strip()
