@@ -22,15 +22,24 @@ import re
 import shlex
 import subprocess
 import sys
+import time
+
+import guild.opref
 
 from guild import cli
 from guild import plugin
 from guild import plugin_util
 from guild import util
+from guild import var
 
 BACKGROUND_SYNC_INTERVAL = 60
 BACKGROUND_SYNC_STOP_TIMEOUT = 10
 WATCH_POLLING_INTERVAL = 5
+
+DEFAULT_REGION = "us-central1"
+
+def _safe_name(s):
+    return re.sub(r"[^0-9a-zA-Z]+", "_", s)
 
 class CloudSDK(object):
 
@@ -60,8 +69,8 @@ class Train(object):
     @staticmethod
     def _parse_args(args):
         p = argparse.ArgumentParser()
-        p.add_argument("--region", required=True)
         p.add_argument("--bucket-name", required=True)
+        p.add_argument("--region", default=DEFAULT_REGION)
         p.add_argument("--job-name")
         p.add_argument("--runtime-version")
         p.add_argument("--module-name", required=True)
@@ -102,8 +111,11 @@ class Train(object):
             self._recursive_copy_files(src, dest)
 
     def _recursive_copy_files(self, src, dest):
-        subprocess.check_call(
-            [self.sdk.gsutil, "-m", "cp", "-r", src, dest])
+        try:
+            subprocess.check_call(
+                [self.sdk.gsutil, "-m", "cp", "-r", src, dest])
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
 
     def _init_package(self):
         env = {
@@ -113,10 +125,13 @@ class Train(object):
         }
         # Use an external process as setuptools assumes it's a command
         # line app
-        subprocess.check_call(
-            [sys.executable, "-um", "guild.plugins.training_pkg_main"],
-            env=env,
-            cwd=self.run.path)
+        try:
+            subprocess.check_call(
+                [sys.executable, "-um", "guild.plugins.training_pkg_main"],
+                env=env,
+                cwd=self.run.path)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
 
     def _submit_job(self):
         args = [
@@ -157,7 +172,7 @@ class Train(object):
         return [resolve(arg) for arg in self.flag_args]
 
     def _find_package_name(self):
-        package_name = re.sub(r"[^0-9a-zA-Z]+", "_", self.package_name)
+        package_name = _safe_name(self.package_name)
         path = "%s-%s-py2.py3-none-any.whl" % (package_name, self.package_version)
         assert os.path.exists(path), path
         return path
@@ -169,6 +184,155 @@ class Train(object):
     def _sync(self):
         sync = Sync(self.run, True, self.sdk, self.log)
         sync()
+
+class Deploy(object):
+
+    def __init__(self, args, sdk, log):
+        self.args = self._parse_args(args)
+        self.run = self._run()
+        self.opref = guild.opref.OpRef.from_run(self.run)
+        self.model_name = self.args.model or self.opref.model_name
+        self.safe_model_name = _safe_name(self.model_name)
+        self.region = self.args.region or self._run_region() or DEFAULT_REGION
+        self.model_version = self.args.version or self._model_version()
+        self.sdk = sdk
+        self.log = log
+
+    @staticmethod
+    def _parse_args(args):
+        p = argparse.ArgumentParser()
+        p.add_argument("--run", required=True)
+        p.add_argument("--version")
+        p.add_argument("--region")
+        p.add_argument("--bucket")
+        p.add_argument("--model")
+        p.add_argument("--runtime-version")
+        p.add_argument("--config")
+        args, _ = p.parse_known_args(args)
+        return args
+
+    def _run(self):
+        matches = var.find_runs(self.args.run)
+        if not matches:
+            cli.error(
+                "cannot find a run for '%s'\n"
+                "Try 'guild runs list -a' for a list of available runs."
+                % self.args.run)
+        elif len(matches) > 1:
+            cli.error(
+                "more than one run matches '%s'\n"
+                "Try again with a unique run ID."
+                % self.args.run)
+        run_id, path = matches[0]
+        return guild.run.Run(run_id, path)
+
+    def _run_region(self):
+        return self.run.get("flags", {}).get("region")
+
+    def _model_version(self):
+        return "v_%i" % time.time()
+
+    def __call__(self):
+        self._ensure_model()
+        self._create_version()
+
+    def _ensure_model(self):
+        args = [
+            self.sdk.gcloud, "ml-engine", "models", "create",
+            self.safe_model_name, "--regions", self.region
+        ]
+        cli.out("Creating model %s... " % self.safe_model_name, nl=False)
+        p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        _out, err = p.communicate()
+        if "model with the same name already exists" in err:
+            cli.out("done (already created)")
+        elif p.returncode == 0:
+            cli.out("done")
+        else:
+            sys.stderr.write(err)
+            sys.exit(p.returncode)
+
+    def _create_version(self):
+        model_binaries = self._ensure_model_binaries()
+        args = [
+            self.sdk.gcloud, "ml-engine", "versions", "create",
+            self.model_version,
+            "--model", self.safe_model_name,
+            "--origin", model_binaries
+        ]
+        if self.args.runtime_version:
+            args.extend(["--runtime-version", self.args.runtime_version])
+        if self.args.config:
+            args.extend(["--config", self.args.config])
+        try:
+            subprocess.check_call(args)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+
+    def _ensure_model_binaries(self):
+        job_dir = self.run.get("cloudml-job-dir")
+        if not job_dir:
+            return self._upload_model_binaries()
+        else:
+            return self._job_dir_model_binaries(job_dir)
+
+    def _upload_model_binaries(self):
+        local_model_binaries = self._run_model_binaries_path()
+        if not self.args.bucket:
+            cli.error(
+                "cannot upload model binaries: missing required flag 'bucket'")
+        remote_model_binaries = "gs://%s/guild_model_%s_%s" % (
+            self.args.bucket,
+            self.safe_model_name,
+            os.path.basename(local_models_binaries))
+        try:
+            subprocess.check_call(
+                [self.sdk.gsutil, "-m", "rsync", "-r",
+                 local_model_binaries, remote_model_binaries])
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+        else:
+            return remote_model_binaries
+
+    def _run_model_binaries_path(self):
+        servo_path = os.path.join(self.run.path, "export", "Servo")
+        timestamp_dirs = (
+            sorted(os.listdir(servo_path), reversed=True)
+            if os.path.exists(servo_path) else [])
+        if not timestamp_dirs:
+            cli.error(
+                "cannot find model binaries in run %s "
+                "(expected files under export/Servo)"
+                % self.run.id)
+        timestamp_dir = timestamp_dirs[0]
+        if len(timestamp_dirs) > 1:
+            self.log.warning(
+                "found multiple timestamp directories under %s (assuming %s)",
+                servo_path, timestamp_dir)
+        return os.path.join(servo_path, timestamp_dir)
+
+    def _job_dir_model_binaries(self, job_dir):
+        servo_path = job_dir + "/export/Servo"
+        try:
+            out = subprocess.check_output([
+                self.sdk.gsutil, "ls", servo_path])
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+        else:
+            paths = sorted(out.split("\n"))
+            assert (len(paths) >= 2 and
+                    paths[0] == "" and
+                    paths[1].endswith("/Servo/")), paths
+            timestamp_paths = paths[2:]
+            if not timestamp_paths:
+                cli.error(
+                    "missing model binaries in %s" % servo_path)
+            timestamp_path = timestamp_paths[0]
+            if len(timestamp_paths) > 1:
+                self.log.warning(
+                    "found multiple timestamp paths under %s (assuming %s)",
+                    servo_path, timestamp_path)
+            return timestamp_path
 
 class Sync(object):
 
@@ -250,6 +414,10 @@ class Sync(object):
             return
         cli.out("Synchronizing job status for run %s" % self.run.id)
         info = self._job_info(job_name)
+        if not info:
+            self.log.error(
+                "no job info for %s, cannot sync status", job_name)
+            return
         state = info.get("state")
         cli.out("Run %s is %s" % (self.run.id, state))
         self.run.write_attr("cloudml-job-state", state)
@@ -257,10 +425,15 @@ class Sync(object):
             self._finalize_run(state)
 
     def _job_info(self, job_name):
-        out = subprocess.check_output(
-            [self.sdk.gcloud, "--format", "json", "ml-engine", "jobs",
-             "describe", job_name])
-        return json.loads(out)
+        try:
+            out = subprocess.check_output(
+                [self.sdk.gcloud, "--format", "json", "ml-engine", "jobs",
+                 "describe", job_name])
+        except subprocess.CalledProcessError as e:
+            log.error("error reading job info for %s: %s", job_name, e)
+            return None
+        else:
+            return json.loads(out)
 
     def _finalize_run(self, state):
         cli.out("Finalizing run %s" % self.run.id)
@@ -301,12 +474,18 @@ class CloudMLPlugin(plugin.Plugin):
     def run_op(self, op_spec, args):
         if op_spec == "train":
             self._train(args)
+        elif op_spec == "deploy":
+            self._deploy(args)
         else:
             raise plugin.NotSupported(op_spec)
 
     def _train(self, args):
         train = Train(args, self._init_sdk(), self.log)
         train()
+
+    def _deploy(self, args):
+        deploy = Deploy(args, self._init_sdk(), self.log)
+        deploy()
 
     def sync_run(self, run, watch=False, **_kw):
         sync = Sync(run, watch, self._init_sdk(), self.log)

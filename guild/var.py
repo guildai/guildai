@@ -153,3 +153,10 @@ def restore_runs(runs):
         src = os.path.join(runs_dir(deleted=True), run.id)
         dest = os.path.join(runs_dir(), run.id)
         _move(src, dest)
+
+def find_runs(run_id_prefix, root=None):
+    root = root or runs_dir()
+    return [
+        (name, path) for name, path in _iter_dirs(root)
+        if name.startswith(run_id_prefix)
+    ]
