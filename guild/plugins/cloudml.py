@@ -39,9 +39,6 @@ WATCH_POLLING_INTERVAL = 5
 DEFAULT_REGION = "us-central1"
 DEFAULT_RUNTIME_VERSION = "1.2"
 
-def _safe_name(s):
-    return re.sub(r"[^0-9a-zA-Z]+", "_", s)
-
 class CloudSDK(object):
 
     def __init__(self, gsutil, gcloud):
@@ -185,7 +182,7 @@ class Deploy(object):
     def __init__(self, args, sdk, log):
         self.args = self._parse_args(args)
         self.run = plugin_util.current_run()
-        self.deploying_run = self._deploying_run()
+        self.deploying_run = _one_run(self.args.run)
         self.opref = guild.opref.OpRef.from_run(self.deploying_run)
         self.model_name = self.args.model or self.opref.model_name
         self.safe_model_name = _safe_name(self.model_name)
@@ -207,21 +204,6 @@ class Deploy(object):
         p.add_argument("--config")
         args, _ = p.parse_known_args(args)
         return args
-
-    def _deploying_run(self):
-        matches = var.find_runs(self.args.run)
-        if not matches:
-            cli.error(
-                "cannot find a run for '%s'\n"
-                "Try 'guild runs list' for a list of available runs."
-                % self.args.run)
-        elif len(matches) > 1:
-            cli.error(
-                "more than one run matches '%s'\n"
-                "Try again with a unique run ID."
-                % self.args.run)
-        run_id, path = matches[0]
-        return guild.run.Run(run_id, path)
 
     def _run_region(self):
         return self.deploying_run.get("flags", {}).get("region")
@@ -345,6 +327,76 @@ class Deploy(object):
                     "found multiple timestamp paths under %s (assuming %s)",
                     servo_path, timestamp_path)
             return timestamp_path
+
+class Predict(object):
+
+    def __init__(self, args, sdk, log):
+        self.args = self._parse_args(args)
+        self.run = plugin_util.current_run()
+        self.predicting_run = _one_run(self.args.run)
+        self.sdk = sdk
+        self.log = log
+
+    @staticmethod
+    def _parse_args(args):
+        p = argparse.ArgumentParser()
+        p.add_argument("--run", required=True)
+        p.add_argument("--instances", required=True)
+        p.add_argument("--instance-type")
+        p.add_argument("--format")
+        args, _ = p.parse_known_args(args)
+        return args
+
+    def __call__(self):
+        self._predict()
+
+    def _predict(self):
+        args = [self.sdk.gcloud]
+        if self.args.format:
+            args.extend(["--format", self.args.format])
+        args.extend([
+            "ml-engine", "predict",
+            "--model", self._model_name(),
+            "--version", self._model_version(),
+        ])
+        args.extend(self._instances_args())
+        try:
+            subprocess.check_call(args)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+
+    def _model_name(self):
+        val = self.predicting_run.get("cloudml-model-name")
+        if not val:
+            cli.error(
+                "cannot predict with run %s: missing cloudml-model-name "
+                "attribute" % self.predicting_run.short_id)
+        return val
+
+    def _model_version(self):
+        val = self.predicting_run.get("cloudml-model-version")
+        if not val:
+            cli.error(
+                "cannot predict with run %s: missing cloudml-model-version "
+                "attribute" % self.predicting_run.short_id)
+        return val
+
+    def _instances_args(self):
+        path = self.args.instances
+        if not os.path.exists(path):
+            cli.error("'%s' does not exist" % path)
+        format = self.args.instance_type or self._instance_type_from_path(path)
+        if format == "json":
+            return ["--json-instances", path]
+        elif format == "text":
+            return ["--text-instances", path]
+        else:
+            cli.error("unsupported instance type '%s'" % format)
+
+    @staticmethod
+    def _instance_type_from_path(path):
+        _, ext = os.path.splitext(path)
+        return "json" if ext.lower() == ".json" else "text"
 
 class Sync(object):
 
@@ -475,6 +527,24 @@ class Sync(object):
                     "could not delete '%s' from run %s (%s)",
                     filename, self.run.id, e)
 
+def _safe_name(s):
+    return re.sub(r"[^0-9a-zA-Z]+", "_", s)
+
+def _one_run(run_prefix):
+    matches = var.find_runs(run_prefix)
+    if not matches:
+        cli.error(
+            "cannot find a run for '%s'\n"
+            "Try 'guild runs list' for a list of available runs."
+            % run_prefix)
+    elif len(matches) > 1:
+        cli.error(
+            "more than one run matches '%s'\n"
+            "Try again with a unique run ID."
+            % run_prefix)
+    run_id, path = matches[0]
+    return guild.run.Run(run_id, path)
+
 class CloudMLPlugin(plugin.Plugin):
 
     def enabled_for_op(self, op):
@@ -488,6 +558,8 @@ class CloudMLPlugin(plugin.Plugin):
             self._train(args)
         elif op_spec == "deploy":
             self._deploy(args)
+        elif op_spec == "predict":
+            self._predict(args)
         else:
             raise plugin.NotSupported(op_spec)
 
@@ -498,6 +570,10 @@ class CloudMLPlugin(plugin.Plugin):
     def _deploy(self, args):
         deploy = Deploy(args, self._init_sdk(), self.log)
         deploy()
+
+    def _predict(self, args):
+        predict = Predict(args, self._init_sdk(), self.log)
+        predict()
 
     def sync_run(self, run, watch=False, **_kw):
         sync = Sync(run, watch, self._init_sdk(), self.log)
