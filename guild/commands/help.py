@@ -20,7 +20,7 @@ import click
 from guild import click_util
 
 @click.command()
-@click.argument("model", required=False)
+@click.argument("path-or-package", required=False)
 @click.option(
     "--package-description",
     help="Show the package description.",
@@ -33,7 +33,7 @@ from guild import click_util
 @click_util.use_args
 
 def help(args):
-    """Show help for a project.
+    """Show help for a path or package.
 
     By default shows information about the models defined in the
     project.

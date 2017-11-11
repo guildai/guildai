@@ -121,13 +121,16 @@ def _write_console_help_overview(modelfile, model_desc, out):
         % model_desc))
 
 def _format_modelfile_dir(mf):
-    if mf.dir == ".":
+    if _is_cwd(mf.dir):
         return "the current directory"
     else:
         relpath = os.path.relpath(mf.dir)
         if relpath[0] != '.':
             relpath = os.path.join(".", relpath)
         return "'%s'" % relpath
+
+def _is_cwd(path):
+    return os.path.abspath(path) == os.path.abspath(os.getcwd())
 
 def package_description(modelfile, refs):
     out = RestFormatter()

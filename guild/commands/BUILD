@@ -41,7 +41,12 @@ py_library(
     srcs = ["help_impl.py"],
     deps = [
         "//third_party:click",
+        "//guild:cli",
         "//guild:cmd_impl_support",
+        "//guild:config",
+        "//guild:help",
+        "//guild:model",
+        "//guild:modelfile",
     ],
 )
 

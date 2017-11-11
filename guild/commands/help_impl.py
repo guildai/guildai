@@ -22,75 +22,74 @@ import guild.modelfile
 
 from guild import cli
 from guild import cmd_impl_support
-from guild import namespace
+from guild import config
+
+class Pkg(object):
+    """Local structure representing a model package."""
+
+    def __init__(self, name, modelfile):
+        self.name = name
+        self.modelfile = modelfile
 
 def main(args):
-    if args.model:
-        modelfile, model_desc = _modelfile_for_name(args.model)
+    path_or_package = args.path_or_package or config.cwd()
+    if os.path.isdir(path_or_package):
+        modelfile = _dir_modelfile(path_or_package)
+        desc = None
     else:
-        modelfile = _cwd_modelfile()
-        model_desc = None
+        modelfile, desc = _package_modelfile(path_or_package)
+    help = _format_modelfile_help(modelfile, desc, args)
+    _print_help(help, args)
+
+def _dir_modelfile(dir):
+    try:
+        return guild.modelfile.from_dir(dir)
+    except guild.modelfile.NoModels:
+        cli.out(
+            "No help available (%s does not contain a model file)"
+            % cmd_impl_support.cwd_desc(dir), err=True)
+        cli.error()
+
+def _package_modelfile(ref):
+    matches = _matching_packages(ref)
+    if len(matches) == 1:
+        return matches[0].modelfile, "the '%s' package" % matches[0].name
+    if not matches:
+        cli.error(
+            "cannot find a model package matching '%s'\n"
+            "Try 'guild models -a' for a list of models and specify a path "
+            "or package name for help."
+            % ref)
+    cli.error(
+        "multiple packages match '%s'\n"
+        "Try again with one of these models: %s"
+        % (ref, ", ".join([pkg.name for pkg in matches])))
+
+def _matching_packages(ref):
+    pkgs = {}
+    for model in guild.model.iter_models():
+        if model.reference.dist_type != "package":
+            continue
+        pkg = Pkg(model.reference.dist_name, model.modeldef.modelfile)
+        # If exact match, return one
+        if ref == pkg.name:
+            return [pkg]
+        # otherwise check for match in full name of model
+        elif ref in model.fullname:
+            pkgs[pkg.name] = pkg
+    return [pkgs[name] for name in sorted(pkgs)]
+
+def _format_modelfile_help(modelfile, desc, args):
     refs = {
         ("Modelfile", modelfile.src)
     }
     if args.package_description:
-        help = guild.help.package_description(modelfile, refs)
+        return guild.help.package_description(modelfile, refs)
     else:
-        help = guild.help.modelfile_console_help(modelfile, refs, model_desc)
+        return guild.help.modelfile_console_help(modelfile, refs, desc)
+
+def _print_help(help, args):
     if args.no_pager:
         click.echo(help)
     else:
         click.echo_via_pager(help)
-
-def _modelfile_for_name(name):
-    if os.path.isdir(name):
-        return _modelfile_for_dir(name)
-    else:
-        return _package_modelfile(name)
-
-def _modelfile_for_dir(dir):
-    try:
-        return guild.modelfile.from_dir(dir), None
-    except guild.modelfile.NoModels:
-        cli.error("'%s' does not contain a model file")
-
-def _package_modelfile(model_ref):
-    matches = list(_iter_matching_models(model_ref))
-    if len(matches) == 1:
-        return matches[0].modeldef.modelfile, _package_desc(matches[0])
-    if not matches:
-        cli.error(
-            "cannot find a model matching '%s'\n"
-            "Try 'guild models' for a list."
-            % model_ref)
-    cli.error(
-        "multiple models match '%s'\n"
-        "Try again with one of these models: %s"
-        % (model_ref, ", ".join([model.full_name for model in matches])))
-
-def _package_desc(model):
-    package_name = namespace.apply_namespace(model.dist.project_name)
-    return "the '%s' package" % package_name
-
-def _iter_matching_models(model_ref):
-    for model in guild.model.iter_models():
-        if _match_model_ref(model_ref, model):
-            yield model
-
-def _match_model_ref(model_ref, model):
-    if '/' in model_ref:
-        # If user includes a '/' assume it's a complete name
-        return model_ref == model.fullname
-    else:
-        # otherwise treat as a match term
-        return model_ref in model.name
-
-def _cwd_modelfile():
-    modelfile = cmd_impl_support.cwd_modelfile()
-    if modelfile is None:
-        cli.out(
-            "No help available (%s does not contain a modelfile)"
-            % cmd_impl_support.cwd_desc(),
-            err=True)
-        cli.error()
-    return modelfile
