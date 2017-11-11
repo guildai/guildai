@@ -30,6 +30,8 @@
     guild.commands.help
     guild.commands.help_impl
     guild.commands.install
+    guild.commands.label
+    guild.commands.label_impl
     guild.commands.main
     guild.commands.main_impl
     guild.commands.models

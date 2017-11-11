@@ -23,6 +23,9 @@ def run_params(fn):
     click_util.append_params(fn, [
         click.Argument(("args",), metavar="[ARG...]", nargs=-1),
         click.Option(
+            ("-l", "--label"), metavar="LABEL",
+            help="Set a label for the run."),
+        click.Option(
             ("-d", "--run-dir"), metavar="DIR",
             help="Use an alternative run directory."),
         click.Option(

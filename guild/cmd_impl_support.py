@@ -22,6 +22,7 @@ import guild.model
 import guild.resource
 
 from guild import cli
+from guild import click_util
 from guild import config
 
 log = logging.getLogger("core")
@@ -85,3 +86,26 @@ def _notify_path_limited(path, what):
     cli.note_once(
         "Limiting %s to %s (use --all to include all)"
         % (what, cwd_desc(path)))
+
+def one_run(runs, spec, ctx=None):
+    """Returns runs[0] if len(runs) is 1 otherwise exits with an error."""
+    if len(runs) == 1:
+        return runs[0]
+    if not runs:
+        _no_matching_run_error(spec, ctx)
+    _non_unique_run_id_error(runs)
+
+def _no_matching_run_error(spec, ctx):
+    help_msg = (
+        " or '%s' for more information" % click_util.cmd_help(ctx)
+        if ctx else "")
+    cli.error(
+        "could not find run matching '%s'\n"
+        "Try 'guild runs list' for a list%s."
+        % (spec, help_msg))
+
+def _non_unique_run_id_error(matches):
+    cli.out("'%s' matches multiple runs:\n", err=True)
+    for run in matches:
+        cli.out(" %s" % run.short_id, err=True)
+    cli.error()

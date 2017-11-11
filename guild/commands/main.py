@@ -26,6 +26,7 @@ from .check import check
 from .help import help
 from .install import install
 from .operations import operations
+from .label import label
 from .models import models
 from .package import package
 from .packages import packages
@@ -69,6 +70,7 @@ def main(args):
 main.add_command(check)
 main.add_command(help)
 main.add_command(install)
+main.add_command(label)
 main.add_command(models)
 main.add_command(operations)
 main.add_command(package)

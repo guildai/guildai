@@ -42,12 +42,13 @@ class InvalidCmd(ValueError):
 
 class Operation(object):
 
-    def __init__(self, model, opdef, rundir=None):
+    def __init__(self, model, opdef, rundir=None, extra_attrs=None):
         self.model = model
         self.opdef = opdef
         self.cmd_args = _init_cmd_args(opdef)
         self.cmd_env = _init_cmd_env(opdef)
         self._rundir = rundir
+        self._extra_attrs = extra_attrs
         self._running = False
         self._started = None
         self._stopped = None
@@ -83,6 +84,8 @@ class Operation(object):
 
     def _init_attrs(self):
         assert self._run is not None
+        for name, val in (self._extra_attrs or {}).items():
+            self._run.write_attr(name, val)
         self._run.write_attr("opref", self._opref_attr())
         self._run.write_attr("flags", self.opdef.flag_values())
         self._run.write_attr("cmd", self.cmd_args)

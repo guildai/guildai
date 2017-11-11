@@ -24,7 +24,6 @@ import guild.opref
 import guild.run
 
 from guild import cli
-from guild import click_util
 from guild import cmd_impl_support
 from guild import config
 from guild import util
@@ -63,7 +62,7 @@ def list_runs(args):
         for i, run in enumerate(runs)
     ]
     filtered = _filter_runs(formatted, args.filters)
-    cols = ["index", "operation", "started", "status"]
+    cols = ["index", "operation", "started", "status", "label"]
     detail = RUN_DETAIL if args.verbose else None
     cli.table(filtered, cols=cols, detail=detail)
 
@@ -154,6 +153,7 @@ def format_run(run, index=None):
         "operation": _format_op_desc(run.opref),
         "pkg": run.opref.pkg_name,
         "status": run.status,
+        "label": run.get("label") or "",
         "pid": run.pid or "(not running)",
         "started": _format_timestamp(run.get("started")),
         "stopped": _format_timestamp(run.get("stopped")),
@@ -289,27 +289,7 @@ def _find_run_by_id(id_part, runs, ctx):
     for run in runs:
         if run.id.startswith(id_part):
             matches.append(run)
-    if len(matches) == 0:
-        _no_matching_run_error(id_part, ctx)
-    elif len(matches) > 1:
-        _non_unique_run_id_error(matches)
-    else:
-        return matches[0]
-
-def _no_matching_run_error(id_part, ctx):
-    help_msg = (
-        " or '%s' for more information" % click_util.cmd_help(ctx)
-        if ctx else "")
-    cli.error(
-        "could not find run matching '%s'\n"
-        "Try 'guild runs list' for a list%s."
-        % (id_part, help_msg))
-
-def _non_unique_run_id_error(matches):
-    cli.out("'%s' matches multiple runs:\n", err=True)
-    formatted = [format_run(run) for run in matches]
-    cols = ["id", "op", "started", "status"]
-    cli.table(formatted, cols=cols, err=True)
+    return cmd_impl_support.one_run(matches, id_part, ctx)
 
 def _in_range(slice_start, slice_end, l):
     return (
@@ -363,11 +343,7 @@ def run_info(args, ctx):
     runs = runs_for_args(args)
     runspec = args.run or "0"
     selected = selected_runs(runs, [runspec], ctx)
-    if len(selected) == 0:
-        _no_selected_runs_error()
-    elif len(selected) > 1:
-        _non_unique_run_id_error(selected)
-    run = selected[0]
+    run = cmd_impl_support.one_run(selected, runspec, ctx)
     formatted = format_run(run)
     out = cli.out
     for name in RUN_DETAIL:

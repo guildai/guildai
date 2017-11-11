@@ -56,6 +56,27 @@ py_library(
 )
 
 py_library(
+    name = "label",
+    srcs = ["label.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:click_util",
+        ":label_impl",
+    ],
+)
+
+py_library(
+    name = "label_impl",
+    srcs = ["label_impl.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:cmd_impl_support",
+        "//guild:run",
+        "//guild:var",
+    ],
+)
+
+py_library(
     name = "main",
     srcs = ["main.py"],
     deps = [
@@ -281,7 +302,6 @@ py_library(
     srcs = ["runs_impl.py"],
     deps = [
         "//guild:cli",
-        "//guild:click_util",
         "//guild:cmd_impl_support",
         "//guild:config",
         "//guild:opref",

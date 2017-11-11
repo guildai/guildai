@@ -119,6 +119,12 @@ class Run(object):
             f.write(encoded)
             f.close()
 
+    def del_attr(self, name):
+        try:
+            os.remove(self._attr_path(name))
+        except OSError:
+            pass
+
     def iter_files(self, all_files=False, include_dirs=False):
         for root, dirs, files in os.walk(self.path, followlinks=True):
             if not all_files and root == self.path:
