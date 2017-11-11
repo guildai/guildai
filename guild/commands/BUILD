@@ -95,6 +95,7 @@ py_library(
         ":operations",
         ":package",
         ":packages",
+        ":query",
         ":resources",
         ":run",
         ":runs",
@@ -229,6 +230,32 @@ py_library(
         "//third_party:click",
         "//guild:click_util",
         ":packages_impl",
+    ],
+)
+
+py_library(
+    name = "query",
+    srcs = ["query.py"],
+    deps = [
+        "//third_party:click",
+        ":query_compare",
+    ],
+)
+
+py_library(
+    name = "query_compare",
+    srcs = ["query_compare.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:click_util",
+        ":query_impl",
+    ],
+)
+
+py_library(
+    name = "query_impl",
+    srcs = ["query_impl.py"],
+    deps = [
     ],
 )
 
