@@ -227,6 +227,7 @@ def _filter_run(run, filters):
     filter_vals = [
         run["model"],
         run["op_name"],
+        run["label"],
     ]
     return util.match_filters(filters, filter_vals)
 
