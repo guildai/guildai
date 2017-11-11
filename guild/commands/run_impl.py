@@ -91,7 +91,7 @@ def _is_default_cwd_model(model, cwd_modelfile):
             default_model.name == model.name)
 
 def _match_model_ref(model_ref, model):
-    if '/' in model_ref:
+    if "/" in model_ref:
         # If user includes a '/' assume it's a complete name
         return model_ref == model.fullname
     else:
