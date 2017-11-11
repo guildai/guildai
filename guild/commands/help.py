@@ -20,6 +20,7 @@ import click
 from guild import click_util
 
 @click.command()
+@click.argument("model", required=False)
 @click.option(
     "--package-description",
     help="Show the package description.",

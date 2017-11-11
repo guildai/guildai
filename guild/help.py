@@ -92,20 +92,20 @@ class RestFormatter(click.HelpFormatter):
     def dedent(self):
         self._indent_level -= 1
 
-def modelfile_console_help(modelfile, refs):
+def modelfile_console_help(modelfile, refs, model_desc=None):
     out = ConsoleFormatter()
     out.start_section("OVERVIEW")
-    _write_console_help_overview(modelfile, out)
+    _write_console_help_overview(modelfile, model_desc, out)
     out.start_section("MODELS")
     _write_models(modelfile, out)
     out.start_section("REFERENCES")
     _write_references(refs, out)
     return "".join(out.buffer)
 
-def _write_console_help_overview(modelfile, out):
+def _write_console_help_overview(modelfile, model_desc, out):
+    model_desc = model_desc or _format_modelfile_dir(modelfile)
     out.write_text(textwrap.dedent(
         """
-
         You are viewing help for models defined in %s.
 
         To run a model operation use 'guild run MODEL:OPERATION' where
@@ -117,9 +117,8 @@ def _write_console_help_overview(modelfile, out):
         supported flags. Model flags apply to all operations.
 
         For more help, try 'guild run --help' or 'guild --help'.
-
         """
-        % _format_modelfile_dir(modelfile)))
+        % model_desc))
 
 def _format_modelfile_dir(mf):
     if mf.dir == ".":
