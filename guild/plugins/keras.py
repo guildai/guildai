@@ -87,7 +87,7 @@ class KerasPlugin(plugin.Plugin):
         return parsed
 
     def _patch_keras(self, args):
-        import keras
+        import keras # pylint: disable=import-error
         python_util.listen_method(
             keras.models.Sequential, "fit",
             self._fit_wrapper(args))
@@ -114,7 +114,7 @@ class KerasPlugin(plugin.Plugin):
 
     @staticmethod
     def _ensure_tensorboard_callback(kw):
-        import keras
+        import keras # pylint: disable=import-error
         callbacks = kw.setdefault("callbacks", [])
         for cb in callbacks:
             if isinstance(cb, keras.callbacks.TensorBoard):
@@ -150,6 +150,7 @@ class KerasPlugin(plugin.Plugin):
         # unpatched function by the time we're able to patch it. We
         # have to unfortunately traverse the keras package and update
         # those references.
+        # pylint: disable=import-error
         import keras
         from keras.utils.data_utils import get_file as patched
         assert patched.__wrapper__, patched # pylint: disable=no-member
