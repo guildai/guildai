@@ -29,6 +29,7 @@ Classifier: Topic :: Utilities
 Requires-Dist: pip
 Requires-Dist: PyYAML
 Requires-Dist: setuptools
+Requires-Dist: tabview
 Requires-Dist: twine
 Requires-Dist: Werkzeug
 

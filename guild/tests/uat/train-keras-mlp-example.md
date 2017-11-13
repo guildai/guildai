@@ -8,7 +8,7 @@ illustrate.
 
 Let's train the model with one epoch:
 
-    >>> run("guild train -y mnist_mlp epochs=1")
+    >>> run("guild train -y mnist_mlp epochs=1", timeout=120)
     Using TensorFlow backend.
     ...
     60000 train samples

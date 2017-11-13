@@ -83,7 +83,7 @@ def _test_globals():
     globs.update({
         "cd": _cd,
         "run": _run,
-        "quiet": lambda cmd: _run(cmd, quiet=True),
+        "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
         "abspath": os.path.abspath,
     })
     return globs
