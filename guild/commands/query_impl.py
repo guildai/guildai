@@ -15,36 +15,28 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from tabview import tabview
+from guild import tabview
 
 from . import runs_impl
 
-ViewerBase = tabview.Viewer
+def compare(args):
+    tabview.view_runs(get_runs_cb(args))
 
-class Viewer(ViewerBase):
-
-    help_args = None
-
-    def __init__(self, *args, **kw):
-        assert self.help_args is not None
-        args = (args[0], self._init_data()) + args[2:]
-        # pylint: disable=non-parent-init-called
-        ViewerBase.__init__(self, *args, **kw)
-
-    def _init_data(self):
-        runs = runs_impl.runs_for_args(self.help_args)
-        runs_arg = self.help_args.runs or runs_impl.ALL_RUNS_ARG
-        selected = runs_impl.selected_runs(runs, runs_arg)
-        header = [
-            "Run",
-            "Model",
-            "Operation",
-            "Started",
-            "Status",
-            "Label",
-            "Accuracy",
-        ]
+def get_runs_cb(args):
+    header = [
+        "Run",
+        "Model",
+        "Operation",
+        "Started",
+        "Status",
+        "Label",
+        "Accuracy",
+    ]
+    def get_runs():
         import random
+        runs = runs_impl.runs_for_args(args)
+        runs_arg = args.runs or runs_impl.ALL_RUNS_ARG
+        selected = runs_impl.selected_runs(runs, runs_arg)
         vals = [
             [
                 run.short_id,
@@ -56,25 +48,5 @@ class Viewer(ViewerBase):
                 "%0.6f" % random.uniform(0, 1),
             ] for run in selected
         ]
-        data = [header] + vals
-        return tabview.process_data(data)
-
-    def location_string(self, yp, xp):
-        lstr = ViewerBase.location_string(self, yp, xp)
-        return lstr.replace("-,", "")
-
-    def define_keys(self):
-        ViewerBase.define_keys(self)
-        del self.keys["t"]
-
-def compare(args):
-    tabview.Viewer = _init_tabview_viewer(args)
-    tabview.view(
-        [[]],
-        column_width="max",
-        info="Guild run comparison",
-    )
-
-def _init_tabview_viewer(args):
-    Viewer.help_args = args
-    return Viewer
+        return [header] + vals
+    return get_runs

@@ -104,6 +104,7 @@
     guild.resource
     guild.resourcedef
     guild.run
+    guild.tabview
     guild.tensorboard
     guild.test
     guild.uat

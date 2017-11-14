@@ -257,6 +257,14 @@ py_library(
 )
 
 py_library(
+    name = "tabview",
+    srcs = ["tabview.py"],
+    deps = [
+        "//third_party:tabview",
+    ],
+)
+
+py_library(
     name = "tensorboard",
     srcs = ["tensorboard.py"],
     deps = [

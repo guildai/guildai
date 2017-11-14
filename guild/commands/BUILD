@@ -256,6 +256,7 @@ py_library(
     name = "query_impl",
     srcs = ["query_impl.py"],
     deps = [
+        "//guild:tabview",
     ],
 )
 

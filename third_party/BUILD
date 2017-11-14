@@ -17,6 +17,10 @@ py_library(
 )
 
 py_library(
+    name = "tabview"
+)
+
+py_library(
     name = "tensorboard"
 )
 
