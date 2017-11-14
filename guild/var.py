@@ -160,3 +160,10 @@ def find_runs(run_id_prefix, root=None):
         (name, path) for name, path in _iter_dirs(root)
         if name.startswith(run_id_prefix)
     ]
+
+def get_run(run_id, root=None):
+    root = root or runs_dir()
+    path = os.path.join(root, run_id)
+    if os.path.exists(path):
+        return guild.run.Run(run_id, path)
+    raise LookupError(run_id)

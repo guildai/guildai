@@ -40,6 +40,10 @@ py_library(
     name = "werkzeug"
 )
 
+py_library(
+    name = "whoosh"
+)
+
 # The aliases below are used to normalize references to third party
 # libraries that are included with Guild.
 

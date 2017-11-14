@@ -9,8 +9,7 @@ illustrate.
 Let's train the model with one epoch:
 
     >>> run("guild train -y mnist_mlp epochs=1", timeout=120)
-    Using TensorFlow backend.
-    ...
+    Using TensorFlow backend...
     60000 train samples
     10000 test samples
     _________________________________________________________________
@@ -30,7 +29,7 @@ Let's train the model with one epoch:
     Trainable params: 669,706
     Non-trainable params: 0
     _________________________________________________________________
-    Train on 60000 samples, validate on 10000 samples
+    Train on 60000 samples, validate on 10000 samples...
     Epoch 1/1
     <BLANKLINE>
     ...

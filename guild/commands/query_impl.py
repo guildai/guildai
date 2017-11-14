@@ -15,14 +15,16 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import guild.index
+
 from guild import tabview
 
 from . import runs_impl
 
 def compare(args):
-    tabview.view_runs(get_runs_cb(args))
+    tabview.view_runs(_get_runs_cb(args))
 
-def get_runs_cb(args):
+def _get_runs_cb(args):
     header = [
         "Run",
         "Model",
@@ -32,21 +34,25 @@ def get_runs_cb(args):
         "Label",
         "Accuracy",
     ]
+    index = guild.index.RunIndex()
     def get_runs():
         import random
         runs = runs_impl.runs_for_args(args)
         runs_arg = args.runs or runs_impl.ALL_RUNS_ARG
         selected = runs_impl.selected_runs(runs, runs_arg)
-        vals = [
-            [
-                run.short_id,
-                run.opref.model_name,
-                run.opref.op_name,
-                runs_impl._format_timestamp(run.get("started")),
-                run.status,
-                run.get("label") or "",
-                "%0.6f" % random.uniform(0, 1),
-            ] for run in selected
-        ]
+        vals = [_run_data(run, index) for run in selected]
         return [header] + vals
     return get_runs
+
+def _run_data(run, index):
+    indexed = index.get_run(run.id)
+    import random
+    return [
+        indexed.get("short_id"),
+        indexed.get("model_name"),
+        indexed.get("op_name"),
+        indexed.get("started"),
+        indexed.get("status"),
+        indexed.get("label", ""),
+        "%0.6f" % random.uniform(0, 1),
+    ]

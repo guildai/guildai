@@ -26,6 +26,7 @@ Here is the order that Guild requirements are checked:
      ('tabview', 'tabview'),
      ('twine', 'twine'),
      ('werkzeug', 'Werkzeug'),
+     ('whoosh', 'Whoosh'),
      ('yaml', 'PyYAML')]
 
 Here's a fake list where pip is listed first:

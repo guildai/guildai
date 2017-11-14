@@ -40,7 +40,7 @@ class Run(object):
 
     @property
     def short_id(self):
-        return self.id[:8]
+        return run_short_id(self.id)
 
     @property
     def pid(self):
@@ -76,6 +76,9 @@ class Run(object):
 
     def attr_names(self):
         return sorted(os.listdir(self._attrs_dir()))
+
+    def has_attr(self, name):
+        return os.path.exists(self._attr_path(name))
 
     def iter_attrs(self):
         for name in self.attr_names():
@@ -148,3 +151,6 @@ def timestamp_seconds(ts):
 
 def mkid():
     return uuid.uuid1().hex
+
+def run_short_id(id):
+    return id[:8]

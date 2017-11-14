@@ -28,6 +28,7 @@ __requires__ = [
     ("tabview", "tabview"),
     ("twine", "twine"),
     ("werkzeug", "Werkzeug"),
+    ("whoosh", "Whoosh"),
 ]
 
 __pkgdir__ = os.path.dirname(os.path.dirname(__file__))

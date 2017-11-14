@@ -78,6 +78,18 @@ py_library(
 )
 
 py_library(
+    name = "index",
+    srcs = ["index.py"],
+    deps = [
+        "//third_party:whoosh",
+        ":opref",
+        ":run",
+        ":util",
+        ":var",
+    ],
+)
+
+py_library(
     name = "log",
     srcs = ["log.py"],
     deps = [

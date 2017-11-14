@@ -32,6 +32,7 @@ Requires-Dist: setuptools
 Requires-Dist: tabview
 Requires-Dist: twine
 Requires-Dist: Werkzeug
+Requires-Dist: Whoosh
 
 Guild AI is a command line tool that manages TensorFlow models and
 training runs.

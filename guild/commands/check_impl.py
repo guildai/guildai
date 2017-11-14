@@ -41,6 +41,7 @@ CHECK_MODS = [
     "twine",
     "yaml",
     "werkzeug",
+    "whoosh",
 ]
 
 class Check(object):
@@ -162,9 +163,17 @@ def _try_module_version(name, check):
         return _warn("NOT INSTALLED (%s)" % e)
     else:
         try:
-            return mod.__version__
+            ver = mod.__version__
         except AttributeError:
             return _warn("UNKNOWN")
+        else:
+            return _format_version(ver)
+
+def _format_version(ver):
+    if isinstance(ver, tuple):
+        return ".".join([str(part) for part in ver])
+    else:
+        return str(ver)
 
 def _warn(msg):
     return click.style(msg, fg="red", bold=True)
