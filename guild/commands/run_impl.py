@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import yaml
+
 import guild.model
 import guild.op
 
@@ -155,7 +157,13 @@ def _parse_flag(s):
     if len(parts) == 1:
         return parts[0], None
     else:
-        return parts
+        return parts[0], _parse_flag_val(parts[1])
+
+def _parse_flag_val(s):
+    try:
+        return yaml.load(s)
+    except yaml.YAMLError:
+        return s
 
 def _validate_opdef_flags(opdef):
     vals = opdef.flag_values()
