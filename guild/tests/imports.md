@@ -75,6 +75,7 @@
     guild.deps
     guild.entry_point_util
     guild.help
+    guild.index
     guild.log
     guild.main
     guild.main_bootstrap
