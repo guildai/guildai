@@ -84,7 +84,6 @@ py_library(
         "//third_party:tensorboard",
         "//third_party:whoosh",
         ":opref",
-        ":run",
         ":util",
         ":var",
     ],

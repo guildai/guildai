@@ -29,7 +29,6 @@ from whoosh import index
 from whoosh import query
 
 import guild.opref
-import guild.run
 
 from guild import util
 from guild import var
@@ -157,26 +156,26 @@ class RunIndex(object):
         writer = self.ix.writer()
         with self.ix.searcher() as seacher:
             for run_id in run_ids:
+                run = var.get_run(run_id)
                 hits = seacher.search(query.Term("id", run_id))
-                run_fields = self._ensure_indexed_run(run_id, hits, writer)
-                runs.append(RunResult(run_fields))
+                assert len(hits) <= 1, hits
+                hit_fields = hits[0].fields() if hits else None
+                cur_fields = self._ensure_indexed_run(run, hit_fields, writer)
+                runs.append(RunResult(cur_fields))
         writer.commit()
         return runs
 
-    def _ensure_indexed_run(self, run_id, search_hits, writer):
-        if search_hits:
-            assert len(search_hits) == 1, search_hits
-            cur_fields = search_hits[0].fields()
-            return self._reindex_changed_run(run_id, cur_fields, writer)
+    def _ensure_indexed_run(self, run, cur_fields, writer):
+        if cur_fields:
+            return self._reindex_changed_run(run, cur_fields, writer)
         else:
-            return self._index_run(run_id, writer)
+            return self._index_run(run, writer)
 
-    def _reindex_changed_run(self, run_id, fields, writer):
-        run = var.get_run(run_id)
+    def _reindex_changed_run(self, run, fields, writer):
         changed = self._changed_fields(run, fields)
         if not changed:
             return fields
-        log.debug("reindexing run %s (fields: %s)", run_id, list(changed))
+        log.debug("reindexing run %s (fields: %s)", run.id, list(changed))
         new = {}
         new.update(fields)
         new.update(changed)
@@ -333,16 +332,18 @@ class RunIndex(object):
         last = vals[-1]
         scalars[field_name] = last
 
-    def _index_run(self, run_id, writer):
-        log.debug("indexing run %s", run_id)
-        run = var.get_run(run_id)
+    def _index_run(self, run, writer):
+        log.debug("indexing run %s", run.id)
         fields = dict(
-            id=_u(run_id),
-            short_id=guild.run.run_short_id(run_id),
+            id=_u(run.id),
+            short_id=run.short_id,
         )
         fields.update(self._changed_fields(run, fields))
         writer.add_document(**fields)
         return fields
+
+    def sync(self):
+        pass
 
 def _encoded_field_name(prefix, to_encode):
     encoded = base64.b32encode(to_encode).replace("=", "_")
