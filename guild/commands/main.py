@@ -25,6 +25,7 @@ from guild import click_util
 from .check import check
 from .compare import compare
 from .help import help
+from .index import index
 from .install import install
 from .label import label
 from .models import models
@@ -71,6 +72,7 @@ def main(args):
 main.add_command(check)
 main.add_command(compare)
 main.add_command(help)
+main.add_command(index)
 main.add_command(install)
 main.add_command(label)
 main.add_command(models)

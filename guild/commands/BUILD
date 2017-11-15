@@ -51,6 +51,25 @@ py_library(
 )
 
 py_library(
+    name = "index",
+    srcs = ["index.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:click_util",
+        ":index_impl",
+    ],
+)
+
+py_library(
+    name = "index_impl",
+    srcs = ["index_impl.py"],
+    deps = [
+        "//guild:cli",
+        "//guild:index",
+    ],
+)
+
+py_library(
     name = "install",
     srcs = ["install.py"],
     deps = [
@@ -91,6 +110,7 @@ py_library(
         ":check",
         ":compare",
         ":help",
+        ":index",
         ":install",
         ":models",
         ":operations",
