@@ -27,6 +27,27 @@ py_library(
 )
 
 py_library(
+    name = "compare",
+    srcs = ["compare.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:click_util",
+        ":compare_impl",
+        ":runs_support",
+    ],
+)
+
+py_library(
+    name = "compare_impl",
+    srcs = ["compare_impl.py"],
+    deps = [
+        "//guild:index",
+        "//guild:tabview",
+        ":runs_impl",
+    ],
+)
+
+py_library(
     name = "help",
     srcs = ["help.py"],
     deps = [
@@ -250,27 +271,6 @@ py_library(
         "//third_party:click",
         "//guild:click_util",
         ":packages_impl",
-    ],
-)
-
-py_library(
-    name = "compare",
-    srcs = ["compare.py"],
-    deps = [
-        "//third_party:click",
-        "//guild:click_util",
-        ":compare_impl",
-        ":runs_support",
-    ],
-)
-
-py_library(
-    name = "compare_impl",
-    srcs = ["compare_impl.py"],
-    deps = [
-        "//guild:index",
-        "//guild:tabview",
-        ":runs_impl",
     ],
 )
 
