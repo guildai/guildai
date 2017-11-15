@@ -266,7 +266,7 @@ class RunIndex(object):
     def _maybe_scalars(self, fields, run):
         from tensorboard.backend.event_processing import event_multiplexer
         from tensorboard.backend.event_processing import event_accumulator
-
+        _ensure_tf_logger_patched()
         scalars = {}
         for path in event_multiplexer.GetLogdirSubdirectories(run.path):
             events_checksum_field_name = self._events_checksum_field_name(path)
@@ -351,3 +351,7 @@ def _encoded_field_name(prefix, to_encode):
 
 def _scalar_field_name(key):
     return "scalar_{}".format(md5.md5(key).hexdigest())
+
+def _ensure_tf_logger_patched():
+    from tensorflow import logging
+    logging.info = logging.debug = lambda *_arg, **_kw: None
