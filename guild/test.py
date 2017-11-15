@@ -17,12 +17,13 @@ from __future__ import division
 
 import doctest
 import glob
-import logging
 import os
 import pprint
 import re
 import sys
 import tempfile
+
+from guild import util
 
 class Py23DocChecker(doctest.OutputChecker):
     """Output checker that works around Python 2/3 unicode representations.
@@ -138,7 +139,7 @@ def _load_testfile(filename):
 
 def _test_globals():
     return {
-        "LogCapture": LogCapture,
+        "LogCapture": util.LogCapture,
         "cat": cat,
         "find": find,
         "mkdtemp": mkdtemp,
@@ -173,32 +174,3 @@ def find(root):
 def cat(*parts):
     with open(os.path.join(*parts), "r") as f:
         print(f.read())
-
-class LogCapture(object):
-
-    def __init__(self):
-        self._records = []
-
-    def __enter__(self):
-        for logger in self._iter_loggers():
-            logger.addFilter(self)
-        self._records = []
-
-    def __exit__(self, *exc):
-        for logger in self._iter_loggers():
-            logger.removeFilter(self)
-
-    @staticmethod
-    def _iter_loggers():
-        yield logging.root
-        for logger in logging.Logger.manager.loggerDict.values():
-            if isinstance(logger, logging.Logger):
-                yield logger
-
-    def filter(self, record):
-        self._records.append(record)
-
-    def print_all(self):
-        format = logging.root.handlers[0].format
-        for r in self._records:
-            print(format(r))

@@ -25,6 +25,10 @@ from . import runs_support
 @click.argument("runs", metavar="[RUN...]", nargs=-1)
 @runs_support.run_scope_options
 @runs_support.runs_list_options
+@click.option(
+    "-f", "--format",
+    type=click.Choice(["csv"]),
+    help="Compare result format")
 
 @click_util.use_args
 

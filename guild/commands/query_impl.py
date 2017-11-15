@@ -15,6 +15,9 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import csv
+import sys
+
 import guild.index
 
 from guild import tabview
@@ -22,6 +25,18 @@ from guild import tabview
 from . import runs_impl
 
 def compare(args):
+    if args.format == "csv":
+        _print_csv(args)
+    else:
+        _tabview(args)
+
+def _print_csv(args):
+    runs = _get_runs_cb(args)()
+    writer = csv.writer(sys.stdout)
+    for row in runs:
+        writer.writerow(row)
+
+def _tabview(args):
     tabview.view_runs(_get_runs_cb(args))
 
 def _get_runs_cb(args):
@@ -46,13 +61,12 @@ def _get_runs_cb(args):
 
 def _run_data(run, index):
     indexed = index.get_run(run.id)
-    import random
     return [
-        indexed.get("short_id"),
-        indexed.get("model_name"),
-        indexed.get("op_name"),
-        indexed.get("started"),
-        indexed.get("status"),
-        indexed.get("label", ""),
-        "%0.6f" % random.uniform(0, 1),
+        indexed.short_id,
+        indexed.model_name,
+        indexed.op_name,
+        indexed.started,
+        indexed.status,
+        indexed.label,
+        indexed.scalar(["validate/accuracy", "val_acc"], ""),
     ]

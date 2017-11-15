@@ -17,12 +17,18 @@ from __future__ import division
 
 import datetime
 import errno
+import glob
 import logging
+import md5
+import os
 import sys
 
 from whoosh import fields
 from whoosh import index
 from whoosh import query
+
+from tensorboard.backend.event_processing import event_multiplexer
+from tensorboard.backend.event_processing import event_accumulator
 
 import guild.opref
 import guild.run
@@ -36,6 +42,69 @@ else:
     _u = str
 
 log = logging.getLogger("core")
+
+class RunResult(object):
+
+    def __init__(self, fields):
+        self._fs = fields
+
+    @property
+    def id(self):
+        return self._fs.get("id")
+
+    @property
+    def short_id(self):
+        return self._fs.get("short_id")
+
+    @property
+    def status(self):
+        return self._fs.get("status")
+
+    @property
+    def started(self):
+        return self._fs.get("started")
+
+    @property
+    def stopped(self):
+        return self._fs.get("stopped")
+
+    @property
+    def pkg_type(self):
+        return self._fs.get("pkg_type")
+
+    @property
+    def pkg_name(self):
+        return self._fs.get("pkg_name")
+
+    @property
+    def pkg_version(self):
+        return self._fs.get("pkg_version")
+
+    @property
+    def model_name(self):
+        return self._fs.get("model_name")
+
+    @property
+    def op_name(self):
+        return self._fs.get("op_name")
+
+    @property
+    def label(self):
+        return self._fs.get("label")
+
+    def scalar(self, key_or_keys, default=None):
+        if isinstance(key_or_keys, str):
+            return self._scalar(key_or_keys, default)
+        else:
+            for key in key_or_keys:
+                maybe_val = self._scalar(key, None)
+                if maybe_val is not None:
+                    return maybe_val
+            return default
+
+    def _scalar(self, key, default):
+        field_name = _scalar_field_name(key)
+        return self._fs.get(field_name, default)
 
 class RunIndex(object):
 
@@ -86,12 +155,17 @@ class RunIndex(object):
 
     def get_run(self, run_id):
         with self.ix.searcher() as seacher:
-            hits = seacher.search(query.Term("run_id", run_id))
-            if hits:
-                assert len(hits) == 1, hits
-                return self._reindex_changed_run(run_id, hits[0].fields())
-            else:
-                return self._index_run(run_id)
+            hits = seacher.search(query.Term("id", run_id))
+            run_fields = self._ensure_indexed_run(run_id, hits)
+            return RunResult(run_fields)
+
+    def _ensure_indexed_run(self, run_id, search_hits):
+        if search_hits:
+            assert len(search_hits) == 1, search_hits
+            cur_fields = search_hits[0].fields()
+            return self._reindex_changed_run(run_id, cur_fields)
+        else:
+            return self._index_run(run_id)
 
     def _reindex_changed_run(self, run_id, fields):
         run = var.get_run(run_id)
@@ -109,17 +183,13 @@ class RunIndex(object):
 
     def _changed_fields(self, run, fields):
         changed = {}
-        changed.update(self._changed_attrs(run, fields))
-        return changed
-
-    def _changed_attrs(self, run, fields):
-        changed = {}
         changed.update(self._maybe_status_field(fields, run))
         changed.update(self._maybe_opref_fields(fields, run))
         changed.update(self._maybe_flag_fields(fields, run))
         changed.update(self._maybe_label_field(fields, run))
         changed.update(self._maybe_attr_field(fields, "started", run))
         changed.update(self._maybe_attr_field(fields, "stopped", run))
+        changed.update(self._maybe_scalars(fields, run))
         return changed
 
     @staticmethod
@@ -189,6 +259,72 @@ class RunIndex(object):
         else:
             return _u(val) if isinstance(val, str) else val
 
+    def _maybe_scalars(self, fields, run):
+        scalars = {}
+        for path in event_multiplexer.GetLogdirSubdirectories(run.path):
+            events_checksum_field_name = self._events_checksum_field_name(path)
+            last_checksum = fields.get(events_checksum_field_name)
+            cur_checksum = self._events_checksum(path)
+            if last_checksum == cur_checksum:
+                continue
+            scalars[events_checksum_field_name] = cur_checksum
+            log.debug("indexing events in %s", path)
+            rel_path = os.path.relpath(path, run.path)
+            events = event_accumulator._GeneratorFromPath(path).Load()
+            scalar_vals = self._scalar_vals(events, rel_path)
+            for key, vals in scalar_vals.items():
+                if not vals:
+                    continue
+                self._store_scalar_vals(key, vals, scalars)
+        return scalars
+
+    @staticmethod
+    def _events_checksum_field_name(path):
+        abs_path = os.path.abspath(path)
+        path_digest = md5.md5(abs_path).hexdigest()
+        return "priv_events_checksum_{}".format(path_digest)
+
+    @staticmethod
+    def _events_checksum(path):
+        """Returnds a checksum for path that changes when events change.
+
+        We use a directory watcher (by way of event_accumulator) to
+        load events from path. We want a checksum that changes
+        whenever an event under path is added. We do this by returning
+        a digest of the event logs and their associated sizes.
+        """
+        event_paths = sorted(glob.glob(os.path.join(path, "*.tfevents.*")))
+        to_hash = "\n".join([
+            "{}\n{}".format(event_path, os.path.getsize(event_path))
+            for event_path in event_paths])
+        return md5.md5(to_hash).hexdigest()
+
+    def _scalar_vals(self, events, events_prefix):
+        all_vals = {}
+        for event in events:
+            if not event.HasField("summary"):
+                continue
+            for val in event.summary.value:
+                if not val.HasField("simple_value"):
+                    continue
+                scalar_key = self._scalar_key(val.tag, events_prefix)
+                scalar_vals = all_vals.setdefault(scalar_key, [])
+                scalar_vals.append(val.simple_value)
+        return all_vals
+
+    @staticmethod
+    def _scalar_key(tag, path_prefix):
+        if not path_prefix or path_prefix == ".":
+            return tag
+        else:
+            return os.path.normpath(path_prefix) + "/" + tag
+
+    @staticmethod
+    def _store_scalar_vals(key, vals, scalars):
+        scalar_field_name = _scalar_field_name(key)
+        last = vals[-1]
+        scalars[scalar_field_name] = last
+
     def _index_run(self, run_id):
         log.debug("indexing run %s", run_id)
         run = var.get_run(run_id)
@@ -197,7 +333,10 @@ class RunIndex(object):
             id=_u(run_id),
             short_id=guild.run.run_short_id(run_id),
         )
-        fields.update(self._changed_attrs(run, fields))
+        fields.update(self._changed_fields(run, fields))
         writer.add_document(**fields)
         writer.commit()
         return fields
+
+def _scalar_field_name(key):
+    return "scalar_{}".format(md5.md5(key).hexdigest())

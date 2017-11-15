@@ -17,6 +17,7 @@ from __future__ import division
 
 import errno
 import os
+import logging
 import sys
 import time
 import threading
@@ -214,3 +215,36 @@ class TempDir(object):
 def mktempdir(prefix=None):
     import tempfile
     return tempfile.mkdtemp(prefix=prefix)
+
+class LogCapture(object):
+
+    def __init__(self):
+        self._records = []
+
+    def __enter__(self):
+        for logger in self._iter_loggers():
+            logger.addFilter(self)
+        self._records = []
+        return self
+
+    def __exit__(self, *exc):
+        for logger in self._iter_loggers():
+            logger.removeFilter(self)
+
+    @staticmethod
+    def _iter_loggers():
+        yield logging.root
+        for logger in logging.Logger.manager.loggerDict.values():
+            if isinstance(logger, logging.Logger):
+                yield logger
+
+    def filter(self, record):
+        self._records.append(record)
+
+    def print_all(self):
+        format = logging.root.handlers[0].format
+        for r in self._records:
+            print(format(r))
+
+    def get_all(self):
+        return self._records

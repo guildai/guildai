@@ -81,6 +81,7 @@ py_library(
     name = "index",
     srcs = ["index.py"],
     deps = [
+        "//third_party:tensorboard",
         "//third_party:whoosh",
         ":opref",
         ":run",
@@ -294,6 +295,7 @@ py_library(
         "//guild/tests",
     ],
     deps = [
+        ":util",
     ],
 )
 
