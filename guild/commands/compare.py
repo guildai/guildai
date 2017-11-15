@@ -26,9 +26,9 @@ from . import runs_support
 @runs_support.run_scope_options
 @runs_support.runs_list_options
 @click.option(
-    "-f", "--format",
-    type=click.Choice(["csv"]),
-    help="Compare result format")
+    "--csv", "format", flag_value="csv",
+    help="Generate comparison data as a CSV file.",
+    is_flag=True)
 
 @click_util.use_args
 

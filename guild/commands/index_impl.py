@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import datetime
+import json
 
 import guild.index
 
@@ -23,15 +24,25 @@ from guild import cli
 
 def main(args):
     index = guild.index.RunIndex()
-    if args.operation == "index-all":
-        _index_all(index)
+    if args.operation == "sync":
+        _sync(index)
+    elif args.operation == "raw-fields":
+        _print_fields(index)
     else:
         _print_info(index)
 
-def _index_all(index):
-    print("TODO: index all runs")
-    #cli.out("Indexing runs")
-    #index.index_all()
+def _sync(index):
+    cli.out("Updating index")
+    index.sync()
+
+def _print_fields(index):
+    fields = list(index.ix.reader().all_stored_fields())
+    cli.out(json.dumps(fields, default=_field_json_serializer))
+
+def _field_json_serializer(x):
+    if isinstance(x, datetime.datetime):
+        return x.isoformat()
+    raise TypeError()
 
 def _print_info(index):
     cli.out("path: {}".format(index.path))

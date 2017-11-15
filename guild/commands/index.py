@@ -21,8 +21,12 @@ from guild import click_util
 
 @click.command()
 @click.option(
-    "-a", "--index-all", "operation", flag_value="index-all",
-    help="Index all runs.",
+    "-s", "--sync", "operation", flag_value="sync",
+    help="Synchronize index with current runs.",
+    is_flag=True)
+@click.option(
+    "-r", "--raw-fields", "operation", flag_value="raw-fields",
+    help="Show raw (unformatted) index fields as JSON.",
     is_flag=True)
 
 @click_util.use_args

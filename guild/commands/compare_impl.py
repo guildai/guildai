@@ -32,7 +32,7 @@ def main(args):
         _tabview(args)
 
 def _print_csv(args):
-    runs = _get_runs_cb(args)()
+    runs, _logs = _get_runs_cb(args)()
     writer = csv.writer(sys.stdout)
     for row in runs:
         writer.writerow(row)
@@ -71,7 +71,6 @@ def _init_tf_logging():
     for display in a curses window.
     """
     import tensorflow
-
 
 def _runs_data(selected, index):
     ids = [run.id for run in selected]

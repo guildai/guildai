@@ -157,7 +157,7 @@ class RunIndex(object):
         with self.ix.searcher() as seacher:
             for run_id in run_ids:
                 run = var.get_run(run_id)
-                hits = seacher.search(query.Term("id", run_id))
+                hits = seacher.search(query.Term("id", run_id), limit=None)
                 assert len(hits) <= 1, hits
                 hit_fields = hits[0].fields() if hits else None
                 cur_fields = self._ensure_indexed_run(run, hit_fields, writer)
@@ -174,8 +174,11 @@ class RunIndex(object):
     def _reindex_changed_run(self, run, fields, writer):
         changed = self._changed_fields(run, fields)
         if not changed:
+            log.debug("skipping run %s (unchanged)", run.id)
             return fields
-        log.debug("reindexing run %s (fields: %s)", run.id, list(changed))
+        log.debug(
+            "reindexing run %s (%i field(s) changed)",
+            run.id, len(changed))
         new = {}
         new.update(fields)
         new.update(changed)
@@ -272,6 +275,9 @@ class RunIndex(object):
             events_checksum_field_name = self._events_checksum_field_name(path)
             last_checksum = fields.get(events_checksum_field_name)
             cur_checksum = self._events_checksum(path)
+            log.debug(
+                "event path checksums for %s: last=%s, cur=%s",
+                path, last_checksum, cur_checksum)
             if last_checksum == cur_checksum:
                 continue
             scalars[events_checksum_field_name] = cur_checksum
@@ -343,7 +349,30 @@ class RunIndex(object):
         return fields
 
     def sync(self):
-        pass
+        runs = {
+            run.id: run for run in var.runs()
+        }
+        reader = self.ix.reader()
+        writer = self.ix.writer()
+        for docnum, fields in reader.iter_docs():
+            run_id = fields["id"]
+            run = runs.pop(run_id, None)
+            if run:
+                self._reindex_changed_run(run, fields, writer)
+            else:
+                self._delete_run(docnum, run_id, writer)
+        for run in runs.values():
+            self._index_run(run, writer)
+        log.debug("committing changes")
+        # We'd like to use commit(optimize=True here but there's a bug
+        # that causes our 'priv_xxx' fields to be deleted. See
+        # https://bitbucket.org/mchaput/whoosh/issues/472 for details.
+        writer.commit()
+
+    @staticmethod
+    def _delete_run(docnum, run_id, writer):
+        log.debug("deleting run %s", run_id)
+        writer.delete_document(docnum)
 
 def _encoded_field_name(prefix, to_encode):
     encoded = base64.b32encode(to_encode).replace("=", "_")
