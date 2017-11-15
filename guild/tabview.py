@@ -115,7 +115,8 @@ class Viewer(ViewerBase):
                            self.float_string_key(itemgetter(xp)(x)),
                            reverse=True)
 
-    def float_string_key(self, value):
+    @staticmethod
+    def float_string_key(value):
         try:
             return float(value)
         except ValueError:
