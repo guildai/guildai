@@ -49,6 +49,7 @@ p                        Move to previous search result
 < >                      Decrease / increase column width (all columns)
 , .                      Decrease / increase column width (current column)
 - +                      Decrease / increase column gap
+`                        Show logs (used for troubleshooting issues)
 [num]c                   Toggle variable column width mode or set width to [num]
 [num]C                   Maximize current column or set width to [num]
 [num][                   Skip to [num]th change in row value (backward)
@@ -85,8 +86,7 @@ class Viewer(ViewerBase):
         del self.keys[tabview.KEY_CTRL('g')]
         self.keys["1"] = self.sort_by_column_numeric_reverse
         self.keys["!"] = self.sort_by_column_numeric
-        if self.logs:
-            self.keys["`"] = self.show_logs
+        self.keys["`"] = self.show_logs
 
     def show_logs(self):
         formatted = self._format_logs()
