@@ -40,7 +40,7 @@ class Run(object):
 
     @property
     def short_id(self):
-        return run_short_id(self.id)
+        return self.id[:8]
 
     @property
     def pid(self):
@@ -151,6 +151,3 @@ def timestamp_seconds(ts):
 
 def mkid():
     return uuid.uuid1().hex
-
-def run_short_id(id):
-    return id[:8]
