@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import base64
 import datetime
 import errno
 import glob
@@ -103,7 +104,7 @@ class RunResult(object):
             return default
 
     def _scalar(self, key, default):
-        field_name = _scalar_field_name(key)
+        field_name = _encoded_field_name("scalar_", key)
         return self._fs.get(field_name, default)
 
 class RunIndex(object):
@@ -150,6 +151,7 @@ class RunIndex(object):
         schema.add("flagi_*", fields.NUMERIC(int, stored=True), glob=True)
         schema.add("flagf_*", fields.NUMERIC(int, stored=True), glob=True)
         schema.add("flagb_*", fields.BOOLEAN(stored=True), glob=True)
+        schema.add("flags_*", fields.ID(stored=True), glob=True)
         schema.add("priv_*", fields.STORED, glob=True)
         return schema
 
@@ -224,16 +226,19 @@ class RunIndex(object):
             for name, val in run.get("flags", {}).items()
         }
 
+    def _flag_field_name(self, name, val_type):
+        return _encoded_field_name(self._flag_field_prefix(val_type), name)
+
     @staticmethod
-    def _flag_field_name(name, val_type):
+    def _flag_field_prefix(val_type):
         if val_type is int:
-            return "flagi_{}".format(name)
+            return "flagi_"
         elif val_type is float:
-            return "flagf_{}".format(name)
+            return "flagf_"
         elif val_type is bool:
-            return "flagb_{}". format(name)
+            return "flagb_"
         else:
-            return "flags_{}".format(name)
+            return "flags_"
 
     @staticmethod
     def _maybe_label_field(fields, run):
@@ -321,9 +326,9 @@ class RunIndex(object):
 
     @staticmethod
     def _store_scalar_vals(key, vals, scalars):
-        scalar_field_name = _scalar_field_name(key)
+        field_name = _encoded_field_name("scalar_", key)
         last = vals[-1]
-        scalars[scalar_field_name] = last
+        scalars[field_name] = last
 
     def _index_run(self, run_id):
         log.debug("indexing run %s", run_id)
@@ -337,6 +342,10 @@ class RunIndex(object):
         writer.add_document(**fields)
         writer.commit()
         return fields
+
+def _encoded_field_name(prefix, to_encode):
+    encoded = base64.b32encode(to_encode).replace("=", "_")
+    return prefix + encoded
 
 def _scalar_field_name(key):
     return "scalar_{}".format(md5.md5(key).hexdigest())
