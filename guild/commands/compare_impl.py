@@ -21,6 +21,7 @@ import sys
 import guild.index
 
 from guild import tabview
+from guild import util
 
 from . import runs_impl
 
@@ -51,22 +52,41 @@ def _get_runs_cb(args):
     ]
     index = guild.index.RunIndex()
     def get_runs():
-        import random
-        runs = runs_impl.runs_for_args(args)
-        runs_arg = args.runs or runs_impl.ALL_RUNS_ARG
-        selected = runs_impl.selected_runs(runs, runs_arg)
-        vals = [_run_data(run, index) for run in selected]
-        return [header] + vals
+        _init_tf_logging()
+        log_capture = util.LogCapture()
+        with log_capture:
+            runs = runs_impl.runs_for_args(args)
+            runs_arg = args.runs or runs_impl.ALL_RUNS_ARG
+            selected = runs_impl.selected_runs(runs, runs_arg)
+            vals = _runs_data(selected, index)
+        return [header] + vals, log_capture.get_all()
     return get_runs
 
-def _run_data(run, index):
-    indexed = index.get_run(run.id)
+def _init_tf_logging():
+    """Load TensorFlow, forcing init of TF logging.
+
+    This is part of our handing of logging, which can interfere with
+    the curses display used by tabview. By forcing an init of TF logs,
+    we can patch loggers with LogCapture (see guild.tabview module)
+    for display in a curses window.
+    """
+    import tensorflow
+
+
+def _runs_data(selected, index):
+    ids = [run.id for run in selected]
+    return [_run_data(run) for run in index.runs(ids)]
+
+def _run_data(run):
     return [
-        indexed.short_id,
-        indexed.model_name,
-        indexed.op_name,
-        indexed.started,
-        indexed.status,
-        indexed.label,
-        indexed.scalar(["validate/accuracy", "val_acc"], ""),
+        run.short_id,
+        run.model_name,
+        run.op_name,
+        run.started,
+        run.status,
+        run.label,
+        _run_accuracy(run),
     ]
+
+def _run_accuracy(run):
+    return run.scalar(["accuracy", "val_acc", "validate/accuracy"], "")

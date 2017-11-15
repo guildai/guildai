@@ -20,25 +20,59 @@ import logging
 
 from tabview import tabview
 
-from guild import util
-
 ViewerBase = tabview.Viewer
+
+viewer_help = """
+F1 or ?                  Show this help
+s                        Sort by current column (ascending)
+S                        Sort by current column (descending)
+1                        Sort numerically by current column (descending)
+!                        Sort numerically by current column (ascending)
+a                        Reset sort order
+A                        Reset sort order (reversed)
+r                        Reload file/data (resets sort order)
+Cursor keys or h,j,k,l   Move highlighted cell
+Q or q                   Quit
+Home, 0, ^, C-a          Move to start of the current line
+End, $, C-e              Move to end of the current line
+[num]|                   Move to column <num> (defaults to first column)
+PgUp/PgDn or J/K         Move a page up or down
+H,L                      Page left or right
+g                        Move to top of current column
+[num]G                   Move to line <num> (defaults to last line)
+Insert or m              Memorize current position
+Delete or '              Move to last memorized position
+Enter                    View current cell details
+/                        Specify a search term
+n                        Move to next search result
+p                        Move to previous search result
+< >                      Decrease / increase column width (all columns)
+, .                      Decrease / increase column width (current column)
+- +                      Decrease / increase column gap
+[num]c                   Toggle variable column width mode or set width to [num]
+[num]C                   Maximize current column or set width to [num]
+[num][                   Skip to [num]th change in row value (backward)
+[num]]                   Skip to [num]th change in row value (forward)
+[num]{                   Skip to [num]th change in column value (backward)
+[num]}                   Skip to [num]th change in column value (forward)
+"""
 
 class Viewer(ViewerBase):
 
     get_data = None
-    logs = None
 
     def __init__(self, *args, **kw):
         assert self.get_data is not None
         with StatusWin("Reading data"):
-            data = self._init_data()
+            data, logs = self._init_data()
+        self.logs = logs
         args = (args[0], data) + args[2:]
         # pylint: disable=non-parent-init-called
         ViewerBase.__init__(self, *args, **kw)
 
     def _init_data(self):
-        return tabview.process_data(self.get_data())
+        data, logs = self.get_data()
+        return tabview.process_data(data), logs
 
     def location_string(self, yp, xp):
         lstr = ViewerBase.location_string(self, yp, xp)
@@ -47,6 +81,10 @@ class Viewer(ViewerBase):
     def define_keys(self):
         ViewerBase.define_keys(self)
         del self.keys["t"]
+        del self.keys["y"]
+        del self.keys[tabview.KEY_CTRL('g')]
+        self.keys["1"] = self.sort_by_column_numeric_reverse
+        self.keys["!"] = self.sort_by_column_numeric
         if self.logs:
             self.keys["`"] = self.show_logs
 
@@ -56,9 +94,32 @@ class Viewer(ViewerBase):
         self.resize()
 
     def _format_logs(self):
-        assert self.logs
+        logs = self.logs or []
         fmt = logging.Formatter("%(asctime)s: %(levelname)s %(message)s")
-        return "\n".join([fmt.format(r) for r in self.logs.get_all()])
+        return "\n".join([fmt.format(r) for r in logs])
+
+    def help(self):
+        tabview.TextBox(self.scr, viewer_help.strip(), "Key bindings")()
+        self.resize()
+
+    def sort_by_column_numeric(self):
+        from operator import itemgetter
+        xp = self.x + self.win_x
+        self.data = sorted(self.data, key=lambda x:
+                           self.float_string_key(itemgetter(xp)(x)))
+
+    def sort_by_column_numeric_reverse(self):
+        from operator import itemgetter
+        xp = self.x + self.win_x
+        self.data = sorted(self.data, key=lambda x:
+                           self.float_string_key(itemgetter(xp)(x)),
+                           reverse=True)
+
+    def float_string_key(self, value):
+        try:
+            return float(value)
+        except ValueError:
+            return str(value) if value else None
 
 class StatusWin(object):
 
@@ -81,12 +142,10 @@ class StatusWin(object):
         curses.endwin()
 
 def view_runs(get_data_cb):
-    with util.LogCapture() as logs:
-        Viewer.get_data = staticmethod(get_data_cb)
-        Viewer.logs = logs
-        tabview.Viewer = Viewer
-        tabview.view(
-            [[]],
-            column_width="max",
-            info="Guild run comparison",
-        )
+    Viewer.get_data = staticmethod(get_data_cb)
+    tabview.Viewer = Viewer
+    tabview.view(
+        [[]],
+        column_width="max",
+        info="Guild run comparison",
+    )

@@ -28,9 +28,6 @@ from whoosh import fields
 from whoosh import index
 from whoosh import query
 
-from tensorboard.backend.event_processing import event_multiplexer
-from tensorboard.backend.event_processing import event_accumulator
-
 import guild.opref
 import guild.run
 
@@ -155,21 +152,26 @@ class RunIndex(object):
         schema.add("priv_*", fields.STORED, glob=True)
         return schema
 
-    def get_run(self, run_id):
+    def runs(self, run_ids):
+        runs = []
+        writer = self.ix.writer()
         with self.ix.searcher() as seacher:
-            hits = seacher.search(query.Term("id", run_id))
-            run_fields = self._ensure_indexed_run(run_id, hits)
-            return RunResult(run_fields)
+            for run_id in run_ids:
+                hits = seacher.search(query.Term("id", run_id))
+                run_fields = self._ensure_indexed_run(run_id, hits, writer)
+                runs.append(RunResult(run_fields))
+        writer.commit()
+        return runs
 
-    def _ensure_indexed_run(self, run_id, search_hits):
+    def _ensure_indexed_run(self, run_id, search_hits, writer):
         if search_hits:
             assert len(search_hits) == 1, search_hits
             cur_fields = search_hits[0].fields()
-            return self._reindex_changed_run(run_id, cur_fields)
+            return self._reindex_changed_run(run_id, cur_fields, writer)
         else:
-            return self._index_run(run_id)
+            return self._index_run(run_id, writer)
 
-    def _reindex_changed_run(self, run_id, fields):
+    def _reindex_changed_run(self, run_id, fields, writer):
         run = var.get_run(run_id)
         changed = self._changed_fields(run, fields)
         if not changed:
@@ -178,9 +180,7 @@ class RunIndex(object):
         new = {}
         new.update(fields)
         new.update(changed)
-        writer = self.ix.writer()
         writer.update_document(**new)
-        writer.commit()
         return new
 
     def _changed_fields(self, run, fields):
@@ -265,6 +265,9 @@ class RunIndex(object):
             return _u(val) if isinstance(val, str) else val
 
     def _maybe_scalars(self, fields, run):
+        from tensorboard.backend.event_processing import event_multiplexer
+        from tensorboard.backend.event_processing import event_accumulator
+
         scalars = {}
         for path in event_multiplexer.GetLogdirSubdirectories(run.path):
             events_checksum_field_name = self._events_checksum_field_name(path)
@@ -330,17 +333,15 @@ class RunIndex(object):
         last = vals[-1]
         scalars[field_name] = last
 
-    def _index_run(self, run_id):
+    def _index_run(self, run_id, writer):
         log.debug("indexing run %s", run_id)
         run = var.get_run(run_id)
-        writer = self.ix.writer()
         fields = dict(
             id=_u(run_id),
             short_id=guild.run.run_short_id(run_id),
         )
         fields.update(self._changed_fields(run, fields))
         writer.add_document(**fields)
-        writer.commit()
         return fields
 
 def _encoded_field_name(prefix, to_encode):
