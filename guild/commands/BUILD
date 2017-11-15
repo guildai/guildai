@@ -89,13 +89,13 @@ py_library(
         "//guild:__init__",
         "//guild:click_util",
         ":check",
+        ":compare",
         ":help",
         ":install",
         ":models",
         ":operations",
         ":package",
         ":packages",
-        ":query",
         ":resources",
         ":run",
         ":runs",
@@ -234,27 +234,19 @@ py_library(
 )
 
 py_library(
-    name = "query",
-    srcs = ["query.py"],
-    deps = [
-        "//third_party:click",
-        ":query_compare",
-    ],
-)
-
-py_library(
-    name = "query_compare",
-    srcs = ["query_compare.py"],
+    name = "compare",
+    srcs = ["compare.py"],
     deps = [
         "//third_party:click",
         "//guild:click_util",
-        ":query_impl",
+        ":compare_impl",
+        ":runs_support",
     ],
 )
 
 py_library(
-    name = "query_impl",
-    srcs = ["query_impl.py"],
+    name = "compare_impl",
+    srcs = ["compare_impl.py"],
     deps = [
         "//guild:index",
         "//guild:tabview",

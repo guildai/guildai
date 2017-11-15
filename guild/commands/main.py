@@ -23,6 +23,7 @@ from guild import version as guild_version
 from guild import click_util
 
 from .check import check
+from .compare import compare
 from .help import help
 from .install import install
 from .label import label
@@ -30,7 +31,6 @@ from .models import models
 from .operations import operations
 from .package import package
 from .packages import packages
-from .query import query
 from .resources import resources
 from .run import run
 from .runs import runs
@@ -69,6 +69,7 @@ def main(args):
     main_impl.main(args)
 
 main.add_command(check)
+main.add_command(compare)
 main.add_command(help)
 main.add_command(install)
 main.add_command(label)
@@ -76,7 +77,6 @@ main.add_command(models)
 main.add_command(operations)
 main.add_command(package)
 main.add_command(packages)
-main.add_command(query)
 main.add_command(resources)
 main.add_command(run)
 main.add_command(runs)

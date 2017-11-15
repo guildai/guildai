@@ -17,12 +17,23 @@ from __future__ import division
 
 import click
 
-from .query_compare import compare
+from guild import click_util
 
-@click.group()
+from . import runs_support
 
-def query():
-    """Query run results.
+@click.command()
+@click.argument("runs", metavar="[RUN...]", nargs=-1)
+@runs_support.run_scope_options
+@runs_support.runs_list_options
+@click.option(
+    "-f", "--format",
+    type=click.Choice(["csv"]),
+    help="Compare result format")
+
+@click_util.use_args
+
+def compare(args):
+    """Compare run results.
     """
-
-query.add_command(compare)
+    from . import compare_impl
+    compare_impl.main(args)

@@ -24,7 +24,7 @@ from guild import tabview
 
 from . import runs_impl
 
-def compare(args):
+def main(args):
     if args.format == "csv":
         _print_csv(args)
     else:

@@ -27,6 +27,8 @@
     guild.commands.__init__
     guild.commands.check
     guild.commands.check_impl
+    guild.commands.compare
+    guild.commands.compare_impl
     guild.commands.help
     guild.commands.help_impl
     guild.commands.install
@@ -45,9 +47,6 @@
     guild.commands.packages_impl
     guild.commands.packages_info
     guild.commands.packages_list
-    guild.commands.query
-    guild.commands.query_compare
-    guild.commands.query_impl
     guild.commands.resources
     guild.commands.resources_impl
     guild.commands.run
