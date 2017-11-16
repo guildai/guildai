@@ -290,9 +290,6 @@ py_library(
 py_library(
     name = "test",
     srcs = ["test.py"],
-    data = [
-        "//guild/tests",
-    ],
     deps = [
         ":util",
     ],
@@ -303,9 +300,6 @@ py_library(
     srcs = ["uat.py"],
     deps = [
         ":test",
-    ],
-    data = [
-        "//guild/tests/uat"
     ],
 )
 

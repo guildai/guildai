@@ -3,13 +3,14 @@ package(default_visibility = ["//visibility:public"])
 py_library(
     name = "tests",
     deps = [
-        ":cpu-plugin",
         ":config",
+        ":cpu-plugin",
         ":dependencies",
         ":disk-plugin",
         ":entry-points",
         ":imports",
         ":logging",
+        ":main-bootstrap",
         ":memory-plugin",
         ":modelfiles",
         ":models",
@@ -81,6 +82,15 @@ py_library(
     data = ["logging.md"],
     deps = [
         "//guild:log",
+    ],
+)
+
+py_library(
+    name = "main-bootstrap",
+    data = ["main-bootstrap.md"],
+    deps = [
+        # Dep on //guild:main_bootstrap but not listed because it
+        # introduces a cycle
     ],
 )
 

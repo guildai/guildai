@@ -13,6 +13,10 @@ py_library(
 py_library(
     name = "check_impl",
     srcs = ["check_impl.py"],
+    data = [
+        "//guild/tests",
+        "//guild/tests/uat"
+    ],
     deps = [
         "//third_party:click",
         "//third_party:setuptools",
@@ -135,6 +139,7 @@ py_library(
         ":help",
         ":index",
         ":install",
+        ":label",
         ":models",
         ":operations",
         ":package",
