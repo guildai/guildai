@@ -22,9 +22,9 @@ from guild import click_util
 from . import runs_support
 
 @click.command()
-@click.argument("runs", metavar="[RUN...]", nargs=-1)
+@click.argument("filters", metavar="[FILTER]...", required=False, nargs=-1)
 @runs_support.run_scope_options
-@runs_support.runs_list_options
+@runs_support.run_filters
 @click.option(
     "--csv", "format", flag_value="csv",
     help="Generate comparison data as a CSV file.",

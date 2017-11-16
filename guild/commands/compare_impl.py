@@ -61,11 +61,22 @@ def _get_runs_cb(args, index):
         log_capture = util.LogCapture()
         with log_capture:
             runs = runs_impl.runs_for_args(args)
-            runs_arg = args.runs or runs_impl.ALL_RUNS_ARG
-            selected = runs_impl.selected_runs(runs, runs_arg)
-            vals = _runs_data(selected, index)
+            filtered = _filter_runs(runs, args.filters)
+            vals = _runs_data(filtered, index)
         return [header] + vals, log_capture.get_all()
     return get_runs
+
+def _filter_runs(runs, filters):
+    return [run for run in runs if _filter_run(run, filters)]
+
+def _filter_run(run, filters):
+    opref = guild.opref.OpRef.from_run(run)
+    filter_vals = [
+        opref.model_name,
+        opref.op_name,
+        run.get("label", ""),
+    ]
+    return util.match_filters(filters, filter_vals)
 
 def _init_tf_logging():
     """Load TensorFlow, forcing init of TF logging.
