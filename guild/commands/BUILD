@@ -93,6 +93,7 @@ py_library(
     deps = [
         "//guild:cli",
         "//guild:index",
+        "//guild:util",
     ],
 )
 

@@ -15,12 +15,12 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import datetime
 import json
 
 import guild.index
 
 from guild import cli
+from guild import util
 
 def main(args):
     index = guild.index.RunIndex()
@@ -37,15 +37,15 @@ def _sync(index):
 
 def _print_fields(index):
     fields = list(index.ix.reader().all_stored_fields())
-    cli.out(json.dumps(fields, default=_field_json_serializer))
-
-def _field_json_serializer(x):
-    if isinstance(x, datetime.datetime):
-        return x.isoformat()
-    raise TypeError()
+    json_out = json.dumps(
+        fields,
+        sort_keys=True,
+        indent=4,
+        separators=(',', ': '))
+    cli.out(json_out)
 
 def _print_info(index):
     cli.out("path: {}".format(index.path))
     cli.out("runs: {}".format(index.ix.doc_count()))
-    last_modified = datetime.datetime.fromtimestamp(index.ix.last_modified())
+    last_modified = util.format_timestamp(index.ix.last_modified())
     cli.out("last-modified: {}".format(last_modified))

@@ -86,15 +86,12 @@ def _run_data(run):
         run.short_id,
         run.model_name,
         run.op_name,
-        _format_date(run.started),
+        util.format_timestamp(run.started),
         run.status,
         run.label,
         _run_accuracy(run),
         _run_loss(run),
     ]
-
-def _format_date(datetime):
-    return datetime.strftime("%Y-%m-%d %H:%M:%S")
 
 def _run_accuracy(run):
     search_keys = [

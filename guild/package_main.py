@@ -234,8 +234,22 @@ def _patch_setuptools_namespaces():
 
     E.g. https://github.com/pypa/setuptools/issues/805
     """
-    from setuptools.namespaces import Installer
-    Installer.install_namespaces = lambda *_args: None
+    patched = False
+    try:
+        from setuptools.namespaces import Installer
+    except ImportError:
+        pass
+    else:
+        Installer.install_namespaces = lambda *_args: None
+        patched = True
+    try:
+        from setuptools.command.install_egg_info import install_egg_info
+    except ImportError:
+        pass
+    else:
+        install_egg_info.install_namespaces = lambda *_args: None
+        patched = True
+    assert patched
 
 def _maybe_upload(dist):
     upload_repo = os.getenv("UPLOAD_REPO")

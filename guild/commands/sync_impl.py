@@ -76,7 +76,7 @@ def _try_sync(run, plugin_name, lock_config, watch):
     try:
         plugin = guild.plugin.for_name(plugin_name)
     except LookupError:
-        log.warn(
+        log.warning(
             "error syncing run '%s': plugin '%s' not available",
             run.id, plugin_name)
     else:

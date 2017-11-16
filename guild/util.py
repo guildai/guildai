@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import datetime
 import errno
 import os
 import logging
@@ -248,3 +249,7 @@ class LogCapture(object):
 
     def get_all(self):
         return self._records
+
+def format_timestamp(ts):
+    dt = datetime.datetime.fromtimestamp(ts / 1000000)
+    return dt.strftime("%Y-%m-%d %H:%M:%S")

@@ -16,11 +16,10 @@ from __future__ import absolute_import
 from __future__ import division
 
 import base64
-import datetime
 import errno
 import glob
+import hashlib
 import logging
-import md5
 import os
 import sys
 
@@ -34,6 +33,7 @@ from guild import util
 from guild import var
 
 if sys.version_info[0] == 2:
+    # pylint: disable=undefined-variable
     _u = unicode
 else:
     _u = str
@@ -149,6 +149,7 @@ class RunIndex(object):
             return self._create_index()
 
     def _create_index(self):
+        util.ensure_dir(self.path)
         return index.create_in(self.path, self._init_schema())
 
     @staticmethod
@@ -157,8 +158,8 @@ class RunIndex(object):
         schema.add("id", fields.ID(unique=True, stored=True))
         schema.add("short_id", fields.ID(stored=True))
         schema.add("status", fields.ID(stored=True))
-        schema.add("started", fields.DATETIME(stored=True))
-        schema.add("stopped", fields.DATETIME(stored=True))
+        schema.add("started", fields.NUMERIC(int, bits=64, stored=True))
+        schema.add("stopped", fields.NUMERIC(int, bits=64, stored=True))
         schema.add("pkg_type", fields.ID(stored=True))
         schema.add("pkg_name", fields.ID(stored=True))
         schema.add("pkg_version", fields.ID(stored=True))
@@ -166,8 +167,8 @@ class RunIndex(object):
         schema.add("op_name", fields.ID(stored=True))
         schema.add("label", fields.TEXT(stored=True))
         schema.add("scalar_*", fields.NUMERIC(float, stored=True), glob=True)
-        schema.add("flagi_*", fields.NUMERIC(int, stored=True), glob=True)
-        schema.add("flagf_*", fields.NUMERIC(int, stored=True), glob=True)
+        schema.add("flagi_*", fields.NUMERIC(int, bits=64, stored=True), glob=True)
+        schema.add("flagf_*", fields.NUMERIC(float, stored=True), glob=True)
         schema.add("flagb_*", fields.BOOLEAN(stored=True), glob=True)
         schema.add("flags_*", fields.ID(stored=True), glob=True)
         schema.add("priv_*", fields.STORED, glob=True)
@@ -244,25 +245,21 @@ class RunIndex(object):
         fields["priv_has_flags"] = True
         return fields
 
-    def _flag_fields(self, run):
-        return {
-            self._flag_field_name(name, type(val)): self._field_val(val)
-            for name, val in run.get("flags", {}).items()
-        }
-
-    def _flag_field_name(self, name, val_type):
-        return _encode_field_name(self._flag_field_prefix(val_type), name)
-
     @staticmethod
-    def _flag_field_prefix(val_type):
-        if val_type is int:
-            return "flagi_"
-        elif val_type is float:
-            return "flagf_"
-        elif val_type is bool:
-            return "flagb_"
-        else:
-            return "flags_"
+    def _flag_fields(run):
+        fields = {}
+        for flag_name, val in run.get("flags", {}).items():
+            if isinstance(val, int):
+                field_name = _encode_field_name("flagi_", flag_name)
+            elif isinstance(val, float):
+                field_name = _encode_field_name("flagf_", flag_name)
+            elif isinstance(val, bool):
+                field_name = _encode_field_name("flagb_", flag_name)
+            else:
+                field_name = _encode_field_name("flags_", flag_name)
+                val = _u(val)
+            fields[field_name] = val
+        return fields
 
     @staticmethod
     def _maybe_label_field(fields, run):
@@ -278,15 +275,10 @@ class RunIndex(object):
             marker: True,
         }
 
-    def _field_val(self, val, attr_name=None):
+    def _field_val(self, val, attr_name):
         assert self._ix
-        if attr_name is None:
-            return _u(val) if isinstance(val, str) else val
         field = self._ix.schema[attr_name]
-        if isinstance(field, fields.DATETIME):
-            return datetime.datetime.fromtimestamp(val / 1000000)
-        else:
-            return _u(val) if isinstance(val, str) else val
+        return _u(val) if isinstance(field, (fields.ID, fields.TEXT)) else val
 
     def _maybe_scalars(self, fields, run):
         from tensorboard.backend.event_processing import event_multiplexer
@@ -316,7 +308,7 @@ class RunIndex(object):
     @staticmethod
     def _events_checksum_field_name(path):
         abs_path = os.path.abspath(path)
-        path_digest = md5.md5(abs_path).hexdigest()
+        path_digest = hashlib.md5(abs_path.encode("utf-8")).hexdigest()
         return "priv_events_checksum_{}".format(path_digest)
 
     @staticmethod
@@ -332,7 +324,7 @@ class RunIndex(object):
         to_hash = "\n".join([
             "{}\n{}".format(event_path, os.path.getsize(event_path))
             for event_path in event_paths])
-        return md5.md5(to_hash).hexdigest()
+        return hashlib.md5(to_hash.encode("utf-8")).hexdigest()
 
     def _scalar_vals(self, events, events_prefix):
         all_vals = {}
@@ -397,8 +389,9 @@ class RunIndex(object):
         writer.delete_document(docnum)
 
 def _encode_field_name(prefix, to_encode):
-    encoded = base64.b32encode(to_encode).replace("=", "_")
-    return prefix + encoded
+    to_encode = to_encode.replace("=", "_").encode("utf-8")
+    encoded = base64.b32encode(to_encode)
+    return prefix + encoded.decode("utf-8")
 
 def _decode_field_name(prefix, field_name):
     if not field_name.startswith(prefix):
@@ -406,9 +399,16 @@ def _decode_field_name(prefix, field_name):
     encoded = field_name[len(prefix):]
     return base64.b32decode(encoded.replace("_", "="))
 
-def _scalar_field_name(key):
-    return "scalar_{}".format(md5.md5(key).hexdigest())
-
 def _ensure_tf_logger_patched():
     from tensorflow import logging
     logging.info = logging.debug = lambda *_arg, **_kw: None
+
+def _patch_whoosh_write_pickle():
+    # See https://bitbucket.org/mchaput/whoosh/issues/473
+    from whoosh.filedb.structfile import StructFile
+    write_pickle_orig = StructFile.write_pickle
+    def write_pickle(self, ob):
+        write_pickle_orig(self, ob, protocol=2)
+    StructFile.write_pickle = write_pickle
+
+_patch_whoosh_write_pickle()
