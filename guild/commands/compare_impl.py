@@ -22,6 +22,7 @@ import guild.index
 
 from guild import tabview
 from guild import util
+from guild import var
 
 from . import runs_impl
 
@@ -32,15 +33,19 @@ def main(args):
         _tabview(args)
 
 def _print_csv(args):
-    runs, _logs = _get_runs_cb(args)()
+    index = guild.index.RunIndex()
+    runs, _logs = _get_runs_cb(args, index)()
     writer = csv.writer(sys.stdout)
     for row in runs:
         writer.writerow(row)
 
 def _tabview(args):
-    tabview.view_runs(_get_runs_cb(args))
+    index = guild.index.RunIndex()
+    tabview.view_runs(
+        _get_runs_cb(args, index),
+        _get_run_detail_cb(index))
 
-def _get_runs_cb(args):
+def _get_runs_cb(args, index):
     header = [
         "Run",
         "Model",
@@ -49,8 +54,8 @@ def _get_runs_cb(args):
         "Status",
         "Label",
         "Accuracy",
+        "Loss",
     ]
-    index = guild.index.RunIndex()
     def get_runs():
         _init_tf_logging()
         log_capture = util.LogCapture()
@@ -81,11 +86,68 @@ def _run_data(run):
         run.short_id,
         run.model_name,
         run.op_name,
-        run.started,
+        _format_date(run.started),
         run.status,
         run.label,
         _run_accuracy(run),
+        _run_loss(run),
     ]
 
+def _format_date(datetime):
+    return datetime.strftime("%Y-%m-%d %H:%M:%S")
+
 def _run_accuracy(run):
-    return run.scalar(["accuracy", "val_acc", "validate/accuracy"], "")
+    search_keys = [
+        "val_acc",
+        "validate/accuracy",
+        "eval/accuracy",
+    ]
+    return _format_float(run.scalar(search_keys))
+
+def _run_loss(run):
+    search_keys = [
+        "loss",
+        "train/loss",
+    ]
+    return _format_float(run.scalar(search_keys))
+
+def _format_float(x):
+    return ("%0.6f" % x) if x is not None else ""
+
+def _get_run_detail_cb(index):
+    def get_detail(data, y, _x):
+        run_short_id = data[y][0]
+        title = "Run {}".format(run_short_id)
+        try:
+            run_id, _ = next(var.find_runs(run_short_id))
+        except StopIteration:
+            return "This run no longer exists", title
+        else:
+            hits = index.runs([run_id])
+            if not hits:
+                return "Detail not available", title
+            else:
+                return _format_run_detail(hits[0]), title
+    return get_detail
+
+def _format_run_detail(run):
+    lines = [
+        "Id: {}".format(run.id),
+        "Model: {}".format(run.model_name),
+        "Operation: {}".format(run.op_name),
+        "Status: {}".format(run.status),
+        "Started: {}".format(run.started),
+        "Stopped: {}".format(run.stopped),
+        "Label: {}".format(run.label),
+    ]
+    flags = sorted(run.iter_flags())
+    if flags:
+        lines.append("Flags:")
+        for name, val in flags:
+            lines.append("  {}: {}".format(name, val))
+    scalars = sorted(run.iter_scalars())
+    if scalars:
+        lines.append("Scalars (last recorded value):")
+        for key, val in scalars:
+            lines.append("  {}: {}".format(key, val))
+    return "\n".join(lines)

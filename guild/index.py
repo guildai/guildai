@@ -100,8 +100,30 @@ class RunResult(object):
             return default
 
     def _scalar(self, key, default):
-        field_name = _encoded_field_name("scalar_", key)
+        field_name = _encode_field_name("scalar_", key)
         return self._fs.get(field_name, default)
+
+    def iter_flags(self):
+        for name in self._fs:
+            for prefix in ["flagi_", "flagf_", "flagb_", "flags_"]:
+                try:
+                    flag_name = _decode_field_name(prefix, name)
+                except ValueError:
+                    pass
+                else:
+                    yield flag_name, self._fs[name]
+                    break
+
+    def iter_scalars(self):
+        for name in self._fs:
+            if not name.startswith("scalar_"):
+                continue
+            try:
+                scalar_key = _decode_field_name("scalar_", name)
+            except ValueError:
+                pass
+            else:
+                yield scalar_key, self._fs[name]
 
 class RunIndex(object):
 
@@ -156,10 +178,10 @@ class RunIndex(object):
         writer = self.ix.writer()
         with self.ix.searcher() as seacher:
             for run_id in run_ids:
-                run = var.get_run(run_id)
                 hits = seacher.search(query.Term("id", run_id), limit=None)
                 assert len(hits) <= 1, hits
                 hit_fields = hits[0].fields() if hits else None
+                run = var.get_run(run_id)
                 cur_fields = self._ensure_indexed_run(run, hit_fields, writer)
                 runs.append(RunResult(cur_fields))
         writer.commit()
@@ -229,7 +251,7 @@ class RunIndex(object):
         }
 
     def _flag_field_name(self, name, val_type):
-        return _encoded_field_name(self._flag_field_prefix(val_type), name)
+        return _encode_field_name(self._flag_field_prefix(val_type), name)
 
     @staticmethod
     def _flag_field_prefix(val_type):
@@ -334,7 +356,7 @@ class RunIndex(object):
 
     @staticmethod
     def _store_scalar_vals(key, vals, scalars):
-        field_name = _encoded_field_name("scalar_", key)
+        field_name = _encode_field_name("scalar_", key)
         last = vals[-1]
         scalars[field_name] = last
 
@@ -374,9 +396,15 @@ class RunIndex(object):
         log.debug("deleting run %s", run_id)
         writer.delete_document(docnum)
 
-def _encoded_field_name(prefix, to_encode):
+def _encode_field_name(prefix, to_encode):
     encoded = base64.b32encode(to_encode).replace("=", "_")
     return prefix + encoded
+
+def _decode_field_name(prefix, field_name):
+    if not field_name.startswith(prefix):
+        raise ValueError((prefix, field_name))
+    encoded = field_name[len(prefix):]
+    return base64.b32decode(encoded.replace("_", "="))
 
 def _scalar_field_name(key):
     return "scalar_{}".format(md5.md5(key).hexdigest())

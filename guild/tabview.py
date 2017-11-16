@@ -61,9 +61,11 @@ p                        Move to previous search result
 class Viewer(ViewerBase):
 
     get_data = None
+    get_detail = None
 
     def __init__(self, *args, **kw):
         assert self.get_data is not None
+        assert self.get_detail is not None
         with StatusWin("Reading data"):
             data, logs = self._init_data()
         self.logs = logs
@@ -122,6 +124,16 @@ class Viewer(ViewerBase):
         except ValueError:
             return str(value) if value else None
 
+    def show_cell(self):
+        yp = self.y + self.win_y
+        xp = self.x + self.win_x
+        detail = self.get_detail(self.data, yp, xp)
+        if not detail:
+            return
+        content, title = detail
+        tabview.TextBox(self.scr, content, title)()
+        self.resize()
+
 class StatusWin(object):
 
     def __init__(self, msg):
@@ -142,8 +154,9 @@ class StatusWin(object):
     def __exit__(self, *_):
         curses.endwin()
 
-def view_runs(get_data_cb):
+def view_runs(get_data_cb, get_detail_cb):
     Viewer.get_data = staticmethod(get_data_cb)
+    Viewer.get_detail = staticmethod(get_detail_cb)
     tabview.Viewer = Viewer
     tabview.view(
         [[]],

@@ -43,6 +43,8 @@ py_library(
     deps = [
         "//guild:index",
         "//guild:tabview",
+        "//guild:util",
+        "//guild:var",
         ":runs_impl",
     ],
 )
