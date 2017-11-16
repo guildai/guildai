@@ -159,6 +159,7 @@ py_library(
         ":var",
     ],
     data = [
+        "//guild/scripts:run",
         ":op_main",
     ],
 )
