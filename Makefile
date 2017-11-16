@@ -34,7 +34,7 @@ lint:
 clean:
 	bazel clean
 
-user-acceptance-test:
+uat:
 	$(GUILD) check --uat
 
 timing-test:
