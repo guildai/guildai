@@ -113,7 +113,7 @@ py_library(
 
 py_library(
     name = "models",
-    data = ["models.md"],
+    data = ["models.md"] + glob(["samples/packages/**"]),
     deps = [
     ],
 )

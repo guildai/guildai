@@ -23,6 +23,7 @@ py_library(
         "//guild:plugin_util",
         "//guild:util",
         "//guild:var",
+        ":training_pkg_main",
     ],
 )
 
@@ -85,5 +86,13 @@ py_library(
         "//third_party:tensorflow",
         "//guild:plugin",
         ":python_util",
+    ],
+)
+
+py_library(
+    name = "training_pkg_main",
+    srcs = ["training_pkg_main.py"],
+    deps = [
+        "//third_party:setuptools",
     ],
 )

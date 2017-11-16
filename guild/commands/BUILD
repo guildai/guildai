@@ -141,6 +141,7 @@ py_library(
         ":index",
         ":install",
         ":label",
+        ":main_impl",
         ":models",
         ":operations",
         ":package",
