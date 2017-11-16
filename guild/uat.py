@@ -28,7 +28,7 @@ import threading
 import guild.test
 import guild.var
 
-INDEX = "guild/tests/uat/README.md"
+INDEX = "tests/uat/README.md"
 WORKSPACE = os.path.join(tempfile.gettempdir(), "guild-uat")
 GUILD_PATH = os.path.abspath("./bazel-bin/guild")
 TEMP = tempfile.gettempdir()
@@ -47,8 +47,9 @@ def run():
     _maybe_delete_workspace()
 
 def _tests_from_index():
-    readme = open(INDEX).read()
-    return re.findall(r"\((.+?)\.md\)", readme)
+    index_path = os.path.join(os.path.dirname(__file__), INDEX)
+    index = open(index_path).read()
+    return re.findall(r"\((.+?)\.md\)", index)
 
 def _init_workspace():
     print("Initializing workspace %s under %s" % (WORKSPACE, sys.executable))
@@ -120,8 +121,7 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
     cmd_env["PATH"] = os.path.pathsep.join([
         os.path.join(WORKSPACE, "bin"),
         GUILD_PATH,
-        "/bin",
-        "/usr/bin",
+        os.getenv("PATH"),
     ])
     cmd_env["COLUMNS"] = "999"
     cmd_env["LANG"] = os.getenv("LANG", "")
