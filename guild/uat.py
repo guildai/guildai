@@ -137,8 +137,6 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
     with _kill_after(p, timeout):
         exit_code = p.wait()
         out = p.stdout.read()
-        #out = p.communicate()[0]
-        #exit_code = p.returncode
     if not quiet or exit_code != 0:
         out = out.strip()
         if sys.version_info[0] > 2:
