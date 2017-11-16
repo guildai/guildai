@@ -156,10 +156,10 @@ def restore_runs(runs):
 
 def find_runs(run_id_prefix, root=None):
     root = root or runs_dir()
-    return [
+    return (
         (name, path) for name, path in _iter_dirs(root)
         if name.startswith(run_id_prefix)
-    ]
+    )
 
 def get_run(run_id, root=None):
     root = root or runs_dir()
