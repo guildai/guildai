@@ -299,6 +299,7 @@ class FlagDef(object):
         self.value = data.get("value")
         self.description = data.get("description", "")
         self.required = bool(data.get("required"))
+        self.values = data.get("values")
 
 def _init_flag_values(flagdefs):
     return {

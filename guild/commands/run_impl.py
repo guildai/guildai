@@ -167,24 +167,43 @@ def _parse_flag_val(s):
 
 def _validate_opdef_flags(opdef):
     vals = opdef.flag_values()
-    missing = []
-    for flag in opdef.flags:
-        if flag.required and not vals.get(flag.name):
-            missing.append(flag)
+    _check_missing_flag_vals(vals, opdef)
+    _check_valid_flag_vals(vals, opdef)
+
+def _check_missing_flag_vals(vals, opdef):
+    missing = _missing_flag_vals(vals, opdef)
     if missing:
-        cli.out(
-            "Operation '%s' requires the following missing flags:\n"
-            % opdef.fullname, err=True)
-        cli.table(
-            [{"name": flag.name, "desc": flag.description}
-             for flag in missing],
-            ["name", "desc"],
-            indent=2,
-            err=True)
-        cli.out(
-            "\nRun the command again with missing flags specified as NAME=VAL.",
-            err=True)
-        cli.error()
+        _missing_required_flags_error(missing)
+
+def _missing_flag_vals(vals, opdef):
+    return [flag for flag in opdef.flags
+            if flag.required and not vals.get(flag.name)]
+
+def _missing_required_flags_error(missing):
+    cli.out("Operation requires the following missing flags:\n", err=True)
+    cli.table(
+        [{"name": flag.name, "desc": flag.description}
+         for flag in missing],
+        ["name", "desc"],
+        indent=2,
+        err=True)
+    cli.out(
+        "\nRun the command again with these flags specified as NAME=VAL.",
+        err=True)
+    cli.error()
+
+def _check_valid_flag_vals(vals, opdef):
+    for flag in opdef.flags:
+        val = vals.get(flag.name)
+        if flag.values and flag and val not in flag.values:
+            _invalid_flag_error(flag)
+
+def _invalid_flag_error(flag):
+    cli.out("Unsupported value for '%s'" % flag.name, err=True)
+    cli.out(
+        "Run the command again with one of: %s"
+        % ", ".join(flag.values), err=True)
+    cli.error()
 
 def _apply_arg_disable_plugins(args, opdef):
     if args.disable_plugins:
