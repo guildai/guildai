@@ -253,3 +253,8 @@ class LogCapture(object):
 def format_timestamp(ts):
     dt = datetime.datetime.fromtimestamp(ts / 1000000)
     return dt.strftime("%Y-%m-%d %H:%M:%S")
+
+def resolve_refs(x, kv):
+    for name, val in kv.items():
+        x = x.replace("${%s}" % name, val)
+    return x

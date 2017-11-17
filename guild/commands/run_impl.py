@@ -182,8 +182,7 @@ def _missing_flag_vals(vals, opdef):
 def _missing_required_flags_error(missing):
     cli.out("Operation requires the following missing flags:\n", err=True)
     cli.table(
-        [{"name": flag.name, "desc": flag.description}
-         for flag in missing],
+        [{"name": flag.name, "desc": flag.description} for flag in missing],
         ["name", "desc"],
         indent=2,
         err=True)
@@ -195,14 +194,18 @@ def _missing_required_flags_error(missing):
 def _check_valid_flag_vals(vals, opdef):
     for flag in opdef.flags:
         val = vals.get(flag.name)
-        if flag.values and flag and val not in flag.values:
-            _invalid_flag_error(flag)
+        if flag.options and val not in [opt.value for opt in flag.options]:
+            _invalid_flag_value_error(flag)
 
-def _invalid_flag_error(flag):
-    cli.out("Unsupported value for '%s'" % flag.name, err=True)
-    cli.out(
-        "Run the command again with one of: %s"
-        % ", ".join(flag.values), err=True)
+def _invalid_flag_value_error(flag):
+    cli.out("Unsupported value for '%s' - supported values are:\n" % flag.name, err=True)
+    cli.table(
+        [{"val": opt.value, "desc": opt.description}
+         for opt in flag.options],
+        ["val", "desc"],
+        indent=2,
+        err=True)
+    cli.out("\nRun the command again using one of these options.", err=True)
     cli.error()
 
 def _apply_arg_disable_plugins(args, opdef):

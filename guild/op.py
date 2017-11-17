@@ -145,7 +145,7 @@ def _init_cmd_args(opdef):
     cmd_args = _split_cmd(opdef.cmd)
     if not cmd_args:
         raise InvalidCmd(opdef.cmd)
-    flag_args = _flag_args(opdef.flag_values(), cmd_args)
+    flag_args = _flag_args(opdef, cmd_args)
     return python_args + cmd_args + flag_args
 
 def _python_cmd(_opdef):
@@ -163,11 +163,12 @@ def _split_cmd(cmd):
     else:
         return shlex.split(cmd)
 
-def _flag_args(flags, cmd_args):
+def _flag_args(opdef, cmd_args):
     flag_args = []
+    flag_vals = _flag_cmd_arg_vals(opdef)
     cmd_options = _cmd_options(cmd_args)
-    for name in sorted(flags):
-        value = flags[name]
+    for name in sorted(flag_vals):
+        value = flag_vals[name]
         if name in cmd_options:
             log.warning(
                 "ignoring flag '%s = %s' because it's shadowed "
@@ -175,6 +176,31 @@ def _flag_args(flags, cmd_args):
             continue
         flag_args.extend(_cmd_option_args(name, value))
     return flag_args
+
+def _flag_cmd_arg_vals(opdef):
+    vals = {}
+    for name, flag_val in opdef.flag_values().items():
+        flagdef = opdef.get_flagdef(name)
+        if flagdef.options:
+            _apply_option_args(flagdef, flag_val, vals)
+        else:
+            _apply_flag_arg(flagdef, flag_val, vals)
+    return vals
+
+def _apply_option_args(flagdef, val, target):
+    for opt in flagdef.options:
+        if opt.value == val:
+            if opt.args:
+                target.update(opt.args)
+            else:
+                target[flagdef.name] = val
+            break
+    else:
+        log.warning("unsupported switch value '%s', ignoring flag", val)
+
+def _apply_flag_arg(flagdef, value, target):
+    name = flagdef.arg_name if flagdef.arg_name else flagdef.name
+    target[name] = value
 
 def _cmd_options(args):
     p = re.compile("--([^=]+)")

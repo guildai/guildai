@@ -184,16 +184,17 @@ def resolve(dependencies, ctx):
         resource.resolve()
 
 def _dependency_resource(spec, ctx):
+    resolved_spec = util.resolve_refs(spec, ctx.opdef.flag_values())
     res = util.find_apply(
         [_model_resource,
          _modelfile_resource,
          _packaged_resource],
-        spec, ctx)
+        resolved_spec, ctx)
     if res:
         return res
     raise DependencyError(
         "invalid dependency '%s' in operation '%s'"
-        % (spec, ctx.opdef.fullname))
+        % (resolved_spec, ctx.opdef.fullname))
 
 def _model_resource(spec, ctx):
     m = re.match(r"(%s)$" % RESOURCE_TERM, spec)

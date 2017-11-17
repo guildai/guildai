@@ -299,13 +299,26 @@ class FlagDef(object):
         self.value = data.get("value")
         self.description = data.get("description", "")
         self.required = bool(data.get("required"))
-        self.values = data.get("values")
+        self.arg_name = data.get("arg-name")
+        self.options = _init_flag_options(data.get("options"))
 
 def _init_flag_values(flagdefs):
     return {
         flag.name: flag.value
         for flag in flagdefs
     }
+
+def _init_flag_options(data):
+    if not data:
+        return []
+    return [FlagOpt(opt_data) for opt_data in data]
+
+class FlagOpt(object):
+
+    def __init__(self, data):
+        self.value = data.get("value")
+        self.description = data.get("description", "")
+        self.args = data.get("args", {})
 
 ###################################################################
 # Model def
