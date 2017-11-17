@@ -119,7 +119,7 @@ def _handle_system_exit(e):
         sys.exit(1)
 
 def _try_module(module_spec, args):
-    package_path, module_path = _split_module(module_spec)
+    package_path, module_path = _parse_module_spec(module_spec)
     if package_path:
         log.debug("using package path '%s'", package_path)
         sys.path.insert(0, package_path)
@@ -132,12 +132,12 @@ def _try_module(module_spec, args):
         _set_argv_for_module(module_info, args)
         _module_main(module_info)
 
-def _split_module(spec):
+def _parse_module_spec(spec):
     parts = spec.rsplit("/", 1)
     if len(parts) == 2:
-        return parts[0], parts[1].replace(".", os.path.pathsep)
+        return parts[0], parts[1].replace(".", os.path.sep)
     else:
-        return None, parts[0].replace(".", os.path.pathsep)
+        return None, parts[0].replace(".", os.path.sep)
 
 def _set_argv_for_module(module_info, args):
     _, path, _ = module_info
