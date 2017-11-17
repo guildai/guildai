@@ -77,29 +77,53 @@ Flags are defined in MODEL files and provided as command line
 arguments to the run command. `_flag_args` returns a list of command
 line arg for a map of flag values.
 
+We'll create a helper function to get the args:
+
+    >>> class FlagDefProxy(object):
+    ...
+    ...     def __init__(self, name):
+    ...         self.name = name
+    ...         self.options = []
+    ...         self.arg_name = None
+
+    >>> class OpDefProxy(object):
+    ...
+    ...     def __init__(self, flag_vals):
+    ...         self._flag_vals = flag_vals
+    ...
+    ...     def flag_values(self):
+    ...         return self._flag_vals
+    ...
+    ...     def get_flagdef(self, name):
+    ...         return FlagDefProxy(name)
+
+    >>> def flag_args(flag_vals, cmd_args=None):
+    ...     cmd_args = cmd_args or []
+    ...     return guild.op._flag_args(OpDefProxy(flag_vals), cmd_args)
+
 Empty flags:
 
-    >>> guild.op._flag_args({}, [])
+    >>> flag_args({}, [])
     []
 
 Single flag:
 
-    >>> guild.op._flag_args({"epochs": 100}, [])
+    >>> flag_args({"epochs": 100}, [])
     ['--epochs', '100']
 
 Multiple flags are returned in sorted order:
 
-    >>> guild.op._flag_args({"epochs": 100, "data": "my-data"}, [])
+    >>> flag_args({"epochs": 100, "data": "my-data"}, [])
     ['--data', 'my-data', '--epochs', '100']
 
 If a flag value is None, the flag will not be included as an option.
 
-    >>> guild.op._flag_args({"test": None, "batch-size": 50}, [])
+    >>> flag_args({"test": None, "batch-size": 50}, [])
     ['--batch-size', '50']
 
 If a flag value is True, the flag will be listed a flag option.
 
-    >>> guild.op._flag_args({"test": True, "batch-size": 50}, [])
+    >>> flag_args({"test": True, "batch-size": 50}, [])
     ['--batch-size', '50', '--test']
 
 The second argument to the `_flag_args` function is a list of command
@@ -123,7 +147,7 @@ redefined and logs a warning. Let's capture output to verify.
 
     >>> log_capture = LogCapture()
     >>> with log_capture:
-    ...   guild.op._flag_args({"epochs": 100, "batch-size": 50}, cmd_args)
+    ...   flag_args({"epochs": 100, "batch-size": 50}, cmd_args)
     ['--batch-size', '50']
 
     >>> log_capture.print_all()
