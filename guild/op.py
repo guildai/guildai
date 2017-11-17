@@ -181,10 +181,13 @@ def _flag_cmd_arg_vals(opdef):
     vals = {}
     for name, flag_val in opdef.flag_values().items():
         flagdef = opdef.get_flagdef(name)
-        if flagdef.options:
-            _apply_option_args(flagdef, flag_val, vals)
+        if flagdef:
+            if flagdef.options:
+                _apply_option_args(flagdef, flag_val, vals)
+            else:
+                _apply_flag_arg(flagdef, flag_val, vals)
         else:
-            _apply_flag_arg(flagdef, flag_val, vals)
+            vals[name] = flag_val
     return vals
 
 def _apply_option_args(flagdef, val, target):
