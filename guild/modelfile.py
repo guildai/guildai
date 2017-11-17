@@ -246,6 +246,10 @@ class FlagHost(object):
         for flag in self.flags:
             if flag.name == name:
                 return flag
+        if self._parent:
+            for flag in self._parent.flags:
+                if flag.name == name:
+                    return flag
         return None
 
     def flag_values(self):
