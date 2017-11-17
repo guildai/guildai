@@ -180,6 +180,8 @@ def _flag_args(opdef, cmd_args):
 def _flag_cmd_arg_vals(opdef):
     vals = {}
     for name, flag_val in opdef.flag_values().items():
+        if flag_val is None:
+            continue
         flagdef = opdef.get_flagdef(name)
         if flagdef:
             if flagdef.options:
@@ -199,7 +201,9 @@ def _apply_option_args(flagdef, val, target):
                 target[flagdef.name] = val
             break
     else:
-        log.warning("unsupported switch value '%s', ignoring flag", val)
+        log.warning(
+            "unsupported option %r for '%s' flag, ignoring",
+            val, flagdef.name)
 
 def _apply_flag_arg(flagdef, value, target):
     name = flagdef.arg_name if flagdef.arg_name else flagdef.name
