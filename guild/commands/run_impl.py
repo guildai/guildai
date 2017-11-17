@@ -194,11 +194,14 @@ def _missing_required_flags_error(missing):
 def _check_valid_flag_vals(vals, opdef):
     for flag in opdef.flags:
         val = vals.get(flag.name)
-        if flag.options and val not in [opt.value for opt in flag.options]:
+        if (val and flag.options and
+            val not in [opt.value for opt in flag.options]):
             _invalid_flag_value_error(flag)
 
 def _invalid_flag_value_error(flag):
-    cli.out("Unsupported value for '%s' - supported values are:\n" % flag.name, err=True)
+    cli.out(
+        "Unsupported value for '%s' - supported values are:\n"
+        % flag.name, err=True)
     cli.table(
         [{"val": opt.value, "desc": opt.description}
          for opt in flag.options],
@@ -247,7 +250,7 @@ def _handle_run_result(exit_status):
 
 def _confirm_run(op, model):
     op_desc = "%s:%s" % (model.fullname, op.opdef.name)
-    flags = op.opdef.flag_values()
+    flags = op.opdef.flag_values(include_none=False)
     if flags:
         prompt = (
             "You are about to run %s with the following flags:\n"
@@ -264,7 +267,6 @@ def _format_op_flags(flags):
     return "\n".join([
         "  %s" % _format_flag(name, flags[name])
         for name in sorted(flags)
-        if flags[name] is not None
     ])
 
 def _format_flag(name, val):
