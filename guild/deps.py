@@ -45,6 +45,10 @@ class Resource(object):
 
     def resolve(self):
         log.info("Resolving '%s' resource", self.resdef.name)
+        if not self.resdef.sources:
+            log.warning(
+                "Resource '%s' does not define any sources",
+                self.resdef.name)
         for source in self.resdef.sources:
             self._resolve_source(source)
 
