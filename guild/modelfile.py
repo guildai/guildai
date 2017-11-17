@@ -252,19 +252,22 @@ class FlagHost(object):
                     return flag
         return None
 
-    def flag_values(self):
-        return dict(self._iter_flag_values())
+    def flag_values(self, include_none=True):
+        return dict(self._iter_flag_values(include_none))
 
-    def _iter_flag_values(self):
-        seen = set()
+    def _iter_flag_values(self, include_none):
+        for name, val in self._iter_flag_values_recurse(set()):
+            if val is not None or include_none:
+                yield name, val
+
+    def _iter_flag_values_recurse(self, seen):
         for name in self._flag_vals:
-            yield name, self._flag_vals[name]
-            seen.add(name)
+            if name not in seen:
+                yield name, self._flag_vals[name]
+                seen.add(name)
         if self._parent:
-            for name in self._parent._flag_vals:
-                if name not in seen:
-                    yield name, self._parent._flag_vals[name]
-                    seen.add(name)
+            for name, val in self._parent._iter_flag_values_recurse(seen):
+                yield name, val
 
     def set_flag_value(self, name, val):
         self._flag_vals[name] = val
