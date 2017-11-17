@@ -33,6 +33,7 @@ def main():
         _main()
 
 def _main():
+    _init_sys_path()
     _init_logging()
     log.debug("cwd: %s", os.getcwd())
     log.debug("sys.path: %s", os.path.pathsep.join(sys.path))
@@ -42,6 +43,10 @@ def _main():
         _try_plugin(arg1[1:], rest_args)
     else:
         _try_module(arg1, rest_args)
+
+def _init_sys_path():
+    if os.getenv("SCRIPT_DIR") is not None:
+        sys.path[0] = os.getenv("SCRIPT_DIR")
 
 def _init_logging():
     level = int(os.getenv("LOG_LEVEL", logging.WARN))

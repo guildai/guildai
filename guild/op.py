@@ -195,6 +195,7 @@ def _init_cmd_env(opdef):
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["LOG_LEVEL"] = str(logging.getLogger().getEffectiveLevel())
     env["PYTHONPATH"] = _python_path(opdef)
+    env["SCRIPT_DIR"] = ""
     return env
 
 def _op_plugins(opdef):
