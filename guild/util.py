@@ -256,5 +256,6 @@ def format_timestamp(ts):
 
 def resolve_refs(x, kv):
     for name, val in kv.items():
-        x = x.replace("${%s}" % name, val)
+        if isinstance(val, str):
+            x = x.replace("${%s}" % name, val)
     return x
