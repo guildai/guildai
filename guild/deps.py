@@ -24,7 +24,7 @@ from guild import resource
 from guild import util
 from guild.resolve import ResolutionError
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 RESOURCE_TERM = r"[a-zA-Z0-9_\-\.]+"
 

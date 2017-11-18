@@ -34,7 +34,7 @@ class Plugin(object):
 
     def __init__(self, ep):
         self.name = ep.name
-        self.log = logging.getLogger(self.name)
+        self.log = logging.getLogger("guild." + self.name)
 
     def find_models(self, _path):
         """Return a list or generator of models for path.

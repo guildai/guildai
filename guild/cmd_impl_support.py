@@ -25,7 +25,7 @@ from guild import cli
 from guild import click_util
 from guild import config
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 def cwd_desc(cwd=None):
     """Returns a description for cwd.

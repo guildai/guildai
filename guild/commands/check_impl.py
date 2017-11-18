@@ -32,7 +32,7 @@ import guild.test
 import guild.uat
 import guild.util
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 CHECK_MODS = [
     "pip",

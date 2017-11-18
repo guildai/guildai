@@ -22,7 +22,7 @@ import guild.plugin
 from guild import cli
 from . import runs_impl
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 def main(args):
     runs = _runs(args)

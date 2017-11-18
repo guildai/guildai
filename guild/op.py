@@ -30,7 +30,7 @@ from guild import opref
 from guild import util
 from guild import var
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 OP_RUNFILES = [
     "org_click",

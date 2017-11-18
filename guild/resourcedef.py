@@ -26,7 +26,7 @@ import logging
 from guild import resolve
 from guild import util
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 class ResourceFormatError(ValueError):
     pass

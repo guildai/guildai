@@ -23,7 +23,7 @@ from guild import util
 
 from . import runs_impl
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 MIN_MONITOR_INTERVAL = 5
 

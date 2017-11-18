@@ -38,7 +38,7 @@ if sys.version_info[0] == 2:
 else:
     _u = str
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 class RunResult(object):
 

@@ -52,7 +52,7 @@ def _init_logging():
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     guild.log.init_logging(level, {"_": format})
-    globals()["log"] = logging.getLogger("main")
+    globals()["log"] = logging.getLogger("guild.op_main")
 
 def _parse_args():
     if len(sys.argv) < 2:

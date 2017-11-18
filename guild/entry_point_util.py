@@ -16,7 +16,7 @@ import logging
 
 import pkg_resources
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 class Resource(object):
 

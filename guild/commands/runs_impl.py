@@ -29,7 +29,7 @@ from guild import config
 from guild import util
 from guild import var
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 RUN_DETAIL = [
     "id",

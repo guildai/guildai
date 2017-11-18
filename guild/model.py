@@ -29,7 +29,7 @@ from guild import modelfile
 from guild import namespace
 from guild import resource
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 _models = entry_point_util.EntryPointResources("guild.models", "model")
 

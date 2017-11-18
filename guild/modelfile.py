@@ -25,7 +25,7 @@ import yaml
 from guild import resolve
 from guild import resourcedef
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 # The order here should be based on priority of selection.
 NAMES = ["MODELS", "MODEL"]

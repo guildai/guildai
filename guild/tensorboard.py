@@ -32,7 +32,7 @@ from werkzeug import serving
 import tensorflow as _dummy
 from tensorboard import version
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 # Check tensorboard version against our requirements. Indicate error
 # as ImportError with the current version and unmet requirement as

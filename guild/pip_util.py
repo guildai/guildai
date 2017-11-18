@@ -37,7 +37,7 @@ from pip.utils.hashes import Hashes
 from guild import cli
 from guild import namespace
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 class InstallError(Exception):
     pass

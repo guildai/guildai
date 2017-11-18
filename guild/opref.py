@@ -19,7 +19,7 @@ import collections
 import logging
 import re
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 class OpRefError(ValueError):
     pass

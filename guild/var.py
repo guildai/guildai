@@ -24,7 +24,7 @@ import guild.config
 import guild.run
 import guild.util
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 def path(subpath):
     return os.path.join(_root(), subpath)

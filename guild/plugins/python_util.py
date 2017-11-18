@@ -20,7 +20,7 @@ import logging
 import os
 import types
 
-log = logging.getLogger("plugins")
+log = logging.getLogger("guild.plugins")
 
 class Script(object):
 

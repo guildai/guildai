@@ -24,7 +24,7 @@ from guild import package
 from guild import pip_util
 from guild import util
 
-log = logging.getLogger("core")
+log = logging.getLogger("guild")
 
 INTERNAL_PACKAGES = ["guildai"]
 
