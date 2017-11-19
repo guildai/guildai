@@ -111,7 +111,7 @@ class Resource(object):
         parts = source_path.lower().split(".")
         if parts[-1] == "zip":
             return "zip"
-        elif parts[-1] == "tar" or parts[-2:-1] == "tar":
+        elif parts[-1] == "tar" or parts[-2:-1] == ["tar"]:
             return "tar"
         else:
             return None
@@ -131,25 +131,33 @@ class Resource(object):
         import zipfile
         zf = zipfile.ZipFile(source_path)
         return self._gen_unpack(
-            os.path.dirname(source_path), zf.namelist, zf.extractall, prefix)
+            os.path.dirname(source_path),
+            zf.namelist,
+            lambda name: name,
+            zf.extractall,
+            prefix)
 
     def _untar(self, source_path, prefix):
         import tarfile
-        tf = tarfile.TarFile(source_path)
+        tf = tarfile.open(source_path)
         return self._gen_unpack(
-            os.path.dirname(source_path), tf.getnames, tf.extractall, prefix)
+            os.path.dirname(source_path),
+            tf.getmembers,
+            lambda tfinfo: tfinfo.name,
+            tf.extractall,
+            prefix)
 
-    def _gen_unpack(self, dest, list_files, extract_all, prefix):
-        files = list_files()
+    def _gen_unpack(self, dest, list_members, member_name, extract_all, prefix):
+        members = list_members()
+        member_names = [member_name(m) for m in members]
         to_extract = [
-            name for name in files
-            if not os.path.exists(os.path.join(dest, name))
-        ]
+            m for m in members
+            if not os.path.exists(os.path.join(dest, member_name(m)))]
         extract_all(dest, to_extract)
         if prefix:
-            return self._prefixed_source_paths(dest, files, prefix)
+            return self._prefixed_source_paths(dest, member_names, prefix)
         else:
-            return self._all_source_paths(dest, files)
+            return self._all_source_paths(dest, member_names)
 
     @staticmethod
     def _prefixed_source_paths(dest, files, prefix):
