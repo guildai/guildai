@@ -64,6 +64,12 @@ class Resource(object):
             raise DependencyError(
                 "could not resolve '%s' in '%s' resource: %s"
                 % (source, self.resdef.name, e))
+        except Exception as e:
+            if log.getEffectiveLevel() <= logging.DEBUG:
+                log.exception("dependency resolve")
+            raise DependencyError(
+                "could not resolve '%s' in '%s': %s"
+                % (source, self.resdef.name, e))
         else:
             self._verify_file(source_path, source.sha256)
             unpacked = self._maybe_unpack(source_path, source)
