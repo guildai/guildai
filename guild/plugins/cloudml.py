@@ -512,6 +512,8 @@ class Sync(object):
             return 0
         elif state == "FAILED":
             return 1
+        elif state == "CANCELLED":
+            return 2
         else:
             self.log.warning(
                 "got unexpected job state '%s' for run %s",
