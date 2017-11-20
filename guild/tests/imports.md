@@ -101,7 +101,7 @@
     guild.plugins.python_util
     guild.plugins.tensorflow_util
     guild.plugins.training_pkg_main
-    guild.resolve
+    guild.resolver
     guild.resource
     guild.resourcedef
     guild.run

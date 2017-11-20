@@ -22,7 +22,7 @@ import re
 from guild import namespace
 from guild import resource
 from guild import util
-from guild.resolve import ResolutionError
+from guild.resolver import ResolutionError
 
 log = logging.getLogger("guild")
 

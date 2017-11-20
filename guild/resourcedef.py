@@ -23,7 +23,7 @@ from __future__ import division
 
 import logging
 
-from guild import resolve
+from guild import resolver
 from guild import util
 
 log = logging.getLogger("guild")
@@ -47,9 +47,9 @@ class ResourceDef(object):
     def get_source_resolver(source):
         scheme = source.parsed_uri.scheme
         if scheme == "file":
-            return resolve.FileResolver(source)
+            return resolver.FileResolver(source)
         elif scheme in ["http", "https"]:
-            return resolve.URLResolver(source)
+            return resolver.URLResolver(source)
         else:
             return None
 

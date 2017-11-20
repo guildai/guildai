@@ -22,7 +22,7 @@ import re
 
 import yaml
 
-from guild import resolve
+from guild import resolver
 from guild import resourcedef
 
 log = logging.getLogger("guild")
@@ -444,9 +444,9 @@ class ResourceDef(resourcedef.ResourceDef):
     def get_source_resolver(self, source):
         scheme = source.parsed_uri.scheme
         if scheme == "file":
-            return resolve.FileResolver(source, self.modeldef.modelfile.dir)
+            return resolver.FileResolver(source, self.modeldef.modelfile.dir)
         elif scheme == "operation":
-            return resolve.OperationOutputResolver(source, self.modeldef)
+            return resolver.OperationOutputResolver(source, self.modeldef)
         else:
             return super(ResourceDef, self).get_source_resolver(source)
 

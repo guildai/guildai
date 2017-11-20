@@ -55,7 +55,7 @@ py_library(
     srcs = ["deps.py"],
     deps = [
         ":namespace",
-        ":resolve",
+        ":resolver",
         ":resource",
         ":util",
     ],
@@ -233,8 +233,8 @@ py_library(
 )
 
 py_library(
-    name = "resolve",
-    srcs = ["resolve.py"],
+    name = "resolver",
+    srcs = ["resolver.py"],
     deps = [
         ":opref",
         ":pip_util",
@@ -256,7 +256,7 @@ py_library(
     name = "resourcedef",
     srcs = ["resourcedef.py"],
     deps = [
-        ":resolve",
+        ":resolver",
         ":util",
     ],
 )
