@@ -44,10 +44,10 @@ class Resource(object):
         self.ctx = ctx
 
     def resolve(self):
-        log.info("Resolving '%s' resource", self.resdef.name)
+        log.info("Resolving %s resource", self.resdef.name)
         if not self.resdef.sources:
             log.warning(
-                "Resource '%s' does not define any sources",
+                "%s resource does not define any sources",
                 self.resdef.name)
         for source in self.resdef.sources:
             self._resolve_source(source)
@@ -56,19 +56,19 @@ class Resource(object):
         resolver = self.resdef.get_source_resolver(source)
         if not resolver:
             raise DependencyError(
-                "unsupported source '%s' in resource '%s'"
+                "unsupported source '%s' in %s resource"
                 % (source, self.resdef.name))
         try:
             source_path = resolver.resolve()
         except ResolutionError as e:
             raise DependencyError(
-                "could not resolve '%s' in '%s' resource: %s"
+                "could not resolve '%s' in %s resource: %s"
                 % (source, self.resdef.name, e))
         except Exception as e:
             if log.getEffectiveLevel() <= logging.DEBUG:
                 log.exception("dependency resolve")
             raise DependencyError(
-                "could not resolve '%s' in '%s': %s"
+                "could not resolve '%s' in %s resource: %s"
                 % (source, self.resdef.name, e))
         else:
             self._verify_file(source_path, source.sha256)
@@ -189,7 +189,7 @@ class Resource(object):
         res_path = self.resdef.path or ""
         if os.path.isabs(res_path):
             raise DependencyError(
-                "invalid path '%s' in resource '%s' (path must be relative)"
+                "invalid path '%s' in %s resource (path must be relative)"
                 % (res_path, self.resdef.name))
         return os.path.join(self.ctx.target_dir, res_path, basename)
 
