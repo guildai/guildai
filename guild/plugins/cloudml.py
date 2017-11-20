@@ -531,7 +531,7 @@ def _safe_name(s):
     return re.sub(r"[^0-9a-zA-Z]+", "_", s)
 
 def _one_run(run_prefix):
-    matches = var.find_runs(run_prefix)
+    matches = list(var.find_runs(run_prefix))
     if not matches:
         cli.error(
             "cannot find a run for '%s'\n"
