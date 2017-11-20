@@ -161,7 +161,9 @@ def _split_cmd(cmd):
     if isinstance(cmd, list):
         return cmd
     else:
-        return shlex.split(cmd)
+        # If cmd is None, this call will block (see
+        # https://bugs.python.org/issue27775)
+        return shlex.split(cmd or "")
 
 def _flag_args(opdef, cmd_args):
     flag_args = []

@@ -93,16 +93,24 @@ class OperationOutputResolver(Resolver):
             raise ResolutionError(
                 "inavlid operation reference '%s'" % spec)
         else:
-            if path[:2] != "//":
-                raise ResolutionError(
-                    "invalid operation source path '%s' "
-                    "(paths must start with '//')" % path)
+            self._validate_path(path)
             normalized_path = os.path.join(*path[2:].split("/"))
             if not normalized_path:
                 raise ResolutionError(
                     "invalid operation source path '%s' "
                     "(paths may not be empty)" % path)
             return opref, normalized_path
+
+    @staticmethod
+    def _validate_path(path):
+        if not path:
+            raise ResolutionError(
+                "missing output path (operation must be in "
+                "the format OP_NAME//PATH)")
+        elif path[:2] != "//":
+            raise ResolutionError(
+                "invalid operation source path '%s' "
+                "(paths must start with '//')" % path)
 
     def _latest_op_run(self, opref):
         resolved_opref = self._fully_resolve_opref(opref)

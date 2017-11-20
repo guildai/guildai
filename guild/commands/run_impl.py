@@ -28,7 +28,21 @@ def main(args):
     model_ref, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_ref)
     opdef = _resolve_opdef(op_name, model)
-    op = _init_op(opdef, model, args)
+    try:
+        op = _init_op(opdef, model, args)
+    except guild.op.InvalidCmd as e:
+        _invalid_cmd_error(e, op_name)
+    else:
+        _dispatch_op(op, model, args)
+
+def _invalid_cmd_error(e, op_name):
+    cmd = e.args[0]
+    if not cmd:
+        cli.error("missing cmd for operation '%s'" % op_name)
+    else:
+        cli.error("invalid cmd '%s' for operation '%s'" % (cmd, op_name))
+
+def _dispatch_op(op, model, args):
     if args.print_command:
         _print_command(op)
     elif args.print_env:
