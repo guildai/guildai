@@ -18,7 +18,6 @@ from __future__ import division
 import errno
 import logging
 import os
-import re
 
 import yaml
 
@@ -114,35 +113,28 @@ def _resolve_includes(data, section_name, modelfile, coerce_data):
     resolved = {}
     seen_includes = set()
     section_data = data.get(section_name, {})
-    if isinstance(section_data, str):
-        includes = _parse_use_stmt(section_data, section_name, modelfile)
-        _apply_includes(
-            includes,
-            modelfile,
-            section_name,
-            coerce_data,
-            seen_includes,
-            resolved)
-    elif isinstance(section_data, dict):
-        _apply_section_data(
-            section_data,
-            modelfile,
-            section_name,
-            coerce_data,
-            seen_includes,
-            resolved)
-    else:
-        raise ModelfileFormatError(
-            "invalid %s data: %s" % (section_name, data))
+    _apply_section_data(
+        section_data,
+        modelfile,
+        section_name,
+        coerce_data,
+        seen_includes,
+        resolved)
     return resolved
 
-def _parse_use_stmt(s, section_name, modelfile):
-    m = re.match("use (.+)", s.strip())
-    if not m:
-        raise ModelfileFormatError(
-            "invalid string value for for '%s' in %s: expected 'use ...'"
-            % (section_name, modelfile.src))
-    return [part.strip() for part in m.group(1).split(",")]
+def _apply_section_data(data, modelfile, section_name, coerce_data,
+                        seen_includes, resolved):
+    for name in _includes_first(data):
+        if name == "$include":
+            _apply_includes(
+                data[name].split(),
+                modelfile,
+                section_name,
+                coerce_data,
+                seen_includes,
+                resolved)
+        else:
+            _apply_data(name, data[name], resolved, coerce_data)
 
 def _apply_includes(includes, modelfile, section_name, coerce_data,
                     seen_includes, resolved):
@@ -197,20 +189,6 @@ def _split_include_ref(ref):
 
 def _op_data(model_data, op_name):
     return model_data.get("operations", {}).get(op_name)
-
-def _apply_section_data(data, modelfile, section_name, coerce_data,
-                        seen_includes, resolved):
-    for name in _includes_first(data):
-        if name == "$include":
-            _apply_includes(
-                data[name].split(),
-                modelfile,
-                section_name,
-                coerce_data,
-                seen_includes,
-                resolved)
-        else:
-            _apply_data(name, data[name], resolved, coerce_data)
 
 def _includes_first(names):
     return sorted(names, key=lambda x: "\x00" if x == "$include" else x)

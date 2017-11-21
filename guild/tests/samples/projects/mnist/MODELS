@@ -15,7 +15,8 @@
 
 - name: expert
   description: Sample model
-  flags: use common
+  flags:
+    $include: common
   operations:
     train: expert
     evaluate: expert --test
