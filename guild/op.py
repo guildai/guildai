@@ -200,16 +200,18 @@ def _apply_option_args(flagdef, val, target):
             if opt.args:
                 target.update(opt.args)
             else:
-                target[flagdef.name] = val
+                target[_flagdef_arg_name(flagdef)] = val
             break
     else:
         log.warning(
             "unsupported option %r for '%s' flag, ignoring",
             val, flagdef.name)
 
+def _flagdef_arg_name(flagdef):
+    return flagdef.arg_name if flagdef.arg_name else flagdef.name
+
 def _apply_flag_arg(flagdef, value, target):
-    name = flagdef.arg_name if flagdef.arg_name else flagdef.name
-    target[name] = value
+    target[_flagdef_arg_name(flagdef)] = value
 
 def _cmd_options(args):
     p = re.compile("--([^=]+)")
