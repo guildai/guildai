@@ -116,6 +116,7 @@ def _run_loss(run):
     search_keys = [
         "loss",
         "train/loss",
+        "total_loss_1" # slim models
     ]
     return _format_float(run.scalar(search_keys))
 
