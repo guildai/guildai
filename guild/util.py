@@ -251,6 +251,8 @@ class LogCapture(object):
         return self._records
 
 def format_timestamp(ts):
+    if not ts:
+        return ""
     dt = datetime.datetime.fromtimestamp(ts / 1000000)
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 

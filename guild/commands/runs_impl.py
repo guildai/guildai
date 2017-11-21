@@ -217,7 +217,7 @@ def _format_attr_list(l):
 
 def _format_attr_dict(d):
     return "\n%s" % "\n".join([
-        "  %s: %s" % (key, d[key]) for key in sorted(d)
+        "  %s: %s" % (key, d[key] or "") for key in sorted(d)
     ])
 
 def _filter_runs(runs, filters):

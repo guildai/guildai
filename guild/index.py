@@ -257,7 +257,7 @@ class RunIndex(object):
                 field_name = _encode_field_name("flagb_", flag_name)
             else:
                 field_name = _encode_field_name("flags_", flag_name)
-                val = _u(val)
+                val = _u(val) if val is not None else u""
             fields[field_name] = val
         return fields
 

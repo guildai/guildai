@@ -145,14 +145,15 @@ def _format_run_detail(run):
         "Model: {}".format(run.model_name),
         "Operation: {}".format(run.op_name),
         "Status: {}".format(run.status),
-        "Started: {}".format(run.started),
-        "Stopped: {}".format(run.stopped),
+        "Started: {}".format(util.format_timestamp(run.started)),
+        "Stopped: {}".format(util.format_timestamp(run.stopped)),
         "Label: {}".format(run.label),
     ]
     flags = sorted(run.iter_flags())
     if flags:
         lines.append("Flags:")
         for name, val in flags:
+            val = val if val is not None else ""
             lines.append("  {}: {}".format(name, val))
     scalars = sorted(run.iter_scalars())
     if scalars:
