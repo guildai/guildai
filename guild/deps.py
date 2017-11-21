@@ -113,7 +113,9 @@ class Resource(object):
         parts = source_path.lower().split(".")
         if parts[-1] == "zip":
             return "zip"
-        elif parts[-1] == "tar" or parts[-2:-1] == ["tar"]:
+        elif (parts[-1] == "tar" or
+              parts[-1] == "tgz" or
+              parts[-2:-1] == ["tar"]):
             return "tar"
         else:
             return None
