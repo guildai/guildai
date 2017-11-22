@@ -19,9 +19,8 @@ import os
 import time
 import uuid
 
-import yaml
-
-import guild.util
+from guild import util
+from guild import yaml
 
 class Run(object):
 
@@ -63,7 +62,7 @@ class Run(object):
                 return "completed"
             else:
                 return "error"
-        elif guild.util.pid_exists(pid):
+        elif util.pid_exists(pid):
             return "running"
         else:
             return "terminated"
@@ -105,8 +104,8 @@ class Run(object):
         return "<guild.run.Run '%s'>" % self.id
 
     def init_skel(self):
-        guild.util.ensure_dir(self.guild_path("attrs"))
-        guild.util.ensure_dir(self.guild_path("logs"))
+        util.ensure_dir(self.guild_path("attrs"))
+        util.ensure_dir(self.guild_path("logs"))
 
     def guild_path(self, subpath):
         return os.path.join(self._guild_dir, subpath)

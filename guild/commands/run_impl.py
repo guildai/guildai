@@ -15,14 +15,13 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import yaml
-
 import guild.model
 import guild.op
 
 from guild import cli
 from guild import cmd_impl_support
 from guild import deps
+from guild import yaml
 
 def main(args):
     model_ref, op_name = _parse_opspec(args.opspec)
@@ -175,7 +174,7 @@ def _parse_flag(s):
 
 def _parse_flag_val(s):
     try:
-        return yaml.load(s)
+        return yaml.safe_load(s)
     except yaml.YAMLError:
         return s
 

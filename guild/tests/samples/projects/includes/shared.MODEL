@@ -1,0 +1,5 @@
+name: shared
+private: yes
+flags:
+  shared-1: s-1
+  shared-2: s-2

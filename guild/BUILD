@@ -132,10 +132,10 @@ py_library(
     name = "modelfile",
     srcs = ["modelfile.py"],
     deps = [
-        "//third_party:yaml",
         ":plugin",
         ":resourcedef",
         ":util",
+        ":yaml",
     ]
 )
 
@@ -185,12 +185,12 @@ py_library(
     name = "package",
     srcs = ["package.py"],
     deps = [
-        "//third_party:yaml",
         ":namespace",
         ":package_main",
         ":resource",
         ":resourcedef",
         ":util",
+        ":yaml",
     ],
 )
 
@@ -200,10 +200,10 @@ py_library(
     deps = [
         "//third_party:setuptools",
         "//third_party:twine",
-        "//third_party:yaml",
         ":modelfile",
         ":namespace",
         ":util",
+        ":yaml",
     ],
 )
 
@@ -319,5 +319,13 @@ py_library(
         ":config",
         ":run",
         ":util",
+    ],
+)
+
+py_library(
+    name = "yaml",
+    srcs = ["yaml.py"],
+    deps = [
+        "//third_party:yaml",
     ],
 )

@@ -19,10 +19,9 @@ import errno
 import logging
 import os
 
-import yaml
-
 from guild import resolver
 from guild import resourcedef
+from guild import yaml
 
 log = logging.getLogger("guild")
 
@@ -287,6 +286,9 @@ class FlagDef(object):
         self.arg_name = data.get("arg-name")
         self.options = _init_flag_options(data.get("options"))
 
+    def __repr__(self):
+        return "<guild.modelfile.FlagDef '%s'>" % self.name
+
 def _init_flag_values(flagdefs):
     return {
         flag.name: flag.value
@@ -467,7 +469,7 @@ def _cache_key(src):
     return os.path.abspath(src)
 
 def _load_modelfile(src):
-    return Modelfile(yaml.load(open(src, "r")), src)
+    return Modelfile(yaml.safe_load(open(src, "r")), src)
 
 def from_file_or_dir(src):
     try:
@@ -478,4 +480,4 @@ def from_file_or_dir(src):
         raise
 
 def from_string(s, src):
-    return Modelfile(yaml.load(s), src)
+    return Modelfile(yaml.safe_load(s), src)

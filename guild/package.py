@@ -19,12 +19,11 @@ import os
 import subprocess
 import sys
 
-import yaml
-
 from guild import namespace
 from guild import resource
 from guild import resourcedef
 from guild import util
+from guild import yaml
 
 class Package(object):
 
@@ -36,7 +35,7 @@ class Package(object):
 class PackageResource(resource.Resource):
 
     def _init_resdef(self):
-        pkg = yaml.load(self.dist.get_metadata("PACKAGE"))
+        pkg = yaml.safe_load(self.dist.get_metadata("PACKAGE"))
         data = pkg.get("resources", {}).get(self.name)
         if not data:
             raise ValueError(

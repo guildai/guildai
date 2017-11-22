@@ -111,3 +111,4 @@
     guild.uat
     guild.util
     guild.var
+    guild.yaml

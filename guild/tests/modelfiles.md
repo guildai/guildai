@@ -300,6 +300,32 @@ However, no more than one is allowed:
     ResourceFormatError: invalid source in resource 'sample:sample':
     conflicting attributes (file, url)
 
+## Includes
+
+Guild model files support includes.
+
+    >>> mf = modelfile.from_dir(sample("projects/includes"))
+    >>> list(mf)
+    [<guild.modelfile.ModelDef 'shared'>,
+     <guild.modelfile.ModelDef 'model-a'>,
+     <guild.modelfile.ModelDef 'model-b'>,
+     <guild.modelfile.ModelDef 'model-c'>]
+
+    >>> mf["model-a"].flags
+    [<guild.modelfile.FlagDef 'model-a-flag-1'>,
+     <guild.modelfile.FlagDef 'shared-1'>,
+     <guild.modelfile.FlagDef 'shared-2'>]
+
+    >>> mf["model-b"].flags
+    [<guild.modelfile.FlagDef 'model-b-flag-1'>,
+     <guild.modelfile.FlagDef 'model-b-flag-2'>,
+     <guild.modelfile.FlagDef 'shared-1'>,
+     <guild.modelfile.FlagDef 'shared-2'>]
+
+    >>> mf["model-c"].flags
+    [<guild.modelfile.FlagDef 'model-c-flag-1'>,
+     <guild.modelfile.FlagDef 'model-c-flag-2'>]
+
 ## Errors
 
 ### Invalid format

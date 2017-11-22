@@ -20,7 +20,6 @@ import shutil
 import sys
 
 import setuptools
-import yaml
 import twine.commands.upload
 
 import guild.help
@@ -28,6 +27,7 @@ import guild.help
 from guild import namespace
 from guild import modelfile
 from guild import util
+from guild import yaml
 
 class Pkg(object):
 
@@ -59,7 +59,7 @@ def _load_pkg():
         _exit("error reading %s\n%s" % (path, e))
     else:
         try:
-            data = yaml.load(f)
+            data = yaml.safe_load(f)
         except yaml.YAMLError as e:
             _exit("error reading %s\n%s" % (path, e))
         else:
