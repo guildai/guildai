@@ -9,7 +9,7 @@
     author-email: packages@guild.ai
     license: Apache 2.0
     location: /.../guild-uat/lib/python.../site-packages
-    requires: gpkg.mnist-dataset
+    requires: []
     <exit 0>
 
     >>> run("guild models mnist")
@@ -23,5 +23,5 @@
     <exit 0>
 
     >>> run("guild resources mnist")
-    mnist-dataset/idx  Yann Lecun's MNIST dataset in compressed IDX format
+    mnist/dataset  Yann Lecun's MNIST dataset in compressed IDX format
     <exit 0>

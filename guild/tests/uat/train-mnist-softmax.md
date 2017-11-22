@@ -5,7 +5,7 @@ don't have to specify the full model name as long as our term refers
 to one and only one model.
 
     >>> run("guild train -y softmax epochs=1", ignore="Successfully downloaded")
-    Resolving idx resource
+    Resolving dataset resource
     ...
     Extracting mnist-idx-data/train-images-idx3-ubyte.gz
     ...

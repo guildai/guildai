@@ -11,7 +11,7 @@ Use `guild packages info PKG` to show information about a package:
     author-email: packages@guild.ai
     license: Apache 2.0
     location: /.../guild-uat/lib/python.../site-packages
-    requires: gpkg.mnist-dataset
+    requires: []
     <exit 0>
 
 We can use the `--verbose` and `--files` flags to get more
@@ -26,7 +26,7 @@ information.
     author-email: packages@guild.ai
     license: Apache 2.0
     location: /.../guild-uat/lib/python.../site-packages
-    requires: gpkg.mnist-dataset
+    requires: []
     metadata-version: 2.0
     installer: pip
     classifiers:
@@ -34,6 +34,8 @@ information.
       [guild.models]
       mnist-cnn = guild.model:PackageModel
       mnist-softmax = guild.model:PackageModel
+      [guild.resources]
+      dataset = guild.package:PackageResource
     files:
       ...
     <exit 0>
