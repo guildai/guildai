@@ -41,8 +41,8 @@ timing-test:
 	guild/tests/timing-test
 
 commit-check:
-	make check
 	make lint
+	make check
 	make uat
 	make timing-test
 	@echo "Commit check passed on `python --version 2>&1`"
