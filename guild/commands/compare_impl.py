@@ -20,6 +20,7 @@ import sys
 
 import guild.index
 
+from guild import config
 from guild import tabview
 from guild import util
 from guild import var
@@ -40,6 +41,7 @@ def _print_csv(args):
         writer.writerow(row)
 
 def _tabview(args):
+    config.set_log_output(True)
     index = guild.index.RunIndex()
     tabview.view_runs(
         _get_runs_cb(args, index),

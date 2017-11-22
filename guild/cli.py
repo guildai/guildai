@@ -16,8 +16,13 @@ from __future__ import absolute_import
 from __future__ import division
 
 import functools
+import logging
 
 import click
+
+from guild import config
+
+log = logging.getLogger("guild")
 
 TABLE_COL_SPACING = 2
 
@@ -32,10 +37,19 @@ def error(msg=None, exit_status=1):
     raise SystemExit(msg, exit_status)
 
 def out(s="", **kw):
-    click.echo(s, **kw)
+    _echo(s, kw)
+
+def _echo(s, err=False, **kw):
+    if config.log_output():
+        if err:
+            log.warning(s)
+        else:
+            log.info(s)
+    else:
+        click.echo(s, **kw)
 
 def note(msg):
-    click.echo(click.style(msg, dim=True), err=True)
+    _echo(click.style(msg, dim=True), err=True)
     _noted.add(msg)
 
 def note_once(msg):

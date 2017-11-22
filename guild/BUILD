@@ -19,6 +19,7 @@ py_library(
     srcs = ["cli.py"],
     deps = [
         "//third_party:click",
+        ":config",
     ],
 )
 

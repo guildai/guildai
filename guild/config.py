@@ -19,6 +19,7 @@ import os
 
 _cwd = None
 _guild_home = None
+_log_output = False
 
 def set_cwd(cwd):
     globals()["_cwd"] = cwd
@@ -31,3 +32,9 @@ def cwd():
 
 def guild_home():
     return _guild_home or os.path.expanduser("~/.guild")
+
+def set_log_output(flag):
+    globals()["_log_output"] = flag
+
+def log_output():
+    return _log_output

@@ -45,6 +45,7 @@ py_library(
     name = "compare_impl",
     srcs = ["compare_impl.py"],
     deps = [
+        "//guild:config",
         "//guild:index",
         "//guild:tabview",
         "//guild:util",
