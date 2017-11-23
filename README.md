@@ -19,7 +19,9 @@ the latest version, run:
 ```
 $ pip install guildai --upgrade
 ```
-
+```
+$ pip install tensorflow
+```
 If your platform isn't support, you can compile Guild AI from source
 (see steps below).
 
