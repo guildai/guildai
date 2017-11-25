@@ -52,7 +52,14 @@ def cwd_modelfile(cwd=None):
     except ImportError:
         return None
     else:
+        _check_bad_modelfile(importer.dist)
         return getattr(importer.dist, "modelfile", None)
+
+def _check_bad_modelfile(dist):
+    if isinstance(dist, guild.model.BadModelfileDistribution):
+        cli.error(
+            "modelfile in %s contains error (see above for details)"
+            % cwd_desc(dist.location))
 
 def init_model_path(args, cwd=None):
     """Initializes the model path.

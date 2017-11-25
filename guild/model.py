@@ -157,7 +157,7 @@ def _try_acc_modeldefs(path, acc):
     try:
         models = modelfile.from_file(path)
     except Exception as e:
-        log.warning("unable to load models from %s: %s", path, e)
+        log.error("unable to load models from %s: %s", path, e)
     else:
         for modeldef in models:
             acc.append(modeldef)
@@ -326,8 +326,8 @@ class ModelImporter(object):
         except modelfile.NoModels:
             return self._plugin_model_dist()
         except Exception as e:
-            log.warning(
-                "error loading modelfile %s: %s", self.path, e)
+            log.error(
+                "error loading modelfile from %s: %s", self.path, e)
             return BadModelfileDistribution(self.path)
         else:
             return ModelfileDistribution(mf)
