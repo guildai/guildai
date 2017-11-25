@@ -163,7 +163,10 @@ def _split_cmd(cmd):
     else:
         # If cmd is None, this call will block (see
         # https://bugs.python.org/issue27775)
-        return shlex.split(cmd or "")
+        assert cmd is not None
+        parts = shlex.split(cmd or "")
+        stripped = [part.strip() for part in parts]
+        return [x for x in stripped if x]
 
 def _flag_args(opdef, cmd_args):
     flag_args = []
