@@ -154,6 +154,7 @@ py_library(
         ":shell",
         ":sync",
         ":tensorboard",
+        ":tensorflow",
         ":train",
         ":uninstall",
     ]
@@ -502,6 +503,35 @@ py_library(
         ":runs_impl",
     ],
 )
+
+py_library(
+    name = "tensorflow",
+    srcs = ["tensorflow.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:click_util",
+        ":tensorflow_inspect_checkpoint",
+    ],
+)
+
+py_library(
+    name = "tensorflow_impl",
+    srcs = ["tensorflow_impl.py"],
+    deps = [
+        "//guild:cli",
+    ],
+)
+
+py_library(
+    name = "tensorflow_inspect_checkpoint",
+    srcs = ["tensorflow_inspect_checkpoint.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:click_util",
+        ":tensorflow_impl",
+    ],
+)
+
 py_library(
     name = "train",
     srcs = ["train.py"],

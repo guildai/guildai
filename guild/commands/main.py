@@ -39,6 +39,7 @@ from .search import search
 from .shell import shell
 from .sync import sync
 from .tensorboard import tensorboard
+from .tensorflow import tensorflow
 from .train import train
 from .uninstall import uninstall
 
@@ -86,5 +87,6 @@ main.add_command(search)
 main.add_command(shell)
 main.add_command(sync)
 main.add_command(tensorboard)
+main.add_command(tensorflow)
 main.add_command(train)
 main.add_command(uninstall)
