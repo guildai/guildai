@@ -32,9 +32,10 @@ from guild import var
 
 log = logging.getLogger("guild")
 
-OP_RUNFILES = [
-    "org_click",
-    "org_psutil"
+OP_RUNFILE_PATHS = [
+    ["org_click"],
+    ["org_psutil"],
+    ["guild", "external"],
 ]
 
 class InvalidCmd(ValueError):
@@ -283,7 +284,11 @@ def _runfile_paths():
     ]
 
 def _is_runfile_pkg(path):
-    return os.path.split(path)[-1] in OP_RUNFILES
+    for runfile_path in OP_RUNFILE_PATHS:
+        split_path = path.split(os.path.sep)
+        if split_path[-len(runfile_path):] == runfile_path:
+            return True
+    return False
 
 def _write_proc_lock(proc, run):
     with open(run.guild_path("LOCK"), "w") as f:
