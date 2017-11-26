@@ -167,6 +167,7 @@ py_library(
         "//guild:cli",
         "//guild:config",
         "//guild:log",
+        "//guild:util",
     ]
 )
 

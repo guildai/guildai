@@ -21,16 +21,20 @@ import os
 from guild import cli
 from guild import config
 from guild import log
+from guild import util
 
 def main(args):
     log.init_logging(args.log_level or logging.INFO)
     config.set_cwd(_validated_dir(args.cwd))
-    config.set_guild_home(_validated_dir(args.guild_home))
+    config.set_guild_home(_validated_dir(args.guild_home, create=True))
 
-def _validated_dir(path):
+def _validated_dir(path, create=False):
     path = os.path.expanduser(path)
     if not os.path.exists(path):
-        cli.error("directory '%s' does not exist" % path)
+        if create:
+            util.ensure_dir(path)
+        else:
+            cli.error("directory '%s' does not exist" % path)
     if not os.path.isdir(path):
         cli.error("'%s' is not a directory" % path)
     return path
