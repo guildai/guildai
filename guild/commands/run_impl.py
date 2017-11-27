@@ -84,6 +84,9 @@ def _match_one_model(model_ref):
     if not matches:
         return None
     elif len(matches) > 1:
+        complete_match = _model_by_name(model_ref, matches)
+        if complete_match:
+            return complete_match
         _multiple_models_error(model_ref, matches)
     else:
         return matches[0]
@@ -112,6 +115,12 @@ def _match_model_ref(model_ref, model):
     else:
         # otherwise treat as a match term
         return model_ref in model.name
+
+def _model_by_name(name, models):
+    for model in models:
+        if model.name == name:
+            return model
+    return None
 
 def _no_model_error(model_ref):
     if model_ref is None:
