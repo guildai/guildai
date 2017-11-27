@@ -144,8 +144,6 @@ class Operation(object):
 def _init_cmd_args(opdef):
     python_args = [_python_cmd(opdef), "-u", _run_script_path()]
     cmd_args = _split_cmd(opdef.cmd)
-    if not cmd_args:
-        raise InvalidCmd(opdef.cmd)
     flag_args = _flag_args(opdef, cmd_args)
     return python_args + cmd_args + flag_args
 
@@ -164,7 +162,8 @@ def _split_cmd(cmd):
     else:
         # If cmd is None, this call will block (see
         # https://bugs.python.org/issue27775)
-        assert cmd is not None
+        if not cmd:
+            raise InvalidCmd(cmd)
         parts = shlex.split(cmd or "")
         stripped = [part.strip() for part in parts]
         return [x for x in stripped if x]
