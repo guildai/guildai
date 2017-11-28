@@ -261,3 +261,9 @@ def resolve_refs(x, kv):
         if isinstance(val, str):
             x = x.replace("${%s}" % name, val)
     return x
+
+def strip_trailing_path(path):
+    if path and path[-1] in ("/", "\\"):
+        return path[:-1]
+    else:
+        return path

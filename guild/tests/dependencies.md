@@ -86,63 +86,44 @@ that can be parsed using `op.OpRef.from_string`.
 
     >>> from guild.opref import OpRef
 
-`OpRef.from_string` returns a tuple of `OpRef` instance and any string
-content following the reference.
+`OpRef.from_string` returns a `OpRef` instance if the string can be
+parsed as an op ref or raises an exception if it cannot.
 
 Below are various examples.
 
 Operation name only:
 
     >>> OpRef.from_string("foo")
-    (OpRef(pkg_type=None,
-           pkg_name=None,
-           pkg_version=None,
-           model_name=None,
-           op_name='foo'), '')
+    OpRef(pkg_type=None,
+          pkg_name=None,
+          pkg_version=None,
+          model_name=None,
+          op_name='foo')
 
 Operation of a model in the same modelfile:
 
     >>> OpRef.from_string("foo:bar")
-    (OpRef(pkg_type=None,
-           pkg_name=None,
-           pkg_version=None,
-           model_name='foo',
-           op_name='bar'), '')
+    OpRef(pkg_type=None,
+          pkg_name=None,
+          pkg_version=None,
+          model_name='foo',
+          op_name='bar')
 
 Operation in a packaged model:
 
     >>> OpRef.from_string("foo/bar:baz")
-    (OpRef(pkg_type=None,
-           pkg_name='foo',
-           pkg_version=None,
-           model_name='bar',
-           op_name='baz'), '')
-
-Operations with various paths:
-
-    >>> OpRef.from_string("foo/bar")
-    (OpRef(pkg_type=None,
-           pkg_name=None,
-           pkg_version=None,
-           model_name=None,
-           op_name='foo'), '/bar')
-
-    >>> OpRef.from_string("foo:bar/baz")
-    (OpRef(pkg_type=None,
-           pkg_name=None,
-           pkg_version=None,
-           model_name='foo',
-           op_name='bar'), '/baz')
-
-    >>> OpRef.from_string("foo/bar:baz/bam")
-    (OpRef(pkg_type=None,
-           pkg_name='foo',
-           pkg_version=None,
-           model_name='bar',
-           op_name='baz'), '/bam')
+    OpRef(pkg_type=None,
+          pkg_name='foo',
+          pkg_version=None,
+          model_name='bar',
+          op_name='baz')
 
 Some invalid op references:
 
     >>> OpRef.from_string("")
     Traceback (most recent call last):
     OpRefError: invalid reference: ''
+
+    >>> OpRef.from_string("foo/bar")
+    Traceback (most recent call last):
+    OpRefError: invalid reference: 'foo/bar'

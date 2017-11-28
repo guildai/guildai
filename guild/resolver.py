@@ -76,55 +76,45 @@ class OperationOutputResolver(Resolver):
         self.modeldef = modeldef
 
     def resolve(self):
-        opref, path = self._source_opref()
-        run = self._latest_op_run(opref)
-        source_path = os.path.join(run.path, path)
-        if not os.path.exists(source_path):
-            raise ResolutionError(
-                "required output '%s' was not generated in the latest run (%s)"
-                % (path, run.id))
-        return source_path
+        oprefs = self._source_oprefs()
+        run = self._latest_op_run(oprefs)
+        return run.path
 
-    def _source_opref(self):
-        spec = self.source.parsed_uri.path
-        try:
-            opref, path = guild.opref.OpRef.from_string(spec)
-        except guild.opref.OpRefError:
-            raise ResolutionError(
-                "inavlid operation reference '%s'" % spec)
-        else:
-            self._validate_path(path)
-            normalized_path = os.path.join(*path[2:].split("/"))
-            if not normalized_path:
-                raise ResolutionError(
-                    "invalid operation source path '%s' "
-                    "(paths may not be empty)" % path)
-            return opref, normalized_path
+    def _source_oprefs(self):
+        oprefs = []
+        for spec in self._split_opref_specs(self.source.parsed_uri.path):
+            try:
+                oprefs.append(guild.opref.OpRef.from_string(spec))
+            except guild.opref.OpRefError:
+                raise ResolutionError("inavlid operation reference %r" % spec)
+        return oprefs
 
     @staticmethod
-    def _validate_path(path):
-        if not path:
-            raise ResolutionError(
-                "missing output path (operation must be in "
-                "the format OP_NAME//PATH)")
-        elif path[:2] != "//":
-            raise ResolutionError(
-                "invalid operation source path '%s' "
-                "(paths must start with '//')" % path)
+    def _split_opref_specs(spec):
+        return [part.strip() for part in spec.split(",")]
 
-    def _latest_op_run(self, opref):
-        resolved_opref = self._fully_resolve_opref(opref)
-        completed_op_runs = var.run_filter("all", [
-            var.run_filter("any", [
-                var.run_filter("attr", "status", "completed"),
-                var.run_filter("attr", "status", "running"),
-            ]),
-            resolved_opref.is_op_run])
+    def _latest_op_run(self, oprefs):
+        resolved_oprefs = [
+            self._fully_resolve_opref(opref) for opref in oprefs
+        ]
+        completed_op_runs = var.run_filter(
+            "all", [
+                var.run_filter("any", [
+                    var.run_filter("attr", "status", "completed"),
+                    var.run_filter("attr", "status", "running"),
+                ]),
+                var.run_filter("any", [
+                    opref.is_op_run for opref in resolved_oprefs
+                ])
+            ])
         runs = var.runs(sort=["-started"], filter=completed_op_runs)
         if runs:
             return runs[0]
         raise ResolutionError(
-            "no suitable run for %s" % self._opref_desc(resolved_opref))
+            "no suitable run for %s"
+            % ",".join([
+                self._opref_desc(opref) for opref in resolved_oprefs
+            ]))
 
     @staticmethod
     def _opref_desc(opref):

@@ -56,11 +56,11 @@ def _opref_from_run(run):
     return OpRef(*m.groups())
 
 def _opref_from_string(s):
-    m = re.match(r"(?:(?:([^/]+)/)?([^:]+):)?([a-zA-Z0-9-_\.]+)(.*)$", s)
+    m = re.match(r"(?:(?:([^/]+)/)?([^:]+):)?([a-zA-Z0-9-_\.]+)$", s)
     if not m:
         raise OpRefError("invalid reference: %r" % s)
-    pkg_name, model_name, op_name, extra = m.groups()
-    return OpRef(None, pkg_name, None, model_name, op_name), extra
+    pkg_name, model_name, op_name = m.groups()
+    return OpRef(None, pkg_name, None, model_name, op_name)
 
 def _opref_is_op_run(opref, run):
     try:

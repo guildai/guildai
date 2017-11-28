@@ -73,15 +73,22 @@ class Resource(object):
                 "could not resolve '%s' in %s resource: %s"
                 % (source, self.resdef.name, e))
         else:
-            self._verify_file(source_path, source.sha256)
-            unpacked = self._maybe_unpack(source_path, source)
-            to_link = [source_path] if unpacked is None else unpacked
-            for path in to_link:
+            self._verify_path(source_path, source.sha256)
+            log.info(
+                "Using %s for %s resource",
+                source_path, source.resdef.name)
+            source_files = self._resolve_source_files(source_path, source)
+            for path in source_files:
                 self._link_to_source(path)
 
-    def _verify_file(self, path, sha256):
+    def _verify_path(self, path, sha256):
         self._verify_file_exists(path)
         if sha256:
+            if os.path.isdir(path):
+                raise DependencyError(
+                    "'%s' required by operation '%s' cannot be verified "
+                    "using sha256 because it is a directory"
+                    % (path, self.ctx.opdef.fullname))
             self._verify_file_hash(path, sha256)
 
     def _verify_file_exists(self, path):
@@ -98,13 +105,65 @@ class Resource(object):
                 "(expected %s but got %s)"
                 % (path, self.ctx.opdef.fullname, sha256, actual))
 
+    def _resolve_source_files(self, source_path, source):
+        if os.path.isdir(source_path):
+            return self._dir_source_files(source_path, source)
+        else:
+            unpacked = self._maybe_unpack(source_path, source)
+            if unpacked is None:
+                return [source_path]
+            else:
+                return unpacked
+
+    def _dir_source_files(self, dir, source):
+        if source.select:
+            return self._selected_source_paths(
+                dir, self._all_dir_files(dir), source.select)
+        else:
+            return self._all_source_paths(dir, os.listdir(dir))
+
+    @staticmethod
+    def _all_dir_files(dir):
+        all = []
+        for root, dirs, files in os.walk(dir):
+            root = os.path.relpath(root, dir) if dir != root else ""
+            for name in dirs + files:
+                path = os.path.join(root, name)
+                normalized_path = path.replace(os.path.sep, "/")
+                all.append(normalized_path)
+        return all
+
+    @staticmethod
+    def _selected_source_paths(root, files, select):
+        selected = set()
+        pattern = re.compile(select + "$")
+        for path in files:
+            if path.startswith(".guild/"):
+                continue
+            path = util.strip_trailing_path(path)
+            match = pattern.match(path)
+            if not match:
+                continue
+            if match.groups():
+                path = match.group(1)
+            selected.add(os.path.join(root, path))
+        return list(selected)
+
+    @staticmethod
+    def _all_source_paths(root, files):
+        root_names = [path.split("/")[0] for path in files]
+        return [
+            os.path.join(root, name) for name in set(root_names)
+            if name != ".guild"
+        ]
+
     def _maybe_unpack(self, source_path, source):
         if not source.unpack:
             return None
         archive_type = self._archive_type(source_path, source)
         if not archive_type:
             return None
-        return self._unpack(source_path, archive_type, source.prefix)
+        return self._unpack(source_path, archive_type, source.select)
 
     @staticmethod
     def _archive_type(source_path, source):
@@ -120,18 +179,18 @@ class Resource(object):
         else:
             return None
 
-    def _unpack(self, source_path, type, prefix):
+    def _unpack(self, source_path, type, select):
         if type == "zip":
-            return self._unzip(source_path, prefix)
+            return self._unzip(source_path, select)
         elif type == "tar":
-            return self._untar(source_path, prefix)
+            return self._untar(source_path, select)
         else:
             raise DependencyError(
                 "'%s' required by operation '%s' cannot be unpacked "
                 "(unsupported archive type '%s')"
                 % (source_path, self.ctx.opdef.fullname, type))
 
-    def _unzip(self, source_path, prefix):
+    def _unzip(self, source_path, select):
         import zipfile
         zf = zipfile.ZipFile(source_path)
         return self._gen_unpack(
@@ -139,9 +198,9 @@ class Resource(object):
             zf.namelist,
             lambda name: name,
             zf.extractall,
-            prefix)
+            select)
 
-    def _untar(self, source_path, prefix):
+    def _untar(self, source_path, select):
         import tarfile
         tf = tarfile.open(source_path)
         return self._gen_unpack(
@@ -149,37 +208,22 @@ class Resource(object):
             tf.getmembers,
             lambda tfinfo: tfinfo.name,
             tf.extractall,
-            prefix)
+            select)
 
-    def _gen_unpack(self, dest, list_members, member_name, extract_all, prefix):
+    def _gen_unpack(self, root, list_members, member_name, extract_all, select):
         members = list_members()
         member_names = [member_name(m) for m in members]
         to_extract = [
             m for m in members
-            if not os.path.exists(os.path.join(dest, member_name(m)))]
-        extract_all(dest, to_extract)
-        if prefix:
-            return self._prefixed_source_paths(dest, member_names, prefix)
+            if not os.path.exists(os.path.join(root, member_name(m)))]
+        extract_all(root, to_extract)
+        if select:
+            return self._selected_source_paths(root, member_names, select)
         else:
-            return self._all_source_paths(dest, member_names)
-
-    @staticmethod
-    def _prefixed_source_paths(dest, files, prefix):
-        prefixed = [
-            name[len(prefix):] for name in files
-            if name.startswith(prefix)
-        ]
-        root_names = [name.split("/")[0] for name in prefixed]
-        return [
-            os.path.join(dest, prefix + name) for name in set(root_names)
-        ]
-
-    @staticmethod
-    def _all_source_paths(dest, files):
-        root_names = [name.split("/")[0] for name in files]
-        return [os.path.join(dest, name) for name in set(root_names)]
+            return self._all_source_paths(root, member_names)
 
     def _link_to_source(self, source_path):
+        source_path = util.strip_trailing_path(source_path)
         link = self._link_path(source_path)
         if os.path.exists(link):
             log.warning("source '%s' already exists, skipping link", link)

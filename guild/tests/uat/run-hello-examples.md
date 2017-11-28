@@ -57,7 +57,7 @@ for `from-file` we get an error.
     >>> run("guild run from-file-output -y")
     Resolving file-output resource
     guild: run failed because a dependency was not met: could not resolve
-    'operation:from-file//output' in file-output resource: no suitable
+    'operation:from-file' in file-output resource: no suitable
     run for ./hello:from-file
     <exit 1>
 
@@ -68,6 +68,7 @@ default it will print the contents of a default file:
 
     >>> run("guild run from-file -y")
     Resolving msg-file resource
+    Using .../examples/hello/msg.txt for msg-file resource
     Hello Guild, from a required file!
     <exit 0>
 
@@ -78,6 +79,7 @@ We can provide an alternative.
     >>> quiet("echo 'Yo yo, what up Guild!' > $WORKSPACE/alt-msg")
     >>> run("guild run from-file file=$WORKSPACE/alt-msg -y")
     Resolving msg-file resource
+    Using .../examples/hello/msg.txt for msg-file resource
     Yo yo, what up Guild!
     <exit 0>
 
@@ -88,6 +90,7 @@ Now that we have a successful run of `from-file` we can run
 
     >>> run("guild run from-file-output -y")
     Resolving file-output resource
+    Using .../runs/... for file-output resource
     Latest from-file output:
     Yo yo, what up Guild!
     <exit 0>

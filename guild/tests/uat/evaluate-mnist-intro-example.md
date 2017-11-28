@@ -6,6 +6,7 @@ operation to test it against all of the test data.
     >>> cd("examples/mnist2")
     >>> run("guild run intro:evaluate -y")
     Resolving model resource
+    ...
     Resolving data resource
     ...
     Extracting data/train-images-idx3-ubyte.gz
