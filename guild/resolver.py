@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import hashlib
+import logging
 import os
 
 import guild.opref
@@ -24,12 +25,14 @@ from guild import pip_util
 from guild import util
 from guild import var
 
+log = logging.getLogger("guild")
+
 class ResolutionError(Exception):
     pass
 
 class Resolver(object):
 
-    def resolve(self):
+    def resolve(self, _config):
         raise NotImplementedError()
 
 class FileResolver(Resolver):
@@ -39,7 +42,9 @@ class FileResolver(Resolver):
         self.source = source
         self.working_dir = working_dir
 
-    def resolve(self):
+    def resolve(self, config):
+        if config:
+            log.warning("ignoring config %r for file resource", config)
         source_path = os.path.join(
             self.working_dir, self.source.parsed_uri.path)
         if not os.path.exists(source_path):
@@ -51,7 +56,9 @@ class URLResolver(Resolver):
     def __init__(self, source):
         self.source = source
 
-    def resolve(self):
+    def resolve(self, config):
+        if config:
+            log.warning("ignoring config %r for URL resource", config)
         download_dir = self._source_download_dir()
         util.ensure_dir(download_dir)
         try:
@@ -75,9 +82,9 @@ class OperationOutputResolver(Resolver):
         self.source = source
         self.modeldef = modeldef
 
-    def resolve(self):
+    def resolve(self, run_id_prefix):
         oprefs = self._source_oprefs()
-        run = self._latest_op_run(oprefs)
+        run = self._latest_op_run(oprefs, run_id_prefix)
         return run.path
 
     def _source_oprefs(self):
@@ -93,11 +100,20 @@ class OperationOutputResolver(Resolver):
     def _split_opref_specs(spec):
         return [part.strip() for part in spec.split(",")]
 
-    def _latest_op_run(self, oprefs):
-        resolved_oprefs = [
-            self._fully_resolve_opref(opref) for opref in oprefs
-        ]
-        completed_op_runs = var.run_filter(
+    def _latest_op_run(self, oprefs, run_id_prefix):
+        runs_filter = self._runs_filter(oprefs, run_id_prefix)
+        runs = var.runs(sort=["-started"], filter=runs_filter)
+        if runs:
+            return runs[0]
+        raise ResolutionError(
+            "no suitable run for %s"
+            % ",".join([self._opref_desc(opref) for opref in oprefs]))
+
+    def _runs_filter(self, oprefs, run_id_prefix):
+        if run_id_prefix:
+            return lambda run: run.id.startswith(run_id_prefix)
+        resolved_oprefs = [self._resolve_opref(opref) for opref in oprefs]
+        return var.run_filter(
             "all", [
                 var.run_filter("any", [
                     var.run_filter("attr", "status", "completed"),
@@ -108,33 +124,22 @@ class OperationOutputResolver(Resolver):
                     opref.is_op_run for opref in resolved_oprefs
                 ])
             ])
-        runs = var.runs(sort=["-started"], filter=completed_op_runs)
-        if runs:
-            return runs[0]
-        raise ResolutionError(
-            "no suitable run for %s"
-            % ",".join([
-                self._opref_desc(opref) for opref in resolved_oprefs
-            ]))
+
+    def _resolve_opref(self, opref):
+        assert opref.op_name, opref
+        return guild.opref.OpRef(
+            pkg_type="package" if opref.pkg_name else None,
+            pkg_name=opref.pkg_name,
+            pkg_version=None,
+            model_name=opref.model_name or self.modeldef.name,
+            op_name=opref.op_name)
 
     @staticmethod
     def _opref_desc(opref):
-        pkg = "." if opref.pkg_type == "modelfile"  else opref.pkg_name
-        return "%s/%s:%s" % (pkg, opref.model_name, opref.op_name)
-
-    def _fully_resolve_opref(self, opref):
-        assert opref.op_name, opref
-        pkg_type = (
-            opref.pkg_type or
-            "package" if opref.pkg_name else "modelfile")
-        pkg_name = (
-            opref.pkg_name or
-            os.path.abspath(self.modeldef.modelfile.dir))
-        model_name = opref.model_name or self.modeldef.name
-        op_name = opref.op_name
-        return guild.opref.OpRef(
-            pkg_type=pkg_type,
-            pkg_name=pkg_name,
-            pkg_version=None,
-            model_name=model_name,
-            op_name=op_name)
+        if opref.pkg_type == "modelfile":
+            pkg = "./"
+        elif opref.pkg_name:
+            pkg = opref.pkg_name + "/"
+        else:
+            pkg = ""
+        return "%s%s:%s" % (pkg, opref.model_name, opref.op_name)

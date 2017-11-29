@@ -34,9 +34,10 @@ class DependencyError(Exception):
 
 class ResolutionContext(object):
 
-    def __init__(self, target_dir, opdef):
+    def __init__(self, target_dir, opdef, resource_config):
         self.target_dir = target_dir
         self.opdef = opdef
+        self.resource_config = resource_config
 
 class Resource(object):
 
@@ -60,8 +61,9 @@ class Resource(object):
             raise DependencyError(
                 "unsupported source '%s' in %s resource"
                 % (source, self.resdef.name))
+        config = self.ctx.resource_config.get(self.resdef.name)
         try:
-            source_path = resolver.resolve()
+            source_path = resolver.resolve(config)
         except ResolutionError as e:
             raise DependencyError(
                 "could not resolve '%s' in %s resource: %s"

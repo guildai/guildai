@@ -43,12 +43,14 @@ class InvalidCmd(ValueError):
 
 class Operation(object):
 
-    def __init__(self, model, opdef, rundir=None, extra_attrs=None):
+    def __init__(self, model, opdef, rundir=None, resource_config=None,
+                 extra_attrs=None):
         self.model = model
         self.opdef = opdef
         self.cmd_args = _init_cmd_args(opdef)
         self.cmd_env = _init_cmd_env(opdef)
         self._rundir = rundir
+        self._resource_config = resource_config
         self._extra_attrs = extra_attrs
         self._running = False
         self._started = None
@@ -101,7 +103,8 @@ class Operation(object):
         assert self._run is not None
         ctx = deps.ResolutionContext(
             target_dir=self._run.path,
-            opdef=self.opdef)
+            opdef=self.opdef,
+            resource_config=self._resource_config)
         deps.resolve(self.opdef.dependencies, ctx)
 
     def _start_proc(self):
