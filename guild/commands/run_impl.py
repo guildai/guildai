@@ -162,7 +162,7 @@ def _init_op(opdef, model, args):
     _apply_arg_flags(args, opdef)
     _validate_opdef_flags(opdef)
     _apply_arg_disable_plugins(args, opdef)
-    attrs = {"label": args.label} if args.label else None
+    attrs = _init_op_attrs(args)
     if args.run_dir:
         cli.note(
             "Run directory is '%s' (results will not be visible to Guild)"
@@ -238,6 +238,9 @@ def _apply_arg_disable_plugins(args, opdef):
         opdef.disabled_plugins.extend([
             name.strip() for name in args.disable_plugins.split(",")
         ])
+
+def _init_op_attrs(args):
+    return {"label": args.label} if args.label else None
 
 def _print_command(op):
     formatted = " ".join([_maybe_quote_arg(arg) for arg in op.cmd_args])
