@@ -70,8 +70,12 @@ def _opref_is_op_run(opref, run):
         return False
     else:
         return (
-            run_opref.pkg_type == opref.pkg_type and
-            run_opref.pkg_name == opref.pkg_name and
+            (opref.pkg_type is None or
+             run_opref.pkg_type == opref.pkg_type) and
+            (opref.pkg_name is None or
+             run_opref.pkg_name == opref.pkg_name) and
+            (opref.pkg_version is None or
+             run_opref.pkg_version == opref.pkg_version) and
             run_opref.model_name == opref.model_name and
             run_opref.op_name == opref.op_name)
 
