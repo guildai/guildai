@@ -76,9 +76,7 @@ class Resource(object):
                 % (source, self.resdef.name, e))
         else:
             self._verify_path(source_path, source.sha256)
-            log.info(
-                "Using %s for %s resource",
-                source_path, source.resdef.name)
+            log.info("Using %s for %s resource", source_path, self.resdef.name)
             source_files = self._resolve_source_files(source_path, source)
             for path in source_files:
                 self._link_to_source(path)
