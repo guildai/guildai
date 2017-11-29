@@ -48,19 +48,6 @@ And the output when we provide a value for the message flag:
     Howdy Guild!
     <exit 0>
 
-### `from-file-output` part 1
-
-The `from-file-output` operation requires output from the `from-file`
-operation. When we try to run it without first having a completed run
-for `from-file` we get an error.
-
-    >>> run("guild run from-file-output -y")
-    Resolving file-output resource
-    guild: run failed because a dependency was not met: could not resolve
-    'operation:from-file' in file-output resource: no suitable
-    run for ./hello:from-file
-    <exit 1>
-
 ### `from-file`
 
 The `from-file` operation prints a message contained in a file. By
@@ -83,14 +70,36 @@ We can provide an alternative.
     Yo yo, what up Guild!
     <exit 0>
 
-### `from-file-output` part 2
+### `from-file-output`
 
-Now that we have a successful run of `from-file` we can run
-`from-from-output`:
+When we run `from-file-output`, we get the latest output from
+`from-file`:
 
     >>> run("guild run from-file-output -y")
     Resolving file-output resource
     Using .../runs/... for file-output resource
     Latest from-file output:
     Yo yo, what up Guild!
+    <exit 0>
+
+We can specify an alternative run for `from-file-output` using the
+`--resource` option. This takes the form:
+
+    --resource RESOURCE-NAME RUN-ID
+
+The resource name associated with the `from-file` operation is named
+`file-output`. So we'll specify the altnerative run this way:
+
+    --resource file-output RUN-ID
+
+We'll use the first run for `from-file`.
+
+    >>> run("""
+    ... run_id=`guild runs | grep from-file | tail -n1 | cut -d: -f2 | cut -b 1-8`
+    ... guild run from-file-output --resource file-output $run_id -y
+    ... """)
+    Resolving file-output resource
+    Using .../runs/... for file-output resource
+    Latest from-file output:
+    Hello Guild, from a required file!
     <exit 0>
