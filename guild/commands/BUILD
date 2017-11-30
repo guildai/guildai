@@ -321,6 +321,7 @@ py_library(
     name = "run_impl",
     srcs = ["run_impl.py"],
     deps = [
+        "//third_party:click",
         "//guild:cli",
         "//guild:cmd_impl_support",
         "//guild:deps",

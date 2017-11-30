@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import click
+
 import guild.model
 import guild.op
 
@@ -42,8 +44,12 @@ def _invalid_cmd_error(e, op_name):
         cli.error("invalid cmd '%s' for operation '%s'" % (cmd, op_name))
 
 def _dispatch_op(op, model, args):
-    if args.print_command:
-        _print_command(op)
+    if args.help_model:
+        _print_model_help(model)
+    elif args.help_op:
+        _print_op_help(op)
+    elif args.print_cmd:
+        _print_cmd(op)
     elif args.print_env:
         _print_env(op)
     else:
@@ -247,7 +253,83 @@ def _init_resource_config(args):
 def _init_op_attrs(args):
     return {"label": args.label} if args.label else None
 
-def _print_command(op):
+def _print_model_help(model):
+    out = click.HelpFormatter()
+    out.write_usage(
+        "guild",
+        "run [OPTIONS] {}:OPERATION [FLAG]...".format(model.modeldef.name))
+    if model.modeldef.description:
+        out.write_paragraph()
+        out.write_text(model.modeldef.description.replace("\n", "\n\n"))
+    out.write_paragraph()
+    out.write_text(
+        "Use 'guild run {}:OPERATION --help-op' for help on "
+        "a particular operation.".format(model.modeldef.name))
+    ops = _format_model_ops_dl(model)
+    if ops:
+        _write_dl_section("Operations", ops, out)
+    resources = _format_model_resources_dl(model)
+    if resources:
+        _write_dl_section("Resources", resources, out)
+    click.echo(out.getvalue(), nl=False)
+
+def _format_model_ops_dl(model):
+    line1 = lambda s: s.split("\n")[0]
+    return [
+        (op.name, line1(op.description or ""))
+        for op in model.modeldef.operations
+    ]
+
+def _format_model_resources_dl(model):
+    return [(res.name, res.description) for res in model.modeldef.resources]
+
+def _write_dl_section(name, dl, out):
+    out.write_paragraph()
+    out.write_heading(name)
+    out.indent()
+    out.write_dl(dl)
+    out.dedent()
+
+def _print_op_help(op):
+    out = click.HelpFormatter()
+    out.write_usage(
+        "guild",
+        "run [OPTIONS] {} [FLAG]...".format(op.opdef.fullname))
+    if op.opdef.description:
+        out.write_paragraph()
+        out.write_text(op.opdef.description.replace("\n", "\n\n"))
+    out.write_paragraph()
+    out.write_text("Use 'guild run --help' for a list of options.")
+    flags = _format_op_flags_dl(op)
+    if flags:
+        _write_dl_section("Flags", flags, out)
+    deps = _format_op_deps_dl(op)
+    if deps:
+        _write_dl_section("Dependencies", deps, out)
+    click.echo(out.getvalue(), nl=False)
+
+def _format_op_flags_dl(op):
+    dl = []
+    seen = set()
+    flags = op.opdef.flags + op.opdef.modeldef.flags
+    for flag in flags:
+        if flag.name in seen:
+            continue
+        seen.add(flag.name)
+        dl.append((flag.name, flag.description))
+    return dl
+
+def _format_op_deps_dl(op):
+    model_resources = {
+        res.name: res.description or ""
+        for res in op.opdef.modeldef.resources
+    }
+    return [
+        (dep.spec, model_resources.get(dep.spec, ""))
+        for dep in op.opdef.dependencies
+    ]
+
+def _print_cmd(op):
     formatted = " ".join([_maybe_quote_arg(arg) for arg in op.cmd_args])
     cli.out(formatted)
 

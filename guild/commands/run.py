@@ -42,12 +42,20 @@ def run_params(fn):
             help="Do not prompt before running operation.",
             is_flag=True),
         click.Option(
-            ("--print-command",),
-            help="Show the operation command and exit (does not run).",
+            ("--print-cmd",),
+            help="Show operation command and exit.",
             is_flag=True),
         click.Option(
             ("--print-env",),
-            help="Show the operation environment and exit (does not run).",
+            help="Show operation environment and exit.",
+            is_flag=True),
+        click.Option(
+            ("--help-model",),
+            help="Show model help and exit.",
+            is_flag=True),
+        click.Option(
+            ("--help-op",),
+            help="Show operation help and exit.",
             is_flag=True),
     ])
     return fn
