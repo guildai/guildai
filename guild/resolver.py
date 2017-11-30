@@ -84,7 +84,7 @@ class OperationOutputResolver(Resolver):
 
     def resolve(self, run_spec):
         oprefs = self._source_oprefs()
-        if os.path.isdir(run_spec):
+        if run_spec and os.path.isdir(run_spec):
             return run_spec
         else:
             run = self._latest_op_run(oprefs, run_spec)
