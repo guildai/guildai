@@ -82,10 +82,13 @@ class OperationOutputResolver(Resolver):
         self.source = source
         self.modeldef = modeldef
 
-    def resolve(self, run_id_prefix):
+    def resolve(self, run_spec):
         oprefs = self._source_oprefs()
-        run = self._latest_op_run(oprefs, run_id_prefix)
-        return run.path
+        if os.path.isdir(run_spec):
+            return run_spec
+        else:
+            run = self._latest_op_run(oprefs, run_spec)
+            return run.path
 
     def _source_oprefs(self):
         oprefs = []
