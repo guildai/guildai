@@ -29,31 +29,35 @@ def main(args):
     model_ref, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_ref)
     opdef = _resolve_opdef(op_name, model)
-    try:
-        op = _init_op(opdef, model, args)
-    except guild.op.InvalidCmd as e:
-        _invalid_cmd_error(e, op_name)
-    else:
-        _dispatch_op(op, model, args)
+    _dispatch_cmd(args, opdef, model)
 
-def _invalid_cmd_error(e, op_name):
-    cmd = e.args[0]
-    if not cmd:
-        cli.error("missing cmd for operation '%s'" % op_name)
-    else:
-        cli.error("invalid cmd '%s' for operation '%s'" % (cmd, op_name))
-
-def _dispatch_op(op, model, args):
+def _dispatch_cmd(args, opdef, model):
     if args.help_model:
         _print_model_help(model)
     elif args.help_op:
-        _print_op_help(op)
-    elif args.print_cmd:
-        _print_cmd(op)
-    elif args.print_env:
-        _print_env(op)
+        _print_op_help(opdef)
     else:
-        _maybe_run(op, model, args)
+        _dispatch_op_cmd(opdef, model, args)
+
+def _dispatch_op_cmd(opdef, model, args):
+    try:
+        op = _init_op(opdef, model, args)
+    except guild.op.InvalidCmd as e:
+        _invalid_cmd_error(e, opdef)
+    else:
+        if args.print_cmd:
+            _print_cmd(opdef)
+        elif args.print_env:
+            _print_env(op)
+        else:
+            _maybe_run(op, model, args)
+
+def _invalid_cmd_error(e, opdef):
+    cmd = e.args[0]
+    if not cmd:
+        cli.error("missing cmd for operation '%s'" % opdef.name)
+    else:
+        cli.error("invalid cmd '%s' for operation '%s'" % (cmd, opdef.name))
 
 def _parse_opspec(spec):
     parts = spec.split(":", 1)
