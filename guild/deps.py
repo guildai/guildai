@@ -146,18 +146,18 @@ def _dep_desc(dep):
 
 def resolve(dependencies, ctx):
     for dep in dependencies:
-        resource = _dependency_resource(dep.spec, ctx)
-        log.info("Resolving %s dependency", dep.spec)
+        resolved_spec = util.resolve_refs(dep.spec, ctx.opdef.flag_values())
+        resource = _dependency_resource(resolved_spec, ctx)
+        log.info("Resolving %s dependency", resolved_spec)
         resource.resolve()
 
 def _dependency_resource(spec, ctx):
-    resolved_spec = util.resolve_refs(spec, ctx.opdef.flag_values())
     try:
         res = util.find_apply(
             [_model_resource,
              _modelfile_resource,
              _packaged_resource],
-            resolved_spec, ctx)
+            spec, ctx)
     except DependencyError as e:
         if spec in ctx.resource_config:
             log.warning("%s", e)
@@ -167,7 +167,7 @@ def _dependency_resource(spec, ctx):
         return res
     raise DependencyError(
         "invalid dependency '%s' in operation '%s'"
-        % (resolved_spec, ctx.opdef.fullname))
+        % (spec, ctx.opdef.fullname))
 
 def _model_resource(spec, ctx):
     m = re.match(r"(%s)$" % RESOURCE_TERM, spec)
