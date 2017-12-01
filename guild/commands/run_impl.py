@@ -294,28 +294,28 @@ def _write_dl_section(name, dl, out):
     out.write_dl(dl)
     out.dedent()
 
-def _print_op_help(op):
+def _print_op_help(opdef):
     out = click.HelpFormatter()
     out.write_usage(
         "guild",
-        "run [OPTIONS] {} [FLAG]...".format(op.opdef.fullname))
-    if op.opdef.description:
+        "run [OPTIONS] {} [FLAG]...".format(opdef.fullname))
+    if opdef.description:
         out.write_paragraph()
-        out.write_text(op.opdef.description.replace("\n", "\n\n"))
+        out.write_text(opdef.description.replace("\n", "\n\n"))
     out.write_paragraph()
     out.write_text("Use 'guild run --help' for a list of options.")
-    flags = _format_op_flags_dl(op)
+    flags = _format_op_flags_dl(opdef)
     if flags:
         _write_dl_section("Flags", flags, out)
-    deps = _format_op_deps_dl(op)
+    deps = _format_op_deps_dl(opdef)
     if deps:
         _write_dl_section("Dependencies", deps, out)
     click.echo(out.getvalue(), nl=False)
 
-def _format_op_flags_dl(op):
+def _format_op_flags_dl(opdef):
     dl = []
     seen = set()
-    flags = op.opdef.flags + op.opdef.modeldef.flags
+    flags = opdef.flags + opdef.modeldef.flags
     for flag in flags:
         if flag.name in seen:
             continue
@@ -323,14 +323,14 @@ def _format_op_flags_dl(op):
         dl.append((flag.name, flag.description))
     return dl
 
-def _format_op_deps_dl(op):
+def _format_op_deps_dl(opdef):
     model_resources = {
         res.name: res.description or ""
-        for res in op.opdef.modeldef.resources
+        for res in opdef.modeldef.resources
     }
     return [
-        (dep.spec, model_resources.get(dep.spec, ""))
-        for dep in op.opdef.dependencies
+        (dep.spec, model_resources.get(dep.spec, "Help not available"))
+        for dep in opdef.dependencies
     ]
 
 def _print_cmd(op):
