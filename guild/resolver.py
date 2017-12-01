@@ -50,7 +50,10 @@ class FileResolver(Resolver):
         if self.config:
             config_path = self.config
             if not os.path.exists(config_path):
-                raise ResolutionError("'%s' does not exist" % config_path)
+                raise ResolutionError("%s does not exist" % config_path)
+            log.info(
+                "Using %s for %s resource",
+                config_path, self.source.resdef.name)
             return config_path
         else:
             source_path = os.path.join(
@@ -63,7 +66,10 @@ class URLResolver(Resolver):
         if self.config:
             config_path = self.config
             if not os.path.exists(config_path):
-                raise ResolutionError("'%s' does not exist" % config_path)
+                raise ResolutionError("%s does not exist" % config_path)
+            log.info(
+                "Using %s for %s resource",
+                config_path, self.source.resdef.name)
             return config_path
         download_dir = self._source_download_dir()
         util.ensure_dir(download_dir)

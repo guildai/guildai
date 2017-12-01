@@ -15,14 +15,15 @@ Flag (using full package ref):
 From file:
 
     >>> run("guild run -y hello:from-file --label test-3")
-    Resolving msg-file resource
+    Resolving msg-file dependency
     Hello Guild, from a required file!
     <exit 0>
 
 From file output:
 
     >>> run("guild run -y hello/hello:from-file-output --label test-4")
-    Resolving file-output resource
+    Resolving file-output dependency
+    Using output from run ... for file-output resource
     Latest from-file output:
     Hello Guild, from a required file!
     <exit 0>

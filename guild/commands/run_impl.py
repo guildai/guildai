@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
+
 import click
 
 import guild.model
@@ -23,6 +25,7 @@ import guild.op
 from guild import cli
 from guild import cmd_impl_support
 from guild import deps
+from guild import util
 from guild import yaml
 
 def main(args):
@@ -169,22 +172,28 @@ def _no_such_operation_error(name, model):
         % (name, model.name, model.name))
 
 def _init_op(opdef, model, args):
-    _apply_arg_flags(args, opdef)
+    flag_vals, resource_vals = _split_flag_args(args, opdef)
+    _apply_flag_vals(flag_vals, opdef)
     _validate_opdef_flags(opdef)
     _apply_arg_disable_plugins(args, opdef)
-    resource_config = _init_resource_config(args)
     attrs = _init_op_attrs(args)
     if args.run_dir:
         cli.note(
             "Run directory is '%s' (results will not be visible to Guild)"
             % args.run_dir)
     return guild.op.Operation(
-        model, opdef, args.run_dir, resource_config, attrs)
+        model, opdef, args.run_dir, resource_vals, attrs)
 
-def _apply_arg_flags(args, opdef):
-    for arg in args.args:
-        name, val = _parse_flag(arg)
-        opdef.set_flag_value(name, val)
+def _split_flag_args(args, opdef):
+    parsed = dict([_parse_flag(os.path.expanduser(arg)) for arg in args.args])
+    flag_vals = {}
+    resource_vals = {}
+    for name, val in parsed.items():
+        if _is_resource(name, opdef, parsed):
+            resource_vals[name] = val
+        else:
+            flag_vals[name] = val
+    return flag_vals, resource_vals
 
 def _parse_flag(s):
     parts = s.split("=", 1)
@@ -198,6 +207,17 @@ def _parse_flag_val(s):
         return yaml.safe_load(s)
     except yaml.YAMLError:
         return s
+
+def _is_resource(name, opdef, vars):
+    for dep in opdef.dependencies:
+        resolved_spec = util.resolve_refs(dep.spec, vars)
+        if resolved_spec == name:
+            return True
+    return False
+
+def _apply_flag_vals(vals, opdef):
+    for name, val in vals.items():
+        opdef.set_flag_value(name, val)
 
 def _validate_opdef_flags(opdef):
     vals = opdef.flag_values()

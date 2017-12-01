@@ -29,11 +29,6 @@ def run_params(fn):
             ("-d", "--run-dir"), metavar="DIR",
             help="Use an alternative run directory."),
         click.Option(
-            ("-r", "--resource", "resource_config"), metavar="NAME RUN",
-            nargs=2,
-            multiple=True,
-            help="Specify a run ID to use for a resource."),
-        click.Option(
             ("--disable-plugins",), metavar="LIST",
             help=("A comma separated list of plugin names to disable. "
                   "Use 'all' to disable all plugins.")),
