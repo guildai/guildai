@@ -207,10 +207,10 @@ are selected by way of the source files returned by `resolve`.
     >>> tar_source.unpack
     True
 
-    >>> print tar_source.sha256
+    >>> print(tar_source.sha256)
     None
 
-    >>> print tar_source.select
+    >>> print(tar_source.select)
     None
 
     >>> resolver = test_res.get_source_resolver(tar_source)
@@ -231,10 +231,10 @@ This source should not be unpacked:
     >>> nounpack_source.unpack
     False
 
-    >>> print nounpack_source.sha256
+    >>> print(nounpack_source.sha256)
     None
 
-    >>> print nounpack_source.select
+    >>> print(nounpack_source.select)
     None
 
     >>> resolver = test_res.get_source_resolver(nounpack_source)

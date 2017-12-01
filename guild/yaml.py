@@ -21,7 +21,7 @@ import yaml as _yaml
 
 def _load(loader, node):
     filename = os.path.join(os.path.dirname(loader.name), node.value)
-    with file(filename) as f:
+    with open(filename, "r") as f:
         return _yaml.safe_load(f)
 
 _yaml.add_constructor("!load", _load, _yaml.SafeLoader)
