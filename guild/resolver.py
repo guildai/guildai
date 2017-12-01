@@ -97,9 +97,15 @@ class OperationOutputResolver(Resolver):
 
     def _source_path_for_run_spec(self, run_spec):
         if run_spec and os.path.isdir(run_spec):
+            log.info(
+                "Using output in %s for %s resource",
+                run_spec, self.source.resdef.name)
             return run_spec
         else:
             run = self._latest_op_run(run_spec)
+            log.info(
+                "Using output from run %s for %s resource",
+                run.id, self.source.resdef.name)
             return run.path
 
     def _latest_op_run(self, run_id_prefix):
