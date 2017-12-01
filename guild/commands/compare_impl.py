@@ -111,6 +111,7 @@ def _run_accuracy(run):
         "val_acc",
         "validate/accuracy",
         "eval/accuracy",
+        "eval/Accuracy",
     ]
     return _format_float(run.scalar(search_keys))
 
