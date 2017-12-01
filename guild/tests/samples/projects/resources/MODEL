@@ -1,0 +1,17 @@
+name: resources
+resources:
+  test:
+    sources:
+      - file: archive1.zip
+        sha256: 8d172fde27ec89ae0a76832f8ff714e3e498b23d14bac7edfb55e3c4729e3265
+        select: a.txt
+      - file: archive2.tar
+      - file: archive3.tar
+        unpack: no
+      - file: test.txt
+        sha256: f33ae3bc9a22cd7564990a794789954409977013966fb1a8f43c35776b833a95
+      - file: badhash.txt
+        sha256: xxx
+      - file: files
+        select: .*\.txt
+      - file: doesnt-exist
