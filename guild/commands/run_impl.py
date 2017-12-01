@@ -324,13 +324,23 @@ def _print_op_help(opdef):
         out.write_text(opdef.description.replace("\n", "\n\n"))
     out.write_paragraph()
     out.write_text("Use 'guild run --help' for a list of options.")
-    flags = _format_op_flags_dl(opdef)
-    if flags:
-        _write_dl_section("Flags", flags, out)
     deps = _format_op_deps_dl(opdef)
     if deps:
         _write_dl_section("Dependencies", deps, out)
+    flags = _format_op_flags_dl(opdef)
+    if flags:
+        _write_dl_section("Flags", flags, out)
     click.echo(out.getvalue(), nl=False)
+
+def _format_op_deps_dl(opdef):
+    model_resources = {
+        res.name: res.description or ""
+        for res in opdef.modeldef.resources
+    }
+    return [
+        (dep.spec, model_resources.get(dep.spec) or "Help not available")
+        for dep in opdef.dependencies
+    ]
 
 def _format_op_flags_dl(opdef):
     dl = []
@@ -340,18 +350,15 @@ def _format_op_flags_dl(opdef):
         if flag.name in seen:
             continue
         seen.add(flag.name)
-        dl.append((flag.name, flag.description))
+        dl.append((flag.name, _format_flag_desc(flag)))
     return dl
 
-def _format_op_deps_dl(opdef):
-    model_resources = {
-        res.name: res.description or ""
-        for res in opdef.modeldef.resources
-    }
-    return [
-        (dep.spec, model_resources.get(dep.spec, "Help not available"))
-        for dep in opdef.dependencies
-    ]
+def _format_flag_desc(flag):
+    if flag.required:
+        lines = flag.description.split("\n")
+        return "\n".join(["{} (required)".format(lines[0])] + lines[1:])
+    else:
+        return flag.description
 
 def _print_cmd(op):
     formatted = " ".join([_maybe_quote_arg(arg) for arg in op.cmd_args])
