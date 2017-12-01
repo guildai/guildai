@@ -23,7 +23,5 @@ from tensorflow.python.tools import inspect_checkpoint as _inspect_checkpoint
 from guild import cli
 
 def inspect_checkpoint(args):
-    if not os.path.exists(args.file_name):
-        cli.error("%s does not exist" "" % args.file_name)
     _inspect_checkpoint.FLAGS = args
     _inspect_checkpoint.main([])
