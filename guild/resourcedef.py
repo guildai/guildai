@@ -35,9 +35,9 @@ class ResourceDef(object):
 
     source_types = ["file", "url"]
 
-    def __init__(self, name, data):
+    def __init__(self, name, data, fullname=None):
         self.name = name
-        self.fullname = name
+        self.fullname = fullname or name
         self.description = data.get("description", "")
         self.path = data.get("path")
         self.sources = self._init_sources(data.get("sources", []))
