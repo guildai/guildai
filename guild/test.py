@@ -141,6 +141,7 @@ def _test_globals():
     return {
         "LogCapture": util.LogCapture,
         "cat": cat,
+        "dir": lambda dir: sorted(os.listdir(dir)),
         "find": find,
         "mkdtemp": mkdtemp,
         "pprint": pprint.pprint,

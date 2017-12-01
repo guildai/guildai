@@ -127,3 +127,179 @@ Some invalid op references:
     >>> OpRef.from_string("foo/bar")
     Traceback (most recent call last):
     OpRefError: invalid reference: 'foo/bar'
+
+## Resolvers
+
+Resolvers are objects that resolve dependency sources. Resolvers can
+be obtained for a source via a resource def using the
+`get_source_resolver` method.
+
+To illustrate, we'll use a sample project that defines various
+resources.
+
+    >>> mf = modelfile.from_dir(sample("projects/resources"))
+    >>> res_model = mf["resources"]
+
+Here are the model resources:
+
+    >>> res_model.resources
+    [<guild.modelfile.ResourceDef 'test'>]
+
+The test resource has the following sources:
+
+    >>> test_res = res_model.get_resource("test")
+    >>> test_res.sources
+    [<guild.resourcedef.ResourceSource 'file:archive1.zip'>,
+     <guild.resourcedef.ResourceSource 'file:archive2.tar'>,
+     <guild.resourcedef.ResourceSource 'file:archive3.tar'>,
+     <guild.resourcedef.ResourceSource 'file:test.txt'>,
+     <guild.resourcedef.ResourceSource 'file:badhash.txt'>,
+     <guild.resourcedef.ResourceSource 'file:files'>,
+     <guild.resourcedef.ResourceSource 'file:doesnt-exist'>]
+
+Let's use a resolver to resolve each source.
+
+We need a temporary directory as a location for unpacking archives.
+
+    >>> tmp = mkdtemp()
+    >>> dir(tmp)
+    []
+
+### Zip source file
+
+    >>> zip_source = test_res.sources[0]
+    >>> zip_source.uri
+    'file:archive1.zip'
+
+By default, archives are unpacked. See *No unpack archive* below for
+an example of an archive that isn't unpacked.
+
+    >>> zip_source.unpack
+    True
+
+If a `sha256` hash is specified, the file will be verified before
+use. See *Invalid source file* below for an example of a file with an
+invalid hash.
+
+    >>> zip_source.sha256
+    '8d172fde27ec89ae0a76832f8ff714e3e498b23d14bac7edfb55e3c4729e3265'
+
+    >>> zip_source.select
+    'a.txt'
+
+    >>> resolver = test_res.get_source_resolver(zip_source)
+    >>> resolver.resolve(tmp)
+    ['/.../a.txt']
+
+    >>> dir(tmp)
+    ['a.txt', 'b.txt']
+
+Note that `b.txt` was also extracted into the temp directory. This is
+by design - a resource is always fully unpacked when resolved. Files
+are selected by way of the source files returned by `resolve`.
+
+### Tar source file
+
+    >>> tar_source = test_res.sources[1]
+    >>> tar_source.uri
+    'file:archive2.tar'
+
+    >>> tar_source.unpack
+    True
+
+    >>> print tar_source.sha256
+    None
+
+    >>> print tar_source.select
+    None
+
+    >>> resolver = test_res.get_source_resolver(tar_source)
+    >>> sorted(resolver.resolve(tmp))
+    ['/.../c.txt', '/.../d.txt']
+
+    >>> dir(tmp)
+    ['a.txt', 'b.txt', 'c.txt', 'd.txt']
+
+### No unpack archive
+
+    >>> nounpack_source = test_res.sources[2]
+    >>> nounpack_source.uri
+    'file:archive3.tar'
+
+This source should not be unpacked:
+
+    >>> nounpack_source.unpack
+    False
+
+    >>> print nounpack_source.sha256
+    None
+
+    >>> print nounpack_source.select
+    None
+
+    >>> resolver = test_res.get_source_resolver(nounpack_source)
+    >>> resolver.resolve(tmp)
+    ['.../samples/projects/resources/archive3.tar']
+
+    >>> dir(tmp)
+    ['a.txt', 'b.txt', 'c.txt', 'd.txt']
+
+Note the source file is a path directly to the archive and not an
+extracted file.
+
+### Plain source file
+
+    >>> plain_source = test_res.sources[3]
+    >>> plain_source.uri
+    'file:test.txt'
+
+    >>> plain_source.sha256
+    'f33ae3bc9a22cd7564990a794789954409977013966fb1a8f43c35776b833a95'
+
+    >>> resolver = test_res.get_source_resolver(plain_source)
+    >>> resolver.resolve(tmp)
+    ['.../samples/projects/resources/test.txt']
+
+    >>> dir(tmp)
+    ['a.txt', 'b.txt', 'c.txt', 'd.txt']
+
+### Invalid source file
+
+    >>> invalid_source = test_res.sources[4]
+    >>> invalid_source.uri
+    'file:badhash.txt'
+
+    >>> invalid_source.sha256
+    'xxx'
+
+    >>> resolver = test_res.get_source_resolver(invalid_source)
+    >>> resolver.resolve(tmp)
+    Traceback (most recent call last):
+    ResolutionError: '.../badhash.txt' has an unexpected sha256
+    (expected xxx but got ...)
+
+### Directory source file
+
+    >>> dir_source = test_res.sources[5]
+    >>> dir_source.uri
+    'file:files'
+
+    >>> resolver = test_res.get_source_resolver(dir_source)
+    >>> sorted(resolver.resolve(tmp))
+    ['.../samples/projects/resources/files/e.txt',
+     '.../samples/projects/resources/files/f.txt']
+
+    >>> dir(tmp)
+    ['a.txt', 'b.txt', 'c.txt', 'd.txt']
+
+### Non existing source file
+
+    >>> noexist_source = test_res.sources[6]
+    >>> noexist_source.uri
+    'file:doesnt-exist'
+
+    >>> resolver = test_res.get_source_resolver(noexist_source)
+    >>> resolver.resolve(tmp)
+    Traceback (most recent call last):
+    ResolutionError: '.../samples/projects/resources/doesnt-exist'
+    does not exist

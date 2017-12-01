@@ -55,7 +55,6 @@ default it will print the contents of a default file:
 
     >>> run("guild run from-file -y")
     Resolving msg-file resource
-    Using .../examples/hello/msg.txt for msg-file resource
     Hello Guild, from a required file!
     <exit 0>
 
@@ -66,7 +65,6 @@ We can provide an alternative.
     >>> quiet("echo 'Yo yo, what up Guild!' > $WORKSPACE/alt-msg")
     >>> run("guild run from-file file=$WORKSPACE/alt-msg -y")
     Resolving msg-file resource
-    Using .../examples/hello/msg.txt for msg-file resource
     Yo yo, what up Guild!
     <exit 0>
 
@@ -77,7 +75,6 @@ When we run `from-file-output`, we get the latest output from
 
     >>> run("guild run from-file-output -y")
     Resolving file-output resource
-    Using .../runs/... for file-output resource
     Latest from-file output:
     Yo yo, what up Guild!
     <exit 0>
@@ -99,7 +96,6 @@ We'll use the first run for `from-file`.
     ... guild run from-file-output --resource file-output $run_id -y
     ... """)
     Resolving file-output resource
-    Using .../runs/... for file-output resource
     Latest from-file output:
     Hello Guild, from a required file!
     <exit 0>

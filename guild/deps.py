@@ -44,6 +44,13 @@ class Resource(object):
     def __init__(self, resdef, ctx):
         self.resdef = resdef
         self.ctx = ctx
+        self._resource_config = self._init_resource_config()
+
+    def _init_resource_config(self):
+        for name, config in self.ctx.resource_config.items():
+            if name in [self.resdef.fullname, self.resdef.name]:
+                return config
+        return None
 
     def resolve(self):
         log.info("Resolving %s resource", self.resdef.name)
@@ -56,14 +63,14 @@ class Resource(object):
         self._post_resolve()
 
     def _resolve_source(self, source):
-        resolver = self.resdef.get_source_resolver(source)
+        resolver = self.resdef.get_source_resolver(
+            source, self._resource_config)
         if not resolver:
             raise DependencyError(
                 "unsupported source '%s' in %s resource"
                 % (source, self.resdef.name))
-        config = self.ctx.resource_config.get(self.resdef.name)
         try:
-            source_path = resolver.resolve(config)
+            source_paths = resolver.resolve()
         except ResolutionError as e:
             raise DependencyError(
                 "could not resolve '%s' in %s resource: %s"
@@ -75,152 +82,8 @@ class Resource(object):
                 "could not resolve '%s' in %s resource: %s"
                 % (source, self.resdef.name, e))
         else:
-            self._verify_path(source_path, source.sha256)
-            log.info("Using %s for %s resource", source_path, self.resdef.name)
-            source_files = self._resolve_source_files(source_path, source)
-            for path in source_files:
+            for path in source_paths:
                 self._link_to_source(path)
-
-    def _verify_path(self, path, sha256):
-        self._verify_file_exists(path)
-        if sha256:
-            if os.path.isdir(path):
-                raise DependencyError(
-                    "'%s' required by operation '%s' cannot be verified "
-                    "using sha256 because it is a directory"
-                    % (path, self.ctx.opdef.fullname))
-            self._verify_file_hash(path, sha256)
-
-    def _verify_file_exists(self, path):
-        if not os.path.exists(path):
-            raise DependencyError(
-                "'%s' required by operation '%s' does not exist"
-                % (path, self.ctx.opdef.fullname))
-
-    def _verify_file_hash(self, path, sha256):
-        actual = util.file_sha256(path)
-        if actual != sha256:
-            raise DependencyError(
-                "'%s' required by operation '%s' has an unexpected sha256 "
-                "(expected %s but got %s)"
-                % (path, self.ctx.opdef.fullname, sha256, actual))
-
-    def _resolve_source_files(self, source_path, source):
-        if os.path.isdir(source_path):
-            return self._dir_source_files(source_path, source)
-        else:
-            unpacked = self._maybe_unpack(source_path, source)
-            if unpacked is None:
-                return [source_path]
-            else:
-                return unpacked
-
-    def _dir_source_files(self, dir, source):
-        if source.select:
-            return self._selected_source_paths(
-                dir, self._all_dir_files(dir), source.select)
-        else:
-            return self._all_source_paths(dir, os.listdir(dir))
-
-    @staticmethod
-    def _all_dir_files(dir):
-        all = []
-        for root, dirs, files in os.walk(dir):
-            root = os.path.relpath(root, dir) if dir != root else ""
-            for name in dirs + files:
-                path = os.path.join(root, name)
-                normalized_path = path.replace(os.path.sep, "/")
-                all.append(normalized_path)
-        return all
-
-    @staticmethod
-    def _selected_source_paths(root, files, select):
-        selected = set()
-        pattern = re.compile(select + "$")
-        for path in files:
-            if path.startswith(".guild/"):
-                continue
-            path = util.strip_trailing_path(path)
-            match = pattern.match(path)
-            if not match:
-                continue
-            if match.groups():
-                path = match.group(1)
-            selected.add(os.path.join(root, path))
-        return list(selected)
-
-    @staticmethod
-    def _all_source_paths(root, files):
-        root_names = [path.split("/")[0] for path in files]
-        return [
-            os.path.join(root, name) for name in set(root_names)
-            if name != ".guild"
-        ]
-
-    def _maybe_unpack(self, source_path, source):
-        if not source.unpack:
-            return None
-        archive_type = self._archive_type(source_path, source)
-        if not archive_type:
-            return None
-        return self._unpack(source_path, archive_type, source.select)
-
-    @staticmethod
-    def _archive_type(source_path, source):
-        if source.type:
-            return source.type
-        parts = source_path.lower().split(".")
-        if parts[-1] == "zip":
-            return "zip"
-        elif (parts[-1] == "tar" or
-              parts[-1] == "tgz" or
-              parts[-2:-1] == ["tar"]):
-            return "tar"
-        else:
-            return None
-
-    def _unpack(self, source_path, type, select):
-        if type == "zip":
-            return self._unzip(source_path, select)
-        elif type == "tar":
-            return self._untar(source_path, select)
-        else:
-            raise DependencyError(
-                "'%s' required by operation '%s' cannot be unpacked "
-                "(unsupported archive type '%s')"
-                % (source_path, self.ctx.opdef.fullname, type))
-
-    def _unzip(self, source_path, select):
-        import zipfile
-        zf = zipfile.ZipFile(source_path)
-        return self._gen_unpack(
-            os.path.dirname(source_path),
-            zf.namelist,
-            lambda name: name,
-            zf.extractall,
-            select)
-
-    def _untar(self, source_path, select):
-        import tarfile
-        tf = tarfile.open(source_path)
-        return self._gen_unpack(
-            os.path.dirname(source_path),
-            tf.getmembers,
-            lambda tfinfo: tfinfo.name,
-            tf.extractall,
-            select)
-
-    def _gen_unpack(self, root, list_members, member_name, extract_all, select):
-        members = list_members()
-        member_names = [member_name(m) for m in members]
-        to_extract = [
-            m for m in members
-            if not os.path.exists(os.path.join(root, member_name(m)))]
-        extract_all(root, to_extract)
-        if select:
-            return self._selected_source_paths(root, member_names, select)
-        else:
-            return self._all_source_paths(root, member_names)
 
     def _link_to_source(self, source_path):
         source_path = util.strip_trailing_path(source_path)

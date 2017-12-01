@@ -45,12 +45,12 @@ class ResourceDef(object):
         self.private = bool(data.get("private"))
 
     @staticmethod
-    def get_source_resolver(source):
+    def get_source_resolver(source, config=None):
         scheme = source.parsed_uri.scheme
         if scheme == "file":
-            return resolver.FileResolver(source)
+            return resolver.FileResolver(source, config)
         elif scheme in ["http", "https"]:
-            return resolver.URLResolver(source)
+            return resolver.URLResolver(source, config)
         else:
             return None
 

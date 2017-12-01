@@ -421,14 +421,17 @@ class ResourceDef(resourcedef.ResourceDef):
         self.private = self.private or modeldef.private
         self.modeldef = modeldef
 
-    def get_source_resolver(self, source):
+    def get_source_resolver(self, source, config=None):
         scheme = source.parsed_uri.scheme
         if scheme == "file":
-            return resolver.FileResolver(source, self.modeldef.modelfile.dir)
+            return resolver.FileResolver(
+                source, config, self.modeldef.modelfile.dir)
         elif scheme == "operation":
-            return resolver.OperationOutputResolver(source, self.modeldef)
+            return resolver.OperationOutputResolver(
+                source, config, self.modeldef)
         else:
-            return super(ResourceDef, self).get_source_resolver(source)
+            return super(ResourceDef, self).get_source_resolver(
+                source, config)
 
     def _source_for_type(self, type, val, data):
         if type == "operation":
