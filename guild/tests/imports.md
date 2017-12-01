@@ -34,8 +34,6 @@
     guild.commands.index
     guild.commands.index_impl
     guild.commands.install
-    guild.commands.label
-    guild.commands.label_impl
     guild.commands.main
     guild.commands.main_impl
     guild.commands.models
@@ -57,6 +55,7 @@
     guild.commands.runs_delete
     guild.commands.runs_impl
     guild.commands.runs_info
+    guild.commands.runs_label
     guild.commands.runs_list
     guild.commands.runs_purge
     guild.commands.runs_restore

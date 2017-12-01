@@ -27,9 +27,9 @@ from guild import click_util
 @click_util.use_args
 
 def label(args):
-    """Set a run label.
+    """Show or set a run label.
 
     RUN must be a unique run ID.
     """
-    from . import label_impl
-    label_impl.main(args)
+    from . import runs_impl
+    runs_impl.label(args)

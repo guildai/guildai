@@ -109,27 +109,6 @@ py_library(
 )
 
 py_library(
-    name = "label",
-    srcs = ["label.py"],
-    deps = [
-        "//third_party:click",
-        "//guild:click_util",
-        ":label_impl",
-    ],
-)
-
-py_library(
-    name = "label_impl",
-    srcs = ["label_impl.py"],
-    deps = [
-        "//third_party:click",
-        "//guild:cmd_impl_support",
-        "//guild:run",
-        "//guild:var",
-    ],
-)
-
-py_library(
     name = "main",
     srcs = ["main.py"],
     deps = [
@@ -141,7 +120,6 @@ py_library(
         ":help",
         ":index",
         ":install",
-        ":label",
         ":main_impl",
         ":models",
         ":operations",
@@ -341,6 +319,7 @@ py_library(
         "//guild:click_util",
         ":runs_delete",
         ":runs_info",
+        ":runs_label",
         ":runs_list",
         ":runs_purge",
         ":runs_restore",
@@ -381,6 +360,16 @@ py_library(
         "//guild:click_util",
         ":runs_impl",
         ":runs_support",
+    ],
+)
+
+py_library(
+    name = "runs_label",
+    srcs = ["runs_label.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:click_util",
+        ":runs_impl",
     ],
 )
 

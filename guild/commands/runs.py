@@ -24,6 +24,7 @@ from . import runs_support
 
 from .runs_delete import delete_runs
 from .runs_info import run_info
+from .runs_label import label
 from .runs_list import list_runs
 from .runs_purge import purge_runs
 from .runs_restore import restore_runs
@@ -53,6 +54,7 @@ def _params_specified(kw):
 
 runs.add_command(delete_runs)
 runs.add_command(run_info)
+runs.add_command(label)
 runs.add_command(list_runs)
 runs.add_command(purge_runs)
 runs.add_command(restore_runs)

@@ -362,3 +362,14 @@ def run_info(args, ctx):
         out("files:")
         for path in sorted(run.iter_files(args.all_files)):
             out("  %s" % path)
+
+def label(args):
+    run = cmd_impl_support.one_run([
+        guild.run.Run(id, path) for id, path in var.find_runs(args.run)
+    ], args.run)
+    if args.clear:
+        run.del_attr("label")
+    elif args.label:
+        run.write_attr("label", args.label)
+    else:
+        cli.out(run.get("label", ""))
