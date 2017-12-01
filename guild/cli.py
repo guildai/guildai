@@ -37,7 +37,7 @@ def error(msg=None, exit_status=1):
     raise SystemExit(msg, exit_status)
 
 def out(s="", **kw):
-    _echo(s, kw)
+    _echo(s, **kw)
 
 def _echo(s, err=False, **kw):
     if config.log_output():
