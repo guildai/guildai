@@ -26,7 +26,7 @@ from guild import click_util
 @click.command("inspect-checkpoint")
 @click.argument("file_name", metavar="PATH")
 @click.option(
-    "--tensor-name",
+    "--tensor-name", metavar="NAME",
     default="",
     help="Name of the tensor to inspect.")
 @click.option(
