@@ -170,7 +170,10 @@ class OperationOutputResolver(Resolver):
             pkg = opref.pkg_name + "/"
         else:
             pkg = ""
-        return "%s%s:%s" % (pkg, opref.model_name, opref.op_name)
+        model_spec = pkg + (opref.model_name or "")
+        return (
+            "{}:{}".format(model_spec, opref.op_name)
+            if model_spec else opref.op_name)
 
 def resolve_source_files(source_path, source, unpack_dir):
     _verify_path(source_path, source.sha256)
