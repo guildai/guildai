@@ -30,12 +30,12 @@ Runs have short IDs, which are 8 chars long:
 ### Rundir files
 
 We can iterate files under a rundir using the `iter_files` method. For
-our tests we'll use a helpder that normalizes output for our tests:
+our tests we'll use a helper that normalizes output for our tests:
 
     >>> def run_files(run):
     ...   return sorted([
     ...     relpath(path, rundir)
-    ...     for path in run.iter_files(all_files=True, include_dirs=True)
+    ...     for path in run.iter_files(all_files=True)
     ...   ])
 
 We can iterate files under a rundir. Initially the directory is empty:

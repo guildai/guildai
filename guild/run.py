@@ -127,16 +127,15 @@ class Run(object):
         except OSError:
             pass
 
-    def iter_files(self, all_files=False, include_dirs=False):
-        for root, dirs, files in os.walk(self.path, followlinks=True):
+    def iter_files(self, all_files=False, follow_links=False):
+        for root, dirs, files in os.walk(self.path, followlinks=follow_links):
             if not all_files and root == self.path:
                 try:
                     dirs.remove(".guild")
                 except ValueError:
                     pass
-            if include_dirs:
-                for name in dirs:
-                    yield os.path.join(root, name)
+            for name in dirs:
+                yield os.path.join(root, name)
             for name in files:
                 yield os.path.join(root, name)
 
