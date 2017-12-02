@@ -154,7 +154,7 @@ def format_run(run, index=None):
         "pkg": run.opref.pkg_name,
         "status": run.status,
         "label": run.get("label") or "",
-        "pid": run.pid or "(not running)",
+        "pid": run.pid or "",
         "started": _format_timestamp(run.get("started")),
         "stopped": _format_timestamp(run.get("stopped")),
         "rundir": run.path,

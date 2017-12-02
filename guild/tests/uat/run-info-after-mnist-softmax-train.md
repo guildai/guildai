@@ -11,7 +11,7 @@ Use `guild runs info` to show information about the latest run:
     rundir: ...
     command: ... softmax --datadir mnist-idx-data --rundir . --batch-size 100 --epochs 1
     exit_status: 0
-    pid: (not running)
+    pid:
     <exit 0>
 
 We can optionally show files, flags, and env for a run:
@@ -25,7 +25,7 @@ We can optionally show files, flags, and env for a run:
     rundir: ...
     command: ... softmax --datadir mnist-idx-data --rundir . --batch-size 100 --epochs 1
     exit_status: 0
-    pid: (not running)
+    pid:
     environment:
       COLUMNS: ...
       GIT_REPOS: ...
