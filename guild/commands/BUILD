@@ -511,7 +511,6 @@ py_library(
     name = "tensorflow_impl",
     srcs = ["tensorflow_impl.py"],
     deps = [
-        "//guild:cli",
     ],
 )
 

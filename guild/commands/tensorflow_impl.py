@@ -15,12 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import os
-
 # pylint: disable=no-name-in-module
 from tensorflow.python.tools import inspect_checkpoint as _inspect_checkpoint
-
-from guild import cli
 
 def inspect_checkpoint(args):
     _inspect_checkpoint.FLAGS = args
