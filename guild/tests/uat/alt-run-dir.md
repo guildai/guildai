@@ -21,6 +21,7 @@ And the generated files:
     hello-default/.guild
     hello-default/.guild/attrs
     hello-default/.guild/attrs/cmd
+    hello-default/.guild/attrs/deps
     hello-default/.guild/attrs/env
     hello-default/.guild/attrs/exit_status
     hello-default/.guild/attrs/flags

@@ -26,6 +26,7 @@ from . import runs_support
 @runs_support.run_filters
 @click.option("--env", help="Show run environment.", is_flag=True)
 @click.option("--flags", help="Show run flags.", is_flag=True)
+@click.option("--deps", help="Show resolved dependencies.", is_flag=True)
 @click.option("--files", help="Show run files.", is_flag=True)
 @click.option(
     "--follow-links",

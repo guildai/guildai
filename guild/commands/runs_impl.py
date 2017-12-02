@@ -53,6 +53,7 @@ CORE_RUN_ATTRS = [
     "opref",
     "started",
     "stopped",
+    "deps",
 ]
 
 def list_runs(args):
@@ -358,6 +359,13 @@ def run_info(args, ctx):
     if args.flags:
         out("flags:", nl=False)
         out(_format_attr_val(run.get("flags", "")))
+    if args.deps:
+        out("dependencies:")
+        deps = run.get("deps", {})
+        for name in sorted(deps):
+            out("  %s:" % name)
+            for path in deps[name]:
+                out("    %s" % path)
     if args.files or args.all_files:
         out("files:")
         for path in sorted(run.iter_files(args.all_files, args.follow_links)):

@@ -80,6 +80,20 @@ When we run `from-file-output`, we get the latest output from
     Yo yo, what up Guild!
     <exit 0>
 
+We can view the sources of all resolved dependencies for a run using
+the `--deps` option of `guild runs info`:
+
+    >>> run("guild runs info --deps")
+    Limiting runs to the current directory (use --all to include all)
+    ...
+    operation: ./hello:from-file-output
+    status: completed
+    ...
+    dependencies:
+      file-output:
+        .../runs/.../output
+    <exit 0>
+
 We can specify an alternative run for `from-file-output` by specifying
 `file-output` as a flag.
 

@@ -105,7 +105,8 @@ class Operation(object):
             target_dir=self._run.path,
             opdef=self.opdef,
             resource_config=self._resource_config)
-        deps.resolve(self.opdef.dependencies, ctx)
+        resolved = deps.resolve(self.opdef.dependencies, ctx)
+        self._run.write_attr("deps", resolved)
 
     def _start_proc(self):
         assert self._proc is None

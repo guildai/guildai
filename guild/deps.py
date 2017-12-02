@@ -57,11 +57,13 @@ class Resource(object):
             log.warning(
                 "%s resource does not define any sources",
                 self.resdef.name)
+        resolved_acc = []
         for source in self.resdef.sources:
-            self._resolve_source(source)
+            self._resolve_source(source, resolved_acc)
         self._post_resolve()
+        return resolved_acc
 
-    def _resolve_source(self, source):
+    def _resolve_source(self, source, resolved_acc):
         resolver = self.resdef.get_source_resolver(
             source, self._resource_config)
         if not resolver:
@@ -82,6 +84,7 @@ class Resource(object):
                 % (source, self.resdef.name, e))
         else:
             for path in source_paths:
+                resolved_acc.append(path)
                 self._link_to_source(path)
 
     def _link_to_source(self, source_path):
@@ -140,16 +143,20 @@ class ResourceProxy(object):
         basename = os.path.basename(source_path)
         link = os.path.join(self.ctx.target_dir, basename)
         _symlink(source_path, link)
+        return [source_path]
 
 def _dep_desc(dep):
     return "%s:%s" % (dep.opdef.modeldef.name, dep.opdef.name)
 
 def resolve(dependencies, ctx):
+    resolved = {}
     for dep in dependencies:
         resolved_spec = util.resolve_refs(dep.spec, ctx.opdef.flag_values())
         resource = _dependency_resource(resolved_spec, ctx)
         log.info("Resolving %s dependency", resolved_spec)
-        resource.resolve()
+        resolved_sources = resource.resolve()
+        resolved.setdefault(resolved_spec, []).extend(resolved_sources)
+    return resolved
 
 def _dependency_resource(spec, ctx):
     try:
