@@ -190,7 +190,7 @@ def _split_flag_args(args, opdef):
     resource_vals = {}
     for name, val in parsed.items():
         if _is_resource(name, opdef, parsed):
-            resource_vals[name] = val
+            resource_vals[name] = str(val)
         else:
             flag_vals[name] = val
     return flag_vals, resource_vals
