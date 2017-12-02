@@ -19,6 +19,7 @@ import datetime
 import errno
 import os
 import logging
+import re
 import sys
 import time
 import threading
@@ -261,6 +262,40 @@ def resolve_refs(x, kv):
         if isinstance(val, str):
             x = x.replace("${%s}" % name, val)
     return x
+
+def resolve_all_refs(kv):
+    resolved = {}
+    for name, val in kv.items():
+        resolved[name] = _resolve_refs_recurse(val, kv, [])
+    return resolved
+
+class ReferenceCycleError(Exception):
+    pass
+
+def _resolve_refs_recurse(val, kv, stack):
+    if not isinstance(val, str):
+        return val
+    parts = [part for part in re.split(r"(\\?\${.+?})", val) if part != ""]
+    resolved = list(_iter_resolved_ref_parts(parts, kv, stack))
+    if len(resolved) == 1:
+        return resolved[0]
+    else:
+        return "".join([str(part) for part in resolved])
+
+def _iter_resolved_ref_parts(parts, kv, stack):
+    for part in parts:
+        if part.startswith("${") and part.endswith("}"):
+            ref_name = part[2:-1]
+            if ref_name in stack:
+                raise ReferenceCycleError(stack + [ref_name])
+            stack.append(ref_name)
+            ref_val = kv.get(ref_name, "")
+            yield _resolve_refs_recurse(ref_val, kv, stack)
+            stack.pop()
+        elif part.startswith("\\${") and part.endswith("}"):
+            yield part[1:-1]
+        else:
+            yield part
 
 def strip_trailing_path(path):
     if path and path[-1] in ("/", "\\"):
