@@ -50,8 +50,8 @@ class Operation(object):
         self.cmd_args = _init_cmd_args(opdef)
         self.cmd_env = _init_cmd_env(opdef)
         self._rundir = rundir
-        self._resource_config = resource_config
-        self._extra_attrs = extra_attrs
+        self.resource_config = resource_config
+        self.extra_attrs = extra_attrs
         self._running = False
         self._started = None
         self._stopped = None
@@ -87,7 +87,7 @@ class Operation(object):
 
     def _init_attrs(self):
         assert self._run is not None
-        for name, val in (self._extra_attrs or {}).items():
+        for name, val in (self.extra_attrs or {}).items():
             self._run.write_attr(name, val)
         self._run.write_attr("opref", self._opref_attr())
         self._run.write_attr("flags", self.opdef.flag_values())
@@ -104,7 +104,7 @@ class Operation(object):
         ctx = deps.ResolutionContext(
             target_dir=self._run.path,
             opdef=self.opdef,
-            resource_config=self._resource_config)
+            resource_config=self.resource_config)
         resolved = deps.resolve(self.opdef.dependencies, ctx)
         self._run.write_attr("deps", resolved)
 

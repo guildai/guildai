@@ -97,6 +97,14 @@ the `--deps` option of `guild runs info`:
 We can specify an alternative run for `from-file-output` by specifying
 `file-output` as a flag.
 
+Here's a preview of the command:
+
+    >>> run("guild run from-file-output file-output=foobar", timeout=1)
+    You are about to run ./hello:from-file-output
+      file-output: foobar
+    Continue? (Y/n)
+    <exit -9>
+
 We'll use the first run for `from-file`.
 
     >>> run("""

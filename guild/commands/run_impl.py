@@ -398,26 +398,33 @@ def _handle_run_result(exit_status):
 def _confirm_run(op, model):
     op_desc = "%s:%s" % (model.fullname, op.opdef.name)
     flags = op.opdef.flag_values(include_none=False)
-    if flags:
-        prompt = (
-            "You are about to run %s with the following flags:\n"
-            "%s\n"
-            "Continue?"
-            % (op_desc, _format_op_flags(flags)))
-    else:
-        prompt = (
-            "You are about to run %s\n"
-            "Continue?" % op_desc)
+    resources = op.resource_config
+    prompt = (
+        "You are about to run %s\n"
+        "%s"
+        "%s"
+        "Continue?"
+        % (op_desc, _format_op_flags(flags), _format_op_resources(resources)))
     return guild.cli.confirm(prompt, default=True)
 
 def _format_op_flags(flags):
+    if not flags:
+        return ""
     return "\n".join([
         "  %s" % _format_flag(name, flags[name])
         for name in sorted(flags)
-    ])
+    ]) + "\n"
 
 def _format_flag(name, val):
     if val is True:
         return "%s: (boolean switch)" % name
     else:
         return "%s: %s" % (name, val)
+
+def _format_op_resources(resources):
+    if not resources:
+        return ""
+    return "\n".join([
+        "  %s: %s" % (spec, resources[spec])
+        for spec in sorted(resources)
+    ]) + "\n"
