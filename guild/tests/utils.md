@@ -78,7 +78,11 @@ No references:
 Reference to undefined value:
 
     >>> resolve({"a": "${b}"})
-    {'a': ''}
+    Traceback (most recent call last):
+    UndefinedReferenceError: b
+
+    >>> resolve({"a": "${b}"}, undefined="foo")
+    {'a': 'foo'}
 
 Reference to a value:
 

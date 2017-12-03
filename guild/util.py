@@ -257,37 +257,42 @@ def format_timestamp(ts):
     dt = datetime.datetime.fromtimestamp(ts / 1000000)
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
-def resolve_refs(val, kv):
-    return _resolve_refs_recurse(val, kv, [])
+def resolve_refs(val, kv, undefined=None):
+    return _resolve_refs_recurse(val, kv, undefined, [])
 
-def resolve_all_refs(kv):
+def resolve_all_refs(kv, undefined=None):
     resolved = {}
     for name, val in kv.items():
-        resolved[name] = _resolve_refs_recurse(val, kv, [])
+        resolved[name] = _resolve_refs_recurse(val, kv, undefined, [])
     return resolved
 
-class ReferenceCycleError(Exception):
-    pass
-
-def _resolve_refs_recurse(val, kv, stack):
+def _resolve_refs_recurse(val, kv, undefined, stack):
     if not isinstance(val, str):
         return val
     parts = [part for part in re.split(r"(\\?\${.+?})", val) if part != ""]
-    resolved = list(_iter_resolved_ref_parts(parts, kv, stack))
+    resolved = list(_iter_resolved_ref_parts(parts, kv, undefined, stack))
     if len(resolved) == 1:
         return resolved[0]
     else:
         return "".join([str(part) for part in resolved])
 
-def _iter_resolved_ref_parts(parts, kv, stack):
+class ReferenceCycleError(Exception):
+    pass
+
+class UndefinedReferenceError(Exception):
+    pass
+
+def _iter_resolved_ref_parts(parts, kv, undefined, stack):
     for part in parts:
         if part.startswith("${") and part.endswith("}"):
             ref_name = part[2:-1]
             if ref_name in stack:
                 raise ReferenceCycleError(stack + [ref_name])
             stack.append(ref_name)
-            ref_val = kv.get(ref_name, "")
-            yield _resolve_refs_recurse(ref_val, kv, stack)
+            ref_val = kv.get(ref_name, undefined)
+            if ref_val is None:
+                raise UndefinedReferenceError(ref_name)
+            yield _resolve_refs_recurse(ref_val, kv, undefined, stack)
             stack.pop()
         elif part.startswith("\\${") and part.endswith("}"):
             yield part[1:-1]
