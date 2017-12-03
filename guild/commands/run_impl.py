@@ -202,18 +202,25 @@ def _parse_flag_val(s):
         return s
 
 def _split_flags_and_resources(vals, opdef):
+    ref_vars = _ref_vars_for_resource_lookup(vals, opdef)
     flag_vals = {}
     resource_vals = {}
     for name, val in vals.items():
-        if _is_resource(name, opdef, vars=vals):
+        if _is_resource(name, opdef, ref_vars):
             resource_vals[name] = str(val)
         else:
             flag_vals[name] = val
     return flag_vals, resource_vals
 
-def _is_resource(name, opdef, vars):
+def _ref_vars_for_resource_lookup(parsed_run_args, opdef):
+    ref_vars = {}
+    ref_vars.update(opdef.flag_values())
+    ref_vars.update(parsed_run_args)
+    return util.resolve_all_refs(ref_vars)
+
+def _is_resource(name, opdef, ref_vars):
     for dep in opdef.dependencies:
-        resolved_spec = util.resolve_refs(dep.spec, vars)
+        resolved_spec = util.resolve_refs(dep.spec, ref_vars)
         if resolved_spec == name:
             return True
     return False
