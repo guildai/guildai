@@ -49,7 +49,7 @@ def _dispatch_op_cmd(opdef, model, args):
         _invalid_cmd_error(e, opdef)
     else:
         if args.print_cmd:
-            _print_cmd(opdef)
+            _print_cmd(op)
         elif args.print_env:
             _print_env(op)
         else:
