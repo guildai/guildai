@@ -141,7 +141,7 @@ def _coerce_includes(val):
     elif isinstance(val, list):
         return val
     else:
-        raise ModelfileFormatError("invalid $include value: %r" % data)
+        raise ModelfileFormatError("invalid $include value: %r" % val)
 
 def _apply_includes(includes, modelfile, section_name, coerce_data,
                     seen_includes, resolved):
@@ -401,6 +401,7 @@ def _init_dependencies(requires, opdef):
 class OpDependency(object):
 
     def __init__(self, data, opdef):
+        self.opdef = opdef
         if isinstance(data, str):
             self.spec = data
             self.description = ""
