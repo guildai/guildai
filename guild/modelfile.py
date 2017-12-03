@@ -282,7 +282,7 @@ def _coerce_flag_data(data):
     elif isinstance(data, (str, int, float, bool)):
         return {"value": data}
     else:
-        raise ModelfileFormatError("unsupported flag data: %s" % data)
+        raise ModelfileFormatError("unsupported flag data: %r" % data)
 
 class FlagDef(object):
 
