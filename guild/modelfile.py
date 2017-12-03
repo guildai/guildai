@@ -126,7 +126,7 @@ def _apply_section_data(data, modelfile, section_name, coerce_data,
     for name in _includes_first(data):
         if name == "$include":
             _apply_includes(
-                data[name].split(),
+                _coerce_includes(data[name]),
                 modelfile,
                 section_name,
                 coerce_data,
@@ -134,6 +134,14 @@ def _apply_section_data(data, modelfile, section_name, coerce_data,
                 resolved)
         else:
             _apply_data(name, data[name], resolved, coerce_data)
+
+def _coerce_includes(val):
+    if isinstance(val, str):
+        return [val]
+    elif isinstance(val, list):
+        return val
+    else:
+        raise ModelfileFormatError("invalid $include value: %r" % data)
 
 def _apply_includes(includes, modelfile, section_name, coerce_data,
                     seen_includes, resolved):
