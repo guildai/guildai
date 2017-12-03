@@ -85,19 +85,13 @@ def _runs_filter(args):
     return var.run_filter("all", filters)
 
 def _apply_status_filter(args, filters):
-    status = getattr(args, "status", None)
-    if not status:
-        return
-    if status == "stopped":
-        # Special case, filter on any of "terminated" or "error"
-        filters.append(
-            var.run_filter("any", [
-                var.run_filter("attr", "status", "terminated"),
-                var.run_filter("attr", "status", "error"),
-            ]))
-    else:
-        filters.append(
-            var.run_filter("attr", "status", status))
+    status_filters = [
+        var.run_filter("attr", "status", status)
+        for status in ["running", "completed", "error", "terminated"]
+        if getattr(args, status)
+    ]
+    if status_filters:
+        filters.append(var.run_filter("any", status_filters))
 
 def _apply_model_filter(args, filters):
     cwd_modelfile = cmd_impl_support.cwd_modelfile()

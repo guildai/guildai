@@ -45,26 +45,21 @@ def run_filters(fn):
             help="Include only runs for MODEL.",
             multiple=True),
         click.Option(
-            ("-R", "--running", "status"),
+            ("-R", "--running"),
             help="Include only runs that are still running.",
-            flag_value="running"),
+            is_flag=True),
         click.Option(
-            ("-C", "--completed", "status"),
+            ("-C", "--completed"),
             help="Include only completed runs.",
-            flag_value="completed"),
+            is_flag=True),
         click.Option(
-            ("-S", "--stopped", "status"),
-            help=("Include only runs that exited with an error or were "
-                  "terminated by the user."),
-            flag_value="stopped"),
-        click.Option(
-            ("-E", "--error", "status"),
+            ("-E", "--error"),
             help="Include only runs that exited with an error.",
-            flag_value="error"),
+            is_flag=True),
         click.Option(
-            ("-T", "--terminated", "status"),
+            ("-T", "--terminated"),
             help="Include only runs terminated by the user.",
-            flag_value="terminated"),
+            is_flag=True),
     ])
     return fn
 
