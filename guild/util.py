@@ -257,10 +257,12 @@ def format_timestamp(ts):
     dt = datetime.datetime.fromtimestamp(ts / 1000000)
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
-def resolve_refs(val, kv, undefined=None):
+_raise_error_marker = object()
+
+def resolve_refs(val, kv, undefined=_raise_error_marker):
     return _resolve_refs_recurse(val, kv, undefined, [])
 
-def resolve_all_refs(kv, undefined=None):
+def resolve_all_refs(kv, undefined=_raise_error_marker):
     resolved = {}
     for name, val in kv.items():
         resolved[name] = _resolve_refs_recurse(val, kv, undefined, [])
@@ -290,7 +292,7 @@ def _iter_resolved_ref_parts(parts, kv, undefined, stack):
                 raise ReferenceCycleError(stack + [ref_name])
             stack.append(ref_name)
             ref_val = kv.get(ref_name, undefined)
-            if ref_val is None:
+            if ref_val is _raise_error_marker:
                 raise UndefinedReferenceError(ref_name)
             yield _resolve_refs_recurse(ref_val, kv, undefined, stack)
             stack.pop()
