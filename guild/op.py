@@ -147,8 +147,9 @@ class Operation(object):
 
 def _init_cmd_args(opdef):
     python_args = [_python_cmd(opdef), "-u", _run_script_path()]
-    cmd_args = _split_cmd(opdef.cmd)
-    flag_args = _flag_args(opdef, cmd_args)
+    flag_vals = util.resolve_all_refs(opdef.flag_values())
+    cmd_args = _cmd_args(opdef.cmd, flag_vals)
+    flag_args = _flag_args(flag_vals, opdef, cmd_args)
     return python_args + cmd_args + flag_args
 
 def _python_cmd(_opdef):
@@ -159,6 +160,9 @@ def _python_cmd(_opdef):
 
 def _run_script_path():
     return os.path.join(os.path.dirname(__file__), "scripts", "run")
+
+def _cmd_args(cmd, flag_vals):
+    return [util.resolve_refs(part, flag_vals) for part in _split_cmd(cmd)]
 
 def _split_cmd(cmd):
     if isinstance(cmd, list):
@@ -172,9 +176,9 @@ def _split_cmd(cmd):
         stripped = [part.strip() for part in parts]
         return [x for x in stripped if x]
 
-def _flag_args(opdef, cmd_args):
+def _flag_args(flag_vals, opdef, cmd_args):
     flag_args = []
-    flag_vals = _flag_cmd_arg_vals(opdef)
+    flag_vals = _flag_cmd_arg_vals(flag_vals, opdef)
     cmd_options = _cmd_options(cmd_args)
     for name in sorted(flag_vals):
         value = flag_vals[name]
@@ -186,41 +190,44 @@ def _flag_args(opdef, cmd_args):
         flag_args.extend(_cmd_option_args(name, value))
     return flag_args
 
-def _flag_cmd_arg_vals(opdef):
+def _flag_cmd_arg_vals(flag_vals, opdef):
     vals = {}
-    for name, flag_val in opdef.flag_values().items():
-        if flag_val is None:
+    for name, val in flag_vals.items():
+        if val is None:
             continue
         flagdef = opdef.get_flagdef(name)
         if flagdef:
             if flagdef.arg_skip:
                 continue
             if flagdef.options:
-                _apply_option_args(flagdef, flag_val, vals)
+                _apply_option_args(flagdef, val, flag_vals, vals)
             else:
-                _apply_flag_arg(flagdef, flag_val, vals)
+                _apply_flag_arg(flagdef, val, flag_vals, vals)
         else:
-            vals[name] = flag_val
+            vals[name] = val
     return vals
 
-def _apply_option_args(flagdef, val, target):
+def _apply_option_args(flagdef, val, flag_vals, target):
     for opt in flagdef.options:
         if opt.value == val:
             if opt.args:
-                target.update(opt.args)
+                args = {
+                    name: util.resolve_refs(val, flag_vals)
+                    for name, val in opt.args.items()
+                }
+                target.update(args)
             else:
-                target[_flagdef_arg_name(flagdef)] = val
+                _apply_flag_arg(flagdef, val, flag_vals, target)
             break
     else:
         log.warning(
             "unsupported option %r for '%s' flag, ignoring",
             val, flagdef.name)
 
-def _flagdef_arg_name(flagdef):
-    return flagdef.arg_name if flagdef.arg_name else flagdef.name
-
-def _apply_flag_arg(flagdef, value, target):
-    target[_flagdef_arg_name(flagdef)] = value
+def _apply_flag_arg(flagdef, value, flag_vals, target):
+    arg_name = flagdef.arg_name if flagdef.arg_name else flagdef.name
+    arg_val = util.resolve_refs(value, flag_vals)
+    target[arg_name] = arg_val
 
 def _cmd_options(args):
     p = re.compile("--([^=]+)")

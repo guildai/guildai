@@ -257,11 +257,8 @@ def format_timestamp(ts):
     dt = datetime.datetime.fromtimestamp(ts / 1000000)
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
-def resolve_refs(x, kv):
-    for name, val in kv.items():
-        if isinstance(val, str):
-            x = x.replace("${%s}" % name, val)
-    return x
+def resolve_refs(val, kv):
+    return _resolve_refs_recurse(val, kv, [])
 
 def resolve_all_refs(kv):
     resolved = {}

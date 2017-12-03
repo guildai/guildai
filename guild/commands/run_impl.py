@@ -172,7 +172,8 @@ def _no_such_operation_error(name, model):
         % (name, model.name, model.name))
 
 def _init_op(opdef, model, args):
-    flag_vals, resource_vals = _split_flag_args(args, opdef)
+    parsed_args = _parse_args(args.args)
+    flag_vals, resource_vals = _split_flags_and_resources(parsed_args, opdef)
     _apply_flag_vals(flag_vals, opdef)
     _validate_opdef_flags(opdef)
     _apply_arg_disable_plugins(args, opdef)
@@ -184,16 +185,8 @@ def _init_op(opdef, model, args):
     return guild.op.Operation(
         model, opdef, args.run_dir, resource_vals, attrs)
 
-def _split_flag_args(args, opdef):
-    parsed = dict([_parse_flag(os.path.expanduser(arg)) for arg in args.args])
-    flag_vals = {}
-    resource_vals = {}
-    for name, val in parsed.items():
-        if _is_resource(name, opdef, parsed):
-            resource_vals[name] = str(val)
-        else:
-            flag_vals[name] = val
-    return flag_vals, resource_vals
+def _parse_args(args):
+    return dict([_parse_flag(os.path.expanduser(arg)) for arg in args])
 
 def _parse_flag(s):
     parts = s.split("=", 1)
@@ -207,6 +200,16 @@ def _parse_flag_val(s):
         return yaml.safe_load(s)
     except yaml.YAMLError:
         return s
+
+def _split_flags_and_resources(vals, opdef):
+    flag_vals = {}
+    resource_vals = {}
+    for name, val in vals.items():
+        if _is_resource(name, opdef, vars=vals):
+            resource_vals[name] = str(val)
+        else:
+            flag_vals[name] = val
+    return flag_vals, resource_vals
 
 def _is_resource(name, opdef, vars):
     for dep in opdef.dependencies:
@@ -397,7 +400,7 @@ def _handle_run_result(exit_status):
 
 def _confirm_run(op, model):
     op_desc = "%s:%s" % (model.fullname, op.opdef.name)
-    flags = op.opdef.flag_values(include_none=False)
+    flags = util.resolve_all_refs(op.opdef.flag_values(include_none=False))
     resources = op.resource_config
     prompt = (
         "You are about to run %s\n"

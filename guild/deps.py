@@ -150,8 +150,9 @@ def _dep_desc(dep):
 
 def resolve(dependencies, ctx):
     resolved = {}
+    flag_vals = util.resolve_all_refs(ctx.opdef.flag_values())
     for dep in dependencies:
-        resolved_spec = util.resolve_refs(dep.spec, ctx.opdef.flag_values())
+        resolved_spec = util.resolve_refs(dep.spec, flag_vals)
         resource = _dependency_resource(resolved_spec, ctx)
         log.info("Resolving %s dependency", resolved_spec)
         resolved_sources = resource.resolve()

@@ -85,6 +85,7 @@ We'll create a helper function to get the args:
     ...         self.name = name
     ...         self.options = []
     ...         self.arg_name = None
+    ...         self.arg_skip = False
 
     >>> class OpDefProxy(object):
     ...
@@ -98,32 +99,37 @@ We'll create a helper function to get the args:
     ...         return FlagDefProxy(name)
 
     >>> def flag_args(flag_vals, cmd_args=None):
+    ...     from guild import util
+    ...     resolved_flag_vals = util.resolve_all_refs(flag_vals)
     ...     cmd_args = cmd_args or []
-    ...     return guild.op._flag_args(OpDefProxy(flag_vals), cmd_args)
+    ...     return guild.op._flag_args(
+    ...         resolved_flag_vals,
+    ...         OpDefProxy(flag_vals),
+    ...         cmd_args)
 
 Empty flags:
 
-    >>> flag_args({}, [])
+    >>> flag_args({})
     []
 
 Single flag:
 
-    >>> flag_args({"epochs": 100}, [])
+    >>> flag_args({"epochs": 100})
     ['--epochs', '100']
 
 Multiple flags are returned in sorted order:
 
-    >>> flag_args({"epochs": 100, "data": "my-data"}, [])
+    >>> flag_args({"epochs": 100, "data": "my-data"})
     ['--data', 'my-data', '--epochs', '100']
 
 If a flag value is None, the flag will not be included as an option.
 
-    >>> flag_args({"test": None, "batch-size": 50}, [])
+    >>> flag_args({"test": None, "batch-size": 50})
     ['--batch-size', '50']
 
 If a flag value is True, the flag will be listed a flag option.
 
-    >>> flag_args({"test": True, "batch-size": 50}, [])
+    >>> flag_args({"test": True, "batch-size": 50})
     ['--batch-size', '50', '--test']
 
 The second argument to the `_flag_args` function is a list of command
@@ -152,6 +158,29 @@ redefined and logs a warning. Let's capture output to verify.
 
     >>> log_capture.print_all()
     WARNING: ignoring flag 'epochs = 100' because it's shadowed in the operation cmd
+
+Flags args may contain references to flags.
+
+    >>> flag_args({"a": 1, "b": "b-${a}"})
+    ['--a', '1', '--b', 'b-1']
+
+## Command args
+
+Command args are created using `_cmd_args`. These are simply parsed
+parts from a command string. However, like flag values, command args
+may contain references to flag values.
+
+    >>> guild.op._cmd_args([], {})
+    []
+
+    >>> guild.op._cmd_args(["foo", "--bar"], {})
+    ['foo', '--bar']
+
+    >>> guild.op._cmd_args(["foo", "--a=${a}"], {"a": 1})
+    ['foo', '--a=1']
+
+    >>> guild.op._cmd_args(["foo", "--a=${a}"], {"a": "foo-${b}-bar", "b": 2})
+    ['foo', '--a=foo-2-bar']
 
 ## Operation flags
 
