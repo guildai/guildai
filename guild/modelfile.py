@@ -396,13 +396,24 @@ def _init_dependencies(requires, opdef):
         return []
     if isinstance(requires, str):
         requires = [requires]
-    return [OpDependency(spec, opdef) for spec in requires]
+    return [OpDependency(data, opdef) for data in requires]
 
 class OpDependency(object):
 
-    def __init__(self, spec, opdef):
-        self.spec = spec
-        self.opdef = opdef
+    def __init__(self, data, opdef):
+        if isinstance(data, str):
+            self.spec = data
+            self.description = ""
+        elif isinstance(data, dict):
+            self.spec = data.get("resource")
+            if not self.spec:
+                raise ModelfileFormatError(
+                    "missing required 'resource' attribute in dependency %r"
+                    % data)
+            self.description = data.get("description", "")
+        else:
+            raise ModelfileFormatError(
+                "unsupported data for dependency: %r" % data)
 
     def __repr__(self):
         return "<guild.modelfile.OpDependency '%s'>" % self.spec

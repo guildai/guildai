@@ -347,10 +347,15 @@ def _format_op_deps_dl(opdef):
         res.name: res.description or ""
         for res in opdef.modeldef.resources
     }
-    return [
-        (dep.spec, model_resources.get(dep.spec) or "Help not available")
+    formatted = [
+        (dep.spec, _dep_description(dep, model_resources))
         for dep in opdef.dependencies
     ]
+    # Show only deps that have descriptions (implicit user interface)
+    return [item for item in formatted if item[1]]
+
+def _dep_description(dep, model_resources):
+    return dep.description or model_resources.get(dep.spec) or ""
 
 def _format_op_flags_dl(opdef):
     dl = []
