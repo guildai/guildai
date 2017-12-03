@@ -193,6 +193,8 @@ def _flag_cmd_arg_vals(opdef):
             continue
         flagdef = opdef.get_flagdef(name)
         if flagdef:
+            if flagdef.arg_skip:
+                continue
             if flagdef.options:
                 _apply_option_args(flagdef, flag_val, vals)
             else:

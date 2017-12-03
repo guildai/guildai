@@ -284,6 +284,7 @@ class FlagDef(object):
         self.description = data.get("description", "")
         self.required = bool(data.get("required"))
         self.arg_name = data.get("arg-name")
+        self.arg_skip = bool(data.get("arg-skip"))
         self.options = _init_flag_options(data.get("options"))
 
     def __repr__(self):
