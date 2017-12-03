@@ -30,7 +30,7 @@ From file output:
 
 Here are our runs:
 
-    >>> run("guild runs -m hello")
+    >>> run("guild runs -o hello")
     [0:...]  hello/hello:from-file-output  ... ...  completed  test-4
     [1:...]  hello/hello:from-file         ... ...  completed  test-3
     [2:...]  hello/hello:from-flag         ... ...  completed  test-2

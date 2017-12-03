@@ -41,8 +41,8 @@ def run_scope_options(fn):
 def run_filters(fn):
     click_util.append_params(fn, [
         click.Option(
-            ("-m", "--model", "models"), metavar="MODEL",
-            help="Include only runs for MODEL.",
+            ("-o", "--op", "ops"), metavar="[MODEL:]OP",
+            help="Include only runs matching [MODEL:]OP.",
             multiple=True),
         click.Option(
             ("-R", "--running"),

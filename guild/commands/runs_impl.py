@@ -81,7 +81,8 @@ def _runs_root_for_args(args, force_deleted):
 def _runs_filter(args):
     filters = []
     _apply_status_filter(args, filters)
-    _apply_model_filter(args, filters)
+    _apply_cwd_modelfile_filter(args, filters)
+    _apply_ops_filter(args, filters)
     return var.run_filter("all", filters)
 
 def _apply_status_filter(args, filters):
@@ -93,16 +94,12 @@ def _apply_status_filter(args, filters):
     if status_filters:
         filters.append(var.run_filter("any", status_filters))
 
-def _apply_model_filter(args, filters):
+def _apply_cwd_modelfile_filter(args, filters):
     cwd_modelfile = cmd_impl_support.cwd_modelfile()
-    if cwd_modelfile:
-        if not args.all:
-            _notify_runs_limited()
-            modelfile_dir = os.path.abspath(cwd_modelfile.dir)
-            filters.append(_cwd_run_filter(modelfile_dir))
-    models = getattr(args, "models", [])
-    if models:
-        filters.append(_model_run_filter(models))
+    if cwd_modelfile and not args.all:
+        _notify_runs_limited()
+        modelfile_dir = os.path.abspath(cwd_modelfile.dir)
+        filters.append(_cwd_run_filter(modelfile_dir))
 
 def _notify_runs_limited():
     cli.note_once(
@@ -123,9 +120,15 @@ def _cwd_run_filter(abs_cwd):
         return False
     return f
 
-def _model_run_filter(model_refs):
+def _apply_ops_filter(args, filters):
+    ops = getattr(args, "ops", [])
+    if ops:
+        filters.append(_op_run_filter(ops))
+
+def _op_run_filter(op_refs):
     def f(run):
-        return any((ref in run.opref.model_name for ref in model_refs))
+        op_desc = _format_op_desc(run.opref, nowarn=True)
+        return any((ref in op_desc for ref in op_refs))
     return f
 
 def _init_run(run):
@@ -163,15 +166,16 @@ def _format_run_index(run, index=None):
     else:
         return "[%s]" % run.short_id
 
-def _format_op_desc(opref):
+def _format_op_desc(opref, nowarn=False):
     if opref.pkg_type == "modelfile":
         return _format_modelfile_op(opref)
     elif opref.pkg_type == "package":
         return _format_package_op(opref)
     else:
-        log.warning(
-            "cannot format op desc, unexpected pkg type: %s (%s)",
-            opref.pkg_type, opref.pkg_name)
+        if not nowarn:
+            log.warning(
+                "cannot format op desc, unexpected pkg type: %s (%s)",
+                opref.pkg_type, opref.pkg_name)
         return "?"
 
 def _format_modelfile_op(opref):
