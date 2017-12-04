@@ -58,7 +58,7 @@ def _format_flag_desc(flag):
     return " %s" % flag.description if flag.description else ""
 
 def _format_flag_value(flag):
-    return " (default is %r)" % flag.value if flag.value is not None else ""
+    return " (default is %r)" % flag.default if flag.default is not None else ""
 
 def _filter_op(op, args):
     filter_vals = [

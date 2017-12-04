@@ -202,8 +202,8 @@ def _write_flags(flags, heading, out, no_flags_msg=None):
 
 def _flag_desc(flag):
     desc = flag.description.strip()
-    if flag.value is not None:
-        desc += " (default is %r)" % flag.value
+    if flag.default is not None:
+        desc += " (default is %r)" % flag.default
     return desc
 
 def _write_references(refs, out):

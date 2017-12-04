@@ -369,10 +369,10 @@ def _format_op_flags_dl(opdef):
     return dl
 
 def _format_flag_desc(flag):
-    if flag.value or flag.required:
+    if flag.default or flag.required:
         lines = flag.description.split("\n")
-        if flag.value:
-            suffix = " (default is %r)" % flag.value
+        if flag.default:
+            suffix = " (default is %r)" % flag.default
         else:
             suffix = " (required)"
         return "\n".join([lines[0] + suffix] + lines[1:])

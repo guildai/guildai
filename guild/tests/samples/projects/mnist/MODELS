@@ -3,7 +3,7 @@
     $include: common
     epochs: 10
     learning-rate:
-      value: 0.001
+      default: 0.001
       description: Learning rate for training
   operations:
     train: intro
@@ -25,10 +25,10 @@
   private: yes
   flags:
     batch-size:
-      value: 100
+      default: 100
       description: Number of images per batch
     epochs:
-      value: 5
+      default: 5
       description: Number of epochs to train
   resources:
     data:

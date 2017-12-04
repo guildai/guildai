@@ -280,7 +280,7 @@ def _coerce_flag_data(data):
     if isinstance(data, dict):
         return data
     elif isinstance(data, (str, int, float, bool)):
-        return {"value": data}
+        return {"default": data}
     else:
         raise ModelfileFormatError("unsupported flag data: %r" % data)
 
@@ -288,7 +288,7 @@ class FlagDef(object):
 
     def __init__(self, name, data):
         self.name = name
-        self.value = data.get("value")
+        self.default = data.get("default")
         self.description = data.get("description", "")
         self.required = bool(data.get("required"))
         self.arg_name = data.get("arg-name")
@@ -300,7 +300,7 @@ class FlagDef(object):
 
 def _init_flag_values(flagdefs):
     return {
-        flag.name: flag.value
+        flag.name: flag.default
         for flag in flagdefs
     }
 

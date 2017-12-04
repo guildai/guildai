@@ -97,7 +97,7 @@ We'll use a helper function to print the flagdefs:
 
     >>> def flagdefs(flags):
     ...   return [
-    ...     (flag.name, flag.description, flag.value)
+    ...     (flag.name, flag.description, flag.default)
     ...     for flag in flags]
 
 Let's look at the flags defined for the `common` model, which is a
@@ -122,7 +122,7 @@ These values can be modified without effecting the flag definitions.
     >>> mf["common"].set_flag_value("epochs", 3)
     >>> mf["common"].get_flag_value("epochs")
     3
-    >>> mf["common"].get_flagdef("epochs").value
+    >>> mf["common"].get_flagdef("epochs").default
     5
 
 The `expert` model has the following `flags` spec:
