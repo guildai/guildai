@@ -73,18 +73,21 @@ def _resolve_model(model_ref):
     model = _try_resolve_cwd_model(model_ref)
     if model:
         return model
+    if not model_ref:
+        cli.error(
+            "a model is required for this operation\n"
+            "Try 'guild operations' for a list of model-qualified operations")
     return _resolve_system_model(model_ref)
 
 def _try_resolve_cwd_model(model_ref):
     cwd_modelfile = cmd_impl_support.cwd_modelfile()
-    if cwd_modelfile:
-        path_save = guild.model.get_path()
-        guild.model.set_path([cwd_modelfile.dir])
-        model = _match_one_model(model_ref)
-        guild.model.set_path(path_save)
-        if model:
-            return model
-    return None
+    if not cwd_modelfile:
+        return None
+    path_save = guild.model.get_path()
+    guild.model.set_path([cwd_modelfile.dir])
+    model = _match_one_model(model_ref, cwd_modelfile)
+    guild.model.set_path(path_save)
+    return model
 
 def _resolve_system_model(model_ref):
     model = _match_one_model(model_ref)
@@ -92,8 +95,8 @@ def _resolve_system_model(model_ref):
         _no_model_error(model_ref)
     return model
 
-def _match_one_model(model_ref):
-    matches = list(_iter_matching_models(model_ref))
+def _match_one_model(model_ref, cwd_modelfile=None):
+    matches = list(_iter_matching_models(model_ref, cwd_modelfile))
     if not matches:
         return None
     elif len(matches) > 1:
@@ -104,11 +107,10 @@ def _match_one_model(model_ref):
     else:
         return matches[0]
 
-def _iter_matching_models(model_ref):
-    cwd_modelfile = cmd_impl_support.cwd_modelfile()
+def _iter_matching_models(model_ref, cwd_modelfile):
     for model in guild.model.iter_models():
         if model_ref is None:
-            if _is_default_cwd_model(model, cwd_modelfile):
+            if cwd_modelfile and _is_default_cwd_model(model, cwd_modelfile):
                 yield model
                 break
         else:
@@ -116,7 +118,7 @@ def _iter_matching_models(model_ref):
                 yield model
 
 def _is_default_cwd_model(model, cwd_modelfile):
-    default_model = cwd_modelfile and cwd_modelfile.default_model
+    default_model = cwd_modelfile.default_model
     return (default_model and
             default_model.modelfile.dir == model.modeldef.modelfile.dir and
             default_model.name == model.name)

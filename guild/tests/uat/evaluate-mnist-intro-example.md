@@ -7,7 +7,7 @@ operation to test it against all of the test data.
     >>> run("guild run intro:evaluate -y")
     Resolving model dependency
     Using output from run ... for model resource
-    Resolving mnist:data dependency
+    Resolving data dependency
     ...
     Extracting data/train-images-idx3-ubyte.gz
     ...

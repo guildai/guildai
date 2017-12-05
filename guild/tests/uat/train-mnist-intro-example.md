@@ -1,10 +1,10 @@
 # Train `mnist-intro` example
 
-We can train the MNIST example model `mnist-intro` (using shortcut
-`intro`) provided we reference the MNIST modelfile directory.
+We can train the MNIST example model `mnist-intro` as the default
+model in the `mnist2` directory:
 
-    >>> run("guild -C examples/mnist2 train -y intro epochs=1")
-    Resolving mnist:data dependency
+    >>> run("guild -C examples/mnist2 train -y epochs=1")
+    Resolving data dependency
     ...
     Extracting data/train-images-idx3-ubyte.gz
     ...

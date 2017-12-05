@@ -103,7 +103,10 @@ class Modelfile(object):
 
     @property
     def default_model(self):
-        return self.models[0] if self.models else None
+        for model in self.models:
+            if not model.private:
+                return model
+        return None
 
 ###################################################################
 # Includes support
