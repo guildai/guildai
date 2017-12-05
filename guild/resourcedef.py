@@ -21,7 +21,9 @@ modelfiles and in packages, which are otherwise unrelated.
 from __future__ import absolute_import
 from __future__ import division
 
+import copy
 import logging
+import pprint
 
 from guild import resolver
 from guild import util
@@ -70,7 +72,8 @@ class ResourceDef(object):
 
     def _init_resource_source(self, data):
         if isinstance(data, dict):
-            type_vals = [data.pop(attr, None) for attr in self.source_types]
+            data_copy = copy.copy(data)
+            type_vals = [data_copy.pop(attr, None) for attr in self.source_types]
             type_items = zip(self.source_types, type_vals)
             type_count = sum([bool(val) for val in type_vals])
             if type_count == 0:
@@ -85,11 +88,11 @@ class ResourceDef(object):
                 raise ResourceFormatError(
                     "invalid source %s in resource '%s': conflicting "
                     "attributes (%s)"
-                    % (data, self.fullname, conflicting))
+                    % (pprint.pformat(data), self.fullname, conflicting))
             type_name, type_val = next(
                 item for item in type_items if item[1]
             )
-            return self._source_for_type(type_name, type_val, data)
+            return self._source_for_type(type_name, type_val, data_copy)
         elif isinstance(data, str):
             return self._source_for_type("file", data, {})
         else:
