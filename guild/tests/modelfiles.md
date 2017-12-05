@@ -328,6 +328,8 @@ Guild model files support includes.
 
 ## Model inheritance
 
+### Data merging
+
 Model inheritance works using a low level data merge facility
 implemented by `modelfile._apply_parent_data`.
 
@@ -481,6 +483,7 @@ The `train` and `evaluate` operations of the base are now extended
     {'model': {'description': 'Exported intro model',
                'sources': [{'operation': 'train', 'select': 'model'}]}}
 
+### Extending model defs
 
 This facility is used to implement model inheritance. Models inherit
 the attributes of parent models by listing parent models in an
@@ -666,6 +669,8 @@ Model `c`:
     ...   for f in c.get_operation("train").flags]
     [('f1', 'f1 in a', 1), ('f2', 'f2 in b', 22), ('f3', 'f3 in c', 33)]
 
+### Inheritance cycles
+
 Below are some inheritance cycles:
 
     >>> modelfile.from_string("""
@@ -683,6 +688,66 @@ Below are some inheritance cycles:
     ... """)
     Traceback (most recent call last):
     ModelfileReferenceError: cycle in model extends: ['b', 'a']
+
+### Params
+
+Params may be used in model parents to define place-holder for child
+models. Here's s simple example:
+
+    >>> mf = modelfile.from_string("""
+    ... - name: base
+    ...   description: A {{type}} classifier
+    ...
+    ... - name: softmax
+    ...   extends: base
+    ...   params:
+    ...     type: softmax
+    ...
+    ... - name: cnn
+    ...   extends: base
+    ...   params:
+    ...     type: CNN
+    ... """)
+
+Here are the description of each model:
+
+    >>> mf["base"].description
+    'A {{type}} classifier'
+
+    >>> mf["softmax"].description
+    'A softmax classifier'
+
+    >>> mf["cnn"].description
+    'A CNN classifier'
+
+Here's an example of a parent that provides default param values.
+
+    >>> mf = modelfile.from_string("""
+    ... - name: base
+    ...   description: A v{{version}} {{type}} classifier
+    ...   params:
+    ...     version: 1
+    ...
+    ... - name: softmax
+    ...   extends: base
+    ...   params:
+    ...     type: softmax
+    ...
+    ... - name: cnn
+    ...   extends: base
+    ...   params:
+    ...     type: CNN
+    ...     version: 2
+    ... """)
+
+    >>> mf["base"].description
+    'A v1 {{type}} classifier'
+
+    >>> mf["softmax"].description
+    'A v1 softmax classifier'
+
+    >>> mf["cnn"].description
+    'A v2 CNN classifier'
 
 ## Errors
 

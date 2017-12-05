@@ -19,6 +19,7 @@ import copy
 import errno
 import logging
 import os
+import re
 
 from guild import resolver
 from guild import resourcedef
@@ -349,12 +350,15 @@ class ModelDef(FlagHost):
                 return res
         return None
 
-def _extended_data(modeldef_data, modelfile_data, seen=None):
+def _extended_data(modeldef_data, modelfile_data, seen=None,
+                   resolve_params=True):
     seen = seen or []
     data = copy.deepcopy(modeldef_data)
     extends = _coerce_extends(modeldef_data.get("extends", []))
     if extends:
         _apply_parents_data(extends, modelfile_data, seen, data)
+    if resolve_params:
+        data = _resolve_param_refs(data, data.get("params", {}))
     return data
 
 def _coerce_extends(val):
@@ -373,11 +377,12 @@ def _apply_parents_data(extends, modelfile_data, seen, data):
                 "cycle in model extends: %s" % seen)
         seen.append(name)
         parent = _modeldef_data(name, modelfile_data)
-        extended_parent = _extended_data(parent, modelfile_data, seen)
+        extended_parent = _extended_data(parent, modelfile_data, seen, False)
         inheritable = [
             "description",
             "operations",
             "resources",
+            "params",
         ]
         _apply_parent_data(extended_parent, data, inheritable)
 
@@ -399,6 +404,44 @@ def _apply_parent_data(parent, child, attrs=None):
             child[name] = copy.deepcopy(parent_val)
         else:
             _apply_parent_data(parent_val, child_val)
+
+def _resolve_param_refs(val, params):
+    if isinstance(val, dict):
+        return _resolve_dict_param_refs(val, params)
+    elif isinstance(val, list):
+        return _resolve_list_param_refs(val, params)
+    elif isinstance(val, str):
+        return _resolve_str_param_refs(val, params)
+    else:
+        return val
+
+def _resolve_dict_param_refs(d, params):
+    return {
+        name: _resolve_param_refs(val, params)
+        for name, val in d.items()
+    }
+
+def _resolve_list_param_refs(l, params):
+    return [_resolve_param_refs(x, params) for x in l]
+
+def _resolve_str_param_refs(s, params):
+    parts = [part for part in re.split(r"({{.+?}})", s) if part != ""]
+    resolved = [_maybe_resolve_param_ref(part, params) for part in parts]
+    if len(resolved) == 1:
+        return resolved[0]
+    else:
+        return "".join([str(part) for part in resolved])
+
+def _maybe_resolve_param_ref(val, params):
+    if val.startswith("{{") and val.endswith("}}"):
+        ref_name = val[2:-2]
+        try:
+            ref_val = params[ref_name]
+        except KeyError:
+            pass
+        else:
+            val = ref_val
+    return val
 
 def _init_ops(data, modeldef):
     return [
