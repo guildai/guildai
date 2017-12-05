@@ -197,11 +197,9 @@ def _flag_cmd_arg_vals(flag_vals, opdef):
             continue
         flagdef = opdef.get_flagdef(name)
         if flagdef:
-            if flagdef.arg_skip:
-                continue
             if flagdef.options:
                 _apply_option_args(flagdef, val, flag_vals, vals)
-            else:
+            elif not flagdef.arg_skip:
                 _apply_flag_arg(flagdef, val, flag_vals, vals)
         else:
             vals[name] = val
@@ -216,7 +214,7 @@ def _apply_option_args(flagdef, val, flag_vals, target):
                     for name, val in opt.args.items()
                 }
                 target.update(args)
-            else:
+            elif not flagdef.arg_skip:
                 _apply_flag_arg(flagdef, val, flag_vals, target)
             break
     else:
