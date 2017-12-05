@@ -381,6 +381,7 @@ def _apply_parents_data(extends, modelfile_data, seen, data):
         inheritable = [
             "description",
             "operations",
+            "flags",
             "resources",
             "params",
         ]
