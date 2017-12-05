@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import copy
 import errno
 import logging
 import os
@@ -323,6 +324,7 @@ class FlagOpt(object):
 class ModelDef(FlagHost):
 
     def __init__(self, data, modelfile):
+        data = _extended_data(data, modelfile.data)
         super(ModelDef, self).__init__(data, modelfile)
         self.modelfile = modelfile
         self.name = data.get("name")
@@ -346,6 +348,57 @@ class ModelDef(FlagHost):
             if res.name == name:
                 return res
         return None
+
+def _extended_data(modeldef_data, modelfile_data, seen=None):
+    seen = seen or []
+    data = copy.deepcopy(modeldef_data)
+    extends = _coerce_extends(modeldef_data.get("extends", []))
+    if extends:
+        _apply_parents_data(extends, modelfile_data, seen, data)
+    return data
+
+def _coerce_extends(val):
+    if isinstance(val, str):
+        return [val]
+    elif isinstance(val, list):
+        return val
+    else:
+        raise ModelfileFormatError(
+            "invalid value for extends: %r" % val)
+
+def _apply_parents_data(extends, modelfile_data, seen, data):
+    for name in extends:
+        if name in seen:
+            raise ModelfileReferenceError(
+                "cycle in model extends: %s" % seen)
+        seen.append(name)
+        parent = _modeldef_data(name, modelfile_data)
+        extended_parent = _extended_data(parent, modelfile_data, seen)
+        inheritable = [
+            "description",
+            "operations",
+            "resources",
+        ]
+        _apply_parent_data(extended_parent, data, inheritable)
+
+def _modeldef_data(name, modelfile_data):
+    for modeldef_data in modelfile_data:
+        if modeldef_data.get("name") == name:
+            return modeldef_data
+    raise ModelfileReferenceError("undefined model %s" % name)
+
+def _apply_parent_data(parent, child, attrs=None):
+    if not isinstance(child, dict) or not isinstance(parent, dict):
+        return
+    for name, parent_val in parent.items():
+        if attrs is not None and name not in attrs:
+            continue
+        try:
+            child_val = child[name]
+        except KeyError:
+            child[name] = copy.deepcopy(parent_val)
+        else:
+            _apply_parent_data(parent_val, child_val)
 
 def _init_ops(data, modeldef):
     return [
@@ -503,5 +556,5 @@ def from_file_or_dir(src):
             return from_dir(src)
         raise
 
-def from_string(s, src):
+def from_string(s, src="<string>"):
     return Modelfile(yaml.safe_load(s), src)
