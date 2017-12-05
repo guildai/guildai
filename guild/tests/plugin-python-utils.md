@@ -159,7 +159,7 @@ Let's add this function and call `say`:
     >>> python_util.listen_method(Hello, "say", wrap_error)
     >>> hello.say("And again!")
     Traceback (most recent call last):
-    ZeroDivisionError: integer division or modulo by zero
+    ZeroDivisionError: ...
 
 We can remove wrappers using `remove_method_listener`:
 
@@ -220,7 +220,7 @@ function:
     2
     >>> calc.incr(1, 2)
     Traceback (most recent call last):
-    TypeError: incr() takes exactly 2 arguments (3 given)
+    TypeError: incr() takes ...
 
 What happens when we add two listeners that both provide results? The
 behavior is as follows:

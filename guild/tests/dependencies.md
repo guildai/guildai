@@ -275,8 +275,8 @@ extracted file.
     >>> resolver = test_res.get_source_resolver(invalid_source)
     >>> resolver.resolve(tmp)
     Traceback (most recent call last):
-    ResolutionError: '.../badhash.txt' has an unexpected sha256
-    (expected xxx but got ...)
+    ResolutionError: '.../samples/projects/resources/badhash.txt' has an unexpected
+    sha256 (expected xxx but got ...)
 
 ### Directory source file
 

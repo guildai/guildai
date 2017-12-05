@@ -281,9 +281,9 @@ At least one of the three type attributes is required:
     ...   sample:
     ...     sources:
     ...       - foo: bar.txt
-    ... """, "test")
+    ... """)
     Traceback (most recent call last):
-    ResourceFormatError: invalid source in resource 'sample:sample': missing
+    ResourceFormatError: invalid source {'foo': 'bar.txt'} in resource 'sample': missing
     required attribute (one of file, url, operation)
 
 However, no more than one is allowed:
@@ -295,10 +295,10 @@ However, no more than one is allowed:
     ...     sources:
     ...       - file: foo.txt
     ...         url: http://files.com/bar.txt
-    ... """, "test")
+    ... """)
     Traceback (most recent call last):
-    ResourceFormatError: invalid source in resource 'sample:sample':
-    conflicting attributes (file, url)
+    ResourceFormatError: invalid source {'file': 'foo.txt', 'url': 'http://files.com/bar.txt'}
+    in resource 'sample': conflicting attributes (file, url)
 
 ## Includes
 

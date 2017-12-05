@@ -93,7 +93,6 @@ def run_test_file(filename, globs):
         optionflags=(
             doctest.REPORT_ONLY_FIRST_FAILURE |
             doctest.ELLIPSIS |
-            doctest.IGNORE_EXCEPTION_DETAIL |
             doctest.NORMALIZE_WHITESPACE))
 
 def run_test_file_with_config(filename, globs, optionflags):
@@ -175,3 +174,25 @@ def find(root):
 def cat(*parts):
     with open(os.path.join(*parts), "r") as f:
         print(f.read())
+
+def _patch_py3_exception_detail():
+    import traceback
+    format_exception_only = traceback.format_exception_only
+    def patch(*args):
+        formatted = format_exception_only(*args)
+        formatted[-1] = _strip_error_module(formatted[-1])
+        return formatted
+    traceback.format_exception_only = patch
+
+def _strip_error_module(last_line):
+    m = re.match(r"([\w\.]+): (.+)", last_line)
+    if not m:
+        return _strip_class_module(last_line)
+    else:
+        return "{}: {}".format(_strip_class_module(m.group(1)), m.group(2))
+
+def _strip_class_module(class_name):
+    return class_name[class_name.rfind(".") + 1:]
+
+if sys.version_info[0] > 2:
+    _patch_py3_exception_detail()

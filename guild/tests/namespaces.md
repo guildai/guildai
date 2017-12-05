@@ -134,7 +134,7 @@ If a project name is not in a namespace, the namespace raises TypeError:
 
     >>> gpkg.package_name("mnist")
     Traceback (most recent call last):
-    TypeError: mnist is not a namespace member
+    TypeError: mnist is not a member of gpkg namespace
 
 ## Modelfile namespace
 
