@@ -328,6 +328,7 @@ class FlagOpt(object):
 class ModelDef(FlagHost):
 
     def __init__(self, data, modelfile):
+        #  # pylint: disable=no-member
         data = _extended_data(data, modelfile.data)
         super(ModelDef, self).__init__(data, modelfile)
         self.modelfile = modelfile
