@@ -5,7 +5,7 @@ package(default_visibility = ["//visibility:public"])
 # installed via 'pip install' but may be available in other ways.
 
 py_library(
-    name = "enum"
+    name = "cefpython3"
 )
 
 py_library(

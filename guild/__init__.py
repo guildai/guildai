@@ -22,6 +22,7 @@ __version__ = "0.3.0.pre1"
 
 __requires__ = [
     # (<required module>, <distutils package req>)
+    ("cefpython3", "cefpython3"),
     ("pip", "pip"),
     ("yaml", "PyYAML"),
     ("setuptools", "setuptools"),

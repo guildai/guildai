@@ -135,6 +135,7 @@ py_library(
         ":tensorflow",
         ":train",
         ":uninstall",
+        ":view",
     ]
 )
 
@@ -553,5 +554,24 @@ py_library(
         "//third_party:click",
         "//guild:click_util",
         ":package",
+    ],
+)
+
+py_library(
+    name = "view",
+    srcs = ["view.py"],
+    deps = [
+        "//third_party:click",
+        "//guild:click_util",
+        ":view_impl",
+    ],
+)
+
+py_library(
+    name = "view_impl",
+    srcs = ["view_impl.py"],
+    deps = [
+        "//guild:util",
+        "//guild:view",
     ],
 )

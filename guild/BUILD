@@ -323,6 +323,15 @@ py_library(
 )
 
 py_library(
+    name = "view",
+    srcs = ["view.py"],
+    deps = [
+        "//third_party:cefpython3",
+        "//third_party:werkzeug",
+    ],
+)
+
+py_library(
     name = "yaml",
     srcs = ["yaml.py"],
     deps = [

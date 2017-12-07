@@ -35,6 +35,7 @@ import guild.util
 log = logging.getLogger("guild")
 
 CHECK_MODS = [
+    "cefpython3",
     "pip",
     "psutil",
     "setuptools",
