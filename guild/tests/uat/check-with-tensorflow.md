@@ -9,7 +9,7 @@ installed, `check` will run without errors.
     guild_install_location:    ...
     installed_plugins:         cloudml, cpu, disk, gpu, keras, memory
     python_version:            ...
-    tensorflow_version:        1.4.0
+    tensorflow_version:        1.4.1
     tensorflow_cuda_support:   no
     tensorflow_gpu_available:  no
     libcuda_version:           not loaded
