@@ -326,8 +326,8 @@ py_library(
     name = "view",
     srcs = ["view.py"],
     deps = [
-        "//third_party:cefpython3",
         "//third_party:werkzeug",
+        ":util",
     ],
 )
 
