@@ -74,6 +74,8 @@
     guild.commands.tensorflow_inspect_checkpoint
     guild.commands.train
     guild.commands.uninstall
+    guild.commands.view
+    guild.commands.view_impl
     guild.config
     guild.deps
     guild.entry_point_util
@@ -113,4 +115,5 @@
     guild.uat
     guild.util
     guild.var
+    guild.view
     guild.yaml
