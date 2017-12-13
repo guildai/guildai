@@ -1,6 +1,6 @@
 package(default_visibility = ["//visibility:private"])
 
-guild_version = "0.3.0.pre1"
+guild_version = "0.3.0.dev1"
 
 filegroup(
     name = "pip",
