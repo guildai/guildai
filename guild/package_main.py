@@ -172,7 +172,7 @@ def _model_eps(pkg):
 def _pkg_models(pkg):
     pkg_dir = os.path.dirname(pkg.src)
     try:
-        return modelfile.from_dir(pkg_dir)
+        return [m for m in modelfile.from_dir(pkg_dir) if not m.private]
     except modelfile.NoModels:
         return []
 
