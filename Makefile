@@ -1,19 +1,18 @@
-GUILD = bazel-bin/guild/guild
+.PHONY: build
 
 build:
-	bazel build guild
-
-$(GUILD): build
+	python2 setup.py build
+	python3 setup.py build
 
 pip-package:
-	bazel build packaging/pip
+	python2 setup.py bdist_wheel
+	python3 setup.py bdist_wheel
 
 pip-upload:
-	rm -f bazel-genfiles/packaging/pip/*
 	make pip-package
-	twine upload -si packages@guild.ai -u guildai bazel-genfiles/packaging/pip/*.whl
+	twine upload -si packages@guild.ai -u guildai dist/*.whl
 
-check: $(GUILD)
+check:
 	@if [ -z "$(TESTS)" ]; then \
 	  opts="--tests"; \
 	else \
@@ -26,16 +25,19 @@ check: $(GUILD)
 	    done; \
 	  fi; \
 	fi; \
-	$(GUILD) check $$opts; \
+	guild/scripts/guild check $$opts; \
 
 lint:
-	PYTHONPATH=bazel-bin/guild/guild.runfiles/org_click:bazel-bin/guild/guild.runfiles/org_tensorflow_tensorboard:bazel-bin/guild/guild.runfiles/org_psutil pylint -rn -f parseable guild
+	PYTHONPATH=guild/external pylint -rn -f parseable setup.py guild
 
 clean:
-	bazel clean
+	rm -rf guild/external/
+	rm -rf build/
+	rm -rf dist/
+	rm -rf guildai.egg-info/
 
 uat:
-	$(GUILD) check --uat
+	guild/scripts/guild check --uat
 
 timing-test:
 	guild/tests/timing-test

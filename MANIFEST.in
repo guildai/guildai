@@ -1,5 +1,4 @@
-include guild/LICENSE.txt
-include guild/guild
+include LICENSE.txt
 recursive-include guild/external *
 recursive-include guild/scripts *
 recursive-include guild/tests *

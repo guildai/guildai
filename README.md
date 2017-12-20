@@ -1,4 +1,4 @@
-# Guild Python
+# Guild AI
 
 ***Project status:*** pre-alpha
 
@@ -9,65 +9,65 @@ changes since its original release.
 
 Documentation on https://guild.ai will be forthcoming. For time being,
 please submit issues to the [project GitHub issue
-tracker](https://github.com/guildai/guild-python/issues).
+tracker](https://github.com/guildai/guild/issues).
 
-## Installing Guild AI
+## Installing Guild
 
-Preliminary releases of Linux wheels are available on PyPI. To install
-the latest version, run:
+Early releases of wheels for Linux and MacOS are available on PyPI. To
+install the latest version, run:
 
 ```
-$ pip install guildai --upgrade
+$ pip install guildai --upgrade --pre
 ```
 
-If your platform isn't support, you can compile Guild AI from source
-(see steps below).
+If your platform isn't support or you want to run from source, you can
+compile Guild using the steps below.
 
-## Compiling Guild AI from source
+## Compiling Guild from source
 
-Guild Python requires Bazel 0.5.4 or higher to build. See [Installing
-Bazel](https://docs.bazel.build/versions/master/install.html) for help
-with you system.
+Clone Guild from GitHub:
 
-Clone Guild Python from GitHub:
+    $ git clone https://github.com/guildai/guild
 
-    $ git clone https://github.com/guildai/guild-python.git
+Build Guild:
 
-Build Guild Python using the `bazel` command:
+    $ cd guild
+    $ python setup.py build
 
-    $ cd guild-python
-    $ bazel build guild
+You may alternatively run `make`.
 
-You may alternatively simply run `make`.
+If Guild builds successfully, run the `check` command with tests:
 
-The initial Guild Python build will take some time as Bazel will
-download several dependencies, including TensorBoard. Subsequent
-builds will run faster.
-
-If Guild Python builds successfully, run the `check` command with
-tests:
-
-    $ bazel-bin/guild/guild check --tests
+    $ guild/scripts/guild check --tests
 
 You may alternatively run `make check`.
 
-Please report any failed tests to the [project GitHub issue
-tracker](https://github.com/guildai/guild-python/issues).
+Please report any build errors or failed tests to the [project GitHub
+issue tracker](https://github.com/guildai/guild/issues).
 
 To run `guild` without typing its full path, create an alias:
 
 ```
-alias guild=$GUILD_REPO/bazel-bin/guild/guild
+alias guild=$GUILD_REPO/guild/scripts/guild
 ```
 
 where `$GUILD_REPO` is a reference to your local Guild git repository.
 
-## Using Guild AI
+You may alternatively install Guild in developer mode:
 
-Clone the Guild Examples:
+    $ python setup.py develop
+
+NOTE: The above command may require that you run as a privileged user
+(e.g. using `sudo`). To install Guild without elevated privelges, run
+`python setup.py develop --user` and ensure that your local bin
+directory (e.g. `~/.local/bin`) is in your shell path.
+
+## Using Guild
+
+Clone the Guild examples:
 
 ```
-$ git clone https://github.com/guildai/guild-examples.git
+$ git clone https://github.com/guildai/examples guild-examples
 
 ```
 
@@ -89,7 +89,7 @@ start Guild View:
 
 ```
 $ cd guild-examples/mnist2
-$ guild view
+$ guild tensorboard
 ```
 
 This will open TensorBoard where you can view the runs for the

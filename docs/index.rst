@@ -3,11 +3,16 @@ Guild AI
 
 .. highlights::
 
-   Model management for TensorFlow
+   Essential tools for TensorFlow model development and reuse
 
-Guild AI is a toolset for managing and training TensorFlow
-models. It's in active development and documentation is limited at
-this time.
+Guild AI is a toolset that provides helpful features for TensorFlow
+model developers:
+
+- Automatically track training experiments
+- Find and install trainable and fine-tunable models in seconds
+- Create your own packaged models to share with the Guild community
+- Seemless integration with TensorBoard for viewing training results
+- Extend TensorBoard logs with detailed system metrics
 
 Refer to `Guild AI's GitHub project
 <https://github.com/guildai/guild>`_ for the latest updates.

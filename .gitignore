@@ -1,2 +1,6 @@
 *.pyc
-bazel-*
+/build
+/dist
+/guildai.egg-info
+/guild/external
+/guild/view/node_modules

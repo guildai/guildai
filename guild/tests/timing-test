@@ -16,7 +16,7 @@ import time
 START_THRESHOLD = 0.08
 
 t0 = time.time()
-subprocess.check_call("bazel-bin/guild/guild", stdout=open(os.devnull, "w"))
+subprocess.check_call("guild/scripts/guild", stdout=open(os.devnull, "w"))
 t1 = time.time()
 
 run_time = t1 - t0

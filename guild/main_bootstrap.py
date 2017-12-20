@@ -42,31 +42,27 @@ import imp
 import os
 import sys
 
-runfile_import_paths = [
-    "org_click",
-    "org_psutil",
-]
-
 def main():
-    sys.path[:0] = _external_import_paths()
+    sys.path.insert(0, _external_libs_path())
     _check_requires()
     import guild.main
     guild.main.main()
 
-def _external_import_paths():
-    paths = _external_distribution() or _external_dev()
-    assert paths, "could not find external paths"
-    return paths
-
-def _external_distribution():
+def _external_libs_path():
     guild_pkg_dir = os.path.dirname(__file__)
-    external_dir = os.path.join(guild_pkg_dir, "external")
-    return [external_dir] if os.path.exists(external_dir) else None
-
-def _external_dev():
-    script_dir = os.path.dirname(sys.argv[0])
-    runfiles_dir = os.path.join(script_dir, "guild.runfiles")
-    return [os.path.join(runfiles_dir, path) for path in runfile_import_paths]
+    path = os.path.join(guild_pkg_dir, "external")
+    if not os.path.exists(path):
+        import textwrap
+        sys.stderr.write("guild: {} does not exist\n".format(path))
+        sys.stderr.write(
+            textwrap.fill(
+                "If you're a Guild developer, run 'python setup.py build' "
+                "in the Guild project directory and try again. Otherwise "
+                "please report this as a bug at "
+                "https://github.com/guildai/guild/issues."))
+        sys.stderr.write("\n")
+        sys.exit(1)
+    return path
 
 def _check_requires():
     import guild
@@ -82,8 +78,8 @@ def _sort_reqs(required):
     # the user to install it before checking other reqs.
     return sorted(
         required,
-        key=lambda spec: ("" if spec[0] == "pip"
-                          else spec[0].lower()))
+        key=lambda spec: ("" if spec[0] == "pip" else spec[0].lower())
+    )
 
 def _handle_missing_req(req):
     msg_parts = ["guild: missing required package '%s'\n" % req]
