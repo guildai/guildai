@@ -20,6 +20,8 @@ import io
 import subprocess
 import sys
 
+from guild import util
+
 from guild.plugins.tensorflow_util import SummaryPlugin
 
 STATS = [
@@ -86,9 +88,8 @@ class GPUPlugin(SummaryPlugin):
         return dict([(_gpu_val_key(index, name), val) for name, val in vals])
 
 def _stats_cmd():
-    try:
-        out = subprocess.check_output(["which", "nvidia-smi"])
-    except subprocess.CalledProcessError:
+    nvidia_smi = util.which("nvidia-smi")
+    if not nvidia_smi:
         return None
     else:
         return [

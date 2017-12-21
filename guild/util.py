@@ -19,10 +19,14 @@ import datetime
 import errno
 import os
 import logging
+import platform
 import re
+import subprocess
 import sys
 import time
 import threading
+
+PLATFORM = platform.system()
 
 OS_ENVIRON_BLACKLIST = [
     "PYTHONPATH", # unsafe - must be set explicitly
@@ -306,3 +310,13 @@ def strip_trailing_path(path):
         return path[:-1]
     else:
         return path
+
+def which(cmd):
+    which_cmd = "where" if PLATFORM == "Windows" else "which"
+    devnull = open(os.devnull, "w")
+    try:
+        out = subprocess.check_output([which_cmd, cmd], stderr=devnull)
+    except subprocess.CalledProcessError:
+        return None
+    else:
+        return out.strip()

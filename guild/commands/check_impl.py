@@ -142,12 +142,7 @@ def _print_nvidia_tools_info():
     guild.cli.out("nvidia_smi_available:      %s" % _nvidia_smi_available())
 
 def _nvidia_smi_available():
-    try:
-        subprocess.check_output(["which", "nvidia-smi"])
-    except (OSError, subprocess.CalledProcessError):
-        return "no"
-    else:
-        return "yes"
+    return "yes" if guild.util.which("nvidia-smi") else "no"
 
 def _print_mods_info(check):
     for mod in CHECK_MODS:
