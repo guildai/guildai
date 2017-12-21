@@ -1,0 +1,5 @@
+PyYAML
+Werkzeug
+Whoosh
+tabview
+twine
