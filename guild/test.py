@@ -18,12 +18,15 @@ from __future__ import division
 import doctest
 import glob
 import os
+import platform
 import pprint
 import re
 import sys
 import tempfile
 
 from guild import util
+
+PLATFORM = platform.system()
 
 class Py23DocChecker(doctest.OutputChecker):
     """Output checker that works around Python 2/3 unicode representations.
@@ -33,8 +36,14 @@ class Py23DocChecker(doctest.OutputChecker):
 
     def check_output(self, want, got, optionflags):
         if sys.version_info[0] > 2:
+            # Strip unicode prefix from expected output on Python 2
             want = re.sub("u'(.*?)'", "'\\1'", want)
             want = re.sub('u"(.*?)"', '"\\1"', want)
+        if PLATFORM == "Windows":
+            # Convert Windows paths to UNIXy paths
+            #sys.stderr.write("*** " + got + "\n")
+            got = re.sub(r"[c-zC-Z]:\\\\?|\\\\?", "/", got)
+            #sys.stderr.write("### " + got + "\n")
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
 def run_all(skip=None):
