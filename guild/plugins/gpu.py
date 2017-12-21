@@ -93,7 +93,7 @@ def _stats_cmd():
         return None
     else:
         return [
-            out.strip(),
+            nvidia_smi,
              "--format=csv,noheader",
              "--query-gpu=%s" % ",".join(STATS),
         ]
