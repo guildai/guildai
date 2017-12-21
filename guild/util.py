@@ -205,7 +205,7 @@ def parse_url(url):
 
 class TempDir(object):
 
-    def __init__(self, prefix=None, suffix=None, keep=False):
+    def __init__(self, prefix="guild-", suffix="", keep=False):
         self._prefix = prefix
         self._suffix = suffix
         self._keep = keep
