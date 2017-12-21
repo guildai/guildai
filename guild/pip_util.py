@@ -18,6 +18,7 @@ from __future__ import division
 import logging
 import os
 import re
+import sys
 
 from pip.commands.download import DownloadCommand
 from pip.commands.install import InstallCommand
@@ -34,7 +35,6 @@ from pip.locations import virtualenv_no_global
 from pip.utils import get_installed_distributions
 from pip.utils.hashes import Hashes
 
-from guild import cli
 from guild import namespace
 
 log = logging.getLogger("guild")
@@ -212,7 +212,8 @@ class PrintPackageLogger(object):
         args = args or []
         out = self._normalize_attr_case(msg % args)
         out = self._apply_namespace(out)
-        cli.out(out)
+        sys.stdout.write(out)
+        sys.stdout.write("\n")
 
     @staticmethod
     def _normalize_attr_case(s):
