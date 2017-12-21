@@ -21,8 +21,10 @@ import os
 import logging
 import platform
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import threading
 
@@ -203,18 +205,19 @@ def parse_url(url):
 
 class TempDir(object):
 
-    def __init__(self, prefix=None):
+    def __init__(self, prefix=None, suffix=None, keep=False):
         self._prefix = prefix
+        self._suffix = suffix
+        self._keep = keep
         self.path = None
 
     def __enter__(self):
-        import tempfile
-        self.path = tempfile.mkdtemp(prefix=self._prefix)
+        self.path = tempfile.mkdtemp(prefix=self._prefix, suffix=self._suffix)
         return self.path
 
     def __exit__(self, *_exc):
-        import shutil
-        import tempfile
+        if self._keep:
+            return
         assert os.path.dirname(self.path) == tempfile.gettempdir(), self.path
         shutil.rmtree(self.path)
 
