@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import logging
+import os
 
 import click
 
@@ -43,6 +44,8 @@ from .train import train
 from .uninstall import uninstall
 from .view import view
 
+DEFAULT_GUILD_HOME = os.path.join("~", ".guild")
+
 @click.group(cls=click_util.Group)
 @click.version_option(
     version=guild_version(),
@@ -55,8 +58,8 @@ from .view import view
     default=".")
 @click.option(
     "-H", "guild_home", metavar="PATH",
-    help="Use PATH as Guild home (default is ~/.guild).",
-    default="~/.guild",
+    help="Use PATH as Guild home (default is {}).".format(DEFAULT_GUILD_HOME),
+    default=DEFAULT_GUILD_HOME,
     envvar="GUILD_HOME")
 @click.option(
     "--debug", "log_level",

@@ -15,10 +15,14 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import platform
+import re
 import sys
 import time
 
 from guild.plugins.tensorflow_util import SummaryPlugin
+
+PLATFORM = platform.system()
 
 class DiskPlugin(SummaryPlugin):
 
@@ -59,8 +63,12 @@ def _zip_physical_disk_stats(all_last, all_cur):
     import psutil
     for device in psutil.disk_partitions():
         fullname = device.device
-        assert fullname.startswith('/dev/'), fullname
-        name = fullname[5:]
+        if PLATFORM == "Windows":
+            assert re.match(r"[A-Z]:\\$", fullname), fullname
+            name = fullname[0]
+        else:
+            assert fullname.startswith('/dev/'), fullname
+            name = fullname[5:]
         dev_last = all_last.get(name)
         dev_cur = all_cur.get(name)
         if dev_last and dev_cur:

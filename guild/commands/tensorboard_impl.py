@@ -75,7 +75,7 @@ class RunsMonitor(util.LoopingThread):
             link_path = os.path.join(self.logdir, link_name)
             if not os.path.exists(link_path):
                 log.debug("Linking %s to %s", link_name, run.path)
-                os.symlink(run.path, link_path)
+                util.symlink(run.path, link_path)
             try:
                 to_delete.remove(link_name)
             except ValueError:
@@ -99,7 +99,8 @@ def main(args):
         log.debug("Stopping")
         monitor.stop()
         log.debug("Removing logdir %s", logdir) # Handled by ctx mgr
-    cli.out()
+    if util.PLATFORM != "Windows":
+        cli.out()
 
 def _load_guild_tensorboard_module():
     try:
@@ -123,7 +124,11 @@ def _handle_tensorboard_import_error(e):
 
 def _format_run_name(run):
     formatted = runs_impl.format_run(run)
-    return "%(index)s %(model)s:%(op_name)s %(started)s" % formatted
+    if util.PLATFORM == "Windows":
+        formatted["started"] = formatted["started"].replace(":", "_")
+        return "%(index)s %(model)s %(op_name)s %(started)s" % formatted
+    else:
+        return "%(index)s %(model)s:%(op_name)s %(started)s" % formatted
 
 def _open_url(url):
     util.open_url(url)

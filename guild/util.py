@@ -28,6 +28,8 @@ import tempfile
 import time
 import threading
 
+log = logging.getLogger("guild")
+
 PLATFORM = platform.system()
 
 OS_ENVIRON_BLACKLIST = [
@@ -219,7 +221,13 @@ class TempDir(object):
         if self._keep:
             return
         assert os.path.dirname(self.path) == tempfile.gettempdir(), self.path
-        shutil.rmtree(self.path)
+        try:
+            shutil.rmtree(self.path)
+        except Exception as e:
+            if log.getEffectiveLevel() <= logging.DEBUG:
+                log.exception("rmtree %s", self.path)
+            else:
+                log.error("error removing %s: %s", self.path, e)
 
 def mktempdir(prefix=None):
     import tempfile
@@ -323,3 +331,20 @@ def which(cmd):
         return None
     else:
         return out.strip()
+
+def symlink(target, link):
+    if PLATFORM == "Windows":
+        _windows_symlink(target, link)
+    else:
+        os.symlink(target, link)
+
+def _windows_symlink(target, link):
+    if os.path.isdir(target):
+        args = ["mklink", "/D", link, target]
+    else:
+        args = ["mklink", link, target]
+    try:
+        subprocess.check_output(args, shell=True, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        log.error(e.output)
+        raise
