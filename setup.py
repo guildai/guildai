@@ -14,17 +14,22 @@
 
 import glob
 import os
+import shutil
 import sys
+import zipfile
 
-from pkg_resources import PathMetadata
+from pip.vcs.git import Git
 from pkg_resources import Distribution as PkgDist
+from pkg_resources import PathMetadata
 from setuptools import find_packages, setup
-from setuptools.dist import Distribution
 from setuptools.command.build_py import build_py
+from setuptools.dist import Distribution
 
 import guild
+
 from guild import util
 from guild import log
+from guild import pip_util
 
 log.init_logging()
 
@@ -75,7 +80,7 @@ class Build(build_py):
             ".{}-py{}".format(name, sys.version_info[0]))
 
     def install_external(self, name, dist_spec):
-        with util.TempDir("pip-download-") as tmp:
+        with util.TempDir(prefix="pip-", suffix="-download") as tmp:
             wheel_path = self.pip_wheel(name, dist_spec, tmp)
             self.install_external_wheel(wheel_path)
             open(self.external_marker(name), "w").close()
@@ -108,6 +113,31 @@ class Build(build_py):
         zf = zipfile.ZipFile(wheel_path)
         util.ensure_dir("./guild/external")
         zf.extractall("./guild/external")
+
+def patch_git_obtain():
+    """Patch pip's git 'obtain' to download rather than clone.
+
+    pip wants to clone the git repos, which can take a long time. As
+    we always use temp dirs for downloads, there no payoff for the
+    full clone. This patch downloads and unpacks the revision archive.
+    """
+    def obtain(self, dest):
+        url, rev = self.get_url_rev()
+        archive_url = "{}/archive/{}.zip".format(url, rev)
+        util.ensure_dir(dest)
+        downloaded_file = pip_util.download_url(archive_url, dest)
+        zf = zipfile.ZipFile(downloaded_file)
+        for name in zf.namelist():
+            dest_path = os.path.join(*([dest] + name.split("/")[1:]))
+            if name.endswith("/"):
+                util.ensure_dir(dest_path)
+            else:
+                with open(dest_path, "wb") as fdst:
+                    fsrc = zf.open(name)
+                    shutil.copyfileobj(fsrc, fdst)
+    Git.obtain = obtain
+
+patch_git_obtain()
 
 setup(
     # Setup class config
