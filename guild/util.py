@@ -275,8 +275,8 @@ def resolve_refs(val, kv, undefined=_raise_error_marker):
 
 def resolve_all_refs(kv, undefined=_raise_error_marker):
     resolved = {}
-    for name, val in kv.items():
-        resolved[name] = _resolve_refs_recurse(val, kv, undefined, [])
+    for name in sorted(kv):
+        resolved[name] = _resolve_refs_recurse(kv[name], kv, undefined, [])
     return resolved
 
 def _resolve_refs_recurse(val, kv, undefined, stack):
