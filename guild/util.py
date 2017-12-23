@@ -54,12 +54,8 @@ def ensure_dir(d):
             raise
 
 def pid_exists(pid):
-    try:
-        os.kill(pid, 0)
-    except OSError:
-        return False
-    else:
-        return True
+    import psutil
+    return psutil.pid_exists(pid)
 
 def free_port():
     import random
@@ -330,7 +326,7 @@ def which(cmd):
     except subprocess.CalledProcessError:
         return None
     else:
-        return out.strip()
+        return out.strip().decode("utf-8")
 
 def symlink(target, link):
     if PLATFORM == "Windows":
