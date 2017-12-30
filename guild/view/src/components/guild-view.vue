@@ -50,7 +50,7 @@
 
 <script>
  import { formatRuns } from './guild-runs.js';
- import { SampleRuns, Cwd } from './sample-data.js';
+ import { fetchConfig, fetchRuns } from './guild-data.js';
 
  var drawerBreakPoint = 960;
 
@@ -62,10 +62,20 @@
        drawerBreakPoint: drawerBreakPoint,
        drawer: window.innerWidth >= drawerBreakPoint,
        run_: undefined,
-       runs: formatRuns(SampleRuns),
-       cwd: Cwd,
+       runs: [],
+       cwd: '',
        selectedTab: 'overview'
      };
+   },
+
+   created() {
+     var this_ = this;
+     fetchConfig(function (config) {
+       this_.cwd = config.cwd;
+     });
+     fetchRuns(function (runs) {
+       this_.runs = formatRuns(runs);
+     });
    },
 
    computed: {

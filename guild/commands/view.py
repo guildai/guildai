@@ -27,6 +27,11 @@ from guild import click_util
     "--port",
     help="Port to listen on.",
     type=click.IntRange(0, 65535))
+@click.option(
+    "-n", "--no-open",
+    help="Don't open the TensorBoard URL in a brower.",
+    is_flag=True)
+@click.option("--dev", is_flag=True, hidden=True)
 
 @click_util.use_args
 

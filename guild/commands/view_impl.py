@@ -21,4 +21,4 @@ from guild import view
 def main(args):
     host = args.host or ""
     port = args.port or util.free_port()
-    view.serve_forever(host, port)
+    view.serve_forever(host, port, args.no_open, args.dev)
