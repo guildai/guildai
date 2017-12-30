@@ -109,7 +109,6 @@ class Build(build_py):
 
     @staticmethod
     def install_external_wheel(wheel_path):
-        import zipfile
         zf = zipfile.ZipFile(wheel_path)
         util.ensure_dir("./guild/external")
         zf.extractall("./guild/external")

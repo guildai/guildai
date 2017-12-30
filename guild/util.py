@@ -89,7 +89,6 @@ def open_url(url):
         _open_url_with_webbrowser(url)
 
 def _open_url_with_cmd(url):
-    import subprocess
     if sys.platform == "darwin":
         args = ["open", url]
     else:
@@ -226,7 +225,6 @@ class TempDir(object):
                 log.error("error removing %s: %s", self.path, e)
 
 def mktempdir(prefix=None):
-    import tempfile
     return tempfile.mkdtemp(prefix=prefix)
 
 class LogCapture(object):
