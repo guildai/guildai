@@ -24,7 +24,7 @@ import requests
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug import routing
 from werkzeug import serving
-from werkzeug.wrappers import Response
+from werkzeug.wrappers import Request, Response
 from werkzeug.wsgi import SharedDataMiddleware
 
 from guild import util
@@ -33,10 +33,37 @@ MODULE_DIR = os.path.dirname(__file__)
 
 class ViewData(object):
 
-    def runs(self):
+    def runs(self, params):
+        """Returns a list of runs for request params.
+
+        Params may be a multi-dict of any of the following:
+
+          run         string    Run ID
+          op          string    Op filter
+          running     boolean   Is running
+          completed   boolean   Is completed
+          error       boolean   Is error
+          terminated  boolean   Is terminated
+          all         boolean   Show all runs
+          cwd         string    Specify cwd
+
+        If filter is None, returns the default list of runs (e.g. runs
+        per command line options).
+
+        """
         raise NotImplementedError()
 
-    def config(self):
+    def config(self, params):
+        """Returns dict of config for request params.
+
+        Refer to `runs` for details on `params`.
+
+        Config dict must contain:
+
+          cwd         string  Cwd used for runs
+          titleLabel  string  Label suitable for browser title
+
+        """
         raise NotImplementedError()
 
 class DevServer(threading.Thread):
@@ -92,10 +119,10 @@ class StaticApp(object):
         root = os.path.join(MODULE_DIR, "view/dist")
         self._app = SharedDataMiddleware(self._not_found, {"/": root})
 
-    def handle(self):
+    def handle(self, _req):
         return self._app
 
-    def handle_index(self):
+    def handle_index(self, _req):
         def app(env, start_resp):
             env["PATH_INFO"] = "/index.html"
             return self._app(env, start_resp)
@@ -156,6 +183,7 @@ def _view_app(data):
         except HTTPException as e:
             return e(env, start_resp)
         else:
+            args = (Request(env),) + args
             kw = _del_underscore_vars(kw)
             try:
                 return handler(*args, **kw)(env, start_resp)
@@ -168,11 +196,12 @@ def _del_underscore_vars(kw):
         k: kw[k] for k in kw if k[0] != "_"
     }
 
-def _handle_runs(data):
-    return _json_resp(data.runs() + _fake_runs())
+def _handle_runs(req, data):
+    #return _json_resp(data.runs(req.args))
+    return _json_resp(data.runs(req.args) + _fake_runs())
 
-def _handle_config(data):
-    return _json_resp(data.config())
+def _handle_config(req, data):
+    return _json_resp(data.config(req.args))
 
 def _json_resp(data):
     return Response(
@@ -223,7 +252,7 @@ def _fake_runs():
             [
                 {
                     "operation": 'slim.datasets/slim-flowers:prepare',
-                    "run": '2f64285c'
+                    "run": '11f077de'
                 }
             ],
             [

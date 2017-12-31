@@ -35,14 +35,17 @@
         </v-tabs-items>
       </v-tabs>
       <v-container v-else>
-        <p>There are no runs to view.</p>
+        <v-layout row align-center>
+          <span class="mr-2">Waiting for runs...</span>
+          <v-progress-circular indeterminate color="primary" size="24"/>
+        </v-layout>
       </v-container>
     </v-content>
     <v-footer fixed app color="grey lighten-2">
       <v-layout column justify-center style="margin:0">
         <v-divider />
         <v-layout align-center class="px-2 caption" style="height:36px">
-          <div>{{ cwd }}</div>
+          <div>{{ config.cwd }}</div>
         </v-layout>
       </v-layout>
     </v-footer>
@@ -64,17 +67,17 @@
        drawer: window.innerWidth >= drawerBreakPoint,
        run_: undefined,
        runs: [],
-       cwd: '',
+       config: {},
        selectedTab: 'overview'
      };
    },
 
    created() {
      var this_ = this;
-     fetchConfig(function (config) {
-       this_.cwd = config.cwd;
+     fetchConfig(this.$route, function (config) {
+       this_.config = config;
      });
-     fetchRuns(function (runs) {
+     fetchRuns(this.$route, function (runs) {
        this_.runs = formatRuns(runs);
      });
    },
@@ -93,25 +96,25 @@
        set(val) {
          this.run_ = val;
        }
+     },
+
+     title() {
+       var title = this.config.titleLabel;
+       if (this.runs.length > 0 && !title.startsWith('[')) {
+         title += ' (' + this.runs.length + ')';
+       }
+       title += ' - Guild View';
+       return title;
      }
    },
 
    watch: {
-     runs(runs) {
-       if (runs.length > 1) {
-         document.title = runs.length + ' runs - Guild View ';
-       } else {
-         var run = runs[0];
-         document.title =
-           '[' + run.shortId + '] ' +
-           run.modelName + ':' + run.opName +
-           ' - Guild View';
-       }
+     title(val) {
+       document.title = val;
      }
    },
 
    methods: {
-
      runSelected(run) {
        if (window.innerWidth < drawerBreakPoint) {
          this.drawer = false;

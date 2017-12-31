@@ -72,7 +72,7 @@ def runs_for_args(args, force_deleted=False):
         _runs_root_for_args(args, force_deleted),
         sort=["-started"],
         filter=_runs_filter(args),
-        run_init=_init_run)
+        run_init=init_run)
 
 def _runs_root_for_args(args, force_deleted):
     deleted = force_deleted or getattr(args, "deleted", False)
@@ -131,7 +131,7 @@ def _op_run_filter(op_refs):
         return any((ref in op_desc for ref in op_refs))
     return f
 
-def _init_run(run):
+def init_run(run):
     try:
         opref = guild.opref.OpRef.from_run(run)
     except guild.opref.OpRefError as e:

@@ -16,13 +16,30 @@ from __future__ import absolute_import
 from __future__ import division
 
 import os
+import threading
 
 _cwd = None
+_cwd_lock = threading.Lock()
 _guild_home = None
 _log_output = False
 
 def set_cwd(cwd):
     globals()["_cwd"] = cwd
+
+class SetCwd(object):
+
+    def __init__(self, cwd):
+        self._cwd = cwd
+        self._cwd_orig = None
+
+    def __enter__(self):
+        _cwd_lock.acquire()
+        self._cwd_orig = cwd()
+        set_cwd(self._cwd)
+
+    def __exit__(self, *_args):
+        set_cwd(self._cwd_orig)
+        _cwd_lock.release()
 
 def set_guild_home(path):
     globals()["_guild_home"] = path

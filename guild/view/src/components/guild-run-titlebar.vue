@@ -3,12 +3,13 @@
     <div class="right mt-3">
       <v-tooltip left transition="fade-transition">
         <v-icon
+          large
           :color="run.icon.color"
-          slot="activator" large>mdi-{{ run.icon.icon }}</v-icon>
+          slot="activator">mdi-{{ run.icon.icon }}</v-icon>
         <span>{{ run.icon.tooltip }}</span>
       </v-tooltip>
     </div>
-    <v-tooltip top transition="fade-transition">
+    <v-tooltip top transition="fade-transition" style="display:inline-block">
       <h1 slot="activator">{{ run.operation }}</h1>
       <span>[{{ run.shortId }}] {{ run.operation }}</span>
     </v-tooltip>
@@ -28,9 +29,3 @@
    }
  };
 </script>
-
-<style scoped>
- h1 {
-   display: table;
- }
-</style>

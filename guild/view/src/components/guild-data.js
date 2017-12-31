@@ -1,9 +1,15 @@
-export function fetchRuns(cb) {
-  return _fetch('/runs', cb);
+export function fetchRuns(route, cb) {
+  return _fetch(_dataUrl('/runs', route), cb);
 }
 
-export function fetchConfig(cb) {
-  return _fetch('/config', cb);
+export function fetchConfig(route, cb) {
+  return _fetch(_dataUrl('/config', route), cb);
+}
+
+function _dataUrl(base, route) {
+  var path = route.fullPath;
+  var i = path.indexOf('?');
+  return i !== -1 ? base + '?' + path.substring(i + 1) : base;
 }
 
 function _fetch(path, cb) {

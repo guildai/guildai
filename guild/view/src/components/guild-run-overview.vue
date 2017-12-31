@@ -9,7 +9,7 @@
                 <v-subheader>ID</v-subheader>
               </v-flex>
               <v-flex xs8 class="pa-0">
-                <div class="field-val">{{ run.shortId }}</div>
+                <div class="field-val">{{ run.id }}</div>
               </v-flex>
             </v-layout>
             <v-layout row>
@@ -52,12 +52,11 @@
                       top transition="fade-transition">
                       <div slot="activator">
                         <a
-                          :href="'#run=' + dep.run"
+                          :href="'?run=' + dep.run"
                           target="_blank">{{ dep.operation }}</a>
                       </div>
                       <span>[{{ dep.run }}] {{ dep.operation }}</span>
                     </v-tooltip>
-
                   </template>
                 </div>
               </v-flex>
