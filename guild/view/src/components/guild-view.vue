@@ -3,6 +3,7 @@
     <v-navigation-drawer
       app fixed clipped
       v-model="drawer"
+      width="340"
       :mobile-break-point="drawerBreakPoint">
       <guild-runs-list :runs="runs" v-model="run" @input="runSelected" />
     </v-navigation-drawer>
@@ -91,6 +92,20 @@
        },
        set(val) {
          this.run_ = val;
+       }
+     }
+   },
+
+   watch: {
+     runs(runs) {
+       if (runs.length > 1) {
+         document.title = runs.length + ' runs - Guild View ';
+       } else {
+         var run = runs[0];
+         document.title =
+           '[' + run.shortId + '] ' +
+           run.modelName + ':' + run.opName +
+           ' - Guild View';
        }
      }
    },

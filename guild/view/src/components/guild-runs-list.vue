@@ -10,7 +10,9 @@
         ripple>
         <v-list-tile-content>
           <v-tooltip top transition="fade-transition" tag="div" style="width:100%">
-            <v-list-tile-title slot="activator">{{ run.operation }}</v-list-tile-title>
+            <v-list-tile-title slot="activator" class="rev-ellipsis">
+              &lrm;{{ run.operation }}
+            </v-list-tile-title>
             <span>[{{ run.shortId }}] {{ run.operation }}</span>
           </v-tooltip>
           <v-list-tile-sub-title>{{ run.started }}</v-list-tile-sub-title>
@@ -51,6 +53,10 @@
  .list__tile {
    height: inherit;
    padding: 10px 16px;
+ }
+
+ .rev-ellipsis {
+   direction: rtl;
  }
 
  li.selected {

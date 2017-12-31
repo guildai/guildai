@@ -27,10 +27,17 @@ from werkzeug import serving
 from werkzeug.wrappers import Response
 from werkzeug.wsgi import SharedDataMiddleware
 
-from guild import config
 from guild import util
 
 MODULE_DIR = os.path.dirname(__file__)
+
+class ViewData(object):
+
+    def runs(self):
+        raise NotImplementedError()
+
+    def config(self):
+        raise NotImplementedError()
 
 class DevServer(threading.Thread):
 
@@ -43,9 +50,9 @@ class DevServer(threading.Thread):
 
     def run(self):
         args = [
-            devserver_bin(),
+            _devserver_bin(),
             "--progress",
-            "--config", devserver_config(),
+            "--config", _devserver_config(),
         ]
         env = {
             "HOST": self.host,
@@ -67,7 +74,7 @@ class DevServer(threading.Thread):
             else:
                 self._ready = True
 
-def devserver_bin():
+def _devserver_bin():
     path = os.path.join(
         MODULE_DIR, "view/node_modules/.bin/webpack-dev-server")
     if not os.path.exists(path):
@@ -76,41 +83,8 @@ def devserver_bin():
             "running npm install?".format(path))
     return path
 
-def devserver_config():
+def _devserver_config():
     return os.path.join(MODULE_DIR, "view/build/webpack.dev.conf.js")
-
-def serve_forever(host, port, no_open=False, dev=False):
-    host = host or "localhost"
-    if dev:
-        _serve_dev(host, port, no_open)
-    else:
-        _serve_prod(host, port, no_open)
-
-def _serve_dev(host, port, no_open):
-    view_port = util.free_port()
-    dev_server = DevServer(host, port, view_port)
-    dev_server.start()
-    dev_server.wait_for_ready()
-    if not no_open:
-        _open_url(host, port)
-    _start_view(host, view_port)
-    sys.stdout.write("\n")
-
-def _open_url(host, port):
-    util.open_url("http://{}:{}".format(host, port))
-
-def _serve_prod(host, port, no_open):
-    if not no_open:
-        _open_url(host, port)
-    _start_view(host, port)
-    sys.stdout.write("\n")
-
-def _start_view(host, port):
-    app = _view_app()
-    server = serving.make_server(host, port, app, threaded=True)
-    sys.stdout.write("Running Guild View at http://{}:{}\n".format(host, port))
-    sys.stdout.flush()
-    server.serve_forever()
 
 class StaticApp(object):
 
@@ -118,7 +92,7 @@ class StaticApp(object):
         root = os.path.join(MODULE_DIR, "view/dist")
         self._app = SharedDataMiddleware(self._not_found, {"/": root})
 
-    def handle(self, _path):
+    def handle(self):
         return self._app
 
     def handle_index(self):
@@ -131,39 +105,80 @@ class StaticApp(object):
     def _not_found(_env, _start_resp):
         raise NotFound()
 
-def _view_app():
+def serve_forever(data, host, port, no_open=False, dev=False):
+    host = host or "localhost"
+    if dev:
+        _serve_dev(data, host, port, no_open)
+    else:
+        _serve_prod(data, host, port, no_open)
+
+def _serve_dev(data, host, port, no_open):
+    view_port = util.free_port()
+    dev_server = DevServer(host, port, view_port)
+    dev_server.start()
+    dev_server.wait_for_ready()
+    if not no_open:
+        _open_url(host, port)
+    sys.stdout.write(
+        " I  Guild View backend: "
+        "http://{}:{}\n".format(host, view_port))
+    _start_view(data, host, view_port)
+    sys.stdout.write("\n")
+
+def _open_url(host, port):
+    util.open_url("http://{}:{}".format(host, port))
+
+def _serve_prod(data, host, port, no_open):
+    if not no_open:
+        _open_url(host, port)
+    sys.stdout.write("Running Guild View at http://{}:{}\n".format(host, port))
+    _start_view(data, host, port)
+    sys.stdout.write("\n")
+
+def _start_view(data, host, port):
+    app = _view_app(data)
+    server = serving.make_server(host, port, app, threaded=True)
+    sys.stdout.flush()
+    server.serve_forever()
+
+def _view_app(data):
     static = StaticApp()
     routes = routing.Map([
-        routing.Rule("/runs", endpoint=_handle_runs),
-        routing.Rule("/config", endpoint=_handle_config),
-        routing.Rule("/", endpoint=static.handle_index),
-        routing.Rule("/<path:_>", endpoint=static.handle),
+        routing.Rule("/runs", endpoint=(_handle_runs, (data,))),
+        routing.Rule("/config", endpoint=(_handle_config, (data,))),
+        routing.Rule("/", endpoint=(static.handle_index, ())),
+        routing.Rule("/<path:_>", endpoint=(static.handle, ())),
     ])
     def app(env, start_resp):
         urls = routes.bind_to_environ(env)
         try:
-            handler, args = urls.match()
+            (handler, args), kw = urls.match()
         except HTTPException as e:
             return e(env, start_resp)
         else:
+            kw = _del_underscore_vars(kw)
             try:
-                return handler(*args)(env, start_resp)
+                return handler(*args, **kw)(env, start_resp)
             except HTTPException as e:
                 return e(env, start_resp)
     return app
 
-def _handle_runs():
-    return _json_resp(_fake_runs())
+def _del_underscore_vars(kw):
+    return {
+        k: kw[k] for k in kw if k[0] != "_"
+    }
+
+def _handle_runs(data):
+    return _json_resp(data.runs() + _fake_runs())
+
+def _handle_config(data):
+    return _json_resp(data.config())
 
 def _json_resp(data):
     return Response(
         json.dumps(data),
         content_type="application/json",
         headers=[("Access-Control-Allow-Origin", "*")])
-
-def _handle_config():
-    cwd = os.path.abspath(config.cwd())
-    return _json_resp({"cwd": cwd})
 
 def _fake_runs():
     # pylint: disable=line-too-long

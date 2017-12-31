@@ -156,7 +156,7 @@
 
  function envVal(s) {
    var breaks = s.match(/.{1,15}/g);
-   return breaks.join('&#8203;');
+   return breaks ? breaks.join('&#8203;') : s;
  }
 </script>
 
