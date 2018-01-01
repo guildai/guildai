@@ -41,7 +41,6 @@
    },
 
    methods: {
-
      runSelected(run) {
        this.$emit('input', run);
      }
