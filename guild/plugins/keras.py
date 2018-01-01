@@ -153,7 +153,7 @@ class KerasPlugin(plugin.Plugin):
         # pylint: disable=import-error
         import keras
         from keras.utils.data_utils import get_file as patched
-        assert patched.__wrapper__, patched # pylint: disable=no-member
+        assert patched.__wrapper__, patched
         ref_spec = (
             "get_file",
             types.FunctionType,
