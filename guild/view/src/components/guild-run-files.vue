@@ -45,7 +45,7 @@
 
     </v-card>
 
-    <v-layout>
+
       <v-dialog
         ref="viewer"
         v-model="viewerOpen"
@@ -76,7 +76,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-    </v-layout>
+
 
   </v-container>
 </template>
