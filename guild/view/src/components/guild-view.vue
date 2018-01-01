@@ -15,10 +15,10 @@
             <guild-run-titlebar :run="run" />
           </v-container>
           <v-tabs-bar>
-            <v-tabs-item key="overview" href="overview" ripple>
+            <v-tabs-item key="overview" href="#overview" ripple>
               Overview
             </v-tabs-item>
-            <v-tabs-item key="files" href="files" ripple>
+            <v-tabs-item key="files" href="#files" ripple>
               Files
             </v-tabs-item>
             <v-tabs-slider color="deep-orange"></v-tabs-slider>
@@ -65,24 +65,33 @@
      return {
        drawerBreakPoint: drawerBreakPoint,
        drawer: window.innerWidth >= drawerBreakPoint,
+       selectedTab_: undefined,
        run_: undefined,
        runs: [],
-       config: {},
-       selectedTab: 'overview'
+       config: {}
      };
    },
 
    created() {
-     var this_ = this;
-     fetchConfig(this.$route, function (config) {
-       this_.config = config;
-     });
-     fetchRuns(this.$route, function (runs) {
-       this_.runs = formatRuns(runs);
-     });
+     this.initData();
    },
 
    computed: {
+     selectedTab: {
+       get() {
+         if (this.selectedTab_) {
+           return this.selectedTab_;
+         } else if (this.$route.hash) {
+           return this.$route.hash.substr(1);
+         } else {
+           return 'overview';
+         }
+       },
+       set(val) {
+         this.selectedTab_ = val;
+       }
+     },
+
      run: {
        get() {
          if (this.run_) {
@@ -109,12 +118,34 @@
    },
 
    watch: {
+     '$route'(route) {
+       // This is handled manually (see also selectedTab watcher) to
+       // avoid the complexity of using vue-router with v-tabs.
+       var tab = route.hash ? route.hash.substr(1) : 'overview';
+       this.selectedTab = tab;
+     },
+
+     selectedTab(val) {
+       var hash = val === 'overview' ? '' : val;
+       window.location.replace('#' + hash);
+     },
+
      title(val) {
        document.title = val;
      }
    },
 
    methods: {
+     initData() {
+       var this_ = this;
+       fetchConfig(this.$route, function (config) {
+         this_.config = config;
+       });
+       fetchRuns(this.$route, function (runs) {
+         this_.runs = formatRuns(runs);
+       });
+     },
+
      runSelected(run) {
        if (window.innerWidth < drawerBreakPoint) {
          this.drawer = false;
