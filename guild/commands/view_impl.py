@@ -44,9 +44,7 @@ class ViewDataImpl(view.ViewData):
         except StopIteration:
             return []
         else:
-            run = var.get_run(full_id)
-            inited_run = runs_impl.init_run(run)
-            return [_run_data(inited_run)]
+            return [_run_data(_run_for_id(full_id))]
 
     def _runs(self, params):
         args = self._args_for_params(params)
@@ -114,6 +112,9 @@ class ViewDataImpl(view.ViewData):
         else:
             return os.path.join(*parts[-2:])
 
+def _run_for_id(run_id):
+    return runs_impl.init_run(var.get_run(run_id))
+
 def _run_data(run):
     formatted = runs_impl.format_run(run)
     return {
@@ -147,7 +148,7 @@ def _format_deps(deps):
             try:
                 run, run_paths = runs[run_id]
             except KeyError:
-                run = runs_impl.init_run(var.get_run(run_id))
+                run = _run_for_id(run_id)
                 run_paths = []
                 runs[run_id] = run, run_paths
             run_paths.append(os.path.join(*parts[1:]))
@@ -162,29 +163,28 @@ def _format_dep(run, paths):
     }
 
 def _format_files(files, root):
-    cache = {}
     filtered = [
         path for path in files
         if os.path.islink(path) or os.path.isfile(path)
     ]
-    formatted = [_format_file(path, root, cache) for path in filtered]
+    formatted = [_format_file(path, root) for path in filtered]
     return sorted(formatted, key=lambda x: x["path"])
 
-def _format_file(path, root, cache):
-    try:
-        return cache[path]
-    except KeyError:
-        size = os.path.getsize(path)
-        typeDesc, icon, iconTooltip, viewer = _file_type_info(path)
-        relpath = path[len(root)+1:]
-        return {
-            "path": relpath,
-            "size": size,
-            "type": typeDesc,
-            "icon": icon,
-            "iconTooltip": iconTooltip,
-            "viewer": viewer
-        }
+def _format_file(path, root):
+    size = os.path.getsize(path)
+    typeDesc, icon, iconTooltip, viewer = _file_type_info(path)
+    opDesc, opRun = _op_source_info(path)
+    relpath = path[len(root)+1:]
+    return {
+        "path": relpath,
+        "size": size,
+        "type": typeDesc,
+        "icon": icon,
+        "iconTooltip": iconTooltip,
+        "viewer": viewer,
+        "operation": opDesc,
+        "run": opRun,
+    }
 
 def _file_type_info(path):
     typeDesc, icon, iconTooltip, viewer = _base_file_type_info(path)
@@ -221,6 +221,19 @@ def _base_file_type_info(path):
         return "Audio", "file-music", "Audio", "audio"
     else:
         return "File", "file", "File", None
+
+def _op_source_info(path):
+    if not os.path.islink(path):
+        return None, None
+    path = os.path.realpath(path)
+    runs_dir = var.runs_dir()
+    if not path.startswith(runs_dir):
+        return None, None
+    subdir = path[len(runs_dir)+1:]
+    parts = subdir.split(os.path.sep, 1)
+    run = _run_for_id(parts[0])
+    operation = runs_impl.format_op_desc(run.opref, nowarn=True)
+    return operation, run.short_id
 
 def main(args):
     data = ViewDataImpl(args)

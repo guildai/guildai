@@ -24,60 +24,75 @@
         no-data-text="There are no files associated with this run"
         no-results-text="No matches for the current filter">
         <template slot="items" slot-scope="files">
-          <td class="type-icon">
-            <v-tooltip left transition="fade-transition">
-              <v-icon slot="activator">mdi-{{ files.item.icon }}</v-icon>
-              <span>{{ files.item.iconTooltip }}</span>
-            </v-tooltip>
-          </td>
-          <td v-if="files.item.viewer">
-            <v-btn
-              class="grey lighten-4 btn-link"
-              flat small block
-              style="margin-left: -8px"
-              @click="viewerOpen = true">{{ files.item.path }}</v-btn></div>
-          </td>
-          <td v-else>{{ files.item.path }}</td>
-          <td>{{ files.item.type }}</td>
-          <td class="text-xs-right">{{ formatFileSize(files.item.size) }}</td>
+          <tr>
+            <td class="type-icon">
+              <v-tooltip left transition="fade-transition">
+                <v-icon slot="activator">mdi-{{ files.item.icon }}</v-icon>
+                <span>{{ files.item.iconTooltip }}</span>
+              </v-tooltip>
+            </td>
+            <td v-if="files.item.viewer">
+              <v-btn
+                class="grey lighten-4 btn-link"
+                flat small block
+                style="margin-left: -8px"
+                @click="viewerOpen = true">{{ files.item.path }}</v-btn></div>
+            </td>
+            <td v-else>{{ files.item.path }}</td>
+            <td>{{ files.item.type }}</td>
+            <td>
+              <a
+                v-if="files.item.run"
+                :href="'?run=' + files.item.run + '#files'"
+                target="_blank">{{ files.item.operation }}</a>
+            </td>
+            <td class="text-xs-right">{{ formatFileSize(files.item.size) }}</td>
+          </tr>
         </template>
       </v-data-table>
-
     </v-card>
-
-
-      <v-dialog
-        ref="viewer"
-        v-model="viewerOpen"
-        scrollable
-        :fullscreen="viewerFullscreen">
-        <v-card style="height:640px">
-          <v-card-title style="padding: 8px 4px 8px 16px">
-            <v-select
-              :items="media"
-              v-model="viewerItem"
-              return-object
-              item-text="value"
-              single-line
-              :prepend-icon="viewerItem.icon" />
-            <v-btn v-if="!viewerFullscreen" icon flat @click="viewerFullscreen = true"><v-icon>mdi-fullscreen</v-icon></v-btn>
-            <v-btn v-if="viewerFullscreen" icon flat @click="viewerFullscreen = false"><v-icon>mdi-fullscreen-exit</v-icon></v-btn>
-            <v-btn icon flat @click="viewerOpen = false"><v-icon>clear</v-icon></v-btn>
-          </v-card-title>
-          <v-divider />
-          <v-card-text class="viewer-content">
-            <img :src="viewerItem.src">
-          </v-card-text>
-          <v-divider></v-divider>
-          <v-card-actions>
-            <v-btn flat @click="viewerNav(-1)">Prev</v-btn>
-            <v-spacer />
-            <v-btn flat @click="viewerNav(1)">Next</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-
-
+    <v-dialog
+      ref="viewer"
+      v-model="viewerOpen"
+      scrollable
+      :fullscreen="viewerFullscreen">
+      <v-card style="height:640px">
+        <v-card-title style="padding: 8px 4px 8px 16px">
+          <v-select
+            :items="media"
+            v-model="viewerItem"
+            return-object
+            item-text="value"
+            single-line
+            :prepend-icon="viewerItem.icon" />
+          <v-btn
+            v-if="!viewerFullscreen"
+            icon flat
+            @click="viewerFullscreen = true">
+            <v-icon>mdi-fullscreen</v-icon>
+          </v-btn>
+          <v-btn
+            v-if="viewerFullscreen"
+            icon flat @click="viewerFullscreen = false">
+            <v-icon>mdi-fullscreen-exit</v-icon>
+          </v-btn>
+          <v-btn
+            icon flat @click="viewerOpen = false">
+            <v-icon>clear</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="viewer-content">
+          <img :src="viewerItem.src">
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-btn flat @click="viewerNav(-1)">Prev</v-btn>
+          <v-spacer />
+          <v-btn flat @click="viewerNav(1)">Next</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -100,6 +115,7 @@
          { text: '', value: '', sortable: false, width: 42 },
          { text: 'Name', value: 'path', align: 'left' },
          { text: 'Type', value: 'type', align: 'left' },
+         { text: 'Source operation', value: 'operation', align: 'left' },
          { text: 'Size', value: 'size', align: 'right' }
        ],
        filter: '',
@@ -189,6 +205,10 @@
 <style>
  .files table.table thead tr {
    height: 48px;
+ }
+
+ .files table.table thead th {
+   white-space: inherit;
  }
 
  .btn-link {
