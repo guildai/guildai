@@ -4,7 +4,7 @@
     <v-divider />
     <template v-for="run in runs">
       <v-list-tile
-        :key="run.shortId"
+        :key="run.id"
         @click="runSelected(run)"
         :class="{selected: value === run}"
         ripple>

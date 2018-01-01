@@ -5,34 +5,34 @@
         <v-card>
           <v-card-text>
             <v-layout row>
-              <v-flex xs4 class="pa-0">
+              <v-flex xs3 class="pa-0">
                 <v-subheader>ID</v-subheader>
               </v-flex>
-              <v-flex xs8 class="pa-0">
+              <v-flex xs9 class="pa-0">
                 <div class="field-val">{{ run.id }}</div>
               </v-flex>
             </v-layout>
             <v-layout row>
-              <v-flex xs4 class="pa-0">
+              <v-flex xs3 class="pa-0">
                 <v-subheader>Model</v-subheader>
               </v-flex>
-              <v-flex xs8 class="pa-0">
+              <v-flex xs9 class="pa-0">
                 <div class="field-val">{{ run.opModel }}</div>
               </v-flex>
             </v-layout>
             <v-layout row>
-              <v-flex xs4 class="pa-0">
+              <v-flex xs3 class="pa-0">
                 <v-subheader>Operation</v-subheader>
               </v-flex>
-              <v-flex xs8 class="pa-0">
+              <v-flex xs9 class="pa-0">
                 <div class="field-val">{{ run.opName }}</div>
               </v-flex>
             </v-layout>
             <v-layout row>
-              <v-flex xs4 class="pa-0">
+              <v-flex xs3 class="pa-0">
                 <v-subheader>Status</v-subheader>
               </v-flex>
-              <v-flex xs8 class="pa-0">
+              <v-flex xs9 class="pa-0">
                 <div class="field-val">
                   {{ run.status }}
                   <template v-if="run.exitStatus">
@@ -41,23 +41,38 @@
                 </div>
               </v-flex>
             </v-layout>
+            <v-layout row>
+              <v-flex xs3 class="pa-0">
+                <v-subheader>Path</v-subheader>
+              </v-flex>
+              <v-flex xs9 class="pa-0">
+                <div class="field-val">{{ run.path }}</div>
+              </v-flex>
+            </v-layout>
             <v-layout row v-if="run.deps.length > 0">
-              <v-flex xs4 class="pa-0">
+              <v-flex xs3 class="pa-0">
                 <v-subheader>Dependencies</v-subheader>
               </v-flex>
-              <v-flex xs8 class="pa-0">
+              <v-flex xs9 class="pa-0">
                 <div class="field-val">
-                  <template v-for="dep in run.deps">
-                    <v-tooltip
-                      top transition="fade-transition">
-                      <div slot="activator">
-                        <a
-                          :href="'?run=' + dep.run"
-                          target="_blank">{{ dep.operation }}</a>
-                      </div>
-                      <span>[{{ dep.run }}] {{ dep.operation }}</span>
-                    </v-tooltip>
-                  </template>
+                  <v-layout column>
+                    <v-flex>
+                      <template v-for="dep in run.deps">
+                        <v-tooltip
+                          bottom transition="fade-transition">
+                          <div slot="activator">
+                            <a
+                              :href="'?run=' + dep.run"
+                              target="_blank">{{ dep.operation }}</a>
+                          </div>
+                          <div>
+                            <div>[{{ dep.run }}] {{ dep.operation }}</div>
+                            <div v-for="path in dep.paths">&ensp;&squf;&ensp;{{ path }}</div>
+                          </div>
+                        </v-tooltip>
+                      </template>
+                    </v-flex>
+                  </v-layout>
                 </div>
               </v-flex>
             </v-layout>
@@ -164,6 +179,7 @@
    height: 48px;
    display: flex;
    align-items: center;
+   word-break: break-all;
  }
 
  .run-command {

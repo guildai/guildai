@@ -193,6 +193,7 @@
 
  .btn-link {
    text-transform: inherit;
+   font-weight: 400;
  }
 
  .btn-link .btn__content {

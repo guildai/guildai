@@ -127,7 +127,7 @@ def _apply_ops_filter(args, filters):
 
 def _op_run_filter(op_refs):
     def f(run):
-        op_desc = _format_op_desc(run.opref, nowarn=True)
+        op_desc = format_op_desc(run.opref, nowarn=True)
         return any((ref in op_desc for ref in op_refs))
     return f
 
@@ -148,7 +148,7 @@ def format_run(run, index=None):
         "short_index": _format_run_index(run),
         "model": run.opref.model_name,
         "op_name": run.opref.op_name,
-        "operation": _format_op_desc(run.opref),
+        "operation": format_op_desc(run.opref),
         "pkg": run.opref.pkg_name,
         "status": run.status,
         "label": run.get("label") or "",
@@ -166,7 +166,7 @@ def _format_run_index(run, index=None):
     else:
         return "[%s]" % run.short_id
 
-def _format_op_desc(opref, nowarn=False):
+def format_op_desc(opref, nowarn=False):
     if opref.pkg_type == "modelfile":
         return _format_modelfile_op(opref)
     elif opref.pkg_type == "package":

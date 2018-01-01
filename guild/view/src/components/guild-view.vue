@@ -3,7 +3,7 @@
     <v-navigation-drawer
       app fixed clipped
       v-model="drawer"
-      width="340"
+      width="360"
       :mobile-break-point="drawerBreakPoint">
       <guild-runs-list :runs="runs" v-model="run" @input="runSelected" />
     </v-navigation-drawer>
