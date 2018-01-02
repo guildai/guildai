@@ -161,8 +161,8 @@ def _test_globals():
         "join_path": os.path.join,
     }
 
-def sample(name):
-    return os.path.join(samples_dir(), name)
+def sample(*parts):
+    return os.path.join(*(samples_dir(),) + parts)
 
 def samples_dir():
     return os.path.join(tests_dir(), "samples")

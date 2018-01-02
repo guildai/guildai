@@ -111,3 +111,52 @@ Reference cycle:
     >>> resolve({"a": "${b}", "b": "${a}"})
     Traceback (most recent call last):
     ReferenceCycleError: ['b', 'a', 'b']
+
+## Testing text files
+
+Use `is_text_file` to test if a file is text or binary. This is used
+to provide a file viewer for text files.
+
+    >>> from guild.util import is_text_file
+
+The test uses known file extensions as an optimization. To test the
+file content itself, we need to ignore extensions:
+
+    >>> def is_text(sample_path):
+    ...     path = sample("textorbinary", sample_path)
+    ...     return is_text_file(path, ignore_ext=True)
+
+Our samples:
+
+    >>> is_text("cookiecutter.json")
+    True
+
+    >>> is_text("empty.pyc")
+    False
+
+    >>> is_text("empty.txt")
+    True
+
+    >>> is_text("hello_world.py")
+    True
+
+    >>> is_text("hello_world.pyc")
+    False
+
+    >>> is_text("lena.gif")
+    False
+
+    >>> is_text("lena.jpg")
+    False
+
+    >>> is_text("lookup-error")
+    False
+
+    >>> is_text("lookup-error.txt")
+    True
+
+    >>> try:
+    ...   is_text("non-existing")
+    ... except IOError:
+    ...   print("Not found!")
+    Not found!

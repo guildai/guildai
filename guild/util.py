@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import chardet
 import datetime
 import errno
 import os
@@ -342,3 +343,81 @@ def _windows_symlink(target, link):
     except subprocess.CalledProcessError as e:
         log.error(e.output)
         raise
+
+_text_ext = set([
+    ".csv",
+    ".md",
+    ".py",
+    ".sh",
+    ".txt",
+])
+
+_binary_ext = set([
+    ".bin",
+    ".gif",
+    ".gz",
+    ".jpeg",
+    ".jpg",
+    ".png",
+    ".rar",
+    ".tar",
+    ".tif",
+    ".tiff",
+    ".xz",
+    ".zip",
+])
+
+_control_chars = b'\n\r\t\f\b'
+if bytes is str:
+    _printable_ascii = _control_chars + b"".join(
+        [chr(x) for x in range(32, 127)])
+    _printable_high_ascii = b"".join(
+        [chr(x) for x in range(127, 256)])
+else:
+    _printable_ascii = _control_chars + bytes(range(32, 127))
+    _printable_high_ascii = bytes(range(127, 256))
+
+def is_text_file(path, ignore_ext=False):
+    # Adapted from https://github.com/audreyr/binaryornot under the
+    # BSD 3-clause License
+    if not ignore_ext:
+        ext = os.path.splitext(path)[1].lower()
+        if ext in _text_ext:
+            return True
+        if ext in _binary_ext:
+            return False
+    with open(path, 'rb') as f:
+        sample = f.read(1024)
+    if not sample:
+        return True
+    low_chars = sample.translate(None, _printable_ascii)
+    nontext_ratio1 = float(len(low_chars)) / float(len(sample))
+    high_chars = sample.translate(None, _printable_high_ascii)
+    nontext_ratio2 = float(len(high_chars)) / float(len(sample))
+    likely_binary = (
+        (nontext_ratio1 > 0.3 and nontext_ratio2 < 0.05) or
+        (nontext_ratio1 > 0.8 and nontext_ratio2 > 0.8)
+    )
+    detected_encoding = chardet.detect(sample)
+    decodable_as_unicode = False
+    if (detected_encoding["confidence"] > 0.9 and
+        detected_encoding["encoding"] != "ascii"):
+        try:
+            try:
+                sample.decode(encoding=detected_encoding["encoding"])
+            except TypeError:
+                unicode(sample, encoding=detected_encoding["encoding"])
+            decodable_as_unicode = True
+        except LookupError:
+            pass
+        except UnicodeDecodeError:
+            pass
+    if likely_binary:
+        return decodable_as_unicode
+    else:
+        if decodable_as_unicode:
+            return True
+        else:
+            if b'\x00' in sample or b'\xff' in sample:
+                return False
+        return True
