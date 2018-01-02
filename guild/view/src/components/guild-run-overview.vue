@@ -65,7 +65,7 @@
                 <div class="field-val">{{ run.path }}</div>
               </v-flex>
             </v-layout>
-            <v-layout row v-if="run.deps.length > 0">
+            <v-layout row>
               <v-flex xs3 class="pa-0">
                 <v-subheader>Dependencies</v-subheader>
               </v-flex>
