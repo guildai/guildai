@@ -4,6 +4,10 @@ build:
 	python2 setup.py build
 	python3 setup.py build
 
+install-reqs:
+	 pip install --user -r requirements.txt
+	 pip3 install --user -r requirements.txt
+
 pip-package:
 	python2 setup.py bdist_wheel
 	python3 setup.py bdist_wheel
