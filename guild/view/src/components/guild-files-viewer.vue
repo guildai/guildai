@@ -7,12 +7,14 @@
     <v-card style="height:640px">
       <v-card-title style="padding: 8px 4px 8px 16px">
         <v-select
+          v-if="files"
           :items="files"
           v-model="cur"
           return-object
-          item-text="value"
+          item-text="path"
           single-line
-          :prepend-icon="cur.icon" />
+          :prepend-icon="cur ? cur.icon: undefined" />
+        <v-spacer v-else />
         <v-btn
           v-if="!fullscreen"
           icon flat
@@ -31,13 +33,19 @@
       </v-card-title>
       <v-divider />
       <v-card-text class="content">
-        <img :src="cur.src">
+        <template v-if="cur">
+          <img v-if="cur.viewer == 'image'" :src="cur.src">
+          <div v-else>Unsupported viewer type: <i>{{ cur.viewer }}</i></div>
+        </template>
+        <template v-else>
+          No files to view
+        </template>
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
-        <v-btn flat @click="nav(-1)">Prev</v-btn>
+        <v-btn flat :disabled="files.length <= 1" @click="nav(-1)">Prev</v-btn>
         <v-spacer />
-        <v-btn flat @click="nav(1)">Next</v-btn>
+        <v-btn flat :disabled="files.length <= 1" @click="nav(1)">Next</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -52,7 +60,12 @@
        type: Array,
        required: true
      },
-     value: { type: Boolean }
+     current: {
+       type: Object
+     },
+     value: {
+       type: Boolean
+     }
    },
 
    data() {
@@ -76,10 +89,12 @@
        get() {
          if (this.cur_) {
            return this.cur_;
-         } else if (this.files.length > 0) {
-           return this.files[0];
          } else {
-           return undefined;
+           if (Number.isInteger(this.current)) {
+             return this.files[this.current];
+           } else {
+             return this.current;
+           }
          }
        },
        set(val) {
@@ -94,6 +109,12 @@
          }
        }
        return -1;
+     }
+   },
+
+   watch: {
+     current() {
+       this.cur_ = undefined;
      }
    },
 

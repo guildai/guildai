@@ -28,6 +28,7 @@ from werkzeug.wrappers import Request, Response
 from werkzeug.wsgi import SharedDataMiddleware
 
 from guild import util
+from guild import var
 
 MODULE_DIR = os.path.dirname(__file__)
 
@@ -113,14 +114,23 @@ def _devserver_bin():
 def _devserver_config():
     return os.path.join(MODULE_DIR, "view/build/webpack.dev.conf.js")
 
-class StaticApp(object):
+class StaticBase(object):
 
-    def __init__(self):
-        root = os.path.join(MODULE_DIR, "view/dist")
-        self._app = SharedDataMiddleware(self._not_found, {"/": root})
+    def __init__(self, exports):
+        self._app = SharedDataMiddleware(self._not_found, exports)
 
     def handle(self, _req):
         return self._app
+
+    @staticmethod
+    def _not_found(_env, _start_resp):
+        raise NotFound()
+
+class DistFiles(StaticBase):
+
+    def __init__(self):
+        root = os.path.join(MODULE_DIR, "view/dist")
+        super(DistFiles, self).__init__({"/": root})
 
     def handle_index(self, _req):
         def app(env, start_resp):
@@ -128,9 +138,10 @@ class StaticApp(object):
             return self._app(env, start_resp)
         return app
 
-    @staticmethod
-    def _not_found(_env, _start_resp):
-        raise NotFound()
+class RunFiles(StaticBase):
+
+    def __init__(self):
+        super(RunFiles, self).__init__({"/runs": var.runs_dir()})
 
 def serve_forever(data, host, port, no_open=False, dev=False):
     host = host or "localhost"
@@ -169,12 +180,14 @@ def _start_view(data, host, port):
     server.serve_forever()
 
 def _view_app(data):
-    static = StaticApp()
+    dist_files = DistFiles()
+    run_files = RunFiles()
     routes = routing.Map([
         routing.Rule("/runs", endpoint=(_handle_runs, (data,))),
+        routing.Rule("/runs/<path:_>", endpoint=(run_files.handle, ())),
         routing.Rule("/config", endpoint=(_handle_config, (data,))),
-        routing.Rule("/", endpoint=(static.handle_index, ())),
-        routing.Rule("/<path:_>", endpoint=(static.handle, ())),
+        routing.Rule("/", endpoint=(dist_files.handle_index, ())),
+        routing.Rule("/<path:_>", endpoint=(dist_files.handle, ())),
     ])
     def app(env, start_resp):
         urls = routes.bind_to_environ(env)

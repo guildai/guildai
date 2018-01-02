@@ -218,7 +218,7 @@ def _base_file_type_info(path):
     elif re.search(r"\.(jpg|jpeg|gif|png|tiff)$", lower_path):
         return "Image", "file-image", "Image", "image"
     elif re.search(r"\.(mid|wav)", lower_path):
-        return "Audio", "file-music", "Audio", "audio"
+        return "Audio", "file-music", "Audio", None
     else:
         return "File", "file", "File", None
 

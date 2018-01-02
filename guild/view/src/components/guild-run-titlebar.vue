@@ -14,6 +14,7 @@
       <span>[{{ run.shortId }}] {{ run.operation }}</span>
     </v-tooltip>
     <div>{{ run.started }}</div>
+    <div class="mt-1 grey--text text--darken-2">{{ run.path }}</div>
   </div>
 </template>
 

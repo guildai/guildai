@@ -36,7 +36,7 @@
                 class="grey lighten-4 btn-link"
                 flat small block
                 style="margin-left: -8px"
-                @click="viewerOpen = true">{{ files.item.path }}</v-btn></div>
+                @click="view(files.item)">{{ files.item.path }}</v-btn></div>
             </td>
             <td v-else>{{ files.item.path }}</td>
             <td>{{ files.item.type }}</td>
@@ -51,7 +51,10 @@
         </template>
       </v-data-table>
     </v-card>
-    <guild-files-viewer :files="media" v-model="viewerOpen" />
+    <guild-files-viewer
+      :files="media"
+      :current="curMedia"
+      v-model="viewerOpen" />
   </v-container>
 </template>
 
@@ -74,22 +77,38 @@
          { text: '', value: '', sortable: false, width: 42 },
          { text: 'Name', value: 'path', align: 'left' },
          { text: 'Type', value: 'type', align: 'left' },
-         { text: 'Source operation', value: 'operation', align: 'left' },
+         { text: 'Source', value: 'operation', align: 'left' },
          { text: 'Size', value: 'size', align: 'right' }
        ],
        filter: '',
-       viewerOpen: false,
-       media: [
-         { value: '2017-12-06_120417_01.mid', icon: 'mdi-file-music', src: 'https://maxpull-tlu7l6lqiu.stackpathdns.com/wp-content/uploads/2008/07/tulips-in-bloom.jpg' },
-         { value: '2017-12-06_120417_02.mid', icon: 'mdi-file-music', src: 'https://www.almanac.com/sites/default/files/users/Almanac%20Staff/yellow-tulips_full_width.jpg' },
-         { value: '2017-12-06_120417_03.mid', icon: 'mdi-file-image', src: 'https://cdn.shopify.com/s/files/1/1902/7917/products/Tulip-Jumbo-Darwin-Mix_330x415_crop_center.jpg' }
-       ]
+       curMedia: undefined,
+       viewerOpen: false
      };
+   },
+
+   computed: {
+     media() {
+       var filtered = this.run.files.filter(file => file.viewer);
+       return filtered.map(file => {
+         return {
+           path: file.path,
+           icon: 'mdi-' + file.icon,
+           viewer: file.viewer,
+           src: process.env.VIEW_BASE + '/runs/' + this.run.id + '/' + file.path
+         };
+       });
+     }
    },
 
    methods: {
      formatFileSize(x) {
        return x != null ? filesize(x) : '';
+     },
+
+     view(file) {
+       var mediaFile = this.media.find(mfile => mfile.path === file.path);
+       this.curMedia = mediaFile;
+       this.viewerOpen = true;
      }
    }
  };
@@ -106,7 +125,6 @@
 
  .btn-link {
    text-transform: inherit;
-   font-weight: 400;
  }
 
  .btn-link .btn__content {

@@ -30,6 +30,22 @@
             </v-layout>
             <v-layout row>
               <v-flex xs3 class="pa-0">
+                <v-subheader>Started</v-subheader>
+              </v-flex>
+              <v-flex xs9 class="pa-0">
+                <div class="field-val">{{ run.started }}</div>
+              </v-flex>
+            </v-layout>
+            <v-layout row>
+              <v-flex xs3 class="pa-0">
+                <v-subheader>Stopped</v-subheader>
+              </v-flex>
+              <v-flex xs9 class="pa-0">
+                <div class="field-val">{{ run.stopped }}</div>
+              </v-flex>
+            </v-layout>
+            <v-layout row>
+              <v-flex xs3 class="pa-0">
                 <v-subheader>Status</v-subheader>
               </v-flex>
               <v-flex xs9 class="pa-0">
