@@ -1,5 +1,5 @@
 <template>
-  <div id="root" class="white pa-3 elevation-3">
+  <div id="root" class="grey lighten-2 pa-3 elevation-3">
     <v-btn :disabled="!paused" icon ripple size="400" @click="play(true)">
       <v-icon>mdi-play</v-icon>
     </v-btn>
