@@ -66,9 +66,10 @@
        drawerBreakPoint: drawerBreakPoint,
        drawer: window.innerWidth >= drawerBreakPoint,
        selectedTab_: undefined,
-       run_: undefined,
+       runId_: undefined,
        runs: [],
-       config: {}
+       config: {},
+       fetchRunsTimeout: undefined
      };
    },
 
@@ -95,8 +96,8 @@
      run: {
        get() {
          this.checkRunDeleted();
-         if (this.run_) {
-           return this.run_;
+         if (this.runId_) {
+           return this.findRun(this.runId_);
          } else if (this.runs) {
            return this.runs[0];
          } else {
@@ -104,7 +105,7 @@
          }
        },
        set(val) {
-         this.run_ = val;
+         this.runId_ = val ? val.id : undefined;
        }
      },
 
@@ -137,6 +138,10 @@
    },
 
    methods: {
+     findRun(id) {
+       return this.runs.find(run => run.id === id);
+     },
+
      initData() {
        this.fetchConfig();
        this.fetchRuns();
@@ -158,7 +163,10 @@
      },
 
      scheduleNextFetchRuns() {
-       setTimeout(this.fetchRuns, 5000);
+       if (this.fetchRunsTimeout) {
+         clearTimeout(this.fetchRunsTimeout);
+       }
+       this.fetchRunsTimeout = setTimeout(this.fetchRuns, 5000);
      },
 
      runSelected(run) {
@@ -168,11 +176,8 @@
      },
 
      checkRunDeleted() {
-       if (this.run_) {
-         const match = this.runs.find((run) => run.id === this.run_.id);
-         if (!match) {
-           this.run_ = undefined;
-         }
+       if (this.runId_ && !this.findRun(this.runId_)) {
+         this.runId_ = undefined;
        }
      }
    }

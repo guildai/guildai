@@ -9,11 +9,11 @@
         <v-select
           v-if="files"
           :items="files"
-          v-model="cur"
-          return-object
+          v-model="selectedPath"
           item-text="path"
+          item-value="path"
           single-line
-          :prepend-icon="cur ? cur.icon: undefined" />
+          :prepend-icon="selected ? selected.icon : undefined" />
         <v-spacer v-else />
         <v-btn
           v-if="!fullscreen"
@@ -33,11 +33,19 @@
       </v-card-title>
       <v-divider />
       <v-card-text class="content">
-        <template v-if="cur">
-          <img v-if="cur.viewer === 'image'" :src="cur.src" />
-          <guild-text v-else-if="cur.viewer === 'text'" :src="cur.src" />
-          <guild-midi v-else-if="cur.viewer === 'midi'" :src="cur.src" />
-          <div v-else>Unsupported viewer type: <i>{{ cur.viewer }}</i></div>
+        <template v-if="selected">
+          <img
+            v-if="selected.viewer === 'image'"
+            :src="selected.src" />
+          <guild-text
+            v-else-if="selected.viewer === 'text'"
+            :src="selected.src" />
+          <guild-midi
+            v-else-if="selected.viewer === 'midi'"
+            :src="selected.src" />
+          <div v-else>
+            Unsupported viewer type: <i>{{ selected.viewer }}</i>
+          </div>
         </template>
         <template v-else>
           No files to view
@@ -62,17 +70,13 @@
        type: Array,
        required: true
      },
-     current: {
-       type: Object
-     },
-     value: {
-       type: Boolean
-     }
+     path: String,
+     value: Boolean
    },
 
    data() {
      return {
-       cur_: undefined,
+       selectedPath_: undefined,
        fullscreen: false
      };
    },
@@ -87,26 +91,28 @@
        }
      },
 
-     cur: {
+     selectedPath: {
        get() {
-         if (this.cur_) {
-           return this.cur_;
+         if (this.selectedPath_) {
+           return this.selectedPath_;
          } else {
-           if (Number.isInteger(this.current)) {
-             return this.files[this.current];
-           } else {
-             return this.current;
-           }
+           return this.path;
          }
        },
        set(val) {
-         this.cur_ = val;
+         this.selectedPath_ = val;
        }
      },
 
-     curIndex() {
+     selected() {
+       return this.selectedIndex !== -1
+              ? this.files[this.selectedIndex]
+              : undefined;
+     },
+
+     selectedIndex() {
        for (var i = 0; i < this.files.length; i++) {
-         if (this.files[i] === this.cur) {
+         if (this.files[i].path === this.selectedPath) {
            return i;
          }
        }
@@ -115,8 +121,8 @@
    },
 
    watch: {
-     current() {
-       this.cur_ = undefined;
+     path() {
+       this.selectedPath_ = undefined;
      }
    },
 
@@ -143,8 +149,8 @@
      },
 
      nav(incr) {
-       var nextIndex = maybeWrapIndex(this.curIndex + incr, this.files);
-       this.cur = this.files[nextIndex];
+       var nextIndex = maybeWrapIndex(this.selectedIndex + incr, this.files);
+       this.selectedPath = this.files[nextIndex].path;
      }
    }
  };

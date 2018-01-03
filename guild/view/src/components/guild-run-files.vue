@@ -53,7 +53,7 @@
     </v-card>
     <guild-files-viewer
       :files="media"
-      :current="curMedia"
+      :path="curMedia ? curMedia.path : undefined"
       v-model="viewerOpen" />
   </v-container>
 </template>
