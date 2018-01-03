@@ -31,7 +31,7 @@ function statusIcon(status) {
   } else if (status === 'running') {
     return {
       color: 'green',
-      icon: 'dots-horizontal-circle',
+      spinner: true,
       tooltip: 'Running'
     };
   } else {

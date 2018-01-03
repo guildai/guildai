@@ -18,7 +18,7 @@
           <v-list-tile-sub-title>{{ run.started }}</v-list-tile-sub-title>
         </v-list-tile-content>
         <v-list-tile-action style="min-width: 28px">
-          <guild-run-status-icon :icon="run.icon" />
+          <guild-run-status-icon :icon="run.icon" tooltip-right />
         </v-list-tile-action>
       </v-list-tile>
       <v-divider />
