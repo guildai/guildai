@@ -49,7 +49,10 @@ class Run(object):
         except (IOError, ValueError):
             return None
         else:
-            return int(raw)
+            try:
+                return int(raw)
+            except ValueError:
+                return None
 
     @property
     def status(self):
@@ -69,9 +72,11 @@ class Run(object):
 
     def get(self, name, default=None):
         try:
-            return self[name]
+            val = self[name]
         except KeyError:
             return default
+        else:
+            return val if val is not None else default
 
     def attr_names(self):
         return sorted(os.listdir(self._attrs_dir()))
