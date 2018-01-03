@@ -380,6 +380,8 @@ else:
 def is_text_file(path, ignore_ext=False):
     # Adapted from https://github.com/audreyr/binaryornot under the
     # BSD 3-clause License
+    if os.path.isdir(path):
+        return False
     if not ignore_ext:
         ext = os.path.splitext(path)[1].lower()
         if ext in _text_ext:

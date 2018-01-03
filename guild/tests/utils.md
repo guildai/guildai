@@ -155,8 +155,15 @@ Our samples:
     >>> is_text("lookup-error.txt")
     True
 
+IO Errors are passed through:
+
     >>> try:
     ...   is_text("non-existing")
     ... except IOError:
     ...   print("Not found!")
     Not found!
+
+Directories aren't text files:
+
+    >>> is_text(".")
+    False
