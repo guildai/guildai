@@ -143,6 +143,14 @@ class RunFiles(StaticBase):
     def __init__(self):
         super(RunFiles, self).__init__({"/runs": var.runs_dir()})
 
+    def handle(self, _req):
+        def app(env, start_resp0):
+            def start_resp(status, headers):
+                headers.append(("Access-Control-Allow-Origin", "*"))
+                start_resp0(status, headers)
+            return self._app(env, start_resp)
+        return app
+
 def serve_forever(data, host, port, no_open=False, dev=False):
     host = host or "localhost"
     if dev:

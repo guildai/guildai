@@ -220,7 +220,10 @@ def _base_file_type_info(path):
     elif re.search(r"\.(mid|wav)", lower_path):
         return "Audio", "file-music", "Audio", None
     else:
-        return "File", "file", "File", None
+        if util.is_text_file(path):
+            return "Text file", "file-document", "Text file", "text"
+        else:
+            return "File", "file", "File", None
 
 def _op_source_info(path):
     if not os.path.islink(path):
