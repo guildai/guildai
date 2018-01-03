@@ -42,7 +42,8 @@
             :src="selected.src" />
           <guild-midi
             v-else-if="selected.viewer === 'midi'"
-            :src="selected.src" />
+            :src="selected.src"
+            :active="visible" />
           <div v-else>
             Unsupported viewer type: <i>{{ selected.viewer }}</i>
           </div>

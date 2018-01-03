@@ -26,7 +26,8 @@
    name: 'guild-midi',
 
    props: {
-     src: { type: String }
+     src: String,
+     active: Boolean
    },
 
    data() {
@@ -43,6 +44,12 @@
    watch: {
      src() {
        this.reset();
+     },
+
+     active() {
+       if (!this.active) {
+         this.stop();
+       }
      }
    },
 
