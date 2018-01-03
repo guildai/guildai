@@ -14,9 +14,9 @@ function _dataUrl(base, route) {
 
 function _fetch(path, cb) {
   var url = process.env.VIEW_BASE + path;
-  fetch(url).then(function (resp) {
+  fetch(url).then(function(resp) {
     return resp.json();
-  }).then(function (json) {
+  }).then(function(json) {
     cb(json);
   });
 }

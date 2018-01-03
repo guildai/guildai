@@ -60,13 +60,13 @@
 
      initPlayerSrc() {
        const this_ = this;
-       fetch(this_.src).then(function (resp) {
+       fetch(this_.src).then(function(resp) {
          return resp.arrayBuffer();
-       }).then(function (buf) {
+       }).then(function(buf) {
          const data = String.fromCharCode.apply(null, new Uint8Array(buf));
          this_.player.currentData = data;
          this_.playerSrc = this_.src;
-         this_.player.loadMidiFile(function () {
+         this_.player.loadMidiFile(function() {
            this_.player.setAnimation(this_.playerProgress);
            this_.player.start();
          });

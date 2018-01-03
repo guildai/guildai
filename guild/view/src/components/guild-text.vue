@@ -65,9 +65,9 @@
      scheduleFetch(timeout, showLoading) {
        const this_ = this;
        setTimeout(() => {
-         fetch(this_.src).then(function (resp) {
+         fetch(this_.src).then(function(resp) {
            return resp.text();
-         }).then(function (text) {
+         }).then(function(text) {
            this_.$refs.content.value = text;
            clearTimeout(showLoading);
            this_.loading = false;
