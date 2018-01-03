@@ -18,6 +18,8 @@ from __future__ import division
 import os
 import re
 
+import guild
+
 from guild import click_util
 from guild import config
 from guild import util
@@ -83,6 +85,7 @@ class ViewDataImpl(view.ViewData):
         return {
             "cwd": cwd,
             "titleLabel": self._title_label(params, args, cwd),
+            "version": guild.version(),
         }
 
     def _title_label(self, params, args, cwd):
