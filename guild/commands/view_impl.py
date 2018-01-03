@@ -217,8 +217,10 @@ def _base_file_type_info(path):
         return "Dataset file", "file", "File", None
     elif re.search(r"\.(jpg|jpeg|gif|png|tiff)$", lower_path):
         return "Image", "file-image", "Image", "image"
-    elif re.search(r"\.(mid|wav|mp3)", lower_path):
-        return "Audio", "file-music", "Audio", "audio"
+    elif re.search(r"\.mid", lower_path):
+        return "Audio", "file-music", "Audio", "midi"
+    elif re.search(r"\.(wav|mp3)", lower_path):
+        return "Audio", "file-music", "Audio", None
     else:
         if util.is_text_file(path):
             return "Text file", "file-document", "Text file", "text"
