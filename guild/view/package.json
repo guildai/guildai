@@ -16,6 +16,7 @@
   "dependencies": {
     "filesize": "^3.5.11",
     "mdi": "^2.1.19",
+    "midi.js": "^0.3.1",
     "vue": "^2.5.3",
     "vue-router": "^3.0.1",
     "vuetify": "^0.17.4"

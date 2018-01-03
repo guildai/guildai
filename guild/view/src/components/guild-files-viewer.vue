@@ -36,6 +36,7 @@
         <template v-if="cur">
           <img v-if="cur.viewer === 'image'" :src="cur.src" />
           <guild-text v-else-if="cur.viewer === 'text'" :src="cur.src" />
+          <guild-audio v-else-if="cur.viewer === 'audio'" :src="cur.src" />
           <div v-else>Unsupported viewer type: <i>{{ cur.viewer }}</i></div>
         </template>
         <template v-else>
