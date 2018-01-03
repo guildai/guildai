@@ -28,6 +28,12 @@ function statusIcon(status) {
       icon: 'close-circle',
       tooltip: 'Terminated'
     };
+  } else if (status === 'running') {
+    return {
+      color: 'green',
+      icon: 'dots-horizontal-circle',
+      tooltip: 'Running'
+    };
   } else {
     return {
       color: 'grey',

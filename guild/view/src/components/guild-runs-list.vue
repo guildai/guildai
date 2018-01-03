@@ -6,7 +6,7 @@
       <v-list-tile
         :key="run.id"
         @click="runSelected(run)"
-        :class="{selected: value === run}"
+        :class="{selected: value.id === run.id}"
         ripple>
         <v-list-tile-content>
           <v-tooltip top transition="fade-transition" tag="div" style="width:100%">
@@ -18,12 +18,7 @@
           <v-list-tile-sub-title>{{ run.started }}</v-list-tile-sub-title>
         </v-list-tile-content>
         <v-list-tile-action style="min-width: 28px">
-          <v-tooltip right transition="fade-transition">
-            <v-icon
-              :color="run.icon.color"
-              slot="activator">mdi-{{ run.icon.icon }}</v-icon>
-            <span>{{ run.icon.tooltip }}</span>
-          </v-tooltip>
+          <guild-run-status-icon :icon="run.icon" />
         </v-list-tile-action>
       </v-list-tile>
       <v-divider />
