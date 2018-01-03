@@ -1,9 +1,5 @@
-export function fetchRuns(route, cb) {
-  return _fetch(_dataUrl('/runs', route), cb);
-}
-
-export function fetchConfig(route, cb) {
-  return _fetch(_dataUrl('/config', route), cb);
+export function fetchData(path, route, cb) {
+  return _fetch(_dataUrl(path, route), cb);
 }
 
 function _dataUrl(base, route) {

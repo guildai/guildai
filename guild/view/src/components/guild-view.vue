@@ -54,7 +54,7 @@
 
 <script>
  import { formatRuns } from './guild-runs.js';
- import { fetchConfig, fetchRuns } from './guild-data.js';
+ import { fetchData } from './guild-data.js';
 
  var drawerBreakPoint = 960;
 
@@ -137,13 +137,27 @@
 
    methods: {
      initData() {
+       this.fetchConfig();
+       this.fetchRuns();
+     },
+
+     fetchConfig() {
        var this_ = this;
-       fetchConfig(this.$route, function (config) {
+       fetchData('/config', this.$route, function(config) {
          this_.config = config;
        });
-       fetchRuns(this.$route, function (runs) {
+     },
+
+     fetchRuns() {
+       var this_ = this;
+       fetchData('/runs', this.$route, function(runs) {
          this_.runs = formatRuns(runs);
+         this_.scheduleNextFetchRuns();
        });
+     },
+
+     scheduleNextFetchRuns() {
+       setTimeout(this.fetchRuns, 5000);
      },
 
      runSelected(run) {
