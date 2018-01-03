@@ -59,14 +59,6 @@
             </v-layout>
             <v-layout row>
               <v-flex xs3 class="pa-0">
-                <v-subheader>Path</v-subheader>
-              </v-flex>
-              <v-flex xs9 class="pa-0">
-                <div class="field-val">{{ run.path }}</div>
-              </v-flex>
-            </v-layout>
-            <v-layout row>
-              <v-flex xs3 class="pa-0">
                 <v-subheader>Dependencies</v-subheader>
               </v-flex>
               <v-flex xs9 class="pa-0">
