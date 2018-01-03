@@ -94,6 +94,7 @@
 
      run: {
        get() {
+         this.checkRunDeleted();
          if (this.run_) {
            return this.run_;
          } else if (this.runs) {
@@ -163,6 +164,15 @@
      runSelected(run) {
        if (window.innerWidth < drawerBreakPoint) {
          this.drawer = false;
+       }
+     },
+
+     checkRunDeleted() {
+       if (this.run_) {
+         const match = this.runs.find((run) => run.id === this.run_.id);
+         if (!match) {
+           this.run_ = undefined;
+         }
        }
      }
    }
