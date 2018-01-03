@@ -36,8 +36,8 @@
       </v-tabs>
       <v-container v-else>
         <v-layout row align-center>
-          <span class="mr-2">Waiting for runs...</span>
-          <v-progress-circular indeterminate color="primary" size="24"/>
+          <span class="mr-3">Waiting for runs</span>
+          <v-progress-circular indeterminate color="primary" size="18"/>
         </v-layout>
       </v-container>
     </v-content>
