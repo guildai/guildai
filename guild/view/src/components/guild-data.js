@@ -1,11 +1,9 @@
-export function fetchData(path, route, cb) {
-  return _fetch(_dataUrl(path, route), cb);
+export function fetchData(path, cb) {
+  return _fetch(_dataUrl(path), cb);
 }
 
-function _dataUrl(base, route) {
-  var path = route.fullPath;
-  var i = path.indexOf('?');
-  return i !== -1 ? base + '?' + path.substring(i + 1) : base;
+function _dataUrl(base) {
+  return base + window.location.search;
 }
 
 function _fetch(path, cb) {

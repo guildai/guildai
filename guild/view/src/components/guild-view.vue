@@ -84,8 +84,8 @@
        get() {
          if (this.selectedTab_) {
            return this.selectedTab_;
-         } else if (this.$route.hash) {
-           return this.$route.hash.substr(1);
+         } else if (window.location.hash) {
+           return window.location.hash.substr(1);
          } else {
            return 'overview';
          }
@@ -122,10 +122,12 @@
    },
 
    watch: {
-     '$route'(route) {
-       // This is handled manually (see also selectedTab watcher) to
-       // avoid the complexity of using vue-router with v-tabs.
-       var tab = route.hash ? route.hash.substr(1) : 'overview';
+     '$route'() {
+       // Use vue router to detect changes in hash - we handle this manually
+       // to avoid the complexity of vue router with the tab control.
+       var tab = window.location.hash
+               ? window.location.hash.substr(1)
+               : 'overview';
        this.selectedTab = tab;
      },
 
@@ -151,14 +153,14 @@
 
      fetchConfig() {
        var this_ = this;
-       fetchData('/config', this.$route, function(config) {
+       fetchData('/config', function(config) {
          this_.config = config;
        });
      },
 
      fetchRuns() {
        var this_ = this;
-       fetchData('/runs', this.$route, function(runs) {
+       fetchData('/runs', function(runs) {
          this_.runs = formatRuns(runs);
          this_.scheduleNextFetchRuns();
        });
