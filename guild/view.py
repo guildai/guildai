@@ -24,13 +24,17 @@ import requests
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug import routing
 from werkzeug import serving
+from werkzeug.utils import redirect
 from werkzeug.wrappers import Request, Response
 from werkzeug.wsgi import SharedDataMiddleware
 
+from guild import config
 from guild import util
 from guild import var
 
 MODULE_DIR = os.path.dirname(__file__)
+
+tb_servers = {}
 
 class ViewData(object):
 
@@ -63,6 +67,14 @@ class ViewData(object):
 
           cwd         string  Cwd used for runs
           titleLabel  string  Label suitable for browser title
+
+        """
+        raise NotImplementedError()
+
+    def tensorboard_args(self, params):
+        """Returns args for the tensorboard command for request params.
+
+        Refer to `runs` for details on `params`.
 
         """
         raise NotImplementedError()
@@ -113,6 +125,47 @@ def _devserver_bin():
 
 def _devserver_config():
     return os.path.join(MODULE_DIR, "view/build/webpack.dev.conf.js")
+
+class TBServer(threading.Thread):
+
+    def __init__(self, host, port, cwd, tb_args):
+        super(TBServer, self).__init__()
+        self.host = host
+        self.port = port
+        self.cwd = cwd
+        self.tb_args = tb_args
+        self._ready = False
+
+    def run(self):
+        args = [
+            _guild_bin(),
+            "tensorboard",
+            "--host", self.host,
+            "--port", str(self.port),
+            "--no-open"
+        ]
+        args.extend(self.tb_args)
+        p = subprocess.Popen(args, cwd=self.cwd)
+        p.wait()
+
+    def _extend_args_for_params(self, args):
+        if "all" in self.params:
+            args.append("--all")
+        return args
+
+    def wait_for_ready(self):
+        while not self._ready:
+            ping_url = "http://{}:{}".format(self.host, self.port)
+            try:
+                requests.get(ping_url)
+            except requests.exceptions.ConnectionError:
+                time.sleep(0.1)
+            else:
+                self._ready = True
+
+def _guild_bin():
+    this_dir = os.path.dirname(__file__)
+    return os.path.join(this_dir, "scripts/guild")
 
 class StaticBase(object):
 
@@ -194,6 +247,7 @@ def _view_app(data):
         routing.Rule("/runs", endpoint=(_handle_runs, (data,))),
         routing.Rule("/runs/<path:_>", endpoint=(run_files.handle, ())),
         routing.Rule("/config", endpoint=(_handle_config, (data,))),
+        routing.Rule("/tensorboard", endpoint=(_handle_tensorboard, (data,))),
         routing.Rule("/", endpoint=(dist_files.handle_index, ())),
         routing.Rule("/<path:_>", endpoint=(dist_files.handle, ())),
     ])
@@ -222,6 +276,27 @@ def _handle_runs(req, data):
 
 def _handle_config(req, data):
     return _json_resp(data.config(req.args))
+
+def _handle_tensorboard(req, data):
+    qs = req.query_string
+    server = tb_servers.get(qs)
+    if not server:
+        host = _strip_port(req.host)
+        port = util.free_port()
+        tb_args = data.tensorboard_args(req.args)
+        cwd = req.args.get("cwd") or config.cwd()
+        tb_servers[qs] = server = _init_tb_server(host, port, cwd, tb_args)
+    url = "http://{}:{}".format(server.host, server.port)
+    return redirect(url, code=303)
+
+def _init_tb_server(host, port, cwd, tb_args):
+    server = TBServer(host, port, cwd, tb_args)
+    server.start()
+    server.wait_for_ready()
+    return server
+
+def _strip_port(host):
+    return host.rsplit(":", 1)[0]
 
 def _json_resp(data):
     return Response(

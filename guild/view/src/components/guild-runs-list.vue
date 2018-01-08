@@ -1,20 +1,18 @@
 <template>
   <v-list>
-    <v-subheader>
-      <div>Runs</div>
-      <v-spacer />
-      <v-tooltip right transition="fade-transition">
-        <v-btn
-          flat small
-          slot="activator"
-          @click="tensorboard">
-          &ensp;View in TensorBoard
-        </v-btn>
-        <span>View in TensorBoard</span>
-      </v-tooltip>
-    </v-subheader>
+    <v-subheader>Runs</v-subheader>
+    <div style="margin-top:-8px">
+      <v-btn
+        flat small
+        slot="activator"
+        color="primary"
+        @click="tensorboard">
+        <v-icon>timeline</v-icon>
+        &ensp;View in TensorBoard
+      </v-btn>
+    </div>
     <v-list-tile>
-      <div style="width:100%; margin-top:-24px">
+      <div style="width:100%; margin-top:-18px">
         <v-text-field
           v-model="filter"
           append-icon="search"
@@ -86,7 +84,10 @@
      },
 
      tensorboard() {
-       console.log('TODO: open TensorBoard in another tab');
+       const qs = window.location.search;
+       window.open(
+         process.env.VIEW_BASE + '/tensorboard' + qs,
+         'guild-tb-' + qs);
      }
    }
  };

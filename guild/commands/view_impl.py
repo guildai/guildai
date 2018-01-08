@@ -34,21 +34,6 @@ class ViewDataImpl(view.ViewData):
         self._args = args
 
     def runs(self, params):
-        if params.has_key("run"):
-            return self._one_run(params["run"])
-        else:
-            return self._runs(params)
-
-    @staticmethod
-    def _one_run(run_id):
-        try:
-            full_id, _ = next(var.find_runs(run_id))
-        except StopIteration:
-            return []
-        else:
-            return [_run_data(_run_for_id(full_id))]
-
-    def _runs(self, params):
         args = self._args_for_params(params)
         with config.SetCwd(self._cwd(params)):
             runs = runs_impl.runs_for_args(args)
@@ -58,6 +43,7 @@ class ViewDataImpl(view.ViewData):
         if not params:
             return self._args
         return click_util.Args({
+            "run_ids": tuple(params.getlist("run")),
             "ops": tuple(params.getlist("op")),
             "running": params.has_key("running"),
             "completed": params.has_key("completed"),
@@ -114,6 +100,24 @@ class ViewDataImpl(view.ViewData):
             return cwd
         else:
             return os.path.join(*parts[-2:])
+
+    def tensorboard_args(self, params):
+        args = []
+        for run_id in params.getlist("run"):
+            args.extend(["--run", run_id])
+        for op in params.getlist("op"):
+            args.extend(["--op", op])
+        if params.has_key("running"):
+            args.append("--running")
+        if params.has_key("completed"):
+            args.append("--completed")
+        if params.has_key("error"):
+            args.append("--error")
+        if params.has_key("terminated"):
+            args.append("--terminated")
+        if params.has_key("all"):
+            args.append("--all")
+        return args
 
 def _run_for_id(run_id):
     return runs_impl.init_run(var.get_run(run_id))
