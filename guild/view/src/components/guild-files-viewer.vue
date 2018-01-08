@@ -137,7 +137,7 @@
 
    methods: {
      handleKeyDown(e) {
-       if (!this.value || isMenuOpen()) {
+       if (!this.value || e.defaultPrevented) {
          return;
        }
        if (e.keyCode === 27) { // Esc
@@ -155,11 +155,6 @@
      }
    }
  };
-
- function isMenuOpen() {
-   return document.getElementsByClassName(
-     'menuable__content__active').length > 0;
- }
 
  function maybeWrapIndex(index, array) {
    if (index < 0) {
