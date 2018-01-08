@@ -83,6 +83,7 @@ def _runs_filter(args):
     _apply_status_filter(args, filters)
     _apply_cwd_modelfile_filter(args, filters)
     _apply_ops_filter(args, filters)
+    _apply_run_id_filter(args, filters)
     return var.run_filter("all", filters)
 
 def _apply_status_filter(args, filters):
@@ -121,14 +122,22 @@ def _cwd_run_filter(abs_cwd):
     return f
 
 def _apply_ops_filter(args, filters):
-    ops = getattr(args, "ops", [])
-    if ops:
-        filters.append(_op_run_filter(ops))
+    if args.ops:
+        filters.append(_op_run_filter(args.ops))
 
 def _op_run_filter(op_refs):
     def f(run):
         op_desc = format_op_desc(run.opref, nowarn=True)
         return any((ref in op_desc for ref in op_refs))
+    return f
+
+def _apply_run_id_filter(args, filters):
+    if args.run_ids:
+        filters.append(_run_id_filter(args.run_ids))
+
+def _run_id_filter(run_ids):
+    def f(run):
+        return any((run.id.startswith(id) for id in run_ids))
     return f
 
 def init_run(run):
