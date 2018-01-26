@@ -44,7 +44,12 @@ from .train import train
 from .uninstall import uninstall
 from .view import view
 
-DEFAULT_GUILD_HOME = os.path.join("~", ".guild")
+try:
+    _home = os.environ["VIRTUAL_ENV"]
+except KeyError:
+    _home = "~"
+
+DEFAULT_GUILD_HOME = os.path.join(_home, ".guild")
 
 @click.group(cls=click_util.Group)
 @click.version_option(
