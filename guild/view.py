@@ -91,13 +91,14 @@ class DevServer(threading.Thread):
     def run(self):
         args = [
             _devserver_bin(),
-            "--progress",
             "--config", _devserver_config(),
+            "--progress",
         ]
         env = {
             "HOST": self.host,
             "PORT": str(self.port),
-            "VIEW_BASE": "http://{}:{}".format(self.host, self.view_port)
+            "VIEW_BASE": "http://{}:{}".format(self.host, self.view_port),
+            "PATH": os.environ["PATH"],
         }
         p = subprocess.Popen(args, env=env)
         p.wait()
