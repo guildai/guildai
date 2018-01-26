@@ -15,6 +15,7 @@
 import glob
 import os
 import shutil
+import subprocess
 import sys
 import zipfile
 
@@ -62,64 +63,81 @@ class BinaryDistribution(Distribution):
         return True
 
 class Build(build_py):
+    """Extension of default build with additional pre-processing.
+
+    In preparation for setuptool's default build, we perform these
+    additional pre-processing steps:
+
+    - Ensure external dependencies
+    - Build view distribution
+
+    See MANIFEST.in for a complete list of data files includes in the
+    Guild distribution.
+    """
 
     def run(self):
-        self.ensure_external()
+        _ensure_external()
+        _build_view_dist()
         build_py.run(self)
 
-    def ensure_external(self):
-        for name in EXTERNAL:
-            if os.path.exists(self.external_marker(name)):
-                continue
-            self.install_external(name, EXTERNAL[name])
+def _ensure_external():
+    """Ensure EXTERNAL deps are available."""
 
-    @staticmethod
-    def external_marker(name):
-        return os.path.join(
-            "./guild/external",
-            ".{}-py{}".format(name, sys.version_info[0]))
+    for name in EXTERNAL:
+        if os.path.exists(_external_marker(name)):
+            continue
+        _install_external(name, EXTERNAL[name])
 
-    def install_external(self, name, dist_spec):
-        with util.TempDir(prefix="pip-", suffix="-download") as tmp:
-            wheel_path = self.pip_wheel(name, dist_spec, tmp)
-            self.install_external_wheel(wheel_path)
-            open(self.external_marker(name), "w").close()
+def _external_marker(name):
+    return os.path.join(
+        "./guild/external",
+        ".{}-py{}".format(name, sys.version_info[0]))
 
-    @staticmethod
-    def pip_wheel(name, dist_spec, root):
-        path, tag = dist_spec
-        url = "git+https://github.com/{}@{}#egg={}".format(path, tag, name)
-        src_dir = os.path.join(root, "src")
-        build_dir = os.path.join(root, "src")
-        wheel_dir = os.path.join(root, "wheel")
-        assert not os.path.exists(wheel_dir), wheel_dir
-        args = [
-            "--editable", url,
-            "--src", src_dir,
-            "--build", build_dir,
-            "--wheel-dir", wheel_dir,
-        ]
-        from pip.commands.wheel import WheelCommand
-        cmd = WheelCommand()
-        options, cmd_args = cmd.parse_args(args)
-        cmd.run(options, cmd_args)
-        wheels = glob.glob(os.path.join(wheel_dir, "*.whl"))
-        assert len(wheels) == 1, wheels
-        return wheels[0]
+def _install_external(name, dist_spec):
+    with util.TempDir(prefix="pip-", suffix="-download") as tmp:
+        wheel_path = _pip_wheel(name, dist_spec, tmp)
+        _install_external_wheel(wheel_path)
+        open(_external_marker(name), "w").close()
 
-    @staticmethod
-    def install_external_wheel(wheel_path):
-        zf = zipfile.ZipFile(wheel_path)
-        util.ensure_dir("./guild/external")
-        zf.extractall("./guild/external")
+def _pip_wheel(name, dist_spec, root):
+    path, tag = dist_spec
+    url = "git+https://github.com/{}@{}#egg={}".format(path, tag, name)
+    src_dir = os.path.join(root, "src")
+    build_dir = os.path.join(root, "src")
+    wheel_dir = os.path.join(root, "wheel")
+    assert not os.path.exists(wheel_dir), wheel_dir
+    args = [
+        "--editable", url,
+        "--src", src_dir,
+        "--build", build_dir,
+        "--wheel-dir", wheel_dir,
+    ]
+    from pip.commands.wheel import WheelCommand
+    cmd = WheelCommand()
+    options, cmd_args = cmd.parse_args(args)
+    cmd.run(options, cmd_args)
+    wheels = glob.glob(os.path.join(wheel_dir, "*.whl"))
+    assert len(wheels) == 1, wheels
+    return wheels[0]
 
-def patch_git_obtain():
+def _install_external_wheel(wheel_path):
+    zf = zipfile.ZipFile(wheel_path)
+    util.ensure_dir("./guild/external")
+    zf.extractall("./guild/external")
+
+def _build_view_dist():
+    """Build view distribution."""
+
+    subprocess.check_call(["npm", "run", "build"], cwd="./guild/view")
+
+def _patch_git_obtain():
     """Patch pip's git 'obtain' to download rather than clone.
 
     pip wants to clone the git repos, which can take a long time. As
     we always use temp dirs for downloads, there no payoff for the
     full clone. This patch downloads and unpacks the revision archive.
     """
+
     def obtain(self, dest):
         url, rev = self.get_url_rev()
         archive_url = "{}/archive/{}.zip".format(url, rev)
@@ -136,13 +154,11 @@ def patch_git_obtain():
                     shutil.copyfileobj(fsrc, fdst)
     Git.obtain = obtain
 
-patch_git_obtain()
+_patch_git_obtain()
 
 setup(
     # Setup class config
-    cmdclass={
-        "build_py": Build
-    },
+    cmdclass={"build_py": Build},
     distclass=BinaryDistribution,
 
     # Attributes from dist-info
