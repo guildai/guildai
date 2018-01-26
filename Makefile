@@ -1,3 +1,11 @@
+OS = $(shell uname -s)
+
+ifeq ($(OS),Linux)
+    pip_plat_name_args = "-p manylinux_x86_64"
+else
+    pip_plat_name_args = ""
+endif
+
 .PHONY: build
 
 build:
@@ -9,12 +17,15 @@ install-reqs:
 	 pip3 install --user -r requirements.txt
 
 pip-package:
-	python2 setup.py bdist_wheel
-	python3 setup.py bdist_wheel
+	python2 setup.py bdist_wheel -p manylinux1_x86_64
+	python3 setup.py bdist_wheel -p manylinux1_x86_64
 
 pip-upload:
 	make pip-package
 	twine upload -si packages@guild.ai -u guildai dist/*.whl
+
+pip-clean:
+	rm -rf build dist guildai.egg-info
 
 check:
 	@if [ -z "$(TESTS)" ]; then \
