@@ -1,10 +1,9 @@
 <template>
   <v-list>
     <v-subheader>Runs</v-subheader>
-    <div style="margin-top:-8px">
+    <div style="margin-top:-5px;margin-bottom:5px">
       <v-btn
         flat small
-        slot="activator"
         color="primary"
         @click="tensorboard">
         <v-icon>timeline</v-icon>
