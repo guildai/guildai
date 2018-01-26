@@ -45,11 +45,11 @@ class ViewDataImpl(view.ViewData):
         return click_util.Args({
             "run_ids": tuple(params.getlist("run")),
             "ops": tuple(params.getlist("op")),
-            "running": params.has_key("running"),
-            "completed": params.has_key("completed"),
-            "error": params.has_key("error"),
-            "terminated": params.has_key("terminated"),
-            "all": params.has_key("all"),
+            "running": "running" in params,
+            "completed": "completed" in params,
+            "error": "error" in params,
+            "terminated": "terminated" in params,
+            "all": "all" in params,
         })
 
     @staticmethod
@@ -75,7 +75,7 @@ class ViewDataImpl(view.ViewData):
         }
 
     def _title_label(self, params, args, cwd):
-        if params.has_key("run"):
+        if "run" in params:
             return self._single_run_title_label(params["run"])
         elif args.all:
             return self._all_title_label(args)
@@ -107,15 +107,15 @@ class ViewDataImpl(view.ViewData):
             args.extend(["--run", run_id])
         for op in params.getlist("op"):
             args.extend(["--op", op])
-        if params.has_key("running"):
+        if "running" in params:
             args.append("--running")
-        if params.has_key("completed"):
+        if "completed" in params:
             args.append("--completed")
-        if params.has_key("error"):
+        if "error" in params:
             args.append("--error")
-        if params.has_key("terminated"):
+        if "terminated" in params:
             args.append("--terminated")
-        if params.has_key("all"):
+        if "all" in params:
             args.append("--all")
         return args
 
