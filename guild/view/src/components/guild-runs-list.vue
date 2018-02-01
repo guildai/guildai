@@ -1,7 +1,7 @@
 <template>
   <v-list>
     <v-subheader>Runs</v-subheader>
-    <div style="margin-top:-5px;margin-bottom:5px">
+    <div class="runs-view-in-tensorboard">
       <v-btn
         flat small
         color="primary"
@@ -93,20 +93,26 @@
 </script>
 
 <style>
- .list__tile {
-   height: inherit;
-   padding: 10px 16px;
- }
+.list__tile {
+  height: inherit;
+  padding: 10px 16px;
+}
 
- .rev-ellipsis-container {
-   width: 100%;
- }
+.rev-ellipsis-container {
+  width: 100%;
+}
 
- .rev-ellipsis {
-   direction: rtl;
- }
+.rev-ellipsis {
+  direction: rtl;
+}
 
- li.selected {
-   background-color: #f5f5f5;
- }
+li.selected {
+  background-color: #f5f5f5;
+}
+
+.runs-view-in-tensorboard {
+  position: absolute;
+  top: 12px;
+  right: 0;
+}
 </style>
