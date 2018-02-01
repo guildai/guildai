@@ -17,6 +17,6 @@ const router = new VueRouter({ mode: 'history' });
 
 new Vue({
   el: '#app',
-  template: '<guild-view/>',
+  template: '<guild-view />',
   router
 });
