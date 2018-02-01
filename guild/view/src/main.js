@@ -4,6 +4,7 @@ import Vuetify from 'vuetify';
 import VueRouter from 'vue-router';
 import GuildView from './components';
 
+import 'material-design-icons/iconfont/material-icons.css';
 import 'vuetify/dist/vuetify.css';
 import 'mdi/css/materialdesignicons.css';
 
