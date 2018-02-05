@@ -29,20 +29,20 @@ from . import run
 def train(args):
     """Train a model.
 
-    Equivalent to running 'guild run [MODEL:]train [ARG...]'.
+    Equivalent to running ``guild run [MODEL:]train [ARG...]``.
 
-    By default MODEL is the default model defined in the directory.
+    By default `MODEL` is the default model defined in the directory.
 
-    MODEL may be a partial name of a matching model provided it
+    `MODEL` may be a partial name of a matching model provided it
     matches only one model.
 
-    You may omit MODEL (i.e. for training the default model) while
-    providing one or more ARG values provided the first ARG value
+    You may omit `MODEL` (i.e. for training the default model) while
+    providing one or more `ARG` values provided the first `ARG` value
     contains an equals sign ('='). When specifying a switch (i.e. an
-    argument that doesn't accept a value) as the first ARG, you must
-    provide MODEL.
+    argument that doesn't accept a value) as the first `ARG`, you must
+    provide `MODEL`.
 
-    Refer to help for the run command ('guild run --help') for more
+    Refer to help for the run command (``guild run --help``) for more
     information.
 
     """

@@ -29,8 +29,9 @@ from guild import click_util
 def resources(args):
     """Show available resources.
 
-    By default Guild will show resources defined in the current directory
-    Use --all to show all resources.
+    By default Guild will show resources defined in the current
+    directory Use `--all` to show all resources.
+
     """
     from . import resources_impl
     resources_impl.main(args)

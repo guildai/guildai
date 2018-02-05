@@ -43,13 +43,13 @@ from . import runs_support
 def run_info(ctx, args):
     """Show run details.
 
-    RUN must be a run ID (or the start of a run ID that uniquely
+    `RUN` must be a run ID (or the start of a run ID that uniquely
     identifies a run) or a zero-based index corresponding to the run
     as it appears in the list of filtered runs.
 
-    By default the latest run is selected (index 0).
+    By default the latest run is selected (index `0`).
 
-    EXAMPLES
+    ### Examples
 
     Show info for the latest run in the current project:
 
@@ -63,7 +63,7 @@ def run_info(ctx, args):
 
         guild runs info -c
 
-    Show info for run a64b1710:
+    Show info for run `a64b1710`:
 
         guild runs info a64b1710
 

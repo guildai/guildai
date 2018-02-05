@@ -44,9 +44,14 @@ def _main():
 def _configure_help_formatter():
     if os.getenv("GUILD_HELP_JSON"):
         click.Context.make_formatter = _make_json_formatter
+    else:
+        click.Context.make_formatter = _make_plaintext_formatter
 
 def _make_json_formatter(_self):
     return guild.click_util.JSONHelpFormatter()
+
+def _make_plaintext_formatter(_self):
+    return guild.click_util.HelpFormatter()
 
 def _handle_keyboard_interrupt():
     sys.exit(1)

@@ -28,8 +28,8 @@ from guild import click_util
 def list_packages(args):
     """List installed packages.
 
-    Specify one or more TERMs to show packages matching any of the
-    specified values.
+    Specify one or more `TERM` arguments to show packages matching any
+    of the specified values.
 
     """
     from . import packages_impl

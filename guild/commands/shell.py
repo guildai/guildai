@@ -25,6 +25,7 @@ from guild import click_util
 
 def shell(args):
     """Start a Python shell for API experimentation.
+
     """
     from . import shell_impl
     shell_impl.main(args)

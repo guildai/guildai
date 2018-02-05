@@ -23,11 +23,11 @@ from . import runs_support
 @click.command("purge", help="""
 Permanently delete specified runs.
 
-WARNING: Purged runs cannot be recovered!
+**WARNING**: Purged runs cannot be recovered!
 
 %s
 
-If a RUN is not specified, assumes all runs (i.e. as if ':' was
+If a run is not specified, assumes all runs (i.e. as if ``:`` was
 specified).
 """ % runs_support.RUN_ARG_HELP)
 @click.argument("runs", metavar="[RUN...]", nargs=-1)

@@ -39,7 +39,8 @@ def help(args):
     project.
 
     To display the description for distributions generated using the
-    package command, specify the --package-description option.
+    package command, specify the `--package-description` option.
+
     """
     from . import help_impl
     help_impl.main(args)

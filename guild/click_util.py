@@ -44,6 +44,24 @@ class Group(click.Group):
                 break
         return super(Group, self).get_command(ctx, cmd_name)
 
+class HelpFormatter(click.formatting.HelpFormatter):
+
+    _text_subs = [
+        (re.compile("``"), "'"),
+        (re.compile("`"), ""),
+        (re.compile(r"^### (.+?)$", re.MULTILINE),
+         lambda m: m.group(1).upper()),
+        (re.compile(r"\*\*"), ""),
+    ]
+
+    def write_text(self, text):
+        super(HelpFormatter, self).write_text(self._format_text(text))
+
+    def _format_text(self, text):
+        for pattern, repl in self._text_subs:
+            text = pattern.sub(repl, text)
+        return text
+
 class JSONHelpFormatter(object):
 
     _finalized = object()
@@ -106,7 +124,7 @@ class JSONHelpFormatter(object):
     def write_dl(self, rows, **_kw):
         assert self._cur_dl is not None
         self._cur_dl.extend([{
-            "usage": term,
+            "term": term,
             "help": definition
         } for term, definition in rows])
 

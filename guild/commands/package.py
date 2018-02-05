@@ -33,7 +33,7 @@ from guild import click_util
     flag_value="https://test.pypi.org/legacy/")
 @click.option(
     "--upload-repo", "upload", metavar="REPO",
-    help="Upload to REPO after creating the package.")
+    help="Upload to `REPO` after creating the package.")
 @click.option(
     "-s", "--sign",
     help="Sign a package distribution upload with gpg.",
@@ -56,18 +56,19 @@ from guild import click_util
 def package(args):
     """Create a package for distribution.
 
-    Packages are built from projects that contain a PACKAGE file that
+    Packages are built from projects that contain a `PACKAGE` file that
     describes the package to be built.
 
     You may upload the generated package distribution to a PyPI
-    repository by using the --upload option or to the PyPI test site
-    by using --upload-test.
+    repository by using the `--upload` option or to the PyPI test site
+    by using `--upload-test`.
 
     You may upload to an alternative repository using
-    --upload-repo. REPO may be a URL or the name of a section in
-    ~/.pypirc. For more information on the .pypirc file, see:
+    `--upload-repo`. `REPO` may be a URL or the name of a section in
+    `~/.pypirc`. For more information on the `.pypirc` file, see:
 
-        https://docs.python.org/2/distutils/packageindex.html#pypirc
+    https://docs.python.org/2/distutils/packageindex.html#pypirc
+
     """
     from . import package_impl
     package_impl.create_package(args)

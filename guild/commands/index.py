@@ -33,6 +33,7 @@ from guild import click_util
 
 def index(args):
     """Mange the run index.
+
     """
     from . import index_impl
     index_impl.main(args)

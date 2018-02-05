@@ -39,8 +39,8 @@ from guild import click_util
 def inspect_checkpoint(args):
     """Inspect a TensorFlow checkpoint file.
 
-    PATH is the path to the checkpoint file (usually ending in
-    '.ckpt').
+    `PATH` is the path to the checkpoint file (usually ending in
+    ``.ckpt``).
 
     """
     from . import tensorflow_impl

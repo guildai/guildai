@@ -30,16 +30,17 @@ def list_runs(args):
     """List runs.
 
     By default lists runs associated with models defined in the
-    current directory, or LOCATION if specified. To list all runs, use
-    the --system option.
+    current directory, or `LOCATION` if specified. To list all runs, use
+    the `--system` option.
 
-    To list deleted runs, use the --deleted option. Note that runs are
-    still limited to the specified project unless --system is
+    To list deleted runs, use the `--deleted` option. Note that runs are
+    still limited to the specified project unless `--system` is
     specified.
 
     You may apply any of the filter options below to limit the runs
-    listed. Additionally, you may specify FILTER arguments to further
-    limit the results.
+    listed. Additionally, you may specify `FILTER` arguments to
+    further limit the results.
+
     """
     from . import runs_impl
     runs_impl.list_runs(args)

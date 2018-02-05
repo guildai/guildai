@@ -25,6 +25,7 @@ from .tensorflow_inspect_checkpoint import inspect_checkpoint
 
 def tensorflow():
     """Collection of TensorFlow tools.
+
     """
 
 tensorflow.add_command(inspect_checkpoint)

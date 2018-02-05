@@ -26,7 +26,7 @@ from guild import click_util
     is_flag=True)
 @click.option(
     "-t", "--test", "tests", metavar="TEST",
-    help="Run TEST (may be used multiple times).",
+    help="Run `TEST` (may be used multiple times).",
     multiple=True)
 @click.option(
     "-n", "--no-info",
@@ -34,7 +34,7 @@ from guild import click_util
     is_flag=True)
 @click.option(
     "-s", "--skip", metavar="TEST",
-    help="Skip TEST when running Guild test suite. Ignored otherwise.",
+    help="Skip `TEST` when running Guild test suite. Ignored otherwise.",
     multiple=True)
 @click.option("-v", "--verbose", help="Show more information.", is_flag=True)
 @click.option("--uat", hidden=True, is_flag=True)
@@ -47,8 +47,9 @@ def check(args):
     This command performs a number of checks and prints information
     about the Guild setup.
 
-    You can also run the Guild test suite by specifying the --tests
+    You can also run the Guild test suite by specifying the `--tests`
     option.
+
     """
     from . import check_impl
     check_impl.main(args)

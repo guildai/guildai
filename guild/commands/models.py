@@ -30,10 +30,11 @@ def models(args):
     """Show available models.
 
     By default Guild will show models defined in the current directory
-    Use --all to show all models.
+    Use `--all` to show all models.
 
-    Use one or more FILTER arguments to show only models that match
+    Use one or more `FILTER` arguments to show only models that match
     the specified values.
+
     """
     from . import models_impl
     models_impl.main(args)

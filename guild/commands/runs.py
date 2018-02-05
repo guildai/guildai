@@ -37,8 +37,9 @@ from .runs_restore import restore_runs
 def runs(ctx, **kw):
     """Show or manage runs.
 
-    If COMMAND is omitted, lists run. Refer to 'guild runs list
-    --help' for more information on the list command.
+    If `COMMAND` is omitted, lists run. Refer to ``guild runs list
+    --help`` for more information on the `list` command.
+
     """
     if not ctx.invoked_subcommand:
         ctx.invoke(list_runs, **kw)

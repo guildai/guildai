@@ -28,10 +28,10 @@ from guild import click_util
 def search(args):
     """Search for a package.
 
-    Specify one or more TERMs to search for.
+    Specify one or more `TERM` arguments to search for.
 
     By default, only Guild packages are returned. To search all
-    packages, use the --all option.
+    packages, use the `--all` option.
 
     """
     from . import search_impl

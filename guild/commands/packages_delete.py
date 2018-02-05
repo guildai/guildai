@@ -39,8 +39,8 @@ def delete_params(fn):
 def delete_packages(args):
     """Uninstall one or more packages.
 
-    This command is equivalent to 'guild uninstall [OPTIONS]
-    PACKAGE...'
+    This command is equivalent to ``guild uninstall [OPTIONS]
+    PACKAGE...``
     """
     from . import packages_impl
     packages_impl.uninstall_packages(args)

@@ -20,13 +20,14 @@ import click
 from guild import click_util
 
 RUN_ARG_HELP = """
-RUN may be a run ID (or the unique start of a run ID) or a zero-based
-index corresponding to a run returned by the list command. Indexes may
-also be specified in ranges in the form START:END where START is the
-start index and END is the end index. Either START or END may be
-omitted. If START is omitted, all runs up to END are selected. If END
-id omitted, all runs from START on are selected. If both START and END
-are omitted (i.e. the ':' char is used by itself) all runs are selected.
+`RUN` may be a run ID (or the unique start of a run ID) or a
+zero-based index corresponding to a run returned by the list
+command. Indexes may also be specified in ranges in the form
+`START:END` where `START` is the start index and `END` is the end
+index. Either `START` or `END` may be omitted. If `START` is omitted,
+all runs up to `END` are selected. If `END` id omitted, all runs from
+`START` on are selected. If both `START` and `END` are omitted
+(i.e. the ``:`` char is used by itself) all runs are selected.
 """
 
 def run_scope_options(fn):
@@ -42,11 +43,11 @@ def run_filters(fn):
     click_util.append_params(fn, [
         click.Option(
             ("-r", "--run", "run_ids"), metavar="RUN_ID",
-            help="Include runs matching RUN_ID",
+            help="Include runs matching `RUN_ID`.",
             multiple=True),
         click.Option(
             ("-o", "--op", "ops"), metavar="[MODEL:]OP",
-            help="Include only runs matching [MODEL:]OP.",
+            help="Include only runs matching `[MODEL:]OP`.",
             multiple=True),
         click.Option(
             ("-R", "--running"),

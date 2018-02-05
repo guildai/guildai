@@ -40,6 +40,7 @@ from . import runs_support
 
 def view(args):
     """Visualize runs.
+
     """
     from . import view_impl
     view_impl.main(args)

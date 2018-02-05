@@ -30,10 +30,11 @@ def operations(args):
     """Show model operations.
 
     By default shows operations for the models in the current
-    directory. Use --all to show operations for all models.
+    directory. Use `--all` to show operations for all models.
 
-    Use one or more FILTER arguments to show only operations whose
+    Use one or more `FILTER` arguments to show only operations whose
     names or models match the specified values.
+
     """
     from . import operations_impl
     operations_impl.main(args)

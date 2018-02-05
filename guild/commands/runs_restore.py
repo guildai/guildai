@@ -25,7 +25,7 @@ Restore one or more deleted runs.
 
 %s
 
-If a RUN is not specified, assumes all runs (i.e. as if ':' was
+If a run is not specified, assumes all runs (i.e. as if ``:`` was
 specified).
 """ % runs_support.RUN_ARG_HELP)
 

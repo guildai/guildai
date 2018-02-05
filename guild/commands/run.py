@@ -64,13 +64,14 @@ def run_params(fn):
 def run(args):
     """Run a model operation.
 
-    By default Guild will try to run OPERATION for the default model
+    By default Guild will try to run `OPERATION` for the default model
     defined in a project. If a project location is not specified (see
-    --project option below), Guild looks for a project in the current
-    directory.
+    `--project` option below), Guild looks for a project in the
+    current directory.
 
-    If MODEL is specified, Guild will use it instead of the default
+    If `MODEL` is specified, Guild will use it instead of the default
     model defined in a project.
+
     """
     from . import run_impl
     run_impl.main(args)

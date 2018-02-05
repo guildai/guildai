@@ -34,6 +34,7 @@ from . import runs_support
 
 def compare(args):
     """Compare run results.
+
     """
     from . import compare_impl
     compare_impl.main(args)
