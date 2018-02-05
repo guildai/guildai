@@ -137,7 +137,6 @@
     input placeholder text. */
  .input-group {
    margin-top: -4px;
-   margin-right: 16px;
  }
 
  td.type-icon {
