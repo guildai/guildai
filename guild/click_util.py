@@ -15,7 +15,9 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import contextlib
 import functools
+import json
 import re
 
 import click
@@ -39,6 +41,73 @@ class Group(click.Group):
                 cmd_name = cmd.name
                 break
         return super(Group, self).get_command(ctx, cmd_name)
+
+class JSONHelpFormatter(object):
+
+    _finalized = object()
+
+    def __init__(self):
+        self._val = {}
+        self._help_text = None
+        self._cur_dl = None
+        self._buf = []
+
+    def write_usage(self, prog, args='', **_kw):
+        self._val["usage"] = {
+            "prog": prog,
+            "args": args
+        }
+
+    def write_paragraph(self):
+        if self._help_text is not None:
+            self._help_text.append("\n")
+
+    @contextlib.contextmanager
+    def indentation(self):
+        self.indent()
+        try:
+            yield
+        finally:
+            self.dedent()
+
+    def indent(self):
+        if self._help_text is None:
+            self._help_text = []
+
+    def dedent(self):
+        if (self._help_text is not None and
+            self._help_text is not self._finalized):
+            self._val["help"] = "".join(self._help_text)
+            self._help_text = self._finalized
+
+    def write_text(self, text):
+        assert self._help_text is not None
+        assert self._help_text is not self._finalized
+        self._help_text.append(text)
+
+    @contextlib.contextmanager
+    def section(self, name):
+        if name == "Options":
+            self._val["options"] = self._cur_dl = []
+        elif name == "Commands":
+            self._val["commands"] = self._cur_dl = []
+        else:
+            raise AssertionError(name)
+        self.indent()
+        try:
+            yield
+        finally:
+            self.dedent()
+
+    def write_dl(self, rows, **_kw):
+        assert self._cur_dl is not None
+        self._cur_dl.extend([{
+            "usage": term,
+            "help": definition
+        } for term, definition in rows])
+
+    def getvalue(self):
+        return json.dumps(self._val)
 
 def use_args(fn0):
     def fn(*args, **kw):

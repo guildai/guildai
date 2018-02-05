@@ -30,6 +30,7 @@ def main():
         _main()
 
 def _main():
+    _configure_help_formatter()
     try:
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         guild.commands.main.main(standalone_mode=False)
@@ -39,6 +40,13 @@ def _main():
         _handle_click_exception(e,)
     except SystemExit as e:
         _handle_system_exit(e)
+
+def _configure_help_formatter():
+    if os.getenv("GUILD_HELP_JSON"):
+        click.Context.make_formatter = _make_json_formatter
+
+def _make_json_formatter(_self):
+    return guild.click_util.JSONHelpFormatter()
 
 def _handle_keyboard_interrupt():
     sys.exit(1)
