@@ -38,7 +38,7 @@ def train(args):
 
     You may omit `MODEL` (i.e. for training the default model) while
     providing one or more `ARG` values provided the first `ARG` value
-    contains an equals sign ('='). When specifying a switch (i.e. an
+    contains an equals sign (``=``). When specifying a switch (i.e. an
     argument that doesn't accept a value) as the first `ARG`, you must
     provide `MODEL`.
 
