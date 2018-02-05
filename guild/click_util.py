@@ -22,6 +22,8 @@ import re
 
 import click
 
+import guild
+
 class Args(object):
 
     def __init__(self, kw):
@@ -47,7 +49,9 @@ class JSONHelpFormatter(object):
     _finalized = object()
 
     def __init__(self):
-        self._val = {}
+        self._val = {
+            "version": guild.version()
+        }
         self._help_text = None
         self._cur_dl = None
         self._buf = []
