@@ -70,7 +70,7 @@ def main(args):
             " or rerun check with the --verbose option" if not args.verbose
             else "")
         guild.cli.error(
-            "there are problems with your Guild setup\n"
+            "there are problems with your setup\n"
             "Refer to the issues above for more information%s."
             % use_verbose)
 
