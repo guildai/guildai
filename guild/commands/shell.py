@@ -24,7 +24,9 @@ from guild import click_util
 @click_util.use_args
 
 def shell(args):
-    """Start a Python shell for API experimentation.
+    """Start a Python shell for API use.
+
+    **NOTE:** This is a developer feature.
 
     """
     from . import shell_impl
