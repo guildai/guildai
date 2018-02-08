@@ -333,6 +333,7 @@ class ModelDef(FlagHost):
         self.modelfile = modelfile
         self.name = data.get("name")
         self.description = data.get("description", "").strip()
+        self.references = data.get("references", [])
         self.private = bool(data.get("private"))
         self.operations = _init_ops(data.get("operations", {}), self)
         self.resources = _init_resources(data.get("resources", {}), self)

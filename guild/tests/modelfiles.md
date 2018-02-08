@@ -300,6 +300,20 @@ However, no more than one is allowed:
     ResourceFormatError: invalid source {'file': 'foo.txt', 'url': 'http://files.com/bar.txt'}
     in resource 'sample': conflicting attributes (file, url)
 
+## References
+
+A list of references may be included for each model. These can be used
+to direct users to upstream sources and papers.
+
+    >>> mf = modelfile.from_string("""
+    ... name: sample
+    ... references:
+    ...   - https://arxiv.org/abs/1603.05027
+    ...   - https://arxiv.org/abs/1512.03385
+    ... """)
+    >>> mf["sample"].references
+    ['https://arxiv.org/abs/1603.05027', 'https://arxiv.org/abs/1512.03385']
+
 ## Includes
 
 Guild model files support includes.
