@@ -182,16 +182,36 @@ def _format_details(details):
         lines.append(line)
     return lines
 
-def file_sha256(path):
+def file_sha256(path, use_cache=True):
+    if use_cache:
+        cached_sha = try_cached_sha(path)
+        if cached_sha:
+            return cached_sha
     import hashlib
     hash = hashlib.sha256()
     with open(path, "rb") as f:
         while True:
-            data = f.read(1024)
+            data = f.read(102400)
             if not data:
                 break
             hash.update(data)
     return hash.hexdigest()
+
+def try_cached_sha(for_file):
+    try:
+        f = open(_cached_sha_filename(for_file), "r")
+    except IOError:
+        return None
+    else:
+        return f.read().rstrip()
+
+def _cached_sha_filename(for_file):
+    parent, name = os.path.split(for_file)
+    return os.path.join(parent, ".guild-cache-%s.sha" % name)
+
+def write_cached_sha(sha, for_file):
+    with open(_cached_sha_filename(for_file), "w") as f:
+        f.write(sha)
 
 def parse_url(url):
     try:
@@ -424,3 +444,12 @@ def is_text_file(path, ignore_ext=False):
             if b'\x00' in sample or b'\xff' in sample:
                 return False
         return True
+
+def touch(filename):
+    open(filename, "a").close()
+
+def getmtime(filename):
+    try:
+        return os.path.getmtime(filename)
+    except OSError:
+        return None

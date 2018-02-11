@@ -189,7 +189,7 @@ def _verify_path(path, sha256):
         _verify_file_hash(path, sha256)
 
 def _verify_file_hash(path, sha256):
-    actual = util.file_sha256(path)
+    actual = util.file_sha256(path, use_cache=True)
     if actual != sha256:
         raise ResolutionError(
             "'%s' has an unexpected sha256 (expected %s but got %s)"
@@ -223,7 +223,7 @@ def _selected_source_paths(root, files, select):
     selected = set()
     pattern = re.compile(select + "$")
     for path in files:
-        if path.startswith(".guild/"):
+        if path.startswith(".guild"):
             continue
         path = util.strip_trailing_path(path)
         match = pattern.match(path)
@@ -238,7 +238,7 @@ def _all_source_paths(root, files):
     root_names = [path.split("/")[0] for path in files]
     return [
         os.path.join(root, name) for name in set(root_names)
-        if name != ".guild"
+        if not name.startswith(".guild")
     ]
 
 def _maybe_unpack(source_path, source, unpack_dir):
@@ -264,7 +264,10 @@ def _archive_type(source_path, source):
 
 def _unpack(source_path, archive_type, select, unpack_dir):
     unpack_dir = unpack_dir or os.path.dirname(source_path)
-    if archive_type == "zip":
+    unpacked = _list_unpacked(source_path, unpack_dir)
+    if unpacked:
+        return _from_unpacked(unpack_dir, unpacked, select)
+    elif archive_type == "zip":
         return _unzip(source_path, select, unpack_dir)
     elif archive_type == "tar":
         return _untar(source_path, select, unpack_dir)
@@ -274,34 +277,62 @@ def _unpack(source_path, archive_type, select, unpack_dir):
             "(unsupported archive type '%s')"
             % (source_path, type))
 
-def _unzip(source_path, select, unpack_dir):
+def _list_unpacked(src, unpack_dir):
+    unpacked_src = _unpacked_src(unpack_dir, src)
+    unpacked_time = util.getmtime(unpacked_src)
+    if not unpacked_time or unpacked_time < util.getmtime(src):
+        return None
+    lines = open(unpacked_src, "r").readlines()
+    return [l.rstrip() for l in lines]
+
+def _unpacked_src(unpack_dir, src):
+    name = os.path.basename(src)
+    return os.path.join(unpack_dir, ".guild-cache-%s.unpacked" % name)
+
+def _from_unpacked(root, unpacked, select):
+    if select:
+        return _selected_source_paths(root, unpacked, select)
+    else:
+        return _all_source_paths(root, unpacked)
+
+def _unzip(src, select, unpack_dir):
     import zipfile
-    zf = zipfile.ZipFile(source_path)
+    zf = zipfile.ZipFile(src)
+    log.info("Unpacking %s", src)
     return _gen_unpack(
         unpack_dir,
+        src,
         zf.namelist,
         lambda name: name,
         zf.extractall,
         select)
 
-def _untar(source_path, select, unpack_dir):
+def _untar(src, select, unpack_dir):
     import tarfile
-    tf = tarfile.open(source_path)
+    tf = tarfile.open(src)
+    log.info("Unpacking %s", src)
     return _gen_unpack(
         unpack_dir,
+        src,
         tf.getmembers,
         lambda tfinfo: tfinfo.name,
         tf.extractall,
         select)
 
-def _gen_unpack(root, list_members, member_name, extract_all, select):
+def _gen_unpack(unpack_dir, src, list_members, member_name, extract_all, select):
     members = list_members()
     member_names = [member_name(m) for m in members]
     to_extract = [
         m for m in members
-        if not os.path.exists(os.path.join(root, member_name(m)))]
-    extract_all(root, to_extract)
+        if not os.path.exists(os.path.join(unpack_dir, member_name(m)))]
+    extract_all(unpack_dir, to_extract)
+    _write_unpacked(member_names, unpack_dir, src)
     if select:
-        return _selected_source_paths(root, member_names, select)
+        return _selected_source_paths(unpack_dir, member_names, select)
     else:
-        return _all_source_paths(root, member_names)
+        return _all_source_paths(unpack_dir, member_names)
+
+def _write_unpacked(unpacked, unpack_dir, src):
+    with open(_unpacked_src(unpack_dir, src), "w") as f:
+        for path in unpacked:
+            f.write(path + "\n")

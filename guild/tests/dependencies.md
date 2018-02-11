@@ -159,12 +159,6 @@ The test resource has the following sources:
 
 Let's use a resolver to resolve each source.
 
-We need a temporary directory as a location for unpacking archives.
-
-    >>> tmp = mkdtemp()
-    >>> dir(tmp)
-    []
-
 ### Zip source file
 
     >>> zip_source = test_res.sources[0]
@@ -188,11 +182,21 @@ invalid hash.
     'a.txt'
 
     >>> resolver = test_res.get_source_resolver(zip_source)
-    >>> resolver.resolve(tmp)
+    >>> unpack_dir = mkdtemp()
+    >>> log = LogCapture()
+    >>> with log:
+    ...   resolver.resolve(unpack_dir)
     ['/.../a.txt']
 
-    >>> dir(tmp)
-    ['a.txt', 'b.txt']
+    >>> log.print_all()
+    Unpacking .../samples/projects/resources/archive1.zip
+
+    >>> dir(unpack_dir)
+    ['.guild-cache-archive1.zip.unpacked', 'a.txt', 'b.txt']
+
+`.guild-cache-FILE.unpacked` is used by Guild to avoid re-scanning the
+archive `FILE` for members. For large archives, this saves a lot of
+time.
 
 Note that `b.txt` was also extracted into the temp directory. This is
 by design - a resource is always fully unpacked when resolved. Files
@@ -214,11 +218,17 @@ are selected by way of the source files returned by `resolve`.
     None
 
     >>> resolver = test_res.get_source_resolver(tar_source)
-    >>> sorted(resolver.resolve(tmp))
+    >>> unpack_dir = mkdtemp()
+    >>> log = LogCapture()
+    >>> with log:
+    ...   sorted(resolver.resolve(unpack_dir))
     ['/.../c.txt', '/.../d.txt']
 
-    >>> dir(tmp)
-    ['a.txt', 'b.txt', 'c.txt', 'd.txt']
+    >>> log.print_all()
+    Unpacking .../samples/projects/resources/archive2.tar
+
+    >>> dir(unpack_dir)
+    ['.guild-cache-archive2.tar.unpacked', 'c.txt', 'd.txt']
 
 ### No unpack archive
 
@@ -238,11 +248,14 @@ This source should not be unpacked:
     None
 
     >>> resolver = test_res.get_source_resolver(nounpack_source)
-    >>> resolver.resolve(tmp)
+    >>> unpack_dir = mkdtemp()
+    >>> resolver.resolve(unpack_dir)
     ['.../samples/projects/resources/archive3.tar']
 
-    >>> dir(tmp)
-    ['a.txt', 'b.txt', 'c.txt', 'd.txt']
+
+
+    >>> dir(unpack_dir)
+    []
 
 Note the source file is a path directly to the archive and not an
 extracted file.
@@ -257,11 +270,12 @@ extracted file.
     'f33ae3bc9a22cd7564990a794789954409977013966fb1a8f43c35776b833a95'
 
     >>> resolver = test_res.get_source_resolver(plain_source)
-    >>> resolver.resolve(tmp)
+    >>> unpack_dir = mkdtemp()
+    >>> resolver.resolve(unpack_dir)
     ['.../samples/projects/resources/test.txt']
 
-    >>> dir(tmp)
-    ['a.txt', 'b.txt', 'c.txt', 'd.txt']
+    >>> dir(unpack_dir)
+    []
 
 ### Invalid source file
 
@@ -273,10 +287,14 @@ extracted file.
     'xxx'
 
     >>> resolver = test_res.get_source_resolver(invalid_source)
-    >>> resolver.resolve(tmp)
+    >>> unpack_dir = mkdtemp()
+    >>> resolver.resolve(unpack_dir)
     Traceback (most recent call last):
     ResolutionError: '.../samples/projects/resources/badhash.txt' has an unexpected
     sha256 (expected xxx but got ...)
+
+    >>> dir(unpack_dir)
+    []
 
 ### Directory source file
 
@@ -285,12 +303,13 @@ extracted file.
     'file:files'
 
     >>> resolver = test_res.get_source_resolver(dir_source)
-    >>> sorted(resolver.resolve(tmp))
+    >>> unpack_dir = mkdtemp()
+    >>> sorted(resolver.resolve(unpack_dir))
     ['.../samples/projects/resources/files/e.txt',
      '.../samples/projects/resources/files/f.txt']
 
-    >>> dir(tmp)
-    ['a.txt', 'b.txt', 'c.txt', 'd.txt']
+    >>> dir(unpack_dir)
+    []
 
 ### Non existing source file
 
@@ -299,7 +318,11 @@ extracted file.
     'file:doesnt-exist'
 
     >>> resolver = test_res.get_source_resolver(noexist_source)
-    >>> resolver.resolve(tmp)
+    >>> unpack_dir = mkdtemp()
+    >>> resolver.resolve(unpack_dir)
     Traceback (most recent call last):
     ResolutionError: '.../samples/projects/resources/doesnt-exist'
     does not exist
+
+    >>> dir(unpack_dir)
+    []

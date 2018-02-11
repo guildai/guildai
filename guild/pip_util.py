@@ -25,7 +25,6 @@ from pip.commands.install import InstallCommand
 from pip.commands.search import SearchCommand
 from pip.commands.show import ShowCommand
 from pip.commands.uninstall import UninstallCommand
-from pip.download import _check_download_dir
 from pip.download import _download_http_url
 from pip.exceptions import HashMismatch as HashMismatch0
 from pip.exceptions import InstallationError
@@ -36,6 +35,7 @@ from pip.utils import get_installed_distributions
 from pip.utils.hashes import Hashes
 
 from guild import namespace
+from guild import util
 
 log = logging.getLogger("guild")
 
@@ -187,7 +187,42 @@ def download_url(url, download_dir, sha256=None):
         actual = e.gots["sha256"].hexdigest()
         raise HashMismatch(url, expected, actual)
     else:
+        if hashes:
+            _cache_hashes(hashes, downloaded_path)
         return _ensure_expected_download_path(downloaded_path, link)
+
+def _check_download_dir(link, download_dir, hashes):
+    # Mirrors pip.download._check_download_dir but uses sha cache.
+    download_path = os.path.join(download_dir, link.filename)
+    if not os.path.exists(download_path):
+        return None
+    log.info('File was already downloaded %s', download_path)
+    if not hashes:
+        return download_path
+    cached_sha = util.try_cached_sha(download_path)
+    if cached_sha and cached_sha == _allowed_sha(hashes):
+        return download_path
+    try:
+        hashes.check_against_path(download_path)
+    except HashMismatch0:
+        log.warning(
+            "Previously-downloaded file %s has bad hash - re-downloading",
+            download_path
+        )
+        os.unlink(download_path)
+        return None
+    else:
+        return download_path
+
+def _allowed_sha(hashes):
+    allowed = hashes._allowed
+    assert allowed.keys() == ["sha256"], allowed
+    sha256_hashes = allowed["sha256"]
+    assert len(sha256_hashes) == 1, allowed
+    return sha256_hashes[0]
+
+def _cache_hashes(hashes, download_path):
+    util.write_cached_sha(_allowed_sha(hashes), download_path)
 
 def _ensure_expected_download_path(downloaded, link):
     expected = os.path.join(os.path.dirname(downloaded), link.filename)
