@@ -33,7 +33,7 @@
             </td>
             <td v-if="files.item.viewer">
               <v-btn
-                class="grey lighten-4 btn-link"
+                class="grey lighten-3 btn-link"
                 flat small block
                 style="margin-left: -8px"
                 @click="view(files.item)">{{ files.item.path }}</v-btn></div>
