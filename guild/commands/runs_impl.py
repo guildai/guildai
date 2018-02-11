@@ -376,6 +376,8 @@ def run_info(args, ctx):
     if args.files or args.all_files:
         out("files:")
         for path in sorted(run.iter_files(args.all_files, args.follow_links)):
+            if not args.full_path:
+                path = os.path.relpath(path, run.path)
             out("  %s" % path)
 
 def label(args):

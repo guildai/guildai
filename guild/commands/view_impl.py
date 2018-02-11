@@ -211,7 +211,7 @@ def _file_type_info(path):
 def _base_file_type_info(path):
     lower_path = path.lower()
     if re.search(r"\.tfevents\.", lower_path):
-        return "Event log", "file", "File", None
+        return "Event log", "file-chart", "File", None
     elif re.search(r"\.index$", lower_path):
         return "Checkpoint index", "file", "File", None
     elif re.search(r"\.meta$", lower_path):
