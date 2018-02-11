@@ -44,7 +44,13 @@ We can optionally show files, flags, and env for a run:
       batch-size: 100
       epochs: 1
     files:
-      /.../mnist-idx-data/...
-      /.../train/events.out.tfevents...
-      /.../validate/events.out.tfevents...
+      mnist-idx-data
+      mnist-idx-data/t10k-images-idx3-ubyte.gz
+      mnist-idx-data/t10k-labels-idx1-ubyte.gz
+      mnist-idx-data/train-images-idx3-ubyte.gz
+      mnist-idx-data/train-labels-idx1-ubyte.gz
+      train
+      train/events.out.tfevents.1518365547.omaha
+      validate
+      validate/events.out.tfevents.1518365547.omaha
     <exit 0>

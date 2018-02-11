@@ -33,6 +33,8 @@
     guild.commands.help_impl
     guild.commands.index
     guild.commands.index_impl
+    guild.commands.init
+    guild.commands.init_impl
     guild.commands.install
     guild.commands.main
     guild.commands.main_impl
