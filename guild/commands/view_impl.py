@@ -209,33 +209,33 @@ def _file_type_info(path):
     return typeDesc, icon, iconTooltip, viewer
 
 def _base_file_type_info(path):
-    path = path.lower()
-    if re.search(r"\.tfevents\.", path):
+    path_lower = path.lower()
+    if re.search(r"\.tfevents\.", path_lower):
         return "Event log", "file-chart", "File", None
-    elif re.search(r"saved_model\.pb$", path):
+    elif re.search(r"saved_model\.pb$", path_lower):
         return "SavedModel protocol buffer", "file", "File", None
-    elif re.search(r"graph\.pb$", path):
+    elif re.search(r"graph\.pb$", path_lower):
         return "GraphDef protocol buffer", "file", "File", None
-    elif re.search(r"saved_model\.pbtxt$", path):
+    elif re.search(r"saved_model\.pbtxt$", path_lower):
         return ("SavedModel protocol buffer", "file-document", "Text file",
                 "text")
-    elif re.search(r"graph\.pbtxt$", path):
+    elif re.search(r"graph\.pbtxt$", path_lower):
         return "GraphDef protocol buffer", "file-document", "Text file", "text"
-    elif re.search(r"\.index$", path):
+    elif re.search(r"\.index$", path_lower):
         return "Checkpoint index", "file", "File", None
-    elif re.search(r"\.meta$", path):
+    elif re.search(r"\.meta$", path_lower):
         return "Checkpoint meta graph", "file", "File", None
-    elif re.search(r"[/\\]checkpoint$", path):
+    elif re.search(r"[/\\]checkpoint$", path_lower):
         return "Latest checkpoint marker", "file", "File", None
-    elif re.search(r"data-\d+-of-\d+$", path):
+    elif re.search(r"data-\d+-of-\d+$", path_lower):
         return "Checkpoint values", "file", "File", None
-    elif re.search(r"\.tfrecord$", path):
+    elif re.search(r"\.tfrecord$", path_lower):
         return "Dataset file", "file", "File", None
-    elif re.search(r"\.(jpg|jpeg|gif|png|tiff)$", path):
+    elif re.search(r"\.(jpg|jpeg|gif|png|tiff)$", path_lower):
         return "Image", "file-image", "Image", "image"
-    elif re.search(r"\.mid", path):
+    elif re.search(r"\.mid", path_lower):
         return "Audio", "file-music", "Audio", "midi"
-    elif re.search(r"\.(wav|mp3)", path):
+    elif re.search(r"\.(wav|mp3)", path_lower):
         return "Audio", "file-music", "Audio", None
     else:
         if util.is_text_file(path):
