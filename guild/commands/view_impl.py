@@ -209,24 +209,33 @@ def _file_type_info(path):
     return typeDesc, icon, iconTooltip, viewer
 
 def _base_file_type_info(path):
-    lower_path = path.lower()
-    if re.search(r"\.tfevents\.", lower_path):
+    path = path.lower()
+    if re.search(r"\.tfevents\.", path):
         return "Event log", "file-chart", "File", None
-    elif re.search(r"\.index$", lower_path):
+    elif re.search(r"saved_model\.pb$", path):
+        return "SavedModel protocol buffer", "file", "File", None
+    elif re.search(r"graph\.pb$", path):
+        return "GraphDef protocol buffer", "file", "File", None
+    elif re.search(r"saved_model\.pbtxt$", path):
+        return ("SavedModel protocol buffer", "file-document", "Text file",
+                "text")
+    elif re.search(r"graph\.pbtxt$", path):
+        return "GraphDef protocol buffer", "file-document", "Text file", "text"
+    elif re.search(r"\.index$", path):
         return "Checkpoint index", "file", "File", None
-    elif re.search(r"\.meta$", lower_path):
+    elif re.search(r"\.meta$", path):
         return "Checkpoint meta graph", "file", "File", None
-    elif re.search(r"[/\\]checkpoint$", lower_path):
+    elif re.search(r"[/\\]checkpoint$", path):
         return "Latest checkpoint marker", "file", "File", None
-    elif re.search(r"data-\d+-of-\d+$", lower_path):
+    elif re.search(r"data-\d+-of-\d+$", path):
         return "Checkpoint values", "file", "File", None
-    elif re.search(r"\.tfrecord$", lower_path):
+    elif re.search(r"\.tfrecord$", path):
         return "Dataset file", "file", "File", None
-    elif re.search(r"\.(jpg|jpeg|gif|png|tiff)$", lower_path):
+    elif re.search(r"\.(jpg|jpeg|gif|png|tiff)$", path):
         return "Image", "file-image", "Image", "image"
-    elif re.search(r"\.mid", lower_path):
+    elif re.search(r"\.mid", path):
         return "Audio", "file-music", "Audio", "midi"
-    elif re.search(r"\.(wav|mp3)", lower_path):
+    elif re.search(r"\.(wav|mp3)", path):
         return "Audio", "file-music", "Audio", None
     else:
         if util.is_text_file(path):
