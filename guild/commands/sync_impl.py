@@ -43,13 +43,13 @@ def _watch(runs):
         cli.error(
             "cannot find any runs to watch\n"
             "Try 'guild runs list' for a list of runs.")
-    if len(runs) > 1:
-        cli.error(
-            "--watch may only be used with one run (found %i)\n"
-            "Try 'guild runs list' and specify the ID of the run you want to watch."
-            % len(runs))
-    assert len(runs) == 1, runs
-    _maybe_sync_run(runs[0], True)
+    for run in runs:
+        if run.status == "running":
+            cli.out("Watching %s" % run.short_id)
+            _maybe_sync_run(run, True)
+            break
+    else:
+        cli.error("there are no active runs to watch")
 
 def _maybe_sync_run(run, watch):
     remote_lock = _remote_lock_for_run(run)
