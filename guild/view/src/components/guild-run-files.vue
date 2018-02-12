@@ -125,6 +125,7 @@
 
  .btn-link {
    text-transform: none;
+   width: inherit;
  }
 
  .btn-link .btn__content {
