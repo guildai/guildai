@@ -338,6 +338,7 @@ class ModelDef(FlagHost):
         self.operations = _init_ops(data.get("operations", {}), self)
         self.resources = _init_resources(data.get("resources", {}), self)
         self.disabled_plugins = data.get("disabled-plugins", [])
+        self.index_settings = data.get("index", {})
 
     def __repr__(self):
         return "<guild.modelfile.ModelDef '%s'>" % self.name

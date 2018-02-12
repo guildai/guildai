@@ -285,6 +285,7 @@ class RunIndex(object):
         from tensorboard.backend.event_processing import event_accumulator
         _ensure_tf_logger_patched()
         scalars = {}
+        scalar_map = run.get("scalar-map", {})
         for path in event_multiplexer.GetLogdirSubdirectories(run.path):
             events_checksum_field_name = self._events_checksum_field_name(path)
             last_checksum = fields.get(events_checksum_field_name)
@@ -303,6 +304,13 @@ class RunIndex(object):
                 if not vals:
                     continue
                 self._store_scalar_vals(key, vals, scalars)
+                try:
+                    mapped_key = scalar_map[key]
+                except KeyError:
+                    pass
+                else:
+                    log.debug("mapping scalar %s to %s", key, mapped_key)
+                    self._store_scalar_vals(mapped_key, vals, scalars)
         return scalars
 
     @staticmethod

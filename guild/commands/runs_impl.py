@@ -56,6 +56,10 @@ CORE_RUN_ATTRS = [
     "deps",
 ]
 
+HIDDEN_RUN_ATTRS = [
+    "scalar-map",
+]
+
 def list_runs(args):
     runs = runs_for_args(args)
     formatted = [
@@ -358,7 +362,7 @@ def run_info(args, ctx):
     for name in RUN_DETAIL:
         out("%s: %s" % (name, formatted[name]))
     for name in run.attr_names():
-        if name not in CORE_RUN_ATTRS:
+        if name not in CORE_RUN_ATTRS and name not in HIDDEN_RUN_ATTRS:
             out("%s: %s" % (name, run.get(name, "")))
     if args.env:
         out("environment:", nl=False)
