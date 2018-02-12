@@ -63,8 +63,8 @@ def _get_runs_cb(args, index):
         log_capture = util.LogCapture()
         with log_capture:
             runs = runs_impl.runs_for_args(args)
-            filtered = _filter_runs(runs, args.filters)
-            vals = _runs_data(filtered, index)
+            filtered_runs = _filter_runs(runs, args.filters)
+            vals = _runs_data(filtered_runs, index)
         return [header] + vals, log_capture.get_all()
     return get_runs
 
