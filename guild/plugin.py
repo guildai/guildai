@@ -37,15 +37,22 @@ class Plugin(object):
         self.log = logging.getLogger("guild." + self.name)
 
     def find_models(self, _path):
-        """Return a list or generator of models for path.
+        """Return an iterator of models for path.
 
         A model must be a Python dict containing model attributes. See
         guild.modelfile.Modelfile for the expected structure.
         """
         return []
 
+    def get_operation(self, _name, _model, _config):
+        """Return instance of OpDef for name, if supported for model.
+
+        Returns None if operation is not supported.
+        """
+        return None
+
     def enabled_for_op(self, _op):
-        return False
+        return False, None
 
     def run_op(self, op_spec, args):
         """The plugin should run the specified operation.

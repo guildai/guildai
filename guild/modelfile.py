@@ -266,9 +266,20 @@ class FlagHost(object):
         try:
             return self._flag_vals[name]
         except KeyError:
-            return (self._parent.get_flag_val(name)
-                    if self._parent
-                    else default)
+            if self._parent:
+                return self._parent.get_flag_value(name)
+            else:
+                return default
+
+    def update_flags(self, flag_host):
+        merged_map = {flag.name: flag for flag in self.flags}
+        merged_map.update({flag.name: flag for flag in flag_host.flags})
+        merged_flags = [merged_map[name] for name in sorted(merged_map)]
+        merged_vals = {}
+        merged_vals.update(self._flag_vals)
+        merged_vals.update(flag_host.flag_values())
+        self.flags = merged_flags
+        self._flag_vals = merged_vals
 
 def _init_flags(data, modelfile):
     flags_data = _resolve_includes(
@@ -484,6 +495,7 @@ class OpDef(FlagHost):
         data = _coerce_op_data(data)
         self.description = data.get("description", "").strip()
         self.cmd = data.get("cmd")
+        self.plugin_op = data.get("plugin-op")
         self.disabled_plugins = data.get("disabled-plugins", [])
         self.dependencies = _init_dependencies(data.get("requires"), self)
 
@@ -493,6 +505,9 @@ class OpDef(FlagHost):
     @property
     def fullname(self):
         return "%s:%s" % (self.modeldef.name, self.name)
+
+    def update_dependencies(self, opdef):
+        self.dependencies.extend(opdef.dependencies)
 
 def _init_dependencies(requires, opdef):
     if not requires:

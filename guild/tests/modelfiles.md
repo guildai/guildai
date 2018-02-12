@@ -206,7 +206,63 @@ the operation's model doesn't modify the operation's flag value:
     >>> pprint(mf["intro"].get_operation("evaluate").flag_values())
     {'batch-size': 50000, 'epochs': 1, 'learning-rate': 0.002}
 
-### Operations
+### Updating flags
+
+Flags can be updated using flags from another flag host.
+
+Consider this modelfile:
+
+    >>> mf2 = modelfile.from_string("""
+    ... name: sample
+    ... operations:
+    ...   a:
+    ...     flags:
+    ...       x: X1
+    ...       y: Y
+    ...   b:
+    ...     flags:
+    ...       x: x2
+    ...       z: Z
+    ... """)
+
+The two opdefs:
+
+    >>> opdef_a = mf2["sample"].get_operation("a")
+    >>> opdef_b = mf2["sample"].get_operation("b")
+
+Here are the flags and values for opdef a:
+
+    >>> opdef_a.flags
+    [<guild.modelfile.FlagDef 'x'>, <guild.modelfile.FlagDef 'y'>]
+
+    >>> pprint(opdef_a.flag_values())
+    {'x': 'X1', 'y': 'Y'}
+
+And the flags and values for opdef b:
+
+    >>> opdef_b.flags
+    [<guild.modelfile.FlagDef 'x'>, <guild.modelfile.FlagDef 'z'>]
+
+    >>> pprint(opdef_b.flag_values())
+    {'x': 'x2', 'z': 'Z'}
+
+We'll update opdef a flags with those from opdef b:
+
+    >>> opdef_a.update_flags(opdef_b)
+
+The updated flags:
+
+    >>> opdef_a.flags
+    [<guild.modelfile.FlagDef 'x'>,
+     <guild.modelfile.FlagDef 'y'>,
+     <guild.modelfile.FlagDef 'z'>]
+
+and values:
+
+    >>> pprint(opdef_a.flag_values())
+    {'x': 'x2', 'y': 'Y', 'z': 'Z'}
+
+## Operations
 
 Operations are ordered by name:
 

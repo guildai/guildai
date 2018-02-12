@@ -21,6 +21,7 @@ import click
 
 import guild.model
 import guild.op
+import guild.plugin
 
 from guild import cli
 from guild import cmd_impl_support
@@ -164,7 +165,26 @@ def _multiple_models_error(model_ref, models):
 def _resolve_opdef(name, model):
     opdef = model.modeldef.get_operation(name)
     if opdef is None:
+        opdef = _try_plugin_opdef(name, model)
+    elif opdef.plugin_op:
+        opdef = _plugin_opdef(opdef.plugin_op, model, opdef)
+    if opdef is None:
         _no_such_operation_error(name, model)
+    return opdef
+
+def _try_plugin_opdef(name, model, config=None):
+    for _name, plugin in guild.plugin.iter_plugins():
+        opdef = plugin.get_operation(name, model, config)
+        if opdef:
+            return opdef
+    return None
+
+def _plugin_opdef(name, model, config):
+    opdef = _try_plugin_opdef(name, model, config)
+    if opdef is None:
+        cli.error(
+            "plugin-op '%s' specified by %s is not defined"
+            % (name, opdef.fullname))
     return opdef
 
 def _no_such_operation_error(name, model):
@@ -184,8 +204,7 @@ def _init_op(opdef, model, args):
         cli.note(
             "Run directory is '%s' (results will not be visible to Guild)"
             % args.run_dir)
-    return guild.op.Operation(
-        model, opdef, args.run_dir, resource_vals, attrs)
+    return guild.op.Operation(model, opdef, args.run_dir, resource_vals, attrs)
 
 def _parse_args(args):
     return dict([_parse_flag(os.path.expanduser(arg)) for arg in args])
