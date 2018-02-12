@@ -23,6 +23,7 @@ from . import runs_support
 @click.command(name="sync")
 @click.argument("runs", metavar="[RUN...]", nargs=-1)
 @runs_support.run_scope_options
+@runs_support.run_filters
 @click.option(
     "-w", "--watch",
     is_flag=True,
