@@ -42,7 +42,6 @@ from guild import click_util
 
 def install(args):
     """Install one or more packages.
-
     """
     from . import packages_impl
     packages_impl.install_packages(args)

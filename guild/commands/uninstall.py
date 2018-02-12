@@ -28,7 +28,6 @@ from .packages_delete import delete_params
 
 def uninstall(args):
     """Uninstall one or more packages.
-
     """
     from . import packages_impl
     packages_impl.uninstall_packages(args)

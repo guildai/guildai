@@ -45,7 +45,6 @@ from . import runs_support
 
 def tensorboard(args):
     """Visualize runs with TensorBoard.
-
     """
     from . import tensorboard_impl
     tensorboard_impl.main(args)

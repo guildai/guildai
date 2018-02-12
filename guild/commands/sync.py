@@ -33,7 +33,6 @@ from . import runs_support
 
 def sync(args):
     """Synchronize remote runs.
-
     """
     from . import sync_impl
     sync_impl.main(args)
