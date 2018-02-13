@@ -245,8 +245,9 @@ def _filter_run(run, filters):
     return util.match_filters(filters, filter_vals)
 
 def _runs_op(args, ctx, force_delete, preview_msg, confirm_prompt,
-             no_runs_help, op_callback, default_runs_arg=ALL_RUNS_ARG,
+             no_runs_help, op_callback, default_runs_arg=None,
              confirm_default=False):
+    default_runs_arg = default_runs_arg or ALL_RUNS_ARG
     runs = runs_for_args(args, force_delete)
     runs_arg = args.runs or default_runs_arg
     selected = selected_runs(runs, runs_arg, ctx)
