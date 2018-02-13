@@ -25,10 +25,26 @@ def main():
     kw = dict(
         name=os.environ["PACKAGE_NAME"],
         version=os.environ["PACKAGE_VERSION"],
-        packages=setuptools.find_packages(),
+        packages=_find_packages(),
         include_package_data=True,
     )
     return setuptools.setup(**kw)
+
+def _find_packages():
+    pkgs = setuptools.find_packages()
+    if not pkgs:
+        _error(
+            "cannot find packages in %s\n"
+            "Python scripts must be contained in valid Python "
+            "packages, which are directories containing __init__.py."
+            % os.getcwd())
+    return pkgs
+
+def _error(msg):
+    sys.stderr.write("Error generating package: ")
+    sys.stderr.write(msg)
+    sys.stderr.write("\n")
+    sys.exit(1)
 
 if __name__ == "__main__":
     try:
