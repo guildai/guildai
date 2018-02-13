@@ -17,6 +17,7 @@ from __future__ import division
 
 import csv
 import sys
+import time
 
 import guild.index
 
@@ -109,9 +110,14 @@ def _run_data(run):
     ]
 
 def _run_duration(run):
-    end = run.stopped or time.time * 1000000
+    end = run.stopped or time.time() * 1000000
     seconds = (end - run.started) // 1000000
-    return "%0.2f" % (seconds / 60)
+    return _format_time(seconds)
+
+def _format_time(seconds):
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return "%d:%02d:%02d" % (h, m, s)
 
 def _run_accuracy(run):
     search_keys = [
