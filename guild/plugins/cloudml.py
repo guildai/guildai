@@ -22,8 +22,8 @@ from guild import cli
 from guild import modelfile
 from guild import plugin
 
-def _train_opdef(name, modeldef, config):
-    local_train = _local_train_op(modeldef, config, name)
+def _train_opdef(spec, modeldef, parent_opdef):
+    local_train = _local_train_op(spec, modeldef)
     module_name, cmd_args = _split_cmd(local_train.cmd)
     cmd = _op_cmd("train", cmd_args)
     data = {
@@ -55,37 +55,46 @@ def _train_opdef(name, modeldef, config):
             }
         }
     }
-    opdef = modelfile.OpDef(name, data, modeldef)
+    opdef = modelfile.OpDef(parent_opdef.name, data, modeldef)
     opdef.update_flags(local_train)
     opdef.update_dependencies(local_train)
-    if config:
-        opdef.update_flags(config)
-        opdef.update_dependencies(config)
+    if parent_opdef:
+        opdef.update_flags(parent_opdef)
+        opdef.update_dependencies(parent_opdef)
     return opdef
+
+def _local_train_op(spec, modeldef):
+    op_name = spec.config.get("train-op", "train")
+    op = modeldef.get_operation(op_name)
+    if not op:
+        cli.error(
+            "operation '%s' not defined in %s (required by %s)"
+            % (op_name, modeldef.modelfile.src, spec.name))
+    return op
 
 def _op_cmd(name, args):
     args = " ".join([pipes.quote(arg) for arg in args])
     return "guild.plugins.cloudml_op_main {} {}".format(name, args)
 
-def _local_train_op(modeldef, config, cloudml_op):
-    op_name = (config and config.get_flag_value("train-op")) or "train"
-    op = modeldef.get_operation(op_name)
-    if not op:
-        cli.error(
-            "operation '%s' not defined in %s (required by %s)"
-            % (op_name, modeldef.modelfile.src, cloudml_op))
-    return op
-
 def _split_cmd(s):
     parts = shlex.split(s)
     return parts[0], parts[1:]
 
+def _tune_opdef(spec, modeldef, parent_opdef):
+    train_opdef = _train_opdef(spec, modeldef, parent_opdef)
+    config_flag = train_opdef.get_flagdef("config")
+    assert config_flag
+    config_flag.required = True
+    return train_opdef
+
 class CloudMLPlugin(plugin.Plugin):
 
-    def get_operation(self, name, model, config):
-        if name == "cloudml-train":
-            return _train_opdef(name, model.modeldef, config)
-        elif name == "cloudml-deploy":
+    def get_operation(self, spec, model, parent_opdef):
+        if spec.name == "cloudml-train":
+            return _train_opdef(spec, model.modeldef, parent_opdef)
+        elif spec.name == "cloudml-hptune":
+            return _tune_opdef(spec, model.modeldef, parent_opdef)
+        elif spec.name == "cloudml-deploy":
             raise AssertionError("TODO")
         return None
 

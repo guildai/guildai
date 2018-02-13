@@ -495,7 +495,7 @@ class OpDef(FlagHost):
         data = _coerce_op_data(data)
         self.description = data.get("description", "").strip()
         self.cmd = data.get("cmd")
-        self.plugin_op = data.get("plugin-op")
+        self.plugin_op = _coerce_plugin_op_data(data.get("plugin-op"))
         self.disabled_plugins = data.get("disabled-plugins", [])
         self.dependencies = _init_dependencies(data.get("requires"), self)
 
@@ -508,6 +508,29 @@ class OpDef(FlagHost):
 
     def update_dependencies(self, opdef):
         self.dependencies.extend(opdef.dependencies)
+
+class PluginOp(object):
+
+    def __init__(self, name, config=None):
+        self.name = name
+        self.config = config or {}
+
+def _coerce_plugin_op_data(data):
+    if not data:
+        return None
+    elif isinstance(data, str):
+        return PluginOp(data)
+    elif isinstance(data, dict):
+        name = data.get("name")
+        if not name:
+            raise ModelfileFormatError(
+                "missing required 'name' attribute in plugin-op %r"
+                % data)
+        config = {key: data[key] for key in data if key != "name"}
+        return PluginOp(name, config)
+    else:
+        raise ModelfileFormatError(
+            "unsupported data for plugin-op: %r" % data)
 
 def _init_dependencies(requires, opdef):
     if not requires:

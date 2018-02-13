@@ -24,6 +24,8 @@ WATCH_POLLING_INTERVAL = 5
 DEFAULT_REGION = "us-central1"
 DEFAULT_RUNTIME_VERSION = "1.4"
 
+FINAL_STATES = ["SUCCEEDED", "FAILED", "CANCELLED"]
+
 class CloudSDK(object):
 
     def __init__(self, gsutil, gcloud):
@@ -116,7 +118,7 @@ class Sync(object):
         state = info.get("state")
         cli.out("Run %s is %s" % (self.run.id, state))
         self.run.write_attr("cloudml-job-state", state)
-        if state not in ["RUNNING", "PREPARING"]:
+        if state in FINAL_STATES:
             self._finalize_run(state)
 
     def _job_info(self, job_name):
@@ -133,12 +135,11 @@ class Sync(object):
     def _finalize_run(self, state):
         cli.out("Finalizing run %s" % self.run.id)
         exit_status = self._exit_status_for_job_state(state)
-        if exit_status is not None:
-            self.run.write_attr("exit_status", exit_status)
-            self._delete(self.run.guild_path("LOCK"))
-            self._delete(self.run.guild_path("LOCK.remote"))
+        self.run.write_attr("exit_status.remote", exit_status)
+        self._delete(self.run.guild_path("LOCK.remote"))
 
-    def _exit_status_for_job_state(self, state):
+    @staticmethod
+    def _exit_status_for_job_state(state):
         if state == "SUCCEEDED":
             return 0
         elif state == "FAILED":
@@ -146,10 +147,7 @@ class Sync(object):
         elif state == "CANCELLED":
             return 2
         else:
-            log.warning(
-                "got unexpected job state '%s' for run %s",
-                state, self.run.id)
-            return None
+            raise AssertionError(state)
 
     def _delete(self, filename):
         try:
@@ -199,8 +197,8 @@ class Train(object):
 
     def __call__(self):
         self._write_run_attrs()
-        self._upload_files()
         self._init_package()
+        self._upload_files()
         self._submit_job()
         self._write_lock()
         self._sync()
@@ -208,6 +206,22 @@ class Train(object):
     def _write_run_attrs(self):
         self.run.write_attr("cloudml-job-name", self.job_name)
         self.run.write_attr("cloudml-job-dir", self.job_dir)
+
+    def _init_package(self):
+        env = {
+            "PYTHONPATH": os.path.pathsep.join(sys.path),
+            "PACKAGE_NAME": self.package_name,
+            "PACKAGE_VERSION": self.package_version,
+        }
+        # Use an external process because setuptools assumes it's a
+        # command line app.
+        try:
+            subprocess.check_call(
+                [sys.executable, "-um", "guild.plugins.training_pkg_main"],
+                env=env,
+                cwd=self.run.path)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
 
     def _upload_files(self):
         for name in os.listdir(self.run.path):
@@ -221,22 +235,6 @@ class Train(object):
         try:
             subprocess.check_call(
                 [self.sdk.gsutil, "-m", "cp", "-r", src, dest])
-        except subprocess.CalledProcessError as e:
-            sys.exit(e.returncode)
-
-    def _init_package(self):
-        env = {
-            "PYTHONPATH": os.path.pathsep.join(sys.path),
-            "PACKAGE_NAME": self.package_name,
-            "PACKAGE_VERSION": self.package_version,
-        }
-        # Use an external process as setuptools assumes it's a command
-        # line app
-        try:
-            subprocess.check_call(
-                [sys.executable, "-um", "guild.plugins.training_pkg_main"],
-                env=env,
-                cwd=self.run.path)
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
 

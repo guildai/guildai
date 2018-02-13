@@ -26,6 +26,7 @@ import guild.plugin
 from guild import cli
 from guild import cmd_impl_support
 from guild import deps
+from guild import modelfile
 from guild import util
 from guild import yaml
 
@@ -167,24 +168,30 @@ def _resolve_opdef(name, model):
     if opdef is None:
         opdef = _try_plugin_opdef(name, model)
     elif opdef.plugin_op:
-        opdef = _plugin_opdef(opdef.plugin_op, model, opdef)
+        opdef = _plugin_opdef(opdef, model)
     if opdef is None:
         _no_such_operation_error(name, model)
     return opdef
 
-def _try_plugin_opdef(name, model, config=None):
+def _try_plugin_opdef(parent_opdef_or_name, model):
+    if isinstance(parent_opdef_or_name, str):
+        plugin_op = modelfile.PluginOp(parent_opdef_or_name)
+        parent_opdef = None
+    else:
+        plugin_op = parent_opdef_or_name.plugin_op
+        parent_opdef = parent_opdef_or_name
     for _name, plugin in guild.plugin.iter_plugins():
-        opdef = plugin.get_operation(name, model, config)
+        opdef = plugin.get_operation(plugin_op, model, parent_opdef)
         if opdef:
             return opdef
     return None
 
-def _plugin_opdef(name, model, config):
-    opdef = _try_plugin_opdef(name, model, config)
+def _plugin_opdef(parent_opdef, model):
+    opdef = _try_plugin_opdef(parent_opdef, model)
     if opdef is None:
         cli.error(
             "plugin-op '%s' specified by %s is not defined"
-            % (name, opdef.fullname))
+            % (parent_opdef.plugin_op.name, parent_opdef.fullname))
     return opdef
 
 def _no_such_operation_error(name, model):

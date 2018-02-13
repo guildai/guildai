@@ -279,6 +279,51 @@ Find an operation using a model's `get_op` method:
     >>> print(mf["expert"].get_operation("not-defined"))
     None
 
+### Plugin ops
+
+An operation can delegate its implementation to a plugin using the
+`plugin-op` attribute. Here's a sample modelfile:
+
+    >>> mf2 = modelfile.from_string("""
+    ... name: sample
+    ... operations:
+    ...   train:
+    ...     plugin-op: foo-train
+    ... """)
+
+The opdef in this case will use `plugin_op` rather than `cmd`. Plugin
+ops are provided as modelfile.PluginOp objects and have `name` and
+`config` attributes:
+
+    >>> train = mf2["sample"].get_operation("train")
+
+    >>> train.plugin_op.name
+    'foo-train'
+
+    >>> train.plugin_op.config
+    {}
+
+Plugin ops may be configured by specifying them as objects with `name`
+and additional config attributes:
+
+    >>> mf2 = modelfile.from_string("""
+    ... name: sample
+    ... operations:
+    ...   train:
+    ...     plugin-op:
+    ...       name: bar-train
+    ...       config-1: bar
+    ...       config-2: [1, 2, 3]
+    ... """)
+
+    >>> train = mf2["sample"].get_operation("train")
+
+    >>> train.plugin_op.name
+    'bar-train'
+
+    >>> pprint(train.plugin_op.config)
+    {'config-1': 'bar', 'config-2': [1, 2, 3]}
+
 ## Resources
 
 Model resources are are named lists of sources that may be required by
