@@ -30,12 +30,28 @@ def _train_opdef(name, modeldef, config):
         "cmd": cmd,
         "flags": {
             "bucket-name": {
-                "description": "Name of bucket to use for run data storage",
+                "description": (
+                    "Name of bucket to use for run data storage"
+                ),
                 "required": True
             },
             "module-name": {
                 "description": "Training module",
                 "default": module_name
+            },
+            "scale-tier": {
+                "description": (
+                    "Cloud ML resources allocated to a training job\n"
+                    "\n"
+                    "Use STANDARD_1 for many workers and a few parameter "
+                    "servers.\n"
+                    "\n"
+                    "Use PREMIUM_1 for a large number of workers with many "
+                    "parameter servers.\n"
+                    "\n"
+                    "Use BASIC_GPU for a single worker instance with a GPU."
+                ),
+                "default": "BASIC"
             }
         }
     }
