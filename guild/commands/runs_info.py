@@ -29,7 +29,7 @@ from . import runs_support
 @click.option("-d", "--deps", help="Show resolved dependencies.", is_flag=True)
 @click.option("-F", "--files", help="Show run files.", is_flag=True)
 @click.option(
-    "-D", "--follow-links",
+    "-L", "--follow-links",
     help="Follow links when showing files.",
     is_flag=True)
 @click.option(
