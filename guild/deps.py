@@ -54,9 +54,9 @@ class Resource(object):
 
     def resolve(self):
         if not self.resdef.sources:
-            log.warning(
-                "%s resource does not define any sources",
-                self.resdef.name)
+            raise DependencyError(
+                "no sources defined for %s resource"
+                % self.resdef.name)
         resolved_acc = []
         for source in self.resdef.sources:
             self._resolve_source(source, resolved_acc)
