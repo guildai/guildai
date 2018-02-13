@@ -293,25 +293,27 @@ class RunIndex(object):
             log.debug(
                 "event path checksums for %s: last=%s, cur=%s",
                 path, last_checksum, cur_checksum)
-            if last_checksum == cur_checksum:
-                continue
-            scalars[events_checksum_field_name] = cur_checksum
-            log.debug("indexing events in %s", path)
-            rel_path = os.path.relpath(path, run.path)
-            events = event_accumulator._GeneratorFromPath(path).Load()
-            scalar_vals = self._scalar_vals(events, rel_path)
-            for key, vals in scalar_vals.items():
-                if not vals:
-                    continue
-                self._store_scalar_vals(key, vals, scalars)
-                try:
-                    mapped_key = scalar_map[key]
-                except KeyError:
-                    pass
-                else:
-                    log.debug("mapping scalar %s to %s", key, mapped_key)
-                    self._store_scalar_vals(mapped_key, vals, scalars)
+            if last_checksum != cur_checksum:
+                log.debug("indexing events in %s", path)
+                rel_path = os.path.relpath(path, run.path)
+                events = event_accumulator._GeneratorFromPath(path).Load()
+                scalar_vals = self._scalar_vals(events, rel_path)
+                self._apply_scalar_vals(scalar_vals, scalars, scalar_map)
+                scalars[events_checksum_field_name] = cur_checksum
         return scalars
+
+    def _apply_scalar_vals(self, scalar_vals, scalars, scalar_map):
+        for key, vals in scalar_vals.items():
+            if not vals:
+                continue
+            self._store_scalar_vals(key, vals, scalars)
+            try:
+                mapped_key = scalar_map[key]
+            except KeyError:
+                pass
+            else:
+                log.debug("mapping scalar %s to %s", key, mapped_key)
+                self._store_scalar_vals(mapped_key, vals, scalars)
 
     @staticmethod
     def _events_checksum_field_name(path):
