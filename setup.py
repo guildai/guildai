@@ -127,7 +127,7 @@ def _install_external_wheel(wheel_path):
 
 def _build_view_dist():
     """Build view distribution."""
-
+    subprocess.check_call(["npm", "install"], cwd="./guild/view")
     subprocess.check_call(["npm", "run", "build"], cwd="./guild/view")
 
 def _patch_git_obtain():
