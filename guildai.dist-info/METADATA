@@ -27,6 +27,7 @@ Classifier: Topic :: Scientific/Engineering :: Visualization
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: Utilities
+Requires-Dist: chardet
 Requires-Dist: pip
 Requires-Dist: PyYAML
 Requires-Dist: setuptools

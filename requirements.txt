@@ -1,3 +1,4 @@
+chardet
 PyYAML
 Werkzeug
 Whoosh
