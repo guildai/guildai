@@ -305,8 +305,7 @@ extracted file.
     >>> resolver = test_res.get_source_resolver(dir_source)
     >>> unpack_dir = mkdtemp()
     >>> sorted(resolver.resolve(unpack_dir))
-    ['.../samples/projects/resources/files/e.txt',
-     '.../samples/projects/resources/files/f.txt']
+    ['.../samples/projects/resources/files']
 
     >>> dir(unpack_dir)
     []

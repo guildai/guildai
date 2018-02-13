@@ -58,7 +58,11 @@ class FileResolver(Resolver):
         else:
             source_path = os.path.join(
                 self.working_dir, self.source.parsed_uri.path)
-            return resolve_source_files(source_path, self.source, unpack_dir)
+            if os.path.isdir(source_path):
+                return [source_path]
+            else:
+                return resolve_source_files(
+                    source_path, self.source, unpack_dir)
 
 class URLResolver(Resolver):
 
