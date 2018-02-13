@@ -18,18 +18,24 @@ from __future__ import division
 import click
 
 from guild import click_util
+from . import runs_support
 
 @click.command()
-@click.argument("run")
+@click.argument("runs", metavar="[RUN...]", nargs=-1)
+@runs_support.run_scope_options
+@runs_support.run_filters
 @click.argument("label", required=False)
 @click.option("--clear", is_flag=True, help="Clear the run's label.")
+@click.option(
+    "-y", "--yes",
+    help="Do not prompt before modifying labels.",
+    is_flag=True)
 
+@click.pass_context
 @click_util.use_args
 
-def label(args):
-    """Show or set a run label.
-
-    `RUN` must be a unique run ID.
+def label(ctx, args):
+    """Set run labels.
     """
     from . import runs_impl
-    runs_impl.label(args)
+    runs_impl.label(args, ctx)

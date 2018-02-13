@@ -44,6 +44,7 @@ RUN_DETAIL = [
 ]
 
 ALL_RUNS_ARG = [":"]
+LATEST_RUN_ARG = ["0"]
 
 CORE_RUN_ATTRS = [
     "cmd",
@@ -244,18 +245,19 @@ def _filter_run(run, filters):
     return util.match_filters(filters, filter_vals)
 
 def _runs_op(args, ctx, force_delete, preview_msg, confirm_prompt,
-             no_runs_help, op_callback):
+             no_runs_help, op_callback, default_runs_arg=ALL_RUNS_ARG,
+             confirm_default=False):
     runs = runs_for_args(args, force_delete)
-    runs_arg = args.runs or ALL_RUNS_ARG
+    runs_arg = args.runs or default_runs_arg
     selected = selected_runs(runs, runs_arg, ctx)
     if not selected:
         _no_selected_runs_error(no_runs_help)
     preview = [format_run(run) for run in selected]
     if not args.yes:
         cli.out(preview_msg)
-        cols = ["short_index", "operation", "started", "status"]
+        cols = ["short_index", "operation", "started", "status", "label"]
         cli.table(preview, cols=cols, indent=2)
-    if args.yes or cli.confirm(confirm_prompt):
+    if args.yes or cli.confirm(confirm_prompt, confirm_default):
         op_callback(selected)
 
 def selected_runs(runs, select_specs, ctx=None):
@@ -384,13 +386,34 @@ def run_info(args, ctx):
                 path = os.path.relpath(path, run.path)
             out("  %s" % path)
 
-def label(args):
-    run = cmd_impl_support.one_run([
-        guild.run.Run(id, path) for id, path in var.find_runs(args.run)
-    ], args.run)
+def label(args, ctx):
     if args.clear:
-        run.del_attr("label")
+        _clear_labels(args, ctx)
     elif args.label:
-        run.write_attr("label", args.label)
+        _set_labels(args, ctx)
     else:
-        cli.out(run.get("label", ""))
+        cli.error("specify a label")
+
+def _clear_labels(args, ctx):
+    preview = "You are about to clear the labels for the following runs:"
+    confirm = "Continue?"
+    no_runs = "No runs to modify."
+    def clear_labels(selected):
+        for run in selected:
+            run.del_attr("label")
+        cli.out("Cleared label for %i run(s)" % len(selected))
+    _runs_op(
+        args, ctx, False, preview, confirm, no_runs,
+        clear_labels, LATEST_RUN_ARG)
+
+def _set_labels(args, ctx):
+    preview = "You are about to label the following runs:"
+    confirm = "Continue?"
+    no_runs = "No runs to modify."
+    def set_labels(selected):
+        for run in selected:
+            run.write_attr("label", args.label)
+        cli.out("Labeled %i run(s)" % len(selected))
+    _runs_op(
+        args, ctx, False, preview, confirm, no_runs,
+        set_labels, LATEST_RUN_ARG, True)
