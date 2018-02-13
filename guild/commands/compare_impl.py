@@ -53,6 +53,7 @@ def _get_runs_cb(args, index):
         "Model",
         "Operation",
         "Started",
+        "Time",
         "Status",
         "Label",
         "Accuracy",
@@ -100,11 +101,17 @@ def _run_data(run):
         run.model_name,
         run.op_name,
         util.format_timestamp(run.started),
+        _run_duration(run),
         run.status,
         run.label,
         _run_accuracy(run),
         _run_loss(run),
     ]
+
+def _run_duration(run):
+    end = run.stopped or time.time * 1000000
+    seconds = (end - run.started) // 1000000
+    return "%0.2f" % (seconds / 60)
 
 def _run_accuracy(run):
     search_keys = [
