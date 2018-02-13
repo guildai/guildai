@@ -99,6 +99,7 @@
     guild.plugin_util
     guild.plugins.__init__
     guild.plugins.cloudml
+    guild.plugins.cloudml_op_main
     guild.plugins.cpu
     guild.plugins.disk
     guild.plugins.gpu
