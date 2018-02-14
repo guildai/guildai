@@ -46,7 +46,7 @@ def _echo(s, err=False, **kw):
         else:
             log.info(s)
     else:
-        click.echo(s, **kw)
+        click.echo(s, err=err, **kw)
 
 def note(msg):
     _echo(click.style(msg, dim=True), err=True)
