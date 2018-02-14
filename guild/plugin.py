@@ -68,6 +68,9 @@ class Plugin(object):
     def sync_run(self, _run, **_kw):
         raise TypeError("plugin '%s' does not support sync_run" % self.name)
 
+    def stop_run(self, _run, **_kw):
+        raise TypeError("plugin '%s' does not support stop_run" % self.name)
+
 def iter_plugins():
     return iter(_plugins)
 

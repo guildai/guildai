@@ -20,6 +20,8 @@ import logging
 import guild.plugin
 
 from guild import cli
+from guild import remote_run_support
+
 from . import runs_impl
 
 log = logging.getLogger("guild")
@@ -52,36 +54,20 @@ def _watch(runs):
         cli.error("there are no active runs to watch")
 
 def _maybe_sync_run(run, watch):
-    remote_lock = _remote_lock_for_run(run)
+    remote_lock = remote_run_support.lock_for_run(run)
     if remote_lock:
-        plugin_name, lock_config = _parse_remote_lock(remote_lock)
-        _try_sync(run, plugin_name, lock_config, watch)
+        _try_sync(run, remote_lock, watch)
 
-def _remote_lock_for_run(run):
+def _try_sync(run, remote_lock, watch):
     try:
-        f = open(run.guild_path("LOCK.remote"), "r")
-    except IOError:
-        return None
-    else:
-        return f.read()
-
-def _parse_remote_lock(raw):
-    parts = raw.split(":", 1)
-    if len(parts) == 1:
-        return parts[0], ""
-    else:
-        return parts[0], parts[1]
-
-def _try_sync(run, plugin_name, lock_config, watch):
-    try:
-        plugin = guild.plugin.for_name(plugin_name)
+        plugin = guild.plugin.for_name(remote_lock.plugin_name)
     except LookupError:
         log.warning(
             "error syncing run '%s': plugin '%s' not available",
-            run.id, plugin_name)
+            run.id, remote_lock.plugin_name)
     else:
         kw = dict(
-            lock_config=lock_config,
+            lock_config=remote_lock.config,
             watch=watch,
         )
         plugin.sync_run(run, **kw)

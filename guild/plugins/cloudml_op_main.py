@@ -10,6 +10,7 @@ import time
 import guild.run
 
 from guild import cli
+from guild import cmd_impl_support
 from guild import opref
 from guild import plugin_util
 from guild import util
@@ -115,6 +116,7 @@ class Sync(object):
             log.error(
                 "no job info for %s, cannot sync status", job_name)
             return
+        self.run.write_attr("cloudml-job-description", info)
         state = info.get("state")
         cli.out("Run %s is %s" % (self.run.id, state))
         self.run.write_attr("cloudml-job-state", state)
@@ -506,22 +508,35 @@ class Predict(object):
         _, ext = os.path.splitext(path)
         return "json" if ext.lower() == ".json" else "text"
 
+class CancelJob(object):
+
+    def __init__(self, run, no_wait, sdk):
+        self.run = run
+        self.no_wait = no_wait
+        self.sdk = sdk
+
+    def __call__(self):
+        job_name = self.run.get("cloudml-job-name")
+        if not job_name:
+            log.error(
+                "cloudml-job-name not defined for run %s, cannot stop job",
+                self.run.id)
+            return
+        self._cancel_job(job_name)
+        if not self.no_wait:
+            sync_run(self.run, watch=True)
+
+    def _cancel_job(self, job_name):
+        cli.out("Canceling %s" % job_name)
+        args = [self.sdk.gcloud, "ml-engine", "jobs", "cancel", job_name]
+        subprocess.call(args)
+
 def _safe_name(s):
     return re.sub(r"[^0-9a-zA-Z]+", "_", s)
 
 def _one_run(run_prefix):
     matches = list(var.find_runs(run_prefix))
-    if not matches:
-        cli.error(
-            "cannot find a run for '%s'\n"
-            "Try 'guild runs list' for a list of available runs."
-            % run_prefix)
-    elif len(matches) > 1:
-        cli.error(
-            "more than one run matches '%s'\n"
-            "Try again with a unique run ID."
-            % run_prefix)
-    run_id, path = matches[0]
+    run_id, path = cmd_impl_support.one_run(matches, run_prefix)
     return guild.run.Run(run_id, path)
 
 def _init_sdk():
@@ -542,6 +557,10 @@ def _init_sdk():
 def sync_run(run, watch=False):
     sync = Sync(run, watch, _init_sdk())
     sync()
+
+def stop_run(run, no_wait):
+    cancel = CancelJob(run, no_wait, _init_sdk())
+    cancel()
 
 if __name__ == "__main__":
     assert len(sys.argv) >= 2, "missing command"

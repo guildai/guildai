@@ -22,8 +22,16 @@ from guild import click_util
 from . import runs_support
 
 @click.command(name="stop")
-@click.argument("runs", metavar="[RUN...]", nargs=-1)
+@click.argument("runs", metavar="[RUN...]", nargs=-1, required=True)
 @runs_support.run_scope_options
+@click.option(
+    "-n", "--no-wait",
+    help="Don't wait for remote runs to stop.",
+    is_flag=True)
+@click.option(
+    "-y", "--yes",
+    help="Do not prompt before stopping.",
+    is_flag=True)
 
 @click_util.use_args
 

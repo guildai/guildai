@@ -25,7 +25,7 @@ def lock_for_run(run):
     raw = _raw_lock_for_run(run)
     if not raw:
         return None
-    plugin_name, config = _parse_lock(remote_lock)
+    plugin_name, config = _parse_lock(raw)
     return RemoteLock(plugin_name, config)
 
 def _raw_lock_for_run(run):
@@ -34,7 +34,7 @@ def _raw_lock_for_run(run):
     except IOError:
         return None
     else:
-        return f.read()
+        return f.read().rstrip()
 
 def _parse_lock(raw):
     parts = raw.split(":", 1)

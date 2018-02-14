@@ -66,6 +66,8 @@
     guild.commands.search_impl
     guild.commands.shell
     guild.commands.shell_impl
+    guild.commands.stop
+    guild.commands.stop_impl
     guild.commands.sync
     guild.commands.sync_impl
     guild.commands.tensorboard
@@ -108,6 +110,7 @@
     guild.plugins.python_util
     guild.plugins.tensorflow_util
     guild.plugins.training_pkg_main
+    guild.remote_run_support
     guild.resolver
     guild.resource
     guild.resourcedef

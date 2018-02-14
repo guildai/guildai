@@ -52,6 +52,9 @@ def _train_opdef(spec, modeldef, parent_opdef):
                     "Use BASIC_GPU for a single worker instance with a GPU."
                 ),
                 "default": "BASIC"
+            },
+            "config": {
+                "description": "Path to the Cloud ML job configuration file"
             }
         }
     }
@@ -80,7 +83,7 @@ def _split_cmd(s):
     parts = shlex.split(s)
     return parts[0], parts[1:]
 
-def _tune_opdef(spec, modeldef, parent_opdef):
+def _hptune_opdef(spec, modeldef, parent_opdef):
     train_opdef = _train_opdef(spec, modeldef, parent_opdef)
     config_flag = train_opdef.get_flagdef("config")
     assert config_flag
@@ -93,7 +96,7 @@ class CloudMLPlugin(plugin.Plugin):
         if spec.name == "cloudml-train":
             return _train_opdef(spec, model.modeldef, parent_opdef)
         elif spec.name == "cloudml-hptune":
-            return _tune_opdef(spec, model.modeldef, parent_opdef)
+            return _hptune_opdef(spec, model.modeldef, parent_opdef)
         elif spec.name == "cloudml-deploy":
             raise AssertionError("TODO")
         return None
@@ -101,3 +104,7 @@ class CloudMLPlugin(plugin.Plugin):
     def sync_run(self, run, watch=False, **_kw):
         from . import cloudml_op_main
         cloudml_op_main.sync_run(run, watch)
+
+    def stop_run(self, run, no_wait=False, **_kw):
+        from . import cloudml_op_main
+        cloudml_op_main.stop_run(run, no_wait)
