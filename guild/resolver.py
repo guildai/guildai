@@ -48,33 +48,27 @@ class FileResolver(Resolver):
 
     def resolve(self, unpack_dir=None):
         if self.config:
-            config_path = self.config
-            if not os.path.exists(config_path):
-                raise ResolutionError("%s does not exist" % config_path)
-            log.info(
-                "Using %s for %s resource",
-                config_path, self.source.resdef.name)
-            return config_path
+            return _resolve_config_path(self)
+        source_path = os.path.join(
+            self.working_dir, self.source.parsed_uri.path)
+        if os.path.isdir(source_path):
+            return [source_path]
         else:
-            source_path = os.path.join(
-                self.working_dir, self.source.parsed_uri.path)
-            if os.path.isdir(source_path):
-                return [source_path]
-            else:
-                return resolve_source_files(
-                    source_path, self.source, unpack_dir)
+            return resolve_source_files(source_path, self.source, unpack_dir)
+
+def _resolve_config_path(res):
+    assert res.config
+    config_path = os.path.abspath(res.config)
+    if not os.path.exists(config_path):
+        raise ResolutionError("%s does not exist" % config_path)
+    log.info("Using %s for %s resource", config_path, res.source.resdef.name)
+    return [config_path]
 
 class URLResolver(Resolver):
 
     def resolve(self, unpack_dir=None):
         if self.config:
-            config_path = self.config
-            if not os.path.exists(config_path):
-                raise ResolutionError("%s does not exist" % config_path)
-            log.info(
-                "Using %s for %s resource",
-                config_path, self.source.resdef.name)
-            return config_path
+            return _resolve_config_path(self)
         download_dir = self._source_download_dir()
         util.ensure_dir(download_dir)
         try:
