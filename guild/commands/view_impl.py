@@ -105,8 +105,8 @@ class ViewDataImpl(view.ViewData):
         args = []
         for run_id in params.getlist("run"):
             args.extend(["--run", run_id])
-        for op in params.getlist("op"):
-            args.extend(["--op", op])
+        for op in params.getlist("ops"):
+            args.extend(["--operation", op])
         if "running" in params:
             args.append("--running")
         if "completed" in params:

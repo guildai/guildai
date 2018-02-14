@@ -46,7 +46,7 @@ def run_filters(fn):
             help="Include runs matching `RUN_ID`.",
             multiple=True),
         click.Option(
-            ("-o", "--op", "ops"), metavar="[MODEL:]OP",
+            ("-o", "--operation", "ops"), metavar="[MODEL:]OP",
             help="Include only runs matching `[MODEL:]OP`.",
             multiple=True),
         click.Option(
