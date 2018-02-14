@@ -20,6 +20,8 @@ import os
 import re
 import time
 
+import yaml
+
 import guild.opref
 import guild.run
 
@@ -366,7 +368,7 @@ def run_info(args, ctx):
         out("%s: %s" % (name, formatted[name]))
     for name in run.attr_names():
         if name not in CORE_RUN_ATTRS and name not in HIDDEN_RUN_ATTRS:
-            out("%s: %s" % (name, run.get(name, "")))
+            out("%s: %s" % (name, _format_attr(run.get(name))))
     if args.env:
         out("environment:", nl=False)
         out(_format_attr_val(run.get("env", "")))
@@ -386,6 +388,20 @@ def run_info(args, ctx):
             if not args.full_path:
                 path = os.path.relpath(path, run.path)
             out("  %s" % path)
+
+def _format_attr(val):
+    if val is None:
+        return ""
+    elif isinstance(val, (int, float, str, unicode)):
+        return str(val)
+    else:
+        return _format_yaml(val)
+
+def _format_yaml(val):
+    formatted = yaml.dump(val)
+    lines = formatted.split("\n")
+    padded = ["  " + line for line in lines]
+    return "\n" + "\n".join(padded).rstrip()
 
 def label(args, ctx):
     if args.clear:
