@@ -38,6 +38,7 @@ from .run import run
 from .runs import runs
 from .search import search
 from .shell import shell
+from .stop import stop
 from .sync import sync
 from .tensorboard import tensorboard
 from .tensorflow import tensorflow
@@ -94,6 +95,7 @@ main.add_command(run)
 main.add_command(runs)
 main.add_command(search)
 main.add_command(shell)
+main.add_command(stop)
 main.add_command(sync)
 main.add_command(tensorboard)
 main.add_command(tensorflow)

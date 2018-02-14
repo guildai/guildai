@@ -174,7 +174,7 @@ def _resolve_opdef(name, model):
     return opdef
 
 def _try_plugin_opdef(parent_opdef_or_name, model):
-    if isinstance(parent_opdef_or_name, str):
+    if isinstance(parent_opdef_or_name, (str, unicode)):
         plugin_op = modelfile.PluginOp(parent_opdef_or_name)
         parent_opdef = None
     else:

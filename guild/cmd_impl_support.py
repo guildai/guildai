@@ -100,7 +100,7 @@ def one_run(runs, spec, ctx=None):
         return runs[0]
     if not runs:
         _no_matching_run_error(spec, ctx)
-    _non_unique_run_id_error(runs)
+    _non_unique_run_id_error(runs, spec)
 
 def _no_matching_run_error(spec, ctx):
     help_msg = (
@@ -111,8 +111,16 @@ def _no_matching_run_error(spec, ctx):
         "Try 'guild runs list' for a list%s."
         % (spec, help_msg))
 
-def _non_unique_run_id_error(matches):
-    cli.out("'%s' matches multiple runs:\n", err=True)
-    for run in matches:
-        cli.out(" %s" % run.short_id, err=True)
+def _non_unique_run_id_error(matches, spec):
+    cli.out("'%s' matches multiple runs:" % spec, err=True)
+    for m in matches:
+        cli.out("  %s" % _match_short_id(m), err=True)
     cli.error()
+
+def _match_short_id(m):
+    # A match can be a run or a tuple of run_id, path
+    try:
+        return m.short_id
+    except AttributeError:
+        run_id, _path = m
+        return run_id[:8]
