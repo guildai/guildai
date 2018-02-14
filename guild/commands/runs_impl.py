@@ -424,7 +424,9 @@ def _clear_labels(args, ctx):
         clear_labels, LATEST_RUN_ARG)
 
 def _set_labels(args, ctx):
-    preview = "You are about to label the following runs:"
+    preview = (
+        "You are about to label the following runs with '%s':"
+        % args.label)
     confirm = "Continue?"
     no_runs = "No runs to modify."
     def set_labels(selected):
