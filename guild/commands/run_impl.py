@@ -26,7 +26,6 @@ import guild.plugin
 from guild import cli
 from guild import cmd_impl_support
 from guild import deps
-from guild import modelfile
 from guild import util
 from guild import yaml
 
@@ -166,28 +165,22 @@ def _multiple_models_error(model_ref, models):
 def _resolve_opdef(name, model):
     opdef = model.modeldef.get_operation(name)
     if opdef is None:
-        opdef = _try_plugin_opdef(name, model)
+        opdef = _maybe_plugin_opdef(name, model)
     elif opdef.plugin_op:
-        opdef = _plugin_opdef(opdef, model)
+        opdef = _plugin_opdef(name, model, opdef)
     if opdef is None:
         _no_such_operation_error(name, model)
     return opdef
 
-def _try_plugin_opdef(parent_opdef_or_name, model):
-    if isinstance(parent_opdef_or_name, (str, unicode)):
-        plugin_op = modelfile.PluginOp(parent_opdef_or_name)
-        parent_opdef = None
-    else:
-        plugin_op = parent_opdef_or_name.plugin_op
-        parent_opdef = parent_opdef_or_name
+def _maybe_plugin_opdef(name, model, parent_opdef=None):
     for _name, plugin in guild.plugin.iter_plugins():
-        opdef = plugin.get_operation(plugin_op, model, parent_opdef)
+        opdef = plugin.get_operation(name, model, parent_opdef)
         if opdef:
             return opdef
     return None
 
-def _plugin_opdef(parent_opdef, model):
-    opdef = _try_plugin_opdef(parent_opdef, model)
+def _plugin_opdef(name, model, parent_opdef):
+    opdef = _maybe_plugin_opdef(name, model, parent_opdef)
     if opdef is None:
         cli.error(
             "plugin-op '%s' specified by %s is not defined"

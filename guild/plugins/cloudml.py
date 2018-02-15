@@ -16,14 +16,15 @@ from __future__ import absolute_import
 from __future__ import division
 
 import pipes
+import re
 import shlex
 
 from guild import cli
 from guild import modelfile
 from guild import plugin
 
-def _train_opdef(spec, modeldef, parent_opdef):
-    local_train = _local_train_op(spec, modeldef)
+def _train_opdef(name, modeldef, parent_opdef, local_train_op):
+    local_train = _local_train_op(local_train_op, modeldef, name)
     module_name, cmd_args = _split_cmd(local_train.cmd)
     cmd = _op_cmd("train", cmd_args)
     data = {
@@ -56,10 +57,10 @@ def _train_opdef(spec, modeldef, parent_opdef):
             "config": {
                 "description": "Path to the Cloud ML job configuration file"
             }
-        }
         },
         "remote": True
-    opdef = modelfile.OpDef(parent_opdef.name, data, modeldef)
+    }
+    opdef = modelfile.OpDef(name, data, modeldef)
     opdef.update_flags(local_train)
     opdef.update_dependencies(local_train)
     if parent_opdef:
@@ -67,13 +68,13 @@ def _train_opdef(spec, modeldef, parent_opdef):
         opdef.update_dependencies(parent_opdef)
     return opdef
 
-def _local_train_op(spec, modeldef):
-    op_name = spec.config.get("train-op", "train")
+def _local_train_op(op_name, modeldef, requiring_op):
+    op_name = op_name or "train"
     op = modeldef.get_operation(op_name)
     if not op:
         cli.error(
             "operation '%s' not defined in %s (required by %s)"
-            % (op_name, modeldef.modelfile.src, spec.name))
+            % (op_name, modeldef.modelfile.src, requiring_op))
     return op
 
 def _op_cmd(name, args):
@@ -84,8 +85,8 @@ def _split_cmd(s):
     parts = shlex.split(s)
     return parts[0], parts[1:]
 
-def _hptune_opdef(spec, modeldef, parent_opdef):
-    train_opdef = _train_opdef(spec, modeldef, parent_opdef)
+def _hptune_opdef(name, modeldef, parent_opdef, local_train_op):
+    train_opdef = _train_opdef(name, modeldef, parent_opdef, local_train_op)
     config_flag = train_opdef.get_flagdef("config")
     assert config_flag
     config_flag.required = True
@@ -93,14 +94,16 @@ def _hptune_opdef(spec, modeldef, parent_opdef):
 
 class CloudMLPlugin(plugin.Plugin):
 
-    def get_operation(self, spec, model, parent_opdef):
-        if spec.name == "cloudml-train":
-            return _train_opdef(spec, model.modeldef, parent_opdef)
-        elif spec.name == "cloudml-hptune":
-            return _hptune_opdef(spec, model.modeldef, parent_opdef)
-        elif spec.name == "cloudml-deploy":
-            raise AssertionError("TODO")
-        return None
+    op_patterns = [
+        (re.compile(r"cloudml-train(?:#(.*))?"), _train_opdef),
+        (re.compile(r"cloudml-hptune(?:#(.*))?"), _hptune_opdef)
+    ]
+
+    def get_operation(self, name, model, parent_opdef):
+        for p, handler in self.op_patterns:
+            m = p.match(name)
+            if m:
+                return handler(name, model.modeldef, parent_opdef, *m.groups())
 
     def sync_run(self, run, watch=False, **_kw):
         from . import cloudml_op_main

@@ -297,32 +297,8 @@ ops are provided as modelfile.PluginOp objects and have `name` and
 
     >>> train = mf2["sample"].get_operation("train")
 
-    >>> train.plugin_op.name
+    >>> train.plugin_op
     'foo-train'
-
-    >>> train.plugin_op.config
-    {}
-
-Plugin ops may be configured by specifying them as objects with `name`
-and additional config attributes:
-
-    >>> mf2 = modelfile.from_string("""
-    ... name: sample
-    ... operations:
-    ...   train:
-    ...     plugin-op:
-    ...       name: bar-train
-    ...       config-1: bar
-    ...       config-2: [1, 2, 3]
-    ... """)
-
-    >>> train = mf2["sample"].get_operation("train")
-
-    >>> train.plugin_op.name
-    'bar-train'
-
-    >>> pprint(train.plugin_op.config)
-    {'config-1': 'bar', 'config-2': [1, 2, 3]}
 
 ## Resources
 
