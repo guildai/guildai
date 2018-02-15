@@ -60,6 +60,7 @@ CORE_RUN_ATTRS = [
 ]
 
 HIDDEN_RUN_ATTRS = [
+    "no-wait",
     "scalar-map",
 ]
 

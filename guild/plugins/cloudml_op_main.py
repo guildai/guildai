@@ -203,6 +203,12 @@ class Train(object):
         self._upload_files()
         self._submit_job()
         self._write_lock()
+        if self.run.get("no-wait"):
+            cli.out(
+                "no-wait specified, exiting early\n"
+                "Job %s will continue to run remotely - use 'guild sync' "
+                "to synchronize job status." % self.job_name)
+            return
         self._sync()
 
     def _write_run_attrs(self):

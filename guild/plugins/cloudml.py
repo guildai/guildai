@@ -57,7 +57,8 @@ def _train_opdef(spec, modeldef, parent_opdef):
                 "description": "Path to the Cloud ML job configuration file"
             }
         }
-    }
+        },
+        "remote": True
     opdef = modelfile.OpDef(parent_opdef.name, data, modeldef)
     opdef.update_flags(local_train)
     opdef.update_dependencies(local_train)

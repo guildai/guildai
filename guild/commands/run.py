@@ -52,6 +52,11 @@ def run_params(fn):
             ("--help-op",),
             help="Show operation help and exit.",
             is_flag=True),
+        click.Option(
+            ("-n", "--no-wait",),
+            help=("Don't wait for a remote operation to complete. Ignored "
+                  "if run is local."),
+            is_flag=True),
     ])
     return fn
 

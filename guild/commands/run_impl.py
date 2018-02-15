@@ -206,12 +206,13 @@ def _init_op(opdef, model, args):
     _apply_flag_vals(flag_vals, opdef)
     _validate_opdef_flags(opdef)
     _apply_arg_disable_plugins(args, opdef)
-    attrs = _init_op_attrs(args)
+    extra_attrs = _init_op_extra_attrs(args)
     if args.run_dir:
         cli.note(
             "Run directory is '%s' (results will not be visible to Guild)"
             % args.run_dir)
-    return guild.op.Operation(model, opdef, args.run_dir, resource_vals, attrs)
+    return guild.op.Operation(
+        model, opdef, args.run_dir, resource_vals, extra_attrs)
 
 def _parse_args(args):
     return dict([_parse_flag(os.path.expanduser(arg)) for arg in args])
@@ -312,8 +313,13 @@ def _apply_arg_disable_plugins(args, opdef):
 def _init_resource_config(args):
     return dict(args.resource_config)
 
-def _init_op_attrs(args):
-    return {"label": args.label} if args.label else None
+def _init_op_extra_attrs(args):
+    attrs = {}
+    if args.label:
+        attrs["label"] = args.label
+    if args.no_wait:
+        attrs["no-wait"] = True
+    return attrs
 
 def _print_model_help(model):
     out = click.HelpFormatter()
@@ -419,6 +425,7 @@ def _print_env(op):
         cli.out("export %s=%s" % (name, val))
 
 def _maybe_run(op, model, args):
+    _maybe_warn_no_wait(op.opdef, args)
     if args.yes or _confirm_run(op, model):
         _run(op)
 
@@ -471,3 +478,7 @@ def _format_op_resources(resources):
         "  %s: %s" % (spec, resources[spec])
         for spec in sorted(resources)
     ]) + "\n"
+
+def _maybe_warn_no_wait(opdef, args):
+    if args.no_wait and not opdef.remote:
+        cli.note("Operation is local, ignoring --no-wait")
