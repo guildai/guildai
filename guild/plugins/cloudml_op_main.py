@@ -159,12 +159,7 @@ class Sync(object):
                 trial_runs[trial_id] = run.id
                 self.run.write_attr("cloudml-hptune-trials", trial_runs)
                 self._init_trial_run(run, trial)
-            src = "%s/%s" % (job_dir, trial_id)
-            dest = run.path
-            cli.out(
-                "Synchronizing trial %s for run %s to %s"
-                % (trial_id, self.run.id, run.id))
-            self._rsync_files(src, dest)
+            self._maybe_sync_trial_run(job_dir, trial_id, run)
 
     def _init_trial_run(self, run, trial):
         run.init_skel()
@@ -193,18 +188,48 @@ class Sync(object):
     def _trial_label(self, trial):
         return "%s-trial-%s" % (self.run.short_id, trial["trialId"])
 
+    def _maybe_sync_trial_run(self, job_dir, trial_id, run):
+        if not run.get("cloudml-trial-sync"):
+            cli.out(
+                "Synchronizing trial %s for run %s to %s"
+                % (trial_id, self.run.id, run.id))
+            success = self._rsync("%s/%s" % (job_dir, trial_id), run.path)
+            if success:
+                run.write_attr("cloudml-trial-sync", guild.run.timestamp())
+
     def _default_sync_files(self, job_dir):
         cli.out("Synchronizing job for run %s" % self.run.id)
-        self._rsync_files(job_dir, self.run.path)
+        self._rsync(job_dir, self.run.path, ignore=self._run_links())
 
-    def _rsync_files(self, src, dest):
+    def _run_links(self):
+        links = []
+        run_path_len = len(self.run.path)
+        for path, dirs, files in os.walk(self.run.path):
+            for name in dirs + files:
+                fullpath = os.path.join(path, name)
+                if os.path.islink(fullpath):
+                    links.append(fullpath[run_path_len + 1:])
+        return links
+
+    def _rsync(self, src, dest, ignore=None):
+        args = [self.sdk.gsutil, "-m", "rsync", "-Cr"]
+        exclude = self._rsync_exclude(ignore)
+        if exclude:
+            args.extend(["-x", exclude])
+        args.extend([src, dest])
         try:
-            subprocess.check_call(
-                [self.sdk.gsutil, "-m", "rsync", "-Cr", src, dest])
+            subprocess.check_call(args)
         except subprocess.CalledProcessError:
             log.error(
                 "error syncing run %s files from %s (see above for details)",
                 self.run.id, src)
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def _rsync_exclude(paths):
+        return "|".join([re.escape(path) for path in (paths or [])])
 
     def _maybe_finalize(self, job):
         state = job.get("state")
@@ -264,9 +289,8 @@ class Train(object):
         return "0.0.0+%s" % self.run.short_id
 
     def __call__(self):
-        self._write_run_attrs()
         self._init_package()
-        self._upload_files()
+        self._init_job_dir()
         self._submit_job()
         self._write_lock()
         if self.run.get("no-wait"):
@@ -276,10 +300,6 @@ class Train(object):
                 "to synchronize job status." % self.job_name)
             return
         self._sync()
-
-    def _write_run_attrs(self):
-        self.run.write_attr("cloudml-job-name", self.job_name)
-        self.run.write_attr("cloudml-job-dir", self.job_dir)
 
     def _init_package(self):
         env = {
@@ -297,7 +317,8 @@ class Train(object):
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
 
-    def _upload_files(self):
+    def _init_job_dir(self):
+        self.run.write_attr("cloudml-job-dir", self.job_dir)
         for name in os.listdir(self.run.path):
             if name.startswith(".guild"):
                 continue
@@ -332,6 +353,7 @@ class Train(object):
             args.append("--")
             resolved_flag_args = self._apply_job_dir(self.flag_args)
             args.extend(resolved_flag_args)
+        self.run.write_attr("cloudml-job-name", self.job_name)
         cli.out("Starting job %s in %s" % (self.job_name, self.job_dir))
         log.debug("gutil cmd: %r", args)
         try:
