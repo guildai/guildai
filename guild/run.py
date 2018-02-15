@@ -59,25 +59,34 @@ class Run(object):
         if os.path.exists(self.guild_path("LOCK.remote")):
             return "running"
         else:
-            remote_exit_status = self.get("exit_status.remote")
-            if remote_exit_status is not None:
-                if remote_exit_status == 0:
-                    return "completed"
-                elif remote_exit_status == 2:
-                    return "terminated"
-                else:
-                    return "error"
+            if self.has_attr("exit_status.remote"):
+                return self._remote_exit_status()
             else:
-                pid = self.pid # side effect so run once
-                if pid is None:
-                    if self.get("exit_status") == 0:
-                        return "completed"
-                    else:
-                        return "error"
-                elif util.pid_exists(pid):
-                    return "running"
-                else:
-                    return "terminated"
+                return self._local_status()
+
+    def _remote_exit_status(self):
+        status = self.get("exit_status.remote")
+        if status == 0:
+            return "completed"
+        elif status == 2:
+            return "terminated"
+        else:
+            return "error"
+
+    def _local_status(self):
+        pid = self.pid # side-effect, read once
+        if pid is None:
+            exit_status = self.get("exit_status")
+            if exit_status == 0:
+                return "completed"
+            elif exit_status < 0:
+                return "terminated"
+            else:
+                return "error"
+        elif util.pid_exists(pid):
+            return "running"
+        else:
+            return "terminated"
 
     def get(self, name, default=None):
         try:
