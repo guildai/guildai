@@ -21,6 +21,7 @@ import re
 import shlex
 import subprocess
 import sys
+import time
 
 import guild.plugin
 import guild.run
@@ -37,6 +38,8 @@ OP_RUNFILE_PATHS = [
     ["org_psutil"],
     ["guild", "external"],
 ]
+
+PROC_TERM_TIMEOUT_SECONDS = 30
 
 class InvalidCmd(ValueError):
     pass
@@ -138,10 +141,21 @@ class Operation(object):
         try:
             self._exit_status = self._proc.wait()
         except KeyboardInterrupt:
-            # Treat unhandled keyboard interrupt as SIGTERM (-15)
-            self._exit_status = -15
+            self._exit_status = self._handle_proc_interrupt()
         self._stopped = guild.run.timestamp()
         _delete_proc_lock(self._run)
+
+    def _handle_proc_interrupt(self):
+        log.info("Operation interrupted - waiting for process to exit")
+        kill_after = time.time() + PROC_TERM_TIMEOUT_SECONDS
+        while time.time() < kill_after:
+            if self._proc.poll() is not None:
+                break
+            time.sleep(1)
+        if self._proc.poll() is None:
+            log.warning("Operation process did not exit - stopping forcefully")
+            self._proc.kill()
+        return -15 # exit code for SIGTERM
 
     def _finalize_attrs(self):
         assert self._run is not None
