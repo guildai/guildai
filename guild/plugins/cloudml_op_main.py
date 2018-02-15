@@ -7,6 +7,7 @@ import subprocess
 import sys
 import time
 
+import guild.op
 import guild.run
 
 from guild import cli
@@ -80,28 +81,10 @@ class Sync(object):
             self._run_once()
 
     def _run_once(self):
-        self._sync_files()
-        self._sync_status()
+        job = self._sync_status()
+        self._sync_files(job)
+        self._maybe_finalize(job)
         self._sync_run = True
-
-    def _sync_files(self):
-        job_dir = self.run.get("cloudml-job-dir")
-        if not job_dir:
-            log.error(
-                "cloudml-job-dir not defined for run %s, cannot sync files",
-                self.run.id)
-            return
-        cli.out("Synchronizing job output for run %s" % self.run.id)
-        self._rsync_files(job_dir, self.run.path)
-
-    def _rsync_files(self, src, dest):
-        try:
-            subprocess.check_call(
-                [self.sdk.gsutil, "-m", "rsync", "-Cr", src, dest])
-        except subprocess.CalledProcessError:
-            log.error(
-                "error syncing run %s files from %s (see above for details)",
-                self.run.id, src)
 
     def _sync_status(self):
         job_name = self.run.get("cloudml-job-name")
@@ -111,19 +94,18 @@ class Sync(object):
                 self.run.id)
             return
         cli.out("Synchronizing job status for run %s" % self.run.id)
-        info = self._job_info(job_name)
-        if not info:
+        job = self._describe_job(job_name)
+        if not job:
             log.error(
                 "no job info for %s, cannot sync status", job_name)
-            return
-        self.run.write_attr("cloudml-job-description", info)
-        state = info.get("state")
+            return None
+        self.run.write_attr("cloudml-job-description", job)
+        state = job.get("state")
         cli.out("Run %s is %s" % (self.run.id, state))
         self.run.write_attr("cloudml-job-state", state)
-        if state in FINAL_STATES:
-            self._finalize_run(state)
+        return job
 
-    def _job_info(self, job_name):
+    def _describe_job(self, job_name):
         try:
             out = subprocess.check_output(
                 [self.sdk.gcloud, "--format", "json", "ml-engine", "jobs",
@@ -133,12 +115,6 @@ class Sync(object):
             return None
         else:
             return json.loads(out)
-
-    def _finalize_run(self, state):
-        cli.out("Finalizing run %s" % self.run.id)
-        exit_status = self._exit_status_for_job_state(state)
-        self.run.write_attr("exit_status.remote", exit_status)
-        self._delete(self.run.guild_path("LOCK.remote"))
 
     @staticmethod
     def _exit_status_for_job_state(state):
@@ -151,7 +127,97 @@ class Sync(object):
         else:
             raise AssertionError(state)
 
-    def _delete(self, filename):
+    def _sync_files(self, job):
+        job_dir = self.run.get("cloudml-job-dir")
+        if not job_dir:
+            log.error(
+                "cloudml-job-dir not defined for run %s, cannot sync files",
+                self.run.id)
+            return
+        training_output = (job and job.get("trainingOutput")) or {}
+        if training_output.get("isHyperparameterTuningJob"):
+            return self._hptune_sync_files(job_dir, training_output)
+        else:
+            return self._default_sync_files(job_dir)
+
+    def _hptune_sync_files(self, job_dir, training_output):
+        trial_runs = self.run.get("cloudml-hptune-trials", {})
+        for trial in training_output.get("trials", []):
+            run = None
+            trial_id = trial["trialId"]
+            trial_run_id = trial_runs.get(trial_id)
+            if trial_run_id:
+                try:
+                    run = var.get_run(trial_run_id)
+                except LookupError:
+                    log.warning("trial run %s does not exist, will recreate")
+            if run is None:
+                run = guild.op.init_run()
+                cli.out(
+                    "Initializing run %s for trial %s"
+                    % (run.id, trial_id))
+                trial_runs[trial_id] = run.id
+                self.run.write_attr("cloudml-hptune-trials", trial_runs)
+                self._init_trial_run(run, trial)
+            src = "%s/%s" % (job_dir, trial_id)
+            dest = run.path
+            cli.out(
+                "Synchronizing trial %s for run %s to %s"
+                % (trial_id, self.run.id, run.id))
+            self._rsync_files(src, dest)
+
+    def _init_trial_run(self, run, trial):
+        run.init_skel()
+        run.write_attr("opref", self.run.get("opref"))
+        run.write_attr("started", self._trial_started(trial))
+        run.write_attr("exit_status", 0)
+        run.write_attr("exit_status.remote", 0)
+        flags = self.run.get("flags")
+        for name, val in trial.get("hyperparameters", {}).items():
+            flags["hparam:%s" % name] = val
+        run.write_attr("flags", flags)
+        run.write_attr("label", self._trial_label(trial))
+        run.write_attr("scalar-map", self.run.get("scalar-map"))
+
+    def _trial_started(self, trial):
+        # Hack to order trials in descending order: add int(trial id)
+        # to host_started
+        started = self.run.get("started")
+        try:
+            trial_pos = int(trial["trialId"])
+        except ValueError:
+            return started
+        else:
+            return started + trial_pos
+
+    def _trial_label(self, trial):
+        return "%s-trial-%s" % (self.run.short_id, trial["trialId"])
+
+    def _default_sync_files(self, job_dir):
+        cli.out("Synchronizing job for run %s" % self.run.id)
+        self._rsync_files(job_dir, self.run.path)
+
+    def _rsync_files(self, src, dest):
+        try:
+            subprocess.check_call(
+                [self.sdk.gsutil, "-m", "rsync", "-Cr", src, dest])
+        except subprocess.CalledProcessError:
+            log.error(
+                "error syncing run %s files from %s (see above for details)",
+                self.run.id, src)
+
+    def _maybe_finalize(self, job):
+        state = job.get("state")
+        if state in FINAL_STATES:
+            self._finalize_run(state)
+
+    def _finalize_run(self, state):
+        cli.out("Finalizing run %s" % self.run.id)
+        exit_status = self._exit_status_for_job_state(state)
+        self.run.write_attr("exit_status.remote", exit_status)
+        self._delete_file(self.run.guild_path("LOCK.remote"))
+
+    def _delete_file(self, filename):
         try:
             os.remove(filename)
         except OSError as e:
@@ -266,7 +332,7 @@ class Train(object):
             args.append("--")
             resolved_flag_args = self._apply_job_dir(self.flag_args)
             args.extend(resolved_flag_args)
-        log.info("Starting job %s in %s", self.job_name, self.job_dir)
+        cli.out("Starting job %s in %s" % (self.job_name, self.job_dir))
         log.debug("gutil cmd: %r", args)
         try:
             subprocess.check_call(args)
