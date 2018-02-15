@@ -76,13 +76,8 @@ class Operation(object):
         return self._exit_status
 
     def _init_run(self):
-        run_id = guild.run.mkid()
-        if self._rundir:
-            path = self._rundir
-        else:
-            path = os.path.join(var.runs_dir(), run_id)
-        self._run = guild.run.Run(run_id, path)
-        log.debug("initializing run in %s", path)
+        self._run = init_run(self._rundir)
+        log.debug("initializing run in %s", self._run.path)
         self._run.init_skel()
 
     def _init_attrs(self):
@@ -315,3 +310,9 @@ def _delete_proc_lock(run):
         os.remove(run.guild_path("LOCK"))
     except OSError:
         pass
+
+def init_run(path=None):
+    run_id = guild.run.mkid()
+    if not path:
+        path = os.path.join(var.runs_dir(), run_id)
+    return guild.run.Run(run_id, path)
