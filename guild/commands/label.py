@@ -18,26 +18,7 @@ from __future__ import division
 import click
 
 from guild import click_util
-from . import runs_support
-
-def label_params(fn):
-    click_util.append_params(fn, [
-        click.Argument(("runs",), metavar="[RUN...]", nargs=-1),
-        click.Argument(("label",), required=False),
-    ])
-    runs_support.run_scope_options(fn)
-    runs_support.run_filters(fn)
-    click_util.append_params(fn, [
-        click.Option(
-            ("--clear",),
-            help="Clear the run's label.",
-            is_flag=True),
-        click.Option(
-            ("-y", "--yes",),
-            help="Do not prompt before modifying labels.",
-            is_flag=True),
-    ])
-    return fn
+from .runs_label import label_params
 
 @click.command()
 @label_params
@@ -46,10 +27,7 @@ def label_params(fn):
 @click_util.use_args
 
 def label(ctx, args):
-    """Set run labels.
-
-    This command is equivalent to ``guild label [OPTIONS]
-    [RUN...] [LABEL]``
+    """Label one or more runs.
     """
     from . import runs_impl
     runs_impl.label(args, ctx)
