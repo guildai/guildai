@@ -135,7 +135,11 @@ class Operation(object):
 
     def _wait_for_proc(self):
         assert self._proc is not None
-        self._exit_status = self._proc.wait()
+        try:
+            self._exit_status = self._proc.wait()
+        except KeyboardInterrupt:
+            # Treat unhandled keyboard interrupt as SIGTERM (-15)
+            self._exit_status = -15
         self._stopped = guild.run.timestamp()
         _delete_proc_lock(self._run)
 
