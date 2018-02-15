@@ -147,7 +147,7 @@ class Operation(object):
         self._run.write_attr("stopped", self._stopped)
 
 def _init_cmd_args(opdef):
-    python_args = [_python_cmd(opdef), "-u", _run_script_path()]
+    python_args = [_python_cmd(opdef), "-um", "guild.op_main"]
     flag_vals = util.resolve_all_refs(opdef.flag_values())
     cmd_args = _cmd_args(opdef.cmd, flag_vals)
     flag_args = _flag_args(flag_vals, opdef, cmd_args)
@@ -158,9 +158,6 @@ def _python_cmd(_opdef):
     # by the model (e.g. does it run under Python 2 or 3, etc.) and
     # not by whatever Python runtime is configured in the user env.
     return sys.executable
-
-def _run_script_path():
-    return os.path.join(os.path.dirname(__file__), "scripts", "run")
 
 def _cmd_args(cmd, flag_vals):
     return [util.resolve_refs(part, flag_vals) for part in _split_cmd(cmd)]

@@ -169,3 +169,6 @@ def _profile_main():
         sys.stderr.write(
             "Use 'python -m pstats %s' or 'snakeviz %s' "
             "to view stats\n" % (tmp, tmp))
+
+if __name__ == "__main__":
+    main()
