@@ -302,28 +302,16 @@ class RunIndex(object):
                 scalars[events_checksum_field_name] = cur_checksum
         return scalars
 
-    def _apply_scalar_vals(self, scalar_vals, scalars, scalar_map):
-        for key, vals in scalar_vals.items():
-            if not vals:
-                continue
-            self._store_scalar_vals(key, vals, scalars)
-            try:
-                mapped_key = scalar_map[key]
-            except KeyError:
-                pass
-            else:
-                log.debug("mapping scalar %s to %s", key, mapped_key)
-                self._store_scalar_vals(mapped_key, vals, scalars)
-
     @staticmethod
     def _events_checksum_field_name(path):
+        """Returns a field name that is unique for any given path."""
         abs_path = os.path.abspath(path)
         path_digest = hashlib.md5(abs_path.encode("utf-8")).hexdigest()
         return "priv_events_checksum_{}".format(path_digest)
 
     @staticmethod
     def _events_checksum(path):
-        """Returnds a checksum for path that changes when events change.
+        """Returns a checksum for path that changes when events change.
 
         We use a directory watcher (by way of event_accumulator) to
         load events from path. We want a checksum that changes
@@ -355,6 +343,19 @@ class RunIndex(object):
             return tag
         else:
             return os.path.normpath(path_prefix) + "/" + tag
+
+    def _apply_scalar_vals(self, scalar_vals, scalars, scalar_map):
+        for key, vals in scalar_vals.items():
+            if not vals:
+                continue
+            self._store_scalar_vals(key, vals, scalars)
+            try:
+                mapped_key = scalar_map[key]
+            except KeyError:
+                pass
+            else:
+                log.debug("mapping scalar %s to %s", key, mapped_key)
+                self._store_scalar_vals(mapped_key, vals, scalars)
 
     @staticmethod
     def _store_scalar_vals(key, vals, scalars):
