@@ -63,6 +63,9 @@ class Viewer(ViewerBase):
     get_data = None
     get_detail = None
 
+    max_header_width = 10
+    max_data_width = 20
+
     def __init__(self, *args, **kw):
         assert self.get_data is not None
         assert self.get_detail is not None
@@ -70,12 +73,28 @@ class Viewer(ViewerBase):
             data, logs = self._init_data()
         self.logs = logs
         args = (args[0], data) + args[2:]
+        kw["column_widths"] = self._column_widths(data)
         # pylint: disable=non-parent-init-called
         ViewerBase.__init__(self, *args, **kw)
 
     def _init_data(self):
         data, logs = self.get_data()
         return tabview.process_data(data), logs
+
+    def _column_widths(self, data):
+        if not data:
+            return None
+        header = data[0]
+        widths = {}
+        self._update_column_widths(widths, data[0], self.max_header_width)
+        for row in data[1:]:
+            self._update_column_widths(widths, row, self.max_data_width)
+        return [widths[col] for col in sorted(widths)]
+
+    @staticmethod
+    def _update_column_widths(widths, vals, max_width):
+        for col, val in zip(range(len(vals)), vals):
+            widths[col] = min(max(len(val), widths.get(col, 0)), max_width)
 
     def location_string(self, yp, xp):
         lstr = ViewerBase.location_string(self, yp, xp)
