@@ -92,18 +92,13 @@ class Operation(object):
         self._run.write_attr("cmd", self.cmd_args)
         self._run.write_attr("env", self.cmd_env)
         self._run.write_attr("started", self._started)
-        scalar_map = self._scalar_map_attr()
-        if scalar_map:
-            self._run.write_attr("_scalar-map", scalar_map)
-        if self._flag_map:
-            self._run.write_attr("_flag-map", self._flag_map)
+        self._run.write_attr("_flag-map", self._flag_map)
+        for key, val in self.model.modeldef.extra.items():
+            self._run.write_attr("_%s" % key, val)
 
     def _opref_attr(self):
         ref = opref.OpRef.from_op(self.opdef.name, self.model.reference)
         return str(ref)
-
-    def _scalar_map_attr(self):
-        return self.model.modeldef.index_settings.get("scalar-map")
 
     def _resolve_deps(self):
         assert self._run is not None
