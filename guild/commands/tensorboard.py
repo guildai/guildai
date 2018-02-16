@@ -45,6 +45,28 @@ from . import runs_support
 
 def tensorboard(args):
     """Visualize runs with TensorBoard.
+
+    This command will start a TensorBoard process and open a browser
+    window for you. TensorBoard will show the views that are selected
+    using the commands filters. This list corresponds to the the runs
+    shown when running ``guild runs``.
+
+    This command will not exit until you type ``CTRL-c`` to stop it.
+
+    If you'd like to change the filters used to select runs, stop the
+    command and re-run it with a different set of filters. You may
+    alternatively start another instance of TensorBoard in a separate
+    console.
+
+    TensorBoard will automatically refresh with the current run data.
+
+    If you're prefer that Guild not open a browser window, run the
+    command with the `--no-open` option.
+
+    By default, Guild will start the TensorBoard process on a randomly
+    selected free port. If you'd like to specify the port that
+    TensorBoard runs on, use the ``--port`` option.
+
     """
     from . import tensorboard_impl
     tensorboard_impl.main(args)

@@ -34,6 +34,27 @@ from . import runs_support
 
 def compare(args):
     """Compare run results.
+
+    Guild Compare is a console based application that displays a table
+    of runs with their current accuracy and loss. The application will
+    continue to run until you exit it by pressing ``q`` (for quit).
+
+    Guild Compare supports a number of commands. Commands are
+    activated by pressing a letter. To view the list of commands,
+    press ``?``.
+
+    Guild Compare does not automatically update to display the latest
+    available data. If you want to update the list of runs and their
+    status, press ``r`` (for refresh).
+
+    You may alternative use this command to generate CSV output for
+    run. Use the `--csv` option to print data to standard output
+    instead of running as an application. You can redirect this output
+    to a file using ``guild compare --csv > RUNS.csv``.
+
+    `FILTER` may be used to filter the runs compared. Use this value
+    to select runs with a particular operation or label.
+
     """
     from . import compare_impl
     compare_impl.main(args)
