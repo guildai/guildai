@@ -133,6 +133,7 @@ def _run_data(run):
         "opName": run.opref.op_name,
         "started": formatted["started"],
         "stopped": formatted["stopped"],
+        "label": formatted["label"],
         "status": run.status,
         "exitStatus": formatted["exit_status"] or None,
         "command": formatted["command"],

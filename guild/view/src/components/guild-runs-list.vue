@@ -37,6 +37,7 @@
             class="rev-ellipsis-container">
             <v-list-tile-title slot="activator" class="rev-ellipsis">
               &lrm;{{ run.operation }}
+              <span v-if="run.label" class="run-title-label">{{ run.label }}</span>
             </v-list-tile-title>
             <span>[{{ run.shortId }}] {{ run.operation }}</span>
           </v-tooltip>
@@ -72,8 +73,10 @@
          return this.runs;
        }
        const filter = this.filter.toLowerCase();
-       return this.runs.filter(
-         run => run.operation.toLowerCase().indexOf(filter) !== -1);
+       return this.runs.filter(run => {
+         const text = run.operation.toLowerCase() + run.label.toLowerCase();
+         return text.indexOf(filter) !== -1;
+       });
      }
    },
 
@@ -96,6 +99,12 @@
 .list__tile {
   height: inherit;
   padding: 10px 16px;
+}
+
+.run-title-label {
+  color: rgba(0,0,0,0.54);
+  margin-right: 10px;
+  float: right;
 }
 
 .rev-ellipsis-container {
