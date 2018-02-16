@@ -8,6 +8,8 @@ import sys
 import tempfile
 import time
 
+import dateutil.parser
+import dateutil.tz
 import yaml
 
 import guild.op
@@ -247,6 +249,8 @@ class Sync(object):
         cli.out("Finalizing run %s" % self.run.id)
         exit_status = self._exit_status_for_job_state(state)
         self.run.write_attr("exit_status.remote", exit_status)
+        stopped = _parse_datetime_as_timestamp(job["endTime"])
+        self.run.write_attr("stopped", stopped)
         self._delete_file(self.run.guild_path("LOCK.remote"))
 
     def _delete_file(self, filename):
@@ -690,6 +694,11 @@ def _one_run(run_prefix):
     matches = list(var.find_runs(run_prefix))
     run_id, path = cmd_impl_support.one_run(matches, run_prefix)
     return guild.run.Run(run_id, path)
+
+def _parse_datetime_as_timestamp(dt):
+    parsed = dateutil.parser.parse(dt)
+    local_datetime = parsed.astimezone(dateutil.tz.tzlocal())
+    return int(local_datetime.strftime("%s000000"))
 
 def _init_sdk():
     gsutil = util.which("gsutil")
