@@ -311,7 +311,7 @@ def _init_op_extra_attrs(args):
     if args.label:
         attrs["label"] = args.label
     if args.no_wait:
-        attrs["no-wait"] = True
+        attrs["_no-wait"] = True
     return attrs
 
 def _print_model_help(model):

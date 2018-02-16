@@ -172,7 +172,7 @@ class Sync(object):
             flags["hparam:%s" % name] = val
         run.write_attr("flags", flags)
         run.write_attr("label", self._trial_label(trial))
-        run.write_attr("scalar-map", self.run.get("scalar-map"))
+        run.write_attr("_scalar-map", self.run.get("_scalar-map"))
 
     def _trial_started(self, trial):
         # Hack to order trials in descending order: add int(trial id)
@@ -189,13 +189,15 @@ class Sync(object):
         return "%s-trial-%s" % (self.run.short_id, trial["trialId"])
 
     def _maybe_sync_trial_run(self, job_dir, trial_id, run):
-        if not run.get("cloudml-trial-sync"):
+        synced = run.get("_cloudml-trial-synced")
+        if not synced:
             cli.out(
                 "Synchronizing trial %s for run %s to %s"
                 % (trial_id, self.run.id, run.id))
-            success = self._rsync("%s/%s" % (job_dir, trial_id), run.path)
-            if success:
-                run.write_attr("cloudml-trial-sync", guild.run.timestamp())
+            synced = self._rsync("%s/%s" % (job_dir, trial_id), run.path)
+            if synced:
+                run.write_attr("_cloudml-trial-synced", guild.run.timestamp())
+        return synced
 
     def _default_sync_files(self, job_dir):
         cli.out("Synchronizing job for run %s" % self.run.id)
@@ -293,7 +295,7 @@ class Train(object):
         self._init_job_dir()
         self._submit_job()
         self._write_lock()
-        if self.run.get("no-wait"):
+        if self.run.get("_no-wait"):
             cli.out(
                 "no-wait specified, exiting early\n"
                 "Job %s will continue to run remotely - use 'guild sync' "

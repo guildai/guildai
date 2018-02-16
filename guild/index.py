@@ -285,7 +285,7 @@ class RunIndex(object):
         from tensorboard.backend.event_processing import event_accumulator
         _ensure_tf_logger_patched()
         scalars = {}
-        scalar_map = run.get("scalar-map", {})
+        scalar_map = run.get("_scalar-map", {})
         for path in event_multiplexer.GetLogdirSubdirectories(run.path):
             events_checksum_field_name = self._events_checksum_field_name(path)
             last_checksum = fields.get(events_checksum_field_name)
