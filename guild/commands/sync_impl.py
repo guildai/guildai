@@ -47,7 +47,7 @@ def _watch(runs):
             "Try 'guild runs list' for a list of runs.")
     for run in runs:
         if run.status == "running":
-            cli.out("Watching %s" % run.short_id)
+            cli.out("Watching %s" % run.id)
             _maybe_sync_run(run, True)
             break
     else:
