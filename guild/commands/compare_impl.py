@@ -110,7 +110,12 @@ def _run_data(run):
     ]
 
 def _run_duration(run):
-    end = run.stopped or time.time() * 1000000
+    if run.status == "running":
+        end = time.time() * 1000000
+    elif run.stopped:
+        end = run.stopped
+    else:
+        return ""
     seconds = (end - run.started) // 1000000
     return _format_time(seconds)
 
