@@ -24,10 +24,24 @@ from guild import modelfile
 from guild import plugin
 
 def _train_opdef(name, modeldef, parent_opdef, local_train_op):
-    local_train = _local_train_op(local_train_op, modeldef, name)
+    local_train = _local_train_opdef(local_train_op, modeldef, name)
+    data = _train_opdef_data(local_train)
+    return _gen_opdef(name, data, modeldef, local_train, parent_opdef)
+
+def _local_train_opdef(op_name, modeldef, requiring_op):
+    op_name = op_name or "train"
+    opdef = modeldef.get_operation(op_name)
+    if not opdef:
+        cli.error(
+            "operation '%s' not defined in %s (required by %s)"
+            % (op_name, modeldef.modelfile.src, requiring_op))
+    return opdef
+
+def _train_opdef_data(local_train):
     module_name, cmd_args = _split_cmd(local_train.cmd)
     cmd = _op_cmd("train", cmd_args)
-    data = {
+    return {
+        "description": "Train a model in Cloud ML",
         "cmd": cmd,
         "flags": {
             "bucket-name": {
@@ -60,22 +74,6 @@ def _train_opdef(name, modeldef, parent_opdef, local_train_op):
         },
         "remote": True
     }
-    opdef = modelfile.OpDef(name, data, modeldef)
-    opdef.update_flags(local_train)
-    opdef.update_dependencies(local_train)
-    if parent_opdef:
-        opdef.update_flags(parent_opdef)
-        opdef.update_dependencies(parent_opdef)
-    return opdef
-
-def _local_train_op(op_name, modeldef, requiring_op):
-    op_name = op_name or "train"
-    op = modeldef.get_operation(op_name)
-    if not op:
-        cli.error(
-            "operation '%s' not defined in %s (required by %s)"
-            % (op_name, modeldef.modelfile.src, requiring_op))
-    return op
 
 def _op_cmd(name, args):
     args = " ".join([pipes.quote(arg) for arg in args])
@@ -85,12 +83,48 @@ def _split_cmd(s):
     parts = shlex.split(s)
     return parts[0], parts[1:]
 
+def _gen_opdef(name, data, modeldef, local_opdef, parent_opdef):
+    opdef = modelfile.OpDef(name, data, modeldef)
+    opdef.update_flags(local_opdef)
+    opdef.update_dependencies(local_opdef)
+    if parent_opdef:
+        opdef.update_flags(parent_opdef)
+        opdef.update_dependencies(parent_opdef)
+    return opdef
+
 def _hptune_opdef(name, modeldef, parent_opdef, local_train_op):
-    train_opdef = _train_opdef(name, modeldef, parent_opdef, local_train_op)
-    config_flag = train_opdef.get_flagdef("config")
-    assert config_flag
-    config_flag.required = True
-    return train_opdef
+    local_train = _local_train_opdef(local_train_op, modeldef, name)
+    data = _train_opdef_data(local_train)
+    data["cmd"] = data["cmd"].replace(
+        "guild.plugins.cloudml_op_main train",
+        "guild.plugins.cloudml_op_main hptune")
+    data["description"] = (
+        "Optimize model hyperparameters in Cloud ML\n"
+        "\n"
+        "A config file defining a hyperparameter spec is required for "
+        "this operation. See https://goo.gl/aZQYCe for spec details.\n"
+        "\n"
+        "You may override values in the config using flags. See support "
+        "config flags below for more information."
+    )
+    data["flags"]["config"]["required"] = True
+    data["flags"].update({
+        "max-trials": {
+            "description": (
+                "Maximum number of trials for hyperparameter tuning\n"
+                "\n"
+                "Overrides maxTrials in config."
+            )
+        },
+        "max-parallel-trials": {
+            "description": (
+                "Maximum number of parallel trials for hyperparameter tuning\n"
+                "\n"
+                "Overrides maxParallelTrials in config."
+            )
+        }
+    })
+    return _gen_opdef(name, data, modeldef, local_train, parent_opdef)
 
 class CloudMLPlugin(plugin.Plugin):
 
