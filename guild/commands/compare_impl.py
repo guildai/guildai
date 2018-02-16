@@ -49,26 +49,28 @@ def _tabview(args):
         _get_run_detail_cb(index))
 
 def _get_runs_cb(args, index):
-    header = [
-        "Run",
-        "Model",
-        "Operation",
-        "Started",
-        "Time",
-        "Status",
-        "Label",
-        "Accuracy",
-        "Loss",
-    ]
     def get_runs():
         _init_tf_logging()
         log_capture = util.LogCapture()
         with log_capture:
             runs = runs_impl.runs_for_args(args)
             filtered_runs = _filter_runs(runs, args.filters)
-            vals = _runs_data(filtered_runs, index)
-        return [header] + vals, log_capture.get_all()
+            flags = _compare_flags(filtered_runs)
+            header = _runs_header(flags)
+            data = _runs_data(filtered_runs, flags, index)
+            log = log_capture.get_all()
+        return [header] + data, log
     return get_runs
+
+def _init_tf_logging():
+    """Load TensorFlow, forcing init of TF logging.
+
+    This is part of our handing of logging, which can interfere with
+    the curses display used by tabview. By forcing an init of TF logs,
+    we can patch loggers with LogCapture (see guild.tabview module)
+    for display in a curses window.
+    """
+    import tensorflow
 
 def _filter_runs(runs, filters):
     return [run for run in runs if _filter_run(run, filters)]
@@ -82,22 +84,34 @@ def _filter_run(run, filters):
     ]
     return util.match_filters(filters, filter_vals)
 
-def _init_tf_logging():
-    """Load TensorFlow, forcing init of TF logging.
+def _compare_flags(runs):
+    flags = set()
+    for run in runs:
+        flags.update(run.get("_compare", {}).get("flags", []))
+    return sorted(flags)
 
-    This is part of our handing of logging, which can interfere with
-    the curses display used by tabview. By forcing an init of TF logs,
-    we can patch loggers with LogCapture (see guild.tabview module)
-    for display in a curses window.
-    """
-    import tensorflow
+def _runs_header(flags):
+    base = [
+        "run",
+        "model",
+        "operation",
+        "started",
+        "time",
+        "status",
+        "label",
+        "step",
+        "accuracy",
+        "loss",
+    ]
+    return base + flags
 
-def _runs_data(selected, index):
+def _runs_data(selected, flags, index):
     ids = [run.id for run in selected]
-    return [_run_data(run) for run in index.runs(ids)]
+    return [_run_data(run, flags) for run in index.runs(ids)]
 
-def _run_data(run):
-    return [
+def _run_data(run, flags):
+    flag_vals = dict(run.iter_flags())
+    base_data = [
         run.short_id,
         run.model_name,
         run.op_name,
@@ -105,9 +119,12 @@ def _run_data(run):
         _run_duration(run),
         run.status,
         run.label,
+        _scalar_step(run),
         _run_accuracy(run),
         _run_loss(run),
     ]
+    flag_data = [flag_vals.get(name, "") for name in flags]
+    return base_data + flag_data
 
 def _run_duration(run):
     if run.status == "running":
@@ -123,6 +140,14 @@ def _format_time(seconds):
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
     return "%d:%02d:%02d" % (h, m, s)
+
+def _scalar_step(run):
+    search_keys = [
+        "loss_step",
+        "train/loss_step",
+        "total_loss_1_step" # slim models
+    ]
+    return _format_int(run.scalar(search_keys))
 
 def _run_accuracy(run):
     search_keys = [
@@ -143,6 +168,9 @@ def _run_loss(run):
 
 def _format_float(x):
     return ("%0.6f" % x) if x is not None else ""
+
+def _format_int(x):
+    return ("%i" % x) if x is not None else ""
 
 def _get_run_detail_cb(index):
     def get_detail(data, y, _x):

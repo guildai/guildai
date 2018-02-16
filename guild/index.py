@@ -334,7 +334,7 @@ class RunIndex(object):
                     continue
                 scalar_key = self._scalar_key(val.tag, events_prefix)
                 scalar_vals = all_vals.setdefault(scalar_key, [])
-                scalar_vals.append(val.simple_value)
+                scalar_vals.append((val.simple_value, event.step))
         return all_vals
 
     @staticmethod
@@ -359,9 +359,9 @@ class RunIndex(object):
 
     @staticmethod
     def _store_scalar_vals(key, vals, scalars):
-        field_name = _encode_field_name("scalar_", key)
-        last = vals[-1]
-        scalars[field_name] = last
+        last_val, step = vals[-1]
+        scalars[_encode_field_name("scalar_", key)] = last_val
+        scalars[_encode_field_name("scalar_", key + "_step")] = step
 
     def _index_run(self, run, writer):
         log.debug("indexing run %s", run.id)
