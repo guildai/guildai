@@ -40,7 +40,7 @@ class Sync(object):
         self.run = run
         self.watch = watch
         self.sdk = sdk
-        self._sync_run = False
+        self._last_sync = None
 
     def __call__(self):
         if self.watch:
@@ -70,21 +70,19 @@ class Sync(object):
         except KeyboardInterrupt:
             pass
         finally:
-            self._sync_run = False
+            last_sync0 = self._last_sync
             background_sync.stop()
-            self._maybe_sync_after_watch()
+            if self._last_sync == last_sync0:
+                self._run_once()
             sys.stdout.write("\n")
             sys.stdout.flush()
 
-    def _maybe_sync_after_watch(self):
-        if not self._sync_run:
-            self._run_once()
-
     def _run_once(self):
         job = self._sync_status()
-        self._sync_files(job)
-        self._maybe_finalize(job)
-        self._sync_run = True
+        files_synced = self._sync_files(job)
+        if files_synced:
+            self._maybe_finalize(job)
+        self._last_sync = time.time()
 
     def _sync_status(self):
         job_name = self.run.get("cloudml-job-name")
@@ -142,6 +140,7 @@ class Sync(object):
 
     def _hptune_sync_files(self, job_dir, training_output):
         trial_runs = self.run.get("cloudml-hptune-trials", {})
+        all_synced = True
         for trial in training_output.get("trials", []):
             run = None
             trial_id = trial["trialId"]
@@ -159,7 +158,9 @@ class Sync(object):
                 trial_runs[trial_id] = run.id
                 self.run.write_attr("cloudml-hptune-trials", trial_runs)
                 self._init_trial_run(run, trial)
-            self._maybe_sync_trial_run(job_dir, trial_id, run)
+            synced = self._maybe_sync_trial_run(job_dir, trial_id, run)
+            all_synced = all_synced and synced
+        return all_synced
 
     def _init_trial_run(self, run, trial):
         run.init_skel()
@@ -202,7 +203,7 @@ class Sync(object):
 
     def _default_sync_files(self, job_dir):
         cli.out("Synchronizing job for run %s" % self.run.id)
-        self._rsync(job_dir, self.run.path, ignore=self._run_links())
+        return self._rsync(job_dir, self.run.path, ignore=self._run_links())
 
     def _run_links(self):
         links = []
