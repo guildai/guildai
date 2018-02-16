@@ -5,7 +5,10 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
+
+import yaml
 
 import guild.op
 import guild.run
@@ -387,6 +390,57 @@ class Train(object):
         sync = Sync(self.run, True, self.sdk)
         sync()
 
+class HPTune(Train):
+
+    def __init__(self, args, sdk):
+        super(HPTune, self).__init__(args, sdk)
+        self._patch_hptuning_config()
+
+    def _patch_hptuning_config(self):
+        tuning_flag_args = [
+            ("--max-trials", "maxTrials"),
+            ("--max-parallel-trials", "maxParallelTrials")
+        ]
+        tuning_config = {}
+        for flag_arg, config_key in tuning_flag_args:
+            val = self._pop_flag_arg(flag_arg)
+            if val:
+                tuning_config[config_key] = yaml.safe_load(val)
+        if tuning_config:
+            config = self._apply_tuning_config(tuning_config)
+            self._replace_config(config)
+
+    def _pop_flag_arg(self, arg):
+        try:
+            pos = self.flag_args.index(arg)
+        except ValueError:
+            return None
+        else:
+            val = self.flag_args[pos + 1]
+            self.flag_args[pos:pos + 2] = []
+            return val
+
+    def _apply_tuning_config(self, tuning_config):
+        config = self._load_config()
+        training_input = config.setdefault("trainingInput", {})
+        hparams = training_input.setdefault("hyperparameters", {})
+        hparams.update(tuning_config)
+        return config
+
+    def _load_config(self):
+        assert self.args.config, "--config required for hptune"
+        with open(self.args.config, "r") as f:
+            return yaml.safe_load(f)
+
+    def _replace_config(self, config):
+        fh, path = tempfile.mkstemp(
+            prefix="hptuning_config_generated-",
+            suffix=".yaml",
+            dir=self.run.path)
+        with os.fdopen(fh, "w") as f:
+            yaml.safe_dump(config, f)
+        self.args.config = path
+
 class Deploy(object):
 
     def __init__(self, args, sdk):
@@ -667,6 +721,8 @@ if __name__ == "__main__":
     sdk = _init_sdk()
     if op_name == "train":
         op = Train(op_args, sdk)
+    elif op_name == "hptune":
+        op = HPTune(op_args, sdk)
     else:
         raise AssertionError(sys.argv)
     op()
