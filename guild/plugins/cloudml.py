@@ -122,6 +122,14 @@ def _hptune_opdef(name, modeldef, parent_opdef, local_train_op):
                 "\n"
                 "Overrides maxParallelTrials in config."
             )
+        },
+        "resume-from": {
+            "description": (
+                "Resume hyperparameter tuning using the results of "
+                "previous cloudml-hptune operation\n"
+                "\n"
+                "Use the ID of the run you want to resume from."
+            )
         }
     })
     return _gen_opdef(name, data, modeldef, local_train, parent_opdef)

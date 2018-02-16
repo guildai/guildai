@@ -29,6 +29,7 @@ Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: Utilities
 Requires-Dist: chardet
 Requires-Dist: pip
+Requires-Dist: python-dateutil
 Requires-Dist: PyYAML
 Requires-Dist: setuptools
 Requires-Dist: tabview
