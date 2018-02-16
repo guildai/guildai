@@ -15,7 +15,6 @@ import yaml
 import guild.op
 import guild.run
 
-from guild import cmd_impl_support
 from guild import opref
 from guild import plugin_util
 from guild import util
@@ -710,8 +709,14 @@ def _safe_name(s):
 
 def _one_run(run_prefix):
     matches = list(var.find_runs(run_prefix))
-    run_id, path = cmd_impl_support.one_run(matches, run_prefix)
-    return guild.run.Run(run_id, path)
+    if len(matches) == 1:
+        run_id, path = matches[0]
+        return guild.run.Run(run_id, path)
+    elif not matches:
+        _exit("no runs match '%s'", run_prefix)
+    else:
+        run_ids = [run_id[:8] for run_id, _ in matches]
+        _exit("multiple runs match '%s' (%s)", run_prefix, ", ".join(run_ids))
 
 def _parse_datetime_as_timestamp(dt):
     parsed = dateutil.parser.parse(dt)
