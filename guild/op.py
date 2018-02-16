@@ -50,7 +50,7 @@ class Operation(object):
                  extra_attrs=None):
         self.model = model
         self.opdef = opdef
-        self.cmd_args = _init_cmd_args(opdef)
+        self.cmd_args, self._flag_map = _init_cmd_args(opdef)
         self.cmd_env = _init_cmd_env(opdef)
         self._rundir = rundir
         self.resource_config = resource_config
@@ -170,8 +170,9 @@ def _init_cmd_args(opdef):
     python_args = [_python_cmd(opdef), "-um", "guild.op_main"]
     flag_vals = util.resolve_all_refs(opdef.flag_values())
     cmd_args = _cmd_args(opdef.cmd, flag_vals)
-    flag_args = _flag_args(flag_vals, opdef, cmd_args)
-    return python_args + cmd_args + flag_args
+    flag_args, flag_map = _flag_args(flag_vals, opdef, cmd_args)
+    cmd_args = python_args + cmd_args + flag_args
+    return cmd_args, flag_map
 
 def _python_cmd(_opdef):
     # TODO: This is an important operation that should be controlled
@@ -196,7 +197,7 @@ def _split_cmd(cmd):
 
 def _flag_args(flag_vals, opdef, cmd_args):
     flag_args = []
-    flag_vals = _flag_cmd_arg_vals(flag_vals, opdef)
+    flag_vals, flag_map = _flag_cmd_arg_vals(flag_vals, opdef)
     cmd_options = _cmd_options(cmd_args)
     for name in sorted(flag_vals):
         value = flag_vals[name]
@@ -206,24 +207,25 @@ def _flag_args(flag_vals, opdef, cmd_args):
                 "in the operation cmd", name, value)
             continue
         flag_args.extend(_cmd_option_args(name, value))
-    return flag_args
+    return flag_args, flag_map
 
 def _flag_cmd_arg_vals(flag_vals, opdef):
     vals = {}
+    flag_map = {}
     for name, val in flag_vals.items():
         if val is None:
             continue
         flagdef = opdef.get_flagdef(name)
         if flagdef:
             if flagdef.options:
-                _apply_option_args(flagdef, val, flag_vals, vals)
+                _apply_option_args(flagdef, val, flag_vals, vals, flag_map)
             elif not flagdef.arg_skip:
-                _apply_flag_arg(flagdef, val, flag_vals, vals)
+                _apply_flag_arg(flagdef, val, flag_vals, vals, flag_map)
         else:
             vals[name] = val
-    return vals
+    return vals, flag_map
 
-def _apply_option_args(flagdef, val, flag_vals, target):
+def _apply_option_args(flagdef, val, flag_vals, target, flag_map):
     for opt in flagdef.options:
         if opt.value == val:
             if opt.args:
@@ -233,15 +235,19 @@ def _apply_option_args(flagdef, val, flag_vals, target):
                 }
                 target.update(args)
             elif not flagdef.arg_skip:
-                _apply_flag_arg(flagdef, val, flag_vals, target)
+                _apply_flag_arg(flagdef, val, flag_vals, target, flag_map)
             break
     else:
         log.warning(
             "unsupported option %r for '%s' flag, ignoring",
             val, flagdef.name)
 
-def _apply_flag_arg(flagdef, value, flag_vals, target):
-    arg_name = flagdef.arg_name if flagdef.arg_name else flagdef.name
+def _apply_flag_arg(flagdef, value, flag_vals, target, flag_map):
+    if flagdef.arg_name:
+        arg_name = flagdef.arg_name
+        flag_map[arg_name] = flagdef.name
+    else:
+        arg_name = flagdef.name
     arg_val = util.resolve_refs(value, flag_vals)
     target[arg_name] = arg_val
 

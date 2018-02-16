@@ -168,8 +168,9 @@ class Sync(object):
         run.write_attr("exit_status", 0)
         run.write_attr("exit_status.remote", 0)
         flags = self.run.get("flags")
+        flag_map = self.run.get("_flag-map")
         for name, val in trial.get("hyperparameters", {}).items():
-            flags["hparam:%s" % name] = val
+            flags[flag_map.get(name, name)] = val
         run.write_attr("flags", flags)
         run.write_attr("label", self._trial_label(trial))
         run.write_attr("_scalar-map", self.run.get("_scalar-map"))
