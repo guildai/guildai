@@ -84,7 +84,6 @@ class Viewer(ViewerBase):
     def _column_widths(self, data):
         if not data:
             return None
-        header = data[0]
         widths = {}
         self._update_column_widths(widths, data[0], self.max_header_width)
         for row in data[1:]:
