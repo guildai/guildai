@@ -215,21 +215,21 @@ def _flag_cmd_arg_vals(flag_vals, opdef):
             continue
         flagdef = opdef.get_flagdef(name)
         if flagdef:
-            if flagdef.options:
-                _apply_option_args(flagdef, val, flag_vals, vals, flag_map)
+            if flagdef.choices:
+                _apply_choice_args(flagdef, val, flag_vals, vals, flag_map)
             elif not flagdef.arg_skip:
                 _apply_flag_arg(flagdef, val, flag_vals, vals, flag_map)
         else:
             vals[name] = val
     return vals, flag_map
 
-def _apply_option_args(flagdef, val, flag_vals, target, flag_map):
-    for opt in flagdef.options:
-        if opt.value == val:
-            if opt.args:
+def _apply_choice_args(flagdef, val, flag_vals, target, flag_map):
+    for choice in flagdef.choices:
+        if choice.value == val:
+            if choice.args:
                 args = {
                     name: util.resolve_refs(val, flag_vals)
-                    for name, val in opt.args.items()
+                    for name, val in choice.args.items()
                 }
                 target.update(args)
             elif not flagdef.arg_skip:
@@ -237,7 +237,7 @@ def _apply_option_args(flagdef, val, flag_vals, target, flag_map):
             break
     else:
         log.warning(
-            "unsupported option %r for '%s' flag, ignoring",
+            "unsupported choice %r for '%s' flag, ignoring",
             val, flagdef.name)
 
 def _apply_flag_arg(flagdef, value, flag_vals, target, flag_map):

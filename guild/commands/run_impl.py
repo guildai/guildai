@@ -280,8 +280,8 @@ def _missing_required_flags_error(missing):
 def _check_valid_flag_vals(vals, opdef):
     for flag in opdef.flags:
         val = vals.get(flag.name)
-        if (val and flag.options and
-            val not in [opt.value for opt in flag.options]):
+        if (val and flag.choices and
+            val not in [choice.value for choice in flag.choices]):
             _invalid_flag_value_error(flag)
 
 def _invalid_flag_value_error(flag):
@@ -289,8 +289,8 @@ def _invalid_flag_value_error(flag):
         "Unsupported value for '%s' - supported values are:\n"
         % flag.name, err=True)
     cli.table(
-        [{"val": opt.value, "desc": opt.description}
-         for opt in flag.options],
+        [{"val": choice.value, "desc": choice.description}
+         for choice in flag.choices],
         ["val", "desc"],
         indent=2,
         err=True)

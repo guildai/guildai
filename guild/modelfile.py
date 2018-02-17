@@ -309,7 +309,7 @@ class FlagDef(object):
         self.required = bool(data.get("required"))
         self.arg_name = data.get("arg-name")
         self.arg_skip = bool(data.get("arg-skip"))
-        self.options = _init_flag_options(data.get("options"))
+        self.choices = _init_flag_choices(data.get("choices"))
 
     def __repr__(self):
         return "<guild.modelfile.FlagDef '%s'>" % self.name
@@ -320,12 +320,12 @@ def _init_flag_values(flagdefs):
         for flag in flagdefs
     }
 
-def _init_flag_options(data):
+def _init_flag_choices(data):
     if not data:
         return []
-    return [FlagOpt(opt_data) for opt_data in data]
+    return [FlagChoice(choice_data) for choice_data in data]
 
-class FlagOpt(object):
+class FlagChoice(object):
 
     def __init__(self, data):
         self.value = data.get("value")
