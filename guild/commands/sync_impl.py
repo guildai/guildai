@@ -27,15 +27,12 @@ from . import runs_impl
 log = logging.getLogger("guild")
 
 def main(args):
-    runs = _runs(args)
+    runs = runs_impl.runs_for_args(args)
     if args.watch:
         _watch(runs)
     else:
         for run in runs:
             _maybe_sync_run(run, False)
-
-def _runs(args):
-    return runs_impl.runs_for_args(args)
 
 def _watch(runs):
     if not runs:

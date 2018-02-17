@@ -18,21 +18,17 @@ from __future__ import division
 import click
 
 from guild import click_util
-from .runs_label import label_params
+from . import runs_label
 
 @click.command()
-@label_params
+@runs_label.label_params
 
 @click.pass_context
 @click_util.use_args
+@click_util.render_doc
 
 def label(ctx, args):
-    """Label one or more runs.
+    """{{ runs_label.label }}"""
 
-    This is an alternative form for ``guild runs label``.
-
-    Try ``guild runs label --help`` for more information.
-
-    """
     from . import runs_impl
     runs_impl.label(args, ctx)

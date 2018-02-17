@@ -18,16 +18,17 @@ from __future__ import division
 import click
 
 from guild import click_util
-from .packages_delete import delete_params
+from . import packages_delete
 
 @click.command()
 
-@delete_params
+@packages_delete.delete_params
 
 @click_util.use_args
+@click_util.render_doc
 
 def uninstall(args):
-    """Uninstall one or more packages.
-    """
+    """{{ packages_delete.delete_packages }}"""
+
     from . import packages_impl
     packages_impl.uninstall_packages(args)

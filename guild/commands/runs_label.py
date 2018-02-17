@@ -30,11 +30,11 @@ def label_params(fn):
     runs_support.scope_options(fn)
     click_util.append_params(fn, [
         click.Option(
-            ("--clear",),
+            ("-c", "--clear"),
             help="Clear the run's label.",
             is_flag=True),
         click.Option(
-            ("-y", "--yes",),
+            ("-y", "--yes"),
             help="Do not prompt before modifying labels.",
             is_flag=True),
     ])
