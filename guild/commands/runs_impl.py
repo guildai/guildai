@@ -18,6 +18,7 @@ from __future__ import division
 import logging
 import os
 import re
+import signal
 import time
 
 import yaml
@@ -28,6 +29,8 @@ import guild.run
 from guild import cli
 from guild import cmd_impl_support
 from guild import config
+from guild import remote_run_support
+from guild import util
 from guild import var
 
 log = logging.getLogger("guild")
@@ -332,8 +335,7 @@ def delete_runs(args, ctx):
             if not cli.confirm("Really delete these runs?"):
                 return
         for run in running:
-            from . import stop_impl # TODO move stop_impl into this module
-            stop_impl.stop_run(run, no_wait=True)
+            _stop_run(run, no_wait=True)
         var.delete_runs(selected, args.permanent)
         if args.permanent:
             cli.out("Permanently deleted %i run(s)" % len(selected))
@@ -443,3 +445,37 @@ def _set_labels(args, ctx):
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
         set_labels, LATEST_RUN_ARG, True)
+
+def stop_run(args, ctx):
+    preview = "WARNING: You are about to stop the following runs:"
+    confirm = "Stop these runs?"
+    no_runs_help = "Nothing to stop."
+    args.running = True
+    def stop(selected):
+        for run in selected:
+            _stop_run(run, args.no_wait)
+    _runs_op(args, ctx, False, preview, confirm, no_runs_help, stop)
+
+def _stop_run(run, no_wait):
+    remote_lock = remote_run_support.lock_for_run(run)
+    if remote_lock:
+        _try_stop_remote_run(run, remote_lock, no_wait)
+    else:
+        _try_stop_local_run(run)
+
+def _try_stop_remote_run(run, remote_lock, no_wait):
+    try:
+        plugin = guild.plugin.for_name(remote_lock.plugin_name)
+    except LookupError:
+        log.warning(
+            "error syncing run '%s': plugin '%s' not available",
+            run.id, remote_lock.plugin_name)
+    else:
+        cli.out("Stopping %s (remote)" % run.id)
+        plugin.stop_run(run, lock_config=remote_lock.config, no_wait=no_wait)
+
+def _try_stop_local_run(run):
+    pid = run.pid
+    if pid and util.pid_exists(pid):
+        cli.out("Stopping %s (pid %i)" % (run.id, run.pid))
+        os.kill(pid, signal.SIGTERM)

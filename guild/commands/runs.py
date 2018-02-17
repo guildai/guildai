@@ -26,6 +26,7 @@ from .runs_label import label
 from .runs_list import list_runs, runs_list_options
 from .runs_purge import purge_runs
 from .runs_restore import restore_runs
+from .runs_stop import stop_runs
 
 @click.group(invoke_without_command=True, cls=click_util.Group)
 @runs_list_options
@@ -57,3 +58,4 @@ runs.add_command(label)
 runs.add_command(list_runs)
 runs.add_command(purge_runs)
 runs.add_command(restore_runs)
+runs.add_command(stop_runs)

@@ -19,29 +19,17 @@ import click
 
 from guild import click_util
 
-from . import runs_support
+from . import runs_stop
 
 @click.command(name="stop")
-@click.argument("runs", metavar="[RUN...]", nargs=-1, required=True)
-@runs_support.scope_options
-@click.option(
-    "-n", "--no-wait",
-    help="Don't wait for remote runs to stop.",
-    is_flag=True)
-@click.option(
-    "-y", "--yes",
-    help="Do not prompt before stopping.",
-    is_flag=True)
+@runs_stop.runs_stop_params
 
+@click.pass_context
 @click_util.use_args
+@click_util.render_doc
 
-def stop(args):
-    """Stop one or more runs.
+def stop(ctx, args):
+    """{{ runs_stop.stop_runs }}"""
 
-    RUN must be a valid run ID.
-
-    Stopped runs are ignored.
-
-    """
-    from . import stop_impl
-    stop_impl.main(args)
+    from . import runs_impl
+    runs_impl.stop_run(args, ctx)
