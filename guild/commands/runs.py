@@ -20,8 +20,6 @@ import click
 from guild import cli
 from guild import click_util
 
-from . import runs_support
-
 from .runs_delete import delete_runs
 from .runs_info import run_info
 from .runs_label import label

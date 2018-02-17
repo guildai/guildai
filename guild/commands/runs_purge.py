@@ -20,19 +20,8 @@ import click
 from guild import click_util
 from . import runs_support
 
-@click.command("purge", help="""
-Permanently delete specified runs.
-
-**WARNING**: Purged runs cannot be recovered!
-
-%s
-
-If a run is not specified, assumes all runs (i.e. as if ``:`` was
-specified).
-""" % runs_support.RUN_ARG_HELP)
-@click.argument("runs", metavar="[RUN...]", nargs=-1)
-@runs_support.scope_options
-@runs_support.run_filters
+@click.command("purge")
+@runs_support.runs_op
 @click.option(
     "-y", "--yes",
     help="Do not prompt before purging.",
@@ -40,8 +29,40 @@ specified).
 
 @click.pass_context
 @click_util.use_args
+@click_util.render_doc
 
 def purge_runs(ctx, args):
-    # Help defined in command decorator.
+    """Permanentaly delete one or more deleted runs.
+
+    **WARNING**: Purged runs cannot be recovered!
+
+    Runs are purged (i.e. permanently deleted) by selecting them with
+    `RUN` arguments. If a `RUN` argument is not specified, all runs
+    matching the filter criteria are purged. See SELECTING RUNS and
+    FILTERING topics below for more information on how runs are
+    selected.
+
+    Use ``guild runs list --deleted`` for a list of runs that can be
+    purged.
+
+    By default, Guild will display the list of runs to be purged and
+    ask you to confirm the operation. If you want to purge the runs
+    without being prompted, use the ``--yes`` option.
+
+    **WARNING**: Take care when purging runs using indexes as the runs
+    selected with indexes can change. Review the list of runs
+    carefully before confirming a purge operation.
+
+    {{ runs_support.runs_arg }}
+
+    If a `RUN` argument is not specified, ``:`` is assumed (all runs
+    are selected).
+
+    {{ runs_support.op_and_label_filters }}
+    {{ runs_support.status_filters }}
+    {{ runs_support.scope_options }}
+
+    """
+
     from . import runs_impl
     runs_impl.purge_runs(args, ctx)

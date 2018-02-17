@@ -63,10 +63,7 @@ class RunsMonitor(util.LoopingThread):
             self._refresh_run_links(runs)
 
     def _runs(self):
-        runs = runs_impl.runs_for_args(self.args)
-        if not self.args.runs:
-            return runs
-        return runs_impl.selected_runs(runs, self.args.runs)
+        return runs_impl.runs_for_args(self.args)
 
     def _refresh_run_links(self, runs):
         to_delete = os.listdir(self.logdir)

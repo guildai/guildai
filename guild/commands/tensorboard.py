@@ -21,18 +21,16 @@ from guild import click_util
 from . import runs_support
 
 @click.command(name="tensorboard, tb")
-@click.argument("runs", metavar="[RUN...]", nargs=-1)
-@runs_support.scope_options
-@runs_support.run_filters
+@runs_support.runs_arg
 @click.option(
-    "--host",
+    "--host", metavar="HOST",
     help="Name of host interface to listen on.")
 @click.option(
-    "--port",
+    "--port", metavar="PORT",
     help="Port to listen on.",
     type=click.IntRange(0, 65535))
 @click.option(
-    "--refresh-interval",
+    "--refresh-interval", metavar="SECONDS",
     help="Refresh interval (defaults to 5 seconds).",
     type=click.IntRange(1, None),
     default=5)
@@ -40,8 +38,12 @@ from . import runs_support
     "-n", "--no-open",
     help="Don't open the TensorBoard URL in a brower.",
     is_flag=True)
+@runs_support.op_and_label_filters
+@runs_support.status_filters
+@runs_support.scope_options
 
 @click_util.use_args
+@click_util.render_doc
 
 def tensorboard(args):
     """Visualize runs with TensorBoard.

@@ -35,10 +35,7 @@ def main(args):
             _maybe_sync_run(run, False)
 
 def _runs(args):
-    runs = runs_impl.runs_for_args(args)
-    if not args.runs:
-        return runs
-    return runs_impl.selected_runs(runs, args.runs)
+    return runs_impl.runs_for_args(args)
 
 def _watch(runs):
     if not runs:

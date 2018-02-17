@@ -21,8 +21,7 @@ from guild import click_util
 from . import runs_support
 
 @click.command(name="view")
-@runs_support.scope_options
-@runs_support.run_filters
+@runs_support.runs_op
 @click.option(
     "--host",
     help="Name of host interface to listen on.")
@@ -37,6 +36,7 @@ from . import runs_support
 @click.option("--dev", is_flag=True, hidden=True)
 
 @click_util.use_args
+@click_util.render_doc
 
 def view(args):
     """Visualize runs.

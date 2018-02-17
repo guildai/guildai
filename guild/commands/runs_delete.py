@@ -47,8 +47,8 @@ def delete_runs(ctx, args):
     ask you to confirm the operation. If you want to delete the runs
     without being prompted, use the ``--yes`` option.
 
-    WARNING: Take care when deleting runs using indexes as the runs
-    selected with indexes can change. Review the list of runs
+    **WARNING**: Take care when deleting runs using indexes as the
+    runs selected with indexes can change. Review the list of runs
     carefully before confirming a delete operation.
 
     If a run is still running, Guild will stop it first before

@@ -21,15 +21,16 @@ from guild import click_util
 from . import runs_support
 
 @click.command(name="sync")
-@click.argument("runs", metavar="[RUN...]", nargs=-1)
-@runs_support.scope_options
-@runs_support.core_run_filters
+@runs_support.runs_arg
 @click.option(
     "-w", "--watch",
     is_flag=True,
     help="Watch a remote run and synchronize in the background.")
+@runs_support.op_and_label_filters
+@runs_support.scope_options
 
 @click_util.use_args
+@click_util.render_doc
 
 def sync(args):
     """Synchronize remote runs.
@@ -50,6 +51,18 @@ def sync(args):
     When a remote status stops (it finished successfully, is
     terminated, or exits with an error), Guild will no longer
     synchronize it.
+
+    You can synchronize specific runs by selecting them using `RUN`
+    arguments. For more information, see SELECTING RUNS and FILTERING
+    topics below.
+
+    {{ runs_support.runs_arg }}
+
+    If a `RUN` argument is not specified, ``:`` is assumed (all runs
+    are selected).
+
+    {{ runs_support.op_and_label_filters }}
+    {{ runs_support.scope_options }}
 
     """
     from . import sync_impl

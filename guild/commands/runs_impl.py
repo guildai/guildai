@@ -28,7 +28,6 @@ import guild.run
 from guild import cli
 from guild import cmd_impl_support
 from guild import config
-from guild import util
 from guild import var
 
 log = logging.getLogger("guild")
@@ -112,7 +111,7 @@ def _apply_status_filter(args, filters):
     status_filters = [
         var.run_filter("attr", "status", status)
         for status in ["running", "completed", "error", "terminated"]
-        if getattr(args, status)
+        if getattr(args, status, False)
     ]
     if status_filters:
         filters.append(var.run_filter("any", status_filters))

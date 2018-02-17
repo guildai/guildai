@@ -19,8 +19,6 @@ import click
 
 from guild import click_util
 
-RUN_ARG_HELP = "DELME!!"
-
 def runs_arg(fn):
     """### Selecting runs
 
@@ -146,39 +144,4 @@ def runs_op(fn):
     op_and_label_filters(fn)
     status_filters(fn)
     scope_options(fn)
-    return fn
-
-# DELETE below if not used!
-
-def core_run_filters(fn):
-    click_util.append_params(fn, [
-        click.Option(
-            ("-r", "--run", "run_ids"), metavar="RUN_ID",
-            help="Include runs matching `RUN_ID`.",
-            multiple=True),
-        click.Option(
-            ("-o", "--operation", "ops"), metavar="[MODEL:]OP",
-            help="Include only runs matching `[MODEL:]OP`.",
-            multiple=True),
-    ])
-    return fn
-
-def run_filters(fn):
-    core_run_filters(fn)
-    status_filters(fn)
-    return fn
-
-def runs_list_options(fn):
-    scope_options(fn)
-    run_filters(fn)
-    click_util.append_params(fn, [
-        click.Option(
-            ("-v", "--verbose"),
-            help="Show run details.",
-            is_flag=True),
-        click.Option(
-            ("-d", "--deleted"),
-            help="Show deleted runs.",
-            is_flag=True),
-    ])
     return fn
