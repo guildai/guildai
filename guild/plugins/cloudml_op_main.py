@@ -29,6 +29,7 @@ WATCH_POLLING_INTERVAL = 5
 DEFAULT_REGION = "us-central1"
 DEFAULT_RUNTIME_VERSION = "1.4"
 
+PRE_RUNNING_STATES = ["QUEUED", "PREPARING"]
 FINAL_STATES = ["SUCCEEDED", "FAILED", "CANCELLED"]
 
 class CloudSDK(object):
@@ -82,9 +83,10 @@ class Sync(object):
 
     def _run_once(self):
         job = self._sync_status()
-        files_synced = self._sync_files(job)
-        if files_synced:
-            self._maybe_finalize(job)
+        if job["state"] not in [PRE_RUNNING_STATES]:
+            files_synced = self._sync_files(job)
+            if files_synced:
+                self._maybe_finalize(job)
         self._last_sync = time.time()
 
     def _sync_status(self):
@@ -101,7 +103,7 @@ class Sync(object):
                 "no job info for %s, cannot sync status", job_name)
             return None
         self.run.write_attr("cloudml-job-description", job)
-        state = job.get("state")
+        state = job["state"]
         log.info("Run %s is %s", self.run.id, state)
         self.run.write_attr("cloudml-job-state", state)
         return job
