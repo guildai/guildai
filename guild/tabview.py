@@ -63,7 +63,7 @@ class Viewer(ViewerBase):
     get_data = None
     get_detail = None
 
-    max_header_width = 10
+    max_header_width = 12
     max_data_width = 20
 
     def __init__(self, *args, **kw):
