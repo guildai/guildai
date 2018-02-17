@@ -40,7 +40,7 @@ def main(args):
         cli.table(preview, cols=cols, indent=2)
     if args.yes or cli.confirm("Stop these runs?"):
         for run in runs:
-            _stop_run(run, args)
+            stop_run(run, args.no_wait)
 
 def _selected_runs(args):
     selected = []
@@ -49,17 +49,18 @@ def _selected_runs(args):
         run_id, _ = cmd_impl_support.one_run(matches, spec)
         run = runs_impl.init_run(var.get_run(run_id))
         if run.status != "running":
-            log.info("run %s is already stopped, skipping", run.short_id)
+            log.info("run %s is already stopped, skipping", run.id)
             continue
         selected.append(run)
     return selected
 
-def _stop_run(run, args):
+def stop_run(run, no_wait=False):
     remote_lock = remote_run_support.lock_for_run(run)
     if remote_lock:
-        _try_stop_remote_run(run, remote_lock, args.no_wait)
+        _try_stop_remote_run(run, remote_lock, no_wait)
     else:
         _try_stop_local_run(run)
+
 
 def _try_stop_remote_run(run, remote_lock, no_wait):
     try:
@@ -69,11 +70,11 @@ def _try_stop_remote_run(run, remote_lock, no_wait):
             "error syncing run '%s': plugin '%s' not available",
             run.id, remote_lock.plugin_name)
     else:
-        cli.out("Stopping %s (remote)" % run.short_id)
+        cli.out("Stopping %s (remote)" % run.id)
         plugin.stop_run(run, lock_config=remote_lock.config, no_wait=no_wait)
 
 def _try_stop_local_run(run):
     pid = run.pid
     if pid and util.pid_exists(pid):
-        cli.out("Stopping %s (pid %i)" % (run.short_id, run.pid))
+        cli.out("Stopping %s (pid %i)" % (run.id, run.pid))
         os.kill(pid, signal.SIGTERM)

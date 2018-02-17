@@ -54,10 +54,9 @@ def _get_runs_cb(args, index):
         log_capture = util.LogCapture()
         with log_capture:
             runs = runs_impl.runs_for_args(args)
-            filtered_runs = _filter_runs(runs, args.filters)
-            flags = _compare_flags(filtered_runs)
+            flags = _compare_flags(runs)
             header = _runs_header(flags)
-            data = _runs_data(filtered_runs, flags, index)
+            data = _runs_data(runs, flags, index)
             log = log_capture.get_all()
         return [header] + data, log
     return get_runs
@@ -71,18 +70,6 @@ def _init_tf_logging():
     for display in a curses window.
     """
     import tensorflow
-
-def _filter_runs(runs, filters):
-    return [run for run in runs if _filter_run(run, filters)]
-
-def _filter_run(run, filters):
-    opref = guild.opref.OpRef.from_run(run)
-    filter_vals = [
-        opref.model_name,
-        opref.op_name,
-        run.get("label", ""),
-    ]
-    return util.match_filters(filters, filter_vals)
 
 def _compare_flags(runs):
     flags = set()

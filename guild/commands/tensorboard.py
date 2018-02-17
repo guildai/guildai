@@ -22,7 +22,7 @@ from . import runs_support
 
 @click.command(name="tensorboard, tb")
 @click.argument("runs", metavar="[RUN...]", nargs=-1)
-@runs_support.run_scope_options
+@runs_support.scope_options
 @runs_support.run_filters
 @click.option(
     "--host",

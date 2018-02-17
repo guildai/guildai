@@ -59,18 +59,11 @@ CORE_RUN_ATTRS = [
     "deps",
 ]
 
-def list_runs(args):
-    runs = runs_for_args(args)
-    formatted = [
-        format_run(run, i)
-        for i, run in enumerate(runs)
-    ]
-    filtered = _filter_runs(formatted, args.filters)
-    cols = ["index", "operation", "started", "status", "label"]
-    detail = RUN_DETAIL if args.verbose else None
-    cli.table(filtered, cols=cols, detail=detail)
+def runs_for_args(args, ctx=None, force_deleted=False):
+    filtered = filtered_runs(args, force_deleted)
+    return select_runs(filtered, args.runs, ctx)
 
-def runs_for_args(args, force_deleted=False):
+def filtered_runs(args, force_deleted=False):
     return var.runs(
         _runs_root_for_args(args, force_deleted),
         sort=["-started"],
@@ -83,20 +76,11 @@ def _runs_root_for_args(args, force_deleted):
 
 def _runs_filter(args):
     filters = []
-    _apply_status_filter(args, filters)
     _apply_cwd_modelfile_filter(args, filters)
+    _apply_status_filter(args, filters)
     _apply_ops_filter(args, filters)
-    _apply_run_id_filter(args, filters)
+    _apply_labels_filter(args, filters)
     return var.run_filter("all", filters)
-
-def _apply_status_filter(args, filters):
-    status_filters = [
-        var.run_filter("attr", "status", status)
-        for status in ["running", "completed", "error", "terminated"]
-        if getattr(args, status)
-    ]
-    if status_filters:
-        filters.append(var.run_filter("any", status_filters))
 
 def _apply_cwd_modelfile_filter(args, filters):
     cwd_modelfile = cmd_impl_support.cwd_modelfile()
@@ -124,6 +108,15 @@ def _cwd_run_filter(abs_cwd):
         return False
     return f
 
+def _apply_status_filter(args, filters):
+    status_filters = [
+        var.run_filter("attr", "status", status)
+        for status in ["running", "completed", "error", "terminated"]
+        if getattr(args, status)
+    ]
+    if status_filters:
+        filters.append(var.run_filter("any", status_filters))
+
 def _apply_ops_filter(args, filters):
     if args.ops:
         filters.append(_op_run_filter(args.ops))
@@ -134,14 +127,87 @@ def _op_run_filter(op_refs):
         return any((ref in op_desc for ref in op_refs))
     return f
 
-def _apply_run_id_filter(args, filters):
-    if args.run_ids:
-        filters.append(_run_id_filter(args.run_ids))
+def _apply_labels_filter(args, filters):
+    if args.labels:
+        filters.append(_label_filter(args.labels))
 
-def _run_id_filter(run_ids):
+def _label_filter(labels):
     def f(run):
-        return any((run.id.startswith(id) for id in run_ids))
+        return any((l in run.get("label") for l in labels))
     return f
+
+def select_runs(runs, select_specs, ctx=None):
+    if not select_specs:
+        return runs
+    selected = []
+    for spec in select_specs:
+        try:
+            slice_start, slice_end = _parse_slice(spec)
+        except ValueError:
+            selected.append(_find_run_by_id(spec, runs, ctx))
+        else:
+            if _in_range(slice_start, slice_end, runs):
+                selected.extend(runs[slice_start:slice_end])
+            else:
+                selected.append(_find_run_by_id(spec, runs, ctx))
+    return selected
+
+def _parse_slice(spec):
+    try:
+        index = int(spec)
+    except ValueError:
+        m = re.match("(\\d+)?:(\\d+)?", spec)
+        if m:
+            try:
+                return (
+                    _slice_part(m.group(1)),
+                    _slice_part(m.group(2), incr=True)
+                )
+            except ValueError:
+                pass
+        raise ValueError(spec)
+    else:
+        return index, index + 1
+
+def _slice_part(s, incr=False):
+    if s is None:
+        return None
+    elif incr:
+        return int(s) + 1
+    else:
+        return int(s)
+
+def _find_run_by_id(id_part, runs, ctx):
+    matches = []
+    for run in runs:
+        if run.id.startswith(id_part):
+            matches.append(run)
+    return cmd_impl_support.one_run(matches, id_part, ctx)
+
+def _in_range(slice_start, slice_end, l):
+    return (
+        (slice_start is None or slice_start >= 0) and
+        (slice_end is None or slice_end <= len(l))
+    )
+
+def list_runs(args):
+    runs = filtered_runs(args)
+    formatted = [
+        format_run(run, i)
+        for i, run in enumerate(runs)
+    ]
+    cols = ["index", "operation", "started", "status", "label"]
+    detail = RUN_DETAIL if args.verbose else None
+    cli.table(formatted, cols=cols, detail=detail)
+
+def _no_selected_runs_error(help_msg=None):
+    help_msg = (
+        help_msg or
+        "No matching runs\n"
+        "Try 'guild runs list' to list available runs."
+    )
+    cli.out(help_msg, err=True)
+    cli.error()
 
 def init_run(run):
     try:
@@ -231,24 +297,13 @@ def _format_attr_dict(d):
         "  %s: %s" % (key, d[key] or "") for key in sorted(d)
     ])
 
-def _filter_runs(runs, filters):
-    return [run for run in runs if _filter_run(run, filters)]
-
-def _filter_run(run, filters):
-    filter_vals = [
-        run["model"],
-        run["op_name"],
-        run["label"],
-    ]
-    return util.match_filters(filters, filter_vals)
-
-def _runs_op(args, ctx, force_delete, preview_msg, confirm_prompt,
+def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
              no_runs_help, op_callback, default_runs_arg=None,
              confirm_default=False):
     default_runs_arg = default_runs_arg or ALL_RUNS_ARG
-    runs = runs_for_args(args, force_delete)
     runs_arg = args.runs or default_runs_arg
-    selected = selected_runs(runs, runs_arg, ctx)
+    filtered = filtered_runs(args, force_deleted)
+    selected = select_runs(filtered, runs_arg, ctx)
     if not selected:
         _no_selected_runs_error(no_runs_help)
     preview = [format_run(run) for run in selected]
@@ -258,62 +313,6 @@ def _runs_op(args, ctx, force_delete, preview_msg, confirm_prompt,
         cli.table(preview, cols=cols, indent=2)
     if args.yes or cli.confirm(confirm_prompt, confirm_default):
         op_callback(selected)
-
-def selected_runs(runs, select_specs, ctx=None):
-    selected = []
-    for spec in select_specs:
-        try:
-            slice_start, slice_end = _parse_slice(spec)
-        except ValueError:
-            selected.append(_find_run_by_id(spec, runs, ctx))
-        else:
-            if _in_range(slice_start, slice_end, runs):
-                selected.extend(runs[slice_start:slice_end])
-            else:
-                selected.append(_find_run_by_id(spec, runs, ctx))
-    return selected
-
-def _parse_slice(spec):
-    try:
-        index = int(spec)
-    except ValueError:
-        m = re.match("(\\d+)?:(\\d+)?", spec)
-        if m:
-            try:
-                return (
-                    _slice_part(m.group(1)),
-                    _slice_part(m.group(2), incr=True)
-                )
-            except ValueError:
-                pass
-        raise ValueError(spec)
-    else:
-        return index, index + 1
-
-def _slice_part(s, incr=False):
-    if s is None:
-        return None
-    elif incr:
-        return int(s) + 1
-    else:
-        return int(s)
-
-def _find_run_by_id(id_part, runs, ctx):
-    matches = []
-    for run in runs:
-        if run.id.startswith(id_part):
-            matches.append(run)
-    return cmd_impl_support.one_run(matches, id_part, ctx)
-
-def _in_range(slice_start, slice_end, l):
-    return (
-        (slice_start is None or slice_start >= 0) and
-        (slice_end is None or slice_end <= len(l))
-    )
-
-def _no_selected_runs_error(help_msg=None):
-    help_msg = help_msg or "Try 'guild runs list' to list available runs."
-    cli.error("no matching runs\n%s" % help_msg)
 
 def delete_runs(args, ctx):
     if args.permanent:
@@ -326,6 +325,16 @@ def delete_runs(args, ctx):
         confirm = "Delete these runs?"
     no_runs_help = "Nothing to delete."
     def delete(selected):
+        running = [run for run in selected if run.status == "running"]
+        if running and not args.yes:
+            cli.out(
+                "WARNING: one or more runs are still running "
+                "and will be stopped before being deleted.")
+            if not cli.confirm("Really delete these runs?"):
+                return
+        for run in running:
+            from . import stop_impl # TODO move stop_impl into this module
+            stop_impl.stop_run(run, no_wait=True)
         var.delete_runs(selected, args.permanent)
         if args.permanent:
             cli.out("Permanently deleted %i run(s)" % len(selected))
@@ -354,9 +363,12 @@ def restore_runs(args, ctx):
     _runs_op(args, ctx, True, preview, confirm, no_runs_help, restore)
 
 def run_info(args, ctx):
-    runs = runs_for_args(args)
+    filtered = filtered_runs(args)
+    if not filtered:
+        cli.out("No matching runs", err=True)
+        cli.error()
     runspec = args.run or "0"
-    selected = selected_runs(runs, [runspec], ctx)
+    selected = select_runs(filtered, [runspec], ctx)
     run = cmd_impl_support.one_run(selected, runspec, ctx)
     formatted = format_run(run)
     out = cli.out

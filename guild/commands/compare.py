@@ -22,15 +22,14 @@ from guild import click_util
 from . import runs_support
 
 @click.command()
-@click.argument("filters", metavar="[FILTER]...", required=False, nargs=-1)
-@runs_support.run_scope_options
-@runs_support.run_filters
+@runs_support.runs_op
 @click.option(
     "--csv", "format", flag_value="csv",
     help="Generate comparison data as a CSV file.",
     is_flag=True)
 
 @click_util.use_args
+@click_util.render_doc
 
 def compare(args):
     """Compare run results.
@@ -50,11 +49,18 @@ def compare(args):
     You may alternative use this command to generate CSV output for
     run. Use the `--csv` option to print data to standard output
     instead of running as an application. You can redirect this output
-    to a file using ``guild compare --csv > RUNS.csv``.
+    to a file using:
 
-    `FILTER` may be used to filter the runs compared. Use this value
-    to select runs with a particular operation or label.
+        guild compare --csv > RUNS.csv
 
+    {{ runs_support.runs_arg }}
+
+    If a `RUN` argument is not specified, ``:`` is assumed (all runs
+    are selected).
+
+    {{ runs_support.op_and_label_filters }}
+    {{ runs_support.status_filters }}
+    {{ runs_support.scope_options }}
     """
     from . import compare_impl
     compare_impl.main(args)

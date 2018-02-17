@@ -25,12 +25,12 @@ from . import runs_support
 from .runs_delete import delete_runs
 from .runs_info import run_info
 from .runs_label import label
-from .runs_list import list_runs
+from .runs_list import list_runs, runs_list_options
 from .runs_purge import purge_runs
 from .runs_restore import restore_runs
 
 @click.group(invoke_without_command=True, cls=click_util.Group)
-@runs_support.runs_list_options
+@runs_list_options
 
 @click.pass_context
 

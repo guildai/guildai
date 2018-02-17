@@ -20,26 +20,52 @@ import click
 from guild import click_util
 from . import runs_support
 
+def runs_list_options(fn):
+    click_util.append_params(fn, [
+        click.Option(
+            ("-v", "--verbose"),
+            help="Show run details.",
+            is_flag=True),
+        click.Option(
+            ("-d", "--deleted"),
+            help="Show deleted runs.",
+            is_flag=True),
+    ])
+    runs_support.op_and_label_filters(fn)
+    runs_support.status_filters(fn)
+    runs_support.scope_options(fn)
+    return fn
+
 @click.command("list, ls")
-@click.argument("filters", metavar="[FILTER]...", required=False, nargs=-1)
-@runs_support.runs_list_options
+@runs_list_options
 
 @click_util.use_args
+@click_util.render_doc
 
 def list_runs(args):
     """List runs.
 
-    By default lists runs associated with models defined in the
-    current directory, or `LOCATION` if specified. To list all runs, use
-    the `--system` option.
+    Run lists may be filtered using a variety of options. See below
+    for details.
 
-    To list deleted runs, use the `--deleted` option. Note that runs are
-    still limited to the specified project unless `--system` is
-    specified.
+    Run indexes are included in list output for a specific listing,
+    which is based on the available runs, their states, and the
+    specified filters. You may use the indexes in run selection
+    commands (e.g. ``runs delete``, ``compare``, etc.) but note that
+    these indexes will change as runs are started, deleted, or run
+    status changes.
 
-    You may apply any of the filter options below to limit the runs
-    listed. Additionally, you may specify `FILTER` arguments to
-    further limit the results.
+    To show run detail, use `--verbose`.
+
+    {{ runs_support.op_and_label_filters }}
+    {{ runs_support.status_filters }}
+    {{ runs_support.scope_options }}
+
+    ### Show deleted runs
+
+    Use `--deleted` to show deleted runs. You can use the listing for
+    run IDs and indexes to use in ``runs restore`` (restore runs) and
+    ``runs purge`` (permanently delete runs).
 
     """
     from . import runs_impl

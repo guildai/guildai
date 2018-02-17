@@ -21,7 +21,7 @@ from guild import click_util
 from . import runs_support
 
 @click.command(name="view")
-@runs_support.run_scope_options
+@runs_support.scope_options
 @runs_support.run_filters
 @click.option(
     "--host",

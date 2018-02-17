@@ -20,17 +20,8 @@ import click
 from guild import click_util
 from . import runs_support
 
-@click.command("delete, rm", help="""
-Delete one or more runs.
-
-%s
-
-If a run is not specified, assumes all runs (i.e. as if ``:`` was
-specified).
-""" % runs_support.RUN_ARG_HELP)
-@click.argument("runs", metavar="[RUN...]", nargs=-1)
-@runs_support.run_scope_options
-@runs_support.run_filters
+@click.command("delete, rm")
+@runs_support.runs_op
 @click.option(
     "-y", "--yes",
     help="Do not prompt before deleting.",
@@ -42,8 +33,46 @@ specified).
 
 @click.pass_context
 @click_util.use_args
+@click_util.render_doc
 
 def delete_runs(ctx, args):
-    # Help defined in command decorator.
+    """Delete one or more runs.
+
+    Runs are deleting by selecting them with `RUN` arguments. If a
+    `RUN` argument is not specified, all runs matching the filter
+    criteria are deleted. See SELECTING RUNS and FILTERING topics
+    below for more information on how runs are selected.
+
+    By default, Guild will display the list of runs to be deleted and
+    ask you to confirm the operation. If you want to delete the runs
+    without being prompted, use the ``--yes`` option.
+
+    WARNING: Take care when deleting runs using indexes as the runs
+    selected with indexes can change. Review the list of runs
+    carefully before confirming a delete operation.
+
+    If a run is still running, Guild will stop it first before
+    deleting it.
+
+    If you delete a run by mistake, provided you didn't use the
+    ``--permanent`` option, you can restore it using ``guild runs
+    restore``.
+
+    If you want to permanently delete runs, use the ``--permanent``
+    option.
+
+    WARNING: Permanentaly deleted runs cannot be restored.
+
+    {{ runs_support.runs_arg }}
+
+    If a `RUN` argument is not specified, ``:`` is assumed (all runs
+    are selected).
+
+    {{ runs_support.op_and_label_filters }}
+    {{ runs_support.status_filters }}
+    {{ runs_support.scope_options }}
+
+    """
+
     from . import runs_impl
     runs_impl.delete_runs(args, ctx)

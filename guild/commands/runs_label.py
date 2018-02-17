@@ -21,12 +21,13 @@ from guild import click_util
 from . import runs_support
 
 def label_params(fn):
+    runs_support.runs_arg(fn)
     click_util.append_params(fn, [
-        click.Argument(("runs",), metavar="[RUN...]", nargs=-1),
         click.Argument(("label",), required=False),
     ])
-    runs_support.run_scope_options(fn)
-    runs_support.run_filters(fn)
+    runs_support.op_and_label_filters(fn)
+    runs_support.status_filters(fn)
+    runs_support.scope_options(fn)
     click_util.append_params(fn, [
         click.Option(
             ("--clear",),
@@ -44,12 +45,32 @@ def label_params(fn):
 
 @click.pass_context
 @click_util.use_args
+@click_util.render_doc
 
 def label(ctx, args):
     """Set run labels.
 
-    This command is equivalent to ``guild label [OPTIONS]
-    [RUN...] [LABEL]``
+    If `LABEL` is provided, the command will label the selected runs.
+
+    Select runs to label using one or more `RUN` arguments. See SELECT
+    RUNS below for information on selecting runs.
+
+    If `RUN` isn't specified, the most recent run is selected.
+
+    To clear a run label, use the ``--clear`` option.
+
+    By default Guild will prompt you before making any changes. If you
+    want to apply the changes without being prompted, use the
+    ``--yes`` option.
+
+    {{ runs_support.runs_arg }}
+
+    If a `RUN` argument is not specified, ``0`` is assumed (the most
+    recent run).
+
+    {{ runs_support.op_and_label_filters }} {{
+    runs_support.status_filters }} {{ runs_support.scope_options }}
+
     """
     from . import runs_impl
     runs_impl.label(args, ctx)

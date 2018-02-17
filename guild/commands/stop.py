@@ -23,7 +23,7 @@ from . import runs_support
 
 @click.command(name="stop")
 @click.argument("runs", metavar="[RUN...]", nargs=-1, required=True)
-@runs_support.run_scope_options
+@runs_support.scope_options
 @click.option(
     "-n", "--no-wait",
     help="Don't wait for remote runs to stop.",

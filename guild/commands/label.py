@@ -28,6 +28,11 @@ from .runs_label import label_params
 
 def label(ctx, args):
     """Label one or more runs.
+
+    This is an alternative form for ``guild runs label``.
+
+    Try ``guild runs label --help`` for more information.
+
     """
     from . import runs_impl
     runs_impl.label(args, ctx)

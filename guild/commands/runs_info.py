@@ -21,9 +21,7 @@ from guild import click_util
 from . import runs_support
 
 @click.command("info")
-@click.argument("run", required=False)
-@runs_support.run_scope_options
-@runs_support.run_filters
+@runs_support.run_arg
 @click.option("-e", "--env", help="Show run environment.", is_flag=True)
 @click.option("-f", "--flags", help="Show run flags.", is_flag=True)
 @click.option("-d", "--deps", help="Show resolved dependencies.", is_flag=True)
@@ -40,36 +38,32 @@ from . import runs_support
     "-P", "--full-path",
     help="Display full path when showing files.",
     is_flag=True)
+@runs_support.op_and_label_filters
+@runs_support.status_filters
+@runs_support.scope_options
 
 @click.pass_context
 @click_util.use_args
+@click_util.render_doc
 
 def run_info(ctx, args):
-    """Show run details.
+    """Show run information.
 
-    `RUN` must be a run ID (or the start of a run ID that uniquely
-    identifies a run) or a zero-based index corresponding to the run
-    as it appears in the list of filtered runs.
+    This command shows information for a single run.
 
-    By default the latest run is selected (index `0`).
+    {{ runs_support.run_arg }}
 
-    ### Examples
+    If RUN isn't specified, the latest run is selected.
 
-    Show info for the latest run in the current project:
+    ### Additional information
 
-        guild runs info
+    You can show additional run information by specifying option
+    flags. You may use multiple flags to show more information. Refer
+    to the options below for what additional information is available.
 
-    Show info for the latest run system wide:
-
-        guild runs info -S
-
-    Show info for the latest completed run in the current project:
-
-        guild runs info -c
-
-    Show info for run `a64b1710`:
-
-        guild runs info a64b1710
+    {{ runs_support.op_and_label_filters }}
+    {{ runs_support.status_filters }}
+    {{ runs_support.scope_options }}
 
     """
     from . import runs_impl

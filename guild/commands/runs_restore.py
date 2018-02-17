@@ -30,7 +30,7 @@ specified).
 """ % runs_support.RUN_ARG_HELP)
 
 @click.argument("runs", metavar="RUN [RUN...]", nargs=-1)
-@runs_support.run_scope_options
+@runs_support.scope_options
 @runs_support.run_filters
 @click.option(
     "-y", "--yes",

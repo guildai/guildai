@@ -195,3 +195,18 @@ def cmd_help(ctx):
 def normalize_command_path(cmd_path):
     m = re.match("^(.+?), .+$", cmd_path)
     return m.group(1) if m else cmd_path
+
+def render_doc(fn):
+    parts = re.split("({{.*}})", fn.__doc__, re.DOTALL)
+    vars = fn.__globals__
+    rendered_parts = [_maybe_render_doc(part, vars) for part in parts]
+    fn.__doc__ = "".join(rendered_parts)
+    return fn
+
+def _maybe_render_doc(s, vars):
+    m = re.match("{{(.+)}}", s)
+    if not m:
+        return s
+    # pylint: disable=eval-used
+    fn = eval(m.group(1).strip(), vars)
+    return fn.__doc__
