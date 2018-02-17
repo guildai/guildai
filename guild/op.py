@@ -92,7 +92,8 @@ class Operation(object):
         self._run.write_attr("cmd", self.cmd_args)
         self._run.write_attr("env", self.cmd_env)
         self._run.write_attr("started", self._started)
-        self._run.write_attr("_flag-map", self._flag_map)
+        if self._flag_map:
+            self._run.write_attr("_flag-map", self._flag_map)
         for key, val in self.model.modeldef.extra.items():
             self._run.write_attr("_%s" % key, val)
 
