@@ -158,6 +158,9 @@ class Operation(object):
         assert self._run is not None
         assert self._exit_status is not None
         assert self._stopped is not None
+        if not os.path.exists(self._run.path):
+            log.warning("run directory has been deleted, unable to finalize")
+            return
         self._run.write_attr("exit_status", self._exit_status)
         self._run.write_attr("stopped", self._stopped)
 
