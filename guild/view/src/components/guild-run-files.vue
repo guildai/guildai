@@ -115,19 +115,6 @@
 </script>
 
 <style>
- .files table.table thead tr {
-   height: 48px;
- }
-
- .files table.table thead th {
-   white-space: inherit;
- }
-
- .btn-link {
-   text-transform: none;
-   width: inherit;
- }
-
  .btn-link .btn__content {
    justify-content: start;
  }
@@ -142,5 +129,18 @@
 
  td.type-icon {
    padding-right: 0 !important;
+ }
+
+ .btn-link {
+   text-transform: none;
+   width: inherit;
+ }
+
+ .files table.table thead tr {
+   height: 48px;
+ }
+
+ .files table.table thead th {
+   white-space: inherit;
  }
 </style>
