@@ -43,8 +43,7 @@ Here's an operation with a simple "train" cmd:
 
     >>> op = Operation(cmd="train")
     >>> op.cmd_args
-    ['.../python...', '-u',
-     '...guild/scripts/run', 'train']
+    ['...python...', '-um', 'guild.op_main', 'train']
 
 NOTE: The above formatting, with the line feed after '-u' is required
 when running tests in Python 3. The regex that formats unicode refs as
@@ -56,9 +55,7 @@ in the Python command.
 
     >>> op = Operation(cmd="train epoch=10 tags='tag1 tag2'")
     >>> op.cmd_args
-    ['.../python...', '-u',
-     '...guild/scripts/run', 'train', 'epoch=10',
-     'tags=tag1 tag2']
+    ['...python...', '-um', 'guild.op_main', 'train', 'epoch=10', 'tags=tag1 tag2']
 
 NOTE: The above formatting, with the line feed after '-u' is required
 when running tests in Python 3. The regex that formats unicode refs as
@@ -83,7 +80,7 @@ We'll create a helper function to get the args:
     ...
     ...     def __init__(self, name):
     ...         self.name = name
-    ...         self.options = []
+    ...         self.choices = []
     ...         self.arg_name = None
     ...         self.arg_skip = False
 
@@ -102,10 +99,11 @@ We'll create a helper function to get the args:
     ...     from guild import util
     ...     resolved_flag_vals = util.resolve_all_refs(flag_vals)
     ...     cmd_args = cmd_args or []
-    ...     return guild.op._flag_args(
+    ...     flags, _flag_map = guild.op._flag_args(
     ...         resolved_flag_vals,
     ...         OpDefProxy(flag_vals),
     ...         cmd_args)
+    ...     return flags
 
 Empty flags:
 

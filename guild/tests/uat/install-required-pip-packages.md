@@ -1,9 +1,6 @@
 # Install required pip packages
 
-Guild requires these packages;
+Guild requirements are listed in requirements.txt, which we can use
+with pip:
 
-    >>> quiet("pip install tabview")
-    >>> quiet("pip install twine")
-    >>> quiet("pip install Werkzeug")
-    >>> quiet("pip install PyYAML")
-    >>> quiet("pip install Whoosh")
+    >>> quiet("pip install -r $REQUIREMENTS_PATH")

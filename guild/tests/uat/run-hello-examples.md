@@ -108,7 +108,7 @@ Here's a preview of the command:
 We'll use the first run for `from-file`.
 
     >>> run("""
-    ... run_id=`guild runs | grep from-file | tail -n1 | cut -d: -f2 | cut -b 1-8`
+    ... run_id=`guild runs 2> /dev/null | grep from-file | tail -n1 | cut -d: -f2 | cut -b 1-8`
     ... guild run from-file-output file-output=$run_id -y
     ... """)
     Resolving file-output dependency

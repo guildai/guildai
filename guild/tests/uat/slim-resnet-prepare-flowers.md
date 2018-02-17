@@ -10,6 +10,6 @@ rapid stdout updates from the processing progress).
 
 List the prepared flowers datasets:
 
-    >>> run("guild runs list flowers")
+    >>> run("guild runs list -o flowers")
     [0:...]  slim.datasets/slim-flowers:prepare  ... ...  completed
     <exit 0>

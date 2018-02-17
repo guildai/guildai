@@ -16,7 +16,7 @@ Let's run a `hello` operation using a specific run directory.
 
 And the generated files:
 
-    >>> run("find hello-default | sort")
+    >>> run("find hello-default | sort") # doctest: +REPORT_UDIFF
     hello-default
     hello-default/.guild
     hello-default/.guild/attrs

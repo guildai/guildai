@@ -31,6 +31,7 @@ import guild.var
 INDEX = "tests/uat/README.md"
 WORKSPACE = os.path.join(tempfile.gettempdir(), "guild-uat")
 GUILD_PATH = os.path.abspath("./guild/scripts")
+REQUIREMENTS_PATH = os.path.abspath("requirements.txt")
 TEMP = tempfile.gettempdir()
 
 GIT_REPOS = os.path.abspath("../")

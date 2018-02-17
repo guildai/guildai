@@ -36,6 +36,7 @@
     guild.commands.init
     guild.commands.init_impl
     guild.commands.install
+    guild.commands.label
     guild.commands.main
     guild.commands.main_impl
     guild.commands.models
@@ -61,13 +62,13 @@
     guild.commands.runs_list
     guild.commands.runs_purge
     guild.commands.runs_restore
+    guild.commands.runs_stop
     guild.commands.runs_support
     guild.commands.search
     guild.commands.search_impl
     guild.commands.shell
     guild.commands.shell_impl
     guild.commands.stop
-    guild.commands.stop_impl
     guild.commands.sync
     guild.commands.sync_impl
     guild.commands.tensorboard
