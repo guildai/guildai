@@ -53,10 +53,10 @@ class Sync(object):
             self._run_once()
 
     def _watch(self):
-        job_name = self.run.get("cloudml-job-name")
+        job_name = self.run.get("cloudml_job_name")
         if not job_name:
             log.error(
-                "cloudml-job-name not defined for run %s, cannot watch job",
+                "cloudml_job_name not defined for run %s, cannot watch job",
                 self.run.id)
             return
         background_sync = util.LoopingThread(
@@ -90,10 +90,10 @@ class Sync(object):
         self._last_sync = time.time()
 
     def _sync_status(self):
-        job_name = self.run.get("cloudml-job-name")
+        job_name = self.run.get("cloudml_job_name")
         if not job_name:
             log.error(
-                "cloudml-job-name not defined for run %s, cannot sync status",
+                "cloudml_job_name not defined for run %s, cannot sync status",
                 self.run.id)
             return
         log.info("Synchronizing job status for run %s", self.run.id)
@@ -102,10 +102,10 @@ class Sync(object):
             log.error(
                 "no job info for %s, cannot sync status", job_name)
             return None
-        self.run.write_attr("cloudml-job-description", job)
+        self.run.write_attr("cloudml_job_description", job)
         state = job["state"]
         log.info("Run %s is %s", self.run.id, state)
-        self.run.write_attr("cloudml-job-state", state)
+        self.run.write_attr("cloudml_job_state", state)
         return job
 
     def _describe_job(self, job_name):
@@ -131,14 +131,14 @@ class Sync(object):
             raise AssertionError(state)
 
     def _sync_files(self, job):
-        if self.run.get("_cloudml-hptuning"):
+        if self.run.get("_cloudml_hptuning"):
             return self._hptune_sync_files(job)
         else:
             return self._default_sync_files(job)
 
     def _hptune_sync_files(self, job):
         job_dir = job["trainingInput"]["jobDir"]
-        trial_runs = self.run.get("_cloudml-trials", {})
+        trial_runs = self.run.get("_cloudml_trials", {})
         all_synced = True
         for trial in self._job_trials(job):
             run = None
@@ -155,7 +155,7 @@ class Sync(object):
                     "Initializing run %s for trial %s",
                     run.id, trial_id)
                 trial_runs[trial_id] = run.id
-                self.run.write_attr("_cloudml-trials", trial_runs)
+                self.run.write_attr("_cloudml_trials", trial_runs)
                 self._init_trial_run(run, trial)
             synced = self._maybe_sync_trial_run(job_dir, trial_id, run)
             all_synced = all_synced and synced
@@ -172,14 +172,14 @@ class Sync(object):
         run.write_attr("exit_status", 0)
         run.write_attr("exit_status.remote", 0)
         flags = self.run.get("flags")
-        flag_map = self.run.get("_flag-map")
+        flag_map = self.run.get("_flag_map")
         for name, val in trial.get("hyperparameters", {}).items():
             flags[flag_map.get(name, name)] = val
         run.write_attr("flags", flags)
         run.write_attr("label", self._trial_label(trial))
-        run.write_attr("_scalar-map", self.run.get("_scalar-map"))
-        run.write_attr("cloudml-job-name", self.run.get("cloudml-job-name"))
-        run.write_attr("cloudml-job-dir", self.run.get("cloudml-job-dir"))
+        run.write_attr("_scalar_map", self.run.get("_scalar_map"))
+        run.write_attr("cloudml_job_name", self.run.get("cloudml_job_name"))
+        run.write_attr("cloudml_job_dir", self.run.get("cloudml_job_dir"))
 
     def _trial_started(self, trial):
         # Hack to order trials in descending order: add int(trial id)
@@ -196,14 +196,14 @@ class Sync(object):
         return "%s-trial-%s" % (self.run.short_id, trial["trialId"])
 
     def _maybe_sync_trial_run(self, job_dir, trial_id, run):
-        synced = run.get("_cloudml-trial-synced")
+        synced = run.get("_cloudml_trial_synced")
         if not synced:
             log.info(
                 "Synchronizing trial %s for run %s to %s",
                 trial_id, self.run.id, run.id)
             synced = self._rsync("%s/%s" % (job_dir, trial_id), run.path)
             if synced:
-                run.write_attr("_cloudml-trial-synced", guild.run.timestamp())
+                run.write_attr("_cloudml_trial_synced", guild.run.timestamp())
         return synced
 
     def _default_sync_files(self, job):
@@ -333,7 +333,7 @@ class Train(object):
             sys.exit(e.returncode)
 
     def _init_job_dir(self):
-        self.run.write_attr("cloudml-job-dir", self.job_dir)
+        self.run.write_attr("cloudml_job_dir", self.job_dir)
         for name in os.listdir(self.run.path):
             if name.startswith(".guild"):
                 continue
@@ -368,7 +368,7 @@ class Train(object):
             args.append("--")
             resolved_flag_args = self._apply_job_dir(self.flag_args)
             args.extend(resolved_flag_args)
-        self.run.write_attr("cloudml-job-name", self.job_name)
+        self.run.write_attr("cloudml_job_name", self.job_name)
         log.info("Starting job %s in %s", self.job_name, self.job_dir)
         log.debug("gutil cmd: %r", args)
         try:
@@ -428,7 +428,7 @@ class HPTune(Train):
     @staticmethod
     def _run_job_name(run_prefix):
         run = _one_run(run_prefix)
-        name = run.get("cloudml-job-name")
+        name = run.get("cloudml_job_name")
         if not name:
             _exit("unable to find cloudml job for run %s", run.id)
         return name
@@ -464,7 +464,7 @@ class HPTune(Train):
 
     def _init_job_dir(self):
         super(HPTune, self)._init_job_dir()
-        self.run.write_attr("_cloudml-hptuning", True)
+        self.run.write_attr("_cloudml_hptuning", True)
 
 class Deploy(object):
 
@@ -506,7 +506,7 @@ class Deploy(object):
         self._create_version()
 
     def _validate_args(self):
-        job_dir = self.deploying_run.get("cloudml-job-dir")
+        job_dir = self.deploying_run.get("cloudml_job_dir")
         if (not job_dir and
             not self.args.bucket and
             not self.args.model_binaries):
@@ -516,7 +516,7 @@ class Deploy(object):
                 "deployment)")
 
     def _ensure_model(self):
-        self.run.write_attr("cloudml-model-name", self.safe_model_name)
+        self.run.write_attr("cloudml_model_name", self.safe_model_name)
         args = [
             self.sdk.gcloud, "ml-engine", "models", "create",
             self.safe_model_name, "--regions", self.region
@@ -532,8 +532,8 @@ class Deploy(object):
 
     def _create_version(self):
         model_binaries = self._ensure_model_binaries()
-        self.run.write_attr("cloudml-model-binaries", model_binaries)
-        self.run.write_attr("cloudml-model-version", self.model_version)
+        self.run.write_attr("cloudml_model_binaries", model_binaries)
+        self.run.write_attr("cloudml_model_version", self.model_version)
         args = [
             self.sdk.gcloud, "ml-engine", "versions", "create",
             self.model_version,
@@ -549,7 +549,7 @@ class Deploy(object):
             sys.exit(e.returncode)
 
     def _ensure_model_binaries(self):
-        job_dir = self.deploying_run.get("cloudml-job-dir")
+        job_dir = self.deploying_run.get("cloudml_job_dir")
         if not job_dir:
             return self._upload_model_binaries()
         else:
@@ -651,7 +651,7 @@ class Predict(object):
             sys.exit(e.returncode)
 
     def _model_name(self):
-        val = self.predicting_run.get("cloudml-model-name")
+        val = self.predicting_run.get("cloudml_model_name")
         if not val:
             _exit(
                 "cannot predict with run %s: missing cloudml-model-name "
@@ -659,7 +659,7 @@ class Predict(object):
         return val
 
     def _model_version(self):
-        val = self.predicting_run.get("cloudml-model-version")
+        val = self.predicting_run.get("cloudml_model_version")
         if not val:
             _exit(
                 "cannot predict with run %s: missing cloudml-model-version "
@@ -691,10 +691,10 @@ class CancelJob(object):
         self.sdk = sdk
 
     def __call__(self):
-        job_name = self.run.get("cloudml-job-name")
+        job_name = self.run.get("cloudml_job_name")
         if not job_name:
             log.error(
-                "cloudml-job-name not defined for run %s, cannot stop job",
+                "cloudml_job_name not defined for run %s, cannot stop job",
                 self.run.id)
             return
         self._cancel_job(job_name)
