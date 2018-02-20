@@ -287,11 +287,11 @@ class CloudMLPlugin(plugin.Plugin):
         (re.compile(r"cloudml-batch-predict"), _batch_predict_opdef),
     ]
 
-    def get_operation(self, name, model, parent_opdef):
+    def get_operation(self, name, modeldef, parent_opdef):
         for p, handler in self.op_patterns:
             m = p.match(name)
             if m:
-                return handler(name, model.modeldef, parent_opdef, *m.groups())
+                return handler(name, modeldef, parent_opdef, *m.groups())
 
     def sync_run(self, run, watch=False, **_kw):
         from . import cloudml_op_main

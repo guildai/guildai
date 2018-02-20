@@ -44,8 +44,8 @@ class Plugin(object):
         """
         return []
 
-    def get_operation(self, _name, _model, _config):
-        """Return instance of OpDef for name, if supported for model.
+    def get_operation(self, _name, _modeldef, _config):
+        """Return instance of OpDef for name, if supported for modeldef.
 
         Returns None if operation is not supported.
         """

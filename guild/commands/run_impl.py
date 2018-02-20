@@ -165,22 +165,22 @@ def _multiple_models_error(model_ref, models):
 def _resolve_opdef(name, model):
     opdef = model.modeldef.get_operation(name)
     if opdef is None:
-        opdef = _maybe_plugin_opdef(name, model)
+        opdef = _maybe_plugin_opdef(name, model.modeldef)
     elif opdef.plugin_op:
-        opdef = _plugin_opdef(name, model, opdef)
+        opdef = _plugin_opdef(name, model.modeldef, opdef)
     if opdef is None:
         _no_such_operation_error(name, model)
     return opdef
 
-def _maybe_plugin_opdef(name, model, parent_opdef=None):
+def _maybe_plugin_opdef(name, modeldef, parent_opdef=None):
     for _name, plugin in guild.plugin.iter_plugins():
-        opdef = plugin.get_operation(name, model, parent_opdef)
+        opdef = plugin.get_operation(name, modeldef, parent_opdef)
         if opdef:
             return opdef
     return None
 
-def _plugin_opdef(name, model, parent_opdef):
-    opdef = _maybe_plugin_opdef(name, model, parent_opdef)
+def _plugin_opdef(name, modeldef, parent_opdef):
+    opdef = _maybe_plugin_opdef(name, modeldef, parent_opdef)
     if opdef is None:
         cli.error(
             "plugin-op '%s' specified by %s is not defined"
