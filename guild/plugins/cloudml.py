@@ -164,11 +164,11 @@ def _deploy_opdef_data():
         "description": "Deploy a model to Cloud ML",
         "cmd": _op_cmd("deploy"),
         "flags": {
-            "run": {
+            "trained-model": {
                 "description": (
-                    "Run ID associated with the trained model"
-                ),
-                "required": True
+                    "Run ID associated with the trained model (default is "
+                    "latest cloudml-train run)"
+                )
             },
             "version": {
                 "description": (
@@ -215,11 +215,11 @@ def _predict_opdef_data():
         "description": "Send a prediction request to Cloud ML",
         "cmd": _op_cmd("predict"),
         "flags": {
-            "run": {
+            "deployed-model": {
                 "description": (
-                    "Run ID associated with the deployed model"
-                ),
-                "required": True
+                    "Run ID associated with the deployed model (default is "
+                    "latest cloudml-resource run)"
+                )
             },
             "instances": {
                 "description": (
@@ -239,8 +239,7 @@ def _predict_opdef_data():
                     "Format of the prediction output "
                     "(see https://cloud.google.com/sdk/gcloud/reference/ for "
                     "supported values)"
-                ),
-                "default": "json"
+                )
             }
         }
     }

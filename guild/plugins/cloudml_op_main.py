@@ -1,9 +1,24 @@
+# Copyright 2017 TensorHub, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import argparse
 import glob
 import json
 import logging
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -16,10 +31,13 @@ import yaml
 import guild.op
 import guild.run
 
+from guild import op_util
 from guild import opref
 from guild import plugin_util
 from guild import util
 from guild import var
+
+from guild.commands import runs_impl
 
 log = logging.getLogger("cloudml")
 
@@ -499,7 +517,10 @@ class Deploy(object):
     def __init__(self, args, sdk):
         self.args = self._parse_args(args)
         self.run = plugin_util.current_run()
-        self.target_run = _one_run(self.args.run)
+        self.target_run = _find_run(
+            self.args.trained_model,
+            self.run,
+            ["cloudml-train", "cloudml-hptune", "train"])
         self.opref = opref.OpRef.from_run(self.target_run)
         self.model_name = self.args.model or self.opref.model_name
         self.safe_model_name = _safe_name(self.model_name)
@@ -510,7 +531,7 @@ class Deploy(object):
     @staticmethod
     def _parse_args(args):
         p = argparse.ArgumentParser()
-        p.add_argument("--run", required=True)
+        p.add_argument("--trained_model")
         p.add_argument("--version")
         p.add_argument("--region")
         p.add_argument("--bucket")
@@ -541,7 +562,7 @@ class Deploy(object):
             _exit(
                 "missing required flags 'bucket' or 'model-binaries' "
                 "(specifies where model binaries should be uploaded for "
-                "deployment)")
+                "deploymente)")
 
     def _ensure_model(self):
         self.run.write_attr("cloudml_model_name", self.safe_model_name)
@@ -562,6 +583,8 @@ class Deploy(object):
         model_binaries = self._ensure_model_binaries()
         self.run.write_attr("cloudml_model_binaries", model_binaries)
         self.run.write_attr("cloudml_model_version", self.model_version)
+        self.run.write_attr("trained_model_run", self.target_run.id)
+        log.info("Using trained model from run %s", self.target_run.id)
         args = [
             self.sdk.gcloud, "ml-engine", "versions", "create",
             self.model_version,
@@ -658,7 +681,11 @@ class Predict(object):
     def __init__(self, args, sdk):
         self.args = self._parse_args(args)
         self.run = plugin_util.current_run()
-        self.predicting_run = _one_run(self.args.run)
+        self.args.instances = op_util.resolve_file(self.args.instances)
+        self.predicting_run = _find_run(
+            self.args.deployed_model,
+            self.run,
+            ["cloudml-deploy"])
         self.sdk = sdk
 
     def _parse_args(self, args):
@@ -669,22 +696,41 @@ class Predict(object):
     @staticmethod
     def _init_arg_parser():
         p = argparse.ArgumentParser()
-        p.add_argument("--run", required=True)
+        p.add_argument("--deployed-model")
         p.add_argument("--instances", required=True)
         p.add_argument("--instance-type")
+        p.add_argument("--format")
         return p
 
     def __call__(self):
-        args = [
-            self.sdk.gcloud, "ml-engine", "predict",
+        self._validate_args()
+        self._init_run()
+        self._predict()
+
+    def _validate_args(self):
+        if not os.path.exists(self.args.instances):
+            _exit("%s does not exist" % self.args.instances)
+
+    def _init_run(self):
+        shutil.copyfile(self.args.instances, "prediction.inputs")
+
+    def _predict(self):
+        args = [self.sdk.gcloud]
+        if self.args.format:
+            args.extend(["--format", self.args.format])
+        args.extend([
+            "ml-engine", "predict",
             "--model", self._model_name(),
             "--version", self._model_version(),
-        ]
+        ])
         args.extend(self._instances_args())
         try:
-            subprocess.check_call(args)
+            out = subprocess.check_output(args)
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
+        else:
+            sys.stdout.write(out)
+            self._write_prediction_results(out)
 
     def _model_name(self):
         val = self.predicting_run.get("cloudml_model_name")
@@ -703,16 +749,20 @@ class Predict(object):
         return val
 
     def _instances_args(self):
-        path = self.args.instances
-        if not os.path.exists(path):
-            _exit("'%s' does not exist", path)
-        format = self.args.instance_type or self._instance_type_from_path(path)
+        # Use self.args.instances to infer file type as per its
+        # extension
+        format = (
+            self.args.instance_type
+            or self._instance_type_from_path(self.args.instances))
+        # Use "prediction.inputs" as the instances location, which was
+        # copied in _init_run
+        instances = "prediction.inputs"
         if format == "json":
-            return ["--json-instances", path]
-        elif format == "text":
-            return ["--text-instances", path]
+            return ["--json-instances", instances]
         else:
-            log.error("unsupported instance type '%s'", format)
+            if format != "text":
+                log.warning("unknown instance type '%s' - assuming 'text'", format)
+            return ["--text-instances", instances]
 
     @staticmethod
     def _instance_type_from_path(path):
@@ -721,6 +771,11 @@ class Predict(object):
             return "json"
         else:
             return "text"
+
+    @staticmethod
+    def _write_prediction_results(results):
+        with open("prediction.results", "w") as f:
+            f.write(results)
 
 class BatchPredict(Predict):
 
@@ -740,6 +795,7 @@ class BatchPredict(Predict):
         return "guild_predict_%s" % self.run.id
 
     def __call__(self):
+        self._validate_args()
         input_paths = self._init_job_dir()
         self._submit_job(input_paths)
         self._write_lock()
@@ -748,7 +804,7 @@ class BatchPredict(Predict):
     def _init_job_dir(self):
         self.run.write_attr("cloudml_job_dir", self.job_dir)
         src = self.args.instances
-        dest = "%s/%s" % (self.job_dir, os.path.basename(src))
+        dest = "%s/%s" % (self.job_dir, "prediction.inputs")
         try:
             subprocess.check_call([self.sdk.gsutil, "-m", "cp", src, dest])
         except subprocess.CalledProcessError as e:
@@ -795,6 +851,25 @@ def _one_run(run_prefix):
     else:
         run_ids = [run_id[:8] for run_id, _ in matches]
         _exit("multiple runs match '%s' (%s)", run_prefix, ", ".join(run_ids))
+
+def _find_run(run_prefix, referring_run, for_ops):
+    if run_prefix:
+        return _one_run(run_prefix)
+    # Simulate runs list with filter
+    if not runs_impl.init_run(referring_run):
+        _exit("Unable to get operation details for %s" % referring_run.id)
+    model_name = referring_run.opref.model_name
+    class Args(object):
+        ops = ["%s:%s" % (model_name, op) for op in for_ops]
+        completed = True
+        labels = []
+        runs = []
+    args = Args()
+    runs = runs_impl.runs_for_args(args)
+    if not runs:
+        op_desc = ", ".join(args.ops)
+        _exit("Cannot find a run for one of these operations: %s" % op_desc)
+    return runs[0]
 
 def _parse_datetime_as_timestamp(dt):
     parsed = dateutil.parser.parse(dt)
