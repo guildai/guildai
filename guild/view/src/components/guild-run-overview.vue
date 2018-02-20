@@ -102,7 +102,12 @@
                 <v-subheader>{{ name }}</v-subheader>
               </v-flex>
               <v-flex xs8 class="pa-0">
-                <div class="field-val">{{ val }}</div>
+                <div class="field-val">
+                  <v-tooltip bottom tag="div" class="no-wrap">
+                    <div slot="activator" class="no-wrap">{{ val }}</div>
+                    <pre v-html="val"></pre>
+                  </v-tooltip>
+                </div>
               </v-flex>
             </v-layout>
           </v-card-text>
@@ -204,15 +209,21 @@
 </script>
 
 <style scoped>
- .field-val {
-   height: 48px;
-   display: flex;
-   align-items: center;
-   word-break: break-all;
- }
+.field-val {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  word-break: break-all;
+}
 
- .run-command {
-   font-family: monospace;
-   font-size: 90%;
- }
+.field-val .no-wrap {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.run-command {
+  font-family: monospace;
+  font-size: 90%;
+}
 </style>

@@ -54,6 +54,7 @@ CORE_RUN_ATTRS = [
     "cmd",
     "env",
     "exit_status",
+    "exit_status.remote",
     "flags",
     "opref",
     "started",
@@ -237,7 +238,7 @@ def format_run(run, index=None):
         "stopped": _format_timestamp(run.get("stopped")),
         "rundir": run.path,
         "command": _format_command(run.get("cmd", "")),
-        "exit_status": run.get("exit_status", ""),
+        "exit_status": _exit_status(run)
     }
 
 def _format_run_index(run, index=None):
@@ -280,6 +281,9 @@ def _format_command(cmd):
 
 def _maybe_quote_arg(arg):
     return '"%s"' % arg if " " in arg else arg
+
+def _exit_status(run):
+    return run.get("exit_status.remote", "") or run.get("exit_status", "")
 
 def _format_attr_val(val):
     if isinstance(val, list):
@@ -375,9 +379,8 @@ def run_info(args, ctx):
     out = cli.out
     for name in RUN_DETAIL:
         out("%s: %s" % (name, formatted[name]))
-    for name in run.attr_names():
-        if name[0] != "_" and name not in CORE_RUN_ATTRS:
-            out("%s: %s" % (name, _format_attr(run.get(name))))
+    for name in other_attr_names(run):
+        out("%s: %s" % (name, _format_attr(run.get(name))))
     if args.env:
         out("environment:", nl=False)
         out(_format_attr_val(run.get("env", "")))
@@ -397,6 +400,12 @@ def run_info(args, ctx):
             if not args.full_path:
                 path = os.path.relpath(path, run.path)
             out("  %s" % path)
+
+def other_attr_names(run):
+    return [
+        name for name in run.attr_names()
+        if name[0] != "_" and name not in CORE_RUN_ATTRS]
+
 
 def _format_attr(val):
     if val is None:

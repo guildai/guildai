@@ -147,8 +147,7 @@ def _run_data(run):
 def _other_attrs(run):
     return {
         name: run.get(name)
-        for name in run.attr_names()
-        if name[0] != "_" and name not in runs_impl.CORE_RUN_ATTRS
+        for name in runs_impl.other_attr_names(run)
     }
 
 def _format_deps(deps):
