@@ -94,6 +94,19 @@
             </v-layout>
           </v-card-text>
         </v-card>
+
+        <v-card v-if="Object.keys(run.otherAttrs).length > 0" class="mt-3">
+          <v-card-text>
+            <v-layout row v-for="(val, name) in run.otherAttrs" :key="name">
+              <v-flex xs4 class="pa-0">
+                <v-subheader>{{ name }}</v-subheader>
+              </v-flex>
+              <v-flex xs8 class="pa-0">
+                <div class="field-val">{{ val }}</div>
+              </v-flex>
+            </v-layout>
+          </v-card-text>
+        </v-card>
       </v-flex>
 
       <v-flex xs12 lg5 xl4>

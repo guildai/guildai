@@ -137,10 +137,18 @@ def _run_data(run):
         "status": run.status,
         "exitStatus": formatted["exit_status"] or None,
         "command": formatted["command"],
+        "otherAttrs": _other_attrs(run),
         "flags": run.get("flags", {}),
         "env": run.get("env", {}),
         "deps": _format_deps(run.get("deps", {})),
         "files": _format_files(run.iter_files(), run.path),
+    }
+
+def _other_attrs(run):
+    return {
+        name: run.get(name)
+        for name in run.attr_names()
+        if name[0] != "_" and name not in runs_impl.CORE_RUN_ATTRS
     }
 
 def _format_deps(deps):
