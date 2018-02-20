@@ -269,6 +269,29 @@ class Sync(object):
                     "could not delete '%s' from run %s (%s)",
                     filename, self.run.id, e)
 
+class CancelJob(object):
+
+    def __init__(self, run, no_wait, sdk):
+        self.run = run
+        self.no_wait = no_wait
+        self.sdk = sdk
+
+    def __call__(self):
+        job_name = self.run.get("cloudml_job_name")
+        if not job_name:
+            log.error(
+                "cloudml_job_name not defined for run %s, cannot stop job",
+                self.run.id)
+            return
+        self._cancel_job(job_name)
+        if not self.no_wait:
+            sync_run(self.run, watch=True)
+
+    def _cancel_job(self, job_name):
+        log.info("Canceling %s", job_name)
+        args = [self.sdk.gcloud, "ml-engine", "jobs", "cancel", job_name]
+        subprocess.call(args)
+
 class Train(object):
 
     def __init__(self, args, sdk):
@@ -637,28 +660,25 @@ class Predict(object):
         self.predicting_run = _one_run(self.args.run)
         self.sdk = sdk
 
+    def _parse_args(self, args):
+        p = self._init_arg_parser()
+        args, _ = p.parse_known_args(args)
+        return args
+
     @staticmethod
-    def _parse_args(args):
+    def _init_arg_parser():
         p = argparse.ArgumentParser()
         p.add_argument("--run", required=True)
         p.add_argument("--instances", required=True)
         p.add_argument("--instance-type")
-        p.add_argument("--format")
-        args, _ = p.parse_known_args(args)
-        return args
+        return p
 
     def __call__(self):
-        self._predict()
-
-    def _predict(self):
-        args = [self.sdk.gcloud]
-        if self.args.format:
-            args.extend(["--format", self.args.format])
-        args.extend([
-            "ml-engine", "predict",
+        args = [
+            self.sdk.gcloud, "ml-engine", "predict",
             "--model", self._model_name(),
             "--version", self._model_version(),
-        ])
+        ]
         args.extend(self._instances_args())
         try:
             subprocess.check_call(args)
@@ -696,30 +716,70 @@ class Predict(object):
     @staticmethod
     def _instance_type_from_path(path):
         _, ext = os.path.splitext(path)
-        return "json" if ext.lower() == ".json" else "text"
+        if ext.lower() == ".json":
+            return "json"
+        else:
+            return "text"
 
-class CancelJob(object):
+class BatchPredict(Predict):
 
-    def __init__(self, run, no_wait, sdk):
-        self.run = run
-        self.no_wait = no_wait
-        self.sdk = sdk
+    def __init__(self, args, sdk):
+        super(BatchPredict, self).__init__(args, sdk)
+        self.job_name = self.args.job_name or self._job_name()
+        self.job_dir = "gs://%s/%s" % (self.args.bucket, self.job_name)
+
+    def _init_arg_parser(self):
+        p = super(BatchPredict, self)._init_arg_parser()
+        p.add_argument("--bucket", required=True)
+        p.add_argument("--region", default=DEFAULT_REGION)
+        p.add_argument("--job-name")
+        return p
+
+    def _job_name(self):
+        return "guild_predict_%s" % self.run.id
 
     def __call__(self):
-        job_name = self.run.get("cloudml_job_name")
-        if not job_name:
-            log.error(
-                "cloudml_job_name not defined for run %s, cannot stop job",
-                self.run.id)
-            return
-        self._cancel_job(job_name)
-        if not self.no_wait:
-            sync_run(self.run, watch=True)
+        input_paths = self._init_job_dir()
+        self._submit_job(input_paths)
+        self._write_lock()
+        self._sync()
 
-    def _cancel_job(self, job_name):
-        log.info("Canceling %s", job_name)
-        args = [self.sdk.gcloud, "ml-engine", "jobs", "cancel", job_name]
-        subprocess.call(args)
+    def _init_job_dir(self):
+        self.run.write_attr("cloudml_job_dir", self.job_dir)
+        src = self.args.instances
+        dest = "%s/%s" % (self.job_dir, os.path.basename(src))
+        try:
+            subprocess.check_call([self.sdk.gsutil, "-m", "cp", src, dest])
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+        return dest
+
+    def _submit_job(self, input_paths):
+        args = [
+            self.sdk.gcloud, "ml-engine", "jobs",
+            "submit", "prediction", self.job_name,
+            "--model", self._model_name(),
+            "--version", self._model_version(),
+            "--data-format", "TEXT",
+            "--region", self.args.region,
+            "--input-paths", input_paths,
+            "--output-path", self.job_dir,
+        ]
+        self.run.write_attr("cloudml_job_name", self.job_name)
+        log.info("Starting job %s in %s", self.job_name, self.job_dir)
+        log.debug("gutil cmd: %r", args)
+        try:
+            subprocess.check_call(args)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+
+    def _write_lock(self):
+        with open(self.run.guild_path("LOCK.remote"), "w") as f:
+            f.write("cloudml")
+
+    def _sync(self):
+        sync = Sync(self.run, True, self.sdk)
+        sync()
 
 def _safe_name(s):
     return re.sub(r"[^0-9a-zA-Z]+", "_", s)
@@ -778,6 +838,10 @@ if __name__ == "__main__":
         op = HPTune(op_args, sdk)
     elif op_name == "deploy":
         op = Deploy(op_args, sdk)
+    elif op_name == "predict":
+        op = Predict(op_args, sdk)
+    elif op_name == "batch-predict":
+        op = BatchPredict(op_args, sdk)
     else:
         raise AssertionError(sys.argv)
     op()

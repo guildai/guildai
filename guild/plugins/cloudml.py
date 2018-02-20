@@ -206,12 +206,85 @@ def _deploy_opdef_data():
         }
     }
 
+def _predict_opdef(name, modeldef, parent_opdef):
+    data = _predict_opdef_data()
+    return _gen_opdef(name, data, modeldef, parent_opdef)
+
+def _predict_opdef_data():
+    return {
+        "description": "Send a prediction request to Cloud ML",
+        "cmd": _op_cmd("predict"),
+        "flags": {
+            "run": {
+                "description": (
+                    "Run ID associated with the deployed model"
+                ),
+                "required": True
+            },
+            "instances": {
+                "description": (
+                    "File containing the instances to make predictions on"
+                ),
+                "required": True
+            },
+            "instance-type": {
+                "description": (
+                    "Instance type (if type cannot be interred from instances "
+                    "file name)"
+                ),
+                "choices": ["json", "text"]
+            },
+            "format": {
+                "description": (
+                    "Format of the prediction output "
+                    "(see https://cloud.google.com/sdk/gcloud/reference/ for "
+                    "supported values)"
+                ),
+                "default": "json"
+            }
+        }
+    }
+
+def _batch_predict_opdef(name, modeldef, parent_opdef):
+    data = _batch_predict_opdef_data()
+    return _gen_opdef(name, data, modeldef, parent_opdef)
+
+def _batch_predict_opdef_data():
+    data = _predict_opdef_data()
+    data.update({
+        "description": "Submit a prediction job to Cloud ML",
+        "cmd": _op_cmd("batch-predict")
+    })
+    data["flags"].update({
+        "bucket": {
+            "description": (
+                "Google Cloud Storage bucket used to store run data"
+            ),
+            "required": True
+        },
+        "region": {
+            "description": (
+                "Region prediction job is submitted to"
+            ),
+            "default": cloudml_op_main.DEFAULT_REGION
+        },
+        "job-name": {
+            "description": (
+                "Job name to submit (default is generated using the "
+                "predction run ID)"
+            )
+        }
+    })
+    return data
+
 class CloudMLPlugin(plugin.Plugin):
 
     op_patterns = [
         (re.compile(r"cloudml-train(?:#(.*))?"), _train_opdef),
         (re.compile(r"cloudml-hptune(?:#(.*))?"), _hptune_opdef),
         (re.compile(r"cloudml-deploy"), _deploy_opdef),
+        (re.compile(r"cloudml-predict"), _predict_opdef),
+        (re.compile(r"cloudml-batch-predict"), _batch_predict_opdef),
     ]
 
     def get_operation(self, name, model, parent_opdef):
