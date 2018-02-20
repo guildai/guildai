@@ -328,9 +328,16 @@ def _init_flag_choices(data):
 class FlagChoice(object):
 
     def __init__(self, data):
-        self.value = data.get("value")
-        self.description = data.get("description", "")
-        self.args = data.get("args", {})
+        if isinstance(data, str):
+            self.value = data
+            self.description = ""
+            self.args = {}
+        elif isinstance(data, dict):
+            self.value = data.get("value")
+            self.description = data.get("description", "")
+            self.args = data.get("args", {})
+        else:
+            raise ModelfileFormatError("unsupported choices data: %r" % data)
 
 ###################################################################
 # Model def
