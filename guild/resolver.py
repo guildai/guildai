@@ -221,8 +221,6 @@ def _selected_source_paths(root, files, select):
     selected = set()
     pattern = re.compile(select + "$")
     for path in files:
-        if path.startswith(".guild"):
-            continue
         path = util.strip_trailing_path(path)
         match = pattern.match(path)
         if not match:
