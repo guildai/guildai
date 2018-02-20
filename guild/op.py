@@ -95,7 +95,7 @@ class Operation(object):
         if self._flag_map:
             self._run.write_attr("_flag_map", self._flag_map)
         for key, val in self.model.modeldef.extra.items():
-            self._run.write_attr("_%s" % key, val)
+            self._run.write_attr("_extra_%s" % key, val)
 
     def _opref_attr(self):
         ref = opref.OpRef.from_op(self.opdef.name, self.model.reference)

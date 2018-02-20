@@ -94,7 +94,7 @@ def _init_tf_logging():
 def _compare_flags(runs):
     flags = set()
     for run in runs:
-        flags.update(run.get("_compare", {}).get("flags", []))
+        flags.update(run.get("_extra_compare", {}).get("flags", []))
     return sorted(flags)
 
 def _runs_header(flags):

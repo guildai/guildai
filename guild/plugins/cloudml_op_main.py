@@ -177,9 +177,11 @@ class Sync(object):
             flags[flag_map.get(name, name)] = val
         run.write_attr("flags", flags)
         run.write_attr("label", self._trial_label(trial))
-        run.write_attr("_scalar_map", self.run.get("_scalar_map"))
         run.write_attr("cloudml_job_name", self.run.get("cloudml_job_name"))
         run.write_attr("cloudml_job_dir", self.run.get("cloudml_job_dir"))
+        for attr in self.run.attr_names():
+            if attr.startswith("_extra_"):
+                run.write_attr(name, self.run.get(name))
 
     def _trial_started(self, trial):
         # Hack to order trials in descending order: add int(trial id)
