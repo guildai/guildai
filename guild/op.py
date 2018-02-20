@@ -269,7 +269,12 @@ def _init_cmd_env(opdef):
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["LOG_LEVEL"] = str(logging.getLogger().getEffectiveLevel())
     env["PYTHONPATH"] = _python_path(opdef)
+    # SCRIPT_DIR is inserted by op_main at sys.path[0] - use empty string
+    # here to include rundir first in sys.path
     env["SCRIPT_DIR"] = ""
+    # CMD_DIR is where the operation cmd was run
+    env["CMD_DIR"] = os.getcwd()
+    env["MODEL_DIR"] = opdef.modeldef.modelfile.dir
     return env
 
 def _op_plugins(opdef):
