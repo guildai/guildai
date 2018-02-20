@@ -21,6 +21,7 @@ import time
 
 import guild.index
 
+from guild import cli
 from guild import config
 from guild import tabview
 from guild import util
@@ -31,6 +32,8 @@ from . import runs_impl
 def main(args):
     if args.format == "csv":
         _print_csv(args)
+    elif args.format == "table":
+        _print_table(args)
     else:
         _tabview(args)
 
@@ -40,6 +43,23 @@ def _print_csv(args):
     writer = csv.writer(sys.stdout)
     for row in runs:
         writer.writerow(row)
+
+def _print_table(args):
+    index = guild.index.RunIndex()
+    runs, _logs = _get_runs_cb(args, index)()
+    cols = runs[0]
+    col_indexes = zip(cols, range(len(cols)))
+    def format_row(row):
+        return {
+            col_name: row[i]
+            for col_name, i in col_indexes
+        }
+    heading = {
+        col_name: col_name
+        for col_name in cols
+    }
+    data = [heading] + [format_row(row) for row in runs[1:]]
+    cli.table(data, cols)
 
 def _tabview(args):
     config.set_log_output(True)
