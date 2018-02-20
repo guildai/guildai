@@ -1,4 +1,5 @@
 import argparse
+import glob
 import json
 import logging
 import os
@@ -177,11 +178,15 @@ class Sync(object):
             flags[flag_map.get(name, name)] = val
         run.write_attr("flags", flags)
         run.write_attr("label", self._trial_label(trial))
-        run.write_attr("cloudml_job_name", self.run.get("cloudml_job_name"))
-        run.write_attr("cloudml_job_dir", self.run.get("cloudml_job_dir"))
         for attr in self.run.attr_names():
             if attr.startswith("_extra_"):
                 run.write_attr(name, self.run.get(name))
+        job_name = run.get("cloudml_job_name")
+        run.write_attr("cloudml_job_name", job_name)
+        trial_id = trial["trialId"]
+        run.write_attr("cloudml_trial_id", trial_id)
+        job_dir = "%s/%s" % (job_name, trial_id)
+        run.write_attr("cloudml_job_dir", job_dir)
 
     def _trial_started(self, trial):
         # Hack to order trials in descending order: add int(trial id)
@@ -270,7 +275,7 @@ class Train(object):
         job_args, flag_args = self._parse_args(args)
         self.run = plugin_util.current_run()
         self.job_name = job_args.job_name or self._job_name()
-        self.job_dir = "gs://%s/%s" % (job_args.bucket_name, self.job_name)
+        self.job_dir = "gs://%s/%s" % (job_args.bucket, self.job_name)
         self.args = job_args
         self.flag_args = flag_args
         self.package_name = self._package_name()
@@ -284,12 +289,11 @@ class Train(object):
     @staticmethod
     def _init_arg_parser():
         p = argparse.ArgumentParser()
-        p.add_argument("--bucket-name", required=True)
+        p.add_argument("--bucket", required=True)
         p.add_argument("--region", default=DEFAULT_REGION)
         p.add_argument("--job-name")
         p.add_argument("--runtime-version", default=DEFAULT_RUNTIME_VERSION)
         p.add_argument("--module-name", required=True)
-        p.add_argument("--package-path")
         p.add_argument("--scale-tier")
         p.add_argument("--config")
         return p
@@ -360,8 +364,6 @@ class Train(object):
             "--region", self.args.region,
             "--runtime-version", self.args.runtime_version,
         ]
-        if self.args.package_path:
-            args.extend(["--package-path", self.args.package_path])
         if self.args.scale_tier:
             args.extend(["--scale-tier", self.args.scale_tier])
         if self.args.config:
@@ -473,8 +475,8 @@ class Deploy(object):
     def __init__(self, args, sdk):
         self.args = self._parse_args(args)
         self.run = plugin_util.current_run()
-        self.deploying_run = _one_run(self.args.run)
-        self.opref = opref.OpRef.from_run(self.deploying_run)
+        self.target_run = _one_run(self.args.run)
+        self.opref = opref.OpRef.from_run(self.target_run)
         self.model_name = self.args.model or self.opref.model_name
         self.safe_model_name = _safe_name(self.model_name)
         self.region = self.args.region or self._run_region() or DEFAULT_REGION
@@ -496,7 +498,7 @@ class Deploy(object):
         return args
 
     def _run_region(self):
-        return self.deploying_run.get("flags", {}).get("region")
+        return self.target_run.get("flags", {}).get("region")
 
     @staticmethod
     def _model_version():
@@ -508,7 +510,7 @@ class Deploy(object):
         self._create_version()
 
     def _validate_args(self):
-        job_dir = self.deploying_run.get("cloudml_job_dir")
+        job_dir = self.target_run.get("cloudml_job_dir")
         if (not job_dir and
             not self.args.bucket and
             not self.args.model_binaries):
@@ -551,11 +553,11 @@ class Deploy(object):
             sys.exit(e.returncode)
 
     def _ensure_model_binaries(self):
-        job_dir = self.deploying_run.get("cloudml_job_dir")
-        if not job_dir:
-            return self._upload_model_binaries()
+        if not self.target_run.has_attr("cloudml_job_dir"):
+            upload_path = self._upload_model_binaries()
+            return upload_path
         else:
-            return self._job_dir_model_binaries(job_dir)
+            return self._job_dir_model_binaries_path()
 
     def _upload_model_binaries(self):
         src = self._run_model_binaries_path()
@@ -569,24 +571,37 @@ class Deploy(object):
             return dest
 
     def _run_model_binaries_path(self):
-        servo_path = os.path.join(self.deploying_run.path, "export", "Servo")
-        timestamp_dirs = (
-            sorted(os.listdir(servo_path), reverse=True)
-            if os.path.exists(servo_path) else [])
-        if not timestamp_dirs:
-            _exit(
-                "cannot find model binaries in run %s "
-                "(expected files under export/Servo)",
-                self.deploying_run.id)
-        timestamp_dir = timestamp_dirs[0]
-        if len(timestamp_dirs) > 1:
+        export_path = self._target_run_local_export_path()
+        paths = glob.glob(os.path.join(export_path, "*/*"))
+        return self._one_timestamp_path(paths, export_path)
+
+    def _target_run_local_export_path(self):
+        return "%s/export" % self.target_run.path
+
+    def _one_timestamp_path(self, paths, root):
+        ts_paths = [path for path in paths if self._is_timestamp_path(path)]
+        if not ts_paths:
+            _exit("cannot find model timestamp directory in %s", root)
+        ts_path = sorted(ts_paths, reverse=True)[0]
+        if len(ts_paths) > 1:
             log.warning(
-                "found multiple timestamp directories under %s (assuming %s)",
-                servo_path, timestamp_dir)
-        return os.path.join(servo_path, timestamp_dir)
+                "found multiple timestamp paths under %s, using %s",
+                root, ts_path)
+        return ts_path
+
+    @staticmethod
+    def _is_timestamp_path(path):
+        parts = re.split(r"[/\\]", path)
+        while parts and parts[-1] == "":
+            parts.pop()
+        try:
+            int(parts[-1])
+        except ValueError:
+            return False
+        else:
+            return True
 
     def _remote_model_binaries(self, local_model_path):
-        # Should be validated before we get here.
         assert self.args.bucket or self.args.model_binaries
         return self.args.model_binaries or (
             "gs://%s/guild_model_%s_%s" % (
@@ -594,27 +609,25 @@ class Deploy(object):
                 self.safe_model_name,
                 os.path.basename(local_model_path)))
 
-    def _job_dir_model_binaries(self, job_dir):
-        servo_path = job_dir + "/export/Servo"
+    def _job_dir_model_binaries_path(self):
+        export_path = self._target_run_remote_export_path()
+        log.info("Looking for model binaries in %s", export_path)
         try:
             out = subprocess.check_output([
-                self.sdk.gsutil, "ls", servo_path])
+                self.sdk.gsutil, "ls", export_path + "/*/"])
         except subprocess.CalledProcessError as e:
+            log.error(
+                "error finding model binaries in "
+                "%s (see above for details)", export_path)
             sys.exit(e.returncode)
         else:
-            paths = sorted(out.split("\n"), reverse=True)
-            assert (len(paths) >= 2 and
-                    paths[0] == "" and
-                    paths[1].endswith("/Servo/")), paths
-            timestamp_paths = paths[2:]
-            if not timestamp_paths:
-                _exit("missing model binaries in %s", servo_path)
-            timestamp_path = timestamp_paths[0]
-            if len(timestamp_paths) > 1:
-                log.warning(
-                    "found multiple timestamp paths under %s (assuming %s)",
-                    servo_path, timestamp_path)
-            return timestamp_path
+            paths = out.split()
+            return self._one_timestamp_path(paths, export_path)
+
+    def _target_run_remote_export_path(self):
+        job_dir = self.target_run.get("cloudml_job_dir")
+        assert job_dir
+        return "%s/export" % job_dir
 
 class Predict(object):
 
@@ -763,6 +776,8 @@ if __name__ == "__main__":
         op = Train(op_args, sdk)
     elif op_name == "hptune":
         op = HPTune(op_args, sdk)
+    elif op_name == "deploy":
+        op = Deploy(op_args, sdk)
     else:
         raise AssertionError(sys.argv)
     op()

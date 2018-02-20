@@ -23,10 +23,22 @@ from guild import cli
 from guild import modelfile
 from guild import plugin
 
+from . import cloudml_op_main
+
+def _gen_opdef(name, data, modeldef, parent_opdef=None, local_opdef=None):
+    opdef = modelfile.OpDef(name, data, modeldef)
+    if local_opdef:
+        opdef.update_flags(local_opdef)
+        opdef.update_dependencies(local_opdef)
+    if parent_opdef:
+        opdef.update_flags(parent_opdef)
+        opdef.update_dependencies(parent_opdef)
+    return opdef
+
 def _train_opdef(name, modeldef, parent_opdef, local_train_op):
     local_train = _local_train_opdef(local_train_op, modeldef, name)
     data = _train_opdef_data(local_train)
-    return _gen_opdef(name, data, modeldef, local_train, parent_opdef)
+    return _gen_opdef(name, data, modeldef, parent_opdef, local_train)
 
 def _local_train_opdef(op_name, modeldef, requiring_op):
     op_name = op_name or "train"
@@ -44,11 +56,29 @@ def _train_opdef_data(local_train):
         "description": "Train a model in Cloud ML",
         "cmd": cmd,
         "flags": {
-            "bucket-name": {
+            "bucket": {
                 "description": (
-                    "Name of bucket to use for run data storage"
+                    "Google Cloud Storage bucket used to store run data"
                 ),
                 "required": True
+            },
+            "region": {
+                "description": (
+                    "Region traning job is submitted to"
+                ),
+                "default": cloudml_op_main.DEFAULT_REGION
+            },
+            "job-name": {
+                "description": (
+                    "Job name to submit (default is generated using the "
+                    "training run ID)"
+                )
+            },
+            "runtime-version": {
+                "description": (
+                    "TensorFlow runtime version"
+                ),
+                "default": cloudml_op_main.DEFAULT_RUNTIME_VERSION
             },
             "module-name": {
                 "description": "Training module",
@@ -69,28 +99,19 @@ def _train_opdef_data(local_train):
                 "default": "BASIC"
             },
             "config": {
-                "description": "Path to the Cloud ML job configuration file"
-            }
+                "description": "Path to a Cloud ML job configuration file"
+            },
         },
         "remote": True
     }
 
-def _op_cmd(name, args):
-    args = " ".join([pipes.quote(arg) for arg in args])
+def _op_cmd(name, args=None):
+    args = " ".join([pipes.quote(arg) for arg in (args or [])])
     return "guild.plugins.cloudml_op_main {} {}".format(name, args)
 
 def _split_cmd(s):
     parts = shlex.split(s)
     return parts[0], parts[1:]
-
-def _gen_opdef(name, data, modeldef, local_opdef, parent_opdef):
-    opdef = modelfile.OpDef(name, data, modeldef)
-    opdef.update_flags(local_opdef)
-    opdef.update_dependencies(local_opdef)
-    if parent_opdef:
-        opdef.update_flags(parent_opdef)
-        opdef.update_dependencies(parent_opdef)
-    return opdef
 
 def _hptune_opdef(name, modeldef, parent_opdef, local_train_op):
     local_train = _local_train_opdef(local_train_op, modeldef, name)
@@ -132,13 +153,65 @@ def _hptune_opdef(name, modeldef, parent_opdef, local_train_op):
             )
         }
     })
-    return _gen_opdef(name, data, modeldef, local_train, parent_opdef)
+    return _gen_opdef(name, data, modeldef, parent_opdef, local_train)
+
+def _deploy_opdef(name, modeldef, parent_opdef):
+    data = _deploy_opdef_data()
+    return _gen_opdef(name, data, modeldef, parent_opdef)
+
+def _deploy_opdef_data():
+    return {
+        "description": "Deploy a model to Cloud ML",
+        "cmd": _op_cmd("deploy"),
+        "flags": {
+            "run": {
+                "description": (
+                    "Run ID associated with the trained model"
+                ),
+                "required": True
+            },
+            "version": {
+                "description": (
+                    "Name of the deployed Cloud ML version (default is "
+                    "generated using the current timestamp)"
+                )
+            },
+            "bucket": {
+                "description": (
+                    "Google Cloud Storage bucket used to store model binaries "
+                    "(required if 'model-binaries' is not specified)"
+                )
+            },
+            "model-binaries": {
+                "description": (
+                    "Google Cloud Storage path to store model binaries "
+                    "(required if 'bucket' is not specified)"
+                )
+            },
+            "model": {
+                "description": (
+                    "Name of the deployed Cloud ML model (default is "
+                    "generated using the run model)"
+                )
+            },
+            "runtime-version": {
+                "description": (
+                    "TensorFlow runtime version"
+                ),
+                "default": cloudml_op_main.DEFAULT_RUNTIME_VERSION
+            },
+            "config": {
+                "description": "Path to a Cloud ML job configuration file"
+            }
+        }
+    }
 
 class CloudMLPlugin(plugin.Plugin):
 
     op_patterns = [
         (re.compile(r"cloudml-train(?:#(.*))?"), _train_opdef),
-        (re.compile(r"cloudml-hptune(?:#(.*))?"), _hptune_opdef)
+        (re.compile(r"cloudml-hptune(?:#(.*))?"), _hptune_opdef),
+        (re.compile(r"cloudml-deploy"), _deploy_opdef),
     ]
 
     def get_operation(self, name, model, parent_opdef):
