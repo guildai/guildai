@@ -22,11 +22,6 @@ External dependencies in distribution mode are assumed to be located
 in a single `GUILD_PKG_HOME/external` directory where `GUILD_PKG_HOME`
 is the `guild` directory within the Guild distribution location.
 
-External dependencies in dev mode are assumed be in multiple
-directories, one for each dependency, under
-`SCRIPT_DIR/guild.runfiles` where `SCRIPT_DIR` is the directory
-containing `sys.argv[0]` (i.e. the Guild executable script).
-
 This module confirms that it can find each of the modules listed in
 guild.__requires__ but does not load the modules. The module exits
 with an error and a user facing message for any missing requirements.
