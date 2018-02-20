@@ -84,7 +84,7 @@ class Sync(object):
 
     def _run_once(self):
         job = self._sync_status()
-        if job["state"] not in [PRE_RUNNING_STATES]:
+        if job and job["state"] not in [PRE_RUNNING_STATES]:
             files_synced = self._sync_files(job)
             if files_synced:
                 self._maybe_finalize(job)
@@ -96,7 +96,7 @@ class Sync(object):
             log.error(
                 "cloudml_job_name not defined for run %s, cannot sync status",
                 self.run.id)
-            return
+            return None
         log.info("Synchronizing job status for run %s", self.run.id)
         job = self._describe_job(job_name)
         if not job:
@@ -132,16 +132,22 @@ class Sync(object):
             raise AssertionError(state)
 
     def _sync_files(self, job):
+        job_dir = self.run.get("cloudml_job_dir")
+        if not job_dir:
+            log.error(
+                "cloudml_job_dir undefined for run %s - cannot sync files",
+                self.run.id)
+            return False
         if self.run.get("_cloudml_hptuning"):
-            return self._hptune_sync_files(job)
+            trials = job.get("trainingOutput", {}).get("trials", [])
+            return self._hptune_sync_files(job_dir, trials)
         else:
-            return self._default_sync_files(job)
+            return self._default_sync_files(job_dir)
 
-    def _hptune_sync_files(self, job):
-        job_dir = job["trainingInput"]["jobDir"]
+    def _hptune_sync_files(self, job_dir, trials):
         trial_runs = self.run.get("_cloudml_trials", {})
         all_synced = True
-        for trial in self._job_trials(job):
+        for trial in trials:
             run = None
             trial_id = trial["trialId"]
             trial_run_id = trial_runs.get(trial_id)
@@ -162,10 +168,6 @@ class Sync(object):
             all_synced = all_synced and synced
         return all_synced
 
-    @staticmethod
-    def _job_trials(job):
-        return job.get("trainingOutput", {}).get("trials", [])
-
     def _init_trial_run(self, run, trial):
         run.init_skel()
         run.write_attr("opref", self.run.get("opref"))
@@ -180,7 +182,7 @@ class Sync(object):
         run.write_attr("label", self._trial_label(trial))
         for attr in self.run.attr_names():
             if attr.startswith("_extra_"):
-                run.write_attr(name, self.run.get(name))
+                run.write_attr(attr, self.run.get(attr))
         job_name = run.get("cloudml_job_name")
         run.write_attr("cloudml_job_name", job_name)
         trial_id = trial["trialId"]
@@ -213,9 +215,8 @@ class Sync(object):
                 run.write_attr("_cloudml_trial_synced", guild.run.timestamp())
         return synced
 
-    def _default_sync_files(self, job):
+    def _default_sync_files(self, job_dir):
         log.info("Synchronizing job for run %s", self.run.id)
-        job_dir = job["trainingInput"]["jobDir"]
         return self._rsync(job_dir, self.run.path, ignore=self._run_links())
 
     def _run_links(self):
