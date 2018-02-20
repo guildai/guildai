@@ -12,10 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 import textwrap
 
 import click
+
+import guild.plugin
+
+log = logging.getLogger("guild")
 
 class ConsoleFormatter(click.HelpFormatter):
 
@@ -178,6 +183,7 @@ def _write_operations(m, out):
     out.dedent()
 
 def _write_operation(op, out):
+    op = _maybe_apply_plugin_op(op)
     out.write_heading(op.name)
     out.indent()
     if op.description:
@@ -188,6 +194,33 @@ def _write_operation(op, out):
             out.write_paragraph()
         _write_flags(op.flags, "Flags", out)
     out.dedent()
+
+def _maybe_apply_plugin_op(op):
+    if op.plugin_op:
+        for _name, plugin in guild.plugin.iter_plugins():
+            plugin_op = plugin.get_operation(op.plugin_op, op.modeldef, op)
+            if plugin_op:
+                return plugin_op
+        log.warning(
+            "Cannot find plugin op '%s' references in %s:%s",
+            op.plugin_op, op.modeldef.name, op.name)
+    return op
+
+def _maybe_plugin_opdef(name, model, parent_opdef=None):
+    for _name, plugin in guild.plugin.iter_plugins():
+        opdef = plugin.get_operation(name, model, parent_opdef)
+        if opdef:
+            return opdef
+    return None
+
+def _plugin_opdef(name, model, parent_opdef):
+    opdef = _maybe_plugin_opdef(name, model, parent_opdef)
+    if opdef is None:
+        log.warning(
+            "plugin-op '%s' specified by %s is not defined",
+            parent_opdef.plugin_op.name, parent_opdef.fullname)
+    return opdef
+
 
 def _write_flags(flags, heading, out, no_flags_msg=None):
     out.write_subheading(heading)
