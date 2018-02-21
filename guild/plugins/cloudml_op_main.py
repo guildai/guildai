@@ -341,7 +341,7 @@ class Train(object):
         return p
 
     def _job_name(self):
-        return "guild_run_%s" % self.run.id
+        return "guild_train_%s" % self.run.id
 
     def _package_name(self):
         from guild.opref import OpRef
@@ -456,6 +456,9 @@ class HPTune(Train):
         p.add_argument("--max-parallel-trials", type=int)
         p.add_argument("--resume-from")
         return p
+
+    def _job_name(self):
+        return "guild_hptune_%s" % self.run.id
 
     def _patch_hptuning_config(self):
         tuning_config = {}
