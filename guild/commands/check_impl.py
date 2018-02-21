@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 import os
+import re
 import subprocess
 import sys
 
@@ -146,11 +147,16 @@ def _nvidia_smi_version():
     if not cmd:
         return "not installed"
     try:
-        out = subprocess.check_output([cmd, "--version"])
+        out = subprocess.check_output(cmd)
     except subprocess.CalledProcessError as e:
         return _warn("ERROR: %s" % e.output.strip())
     else:
-        return out.strip()
+        m = re.search(r"NVIDIA-SMI ([0-9\.]+)", out)
+        if m:
+            return m.group(1)
+        else:
+            log.debug("Unexpected output from nvidia-smi: %s", out)
+            return "unknown"
 
 def _print_mods_info(check):
     for mod in CHECK_MODS:
