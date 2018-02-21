@@ -46,7 +46,7 @@
                 :href="'?run=' + files.item.run + '#files'"
                 target="_blank">{{ files.item.operation }}</a>
             </td>
-            <td class="text-xs-right">{{ formatFileSize(files.item.size) }}</td>
+            <td class="text-xs-right"><span class="file-size">{{ formatFileSize(files.item.size) }}</span></td>
           </tr>
         </template>
       </v-data-table>
@@ -115,9 +115,18 @@
 </script>
 
 <style>
- .btn-link .btn__content {
-   justify-content: start;
- }
+.btn-link .btn__content {
+  justify-content: start;
+  white-space: normal;
+}
+
+.files > table.table thead th {
+  font-size: 13px;
+}
+
+.files > table.table thead tr {
+  height: 48px;
+}
 </style>
 
 <style scoped>
@@ -134,6 +143,11 @@ td.type-icon {
 .btn-link {
   text-transform: none;
   width: inherit;
+  font-size: 14px;
+  height: unset;
+  padding: 4px 0;
+  display: block;
+  text-align: left;
 }
 
 .files table.table thead tr {
@@ -146,5 +160,17 @@ td.type-icon {
 
 .path {
   word-break: break-all;
+}
+
+table.table tbody td {
+  font-size: 14px;
+}
+
+table.table thead th {
+  font-size: 13px;
+}
+
+.file-size {
+  white-space: nowrap;
 }
 </style>
