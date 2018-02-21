@@ -22,7 +22,8 @@ pip-package:
 
 pip-upload:
 	make pip-package
-	twine upload -si packages@guild.ai -u guildai dist/*.whl
+	export VER=`python -c 'import guild; print(guild.__version__)'`; \
+	twine upload -si packages@guild.ai -u guildai dist/guildai-$$VER*.whl
 
 pip-clean:
 	rm -rf build dist guildai.egg-info
