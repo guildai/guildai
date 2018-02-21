@@ -198,7 +198,10 @@ def _resolve_source_files(source_path, source, unpack_dir):
         return _dir_source_files(source_path, source)
     else:
         unpacked = _maybe_unpack(source_path, source, unpack_dir)
-        return unpacked if unpacked is not None else [source_path]
+        if unpacked is not None:
+            return unpacked
+        else:
+            return [source_path]
 
 def _dir_source_files(dir, source):
     if source.select:
