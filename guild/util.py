@@ -33,9 +33,16 @@ log = logging.getLogger("guild")
 
 PLATFORM = platform.system()
 
-OS_ENVIRON_BLACKLIST = [
-    "PYTHONPATH", # unsafe - must be set explicitly
-]
+OS_ENVIRON_WHITELIST = set([
+    "HOME",
+    "LANG",
+    "PATH",
+    "SHELL",
+    "SSH_AGENT_PID",
+    "SSH_AUTH_SOCK",
+    "TERM",
+    "USER",
+])
 
 class Stop(Exception):
     """Raise to stop loops started with `loop`."""
@@ -158,7 +165,7 @@ def safe_osenv():
     return {
         name: val
         for name, val in os.environ.items()
-        if name not in OS_ENVIRON_BLACKLIST
+        if name in OS_ENVIRON_WHITELIST
     }
 
 def match_filters(filters, vals, match_any=False):
