@@ -201,11 +201,11 @@ class Sync(object):
         for attr in self.run.attr_names():
             if attr.startswith("_extra_"):
                 run.write_attr(attr, self.run.get(attr))
-        job_name = run.get("cloudml_job_name")
+        job_name = self.run.get("cloudml_job_name")
         run.write_attr("cloudml_job_name", job_name)
         trial_id = trial["trialId"]
         run.write_attr("cloudml_trial_id", trial_id)
-        job_dir = "%s/%s" % (job_name, trial_id)
+        job_dir = "%s/%s" % (self.run.get("cloudml_job_dir"), trial_id)
         run.write_attr("cloudml_job_dir", job_dir)
 
     def _trial_started(self, trial):
@@ -517,11 +517,11 @@ class Deploy(object):
     def __init__(self, args, sdk):
         self.args = self._parse_args(args)
         self.run = plugin_util.current_run()
-        self.target_run = _find_run(
+        self.trained_run = _find_run(
             self.args.trained_model,
             self.run,
             ["cloudml-train", "cloudml-hptune", "train"])
-        self.opref = opref.OpRef.from_run(self.target_run)
+        self.opref = opref.OpRef.from_run(self.trained_run)
         self.model_name = self.args.model or self.opref.model_name
         self.safe_model_name = _safe_name(self.model_name)
         self.region = self.args.region or self._run_region() or DEFAULT_REGION
@@ -543,19 +543,19 @@ class Deploy(object):
         return args
 
     def _run_region(self):
-        return self.target_run.get("flags", {}).get("region")
+        return self.trained_run.get("flags", {}).get("region")
 
-    @staticmethod
-    def _model_version():
-        return "v_%i" % time.time()
+    def _model_version(self):
+        return "v_%s" % self.run.id
 
     def __call__(self):
         self._validate_args()
+        self._init_run()
         self._ensure_model()
         self._create_version()
 
     def _validate_args(self):
-        job_dir = self.target_run.get("cloudml_job_dir")
+        job_dir = self.trained_run.get("cloudml_job_dir")
         if (not job_dir and
             not self.args.bucket and
             not self.args.model_binaries):
@@ -563,6 +563,10 @@ class Deploy(object):
                 "missing required flags 'bucket' or 'model-binaries' "
                 "(specifies where model binaries should be uploaded for "
                 "deploymente)")
+
+    def _init_run(self):
+        if not self.run.get("label"):
+            self.run.write_attr("label", "%s-deploy" % self.trained_run.short_id)
 
     def _ensure_model(self):
         self.run.write_attr("cloudml_model_name", self.safe_model_name)
@@ -583,8 +587,9 @@ class Deploy(object):
         model_binaries = self._ensure_model_binaries()
         self.run.write_attr("cloudml_model_binaries", model_binaries)
         self.run.write_attr("cloudml_model_version", self.model_version)
-        self.run.write_attr("trained_model_run", self.target_run.id)
-        log.info("Using trained model from run %s", self.target_run.id)
+        self.run.write_attr("trained_model_run", self.trained_run.id)
+        log.info("Using trained model from run %s", self.trained_run.id)
+        log.info("Creating version %s", self.model_version)
         args = [
             self.sdk.gcloud, "ml-engine", "versions", "create",
             self.model_version,
@@ -600,7 +605,7 @@ class Deploy(object):
             sys.exit(e.returncode)
 
     def _ensure_model_binaries(self):
-        if not self.target_run.has_attr("cloudml_job_dir"):
+        if not self.trained_run.has_attr("cloudml_job_dir"):
             upload_path = self._upload_model_binaries()
             return upload_path
         else:
@@ -618,12 +623,12 @@ class Deploy(object):
             return dest
 
     def _run_model_binaries_path(self):
-        export_path = self._target_run_local_export_path()
+        export_path = self._trained_run_local_export_path()
         paths = glob.glob(os.path.join(export_path, "*/*"))
         return self._one_timestamp_path(paths, export_path)
 
-    def _target_run_local_export_path(self):
-        return "%s/export" % self.target_run.path
+    def _trained_run_local_export_path(self):
+        return "%s/export" % self.trained_run.path
 
     def _one_timestamp_path(self, paths, root):
         ts_paths = [path for path in paths if self._is_timestamp_path(path)]
@@ -657,7 +662,7 @@ class Deploy(object):
                 os.path.basename(local_model_path)))
 
     def _job_dir_model_binaries_path(self):
-        export_path = self._target_run_remote_export_path()
+        export_path = self._trained_run_remote_export_path()
         log.info("Looking for model binaries in %s", export_path)
         try:
             out = subprocess.check_output([
@@ -671,8 +676,8 @@ class Deploy(object):
             paths = out.split()
             return self._one_timestamp_path(paths, export_path)
 
-    def _target_run_remote_export_path(self):
-        job_dir = self.target_run.get("cloudml_job_dir")
+    def _trained_run_remote_export_path(self):
+        job_dir = self.trained_run.get("cloudml_job_dir")
         assert job_dir
         return "%s/export" % job_dir
 
@@ -682,10 +687,12 @@ class Predict(object):
         self.args = self._parse_args(args)
         self.run = plugin_util.current_run()
         self.args.instances = op_util.resolve_file(self.args.instances)
-        self.predicting_run = _find_run(
+        self.deployed_run = _find_run(
             self.args.deployed_model,
             self.run,
             ["cloudml-deploy"])
+        self.model_name = self._model_name()
+        self.model_version = self._model_version()
         self.sdk = sdk
 
     def _parse_args(self, args):
@@ -702,6 +709,22 @@ class Predict(object):
         p.add_argument("--format")
         return p
 
+    def _model_name(self):
+        val = self.deployed_run.get("cloudml_model_name")
+        if not val:
+            _exit(
+                "cannot predict with run %s: missing cloudml_model_name "
+                "attribute", self.deployed_run.short_id)
+        return val
+
+    def _model_version(self):
+        val = self.deployed_run.get("cloudml_model_version")
+        if not val:
+            _exit(
+                "cannot predict with run %s: missing cloudml_model_version "
+                "attribute", self.deployed_run.short_id)
+        return val
+
     def __call__(self):
         self._validate_args()
         self._init_run()
@@ -713,6 +736,11 @@ class Predict(object):
 
     def _init_run(self):
         shutil.copyfile(self.args.instances, "prediction.inputs")
+        self.run.write_attr("cloudml_model_name", self.model_name)
+        self.run.write_attr("cloudml_model_version", self.model_version)
+        if not self.run.get("label"):
+            self.run.write_attr(
+                "label", "%s-predict" % self.deployed_run.short_id)
 
     def _predict(self):
         args = [self.sdk.gcloud]
@@ -720,8 +748,8 @@ class Predict(object):
             args.extend(["--format", self.args.format])
         args.extend([
             "ml-engine", "predict",
-            "--model", self._model_name(),
-            "--version", self._model_version(),
+            "--model", self.model_name,
+            "--version", self.model_version,
         ])
         args.extend(self._instances_args())
         try:
@@ -731,22 +759,6 @@ class Predict(object):
         else:
             sys.stdout.write(out)
             self._write_prediction_results(out)
-
-    def _model_name(self):
-        val = self.predicting_run.get("cloudml_model_name")
-        if not val:
-            _exit(
-                "cannot predict with run %s: missing cloudml-model-name "
-                "attribute", self.predicting_run.short_id)
-        return val
-
-    def _model_version(self):
-        val = self.predicting_run.get("cloudml_model_version")
-        if not val:
-            _exit(
-                "cannot predict with run %s: missing cloudml-model-version "
-                "attribute", self.predicting_run.short_id)
-        return val
 
     def _instances_args(self):
         # Use self.args.instances to infer file type as per its
