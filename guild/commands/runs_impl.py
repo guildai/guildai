@@ -366,7 +366,9 @@ def restore_runs(args, ctx):
     def restore(selected):
         var.restore_runs(selected)
         cli.out("Restored %i run(s)" % len(selected))
-    _runs_op(args, ctx, True, preview, confirm, no_runs_help, restore)
+    _runs_op(
+        args, ctx, True, preview, confirm, no_runs_help,
+        restore, confirm_default=True)
 
 def run_info(args, ctx):
     filtered = filtered_runs(args)
