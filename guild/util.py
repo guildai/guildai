@@ -35,14 +35,17 @@ PLATFORM = platform.system()
 
 OS_ENVIRON_WHITELIST = set([
     "HOME",
+    "HOSTNAME",
     "LANG",
     "LD_LIBRARY_PATH",
     "PATH",
     "SHELL",
     "SSH_AGENT_PID",
     "SSH_AUTH_SOCK",
+    "SSH_CONNECTION",
     "TERM",
     "USER",
+    "VIRTUAL_ENV",
 ])
 
 class Stop(Exception):
