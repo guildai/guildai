@@ -77,10 +77,11 @@ class Resource(object):
                 "could not resolve '%s' in %s resource: %s"
                 % (source, self.resdef.name, e))
         except Exception as e:
-            if log.getEffectiveLevel() <= logging.DEBUG:
-                log.exception("dependency resolve")
+            log.exception(
+                "resolving required source '%s' in %s resource",
+                source, self.resdef.name)
             raise DependencyError(
-                "could not resolve '%s' in %s resource: %s"
+                "unexpected error resolving '%s' in %s resource: %r"
                 % (source, self.resdef.name, e))
         else:
             for path in source_paths:
