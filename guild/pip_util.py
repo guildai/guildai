@@ -196,7 +196,7 @@ def _check_download_dir(link, download_dir, hashes):
     download_path = os.path.join(download_dir, link.filename)
     if not os.path.exists(download_path):
         return None
-    log.info('File was already downloaded %s', download_path)
+    log.info("Using cached file %s", download_path)
     if not hashes:
         return download_path
     cached_sha = util.try_cached_sha(download_path)
@@ -206,7 +206,7 @@ def _check_download_dir(link, download_dir, hashes):
         hashes.check_against_path(download_path)
     except HashMismatch0:
         log.warning(
-            "Previously-downloaded file %s has bad hash - re-downloading",
+            "Cached file %s has bad hash - re-downloading",
             download_path
         )
         os.unlink(download_path)
