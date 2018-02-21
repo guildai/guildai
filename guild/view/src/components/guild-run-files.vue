@@ -36,9 +36,9 @@
                 class="grey lighten-3 btn-link"
                 flat small block
                 style="margin-left: -8px"
-                @click="view(files.item)">{{ files.item.path }}</v-btn></div>
+                @click="view(files.item)"><span class="path">{{ files.item.path }}</span></v-btn></div>
             </td>
-            <td v-else>{{ files.item.path }}</td>
+            <td v-else><span class="path">{{ files.item.path }}</span></td>
             <td>{{ files.item.type }}</td>
             <td>
               <a
@@ -121,26 +121,30 @@
 </style>
 
 <style scoped>
- /* Use negative margin rather than padding to preserve spacing of
-    input placeholder text. */
- .input-group {
-   margin-top: -4px;
- }
+/* Use negative margin rather than padding to preserve spacing of
+   input placeholder text. */
+.input-group {
+  margin-top: -4px;
+}
 
- td.type-icon {
-   padding-right: 0 !important;
- }
+td.type-icon {
+  padding-right: 0 !important;
+}
 
- .btn-link {
-   text-transform: none;
-   width: inherit;
- }
+.btn-link {
+  text-transform: none;
+  width: inherit;
+}
 
- .files table.table thead tr {
-   height: 48px;
- }
+.files table.table thead tr {
+  height: 48px;
+}
 
- .files table.table thead th {
-   white-space: inherit;
- }
+.files table.table thead th {
+  white-space: inherit;
+}
+
+.path {
+  word-break: break-all;
+}
 </style>
