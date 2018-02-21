@@ -76,9 +76,21 @@ class Build(build_py):
     """
 
     def run(self):
+        _validate_env()
         _ensure_external()
         _build_view_dist()
         build_py.run(self)
+
+def _validate_env():
+    try:
+        subprocess.check_call(["npm", "--version"])
+    except OSError as e:
+        _exit("npm is not installed: %s", e)
+
+def _exit(msg, *args):
+    sys.stderr.write(msg % args)
+    sys.stderr.write("\n")
+    sys.exit(1)
 
 def _ensure_external():
     """Ensure EXTERNAL deps are available."""
