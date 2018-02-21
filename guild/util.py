@@ -36,6 +36,7 @@ PLATFORM = platform.system()
 OS_ENVIRON_WHITELIST = set([
     "HOME",
     "LANG",
+    "LD_LIBRARY_PATH",
     "PATH",
     "SHELL",
     "SSH_AGENT_PID",
