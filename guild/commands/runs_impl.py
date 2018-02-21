@@ -52,14 +52,15 @@ LATEST_RUN_ARG = ["0"]
 
 CORE_RUN_ATTRS = [
     "cmd",
+    "deps",
     "env",
     "exit_status",
     "exit_status.remote",
     "flags",
+    "label",
     "opref",
     "started",
     "stopped",
-    "deps",
 ]
 
 def runs_for_args(args, ctx=None, force_deleted=False):
