@@ -139,10 +139,18 @@ def _print_tensorflow_info(check):
         check.error()
 
 def _print_nvidia_tools_info():
-    guild.cli.out("nvidia_smi_available:      %s" % _nvidia_smi_available())
+    guild.cli.out("nvidia_smi_version:        %s" % _nvidia_smi_version())
 
-def _nvidia_smi_available():
-    return "yes" if guild.util.which("nvidia-smi") else "no"
+def _nvidia_smi_version():
+    cmd = guild.util.which("nvidia-smi")
+    if not cmd:
+        return "not installed"
+    try:
+        out = subprocess.check_output([cmd, "--version"])
+    except subprocess.CalledProcessError as e:
+        return _warn("ERROR: %s" % e.output.strip())
+    else:
+        return out.strip()
 
 def _print_mods_info(check):
     for mod in CHECK_MODS:
