@@ -75,9 +75,9 @@
        const filter = this.filter.toLowerCase();
        return this.runs.filter(run => {
          const text = (
-           run.operation.toLowerCase()
-           + run.label.toLowerCase()
-           + run.id);
+           run.operation.toLowerCase() +
+           run.label.toLowerCase() +
+           run.id);
          return text.indexOf(filter) !== -1;
        });
      }
