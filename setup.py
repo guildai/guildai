@@ -83,7 +83,7 @@ class Build(build_py):
 
 def _validate_env():
     try:
-        subprocess.check_call(["npm", "--version"])
+        subprocess.check_output(["npm", "--version"])
     except OSError as e:
         _exit("npm is not installed: %s", e)
 
