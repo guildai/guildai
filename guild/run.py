@@ -77,7 +77,9 @@ class Run(object):
         pid = self.pid # side-effect, read once
         if pid is None:
             exit_status = self.get("exit_status")
-            if exit_status == 0:
+            if exit_status is None:
+                return ""
+            elif exit_status == 0:
                 return "completed"
             elif exit_status < 0:
                 return "terminated"
