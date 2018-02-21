@@ -216,7 +216,7 @@ def _check_download_dir(link, download_dir, hashes):
 
 def _allowed_sha(hashes):
     allowed = hashes._allowed
-    assert allowed.keys() == ["sha256"], allowed
+    assert list(allowed.keys()) == ["sha256"], allowed
     sha256_hashes = allowed["sha256"]
     assert len(sha256_hashes) == 1, allowed
     return sha256_hashes[0]
