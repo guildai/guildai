@@ -8,7 +8,7 @@
               <v-flex xs3 class="pa-0">
                 <v-subheader>ID</v-subheader>
               </v-flex>
-              <v-flex xs9 class="pa-0">
+              <v-flex xs9 class="py-0">
                 <div class="field-val">{{ run.id }}</div>
               </v-flex>
             </v-layout>
@@ -16,7 +16,7 @@
               <v-flex xs3 class="pa-0">
                 <v-subheader>Model</v-subheader>
               </v-flex>
-              <v-flex xs9 class="pa-0">
+              <v-flex xs9 class="py-0">
                 <div class="field-val">{{ run.opModel }}</div>
               </v-flex>
             </v-layout>
@@ -24,7 +24,7 @@
               <v-flex xs3 class="pa-0">
                 <v-subheader>Operation</v-subheader>
               </v-flex>
-              <v-flex xs9 class="pa-0">
+              <v-flex xs9 class="py-0">
                 <div class="field-val">{{ run.opName }}</div>
               </v-flex>
             </v-layout>
@@ -32,7 +32,7 @@
               <v-flex xs3 class="pa-0">
                 <v-subheader>Status</v-subheader>
               </v-flex>
-              <v-flex xs9 class="pa-0">
+              <v-flex xs9 class="py-0">
                 <div class="field-val">
                   {{ run.status }}
                   <template v-if="run.exitStatus">
@@ -45,7 +45,7 @@
               <v-flex xs3 class="pa-0">
                 <v-subheader>Started</v-subheader>
               </v-flex>
-              <v-flex xs9 class="pa-0">
+              <v-flex xs9 class="py-0">
                 <div class="field-val">{{ run.started }}</div>
               </v-flex>
             </v-layout>
@@ -53,7 +53,7 @@
               <v-flex xs3 class="pa-0">
                 <v-subheader>Stopped</v-subheader>
               </v-flex>
-              <v-flex xs9 class="pa-0">
+              <v-flex xs9 class="py-0">
                 <div class="field-val">{{ run.stopped }}</div>
               </v-flex>
             </v-layout>
@@ -61,7 +61,7 @@
               <v-flex xs3 class="pa-0">
                 <v-subheader>Label</v-subheader>
               </v-flex>
-              <v-flex xs9 class="pa-0">
+              <v-flex xs9 class="py-0">
                 <div class="field-val">{{ run.label }}</div>
               </v-flex>
             </v-layout>
@@ -69,7 +69,7 @@
               <v-flex xs3 class="pa-0">
                 <v-subheader>Dependencies</v-subheader>
               </v-flex>
-              <v-flex xs9 class="pa-0">
+              <v-flex xs9 class="py-0">
                 <div class="field-val">
                   <v-layout column>
                     <v-flex>
@@ -101,7 +101,7 @@
               <v-flex xs4 class="pa-0">
                 <v-subheader>{{ name }}</v-subheader>
               </v-flex>
-              <v-flex xs8 class="pa-0">
+              <v-flex xs8 class="py-0">
                 <div class="field-val">
                   <v-tooltip bottom tag="div" class="no-wrap">
                     <div slot="activator" class="no-wrap">{{ val }}</div>
@@ -209,6 +209,10 @@
 </script>
 
 <style scoped>
+table.table tbody td {
+  font-size: 14px;
+}
+
 .field-val {
   height: 48px;
   display: flex;
