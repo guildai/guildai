@@ -22,10 +22,6 @@ import sys
 import click
 
 def print_info():
-    _print_tensorflow_info()
-    _print_tensorboard_info()
-
-def _print_tensorflow_info():
     try:
         import tensorflow as tf
     except ImportError as e:
@@ -37,6 +33,7 @@ def _print_tensorflow_info():
         click.echo("tensorflow_version:        %s" % _tf_version(tf))
         click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
         click.echo("tensorflow_gpu_available:  %s" % _gpu_available(tf))
+        _print_tensorboard_info()
         _print_cuda_info()
 
 def _tf_version(tf):
@@ -47,6 +44,16 @@ def _cuda_support(tf):
 
 def _gpu_available(tf):
     return "yes" if tf.test.is_gpu_available() else "no"
+
+def _print_tensorboard_info():
+    try:
+        import tensorboard.version as version
+    except ImportError as e:
+        msg = _normalize_import_error_msg(e)
+        click.echo("tensorboard_version:       %s" % _warn("NOT INSTALLED (%s)" % msg))
+    else:
+        click.echo("tensorboard_version:       %s" % version.VERSION)
+
 
 def _print_cuda_info():
     proc_maps = "/proc/%s/maps" % os.getpid()
@@ -64,15 +71,6 @@ def _print_cuda_info():
             click.echo("%s_version:%s%s" % (name, space, m.group(1)))
         else:
             click.echo("%s_version:%snot loaded" % (name, space))
-
-def _print_tensorboard_info():
-    try:
-        import tensorboard.version as version
-    except ImportError as e:
-        msg = _normalize_import_error_msg(e)
-        click.echo("tensorboard_version:       %s" % _warn("NOT INSTALLED (%s)" % msg))
-    else:
-        click.echo("tensorboard_version:       %s" % version.VERSION)
 
 def _normalize_import_error_msg(e):
     msg = str(e)
