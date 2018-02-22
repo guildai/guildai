@@ -80,12 +80,17 @@ class Call(object):
 
     def __init__(self, node):
         self.node = node
-        if isinstance(node.func, ast.Name):
-            self.name = node.func.id
-        elif isinstance(node.func, ast.Attribute):
-            self.name = node.func.attr
+        self.name = self._node_name(node.func)
+
+    def _node_name(self, node):
+        if isinstance(node, ast.Name):
+            return node.id
+        elif isinstance(node, ast.Attribute):
+            return node.attr
+        elif isinstance(node, ast.Call):
+            return self._node_name(node.func)
         else:
-            raise AssertionError(node.func)
+            raise AssertionError(node)
 
 def _script_name(src):
     basename = os.path.basename(src)
@@ -246,8 +251,10 @@ def scripts_for_dir(dir, exclude=None):
         if not any((fnmatch.fnmatch(src, pattern) for pattern in exclude))
     ]
 
-def script_models(dir, is_model_script, script_model):
+def script_models(dir, is_model_script, script_model, log=None):
     for script in sorted(scripts_for_dir(dir)):
+        if log:
+            log.debug("checking %s for models", script.src)
         if is_model_script(script):
             yield script_model(script)
 

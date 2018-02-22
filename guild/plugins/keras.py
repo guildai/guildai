@@ -22,7 +22,7 @@ class KerasPlugin(plugin.Plugin):
 
     def find_models(self, path):
         return python_util.script_models(
-            path, self._is_keras_script, self._script_model)
+            path, self._is_keras_script, self._script_model, self.log)
 
     def _is_keras_script(self, script):
         return self._imports_keras(script) and self._op_method(script)
