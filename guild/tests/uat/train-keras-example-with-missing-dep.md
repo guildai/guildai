@@ -20,5 +20,7 @@ Let's next attempt to train a Keras example.
 
     >>> cd("examples/keras/mnist")
     >>> run("guild train -y mnist_irnn", timeout=10)
-    error: could not import keras - is it installed?
+    Traceback (most recent call last):
+    ...
+    ImportError: No module named ...keras...
     <exit 1>

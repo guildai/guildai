@@ -4,7 +4,7 @@ Use `guild packages info PKG` to show information about a package:
 
     >>> run("guild packages info mnist") # doctest: +REPORT_UDIFF
     name: mnist
-    version: 0.1.3...
+    version: 0.3.0...
     summary: CNN and softmax regression classifiers for MNIST digits
     home-page: https://github.com/guildai/index/tree/master/mnist
     author: Guild AI
@@ -19,7 +19,7 @@ information.
 
     >>> run("guild packages info mnist --verbose --files") # doctest: +REPORT_UDIFF
     name: mnist
-    version: 0.1.3...
+    version: 0.3.0...
     summary: CNN and softmax regression classifiers for MNIST digits
     home-page: https://github.com/guildai/index/tree/master/mnist
     author: Guild AI

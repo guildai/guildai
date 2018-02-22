@@ -94,6 +94,7 @@
     guild.namespace
     guild.op
     guild.op_main
+    guild.op_util
     guild.opref
     guild.package
     guild.package_main
@@ -107,6 +108,7 @@
     guild.plugins.disk
     guild.plugins.gpu
     guild.plugins.keras
+    guild.plugins.keras_op_main
     guild.plugins.memory
     guild.plugins.python_util
     guild.plugins.tensorflow_util
