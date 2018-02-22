@@ -18,11 +18,12 @@ import click
 
 import guild.help
 import guild.model
-import guild.modelfile
+import guild.plugin
 
 from guild import cli
 from guild import cmd_impl_support
 from guild import config
+from guild import modelfile
 
 class Pkg(object):
     """Local structure representing a model package."""
@@ -43,12 +44,24 @@ def main(args):
 
 def _dir_modelfile(dir):
     try:
-        return guild.modelfile.from_dir(dir)
+        return modelfile.from_dir(dir)
     except guild.modelfile.NoModels:
+        mf = _try_plugin_models(dir)
+        if mf:
+            return mf
         cli.out(
             "No help available (%s does not contain a model file)"
             % cmd_impl_support.cwd_desc(dir), err=True)
         cli.error()
+
+def _try_plugin_models(dir):
+    models_data = []
+    for _, plugin in guild.plugin.iter_plugins():
+        for data in plugin.find_models(dir):
+            models_data.append(data)
+    if not models_data:
+        return None
+    return modelfile.Modelfile(models_data, dir=dir)
 
 def _package_modelfile(ref):
     matches = _matching_packages(ref)
