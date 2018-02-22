@@ -35,31 +35,31 @@ class KerasPlugin(plugin.Plugin):
 
     @staticmethod
     def _op_method(script):
-        """Returns the first detected op method name.
+        """Returns the last method of fit or predict.
 
-        Op methods are inferred by calls to "fit" and "predict"
-        functions. If a script contains one of these, we consider it
-        an operation and return the method name.
+        If fit is called, the last call is always returned, regardless
+        of whether predict is called.
 
         """
-        op_methods = ["fit", "predict"]
-        for call in script.calls:
-            if call.name in op_methods:
-                return call.name
-        return None
+        predict = None
+        for call in reversed(script.calls):
+            if call.name == "fit":
+                return call
+            elif call.name == "predict":
+                predict = call
+        return predict
 
     def _script_model(self, script):
         op_method = self._op_method(script)
         assert op_method, "should be caught in _is_keras_script"
-        if op_method == "fit":
-            return self._train_model(script)
-        elif op_method == "predict":
+        if op_method.name == "fit":
+            return self._train_model(script, op_method)
+        elif op_method.name == "predict":
             return self._predict_model(script)
         else:
             raise AssertionError(op_method)
 
-    @staticmethod
-    def _train_model(script):
+    def _train_model(self, script, fit):
         return {
             "name": script.name,
             "operations": {
@@ -71,11 +71,11 @@ class KerasPlugin(plugin.Plugin):
                     "flags": {
                         "epochs": {
                             "description": "Number of epochs to train",
-                            "default": script.params.get("epochs")
+                            "default": self._default_epochs(script, fit)
                         },
                         "batch-size": {
                             "description": "Batch size per training step",
-                            "default": script.params.get("batch_size")
+                            "default": self._default_batch_size(script, fit)
                         },
                         "datasets": {
                             "description": "Location of Keras datasets"
@@ -84,6 +84,20 @@ class KerasPlugin(plugin.Plugin):
                 }
             }
         }
+
+    def _default_epochs(self, script, fit):
+        return (
+            fit.kwarg_param("epochs") or
+            script.params.get("epochs") or
+            script.params.get("EPOCHS")
+        )
+
+    def _default_batch_size(self, script, fit):
+        return (
+            fit.kwarg_param("batch_size") or
+            script.params.get("batch_size") or
+            script.params.get("BATCH_SIZE")
+        )
 
     @staticmethod
     def _predict_model(script):

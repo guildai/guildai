@@ -90,19 +90,18 @@ class Script(object):
             self._try_apply_param(node)
 
     def _try_apply_param(self, node):
-        val = self._try_param_val(node.value)
+        val = _try_param_val(node.value)
         if val is not None:
             for target in node.targets:
                 self._params[target.id] = val
 
-    @staticmethod
-    def _try_param_val(val):
-        if isinstance(val, ast.Num):
-            return val.n
-        elif isinstance(val, ast.Str):
-            return val.s
-        else:
-            return None
+def _try_param_val(val):
+    if isinstance(val, ast.Num):
+        return val.n
+    elif isinstance(val, ast.Str):
+        return val.s
+    else:
+        return None
 
 class Call(object):
 
@@ -119,6 +118,12 @@ class Call(object):
             return self._node_name(node.func)
         else:
             raise AssertionError(node)
+
+    def kwarg_param(self, name):
+        for kw in self.node.keywords:
+            if kw.arg == name:
+                return _try_param_val(kw.value)
+        return None
 
 def _script_name(src):
     basename = os.path.basename(src)
