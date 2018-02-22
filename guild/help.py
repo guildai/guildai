@@ -243,4 +243,4 @@ def _write_references(refs, out):
     for i, (name, val) in enumerate(refs):
         if i > 0:
             out.write_paragraph()
-        out.write_text("%s: %s" % (name, val))
+        out.write_text("%s: %s" % (name, val or ""))
