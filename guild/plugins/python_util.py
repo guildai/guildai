@@ -20,7 +20,7 @@ import logging
 import os
 import types
 
-log = logging.getLogger("guild.plugins")
+log = logging.getLogger("guild")
 
 class Script(object):
 
@@ -252,6 +252,18 @@ def script_models(dir, is_model_script, script_model):
             yield script_model(script)
 
 def exec_script(filename):
+    """Execute a Python script.
+
+    This function can be used to execute a Python module as code
+    rather than import it. Importing a module to execute it is not an
+    option if importing has a side-effect of starting threads, in
+    which case this function can be used.
+
+    Reference:
+
+    https://docs.python.org/2/library/threading.html#importing-in-threaded-code
+
+    """
     import __future__
     src = open(filename, "r").read()
     flags = __future__.absolute_import.compiler_flag

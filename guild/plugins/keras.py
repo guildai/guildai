@@ -15,11 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import os
-import shlex
-import types
-
-from guild import plugin_util
 from guild import plugin
 from guild.plugins import python_util
 
@@ -30,7 +25,7 @@ class KerasPlugin(plugin.Plugin):
             path, self._is_keras_script, self._script_model)
 
     def _is_keras_script(self, script):
-        return self._imports_keras(script) and self._calls_fit_method(script)
+        return self._imports_keras(script) and self._op_method(script)
 
     @staticmethod
     def _imports_keras(script):
@@ -39,127 +34,65 @@ class KerasPlugin(plugin.Plugin):
              for name in script.imports()))
 
     @staticmethod
-    def _calls_fit_method(script):
-        return any((call.name == "fit" for call in script.calls()))
+    def _op_method(script):
+        """Returns the first detected op method name.
+
+        Op methods are inferred by calls to "fit" and "predict"
+        functions. If a script contains one of these, we consider it
+        an operation and return the method name.
+
+        """
+        op_methods = ["fit", "predict"]
+        for call in script.calls():
+            if call.name in op_methods:
+                return call.name
+        return None
+
+    def _script_model(self, script):
+        op_method = self._op_method(script)
+        assert op_method, "should be caught in _is_keras_script"
+        if op_method == "fit":
+            return self._train_model(script)
+        elif op_method == "predict":
+            return self._predict_model(script)
+        else:
+            raise AssertionError(op_method)
 
     @staticmethod
-    def _script_model(script):
+    def _train_model(script):
         return {
             "name": script.name,
             "operations": {
                 "train": {
-                    "cmd": "@keras:train '%s'" % os.path.abspath(script.src),
+                    "cmd": (
+                        "guild.plugins.keras_op_main train %s" % script.src
+                    ),
                     "description": "Train the model",
+                    "flags": {
+                        "epochs": {
+                            "description": "Number of epochs to train"
+                        },
+                        "batch-size": {
+                            "description": "Batch size per training step"
+                        },
+                        "datasets": {
+                            "description": "Location of Keras datasets"
+                        }
+                    }
                 }
             }
         }
 
-    def enabled_for_op(self, op):
-        parts = shlex.split(op.cmd)
-        if parts[0] != "@keras:train":
-            return False, "operation not supported by plugin"
-        return True, ""
-
-    def run_op(self, op_spec, args):
-        if op_spec == "train":
-            self._train(args)
-        else:
-            raise plugin.NotSupported(op_spec)
-
-    def _train(self, op_args):
-        try:
-            import keras
-        except ImportError:
-            plugin_util.exit("error: could not import keras - is it installed?")
-        parsed_args = self._parse_args(op_args)
-        self._patch_keras(parsed_args)
-        self._exec_script(parsed_args)
-
     @staticmethod
-    def _parse_args(args):
-        import argparse
-        p = argparse.ArgumentParser()
-        p.add_argument("script")
-        p.add_argument("--epochs", type=int)
-        p.add_argument("--batch-size", type=int)
-        p.add_argument("--datasets")
-        parsed, _ = p.parse_known_args(args)
-        return parsed
-
-    def _patch_keras(self, args):
-        import keras # pylint: disable=import-error
-        python_util.listen_method(
-            keras.models.Sequential, "fit",
-            self._fit_wrapper(args))
-        python_util.listen_method(
-            keras.callbacks.TensorBoard, "set_params",
-            self._on_set_tensorboard_params)
-        python_util.listen_function(
-            keras.utils.data_utils, "get_file",
-            self._get_file_wrapper(args))
-        self._update_keras_get_file_refs()
-
-    def _fit_wrapper(self, op_args):
-        def fit(fit0, *args, **kw):
-            self._maybe_apply_kw("batch_size", op_args.batch_size, kw)
-            self._maybe_apply_kw("epochs", op_args.epochs, kw)
-            self._ensure_tensorboard_callback(kw)
-            raise python_util.Result(fit0(*args, **kw))
-        return fit
-
-    @staticmethod
-    def _maybe_apply_kw(name, val, kw):
-        if val:
-            kw[name] = val
-
-    @staticmethod
-    def _ensure_tensorboard_callback(kw):
-        import keras # pylint: disable=import-error
-        callbacks = kw.setdefault("callbacks", [])
-        for cb in callbacks:
-            if isinstance(cb, keras.callbacks.TensorBoard):
-                break
-        else:
-            cb = keras.callbacks.TensorBoard(write_graph=True)
-            callbacks.append(cb)
-        cb.log_dir = plugin_util.current_run().path
-
-    @staticmethod
-    def _on_set_tensorboard_params(_set_params, params):
-        run = plugin_util.current_run()
-        flags = {
-            name: val
-            for name, val in params.items()
-            if isinstance(val, (str, int, float, bool))
+    def _predict_model(script):
+        return {
+            "name": script.name,
+            "operations": {
+                "predict": {
+                    "cmd": (
+                        "guild.plugins.keras_op_main predict %s" % script.src
+                    ),
+                    "description": "Use a trained model to make a prediction"
+                }
+            }
         }
-        run.write_attr("flags", flags)
-
-    def _get_file_wrapper(self, op_args):
-        def get_file(get_file0, fname, *args, **kw):
-            subdir = kw.get("cache_subdir", "datasets")
-            if subdir == "datasets" and op_args.datasets:
-                fname = os.path.abspath(os.path.join(op_args.datasets, fname))
-            self.log.debug("getting file %s", fname)
-            raise python_util.Result(get_file0(fname, *args, **kw))
-        return get_file
-
-    @staticmethod
-    def _update_keras_get_file_refs():
-        # Keras actively loads everything on import so referenes to
-        # `keras.utils.data_utils.get_file` are all using the
-        # unpatched function by the time we're able to patch it. We
-        # have to unfortunately traverse the keras package and update
-        # those references.
-        # pylint: disable=import-error
-        import keras
-        from keras.utils.data_utils import get_file as patched
-        assert patched.__wrapper__, patched
-        ref_spec = (
-            "get_file",
-            types.FunctionType,
-            {"__module__": "keras.utils.data_utils"})
-        python_util.update_refs(keras, ref_spec, patched, recurse=True)
-
-    @staticmethod
-    def _exec_script(args):
-        python_util.exec_script(args.script)
