@@ -35,6 +35,11 @@ from guild import var
 
 log = logging.getLogger("guild")
 
+try:
+    unicode
+except NameError:
+    unicode = str
+
 RUN_DETAIL = [
     "id",
     "operation",
