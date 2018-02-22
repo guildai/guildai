@@ -31,7 +31,7 @@ class KerasPlugin(plugin.Plugin):
     def _imports_keras(script):
         return any(
             (name == "keras" or name.startswith("keras.")
-             for name in script.imports()))
+             for name in script.imports))
 
     @staticmethod
     def _op_method(script):
@@ -43,7 +43,7 @@ class KerasPlugin(plugin.Plugin):
 
         """
         op_methods = ["fit", "predict"]
-        for call in script.calls():
+        for call in script.calls:
             if call.name in op_methods:
                 return call.name
         return None
@@ -70,10 +70,12 @@ class KerasPlugin(plugin.Plugin):
                     "description": "Train the model",
                     "flags": {
                         "epochs": {
-                            "description": "Number of epochs to train"
+                            "description": "Number of epochs to train",
+                            "default": script.params.get("epochs")
                         },
                         "batch-size": {
-                            "description": "Batch size per training step"
+                            "description": "Batch size per training step",
+                            "default": script.params.get("batch_size")
                         },
                         "datasets": {
                             "description": "Location of Keras datasets"

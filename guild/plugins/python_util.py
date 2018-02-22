@@ -27,7 +27,10 @@ class Script(object):
     def __init__(self, src):
         self.src = src
         self.name = _script_name(src)
-        self._parsed = None
+        self._parsed = False
+        self._imports = []
+        self._calls = []
+        self._params = {}
 
     def __lt__(self, x):
         return self.__cmp__(x) < 0
@@ -35,17 +38,23 @@ class Script(object):
     def __cmp__(self, x):
         return (self.src > x.src) - (self.src < x.src)
 
+    @property
     def imports(self):
         self._ensure_parsed()
-        return self._parsed.get("imports", [])
+        return self._imports
 
+    @property
     def calls(self):
         self._ensure_parsed()
-        return self._parsed.get("calls", [])
+        return self._calls
+
+    @property
+    def params(self):
+        self._ensure_parsed()
+        return self._params
 
     def _ensure_parsed(self):
-        if self._parsed is None:
-            self._parsed = {}
+        if not self._parsed:
             try:
                 parsed = ast.parse(open(self.src, "r").read())
             except SyntaxError:
@@ -53,6 +62,7 @@ class Script(object):
             else:
                 for node in ast.walk(parsed):
                     self._apply_node(node)
+            self._parsed = True
 
     def _apply_node(self, node):
         if isinstance(node, ast.ImportFrom):
@@ -61,20 +71,38 @@ class Script(object):
             self._apply_import(node)
         elif isinstance(node, ast.Call):
             self._apply_call(node)
+        elif isinstance(node, ast.Assign):
+            self._apply_assign(node)
 
     def _apply_import_from(self, node):
-        imports = self._parsed.setdefault("imports", [])
-        imports.append(node.module)
+        self._imports.append(node.module)
 
     def _apply_import(self, node):
-        imports = self._parsed.setdefault("imports", [])
         for name in node.names:
             if isinstance(name, ast.alias):
-                imports.append(name.name)
+                self._imports.append(name.name)
 
     def _apply_call(self, node):
-        calls = self._parsed.setdefault("calls", [])
-        calls.append(Call(node))
+        self._calls.append(Call(node))
+
+    def _apply_assign(self, node):
+        if node.col_offset == 0:
+            self._try_apply_param(node)
+
+    def _try_apply_param(self, node):
+        val = self._try_param_val(node.value)
+        if val is not None:
+            for target in node.targets:
+                self._params[target.id] = val
+
+    @staticmethod
+    def _try_param_val(val):
+        if isinstance(val, ast.Num):
+            return val.n
+        elif isinstance(val, ast.Str):
+            return val.s
+        else:
+            return None
 
 class Call(object):
 
