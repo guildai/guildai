@@ -308,7 +308,7 @@ def exec_script(filename):
     src = open(filename, "r").read()
     flags = __future__.absolute_import.compiler_flag
     code = compile(src, filename, "exec", flags=flags, dont_inherit=True)
-    exec(code)
+    exec(code, {})
 
 def update_refs(module, ref_spec, new_val, recurse=False, seen=None):
     seen = seen or set()
