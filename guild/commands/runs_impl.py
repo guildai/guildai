@@ -351,7 +351,9 @@ def delete_runs(args, ctx):
             cli.out("Permanently deleted %i run(s)" % len(selected))
         else:
             cli.out("Deleted %i run(s)" % len(selected))
-    _runs_op(args, ctx, False, preview, confirm, no_runs_help, delete)
+    _runs_op(
+        args, ctx, False, preview, confirm, no_runs_help,
+        delete, confirm_default=not args.permanent)
 
 def purge_runs(args, ctx):
     preview = (
