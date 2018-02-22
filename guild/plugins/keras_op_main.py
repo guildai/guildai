@@ -172,4 +172,8 @@ def _init_op(name, op_args):
 
 if __name__ == "__main__":
     op_name, op_args = plugin_util.parse_op_args()
+    try:
+        import keras
+    except ImportError:
+        plugin_util.exit("cannot import keras - is it installed?")
     _init_op(op_name, op_args)()
