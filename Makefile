@@ -30,7 +30,7 @@ pip-clean:
 
 check:
 	@if [ -z "$(TESTS)" ]; then \
-	  opts="--tests"; \
+	  opts="-n --tests"; \
 	else \
 	  opts="-n "; \
 	  if [ "$(TESTS)" = "all" ]; then \
