@@ -151,6 +151,7 @@ def _nvidia_smi_version():
     except subprocess.CalledProcessError as e:
         return _warn("ERROR: %s" % e.output.strip())
     else:
+        out = out.decode("utf-8")
         m = re.search(r"NVIDIA-SMI ([0-9\.]+)", out)
         if m:
             return m.group(1)
