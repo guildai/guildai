@@ -39,10 +39,7 @@ def _main():
     log.debug("sys.path: %s", os.path.pathsep.join(sys.path))
     arg1, rest_args = _parse_args()
     _apply_plugins()
-    if arg1[0] == "@":
-        _try_plugin(arg1[1:], rest_args)
-    else:
-        _try_module(arg1, rest_args)
+    _try_module(arg1, rest_args)
 
 def _init_sys_path():
     if os.getenv("SCRIPT_DIR") is not None:
@@ -73,50 +70,6 @@ def _apply_plugin(name):
 def _plugin_for_name(name):
     from guild import plugin # expensive
     return plugin.for_name(name)
-
-def _try_plugin(plugin_op, args):
-    plugin_name, op_spec = _parse_plugin_op(plugin_op)
-    try:
-        plugin = _plugin_for_name(plugin_name)
-    except LookupError:
-        _error("plugin '%s' not available" % plugin_name)
-    else:
-        _run_plugin_op(plugin, op_spec, args)
-
-def _parse_plugin_op(plugin_op):
-    parts = plugin_op.split(":", 1)
-    if len(parts) == 1:
-        _error("invalid plugin op: %s" % plugin_op)
-    return parts
-
-def _run_plugin_op(plugin, op_spec, args):
-    log.debug("running plugin op '@%s:%s' %r", plugin.name, op_spec, args)
-    try:
-        plugin.run_op(op_spec, args)
-    except Exception as e:
-        from guild.plugin import NotSupported # expensive
-        if isinstance(e, NotSupported):
-            _error(
-                "plugin '%s' does not support operation '%s'"
-                % (plugin.name, op_spec))
-        raise
-    except SystemExit as e:
-        _handle_system_exit(e)
-
-def _handle_system_exit(e):
-    if isinstance(e.code, tuple) and len(e.code) == 2:
-        msg, code = e.code
-        sys.stderr.write("guild: ")
-        sys.stderr.write(str(msg))
-        sys.stderr.write("\n")
-        sys.exit(code)
-    elif isinstance(e.code, int):
-        sys.exit(e.code)
-    else:
-        sys.stderr.write("guild: ")
-        sys.stderr.write(str(e.message))
-        sys.stderr.write("\n")
-        sys.exit(1)
 
 def _try_module(module_spec, args):
     package_path, module_path = _parse_module_spec(module_spec)
