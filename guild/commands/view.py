@@ -18,10 +18,10 @@ from __future__ import division
 import click
 
 from guild import click_util
-from . import runs_support
+from . import runs_list
 
 @click.command(name="view")
-@runs_support.runs_op
+@runs_list.runs_list_options
 @click.option(
     "--host",
     help="Name of host interface to listen on.")

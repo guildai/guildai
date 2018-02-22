@@ -36,7 +36,7 @@ class ViewDataImpl(view.ViewData):
     def runs(self, params):
         args = self._args_for_params(params)
         with config.SetCwd(self._cwd(params)):
-            runs = runs_impl.runs_for_args(args)
+            runs = runs_impl.filtered_runs(args)
         return [_run_data(run) for run in runs]
 
     def _args_for_params(self, params):
