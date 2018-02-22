@@ -29,6 +29,8 @@ class NoCurrentRun(Exception):
 def exit(msg, exit_status=1):
     """Exit the Python runtime with a message.
     """
+    sys.stderr.write(os.path.basename(sys.argv[0]))
+    sys.stderr.write(": ")
     sys.stderr.write(msg)
     sys.stderr.write("\n")
     sys.exit(exit_status)
@@ -44,3 +46,8 @@ def current_run():
     if not path:
         raise NoCurrentRun()
     return guild.run.Run(os.getenv("RUNID"), path)
+
+def parse_op_args():
+    if len(sys.argv) < 2:
+        exit("usage: %s COMMAND [ARG...]" % sys.argv[0])
+    return sys.argv[1], sys.argv[2:]

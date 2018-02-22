@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+
 import argparse
 import glob
 import json
@@ -39,7 +42,7 @@ from guild import var
 
 from guild.commands import runs_impl
 
-log = logging.getLogger("cloudml")
+log = logging.getLogger("guild.cloudml")
 
 BACKGROUND_SYNC_INTERVAL = 60
 BACKGROUND_SYNC_STOP_TIMEOUT = 10
@@ -313,6 +316,8 @@ class CancelJob(object):
 
 class Train(object):
 
+    op_name = "train"
+
     def __init__(self, args, sdk):
         job_args, flag_args = self._parse_args(args)
         self.run = plugin_util.current_run()
@@ -328,9 +333,8 @@ class Train(object):
         p = self._init_arg_parser()
         return p.parse_known_args(args)
 
-    @staticmethod
-    def _init_arg_parser():
-        p = argparse.ArgumentParser()
+    def _init_arg_parser(self):
+        p = argparse.ArgumentParser(prog="cloudml_op_main.py %s" % self.op_name)
         p.add_argument("--bucket", required=True)
         p.add_argument("--region", default=DEFAULT_REGION)
         p.add_argument("--job-name")
@@ -446,6 +450,8 @@ class Train(object):
 
 class HPTune(Train):
 
+    op_name = "hptune"
+
     def __init__(self, args, sdk):
         super(HPTune, self).__init__(args, sdk)
         self._patch_hptuning_config()
@@ -517,6 +523,8 @@ class HPTune(Train):
 
 class Deploy(object):
 
+    op_name = "deploy"
+
     def __init__(self, args, sdk):
         self.args = self._parse_args(args)
         self.run = plugin_util.current_run()
@@ -531,9 +539,12 @@ class Deploy(object):
         self.model_version = self.args.version or self._model_version()
         self.sdk = sdk
 
-    @staticmethod
-    def _parse_args(args):
-        p = argparse.ArgumentParser()
+    def _parse_args(self, args):
+        p = self._init_arg_parser()
+        return p.parse_known_args(args)[0]
+
+    def _init_arg_parser(self):
+        p = argparse.ArgumentParser(prog="cloudml_op_main.py %s" % self.op_name)
         p.add_argument("--trained_model")
         p.add_argument("--version")
         p.add_argument("--region")
@@ -542,8 +553,7 @@ class Deploy(object):
         p.add_argument("--model")
         p.add_argument("--runtime-version", default=DEFAULT_RUNTIME_VERSION)
         p.add_argument("--config")
-        args, _ = p.parse_known_args(args)
-        return args
+        return p
 
     def _run_region(self):
         return self.trained_run.get("flags", {}).get("region")
@@ -686,6 +696,8 @@ class Deploy(object):
 
 class Predict(object):
 
+    op_name = "predict"
+
     def __init__(self, args, sdk):
         self.args = self._parse_args(args)
         self.run = plugin_util.current_run()
@@ -700,12 +712,10 @@ class Predict(object):
 
     def _parse_args(self, args):
         p = self._init_arg_parser()
-        args, _ = p.parse_known_args(args)
-        return args
+        return p.parse_known_args(args)[0]
 
-    @staticmethod
-    def _init_arg_parser():
-        p = argparse.ArgumentParser()
+    def _init_arg_parser(self):
+        p = argparse.ArgumentParser(prog="cloudml_op_main.py %s" % self.op_name)
         p.add_argument("--deployed-model")
         p.add_argument("--instances", required=True)
         p.add_argument("--instance-type")
@@ -793,6 +803,8 @@ class Predict(object):
             f.write(results)
 
 class BatchPredict(Predict):
+
+    op_name = "batch-predict"
 
     def __init__(self, args, sdk):
         super(BatchPredict, self).__init__(args, sdk)
@@ -918,21 +930,21 @@ def _exit(msg, *args, **kw):
     log.error(msg, *args)
     sys.exit(kw.get("code", 1))
 
-if __name__ == "__main__":
-    assert len(sys.argv) >= 2, "missing command"
-    op_name = sys.argv[1]
-    op_args = sys.argv[2:]
-    sdk = _init_sdk()
-    if op_name == "train":
-        op = Train(op_args, sdk)
-    elif op_name == "hptune":
-        op = HPTune(op_args, sdk)
-    elif op_name == "deploy":
-        op = Deploy(op_args, sdk)
-    elif op_name == "predict":
-        op = Predict(op_args, sdk)
-    elif op_name == "batch-predict":
-        op = BatchPredict(op_args, sdk)
+def _init_op(name, op_args, sdk):
+    if name == "train":
+        return Train(op_args, sdk)
+    elif name == "hptune":
+        return HPTune(op_args, sdk)
+    elif name == "deploy":
+        return Deploy(op_args, sdk)
+    elif name == "predict":
+        return Predict(op_args, sdk)
+    elif name == "batch-predict":
+        return BatchPredict(op_args, sdk)
     else:
-        raise AssertionError(sys.argv)
-    op()
+        plugin_util.exit("unrecognized command '%s'" % name)
+
+if __name__ == "__main__":
+    op_name, op_args = plugin_util.parse_op_args()
+    sdk = _init_sdk()
+    _init_op(op_name, op_args, sdk)()
