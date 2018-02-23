@@ -38,7 +38,7 @@ We can enumerate various script declarations.
 
 Imports:
 
-    >>> mnist_mlp.imports()
+    >>> mnist_mlp.imports
     ['__future__',
      'keras',
      'keras.datasets',
@@ -48,7 +48,7 @@ Imports:
 
 Calls:
 
-    >>> pprint([call.name for call in mnist_mlp.calls()])
+    >>> pprint([call.name for call in mnist_mlp.calls])
     ['load_data',
      'reshape',
      'reshape',
