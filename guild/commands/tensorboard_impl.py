@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 import os
+import socket
 
 from guild import cli
 from guild import util
@@ -89,7 +90,7 @@ def main(args):
         monitor.start()
         tensorboard.main(
             logdir=logdir,
-            host=(args.host or ""),
+            host=(args.host or socket.gethostname()),
             port=(args.port or util.free_port()),
             reload_interval=args.refresh_interval,
             ready_cb=(_open_url if not args.no_open else None))

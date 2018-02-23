@@ -14,6 +14,7 @@
 
 import json
 import os
+import socket
 import subprocess
 import sys
 import threading
@@ -206,7 +207,7 @@ class RunFiles(StaticBase):
         return app
 
 def serve_forever(data, host, port, no_open=False, dev=False):
-    host = host or "localhost"
+    host = host or socket.gethostname()
     if dev:
         _serve_dev(data, host, port, no_open)
     else:
