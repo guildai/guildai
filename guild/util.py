@@ -467,3 +467,16 @@ def getmtime(filename):
         return os.path.getmtime(filename)
     except OSError:
         return None
+
+def kill_process_tree(pid, force=False, timeout=None):
+    import psutil
+    import signal
+    if force:
+        sig = signal.SIGKILL
+    else:
+        sig = signal.SIGTERM
+    root = psutil.Process(pid)
+    procs = [root] + root.children(recursive=True)
+    for proc in procs:
+        proc.send_signal(sig)
+    return psutil.wait_procs(procs, timeout=timeout)

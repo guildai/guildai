@@ -152,7 +152,7 @@ class Operation(object):
             time.sleep(1)
         if self._proc.poll() is None:
             log.warning("Operation process did not exit - stopping forcefully")
-            self._proc.kill()
+            util.kill_process_tree(self._proc.pid, force=True)
         return -15 # exit code for SIGTERM
 
     def _finalize_attrs(self):
