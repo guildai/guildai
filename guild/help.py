@@ -37,8 +37,8 @@ class ConsoleFormatter(click.HelpFormatter):
         self.indent()
         self._in_section = True
 
-    def write_heading(self, val):
-        self.write_text(click.style(val, bold=True))
+    def write_heading(self, heading):
+        self.write_text(click.style(heading, bold=True))
 
     def write_subheading(self, val):
         self.write_text("%s:" % val)
@@ -67,9 +67,9 @@ class RestFormatter(click.HelpFormatter):
         assert self._indent_level < len(self._heading_chars)
         return self._heading_chars[self._indent_level]
 
-    def write_heading(self, val):
-        self.write_text(val)
-        self.write_text(self._heading_char() * len(val))
+    def write_heading(self, heading):
+        self.write_text(heading)
+        self.write_text(self._heading_char() * len(heading))
 
     def write_subheading(self, val):
         self.write_heading(val)

@@ -89,7 +89,7 @@ def _init_tf_logging():
     we can patch loggers with LogCapture (see guild.tabview module)
     for display in a curses window.
     """
-    import tensorflow
+    import tensorflow as _
 
 def _compare_flags(runs):
     flags = set()

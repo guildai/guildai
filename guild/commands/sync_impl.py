@@ -60,8 +60,4 @@ def _try_sync(run, remote_lock, watch):
             "error syncing run '%s': plugin '%s' not available",
             run.id, remote_lock.plugin_name)
     else:
-        kw = dict(
-            lock_config=remote_lock.config,
-            watch=watch,
-        )
-        plugin.sync_run(run, **kw)
+        plugin.sync_run(run, dict(watch=watch))

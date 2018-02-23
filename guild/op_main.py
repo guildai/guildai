@@ -63,7 +63,6 @@ def _apply_plugins():
             _apply_plugin(name)
 
 def _apply_plugin(name):
-    import guild.plugin
     plugin = _plugin_for_name(name)
     plugin.patch_env()
 

@@ -65,10 +65,10 @@ class Plugin(object):
     def patch_env(self):
         pass
 
-    def sync_run(self, _run, **_kw):
+    def sync_run(self, _run, _options):
         raise TypeError("plugin '%s' does not support sync_run" % self.name)
 
-    def stop_run(self, _run, **_kw):
+    def stop_run(self, _run, _options):
         raise TypeError("plugin '%s' does not support stop_run" % self.name)
 
 def iter_plugins():

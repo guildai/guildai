@@ -291,11 +291,12 @@ class CloudMLPlugin(plugin.Plugin):
             m = p.match(name)
             if m:
                 return handler(name, modeldef, parent_opdef, *m.groups())
+        return None
 
-    def sync_run(self, run, watch=False, **_kw):
+    def sync_run(self, run, options):
         from . import cloudml_op_main
-        cloudml_op_main.sync_run(run, watch)
+        cloudml_op_main.sync_run(run, options.get("watch", False))
 
-    def stop_run(self, run, no_wait=False, **_kw):
+    def stop_run(self, run, options):
         from . import cloudml_op_main
-        cloudml_op_main.stop_run(run, no_wait)
+        cloudml_op_main.stop_run(run, options.get("no_wait", False))

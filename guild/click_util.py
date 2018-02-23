@@ -62,7 +62,7 @@ class HelpFormatter(click.formatting.HelpFormatter):
             text = pattern.sub(repl, text)
         return text
 
-    def write_dl(self, rows, **_kw):
+    def write_dl(self, rows, _col_max=None, _col_spacing=None):
         rows = [(term, self._format_text(text)) for term, text in rows]
         super(HelpFormatter, self).write_dl(rows)
 

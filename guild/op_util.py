@@ -27,18 +27,21 @@ def resolve_file(filename):
 def _abs_file(filename):
     if os.path.isabs(filename):
         return filename
+    return None
 
 def _cmd_file(filename):
     assert "CMD_DIR" in os.environ
     filename = os.path.join(os.environ["CMD_DIR"], filename)
     if os.path.exists(filename):
         return filename
+    return None
 
 def _model_file(filename):
     assert "MODEL_DIR" in os.environ
     filename = os.path.join(os.environ["MODEL_DIR"], filename)
     if os.path.exists(filename):
         return filename
+    return None
 
 def _cwd_file(filename):
     return os.path.join(os.getcwd(), filename)

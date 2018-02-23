@@ -85,14 +85,16 @@ class KerasPlugin(plugin.Plugin):
             }
         }
 
-    def _default_epochs(self, script, fit):
+    @staticmethod
+    def _default_epochs(script, fit):
         return (
             fit.kwarg_param("epochs") or
             script.params.get("epochs") or
             script.params.get("EPOCHS")
         )
 
-    def _default_batch_size(self, script, fit):
+    @staticmethod
+    def _default_batch_size(script, fit):
         return (
             fit.kwarg_param("batch_size") or
             script.params.get("batch_size") or
