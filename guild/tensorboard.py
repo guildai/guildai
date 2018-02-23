@@ -73,11 +73,9 @@ def create_app(plugins, logdir, reload_interval):
 
 def make_simple_server(app, host, port):
     server = serving.make_server(host, port, app, threaded=True)
-    final_host = socket.gethostname()
     server.daemon_threads = True
     server.handle_error = _handle_error
-    final_port = server.socket.getsockname()[1]
-    tensorboard_url = "http://%s:%d" % (final_host, final_port)
+    tensorboard_url = "http://%s:%s" % (host, port)
     return server, tensorboard_url
 
 def run_simple_server(tb_app, host, port, ready_cb):

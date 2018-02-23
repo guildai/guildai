@@ -95,15 +95,16 @@ class Predict(Op):
 
 def patch_keras(args):
     import keras
-    python_util.listen_method(
-        keras.models.Sequential, "fit",
-        _fit_wrapper(args))
-    python_util.listen_method(
-        keras.models.Model, "fit",
-        _fit_wrapper(args))
-    python_util.listen_method(
-        keras.callbacks.TensorBoard, "set_params",
-        _on_set_tensorboard_params)
+    fit = _fit_wrapper(args)
+    fit_gen = _fit_gen_wrapper(args)
+    _patch(keras.models.Sequential, "fit", fit)
+    _patch(keras.models.Sequential, "fit_generator", fit_gen)
+    _patch(keras.models.Model, "fit", fit)
+    _patch(keras.models.Model, "fit_generator", fit_gen)
+    _patch(keras.callbacks.TensorBoard, "set_params", _set_tensorboard_params)
+
+def _patch(cls, method, wrapper):
+    python_util.listen_method(cls, method, wrapper)
 
 def _fit_wrapper(op_args):
     def fit(fit0, *args, **kw):
@@ -112,6 +113,13 @@ def _fit_wrapper(op_args):
         _ensure_tensorboard_callback(kw)
         raise python_util.Result(fit0(*args, **kw))
     return fit
+
+def _fit_gen_wrapper(op_args):
+    def fit_gen(fit_gen0, *args, **kw):
+        _maybe_apply_kw("epochs", op_args.epochs, kw)
+        _ensure_tensorboard_callback(kw)
+        raise python_util.Result(fit_gen0(*args, **kw))
+    return fit_gen
 
 def _maybe_apply_kw(name, val, kw):
     if val:
@@ -128,7 +136,7 @@ def _ensure_tensorboard_callback(kw):
         callbacks.append(cb)
     cb.log_dir = plugin_util.current_run().path
 
-def _on_set_tensorboard_params(_set_params, params):
+def _set_tensorboard_params(_sp0, params):
     flags = {
         name: val
         for name, val in params.items()
