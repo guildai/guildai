@@ -944,7 +944,10 @@ def _init_op(name, op_args, sdk):
     else:
         plugin_util.exit("unrecognized command '%s'" % name)
 
-if __name__ == "__main__":
-    op_name, op_args = plugin_util.parse_op_args()
+def main(args):
+    op_name, op_args = plugin_util.parse_op_args(args)
     sdk = _init_sdk()
     _init_op(op_name, op_args, sdk)()
+
+if __name__ == "__main__":
+    main(sys.argv)

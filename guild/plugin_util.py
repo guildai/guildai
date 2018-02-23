@@ -48,7 +48,7 @@ def current_run():
         raise NoCurrentRun()
     return guild.run.Run(os.getenv("RUN_ID"), path)
 
-def parse_op_args():
-    if len(sys.argv) < 2:
-        exit("usage: %s COMMAND [ARG...]" % sys.argv[0])
-    return sys.argv[1], sys.argv[2:]
+def parse_op_args(args):
+    if len(args) < 2:
+        exit("usage: %s COMMAND [ARG...]" % args[0])
+    return args[1], args[2:]

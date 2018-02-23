@@ -18,7 +18,7 @@ from __future__ import division
 import argparse
 import logging
 import os
-import types
+import sys
 
 # Defer import of keras. While this module is only used in ops and we
 # could import keras here, we test all our module imports and loading
@@ -31,12 +31,13 @@ from guild.plugins import python_util
 log = logging.getLogger("guild.keras")
 
 class Op(object):
+    """Abstract Keras operation.
+    """
 
     name = None
 
     def __init__(self, args):
         self.args, self.script_parse = self._parse_known_args(args)
-        self.run = plugin_util.current_run()
 
     def _parse_known_args(self, args):
         p = self._init_arg_parser()
@@ -52,16 +53,20 @@ class Op(object):
         self._init_run()
         self._exec_script()
 
-    def _init_run(self):
+    @staticmethod
+    def _init_run():
         # Cwd is changed to run dir, so we need to replicate the
-        # original cwd (CMD_DIR env) with links to each file/dir
+        # original cwd (CMD_DIR env) with links to each file/dir. This
+        # is equivalent to resource resolution in a model-defined
+        # operation.
+        run = plugin_util.current_run()
         cmd_dir = os.getenv("CMD_DIR")
         assert cmd_dir
         for name in os.listdir(cmd_dir):
             if name == ".guild":
                 continue
             src = os.path.join(cmd_dir, name)
-            link = os.path.join(self.run.path, name)
+            link = os.path.join(run.path, name)
             os.symlink(src, link)
 
     @staticmethod
@@ -82,85 +87,58 @@ class Train(Op):
         p = super(Train, self)._init_arg_parser()
         p.add_argument("--epochs", type=int)
         p.add_argument("--batch-size", type=int)
-        p.add_argument("--datasets")
         return p
 
     def _exec_script(self):
-        self._patch_keras()
+        patch_keras(self.args)
         super(Train, self)._exec_script()
-
-    def _patch_keras(self):
-        import keras
-        python_util.listen_method(
-            keras.models.Sequential, "fit",
-            self._fit_wrapper())
-        python_util.listen_method(
-            keras.callbacks.TensorBoard, "set_params",
-            self._on_set_tensorboard_params)
-        python_util.listen_function(
-            keras.utils.data_utils, "get_file",
-            self._get_file_wrapper())
-        self._update_keras_get_file_refs()
-
-    def _fit_wrapper(self):
-        def fit(fit0, *args, **kw):
-            _maybe_apply_kw("batch_size", self.args.batch_size, kw)
-            _maybe_apply_kw("epochs", self.args.epochs, kw)
-            self._ensure_tensorboard_callback(kw)
-            raise python_util.Result(fit0(*args, **kw))
-        return fit
-
-    def _ensure_tensorboard_callback(self, kw):
-        import keras
-        callbacks = kw.setdefault("callbacks", [])
-        for cb in callbacks:
-            if isinstance(cb, keras.callbacks.TensorBoard):
-                break
-        else:
-            cb = keras.callbacks.TensorBoard(write_graph=True)
-            callbacks.append(cb)
-        cb.log_dir = self.run.path
-
-    def _on_set_tensorboard_params(self, _set_params, params):
-        flags = {
-            name: val
-            for name, val in params.items()
-            if isinstance(val, (str, int, float, bool))
-        }
-        self.run.write_attr("flags", flags)
-
-    def _get_file_wrapper(self):
-        def get_file(get_file0, fname, *args, **kw):
-            subdir = kw.get("cache_subdir", "datasets")
-            if subdir == "datasets" and self.args.datasets:
-                fname = os.path.abspath(os.path.join(self.args.datasets, fname))
-            log.debug("getting file %s", fname)
-            raise python_util.Result(get_file0(fname, *args, **kw))
-        return get_file
-
-    @staticmethod
-    def _update_keras_get_file_refs():
-        # Keras actively loads everything on import so referenes to
-        # `keras.utils.data_utils.get_file` are all using the
-        # unpatched function by the time we're able to patch it. We
-        # have to unfortunately traverse the entire keras package and update
-        # those references.
-        import keras
-        from keras.utils.data_utils import get_file as patched
-        assert patched.__wrapper__, patched
-        ref_spec = (
-            "get_file",
-            types.FunctionType,
-            {"__module__": "keras.utils.data_utils"})
-        python_util.update_refs(keras, ref_spec, patched, recurse=True)
 
 class Predict(Op):
 
     name = "predict"
 
+def patch_keras(args):
+    import keras
+    python_util.listen_method(
+        keras.models.Sequential, "fit",
+        _fit_wrapper(args))
+    python_util.listen_method(
+        keras.models.Model, "fit",
+        _fit_wrapper(args))
+    python_util.listen_method(
+        keras.callbacks.TensorBoard, "set_params",
+        _on_set_tensorboard_params)
+
+def _fit_wrapper(op_args):
+    def fit(fit0, *args, **kw):
+        _maybe_apply_kw("batch_size", op_args.batch_size, kw)
+        _maybe_apply_kw("epochs", op_args.epochs, kw)
+        _ensure_tensorboard_callback(kw)
+        raise python_util.Result(fit0(*args, **kw))
+    return fit
+
 def _maybe_apply_kw(name, val, kw):
     if val:
         kw[name] = val
+
+def _ensure_tensorboard_callback(kw):
+    import keras
+    callbacks = kw.setdefault("callbacks", [])
+    for cb in callbacks:
+        if isinstance(cb, keras.callbacks.TensorBoard):
+            break
+    else:
+        cb = keras.callbacks.TensorBoard(write_graph=True)
+        callbacks.append(cb)
+    cb.log_dir = plugin_util.current_run().path
+
+def _on_set_tensorboard_params(_set_params, params):
+    flags = {
+        name: val
+        for name, val in params.items()
+        if isinstance(val, (str, int, float, bool))
+    }
+    plugin_util.current_run().write_attr("flags", flags)
 
 def _init_op(name, op_args):
     if name == "train":
@@ -170,10 +148,13 @@ def _init_op(name, op_args):
     else:
         plugin_util.exit("unrecognized command '%s'" % name)
 
-if __name__ == "__main__":
-    op_name, op_args = plugin_util.parse_op_args()
+def main(args):
+    op_name, op_args = plugin_util.parse_op_args(args)
     try:
-        import keras
+        import keras as _
     except ImportError:
         plugin_util.exit("cannot import keras - is it installed?")
     _init_op(op_name, op_args)()
+
+if __name__ == "__main__":
+    main(sys.argv)
