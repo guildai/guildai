@@ -46,7 +46,7 @@ RUN_DETAIL = [
     "status",
     "started",
     "stopped",
-    "rundir",
+    "run_dir",
     "command",
     "exit_status",
     "pid",
@@ -242,7 +242,7 @@ def format_run(run, index=None):
         "pid": run.pid or "",
         "started": _format_timestamp(run.get("started")),
         "stopped": _format_timestamp(run.get("stopped")),
-        "rundir": run.path,
+        "run_dir": run.path,
         "command": _format_command(run.get("cmd", "")),
         "exit_status": _exit_status(run)
     }

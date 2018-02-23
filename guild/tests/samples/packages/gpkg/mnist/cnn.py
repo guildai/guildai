@@ -8,8 +8,8 @@ from tensorflow.examples.tutorials.mnist import input_data
 def init_flags():
     global FLAGS
     parser = argparse.ArgumentParser()
-    parser.add_argument("--datadir", default="/tmp/MNIST_data",)
-    parser.add_argument("--rundir", default="/tmp/MNIST_train")
+    parser.add_argument("--data-dir", default="/tmp/MNIST_data",)
+    parser.add_argument("--run-dir", default="/tmp/MNIST_train")
     parser.add_argument("--batch_size", type=int, default=100)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--prepare", dest='just_data', action="store_true")
@@ -18,7 +18,7 @@ def init_flags():
 
 def init_data():
     global mnist
-    mnist = input_data.read_data_sets(FLAGS.datadir, one_hot=True)
+    mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
 
 def init_train():
     init_model()
@@ -104,10 +104,10 @@ def init_summary_writers():
     global summaries, train_writer, validate_writer
     summaries = tf.summary.merge_all()
     train_writer = tf.summary.FileWriter(
-        FLAGS.rundir + "/train",
+        FLAGS.run_dir + "/train",
         tf.get_default_graph())
     validate_writer = tf.summary.FileWriter(
-        FLAGS.rundir + "/validate")
+        FLAGS.run_dir + "/validate")
 
 def init_collections():
     tf.add_to_collection("inputs", json.dumps({"image": x.name}))
@@ -151,8 +151,8 @@ def maybe_save_model(step):
 
 def save_model():
     print "Saving trained model"
-    tf.gfile.MakeDirs(FLAGS.rundir + "/model")
-    tf.train.Saver().save(sess, FLAGS.rundir + "/model/export")
+    tf.gfile.MakeDirs(FLAGS.run_dir + "/model")
+    tf.train.Saver().save(sess, FLAGS.run_dir + "/model/export")
 
 def init_test():
     init_session()
@@ -160,8 +160,8 @@ def init_test():
 
 def init_exported_collections():
     global x, y_, accuracy
-    saver = tf.train.import_meta_graph(FLAGS.rundir + "/model/export.meta")
-    saver.restore(sess, FLAGS.rundir + "/model/export")
+    saver = tf.train.import_meta_graph(FLAGS.run_dir + "/model/export.meta")
+    saver.restore(sess, FLAGS.run_dir + "/model/export")
     x = sess.graph.get_tensor_by_name(tf.get_collection("x")[0])
     y_ = sess.graph.get_tensor_by_name(tf.get_collection("y_")[0])
     accuracy = sess.graph.get_tensor_by_name(tf.get_collection("accuracy")[0])

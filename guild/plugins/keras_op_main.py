@@ -53,7 +53,7 @@ class Op(object):
         self._exec_script()
 
     def _init_run(self):
-        # Cwd is changed to rundir, so we need to replicate the
+        # Cwd is changed to run dir, so we need to replicate the
         # original cwd (CMD_DIR env) with links to each file/dir
         cmd_dir = os.getenv("CMD_DIR")
         assert cmd_dir

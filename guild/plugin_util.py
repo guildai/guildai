@@ -38,14 +38,15 @@ def exit(msg, exit_status=1):
 def current_run():
     """Returns an instance of guild.run.Run for the current run.
 
-    The current run directory must be specified with the RUNDIR
+    The current run directory must be specified with the RUN_DIR
     environment variable. If this variable is not defined, raised
     NoCurrentRun.
+
     """
-    path = os.getenv("RUNDIR")
+    path = os.getenv("RUN_DIR")
     if not path:
         raise NoCurrentRun()
-    return guild.run.Run(os.getenv("RUNID"), path)
+    return guild.run.Run(os.getenv("RUN_ID"), path)
 
 def parse_op_args():
     if len(sys.argv) < 2:

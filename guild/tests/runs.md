@@ -4,16 +4,15 @@ Runs are represented by the class `guild.run.Run`.
 
     >>> import guild.run
 
-They are used to manage information in a run directory ("rundir"). For
-our tests we'll create a temporary directory that represents our
-rundir:
+They are used to manage information in a run directory. For our tests
+we'll create a temporary directory that represents our run directory:
 
-    >>> rundir = mkdtemp()
+    >>> run_dir = mkdtemp()
 
 Runs have IDs that uniquely identify them. The `mkdir` function can be
 used to generate unique run IDs.
 
-    >>> run = guild.run.Run(guild.run.mkid(), rundir)
+    >>> run = guild.run.Run(guild.run.mkid(), run_dir)
 
 ### Run IDs
 
@@ -27,23 +26,25 @@ Runs have short IDs, which are 8 chars long:
     >>> len(run.short_id)
     8
 
-### Rundir files
+### Run directory files
 
-We can iterate files under a rundir using the `iter_files` method. For
-our tests we'll use a helper that normalizes output for our tests:
+We can iterate files under a run directory using the `iter_files`
+method. For our tests we'll use a helper that normalizes output for
+our tests:
 
     >>> def run_files(run):
     ...   return sorted([
-    ...     relpath(path, rundir)
+    ...     relpath(path, run_dir)
     ...     for path in run.iter_files(all_files=True)
     ...   ])
 
-We can iterate files under a rundir. Initially the directory is empty:
+We can iterate files under a run directory. Initially the directory is
+empty:
 
     >>> run_files(run)
     []
 
-We can initialize the rundir using `init_skel`:
+We can initialize the run directory using `init_skel`:
 
     >>> run.init_skel()
     >>> run_files(run)
@@ -51,7 +52,7 @@ We can initialize the rundir using `init_skel`:
      '.guild/attrs',
      '.guild/logs']
 
-Note that Guild manages files under a rundir inside a `.guild`
+Note that Guild manages files under a run directory inside a `.guild`
 directory ("guild directory").
 
 ### Run attributes
@@ -100,7 +101,7 @@ types. Values are encoded using YAML. Let's create a helper function
 that shows us the attribute file contents.
 
     >>> def cat_attr(name):
-    ...   cat(rundir, ".guild", "attrs", name)
+    ...   cat(run_dir, ".guild", "attrs", name)
 
 Here's the encoding of a string attribute:
 

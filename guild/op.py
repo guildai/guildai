@@ -46,13 +46,13 @@ class InvalidCmd(ValueError):
 
 class Operation(object):
 
-    def __init__(self, model, opdef, rundir=None, resource_config=None,
+    def __init__(self, model, opdef, run_dir=None, resource_config=None,
                  extra_attrs=None):
         self.model = model
         self.opdef = opdef
         self.cmd_args, self._flag_map = _init_cmd_args(opdef)
         self.cmd_env = _init_cmd_env(opdef)
-        self._rundir = rundir
+        self._run_dir = run_dir
         self.resource_config = resource_config
         self.extra_attrs = extra_attrs
         self._running = False
@@ -63,8 +63,8 @@ class Operation(object):
         self._exit_status = None
 
     @property
-    def rundir(self):
-        return self._rundir or (self._run.path if self._run else None)
+    def run_dir(self):
+        return self._run_dir or (self._run.path if self._run else None)
 
     def run(self):
         assert not self._running
@@ -79,7 +79,7 @@ class Operation(object):
         return self._exit_status
 
     def _init_run(self):
-        self._run = init_run(self._rundir)
+        self._run = init_run(self._run_dir)
         log.debug("initializing run in %s", self._run.path)
         self._run.init_skel()
 
@@ -130,8 +130,8 @@ class Operation(object):
         assert self._run is not None
         env = {}
         env.update(self.cmd_env)
-        env["RUNDIR"] = self._run.path
-        env["RUNID"] = self._run.id
+        env["RUN_DIR"] = self._run.path
+        env["RUN_ID"] = self._run.id
         return env
 
     def _wait_for_proc(self):
@@ -270,7 +270,7 @@ def _init_cmd_env(opdef):
     env["LOG_LEVEL"] = str(logging.getLogger().getEffectiveLevel())
     env["PYTHONPATH"] = _python_path(opdef)
     # SCRIPT_DIR is inserted by op_main at sys.path[0] - use empty string
-    # here to include rundir first in sys.path
+    # here to include run dir first in sys.path
     env["SCRIPT_DIR"] = ""
     # CMD_DIR is where the operation cmd was run
     env["CMD_DIR"] = os.getcwd()
