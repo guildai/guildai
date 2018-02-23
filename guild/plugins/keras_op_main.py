@@ -69,10 +69,6 @@ class Op(object):
             link = os.path.join(run.path, name)
             os.symlink(src, link)
 
-    @staticmethod
-    def _patch_env():
-        pass
-
     def _exec_script(self):
         # Execute the script as code rather than import it because we
         # insert the Keras tensorflow callback, which starts
