@@ -123,6 +123,12 @@ def _symlink(source_path, link):
     if os.path.exists(link):
         log.warning("%s already exists, skipping link", link)
         return
+    link_realpath = os.path.realpath(link)
+    if link_realpath != link:
+        raise DependencyError(
+            "unable to create link %s because it would be "
+            "created outside the target directory (%s)"
+            % (link, link_realpath))
     util.ensure_dir(os.path.dirname(link))
     log.debug("resolving source %s as link %s", source_path, link)
     util.symlink(source_path, link)
