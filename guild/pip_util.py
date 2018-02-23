@@ -173,23 +173,23 @@ def download_url(url, download_dir, sha256=None):
     link = Link(url)
     session = cmd._build_session(options)
     hashes = Hashes({"sha256": [sha256]}) if sha256 else None
-    downloaded_path = _check_download_dir(link, download_dir, hashes)
-    if downloaded_path:
-        return downloaded_path
-    try:
-        downloaded_path, _ = _download_http_url(
-            Link(url),
-            session,
-            download_dir,
-            hashes)
-    except HashMismatch0 as e:
-        expected = e.allowed["sha256"][0]
-        actual = e.gots["sha256"].hexdigest()
-        raise HashMismatch(url, expected, actual)
-    else:
-        if hashes:
-            _cache_hashes(hashes, downloaded_path)
-        return _ensure_expected_download_path(downloaded_path, link)
+    download_path = _check_download_dir(link, download_dir, hashes)
+    if not download_path:
+        try:
+            download_raw, _ = _download_http_url(
+                Link(url),
+                session,
+                download_dir,
+                hashes)
+        except HashMismatch0 as e:
+            expected = e.allowed["sha256"][0]
+            actual = e.gots["sha256"].hexdigest()
+            raise HashMismatch(url, expected, actual)
+        else:
+            download_path = _ensure_expected_download_path(download_raw, link)
+    if hashes:
+        _cache_hashes(hashes, download_path)
+    return download_path
 
 def _check_download_dir(link, download_dir, hashes):
     # Mirrors pip.download._check_download_dir but uses sha cache.
