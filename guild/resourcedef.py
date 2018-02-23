@@ -126,11 +126,23 @@ class ResourceSource(object):
         self.sha256 = sha256
         self.unpack = unpack
         self.type = type
-        self.select = select
+        self.select = self._coerce_select(select)
         for key in kw:
             log.warning(
                 "unexpected source attribute '%s' in resource '%s'",
                 key, resdef.fullname)
+
+    @staticmethod
+    def _coerce_select(select):
+        if select is None:
+            return []
+        elif isinstance(select, str):
+            return [select]
+        elif isinstance(select, list):
+            return select
+        else:
+            raise ResourceFormatError(
+                "invalid resource source select: %s" % select)
 
     @property
     def parsed_uri(self):

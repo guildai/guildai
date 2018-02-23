@@ -179,7 +179,7 @@ invalid hash.
     '8d172fde27ec89ae0a76832f8ff714e3e498b23d14bac7edfb55e3c4729e3265'
 
     >>> zip_source.select
-    'a.txt'
+    ['a.txt']
 
     >>> resolver = test_res.get_source_resolver(zip_source)
     >>> unpack_dir = mkdtemp()
@@ -215,7 +215,7 @@ are selected by way of the source files returned by `resolve`.
     None
 
     >>> print(tar_source.select)
-    None
+    []
 
     >>> resolver = test_res.get_source_resolver(tar_source)
     >>> unpack_dir = mkdtemp()
@@ -245,14 +245,12 @@ This source should not be unpacked:
     None
 
     >>> print(nounpack_source.select)
-    None
+    []
 
     >>> resolver = test_res.get_source_resolver(nounpack_source)
     >>> unpack_dir = mkdtemp()
     >>> resolver.resolve(unpack_dir)
     ['.../samples/projects/resources/archive3.tar']
-
-
 
     >>> dir(unpack_dir)
     []

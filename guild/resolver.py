@@ -17,8 +17,8 @@ from __future__ import division
 
 import hashlib
 import logging
-import re
 import os
+import re
 
 import guild.opref
 
@@ -222,15 +222,12 @@ def _all_dir_files(dir):
 
 def _selected_source_paths(root, files, select):
     selected = set()
-    pattern = re.compile(select + "$")
+    patterns = [re.compile(s + "$") for s in select]
     for path in files:
         path = util.strip_trailing_path(path)
-        match = pattern.match(path)
-        if not match:
-            continue
-        if match.groups():
-            path = match.group(1)
-        selected.add(os.path.join(root, path))
+        for p in patterns:
+            if p.match(path):
+                selected.add(os.path.join(root, path))
     return list(selected)
 
 def _all_source_paths(root, files):
