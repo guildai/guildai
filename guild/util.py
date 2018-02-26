@@ -480,3 +480,9 @@ def kill_process_tree(pid, force=False, timeout=None):
     for proc in procs:
         proc.send_signal(sig)
     return psutil.wait_procs(procs, timeout=timeout)
+
+def safe_filesize(path):
+    try:
+        return os.path.getsize(path)
+    except OSError as e:
+        return None

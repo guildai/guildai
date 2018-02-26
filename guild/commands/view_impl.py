@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import os
 import re
 
@@ -28,16 +29,28 @@ from guild import view
 
 from guild.commands import runs_impl
 
+log = logging.getLogger("guild")
+
 class ViewDataImpl(view.ViewData):
 
     def __init__(self, args):
         self._args = args
 
     def runs(self, params):
+        return list(self._iter_runs(params))
+
+    def _iter_runs(self, params):
         args = self._args_for_params(params)
         with config.SetCwd(self._cwd(params)):
             runs = runs_impl.filtered_runs(args)
-        return [_run_data(run) for run in runs]
+        for run in runs:
+            try:
+                yield _run_data(run)
+            except Exception as e:
+                if log.getEffectiveLevel() <= logging.DEBUG:
+                    log.exception("error processing run data for %s", run.id)
+                else:
+                    log.error("error processing run data for %s: %s", run.id, e)
 
     def _args_for_params(self, params):
         if not params:
@@ -186,13 +199,12 @@ def _format_files(files, root):
     return sorted(formatted, key=lambda x: x["path"])
 
 def _format_file(path, root):
-    size = os.path.getsize(path)
     typeDesc, icon, iconTooltip, viewer = _file_type_info(path)
     opDesc, opRun = _op_source_info(path)
     relpath = path[len(root)+1:]
     return {
         "path": relpath,
-        "size": size,
+        "size": util.safe_filesize(path),
         "type": typeDesc,
         "icon": icon,
         "iconTooltip": iconTooltip,
