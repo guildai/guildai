@@ -130,10 +130,13 @@ def _python_path():
 
 def _print_tensorflow_info(check):
     # Run externally to avoid tf logging to our stderr
-    cmd = [sys.executable, "-um", "guild.commands.tensorflow_info_main"]
+    cmd = [sys.executable, "-um", "guild.commands.tensorflow_check_main"]
     env = guild.util.safe_osenv()
     env["PYTHONPATH"] = os.path.pathsep.join(sys.path)
-    stderr = None if check.args.verbose else open(os.devnull, "w")
+    if check.args.verbose:
+        stderr = None
+    else:
+        stderr = open(os.devnull, "w")
     p = subprocess.Popen(cmd, stderr=stderr, env=env)
     exit_status = p.wait()
     if exit_status != 0:

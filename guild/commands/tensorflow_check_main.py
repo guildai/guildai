@@ -21,38 +21,58 @@ import sys
 
 import click
 
+class State(object):
+
+    errors = False
+
 def print_info():
+    state = State()
     try:
         import tensorflow as tf
     except ImportError as e:
         msg = _normalize_import_error_msg(e)
         err = _warn("NOT INSTALLED (%s)" % msg)
         click.echo("tensorflow_version:        %s" % err)
-        sys.exit(1)
+        error.errors = True
     else:
         click.echo("tensorflow_version:        %s" % _tf_version(tf))
         click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
-        click.echo("tensorflow_gpu_available:  %s" % _gpu_available(tf))
+        click.echo("tensorflow_gpu_available:  %s" % _gpu_available(tf, state))
         _print_tensorboard_info()
         _print_cuda_info()
+    if state.errors:
+        sys.exit(1)
 
 def _tf_version(tf):
     return tf.__version__
 
 def _cuda_support(tf):
-    return "yes" if tf.test.is_built_with_cuda() else "no"
+    if tf.test.is_built_with_cuda():
+        return "yes"
+    else:
+        return "no"
 
-def _gpu_available(tf):
-    return "yes" if tf.test.is_gpu_available() else "no"
+def _gpu_available(tf, state):
+    if tf.test.is_gpu_available():
+        return "yes"
+    elif tf.test.is_built_with_cuda():
+        state.errors = True
+        return _warn("NO (CUDA support is enabled but GPU is not available)")
+    else:
+        return "no"
 
 def _print_tensorboard_info():
     try:
         import tensorboard.version as version
     except ImportError as e:
         msg = _normalize_import_error_msg(e)
-        click.echo("tensorboard_version:       %s" % _warn("NOT INSTALLED (%s)" % msg))
+        click.echo(
+            "tensorboard_version:       %s"
+            % _warn("NOT INSTALLED (%s)" % msg))
     else:
-        click.echo("tensorboard_version:       %s" % version.VERSION)
+        click.echo(
+            "tensorboard_version:       %s"
+            % version.VERSION)
 
 
 def _print_cuda_info():
