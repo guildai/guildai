@@ -127,19 +127,18 @@ jobs:
     working_directory: ~/repo
 version: 2
 workflows:
-  workflows:
-    all:
-      jobs:
-      - linux-python-3.6:
-          filters:
-            branches:
-              only: release
-      - linux-python-3.5:
-          filters:
-            branches:
-              only: release
-      - linux-python-2.7:
-          filters:
-            branches:
-              only: release
-    version: 2
+  all:
+    jobs:
+    - linux-python-3.6:
+        filters:
+          branches:
+            only: release
+    - linux-python-3.5:
+        filters:
+          branches:
+            only: release
+    - linux-python-2.7:
+        filters:
+          branches:
+            only: release
+  version: 2
