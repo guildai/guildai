@@ -6,7 +6,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python-2.7-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python-2.7-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'virtualenv venv --python python2.7
 
@@ -19,7 +19,7 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: linux-python-2.7-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python-2.7-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:
@@ -48,7 +48,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python-3.5-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python-3.5-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'virtualenv venv --python python3.5
 
@@ -61,7 +61,7 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: linux-python-3.5-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python-3.5-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:
@@ -90,7 +90,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python-3.6-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python-3.6-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'virtualenv venv --python python3.6
 
@@ -103,7 +103,7 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: linux-python-3.6-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python-3.6-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:

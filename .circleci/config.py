@@ -18,6 +18,9 @@ import sys
 
 import yaml
 
+# Change every time venv caching scheme changes
+cache_scheme_version = 3
+
 targets = {
     "linux-python-2.7": {
         "image": "circleci/python:2.7-node-browsers",
@@ -83,8 +86,6 @@ def _restore_cache(name):
     }
 
 def _cache_key(name):
-    # Change this version every time this alogorithm changes
-    cache_scheme_version = 2
     return (
         "%s-%i-{{ checksum \"requirements.txt\" }}"
         "-{{ checksum \"guild/view/package.json\" }}"
