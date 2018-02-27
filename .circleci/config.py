@@ -147,11 +147,9 @@ def _upload_to_pypi():
 
 def _workflows():
     return {
-        "workflows": {
-            "version": 2,
-            "all": {
-                "jobs": [_workflow_job(name) for name in targets]
-            }
+        "version": 2,
+        "all": {
+            "jobs": [_workflow_job(name) for name in targets]
         }
     }
 
