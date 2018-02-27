@@ -42,6 +42,7 @@ jobs:
           destination: dist
 
 workflows:
+  version: 2
   all:
     jobs:
       - linux-python-3.6
