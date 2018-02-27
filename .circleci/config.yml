@@ -3,38 +3,67 @@ version: 2
 jobs:
 
   linux-python-3.6:
-
     docker:
       - image: circleci/python:3.6-node-browsers
-
     working_directory: ~/repo
-
     steps:
       - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
 
-      #- restore_cache:
-      #    keys:
-      #    - v1-dependencies-{{ checksum "requirements.txt" }}
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+            pip install tensorflow
 
-      #- run:
-      #    name: install dependencies
-      #    command: |
-      #      python3 -m venv venv
-      #      . venv/bin/activate
-      #      pip install -r requirements.txt
-
-      #- save_cache:
-      #    paths:
-      #      - ./venv
-      #    key: v1-dependencies-{{ checksum "requirements.txt" }}
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
 
       - run:
           name: build
           command: |
             python3 -m venv venv
             source venv/bin/activate
+            python3 setup.py bdist_wheel -p manylinux1_x86_64
+
+      - store_artifacts:
+          path: dist
+          destination: dist
+
+  linux-python-3.5:
+    docker:
+      - image: circleci/python:3.5-node-browsers
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
+
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
             pip install -r requirements.txt
             pip install tensorflow
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
+
+      - run:
+          name: build
+          command: |
+            python3 -m venv venv
+            source venv/bin/activate
             python3 setup.py bdist_wheel -p manylinux1_x86_64
 
       - store_artifacts:
@@ -45,4 +74,5 @@ workflows:
   version: 2
   all:
     jobs:
+      - linux-python-3.5
       - linux-python-3.6
