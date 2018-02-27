@@ -8,7 +8,9 @@ jobs:
         keys:
         - macos-python-3.6-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'python3 -m venv venv
+        command: 'brew install python3
+
+          python3 -m venv venv
 
           source venv/bin/activate
 
@@ -16,9 +18,7 @@ jobs:
 
           pip install tensorflow
 
-          cd guild/view && npm install
-
-          brew install python3'
+          cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
         key: macos-python-3.6-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}

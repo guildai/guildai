@@ -193,7 +193,7 @@ class MacBuild(Build):
     def _install_deps_lines(self):
         lines = super(MacBuild, self)._install_deps_lines()
         if self.python == "3.6":
-            lines.append("brew install python3")
+            lines.insert(0, "brew install python3")
         else:
             assert self.python == "2.7", self.python
         return lines
