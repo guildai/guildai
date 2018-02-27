@@ -19,6 +19,7 @@ jobs:
             source venv/bin/activate
             pip install -r requirements.txt
             pip install tensorflow
+            cd guild/view && npm install
 
       - save_cache:
           paths:
@@ -44,6 +45,7 @@ jobs:
       - run:
           name: Upload to PyPI
           command: |
+            source venv/bin/activate
             twine upload dest/*.whl
 
   linux-python-3.5:
