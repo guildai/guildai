@@ -111,9 +111,9 @@ workflows:
   version: 2
   all:
     jobs:
-      - linux-python-2.7
+      - linux-python-2.7:
+          filters:
+            branches:
+              only: release
       #- linux-python-3.5
       #- linux-python-3.6
-    triggers:
-      - schedule:
-          cron: "0 0 0 0 0"
