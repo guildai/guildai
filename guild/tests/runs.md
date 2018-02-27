@@ -281,7 +281,8 @@ Here is the same filter as above, but using `run_filter`:
 Here's a list of runs with an exit_status not equals to "0":
 
     >>> filter = guild.var.run_filter("!attr", "exit_status", 0)
-    >>> [(run.short_id, run.get("exit_status")) for run in runs(filter=filter)]
+    >>> [(run.short_id, run.get("exit_status"))
+    ...  for run in runs(filter=filter, sort=["id"])]
     [('360192fd', None), ('7d145216', 1)]
 
 Runs with op equal to "mnist:evaluate" and exit_status equal to "0"
@@ -300,5 +301,6 @@ Runs with exit_status equal to "0" or "1":
     ...   "any",
     ...   [guild.var.run_filter("attr", "exit_status", 0),
     ...    guild.var.run_filter("attr", "exit_status", 1)])
-    >>> [(run.short_id, run.get("exit_status")) for run in runs(filter=filter)]
+    >>> [(run.short_id, run.get("exit_status"))
+    ...  for run in runs(filter=filter, sort=["id"])]
     [('42803252', 0), ('7d145216', 1)]
