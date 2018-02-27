@@ -8,7 +8,7 @@ jobs:
         keys:
         - linux-python-2.7-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'virtualenv venv --python python2.7
+        command: 'test -e venv || virtualenv --python python2.7 venv
 
           source venv/bin/activate
 
@@ -50,7 +50,7 @@ jobs:
         keys:
         - linux-python-3.5-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'virtualenv venv --python python3.5
+        command: 'test -e venv || python -m venv venv
 
           source venv/bin/activate
 
@@ -92,7 +92,7 @@ jobs:
         keys:
         - linux-python-3.6-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'virtualenv venv --python python3.6
+        command: 'test -e venv || python -m venv venv
 
           source venv/bin/activate
 

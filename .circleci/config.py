@@ -24,17 +24,17 @@ cache_scheme_version = 3
 targets = {
     "linux-python-2.7": {
         "image": "circleci/python:2.7-node-browsers",
-        "python": "python2.7",
+        "venv_init": "test -e venv || virtualenv --python python2.7 venv"
     },
 
     "linux-python-3.5": {
         "image": "circleci/python:3.5-node-browsers",
-        "python": "python3.5",
+        "venv_init": "test -e venv || python -m venv venv"
     },
 
     "linux-python-3.6": {
         "image": "circleci/python:3.6-node-browsers",
-        "python": "python3.6",
+        "venv_init": "test -e venv || python -m venv venv"
     }
 }
 
@@ -94,7 +94,7 @@ def _cache_key(name):
 def _install_deps(config):
     return _run(
         "Install dependencies", [
-            "virtualenv venv --python %s" % config["python"],
+            config["venv_init"],
             "source venv/bin/activate",
             "pip install -r requirements.txt",
             "pip install tensorflow",
