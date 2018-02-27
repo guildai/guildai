@@ -1,126 +1,145 @@
-version: 2
-
 jobs:
-
   linux-python-2.7:
     docker:
-      - image: circleci/python:2.7-node-browsers
-    working_directory: ~/repo
+    - image: circleci/python:2.7-node-browsers
     steps:
-      - checkout
-      - restore_cache:
-          keys:
-          - linux-python-2.7-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+    - checkout
+    - restore_cache:
+        keys:
+        - linux-python-2.7-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+    - run:
+        command: 'virtualenv venv --python python2.7
 
-      - run:
-          name: Install dependencies
-          command: |
-            virtualenv venv
-            source venv/bin/activate
-            pip install -r requirements.txt
-            pip install tensorflow
-            cd guild/view && npm install
+          source venv/bin/activate
 
-      - save_cache:
-          paths:
-            - venv
-          key: linux-python-2.7-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+          pip install -r requirements.txt
 
-      - run:
-          name: Build
-          command: |
-            source venv/bin/activate
-            python setup.py bdist_wheel -p manylinux1_x86_64
+          pip install tensorflow
 
-      - run:
-          name: Test
-          command: |
-            source venv/bin/activate
-            guild/scripts/guild check -nT
+          cd guild/view && npm install'
+        name: Install dependencies
+    - save_cache:
+        key: linux-python-2.7-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        paths:
+        - venv
+    - run:
+        command: 'source venv/bin/activate
 
-      - store_artifacts:
-          path: dist
-          destination: dist
+          python setup.py bdist_wheel -p manylinux1_x86_64'
+        name: Build
+    - run:
+        command: 'source venv/bin/activate
 
-      - run:
-          name: Upload to PyPI
-          command: |
-            source venv/bin/activate
-            twine upload dist/*.whl
+          guild/scripts/guild check -nT'
+        name: Test
+    - store_artifacts:
+        destination: dist
+        path: dist
+    - run:
+        command: 'source venv/bin/activate
 
+          twine upload --skip-existing dist/*.whl'
+        name: Upload to PyPI
+    working_directory: ~/repo
   linux-python-3.5:
     docker:
-      - image: circleci/python:3.5-node-browsers
-    working_directory: ~/repo
+    - image: circleci/python:3.5-node-browsers
     steps:
-      - checkout
-      - restore_cache:
-          keys:
-          - linux-python-3.5-1-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+    - checkout
+    - restore_cache:
+        keys:
+        - linux-python-3.5-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+    - run:
+        command: 'virtualenv venv --python python3.5
 
-      - run:
-          name: Install dependencies
-          command: |
-            python3 -m venv venv
-            source venv/bin/activate
-            pip install -r requirements.txt
-            pip install tensorflow
+          source venv/bin/activate
 
-      - save_cache:
-          paths:
-            - venv
-          key: linux-python-3.5-1-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+          pip install -r requirements.txt
 
-      - run:
-          name: Build
-          command: |
-            source venv/bin/activate
-            python3 setup.py bdist_wheel -p manylinux1_x86_64
+          pip install tensorflow
 
-      - store_artifacts:
-          path: dist
-          destination: dist
+          cd guild/view && npm install'
+        name: Install dependencies
+    - save_cache:
+        key: linux-python-3.5-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        paths:
+        - venv
+    - run:
+        command: 'source venv/bin/activate
 
+          python setup.py bdist_wheel -p manylinux1_x86_64'
+        name: Build
+    - run:
+        command: 'source venv/bin/activate
+
+          guild/scripts/guild check -nT'
+        name: Test
+    - store_artifacts:
+        destination: dist
+        path: dist
+    - run:
+        command: 'source venv/bin/activate
+
+          twine upload --skip-existing dist/*.whl'
+        name: Upload to PyPI
+    working_directory: ~/repo
   linux-python-3.6:
     docker:
-      - image: circleci/python:3.6-node-browsers
-    working_directory: ~/repo
+    - image: circleci/python:3.6-node-browsers
     steps:
-      - checkout
-      - restore_cache:
-          keys:
-          - linux-python-3.6-1-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+    - checkout
+    - restore_cache:
+        keys:
+        - linux-python-3.6-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+    - run:
+        command: 'virtualenv venv --python python3.6
 
-      - run:
-          name: Install dependencies
-          command: |
-            python3 -m venv venv
-            source venv/bin/activate
-            pip install -r requirements.txt
-            pip install tensorflow
+          source venv/bin/activate
 
-      - save_cache:
-          paths:
-            - venv
-          key: linux-python-3.6-1-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+          pip install -r requirements.txt
 
-      - run:
-          name: Build
-          command: |
-            source venv/bin/activate
-            python3 setup.py bdist_wheel -p manylinux1_x86_64
+          pip install tensorflow
 
-      - store_artifacts:
-          path: dist
-          destination: dist
+          cd guild/view && npm install'
+        name: Install dependencies
+    - save_cache:
+        key: linux-python-3.6-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        paths:
+        - venv
+    - run:
+        command: 'source venv/bin/activate
 
+          python setup.py bdist_wheel -p manylinux1_x86_64'
+        name: Build
+    - run:
+        command: 'source venv/bin/activate
+
+          guild/scripts/guild check -nT'
+        name: Test
+    - store_artifacts:
+        destination: dist
+        path: dist
+    - run:
+        command: 'source venv/bin/activate
+
+          twine upload --skip-existing dist/*.whl'
+        name: Upload to PyPI
+    working_directory: ~/repo
+version: 2
 workflows:
-  version: 2
-  all:
-    jobs:
+  workflows:
+    all:
+      jobs:
+      - linux-python-3.6:
+          filters:
+            branches:
+              only: release
+      - linux-python-3.5:
+          filters:
+            branches:
+              only: release
       - linux-python-2.7:
           filters:
             branches:
               only: release
-      #- linux-python-3.5
-      #- linux-python-3.6
+    version: 2
