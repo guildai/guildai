@@ -41,6 +41,11 @@ jobs:
           path: dist
           destination: dist
 
+      - run:
+          name: Upload to PyPI
+          command: |
+            twine upload dest/*.whl
+
   linux-python-3.5:
     docker:
       - image: circleci/python:3.5-node-browsers
