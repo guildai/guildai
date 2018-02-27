@@ -1,14 +1,14 @@
 jobs:
-  macos:
+  macos-python-2.7:
     macos:
       xcode: 9.2.0
     steps:
     - checkout
     - restore_cache:
         keys:
-        - macos-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos-python-2.7-5-{{ checksum 'requirements.txt' }}-{{ checksum 'guild/view/package.json' }}
     - run:
-        command: 'test -e venv || virtualenv venv
+        command: 'virtualenv venv
 
           source venv/bin/activate
 
@@ -19,13 +19,13 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: macos-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos-python-2.7-5-{{ checksum 'requirements.txt' }}-{{ checksum 'guild/view/package.json' }}
         paths:
         - venv
     - run:
         command: 'source venv/bin/activate
 
-          python setup.py bdist_wheel -p manylinux1_x86_64'
+          python setup.py bist_wheel'
         name: Build
     - run:
         command: 'source venv/bin/activate
@@ -45,7 +45,7 @@ version: 2
 workflows:
   all:
     jobs:
-    - macos:
+    - macos-python-2.7:
         filters:
           branches:
             only: release

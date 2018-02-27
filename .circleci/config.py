@@ -14,205 +14,230 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
 import yaml
 
-# Change every time venv caching scheme changes
-cache_scheme_version = 4
+class Build(object):
 
-targets = {
-    #"linux-python-2.7": {
-    #    "image": "circleci/python:2.7-stretch-node",
-    #    "venv_init": "test -e venv || virtualenv --python python2.7 venv",
-    #},
+    name = None
+    python = None
+    env = None
 
-    #"linux-python-3.5": {
-    #    "image": "circleci/python:3.5-jessie-node",
-    #    "venv_init": "test -e venv || python -m venv venv",
-    #    "skip_tests": ["tables", "floop"],
-    #},
+    skip_tests = []
 
-    #"linux-python-3.6": {
-    #    "image": "circleci/python:3.6-stretch-node",
-    #    "venv_init": "test -e venv || python -m venv venv",
-    #    "skip_tests": ["tables"],
-    #},
+    # Increment when caching scheme changes
+    cache_scheme_version = 5
 
-    "macos": {
-        "venv_init": "test -e venv || virtualenv venv",
-    },
-}
-
-def main():
-    config = _render_config()
-    with open("config.yml", "w") as out:
-        yaml.dump(config, out, default_flow_style=False, width=9999)
-
-def _render_config():
-    return {
-        "version": 2,
-        "jobs": _jobs(),
-        "workflows": _workflows()
-    }
-
-def _jobs():
-    return {
-        name: _job(name, config)
-        for name, config in targets.items()
-    }
-
-def _job(name, config):
-    if name == "macos":
-        return _macos_job(name, config)
-    else:
-        return _linux_job(name, config)
-
-def _macos_job(name, config):
-    return {
-        "macos": {
-            "xcode": "9.2.0"
-        },
-        "working_directory": "~/repo",
-        "steps": _macos_steps(name, config)
-    }
-
-def _macos_steps(name, config):
-    return [
-        _checkout(),
-        _restore_cache(name),
-        _install_macos_deps(config),
-        _save_cache(name),
-        _build(),
-        _test(config),
-        _store_artifacts(),
-        _upload_to_pypi(),
+    cache_dep_files = [
+        "requirements.txt",
+        "guild/view/package.json",
     ]
 
-def _install_macos_deps(config):
-    return _run(
-        "Install dependencies", [
-            config["venv_init"],
+    def job(self):
+        assert self.env
+        return {
+            self.env: self.env_config(),
+            "working_directory": "~/repo",
+            "steps": self.steps()
+        }
+
+    def steps(self):
+        return [
+            self.checkout(),
+            self.restore_cache(),
+            self.install_deps(),
+            self.save_cache(),
+            self.build(),
+            self.test(),
+            self.store_artifacts(),
+            self.upload_to_pypi(),
+        ]
+
+    def install_deps(self):
+        return self._run("Install dependencies", self._install_deps_lines())
+
+    def _install_deps_lines(self):
+        return [
+            self.init_venv(),
             "source venv/bin/activate",
             "pip install -r requirements.txt",
             "pip install tensorflow",
             "cd guild/view && npm install",
-        ])
+        ]
 
-def _linux_job(name, config):
-    return {
-        "docker": _docker(config),
-        "working_directory": "~/repo",
-        "steps": _linux_steps(name, config)
-    }
+    def init_venv(self):
+        assert self.python
+        if self.python.startswith("3."):
+            return "python -m venv venv"
+        else:
+            return "virtualenv venv"
 
-def _docker(config):
-    return [{"image": config["image"]}]
+    @staticmethod
+    def checkout():
+        return "checkout"
 
-def _linux_steps(name, config):
-    return [
-        _checkout(),
-        _restore_cache(name),
-        _install_linux_deps(config),
-        _save_cache(name),
-        _build(),
-        _test(config),
-        _store_artifacts(),
-        _upload_to_pypi(),
-    ]
-
-def _checkout():
-    return "checkout"
-
-def _restore_cache(name):
-    return {
-        "restore_cache": {
-            "keys": [_cache_key(name)]
+    def restore_cache(self):
+        return {
+            "restore_cache": {
+                "keys": [self.cache_key()]
+            }
         }
-    }
 
-def _cache_key(name):
-    return (
-        "%s-%i-{{ checksum \"requirements.txt\" }}"
-        "-{{ checksum \"guild/view/package.json\" }}"
-        % (name, cache_scheme_version))
+    def cache_key(self):
+        assert self.name
+        checksums = "-".join(
+            ["{{ checksum '%s' }}" % path for path in self.cache_dep_files]
+        )
+        return "%s-%i-%s" % (self.name, self.cache_scheme_version, checksums)
 
-def _install_linux_deps(config):
-    return _run(
-        "Install dependencies", [
-            config["venv_init"],
-            "source venv/bin/activate",
-            "pip install -r requirements.txt",
-            "pip install tensorflow",
-            "cd guild/view && npm install",
-        ])
-
-def _run(name, cmd_lines):
-    return {
-        "run": {
-            "name": name,
-            "command": "\n".join(cmd_lines)
+    def save_cache(self):
+        return {
+            "save_cache": {
+                "paths": ["venv"],
+                "key": self.cache_key()
+            }
         }
-    }
 
-def _save_cache(name):
-    return {
-        "save_cache": {
-            "paths": ["venv"],
-            "key": _cache_key(name)
+    def build(self):
+        return self._run(
+            "Build", [
+                "source venv/bin/activate",
+                self._bdist_wheel_cmd(),
+            ])
+
+    @staticmethod
+    def _bdist_wheel_cmd():
+        return "python setup.py bist_wheel"
+
+    def test(self):
+        skip_tests = "".join([" --skip %s" % t for t in self.skip_tests])
+        return self._run(
+            "Test", [
+                "source venv/bin/activate",
+                "guild/scripts/guild check -T%s" % skip_tests,
+            ])
+
+    @staticmethod
+    def store_artifacts():
+        return {
+            "store_artifacts": {
+                "path": "dist",
+                "destination": "dist"
+            }
         }
-    }
 
-def _build():
-    return _run(
-        "Build", [
-            "source venv/bin/activate",
-            "python setup.py bdist_wheel -p manylinux1_x86_64",
-        ])
+    def upload_to_pypi(self):
+        return self._run(
+            "Upload to PyPI", [
+                "source venv/bin/activate",
+                "twine upload --skip-existing dist/*.whl",
+            ])
 
-def _test(config):
-    skip_tests = "".join(
-        [" --skip %s" % t for t in config.get("skip_tests", [])]
-    )
-    return _run(
-        "Test", [
-            "source venv/bin/activate",
-            "guild/scripts/guild check -T%s" % skip_tests,
-        ])
-
-def _store_artifacts():
-    return {
-        "store_artifacts": {
-            "path": "dist",
-            "destination": "dist"
+    @staticmethod
+    def _run(name, cmd_lines):
+        return {
+            "run": {
+                "name": name,
+                "command": "\n".join(cmd_lines)
+            }
         }
-    }
 
-def _upload_to_pypi():
-    return _run(
-        "Upload to PyPI", [
-            "source venv/bin/activate",
-            "twine upload --skip-existing dist/*.whl",
-        ])
-
-def _workflows():
-    return {
-        "version": 2,
-        "all": {
-            "jobs": [_workflow_job(name) for name in targets]
-        }
-    }
-
-def _workflow_job(name):
-    return {
-        name: {
-            "filters": {
-                "branches": {
-                    "only": "release"
+    def workflow_job(self):
+        return {
+            self.name: {
+                "filters": {
+                    "branches": {
+                        "only": "release"
+                    }
                 }
             }
         }
+
+class LinuxBuild(Build):
+
+    env = "docker"
+
+    images = {
+        "linux-python-2.7": "circleci/python:2.7-stretch-node",
+        "linux-python-3.5": "circleci/python:3.5-jessie-node",
+        "linux-python-3.6": "circleci/python:3.6-stretch-node",
     }
+
+    skip_tests = ["tables"]
+
+    def __init__(self, python):
+        self.python = python
+        self.name = "linux-python-%s" % python
+
+    def env_config(self):
+        return [{"image": self.images[self.name]}]
+
+    @staticmethod
+    def _bdist_wheel_cmd():
+        return "python setup.py bdist_wheel -p manylinux1_x86_64"
+
+class MacBuild(Build):
+
+    env = "macos"
+
+    xcode_version = "9.2.0"
+
+    def __init__(self, python):
+        self.python = python
+        self.name = "macos-python-%s" % python
+
+    def env_config(self):
+        return {
+            "xcode": self.xcode_version
+        }
+
+    def _install_deps_lines(self):
+        lines = super(MacBuild, self)._install_deps_lines()
+        if self.python == "3.6":
+            lines.append("brew install python3")
+        else:
+            assert self.python == "2.7", self.python
+        return lines
+
+class Config(object):
+
+    version = 2
+
+    def __init__(self, builds):
+        self.builds = builds
+
+    def write(self):
+        config = {
+            "version": 2,
+            "jobs": self._jobs(),
+            "workflows": self._workflows()
+        }
+        with open("config.yml", "w") as out:
+            yaml.dump(config, out, default_flow_style=False, width=9999)
+
+    def _jobs(self):
+        return {
+            build.name: build.job() for build in self.builds
+        }
+
+    def _workflows(self):
+        return {
+            "version": self.version,
+            "all": {
+                "jobs": [build.workflow_job() for build in self.builds]
+            }
+        }
+
+builds = [
+    #LinuxBuild(python="2.7"),
+    #LinuxBuild(python="3.5"),
+    #LinuxBuild(python="3.6"),
+    MacBuild(python="2.7"),
+    #MacBuild(python="3.6"),
+]
+
+def main():
+    config = Config(builds)
+    config.write()
 
 if __name__ == "__main__":
     main()
