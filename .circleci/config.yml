@@ -3,6 +3,7 @@ jobs:
     macos:
       xcode: 9.2.0
     steps:
+    - checkout
     - restore_cache:
         keys:
         - macos-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}

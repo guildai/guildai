@@ -79,6 +79,7 @@ def _macos_job(name, config):
 
 def _macos_steps(name, config):
     return [
+        _checkout(),
         _restore_cache(name),
         _install_macos_deps(config),
         _save_cache(name),
@@ -110,7 +111,7 @@ def _docker(config):
 
 def _linux_steps(name, config):
     return [
-        "checkout",
+        _checkout(),
         _restore_cache(name),
         _install_linux_deps(config),
         _save_cache(name),
@@ -119,6 +120,9 @@ def _linux_steps(name, config):
         _store_artifacts(),
         _upload_to_pypi(),
     ]
+
+def _checkout():
+    return "checkout"
 
 def _restore_cache(name):
     return {
