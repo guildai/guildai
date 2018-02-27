@@ -1,0 +1,42 @@
+version: 2
+
+jobs:
+
+  linux-python-3.6:
+
+    docker:
+      - image: circleci/python:3.6.1
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      #- restore_cache:
+      #    keys:
+      #    - v1-dependencies-{{ checksum "requirements.txt" }}
+
+      #- run:
+      #    name: install dependencies
+      #    command: |
+      #      python3 -m venv venv
+      #      . venv/bin/activate
+      #      pip install -r requirements.txt
+
+      #- save_cache:
+      #    paths:
+      #      - ./venv
+      #    key: v1-dependencies-{{ checksum "requirements.txt" }}
+
+      - run:
+          name: build
+          command:
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install -r requirements.txt
+            pip install tensorflow
+            python3 setup.py bdist_wheel -p manylinux1_x86_64
+
+      - store_artifacts:
+          path: dist
+          destination: dist
