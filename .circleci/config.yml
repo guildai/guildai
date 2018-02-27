@@ -10,7 +10,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+          - linux-python-2.7-1-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
           name: Install dependencies
@@ -22,8 +22,8 @@ jobs:
 
       - save_cache:
           paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+            - venv
+          key: linux-python-2.7-1-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
           name: Build
@@ -43,7 +43,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+          - linux-python-3.5-1-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
           name: Install dependencies
@@ -55,8 +55,8 @@ jobs:
 
       - save_cache:
           paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+            - venv
+          key: linux-python-3.5-1-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
           name: Build
@@ -76,7 +76,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+          - linux-python-3.6-1-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
           name: Install dependencies
@@ -88,8 +88,8 @@ jobs:
 
       - save_cache:
           paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+            - venv
+          key: linux-python-3.6-1-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
           name: Build
@@ -106,5 +106,5 @@ workflows:
   all:
     jobs:
       - linux-python-2.7
-      - linux-python-3.5
-      - linux-python-3.6
+      #- linux-python-3.5
+      #- linux-python-3.6
