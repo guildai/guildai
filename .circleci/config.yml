@@ -30,7 +30,7 @@ jobs:
     - run:
         command: 'source venv/bin/activate
 
-          guild/scripts/guild check -nT'
+          guild/scripts/guild check -T'
         name: Test
     - store_artifacts:
         destination: dist
@@ -72,7 +72,7 @@ jobs:
     - run:
         command: 'source venv/bin/activate
 
-          guild/scripts/guild check -nT'
+          guild/scripts/guild check -T --skip tables --skip floop'
         name: Test
     - store_artifacts:
         destination: dist
@@ -114,7 +114,7 @@ jobs:
     - run:
         command: 'source venv/bin/activate
 
-          guild/scripts/guild check -nT'
+          guild/scripts/guild check -T --skip tables'
         name: Test
     - store_artifacts:
         destination: dist

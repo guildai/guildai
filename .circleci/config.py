@@ -24,17 +24,19 @@ cache_scheme_version = 4
 targets = {
     "linux-python-2.7": {
         "image": "circleci/python:2.7-stretch-node",
-        "venv_init": "test -e venv || virtualenv --python python2.7 venv"
+        "venv_init": "test -e venv || virtualenv --python python2.7 venv",
     },
 
     "linux-python-3.5": {
         "image": "circleci/python:3.5-jessie-node",
-        "venv_init": "test -e venv || python -m venv venv"
+        "venv_init": "test -e venv || python -m venv venv",
+        "skip_tests": ["tables", "floop"],
     },
 
     "linux-python-3.6": {
         "image": "circleci/python:3.6-stretch-node",
-        "venv_init": "test -e venv || python -m venv venv"
+        "venv_init": "test -e venv || python -m venv venv",
+        "skip_tests": ["tables"],
     }
 }
 
@@ -73,7 +75,7 @@ def _default_steps(name, config):
         _install_deps(config),
         _save_cache(name),
         _build(),
-        _test(),
+        _test(config),
         _store_artifacts(),
         _upload_to_pypi(),
     ]
@@ -124,11 +126,14 @@ def _build():
             "python setup.py bdist_wheel -p manylinux1_x86_64",
         ])
 
-def _test():
+def _test(config):
+    skip_tests = "".join(
+        [" --skip %s" % t for t in config.get("skip_tests", [])]
+    )
     return _run(
         "Test", [
             "source venv/bin/activate",
-            "guild/scripts/guild check -nT",
+            "guild/scripts/guild check -T%s" % skip_tests,
         ])
 
 def _store_artifacts():
