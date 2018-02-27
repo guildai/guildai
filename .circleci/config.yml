@@ -1,14 +1,13 @@
 jobs:
-  linux-python-2.7:
-    docker:
-    - image: circleci/python:2.7-stretch-node
+  macos:
+    macos:
+      xcode: 9.2.0
     steps:
-    - checkout
     - restore_cache:
         keys:
-        - linux-python-2.7-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'test -e venv || virtualenv --python python2.7 venv
+        command: 'test -e venv || virtualenv venv
 
           source venv/bin/activate
 
@@ -19,7 +18,7 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: linux-python-2.7-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:
@@ -41,103 +40,11 @@ jobs:
           twine upload --skip-existing dist/*.whl'
         name: Upload to PyPI
     working_directory: ~/repo
-  linux-python-3.5:
-    docker:
-    - image: circleci/python:3.5-jessie-node
-    steps:
-    - checkout
-    - restore_cache:
-        keys:
-        - linux-python-3.5-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-    - run:
-        command: 'test -e venv || python -m venv venv
-
-          source venv/bin/activate
-
-          pip install -r requirements.txt
-
-          pip install tensorflow
-
-          cd guild/view && npm install'
-        name: Install dependencies
-    - save_cache:
-        key: linux-python-3.5-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-        paths:
-        - venv
-    - run:
-        command: 'source venv/bin/activate
-
-          python setup.py bdist_wheel -p manylinux1_x86_64'
-        name: Build
-    - run:
-        command: 'source venv/bin/activate
-
-          guild/scripts/guild check -T --skip tables --skip floop'
-        name: Test
-    - store_artifacts:
-        destination: dist
-        path: dist
-    - run:
-        command: 'source venv/bin/activate
-
-          twine upload --skip-existing dist/*.whl'
-        name: Upload to PyPI
-    working_directory: ~/repo
-  linux-python-3.6:
-    docker:
-    - image: circleci/python:3.6-stretch-node
-    steps:
-    - checkout
-    - restore_cache:
-        keys:
-        - linux-python-3.6-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-    - run:
-        command: 'test -e venv || python -m venv venv
-
-          source venv/bin/activate
-
-          pip install -r requirements.txt
-
-          pip install tensorflow
-
-          cd guild/view && npm install'
-        name: Install dependencies
-    - save_cache:
-        key: linux-python-3.6-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-        paths:
-        - venv
-    - run:
-        command: 'source venv/bin/activate
-
-          python setup.py bdist_wheel -p manylinux1_x86_64'
-        name: Build
-    - run:
-        command: 'source venv/bin/activate
-
-          guild/scripts/guild check -T --skip tables'
-        name: Test
-    - store_artifacts:
-        destination: dist
-        path: dist
-    - run:
-        command: 'source venv/bin/activate
-
-          twine upload --skip-existing dist/*.whl'
-        name: Upload to PyPI
-    working_directory: ~/repo
 version: 2
 workflows:
   all:
     jobs:
-    - linux-python-3.6:
-        filters:
-          branches:
-            only: release
-    - linux-python-3.5:
-        filters:
-          branches:
-            only: release
-    - linux-python-2.7:
+    - macos:
         filters:
           branches:
             only: release

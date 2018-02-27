@@ -22,22 +22,26 @@ import yaml
 cache_scheme_version = 4
 
 targets = {
-    "linux-python-2.7": {
-        "image": "circleci/python:2.7-stretch-node",
-        "venv_init": "test -e venv || virtualenv --python python2.7 venv",
-    },
+    #"linux-python-2.7": {
+    #    "image": "circleci/python:2.7-stretch-node",
+    #    "venv_init": "test -e venv || virtualenv --python python2.7 venv",
+    #},
 
-    "linux-python-3.5": {
-        "image": "circleci/python:3.5-jessie-node",
-        "venv_init": "test -e venv || python -m venv venv",
-        "skip_tests": ["tables", "floop"],
-    },
+    #"linux-python-3.5": {
+    #    "image": "circleci/python:3.5-jessie-node",
+    #    "venv_init": "test -e venv || python -m venv venv",
+    #    "skip_tests": ["tables", "floop"],
+    #},
 
-    "linux-python-3.6": {
-        "image": "circleci/python:3.6-stretch-node",
-        "venv_init": "test -e venv || python -m venv venv",
-        "skip_tests": ["tables"],
-    }
+    #"linux-python-3.6": {
+    #    "image": "circleci/python:3.6-stretch-node",
+    #    "venv_init": "test -e venv || python -m venv venv",
+    #    "skip_tests": ["tables"],
+    #},
+
+    "macos": {
+        "venv_init": "test -e venv || virtualenv venv",
+    },
 }
 
 def main():
@@ -59,20 +63,56 @@ def _jobs():
     }
 
 def _job(name, config):
+    if name == "macos":
+        return _macos_job(name, config)
+    else:
+        return _linux_job(name, config)
+
+def _macos_job(name, config):
+    return {
+        "macos": {
+            "xcode": "9.2.0"
+        },
+        "working_directory": "~/repo",
+        "steps": _macos_steps(name, config)
+    }
+
+def _macos_steps(name, config):
+    return [
+        _restore_cache(name),
+        _install_macos_deps(config),
+        _save_cache(name),
+        _build(),
+        _test(config),
+        _store_artifacts(),
+        _upload_to_pypi(),
+    ]
+
+def _install_macos_deps(config):
+    return _run(
+        "Install dependencies", [
+            config["venv_init"],
+            "source venv/bin/activate",
+            "pip install -r requirements.txt",
+            "pip install tensorflow",
+            "cd guild/view && npm install",
+        ])
+
+def _linux_job(name, config):
     return {
         "docker": _docker(config),
         "working_directory": "~/repo",
-        "steps": _default_steps(name, config)
+        "steps": _linux_steps(name, config)
     }
 
 def _docker(config):
     return [{"image": config["image"]}]
 
-def _default_steps(name, config):
+def _linux_steps(name, config):
     return [
         "checkout",
         _restore_cache(name),
-        _install_deps(config),
+        _install_linux_deps(config),
         _save_cache(name),
         _build(),
         _test(config),
@@ -93,7 +133,7 @@ def _cache_key(name):
         "-{{ checksum \"guild/view/package.json\" }}"
         % (name, cache_scheme_version))
 
-def _install_deps(config):
+def _install_linux_deps(config):
     return _run(
         "Install dependencies", [
             config["venv_init"],
