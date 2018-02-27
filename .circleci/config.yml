@@ -2,9 +2,9 @@ version: 2
 
 jobs:
 
-  linux-python-3.6:
+  linux-python-2.7:
     docker:
-      - image: circleci/python:3.6-node-browsers
+      - image: circleci/python:2.7-node-browsers
     working_directory: ~/repo
     steps:
       - checkout
@@ -13,7 +13,7 @@ jobs:
           - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
-          name: install dependencies
+          name: Install dependencies
           command: |
             python3 -m venv venv
             . venv/bin/activate
@@ -26,7 +26,7 @@ jobs:
           key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
-          name: build
+          name: Build
           command: |
             python3 -m venv venv
             source venv/bin/activate
@@ -47,7 +47,7 @@ jobs:
           - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
-          name: install dependencies
+          name: Install dependencies
           command: |
             python3 -m venv venv
             . venv/bin/activate
@@ -60,7 +60,41 @@ jobs:
           key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
-          name: build
+          name: Build
+          command: |
+            python3 -m venv venv
+            source venv/bin/activate
+            python3 setup.py bdist_wheel -p manylinux1_x86_64
+
+      - store_artifacts:
+          path: dist
+          destination: dist
+
+  linux-python-3.6:
+    docker:
+      - image: circleci/python:3.6-node-browsers
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+
+      - run:
+          name: Install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+            pip install tensorflow
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+
+      - run:
+          name: Build
           command: |
             python3 -m venv venv
             source venv/bin/activate
@@ -74,5 +108,6 @@ workflows:
   version: 2
   all:
     jobs:
+      - linux-python-2.7
       - linux-python-3.5
       - linux-python-3.6
