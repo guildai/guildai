@@ -30,7 +30,7 @@ from pip.exceptions import HashMismatch as HashMismatch0
 from pip.exceptions import InstallationError
 from pip.exceptions import UninstallationError
 from pip.index import Link
-from pip.locations import virtualenv_no_global
+from pip.locations import running_under_virtualenv
 from pip.utils import get_installed_distributions
 from pip.utils.hashes import Hashes
 
@@ -49,7 +49,7 @@ def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
     args = []
     if pre_releases:
         args.append("--pre")
-    if not virtualenv_no_global():
+    if not running_under_virtualenv():
         args.append("--user")
     if upgrade:
         args.append("--upgrade")
@@ -118,7 +118,7 @@ def _pip_get_entrypoints_patch(filename):
     return console, gui
 
 def get_installed():
-    user_only = not virtualenv_no_global()
+    user_only = not running_under_virtualenv()
     return get_installed_distributions(
         local_only=False,
         user_only=user_only)
