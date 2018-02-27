@@ -1,12 +1,12 @@
 jobs:
   linux-python-2.7:
     docker:
-    - image: circleci/python:2.7-node-browsers
+    - image: circleci/python:2.7-stretch-node
     steps:
     - checkout
     - restore_cache:
         keys:
-        - linux-python-2.7-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python-2.7-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'test -e venv || virtualenv --python python2.7 venv
 
@@ -19,7 +19,7 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: linux-python-2.7-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python-2.7-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:
@@ -43,12 +43,12 @@ jobs:
     working_directory: ~/repo
   linux-python-3.5:
     docker:
-    - image: circleci/python:3.5-node-browsers
+    - image: circleci/python:3.5-jessie-node
     steps:
     - checkout
     - restore_cache:
         keys:
-        - linux-python-3.5-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python-3.5-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'test -e venv || python -m venv venv
 
@@ -61,7 +61,7 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: linux-python-3.5-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python-3.5-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:
@@ -85,12 +85,12 @@ jobs:
     working_directory: ~/repo
   linux-python-3.6:
     docker:
-    - image: circleci/python:3.6-node-browsers
+    - image: circleci/python:3.6-stretch-node
     steps:
     - checkout
     - restore_cache:
         keys:
-        - linux-python-3.6-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python-3.6-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'test -e venv || python -m venv venv
 
@@ -103,7 +103,7 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: linux-python-3.6-3-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python-3.6-4-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:

@@ -19,21 +19,21 @@ import sys
 import yaml
 
 # Change every time venv caching scheme changes
-cache_scheme_version = 3
+cache_scheme_version = 4
 
 targets = {
     "linux-python-2.7": {
-        "image": "circleci/python:2.7-node-browsers",
+        "image": "circleci/python:2.7-stretch-node",
         "venv_init": "test -e venv || virtualenv --python python2.7 venv"
     },
 
     "linux-python-3.5": {
-        "image": "circleci/python:3.5-node-browsers",
+        "image": "circleci/python:3.5-jessie-node",
         "venv_init": "test -e venv || python -m venv venv"
     },
 
     "linux-python-3.6": {
-        "image": "circleci/python:3.6-node-browsers",
+        "image": "circleci/python:3.6-stretch-node",
         "venv_init": "test -e venv || python -m venv venv"
     }
 }
