@@ -10,7 +10,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - linux-python-2.7-1-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+          - linux-python-2.7-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
           name: Install dependencies
@@ -24,7 +24,7 @@ jobs:
       - save_cache:
           paths:
             - venv
-          key: linux-python-2.7-1-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+          key: linux-python-2.7-2-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
           name: Build
