@@ -116,4 +116,4 @@ workflows:
       #- linux-python-3.6
     triggers:
       - schedule:
-        cron: "0 0 0 0 0"
+          cron: "0 0 0 0 0"
