@@ -31,6 +31,12 @@ jobs:
             source venv/bin/activate
             python setup.py bdist_wheel -p manylinux1_x86_64
 
+      - run:
+          name: Test
+          command: |
+            source venv/bin/activate
+            guild/scripts/guild check -nT
+
       - store_artifacts:
           path: dist
           destination: dist
@@ -108,3 +114,6 @@ workflows:
       - linux-python-2.7
       #- linux-python-3.5
       #- linux-python-3.6
+    triggers:
+      - schedule:
+        cron: "0 0 0 0 0"
