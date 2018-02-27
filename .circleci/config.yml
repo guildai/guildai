@@ -40,3 +40,8 @@ jobs:
       - store_artifacts:
           path: dist
           destination: dist
+
+workflows:
+  all:
+    jobs:
+      - linux-python-3.6
