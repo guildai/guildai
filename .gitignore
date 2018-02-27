@@ -4,3 +4,4 @@
 /guildai.egg-info
 /guild/external
 /guild/view/node_modules
+.pypi-creds
