@@ -10,7 +10,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
+          - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
           name: install dependencies
@@ -23,7 +23,7 @@ jobs:
       - save_cache:
           paths:
             - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
+          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
           name: build
@@ -44,7 +44,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
+          - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
           name: install dependencies
@@ -57,7 +57,7 @@ jobs:
       - save_cache:
           paths:
             - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "package.json" }}
+          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
 
       - run:
           name: build
