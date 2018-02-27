@@ -106,7 +106,7 @@ class Build(object):
 
     @staticmethod
     def _bdist_wheel_cmd():
-        return "python setup.py bist_wheel"
+        return "python setup.py bdist_wheel"
 
     def test(self):
         skip_tests = "".join([" --skip %s" % t for t in self.skip_tests])

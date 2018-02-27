@@ -25,7 +25,7 @@ jobs:
     - run:
         command: 'source venv/bin/activate
 
-          python setup.py bist_wheel'
+          python setup.py bdist_wheel'
         name: Build
     - run:
         command: 'source venv/bin/activate
