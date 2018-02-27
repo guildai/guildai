@@ -162,11 +162,11 @@ class LinuxBuild(Build):
         "linux-python-3.6": "circleci/python:3.6-stretch-node",
     }
 
-    skip_tests = ["tables"]
-
     def __init__(self, python):
         self.python = python
         self.name = "linux-python-%s" % python
+        if python.startswith("3."):
+            self.skip_tests = ["tables"]
 
     def env_config(self):
         return [{"image": self.images[self.name]}]
@@ -184,6 +184,8 @@ class MacBuild(Build):
     def __init__(self, python):
         self.python = python
         self.name = "macos-python-%s" % python
+        if python.startswith("3."):
+            self.skip_tests = ["tables"]
 
     def env_config(self):
         return {
@@ -228,10 +230,10 @@ class Config(object):
         }
 
 builds = [
-    #LinuxBuild(python="2.7"),
-    #LinuxBuild(python="3.5"),
-    #LinuxBuild(python="3.6"),
-    #MacBuild(python="2.7"),
+    LinuxBuild(python="2.7"),
+    LinuxBuild(python="3.5"),
+    LinuxBuild(python="3.6"),
+    MacBuild(python="2.7"),
     MacBuild(python="3.6"),
 ]
 
