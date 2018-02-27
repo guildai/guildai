@@ -1,14 +1,14 @@
 jobs:
-  macos-python-2.7:
+  macos-python-3.6:
     macos:
       xcode: 9.2.0
     steps:
     - checkout
     - restore_cache:
         keys:
-        - macos-python-2.7-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos-python-3.6-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'virtualenv venv
+        command: 'python3 -m venv venv
 
           source venv/bin/activate
 
@@ -16,10 +16,12 @@ jobs:
 
           pip install tensorflow
 
-          cd guild/view && npm install'
+          cd guild/view && npm install
+
+          brew install python3'
         name: Install dependencies
     - save_cache:
-        key: macos-python-2.7-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos-python-3.6-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:
@@ -45,7 +47,7 @@ version: 2
 workflows:
   all:
     jobs:
-    - macos-python-2.7:
+    - macos-python-3.6:
         filters:
           branches:
             only: release

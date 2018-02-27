@@ -67,7 +67,7 @@ class Build(object):
     def init_venv(self):
         assert self.python
         if self.python.startswith("3."):
-            return "python -m venv venv"
+            return "python3 -m venv venv"
         else:
             return "virtualenv venv"
 
@@ -231,8 +231,8 @@ builds = [
     #LinuxBuild(python="2.7"),
     #LinuxBuild(python="3.5"),
     #LinuxBuild(python="3.6"),
-    MacBuild(python="2.7"),
-    #MacBuild(python="3.6"),
+    #MacBuild(python="2.7"),
+    MacBuild(python="3.6"),
 ]
 
 def main():
