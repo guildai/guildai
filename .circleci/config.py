@@ -85,7 +85,7 @@ class Build(object):
     def cache_key(self):
         assert self.name
         checksums = "-".join(
-            ["{{ checksum '%s' }}" % path for path in self.cache_dep_files]
+            ["{{ checksum \"%s\" }}" % path for path in self.cache_dep_files]
         )
         return "%s-%i-%s" % (self.name, self.cache_scheme_version, checksums)
 

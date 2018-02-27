@@ -6,7 +6,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos-python-2.7-5-{{ checksum 'requirements.txt' }}-{{ checksum 'guild/view/package.json' }}
+        - macos-python-2.7-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'virtualenv venv
 
@@ -19,7 +19,7 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: macos-python-2.7-5-{{ checksum 'requirements.txt' }}-{{ checksum 'guild/view/package.json' }}
+        key: macos-python-2.7-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:
