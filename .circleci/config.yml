@@ -46,7 +46,7 @@ jobs:
           name: Upload to PyPI
           command: |
             source venv/bin/activate
-            twine upload dest/*.whl
+            twine upload dist/*.whl
 
   linux-python-3.5:
     docker:
