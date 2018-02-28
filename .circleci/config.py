@@ -115,10 +115,6 @@ class Build(object):
             self._init_env(self.test_dir),
             self._activate_env(self.test_dir),
             "pip install dist/*.whl",
-            ("git clone https://github.com/guildai/examples.git "
-             "../guild-examples"),
-            ("git clone https://github.com/guildai/packages.git "
-             "../guild-packages"),
             "WORKSPACE=%s guild check --uat" % self.test_dir,
         ])
 
