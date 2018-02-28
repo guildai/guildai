@@ -57,7 +57,7 @@ class Build(object):
 
     def _install_deps_lines(self):
         return [
-            "pip install virtualenv",
+            "sudo pip install virtualenv",
             "virtualenv venv",
             "source venv/bin/activate",
             "pip install -r requirements.txt",

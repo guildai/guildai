@@ -8,7 +8,7 @@ jobs:
         keys:
         - linux-python-2.7-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'pip install virtualenv
+        command: 'sudo pip install virtualenv
 
           virtualenv venv
 
@@ -64,7 +64,7 @@ jobs:
         keys:
         - linux-python-3.5-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'pip install virtualenv
+        command: 'sudo pip install virtualenv
 
           virtualenv venv
 
@@ -120,7 +120,7 @@ jobs:
         keys:
         - linux-python-3.6-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'pip install virtualenv
+        command: 'sudo pip install virtualenv
 
           virtualenv venv
 
@@ -176,7 +176,7 @@ jobs:
         keys:
         - macos-python-2.7-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'pip install virtualenv
+        command: 'sudo pip install virtualenv
 
           virtualenv venv
 
@@ -234,7 +234,7 @@ jobs:
     - run:
         command: 'brew install python3
 
-          pip install virtualenv
+          sudo pip install virtualenv
 
           virtualenv venv
 
