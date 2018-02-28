@@ -258,8 +258,8 @@ builds = [
     LinuxBuild(python="2.7"),
     LinuxBuild(python="3.5"),
     LinuxBuild(python="3.6"),
-    MacBuild(python="2.7"),
-    MacBuild(python="3.6"),
+    #MacBuild(python="2.7"),
+    #MacBuild(python="3.6"),
 ]
 
 def main():
