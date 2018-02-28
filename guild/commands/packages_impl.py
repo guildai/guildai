@@ -49,8 +49,13 @@ def _format_pkg(pkg):
     }
 
 def _pkg_summary(pkg):
+    try:
+        metadata_lines = pkg.get_metadata_lines("METADATA")
+    except IOError:
+        # no METADATA
+        metadata_lines = []
     # For efficiency, just look at the first few lines for Summary
-    for i, line in enumerate(pkg.get_metadata_lines("METADATA")):
+    for i, line in enumerate(metadata_lines):
         if line[:9] == "Summary: ":
             return line[9:]
         if i == 5:
