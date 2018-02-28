@@ -114,6 +114,7 @@ class Build(object):
             "Test", [
                 "source venv/bin/activate",
                 "guild/scripts/guild check -T%s" % skip_tests,
+                "guild/scripts/guild check --uat",
             ])
 
     @staticmethod
