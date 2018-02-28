@@ -113,8 +113,16 @@ class Build(object):
         return self._run(
             "Test", [
                 "source venv/bin/activate",
-                "guild/scripts/guild check -T%s" % skip_tests,
-                "guild/scripts/guild check --uat",
+                "pip install dist/*.whl",
+                "guild check -T%s" % skip_tests,
+                # The uat assumes a dev environment rather than a
+                # fresh Guild install. The extra steps below are to
+                # hack the uat to bypass the pre-install steps.
+                "mkdir -p /tmp/guild-uat/passed-tests",
+                "touch /tmp/guild-uat/passed-tests/fresh-install",
+                ("touch /tmp/guild-uat/passed-tests/install-required-pip-"
+                 "packages"),
+                "guild check --uat",
             ])
 
     @staticmethod

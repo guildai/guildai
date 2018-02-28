@@ -30,9 +30,17 @@ jobs:
     - run:
         command: 'source venv/bin/activate
 
-          guild/scripts/guild check -T
+          pip install dist/*.whl
 
-          guild/scripts/guild check --uat'
+          guild check -T
+
+          mkdir -p /tmp/guild-uat/passed-tests
+
+          touch /tmp/guild-uat/passed-tests/fresh-install
+
+          touch /tmp/guild-uat/passed-tests/install-required-pip-packages
+
+          guild check --uat'
         name: Test
     - store_artifacts:
         destination: dist
@@ -74,9 +82,17 @@ jobs:
     - run:
         command: 'source venv/bin/activate
 
-          guild/scripts/guild check -T --skip tables
+          pip install dist/*.whl
 
-          guild/scripts/guild check --uat'
+          guild check -T --skip tables
+
+          mkdir -p /tmp/guild-uat/passed-tests
+
+          touch /tmp/guild-uat/passed-tests/fresh-install
+
+          touch /tmp/guild-uat/passed-tests/install-required-pip-packages
+
+          guild check --uat'
         name: Test
     - store_artifacts:
         destination: dist
@@ -118,9 +134,17 @@ jobs:
     - run:
         command: 'source venv/bin/activate
 
-          guild/scripts/guild check -T --skip tables
+          pip install dist/*.whl
 
-          guild/scripts/guild check --uat'
+          guild check -T --skip tables
+
+          mkdir -p /tmp/guild-uat/passed-tests
+
+          touch /tmp/guild-uat/passed-tests/fresh-install
+
+          touch /tmp/guild-uat/passed-tests/install-required-pip-packages
+
+          guild check --uat'
         name: Test
     - store_artifacts:
         destination: dist
@@ -162,9 +186,17 @@ jobs:
     - run:
         command: 'source venv/bin/activate
 
-          guild/scripts/guild check -T
+          pip install dist/*.whl
 
-          guild/scripts/guild check --uat'
+          guild check -T
+
+          mkdir -p /tmp/guild-uat/passed-tests
+
+          touch /tmp/guild-uat/passed-tests/fresh-install
+
+          touch /tmp/guild-uat/passed-tests/install-required-pip-packages
+
+          guild check --uat'
         name: Test
     - store_artifacts:
         destination: dist
@@ -208,9 +240,17 @@ jobs:
     - run:
         command: 'source venv/bin/activate
 
-          guild/scripts/guild check -T --skip tables
+          pip install dist/*.whl
 
-          guild/scripts/guild check --uat'
+          guild check -T --skip tables
+
+          mkdir -p /tmp/guild-uat/passed-tests
+
+          touch /tmp/guild-uat/passed-tests/fresh-install
+
+          touch /tmp/guild-uat/passed-tests/install-required-pip-packages
+
+          guild check --uat'
         name: Test
     - store_artifacts:
         destination: dist
