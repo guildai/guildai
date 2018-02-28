@@ -64,7 +64,7 @@ def _init_workspace():
     util.ensure_dir(os.path.join(WORKSPACE, "passed-tests"))
     util.ensure_dir(os.path.join(WORKSPACE, ".guild"))
     cache_dir = os.path.join(WORKSPACE, ".guild", "cache")
-    if not os.path.exists(cache_dir):
+    if not os.path.islink(cache_dir):
         os.symlink(guild.var.cache_dir(), cache_dir)
 
 def _run_tests(tests):
