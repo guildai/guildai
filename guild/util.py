@@ -485,5 +485,5 @@ def kill_process_tree(pid, force=False, timeout=None):
 def safe_filesize(path):
     try:
         return os.path.getsize(path)
-    except OSError as e:
+    except OSError:
         return None

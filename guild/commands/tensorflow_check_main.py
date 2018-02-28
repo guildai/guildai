@@ -33,7 +33,7 @@ def print_info():
         msg = _normalize_import_error_msg(e)
         err = _warn("NOT INSTALLED (%s)" % msg)
         click.echo("tensorflow_version:        %s" % err)
-        error.errors = True
+        state.errors = True
     else:
         click.echo("tensorflow_version:        %s" % _tf_version(tf))
         click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
