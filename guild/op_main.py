@@ -71,13 +71,13 @@ def _plugin_for_name(name):
     return plugin.for_name(name)
 
 def _try_module(module_spec, args):
-    package_path, module_path = _parse_module_spec(module_spec)
+    package_path, module = _parse_module_spec(module_spec)
     if package_path:
         log.debug("using package path '%s'", package_path)
         sys.path.insert(0, package_path)
-    log.debug("finding module '%s'", module_path)
+    log.debug("finding module '%s'", module)
     try:
-        module_info = imp.find_module(module_path)
+        module_info = _find_module(module)
     except ImportError as e:
         _error(str(e))
     else:
@@ -87,9 +87,17 @@ def _try_module(module_spec, args):
 def _parse_module_spec(spec):
     parts = spec.rsplit("/", 1)
     if len(parts) == 2:
-        return parts[0], parts[1].replace(".", os.path.sep)
+        return parts[0], parts[1]
     else:
-        return None, parts[0].replace(".", os.path.sep)
+        return None, parts[0]
+
+def _find_module(module):
+    parts = module.split(".")
+    path = sys.path
+    for part in parts:
+        info = imp.find_module(part, path)
+        path = [info[1]]
+    return info
 
 def _set_argv_for_module(module_info, args):
     _, path, _ = module_info
