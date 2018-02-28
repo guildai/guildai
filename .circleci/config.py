@@ -125,9 +125,7 @@ class Build(object):
                 "mkdir -p ./guild-uat/passed-tests",
                 ("touch ./guild-uat/passed-tests/{"
                  "fresh-install,"
-                 "install-required-pip-packages,"
-                 "check-without-tensorflow,"
-                 "install-tensorflow}"),
+                 "install-required-pip-packages}"),
 
                 # Examples and packages repos required for some uat tests.
                 ("git clone https://github.com/guildai/examples.git "

@@ -36,7 +36,7 @@ jobs:
 
           mkdir -p ./guild-uat/passed-tests
 
-          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
+          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages}
 
           git clone https://github.com/guildai/examples.git ../guild-examples
 
@@ -90,7 +90,7 @@ jobs:
 
           mkdir -p ./guild-uat/passed-tests
 
-          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
+          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages}
 
           git clone https://github.com/guildai/examples.git ../guild-examples
 
@@ -144,7 +144,7 @@ jobs:
 
           mkdir -p ./guild-uat/passed-tests
 
-          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
+          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages}
 
           git clone https://github.com/guildai/examples.git ../guild-examples
 
@@ -198,7 +198,7 @@ jobs:
 
           mkdir -p ./guild-uat/passed-tests
 
-          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
+          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages}
 
           git clone https://github.com/guildai/examples.git ../guild-examples
 
@@ -254,7 +254,7 @@ jobs:
 
           mkdir -p ./guild-uat/passed-tests
 
-          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
+          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages}
 
           git clone https://github.com/guildai/examples.git ../guild-examples
 
