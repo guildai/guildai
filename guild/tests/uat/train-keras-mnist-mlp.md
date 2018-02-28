@@ -3,7 +3,7 @@
 For this example, we'll use the full spelling of "train", which is to
 run the `train` operation on the model.
 
-    >>> run("guild run -y keras.mnist/mnist-mlp:train epochs=1")
+    >>> run("guild run -y keras.mnist/mnist-mlp:train epochs=1", timeout=180)
     Resolving script dependency
     ...
     Using TensorFlow backend.
