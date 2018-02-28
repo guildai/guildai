@@ -18,12 +18,14 @@ import yaml
 
 class Build(object):
 
-    # Increment when caching scheme changes
-    cache_scheme_version = 6
+    cache_scheme_version = 7
 
     name = None
     python = None
     env = None
+
+    build_dir = "build"
+    test_dir = "test"
 
     skip_tests = []
 
@@ -52,19 +54,6 @@ class Build(object):
             self.upload_to_pypi(),
         ]
 
-    def install_deps(self):
-        return self._run("Install dependencies", self._install_deps_lines())
-
-    def _install_deps_lines(self):
-        return [
-            "sudo pip install virtualenv",
-            "virtualenv venv",
-            "source venv/bin/activate",
-            "pip install -r requirements.txt",
-            "pip install tensorflow",
-            "cd guild/view && npm install",
-        ]
-
     @staticmethod
     def checkout():
         return "checkout"
@@ -72,29 +61,50 @@ class Build(object):
     def restore_cache(self):
         return {
             "restore_cache": {
-                "keys": [self.cache_key()]
+                "keys": [self._cache_key()]
             }
         }
 
-    def cache_key(self):
+    def _cache_key(self):
         assert self.name
         checksums = "-".join(
             ["{{ checksum \"%s\" }}" % path for path in self.cache_dep_files]
         )
         return "%s-%i-%s" % (self.name, self.cache_scheme_version, checksums)
 
+    def install_deps(self):
+        return self._run("Install dependencies", self._install_deps_cmd())
+
+    def _install_deps_cmd(self):
+        return [
+            "sudo pip install virtualenv",
+            self._init_env(self.build_dir),
+            self._activate_env(self.build_dir),
+            "pip install -r requirements.txt",
+            "pip install tensorflow",
+            "cd guild/view && npm install",
+        ]
+
+    @staticmethod
+    def _init_env(path):
+        return "virtualenv %s" % path
+
+    @staticmethod
+    def _activate_env(path):
+        return ". %s/bin/activate" % path
+
     def save_cache(self):
         return {
             "save_cache": {
-                "paths": ["venv"],
-                "key": self.cache_key()
+                "paths": [self.build_dir],
+                "key": self._cache_key()
             }
         }
 
     def build(self):
         return self._run(
             "Build", [
-                "source venv/bin/activate",
+                ". %s/bin/activate" % self.build_dir,
                 self._bdist_wheel_cmd(),
             ])
 
@@ -104,41 +114,16 @@ class Build(object):
 
     def test(self):
         skip_tests = "".join([" --skip %s" % t for t in self.skip_tests])
-        return self._run( "Test", [
-
-            # Activate venv and install built package.
-
-            "source venv/bin/activate",
-            "pip install dist/*.whl",
-
-            # Standard tests
-
+        return self._run("Test", [
+            self._init_env(self.test_dir),
+            self._activate_env(self.test_dir),
+            "pip install dist/*.hwl",
             "guild check -T%s" % skip_tests,
-
-            # The uat assumes a dev environment rather than a fresh
-            # Guild install. The extra steps below hack uat to bypass
-            # the pre-install steps. Note that we skip
-            # check-without-tensorflow but not not skip
-            # install-tensorflow (which follows in the uat). This is
-            # to ensure that tensorflow is available in Python 2,
-            # which doesn't see the tensorflow in venv/lib.
-
-            "mkdir -p ./guild-uat/passed-tests",
-            ("touch ./guild-uat/passed-tests/{"
-             "fresh-install,"
-             "install-required-pip-packages,"
-             "check-without-tensorflow}"),
-
-            # Examples and packages repos required for some uat tests.
-
             ("git clone https://github.com/guildai/examples.git "
              "../guild-examples"),
             ("git clone https://github.com/guildai/packages.git "
              "../guild-packages"),
-
-            # UAT
-
-            "WORKSPACE=./guild-uat guild check --uat",
+            "WORKSPACE=%s guild check --uat" % self.test_dir,
         ])
 
     @staticmethod
@@ -153,7 +138,7 @@ class Build(object):
     def upload_to_pypi(self):
         return self._run(
             "Upload to PyPI", [
-                "source venv/bin/activate",
+                self._activate_env(self.build_dir),
                 "twine upload --skip-existing dist/*.whl",
             ])
 
@@ -217,8 +202,8 @@ class MacBuild(Build):
             "xcode": self.xcode_version
         }
 
-    def _install_deps_lines(self):
-        lines = super(MacBuild, self)._install_deps_lines()
+    def _install_deps_cmd(self):
+        lines = super(MacBuild, self)._install_deps_cmd()
         if self.python == "3.6":
             lines.insert(0, "brew install python3")
         else:

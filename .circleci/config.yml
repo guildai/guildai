@@ -6,13 +6,13 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos-python-2.7-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos-python-2.7-7-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo pip install virtualenv
 
-          virtualenv venv
+          virtualenv build
 
-          source venv/bin/activate
+          . build/bin/activate
 
           pip install -r requirements.txt
 
@@ -21,36 +21,34 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: macos-python-2.7-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos-python-2.7-7-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
-        - venv
+        - build
     - run:
-        command: 'source venv/bin/activate
+        command: '. build/bin/activate
 
           python setup.py bdist_wheel'
         name: Build
     - run:
-        command: 'source venv/bin/activate
+        command: 'virtualenv test
 
-          pip install dist/*.whl
+          . test/bin/activate
+
+          pip install dist/*.hwl
 
           guild check -T
-
-          mkdir -p ./guild-uat/passed-tests
-
-          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow}
 
           git clone https://github.com/guildai/examples.git ../guild-examples
 
           git clone https://github.com/guildai/packages.git ../guild-packages
 
-          WORKSPACE=./guild-uat guild check --uat'
+          WORKSPACE=test guild check --uat'
         name: Test
     - store_artifacts:
         destination: dist
         path: dist
     - run:
-        command: 'source venv/bin/activate
+        command: '. build/bin/activate
 
           twine upload --skip-existing dist/*.whl'
         name: Upload to PyPI
