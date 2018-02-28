@@ -17,6 +17,7 @@ install-reqs:
 	 pip3 install --user -r requirements.txt
 
 pip-package:
+	rm -rf build
 	python2 setup.py bdist_wheel -p manylinux1_x86_64
 	python3 setup.py bdist_wheel -p manylinux1_x86_64
 
@@ -54,7 +55,16 @@ clean:
 	rm -rf guildai.egg-info/
 
 uat:
-	guild/scripts/guild check --uat
+	test -e /tmp/guild-uat || virtualenv /tmp/guild-uat
+	mkdir -p /tmp/guild-uat/.guild
+	test -e /tmp/guild-uat/.guild/cache \
+	  || ln -s ~/.guild/cache /tmp/guild-uat/.guild/cache
+	. /tmp/guild-uat/bin/activate && pip install -r requirements.txt
+	. /tmp/guild-uat/bin/activate \
+	  && WORKSPACE=/tmp/guild-uat guild check --uat
+
+clean-uat:
+	rm -rf /tmp/guild-uat
 
 timing-test:
 	guild/tests/timing-test

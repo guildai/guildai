@@ -26,6 +26,8 @@ import sys
 import tempfile
 import threading
 
+from pip.locations import running_under_virtualenv
+
 import guild
 import guild.test
 import guild.var
@@ -33,18 +35,18 @@ import guild.var
 from guild import util
 
 INDEX = "tests/uat/README.md"
-WORKSPACE = os.path.abspath(
-    os.getenv("WORKSPACE") or
-    os.path.join(tempfile.gettempdir(), "guild-uat"))
-GUILD_PATH = os.path.join(guild.__pkgdir__, "guild", "scripts")
-REQUIREMENTS_PATH = os.path.join(guild.__pkgdir__, "requirements.txt")
+WORKSPACE = os.path.abspath(os.getenv("WORKSPACE") or "GUILD-UAT-WORKSPACE")
 TEMP = tempfile.gettempdir()
-
-GIT_REPOS = os.path.abspath("../")
+GUILD_PKG = os.path.abspath(guild.__pkgdir__)
+REQUIREMENTS_PATH = os.path.join(GUILD_PKG, "requirements.txt")
+GIT_REPOS = os.path.join(GUILD_PKG, "..")
 
 _cwd = None
 
 def run():
+    if not running_under_virtualenv():
+        sys.stderr.write("This command must be run in a virtual environment\n")
+        sys.exit(1)
     tests = _tests_from_index()
     workspace_created = _init_workspace()
     _run_tests(tests)
@@ -58,16 +60,8 @@ def _tests_from_index():
 def _init_workspace():
     existing_workspace = os.path.exists(WORKSPACE)
     print("Initializing workspace %s under %s" % (WORKSPACE, sys.executable))
-    env_activate = os.path.join(WORKSPACE, "bin/activate")
-    if not os.path.exists(env_activate):
-        subprocess.check_call(["virtualenv", "-p", sys.executable, WORKSPACE])
-        export_guild_home = "export GUILD_HOME=%s/.guild\n" % WORKSPACE
-        open(env_activate, "a").write(export_guild_home)
     util.ensure_dir(os.path.join(WORKSPACE, "passed-tests"))
     util.ensure_dir(os.path.join(WORKSPACE, ".guild"))
-    cache_dir = os.path.join(WORKSPACE, ".guild", "cache")
-    if not os.path.islink(cache_dir):
-        os.symlink(guild.var.cache_dir(), cache_dir)
     return not existing_workspace
 
 def _run_tests(tests):
@@ -126,11 +120,7 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
     cmd_env = {}
     cmd_env.update(_global_vars())
     cmd_env["GUILD_HOME"] = os.path.join(WORKSPACE, ".guild")
-    cmd_env["PATH"] = os.path.pathsep.join([
-        os.path.join(WORKSPACE, "bin"),
-        GUILD_PATH,
-        os.getenv("PATH"),
-    ])
+    cmd_env["PATH"] = os.getenv("PATH")
     cmd_env["COLUMNS"] = "999"
     cmd_env["LANG"] = os.getenv("LANG", "")
     cmd_cwd = WORKSPACE if not _cwd else os.path.join(WORKSPACE, _cwd)
