@@ -62,6 +62,7 @@ def find_apply(funs, *args, **kw):
     return kw.get("default")
 
 def ensure_dir(d):
+    d = os.path.realpath(d)
     try:
         os.makedirs(d)
     except OSError as e:
