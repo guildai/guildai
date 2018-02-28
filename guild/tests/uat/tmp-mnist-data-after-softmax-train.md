@@ -6,5 +6,5 @@ is configured to use the its `dataset` resource, we want to confirm
 that nothing was downloaded to the default location.
 
     >>> run("find $TEMP/MNIST_data")
-    find: ‘/.../MNIST_data’: No such file or directory
+    find: .../MNIST_data...: No such file or directory
     <exit 1>

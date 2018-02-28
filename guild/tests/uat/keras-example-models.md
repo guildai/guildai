@@ -9,7 +9,7 @@ We can illustrate this using the Keras `mnist` example.
 This example doesn't have a modelfile:
 
     >>> run("ls MODEL*")
-    ls: cannot access 'MODEL*': No such file or directory
+    ls: cannot access ...MODEL*...: No such file or directory
     <exit 2>
 
 However, we can still list locally defined models:

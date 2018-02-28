@@ -6,7 +6,7 @@ later that these files have not been downloaded to the temp location,
 we need to check now and fail if they do.
 
     >>> run("find $TEMP/MNIST_data")
-    find: ‘/.../MNIST_data’: No such file or directory
+    find: .../MNIST_data...: No such file or directory
     <exit 1>
 
 If this test fails, manually delete `$TEMP/MNIST_data` and re-run the
