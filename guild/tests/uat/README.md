@@ -5,16 +5,13 @@ These are run in order as a part of Guild AI's user acceptance test.
 This file is used to run the tests. Any modifications to this file
 will modify the acceptance test.
 
-## Partial Guild install
+## Guild without TensorFlow
 
-*Guild behavior in a partially configured environment.*
+*Guild behavior in an environment without TensorFlow.*
 
-In this section we test Guild when the environment is *not* fully
-configured to demonstrate its stability and helpfulness to the user in
-correcting problems.
+In this section we test Guild when the environment does not have
+TensorFlow installed.
 
-- [fresh-install](fresh-install.md)
-- [install-required-pip-packages](install-required-pip-packages.md)
 - [guild-version](guild-version.md)
 - [check-without-tensorflow](check-without-tensorflow.md)
 
