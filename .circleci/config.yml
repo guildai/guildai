@@ -38,9 +38,9 @@ jobs:
 
           touch /tmp/guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
 
-          git clone https://github.com/guildai/examples.git guild-examples
+          git clone https://github.com/guildai/examples.git ../guild-examples
 
-          git clone https://github.com/guildai/packages.git guild-packages
+          git clone https://github.com/guildai/packages.git ../guild-packages
 
           guild check --uat'
         name: Test

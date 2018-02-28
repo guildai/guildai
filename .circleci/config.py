@@ -131,9 +131,9 @@ class Build(object):
 
                 # Examples and packages repos required for some uat tests.
                 ("git clone https://github.com/guildai/examples.git "
-                 "guild-examples"),
+                 "../guild-examples"),
                 ("git clone https://github.com/guildai/packages.git "
-                 "guild-packages"),
+                 "../guild-packages"),
 
                 # UAT
                 "guild check --uat",
