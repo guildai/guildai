@@ -25,13 +25,14 @@ import sys
 import tempfile
 import threading
 
+import guild
 import guild.test
 import guild.var
 
 INDEX = "tests/uat/README.md"
 WORKSPACE = os.path.join(tempfile.gettempdir(), "guild-uat")
-GUILD_PATH = os.path.abspath("./guild/scripts")
-REQUIREMENTS_PATH = os.path.abspath("requirements.txt")
+GUILD_PATH = os.path.join(guild.__pkgdir__, "guild", "scripts")
+REQUIREMENTS_PATH = os.path.join(guild.__pkgdir__, "requirements.txt")
 TEMP = tempfile.gettempdir()
 
 GIT_REPOS = os.path.abspath("../")
