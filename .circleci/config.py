@@ -119,9 +119,11 @@ class Build(object):
                 # fresh Guild install. The extra steps below are to
                 # hack the uat to bypass the pre-install steps.
                 "mkdir -p /tmp/guild-uat/passed-tests",
-                "touch /tmp/guild-uat/passed-tests/fresh-install",
-                ("touch /tmp/guild-uat/passed-tests/install-required-pip-"
-                 "packages"),
+                ("touch /tmp/guild-uat/passed-tests/{"
+                 "fresh-install,"
+                 "install-required-pip-packages,"
+                 "check-without-tensorflow,"
+                 "install-tensorflow}"),
                 "guild check --uat",
             ])
 

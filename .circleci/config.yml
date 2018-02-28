@@ -36,9 +36,7 @@ jobs:
 
           mkdir -p /tmp/guild-uat/passed-tests
 
-          touch /tmp/guild-uat/passed-tests/fresh-install
-
-          touch /tmp/guild-uat/passed-tests/install-required-pip-packages
+          touch /tmp/guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
 
           guild check --uat'
         name: Test
