@@ -104,32 +104,42 @@ class Build(object):
 
     def test(self):
         skip_tests = "".join([" --skip %s" % t for t in self.skip_tests])
-        return self._run(
-            "Test", [
-                # Active venv and install built package
-                "source venv/bin/activate",
-                "pip install dist/*.whl",
+        return self._run( "Test", [
 
-                # Guild check
-                "guild check -T%s" % skip_tests,
+            # Activate venv and install built package.
 
-                # The uat assumes a dev environment rather than a
-                # fresh Guild install. The extra steps below are to
-                # hack the uat to bypass the pre-install steps.
-                "mkdir -p ./guild-uat/passed-tests",
-                ("touch ./guild-uat/passed-tests/{"
-                 "fresh-install,"
-                 "install-required-pip-packages}"),
+            "source venv/bin/activate",
+            "pip install dist/*.whl",
 
-                # Examples and packages repos required for some uat tests.
-                ("git clone https://github.com/guildai/examples.git "
-                 "../guild-examples"),
-                ("git clone https://github.com/guildai/packages.git "
-                 "../guild-packages"),
+            # Standard tests
 
-                # UAT
-                "WORKSPACE=./guild-uat guild check --uat",
-            ])
+            "guild check -T%s" % skip_tests,
+
+            # The uat assumes a dev environment rather than a fresh
+            # Guild install. The extra steps below hack uat to bypass
+            # the pre-install steps. Note that we skip
+            # check-without-tensorflow but not not skip
+            # install-tensorflow (which follows in the uat). This is
+            # to ensure that tensorflow is available in Python 2,
+            # which doesn't see the tensorflow in venv/lib.
+
+            "mkdir -p ./guild-uat/passed-tests",
+            ("touch ./guild-uat/passed-tests/{"
+             "fresh-install,"
+             "install-required-pip-packages,"
+             "check-without-tensorflow}"),
+
+            # Examples and packages repos required for some uat tests.
+
+            ("git clone https://github.com/guildai/examples.git "
+             "../guild-examples"),
+            ("git clone https://github.com/guildai/packages.git "
+             "../guild-packages"),
+
+            # UAT
+
+            "WORKSPACE=./guild-uat guild check --uat",
+        ])
 
     @staticmethod
     def store_artifacts():
