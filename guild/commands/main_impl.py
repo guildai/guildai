@@ -26,10 +26,13 @@ from guild import util
 def main(args):
     log.init_logging(args.log_level or logging.INFO)
     config.set_cwd(_validated_dir(args.cwd))
-    config.set_guild_home(_validated_dir(args.guild_home, create=True))
+    config.set_guild_home(
+        _validated_dir(args.guild_home, abs=True, create=True))
 
-def _validated_dir(path, create=False):
+def _validated_dir(path, abs=False, create=False):
     path = os.path.expanduser(path)
+    if abs:
+        path = os.path.abspath(path)
     if not os.path.exists(path):
         if create:
             util.ensure_dir(path)

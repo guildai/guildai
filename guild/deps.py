@@ -120,6 +120,7 @@ class Resource(object):
                 % (self.resdef.name, e))
 
 def _symlink(source_path, link):
+    assert os.path.isabs(link), link
     if os.path.exists(link):
         log.warning("%s already exists, skipping link", link)
         return
