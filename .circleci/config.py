@@ -24,8 +24,8 @@ class Build(object):
     python = None
     env = None
 
-    build_dir = "build"
-    test_dir = "test"
+    build_dir = "build-env"
+    test_dir = "test-env"
 
     cache_dep_files = [
         "requirements.txt",
