@@ -34,7 +34,7 @@ jobs:
 
           . test/bin/activate
 
-          pip install dist/*.hwl
+          pip install dist/*.whl
 
           guild check -T
 
