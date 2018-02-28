@@ -8,7 +8,9 @@ jobs:
         keys:
         - linux-python-2.7-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'virtualenv venv
+        command: 'pip install virtualenv
+
+          virtualenv venv
 
           source venv/bin/activate
 
@@ -62,7 +64,9 @@ jobs:
         keys:
         - linux-python-3.5-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'python3 -m venv venv
+        command: 'pip install virtualenv
+
+          virtualenv venv
 
           source venv/bin/activate
 
@@ -116,7 +120,9 @@ jobs:
         keys:
         - linux-python-3.6-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'python3 -m venv venv
+        command: 'pip install virtualenv
+
+          virtualenv venv
 
           source venv/bin/activate
 
@@ -170,7 +176,9 @@ jobs:
         keys:
         - macos-python-2.7-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'virtualenv venv
+        command: 'pip install virtualenv
+
+          virtualenv venv
 
           source venv/bin/activate
 
@@ -226,7 +234,9 @@ jobs:
     - run:
         command: 'brew install python3
 
-          python3 -m venv venv
+          pip install virtualenv
+
+          virtualenv venv
 
           source venv/bin/activate
 

@@ -57,19 +57,13 @@ class Build(object):
 
     def _install_deps_lines(self):
         return [
-            self.init_venv(),
+            "pip install virtualenv",
+            "virtualenv venv",
             "source venv/bin/activate",
             "pip install -r requirements.txt",
             "pip install tensorflow",
             "cd guild/view && npm install",
         ]
-
-    def init_venv(self):
-        assert self.python
-        if self.python.startswith("3."):
-            return "python3 -m venv venv"
-        else:
-            return "virtualenv venv"
 
     @staticmethod
     def checkout():
