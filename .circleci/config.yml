@@ -34,15 +34,15 @@ jobs:
 
           guild check -T
 
-          mkdir -p /tmp/guild-uat/passed-tests
+          mkdir -p ./guild-uat/passed-tests
 
-          touch /tmp/guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
+          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
 
           git clone https://github.com/guildai/examples.git ../guild-examples
 
           git clone https://github.com/guildai/packages.git ../guild-packages
 
-          guild check --uat'
+          WORKSPACE=./guild-uat guild check --uat'
         name: Test
     - store_artifacts:
         destination: dist
@@ -88,15 +88,15 @@ jobs:
 
           guild check -T --skip tables
 
-          mkdir -p /tmp/guild-uat/passed-tests
+          mkdir -p ./guild-uat/passed-tests
 
-          touch /tmp/guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
+          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
 
           git clone https://github.com/guildai/examples.git ../guild-examples
 
           git clone https://github.com/guildai/packages.git ../guild-packages
 
-          guild check --uat'
+          WORKSPACE=./guild-uat guild check --uat'
         name: Test
     - store_artifacts:
         destination: dist
@@ -142,15 +142,15 @@ jobs:
 
           guild check -T --skip tables
 
-          mkdir -p /tmp/guild-uat/passed-tests
+          mkdir -p ./guild-uat/passed-tests
 
-          touch /tmp/guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
+          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
 
           git clone https://github.com/guildai/examples.git ../guild-examples
 
           git clone https://github.com/guildai/packages.git ../guild-packages
 
-          guild check --uat'
+          WORKSPACE=./guild-uat guild check --uat'
         name: Test
     - store_artifacts:
         destination: dist
@@ -196,15 +196,15 @@ jobs:
 
           guild check -T
 
-          mkdir -p /tmp/guild-uat/passed-tests
+          mkdir -p ./guild-uat/passed-tests
 
-          touch /tmp/guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
+          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
 
           git clone https://github.com/guildai/examples.git ../guild-examples
 
           git clone https://github.com/guildai/packages.git ../guild-packages
 
-          guild check --uat'
+          WORKSPACE=./guild-uat guild check --uat'
         name: Test
     - store_artifacts:
         destination: dist
@@ -252,15 +252,15 @@ jobs:
 
           guild check -T --skip tables
 
-          mkdir -p /tmp/guild-uat/passed-tests
+          mkdir -p ./guild-uat/passed-tests
 
-          touch /tmp/guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
+          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow,install-tensorflow}
 
           git clone https://github.com/guildai/examples.git ../guild-examples
 
           git clone https://github.com/guildai/packages.git ../guild-packages
 
-          guild check --uat'
+          WORKSPACE=./guild-uat guild check --uat'
         name: Test
     - store_artifacts:
         destination: dist

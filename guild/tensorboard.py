@@ -17,7 +17,6 @@ from __future__ import division
 
 import logging
 import os
-import socket
 import sys
 
 import pkg_resources

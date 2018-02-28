@@ -122,8 +122,8 @@ class Build(object):
                 # The uat assumes a dev environment rather than a
                 # fresh Guild install. The extra steps below are to
                 # hack the uat to bypass the pre-install steps.
-                "mkdir -p /tmp/guild-uat/passed-tests",
-                ("touch /tmp/guild-uat/passed-tests/{"
+                "mkdir -p ./guild-uat/passed-tests",
+                ("touch ./guild-uat/passed-tests/{"
                  "fresh-install,"
                  "install-required-pip-packages,"
                  "check-without-tensorflow,"
@@ -136,7 +136,7 @@ class Build(object):
                  "../guild-packages"),
 
                 # UAT
-                "guild check --uat",
+                "WORKSPACE=./guild-uat guild check --uat",
             ])
 
     @staticmethod

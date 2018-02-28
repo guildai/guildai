@@ -29,8 +29,12 @@ import guild
 import guild.test
 import guild.var
 
+from guild import util
+
 INDEX = "tests/uat/README.md"
-WORKSPACE = os.path.join(tempfile.gettempdir(), "guild-uat")
+WORKSPACE = (
+    os.getenv("WORKSPACE") or
+    os.path.join(tempfile.gettempdir(), "guild-uat"))
 GUILD_PATH = os.path.join(guild.__pkgdir__, "guild", "scripts")
 REQUIREMENTS_PATH = os.path.join(guild.__pkgdir__, "requirements.txt")
 TEMP = tempfile.gettempdir()
@@ -41,10 +45,7 @@ _cwd = None
 
 def run():
     tests = _tests_from_index()
-    if os.path.exists(WORKSPACE):
-        print("Found workspace at %s, resuming tests" % WORKSPACE)
-    else:
-        _init_workspace()
+    _init_workspace()
     _run_tests(tests)
     _maybe_delete_workspace()
 
@@ -55,14 +56,16 @@ def _tests_from_index():
 
 def _init_workspace():
     print("Initializing workspace %s under %s" % (WORKSPACE, sys.executable))
-    subprocess.check_call(["virtualenv", "-p", sys.executable, WORKSPACE])
-    open(os.path.join(WORKSPACE, "bin/activate"), "a").write(
-        "export GUILD_HOME=%s/.guild\n" % WORKSPACE)
-    os.mkdir(os.path.join(WORKSPACE, "passed-tests"))
-    os.mkdir(os.path.join(WORKSPACE, ".guild"))
-    os.symlink(
-        guild.var.cache_dir(),
-        os.path.join(WORKSPACE, ".guild", "cache"))
+    env_activate = os.path.join(WORKSPACE, "bin/activate")
+    if not os.path.exists(env_activate):
+        subprocess.check_call(["virtualenv", "-p", sys.executable, WORKSPACE])
+        export_guild_home = "export GUILD_HOME=%s/.guild\n" % WORKSPACE
+        open(env_activate, "a").write(export_guild_home)
+    util.ensure_dir(os.path.join(WORKSPACE, "passed-tests"))
+    util.ensure_dir(os.path.join(WORKSPACE, ".guild"))
+    cache_dir = os.path.join(WORKSPACE, ".guild", "cache")
+    if not os.path.exists(cache_dir):
+        os.symlink(guild.var.cache_dir(), cache_dir)
 
 def _run_tests(tests):
     globs = _test_globals()
