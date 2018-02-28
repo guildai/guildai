@@ -27,8 +27,6 @@ class Build(object):
     build_dir = "build"
     test_dir = "test"
 
-    skip_tests = []
-
     cache_dep_files = [
         "requirements.txt",
         "guild/view/package.json",
@@ -113,12 +111,10 @@ class Build(object):
         return "python setup.py bdist_wheel"
 
     def test(self):
-        skip_tests = "".join([" --skip %s" % t for t in self.skip_tests])
         return self._run("Test", [
             self._init_env(self.test_dir),
             self._activate_env(self.test_dir),
             "pip install dist/*.whl",
-            "guild check -T%s" % skip_tests,
             ("git clone https://github.com/guildai/examples.git "
              "../guild-examples"),
             ("git clone https://github.com/guildai/packages.git "
@@ -175,8 +171,6 @@ class LinuxBuild(Build):
     def __init__(self, python):
         self.python = python
         self.name = "linux-python-%s" % python
-        if python.startswith("3."):
-            self.skip_tests = ["tables"]
 
     def env_config(self):
         return [{"image": self.images[self.name]}]
@@ -194,8 +188,6 @@ class MacBuild(Build):
     def __init__(self, python):
         self.python = python
         self.name = "macos-python-%s" % python
-        if python.startswith("3."):
-            self.skip_tests = ["tables"]
 
     def env_config(self):
         return {

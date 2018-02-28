@@ -36,8 +36,6 @@ jobs:
 
           pip install dist/*.whl
 
-          guild check -T
-
           git clone https://github.com/guildai/examples.git ../guild-examples
 
           git clone https://github.com/guildai/packages.git ../guild-packages
