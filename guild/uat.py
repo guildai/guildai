@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import errno
 import os
 import re
 import shutil
@@ -160,7 +161,11 @@ class _kill_after(object):
         self._timer = threading.Timer(timeout, self._kill)
 
     def _kill(self):
-        os.killpg(os.getpgid(self._p.pid), signal.SIGKILL)
+        try:
+            os.killpg(os.getpgid(self._p.pid), signal.SIGKILL)
+        except OSError as e:
+            if e.errno != errno.ESRCH: # no such process
+                raise
 
     def __enter__(self):
         self._timer.start()
