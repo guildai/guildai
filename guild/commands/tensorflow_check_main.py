@@ -17,6 +17,7 @@ from __future__ import division
 
 import os
 import re
+import subprocess
 import sys
 
 import click
@@ -76,15 +77,38 @@ def _print_tensorboard_info():
 
 
 def _print_cuda_info():
-    proc_maps = "/proc/%s/maps" % os.getpid()
-    if not os.path.exists(proc_maps):
-        return
-    raw = open(proc_maps, "r").read()
-    version_patterns = [
+    if sys.platform == "darwin":
+        _print_macos_cuda_info()
+    else:
+        _print_linux_cuda_info()
+
+def _print_macos_cuda_info():
+    patterns = [
+        ("libcuda", "libcuda\\.([\\S]+)\\.so\\.dylib"),
+        ("libcudnn", "libcudnn\\.([\\S]+)\\.dylib"),
+    ]
+    try:
+        raw = subprocess.check_output(["mmap", str(os.getpid())])
+    except OSError:
+        raw = ""
+    _gen_print_lib_info(patterns, raw)
+
+def _print_linux_cuda_info():
+    patterns = [
         ("libcuda", "libcuda\\.so\\.([\\S]+)"),
         ("libcudnn", "libcudnn\\.so\\.([\\S]+)"),
     ]
-    for name, pattern in version_patterns:
+    proc_maps = "/proc/%s/maps" % os.getpid()
+    if not os.path.exists(proc_maps):
+        return
+    try:
+        raw = open(proc_maps, "r").read()
+    except IOError:
+        raw = ""
+    _gen_print_lib_info(patterns, raw)
+
+def _gen_print_lib_info(patterns, raw):
+    for name, pattern in patterns:
         m = re.search(pattern, raw)
         space = " " * (18 - len(name))
         if m:
