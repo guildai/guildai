@@ -32,7 +32,7 @@ import guild.var
 from guild import util
 
 INDEX = "tests/uat/README.md"
-WORKSPACE = (
+WORKSPACE = os.path.abspath(
     os.getenv("WORKSPACE") or
     os.path.join(tempfile.gettempdir(), "guild-uat"))
 GUILD_PATH = os.path.join(guild.__pkgdir__, "guild", "scripts")
@@ -45,9 +45,9 @@ _cwd = None
 
 def run():
     tests = _tests_from_index()
-    _init_workspace()
+    workspace_created = _init_workspace()
     _run_tests(tests)
-    _maybe_delete_workspace()
+    _maybe_delete_workspace(workspace_created)
 
 def _tests_from_index():
     index_path = os.path.join(os.path.dirname(__file__), INDEX)
@@ -55,6 +55,7 @@ def _tests_from_index():
     return re.findall(r"\((.+?)\.md\)", index)
 
 def _init_workspace():
+    existing_workspace = os.path.exists(WORKSPACE)
     print("Initializing workspace %s under %s" % (WORKSPACE, sys.executable))
     env_activate = os.path.join(WORKSPACE, "bin/activate")
     if not os.path.exists(env_activate):
@@ -66,6 +67,7 @@ def _init_workspace():
     cache_dir = os.path.join(WORKSPACE, ".guild", "cache")
     if not os.path.islink(cache_dir):
         os.symlink(guild.var.cache_dir(), cache_dir)
+    return not existing_workspace
 
 def _run_tests(tests):
     globs = _test_globals()
@@ -175,13 +177,16 @@ def _strip_lines(out, patterns):
     ]
     return "\n".join(stripped_lines)
 
-def _maybe_delete_workspace():
-    if os.getenv("KEEP_WORKSPACE"):
+def _maybe_delete_workspace(created):
+    if not created:
+        print(
+            "WORKSPACE existed before running tests, "
+            "leaving %s in place" % WORKSPACE)
+    elif os.getenv("KEEP_WORKSPACE"):
         print("KEEP_WORKSPACE specified, leaving %s in place" % WORKSPACE)
     else:
         _delete_workspace()
 
 def _delete_workspace():
-    assert os.path.dirname(WORKSPACE) == tempfile.gettempdir(), WORKSPACE
     print("Deleting workspace %s" % WORKSPACE)
     shutil.rmtree(WORKSPACE)
