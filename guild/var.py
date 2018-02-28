@@ -27,10 +27,7 @@ import guild.util
 log = logging.getLogger("guild")
 
 def path(subpath):
-    return os.path.join(_root(), subpath)
-
-def _root():
-    return guild.config.guild_home()
+    return os.path.join(guild.config.guild_home(), subpath)
 
 def runs_dir(deleted=False):
     if deleted:
