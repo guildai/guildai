@@ -112,9 +112,13 @@ class Build(object):
         skip_tests = "".join([" --skip %s" % t for t in self.skip_tests])
         return self._run(
             "Test", [
+                # Active venv and install built package
                 "source venv/bin/activate",
                 "pip install dist/*.whl",
+
+                # Guild check
                 "guild check -T%s" % skip_tests,
+
                 # The uat assumes a dev environment rather than a
                 # fresh Guild install. The extra steps below are to
                 # hack the uat to bypass the pre-install steps.
@@ -124,6 +128,14 @@ class Build(object):
                  "install-required-pip-packages,"
                  "check-without-tensorflow,"
                  "install-tensorflow}"),
+
+                # Examples and packages repos required for some uat tests.
+                ("git clone https://github.com/guildai/examples.git "
+                 "guild-examples"),
+                ("git clone https://github.com/guildai/packages.git "
+                 "guild-packages"),
+
+                # UAT
                 "guild check --uat",
             ])
 
