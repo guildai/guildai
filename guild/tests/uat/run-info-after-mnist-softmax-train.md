@@ -28,7 +28,7 @@ We can optionally show files, flags, and env for a run:
     pid:
     environment:
       CMD_DIR: .../guild-uat
-      GUILD_PLUGINS: cpu,disk,gpu,memory
+      GUILD_PLUGINS: cpu,disk,...memory
       LANG: ...
       LOG_LEVEL: 20
       MODEL_DIR: .../site-packages/gpkg/mnist
