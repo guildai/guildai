@@ -11,4 +11,4 @@ process using a timeout:
       batch-size: 100
       epochs: 10
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>

@@ -103,7 +103,7 @@ Here's a preview of the command:
     You are about to run ./hello:from-file-output
       file-output: foobar
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 We'll use the first run for `from-file`.
 
