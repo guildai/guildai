@@ -18,14 +18,14 @@ import yaml
 
 class Build(object):
 
+    # Increment when caching scheme changes
+    cache_scheme_version = 6
+
     name = None
     python = None
     env = None
 
     skip_tests = []
-
-    # Increment when caching scheme changes
-    cache_scheme_version = 5
 
     cache_dep_files = [
         "requirements.txt",

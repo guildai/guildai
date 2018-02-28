@@ -6,7 +6,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python-2.7-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python-2.7-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo pip install virtualenv
 
@@ -21,7 +21,7 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: linux-python-2.7-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python-2.7-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:
@@ -62,7 +62,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python-3.5-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python-3.5-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo pip install virtualenv
 
@@ -77,7 +77,7 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: linux-python-3.5-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python-3.5-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:
@@ -118,7 +118,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python-3.6-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python-3.6-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo pip install virtualenv
 
@@ -133,7 +133,7 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: linux-python-3.6-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python-3.6-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:
@@ -174,7 +174,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos-python-2.7-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos-python-2.7-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo pip install virtualenv
 
@@ -189,7 +189,7 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: macos-python-2.7-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos-python-2.7-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:
@@ -230,7 +230,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos-python-3.6-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos-python-3.6-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'brew install python3
 
@@ -247,7 +247,7 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: macos-python-3.6-5-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos-python-3.6-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:
