@@ -8,7 +8,7 @@
     author: Guild AI
     author-email: packages@guild.ai
     license: Apache 2.0
-    location: /.../guild-uat/lib/python.../site-packages
+    location: /.../lib/python.../site-packages
     requires: []
     <exit 0>
 
