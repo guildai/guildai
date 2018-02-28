@@ -117,7 +117,7 @@ class Build(object):
         return self._run("Test", [
             self._init_env(self.test_dir),
             self._activate_env(self.test_dir),
-            "pip install dist/*.hwl",
+            "pip install dist/*.whl",
             "guild check -T%s" % skip_tests,
             ("git clone https://github.com/guildai/examples.git "
              "../guild-examples"),
