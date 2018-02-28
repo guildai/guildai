@@ -1,12 +1,12 @@
 jobs:
-  linux-python-2.7:
-    docker:
-    - image: circleci/python:2.7-stretch-node
+  macos-python-2.7:
+    macos:
+      xcode: 9.2.0
     steps:
     - checkout
     - restore_cache:
         keys:
-        - linux-python-2.7-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos-python-2.7-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo pip install virtualenv
 
@@ -21,13 +21,13 @@ jobs:
           cd guild/view && npm install'
         name: Install dependencies
     - save_cache:
-        key: linux-python-2.7-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos-python-2.7-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - venv
     - run:
         command: 'source venv/bin/activate
 
-          python setup.py bdist_wheel -p manylinux1_x86_64'
+          python setup.py bdist_wheel'
         name: Build
     - run:
         command: 'source venv/bin/activate
@@ -55,131 +55,11 @@ jobs:
           twine upload --skip-existing dist/*.whl'
         name: Upload to PyPI
     working_directory: ~/repo
-  linux-python-3.5:
-    docker:
-    - image: circleci/python:3.5-jessie-node
-    steps:
-    - checkout
-    - restore_cache:
-        keys:
-        - linux-python-3.5-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-    - run:
-        command: 'sudo pip install virtualenv
-
-          virtualenv venv
-
-          source venv/bin/activate
-
-          pip install -r requirements.txt
-
-          pip install tensorflow
-
-          cd guild/view && npm install'
-        name: Install dependencies
-    - save_cache:
-        key: linux-python-3.5-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-        paths:
-        - venv
-    - run:
-        command: 'source venv/bin/activate
-
-          python setup.py bdist_wheel -p manylinux1_x86_64'
-        name: Build
-    - run:
-        command: 'source venv/bin/activate
-
-          pip install dist/*.whl
-
-          guild check -T --skip tables
-
-          mkdir -p ./guild-uat/passed-tests
-
-          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow}
-
-          git clone https://github.com/guildai/examples.git ../guild-examples
-
-          git clone https://github.com/guildai/packages.git ../guild-packages
-
-          WORKSPACE=./guild-uat guild check --uat'
-        name: Test
-    - store_artifacts:
-        destination: dist
-        path: dist
-    - run:
-        command: 'source venv/bin/activate
-
-          twine upload --skip-existing dist/*.whl'
-        name: Upload to PyPI
-    working_directory: ~/repo
-  linux-python-3.6:
-    docker:
-    - image: circleci/python:3.6-stretch-node
-    steps:
-    - checkout
-    - restore_cache:
-        keys:
-        - linux-python-3.6-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-    - run:
-        command: 'sudo pip install virtualenv
-
-          virtualenv venv
-
-          source venv/bin/activate
-
-          pip install -r requirements.txt
-
-          pip install tensorflow
-
-          cd guild/view && npm install'
-        name: Install dependencies
-    - save_cache:
-        key: linux-python-3.6-6-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
-        paths:
-        - venv
-    - run:
-        command: 'source venv/bin/activate
-
-          python setup.py bdist_wheel -p manylinux1_x86_64'
-        name: Build
-    - run:
-        command: 'source venv/bin/activate
-
-          pip install dist/*.whl
-
-          guild check -T --skip tables
-
-          mkdir -p ./guild-uat/passed-tests
-
-          touch ./guild-uat/passed-tests/{fresh-install,install-required-pip-packages,check-without-tensorflow}
-
-          git clone https://github.com/guildai/examples.git ../guild-examples
-
-          git clone https://github.com/guildai/packages.git ../guild-packages
-
-          WORKSPACE=./guild-uat guild check --uat'
-        name: Test
-    - store_artifacts:
-        destination: dist
-        path: dist
-    - run:
-        command: 'source venv/bin/activate
-
-          twine upload --skip-existing dist/*.whl'
-        name: Upload to PyPI
-    working_directory: ~/repo
 version: 2
 workflows:
   all:
     jobs:
-    - linux-python-2.7:
-        filters:
-          branches:
-            only: release
-    - linux-python-3.5:
-        filters:
-          branches:
-            only: release
-    - linux-python-3.6:
+    - macos-python-2.7:
         filters:
           branches:
             only: release
