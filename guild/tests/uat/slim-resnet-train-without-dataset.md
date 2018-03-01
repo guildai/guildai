@@ -18,7 +18,7 @@ Training without a prepared dataset is an error:
     >>> run("guild run resnet-50:train dataset=flowers -y", timeout=120)
     Resolving slim/models-lib dependency
     ...
-    Resolving slim-datasets:flowers dependency
+    Resolving flowers dependency
     guild: run failed because a dependency was not met: could not resolve
     'operation:slim-flowers:prepare' in flowers resource: no suitable run
     for slim-flowers:prepare

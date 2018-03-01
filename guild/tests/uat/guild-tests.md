@@ -12,6 +12,7 @@ tests).
       disk-plugin:             ok
       entry-points:            ok
       guildfiles:              ok
+      help:                    ok
       imports:                 ok
       logging:                 ok
       main-bootstrap:          ok
