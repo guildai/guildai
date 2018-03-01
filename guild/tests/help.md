@@ -1,10 +1,17 @@
 # Model help
 
+Model help support is provided by `guild.help`.
+
     >>> import guild.help
 
-    >>> from guild import guildfile
+It's used to format help for a guildfile.
 
+    >>> from guild import guildfile
     >>> gf = guildfile.from_dir(sample("projects/mnist"))
+
+The `package_description` function returns a restructured text
+formatted string:
+
     >>> print(guild.help.package_description(gf, [("ref-1", "foobar")]))
     Models
     ######
