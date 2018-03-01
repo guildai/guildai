@@ -20,6 +20,8 @@
   operations:
     train: expert
     evaluate: expert --test
+  resources:
+    $include: common
 
 - config: common
   flags:

@@ -27,12 +27,6 @@ Models are access using the `models` attribute:
     [('expert', <guild.guildfile.ModelDef 'expert'>),
      ('intro', <guild.guildfile.ModelDef 'intro'>)]
 
-Guildfiles may contain configuration that's shared by models. This can
-be accessed using the `config` attribute:
-
-    >>> sorted(gf.config.items())
-    [('common', <guild.guildfile.Config 'common'>)]
-
 ### Accessing modeldefs
 
 We can lookup a models using dictionary semantics:
@@ -86,7 +80,7 @@ run. Flags can be defined at the model level and at the operation
 level.
 
 Our sample guildfile uses an advanced scheme of including flag
-definitions from one model into another model. Refer to
+definitions from a shared config into two models. Refer to
 [samples/projects/mnist/guild.yml](samples/projects/mnist/guild.yml)
 for details on how this is structured.
 
@@ -97,42 +91,35 @@ We'll use a helper function to print the flagdefs:
     ...     (flag.name, flag.description, flag.default)
     ...     for flag in flags]
 
-Let's look at the flags defined for the `common` model, which is a
-private modeldef that the two `mnist` models reference.
+Let's look at the flags defined for the `intro` model:
 
-    >>> flagdefs(gf.config["common"].flags)
+    >>> flagdefs(gf.models["intro"].flags)
     [('batch-size', 'Number of images per batch', 100),
-     ('epochs', 'Number of epochs to train', 5)]
+     ('epochs', 'Number of epochs to train', 10),
+     ('learning-rate', 'Learning rate for training', 0.001)]
 
-Flag *values* are distinct from flag *definitions*. The value
+Note that while the value for `epochs` is redefined, the original flag
+description is not.
+
+Flag *values* are distinct from flag *definitions*. The default value
 associated with a flag definition is used as the initial flag
 value. We can read the flag values using `get_flag_value`:
 
-    >>> gf.config["common"].get_flag_value("batch-size")
+    >>> gf.models["intro"].get_flag_value("batch-size")
     100
 
-    >>> gf.config["common"].get_flag_value("epochs")
-    5
+    >>> gf.models["intro"].get_flag_value("epochs")
+    10
 
 These values can be modified without effecting the flag definitions.
 
-    >>> gf.config["common"].set_flag_value("epochs", 3)
-    >>> gf.config["common"].get_flag_value("epochs")
+    >>> gf.models["intro"].set_flag_value("epochs", 3)
+
+    >>> gf.models["intro"].get_flag_value("epochs")
     3
-    >>> gf.config["common"].get_flagdef("epochs").default
-    5
 
-The `expert` model has the following `flags` spec:
-
-    flags: common
-
-This is short-hand for:
-
-    flags:
-      $include: common
-
-This indicates that the flag definitions for the `common` model should
-be included in the referencing model.
+    >>> gf.models["intro"].get_flagdef("epochs").default
+    10
 
 Here are the flag defs for `expert`:
 
@@ -143,17 +130,6 @@ Here are the flag defs for `expert`:
 In this case the `expert` model included all of the `common`
 flag definitions without redefining any.
 
-The `intro` model also includes `common` flags but redefines the value
-of one flag and adds another:
-
-    >>> flagdefs(gf.models["intro"].flags)
-    [('batch-size', 'Number of images per batch', 100),
-     ('epochs', 'Number of epochs to train', 10),
-     ('learning-rate', 'Learning rate for training', 0.001)]
-
-Note that while the value for `epochs` is redefined, the original flag
-description is not.
-
 The third set of flags defined in the guildfile is associated with the
 `evaluate` operation of the `intro` model.
 
@@ -163,16 +139,16 @@ The third set of flags defined in the guildfile is associated with the
      ('epochs', '', 1)]
 
 In this case the operation did not include flagdefs and did not
-provide descriptions for its flags, so those are none.
+provide descriptions for its flags.
 
-Returning to flag values, operations inherit the values of flags
-defined in their host models. We can use `all_flag_values` to retrieve
-all of the flag values associated with a model or op definition.
+Operations inherit the values of flags defined in their host
+models. We can use `all_flag_values` to retrieve all of the flag
+values associated with a model or op definition.
 
 Flag values for `intro` model:
 
     >>> pprint(gf.models["intro"].flag_values())
-    {'batch-size': 100, 'epochs': 10, 'learning-rate': 0.001}
+    {'batch-size': 100, 'epochs': 3, 'learning-rate': 0.001}
 
 Flag values for `evaluate` op of `intro` model:
 
@@ -302,18 +278,15 @@ ops are provided as guildfile.PluginOp objects and have `name` and
 Model resources are are named lists of sources that may be required by
 operations. Our sample models each have the following resources:
 
-    >>> gf.config["common"].resources
-    [<guild.guildfile.ResourceDef 'data'>]
-
     >>> gf.models["expert"].resources
-    []
+    [<guild.guildfile.ResourceDef 'data'>]
 
     >>> gf.models["intro"].resources
     []
 
-In the same way that models can include flag definitions from other
-models, they can include resources. In our example, both the `intro`
-and `expert` models include resources from the `common` model.
+In the same way that models can include flag definitions, they can
+include resources. In our example, the `expert` model includes
+resources from `common` config.
 
 A resource source consists of a URI and other information that Guild
 uses to fully resolve the source. URIs are specified indirectly using

@@ -77,7 +77,6 @@ class Guildfile(object):
         self.dir = dir
         self.default_model = None
         self.models = {}
-        self.config = {}
         self.package = None
         self.data = self._coerce_guildfile_data(data)
         self._apply_data()
@@ -97,8 +96,6 @@ class Guildfile(object):
                 self._apply_model(name, item)
             elif item_type == "package":
                 self._apply_package(name, item)
-            elif item_type == "config":
-                self._apply_config(name, item)
 
     def _validated_item_type(self, item):
         used = [name for name in ALL_TYPES if name in item]
@@ -131,11 +128,6 @@ class Guildfile(object):
             raise GuildfileError(self, "mutiple package definitions")
         self.package = PackageDef(name, data, self)
 
-    def _apply_config(self, name, data):
-        if name in self.config:
-            raise GuildfileError(self, "duplicate config '%s'" % name)
-        self.config[name] = Config(name, data, self)
-
     def __repr__(self):
         return "<guild.guildfile.Guildfile '%s'>" % self
 
@@ -149,7 +141,7 @@ class Guildfile(object):
 # Includes support
 ###################################################################
 
-def _resolve_includes(data, section_name, guildfile, coerce_data):
+def _resolve_includes(data, section_name, guildfile, coerce_data=None):
     assert isinstance(data, dict), data
     resolved = {}
     seen_includes = set()
@@ -253,14 +245,16 @@ def _includes_first(names):
     return sorted(names, key=lambda x: "\x00" if x == "$include" else x)
 
 def _apply_data(name, data, resolved, coerce_data, guildfile):
+    if coerce_data:
+        data = coerce_data(data, guildfile)
     try:
         cur = resolved[name]
     except KeyError:
         new = {}
-        new.update(coerce_data(data, guildfile))
+        new.update(data)
         resolved[name] = new
     else:
-        _apply_missing_vals(cur, coerce_data(data, guildfile))
+        _apply_missing_vals(cur, data)
 
 def _apply_missing_vals(target, source):
     assert isinstance(target, dict), target
@@ -329,12 +323,8 @@ class FlagHost(object):
         self._flag_vals = merged_vals
 
 def _init_flags(data, guildfile):
-    flags_data = _resolve_includes(
-        data, "flags", guildfile, _coerce_flag_data)
-    return [
-        FlagDef(name, flags_data[name])
-        for name in sorted(flags_data)
-    ]
+    data = _resolve_includes(data, "flags", guildfile, _coerce_flag_data)
+    return [FlagDef(name, data[name]) for name in sorted(data)]
 
 def _coerce_flag_data(data, src):
     if isinstance(data, dict):
@@ -384,26 +374,26 @@ class FlagChoice(object):
             raise GuildfileError(self, "invalid choices value: %r" % data)
 
 ###################################################################
-# Model def base
+# Model def
 ###################################################################
 
-class ModelDefBase(FlagHost):
+class ModelDef(FlagHost):
 
     def __init__(self, name, data, guildfile):
         data = _extended_data(data, guildfile)
-        super(ModelDefBase, self).__init__(data, guildfile)
+        super(ModelDef, self).__init__(data, guildfile)
         self.name = name
         self.guildfile = guildfile
         self.description = data.get("description", "").strip()
         self.references = data.get("references", [])
         self.private = bool(data.get("private"))
         self.operations = _init_ops(data.get("operations", {}), self)
-        self.resources = _init_resources(data.get("resources", {}), self)
+        self.resources = _init_resources(data, self)
         self.disabled_plugins = data.get("disabled-plugins", [])
         self.extra = data.get("extra", {})
 
     def __repr__(self):
-        raise NotImplementedError()
+        return "<guild.guildfile.ModelDef '%s'>" % self.name
 
     def get_operation(self, name):
         for op in self.operations:
@@ -526,28 +516,8 @@ def _coerce_op_data(data):
         return data
 
 def _init_resources(data, modeldef):
-    return [
-        ResourceDef(key, data[key], modeldef)
-        for key in sorted(data)
-    ]
-
-###################################################################
-# Model def
-###################################################################
-
-class ModelDef(ModelDefBase):
-
-    def __repr__(self):
-        return "<guild.guildfile.ModelDef '%s'>" % self.name
-
-###################################################################
-# Config
-###################################################################
-
-class Config(ModelDefBase):
-
-    def __repr__(self):
-        return "<guild.guildfile.Config '%s'>" % self.name
+    data = _resolve_includes(data, "resources", modeldef.guildfile)
+    return [ResourceDef(key, data[key], modeldef) for key in sorted(data)]
 
 ###################################################################
 # Op def
