@@ -4,7 +4,7 @@ Direct output to /dev/null to avoid freezing (I believe related to
 rapid stdout updates from the processing progress).
 
     >>> run("guild run flowers:prepare -y > /dev/null")
-    Resolving slim/lib dependency
+    Resolving slim/models-lib dependency
     ...
     <exit 0>
 

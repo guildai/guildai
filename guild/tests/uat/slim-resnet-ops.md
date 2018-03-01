@@ -17,6 +17,7 @@ Package ops:
     slim.resnet/slim-resnet-152:train         Train ResNet-1152
     slim.resnet/slim-resnet-200:evaluate      Evaluate a trained ResNet-200 model
     slim.resnet/slim-resnet-200:export        Generate a ResNet-200 graph def
+    slim.resnet/slim-resnet-200:fine-tune     Fine-tune ResNet-200
     slim.resnet/slim-resnet-200:freeze        Generate a ResNet-200 graph def with checkpoint weights
     slim.resnet/slim-resnet-200:predict       Use TensorFlow label_image and ResNet-200 to classify an image
     slim.resnet/slim-resnet-200:train         Train ResNet-200
