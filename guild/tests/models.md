@@ -230,7 +230,7 @@ Model definitions in turn are associated with the guildfiles they're
 defined in.
 
     >>> cnn_def.guildfile.src
-    '.../samples/packages/gpkg/mnist/MODELS'
+    '.../samples/packages/gpkg/mnist/guild.yml'
 
     >>> intro_def.guildfile.src
-    '.../samples/projects/mnist/MODELS'
+    '.../samples/projects/mnist/guild.yml'

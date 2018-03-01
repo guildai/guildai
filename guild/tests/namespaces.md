@@ -140,8 +140,8 @@ If a project name is not in a namespace, the namespace raises TypeError:
 
 Guild provides a special namespace for guildfile packages. A guildfile
 package is a local directory containing a guildfile (i.e. a file named
-`MODEL` or `MODELS`). If a guildfile package is on the Python path,
-Guild will see any models defined in it.
+`guild.yml`). If a guildfile package is on the Python path, Guild will
+see any models defined in it.
 
     >>> guildfile = namespace.for_name("guildfile")
 

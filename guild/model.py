@@ -198,7 +198,7 @@ class GuildfileDistribution(pkg_resources.Distribution):
         modified in a call to `pkg_resources.safe_name`) that, when
         unescaped using `_unescape_project_name`, is the relative path of
         the directory containing the guildfile. The modefile name itself
-        (e.g. 'MODEL' or 'MODELS') is not contained in the path.
+        (e.g. 'guild.yml') is not contained in the path.
 
         Guildfile paths are relative to the current working directory
         (i.e. the value of os.getcwd() at the time they are generated) and

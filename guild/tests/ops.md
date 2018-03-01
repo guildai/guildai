@@ -20,7 +20,7 @@ For our tests, we'll use a helper function that returns an instance of
     ...         }
     ...       }
     ...     ]
-    ...     models = guild.guildfile.Guildfile(data, "./MODEL")
+    ...     models = guild.guildfile.Guildfile(data, "./guild.yml")
     ...     return models["model"].get_operation(name)
 
 We'll also create a helper function that returns and instance of
@@ -70,9 +70,9 @@ Command specs cannot be empty:
 
 ## Flag args
 
-Flags are defined in MODEL files and provided as command line
-arguments to the run command. `_flag_args` returns a list of command
-line arg for a map of flag values.
+Flags are defined in guildfiles (defaults) and also provided as
+command line arguments to the run command. `_flag_args` returns a list
+of command line arg for a map of flag values.
 
 We'll create a helper function to get the args:
 

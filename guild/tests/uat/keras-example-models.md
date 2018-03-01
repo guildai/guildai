@@ -8,8 +8,8 @@ We can illustrate this using the Keras `mnist` example.
 
 This example doesn't have a guildfile:
 
-    >>> run("ls MODEL*")
-    ls: ...MODEL*...: No such file or directory
+    >>> run("ls guild.yml")
+    ls: ...guild.yml...: No such file or directory
     <exit ...>
 
 However, we can still list locally defined models:

@@ -1,8 +1,8 @@
 # MNIST example models
 
 In this test we'll list the available models for the MNIST example. As
-example directory contains a file named `MODELS` ("guildfile") Guild
-limits its results to models defined in that file.
+example directory contains a file named `guild.yml` ("guildfile")
+Guild limits its results to models defined in that file.
 
 We can reference a guildfile in one of two ways:
 

@@ -3,7 +3,7 @@
 Available operations are listed using the `operations` command (or
 `ops` for short). This command follows the same pattern used by
 `models`, which is to limit results to a modefile when the command is
-applied to a directory containing a file named `MODEL` or `MODELS`.
+applied to a directory containing a file named `guild.yml`.
 
 For more information on this logic, see
 [mnist-example-models.md](mnist-example-models.md).

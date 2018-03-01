@@ -1,25 +1,25 @@
-# Model files
+# Guild files
 
-Model files are files that contain model definitions. By convention
-model files are named `MODEL` or `MODELS`.
+Guild files are files that contain model definitions. By convention
+guild files are named `guild.yml`.
 
-Support for model files is provided by the `guildfile` module:
+Support for guild files is provided by the `guildfile` module:
 
     >>> from guild import guildfile
 
-## Loading a model file from a directory
+## Loading a guild file from a directory
 
-Use `from_dir` to load a model file from a directory:
+Use `from_dir` to load a guild file from a directory:
 
     >>> mf = guildfile.from_dir(sample("projects/mnist"))
     >>> mf.src
-    '.../samples/projects/mnist/MODELS'
+    '.../samples/projects/mnist/guild.yml'
 
 ## Loading a guildfile from a file
 
 Use `from_file` to load a guildfile from a file directly:
 
-    >>> mf = guildfile.from_file(sample("projects/mnist/MODELS"))
+    >>> mf = guildfile.from_file(sample("projects/mnist/guild.yml"))
     >>> [model.name for model in mf]
     ['intro', 'expert', 'common']
 
@@ -90,8 +90,8 @@ level.
 
 Our sample guildfile uses an advanced scheme of including flag
 definitions from one model into another model. Refer to
-[samples/projects/mnist/MODELS](samples/projects/mnist/MODELS) for
-details on how this is structured.
+[samples/projects/mnist/guild.yml](samples/projects/mnist/guild.yml)
+for details on how this is structured.
 
 We'll use a helper function to print the flagdefs:
 
@@ -393,7 +393,7 @@ to direct users to upstream sources and papers.
 
 ## Includes
 
-Guild model files support includes.
+Guild guild files support includes.
 
     >>> mf = guildfile.from_dir(sample("projects/includes"))
     >>> list(mf)
@@ -580,7 +580,7 @@ This facility is used to implement model inheritance. Models inherit
 the attributes of parent models by listing parent models in an
 `extends` attributes.
 
-Here's a model file that defines a model that extends another:
+Here's a guild file that defines a model that extends another:
 
     >>> mf = guildfile.from_string("""
     ... - name: trainable
@@ -848,7 +848,7 @@ Here's an example of a parent that provides default param values.
     Traceback (most recent call last):
     GuildfileFormatError: ...
 
-### No models (i.e. MODEL or MODELS)
+### No models (missing guild file)
 
     >>> guildfile.from_dir(sample("projects/missing-sources"))
     Traceback (most recent call last):
@@ -859,7 +859,7 @@ in Python 3 and IOError in Python 2) so we'll assert using exception
 content.
 
     >>> try:
-    ...   guildfile.from_file(sample("projects/missing-sources/MODEL"))
+    ...   guildfile.from_file(sample("projects/missing-sources/guild.yml"))
     ... except IOError as e:
     ...   print(str(e))
-    [Errno 2] No such file or directory: '.../projects/missing-sources/MODEL'
+    [Errno 2] No such file or directory: '.../projects/missing-sources/guild.yml'

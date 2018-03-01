@@ -1,5 +1,5 @@
 gpkg.mnist-0.1.0-py2.7-nspkg.pth,sha256=3xb90dBivDFXdtzoeCL9KXHrd-f6F3608fOH6f5Ond0,529
-gpkg/mnist/MODELS,sha256=3y9ZQK3z0il25JyoaU2AVIBQ63N19sHnjkYuBKhrnd4,653
+gpkg/mnist/guild.yml,sha256=3y9ZQK3z0il25JyoaU2AVIBQ63N19sHnjkYuBKhrnd4,653
 gpkg/mnist/README.md,sha256=c3WvuJQGlzMGCV2PGZC_1iKaKVa5KB7_tU9B32L2-MY,115
 gpkg/mnist/cnn.py,sha256=fMLSSmg85-9oZ8Ut1cqupTPI5ZNea5i5F9oqHwUCsHw,5770
 gpkg/mnist/softmax.py,sha256=fAYkAF6JfwT7rpgI40MU5Z-0GnJsbORrUHZVCPYqDHE,5118

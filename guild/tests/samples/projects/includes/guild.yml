@@ -1,4 +1,4 @@
-- !load shared.MODEL
+- !load shared.yml
 
 - name: model-a
   flags:

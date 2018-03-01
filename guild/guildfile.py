@@ -27,8 +27,7 @@ from guild import yaml
 
 log = logging.getLogger("guild")
 
-# The order here should be based on priority of selection.
-NAMES = ["MODELS", "MODEL"]
+NAMES = ["guild.yml"]
 
 _cache = {}
 
