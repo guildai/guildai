@@ -63,6 +63,19 @@ class GuildfileReferenceError(GuildfileError):
     pass
 
 ###################################################################
+# Helpers
+###################################################################
+
+def _required(name, data, guildfile):
+    try:
+        return data[name]
+    except KeyError:
+        raise GuildfileError(
+            guildfile,
+            "missing required '%s' attribute in %r"
+            % (name, data))
+
+###################################################################
 # Guildfile
 ###################################################################
 
@@ -386,7 +399,7 @@ class ModelDef(FlagHost):
         self.guildfile = guildfile
         self.description = data.get("description", "").strip()
         self.references = data.get("references", [])
-        self.operations = _init_ops(data.get("operations", {}), self)
+        self.operations = _init_ops(data, self)
         self.resources = _init_resources(data, self)
         self.disabled_plugins = data.get("disabled-plugins", [])
         self.extra = data.get("extra", {})
@@ -501,9 +514,10 @@ def _maybe_resolve_param_ref(val, params):
     return val
 
 def _init_ops(data, modeldef):
+    ops_data = data.get("operations", {})
     return [
-        OpDef(key, _coerce_op_data(data[key]), modeldef)
-        for key in sorted(data)
+        OpDef(key, _coerce_op_data(ops_data[key]), modeldef)
+        for key in sorted(ops_data)
     ]
 
 def _coerce_op_data(data):
@@ -562,11 +576,7 @@ class OpDependency(object):
             self.spec = data
             self.description = ""
         elif isinstance(data, dict):
-            self.spec = data.get("resource")
-            if not self.spec:
-                raise GuildfileError(
-                    self, ("missing required 'resource' attribute "
-                           "in dependency %r" % data))
+            self.spec = _required("resource", data, self.opdef.guildfile)
             self.description = data.get("description", "")
         else:
             raise GuildfileError(
@@ -623,10 +633,24 @@ class ResourceDef(resourcedef.ResourceDef):
 
 class PackageDef(object):
 
-    def __init__(self, name, _data, guildfile):
+    def __init__(self, name, data, guildfile):
         self.name = name
         self.guildfile = guildfile
-        # TODO - apply data
+        self.description = data.get("description", "").strip()
+        self.version = _required("version", data, guildfile)
+        self.url = data.get("url")
+        self.maintainer = data.get("maintainer")
+        self.maintainer_email = _required("maintainer-email", data, guildfile)
+        self.license = data.get("license")
+        self.tags = data.get("tags", [])
+        self.python_tag = data.get("python-tag")
+        self.data_files = data.get("data-files", [])
+        self.resources = _init_resources(data, self)
+        self.python_requires = data.get("python-requires", [])
+        self.requires = data.get("requires", [])
+
+    def __repr__(self):
+        return "<guild.guildfile.PackageDef '%s'>" % self.name
 
 ###################################################################
 # Module API

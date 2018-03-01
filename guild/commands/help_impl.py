@@ -93,13 +93,10 @@ def _matching_packages(ref):
     return [pkgs[name] for name in sorted(pkgs)]
 
 def _format_guildfile_help(guildfile, desc, args):
-    refs = {
-        ("Guildfile", guildfile.src)
-    }
     if args.package_description:
-        return guild.help.package_description(guildfile, refs)
+        return guild.help.package_description(guildfile)
     else:
-        return guild.help.guildfile_console_help(guildfile, refs, desc)
+        return guild.help.guildfile_console_help(guildfile, desc)
 
 def _print_help(help, args):
     if args.no_pager:

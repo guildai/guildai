@@ -159,6 +159,7 @@ def _test_globals():
         "abspath": os.path.abspath,
         "relpath": os.path.relpath,
         "join_path": os.path.join,
+        "symlink": os.symlink,
     }
 
 def sample(*parts):

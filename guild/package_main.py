@@ -21,13 +21,13 @@ import sys
 
 import setuptools
 import twine.commands.upload
+import yaml
 
 import guild.help
 
 from guild import namespace
 from guild import guildfile
 from guild import util
-from guild import yaml
 
 class Pkg(object):
 
@@ -54,21 +54,18 @@ def main():
 def _load_pkg():
     path = os.getenv("PACKAGE_FILE")
     try:
-        f = open(path, "r")
+        gf = guildfile.from_file(path)
     except IOError as e:
         _exit("error reading %s\n%s" % (path, e))
     else:
-        try:
-            data = yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            _exit("error reading %s\n%s" % (path, e))
-        else:
-            return Pkg(path, data)
+        if not gf.package:
+            _exit("%s does not contain a package definition" % path)
+        return gf.package
 
 def _create_dist(pkg):
     sys.argv = _bdist_wheel_cmd_args(pkg)
     kw = _setup_kw(pkg)
-    _write_package_metadata(kw)
+    _write_package_metadata(pkg, kw)
     _patch_setuptools_namespaces()
     return setuptools.setup(**kw)
 
@@ -79,9 +76,8 @@ def _bdist_wheel_cmd_args(pkg):
     return args
 
 def _python_tag_args(pkg):
-    tag = pkg.get("python-tag")
-    if tag:
-        return ["--python-tag", tag]
+    if pkg.python_tag:
+        return ["--python-tag", pkg.python_tag]
     else:
         return ["--universal"]
 
@@ -93,19 +89,19 @@ def _dist_dir_args():
         return []
 
 def _setup_kw(pkg):
-    pkg_name = "gpkg." + pkg["name"]
-    project_dir = os.path.dirname(pkg.src)
+    pkg_name = "gpkg." + pkg.name
+    project_dir = os.path.dirname(pkg.guildfile.src)
     desc, long_desc = _pkg_description(pkg)
     return dict(
         name=pkg_name,
-        version=pkg["version"],
+        version=pkg.version,
         description=desc,
         long_description=long_desc,
-        url=pkg["url"],
-        maintainer=pkg.get("maintainer"),
-        maintainer_email=pkg["maintainer-email"],
-        license=pkg.get("license"),
-        keywords=" ".join(pkg.get("tags", [])),
+        url=pkg.url,
+        maintainer=pkg.maintainer,
+        maintainer_email=pkg.maintainer_email,
+        license=pkg.license,
+        keywords=" ".join(pkg.tags),
         python_requires=_pkg_python_requires(pkg),
         install_requires=_pkg_install_requires(pkg),
         packages=[pkg_name],
@@ -117,33 +113,28 @@ def _setup_kw(pkg):
         entry_points=_entry_points(pkg),
     )
 
-def _pkg_description(pkg,):
+def _pkg_description(pkg):
     """Returns a tuple of the package description and long description.
 
-    The description is the first line of the PACKAGE description
+    The description is the first line of the package description
     field. Long description is generated and consists of subsequent
-    lines in the PACKAGE description, if they exist, plus
+    lines in the package description, if they exist, plus
     reStructuredText content representing the models and model details
     defined in the package.
 
     """
-    desc_lines = pkg.get("description", "").strip().split("\n")
+    desc_lines = pkg.description.split("\n")
     desc = desc_lines[0]
     long_desc = "\n\n".join(desc_lines[1:])
-    gf = _pkg_guildfile(pkg)
-    if gf:
-        refs = [
-            ("Guildfile", pkg.get("guildfile", "UNKNOWN")),
-        ]
-        pkg_desc = guild.help.package_description(gf, refs)
-        long_desc += "\n\n" + pkg_desc
+    pkg_desc = guild.help.package_description(pkg.guildfile)
+    long_desc += "\n\n" + pkg_desc
     return desc, long_desc
 
 def _package_data(pkg):
     return _pkg_data_files(pkg) + _default_pkg_files()
 
 def _pkg_data_files(pkg):
-    return pkg.get("data-files") or []
+    return pkg.data_files
 
 def _default_pkg_files():
     return [
@@ -165,20 +156,10 @@ def _entry_points(pkg):
     }
 
 def _model_entry_points(pkg):
-    gf = _pkg_guildfile(pkg)
-    if not gf:
-        return []
     return [
         "%s = guild.model:PackageModel" % model.name
-        for _name, model in sorted(gf.models.items())
+        for _name, model in sorted(pkg.guildfile.models.items())
     ]
-
-def _pkg_guildfile(pkg):
-    pkg_dir = os.path.dirname(pkg.src)
-    try:
-        return guildfile.from_dir(pkg_dir)
-    except guild.guildfile.NoModels:
-        return None
 
 def _resource_eps(pkg):
     return _model_resource_eps(pkg) + _package_resource_eps(pkg)
@@ -191,42 +172,39 @@ def _model_resource_eps(pkg):
     ]
 
 def _iter_guildfile_resdefs(pkg):
-    pkg_dir = os.path.dirname(pkg.src)
-    try:
-        mf = guildfile.from_dir(pkg_dir)
-    except guildfile.NoModels:
-        pass
-    else:
-        for modeldef in mf.models.values():
-            for resdef in modeldef.resources:
-                yield resdef
+    for modeldef in pkg.guildfile.models.values():
+        for resdef in modeldef.resources:
+            yield resdef
 
 def _package_resource_eps(pkg):
     return [
         "%s = guild.package:PackageResource" % res_name
-        for res_name in pkg.get("resources", {})
+        for res_name in pkg.resources
     ]
 
 def _pkg_python_requires(pkg):
-    return ", ".join(pkg.get("python-requires", []))
+    return ", ".join(pkg.python_requires)
 
 def _pkg_install_requires(pkg):
-    return [
-        _project_name(req)
-        for req in pkg.get("requires", [])
-    ]
+    return [_project_name(req) for req in pkg.requires]
 
 def _project_name(req):
     ns, project_name = namespace.split_name(req)
     pip_info = ns.pip_info(project_name)
     return pip_info.project_name
 
-def _write_package_metadata(setup_kw):
-    source = os.getenv("PACKAGE_FILE")
+def _write_package_metadata(pkg, setup_kw):
     egg_info_dir = "%s.egg-info" % setup_kw["name"]
     util.ensure_dir(egg_info_dir)
     dest = os.path.join(egg_info_dir, "PACKAGE")
-    shutil.copyfile(source, dest)
+    with open(dest, "w") as f:
+        yaml.dump(_pkg_metadata(pkg))
+
+def _pkg_metadata(pkg):
+    for item in pkg.guildfile.data:
+        if "package" in item:
+            return item
+    raise AssertionError(pkg.data)
 
 def _patch_setuptools_namespaces():
     """Prevent creation of *.nspkg.pth entry for packages.

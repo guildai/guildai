@@ -59,8 +59,8 @@ from guild import click_util
 def package(args):
     """Create a package for distribution.
 
-    Packages are built from projects that contain a `PACKAGE` file that
-    describes the package to be built.
+    Packages are built from projects that contain guildfile with a
+    package definition, which describes the package to be built.
 
     You may upload the generated package distribution to a PyPI
     repository by using the `--upload` option or to the PyPI test site

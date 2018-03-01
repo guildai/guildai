@@ -97,14 +97,12 @@ class RestFormatter(click.HelpFormatter):
     def dedent(self):
         self._indent_level -= 1
 
-def guildfile_console_help(guildfile, refs, model_desc=None):
+def guildfile_console_help(guildfile, model_desc=None):
     out = ConsoleFormatter()
     out.start_section("OVERVIEW")
     _write_console_help_overview(guildfile, model_desc, out)
     out.start_section("MODELS")
     _write_models(guildfile, out)
-    out.start_section("REFERENCES")
-    _write_references(refs, out)
     return "".join(out.buffer)
 
 def _write_console_help_overview(guildfile, model_desc, out):
@@ -137,12 +135,10 @@ def _format_guildfile_dir(mf):
 def _is_cwd(path):
     return os.path.abspath(path) == os.path.abspath(os.getcwd())
 
-def package_description(guildfile, refs):
+def package_description(guildfile):
     out = RestFormatter()
     out.start_section("Models")
     _write_models(guildfile, out)
-    out.start_section("References")
-    _write_references(refs or [], out)
     return "".join(out.buffer)
 
 def _write_models(guildfile, out):
@@ -164,6 +160,8 @@ def _write_model(m, out):
     out.write_paragraph()
     if m.flags:
         _write_flags(m.flags, "Model flags", out)
+    if m.references:
+        _write_references(m.references, out)
     out.dedent()
 
 def _write_operations(m, out):
@@ -238,7 +236,9 @@ def _flag_desc(flag):
     return desc
 
 def _write_references(refs, out):
-    for i, (name, val) in enumerate(refs):
-        if i > 0:
-            out.write_paragraph()
-        out.write_text("%s: %s" % (name, val or ""))
+    out.write_subheading("References")
+    out.write_paragraph()
+    out.indent()
+    for ref in refs:
+        out.write_description("- %s" % ref)
+    out.dedent()

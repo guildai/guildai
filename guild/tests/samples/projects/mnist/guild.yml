@@ -12,6 +12,8 @@
       flags:
         epochs: 1
         batch-size: 50000
+  references:
+    - https://www.tensorflow.org/tutorials/layers
 
 - model: expert
   description: Sample model

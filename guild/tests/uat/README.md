@@ -199,8 +199,8 @@ And test the `keras` example.
 *Creating and installing packages.*
 
 Guild packages are generated from source directories that contain
-`PACKAGE` files along with resources needed by the package including
-model files and training scripts.
+guildfiles with a package definition. They may contain models and
+their required scripts as well as package resoures.
 
 For our tests, we'll build and install packages using sources from the
 [`guild-index` GitHub repository](https://github.com/guildai/index).

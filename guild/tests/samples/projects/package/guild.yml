@@ -1,0 +1,11 @@
+package: hello
+version: 0.3.0.dev4
+description: Example "hello world" model
+url: https://github.com/guildai/index/tree/master/hello
+modelfile: https://github.com/guildai/index/tree/master/hello/MODEL
+maintainer: Guild AI
+maintainer-email: packages@guild.ai
+license: Apache 2.0
+tags: [example, model]
+data-files:
+  - a.txt

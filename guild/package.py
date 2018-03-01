@@ -41,12 +41,12 @@ class PackageResource(resource.Resource):
             raise ValueError(
                 "undefined resource '%s' in %s"
                 % self.name, self.dist)
-        fullname = pkg["name"] + "/" + self.name
+        fullname = pkg["package"] + "/" + self.name
         return resourcedef.ResourceDef(self.name, data, fullname)
 
 def create_package(package_file, dist_dir=None, upload_repo=False,
                    sign=False, identity=None, user=None, password=None,
-                   skip_existing=False, comment=None):
+                   skip_existing=False, comment=None, capture_output=False):
     # Use a separate OS process as setup assumes it's running as a
     # command line op.
     cmd = [sys.executable, "-um", "guild.package_main"]
@@ -65,10 +65,21 @@ def create_package(package_file, dist_dir=None, upload_repo=False,
         "COMMENT": comment or "",
     })
     _apply_twine_env_creds(env)
-    p = subprocess.Popen(cmd, env=env)
-    exit_code = p.wait()
-    if exit_code != 0:
-        raise SystemExit(exit_code)
+    cwd = os.path.dirname(package_file)
+    if capture_output:
+        stdout = subprocess.PIPE
+        stderr = subprocess.STDOUT
+    else:
+        stdout = None
+        stderr = None
+    p = subprocess.Popen(cmd, env=env, cwd=cwd, stdout=stdout, stderr=stderr)
+    out, _ = p.communicate()
+    if p.returncode != 0:
+        if capture_output:
+            raise SystemExit(p.returncode, out)
+        else:
+            raise SystemExit(p.returncode)
+    return out
 
 def _apply_twine_env_creds(env):
     try:

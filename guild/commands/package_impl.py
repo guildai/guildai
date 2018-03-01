@@ -23,10 +23,10 @@ from guild import config
 from guild import package
 
 def create_package(args):
-    package_file = os.path.join(config.cwd(), "PACKAGE")
+    package_file = os.path.join(config.cwd(), "guild.yml")
     if not os.path.exists(package_file):
         cli.error(
-            "%s does not contain a PACKAGE file\n"
+            "%s does not contain a guild.yml file\n"
             "Try specifying a different directory."
             % cmd_impl_support.cwd_desc(config.cwd()))
     package.create_package(

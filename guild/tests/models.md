@@ -175,7 +175,7 @@ Here's the reference for the `intro` model:
     >>> intro.reference
     ModelRef(dist_type='guildfile',
              dist_name='.../samples/projects/mnist',
-             dist_version='8bbf2b8f806b8602a0d0a6d1969fc7b8',
+             dist_version='86adef5e7d129141d695fada00be1268',
              model_name='intro')
 
 Note that the package reference in this case is an absolute path to

@@ -788,6 +788,27 @@ Here's an example of a parent that provides default param values.
     >>> gf.models["cnn"].description
     'A v2 CNN classifier'
 
+## Projects
+
+In addition to containing resources, Guildfiles may contain at most
+one package definition.
+
+We'll use
+[samples/projects/package/guild.yml](samples/projects/package/guild.yml)
+to illustrate.
+
+    >>> gf = guildfile.from_dir(sample("projects/package"))
+
+The sample doesn't contain any models:
+
+    >>> gf.models
+    {}
+
+It does contain a package:
+
+    >>> gf.package
+    <guild.guildfile.PackageDef 'hello'>
+
 ## Errors
 
 ### Invalid format
