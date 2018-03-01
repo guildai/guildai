@@ -53,15 +53,18 @@ clean:
 	rm -rf build/
 	rm -rf dist/
 	rm -rf guildai.egg-info/
+	find -name *.pyc | grep -v guild/tests/samples | xargs -r rm
+	rm -rf guild/view/node_modules
 
 uat:
-	test -e /tmp/guild-uat || virtualenv /tmp/guild-uat
-	mkdir -p /tmp/guild-uat/.guild
-	test -e /tmp/guild-uat/.guild/cache \
+	@test -e /tmp/guild-uat || virtualenv /tmp/guild-uat
+	@mkdir -p /tmp/guild-uat/.guild
+	@test -e /tmp/guild-uat/.guild/cache \
 	  || ln -s ~/.guild/cache /tmp/guild-uat/.guild/cache
-	. /tmp/guild-uat/bin/activate && pip install -r requirements.txt
-	. /tmp/guild-uat/bin/activate \
+	@. /tmp/guild-uat/bin/activate && pip install -qr requirements.txt
+	@. /tmp/guild-uat/bin/activate \
 	  && WORKSPACE=/tmp/guild-uat guild check --uat
+	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
 
 clean-uat:
 	rm -rf /tmp/guild-uat
