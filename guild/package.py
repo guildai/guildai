@@ -48,9 +48,7 @@ def create_package(package_file, dist_dir=None, upload_repo=False,
                    sign=False, identity=None, user=None, password=None,
                    comment=None):
     # Use a separate OS process as setup assumes it's running as a
-    # command line op. We make sure to import package_main lazily here
-    # because it incurs various runtime deps that we don't want to
-    # load actively.
+    # command line op.
     cmd = [sys.executable, "-um", "guild.package_main"]
     env = {}
     env.update(util.safe_osenv())
