@@ -95,8 +95,7 @@ def _dist_dir_args():
 def _setup_kw(pkg):
     pkg_name = "gpkg." + pkg["name"]
     project_dir = os.path.dirname(pkg.src)
-    models = _pkg_models(pkg)
-    desc, long_desc = _pkg_description(pkg, models)
+    desc, long_desc = _pkg_description(pkg)
     return dict(
         name=pkg_name,
         version=pkg["version"],
@@ -118,7 +117,7 @@ def _setup_kw(pkg):
         entry_points=_entry_points(pkg),
     )
 
-def _pkg_description(pkg, models):
+def _pkg_description(pkg,):
     """Returns a tuple of the package description and long description.
 
     The description is the first line of the PACKAGE description
@@ -126,15 +125,18 @@ def _pkg_description(pkg, models):
     lines in the PACKAGE description, if they exist, plus
     reStructuredText content representing the models and model details
     defined in the package.
+
     """
     desc_lines = pkg.get("description", "").strip().split("\n")
     desc = desc_lines[0]
     long_desc = "\n\n".join(desc_lines[1:])
-    if models:
+    gf = _pkg_guildfile(pkg)
+    if gf:
         refs = [
             ("Guildfile", pkg.get("guildfile", "UNKNOWN")),
         ]
-        long_desc += "\n\n" + guild.help.package_description(models, refs)
+        pkg_desc = guild.help.package_description(gf, refs)
+        long_desc += "\n\n" + pkg_desc
     return desc, long_desc
 
 def _package_data(pkg):
@@ -156,26 +158,27 @@ def _entry_points(pkg):
     return {
         name: eps
         for name, eps in [
-                ("guild.models", _model_eps(pkg)),
+                ("guild.models", _model_entry_points(pkg)),
                 ("guild.resources", _resource_eps(pkg))
         ]
         if eps
     }
 
-def _model_eps(pkg):
+def _model_entry_points(pkg):
+    gf = _pkg_guildfile(pkg)
+    if not gf:
+        return []
     return [
         "%s = guild.model:PackageModel" % model.name
-        for model in _pkg_models(pkg)
+        for _name, model in sorted(gf.models.items())
     ]
 
-def _pkg_models(pkg):
+def _pkg_guildfile(pkg):
     pkg_dir = os.path.dirname(pkg.src)
     try:
-        mf = guildfile.from_dir(pkg_dir)
-    except guildfile.NoModels:
-        return []
-    else:
-        return [m for m in mf.models.values() if not m.private]
+        return guildfile.from_dir(pkg_dir)
+    except guild.guildfile.NoModels:
+        return None
 
 def _resource_eps(pkg):
     return _model_resource_eps(pkg) + _package_resource_eps(pkg)
@@ -269,6 +272,8 @@ def _twine_upload_args(dist, repo):
     args.extend(_twine_repo_args(repo))
     args.extend(_twine_sign_args())
     args.extend(_twine_dist_file_args(dist))
+    if os.getenv("SKIP_EXISTING"):
+        args.append("--skip-existing")
     return args
 
 def _twine_repo_args(repo):

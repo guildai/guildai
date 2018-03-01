@@ -37,4 +37,5 @@ def create_package(args):
         identity=args.identity,
         user=args.user,
         password=args.password,
+        skip_existing=args.skip_existing,
         comment=args.comment)

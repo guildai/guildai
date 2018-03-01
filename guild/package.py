@@ -46,7 +46,7 @@ class PackageResource(resource.Resource):
 
 def create_package(package_file, dist_dir=None, upload_repo=False,
                    sign=False, identity=None, user=None, password=None,
-                   comment=None):
+                   skip_existing=False, comment=None):
     # Use a separate OS process as setup assumes it's running as a
     # command line op.
     cmd = [sys.executable, "-um", "guild.package_main"]
@@ -61,12 +61,24 @@ def create_package(package_file, dist_dir=None, upload_repo=False,
         "IDENTITY": identity or "",
         "USER": user or "",
         "PASSWORD": password or "",
+        "SKIP_EXISTING": skip_existing and "1" or "",
         "COMMENT": comment or "",
     })
+    _apply_twine_env_creds(env)
     p = subprocess.Popen(cmd, env=env)
     exit_code = p.wait()
     if exit_code != 0:
         raise SystemExit(exit_code)
+
+def _apply_twine_env_creds(env):
+    try:
+        env["TWINE_USERNAME"] = os.environ["TWINE_USERNAME"]
+    except KeyError:
+        pass
+    try:
+        env["TWINE_PASSWORD"] = os.environ["TWINE_PASSWORD"]
+    except KeyError:
+        pass
 
 def is_gpkg(project_name):
     ns = namespace.for_name("gpkg")

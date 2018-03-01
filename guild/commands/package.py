@@ -48,6 +48,9 @@ from guild import click_util
     "-p", "--password", metavar="PASSWORD",
     help="PyPI password for upload.")
 @click.option(
+    "-e", "--skip-existing", is_flag=True,
+    help="Don't upload if package already exists.")
+@click.option(
     "-c", "--comment", metavar="COMMENT",
     help="Comment to include with upload.")
 
