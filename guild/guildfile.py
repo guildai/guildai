@@ -386,7 +386,6 @@ class ModelDef(FlagHost):
         self.guildfile = guildfile
         self.description = data.get("description", "").strip()
         self.references = data.get("references", [])
-        self.private = bool(data.get("private"))
         self.operations = _init_ops(data.get("operations", {}), self)
         self.resources = _init_resources(data, self)
         self.disabled_plugins = data.get("disabled-plugins", [])
@@ -596,7 +595,7 @@ class ResourceDef(resourcedef.ResourceDef):
     def __init__(self, name, data, modeldef):
         super(ResourceDef, self).__init__(name, data)
         self.fullname = "%s:%s" % (modeldef.name, name)
-        self.private = self.private or modeldef.private
+        self.private = self.private
         self.modeldef = modeldef
 
     def get_source_resolver(self, source, config=None):

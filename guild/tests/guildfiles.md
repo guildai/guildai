@@ -63,16 +63,6 @@ The description provides additional details:
     >>> gf.models["expert"].description
     'Sample model'
 
-Models support visibility. By default model visibility is
-"public". Models that have a visibility of "private" are not displayed
-in lists. The two `mnist` models are public (default visibility):
-
-    >>> gf.models["expert"].private
-    False
-
-    >>> gf.models["intro"].private
-    False
-
 ### Flags
 
 Flags are named values that are provided to operations during a
@@ -552,7 +542,6 @@ Here's a guild file that defines a model that extends another:
     >>> gf = guildfile.from_string("""
     ... - model: trainable
     ...   description: A trainable model
-    ...   private: yes
     ...   operations:
     ...     train:
     ...       cmd: train
@@ -574,13 +563,10 @@ It also inherits the description:
     >>> m1.description
     'A trainable model'
 
-Models do not inherit name or private:
+Models do not inherit name:
 
     >>> m1.name
     'model-1'
-
-    >>> m1.private
-    False
 
 Here's a more complex example with two parent models and two child
 models.
@@ -588,7 +574,6 @@ models.
     >>> gf = guildfile.from_string("""
     ... - model: trainable
     ...   description: A trainable model
-    ...   private: yes
     ...   operations:
     ...     train:
     ...       cmd: train
@@ -597,7 +582,6 @@ models.
     ...
     ... - model: evaluatable
     ...   description: An evaluatable model
-    ...   private: yes
     ...   operations:
     ...     evaluate:
     ...       cmd: train --test
@@ -627,9 +611,6 @@ It's other attributes:
 
     >>> m1.name
     'model-1'
-
-    >>> m1.private
-    False
 
     >>> m1.description
     'A trainable, evaluatable model'

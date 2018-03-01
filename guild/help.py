@@ -148,8 +148,6 @@ def package_description(guildfile, refs):
 def _write_models(guildfile, out):
     i = 0
     for _name, model in sorted(guildfile.models.items()):
-        if model.private:
-            continue
         if i > 0:
             out.write_paragraph()
         _write_model(model, out)

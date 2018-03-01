@@ -393,16 +393,14 @@ def insert_path(item):
 
 def iter_models():
     for _name, model in _models:
-        if not model.modeldef.private:
-            yield model
+        yield model
 
 def for_name(name):
     return _models.for_name(name)
 
 def iter_():
     for _name, model in _models:
-        if not model.modeldef.private:
-            yield model
+        yield model
 
 def _register_model_finder():
     sys.path_hooks.insert(0, ModelImporter)
