@@ -308,7 +308,10 @@ def _env_paths():
     return env.split(os.path.pathsep) if env else []
 
 def _model_paths(opdef):
-    return [os.path.abspath(opdef.guildfile.dir)]
+    if opdef.guildfile.dir:
+        return [os.path.abspath(opdef.guildfile.dir)]
+    else:
+        return []
 
 def _guild_paths():
     guild_path = os.path.dirname(os.path.dirname(__file__))

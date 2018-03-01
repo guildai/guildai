@@ -205,12 +205,12 @@ def _guildfile_resource(spec, ctx):
     if m is None:
         return None
     model_name = m.group(1)
-    modeldef = ctx.opdef.guildfile.get(model_name)
+    modeldef = ctx.opdef.guildfile.models.get(model_name)
     if modeldef is None:
         raise DependencyError(
-            "model in resource '%s' required by operation "
+            "model '%s' in resource '%s' required by operation "
             "'%s' is not defined"
-            % (spec, ctx.opdef.fullname))
+            % (model_name, spec, ctx.opdef.fullname))
     res_name = m.group(2)
     return _modeldef_resource(modeldef, res_name, ctx)
 

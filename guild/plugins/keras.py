@@ -61,7 +61,7 @@ class KerasPlugin(plugin.Plugin):
 
     def _train_model(self, script, fit):
         return {
-            "name": script.name,
+            "model": script.name,
             "operations": {
                 "train": {
                     "cmd": (
@@ -104,7 +104,7 @@ class KerasPlugin(plugin.Plugin):
     @staticmethod
     def _predict_model(script):
         return {
-            "name": script.name,
+            "model": script.name,
             "operations": {
                 "predict": {
                     "cmd": (

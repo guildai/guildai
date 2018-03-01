@@ -1,4 +1,4 @@
-- name: intro
+- model: intro
   flags:
     $include: common
     epochs: 10
@@ -13,7 +13,7 @@
         epochs: 1
         batch-size: 50000
 
-- name: expert
+- model: expert
   description: Sample model
   flags:
     $include: common
@@ -21,8 +21,7 @@
     train: expert
     evaluate: expert --test
 
-- name: common
-  private: yes
+- config: common
   flags:
     batch-size:
       default: 100

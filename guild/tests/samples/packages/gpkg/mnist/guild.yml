@@ -1,4 +1,4 @@
-- name: mnist-softmax
+- model: mnist-softmax
   description: Softmax regression classifier for MNIST
   operations:
     train:
@@ -12,7 +12,7 @@
       description: Number of epochs to train.
       default: 10
 
-- name: mnist-cnn
+- model: mnist-cnn
   description: CNN classifier for MNIST
   operations:
     train:

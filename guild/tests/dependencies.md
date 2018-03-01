@@ -11,8 +11,8 @@ To illustrate, we'll define a model operation that requires a
 resource:
 
     >>> from guild import guildfile
-    >>> mf = guildfile.from_string("""
-    ... name: sample
+    >>> gf = guildfile.from_string("""
+    ... model: sample
     ... operations:
     ...  test:
     ...    cmd: <not used>
@@ -29,7 +29,7 @@ resource:
 We can get the list of dependencies for an operation with the
 `dependencies` attribute:
 
-    >>> test_op = mf["sample"].get_operation("test")
+    >>> test_op = gf.models["sample"].get_operation("test")
     >>> test_op.dependencies
     [<guild.guildfile.OpDependency 'data'>]
 
@@ -64,7 +64,7 @@ Here are some examples of dependencies:
 
 Let's look at the required resource:
 
-    >>> data_res = mf["sample"].get_resource("data")
+    >>> data_res = gf.models["sample"].get_resource("data")
 
 This resource has the following sources:
 
@@ -137,8 +137,8 @@ be obtained for a source via a resource def using the
 To illustrate, we'll use a sample project that defines various
 resources.
 
-    >>> mf = guildfile.from_dir(sample("projects/resources"))
-    >>> res_model = mf["resources"]
+    >>> gf = guildfile.from_dir(sample("projects/resources"))
+    >>> res_model = gf.models["resources"]
 
 Here are the model resources:
 

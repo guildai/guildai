@@ -12,7 +12,7 @@ For our tests, we'll use a helper function that returns an instance of
     >>> def OpDef(cmd, name="op"):
     ...     data = [
     ...       {
-    ...         "name": "model",
+    ...         "model": "model",
     ...         "operations": {
     ...           name: {
     ...             "cmd": cmd
@@ -20,8 +20,8 @@ For our tests, we'll use a helper function that returns an instance of
     ...         }
     ...       }
     ...     ]
-    ...     models = guild.guildfile.Guildfile(data, "./guild.yml")
-    ...     return models["model"].get_operation(name)
+    ...     gf = guild.guildfile.Guildfile(data, "<string>")
+    ...     return gf.models["model"].get_operation(name)
 
 We'll also create a helper function that returns and instance of
 `guild.op.Operation` given arguments to `OpDef` above:
@@ -55,7 +55,8 @@ in the Python command.
 
     >>> op = Operation(cmd="train epoch=10 tags='tag1 tag2'")
     >>> op.cmd_args
-    ['...python...', '-um', 'guild.op_main', 'train', 'epoch=10', 'tags=tag1 tag2']
+    ['...python...', '-um', 'guild.op_main', 'train', 'epoch=10',
+     'tags=tag1 tag2']
 
 NOTE: The above formatting, with the line feed after '-u' is required
 when running tests in Python 3. The regex that formats unicode refs as

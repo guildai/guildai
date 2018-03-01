@@ -1,6 +1,6 @@
-# Guild files
+# Guildfiles
 
-Guild files are files that contain model definitions. By convention
+Guildfiles are files that contain model definitions. By convention
 guild files are named `guild.yml`.
 
 Support for guild files is provided by the `guildfile` module:
@@ -11,76 +11,73 @@ Support for guild files is provided by the `guildfile` module:
 
 Use `from_dir` to load a guild file from a directory:
 
-    >>> mf = guildfile.from_dir(sample("projects/mnist"))
-    >>> mf.src
+    >>> gf = guildfile.from_dir(sample("projects/mnist"))
+    >>> gf.src
     '.../samples/projects/mnist/guild.yml'
 
 ## Loading a guildfile from a file
 
 Use `from_file` to load a guildfile from a file directly:
 
-    >>> mf = guildfile.from_file(sample("projects/mnist/guild.yml"))
-    >>> [model.name for model in mf]
-    ['intro', 'expert', 'common']
+    >>> gf = guildfile.from_file(sample("projects/mnist/guild.yml"))
 
-## Model defs
+Models are access using the `models` attribute:
 
-By definition a guildfile is a list of modeldefs ("models" in this
-context):
+    >>> sorted(gf.models.items())
+    [('expert', <guild.guildfile.ModelDef 'expert'>),
+     ('intro', <guild.guildfile.ModelDef 'intro'>)]
 
-    >>> list(mf)
-    [<guild.guildfile.ModelDef 'intro'>,
-     <guild.guildfile.ModelDef 'expert'>,
-     <guild.guildfile.ModelDef 'common'>]
+Guildfiles may contain configuration that's shared by models. This can
+be accessed using the `config` attribute:
+
+    >>> sorted(gf.config.items())
+    [('common', <guild.guildfile.Config 'common'>)]
 
 ### Accessing modeldefs
 
-We can lookup a modeld by name using dictionary semantics:
+We can lookup a models using dictionary semantics:
 
-    >>> mf["intro"]
+    >>> gf.models["intro"]
     <guild.guildfile.ModelDef 'intro'>
 
-    >>> mf.get("intro")
+    >>> gf.models.get("intro")
     <guild.guildfile.ModelDef 'intro'>
+
+    >>> print(gf.models.get("undefined"))
+    None
 
 ### Default model
 
 The first model defined in a project is considered to be the default
 model:
 
-    >>> mf.default_model
+    >>> gf.default_model
     <guild.guildfile.ModelDef 'intro'>
 
 ### Attributes
 
 The model name is used to identify the model:
 
-    >>> mf["expert"].name
+    >>> gf.models["expert"].name
     'expert'
 
-    >>> mf["intro"].name
+    >>> gf.models["intro"].name
     'intro'
 
 The description provides additional details:
 
-    >>> mf["expert"].description
+    >>> gf.models["expert"].description
     'Sample model'
 
 Models support visibility. By default model visibility is
 "public". Models that have a visibility of "private" are not displayed
 in lists. The two `mnist` models are public (default visibility):
 
-    >>> mf["expert"].private
+    >>> gf.models["expert"].private
     False
 
-    >>> mf["intro"].private
+    >>> gf.models["intro"].private
     False
-
-The `common` model, which is used to define flags that are common to
-both `mnist` models, is designated as private:
-
-    >>> mf["common"].private
-    True
 
 ### Flags
 
@@ -103,7 +100,7 @@ We'll use a helper function to print the flagdefs:
 Let's look at the flags defined for the `common` model, which is a
 private modeldef that the two `mnist` models reference.
 
-    >>> flagdefs(mf["common"].flags)
+    >>> flagdefs(gf.config["common"].flags)
     [('batch-size', 'Number of images per batch', 100),
      ('epochs', 'Number of epochs to train', 5)]
 
@@ -111,18 +108,18 @@ Flag *values* are distinct from flag *definitions*. The value
 associated with a flag definition is used as the initial flag
 value. We can read the flag values using `get_flag_value`:
 
-    >>> mf["common"].get_flag_value("batch-size")
+    >>> gf.config["common"].get_flag_value("batch-size")
     100
 
-    >>> mf["common"].get_flag_value("epochs")
+    >>> gf.config["common"].get_flag_value("epochs")
     5
 
 These values can be modified without effecting the flag definitions.
 
-    >>> mf["common"].set_flag_value("epochs", 3)
-    >>> mf["common"].get_flag_value("epochs")
+    >>> gf.config["common"].set_flag_value("epochs", 3)
+    >>> gf.config["common"].get_flag_value("epochs")
     3
-    >>> mf["common"].get_flagdef("epochs").default
+    >>> gf.config["common"].get_flagdef("epochs").default
     5
 
 The `expert` model has the following `flags` spec:
@@ -139,7 +136,7 @@ be included in the referencing model.
 
 Here are the flag defs for `expert`:
 
-    >>> flagdefs(mf["expert"].flags)
+    >>> flagdefs(gf.models["expert"].flags)
     [('batch-size', 'Number of images per batch', 100),
      ('epochs', 'Number of epochs to train', 5)]
 
@@ -149,7 +146,7 @@ flag definitions without redefining any.
 The `intro` model also includes `common` flags but redefines the value
 of one flag and adds another:
 
-    >>> flagdefs(mf["intro"].flags)
+    >>> flagdefs(gf.models["intro"].flags)
     [('batch-size', 'Number of images per batch', 100),
      ('epochs', 'Number of epochs to train', 10),
      ('learning-rate', 'Learning rate for training', 0.001)]
@@ -160,7 +157,7 @@ description is not.
 The third set of flags defined in the guildfile is associated with the
 `evaluate` operation of the `intro` model.
 
-    >>> eval_op = mf["intro"].get_operation("evaluate")
+    >>> eval_op = gf.models["intro"].get_operation("evaluate")
     >>> flagdefs(eval_op.flags)
     [('batch-size', '', 50000),
      ('epochs', '', 1)]
@@ -174,36 +171,36 @@ all of the flag values associated with a model or op definition.
 
 Flag values for `intro` model:
 
-    >>> pprint(mf["intro"].flag_values())
+    >>> pprint(gf.models["intro"].flag_values())
     {'batch-size': 100, 'epochs': 10, 'learning-rate': 0.001}
 
 Flag values for `evaluate` op of `intro` model:
 
-    >>> pprint(mf["intro"].get_operation("evaluate").flag_values())
+    >>> pprint(gf.models["intro"].get_operation("evaluate").flag_values())
     {'batch-size': 50000, 'epochs': 1, 'learning-rate': 0.001}
 
 Flag values for `expert` model:
 
-    >>> pprint(mf["expert"].flag_values())
+    >>> pprint(gf.models["expert"].flag_values())
     {'batch-size': 100, 'epochs': 5}
 
 Flag values for `train` op of `expert` model:
 
-    >>> pprint(mf["expert"].get_operation("train").flag_values())
+    >>> pprint(gf.models["expert"].get_operation("train").flag_values())
     {'batch-size': 100, 'epochs': 5}
 
 If we set the value of a flag defined on a model that is not defined
 by the model's operation, the operation inherits that value:
 
-    >>> mf["intro"].set_flag_value("learning-rate", 0.002)
-    >>> pprint(mf["intro"].get_operation("evaluate").flag_values())
+    >>> gf.models["intro"].set_flag_value("learning-rate", 0.002)
+    >>> pprint(gf.models["intro"].get_operation("evaluate").flag_values())
     {'batch-size': 50000, 'epochs': 1, 'learning-rate': 0.002}
 
 However, if the operation defines a flag value, setting the value on
 the operation's model doesn't modify the operation's flag value:
 
-    >>> mf["intro"].set_flag_value("epochs", 4)
-    >>> pprint(mf["intro"].get_operation("evaluate").flag_values())
+    >>> gf.models["intro"].set_flag_value("epochs", 4)
+    >>> pprint(gf.models["intro"].get_operation("evaluate").flag_values())
     {'batch-size': 50000, 'epochs': 1, 'learning-rate': 0.002}
 
 ### Updating flags
@@ -212,8 +209,8 @@ Flags can be updated using flags from another flag host.
 
 Consider this guildfile:
 
-    >>> mf2 = guildfile.from_string("""
-    ... name: sample
+    >>> gf2 = guildfile.from_string("""
+    ... model: sample
     ... operations:
     ...   a:
     ...     flags:
@@ -227,8 +224,8 @@ Consider this guildfile:
 
 The two opdefs:
 
-    >>> opdef_a = mf2["sample"].get_operation("a")
-    >>> opdef_b = mf2["sample"].get_operation("b")
+    >>> opdef_a = gf2.models["sample"].get_operation("a")
+    >>> opdef_b = gf2.models["sample"].get_operation("b")
 
 Here are the flags and values for opdef a:
 
@@ -266,17 +263,17 @@ and values:
 
 Operations are ordered by name:
 
-    >>> [op.name for op in mf["expert"].operations]
+    >>> [op.name for op in gf.models["expert"].operations]
     ['evaluate', 'train']
 
 Find an operation using a model's `get_op` method:
 
-    >>> mf["expert"].get_operation("train")
+    >>> gf.models["expert"].get_operation("train")
     <guild.guildfile.OpDef 'expert:train'>
 
 `get_op` returns None if the operation isn't defined for the model:
 
-    >>> print(mf["expert"].get_operation("not-defined"))
+    >>> print(gf.models["expert"].get_operation("not-defined"))
     None
 
 ### Plugin ops
@@ -284,8 +281,8 @@ Find an operation using a model's `get_op` method:
 An operation can delegate its implementation to a plugin using the
 `plugin-op` attribute. Here's a sample guildfile:
 
-    >>> mf2 = guildfile.from_string("""
-    ... name: sample
+    >>> gf2 = guildfile.from_string("""
+    ... model: sample
     ... operations:
     ...   train:
     ...     plugin-op: foo-train
@@ -295,7 +292,7 @@ The opdef in this case will use `plugin_op` rather than `cmd`. Plugin
 ops are provided as guildfile.PluginOp objects and have `name` and
 `config` attributes:
 
-    >>> train = mf2["sample"].get_operation("train")
+    >>> train = gf2.models["sample"].get_operation("train")
 
     >>> train.plugin_op
     'foo-train'
@@ -305,13 +302,13 @@ ops are provided as guildfile.PluginOp objects and have `name` and
 Model resources are are named lists of sources that may be required by
 operations. Our sample models each have the following resources:
 
-    >>> mf["common"].resources
+    >>> gf.config["common"].resources
     [<guild.guildfile.ResourceDef 'data'>]
 
-    >>> mf["expert"].resources
+    >>> gf.models["expert"].resources
     []
 
-    >>> mf["intro"].resources
+    >>> gf.models["intro"].resources
     []
 
 In the same way that models can include flag definitions from other
@@ -328,8 +325,8 @@ one of three source type attributes:
 
 Here's a model definition that contains various resource sources:
 
-    >>> mf = guildfile.from_string("""
-    ... name: sample
+    >>> gf = guildfile.from_string("""
+    ... model: sample
     ... resources:
     ...   sample:
     ...     sources:
@@ -341,7 +338,7 @@ Here's a model definition that contains various resource sources:
 
 Here are the associated resource sources:
 
-    >>> mf["sample"].get_resource("sample").sources
+    >>> gf.models["sample"].get_resource("sample").sources
     [<guild.resourcedef.ResourceSource 'file:foo.txt'>,
      <guild.resourcedef.ResourceSource 'file:bar.tar.gz'>,
      <guild.resourcedef.ResourceSource 'https://files.com/bar.tar.gz'>,
@@ -353,7 +350,7 @@ file.
 At least one of the three type attributes is required:
 
     >>> guildfile.from_string("""
-    ... name: sample
+    ... model: sample
     ... resources:
     ...   sample:
     ...     sources:
@@ -366,7 +363,7 @@ At least one of the three type attributes is required:
 However, no more than one is allowed:
 
     >>> guildfile.from_string("""
-    ... name: sample
+    ... model: sample
     ... resources:
     ...   sample:
     ...     sources:
@@ -382,38 +379,35 @@ However, no more than one is allowed:
 A list of references may be included for each model. These can be used
 to direct users to upstream sources and papers.
 
-    >>> mf = guildfile.from_string("""
-    ... name: sample
+    >>> gf = guildfile.from_string("""
+    ... model: sample
     ... references:
     ...   - https://arxiv.org/abs/1603.05027
     ...   - https://arxiv.org/abs/1512.03385
     ... """)
-    >>> mf["sample"].references
+    >>> gf.models["sample"].references
     ['https://arxiv.org/abs/1603.05027', 'https://arxiv.org/abs/1512.03385']
 
 ## Includes
 
 Guild guild files support includes.
 
-    >>> mf = guildfile.from_dir(sample("projects/includes"))
-    >>> list(mf)
-    [<guild.guildfile.ModelDef 'shared'>,
-     <guild.guildfile.ModelDef 'model-a'>,
-     <guild.guildfile.ModelDef 'model-b'>,
-     <guild.guildfile.ModelDef 'model-c'>]
+    >>> gf = guildfile.from_dir(sample("projects/includes"))
+    >>> sorted(gf.models)
+    ['model-a', 'model-b', 'model-c']
 
-    >>> mf["model-a"].flags
+    >>> gf.models["model-a"].flags
     [<guild.guildfile.FlagDef 'model-a-flag-1'>,
      <guild.guildfile.FlagDef 'shared-1'>,
      <guild.guildfile.FlagDef 'shared-2'>]
 
-    >>> mf["model-b"].flags
+    >>> gf.models["model-b"].flags
     [<guild.guildfile.FlagDef 'model-b-flag-1'>,
      <guild.guildfile.FlagDef 'model-b-flag-2'>,
      <guild.guildfile.FlagDef 'shared-1'>,
      <guild.guildfile.FlagDef 'shared-2'>]
 
-    >>> mf["model-c"].flags
+    >>> gf.models["model-c"].flags
     [<guild.guildfile.FlagDef 'model-c-flag-1'>,
      <guild.guildfile.FlagDef 'model-c-flag-2'>]
 
@@ -582,8 +576,8 @@ the attributes of parent models by listing parent models in an
 
 Here's a guild file that defines a model that extends another:
 
-    >>> mf = guildfile.from_string("""
-    ... - name: trainable
+    >>> gf = guildfile.from_string("""
+    ... - model: trainable
     ...   description: A trainable model
     ...   private: yes
     ...   operations:
@@ -592,13 +586,13 @@ Here's a guild file that defines a model that extends another:
     ...       flags:
     ...         batch-size: 32
     ...
-    ... - name: model-1
+    ... - model: model-1
     ...   extends: trainable
     ... """)
 
 `model-1` inherits the operations of its parent `trainable`:
 
-    >>> m1 = mf["model-1"]
+    >>> m1 = gf.models["model-1"]
     >>> m1.operations
     [<guild.guildfile.OpDef 'model-1:train'>]
 
@@ -618,8 +612,8 @@ Models do not inherit name or private:
 Here's a more complex example with two parent models and two child
 models.
 
-    >>> mf = guildfile.from_string("""
-    ... - name: trainable
+    >>> gf = guildfile.from_string("""
+    ... - model: trainable
     ...   description: A trainable model
     ...   private: yes
     ...   operations:
@@ -628,18 +622,18 @@ models.
     ...       flags:
     ...         batch-size: 32
     ...
-    ... - name: evaluatable
+    ... - model: evaluatable
     ...   description: An evaluatable model
     ...   private: yes
     ...   operations:
     ...     evaluate:
     ...       cmd: train --test
     ...
-    ... - name: model-1
+    ... - model: model-1
     ...   description: A trainable, evaluatable model
     ...   extends: [trainable, evaluatable]
     ...
-    ... - name: model-2
+    ... - model: model-2
     ...   extends: trainable
     ...   operations:
     ...     train:
@@ -650,7 +644,7 @@ models.
 In this example, `model-1` extends two models and so inherits
 attributes from both.
 
-    >>> m1 = mf["model-1"]
+    >>> m1 = gf.models["model-1"]
     >>> m1.operations
     [<guild.guildfile.OpDef 'model-1:evaluate'>,
      <guild.guildfile.OpDef 'model-1:train'>]
@@ -675,7 +669,7 @@ default for the `batch-size` attribute:
 
 `model-2` only extends one parent, but it modifies a flag default.
 
-    >>> m2 = mf["model-2"]
+    >>> m2 = gf.models["model-2"]
 
     >>> m2.operations
     [<guild.guildfile.OpDef 'model-2:train'>]
@@ -686,8 +680,8 @@ default for the `batch-size` attribute:
 In this example, a model extends a model that in turn extends another
 model:
 
-    >>> mf = guildfile.from_string("""
-    ... - name: a
+    >>> gf = guildfile.from_string("""
+    ... - model: a
     ...   operations:
     ...     train:
     ...       cmd: train
@@ -701,7 +695,7 @@ model:
     ...         f3:
     ...           description: f3 in a
     ...           default: 3
-    ... - name: b
+    ... - model: b
     ...   extends: a
     ...   operations:
     ...     train:
@@ -711,7 +705,7 @@ model:
     ...           default: 22
     ...     eval:
     ...       cmd: eval
-    ... - name: c
+    ... - model: c
     ...   extends: b
     ...   operations:
     ...     train:
@@ -726,7 +720,7 @@ model:
 
 Model `a`:
 
-    >>> a = mf["a"]
+    >>> a = gf.models["a"]
 
     >>> a.operations
     [<guild.guildfile.OpDef 'a:train'>]
@@ -737,7 +731,7 @@ Model `a`:
 
 Model `b`:
 
-    >>> b = mf["b"]
+    >>> b = gf.models["b"]
 
     >>> b.operations
     [<guild.guildfile.OpDef 'b:eval'>,
@@ -749,7 +743,7 @@ Model `b`:
 
 Model `c`:
 
-    >>> c = mf["c"]
+    >>> c = gf.models["c"]
 
     >>> c.operations
     [<guild.guildfile.OpDef 'c:eval'>,
@@ -765,36 +759,36 @@ Model `c`:
 Below are some inheritance cycles:
 
     >>> guildfile.from_string("""
-    ... - name: a
+    ... - model: a
     ...   extends: a
     ... """)
     Traceback (most recent call last):
-    GuildfileReferenceError: cycle in model extends: ['a']
+    GuildfileReferenceError: error in <string>: cycle in model extends: ['a']
 
     >>> guildfile.from_string("""
-    ... - name: a
+    ... - model: a
     ...   extends: b
-    ... - name: b
+    ... - model: b
     ...   extends: a
     ... """)
     Traceback (most recent call last):
-    GuildfileReferenceError: cycle in model extends: ['b', 'a']
+    GuildfileReferenceError: error in <string>: cycle in model extends: ['b', 'a']
 
 ### Params
 
 Params may be used in model parents to define place-holder for child
 models. Here's s simple example:
 
-    >>> mf = guildfile.from_string("""
-    ... - name: base
+    >>> gf = guildfile.from_string("""
+    ... - model: base
     ...   description: A {{type}} classifier
     ...
-    ... - name: softmax
+    ... - model: softmax
     ...   extends: base
     ...   params:
     ...     type: softmax
     ...
-    ... - name: cnn
+    ... - model: cnn
     ...   extends: base
     ...   params:
     ...     type: CNN
@@ -802,42 +796,42 @@ models. Here's s simple example:
 
 Here are the description of each model:
 
-    >>> mf["base"].description
+    >>> gf.models["base"].description
     'A {{type}} classifier'
 
-    >>> mf["softmax"].description
+    >>> gf.models["softmax"].description
     'A softmax classifier'
 
-    >>> mf["cnn"].description
+    >>> gf.models["cnn"].description
     'A CNN classifier'
 
 Here's an example of a parent that provides default param values.
 
-    >>> mf = guildfile.from_string("""
-    ... - name: base
+    >>> gf = guildfile.from_string("""
+    ... - model: base
     ...   description: A v{{version}} {{type}} classifier
     ...   params:
     ...     version: 1
     ...
-    ... - name: softmax
+    ... - model: softmax
     ...   extends: base
     ...   params:
     ...     type: softmax
     ...
-    ... - name: cnn
+    ... - model: cnn
     ...   extends: base
     ...   params:
     ...     type: CNN
     ...     version: 2
     ... """)
 
-    >>> mf["base"].description
+    >>> gf.models["base"].description
     'A v1 {{type}} classifier'
 
-    >>> mf["softmax"].description
+    >>> gf.models["softmax"].description
     'A v1 softmax classifier'
 
-    >>> mf["cnn"].description
+    >>> gf.models["cnn"].description
     'A v2 CNN classifier'
 
 ## Errors
@@ -846,7 +840,8 @@ Here's an example of a parent that provides default param values.
 
     >>> guildfile.from_dir(sample("projects/invalid-format"))
     Traceback (most recent call last):
-    GuildfileFormatError: ...
+    GuildfileError: error in .../samples/projects/invalid-format/guild.yml:
+    invalid guildfile data: 'This is invalid YAML!'
 
 ### No models (missing guild file)
 

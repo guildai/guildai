@@ -171,9 +171,11 @@ def _model_eps(pkg):
 def _pkg_models(pkg):
     pkg_dir = os.path.dirname(pkg.src)
     try:
-        return [m for m in guildfile.from_dir(pkg_dir) if not m.private]
+        mf = guildfile.from_dir(pkg_dir)
     except guildfile.NoModels:
         return []
+    else:
+        return [m for m in mf.models.values() if not m.private]
 
 def _resource_eps(pkg):
     return _model_resource_eps(pkg) + _package_resource_eps(pkg)
@@ -192,7 +194,7 @@ def _iter_guildfile_resdefs(pkg):
     except guildfile.NoModels:
         pass
     else:
-        for modeldef in mf:
+        for modeldef in mf.models.values():
             for resdef in modeldef.resources:
                 yield resdef
 

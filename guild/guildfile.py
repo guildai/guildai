@@ -29,6 +29,9 @@ log = logging.getLogger("guild")
 
 NAMES = ["guild.yml"]
 
+ALL_TYPES = ["model", "config", "package"]
+MODEL_TYPES = ["model", "config"]
+
 _cache = {}
 
 ###################################################################
@@ -37,15 +40,24 @@ _cache = {}
 
 class GuildfileError(Exception):
 
-    def __init__(self, path):
-        super(GuildfileError, self).__init__(path)
-        self.path = path
+    def __init__(self, guildfile_or_path, msg):
+        super(GuildfileError, self).__init__(guildfile_or_path, msg)
+        if isinstance(guildfile_or_path, Guildfile):
+            self.path = guildfile_or_path.src
+        else:
+            self.path = guildfile_or_path
+        self.msg = msg
 
-class GuildfileFormatError(GuildfileError):
-    pass
+    def __str__(self):
+        return "error in %s: %s" % (self.path, self.msg)
 
 class NoModels(GuildfileError):
-    pass
+
+    def __init__(self, guildfile_or_path):
+        super(NoModels, self).__init__(guildfile_or_path, "no models")
+
+    def __str__(self):
+        return "no models in %s" % self.path
 
 class GuildfileReferenceError(GuildfileError):
     pass
@@ -57,15 +69,18 @@ class GuildfileReferenceError(GuildfileError):
 class Guildfile(object):
 
     def __init__(self, data, src=None, dir=None):
+        if not dir and src and not re.match(r"<.*>$", src):
+            dir = os.path.dirname(src)
         if src is None and dir is None:
             raise ValueError("either src or dir must be specified")
-        dir = os.path.dirname(src) if src else dir
         self.src = src
         self.dir = dir
+        self.default_model = None
+        self.models = {}
+        self.config = {}
+        self.package = None
         self.data = self._coerce_guildfile_data(data)
-        self.models = [
-            ModelDef(model_data, self) for model_data in self.data
-        ]
+        self._apply_data()
 
     def _coerce_guildfile_data(self, data):
         if isinstance(data, list):
@@ -73,8 +88,53 @@ class Guildfile(object):
         elif isinstance(data, dict):
             return [data]
         else:
-            raise GuildfileFormatError(
-                "invalid guildfile data in '%s': %r" % (self, data))
+            raise GuildfileError(self, "invalid guildfile data: %r" % data)
+
+    def _apply_data(self):
+        for item in self.data:
+            item_type, name = self._validated_item_type(item)
+            if item_type == "model":
+                self._apply_model(name, item)
+            elif item_type == "package":
+                self._apply_package(name, item)
+            elif item_type == "config":
+                self._apply_config(name, item)
+
+    def _validated_item_type(self, item):
+        used = [name for name in ALL_TYPES if name in item]
+        if not used:
+            raise GuildfileError(
+                self, ("missing required type (one of: %s) in %r"
+                       % (", ".join(ALL_TYPES), item)))
+        elif len(used) > 1:
+            raise GuildfileError(
+                self, ("multiple types (%s) in %r"
+                       % (", ".join(used), item)))
+        validated_type = used[0]
+        name = item[validated_type]
+        if not isinstance(name, str):
+            raise GuildfileError(
+                self, ("invalid %s name: %r"
+                       % (validated_type, name)))
+        return validated_type, name
+
+    def _apply_model(self, name, data):
+        if name in self.models:
+            raise GuildfileError(self, "duplicate model '%s'" % name)
+        model = ModelDef(name, data, self)
+        if not self.default_model:
+            self.default_model = model
+        self.models[name] = model
+
+    def _apply_package(self, name, data):
+        if self.package:
+            raise GuildfileError(self, "mutiple package definitions")
+        self.package = PackageDef(name, data, self)
+
+    def _apply_config(self, name, data):
+        if name in self.config:
+            raise GuildfileError(self, "duplicate config '%s'" % name)
+        self.config[name] = Config(name, data, self)
 
     def __repr__(self):
         return "<guild.guildfile.Guildfile '%s'>" % self
@@ -82,30 +142,8 @@ class Guildfile(object):
     def __str__(self):
         return self.src or self.dir
 
-    def __iter__(self):
-        return iter(self.models)
-
     def __eq__(self, _x):
         raise AssertionError()
-
-    def get(self, model_name, default=None):
-        for model in self:
-            if model.name == model_name:
-                return model
-        return default
-
-    def __getitem__(self, model_name):
-        model = self.get(model_name)
-        if model is None:
-            raise KeyError(model_name)
-        return model
-
-    @property
-    def default_model(self):
-        for model in self.models:
-            if not model.private:
-                return model
-        return None
 
 ###################################################################
 # Includes support
@@ -130,22 +168,22 @@ def _apply_section_data(data, guildfile, section_name, coerce_data,
     for name in _includes_first(data):
         if name == "$include":
             _apply_includes(
-                _coerce_includes(data[name]),
+                _coerce_includes(data[name], guildfile),
                 guildfile,
                 section_name,
                 coerce_data,
                 seen_includes,
                 resolved)
         else:
-            _apply_data(name, data[name], resolved, coerce_data)
+            _apply_data(name, data[name], resolved, coerce_data, guildfile)
 
-def _coerce_includes(val):
+def _coerce_includes(val, src):
     if isinstance(val, str):
         return [val]
     elif isinstance(val, list):
         return val
     else:
-        raise GuildfileFormatError("invalid $include value: %r" % val)
+        raise GuildfileError(src, "invalid $include value: %r" % val)
 
 def _apply_includes(includes, guildfile, section_name, coerce_data,
                     seen_includes, resolved):
@@ -155,17 +193,18 @@ def _apply_includes(includes, guildfile, section_name, coerce_data,
             break
         seen_includes.add(ref)
         # Have to access guildfile.data here rather than use
-        # guildfile.get because guildfile may not be initialized at
+        # guildfile.get because guildfile may is not initialized at
         # this point.
-        include_model, include_op = _split_include_ref(ref)
+        include_model, include_op = _split_include_ref(ref, guildfile)
         for model_data in guildfile.data:
-            if model_data.get("name") == include_model:
+            if _item_name(model_data, MODEL_TYPES) == include_model:
                 if include_op:
                     op_data = _op_data(model_data, include_op)
                     if op_data is None:
                         raise GuildfileReferenceError(
+                            guildfile,
                             "invalid include reference '%s': operation "
-                            "%s is not defined" % (ref, include_op))
+                            "'%s' is not defined" % (ref, include_op))
                     section_data = op_data.get(section_name, {})
                 else:
                     section_data = model_data.get(section_name, {})
@@ -179,24 +218,33 @@ def _apply_includes(includes, guildfile, section_name, coerce_data,
                 break
         else:
             raise GuildfileReferenceError(
-                "invalid include reference '%s': model %s is not defined"
-                % (ref, include_model))
+                guildfile,
+                "invalid include reference '%s': model '%s' "
+                "is not defined" % (ref, include_model))
 
 def _assert_guildfile_data(guildfile):
     # This is called by guildfile components that need to access
     # guildfile data before the modefile is fully initialized.
     assert hasattr(guildfile, "data"), "modesfile data not initialized"
 
-def _split_include_ref(ref):
+def _split_include_ref(ref, src):
     parts = ref.split(":", 1)
     if len(parts) == 1:
         return parts[0], None
     else:
         if not parts[0]:
             raise GuildfileReferenceError(
-                "invalid include reference '%s': operation references must "
-                "be specified as MODEL:OPERATION" % ref)
+                src, ("invalid include reference '%s': operation references "
+                      "must be specified as MODEL:OPERATION" % ref))
         return parts
+
+def _item_name(data, types):
+    for attr in types:
+        try:
+            return data[attr]
+        except KeyError:
+            pass
+    return None
 
 def _op_data(model_data, op_name):
     return model_data.get("operations", {}).get(op_name)
@@ -204,15 +252,15 @@ def _op_data(model_data, op_name):
 def _includes_first(names):
     return sorted(names, key=lambda x: "\x00" if x == "$include" else x)
 
-def _apply_data(name, data, resolved, coerce_data):
+def _apply_data(name, data, resolved, coerce_data, guildfile):
     try:
         cur = resolved[name]
     except KeyError:
         new = {}
-        new.update(coerce_data(data))
+        new.update(coerce_data(data, guildfile))
         resolved[name] = new
     else:
-        _apply_missing_vals(cur, coerce_data(data))
+        _apply_missing_vals(cur, coerce_data(data, guildfile))
 
 def _apply_missing_vals(target, source):
     assert isinstance(target, dict), target
@@ -282,22 +330,19 @@ class FlagHost(object):
 
 def _init_flags(data, guildfile):
     flags_data = _resolve_includes(
-        data,
-        "flags",
-        guildfile,
-        _coerce_flag_data)
+        data, "flags", guildfile, _coerce_flag_data)
     return [
         FlagDef(name, flags_data[name])
         for name in sorted(flags_data)
     ]
 
-def _coerce_flag_data(data):
+def _coerce_flag_data(data, src):
     if isinstance(data, dict):
         return data
     elif isinstance(data, (str, int, float, bool)):
         return {"default": data}
     else:
-        raise GuildfileFormatError("unsupported flag data: %r" % data)
+        raise GuildfileError(src, "invalid flag value: %r" % data)
 
 class FlagDef(object):
 
@@ -336,19 +381,19 @@ class FlagChoice(object):
             self.description = data.get("description", "")
             self.args = data.get("args", {})
         else:
-            raise GuildfileFormatError("unsupported choices data: %r" % data)
+            raise GuildfileError(self, "invalid choices value: %r" % data)
 
 ###################################################################
-# Model def
+# Model def base
 ###################################################################
 
-class ModelDef(FlagHost):
+class ModelDefBase(FlagHost):
 
-    def __init__(self, data, guildfile):
-        data = _extended_data(data, guildfile.data)
-        super(ModelDef, self).__init__(data, guildfile)
+    def __init__(self, name, data, guildfile):
+        data = _extended_data(data, guildfile)
+        super(ModelDefBase, self).__init__(data, guildfile)
+        self.name = name
         self.guildfile = guildfile
-        self.name = data.get("name")
         self.description = data.get("description", "").strip()
         self.references = data.get("references", [])
         self.private = bool(data.get("private"))
@@ -358,7 +403,7 @@ class ModelDef(FlagHost):
         self.extra = data.get("extra", {})
 
     def __repr__(self):
-        return "<guild.guildfile.ModelDef '%s'>" % self.name
+        raise NotImplementedError()
 
     def get_operation(self, name):
         for op in self.operations:
@@ -372,34 +417,32 @@ class ModelDef(FlagHost):
                 return res
         return None
 
-def _extended_data(modeldef_data, guildfile_data, seen=None,
-                   resolve_params=True):
+def _extended_data(config_data, guildfile, seen=None, resolve_params=True):
     seen = seen or []
-    data = copy.deepcopy(modeldef_data)
-    extends = _coerce_extends(modeldef_data.get("extends", []))
+    data = copy.deepcopy(config_data)
+    extends = _coerce_extends(config_data.get("extends", []), guildfile)
     if extends:
-        _apply_parents_data(extends, guildfile_data, seen, data)
+        _apply_parents_data(extends, guildfile, seen, data)
     if resolve_params:
         data = _resolve_param_refs(data, data.get("params", {}))
     return data
 
-def _coerce_extends(val):
+def _coerce_extends(val, src):
     if isinstance(val, str):
         return [val]
     elif isinstance(val, list):
         return val
     else:
-        raise GuildfileFormatError(
-            "invalid value for extends: %r" % val)
+        raise GuildfileError(src, "invalid extends value: %r" % val)
 
-def _apply_parents_data(extends, guildfile_data, seen, data):
+def _apply_parents_data(extends, guildfile, seen, data):
     for name in extends:
         if name in seen:
             raise GuildfileReferenceError(
-                "cycle in model extends: %s" % seen)
+                guildfile, "cycle in model extends: %s" % seen)
         seen.append(name)
-        parent = _modeldef_data(name, guildfile_data)
-        extended_parent = _extended_data(parent, guildfile_data, seen, False)
+        parent = _modeldef_base_data(name, guildfile)
+        extended_parent = _extended_data(parent, guildfile, seen, False)
         inheritable = [
             "description",
             "references",
@@ -410,11 +453,12 @@ def _apply_parents_data(extends, guildfile_data, seen, data):
         ]
         _apply_parent_data(extended_parent, data, inheritable)
 
-def _modeldef_data(name, guildfile_data):
-    for modeldef_data in guildfile_data:
-        if modeldef_data.get("name") == name:
-            return modeldef_data
-    raise GuildfileReferenceError("undefined model %s" % name)
+def _modeldef_base_data(name, guildfile):
+    for item in guildfile.data:
+        if _item_name(item, MODEL_TYPES) == name:
+            return item
+    raise GuildfileReferenceError(
+        guildfile, "undefined model or config '%s'" % name)
 
 def _apply_parent_data(parent, child, attrs=None):
     if not isinstance(child, dict) or not isinstance(parent, dict):
@@ -488,6 +532,24 @@ def _init_resources(data, modeldef):
     ]
 
 ###################################################################
+# Model def
+###################################################################
+
+class ModelDef(ModelDefBase):
+
+    def __repr__(self):
+        return "<guild.guildfile.ModelDef '%s'>" % self.name
+
+###################################################################
+# Config
+###################################################################
+
+class Config(ModelDefBase):
+
+    def __repr__(self):
+        return "<guild.guildfile.Config '%s'>" % self.name
+
+###################################################################
 # Op def
 ###################################################################
 
@@ -533,13 +595,13 @@ class OpDependency(object):
         elif isinstance(data, dict):
             self.spec = data.get("resource")
             if not self.spec:
-                raise GuildfileFormatError(
-                    "missing required 'resource' attribute in dependency %r"
-                    % data)
+                raise GuildfileError(
+                    self, ("missing required 'resource' attribute "
+                           "in dependency %r" % data))
             self.description = data.get("description", "")
         else:
-            raise GuildfileFormatError(
-                "unsupported data for dependency: %r" % data)
+            raise GuildfileError(
+                self, "invalid dependency value: %r" % data)
 
     def __repr__(self):
         return "<guild.guildfile.OpDependency '%s'>" % self.spec
@@ -585,6 +647,17 @@ class ResourceDef(resourcedef.ResourceDef):
                 self, "operation:%s" % val, **data)
         else:
             return super(ResourceDef, self)._source_for_type(type, val, data)
+
+###################################################################
+# Package def
+###################################################################
+
+class PackageDef(object):
+
+    def __init__(self, name, _data, guildfile):
+        self.name = name
+        self.guildfile = guildfile
+        # TODO - apply data
 
 ###################################################################
 # Module API

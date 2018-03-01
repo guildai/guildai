@@ -87,11 +87,14 @@ class GuildfileModel(Model):
         return self.dist.get_modeldef(self.name)
 
     def _init_reference(self):
-        if self.dist.guildfile.src:
-            version = self._guildfile_hash(self.dist.guildfile.src)
+        src = self.dist.guildfile.src
+        if src and os.path.isfile(src):
+            version = self._guildfile_hash(src)
         else:
             version = "unknown"
-        path = os.path.abspath(self.dist.guildfile.dir)
+        path = self.dist.guildfile.dir
+        if path is not None:
+            path = os.path.abspath(path)
         return ModelRef("guildfile", path, version, self.name)
 
     @staticmethod
@@ -159,7 +162,7 @@ def _try_acc_modeldefs(path, acc):
     except Exception as e:
         log.error("unable to load models from %s: %s", path, e)
     else:
-        for modeldef in models:
+        for modeldef in models.models.values():
             acc.append(modeldef)
 
 class GuildfileDistribution(pkg_resources.Distribution):
@@ -181,8 +184,8 @@ class GuildfileDistribution(pkg_resources.Distribution):
             return self._entry_map.get(group, {})
 
     def get_modeldef(self, name):
-        for modeldef in self.guildfile:
-            if modeldef.name == name:
+        for modeldef_name, modeldef in self.guildfile.models.items():
+            if modeldef_name == name:
                 return modeldef
         raise ValueError(name)
 
@@ -213,8 +216,8 @@ class GuildfileDistribution(pkg_resources.Distribution):
     def _init_entry_map(self):
         return {
             "guild.models": {
-                model.name: self._model_entry_point(model)
-                for model in self.guildfile
+                name: self._model_entry_point(model)
+                for name, model in self.guildfile.models.items()
             },
             "guild.resources": {
                 res.fullname: self._resource_entry_point(res.fullname)
@@ -230,7 +233,7 @@ class GuildfileDistribution(pkg_resources.Distribution):
             dist=self)
 
     def _guildfile_resources(self):
-        for modeldef in self.guildfile:
+        for modeldef in self.guildfile.models.values():
             for res in modeldef.resources:
                 yield res
 
@@ -254,7 +257,7 @@ class GuildfileResource(resource.Resource):
     def _init_resdef(self):
         assert isinstance(self.dist, GuildfileDistribution), self.dist
         model_name, res_name = _split_res_name(self.name)
-        modeldef = self.dist.guildfile.get(model_name)
+        modeldef = self.dist.guildfile.models.get(model_name)
         assert modeldef, (self.name, self.dist)
         resdef = modeldef.get_resource(res_name)
         assert resdef, (self.name, self.dist)
@@ -334,11 +337,16 @@ class ModelImporter(object):
 
     def _plugin_model_dist(self):
         models_data = []
-        for _, plugin in guild.plugin.iter_plugins():
+        plugins_used = set()
+        for name, plugin in guild.plugin.iter_plugins():
             for data in plugin.find_models(self.path):
                 models_data.append(data)
+                plugins_used.add(name)
         if models_data:
-            mf = guildfile.Guildfile(models_data, dir=self.path)
+            mf = guildfile.Guildfile(
+                models_data,
+                src="<plugin-generated %s>" % ",".join(plugins_used),
+                dir=self.path)
             return GuildfileDistribution(mf)
         else:
             return None

@@ -1,4 +1,4 @@
-name: resources
+model: resources
 resources:
   test:
     sources:

@@ -1,15 +1,15 @@
 - !load shared.yml
 
-- name: model-a
+- model: model-a
   flags:
     $include: shared
     model-a-flag-1: a-1
 
-- name: model-b
+- model: model-b
   flags:
     $include: shared
     model-b-flag-1: b-1
     model-b-flag-2: b-2
 
-- name: model-c
+- model: model-c
   flags: !load model-c-flags

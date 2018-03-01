@@ -147,7 +147,7 @@ def package_description(guildfile, refs):
 
 def _write_models(guildfile, out):
     i = 0
-    for model in guildfile:
+    for _name, model in sorted(guildfile.models.items()):
         if model.private:
             continue
         if i > 0:
