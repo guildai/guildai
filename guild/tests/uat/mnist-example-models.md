@@ -1,14 +1,14 @@
 # MNIST example models
 
 In this test we'll list the available models for the MNIST example. As
-example directory contains a file named `MODELS` ("modelfile") Guild
+example directory contains a file named `MODELS` ("guildfile") Guild
 limits its results to models defined in that file.
 
-We can reference a modelfile in one of two ways:
+We can reference a guildfile in one of two ways:
 
-- Change the current directory to the modelfile directory
+- Change the current directory to the guildfile directory
 - Using the `-C` option of the `guild` command to reference the
-  modelfile drectory
+  guildfile drectory
 
 Here are the models associated with the MNIST example (using the `-C`
 option):

@@ -41,10 +41,10 @@ def cwd_desc(cwd=None):
     else:
         return "'%s'" % cwd
 
-def cwd_modelfile(cwd=None):
-    """Returns the modelfile of the context cwd.
+def cwd_guildfile(cwd=None):
+    """Returns the guildfile of the context cwd.
 
-    Returns None if a modelfile doesn't exist in the cwd.
+    Returns None if a guildfile doesn't exist in the cwd.
     """
     cwd = cwd or config.cwd()
     try:
@@ -52,13 +52,13 @@ def cwd_modelfile(cwd=None):
     except ImportError:
         return None
     else:
-        _check_bad_modelfile(importer.dist)
-        return getattr(importer.dist, "modelfile", None)
+        _check_bad_guildfile(importer.dist)
+        return getattr(importer.dist, "guildfile", None)
 
-def _check_bad_modelfile(dist):
-    if isinstance(dist, guild.model.BadModelfileDistribution):
+def _check_bad_guildfile(dist):
+    if isinstance(dist, guild.model.BadGuildfileDistribution):
         cli.error(
-            "modelfile in %s contains error (see above for details)"
+            "guildfile in %s contains error (see above for details)"
             % cwd_desc(dist.location))
 
 def init_model_path(args, cwd=None):
@@ -81,7 +81,7 @@ def init_resource_path(args, cwd=None):
     _init_path(guild.resource, "resources", args, cwd)
 
 def _init_path(mod, desc, args, cwd):
-    cwd_mf = cwd_modelfile(cwd)
+    cwd_mf = cwd_guildfile(cwd)
     if cwd_mf:
         if args.all:
             mod.insert_path(cwd_mf.dir)

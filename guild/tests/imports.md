@@ -84,13 +84,13 @@
     guild.config
     guild.deps
     guild.entry_point_util
+    guild.guildfile
     guild.help
     guild.index
     guild.log
     guild.main
     guild.main_bootstrap
     guild.model
-    guild.modelfile
     guild.namespace
     guild.op
     guild.op_main

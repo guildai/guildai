@@ -274,7 +274,7 @@ def _init_cmd_env(opdef):
     env["SCRIPT_DIR"] = ""
     # CMD_DIR is where the operation cmd was run
     env["CMD_DIR"] = os.getcwd()
-    env["MODEL_DIR"] = opdef.modeldef.modelfile.dir
+    env["MODEL_DIR"] = opdef.modeldef.guildfile.dir
     return env
 
 def _op_plugins(opdef):
@@ -308,7 +308,7 @@ def _env_paths():
     return env.split(os.path.pathsep) if env else []
 
 def _model_paths(opdef):
-    return [os.path.abspath(opdef.modelfile.dir)]
+    return [os.path.abspath(opdef.guildfile.dir)]
 
 def _guild_paths():
     guild_path = os.path.dirname(os.path.dirname(__file__))

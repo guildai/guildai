@@ -5,9 +5,9 @@ Operation support is implemented by the `op` module:
     >>> import guild.op
 
 For our tests, we'll use a helper function that returns an instance of
-`guild.modelfile.OpDef`:
+`guild.guildfile.OpDef`:
 
-    >>> import guild.modelfile
+    >>> import guild.guildfile
 
     >>> def OpDef(cmd, name="op"):
     ...     data = [
@@ -20,7 +20,7 @@ For our tests, we'll use a helper function that returns an instance of
     ...         }
     ...       }
     ...     ]
-    ...     models = guild.modelfile.Modelfile(data, "./MODEL")
+    ...     models = guild.guildfile.Guildfile(data, "./MODEL")
     ...     return models["model"].get_operation(name)
 
 We'll also create a helper function that returns and instance of

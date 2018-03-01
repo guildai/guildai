@@ -20,13 +20,13 @@ import re
 import shlex
 
 from guild import cli
-from guild import modelfile
+from guild import guildfile
 from guild import plugin
 
 from . import cloudml_op_main
 
 def _gen_opdef(name, data, modeldef, parent_opdef=None, local_opdef=None):
-    opdef = modelfile.OpDef(name, data, modeldef)
+    opdef = guildfile.OpDef(name, data, modeldef)
     if local_opdef:
         opdef.update_flags(local_opdef)
         opdef.update_dependencies(local_opdef)
@@ -46,7 +46,7 @@ def _local_train_opdef(op_name, modeldef, requiring_op):
     if not opdef:
         cli.error(
             "operation '%s' not defined in %s (required by %s)"
-            % (op_name, modeldef.modelfile.src, requiring_op))
+            % (op_name, modeldef.guildfile.src, requiring_op))
     return opdef
 
 def _train_opdef_data(local_train):

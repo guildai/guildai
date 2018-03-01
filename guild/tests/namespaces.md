@@ -18,7 +18,7 @@ Examples of namespaces in package names:
 
 Each of these fully qualified package names refers to a different
 package. The first refers to the `mnist` project on PyPI. The second
-refers to `gpkg.mnist` on PyPI. The third refers to a local modelfile
+refers to `gpkg.mnist` on PyPI. The third refers to a local guildfile
 distribution in a directory named `mnist`.
 
 Guild namespaces are manged with the `guild.namespace` module:
@@ -35,7 +35,7 @@ We can use `iter_namespaces` to list the supported namespaces:
 
     >>> sorted(namespace.iter_namespaces())
     [('gpkg', <guild.namespace.Namespace 'gpkg'>),
-     ('modelfile', <guild.namespace.Namespace 'modelfile'>),
+     ('guildfile', <guild.namespace.Namespace 'guildfile'>),
      ('pypi', <guild.namespace.Namespace 'pypi'>)]
 
 We can use `for_name` to lookup namespaces by name:
@@ -136,38 +136,38 @@ If a project name is not in a namespace, the namespace raises TypeError:
     Traceback (most recent call last):
     TypeError: mnist is not a member of gpkg namespace
 
-## Modelfile namespace
+## Guildfile namespace
 
-Guild provides a special namespace for modelfile packages. A modelfile
-package is a local directory containing a modelfile (i.e. a file named
-`MODEL` or `MODELS`). If a modelfile package is on the Python path,
+Guild provides a special namespace for guildfile packages. A guildfile
+package is a local directory containing a guildfile (i.e. a file named
+`MODEL` or `MODELS`). If a guildfile package is on the Python path,
 Guild will see any models defined in it.
 
-    >>> modelfile = namespace.for_name("modelfile")
+    >>> guildfile = namespace.for_name("guildfile")
 
-Modelfile packages cannot be installed using pip:
+Guildfile packages cannot be installed using pip:
 
-    >>> modelfile.pip_info("mnist")
+    >>> guildfile.pip_info("mnist")
     Traceback (most recent call last):
-    TypeError: modelfiles cannot be installed using pip
+    TypeError: guildfiles cannot be installed using pip
 
 However, they can be used to test project name membership and
-translate a modelfile project name into a package name.
+translate a guildfile project name into a package name.
 
 Modefile project names are in the format:
 
-    '.modelfile.' + ESCAPED_PROJECT_NAME
+    '.guildfile.' + ESCAPED_PROJECT_NAME
 
 Project names are escaped because they may contain 'unsafe' character
 that are disallowed in standard project names.
 
-Any project name that doesn't start with '.modelfile.' is not
+Any project name that doesn't start with '.guildfile.' is not
 considered a member:
 
-    >>> modelfile.project_name_membership("mnist")
+    >>> guildfile.project_name_membership("mnist")
     'no'
 
-    >>> modelfile.project_name_membership("gpkg.mnist")
+    >>> guildfile.project_name_membership("gpkg.mnist")
     'no'
 
 Let's create a modefile project name. We'll need a helper:
@@ -176,19 +176,19 @@ Let's create a modefile project name. We'll need a helper:
 
 And our project name:
 
-    >>> modelfile_project = ".modelfile." + _escape_project_name("foo/bar")
+    >>> guildfile_project = ".guildfile." + _escape_project_name("foo/bar")
 
 Let's test it!
 
-    >>> modelfile.project_name_membership(modelfile_project)
+    >>> guildfile.project_name_membership(guildfile_project)
     'yes'
 
-    >>> modelfile.package_name(modelfile_project)
+    >>> guildfile.package_name(guildfile_project)
     'foo/bar'
 
-Here we see that our modelfile project name is the `foo/bar` package.
+Here we see that our guildfile project name is the `foo/bar` package.
 
-For more information about modelfile package names, see the [packages
+For more information about guildfile package names, see the [packages
 test](packages.md).
 
 ## Applying namespaces

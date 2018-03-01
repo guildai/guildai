@@ -25,7 +25,7 @@ import twine.commands.upload
 import guild.help
 
 from guild import namespace
-from guild import modelfile
+from guild import guildfile
 from guild import util
 from guild import yaml
 
@@ -132,7 +132,7 @@ def _pkg_description(pkg, models):
     long_desc = "\n\n".join(desc_lines[1:])
     if models:
         refs = [
-            ("Modelfile", pkg.get("modelfile", "UNKNOWN")),
+            ("Guildfile", pkg.get("guildfile", "UNKNOWN")),
         ]
         long_desc += "\n\n" + guild.help.package_description(models, refs)
     return desc, long_desc
@@ -172,8 +172,8 @@ def _model_eps(pkg):
 def _pkg_models(pkg):
     pkg_dir = os.path.dirname(pkg.src)
     try:
-        return [m for m in modelfile.from_dir(pkg_dir) if not m.private]
-    except modelfile.NoModels:
+        return [m for m in guildfile.from_dir(pkg_dir) if not m.private]
+    except guildfile.NoModels:
         return []
 
 def _resource_eps(pkg):
@@ -183,14 +183,14 @@ def _model_resource_eps(pkg):
     return [
         ("%s:%s = guild.model:PackageModelResource"
          % (resdef.modeldef.name, resdef.name))
-        for resdef in _iter_modelfile_resdefs(pkg)
+        for resdef in _iter_guildfile_resdefs(pkg)
     ]
 
-def _iter_modelfile_resdefs(pkg):
+def _iter_guildfile_resdefs(pkg):
     pkg_dir = os.path.dirname(pkg.src)
     try:
-        mf = modelfile.from_dir(pkg_dir)
-    except modelfile.NoModels:
+        mf = guildfile.from_dir(pkg_dir)
+    except guildfile.NoModels:
         pass
     else:
         for modeldef in mf:

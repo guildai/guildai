@@ -12,7 +12,7 @@ Here we see the run for the MNIST example `mnist-intro` model along
 with a run for the `mnist` package `mnist-softmax` model.
 
 We can limit the result by running the command in the context of the
-example modelfile directory:
+example guildfile directory:
 
     >>> run("guild -C examples/mnist2 runs")
     Limiting runs to 'examples/mnist2' (use --all to include all)

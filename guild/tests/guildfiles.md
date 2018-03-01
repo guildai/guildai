@@ -3,45 +3,45 @@
 Model files are files that contain model definitions. By convention
 model files are named `MODEL` or `MODELS`.
 
-Support for model files is provided by the `modelfile` module:
+Support for model files is provided by the `guildfile` module:
 
-    >>> from guild import modelfile
+    >>> from guild import guildfile
 
 ## Loading a model file from a directory
 
 Use `from_dir` to load a model file from a directory:
 
-    >>> mf = modelfile.from_dir(sample("projects/mnist"))
+    >>> mf = guildfile.from_dir(sample("projects/mnist"))
     >>> mf.src
     '.../samples/projects/mnist/MODELS'
 
-## Loading a modelfile from a file
+## Loading a guildfile from a file
 
-Use `from_file` to load a modelfile from a file directly:
+Use `from_file` to load a guildfile from a file directly:
 
-    >>> mf = modelfile.from_file(sample("projects/mnist/MODELS"))
+    >>> mf = guildfile.from_file(sample("projects/mnist/MODELS"))
     >>> [model.name for model in mf]
     ['intro', 'expert', 'common']
 
 ## Model defs
 
-By definition a modelfile is a list of modeldefs ("models" in this
+By definition a guildfile is a list of modeldefs ("models" in this
 context):
 
     >>> list(mf)
-    [<guild.modelfile.ModelDef 'intro'>,
-     <guild.modelfile.ModelDef 'expert'>,
-     <guild.modelfile.ModelDef 'common'>]
+    [<guild.guildfile.ModelDef 'intro'>,
+     <guild.guildfile.ModelDef 'expert'>,
+     <guild.guildfile.ModelDef 'common'>]
 
 ### Accessing modeldefs
 
 We can lookup a modeld by name using dictionary semantics:
 
     >>> mf["intro"]
-    <guild.modelfile.ModelDef 'intro'>
+    <guild.guildfile.ModelDef 'intro'>
 
     >>> mf.get("intro")
-    <guild.modelfile.ModelDef 'intro'>
+    <guild.guildfile.ModelDef 'intro'>
 
 ### Default model
 
@@ -49,7 +49,7 @@ The first model defined in a project is considered to be the default
 model:
 
     >>> mf.default_model
-    <guild.modelfile.ModelDef 'intro'>
+    <guild.guildfile.ModelDef 'intro'>
 
 ### Attributes
 
@@ -88,7 +88,7 @@ Flags are named values that are provided to operations during a
 run. Flags can be defined at the model level and at the operation
 level.
 
-Our sample modelfile uses an advanced scheme of including flag
+Our sample guildfile uses an advanced scheme of including flag
 definitions from one model into another model. Refer to
 [samples/projects/mnist/MODELS](samples/projects/mnist/MODELS) for
 details on how this is structured.
@@ -157,7 +157,7 @@ of one flag and adds another:
 Note that while the value for `epochs` is redefined, the original flag
 description is not.
 
-The third set of flags defined in the modelfile is associated with the
+The third set of flags defined in the guildfile is associated with the
 `evaluate` operation of the `intro` model.
 
     >>> eval_op = mf["intro"].get_operation("evaluate")
@@ -210,9 +210,9 @@ the operation's model doesn't modify the operation's flag value:
 
 Flags can be updated using flags from another flag host.
 
-Consider this modelfile:
+Consider this guildfile:
 
-    >>> mf2 = modelfile.from_string("""
+    >>> mf2 = guildfile.from_string("""
     ... name: sample
     ... operations:
     ...   a:
@@ -233,7 +233,7 @@ The two opdefs:
 Here are the flags and values for opdef a:
 
     >>> opdef_a.flags
-    [<guild.modelfile.FlagDef 'x'>, <guild.modelfile.FlagDef 'y'>]
+    [<guild.guildfile.FlagDef 'x'>, <guild.guildfile.FlagDef 'y'>]
 
     >>> pprint(opdef_a.flag_values())
     {'x': 'X1', 'y': 'Y'}
@@ -241,7 +241,7 @@ Here are the flags and values for opdef a:
 And the flags and values for opdef b:
 
     >>> opdef_b.flags
-    [<guild.modelfile.FlagDef 'x'>, <guild.modelfile.FlagDef 'z'>]
+    [<guild.guildfile.FlagDef 'x'>, <guild.guildfile.FlagDef 'z'>]
 
     >>> pprint(opdef_b.flag_values())
     {'x': 'x2', 'z': 'Z'}
@@ -253,9 +253,9 @@ We'll update opdef a flags with those from opdef b:
 The updated flags:
 
     >>> opdef_a.flags
-    [<guild.modelfile.FlagDef 'x'>,
-     <guild.modelfile.FlagDef 'y'>,
-     <guild.modelfile.FlagDef 'z'>]
+    [<guild.guildfile.FlagDef 'x'>,
+     <guild.guildfile.FlagDef 'y'>,
+     <guild.guildfile.FlagDef 'z'>]
 
 and values:
 
@@ -272,7 +272,7 @@ Operations are ordered by name:
 Find an operation using a model's `get_op` method:
 
     >>> mf["expert"].get_operation("train")
-    <guild.modelfile.OpDef 'expert:train'>
+    <guild.guildfile.OpDef 'expert:train'>
 
 `get_op` returns None if the operation isn't defined for the model:
 
@@ -282,9 +282,9 @@ Find an operation using a model's `get_op` method:
 ### Plugin ops
 
 An operation can delegate its implementation to a plugin using the
-`plugin-op` attribute. Here's a sample modelfile:
+`plugin-op` attribute. Here's a sample guildfile:
 
-    >>> mf2 = modelfile.from_string("""
+    >>> mf2 = guildfile.from_string("""
     ... name: sample
     ... operations:
     ...   train:
@@ -292,7 +292,7 @@ An operation can delegate its implementation to a plugin using the
     ... """)
 
 The opdef in this case will use `plugin_op` rather than `cmd`. Plugin
-ops are provided as modelfile.PluginOp objects and have `name` and
+ops are provided as guildfile.PluginOp objects and have `name` and
 `config` attributes:
 
     >>> train = mf2["sample"].get_operation("train")
@@ -306,7 +306,7 @@ Model resources are are named lists of sources that may be required by
 operations. Our sample models each have the following resources:
 
     >>> mf["common"].resources
-    [<guild.modelfile.ResourceDef 'data'>]
+    [<guild.guildfile.ResourceDef 'data'>]
 
     >>> mf["expert"].resources
     []
@@ -328,7 +328,7 @@ one of three source type attributes:
 
 Here's a model definition that contains various resource sources:
 
-    >>> mf = modelfile.from_string("""
+    >>> mf = guildfile.from_string("""
     ... name: sample
     ... resources:
     ...   sample:
@@ -352,7 +352,7 @@ file.
 
 At least one of the three type attributes is required:
 
-    >>> modelfile.from_string("""
+    >>> guildfile.from_string("""
     ... name: sample
     ... resources:
     ...   sample:
@@ -365,7 +365,7 @@ At least one of the three type attributes is required:
 
 However, no more than one is allowed:
 
-    >>> modelfile.from_string("""
+    >>> guildfile.from_string("""
     ... name: sample
     ... resources:
     ...   sample:
@@ -382,7 +382,7 @@ However, no more than one is allowed:
 A list of references may be included for each model. These can be used
 to direct users to upstream sources and papers.
 
-    >>> mf = modelfile.from_string("""
+    >>> mf = guildfile.from_string("""
     ... name: sample
     ... references:
     ...   - https://arxiv.org/abs/1603.05027
@@ -395,39 +395,39 @@ to direct users to upstream sources and papers.
 
 Guild model files support includes.
 
-    >>> mf = modelfile.from_dir(sample("projects/includes"))
+    >>> mf = guildfile.from_dir(sample("projects/includes"))
     >>> list(mf)
-    [<guild.modelfile.ModelDef 'shared'>,
-     <guild.modelfile.ModelDef 'model-a'>,
-     <guild.modelfile.ModelDef 'model-b'>,
-     <guild.modelfile.ModelDef 'model-c'>]
+    [<guild.guildfile.ModelDef 'shared'>,
+     <guild.guildfile.ModelDef 'model-a'>,
+     <guild.guildfile.ModelDef 'model-b'>,
+     <guild.guildfile.ModelDef 'model-c'>]
 
     >>> mf["model-a"].flags
-    [<guild.modelfile.FlagDef 'model-a-flag-1'>,
-     <guild.modelfile.FlagDef 'shared-1'>,
-     <guild.modelfile.FlagDef 'shared-2'>]
+    [<guild.guildfile.FlagDef 'model-a-flag-1'>,
+     <guild.guildfile.FlagDef 'shared-1'>,
+     <guild.guildfile.FlagDef 'shared-2'>]
 
     >>> mf["model-b"].flags
-    [<guild.modelfile.FlagDef 'model-b-flag-1'>,
-     <guild.modelfile.FlagDef 'model-b-flag-2'>,
-     <guild.modelfile.FlagDef 'shared-1'>,
-     <guild.modelfile.FlagDef 'shared-2'>]
+    [<guild.guildfile.FlagDef 'model-b-flag-1'>,
+     <guild.guildfile.FlagDef 'model-b-flag-2'>,
+     <guild.guildfile.FlagDef 'shared-1'>,
+     <guild.guildfile.FlagDef 'shared-2'>]
 
     >>> mf["model-c"].flags
-    [<guild.modelfile.FlagDef 'model-c-flag-1'>,
-     <guild.modelfile.FlagDef 'model-c-flag-2'>]
+    [<guild.guildfile.FlagDef 'model-c-flag-1'>,
+     <guild.guildfile.FlagDef 'model-c-flag-2'>]
 
 ## Model inheritance
 
 ### Data merging
 
 Model inheritance works using a low level data merge facility
-implemented by `modelfile._apply_parent_data`.
+implemented by `guildfile._apply_parent_data`.
 
 Here's a helper function to apply parent data and print the result:
 
     >>> def apply_parent(parent, child):
-    ...     modelfile._apply_parent_data(parent, child)
+    ...     guildfile._apply_parent_data(parent, child)
     ...     pprint(child)
 
 If a dict value doesn't exist in child, it's copied from parent:
@@ -542,7 +542,7 @@ extension scenario.
 We'll extend the child in-place so we can test specific attributes
 after it's extended.
 
-    >>> modelfile._apply_parent_data(parent, child)
+    >>> guildfile._apply_parent_data(parent, child)
 
 Name and description are both preserved:
 
@@ -582,7 +582,7 @@ the attributes of parent models by listing parent models in an
 
 Here's a model file that defines a model that extends another:
 
-    >>> mf = modelfile.from_string("""
+    >>> mf = guildfile.from_string("""
     ... - name: trainable
     ...   description: A trainable model
     ...   private: yes
@@ -600,7 +600,7 @@ Here's a model file that defines a model that extends another:
 
     >>> m1 = mf["model-1"]
     >>> m1.operations
-    [<guild.modelfile.OpDef 'model-1:train'>]
+    [<guild.guildfile.OpDef 'model-1:train'>]
 
 It also inherits the description:
 
@@ -618,7 +618,7 @@ Models do not inherit name or private:
 Here's a more complex example with two parent models and two child
 models.
 
-    >>> mf = modelfile.from_string("""
+    >>> mf = guildfile.from_string("""
     ... - name: trainable
     ...   description: A trainable model
     ...   private: yes
@@ -652,8 +652,8 @@ attributes from both.
 
     >>> m1 = mf["model-1"]
     >>> m1.operations
-    [<guild.modelfile.OpDef 'model-1:evaluate'>,
-     <guild.modelfile.OpDef 'model-1:train'>]
+    [<guild.guildfile.OpDef 'model-1:evaluate'>,
+     <guild.guildfile.OpDef 'model-1:train'>]
 
 
 It's other attributes:
@@ -678,7 +678,7 @@ default for the `batch-size` attribute:
     >>> m2 = mf["model-2"]
 
     >>> m2.operations
-    [<guild.modelfile.OpDef 'model-2:train'>]
+    [<guild.guildfile.OpDef 'model-2:train'>]
 
     >>> m2.get_operation("train").get_flagdef("batch-size").default
     16
@@ -686,7 +686,7 @@ default for the `batch-size` attribute:
 In this example, a model extends a model that in turn extends another
 model:
 
-    >>> mf = modelfile.from_string("""
+    >>> mf = guildfile.from_string("""
     ... - name: a
     ...   operations:
     ...     train:
@@ -729,7 +729,7 @@ Model `a`:
     >>> a = mf["a"]
 
     >>> a.operations
-    [<guild.modelfile.OpDef 'a:train'>]
+    [<guild.guildfile.OpDef 'a:train'>]
 
     >>> [(f.name, f.description, f.default)
     ...   for f in a.get_operation("train").flags]
@@ -740,8 +740,8 @@ Model `b`:
     >>> b = mf["b"]
 
     >>> b.operations
-    [<guild.modelfile.OpDef 'b:eval'>,
-     <guild.modelfile.OpDef 'b:train'>]
+    [<guild.guildfile.OpDef 'b:eval'>,
+     <guild.guildfile.OpDef 'b:train'>]
 
     >>> [(f.name, f.description, f.default)
     ...   for f in b.get_operation("train").flags]
@@ -752,9 +752,9 @@ Model `c`:
     >>> c = mf["c"]
 
     >>> c.operations
-    [<guild.modelfile.OpDef 'c:eval'>,
-     <guild.modelfile.OpDef 'c:predict'>,
-     <guild.modelfile.OpDef 'c:train'>]
+    [<guild.guildfile.OpDef 'c:eval'>,
+     <guild.guildfile.OpDef 'c:predict'>,
+     <guild.guildfile.OpDef 'c:train'>]
 
     >>> [(f.name, f.description, f.default)
     ...   for f in c.get_operation("train").flags]
@@ -764,28 +764,28 @@ Model `c`:
 
 Below are some inheritance cycles:
 
-    >>> modelfile.from_string("""
+    >>> guildfile.from_string("""
     ... - name: a
     ...   extends: a
     ... """)
     Traceback (most recent call last):
-    ModelfileReferenceError: cycle in model extends: ['a']
+    GuildfileReferenceError: cycle in model extends: ['a']
 
-    >>> modelfile.from_string("""
+    >>> guildfile.from_string("""
     ... - name: a
     ...   extends: b
     ... - name: b
     ...   extends: a
     ... """)
     Traceback (most recent call last):
-    ModelfileReferenceError: cycle in model extends: ['b', 'a']
+    GuildfileReferenceError: cycle in model extends: ['b', 'a']
 
 ### Params
 
 Params may be used in model parents to define place-holder for child
 models. Here's s simple example:
 
-    >>> mf = modelfile.from_string("""
+    >>> mf = guildfile.from_string("""
     ... - name: base
     ...   description: A {{type}} classifier
     ...
@@ -813,7 +813,7 @@ Here are the description of each model:
 
 Here's an example of a parent that provides default param values.
 
-    >>> mf = modelfile.from_string("""
+    >>> mf = guildfile.from_string("""
     ... - name: base
     ...   description: A v{{version}} {{type}} classifier
     ...   params:
@@ -844,13 +844,13 @@ Here's an example of a parent that provides default param values.
 
 ### Invalid format
 
-    >>> modelfile.from_dir(sample("projects/invalid-format"))
+    >>> guildfile.from_dir(sample("projects/invalid-format"))
     Traceback (most recent call last):
-    ModelfileFormatError: ...
+    GuildfileFormatError: ...
 
 ### No models (i.e. MODEL or MODELS)
 
-    >>> modelfile.from_dir(sample("projects/missing-sources"))
+    >>> guildfile.from_dir(sample("projects/missing-sources"))
     Traceback (most recent call last):
     NoModels: ...
 
@@ -859,7 +859,7 @@ in Python 3 and IOError in Python 2) so we'll assert using exception
 content.
 
     >>> try:
-    ...   modelfile.from_file(sample("projects/missing-sources/MODEL"))
+    ...   guildfile.from_file(sample("projects/missing-sources/MODEL"))
     ... except IOError as e:
     ...   print(str(e))
     [Errno 2] No such file or directory: '.../projects/missing-sources/MODEL'

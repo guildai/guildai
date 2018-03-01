@@ -22,7 +22,7 @@ We can view the current model path using the `path` function:
 By default, this path is identical to the Python path
 (i.e. `sys.path`). We can modify the model path in two ways:
 
-- Adding a modelfile path
+- Adding a guildfile path
 - Setting the entire path explicitly
 
 Let's modify the model path by adding a sample model path:
@@ -54,12 +54,12 @@ Here's our new path:
 We can iterate through all available models using `iter_models`:
 
     >>> sorted(guild.model.iter_models(), key=lambda m: m.name)
-    [<guild.model.ModelfileModel 'expert'>,
-     <guild.model.ModelfileModel 'intro'>,
+    [<guild.model.GuildfileModel 'expert'>,
+     <guild.model.GuildfileModel 'intro'>,
      <guild.model.PackageModel 'mnist-cnn'>,
      <guild.model.PackageModel 'mnist-softmax'>]
 
-Note that models derived from modelfiles are distinguished from models
+Note that models derived from guildfiles are distinguished from models
 derived from packages.
 
 ## Models by name
@@ -84,7 +84,7 @@ defined. Guild supports two types of distributions:
   [Packaging and Distributing Projects]
   (https://packaging.python.org/tutorials/distributing-packages/)
 
-- Modelfile distributions, which are based on modelfiles
+- Guildfile distributions, which are based on guildfiles
 
 The `mnist-cnn` model is defined in a standard Python distribution:
 
@@ -98,29 +98,29 @@ is located in the sample `packages` directory. Standard
 distributions have versions as they were explicitly packaged using
 `setuptools` (e.g. by way of the `guild package` command).
 
-The `mnist-intro` model is defined in a modelfile:
+The `mnist-intro` model is defined in a guildfile:
 
     >>> intro = next(guild.model.for_name("intro"))
 
     >>> intro.dist.__class__
-    <class 'guild.model.ModelfileDistribution'>
+    <class 'guild.model.GuildfileDistribution'>
 
-Modelfile distributions are not versioned and trying to read the
+Guildfile distributions are not versioned and trying to read the
 version will generate an error:
 
     >>> intro.dist.version
     Traceback (most recent call last):
     ValueError: ("Missing 'Version:' header and/or PKG-INFO file"...
 
-Modelfile distribution project names start with '.modelfile.' to
+Guildfile distribution project names start with '.guildfile.' to
 distinguish them from standard distributions:
 
     >>> intro.dist.project_name[:11]
-    '.modelfile.'
+    '.guildfile.'
 
-The part of the project name that follows the '.modelfile.' prefix is
+The part of the project name that follows the '.guildfile.' prefix is
 an escaped relative directory that contains the model's
-modelfile. This value can be unescaped using
+guildfile. This value can be unescaped using
 `model._unescape_project_name`.
 
     >>> intro_pkg_path = guild.model._unescape_project_name(
@@ -128,7 +128,7 @@ modelfile. This value can be unescaped using
     >>> intro_pkg_path
     '.../samples/projects/mnist'
 
-Modelfile distribution package paths always start with '.':
+Guildfile distribution package paths always start with '.':
 
     >>> intro_pkg_path[0]
     '.'
@@ -150,7 +150,7 @@ the model distribution project name:
     >>> intro.fullname
     '.../samples/projects/mnist/intro'
 
-Models from local modelfiles (i.e. not installed from standard Python
+Models from local guildfiles (i.e. not installed from standard Python
 packages) are named with a starting '.' and a path leading to the
 model name. Paths in these names are always relative to the current
 working directory.
@@ -173,13 +173,13 @@ References are in the form:
 Here's the reference for the `intro` model:
 
     >>> intro.reference
-    ModelRef(dist_type='modelfile',
+    ModelRef(dist_type='guildfile',
              dist_name='.../samples/projects/mnist',
              dist_version='8c7520af...',
              model_name='intro')
 
 Note that the package reference in this case is an absolute path to
-the modelfile. The version is a hash (md5) of the modelfile. This
+the guildfile. The version is a hash (md5) of the guildfile. This
 information can be used to locate the model definition and optionally
 verify that it has not been modified since the reference was
 generated.
@@ -226,11 +226,11 @@ Here's the `intro` def:
     >>> [(op.name, op.description) for op in intro_def.operations]
     [('evaluate', ''), ('train', '')]
 
-Model definitions in turn are associated with the modelfiles they're
+Model definitions in turn are associated with the guildfiles they're
 defined in.
 
-    >>> cnn_def.modelfile.src
+    >>> cnn_def.guildfile.src
     '.../samples/packages/gpkg/mnist/MODELS'
 
-    >>> intro_def.modelfile.src
+    >>> intro_def.guildfile.src
     '.../samples/projects/mnist/MODELS'

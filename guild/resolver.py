@@ -162,7 +162,7 @@ class OperationOutputResolver(Resolver):
 
     @staticmethod
     def _opref_desc(opref):
-        if opref.pkg_type == "modelfile":
+        if opref.pkg_type == "guildfile":
             pkg = "./"
         elif opref.pkg_name:
             pkg = opref.pkg_name + "/"

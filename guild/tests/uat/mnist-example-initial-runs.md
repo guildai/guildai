@@ -1,7 +1,7 @@
 # MNIST initial runs
 
-When we list runs for a directory containing a modelfile, the runs are
-limited to those that were generated from that modelfile.
+When we list runs for a directory containing a guildfile, the runs are
+limited to those that were generated from that guildfile.
 
 Let's show runs for the MNIST example:
 

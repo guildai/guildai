@@ -171,7 +171,7 @@ def _dependency_resource(spec, ctx):
     try:
         res = util.find_apply(
             [_model_resource,
-             _modelfile_resource,
+             _guildfile_resource,
              _packaged_resource],
             spec, ctx)
     except DependencyError as e:
@@ -200,12 +200,12 @@ def _modeldef_resource(modeldef, res_name, ctx):
             % (res_name, ctx.opdef.fullname))
     return Resource(resdef, ctx)
 
-def _modelfile_resource(spec, ctx):
+def _guildfile_resource(spec, ctx):
     m = re.match(r"(%s):(%s)$" % (RESOURCE_TERM, RESOURCE_TERM), spec)
     if m is None:
         return None
     model_name = m.group(1)
-    modeldef = ctx.opdef.modelfile.get(model_name)
+    modeldef = ctx.opdef.guildfile.get(model_name)
     if modeldef is None:
         raise DependencyError(
             "model in resource '%s' required by operation "

@@ -97,18 +97,18 @@ class RestFormatter(click.HelpFormatter):
     def dedent(self):
         self._indent_level -= 1
 
-def modelfile_console_help(modelfile, refs, model_desc=None):
+def guildfile_console_help(guildfile, refs, model_desc=None):
     out = ConsoleFormatter()
     out.start_section("OVERVIEW")
-    _write_console_help_overview(modelfile, model_desc, out)
+    _write_console_help_overview(guildfile, model_desc, out)
     out.start_section("MODELS")
-    _write_models(modelfile, out)
+    _write_models(guildfile, out)
     out.start_section("REFERENCES")
     _write_references(refs, out)
     return "".join(out.buffer)
 
-def _write_console_help_overview(modelfile, model_desc, out):
-    model_desc = model_desc or _format_modelfile_dir(modelfile)
+def _write_console_help_overview(guildfile, model_desc, out):
+    model_desc = model_desc or _format_guildfile_dir(guildfile)
     out.write_text(textwrap.dedent(
         """
         You are viewing help for models defined in %s.
@@ -125,7 +125,7 @@ def _write_console_help_overview(modelfile, model_desc, out):
         """
         % model_desc))
 
-def _format_modelfile_dir(mf):
+def _format_guildfile_dir(mf):
     if _is_cwd(mf.dir):
         return "the current directory"
     else:
@@ -137,17 +137,17 @@ def _format_modelfile_dir(mf):
 def _is_cwd(path):
     return os.path.abspath(path) == os.path.abspath(os.getcwd())
 
-def package_description(modelfile, refs):
+def package_description(guildfile, refs):
     out = RestFormatter()
     out.start_section("Models")
-    _write_models(modelfile, out)
+    _write_models(guildfile, out)
     out.start_section("References")
     _write_references(refs or [], out)
     return "".join(out.buffer)
 
-def _write_models(modelfile, out):
+def _write_models(guildfile, out):
     i = 0
-    for model in modelfile:
+    for model in guildfile:
         if model.private:
             continue
         if i > 0:

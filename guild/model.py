@@ -25,7 +25,7 @@ import guild.plugin
 
 from guild import config
 from guild import entry_point_util
-from guild import modelfile
+from guild import guildfile
 from guild import namespace
 from guild import resource
 
@@ -75,32 +75,32 @@ class Model(object):
     def _init_reference(self):
         raise NotImplementedError()
 
-class ModelfileModel(Model):
-    """A model associated with a modelfile.
+class GuildfileModel(Model):
+    """A model associated with a guildfile.
 
-    These are generated from ModelfileDistribution instances
+    These are generated from GuildfileDistribution instances
     (i.e. distributions that are derrived from modefiles).
     """
 
     def _init_modeldef(self):
-        assert isinstance(self.dist, ModelfileDistribution), self.dist
+        assert isinstance(self.dist, GuildfileDistribution), self.dist
         return self.dist.get_modeldef(self.name)
 
     def _init_reference(self):
-        if self.dist.modelfile.src:
-            version = self._modelfile_hash(self.dist.modelfile.src)
+        if self.dist.guildfile.src:
+            version = self._guildfile_hash(self.dist.guildfile.src)
         else:
             version = "unknown"
-        path = os.path.abspath(self.dist.modelfile.dir)
-        return ModelRef("modelfile", path, version, self.name)
+        path = os.path.abspath(self.dist.guildfile.dir)
+        return ModelRef("guildfile", path, version, self.name)
 
     @staticmethod
-    def _modelfile_hash(path):
+    def _guildfile_hash(path):
         try:
             path_bytes = open(path, "rb").read()
         except IOError:
             log.warning(
-                "unable to read %s to calculate modelfile hash", path)
+                "unable to read %s to calculate guildfile hash", path)
             return "-"
         else:
             return hashlib.md5(path_bytes).hexdigest()
@@ -148,31 +148,31 @@ def _load_dist_modeldefs(dist):
     else:
         for line in record:
             path = line.split(",", 1)[0]
-            if os.path.basename(path) in modelfile.NAMES:
+            if os.path.basename(path) in guildfile.NAMES:
                 fullpath = os.path.join(dist.location, path)
                 _try_acc_modeldefs(fullpath, modeldefs)
     return modeldefs
 
 def _try_acc_modeldefs(path, acc):
     try:
-        models = modelfile.from_file(path)
+        models = guildfile.from_file(path)
     except Exception as e:
         log.error("unable to load models from %s: %s", path, e)
     else:
         for modeldef in models:
             acc.append(modeldef)
 
-class ModelfileDistribution(pkg_resources.Distribution):
+class GuildfileDistribution(pkg_resources.Distribution):
 
-    def __init__(self, modelfile):
-        super(ModelfileDistribution, self).__init__(
-            modelfile.dir,
-            project_name=self._init_project_name(modelfile))
-        self.modelfile = modelfile
+    def __init__(self, guildfile):
+        super(GuildfileDistribution, self).__init__(
+            guildfile.dir,
+            project_name=self._init_project_name(guildfile))
+        self.guildfile = guildfile
         self._entry_map = self._init_entry_map()
 
     def __repr__(self):
-        return "<guild.model.ModelfileDistribution '%s'>" % self.modelfile.dir
+        return "<guild.model.GuildfileDistribution '%s'>" % self.guildfile.dir
 
     def get_entry_map(self, group=None):
         if group is None:
@@ -181,44 +181,44 @@ class ModelfileDistribution(pkg_resources.Distribution):
             return self._entry_map.get(group, {})
 
     def get_modeldef(self, name):
-        for modeldef in self.modelfile:
+        for modeldef in self.guildfile:
             if modeldef.name == name:
                 return modeldef
         raise ValueError(name)
 
     @staticmethod
-    def _init_project_name(modelfile):
-        """Returns a project name for a modelfile distribution.
+    def _init_project_name(guildfile):
+        """Returns a project name for a guildfile distribution.
 
-        Modelfile distribution project names are of the format:
+        Guildfile distribution project names are of the format:
 
-            '.modelfile.' + ESCAPED_MODELFILE_PATH
+            '.guildfile.' + ESCAPED_GUILDFILE_PATH
 
-        ESCAPED_MODELFILE_PATH is a 'safe' project name (i.e. will not be
+        ESCAPED_GUILDFILE_PATH is a 'safe' project name (i.e. will not be
         modified in a call to `pkg_resources.safe_name`) that, when
         unescaped using `_unescape_project_name`, is the relative path of
-        the directory containing the modelfile. The modefile name itself
+        the directory containing the guildfile. The modefile name itself
         (e.g. 'MODEL' or 'MODELS') is not contained in the path.
 
-        Modelfile paths are relative to the current working directory
+        Guildfile paths are relative to the current working directory
         (i.e. the value of os.getcwd() at the time they are generated) and
         always start with '.'.
         """
-        pkg_path = os.path.relpath(modelfile.dir)
+        pkg_path = os.path.relpath(guildfile.dir)
         if pkg_path[0] != ".":
             pkg_path = os.path.join(".", pkg_path)
         safe_path = _escape_project_name(pkg_path)
-        return ".modelfile.%s" % safe_path
+        return ".guildfile.%s" % safe_path
 
     def _init_entry_map(self):
         return {
             "guild.models": {
                 model.name: self._model_entry_point(model)
-                for model in self.modelfile
+                for model in self.guildfile
             },
             "guild.resources": {
                 res.fullname: self._resource_entry_point(res.fullname)
-                for res in self._modelfile_resources()
+                for res in self._guildfile_resources()
             }
         }
 
@@ -226,11 +226,11 @@ class ModelfileDistribution(pkg_resources.Distribution):
         return pkg_resources.EntryPoint(
             name=model.name,
             module_name="guild.model",
-            attrs=("ModelfileModel",),
+            attrs=("GuildfileModel",),
             dist=self)
 
-    def _modelfile_resources(self):
-        for modeldef in self.modelfile:
+    def _guildfile_resources(self):
+        for modeldef in self.guildfile:
             for res in modeldef.resources:
                 yield res
 
@@ -238,7 +238,7 @@ class ModelfileDistribution(pkg_resources.Distribution):
         return pkg_resources.EntryPoint(
             name=name,
             module_name="guild.model",
-            attrs=("ModelfileResource",),
+            attrs=("GuildfileResource",),
             dist=self)
 
 def _escape_project_name(name):
@@ -249,12 +249,12 @@ def _unescape_project_name(escaped_name):
     """Unescapes names escaped with `_escape_project_name`."""
     return str(base64.b16decode(escaped_name).decode("utf-8"))
 
-class ModelfileResource(resource.Resource):
+class GuildfileResource(resource.Resource):
 
     def _init_resdef(self):
-        assert isinstance(self.dist, ModelfileDistribution), self.dist
+        assert isinstance(self.dist, GuildfileDistribution), self.dist
         model_name, res_name = _split_res_name(self.name)
-        modeldef = self.dist.modelfile.get(model_name)
+        modeldef = self.dist.guildfile.get(model_name)
         assert modeldef, (self.name, self.dist)
         resdef = modeldef.get_resource(res_name)
         assert resdef, (self.name, self.dist)
@@ -285,14 +285,14 @@ class PackageModelResource(resource.Resource):
 class ModelImportError(ImportError):
     pass
 
-class BadModelfileDistribution(pkg_resources.Distribution):
-    """Distribution for a modelfile that can't be read."""
+class BadGuildfileDistribution(pkg_resources.Distribution):
+    """Distribution for a guildfile that can't be read."""
 
     def __init__(self, path):
-        super(BadModelfileDistribution, self).__init__(path)
+        super(BadGuildfileDistribution, self).__init__(path)
 
     def __repr__(self):
-        return "<guild.model.BadModelfileDistribution '%s'>" % self.location
+        return "<guild.model.BadGuildfileDistribution '%s'>" % self.location
 
     def get_entry_map(self, group=None):
         return {}
@@ -302,14 +302,14 @@ class ModelImporter(object):
     undef = object()
 
     def __init__(self, path):
-        if not self._is_modelfile_dir(path):
+        if not self._is_guildfile_dir(path):
             raise ModelImportError(path)
         self.path = path
         self._dist = self.undef # lazy
 
     @staticmethod
-    def _is_modelfile_dir(path):
-        return (modelfile.dir_has_modelfile(path) or
+    def _is_guildfile_dir(path):
+        return (guildfile.dir_has_guildfile(path) or
                 os.path.abspath(path) == os.path.abspath(config.cwd()))
 
     @property
@@ -322,15 +322,15 @@ class ModelImporter(object):
         if not os.path.isdir(self.path):
             return None
         try:
-            mf = modelfile.from_dir(self.path)
-        except modelfile.NoModels:
+            mf = guildfile.from_dir(self.path)
+        except guildfile.NoModels:
             return self._plugin_model_dist()
         except Exception as e:
             log.error(
-                "error loading modelfile from %s: %s", self.path, e)
-            return BadModelfileDistribution(self.path)
+                "error loading guildfile from %s: %s", self.path, e)
+            return BadGuildfileDistribution(self.path)
         else:
-            return ModelfileDistribution(mf)
+            return GuildfileDistribution(mf)
 
     def _plugin_model_dist(self):
         models_data = []
@@ -338,8 +338,8 @@ class ModelImporter(object):
             for data in plugin.find_models(self.path):
                 models_data.append(data)
         if models_data:
-            mf = modelfile.Modelfile(models_data, dir=self.path)
-            return ModelfileDistribution(mf)
+            mf = guildfile.Guildfile(models_data, dir=self.path)
+            return GuildfileDistribution(mf)
         else:
             return None
 
@@ -353,16 +353,16 @@ def _model_finder(importer, path, _only=False):
     if importer.dist:
         yield importer.dist
 
-class ModelfileNamespace(namespace.PrefixNamespace):
+class GuildfileNamespace(namespace.PrefixNamespace):
 
-    prefix = ".modelfile."
+    prefix = ".guildfile."
 
     @staticmethod
     def pip_info(_name):
-        raise TypeError("modelfiles cannot be installed using pip")
+        raise TypeError("guildfiles cannot be installed using pip")
 
     def package_name(self, project_name):
-        pkg = super(ModelfileNamespace, self).package_name(project_name)
+        pkg = super(GuildfileNamespace, self).package_name(project_name)
         parts = pkg.split("/", 1)
         decoded_project_name = _unescape_project_name(parts[0])
         rest = "/" + parts[1] if len(parts) == 2 else ""

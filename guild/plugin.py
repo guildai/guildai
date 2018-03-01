@@ -40,7 +40,7 @@ class Plugin(object):
         """Return an iterator of models for path.
 
         A model must be a Python dict containing model attributes. See
-        guild.modelfile.Modelfile for the expected structure.
+        guild.guildfile.Guildfile for the expected structure.
         """
         return []
 

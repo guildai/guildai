@@ -85,18 +85,18 @@ def _runs_root_for_args(args, force_deleted):
 
 def _runs_filter(args):
     filters = []
-    _apply_cwd_modelfile_filter(args, filters)
+    _apply_cwd_guildfile_filter(args, filters)
     _apply_status_filter(args, filters)
     _apply_ops_filter(args, filters)
     _apply_labels_filter(args, filters)
     return var.run_filter("all", filters)
 
-def _apply_cwd_modelfile_filter(args, filters):
-    cwd_modelfile = cmd_impl_support.cwd_modelfile()
-    if cwd_modelfile and not args.all:
+def _apply_cwd_guildfile_filter(args, filters):
+    cwd_guildfile = cmd_impl_support.cwd_guildfile()
+    if cwd_guildfile and not args.all:
         _notify_runs_limited()
-        modelfile_dir = os.path.abspath(cwd_modelfile.dir)
-        filters.append(_cwd_run_filter(modelfile_dir))
+        guildfile_dir = os.path.abspath(cwd_guildfile.dir)
+        filters.append(_cwd_run_filter(guildfile_dir))
 
 def _notify_runs_limited():
     cli.note_once(
@@ -105,14 +105,14 @@ def _notify_runs_limited():
 
 def _cwd_run_filter(abs_cwd):
     def f(run):
-        if run.opref.pkg_type == "modelfile":
+        if run.opref.pkg_type == "guildfile":
             model_dir = run.opref.pkg_name
             if os.path.isabs(model_dir):
                 if model_dir == abs_cwd:
                     return True
             else:
                 log.warning(
-                    "unexpected non-absolute modelfile path for run %s: %s",
+                    "unexpected non-absolute guildfile path for run %s: %s",
                     run.id, model_dir)
         return False
     return f
@@ -254,8 +254,8 @@ def _format_run_index(run, index=None):
         return "[%s]" % run.short_id
 
 def format_op_desc(opref, nowarn=False):
-    if opref.pkg_type == "modelfile":
-        return _format_modelfile_op(opref)
+    if opref.pkg_type == "guildfile":
+        return _format_guildfile_op(opref)
     elif opref.pkg_type == "package":
         return _format_package_op(opref)
     else:
@@ -265,7 +265,7 @@ def format_op_desc(opref, nowarn=False):
                 opref.pkg_type, opref.pkg_name)
         return "?"
 
-def _format_modelfile_op(opref):
+def _format_guildfile_op(opref):
     relpath = os.path.relpath(opref.pkg_name, config.cwd())
     if relpath[0] != '.':
         relpath = os.path.join('.', relpath)

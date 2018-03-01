@@ -11,11 +11,11 @@ tests).
       dependencies:            ok
       disk-plugin:             ok
       entry-points:            ok
+      guildfiles:              ok
       imports:                 ok
       logging:                 ok
       main-bootstrap:          ok
       memory-plugin:           ok
-      modelfiles:              ok
       models:                  ok
       namespaces:              ok
       ops:                     ok

@@ -36,7 +36,7 @@ def _format_model(model):
     return {
         "fullname": model.fullname,
         "name": modeldef.name,
-        "source": modeldef.modelfile.src,
+        "source": modeldef.guildfile.src,
         "description": description,
         "details": details,
         "operations": ", ".join([op.name for op in modeldef.operations])

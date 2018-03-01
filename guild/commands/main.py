@@ -62,7 +62,9 @@ DEFAULT_GUILD_HOME = os.path.join(_home, ".guild")
 )
 @click.option(
     "-C", "cwd", metavar="PATH",
-    help="Use PATH as current directory for referencing modelfiles.",
+    help=(
+        "Use PATH as current directory for referencing guild "
+        "files (guild.yml)."),
     default=".")
 @click.option(
     "-H", "guild_home", metavar="PATH",

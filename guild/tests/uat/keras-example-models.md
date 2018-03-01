@@ -6,7 +6,7 @@ We can illustrate this using the Keras `mnist` example.
 
     >>> cd("examples/keras/mnist")
 
-This example doesn't have a modelfile:
+This example doesn't have a guildfile:
 
     >>> run("ls MODEL*")
     ls: ...MODEL*...: No such file or directory

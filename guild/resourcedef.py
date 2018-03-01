@@ -15,7 +15,7 @@
 """Facilities for working with resource definitions.
 
 This is in a separate module because resources can show up in
-modelfiles and in packages, which are otherwise unrelated.
+guildfiles and in packages, which are otherwise unrelated.
 """
 
 from __future__ import absolute_import
