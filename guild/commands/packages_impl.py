@@ -71,7 +71,7 @@ def install_packages(args):
             pip_util.install(
                 reqs,
                 index_urls=index_urls,
-                upgrade=args.upgrade,
+                upgrade=args.upgrade or args.reinstall,
                 pre_releases=args.pre,
                 no_cache=args.no_cache,
                 reinstall=args.reinstall)

@@ -31,7 +31,7 @@ from guild import click_util
     is_flag=True)
 @click.option(
     "--reinstall",
-    help="Resinstall the package if it's already installed.",
+    help="Resinstall the package if it's already installed. Implies --upgrade.",
     is_flag=True)
 @click.option(
     "--pre",
