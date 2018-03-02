@@ -8,9 +8,7 @@ jobs:
         keys:
         - macos-python-3.6-8-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'brew upgrade > /dev/null
-
-          brew upgrade python
+        command: 'brew upgrade python > /dev/null
 
           sudo pip install virtualenv
 

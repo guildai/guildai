@@ -194,8 +194,7 @@ class MacBuild(Build):
         lines = super(MacBuild, self)._install_deps_cmd()
         if self.python.startswith("3."):
             lines[:0] = [
-                "brew upgrade > /dev/null",
-                "brew upgrade python",
+                "brew upgrade python > /dev/null",
             ]
         return lines
 
