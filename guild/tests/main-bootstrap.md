@@ -23,6 +23,7 @@ Here is the order that Guild requirements are checked:
     >>> pprint(main_bootstrap._sort_reqs(guild.__requires__))
     [('pip', 'pip'),
      ('setuptools', 'setuptools'),
+     ('six', 'six'),
      ('tabview', 'tabview'),
      ('twine', 'twine'),
      ('werkzeug', 'Werkzeug'),

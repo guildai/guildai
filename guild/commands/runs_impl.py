@@ -21,6 +21,7 @@ import re
 import signal
 import time
 
+import six
 import yaml
 
 import guild.opref
@@ -34,11 +35,6 @@ from guild import util
 from guild import var
 
 log = logging.getLogger("guild")
-
-try:
-    unicode
-except NameError:
-    unicode = str
 
 RUN_DETAIL = [
     "id",
@@ -420,7 +416,7 @@ def other_attr_names(run):
 def _format_attr(val):
     if val is None:
         return ""
-    elif isinstance(val, (int, float, str, unicode)):
+    elif isinstance(val, (int, float, six.string_types)):
         return str(val)
     else:
         return _format_yaml(val)

@@ -4,5 +4,6 @@ Whoosh>=2.7.4
 chardet>=3.0.4
 pip>=9.0
 python-dateutil>=2.6.1
+six>=1.10.0
 tabview>=1.4.3
 twine>=1.9.1

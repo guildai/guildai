@@ -25,6 +25,7 @@ __requires__ = [
     ("pip", "pip"),
     ("yaml", "PyYAML"),
     ("setuptools", "setuptools"),
+    ("six", "six"),
     ("tabview", "tabview"),
     ("twine", "twine"),
     ("werkzeug", "Werkzeug"),

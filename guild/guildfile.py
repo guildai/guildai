@@ -21,6 +21,8 @@ import logging
 import os
 import re
 
+import six
+
 from guild import resolver
 from guild import resourcedef
 from guild import yaml
@@ -122,7 +124,7 @@ class Guildfile(object):
                        % (", ".join(used), item)))
         validated_type = used[0]
         name = item[validated_type]
-        if not isinstance(name, str):
+        if not isinstance(name, six.string_types):
             raise GuildfileError(
                 self, ("invalid %s name: %r"
                        % (validated_type, name)))
