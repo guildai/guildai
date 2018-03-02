@@ -193,7 +193,7 @@ class MacBuild(Build):
     def _install_deps_cmd(self):
         lines = super(MacBuild, self)._install_deps_cmd()
         if self.python == "3.6":
-            lines.insert(0, "brew install python3 > /dev/null")
+            lines.insert(0, "brew upgrade python > /dev/null")
         else:
             assert self.python == "2.7", self.python
         return lines
@@ -228,10 +228,10 @@ class Config(object):
         }
 
 builds = [
-    LinuxBuild(python="2.7"),
-    LinuxBuild(python="3.5"),
-    LinuxBuild(python="3.6"),
-    MacBuild(python="2.7"),
+    #LinuxBuild(python="2.7"),
+    #LinuxBuild(python="3.5"),
+    #LinuxBuild(python="3.6"),
+    #MacBuild(python="2.7"),
     MacBuild(python="3.6"),
 ]
 
