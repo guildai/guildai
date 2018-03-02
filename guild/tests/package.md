@@ -19,7 +19,7 @@ We'll create a package from the sample project
 workspace by linking to the project files.
 
     >>> for name in ["guild.yml", "README.md", "a.txt"]:
-    ...   symlink(join_path(sample("projects/package"), name),
+    ...   symlink(abspath(join_path(sample("projects/package"), name)),
     ...           join_path(workspace, name))
 
 Our workspace:
