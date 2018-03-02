@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 import os
-import shutil
 import sys
 
 import setuptools
@@ -150,7 +149,7 @@ def _entry_points(pkg):
         name: eps
         for name, eps in [
                 ("guild.models", _model_entry_points(pkg)),
-                ("guild.resources", _resource_eps(pkg))
+                ("guild.resources", _resource_entry_points(pkg))
         ]
         if eps
     }
@@ -161,10 +160,13 @@ def _model_entry_points(pkg):
         for _name, model in sorted(pkg.guildfile.models.items())
     ]
 
-def _resource_eps(pkg):
-    return _model_resource_eps(pkg) + _package_resource_eps(pkg)
+def _resource_entry_points(pkg):
+    return (
+        _model_resource_entry_points(pkg) +
+        _package_resource_entry_points(pkg)
+    )
 
-def _model_resource_eps(pkg):
+def _model_resource_entry_points(pkg):
     return [
         ("%s:%s = guild.model:PackageModelResource"
          % (resdef.modeldef.name, resdef.name))
@@ -176,10 +178,10 @@ def _iter_guildfile_resdefs(pkg):
         for resdef in modeldef.resources:
             yield resdef
 
-def _package_resource_eps(pkg):
+def _package_resource_entry_points(pkg):
     return [
-        "%s = guild.package:PackageResource" % res_name
-        for res_name in pkg.resources
+        "%s = guild.package:PackageResource" % res.name
+        for res in pkg.resources
     ]
 
 def _pkg_python_requires(pkg):
@@ -198,7 +200,7 @@ def _write_package_metadata(pkg, setup_kw):
     util.ensure_dir(egg_info_dir)
     dest = os.path.join(egg_info_dir, "PACKAGE")
     with open(dest, "w") as f:
-        yaml.dump(_pkg_metadata(pkg))
+        yaml.dump(_pkg_metadata(pkg), f, default_flow_style=False, width=9999)
 
 def _pkg_metadata(pkg):
     for item in pkg.guildfile.data:

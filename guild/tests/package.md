@@ -59,9 +59,8 @@ distribution for our package.
 Let's create the package:
 
     >>> out = guild.package.create_package(gf.src, capture_output=True)
-    >>> print("-\n" + out.decode("UTF-8")) # doctest: +REPORT_UDIFF
-    -
-    ...
+    >>> print("-\n" + out.decode("UTF-8"))
+    -...
     running bdist_wheel
     running build
     running build_py

@@ -36,11 +36,14 @@ class PackageResource(resource.Resource):
 
     def _init_resdef(self):
         pkg = yaml.safe_load(self.dist.get_metadata("PACKAGE"))
-        data = pkg.get("resources", {}).get(self.name)
+        if pkg:
+            data = pkg.get("resources", {}).get(self.name)
+        else:
+            data = None
         if not data:
             raise ValueError(
                 "undefined resource '%s' in %s"
-                % self.name, self.dist)
+                % (self.name, self.dist))
         fullname = pkg["package"] + "/" + self.name
         return resourcedef.ResourceDef(self.name, data, fullname)
 

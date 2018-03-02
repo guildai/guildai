@@ -20,6 +20,7 @@ tests).
       models:                  ok
       namespaces:              ok
       ops:                     ok
+      package:                 ok
       plugin-python-utils:     ok
       plugins:                 ok
       runs:                    ok
