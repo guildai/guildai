@@ -398,6 +398,8 @@ def _coerce_flag_data(data, src):
         return data
     elif isinstance(data, (str, int, float, bool)):
         return {"default": data}
+    elif data is None:
+        return {"default": None}
     else:
         raise GuildfileError(src, "invalid flag value: %r" % data)
 
