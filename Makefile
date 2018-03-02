@@ -56,8 +56,11 @@ clean:
 	find -name *.pyc | grep -v guild/tests/samples | xargs -r rm
 	rm -rf guild/view/node_modules
 
+UAT_PYTHON = python3
+
 uat:
-	@test -e /tmp/guild-uat || virtualenv /tmp/guild-uat
+	@test -e /tmp/guild-uat \
+	  || virtualenv /tmp/guild-uat --python $(UAT_PYTHON)
 	@mkdir -p /tmp/guild-uat/.guild
 	@test -e /tmp/guild-uat/.guild/cache \
 	  || ln -s ~/.guild/cache /tmp/guild-uat/.guild/cache
