@@ -121,7 +121,7 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
     cmd_env["GUILD_HOME"] = os.path.join(WORKSPACE, ".guild")
     cmd_env["PATH"] = os.getenv("PATH")
     cmd_env["COLUMNS"] = "999"
-    cmd_env["LANG"] = os.getenv("LANG", "")
+    cmd_env["LANG"] = os.getenv("LANG", "en_US.UTF-8")
     cmd_cwd = WORKSPACE if not _cwd else os.path.join(WORKSPACE, _cwd)
     p = subprocess.Popen(
         [cmd],
