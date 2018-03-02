@@ -169,13 +169,23 @@ class HashMismatch(Exception):
 
 def download_url(url, download_dir, sha256=None):
     cmd = DownloadCommand()
-    options, _ = cmd.parse_args([])
+    # We disable cache control for downloads for two reasons: First,
+    # we're already caching our downloads as resources, so an
+    # additional level of caching, even if efficiently managed, is
+    # probably not worth the cost. Second, the cachecontrol module
+    # used with pip's download facility is unusable with large files
+    # as it loads files into memory:
+    #
+    # https://github.com/ionrock/cachecontrol/issues/145
+    #
+    options, _ = cmd.parse_args(["--no-cache-dir"])
     link = Link(url)
     session = cmd._build_session(options)
     hashes = Hashes({"sha256": [sha256]}) if sha256 else None
     download_path = _check_download_dir(link, download_dir, hashes)
     if not download_path:
         try:
+            import pdb;pdb.set_trace()
             download_raw, _ = _download_http_url(
                 Link(url),
                 session,
