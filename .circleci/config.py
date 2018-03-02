@@ -78,8 +78,8 @@ class Build(object):
             "sudo pip install virtualenv",
             self._init_env(self.build_dir),
             self._activate_env(self.build_dir),
-            "pip install -r requirements.txt",
-            "pip install tensorflow",
+            "pip install -qr requirements.txt",
+            "pip install -q tensorflow",
             "cd guild/view && npm install",
         ]
 
@@ -193,7 +193,7 @@ class MacBuild(Build):
     def _install_deps_cmd(self):
         lines = super(MacBuild, self)._install_deps_cmd()
         if self.python == "3.6":
-            lines.insert(0, "brew install python3")
+            lines.insert(0, "brew install python3 > /dev/null")
         else:
             assert self.python == "2.7", self.python
         return lines
