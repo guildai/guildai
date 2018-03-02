@@ -1,5 +1,7 @@
 # Guild AI
 
+[![CircleCI](https://circleci.com/gh/guildai/guild.svg?style=shield)](https://circleci.com/gh/guildai/guild)
+
 ***Project status:*** pre-alpha
 
 This is the active Guild source repository.
