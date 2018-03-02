@@ -1,0 +1,6 @@
+- model: c
+  extends: [base, uncommon]
+
+- include:
+    - common.yml
+    - uncommon.yml

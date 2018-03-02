@@ -1,0 +1,4 @@
+- include: common.yml
+
+- model: b
+  extends: base

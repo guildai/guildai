@@ -17,10 +17,11 @@ from __future__ import division
 
 import os
 import time
+
 import uuid
+import yaml
 
 from guild import util
-from guild import yaml
 
 class Run(object):
 

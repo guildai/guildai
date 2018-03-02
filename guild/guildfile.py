@@ -22,16 +22,16 @@ import os
 import re
 
 import six
+import yaml
 
 from guild import resolver
 from guild import resourcedef
-from guild import yaml
 
 log = logging.getLogger("guild")
 
 NAMES = ["guild.yml"]
 
-ALL_TYPES = ["model", "config", "package"]
+ALL_TYPES = ["model", "config", "package", "include"]
 MODEL_TYPES = ["model", "config"]
 
 _cache = {}
@@ -64,6 +64,12 @@ class NoModels(GuildfileError):
 class GuildfileReferenceError(GuildfileError):
     pass
 
+class GuildfileCycleError(GuildfileError):
+
+    def __init__(self, guildfile_or_path, included):
+        msg = " -> ".join(included)
+        super(GuildfileCycleError, self).__init__(guildfile_or_path, msg)
+
 ###################################################################
 # Helpers
 ###################################################################
@@ -77,14 +83,17 @@ def _required(name, data, guildfile):
             "missing required '%s' attribute in %r"
             % (name, data))
 
+def _script_source(src):
+    return re.match(r"<.*>$", src)
+
 ###################################################################
 # Guildfile
 ###################################################################
 
 class Guildfile(object):
 
-    def __init__(self, data, src=None, dir=None):
-        if not dir and src and not re.match(r"<.*>$", src):
+    def __init__(self, data, src=None, dir=None, included=None):
+        if not dir and src and not _script_source(src):
             dir = os.path.dirname(src)
         if src is None and dir is None:
             raise ValueError("either src or dir must be specified")
@@ -93,16 +102,59 @@ class Guildfile(object):
         self.default_model = None
         self.models = {}
         self.package = None
-        self.data = self._coerce_guildfile_data(data)
-        self._apply_data()
+        data = self._coerce_data(data)
+        self.data = self._expand_data_includes(data, included or [])
+        try:
+            self._apply_data()
+        except (GuildfileError, resourcedef.ResourceFormatError):
+            raise
+        except Exception as e:
+            log.error("loading %s: %r", self.src, e)
+            raise
 
-    def _coerce_guildfile_data(self, data):
+    def _coerce_data(self, data):
         if isinstance(data, list):
             return data
         elif isinstance(data, dict):
             return [data]
         else:
             raise GuildfileError(self, "invalid guildfile data: %r" % data)
+
+    def _expand_data_includes(self, data, included):
+        i = 0
+        while i < len(data):
+            item = data[i]
+            try:
+                includes = item["include"]
+            except KeyError:
+                i += 1
+            else:
+                new_items = self._include_data(includes, included)
+                data[i:i+1] = new_items
+                i += len(new_items)
+        return data
+
+    def _include_data(self, includes, included):
+        includes = self._coerce_data_includes(includes)
+        if not _script_source(self.src):
+            included.append(os.path.abspath(self.src))
+        include_data = []
+        for path in includes:
+            path = os.path.abspath(os.path.join(self.dir or "", path))
+            if path in included:
+                raise GuildfileCycleError(included[0], included[1:] + [path])
+            data = yaml.load(open(path, "r"))
+            gf = Guildfile(data, path, included=included)
+            include_data.extend(gf.data)
+        return include_data
+
+    def _coerce_data_includes(self, val):
+        if isinstance(val, six.string_types):
+            return [val]
+        elif isinstance(val, list):
+            return val
+        else:
+            raise GuildfileError(self, "invalid includes value: %r" % val)
 
     def _apply_data(self):
         for item in self.data:
@@ -153,7 +205,7 @@ class Guildfile(object):
         raise AssertionError()
 
 ###################################################################
-# Includes support
+# Include attribute support
 ###################################################################
 
 def _resolve_includes(data, section_name, guildfile, coerce_data=None):

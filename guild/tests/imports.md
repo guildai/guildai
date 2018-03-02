@@ -125,4 +125,3 @@
     guild.util
     guild.var
     guild.view
-    guild.yaml

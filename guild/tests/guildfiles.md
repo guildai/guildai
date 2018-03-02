@@ -353,26 +353,7 @@ to direct users to upstream sources and papers.
 
 ## Includes
 
-Guild guild files support includes.
-
-    >>> gf = guildfile.from_dir(sample("projects/includes"))
-    >>> sorted(gf.models)
-    ['model-a', 'model-b', 'model-c']
-
-    >>> gf.models["model-a"].flags
-    [<guild.guildfile.FlagDef 'model-a-flag-1'>,
-     <guild.guildfile.FlagDef 'shared-1'>,
-     <guild.guildfile.FlagDef 'shared-2'>]
-
-    >>> gf.models["model-b"].flags
-    [<guild.guildfile.FlagDef 'model-b-flag-1'>,
-     <guild.guildfile.FlagDef 'model-b-flag-2'>,
-     <guild.guildfile.FlagDef 'shared-1'>,
-     <guild.guildfile.FlagDef 'shared-2'>]
-
-    >>> gf.models["model-c"].flags
-    [<guild.guildfile.FlagDef 'model-c-flag-1'>,
-     <guild.guildfile.FlagDef 'model-c-flag-2'>]
+See [includes.md](includes.md) for guildfile include tests.
 
 ## Model inheritance
 

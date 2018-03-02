@@ -19,11 +19,12 @@ import os
 import subprocess
 import sys
 
+import yaml
+
 from guild import namespace
 from guild import resource
 from guild import resourcedef
 from guild import util
-from guild import yaml
 
 class Package(object):
 
