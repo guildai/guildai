@@ -7,7 +7,7 @@ installed `pypi.tensorflow` package.
 
     >>> run("guild packages info pypi.tensorflow")
     name: pypi.tensorflow
-    version: 1.5.0
+    version: 1.6.0
     summary: TensorFlow helps the tensors flow
     home-page: https://www.tensorflow.org/
     author: Google Inc.
