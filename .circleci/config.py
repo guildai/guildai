@@ -78,7 +78,8 @@ class Build(object):
             "sudo pip install virtualenv",
             self._init_env(self.build_dir),
             self._activate_env(self.build_dir),
-            "pip install -r requirements.txt",
+            # pipe to cat here effectively disables progress bar
+            "pip install -r requirements.txt | cat",
             "pip install grpcio==1.9.1 tensorflow",
             "cd guild/view && npm install",
         ]
