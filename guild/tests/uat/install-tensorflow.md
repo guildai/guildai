@@ -1,3 +1,3 @@
 # Install TensorFlow
 
-    >>> quiet("pip install tensorflow")
+    >>> quiet("pip install tensorflow", timeout=120)
