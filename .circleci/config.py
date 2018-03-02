@@ -193,7 +193,10 @@ class MacBuild(Build):
     def _install_deps_cmd(self):
         lines = super(MacBuild, self)._install_deps_cmd()
         if self.python.startswith("3."):
-            lines.insert(0, "brew upgrade python")
+            lines[:0] = [
+                "brew upgrade > /dev/null",
+                "brew upgrade python",
+            ]
         return lines
 
 class Config(object):

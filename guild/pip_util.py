@@ -185,7 +185,6 @@ def download_url(url, download_dir, sha256=None):
     download_path = _check_download_dir(link, download_dir, hashes)
     if not download_path:
         try:
-            import pdb;pdb.set_trace()
             download_raw, _ = _download_http_url(
                 Link(url),
                 session,
