@@ -62,7 +62,7 @@ def _guild_home_cache_dir():
     return None
 
 def _user_cache_dir():
-    dir = os.path.join(os.environ["HOME"], ".guild", "cache")
+    dir = os.path.join(os.path.expanduser("~"), ".guild", "cache")
     if os.path.exists(dir):
         return dir
     return None

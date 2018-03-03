@@ -72,7 +72,7 @@ class ViewDataImpl(view.ViewData):
     def _formatted_cwd(self, params):
         cwd = self._cwd(params)
         abs_cwd = os.path.abspath(cwd)
-        user_dir = os.getenv("HOME")
+        user_dir = os.path.expanduser("~")
         if abs_cwd.startswith(user_dir):
             return os.path.join("~", abs_cwd[len(user_dir)+1:])
         else:
