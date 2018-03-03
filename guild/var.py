@@ -20,14 +20,15 @@ import logging
 import os
 import shutil
 
-import guild.config
 import guild.run
-import guild.util
+
+from guild import config
+from guild import util
 
 log = logging.getLogger("guild")
 
 def path(subpath):
-    return os.path.join(guild.config.guild_home(), subpath)
+    return os.path.join(config.guild_home(), subpath)
 
 def runs_dir(deleted=False):
     if deleted:
@@ -36,10 +37,35 @@ def runs_dir(deleted=False):
         return path("runs")
 
 def trash_dir(name=None):
-    return os.path.join(path("trash"), name) if name else path("trash")
+    if name:
+        return os.path.join(path("trash"), name)
+    else:
+        return path("trash")
 
 def cache_dir(name=None):
-    return os.path.join(path("cache"), name) if name else path("cache")
+    # Search for cache dir, starting with guild home and then in the
+    # user cache location (~/.gulid/cache). This re-use the default
+    # cache location if the guild home cache doesn't exist.
+    cache_dir = util.find_apply([
+        _guild_home_cache_dir,
+        _user_cache_dir,
+        lambda: path("cache")])
+    if name:
+        return os.path.join(cache_dir, name)
+    else:
+        return cache_dir
+
+def _guild_home_cache_dir():
+    dir = os.path.join(config.guild_home(), "cache")
+    if os.path.exists(dir):
+        return dir
+    return None
+
+def _user_cache_dir():
+    dir = os.path.join(os.environ["HOME"], ".guild", "cache")
+    if os.path.exists(dir):
+        return dir
+    return None
 
 def runs(root=None, sort=None, filter=None, run_init=None):
     root = root or runs_dir()
@@ -141,7 +167,7 @@ def _delete_run(src):
     shutil.rmtree(src)
 
 def _move(src, dest):
-    guild.util.ensure_dir(os.path.dirname(dest))
+    util.ensure_dir(os.path.dirname(dest))
     log.debug("moving %s to %s", src, dest)
     shutil.move(src, dest)
 
