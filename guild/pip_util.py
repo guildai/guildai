@@ -43,7 +43,7 @@ class InstallError(Exception):
     pass
 
 def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
-            no_cache=False, reinstall=False):
+            no_cache=False, no_deps=False, reinstall=False):
     _ensure_patch_pip_get_entry_points()
     cmd = InstallCommand()
     args = []
@@ -55,6 +55,8 @@ def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
         args.append("--upgrade")
     if no_cache:
         args.append("--no-cache-dir")
+    if no_deps:
+        args.append("--no-deps")
     if reinstall:
         args.append("--force-reinstall")
     if index_urls:
