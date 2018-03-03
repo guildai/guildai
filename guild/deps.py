@@ -41,10 +41,11 @@ class ResolutionContext(object):
 
 class Resource(object):
 
-    def __init__(self, resdef, ctx):
+    def __init__(self, resdef, location, ctx):
         self.resdef = resdef
+        self.location = location
         self.ctx = ctx
-        self._resource_config = self._init_resource_config()
+        self.config = self._init_resource_config()
 
     def _init_resource_config(self):
         for name, config in self.ctx.resource_config.items():
@@ -64,8 +65,7 @@ class Resource(object):
         return resolved_acc
 
     def _resolve_source(self, source, resolved_acc):
-        resolver = self.resdef.get_source_resolver(
-            source, self._resource_config)
+        resolver = self.resdef.get_source_resolver(source, self)
         if not resolver:
             raise DependencyError(
                 "unsupported source '%s' in %s resource"
@@ -198,7 +198,7 @@ def _modeldef_resource(modeldef, res_name, ctx):
         raise DependencyError(
             "resource '%s' required by operation '%s' is not defined"
             % (res_name, ctx.opdef.fullname))
-    return Resource(resdef, ctx)
+    return Resource(resdef, modeldef.guildfile.dir, ctx)
 
 def _guildfile_resource(spec, ctx):
     m = re.match(r"(%s):(%s)$" % (RESOURCE_TERM, RESOURCE_TERM), spec)
@@ -227,7 +227,10 @@ def _packaged_resource(spec, ctx):
     else:
         for res in resources:
             if namespace.apply_namespace(res.dist.project_name) == pkg_name:
-                return Resource(res.resdef, ctx)
+                location = os.path.join(
+                    res.dist.location,
+                    res.dist.key.replace(".", os.path.sep))
+                return Resource(res.resdef, location, ctx)
     raise DependencyError(
         "resource '%s' required by operation '%s' is not installed"
         % (spec, ctx.opdef.fullname))

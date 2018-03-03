@@ -33,42 +33,42 @@ class ResolutionError(Exception):
 
 class Resolver(object):
 
-    def __init__(self, source, config):
+    def __init__(self, source, resource):
         self.source = source
-        self.config = config
+        self.resource = resource
 
-    def resolve(self, _unpack_dir=None):
+    def resolve(self, unpack_dir=None):
         raise NotImplementedError()
 
 class FileResolver(Resolver):
 
-    def __init__(self, source, config, working_dir=None):
-        super(FileResolver, self).__init__(source, config)
-        self.working_dir = working_dir or os.getcwd()
-
     def resolve(self, unpack_dir=None):
-        if self.config:
-            return _resolve_config_path(self)
+        if self.resource.config:
+            return _resolve_config_path(
+                self.resource.config,
+                self.source.resdef.name)
         source_path = os.path.join(
-            self.working_dir, self.source.parsed_uri.path)
+            self.resource.location,
+            self.source.parsed_uri.path)
         if os.path.isdir(source_path):
             return [source_path]
         else:
             return resolve_source_files(source_path, self.source, unpack_dir)
 
-def _resolve_config_path(res):
-    assert res.config
-    config_path = os.path.abspath(res.config)
+def _resolve_config_path(config, resource_name):
+    config_path = os.path.abspath(config)
     if not os.path.exists(config_path):
         raise ResolutionError("%s does not exist" % config_path)
-    log.info("Using %s for %s resource", config_path, res.source.resdef.name)
+    log.info("Using %s for %s resource", config_path, resource_name)
     return [config_path]
 
 class URLResolver(Resolver):
 
     def resolve(self, unpack_dir=None):
-        if self.config:
-            return _resolve_config_path(self)
+        if self.resource.config:
+            return _resolve_config_path(
+                self.resource.config,
+                self.source.resdef.name)
         download_dir = self._source_download_dir()
         util.ensure_dir(download_dir)
         try:
@@ -90,12 +90,12 @@ class URLResolver(Resolver):
 
 class OperationOutputResolver(Resolver):
 
-    def __init__(self, source, config, modeldef):
-        super(OperationOutputResolver, self).__init__(source, config)
+    def __init__(self, source, resource, modeldef):
+        super(OperationOutputResolver, self).__init__(source, resource)
         self.modeldef = modeldef
 
     def resolve(self, unpack_dir=None):
-        config_run_spec = self.config
+        config_run_spec = self.resource.config
         source_path = self._source_path_for_run_spec(config_run_spec)
         return resolve_source_files(source_path, self.source, unpack_dir)
 

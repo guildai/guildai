@@ -147,8 +147,8 @@ Here are the model resources:
 
 The test resource has the following sources:
 
-    >>> test_res = res_model.get_resource("test")
-    >>> test_res.sources
+    >>> test_resdef = res_model.get_resource("test")
+    >>> test_resdef.sources
     [<guild.resourcedef.ResourceSource 'file:archive1.zip'>,
      <guild.resourcedef.ResourceSource 'file:archive2.tar'>,
      <guild.resourcedef.ResourceSource 'file:archive3.tar'>,
@@ -157,11 +157,31 @@ The test resource has the following sources:
      <guild.resourcedef.ResourceSource 'file:files'>,
      <guild.resourcedef.ResourceSource 'file:doesnt-exist'>]
 
-Let's use a resolver to resolve each source.
+In the tests below, we'll use a resolver to resolve each source.
+
+In addition to a source, a resolver needs a resource (see
+`guild.deps.Resource`), which is a live representation of the resource
+definition. The resource provides additional context to the resolver,
+including resource location, the operation that requires the resource,
+and additional configuration that may be provided for the resolution
+process.
+
+Let's create a resource for our resolvers. The resource requires a
+resource def, a location, which is the sample project directory, and a
+context.
+
+    >>> test_location = sample("projects/resources")
+
+    >>> test_ctx = deps.ResolutionContext(
+    ...   target_dir=None,
+    ...   opdef=None,
+    ...   resource_config={})
+
+    >>> test_res = deps.Resource(test_resdef, test_location, test_ctx)
 
 ### Zip source file
 
-    >>> zip_source = test_res.sources[0]
+    >>> zip_source = test_resdef.sources[0]
     >>> zip_source.uri
     'file:archive1.zip'
 
@@ -181,7 +201,7 @@ invalid hash.
     >>> zip_source.select
     ['a.txt']
 
-    >>> resolver = test_res.get_source_resolver(zip_source)
+    >>> resolver = test_resdef.get_source_resolver(zip_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> log = LogCapture()
     >>> with log:
@@ -204,7 +224,7 @@ are selected by way of the source files returned by `resolve`.
 
 ### Tar source file
 
-    >>> tar_source = test_res.sources[1]
+    >>> tar_source = test_resdef.sources[1]
     >>> tar_source.uri
     'file:archive2.tar'
 
@@ -217,7 +237,7 @@ are selected by way of the source files returned by `resolve`.
     >>> print(tar_source.select)
     []
 
-    >>> resolver = test_res.get_source_resolver(tar_source)
+    >>> resolver = test_resdef.get_source_resolver(tar_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> log = LogCapture()
     >>> with log:
@@ -232,7 +252,7 @@ are selected by way of the source files returned by `resolve`.
 
 ### No unpack archive
 
-    >>> nounpack_source = test_res.sources[2]
+    >>> nounpack_source = test_resdef.sources[2]
     >>> nounpack_source.uri
     'file:archive3.tar'
 
@@ -247,7 +267,7 @@ This source should not be unpacked:
     >>> print(nounpack_source.select)
     []
 
-    >>> resolver = test_res.get_source_resolver(nounpack_source)
+    >>> resolver = test_resdef.get_source_resolver(nounpack_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> resolver.resolve(unpack_dir)
     ['.../samples/projects/resources/archive3.tar']
@@ -260,14 +280,14 @@ extracted file.
 
 ### Plain source file
 
-    >>> plain_source = test_res.sources[3]
+    >>> plain_source = test_resdef.sources[3]
     >>> plain_source.uri
     'file:test.txt'
 
     >>> plain_source.sha256
     'f33ae3bc9a22cd7564990a794789954409977013966fb1a8f43c35776b833a95'
 
-    >>> resolver = test_res.get_source_resolver(plain_source)
+    >>> resolver = test_resdef.get_source_resolver(plain_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> resolver.resolve(unpack_dir)
     ['.../samples/projects/resources/test.txt']
@@ -277,14 +297,14 @@ extracted file.
 
 ### Invalid source file
 
-    >>> invalid_source = test_res.sources[4]
+    >>> invalid_source = test_resdef.sources[4]
     >>> invalid_source.uri
     'file:badhash.txt'
 
     >>> invalid_source.sha256
     'xxx'
 
-    >>> resolver = test_res.get_source_resolver(invalid_source)
+    >>> resolver = test_resdef.get_source_resolver(invalid_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> resolver.resolve(unpack_dir)
     Traceback (most recent call last):
@@ -296,11 +316,11 @@ extracted file.
 
 ### Directory source file
 
-    >>> dir_source = test_res.sources[5]
+    >>> dir_source = test_resdef.sources[5]
     >>> dir_source.uri
     'file:files'
 
-    >>> resolver = test_res.get_source_resolver(dir_source)
+    >>> resolver = test_resdef.get_source_resolver(dir_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> sorted(resolver.resolve(unpack_dir))
     ['.../samples/projects/resources/files']
@@ -310,11 +330,11 @@ extracted file.
 
 ### Non existing source file
 
-    >>> noexist_source = test_res.sources[6]
+    >>> noexist_source = test_resdef.sources[6]
     >>> noexist_source.uri
     'file:doesnt-exist'
 
-    >>> resolver = test_res.get_source_resolver(noexist_source)
+    >>> resolver = test_resdef.get_source_resolver(noexist_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> resolver.resolve(unpack_dir)
     Traceback (most recent call last):

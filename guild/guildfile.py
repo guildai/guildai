@@ -664,17 +664,14 @@ class ResourceDef(resourcedef.ResourceDef):
         self.private = self.private
         self.modeldef = modeldef
 
-    def get_source_resolver(self, source, config=None):
+    def get_source_resolver(self, source, resource):
         scheme = source.parsed_uri.scheme
-        if scheme == "file":
-            return resolver.FileResolver(
-                source, config, self.modeldef.guildfile.dir)
-        elif scheme == "operation":
+        if scheme == "operation":
             return resolver.OperationOutputResolver(
-                source, config, self.modeldef)
+                source, resource, self.modeldef)
         else:
             return super(ResourceDef, self).get_source_resolver(
-                source, config)
+                source, resource)
 
     def _source_for_type(self, type, val, data):
         if type == "operation":

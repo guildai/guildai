@@ -14,6 +14,7 @@ tests).
       guildfiles:              ok
       help:                    ok
       imports:                 ok
+      includes:                ok
       logging:                 ok
       main-bootstrap:          ok
       memory-plugin:           ok
