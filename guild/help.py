@@ -136,6 +136,8 @@ def _is_cwd(path):
     return os.path.abspath(path) == os.path.abspath(os.getcwd())
 
 def package_description(guildfile):
+    if not guildfile.models:
+        return ""
     out = RestFormatter()
     out.start_section("Models")
     _write_models(guildfile, out)
