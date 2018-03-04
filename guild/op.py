@@ -28,6 +28,7 @@ import guild.run
 
 from guild import deps
 from guild import opref
+from guild import run_util
 from guild import util
 from guild import var
 
@@ -125,7 +126,7 @@ class Operation(object):
             env=env,
             cwd=cwd,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT)
+            stderr=subprocess.PIPE)
         _write_proc_lock(self._proc, self._run)
 
     def _proc_args(self):
@@ -150,22 +151,10 @@ class Operation(object):
 
     def _watch_proc(self):
         assert self._proc is not None
-        output = self._open_tee(self._proc.stdout, sys.stdout, "output")
+        output = run_util.RunOutput(self._run, self._proc)
         exit_status = self._proc.wait()
-        output.wait()
+        output.wait_and_close()
         return exit_status
-
-    def _open_tee(self, proc_stream, stdio_stream, name):
-        assert self._run is not None
-        try:
-            stdio_stream = stdio_stream.buffer
-        except AttributeError:
-            pass
-        log_stream = open(self._run.guild_path(name), "wb")
-        tee = util.Tee(proc_stream, stdio_stream, log_stream)
-        tee.on_close(log_stream.close)
-        tee.start()
-        return tee
 
     def _handle_proc_interrupt(self):
         log.info("Operation interrupted - waiting for process to exit")

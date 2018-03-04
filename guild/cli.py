@@ -160,3 +160,6 @@ def confirm(prompt, default=False):
 
 def page(text):
     click.echo_via_pager(text)
+
+def style(text, **kw):
+    return click.style(text, **kw)

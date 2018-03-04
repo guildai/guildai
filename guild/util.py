@@ -487,30 +487,3 @@ def safe_filesize(path):
         return os.path.getsize(path)
     except OSError:
         return None
-
-class Tee(threading.Thread):
-
-    def __init__(self, input, *outputs):
-        super(Tee, self).__init__()
-        self.fin = input.fileno()
-        self.fouts = [out.fileno() for out in outputs]
-        self._on_close = []
-
-    def on_close(self, func):
-        self._on_close.append(func)
-
-    def run(self):
-        fin = self.fin
-        fouts = self.fouts
-        while True:
-            b = os.read(fin, 1)
-            if not b:
-                break
-            for f in fouts:
-                os.write(f, b)
-
-    def wait(self, timeout=10):
-        self.join(timeout)
-        assert not self.is_alive()
-        for func in self._on_close:
-            func()

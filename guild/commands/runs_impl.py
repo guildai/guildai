@@ -31,6 +31,7 @@ from guild import cli
 from guild import cmd_impl_support
 from guild import config
 from guild import remote_run_support
+from guild import run_util
 from guild import util
 from guild import var
 
@@ -387,8 +388,19 @@ def run_info(args, ctx):
         _print_run_info(run, args)
 
 def _page_run_output(run):
-    text = "".join(_iter_output(run))
-    cli.page(text)
+    output = run_util.RunOutput(run)
+    lines = []
+    try:
+        lines = list(output)
+    except IOError as e:
+        cli.error("error reading output for run %s: %s" % (run.id, e))
+    lines = [_format_output_line(stream, line) for _time, stream, line in lines]
+    cli.page("".join(lines))
+
+def _format_output_line(stream, line):
+    if stream == 1:
+        return cli.style(line, fg="red")
+    return line
 
 def _print_run_info(run, args):
     formatted = format_run(run)
