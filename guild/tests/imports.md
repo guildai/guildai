@@ -76,7 +76,7 @@
     guild.commands.tensorflow
     guild.commands.tensorflow_check_main
     guild.commands.tensorflow_impl
-    guild.commands.tensorflow_inspect_checkpoint
+    guild.commands.tensorflow_inspect
     guild.commands.train
     guild.commands.uninstall
     guild.commands.view

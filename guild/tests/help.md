@@ -12,7 +12,7 @@ It's used to format help for a guildfile.
 The `package_description` function returns a restructured text
 formatted string:
 
-    >>> print(guild.help.package_description(gf))
+    >>> print(guild.help.package_description(gf)) # doctest: +REPORT_UDIFF
     Models
     ######
     <BLANKLINE>
@@ -74,5 +74,5 @@ formatted string:
     References
     ==========
     <BLANKLINE>
-    *- https://www.tensorflow.org/tutorials/layers*
+    - https://www.tensorflow.org/tutorials/layers
     <BLANKLINE>
