@@ -23,7 +23,7 @@ from guild import click_util
 # tensorflow/python/tools/inspect_checkpoint.py as it's used directly
 # as the FLAGS global for that module.
 
-@click.command("inspect-checkpoint")
+@click.command("inspect")
 @click.argument("file_name", metavar="PATH")
 @click.option(
     "--tensor-name", metavar="NAME",
@@ -33,10 +33,14 @@ from guild import click_util
     "--all-tensors",
     is_flag=True,
     help="Print the values of all the tensors.")
+@click.option(
+    "--all-tensor-names",
+    is_flag=True,
+    help="Print the name of all the tensors")
 
 @click_util.use_args
 
-def inspect_checkpoint(args):
+def inspect(args):
     """Inspect a TensorFlow checkpoint file.
 
     `PATH` is the path to the checkpoint file (usually ending in

@@ -19,7 +19,7 @@ import click
 
 from guild import click_util
 
-from .tensorflow_inspect_checkpoint import inspect_checkpoint
+from .tensorflow_inspect import inspect
 
 @click.group(name="tensorflow, tf", cls=click_util.Group)
 
@@ -27,4 +27,4 @@ def tensorflow():
     """Collection of TensorFlow tools.
     """
 
-tensorflow.add_command(inspect_checkpoint)
+tensorflow.add_command(inspect)
