@@ -131,7 +131,6 @@ class Run(object):
 
     def init_skel(self):
         util.ensure_dir(self.guild_path("attrs"))
-        util.ensure_dir(self.guild_path("logs"))
 
     def guild_path(self, subpath):
         return os.path.join(self._guild_dir, subpath)

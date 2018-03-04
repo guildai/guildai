@@ -48,9 +48,7 @@ We can initialize the run directory using `init_skel`:
 
     >>> run.init_skel()
     >>> run_files(run)
-    ['.guild',
-     '.guild/attrs',
-     '.guild/logs']
+    ['.guild', '.guild/attrs']
 
 Note that Guild manages files under a run directory inside a `.guild`
 directory ("guild directory").
@@ -83,10 +81,7 @@ We can write them using the `write_attr` method:
 Here are the run files after writing the attribute:
 
     >>> run_files(run)
-    ['.guild',
-     '.guild/attrs',
-     '.guild/attrs/msg',
-     '.guild/logs']
+    ['.guild', '.guild/attrs', '.guild/attrs/msg']
 
 And the value of our attribute:
 

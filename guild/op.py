@@ -120,7 +120,12 @@ class Operation(object):
         log.debug("operation command: %s", args)
         log.debug("operation env: %s", env)
         log.debug("operation cwd: %s", cwd)
-        self._proc = subprocess.Popen(args, env=env, cwd=cwd)
+        self._proc = subprocess.Popen(
+            args,
+            env=env,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT)
         _write_proc_lock(self._proc, self._run)
 
     def _proc_args(self):
@@ -137,11 +142,30 @@ class Operation(object):
     def _wait_for_proc(self):
         assert self._proc is not None
         try:
-            self._exit_status = self._proc.wait()
+            self._exit_status = self._watch_proc()
         except KeyboardInterrupt:
             self._exit_status = self._handle_proc_interrupt()
         self._stopped = guild.run.timestamp()
         _delete_proc_lock(self._run)
+
+    def _watch_proc(self):
+        assert self._proc is not None
+        output = self._open_tee(self._proc.stdout, sys.stdout, "output")
+        exit_status = self._proc.wait()
+        output.wait()
+        return exit_status
+
+    def _open_tee(self, proc_stream, stdio_stream, name):
+        assert self._run is not None
+        try:
+            stdio_stream = stdio_stream.buffer
+        except AttributeError:
+            pass
+        log_stream = open(self._run.guild_path(name), "wb")
+        tee = util.Tee(proc_stream, stdio_stream, log_stream)
+        tee.on_close(log_stream.close)
+        tee.start()
+        return tee
 
     def _handle_proc_interrupt(self):
         log.info("Operation interrupted - waiting for process to exit")

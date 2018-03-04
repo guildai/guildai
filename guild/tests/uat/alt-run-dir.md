@@ -28,6 +28,6 @@ And the generated files:
     hello-default/.guild/attrs/opref
     hello-default/.guild/attrs/started
     hello-default/.guild/attrs/stopped
-    hello-default/.guild/logs
+    hello-default/.guild/output
     hello-default/output
     <exit 0>

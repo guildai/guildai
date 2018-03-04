@@ -400,6 +400,10 @@ def run_info(args, ctx):
             out("  %s:" % name)
             for path in deps[name]:
                 out("    %s" % path)
+    if args.output:
+        out("output:")
+        for line in _iter_output(run):
+            out("  %s" % line, nl=False)
     if args.files or args.all_files:
         out("files:")
         for path in sorted(run.iter_files(args.all_files, args.follow_links)):
@@ -412,7 +416,6 @@ def other_attr_names(run):
         name for name in run.attr_names()
         if name[0] != "_" and name not in CORE_RUN_ATTRS]
 
-
 def _format_attr(val):
     if val is None:
         return ""
@@ -420,6 +423,11 @@ def _format_attr(val):
         return str(val)
     else:
         return _format_yaml(val)
+
+def _iter_output(run):
+    with open(run.guild_path("output"), "r") as f:
+        for line in f:
+            yield line
 
 def _format_yaml(val):
     formatted = yaml.dump(val)
