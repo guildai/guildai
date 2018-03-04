@@ -157,3 +157,6 @@ def confirm(prompt, default=False):
     if default:
         yes_vals.append("")
     return c.lower().strip() in yes_vals
+
+def page(text):
+    click.echo_via_pager(text)

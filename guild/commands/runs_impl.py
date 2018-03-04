@@ -381,6 +381,16 @@ def run_info(args, ctx):
     runspec = args.run or "0"
     selected = select_runs(filtered, [runspec], ctx)
     run = cmd_impl_support.one_run(selected, runspec, ctx)
+    if args.page_output:
+        _page_run_output(run)
+    else:
+        _print_run_info(run, args)
+
+def _page_run_output(run):
+    text = "".join(_iter_output(run))
+    cli.page(text)
+
+def _print_run_info(run, args):
     formatted = format_run(run)
     out = cli.out
     for name in RUN_DETAIL:
