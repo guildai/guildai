@@ -26,13 +26,11 @@ from pip.commands.search import SearchCommand
 from pip.commands.show import ShowCommand
 from pip.commands.uninstall import UninstallCommand
 from pip.download import _download_http_url
-from pip.exceptions import HashMismatch as HashMismatch0
 from pip.exceptions import InstallationError
 from pip.exceptions import UninstallationError
 from pip.index import Link
 from pip.locations import running_under_virtualenv
 from pip.utils import get_installed_distributions
-from pip.utils.hashes import Hashes
 
 from guild import namespace
 from guild import util
@@ -161,79 +159,78 @@ def _uninstall(req, cmd, dont_prompt):
             raise
         log.warning("%s is not installed, skipping", req)
 
+def download_url(url, download_dir, sha256=None):
+    """Download and optionally verify a file.
+
+    Returns the downloaded file path.
+
+    If sha256 is not specified (default), the file is not verified.
+
+    Raises HashMismatch if the file hash does not match the specified
+    sha256 hash.
+
+    If the file was already downloaded, returns its path after
+    verifying it. If the file cannot be verified, raises HashMismatch
+    without attempting download again. If the hash is valid but the
+    download is not, the download must be deleted before trying
+    again. This behavior is designed to preserve downloads at the cost
+    of requiring that invalid files be explicitly deleted.
+
+    """
+    link = Link(url)
+    downloaded_path = _check_download_path(link, download_dir, sha256)
+    if not downloaded_path:
+        orig_path = _pip_download(link, download_dir)
+        downloaded_path = _ensure_expected_download_path(orig_path, link)
+        if sha256:
+            _verify_and_cache_hash(downloaded_path, sha256)
+    return downloaded_path
+
+def _check_download_path(link, download_dir, expected_hash):
+    download_path = os.path.join(download_dir, link.filename)
+    if not os.path.exists(download_path):
+        return None
+    log.info("Using cached file %s", download_path)
+    if not expected_hash:
+        return download_path
+    cached_hash = util.try_cached_sha(download_path)
+    if cached_hash and cached_hash == expected_hash:
+        return download_path
+    _verify_and_cache_hash(download_path, expected_hash)
+    return download_path
+
 class HashMismatch(Exception):
 
-    def __init__(self, url, expected, actual):
-        super(HashMismatch, self).__init__()
-        self.path = url
+    def __init__(self, path, expected, actual):
+        super(HashMismatch, self).__init__(path, expected, actual)
+        self.path = path
         self.expected = expected
         self.actual = actual
 
-def download_url(url, download_dir, sha256=None):
-    cmd = DownloadCommand()
+def _verify_and_cache_hash(path, expected_hash):
+    calculated_hash = util.file_sha256(path)
+    if calculated_hash != expected_hash:
+        raise HashMismatch(path, expected_hash, calculated_hash)
+    _cache_sha256(calculated_hash, path)
+
+def _cache_sha256(sha256, download_path):
+    util.write_cached_sha(sha256, download_path)
+
+def _pip_download(link, download_dir):
     # We disable cache control for downloads for two reasons: First,
     # we're already caching our downloads as resources, so an
     # additional level of caching, even if efficiently managed, is
     # probably not worth the cost. Second, the cachecontrol module
     # used with pip's download facility is unusable with large files
-    # as it loads files into memory:
+    # as it reads files into memory:
     #
     # https://github.com/ionrock/cachecontrol/issues/145
     #
+    cmd = DownloadCommand()
     options, _ = cmd.parse_args(["--no-cache-dir"])
-    link = Link(url)
     session = cmd._build_session(options)
-    hashes = Hashes({"sha256": [sha256]}) if sha256 else None
-    download_path = _check_download_dir(link, download_dir, hashes)
-    if not download_path:
-        try:
-            download_raw, _ = _download_http_url(
-                Link(url),
-                session,
-                download_dir,
-                hashes)
-        except HashMismatch0 as e:
-            expected = e.allowed["sha256"][0]
-            actual = e.gots["sha256"].hexdigest()
-            raise HashMismatch(url, expected, actual)
-        else:
-            download_path = _ensure_expected_download_path(download_raw, link)
-    if hashes:
-        _cache_hashes(hashes, download_path)
-    return download_path
-
-def _check_download_dir(link, download_dir, hashes):
-    # Mirrors pip.download._check_download_dir but uses sha cache.
-    download_path = os.path.join(download_dir, link.filename)
-    if not os.path.exists(download_path):
-        return None
-    log.info("Using cached file %s", download_path)
-    if not hashes:
-        return download_path
-    cached_sha = util.try_cached_sha(download_path)
-    if cached_sha and cached_sha == _allowed_sha(hashes):
-        return download_path
-    try:
-        hashes.check_against_path(download_path)
-    except HashMismatch0:
-        log.warning(
-            "Cached file %s has bad hash - re-downloading",
-            download_path
-        )
-        os.unlink(download_path)
-        return None
-    else:
-        return download_path
-
-def _allowed_sha(hashes):
-    allowed = hashes._allowed
-    assert list(allowed.keys()) == ["sha256"], allowed
-    sha256_hashes = allowed["sha256"]
-    assert len(sha256_hashes) == 1, allowed
-    return sha256_hashes[0]
-
-def _cache_hashes(hashes, download_path):
-    util.write_cached_sha(_allowed_sha(hashes), download_path)
+    orig_path, _ = _download_http_url(link, session, download_dir, hashes=None)
+    return orig_path
 
 def _ensure_expected_download_path(downloaded, link):
     expected = os.path.join(os.path.dirname(downloaded), link.filename)

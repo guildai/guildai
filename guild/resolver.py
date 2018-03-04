@@ -79,9 +79,10 @@ class URLResolver(Resolver):
         except pip_util.HashMismatch as e:
             raise ResolutionError(
                 "bad sha256 for '%s' (expected %s but got %s)"
-                % (self.source.uri, e.expected, e.actual))
+                % (e.path, e.expected, e.actual))
         else:
-            return resolve_source_files(source_path, self.source, unpack_dir)
+            return resolve_source_files(
+                source_path, self.source, unpack_dir)
 
     def _source_download_dir(self):
         key = "\n".join(self.source.parsed_uri).encode("utf-8")
