@@ -37,9 +37,9 @@ Initially output is not opened:
 Run output is opened with a process. We need a process that writes to
 both stdout and stderr so we'll use pipes:
 
-    >>> import subprocess
+    >>> import subprocess, sys
     >>> proc = subprocess.Popen(
-    ...   sample("scripts/sample-run"),
+    ...   [sys.executable, "-u", sample("scripts/sample_run.py")],
     ...   stdout=subprocess.PIPE,
     ...   stderr=subprocess.PIPE)
 
@@ -78,14 +78,16 @@ Let's inspect our run output.
 
 We can use the index to read back output with time and stream info:
 
-    >>> indexed = list(output)
+    >>> indexed = [
+    ...    (t, s, line.decode("utf-8"))
+    ...    for t, s, line in list(output)]
     >>> indexed
-    [(..., 0, 'This is to stdout\n'),
-     (..., 1, 'This is to stderr\n'),
-     (..., 0, 'This is delayed by 0.2 seconds\n')]
+    [(..., 0, u'This is to stdout\n'),
+     (..., 1, u'This is to stderr\n'),
+     (..., 0, u'This is delayed by 0.2 seconds\n')]
 
 Let's confirm that the last entry is in fact delayed.
 
     >>> delay = indexed[2][0] - indexed[1][0]
-    >>> delay > 200, delay
+    >>> delay >= 200, delay
     (True, ...)

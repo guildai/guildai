@@ -1,7 +1,0 @@
-#!/bin/bash
-
-echo "This is to stdout"
-sleep 0.1
-echo "This is to stderr" >&2
-sleep 0.2
-echo "This is delayed by 0.2 seconds"

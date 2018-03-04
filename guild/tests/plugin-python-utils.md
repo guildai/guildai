@@ -13,7 +13,7 @@ python utils provides `scripts_for_location`.
     >>> scripts = python_util.scripts_for_dir(
     ...   sample("scripts"), exclude=["*/__init__.py"])
     >>> sorted([script.name for script in scripts])
-    ['mnist_mlp']
+    ['mnist_mlp', 'sample_run']
 
 NOTE: The use of exclude is a work-around for cases when Bazel
 generates a __init__.py for the sample directory on build.

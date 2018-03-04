@@ -83,8 +83,9 @@ class RunOutput(object):
     def _gen_tee_run(self, input_stream, output_stream, stream_type):
         assert self._output
         assert self._index
-        fin = input_stream.fileno()
+        os_read = os.read
         os_write = os.write
+        input_fileno = input_stream.fileno()
         if not self._quiet:
             stream_fileno = output_stream.fileno()
         else:
@@ -95,15 +96,15 @@ class RunOutput(object):
         lock = self._output_lock
         line = []
         while True:
-            b = os.read(fin, 1)
+            b = os_read(input_fileno, 1)
             if not b:
                 break
             with lock:
                 if stream_fileno is not None:
                     os_write(stream_fileno, b)
                 line.append(b)
-                if b == "\n":
-                    os_write(output_fileno, "".join(line))
+                if b == b"\n":
+                    os_write(output_fileno, b"".join(line))
                     line = []
                     entry = struct.pack(
                         "!QB", int(time_() * 1000), stream_type)
