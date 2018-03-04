@@ -45,7 +45,7 @@ def main():
 
 def _external_libs_path():
     guild_pkg_dir = os.path.dirname(__file__)
-    path = os.path.join(guild_pkg_dir, "external")
+    path = os.path.abspath(os.path.join(guild_pkg_dir, "external"))
     if not os.path.exists(path):
         import textwrap
         sys.stderr.write("guild: {} does not exist\n".format(path))
