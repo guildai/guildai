@@ -29,5 +29,6 @@ And the generated files:
     hello-default/.guild/attrs/started
     hello-default/.guild/attrs/stopped
     hello-default/.guild/output
+    hello-default/.guild/output.index
     hello-default/output
     <exit 0>
