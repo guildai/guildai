@@ -41,9 +41,7 @@ class Py23DocChecker(doctest.OutputChecker):
             want = re.sub('u"(.*?)"', '"\\1"', want)
         if PLATFORM == "Windows":
             # Convert Windows paths to UNIXy paths
-            #sys.stderr.write("*** " + got + "\n")
             got = re.sub(r"[c-zC-Z]:\\\\?|\\\\?", "/", got)
-            #sys.stderr.write("### " + got + "\n")
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
 def run_all(skip=None):
