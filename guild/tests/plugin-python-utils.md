@@ -12,16 +12,22 @@ python utils provides `scripts_for_location`.
 
     >>> scripts = python_util.scripts_for_dir(
     ...   sample("scripts"), exclude=["*/__init__.py"])
-    >>> sorted([script.name for script in scripts])
-    ['mnist_mlp', 'sample_run']
 
-NOTE: The use of exclude is a work-around for cases when Bazel
-generates a __init__.py for the sample directory on build.
+Let's sort by name:
+
+    >>> scripts.sort(key=lambda x: x.name)
+
+The scripts:
+
+    >>> [script.name for script in scripts]
+    ['mnist_mlp', 'sample_run']
 
 Scripts can be inspected for various declarations. Let's example the
 'mnist_mlp' script:
 
     >>> mnist_mlp = scripts[0]
+    >>> mnist_mlp.name
+    'mnist_mlp'
 
 The script source can be read using the `src` attribute:
 
