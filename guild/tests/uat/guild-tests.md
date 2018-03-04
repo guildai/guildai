@@ -24,6 +24,7 @@ tests).
       package:                 ok
       plugin-python-utils:     ok
       plugins:                 ok
+      run-output:              ok
       runs:                    ok
       tables:                  ok
       utils:                   ok
