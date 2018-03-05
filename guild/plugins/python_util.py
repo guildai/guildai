@@ -20,6 +20,8 @@ import logging
 import os
 import types
 
+import six
+
 log = logging.getLogger("guild")
 
 class Script(object):
@@ -291,7 +293,7 @@ def script_models(dir, is_model_script, script_model, log=None):
         if is_model_script(script):
             yield script_model(script)
 
-def exec_script(filename):
+def exec_script(filename, global_assigns=None):
     """Execute a Python script.
 
     This function can be used to execute a Python module as code
@@ -304,15 +306,52 @@ def exec_script(filename):
     https://docs.python.org/2/library/threading.html#importing-in-threaded-code
 
     """
-    import __future__
     src = open(filename, "r").read()
-    flags = __future__.absolute_import.compiler_flag
-    code = compile(src, filename, "exec", flags=flags, dont_inherit=True)
+    code = _compile_script(src, filename, global_assigns)
     script_globals = {
         "__name__": "__main__",
         "__file__": filename,
     }
     exec(code, script_globals)
+
+def _compile_script(src, filename, global_assigns):
+    import __future__
+    ast_root = ast.parse(src, filename)
+    if global_assigns:
+        _apply_global_assigns(ast_root, global_assigns)
+    flags = __future__.absolute_import.compiler_flag
+    return compile(ast_root, filename, "exec", flags=flags, dont_inherit=True)
+
+def _apply_global_assigns(node, assigns):
+    for child in ast.iter_child_nodes(node):
+        if isinstance(child, ast.Assign):
+            _try_apply_assign(child, assigns)
+        elif isinstance(child, ast.If):
+            _apply_global_assigns(child, assigns)
+
+def _try_apply_assign(assign, to_apply):
+    for target in assign.targets:
+        if not isinstance(target, ast.Name):
+            continue
+        try:
+            val = to_apply[target.id]
+        except KeyError:
+            pass
+        else:
+            assign.value = _ast_value(val, assign.value)
+
+def _ast_value(val, orig):
+    if isinstance(val, (int, float)):
+        val = ast.Num(val)
+    elif isinstance(val, six.string_types):
+        val = ast.Str(val)
+    elif isinstance(val, bool):
+        val = ast.NameConstant(val)
+    else:
+        raise AssertionError(val)
+    val.lineno = orig.lineno
+    val.col_offset = orig.col_offset
+    return val
 
 def update_refs(module, ref_spec, new_val, recurse=False, seen=None):
     seen = seen or set()
