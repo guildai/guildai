@@ -66,8 +66,8 @@ class GuildfileReferenceError(GuildfileError):
 
 class GuildfileCycleError(GuildfileError):
 
-    def __init__(self, guildfile_or_path, included):
-        msg = " -> ".join(included)
+    def __init__(self, guildfile_or_path, desc, cycle):
+        msg = "%s (%s)" % (desc, " -> ".join(cycle))
         super(GuildfileCycleError, self).__init__(guildfile_or_path, msg)
 
 ###################################################################
@@ -142,7 +142,10 @@ class Guildfile(object):
         for path in includes:
             path = os.path.abspath(os.path.join(self.dir or "", path))
             if path in included:
-                raise GuildfileCycleError(included[0], included[1:] + [path])
+                raise GuildfileCycleError(
+                    "cycle in 'includes'",
+                    included[0],
+                    included + [path])
             data = yaml.load(open(path, "r"))
             gf = Guildfile(data, path, included=included)
             include_data.extend(gf.data)
@@ -496,8 +499,10 @@ def _coerce_extends(val, src):
 def _apply_parents_data(extends, guildfile, seen, data):
     for name in extends:
         if name in seen:
-            raise GuildfileReferenceError(
-                guildfile, "cycle in model extends: %s" % seen)
+            raise GuildfileCycleError(
+                guildfile,
+                "cycle in 'extends'",
+                seen + [name])
         seen.append(name)
         parent = _modeldef_base_data(name, guildfile)
         extended_parent = _extended_data(parent, guildfile, seen, False)

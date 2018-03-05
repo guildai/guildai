@@ -698,7 +698,7 @@ Below are some inheritance cycles:
     ...   extends: a
     ... """)
     Traceback (most recent call last):
-    GuildfileReferenceError: error in <string>: cycle in model extends: ['a']
+    GuildfileCycleError: error in <string>: cycle in 'extends' (a -> a)
 
     >>> guildfile.from_string("""
     ... - model: a
@@ -707,7 +707,7 @@ Below are some inheritance cycles:
     ...   extends: a
     ... """)
     Traceback (most recent call last):
-    GuildfileReferenceError: error in <string>: cycle in model extends: ['b', 'a']
+    GuildfileCycleError: error in <string>: cycle in 'extends' (b -> a -> b)
 
 ### Params
 

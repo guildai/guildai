@@ -66,21 +66,27 @@ introduces a cycle.
 
     >>> guildfile.from_file(sample("projects/includes/cycle.yml"))
     Traceback (most recent call last):
-    GuildfileCycleError: error in .../samples/projects/includes/cycle.yml:
-    .../samples/projects/includes/cycle-2.yml ->
+    GuildfileCycleError: error in cycle in 'includes':
     .../samples/projects/includes/cycle.yml
+    (.../samples/projects/includes/cycle.yml ->
+     .../samples/projects/includes/cycle-2.yml ->
+     .../samples/projects/includes/cycle.yml)
 
 Similarly:
 
     >>> guildfile.from_file(sample("projects/includes/cycle-2.yml"))
     Traceback (most recent call last):
-    GuildfileCycleError: error in .../samples/projects/includes/cycle-2.yml:
-    .../samples/projects/includes/cycle.yml ->
+    GuildfileCycleError: error in cycle in 'includes':
     .../samples/projects/includes/cycle-2.yml
+    (.../samples/projects/includes/cycle-2.yml ->
+     .../samples/projects/includes/cycle.yml ->
+     .../samples/projects/includes/cycle-2.yml)
 
 As well as:
 
     >>> guildfile.from_file(sample("projects/includes/include-self.yml"))
     Traceback (most recent call last):
-    GuildfileCycleError: error in .../samples/projects/includes/include-self.yml:
+    GuildfileCycleError: error in cycle in 'includes':
     .../samples/projects/includes/include-self.yml
+    (.../samples/projects/includes/include-self.yml ->
+     .../samples/projects/includes/include-self.yml)
