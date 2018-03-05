@@ -14,6 +14,15 @@ source license.
 - **[Documentation](https://www.guild.ai/docs/)**
 - **[Open issues](https://github.com/guildai/guild/issues)**
 
+Highlights:
+
+- Automatically track training experiments
+- Compare model performance at-a-glance
+- Visualize training results with TensorBoard
+- Seamless integration with Keras models
+- Model packaging and distribution
+- Train, deploy, and predict on Cloud Machine Learning Engine (Cloud ML)
+
 ## Quick start
 
 Follow the steps below to install Guild AI, train a simple model, and

@@ -1,12 +1,12 @@
 Metadata-Version: 2.0
 Name: guildai
 Version: 1!0
-Summary: Toolkit for accelerating TensorFlow model development and reuse
-Home-page: https://github.com/guildai/guild
+Summary: Streamlined TensorFlow™ and Keras deep learning
+Home-page: https://www.guild.ai
 Author: Guild AI
 Author-email: packages@guild.ai
 License: Apache 2.0
-Keywords: guild guildai tensorflow machine learning
+Keywords: guild guildai tensorflow keras deep machine learning
 Platform: UNKNOWN
 Classifier: Development Status :: 3 - Alpha
 Classifier: Environment :: Console
@@ -38,14 +38,23 @@ Requires-Dist: twine
 Requires-Dist: Werkzeug
 Requires-Dist: Whoosh
 
-Guild AI is a command line tool that manages TensorFlow models and
-training runs.
+Guild AI is a Python application that that streamlines TensorFlow and
+Keras deep learning development. It's released under the Apache 2 open
+source license.
 
-- Find and install packaged models
-- Easily and reliably train models
-- Capture run results and visualize them in TensorBoard
-- Support for creating and managing your own model packages
+- `Guild AI website <https://www.guild.ai>`_
+- `Documentation <ttps://www.guild.ai/docs/>`_
+- `Open issues <https://github.com/guildai/guild/issues>`_
+- `GitHub source repository <https://github.com/guildai/guild>`_
 
-DISCLAIMER: Guild AI is in a pre-release state and is under active
-development! If you have questions about the project, please visit
-https://github.com/guildai/guild and open an issue.
+Highlights:
+
+- Automatically track training experiments
+- Compare model performance at-a-glance
+- Visualize training results with TensorBoard
+- Seamless integration with Keras models
+- Model packaging and distribution
+- Train, deploy, and predict on Cloud Machine Learning Engine (Cloud ML)
+
+To get started, see `Guild AI - Quick start
+<https://www.guild.ai/#quick-start>`_.
