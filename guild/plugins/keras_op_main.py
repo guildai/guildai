@@ -79,8 +79,14 @@ class Op(object):
 
     def __call__(self):
         script = self._find_script()
-        global_assigns = plugin_util.args_to_flags(self.script_args)
-        python_util.exec_script(self.script, global_assigns)
+        python_util.exec_script(self.script, self._global_assigns())
+
+    def _global_assigns(self):
+        flags = plugin_util.args_to_flags(self.script_args)
+        return {
+            name[6:]: flags[name] for name in flags
+            if name[:6] == "const:"
+        }
 
 class Train(Op):
 
