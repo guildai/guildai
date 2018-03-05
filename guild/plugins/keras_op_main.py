@@ -32,6 +32,8 @@ from guild import util
 
 log = logging.getLogger("guild.keras")
 
+warnings = {}
+
 class Op(object):
     """Abstract Keras operation.
     """
@@ -144,14 +146,19 @@ def _ensure_checkpoint_callback(kw):
     try:
         import h5py as _
     except ImportError:
-        log.warning(
-            "h5py is not installed - model checkpoints "
-            "will be disabled")
+        _warn_missing_h5py()
     else:
         filepath = "weights-{epoch:05d}.h5"
         _ensure_callback(
             keras.callbacks.ModelCheckpoint, kw,
             filepath=filepath)
+
+def _warn_missing_h5py():
+    if not "h5py" in warnings:
+        log.warning(
+            "h5py is not installed - model checkpoints "
+            "will be disabled")
+        warnings["h5py"] = True
 
 def _ensure_callback(cls, fit_kw, **cb_kw):
     callbacks = fit_kw.setdefault("callbacks", [])
