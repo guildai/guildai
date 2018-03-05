@@ -34,6 +34,7 @@ log = logging.getLogger("guild")
 PLATFORM = platform.system()
 
 OS_ENVIRON_WHITELIST = set([
+    "DISPLAY",
     "HOME",
     "HOSTNAME",
     "LANG",
