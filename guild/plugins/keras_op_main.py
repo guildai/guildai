@@ -19,6 +19,7 @@ import argparse
 import logging
 import os
 import sys
+import time
 
 # Defer import of keras. While this module is only used in ops and we
 # could import keras here, we test all our module imports and loading
@@ -158,7 +159,15 @@ def main(args):
         import keras as _
     except ImportError:
         plugin_util.exit("cannot import keras - is it installed?")
-    _init_op(op_name, op_args)()
+    op = _init_op(op_name, op_args)
+    try:
+        op()
+    except KeyboardInterrupt:
+        sys.stderr.write("Stopping run")
+        sys.stderr.flush()
+        time.sleep(1) # Hack to let TensorFlow shutdown gracefully
+        sys.stderr.write("\n")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main(sys.argv)
