@@ -21,6 +21,8 @@ from __future__ import division
 import os
 import sys
 
+import yaml
+
 import guild.run
 
 class NoCurrentRun(Exception):
@@ -52,3 +54,25 @@ def parse_op_args(args):
     if len(args) < 2:
         exit("usage: %s COMMAND [ARG...]" % args[0])
     return args[1], args[2:]
+
+def args_to_flags(args):
+    flags = {}
+    name = None
+    for arg in args:
+        if arg[:2] == "--":
+            name = arg[2:]
+            flags[name] = True
+        elif arg[:1] == "-":
+            if len(arg) == 2:
+                name = arg[1]
+                flags[name] = True
+            elif len(arg) > 2:
+                name = None
+                flags[arg[1]] = arg[2:]
+        elif name is not None:
+            try:
+                arg = yaml.safe_load(arg)
+            except yaml.YAMLError:
+                pass
+            flags[name] = arg
+    return flags
