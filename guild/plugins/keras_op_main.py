@@ -38,9 +38,9 @@ class Op(object):
     name = None
 
     def __init__(self, args):
-        self.args, self.script_parse = self._parse_known_args(args)
+        self.args, self.script_args = self._parse_args(args)
 
-    def _parse_known_args(self, args):
+    def _parse_args(self, args):
         p = self._init_arg_parser()
         return p.parse_known_args(args)
 
@@ -71,10 +71,8 @@ class Op(object):
             os.symlink(src, link)
 
     def _exec_script(self):
-        # Execute the script as code rather than import it because we
-        # insert the Keras tensorflow callback, which starts
-        # background threads - this will cause import to hang.
-        python_util.exec_script(self.args.script)
+        global_assigns = plugin_util.args_to_flags(self.script_args)
+        python_util.exec_script(self.args.script, global_assigns)
 
 class Train(Op):
 
@@ -163,10 +161,9 @@ def main(args):
     try:
         op()
     except KeyboardInterrupt:
-        sys.stderr.write("Stopping run")
+        sys.stderr.write("Stopping run\n")
         sys.stderr.flush()
         time.sleep(1) # Hack to let TensorFlow shutdown gracefully
-        sys.stderr.write("\n")
         sys.exit(1)
 
 if __name__ == "__main__":
