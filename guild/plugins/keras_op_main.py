@@ -28,6 +28,7 @@ import time
 
 from guild import plugin_util
 from guild.plugins import python_util
+from guild import util
 
 log = logging.getLogger("guild.keras")
 
@@ -39,6 +40,30 @@ class Op(object):
 
     def __init__(self, args):
         self.args, self.script_args = self._parse_args(args)
+        self.script = self._find_script()
+
+    def _find_script(self):
+        # Look for script in cwd and then CMD_DIR (user's cwd)
+        return util.find_apply([
+            self._cwd_script,
+            self._cmd_dir_script,
+            self._no_script_error,
+        ])
+
+    def _cwd_script(self):
+        path = os.path.join(".", self.args.script)
+        if os.path.exists(path):
+            return path
+        return None
+
+    def _cmd_dir_script(self):
+        path = os.path.join(os.environ["CMD_DIR"], self.args.script)
+        if os.path.exists(path):
+            return path
+        return None
+
+    def _no_script_error(self):
+        raise SystemExit("cannot find script %s" % self.args.script)
 
     def _parse_args(self, args):
         p = self._init_arg_parser()
@@ -51,28 +76,9 @@ class Op(object):
         return p
 
     def __call__(self):
-        self._init_run()
-        self._exec_script()
-
-    @staticmethod
-    def _init_run():
-        # Cwd is changed to run dir, so we need to replicate the
-        # original cwd (CMD_DIR env) with links to each file/dir. This
-        # is equivalent to resource resolution in a model-defined
-        # operation.
-        run = plugin_util.current_run()
-        cmd_dir = os.getenv("CMD_DIR")
-        assert cmd_dir
-        for name in os.listdir(cmd_dir):
-            if name == ".guild":
-                continue
-            src = os.path.join(cmd_dir, name)
-            link = os.path.join(run.path, name)
-            os.symlink(src, link)
-
-    def _exec_script(self):
+        script = self._find_script()
         global_assigns = plugin_util.args_to_flags(self.script_args)
-        python_util.exec_script(self.args.script, global_assigns)
+        python_util.exec_script(self.script, global_assigns)
 
 class Train(Op):
 
@@ -84,9 +90,9 @@ class Train(Op):
         p.add_argument("--batch-size", type=int)
         return p
 
-    def _exec_script(self):
+    def __call__(self):
         patch_keras(self.args)
-        super(Train, self)._exec_script()
+        super(Train, self).__call__()
 
 class Predict(Op):
 
@@ -110,6 +116,7 @@ def _fit_wrapper(op_args):
         _maybe_apply_kw("batch_size", op_args.batch_size, kw)
         _maybe_apply_kw("epochs", op_args.epochs, kw)
         _ensure_tensorboard_callback(kw)
+        _ensure_checkpoint_callback(kw)
         raise python_util.Result(fit0(*args, **kw))
     return fit
 
@@ -117,6 +124,7 @@ def _fit_gen_wrapper(op_args):
     def fit_gen(fit_gen0, *args, **kw):
         _maybe_apply_kw("epochs", op_args.epochs, kw)
         _ensure_tensorboard_callback(kw)
+        _ensure_checkpoint_callback(kw)
         raise python_util.Result(fit_gen0(*args, **kw))
     return fit_gen
 
@@ -126,14 +134,34 @@ def _maybe_apply_kw(name, val, kw):
 
 def _ensure_tensorboard_callback(kw):
     import keras
-    callbacks = kw.setdefault("callbacks", [])
+    cb = _ensure_callback(
+        keras.callbacks.TensorBoard, kw,
+        write_graph=True)
+    cb.log_dir = plugin_util.current_run().path
+
+def _ensure_checkpoint_callback(kw):
+    import keras
+    try:
+        import h5py as _
+    except ImportError:
+        log.warning(
+            "h5py is not installed - model checkpoints "
+            "will be disabled")
+    else:
+        filepath = "weights-{epoch:05d}.h5"
+        _ensure_callback(
+            keras.callbacks.ModelCheckpoint, kw,
+            filepath=filepath)
+
+def _ensure_callback(cls, fit_kw, **cb_kw):
+    callbacks = fit_kw.setdefault("callbacks", [])
     for cb in callbacks:
-        if isinstance(cb, keras.callbacks.TensorBoard):
+        if isinstance(cb, cls):
             break
     else:
-        cb = keras.callbacks.TensorBoard(write_graph=True)
+        cb = cls(**cb_kw)
         callbacks.append(cb)
-    cb.log_dir = plugin_util.current_run().path
+    return cb
 
 def _set_tensorboard_params(_sp0, params):
     flags = {
