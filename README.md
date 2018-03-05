@@ -3,113 +3,60 @@
 [![CircleCI](https://circleci.com/gh/guildai/guild.svg?style=shield)](https://circleci.com/gh/guildai/guild)
 [![PyPI version](https://badge.fury.io/py/guildai.svg)](https://badge.fury.io/py/guildai)
 
-***Project status:*** beta
+This is the source repository for Guild AI.
 
-This is the active Guild source repository.
+Guild AI is a Python application released under the Apache 2 open
+source license that streamlines TensorFlow and Keras deep learning
+development.
 
-Guild has been rewritten in Python and has undergone substantial
-changes since its original release.
+- **Latest release on PyPI** - [https://pypi.python.org/pypi/guildai](https://pypi.python.org/pypi/guildai)
+- **Guild AI website** - [https://www.guild.ai](https://www.guild.ai)
+- **Documentation** - [https://www.guild.ai/docs](https://www.guild.ai/docs/)
+- **Open issues** - [https://github.com/guildai/guild/issues](https://github.com/guildai/guild/issues)
 
-Documentation on https://guild.ai will be forthcoming. For time being,
-please submit issues to the [project GitHub issue
-tracker](https://github.com/guildai/guild/issues).
+## Quick start
 
-## Installing Guild
+The steps below will install Guild AI, train a simple model, and view
+the results. For detailed installation instructions, see
+[https://www.guild.ai/install/](https://www.guild.ai/install/).
 
-Early releases of wheels for Linux and MacOS are available on PyPI. To
-install the latest version, run:
+Run each step below at a command line. Omit the '$' character when
+executing a command.
 
-```
-$ pip install guildai --upgrade --pre
-```
-
-If your platform isn't support or you want to run from source, you can
-compile Guild using the steps below.
-
-## Compiling Guild from source
-
-Clone Guild from GitHub:
-
-    $ git clone https://github.com/guildai/guild
-
-Build Guild:
-
-    $ cd guild
-    $ python setup.py build
-
-You may alternatively run `make`.
-
-If Guild builds successfully, run the `check` command with tests:
-
-    $ guild/scripts/guild check --tests
-
-You may alternatively run `make check`.
-
-Please report any build errors or failed tests to the [project GitHub
-issue tracker](https://github.com/guildai/guild/issues).
-
-To run `guild` without typing its full path, create an alias:
+**Step 1. Install Guild AI using pip**
 
 ```
-alias guild=$GUILD_REPO/guild/scripts/guild
+$ pip install guildai --upgrade
 ```
 
-where `$GUILD_REPO` is a reference to your local Guild git repository.
-
-You may alternatively install Guild in developer mode:
-
-    $ python setup.py develop
-
-NOTE: The above command may require that you run as a privileged user
-(e.g. using `sudo`). To install Guild without elevated privelges, run
-`python setup.py develop --user` and ensure that your local bin
-directory (e.g. `~/.local/bin`) is in your shell path.
-
-## Using Guild
-
-Clone the Guild examples:
+**Step 2. Verify your installation**
 
 ```
-$ git clone https://github.com/guildai/examples guild-examples
-
+$ guild check
 ```
 
-Change to the `mnist2` example and train the default model:
+**Step 3. Install a model package**
 
 ```
-$ cd guild-examples/mnist2
-$ guild train
+$ guild install mnist
 ```
 
-You will be asked to confirm that you want to train the `mnist-intro`
-model. Press enter to continue.
-
-Guild will train the MNIST intro model, which is a simple softmax
-regression. It should only take a view seconds to train.
-
-In a second terminal, change to the `mnist2` example directory and
-start Guild View:
+**Step 4. Train a model**
 
 ```
-$ cd guild-examples/mnist2
-$ guild tensorboard
+$ guild train softmax
 ```
 
-This will open TensorBoard where you can view the runs for the
-`mnist2` project.
+**Step 5. View the training run**
 
-## Getting help
+```
+$ guild view
+```
 
-Guild documentation is under development and not yet available. Use
-the command line help to familiarize yourself with Guild's features.
+## Learning more
 
-<table>
-<tr>
-  <td><code>guild --help</td>
-  <td>List available Guild commands</td>
-</tr>
-<tr>
-  <td><code>guild COMMAND --help</td>
-  <td>Show help for <code>COMMAND</code></td>
-</tr>
-</table>
+Refer to [https://www.guild.ai](https://www.guild.ai) for complete
+coverage of Guild AI.
+
+If you have questions or are facing problems, please open an issue at
+[https://github.com/guildai/guild/issues](https://github.com/guildai/guild/issues).
