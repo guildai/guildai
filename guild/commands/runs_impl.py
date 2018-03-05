@@ -30,8 +30,8 @@ import guild.run
 from guild import cli
 from guild import cmd_impl_support
 from guild import config
+from guild import op_util
 from guild import remote_run_support
-from guild import run_util
 from guild import util
 from guild import var
 
@@ -388,7 +388,7 @@ def run_info(args, ctx):
         _print_run_info(run, args)
 
 def _page_run_output(run):
-    output = run_util.RunOutput(run)
+    output = op_util.RunOutput(run)
     lines = []
     try:
         lines = list(output)

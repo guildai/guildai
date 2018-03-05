@@ -27,8 +27,8 @@ import guild.plugin
 import guild.run
 
 from guild import deps
+from guild import op_util
 from guild import opref
-from guild import run_util
 from guild import util
 from guild import var
 
@@ -151,7 +151,7 @@ class Operation(object):
 
     def _watch_proc(self):
         assert self._proc is not None
-        output = run_util.RunOutput(self._run, self._proc)
+        output = op_util.RunOutput(self._run, self._proc)
         exit_status = self._proc.wait()
         output.wait_and_close()
         return exit_status

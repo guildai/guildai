@@ -3,9 +3,9 @@
 Guild captures run output by logging it to an `output` file and also
 indexing the output to capture time and stream.
 
-Run output is managed by `guild.run_util.RunOutput`.
+Run output is managed by `guild.op_util.RunOutput`.
 
-    >>> from guild import run_util
+    >>> from guild import op_util
 
 Run output is associated with a run. We'll use a temporary directory
 to store our output.
@@ -27,7 +27,7 @@ stdout because this would interfere with our test assertions (which
 captures stdout as a part of a test). We can use the `quiet` arg to
 skip writing to our output streams:
 
-    >>> output = run_util.RunOutput(run, quiet=True)
+    >>> output = op_util.RunOutput(run, quiet=True)
 
 Initially output is not opened:
 

@@ -15,10 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import os
-
 import click
-import yaml
 
 import guild.model
 import guild.op
@@ -27,6 +24,7 @@ import guild.plugin
 from guild import cli
 from guild import cmd_impl_support
 from guild import deps
+from guild import op_util
 from guild import util
 
 def main(args):
@@ -194,8 +192,8 @@ def _no_such_operation_error(name, model):
         % (name, model.name, model.name))
 
 def _init_op(opdef, model, args):
-    parsed_args = _parse_args(args.args)
-    flag_vals, resource_vals = _split_flags_and_resources(parsed_args, opdef)
+    parsed = op_util.parse_args(args.args)
+    flag_vals, resource_vals = _split_flags_and_resources(parsed, opdef)
     _apply_flag_vals(flag_vals, opdef)
     _validate_opdef_flags(opdef)
     _apply_arg_disable_plugins(args, opdef)
@@ -206,22 +204,6 @@ def _init_op(opdef, model, args):
             % args.run_dir)
     return guild.op.Operation(
         model, opdef, args.run_dir, resource_vals, extra_attrs)
-
-def _parse_args(args):
-    return dict([_parse_flag(os.path.expanduser(arg)) for arg in args])
-
-def _parse_flag(s):
-    parts = s.split("=", 1)
-    if len(parts) == 1:
-        return parts[0], None
-    else:
-        return parts[0], _parse_flag_val(parts[1])
-
-def _parse_flag_val(s):
-    try:
-        return yaml.safe_load(s)
-    except yaml.YAMLError:
-        return s
 
 def _split_flags_and_resources(vals, opdef):
     ref_vars = _ref_vars_for_resource_lookup(vals, opdef)
