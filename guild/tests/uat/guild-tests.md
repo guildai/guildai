@@ -23,6 +23,7 @@ tests).
       ops:                     ok
       package:                 ok
       plugin-python-utils:     ok
+      plugin-utils:            ok
       plugins:                 ok
       run-output:              ok
       runs:                    ok
