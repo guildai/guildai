@@ -394,7 +394,7 @@ class FlagHost(object):
 
 def _init_flags(data, guildfile):
     data = _resolve_includes(data, "flags", guildfile, _coerce_flag_data)
-    return [FlagDef(name, data[name]) for name in sorted(data)]
+    return [FlagDef(name, data[name], guildfile) for name in sorted(data)]
 
 def _coerce_flag_data(data, src):
     if isinstance(data, dict):
@@ -408,14 +408,15 @@ def _coerce_flag_data(data, src):
 
 class FlagDef(object):
 
-    def __init__(self, name, data):
+    def __init__(self, name, data, guildfile):
         self.name = name
+        self.guildfile = guildfile
         self.default = data.get("default")
         self.description = data.get("description", "")
         self.required = bool(data.get("required"))
         self.arg_name = data.get("arg-name")
         self.arg_skip = bool(data.get("arg-skip"))
-        self.choices = _init_flag_choices(data.get("choices"))
+        self.choices = _init_flag_choices(data.get("choices"), self)
 
     def __repr__(self):
         return "<guild.guildfile.FlagDef '%s'>" % self.name
@@ -426,24 +427,23 @@ def _init_flag_values(flagdefs):
         for flag in flagdefs
     }
 
-def _init_flag_choices(data):
+def _init_flag_choices(data, flagdef):
     if not data:
         return []
-    return [FlagChoice(choice_data) for choice_data in data]
+    return [FlagChoice(choice_data, flagdef) for choice_data in data]
 
 class FlagChoice(object):
 
-    def __init__(self, data):
-        if isinstance(data, str):
-            self.value = data
-            self.description = ""
-            self.args = {}
-        elif isinstance(data, dict):
+    def __init__(self, data, flagdef):
+        self.flagdef = flagdef
+        if isinstance(data, dict):
             self.value = data.get("value")
             self.description = data.get("description", "")
             self.args = data.get("args", {})
         else:
-            raise GuildfileError(self, "invalid choices value: %r" % data)
+            self.value = data
+            self.description = ""
+            self.args = {}
 
 ###################################################################
 # Model def
