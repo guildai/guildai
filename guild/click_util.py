@@ -142,7 +142,7 @@ def use_args(fn0):
 
 def append_params(fn, params):
     fn.__click_params__ = getattr(fn, "__click_params__", [])
-    fn.__click_params__.extend(reversed(params))
+    fn.__click_params__[:0] = reversed(params)
 
 def format_error_message(e):
     msg_parts = [_format_click_error_message(e)]
