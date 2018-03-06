@@ -198,10 +198,14 @@ def _in_range(slice_start, slice_end, l):
 
 def list_runs(args):
     runs = filtered_runs(args)
-    formatted = [
-        format_run(run, i)
-        for i, run in enumerate(runs)
-    ]
+    formatted = []
+    for i, run in enumerate(runs):
+        try:
+            formatted_run = format_run(run, i)
+        except Exception:
+            log.exception("formatting run in %s", run.path)
+        else:
+            formatted.append(formatted_run)
     cols = ["index", "operation", "started", "status", "label"]
     detail = RUN_DETAIL if args.verbose else None
     cli.table(formatted, cols=cols, detail=detail)
