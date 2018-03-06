@@ -78,7 +78,6 @@ class Op(object):
         return p
 
     def __call__(self):
-        script = self._find_script()
         python_util.exec_script(self.script, self._global_assigns())
 
     def _global_assigns(self):
@@ -160,7 +159,7 @@ def _ensure_checkpoint_callback(kw):
             filepath=filepath)
 
 def _warn_missing_h5py():
-    if not "h5py" in warnings:
+    if "h5py" not in warnings:
         log.warning(
             "h5py is not installed - model checkpoints "
             "will be disabled")
