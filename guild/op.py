@@ -114,7 +114,7 @@ class Operation(object):
     def _start_proc(self):
         assert self._proc is None
         assert self._run is not None
-        args = self._proc_args()
+        args = self.cmd_args
         env = self._proc_env()
         cwd = self._run.path
         log.debug("starting operation run %s", self._run.id)
@@ -128,9 +128,6 @@ class Operation(object):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
         _write_proc_lock(self._proc, self._run)
-
-    def _proc_args(self):
-        return self.cmd_args
 
     def _proc_env(self):
         assert self._run is not None
@@ -193,7 +190,9 @@ def _python_cmd(_opdef):
     return sys.executable
 
 def _cmd_args(cmd, flag_vals):
-    return [util.resolve_refs(part, flag_vals) for part in _split_cmd(cmd)]
+    def format_part(part):
+        return str(util.resolve_refs(part, flag_vals))
+    return [format_part(part) for part in _split_cmd(cmd)]
 
 def _split_cmd(cmd):
     if isinstance(cmd, list):
