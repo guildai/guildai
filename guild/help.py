@@ -235,6 +235,8 @@ def _flag_desc(flag):
     desc = flag.description.strip()
     if flag.default is not None:
         desc += " (default is %r)" % flag.default
+    elif flag.required:
+        desc += " (required)"
     return desc
 
 def _write_references(refs, out):
