@@ -73,9 +73,12 @@ class Resource(object):
         try:
             source_paths = resolver.resolve()
         except ResolutionError as e:
-            raise DependencyError(
+            msg = (
                 "could not resolve '%s' in %s resource: %s"
                 % (source, self.resdef.name, e))
+            if source.help:
+                msg += "\n%s" % source.help
+            raise DependencyError(msg)
         except Exception as e:
             log.exception(
                 "resolving required source '%s' in %s resource",

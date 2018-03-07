@@ -35,7 +35,7 @@ class ResourceFormatError(ValueError):
 
 class ResourceDef(object):
 
-    source_types = ["file", "url"]
+    source_types = ["file", "url", "module"]
 
     def __init__(self, name, data, fullname=None):
         self.name = name
@@ -47,13 +47,21 @@ class ResourceDef(object):
         self.private = bool(data.get("private"))
         self.references = data.get("references", [])
 
-    @staticmethod
-    def get_source_resolver(source, resource):
+    def get_source_resolver(self, source, resource):
         scheme = source.parsed_uri.scheme
+        cls = self._resolver_class_for_scheme(scheme)
+        if cls:
+            return cls(source, resource)
+        return None
+
+    @staticmethod
+    def _resolver_class_for_scheme(scheme):
         if scheme == "file":
-            return resolver.FileResolver(source, resource)
+            return resolver.FileResolver
         elif scheme in ["http", "https"]:
-            return resolver.URLResolver(source, resource)
+            return resolver.URLResolver
+        elif scheme == "module":
+            return resolver.ModuleResolver
         else:
             return None
 
@@ -68,8 +76,8 @@ class ResourceDef(object):
             return [self._init_resource_source(src_data) for src_data in data]
         else:
             raise ResourceFormatError(
-                "invalid sources for resource '%s'"
-                % self.fullname)
+                "invalid sources value for resource '%s': %r"
+                % (self.fullname, data))
 
     def _init_resource_source(self, data):
         if isinstance(data, dict):
@@ -107,6 +115,8 @@ class ResourceDef(object):
             return ResourceSource(self, "file:%s" % val, **data)
         elif type == "url":
             return ResourceSource(self, val, **data)
+        elif type == "module":
+            return ResourceSource(self, "module:%s" % val, **data)
         else:
             raise AssertionError(type, val, data)
 
@@ -120,7 +130,7 @@ class ResourceDef(object):
 class ResourceSource(object):
 
     def __init__(self, resdef, uri, sha256=None, unpack=True,
-                 type=None, select=None, **kw):
+                 type=None, select=None, help=None, **kw):
         self.resdef = resdef
         self.uri = uri
         self._parsed_uri = None
@@ -128,6 +138,7 @@ class ResourceSource(object):
         self.unpack = unpack
         self.type = type
         self.select = self._coerce_select(select)
+        self.help = help
         for key in kw:
             log.warning(
                 "unexpected source attribute '%s' in resource '%s'",

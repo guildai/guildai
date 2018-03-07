@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import hashlib
+import importlib
 import logging
 import os
 import re
@@ -96,22 +97,21 @@ class OperationOutputResolver(Resolver):
         self.modeldef = modeldef
 
     def resolve(self, unpack_dir=None):
-        config_run_spec = self.resource.config
-        source_path = self._source_path_for_run_spec(config_run_spec)
+        source_path = self._source_path()
         return resolve_source_files(source_path, self.source, unpack_dir)
 
-    def _source_path_for_run_spec(self, run_spec):
-        if run_spec and os.path.isdir(run_spec):
+    def _source_path_for_run_spec(self):
+        config_run_spec = self.resource.config
+        if config_run_spec and os.path.isdir(config_run_spec):
             log.info(
                 "Using output in %s for %s resource",
                 run_spec, self.source.resdef.name)
             return run_spec
-        else:
-            run = self._latest_op_run(run_spec)
-            log.info(
-                "Using output from run %s for %s resource",
-                run.id, self.source.resdef.name)
-            return run.path
+        run = self._latest_op_run(run_spec)
+        log.info(
+            "Using output from run %s for %s resource",
+            run.id, self.source.resdef.name)
+        return run.path
 
     def _latest_op_run(self, run_id_prefix):
         oprefs = self._source_oprefs()
@@ -173,6 +173,17 @@ class OperationOutputResolver(Resolver):
         return (
             "{}:{}".format(model_spec, opref.op_name)
             if model_spec else opref.op_name)
+
+class ModuleResolver(Resolver):
+
+    def resolve(self, unpack_dir=None):
+        module_name = self.source.parsed_uri.path
+        try:
+            importlib.import_module(module_name)
+        except ImportError as e:
+            raise ResolutionError(str(e))
+        else:
+            return []
 
 def resolve_source_files(source_path, source, unpack_dir):
     _verify_path(source_path, source.sha256)
