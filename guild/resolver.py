@@ -100,9 +100,9 @@ class OperationOutputResolver(Resolver):
         source_path = self._source_path()
         return resolve_source_files(source_path, self.source, unpack_dir)
 
-    def _source_path_for_run_spec(self):
-        config_run_spec = self.resource.config
-        if config_run_spec and os.path.isdir(config_run_spec):
+    def _source_path(self):
+        run_spec = self.resource.config
+        if run_spec and os.path.isdir(run_spec):
             log.info(
                 "Using output in %s for %s resource",
                 run_spec, self.source.resdef.name)
