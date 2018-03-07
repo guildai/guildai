@@ -43,7 +43,7 @@ class ResourceDef(object):
         self.description = data.get("description", "")
         self.path = data.get("path")
         self.sources = self._init_sources(data.get("sources", []))
-        self.post_resolve = data.get("post-resolve")
+        self.process = data.get("process")
         self.private = bool(data.get("private"))
 
     @staticmethod
