@@ -45,6 +45,7 @@ class ResourceDef(object):
         self.sources = self._init_sources(data.get("sources", []))
         self.process = data.get("process")
         self.private = bool(data.get("private"))
+        self.references = data.get("references", [])
 
     @staticmethod
     def get_source_resolver(source, resource):
