@@ -19,8 +19,8 @@ Once the Guild env has been initialized, TensorFlow should be installed:
 
 We should also see Guild environment files in our workspace:
 
-    >>> run("cd $WORKSPACE && find .guild/ | sort")
-    .guild/
+    >>> run("cd $WORKSPACE && find .guild | sort")
+    .guild
     .guild/cache
     .guild/cache/resources
     .guild/cache/runs

@@ -19,6 +19,6 @@ Running check without TensorFlow installed will result in an error:
 
 We also expect there to be no Guild environment files:
 
-    >>> run("cd $WORKSPACE && find .guild/")
-    .guild/
+    >>> run("cd $WORKSPACE && find .guild")
+    .guild
     <exit 0>
