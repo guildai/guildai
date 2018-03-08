@@ -243,10 +243,6 @@ def _write_references(refs, out):
     out.write_subheading("References")
     out.write_paragraph()
     out.indent()
-    # Hack width to prevent wrapping
-    width_save = out.width
-    out.width = 999
     for ref in refs:
-        out.write_text("- %s" % ref)
-    out.width = width_save
+        out.write_text("\b\n- %s" % ref)
     out.dedent()
