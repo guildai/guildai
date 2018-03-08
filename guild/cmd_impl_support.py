@@ -18,12 +18,14 @@ from __future__ import division
 import logging
 import os
 
-import guild.model
-import guild.resource
-
 from guild import cli
 from guild import click_util
 from guild import config
+
+# Avoid expensive imports here. While this is used by cmd impls, which
+# are allowed to have longer import times, many impls don't need the
+# more expensive imports (e.g. guild.model, guild.resource - see
+# below) and expensive imports here will apply to them.
 
 log = logging.getLogger("guild")
 
@@ -46,6 +48,7 @@ def cwd_guildfile(cwd=None):
 
     Returns None if a guildfile doesn't exist in the cwd.
     """
+    import guild.model # expensive
     cwd = cwd or config.cwd()
     try:
         importer = guild.model.ModelImporter(cwd)
@@ -56,6 +59,7 @@ def cwd_guildfile(cwd=None):
         return getattr(importer.dist, "guildfile", None)
 
 def _check_bad_guildfile(dist):
+    import guild.model # expensive
     if isinstance(dist, guild.model.BadGuildfileDistribution):
         cli.error(
             "guildfile in %s contains error (see above for details)"
@@ -70,6 +74,7 @@ def init_model_path(args, cwd=None):
     in which case all models including those in the cwd will be
     available.
     """
+    import guild.model # expensive
     _init_path(guild.model, "models", args, cwd)
 
 def init_resource_path(args, cwd=None):
@@ -78,6 +83,7 @@ def init_resource_path(args, cwd=None):
     The same rules in `init_model_path` are applied here to the
     resource path.
     """
+    import guild.resource # expensive
     _init_path(guild.resource, "resources", args, cwd)
 
 def _init_path(mod, desc, args, cwd):
