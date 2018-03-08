@@ -1,7 +1,9 @@
-# Check without TensorFlow
+# Check before init
 
-The check command will work when TensorFlow is not installed. However
-it will note the problem and exit with an error.
+This test assumes that Guild is installed and TensorFlow is not
+installed.
+
+Running check without TensorFlow installed will result in an error:
 
     >>> run("guild check")
     guild_version:             ...
@@ -14,3 +16,9 @@ it will note the problem and exit with an error.
     guild: there are problems with your setup
     Refer to the issues above for more information or rerun check with the --verbose option.
     <exit 1>
+
+We also expect there to be no Guild environment files:
+
+    >>> run("find $WORKSPACE/.guild/")
+    /tmp/guild-uat/.guild/
+    <exit 0>

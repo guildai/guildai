@@ -18,6 +18,7 @@ from __future__ import print_function
 
 import errno
 import os
+import pprint
 import re
 import shutil
 import signal
@@ -84,6 +85,7 @@ def _test_globals():
     globs.update(_global_vars())
     globs.update({
         "cd": _cd,
+        "pprint": pprint.pprint,
         "run": _run,
         "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
         "abspath": os.path.abspath,
@@ -119,7 +121,9 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
     cmd_env = {}
     cmd_env.update(_global_vars())
     cmd_env["GUILD_HOME"] = os.path.join(WORKSPACE, ".guild")
-    cmd_env["PATH"] = os.getenv("PATH")
+    cmd_env["PATH"] = os.environ["PATH"]
+    if "VIRTUAL_ENV" in os.environ:
+        cmd_env["VIRTUAL_ENV"] = os.environ["VIRTUAL_ENV"]
     cmd_env["COLUMNS"] = "999"
     cmd_env["LANG"] = os.getenv("LANG", "en_US.UTF-8")
     cmd_cwd = WORKSPACE if not _cwd else os.path.join(WORKSPACE, _cwd)

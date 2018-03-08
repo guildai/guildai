@@ -84,9 +84,9 @@ def _init_env(args, ctx):
     cmd_impl_support.disallow_args(
         ["params", "template", "from_package"],
         args, ctx, " when initializing an environment")
-    dir = os.path.abspath(args.dir or os.path.dirname(DEFAULT_GUILD_HOME))
-    cli.out("Initialzing Guild environment in %s" % dir)
-    init.init_env(dir, args.local_resource_cache)
+    env_path = os.path.abspath(args.dir or os.path.dirname(DEFAULT_GUILD_HOME))
+    cli.out("Initialzing Guild environment in %s" % env_path)
+    init.init_env(env_path, args.local_resource_cache)
     if not args.skip_checks:
         _check_env(args, ctx)
 

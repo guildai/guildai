@@ -5,25 +5,20 @@ These are run in order as a part of Guild AI's user acceptance test.
 This file is used to run the tests. Any modifications to this file
 will modify the acceptance test.
 
-## Guild without TensorFlow
-
-*Guild behavior in an environment without TensorFlow.*
-
-In this section we test Guild when the environment does not have
-TensorFlow installed.
+These tests expect Guild to be installed.
 
 - [guild-version](guild-version.md)
-- [check-without-tensorflow](check-without-tensorflow.md)
 
-## Working Guild install
+## Initialize env
 
-*Complete Guild configuration and initial checks.*
+*Initializing Guild env*
 
-We complete the Guild configuration and confirm that it's tests are
-passing.
+We can initialize the Guild environment, including installing
+TensorFlow using the `init` command.
 
-- [install-tensorflow](install-tensorflow.md)
-- [check-with-tensorflow](check-with-tensorflow.md)
+- [check-before-init](check-before-init.md)
+- [init-env](init-env.md)
+- [check-after-init](check-after-init.md)
 - [guild-tests](guild-tests.md)
 
 ## Empty environment
@@ -35,7 +30,7 @@ empty environment. This includes demonstrating all of its list
 commands and helpfulness to the user for operations on missing models.
 
 - [initial-packages](initial-packages.md)
-- [tensorflow-package-info](tensorflow-package-info.md)
+- [tensorboard-package-info](tensorboard-package-info.md)
 - [initial-models](initial-models.md)
 - [initial-ops](initial-ops.md)
 - [initial-resources](initial-resources.md)
