@@ -130,3 +130,27 @@ def _match_short_id(m):
     except AttributeError:
         run_id, _path = m
         return run_id[:8]
+
+def disallow_args(names, args, ctx, error_suffix=""):
+    for name in names:
+        if getattr(args, name, False): cli.error(
+                "%s cannot be used%s"
+                % (_arg_desc(name, ctx), error_suffix))
+
+def disallow_both(names, args, ctx, error_suffix=""):
+    if len(names) != 2:
+        raise RuntimeError("names must contain two values", names)
+    a, b = names
+    if getattr(args, a, False) and getattr(args, b, False):
+        cli.error(
+            "%s cannot be used with %s%s"
+            % (_arg_desc(a, ctx), _arg_desc(b, ctx), error_suffix))
+
+def _arg_desc(name, ctx):
+    for param in ctx.command.params:
+        if param.name == name:
+            desc = param.opts[-1]
+            if desc[0] != "-":
+                desc = param.human_readable_name
+            return desc
+    raise AssertionError(name)
