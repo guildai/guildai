@@ -67,13 +67,13 @@ def main(args):
     if args.all_tests or args.tests:
         _run_tests(check)
     if check.has_error:
-        use_verbose = (
-            " or rerun check with the --verbose option" if not args.verbose
-            else "")
-        guild.cli.error(
+        msg = (
             "there are problems with your setup\n"
-            "Refer to the issues above for more information%s."
-            % use_verbose)
+            "Refer to the issues above for more information"
+        )
+        if not args.verbose:
+            msg += " or rerun check with the --verbose option."
+        guild.cli.error(msg)
 
 def _uat_and_exit():
     guild.uat.run()
