@@ -27,8 +27,9 @@ from guild import util
 
 log = logging.getLogger("guild")
 
-def path(subpath):
-    return os.path.join(config.guild_home(), subpath)
+def path(*names):
+    names = [name for name in names if name]
+    return os.path.join(config.guild_home(), *names)
 
 def runs_dir(deleted=False):
     if deleted:
@@ -37,35 +38,10 @@ def runs_dir(deleted=False):
         return path("runs")
 
 def trash_dir(name=None):
-    if name:
-        return os.path.join(path("trash"), name)
-    else:
-        return path("trash")
+    return path("trash", name)
 
 def cache_dir(name=None):
-    # Search for cache dir, starting with guild home and then in the
-    # user cache location (~/.gulid/cache). This re-use the default
-    # cache location if the guild home cache doesn't exist.
-    cache_dir = util.find_apply([
-        _guild_home_cache_dir,
-        _user_cache_dir,
-        lambda: path("cache")])
-    if name:
-        return os.path.join(cache_dir, name)
-    else:
-        return cache_dir
-
-def _guild_home_cache_dir():
-    dir = os.path.join(config.guild_home(), "cache")
-    if os.path.exists(dir):
-        return dir
-    return None
-
-def _user_cache_dir():
-    dir = os.path.join(os.path.expanduser("~"), ".guild", "cache")
-    if os.path.exists(dir):
-        return dir
-    return None
+    return path("cache", name)
 
 def runs(root=None, sort=None, filter=None, run_init=None):
     root = root or runs_dir()
