@@ -50,7 +50,7 @@ from .view import view
 try:
     _home = os.environ["VIRTUAL_ENV"]
 except KeyError:
-    _home = "~"
+    _home = os.path.expanduser("~")
 
 DEFAULT_GUILD_HOME = os.path.join(_home, ".guild")
 
