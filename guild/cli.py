@@ -36,8 +36,15 @@ _noted = set()
 def error(msg=None, exit_status=1):
     raise SystemExit(msg, exit_status)
 
-def out(s="", **kw):
+def out(s="", wrap=False, **kw):
+    if wrap:
+        s = _wrap(s)
     _echo(s, **kw)
+
+def _wrap(s):
+    terminal_width = click.get_terminal_size()[0]
+    width = max(min(terminal_width, 78), 40)
+    return click.wrap_text(s, width)
 
 def _echo(s, err=False, **kw):
     if config.log_output():
@@ -147,7 +154,9 @@ def _format_detail_val(val, indent):
 def _pad_col_val(val, col, col_info):
     return val.ljust(col_info[col]["width"] + TABLE_COL_SPACING)
 
-def confirm(prompt, default=False):
+def confirm(prompt, wrap=False, default=False):
+    if wrap:
+        prompt = _wrap(prompt)
     click.echo(prompt, nl=False, err=True)
     click.echo(
         " %s " % ("(Y/n)" if default else "(y/N)"),
