@@ -59,10 +59,11 @@ def init_project(project_dir, src, params):
     if meta:
         _validate_params(params, meta)
     to_copy = _safe_project_init_copies(src, project_dir)
-    for src, dest in to_copy:
-        log.info("Copying %s to %s", src, dest)
-        util.ensure_dir(os.path.dirname(dest))
-        shutil.copy2(src, dest)
+    for file_src, file_dest in to_copy:
+        rel_file_src = os.path.relpath(file_src, src)
+        log.info("Copying %s to %s", rel_file_src, file_dest)
+        util.ensure_dir(os.path.dirname(file_dest))
+        shutil.copy2(file_src, file_dest)
     if meta:
         _apply_params(project_dir, params, meta)
 
