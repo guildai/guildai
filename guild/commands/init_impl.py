@@ -38,13 +38,7 @@ def main(args, ctx):
         _help_template(args.help_template)
         return
     _maybe_shift_first_param(args)
-    if args.project_artifact == "project":
-        _init_project(args, ctx)
-    elif args.project_artifact == "model":
-        _init_model(args, ctx)
-    elif args.project_artifact == "package":
-        _init_package(args, ctx)
-    elif args.from_package:
+    if args.project_artifact == "project" or args.from_package:
         _init_project(args, ctx)
     else:
         assert args.project_artifact is None, args
@@ -77,16 +71,20 @@ def _init_project(args, ctx):
         template = args.template or "default"
         src = _project_template_source(template)
         src_desc = "%s template" % template
-    cli.out("Initializing project in %s using %s" % (dir_desc, src_desc))
-    try:
-        init.init_project(dir, src, _init_params(args))
-    except init.RequiredParamError as e:
-        cli.error(
-            "missing required '%s' parameter\n"
-            "Add %s=VALUE to the command and try again."
-            % (e.name, e.name))
-    except init.InitError as e:
-        cli.error(e)
+    prompt = (
+        "You are about to initialize a project in %s\n"
+        "Continue?" % dir_desc)
+    if args.yes or cli.confirm(prompt, default=True):
+        cli.out("Initializing project in %s using %s" % (dir_desc, src_desc))
+        try:
+            init.init_project(dir, src, _init_params(args))
+        except init.RequiredParamError as e:
+            cli.error(
+                "missing required '%s' parameter\n"
+                "Add %s=VALUE to the command and try again."
+                % (e.name, e.name))
+        except init.InitError as e:
+            cli.error(e)
 
 def _package_source(pkg):
     if os.path.exists(pkg):
@@ -127,18 +125,6 @@ def _split_param(val):
             "the form NAME=VALUE" % val)
     return val.split("=", 1)
 
-def _init_model(args, ctx):
-    cmd_impl_support.disallow_args(
-        ["from_package", "local_resource_cache"],
-        args, ctx, " with --model")
-    print("###### init model:", args)
-
-def _init_package(args, ctx):
-    cmd_impl_support.disallow_args(
-        ["params", "template", "from_package", "local_resource_cache"],
-        args, ctx, " with --package")
-    print("###### init package:", args)
-
 def _init_env(args, ctx):
     cmd_impl_support.disallow_args(
         ["params", "template", "from_package"],
@@ -147,19 +133,19 @@ def _init_env(args, ctx):
     cli.out("Initialzing Guild environment in %s" % env_path)
     init.init_env(env_path, args.local_resource_cache)
     if not args.skip_checks:
-        _check_env(args, ctx)
+        _check_env(args)
 
-def _check_env(args, ctx):
-    _check_tensorflow(args, ctx)
+def _check_env(args):
+    _check_tensorflow(args)
 
-def _check_tensorflow(args, ctx):
+def _check_tensorflow(args):
     tf = _try_load_tensorflow()
     if tf:
         cli.out("TensorFlow version %s installed" % tf.__version__)
     else:
         cli.out(cli.style("IMPORTANT: ", fg="red"), nl=False)
         cli.out("TensorFlow does not appear to be installed.")
-        _try_install_tensorflow(args, ctx)
+        _try_install_tensorflow(args)
 
 def _try_load_tensorflow():
     log.debug("importing tensorflow")
@@ -172,7 +158,7 @@ def _try_load_tensorflow():
         log.debug("imported tensorflow")
         return tensorflow
 
-def _try_install_tensorflow(args, ctx):
+def _try_install_tensorflow(args):
     if _gpu_available():
         pkg = "tensorflow-gpu"
     else:
@@ -200,7 +186,6 @@ def _gpu_available():
             ctypes.CDLL(lib)
         except OSError as e:
             log.debug("error loading '%s': %s", lib, e)
-            pass
         else:
             log.debug("%s loaded", lib)
             return True

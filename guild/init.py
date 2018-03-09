@@ -63,7 +63,8 @@ def init_project(project_dir, src, params):
         log.info("Copying %s to %s", src, dest)
         util.ensure_dir(os.path.dirname(dest))
         shutil.copy2(src, dest)
-    _apply_params(project_dir, params, meta)
+    if meta:
+        _apply_params(project_dir, params, meta)
 
 def _try_guild_meta(src):
     meta_path = os.path.join(src, "guild.meta.yml")
