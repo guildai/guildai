@@ -19,6 +19,8 @@ import logging
 import os
 import sys
 
+import guild
+
 from guild import cli
 from guild import cmd_impl_support
 from guild import init
@@ -56,7 +58,7 @@ def _help_template(name):
 
 def _maybe_shift_first_param(args):
     if args.dir and "=" in args.dir:
-        args.params= (args.dir,) + args.params
+        args.params = (args.dir,) + args.params
         args.dir = None
 
 def _init_project(args, ctx):
@@ -66,7 +68,64 @@ def _init_project(args, ctx):
     cmd_impl_support.disallow_both(
         ("template", "from_package"),
         args, ctx)
-    print("###### init project:", args)
+    dir = args.dir or "."
+    dir_desc = cmd_impl_support.cwd_desc(dir)
+    if args.from_package:
+        src = _package_source(args.from_package)
+        src_desc = "%s package" % args.from_package
+    else:
+        template = args.template or "default"
+        src = _project_template_source(template)
+        src_desc = "%s template" % template
+    cli.out("Initializing project in %s using %s" % (dir_desc, src_desc))
+    try:
+        init.init_project(dir, src, _init_params(args))
+    except init.RequiredParamError as e:
+        cli.error(
+            "missing required '%s' parameter\n"
+            "Add %s=VALUE to the command and try again."
+            % (e.name, e.name))
+    except init.InitError as e:
+        cli.error(e)
+
+def _package_source(pkg):
+    if os.path.exists(pkg):
+        return pkg
+    import pkg_resources # expensive
+    try:
+        dist = pkg_resources.get_distribution("gpkg." + pkg)
+    except pkg_resources.DistributionNotFound:
+        cli.error("cannot find package '%s' - is it installed?" % pkg)
+    else:
+        return os.path.join(dist.location, dist.key.replace(".", os.path.sep))
+
+def _project_template_source(template):
+    if os.path.exists(template):
+        return template
+    template_path = os.path.join(
+        guild.__pkgdir__,
+        "guild",
+        "templates",
+        "projects",
+        template)
+    if not os.path.exists(template_path):
+        cli.error(
+            "cannont find template '%s'\n"
+            "Try 'guild init --list-templates' for a list."
+            % template)
+    return template_path
+
+def _init_params(args):
+    return {
+        name: val for name, val in [_split_param(p) for p in args.params]
+    }
+
+def _split_param(val):
+    if "=" not in val:
+        cli.error(
+            "invalid parameter '%s' - must be in "
+            "the form NAME=VALUE" % val)
+    return val.split("=", 1)
 
 def _init_model(args, ctx):
     cmd_impl_support.disallow_args(

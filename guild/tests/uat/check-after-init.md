@@ -24,8 +24,6 @@ We should also see Guild environment files in our workspace:
     .guild/cache
     .guild/cache/resources
     .guild/cache/runs
-    .guild/dist-packages
-    .guild/pkg
     .guild/runs
     .guild/trash
     <exit 0>

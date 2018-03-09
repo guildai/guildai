@@ -1,0 +1,8 @@
+description: Default project
+params:
+  name:
+    description: Model name
+    required: yes
+  description:
+    description: Model description
+    default: TODO model description
