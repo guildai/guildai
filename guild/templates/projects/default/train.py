@@ -12,11 +12,11 @@ import tensorflow as tf
 def main():
     """Handle command line arguments."""
 
-    args = _parse_args()
-    model = _init_model(args)
-    _train(model, args)
+    args = parse_args()
+    model = init_model(args)
+    train(model, args)
 
-def _parse_args():
+def parse_args():
     """Parse command line arguments."""
 
     parser = argparse.ArgumentParser()
@@ -34,7 +34,7 @@ def _parse_args():
 
     return parser.parse_args()
 
-def _init_model(args):
+def init_model(args):
     """Initialize the model."""
 
     # TODO: Initialize your model here using one of the various
@@ -55,7 +55,7 @@ def _init_model(args):
         args.batch_size, args.learning_rate)
     )
 
-def _train(model, args):
+def train(model, args):
     """Train the model."""
 
     # TODO: Replace with your model model training loop or fit
