@@ -1,4 +1,4 @@
-description: Default project
+description: Basic project skeleton containing one model.
 params:
   name:
     description: Model name

@@ -19,12 +19,16 @@ import logging
 import os
 import sys
 
+import click
+import yaml
+
 import guild
 
 from guild import cli
 from guild import cmd_impl_support
 from guild import init
 from guild import pip_util
+from guild import util
 
 from guild.commands.main import DEFAULT_GUILD_HOME
 
@@ -45,10 +49,65 @@ def main(args, ctx):
         _init_env(args, ctx)
 
 def _list_templates():
-    print("##### list templates")
+    templates_home = _project_templates_home()
+    data = []
+    for name in sorted(os.listdir(templates_home)):
+        meta = _load_project_template(os.path.join(templates_home, name))
+        data.append({
+            "name": name,
+            "description": util.strip_trailing_period(
+                meta.get("description", ""))
+        })
+    cli.table(data, ["name", "description"])
+
+def _project_templates_home():
+    return os.path.join(guild.__pkgdir__, "guild", "templates", "projects")
+
+def _load_project_template(template_dir):
+    meta_path = os.path.join(template_dir, "guild.meta.yml")
+    return yaml.load(open(meta_path, "r"))
 
 def _help_template(name):
-    print("##### help template", name)
+    template_dir = os.path.join(_project_templates_home(), name)
+    try:
+        meta = _load_project_template(template_dir)
+    except IOError as e:
+        if e.errno != 2: # not found
+            raise
+        cli.error(
+            "cannot find template '%s'\n"
+            "Try 'guild init --list-templates' for a list of "
+            "available templates."
+            % name)
+    out = click.HelpFormatter()
+    out.write_text("Project template: %s" % name)
+    out.write_paragraph()
+    out.indent()
+    out.write_text(meta.get("description", ""))
+    out.dedent()
+    params = meta.get("params", {})
+    if params:
+        out.write_paragraph()
+        out.write_heading("Parameters")
+        params_dl = [
+            (param_name, _template_param_help(params[param_name]))
+            for param_name in sorted(params)
+        ]
+        out.indent()
+        out.write_dl(params_dl)
+    cli.out("".join(out.buffer))
+
+def _template_param_help(param):
+    help = []
+    help.append(param.get("description", ""))
+    try:
+        default_val = param["default"]
+    except KeyError:
+        if param.get("required", False):
+            help.append("(required)")
+    else:
+        help.append("(default is '%s')" % default_val)
+    return " ".join(help)
 
 def _maybe_shift_first_param(args):
     if args.dir and "=" in args.dir:
@@ -100,12 +159,7 @@ def _package_source(pkg):
 def _project_template_source(template):
     if os.path.exists(template):
         return template
-    template_path = os.path.join(
-        guild.__pkgdir__,
-        "guild",
-        "templates",
-        "projects",
-        template)
+    template_path = os.path.join(_project_templates_home(), template)
     if not os.path.exists(template_path):
         cli.error(
             "cannont find template '%s'\n"
