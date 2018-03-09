@@ -11,7 +11,7 @@ These tests expect Guild to be installed.
 
 ## Initialize env
 
-*Initializing Guild env*
+*Initializing Guild env.*
 
 We can initialize the Guild environment, including installing
 TensorFlow using the `init` command.
@@ -20,6 +20,17 @@ TensorFlow using the `init` command.
 - [init-env](init-env.md)
 - [check-after-init](check-after-init.md)
 - [guild-tests](guild-tests.md)
+
+## Sample project
+
+*Initializing and training a sample project*
+
+- [init-sample-project](init-sample-project.md)
+- [reinit-sample-project](reinit-sample-project.md)
+- [sample-project-info](sample-project-info.md)
+- [train-sample-project](train-sample-project.md)
+- [sample-project-run](sample-project-run.md)
+- [delete-sample-run](delete-sample-run.md)
 
 ## Empty environment
 
