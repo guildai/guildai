@@ -14,7 +14,7 @@ We can use `-y` to proceed without being prompted:
 
     >>> run("guild init --project sample-project -y")
     Initializing project in 'sample-project' using default template
-    Copying .../guild/templates/projects/default/train.py to sample-project/train.py
-    Copying .../guild/templates/projects/default/guild.yml to sample-project/guild.yml
+    Copying ...
+    Copying ...
     Updating sample-project/guild.yml
     <exit 0>

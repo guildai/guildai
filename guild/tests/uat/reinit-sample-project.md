@@ -5,7 +5,7 @@ a project that's already been initialized.
 
 We're assuming `sample-project` has been initialized:
 
-    >>> run("find sample-project | sort")
+    >>> run("find sample-project | grep -v .pyc | sort")
     sample-project
     sample-project/guild.yml
     sample-project/train.py
