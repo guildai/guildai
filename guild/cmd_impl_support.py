@@ -133,7 +133,8 @@ def _match_short_id(m):
 
 def disallow_args(names, args, ctx, error_suffix=""):
     for name in names:
-        if getattr(args, name, False): cli.error(
+        if getattr(args, name, False):
+            cli.error(
                 "%s cannot be used%s"
                 % (_arg_desc(name, ctx), error_suffix))
 
