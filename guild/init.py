@@ -124,7 +124,11 @@ def _apply_params(dest, params, meta):
     lines = _read_lines(guild_file)
     if lines is not None:
         log.info("Updating %s", guild_file)
-        new_lines = [_replace_param_refs(line, params, meta) for line in lines]
+        dir_name = os.path.basename(os.path.abspath(dest))
+        new_lines = [
+            _replace_param_refs(line, params, meta, dir_name)
+            for line in lines
+        ]
         _write_lines(new_lines, guild_file)
 
 def _read_lines(path):
@@ -135,9 +139,11 @@ def _read_lines(path):
     else:
         return list(f)
 
-def _replace_param_refs(s, params, meta):
+def _replace_param_refs(s, params, meta, dir_name):
     for name, meta_param in meta.get("params", {}).items():
         val = params.get(name, meta_param.get("default", ""))
+        if val == "${DIR_NAME}":
+            val = dir_name
         s = s.replace("{{%s}}" % name, val)
     return s
 

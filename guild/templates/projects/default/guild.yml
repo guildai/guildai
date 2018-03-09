@@ -12,6 +12,9 @@
         batch-size:
           description: Training batch size
           default: 64
+        learning-rate:
+          description: Learning rate
+          default: 0.01
       requires:
         - data
   resources:
