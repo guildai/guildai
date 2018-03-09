@@ -2,7 +2,7 @@
 
 This test assumes a sample project has been initialized:
 
-    >>> run("find sample-project | grep -v .pyc | sort")
+    >>> run("find sample-project | sort")
     sample-project
     sample-project/guild.yml
     sample-project/train.py

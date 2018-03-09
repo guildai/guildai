@@ -87,8 +87,8 @@ def _safe_project_init_copies(src, dest):
         "__pycache__",
     ]
     ignore_files = [
-        re.compile(r"\.pyc$"),
-        re.compile(r"^guild\.meta\.yml$"),
+        re.compile(r".+\.pyc$"),
+        re.compile(r"guild\.meta\.yml$"),
     ]
     safe_copies = []
     for root, dirs, files in os.walk(src):
