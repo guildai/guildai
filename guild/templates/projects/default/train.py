@@ -54,7 +54,7 @@ def init_data(args):
     return (train_x, train_y), (test_x, test_y)
 
 def init_model(data, args):
-    """Initialize the model for training.
+    """Initialize the model for training and evaluation.
 
     TODO: Modify this function to initialize your model. The value
     returned by this function will be passed to the `train` and
