@@ -5,4 +5,4 @@ params:
     default: ${DIR_NAME}
   description:
     description: Model description
-    default: TODO - model description
+    default: A basic model.

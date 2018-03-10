@@ -1,25 +1,13 @@
 - model: {{name}}
-  description:
-    {{description}}
+  description: {{description}}
   operations:
     train:
-      description: Train the model
+      description: Train the model.
       cmd: train
       flags:
-        epochs:
-          description: Number of epochs to train
-          default: 20
+        train-steps:
+          description: Number of steps to train.
+          default: 1000
         batch-size:
-          description: Training batch size
+          description: Training batch size.
           default: 64
-        learning-rate:
-          description: Learning rate
-          default: 0.01
-      requires:
-        - data
-  resources:
-    data:
-      descrition: Data for training and validation
-      sources:
-        - url: http://pub.guild.ai.s3.amazonaws.com/samples/data.csv
-          sha256: 6be6b1203f3d51df0b553a70e57b8a723cd405683958204f96d23d7cd6aea659
