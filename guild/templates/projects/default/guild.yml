@@ -3,7 +3,7 @@
   operations:
     train:
       description: Train the model.
-      cmd: train
+      cmd: train --model-dir .
       flags:
         train-steps:
           description: Number of steps to train.
