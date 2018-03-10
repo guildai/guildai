@@ -24,6 +24,8 @@ class Build(object):
     python = None
     env = None
 
+    pip = "pip"
+
     build_dir = "build-env"
     test_dir = "test-env"
 
@@ -75,12 +77,12 @@ class Build(object):
 
     def _install_deps_cmd(self):
         return [
-            "sudo pip install virtualenv",
+            "sudo {} install virtualenv".format(self.pip),
             self._init_env(self.build_dir),
             self._activate_env(self.build_dir),
             # pipe to cat here effectively disables progress bar
-            "pip install -r requirements.txt | cat",
-            "pip install grpcio==1.9.1 tensorflow",
+            "{} install -r requirements.txt | cat".format(self.pip),
+            "{} install grpcio==1.9.1 tensorflow".format(self.pip),
             "cd guild/view && npm install",
         ]
 
@@ -115,7 +117,7 @@ class Build(object):
         return self._run("Test", [
             self._init_env(self.test_dir),
             self._activate_env(self.test_dir),
-            "pip install dist/*.whl",
+            "{} install dist/*.whl".format(self.pip),
             "WORKSPACE=%s guild check --uat" % self.test_dir,
         ])
 
@@ -185,6 +187,8 @@ class MacBuild(Build):
     def __init__(self, python):
         self.python = python
         self.name = "macos-python-%s" % python
+        if self.python.startswith("3."):
+            self.pip = "pip3"
 
     def env_config(self):
         return {
