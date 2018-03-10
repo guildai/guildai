@@ -72,7 +72,7 @@ class JSONHelpFormatter(object):
 
     def __init__(self):
         self._val = {
-            "version": guild.version()
+            "version": guild.__version__
         }
         self._help_text = None
         self._cur_dl = None
