@@ -84,6 +84,7 @@ class RunsMonitor(util.LoopingThread):
 
 def main(args):
     tensorboard = _load_guild_tensorboard_module()
+    _filter_tensorboard_logging()
     with util.TempDir("guild-tensorboard-") as logdir:
         log.debug("Using logdir %s", logdir)
         monitor = RunsMonitor(logdir, args)
@@ -123,10 +124,28 @@ def _handle_tensorboard_import_error(e):
 def _format_run_name(run):
     formatted = runs_impl.format_run(run)
     if util.PLATFORM == "Windows":
+        fmt = "{short_id} {model} {op_name} {started}"
         formatted["started"] = formatted["started"].replace(":", "_")
-        return "%(index)s %(model)s %(op_name)s %(started)s" % formatted
     else:
-        return "%(index)s %(model)s:%(op_name)s %(started)s" % formatted
+        fmt = "{short_id} {model}:{op_name} {started}"
+    return fmt.format(short_id=run.short_id, **formatted)
 
 def _open_url(url):
     util.open_url(url)
+
+def _filter_tensorboard_logging():
+    import tensorflow as tf
+    warn0 = tf.logging.warn
+    tf.logging.warn = (
+        lambda *args, **kw: _filter_warn(warn0, *args, **kw)
+    )
+
+def _filter_warn(warn0, msg, *args, **kw):
+    skip = [
+        "Found more than one graph event per run",
+        "Found more than one metagraph event per run",
+    ]
+    for s in skip:
+        if msg.startswith(s):
+            return
+    warn0(msg, *args, **kw)
