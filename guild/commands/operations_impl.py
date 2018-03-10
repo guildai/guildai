@@ -40,7 +40,7 @@ def _format_op(op, model):
     description, details = util.split_description(op.description)
     return {
         "fullname": "%s:%s" % (model.fullname, op.name),
-        "description": description,
+        "description": util.strip_trailing_period(description),
         "details": details,
         "model": model.fullname,
         "name": op.name,

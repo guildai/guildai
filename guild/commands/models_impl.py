@@ -37,7 +37,7 @@ def _format_model(model):
         "fullname": model.fullname,
         "name": modeldef.name,
         "source": modeldef.guildfile.src,
-        "description": description,
+        "description": util.strip_trailing_period(description),
         "details": details,
         "operations": ", ".join([op.name for op in modeldef.operations])
     }
