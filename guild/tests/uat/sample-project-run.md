@@ -17,9 +17,8 @@ And get info and files for the run:
     started: ...
     stopped: ...
     run_dir: ...
-    command: ... -um guild.op_main train --batch-size 64 --epochs 5 --learning-rate 0.01
+    command: ... -um guild.op_main train --model-dir . --batch-size 64 --train-steps 100
     exit_status: 0
     pid:
     files:
-      data.csv
     <exit 0>

@@ -12,7 +12,7 @@ We can list the project models:
 
     >>> run("guild -C sample-project models")
     Limiting models to 'sample-project' (use --all to include all)
-    ./sample-project/sample-project  TODO - model description
+    ./sample-project/sample-project  A basic model
     <exit 0>
 
 And operations:
