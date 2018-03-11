@@ -43,7 +43,7 @@ class ResourceDef(object):
         self.description = data.get("description", "")
         self.path = data.get("path")
         self.sources = self._init_sources(data.get("sources", []))
-        self.process = data.get("process")
+        self.post_process = data.get("post-process")
         self.private = bool(data.get("private"))
         self.references = data.get("references", [])
 

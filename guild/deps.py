@@ -61,7 +61,7 @@ class Resource(object):
         resolved_acc = []
         for source in self.resdef.sources:
             self._resolve_source(source, resolved_acc)
-        self._process()
+        self._post_process()
         return resolved_acc
 
     def _resolve_source(self, source, resolved_acc):
@@ -105,19 +105,19 @@ class Resource(object):
                 % (res_path, self.resdef.name))
         return os.path.join(self.ctx.target_dir, res_path, basename)
 
-    def _process(self):
-        if not self.resdef.process:
+    def _post_process(self):
+        if not self.resdef.post_process:
             return
-        log.info("Processing %s resource", self.resdef.name)
-        log.debug("process cmd: %s", self.resdef.process)
+        log.info("Post processing %s resource", self.resdef.name)
+        log.debug("process cmd: %s", self.resdef.post_process)
         try:
             subprocess.check_call(
-                self.resdef.process,
+                self.resdef.post_process,
                 shell=True,
                 cwd=self.ctx.target_dir)
         except subprocess.CalledProcessError as e:
             raise DependencyError(
-                "error processing %s resource: %s"
+                "error post processing %s resource: %s"
                 % (self.resdef.name, e))
 
 def _symlink(source_path, link):

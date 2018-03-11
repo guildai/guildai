@@ -48,13 +48,17 @@ class FileResolver(Resolver):
             return _resolve_config_path(
                 self.resource.config,
                 self.source.resdef.name)
-        source_path = os.path.join(
-            self.resource.location,
-            self.source.parsed_uri.path)
+        source_path = self._abs_source_path()
         if os.path.isdir(source_path):
             return [source_path]
         else:
             return resolve_source_files(source_path, self.source, unpack_dir)
+
+    def _abs_source_path(self):
+         return os.path.abspath(
+             os.path.join(
+                 self.resource.location or "",
+                 self.source.parsed_uri.path))
 
 def _resolve_config_path(config, resource_name):
     config_path = os.path.abspath(config)
