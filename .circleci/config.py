@@ -77,14 +77,16 @@ class Build(object):
 
     def _install_deps_cmd(self):
         return [
-            "which virtualenv || sudo {} install virtualenv".format(self.pip),
+            self._ensure_virtual_env_cmd(),
             self._init_env(self.build_dir),
             self._activate_env(self.build_dir),
-            # pipe to cat here effectively disables progress bar
-            "{} install -r requirements.txt | cat".format(self.pip),
-            "{} install grpcio==1.9.1 tensorflow".format(self.pip),
-            "cd guild/view && npm install",
+            self._install_guild_reqs(),
+            self._install_tensorflow(),
+            self._install_guild_view_reqs(),
         ]
+
+    def _ensure_virtual_env_cmd(self):
+        return "sudo {} install --upgrade virtualenv".format(self.pip)
 
     @staticmethod
     def _init_env(path):
@@ -93,6 +95,17 @@ class Build(object):
     @staticmethod
     def _activate_env(path):
         return ". %s/bin/activate" % path
+
+    def _install_guild_reqs(self):
+        # pipe to cat here effectively disables progress bar
+        return "{} install -r requirements.txt | cat".format(self.pip)
+
+    def _install_tensorflow(self):
+        return "{} install grpcio==1.9.1 tensorflow".format(self.pip)
+
+    @staticmethod
+    def _install_guild_view_reqs():
+        return "cd guild/view && npm install"
 
     def save_cache(self):
         return {
