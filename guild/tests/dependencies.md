@@ -395,10 +395,21 @@ To resolve resources, we need a resolution context:
 
     >>> ctx = deps.ResolutionContext(tmp, test_op, {})
 
+The resolve function logs output, which we'll want to capture.
+
+    >>> logs = LogCapture()
+
 Let's resolve the resources:
 
-    >>> deps.resolve(test_op.dependencies, ctx)
+    >>> with logs:
+    ...    deps.resolve(test_op.dependencies, ctx)
     {'data': ['/.../samples/resource-files/abcdef']}
+
+The logs:
+
+    >>> logs.print_all()
+    Resolving data dependency
+    Post processing data resource
 
 Here's our temp dir:
 
