@@ -77,7 +77,7 @@ class Build(object):
 
     def _install_deps_cmd(self):
         return [
-            "sudo {} install virtualenv".format(self.pip),
+            "which virtualenv || sudo {} install virtualenv".format(self.pip),
             self._init_env(self.build_dir),
             self._activate_env(self.build_dir),
             # pipe to cat here effectively disables progress bar
