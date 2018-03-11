@@ -38,6 +38,7 @@ class ResolutionContext(object):
         self.target_dir = target_dir
         self.opdef = opdef
         self.resource_config = resource_config
+        self.force_links = False
 
 class Resource(object):
 
@@ -94,7 +95,7 @@ class Resource(object):
     def _link_to_source(self, source_path):
         source_path = util.strip_trailing_path(source_path)
         link = self._link_path(source_path)
-        _symlink(source_path, link)
+        _symlink(source_path, link, self.ctx.force_links)
 
     def _link_path(self, source_path):
         basename = os.path.basename(source_path)
@@ -120,13 +121,13 @@ class Resource(object):
                 "error post processing %s resource: %s"
                 % (self.resdef.name, e))
 
-def _symlink(source_path, link):
+def _symlink(source_path, link, force=False):
     assert os.path.isabs(link), link
     if os.path.exists(link):
         log.warning("%s already exists, skipping link", link)
         return
     link_realpath = os.path.realpath(link)
-    if link_realpath != link:
+    if not force and link_realpath != link:
         raise DependencyError(
             "unable to create link %s because it would be "
             "created outside the target directory (%s)"
@@ -151,7 +152,7 @@ class ResourceProxy(object):
         log.info("Using %s for %s resource", source_path, self.name)
         basename = os.path.basename(source_path)
         link = os.path.join(self.ctx.target_dir, basename)
-        _symlink(source_path, link)
+        _symlink(source_path, link, self.ctx.force_links)
         return [source_path]
 
 def _dep_desc(dep):
