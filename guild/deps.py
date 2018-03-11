@@ -76,8 +76,8 @@ class Resource(object):
             msg = (
                 "could not resolve '%s' in %s resource: %s"
                 % (source, self.resdef.name, e))
-            if source.help:
-                msg += "\n%s" % source.help
+            if source.resolution_help:
+                msg += "\n%s" % source.resolution_help
             raise DependencyError(msg)
         except Exception as e:
             log.exception(

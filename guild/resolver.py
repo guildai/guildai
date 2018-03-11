@@ -55,10 +55,10 @@ class FileResolver(Resolver):
             return resolve_source_files(source_path, self.source, unpack_dir)
 
     def _abs_source_path(self):
-         return os.path.abspath(
-             os.path.join(
-                 self.resource.location or "",
-                 self.source.parsed_uri.path))
+        return os.path.abspath(
+            os.path.join(
+                self.resource.location or "",
+                self.source.parsed_uri.path))
 
 def _resolve_config_path(config, resource_name):
     config_path = os.path.abspath(config)
