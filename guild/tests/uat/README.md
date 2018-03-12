@@ -17,6 +17,7 @@ We can initialize the Guild environment, including installing
 TensorFlow using the `init` command.
 
 - [check-before-init](check-before-init.md)
+- [tensorflow-commands-before-init](tensorflow-commands-before-init.md)
 - [init-env](init-env.md)
 - [check-after-init](check-after-init.md)
 - [guild-tests](guild-tests.md)

@@ -70,7 +70,7 @@ def _tabview(args):
 
 def _get_runs_cb(args, index):
     def get_runs():
-        _init_tf_logging()
+        _try_init_tf_logging()
         log_capture = util.LogCapture()
         with log_capture:
             runs = runs_impl.runs_for_args(args)
@@ -81,7 +81,7 @@ def _get_runs_cb(args, index):
         return [header] + data, log
     return get_runs
 
-def _init_tf_logging():
+def _try_init_tf_logging():
     """Load TensorFlow, forcing init of TF logging.
 
     This is part of our handing of logging, which can interfere with
@@ -89,7 +89,10 @@ def _init_tf_logging():
     we can patch loggers with LogCapture (see guild.tabview module)
     for display in a curses window.
     """
-    import tensorflow as _
+    try:
+        import tensorflow as _
+    except ImportError:
+        pass
 
 def _compare_flags(runs):
     flags = set()

@@ -15,9 +15,24 @@
 from __future__ import absolute_import
 from __future__ import division
 
-# pylint: disable=no-name-in-module
-from tensorflow.python.tools import inspect_checkpoint as _inspect_checkpoint
+from guild import cli
 
 def inspect_checkpoint(args):
-    _inspect_checkpoint.FLAGS = args
-    _inspect_checkpoint.main([])
+    try:
+        from tensorflow.python.tools import inspect_checkpoint as inspect
+    except ImportError as e:
+        _handle_import_error(e)
+    else:
+        inspect.FLAGS = args
+        inspect.main([])
+
+def _handle_import_error(e):
+    if str(e) in ("No module named tensorflow",
+                  "No module named 'tensorflow'"):
+        cli.out(
+            "TensorFlow is not installed.\n"
+            "Refer to https://www.tensorflow.org/install/ for help "
+            "installing TensorFlow on your system.", err=True)
+    else:
+        cli.out("Error loading TensorBoard: %s" % e, err=True)
+    cli.error()
