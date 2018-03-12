@@ -36,7 +36,7 @@ from . import runs_support
     default=5)
 @click.option(
     "-n", "--no-open",
-    help="Don't open the TensorBoard URL in a brower.",
+    help="Don't open the TensorBoard URL in a browser.",
     is_flag=True)
 @runs_support.op_and_label_filters
 @runs_support.status_filters
