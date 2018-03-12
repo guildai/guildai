@@ -41,7 +41,7 @@ from guild import click_util
     "--help-template", metavar="TEMPLATE",
     help="Show help for `TEMPLATE` and exit.")
 @click.option(
-    "-s", "--skip-checks", is_flag=True,
+    "-n", "--no-check", is_flag=True,
     help="Don't check the environment after initialization.")
 @click.option(
     "-y", "--yes", is_flag=True,

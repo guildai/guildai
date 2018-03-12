@@ -31,6 +31,7 @@ from guild import pip_util
 from guild import util
 
 from guild.commands.main import DEFAULT_GUILD_HOME
+from guild.commands import check
 
 log = logging.getLogger("guild")
 
@@ -46,7 +47,9 @@ def main(args, ctx):
         _init_project(args, ctx)
     else:
         assert args.project_artifact is None, args
-        _init_env(args, ctx)
+        initialized = _init_env(args, ctx)
+        if initialized and not args.no_check:
+            _check_env(args)
 
 def _list_templates():
     templates_home = _project_templates_home()
@@ -184,13 +187,18 @@ def _init_env(args, ctx):
         ["params", "template", "from_package"],
         args, ctx, " when initializing an environment")
     env_path = os.path.abspath(args.dir or os.path.dirname(DEFAULT_GUILD_HOME))
-    cli.out("Initialzing Guild environment in %s" % env_path)
-    init.init_env(env_path, args.local_resource_cache)
-    if not args.skip_checks:
-        _check_env(args)
+    prompt = (
+        "You are about to initialize a Guild AI environment in %s\n"
+        "Continue?" % env_path)
+    if args.yes or cli.confirm(prompt, default=True):
+        cli.out("Initialzing Guild environment in %s" % env_path)
+        init.init_env(env_path, args.local_resource_cache)
+        return True
+    return False
 
 def _check_env(args):
     _check_tensorflow(args)
+    _check_guild()
 
 def _check_tensorflow(args):
     tf = _try_load_tensorflow()
@@ -247,3 +255,6 @@ def _gpu_available():
 
 def _install_tensorflow(pkg):
     pip_util.install([pkg])
+
+def _check_guild():
+    check.check({})
