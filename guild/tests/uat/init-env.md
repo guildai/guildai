@@ -3,7 +3,7 @@
 The environment can be initialized by running:
 
     >>> run("guild init -y")
-    Initialzing Guild environment in /tmp/guild-uat
+    Initialzing Guild environment in ...
     IMPORTANT: TensorFlow does not appear to be installed.
     Collecting tensorflow-gpu
     ...
