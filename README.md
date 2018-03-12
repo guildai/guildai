@@ -38,10 +38,10 @@ Omit the '$' character when executing a command.
 $ pip install guildai --upgrade
 ```
 
-**Step 2. Verify your installation**
+**Step 2. Initialize the Guild AI environment**
 
 ```
-$ guild check
+$ guild init
 ```
 
 **Step 3. Install a model package**
@@ -63,6 +63,9 @@ $ guild view
 ```
 
 ## Learning more
+
+To continue exploring Guild AI features, see [Go deeper with Guid
+AI](https://www.guild.ai/docs/tutorials/train-mnist/).
 
 Refer to [https://www.guild.ai](https://www.guild.ai) for complete
 coverage of Guild AI.
