@@ -207,7 +207,6 @@ class RunFiles(StaticBase):
         return app
 
 def serve_forever(data, host, port, no_open=False, dev=False):
-    host = host or socket.gethostname()
     if dev:
         _serve_dev(data, host, port, no_open)
     else:
@@ -218,27 +217,35 @@ def _serve_dev(data, host, port, no_open):
     dev_server = DevServer(host, port, view_port)
     dev_server.start()
     dev_server.wait_for_ready()
+    view_url = _view_url(host, view_port)
     if not no_open:
-        _open_url(host, port)
-    sys.stdout.write(
-        " I  Guild View backend: "
-        "http://{}:{}\n".format(host, view_port))
+        util.open_url(view_url)
+    sys.stdout.write(" I  Guild View backend: {}\n".format(view_url))
     _start_view(data, host, view_port)
     sys.stdout.write("\n")
 
-def _open_url(host, port):
-    util.open_url("http://{}:{}".format(host, port))
+def _view_url(host, port):
+    host = host or socket.gethostname()
+    return "http://{}:{}\n".format(host, port)
 
 def _serve_prod(data, host, port, no_open):
+    view_url = _view_url(host, port)
     if not no_open:
-        _open_url(host, port)
-    sys.stdout.write("Running Guild View at http://{}:{}\n".format(host, port))
+        util.open_url(view_url)
+    sys.stdout.write("Running Guild View at {}\n".format(view_url))
     _start_view(data, host, port)
     sys.stdout.write("\n")
 
 def _start_view(data, host, port):
     app = _view_app(data)
-    server = serving.make_server(host, port, app, threaded=True)
+    try:
+        server = serving.make_server(host, port, app, threaded=True)
+    except socket.error:
+        if host:
+            raise
+        # Try ipv6 interfaces.
+        server = serving.make_server("::", port, app, threaded=True)
+
     sys.stdout.flush()
     server.serve_forever()
 

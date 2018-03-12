@@ -20,6 +20,7 @@ TensorFlow using the `init` command.
 - [init-env](init-env.md)
 - [check-after-init](check-after-init.md)
 - [guild-tests](guild-tests.md)
+- [guild-view-start](guild-view-start.md)
 
 ## Sample project
 
