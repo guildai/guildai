@@ -8,13 +8,13 @@ We're assuming that neither are installed at this point:
     >>> run("python -c 'import tensorflow'")
     Traceback (most recent call last):
       File "<string>", line 1, in <module>
-    ImportError: No module named ...tensorflow...
+    ...: No module named ...tensorflow...
     <exit 1>
 
     >>> run("python -c 'import tensorboard'")
     Traceback (most recent call last):
       File "<string>", line 1, in <module>
-    ImportError: No module named ...tensorboard...
+    ...: No module named ...tensorboard...
     <exit 1>
 
 The `tensorboard` command won't run unless TensorFlow is installed:
