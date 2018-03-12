@@ -217,7 +217,7 @@ def _try_install_tensorflow(args):
         pkg = "tensorflow-gpu"
     else:
         pkg = "tensorflow"
-    prompt = "Would you like to nstall the %s package now?\n" % pkg
+    prompt = "Would you like to install the %s package now?\n" % pkg
     if args.yes or cli.confirm(prompt, default=True):
         _install_tensorflow(pkg)
 
