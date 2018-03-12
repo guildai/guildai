@@ -110,8 +110,7 @@ def _load_guild_tensorboard_module():
         return tensorboard
 
 def _handle_tensorboard_import_error(e):
-    if str(e) in ("No module named tensorflow",
-                  "No module named 'tensorflow'"):
+    if "tensorflow" in str(e):
         cli.out(
             "TensorBoard cannot not be started because TensorFlow "
             "is not installed.\n"
