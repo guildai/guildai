@@ -27,8 +27,7 @@ def inspect_checkpoint(args):
         inspect.main([])
 
 def _handle_import_error(e):
-    if str(e) in ("No module named tensorflow",
-                  "No module named 'tensorflow'"):
+    if "tensorflow" in str(e):
         cli.out(
             "TensorFlow is not installed.\n"
             "Refer to https://www.tensorflow.org/install/ for help "
