@@ -24,7 +24,6 @@ import re
 import six
 import yaml
 
-from guild import resolver
 from guild import resourcedef
 
 log = logging.getLogger("guild")
@@ -672,6 +671,7 @@ class ResourceDef(resourcedef.ResourceDef):
     def get_source_resolver(self, source, resource):
         scheme = source.parsed_uri.scheme
         if scheme == "operation":
+            from guild import resolver # expensive
             return resolver.OperationOutputResolver(
                 source, resource, self.modeldef)
         else:
