@@ -19,7 +19,6 @@ import logging
 import os
 import re
 import signal
-import time
 
 import six
 import yaml
@@ -241,8 +240,8 @@ def format_run(run, index=None):
         "status": run.status,
         "label": run.get("label") or "",
         "pid": run.pid or "",
-        "started": _format_timestamp(run.get("started")),
-        "stopped": _format_timestamp(run.get("stopped")),
+        "started": util.format_timestamp(run.get("started")),
+        "stopped": util.format_timestamp(run.get("stopped")),
         "run_dir": run.path,
         "command": _format_command(run.get("cmd", "")),
         "exit_status": _exit_status(run)
@@ -274,12 +273,6 @@ def _format_guildfile_op(opref):
 
 def _format_package_op(opref):
     return "%s/%s:%s" % (opref.pkg_name, opref.model_name, opref.op_name)
-
-def _format_timestamp(ts):
-    if not ts:
-        return ""
-    struct_time = time.localtime(guild.run.timestamp_seconds(ts))
-    return time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
 
 def _format_command(cmd):
     if not cmd:
