@@ -183,10 +183,7 @@ def _slice_part(s, incr=False):
         return int(s)
 
 def _find_run_by_id(id_part, runs, ctx):
-    matches = []
-    for run in runs:
-        if run.id.startswith(id_part):
-            matches.append(run)
+    matches = [run for run in runs if run.id.startswith(id_part)]
     return cmd_impl_support.one_run(matches, id_part, ctx)
 
 def _in_range(slice_start, slice_end, l):
