@@ -131,7 +131,7 @@ class RunsMonitor(util.LoopingThread):
             op_name=op_name,
             started=started)
 
-def create_app(logdir, reload_interval):
+def create_app(logdir, reload_interval, path_prefix=""):
     plugins = [
         core_plugin.CorePlugin,
         scalars_plugin.ScalarsPlugin,
@@ -145,19 +145,17 @@ def create_app(logdir, reload_interval):
         profile_plugin.ProfilePlugin,
     ]
     return application.standard_tensorboard_wsgi(
-        assets_zip_provider=None,
-        db_uri="",
         logdir=os.path.expanduser(logdir),
         purge_orphaned_data=False,
         reload_interval=reload_interval,
-        plugins=plugins)
+        plugins=plugins,
+        db_uri="",
+        assets_zip_provider=None,
+        path_prefix=path_prefix,
+        window_title="")
 
-def make_simple_server(app, host, port):
-    server = serving.make_server(host, port, app, threaded=True)
-    server.daemon_threads = True
-    server.handle_error = _handle_error
-    tensorboard_url = "http://%s:%s" % (host, port)
-    return server, tensorboard_url
+def setup_logging():
+    tf_util.setup_logging()
 
 def run_simple_server(tb_app, host, port, ready_cb):
     server, url = make_simple_server(tb_app, host, port)
@@ -169,12 +167,19 @@ def run_simple_server(tb_app, host, port, ready_cb):
         ready_cb(url)
     server.serve_forever()
 
+def make_simple_server(app, host, port):
+    server = serving.make_server(host, port, app, threaded=True)
+    server.daemon_threads = True
+    server.handle_error = _handle_error
+    tensorboard_url = "http://%s:%s" % (host, port)
+    return server, tensorboard_url
+
 def _handle_error(request, _client_address):
     log.exception("HTTP serving error: %s", request)
 
 def main(logdir, host, port,
          reload_interval=DEFAULT_RELOAD_INTERVAL,
          ready_cb=None):
-    tf_util.setup_logging()
     app = create_app(logdir, reload_interval)
+    setup_logging()
     run_simple_server(app, host, port, ready_cb)

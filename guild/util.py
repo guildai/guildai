@@ -250,19 +250,21 @@ class TempDir(object):
         return self.path
 
     def __exit__(self, *_exc):
-        if self._keep:
-            return
-        assert os.path.dirname(self.path) == tempfile.gettempdir(), self.path
-        try:
-            shutil.rmtree(self.path)
-        except Exception as e:
-            if log.getEffectiveLevel() <= logging.DEBUG:
-                log.exception("rmtree %s", self.path)
-            else:
-                log.error("error removing %s: %s", self.path, e)
+        if not self._keep:
+            rmtempdir(self.path)
 
 def mktempdir(prefix=None):
     return tempfile.mkdtemp(prefix=prefix)
+
+def rmtempdir(path):
+    assert os.path.dirname(path) == tempfile.gettempdir(), path
+    try:
+        shutil.rmtree(path)
+    except Exception as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("rmtree %s", path)
+        else:
+            log.error("error removing %s: %s", path, e)
 
 class LogCapture(object):
 

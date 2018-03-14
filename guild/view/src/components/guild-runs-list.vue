@@ -91,7 +91,7 @@
      tensorboard() {
        const qs = window.location.search;
        window.open(
-         process.env.VIEW_BASE + '/tensorboard' + qs,
+         process.env.VIEW_BASE + '/tb/' + qs,
          'guild-tb-' + qs);
      }
    }
