@@ -300,10 +300,13 @@ def _start_view(data, host, port):
     app = _view_app(data, tb_servers)
     try:
         server = serving.make_server(host, port, app, threaded=True)
-    except socket.error:
+    except socket.error as e:
         if host:
             raise
-        # Try ipv6 interfaces.
+        log.debug(
+            "error starting server on %s:%s (%s), "
+            "trying IPv6 default host '::'",
+            host, port, e)
         server = serving.make_server("::", port, app, threaded=True)
     sys.stdout.flush()
     server.serve_forever()
