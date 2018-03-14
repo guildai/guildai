@@ -69,12 +69,12 @@ def op_and_label_filters(fn):
     """
     click_util.append_params(fn, [
         click.Option(
-            ("-l", "--label", "labels"), metavar="VAL",
-            help="Include runs with labels matching `VAL`.",
-            multiple=True),
-        click.Option(
             ("-o", "--operation", "ops"), metavar="VAL",
             help="Include runs with operations matching `VAL`.",
+            multiple=True),
+        click.Option(
+            ("-l", "--label", "labels"), metavar="VAL",
+            help="Include runs with labels matching `VAL`.",
             multiple=True),
     ])
     return fn
@@ -140,8 +140,10 @@ def scope_options(fn):
     return fn
 
 def runs_op(fn):
-    runs_arg(fn)
-    op_and_label_filters(fn)
-    status_filters(fn)
-    scope_options(fn)
+    click_util.append_params(fn, [
+        runs_arg,
+        op_and_label_filters,
+        status_filters,
+        scope_options,
+    ])
     return fn

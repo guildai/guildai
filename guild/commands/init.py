@@ -35,17 +35,17 @@ from guild import click_util
     "--local-resource-cache", is_flag=True,
     help="Use a local cache when initializing an environment.")
 @click.option(
+    "-y", "--yes", is_flag=True,
+    help="Answer yes to all prompts.")
+@click.option(
+    "-n", "--no-check", is_flag=True,
+    help="Don't check the environment after initialization.")
+@click.option(
     "--list-templates", is_flag=True,
     help="Show available templates and exit.")
 @click.option(
     "--help-template", metavar="TEMPLATE",
     help="Show help for `TEMPLATE` and exit.")
-@click.option(
-    "-n", "--no-check", is_flag=True,
-    help="Don't check the environment after initialization.")
-@click.option(
-    "-y", "--yes", is_flag=True,
-    help="Answer yes to all prompts.")
 
 @click.pass_context
 @click_util.use_args

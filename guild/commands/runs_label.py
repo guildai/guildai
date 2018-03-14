@@ -21,14 +21,12 @@ from guild import click_util
 from . import runs_support
 
 def label_params(fn):
-    runs_support.runs_arg(fn)
     click_util.append_params(fn, [
+        runs_support.runs_arg,
         click.Argument(("label",), required=False),
-    ])
-    runs_support.op_and_label_filters(fn)
-    runs_support.status_filters(fn)
-    runs_support.scope_options(fn)
-    click_util.append_params(fn, [
+        runs_support.op_and_label_filters,
+        runs_support.status_filters,
+        runs_support.scope_options,
         click.Option(
             ("-c", "--clear"),
             help="Clear the run's label.",
@@ -67,8 +65,11 @@ def label(ctx, args):
     If a `RUN` argument is not specified, ``0`` is assumed (the most
     recent run).
 
-    {{ runs_support.op_and_label_filters }} {{
-    runs_support.status_filters }} {{ runs_support.scope_options }}
+    {{ runs_support.op_and_label_filters }}
+
+    {{ runs_support.status_filters }}
+
+    {{ runs_support.scope_options }}
 
     """
     from . import runs_impl

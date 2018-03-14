@@ -18,21 +18,24 @@ from __future__ import division
 import click
 
 from guild import click_util
-from . import runs_list
+from . import runs_support
 
 @click.command(name="view")
-@runs_list.runs_list_options
+@runs_support.runs_arg
 @click.option(
     "--host",
     help="Name of host interface to listen on.")
 @click.option(
-    "--port",
+    "--port", metavar="PORT",
     help="Port to listen on.",
     type=click.IntRange(0, 65535))
 @click.option(
     "-n", "--no-open",
     help="Don't open the TensorBoard URL in a brower.",
     is_flag=True)
+@runs_support.op_and_label_filters
+@runs_support.status_filters
+@runs_support.scope_options
 @click.option("--dev", is_flag=True, hidden=True)
 
 @click_util.use_args

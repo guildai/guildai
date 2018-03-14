@@ -32,7 +32,7 @@ from guild import click_util
     help="Upload to the PyPI test site after creating the package.",
     flag_value="https://test.pypi.org/legacy/")
 @click.option(
-    "--upload-repo", "upload", metavar="REPO",
+    "--repo", "upload", metavar="REPO",
     help="Upload to `REPO` after creating the package.")
 @click.option(
     "-s", "--sign",

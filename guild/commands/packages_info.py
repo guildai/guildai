@@ -28,7 +28,6 @@ from guild import click_util
 
 def package_info(args):
     """Show information for one or more packages.
-
     """
     from . import packages_impl
     packages_impl.package_info(args)

@@ -37,6 +37,11 @@ def run_params(fn):
             help="Do not prompt before running operation.",
             is_flag=True),
         click.Option(
+            ("-n", "--no-wait",),
+            help=("Don't wait for a remote operation to complete. Ignored "
+                  "if run is local."),
+            is_flag=True),
+        click.Option(
             ("--print-cmd",),
             help="Show operation command and exit.",
             is_flag=True),
@@ -51,11 +56,6 @@ def run_params(fn):
         click.Option(
             ("--help-op",),
             help="Show operation help and exit.",
-            is_flag=True),
-        click.Option(
-            ("-n", "--no-wait",),
-            help=("Don't wait for a remote operation to complete. Ignored "
-                  "if run is local."),
             is_flag=True),
     ])
     return fn

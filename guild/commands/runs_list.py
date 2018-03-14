@@ -22,18 +22,18 @@ from . import runs_support
 
 def runs_list_options(fn):
     click_util.append_params(fn, [
-        click.Option(
-            ("-v", "--verbose"),
-            help="Show run details.",
-            is_flag=True),
+        runs_support.op_and_label_filters,
+        runs_support.status_filters,
+        runs_support.scope_options,
         click.Option(
             ("-d", "--deleted"),
             help="Show deleted runs.",
             is_flag=True),
+        click.Option(
+            ("-v", "--verbose"),
+            help="Show run details.",
+            is_flag=True),
     ])
-    runs_support.op_and_label_filters(fn)
-    runs_support.status_filters(fn)
-    runs_support.scope_options(fn)
     return fn
 
 @click.command("list, ls")

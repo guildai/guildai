@@ -22,18 +22,18 @@ from guild import click_util
 from . import runs_support
 
 def runs_stop_params(fn):
-    runs_support.runs_arg(fn)
-    runs_support.op_and_label_filters(fn)
-    runs_support.scope_options(fn)
     click_util.append_params(fn, [
+        runs_support.runs_arg,
+        runs_support.op_and_label_filters,
+        runs_support.scope_options,
+        click.Option(
+            ("-y", "--yes"),
+            help="Do not prompt before stopping.",
+            is_flag=True),
         click.Option(
             ("-n", "--no-wait"),
             help="Don't wait for remote runs to stop.",
             is_flag=True),
-        click.Option(
-            ("-y", "--yes"),
-            help="Do not prompt before stopping.",
-            is_flag=True)
     ])
     return fn
 
