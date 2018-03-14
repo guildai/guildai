@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import hashlib
 import json
 import logging
 import os
@@ -43,41 +42,40 @@ TB_REFRESH_INTERVAL = 5
 
 class ViewData(object):
 
-    def runs(self, params):
-        """Returns a list of unformatted runs for request params.
-
-        Params may be a multi-dict of any of the following:
-
-          run         string    Run ID
-          op          string    Op filter
-          running     boolean   Is running
-          completed   boolean   Is completed
-          error       boolean   Is error
-          terminated  boolean   Is terminated
-          all         boolean   Show all runs
-          cwd         string    Specify cwd
-
-        If params is None or empty, returns the default list of runs
-        (e.g. runs per command line options).
+    def runs(self):
+        """Returns a list of unformatted runs.
         """
         raise NotImplementedError()
 
-    def runs_data(self, params):
-        """Returns a list of formatted runs data for request params.
-
-        See `runs()` for help with `params`.
+    def runs_data(self):
+        """Returns a list of formatted runs data.
         """
         raise NotImplementedError()
 
-    def config(self, params):
+    def one_run(self, run_id_prefix):
+        """Returns one unformatted run for a run ID prefix.
+
+        The scope must be extended to all runs - not just runs per the
+        current filter.
+
+        If a run doesn't exist that matches `run_id_prefix` returns None.
+        """
+
+    def one_run_data(self, run_id_prefix):
+        """Returns a formatted run for a run ID prefix.
+
+        If a run doesn't exist that matches `run_id_prefix` returns None.
+        """
+        raise NotImplementedError()
+
+    def config(self):
         """Returns dict of config for request params.
-
-        Refer to `runs` for details on `params`.
 
         Config dict must contain:
 
           cwd         string  Cwd used for runs
           titleLabel  string  Label suitable for browser title
+          version     string  Guild version
 
         """
         raise NotImplementedError()
@@ -133,11 +131,10 @@ def _devserver_config():
 
 class TBServer(object):
 
-    def __init__(self, tensorboard, data, params, path_prefix):
+    def __init__(self, tensorboard, key, data):
         self._tb = tensorboard
+        self._key = key
         self._data = data
-        self._params = params
-        self._path_prefix = path_prefix
         self.log_dir = None
         self._monitor = None
         self._app = None
@@ -150,21 +147,29 @@ class TBServer(object):
     def start(self):
         if self._started:
             raise RuntimeError("already started")
-        list_runs_cb = lambda: self._data.runs(self._params)
         self.log_dir = util.mktempdir("guild-tensorboard-")
         self._monitor = self._tb.RunsMonitor(
-            list_runs_cb,
+            self._list_runs,
             self.log_dir,
             TB_RUNS_MONITOR_INTERVAL)
         self._monitor.start()
         self._app = self._tb.create_app(
             self.log_dir,
             TB_REFRESH_INTERVAL,
-            path_prefix=self._path_prefix)
+            path_prefix=self._path_prefix())
         self._started = True
 
-    def __str__(self):
-        return "params={}".format(self._params.items())
+    def _list_runs(self):
+        if self._key == "0":
+            return self._data.runs()
+        else:
+            run = self._data.one_run(self._key)
+            if not run:
+                return []
+            return [run]
+
+    def _path_prefix(self):
+        return "/tb/{}/".format(self._key)
 
     def __call__(self, env, start_resp):
         if not self.running:
@@ -176,7 +181,7 @@ class TBServer(object):
         if not self._started:
             raise RuntimeError("not started")
         self._monitor.stop()
-        util.rmtempsir(self.log_dir)
+        util.rmtempdir(self.log_dir)
 
 class TBServers(object):
 
@@ -195,10 +200,9 @@ class TBServers(object):
     def __getitem__(self, key):
         return self._servers[key]
 
-    def start_server(self, key, params):
+    def start_server(self, key, _run=None):
         tensorboard = self._ensure_tensorboard()
-        path_prefix = "/tb/{}/".format(key)
-        server = TBServer(tensorboard, self._data, params, path_prefix)
+        server = TBServer(tensorboard, key, self._data)
         log.debug("starting TensorBoard server (%s)", server)
         server.start()
         self._servers[key] = server
@@ -302,10 +306,8 @@ def _start_view(data, host, port):
         # Try ipv6 interfaces.
         server = serving.make_server("::", port, app, threaded=True)
     sys.stdout.flush()
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        tb_servers.stop_servers()
+    server.serve_forever()
+    tb_servers.stop_servers()
 
 def _view_app(data, tb_servers):
     dist_files = DistFiles()
@@ -317,7 +319,7 @@ def _view_app(data, tb_servers):
         rule("/runs/<path:_>", run_files.handle),
         rule("/config", _handle_config, data),
         rule("/tb/", _route_tb),
-        rule("/tb/<key>/", _handle_tb, tb_servers),
+        rule("/tb/<key>/", _handle_tb_index, tb_servers, data),
         rule("/tb/<key>/<path:_>", _handle_tb, tb_servers),
         rule("/", dist_files.handle_index),
         rule("/<path:_>", dist_files.handle),
@@ -343,7 +345,17 @@ def _del_underscore_vars(kw):
     }
 
 def _handle_runs(req, data):
-    return _json_resp(data.runs_data(req.args))
+    if "run" in req.args:
+        run = _try_one_run_data(req.args["run"], data)
+        return _json_resp([run])
+    else:
+        return _json_resp(data.runs_data())
+
+def _try_one_run_data(run_id_prefix, data):
+    data = data.one_run_data(run_id_prefix)
+    if not data:
+        raise NotFound()
+    return data
 
 def _json_resp(data):
     return Response(
@@ -351,29 +363,34 @@ def _json_resp(data):
         content_type="application/json",
         headers=[("Access-Control-Allow-Origin", "*")])
 
-def _handle_config(req, data):
-    return _json_resp(data.config(req.args))
+def _handle_config(_req, data):
+    return _json_resp(data.config())
 
 def _route_tb(req):
-    key = _tb_server_key(req.args)
+    if "run" in req.args:
+        key = req.args["run"]
+    else:
+        key = "0"
     return redirect("/tb/{}/".format(key), code=303)
 
-def _tb_server_key(params):
-    if not params:
-        return "0"
-    else:
-        return _params_hash(params)
+def _handle_tb_index(req, tb_servers, data, key):
+    try:
+        return _handle_tb(req, tb_servers, key)
+    except NotFound:
+        if key != "0":
+            key = _try_run_id(key, data)
+        with tb_servers:
+            return tb_servers.start_server(key)
 
-def _params_hash(params):
-    basis = "\0".join([
-        "{}={}".format(key, val)
-        for key, val in sorted(params.iteritems())
-    ])
-    return hashlib.md5(basis).hexdigest()
-
-def _handle_tb(req, tb_servers, key):
+def _handle_tb(_req, tb_servers, key):
     with tb_servers:
         try:
             return tb_servers[key]
         except KeyError:
-            return tb_servers.start_server(key, req.args)
+            raise NotFound()
+
+def _try_run_id(key, data):
+    run = data.one_run(key)
+    if not run:
+        raise NotFound()
+    return run.id

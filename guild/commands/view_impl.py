@@ -20,8 +20,8 @@ import os
 import re
 
 import guild
+import guild.run
 
-from guild import click_util
 from guild import config
 from guild import util
 from guild import var
@@ -36,13 +36,26 @@ class ViewDataImpl(view.ViewData):
     def __init__(self, args):
         self._args = args
 
-    def runs(self, params):
-        args = self._args_for_params(params)
-        with config.SetCwd(self._cwd(params)):
-            return runs_impl.runs_for_args(args)
+    def runs(self):
+        return runs_impl.runs_for_args(self._args)
 
-    def runs_data(self, params):
-        return list(self._runs_data_iter(self.runs(params)))
+    def runs_data(self):
+        return list(self._runs_data_iter(self.runs()))
+
+    def one_run(self, run_id_prefix):
+        try:
+            id, path = next(var.find_runs(run_id_prefix))
+        except StopIteration:
+            return None
+        else:
+            run = guild.run.Run(id, path)
+            return runs_impl.init_run(run)
+
+    def one_run_data(self, run_id_prefix):
+        run = self.one_run(run_id_prefix)
+        if not run:
+            return None
+        return self._run_data(run)
 
     def _runs_data_iter(self, runs):
         for run in runs:
@@ -53,24 +66,6 @@ class ViewDataImpl(view.ViewData):
                     log.exception("error processing run data for %s", run.id)
                 else:
                     log.error("error processing run data for %s: %s", run.id, e)
-
-    def _args_for_params(self, params):
-        if not params:
-            return self._args
-        return click_util.Args({
-            "runs": tuple(params.getlist("run")),
-            "labels": tuple(params.getlist("labels")),
-            "ops": tuple(params.getlist("op")),
-            "running": "running" in params,
-            "completed": "completed" in params,
-            "error": "error" in params,
-            "terminated": "terminated" in params,
-            "all": "all" in params,
-        })
-
-    @staticmethod
-    def _cwd(params):
-        return params.get("cwd") or config.cwd()
 
     def _run_data(self, run):
         formatted = runs_impl.format_run(run)
@@ -226,17 +221,17 @@ class ViewDataImpl(view.ViewData):
         operation = runs_impl.format_op_desc(run.opref, nowarn=True)
         return operation, run.short_id
 
-    def config(self, params):
-        args = self._args_for_params(params)
-        cwd = self._formatted_cwd(params)
+    def config(self):
+        cwd = self._formatted_cwd()
         return {
             "cwd": cwd,
-            "titleLabel": self._title_label(params, args, cwd),
+            "titleLabel": self._title_label(cwd),
             "version": guild.version(),
         }
 
-    def _formatted_cwd(self, params):
-        cwd = self._cwd(params)
+    @staticmethod
+    def _formatted_cwd():
+        cwd = config.cwd()
         abs_cwd = os.path.abspath(cwd)
         user_dir = os.path.expanduser("~")
         if abs_cwd.startswith(user_dir):
@@ -244,11 +239,11 @@ class ViewDataImpl(view.ViewData):
         else:
             return abs_cwd
 
-    def _title_label(self, params, args, cwd):
-        if "run" in params:
-            return self._single_run_title_label(params["run"])
-        elif args.all:
-            return self._all_title_label(args)
+    def _title_label(self, cwd):
+        if len(self._args.runs) == 1:
+            return self._single_run_title_label(self._args.runs[0])
+        elif self._args.all:
+            return self._all_title_label(self._args)
         else:
             return self._cwd_title_label(cwd)
 
