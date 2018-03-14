@@ -1,17 +1,8 @@
 <template>
   <v-list>
     <v-subheader>Runs</v-subheader>
-    <div class="runs-view-in-tensorboard">
-      <v-btn
-        flat small
-        color="primary"
-        @click="tensorboard">
-        <v-icon>timeline</v-icon>
-        &ensp;View in TensorBoard
-      </v-btn>
-    </div>
     <v-list-tile>
-      <div style="width:100%; margin-top:-18px">
+      <div style="width:100%; margin-top:-24px; margin-bottom:-6px">
         <v-text-field
           v-model="filter"
           append-icon="search"
@@ -24,7 +15,31 @@
       </div>
     </v-list-tile>
     <v-divider />
-    <template v-for="run in filtered">
+    <v-list-tile ripple @click="compare">
+      <v-list-tile-content>
+        <v-tooltip top transition="fade-transition" tag="div" >
+          <v-list-tile-title slot="activator">
+            <v-icon style="margin-top:-3px">mdi-sort</v-icon>
+            Compare
+          </v-list-tile-title>
+          <span>Compare runs</span>
+        </v-tooltip>
+      </v-list-tile-content>
+    </v-list-tile>
+    <v-divider />
+    <v-list-tile ripple @click="tensorboard" class="tile-button">
+      <v-list-tile-content>
+        <v-tooltip top transition="fade-transition" tag="div" >
+          <v-list-tile-title slot="activator">
+            <v-icon style="margin-top:-3px">timeline</v-icon>
+            View in TensorBoard
+          </v-list-tile-title>
+          <span>View runs in TensorBoard</span>
+        </v-tooltip>
+      </v-list-tile-content>
+    </v-list-tile>
+    <v-divider />
+    <template v-for="run in filtered_runs">
       <v-list-tile
         :key="run.id"
         @click="runSelected(run)"
@@ -68,7 +83,7 @@
    },
 
    computed: {
-     filtered() {
+     filtered_runs() {
        if (!this.filter) {
          return this.runs;
        }
@@ -93,6 +108,10 @@
        window.open(
          process.env.VIEW_BASE + '/tb/' + qs,
          'guild-tb-' + qs);
+     },
+
+     compare() {
+       console.log('TODO: notify compare selected');
      }
    }
  };
