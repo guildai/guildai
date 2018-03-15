@@ -21,7 +21,7 @@
    name: 'guild-text',
 
    props: {
-     src: { type: String }
+     src: String
    },
 
    data() {
