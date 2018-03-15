@@ -176,36 +176,36 @@
 </template>
 
 <script>
- export default {
-   name: 'guild-run-overview',
+export default {
+  name: 'guild-run-overview',
 
-   props: {
-     run: {
-       type: Object,
-       required: true
-     }
-   },
+  props: {
+    run: {
+      type: Object,
+      required: true
+    }
+  },
 
-   methods: {
+  methods: {
 
-     runFlags(run) {
-       var keys = Object.keys(run.flags);
-       keys.sort();
-       return keys.map(key => ({ name: key, value: run.flags[key] }));
-     },
+    runFlags(run) {
+      var keys = Object.keys(run.flags);
+      keys.sort();
+      return keys.map(key => ({ name: key, value: run.flags[key] }));
+    },
 
-     runEnv(run) {
-       var keys = Object.keys(run.env);
-       keys.sort();
-       return keys.map(key => ({ name: key, value: envVal(run.env[key]) }));
-     }
-   }
- };
+    runEnv(run) {
+      var keys = Object.keys(run.env);
+      keys.sort();
+      return keys.map(key => ({ name: key, value: envVal(run.env[key]) }));
+    }
+  }
+};
 
- function envVal(s) {
-   var breaks = s.match(/.{1,15}/g);
-   return breaks ? breaks.join('&#8203;') : s;
- }
+function envVal(s) {
+  var breaks = s.match(/.{1,15}/g);
+  return breaks ? breaks.join('&#8203;') : s;
+}
 </script>
 
 <style scoped>

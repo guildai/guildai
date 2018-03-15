@@ -20,147 +20,147 @@
 </template>
 
 <script>
- import MIDI from 'midi.js';
+import MIDI from 'midi.js';
 
- export default {
-   name: 'guild-midi',
+export default {
+  name: 'guild-midi',
 
-   props: {
-     src: String,
-     active: Boolean
-   },
+  props: {
+    src: String,
+    active: Boolean
+  },
 
-   data() {
-     return {
-       state: 'stopped',
-       progress: 0,
-       player: undefined,
-       playerSrc: undefined,
-       curTime: '00:00',
-       endTime: '00:00'
-     };
-   },
+  data() {
+    return {
+      state: 'stopped',
+      progress: 0,
+      player: undefined,
+      playerSrc: undefined,
+      curTime: '00:00',
+      endTime: '00:00'
+    };
+  },
 
-   watch: {
-     src() {
-       this.reset();
-     },
+  watch: {
+    src() {
+      this.reset();
+    },
 
-     active() {
-       if (!this.active) {
-         this.stop();
-       }
-     }
-   },
+    active() {
+      if (!this.active) {
+        this.stop();
+      }
+    }
+  },
 
-   methods: {
-     initPlayer() {
-       const this_ = this;
-       MIDI.loadPlugin({
-         soundfontUrl: '/assets/soundfont/',
-         onsuccess() {
-           this_.player = MIDI.Player;
-           this_.initPlayerSrc();
-         }
-       });
-     },
+  methods: {
+    initPlayer() {
+      const this_ = this;
+      MIDI.loadPlugin({
+        soundfontUrl: '/assets/soundfont/',
+        onsuccess() {
+          this_.player = MIDI.Player;
+          this_.initPlayerSrc();
+        }
+      });
+    },
 
-     initPlayerSrc() {
-       const this_ = this;
-       fetch(this_.src).then(function(resp) {
-         return resp.arrayBuffer();
-       }).then(function(buf) {
-         const data = String.fromCharCode.apply(null, new Uint8Array(buf));
-         this_.player.currentData = data;
-         this_.playerSrc = this_.src;
-         this_.player.loadMidiFile(function() {
-           this_.player.setAnimation(this_.playerProgress);
-           this_.player.start();
-         });
-       });
-     },
+    initPlayerSrc() {
+      const this_ = this;
+      fetch(this_.src).then(function(resp) {
+        return resp.arrayBuffer();
+      }).then(function(buf) {
+        const data = String.fromCharCode.apply(null, new Uint8Array(buf));
+        this_.player.currentData = data;
+        this_.playerSrc = this_.src;
+        this_.player.loadMidiFile(function() {
+          this_.player.setAnimation(this_.playerProgress);
+          this_.player.start();
+        });
+      });
+    },
 
-     togglePlay() {
-       if (this.state === 'playing') {
-         this.pause();
-       } else {
-         this.play();
-       }
-     },
+    togglePlay() {
+      if (this.state === 'playing') {
+        this.pause();
+      } else {
+        this.play();
+      }
+    },
 
-     play() {
-       const resume = this.state === 'paused';
-       this.state = 'playing';
-       if (!this.player) {
-         this.initPlayer();
-       } else if (this.playerSrc !== this.src) {
-         this.initPlayerSrc();
-       } else {
-         this.player.setAnimation(this.playerProgress);
-         if (resume) {
-           this.player.resume();
-         } else {
-           this.player.start();
-         }
-       }
-     },
+    play() {
+      const resume = this.state === 'paused';
+      this.state = 'playing';
+      if (!this.player) {
+        this.initPlayer();
+      } else if (this.playerSrc !== this.src) {
+        this.initPlayerSrc();
+      } else {
+        this.player.setAnimation(this.playerProgress);
+        if (resume) {
+          this.player.resume();
+        } else {
+          this.player.start();
+        }
+      }
+    },
 
-     pause() {
-       this.state = 'paused';
-       if (this.player) {
-         this.player.clearAnimation();
-         this.player.pause(true);
-       }
-     },
+    pause() {
+      this.state = 'paused';
+      if (this.player) {
+        this.player.clearAnimation();
+        this.player.pause(true);
+      }
+    },
 
-     stop() {
-       this.state = 'stopped';
-       this.progress = 0;
-       this.curTime = '00:00';
-       if (this.player) {
-         this.player.clearAnimation();
-         this.player.stop();
-       }
-     },
+    stop() {
+      this.state = 'stopped';
+      this.progress = 0;
+      this.curTime = '00:00';
+      if (this.player) {
+        this.player.clearAnimation();
+        this.player.stop();
+      }
+    },
 
-     reset() {
-       this.stop();
-       this.endTime = '00:00';
-     },
+    reset() {
+      this.stop();
+      this.endTime = '00:00';
+    },
 
-     playerProgress(state) {
-       if (state.now >= state.end) {
-         this.stop();
-       } else {
-         this.curTime = formatTime(state.now);
-         this.endTime = formatTime(state.end);
-         const progress = Math.round(state.now / state.end * 100);
-         if (progress !== this.progress) {
-           this.progress = progress;
-         }
-       }
-     }
-   }
- };
+    playerProgress(state) {
+      if (state.now >= state.end) {
+        this.stop();
+      } else {
+        this.curTime = formatTime(state.now);
+        this.endTime = formatTime(state.end);
+        const progress = Math.round(state.now / state.end * 100);
+        if (progress !== this.progress) {
+          this.progress = progress;
+        }
+      }
+    }
+  }
+};
 
- function formatTime(time) {
-   const min = time / 60 >> 0;
-   const sec = time - (min * 60) >> 0;
-   return (min < 10 ? '0' + min : min) + ':' + (sec < 10 ? '0' + sec : sec);
- }
+function formatTime(time) {
+  const min = time / 60 >> 0;
+  const sec = time - (min * 60) >> 0;
+  return (min < 10 ? '0' + min : min) + ':' + (sec < 10 ? '0' + sec : sec);
+}
 </script>
 
 <style scoped>
- #root {
-   display: flex;
-   align-items: center;
- }
+#root {
+  display: flex;
+  align-items: center;
+}
 
- .progress {
-   width: 300px;
- }
+.progress {
+  width: 300px;
+}
 
- .time.stopped {
-   opacity: 0.38;
- }
+.time.stopped {
+  opacity: 0.38;
+}
 </style>

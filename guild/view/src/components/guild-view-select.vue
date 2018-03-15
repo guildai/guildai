@@ -73,83 +73,83 @@
 </template>
 
 <script>
- export default {
-   name: 'guild-view-select',
+export default {
+  name: 'guild-view-select',
 
-   props: {
-     runs: {
-       type: Array,
-       required: true
-     },
-     value: {
-       type: Object,
-       default: undefined
-     }
-   },
+  props: {
+    runs: {
+      type: Array,
+      required: true
+    },
+    value: {
+      type: Object,
+      default: undefined
+    }
+  },
 
-   data() {
-     return {
-       filter: ''
-     };
-   },
+  data() {
+    return {
+      filter: ''
+    };
+  },
 
-   computed: {
-     filteredRuns() {
-       if (!this.filter) {
-         return this.runs;
-       }
-       const filter = this.filter.toLowerCase();
-       return this.runs.filter(run => {
-         const text = (
-           run.operation.toLowerCase() +
-           run.label.toLowerCase() +
-           run.id);
-         return text.indexOf(filter) !== -1;
-       });
-     },
+  computed: {
+    filteredRuns() {
+      if (!this.filter) {
+        return this.runs;
+      }
+      const filter = this.filter.toLowerCase();
+      return this.runs.filter(run => {
+        const text = (
+          run.operation.toLowerCase() +
+          run.label.toLowerCase() +
+          run.id);
+        return text.indexOf(filter) !== -1;
+      });
+    },
 
-     selected() {
-       var val = this.value || {};
-       if (val.compare) {
-         return val;
-       } else {
-         // Want to show a run
-         var runs = this.filteredRuns;
-         // If run specified, validate against runs
-         if (val.run && runs.some(run => run.id === val.run.id)) {
-           return val;
-         }
-         // No run or stale run selected, use first in list as default
-         if (runs.length > 0) {
-           return {run: runs[0]};
-         }
-         // Nothing selected
-         return {};
-       }
-     }
-   },
+    selected() {
+      var val = this.value || {};
+      if (val.compare) {
+        return val;
+      } else {
+        // Want to show a run
+        var runs = this.filteredRuns;
+        // If run specified, validate against runs
+        if (val.run && runs.some(run => run.id === val.run.id)) {
+          return val;
+        }
+        // No run or stale run selected, use first in list as default
+        if (runs.length > 0) {
+          return {run: runs[0]};
+        }
+        // Nothing selected
+        return {};
+      }
+    }
+  },
 
-   watch: {
-     selected(val) {
-       if (val !== this.value) {
-         this.$emit('input', val);
-       }
-     }
-   },
+  watch: {
+    selected(val) {
+      if (val !== this.value) {
+        this.$emit('input', val);
+      }
+    }
+  },
 
-   methods: {
-     select(val) {
-       this.$emit('input', val);
-     },
+  methods: {
+    select(val) {
+      this.$emit('input', val);
+    },
 
-     tensorboard() {
-       const qs = window.location.search;
-       window.open(
-         process.env.VIEW_BASE + '/tb/' + qs,
-         'guild-tb-' + qs);
-     }
-   }
- };
+    tensorboard() {
+      const qs = window.location.search;
+      window.open(
+        process.env.VIEW_BASE + '/tb/' + qs,
+        'guild-tb-' + qs);
+    }
+  }
+};
 </script>
 
 <style>

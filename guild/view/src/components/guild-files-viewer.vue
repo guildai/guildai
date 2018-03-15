@@ -63,137 +63,137 @@
 </template>
 
 <script>
- export default {
-   name: 'guild-files-viewer',
+export default {
+  name: 'guild-files-viewer',
 
-   props: {
-     files: {
-       type: Array,
-       required: true
-     },
-     path: String,
-     value: Boolean
-   },
+  props: {
+    files: {
+      type: Array,
+      required: true
+    },
+    path: String,
+    value: Boolean
+  },
 
-   data() {
-     return {
-       selectedPath_: undefined,
-       fullscreen: false
-     };
-   },
+  data() {
+    return {
+      selectedPath_: undefined,
+      fullscreen: false
+    };
+  },
 
-   computed: {
-     visible: {
-       get() {
-         return this.value;
-       },
-       set(val) {
-         this.$emit('input', val);
-       }
-     },
+  computed: {
+    visible: {
+      get() {
+        return this.value;
+      },
+      set(val) {
+        this.$emit('input', val);
+      }
+    },
 
-     selectedPath: {
-       get() {
-         if (this.selectedPath_) {
-           return this.selectedPath_;
-         } else {
-           return this.path;
-         }
-       },
-       set(val) {
-         this.selectedPath_ = val;
-       }
-     },
+    selectedPath: {
+      get() {
+        if (this.selectedPath_) {
+          return this.selectedPath_;
+        } else {
+          return this.path;
+        }
+      },
+      set(val) {
+        this.selectedPath_ = val;
+      }
+    },
 
-     selected() {
-       return this.selectedIndex !== -1
-              ? this.files[this.selectedIndex]
-              : undefined;
-     },
+    selected() {
+      return this.selectedIndex !== -1
+           ? this.files[this.selectedIndex]
+           : undefined;
+    },
 
-     selectedIndex() {
-       for (var i = 0; i < this.files.length; i++) {
-         if (this.files[i].path === this.selectedPath) {
-           return i;
-         }
-       }
-       return -1;
-     }
-   },
+    selectedIndex() {
+      for (var i = 0; i < this.files.length; i++) {
+        if (this.files[i].path === this.selectedPath) {
+          return i;
+        }
+      }
+      return -1;
+    }
+  },
 
-   watch: {
-     path() {
-       this.selectedPath_ = undefined;
-     }
-   },
+  watch: {
+    path() {
+      this.selectedPath_ = undefined;
+    }
+  },
 
-   created() {
-     window.addEventListener('keydown', this.handleKeyDown);
-   },
+  created() {
+    window.addEventListener('keydown', this.handleKeyDown);
+  },
 
-   destroyed() {
-     window.removeEventListener('keydown', this.handleKeyDown);
-   },
+  destroyed() {
+    window.removeEventListener('keydown', this.handleKeyDown);
+  },
 
-   methods: {
-     handleKeyDown(e) {
-       if (!this.value || e.defaultPrevented) {
-         return;
-       }
-       if (e.keyCode === 27) { // Esc
-         this.visible = false;
-       } else if (e.keyCode === 37) { // Left
-         this.nav(-1);
-       } else if (e.keyCode === 39) { // Right
-         this.nav(1);
-       }
-     },
+  methods: {
+    handleKeyDown(e) {
+      if (!this.value || e.defaultPrevented) {
+        return;
+      }
+      if (e.keyCode === 27) { // Esc
+        this.visible = false;
+      } else if (e.keyCode === 37) { // Left
+        this.nav(-1);
+      } else if (e.keyCode === 39) { // Right
+        this.nav(1);
+      }
+    },
 
-     nav(incr) {
-       var nextIndex = maybeWrapIndex(this.selectedIndex + incr, this.files);
-       this.selectedPath = this.files[nextIndex].path;
-     }
-   }
- };
+    nav(incr) {
+      var nextIndex = maybeWrapIndex(this.selectedIndex + incr, this.files);
+      this.selectedPath = this.files[nextIndex].path;
+    }
+  }
+};
 
- function maybeWrapIndex(index, array) {
-   if (index < 0) {
-     return array.length - 1;
-   } else if (index >= array.length) {
-     return 0;
-   } else {
-     return index;
-   }
- };
+function maybeWrapIndex(index, array) {
+  if (index < 0) {
+    return array.length - 1;
+  } else if (index >= array.length) {
+    return 0;
+  } else {
+    return index;
+  }
+};
 </script>
 
 <style>
- .input-group__prepend-icon {
-   min-width: 32px !important;
- }
+.input-group__prepend-icon {
+  min-width: 32px !important;
+}
 
- .input-group__details {
-   max-width: calc(100% - 32px) !important;
-   min-height: 16px !important;
- }
+.input-group__details {
+  max-width: calc(100% - 32px) !important;
+  min-height: 16px !important;
+}
 </style>
 
 <style scoped>
- .input-group {
-   padding-right: 16px;
- }
+.input-group {
+  padding-right: 16px;
+}
 
- .content {
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   justify-content: center;
-   background-color: #666;
-   height: 100%;
- }
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #666;
+  height: 100%;
+}
 
- .content img {
-   max-width: 100%;
-   max-height: 100%;
- }
+.content img {
+  max-width: 100%;
+  max-height: 100%;
+}
 </style>

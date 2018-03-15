@@ -13,14 +13,14 @@
 </template>
 
 <script>
- export default {
-   name: 'guild-run-titlebar',
+export default {
+  name: 'guild-run-titlebar',
 
-   props: {
-     run: {
-       type: Object,
-       required: true
-     }
-   }
- };
+  props: {
+    run: {
+      type: Object,
+      required: true
+    }
+  }
+};
 </script>

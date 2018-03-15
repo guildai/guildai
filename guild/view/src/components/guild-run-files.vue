@@ -59,59 +59,59 @@
 </template>
 
 <script>
- import filesize from 'filesize';
+import filesize from 'filesize';
 
- export default {
-   name: 'guild-run-files',
+export default {
+  name: 'guild-run-files',
 
-   props: {
-     run: {
-       type: Object,
-       required: true
-     }
-   },
+  props: {
+    run: {
+      type: Object,
+      required: true
+    }
+  },
 
-   data() {
-     return {
-       fileHeaders: [
-         { text: '', value: '', sortable: false, width: 42 },
-         { text: 'Name', value: 'path', align: 'left' },
-         { text: 'Type', value: 'type', align: 'left' },
-         { text: 'Source', value: 'operation', align: 'left' },
-         { text: 'Size', value: 'size', align: 'right' }
-       ],
-       filter: '',
-       curMedia: undefined,
-       viewerOpen: false
-     };
-   },
+  data() {
+    return {
+      fileHeaders: [
+        { text: '', value: '', sortable: false, width: 42 },
+        { text: 'Name', value: 'path', align: 'left' },
+        { text: 'Type', value: 'type', align: 'left' },
+        { text: 'Source', value: 'operation', align: 'left' },
+        { text: 'Size', value: 'size', align: 'right' }
+      ],
+      filter: '',
+      curMedia: undefined,
+      viewerOpen: false
+    };
+  },
 
-   computed: {
-     media() {
-       var filtered = this.run.files.filter(file => file.viewer);
-       return filtered.map(file => {
-         return {
-           path: file.path,
-           icon: 'mdi-' + file.icon,
-           viewer: file.viewer,
-           src: process.env.VIEW_BASE + '/runs/' + this.run.id + '/' + file.path
-         };
-       });
-     }
-   },
+  computed: {
+    media() {
+      var filtered = this.run.files.filter(file => file.viewer);
+      return filtered.map(file => {
+        return {
+          path: file.path,
+          icon: 'mdi-' + file.icon,
+          viewer: file.viewer,
+          src: process.env.VIEW_BASE + '/runs/' + this.run.id + '/' + file.path
+        };
+      });
+    }
+  },
 
-   methods: {
-     formatFileSize(x) {
-       return x != null ? filesize(x) : '';
-     },
+  methods: {
+    formatFileSize(x) {
+      return x != null ? filesize(x) : '';
+    },
 
-     view(file) {
-       var mediaFile = this.media.find(mfile => mfile.path === file.path);
-       this.curMedia = mediaFile;
-       this.viewerOpen = true;
-     }
-   }
- };
+    view(file) {
+      var mediaFile = this.media.find(mfile => mfile.path === file.path);
+      this.curMedia = mediaFile;
+      this.viewerOpen = true;
+    }
+  }
+};
 </script>
 
 <style>

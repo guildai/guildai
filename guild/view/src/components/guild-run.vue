@@ -27,52 +27,52 @@
 </template>
 
 <script>
- export default {
-   name: 'guild-run',
+export default {
+  name: 'guild-run',
 
-   props: {
-     run: Object
-   },
+  props: {
+    run: Object
+  },
 
-   data() {
-     return {
-       selectedTab_: undefined
-     };
-   },
+  data() {
+    return {
+      selectedTab_: undefined
+    };
+  },
 
-   computed: {
-     selectedTab: {
-       get() {
-         if (this.selectedTab_) {
-           return this.selectedTab_;
-         } else if (window.location.hash) {
-           return window.location.hash.substr(1);
-         } else {
-           return 'overview';
-         }
-       },
-       set(val) {
-         this.selectedTab_ = val;
-       }
-     }
-   },
+  computed: {
+    selectedTab: {
+      get() {
+        if (this.selectedTab_) {
+          return this.selectedTab_;
+        } else if (window.location.hash) {
+          return window.location.hash.substr(1);
+        } else {
+          return 'overview';
+        }
+      },
+      set(val) {
+        this.selectedTab_ = val;
+      }
+    }
+  },
 
-   watch: {
-     '$route'() {
-       // Use vue router to detect changes in hash - we handle this manually
-       // to avoid the complexity of vue router with the tab control.
-       var tab = window.location.hash
-               ? window.location.hash.substr(1)
-               : 'overview';
-       this.selectedTab = tab;
-     },
+  watch: {
+    '$route'() {
+      // Use vue router to detect changes in hash - we handle this manually
+      // to avoid the complexity of vue router with the tab control.
+      var tab = window.location.hash
+              ? window.location.hash.substr(1)
+              : 'overview';
+      this.selectedTab = tab;
+    },
 
-     selectedTab(val) {
-       var hash = val === 'overview' ? '' : val;
-       window.location.replace('#' + hash);
-     }
-   }
- };
+    selectedTab(val) {
+      var hash = val === 'overview' ? '' : val;
+      window.location.replace('#' + hash);
+    }
+  }
+};
 </script>
 
 <style>

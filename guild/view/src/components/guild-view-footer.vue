@@ -12,11 +12,11 @@
 </template>
 
 <script>
- export default {
-   name: 'guild-view-footer',
+export default {
+  name: 'guild-view-footer',
 
-   props: {
-     config: Object
-   }
+  props: {
+    config: Object
+  }
 };
 </script>

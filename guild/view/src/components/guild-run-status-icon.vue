@@ -23,35 +23,35 @@
 </template>
 
 <script>
- export default {
-   name: 'guild-run-status-icon',
+export default {
+  name: 'guild-run-status-icon',
 
-   props: {
-     icon: {
-       type: Object,
-       required: true
-     },
-     medium: Boolean,
-     large: Boolean,
-     xLarge: Boolean,
-     tooltipTop: Boolean,
-     tooltipLeft: Boolean,
-     tooltipBottom: Boolean,
-     tooltipRight: Boolean
-   },
+  props: {
+    icon: {
+      type: Object,
+      required: true
+    },
+    medium: Boolean,
+    large: Boolean,
+    xLarge: Boolean,
+    tooltipTop: Boolean,
+    tooltipLeft: Boolean,
+    tooltipBottom: Boolean,
+    tooltipRight: Boolean
+  },
 
-   computed: {
-     spinnerSize() {
-       if (this.medium) {
-         return 28;
-       } else if (this.large) {
-         return 35;
-       } else if (this.xLarge) {
-         return 42;
-       } else {
-         return 24;
-       }
-     }
-   }
- };
+  computed: {
+    spinnerSize() {
+      if (this.medium) {
+        return 28;
+      } else if (this.large) {
+        return 35;
+      } else if (this.xLarge) {
+        return 42;
+      } else {
+        return 24;
+      }
+    }
+  }
+};
 </script>

@@ -7,26 +7,26 @@
 </template>
 
 <script>
- export default {
-   name: 'guild-view-toolbar',
+export default {
+  name: 'guild-view-toolbar',
 
-   props: {
-     title: {
-       type: String,
-       default: 'Guild View'
-     }
-   },
+  props: {
+    title: {
+      type: String,
+      default: 'Guild View'
+    }
+  },
 
-   methods: {
-     drawerClick() {
-       this.$emit('drawer-click');
-     }
-   }
- };
+  methods: {
+    drawerClick() {
+      this.$emit('drawer-click');
+    }
+  }
+};
 </script>
 
 <style scoped>
- div.toolbar__title {
-   margin-left: 6px;
- }
+div.toolbar__title {
+  margin-left: 6px;
+}
 </style>
