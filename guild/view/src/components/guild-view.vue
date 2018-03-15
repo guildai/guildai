@@ -5,35 +5,14 @@
       v-model="drawer"
       width="360"
       :mobile-break-point="drawerBreakPoint">
-      <guild-runs-list :runs="runs" v-model="run" @input="runSelected" />
+      <guild-view-select
+        :runs="runs"
+        v-model="run"
+        @input="maybeCloseDrawer" />
     </v-navigation-drawer>
     <guild-view-toolbar @drawer-click="drawer = !drawer" />
     <v-content>
-      <v-tabs v-if="run" v-model="selectedTab">
-        <div class="grey lighten-4">
-          <v-container fluid pl-4 pb-2>
-            <guild-run-titlebar :run="run" />
-          </v-container>
-          <v-tabs-bar>
-            <v-tabs-item key="overview" href="#overview" ripple>
-              Overview
-            </v-tabs-item>
-            <v-tabs-item key="files" href="#files" ripple>
-              Files
-            </v-tabs-item>
-            <v-tabs-slider color="deep-orange"></v-tabs-slider>
-          </v-tabs-bar>
-          <v-divider/>
-        </div>
-        <v-tabs-items>
-          <v-tabs-content key="overview" id="overview">
-            <guild-run-overview :run="run" />
-          </v-tabs-content>
-          <v-tabs-content key="files" id="files">
-            <guild-run-files :run="run" />
-          </v-tabs-content>
-        </v-tabs-items>
-      </v-tabs>
+      <guild-run v-if="run" :run="run" />
       <v-container v-else>
         <v-layout row align-center>
           <span class="mr-3">Waiting for runs</span>
@@ -67,7 +46,6 @@
      return {
        drawerBreakPoint: drawerBreakPoint,
        drawer: window.innerWidth >= drawerBreakPoint,
-       selectedTab_: undefined,
        runId_: undefined,
        runs: [],
        config: {},
@@ -80,21 +58,6 @@
    },
 
    computed: {
-     selectedTab: {
-       get() {
-         if (this.selectedTab_) {
-           return this.selectedTab_;
-         } else if (window.location.hash) {
-           return window.location.hash.substr(1);
-         } else {
-           return 'overview';
-         }
-       },
-       set(val) {
-         this.selectedTab_ = val;
-       }
-     },
-
      run: {
        get() {
          this.checkRunDeleted();
@@ -122,30 +85,12 @@
    },
 
    watch: {
-     '$route'() {
-       // Use vue router to detect changes in hash - we handle this manually
-       // to avoid the complexity of vue router with the tab control.
-       var tab = window.location.hash
-               ? window.location.hash.substr(1)
-               : 'overview';
-       this.selectedTab = tab;
-     },
-
-     selectedTab(val) {
-       var hash = val === 'overview' ? '' : val;
-       window.location.replace('#' + hash);
-     },
-
      title(val) {
        document.title = val;
      }
    },
 
    methods: {
-     findRun(id) {
-       return this.runs.find(run => run.id === id);
-     },
-
      initData() {
        this.fetchConfig();
        this.fetchRuns();
@@ -173,10 +118,14 @@
        this.fetchRunsTimeout = setTimeout(this.fetchRuns, 5000);
      },
 
-     runSelected(run) {
+     maybeCloseDrawer() {
        if (window.innerWidth < drawerBreakPoint) {
          this.drawer = false;
        }
+     },
+
+     findRun(id) {
+       return this.runs.find(run => run.id === id);
      },
 
      checkRunDeleted() {

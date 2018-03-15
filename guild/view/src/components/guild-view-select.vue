@@ -15,18 +15,6 @@
       </div>
     </v-list-tile>
     <v-divider />
-    <v-list-tile ripple @click="compare">
-      <v-list-tile-content>
-        <v-tooltip top transition="fade-transition" tag="div" >
-          <v-list-tile-title slot="activator">
-            <v-icon style="margin-top:-3px">mdi-sort</v-icon>
-            Compare
-          </v-list-tile-title>
-          <span>Compare runs</span>
-        </v-tooltip>
-      </v-list-tile-content>
-    </v-list-tile>
-    <v-divider />
     <v-list-tile ripple @click="tensorboard" class="tile-button">
       <v-list-tile-content>
         <v-tooltip top transition="fade-transition" tag="div" >
@@ -35,6 +23,18 @@
             View in TensorBoard
           </v-list-tile-title>
           <span>View runs in TensorBoard</span>
+        </v-tooltip>
+      </v-list-tile-content>
+    </v-list-tile>
+    <v-divider />
+    <v-list-tile ripple @click="compare">
+      <v-list-tile-content>
+        <v-tooltip top transition="fade-transition" tag="div" >
+          <v-list-tile-title slot="activator">
+            <v-icon style="margin-top:-3px">mdi-sort</v-icon>
+            Compare
+          </v-list-tile-title>
+          <span>Compare runs</span>
         </v-tooltip>
       </v-list-tile-content>
     </v-list-tile>
@@ -69,7 +69,7 @@
 
 <script>
  export default {
-   name: 'guild-runs-list',
+   name: 'guild-view-select',
 
    props: {
      runs: { type: Array, required: true },
@@ -111,7 +111,7 @@
      },
 
      compare() {
-       console.log('TODO: notify compare selected');
+       console.log('TODO: notify compare view selected');
      }
    }
  };
