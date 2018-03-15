@@ -12,8 +12,13 @@
     </v-navigation-drawer>
     <guild-view-toolbar @drawer-click="drawer = !drawer" />
     <v-content>
-      <guild-compare v-if="selected.compare" :runs="runs" />
-      <guild-run v-else-if="selected.run" :run="selected.run" />
+      <guild-compare
+        v-if="selected.compare"
+        :runs="runs"
+        @run-selected="run => { selected = {run: run} }" />
+      <guild-run
+        v-else-if="selected.run"
+        :run="selected.run" />
       <guild-view-waiting v-else />
     </v-content>
     <guild-view-footer :config="config" />
@@ -33,7 +38,7 @@ export default {
     return {
       drawerBreakPoint: drawerBreakPoint,
       drawer: window.innerWidth >= drawerBreakPoint,
-      selected: {},
+      selected: {compare: true},
       runs: [],
       config: {},
       fetchRunsTimeout: undefined

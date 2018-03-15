@@ -24,30 +24,28 @@
         no-data-text="There are no files associated with this run"
         no-results-text="No matches for the current filter">
         <template slot="items" slot-scope="files">
-          <tr>
-            <td class="type-icon">
-              <v-tooltip left transition="fade-transition">
-                <v-icon slot="activator">mdi-{{ files.item.icon }}</v-icon>
-                <span>{{ files.item.iconTooltip }}</span>
-              </v-tooltip>
-            </td>
-            <td v-if="files.item.viewer">
-              <v-btn
-                class="grey lighten-3 btn-link"
-                flat small block
-                style="margin-left: -8px"
-                @click="view(files.item)"><span class="path">{{ files.item.path }}</span></v-btn></div>
-            </td>
-            <td v-else><span class="path">{{ files.item.path }}</span></td>
-            <td>{{ files.item.type }}</td>
-            <td>
-              <a
-                v-if="files.item.run"
-                :href="'?run=' + files.item.run + '#files'"
-                target="_blank">{{ files.item.operation }}</a>
-            </td>
-            <td class="text-xs-right"><span class="file-size">{{ formatFileSize(files.item.size) }}</span></td>
-          </tr>
+          <td class="type-icon">
+            <v-tooltip left transition="fade-transition">
+              <v-icon slot="activator">mdi-{{ files.item.icon }}</v-icon>
+              <span>{{ files.item.iconTooltip }}</span>
+            </v-tooltip>
+          </td>
+          <td v-if="files.item.viewer">
+            <v-btn
+              class="grey lighten-3 btn-link"
+              flat small block
+              style="margin-left: -8px"
+              @click="view(files.item)"><span class="path">{{ files.item.path }}</span></v-btn></div>
+          </td>
+          <td v-else><span class="path">{{ files.item.path }}</span></td>
+          <td>{{ files.item.type }}</td>
+          <td>
+            <a
+              v-if="files.item.run"
+              :href="'?run=' + files.item.run + '#files'"
+              target="_blank">{{ files.item.operation }}</a>
+          </td>
+          <td class="text-xs-right"><span class="file-size">{{ formatFileSize(files.item.size) }}</span></td>
         </template>
       </v-data-table>
     </v-card>
@@ -122,6 +120,12 @@ export default {
 
 .files > table.table thead th {
   font-size: 13px;
+  outline: none !important;
+}
+
+.files > table.table thead th i {
+  margin-left: 4px;
+  color: #777 !important;
 }
 
 .files > table.table thead tr {
@@ -164,10 +168,6 @@ td.type-icon {
 
 table.table tbody td {
   font-size: 14px;
-}
-
-table.table thead th {
-  font-size: 13px;
 }
 
 .file-size {

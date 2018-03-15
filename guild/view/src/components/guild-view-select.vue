@@ -35,7 +35,7 @@
         <v-tooltip top transition="fade-transition" tag="div" >
           <v-list-tile-title slot="activator">
             <v-icon style="margin-top:-3px">mdi-sort</v-icon>
-            Compare
+            Compare runs
           </v-list-tile-title>
           <span>Compare runs</span>
         </v-tooltip>
