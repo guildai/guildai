@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import GuildCompare from './guild-compare.vue';
 import GuildFilesViewer from './guild-files-viewer.vue';
 import GuildMidi from './guild-midi.vue';
 import GuildRun from './guild-run.vue';
@@ -31,6 +32,7 @@ GuildView.install = function install(Vue) {
   const component = function(c) {
     Vue.component(c.name, c);
   };
+  component(GuildCompare);
   component(GuildFilesViewer);
   component(GuildMidi);
   component(GuildRun);

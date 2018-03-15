@@ -1,5 +1,5 @@
 <template>
-  <v-app >
+  <v-app>
     <v-navigation-drawer
       app fixed clipped
       v-model="drawer"
@@ -7,12 +7,13 @@
       :mobile-break-point="drawerBreakPoint">
       <guild-view-select
         :runs="runs"
-        v-model="run"
+        v-model="selected"
         @input="maybeCloseDrawer" />
     </v-navigation-drawer>
     <guild-view-toolbar @drawer-click="drawer = !drawer" />
     <v-content>
-      <guild-run v-if="run" :run="run" />
+      <guild-compare v-if="selected.compare" :runs="runs" />
+      <guild-run v-else-if="selected.run" :run="selected.run" />
       <guild-view-waiting v-else />
     </v-content>
     <guild-view-footer :config="config" />
@@ -32,7 +33,7 @@
      return {
        drawerBreakPoint: drawerBreakPoint,
        drawer: window.innerWidth >= drawerBreakPoint,
-       runId_: undefined,
+       selected: {},
        runs: [],
        config: {},
        fetchRunsTimeout: undefined
@@ -44,22 +45,6 @@
    },
 
    computed: {
-     run: {
-       get() {
-         this.checkRunDeleted();
-         if (this.runId_) {
-           return this.findRun(this.runId_);
-         } else if (this.runs) {
-           return this.runs[0];
-         } else {
-           return undefined;
-         }
-       },
-       set(val) {
-         this.runId_ = val ? val.id : undefined;
-       }
-     },
-
      title() {
        var title = this.config.titleLabel;
        if (this.runs.length > 0 && !title.startsWith('[')) {
@@ -73,10 +58,6 @@
    watch: {
      title(val) {
        document.title = val;
-     },
-
-     drawer(val) {
-       console.log('DRAWER CHANGED');
      }
    },
 
@@ -106,16 +87,6 @@
          clearTimeout(this.fetchRunsTimeout);
        }
        this.fetchRunsTimeout = setTimeout(this.fetchRuns, 5000);
-     },
-
-     findRun(id) {
-       return this.runs.find(run => run.id === id);
-     },
-
-     checkRunDeleted() {
-       if (this.runId_ && !this.findRun(this.runId_)) {
-         this.runId_ = undefined;
-       }
      },
 
      maybeCloseDrawer() {

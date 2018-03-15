@@ -27,7 +27,10 @@
       </v-list-tile-content>
     </v-list-tile>
     <v-divider />
-    <v-list-tile ripple @click="compare">
+    <v-list-tile
+      @click="select({compare: true})"
+      :class="{selected: selected.compare}"
+      ripple>
       <v-list-tile-content>
         <v-tooltip top transition="fade-transition" tag="div" >
           <v-list-tile-title slot="activator">
@@ -39,11 +42,11 @@
       </v-list-tile-content>
     </v-list-tile>
     <v-divider />
-    <template v-for="run in filtered_runs">
+    <template v-for="run in filteredRuns">
       <v-list-tile
         :key="run.id"
-        @click="runSelected(run)"
-        :class="{selected: value.id === run.id}"
+        @click="select({run: run})"
+        :class="{selected: selected.run && selected.run.id === run.id}"
         ripple>
         <v-list-tile-content>
           <v-tooltip
@@ -52,7 +55,9 @@
             class="rev-ellipsis-container">
             <v-list-tile-title slot="activator" class="rev-ellipsis">
               &lrm;{{ run.operation }}
-              <span v-if="run.label" class="run-title-label">{{ run.label }}</span>
+              <span v-if="run.label" class="run-title-label">
+                {{ run.label }}
+              </span>
             </v-list-tile-title>
             <span>[{{ run.shortId }}] {{ run.operation }}</span>
           </v-tooltip>
@@ -76,7 +81,10 @@
        type: Array,
        required: true
      },
-     value: Object
+     value: {
+       type: Object,
+       default: undefined
+     }
    },
 
    data() {
@@ -86,7 +94,7 @@
    },
 
    computed: {
-     filtered_runs() {
+     filteredRuns() {
        if (!this.filter) {
          return this.runs;
        }
@@ -98,12 +106,40 @@
            run.id);
          return text.indexOf(filter) !== -1;
        });
+     },
+
+     selected() {
+       var val = this.value || {};
+       if (val.compare) {
+         return val;
+       } else {
+         // Want to show a run
+         var runs = this.filteredRuns;
+         // If run specified, validate against runs
+         if (val.run && runs.some(run => run.id === val.run.id)) {
+           return val;
+         }
+         // No run or stale run selected, use first in list as default
+         if (runs.length > 0) {
+           return {run: runs[0]};
+         }
+         // Nothing selected
+         return {};
+       }
+     }
+   },
+
+   watch: {
+     selected(val) {
+       if (val !== this.value) {
+         this.$emit('input', val);
+       }
      }
    },
 
    methods: {
-     runSelected(run) {
-       this.$emit('input', run);
+     select(val) {
+       this.$emit('input', val);
      },
 
      tensorboard() {
@@ -111,10 +147,6 @@
        window.open(
          process.env.VIEW_BASE + '/tb/' + qs,
          'guild-tb-' + qs);
-     },
-
-     compare() {
-       console.log('TODO: notify compare view selected');
      }
    }
  };
