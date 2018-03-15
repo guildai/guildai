@@ -22,8 +22,10 @@ import GuildRunStatusIcon from './guild-run-status-icon.vue';
 import GuildRunTitlebar from './guild-run-titlebar.vue';
 import GuildText from './guild-text.vue';
 import GuildView from './guild-view.vue';
+import GuildViewFooter from './guild-view-footer.vue';
 import GuildViewSelect from './guild-view-select.vue';
 import GuildViewToolbar from './guild-view-toolbar.vue';
+import GuildViewWaiting from './guild-view-waiting.vue';
 
 GuildView.install = function install(Vue) {
   const component = function(c) {
@@ -38,8 +40,10 @@ GuildView.install = function install(Vue) {
   component(GuildRunTitlebar);
   component(GuildText);
   component(GuildView);
+  component(GuildViewFooter);
   component(GuildViewSelect);
   component(GuildViewToolbar);
+  component(GuildViewWaiting);
 };
 
 export default GuildView;
