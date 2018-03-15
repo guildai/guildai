@@ -10,7 +10,7 @@
           hide-details
           clearable
           v-model="filter"
-          style="max-width:20em" />
+          style="max-width:20em;margin-bottom:-12px" />
       </v-card-title>
       <v-data-table
         class="files"
