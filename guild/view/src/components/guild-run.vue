@@ -31,7 +31,7 @@
    name: 'guild-run',
 
    props: {
-     run: { type: Object }
+     run: Object
    },
 
    data() {

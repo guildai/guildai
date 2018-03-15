@@ -72,8 +72,11 @@
    name: 'guild-view-select',
 
    props: {
-     runs: { type: Array, required: true },
-     value: { type: Object }
+     runs: {
+       type: Array,
+       required: true
+     },
+     value: Object
    },
 
    data() {
