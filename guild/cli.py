@@ -154,7 +154,7 @@ def _format_detail_val(val, indent):
 def _pad_col_val(val, col, col_info):
     return val.ljust(col_info[col]["width"] + TABLE_COL_SPACING)
 
-def confirm(prompt, wrap=False, default=False):
+def confirm(prompt, default=False, wrap=False):
     if wrap:
         prompt = _wrap(prompt)
     click.echo(prompt, nl=False, err=True)
