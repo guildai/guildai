@@ -1,7 +1,8 @@
 <template>
-  <v-app>
+  <v-app v-resize="onResize">
     <v-navigation-drawer
       app fixed clipped
+      disable-route-watcher
       v-model="drawer"
       width="360"
       :mobile-break-point="drawerBreakPoint">
@@ -21,7 +22,7 @@
         :run="selected.run" />
       <guild-view-waiting v-else />
     </v-content>
-    <guild-view-footer :config="config" />
+    <guild-view-footer :fixed="footerFixed" :config="config" />
   </v-app>
 </template>
 
@@ -38,6 +39,7 @@ export default {
     return {
       drawerBreakPoint: drawerBreakPoint,
       drawer: window.innerWidth >= drawerBreakPoint,
+      footerFixed: window.innerWidth >= drawerBreakPoint,
       selected: {compare: true},
       runs: [],
       config: {},
@@ -67,6 +69,10 @@ export default {
   },
 
   methods: {
+    onResize() {
+      this.footerFixed = window.innerWidth >= drawerBreakPoint;
+    },
+
     initData() {
       this.fetchConfig();
       this.fetchRuns();

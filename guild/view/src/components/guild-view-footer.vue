@@ -1,5 +1,5 @@
 <template>
-  <v-footer fixed app color="grey lighten-2">
+  <v-footer :fixed="fixed" app color="grey lighten-2">
     <v-layout column justify-center style="margin:0">
       <v-divider />
       <v-layout align-center class="px-2 caption" style="height:36px">
@@ -16,7 +16,11 @@ export default {
   name: 'guild-view-footer',
 
   props: {
-    config: Object
+    config: Object,
+    fixed: {
+      type: Boolean,
+      default: true
+    }
   }
 };
 </script>
