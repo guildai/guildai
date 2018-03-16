@@ -30,6 +30,8 @@ from werkzeug.utils import redirect
 from werkzeug.wrappers import Request, Response
 from werkzeug.wsgi import SharedDataMiddleware
 
+import guild.index
+
 from guild import util
 from guild import var
 
@@ -39,6 +41,25 @@ MODULE_DIR = os.path.dirname(__file__)
 
 TB_RUNS_MONITOR_INTERVAL = 5
 TB_REFRESH_INTERVAL = 5
+
+SCALAR_KEYS = [
+    ("step", (
+        "loss_step",
+        "train/loss_step",
+        "total_loss_1_step"
+    )),
+    ("loss", (
+        "loss",
+        "train/loss",
+        "total_loss_1"
+    )),
+    ("val_acc", (
+        "val_acc",
+        "validate/accuracy",
+        "eval/accuracy",
+        "eval/Accuracy",
+    ))
+]
 
 class ViewData(object):
 
@@ -297,7 +318,8 @@ def _serve_prod(data, host, port, no_open):
 
 def _start_view(data, host, port):
     tb_servers = TBServers(data)
-    app = _view_app(data, tb_servers)
+    index = guild.index.RunIndex()
+    app = _view_app(data, tb_servers, index)
     try:
         server = serving.make_server(host, port, app, threaded=True)
     except socket.error as e:
@@ -312,13 +334,13 @@ def _start_view(data, host, port):
     server.serve_forever()
     tb_servers.stop_servers()
 
-def _view_app(data, tb_servers):
+def _view_app(data, tb_servers, index):
     dist_files = DistFiles()
     run_files = RunFiles()
     def rule(path, handler, *args):
         return routing.Rule(path, endpoint=(handler, args))
     routes = routing.Map([
-        rule("/runs", _handle_runs, data),
+        rule("/runs", _handle_runs, data, index),
         rule("/runs/<path:_>", run_files.handle),
         rule("/config", _handle_config, data),
         rule("/tb/", _route_tb),
@@ -347,18 +369,40 @@ def _del_underscore_vars(kw):
         k: kw[k] for k in kw if k[0] != "_"
     }
 
-def _handle_runs(req, data):
-    if "run" in req.args:
-        run = _try_one_run_data(req.args["run"], data)
-        return _json_resp([run])
-    else:
-        return _json_resp(data.runs_data())
+def _handle_runs(req, data, index):
+    runs_data = _runs_data(req, data)
+    _apply_scalars(runs_data, index)
+    return _json_resp(runs_data)
 
-def _try_one_run_data(run_id_prefix, data):
+def _runs_data(req, data):
+    try:
+        run_id_prefix = req.args["run"]
+    except KeyError:
+        return data.runs_data()
+    else:
+        return [_one_run_data(run_id_prefix, data)]
+
+def _one_run_data(run_id_prefix, data):
     data = data.one_run_data(run_id_prefix)
     if not data:
         raise NotFound()
     return data
+
+def _apply_scalars(runs_data, index):
+    run_ids = [run["id"] for run in runs_data]
+    scalars = _run_scalars(run_ids, index)
+    for run in runs_data:
+        run["scalars"] = scalars[run["id"]]
+
+def _run_scalars(run_ids, index):
+    scalars = {}
+    for run_result in index.runs(run_ids):
+        run_scalars = scalars.setdefault(run_result.id, {})
+        for normalized_key, possible_keys in SCALAR_KEYS:
+            val = run_result.scalar(possible_keys)
+            if val is not None:
+                run_scalars[normalized_key] = val
+    return scalars
 
 def _json_resp(data):
     return Response(
