@@ -42,7 +42,8 @@ class ViewDataImpl(view.ViewData):
     def runs_data(self):
         return list(self._runs_data_iter(self.runs()))
 
-    def one_run(self, run_id_prefix):
+    @staticmethod
+    def one_run(run_id_prefix):
         try:
             id, path = next(var.find_runs(run_id_prefix))
         except StopIteration:
