@@ -40,7 +40,7 @@ export default {
       drawerBreakPoint: drawerBreakPoint,
       drawer: window.innerWidth >= drawerBreakPoint,
       footerFixed: window.innerWidth >= drawerBreakPoint,
-      selected: {compare: true},
+      selected: {},
       runs: [],
       config: {},
       fetchRunsTimeout: undefined
