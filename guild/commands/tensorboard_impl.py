@@ -27,7 +27,7 @@ log = logging.getLogger("guild")
 
 def main(args):
     tensorboard = _load_guild_tensorboard_module()
-    _filter_tensorboard_logging()
+    tensorboard.setup_logging()
     with util.TempDir("guild-tensorboard-") as logdir:
         log.debug("Using logdir %s", logdir)
         list_runs_cb = lambda: runs_impl.runs_for_args(args)
@@ -67,22 +67,3 @@ def _handle_tensorboard_import_error(e):
 
 def _open_url(url):
     util.open_url(url)
-
-def _filter_tensorboard_logging():
-    import tensorflow as tf
-    warn0 = tf.logging.warn
-    tf.logging.warn = (
-        lambda *args, **kw: _filter_warn(warn0, *args, **kw)
-    )
-    tf.logging.warning = tf.logging.warn
-
-def _filter_warn(warn0, msg, *args, **kw):
-    skip = [
-        "Found more than one graph event per run",
-        "Found more than one metagraph event per run",
-        "Deleting accumulator",
-    ]
-    for s in skip:
-        if msg.startswith(s):
-            return
-    warn0(msg, *args, **kw)

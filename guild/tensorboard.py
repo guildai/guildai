@@ -28,7 +28,7 @@ from werkzeug import serving
 
 # pylint: disable=unused-import,wrong-import-order
 
-import tensorflow as _dummy
+import tensorflow as tf
 from tensorboard import version
 
 log = logging.getLogger("guild")
@@ -156,6 +156,25 @@ def create_app(logdir, reload_interval, path_prefix=""):
 
 def setup_logging():
     tf_util.setup_logging()
+    _filter_logging()
+
+def _filter_logging():
+    warn0 = tf.logging.warn
+    tf.logging.warn = (
+        lambda *args, **kw: _filter_warn(warn0, *args, **kw)
+    )
+    tf.logging.warning = tf.logging.warn
+
+def _filter_warn(warn0, msg, *args, **kw):
+    skip = [
+        "Found more than one graph event per run",
+        "Found more than one metagraph event per run",
+        "Deleting accumulator",
+    ]
+    for s in skip:
+        if msg.startswith(s):
+            return
+    warn0(msg, *args, **kw)
 
 def run_simple_server(tb_app, host, port, ready_cb):
     server, url = make_simple_server(tb_app, host, port)
