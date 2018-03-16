@@ -41,6 +41,12 @@
           <td>{{ runs.item.started }}</td>
           <td>{{ runs.item.status }}</td>
           <td>{{ runs.item.label }}</td>
+          <td v-for="header in scalarHeaders">
+            {{ fmtScalar(runs.item.scalars[header.value.substr(8)]) }}
+          </td>
+          <td v-for="header in flagHeaders">
+            {{ runs.item.flags[header.value.substr(6)] }}
+          </td>
         </template>
       </v-data-table>
     </v-card>
@@ -66,14 +72,59 @@ export default {
         sortBy: 'started',
         descending: true,
         rowsPerPage: -1
-      },
-      headers: [
-        {text: 'Run', value: 'operation', align: 'left'},
-        {text: 'Started', value: 'started', align: 'left'},
-        {text: 'Status', value: 'status', align: 'left'},
-        {text: 'Label', value: 'label', align: 'left'}
-      ]
+      }
     };
+  },
+
+  computed: {
+    headers() {
+      return [].concat(
+        [
+          {text: 'Run', value: 'operation', align: 'left'},
+          {text: 'Started', value: 'started', align: 'left'},
+          {text: 'Status', value: 'status', align: 'left'},
+          {text: 'Label', value: 'label', align: 'left'}
+        ],
+        this.scalarHeaders,
+        this.flagHeaders);
+    },
+
+    scalarHeaders() {
+      return [
+        {text: 'Step', value: 'scalars.step', align: 'left'},
+        {text: 'Accuracy', value: 'scalars.val_acc', align: 'left'},
+        {text: 'Loss', value: 'scalars.loss', align: 'left'}
+      ];
+    },
+
+    flagHeaders() {
+      const flags = [];
+      this.runs.forEach(run => {
+        Object.keys(run.flags).forEach(flag => {
+          if (!flags.includes(flag)) {
+            flags.push(flag);
+          }
+        });
+      });
+      flags.sort();
+      return flags.map(flag => ({
+        text: flag,
+        value: 'flags.' + flag,
+        align: 'left'
+      }));
+    }
+  },
+
+  methods: {
+    fmtScalar(n) {
+      if (Number.isInteger(n)) {
+        return n;
+      } else if (n) {
+        return n.toPrecision(4);
+      } else {
+        return n;
+      }
+    }
   }
 };
 </script>
