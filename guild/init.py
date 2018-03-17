@@ -93,7 +93,7 @@ def _safe_project_init_copies(src, dest):
     ]
     safe_copies = []
     for root, dirs, files in os.walk(src):
-        _try_remove(dirs, skip_dirs)
+        util.try_remove(dirs, skip_dirs)
         rel_path = root[len(src):]
         for name in files:
             if _matches(name, ignore_files):
@@ -106,13 +106,6 @@ def _safe_project_init_copies(src, dest):
             copy_src = os.path.join(root, name)
             safe_copies.append((copy_src, copy_dest))
     return safe_copies
-
-def _try_remove(l, remove):
-    for x in remove:
-        try:
-            l.remove(x)
-        except ValueError:
-            pass
 
 def _matches(s, patterns):
     for p in patterns:

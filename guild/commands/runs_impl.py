@@ -369,17 +369,20 @@ def restore_runs(args, ctx):
         restore, confirm_default=True)
 
 def run_info(args, ctx):
+    run = one_run(args, ctx)
+    if args.page_output:
+        _page_run_output(run)
+    else:
+        _print_run_info(run, args)
+
+def one_run(args, ctx):
     filtered = filtered_runs(args)
     if not filtered:
         cli.out("No matching runs", err=True)
         cli.error()
     runspec = args.run or "0"
     selected = select_runs(filtered, [runspec], ctx)
-    run = cmd_impl_support.one_run(selected, runspec, ctx)
-    if args.page_output:
-        _page_run_output(run)
-    else:
-        _print_run_info(run, args)
+    return cmd_impl_support.one_run(selected, runspec, ctx)
 
 def _page_run_output(run):
     output = op_util.RunOutput(run)

@@ -65,6 +65,8 @@
     guild.commands.runs_support
     guild.commands.search
     guild.commands.search_impl
+    guild.commands.serve
+    guild.commands.serve_impl
     guild.commands.shell
     guild.commands.shell_impl
     guild.commands.stop

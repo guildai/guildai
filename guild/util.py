@@ -495,3 +495,10 @@ def safe_filesize(path):
         return os.path.getsize(path)
     except OSError:
         return None
+
+def try_remove(l, remove):
+    for x in remove:
+        try:
+            l.remove(x)
+        except ValueError:
+            pass
