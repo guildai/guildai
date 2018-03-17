@@ -19,26 +19,14 @@ import click
 
 from guild import click_util
 
-from . import runs_support
-from . import server_support
-
-@click.command(name="view")
-@runs_support.runs_arg
-@server_support.host_and_port_options
-@click.option(
-    "-n", "--no-open",
-    help="Don't open Guild View in a brower.",
-    is_flag=True)
-@runs_support.op_and_label_filters
-@runs_support.status_filters
-@runs_support.scope_options
-@click.option("--dev", is_flag=True, hidden=True)
-
-@click_util.use_args
-@click_util.render_doc
-
-def view(args):
-    """Visualize runs.
-    """
-    from . import view_impl
-    view_impl.main(args)
+def host_and_port_options(fn):
+    click_util.append_params(fn, [
+        click.Option(
+            ("-h", "--host",), metavar="HOST",
+            help="Name of host interface to listen on."),
+        click.Option(
+            ("-p", "--port",), metavar="PORT",
+            help="Port to listen on.",
+            type=click.IntRange(0, 65535)),
+    ])
+    return fn

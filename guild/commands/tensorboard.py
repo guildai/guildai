@@ -18,17 +18,13 @@ from __future__ import division
 import click
 
 from guild import click_util
+
 from . import runs_support
+from . import server_support
 
 @click.command(name="tensorboard, tb")
 @runs_support.runs_arg
-@click.option(
-    "--host", metavar="HOST",
-    help="Name of host interface to listen on.")
-@click.option(
-    "--port", metavar="PORT",
-    help="Port to listen on.",
-    type=click.IntRange(0, 65535))
+@server_support.host_and_port_options
 @click.option(
     "--refresh-interval", metavar="SECONDS",
     help="Refresh interval (defaults to 5 seconds).",
@@ -36,7 +32,7 @@ from . import runs_support
     default=5)
 @click.option(
     "-n", "--no-open",
-    help="Don't open the TensorBoard URL in a browser.",
+    help="Don't open TensorBoard in a browser.",
     is_flag=True)
 @runs_support.op_and_label_filters
 @runs_support.status_filters
