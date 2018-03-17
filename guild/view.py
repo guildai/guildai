@@ -111,7 +111,7 @@ class DevServer(threading.Thread):
         self.host = host or socket.gethostname()
         self.port = port
         self.view_port = view_port
-        self._view_base_url = _view_url(host, view_port)
+        self._view_base_url = util.local_server_url(host, view_port)
         self._ready = False
 
     def run(self):
@@ -131,7 +131,7 @@ class DevServer(threading.Thread):
         p.wait()
 
     def wait_for_ready(self):
-        url_base = _view_url(self.host, self.port)
+        url_base = util.local_server_url(self.host, self.port)
         while not self._ready:
             ping_url = "{}/assets/favicon.png".format(url_base)
             try:
@@ -300,7 +300,7 @@ def _serve_dev(data, host, port, no_open):
     dev_server = DevServer(host, port, view_port)
     dev_server.start()
     dev_server.wait_for_ready()
-    view_url = _view_url(host, view_port)
+    view_url = util.local_server_url(host, view_port)
     if not no_open:
         util.open_url(view_url)
     sys.stdout.write(" I  Guild View backend: {}\n".format(view_url))
