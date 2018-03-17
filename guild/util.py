@@ -23,7 +23,6 @@ import logging
 import platform
 import re
 import shutil
-import socket
 import subprocess
 import sys
 import tempfile
@@ -505,5 +504,6 @@ def try_remove(l, remove):
             pass
 
 def local_server_url(host, port):
+    import socket
     host = host or socket.gethostname()
     return "http://{}:{}".format(host, port)
