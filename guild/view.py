@@ -307,12 +307,8 @@ def _serve_dev(data, host, port, no_open):
     _start_view(data, host, view_port)
     sys.stdout.write("\n")
 
-def _view_url(host, port):
-    host = host or socket.gethostname()
-    return "http://{}:{}".format(host, port)
-
 def _serve_prod(data, host, port, no_open):
-    view_url = _view_url(host, port)
+    view_url = util.local_server_url(host, port)
     if not no_open:
         util.open_url(view_url)
     sys.stdout.write("Running Guild View at {}\n".format(view_url))

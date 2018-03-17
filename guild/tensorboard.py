@@ -196,7 +196,7 @@ def make_simple_server(app, host, port):
 def _handle_error(request, _client_address):
     log.exception("HTTP serving error: %s", request)
 
-def main(logdir, host, port,
+def serve_forever(logdir, host, port,
          reload_interval=DEFAULT_RELOAD_INTERVAL,
          ready_cb=None):
     app = create_app(logdir, reload_interval)

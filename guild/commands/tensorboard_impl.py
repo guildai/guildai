@@ -34,7 +34,7 @@ def main(args):
         monitor = tensorboard.RunsMonitor(
             list_runs_cb, logdir, args.refresh_interval)
         monitor.start()
-        tensorboard.main(
+        tensorboard.serve_forever(
             logdir=logdir,
             host=(args.host or socket.gethostname()),
             port=(args.port or util.free_port()),
