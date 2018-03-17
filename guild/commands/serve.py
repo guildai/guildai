@@ -18,16 +18,22 @@ from __future__ import division
 import click
 
 from guild import click_util
+
 from . import runs_support
+from . import server_support
 
 @click.command()
 @runs_support.run_arg
 @click.option(
     "-m", "--model", metavar="PATH",
     help="Serve saved model in PATH instead of from a run")
+@server_support.host_and_port_options
 @runs_support.op_and_label_filters
 @runs_support.status_filters
 @runs_support.scope_options
+@click.option(
+    "--print-model-info", is_flag=True,
+    help="Show model info and exit.")
 
 @click.pass_context
 @click_util.use_args

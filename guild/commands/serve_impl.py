@@ -17,6 +17,11 @@ from __future__ import division
 
 import os
 
+import six
+import yaml
+
+import guild.serve
+
 from guild import cli
 from guild import util
 
@@ -24,24 +29,29 @@ from guild.commands import runs_impl
 
 def main(args, ctx):
     if args.model:
-        _serve_path(args.model)
+        _handle_path(args.model, args)
     else:
-        _serve_run(runs_impl.one_run(args, ctx))
+        _handle_run(runs_impl.one_run(args, ctx), args)
 
-def _serve_path(path):
-    print("TODO: serve it!", path)
+def _handle_path(path, args):
+    if args.print_model_info:
+        _print_model_info(path)
+    else:
+        _serve_model(path, args)
 
-def _serve_run(run):
+def _handle_run(run, args):
     saved_models = _find_saved_models(run.path)
     if not saved_models:
         cli.out("Run %s does not contain any saved models" % run.id, err=True)
         cli.error()
-    return _serve_path(_one_saved_model(saved_models))
+    return _handle_path(_one_saved_model(saved_models), args)
 
 def _find_saved_models(path):
+    # pylint: disable=no-name-in-module
+    from tensorflow.python.saved_model import loader # expensive
     paths = []
-    for root, dirs, files in os.walk(path):
-        if "saved_model.pb" in files:
+    for root, dirs, _files in os.walk(path):
+        if loader.maybe_saved_model_directory(root):
             paths.append(root)
         util.try_remove(dirs, [".guild"])
     return paths
@@ -49,3 +59,29 @@ def _find_saved_models(path):
 def _one_saved_model(paths):
     assert paths
     return sorted(paths)[-1]
+
+class InfoDumper(yaml.SafeDumper):
+
+    primitive_types = (
+        float,
+        six.integer_types,
+        six.string_types
+    )
+
+    def __init__(self, *args, **kw):
+        kw["default_flow_style"] = False
+        super(InfoDumper, self).__init__(*args, **kw)
+
+    def represent_sequence(self, tag, seq, flow_style=None):
+        base = super(InfoDumper, self).represent_sequence
+        if seq and isinstance(seq[0], self.primitive_types):
+            return base(tag, seq, flow_style=True)
+        return base(tag, seq, flow_style)
+
+def _print_model_info(path):
+    info = guild.serve.model_info(path)
+    formatted = yaml.dump(info, Dumper=InfoDumper)
+    cli.out(formatted.strip())
+
+def _serve_model(path, args):
+    guild.serve.serve_forever(path, args.host, args.port)
