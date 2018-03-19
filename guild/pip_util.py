@@ -138,9 +138,13 @@ class QuietLogger(logging.Logger):
         self.level = logging.WARNING
 
 def _ensure_search_logger():
-    from pip._vendor.requests.packages.urllib3 import connectionpool
-    if not isinstance(connectionpool.log, QuietLogger):
-        connectionpool.log = QuietLogger(connectionpool.log)
+    try:
+        from pip._vendor.requests.packages.urllib3 import connectionpool
+    except ImportError:
+        pass
+    else:
+        if not isinstance(connectionpool.log, QuietLogger):
+            connectionpool.log = QuietLogger(connectionpool.log)
 
 def uninstall(reqs, dont_prompt=False):
     cmd = UninstallCommand()
