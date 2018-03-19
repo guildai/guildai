@@ -73,7 +73,7 @@ def filtered_runs(args, force_deleted=False):
         _runs_root_for_args(args, force_deleted),
         sort=["-started"],
         filter=_runs_filter(args),
-        run_init=init_run)
+        run_init=init_opref_attr)
 
 def _runs_root_for_args(args, force_deleted):
     deleted = force_deleted or getattr(args, "deleted", False)
@@ -215,7 +215,7 @@ def _no_selected_runs_error(help_msg=None):
     cli.out(help_msg, err=True)
     cli.error()
 
-def init_run(run):
+def init_opref_attr(run):
     try:
         opref = guild.opref.OpRef.from_run(run)
     except guild.opref.OpRefError as e:
