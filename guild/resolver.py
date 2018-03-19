@@ -23,7 +23,6 @@ import re
 
 import guild.opref
 
-from guild import pip_util
 from guild import util
 from guild import var
 
@@ -70,6 +69,7 @@ def _resolve_config_path(config, resource_name):
 class URLResolver(Resolver):
 
     def resolve(self, unpack_dir=None):
+        from guild import pip_util # expensive and far reaching
         if self.resource.config:
             return _resolve_config_path(
                 self.resource.config,
