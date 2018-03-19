@@ -34,6 +34,7 @@ import yaml
 import guild.op
 import guild.run
 
+from guild import click_util
 from guild import op_util
 from guild import opref
 from guild import plugin_util
@@ -886,12 +887,14 @@ def _find_run(run_prefix, referring_run, for_ops):
     if not runs_impl.init_opref_attr(referring_run):
         _exit("Unable to get operation details for %s" % referring_run.id)
     model_name = referring_run.opref.model_name
-    class Args(object):
-        ops = ["%s:%s" % (model_name, op) for op in for_ops]
-        completed = True
-        labels = []
-        runs = []
-    args = Args()
+    args = click_util.Args(
+        ops=["%s:%s" % (model_name, op) for op in for_ops],
+        completed=True,
+        running=True,
+        terminated=True,
+        labels=[],
+        runs=[],
+    )
     runs = runs_impl.runs_for_args(args)
     if not runs:
         op_desc = ", ".join(args.ops)
