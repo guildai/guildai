@@ -26,7 +26,7 @@ import guild
 
 class Args(object):
 
-    def __init__(self, kw):
+    def __init__(self, **kw):
         self.__kw = kw
         for name in kw:
             setattr(self, name, kw[name])
@@ -137,7 +137,7 @@ class JSONHelpFormatter(object):
 
 def use_args(fn0):
     def fn(*args, **kw):
-        return fn0(*(args + (Args(kw),)))
+        return fn0(*(args + (Args(**kw),)))
     return functools.update_wrapper(fn, fn0)
 
 def append_params(fn, params):
