@@ -26,6 +26,7 @@ import time
 import guild.plugin
 import guild.run
 
+from guild import config
 from guild import deps
 from guild import op_util
 from guild import opref
@@ -135,6 +136,7 @@ class Operation(object):
         env.update(self.cmd_env)
         env["RUN_DIR"] = self._run.path
         env["RUN_ID"] = self._run.id
+        env["GUILD_HOME"] = config.guild_home()
         return env
 
     def _wait_for_proc(self):
