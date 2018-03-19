@@ -575,7 +575,7 @@ class Deploy(object):
             _exit(
                 "missing required flags 'bucket' or 'model-binaries' "
                 "(specifies where model binaries should be uploaded for "
-                "deploymente)")
+                "deployment)")
 
     def _init_run(self):
         if not self.run.get("label"):
