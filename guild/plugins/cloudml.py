@@ -229,7 +229,7 @@ def _predict_opdef_data():
             },
             "instance-type": {
                 "description": (
-                    "Instance type (if type cannot be interred from instances "
+                    "Instance type (if type cannot be inferred from instances "
                     "file name)"
                 ),
                 "choices": ["json", "text"]
