@@ -591,7 +591,7 @@ class Deploy(object):
         p = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _out, err = p.communicate()
-        if "model with the same name already exists" in err:
+        if "model with the same name already exists" in err.decode("utf-8"):
             log.info("Model %s already exists", self.safe_model_name)
         elif p.returncode != 0:
             _exit(err, code=p.returncode)
