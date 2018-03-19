@@ -182,7 +182,7 @@ def _plugin_opdef(name, modeldef, parent_opdef):
     if opdef is None:
         cli.error(
             "plugin-op '%s' specified by %s is not defined"
-            % (parent_opdef.plugin_op.name, parent_opdef.fullname))
+            % (parent_opdef.plugin_op, parent_opdef.fullname))
     return opdef
 
 def _no_such_operation_error(name, model):
