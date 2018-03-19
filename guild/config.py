@@ -48,7 +48,10 @@ def cwd():
     return _cwd or "."
 
 def guild_home():
-    return _guild_home or os.path.join(os.path.expanduser("~"), ".guild")
+    return (
+        _guild_home or
+        os.getenv("GUILD_HOME") or
+        os.path.join(os.path.expanduser("~"), ".guild"))
 
 def set_log_output(flag):
     globals()["_log_output"] = flag
