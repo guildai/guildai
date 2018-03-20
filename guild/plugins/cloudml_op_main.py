@@ -771,7 +771,7 @@ class Predict(object):
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
         else:
-            sys.stdout.write(out)
+            sys.stdout.write(out.decode())
             self._write_prediction_results(out)
 
     def _instances_args(self):
@@ -801,7 +801,7 @@ class Predict(object):
     @staticmethod
     def _write_prediction_results(results):
         with open("prediction.results", "w") as f:
-            f.write(results)
+            f.write(results.decode())
 
 class BatchPredict(Predict):
 
