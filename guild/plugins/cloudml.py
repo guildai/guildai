@@ -234,7 +234,7 @@ def _predict_opdef_data():
                 ),
                 "choices": ["json", "text"]
             },
-            "format": {
+            "output-format": {
                 "description": (
                     "Format of the prediction output "
                     "(see https://cloud.google.com/sdk/gcloud/reference/ for "

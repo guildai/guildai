@@ -720,7 +720,7 @@ class Predict(object):
         p.add_argument("--deployed-model")
         p.add_argument("--instances", required=True)
         p.add_argument("--instance-type")
-        p.add_argument("--format")
+        p.add_argument("--output-format")
         return p
 
     def _model_name(self):
@@ -758,8 +758,8 @@ class Predict(object):
 
     def _predict(self):
         args = [self.sdk.gcloud]
-        if self.args.format:
-            args.extend(["--format", self.args.format])
+        if self.args.output_format:
+            args.extend(["--format", self.args.output_format])
         args.extend([
             "ml-engine", "predict",
             "--model", self.model_name,
