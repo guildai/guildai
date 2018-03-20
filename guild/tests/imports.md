@@ -121,6 +121,8 @@
     guild.resource
     guild.resourcedef
     guild.run
+    guild.serve
+    guild.serving_util
     guild.tabview
     guild.tensorboard
     guild.test

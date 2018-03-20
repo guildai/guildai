@@ -34,7 +34,9 @@ def main(args, ctx):
         _handle_run(runs_impl.one_run(args, ctx), args)
 
 def _handle_path(path, args):
-    if args.print_model_info:
+    if args.print_api:
+        _print_api(path, args)
+    elif args.print_model_info:
         _print_model_info(path)
     else:
         _serve_model(path, args)
@@ -78,10 +80,20 @@ class InfoDumper(yaml.SafeDumper):
             return base(tag, seq, flow_style=True)
         return base(tag, seq, flow_style)
 
+def _print_api(path, args):
+    info = guild.serve.model_api_info(path, _tags(args))
+    formatted = yaml.dump(info, Dumper=InfoDumper)
+    cli.out(formatted.strip())
+
+def _tags(args):
+    return [s.strip() for s in args.tags.split(",")]
+
 def _print_model_info(path):
     info = guild.serve.model_info(path)
     formatted = yaml.dump(info, Dumper=InfoDumper)
     cli.out(formatted.strip())
 
 def _serve_model(path, args):
-    guild.serve.serve_forever(path, args.host, args.port)
+    host = args.host or ""
+    port = args.port or util.free_port()
+    guild.serve.serve_forever(path, _tags(args), host, port)

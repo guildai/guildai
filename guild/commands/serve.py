@@ -27,10 +27,21 @@ from . import server_support
 @click.option(
     "-m", "--model", metavar="PATH",
     help="Serve saved model in PATH instead of from a run")
+@click.option(
+    "-t", "--model-tags", "tags", metavar="TAGS",
+    default="serve",
+    help=(
+        "Tags for the model in PATH to serve, separated by commas "
+        "(default is 'serve')."))
 @server_support.host_and_port_options
 @runs_support.op_and_label_filters
 @runs_support.status_filters
 @runs_support.scope_options
+@click.option(
+    "--print-api", is_flag=True,
+    help="Show OpenAPI definition and exit.",
+    # TODO unhide when implemented
+    hidden=True)
 @click.option(
     "--print-model-info", is_flag=True,
     help="Show model info and exit.")
