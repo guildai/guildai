@@ -50,7 +50,7 @@ Packages have various attributes that are used to create the package.
     >>> pkg.url
     'https://github.com/guildai/index/tree/master/hello'
 
-    >>> pkg.maintainer_email
+    >>> pkg.author_email
     'packages@guild.ai'
 
 We can use `guild.package.create_package` to build a binary wheel
