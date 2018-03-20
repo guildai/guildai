@@ -54,9 +54,10 @@ def make_server(host, port, app, logging=False):
             host, port, e)
         return serving.make_server("::", port, app, threaded=True)
 
-def json_resp(data):
+def json_resp(data, status=200):
     return Response(
         json.dumps(data),
+        status=status,
         content_type="application/json",
         headers=[("Access-Control-Allow-Origin", "*")])
 

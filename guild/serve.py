@@ -16,10 +16,13 @@ from __future__ import absolute_import
 from __future__ import division
 
 import json
+import logging
 import sys
 import threading
 
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import HTTPException, MethodNotAllowed
+
+import tensorflow as tf
 
 # pylint: disable=no-name-in-module
 from tensorflow.python.saved_model import loader_impl
@@ -27,6 +30,8 @@ from tensorflow.core.framework import types_pb2
 
 from guild import serving_util
 from guild import util
+
+log = logging.getLogger("guild")
 
 def model_info(saved_model_path):
     sm = loader_impl._parse_saved_model(saved_model_path)
@@ -103,7 +108,6 @@ def serve_forever(saved_model_path, tags, host, port):
     sys.stdout.write("\n")
 
 def _init_session():
-    import tensorflow as tf
     return tf.Session()
 
 def _load_saved_model(path, tags, session):
@@ -120,11 +124,16 @@ class SessionRun(object):
     def __call__(self, req):
         if "json-instances" in req.files:
             return self._handle_json_instances(req.files["json-instances"])
-        raise BadRequest("missing one of: json-instances")
+        self._error("missing one of: json-instances", 400)
 
     def _handle_json_instances(self, f):
-        instances = self._parse_json_instances(f.read())
-        return self._run(self._feed_dict(instances, dict))
+        raw = f.read()
+        try:
+            instances = self._parse_json_instances(raw)
+        except json.decoder.JSONDecodeError as e:
+            self._error("invalid JSON: %s" % e, 400)
+        else:
+            return self._run(self._feed_dict(instances, dict))
 
     @staticmethod
     def _parse_json_instances(s):
@@ -133,24 +142,29 @@ class SessionRun(object):
 
     def _feed_dict(self, instances, inst_type):
         result = {}
+        assert inst_type is dict
         for inst in instances:
-            if inst_type is dict:
-                for name, t_name in self._inputs:
-                    vals = result.setdefault(t_name, [])
-                    val = inst.get(name)
-                    vals.append(inst.get(name))
-            else:
-                assert inst_type is list, inst_type
-                for (_name, op), val in zip(self._inputs, inst):
-                    vals = result.setdefault(op.name, [])
-                    vals.append(val)
+            for name, t_name in self._inputs:
+                val = inst.get(name)
+                result.setdefault(t_name, []).append(val)
         return result
 
     def _run(self, feed_dict):
         t_outputs = [t_name for _name, t_name in self._outputs]
-        with self._sess_lock:
-            result = self._sess.run(t_outputs, feed_dict=feed_dict)
-        return self._format_result(result)
+        log.debug("running %s with %s", t_outputs, feed_dict)
+        try:
+            with self._sess_lock:
+                result = self._sess.run(t_outputs, feed_dict=feed_dict)
+        except tf.errors.OpError as e:
+            self._error(str(e), 400)
+        except Exception as e:
+            log.exception(
+                "session.run:\n"
+                " outputs: %s\n"
+                " inputs: %s", t_outputs, feed_dict)
+            self._error("unhandled error: %s" % e, 500)
+        else:
+            return self._format_result(result)
 
     def _format_result(self, result):
         names = [name for name, _t_name in self._outputs]
@@ -171,6 +185,11 @@ class SessionRun(object):
                 return val.item()
         return [ensure_json_serializable(x) for x in val]
 
+    @staticmethod
+    def _error(msg, status):
+        resp = serving_util.json_resp({"error": msg}, status)
+        raise HTTPException(response=resp)
+
 def _init_app(meta_graph, sess):
     sess_lock = threading.Lock()
     rules = [
@@ -182,6 +201,6 @@ def _init_app(meta_graph, sess):
 
 def _handle_predict(req, run):
     if req.method != "POST":
-        raise BadRequest("unsupported method: %s" % req.method)
+        raise MethodNotAllowed(valid_methods=["POST"])
     result = run(req)
     return serving_util.json_resp(result)
