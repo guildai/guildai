@@ -32,7 +32,7 @@ class QuietRequestHandler(serving.WSGIRequestHandler):
         if type != 'info':
             super(QuietRequestHandler, self).log(type, message, *args)
 
-def make_server(host, port, app, logging=False):
+def make_server(host, port, app, logging=True):
     if host is None:
         raise RuntimeError("host cannot be None")
     if port is None:
