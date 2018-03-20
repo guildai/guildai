@@ -15,7 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import json
 import logging
 import os
 import socket
@@ -26,15 +25,13 @@ import time
 
 import requests
 
-from werkzeug import routing
-from werkzeug import serving
-from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug.exceptions import NotFound
 from werkzeug.utils import redirect
-from werkzeug.wrappers import Request, Response
 from werkzeug.wsgi import SharedDataMiddleware
 
 import guild.index
 
+from guild import serving_util
 from guild import util
 from guild import var
 
@@ -319,16 +316,7 @@ def _start_view(data, host, port):
     tb_servers = TBServers(data)
     index = guild.index.RunIndex()
     app = _view_app(data, tb_servers, index)
-    try:
-        server = serving.make_server(host, port, app, threaded=True)
-    except socket.error as e:
-        if host:
-            raise
-        log.debug(
-            "error starting server on %s:%s (%s), "
-            "trying IPv6 default host '::'",
-            host, port, e)
-        server = serving.make_server("::", port, app, threaded=True)
+    server = serving_util.make_server(host, port, app)
     sys.stdout.flush()
     server.serve_forever()
     tb_servers.stop_servers()
@@ -336,42 +324,22 @@ def _start_view(data, host, port):
 def _view_app(data, tb_servers, index):
     dist_files = DistFiles()
     run_files = RunFiles()
-    def rule(path, handler, *args):
-        return routing.Rule(path, endpoint=(handler, args))
-    routes = routing.Map([
-        rule("/runs", _handle_runs, data, index),
-        rule("/runs/<path:_>", run_files.handle),
-        rule("/config", _handle_config, data),
-        rule("/tb/", _route_tb),
-        rule("/tb/<key>/", _handle_tb_index, tb_servers, data),
-        rule("/tb/<key>/<path:_>", _handle_tb, tb_servers),
-        rule("/", dist_files.handle_index),
-        rule("/<path:_>", dist_files.handle),
+    routes = serving_util.Map([
+        ("/runs", _handle_runs, (data, index)),
+        ("/runs/<path:_>", run_files.handle, ()),
+        ("/config", _handle_config, (data,)),
+        ("/tb/", _route_tb, ()),
+        ("/tb/<key>/", _handle_tb_index, (tb_servers, data)),
+        ("/tb/<key>/<path:_>", _handle_tb, (tb_servers,)),
+        ("/", dist_files.handle_index, ()),
+        ("/<path:_>", dist_files.handle, ()),
     ])
-    def app(env, start_resp):
-        urls = routes.bind_to_environ(env)
-        try:
-            (handler, args), kw = urls.match()
-        except HTTPException as e:
-            return e(env, start_resp)
-        else:
-            args = (Request(env),) + args
-            kw = _del_underscore_vars(kw)
-            try:
-                return handler(*args, **kw)(env, start_resp)
-            except HTTPException as e:
-                return e(env, start_resp)
-    return app
-
-def _del_underscore_vars(kw):
-    return {
-        k: kw[k] for k in kw if k[0] != "_"
-    }
+    return serving_util.App(routes)
 
 def _handle_runs(req, data, index):
     runs_data = _runs_data(req, data)
     _apply_scalars(runs_data, index)
-    return _json_resp(runs_data)
+    return serving_util.json_resp(runs_data)
 
 def _runs_data(req, data):
     try:
@@ -403,14 +371,8 @@ def _run_scalars(run_ids, index):
                 run_scalars[normalized_key] = val
     return scalars
 
-def _json_resp(data):
-    return Response(
-        json.dumps(data),
-        content_type="application/json",
-        headers=[("Access-Control-Allow-Origin", "*")])
-
 def _handle_config(_req, data):
-    return _json_resp(data.config())
+    return serving_util.json_resp(data.config())
 
 def _route_tb(req):
     if "run" in req.args:
