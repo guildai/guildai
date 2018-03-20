@@ -787,7 +787,8 @@ class Predict(object):
             return ["--json-instances", instances]
         else:
             if format != "text":
-                log.warning("unknown instance type '%s' - assuming 'text'", format)
+                log.warning(
+                    "unknown instance type '%s' - assuming 'text'", format)
             return ["--text-instances", instances]
 
     @staticmethod
