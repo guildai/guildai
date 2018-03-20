@@ -286,13 +286,13 @@ class RunFiles(StaticBase):
             return self._app(env, start_resp)
         return app
 
-def serve_forever(data, host, port, no_open=False, dev=False):
+def serve_forever(data, host, port, no_open=False, dev=False, logging=False):
     if dev:
-        _serve_dev(data, host, port, no_open)
+        _serve_dev(data, host, port, no_open, logging)
     else:
-        _serve_prod(data, host, port, no_open)
+        _serve_prod(data, host, port, no_open, logging)
 
-def _serve_dev(data, host, port, no_open):
+def _serve_dev(data, host, port, no_open, logging):
     view_port = util.free_port()
     dev_server = DevServer(host, port, view_port)
     dev_server.start()
@@ -301,22 +301,22 @@ def _serve_dev(data, host, port, no_open):
     if not no_open:
         util.open_url(view_url)
     sys.stdout.write(" I  Guild View backend: {}\n".format(view_url))
-    _start_view(data, host, view_port)
+    _start_view(data, host, view_port, logging)
     sys.stdout.write("\n")
 
-def _serve_prod(data, host, port, no_open):
+def _serve_prod(data, host, port, no_open, logging):
     view_url = util.local_server_url(host, port)
     if not no_open:
         util.open_url(view_url)
     sys.stdout.write("Running Guild View at {}\n".format(view_url))
-    _start_view(data, host, port)
+    _start_view(data, host, port, logging)
     sys.stdout.write("\n")
 
-def _start_view(data, host, port):
+def _start_view(data, host, port, logging):
     tb_servers = TBServers(data)
     index = guild.index.RunIndex()
     app = _view_app(data, tb_servers, index)
-    server = serving_util.make_server(host, port, app)
+    server = serving_util.make_server(host, port, app, logging)
     sys.stdout.flush()
     server.serve_forever()
     tb_servers.stop_servers()

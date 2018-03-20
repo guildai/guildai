@@ -29,6 +29,7 @@ from . import server_support
     "-n", "--no-open",
     help="Don't open Guild View in a brower.",
     is_flag=True)
+@click.option("--logging", help="Log requests.", is_flag=True)
 @runs_support.op_and_label_filters
 @runs_support.status_filters
 @runs_support.scope_options

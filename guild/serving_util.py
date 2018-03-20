@@ -26,13 +26,25 @@ from werkzeug.wrappers import Request, Response
 
 log = logging.getLogger("guild")
 
-def make_server(host, port, app):
+class QuietRequestHandler(serving.WSGIRequestHandler):
+
+    def log(self, type, message, *args):
+        if type != 'info':
+            super(QuietRequestHandler, self).log(type, message, *args)
+
+def make_server(host, port, app, logging=False):
     if host is None:
         raise RuntimeError("host cannot be None")
     if port is None:
         raise RuntimeError("port cannot be None")
+    if logging:
+        request_handler = serving.WSGIRequestHandler
+    else:
+        request_handler = QuietRequestHandler
     try:
-        return serving.make_server(host, port, app, threaded=True)
+        return serving.make_server(
+            host, port, app, threaded=True,
+            request_handler=request_handler)
     except socket.error as e:
         if host:
             raise

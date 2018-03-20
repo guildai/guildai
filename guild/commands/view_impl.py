@@ -271,4 +271,4 @@ def main(args):
     data = ViewDataImpl(args)
     host = args.host or ""
     port = args.port or util.free_port()
-    view.serve_forever(data, host, port, args.no_open, args.dev)
+    view.serve_forever(data, host, port, args.no_open, args.dev, args.logging)
