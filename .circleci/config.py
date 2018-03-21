@@ -16,13 +16,21 @@
 
 import yaml
 
-class Build(object):
+class WorkflowJob(object):
+
+    def job(self):
+        raise NotImplementedError()
+
+    def workflow_job(self):
+        raise NotImplementedError()
+
+class Build(WorkflowJob):
 
     cache_scheme_version = 10
 
     name = None
-    python = None
     env = None
+    python = None
 
     pip = "pip"
 
@@ -162,6 +170,7 @@ class Build(object):
         }
 
     def workflow_job(self):
+        assert self.name
         return {
             self.name: {
                 "filters": {
@@ -183,8 +192,8 @@ class LinuxBuild(Build):
     }
 
     def __init__(self, python):
+        self.name = "build-linux-python-%s" % python
         self.python = python
-        self.name = "linux-python-%s" % python
 
     def env_config(self):
         return [{"image": self.images[self.name]}]
@@ -196,12 +205,11 @@ class LinuxBuild(Build):
 class MacBuild(Build):
 
     env = "macos"
-
     xcode_version = "9.2.0"
 
     def __init__(self, python):
+        self.name = "build-macos-python-%s" % python
         self.python = python
-        self.name = "macos-python-%s" % python
         if self.python.startswith("3."):
             self.pip = "pip3"
 
@@ -218,12 +226,74 @@ class MacBuild(Build):
             ]
         return lines
 
+class ReleaseUAT(WorkflowJob):
+
+    name = None
+    env = None
+    python = None
+    anaconda = None
+
+    def job(self):
+        assert self.env
+        return {
+            self.env: self.env_config(),
+            "working_directory": "~",
+            "steps": self.steps()
+        }
+
+    def steps(self):
+        return []
+
+    def workflow_job(self):
+        assert self.name
+        return {
+            self.name: {
+                "filters": {
+                    "branches": {
+                        "only": "uat"
+                    }
+                }
+            }
+        }
+
+    def _xxx_conda_notes():
+        """
+        # Install miniconda
+
+        wget -P ~ http://repo.continuum.io/miniconda/Miniconda3-3.7.0-MacOSX-x86_64.sh
+        bash ~/Miniconda3-3.7.0-MacOSX-x86_64.sh -b -p ~/conda
+
+        # Init env
+
+        ~/conda/bin/conda create --yes -p build-env-2 pip python=3.6
+
+        # Activate env
+
+        source ~/conda/bin/activate /Users/distiller/repo/build-env-2
+        """
+        pass
+
+class MacUAT(ReleaseUAT):
+
+    env = "macos"
+    xcode_version = "9.2.0"
+
+    def __init__(self, python, anaconda=None):
+        self.name = "uat-macos-python-%s" % python
+        self.python = python
+        self.anaconda = anaconda
+
+    def env_config(self):
+        return {
+            "xcode": self.xcode_version
+        }
+
 class Config(object):
 
     version = 2
 
-    def __init__(self, builds):
-        self.builds = builds
+    def __init__(self, workflow_jobs):
+        self.workflow_jobs = workflow_jobs
 
     def write(self):
         config = {
@@ -236,14 +306,18 @@ class Config(object):
 
     def _jobs(self):
         return {
-            build.name: build.job() for build in self.builds
+            workflow_job.name: workflow_job.job()
+            for workflow_job in self.workflow_jobs
         }
 
     def _workflows(self):
         return {
             "version": self.version,
             "all": {
-                "jobs": [build.workflow_job() for build in self.builds]
+                "jobs": [
+                    workflow_job.workflow_job()
+                    for workflow_job in self.workflow_jobs
+                ]
             }
         }
 
@@ -253,10 +327,16 @@ builds = [
     LinuxBuild(python="3.6"),
     MacBuild(python="2.7"),
     MacBuild(python="3.6"),
+    MacBuild(python="3.6"),
+]
+
+release_uats = [
+    MacUAT(python="3.6", anaconda="3.7.0")
 ]
 
 def main():
-    config = Config(builds)
+    #config = Config(builds + release_uats)
+    config = Config(release_uats)
     config.write()
 
 if __name__ == "__main__":
