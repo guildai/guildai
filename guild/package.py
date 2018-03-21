@@ -57,7 +57,7 @@ def create_package(package_file, dist_dir=None, upload_repo=False,
     env = {}
     env.update(util.safe_osenv())
     env.update({
-        "PYTHONPATH": os.path.pathsep.join(sys.path),
+        "PYTHONPATH": _python_path(),
         "PACKAGE_FILE": package_file,
         "DIST_DIR": dist_dir or "",
         "UPLOAD_REPO": upload_repo or "",
@@ -84,6 +84,9 @@ def create_package(package_file, dist_dir=None, upload_repo=False,
         else:
             raise SystemExit(p.returncode)
     return out
+
+def _python_path():
+    return os.path.pathsep.join([os.path.abspath(path) for path in sys.path])
 
 def _apply_twine_env_creds(env):
     try:
