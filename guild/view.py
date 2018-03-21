@@ -113,9 +113,9 @@ class DevServer(threading.Thread):
 
     def run(self):
         args = [
-            _devserver_bin(),
+            self._devserver_bin(),
             "--host", self.host,
-            "--config", _devserver_config(),
+            "--config", self._devserver_config(),
             "--progress",
         ]
         env = {
@@ -138,17 +138,19 @@ class DevServer(threading.Thread):
             else:
                 self._ready = True
 
-def _devserver_bin():
-    path = os.path.join(
-        MODULE_DIR, "view/node_modules/.bin/webpack-dev-server")
-    if not os.path.exists(path):
-        raise AssertionError(
-            "{} does not exits - did you resolve node dependencies by "
-            "running npm install?".format(path))
-    return path
+    @staticmethod
+    def _devserver_bin():
+        path = os.path.join(
+            MODULE_DIR, "view/node_modules/.bin/webpack-dev-server")
+        if not os.path.exists(path):
+            raise AssertionError(
+                "{} does not exits - did you resolve node dependencies by "
+                "running npm install?".format(path))
+        return path
 
-def _devserver_config():
-    return os.path.join(MODULE_DIR, "view/build/webpack.dev.conf.js")
+    @staticmethod
+    def _devserver_config():
+        return os.path.join(MODULE_DIR, "view/build/webpack.dev.conf.js")
 
 class TBServer(object):
 
