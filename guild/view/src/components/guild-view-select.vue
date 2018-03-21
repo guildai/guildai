@@ -83,7 +83,7 @@ export default {
     },
     value: {
       type: Object,
-      default: undefined
+      default: {}
     }
   },
 
@@ -109,29 +109,24 @@ export default {
     },
 
     selected() {
-      var val = this.value || {};
-      if (val.compare) {
-        return val;
+      if (this.value.compare) {
+        return this.value;
       } else {
-        // Want to show a run
-        var runs = this.filteredRuns;
-        // If run specified, validate against runs
-        if (val.run && runs.some(run => run.id === val.run.id)) {
-          return val;
+        const runs = this.filteredRuns;
+        if (this.value.run) {
+          const selectedRun = runs.find(run => run.id === this.value.run.id);
+          if (selectedRun) {
+            return {run: selectedRun};
+          }
         }
-        // No run or stale run selected, use first in list as default
-        if (runs.length > 0) {
-          return {run: runs[0]};
-        }
-        // Nothing selected
-        return {};
+        return runs.length > 0 ? {run: runs[0]} : {};
       }
     }
   },
 
   watch: {
     selected(val) {
-      if (val !== this.value) {
+      if (JSON.stringify(val) !== JSON.stringify(this.value)) {
         this.$emit('input', val);
       }
     }
