@@ -7,8 +7,14 @@ jobs:
         command: which pip
         name: Init env
     - run:
-        command: pip install guildai
+        command: sudo pip install guildai
         name: Install Guild
+    - run:
+        command: guild init -y
+        name: Init Guild
+    - run:
+        command: 'true'
+        name: User acceptance tests
     working_directory: '~'
 version: 2
 workflows:

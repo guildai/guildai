@@ -230,7 +230,6 @@ class ReleaseUAT(WorkflowJob):
     name = None
     env = None
     python = None
-    anaconda = None
 
     def job(self):
         assert self.env
@@ -244,19 +243,37 @@ class ReleaseUAT(WorkflowJob):
         return [
             self.init_env(),
             self.install_guild(),
+            self.init_guild(),
+            self.uat(),
         ]
 
     def init_env(self):
         return run("Init env", self._init_env_cmd())
 
-    def _init_env_cmd(self):
+    @staticmethod
+    def _init_env_cmd():
         return ["which pip"]
 
     def install_guild(self):
         return run("Install Guild", self._install_guild_cmd())
 
-    def _install_guild_cmd(self):
-        return ["pip install guildai"]
+    @staticmethod
+    def _install_guild_cmd():
+        return ["sudo pip install guildai"]
+
+    def init_guild(self):
+        return run("Init Guild", self._init_guild_cmd())
+
+    @staticmethod
+    def _init_guild_cmd():
+        return ["guild init -y"]
+
+    def uat(self):
+        return run("User acceptance tests", self._uat_cmd())
+
+    @staticmethod
+    def _uat_cmd():
+        return ["true"]
 
     def workflow_job(self):
         assert self.name
@@ -292,10 +309,9 @@ class MacUAT(ReleaseUAT):
     env = "macos"
     xcode_version = "9.2.0"
 
-    def __init__(self, python, anaconda=None):
+    def __init__(self, python):
         self.name = "uat-macos-python-%s" % python
         self.python = python
-        self.anaconda = anaconda
 
     def env_config(self):
         return {
@@ -345,7 +361,7 @@ builds = [
 ]
 
 release_uats = [
-    MacUAT(python="3.6", anaconda="3.7.0")
+    MacUAT(python="3.6")
 ]
 
 def main():
