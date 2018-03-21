@@ -275,7 +275,7 @@ def main(args):
 
 def _host(args):
     if args.host:
-        return host
+        return args.host
     if args.dev:
         return "localhost"
     return ""
