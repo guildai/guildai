@@ -291,9 +291,6 @@ class ModelImportError(ImportError):
 class BadGuildfileDistribution(pkg_resources.Distribution):
     """Distribution for a guildfile that can't be read."""
 
-    def __init__(self, path):
-        super(BadGuildfileDistribution, self).__init__(path)
-
     def __repr__(self):
         return "<guild.model.BadGuildfileDistribution '%s'>" % self.location
 
