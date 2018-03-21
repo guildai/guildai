@@ -177,7 +177,8 @@ def _filter_warn(warn0, msg, *args, **kw):
     warn0(msg, *args, **kw)
 
 def run_simple_server(tb_app, host, port, ready_cb):
-    server, url = make_simple_server(tb_app, host, port)
+    server, _ = make_simple_server(tb_app, host, port)
+    url = util.local_server_url(host, port)
     sys.stderr.write(
         "TensorBoard %s at %s (Press CTRL+C to quit)\n"
         % (version.VERSION, url))

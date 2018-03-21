@@ -292,7 +292,7 @@ def _host(args):
         return args.host
     if args.dev:
         return "localhost"
-    return ""
+    return "0.0.0.0"
 
 def _start_tester(host, port):
     from . import view_tester

@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 import logging
-import socket
 
 from guild import cli
 from guild import util
@@ -36,7 +35,7 @@ def main(args):
         monitor.start()
         tensorboard.serve_forever(
             logdir=logdir,
-            host=(args.host or socket.gethostname()),
+            host=(args.host or "0.0.0.0"),
             port=(args.port or util.free_port()),
             reload_interval=args.refresh_interval,
             ready_cb=(_open_url if not args.no_open else None))

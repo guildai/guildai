@@ -505,7 +505,7 @@ def try_remove(l, remove):
 
 def local_server_url(host, port):
     import socket
-    if not host:
+    if not host or host == "0.0.0.0":
         host = socket.gethostname()
         try:
             # Verify that configured hostname is valid
