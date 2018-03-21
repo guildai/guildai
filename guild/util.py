@@ -505,5 +505,11 @@ def try_remove(l, remove):
 
 def local_server_url(host, port):
     import socket
-    host = host or socket.gethostname()
+    if not host:
+        host = socket.gethostname()
+        try:
+            # Verify that configured hostname is valid
+            socket.gethostbyname(host)
+        except socket.gaierror:
+            host = "localhost"
     return "http://{}:{}".format(host, port)
