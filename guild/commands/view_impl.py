@@ -18,10 +18,12 @@ from __future__ import division
 import logging
 import os
 import re
+import socket
 
 import guild
 import guild.run
 
+from guild import cli
 from guild import config
 from guild import util
 from guild import var
@@ -271,7 +273,19 @@ def main(args):
     data = ViewDataImpl(args)
     host = _host(args)
     port = args.port or util.free_port()
-    view.serve_forever(data, host, port, args.no_open, args.dev, args.logging)
+    if args.test:
+        _start_tester(host, port)
+        args.no_open = True
+    try:
+        view.serve_forever(
+            data,
+            host,
+            port,
+            args.no_open,
+            args.dev,
+            args.logging)
+    except socket.gaierror as e:
+        cli.error(str(e))
 
 def _host(args):
     if args.host:
@@ -279,3 +293,7 @@ def _host(args):
     if args.dev:
         return "localhost"
     return ""
+
+def _start_tester(host, port):
+    from . import view_tester
+    view_tester.start_tester(host, port, os._exit)

@@ -34,6 +34,7 @@ from . import server_support
 @runs_support.status_filters
 @runs_support.scope_options
 @click.option("--dev", is_flag=True, hidden=True)
+@click.option("--test", is_flag=True, hidden=True)
 
 @click_util.use_args
 @click_util.render_doc
