@@ -45,8 +45,8 @@ function statusIcon(status) {
     };
   } else if (status === 'running') {
     return {
-      color: 'green',
-      spinner: true,
+      color: 'orange',
+      icon: 'dots-horizontal-circle',
       tooltip: 'Running'
     };
   } else {
