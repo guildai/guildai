@@ -29,7 +29,6 @@ from pip.download import _download_http_url
 from pip.exceptions import InstallationError
 from pip.exceptions import UninstallationError
 from pip.index import Link
-from pip.locations import running_under_virtualenv
 from pip.utils import get_installed_distributions
 
 from guild import namespace
@@ -67,6 +66,9 @@ def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
         cmd.run(options, cmd_args)
     except InstallationError as e:
         raise InstallError(str(e))
+
+def running_under_virtualenv():
+    return "VIRTUAL_ENV" in os.environ or "CONDA_PREFIX" in os.environ
 
 def _ensure_patch_pip_get_entry_points():
     """Patch pip's get_entrypoints function.

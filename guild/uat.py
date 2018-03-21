@@ -27,12 +27,11 @@ import sys
 import tempfile
 import threading
 
-from pip.locations import running_under_virtualenv
-
 import guild
 import guild.test
 import guild.var
 
+from guild import pip_util
 from guild import util
 
 INDEX = "tests/uat/README.md"
@@ -44,7 +43,7 @@ REQUIREMENTS_PATH = os.path.join(GUILD_PKG, "requirements.txt")
 _cwd = None
 
 def run():
-    if not running_under_virtualenv():
+    if not pip_util.running_under_virtualenv():
         sys.stderr.write("This command must be run in a virtual environment\n")
         sys.exit(1)
     tests = _tests_from_index()

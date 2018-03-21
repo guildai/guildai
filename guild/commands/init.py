@@ -59,9 +59,9 @@ def init(ctx, args):
     in `DIR`. If `DIR` is not specified, its value is determined by
     whether or not the `init` command is executed in a Python virtual
     environment. If `init` is executed within a virtual environment,
-    `DIR` is the value of the `VIRTUAL_ENV` environment variable. If
-    `init` is not executed in a virtual environment, `DIR` is the
-    user's home directory.
+    `DIR` is the environment variable root directory. If `init` is not
+    executed in a virtual environment, `DIR` is the user's home
+    directory.
 
     Environment files are always created in a `.guild` subdirectory of
     `DIR` and no other system files will be modified.

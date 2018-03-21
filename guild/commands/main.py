@@ -49,9 +49,12 @@ from .uninstall import uninstall
 from .view import view
 
 try:
-    _home = os.environ["VIRTUAL_ENV"]
+    _home = os.environ["CONDA_PREFIX"]
 except KeyError:
-    _home = os.path.expanduser("~")
+    try:
+        _home = os.environ["VIRTUAL_ENV"]
+    except KeyError:
+        _home = os.path.expanduser("~")
 
 DEFAULT_GUILD_HOME = os.path.join(_home, ".guild")
 
