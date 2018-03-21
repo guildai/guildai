@@ -173,4 +173,8 @@ def timestamp_seconds(ts):
     return float(ts / 1000000)
 
 def mkid():
-    return uuid.uuid1().hex
+    try:
+        return uuid.uuid1().hex
+    except ValueError:
+        # Workaround https://bugs.python.org/issue32502
+        return uuid.uuid4().hex
