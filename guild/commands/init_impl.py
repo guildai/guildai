@@ -30,7 +30,7 @@ from guild import init
 from guild import pip_util
 from guild import util
 
-from guild.commands.main import DEFAULT_GUILD_HOME
+from guild import config
 from guild.commands import check
 
 log = logging.getLogger("guild")
@@ -186,7 +186,7 @@ def _init_env(args, ctx):
     cmd_impl_support.disallow_args(
         ["params", "template", "from_package"],
         args, ctx, " when initializing an environment")
-    env_path = os.path.abspath(args.dir or os.path.dirname(DEFAULT_GUILD_HOME))
+    env_path = os.path.abspath(args.dir or config.guild_home())
     prompt = (
         "You are about to initialize a Guild AI environment in %s\n"
         "Continue?" % env_path)
