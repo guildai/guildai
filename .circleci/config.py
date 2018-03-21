@@ -24,6 +24,14 @@ class WorkflowJob(object):
     def workflow_job(self):
         raise NotImplementedError()
 
+def run(name, cmd_lines):
+    return {
+        "run": {
+            "name": name,
+            "command": "\n".join(cmd_lines)
+        }
+    }
+
 class Build(WorkflowJob):
 
     cache_scheme_version = 10
@@ -81,7 +89,7 @@ class Build(WorkflowJob):
         return "%s-%i-%s" % (self.name, self.cache_scheme_version, checksums)
 
     def install_deps(self):
-        return self._run("Install dependencies", self._install_deps_cmd())
+        return run("Install dependencies", self._install_deps_cmd())
 
     def _install_deps_cmd(self):
         return [
@@ -126,7 +134,7 @@ class Build(WorkflowJob):
         }
 
     def build(self):
-        return self._run(
+        return run(
             "Build", [
                 ". %s/bin/activate" % self.build_dir,
                 self._bdist_wheel_cmd(),
@@ -137,7 +145,7 @@ class Build(WorkflowJob):
         return "python setup.py bdist_wheel"
 
     def test(self):
-        return self._run("Test", [
+        return run("Test", [
             self._init_env(self.test_dir),
             self._activate_env(self.test_dir),
             "{} install dist/*.whl".format(self.pip),
@@ -154,20 +162,11 @@ class Build(WorkflowJob):
         }
 
     def upload_to_pypi(self):
-        return self._run(
+        return run(
             "Upload to PyPI", [
                 self._activate_env(self.build_dir),
                 "twine upload --skip-existing dist/*.whl",
             ])
-
-    @staticmethod
-    def _run(name, cmd_lines):
-        return {
-            "run": {
-                "name": name,
-                "command": "\n".join(cmd_lines)
-            }
-        }
 
     def workflow_job(self):
         assert self.name
@@ -242,7 +241,22 @@ class ReleaseUAT(WorkflowJob):
         }
 
     def steps(self):
-        return []
+        return [
+            self.init_env(),
+            self.install_guild(),
+        ]
+
+    def init_env(self):
+        return run("Init env", self._init_env_cmd())
+
+    def _init_env_cmd(self):
+        return ["which pip"]
+
+    def install_guild(self):
+        return run("Install Guild", self._install_guild_cmd())
+
+    def _install_guild_cmd(self):
+        return ["pip install guildai"]
 
     def workflow_job(self):
         assert self.name

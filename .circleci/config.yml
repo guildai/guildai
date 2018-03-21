@@ -2,7 +2,13 @@ jobs:
   uat-macos-python-3.6:
     macos:
       xcode: 9.2.0
-    steps: []
+    steps:
+    - run:
+        command: which pip
+        name: Init env
+    - run:
+        command: pip install guildai
+        name: Install Guild
     working_directory: '~'
 version: 2
 workflows:
