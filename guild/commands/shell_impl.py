@@ -15,14 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import os
-import subprocess
-import sys
-
-import guild.util
+import code
 
 def main(_args):
-    env = guild.util.safe_osenv()
-    env["PYTHONPATH"] = os.path.pathsep.join(sys.path)
-    p = subprocess.Popen([sys.executable, "-i"], env=env)
-    p.communicate()
+    code.interact(local=locals())
