@@ -74,11 +74,11 @@ class InfoDumper(yaml.SafeDumper):
         kw["default_flow_style"] = False
         super(InfoDumper, self).__init__(*args, **kw)
 
-    def represent_sequence(self, tag, seq, flow_style=None):
+    def represent_sequence(self, tag, sequence, flow_style=None):
         base = super(InfoDumper, self).represent_sequence
-        if seq and isinstance(seq[0], self.primitive_types):
-            return base(tag, seq, flow_style=True)
-        return base(tag, seq, flow_style)
+        if sequence and isinstance(sequence[0], self.primitive_types):
+            return base(tag, sequence, flow_style=True)
+        return base(tag, sequence, flow_style)
 
 def _print_api(path, args):
     info = guild.serve.model_api_info(path, _tags(args))
