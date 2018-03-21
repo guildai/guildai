@@ -269,6 +269,13 @@ class ViewDataImpl(view.ViewData):
 
 def main(args):
     data = ViewDataImpl(args)
-    host = args.host or ""
+    host = _host(args)
     port = args.port or util.free_port()
     view.serve_forever(data, host, port, args.no_open, args.dev, args.logging)
+
+def _host(args):
+    if args.host:
+        return host
+    if args.dev:
+        return "localhost"
+    return ""
