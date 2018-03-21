@@ -395,13 +395,6 @@ To resolve resources, we need a resolution context:
 
     >>> ctx = deps.ResolutionContext(tmp, test_op, {})
 
-NOTE: The following is a work-around for test environments that use
-symlinks for temp directories. Guild currently doesn't handle this
-configuration and this flag bypasses a security check that would
-otherwise cause resolutions to fail.
-
-    >>> ctx.force_links = True
-
 The resolve function logs output, which we'll want to capture.
 
     >>> logs = LogCapture()
