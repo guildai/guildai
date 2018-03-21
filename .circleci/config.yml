@@ -7,7 +7,7 @@ jobs:
         command: which pip
         name: Init env
     - run:
-        command: sudo pip install guildai
+        command: sudo pip install guildai==0.3.1.dev4
         name: Install Guild
     - run:
         command: guild init -y

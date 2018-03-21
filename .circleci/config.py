@@ -14,7 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import sys
+
 import yaml
+
+sys.path.insert(0, "../../guild")
+
+import guild
 
 class WorkflowJob(object):
 
@@ -230,6 +237,7 @@ class ReleaseUAT(WorkflowJob):
     name = None
     env = None
     python = None
+    guild_version = guild.__version__
 
     def job(self):
         assert self.env
@@ -257,9 +265,8 @@ class ReleaseUAT(WorkflowJob):
     def install_guild(self):
         return run("Install Guild", self._install_guild_cmd())
 
-    @staticmethod
-    def _install_guild_cmd():
-        return ["sudo pip install guildai"]
+    def _install_guild_cmd(self):
+        return ["sudo pip install guildai==%s" % self.guild_version]
 
     def init_guild(self):
         return run("Init Guild", self._init_guild_cmd())
@@ -273,7 +280,12 @@ class ReleaseUAT(WorkflowJob):
 
     @staticmethod
     def _uat_cmd():
-        return ["true"]
+        return [
+            "guild install mnist --pre",
+            "guild train softmax epochs=1 -y",
+            "guild compare --csv | grep mnist-softmax",
+
+        ]
 
     def workflow_job(self):
         assert self.name
