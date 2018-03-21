@@ -6,6 +6,9 @@ else
     pip_plat_name_args = ""
 endif
 
+guild = ./guild/scripts/guild
+guild-uat = /tmp/guild-uat
+
 .PHONY: build
 
 build:
@@ -43,10 +46,10 @@ check:
 	    done; \
 	  fi; \
 	fi; \
-	guild/scripts/guild check $$opts; \
+	$(guild) check $$opts; \
 
 lint:
-	PYTHONPATH=guild/external pylint -rn -f parseable setup.py guild
+	PYTHONPATH=guild/external pylint -rn -f parseable setup.py $(guild)
 
 clean:
 	rm -rf guild/external/
@@ -59,15 +62,15 @@ clean:
 UAT_PYTHON = python3
 
 uat:
-	@test -e /tmp/guild-uat \
-	  || virtualenv /tmp/guild-uat --python $(UAT_PYTHON)
-	@. /tmp/guild-uat/bin/activate && pip install -qr requirements.txt
-	@. /tmp/guild-uat/bin/activate \
-	  && WORKSPACE=/tmp/guild-uat guild check --uat
+	@test -e $(guild-uat) \
+	  || virtualenv $(guild-uat) --python $(UAT_PYTHON)
+	@. $(guild-uat)/bin/activate && pip install -qr requirements.txt
+	@. $(guild-uat)/bin/activate \
+	  && WORKSPACE=$(guild-uat) PATH=$$(pwd)/$$(dirname $(guild)):$$PATH guild check --uat
 	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
 
 clean-uat:
-	rm -rf /tmp/guild-uat
+	rm -rf $(guild-uat)
 
 timing-test:
 	guild/tests/timing-test
