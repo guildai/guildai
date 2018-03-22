@@ -122,9 +122,25 @@ class SessionRun(object):
         self._sess_lock = sess_lock
 
     def __call__(self, req):
-        if "json-instances" in req.files:
+        if req.content_type == "application/json":
+            return self._handle_json(req.stream)
+        elif "json-instances" in req.files:
             return self._handle_json_instances(req.files["json-instances"])
-        self._error("missing one of: json-instances", 400)
+        self._error("missing one of: json body, json-instances file", 400)
+
+    def _handle_json(self, f):
+        raw = f.read()
+        try:
+            parsed = json.loads(raw)
+        except json.decode.JSONDecoderError as e:
+            self._error("invalid JSON: %s" % e, 400)
+        else:
+            try:
+                instances = parsed["instances"]
+            except KeyError:
+                self._error("missing 'instances' attr in JSON", 400)
+            else:
+                return self._run(self._feed_dict(instances))
 
     def _handle_json_instances(self, f):
         raw = f.read()
@@ -133,16 +149,15 @@ class SessionRun(object):
         except json.decoder.JSONDecodeError as e:
             self._error("invalid JSON: %s" % e, 400)
         else:
-            return self._run(self._feed_dict(instances, dict))
+            return self._run(self._feed_dict(instances))
 
     @staticmethod
     def _parse_json_instances(s):
         lines = s.split(b"\n")
         return [json.loads(line.decode()) for line in lines if line]
 
-    def _feed_dict(self, instances, inst_type):
+    def _feed_dict(self, instances):
         result = {}
-        assert inst_type is dict
         for inst in instances:
             for name, t_name in self._inputs:
                 val = inst.get(name)
