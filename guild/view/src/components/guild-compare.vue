@@ -25,7 +25,7 @@
         no-data-text="There are currently no runs to compare"
         no-results-text="No matches for the current filter">
         <template slot="items" slot-scope="runs">
-          <td>
+          <td class="nowrap">
             <v-tooltip
               top transition="fade-transition"
               tag="div">
@@ -38,7 +38,7 @@
               <span>[{{ runs.item.shortId }}] {{ runs.item.operation }}</span>
             </v-tooltip>
           </td>
-          <td>{{ runs.item.started }}</td>
+          <td class="nowrap">{{ runs.item.started }}</td>
           <td>{{ runs.item.status }}</td>
           <td>{{ runs.item.label }}</td>
           <td v-for="header in scalarHeaders">
@@ -142,6 +142,10 @@ export default {
 
 .compare-runs table.table tbody td {
   font-size: 14px;
+}
+
+.compare-runs table.table tbody td.nowrap {
+  white-space: nowrap;
 }
 
 .compare-runs > table.table thead tr {
