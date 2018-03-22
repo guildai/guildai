@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import os
 
 import six
@@ -26,6 +27,8 @@ from guild import cli
 from guild import util
 
 from guild.commands import runs_impl
+
+log = logging.getLogger("guild")
 
 def main(args, ctx):
     if args.model:
@@ -96,4 +99,9 @@ def _print_model_info(path):
 def _serve_model(path, args):
     host = args.host or ""
     port = args.port or util.free_port()
-    guild.serve.serve_forever(path, _tags(args), host, port)
+    try:
+        guild.serve.serve_forever(path, _tags(args), host, port)
+    except IOError as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("serving %s", path)
+        cli.error(str(e))
