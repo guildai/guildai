@@ -14,12 +14,16 @@
  */
 
 import GuildServe from './guild-serve.vue';
+import GuildServeExample from './guild-serve-example.vue';
+import GuildServeTensors from './guild-serve-tensors.vue';
 
 GuildServe.install = function install(Vue) {
   const component = function(c) {
     Vue.component(c.name, c);
   };
   component(GuildServe);
+  component(GuildServeExample);
+  component(GuildServeTensors);
 };
 
 export default GuildServe;
