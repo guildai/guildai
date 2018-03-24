@@ -420,6 +420,7 @@ class Train(object):
             resolved_flag_args = self._apply_job_dir(self.flag_args)
             args.extend(resolved_flag_args)
         self.run.write_attr("cloudml_job_name", self.job_name)
+        self.run.write_attr("cloudml_job_cmd", args)
         log.info("Starting job %s in %s", self.job_name, self.job_dir)
         log.debug("gutil cmd: %r", args)
         try:

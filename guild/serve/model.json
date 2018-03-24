@@ -1,0 +1,56 @@
+{
+  "tags": ["serve"],
+  "path": "/sample/model/path/census/123456789",
+  "tensorflow_version": "1.4.0",
+  "date": "2018-03-22 07:34:30",
+  "signatureDefs": [
+    {
+      "key": "predict_images",
+      "endpoint": "http://localhost:8081/predict_images",
+      "method_name": "tensorflow/serving/predict",
+      "inputs": [
+        {
+          "key": "images",
+          "dtype": "DT_FLOAT",
+          "shape": [-1, 784],
+          "tensor": "x:0"
+        }
+      ],
+      "outputs": [
+        {
+          "key": "scores",
+          "dtype": "DT_FLOAT",
+          "shape": [-1, 10],
+          "tensor": "y:0"
+        }
+      ]
+    },
+    {
+      "key": "serving_default",
+      "endpoint": "http://localhost:8081/serving_default",
+      "method_name": "tensorflow/serving/classify",
+      "inputs": [
+        {
+          "key": "inputs",
+          "dtype": "DT_STRING",
+          "shape": [],
+          "tensor": "tf_example:0"
+        }
+      ],
+      "outputs": [
+        {
+          "key": "classes",
+          "dtype": "DT_STRING",
+          "shape": [-1, 10],
+          "tensor": "index_to_string_Lookup:0"
+        },
+        {
+          "key": "scores",
+          "dtype": "DT_FLOAT",
+          "shape": [-1, 10],
+          "tensor": "TopKV2:0"
+        }
+      ]
+    }
+  ]
+}
