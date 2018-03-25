@@ -59,6 +59,14 @@
             </v-layout>
             <v-layout row>
               <v-flex xs3 class="pa-0">
+                <v-subheader>Time</v-subheader>
+              </v-flex>
+              <v-flex xs9 class="py-0">
+                <div class="field-val">{{ run.time }}</div>
+              </v-flex>
+            </v-layout>
+            <v-layout row>
+              <v-flex xs3 class="pa-0">
                 <v-subheader>Label</v-subheader>
               </v-flex>
               <v-flex xs9 class="py-0">
