@@ -57,3 +57,13 @@ function statusIcon(status) {
     };
   }
 }
+
+export function formatScalar(n) {
+  if (Number.isInteger(n)) {
+    return n;
+  } else if (n) {
+    return n.toPrecision(4);
+  } else {
+    return n;
+  }
+}
