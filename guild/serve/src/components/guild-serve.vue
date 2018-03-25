@@ -79,7 +79,7 @@
                 <pre class="endpoint">{{ selected.endpoint }}</pre>
                 <h3>Usage examples</h3>
                 <v-expansion-panel>
-                  <v-expansion-panel-content>
+                  <v-expansion-panel-content :value="true">
                     <div slot="header" class="mono">curl</div>
                     <v-card>
                       <v-card-text>
