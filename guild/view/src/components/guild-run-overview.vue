@@ -102,7 +102,6 @@
             </v-layout>
           </v-card-text>
         </v-card>
-
         <v-card v-if="Object.keys(run.otherAttrs).length > 0" class="mt-3">
           <v-expansion-panel focusable>
             <v-expansion-panel-content>
@@ -128,8 +127,24 @@
           </v-expansion-panel>
         </v-card>
       </v-flex>
-
       <v-flex xs12 lg5 xl4>
+        <v-expansion-panel focusable v-if="scalars.length > 0">
+          <v-expansion-panel-content :value="true">
+            <div slot="header">Scalars</div>
+            <v-card>
+              <v-data-table
+                :items="scalars"
+                item-key="key"
+                hide-headers
+                hide-actions>
+                <template slot="items" slot-scope="scalars">
+                  <td>{{ scalars.item.key }}</td>
+                  <td>{{ formatScalar(scalars.item.value) }}</td>
+                </template>
+              </v-data-table>
+            </v-card>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
         <v-expansion-panel focusable>
           <v-expansion-panel-content>
             <div slot="header">Flags</div>
@@ -148,8 +163,7 @@
             </v-card>
           </v-expansion-panel-content>
         </v-expansion-panel>
-
-        <v-expansion-panel focusable class="mt-3">
+        <v-expansion-panel focusable>
           <v-expansion-panel-content>
             <div slot="header">Command</div>
             <v-card>
@@ -159,8 +173,7 @@
             </v-card>
           </v-expansion-panel-content>
         </v-expansion-panel>
-
-        <v-expansion-panel focusable class="mt-3">
+        <v-expansion-panel focusable>
           <v-expansion-panel-content>
             <div slot="header">Env</div>
             <v-card>
@@ -190,6 +203,8 @@
 </template>
 
 <script>
+import { formatScalar } from './guild-runs.js';
+
 export default {
   name: 'guild-run-overview',
 
@@ -197,6 +212,19 @@ export default {
     run: {
       type: Object,
       required: true
+    }
+  },
+
+  computed: {
+    scalars() {
+      const keys = ['step', 'val_acc', 'loss'];
+      const scalars = keys.map(key => (
+        {
+          key: key,
+          value: this.run.scalars[key]
+        }
+      ));
+      return scalars.filter(scalar => scalar.value !== undefined);
     }
   },
 
@@ -212,7 +240,9 @@ export default {
       var keys = Object.keys(run.env);
       keys.sort();
       return keys.map(key => ({ name: key, value: envVal(run.env[key]) }));
-    }
+    },
+
+    formatScalar: formatScalar
   }
 };
 
@@ -247,5 +277,9 @@ table.table tbody td {
 
 .expansion-panel__container {
   overflow: hidden;
+}
+
+.expansion-panel:not(:first-child) {
+  margin-top: 16px;
 }
 </style>
