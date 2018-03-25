@@ -43,7 +43,7 @@
           <td>{{ runs.item.status }}</td>
           <td>{{ runs.item.label }}</td>
           <td v-for="header in scalarHeaders">
-            {{ fmtScalar(runs.item.scalars[header.value.substr(8)]) }}
+            {{ formatScalar(runs.item.scalars[header.value.substr(8)]) }}
           </td>
           <td v-for="header in flagHeaders">
             {{ runs.item.flags[header.value.substr(6)] }}
@@ -55,6 +55,8 @@
 </template>
 
 <script>
+import { formatScalar } from './guild-runs.js';
+
 export default {
 
   name: 'guild-compare',
@@ -118,15 +120,7 @@ export default {
   },
 
   methods: {
-    fmtScalar(n) {
-      if (Number.isInteger(n)) {
-        return n;
-      } else if (n) {
-        return n.toPrecision(4);
-      } else {
-        return n;
-      }
-    }
+    formatScalar: formatScalar
   }
 };
 </script>
