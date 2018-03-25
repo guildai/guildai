@@ -17,7 +17,6 @@ from __future__ import division
 
 import csv
 import sys
-import time
 
 import guild.index
 
@@ -138,18 +137,11 @@ def _run_data(run, flags):
 
 def _run_duration(run):
     if run.status == "running":
-        end = time.time() * 1000000
+        return util.format_duration(run.started)
     elif run.stopped:
-        end = run.stopped
+        return util.format_duration(run.started, run.stopped)
     else:
         return ""
-    seconds = (end - run.started) // 1000000
-    return _format_time(seconds)
-
-def _format_time(seconds):
-    m, s = divmod(seconds, 60)
-    h, m = divmod(m, 60)
-    return "%d:%02d:%02d" % (h, m, s)
 
 def _scalar_step(run):
     search_keys = [

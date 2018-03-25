@@ -513,3 +513,11 @@ def local_server_url(host, port):
         except socket.gaierror:
             host = "localhost"
     return "http://{}:{}".format(host, port)
+
+def format_duration(start_time, end_time=None):
+    if end_time is None:
+        end_time = time.time() * 1000000
+    seconds = (end_time - start_time) // 1000000
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return "%d:%02d:%02d" % (h, m, s)
