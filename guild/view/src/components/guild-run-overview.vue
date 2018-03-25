@@ -91,7 +91,9 @@
                           </div>
                           <div>
                             <div>[{{ dep.run }}] {{ dep.operation }}</div>
-                            <div v-for="path in dep.paths">&ensp;&squf;&ensp;{{ path }}</div>
+                            <div v-for="path in dep.paths">
+                              &ensp;&squf;&ensp;{{ path }}
+                            </div>
                           </div>
                         </v-tooltip>
                       </template>
