@@ -35,7 +35,7 @@
               <v-flex xs9 class="py-0">
                 <div class="field-val">
                   {{ run.status }}
-                  <template v-if="run.exitStatus">
+                  <template v-if="run.status === 'error'">
                     ({{ run.exitStatus }})
                   </template>
                 </div>
