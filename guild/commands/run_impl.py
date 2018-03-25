@@ -40,6 +40,7 @@ def main(args, ctx):
 
 def _apply_rerun_args(run_id_prefix, args, ctx):
     run = one_run(run_id_prefix, ctx)
+    cli.out("Rerunning {}".format(run.id))
     if not args.opspec:
         args.opspec = "{}:{}".format(run.opref.model_name, run.opref.op_name)
     flag_args = [
