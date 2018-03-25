@@ -39,6 +39,7 @@
             </v-tooltip>
           </td>
           <td class="nowrap">{{ runs.item.started }}</td>
+          <td>{{ runs.item.time }}</td>
           <td>{{ runs.item.status }}</td>
           <td>{{ runs.item.label }}</td>
           <td v-for="header in scalarHeaders">
@@ -82,6 +83,7 @@ export default {
         [
           {text: 'Run', value: 'operation', align: 'left'},
           {text: 'Started', value: 'started', align: 'left'},
+          {text: 'Time', value: 'time', align: 'left'},
           {text: 'Status', value: 'status', align: 'left'},
           {text: 'Label', value: 'label', align: 'left'}
         ],

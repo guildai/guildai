@@ -81,6 +81,7 @@ class ViewDataImpl(view.ViewData):
             "opName": run.opref.op_name,
             "started": formatted["started"],
             "stopped": formatted["stopped"],
+            "time": self._run_duration(run),
             "label": formatted["label"],
             "status": run.status,
             "exitStatus": formatted["exit_status"] or None,
@@ -91,6 +92,16 @@ class ViewDataImpl(view.ViewData):
             "deps": self._format_deps(run.get("deps", {})),
             "files": self._format_files(run.iter_files(), run.path),
         }
+
+    @staticmethod
+    def _run_duration(run):
+        started = run.get("started")
+        if run.status == "running":
+            return util.format_duration(started)
+        stopped = run.get("stopped")
+        if stopped:
+            return util.format_duration(started, stopped)
+        return ""
 
     @staticmethod
     def _other_attrs(run):
