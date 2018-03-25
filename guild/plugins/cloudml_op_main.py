@@ -429,11 +429,14 @@ class Train(object):
             sys.exit(e.returncode)
 
     def _apply_job_dir(self, args):
+        """Applies job dir to args that reference local files."""
         def f(val):
             if os.path.exists(val):
-                return os.path.join(self.job_dir, val)
-            else:
-                return val
+                if val == ".":
+                    val = self.job_dir
+                else:
+                    val = os.path.join(self.job_dir, val)
+            return val
         return [f(arg) for arg in args]
 
     def _find_package_name(self):
