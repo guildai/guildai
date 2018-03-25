@@ -96,21 +96,28 @@
         </v-card>
 
         <v-card v-if="Object.keys(run.otherAttrs).length > 0" class="mt-3">
-          <v-card-text>
-            <v-layout row v-for="(val, name) in run.otherAttrs" :key="name">
-              <v-flex xs4 class="pa-0">
-                <v-subheader>{{ name }}</v-subheader>
-              </v-flex>
-              <v-flex xs8 class="py-0">
-                <div class="field-val">
-                  <v-tooltip bottom tag="div" class="no-wrap">
-                    <div slot="activator" class="no-wrap">{{ val }}</div>
-                    <pre v-html="val"></pre>
-                  </v-tooltip>
-                </div>
-              </v-flex>
-            </v-layout>
-          </v-card-text>
+          <v-expansion-panel focusable>
+            <v-expansion-panel-content>
+              <div slot="header">Other attributes</div>
+              <v-card>
+                <v-card-text>
+                  <v-layout row v-for="(val, name) in run.otherAttrs" :key="name">
+                    <v-flex xs4 class="pa-0">
+                      <v-subheader>{{ name }}</v-subheader>
+                    </v-flex>
+                    <v-flex xs8 class="py-0">
+                      <div class="field-val">
+                        <v-tooltip bottom tag="div" class="no-wrap">
+                          <div slot="activator" class="no-wrap">{{ val }}</div>
+                          <pre v-html="val"></pre>
+                        </v-tooltip>
+                      </div>
+                    </v-flex>
+                  </v-layout>
+                </v-card-text>
+              </v-card>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
         </v-card>
       </v-flex>
 
@@ -169,7 +176,6 @@
             </v-card>
           </v-expansion-panel-content>
         </v-expansion-panel>
-
       </v-flex>
     </v-layout>
   </v-container>
@@ -229,5 +235,9 @@ table.table tbody td {
 .run-command {
   font-family: monospace;
   font-size: 90%;
+}
+
+.expansion-panel__container {
+  overflow: hidden;
 }
 </style>
