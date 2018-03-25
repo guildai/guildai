@@ -433,7 +433,7 @@ def _print_run_info(run, args):
 
 def other_attr_names(run):
     return [
-        name for name in run.attr_names()
+        name for name in sorted(run.attr_names())
         if name[0] != "_" and name not in CORE_RUN_ATTRS]
 
 def _format_attr(val):

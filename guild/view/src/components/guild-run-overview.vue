@@ -108,15 +108,16 @@
               <div slot="header">Other attributes</div>
               <v-card>
                 <v-card-text>
-                  <v-layout row v-for="(val, name) in run.otherAttrs" :key="name">
+                  <v-layout
+                    row v-for="attr in otherAttrs" :key="attr.name">
                     <v-flex xs4 class="pa-0">
-                      <v-subheader>{{ name }}</v-subheader>
+                      <v-subheader>{{ attr.name }}</v-subheader>
                     </v-flex>
                     <v-flex xs8 class="py-0">
                       <div class="field-val">
                         <v-tooltip bottom tag="div" class="no-wrap">
-                          <div slot="activator" class="no-wrap">{{ val }}</div>
-                          <pre v-html="val"></pre>
+                          <div slot="activator" class="no-wrap">{{ attr.value }}</div>
+                          <pre v-html="attr.value"></pre>
                         </v-tooltip>
                       </div>
                     </v-flex>
@@ -216,6 +217,16 @@ export default {
   },
 
   computed: {
+    otherAttrs() {
+      if (!this.run) {
+        return [];
+      }
+      const attrs = this.run.otherAttrs;
+      const names = Object.keys(attrs);
+      names.sort();
+      return names.map(name => ({name: name, value: attrs[name]}));
+    },
+
     scalars() {
       const keys = ['step', 'val_acc', 'loss'];
       const scalars = keys.map(key => (
