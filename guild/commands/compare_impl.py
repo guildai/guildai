@@ -147,7 +147,8 @@ def _scalar_step(run):
     search_keys = [
         "loss_step",
         "train/loss_step",
-        "total_loss_1_step" # slim models
+        "total_loss_1_step", # slim models
+        "OptimizeLoss_step", # Cloud ML examples
     ]
     return _format_int(run.scalar(search_keys))
 
@@ -164,7 +165,8 @@ def _run_loss(run):
     search_keys = [
         "loss",
         "train/loss",
-        "total_loss_1" # slim models
+        "total_loss_1", # slim models
+        "OptimizeLoss", # Cloud ML examples
     ]
     return _format_float(run.scalar(search_keys))
 
