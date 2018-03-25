@@ -49,7 +49,7 @@ check:
 	$(guild) check $$opts; \
 
 lint:
-	PYTHONPATH=guild/external pylint -rn -f parseable setup.py $(guild)
+	PYTHONPATH=guild/external pylint -rn -f parseable setup.py guild
 
 clean:
 	rm -rf guild/external/
