@@ -204,8 +204,14 @@ class SessionRun(object):
             return ensure_json_serializable(val)
 
     @staticmethod
-    def _error(msg, status):
-        resp = serving_util.json_resp({"error": msg}, status)
+    def _error(msg, code):
+        data = {
+            "error": {
+                "code": code,
+                "message": msg,
+            }
+        }
+        resp = serving_util.json_resp(data, code)
         raise HTTPException(response=resp)
 
 def _init_app(meta_graph, sess):
