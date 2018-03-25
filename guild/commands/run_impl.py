@@ -26,12 +26,37 @@ from guild import cmd_impl_support
 from guild import deps
 from guild import op_util
 from guild import util
+from guild import var
 
-def main(args):
+from guild.commands import runs_impl
+
+def main(args, ctx):
+    if args.rerun:
+        _apply_rerun_args(args.rerun, args, ctx)
     model_ref, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_ref)
     opdef = _resolve_opdef(op_name, model)
     _dispatch_cmd(args, opdef, model)
+
+def _apply_rerun_args(run_id_prefix, args, ctx):
+    run = one_run(run_id_prefix, ctx)
+    if not args.opspec:
+        args.opspec = "{}:{}".format(run.opref.model_name, run.opref.op_name)
+    flag_args = [
+        "{}={}".format(name, val)
+        for name, val in run.get("flags", {}).items()
+        if val is not None
+    ]
+    args.args = tuple(flag_args) + args.args
+
+def one_run(run_id_prefix, ctx):
+    runs = [
+        guild.run.Run(id, path)
+        for id, path in var.find_runs(run_id_prefix)
+    ]
+    run = cmd_impl_support.one_run(runs, run_id_prefix, ctx)
+    runs_impl.init_opref_attr(run)
+    return run
 
 def _dispatch_cmd(args, opdef, model):
     if args.help_model:

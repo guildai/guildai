@@ -29,6 +29,11 @@ def run_params(fn):
             ("-d", "--run-dir"), metavar="DIR",
             help="Use an alternative run directory."),
         click.Option(
+            ("-r", "--rerun",), metavar="RUN",
+            help=(
+                "Use the operation and flags from RUN (flags may "
+                "be added or redefined in this operation)")),
+        click.Option(
             ("--disable-plugins",), metavar="LIST",
             help=("A comma separated list of plugin names to disable. "
                   "Use 'all' to disable all plugins.")),
@@ -61,12 +66,13 @@ def run_params(fn):
     return fn
 
 @click.command()
-@click.argument("opspec", metavar="[MODEL:]OPERATION")
+@click.argument("opspec", metavar="[[MODEL:]OPERATION]", required=False)
 @run_params
 
+@click.pass_context
 @click_util.use_args
 
-def run(args):
+def run(ctx, args):
     """Run a model operation.
 
     By default Guild will try to run `OPERATION` for the default model
@@ -77,6 +83,16 @@ def run(args):
     If `MODEL` is specified, Guild will use it instead of the default
     model defined in a project.
 
+    `[MODEL]:OPERATION` may be omitted if `--rerun` is specified, in
+    which case the operation used in `RUN` will be used.
+
+    If `--rerun` is specified, the operation and flags used in `RUN`
+    will be applied to the new operation. You may add or redefine
+    flags in the new operation. You may also use an alternative
+    operation, in which case only the flag values from `RUN` will be
+    applied. `RUN` must be a run ID or unique run ID prefix and cannot
+    be a run index.
+
     """
     from . import run_impl
-    run_impl.main(args)
+    run_impl.main(args, ctx)
