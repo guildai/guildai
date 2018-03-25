@@ -198,7 +198,10 @@ class SessionRun(object):
                 return val.decode()
             else:
                 return val.item()
-        return [ensure_json_serializable(x) for x in val]
+        if hasattr(val, "__iter__"):
+            return [ensure_json_serializable(x) for x in val]
+        else:
+            return ensure_json_serializable(val)
 
     @staticmethod
     def _error(msg, status):
