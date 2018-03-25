@@ -19,7 +19,7 @@
       <v-list-tile-content>
         <v-tooltip top transition="fade-transition" tag="div" >
           <v-list-tile-title slot="activator">
-            <v-icon style="margin-top:-3px">timeline</v-icon>
+            <v-icon style="margin-top:-3px" color="deep-orange darken-1">timeline</v-icon>
             View in TensorBoard
           </v-list-tile-title>
           <span>View runs in TensorBoard</span>
@@ -34,7 +34,7 @@
       <v-list-tile-content>
         <v-tooltip top transition="fade-transition" tag="div" >
           <v-list-tile-title slot="activator">
-            <v-icon style="margin-top:-3px">mdi-sort</v-icon>
+            <v-icon style="margin-top:-3px" color="light-blue darken-1">mdi-sort</v-icon>
             Compare runs
           </v-list-tile-title>
           <span>Compare runs</span>
