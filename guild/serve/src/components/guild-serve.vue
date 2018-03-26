@@ -343,7 +343,7 @@ h3 {
 }
 
 code {
-  box-shadow: none;
+  box-shadow: none !important;
 }
 
 .mono {
