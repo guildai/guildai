@@ -27,7 +27,6 @@ import requests
 
 from werkzeug.exceptions import NotFound
 from werkzeug.utils import redirect
-from werkzeug.wsgi import SharedDataMiddleware
 
 import guild.index
 
@@ -253,31 +252,13 @@ class TBServers(object):
                 log.debug("stopping TensorBoard server (%s)", server)
                 server.stop()
 
-class StaticBase(object):
-
-    def __init__(self, exports):
-        self._app = SharedDataMiddleware(self._not_found, exports)
-
-    def handle(self, _req):
-        return self._app
-
-    @staticmethod
-    def _not_found(_env, _start_resp):
-        raise NotFound()
-
-class DistFiles(StaticBase):
+class DistFiles(serving_util.StaticDir):
 
     def __init__(self):
-        root = os.path.join(MODULE_DIR, "view/dist")
-        super(DistFiles, self).__init__({"/": root})
+        dist_dir = os.path.join(MODULE_DIR, "view/dist")
+        super(DistFiles, self).__init__(dist_dir)
 
-    def handle_index(self, _req):
-        def app(env, start_resp):
-            env["PATH_INFO"] = "/index.html"
-            return self._app(env, start_resp)
-        return app
-
-class RunFiles(StaticBase):
+class RunFiles(serving_util.StaticBase):
 
     def __init__(self):
         super(RunFiles, self).__init__({"/runs": var.runs_dir()})
