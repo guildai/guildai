@@ -42,7 +42,7 @@ from . import server_support
 @runs_support.status_filters
 @runs_support.scope_options
 @click.option(
-    "--print-model-info", is_flag=True,
+    "-i", "--print-model-info", is_flag=True,
     help="Show model info and exit.")
 
 @click.pass_context
