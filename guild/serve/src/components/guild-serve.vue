@@ -20,9 +20,8 @@
               <span>{{ model.path }}</span>
             </v-tooltip>
             <v-list-tile-sub-title>
-              TensorFlow v{{ model.tensorflow_version }}
+              TensorFlow v{{ model.tensorflowVersion }}
             </v-list-tile-sub-title>
-            <v-list-tile-sub-title>{{ model.date }}</v-list-tile-sub-title>
           </v-list-tile-content>
         </v-list-tile>
 
@@ -37,7 +36,7 @@
             <v-list-tile-content>
               <v-list-tile-title>{{ sig.key }}</v-list-tile-title>
               <v-list-tile-sub-title>
-                {{ sig.method_name }}
+                {{ sig.methodName }}
               </v-list-tile-sub-title>
             </v-list-tile-content>
           </v-list-tile>
@@ -121,20 +120,10 @@
                 <pre class="sample">{
   "instances": [
     {
-      "images"
+      "inputs": [...]
+    }, ...
   ]
 }</pre>
-
-                <v-expansion-panel>
-                  <v-expansion-panel-content>
-                    <div slot="header" class="mono">curl</div>
-                    <v-card>
-                      <v-card-text>
-                      </v-card-text>
-                    </v-card>
-                  </v-expansion-panel-content>
-                </v-expansion-panel>
-
               </v-card-text>
 
             </v-card>
@@ -307,12 +296,12 @@ export default {
 
     initData() {
       const this_ = this;
-      this.fetch('/ctx.json', data => {
+      this.fetch(process.env.SERVE_BASE + '/ctx.json', data => {
         this_.ctx = data;
       });
-      this.fetch('/model.json', data => {
+      this.fetch(process.env.SERVE_BASE + '/model.json', data => {
         this_.model = data;
-        if (data.signatureDefs.length > 0) {
+        if (data.signatureDefs && data.signatureDefs.length > 0) {
           this_.selectedSig = data.signatureDefs[0];
         } else {
           this_.selectedSig = null;
@@ -423,8 +412,8 @@ h3 {
 }
 
 .model-info .list__tile {
-  height: unset;
-  padding: 16px;
+  height: unset !important;
+  padding: 16px !important;
 }
 
 .model-info .model-info-title {

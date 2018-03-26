@@ -21,8 +21,9 @@ import socket
 
 from werkzeug import routing
 from werkzeug import serving
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.wrappers import Request, Response
+from werkzeug.wsgi import SharedDataMiddleware
 
 log = logging.getLogger("guild")
 
@@ -31,6 +32,29 @@ class QuietRequestHandler(serving.WSGIRequestHandler):
     def log(self, type, message, *args):
         if type != 'info':
             super(QuietRequestHandler, self).log(type, message, *args)
+
+class StaticBase(object):
+
+    def __init__(self, exports):
+        self._app = SharedDataMiddleware(self._not_found, exports)
+
+    def handle(self, _req):
+        return self._app
+
+    @staticmethod
+    def _not_found(_env, _start_resp):
+        raise NotFound()
+
+class StaticDir(StaticBase):
+
+    def __init__(self, dir):
+        super(StaticDir, self).__init__({"/": dir})
+
+    def handle_index(self, _req):
+        def app(env, start_resp):
+            env["PATH_INFO"] = "/index.html"
+            return self._app(env, start_resp)
+        return app
 
 def make_server(host, port, app, logging=True):
     if host is None:

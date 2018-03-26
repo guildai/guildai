@@ -38,11 +38,6 @@ from . import server_support
 @runs_support.status_filters
 @runs_support.scope_options
 @click.option(
-    "--print-api", is_flag=True,
-    help="Show OpenAPI definition and exit.",
-    # TODO unhide when implemented
-    hidden=True)
-@click.option(
     "--print-model-info", is_flag=True,
     help="Show model info and exit.")
 

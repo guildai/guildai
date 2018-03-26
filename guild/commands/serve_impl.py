@@ -37,9 +37,7 @@ def main(args, ctx):
         _handle_run(runs_impl.one_run(args, ctx), args)
 
 def _handle_path(path, args):
-    if args.print_api:
-        _print_api(path, args)
-    elif args.print_model_info:
+    if args.print_model_info:
         _print_model_info(path)
     else:
         _serve_model(path, args)
@@ -82,11 +80,6 @@ class InfoDumper(yaml.SafeDumper):
         if sequence and isinstance(sequence[0], self.primitive_types):
             return base(tag, sequence, flow_style=True)
         return base(tag, sequence, flow_style)
-
-def _print_api(path, args):
-    info = guild.serve.model_api_info(path, _tags(args))
-    formatted = yaml.dump(info, Dumper=InfoDumper)
-    cli.out(formatted.strip())
 
 def _tags(args):
     return [s.strip() for s in args.tags.split(",")]
