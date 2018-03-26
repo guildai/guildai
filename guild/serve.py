@@ -39,6 +39,13 @@ log = logging.getLogger("guild")
 
 MODULE_DIR = os.path.dirname(__file__)
 
+class TagsError(Exception):
+
+    def __init__(self, path, tags):
+        super(TagsError, self).__init__(path, tags)
+        self.path = path
+        self.tags = tags
+
 class SessionRun(object):
 
     def __init__(self, sess, sig, sess_lock):
@@ -223,7 +230,12 @@ def _init_session():
     return tf.Session()
 
 def _load_saved_model(path, tags, session):
-    return loader_impl.load(session, tags, path)
+    try:
+        return loader_impl.load(session, tags, path)
+    except RuntimeError as e:
+        if "could not be found in SavedModel" in str(e):
+            raise TagsError(path, tags)
+        raise
 
 def _init_app(meta_graph, sess, base_url, path):
     rules = (

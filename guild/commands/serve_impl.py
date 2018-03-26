@@ -92,10 +92,21 @@ def _serve_model(path, args):
     tags = _tags(args)
     try:
         guild.serve.serve_forever(path, tags, host, port, args.no_open)
+    except guild.serve.TagsError as e:
+        _handle_tags_error(e)
     except IOError as e:
-        if log.getEffectiveLevel() <= logging.DEBUG:
-            log.exception("serving %s", path)
-        cli.error(str(e))
+        _handle_serve_io_error(e)
 
 def _tags(args):
     return [s.strip() for s in args.tags.split(",")]
+
+def _handle_tags_error(e):
+    cli.error(
+        "saved model in '%s' does not contain a meta graph with tags '%s'\n"
+        "Try 'guild serve -m %s --print-model-info' for a list of meta graphs."
+        % (e.path, ",".join(e.tags), e.path))
+
+def _handle_serve_io_error(e):
+    if log.getEffectiveLevel() <= logging.DEBUG:
+        log.exception("serving %s", path)
+    cli.error(str(e))
