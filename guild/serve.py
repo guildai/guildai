@@ -105,6 +105,8 @@ class SessionRun(object):
                 result = self._sess.run(t_outputs, feed_dict=feed_dict)
         except tf.errors.OpError as e:
             self._error(str(e), 400)
+        except ValueError as e:
+            self._error(str(e), 400)
         except Exception as e:
             log.exception(
                 "session.run:\n"
