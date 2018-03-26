@@ -10,19 +10,13 @@
       <v-list two-line>
         <v-list-tile class="model-info">
           <v-list-tile-content>
-            <v-list-tile-title class="model-title">
-              {{ modelTitle(model) }}
-              {{ modelTags(model) }}
-            </v-list-tile-title>
             <v-tooltip
               top transition="fade-transition"
-              tag="div"
-              class="rev-ellipsis-container">
-              <v-list-tile-sub-title
-                slot="activator"
-                class="rev-ellipsis">
-                &lrm;{{ model.path }}
-              </v-list-tile-sub-title>
+              tag="div">
+              <h1 slot="activator" class="model-title">
+                <span style="word-break:break-all">{{ modelTitle }}</span>
+                <span style="white-space: nowrap">{{ modelTags }}</span>
+              </h1>
               <span>{{ model.path }}</span>
             </v-tooltip>
             <v-list-tile-sub-title>
@@ -63,6 +57,9 @@
         <div class="grey lighten-4">
           <v-container fluid pl-4 pb-2>
             <h1>{{ selected.key }}</h1>
+            <div class="grey--text text--darken-2">
+              {{ model.path }} {{ modelTags }}
+            </div>
           </v-container>
           <v-tabs-bar>
             <v-tabs-item key="overview" href="#endpoint" ripple>
@@ -170,6 +167,27 @@ export default {
   },
 
   computed: {
+    modelTitle() {
+      if (!this.model || !this.model.path) {
+        return '';
+      }
+      const parts = this.model.path.split('/');
+      if (parts.length >= 2) {
+        return parts.slice(parts.length - 2).join('/');
+      } else {
+        return parts[parts.length - 1];
+      }
+    },
+
+    modelTags() {
+      if (!this.model || !this.model.tags) {
+        return '';
+      }
+      const tags = this.model.tags.concat();
+      tags.sort();
+      return '(' + tags.join(', ') + ')';
+    },
+
     signatureDefs() {
       return this.model.signatureDefs ? this.model.signatureDefs : [];
     },
@@ -196,27 +214,6 @@ export default {
   },
 
   methods: {
-    modelTitle(model) {
-      if (!model || !model.path) {
-        return '';
-      }
-      const parts = model.path.split('/');
-      if (parts.length >= 2) {
-        return parts.slice(parts.length - 2).join('/');
-      } else {
-        return parts[parts.length - 1];
-      }
-    },
-
-    modelTags(model) {
-      if (!model || !model.tags) {
-        return '';
-      }
-      const tags = model.tags.concat();
-      tags.sort();
-      return '{' + tags.join(',') + '}';
-    },
-
     onResize() {
       this.footerFixed = window.innerWidth >= drawerBreakPoint;
     },
@@ -343,14 +340,6 @@ pre.sample {
 h3 {
   font-weight: normal;
   margin: 20px 0 20px;
-}
-
-.rev-ellipsis-container {
-  width: 100%;
-}
-
-.rev-ellipsis {
-  direction: rtl;
 }
 
 code {
