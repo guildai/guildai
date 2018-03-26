@@ -206,13 +206,15 @@ def _meta_graph_for_tags(path, tags):
             return mg
     raise LookupError(path, tags)
 
-def serve_forever(saved_model_path, tags, host, port):
+def serve_forever(saved_model_path, tags, host, port, no_open=False):
     session = _init_session()
     meta_graph = _load_saved_model(saved_model_path, tags, session)
     base_url = util.local_server_url(host, port)
     app = _init_app(meta_graph, session, base_url, saved_model_path)
     server = serving_util.make_server(host, port, app)
     serve_url = util.local_server_url(host, port)
+    if not no_open:
+        util.open_url(serve_url)
     sys.stdout.write("Running Guild Serve at {}\n".format(serve_url))
     server.serve_forever()
     sys.stdout.write("\n")

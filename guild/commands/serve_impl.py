@@ -81,9 +81,6 @@ class InfoDumper(yaml.SafeDumper):
             return base(tag, sequence, flow_style=True)
         return base(tag, sequence, flow_style)
 
-def _tags(args):
-    return [s.strip() for s in args.tags.split(",")]
-
 def _print_model_info(path):
     info = guild.serve.model_info(path)
     formatted = yaml.dump(info, Dumper=InfoDumper)
@@ -92,9 +89,13 @@ def _print_model_info(path):
 def _serve_model(path, args):
     host = args.host or ""
     port = args.port or util.free_port()
+    tags = _tags(args)
     try:
-        guild.serve.serve_forever(path, _tags(args), host, port)
+        guild.serve.serve_forever(path, tags, host, port, args.no_open)
     except IOError as e:
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("serving %s", path)
         cli.error(str(e))
+
+def _tags(args):
+    return [s.strip() for s in args.tags.split(",")]

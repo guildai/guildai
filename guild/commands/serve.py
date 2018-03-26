@@ -34,6 +34,10 @@ from . import server_support
         "Tags for the model in PATH to serve, separated by commas "
         "(default is 'serve')."))
 @server_support.host_and_port_options
+@click.option(
+    "-n", "--no-open",
+    help="Don't open Guild Serve in a browser.",
+    is_flag=True)
 @runs_support.op_and_label_filters
 @runs_support.status_filters
 @runs_support.scope_options
