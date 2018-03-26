@@ -266,7 +266,7 @@ export default {
 .model-info .model-title {
   font-size: 18px;
   font-weight: bold;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
 }
 
 div.toolbar__title {
