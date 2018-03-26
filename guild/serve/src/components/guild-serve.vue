@@ -10,13 +10,19 @@
       <v-list two-line>
         <v-list-tile class="model-info">
           <v-list-tile-content>
+            <v-list-tile-title class="model-title">
+              {{ modelTitle(model) }}
+              {{ modelTags(model) }}
+            </v-list-tile-title>
             <v-tooltip
               top transition="fade-transition"
               tag="div"
               class="rev-ellipsis-container">
-              <v-list-tile-title slot="activator" class="model-info-title rev-ellipsis">
+              <v-list-tile-sub-title
+                slot="activator"
+                class="rev-ellipsis">
                 &lrm;{{ model.path }}
-              </v-list-tile-title>
+              </v-list-tile-sub-title>
               <span>{{ model.path }}</span>
             </v-tooltip>
             <v-list-tile-sub-title>
@@ -53,6 +59,7 @@
 
     <v-content>
       <v-tabs v-if="selected" class="signatures">
+
         <div class="grey lighten-4">
           <v-container fluid pl-4 pb-2>
             <h1>{{ selected.key }}</h1>
@@ -71,6 +78,7 @@
           </v-tabs-bar>
           <v-divider />
         </div>
+
         <v-tabs-items>
           <v-tabs-content key="endpoint" id="endpoint">
             <v-card>
@@ -111,23 +119,15 @@
               </v-card-text>
             </v-card>
           </v-tabs-content>
+
           <v-tabs-content key="inputs" id="inputs">
             <v-card>
               <v-card-text>
                 <guild-select-tensors :tensors="selected.inputs" />
-
-                <h3>Request sample</h3>
-                <pre class="sample">{
-  "instances": [
-    {
-      "inputs": [...]
-    }, ...
-  ]
-}</pre>
               </v-card-text>
-
             </v-card>
           </v-tabs-content>
+
           <v-tabs-content key="outputs" id="outputs">
             <v-card>
               <v-card-text>
@@ -152,92 +152,6 @@
   </v-app>
 </template>
 
-<!--
-<template>
-  <v-app>
-    <v-toolbar fixed app clipped-left class="indigo darken-1 white--text">
-      <v-toolbar-title>Guild Serve</v-toolbar-title>
-    </v-toolbar>
-    <v-content>
-      <v-tabs class="signatures">
-        <div class="grey lighten-4">
-          <v-container fluid pl-4 pb-2>
-            <h1>{{ modelTitle }}</h1>
-            <div>TensorFlow v{{ model.tensorflow_ver }}</div>
-            <div>{{ model.date }}</div>
-            <div class="mt-1 grey--text text--darken-2">{{ model.path }}</div>
-          </v-container>
-          <v-tabs-bar>
-            <v-tabs-item key="overview" href="#overview" ripple>predict images</v-tabs-item>
-            <v-tabs-item key="files" href="#files" ripple>serving default</v-tabs-item>
-            <v-tabs-slider color="deep-orange"></v-tabs-slider>
-          </v-tabs-bar>
-          <v-divider/>
-        </div>
-        <v-tabs-items>
-          <v-tabs-content key="overview" id="overview">
-            <v-expansion-panel :expand="true">
-              <v-expansion-panel-content value="true">
-                <div slot="header">Endpoint</div>
-                <v-card>
-                  <v-card-text>
-                    <pre class="endpoint">http://localhost:8082/predict_images</pre>
-                  </v-card-text>
-                </v-card>
-              </v-expansion-panel-content>
-              <v-expansion-panel-content value="true">
-                <div slot="header">Inputs</div>
-                <v-card>
-                  <v-card-text>
-                    <v-data-table
-                      :items="model.inputs"
-                      :headers="tensorHeaders"
-                      no-data-text="There are no inputs for this signature"
-                      hide-actions>
-                      <template slot="items" slot-scope="inputs">
-                        <td>{{ inputs.item.key }}</td>
-                        <td>{{ inputs.item.dtype }}</td>
-                        <td>{{ inputs.item.shape }}</td>
-                        <td>{{ inputs.item.tensor }}</td>
-                      </template>
-                    </v-data-table>
-                  </v-card-text>
-                </v-card>
-              </v-expansion-panel-content>
-              <v-expansion-panel-content value="true">
-                <div slot="header">Outputs</div>
-                <v-card>
-                  <v-card-text>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing
-                    elit, sed do eiusmod tempor incididunt ut labore
-                    et dolore magna aliqua. Ut enim ad minim veniam,
-                    quis nostrud exercitation ullamco laboris nisi ut
-                    aliquip ex ea commodo consequat.
-                  </v-card-text>
-                </v-card>
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-          </v-tabs-content>
-          <v-tabs-content key="files" id="files">
-            <div>Another thing</div>
-          </v-tabs-content>
-        </v-tabs-items>
-      </v-tabs>
-    </v-content>
-    <v-footer fixed app color="grey lighten-2">
-      <v-layout column justify-center style="margin:0">
-        <v-divider />
-        <v-layout align-center class="px-2 caption" style="height:36px">
-          <div>{{ ctx.cwd }}</div>
-          <v-spacer />
-          <div v-show="ctx.version">Guild AI v{{ ctx.version }}</div>
-        </v-layout>
-      </v-layout>
-    </v-footer>
-  </v-app>
-</template>
--->
-
 <script>
 var drawerBreakPoint = 960;
 
@@ -256,14 +170,6 @@ export default {
   },
 
   computed: {
-    modelTitle() {
-      if (this.model.tags) {
-        return this.model.tags.join(', ') + ' - ' + this.model.name;
-      } else {
-        return this.model.name;
-      }
-    },
-
     signatureDefs() {
       return this.model.signatureDefs ? this.model.signatureDefs : [];
     },
@@ -290,6 +196,27 @@ export default {
   },
 
   methods: {
+    modelTitle(model) {
+      if (!model || !model.path) {
+        return '';
+      }
+      const parts = model.path.split('/');
+      if (parts.length >= 2) {
+        return parts.slice(parts.length - 2).join('/');
+      } else {
+        return parts[parts.length - 1];
+      }
+    },
+
+    modelTags(model) {
+      if (!model || !model.tags) {
+        return '';
+      }
+      const tags = model.tags.concat();
+      tags.sort();
+      return '{' + tags.join(',') + '}';
+    },
+
     onResize() {
       this.footerFixed = window.innerWidth >= drawerBreakPoint;
     },
@@ -334,6 +261,21 @@ export default {
 </script>
 
 <style>
+.model-info .list__tile {
+  height: unset !important;
+  padding: 16px !important;
+}
+
+.model-info .model-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+div.toolbar__title {
+  margin-left: 6px;
+}
+
 .navigation-drawer li.selected {
   background-color: #f5f5f5;
 }
@@ -409,15 +351,6 @@ h3 {
 
 .rev-ellipsis {
   direction: rtl;
-}
-
-.model-info .list__tile {
-  height: unset !important;
-  padding: 16px !important;
-}
-
-.model-info .model-info-title {
-  font-size: 16px;
 }
 
 code {
