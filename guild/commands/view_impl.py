@@ -236,22 +236,12 @@ class ViewDataImpl(view.ViewData):
         return operation, run.short_id
 
     def config(self):
-        cwd = self._formatted_cwd()
+        cwd = util.format_dir(config.cwd())
         return {
             "cwd": cwd,
             "titleLabel": self._title_label(cwd),
             "version": guild.version(),
         }
-
-    @staticmethod
-    def _formatted_cwd():
-        cwd = config.cwd()
-        abs_cwd = os.path.abspath(cwd)
-        user_dir = os.path.expanduser("~")
-        if abs_cwd.startswith(user_dir):
-            return os.path.join("~", abs_cwd[len(user_dir)+1:])
-        else:
-            return abs_cwd
 
     def _title_label(self, cwd):
         if len(self._args.runs) == 1:

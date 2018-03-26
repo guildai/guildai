@@ -521,3 +521,11 @@ def format_duration(start_time, end_time=None):
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
     return "%d:%02d:%02d" % (h, m, s)
+
+def format_dir(dir):
+    abs_cwd = os.path.abspath(dir)
+    user_dir = os.path.expanduser("~")
+    if abs_cwd.startswith(user_dir):
+        return os.path.join("~", abs_cwd[len(user_dir)+1:])
+    else:
+        return abs_cwd
