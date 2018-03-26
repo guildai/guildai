@@ -27,7 +27,7 @@ from . import server_support
 @server_support.host_and_port_options
 @click.option(
     "-n", "--no-open",
-    help="Don't open Guild View in a brower.",
+    help="Don't open Guild View in a browser.",
     is_flag=True)
 @click.option("--logging", help="Log requests.", is_flag=True)
 @runs_support.op_and_label_filters
