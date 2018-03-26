@@ -8,5 +8,6 @@ an error message.
     guild: there are multiple models that match 'mnist'
     Try specifying one of the following:
       mnist/mnist-cnn
+      mnist/mnist-samples
       mnist/mnist-softmax
     <exit 1>

@@ -33,9 +33,12 @@ information.
     entry-points:
       [guild.models]
       mnist-cnn = guild.model:PackageModel
+      mnist-samples = guild.model:PackageModel
       mnist-softmax = guild.model:PackageModel
       [guild.resources]
       dataset = guild.package:PackageResource
+      mnist-cnn:trained-model = guild.model:PackageModelResource
+      mnist-softmax:trained-model = guild.model:PackageModelResource
     files:
       ...
     <exit 0>

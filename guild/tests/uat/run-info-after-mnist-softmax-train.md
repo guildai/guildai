@@ -41,11 +41,20 @@ We can optionally show files, flags, and env for a run:
       batch-size: 100
       epochs: 1
     files:
+      checkpoint
+      export
+      export/saved_model.pb
+      export/variables
+      export/variables/variables.data-00000-of-00001
+      export/variables/variables.index
       mnist-idx-data
       mnist-idx-data/t10k-images-idx3-ubyte.gz
       mnist-idx-data/t10k-labels-idx1-ubyte.gz
       mnist-idx-data/train-images-idx3-ubyte.gz
       mnist-idx-data/train-labels-idx1-ubyte.gz
+      model.ckpt-550.data-00000-of-00001
+      model.ckpt-550.index
+      model.ckpt-550.meta
       train
       train/events.out.tfevents...
       validate
