@@ -255,7 +255,7 @@ def _base_rules(meta_graph, base_url, path):
 
 def _ctx_app():
     context = {
-        "cwd": config.cwd(),
+        "cwd": util.format_dir(config.cwd()),
         "version": guild.__version__,
     }
     def app(_req):
