@@ -39,6 +39,7 @@ def start_tester(host, port, exit=None):
 def _test_view(host, port, exit):
     view_url = util.local_server_url(host, port)
     try:
+        _wait_for(view_url)
         _test_runs(view_url)
         _test_tensorboard(view_url)
     except Exception:
@@ -46,6 +47,9 @@ def _test_view(host, port, exit):
         exit(1)
     else:
         exit(0)
+
+def _wait_for(url):
+    _urlread(url)
 
 def _test_runs(view_url):
     runs_url = "{}/runs".format(view_url)

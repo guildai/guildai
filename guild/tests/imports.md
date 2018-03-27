@@ -67,6 +67,7 @@
     guild.commands.search_impl
     guild.commands.serve
     guild.commands.serve_impl
+    guild.commands.serve_tester
     guild.commands.server_support
     guild.commands.shell
     guild.commands.shell_impl
