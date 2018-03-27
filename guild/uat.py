@@ -140,7 +140,7 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
         exit_code = p.wait()
         out = p.stdout.read()
     if not quiet or exit_code != 0:
-        out = out.strip().decode()
+        out = out.strip().decode("utf-8")
         if ignore:
             out = _strip_lines(out, ignore)
         print(out)
