@@ -17,6 +17,7 @@ from __future__ import division
 
 import json
 import logging
+import pprint
 import sys
 import threading
 import time
@@ -78,6 +79,6 @@ def _test_endpoint(endpoint, json_instances):
     sys.stdout.write("Testing %s\n" % endpoint)
     req = Request(endpoint, body, {'Content-Type': 'application/json'})
     resp = urlopen(req)
-    sys.stdout.write(resp.read().decode())
-    sys.stdout.write("\n")
+    resp_parsed = json.loads(resp.read().decode())
+    pprint.pprint(resp_parsed, sys.stdout)
     sys.stdout.flush()
