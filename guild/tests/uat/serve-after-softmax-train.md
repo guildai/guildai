@@ -35,8 +35,20 @@ below, is to serve the latest run.
     ...     % sample("serve/mnist-instances.json"))
     Testing serve
     ...
-    {'predictions': [{'classes': 3,
-                      'probabilities': [...]},
-                     {'classes': 4,
-                      'probabilities': [...]}]}
+    {
+      "predictions": [
+        {
+          "classes": 3,
+          "probabilities": [
+            ...
+          ]
+        },
+        {
+          "classes": 4,
+          "probabilities": [
+            ...
+          ]
+        }
+      ]
+    }
     <exit 0>
