@@ -95,7 +95,7 @@ def _serve_model(path, args):
     except guild.serve.TagsError as e:
         _handle_tags_error(e)
     except IOError as e:
-        _handle_serve_io_error(e)
+        _handle_serve_io_error(e, path)
 
 def _tags(args):
     return [s.strip() for s in args.tags.split(",")]
@@ -106,7 +106,7 @@ def _handle_tags_error(e):
         "Try 'guild serve -m %s --print-model-info' for a list of meta graphs."
         % (e.path, ",".join(e.tags), e.path))
 
-def _handle_serve_io_error(e):
+def _handle_serve_io_error(e, path):
     if log.getEffectiveLevel() <= logging.DEBUG:
         log.exception("serving %s", path)
     cli.error(str(e))
