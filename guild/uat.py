@@ -32,6 +32,7 @@ import guild.test
 import guild.var
 
 from guild import pip_util
+from guild import test
 from guild import util
 
 INDEX = "tests/uat/README.md"
@@ -88,6 +89,7 @@ def _test_globals():
         "run": _run,
         "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
         "abspath": os.path.abspath,
+        "sample": test.sample,
     })
     return globs
 
@@ -138,9 +140,7 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
         exit_code = p.wait()
         out = p.stdout.read()
     if not quiet or exit_code != 0:
-        out = out.strip()
-        if sys.version_info[0] > 2:
-            out = out.decode("utf-8")
+        out = out.strip().decode()
         if ignore:
             out = _strip_lines(out, ignore)
         print(out)

@@ -90,6 +90,9 @@ def _serve_model(path, args):
     host = args.host or ""
     port = args.port or util.free_port()
     tags = _tags(args)
+    if args.test:
+        _start_tester(host, port, args)
+        args.no_open = True
     try:
         guild.serve.serve_forever(path, tags, host, port, args.no_open)
     except guild.serve.TagsError as e:
@@ -99,6 +102,17 @@ def _serve_model(path, args):
 
 def _tags(args):
     return [s.strip() for s in args.tags.split(",")]
+
+def _start_tester(host, port, args):
+    if not args.test_json_instances:
+        cli.error("--test-json-instances is required when using --test")
+    from . import serve_tester
+    serve_tester.start_tester(
+        host,
+        port,
+        args.test,
+        args.test_json_instances,
+        os._exit)
 
 def _handle_tags_error(e):
     cli.error(

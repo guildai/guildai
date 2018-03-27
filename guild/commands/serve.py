@@ -44,6 +44,8 @@ from . import server_support
 @click.option(
     "-i", "--print-model-info", is_flag=True,
     help="Show model info and exit.")
+@click.option("--test", hidden=True)
+@click.option("--test-json-instances", hidden=True)
 
 @click.pass_context
 @click_util.use_args

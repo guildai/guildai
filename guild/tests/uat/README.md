@@ -21,7 +21,6 @@ TensorFlow using the `init` command.
 - [init-env](init-env.md)
 - [check-after-init](check-after-init.md)
 - [guild-tests](guild-tests.md)
-- [guild-view-start](guild-view-start.md)
 
 ## Sample project
 
@@ -85,6 +84,9 @@ Next we train the `softmax` model and view the results.
 - [runs-after-mnist-softmax-train](runs-after-mnist-softmax-train.md)
 - [run-info-after-mnist-softmax-train](run-info-after-mnist-softmax-train.md)
 - [tmp-mnist-data-after-softmax-train](tmp-mnist-data-after-softmax-train.md)
+- [compare-after-softmax-train](compare-after-softmax-train.md)
+- [view-after-softmax-train](view-after-softmax-train.md)
+- [serve-after-softmax-train](serve-after-softmax-train.md)
 
 Before we uninstall the package, we'll take advantage of the fact we
 have multiple models containing the term "mnist" and test an error
