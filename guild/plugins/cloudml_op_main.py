@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 import argparse
-import glob
 import json
 import logging
 import os
@@ -641,35 +640,24 @@ class Deploy(object):
             return dest
 
     def _run_model_binaries_path(self):
-        export_path = self._trained_run_local_export_path()
-        paths = glob.glob(os.path.join(export_path, "*/*"))
-        return self._one_timestamp_path(paths, export_path)
-
-    def _trained_run_local_export_path(self):
-        return "%s/export" % self.trained_run.path
-
-    def _one_timestamp_path(self, paths, root):
-        ts_paths = [path for path in paths if self._is_timestamp_path(path)]
-        if not ts_paths:
-            _exit("cannot find model timestamp directory in %s", root)
-        ts_path = sorted(ts_paths, reverse=True)[0]
-        if len(ts_paths) > 1:
-            log.warning(
-                "found multiple timestamp paths under %s, using %s",
-                root, ts_path)
-        return ts_path
+        saved_models = list(self._iter_saved_models(self.trained_run.path))
+        if not saved_models:
+            _exit("could not find a saved model in %s" % self.trained_run.path)
+        return self._latest_saved_model(saved_models)
 
     @staticmethod
-    def _is_timestamp_path(path):
-        parts = re.split(r"[/\\]", path)
-        while parts and parts[-1] == "":
-            parts.pop()
-        try:
-            int(parts[-1])
-        except ValueError:
-            return False
-        else:
-            return True
+    def _iter_saved_models(dir):
+        for root, dirs, files in os.walk(dir):
+            try:
+                dirs.remove(".guild")
+            except ValueError:
+                pass
+            if "saved_model.pb" in files or "saved_model.pbtxt" in files:
+                yield root
+
+    @staticmethod
+    def _latest_saved_model(saved_models):
+        return sorted(saved_models)[-1]
 
     def _remote_model_binaries(self, local_model_path):
         assert self.args.bucket or self.args.model_binaries
@@ -693,6 +681,29 @@ class Deploy(object):
         else:
             paths = out.split()
             return self._one_timestamp_path(paths, export_path)
+
+    def _one_timestamp_path(self, paths, root):
+        ts_paths = [path for path in paths if self._is_timestamp_path(path)]
+        if not ts_paths:
+            _exit("cannot find model timestamp directory in %s", root)
+        ts_path = sorted(ts_paths, reverse=True)[0]
+        if len(ts_paths) > 1:
+            log.warning(
+                "found multiple timestamp paths under %s, using %s",
+                root, ts_path)
+        return ts_path
+
+    @staticmethod
+    def _is_timestamp_path(path):
+        parts = re.split(r"[/\\]", path)
+        while parts and parts[-1] == "":
+            parts.pop()
+        try:
+            int(parts[-1])
+        except ValueError:
+            return False
+        else:
+            return True
 
     def _trained_run_remote_export_path(self):
         job_dir = self.trained_run.get("cloudml_job_dir")
