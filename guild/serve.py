@@ -64,8 +64,8 @@ class SessionRun(object):
     def _handle_json(self, f):
         raw = f.read()
         try:
-            parsed = json.loads(raw)
-        except json.decode.JSONDecoderError as e:
+            parsed = json.loads(raw.decode())
+        except ValueError as e:
             self._error("invalid JSON: %s" % e, 400)
         else:
             try:
