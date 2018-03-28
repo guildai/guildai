@@ -23,6 +23,9 @@ from guild import click_util
 @click.argument("dir", required=False)
 @click.argument("params", metavar="[PARAM=VALUE...]", nargs=-1)
 @click.option(
+    "-e", "--env", is_flag=True,
+    help="Initialize an environment.")
+@click.option(
     "-p", "--project", "project_artifact", flag_value="project",
     help="Initialize a new project.")
 @click.option(
@@ -53,15 +56,17 @@ from guild import click_util
 def init(ctx, args):
     """Initialize an environment or project.
 
+    You must specify either `--env` or `--prject`. Refer to the
+    sections below for more information.
+
     ### Environments
 
-    By default `init` will initialize the default Guild AI environment
-    in `DIR`. If `DIR` is not specified, its value is determined by
-    whether or not the `init` command is executed in a Python virtual
-    environment. If `init` is executed within a virtual environment,
-    `DIR` is the environment variable root directory. If `init` is not
-    executed in a virtual environment, `DIR` is the user's home
-    directory.
+    To initialize a Guild environment in `DIR`, use `--env`. If `DIR`
+    is not specified, its value is determined by whether or not the
+    `init` command is executed in a Python virtual environment. If
+    `init` is executed within a virtual environment, `DIR` is the
+    environment variable root directory. If `init` is not executed in
+    a virtual environment, `DIR` is the user's home directory.
 
     Environment files are always created in a `.guild` subdirectory of
     `DIR` and no other system files will be modified.

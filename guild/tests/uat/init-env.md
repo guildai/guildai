@@ -1,8 +1,16 @@
 # Init Guild env
 
-The environment can be initialized by running:
+The init commands requires an additional option to indicate what's
+being initialized:
 
-    >>> run("guild init -y")
+    >>> run("guild init")
+    guild: specify either --env, --project, or --from-package
+    Try 'guild init --help' for more information.
+    <exit 1>
+
+The default environment can be initialized by running:
+
+    >>> run("guild init --env -y")
     Initialzing Guild environment in ...
     IMPORTANT: TensorFlow does not appear to be installed.
     Collecting tensorflow...

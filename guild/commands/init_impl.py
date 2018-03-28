@@ -45,11 +45,15 @@ def main(args, ctx):
     _maybe_shift_first_param(args)
     if args.project_artifact == "project" or args.from_package:
         _init_project(args, ctx)
-    else:
+    elif args.env:
         assert args.project_artifact is None, args
         initialized = _init_env(args, ctx)
         if initialized and not args.no_check:
             _check_env(args)
+    else:
+        cli.error(
+            "specify either --env, --project, or --from-package\n"
+            "Try 'guild init --help' for more information.")
 
 def _list_templates():
     templates_home = _project_templates_home()
