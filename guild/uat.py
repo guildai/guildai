@@ -32,7 +32,6 @@ import guild.test
 import guild.var
 
 from guild import pip_util
-from guild import test
 from guild import util
 
 INDEX = "tests/uat/README.md"
@@ -89,7 +88,7 @@ def _test_globals():
         "run": _run,
         "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
         "abspath": os.path.abspath,
-        "sample": test.sample,
+        "sample": guild.test.sample,
     })
     return globs
 

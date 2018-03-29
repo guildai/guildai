@@ -25,6 +25,7 @@ try:
     from urllib.request import urlopen
     from urllib.request import Request
 except ImportError:
+    # pylint: disable=import-error
     from urllib2 import urlopen
     from urllib2 import Request
 

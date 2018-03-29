@@ -24,6 +24,7 @@ import time
 try:
     from urllib.request import urlopen
 except ImportError:
+    # pylint: disable=import-error
     from urllib2 import urlopen
 
 from guild import util
