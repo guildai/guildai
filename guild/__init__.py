@@ -18,7 +18,7 @@ from __future__ import division
 import os
 import subprocess
 
-__version__ = "0.3.1.rc1"
+__version__ = "0.3.1"
 
 __requires__ = [
     # (<required module>, <distutils package req>)
