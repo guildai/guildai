@@ -86,7 +86,12 @@ Next we train the `softmax` model and view the results.
 - [tmp-mnist-data-after-softmax-train](tmp-mnist-data-after-softmax-train.md)
 - [compare-after-softmax-train](compare-after-softmax-train.md)
 - [view-after-softmax-train](view-after-softmax-train.md)
+
+Next we prepare sample images and run some predictions.
+
 - [serve-after-softmax-train](serve-after-softmax-train.md)
+- [prepare-mnist-samples](prepare-mnist-samples.md)
+- [predict-mnist-samples](predict-mnist-samples.md)
 
 Before we uninstall the package, we'll take advantage of the fact we
 have multiple models containing the term "mnist" and test an error
