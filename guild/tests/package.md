@@ -77,13 +77,11 @@ And its contents:
 
     >>> import zipfile
     >>> wheel = zipfile.ZipFile(join_path(workspace, "dist", files[0]))
-    >>> pprint(sorted(wheel.namelist())) # doctest: +REPORT_UDIFF
-    ['gpkg.hello-0.3.0.dev4.dist-info/DESCRIPTION.rst',
-     'gpkg.hello-0.3.0.dev4.dist-info/METADATA',
+    >>> pprint(sorted(wheel.namelist()))
+    ['gpkg.hello-0.3.0.dev4.dist-info/METADATA',
      'gpkg.hello-0.3.0.dev4.dist-info/PACKAGE',
      'gpkg.hello-0.3.0.dev4.dist-info/RECORD',
      'gpkg.hello-0.3.0.dev4.dist-info/WHEEL',
-     'gpkg.hello-0.3.0.dev4.dist-info/metadata.json',
      'gpkg.hello-0.3.0.dev4.dist-info/namespace_packages.txt',
      'gpkg.hello-0.3.0.dev4.dist-info/top_level.txt',
      'gpkg/hello/README.md',
