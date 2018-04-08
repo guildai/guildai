@@ -529,3 +529,10 @@ def format_dir(dir):
         return os.path.join("~", abs_cwd[len(user_dir)+1:])
     else:
         return abs_cwd
+
+def apply_env(target, source, names):
+    for name in names:
+        try:
+            target[name] = source[name]
+        except KeyError:
+            pass

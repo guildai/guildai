@@ -137,6 +137,7 @@ class Operation(object):
         env["RUN_DIR"] = self._run.path
         env["RUN_ID"] = self._run.id
         env["GUILD_HOME"] = config.guild_home()
+        util.apply_env(env, os.environ, ["PROFILE"])
         return env
 
     def _wait_for_proc(self):
