@@ -679,6 +679,7 @@ class ResourceDef(resourcedef.ResourceDef):
                 source, resource)
 
     def _source_for_type(self, type, val, data):
+        data = self._coerce_source_data(data)
         if type == "operation":
             return resourcedef.ResourceSource(
                 self, "operation:%s" % val, **data)
