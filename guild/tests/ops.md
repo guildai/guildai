@@ -79,30 +79,57 @@ We'll create a helper function to get the args:
 
     >>> class FlagDefProxy(object):
     ...
-    ...     def __init__(self, name):
+    ...     def __init__(self, name, choices=None, arg_name=None,
+    ...                  arg_skip=False):
     ...         self.name = name
-    ...         self.choices = []
-    ...         self.arg_name = None
-    ...         self.arg_skip = False
+    ...         self.choices = [
+    ...             ChoiceProxy(**choice) for choice in (choices or [])
+    ...         ]
+    ...         self.arg_name = arg_name
+    ...         self.arg_skip = arg_skip
+
+    >>> class ChoiceProxy(object):
+    ...
+    ...     def __init__(self, value=None, args=None):
+    ...         self.value = value
+    ...         self.args = args
 
     >>> class OpDefProxy(object):
     ...
-    ...     def __init__(self, flag_vals):
-    ...         self._flag_vals = flag_vals
+    ...     def __init__(self, flags):
+    ...         self._flags = flags
     ...
     ...     def flag_values(self):
-    ...         return self._flag_vals
+    ...         return {
+    ...             name: self._flag_val(flag)
+    ...             for name, flag in self._flags.items()
+    ...         }
+    ...
+    ...     def _flag_val(self, flag):
+    ...         try:
+    ...             return flag["value"]
+    ...         except TypeError:
+    ...             return flag
     ...
     ...     def get_flagdef(self, name):
-    ...         return FlagDefProxy(name)
+    ...         flag = self._flags[name]
+    ...         if isinstance(flag, dict):
+    ...             flagdef_args = {
+    ...                 name: flag[name] for name in flag
+    ...                 if name in ["choices", "arg_name", "arg_skip"]
+    ...             }
+    ...             return FlagDefProxy(name, **flagdef_args)
+    ...         else:
+    ...             return FlagDefProxy(name)
 
-    >>> def flag_args(flag_vals, cmd_args=None):
+    >>> def flag_args(flags, cmd_args=None):
     ...     from guild import util
-    ...     resolved_flag_vals = util.resolve_all_refs(flag_vals)
     ...     cmd_args = cmd_args or []
+    ...     opdef = OpDefProxy(flags)
+    ...     resolved_flag_vals = util.resolve_all_refs(opdef.flag_values())
     ...     flags, _flag_map = guild.op._flag_args(
     ...         resolved_flag_vals,
-    ...         OpDefProxy(flag_vals),
+    ...         opdef,
     ...         cmd_args)
     ...     return flags
 
@@ -130,6 +157,11 @@ If a flag value is True, the flag will be listed a flag option.
 
     >>> flag_args({"test": True, "batch-size": 50})
     ['--batch-size', '50', '--test']
+
+We can modify the argument name:
+
+    >>> flag_args({"batch-size": {"value": 50, "arg_name": "batch_size"}})
+    ['--batch_size', '50']
 
 The second argument to the `_flag_args` function is a list of command
 arguments. The function uses this list to check for shadowed flags. A
@@ -162,6 +194,49 @@ Flags args may contain references to flags.
 
     >>> flag_args({"a": 1, "b": "b-${a}"})
     ['--a', '1', '--b', 'b-1']
+
+### Flag choices
+
+Flag choices can be used for two purposes:
+
+- Limit available flag values
+- Define additional arguments for a command
+
+In the simple case, we're just defining the set of legal values. This
+doesn't effect the generated arguments.
+
+    >>> flag_args({
+    ...     "color": {
+    ...         "value": "blue",
+    ...         "choices": []
+    ...      }
+    ... })
+    ['--color', 'blue']
+
+We can however use choice `args` to modify the arguments:
+
+    >>> flag_args({
+    ...     "color": {
+    ...          "value": "blue",
+    ...          "choices": [{"value": "blue",
+    ...                       "args": {"hex": "00f",
+    ...                                "rgb": "0,0,255"}}]
+    ...     }
+    ... })
+    ['--color', 'blue', '--hex', '00f', '--rgb', '0,0,255']
+
+We can use `arg_skip` to omit the choice value:
+
+    >>> flag_args({
+    ...     "color": {
+    ...          "value": "blue",
+    ...          "arg_skip": True,
+    ...          "choices": [{"value": "blue",
+    ...                       "args": {"hex": "00f",
+    ...                                "rgb": "0,0,255"}}]
+    ...     }
+    ... })
+    ['--hex', '00f', '--rgb', '0,0,255']
 
 ## Command args
 

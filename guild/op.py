@@ -233,7 +233,7 @@ def _flag_cmd_arg_vals(flag_vals, opdef):
         if flagdef:
             if flagdef.choices:
                 _apply_choice_args(flagdef, val, flag_vals, vals, flag_map)
-            elif not flagdef.arg_skip:
+            if not flagdef.arg_skip:
                 _apply_flag_arg(flagdef, val, flag_vals, vals, flag_map)
         else:
             vals[name] = val
@@ -248,8 +248,6 @@ def _apply_choice_args(flagdef, val, flag_vals, target, flag_map):
                     for name, val in choice.args.items()
                 }
                 target.update(args)
-            elif not flagdef.arg_skip:
-                _apply_flag_arg(flagdef, val, flag_vals, target, flag_map)
             break
     else:
         log.warning(
