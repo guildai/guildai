@@ -33,6 +33,7 @@ For our first training, we'll proceed without the `h5py` module.
     Trainable params: 669,706
     Non-trainable params: 0
     _________________________________________________________________
+    ...
     WARNING: [guild.keras] h5py is not installed - model checkpoints will be disabled
     Train on 60000 samples, validate on 10000 samples...
     Epoch 1/1
@@ -85,6 +86,7 @@ And train again:
     Trainable params: 669,706
     Non-trainable params: 0
     _________________________________________________________________
+    ...
     Train on 60000 samples, validate on 10000 samples...
     Epoch 1/1
     <BLANKLINE>

@@ -6,8 +6,6 @@ by running `mnist-samples:prepare`:
     >>> run("guild run mnist-samples:prepare -y count=4")
     Resolving mnist/dataset dependency
     ...
-    Extracting mnist-idx-data/train-images-idx3-ubyte.gz
-    ...
     Writing ./00001.png
     Writing ./00002.png
     Writing ./00003.png
