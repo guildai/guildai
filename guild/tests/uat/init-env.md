@@ -10,7 +10,7 @@ being initialized:
 
 The default environment can be initialized by running:
 
-    >>> run("guild init --env -y")
+    >>> run("guild init --env -y", timeout=180)
     Initialzing Guild environment in ...
     IMPORTANT: TensorFlow does not appear to be installed.
     Collecting tensorflow...
