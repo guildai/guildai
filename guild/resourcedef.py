@@ -130,8 +130,7 @@ class ResourceDef(object):
 class ResourceSource(object):
 
     def __init__(self, resdef, uri, sha256=None, unpack=True,
-                 type=None, select=None, resolution_help=None,
-                 **kw):
+                 type=None, select=None, help=None, **kw):
         self.resdef = resdef
         self.uri = uri
         self._parsed_uri = None
@@ -139,7 +138,7 @@ class ResourceSource(object):
         self.unpack = unpack
         self.type = type
         self.select = self._coerce_select(select)
-        self.resolution_help = resolution_help
+        self.help = help
         for key in kw:
             log.warning(
                 "unexpected source attribute '%s' in resource '%s'",
