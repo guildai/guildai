@@ -232,14 +232,14 @@ def _flag_cmd_arg_vals(flag_vals, opdef):
         flagdef = opdef.get_flagdef(name)
         if flagdef:
             if flagdef.choices:
-                _apply_choice_args(flagdef, val, flag_vals, vals, flag_map)
+                _apply_choice_args(flagdef, val, flag_vals, vals)
             if not flagdef.arg_skip:
                 _apply_flag_arg(flagdef, val, flag_vals, vals, flag_map)
         else:
             vals[name] = val
     return vals, flag_map
 
-def _apply_choice_args(flagdef, val, flag_vals, target, flag_map):
+def _apply_choice_args(flagdef, val, flag_vals, target):
     for choice in flagdef.choices:
         if choice.value == val:
             if choice.args:
