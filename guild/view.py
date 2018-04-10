@@ -172,7 +172,7 @@ class TBServer(object):
         if self._started:
             raise RuntimeError("already started")
         self.log_dir = util.mktempdir("guild-tensorboard-")
-        self._monitor = self._tb.RunsMonitor(
+        self._monitor = util.RunsMonitor(
             self._list_runs,
             self.log_dir,
             TB_RUNS_MONITOR_INTERVAL)

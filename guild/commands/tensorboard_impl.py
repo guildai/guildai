@@ -30,7 +30,7 @@ def main(args):
     with util.TempDir("guild-tensorboard-") as logdir:
         log.debug("Using logdir %s", logdir)
         list_runs_cb = lambda: runs_impl.runs_for_args(args)
-        monitor = tensorboard.RunsMonitor(
+        monitor = util.RunsMonitor(
             list_runs_cb, logdir, args.refresh_interval)
         monitor.start()
         tensorboard.serve_forever(

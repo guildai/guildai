@@ -30,6 +30,13 @@ from . import server_support
     help="Don't open Guild View in a browser.",
     is_flag=True)
 @click.option("--logging", help="Log requests.", is_flag=True)
+@click.option(
+    "--files",
+    help=(
+        "View run files using file browser rather than start Guild "
+        "View. Guild View related options (`--no-open`, `--logging`) "
+        "are ignored."),
+    is_flag=True)
 @runs_support.op_and_label_filters
 @runs_support.status_filters
 @runs_support.scope_options
