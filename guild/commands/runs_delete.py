@@ -61,7 +61,7 @@ def delete_runs(ctx, args):
     If you want to permanently delete runs, use the ``--permanent``
     option.
 
-    WARNING: Permanentaly deleted runs cannot be restored.
+    **WARNING**: Permanentaly deleted runs cannot be restored.
 
     {{ runs_support.runs_arg }}
 
