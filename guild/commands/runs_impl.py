@@ -18,6 +18,7 @@ from __future__ import division
 import logging
 import os
 import re
+import shutil
 import signal
 
 import six
@@ -76,6 +77,11 @@ def filtered_runs(args, force_deleted=False):
         run_init=init_opref_attr)
 
 def _runs_root_for_args(args, force_deleted):
+    archive = getattr(args, "archive", None)
+    if archive:
+        if not os.path.exists(archive):
+            cli.error("archive directory '%s' does not exist" % archive)
+        return archive
     deleted = force_deleted or getattr(args, "deleted", False)
     return var.runs_dir(deleted=deleted)
 
@@ -202,6 +208,8 @@ def _in_range(slice_start, slice_end, l):
     )
 
 def list_runs(args):
+    if args.archive and args.deleted:
+        cli.error("--archive and --deleted may not both be used")
     runs = filtered_runs(args)
     formatted = []
     for i, run in enumerate(runs):
@@ -531,3 +539,42 @@ def _try_stop_local_run(run):
     if pid and util.pid_exists(pid):
         cli.out("Stopping %s (pid %i)" % (run.id, run.pid))
         os.kill(pid, signal.SIGTERM)
+
+def export(args, ctx):
+    if not os.path.isdir(args.location):
+        cli.error("directory '{}' does not exist".format(args.location))
+    preview = (
+        "You are about to %s the following runs to '%s':" %
+        (args.move and "move" or "copy", args.location))
+    confirm = "Continue?"
+    no_runs = "No runs to export."
+    def export(selected):
+        if args.copy_resources and not args.yes:
+            cli.out(
+                "WARNING: you have specified --copy-resources, which will "
+                "copy resources used by each run!"
+                "")
+            if not cli.confirm("Really copy resources exported runs?"):
+                return
+        exported = 0
+        for run in selected:
+            dest = os.path.join(args.location, run.id)
+            if os.path.exists(dest):
+                log.warning("%s exists, skipping", dest)
+                continue
+            if args.move:
+                cli.out("Moving {}".format(run.id))
+                if args.copy_resources:
+                    shutil.copytree(run.path, dest)
+                    shutil.rmtree(run.path)
+                else:
+                    shutil.move(run.path, dest)
+            else:
+                cli.out("Copying {}".format(run.id))
+                symlinks = not args.copy_resources
+                shutil.copytree(run.path, dest, symlinks)
+            exported += 1
+        cli.out("Exported %i run(s)" % exported)
+    _runs_op(
+        args, ctx, False, preview, confirm, no_runs,
+        export, ALL_RUNS_ARG, True)

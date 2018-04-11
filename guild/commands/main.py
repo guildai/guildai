@@ -25,6 +25,7 @@ from guild import click_util
 
 from .check import check
 from .compare import compare
+from .export import export
 from .help import help
 from .index import index
 from .init import init
@@ -89,6 +90,7 @@ def main(args):
 
 main.add_command(check)
 main.add_command(compare)
+main.add_command(export)
 main.add_command(help)
 main.add_command(index)
 main.add_command(init)

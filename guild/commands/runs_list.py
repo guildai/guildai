@@ -30,6 +30,10 @@ def runs_list_options(fn):
             help="Show deleted runs.",
             is_flag=True),
         click.Option(
+            ("--archive",),
+            metavar="DIR",
+            help="Show archived runs in DIR"),
+        click.Option(
             ("-v", "--verbose"),
             help="Show run details.",
             is_flag=True),
@@ -66,6 +70,11 @@ def list_runs(args):
     Use `--deleted` to show deleted runs. You can use the listing for
     run IDs and indexes to use in ``runs restore`` (restore runs) and
     ``runs purge`` (permanently delete runs).
+
+    ### Show archives runs
+
+    Use `--archive` to show runs in an archive directory. This option
+    may not be used with `--delete`.
 
     """
     from . import runs_impl
