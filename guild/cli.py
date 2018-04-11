@@ -117,31 +117,32 @@ def _col_info(data, cols):
             coli["width"] = max(coli.get("width", 0), len(item[col]))
     return info
 
-def _item_out(item, cols, col_info, detail, indent, max_width, err):
+def _item_out(item, cols, col_info, detail, indent, max_col_width, err):
     indent_padding = " " * indent
     click.echo(indent_padding, nl=False, err=err)
-    line_pos = 0
+    line_pos = indent
     for i, col in enumerate(cols):
         val = item[col]
         last_col = i == len(cols) - 1
         val = _pad_col_val(val, col, col_info) if not last_col else val
         line_pos = line_pos + len(val)
-        if line_pos > max_width:
-            click.echo(val[:-(line_pos-max_width)], nl=False, err=err)
+        if line_pos > max_col_width:
+            click.echo(val[:-(line_pos-max_col_width)], nl=False, err=err)
             break
         else:
             click.echo(val, nl=False, err=err)
     click.echo(err=err)
+    terminal_width = click.get_terminal_size()[0]
     for key in (detail or []):
         click.echo(indent_padding, nl=False, err=err)
-        formatted = _format_detail_val(item[key], indent)
+        formatted = _format_detail_val(item[key], indent, terminal_width)
         click.echo("  %s:%s" % (key, formatted), err=err)
 
-def _format_detail_val(val, indent):
+def _format_detail_val(val, indent, terminal_width):
     if isinstance(val, list):
         if val:
             val_indent = " " * (indent + 4)
-            val_width = click.get_terminal_size()[0] - len(val_indent)
+            val_width = terminal_width - len(val_indent)
             return "\n" + "\n".join([
                 click.wrap_text(x, val_width, val_indent, val_indent)
                 for x in val
