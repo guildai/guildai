@@ -38,14 +38,14 @@ def label_params(fn):
     ])
     return fn
 
-@click.command()
+@click.command("label")
 @label_params
 
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
 
-def label(ctx, args):
+def label_runs(ctx, args):
     """Set run labels.
 
     If `LABEL` is provided, the command will label the selected
