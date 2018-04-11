@@ -212,5 +212,5 @@ def _format_run_detail(run):
     if scalars:
         lines.append("Scalars (last recorded value):")
         for key, val in scalars:
-            lines.append("  {}: {}".format(key, val))
+            lines.append("  {}: {}".format(key.decode(), val))
     return "\n".join(lines)
