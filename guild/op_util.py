@@ -20,6 +20,7 @@ import time
 
 import yaml
 
+import guild.run
 from guild import util
 
 class RunOutput(object):
@@ -198,3 +199,19 @@ def _parse_arg_val(s):
         return yaml.safe_load(s)
     except yaml.YAMLError:
         return s
+
+class NoCurrentRun(Exception):
+    pass
+
+def current_run():
+    """Returns an instance of guild.run.Run for the current run.
+
+    The current run directory must be specified with the RUN_DIR
+    environment variable. If this variable is not defined, raised
+    NoCurrentRun.
+
+    """
+    path = os.getenv("RUN_DIR")
+    if not path:
+        raise NoCurrentRun()
+    return guild.run.Run(os.getenv("RUN_ID"), path)

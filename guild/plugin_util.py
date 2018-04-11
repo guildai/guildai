@@ -23,10 +23,12 @@ import sys
 
 import yaml
 
-import guild.run
+import guild.op_util
 
-class NoCurrentRun(Exception):
-    pass
+# Create plugin_util aliases to op_util where applicable.
+
+NoCurrentRun = guild.op_util.NoCurrentRun
+current_run = guild.op_util.current_run
 
 def exit(msg, exit_status=1):
     """Exit the Python runtime with a message.
@@ -36,19 +38,6 @@ def exit(msg, exit_status=1):
     sys.stderr.write(msg)
     sys.stderr.write("\n")
     sys.exit(exit_status)
-
-def current_run():
-    """Returns an instance of guild.run.Run for the current run.
-
-    The current run directory must be specified with the RUN_DIR
-    environment variable. If this variable is not defined, raised
-    NoCurrentRun.
-
-    """
-    path = os.getenv("RUN_DIR")
-    if not path:
-        raise NoCurrentRun()
-    return guild.run.Run(os.getenv("RUN_ID"), path)
 
 def parse_op_args(args):
     if len(args) < 2:
