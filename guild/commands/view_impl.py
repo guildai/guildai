@@ -72,7 +72,7 @@ class ViewDataImpl(view.ViewData):
                 if log.getEffectiveLevel() <= logging.DEBUG:
                     log.exception("error processing run data for %s", run.id)
                 else:
-                    log.error("error processing run data for %s: %s", run.id, e)
+                    log.error("error processing run data for %s: %r", run.id, e)
 
     def _run_data(self, run):
         formatted = runs_impl.format_run(run)
@@ -235,9 +235,13 @@ class ViewDataImpl(view.ViewData):
             return None, None
         subdir = path[len(runs_dir)+1:]
         parts = subdir.split(os.path.sep, 1)
-        run = self._run_for_id(parts[0])
-        operation = runs_impl.format_op_desc(run.opref, nowarn=True)
-        return operation, run.short_id
+        try:
+            run = self._run_for_id(parts[0])
+        except LookupError:
+            return "%s (deleted)" % parts[0][:8], None
+        else:
+            operation = runs_impl.format_op_desc(run.opref, nowarn=True)
+            return operation, run.short_id
 
     def config(self):
         cwd = util.format_dir(config.cwd())

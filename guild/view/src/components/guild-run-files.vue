@@ -35,7 +35,9 @@
               class="grey lighten-3 btn-link"
               flat small block
               style="margin-left: -8px"
-              @click="view(files.item)"><span class="path">{{ files.item.path }}</span></v-btn></div>
+              @click="view(files.item)">
+              <span class="path">{{ files.item.path }}</span>
+            </v-btn>
           </td>
           <td v-else><span class="path">{{ files.item.path }}</span></td>
           <td>{{ files.item.type }}</td>
@@ -44,8 +46,11 @@
               v-if="files.item.run"
               :href="'?run=' + files.item.run + '#files'"
               target="_blank">{{ files.item.operation }}</a>
+            <span v-elif="files.item.operation">{{ files.item.operation }}</span>
           </td>
-          <td class="text-xs-right"><span class="file-size">{{ formatFileSize(files.item.size) }}</span></td>
+          <td class="text-xs-right">
+            <span class="file-size">{{ formatFileSize(files.item.size) }}</span>
+          </td>
         </template>
       </v-data-table>
     </v-card>
