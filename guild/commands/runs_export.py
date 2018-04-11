@@ -59,7 +59,7 @@ def export_runs(ctx, args):
 
     By default, resources are NOT copied with each exported run, but
     their links are maintained. To copy resources, use
-    `--copy-resources.
+    `--copy-resources`.
 
     **WARNING**: Use `--copy-resources` with care as each exported run
     will contain a separate copy of each resource!
