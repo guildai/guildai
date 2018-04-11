@@ -46,7 +46,7 @@
               v-if="files.item.run"
               :href="'?run=' + files.item.run + '#files'"
               target="_blank">{{ files.item.operation }}</a>
-            <span v-elif="files.item.operation">{{ files.item.operation }}</span>
+            <span v-else-if="files.item.operation">{{ files.item.operation }}</span>
           </td>
           <td class="text-xs-right">
             <span class="file-size">{{ formatFileSize(files.item.size) }}</span>
