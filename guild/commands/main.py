@@ -27,6 +27,7 @@ from .check import check
 from .compare import compare
 from .export import export
 from .help import help
+from .import_ import import_
 from .index import index
 from .init import init
 from .install import install
@@ -92,6 +93,7 @@ main.add_command(check)
 main.add_command(compare)
 main.add_command(export)
 main.add_command(help)
+main.add_command(import_)
 main.add_command(index)
 main.add_command(init)
 main.add_command(install)

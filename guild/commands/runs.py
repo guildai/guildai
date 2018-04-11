@@ -22,6 +22,7 @@ from guild import click_util
 
 from .runs_delete import delete_runs
 from .runs_export import export_runs
+from .runs_import import import_runs
 from .runs_info import run_info
 from .runs_label import label_runs
 from .runs_list import list_runs, runs_list_options
@@ -56,6 +57,7 @@ def _params_specified(kw):
 runs.add_command(delete_runs)
 runs.add_command(export_runs)
 runs.add_command(run_info)
+runs.add_command(import_runs)
 runs.add_command(label_runs)
 runs.add_command(list_runs)
 runs.add_command(purge_runs)

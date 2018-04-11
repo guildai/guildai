@@ -578,3 +578,34 @@ def export(args, ctx):
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
         export, ALL_RUNS_ARG, True)
+
+def import_(args, ctx):
+    if not os.path.isdir(args.archive):
+        cli.error("directory '{}' does not exist".format(args.archive))
+    preview = (
+        "You are about to import the following runs from '%s':" %
+        args.archive)
+    confirm = "Continue?"
+    no_runs = "No runs to import."
+    def export(selected):
+        if args.copy_resources and not args.yes:
+            cli.out(
+                "WARNING: you have specified --copy-resources, which will "
+                "copy resources used by each run!"
+                "")
+            if not cli.confirm("Really copy resources exported runs?"):
+                return
+        imported = 0
+        for run in selected:
+            dest = os.path.join(var.runs_dir(), run.id)
+            if os.path.exists(dest):
+                log.warning("%s exists, skipping", run.id)
+                continue
+            cli.out("Copying {}".format(run.id))
+            symlinks = not args.copy_resources
+            shutil.copytree(run.path, dest, symlinks)
+            imported += 1
+        cli.out("Imported %i run(s)" % imported)
+    _runs_op(
+        args, ctx, False, preview, confirm, no_runs,
+        export, ALL_RUNS_ARG, True)
