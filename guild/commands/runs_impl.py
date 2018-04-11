@@ -133,12 +133,21 @@ def _op_run_filter(op_refs):
     return f
 
 def _apply_labels_filter(args, filters):
+    if args.labels and args.unlabeled:
+        cli.error("--label and --unlabeled cannot both be used")
     if args.labels:
         filters.append(_label_filter(args.labels))
+    elif args.unlabeled:
+        filters.append(_unlabeled_filter())
 
 def _label_filter(labels):
     def f(run):
         return any((l in run.get("label", "") for l in labels))
+    return f
+
+def _unlabeled_filter():
+    def f(run):
+        return not run.get("label", "").strip()
     return f
 
 def select_runs(runs, select_specs, ctx=None):

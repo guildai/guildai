@@ -56,15 +56,18 @@ def run_arg(fn):
 def op_and_label_filters(fn):
     """### Filtering by operation and label
 
-    Runs may be filtered by operation using the `--operation`
-    option. A run is only included if any part of its full operation
-    name, including the package and model name, matches the value.
+    Runs may be filtered by operation using `--operation`.  A run is
+    only included if any part of its full operation name, including
+    the package and model name, matches the value.
 
-    Use the `--label` option to only include runs with labels matching
-    a specified value.
+    Use `--label` to only include runs with labels matching a
+    specified value.
 
     `--operation` and `--label` may be used multiple times to expand
     the runs that are included.
+
+    Use `--unlabeled` to only include runs without labels. This option
+    may not be used with `--label`.
 
     """
     click_util.append_params(fn, [
@@ -76,6 +79,10 @@ def op_and_label_filters(fn):
             ("-l", "--label", "labels"), metavar="VAL",
             help="Include runs with labels matching `VAL`.",
             multiple=True),
+        click.Option(
+            ("-u", "--unlabeled"),
+            help="Include only runs without labels.",
+            is_flag=True)
     ])
     return fn
 
