@@ -106,8 +106,8 @@
         </v-card>
         <v-card v-if="Object.keys(run.otherAttrs).length > 0" class="mt-3">
           <v-expansion-panel focusable>
-            <v-expansion-panel-content>
-              <div slot="header">More attributes</div>
+            <v-expansion-panel-content :value="true">
+              <div slot="header">Attributes</div>
               <v-card>
                 <v-card-text>
                   <v-layout
