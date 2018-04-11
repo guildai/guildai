@@ -28,8 +28,10 @@
     guild.commands.check_impl
     guild.commands.compare
     guild.commands.compare_impl
+    guild.commands.export
     guild.commands.help
     guild.commands.help_impl
+    guild.commands.import_
     guild.commands.index
     guild.commands.index_impl
     guild.commands.init
@@ -55,7 +57,9 @@
     guild.commands.run_impl
     guild.commands.runs
     guild.commands.runs_delete
+    guild.commands.runs_export
     guild.commands.runs_impl
+    guild.commands.runs_import
     guild.commands.runs_info
     guild.commands.runs_label
     guild.commands.runs_list
