@@ -207,7 +207,7 @@ def _format_run_detail(run):
         lines.append("Flags:")
         for name, val in flags:
             val = val if val is not None else ""
-            lines.append("  {}: {}".format(name, val))
+            lines.append("  {}: {}".format(name.decode(), val))
     scalars = sorted(run.iter_scalars())
     if scalars:
         lines.append("Scalars (last recorded value):")
