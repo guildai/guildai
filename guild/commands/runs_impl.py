@@ -138,7 +138,7 @@ def _apply_labels_filter(args, filters):
 
 def _label_filter(labels):
     def f(run):
-        return any((l in run.get("label") for l in labels))
+        return any((l in run.get("label", "") for l in labels))
     return f
 
 def select_runs(runs, select_specs, ctx=None):
