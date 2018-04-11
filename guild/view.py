@@ -284,7 +284,7 @@ def _serve_dev(data, host, port, no_open, logging):
     dev_server.wait_for_ready()
     view_url = util.local_server_url(host, view_port)
     if not no_open:
-        util.open_url(view_url)
+        util.open_url(util.local_server_url(host, port))
     sys.stdout.write(" I  Guild View backend: {}\n".format(view_url))
     _start_view(data, host, view_port, logging)
     sys.stdout.write("\n")
