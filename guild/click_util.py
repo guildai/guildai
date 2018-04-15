@@ -62,9 +62,11 @@ class HelpFormatter(click.formatting.HelpFormatter):
             text = pattern.sub(repl, text)
         return text
 
-    def write_dl(self, rows, _col_max=None, _col_spacing=None):
+    def write_dl(self, rows, col_max=None, col_spacing=None,
+                 preserve_paragraphs=False):
         rows = [(term, self._format_text(text)) for term, text in rows]
-        super(HelpFormatter, self).write_dl(rows)
+        super(HelpFormatter, self).write_dl(
+            rows, preserve_paragraphs=preserve_paragraphs)
 
 class JSONHelpFormatter(object):
 

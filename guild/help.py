@@ -82,7 +82,8 @@ class RestFormatter(click.HelpFormatter):
                 self.write_paragraph()
                 self.write_text(par)
 
-    def write_dl(self, rows, _col_max=None, _col_spacing=None):
+    def write_dl(self, rows, col_max=None, col_spacing=None,
+                 preserve_paragraphs=False):
         for i, (name, desc) in enumerate(rows):
             if i > 0:
                 self.write_paragraph()
