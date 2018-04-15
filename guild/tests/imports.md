@@ -109,7 +109,6 @@
     guild.package_main
     guild.pip_util
     guild.plugin
-    guild.plugin_util
     guild.plugins.__init__
     guild.plugins.cloudml
     guild.plugins.cloudml_op_main

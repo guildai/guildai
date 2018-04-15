@@ -36,7 +36,6 @@ import guild.run
 from guild import click_util
 from guild import op_util
 from guild import opref
-from guild import plugin_util
 from guild import util
 from guild import var
 
@@ -320,7 +319,7 @@ class Train(object):
 
     def __init__(self, args, sdk):
         job_args, flag_args = self._parse_args(args)
-        self.run = plugin_util.current_run()
+        self.run = op_util.current_run()
         self.job_name = job_args.job_name or self._job_name()
         self.job_dir = "gs://%s/%s" % (job_args.bucket, self.job_name)
         self.args = job_args
@@ -531,7 +530,7 @@ class Deploy(object):
 
     def __init__(self, args, sdk):
         self.args = self._parse_args(args)
-        self.run = plugin_util.current_run()
+        self.run = op_util.current_run()
         self.trained_run = _find_run(
             self.args.trained_model,
             self.run,
@@ -716,7 +715,7 @@ class Predict(object):
 
     def __init__(self, args, sdk):
         self.args = self._parse_args(args)
-        self.run = plugin_util.current_run()
+        self.run = op_util.current_run()
         self.args.instances = op_util.resolve_file(self.args.instances)
         self.deployed_run = _find_run(
             self.args.deployed_model,
@@ -961,10 +960,10 @@ def _init_op(name, op_args, sdk):
     elif name == "batch-predict":
         return BatchPredict(op_args, sdk)
     else:
-        plugin_util.exit("unrecognized command '%s'" % name)
+        op_util.exit("unrecognized command '%s'" % name)
 
 def main(args):
-    op_name, op_args = plugin_util.parse_op_args(args)
+    op_name, op_args = op_util.parse_op_args(args)
     sdk = _init_sdk()
     _init_op(op_name, op_args, sdk)()
 

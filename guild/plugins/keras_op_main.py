@@ -26,7 +26,7 @@ import time
 # keras here will fail in test envs that don't support keras. It's
 # also slow, noisy, and side-effecty.
 
-from guild import plugin_util
+from guild import op_util
 from guild.plugins import python_util
 from guild import util
 
@@ -81,7 +81,7 @@ class Op(object):
         python_util.exec_script(self.script, self._global_assigns())
 
     def _global_assigns(self):
-        flags = plugin_util.args_to_flags(self.script_args)
+        flags = op_util.args_to_flags(self.script_args)
         return {
             name[6:]: flags[name] for name in flags
             if name[:6] == "const:"
@@ -144,7 +144,7 @@ def _ensure_tensorboard_callback(kw):
     cb = _ensure_callback(
         keras.callbacks.TensorBoard, kw,
         write_graph=True)
-    cb.log_dir = plugin_util.current_run().path
+    cb.log_dir = op_util.current_run().path
 
 def _ensure_checkpoint_callback(kw):
     import keras
@@ -181,7 +181,7 @@ def _set_tensorboard_params(_sp0, params):
         for name, val in params.items()
         if isinstance(val, (str, int, float, bool))
     }
-    plugin_util.current_run().write_attr("flags", flags)
+    op_util.current_run().write_attr("flags", flags)
 
 def _init_op(name, op_args):
     if name == "train":
@@ -189,14 +189,14 @@ def _init_op(name, op_args):
     elif name == "predict":
         return Predict(op_args)
     else:
-        plugin_util.exit("unrecognized command '%s'" % name)
+        op_util.exit("unrecognized command '%s'" % name)
 
 def main(args):
-    op_name, op_args = plugin_util.parse_op_args(args)
+    op_name, op_args = op_util.parse_op_args(args)
     try:
         import keras as _
     except ImportError:
-        plugin_util.exit("cannot import keras - is it installed?")
+        op_util.exit("cannot import keras - is it installed?")
     op = _init_op(op_name, op_args)
     try:
         op()
