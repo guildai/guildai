@@ -4,7 +4,7 @@ Guild tests can be run with the `check` command using the `-T` option
 (`-n` here skips the general check info as we're just interested in
 tests).
 
-    >>> run("guild check -nT") # doctest: +REPORT_UDIFF
+    >>> run("guild check -nT", ignore="FutureWarning") # doctest: +REPORT_UDIFF
     internal tests:
       config:                  ok
       cpu-plugin:              ok
@@ -20,14 +20,15 @@ tests).
       memory-plugin:           ok
       models:                  ok
       namespaces:              ok
+      op-utils:                ok
       ops:                     ok
       package:                 ok
       plugin-python-utils:     ok
-      plugin-utils:            ok
       plugins:                 ok
       run-output:              ok
       runs:                    ok
       tables:                  ok
+      tfevents:                ok
       utils:                   ok
       var:                     ok
     <exit 0>

@@ -1,16 +1,16 @@
-# Plugin utils
+# Op utils
 
-The `guild.plugin_util` module provides some helper functions for
-plugins.
+The `guild.op_util` module provides helper functions for plugins and
+user operations.
 
-    >>> from guild import plugin_util
+    >>> from guild import op_util
 
 ## Converting plugin args to flags
 
 Use `args_to_flags` to convert a list of command line args to flag
 keyvals.
 
-    >>> a2f = plugin_util.args_to_flags
+    >>> a2f = op_util.args_to_flags
 
     >>> a2f([])
     {}
