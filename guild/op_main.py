@@ -19,6 +19,7 @@ import imp
 import logging
 import os
 import sys
+import warnings
 
 import guild.log
 
@@ -35,6 +36,7 @@ def main():
 def _main():
     _init_sys_path()
     _init_logging()
+    _init_warnings()
     log.debug("cwd: %s", os.getcwd())
     log.debug("sys.path: %s", os.path.pathsep.join(sys.path))
     arg1, rest_args = _parse_args()
@@ -50,6 +52,10 @@ def _init_logging():
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     guild.log.init_logging(level, {"_": format})
     globals()["log"] = logging.getLogger("guild.op_main")
+
+def _init_warnings():
+    if log.getEffectiveLevel() > logging.DEBUG:
+        warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def _parse_args():
     if len(sys.argv) < 2:
