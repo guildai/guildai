@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
+
 import click
 
 import guild.model
@@ -224,12 +226,14 @@ def _init_op(opdef, model, args):
     _validate_opdef_flags(opdef)
     _apply_arg_disable_plugins(args, opdef)
     extra_attrs = _init_op_extra_attrs(args)
-    if args.run_dir:
+    run_dir = args.run_dir
+    if run_dir:
+        run_dir = os.path.abspath(run_dir)
         cli.note(
             "Run directory is '%s' (results will not be visible to Guild)"
-            % args.run_dir)
+            % run_dir)
     return guild.op.Operation(
-        model, opdef, args.run_dir, resource_vals, extra_attrs)
+        model, opdef, run_dir, resource_vals, extra_attrs)
 
 def _split_flags_and_resources(vals, opdef):
     ref_vars = _ref_vars_for_resource_lookup(vals, opdef)
