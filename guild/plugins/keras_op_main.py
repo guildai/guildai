@@ -105,10 +105,10 @@ class Predict(Op):
 
     name = "predict"
 
-def patch_keras(args):
+def patch_keras(batch_size=None, epochs=None):
     import keras
-    fit = _fit_wrapper(args)
-    fit_gen = _fit_gen_wrapper(args)
+    fit = _fit_wrapper(batch_size, epochs)
+    fit_gen = _fit_gen_wrapper(epochs)
     _patch(keras.models.Sequential, "fit", fit)
     _patch(keras.models.Sequential, "fit_generator", fit_gen)
     _patch(keras.models.Model, "fit", fit)
@@ -118,25 +118,25 @@ def patch_keras(args):
 def _patch(cls, method, wrapper):
     python_util.listen_method(cls, method, wrapper)
 
-def _fit_wrapper(op_args):
+def _fit_wrapper(batch_size, epochs):
     def fit(fit0, *args, **kw):
-        _maybe_apply_kw("batch_size", op_args.batch_size, kw)
-        _maybe_apply_kw("epochs", op_args.epochs, kw)
+        _maybe_apply_kw("batch_size", batch_size, kw)
+        _maybe_apply_kw("epochs", epochs, kw)
         _ensure_tensorboard_callback(kw)
         _ensure_checkpoint_callback(kw)
         raise python_util.Result(fit0(*args, **kw))
     return fit
 
-def _fit_gen_wrapper(op_args):
+def _fit_gen_wrapper(epochs):
     def fit_gen(fit_gen0, *args, **kw):
-        _maybe_apply_kw("epochs", op_args.epochs, kw)
+        _maybe_apply_kw("epochs", epochs, kw)
         _ensure_tensorboard_callback(kw)
         _ensure_checkpoint_callback(kw)
         raise python_util.Result(fit_gen0(*args, **kw))
     return fit_gen
 
 def _maybe_apply_kw(name, val, kw):
-    if val:
+    if val is not None:
         kw[name] = val
 
 def _ensure_tensorboard_callback(kw):
