@@ -52,7 +52,10 @@ lint:
 	PYTHONPATH=guild/external pylint -rn -f parseable setup.py guild
 
 clean:
-	rm -rf guild/external/
+	rm -rf guild/external/.psutil*
+	rm -rf guild/external/psutil*
+	rm -rf guild/external/.click*
+	rm -rf guild/external/click*
 	rm -rf build/
 	rm -rf dist/
 	rm -rf guildai.egg-info/
