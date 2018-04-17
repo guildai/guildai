@@ -226,19 +226,42 @@ def _write_flags(flags, heading, out, no_flags_msg=None):
     out.write_paragraph()
     out.indent()
     if flags:
-        out.write_dl([(flag.name, _flag_desc(flag)) for flag in flags])
+        out.write_dl(flags_dl(flags), preserve_paragraphs=True)
     else:
         if no_flags_msg:
             out.write_description(no_flags_msg)
     out.dedent()
 
-def _flag_desc(flag):
-    desc = flag.description.strip()
-    if flag.default is not None:
-        desc += " (default is %r)" % flag.default
+def flags_dl(flags):
+    max_flag_len = max([len(flag.name) for flag in flags])
+    return [
+        (flag.name, _format_flag_desc(flag, max_flag_len))
+        for flag in flags
+    ]
+
+def _format_flag_desc(flag, max_flag_len):
+    lines = flag.description.split("\n")
+    if flag.default:
+        line1_suffix = " (default is %r)" % flag.default
     elif flag.required:
-        desc += " (required)"
-    return desc
+        line1_suffix = " (required)"
+    else:
+        line1_suffix = ""
+    lines[0] += line1_suffix
+    if flag.choices:
+        lines.append(_format_flag_choices(flag.choices, max_flag_len))
+    return "\n\n".join(lines)
+
+def _format_flag_choices(choices, max_flag_len):
+    out = click.HelpFormatter()
+    out.width = out.width - max_flag_len - 4
+    out.write_heading("Choices")
+    out.indent()
+    out.write_dl(
+        [(choice.value, "\n\n".join(choice.description.split("\n")))
+         for choice in choices],
+        preserve_paragraphs=True)
+    return "\n\b\n" + out.getvalue()
 
 def _write_references(refs, out):
     out.write_subheading("References")

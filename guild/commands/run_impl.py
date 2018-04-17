@@ -19,6 +19,7 @@ import os
 
 import click
 
+import guild.help
 import guild.model
 import guild.op
 import guild.plugin
@@ -360,7 +361,7 @@ def _write_dl_section(name, dl, out):
     out.write_paragraph()
     out.write_heading(name)
     out.indent()
-    out.write_dl(dl)
+    out.write_dl(dl, preserve_paragraphs=True)
     out.dedent()
 
 def _print_op_help(opdef):
@@ -397,26 +398,14 @@ def _dep_description(dep, model_resources):
     return dep.description or model_resources.get(dep.spec) or ""
 
 def _format_op_flags_dl(opdef):
-    dl = []
     seen = set()
-    flags = opdef.flags + opdef.modeldef.flags
-    for flag in flags:
+    flags = []
+    for flag in opdef.flags + opdef.modeldef.flags:
         if flag.name in seen:
             continue
         seen.add(flag.name)
-        dl.append((flag.name, _format_flag_desc(flag)))
-    return dl
-
-def _format_flag_desc(flag):
-    if flag.default or flag.required:
-        lines = flag.description.split("\n")
-        if flag.default:
-            suffix = " (default is %r)" % flag.default
-        else:
-            suffix = " (required)"
-        return "\n".join([lines[0] + suffix] + lines[1:])
-    else:
-        return flag.description
+        flags.append(flag)
+    return guild.help.flags_dl(flags)
 
 def _print_cmd(op):
     formatted = " ".join([_maybe_quote_arg(arg) for arg in op.cmd_args])
