@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import os
 import subprocess
 import sys
@@ -25,6 +26,8 @@ from guild import namespace
 from guild import resource
 from guild import resourcedef
 from guild import util
+
+log = logging.getLogger("guild")
 
 class Package(object):
 
@@ -67,6 +70,7 @@ def create_package(package_file, dist_dir=None, upload_repo=False,
         "PASSWORD": password or "",
         "SKIP_EXISTING": skip_existing and "1" or "",
         "COMMENT": comment or "",
+        "DEBUG": log.getEffectiveLevel() <= logging.DEBUG and "1" or "",
     })
     _apply_twine_env_creds(env)
     cwd = os.path.dirname(package_file)

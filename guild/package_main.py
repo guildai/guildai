@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import os
 import sys
 
@@ -286,6 +287,8 @@ def _twine_dist_file_args(dist):
     return [df[2] for df in dist.dist_files]
 
 def _handle_twine_error(e):
+    if os.getenv("DEBUG"):
+        logging.exception("twine error")
     try:
         msg = e.message
     except AttributeError:
