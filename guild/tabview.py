@@ -131,6 +131,7 @@ class Viewer(ViewerBase):
     def sort_by_column_numeric_reverse(self):
         from operator import itemgetter
         xp = self.x + self.win_x
+
         self.data = sorted(self.data, key=lambda x:
                            self.float_string_key(itemgetter(xp)(x)),
                            reverse=True)
@@ -140,7 +141,7 @@ class Viewer(ViewerBase):
         try:
             return float(value)
         except ValueError:
-            return str(value) if value else None
+            return float('-inf')
 
     def show_cell(self):
         yp = self.y + self.win_y
