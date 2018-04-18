@@ -36,6 +36,10 @@ from guild.commands import runs_impl
 def main(args, ctx):
     if args.rerun:
         _apply_rerun_args(args.rerun, args, ctx)
+    elif not args.opspec:
+        cli.error(
+            "missing [MODEL:]OPERATION or --rerun RUN\n"
+            "Try 'guild run --help' for more information.")
     model_ref, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_ref)
     opdef = _resolve_opdef(op_name, model)

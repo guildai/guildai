@@ -22,6 +22,12 @@ TensorFlow using the `init` command.
 - [check-after-init](check-after-init.md)
 - [guild-tests](guild-tests.md)
 
+## Command errors
+
+*Run commands with missing arguments and other errors.*
+
+- [command-errors](command-errors.md)
+
 ## Sample project
 
 *Initializing and training a sample project*
