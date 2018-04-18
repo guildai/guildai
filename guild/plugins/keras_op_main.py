@@ -98,7 +98,7 @@ class Train(Op):
         return p
 
     def __call__(self):
-        patch_keras(self.args)
+        patch_keras(self.args.batch_size, self.args.epochs)
         super(Train, self).__call__()
 
 class Predict(Op):
