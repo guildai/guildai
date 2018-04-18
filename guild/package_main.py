@@ -66,7 +66,6 @@ def _create_dist(pkg):
     sys.argv = _bdist_wheel_cmd_args(pkg)
     kw = _setup_kw(pkg)
     _write_package_metadata(pkg, kw)
-    _patch_setuptools_namespaces()
     return setuptools.setup(**kw)
 
 def _bdist_wheel_cmd_args(pkg):
@@ -208,33 +207,6 @@ def _pkg_metadata(pkg):
         if "package" in item:
             return item
     raise AssertionError(pkg.data)
-
-def _patch_setuptools_namespaces():
-    """Prevent creation of *.nspkg.pth entry for packages.
-
-    Guild uses namespaces simply to tuck packages inside a namespace
-    and not for real Python package namespaces. The nspkg.pth entry
-    created by setuptools can break Python systems in some cases, so
-    we disable its creation altogether.
-
-    E.g. https://github.com/pypa/setuptools/issues/805
-    """
-    patched = False
-    try:
-        from setuptools.namespaces import Installer
-    except ImportError:
-        pass
-    else:
-        Installer.install_namespaces = lambda *_args: None
-        patched = True
-    try:
-        from setuptools.command.install_egg_info import install_egg_info
-    except ImportError:
-        pass
-    else:
-        install_egg_info.install_namespaces = lambda *_args: None
-        patched = True
-    assert patched
 
 def _maybe_upload(dist):
     upload_repo = os.getenv("UPLOAD_REPO")

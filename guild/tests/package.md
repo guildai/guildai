@@ -78,7 +78,8 @@ And its contents:
     >>> import zipfile
     >>> wheel = zipfile.ZipFile(join_path(workspace, "dist", files[0]))
     >>> pprint(sorted(wheel.namelist()))
-    ['gpkg.hello-0.3.0.dev4.dist-info/METADATA',
+    ['gpkg.hello-0.3.0.dev4-...-nspkg.pth',
+     'gpkg.hello-0.3.0.dev4.dist-info/METADATA',
      'gpkg.hello-0.3.0.dev4.dist-info/PACKAGE',
      'gpkg.hello-0.3.0.dev4.dist-info/RECORD',
      'gpkg.hello-0.3.0.dev4.dist-info/WHEEL',
