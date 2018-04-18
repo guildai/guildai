@@ -79,6 +79,7 @@ def _plugin_for_name(name):
 def _try_module(module_spec, args):
     package_path, module = _parse_module_spec(module_spec)
     if package_path:
+        package_path = _try_resolve_package_path(package_path)
         log.debug("using package path '%s'", package_path)
         sys.path.insert(0, package_path)
     log.debug("finding module '%s'", module)
@@ -96,6 +97,13 @@ def _parse_module_spec(spec):
         return parts[0], parts[1]
     else:
         return None, parts[0]
+
+def _try_resolve_package_path(package_path):
+    for path in sys.path:
+        maybe_resolved = os.path.join(path, package_path)
+        if os.path.exists(maybe_resolved):
+            return maybe_resolved
+    return package_path
 
 def _find_module(module):
     parts = module.split(".")
