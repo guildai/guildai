@@ -250,7 +250,10 @@ def _format_flag_desc(flag, max_flag_len):
     lines[0] += line1_suffix
     if flag.choices:
         lines.append(_format_flag_choices(flag.choices, max_flag_len))
-    return "\n\n".join(lines)
+    if len(lines) > 1:
+        return "\n\n".join(lines) + "\n\b\n"
+    else:
+        return lines[0]
 
 def _format_flag_choices(choices, max_flag_len):
     out = click.HelpFormatter()
