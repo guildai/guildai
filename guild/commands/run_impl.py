@@ -25,6 +25,7 @@ import guild.op
 import guild.plugin
 
 from guild import cli
+from guild import click_util
 from guild import cmd_impl_support
 from guild import deps
 from guild import op_util
@@ -39,7 +40,8 @@ def main(args, ctx):
     elif not args.opspec:
         cli.error(
             "missing [MODEL:]OPERATION or --rerun RUN\n"
-            "Try 'guild run --help' for more information.")
+            "Try 'guild ops' for a list of operations or '%s' "
+            "for more information." % click_util.cmd_help(ctx))
     model_ref, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_ref)
     opdef = _resolve_opdef(op_name, model)
