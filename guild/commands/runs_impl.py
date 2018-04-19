@@ -490,7 +490,7 @@ def _clear_labels(args, ctx):
         cli.out("Cleared label for %i run(s)" % len(selected))
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
-        clear_labels, LATEST_RUN_ARG)
+        clear_labels, LATEST_RUN_ARG, True)
 
 def _set_labels(args, ctx):
     preview = (
