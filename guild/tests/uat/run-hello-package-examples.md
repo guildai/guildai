@@ -2,26 +2,26 @@
 
 Default (using model ref):
 
-    >>> run("guild run -y hello:default --label test-1")
+    >>> run("guild run -y hello:default --label test-1", ignore="FutureWarning")
     Hello Guild!
     <exit 0>
 
 Flag (using full package ref):
 
-    >>> run("guild run -y hello/hello:from-flag --label test-2")
+    >>> run("guild run -y hello/hello:from-flag --label test-2", ignore="FutureWarning")
     Hello Guild, from a flag!
     <exit 0>
 
 From file:
 
-    >>> run("guild run -y hello:from-file --label test-3")
+    >>> run("guild run -y hello:from-file --label test-3", ignore="FutureWarning")
     Resolving msg-file dependency
     Hello Guild, from a required file!
     <exit 0>
 
 From file output:
 
-    >>> run("guild run -y hello/hello:from-file-output --label test-4")
+    >>> run("guild run -y hello/hello:from-file-output --label test-4", ignore="FutureWarning")
     Resolving file-output dependency
     Using output from run ... for file-output resource
     Latest from-file output:

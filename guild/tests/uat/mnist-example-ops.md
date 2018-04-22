@@ -15,7 +15,7 @@ directory to the MNIST example:
 
 The ops available in this context example are:
 
-    >>> run("guild ops")
+    >>> run("guild ops", ignore="FutureWarning")
     Limiting models to the current directory (use --all to include all)
     ./mnist-expert:evaluate  Evaluate a trained model using test data
     ./mnist-expert:train     Train the MNIST model

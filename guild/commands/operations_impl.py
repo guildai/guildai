@@ -28,7 +28,7 @@ def main(args):
     cli.table(
         sorted(filtered, key=lambda m: m["fullname"]),
         cols=["fullname", "description"],
-        detail=(["cmd", "flags", "details"] if args.verbose else [])
+        detail=(["main", "flags", "details"] if args.verbose else [])
     )
 
 def _iter_ops():
@@ -44,7 +44,7 @@ def _format_op(op, model):
         "details": details,
         "model": model.fullname,
         "name": op.name,
-        "cmd": op.cmd,
+        "main": op.main,
         "flags": [
             "%s:%s%s" % (
                 flag.name,

@@ -5,14 +5,14 @@ limited to those that were generated from that guildfile.
 
 Let's show runs for the MNIST example:
 
-    >>> run("guild -C examples/mnist2 runs")
+    >>> run("guild -C examples/mnist2 runs", ignore="FutureWarning")
     Limiting runs to 'examples/mnist2' (use --all to include all)
     <exit 0>
 
 We can alternatively change to that directory and see the same results:
 
     >>> cd("examples/mnist2")
-    >>> run("guild runs")
+    >>> run("guild runs", ignore="FutureWarning")
     Limiting runs to the current directory (use --all to include all)
     <exit 0>
 

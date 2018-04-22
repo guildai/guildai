@@ -20,6 +20,7 @@ import errno
 import logging
 import os
 import re
+import warnings
 
 import six
 import yaml
@@ -583,7 +584,7 @@ def _init_ops(data, modeldef):
 def _coerce_op_data(data):
     if isinstance(data, str):
         return {
-            "cmd": data
+            "main": data
         }
     else:
         return data
@@ -605,7 +606,15 @@ class OpDef(FlagHost):
         self.name = name
         data = _coerce_op_data(data)
         self.description = data.get("description", "").strip()
-        self.cmd = data.get("cmd")
+        cmd = data.get("cmd")
+        if cmd:
+            warnings.warn(
+                "'cmd' has been renamed to 'main' - support for 'cmd' will "
+                "be removed in Guild version 0.5",
+                FutureWarning, stacklevel=9999999)
+            self.main = cmd
+        else:
+            self.main = data.get("main")
         self.plugin_op = data.get("plugin-op")
         self.disabled_plugins = data.get("disabled-plugins", [])
         self.dependencies = _init_dependencies(data.get("requires"), self)

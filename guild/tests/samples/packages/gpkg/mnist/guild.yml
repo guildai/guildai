@@ -3,7 +3,7 @@
   operations:
     train:
       description: Train the softmax regression
-      cmd: softmax
+      main: softmax
   flags:
     batch-size:
       description: Number of images to include in a training batch.
@@ -17,7 +17,7 @@
   operations:
     train:
       description: Train the CNN
-      cmd: cnn
+      main: cnn
   flags:
     batch-size:
       descrpition: Number of images to include in a training batch.

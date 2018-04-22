@@ -43,7 +43,7 @@ OP_RUNFILE_PATHS = [
 
 PROC_TERM_TIMEOUT_SECONDS = 30
 
-class InvalidCmd(ValueError):
+class InvalidMain(ValueError):
     pass
 
 class Operation(object):
@@ -181,7 +181,7 @@ class Operation(object):
 def _init_cmd_args(opdef):
     python_args = [_python_cmd(opdef), "-um", "guild.op_main"]
     flag_vals = util.resolve_all_refs(opdef.flag_values())
-    cmd_args = _cmd_args(opdef.cmd, flag_vals)
+    cmd_args = _cmd_args(opdef.main, flag_vals)
     flag_args, flag_map = _flag_args(flag_vals, opdef, cmd_args)
     cmd_args = python_args + cmd_args + flag_args
     return cmd_args, flag_map
@@ -192,20 +192,20 @@ def _python_cmd(_opdef):
     # not by whatever Python runtime is configured in the user env.
     return sys.executable
 
-def _cmd_args(cmd, flag_vals):
+def _cmd_args(main, flag_vals):
     def format_part(part):
         return str(util.resolve_refs(part, flag_vals))
-    return [format_part(part) for part in _split_cmd(cmd)]
+    return [format_part(part) for part in _split_main(main)]
 
-def _split_cmd(cmd):
-    if isinstance(cmd, list):
-        return cmd
+def _split_main(main):
+    if isinstance(main, list):
+        return main
     else:
-        # If cmd is None, this call will block (see
+        # If main is None, this call will block (see
         # https://bugs.python.org/issue27775)
-        if not cmd:
-            raise InvalidCmd(cmd)
-        parts = shlex.split(cmd or "")
+        if not main:
+            raise InvalidMain(main)
+        parts = shlex.split(main or "")
         stripped = [part.strip() for part in parts]
         return [x for x in stripped if x]
 

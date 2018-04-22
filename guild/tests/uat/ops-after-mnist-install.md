@@ -3,7 +3,7 @@
 Once we've installed the `mnist` package, we have the following
 operations available:
 
-    >>> run("guild ops")
+    >>> run("guild ops", ignore="FutureWarning")
     mnist/mnist-cnn:evaluate      Evaluate a trained CNN
     mnist/mnist-cnn:train         Train the CNN
     mnist/mnist-samples:prepare   Generate a set of sample MNIST images

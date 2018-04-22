@@ -14,7 +14,7 @@ with a run for the `mnist` package `mnist-softmax` model.
 We can limit the result by running the command in the context of the
 example guildfile directory:
 
-    >>> run("guild -C examples/mnist2 runs")
+    >>> run("guild -C examples/mnist2 runs", ignore="FutureWarning")
     Limiting runs to 'examples/mnist2' (use --all to include all)
     [0:...]  ./mnist-intro:train  ... ...  completed
     <exit 0>
@@ -23,7 +23,7 @@ We can alternatively change to the example directory and see the run
 without having to specify the `-C` option:
 
     >>> cd("examples/mnist2")
-    >>> run("guild runs")
+    >>> run("guild runs", ignore="FutureWarning")
     Limiting runs to the current directory (use --all to include all)
     [0:...]  ./mnist-intro:train  ... ...  completed
     <exit 0>
@@ -34,7 +34,7 @@ limited.
 To show all runs within the current context, we can use the `-a`
 option:
 
-    >>> run("guild runs -a")
+    >>> run("guild runs -a", ignore="FutureWarning")
     [0:...]  ./mnist-intro:train        ... ...  completed
     [1:...]  mnist/mnist-softmax:train  ... ...  completed
     <exit 0>

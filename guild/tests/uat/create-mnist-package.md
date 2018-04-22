@@ -8,7 +8,7 @@ For our tests we'll just run the command in the `mnist` package
 directory:
 
     >>> cd("packages/mnist")
-    >>> run("guild package", ignore=['Normalizing', 'normalized_version,'])
+    >>> run("guild package", ignore=['Normalizing', 'normalized_version,', 'FutureWarning'])
     running bdist_wheel
     ...
     <exit 0>

@@ -9,13 +9,13 @@ For our tests, we'll use a helper function that returns an instance of
 
     >>> import guild.guildfile
 
-    >>> def OpDef(cmd, name="op"):
+    >>> def OpDef(main, name="op"):
     ...     data = [
     ...       {
     ...         "model": "model",
     ...         "operations": {
     ...           name: {
-    ...             "cmd": cmd
+    ...             "main": main
     ...           }
     ...         }
     ...       }
@@ -39,9 +39,9 @@ Command specs are used to generate Python commands. The first part of
 the spec is used as the Python script or module. It can be a module
 name with or without a py extension.
 
-Here's an operation with a simple "train" cmd:
+Here's an operation that uses the "train" main module:
 
-    >>> op = Operation(cmd="train")
+    >>> op = Operation(main="train")
     >>> op.cmd_args
     ['...python...', '-um', 'guild.op_main', 'train']
 
@@ -53,7 +53,7 @@ around.
 Command specs may contain additional arguments, which will be included
 in the Python command.
 
-    >>> op = Operation(cmd="train epoch=10 tags='tag1 tag2'")
+    >>> op = Operation(main="train epoch=10 tags='tag1 tag2'")
     >>> op.cmd_args
     ['...python...', '-um', 'guild.op_main', 'train', 'epoch=10',
      'tags=tag1 tag2']
@@ -63,11 +63,11 @@ when running tests in Python 3. The regex that formats unicode refs as
 strings is fooled by the example. We need to break the line as a work
 around.
 
-Command specs cannot be empty:
+Main modules cannot be empty:
 
-    >>> Operation(cmd="")
+    >>> Operation(main="")
     Traceback (most recent call last):
-    InvalidCmd
+    InvalidMain
 
 ## Flag args
 
@@ -166,16 +166,16 @@ We can modify the argument name:
 The second argument to the `_flag_args` function is a list of command
 arguments. The function uses this list to check for shadowed flags. A
 shadowed flag is a flag that is defined directly in the operation
-`cmd` spec as an option. Guild prevents redefining command options
+`main` spec as an option. Guild prevents redefining command options
 with flags.
 
 Consider an operation definition that looks like this:
 
     operation:
       train:
-        cmd: train --epochs=100
+        main: train --epochs=100
 
-The cmd arg in this case are:
+The cmd args in this case are:
 
     >>> cmd_args = ["train", "--epochs=1000"]
 

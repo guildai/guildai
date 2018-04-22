@@ -15,7 +15,7 @@ resource:
     ... model: sample
     ... operations:
     ...  test:
-    ...    cmd: <not used>
+    ...    main: <not used>
     ...    requires: data
     ... resources:
     ...   data:
@@ -367,7 +367,7 @@ command:
     ... model: sample
     ... operations:
     ...  test:
-    ...    cmd: <not used>
+    ...    main: <not used>
     ...    requires: data
     ... resources:
     ...   data:

@@ -13,7 +13,7 @@ We can reference a guildfile in one of two ways:
 Here are the models associated with the MNIST example (using the `-C`
 option):
 
-    >>> run("guild -C examples/mnist2 models")
+    >>> run("guild -C examples/mnist2 models", ignore="FutureWarning")
     Limiting models to 'examples/mnist2' (use --all to include all)
     ./examples/mnist2/mnist-expert  MNIST model from TensorFlow expert tutorial
     ./examples/mnist2/mnist-intro   MNIST model from TensorFlow intro tutorial
@@ -22,7 +22,7 @@ option):
 Here's the same list after we've changed to that directory:
 
     >>> cd("examples/mnist2")
-    >>> run("guild models")
+    >>> run("guild models", ignore="FutureWarning")
     Limiting models to the current directory (use --all to include all)
     ./mnist-expert  MNIST model from TensorFlow expert tutorial
     ./mnist-intro   MNIST model from TensorFlow intro tutorial

@@ -79,8 +79,8 @@ def _dispatch_cmd(args, opdef, model):
 def _dispatch_op_cmd(opdef, model, args):
     try:
         op = _init_op(opdef, model, args)
-    except guild.op.InvalidCmd as e:
-        _invalid_cmd_error(e, opdef)
+    except guild.op.InvalidMain as e:
+        _invalid_main_error(e, opdef)
     else:
         if args.print_cmd:
             _print_cmd(op)
@@ -89,12 +89,16 @@ def _dispatch_op_cmd(opdef, model, args):
         else:
             _maybe_run(op, model, args)
 
-def _invalid_cmd_error(e, opdef):
+def _invalid_main_error(e, opdef):
     cmd = e.args[0]
     if not cmd:
-        cli.error("missing cmd for operation '%s'" % opdef.name)
+        cli.error(
+            "missing main or cmd for operation '%s'"
+            % opdef.name)
     else:
-        cli.error("invalid cmd '%s' for operation '%s'" % (cmd, opdef.name))
+        cli.error(
+            "invalid main or cmd '%s' for operation '%s'"
+            % (cmd, opdef.name))
 
 def _parse_opspec(spec):
     parts = spec.split(":", 1)

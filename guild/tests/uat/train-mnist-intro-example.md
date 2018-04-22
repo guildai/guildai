@@ -3,7 +3,7 @@
 We can train the MNIST example model `mnist-intro` as the default
 model in the `mnist2` directory:
 
-    >>> run("guild -C examples/mnist2 train -y epochs=1")
+    >>> run("guild -C examples/mnist2 train -y epochs=1", ignore="FutureWarning")
     Resolving data dependency
     ...
     Step 0: training=...
