@@ -126,8 +126,10 @@ export default {
   },
 
   watch: {
-    path() {
-      this.selectedPath_ = undefined;
+    visible(val) {
+      if (!val) {
+        this.selectedPath_ = undefined;
+      }
     }
   },
 
