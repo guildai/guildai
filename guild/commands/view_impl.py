@@ -224,6 +224,8 @@ class ViewDataImpl(view.ViewData):
             return "Audio", "file-music", "Audio", "midi"
         elif re.search(r"\.(wav|mp3)", path_lower):
             return "Audio", "file-music", "Audio", None
+        elif re.search(r"\.(csv|tsv)", path_lower):
+            return "Table", "file-delimited", "Delimited", "table"
         else:
             if util.is_text_file(path):
                 return "Text file", "file-document", "Text file", "text"

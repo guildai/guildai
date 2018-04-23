@@ -113,4 +113,26 @@ export default {
 .tabs__bar {
   padding: 0 16px !important;
 }
+
+table.datatable thead th {
+  font-size: 13px;
+  outline: none !important;
+}
+
+table.datatable thead th i {
+  margin-left: 4px;
+  color: #777 !important;
+}
+
+table.datatable thead tr {
+  height: 42px;
+}
+
+table.datatable thead th {
+  white-space: inherit;
+}
+
+table.datatable tbody td {
+  font-size: 14px;
+}
 </style>

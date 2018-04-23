@@ -37,13 +37,17 @@
           <img
             v-if="selected.viewer === 'image'"
             :src="selected.src" />
-          <guild-text
+          <guild-text-viewer
             v-else-if="selected.viewer === 'text'"
             :src="selected.src" />
-          <guild-midi
+          <guild-midi-viewer
             v-else-if="selected.viewer === 'midi'"
             :src="selected.src"
             :active="visible" />
+          <guild-table-viewer
+            v-else-if="selected.viewer === 'table'"
+            :src="selected.src"
+            />
           <div v-else>
             Unsupported viewer type: <i>{{ selected.viewer }}</i>
           </div>

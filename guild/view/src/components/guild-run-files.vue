@@ -10,11 +10,10 @@
           hide-details
           clearable
           v-model="filter"
-          style="max-width:20em;margin-bottom:-12px" />
+          style="max-width:20em;margin-bottom:-8px" />
       </v-card-title>
       <v-data-table
         ref="table"
-        class="files"
         :headers="fileHeaders"
         :items="run.files"
         :search="filter"
@@ -144,20 +143,6 @@ export default {
   justify-content: start;
   white-space: normal;
 }
-
-.files > table.table thead th {
-  font-size: 13px;
-  outline: none !important;
-}
-
-.files > table.table thead th i {
-  margin-left: 4px;
-  color: #777 !important;
-}
-
-.files > table.table thead tr {
-  height: 48px;
-}
 </style>
 
 <style scoped>
@@ -181,20 +166,8 @@ td.type-icon {
   text-align: left;
 }
 
-.files table.table thead tr {
-  height: 48px;
-}
-
-.files table.table thead th {
-  white-space: inherit;
-}
-
 .path {
   word-break: break-all;
-}
-
-table.table tbody td {
-  font-size: 14px;
 }
 
 .no-wrap {
