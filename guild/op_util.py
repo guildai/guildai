@@ -240,6 +240,10 @@ class TFEvents(object):
         if not self._writer:
             self._writer = tf.summary.FileWriter(self.logdir, max_queue=0)
 
+    def flush(self):
+        if self._writer:
+            self._writer.flush()
+
     def close(self):
         if self._writer:
             self._writer.close()
