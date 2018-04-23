@@ -13,6 +13,7 @@
           style="max-width:20em;margin-bottom:-12px" />
       </v-card-title>
       <v-data-table
+        ref="table"
         class="files"
         :headers="fileHeaders"
         :items="run.files"
@@ -55,8 +56,8 @@
       </v-data-table>
     </v-card>
     <guild-files-viewer
-      :files="media"
-      :path="curMedia ? curMedia.path : undefined"
+      :files="viewable"
+      :path="viewing ? viewing.path : undefined"
       v-model="viewerOpen" />
   </v-container>
 </template>
@@ -84,15 +85,23 @@ export default {
         { text: 'Size', value: 'size', align: 'right' }
       ],
       filter: '',
-      curMedia: undefined,
+      viewing: undefined,
       viewerOpen: false
     };
   },
 
   computed: {
-    media() {
-      var filtered = this.run.files.filter(file => file.viewer);
-      return filtered.map(file => {
+    filtered() {
+      if (this.filter !== '' && this.$refs.table !== undefined) {
+        return this.$refs.table.filteredItems;
+      } else {
+        return this.run.files;
+      }
+    },
+
+    viewable() {
+      const viewable = this.filtered.filter(file => file.viewer);
+      return viewable.map(file => {
         return {
           path: file.path,
           icon: 'mdi-' + file.icon,
@@ -109,8 +118,8 @@ export default {
     },
 
     view(file) {
-      var mediaFile = this.media.find(mfile => mfile.path === file.path);
-      this.curMedia = mediaFile;
+      const mediaFile = this.viewable.find(mfile => mfile.path === file.path);
+      this.viewing = mediaFile;
       this.viewerOpen = true;
     }
   }
