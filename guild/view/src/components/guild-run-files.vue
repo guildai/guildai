@@ -50,7 +50,10 @@
             <span v-else-if="files.item.operation">{{ files.item.operation }}</span>
           </td>
           <td class="text-xs-right">
-            <span class="file-size">{{ formatFileSize(files.item.size) }}</span>
+            <span class="no-wrap">{{ formatFileSize(files.item.size) }}</span>
+          </td>
+          <td>
+            <span class="no-wrap">{{ formatTime(files.item.mtime) }}</span>
           </td>
         </template>
       </v-data-table>
@@ -82,7 +85,8 @@ export default {
         { text: 'Name', value: 'path', align: 'left' },
         { text: 'Type', value: 'type', align: 'left' },
         { text: 'Source', value: 'operation', align: 'left' },
-        { text: 'Size', value: 'size', align: 'right' }
+        { text: 'Size', value: 'size', align: 'right' },
+        { text: 'Modified', value: 'mtime', align: 'left' }
       ],
       filter: '',
       viewing: undefined,
@@ -113,8 +117,17 @@ export default {
   },
 
   methods: {
-    formatFileSize(x) {
-      return x != null ? filesize(x) : '';
+    formatFileSize(n) {
+      return n !== null ? filesize(n) : '';
+    },
+
+    formatTime(mtime) {
+      if (mtime !== null) {
+        const date = new Date(mtime);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+      } else {
+        return '';
+      }
     },
 
     view(file) {
@@ -184,7 +197,7 @@ table.table tbody td {
   font-size: 14px;
 }
 
-.file-size {
+.no-wrap {
   white-space: nowrap;
 }
 </style>

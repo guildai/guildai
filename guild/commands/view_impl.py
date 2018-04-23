@@ -161,9 +161,13 @@ class ViewDataImpl(view.ViewData):
         typeDesc, icon, iconTooltip, viewer = self._file_type_info(path)
         opDesc, opRun = self._op_source_info(path)
         relpath = path[len(root)+1:]
+        mtime = util.safe_mtime(path)
+        if mtime:
+            mtime = int(mtime * 1000)
         return {
             "path": relpath,
             "size": util.safe_filesize(path),
+            "mtime": mtime,
             "type": typeDesc,
             "icon": icon,
             "iconTooltip": iconTooltip,

@@ -498,6 +498,12 @@ def safe_filesize(path):
     except OSError:
         return None
 
+def safe_mtime(path):
+    try:
+        return os.path.getmtime(path)
+    except OSError:
+        return None
+
 def try_remove(l, remove):
     for x in remove:
         try:
