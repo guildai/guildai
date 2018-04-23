@@ -15,7 +15,7 @@
 
 import GuildCompare from './guild-compare.vue';
 import GuildFilesViewer from './guild-files-viewer.vue';
-// import GuildImageViewer from './guild-image-viewer.vue';
+import GuildImageViewer from './guild-image-viewer.vue';
 import GuildMidiViewer from './guild-midi-viewer.vue';
 import GuildRun from './guild-run.vue';
 import GuildRunFiles from './guild-run-files.vue';
@@ -37,7 +37,7 @@ GuildView.install = function install(Vue) {
   };
   component(GuildCompare);
   component(GuildFilesViewer);
-  // component(GuildImageViewer);
+  component(GuildImageViewer);
   component(GuildMidiViewer);
   component(GuildRun);
   component(GuildRunFiles);

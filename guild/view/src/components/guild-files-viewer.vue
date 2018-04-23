@@ -34,7 +34,7 @@
       <v-divider />
       <v-card-text class="content">
         <template v-if="selected">
-          <img
+          <guild-image-viewer
             v-if="selected.viewer === 'image'"
             :src="selected.src" />
           <guild-text-viewer
@@ -196,10 +196,5 @@ function maybeWrapIndex(index, array) {
   justify-content: center;
   background-color: #666;
   height: 100%;
-}
-
-.content img {
-  max-width: 100%;
-  max-height: 100%;
 }
 </style>
