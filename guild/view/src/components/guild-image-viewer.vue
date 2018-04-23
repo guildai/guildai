@@ -1,39 +1,15 @@
 <template>
-  <div>
-    <img ref="img" :src="src">
+  <div style="height:100%">
+    <img ref="img" :src="src" style="max-height:100%; max-width:100%">
   </div>
 </template>
 
 <script>
-import './imageviewer.css';
-import './imageviewer.js';
-
 export default {
   name: 'guild-image-viewer',
 
   props: {
     src: String
-  },
-
-  data() {
-    return {
-      viewer: undefined
-    };
-  },
-
-  mounted() {
-    const img = $(this.$refs.img);
-    img.ImageViewer();
-    this.viewer = img.data('ImageViewer');
-  },
-
-  beforeDestroy() {
-    if (this.viewer) {
-      this.viewer.destroy();
-    }
   }
 };
 </script>
-
-<style scoped>
-</style>

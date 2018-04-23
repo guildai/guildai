@@ -18,9 +18,5 @@ module.exports = {
     'semi': ['error', 'always'],
     'space-before-function-paren': ['error', 'never'],
     'no-new': 'off'
-  },
-  globals: {
-    "$": true,
-    "jQuery": true
   }
 }
