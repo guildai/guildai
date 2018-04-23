@@ -92,7 +92,6 @@ class Operation(object):
         self._run.write_attr("opref", self._opref_attr())
         self._run.write_attr("flags", self.opdef.flag_values())
         self._run.write_attr("cmd", self.cmd_args)
-        self._run.write_attr("env", self.cmd_env)
         self._run.write_attr("started", self._started)
         if self._flag_map:
             self._run.write_attr("_flag_map", self._flag_map)
@@ -117,6 +116,7 @@ class Operation(object):
         assert self._run is not None
         args = self.cmd_args
         env = self._proc_env()
+        self._run.write_attr("env", env)
         cwd = self._run.path
         log.debug("starting operation run %s", self._run.id)
         log.debug("operation command: %s", args)
@@ -279,6 +279,7 @@ def _cmd_option_args(name, val):
 def _init_cmd_env(opdef):
     env = {}
     env.update(util.safe_osenv())
+    env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["LOG_LEVEL"] = str(logging.getLogger().getEffectiveLevel())
     env["PYTHONPATH"] = _python_path(opdef)
