@@ -4,8 +4,8 @@
     v-model="visible"
     scrollable
     :fullscreen="fullscreen">
-    <v-card style="height:640px">
-      <v-card-title style="padding: 8px 4px 8px 16px">
+    <v-card id="card">
+      <v-card-title id="card-title">
         <v-select
           v-if="files"
           :items="files"
@@ -185,6 +185,15 @@ function maybeWrapIndex(index, array) {
 </style>
 
 <style scoped>
+#card {
+  max-height: 100%;
+  min-height: 480px;
+}
+
+#card-title {
+  padding: 8px 4px 8px 16px;
+}
+
 .input-group {
   padding-right: 16px;
 }
