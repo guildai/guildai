@@ -222,6 +222,14 @@ function maybeWrapIndex(index, array) {
 </script>
 
 <style>
+.dialog {
+  max-width: 1600px;
+}
+
+.dialog.dialog--fullscreen {
+  max-width: none;
+}
+
 .input-group__prepend-icon {
   min-width: 32px !important;
 }
