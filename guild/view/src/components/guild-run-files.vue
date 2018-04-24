@@ -60,6 +60,7 @@
     <guild-files-viewer
       :files="viewable"
       :path="viewing ? viewing.path : undefined"
+      :src-base="runSrcBase"
       v-model="viewerOpen" />
   </v-container>
 </template>
@@ -94,6 +95,10 @@ export default {
   },
 
   computed: {
+    runSrcBase() {
+      return process.env.VIEW_BASE + '/runs/' + this.run.id + '/';
+    },
+
     filtered() {
       if (this.filter !== '' && this.$refs.table !== undefined) {
         return this.$refs.table.filteredItems;
@@ -103,15 +108,7 @@ export default {
     },
 
     viewable() {
-      const viewable = this.filtered.filter(file => file.viewer);
-      return viewable.map(file => {
-        return {
-          path: file.path,
-          icon: 'mdi-' + file.icon,
-          viewer: file.viewer,
-          src: process.env.VIEW_BASE + '/runs/' + this.run.id + '/' + file.path
-        };
-      });
+      return this.filtered.filter(file => file.viewer);
     }
   },
 

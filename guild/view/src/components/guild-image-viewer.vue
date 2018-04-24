@@ -1,6 +1,6 @@
 <template>
   <div id="root" ref="content">
-    <img :src="src">
+    <img :src="src" @load="onLoaded">
   </div>
 </template>
 
@@ -21,6 +21,14 @@ export default {
       smoothScroll: false
     };
     panzoom(this.$refs.content, opts);
+  },
+
+  methods: {
+    onLoaded(e) {
+      const img = e.target;
+      const dims = img.naturalWidth + ' x ' + img.naturalHeight;
+      this.$emit('meta', [dims]);
+    }
   }
 };
 </script>

@@ -5,7 +5,7 @@
     scrollable
     :fullscreen="fullscreen">
     <v-card id="card">
-      <v-card-title id="card-title">
+      <v-card-title id="card-title" class="grey lighten-4">
         <v-select
           v-if="files"
           :items="files"
@@ -13,18 +13,24 @@
           item-text="path"
           item-value="path"
           single-line
-          :prepend-icon="selected ? selected.icon : undefined" />
+          :prepend-icon="selectedIcon" />
         <v-spacer v-else />
+        <ul class="meta">
+          <li v-for="val in viewerMeta">{{ val }}</li>
+          <li>{{ selectedSize }}</li>
+          <li>{{ selectedMtime }}</li>
+        </ul>
         <v-btn
-          v-if="!fullscreen"
+          v-if="fullscreen"
+          icon flat
+          @click="fullscreen = false">
+          <v-icon>mdi-fullscreen-exit</v-icon>
+        </v-btn>
+        <v-btn
+          v-else
           icon flat
           @click="fullscreen = true">
           <v-icon>mdi-fullscreen</v-icon>
-        </v-btn>
-        <v-btn
-          v-if="fullscreen"
-          icon flat @click="fullscreen = false">
-          <v-icon>mdi-fullscreen-exit</v-icon>
         </v-btn>
         <v-btn
           icon flat @click="visible = false">
@@ -36,17 +42,18 @@
         <template v-if="selected">
           <guild-image-viewer
             v-if="selected.viewer === 'image'"
-            :src="selected.src" />
+            :src="selectedSrc"
+            @meta="viewerMeta = $event" />
           <guild-text-viewer
             v-else-if="selected.viewer === 'text'"
-            :src="selected.src" />
+            :src="selectedSrc" />
           <guild-midi-viewer
             v-else-if="selected.viewer === 'midi'"
-            :src="selected.src"
+            :src="selectedSrc"
             :active="visible" />
           <guild-table-viewer
             v-else-if="selected.viewer === 'table'"
-            :src="selected.src"
+            :src="selectedSrc"
             />
           <div v-else>
             Unsupported viewer type: <i>{{ selected.viewer }}</i>
@@ -57,7 +64,7 @@
         </template>
       </v-card-text>
       <v-divider></v-divider>
-      <v-card-actions>
+      <v-card-actions class="grey lighten-4">
         <v-btn flat :disabled="files.length <= 1" @click="nav(-1)">Prev</v-btn>
         <v-spacer />
         <v-btn flat :disabled="files.length <= 1" @click="nav(1)">Next</v-btn>
@@ -67,6 +74,8 @@
 </template>
 
 <script>
+import filesize from 'filesize';
+
 export default {
   name: 'guild-files-viewer',
 
@@ -76,13 +85,18 @@ export default {
       required: true
     },
     path: String,
+    srcBase: {
+      type: String,
+      default: ''
+    },
     value: Boolean
   },
 
   data() {
     return {
       selectedPath_: undefined,
-      fullscreen: false
+      fullscreen: false,
+      viewerMeta: []
     };
   },
 
@@ -109,12 +123,6 @@ export default {
       }
     },
 
-    selected() {
-      return this.selectedIndex !== -1
-           ? this.files[this.selectedIndex]
-           : undefined;
-    },
-
     selectedIndex() {
       for (var i = 0; i < this.files.length; i++) {
         if (this.files[i].path === this.selectedPath) {
@@ -122,6 +130,45 @@ export default {
         }
       }
       return -1;
+    },
+
+    selected() {
+      return this.selectedIndex !== -1
+           ? this.files[this.selectedIndex]
+           : undefined;
+    },
+
+    selectedIcon() {
+      if (this.selected && this.selected.icon) {
+        return 'mdi-' + this.selected.icon;
+      } else {
+        return undefined;
+      }
+    },
+
+    selectedSrc() {
+      if (this.selected) {
+        return this.srcBase + this.selected.path;
+      } else {
+        return undefined;
+      }
+    },
+
+    selectedSize() {
+      if (this.selected && this.selected.size !== null) {
+        return filesize(this.selected.size);
+      } else {
+        return '';
+      }
+    },
+
+    selectedMtime() {
+      if (this.selected && this.selected.mtime !== null) {
+        const date = new Date(this.selected.mtime);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+      } else {
+        return '';
+      }
     }
   },
 
@@ -134,15 +181,15 @@ export default {
   },
 
   created() {
-    window.addEventListener('keydown', this.handleKeyDown);
+    window.addEventListener('keydown', this.onKeyDown);
   },
 
   destroyed() {
-    window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('keydown', this.onKeyDown);
   },
 
   methods: {
-    handleKeyDown(e) {
+    onKeyDown(e) {
       if (!this.value || e.defaultPrevented) {
         return;
       }
@@ -157,6 +204,7 @@ export default {
 
     nav(incr) {
       var nextIndex = maybeWrapIndex(this.selectedIndex + incr, this.files);
+      this.viewerMeta = [];
       this.selectedPath = this.files[nextIndex].path;
     }
   }
@@ -205,5 +253,14 @@ function maybeWrapIndex(index, array) {
   justify-content: center;
   background-color: #666;
   height: 100%;
+}
+
+.meta {
+  margin: 0 15px 0 10px;
+}
+
+.meta li {
+  display: inline;
+  margin: 0 8px;
 }
 </style>
