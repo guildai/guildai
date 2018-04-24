@@ -19,6 +19,8 @@ import GuildImageViewer from './guild-image-viewer.vue';
 import GuildMidiViewer from './guild-midi-viewer.vue';
 import GuildRun from './guild-run.vue';
 import GuildRunFiles from './guild-run-files.vue';
+import GuildRunModel from './guild-run-model.vue';
+import GuildRunOutput from './guild-run-output.vue';
 import GuildRunOverview from './guild-run-overview.vue';
 import GuildRunStatusIcon from './guild-run-status-icon.vue';
 import GuildRunTitlebar from './guild-run-titlebar.vue';
@@ -41,6 +43,8 @@ GuildView.install = function install(Vue) {
   component(GuildMidiViewer);
   component(GuildRun);
   component(GuildRunFiles);
+  component(GuildRunModel);
+  component(GuildRunOutput);
   component(GuildRunOverview);
   component(GuildRunStatusIcon);
   component(GuildRunTitlebar);
