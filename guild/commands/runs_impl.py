@@ -30,7 +30,6 @@ import guild.run
 from guild import cli
 from guild import cmd_impl_support
 from guild import config
-from guild import op_util
 from guild import remote_run_support
 from guild import util
 from guild import var
@@ -402,14 +401,14 @@ def one_run(args, ctx):
     return cmd_impl_support.one_run(selected, runspec, ctx)
 
 def _page_run_output(run):
-    output = op_util.RunOutput(run)
+    reader = util.RunOutputReader(run.path)
     lines = []
     try:
-        lines = list(output)
+        lines = reader.read()
     except IOError as e:
         cli.error("error reading output for run %s: %s" % (run.id, e))
     lines = [_format_output_line(stream, line) for _time, stream, line in lines]
-    cli.page("".join(lines))
+    cli.page("\n".join(lines))
 
 def _format_output_line(stream, line):
     line = line.decode("UTF-8")

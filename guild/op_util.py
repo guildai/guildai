@@ -146,14 +146,6 @@ class RunOutput(object):
         self.wait(timeout)
         self.close()
 
-    def __iter__(self):
-        with self._output_lock:
-            output = self._open_output("r")
-            index = self._open_index("r")
-            for line in output:
-                time, stream = struct.unpack("!QB", index.read(9))
-                yield time, stream, line
-
 def resolve_file(filename):
     return util.find_apply([
         _abs_file,
