@@ -14,34 +14,70 @@
           item-value="path"
           single-line
           :prepend-icon="selectedIcon" />
-        <v-spacer v-else />
+
         <ul class="meta">
           <li v-for="val in viewerMeta">{{ val }}</li>
           <li>{{ selectedSize }}</li>
           <li>{{ selectedMtime }}</li>
         </ul>
-        <v-btn
+
+        <v-tooltip
+          v-if="selected && selected.viewer === 'image'"
+          bottom transition="fade-transition">
+          <div slot="activator">
+            <v-btn icon flat @click="resetZoom">
+              <v-icon>mdi-replay</v-icon>
+            </v-btn>
+          </div>
+          <span>Reset image</span>
+        </v-tooltip>
+
+
+        <v-tooltip
           v-if="fullscreen"
-          icon flat
-          @click="fullscreen = false">
-          <v-icon>mdi-fullscreen-exit</v-icon>
-        </v-btn>
-        <v-btn
+          bottom transition="fade-transition">
+          <div slot="activator">
+            <v-btn
+              icon flat
+              @click="fullscreen = false">
+              <v-icon>mdi-fullscreen-exit</v-icon>
+            </v-btn>
+          </div>
+          <span>Exit full screen</span>
+        </v-tooltip>
+
+        <v-tooltip
           v-else
-          icon flat
-          @click="fullscreen = true">
-          <v-icon>mdi-fullscreen</v-icon>
-        </v-btn>
-        <v-btn
-          icon flat @click="visible = false">
-          <v-icon>clear</v-icon>
-        </v-btn>
+          bottom transition="fade-transition">
+          <div slot="activator">
+            <v-btn
+              icon flat
+              @click="fullscreen = true">
+              <v-icon>mdi-fullscreen</v-icon>
+            </v-btn>
+          </div>
+          <span>View full screen</span>
+        </v-tooltip>
+
+        <v-tooltip
+          bottom transition="fade-transition">
+          <div slot="activator">
+            <v-btn
+              icon flat
+              @click="visible = false">
+              <v-icon>clear</v-icon>
+            </v-btn>
+          </div>
+          <span>Close</span>
+        </v-tooltip>
+
       </v-card-title>
       <v-divider />
       <v-card-text class="content">
         <template v-if="selected">
           <guild-image-viewer
             v-if="selected.viewer === 'image'"
+            ref="imageViewer"
             :src="selectedSrc"
             @meta="viewerMeta = $event" />
           <guild-text-viewer
@@ -65,9 +101,31 @@
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions class="grey lighten-4">
-        <v-btn flat :disabled="files.length <= 1" @click="nav(-1)">Prev</v-btn>
+
+        <v-tooltip
+          top transition="fade-transition">
+          <div slot="activator">
+            <v-btn
+              flat
+              :disabled="files.length <= 1"
+              @click="nav(-1)">Prev</v-btn>
+          </div>
+          <span>View previous file</span>
+        </v-tooltip>
+
         <v-spacer />
-        <v-btn flat :disabled="files.length <= 1" @click="nav(1)">Next</v-btn>
+
+        <v-tooltip
+          top transition="fade-transition">
+          <div slot="activator">
+            <v-btn
+              flat
+              :disabled="files.length <= 1"
+              @click="nav(1)">Next</v-btn>
+          </div>
+          <span>View next file</span>
+        </v-tooltip>
+
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -206,6 +264,11 @@ export default {
       var nextIndex = maybeWrapIndex(this.selectedIndex + incr, this.files);
       this.viewerMeta = [];
       this.selectedPath = this.files[nextIndex].path;
+    },
+
+    resetZoom() {
+      const viewer = this.$refs.imageViewer;
+      viewer.reset();
     }
   }
 };

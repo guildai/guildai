@@ -14,13 +14,14 @@ export default {
     src: String
   },
 
-  mounted() {
-    const opts = {
-      maxZoom: 5.0,
-      minZoom: 1.0,
-      smoothScroll: false
+  data() {
+    return {
+      pz: undefined
     };
-    panzoom(this.$refs.content, opts);
+  },
+
+  mounted() {
+    this.reset();
   },
 
   methods: {
@@ -28,6 +29,20 @@ export default {
       const img = e.target;
       const dims = img.naturalWidth + ' x ' + img.naturalHeight;
       this.$emit('meta', [dims]);
+    },
+
+    reset() {
+      this.$refs.content.removeAttribute('style');
+      if (this.pz) {
+        this.pz.dispose();
+        this.pz = undefined;
+      }
+      const opts = {
+        maxZoom: 5.0,
+        minZoom: 1.0,
+        smoothScroll: false
+      };
+      this.pz = panzoom(this.$refs.content, opts);
     }
   }
 };
