@@ -1,7 +1,10 @@
 <template>
   <guild-text-loader :src="src" @input="text = $event">
     <div v-if="parsed.errors.length > 0" class="fallback">
-      <p>An error occurred parsing table data. The unparsed data is displayed below.</p>
+      <p>
+        An error occurred parsing table data. The unparsed data is
+        displayed below.
+      </p>
       <textarea readonly class="elevation-3 pa-3 white" >{{ text }}</textarea>
     </div>
     <v-data-table
@@ -9,7 +12,7 @@
       :headers="data.headers"
       :items="data.items"
       hide-actions
-      class="elevation-1">
+      class="elevation-1 items">
       <template slot="items" slot-scope="rows">
         <td v-for="header in data.headers">
           {{ rows.item[header.value] }}
@@ -70,11 +73,25 @@ export default {
 };
 </script>
 
+<style>
+.items table.table {
+  width: unset;
+}
+
+@media (min-width: 600px) {
+  .items table.table {
+    min-width: 600px;
+  }
+}
+
+</style>
+
 <style scoped>
 .fallback {
   display: flex;
   flex-direction: column;
   flex: 1;
+  align-items: center;
 }
 
 .fallback p {
@@ -90,5 +107,9 @@ export default {
 
 .fallback textarea:focus {
   outline: none;
+}
+
+.items {
+  width: unset;
 }
 </style>

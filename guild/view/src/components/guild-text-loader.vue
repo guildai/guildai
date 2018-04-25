@@ -75,6 +75,8 @@ export default {
   flex-direction: column;
   flex: 1;
   width: 100%;
+  justify-content: center;
+  align-items: center;
 }
 
 #loading {

@@ -13,7 +13,8 @@
           item-text="path"
           item-value="path"
           single-line
-          :prepend-icon="selectedIcon" />
+          :prepend-icon="selectedIcon"
+          style="min-width:100px" />
 
         <ul class="meta">
           <li v-for="val in viewerMeta">{{ val }}</li>

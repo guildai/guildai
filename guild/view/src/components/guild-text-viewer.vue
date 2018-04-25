@@ -28,6 +28,12 @@ textarea {
   font-family: monospace;
 }
 
+@media (min-width: 600px) {
+  textarea {
+    min-width: 600px;
+  }
+}
+
 textarea:focus {
   outline: none;
 }
