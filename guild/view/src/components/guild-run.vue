@@ -8,9 +8,11 @@
         <v-tabs-item key="overview" href="#overview" ripple>
           Overview
         </v-tabs-item>
+        <!--
         <v-tabs-item key="model" href="#model" ripple>
           Model
         </v-tabs-item>
+        -->
         <v-tabs-item key="files" href="#files" ripple>
           Files
         </v-tabs-item>
