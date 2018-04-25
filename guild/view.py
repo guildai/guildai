@@ -261,7 +261,7 @@ class DistFiles(serving_util.StaticDir):
 class RunFiles(serving_util.StaticBase):
 
     def __init__(self):
-        super(RunFiles, self).__init__({"/runs": var.runs_dir()})
+        super(RunFiles, self).__init__({"/files": var.runs_dir()})
 
     def handle(self, _req):
         def app(env, start_resp0):
@@ -270,6 +270,31 @@ class RunFiles(serving_util.StaticBase):
                 start_resp0(status, headers)
             return self._app(env, start_resp)
         return app
+
+class RunOutput(object):
+
+    def __init__(self):
+        self._output_run_id = None
+        self._output = None
+
+    def handle(self, req, run):
+        self._ensure_output(run)
+        start = req.args.get("s", None, int)
+        end = req.args.get("e", None, int)
+        lines = [
+            (time, stream, line.decode())
+            for time, stream, line in self._output.read(start, end)
+        ]
+        return serving_util.json_resp(lines)
+
+    def _ensure_output(self, run_id):
+        if self._output_run_id == run_id:
+            return
+        run_dir = os.path.join(var.runs_dir(), run_id)
+        if not os.path.exists(run_dir):
+            raise NotFound()
+        self._output = util.RunOutputReader(run_dir)
+        self._output_run_id = run_id
 
 def serve_forever(data, host, port, no_open=False, dev=False, logging=False):
     if dev:
@@ -309,9 +334,11 @@ def _start_view(data, host, port, logging):
 def _view_app(data, tb_servers, index):
     dist_files = DistFiles()
     run_files = RunFiles()
+    run_output = RunOutput()
     routes = serving_util.Map([
         ("/runs", _handle_runs, (data, index)),
-        ("/runs/<path:_>", run_files.handle, ()),
+        ("/files/<path:_>", run_files.handle, ()),
+        ("/runs/<run>/output", run_output.handle, ()),
         ("/config", _handle_config, (data,)),
         ("/tb/", _route_tb, ()),
         ("/tb/<key>/", _handle_tb_index, (tb_servers, data)),

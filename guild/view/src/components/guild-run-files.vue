@@ -96,7 +96,7 @@ export default {
 
   computed: {
     runSrcBase() {
-      return process.env.VIEW_BASE + '/runs/' + this.run.id + '/';
+      return process.env.VIEW_BASE + '/files/' + this.run.id + '/';
     },
 
     filtered() {

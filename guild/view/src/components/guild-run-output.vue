@@ -14,19 +14,20 @@
       </v-card-title>
       <v-data-table
         ref="table"
+        class="run-output"
         :headers="headers"
-        :items="rows"
+        :items="lines"
         :search="filter"
         item-key="index"
-        :hide-headers="rows.length == 0"
+        :hide-headers="lines.length == 0"
         hide-actions
         must-sort
         no-data-text="There is no output associated with this run"
         no-results-text="No matches for the current filter">
-        <template slot="items" slot-scope="rows">
-          <tr :class="'stream-' + rows.item.stream">
-            <td class="time">{{ formatTime(rows.item.time) }}</td>
-            <td class="val">{{ rows.item.value }}</td>
+        <template slot="items" slot-scope="lines">
+          <tr :class="'stream-' + lines.item[1]">
+            <td class="time">{{ formatTime(lines.item[0]) }}</td>
+            <td class="val">{{ lines.item[2] }}</td>
           </tr>
         </template>
       </v-data-table>
@@ -35,6 +36,8 @@
 </template>
 
 <script>
+import { fetchData } from './guild-data.js';
+
 export default {
   name: 'guild-run-output',
 
@@ -49,24 +52,56 @@ export default {
     return {
       filter: '',
       headers: [
-        { text: 'Time', align: 'left', value: 'time', sortable: true },
-        { text: '', align: 'left', value: 'value', sortable: false }
-      ]
+        { text: 'Time', align: 'left', value: '0', sortable: true },
+        { text: '', align: 'left', value: '2', sortable: false }
+      ],
+      fetchTimeout: undefined,
+      curRunId: undefined,
+      nextStart: 0,
+      lines: []
     };
   },
 
-  computed: {
-    rows() {
-      return [
-        { time: 1524579305106, value: 'This is line 0 of output yo!', stream: 1 },
-        { time: 1524579308106, value: 'This is line 1 of output yo!', stream: 0 },
-        { time: 1524579312106, value: 'This is line 2 of output yo!', stream: 1 },
-        { time: 1524579320106, value: 'This is line 3 of output yo!', stream: 0 }
-      ];
+  created() {
+    this.curRunId = this.run.id;
+    this.init();
+  },
+
+  watch: {
+    run(val) {
+      if (val.id !== this.curRunId) {
+        this.curRunId = val.id;
+        this.init();
+      }
     }
   },
 
   methods: {
+    init() {
+      this.nextStart = 0;
+      this.lines = [];
+      this.fetchOutput();
+    },
+
+    fetchOutput() {
+      var vm = this;
+      const url = '/runs/' + vm.run.id + '/output?s=' + vm.nextStart;
+      fetchData(url, function(output) {
+        output.forEach(line => {
+          vm.lines.push(line);
+        });
+        vm.nextStart += output.length;
+        vm.scheduleNextFetch();
+      });
+    },
+
+    scheduleNextFetch() {
+      if (this.fetchTimeout) {
+        clearTimeout(this.fetchTimeout);
+      }
+      this.fetchTimeout = setTimeout(this.fetchOutput, 5000);
+    },
+
     formatTime(time) {
       const date = new Date(time);
       return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
@@ -75,18 +110,25 @@ export default {
 };
 </script>
 
-<style scoped>
-table td.time {
+<style>
+.run-output table.table td {
+  height: unset;
+  padding: 5px 15px !important;
+  vertical-align: top;
+}
+
+.run-output table td.time {
   white-space: nowrap;
+  font-size: 13px;
 }
 
-table td.val {
+.run-output table td.val {
   width: 99%;
+  font-family: monospace;
+  font-size: 13px;
 }
 
-table tr.stream-1 td {
-  /* color: #B71C1C; */
-  background-color: #FFEBEE;
-  color: rgba(0, 0, 0, 0.67);
+.run-output table tr.stream-1 td.val {
+  color: #616161;
 }
 </style>
