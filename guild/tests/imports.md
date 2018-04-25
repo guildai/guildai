@@ -28,6 +28,8 @@
     guild.commands.check_impl
     guild.commands.compare
     guild.commands.compare_impl
+    guild.commands.download
+    guild.commands.download_impl
     guild.commands.export
     guild.commands.help
     guild.commands.help_impl

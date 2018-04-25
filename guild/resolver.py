@@ -74,7 +74,7 @@ class URLResolver(Resolver):
             return _resolve_config_path(
                 self.resource.config,
                 self.source.resdef.name)
-        download_dir = self._source_download_dir()
+        download_dir = url_source_download_dir(self.source)
         util.ensure_dir(download_dir)
         try:
             source_path = pip_util.download_url(
@@ -89,10 +89,10 @@ class URLResolver(Resolver):
             return resolve_source_files(
                 source_path, self.source, unpack_dir)
 
-    def _source_download_dir(self):
-        key = "\n".join(self.source.parsed_uri).encode("utf-8")
-        digest = hashlib.sha224(key).hexdigest()
-        return os.path.join(var.cache_dir("resources"), digest)
+def url_source_download_dir(source):
+    key = "\n".join(source.parsed_uri).encode("utf-8")
+    digest = hashlib.sha224(key).hexdigest()
+    return os.path.join(var.cache_dir("resources"), digest)
 
 class OperationOutputResolver(Resolver):
 
