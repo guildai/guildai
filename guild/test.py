@@ -14,6 +14,7 @@
 
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
 
 import doctest
 import glob
@@ -123,7 +124,12 @@ def run_test_file_with_config(filename, globs, optionflags):
 
     parser = doctest.DocTestParser()
     test = parser.get_doctest(text, globs, name, filename, 0)
-    runner.run(test)
+    flags = (
+        print_function.compiler_flag |
+        absolute_import.compiler_flag |
+        division.compiler_flag
+    )
+    runner.run(test, flags)
 
     runner.summarize()
 
