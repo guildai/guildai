@@ -81,7 +81,10 @@ class ResourceDef(object):
     def _init_resource_source(self, data):
         if isinstance(data, dict):
             data_copy = copy.copy(data)
-            type_vals = [data_copy.pop(attr, None) for attr in self.source_types]
+            type_vals = [
+                data_copy.pop(attr, None)
+                for attr in self.source_types
+            ]
             type_items = zip(self.source_types, type_vals)
             type_count = sum([bool(val) for val in type_vals])
             if type_count == 0:
