@@ -43,7 +43,6 @@ class ResourceDef(object):
         self.description = data.get("description", "")
         self.path = data.get("path")
         self.sources = self._init_sources(data.get("sources", []))
-        self.post_process = data.get("post-process")
         self.private = bool(data.get("private"))
         self.references = data.get("references", [])
 
@@ -130,7 +129,8 @@ class ResourceDef(object):
 class ResourceSource(object):
 
     def __init__(self, resdef, uri, sha256=None, unpack=True,
-                 type=None, select=None, help=None, **kw):
+                 type=None, select=None, post_process=None,
+                 help=None, **kw):
         self.resdef = resdef
         self.uri = uri
         self._parsed_uri = None
@@ -138,6 +138,7 @@ class ResourceSource(object):
         self.unpack = unpack
         self.type = type
         self.select = self._coerce_select(select)
+        self.post_process = post_process
         self.help = help
         for key in kw:
             log.warning(

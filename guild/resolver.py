@@ -20,6 +20,7 @@ import importlib
 import logging
 import os
 import re
+import subprocess
 
 import guild.opref
 
@@ -86,13 +87,39 @@ class URLResolver(Resolver):
                 "bad sha256 for '%s' (expected %s but got %s)"
                 % (e.path, e.expected, e.actual))
         else:
-            return resolve_source_files(
+            resolved = resolve_source_files(
                 source_path, self.source, unpack_dir)
+            post_process(
+                self.source,
+                unpack_dir or os.path.dirname(source_path))
+            return resolved
 
 def url_source_download_dir(source):
     key = "\n".join(source.parsed_uri).encode("utf-8")
     digest = hashlib.sha224(key).hexdigest()
     return os.path.join(var.cache_dir("resources"), digest)
+
+def post_process(source, cwd, use_cache=True):
+    if not source.post_process:
+        return
+    cmd = source.post_process.strip().replace("\n", " ")
+    if use_cache:
+        cmd_digest = hashlib.sha1(cmd.encode()).hexdigest()
+        process_marker = os.path.join(
+            cwd, ".guild-cache-{}.post".format(cmd_digest))
+        if os.path.exists(process_marker):
+            return
+    log.info(
+        "Post processing %s resource in %s: %r",
+        source.resdef.name, cwd, cmd)
+    try:
+        subprocess.check_call(cmd, shell=True, cwd=cwd)
+    except subprocess.CalledProcessError as e:
+        raise ResolutionError(
+            "error post processing %s resource: %s"
+            % (source.resdef.name, e))
+    else:
+        util.touch(process_marker)
 
 class OperationOutputResolver(Resolver):
 
