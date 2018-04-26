@@ -87,13 +87,13 @@ def init_resource_path(args, cwd=None):
     _init_path(guild.resource, "resources", args, cwd)
 
 def _init_path(mod, desc, args, cwd):
-    cwd_mf = cwd_guildfile(cwd)
-    if cwd_mf:
+    cwd_gf = cwd_guildfile(cwd)
+    if cwd_gf:
         if args.all:
-            mod.insert_path(cwd_mf.dir)
+            mod.insert_path(cwd_gf.dir)
         else:
             _notify_path_limited(cwd, desc)
-            mod.set_path([cwd_mf.dir])
+            mod.set_path([cwd_gf.dir])
 
 def _notify_path_limited(path, what):
     cli.note_once(
