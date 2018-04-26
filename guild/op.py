@@ -55,7 +55,7 @@ class Operation(object):
         self.cmd_args, self._flag_map = _init_cmd_args(opdef)
         self.cmd_env = _init_cmd_env(opdef)
         self._run_dir = run_dir
-        self.resource_config = resource_config
+        self.resource_config = resource_config or {}
         self.extra_attrs = extra_attrs
         self._running = False
         self._started = None
