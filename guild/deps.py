@@ -108,8 +108,10 @@ class Resource(object):
     def _post_process(self):
         if not self.resdef.post_process:
             return
-        log.info("Post processing %s resource", self.resdef.name)
-        log.debug("process cmd: %s", self.resdef.post_process)
+        log.info(
+            "Post processing %s resource in %s",
+            self.resdef.name, self.ctx.target_dir)
+        log.info(self.resdef.post_process)
         try:
             subprocess.check_call(
                 self.resdef.post_process,
