@@ -20,6 +20,7 @@
     >>> for name in sorted([m.__name__ for m in iter_mods()]):
     ...   print(name) # doctest: +REPORT_UDIFF
     guild.__init__
+    guild._api
     guild.cli
     guild.click_util
     guild.cmd_impl_support
@@ -137,3 +138,5 @@
     guild.util
     guild.var
     guild.view
+
+Markdown finished at Thu Apr 26 11:31:08
