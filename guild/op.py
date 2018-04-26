@@ -75,6 +75,7 @@ class Operation(object):
         self._init_run()
         self._init_attrs()
         self._resolve_deps()
+        self._pre_proc()
         self._start_proc()
         self._wait_for_proc()
         self._finalize_attrs()
@@ -110,6 +111,15 @@ class Operation(object):
             resource_config=self.resource_config)
         resolved = deps.resolve(self.opdef.dependencies, ctx)
         self._run.write_attr("deps", resolved)
+
+    def _pre_proc(self):
+        if not self.opdef.pre_process:
+            return
+        cmd = self.opdef.pre_process.strip().replace("\n", " ")
+        cwd = self._run.path
+        log.debug("pre-process command: %s", cmd)
+        log.debug("pre-process cwd: %s", cwd)
+        subprocess.check_call(cmd, shell=True, cwd=cwd)
 
     def _start_proc(self):
         assert self._proc is None

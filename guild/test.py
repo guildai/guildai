@@ -17,6 +17,7 @@ from __future__ import division
 from __future__ import print_function
 
 import doctest
+import fnmatch
 import glob
 import os
 import platform
@@ -25,6 +26,7 @@ import re
 import sys
 import tempfile
 
+from guild import _api
 from guild import util
 
 PLATFORM = platform.system()
@@ -153,7 +155,8 @@ def _test_globals():
     return {
         "LogCapture": util.LogCapture,
         "cat": cat,
-        "dir": lambda dir: sorted(os.listdir(dir)),
+        "dir": dir,
+        "gapi": _api,
         "find": find,
         "mkdtemp": mkdtemp,
         "pprint": pprint.pprint,
@@ -188,6 +191,13 @@ def find(root):
 def cat(*parts):
     with open(os.path.join(*parts), "r") as f:
         print(f.read())
+
+def dir(path, ignore=None):
+    return sorted([
+        name for name in os.listdir(path)
+        if ignore is None
+        or not any((fnmatch.fnmatch(name, p) for p in ignore))
+    ])
 
 def _patch_py3_exception_detail():
     import traceback

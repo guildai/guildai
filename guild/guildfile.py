@@ -618,6 +618,7 @@ class OpDef(FlagHost):
         self.plugin_op = data.get("plugin-op")
         self.disabled_plugins = data.get("disabled-plugins", [])
         self.dependencies = _init_dependencies(data.get("requires"), self)
+        self.pre_process = data.get("pre-process")
         self.remote = data.get("remote", False)
 
     def __repr__(self):
