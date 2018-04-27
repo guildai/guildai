@@ -167,7 +167,8 @@ class RunIndex(object):
         schema.add("op_name", fields.ID(stored=True))
         schema.add("label", fields.TEXT(stored=True))
         schema.add("scalar_*", fields.NUMERIC(float, stored=True), glob=True)
-        schema.add("flagi_*", fields.NUMERIC(int, bits=64, stored=True), glob=True)
+        schema.add("flagi_*", fields.NUMERIC(int, bits=64, stored=True),
+                   glob=True)
         schema.add("flagf_*", fields.NUMERIC(float, stored=True), glob=True)
         schema.add("flagb_*", fields.BOOLEAN(stored=True), glob=True)
         schema.add("flags_*", fields.ID(stored=True), glob=True)
@@ -182,9 +183,14 @@ class RunIndex(object):
                 hits = seacher.search(query.Term("id", run_id), limit=None)
                 assert len(hits) <= 1, hits
                 hit_fields = hits[0].fields() if hits else None
-                run = var.get_run(run_id)
-                cur_fields = self._ensure_indexed_run(run, hit_fields, writer)
-                runs.append(RunResult(cur_fields))
+                try:
+                    run = var.get_run(run_id)
+                except LookupError:
+                    pass
+                else:
+                    cur_fields = self._ensure_indexed_run(
+                        run, hit_fields, writer)
+                    runs.append(RunResult(cur_fields))
         writer.commit()
         return runs
 
