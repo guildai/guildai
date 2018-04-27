@@ -109,17 +109,35 @@ def post_process(source, cwd, use_cache=True):
             cwd, ".guild-cache-{}.post".format(cmd_digest))
         if os.path.exists(process_marker):
             return
+    env = {
+        "RESOURCE_DIR": _resource_dir(source.resdef),
+    }
     log.info(
         "Post processing %s resource in %s: %r",
         source.resdef.name, cwd, cmd)
     try:
-        subprocess.check_call(cmd, shell=True, cwd=cwd)
+        subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
     except subprocess.CalledProcessError as e:
         raise ResolutionError(
             "error post processing %s resource: %s"
             % (source.resdef.name, e))
     else:
         util.touch(process_marker)
+
+def _resource_dir(resdef):
+    """Return resource directory for a resource definition.
+
+    The ResourceDef interface doesn't provide a directory, but we can
+    infer a directory by checking for 'modeldef' and 'dist'
+    attributes, both of which are associated with a Guild file and
+    therefore a directory.
+    """
+    if hasattr(resdef, "modeldef"):
+        return resdef.modeldef.guildfile.dir
+    elif hasattr(resdef, "dist"):
+        return resdef.dist.guildfile.dir
+    else:
+        raise AssertionError(resdef)
 
 class OperationOutputResolver(Resolver):
 
