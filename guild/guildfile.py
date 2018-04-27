@@ -673,8 +673,8 @@ class ResourceDef(resourcedef.ResourceDef):
     source_types = resourcedef.ResourceDef.source_types + ["operation"]
 
     def __init__(self, name, data, modeldef):
-        super(ResourceDef, self).__init__(name, data)
-        self.fullname = "%s:%s" % (modeldef.name, name)
+        fullname = "%s:%s" % (modeldef.name, name)
+        super(ResourceDef, self).__init__(name, data, fullname)
         self.private = self.private
         self.modeldef = modeldef
 
