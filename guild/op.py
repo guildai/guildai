@@ -117,9 +117,11 @@ class Operation(object):
             return
         cmd = self.opdef.pre_process.strip().replace("\n", " ")
         cwd = self._run.path
+        env = self._proc_env()
         log.debug("pre-process command: %s", cmd)
+        log.debug("operation env: %s", env)
         log.debug("pre-process cwd: %s", cwd)
-        subprocess.check_call(cmd, shell=True, cwd=cwd)
+        subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
 
     def _start_proc(self):
         assert self._proc is None
