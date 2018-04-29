@@ -335,7 +335,7 @@ However, no more than one is allowed:
     ... """)
     Traceback (most recent call last):
     ResourceFormatError: invalid source {'file': 'foo.txt', 'url': 'http://files.com/bar.txt'}
-    in resource 'sample': conflicting attributes (file, url)
+    in resource 'sample:sample': conflicting attributes (file, url)
 
 ## References
 
