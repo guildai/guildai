@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import os
+import re
 
 import click
 
@@ -90,15 +91,11 @@ def _dispatch_op_cmd(opdef, model, args):
             _maybe_run(op, model, args)
 
 def _invalid_main_error(e, opdef):
-    cmd = e.args[0]
-    if not cmd:
-        cli.error(
-            "missing main or cmd for operation '%s'"
-            % opdef.name)
-    else:
-        cli.error(
-            "invalid main or cmd '%s' for operation '%s'"
-            % (cmd, opdef.name))
+    cmd, msg = e.args
+    cmd = re.sub(r"\s+", " ", cmd).strip()
+    cli.error(
+        "invalid main spec '%s' for operation '%s': %s"
+        % (cmd, opdef.name, msg))
 
 def _parse_opspec(spec):
     parts = spec.split(":", 1)

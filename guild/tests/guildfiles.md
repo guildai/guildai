@@ -320,8 +320,8 @@ At least one of the three type attributes is required:
     ...       - foo: bar.txt
     ... """)
     Traceback (most recent call last):
-    ResourceFormatError: invalid source {'foo': 'bar.txt'} in resource 'sample': missing
-    required attribute (one of file, url, module, operation)
+    ResourceFormatError: invalid source {'foo': 'bar.txt'} in resource 'sample:sample':
+    missing required attribute (one of file, url, module, operation)
 
 However, no more than one is allowed:
 

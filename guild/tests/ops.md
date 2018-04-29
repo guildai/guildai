@@ -67,7 +67,7 @@ Main modules cannot be empty:
 
     >>> Operation(main="")
     Traceback (most recent call last):
-    InvalidMain
+    InvalidMain: ('', 'missing command spec')
 
 ## Flag args
 

@@ -193,10 +193,14 @@ class Operation(object):
 def _init_cmd_args(opdef):
     python_args = [_python_cmd(opdef), "-um", "guild.op_main"]
     flag_vals = util.resolve_all_refs(opdef.flag_values())
-    cmd_args = _cmd_args(opdef.main, flag_vals)
-    flag_args, flag_map = _flag_args(flag_vals, opdef, cmd_args)
-    cmd_args = python_args + cmd_args + flag_args
-    return cmd_args, flag_map
+    try:
+        cmd_args = _cmd_args(opdef.main, flag_vals)
+    except guild.util.UndefinedReferenceError as e:
+        raise InvalidMain(opdef.main, "undefined reference '%s'" % e)
+    else:
+        flag_args, flag_map = _flag_args(flag_vals, opdef, cmd_args)
+        cmd_args = python_args + cmd_args + flag_args
+        return cmd_args, flag_map
 
 def _python_cmd(_opdef):
     # TODO: This is an important operation that should be controlled
@@ -216,7 +220,7 @@ def _split_main(main):
         # If main is None, this call will block (see
         # https://bugs.python.org/issue27775)
         if not main:
-            raise InvalidMain(main)
+            raise InvalidMain("", "missing command spec")
         parts = shlex.split(main or "")
         stripped = [part.strip() for part in parts]
         return [x for x in stripped if x]
