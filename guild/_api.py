@@ -44,6 +44,7 @@ def run(spec, cwd=None, flags=None, run_dir=None):
     guild_home = os.path.abspath(guild.__pkgdir__)
     env = {
         "PYTHONPATH": guild_home,
+        "LANG": os.getenv("LANG", "en_US.UTF-8"),
     }
     p = subprocess.Popen(
         args,
