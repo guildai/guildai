@@ -689,6 +689,30 @@ Model `c`:
     ...   for f in c.get_operation("train").flags]
     [('f1', 'f1 in a', 1), ('f2', 'f2 in b', 22), ('f3', 'f3 in c', 33)]
 
+In this example, one model extends two configs, each of which extends
+one config:
+
+    >>> gf = guildfile.from_string("""
+    ... - config: a
+    ...   operations:
+    ...     a_op: {}
+    ... - config: b
+    ...   operations:
+    ...     b_op: {}
+    ...   extends: a
+    ... - config: c
+    ...   operations:
+    ...     c_op: {}
+    ...   extends: a
+    ... - model: m
+    ...   extends: [b, c]
+    ... """)
+
+    >>> gf.models["m"].operations
+    [<guild.guildfile.OpDef 'm:a_op'>,
+     <guild.guildfile.OpDef 'm:b_op'>,
+     <guild.guildfile.OpDef 'm:c_op'>]
+
 ### Inheritance cycles
 
 Below are some inheritance cycles:

@@ -503,9 +503,9 @@ def _apply_parents_data(extends, guildfile, seen, data):
                 guildfile,
                 "cycle in 'extends'",
                 seen + [name])
-        seen.append(name)
         parent = _modeldef_base_data(name, guildfile)
-        extended_parent = _extended_data(parent, guildfile, seen, False)
+        extended_parent = _extended_data(
+            parent, guildfile, seen + [name], False)
         inheritable = [
             "description",
             "references",
