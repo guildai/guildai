@@ -117,7 +117,10 @@ class Operation(object):
             return
         cmd = self.opdef.pre_process.strip().replace("\n", " ")
         cwd = self._run.path
-        env = self._proc_env()
+        # env init order matters - we want _proc_env() to take
+        # precedence over _cmd_arg_env()
+        env = _cmd_arg_env(self.cmd_args)
+        env.update(self._proc_env())
         log.debug("pre-process command: %s", cmd)
         log.debug("operation env: %s", env)
         log.debug("pre-process cwd: %s", cwd)
@@ -306,6 +309,15 @@ def _init_cmd_env(opdef):
     env["CMD_DIR"] = os.getcwd()
     env["MODEL_DIR"] = opdef.modeldef.guildfile.dir
     return env
+
+def _cmd_arg_env(args):
+    op_main_pos = args.index("guild.op_main")
+    assert op_main_pos != -1
+    flags = op_util.args_to_flags(args[op_main_pos+1:])
+    return {
+        name.upper(): val
+        for name, val in flags.items()
+    }
 
 def _op_plugins(opdef):
     op_plugins = []
