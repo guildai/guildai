@@ -24,7 +24,7 @@ import guild
 class RunError(Exception):
 
     def __init__(self, cmd_args, returncode, out, err):
-        self.args = [cmd_args, returncode, out, err]
+        super(RunError, self).__init__(cmd_args, returncode, out, err)
         self.cmd_args = cmd_args
         self.returncode = returncode
         self.out = out
