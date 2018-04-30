@@ -31,4 +31,5 @@ their own distributions in the same way.
      EntryPoint.parse('disk = guild.plugins.disk:DiskPlugin'),
      EntryPoint.parse('gpu = guild.plugins.gpu:GPUPlugin'),
      EntryPoint.parse('keras = guild.plugins.keras:KerasPlugin'),
-     EntryPoint.parse('memory = guild.plugins.memory:MemoryPlugin')]
+     EntryPoint.parse('memory = guild.plugins.memory:MemoryPlugin'),
+     EntryPoint.parse('perf = guild.plugins.perf:PerfPlugin')]

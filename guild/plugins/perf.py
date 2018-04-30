@@ -15,30 +15,30 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import time
+
 from guild.plugins.tensorflow_util import SummaryPlugin
 
-class CPUPlugin(SummaryPlugin):
+class PerfPlugin(SummaryPlugin):
 
     def __init__(self, ep):
-        super(CPUPlugin, self).__init__(ep)
-        self._cpu_percent_init = False
+        super(PerfPlugin, self).__init__(ep)
+        self._last_step = None
+        self._last_time = None
 
     def enabled_for_op(self, _op):
         return True, ""
 
-    def read_summary_values(self, _step):
-        return self._cpu_stats()
-
-    def _cpu_stats(self):
-        import psutil
-        percents = psutil.cpu_percent(None, True)
+    def read_summary_values(self, step):
+        cur_time = time.time()
         stats = {}
-        if self._cpu_percent_init:
-            i = 0
-            for percent in percents:
-                stats["system/cpu%i/util" % i] = percent / 100
-                i += 1
-            if percents:
-                stats["system/cpu/util"] = sum(percents) / len(percents) / 100
-        self._cpu_percent_init = True
+        if self._last_step is not None:
+            assert self._last_time is not None
+            steps = step - self._last_step
+            if steps > 0:
+                seconds = cur_time - self._last_time
+                stats["performance/sec_per_step"] = seconds / steps
+                stats["performance/step_per_sec"] = steps / seconds
+        self._last_step = step
+        self._last_time = cur_time
         return stats

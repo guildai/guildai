@@ -8,7 +8,7 @@ summaries.
 
 We can read memory stats using the `read_summary_values` method:
 
-    >>> pprint(plugin.read_summary_values())
+    >>> pprint(plugin.read_summary_values(0))
     {'system/mem_free': ...,
      'system/mem_total': ...,
      'system/mem_used': ...,

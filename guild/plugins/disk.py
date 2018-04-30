@@ -35,7 +35,7 @@ class DiskPlugin(SummaryPlugin):
             return False, "disk stats not supported on darwin platform (Mac)"
         return True, ""
 
-    def read_summary_values(self):
+    def read_summary_values(self, _step):
         return self._disk_stats()
 
     def _disk_stats(self):
