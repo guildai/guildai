@@ -434,8 +434,11 @@ def is_text_file(path, ignore_ext=False):
             return True
         if ext in _binary_ext:
             return False
-    with open(path, 'rb') as f:
-        sample = f.read(1024)
+    try:
+        with open(path, 'rb') as f:
+            sample = f.read(1024)
+    except IOError:
+        return False
     if not sample:
         return True
     low_chars = sample.translate(None, _printable_ascii)
