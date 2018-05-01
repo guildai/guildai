@@ -37,7 +37,8 @@ from guild.commands import runs_impl
 
 def main(args, ctx):
     if args.rerun:
-        _apply_rerun_args(args.rerun, args, ctx)
+        run = _apply_rerun_args(args.rerun, args, ctx)
+        cli.out("Rerunning {}".format(run.id))
     elif not args.opspec:
         cli.error(
             "missing [MODEL:]OPERATION or --rerun RUN\n"
@@ -50,7 +51,6 @@ def main(args, ctx):
 
 def _apply_rerun_args(run_id_prefix, args, ctx):
     run = one_run(run_id_prefix, ctx)
-    cli.out("Rerunning {}".format(run.id))
     if not args.opspec:
         args.opspec = "{}:{}".format(run.opref.model_name, run.opref.op_name)
     flag_args = [
@@ -59,6 +59,7 @@ def _apply_rerun_args(run_id_prefix, args, ctx):
         if val is not None
     ]
     args.args = tuple(flag_args) + args.args
+    return run
 
 def one_run(run_id_prefix, ctx):
     runs = [
