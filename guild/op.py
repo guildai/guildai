@@ -384,7 +384,9 @@ def _delete_proc_lock(run):
         pass
 
 def init_run(path=None):
-    run_id = guild.run.mkid()
     if not path:
+        run_id = guild.run.mkid()
         path = os.path.join(var.runs_dir(), run_id)
+    else:
+        run_id = os.path.basename(path)
     return guild.run.Run(run_id, path)

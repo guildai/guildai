@@ -36,20 +36,31 @@ from guild import var
 from guild.commands import runs_impl
 
 def main(args, ctx):
-    if args.rerun:
-        run = _apply_rerun_args(args.rerun, args, ctx)
-        cli.out("Rerunning {}".format(run.id))
-    elif not args.opspec:
+    if not (args.opspec or args.rerun or args.restart):
         cli.error(
-            "missing [MODEL:]OPERATION or --rerun RUN\n"
+            "missing [MODEL:]OPERATION or --rerun/--restart RUN\n"
             "Try 'guild ops' for a list of operations or '%s' "
             "for more information." % click_util.cmd_help(ctx))
+    _maybe_apply_run_args(args, ctx)
+    assert args.opspec
     model_ref, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_ref)
     opdef = _resolve_opdef(op_name, model)
     _dispatch_cmd(args, opdef, model)
 
-def _apply_rerun_args(run_id_prefix, args, ctx):
+def _maybe_apply_run_args(args, ctx):
+    if not args.rerun and not args.restart:
+        return
+    if args.rerun and args.restart:
+        cli.error("--rerun and --restart cannot both be used")
+    run = _apply_run_args(args.rerun or args.restart, args, ctx)
+    if args.restart:
+        cli.out("Restarting {}".format(run.id))
+        args._restart_run = run
+    else:
+        cli.out("Rerunning {}".format(run.id))
+
+def _apply_run_args(run_id_prefix, args, ctx):
     run = one_run(run_id_prefix, ctx)
     if not args.opspec:
         args.opspec = "{}:{}".format(run.opref.model_name, run.opref.op_name)
@@ -235,12 +246,18 @@ def _init_op(opdef, model, args):
     _validate_opdef_flags(opdef)
     _apply_arg_disable_plugins(args, opdef)
     extra_attrs = _init_op_extra_attrs(args)
-    run_dir = args.run_dir
-    if run_dir:
-        run_dir = os.path.abspath(run_dir)
+    if args.run_dir:
+        if args.restart:
+            cli.error("--restart and --run-dir cannot both be used")
+        run_dir = os.path.abspath(args.run_dir)
         cli.note(
             "Run directory is '%s' (results will not be visible to Guild)"
             % run_dir)
+    elif args.restart:
+        assert hasattr(args, "_restart_run")
+        run_dir = args._restart_run.path
+    else:
+        run_dir = None
     return guild.op.Operation(
         model, opdef, run_dir, resource_vals, extra_attrs)
 
@@ -429,7 +446,16 @@ def _print_env(op):
 def _maybe_run(op, model, args):
     _maybe_warn_no_wait(op.opdef, args)
     if args.yes or _confirm_run(op, model):
+        _check_restart_running(args)
         _run(op)
+
+def _check_restart_running(args):
+    restart_run = getattr(args, "_restart_run", None)
+    if restart_run and restart_run.status == "running":
+        cli.error(
+            "{id} is still running\n"
+            "Wait for it to stop or try 'guild stop {id}' "
+            "to stop it.".format(id=restart_run.id))
 
 def _run(op):
     try:
