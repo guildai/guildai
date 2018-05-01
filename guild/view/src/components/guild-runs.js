@@ -33,13 +33,13 @@ function statusIcon(status) {
     };
   } else if (status === 'error') {
     return {
-      color: 'red',
+      color: 'grey',
       icon: 'alert',
       tooltip: 'Failed'
     };
   } else if (status === 'terminated') {
     return {
-      color: 'teal lighten-2',
+      color: 'green',
       icon: 'close-circle',
       tooltip: 'Terminated'
     };
