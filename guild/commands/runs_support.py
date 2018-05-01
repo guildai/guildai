@@ -90,11 +90,11 @@ def status_filters(fn):
     """### Filtering by run status
 
     Runs may also be filtered by specifying one or more status
-    filters: `--running`, `--completed`, `--error`, and
-    `--terminated`. These may be used together to include runs that
+    filters: `--running`, `--completed`, `--stopped`, and
+    `--error`. These may be used together to include runs that
     match any of the filters. For example to only include runs that
-    were either terminated or exited with an error, use ``--terminated
-    --error``, or the short form ``-ET``.
+    were either stopped or exited with an error, use ``--stopped
+    --error``, or the short form ``-SE``.
 
     Status filters are applied before `RUN` indexes are resolved. For
     example, a run index of ``0`` is the latest run that matches the
@@ -111,12 +111,12 @@ def status_filters(fn):
             help="Include only completed runs.",
             is_flag=True),
         click.Option(
-            ("-E", "--error"),
-            help="Include only runs that exited with an error.",
+            ("-S", "--stopped"),
+            help="Include only runs stopped by the user.",
             is_flag=True),
         click.Option(
-            ("-T", "--terminated"),
-            help="Include only runs terminated by the user.",
+            ("-E", "--error"),
+            help="Include only runs that exited with an error.",
             is_flag=True),
     ])
     return fn

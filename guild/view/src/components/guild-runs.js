@@ -37,11 +37,11 @@ function statusIcon(status) {
       icon: 'alert',
       tooltip: 'Failed'
     };
-  } else if (status === 'terminated') {
+  } else if (status === 'stopped') {
     return {
       color: 'green',
       icon: 'close-circle',
-      tooltip: 'Terminated'
+      tooltip: 'Stopped'
     };
   } else if (status === 'running') {
     return {
