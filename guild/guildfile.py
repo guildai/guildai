@@ -508,11 +508,12 @@ def _apply_parents_data(extends, guildfile, seen, data):
             parent, guildfile, seen + [name], False)
         inheritable = [
             "description",
-            "references",
-            "operations",
+            "extra",
             "flags",
-            "resources",
+            "operations",
             "params",
+            "references",
+            "resources",
         ]
         _apply_parent_data(extended_parent, data, inheritable)
 
