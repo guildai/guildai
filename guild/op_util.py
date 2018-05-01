@@ -69,13 +69,13 @@ class RunOutput(object):
         assert self._out_tee is None
         assert self._err_tee is None
 
-    def _open_output(self, mode="w"):
+    def _open_output(self):
         path = self._run.guild_path("output")
-        return open(path, mode + "b")
+        return open(path, "wb")
 
-    def _open_index(self, mode="w"):
+    def _open_index(self):
         path = self._run.guild_path("output.index")
-        return open(path, mode + "b")
+        return open(path, "wb")
 
     def _out_tee_run(self):
         assert self._proc
