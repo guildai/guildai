@@ -122,7 +122,7 @@ class Operation(object):
         env = _cmd_arg_env(self.cmd_args)
         env.update(self._proc_env())
         log.debug("pre-process command: %s", cmd)
-        log.debug("operation env: %s", env)
+        log.debug("pre-process env: %s", env)
         log.debug("pre-process cwd: %s", cwd)
         subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
 
