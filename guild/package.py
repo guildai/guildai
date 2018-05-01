@@ -51,6 +51,7 @@ class PackageResource(resource.Resource):
         fullname = pkg["package"] + "/" + self.name
         resdef = resourcedef.ResourceDef(self.name, data, fullname)
         resdef.dist = self.dist
+        return resdef
 
 def create_package(package_file, dist_dir=None, upload_repo=False,
                    sign=False, identity=None, user=None, password=None,
