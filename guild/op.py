@@ -315,7 +315,7 @@ def _cmd_arg_env(args):
     assert op_main_pos != -1
     flags = op_util.args_to_flags(args[op_main_pos+1:])
     return {
-        name.upper(): val
+        name.upper(): str(val)
         for name, val in flags.items()
     }
 
