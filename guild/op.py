@@ -43,6 +43,8 @@ OP_RUNFILE_PATHS = [
 
 PROC_TERM_TIMEOUT_SECONDS = 30
 
+SIGTERM_EXIT_STATUS = -15
+
 class InvalidMain(ValueError):
     pass
 
@@ -160,9 +162,10 @@ class Operation(object):
     def _wait_for_proc(self):
         assert self._proc is not None
         try:
-            self._exit_status = self._watch_proc()
+            proc_exit_status = self._watch_proc()
         except KeyboardInterrupt:
-            self._exit_status = self._handle_proc_interrupt()
+            proc_exit_status = self._handle_proc_interrupt()
+        self._exit_status = _op_exit_status(proc_exit_status, self.opdef)
         self._stopped = guild.run.timestamp()
         _delete_proc_lock(self._run)
 
@@ -183,7 +186,7 @@ class Operation(object):
         if self._proc.poll() is None:
             log.warning("Operation process did not exit - stopping forcefully")
             util.kill_process_tree(self._proc.pid, force=True)
-        return -15 # exit code for SIGTERM
+        return SIGTERM_EXIT_STATUS
 
     def _finalize_attrs(self):
         assert self._run is not None
@@ -378,6 +381,11 @@ def _is_runfile_pkg(path):
 def _write_proc_lock(proc, run):
     with open(run.guild_path("LOCK"), "w") as f:
         f.write(str(proc.pid))
+
+def _op_exit_status(proc_exit_status, opdef):
+    if proc_exit_status == SIGTERM_EXIT_STATUS and opdef.stoppable:
+        return 0
+    return proc_exit_status
 
 def _delete_proc_lock(run):
     try:
