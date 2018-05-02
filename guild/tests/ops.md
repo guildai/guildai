@@ -317,7 +317,7 @@ Here's the project and its contents:
 
     >>> pre_process_project = sample("projects/pre-process")
 
-    >>> dir(pre_process_project, ignore=["*.pyc"])
+    >>> dir(pre_process_project, ignore=["*.pyc", "__pycache__"])
     ['abcdef', 'guild.yml', 'main.py']
 
 The project provides one model 'sample' with an operation 'test':
