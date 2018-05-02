@@ -376,8 +376,8 @@ class GuildfileNamespace(namespace.PrefixNamespace):
 def get_path():
     return _models.path()
 
-def set_path(path):
-    _models.set_path(path)
+def set_path(path, clear_cache=False):
+    _models.set_path(path, clear_cache)
 
 def insert_path(item):
     path = _models.path()

@@ -136,7 +136,7 @@ def _try_resolve_cwd_model(model_ref):
     if not cwd_guildfile:
         return None
     path_save = guild.model.get_path()
-    guild.model.set_path([cwd_guildfile.dir])
+    guild.model.set_path([cwd_guildfile.dir], clear_cache=True)
     model = _match_one_model(model_ref, cwd_guildfile)
     guild.model.set_path(path_save)
     return model
