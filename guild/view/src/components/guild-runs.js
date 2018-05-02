@@ -39,7 +39,7 @@ function statusIcon(status) {
     };
   } else if (status === 'terminated') {
     return {
-      color: 'green',
+      color: 'grey',
       icon: 'close-circle',
       tooltip: 'Terminated'
     };
