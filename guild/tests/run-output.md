@@ -81,9 +81,7 @@ stream info.
 
     >>> from guild.util import RunOutputReader
     >>> reader = RunOutputReader(run.path)
-    >>> indexed = [
-    ...    (t, s, line.decode("utf-8"))
-    ...    for t, s, line in reader.read()]
+    >>> indexed = reader.read()
     >>> indexed
     [(..., 0, u'This is to stdout'),
      (..., 1, u'This is to stderr'),

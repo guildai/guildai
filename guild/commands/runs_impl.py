@@ -411,7 +411,6 @@ def _page_run_output(run):
     cli.page("\n".join(lines))
 
 def _format_output_line(stream, line):
-    line = line.decode("UTF-8")
     if stream == 1:
         return cli.style(line, fg="red")
     return line

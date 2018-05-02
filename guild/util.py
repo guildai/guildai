@@ -653,7 +653,7 @@ class RunOutputReader(object):
         else:
             lines = self._lines
             while True:
-                line = output.readline()[:-1]
+                line = output.readline()[:-1].decode()
                 if not line:
                     break
                 time, stream = struct.unpack("!QB", index.read(9))
