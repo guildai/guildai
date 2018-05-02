@@ -194,7 +194,7 @@ class OperationOutputResolver(Resolver):
                 var.run_filter("any", [
                     var.run_filter("attr", "status", "completed"),
                     var.run_filter("attr", "status", "running"),
-                    var.run_filter("attr", "status", "stopped"),
+                    var.run_filter("attr", "status", "terminated"),
                 ]),
                 var.run_filter("any", [
                     opref.is_op_run for opref in resolved_oprefs

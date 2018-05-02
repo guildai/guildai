@@ -70,7 +70,7 @@ class Run(object):
         if status == 0:
             return "completed"
         elif status == 2:
-            return "stopped"
+            return "terminated"
         else:
             return "error"
 
@@ -83,13 +83,13 @@ class Run(object):
             elif exit_status == 0:
                 return "completed"
             elif exit_status < 0:
-                return "stopped"
+                return "terminated"
             else:
                 return "error"
         elif util.pid_exists(pid):
             return "running"
         else:
-            return "stopped"
+            return "terminated"
 
     def get(self, name, default=None):
         try:

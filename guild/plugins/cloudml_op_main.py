@@ -906,7 +906,7 @@ def _find_run(run_prefix, referring_run, for_ops):
         ops=["%s:%s" % (model_name, op) for op in for_ops],
         completed=True,
         running=True,
-        stopped=True,
+        terminated=True,
         labels=[],
         runs=[],
     )

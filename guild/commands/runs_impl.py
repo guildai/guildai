@@ -121,7 +121,7 @@ def _cwd_run_filter(abs_cwd):
 def _apply_status_filter(args, filters):
     status_filters = [
         var.run_filter("attr", "status", status)
-        for status in ["running", "completed", "stopped", "error"]
+        for status in ["running", "completed", "error", "terminated"]
         if getattr(args, status, False)
     ]
     if status_filters:
