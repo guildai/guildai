@@ -22,13 +22,7 @@ import sys
 import guild
 
 class RunError(Exception):
-
-    def __init__(self, cmd_args, returncode, out, err):
-        super(RunError, self).__init__(cmd_args, returncode, out, err)
-        self.cmd_args = cmd_args
-        self.returncode = returncode
-        self.out = out
-        self.err = err
+    pass
 
 def run(spec, cwd=None, flags=None, run_dir=None):
     cwd = cwd or "."
@@ -52,7 +46,8 @@ def run(spec, cwd=None, flags=None, run_dir=None):
         env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
-    out, err = p.communicate()
+    out_raw, err_raw = p.communicate()
+    out, err = out_raw.decode(), err_raw.decode()
     if p.returncode != 0:
-        raise RunError(args, p.returncode, out, err)
+        raise RunError((args, cwd, env), p.returncode, (out, err))
     return out.rstrip(), err.rstrip()
