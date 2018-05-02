@@ -57,6 +57,10 @@ def run_params(fn):
                   "if run is local."),
             is_flag=True),
         click.Option(
+            ("--set-trace",),
+            help="Enter the Python debugger at the operation entry point.",
+            is_flag=True),
+        click.Option(
             ("--print-cmd",),
             help="Show operation command and exit.",
             is_flag=True),

@@ -46,6 +46,7 @@ def main(args, ctx):
     model_ref, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_ref)
     opdef = _resolve_opdef(op_name, model)
+    _apply_opdef_args(opdef, args)
     _dispatch_cmd(args, opdef, model)
 
 def _maybe_apply_run_args(args, ctx):
@@ -80,6 +81,10 @@ def one_run(run_id_prefix, ctx):
     run = cmd_impl_support.one_run(runs, run_id_prefix, ctx)
     runs_impl.init_opref_attr(run)
     return run
+
+def _apply_opdef_args(opdef, args):
+    if args.set_trace:
+        opdef.set_trace = True
 
 def _dispatch_cmd(args, opdef, model):
     if args.help_model:

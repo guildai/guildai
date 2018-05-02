@@ -621,6 +621,7 @@ class OpDef(FlagHost):
         self.dependencies = _init_dependencies(data.get("requires"), self)
         self.pre_process = data.get("pre-process")
         self.remote = data.get("remote", False)
+        self.set_trace = data.get("set-trace", False)
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname

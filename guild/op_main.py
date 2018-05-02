@@ -18,6 +18,7 @@ from __future__ import division
 import imp
 import logging
 import os
+import pdb
 import sys
 import warnings
 
@@ -32,6 +33,23 @@ def main():
         _profile_main()
     else:
         _main()
+
+def _profile_main():
+    import cProfile
+    import tempfile
+    p = cProfile.Profile()
+    sys.stderr.write("Profiling operation\n")
+    p.enable()
+    try:
+        _main()
+    finally:
+        p.disable()
+        _, tmp = tempfile.mkstemp(prefix="guild-op-profile-")
+        sys.stderr.write("Writing profile stats to %s\n" % tmp)
+        p.dump_stats(tmp)
+        sys.stderr.write(
+            "Use 'python -m pstats %s' or 'snakeviz %s' "
+            "to view stats\n" % (tmp, tmp))
 
 def _main():
     _init_sys_path()
@@ -120,29 +138,29 @@ def _set_argv_for_module(module_info, args):
 def _module_main(module_info):
     f, path, desc = module_info
     log.debug("loading module from '%s'", path)
-    imp.load_module("__main__", f, path, desc)
+    if os.getenv("SET_TRACE"):
+        debugger = Debugger()
+        debugger.runcall(imp.load_module, "__main__", f, path, desc)
+    else:
+        imp.load_module("__main__", f, path, desc)
+
+class Debugger(pdb.Pdb):
+
+    def __init__(self):
+        pdb.Pdb.__init__(self)
+        # Setting skip to True violates the Pdb interface, which is to
+        # provide a list of globs, but we don't have such a list and
+        # really just need a truthy value to trigger a call to
+        # is_skipped_module, which implements the actual skip logic.
+        self.skip = True
+
+    def is_skipped_module(self, module_name):
+        return module_name != "__main__"
 
 def _error(msg):
     sys.stderr.write(msg)
     sys.stderr.write("\n")
     sys.exit(1)
-
-def _profile_main():
-    import cProfile
-    import tempfile
-    p = cProfile.Profile()
-    sys.stderr.write("Profiling operation\n")
-    p.enable()
-    try:
-        _main()
-    finally:
-        p.disable()
-        _, tmp = tempfile.mkstemp(prefix="guild-op-profile-")
-        sys.stderr.write("Writing profile stats to %s\n" % tmp)
-        p.dump_stats(tmp)
-        sys.stderr.write(
-            "Use 'python -m pstats %s' or 'snakeviz %s' "
-            "to view stats\n" % (tmp, tmp))
 
 if __name__ == "__main__":
     main()

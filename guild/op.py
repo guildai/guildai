@@ -152,6 +152,8 @@ class Operation(object):
         env["RUN_DIR"] = self._run.path
         env["RUN_ID"] = self._run.id
         env["GUILD_HOME"] = config.guild_home()
+        if self.opdef.set_trace:
+            env["SET_TRACE"] = "1"
         util.apply_env(env, os.environ, ["PROFILE"])
         return env
 
