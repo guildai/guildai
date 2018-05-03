@@ -621,11 +621,11 @@ def push(args, ctx):
     remote = _remote_for_name(args.remote)
     preview = (
         "You are about to copy the following runs to '%s':" %
-        remote.name)
+        remote.push_dest())
     confirm = "Continue?"
     no_runs = "No runs to copy."
     def push(runs):
-        remote.push(runs)
+        remote.push(runs, args.verbose)
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
         push, ALL_RUNS_ARG, True)
@@ -636,8 +636,9 @@ def _remote_for_name(name):
     except guild.remote.NoSuchRemote:
         cli.error(
             "remote '%s' is not defined\n"
-            "Remotes are defined in ~/.guild/config.yml - "
-            "try 'guild runs push --help' for more information.")
+            "Remotes are defined in ~/.guild/config.yml. "
+            "Try 'guild remotes --help' for more information."
+            % name)
     except guild.remote.UnsupportedRemoteType as e:
         cli.error(
             "remote '%s' in ~/.guild/config.yml has unsupported "

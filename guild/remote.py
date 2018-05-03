@@ -36,7 +36,9 @@ class RemoteConfig(dict):
 
 class Remote(object):
 
-    def push(self, runs):
+    name = None
+
+    def push(self, runs, verbose=False):
         raise NotImplementedError()
 
 def for_name(name):

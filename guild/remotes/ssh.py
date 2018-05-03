@@ -15,14 +15,42 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
+import subprocess
+
 import guild.remote
+
+log = logging.getLogger("guild.remotes.ssh")
 
 class SSHRemote(guild.remote.Remote):
 
     def __init__(self, config):
         self.host = config["host"]
         self.user = config.get("user")
-        self.guild_home = config.get("guild-home")
+        self.guild_home = config.get("guild-home", ".guild")
 
-    def push(self, runs):
-        print("TODO: push %i run(s) to %s" % (len(runs), self.host))
+    def push(self, runs, verbose=False):
+        for run in runs:
+            self._push_run(run, verbose)
+
+    def push_dest(self):
+        return "{}:{}".format(self.host, self.guild_home)
+
+    def _push_run(self, run, verbose):
+        opts = "-al"
+        if verbose:
+            opts += "v"
+        cmd = ["rsync", opts, self._run_src(run), self._run_dest(run)]
+        log.info("Copying %s" % run.id)
+        log.debug("rsync cmd: %r", cmd)
+        subprocess.check_call(cmd)
+
+    @staticmethod
+    def _run_src(run):
+        return run.path + "/"
+
+    def _run_dest(self, run):
+        return "{}:{}/runs/{}/".format(
+            self.host,
+            self.guild_home,
+            run.id)
