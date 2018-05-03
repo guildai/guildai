@@ -282,7 +282,7 @@ class RunOutput(object):
         start = req.args.get("s", None, int)
         end = req.args.get("e", None, int)
         lines = [
-            (time, stream, line.decode())
+            (time, stream, line)
             for time, stream, line in self._output.read(start, end)
         ]
         return serving_util.json_resp(lines)
