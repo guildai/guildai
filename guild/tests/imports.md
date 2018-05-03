@@ -56,6 +56,8 @@
     guild.commands.packages_list
     guild.commands.push
     guild.commands.remote_support
+    guild.commands.remotes
+    guild.commands.remotes_impl
     guild.commands.resources
     guild.commands.resources_impl
     guild.commands.run
