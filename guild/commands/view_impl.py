@@ -127,9 +127,15 @@ class ViewDataImpl(view.ViewData):
                 try:
                     run, run_paths = runs[run_id]
                 except KeyError:
-                    run = self._run_for_id(run_id)
                     run_paths = []
-                    runs[run_id] = run, run_paths
+                    try:
+                        run = self._run_for_id(run_id)
+                    except LookupError:
+                        # Dep run is missing - silently drop it from
+                        # the list of deps.
+                        pass
+                    else:
+                        runs[run_id] = run, run_paths
                 run_paths.append(os.path.join(*parts[1:]))
         formatted = [
             self._format_dep(run, paths)
@@ -139,7 +145,8 @@ class ViewDataImpl(view.ViewData):
 
     @staticmethod
     def _run_for_id(run_id):
-        return runs_impl.init_opref_attr(var.get_run(run_id))
+        run = var.get_run(run_id)
+        return runs_impl.init_opref_attr(run)
 
     @staticmethod
     def _format_dep(run, paths):
