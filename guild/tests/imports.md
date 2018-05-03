@@ -54,6 +54,8 @@
     guild.commands.packages_impl
     guild.commands.packages_info
     guild.commands.packages_list
+    guild.commands.push
+    guild.commands.remote_support
     guild.commands.resources
     guild.commands.resources_impl
     guild.commands.run
@@ -67,6 +69,7 @@
     guild.commands.runs_label
     guild.commands.runs_list
     guild.commands.runs_purge
+    guild.commands.runs_push
     guild.commands.runs_restore
     guild.commands.runs_stop
     guild.commands.runs_support
@@ -125,7 +128,10 @@
     guild.plugins.python_util
     guild.plugins.tensorflow_util
     guild.plugins.training_pkg_main
+    guild.remote
     guild.remote_run_support
+    guild.remotes.__init__
+    guild.remotes.ssh
     guild.resolver
     guild.resource
     guild.resourcedef

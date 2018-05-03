@@ -25,6 +25,7 @@ import six
 import yaml
 
 import guild.opref
+import guild.remote
 import guild.run
 
 from guild import cli
@@ -607,3 +608,33 @@ def import_(args, ctx):
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
         export, ALL_RUNS_ARG, True)
+
+def push(args, ctx):
+    remote = _remote_for_name(args.remote)
+    preview = (
+        "You are about to copy the following runs to '%s':" %
+        remote.name)
+    confirm = "Continue?"
+    no_runs = "No runs to copy."
+    def push(runs):
+        remote.push(runs)
+    _runs_op(
+        args, ctx, False, preview, confirm, no_runs,
+        push, ALL_RUNS_ARG, True)
+
+def _remote_for_name(name):
+    try:
+        return guild.remote.for_name(name)
+    except guild.remote.NoSuchRemote:
+        cli.error(
+            "remote '%s' is not defined\n"
+            "Remotes are defined in ~/.guild/config.yml - "
+            "try 'guild runs push --help' for more information.")
+    except guild.remote.UnsupportedRemoteType as e:
+        cli.error(
+            "remote '%s' in ~/.guild/config.yml has unsupported "
+            "type: %s" % (name, e.args[0]))
+    except guild.remote.MissingRequiredConfig as e:
+        cli.error(
+            "remote '%s' in ~/.guild/config.yml is missing required "
+            "config: %s" % (name, e.args[0]))

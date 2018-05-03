@@ -37,6 +37,7 @@ from .models import models
 from .operations import operations
 from .package import package
 from .packages import packages
+from .push import push
 from .resources import resources
 from .run import run
 from .runs import runs
@@ -104,6 +105,7 @@ main.add_command(models)
 main.add_command(operations)
 main.add_command(package)
 main.add_command(packages)
+main.add_command(push)
 main.add_command(resources)
 main.add_command(run)
 main.add_command(runs)

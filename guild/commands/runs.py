@@ -27,6 +27,7 @@ from .runs_info import run_info
 from .runs_label import label_runs
 from .runs_list import list_runs, runs_list_options
 from .runs_purge import purge_runs
+from .runs_push import push_runs
 from .runs_restore import restore_runs
 from .runs_stop import stop_runs
 
@@ -61,5 +62,6 @@ runs.add_command(import_runs)
 runs.add_command(label_runs)
 runs.add_command(list_runs)
 runs.add_command(purge_runs)
+runs.add_command(push_runs)
 runs.add_command(restore_runs)
 runs.add_command(stop_runs)

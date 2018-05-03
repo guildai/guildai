@@ -15,13 +15,19 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import os
 import threading
+
+import yaml
+
+log = logging.getLogger("guild")
 
 _cwd = None
 _cwd_lock = threading.Lock()
 _guild_home = None
 _log_output = False
+_user_config = None
 
 def set_cwd(cwd):
     globals()["_cwd"] = cwd
@@ -58,3 +64,45 @@ def set_log_output(flag):
 
 def log_output():
     return _log_output
+
+class _Config(object):
+
+    def __init__(self, path):
+        self.path = path
+        self._parsed = None
+        self._mtime = 0
+
+    def read(self):
+        if self._parsed is None or self._path_mtime() > self._mtime:
+            self._parsed = self._parse()
+            self._mtime = self._path_mtime()
+        return self._parsed
+
+    def _path_mtime(self):
+        try:
+            return os.path.getmtime(self.path)
+        except IOError:
+            return 0
+
+    def _parse(self):
+        try:
+            f = open(self.path, "r")
+        except IOError as e:
+            log.warning("cannot read user config in %s: %s", self.path, e)
+        else:
+            try:
+                return yaml.load(f)
+            except Exception as e:
+                log.warning("error loading user config in %s: %s", self.path, e)
+        return {}
+
+def user_config():
+    path = _user_config_path()
+    config = _user_config
+    if config is None or config.path != path:
+        config = _Config(path)
+        globals()["_user_config"] = config
+    return config.read()
+
+def _user_config_path():
+    return os.path.join(os.path.expanduser("~"), ".guild", "config.yml")
