@@ -20,26 +20,35 @@ import click
 from guild import click_util
 
 def remote_arg(fn):
-    """### Remotes
-
-    A remote must be defined in ``~/.guild/config.yml`` under the
-    ``remotes`` top-level section. Each remote must specify a ``type``
-    attribute that specifies the type of remote. Remotes may provide
-    additional attributes as configuration.
-
-    Support remote types include are listed below.
-
-    **ssh** - remote is accessible via `ssh` and `rsync`. An `ssh`
-    remote must specify a ``host`` and may additionally specify
-    ``user`` and ``guild-home``. By default `user` is the current user
-    and `guild-home` is ``~/.guild``. The programs `ssh` and `rsync`
-    must both be installed and configured correct on the system to
-    support ssh remotes. User authentication is handled by ssh using
-    identities (private keys) - password authentication is not
-    supported.
-
-    """
     click_util.append_params(fn, [
         click.Argument(("remote",))
     ])
     return fn
+
+def remotes():
+    """### Remotes
+
+    Remotes are non-local systems that Guild can interact with. They
+    are defined in ``~/.guild/config.yml`` under the ``remotes``
+    section.
+
+    Each remote must specify a ``type`` attributes. Guild currently
+    supports one remote type: `ssh`.
+
+    ### ssh remote
+
+    An ``ssh`` remote is accessed using `ssh` and supports file copies
+    using `rsync`. Both `ssh` and `rsync` programs must be installed
+    and configured on the local system to run commands for this type
+    of remote.
+
+    ssh remotes support the following attributes:
+
+    **host** - hostname of the remote system (required)
+
+    **user** - user account on the remote host (defaults to current user)
+
+    **guild-home** - path to Guild home relative to home directory
+    associated with remote user (defaults to ``.guild``)
+
+    """

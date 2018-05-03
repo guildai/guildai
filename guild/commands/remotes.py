@@ -17,10 +17,19 @@ from __future__ import division
 
 import click
 
+from guild import click_util
+
+from . import remote_support
+
 @click.command()
 
+@click_util.render_doc
+
 def remotes():
-    """Show available remotes."""
+    """Show available remotes.
+
+    {{ remote_support.remotes }}
+    """
 
     from . import remotes_impl
     remotes_impl.main()
