@@ -145,5 +145,3 @@
     guild.util
     guild.var
     guild.view
-
-Markdown finished at Thu Apr 26 11:31:08
