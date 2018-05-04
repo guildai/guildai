@@ -16,8 +16,8 @@
         <v-tabs-item key="files" href="#files" ripple>
           Files
         </v-tabs-item>
-        <v-tabs-item key="output" href="#output" ripple>
-          Output
+        <v-tabs-item key="output" href="#log" ripple>
+          Log
         </v-tabs-item>
         <v-tabs-slider color="deep-orange"></v-tabs-slider>
       </v-tabs-bar>
@@ -33,7 +33,7 @@
       <v-tabs-content key="files" id="files">
         <guild-run-files :run="run" />
       </v-tabs-content>
-      <v-tabs-content key="output" id="output">
+      <v-tabs-content key="log" id="log">
         <guild-run-output :run="run" />
       </v-tabs-content>
     </v-tabs-items>
