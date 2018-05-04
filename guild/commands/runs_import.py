@@ -25,6 +25,10 @@ def import_params(fn):
         runs_support.runs_arg,
         click.Argument(("archive",)),
         click.Option(
+            ("-m", "--move"),
+            help="Move imported runs rather than copy.",
+            is_flag=True),
+        click.Option(
             ("--copy-resources",),
             help="Copy resources for each imported run.",
             is_flag=True),

@@ -582,8 +582,8 @@ def import_(args, ctx):
     if not os.path.isdir(args.archive):
         cli.error("directory '{}' does not exist".format(args.archive))
     preview = (
-        "You are about to import the following runs from '%s':" %
-        args.archive)
+        "You are about to import (%s) the following runs from '%s':" %
+        (args.move and "move" or "copy", args.archive))
     confirm = "Continue?"
     no_runs = "No runs to import."
     def export(selected):
@@ -600,9 +600,17 @@ def import_(args, ctx):
             if os.path.exists(dest):
                 log.warning("%s exists, skipping", run.id)
                 continue
-            cli.out("Copying {}".format(run.id))
-            symlinks = not args.copy_resources
-            shutil.copytree(run.path, dest, symlinks)
+            if args.move:
+                cli.out("Moving {}".format(run.id))
+                if args.copy_resources:
+                    shutil.copytree(run.path, dest)
+                    shutil.rmtree(run.path)
+                else:
+                    shutil.move(run.path, dest)
+            else:
+                cli.out("Copying {}".format(run.id))
+                symlinks = not args.copy_resources
+                shutil.copytree(run.path, dest, symlinks)
             imported += 1
         cli.out("Imported %i run(s)" % imported)
     _runs_op(
