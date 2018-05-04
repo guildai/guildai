@@ -623,6 +623,8 @@ class OpDef(FlagHost):
         self.remote = data.get("remote", False)
         self.stoppable = data.get("stoppable", False)
         self.set_trace = data.get("set-trace", False)
+        self.handle_keyboard_interrupt = data.get(
+            "handle-keyboard-interrupt", False)
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname

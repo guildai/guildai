@@ -142,7 +142,13 @@ def _module_main(module_info):
         debugger = Debugger()
         debugger.runcall(imp.load_module, "__main__", f, path, desc)
     else:
-        imp.load_module("__main__", f, path, desc)
+        try:
+            imp.load_module("__main__", f, path, desc)
+        except KeyboardInterrupt:
+            if not os.getenv("HANDLE_KEYBOARD_INTERRUPT"):
+                raise
+            if log.getEffectiveLevel() <= logging.DEBUG:
+                log.exception("KeyboardInterrupt")
 
 class Debugger(pdb.Pdb):
 

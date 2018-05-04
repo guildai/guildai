@@ -156,6 +156,8 @@ class Operation(object):
         env["GUILD_HOME"] = config.guild_home()
         if self.opdef.set_trace:
             env["SET_TRACE"] = "1"
+        if self.opdef.handle_keyboard_interrupt:
+            env["HANDLE_KEYBOARD_INTERRUPT"] = "1"
         util.apply_env(env, os.environ, ["PROFILE"])
         return env
 
