@@ -142,6 +142,11 @@ def resolve(dependencies, ctx):
         resource = _dependency_resource(resolved_spec, ctx)
         log.info("Resolving %s dependency", resolved_spec)
         resolved_sources = resource.resolve()
+        log.debug(
+            "resolved sources for %s: %r",
+            resolved_spec, resolved_sources)
+        if not resolved_sources:
+            log.warning("Nothing resolved for %s dependency", resolved_spec)
         resolved.setdefault(resolved_spec, []).extend(resolved_sources)
     return resolved
 
