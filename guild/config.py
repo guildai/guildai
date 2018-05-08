@@ -25,6 +25,7 @@ log = logging.getLogger("guild")
 
 _cwd = None
 _cwd_lock = threading.Lock()
+_guild_home_lock = threading.Lock()
 _guild_home = None
 _log_output = False
 _user_config = None
@@ -34,18 +35,35 @@ def set_cwd(cwd):
 
 class SetCwd(object):
 
+    _save = None
+
     def __init__(self, cwd):
         self._cwd = cwd
-        self._cwd_orig = None
 
     def __enter__(self):
         _cwd_lock.acquire()
-        self._cwd_orig = cwd()
+        self._save = cwd()
         set_cwd(self._cwd)
 
     def __exit__(self, *_args):
-        set_cwd(self._cwd_orig)
+        set_cwd(self._save)
         _cwd_lock.release()
+
+class SetGuildHome(object):
+
+    _save = None
+
+    def __init__(self, guild_home):
+        self._guild_home = guild_home
+
+    def __enter__(self):
+        _guild_home_lock.acquire()
+        self._save = guild_home()
+        set_guild_home(self._guild_home)
+
+    def __exit__(self, *_args):
+        set_guild_home(self._save)
+        _guild_home_lock.release()
 
 def set_guild_home(path):
     globals()["_guild_home"] = path

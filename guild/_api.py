@@ -19,12 +19,37 @@ import os
 import subprocess
 import sys
 
-import guild
+# Consider all Guild imports expensive and move to functions
 
 class RunError(Exception):
     pass
 
+class Env(object):
+
+    def __init__(self, cwd, guild_home):
+        from guild import config
+        from guild.commands import main
+        self._set_cwd = config.SetCwd(cwd or ".")
+        self._set_guild_home = config.SetGuildHome(
+            guild_home or main.DEFAULT_GUILD_HOME)
+
+    def __enter__(self):
+        self._set_cwd.__enter__()
+        self._set_guild_home.__enter__()
+
+    def __exit__(self, *args):
+        self._set_cwd.__exit__(*args)
+        self._set_guild_home.__exit__(*args)
+
+def _init_env(cwd, guild_home):
+    from guild import config
+    from guild.commands import main
+    config.set_cwd(cwd)
+    config.set_guild_home(guild_home or main.DEFAULT_GUILD_HOME)
+
+
 def run(spec, cwd=None, flags=None, run_dir=None):
+    import guild
     cwd = cwd or "."
     flags = flags or []
     args = [
@@ -51,3 +76,28 @@ def run(spec, cwd=None, flags=None, run_dir=None):
     if p.returncode != 0:
         raise RunError((args, cwd, env), p.returncode, (out, err))
     return out.rstrip(), err.rstrip()
+
+def runs_list(
+        ops=None,
+        status=None,
+        labels=None,
+        unlabeled=False,
+        all=False,
+        deleted=False,
+        cwd=".",
+        guild_home=None):
+    from guild import click_util
+    from guild.commands import runs_impl
+    status = status or []
+    args = click_util.Args(
+        ops=(ops or []),
+        labels=(labels or []),
+        unlabeled=unlabeled,
+        running=("running" in status),
+        completed=("completed" in status),
+        error=("error" in status),
+        terminated=("terminated" in status),
+        all=all,
+        deleted=deleted)
+    with Env(cwd, guild_home):
+        return runs_impl.filtered_runs(args)
