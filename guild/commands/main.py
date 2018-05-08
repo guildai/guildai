@@ -37,6 +37,7 @@ from .models import models
 from .operations import operations
 from .package import package
 from .packages import packages
+from .pull import pull
 from .push import push
 from .remotes import remotes
 from .resources import resources
@@ -106,6 +107,7 @@ main.add_command(models)
 main.add_command(operations)
 main.add_command(package)
 main.add_command(packages)
+main.add_command(pull)
 main.add_command(push)
 main.add_command(remotes)
 main.add_command(resources)

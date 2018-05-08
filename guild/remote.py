@@ -41,6 +41,15 @@ class Remote(object):
     def push(self, runs, verbose=False):
         raise NotImplementedError()
 
+    def push_dest(self):
+        raise NotImplementedError()
+
+    def pull(self, run_ids, verbose=False):
+        raise NotImplementedError()
+
+    def pull_src(self):
+        raise NotImplementedError()
+
 def for_name(name):
     remotes = guild.config.user_config().get("remotes", {})
     try:

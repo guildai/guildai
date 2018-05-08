@@ -647,3 +647,18 @@ def _remote_for_name(name):
         cli.error(
             "remote '%s' in ~/.guild/config.yml is missing required "
             "config: %s" % (name, e.args[0]))
+
+def pull(args, _ctx):
+    if len(args.run) != 32:
+        cli.error(
+            "invalid remote run ID\n"
+            "Remote run IDs must be 32 characters long.")
+    remote = _remote_for_name(args.remote)
+    preview = (
+        "You are about to copy run '%s' from '%s'"
+        % (args.run, remote.pull_src()))
+    confirm = "Continue?"
+    if not args.yes:
+        cli.out(preview)
+    if args.yes or cli.confirm(confirm, True):
+        remote.pull([args.run], args.verbose)

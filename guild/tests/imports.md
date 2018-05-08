@@ -54,6 +54,7 @@
     guild.commands.packages_impl
     guild.commands.packages_info
     guild.commands.packages_list
+    guild.commands.pull
     guild.commands.push
     guild.commands.remote_support
     guild.commands.remotes
@@ -70,6 +71,7 @@
     guild.commands.runs_info
     guild.commands.runs_label
     guild.commands.runs_list
+    guild.commands.runs_pull
     guild.commands.runs_purge
     guild.commands.runs_push
     guild.commands.runs_restore

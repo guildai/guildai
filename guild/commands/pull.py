@@ -18,19 +18,17 @@ from __future__ import division
 import click
 
 from guild import click_util
-
-# pylint: disable=unused-import
-from . import remote_support
+from . import runs_pull
 
 @click.command()
+@runs_pull.pull_params
 
+@click.pass_context
+@click_util.use_args
 @click_util.render_doc
 
-def remotes():
-    """Show available remotes.
+def pull(ctx, args):
+    """{{ runs_pull.pull_runs }}"""
 
-    {{ remote_support.remotes }}
-    """
-
-    from . import remotes_impl
-    remotes_impl.main()
+    from . import runs_impl
+    runs_impl.pull(args, ctx)

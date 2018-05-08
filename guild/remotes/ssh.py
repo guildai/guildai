@@ -15,10 +15,12 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
 import logging
 import subprocess
 
 import guild.remote
+from guild import var
 
 log = logging.getLogger("guild.remotes.ssh")
 
@@ -40,17 +42,27 @@ class SSHRemote(guild.remote.Remote):
         opts = "-al"
         if verbose:
             opts += "v"
-        cmd = ["rsync", opts, self._run_src(run), self._run_dest(run)]
-        log.info("Copying %s" % run.id)
+        src = run.path + "/"
+        dest = "{}:{}/runs/{}/".format(self.host, self.guild_home, run.id)
+        cmd = ["rsync", opts, src, dest]
+        log.info("Copying %s", run.id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
 
-    @staticmethod
-    def _run_src(run):
-        return run.path + "/"
+    def pull(self, run_ids, verbose=False):
+        for run_id in run_ids:
+            self._pull_run(run_id, verbose)
 
-    def _run_dest(self, run):
-        return "{}:{}/runs/{}/".format(
-            self.host,
-            self.guild_home,
-            run.id)
+    def pull_src(self):
+        return "{}:{}".format(self.host, self.guild_home)
+
+    def _pull_run(self, run_id, verbose):
+        opts = "-al"
+        if verbose:
+            opts += "v"
+        src = "{}:{}/runs/{}/".format(self.host, self.guild_home, run_id)
+        dest = os.path.join(var.runs_dir(), run_id + "/")
+        cmd = ["rsync", opts, src, dest]
+        log.info("Copying %s", run_id)
+        log.debug("rsync cmd: %r", cmd)
+        subprocess.check_call(cmd)
