@@ -110,7 +110,7 @@ def post_process(source, cwd, use_cache=True):
         if os.path.exists(process_marker):
             return
     env = {
-        "RESOURCE_DIR": _resource_dir(source.resdef),
+        "RESDEF_DIR": _resdef_dir(source.resdef),
     }
     log.info(
         "Post processing %s resource in %s: %r",
@@ -124,8 +124,8 @@ def post_process(source, cwd, use_cache=True):
     else:
         util.touch(process_marker)
 
-def _resource_dir(resdef):
-    """Return resource directory for a resource definition.
+def _resdef_dir(resdef):
+    """Return directory for a resource definition.
 
     The ResourceDef interface doesn't provide a directory, but we can
     infer a directory by checking for 'modeldef' and 'dist'
