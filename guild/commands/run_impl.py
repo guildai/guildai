@@ -48,13 +48,16 @@ def main(args, ctx):
     model = _resolve_model(model_ref)
     opdef = _resolve_opdef(op_name, model)
     _apply_opdef_args(opdef, args)
-    _dispatch_cmd(args, opdef, model)
+    _dispatch_cmd(args, opdef, model, ctx)
 
 def _maybe_apply_run_args(args, ctx):
     if not args.rerun and not args.restart:
         return
     if args.rerun and args.restart:
-        cli.error("--rerun and --restart cannot both be used")
+        cli.error(
+            "--rerun and --restart cannot both be used\n"
+            "Try '%s' for more information."
+            % click_util.cmd_help(ctx))
     run = _apply_run_args(args.rerun or args.restart, args, ctx)
     if args.restart:
         cli.out("Restarting {}".format(run.id))
@@ -87,17 +90,17 @@ def _apply_opdef_args(opdef, args):
     if args.set_trace:
         opdef.set_trace = True
 
-def _dispatch_cmd(args, opdef, model):
+def _dispatch_cmd(args, opdef, model, ctx):
     if args.help_model:
         _print_model_help(model)
     elif args.help_op:
         _print_op_help(opdef)
     else:
-        _dispatch_op_cmd(opdef, model, args)
+        _dispatch_op_cmd(opdef, model, args, ctx)
 
-def _dispatch_op_cmd(opdef, model, args):
+def _dispatch_op_cmd(opdef, model, args, ctx):
     try:
-        op = _init_op(opdef, model, args)
+        op = _init_op(opdef, model, args, ctx)
     except guild.op.InvalidMain as e:
         _invalid_main_error(e, opdef)
     else:
@@ -245,7 +248,7 @@ def _no_such_operation_error(name, model):
         "Try 'guild operations %s' for a list of available operations."
         % (name, model.name, model.name))
 
-def _init_op(opdef, model, args):
+def _init_op(opdef, model, args, ctx):
     parsed = op_util.parse_args(args.args)
     flag_vals, resource_vals = _split_flags_and_resources(parsed, opdef)
     _apply_flag_vals(flag_vals, opdef)
@@ -254,9 +257,15 @@ def _init_op(opdef, model, args):
     extra_attrs = _init_op_extra_attrs(args)
     if args.run_dir:
         if args.restart:
-            cli.error("--restart and --run-dir cannot both be used")
+            cli.error(
+                "--restart and --run-dir cannot both be used\n"
+                "Try '%s' for more information"
+                % click_util.cmd_help(ctx))
         if args.stage:
-            cli.error("--stage and --run-dir cannot both be used")
+            cli.error(
+                "--stage and --run-dir cannot both be used\n"
+                "Try '%s' for more information"
+                % click_util.cmd_help(ctx))
         run_dir = os.path.abspath(args.run_dir)
         cli.note(
             "Run directory is '%s' (results will not be visible to Guild)"
