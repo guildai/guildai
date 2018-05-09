@@ -26,8 +26,15 @@ def run_params(fn):
             ("-l", "--label"), metavar="LABEL",
             help="Set a label for the run."),
         click.Option(
-            ("-d", "--run-dir"), metavar="DIR",
-            help="Use an alternative run directory."),
+            ("--run-dir",), metavar="DIR",
+            help=(
+                "Use alternative run directory DIR. Cannot be used with "
+                "--stage.")),
+        click.Option(
+            ("--stage",), metavar="DIR",
+            help=(
+                "Stage an operation in DIR but do not run. Cannot be used "
+                "with --run-dir.")),
         click.Option(
             ("-r", "--rerun",), metavar="RUN",
             help=(
@@ -116,6 +123,17 @@ def run(ctx, args):
     `--restart`.
 
     `--rerun` and `--restart` may not both be used.
+
+    To run an operation outside of Guild's run management facility,
+    use `--run-dir` or `--stage` to specify an alternative run
+    directory. These options are useful when developing or debugging
+    an operation. Use `--stage` to prepare a run directory for an
+    operation without running the operation itself. This is useful
+    when you want to verify dependency resolution and pre-processing
+    or manually run an operation in a prepared directory.
+
+    **NOTE:** Runs started with `--run-dir` are not visible to Guild
+    and will not appear in run listings.
 
     """
     from . import run_impl

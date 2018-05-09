@@ -51,7 +51,7 @@ class InvalidMain(ValueError):
 class Operation(object):
 
     def __init__(self, model, opdef, run_dir=None, resource_config=None,
-                 extra_attrs=None):
+                 extra_attrs=None, stage_only=False):
         self.model = model
         self.opdef = opdef
         self.cmd_args, self._flag_map = _init_cmd_args(opdef)
@@ -59,6 +59,7 @@ class Operation(object):
         self._run_dir = run_dir
         self.resource_config = resource_config or {}
         self.extra_attrs = extra_attrs
+        self.stage_only = stage_only
         self._running = False
         self._started = None
         self._stopped = None
@@ -78,9 +79,12 @@ class Operation(object):
         self._init_attrs()
         self._resolve_deps()
         self._pre_proc()
-        self._start_proc()
-        self._wait_for_proc()
-        self._finalize_attrs()
+        if self.stage_only:
+            self._stage_proc()
+        else:
+            self._start_proc()
+            self._wait_for_proc()
+            self._finalize_attrs()
         return self._exit_status
 
     def _init_run(self):
@@ -127,6 +131,12 @@ class Operation(object):
         log.debug("pre-process env: %s", env)
         log.debug("pre-process cwd: %s", cwd)
         subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
+
+    def _stage_proc(self):
+        env = self._proc_env()
+        _write_sourceable_env(env, self._run.guild_path("env"))
+        log.debug("operation command: %s", self.cmd_args)
+        log.debug("operation env: %s", env)
 
     def _start_proc(self):
         assert self._proc is None
@@ -379,6 +389,14 @@ def _is_runfile_pkg(path):
         if split_path[-len(runfile_path):] == runfile_path:
             return True
     return False
+
+def _write_sourceable_env(env, dest):
+    skip_env = ("PWD",)
+    with open(dest, "w") as out:
+        for name in sorted(env):
+            if name in skip_env:
+                continue
+            out.write("export {}={}\n".format(name, env[name]))
 
 def _write_proc_lock(proc, run):
     with open(run.guild_path("LOCK"), "w") as f:

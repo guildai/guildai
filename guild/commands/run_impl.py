@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import os
+import pipes
 import re
 
 import click
@@ -254,6 +255,8 @@ def _init_op(opdef, model, args):
     if args.run_dir:
         if args.restart:
             cli.error("--restart and --run-dir cannot both be used")
+        if args.stage:
+            cli.error("--stage and --run-dir cannot both be used")
         run_dir = os.path.abspath(args.run_dir)
         cli.note(
             "Run directory is '%s' (results will not be visible to Guild)"
@@ -261,10 +264,17 @@ def _init_op(opdef, model, args):
     elif args.restart:
         assert hasattr(args, "_restart_run")
         run_dir = args._restart_run.path
+    elif args.stage:
+        run_dir = args.stage
     else:
         run_dir = None
     return guild.op.Operation(
-        model, opdef, run_dir, resource_vals, extra_attrs)
+        model,
+        opdef,
+        run_dir,
+        resource_vals,
+        extra_attrs,
+        args.stage)
 
 def _split_flags_and_resources(vals, opdef):
     ref_vars = _ref_vars_for_resource_lookup(vals, opdef)
@@ -450,7 +460,7 @@ def _print_env(op):
 
 def _maybe_run(op, model, args):
     _maybe_warn_no_wait(op.opdef, args)
-    if args.yes or _confirm_run(op, model):
+    if args.yes or _confirm_run(op, model, args):
         _check_restart_running(args)
         _run(op)
 
@@ -468,26 +478,39 @@ def _run(op):
     except deps.DependencyError as e:
         _handle_dependency_error(e)
     else:
-        _handle_run_result(result)
+        _handle_run_result(result, op)
 
 def _handle_dependency_error(e):
     cli.error(
         "run failed because a dependency was not met: %s" % e)
 
-def _handle_run_result(exit_status):
-    if exit_status != 0:
+def _handle_run_result(exit_status, op):
+    if op.stage_only:
+        _print_staged_info(op)
+    elif exit_status != 0:
         cli.error(exit_status=exit_status)
 
-def _confirm_run(op, model):
+def _print_staged_info(op):
+    cmd = " ".join([pipes.quote(arg) for arg in op.cmd_args])
+    cli.out(
+        "Operation is staged in %s\n"
+        "To run the operation, use: "
+        "(cd %s && source .guild/env && %s)"
+        % (op.run_dir, op.run_dir, cmd)
+    )
+
+def _confirm_run(op, model, args):
     op_desc = "%s:%s" % (model.fullname, op.opdef.name)
     flags = util.resolve_all_refs(op.opdef.flag_values(include_none=False))
     resources = op.resource_config
+    run_or_stage = "run" if not args.stage else "stage"
     prompt = (
-        "You are about to run %s\n"
+        "You are about to %s %s\n"
         "%s"
         "%s"
         "Continue?"
-        % (op_desc, _format_op_flags(flags), _format_op_resources(resources)))
+        % (run_or_stage, op_desc, _format_op_flags(flags),
+           _format_op_resources(resources)))
     return guild.cli.confirm(prompt, default=True)
 
 def _format_op_flags(flags):
