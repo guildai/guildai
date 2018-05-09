@@ -22,8 +22,12 @@ from . import remote_support
 
 def pull_params(fn):
     click_util.append_params(fn, [
-        click.Argument(("run",)),
+        click.Argument(("runs",), metavar="[RUN...]", nargs=-1),
         remote_support.remote_arg,
+        click.Option(
+            ("-a", "--all"),
+            help="Pull all remote runs.",
+            is_flag=True),
         click.Option(
             ("-v", "--verbose"),
             help="Show more information.",
@@ -45,18 +49,23 @@ def pull_params(fn):
 def pull_runs(ctx, args):
     """Copy one or more runs from a remote location.
 
+    `RUN` must be the complete run ID of the remote run.
+
+    **NOTE:** Guild does not currently support listing remote runs. To
+    pull specific runs, query the remote server for the full run ID of
+    each run you want to pull.
+
+    You may alternatively use `--all` to pull all remote runs. If
+    `--all` is specified, `RUN` arguments cannot be specified.
+
+    `--verbose` is always enabled when `--all` is specified.
+
     `REMOTE` must be define in ``~/.guild/config.yml``. See REMOTES
     below for more information.
 
     By default Guild will prompt you before copying. If you want to
     apply the changes without being prompted, use the ``--yes``
     option.
-
-    `RUN` must be the complete run ID of the remote run.
-
-    This command does not currently support pulling more than one
-    remote run. To list available runs, you must query the remote
-    server directly at this time.
 
     {{ remote_support.remotes }}
 

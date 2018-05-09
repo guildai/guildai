@@ -47,6 +47,9 @@ class Remote(object):
     def pull(self, run_ids, verbose=False):
         raise NotImplementedError()
 
+    def pull_all(self, verbose=False):
+        raise NotImplementedError()
+
     def pull_src(self):
         raise NotImplementedError()
 

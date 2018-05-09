@@ -53,16 +53,28 @@ class SSHRemote(guild.remote.Remote):
         for run_id in run_ids:
             self._pull_run(run_id, verbose)
 
-    def pull_src(self):
-        return "{}:{}".format(self.host, self.guild_home)
-
     def _pull_run(self, run_id, verbose):
-        opts = "-al"
-        if verbose:
-            opts += "v"
         src = "{}:{}/runs/{}/".format(self.host, self.guild_home, run_id)
         dest = os.path.join(var.runs_dir(), run_id + "/")
-        cmd = ["rsync", opts, src, dest]
+        cmd = ["rsync"] + self._rsync_opts(verbose) + [src, dest]
         log.info("Copying %s", run_id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
+
+    def pull_all(self, verbose=False):
+        src = "{}:{}/runs/".format(self.host, self.guild_home)
+        dest = var.runs_dir() + "/"
+        cmd = ["rsync"] + self._rsync_opts(verbose) + [src, dest]
+        log.info("Copying all runs")
+        log.debug("rsync cmd: %r", cmd)
+        subprocess.check_call(cmd)
+
+    def pull_src(self):
+        return "{}:{}".format(self.host, self.guild_home)
+
+    @staticmethod
+    def _rsync_opts(verbose):
+        opts = ["-al", "--inplace"]
+        if verbose:
+            opts.append("-v")
+        return opts

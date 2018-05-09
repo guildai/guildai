@@ -29,6 +29,7 @@ import guild.remote
 import guild.run
 
 from guild import cli
+from guild import click_util
 from guild import cmd_impl_support
 from guild import config
 from guild import remote_run_support
@@ -648,17 +649,44 @@ def _remote_for_name(name):
             "remote '%s' in ~/.guild/config.yml is missing required "
             "config: %s" % (name, e.args[0]))
 
-def pull(args, _ctx):
-    if len(args.run) != 32:
+def pull(args, ctx):
+    if not args.runs and not args.all:
         cli.error(
-            "invalid remote run ID\n"
-            "Remote run IDs must be 32 characters long.")
+            "specify one or more runs or use --all\n"
+            "Try '%s' for more information."
+            % click_util.cmd_help(ctx))
+    if args.all and args.runs:
+        cli.error(
+            "RUN cannot be used with --all\n"
+            "Try '%s' for more information."
+            % click_util.cmd_help(ctx))
     remote = _remote_for_name(args.remote)
-    preview = (
-        "You are about to copy run '%s' from '%s'"
-        % (args.run, remote.pull_src()))
+    if args.all:
+        run_ids = None
+        preview = (
+            "You are about to copy all runs from '%s'"
+            % remote.pull_src())
+    else:
+        run_ids = _validate_remote_run_ids(args.runs)
+        formatted_run_ids = "\n".join(["  %s" % run_id for run_id in run_ids])
+        preview = (
+            "You are about to copy the following runs from '%s':\n"
+            "%s" % (remote.pull_src(), formatted_run_ids))
     confirm = "Continue?"
     if not args.yes:
         cli.out(preview)
     if args.yes or cli.confirm(confirm, True):
-        remote.pull([args.run], args.verbose)
+        if args.all:
+            remote.pull_all(True)
+        else:
+            assert run_ids
+            remote.pull(run_ids, args.verbose)
+
+def _validate_remote_run_ids(run_ids):
+    for run_id in run_ids:
+        if len(run_id) != 32:
+            cli.error(
+                "invalid remote RUN '%s'\n"
+                "Remote run IDs must be 32 characters long."
+                % run_id)
+    return run_ids
