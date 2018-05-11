@@ -61,10 +61,9 @@ def run(spec, cwd=None, flags=None, run_dir=None):
     if run_dir:
         args.extend(["--run-dir", run_dir])
     guild_home = os.path.abspath(guild.__pkgdir__)
-    env = {
-        "PYTHONPATH": guild_home,
-        "LANG": os.getenv("LANG", "en_US.UTF-8"),
-    }
+    env = dict(os.environ)
+    _apply_python_path_env(env, guild_home)
+    _apply_lang_env(env)
     p = subprocess.Popen(
         args,
         cwd=cwd,
@@ -76,6 +75,17 @@ def run(spec, cwd=None, flags=None, run_dir=None):
     if p.returncode != 0:
         raise RunError((args, cwd, env), p.returncode, (out, err))
     return out.rstrip(), err.rstrip()
+
+def _apply_python_path_env(env, guild_home):
+    path = env.get("PYTHONPATH")
+    if path:
+        path = os.pathsep.join([guild_home, path])
+    else:
+        path = guild_home
+    env["PYTHONPATH"] = path
+
+def _apply_lang_env(env):
+    env["LANG"] = os.getenv("LANG", "en_US.UTF-8")
 
 def runs_list(
         ops=None,
