@@ -65,6 +65,7 @@
     guild.commands.run_impl
     guild.commands.runs
     guild.commands.runs_delete
+    guild.commands.runs_diff
     guild.commands.runs_export
     guild.commands.runs_impl
     guild.commands.runs_import
