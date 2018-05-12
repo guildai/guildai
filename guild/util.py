@@ -108,13 +108,19 @@ def open_url(url):
     except OSError:
         _open_url_with_webbrowser(url)
 
+class URLOpenError(Exception):
+    pass
+
 def _open_url_with_cmd(url):
     if sys.platform == "darwin":
         args = ["open", url]
     else:
         args = ["xdg-open", url]
     with open(os.devnull, "w") as null:
-        subprocess.check_call(args, stderr=null, stdout=null)
+        try:
+            subprocess.check_call(args, stderr=null, stdout=null)
+        except subprocess.CalledProcessError as e:
+            raise URLOpenError(url, e)
 
 def _open_url_with_webbrowser(url):
     import webbrowser

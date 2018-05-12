@@ -317,7 +317,10 @@ def _serve_dev(data, host, port, no_open, logging):
 def _serve_prod(data, host, port, no_open, logging):
     view_url = util.local_server_url(host, port)
     if not no_open:
-        util.open_url(view_url)
+        try:
+            util.open_url(view_url)
+        except util.URLOpenError as e:
+            sys.stdout.write("Unable to open browser window for Guild View\n")
     sys.stdout.write("Running Guild View at {}\n".format(view_url))
     _start_view(data, host, port, logging)
     sys.stdout.write("\n")
