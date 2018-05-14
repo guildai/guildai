@@ -33,7 +33,7 @@ function statusIcon(status) {
     };
   } else if (status === 'error') {
     return {
-      color: 'grey',
+      color: 'pink lighten-2',
       icon: 'alert',
       tooltip: 'Failed'
     };
