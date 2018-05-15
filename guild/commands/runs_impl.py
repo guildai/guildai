@@ -66,6 +66,8 @@ CORE_RUN_ATTRS = [
     "stopped",
 ]
 
+RUNS_PER_HEAD = 10
+
 def runs_for_args(args, ctx=None, force_deleted=False):
     filtered = filtered_runs(args, force_deleted)
     return select_runs(filtered, args.runs, ctx)
@@ -220,9 +222,20 @@ def list_runs(args):
             log.exception("formatting run in %s", run.path)
         else:
             formatted.append(formatted_run)
+    formatted = _apply_head(formatted, args.head)
     cols = ["index", "operation", "started", "status", "label"]
     detail = RUN_DETAIL if args.verbose else None
     cli.table(formatted, cols=cols, detail=detail)
+
+def _apply_head(runs, head):
+    if head == 0:
+        return runs
+    limited = runs[:head*RUNS_PER_HEAD]
+    if len(limited) < len(runs):
+        cli.note(
+            "Showing the first %i runs (%i total)"
+            % (len(limited), len(runs)))
+    return limited
 
 def _no_selected_runs_error(help_msg=None):
     help_msg = (

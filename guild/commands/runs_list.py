@@ -34,6 +34,12 @@ def runs_list_options(fn):
             metavar="DIR",
             help="Show archived runs in DIR"),
         click.Option(
+            ("-h", "--head"),
+            help=(
+                "Show only the first 10 runs. Maybe used multiple times "
+                "to show more runs."),
+            count=True),
+        click.Option(
             ("-v", "--verbose"),
             help="Show run details.",
             is_flag=True),
