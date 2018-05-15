@@ -15,16 +15,30 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
+
+from guild import cli
 from guild import pip_util
 from guild import resolver
 from guild import resourcedef
 from guild import util
+
+log = logging.getLogger("guild")
 
 def main(args):
     resdef = resourcedef.ResourceDef("download", {})
     source = resourcedef.ResourceSource(resdef, args.url)
     download_dir = resolver.url_source_download_dir(source)
     util.ensure_dir(download_dir)
-    source_path = pip_util.download_url(source.uri, download_dir)
-    sha256 = util.file_sha256(source_path, use_cache=False)
-    print("{}  {}".format(sha256, source_path))
+    try:
+        source_path = pip_util.download_url(source.uri, download_dir)
+    except Exception as e:
+        _handle_download_error(e, source)
+    else:
+        sha256 = util.file_sha256(source_path, use_cache=False)
+        print("{}  {}".format(sha256, source_path))
+
+def _handle_download_error(e, source):
+    if log.getEffectiveLevel() <= logging.DEBUG:
+        log.exception("downloading %s", source)
+    cli.error("error downloading %s: %s" % (source, e))
