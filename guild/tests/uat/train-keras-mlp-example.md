@@ -12,7 +12,7 @@ save model weights at each epoch. However, this callback requires the
 
 For our first training, we'll proceed without the `h5py` module.
 
-    >>> run("guild train -y mnist_mlp epochs=1", timeout=120)
+    >>> run("guild train -y mnist_mlp epochs=1", timeout=120, ignore="WARNING")
     Using TensorFlow backend.
     60000 train samples
     10000 test samples
@@ -33,8 +33,6 @@ For our first training, we'll proceed without the `h5py` module.
     Trainable params: 669,706
     Non-trainable params: 0
     _________________________________________________________________
-    ...
-    WARNING: [guild.keras] h5py is not installed - model checkpoints will be disabled
     Train on 60000 samples, validate on 10000 samples...
     Epoch 1/1
     <BLANKLINE>
@@ -65,7 +63,7 @@ And train again:
 
     >>> run("guild train -y mnist_mlp epochs=1",
     ...     timeout=120,
-    ...     ignore=["FutureWarning", "_register_converters"])
+    ...     ignore=["FutureWarning", "_register_converters", "WARNING"])
     Using TensorFlow backend.
     60000 train samples
     10000 test samples
@@ -86,7 +84,6 @@ And train again:
     Trainable params: 669,706
     Non-trainable params: 0
     _________________________________________________________________
-    ...
     Train on 60000 samples, validate on 10000 samples...
     Epoch 1/1
     <BLANKLINE>
