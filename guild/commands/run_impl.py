@@ -532,9 +532,10 @@ def _format_op_flags(flags):
 
 def _format_flag(name, val):
     if val is True:
-        return "%s: (boolean switch)" % name
-    else:
-        return "%s: %s" % (name, val)
+        val = "yes"
+    elif val is False:
+        val = "no"
+    return "%s: %s" % (name, val)
 
 def _format_op_resources(resources):
     if not resources:
