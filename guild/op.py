@@ -159,8 +159,7 @@ class Operation(object):
 
     def _proc_env(self):
         assert self._run is not None
-        env = {}
-        env.update(self.cmd_env)
+        env = dict(self.cmd_env)
         env["RUN_DIR"] = self._run.path
         env["RUN_ID"] = self._run.id
         env["GUILD_HOME"] = config.guild_home()
@@ -313,8 +312,7 @@ def _cmd_option_args(name, val):
         return [opt, str(val)]
 
 def _init_cmd_env(opdef):
-    env = {}
-    env.update(util.safe_osenv())
+    env = util.safe_osenv()
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["LOG_LEVEL"] = str(logging.getLogger().getEffectiveLevel())
