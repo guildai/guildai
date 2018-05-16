@@ -34,24 +34,7 @@ log = logging.getLogger("guild")
 
 PLATFORM = platform.system()
 
-OS_ENVIRON_WHITELIST = set([
-    "DISPLAY",
-    "HOME",
-    "HOSTNAME",
-    "LANG",
-    "LD_LIBRARY_PATH",
-    "PATH",
-    "PWD",
-    "SHELL",
-    "SSH_AGENT_PID",
-    "SSH_AUTH_SOCK",
-    "SSH_CONNECTION",
-    "TEMP",
-    "TERM",
-    "TMP",
-    "USER",
-    "VIRTUAL_ENV",
-])
+OS_ENVIRON_BLACKLIST = set([])
 
 MIN_MONITOR_INTERVAL = 5
 
@@ -183,7 +166,7 @@ def safe_osenv():
     return {
         name: val
         for name, val in os.environ.items()
-        if name in OS_ENVIRON_WHITELIST
+        if name not in OS_ENVIRON_BLACKLIST
     }
 
 def match_filters(filters, vals, match_any=False):
