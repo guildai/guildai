@@ -46,18 +46,18 @@ them.
 As with other locally defined models, we can extend our lists using
 the `-a` flag.
 
-    >>> run("guild models -a")
+    >>> run("guild models -a", ignore="FutureWarning")
     ./mnist_irnn
     ./mnist_mlp
     hello/...
     <exit 0>
 
-    >>> run("guild operations -a")
+    >>> run("guild operations -a", ignore="FutureWarning")
     ./mnist_irnn:train            Train the model
     ./mnist_mlp:train             Train the model
     hello/...
     <exit 0>
 
-    >>> run("guild resources -a")
+    >>> run("guild resources -a", ignore="FutureWarning")
     hello/...
     <exit 0>
