@@ -215,7 +215,7 @@ def _resolve_includes(data, section_name, guildfile, coerce_data=None):
     assert isinstance(data, dict), data
     resolved = {}
     seen_includes = set()
-    section_data = data.get(section_name, {})
+    section_data = data.get(section_name) or {}
     _apply_section_data(
         section_data,
         guildfile,
@@ -267,9 +267,9 @@ def _apply_includes(includes, guildfile, section_name, coerce_data,
                             guildfile,
                             "invalid include reference '%s': operation "
                             "'%s' is not defined" % (ref, include_op))
-                    section_data = op_data.get(section_name, {})
+                    section_data = op_data.get(section_name) or {}
                 else:
-                    section_data = model_data.get(section_name, {})
+                    section_data = model_data.get(section_name) or {}
                 _apply_section_data(
                     section_data,
                     guildfile,
@@ -412,7 +412,7 @@ class FlagDef(object):
         self.name = name
         self.guildfile = guildfile
         self.default = data.get("default")
-        self.description = data.get("description", "")
+        self.description = data.get("description") or ""
         self.required = bool(data.get("required"))
         self.arg_name = data.get("arg-name")
         self.arg_skip = bool(data.get("arg-skip"))
@@ -438,8 +438,8 @@ class FlagChoice(object):
         self.flagdef = flagdef
         if isinstance(data, dict):
             self.value = data.get("value")
-            self.description = data.get("description", "")
-            self.args = data.get("args", {})
+            self.description = data.get("description") or ""
+            self.args = data.get("args") or {}
         else:
             self.value = data
             self.description = ""
@@ -456,12 +456,12 @@ class ModelDef(FlagHost):
         super(ModelDef, self).__init__(data, guildfile)
         self.name = name
         self.guildfile = guildfile
-        self.description = data.get("description", "").strip()
-        self.references = data.get("references", [])
+        self.description = (data.get("description") or "").strip()
+        self.references = data.get("references") or []
         self.operations = _init_ops(data, self)
         self.resources = _init_resources(data, self)
-        self.disabled_plugins = data.get("disabled-plugins", [])
-        self.extra = data.get("extra", {})
+        self.disabled_plugins = data.get("disabled-plugins") or []
+        self.extra = data.get("extra") or {}
 
     def __repr__(self):
         return "<guild.guildfile.ModelDef '%s'>" % self.name
@@ -481,11 +481,11 @@ class ModelDef(FlagHost):
 def _extended_data(config_data, guildfile, seen=None, resolve_params=True):
     seen = seen or []
     data = copy.deepcopy(config_data)
-    extends = _coerce_extends(config_data.get("extends", []), guildfile)
+    extends = _coerce_extends((config_data.get("extends") or []), guildfile)
     if extends:
         _apply_parents_data(extends, guildfile, seen, data)
     if resolve_params:
-        data = _resolve_param_refs(data, data.get("params", {}))
+        data = _resolve_param_refs(data, data.get("params") or {})
     return data
 
 def _coerce_extends(val, src):
@@ -576,7 +576,7 @@ def _maybe_resolve_param_ref(val, params):
     return val
 
 def _init_ops(data, modeldef):
-    ops_data = data.get("operations", {})
+    ops_data = data.get("operations") or {}
     return [
         OpDef(key, _coerce_op_data(ops_data[key]), modeldef)
         for key in sorted(ops_data)
@@ -606,7 +606,7 @@ class OpDef(FlagHost):
         self.guildfile = modeldef.guildfile
         self.name = name
         data = _coerce_op_data(data)
-        self.description = data.get("description", "").strip()
+        self.description = (data.get("description") or "").strip()
         cmd = data.get("cmd")
         if cmd:
             warnings.warn(
@@ -617,14 +617,14 @@ class OpDef(FlagHost):
         else:
             self.main = data.get("main")
         self.plugin_op = data.get("plugin-op")
-        self.disabled_plugins = data.get("disabled-plugins", [])
+        self.disabled_plugins = data.get("disabled-plugins") or []
         self.dependencies = _init_dependencies(data.get("requires"), self)
         self.pre_process = data.get("pre-process")
-        self.remote = data.get("remote", False)
-        self.stoppable = data.get("stoppable", False)
-        self.set_trace = data.get("set-trace", False)
-        self.handle_keyboard_interrupt = data.get(
-            "handle-keyboard-interrupt", False)
+        self.remote = data.get("remote") or False
+        self.stoppable = data.get("stoppable") or False
+        self.set_trace = data.get("set-trace") or False
+        self.handle_keyboard_interrupt = (
+            data.get("handle-keyboard-interrupt") or False)
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname
@@ -652,7 +652,7 @@ class OpDependency(object):
             self.description = ""
         elif isinstance(data, dict):
             self.spec = _required("resource", data, self.opdef.guildfile)
-            self.description = data.get("description", "")
+            self.description = data.get("description") or ""
         else:
             raise GuildfileError(
                 self, "invalid dependency value: %r" % data)
@@ -710,18 +710,18 @@ class PackageDef(object):
     def __init__(self, name, data, guildfile):
         self.name = name
         self.guildfile = guildfile
-        self.description = data.get("description", "").strip()
+        self.description = (data.get("description") or "").strip()
         self.version = _required("version", data, guildfile)
         self.url = data.get("url")
         self.author = data.get("author")
         self.author_email = _required("author-email", data, guildfile)
         self.license = data.get("license")
-        self.tags = data.get("tags", [])
+        self.tags = data.get("tags") or []
         self.python_tag = data.get("python-tag")
-        self.data_files = data.get("data-files", [])
+        self.data_files = data.get("data-files") or []
         self.resources = _init_resources(data, self)
-        self.python_requires = data.get("python-requires", [])
-        self.requires = data.get("requires", [])
+        self.python_requires = data.get("python-requires") or []
+        self.requires = data.get("requires") or []
 
     def __repr__(self):
         return "<guild.guildfile.PackageDef '%s'>" % self.name
