@@ -327,8 +327,9 @@ class ModelImporter(object):
         except guildfile.NoModels:
             return self._plugin_model_dist()
         except Exception as e:
-            log.error(
-                "error loading guildfile from %s: %s", self.path, e)
+            if log.getEffectiveLevel() <= logging.DEBUG:
+                log.exception(self.path)
+            log.error("error loading guildfile from %s: %s", self.path, e)
             return BadGuildfileDistribution(self.path)
         else:
             return GuildfileDistribution(mf)
