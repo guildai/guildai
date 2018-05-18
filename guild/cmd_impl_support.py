@@ -62,7 +62,7 @@ def _check_bad_guildfile(dist):
     import guild.model # expensive
     if isinstance(dist, guild.model.BadGuildfileDistribution):
         cli.error(
-            "guildfile in %s contains error (see above for details)"
+            "guildfile in %s contains an error (see above for details)"
             % cwd_desc(dist.location))
 
 def init_model_path(args, cwd=None):
