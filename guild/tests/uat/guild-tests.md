@@ -20,6 +20,7 @@ tests).
       memory-plugin:           ok
       models:                  ok
       namespaces:              ok
+      nx:                      ok
       op-utils:                ok
       ops:                     ok
       package:                 ok
@@ -31,4 +32,5 @@ tests).
       tfevents:                ok
       utils:                   ok
       var:                     ok
+      workflow:                ok
     <exit 0>

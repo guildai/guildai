@@ -50,9 +50,9 @@ class InvalidMain(ValueError):
 
 class Operation(object):
 
-    def __init__(self, model, opdef, run_dir=None, resource_config=None,
+    def __init__(self, model_ref, opdef, run_dir=None, resource_config=None,
                  extra_attrs=None, stage_only=False):
-        self.model = model
+        self.model_ref = model_ref
         self.opdef = opdef
         self.cmd_args, self._flag_map = _init_cmd_args(opdef)
         self.cmd_env = _init_cmd_env(opdef)
@@ -71,19 +71,20 @@ class Operation(object):
     def run_dir(self):
         return self._run_dir or (self._run.path if self._run else None)
 
-    def run(self):
+    def run(self, quiet=False, skip_deps=False):
         assert not self._running
         self._running = True
         self._started = guild.run.timestamp()
         self._init_run()
         self._init_attrs()
-        self._resolve_deps()
+        if not skip_deps:
+            self._resolve_deps()
         self._pre_proc()
         if self.stage_only:
             self._stage_proc()
         else:
             self._start_proc()
-            self._wait_for_proc()
+            self._wait_for_proc(quiet)
             self._finalize_attrs()
         return self._exit_status
 
@@ -102,11 +103,11 @@ class Operation(object):
         self._run.write_attr("started", self._started)
         if self._flag_map:
             self._run.write_attr("_flag_map", self._flag_map)
-        for key, val in self.model.modeldef.extra.items():
+        for key, val in self.opdef.modeldef.extra.items():
             self._run.write_attr("_extra_%s" % key, val)
 
     def _opref_attr(self):
-        ref = opref.OpRef.from_op(self.opdef.name, self.model.reference)
+        ref = opref.OpRef.from_op(self.opdef.name, self.model_ref)
         return str(ref)
 
     def _resolve_deps(self):
@@ -170,19 +171,19 @@ class Operation(object):
         util.apply_env(env, os.environ, ["PROFILE"])
         return env
 
-    def _wait_for_proc(self):
+    def _wait_for_proc(self, quiet):
         assert self._proc is not None
         try:
-            proc_exit_status = self._watch_proc()
+            proc_exit_status = self._watch_proc(quiet)
         except KeyboardInterrupt:
             proc_exit_status = self._handle_proc_interrupt()
         self._exit_status = _op_exit_status(proc_exit_status, self.opdef)
         self._stopped = guild.run.timestamp()
         _delete_proc_lock(self._run)
 
-    def _watch_proc(self):
+    def _watch_proc(self, quiet):
         assert self._proc is not None
-        output = op_util.RunOutput(self._run, self._proc)
+        output = op_util.RunOutput(self._run, self._proc, quiet)
         exit_status = self._proc.wait()
         output.wait_and_close()
         return exit_status

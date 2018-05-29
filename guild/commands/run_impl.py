@@ -278,7 +278,7 @@ def _init_op(opdef, model, args, ctx):
     else:
         run_dir = None
     return guild.op.Operation(
-        model,
+        model.reference,
         opdef,
         run_dir,
         resource_vals,

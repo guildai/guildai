@@ -150,3 +150,6 @@
     guild.util
     guild.var
     guild.view
+    guild.workflow.__init__
+    guild.workflow.file_node
+    guild.workflow.op_node
