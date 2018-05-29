@@ -21,14 +21,22 @@ from guild import model
 from guild import util
 
 def main(args):
-    cmd_impl_support.init_model_path(args)
-    formatted = [_format_model(m) for m in model.iter_models()]
-    filtered = [m for m in formatted if _filter_model(m, args)]
+    cmd_impl_support.init_model_path()
+    gf_dirs, filters = cmd_impl_support.guildfile_dirs(args.filters)
+    formatted = [_format_model(m) for m in iter_models(gf_dirs)]
+    filtered = [m for m in formatted if _filter_model(m, filters)]
     cli.table(
         sorted(filtered, key=lambda m: m["fullname"]),
         cols=["fullname", "description"],
         detail=(["source", "operations", "details"] if args.verbose else [])
     )
+
+def iter_models(gf_dirs):
+    for m in model.iter_models():
+        if not gf_dirs:
+            yield m
+        if any((m.modeldef.guildfile.dir == dir for dir in gf_dirs)):
+            yield m
 
 def _format_model(model):
     modeldef = model.modeldef
@@ -42,9 +50,9 @@ def _format_model(model):
         "operations": ", ".join([op.name for op in modeldef.operations])
     }
 
-def _filter_model(model, args):
+def _filter_model(model, filters):
     filter_vals = [
         model["fullname"],
         model["description"],
     ]
-    return util.match_filters(args.filters, filter_vals)
+    return util.match_filters(filters, filter_vals)

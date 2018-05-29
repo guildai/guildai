@@ -27,7 +27,6 @@ def push_params(fn):
         remote_support.remote_arg,
         runs_support.op_and_label_filters,
         runs_support.status_filters,
-        runs_support.scope_options,
         click.Option(
             ("-v", "--verbose"),
             help="Show more information.",
@@ -64,8 +63,6 @@ def push_runs(ctx, args):
     {{ runs_support.op_and_label_filters }}
 
     {{ runs_support.status_filters }}
-
-    {{ runs_support.scope_options }}
 
     {{ remote_support.remotes }}
 

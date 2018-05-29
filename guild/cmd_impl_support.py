@@ -65,40 +65,28 @@ def _check_bad_guildfile(dist):
             "guildfile in %s contains an error (see above for details)"
             % cwd_desc(dist.location))
 
-def init_model_path(args, cwd=None):
+def init_model_path(cwd=None):
     """Initializes the model path.
 
     If the context cwd contains a model def, the path is initialized
-    so that only models associated with the cwd are available via
-    `guild.model`. An exception to this is when `force_all` is true,
-    in which case all models including those in the cwd will be
-    available.
+    to include the cwd.
     """
     import guild.model # expensive
-    _init_path(guild.model, "models", args, cwd)
+    _init_path(guild.model, cwd)
 
-def init_resource_path(args, cwd=None):
+def init_resource_path(cwd=None):
     """Initializes the resource path.
 
     The same rules in `init_model_path` are applied here to the
     resource path.
     """
     import guild.resource # expensive
-    _init_path(guild.resource, "resources", args, cwd)
+    _init_path(guild.resource, cwd)
 
-def _init_path(mod, desc, args, cwd):
+def _init_path(mod, cwd):
     cwd_gf = cwd_guildfile(cwd)
     if cwd_gf:
-        if args.all:
-            mod.insert_path(cwd_gf.dir)
-        else:
-            _notify_path_limited(cwd, desc)
-            mod.set_path([cwd_gf.dir])
-
-def _notify_path_limited(path, what):
-    cli.note_once(
-        "Limiting %s to %s (use --all to include all)"
-        % (what, cwd_desc(path)))
+        mod.insert_path(cwd_gf.dir)
 
 def one_run(runs, spec, ctx=None):
     """Returns runs[0] if len(runs) is 1 otherwise exits with an error."""
@@ -155,3 +143,21 @@ def _arg_desc(name, ctx):
                 desc = param.human_readable_name
             return desc
     raise AssertionError(name)
+
+def guildfile_dirs(vals):
+    """Splits vals, returning a tuple of guildfile dirs and other vals.
+
+    Used by filters that combine guildfile directory selection and
+    value filtering.
+
+    """
+    from guild import guildfile # not expensive, but not always needed
+    gf_dirs = []
+    other = []
+    for val in vals:
+        abs_dir = os.path.abspath(os.path.join(config.cwd(), val))
+        if guildfile.is_guildfile_dir(abs_dir):
+            gf_dirs.append(abs_dir)
+        else:
+            other.append(val)
+    return gf_dirs, other

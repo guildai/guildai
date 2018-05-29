@@ -21,7 +21,6 @@ from guild import click_util
 
 @click.command()
 @click.argument("filters", metavar="[FILTER]...", required=False, nargs=-1)
-@click.option("-a", "--all", help="Show all resources.", is_flag=True)
 @click.option("-v", "--verbose", help="Show resource details.", is_flag=True)
 
 @click_util.use_args
@@ -29,8 +28,11 @@ from guild import click_util
 def resources(args):
     """Show available resources.
 
-    By default Guild will show resources defined in the current
-    directory Use `--all` to show all resources.
+    Use one or more `FILTER` arguments to show only resources that
+    match the specified values.
+
+    `FILTER` may a directory to indicate that only resources defined
+    in that location are included in the list.
 
     """
     from . import resources_impl

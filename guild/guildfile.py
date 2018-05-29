@@ -740,8 +740,12 @@ def from_dir(path, filenames=None):
             return _load_guildfile(model_file)
     raise NoModels(path)
 
-def dir_has_guildfile(path):
-    for name in os.listdir(path):
+def is_guildfile_dir(path):
+    try:
+        names = os.listdir(path)
+    except OSError:
+        names = []
+    for name in names:
         if name in NAMES:
             return True
     return False

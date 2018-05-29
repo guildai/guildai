@@ -21,18 +21,21 @@ from guild import cli
 from guild import cmd_impl_support
 from guild import util
 
+from guild.commands import models_impl
+
 def main(args):
-    cmd_impl_support.init_model_path(args)
-    formatted = [_format_op(op, model) for op, model in _iter_ops()]
-    filtered = [op for op in formatted if _filter_op(op, args)]
+    cmd_impl_support.init_model_path()
+    gf_dirs, filters = cmd_impl_support.guildfile_dirs(args.filters)
+    formatted = [_format_op(op, model) for op, model in _iter_ops(gf_dirs)]
+    filtered = [op for op in formatted if _filter_op(op, filters)]
     cli.table(
         sorted(filtered, key=lambda m: m["fullname"]),
         cols=["fullname", "description"],
         detail=(["main", "flags", "details"] if args.verbose else [])
     )
 
-def _iter_ops():
-    for model in guild.model.iter_models():
+def _iter_ops(gf_dirs):
+    for model in models_impl.iter_models(gf_dirs):
         for op in model.modeldef.operations:
             yield op, model
 
@@ -60,9 +63,9 @@ def _format_flag_desc(flag):
 def _format_flag_value(flag):
     return " (default is %r)" % flag.default if flag.default is not None else ""
 
-def _filter_op(op, args):
+def _filter_op(op, filters):
     filter_vals = [
         op["fullname"],
         op["description"],
     ]
-    return util.match_filters(args.filters, filter_vals)
+    return util.match_filters(filters, filter_vals)

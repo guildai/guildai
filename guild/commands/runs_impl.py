@@ -66,7 +66,7 @@ CORE_RUN_ATTRS = [
     "stopped",
 ]
 
-RUNS_PER_HEAD = 10
+RUNS_PER_GROUP = 20
 
 def runs_for_args(args, ctx=None, force_deleted=False):
     filtered = filtered_runs(args, force_deleted)
@@ -90,37 +90,10 @@ def _runs_root_for_args(args, force_deleted):
 
 def _runs_filter(args):
     filters = []
-    _apply_cwd_guildfile_filter(args, filters)
     _apply_status_filter(args, filters)
     _apply_ops_filter(args, filters)
     _apply_labels_filter(args, filters)
     return var.run_filter("all", filters)
-
-def _apply_cwd_guildfile_filter(args, filters):
-    cwd_guildfile = cmd_impl_support.cwd_guildfile()
-    if cwd_guildfile and not args.all:
-        _notify_runs_limited()
-        guildfile_dir = os.path.abspath(cwd_guildfile.dir)
-        filters.append(_cwd_run_filter(guildfile_dir))
-
-def _notify_runs_limited():
-    cli.note_once(
-        "Limiting runs to %s (use --all to include all)"
-        % cmd_impl_support.cwd_desc())
-
-def _cwd_run_filter(abs_cwd):
-    def f(run):
-        if run.opref.pkg_type == "guildfile":
-            model_dir = run.opref.pkg_name
-            if os.path.isabs(model_dir):
-                if model_dir == abs_cwd:
-                    return True
-            else:
-                log.warning(
-                    "unexpected non-absolute guildfile path for run %s: %s",
-                    run.id, model_dir)
-        return False
-    return f
 
 def _apply_status_filter(args, filters):
     status_filters = [
@@ -222,18 +195,19 @@ def list_runs(args):
             log.exception("formatting run in %s", run.path)
         else:
             formatted.append(formatted_run)
-    formatted = _apply_head(formatted, args.head)
+    formatted = _limit_runs(formatted, args)
     cols = ["index", "operation", "started", "status", "label"]
     detail = RUN_DETAIL if args.verbose else None
     cli.table(formatted, cols=cols, detail=detail)
 
-def _apply_head(runs, head):
-    if head == 0:
+def _limit_runs(runs, args):
+    if args.all:
         return runs
-    limited = runs[:head*RUNS_PER_HEAD]
+    limited = runs[:(args.more + 1) * RUNS_PER_GROUP]
     if len(limited) < len(runs):
         cli.note(
-            "Showing the first %i runs (%i total)"
+            "Showing the first %i runs (%i total) - use --all "
+            "to show all or -m to show more"
             % (len(limited), len(runs)))
     return limited
 

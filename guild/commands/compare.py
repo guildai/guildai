@@ -64,7 +64,6 @@ def compare(args):
 
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
-    {{ runs_support.scope_options }}
     """
     from . import compare_impl
     compare_impl.main(args)

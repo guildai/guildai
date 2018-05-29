@@ -26,7 +26,6 @@ def label_params(fn):
         click.Argument(("label",), required=False),
         runs_support.op_and_label_filters,
         runs_support.status_filters,
-        runs_support.scope_options,
         click.Option(
             ("-c", "--clear"),
             help="Clear the run's label.",
@@ -68,8 +67,6 @@ def label_runs(ctx, args):
     {{ runs_support.op_and_label_filters }}
 
     {{ runs_support.status_filters }}
-
-    {{ runs_support.scope_options }}
 
     """
     from . import runs_impl

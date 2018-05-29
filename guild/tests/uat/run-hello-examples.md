@@ -9,15 +9,13 @@ We'll run through the various operations in this test.
 
 ## Models
 
-    >>> run("guild models", ignore="FutureWarning")
-    Limiting models to the current directory (use --all to include all)
+    >>> run("guild models .", ignore="FutureWarning")
     ./hello  A "hello world" sample model
     <exit 0>
 
 ## Operations
 
-    >>> run("guild operations", ignore="FutureWarning")
-    Limiting models to the current directory (use --all to include all)
+    >>> run("guild operations .", ignore="FutureWarning")
     ./hello:default           Print a default message
     ./hello:from-file         Print a message from a file
     ./hello:from-file-output  Print output from last file-output operation
@@ -84,8 +82,7 @@ We can view the sources of all resolved dependencies for a run using
 the `--deps` option of `guild runs info`:
 
     >>> run("guild runs info --deps", ignore="FutureWarning")
-    Limiting runs to the current directory (use --all to include all)
-    ...
+    id: ...
     operation: ./hello:from-file-output
     status: completed
     ...

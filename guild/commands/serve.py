@@ -40,7 +40,6 @@ from . import server_support
     is_flag=True)
 @runs_support.op_and_label_filters
 @runs_support.status_filters
-@runs_support.scope_options
 @click.option(
     "-i", "--print-model-info", is_flag=True,
     help="Show model info and exit.")
@@ -69,7 +68,6 @@ def serve(ctx, args):
 
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
-    {{ runs_support.scope_options }}
 
     """
     from . import serve_impl

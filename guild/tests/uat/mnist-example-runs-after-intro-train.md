@@ -15,7 +15,6 @@ We can limit the result by running the command in the context of the
 example guildfile directory:
 
     >>> run("guild -C examples/mnist2 runs", ignore="FutureWarning")
-    Limiting runs to 'examples/mnist2' (use --all to include all)
     [0:...]  ./mnist-intro:train  ... ...  completed
     <exit 0>
 
@@ -24,7 +23,6 @@ without having to specify the `-C` option:
 
     >>> cd("examples/mnist2")
     >>> run("guild runs", ignore="FutureWarning")
-    Limiting runs to the current directory (use --all to include all)
     [0:...]  ./mnist-intro:train  ... ...  completed
     <exit 0>
 
