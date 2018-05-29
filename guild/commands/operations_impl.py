@@ -15,8 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import guild.model
-
 from guild import cli
 from guild import cmd_impl_support
 from guild import util
