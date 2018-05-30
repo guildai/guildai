@@ -47,10 +47,6 @@ def run_params(fn):
                 "Restart RUN in-place without creating a new run. Cannot be "
                 "used with --rerun or --run-dir.")),
         click.Option(
-            ("--no-deps",),
-            help="Don't resolve dependencies",
-            is_flag=True),
-        click.Option(
             ("--disable-plugins",), metavar="LIST",
             help=("A comma separated list of plugin names to disable. "
                   "Use 'all' to disable all plugins.")),
