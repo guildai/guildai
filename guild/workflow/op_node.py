@@ -20,27 +20,41 @@ from guild import workflow as wf
 
 from guild.workflow import resource_node
 
+class OpInitNode(wf.Node):
+
+    user_detail_level = wf.LOW
+
+    def __init__(self, op):
+        self.op = op
+
+    def get_description(self):
+        return "Initialize '{}'".format(self.op.opdef.fullname)
+
+    def run(self):
+        self.op.init()
+
 class OpNode(wf.Node):
+
+    user_detail_level = wf.HIGH
 
     def __init__(self, op, quiet=False):
         self.op = op
         self.quiet = quiet
+        self.init_node = OpInitNode(op)
 
     def get_description(self):
-        return "Operation '{}'".format(self.op.opdef.fullname)
+        return "Run '{}'".format(self.op.opdef.fullname)
 
-    def get_deps(self):
-        deps = []
+    def deps(self):
+        yield self.init_node
         ctx = depslib.ResolutionContext(
             target_dir=self.op.run_dir,
             opdef=self.op.opdef,
             resource_config=self.op.resource_config)
-        return [
-            resource_node.ResourceNode(res)
-            for res in depslib.resources(self.op.opdef.dependencies, ctx)
-        ]
+        for res in depslib.resources(self.op.opdef.dependencies, ctx):
+            yield resource_node.ResourceNode(res, self)
 
     def run(self):
-        exit_status = self.op.run(self.quiet, skip_deps=True)
+        exit_status = self.op.proc(self.quiet)
         if exit_status != 0:
             raise wf.RunError("non-zero exit for run in %s" % self.op.run_dir)

@@ -62,7 +62,6 @@ class Operation(object):
         self.resource_config = resource_config or {}
         self.extra_attrs = extra_attrs
         self.stage_only = stage_only
-        self._running = False
         self._started = None
         self._stopped = None
         self._run = None
@@ -73,22 +72,14 @@ class Operation(object):
     def run_dir(self):
         return self._run_dir or (self._run.path if self._run else None)
 
-    def run(self, quiet=False, skip_deps=False):
-        assert not self._running
-        self._running = True
-        self._started = guild.run.timestamp()
+    def run(self, quiet=False):
+        self.init()
+        self.resolve_deps()
+        return self.proc(quiet)
+
+    def init(self):
         self._init_run()
         self._init_attrs()
-        if not skip_deps:
-            self._resolve_deps()
-        self._pre_proc()
-        if self.stage_only:
-            self._stage_proc()
-        else:
-            self._start_proc()
-            self._wait_for_proc(quiet)
-            self._finalize_attrs()
-        return self._exit_status
 
     def _init_run(self):
         self._run = init_run(self._run_dir)
@@ -102,7 +93,6 @@ class Operation(object):
         self._run.write_attr("opref", self._opref_attr())
         self._run.write_attr("flags", self.opdef.flag_values())
         self._run.write_attr("cmd", self.cmd_args)
-        self._run.write_attr("started", self._started)
         if self._flag_map:
             self._run.write_attr("_flag_map", self._flag_map)
         for key, val in self.opdef.modeldef.extra.items():
@@ -112,7 +102,7 @@ class Operation(object):
         ref = opref.OpRef.from_op(self.opdef.name, self.model_ref)
         return str(ref)
 
-    def _resolve_deps(self):
+    def resolve_deps(self):
         assert self._run is not None
         ctx = deps.ResolutionContext(
             target_dir=self._run.path,
@@ -120,6 +110,18 @@ class Operation(object):
             resource_config=self.resource_config)
         resolved = deps.resolve(self.opdef.dependencies, ctx)
         self._run.write_attr("deps", resolved)
+
+    def proc(self, quiet=False):
+        self._started = guild.run.timestamp()
+        self._run.write_attr("started", self._started)
+        self._pre_proc()
+        if self.stage_only:
+            self._stage_proc()
+        else:
+            self._start_proc()
+            self._wait_for_proc(quiet)
+            self._finalize_attrs()
+        return self._exit_status
 
     def _pre_proc(self):
         if not self.opdef.pre_process:

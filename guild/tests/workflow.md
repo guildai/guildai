@@ -75,7 +75,7 @@ The op is wrapped in an op node:
     >>> from guild.workflow import op_node
     >>> copy_file_node = op_node.OpNode(copy_file_op, quiet=True)
     >>> copy_file_node.get_description()
-    "Operation 'test:copy-file'"
+    "Run 'test:copy-file'"
 
 The op node is included in a workflow graph with dependencies:
 
@@ -85,10 +85,10 @@ The op node is included in a workflow graph with dependencies:
 We can preview the operation, which includes op dependencies:
 
     >>> preview_run(graph)
-    - Required source 'file.txt'
-    - Resource 'file'
-
-    - Operation 'test:copy-file'
+    - Initialize 'test:copy-file'
+    - Resolve source 'file.txt'
+    - Resolve resource 'file'
+    - Run 'test:copy-file'
 
 Before running the op and its dependencies, let's confirm the run dir
 is empty:

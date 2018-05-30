@@ -17,6 +17,11 @@ from __future__ import division
 
 import networkx as nx
 
+# User detail levels
+LOW = 1
+MEDIUM = 2
+HIGH = 3
+
 class RunError(RuntimeError):
     pass
 
@@ -28,7 +33,7 @@ class Graph(object):
     def add_node(self, node, with_deps=False):
         self._g.add_node(node)
         if with_deps:
-            for dep in node.get_deps():
+            for dep in node.deps():
                 self.add_node(dep, with_deps=True)
                 self.add_dep(dep, node)
 
@@ -44,8 +49,11 @@ class Graph(object):
     def preview_order(self):
         return reversed(list(self.run_order()))
 
-    def get_deps(self, node):
+    def node_deps(self, node):
         return self._g.predecessors(node)
+
+    def cycles(self):
+        return nx.simple_cycles(self._g)
 
 class Node(object):
 
@@ -53,7 +61,7 @@ class Node(object):
         raise NotImplementedError()
 
     @staticmethod
-    def get_deps():
+    def deps():
         return []
 
     def run(self):

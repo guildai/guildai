@@ -19,13 +19,20 @@ from guild import workflow as wf
 
 class URLNode(wf.Node):
 
-    def __init__(self, source, resource):
+    user_detail_level = wf.MEDIUM
+
+    def __init__(self, source, resource_node):
         assert source.parsed_uri.scheme in ("http", "https")
         self.source = source
-        self.resource = resource
+        self.resource_node = resource_node
 
     def get_description(self):
-        return "Source '{}'".format(self.source.parsed_uri.path)
+        return "Resolve source '{}'".format(self.source.parsed_uri.path)
+
+    def deps(self):
+        yield self.resource_node.op_node.init_node
 
     def run(self):
-        self.resource.resolve_source(self.source)
+        self.resource_node.resource.ctx.target_dir = \
+           self.resource_node.op_node.op.run_dir
+        self.resource_node.resource.resolve_source(self.source)

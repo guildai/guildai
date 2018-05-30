@@ -22,27 +22,30 @@ from guild.workflow import url_node
 
 class ResourceNode(wf.Node):
 
-    def __init__(self, resource):
+    user_detail_level = wf.MEDIUM
+
+    def __init__(self, resource, op_node):
         self.resource = resource
+        self.op_node = op_node
 
     def get_description(self):
-        return "Resource '{}'".format(self.resource.resdef.name)
+        return "Resolve resource '{}'".format(self.resource.resdef.name)
 
-    def get_deps(self):
+    def deps(self):
         return [
-            _node_for_source(source, self.resource)
+            _node_for_source(source, self)
             for source in self.resource.resdef.sources
         ]
 
     def run(self):
         pass
 
-def _node_for_source(source, resource):
+def _node_for_source(source, resource_node):
     uri_scheme = source.parsed_uri.scheme
     if uri_scheme == "file":
-        return file_node.FileNode(source, resource)
+        return file_node.FileNode(source, resource_node)
     elif uri_scheme in ("http", "https"):
-        return url_node.URLNode(source, resource)
+        return url_node.URLNode(source, resource_node)
 
     else:
         raise AssertionError(source)

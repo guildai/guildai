@@ -100,6 +100,7 @@
     guild.commands.view
     guild.commands.view_impl
     guild.commands.view_tester
+    guild.commands.workflow_impl
     guild.config
     guild.deps
     guild.entry_point_util

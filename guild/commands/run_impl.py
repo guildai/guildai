@@ -109,7 +109,8 @@ def _dispatch_op_cmd(opdef, model, args, ctx):
         elif args.print_env:
             _print_env(op)
         elif args.workflow:
-            _workflow(op, model, args)
+            from guild.commands import workflow_impl
+            workflow_impl.run(op, args)
         else:
             _maybe_run(op, model, args)
 
@@ -550,74 +551,3 @@ def _format_op_resources(resources):
 def _maybe_warn_no_wait(opdef, args):
     if args.no_wait and not opdef.remote:
         cli.note("Operation is local, ignoring --no-wait")
-
-def _workflow(op, _model, args):
-    graph = _wf_init_graph(op)
-    if not args.yes:
-        _wf_preview(op, graph)
-    if args.yes or _wf_confirm():
-        _wf_run(graph)
-
-def _wf_init_graph(op):
-    import guild.workflow as wf
-    from guild.workflow.op_node import OpNode
-    graph = wf.Graph()
-    op_node = OpNode(op)
-    graph.add_node(op_node, with_deps=True)
-    return graph
-
-def _wf_preview(op, graph):
-    import sys
-    import guild.help
-    out = guild.help.ConsoleFormatter()
-    out.write_text("You are about to run {}".format(op.opdef.fullname))
-    if op.flag_vals:
-        out.write_paragraph()
-        out.write_subheading("Flags")
-        out.indent()
-        out.write_dl(_wf_flags_dl(op.flag_vals))
-        out.dedent()
-    out.write_paragraph()
-    out.write_subheading("Workflow")
-    out.indent()
-    _wf_write_preview(graph, out)
-    out.dedent()
-    out.write_paragraph()
-    sys.stderr.write("".join(out.buffer))
-
-def _wf_flags_dl(flag_vals):
-    return [
-        (name, str(flag_vals[name]))
-        for name in sorted(flag_vals)
-    ]
-
-def _wf_write_preview(graph, out):
-    seen = set()
-    for node in graph.preview_order():
-        if node in seen:
-            continue
-        _wf_write_preview_node(node, graph, out, seen)
-
-def _wf_write_preview_node(node, graph, out, seen):
-    seen.add(node)
-    out.write_dl([("-", node.get_description())], col_spacing=1)
-    deps = graph.get_deps(node)
-    out.indent()
-    for dep in graph.get_deps(node):
-        if dep in seen:
-            continue
-        _wf_write_preview_node(dep, graph, out, seen)
-    out.dedent()
-
-def _wf_actions_dl(graph):
-    return [
-        ("-", node.get_description())
-        for node in graph.run_order()
-    ]
-
-def _wf_confirm():
-    return cli.confirm("Continue?", default=True)
-
-def _wf_run(graph):
-    for node in graph.run_order():
-        node.run()
