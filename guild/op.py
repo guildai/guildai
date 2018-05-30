@@ -54,7 +54,9 @@ class Operation(object):
                  extra_attrs=None, stage_only=False):
         self.model_ref = model_ref
         self.opdef = opdef
-        self.cmd_args, self._flag_map = _init_cmd_args(opdef)
+        (self.cmd_args,
+         self.flag_vals,
+         self._flag_map) = _init_cmd_args(opdef)
         self.cmd_env = _init_cmd_env(opdef)
         self._run_dir = run_dir
         self.resource_config = resource_config or {}
@@ -220,7 +222,7 @@ def _init_cmd_args(opdef):
     else:
         flag_args, flag_map = _flag_args(flag_vals, opdef, cmd_args)
         cmd_args = python_args + cmd_args + flag_args
-        return cmd_args, flag_map
+        return cmd_args, flag_vals, flag_map
 
 def _python_cmd(_opdef):
     # TODO: This is an important operation that should be controlled

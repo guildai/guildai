@@ -153,3 +153,5 @@
     guild.workflow.__init__
     guild.workflow.file_node
     guild.workflow.op_node
+    guild.workflow.resource_node
+    guild.workflow.url_node

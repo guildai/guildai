@@ -86,6 +86,8 @@ We can preview the operation, which includes op dependencies:
 
     >>> preview_run(graph)
     - Required source 'file.txt'
+    - Resource 'file'
+
     - Operation 'test:copy-file'
 
 Before running the op and its dependencies, let's confirm the run dir

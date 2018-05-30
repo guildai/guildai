@@ -15,32 +15,34 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from guild import deps as depslib
 from guild import workflow as wf
 
-from guild.workflow import resource_node
+from guild.workflow import file_node
+from guild.workflow import url_node
 
-class OpNode(wf.Node):
+class ResourceNode(wf.Node):
 
-    def __init__(self, op, quiet=False):
-        self.op = op
-        self.quiet = quiet
+    def __init__(self, resource):
+        self.resource = resource
 
     def get_description(self):
-        return "Operation '{}'".format(self.op.opdef.fullname)
+        return "Resource '{}'".format(self.resource.resdef.name)
 
     def get_deps(self):
-        deps = []
-        ctx = depslib.ResolutionContext(
-            target_dir=self.op.run_dir,
-            opdef=self.op.opdef,
-            resource_config=self.op.resource_config)
         return [
-            resource_node.ResourceNode(res)
-            for res in depslib.resources(self.op.opdef.dependencies, ctx)
+            _node_for_source(source, self.resource)
+            for source in self.resource.resdef.sources
         ]
 
     def run(self):
-        exit_status = self.op.run(self.quiet, skip_deps=True)
-        if exit_status != 0:
-            raise wf.RunError("non-zero exit for run in %s" % self.op.run_dir)
+        pass
+
+def _node_for_source(source, resource):
+    uri_scheme = source.parsed_uri.scheme
+    if uri_scheme == "file":
+        return file_node.FileNode(source, resource)
+    elif uri_scheme in ("http", "https"):
+        return url_node.URLNode(source, resource)
+
+    else:
+        raise AssertionError(source)

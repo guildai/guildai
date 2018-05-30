@@ -41,6 +41,12 @@ class Graph(object):
     def run_order(self):
         return nx.topological_sort(self._g)
 
+    def preview_order(self):
+        return reversed(list(self.run_order()))
+
+    def get_deps(self, node):
+        return self._g.predecessors(node)
+
 class Node(object):
 
     def get_description(self):

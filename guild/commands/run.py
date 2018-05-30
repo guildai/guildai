@@ -83,6 +83,10 @@ def run_params(fn):
             ("--help-op",),
             help="Show operation help and exit.",
             is_flag=True),
+        click.Option(
+            ("-w", "--workflow"),
+            help="Experimental support for workflow.",
+            is_flag=True)
     ])
     return fn
 
