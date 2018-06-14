@@ -25,6 +25,9 @@ HIGH = 3
 class RunError(RuntimeError):
     pass
 
+class DepError(RuntimeError):
+    pass
+
 class Graph(object):
 
     def __init__(self):

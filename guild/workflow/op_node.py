@@ -15,10 +15,11 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from guild import deps as depslib
+from guild import util
 from guild import workflow as wf
 
-from guild.workflow import resource_node
+from guild.workflow import deps as depslib
+from guild.workflow import sources_node
 
 class OpInitNode(wf.Node):
 
@@ -47,12 +48,25 @@ class OpNode(wf.Node):
 
     def deps(self):
         yield self.init_node
-        ctx = depslib.ResolutionContext(
-            target_dir=self.op.run_dir,
-            opdef=self.op.opdef,
-            resource_config=self.op.resource_config)
-        for res in depslib.resources(self.op.opdef.dependencies, ctx):
-            yield resource_node.ResourceNode(res, self)
+        for resdef in self._dep_resdefs():
+            yield _resource_node(resdef)
+
+    def _dep_resdefs(self):
+        for dep in self.op.opdef.dependencies:
+            spec = util.resolve_refs(dep.spec, self.op.flag_vals)
+            resdef = depslib.dep_resdef(dep.spec)
+            if resdef is None:
+                raise wf.DepError(
+                    "cannot find resource '%s' required by operation '%s'"
+                    % (spec, self.op.opdef.fullname))
+            yield resdef
+
+    def _resource_node(self, resdef):
+        if "sources" in resdef.data:
+            return sources_node.SourcesNode(resdef, self)
+        else:
+            raise wf.DepError(
+                "unknown resource type for '%s'" % resdef.name)
 
     def run(self):
         exit_status = self.op.proc(self.quiet)

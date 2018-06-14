@@ -17,35 +17,20 @@ from __future__ import division
 
 from guild import workflow as wf
 
-from guild.workflow import file_node
-from guild.workflow import url_node
-
-class ResourceNode(wf.Node):
+class SourcesNode(wf.Node):
 
     user_detail_level = wf.MEDIUM
 
-    def __init__(self, resource, op_node):
-        self.resource = resource
+    def __init__(self, resdef, op_node):
+        self.resdef = resdef
         self.op_node = op_node
 
     def get_description(self):
-        return "Resolve resource '{}'".format(self.resource.resdef.name)
+        return "Resolve source '{}'".format(self.source.parsed_uri.path)
 
     def deps(self):
-        return [
-            _node_for_source(source, self)
-            for source in self.resource.resdef.sources
-        ]
+        for x in []:
+            yield x
 
     def run(self):
         pass
-
-def _node_for_source(source, resource_node):
-    uri_scheme = source.parsed_uri.scheme
-    if uri_scheme == "file":
-        return file_node.FileNode(source, resource_node)
-    elif uri_scheme in ("http", "https"):
-        return url_node.URLNode(source, resource_node)
-
-    else:
-        raise AssertionError(source)

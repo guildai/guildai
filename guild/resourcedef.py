@@ -39,6 +39,7 @@ class ResourceDef(object):
 
     def __init__(self, name, data, fullname=None):
         self.name = name
+        self.data = data
         self.fullname = fullname or name
         self.description = data.get("description", "")
         self.path = data.get("path")
