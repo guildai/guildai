@@ -5,7 +5,7 @@ init --project`.
 
 Guild will prompt the before proceeding:
 
-    >>> run("guild init --project sample-project", timeout=1)
+    >>> run("guild init --project sample-project", timeout=5)
     You are about to initialize a project in 'sample-project'
     Continue? (Y/n)
     <exit ...>
