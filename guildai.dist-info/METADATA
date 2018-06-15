@@ -29,7 +29,7 @@ Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: Utilities
 Requires-Dist: chardet
-Reqiores-Dist: networkx
+Requires-Dist: networkx
 Requires-Dist: pip
 Requires-Dist: python-dateutil
 Requires-Dist: PyYAML
