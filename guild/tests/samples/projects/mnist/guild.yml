@@ -8,7 +8,7 @@
   operations:
     train: intro
     evaluate:
-      cmd: intro --test
+      main: intro --test
       flags:
         epochs: 1
         batch-size: 50000

@@ -43,21 +43,25 @@ OP_RUNFILE_PATHS = [
 
 PROC_TERM_TIMEOUT_SECONDS = 30
 
-class InvalidCmd(ValueError):
+SIGTERM_EXIT_STATUS = -15
+
+class InvalidMain(ValueError):
     pass
 
 class Operation(object):
 
-    def __init__(self, model, opdef, run_dir=None, resource_config=None,
-                 extra_attrs=None):
-        self.model = model
+    def __init__(self, model_ref, opdef, run_dir=None, resource_config=None,
+                 extra_attrs=None, stage_only=False):
+        self.model_ref = model_ref
         self.opdef = opdef
-        self.cmd_args, self._flag_map = _init_cmd_args(opdef)
+        (self.cmd_args,
+         self.flag_vals,
+         self._flag_map) = _init_cmd_args(opdef)
         self.cmd_env = _init_cmd_env(opdef)
         self._run_dir = run_dir
-        self.resource_config = resource_config
+        self.resource_config = resource_config or {}
         self.extra_attrs = extra_attrs
-        self._running = False
+        self.stage_only = stage_only
         self._started = None
         self._stopped = None
         self._run = None
@@ -68,17 +72,14 @@ class Operation(object):
     def run_dir(self):
         return self._run_dir or (self._run.path if self._run else None)
 
-    def run(self):
-        assert not self._running
-        self._running = True
-        self._started = guild.run.timestamp()
+    def run(self, quiet=False):
+        self.init()
+        self.resolve_deps()
+        return self.proc(quiet)
+
+    def init(self):
         self._init_run()
         self._init_attrs()
-        self._resolve_deps()
-        self._start_proc()
-        self._wait_for_proc()
-        self._finalize_attrs()
-        return self._exit_status
 
     def _init_run(self):
         self._run = init_run(self._run_dir)
@@ -92,18 +93,16 @@ class Operation(object):
         self._run.write_attr("opref", self._opref_attr())
         self._run.write_attr("flags", self.opdef.flag_values())
         self._run.write_attr("cmd", self.cmd_args)
-        self._run.write_attr("env", self.cmd_env)
-        self._run.write_attr("started", self._started)
         if self._flag_map:
             self._run.write_attr("_flag_map", self._flag_map)
-        for key, val in self.model.modeldef.extra.items():
+        for key, val in self.opdef.modeldef.extra.items():
             self._run.write_attr("_extra_%s" % key, val)
 
     def _opref_attr(self):
-        ref = opref.OpRef.from_op(self.opdef.name, self.model.reference)
+        ref = opref.OpRef.from_op(self.opdef.name, self.model_ref)
         return str(ref)
 
-    def _resolve_deps(self):
+    def resolve_deps(self):
         assert self._run is not None
         ctx = deps.ResolutionContext(
             target_dir=self._run.path,
@@ -112,11 +111,44 @@ class Operation(object):
         resolved = deps.resolve(self.opdef.dependencies, ctx)
         self._run.write_attr("deps", resolved)
 
+    def proc(self, quiet=False):
+        self._started = guild.run.timestamp()
+        self._run.write_attr("started", self._started)
+        self._pre_proc()
+        if self.stage_only:
+            self._stage_proc()
+        else:
+            self._start_proc()
+            self._wait_for_proc(quiet)
+            self._finalize_attrs()
+        return self._exit_status
+
+    def _pre_proc(self):
+        if not self.opdef.pre_process:
+            return
+        cmd = self.opdef.pre_process.strip().replace("\n", " ")
+        cwd = self._run.path
+        # env init order matters - we want _proc_env() to take
+        # precedence over _cmd_arg_env()
+        env = _cmd_arg_env(self.cmd_args)
+        env.update(self._proc_env())
+        log.debug("pre-process command: %s", cmd)
+        log.debug("pre-process env: %s", env)
+        log.debug("pre-process cwd: %s", cwd)
+        subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
+
+    def _stage_proc(self):
+        env = self._proc_env()
+        _write_sourceable_env(env, self._run.guild_path("env"))
+        log.debug("operation command: %s", self.cmd_args)
+        log.debug("operation env: %s", env)
+
     def _start_proc(self):
         assert self._proc is None
         assert self._run is not None
         args = self.cmd_args
         env = self._proc_env()
+        self._run.write_attr("env", env)
         cwd = self._run.path
         log.debug("starting operation run %s", self._run.id)
         log.debug("operation command: %s", args)
@@ -132,26 +164,30 @@ class Operation(object):
 
     def _proc_env(self):
         assert self._run is not None
-        env = {}
-        env.update(self.cmd_env)
+        env = dict(self.cmd_env)
         env["RUN_DIR"] = self._run.path
         env["RUN_ID"] = self._run.id
         env["GUILD_HOME"] = config.guild_home()
+        if self.opdef.set_trace:
+            env["SET_TRACE"] = "1"
+        if self.opdef.handle_keyboard_interrupt:
+            env["HANDLE_KEYBOARD_INTERRUPT"] = "1"
         util.apply_env(env, os.environ, ["PROFILE"])
         return env
 
-    def _wait_for_proc(self):
+    def _wait_for_proc(self, quiet):
         assert self._proc is not None
         try:
-            self._exit_status = self._watch_proc()
+            proc_exit_status = self._watch_proc(quiet)
         except KeyboardInterrupt:
-            self._exit_status = self._handle_proc_interrupt()
+            proc_exit_status = self._handle_proc_interrupt()
+        self._exit_status = _op_exit_status(proc_exit_status, self.opdef)
         self._stopped = guild.run.timestamp()
         _delete_proc_lock(self._run)
 
-    def _watch_proc(self):
+    def _watch_proc(self, quiet):
         assert self._proc is not None
-        output = op_util.RunOutput(self._run, self._proc)
+        output = op_util.RunOutput(self._run, self._proc, quiet)
         exit_status = self._proc.wait()
         output.wait_and_close()
         return exit_status
@@ -166,7 +202,7 @@ class Operation(object):
         if self._proc.poll() is None:
             log.warning("Operation process did not exit - stopping forcefully")
             util.kill_process_tree(self._proc.pid, force=True)
-        return -15 # exit code for SIGTERM
+        return SIGTERM_EXIT_STATUS
 
     def _finalize_attrs(self):
         assert self._run is not None
@@ -181,10 +217,14 @@ class Operation(object):
 def _init_cmd_args(opdef):
     python_args = [_python_cmd(opdef), "-um", "guild.op_main"]
     flag_vals = util.resolve_all_refs(opdef.flag_values())
-    cmd_args = _cmd_args(opdef.cmd, flag_vals)
-    flag_args, flag_map = _flag_args(flag_vals, opdef, cmd_args)
-    cmd_args = python_args + cmd_args + flag_args
-    return cmd_args, flag_map
+    try:
+        cmd_args = _cmd_args(opdef.main, flag_vals)
+    except guild.util.UndefinedReferenceError as e:
+        raise InvalidMain(opdef.main, "undefined reference '%s'" % e)
+    else:
+        flag_args, flag_map = _flag_args(flag_vals, opdef, cmd_args)
+        cmd_args = python_args + cmd_args + flag_args
+        return cmd_args, flag_vals, flag_map
 
 def _python_cmd(_opdef):
     # TODO: This is an important operation that should be controlled
@@ -192,20 +232,20 @@ def _python_cmd(_opdef):
     # not by whatever Python runtime is configured in the user env.
     return sys.executable
 
-def _cmd_args(cmd, flag_vals):
+def _cmd_args(main, flag_vals):
     def format_part(part):
         return str(util.resolve_refs(part, flag_vals))
-    return [format_part(part) for part in _split_cmd(cmd)]
+    return [format_part(part) for part in _split_main(main)]
 
-def _split_cmd(cmd):
-    if isinstance(cmd, list):
-        return cmd
+def _split_main(main):
+    if isinstance(main, list):
+        return main
     else:
-        # If cmd is None, this call will block (see
+        # If main is None, this call will block (see
         # https://bugs.python.org/issue27775)
-        if not cmd:
-            raise InvalidCmd(cmd)
-        parts = shlex.split(cmd or "")
+        if not main:
+            raise InvalidMain("", "missing command spec")
+        parts = shlex.split(main or "")
         stripped = [part.strip() for part in parts]
         return [x for x in stripped if x]
 
@@ -277,8 +317,8 @@ def _cmd_option_args(name, val):
         return [opt, str(val)]
 
 def _init_cmd_env(opdef):
-    env = {}
-    env.update(util.safe_osenv())
+    env = util.safe_osenv()
+    env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["LOG_LEVEL"] = str(logging.getLogger().getEffectiveLevel())
     env["PYTHONPATH"] = _python_path(opdef)
@@ -289,6 +329,15 @@ def _init_cmd_env(opdef):
     env["CMD_DIR"] = os.getcwd()
     env["MODEL_DIR"] = opdef.modeldef.guildfile.dir
     return env
+
+def _cmd_arg_env(args):
+    op_main_pos = args.index("guild.op_main")
+    assert op_main_pos != -1
+    flags = op_util.args_to_flags(args[op_main_pos+1:])
+    return {
+        name.upper(): str(val)
+        for name, val in flags.items()
+    }
 
 def _op_plugins(opdef):
     op_plugins = []
@@ -344,9 +393,22 @@ def _is_runfile_pkg(path):
             return True
     return False
 
+def _write_sourceable_env(env, dest):
+    skip_env = ("PWD",)
+    with open(dest, "w") as out:
+        for name in sorted(env):
+            if name in skip_env:
+                continue
+            out.write("export {}={}\n".format(name, env[name]))
+
 def _write_proc_lock(proc, run):
     with open(run.guild_path("LOCK"), "w") as f:
         f.write(str(proc.pid))
+
+def _op_exit_status(proc_exit_status, opdef):
+    if proc_exit_status == SIGTERM_EXIT_STATUS and opdef.stoppable:
+        return 0
+    return proc_exit_status
 
 def _delete_proc_lock(run):
     try:
@@ -355,7 +417,9 @@ def _delete_proc_lock(run):
         pass
 
 def init_run(path=None):
-    run_id = guild.run.mkid()
     if not path:
+        run_id = guild.run.mkid()
         path = os.path.join(var.runs_dir(), run_id)
+    else:
+        run_id = os.path.basename(path)
     return guild.run.Run(run_id, path)

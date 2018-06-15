@@ -69,13 +69,13 @@ class RunOutput(object):
         assert self._out_tee is None
         assert self._err_tee is None
 
-    def _open_output(self, mode="w"):
+    def _open_output(self):
         path = self._run.guild_path("output")
-        return open(path, mode + "b")
+        return open(path, "wb")
 
-    def _open_index(self, mode="w"):
+    def _open_index(self):
         path = self._run.guild_path("output.index")
-        return open(path, mode + "b")
+        return open(path, "wb")
 
     def _out_tee_run(self):
         assert self._proc
@@ -145,14 +145,6 @@ class RunOutput(object):
     def wait_and_close(self, timeout=DEFAULT_WAIT_TIMEOUT):
         self.wait(timeout)
         self.close()
-
-    def __iter__(self):
-        with self._output_lock:
-            output = self._open_output("r")
-            index = self._open_index("r")
-            for line in output:
-                time, stream = struct.unpack("!QB", index.read(9))
-                yield time, stream, line
 
 def resolve_file(filename):
     return util.find_apply([
@@ -239,6 +231,10 @@ class TFEvents(object):
         import tensorflow as tf
         if not self._writer:
             self._writer = tf.summary.FileWriter(self.logdir, max_queue=0)
+
+    def flush(self):
+        if self._writer:
+            self._writer.flush()
 
     def close(self):
         if self._writer:

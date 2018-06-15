@@ -2,5 +2,5 @@
 
 The `keras.mnist` package does not provide any resources.
 
-    >>> run("guild resources keras")
+    >>> run("guild resources keras", ignore="FutureWarning")
     <exit 0>

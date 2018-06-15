@@ -2,23 +2,18 @@
   <div id="root">
     <div
       id="loading"
-      v-show="loading"
+      v-if="loading"
       class="elevation-3 pa-3 grey darken-3 white--text">
       <span class="mr-3">Reading file</span>
       <v-progress-circular indeterminate color="white" size="18" />
     </div>
-    <textarea
-      id="content"
-      readonly
-      v-show="!loading"
-      ref="content"
-      class="elevation-3 pa-3 grey darken-3 white--text" />
+    <slot v-else></slot>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'guild-text',
+  name: 'guild-text-loader',
 
   props: {
     src: String
@@ -31,16 +26,12 @@ export default {
   },
 
   mounted() {
-    console.log('refreshing 0 (mounted)');
     this.refresh();
-    console.log('refreshing 1 (mounted)');
   },
 
   watch: {
     src() {
-      console.log('refreshing 0 (src)');
       this.refresh();
-      console.log('refreshing 1 (src)');
     }
   },
 
@@ -52,7 +43,7 @@ export default {
     },
 
     clear() {
-      this.$refs.content.value = '';
+      this.$emit('input', '');
     },
 
     scheduleLoading(timeout) {
@@ -68,7 +59,7 @@ export default {
         fetch(this_.src).then(function(resp) {
           return resp.text();
         }).then(function(text) {
-          this_.$refs.content.value = text;
+          this_.$emit('input', text);
           clearTimeout(showLoading);
           this_.loading = false;
         });
@@ -80,27 +71,18 @@ export default {
 
 <style scoped>
 #root {
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   width: 100%;
+  justify-content: center;
+  align-items: center;
 }
 
 #loading {
-  height: 100%;
-  width: 100%;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-#content {
-  overflow: auto;
-  height: 100%;
-  width: 100%;
-  resize: none;
-  font-family: monospace;
-}
-
-#content:focus {
-  outline: none;
 }
 </style>

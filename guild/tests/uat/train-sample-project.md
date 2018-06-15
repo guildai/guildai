@@ -3,7 +3,6 @@
 This test assumes a traininable model exists in `sample-project`:
 
     >>> run("guild -C sample-project operations")
-    Limiting models to 'sample-project' (use --all to include all)
     ./sample-project/sample-project:train  Train the model
     <exit 0>
 

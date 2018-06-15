@@ -39,11 +39,11 @@ class ResourceDef(object):
 
     def __init__(self, name, data, fullname=None):
         self.name = name
+        self.data = data
         self.fullname = fullname or name
         self.description = data.get("description", "")
         self.path = data.get("path")
         self.sources = self._init_sources(data.get("sources", []))
-        self.post_process = data.get("post-process")
         self.private = bool(data.get("private"))
         self.references = data.get("references", [])
 
@@ -82,7 +82,10 @@ class ResourceDef(object):
     def _init_resource_source(self, data):
         if isinstance(data, dict):
             data_copy = copy.copy(data)
-            type_vals = [data_copy.pop(attr, None) for attr in self.source_types]
+            type_vals = [
+                data_copy.pop(attr, None)
+                for attr in self.source_types
+            ]
             type_items = zip(self.source_types, type_vals)
             type_count = sum([bool(val) for val in type_vals])
             if type_count == 0:
@@ -130,7 +133,8 @@ class ResourceDef(object):
 class ResourceSource(object):
 
     def __init__(self, resdef, uri, sha256=None, unpack=True,
-                 type=None, select=None, help=None, **kw):
+                 type=None, select=None, post_process=None,
+                 help=None, **kw):
         self.resdef = resdef
         self.uri = uri
         self._parsed_uri = None
@@ -138,6 +142,7 @@ class ResourceSource(object):
         self.unpack = unpack
         self.type = type
         self.select = self._coerce_select(select)
+        self.post_process = post_process
         self.help = help
         for key in kw:
             log.warning(

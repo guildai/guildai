@@ -254,7 +254,7 @@ An operation can delegate its implementation to a plugin using the
     ...     plugin-op: foo-train
     ... """)
 
-The opdef in this case will use `plugin_op` rather than `cmd`. Plugin
+The opdef in this case will use `plugin_op` rather than `main`. Plugin
 ops are provided as guildfile.PluginOp objects and have `name` and
 `config` attributes:
 
@@ -320,8 +320,8 @@ At least one of the three type attributes is required:
     ...       - foo: bar.txt
     ... """)
     Traceback (most recent call last):
-    ResourceFormatError: invalid source {'foo': 'bar.txt'} in resource 'sample': missing
-    required attribute (one of file, url, module, operation)
+    ResourceFormatError: invalid source {'foo': 'bar.txt'} in resource 'sample:sample':
+    missing required attribute (one of file, url, module, operation)
 
 However, no more than one is allowed:
 
@@ -335,7 +335,7 @@ However, no more than one is allowed:
     ... """)
     Traceback (most recent call last):
     ResourceFormatError: invalid source {'file': 'foo.txt', 'url': 'http://files.com/bar.txt'}
-    in resource 'sample': conflicting attributes (file, url)
+    in resource 'sample:sample': conflicting attributes (file, url)
 
 ## References
 
@@ -429,12 +429,12 @@ extension scenario.
     ...   'description': 'Base model definition',
     ...   'operations': {
     ...     'evaluate': {
-    ...       'cmd': 'eval',
+    ...       'main': 'eval',
     ...       'description': 'Evaluate a trained model',
     ...       'requires': ['model', 'data']
     ...     },
     ...     'train': {
-    ...       'cmd': 'train',
+    ...       'main': 'train',
     ...       'description': 'Train a model',
     ...       'flags': {
     ...         'batch-size': {
@@ -469,10 +469,10 @@ extension scenario.
     ...       }
     ...     },
     ...     'evaluate': {
-    ...       'cmd': 'train --test',
+    ...       'main': 'train --test',
     ...     },
     ...     'prepare': {
-    ...       'cmd': 'prepare'
+    ...       'main': 'prepare'
     ...     }
     ...   }
     ... }
@@ -496,16 +496,16 @@ The `train` and `evaluate` operations of the base are now extended
     ['evaluate', 'prepare', 'train']
 
     >>> pprint(child["operations"]["train"])
-    {'cmd': 'train',
-     'description': 'Train a model',
+    {'description': 'Train a model',
      'flags': {'batch-size': {'default': 101, 'description': 'Batch size'},
                'epochs': {'default': 10,
                           'description': 'Number of epochs to train'}},
+     'main': 'train',
      'requires': 'data'}
 
     >>> pprint(child["operations"]["evaluate"])
-    {'cmd': 'train --test',
-     'description': 'Evaluate a trained model',
+    {'description': 'Evaluate a trained model',
+     'main': 'train --test',
      'requires': ['model', 'data']}
 
     >>> pprint(child["resources"])
@@ -525,7 +525,7 @@ Here's a guild file that defines a model that extends another:
     ...   description: A trainable model
     ...   operations:
     ...     train:
-    ...       cmd: train
+    ...       main: train
     ...       flags:
     ...         batch-size: 32
     ...
@@ -557,7 +557,7 @@ models.
     ...   description: A trainable model
     ...   operations:
     ...     train:
-    ...       cmd: train
+    ...       main: train
     ...       flags:
     ...         batch-size: 32
     ...
@@ -565,7 +565,7 @@ models.
     ...   description: An evaluatable model
     ...   operations:
     ...     evaluate:
-    ...       cmd: train --test
+    ...       main: train --test
     ...
     ... - model: model-1
     ...   description: A trainable, evaluatable model
@@ -619,7 +619,7 @@ model:
     ... - model: a
     ...   operations:
     ...     train:
-    ...       cmd: train
+    ...       main: train
     ...       flags:
     ...         f1:
     ...           description: f1 in a
@@ -639,7 +639,7 @@ model:
     ...           description: f2 in b
     ...           default: 22
     ...     eval:
-    ...       cmd: eval
+    ...       main: eval
     ... - model: c
     ...   extends: b
     ...   operations:
@@ -649,7 +649,7 @@ model:
     ...           description: f3 in c
     ...           default: 33
     ...     predict:
-    ...       cmd: predict
+    ...       main: predict
     ... """)
 
 
@@ -688,6 +688,30 @@ Model `c`:
     >>> [(f.name, f.description, f.default)
     ...   for f in c.get_operation("train").flags]
     [('f1', 'f1 in a', 1), ('f2', 'f2 in b', 22), ('f3', 'f3 in c', 33)]
+
+In this example, one model extends two configs, each of which extends
+one config:
+
+    >>> gf = guildfile.from_string("""
+    ... - config: a
+    ...   operations:
+    ...     a_op: {}
+    ... - config: b
+    ...   operations:
+    ...     b_op: {}
+    ...   extends: a
+    ... - config: c
+    ...   operations:
+    ...     c_op: {}
+    ...   extends: a
+    ... - model: m
+    ...   extends: [b, c]
+    ... """)
+
+    >>> gf.models["m"].operations
+    [<guild.guildfile.OpDef 'm:a_op'>,
+     <guild.guildfile.OpDef 'm:b_op'>,
+     <guild.guildfile.OpDef 'm:c_op'>]
 
 ### Inheritance cycles
 

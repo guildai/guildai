@@ -20,6 +20,7 @@ import errno
 import logging
 import os
 import re
+import warnings
 
 import six
 import yaml
@@ -214,7 +215,7 @@ def _resolve_includes(data, section_name, guildfile, coerce_data=None):
     assert isinstance(data, dict), data
     resolved = {}
     seen_includes = set()
-    section_data = data.get(section_name, {})
+    section_data = data.get(section_name) or {}
     _apply_section_data(
         section_data,
         guildfile,
@@ -266,9 +267,9 @@ def _apply_includes(includes, guildfile, section_name, coerce_data,
                             guildfile,
                             "invalid include reference '%s': operation "
                             "'%s' is not defined" % (ref, include_op))
-                    section_data = op_data.get(section_name, {})
+                    section_data = op_data.get(section_name) or {}
                 else:
-                    section_data = model_data.get(section_name, {})
+                    section_data = model_data.get(section_name) or {}
                 _apply_section_data(
                     section_data,
                     guildfile,
@@ -411,7 +412,7 @@ class FlagDef(object):
         self.name = name
         self.guildfile = guildfile
         self.default = data.get("default")
-        self.description = data.get("description", "")
+        self.description = data.get("description") or ""
         self.required = bool(data.get("required"))
         self.arg_name = data.get("arg-name")
         self.arg_skip = bool(data.get("arg-skip"))
@@ -437,8 +438,8 @@ class FlagChoice(object):
         self.flagdef = flagdef
         if isinstance(data, dict):
             self.value = data.get("value")
-            self.description = data.get("description", "")
-            self.args = data.get("args", {})
+            self.description = data.get("description") or ""
+            self.args = data.get("args") or {}
         else:
             self.value = data
             self.description = ""
@@ -455,12 +456,12 @@ class ModelDef(FlagHost):
         super(ModelDef, self).__init__(data, guildfile)
         self.name = name
         self.guildfile = guildfile
-        self.description = data.get("description", "").strip()
-        self.references = data.get("references", [])
+        self.description = (data.get("description") or "").strip()
+        self.references = data.get("references") or []
         self.operations = _init_ops(data, self)
         self.resources = _init_resources(data, self)
-        self.disabled_plugins = data.get("disabled-plugins", [])
-        self.extra = data.get("extra", {})
+        self.disabled_plugins = data.get("disabled-plugins") or []
+        self.extra = data.get("extra") or {}
 
     def __repr__(self):
         return "<guild.guildfile.ModelDef '%s'>" % self.name
@@ -480,11 +481,11 @@ class ModelDef(FlagHost):
 def _extended_data(config_data, guildfile, seen=None, resolve_params=True):
     seen = seen or []
     data = copy.deepcopy(config_data)
-    extends = _coerce_extends(config_data.get("extends", []), guildfile)
+    extends = _coerce_extends((config_data.get("extends") or []), guildfile)
     if extends:
         _apply_parents_data(extends, guildfile, seen, data)
     if resolve_params:
-        data = _resolve_param_refs(data, data.get("params", {}))
+        data = _resolve_param_refs(data, data.get("params") or {})
     return data
 
 def _coerce_extends(val, src):
@@ -502,16 +503,17 @@ def _apply_parents_data(extends, guildfile, seen, data):
                 guildfile,
                 "cycle in 'extends'",
                 seen + [name])
-        seen.append(name)
         parent = _modeldef_base_data(name, guildfile)
-        extended_parent = _extended_data(parent, guildfile, seen, False)
+        extended_parent = _extended_data(
+            parent, guildfile, seen + [name], False)
         inheritable = [
             "description",
-            "references",
-            "operations",
+            "extra",
             "flags",
-            "resources",
+            "operations",
             "params",
+            "references",
+            "resources",
         ]
         _apply_parent_data(extended_parent, data, inheritable)
 
@@ -574,7 +576,7 @@ def _maybe_resolve_param_ref(val, params):
     return val
 
 def _init_ops(data, modeldef):
-    ops_data = data.get("operations", {})
+    ops_data = data.get("operations") or {}
     return [
         OpDef(key, _coerce_op_data(ops_data[key]), modeldef)
         for key in sorted(ops_data)
@@ -583,7 +585,7 @@ def _init_ops(data, modeldef):
 def _coerce_op_data(data):
     if isinstance(data, str):
         return {
-            "cmd": data
+            "main": data
         }
     else:
         return data
@@ -604,12 +606,25 @@ class OpDef(FlagHost):
         self.guildfile = modeldef.guildfile
         self.name = name
         data = _coerce_op_data(data)
-        self.description = data.get("description", "").strip()
-        self.cmd = data.get("cmd")
+        self.description = (data.get("description") or "").strip()
+        cmd = data.get("cmd")
+        if cmd:
+            warnings.warn(
+                "'cmd' has been renamed to 'main' - support for 'cmd' will "
+                "be removed in Guild version 0.5",
+                FutureWarning, stacklevel=9999999)
+            self.main = cmd
+        else:
+            self.main = data.get("main")
         self.plugin_op = data.get("plugin-op")
-        self.disabled_plugins = data.get("disabled-plugins", [])
+        self.disabled_plugins = data.get("disabled-plugins") or []
         self.dependencies = _init_dependencies(data.get("requires"), self)
-        self.remote = data.get("remote", False)
+        self.pre_process = data.get("pre-process")
+        self.remote = data.get("remote") or False
+        self.stoppable = data.get("stoppable") or False
+        self.set_trace = data.get("set-trace") or False
+        self.handle_keyboard_interrupt = (
+            data.get("handle-keyboard-interrupt") or False)
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname
@@ -637,7 +652,7 @@ class OpDependency(object):
             self.description = ""
         elif isinstance(data, dict):
             self.spec = _required("resource", data, self.opdef.guildfile)
-            self.description = data.get("description", "")
+            self.description = data.get("description") or ""
         else:
             raise GuildfileError(
                 self, "invalid dependency value: %r" % data)
@@ -663,8 +678,8 @@ class ResourceDef(resourcedef.ResourceDef):
     source_types = resourcedef.ResourceDef.source_types + ["operation"]
 
     def __init__(self, name, data, modeldef):
-        super(ResourceDef, self).__init__(name, data)
-        self.fullname = "%s:%s" % (modeldef.name, name)
+        fullname = "%s:%s" % (modeldef.name, name)
+        super(ResourceDef, self).__init__(name, data, fullname)
         self.private = self.private
         self.modeldef = modeldef
 
@@ -695,18 +710,18 @@ class PackageDef(object):
     def __init__(self, name, data, guildfile):
         self.name = name
         self.guildfile = guildfile
-        self.description = data.get("description", "").strip()
+        self.description = (data.get("description") or "").strip()
         self.version = _required("version", data, guildfile)
         self.url = data.get("url")
         self.author = data.get("author")
         self.author_email = _required("author-email", data, guildfile)
         self.license = data.get("license")
-        self.tags = data.get("tags", [])
+        self.tags = data.get("tags") or []
         self.python_tag = data.get("python-tag")
-        self.data_files = data.get("data-files", [])
+        self.data_files = data.get("data-files") or []
         self.resources = _init_resources(data, self)
-        self.python_requires = data.get("python-requires", [])
-        self.requires = data.get("requires", [])
+        self.python_requires = data.get("python-requires") or []
+        self.requires = data.get("requires") or []
 
     def __repr__(self):
         return "<guild.guildfile.PackageDef '%s'>" % self.name
@@ -725,8 +740,12 @@ def from_dir(path, filenames=None):
             return _load_guildfile(model_file)
     raise NoModels(path)
 
-def dir_has_guildfile(path):
-    for name in os.listdir(path):
+def is_guildfile_dir(path):
+    try:
+        names = os.listdir(path)
+    except OSError:
+        names = []
+    for name in names:
         if name in NAMES:
             return True
     return False

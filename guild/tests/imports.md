@@ -20,6 +20,7 @@
     >>> for name in sorted([m.__name__ for m in iter_mods()]):
     ...   print(name) # doctest: +REPORT_UDIFF
     guild.__init__
+    guild._api
     guild.cli
     guild.click_util
     guild.cmd_impl_support
@@ -28,6 +29,8 @@
     guild.commands.check_impl
     guild.commands.compare
     guild.commands.compare_impl
+    guild.commands.download
+    guild.commands.download_impl
     guild.commands.export
     guild.commands.help
     guild.commands.help_impl
@@ -51,19 +54,27 @@
     guild.commands.packages_impl
     guild.commands.packages_info
     guild.commands.packages_list
+    guild.commands.pull
+    guild.commands.push
+    guild.commands.remote_support
+    guild.commands.remotes
+    guild.commands.remotes_impl
     guild.commands.resources
     guild.commands.resources_impl
     guild.commands.run
     guild.commands.run_impl
     guild.commands.runs
     guild.commands.runs_delete
+    guild.commands.runs_diff
     guild.commands.runs_export
     guild.commands.runs_impl
     guild.commands.runs_import
     guild.commands.runs_info
     guild.commands.runs_label
     guild.commands.runs_list
+    guild.commands.runs_pull
     guild.commands.runs_purge
+    guild.commands.runs_push
     guild.commands.runs_restore
     guild.commands.runs_stop
     guild.commands.runs_support
@@ -89,6 +100,7 @@
     guild.commands.view
     guild.commands.view_impl
     guild.commands.view_tester
+    guild.commands.workflow_impl
     guild.config
     guild.deps
     guild.entry_point_util
@@ -118,10 +130,14 @@
     guild.plugins.keras
     guild.plugins.keras_op_main
     guild.plugins.memory
+    guild.plugins.perf
     guild.plugins.python_util
     guild.plugins.tensorflow_util
     guild.plugins.training_pkg_main
+    guild.remote
     guild.remote_run_support
+    guild.remotes.__init__
+    guild.remotes.ssh
     guild.resolver
     guild.resource
     guild.resourcedef
@@ -135,3 +151,7 @@
     guild.util
     guild.var
     guild.view
+    guild.workflow.__init__
+    guild.workflow.deps
+    guild.workflow.op_node
+    guild.workflow.sources_node

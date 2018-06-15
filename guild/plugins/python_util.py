@@ -72,7 +72,7 @@ class Script(object):
         elif isinstance(node, ast.Import):
             self._apply_import(node)
         elif isinstance(node, ast.Call):
-            self._apply_call(node)
+            self._maybe_apply_call(node)
         elif isinstance(node, ast.Assign):
             self._apply_assign(node)
 
@@ -84,8 +84,10 @@ class Script(object):
             if isinstance(name, ast.alias):
                 self._imports.append(name.name)
 
-    def _apply_call(self, node):
-        self._calls.append(Call(node))
+    def _maybe_apply_call(self, node):
+        call = Call(node)
+        if call.name:
+            self._calls.append(call)
 
     def _apply_assign(self, node):
         if node.col_offset == 0:
@@ -109,17 +111,19 @@ class Call(object):
 
     def __init__(self, node):
         self.node = node
-        self.name = self._node_name(node.func)
+        self.name = self._func_name(node.func)
 
-    def _node_name(self, node):
-        if isinstance(node, ast.Name):
-            return node.id
-        elif isinstance(node, ast.Attribute):
-            return node.attr
-        elif isinstance(node, ast.Call):
-            return self._node_name(node.func)
+    def _func_name(self, func):
+        if isinstance(func, ast.Name):
+            return func.id
+        elif isinstance(func, ast.Attribute):
+            return func.attr
+        elif isinstance(func, ast.Call):
+            return self._func_name(func.func)
+        elif isinstance(func, ast.Subscript):
+            return None
         else:
-            raise AssertionError(node)
+            raise AssertionError(func)
 
     def kwarg_param(self, name):
         for kw in self.node.keywords:

@@ -40,7 +40,7 @@ class SummaryPlugin(Plugin):
         if self._summary_cache.expired():
             self.log.debug("reading summary values")
             try:
-                vals = self.read_summary_values()
+                vals = self.read_summary_values(step)
             except:
                 self.log.exception("reading summary values")
                 vals = {}
@@ -52,7 +52,7 @@ class SummaryPlugin(Plugin):
             add_summary(summary, step)
 
     @staticmethod
-    def read_summary_values():
+    def read_summary_values(_step):
         return {}
 
 def tf_scalar_summary(vals):

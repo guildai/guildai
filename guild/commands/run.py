@@ -26,13 +26,26 @@ def run_params(fn):
             ("-l", "--label"), metavar="LABEL",
             help="Set a label for the run."),
         click.Option(
-            ("-d", "--run-dir"), metavar="DIR",
-            help="Use an alternative run directory."),
+            ("--run-dir",), metavar="DIR",
+            help=(
+                "Use alternative run directory DIR. Cannot be used with "
+                "--stage.")),
+        click.Option(
+            ("--stage",), metavar="DIR",
+            help=(
+                "Stage an operation in DIR but do not run. Cannot be used "
+                "with --run-dir.")),
         click.Option(
             ("-r", "--rerun",), metavar="RUN",
             help=(
-                "Use the operation and flags from RUN (flags may "
-                "be added or redefined in this operation)")),
+                "Use the operation and flags from RUN. Flags may "
+                "be added or redefined in this operation. Cannot "
+                "be used with --restart.")),
+        click.Option(
+            ("-s", "--restart",), metavar="RUN",
+            help=(
+                "Restart RUN in-place without creating a new run. Cannot be "
+                "used with --rerun or --run-dir.")),
         click.Option(
             ("--disable-plugins",), metavar="LIST",
             help=("A comma separated list of plugin names to disable. "
@@ -45,6 +58,10 @@ def run_params(fn):
             ("-n", "--no-wait",),
             help=("Don't wait for a remote operation to complete. Ignored "
                   "if run is local."),
+            is_flag=True),
+        click.Option(
+            ("--set-trace",),
+            help="Enter the Python debugger at the operation entry point.",
             is_flag=True),
         click.Option(
             ("--print-cmd",),
@@ -62,6 +79,10 @@ def run_params(fn):
             ("--help-op",),
             help="Show operation help and exit.",
             is_flag=True),
+        click.Option(
+            ("-w", "--workflow"),
+            help="Experimental support for workflow.",
+            is_flag=True)
     ])
     return fn
 
@@ -90,8 +111,29 @@ def run(ctx, args):
     will be applied to the new operation. You may add or redefine
     flags in the new operation. You may also use an alternative
     operation, in which case only the flag values from `RUN` will be
-    applied. `RUN` must be a run ID or unique run ID prefix and cannot
-    be a run index.
+    applied. `RUN` must be a run ID or unique run ID prefix or the
+    special value ``0``, which indicates the latest run.
+
+    If `--restart` is specified, the specified `RUN` is restarted
+    in-place using its operation and flags. Unlike rerun, restart does
+    not create a new run, but instead reuses the run directory of
+    `RUN`. Like a rerun, a restart may specify a different operation
+    and additional flags and may use ``0`` for the value of `RUN` to
+    restart the latest run. `--run-dir` may not be used with
+    `--restart`.
+
+    `--rerun` and `--restart` may not both be used.
+
+    To run an operation outside of Guild's run management facility,
+    use `--run-dir` or `--stage` to specify an alternative run
+    directory. These options are useful when developing or debugging
+    an operation. Use `--stage` to prepare a run directory for an
+    operation without running the operation itself. This is useful
+    when you want to verify dependency resolution and pre-processing
+    or manually run an operation in a prepared directory.
+
+    **NOTE:** Runs started with `--run-dir` are not visible to Guild
+    and will not appear in run listings.
 
     """
     from . import run_impl

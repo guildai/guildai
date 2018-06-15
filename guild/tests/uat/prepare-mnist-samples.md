@@ -3,7 +3,7 @@
 MNIST samples are used to test deployed models. We can generate them
 by running `mnist-samples:prepare`:
 
-    >>> run("guild run mnist-samples:prepare -y count=4")
+    >>> run("guild run mnist-samples:prepare -y count=4", ignore="FutureWarning")
     Resolving mnist/dataset dependency
     ...
     Writing ./00001.png

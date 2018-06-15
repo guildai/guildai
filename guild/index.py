@@ -21,6 +21,8 @@ import glob
 import hashlib
 import logging
 import os
+import random
+import time
 import sys
 
 from whoosh import fields
@@ -177,7 +179,7 @@ class RunIndex(object):
 
     def runs(self, run_ids):
         runs = []
-        writer = self.ix.writer()
+        writer = self._ix_writer()
         with self.ix.searcher() as seacher:
             for run_id in run_ids:
                 hits = seacher.search(query.Term("id", run_id), limit=None)
@@ -193,6 +195,20 @@ class RunIndex(object):
                     runs.append(RunResult(cur_fields))
         writer.commit()
         return runs
+
+    def _ix_writer(self):
+        max_retries = 3
+        min_wait = 0.1
+        max_wait = 0.5
+        retries = 0
+        while True:
+            try:
+                return self.ix.writer()
+            except index.LockError:
+                if retries == max_retries:
+                    raise
+                retries += 1
+                time.sleep(random.uniform(min_wait, max_wait))
 
     def _ensure_indexed_run(self, run, cur_fields, writer):
         if cur_fields:

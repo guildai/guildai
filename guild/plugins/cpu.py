@@ -26,7 +26,7 @@ class CPUPlugin(SummaryPlugin):
     def enabled_for_op(self, _op):
         return True, ""
 
-    def read_summary_values(self):
+    def read_summary_values(self, _step):
         return self._cpu_stats()
 
     def _cpu_stats(self):

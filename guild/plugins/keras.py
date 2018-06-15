@@ -64,7 +64,7 @@ class KerasPlugin(plugin.Plugin):
             "model": script.name,
             "operations": {
                 "train": {
-                    "cmd": (
+                    "main": (
                         "guild.plugins.keras_op_main train %s" % script.src
                     ),
                     "description": "Train the model",
@@ -107,7 +107,7 @@ class KerasPlugin(plugin.Plugin):
             "model": script.name,
             "operations": {
                 "predict": {
-                    "cmd": (
+                    "main": (
                         "guild.plugins.keras_op_main predict %s" % script.src
                     ),
                     "description": "Use a trained model to make a prediction"

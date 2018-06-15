@@ -5,7 +5,7 @@ don't have to specify the full model name as long as our term refers
 to one and only one model.
 
     >>> run("guild train -y softmax epochs=1",
-    ...     ignore=["Successfully downloaded", "^INFO: "])
+    ...     ignore=["Successfully downloaded", "^INFO: ", "FutureWarning"])
     Resolving mnist/dataset dependency
     ...
     Step 20: training=...

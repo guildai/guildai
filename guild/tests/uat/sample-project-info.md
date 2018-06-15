@@ -11,13 +11,11 @@ This test assumes a sample project has been initialized:
 We can list the project models:
 
     >>> run("guild -C sample-project models")
-    Limiting models to 'sample-project' (use --all to include all)
     ./sample-project/sample-project  A basic model
     <exit 0>
 
 And operations:
 
     >>> run("guild -C sample-project operations")
-    Limiting models to 'sample-project' (use --all to include all)
     ./sample-project/sample-project:train  Train the model
     <exit 0>

@@ -45,7 +45,6 @@ from . import runs_support
     is_flag=True)
 @runs_support.op_and_label_filters
 @runs_support.status_filters
-@runs_support.scope_options
 
 @click.pass_context
 @click_util.use_args
@@ -68,7 +67,6 @@ def run_info(ctx, args):
 
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
-    {{ runs_support.scope_options }}
 
     """
     from . import runs_impl

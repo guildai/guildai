@@ -10,10 +10,10 @@
           hide-details
           clearable
           v-model="filter"
-          style="max-width:20em;margin-bottom:-12px" />
+          style="max-width:20em;margin-bottom:-8px" />
       </v-card-title>
       <v-data-table
-        class="files"
+        ref="table"
         :headers="fileHeaders"
         :items="run.files"
         :search="filter"
@@ -49,14 +49,18 @@
             <span v-else-if="files.item.operation">{{ files.item.operation }}</span>
           </td>
           <td class="text-xs-right">
-            <span class="file-size">{{ formatFileSize(files.item.size) }}</span>
+            <span class="no-wrap">{{ formatFileSize(files.item.size) }}</span>
+          </td>
+          <td>
+            <span class="no-wrap">{{ formatTime(files.item.mtime) }}</span>
           </td>
         </template>
       </v-data-table>
     </v-card>
     <guild-files-viewer
-      :files="media"
-      :path="curMedia ? curMedia.path : undefined"
+      :files="viewable"
+      :path="viewing ? viewing.path : undefined"
+      :src-base="runSrcBase"
       v-model="viewerOpen" />
   </v-container>
 </template>
@@ -81,36 +85,50 @@ export default {
         { text: 'Name', value: 'path', align: 'left' },
         { text: 'Type', value: 'type', align: 'left' },
         { text: 'Source', value: 'operation', align: 'left' },
-        { text: 'Size', value: 'size', align: 'right' }
+        { text: 'Size', value: 'size', align: 'right' },
+        { text: 'Modified', value: 'mtime', align: 'left' }
       ],
       filter: '',
-      curMedia: undefined,
+      viewing: undefined,
       viewerOpen: false
     };
   },
 
   computed: {
-    media() {
-      var filtered = this.run.files.filter(file => file.viewer);
-      return filtered.map(file => {
-        return {
-          path: file.path,
-          icon: 'mdi-' + file.icon,
-          viewer: file.viewer,
-          src: process.env.VIEW_BASE + '/runs/' + this.run.id + '/' + file.path
-        };
-      });
+    runSrcBase() {
+      return process.env.VIEW_BASE + '/files/' + this.run.id + '/';
+    },
+
+    filtered() {
+      if (this.filter !== '' && this.$refs.table !== undefined) {
+        return this.$refs.table.filteredItems;
+      } else {
+        return this.run.files;
+      }
+    },
+
+    viewable() {
+      return this.filtered.filter(file => file.viewer);
     }
   },
 
   methods: {
-    formatFileSize(x) {
-      return x != null ? filesize(x) : '';
+    formatFileSize(n) {
+      return n !== null ? filesize(n) : '';
+    },
+
+    formatTime(mtime) {
+      if (mtime !== null) {
+        const date = new Date(mtime);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+      } else {
+        return '';
+      }
     },
 
     view(file) {
-      var mediaFile = this.media.find(mfile => mfile.path === file.path);
-      this.curMedia = mediaFile;
+      const mediaFile = this.viewable.find(mfile => mfile.path === file.path);
+      this.viewing = mediaFile;
       this.viewerOpen = true;
     }
   }
@@ -121,20 +139,6 @@ export default {
 .btn-link .btn__content {
   justify-content: start;
   white-space: normal;
-}
-
-.files > table.table thead th {
-  font-size: 13px;
-  outline: none !important;
-}
-
-.files > table.table thead th i {
-  margin-left: 4px;
-  color: #777 !important;
-}
-
-.files > table.table thead tr {
-  height: 48px;
 }
 </style>
 
@@ -159,23 +163,11 @@ td.type-icon {
   text-align: left;
 }
 
-.files table.table thead tr {
-  height: 48px;
-}
-
-.files table.table thead th {
-  white-space: inherit;
-}
-
 .path {
   word-break: break-all;
 }
 
-table.table tbody td {
-  font-size: 14px;
-}
-
-.file-size {
+.no-wrap {
   white-space: nowrap;
 }
 </style>

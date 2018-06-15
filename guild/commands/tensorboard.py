@@ -36,7 +36,6 @@ from . import server_support
     is_flag=True)
 @runs_support.op_and_label_filters
 @runs_support.status_filters
-@runs_support.scope_options
 
 @click_util.use_args
 @click_util.render_doc

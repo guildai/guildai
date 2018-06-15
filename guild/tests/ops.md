@@ -7,28 +7,28 @@ Operation support is implemented by the `op` module:
 For our tests, we'll use a helper function that returns an instance of
 `guild.guildfile.OpDef`:
 
-    >>> import guild.guildfile
+    >>> from guild import guildfile
 
-    >>> def OpDef(cmd, name="op"):
-    ...     data = [
-    ...       {
-    ...         "model": "model",
-    ...         "operations": {
-    ...           name: {
-    ...             "cmd": cmd
-    ...           }
+    >>> def OpDef(main, name="op"):
+    ...   data = [
+    ...     {
+    ...       "model": "model",
+    ...       "operations": {
+    ...         name: {
+    ...           "main": main
     ...         }
     ...       }
-    ...     ]
-    ...     gf = guild.guildfile.Guildfile(data, "<string>")
-    ...     return gf.models["model"].get_operation(name)
+    ...     }
+    ...   ]
+    ...   gf = guildfile.Guildfile(data, "<string>")
+    ...   return gf.models["model"].get_operation(name)
 
 We'll also create a helper function that returns and instance of
 `guild.op.Operation` given arguments to `OpDef` above:
 
     >>> def Operation(*args, **kw):
-    ...     model = None # not used
-    ...     return guild.op.Operation(model, OpDef(*args, **kw))
+    ...   model = None # not used
+    ...   return guild.op.Operation(model, OpDef(*args, **kw))
 
 Note that the `"test"` argument is an operation reference, which is
 not used in our tests.
@@ -39,9 +39,9 @@ Command specs are used to generate Python commands. The first part of
 the spec is used as the Python script or module. It can be a module
 name with or without a py extension.
 
-Here's an operation with a simple "train" cmd:
+Here's an operation that uses the "train" main module:
 
-    >>> op = Operation(cmd="train")
+    >>> op = Operation(main="train")
     >>> op.cmd_args
     ['...python...', '-um', 'guild.op_main', 'train']
 
@@ -53,7 +53,7 @@ around.
 Command specs may contain additional arguments, which will be included
 in the Python command.
 
-    >>> op = Operation(cmd="train epoch=10 tags='tag1 tag2'")
+    >>> op = Operation(main="train epoch=10 tags='tag1 tag2'")
     >>> op.cmd_args
     ['...python...', '-um', 'guild.op_main', 'train', 'epoch=10',
      'tags=tag1 tag2']
@@ -63,11 +63,11 @@ when running tests in Python 3. The regex that formats unicode refs as
 strings is fooled by the example. We need to break the line as a work
 around.
 
-Command specs cannot be empty:
+Main modules cannot be empty:
 
-    >>> Operation(cmd="")
+    >>> Operation(main="")
     Traceback (most recent call last):
-    InvalidCmd
+    InvalidMain: ('', 'missing command spec')
 
 ## Flag args
 
@@ -79,59 +79,59 @@ We'll create a helper function to get the args:
 
     >>> class FlagDefProxy(object):
     ...
-    ...     def __init__(self, name, choices=None, arg_name=None,
-    ...                  arg_skip=False):
-    ...         self.name = name
-    ...         self.choices = [
-    ...             ChoiceProxy(**choice) for choice in (choices or [])
-    ...         ]
-    ...         self.arg_name = arg_name
-    ...         self.arg_skip = arg_skip
+    ...   def __init__(self, name, choices=None, arg_name=None,
+    ...                arg_skip=False):
+    ...     self.name = name
+    ...     self.choices = [
+    ...       ChoiceProxy(**choice) for choice in (choices or [])
+    ...     ]
+    ...     self.arg_name = arg_name
+    ...     self.arg_skip = arg_skip
 
     >>> class ChoiceProxy(object):
     ...
-    ...     def __init__(self, value=None, args=None):
-    ...         self.value = value
-    ...         self.args = args
+    ...   def __init__(self, value=None, args=None):
+    ...     self.value = value
+    ...     self.args = args
 
     >>> class OpDefProxy(object):
     ...
-    ...     def __init__(self, flags):
-    ...         self._flags = flags
+    ...   def __init__(self, flags):
+    ...     self._flags = flags
     ...
-    ...     def flag_values(self):
-    ...         return {
-    ...             name: self._flag_val(flag)
-    ...             for name, flag in self._flags.items()
-    ...         }
+    ...   def flag_values(self):
+    ...     return {
+    ...       name: self._flag_val(flag)
+    ...       for name, flag in self._flags.items()
+    ...     }
     ...
-    ...     def _flag_val(self, flag):
-    ...         try:
-    ...             return flag["value"]
-    ...         except TypeError:
-    ...             return flag
+    ...   def _flag_val(self, flag):
+    ...     try:
+    ...       return flag["value"]
+    ...     except TypeError:
+    ...       return flag
     ...
-    ...     def get_flagdef(self, name):
-    ...         flag = self._flags[name]
-    ...         if isinstance(flag, dict):
-    ...             flagdef_args = {
-    ...                 name: flag[name] for name in flag
-    ...                 if name in ["choices", "arg_name", "arg_skip"]
-    ...             }
-    ...             return FlagDefProxy(name, **flagdef_args)
-    ...         else:
-    ...             return FlagDefProxy(name)
+    ...   def get_flagdef(self, name):
+    ...     flag = self._flags[name]
+    ...     if isinstance(flag, dict):
+    ...       flagdef_args = {
+    ...         name: flag[name] for name in flag
+    ...         if name in ["choices", "arg_name", "arg_skip"]
+    ...       }
+    ...       return FlagDefProxy(name, **flagdef_args)
+    ...     else:
+    ...       return FlagDefProxy(name)
 
     >>> def flag_args(flags, cmd_args=None):
-    ...     from guild import util
-    ...     cmd_args = cmd_args or []
-    ...     opdef = OpDefProxy(flags)
-    ...     resolved_flag_vals = util.resolve_all_refs(opdef.flag_values())
-    ...     flags, _flag_map = guild.op._flag_args(
-    ...         resolved_flag_vals,
-    ...         opdef,
-    ...         cmd_args)
-    ...     return flags
+    ...   from guild import util
+    ...   cmd_args = cmd_args or []
+    ...   opdef = OpDefProxy(flags)
+    ...   resolved_flag_vals = util.resolve_all_refs(opdef.flag_values())
+    ...   flags, _flag_map = guild.op._flag_args(
+    ...     resolved_flag_vals,
+    ...     opdef,
+    ...     cmd_args)
+    ...   return flags
 
 Empty flags:
 
@@ -166,16 +166,16 @@ We can modify the argument name:
 The second argument to the `_flag_args` function is a list of command
 arguments. The function uses this list to check for shadowed flags. A
 shadowed flag is a flag that is defined directly in the operation
-`cmd` spec as an option. Guild prevents redefining command options
+`main` spec as an option. Guild prevents redefining command options
 with flags.
 
 Consider an operation definition that looks like this:
 
     operation:
       train:
-        cmd: train --epochs=100
+        main: train --epochs=100
 
-The cmd arg in this case are:
+The cmd args in this case are:
 
     >>> cmd_args = ["train", "--epochs=1000"]
 
@@ -206,35 +206,35 @@ In the simple case, we're just defining the set of legal values. This
 doesn't effect the generated arguments.
 
     >>> flag_args({
-    ...     "color": {
-    ...         "value": "blue",
-    ...         "choices": []
-    ...      }
+    ...   "color": {
+    ...     "value": "blue",
+    ...     "choices": []
+    ...    }
     ... })
     ['--color', 'blue']
 
 We can however use choice `args` to modify the arguments:
 
     >>> flag_args({
-    ...     "color": {
-    ...          "value": "blue",
-    ...          "choices": [{"value": "blue",
-    ...                       "args": {"hex": "00f",
-    ...                                "rgb": "0,0,255"}}]
-    ...     }
+    ...   "color": {
+    ...      "value": "blue",
+    ...      "choices": [{"value": "blue",
+    ...                   "args": {"hex": "00f",
+    ...                            "rgb": "0,0,255"}}]
+    ...   }
     ... })
     ['--color', 'blue', '--hex', '00f', '--rgb', '0,0,255']
 
 We can use `arg_skip` to omit the choice value:
 
     >>> flag_args({
-    ...     "color": {
-    ...          "value": "blue",
-    ...          "arg_skip": True,
-    ...          "choices": [{"value": "blue",
-    ...                       "args": {"hex": "00f",
-    ...                                "rgb": "0,0,255"}}]
-    ...     }
+    ...   "color": {
+    ...      "value": "blue",
+    ...      "arg_skip": True,
+    ...      "choices": [{"value": "blue",
+    ...                   "args": {"hex": "00f",
+    ...                            "rgb": "0,0,255"}}]
+    ...   }
     ... })
     ['--hex', '00f', '--rgb', '0,0,255']
 
@@ -303,3 +303,93 @@ other in the operations:
     {'batch-size': 50,
      'epochs': 200,
      'learning-rate': 0.1}
+
+## Pre-processing
+
+An operation may define a pre-process command that is run before the
+operation itself is run. Unlike the operation, the pre-process command
+is a shell script.
+
+To illustrate, we'll run an operation that pre-processes a sample text
+file using sed.
+
+Here's the project and its contents:
+
+    >>> pre_process_project = sample("projects/pre-process")
+
+    >>> dir(pre_process_project, ignore=["*.pyc", "__pycache__"])
+    ['abcdef', 'guild.yml', 'main.py']
+
+The project provides one model 'sample' with an operation 'test':
+
+    >>> gf = guildfile.from_dir(pre_process_project)
+
+    >>> gf.models
+    {'sample': <guild.guildfile.ModelDef 'sample'>}
+
+    >>> gf.models["sample"].operations
+    [<guild.guildfile.OpDef 'sample:test'>]
+
+The test operation runs the main module:
+
+    >>> test_op = gf.models["sample"].operations[0]
+    >>> test_op.main
+    'main'
+
+The main module prints the contents of two files:
+
+    >>> cat(join_path(pre_process_project, "main.py"))
+    from __future__ import print_function
+    <BLANKLINE>
+    for name in ("abcdef", "abcxyz"):
+        print("%s: %s" % (name, open(name, "r").read().rstrip()))
+
+Each file is assumed to be in the run directory (i.e. the current
+directory). 'abcdef' is resolved as a 'sample-file' resource source:
+
+    >>> test_op.dependencies
+    [<guild.guildfile.OpDependency 'sample-file'>]
+
+    >>> gf.models["sample"].resources
+    [<guild.guildfile.ResourceDef 'sample-file'>]
+
+    >>> gf.models["sample"].resources[0].sources
+    [<guild.resourcedef.ResourceSource 'file:abcdef'>]
+
+    >>> cat(join_path(pre_process_project, "abcdef"))
+    ABCDEF
+
+'abcxyz' is generated by a pre-processing command associated with the
+test operation:
+
+    >>> test_op.pre_process
+    'sed s/DEF/XYZ/ < abcdef > abcxyz'
+
+This command is run after the operation dependencies are resolved and
+before the operation itself is started.
+
+Let's show this in action by running the test operation.
+
+First we need a run directory:
+
+    >>> run_dir = mkdtemp()
+    >>> dir(run_dir)
+    []
+
+And we'll use gapi to run the test operation:
+
+    >>> out, _ = gapi.run("test", cwd=pre_process_project, run_dir=run_dir)
+    >>> print(out)
+    abcdef: ABCDEF
+    abcxyz: ABCXYZ
+
+Let's confirm that our run directory contains the expected files:
+
+    >>> dir(run_dir)
+    ['.guild', 'abcdef', 'abcxyz']
+
+    >>> cat(join_path(run_dir, "abcdef"))
+    ABCDEF
+
+    >>> cat(join_path(run_dir, "abcxyz"))
+    ABCXYZ

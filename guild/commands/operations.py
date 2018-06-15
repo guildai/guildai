@@ -21,7 +21,6 @@ from guild import click_util
 
 @click.command(name="operations, ops")
 @click.argument("filters", metavar="[FILTER]...", required=False, nargs=-1)
-@click.option("-a", "--all", help="Include all operations.", is_flag=True)
 @click.option("-v", "--verbose", help="Show operation details.", is_flag=True)
 
 @click_util.use_args
@@ -29,11 +28,11 @@ from guild import click_util
 def operations(args):
     """Show model operations.
 
-    By default shows operations for the models in the current
-    directory. Use `--all` to show operations for all models.
-
     Use one or more `FILTER` arguments to show only operations whose
     names or models match the specified values.
+
+    `FILTER` may a directory to indicate that only operations of
+    models defined in that location are included in the list.
 
     """
     from . import operations_impl

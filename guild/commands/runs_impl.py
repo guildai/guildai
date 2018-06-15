@@ -25,12 +25,13 @@ import six
 import yaml
 
 import guild.opref
+import guild.remote
 import guild.run
 
 from guild import cli
+from guild import click_util
 from guild import cmd_impl_support
 from guild import config
-from guild import op_util
 from guild import remote_run_support
 from guild import util
 from guild import var
@@ -65,6 +66,8 @@ CORE_RUN_ATTRS = [
     "stopped",
 ]
 
+RUNS_PER_GROUP = 20
+
 def runs_for_args(args, ctx=None, force_deleted=False):
     filtered = filtered_runs(args, force_deleted)
     return select_runs(filtered, args.runs, ctx)
@@ -87,37 +90,10 @@ def _runs_root_for_args(args, force_deleted):
 
 def _runs_filter(args):
     filters = []
-    _apply_cwd_guildfile_filter(args, filters)
     _apply_status_filter(args, filters)
     _apply_ops_filter(args, filters)
     _apply_labels_filter(args, filters)
     return var.run_filter("all", filters)
-
-def _apply_cwd_guildfile_filter(args, filters):
-    cwd_guildfile = cmd_impl_support.cwd_guildfile()
-    if cwd_guildfile and not args.all:
-        _notify_runs_limited()
-        guildfile_dir = os.path.abspath(cwd_guildfile.dir)
-        filters.append(_cwd_run_filter(guildfile_dir))
-
-def _notify_runs_limited():
-    cli.note_once(
-        "Limiting runs to %s (use --all to include all)"
-        % cmd_impl_support.cwd_desc())
-
-def _cwd_run_filter(abs_cwd):
-    def f(run):
-        if run.opref.pkg_type == "guildfile":
-            model_dir = run.opref.pkg_name
-            if os.path.isabs(model_dir):
-                if model_dir == abs_cwd:
-                    return True
-            else:
-                log.warning(
-                    "unexpected non-absolute guildfile path for run %s: %s",
-                    run.id, model_dir)
-        return False
-    return f
 
 def _apply_status_filter(args, filters):
     status_filters = [
@@ -219,9 +195,21 @@ def list_runs(args):
             log.exception("formatting run in %s", run.path)
         else:
             formatted.append(formatted_run)
+    formatted = _limit_runs(formatted, args)
     cols = ["index", "operation", "started", "status", "label"]
     detail = RUN_DETAIL if args.verbose else None
     cli.table(formatted, cols=cols, detail=detail)
+
+def _limit_runs(runs, args):
+    if args.all:
+        return runs
+    limited = runs[:(args.more + 1) * RUNS_PER_GROUP]
+    if len(limited) < len(runs):
+        cli.note(
+            "Showing the first %i runs (%i total) - use --all "
+            "to show all or -m to show more"
+            % (len(limited), len(runs)))
+    return limited
 
 def _no_selected_runs_error(help_msg=None):
     help_msg = (
@@ -402,17 +390,16 @@ def one_run(args, ctx):
     return cmd_impl_support.one_run(selected, runspec, ctx)
 
 def _page_run_output(run):
-    output = op_util.RunOutput(run)
+    reader = util.RunOutputReader(run.path)
     lines = []
     try:
-        lines = list(output)
+        lines = reader.read()
     except IOError as e:
         cli.error("error reading output for run %s: %s" % (run.id, e))
     lines = [_format_output_line(stream, line) for _time, stream, line in lines]
-    cli.page("".join(lines))
+    cli.page("\n".join(lines))
 
 def _format_output_line(stream, line):
-    line = line.decode("UTF-8")
     if stream == 1:
         return cli.style(line, fg="red")
     return line
@@ -583,8 +570,8 @@ def import_(args, ctx):
     if not os.path.isdir(args.archive):
         cli.error("directory '{}' does not exist".format(args.archive))
     preview = (
-        "You are about to import the following runs from '%s':" %
-        args.archive)
+        "You are about to import (%s) the following runs from '%s':" %
+        (args.move and "move" or "copy", args.archive))
     confirm = "Continue?"
     no_runs = "No runs to import."
     def export(selected):
@@ -601,11 +588,92 @@ def import_(args, ctx):
             if os.path.exists(dest):
                 log.warning("%s exists, skipping", run.id)
                 continue
-            cli.out("Copying {}".format(run.id))
-            symlinks = not args.copy_resources
-            shutil.copytree(run.path, dest, symlinks)
+            if args.move:
+                cli.out("Moving {}".format(run.id))
+                if args.copy_resources:
+                    shutil.copytree(run.path, dest)
+                    shutil.rmtree(run.path)
+                else:
+                    shutil.move(run.path, dest)
+            else:
+                cli.out("Copying {}".format(run.id))
+                symlinks = not args.copy_resources
+                shutil.copytree(run.path, dest, symlinks)
             imported += 1
         cli.out("Imported %i run(s)" % imported)
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
         export, ALL_RUNS_ARG, True)
+
+def push(args, ctx):
+    remote = _remote_for_name(args.remote)
+    preview = (
+        "You are about to copy the following runs to '%s':" %
+        remote.push_dest())
+    confirm = "Continue?"
+    no_runs = "No runs to copy."
+    def push(runs):
+        remote.push(runs, args.verbose)
+    _runs_op(
+        args, ctx, False, preview, confirm, no_runs,
+        push, ALL_RUNS_ARG, True)
+
+def _remote_for_name(name):
+    try:
+        return guild.remote.for_name(name)
+    except guild.remote.NoSuchRemote:
+        cli.error(
+            "remote '%s' is not defined\n"
+            "Remotes are defined in ~/.guild/config.yml. "
+            "Try 'guild remotes --help' for more information."
+            % name)
+    except guild.remote.UnsupportedRemoteType as e:
+        cli.error(
+            "remote '%s' in ~/.guild/config.yml has unsupported "
+            "type: %s" % (name, e.args[0]))
+    except guild.remote.MissingRequiredConfig as e:
+        cli.error(
+            "remote '%s' in ~/.guild/config.yml is missing required "
+            "config: %s" % (name, e.args[0]))
+
+def pull(args, ctx):
+    if not args.runs and not args.all:
+        cli.error(
+            "specify one or more runs or use --all\n"
+            "Try '%s' for more information."
+            % click_util.cmd_help(ctx))
+    if args.all and args.runs:
+        cli.error(
+            "RUN cannot be used with --all\n"
+            "Try '%s' for more information."
+            % click_util.cmd_help(ctx))
+    remote = _remote_for_name(args.remote)
+    if args.all:
+        run_ids = None
+        preview = (
+            "You are about to copy all runs from '%s'"
+            % remote.pull_src())
+    else:
+        run_ids = _validate_remote_run_ids(args.runs)
+        formatted_run_ids = "\n".join(["  %s" % run_id for run_id in run_ids])
+        preview = (
+            "You are about to copy the following runs from '%s':\n"
+            "%s" % (remote.pull_src(), formatted_run_ids))
+    confirm = "Continue?"
+    if not args.yes:
+        cli.out(preview)
+    if args.yes or cli.confirm(confirm, True):
+        if args.all:
+            remote.pull_all(True)
+        else:
+            assert run_ids
+            remote.pull(run_ids, args.verbose)
+
+def _validate_remote_run_ids(run_ids):
+    for run_id in run_ids:
+        if len(run_id) != 32:
+            cli.error(
+                "invalid remote RUN '%s'\n"
+                "Remote run IDs must be 32 characters long."
+                % run_id)
+    return run_ids

@@ -127,9 +127,15 @@ class ViewDataImpl(view.ViewData):
                 try:
                     run, run_paths = runs[run_id]
                 except KeyError:
-                    run = self._run_for_id(run_id)
                     run_paths = []
-                    runs[run_id] = run, run_paths
+                    try:
+                        run = self._run_for_id(run_id)
+                    except LookupError:
+                        # Dep run is missing - silently drop it from
+                        # the list of deps.
+                        pass
+                    else:
+                        runs[run_id] = run, run_paths
                 run_paths.append(os.path.join(*parts[1:]))
         formatted = [
             self._format_dep(run, paths)
@@ -139,7 +145,8 @@ class ViewDataImpl(view.ViewData):
 
     @staticmethod
     def _run_for_id(run_id):
-        return runs_impl.init_opref_attr(var.get_run(run_id))
+        run = var.get_run(run_id)
+        return runs_impl.init_opref_attr(run)
 
     @staticmethod
     def _format_dep(run, paths):
@@ -161,9 +168,13 @@ class ViewDataImpl(view.ViewData):
         typeDesc, icon, iconTooltip, viewer = self._file_type_info(path)
         opDesc, opRun = self._op_source_info(path)
         relpath = path[len(root)+1:]
+        mtime = util.safe_mtime(path)
+        if mtime:
+            mtime = int(mtime * 1000)
         return {
             "path": relpath,
             "size": util.safe_filesize(path),
+            "mtime": mtime,
             "type": typeDesc,
             "icon": icon,
             "iconTooltip": iconTooltip,
@@ -220,6 +231,8 @@ class ViewDataImpl(view.ViewData):
             return "Audio", "file-music", "Audio", "midi"
         elif re.search(r"\.(wav|mp3)", path_lower):
             return "Audio", "file-music", "Audio", None
+        elif re.search(r"\.(csv|tsv)", path_lower):
+            return "Table", "file-delimited", "Delimited", "table"
         else:
             if util.is_text_file(path):
                 return "Text file", "file-document", "Text file", "text"

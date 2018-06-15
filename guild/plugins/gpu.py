@@ -49,7 +49,7 @@ class GPUPlugin(SummaryPlugin):
             return False, "nvidia-smi not available"
         return True, ""
 
-    def read_summary_values(self):
+    def read_summary_values(self, _step):
         return self._gpu_stats(self._stats_cmd) if self._stats_cmd else {}
 
     def _gpu_stats(self, stats_cmd):

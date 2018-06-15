@@ -76,15 +76,16 @@ Let's inspect our run output.
     This is delayed by 0.2 seconds
     <BLANKLINE>
 
-We can use the index to read back output with time and stream info:
+We can use `util.RunOutputReader` to read back output with time and
+stream info.
 
-    >>> indexed = [
-    ...    (t, s, line.decode("utf-8"))
-    ...    for t, s, line in list(output)]
+    >>> from guild.util import RunOutputReader
+    >>> reader = RunOutputReader(run.path)
+    >>> indexed = reader.read()
     >>> indexed
-    [(..., 0, u'This is to stdout\n'),
-     (..., 1, u'This is to stderr\n'),
-     (..., 0, u'This is delayed by 0.2 seconds\n')]
+    [(..., 0, u'This is to stdout'),
+     (..., 1, u'This is to stderr'),
+     (..., 0, u'This is delayed by 0.2 seconds')]
 
 Let's confirm that the last entry is in fact delayed.
 

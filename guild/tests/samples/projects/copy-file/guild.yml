@@ -1,0 +1,12 @@
+model: test
+description: Test project
+operations:
+  copy-file:
+    description: Copy a file
+    main: copy_file
+    requires: [file]
+resources:
+  file:
+    description: Sample file
+    sources:
+      - file.txt

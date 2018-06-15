@@ -1,0 +1,10 @@
+model: sample
+operations:
+  test:
+    main: main
+    pre-process: sed s/DEF/XYZ/ < abcdef > abcxyz
+    requires: sample-file
+resources:
+  sample-file:
+    sources:
+      - abcdef

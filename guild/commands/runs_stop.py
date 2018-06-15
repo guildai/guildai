@@ -25,7 +25,6 @@ def runs_stop_params(fn):
     click_util.append_params(fn, [
         runs_support.runs_arg,
         runs_support.op_and_label_filters,
-        runs_support.scope_options,
         click.Option(
             ("-y", "--yes"),
             help="Do not prompt before stopping.",
@@ -62,7 +61,6 @@ def stop_runs(ctx, args):
     recent run with status 'running').
 
     {{ runs_support.op_and_label_filters }}
-    {{ runs_support.scope_options }}
 
     """
     from . import runs_impl

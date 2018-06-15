@@ -15,6 +15,7 @@
 import logging
 
 import pkg_resources
+import sys
 
 log = logging.getLogger("guild")
 
@@ -87,6 +88,16 @@ class EntryPointResources(object):
     def path(self):
         return self._working_set.entries
 
-    def set_path(self, val):
+    def set_path(self, val, clear_cache=False):
+        if clear_cache:
+            self._clear_path_importer_cache(val)
         self.__working_set = pkg_resources.WorkingSet(val)
         self.__resources = None
+
+    @staticmethod
+    def _clear_path_importer_cache(paths):
+        for path in paths:
+            try:
+                del sys.path_importer_cache[path]
+            except KeyError:
+                pass

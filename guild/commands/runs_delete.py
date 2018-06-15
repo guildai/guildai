@@ -70,7 +70,6 @@ def delete_runs(ctx, args):
 
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
-    {{ runs_support.scope_options }}
 
     """
 

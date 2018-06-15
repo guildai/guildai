@@ -15,31 +15,55 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import os
 import threading
 
+import yaml
+
+log = logging.getLogger("guild")
+
 _cwd = None
 _cwd_lock = threading.Lock()
+_guild_home_lock = threading.Lock()
 _guild_home = None
 _log_output = False
+_user_config = None
 
 def set_cwd(cwd):
     globals()["_cwd"] = cwd
 
 class SetCwd(object):
 
+    _save = None
+
     def __init__(self, cwd):
         self._cwd = cwd
-        self._cwd_orig = None
 
     def __enter__(self):
         _cwd_lock.acquire()
-        self._cwd_orig = cwd()
+        self._save = cwd()
         set_cwd(self._cwd)
 
     def __exit__(self, *_args):
-        set_cwd(self._cwd_orig)
+        set_cwd(self._save)
         _cwd_lock.release()
+
+class SetGuildHome(object):
+
+    _save = None
+
+    def __init__(self, guild_home):
+        self._guild_home = guild_home
+
+    def __enter__(self):
+        _guild_home_lock.acquire()
+        self._save = guild_home()
+        set_guild_home(self._guild_home)
+
+    def __exit__(self, *_args):
+        set_guild_home(self._save)
+        _guild_home_lock.release()
 
 def set_guild_home(path):
     globals()["_guild_home"] = path
@@ -58,3 +82,45 @@ def set_log_output(flag):
 
 def log_output():
     return _log_output
+
+class _Config(object):
+
+    def __init__(self, path):
+        self.path = path
+        self._parsed = None
+        self._mtime = 0
+
+    def read(self):
+        if self._parsed is None or self._path_mtime() > self._mtime:
+            self._parsed = self._parse()
+            self._mtime = self._path_mtime()
+        return self._parsed
+
+    def _path_mtime(self):
+        try:
+            return os.path.getmtime(self.path)
+        except IOError:
+            return 0
+
+    def _parse(self):
+        try:
+            f = open(self.path, "r")
+        except IOError as e:
+            log.warning("cannot read user config in %s: %s", self.path, e)
+        else:
+            try:
+                return yaml.load(f)
+            except Exception as e:
+                log.warning("error loading user config in %s: %s", self.path, e)
+        return {}
+
+def user_config():
+    path = _user_config_path()
+    config = _user_config
+    if config is None or config.path != path:
+        config = _Config(path)
+        globals()["_user_config"] = config
+    return config.read()
+
+def _user_config_path():
+    return os.path.join(os.path.expanduser("~"), ".guild", "config.yml")

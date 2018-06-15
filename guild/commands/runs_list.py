@@ -24,7 +24,6 @@ def runs_list_options(fn):
     click_util.append_params(fn, [
         runs_support.op_and_label_filters,
         runs_support.status_filters,
-        runs_support.scope_options,
         click.Option(
             ("-d", "--deleted"),
             help="Show deleted runs.",
@@ -33,6 +32,15 @@ def runs_list_options(fn):
             ("--archive",),
             metavar="DIR",
             help="Show archived runs in DIR"),
+        click.Option(
+            ("-a", "--all"),
+            help="Show all runs (by default only the last 20 runs are shown)",
+            is_flag=True),
+        click.Option(
+            ("-m", "--more"),
+            help=(
+                "Show 20 more runs. Maybe used multiple times."),
+            count=True),
         click.Option(
             ("-v", "--verbose"),
             help="Show run details.",
@@ -52,6 +60,10 @@ def list_runs(args):
     Run lists may be filtered using a variety of options. See below
     for details.
 
+    By default, the last 20 runs are shown. Use `-a, --all` to show
+    all runs, or `-m` to show more 20 more runs. You may use `-m`
+    multiple times.
+
     Run indexes are included in list output for a specific listing,
     which is based on the available runs, their states, and the
     specified filters. You may use the indexes in run selection
@@ -63,7 +75,6 @@ def list_runs(args):
 
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
-    {{ runs_support.scope_options }}
 
     ### Show deleted runs
 

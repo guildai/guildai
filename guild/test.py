@@ -14,8 +14,10 @@
 
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
 
 import doctest
+import fnmatch
 import glob
 import os
 import platform
@@ -24,6 +26,7 @@ import re
 import sys
 import tempfile
 
+from guild import _api
 from guild import util
 
 PLATFORM = platform.system()
@@ -123,7 +126,12 @@ def run_test_file_with_config(filename, globs, optionflags):
 
     parser = doctest.DocTestParser()
     test = parser.get_doctest(text, globs, name, filename, 0)
-    runner.run(test)
+    flags = (
+        print_function.compiler_flag |
+        absolute_import.compiler_flag |
+        division.compiler_flag
+    )
+    runner.run(test, flags)
 
     runner.summarize()
 
@@ -147,7 +155,8 @@ def _test_globals():
     return {
         "LogCapture": util.LogCapture,
         "cat": cat,
-        "dir": lambda dir: sorted(os.listdir(dir)),
+        "dir": dir,
+        "gapi": _api,
         "find": find,
         "mkdtemp": mkdtemp,
         "pprint": pprint.pprint,
@@ -182,6 +191,13 @@ def find(root):
 def cat(*parts):
     with open(os.path.join(*parts), "r") as f:
         print(f.read())
+
+def dir(path, ignore=None):
+    return sorted([
+        name for name in os.listdir(path)
+        if ignore is None
+        or not any((fnmatch.fnmatch(name, p) for p in ignore))
+    ])
 
 def _patch_py3_exception_detail():
     import traceback

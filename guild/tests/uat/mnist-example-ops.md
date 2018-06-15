@@ -15,24 +15,20 @@ directory to the MNIST example:
 
 The ops available in this context example are:
 
-    >>> run("guild ops")
-    Limiting models to the current directory (use --all to include all)
+    >>> run("guild ops", ignore="FutureWarning")
     ./mnist-expert:evaluate  Evaluate a trained model using test data
     ./mnist-expert:train     Train the MNIST model
     ./mnist-intro:evaluate   Evaluate a trained model using test data
     ./mnist-intro:train      Train the MNIST model
+    hello/...
+    keras.mnist/...
     <exit 0>
 
-Note that Guild prints a message letting the user know the results are
-limited.
+We limit to ops defined in the current directory using a filter:
 
-We can view all ops using -a:
-
-    >>> run("guild ops -a")
+    >>> run("guild ops .", ignore="FutureWarning")
     ./mnist-expert:evaluate    Evaluate a trained model using test data
     ./mnist-expert:train       Train the MNIST model
     ./mnist-intro:evaluate     Evaluate a trained model using test data
     ./mnist-intro:train        Train the MNIST model
-    hello/...
-    keras.mnist/...
     <exit 0>

@@ -21,14 +21,27 @@ from guild import cmd_impl_support
 from guild import util
 
 def main(args):
-    cmd_impl_support.init_resource_path(args)
-    formatted = [_format_resource(r) for r in resource.iter_resources()]
-    filtered = [r for r in formatted if _filter_resource(r, args)]
+    cmd_impl_support.init_resource_path()
+    gf_dirs, filters = cmd_impl_support.guildfile_dirs(args.filters)
+    formatted = [_format_resource(r) for r in iter_resources(gf_dirs)]
+    filtered = [r for r in formatted if _filter_resource(r, filters)]
     cli.table(
         sorted(filtered, key=lambda r: r["name"]),
         cols=["name", "description"],
         detail=(["sources"] if args.verbose else [])
     )
+
+def iter_resources(gf_dirs):
+    for r in resource.iter_resources():
+        if not gf_dirs:
+            yield r
+        try:
+            gf = r.dist.guildfile
+        except AttributeError:
+            pass
+        else:
+            if any((gf.dir == dir for dir in gf_dirs)):
+                yield r
 
 def _format_resource(res):
     return {
@@ -37,9 +50,9 @@ def _format_resource(res):
         "sources": [str(s) for s in res.resdef.sources],
     }
 
-def _filter_resource(res, args):
+def _filter_resource(res, filters):
     filter_vals = [
         res["name"],
         res["description"],
     ]
-    return util.match_filters(args.filters, filter_vals)
+    return util.match_filters(filters, filter_vals)

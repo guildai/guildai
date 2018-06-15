@@ -15,7 +15,7 @@ resource:
     ... model: sample
     ... operations:
     ...  test:
-    ...    cmd: <not used>
+    ...    main: <not used>
     ...    requires: data
     ... resources:
     ...   data:
@@ -343,85 +343,3 @@ extracted file.
 
     >>> dir(unpack_dir)
     []
-
-## Post-processing
-
-A resource may define a post processing command that is run after its
-sources have been resolved.
-
-To illustrate, we'll resolve a resource that modifies a sample file.
-
-    >>> sample_file = sample("resource-files/abcdef")
-
-We'll use `sed` to modify the sample file. Here's the contents of the
-file we'll use:
-
-    >>> cat(sample_file)
-    ABCDEF
-    <BLANKLINE>
-
-Here's a guild file that contains a resource with a post-process
-command:
-
-    >>> gf = guildfile.from_string("""
-    ... model: sample
-    ... operations:
-    ...  test:
-    ...    cmd: <not used>
-    ...    requires: data
-    ... resources:
-    ...   data:
-    ...     sources:
-    ...     - {sample_file}
-    ...     post-process: sed s/DEF/XYZ/ < abcdef > abcxyz
-    ... """.format(sample_file=sample_file))
-
-The `post-process` attribute is run after the resource is resolved.
-
-To illustrate, we'll resolve the required resources for the `test` op:
-
-    >>> test_op = gf.models["sample"].get_operation("test")
-
-Here are the op's dependencies:
-
-    >>> test_op.dependencies
-    [<guild.guildfile.OpDependency 'data'>]
-
-We'll resolve the resources in a temp directory:
-
-    >>> tmp = mkdtemp()
-
-To resolve resources, we need a resolution context:
-
-    >>> ctx = deps.ResolutionContext(tmp, test_op, {})
-
-The resolve function logs output, which we'll want to capture.
-
-    >>> logs = LogCapture()
-
-Let's resolve the resources:
-
-    >>> with logs:
-    ...    deps.resolve(test_op.dependencies, ctx)
-    {'data': ['/.../samples/resource-files/abcdef']}
-
-The logs:
-
-    >>> logs.print_all()
-    Resolving data dependency
-    Post processing data resource
-
-Here's our temp dir:
-
-    >>> dir(tmp)
-    ['abcdef', 'abcxyz']
-
-And the contents of our files:
-
-    >>> cat(join_path(tmp, "abcdef"))
-    ABCDEF
-    <BLANKLINE>
-
-    >>> cat(join_path(tmp, "abcxyz"))
-    ABCXYZ
-    <BLANKLINE>

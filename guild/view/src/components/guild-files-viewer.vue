@@ -4,8 +4,8 @@
     v-model="visible"
     scrollable
     :fullscreen="fullscreen">
-    <v-card style="height:640px">
-      <v-card-title style="padding: 8px 4px 8px 16px">
+    <v-card id="card">
+      <v-card-title id="card-title" class="grey lighten-4">
         <v-select
           v-if="files"
           :items="files"
@@ -13,37 +13,85 @@
           item-text="path"
           item-value="path"
           single-line
-          :prepend-icon="selected ? selected.icon : undefined" />
-        <v-spacer v-else />
-        <v-btn
-          v-if="!fullscreen"
-          icon flat
-          @click="fullscreen = true">
-          <v-icon>mdi-fullscreen</v-icon>
-        </v-btn>
-        <v-btn
+          :prepend-icon="selectedIcon"
+          style="min-width:100px" />
+
+        <ul class="meta">
+          <li v-for="val in viewerMeta">{{ val }}</li>
+          <li>{{ selectedSize }}</li>
+          <li>{{ selectedMtime }}</li>
+        </ul>
+
+        <v-tooltip
+          v-if="selected && selected.viewer === 'image'"
+          bottom transition="fade-transition">
+          <div slot="activator">
+            <v-btn icon flat @click="resetZoom">
+              <v-icon>mdi-replay</v-icon>
+            </v-btn>
+          </div>
+          <span>Reset image</span>
+        </v-tooltip>
+
+
+        <v-tooltip
           v-if="fullscreen"
-          icon flat @click="fullscreen = false">
-          <v-icon>mdi-fullscreen-exit</v-icon>
-        </v-btn>
-        <v-btn
-          icon flat @click="visible = false">
-          <v-icon>clear</v-icon>
-        </v-btn>
+          bottom transition="fade-transition">
+          <div slot="activator">
+            <v-btn
+              icon flat
+              @click="fullscreen = false">
+              <v-icon>mdi-fullscreen-exit</v-icon>
+            </v-btn>
+          </div>
+          <span>Exit full screen</span>
+        </v-tooltip>
+
+        <v-tooltip
+          v-else
+          bottom transition="fade-transition">
+          <div slot="activator">
+            <v-btn
+              icon flat
+              @click="fullscreen = true">
+              <v-icon>mdi-fullscreen</v-icon>
+            </v-btn>
+          </div>
+          <span>View full screen</span>
+        </v-tooltip>
+
+        <v-tooltip
+          bottom transition="fade-transition">
+          <div slot="activator">
+            <v-btn
+              icon flat
+              @click="visible = false">
+              <v-icon>clear</v-icon>
+            </v-btn>
+          </div>
+          <span>Close</span>
+        </v-tooltip>
+
       </v-card-title>
       <v-divider />
       <v-card-text class="content">
         <template v-if="selected">
-          <img
+          <guild-image-viewer
             v-if="selected.viewer === 'image'"
-            :src="selected.src" />
-          <guild-text
+            ref="imageViewer"
+            :src="selectedSrc"
+            @meta="viewerMeta = $event" />
+          <guild-text-viewer
             v-else-if="selected.viewer === 'text'"
-            :src="selected.src" />
-          <guild-midi
+            :src="selectedSrc" />
+          <guild-midi-viewer
             v-else-if="selected.viewer === 'midi'"
-            :src="selected.src"
+            :src="selectedSrc"
             :active="visible" />
+          <guild-table-viewer
+            v-else-if="selected.viewer === 'table'"
+            :src="selectedSrc"
+            />
           <div v-else>
             Unsupported viewer type: <i>{{ selected.viewer }}</i>
           </div>
@@ -53,16 +101,40 @@
         </template>
       </v-card-text>
       <v-divider></v-divider>
-      <v-card-actions>
-        <v-btn flat :disabled="files.length <= 1" @click="nav(-1)">Prev</v-btn>
+      <v-card-actions class="grey lighten-4">
+
+        <v-tooltip
+          top transition="fade-transition">
+          <div slot="activator">
+            <v-btn
+              flat
+              :disabled="files.length <= 1"
+              @click="nav(-1)">Prev</v-btn>
+          </div>
+          <span>View previous file</span>
+        </v-tooltip>
+
         <v-spacer />
-        <v-btn flat :disabled="files.length <= 1" @click="nav(1)">Next</v-btn>
+
+        <v-tooltip
+          top transition="fade-transition">
+          <div slot="activator">
+            <v-btn
+              flat
+              :disabled="files.length <= 1"
+              @click="nav(1)">Next</v-btn>
+          </div>
+          <span>View next file</span>
+        </v-tooltip>
+
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script>
+import filesize from 'filesize';
+
 export default {
   name: 'guild-files-viewer',
 
@@ -72,13 +144,18 @@ export default {
       required: true
     },
     path: String,
+    srcBase: {
+      type: String,
+      default: ''
+    },
     value: Boolean
   },
 
   data() {
     return {
       selectedPath_: undefined,
-      fullscreen: false
+      fullscreen: false,
+      viewerMeta: []
     };
   },
 
@@ -105,12 +182,6 @@ export default {
       }
     },
 
-    selected() {
-      return this.selectedIndex !== -1
-           ? this.files[this.selectedIndex]
-           : undefined;
-    },
-
     selectedIndex() {
       for (var i = 0; i < this.files.length; i++) {
         if (this.files[i].path === this.selectedPath) {
@@ -118,25 +189,66 @@ export default {
         }
       }
       return -1;
+    },
+
+    selected() {
+      return this.selectedIndex !== -1
+           ? this.files[this.selectedIndex]
+           : undefined;
+    },
+
+    selectedIcon() {
+      if (this.selected && this.selected.icon) {
+        return 'mdi-' + this.selected.icon;
+      } else {
+        return undefined;
+      }
+    },
+
+    selectedSrc() {
+      if (this.selected) {
+        return this.srcBase + this.selected.path;
+      } else {
+        return undefined;
+      }
+    },
+
+    selectedSize() {
+      if (this.selected && this.selected.size !== null) {
+        return filesize(this.selected.size);
+      } else {
+        return '';
+      }
+    },
+
+    selectedMtime() {
+      if (this.selected && this.selected.mtime !== null) {
+        const date = new Date(this.selected.mtime);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+      } else {
+        return '';
+      }
     }
   },
 
   watch: {
-    path() {
-      this.selectedPath_ = undefined;
+    visible(val) {
+      if (!val) {
+        this.selectedPath_ = undefined;
+      }
     }
   },
 
   created() {
-    window.addEventListener('keydown', this.handleKeyDown);
+    window.addEventListener('keydown', this.onKeyDown);
   },
 
   destroyed() {
-    window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('keydown', this.onKeyDown);
   },
 
   methods: {
-    handleKeyDown(e) {
+    onKeyDown(e) {
       if (!this.value || e.defaultPrevented) {
         return;
       }
@@ -151,7 +263,13 @@ export default {
 
     nav(incr) {
       var nextIndex = maybeWrapIndex(this.selectedIndex + incr, this.files);
+      this.viewerMeta = [];
       this.selectedPath = this.files[nextIndex].path;
+    },
+
+    resetZoom() {
+      const viewer = this.$refs.imageViewer;
+      viewer.reset();
     }
   }
 };
@@ -168,6 +286,14 @@ function maybeWrapIndex(index, array) {
 </script>
 
 <style>
+.dialog {
+  max-width: 1600px;
+}
+
+.dialog.dialog--fullscreen {
+  max-width: none;
+}
+
 .input-group__prepend-icon {
   min-width: 32px !important;
 }
@@ -179,6 +305,15 @@ function maybeWrapIndex(index, array) {
 </style>
 
 <style scoped>
+#card {
+  max-height: 100%;
+  min-height: 480px;
+}
+
+#card-title {
+  padding: 8px 4px 8px 16px;
+}
+
 .input-group {
   padding-right: 16px;
 }
@@ -192,8 +327,12 @@ function maybeWrapIndex(index, array) {
   height: 100%;
 }
 
-.content img {
-  max-width: 100%;
-  max-height: 100%;
+.meta {
+  margin: 0 15px 0 10px;
+}
+
+.meta li {
+  display: inline;
+  margin: 0 8px;
 }
 </style>

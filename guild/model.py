@@ -309,8 +309,9 @@ class ModelImporter(object):
 
     @staticmethod
     def _is_guildfile_dir(path):
-        return (guildfile.dir_has_guildfile(path) or
-                os.path.abspath(path) == os.path.abspath(config.cwd()))
+        return (
+            guildfile.is_guildfile_dir(path) or
+            os.path.abspath(path) == os.path.abspath(config.cwd()))
 
     @property
     def dist(self):
@@ -326,8 +327,9 @@ class ModelImporter(object):
         except guildfile.NoModels:
             return self._plugin_model_dist()
         except Exception as e:
-            log.error(
-                "error loading guildfile from %s: %s", self.path, e)
+            if log.getEffectiveLevel() <= logging.DEBUG:
+                log.exception(self.path)
+            log.error("error loading guildfile from %s: %s", self.path, e)
             return BadGuildfileDistribution(self.path)
         else:
             return GuildfileDistribution(mf)
@@ -376,8 +378,8 @@ class GuildfileNamespace(namespace.PrefixNamespace):
 def get_path():
     return _models.path()
 
-def set_path(path):
-    _models.set_path(path)
+def set_path(path, clear_cache=False):
+    _models.set_path(path, clear_cache)
 
 def insert_path(item):
     path = _models.path()

@@ -20,6 +20,7 @@ import importlib
 import logging
 import os
 import re
+import subprocess
 
 import guild.opref
 
@@ -74,7 +75,7 @@ class URLResolver(Resolver):
             return _resolve_config_path(
                 self.resource.config,
                 self.source.resdef.name)
-        download_dir = self._source_download_dir()
+        download_dir = url_source_download_dir(self.source)
         util.ensure_dir(download_dir)
         try:
             source_path = pip_util.download_url(
@@ -86,13 +87,57 @@ class URLResolver(Resolver):
                 "bad sha256 for '%s' (expected %s but got %s)"
                 % (e.path, e.expected, e.actual))
         else:
-            return resolve_source_files(
+            resolved = resolve_source_files(
                 source_path, self.source, unpack_dir)
+            post_process(
+                self.source,
+                unpack_dir or os.path.dirname(source_path))
+            return resolved
 
-    def _source_download_dir(self):
-        key = "\n".join(self.source.parsed_uri).encode("utf-8")
-        digest = hashlib.sha224(key).hexdigest()
-        return os.path.join(var.cache_dir("resources"), digest)
+def url_source_download_dir(source):
+    key = "\n".join(source.parsed_uri).encode("utf-8")
+    digest = hashlib.sha224(key).hexdigest()
+    return os.path.join(var.cache_dir("resources"), digest)
+
+def post_process(source, cwd, use_cache=True):
+    if not source.post_process:
+        return
+    cmd = source.post_process.strip().replace("\n", " ")
+    if use_cache:
+        cmd_digest = hashlib.sha1(cmd.encode()).hexdigest()
+        process_marker = os.path.join(
+            cwd, ".guild-cache-{}.post".format(cmd_digest))
+        if os.path.exists(process_marker):
+            return
+    env = {
+        "RESDEF_DIR": _resdef_dir(source.resdef),
+    }
+    log.info(
+        "Post processing %s resource in %s: %r",
+        source.resdef.name, cwd, cmd)
+    try:
+        subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
+    except subprocess.CalledProcessError as e:
+        raise ResolutionError(
+            "error post processing %s resource: %s"
+            % (source.resdef.name, e))
+    else:
+        util.touch(process_marker)
+
+def _resdef_dir(resdef):
+    """Return directory for a resource definition.
+
+    The ResourceDef interface doesn't provide a directory, but we can
+    infer a directory by checking for 'modeldef' and 'dist'
+    attributes, both of which are associated with a Guild file and
+    therefore a directory.
+    """
+    if hasattr(resdef, "modeldef"):
+        return resdef.modeldef.guildfile.dir
+    elif hasattr(resdef, "dist"):
+        return resdef.dist.guildfile.dir
+    else:
+        raise AssertionError(resdef)
 
 class OperationOutputResolver(Resolver):
 

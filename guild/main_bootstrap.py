@@ -87,3 +87,6 @@ def _handle_missing_req(req):
     sys.stderr.write("".join(msg_parts))
     sys.stderr.write("\n")
     sys.exit(1)
+
+if __name__ == "__main__":
+    main()

@@ -25,6 +25,7 @@ from guild import click_util
 
 from .check import check
 from .compare import compare
+from .download import download
 from .export import export
 from .help import help
 from .import_ import import_
@@ -36,6 +37,9 @@ from .models import models
 from .operations import operations
 from .package import package
 from .packages import packages
+from .pull import pull
+from .push import push
+from .remotes import remotes
 from .resources import resources
 from .run import run
 from .runs import runs
@@ -91,6 +95,7 @@ def main(args):
 
 main.add_command(check)
 main.add_command(compare)
+main.add_command(download)
 main.add_command(export)
 main.add_command(help)
 main.add_command(import_)
@@ -102,6 +107,9 @@ main.add_command(models)
 main.add_command(operations)
 main.add_command(package)
 main.add_command(packages)
+main.add_command(pull)
+main.add_command(push)
+main.add_command(remotes)
 main.add_command(resources)
 main.add_command(run)
 main.add_command(runs)

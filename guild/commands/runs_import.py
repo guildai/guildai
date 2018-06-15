@@ -25,12 +25,15 @@ def import_params(fn):
         runs_support.runs_arg,
         click.Argument(("archive",)),
         click.Option(
+            ("-m", "--move"),
+            help="Move imported runs rather than copy.",
+            is_flag=True),
+        click.Option(
             ("--copy-resources",),
             help="Copy resources for each imported run.",
             is_flag=True),
         runs_support.op_and_label_filters,
         runs_support.status_filters,
-        runs_support.scope_options,
         click.Option(
             ("-y", "--yes"),
             help="Do not prompt before importing.",
@@ -65,7 +68,6 @@ def import_runs(ctx, args):
 
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
-    {{ runs_support.scope_options }}
 
     """
 

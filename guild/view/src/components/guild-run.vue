@@ -8,8 +8,16 @@
         <v-tabs-item key="overview" href="#overview" ripple>
           Overview
         </v-tabs-item>
+        <!--
+        <v-tabs-item key="model" href="#model" ripple>
+          Model
+        </v-tabs-item>
+        -->
         <v-tabs-item key="files" href="#files" ripple>
           Files
+        </v-tabs-item>
+        <v-tabs-item key="output" href="#log" ripple>
+          Log
         </v-tabs-item>
         <v-tabs-slider color="deep-orange"></v-tabs-slider>
       </v-tabs-bar>
@@ -19,8 +27,14 @@
       <v-tabs-content key="overview" id="overview">
         <guild-run-overview :run="run" />
       </v-tabs-content>
+      <v-tabs-content key="model" id="model">
+        <guild-run-model :run="run" />
+      </v-tabs-content>
       <v-tabs-content key="files" id="files">
         <guild-run-files :run="run" />
+      </v-tabs-content>
+      <v-tabs-content key="log" id="log">
+        <guild-run-output :run="run" />
       </v-tabs-content>
     </v-tabs-items>
   </v-tabs>

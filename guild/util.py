@@ -23,6 +23,7 @@ import logging
 import platform
 import re
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -33,24 +34,7 @@ log = logging.getLogger("guild")
 
 PLATFORM = platform.system()
 
-OS_ENVIRON_WHITELIST = set([
-    "DISPLAY",
-    "HOME",
-    "HOSTNAME",
-    "LANG",
-    "LD_LIBRARY_PATH",
-    "PATH",
-    "PWD",
-    "SHELL",
-    "SSH_AGENT_PID",
-    "SSH_AUTH_SOCK",
-    "SSH_CONNECTION",
-    "TEMP",
-    "TERM",
-    "TMP",
-    "USER",
-    "VIRTUAL_ENV",
-])
+OS_ENVIRON_BLACKLIST = set([])
 
 MIN_MONITOR_INTERVAL = 5
 
@@ -107,13 +91,19 @@ def open_url(url):
     except OSError:
         _open_url_with_webbrowser(url)
 
+class URLOpenError(Exception):
+    pass
+
 def _open_url_with_cmd(url):
     if sys.platform == "darwin":
         args = ["open", url]
     else:
         args = ["xdg-open", url]
     with open(os.devnull, "w") as null:
-        subprocess.check_call(args, stderr=null, stdout=null)
+        try:
+            subprocess.check_call(args, stderr=null, stdout=null)
+        except subprocess.CalledProcessError as e:
+            raise URLOpenError(url, e)
 
 def _open_url_with_webbrowser(url):
     import webbrowser
@@ -176,7 +166,7 @@ def safe_osenv():
     return {
         name: val
         for name, val in os.environ.items()
-        if name in OS_ENVIRON_WHITELIST
+        if name not in OS_ENVIRON_BLACKLIST
     }
 
 def match_filters(filters, vals, match_any=False):
@@ -433,8 +423,11 @@ def is_text_file(path, ignore_ext=False):
             return True
         if ext in _binary_ext:
             return False
-    with open(path, 'rb') as f:
-        sample = f.read(1024)
+    try:
+        with open(path, 'rb') as f:
+            sample = f.read(1024)
+    except IOError:
+        return False
     if not sample:
         return True
     low_chars = sample.translate(None, _printable_ascii)
@@ -495,6 +488,12 @@ def kill_process_tree(pid, force=False, timeout=None):
 def safe_filesize(path):
     try:
         return os.path.getsize(path)
+    except OSError:
+        return None
+
+def safe_mtime(path):
+    try:
+        return os.path.getmtime(path)
     except OSError:
         return None
 
@@ -609,3 +608,67 @@ class RunsMonitor(LoopingThread):
 def wait_forever(sleep_interval=0.1):
     while True:
         time.sleep(sleep_interval)
+
+class RunOutputReader(object):
+
+    def __init__(self, run_dir):
+        self.run_dir = run_dir
+        self._lines = []
+        self._output = None
+        self._index = None
+
+    def read(self, start=0, end=None):
+        """Read run output from start to end.
+
+        Both start and end are zero-based indexes to run output lines
+        and are both inclusive. Note this is different from the Python
+        slice function where end is exclusive.
+        """
+        self._read_next(end)
+        if end is None:
+            slice_end = None
+        else:
+            slice_end = end + 1
+        return self._lines[start:slice_end]
+
+    def _read_next(self, end):
+        if end is not None and end < len(self._lines):
+            return
+        try:
+            output, index = self._ensure_open()
+        except IOError as e:
+            if e.errno != 2: # not found
+                raise
+        else:
+            lines = self._lines
+            while True:
+                line = output.readline()[:-1].decode()
+                if not line:
+                    break
+                time, stream = struct.unpack("!QB", index.read(9))
+                lines.append((time, stream, line))
+                if end is not None and end < len(self._lines):
+                    break
+
+    def _ensure_open(self):
+        if self._output is None:
+            guild_path = os.path.join(self.run_dir, ".guild")
+            output = open(os.path.join(guild_path, "output"), "rb")
+            index = open(os.path.join(guild_path, "output.index"), "rb")
+            self._output, self._index = output, index
+        assert self._output is not None
+        assert self._index is not None
+        return self._output, self._index
+
+    def close(self):
+        self._try_close(self._output)
+        self._try_close(self._index)
+
+    @staticmethod
+    def _try_close(f):
+        if f is None:
+            return
+        try:
+            f.close()
+        except IOError:
+            pass

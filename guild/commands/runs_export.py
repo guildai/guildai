@@ -34,7 +34,6 @@ def export_params(fn):
             is_flag=True),
         runs_support.op_and_label_filters,
         runs_support.status_filters,
-        runs_support.scope_options,
         click.Option(
             ("-y", "--yes"),
             help="Do not prompt before exporting.",
@@ -71,7 +70,6 @@ def export_runs(ctx, args):
 
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
-    {{ runs_support.scope_options }}
 
     """
 

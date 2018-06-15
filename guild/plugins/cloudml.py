@@ -51,10 +51,10 @@ def _local_train_opdef(op_name, modeldef, requiring_op):
 
 def _train_opdef_data(local_train):
     module_name, cmd_args = _split_cmd(local_train.cmd)
-    cmd = _op_cmd("train", cmd_args)
+    main = _op_main("train", cmd_args)
     return {
         "description": "Train a model in Cloud ML",
-        "cmd": cmd,
+        "main": main,
         "flags": {
             "bucket": {
                 "description": (
@@ -105,7 +105,7 @@ def _train_opdef_data(local_train):
         "remote": True
     }
 
-def _op_cmd(name, args=None):
+def _op_main(name, args=None):
     args = " ".join([pipes.quote(arg) for arg in (args or [])])
     return "guild.plugins.cloudml_op_main {} {}".format(name, args)
 
@@ -116,7 +116,7 @@ def _split_cmd(s):
 def _hptune_opdef(name, modeldef, parent_opdef, local_train_op):
     local_train = _local_train_opdef(local_train_op, modeldef, name)
     data = _train_opdef_data(local_train)
-    data["cmd"] = data["cmd"].replace(
+    data["main"] = data["main"].replace(
         "guild.plugins.cloudml_op_main train",
         "guild.plugins.cloudml_op_main hptune")
     data["description"] = (
@@ -162,7 +162,7 @@ def _deploy_opdef(name, modeldef, parent_opdef):
 def _deploy_opdef_data():
     return {
         "description": "Deploy a model to Cloud ML",
-        "cmd": _op_cmd("deploy"),
+        "main": _op_main("deploy"),
         "flags": {
             "trained-model": {
                 "description": (
@@ -213,7 +213,7 @@ def _predict_opdef(name, modeldef, parent_opdef):
 def _predict_opdef_data():
     return {
         "description": "Send a prediction request to Cloud ML",
-        "cmd": _op_cmd("predict"),
+        "main": _op_main("predict"),
         "flags": {
             "deployed-model": {
                 "description": (
@@ -252,7 +252,7 @@ def _batch_predict_opdef_data():
     data = _predict_opdef_data()
     data.update({
         "description": "Submit a prediction job to Cloud ML",
-        "cmd": _op_cmd("batch-predict")
+        "main": _op_main("batch-predict")
     })
     data["flags"].update({
         "bucket": {

@@ -18,7 +18,6 @@ from __future__ import division
 import logging
 import os
 import re
-import subprocess
 
 from guild import namespace
 from guild import resource
@@ -46,6 +45,7 @@ class Resource(object):
         self.location = location
         self.ctx = ctx
         self.config = self._init_resource_config()
+        self.dependency = None
 
     def _init_resource_config(self):
         for name, config in self.ctx.resource_config.items():
@@ -60,11 +60,11 @@ class Resource(object):
                 % self.resdef.name)
         resolved_acc = []
         for source in self.resdef.sources:
-            self._resolve_source(source, resolved_acc)
-        self._post_process()
+            paths = self.resolve_source(source)
+            resolved_acc.extend(paths)
         return resolved_acc
 
-    def _resolve_source(self, source, resolved_acc):
+    def resolve_source(self, source):
         resolver = self.resdef.get_source_resolver(source, self)
         if not resolver:
             raise DependencyError(
@@ -87,9 +87,11 @@ class Resource(object):
                 "unexpected error resolving '%s' in %s resource: %r"
                 % (source, self.resdef.name, e))
         else:
+            paths = []
             for path in source_paths:
-                resolved_acc.append(path)
+                paths.append(path)
                 self._link_to_source(path)
+            return paths
 
     def _link_to_source(self, source_path):
         source_path = util.strip_trailing_path(source_path)
@@ -104,21 +106,6 @@ class Resource(object):
                 "invalid path '%s' in %s resource (path must be relative)"
                 % (res_path, self.resdef.name))
         return os.path.join(self.ctx.target_dir, res_path, basename)
-
-    def _post_process(self):
-        if not self.resdef.post_process:
-            return
-        log.info("Post processing %s resource", self.resdef.name)
-        log.debug("process cmd: %s", self.resdef.post_process)
-        try:
-            subprocess.check_call(
-                self.resdef.post_process,
-                shell=True,
-                cwd=self.ctx.target_dir)
-        except subprocess.CalledProcessError as e:
-            raise DependencyError(
-                "error post processing %s resource: %s"
-                % (self.resdef.name, e))
 
 def _symlink(source_path, link):
     assert os.path.isabs(link), link
@@ -153,16 +140,23 @@ def _dep_desc(dep):
 
 def resolve(dependencies, ctx):
     resolved = {}
-    flag_vals = util.resolve_all_refs(ctx.opdef.flag_values())
-    for dep in dependencies:
-        resolved_spec = util.resolve_refs(dep.spec, flag_vals)
-        resource = _dependency_resource(resolved_spec, ctx)
-        log.info("Resolving %s dependency", resolved_spec)
-        resolved_sources = resource.resolve()
-        resolved.setdefault(resolved_spec, []).extend(resolved_sources)
+    for res in resources(dependencies, ctx):
+        log.info("Resolving %s dependency", res.dependency)
+        resolved_sources = res.resolve()
+        log.debug(
+            "resolved sources for %s: %r",
+            res.dependency, resolved_sources)
+        if not resolved_sources:
+            log.warning("Nothing resolved for %s dependency", res.dependency)
+        resolved.setdefault(res.dependency, []).extend(resolved_sources)
     return resolved
 
-def _dependency_resource(spec, ctx):
+def resources(dependencies, ctx):
+    flag_vals = util.resolve_all_refs(ctx.opdef.flag_values())
+    return [_dependency_resource(dep, flag_vals, ctx) for dep in dependencies]
+
+def _dependency_resource(dep, flag_vals, ctx):
+    spec = util.resolve_refs(dep.spec, flag_vals)
     try:
         res = util.find_apply(
             [_model_resource,
@@ -175,6 +169,7 @@ def _dependency_resource(spec, ctx):
             return ResourceProxy(spec, ctx.resource_config[spec], ctx)
         raise
     if res:
+        res.dependency = spec
         return res
     raise DependencyError(
         "invalid dependency '%s' in operation '%s'"

@@ -121,36 +121,10 @@ def status_filters(fn):
     ])
     return fn
 
-def scope_options(fn):
-    """### Local vs global runs
-
-    If the current directory contains a model definition, runs will be
-    limited to those associated with the locally defined model. To
-    apply the command to all runs in this case, use the `--all`
-    option.
-
-    If the current directory does not contain a model definition, all
-    runs are selected by default and the `--all` option is ignored.
-
-    Run indexes and other filters are applied after the `--all` option
-    is applied. For example, a run index of ``0`` selects the latest
-    local run if the current directory contains a model
-    definition. Otherwise ``0`` selectes the latest run globally.
-
-    """
-    click_util.append_params(fn, [
-        click.Option(
-            ("-a", "--all"),
-            help="Include all runs.",
-            is_flag=True)
-    ])
-    return fn
-
 def runs_op(fn):
     click_util.append_params(fn, [
         runs_arg,
         op_and_label_filters,
         status_filters,
-        scope_options,
     ])
     return fn
