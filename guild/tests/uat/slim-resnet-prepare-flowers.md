@@ -3,7 +3,7 @@
 Direct output to /dev/null to avoid freezing (I believe related to
 rapid stdout updates from the processing progress).
 
-    >>> run("guild run flowers:prepare -y > /dev/null", ignore="FutureWarning")
+    >>> run("guild run flowers:prepare -y > /dev/null", timeout=300, ignore="FutureWarning")
     Resolving slim/models-lib dependency
     ...
     <exit 0>

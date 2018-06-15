@@ -49,12 +49,12 @@ class OpNode(wf.Node):
     def deps(self):
         yield self.init_node
         for resdef in self._dep_resdefs():
-            yield _resource_node(resdef)
+            yield self._resource_node(resdef)
 
     def _dep_resdefs(self):
         for dep in self.op.opdef.dependencies:
             spec = util.resolve_refs(dep.spec, self.op.flag_vals)
-            resdef = depslib.dep_resdef(dep.spec)
+            resdef = depslib.dep_resdef(dep.spec, self.op.opdef)
             if resdef is None:
                 raise wf.DepError(
                     "cannot find resource '%s' required by operation '%s'"
