@@ -672,3 +672,25 @@ class RunOutputReader(object):
             f.close()
         except IOError:
             pass
+
+def gpu_available():
+    import ctypes
+    if "linux" in sys.platform:
+        lib = "libcublas.so"
+    elif sys.platform == "darwin":
+        lib = "libcublas.dylib"
+    elif sys.platform == "win32":
+        lib = "cublas.dll"
+    else:
+        log.warning("unable to detect GPU for platform '%s'", sys.platform)
+        lib = None
+    if lib:
+        log.debug("checking for GPU by loading %s", lib)
+        try:
+            ctypes.CDLL(lib)
+        except OSError as e:
+            log.debug("error loading '%s': %s", lib, e)
+        else:
+            log.debug("%s loaded", lib)
+            return True
+    return False

@@ -28,6 +28,15 @@ from guild import click_util
     "--python", metavar="VERSION",
     help="The version of Python to use within a virtual environment.")
 @click.option(
+    "--gpu", "tf_package", flag_value="tensorflow-gpu",
+    help="Use the GPU enabled tensorflow package for the environment.")
+@click.option(
+    "--no-gpu", "tf_package", flag_value="tensorflow",
+    help="Use the non-GPU tensorflow package for the environment.")
+@click.option(
+    "--no-tensorflow", "tf_package", flag_value="no",
+    help="Do not install TensorFlow in the environment.")
+@click.option(
     "-r", "--requirement", metavar="FILE", multiple=True,
     help="Install packages defined in FILE. May be used multiple times.")
 @click.option(
@@ -63,6 +72,25 @@ def init2(ctx, args):
 
     You may explicitly specify requirements file using `-r` or
     `--requirement`.
+
+    ### TensorFlow
+
+    By default, `init2` installs TensorFlow in the initialized
+    environment if it's not already installed. When Guild installs
+    TensorFlow, it detects GPU support on the system and selects the
+    appropriate package: `tensorflow-gpu` for GPU support, otherwise
+    `tensorflow`.
+
+    To override the default package, use `--gpu` to install the
+    `tensorflow-gpu` package or `--no-gpu` to install the `tensorflow`
+    package.
+
+    To skip installing TensorFlow, use `--no-tensorflow`.
+
+    If TensorFlow was installed by way of a requirements file, either
+    `requirements.txt` located in the environment parent directory or
+    a file specified by a `--requirement` option, Guild will not
+    reinstall it.
 
     """
     from . import init2_impl

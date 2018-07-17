@@ -17,9 +17,9 @@ if [ -e "$_guild_env/bin/activate" ]; then
     echo
     echo "  deactivate"
     echo
-    echo "For help with Guild, run:"
+    echo "For a list of Guild commands, run"
     echo
-    echo "  guild --help"
+    echo "  guild"
     echo
 else
     "Could not find a Guild environment in $_guild_env"

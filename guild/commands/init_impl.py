@@ -225,37 +225,13 @@ def _try_load_tensorflow():
         return tensorflow
 
 def _try_install_tensorflow(args):
-    if _gpu_available():
+    if util.gpu_available():
         pkg = "tensorflow-gpu"
     else:
         pkg = "tensorflow"
     prompt = "Would you like to install the %s package now?\n" % pkg
     if args.yes or cli.confirm(prompt, default=True):
         _install_tensorflow(pkg)
-
-def _gpu_available():
-    # Implementing this here initially. If it becomes generally
-    # useful, move to `guild.gpu_util` or sim.
-    import ctypes
-    if "linux" in sys.platform:
-        lib = "libcublas.so"
-    elif sys.platform == "darwin":
-        lib = "libcublas.dylib"
-    elif sys.platform == "win32":
-        lib = "cublas.dll"
-    else:
-        log.warning("unable to detect GPU for platform '%s'", sys.platform)
-        lib = None
-    if lib:
-        log.debug("checking for GPU by loading %s", lib)
-        try:
-            ctypes.CDLL(lib)
-        except OSError as e:
-            log.debug("error loading '%s': %s", lib, e)
-        else:
-            log.debug("%s loaded", lib)
-            return True
-    return False
 
 def _install_tensorflow(pkg):
     pip_util.install([pkg])

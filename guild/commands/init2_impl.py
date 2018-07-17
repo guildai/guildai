@@ -20,6 +20,7 @@ import pkg_resources
 import subprocess
 
 from guild import cli
+from guild import util
 
 class Config(object):
 
@@ -28,6 +29,7 @@ class Config(object):
         self.env_name = self._init_env_name(args.name, self.env_dir)
         self.venv_python_ver = args.python
         self.reqs = args.requirement
+        self.tensorflow = args.tf_package
         self.prompt_params = self._init_prompt_params()
 
     @staticmethod
@@ -52,6 +54,16 @@ class Config(object):
             params.append(("Python version", "default"))
         if self.reqs:
             params.append(("Requirements", self.reqs))
+        if self.tensorflow == "no":
+            params.append(("TensorFlow support", "no"))
+        elif self.tensorflow == "tensorflow":
+            params.append(("TensorFlow support", "non-GPU"))
+        elif self.tensorflow == "tensorflow-gpu":
+            params.append(("TensorFlow support", "GPU"))
+        elif self.tensorflow is None:
+            params.append(("TensorFlow support", "auto-detect GPU"))
+        else:
+            raise AssertionError(self.tensorflow)
         return params
 
     def as_kw(self):
@@ -80,6 +92,7 @@ def _init(config):
     _init_venv(config)
     _install_guild_reqs(config)
     _install_reqs(config)
+    _ensure_tensorflow(config)
     _initialized_msg(config)
 
 def _init_venv(config):
@@ -118,11 +131,50 @@ def _install_reqs(config):
 
 def _install_reqs_(reqs, env_dir):
     pip_bin = os.path.join(env_dir, "bin", "pip")
-    if not os.path.exists(pip_bin):
-        pip_bin = "pip"
+    assert os.path.exists(pip_bin), pip_bin
     cmd_args = [pip_bin, "install"]
     for path in reqs:
         cmd_args.extend(["-r", path])
+    try:
+        subprocess.check_call(cmd_args)
+    except subprocess.CalledProcessError as e:
+        cli.error(str(e), exit_status=e.returncode)
+
+def _ensure_tensorflow(config):
+    if config.tensorflow == "no":
+        cli.out("Skipping TensorFlow installation")
+        return
+    if _tensorflow_installed(config.env_dir):
+        cli.out("TensorFlow already installed, skipping installation")
+        return
+    tf_pkg = _tensorflow_package(config)
+    _install_pkg(tf_pkg, config.env_dir)
+
+def _tensorflow_installed(env_dir):
+    cli.out("Checking for TensorFlow")
+    python_bin = os.path.join(env_dir, "bin", "python")
+    assert os.path.exists(python_bin)
+    cmd_args = [python_bin, "-c", "import tensorflow"]
+    try:
+        subprocess.check_output(cmd_args, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        return False
+    else:
+        return True
+
+def _tensorflow_package(config):
+    if config.tensorflow is not None:
+        return config.tensorflow
+    if util.gpu_available():
+        return "tensorflow-gpu"
+    else:
+        return "tensorflow"
+
+def _install_pkg(pkg, env_dir):
+    cli.out("Installing TensorFlow ({})".format(pkg))
+    pip_bin = os.path.join(env_dir, "bin", "pip")
+    assert os.path.exists(pip_bin), pip_bin
+    cmd_args = [pip_bin, "install", pkg]
     try:
         subprocess.check_call(cmd_args)
     except subprocess.CalledProcessError as e:
