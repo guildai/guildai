@@ -202,4 +202,5 @@ setup(
 
     # Other package info
     zip_safe=False,
+    scripts=["./guild/scripts/guild-env"],
 )

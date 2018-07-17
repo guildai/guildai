@@ -34,6 +34,9 @@ class Args(object):
     def __repr__(self):
         return "<guild.click_util.Args %s>" % self.__kw
 
+    def as_kw(self):
+        return dict(self.__kw)
+
 class Group(click.Group):
 
     def get_command(self, ctx, cmd_name):
