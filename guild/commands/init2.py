@@ -22,16 +22,19 @@ from guild import click_util
 @click.command()
 @click.argument("dir", default="env")
 @click.option(
-    "--venv", "type", flag_value="venv", default=True,
-    help="Use virtualenv to create a virtual environment (default).")
+    "-n", "--name", metavar="NAME",
+    help="Environment name (default is env parent directory name).")
 @click.option(
-    "--no-venv", "type", flag_value="none",
-    help="Do not create a virtual environment.")
+    "--python", metavar="VERSION",
+    help="The version of Python to use within a virtual environment.")
 @click.option(
-    "--python", metavar="PYTHON_EXE",
-    help="The Python interpreter to use within a virtual environment.")
+    "-r", "--requirement", metavar="FILE", multiple=True,
+    help="Install packages defined in FILE. May be used multiple times.")
 @click.option(
-    "--yes", is_flag=True,
+    "--no-reqs", is_flag=True,
+    help="Don't install from requirements.txt in environment parent directory.")
+@click.option(
+    "-y", "--yes", is_flag=True,
     help="Initialize a Guild environment without prompting.")
 
 @click.pass_context
@@ -43,15 +46,23 @@ def init2(ctx, args):
     `init2` initializes a Guild environment in `DIR`, which is the
     current directory by default.
 
-    ### Virtual environments
-
-    By default `init2` creates a virtual environment in `DIR` using
-    `virtualenv`. You may skip the creation of a virtual environment
-    by specifying `no-venv`.
+    `init2` creates a virtual environment in `DIR` using `virtualenv`.
 
     Use `--python` to specify the Python interpreter to use within the
     generated virtual environment. If `no-venv` is specified,
     `--python` is ignored.
+
+    The environment may be initialized with packages defined in Python
+    requirements files. For information in requirements files, see:
+
+    https://pip.readthedocs.io/en/1.1/requirements.html
+
+    By default, packages defined in `requirements.txt` in the
+    environment parent directory will be installed. Use `--no-reqs` to
+    surppress this behavior.
+
+    You may explicitly specify requirements file using `-r` or
+    `--requirement`.
 
     """
     from . import init2_impl
