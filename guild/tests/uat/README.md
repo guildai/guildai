@@ -9,17 +9,11 @@ These tests expect Guild to be installed.
 
 - [guild-version](guild-version.md)
 
-## Initialize env
+## Env check and unit tests
 
-*Initializing Guild env.*
+*Check the environment and run unit tests.*
 
-We can initialize the Guild environment, including installing
-TensorFlow using the `init` command.
-
-- [check-before-init](check-before-init.md)
-- [tensorflow-commands-before-init](tensorflow-commands-before-init.md)
-- [init-env](init-env.md)
-- [check-after-init](check-after-init.md)
+- [guild-check](guild-check.md)
 - [guild-tests](guild-tests.md)
 
 ## Command errors

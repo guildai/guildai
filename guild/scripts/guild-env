@@ -1,4 +1,9 @@
 # -*-shell-script-*-
+
+echo "=============="
+echo $*
+echo "=============="
+
 _guild_env="$1"
 if [ -z "$_guild_env" ]; then
     _guild_env=./env

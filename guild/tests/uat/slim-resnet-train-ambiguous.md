@@ -15,7 +15,7 @@ We have a number of resnet models:
 
 If we try to train using an ambiguous model, we get an error:
 
-    >>> run("guild train resnet dataset=flowers -y", ignore="FutureWarning")
+    >>> run("guild run resnet:train dataset=flowers -y", ignore="FutureWarning")
     guild: there are multiple models that match 'resnet'
     Try specifying one of the following:
       slim.resnet/slim-resnet-101

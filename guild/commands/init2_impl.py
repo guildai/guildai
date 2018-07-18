@@ -42,7 +42,7 @@ class Config(object):
 
     @staticmethod
     def _init_venv_python(arg):
-        if not arg or arg.startswith("python") :
+        if not arg or arg.startswith("python"):
             return arg
         return "python{}".format(arg)
 
@@ -78,7 +78,7 @@ class Config(object):
 def _shorten_path(path):
     return path.replace(os.path.expanduser("~"), "~")
 
-def main(args, ctx):
+def main(args):
     config = Config(args)
     if args.yes or _confirm(config):
         _init(config)
@@ -169,7 +169,7 @@ def _tensorflow_installed(env_dir):
     cmd_args = [python_bin, "-c", "import tensorflow"]
     try:
         subprocess.check_output(cmd_args, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         return False
     else:
         return True

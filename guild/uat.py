@@ -20,7 +20,6 @@ import errno
 import os
 import pprint
 import re
-import shutil
 import signal
 import subprocess
 import sys
@@ -47,9 +46,8 @@ def run():
         sys.stderr.write("This command must be run in a virtual environment\n")
         sys.exit(1)
     tests = _tests_from_index()
-    workspace_created = _init_workspace()
+    _init_workspace()
     _run_tests(tests)
-    _maybe_delete_workspace(workspace_created)
 
 def _tests_from_index():
     index_path = os.path.join(os.path.dirname(__file__), INDEX)
@@ -57,11 +55,9 @@ def _tests_from_index():
     return re.findall(r"\((.+?)\.md\)", index)
 
 def _init_workspace():
-    existing_workspace = os.path.exists(WORKSPACE)
     print("Initializing workspace %s under %s" % (WORKSPACE, sys.executable))
     util.ensure_dir(os.path.join(WORKSPACE, "passed-tests"))
     util.ensure_dir(os.path.join(WORKSPACE, ".guild"))
-    return not existing_workspace
 
 def _run_tests(tests):
     globs = _test_globals()
@@ -88,7 +84,7 @@ def _test_globals():
         "run": _run,
         "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
         "abspath": os.path.abspath,
-        "sample": guild.test.sample,
+        "sample": _sample,
     })
     return globs
 
@@ -98,6 +94,9 @@ def _global_vars():
         for name, val in globals().items()
         if name[0] != "_" and isinstance(val, str)
     }
+
+def _sample(path):
+    return os.path.abspath(guild.test.sample(path))
 
 def _test_passed(name):
     return os.path.exists(_test_passed_marker(name))
@@ -126,7 +125,10 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
         cmd_env["VIRTUAL_ENV"] = os.environ["VIRTUAL_ENV"]
     cmd_env["COLUMNS"] = "999"
     cmd_env["LANG"] = os.getenv("LANG", "en_US.UTF-8")
-    cmd_cwd = WORKSPACE if not _cwd else os.path.join(WORKSPACE, _cwd)
+    if _cwd:
+        cmd_cwd = os.path.join(WORKSPACE, _cwd)
+    else:
+        cmd_cwd = WORKSPACE
     p = subprocess.Popen(
         [cmd],
         shell=True,
@@ -172,17 +174,3 @@ def _strip_lines(out, patterns):
         if not any((re.search(p, line) for p in patterns))
     ]
     return "\n".join(stripped_lines)
-
-def _maybe_delete_workspace(created):
-    if not created:
-        print(
-            "WORKSPACE existed before running tests, "
-            "leaving %s in place" % WORKSPACE)
-    elif os.getenv("KEEP_WORKSPACE"):
-        print("KEEP_WORKSPACE specified, leaving %s in place" % WORKSPACE)
-    else:
-        _delete_workspace()
-
-def _delete_workspace():
-    print("Deleting workspace %s" % WORKSPACE)
-    shutil.rmtree(WORKSPACE)

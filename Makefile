@@ -65,11 +65,9 @@ clean:
 UAT_PYTHON = python3
 
 uat:
-	@test -e $(guild-uat) \
-	  || virtualenv $(guild-uat) --python $(UAT_PYTHON)
-	@. $(guild-uat)/bin/activate && pip install -qr requirements.txt
-	@. $(guild-uat)/bin/activate \
-	  && WORKSPACE=$(guild-uat) PATH=$$(pwd)/$$(dirname $(guild)):$$PATH guild check --uat
+	@test -e $(guild-uat) || $(guild) init2 $(guild-uat) -y
+	@. $(guild-uat)/bin/activate && \
+	  WORKSPACE=$(guild-uat) $(guild) check --uat
 	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"
 
 clean-uat:

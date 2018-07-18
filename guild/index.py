@@ -303,12 +303,12 @@ class RunIndex(object):
         return _u(val) if isinstance(field, (fields.ID, fields.TEXT)) else val
 
     def _maybe_scalars(self, fields, run):
-        from tensorboard.backend.event_processing import event_multiplexer
+        from tensorboard.backend.event_processing import io_wrapper
         from tensorboard.backend.event_processing import event_accumulator
         _ensure_tf_logger_patched()
         scalars = {}
         scalar_map = run.get("_extra_scalar_map", {})
-        for path in event_multiplexer.GetLogdirSubdirectories(run.path):
+        for path in io_wrapper.GetLogdirSubdirectories(run.path):
             events_checksum_field_name = self._events_checksum_field_name(path)
             last_checksum = fields.get(events_checksum_field_name)
             cur_checksum = self._events_checksum(path)

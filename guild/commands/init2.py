@@ -49,10 +49,9 @@ from guild import click_util
     "-y", "--yes", is_flag=True,
     help="Initialize a Guild environment without prompting.")
 
-@click.pass_context
 @click_util.use_args
 
-def init2(ctx, args):
+def init2(args):
     """Alternative init command.
 
     `init2` initializes a Guild environment in `DIR`, which is the
@@ -104,4 +103,4 @@ def init2(ctx, args):
     environment by specifying `--local-resource-cache`.
     """
     from . import init2_impl
-    init2_impl.main(args, ctx)
+    init2_impl.main(args)
