@@ -38,6 +38,8 @@
     guild.commands.index
     guild.commands.index_impl
     guild.commands.init
+    guild.commands.init2
+    guild.commands.init2_impl
     guild.commands.init_impl
     guild.commands.install
     guild.commands.label
@@ -95,7 +97,6 @@
     guild.commands.tensorflow_check_main
     guild.commands.tensorflow_impl
     guild.commands.tensorflow_inspect
-    guild.commands.train
     guild.commands.uninstall
     guild.commands.view
     guild.commands.view_impl
