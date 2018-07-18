@@ -43,6 +43,9 @@ from guild import click_util
     "--no-reqs", is_flag=True,
     help="Don't install from requirements.txt in environment parent directory.")
 @click.option(
+    "--local-resource-cache", is_flag=True,
+    help="Use a local cache when initializing an environment.")
+@click.option(
     "-y", "--yes", is_flag=True,
     help="Initialize a Guild environment without prompting.")
 
@@ -66,7 +69,7 @@ def init2(ctx, args):
 
     https://pip.readthedocs.io/en/1.1/requirements.html
 
-    By default, packages defined in `requirements.txt` in the
+    By default packages defined in `requirements.txt` in the
     environment parent directory will be installed. Use `--no-reqs` to
     surppress this behavior.
 
@@ -75,7 +78,7 @@ def init2(ctx, args):
 
     ### TensorFlow
 
-    By default, `init2` installs TensorFlow in the initialized
+    By default `init2` installs TensorFlow in the initialized
     environment if it's not already installed. When Guild installs
     TensorFlow, it detects GPU support on the system and selects the
     appropriate package: `tensorflow-gpu` for GPU support, otherwise
@@ -92,6 +95,13 @@ def init2(ctx, args):
     a file specified by a `--requirement` option, Guild will not
     reinstall it.
 
+    ### Resource cache
+
+    By default resources are cached and shared at the user level in
+    `~/.guild/cache/resources` so that resources downloaded from one
+    environment are available to other environments. You can modify
+    this behavior to have all resources downloaded local to the
+    environment by specifying `--local-resource-cache`.
     """
     from . import init2_impl
     init2_impl.main(args, ctx)

@@ -20,6 +20,7 @@ import pkg_resources
 import subprocess
 
 from guild import cli
+from guild import init
 from guild import util
 
 class Config(object):
@@ -30,6 +31,7 @@ class Config(object):
         self.venv_python_ver = args.python
         self.reqs = args.requirement
         self.tensorflow = args.tf_package
+        self.local_resource_cache = args.local_resource_cache
         self.prompt_params = self._init_prompt_params()
 
     @staticmethod
@@ -64,6 +66,10 @@ class Config(object):
             params.append(("TensorFlow support", "auto-detect GPU"))
         else:
             raise AssertionError(self.tensorflow)
+        if self.local_resource_cache:
+            params.append(("Resource cache", "local"))
+        else:
+            params.append(("Resource cache", "shared"))
         return params
 
     def as_kw(self):
@@ -89,17 +95,23 @@ def _confirm(config):
     return cli.confirm("Continue?", default=True)
 
 def _init(config):
+    _init_guild_env(config)
     _init_venv(config)
     _install_guild_reqs(config)
     _install_reqs(config)
     _ensure_tensorflow(config)
     _initialized_msg(config)
 
+def _init_guild_env(config):
+    cli.out("Initializing Guild environment in {}".format(config.env_dir))
+    init.init_env(config.env_dir, config.local_resource_cache)
+
 def _init_venv(config):
     cmd_args = _venv_cmd_args(config)
     if not cmd_args:
         cli.out("Skipping virtual env")
         return
+    cli.out("Creating virtual environment")
     try:
         subprocess.check_call(cmd_args)
     except subprocess.CalledProcessError as e:
