@@ -394,7 +394,7 @@ def _is_runfile_pkg(path):
     return False
 
 def _write_sourceable_env(env, dest):
-    skip_env = ("PWD", "PS1", "_")
+    skip_env = ("PWD", "_")
     with open(dest, "w") as out:
         for name in sorted(env):
             if name in skip_env:
