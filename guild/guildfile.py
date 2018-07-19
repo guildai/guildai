@@ -33,7 +33,7 @@ log = logging.getLogger("guild")
 
 NAMES = ["guild.yml"]
 
-ALL_TYPES = ["model", "config", "package", "include", "include-config"]
+ALL_TYPES = ["model", "config", "package", "include"]
 MODEL_TYPES = ["model", "config"]
 
 _cache = {}
@@ -136,23 +136,16 @@ class Guildfile(object):
         while i < len(data):
             item = data[i]
             try:
-                includes, as_config = self._item_include(item)
-            except LookupError:
+                includes = item["include"]
+            except KeyError:
                 i += 1
             else:
-                new_items = self._include_data(includes, as_config, included)
+                new_items = self._include_data(includes, included)
                 data[i:i+1] = new_items
                 i += len(new_items)
         return data
 
-    @staticmethod
-    def _item_include(item):
-        try:
-            return item["include"], False
-        except KeyError:
-            return item["include-config"], True
-
-    def _include_data(self, includes, as_config, included):
+    def _include_data(self, includes, included):
         includes = self._coerce_data_includes(includes)
         if not _string_source(self.src):
             included.append(os.path.abspath(self.src))
@@ -166,20 +159,8 @@ class Guildfile(object):
                     included + [path])
             data = yaml.load(open(path, "r"))
             gf = Guildfile(data, path, included=included)
-            if as_config:
-                self._models_to_config(gf.data)
             include_data.extend(gf.data)
         return include_data
-
-    @staticmethod
-    def _models_to_config(data):
-        for item in data:
-            try:
-                model = item.pop("model")
-            except KeyError:
-                pass
-            else:
-                item["config"] = model
 
     def _find_include(self, include):
         path = util.find_apply(

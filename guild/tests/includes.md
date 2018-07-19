@@ -91,24 +91,6 @@ As well as:
     (.../samples/projects/includes/include-self.yml ->
      .../samples/projects/includes/include-self.yml)
 
-## Include config
-
-`include-config` may be used to include a file as configuration only.
-
-    >>> gf = guildfile.from_file(sample("projects/includes/include-config.yml"))
-    >>> pprint(gf.data)
-    [{'config': 'base', 'flags': {'base-flag-1': 'bf1', 'base-flag-2': 'bf2'}},
-     {'extends': 'base', 'model': 'a'},
-     {'config': 'base', 'flags': {'base-flag-1': 'bf1', 'base-flag-2': 'bf2'}},
-     {'config': 'b', 'extends': 'base'}]
-
-While `b` is defined in `b.yml` as a model, because `b.yml` is
-includes as config, model `b` doesn't appear in the final Guild file
-as a model:
-
-    >>> gf.models
-    {'a': <guild.guildfile.ModelDef 'a'>}
-
 ## Bad includes
 
     >>> guildfile.from_file(sample("projects/includes/bad-include.yml"))
