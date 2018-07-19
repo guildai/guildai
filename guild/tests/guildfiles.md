@@ -713,6 +713,52 @@ one config:
      <guild.guildfile.OpDef 'm:b_op'>,
      <guild.guildfile.OpDef 'm:c_op'>]
 
+### Extending packages
+
+Guildfiles may extend models and config defined in packages.
+
+When extending a package, the package must be defined on the system
+path (sys.path). If it's not, an error will occur.
+
+We'll use the 'extend-pkg' project to illustrate. This project extends
+both config and a model defined in package 'pkg' (defined in
+'extend-pkg/pkg').
+
+    >>> extend_pkg_dir = sample("projects/extend-pkg")
+
+First we'll try to load the project without including 'pkg' in the
+system path.
+
+    >>> import sys
+    >>> extend_pkg_dir not in sys.path
+    True
+
+    >>> gf = guildfile.from_dir(extend_pkg_dir)
+    Traceback (most recent call last):
+    GuildfileReferenceError: error in .../projects/extend-pkg/guild.yml:
+    cannot find Guild file for package 'pkg'
+
+Next we'll add 'extend-pkg' to the system path and try again.
+
+    >>> sys_path_save = sys.path
+    >>> sys.path.append(extend_pkg_dir)
+    >>> extend_pkg_dir in sys.path
+    True
+
+    >>> gf = guildfile.from_dir(extend_pkg_dir)
+
+The Guildfile contains the two models, which both contain properties
+inherited from the package.
+
+    >>> gf.models
+    {'a': <guild.guildfile.ModelDef 'a'>, 'b': <guild.guildfile.ModelDef 'b'>}
+
+    >>> gf.models["a"].operations
+    [<guild.guildfile.OpDef 'a:test'>]
+
+    >>> gf.models["b"].operations
+    [<guild.guildfile.OpDef 'b:test'>, <guild.guildfile.OpDef 'b:train'>]
+
 ### Inheritance cycles
 
 Below are some inheritance cycles:

@@ -1,0 +1,5 @@
+- model: a
+  extends: pkg/test-support
+
+- model: b
+  extends: pkg/model

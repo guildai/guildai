@@ -565,9 +565,7 @@ def _apply_parents_data(extends, guildfile, seen, data):
                 guildfile,
                 "cycle in 'extends'",
                 seen + [name])
-        parent = _modeldef_base_data(name, guildfile)
-        extended_parent = _extended_data(
-            parent, guildfile, seen + [name], False)
+        parent = _find_parent(name, guildfile, seen)
         inheritable = [
             "description",
             "extra",
@@ -577,14 +575,60 @@ def _apply_parents_data(extends, guildfile, seen, data):
             "references",
             "resources",
         ]
-        _apply_parent_data(extended_parent, data, inheritable)
+        _apply_parent_data(parent, data, inheritable)
 
-def _modeldef_base_data(name, guildfile):
+def _find_parent(name, guildfile, seen):
+    if "/" in name:
+        return _pkg_parent(name, guildfile, seen)
+    else:
+        return _guildfile_parent(name, guildfile, seen)
+
+def _pkg_parent(name, guildfile, seen):
+    data = _modeldef_data(name, guildfile)
+    if data is not None:
+        return data
+    pkg, model_name = name.split("/", 1)
+    pkg_guildfile_path = _find_pkg_guildfile(pkg)
+    if not pkg_guildfile_path:
+        raise GuildfileReferenceError(
+            guildfile, "cannot find Guild file for package '%s'" % pkg)
+    pkg_guildfile = from_file(pkg_guildfile_path)
+    parent = _modeldef_data(model_name, pkg_guildfile)
+    if parent is None:
+        raise GuildfileReferenceError(
+            guildfile,
+            "undefined model or config '%s' in package '%s'"
+            % (model_name, pkg))
+    return _extended_data(parent, pkg_guildfile, seen + [name], False)
+
+def _modeldef_data(name, guildfile):
     for item in guildfile.data:
         if _item_name(item, MODEL_TYPES) == name:
             return item
-    raise GuildfileReferenceError(
-        guildfile, "undefined model or config '%s'" % name)
+    return None
+
+def _find_pkg_guildfile(pkg):
+    return util.find_apply([_sys_path_guildfile, _gpkg_guildfile], pkg)
+
+def _sys_path_guildfile(pkg):
+    for path in sys.path:
+        log.debug("looking for pkg '%s' in %s", pkg, path)
+        for name in NAMES:
+            guildfile = os.path.join(path, pkg, name)
+            if os.path.exists(guildfile):
+                log.debug("found pkg Guild file %s", guildfile)
+                return guildfile
+    return None
+
+def _gpkg_guildfile(pkg):
+    return _sys_path_guildfile("gpkg." + pkg)
+
+def _guildfile_parent(name, guildfile, seen):
+    parent = _modeldef_data(name, guildfile)
+    if parent is None:
+        raise GuildfileReferenceError(
+            guildfile, "undefined model or config '%s'" % name)
+    return _extended_data(parent, guildfile, seen + [name], False)
 
 def _apply_parent_data(parent, child, attrs=None):
     if not isinstance(child, dict) or not isinstance(parent, dict):
