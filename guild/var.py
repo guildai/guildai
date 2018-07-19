@@ -112,7 +112,11 @@ def _run_attr_cmp(x, y, attr):
     else:
         rev = 1
     x_val = _run_attr(x, attr)
+    if x_val is None:
+        return -rev
     y_val = _run_attr(y, attr)
+    if y_val is None:
+        return rev
     return rev * ((x_val > y_val) - (x_val < y_val))
 
 def _run_attr(run, name):
