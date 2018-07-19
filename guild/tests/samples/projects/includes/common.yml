@@ -1,4 +1,4 @@
-- model: base
+- config: base
   flags:
     base-flag-1: bf1
     base-flag-2: bf2

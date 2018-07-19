@@ -20,18 +20,20 @@ import errno
 import logging
 import os
 import re
+import sys
 import warnings
 
 import six
 import yaml
 
 from guild import resourcedef
+from guild import util
 
 log = logging.getLogger("guild")
 
 NAMES = ["guild.yml"]
 
-ALL_TYPES = ["model", "config", "package", "include"]
+ALL_TYPES = ["model", "config", "package", "include", "include-config"]
 MODEL_TYPES = ["model", "config"]
 
 _cache = {}
@@ -70,6 +72,15 @@ class GuildfileCycleError(GuildfileError):
         msg = "%s (%s)" % (desc, " -> ".join(cycle))
         super(GuildfileCycleError, self).__init__(guildfile_or_path, msg)
 
+class GuildfileIncludeError(GuildfileError):
+
+    def __init__(self, guildfile_or_path, include):
+        msg = (
+            "cannot find include '%s' "
+            "(includes must be local to including Guild file or a "
+            "Guild package on the system path)" % include)
+        super(GuildfileIncludeError, self).__init__(guildfile_or_path, msg)
+
 ###################################################################
 # Helpers
 ###################################################################
@@ -83,7 +94,7 @@ def _required(name, data, guildfile):
             "missing required '%s' attribute in %r"
             % (name, data))
 
-def _script_source(src):
+def _string_source(src):
     return re.match(r"<.*>$", src)
 
 ###################################################################
@@ -93,7 +104,7 @@ def _script_source(src):
 class Guildfile(object):
 
     def __init__(self, data, src=None, dir=None, included=None):
-        if not dir and src and not _script_source(src):
+        if not dir and src and not _string_source(src):
             dir = os.path.dirname(src)
         if src is None and dir is None:
             raise ValueError("either src or dir must be specified")
@@ -125,22 +136,29 @@ class Guildfile(object):
         while i < len(data):
             item = data[i]
             try:
-                includes = item["include"]
-            except KeyError:
+                includes, as_config = self._item_include(item)
+            except LookupError:
                 i += 1
             else:
-                new_items = self._include_data(includes, included)
+                new_items = self._include_data(includes, as_config, included)
                 data[i:i+1] = new_items
                 i += len(new_items)
         return data
 
-    def _include_data(self, includes, included):
+    @staticmethod
+    def _item_include(item):
+        try:
+            return item["include"], False
+        except KeyError:
+            return item["include-config"], True
+
+    def _include_data(self, includes, as_config, included):
         includes = self._coerce_data_includes(includes)
-        if not _script_source(self.src):
+        if not _string_source(self.src):
             included.append(os.path.abspath(self.src))
         include_data = []
         for path in includes:
-            path = os.path.abspath(os.path.join(self.dir or "", path))
+            path = self._find_include(path)
             if path in included:
                 raise GuildfileCycleError(
                     "cycle in 'includes'",
@@ -148,8 +166,52 @@ class Guildfile(object):
                     included + [path])
             data = yaml.load(open(path, "r"))
             gf = Guildfile(data, path, included=included)
+            if as_config:
+                self._models_to_config(gf.data)
             include_data.extend(gf.data)
         return include_data
+
+    @staticmethod
+    def _models_to_config(data):
+        for item in data:
+            try:
+                model = item.pop("model")
+            except KeyError:
+                pass
+            else:
+                item["config"] = model
+
+    def _find_include(self, include):
+        path = util.find_apply(
+            [self._local_include,
+             self._sys_path_include,
+             self._gpkg_include],
+            include)
+        if path:
+            return path
+        raise GuildfileIncludeError(self, include)
+
+    def _local_include(self, path):
+        log.debug("looking for include '%s' in %s", path, self.dir)
+        full_path = os.path.abspath(os.path.join(self.dir or "", path))
+        if os.path.exists(full_path):
+            log.debug("found include %s", full_path)
+            return full_path
+        return None
+
+    @staticmethod
+    def _sys_path_include(include):
+        for path in sys.path:
+            log.debug("looking for include '%s' in %s", include, path)
+            for name in NAMES:
+                guildfile = os.path.join(path, include, name)
+                if os.path.exists(guildfile):
+                    log.debug("found include %s", guildfile)
+                    return guildfile
+        return None
+
+    def _gpkg_include(self, include):
+        return self._sys_path_include("gpkg." + include)
 
     def _coerce_data_includes(self, val):
         if isinstance(val, six.string_types):

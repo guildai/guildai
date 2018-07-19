@@ -22,7 +22,7 @@ As model 'a' extends 'base' it inherits its flags:
 We can peek into the data used by `gf_a` to see how includes work:
 
     >>> pprint(gf.data)
-    [{'flags': {'base-flag-1': 'bf1', 'base-flag-2': 'bf2'}, 'model': 'base'},
+    [{'config': 'base', 'flags': {'base-flag-1': 'bf1', 'base-flag-2': 'bf2'}},
      {'extends': 'base', 'model': 'a'}]
 
 Note that the 'include' item was replaced with the contents of the
@@ -41,7 +41,7 @@ This is illustrated by
 
     >>> gf = guildfile.from_file(sample("projects/includes/include-list.yml"))
     >>> sorted(gf.models)
-    ['base', 'c', 'uncommon']
+    ['c', 'uncommon']
 
     >>> gf.models["c"].flags
     [<guild.guildfile.FlagDef 'base-flag-1'>,
@@ -90,3 +90,29 @@ As well as:
     .../samples/projects/includes/include-self.yml
     (.../samples/projects/includes/include-self.yml ->
      .../samples/projects/includes/include-self.yml)
+
+## Include config
+
+`include-config` may be used to include a file as configuration only.
+
+    >>> gf = guildfile.from_file(sample("projects/includes/include-config.yml"))
+    >>> pprint(gf.data)
+    [{'config': 'base', 'flags': {'base-flag-1': 'bf1', 'base-flag-2': 'bf2'}},
+     {'extends': 'base', 'model': 'a'},
+     {'config': 'base', 'flags': {'base-flag-1': 'bf1', 'base-flag-2': 'bf2'}},
+     {'config': 'b', 'extends': 'base'}]
+
+While `b` is defined in `b.yml` as a model, because `b.yml` is
+includes as config, model `b` doesn't appear in the final Guild file
+as a model:
+
+    >>> gf.models
+    {'a': <guild.guildfile.ModelDef 'a'>}
+
+## Bad includes
+
+    >>> guildfile.from_file(sample("projects/includes/bad-include.yml"))
+    Traceback (most recent call last):
+    GuildfileIncludeError: error in .../bad-include.yml: cannot find include
+    'bad.yml' (includes must be local to including Guild file or a Guild package
+    on the system path)

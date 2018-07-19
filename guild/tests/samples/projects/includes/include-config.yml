@@ -1,0 +1,2 @@
+- include: a.yml
+- include-config: b.yml
