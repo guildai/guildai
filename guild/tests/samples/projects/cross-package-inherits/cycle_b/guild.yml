@@ -1,0 +1,2 @@
+- model: model
+  extends: cycle_a/model

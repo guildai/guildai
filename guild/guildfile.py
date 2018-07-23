@@ -103,7 +103,8 @@ def _string_source(src):
 
 class Guildfile(object):
 
-    def __init__(self, data, src=None, dir=None, included=None):
+    def __init__(self, data, src=None, dir=None, included=None,
+                 extends_seen=None):
         if not dir and src and not _string_source(src):
             dir = os.path.dirname(src)
         if src is None and dir is None:
@@ -116,7 +117,7 @@ class Guildfile(object):
         data = self._coerce_data(data)
         self.data = self._expand_data_includes(data, included or [])
         try:
-            self._apply_data()
+            self._apply_data(extends_seen or [])
         except (GuildfileError, resourcedef.ResourceFormatError):
             raise
         except Exception as e:
@@ -202,11 +203,11 @@ class Guildfile(object):
         else:
             raise GuildfileError(self, "invalid includes value: %r" % val)
 
-    def _apply_data(self):
+    def _apply_data(self, extends_seen):
         for item in self.data:
             item_type, name = self._validated_item_type(item)
             if item_type == "model":
-                self._apply_model(name, item)
+                self._apply_model(name, item, extends_seen)
             elif item_type == "package":
                 self._apply_package(name, item)
 
@@ -228,10 +229,10 @@ class Guildfile(object):
                        % (validated_type, name)))
         return validated_type, name
 
-    def _apply_model(self, name, data):
+    def _apply_model(self, name, data, extends_seen):
         if name in self.models:
             raise GuildfileError(self, "duplicate model '%s'" % name)
-        model = ModelDef(name, data, self)
+        model = ModelDef(name, data, self, extends_seen)
         if not self.default_model:
             self.default_model = model
         self.models[name] = model
@@ -494,11 +495,12 @@ class FlagChoice(object):
 
 class ModelDef(FlagHost):
 
-    def __init__(self, name, data, guildfile):
-        data = _extended_data(data, guildfile)
+    def __init__(self, name, data, guildfile, extends_seen=None):
+        data = _extended_data(data, guildfile, extends_seen or [])
         super(ModelDef, self).__init__(data, guildfile)
         self.name = name
         self.guildfile = guildfile
+        self.parents = _dedup_parents(data.get("__parents__", []))
         self.description = (data.get("description") or "").strip()
         self.references = data.get("references") or []
         self.operations = _init_ops(data, self)
@@ -522,7 +524,6 @@ class ModelDef(FlagHost):
         return None
 
 def _extended_data(config_data, guildfile, seen=None, resolve_params=True):
-    seen = seen or []
     data = copy.deepcopy(config_data)
     extends = _coerce_extends((config_data.get("extends") or []), guildfile)
     if extends:
@@ -531,13 +532,13 @@ def _extended_data(config_data, guildfile, seen=None, resolve_params=True):
         data = _resolve_param_refs(data, data.get("params") or {})
     return data
 
-def _coerce_extends(val, src):
+def _coerce_extends(val, guildfile):
     if isinstance(val, str):
         return [val]
     elif isinstance(val, list):
         return val
     else:
-        raise GuildfileError(src, "invalid extends value: %r" % val)
+        raise GuildfileError(guildfile, "invalid extends value: %r" % val)
 
 def _apply_parents_data(extends, guildfile, seen, data):
     for name in extends:
@@ -546,7 +547,7 @@ def _apply_parents_data(extends, guildfile, seen, data):
                 guildfile,
                 "cycle in 'extends'",
                 seen + [name])
-        parent = _find_parent(name, guildfile, seen)
+        parent = _parent_data(name, guildfile, seen)
         inheritable = [
             "description",
             "extra",
@@ -556,31 +557,30 @@ def _apply_parents_data(extends, guildfile, seen, data):
             "references",
             "resources",
         ]
+        _apply_parent_pkg_guildfile(parent, data)
         _apply_parent_data(parent, data, inheritable)
 
-def _find_parent(name, guildfile, seen):
+def _parent_data(name, guildfile, seen):
     if "/" in name:
-        return _pkg_parent(name, guildfile, seen)
+        return _pkg_parent_data(name, guildfile, seen)
     else:
-        return _guildfile_parent(name, guildfile, seen)
+        return _guildfile_parent_data(name, guildfile, seen)
 
-def _pkg_parent(name, guildfile, seen):
-    data = _modeldef_data(name, guildfile)
-    if data is not None:
-        return data
+def _pkg_parent_data(name, guildfile, seen):
     pkg, model_name = name.split("/", 1)
     pkg_guildfile_path = _find_pkg_guildfile(pkg)
     if not pkg_guildfile_path:
         raise GuildfileReferenceError(
             guildfile, "cannot find Guild file for package '%s'" % pkg)
-    pkg_guildfile = from_file(pkg_guildfile_path)
-    parent = _modeldef_data(model_name, pkg_guildfile)
-    if parent is None:
+    pkg_guildfile = from_file(pkg_guildfile_path, seen + [name])
+    parent_data = _modeldef_data(model_name, pkg_guildfile)
+    if parent_data is None:
         raise GuildfileReferenceError(
             guildfile,
             "undefined model or config '%s' in package '%s'"
             % (model_name, pkg))
-    return _extended_data(parent, pkg_guildfile, seen + [name], False)
+    parent_data["__pkg_guildfile__"] = pkg_guildfile
+    return _extended_data(parent_data, pkg_guildfile, seen + [name], False)
 
 def _modeldef_data(name, guildfile):
     for item in guildfile.data:
@@ -604,12 +604,22 @@ def _sys_path_guildfile(pkg):
 def _gpkg_guildfile(pkg):
     return _sys_path_guildfile("gpkg." + pkg)
 
-def _guildfile_parent(name, guildfile, seen):
-    parent = _modeldef_data(name, guildfile)
-    if parent is None:
+def _guildfile_parent_data(name, guildfile, seen):
+    parent_data = _modeldef_data(name, guildfile)
+    if parent_data is None:
         raise GuildfileReferenceError(
             guildfile, "undefined model or config '%s'" % name)
-    return _extended_data(parent, guildfile, seen + [name], False)
+    return _extended_data(parent_data, guildfile, seen + [name], False)
+
+def _apply_parent_pkg_guildfile(parent, child):
+    parents = parent.get("__parents__", [])
+    try:
+        parent_pkg_guildfile = parent["__pkg_guildfile__"]
+    except KeyError:
+        pass
+    else:
+        parents.append(parent_pkg_guildfile)
+    child.setdefault("__parents__", []).extend(parents)
 
 def _apply_parent_data(parent, child, attrs=None):
     if not isinstance(child, dict) or not isinstance(parent, dict):
@@ -661,6 +671,16 @@ def _maybe_resolve_param_ref(val, params):
         else:
             val = ref_val
     return val
+
+def _dedup_parents(parents):
+    seen = set()
+    deduped = []
+    for parent in parents:
+        if parent.dir in seen:
+            continue
+        deduped.append(parent)
+        seen.add(parent.dir)
+    return deduped
 
 def _init_ops(data, modeldef):
     ops_data = data.get("operations") or {}
@@ -837,19 +857,20 @@ def is_guildfile_dir(path):
             return True
     return False
 
-def from_file(src):
+def from_file(src, extends_seen=None):
     cache_key = _cache_key(src)
     cached = _cache.get(cache_key)
     if cached:
         return cached
-    _cache[cache_key] = mf = _load_guildfile(src)
+    _cache[cache_key] = mf = _load_guildfile(src, extends_seen)
     return mf
 
 def _cache_key(src):
     return os.path.abspath(src)
 
-def _load_guildfile(src):
-    return Guildfile(yaml.safe_load(open(src, "r")), src)
+def _load_guildfile(src, extends_seen):
+    data = yaml.safe_load(open(src, "r"))
+    return Guildfile(data, src, extends_seen=extends_seen)
 
 def from_file_or_dir(src):
     try:

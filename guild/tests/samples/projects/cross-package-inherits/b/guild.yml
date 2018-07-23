@@ -1,0 +1,5 @@
+- model: model
+  description: model 'b'
+  extends: a/model
+  params:
+    msg: Hello from b/model

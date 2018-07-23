@@ -1,0 +1,15 @@
+- config: base
+  operations:
+    test:
+      main: test_main "{{msg}}" msg.txt
+      requires: msg_file
+  resources:
+    msg_file:
+      sources:
+        - msg.txt
+
+- model: model
+  description: model 'a'
+  extends: base
+  params:
+    msg: Hello from a/model

@@ -22,7 +22,12 @@ import sys
 # Consider all Guild imports expensive and move to functions
 
 class RunError(Exception):
-    pass
+
+    def __init__(self, cmd, returncode, out_err):
+        super(RunError, self).__init__(cmd, returncode, out_err)
+        self.cmd_args, self.cmd_cwd, self.cmd_env = cmd
+        self.returncode = returncode
+        self.out, self.err = out_err
 
 class Env(object):
 
@@ -48,7 +53,7 @@ def _init_env(cwd, guild_home):
     config.set_guild_home(guild_home or main.DEFAULT_GUILD_HOME)
 
 
-def run(spec, cwd=None, flags=None, run_dir=None):
+def run(spec, cwd=None, flags=None, run_dir=None, extra_env=None):
     import guild
     cwd = cwd or "."
     flags = flags or []
@@ -62,6 +67,8 @@ def run(spec, cwd=None, flags=None, run_dir=None):
         args.extend(["--run-dir", run_dir])
     guild_home = os.path.abspath(guild.__pkgdir__)
     env = dict(os.environ)
+    if extra_env:
+        env.update(extra_env)
     _apply_python_path_env(env, guild_home)
     _apply_lang_env(env)
     p = subprocess.Popen(
