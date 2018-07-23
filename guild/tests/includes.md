@@ -91,6 +91,39 @@ As well as:
     (.../samples/projects/includes/include-self.yml ->
      .../samples/projects/includes/include-self.yml)
 
+## Include from packages
+
+An include may contain a package spec. The package must be in the
+system path and contain a `guild.yml` file.
+
+We'll use the sample `projects/includes/include-pkg.yml` to
+illustrate. `include-pkg.yml` includes `mnist`, which is a package
+spec.
+
+Initially we can't load the Guildfile because `mnist` is not on the
+system path:
+
+    >>> guildfile.from_file(sample("projects/includes/include-pkg.yml"))
+    Traceback (most recent call last):
+    GuildfileIncludeError: error in
+    ./guild/tests/samples/projects/includes/include-pkg.yml: cannot find
+    include 'mnist' (includes must be local to including Guild file or a
+    Guild package on the system path)
+
+We'll modify the system path to so Guild can find the `mnist` package.
+
+    >>> import sys
+    >>> sys_path_save = sys.path
+    >>> sys.path.append(sample("projects"))
+
+Now we can load `include-pkg.yml`:
+
+    >>> gf = guildfile.from_file(sample("projects/includes/include-pkg.yml"))
+    >>> gf.models
+    {'intro': <guild.guildfile.ModelDef 'intro'>,
+      'b': <guild.guildfile.ModelDef 'b'>,
+      'expert': <guild.guildfile.ModelDef 'expert'>}
+
 ## Bad includes
 
     >>> guildfile.from_file(sample("projects/includes/bad-include.yml"))

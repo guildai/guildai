@@ -1,0 +1,4 @@
+- include: mnist
+
+- model: b
+  extends: mnist/intro
