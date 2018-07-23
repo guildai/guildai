@@ -759,6 +759,10 @@ inherited from the package.
     >>> gf.models["b"].operations
     [<guild.guildfile.OpDef 'b:test'>, <guild.guildfile.OpDef 'b:train'>]
 
+Let's restore the system path:
+
+    >>> sys.path = sys_path_save
+
 ### Inheritance cycles
 
 Below are some inheritance cycles:

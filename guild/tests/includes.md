@@ -124,6 +124,10 @@ Now we can load `include-pkg.yml`:
       'b': <guild.guildfile.ModelDef 'b'>,
       'expert': <guild.guildfile.ModelDef 'expert'>}
 
+Let's restore the system path:
+
+    >>> sys.path = sys_path_save
+
 ## Bad includes
 
     >>> guildfile.from_file(sample("projects/includes/bad-include.yml"))
