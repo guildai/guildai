@@ -824,7 +824,7 @@ def from_dir(path, filenames=None):
         model_file = os.path.abspath(os.path.join(path, name))
         if os.path.isfile(model_file):
             log.debug("found model source '%s'", model_file)
-            return _load_guildfile(model_file)
+            return from_file(model_file)
     raise NoModels(path)
 
 def is_guildfile_dir(path):
