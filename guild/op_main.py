@@ -73,7 +73,9 @@ def _init_logging():
 
 def _init_warnings():
     if log.getEffectiveLevel() > logging.DEBUG:
-        warnings.simplefilter(action='ignore', category=FutureWarning)
+        warnings.simplefilter(action="ignore", category=FutureWarning)
+        warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+        warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 def _parse_args():
     if len(sys.argv) < 2:
