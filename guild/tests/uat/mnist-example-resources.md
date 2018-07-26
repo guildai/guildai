@@ -2,7 +2,7 @@
 
 The MNIST example provides the following resources:
 
-    >>> run("guild -C examples/mnist2 resources", ignore="FutureWarning")
+    >>> run("guild -C examples/mnist2 resources")
     ./examples/mnist2/mnist-expert:model  Exported model
     ./examples/mnist2/mnist-intro:model   Exported model
     hello/...
@@ -11,7 +11,7 @@ The MNIST example provides the following resources:
 The same list after changing directories:
 
     >>> cd("examples/mnist2")
-    >>> run("guild resources", ignore="FutureWarning")
+    >>> run("guild resources")
     ./mnist-expert:model  Exported model
     ./mnist-intro:model   Exported model
     hello/...
@@ -19,7 +19,7 @@ The same list after changing directories:
 
 We can limit resources to those defined in the current directory:
 
-    >>> run("guild resources .", ignore="FutureWarning")
+    >>> run("guild resources .")
     ./mnist-expert:model  Exported model
     ./mnist-intro:model   Exported model
     <exit 0>

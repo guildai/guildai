@@ -124,14 +124,14 @@ Next we'll run `b/model:test`:
     >>> b_test_run_dir = mkdtemp()
 
     >>> try:
-    ...   gapi.run(
+    ...   out, err = gapi.run(
     ...     spec="model:test",
     ...     cwd=join_path(projects, "b"),
     ...     run_dir=b_test_run_dir)
     ... except gapi.RunError as e:
-    ...   run_error = e
-
-    >>> print(e.err)
+    ...   print(e.err)
+    ... else:
+    ...   out, err
     ERROR: error loading guildfile from .:
     error in .../cross-package-inherits/b/guild.yml: cannot find
     Guild file for package 'a'

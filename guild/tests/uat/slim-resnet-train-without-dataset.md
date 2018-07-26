@@ -5,7 +5,7 @@ must first be prepared to create a train/test split.
 
 Training without a dataset argument is an error:
 
-    >>> run("guild run resnet-50:train -y", ignore="FutureWarning")
+    >>> run("guild run resnet-50:train -y")
     Operation requires the following missing flags:
     <BLANKLINE>
     dataset  Dataset to train with (cifar10, mnist, flowers, custom)
@@ -15,7 +15,7 @@ Training without a dataset argument is an error:
 
 Training without a prepared dataset is an error:
 
-    >>> run("guild run resnet-50:train dataset=flowers -y", timeout=300, ignore="FutureWarning")
+    >>> run("guild run resnet-50:train dataset=flowers -y", timeout=300)
     Resolving slim/models-lib dependency
     ...
     Resolving flowers dependency

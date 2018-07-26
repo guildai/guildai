@@ -105,10 +105,9 @@ system path:
 
     >>> guildfile.from_file(sample("projects/includes/include-pkg.yml"))
     Traceback (most recent call last):
-    GuildfileIncludeError: error in
-    ./guild/tests/samples/projects/includes/include-pkg.yml: cannot find
-    include 'mnist' (includes must be local to including Guild file or a
-    Guild package on the system path)
+    GuildfileIncludeError: error in .../projects/includes/include-pkg.yml:
+    cannot find include 'mnist' (includes must be local to including Guild
+    file or a Guild package on the system path)
 
 We'll modify the system path to so Guild can find the `mnist` package.
 
@@ -119,10 +118,10 @@ We'll modify the system path to so Guild can find the `mnist` package.
 Now we can load `include-pkg.yml`:
 
     >>> gf = guildfile.from_file(sample("projects/includes/include-pkg.yml"))
-    >>> gf.models
-    {'intro': <guild.guildfile.ModelDef 'intro'>,
-      'b': <guild.guildfile.ModelDef 'b'>,
-      'expert': <guild.guildfile.ModelDef 'expert'>}
+    >>> pprint(gf.models)
+    {'b': <guild.guildfile.ModelDef 'b'>,
+     'expert': <guild.guildfile.ModelDef 'expert'>,
+     'intro': <guild.guildfile.ModelDef 'intro'>}
 
 Let's restore the system path:
 
@@ -132,6 +131,6 @@ Let's restore the system path:
 
     >>> guildfile.from_file(sample("projects/includes/bad-include.yml"))
     Traceback (most recent call last):
-    GuildfileIncludeError: error in .../bad-include.yml: cannot find include
-    'bad.yml' (includes must be local to including Guild file or a Guild package
-    on the system path)
+    GuildfileIncludeError: error in .../projects/includes/bad-include.yml:
+    cannot find include 'bad.yml' (includes must be local to including Guild
+    file or a Guild package on the system path)

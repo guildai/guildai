@@ -9,7 +9,7 @@ develop with a single run directory.
 
 Let's run a `hello` operation using a specific run directory.
 
-    >>> run("guild run hello:default --run-dir hello-default -y", ignore="FutureWarning")
+    >>> run("guild run hello:default --run-dir hello-default -y")
     Run directory is '/.../hello-default' (results will not be visible to Guild)
     Hello Guild!
     <exit 0>

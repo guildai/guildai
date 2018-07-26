@@ -14,7 +14,7 @@ We can reference a guildfile in one of two ways:
 Here are the models associated with the MNIST example (using the `-C`
 option):
 
-    >>> run("guild -C examples/mnist2 models", ignore="FutureWarning")
+    >>> run("guild -C examples/mnist2 models")
     ./examples/mnist2/mnist-expert  MNIST model from TensorFlow expert tutorial
     ./examples/mnist2/mnist-intro   MNIST model from TensorFlow intro tutorial
     hello/...
@@ -24,7 +24,7 @@ option):
 Here's the same list after we've changed to that directory:
 
     >>> cd("examples/mnist2")
-    >>> run("guild models", ignore="FutureWarning")
+    >>> run("guild models")
     ./mnist-expert  MNIST model from TensorFlow expert tutorial
     ./mnist-intro   MNIST model from TensorFlow intro tutorial
     hello/...
@@ -34,7 +34,7 @@ Here's the same list after we've changed to that directory:
 We can limit the results to model defined in the current directory by
 specifying it as a filter:
 
-    >>> run("guild models .", ignore="FutureWarning")
+    >>> run("guild models .")
     ./mnist-expert       MNIST model from TensorFlow expert tutorial
     ./mnist-intro        MNIST model from TensorFlow intro tutorial
     <exit 0>

@@ -14,7 +14,7 @@ This example doesn't have a guildfile:
 
 However, we can still list locally defined models:
 
-    >>> run("guild models .", ignore="FutureWarning")
+    >>> run("guild models .")
     ./mnist_irnn
     ./mnist_mlp
     <exit 0>
@@ -29,7 +29,7 @@ keras plugin detects as valid Keras training scripts.
 
 We can similarly list the supported operations for each model:
 
-    >>> run("guild operations .", ignore="FutureWarning")
+    >>> run("guild operations .")
     ./mnist_irnn:train  Train the model
     ./mnist_mlp:train   Train the model
     <exit 0>
@@ -37,24 +37,24 @@ We can similarly list the supported operations for each model:
 Plugin defined models do not support resources, but we can still list
 them.
 
-    >>> run("guild resources .", ignore="FutureWarning")
+    >>> run("guild resources .")
     <exit 0>
 
 Without a guildfile directory filter, all models, operations, and
 resources are listed:
 
-    >>> run("guild models", ignore="FutureWarning")
+    >>> run("guild models")
     ./mnist_irnn
     ./mnist_mlp
     hello/...
     <exit 0>
 
-    >>> run("guild operations", ignore="FutureWarning")
+    >>> run("guild operations")
     ./mnist_irnn:train            Train the model
     ./mnist_mlp:train             Train the model
     hello/...
     <exit 0>
 
-    >>> run("guild resources", ignore="FutureWarning")
+    >>> run("guild resources")
     hello/...
     <exit 0>

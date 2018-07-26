@@ -12,13 +12,13 @@
     requires: []
     <exit 0>
 
-    >>> run("guild models mnist", ignore="FutureWarning")
+    >>> run("guild models mnist")
     mnist/mnist-cnn      CNN classifier for MNIST
     mnist/mnist-samples  Sample MNIST images
     mnist/mnist-softmax  Softmax regression classifier for MNIST
     <exit 0>
 
-    >>> run("guild operations mnist", ignore="FutureWarning")
+    >>> run("guild operations mnist")
     mnist/mnist-cnn:evaluate      Evaluate a trained CNN
     mnist/mnist-cnn:train         Train the CNN
     mnist/mnist-samples:prepare   Generate a set of sample MNIST images
@@ -26,6 +26,8 @@
     mnist/mnist-softmax:train     Train the softmax regression
     <exit 0>
 
-    >>> run("guild resources mnist", ignore="FutureWarning")
-    mnist/dataset  Yann Lecun's MNIST dataset in compressed IDX format
+    >>> run("guild resources mnist")
     <exit 0>
+
+UPDATE Jul 2018: Package resources are removed from mnist and are on
+the chopping block in general.

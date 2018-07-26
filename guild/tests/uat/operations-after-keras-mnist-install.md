@@ -2,7 +2,7 @@
 
 The `keras.mnist` models all provide a single `train` operation.
 
-    >>> run("guild operations keras", ignore="FutureWarning")
+    >>> run("guild operations keras")
     keras.mnist/mnist-acgan:train                  Train the ACGAN
     keras.mnist/mnist-cnn:train                    Train the CNN
     keras.mnist/mnist-denoising-autoencoder:train  Train the autoencoder

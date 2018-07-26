@@ -6,7 +6,7 @@ review the setting before continuing.
 Because the prompt waits for user input, we need to terminate the
 process using a timeout:
 
-    >>> run("guild run mnist-softmax:train", timeout=2, ignore="FutureWarning")
+    >>> run("guild run mnist-softmax:train", timeout=2)
     You are about to run mnist/mnist-softmax:train
       batch-size: 100
       epochs: 10

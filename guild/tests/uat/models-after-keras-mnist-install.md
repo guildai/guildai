@@ -3,7 +3,7 @@
 The following Keras models are available after the `keras.mnist`
 package is installed:
 
-    >>> run("guild models keras", ignore="FutureWarning")
+    >>> run("guild models keras")
     keras.mnist/mnist-acgan                  Auxiliary Classifier Generative Adversarial Network (ACGAN) for MNIST in Keras
     keras.mnist/mnist-cnn                    Convolutional neural network (CNN) classifier for MNIST in Keras
     keras.mnist/mnist-denoising-autoencoder  Denoising autoencoder for MNIST in Keras

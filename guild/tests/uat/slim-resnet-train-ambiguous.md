@@ -2,7 +2,7 @@
 
 We have a number of resnet models:
 
-    >>> run("guild models resnet", ignore="FutureWarning")
+    >>> run("guild models resnet")
     slim.resnet/slim-resnet-101     ResNet-101 classifier for TF-Slim
     slim.resnet/slim-resnet-152     ResNet-152 classifier for TF-Slim
     slim.resnet/slim-resnet-200     ResNet-200 classifier for TF-Slim
@@ -15,7 +15,7 @@ We have a number of resnet models:
 
 If we try to train using an ambiguous model, we get an error:
 
-    >>> run("guild run resnet:train dataset=flowers -y", ignore="FutureWarning")
+    >>> run("guild run resnet:train dataset=flowers -y")
     guild: there are multiple models that match 'resnet'
     Try specifying one of the following:
       slim.resnet/slim-resnet-101

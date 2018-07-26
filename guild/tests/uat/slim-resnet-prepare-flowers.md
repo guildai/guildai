@@ -3,13 +3,13 @@
 Direct output to /dev/null to avoid freezing (I believe related to
 rapid stdout updates from the processing progress).
 
-    >>> run("guild run flowers:prepare -y > /dev/null", timeout=300, ignore="FutureWarning")
+    >>> run("guild run flowers:prepare -y > /dev/null", timeout=300)
     Resolving slim/models-lib dependency
     ...
     <exit 0>
 
 List the prepared flowers datasets:
 
-    >>> run("guild runs list -o flowers", ignore="FutureWarning")
+    >>> run("guild runs list -o flowers")
     [0:...]  slim.datasets/slim-flowers:prepare  ... ...  completed
     <exit 0>

@@ -23,9 +23,9 @@ Use `from_file` to load a guildfile from a file directly:
 
 Models are access using the `models` attribute:
 
-    >>> sorted(gf.models.items())
-    [('expert', <guild.guildfile.ModelDef 'expert'>),
-     ('intro', <guild.guildfile.ModelDef 'intro'>)]
+    >>> pprint(gf.models)
+    {'expert': <guild.guildfile.ModelDef 'expert'>,
+     'intro': <guild.guildfile.ModelDef 'intro'>}
 
 ### Accessing modeldefs
 
@@ -750,8 +750,9 @@ Next we'll add 'extend-pkg' to the system path and try again.
 The Guildfile contains the two models, which both contain properties
 inherited from the package.
 
-    >>> gf.models
-    {'a': <guild.guildfile.ModelDef 'a'>, 'b': <guild.guildfile.ModelDef 'b'>}
+    >>> pprint(gf.models)
+    {'a': <guild.guildfile.ModelDef 'a'>,
+     'b': <guild.guildfile.ModelDef 'b'>}
 
     >>> gf.models["a"].operations
     [<guild.guildfile.OpDef 'a:test'>]
