@@ -88,7 +88,7 @@ def _run_test(name):
         return False
     else:
         if not failures:
-            sys.stdout.write(" " * (23 - len(name)))
+            sys.stdout.write(" " * (25 - len(name)))
             sys.stdout.write(" ok\n")
         return failures == 0
 
