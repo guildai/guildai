@@ -263,7 +263,7 @@ def _format_flag_choices(choices, max_flag_len):
     out.write_heading("Choices")
     out.indent()
     out.write_dl(
-        [(choice.value, "\n\n".join(choice.description.split("\n")))
+        [(str(choice.value), "\n\n".join(choice.description.split("\n")))
          for choice in choices],
         preserve_paragraphs=True)
     return "\n\b\n" + out.getvalue()
