@@ -18,6 +18,7 @@ from __future__ import division
 import os
 import logging
 import subprocess
+import sys
 
 import guild.remote
 from guild import var
@@ -77,4 +78,27 @@ class SSHRemote(guild.remote.Remote):
         opts = ["-al", "--inplace"]
         if verbose:
             opts.append("-v")
+        return opts
+
+    def start(self):
+        raise guild.remote.OperationNotSupported(
+            "start is not supported for ssh remotes")
+
+    def stop(self):
+        raise guild.remote.OperationNotSupported(
+            "stop is not supported for ssh remotes")
+
+    def status(self, verbose=False, out=None):
+        out = out or sys.stdout
+        cmd = ["ssh"] + self._ssh_opts(verbose) + [self.host, "true"]
+        result = subprocess.call(cmd, stderr=subprocess.STDOUT, stdout=out)
+        if result != 0:
+            raise guild.remote.Down("cannot reach host %s" % self.host)
+        out.write("%s (%s) is available\n" % (self.name, self.host))
+
+    @staticmethod
+    def _ssh_opts(verbose):
+        opts = []
+        if verbose:
+            opts.append("-vvv")
         return opts
