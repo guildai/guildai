@@ -58,6 +58,11 @@
     guild.commands.packages_list
     guild.commands.pull
     guild.commands.push
+    guild.commands.remote
+    guild.commands.remote_impl
+    guild.commands.remote_start
+    guild.commands.remote_status
+    guild.commands.remote_stop
     guild.commands.remote_support
     guild.commands.remotes
     guild.commands.remotes_impl

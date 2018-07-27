@@ -36,6 +36,8 @@ from guild import remote_run_support
 from guild import util
 from guild import var
 
+from . import remote_support
+
 log = logging.getLogger("guild")
 
 RUN_DETAIL = [
@@ -606,7 +608,7 @@ def import_(args, ctx):
         export, ALL_RUNS_ARG, True)
 
 def push(args, ctx):
-    remote = _remote_for_name(args.remote)
+    remote = remote_support.remote_for_args(args)
     preview = (
         "You are about to copy the following runs to '%s':" %
         remote.push_dest())
@@ -617,24 +619,6 @@ def push(args, ctx):
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
         push, ALL_RUNS_ARG, True)
-
-def _remote_for_name(name):
-    try:
-        return guild.remote.for_name(name)
-    except guild.remote.NoSuchRemote:
-        cli.error(
-            "remote '%s' is not defined\n"
-            "Remotes are defined in ~/.guild/config.yml. "
-            "Try 'guild remotes --help' for more information."
-            % name)
-    except guild.remote.UnsupportedRemoteType as e:
-        cli.error(
-            "remote '%s' in ~/.guild/config.yml has unsupported "
-            "type: %s" % (name, e.args[0]))
-    except guild.remote.MissingRequiredConfig as e:
-        cli.error(
-            "remote '%s' in ~/.guild/config.yml is missing required "
-            "config: %s" % (name, e.args[0]))
 
 def pull(args, ctx):
     if not args.runs and not args.all:
@@ -647,7 +631,7 @@ def pull(args, ctx):
             "RUN cannot be used with --all\n"
             "Try '%s' for more information."
             % click_util.cmd_help(ctx))
-    remote = _remote_for_name(args.remote)
+    remote = remote_support.remote_for_args(args)
     if args.all:
         run_ids = None
         preview = (

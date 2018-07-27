@@ -18,20 +18,19 @@ from __future__ import division
 import click
 
 from guild import click_util
-
-# Used in remotes docstring
-# pylint: disable=unused-import
 from . import remote_support
 
-@click.command()
+@click.command("start")
+@remote_support.remote_arg
+
+@click_util.use_args
 
 @click_util.render_doc
 
-def remotes():
-    """Show available remotes.
+def remote_start(args):
+    """Start a remote.
 
-    {{ remote_support.remotes }}
+    {{ remote_support.remote_arg }}
     """
-
-    from . import remotes_impl
-    remotes_impl.main()
+    from . import remote_impl
+    remote_impl.start(args)

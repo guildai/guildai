@@ -15,23 +15,29 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import click
+import guild.remote
 
-from guild import click_util
+from guild import cli
 
-# Used in remotes docstring
-# pylint: disable=unused-import
 from . import remote_support
 
-@click.command()
+def start(args):
+    remote = remote_support.remote_for_args(args)
+    try:
+        remote.start()
+    except guild.remote.OperationNotSupported as e:
+        cli.error(e)
 
-@click_util.render_doc
+def stop(args):
+    remote = remote_support.remote_for_args(args)
+    try:
+        remote.stop()
+    except guild.remote.OperationNotSupported as e:
+        cli.error(e)
 
-def remotes():
-    """Show available remotes.
-
-    {{ remote_support.remotes }}
-    """
-
-    from . import remotes_impl
-    remotes_impl.main()
+def status(args):
+    remote = remote_support.remote_for_args(args)
+    try:
+        remote.status(args.verbose)
+    except guild.remote.Down as e:
+        cli.error("remote %s is not available (%s)" % (remote.name, e))

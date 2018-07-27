@@ -18,20 +18,19 @@ from __future__ import division
 import click
 
 from guild import click_util
-
-# Used in remotes docstring
-# pylint: disable=unused-import
 from . import remote_support
 
-@click.command()
+@click.command("status")
+@remote_support.remote_arg
+@click.option("--verbose", is_flag=True, help="Show more status information.")
+@click_util.use_args
 
 @click_util.render_doc
 
-def remotes():
-    """Show available remotes.
+def remote_status(args):
+    """Show remote status.
 
-    {{ remote_support.remotes }}
+    {{ remote_support.remote_arg }}
     """
-
-    from . import remotes_impl
-    remotes_impl.main()
+    from . import remote_impl
+    remote_impl.status(args)

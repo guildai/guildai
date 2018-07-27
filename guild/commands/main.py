@@ -40,6 +40,7 @@ from .package import package
 from .packages import packages
 from .pull import pull
 from .push import push
+from .remote import remote
 from .remotes import remotes
 from .resources import resources
 from .run import run
@@ -110,6 +111,7 @@ main.add_command(package)
 main.add_command(packages)
 main.add_command(pull)
 main.add_command(push)
+main.add_command(remote)
 main.add_command(remotes)
 main.add_command(resources)
 main.add_command(run)

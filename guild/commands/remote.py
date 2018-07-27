@@ -17,21 +17,19 @@ from __future__ import division
 
 import click
 
+from guild import cli
 from guild import click_util
 
-# Used in remotes docstring
-# pylint: disable=unused-import
-from . import remote_support
+from .remote_start import remote_start
+from .remote_status import remote_status
+from .remote_stop import remote_stop
 
-@click.command()
+@click.group(cls=click_util.Group)
 
-@click_util.render_doc
-
-def remotes():
-    """Show available remotes.
-
-    {{ remote_support.remotes }}
+def remote():
+    """Manage remote status.
     """
 
-    from . import remotes_impl
-    remotes_impl.main()
+remote.add_command(remote_start)
+remote.add_command(remote_status)
+remote.add_command(remote_stop)

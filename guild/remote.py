@@ -26,6 +26,12 @@ class UnsupportedRemoteType(ValueError):
 class MissingRequiredConfig(ValueError):
     pass
 
+class OperationNotSupported(Exception):
+    pass
+
+class Down(Exception):
+    pass
+
 class RemoteConfig(dict):
 
     def __getitem__(self, key):
@@ -51,6 +57,15 @@ class Remote(object):
         raise NotImplementedError()
 
     def pull_src(self):
+        raise NotImplementedError()
+
+    def status(self):
+        raise NotImplementedError()
+
+    def start(self):
+        raise NotImplementedError()
+
+    def stop(self):
         raise NotImplementedError()
 
 def for_name(name):

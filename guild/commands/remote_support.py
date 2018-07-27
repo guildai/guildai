@@ -17,9 +17,19 @@ from __future__ import division
 
 import click
 
+import guild.remote
+
+from guild import cli
 from guild import click_util
 
 def remote_arg(fn):
+    """`REMOTE` is the name of a configured remote. Use ``guild remotes``
+    to list available remotes.
+
+    For information on configuring remotes, see ``guild remotes
+    --help``.
+
+    """
     click_util.append_params(fn, [
         click.Argument(("remote",))
     ])
@@ -52,3 +62,21 @@ def remotes():
     associated with remote user (defaults to ``.guild``)
 
     """
+
+def remote_for_args(args):
+    try:
+        return guild.remote.for_name(args.remote)
+    except guild.remote.NoSuchRemote:
+        cli.error(
+            "remote '%s' is not defined\n"
+            "List available remotes by running 'guild remotes' or "
+            "'guild remotes --help' for more information."
+            % args.remote)
+    except guild.remote.UnsupportedRemoteType as e:
+        cli.error(
+            "remote '%s' in ~/.guild/config.yml has unsupported "
+            "type: %s" % (args.remote, e.args[0]))
+    except guild.remote.MissingRequiredConfig as e:
+        cli.error(
+            "remote '%s' in ~/.guild/config.yml is missing required "
+            "config: %s" % (args.remote, e.args[0]))
