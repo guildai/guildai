@@ -145,6 +145,7 @@
     guild.remotes.__init__
     guild.remotes.ec2
     guild.remotes.ssh
+    guild.remotes.ssh_util
     guild.resolver
     guild.resource
     guild.resourcedef

@@ -32,6 +32,9 @@ class OperationNotSupported(Exception):
 class Down(Exception):
     pass
 
+class OperationError(Exception):
+    pass
+
 class RemoteConfig(dict):
 
     def __getitem__(self, key):
@@ -59,7 +62,7 @@ class Remote(object):
     def pull_src(self):
         raise NotImplementedError()
 
-    def status(self):
+    def status(self, verbose=False):
         raise NotImplementedError()
 
     def start(self):
@@ -90,6 +93,5 @@ def _for_type(remote_type, name, config):
         cls = ec2.EC2Remote
     else:
         raise UnsupportedRemoteType(remote_type)
-    remote = cls(config)
-    remote.name = name
+    remote = cls(name, config)
     return remote

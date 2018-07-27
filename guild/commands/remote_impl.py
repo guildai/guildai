@@ -23,17 +23,23 @@ from . import remote_support
 
 def start(args):
     remote = remote_support.remote_for_args(args)
-    try:
-        remote.start()
-    except guild.remote.OperationNotSupported as e:
-        cli.error(e)
+    _remote_op(remote.start, "start", remote, True, args)
+
 
 def stop(args):
     remote = remote_support.remote_for_args(args)
-    try:
-        remote.stop()
-    except guild.remote.OperationNotSupported as e:
-        cli.error(e)
+    _remote_op(remote.stop, "stop", remote, False, args)
+
+def _remote_op(op, desc, remote, default_resp, args):
+    if not args.yes:
+        cli.out("You are about to %s %s" % (desc, remote.name))
+    if args.yes or cli.confirm("Continue?", default_resp):
+        try:
+            op()
+        except guild.remote.OperationNotSupported as e:
+            cli.error(e)
+        except guild.remote.OperationError as e:
+            cli.error(e)
 
 def status(args):
     remote = remote_support.remote_for_args(args)
@@ -41,3 +47,5 @@ def status(args):
         remote.status(args.verbose)
     except guild.remote.Down as e:
         cli.error("remote %s is not available (%s)" % (remote.name, e))
+    except guild.remote.OperationError as e:
+        cli.error(e)

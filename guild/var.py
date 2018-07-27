@@ -43,6 +43,9 @@ def trash_dir(name=None):
 def cache_dir(name=None):
     return path("cache", name)
 
+def remote_dir(name=None):
+    return path("remotes", name)
+
 def runs(root=None, sort=None, filter=None, run_init=None):
     root = root or runs_dir()
     filter = filter or (lambda _: True)

@@ -21,13 +21,17 @@ import subprocess
 import sys
 
 import guild.remote
+
 from guild import var
+
+from . import ssh_util
 
 log = logging.getLogger("guild.remotes.ssh")
 
 class SSHRemote(guild.remote.Remote):
 
-    def __init__(self, config):
+    def __init__(self, name, config):
+        self.name = name
         self.host = config["host"]
         self.user = config.get("user")
         self.guild_home = config.get("guild-home", ".guild")
@@ -88,17 +92,6 @@ class SSHRemote(guild.remote.Remote):
         raise guild.remote.OperationNotSupported(
             "stop is not supported for ssh remotes")
 
-    def status(self, verbose=False, out=None):
-        out = out or sys.stdout
-        cmd = ["ssh"] + self._ssh_opts(verbose) + [self.host, "true"]
-        result = subprocess.call(cmd, stderr=subprocess.STDOUT, stdout=out)
-        if result != 0:
-            raise guild.remote.Down("cannot reach host %s" % self.host)
-        out.write("%s (%s) is available\n" % (self.name, self.host))
-
-    @staticmethod
-    def _ssh_opts(verbose):
-        opts = []
-        if verbose:
-            opts.append("-vvv")
-        return opts
+    def status(self, verbose=False):
+        ssh_util.ssh_ping(self.host, verbose)
+        sys.stdout.write("%s (%s) is available\n" % (self.name, self.host))

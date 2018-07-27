@@ -15,23 +15,18 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import click
+import subprocess
 
-from guild import click_util
-from . import remote_support
+import guild.remote
 
-@click.command("start")
-@remote_support.remote_arg
-@click.option("-y", "--yes", is_flag=True, help="Start without prompting.")
+def ssh_ping(host, verbose=False):
+    cmd = ["ssh"] + _ssh_opts(verbose) + [host, "true"]
+    result = subprocess.call(cmd)
+    if result != 0:
+        raise guild.remote.Down("cannot reach host %s" % host)
 
-@click_util.use_args
-
-@click_util.render_doc
-
-def remote_start(args):
-    """Start a remote.
-
-    {{ remote_support.remote_arg }}
-    """
-    from . import remote_impl
-    remote_impl.start(args)
+def _ssh_opts(verbose):
+    opts = []
+    if verbose:
+        opts.append("-vvv")
+    return opts

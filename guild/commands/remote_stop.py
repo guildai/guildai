@@ -22,6 +22,7 @@ from . import remote_support
 
 @click.command("stop")
 @remote_support.remote_arg
+@click.option("-y", "--yes", is_flag=True, help="Stop without prompting.")
 
 @click_util.use_args
 
