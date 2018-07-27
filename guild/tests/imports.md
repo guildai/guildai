@@ -143,6 +143,7 @@
     guild.remote
     guild.remote_run_support
     guild.remotes.__init__
+    guild.remotes.ec2
     guild.remotes.ssh
     guild.resolver
     guild.resource

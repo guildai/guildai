@@ -84,8 +84,12 @@ def _for_type(remote_type, name, config):
     # entry-point or use the plugin framework.
     if remote_type == "ssh":
         from guild.remotes import ssh
-        remote = ssh.SSHRemote(config)
-        remote.name = name
-        return remote
+        cls = ssh.SSHRemote
+    elif remote_type == "ec2":
+        from guild.remotes import ec2
+        cls = ec2.EC2Remote
     else:
         raise UnsupportedRemoteType(remote_type)
+    remote = cls(config)
+    remote.name = name
+    return remote
