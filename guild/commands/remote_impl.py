@@ -46,6 +46,8 @@ def status(args):
     try:
         remote.status(args.verbose)
     except guild.remote.Down as e:
-        cli.error("remote %s is not available (%s)" % (remote.name, e))
+        cli.error(
+            "remote %s is not available (%s)" % (remote.name, e),
+            exit_status=2)
     except guild.remote.OperationError as e:
         cli.error(e)
