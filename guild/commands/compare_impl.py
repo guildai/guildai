@@ -25,6 +25,7 @@ from guild import config
 from guild import tabview
 from guild import util
 from guild import var
+from guild import view
 
 from . import runs_impl
 
@@ -144,30 +145,15 @@ def _run_duration(run):
         return ""
 
 def _scalar_step(run):
-    search_keys = [
-        "loss_step",
-        "train/loss_step",
-        "total_loss_1_step", # slim models
-        "OptimizeLoss_step", # Cloud ML examples
-    ]
+    search_keys = view.SCALAR_KEYS[0][1]
     return _format_int(run.scalar(search_keys))
 
 def _run_accuracy(run):
-    search_keys = [
-        "val_acc",
-        "validate/accuracy",
-        "eval/accuracy",
-        "eval/Accuracy",
-    ]
+    search_keys = view.SCALAR_KEYS[2][1]
     return _format_float(run.scalar(search_keys))
 
 def _run_loss(run):
-    search_keys = [
-        "loss",
-        "train/loss",
-        "total_loss_1", # slim models
-        "OptimizeLoss", # Cloud ML examples
-    ]
+    search_keys = view.SCALAR_KEYS[1][1]
     return _format_float(run.scalar(search_keys))
 
 def _format_float(x):

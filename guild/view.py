@@ -46,12 +46,14 @@ SCALAR_KEYS = [
         "loss_step",
         "train/loss_step",
         "total_loss_1_step",
+        "model/loss_1_step",
         "OptimizeLoss_step",
     )),
     ("loss", (
         "loss",
         "train/loss",
         "total_loss_1",
+        "model/loss_1",
         "OptimizeLoss",
     )),
     ("val_acc", (
