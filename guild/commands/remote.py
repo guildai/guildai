@@ -17,7 +17,6 @@ from __future__ import division
 
 import click
 
-from guild import cli
 from guild import click_util
 
 from .remote_start import remote_start

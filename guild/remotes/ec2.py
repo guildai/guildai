@@ -90,7 +90,7 @@ class EC2Remote(guild.remote.Remote):
             json.dump(config, out)
 
     def _init_config(self):
-        safe_name = re.sub("\W|^(?=\d)", "_", self.name)
+        safe_name = re.sub(r"\W|^(?=\d)", "_", self.name)
         return {
             "provider": {
                 "aws": {
