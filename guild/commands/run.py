@@ -51,6 +51,14 @@ def run_params(fn):
             help=("A comma separated list of plugin names to disable. "
                   "Use 'all' to disable all plugins.")),
         click.Option(
+            ("--gpus",), metavar="DEVICES",
+            help=("Limit availabe GPUs to DEVICES, a comma separated list of "
+                  "device IDs. By default all GPUs are available. Cannot be"
+                  "used with --no-gpus.")),
+        click.Option(
+            ("--no-gpus",), is_flag=True,
+            help="Disable GPUs for run. Cannot be used with --gpu."),
+        click.Option(
             ("-y", "--yes"),
             help="Do not prompt before running operation.",
             is_flag=True),
@@ -107,12 +115,16 @@ def run(ctx, args):
     `[MODEL]:OPERATION` may be omitted if `--rerun` is specified, in
     which case the operation used in `RUN` will be used.
 
+    ### Re-running operations
+
     If `--rerun` is specified, the operation and flags used in `RUN`
     will be applied to the new operation. You may add or redefine
     flags in the new operation. You may also use an alternative
     operation, in which case only the flag values from `RUN` will be
     applied. `RUN` must be a run ID or unique run ID prefix or the
     special value ``0``, which indicates the latest run.
+
+    ### Restarting operations
 
     If `--restart` is specified, the specified `RUN` is restarted
     in-place using its operation and flags. Unlike rerun, restart does
@@ -124,6 +136,8 @@ def run(ctx, args):
 
     `--rerun` and `--restart` may not both be used.
 
+    ### Alternate run directory
+
     To run an operation outside of Guild's run management facility,
     use `--run-dir` or `--stage` to specify an alternative run
     directory. These options are useful when developing or debugging
@@ -134,6 +148,23 @@ def run(ctx, args):
 
     **NOTE:** Runs started with `--run-dir` are not visible to Guild
     and will not appear in run listings.
+
+    ### Controlling visible GPU devices
+
+    By default, operations have access to all available GPU
+    devices. To limit the GPU devices available to a run, use
+    `--gpus`.
+
+    For example, to limit visible GPU devices to `0` and `1`, run:
+
+        guild run --gpus 0,1 ...
+
+    To disable all available GPUs, use `--no-gpus`.
+
+    **NOTE:** `--gpus` and `--no-gpus` are used to construct the
+    `CUDA_VISIBLE_DEVICES` environment variable used for the run
+    process. If `CUDA_VISIBLE_DEVICES` is set, using either of these
+    options will cause it to be redefined for the run.
 
     """
     from . import run_impl

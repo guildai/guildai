@@ -51,7 +51,7 @@ class InvalidMain(ValueError):
 class Operation(object):
 
     def __init__(self, model_ref, opdef, run_dir=None, resource_config=None,
-                 extra_attrs=None, stage_only=False):
+                 extra_attrs=None, stage_only=False, gpus=None):
         self.model_ref = model_ref
         self.opdef = opdef
         (self.cmd_args,
@@ -62,6 +62,7 @@ class Operation(object):
         self.resource_config = resource_config or {}
         self.extra_attrs = extra_attrs
         self.stage_only = stage_only
+        self.gpus = gpus
         self._started = None
         self._stopped = None
         self._run = None
@@ -173,6 +174,11 @@ class Operation(object):
         if self.opdef.handle_keyboard_interrupt:
             env["HANDLE_KEYBOARD_INTERRUPT"] = "1"
         util.apply_env(env, os.environ, ["PROFILE"])
+        if self.gpus is not None:
+            log.info(
+                "Limiting available GPUs (CUDA_VISIBLE_DEVICES) to '%s'",
+                self.gpus)
+            env["CUDA_VISIBLE_DEVICES"] = self.gpus
         return env
 
     def _wait_for_proc(self, quiet):

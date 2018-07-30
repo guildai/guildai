@@ -286,7 +286,8 @@ def _init_op(opdef, model, args, ctx):
         run_dir,
         resource_vals,
         extra_attrs,
-        args.stage)
+        args.stage,
+        _op_gpus(args, ctx))
 
 def _split_flags_and_resources(vals, opdef):
     ref_vars = _ref_vars_for_resource_lookup(vals, opdef)
@@ -378,6 +379,19 @@ def _init_op_extra_attrs(args):
     if args.no_wait:
         attrs["_no-wait"] = True
     return attrs
+
+def _op_gpus(args, ctx):
+    if args.no_gpus and args.gpus:
+        cli.error(
+            "--gpus and --no-gpus cannot both be used\n"
+            "Try '%s' for more information."
+            % click_util.cmd_help(ctx))
+    if args.no_gpus:
+        return ""
+    elif args.gpus:
+        return args.gpus
+    else:
+        return None # use all available (default)
 
 def _print_model_help(model):
     out = click.HelpFormatter()
