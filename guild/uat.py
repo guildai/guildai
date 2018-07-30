@@ -121,6 +121,7 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
     cmd_env.update(_global_vars())
     cmd_env["GUILD_HOME"] = os.path.join(WORKSPACE, ".guild")
     cmd_env["PATH"] = os.environ["PATH"]
+    cmd_env["LD_LIBRARY_PATH"] = os.getenv("LD_LIBRARY_PATH", "")
     if "VIRTUAL_ENV" in os.environ:
         cmd_env["VIRTUAL_ENV"] = os.environ["VIRTUAL_ENV"]
     cmd_env["COLUMNS"] = "999"
