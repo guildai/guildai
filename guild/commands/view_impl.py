@@ -267,8 +267,6 @@ class ViewDataImpl(view.ViewData):
     def _title_label(self, cwd):
         if len(self._args.runs) == 1:
             return self._single_run_title_label(self._args.runs[0])
-        elif self._args.all:
-            return self._all_title_label(self._args)
         else:
             return self._cwd_title_label(cwd)
 
