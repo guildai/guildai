@@ -32,6 +32,7 @@ import guild.plugin
 import guild.test
 import guild.uat
 import guild.util
+import guild.var
 
 log = logging.getLogger("guild")
 
@@ -104,12 +105,16 @@ def _print_info(check):
 
 def _print_guild_info():
     guild.cli.out("guild_version:             %s" % guild.version())
-    guild.cli.out("guild_home:                %s" % guild.config.guild_home())
     guild.cli.out("guild_install_location:    %s" % _guild_install_location())
+    guild.cli.out("guild_home:                %s" % guild.config.guild_home())
+    guild.cli.out("guild_resource_cache:      %s" % _guild_resource_cache())
     guild.cli.out("installed_plugins:         %s" % _format_plugins())
 
 def _guild_install_location():
     return pkg_resources.resource_filename("guild", "")
+
+def _guild_resource_cache():
+    return os.path.realpath(guild.var.cache_dir("resources"))
 
 def _format_plugins():
     return ", ".join([

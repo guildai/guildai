@@ -44,14 +44,18 @@ def init_env(path, local_resource_cache=False):
     util.ensure_dir(os.path.join(guild_dir, "runs"))
     util.ensure_dir(os.path.join(guild_dir, "trash"))
     util.ensure_dir(os.path.join(guild_dir, "cache", "runs"))
-    user_resource_cache = os.path.join(
-        os.path.expanduser("~"), ".guild", "cache", "resources")
+    _init_resource_cache(guild_dir, local_resource_cache)
+
+def _init_resource_cache(guild_dir, local_resource_cache):
     env_resource_cache = os.path.join(guild_dir, "cache", "resources")
-    if local_resource_cache or not os.path.isdir(user_resource_cache):
+    if local_resource_cache:
         if os.path.islink(env_resource_cache):
             os.unlink(env_resource_cache)
         util.ensure_dir(env_resource_cache)
-    elif not os.path.exists(env_resource_cache):
+    else:
+        user_resource_cache = os.path.join(
+            os.path.expanduser("~"), ".guild", "cache", "resources")
+        util.ensure_dir(user_resource_cache)
         os.symlink(user_resource_cache, env_resource_cache)
 
 def init_project(project_dir, src, params):
