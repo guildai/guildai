@@ -48,6 +48,9 @@ def init_env(path, local_resource_cache=False):
 
 def _init_resource_cache(guild_dir, local_resource_cache):
     env_resource_cache = os.path.join(guild_dir, "cache", "resources")
+    if os.path.exists(env_resource_cache):
+        log.info("Resource cache %s exists, skipping")
+        return
     if local_resource_cache:
         if os.path.islink(env_resource_cache):
             os.unlink(env_resource_cache)
