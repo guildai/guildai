@@ -20,6 +20,7 @@ import importlib
 import logging
 import os
 import re
+import shlex
 import subprocess
 
 import guild.opref
@@ -126,27 +127,59 @@ def url_source_download_dir(source):
 def post_process(source, cwd, use_cache=True):
     if not source.post_process:
         return
-    cmd = source.post_process.strip().replace("\n", " ")
+    cmd_in = source.post_process.strip().replace("\n", " ")
+    cmd = _apply_source_script_functions(cmd_in, source)
     if use_cache:
         cmd_digest = hashlib.sha1(cmd.encode()).hexdigest()
         process_marker = os.path.join(
             cwd, ".guild-cache-{}.post".format(cmd_digest))
         if os.path.exists(process_marker):
             return
-    env = {
-        "RESDEF_DIR": _resdef_dir(source.resdef),
-    }
     log.info(
         "Post processing %s resource in %s: %r",
         source.resdef.name, cwd, cmd)
     try:
-        subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
+        subprocess.check_call(cmd, shell=True, cwd=cwd)
     except subprocess.CalledProcessError as e:
         raise ResolutionError(
             "error post processing %s resource: %s"
             % (source.resdef.name, e))
     else:
         util.touch(process_marker)
+
+def _apply_source_script_functions(script, source):
+    funs = [("resource-src", (_resource_src_source_script, [source]))]
+    for name, fun in funs:
+        script = _apply_source_script_function(name, fun, script)
+    return script
+
+def _apply_source_script_function(name, fun, script):
+    return "".join([
+        _apply_source_script_function_to_part(part, name, fun)
+        for part in _split_source_script(name, script)])
+
+def _split_source_script(fun_name, script):
+    return re.split(r"(\$\(%s .*?\))" % fun_name, script)
+
+def _apply_source_script_function_to_part(part, fun_name, fun):
+    m = re.match(r"\$\(%s (.*?)\)" % fun_name, part)
+    if m is None:
+        return part
+    args = shlex.split(m.group(1))
+    fun, extra_args = fun
+    log.debug("Applying %s to %s", fun_name, args)
+    return fun(*(args + extra_args))
+
+def _resource_src_source_script(path, source):
+    roots = [_resdef_dir(source.resdef)] + _resdef_parent_dirs(source.resdef)
+    for root in roots:
+        full_path = os.path.join(root, path)
+        if os.path.exists(full_path):
+            log.debug("Found %s under %s", path, root)
+            return full_path
+    raise ResolutionError(
+        "resource-src failed: could not find '%s' in path '%s'"
+        % (path, os.path.pathsep.join(roots)))
 
 def _resdef_dir(resdef):
     """Return directory for a resource definition.
@@ -162,6 +195,14 @@ def _resdef_dir(resdef):
         return resdef.dist.guildfile.dir
     else:
         raise AssertionError(resdef)
+
+def _resdef_parent_dirs(resdef):
+    try:
+        modeldef = resdef.modeldef
+    except AttributeError:
+        return []
+    else:
+        return [parent.dir for parent in modeldef.parents]
 
 class OperationOutputResolver(Resolver):
 
