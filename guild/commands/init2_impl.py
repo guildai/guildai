@@ -166,7 +166,7 @@ def _tensorflow_installed(env_dir):
     cli.out("Checking for TensorFlow")
     python_bin = os.path.join(env_dir, "bin", "python")
     assert os.path.exists(python_bin)
-    cmd_args = [python_bin, "-c", "import tensorflow"]
+    cmd_args = [python_bin, "-c", "import tensorflow; tensorflow.__version__"]
     try:
         subprocess.check_output(cmd_args, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError:
