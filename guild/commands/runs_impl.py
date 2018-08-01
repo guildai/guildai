@@ -284,7 +284,10 @@ def _format_command(cmd):
     return " ".join([_maybe_quote_arg(arg) for arg in cmd])
 
 def _maybe_quote_arg(arg):
-    return '"%s"' % arg if " " in arg else arg
+    if arg == "" or " " in arg:
+        return '"%s"' % arg
+    else:
+        return arg
 
 def _exit_status(run):
     return run.get("exit_status.remote", "") or run.get("exit_status", "")
