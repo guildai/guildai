@@ -148,7 +148,7 @@ def post_process(source, cwd, use_cache=True):
         util.touch(process_marker)
 
 def _apply_source_script_functions(script, source):
-    funs = [("resource-src", (_resource_src_source_script, [source]))]
+    funs = [("project-src", (_project_src_source_script, [source]))]
     for name, fun in funs:
         script = _apply_source_script_function(name, fun, script)
     return script
@@ -170,7 +170,7 @@ def _apply_source_script_function_to_part(part, fun_name, fun):
     log.debug("Applying %s to %s", fun_name, args)
     return fun(*(args + extra_args))
 
-def _resource_src_source_script(path, source):
+def _project_src_source_script(path, source):
     roots = [_resdef_dir(source.resdef)] + _resdef_parent_dirs(source.resdef)
     for root in roots:
         full_path = os.path.join(root, path)
@@ -178,7 +178,7 @@ def _resource_src_source_script(path, source):
             log.debug("Found %s under %s", path, root)
             return full_path
     raise ResolutionError(
-        "resource-src failed: could not find '%s' in path '%s'"
+        "project-src failed: could not find '%s' in path '%s'"
         % (path, os.path.pathsep.join(roots)))
 
 def _resdef_dir(resdef):
