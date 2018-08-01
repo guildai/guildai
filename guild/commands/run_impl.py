@@ -478,7 +478,10 @@ def _print_cmd(op):
     cli.out(formatted)
 
 def _maybe_quote_arg(arg):
-    return '"%s"' % arg if " " in arg else arg
+    if arg == "" or " " in arg:
+        return '"%s"' % arg
+    else:
+        return arg
 
 def _print_env(op):
     for name, val in sorted(op.cmd_env.items()):
