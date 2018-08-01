@@ -291,3 +291,20 @@ def args_to_flags(args):
                 pass
             flags[name] = arg
     return flags
+
+def find_file(path):
+    return util.find_apply([_cwd_file, _model_file], path)
+
+def _cwd_file(path):
+    if os.path.exists(path):
+        return path
+    return None
+
+def _model_file(path):
+    model_path = os.getenv("MODEL_PATH")
+    if model_path:
+        for root in model_path.split(os.path.pathsep):
+            full_path = os.path.join(root, path)
+            if os.path.exists(full_path):
+                return full_path
+    return None
