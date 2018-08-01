@@ -715,6 +715,7 @@ class OpDef(FlagHost):
         data = _coerce_op_data(data)
         self.description = (data.get("description") or "").strip()
         self.main = data.get("main")
+        self.env = data.get("env", {})
         self.plugin_op = data.get("plugin-op")
         self.disabled_plugins = data.get("disabled-plugins") or []
         self.dependencies = _init_dependencies(data.get("requires"), self)
