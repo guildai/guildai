@@ -714,15 +714,7 @@ class OpDef(FlagHost):
         self.name = name
         data = _coerce_op_data(data)
         self.description = (data.get("description") or "").strip()
-        cmd = data.get("cmd")
-        if cmd:
-            warnings.warn(
-                "'cmd' has been renamed to 'main' - support for 'cmd' will "
-                "be removed in Guild version 0.5",
-                FutureWarning, stacklevel=9999999)
-            self.main = cmd
-        else:
-            self.main = data.get("main")
+        self.main = data.get("main")
         self.plugin_op = data.get("plugin-op")
         self.disabled_plugins = data.get("disabled-plugins") or []
         self.dependencies = _init_dependencies(data.get("requires"), self)
