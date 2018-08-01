@@ -57,7 +57,7 @@ class Operation(object):
         (self.cmd_args,
          self.flag_vals,
          self._flag_map) = _init_cmd_args(opdef)
-        self.cmd_env = _init_cmd_env(opdef)
+        self.cmd_env = _init_cmd_env(opdef, gpus)
         self._run_dir = run_dir
         self.resource_config = resource_config or {}
         self.extra_attrs = extra_attrs
@@ -89,6 +89,8 @@ class Operation(object):
 
     def _init_attrs(self):
         assert self._run is not None
+        self._started = guild.run.timestamp()
+        self._run.write_attr("started", self._started)
         for name, val in (self.extra_attrs or {}).items():
             self._run.write_attr(name, val)
         self._run.write_attr("opref", self._opref_attr())
@@ -113,8 +115,6 @@ class Operation(object):
         self._run.write_attr("deps", resolved)
 
     def proc(self, quiet=False):
-        self._started = guild.run.timestamp()
-        self._run.write_attr("started", self._started)
         self._pre_proc()
         if self.stage_only:
             self._stage_proc()
@@ -168,17 +168,6 @@ class Operation(object):
         env = dict(self.cmd_env)
         env["RUN_DIR"] = self._run.path
         env["RUN_ID"] = self._run.id
-        env["GUILD_HOME"] = config.guild_home()
-        if self.opdef.set_trace:
-            env["SET_TRACE"] = "1"
-        if self.opdef.handle_keyboard_interrupt:
-            env["HANDLE_KEYBOARD_INTERRUPT"] = "1"
-        util.apply_env(env, os.environ, ["PROFILE"])
-        if self.gpus is not None:
-            log.info(
-                "Limiting available GPUs (CUDA_VISIBLE_DEVICES) to '%s'",
-                self.gpus)
-            env["CUDA_VISIBLE_DEVICES"] = self.gpus
         return env
 
     def _wait_for_proc(self, quiet):
@@ -251,9 +240,7 @@ def _split_main(main):
         # https://bugs.python.org/issue27775)
         if not main:
             raise InvalidMain("", "missing command spec")
-        parts = shlex.split(main or "")
-        stripped = [part.strip() for part in parts]
-        return [x for x in stripped if x]
+        return shlex.split(main or "")
 
 def _flag_args(flag_vals, opdef, cmd_args):
     flag_args = []
@@ -322,8 +309,9 @@ def _cmd_option_args(name, val):
     else:
         return [opt, str(val)]
 
-def _init_cmd_env(opdef):
+def _init_cmd_env(opdef, gpus):
     env = util.safe_osenv()
+    env["GUILD_HOME"] = config.guild_home()
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["LOG_LEVEL"] = str(logging.getLogger().getEffectiveLevel())
@@ -333,7 +321,18 @@ def _init_cmd_env(opdef):
     env["SCRIPT_DIR"] = ""
     # CMD_DIR is where the operation cmd was run
     env["CMD_DIR"] = os.getcwd()
-    env["MODEL_DIR"] = opdef.modeldef.guildfile.dir
+    env["MODEL_DIR"] = opdef.guildfile.dir
+    env["MODEL_PATH"] = os.path.pathsep.join(_model_paths(opdef))
+    if opdef.set_trace:
+        env["SET_TRACE"] = "1"
+    if opdef.handle_keyboard_interrupt:
+        env["HANDLE_KEYBOARD_INTERRUPT"] = "1"
+    util.apply_env(env, os.environ, ["PROFILE"])
+    if gpus is not None:
+        log.info(
+            "Limiting available GPUs (CUDA_VISIBLE_DEVICES) to '%s'",
+            gpus)
+        env["CUDA_VISIBLE_DEVICES"] = gpus
     return env
 
 def _cmd_arg_env(args):
