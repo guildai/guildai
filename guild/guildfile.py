@@ -183,10 +183,11 @@ class Guildfile(object):
 
     @staticmethod
     def _sys_path_include(include):
+        include_path = include.replace(".", os.path.sep)
         for path in sys.path:
             log.debug("looking for include '%s' in %s", include, path)
             for name in NAMES:
-                guildfile = os.path.join(path, include, name)
+                guildfile = os.path.join(path, include_path, name)
                 if os.path.exists(guildfile):
                     log.debug("found include %s", guildfile)
                     return guildfile
@@ -592,10 +593,11 @@ def _find_pkg_guildfile(pkg):
     return util.find_apply([_sys_path_guildfile, _gpkg_guildfile], pkg)
 
 def _sys_path_guildfile(pkg):
+    pkg_path = pkg.replace(".", os.path.sep)
     for path in sys.path:
         log.debug("looking for pkg '%s' in %s", pkg, path)
         for name in NAMES:
-            guildfile = os.path.join(path, pkg, name)
+            guildfile = os.path.join(path, pkg_path, name)
             if os.path.exists(guildfile):
                 log.debug("found pkg Guild file %s", guildfile)
                 return guildfile
