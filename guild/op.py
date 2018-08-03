@@ -331,8 +331,8 @@ def _init_cmd_env(opdef, gpus):
     util.apply_env(env, os.environ, ["PROFILE"])
     if gpus is not None:
         log.info(
-            "Limiting available GPUs (CUDA_VISIBLE_DEVICES) to '%s'",
-            gpus)
+            "Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: %s",
+            gpus or "<none>")
         env["CUDA_VISIBLE_DEVICES"] = gpus
     return env
 
