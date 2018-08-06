@@ -45,6 +45,7 @@ SCALAR_KEYS = [
     ("step", (
         "loss_step",
         "train/loss_step",
+        "train/cross_entropy_1_step",
         "total_loss_1_step",
         "model/loss_1_step",
         "OptimizeLoss_step",
@@ -52,6 +53,7 @@ SCALAR_KEYS = [
     ("loss", (
         "loss",
         "train/loss",
+        "train/cross_entropy_1",
         "total_loss_1",
         "model/loss_1",
         "OptimizeLoss",
@@ -59,6 +61,7 @@ SCALAR_KEYS = [
     ("val_acc", (
         "val_acc",
         "validate/accuracy",
+        "validation/accuracy_1",
         "eval/accuracy",
         "eval/Accuracy",
     ))

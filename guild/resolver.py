@@ -441,7 +441,8 @@ def _untar(src, select, unpack_dir):
         tf.extractall,
         select)
 
-def _gen_unpack(unpack_dir, src, list_members, member_name, extract_all, select):
+def _gen_unpack(unpack_dir, src, list_members, member_name, extract_all,
+                select):
     members = list_members()
     member_names = [member_name(m) for m in members]
     to_extract = [
