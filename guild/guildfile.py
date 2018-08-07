@@ -285,7 +285,7 @@ def _apply_section_data(data, guildfile, section_name, coerce_data,
             _apply_data(name, data[name], resolved, coerce_data, guildfile)
 
 def _coerce_includes(val, src):
-    if isinstance(val, str):
+    if isinstance(val, six.string_types):
         return [val]
     elif isinstance(val, list):
         return val
@@ -444,7 +444,7 @@ def _init_flags(data, guildfile):
 def _coerce_flag_data(data, src):
     if isinstance(data, dict):
         return data
-    elif isinstance(data, (str, int, float, bool)):
+    elif isinstance(data, six.string_types + (int, float, bool)):
         return {"default": data}
     elif data is None:
         return {"default": None}
@@ -534,7 +534,7 @@ def _extended_data(config_data, guildfile, seen=None, resolve_params=True):
     return data
 
 def _coerce_extends(val, guildfile):
-    if isinstance(val, str):
+    if isinstance(val, six.string_types):
         return [val]
     elif isinstance(val, list):
         return val
@@ -641,7 +641,7 @@ def _resolve_param_refs(val, params):
         return _resolve_dict_param_refs(val, params)
     elif isinstance(val, list):
         return _resolve_list_param_refs(val, params)
-    elif isinstance(val, str):
+    elif isinstance(val, six.string_types):
         return _resolve_str_param_refs(val, params)
     else:
         return val
@@ -692,7 +692,7 @@ def _init_ops(data, modeldef):
     ]
 
 def _coerce_op_data(data):
-    if isinstance(data, str):
+    if isinstance(data, six.string_types):
         return {
             "main": data
         }
@@ -741,7 +741,7 @@ class OpDef(FlagHost):
 def _init_dependencies(requires, opdef):
     if not requires:
         return []
-    if isinstance(requires, str):
+    if isinstance(requires, six.string_types):
         requires = [requires]
     return [OpDependency(data, opdef) for data in requires]
 
@@ -749,7 +749,7 @@ class OpDependency(object):
 
     def __init__(self, data, opdef):
         self.opdef = opdef
-        if isinstance(data, str):
+        if isinstance(data, six.string_types):
             self.spec = data
             self.description = ""
         elif isinstance(data, dict):
