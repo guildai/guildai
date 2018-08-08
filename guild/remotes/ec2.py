@@ -38,6 +38,7 @@ class EC2Remote(guild.remote.Remote):
         self.region = config["region"]
         self.ami = config["ami"]
         self.instance_type = config.get("instance_type", "p3.2xlarge")
+        self.public_key = config.get("public-key")
         self.working_dir = var.remote_dir(name)
 
     def start(self):
@@ -148,6 +149,13 @@ class EC2Remote(guild.remote.Remote):
                 }
             }
         }
+        self._maybe_apply_public_key(config)
+        return config
+
+    def _maybe_apply_publc_key(self, config):
+        if self.public_key:
+            config
+        return config
 
     def _ensure_terraform_init(self):
         if os.path.exists(os.path.join(self.working_dir, ".terraform")):
