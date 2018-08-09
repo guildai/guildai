@@ -10,7 +10,7 @@ jobs:
     - run:
         command: 'sudo pip install --upgrade virtualenv
 
-          test -e build-env/bin/activate || guild init2 build-env -y
+          test -e build-env/bin/activate || virtualenv build-env
 
           . build-env/bin/activate
 
@@ -19,7 +19,7 @@ jobs:
           pip install grpcio==1.9.1 tensorflow
 
           cd guild/view && npm install'
-        name: Install dependencies
+        name: Install build dependencies
     - save_cache:
         key: linux-python-2.7-11-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
@@ -30,9 +30,11 @@ jobs:
           python setup.py bdist_wheel -p manylinux1_x86_64'
         name: Build
     - run:
-        command: 'test -e test-env/bin/activate || guild init2 test-env -y
+        command: 'test -e test-env/bin/activate || virtualenv test-env
 
           . test-env/bin/activate
+
+          pip install grpcio==1.9.1 tensorflow
 
           pip install dist/*.whl
 
@@ -58,7 +60,7 @@ jobs:
     - run:
         command: 'sudo pip install --upgrade virtualenv
 
-          test -e build-env/bin/activate || guild init2 build-env -y
+          test -e build-env/bin/activate || virtualenv build-env
 
           . build-env/bin/activate
 
@@ -67,7 +69,7 @@ jobs:
           pip install grpcio==1.9.1 tensorflow
 
           cd guild/view && npm install'
-        name: Install dependencies
+        name: Install build dependencies
     - save_cache:
         key: linux-python-3.5-11-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
@@ -78,9 +80,11 @@ jobs:
           python setup.py bdist_wheel -p manylinux1_x86_64'
         name: Build
     - run:
-        command: 'test -e test-env/bin/activate || guild init2 test-env -y
+        command: 'test -e test-env/bin/activate || virtualenv test-env
 
           . test-env/bin/activate
+
+          pip install grpcio==1.9.1 tensorflow
 
           pip install dist/*.whl
 
@@ -106,7 +110,7 @@ jobs:
     - run:
         command: 'sudo pip install --upgrade virtualenv
 
-          test -e build-env/bin/activate || guild init2 build-env -y
+          test -e build-env/bin/activate || virtualenv build-env
 
           . build-env/bin/activate
 
@@ -115,7 +119,7 @@ jobs:
           pip install grpcio==1.9.1 tensorflow
 
           cd guild/view && npm install'
-        name: Install dependencies
+        name: Install build dependencies
     - save_cache:
         key: linux-python-3.6-11-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
@@ -126,9 +130,11 @@ jobs:
           python setup.py bdist_wheel -p manylinux1_x86_64'
         name: Build
     - run:
-        command: 'test -e test-env/bin/activate || guild init2 test-env -y
+        command: 'test -e test-env/bin/activate || virtualenv test-env
 
           . test-env/bin/activate
+
+          pip install grpcio==1.9.1 tensorflow
 
           pip install dist/*.whl
 
@@ -154,7 +160,7 @@ jobs:
     - run:
         command: 'sudo pip install --upgrade virtualenv
 
-          test -e build-env/bin/activate || guild init2 build-env -y
+          test -e build-env/bin/activate || virtualenv build-env
 
           . build-env/bin/activate
 
@@ -163,7 +169,7 @@ jobs:
           pip install grpcio==1.9.1 tensorflow
 
           cd guild/view && npm install'
-        name: Install dependencies
+        name: Install build dependencies
     - save_cache:
         key: macos-python-2.7-11-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
@@ -174,9 +180,11 @@ jobs:
           python setup.py bdist_wheel'
         name: Build
     - run:
-        command: 'test -e test-env/bin/activate || guild init2 test-env -y
+        command: 'test -e test-env/bin/activate || virtualenv test-env
 
           . test-env/bin/activate
+
+          pip install grpcio==1.9.1 tensorflow
 
           pip install dist/*.whl
 
@@ -204,7 +212,7 @@ jobs:
 
           sudo pip3 install --upgrade virtualenv
 
-          test -e build-env/bin/activate || guild init2 build-env -y
+          test -e build-env/bin/activate || virtualenv build-env
 
           . build-env/bin/activate
 
@@ -213,7 +221,7 @@ jobs:
           pip3 install grpcio==1.9.1 tensorflow
 
           cd guild/view && npm install'
-        name: Install dependencies
+        name: Install build dependencies
     - save_cache:
         key: macos-python-3.6-11-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
@@ -224,9 +232,11 @@ jobs:
           python setup.py bdist_wheel'
         name: Build
     - run:
-        command: 'test -e test-env/bin/activate || guild init2 test-env -y
+        command: 'test -e test-env/bin/activate || virtualenv test-env
 
           . test-env/bin/activate
+
+          pip3 install grpcio==1.9.1 tensorflow
 
           pip3 install dist/*.whl
 

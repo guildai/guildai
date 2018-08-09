@@ -46,7 +46,7 @@ class Build(object):
         return [
             self.checkout(),
             self.restore_cache(),
-            self.install_deps(),
+            self.install_build_deps(),
             self.save_cache(),
             self.build(),
             self.test(),
@@ -72,10 +72,12 @@ class Build(object):
         )
         return "%s-%i-%s" % (self.name, self.cache_scheme_version, checksums)
 
-    def install_deps(self):
-        return self._run("Install dependencies", self._install_deps_cmd())
+    def install_build_deps(self):
+        return self._run(
+            "Install build dependencies",
+            self._install_build_deps_cmd())
 
-    def _install_deps_cmd(self):
+    def _install_build_deps_cmd(self):
         return [
             self._ensure_virtual_env_cmd(),
             self._init_env(self.build_dir),
@@ -91,7 +93,7 @@ class Build(object):
     @staticmethod
     def _init_env(path):
         return (
-            "test -e {path}/bin/activate || guild init2 {path} -y"
+            "test -e {path}/bin/activate || virtualenv {path}"
             .format(path=path))
 
     @staticmethod
@@ -132,6 +134,7 @@ class Build(object):
         return self._run("Test", [
             self._init_env(self.test_dir),
             self._activate_env(self.test_dir),
+            self._install_tensorflow(),
             "{} install dist/*.whl".format(self.pip),
             "WORKSPACE=%s guild check --uat" % self.test_dir,
         ])
@@ -210,8 +213,8 @@ class MacBuild(Build):
             "xcode": self.xcode_version
         }
 
-    def _install_deps_cmd(self):
-        lines = super(MacBuild, self)._install_deps_cmd()
+    def _install_build_deps_cmd(self):
+        lines = super(MacBuild, self)._install_build_deps_cmd()
         if self.python.startswith("3."):
             lines[:0] = [
                 "brew upgrade python > /dev/null",
