@@ -44,7 +44,9 @@ def cache_dir(name=None):
     return path("cache", name)
 
 def remote_dir(name=None):
-    return path("remotes", name)
+    # Use directory containing user config to store remote info.
+    config_path = config._user_config_path()
+    return os.path.join(os.path.dirname(config_path), "remotes", name)
 
 def runs(root=None, sort=None, filter=None, run_init=None):
     root = root or runs_dir()
