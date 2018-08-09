@@ -91,6 +91,9 @@ def _for_type(remote_type, name, config):
     elif remote_type == "ec2":
         from guild.remotes import ec2
         cls = ec2.EC2Remote
+    elif remote_type == "tpu":
+        from guild.remotes import tpu
+        cls = tpu.TPURemote
     else:
         raise UnsupportedRemoteType(remote_type)
     remote = cls(name, config)
