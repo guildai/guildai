@@ -166,16 +166,6 @@ def _cmd_file(filename):
         return filename
     return None
 
-def _model_file(filename):
-    assert "MODEL_DIR" in os.environ
-    filename = os.path.join(os.environ["MODEL_DIR"], filename)
-    if os.path.exists(filename):
-        return filename
-    return None
-
-def _cwd_file(filename):
-    return os.path.join(os.getcwd(), filename)
-
 def parse_args(args):
     return dict([_parse_arg(os.path.expanduser(arg)) for arg in args])
 
