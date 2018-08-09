@@ -91,7 +91,7 @@ class Build(object):
     @staticmethod
     def _init_env(path):
         return (
-            "test -e {path}/bin/activate || virtualenv {path}"
+            "test -e {path}/bin/activate || guild init2 {path} -y"
             .format(path=path))
 
     @staticmethod

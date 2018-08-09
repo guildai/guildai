@@ -10,7 +10,7 @@ jobs:
     - run:
         command: 'sudo pip install --upgrade virtualenv
 
-          test -e build-env/bin/activate || virtualenv build-env
+          test -e build-env/bin/activate || guild init2 build-env -y
 
           . build-env/bin/activate
 
@@ -30,7 +30,7 @@ jobs:
           python setup.py bdist_wheel -p manylinux1_x86_64'
         name: Build
     - run:
-        command: 'test -e test-env/bin/activate || virtualenv test-env
+        command: 'test -e test-env/bin/activate || guild init2 test-env -y
 
           . test-env/bin/activate
 
@@ -58,7 +58,7 @@ jobs:
     - run:
         command: 'sudo pip install --upgrade virtualenv
 
-          test -e build-env/bin/activate || virtualenv build-env
+          test -e build-env/bin/activate || guild init2 build-env -y
 
           . build-env/bin/activate
 
@@ -78,7 +78,7 @@ jobs:
           python setup.py bdist_wheel -p manylinux1_x86_64'
         name: Build
     - run:
-        command: 'test -e test-env/bin/activate || virtualenv test-env
+        command: 'test -e test-env/bin/activate || guild init2 test-env -y
 
           . test-env/bin/activate
 
@@ -106,7 +106,7 @@ jobs:
     - run:
         command: 'sudo pip install --upgrade virtualenv
 
-          test -e build-env/bin/activate || virtualenv build-env
+          test -e build-env/bin/activate || guild init2 build-env -y
 
           . build-env/bin/activate
 
@@ -126,7 +126,7 @@ jobs:
           python setup.py bdist_wheel -p manylinux1_x86_64'
         name: Build
     - run:
-        command: 'test -e test-env/bin/activate || virtualenv test-env
+        command: 'test -e test-env/bin/activate || guild init2 test-env -y
 
           . test-env/bin/activate
 
@@ -154,7 +154,7 @@ jobs:
     - run:
         command: 'sudo pip install --upgrade virtualenv
 
-          test -e build-env/bin/activate || virtualenv build-env
+          test -e build-env/bin/activate || guild init2 build-env -y
 
           . build-env/bin/activate
 
@@ -174,7 +174,7 @@ jobs:
           python setup.py bdist_wheel'
         name: Build
     - run:
-        command: 'test -e test-env/bin/activate || virtualenv test-env
+        command: 'test -e test-env/bin/activate || guild init2 test-env -y
 
           . test-env/bin/activate
 
@@ -204,7 +204,7 @@ jobs:
 
           sudo pip3 install --upgrade virtualenv
 
-          test -e build-env/bin/activate || virtualenv build-env
+          test -e build-env/bin/activate || guild init2 build-env -y
 
           . build-env/bin/activate
 
@@ -224,7 +224,7 @@ jobs:
           python setup.py bdist_wheel'
         name: Build
     - run:
-        command: 'test -e test-env/bin/activate || virtualenv test-env
+        command: 'test -e test-env/bin/activate || guild init2 test-env -y
 
           . test-env/bin/activate
 
