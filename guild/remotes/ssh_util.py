@@ -26,7 +26,9 @@ def ssh_ping(host, verbose=False):
         raise guild.remote.Down("cannot reach host %s" % host)
 
 def _ssh_opts(verbose):
-    opts = []
+    opts = [
+        "-oStrictHostKeyChecking=no"
+    ]
     if verbose:
         opts.append("-vvv")
     return opts
