@@ -23,8 +23,10 @@ from . import remote_support
 
 def start(args):
     remote = remote_support.remote_for_args(args)
-    _remote_op(remote.start, "start", remote, True, args)
-
+    if args.reinit:
+        _remote_op(remote.reinit, "re-initialize", remote, True, args)
+    else:
+        _remote_op(remote.start, "start", remote, True, args)
 
 def stop(args):
     remote = remote_support.remote_for_args(args)

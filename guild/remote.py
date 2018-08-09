@@ -68,6 +68,9 @@ class Remote(object):
     def start(self):
         raise NotImplementedError()
 
+    def reinit(self):
+        raise NotImplementedError()
+
     def stop(self):
         raise NotImplementedError()
 

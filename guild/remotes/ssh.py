@@ -88,6 +88,10 @@ class SSHRemote(guild.remote.Remote):
         raise guild.remote.OperationNotSupported(
             "start is not supported for ssh remotes")
 
+    def reinit(self):
+        raise guild.remote.OperationNotSupported(
+            "reinit is not supported for ssh remotes")
+
     def stop(self):
         raise guild.remote.OperationNotSupported(
             "stop is not supported for ssh remotes")

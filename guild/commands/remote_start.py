@@ -22,6 +22,7 @@ from . import remote_support
 
 @click.command("start")
 @remote_support.remote_arg
+@click.option("--reinit", is_flag=True, help="Reinitialize a started remote.")
 @click.option("-y", "--yes", is_flag=True, help="Start without prompting.")
 
 @click_util.use_args

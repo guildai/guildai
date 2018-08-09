@@ -37,17 +37,42 @@ class EC2Remote(guild.remote.Remote):
         self.name = name
         self.region = config["region"]
         self.ami = config["ami"]
+        self.public_key = config["public-key"]
         self.instance_type = config.get("instance_type", "p3.2xlarge")
         self.public_key = config.get("public-key")
+        self.private_key_path = config.get("private-key-path")
+        self.user = config.get("user")
+        self.init = config.get("init")
         self.working_dir = var.remote_dir(name)
 
     def start(self):
+        self._verify_aws_creds()
         util.ensure_dir(self.working_dir)
         self._refresh_config()
         self._ensure_terraform_init()
         self._terraform_apply()
 
+    def reinit(self):
+        self._taint_init()
+        self.start()
+
+    def _taint_init(self):
+        cmd = [
+            "terraform",
+            "taint",
+            "null_resource.guild_%s_init" % self._safe_name()
+        ]
+        subprocess.check_call(cmd, cwd=self.working_dir)
+
+    def _safe_name(self):
+        return re.sub(r"\W|^(?=\d)", "_", self.name)
+
+    def _verify_aws_creds(self):
+        self._require_env("AWS_ACCESS_KEY_ID")
+        self._require_env("AWS_SECRET_ACCESS_KEY")
+
     def stop(self):
+        self._verify_aws_creds()
         self._terraform_destroy()
 
     def status(self, verbose=False):
@@ -85,14 +110,14 @@ class EC2Remote(guild.remote.Remote):
             return output[name]["value"]
 
     def _refresh_config(self):
-        config_filename = os.path.join(self.working_dir, "config.tf")
+        config_filename = os.path.join(self.working_dir, "config.tf.json")
         config = self._init_config()
         with open(config_filename, "w") as out:
             json.dump(config, out)
 
     def _init_config(self):
-        safe_name = re.sub(r"\W|^(?=\d)", "_", self.name)
-        return {
+        safe_name = self._safe_name()
+        config = {
             "provider": {
                 "aws": {
                     "region": self.region
@@ -132,6 +157,12 @@ class EC2Remote(guild.remote.Remote):
                         ]
                     }
                 },
+                "aws_key_pair": {
+                    "guild_%s" % safe_name: {
+                        "key_name": "guild_%s" % safe_name,
+                        "public_key": self.public_key
+                    }
+                },
                 "aws_instance": {
                     "guild_%s" % safe_name: {
                         "instance_type": self.instance_type,
@@ -139,7 +170,8 @@ class EC2Remote(guild.remote.Remote):
                         "count": 1,
                         "vpc_security_group_ids": [
                             "${aws_security_group.guild_%s.id}" % safe_name
-                        ]
+                        ],
+                        "key_name": "guild_%s" % safe_name
                     }
                 }
             },
@@ -149,13 +181,49 @@ class EC2Remote(guild.remote.Remote):
                 }
             }
         }
-        self._maybe_apply_public_key(config)
+        if self.init:
+            self._write_init_script()
+            connection = {
+                "host": "${aws_instance.guild_%s.public_ip}" % safe_name
+            }
+            if self.user:
+                connection["user"] = self.user
+            if self.private_key_path:
+                connection["private_key"] = (
+                    "${file(\"%s\")}" % self.private_key_path
+                )
+            config["resource"]["null_resource"] = {
+                "guild_%s_init" % safe_name: {
+                    "triggers": {
+                        "cluster_instance_ids":
+                        "${aws_instance.guild_%s.id}" % safe_name
+                    },
+                    "connection": connection,
+                    "provisioner": [
+                        {
+                            "remote-exec": {
+                                "script": "init.sh"
+                            }
+                        }
+                    ]
+                }
+            }
         return config
 
-    def _maybe_apply_publc_key(self, config):
-        if self.public_key:
-            config
-        return config
+    def _write_init_script(self):
+        assert self.init
+        init_filename = os.path.join(self.working_dir, "init.sh")
+        with open(init_filename, "w") as f:
+            f.write(self.init)
+        return init_filename
+
+    @staticmethod
+    def _apply_remote_exec_provisioner(config, init_filename):
+        config["provisioner"] = {
+            "remote-exec": {
+                "scripts": [init_filename]
+            }
+        }
 
     def _ensure_terraform_init(self):
         if os.path.exists(os.path.join(self.working_dir, ".terraform")):
@@ -168,17 +236,12 @@ class EC2Remote(guild.remote.Remote):
                 % self.working_dir)
 
     def _terraform_apply(self):
-        self._verify_aws_creds()
         cmd = ["terraform", "apply", "-auto-approve"]
         result = subprocess.call(cmd, cwd=self.working_dir)
         if result != 0:
             raise guild.remote.OperationError(
                 "error applying Terraform config in %s"
                 % self.working_dir)
-
-    def _verify_aws_creds(self):
-        self._require_env("AWS_ACCESS_KEY_ID")
-        self._require_env("AWS_SECRET_ACCESS_KEY")
 
     @staticmethod
     def _require_env(name):
@@ -188,10 +251,24 @@ class EC2Remote(guild.remote.Remote):
                 % name)
 
     def _terraform_destroy(self):
-        self._verify_aws_creds()
         cmd = ["terraform", "destroy", "-auto-approve"]
         result = subprocess.call(cmd, cwd=self.working_dir)
         if result != 0:
             raise guild.remote.OperationError(
                 "error destroying Terraform state in %s"
                 % self.working_dir)
+
+    def push(self, runs, verbose=False):
+        raise NotImplementedError()
+
+    def push_dest(self):
+        raise NotImplementedError()
+
+    def pull(self, run_ids, verbose=False):
+        raise NotImplementedError()
+
+    def pull_all(self, verbose=False):
+        raise NotImplementedError()
+
+    def pull_src(self):
+        raise NotImplementedError()
