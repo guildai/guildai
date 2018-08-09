@@ -29,7 +29,8 @@ from werkzeug import serving
 # pylint: disable=unused-import,wrong-import-order
 
 import tensorflow as tf
-from tensorboard import version
+from tensorboard import program as tb_program
+from tensorboard import version as tb_version
 
 log = logging.getLogger("guild")
 
@@ -37,57 +38,39 @@ log = logging.getLogger("guild")
 # as ImportError with the current version and unmet requirement as
 # additional arguments.
 
-_req = pkg_resources.Requirement.parse("tensorflow-tensorboard >= 1.5.0")
+_req = pkg_resources.Requirement.parse("tensorflow-tensorboard >= 1.10.0")
 
-if version.VERSION not in _req:
+if tb_version.VERSION not in _req:
     log.warning(
         "installed version of tensorboard (%s) does not meet the "
-        "requirement %s", version.VERSION, _req)
+        "requirement %s", tb_version.VERSION, _req)
 
 # pylint: disable=wrong-import-position
 
-from tensorboard import util as tf_util
+from tensorboard import util as tb_util
+from tensorboard import program
 from tensorboard.backend import application
-from tensorboard.plugins.audio import audio_plugin
-from tensorboard.plugins.core import core_plugin
-from tensorboard.plugins.distribution import distributions_plugin
-from tensorboard.plugins.graph import graphs_plugin
-from tensorboard.plugins.histogram import histograms_plugin
-from tensorboard.plugins.image import images_plugin
-from tensorboard.plugins.profile import profile_plugin
-from tensorboard.plugins.projector import projector_plugin
-from tensorboard.plugins.scalar import scalars_plugin
-from tensorboard.plugins.text import text_plugin
 
 from guild import util
 
 DEFAULT_RELOAD_INTERVAL = 5
 
 def create_app(logdir, reload_interval, path_prefix=""):
-    plugins = [
-        core_plugin.CorePlugin,
-        scalars_plugin.ScalarsPlugin,
-        images_plugin.ImagesPlugin,
-        audio_plugin.AudioPlugin,
-        graphs_plugin.GraphsPlugin,
-        distributions_plugin.DistributionsPlugin,
-        histograms_plugin.HistogramsPlugin,
-        projector_plugin.ProjectorPlugin,
-        text_plugin.TextPlugin,
-        profile_plugin.ProfilePlugin,
-    ]
+    tb = program.TensorBoard()
+    argv = (
+        "",
+        "--logdir", logdir,
+        "--reload_interval", str(reload_interval),
+        "--path_prefix", path_prefix,
+    )
+    tb.configure(argv)
     return application.standard_tensorboard_wsgi(
-        logdir=os.path.expanduser(logdir),
-        purge_orphaned_data=False,
-        reload_interval=reload_interval,
-        plugins=plugins,
-        db_uri="",
-        assets_zip_provider=None,
-        path_prefix=path_prefix,
-        window_title="")
+        tb.flags,
+        tb.plugin_loaders,
+        tb.assets_zip_provider)
 
 def setup_logging():
-    tf_util.setup_logging()
+    tb_util.setup_logging()
     _filter_logging()
 
 def _filter_logging():
@@ -113,7 +96,7 @@ def run_simple_server(tb_app, host, port, ready_cb):
     url = util.local_server_url(host, port)
     sys.stderr.write(
         "TensorBoard %s at %s (Press CTRL+C to quit)\n"
-        % (version.VERSION, url))
+        % (tb_version.VERSION, url))
     sys.stderr.flush()
     if ready_cb:
         ready_cb(url)
