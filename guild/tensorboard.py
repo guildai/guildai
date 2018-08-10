@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 import logging
-import os
 import sys
 
 import pkg_resources
@@ -29,8 +28,7 @@ from werkzeug import serving
 # pylint: disable=unused-import,wrong-import-order
 
 import tensorflow as tf
-from tensorboard import program as tb_program
-from tensorboard import version as tb_version
+from tensorboard import version
 
 log = logging.getLogger("guild")
 
@@ -40,10 +38,10 @@ log = logging.getLogger("guild")
 
 _req = pkg_resources.Requirement.parse("tensorflow-tensorboard >= 1.10.0")
 
-if tb_version.VERSION not in _req:
+if version.VERSION not in _req:
     log.warning(
         "installed version of tensorboard (%s) does not meet the "
-        "requirement %s", tb_version.VERSION, _req)
+        "requirement %s", version.VERSION, _req)
 
 # pylint: disable=wrong-import-position
 
@@ -96,7 +94,7 @@ def run_simple_server(tb_app, host, port, ready_cb):
     url = util.local_server_url(host, port)
     sys.stderr.write(
         "TensorBoard %s at %s (Press CTRL+C to quit)\n"
-        % (tb_version.VERSION, url))
+        % (version.VERSION, url))
     sys.stderr.flush()
     if ready_cb:
         ready_cb(url)
