@@ -164,7 +164,7 @@ def _install_guild_dist(config):
         cli.out("Installing Guild %s" % config.guild)
         req = "guildai==%s" % config.guild
     else:
-        cli.out("Installing %s" % req)
+        cli.out("Installing %s" % config.guild)
         req = config.guild
     _install_reqs([req], config.env_dir)
 
