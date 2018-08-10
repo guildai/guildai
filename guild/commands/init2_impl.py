@@ -19,6 +19,8 @@ import os
 import pkg_resources
 import subprocess
 
+import guild
+
 from guild import cli
 from guild import init
 from guild import util
@@ -29,6 +31,7 @@ class Config(object):
         self.env_dir = os.path.abspath(args.dir)
         self.env_name = self._init_env_name(args.name, self.env_dir)
         self.venv_python_ver = args.python
+        self.guild = args.guild
         self.reqs = args.requirement
         self.tensorflow = args.tf_package
         self.local_resource_cache = args.local_resource_cache
@@ -38,7 +41,10 @@ class Config(object):
     def _init_env_name(name, abs_env_dir):
         if name:
             return name
-        return os.path.basename(os.path.dirname(abs_env_dir))
+        elif os.path.exists(abs_env_dir):
+            return os.path.basename(os.path.dirname(abs_env_dir))
+        else:
+            return os.path.basename(abs_env_dir)
 
     @staticmethod
     def _init_venv_python(arg):
@@ -54,6 +60,10 @@ class Config(object):
             params.append(("Python version", self.venv_python_ver))
         else:
             params.append(("Python version", "default"))
+        if self.guild:
+            params.append(("Guild version", self.guild))
+        else:
+            params.append(("Guild version", guild.__version__))
         if self.reqs:
             params.append(("Requirements", self.reqs))
         if self.tensorflow == "no":
@@ -97,8 +107,8 @@ def _confirm(config):
 def _init(config):
     _init_guild_env(config)
     _init_venv(config)
-    _install_guild_reqs(config)
-    _install_reqs(config)
+    _install_guild(config)
+    _install_cmd_reqs(config)
     _ensure_tensorflow(config)
     _initialized_msg(config)
 
@@ -124,33 +134,85 @@ def _venv_cmd_args(config):
         args.extend(["--python", "python{}".format(config.venv_python)])
     return args
 
-def _install_guild_reqs(config):
-    """Install Guild requirements.txt if running from source."""
-    guild_reqs = _guild_reqs_file()
-    if os.path.exists(guild_reqs):
-        cli.out("Installing Guild requirements")
-        _install_reqs_([guild_reqs], config.env_dir)
+def _install_guild(config):
+    """Install Guild into env.
+
+    If the running Guild program is from `guild/scripts` (i.e. running
+    in dev mode), only the Guild requirements, as defined in
+    `guild/requirements.txt` are installed, under the assumption that
+    `guild/scripts` is in `PATH` or an alias is being used and
+    therefore Guild will be available from the env. In this case only
+    the requirements need to be installed.
+
+    If the running Guild program is not from `guild/scripts`, Guild
+    will be installed using the env `pip` program.
+    """
+    if config.guild:
+        _install_guild_dist(config)
+    else:
+        guild_reqs = _guild_reqs_file()
+        if guild_reqs:
+            _install_guild_reqs(guild_reqs, config)
+        else:
+            _install_default_guild_dist(config)
+
+def _install_guild_dist(config):
+    if os.path.exists(config.guild):
+        req = config.guild
+        cli.out("Installing %s" % req)
+    else:
+        req = "guildai==%s" % config.guild
+        cli.out("Installing Guild %s" % config.guild)
+    _install_reqs([req], config.env_dir)
 
 def _guild_reqs_file():
     guild_location = pkg_resources.resource_filename("guild", "")
     guild_parent = os.path.dirname(guild_location)
-    return os.path.join(guild_parent, "requirements.txt")
+    path = os.path.join(guild_parent, "requirements.txt")
+    try:
+        f = open(path, "r")
+    except OSError:
+        pass
+    else:
+        with f:
+            if "guildai" in f.readline():
+                return path
+    return None
 
-def _install_reqs(config):
-    if config.reqs:
-        cli.out("Installing project requirements")
-        _install_reqs_(config.reqs, config.env_dir)
+def _install_guild_reqs(req_files, config):
+    cli.out("Installing Guild requirements")
+    _install_req_files([req_files], config.env_dir)
 
-def _install_reqs_(reqs, env_dir):
+def _install_default_guild_dist(config):
+    req = "guildai==%s" % guild.__version__
+    cli.out("Installing Guild %s" % req)
+    _install_reqs([req], config.env_dir)
+
+def _install_reqs(reqs, env_dir):
+    cmd_args = [_pip_bin(env_dir), "install"] + reqs
+    try:
+        subprocess.check_call(cmd_args)
+    except subprocess.CalledProcessError as e:
+        cli.error(str(e), exit_status=e.returncode)
+
+def _pip_bin(env_dir):
     pip_bin = os.path.join(env_dir, "bin", "pip")
     assert os.path.exists(pip_bin), pip_bin
-    cmd_args = [pip_bin, "install"]
-    for path in reqs:
+    return pip_bin
+
+def _install_req_files(req_files, env_dir):
+    cmd_args = [_pip_bin(env_dir), "install"]
+    for path in req_files:
         cmd_args.extend(["-r", path])
     try:
         subprocess.check_call(cmd_args)
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
+
+def _install_cmd_reqs(config):
+    if config.reqs:
+        cli.out("Installing additional requirements")
+        _install_reqs(config.reqs, config.env_dir)
 
 def _ensure_tensorflow(config):
     if config.tensorflow == "no":
@@ -160,7 +222,8 @@ def _ensure_tensorflow(config):
         cli.out("TensorFlow already installed, skipping installation")
         return
     tf_pkg = _tensorflow_package(config)
-    _install_pkg(tf_pkg, config.env_dir)
+    cli.out("Installing TensorFlow (%s)" % tf_pkg)
+    _install_reqs([tf_pkg], config.env_dir)
 
 def _tensorflow_installed(env_dir):
     cli.out("Checking for TensorFlow")
@@ -181,16 +244,6 @@ def _tensorflow_package(config):
         return "tensorflow-gpu"
     else:
         return "tensorflow"
-
-def _install_pkg(pkg, env_dir):
-    cli.out("Installing TensorFlow ({})".format(pkg))
-    pip_bin = os.path.join(env_dir, "bin", "pip")
-    assert os.path.exists(pip_bin), pip_bin
-    cmd_args = [pip_bin, "install", pkg]
-    try:
-        subprocess.check_call(cmd_args)
-    except subprocess.CalledProcessError as e:
-        cli.error(str(e), exit_status=e.returncode)
 
 def _initialized_msg(config):
     cli.out(

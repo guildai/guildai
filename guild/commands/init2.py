@@ -26,7 +26,14 @@ from guild import click_util
     help="Environment name (default is env parent directory name).")
 @click.option(
     "--python", metavar="VERSION",
-    help="The version of Python to use within a virtual environment.")
+    help="Version of Python to use for the environment.")
+@click.option(
+    "--guild", metavar="VERSION_OR_PATH",
+    help=(
+        "Version of Guild AI to use for the environment. "
+        "By default, the active version of Guild is installed. This "
+        "value may alternatively be a path to a Guild wheel distribution.")
+    )
 @click.option(
     "--gpu", "tf_package", flag_value="tensorflow-gpu",
     help="Use the GPU enabled tensorflow package for the environment.")
@@ -94,6 +101,12 @@ def init2(args):
     a file specified by a `--requirement` option, Guild will not
     reinstall it.
 
+    ### Guild AI
+
+    By default `init2` installs the active version of Guild AI in the
+    initialized environment. To install a different version, or to
+    install a Guild wheel distribution file use the `--guild` option.
+
     ### Resource cache
 
     By default resources are cached and shared at the user level in
@@ -101,6 +114,7 @@ def init2(args):
     environment are available to other environments. You can modify
     this behavior to have all resources downloaded local to the
     environment by specifying `--local-resource-cache`.
+
     """
     from . import init2_impl
     init2_impl.main(args)
