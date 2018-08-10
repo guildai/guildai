@@ -35,7 +35,7 @@ jobs:
     - run:
         command: 'guild init2 -y --name guild-test --guild dist/*.whl test-env
 
-          source guild-env test-env
+          TERM=xterm-256color source guild-env test-env
 
           WORKSPACE=test-env guild check --uat'
         name: Test
@@ -84,7 +84,7 @@ jobs:
     - run:
         command: 'guild init2 -y --name guild-test --guild dist/*.whl test-env
 
-          source guild-env test-env
+          TERM=xterm-256color source guild-env test-env
 
           WORKSPACE=test-env guild check --uat'
         name: Test
@@ -133,7 +133,7 @@ jobs:
     - run:
         command: 'guild init2 -y --name guild-test --guild dist/*.whl test-env
 
-          source guild-env test-env
+          TERM=xterm-256color source guild-env test-env
 
           WORKSPACE=test-env guild check --uat'
         name: Test
@@ -182,7 +182,7 @@ jobs:
     - run:
         command: 'guild init2 -y --name guild-test --guild dist/*.whl test-env
 
-          source guild-env test-env
+          TERM=xterm-256color source guild-env test-env
 
           WORKSPACE=test-env guild check --uat'
         name: Test
@@ -233,7 +233,7 @@ jobs:
     - run:
         command: 'guild init2 -y --name guild-test --guild dist/*.whl test-env
 
-          source guild-env test-env
+          TERM=xterm-256color source guild-env test-env
 
           WORKSPACE=test-env guild check --uat'
         name: Test
