@@ -33,7 +33,7 @@ jobs:
         command: sudo pip install dist/*.whl
         name: Install dist
     - run:
-        command: 'guild init2 -y --name guild-test --guild dist/*.whl test-env
+        command: 'guild init2 -y --no-progress --name guild-test --guild dist/*.whl test-env
 
           TERM=xterm-256color source guild-env test-env
 
@@ -82,7 +82,7 @@ jobs:
         command: sudo pip install dist/*.whl
         name: Install dist
     - run:
-        command: 'guild init2 -y --name guild-test --guild dist/*.whl test-env
+        command: 'guild init2 -y --no-progress --name guild-test --guild dist/*.whl test-env
 
           TERM=xterm-256color source guild-env test-env
 
@@ -131,7 +131,7 @@ jobs:
         command: sudo pip install dist/*.whl
         name: Install dist
     - run:
-        command: 'guild init2 -y --name guild-test --guild dist/*.whl test-env
+        command: 'guild init2 -y --no-progress --name guild-test --guild dist/*.whl test-env
 
           TERM=xterm-256color source guild-env test-env
 
@@ -180,7 +180,7 @@ jobs:
         command: sudo pip install dist/*.whl
         name: Install dist
     - run:
-        command: 'guild init2 -y --name guild-test --guild dist/*.whl test-env
+        command: 'guild init2 -y --no-progress --name guild-test --guild dist/*.whl test-env
 
           TERM=xterm-256color source guild-env test-env
 
@@ -231,7 +231,7 @@ jobs:
         command: sudo pip3 install dist/*.whl
         name: Install dist
     - run:
-        command: 'guild init2 -y --name guild-test --guild dist/*.whl test-env
+        command: 'guild init2 -y --no-progress --name guild-test --guild dist/*.whl test-env
 
           TERM=xterm-256color source guild-env test-env
 

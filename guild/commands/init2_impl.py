@@ -36,6 +36,7 @@ class Config(object):
         self.tensorflow = args.tf_package
         self.local_resource_cache = args.local_resource_cache
         self.prompt_params = self._init_prompt_params()
+        self.no_progress = args.no_progress
 
     @staticmethod
     def _init_env_name(name, abs_env_dir):
@@ -166,7 +167,7 @@ def _install_guild_dist(config):
     else:
         cli.out("Installing %s" % config.guild)
         req = config.guild
-    _install_reqs([req], config.env_dir)
+    _install_reqs([req], config)
 
 def _guild_reqs_file():
     guild_location = pkg_resources.resource_filename("guild", "")
@@ -184,27 +185,37 @@ def _guild_reqs_file():
 
 def _install_guild_reqs(req_files, config):
     cli.out("Installing Guild requirements")
-    _install_req_files([req_files], config.env_dir)
+    _install_req_files([req_files], config)
 
 def _install_default_guild_dist(config):
     req = "guildai==%s" % guild.__version__
     cli.out("Installing Guild %s" % req)
-    _install_reqs([req], config.env_dir)
+    _install_reqs([req], config)
 
-def _install_reqs(reqs, env_dir):
-    cmd_args = [_pip_bin(env_dir), "install"] + reqs
+def _install_reqs(reqs, config):
+    cmd_args = (
+        [_pip_bin(config.env_dir), "install"] +
+        _pip_extra_opts(config) +
+        reqs
+    )
     try:
         subprocess.check_call(cmd_args)
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
+
+def _pip_extra_opts(config):
+    if config.no_progress:
+        return ["--progress", "off"]
+    else:
+        return []
 
 def _pip_bin(env_dir):
     pip_bin = os.path.join(env_dir, "bin", "pip")
     assert os.path.exists(pip_bin), pip_bin
     return pip_bin
 
-def _install_req_files(req_files, env_dir):
-    cmd_args = [_pip_bin(env_dir), "install"]
+def _install_req_files(req_files, config):
+    cmd_args = [_pip_bin(config.env_dir), "install"] + _pip_extra_opts(config)
     for path in req_files:
         cmd_args.extend(["-r", path])
     try:
@@ -215,7 +226,7 @@ def _install_req_files(req_files, env_dir):
 def _install_cmd_reqs(config):
     if config.reqs:
         cli.out("Installing additional requirements")
-        _install_reqs(config.reqs, config.env_dir)
+        _install_reqs(config.reqs, config)
 
 def _ensure_tensorflow(config):
     if config.tensorflow == "no":
@@ -226,7 +237,7 @@ def _ensure_tensorflow(config):
         return
     tf_pkg = _tensorflow_package(config)
     cli.out("Installing TensorFlow (%s)" % tf_pkg)
-    _install_reqs([tf_pkg], config.env_dir)
+    _install_reqs([tf_pkg], config)
 
 def _tensorflow_installed(env_dir):
     cli.out("Checking for TensorFlow")

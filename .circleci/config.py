@@ -138,9 +138,10 @@ class Build(object):
 
     def test(self):
         return self._run("Test", [
-            ("guild init2 -y "
-             "--name guild-test "
-             "--guild dist/*.whl {}".format(self.test_dir)),
+            ("guild init2 -y"
+             " --no-progress"
+             " --name guild-test"
+             " --guild dist/*.whl {}".format(self.test_dir)),
             "TERM=xterm-256color source guild-env {}".format(self.test_dir),
             "WORKSPACE={} guild check --uat".format(self.test_dir),
         ])
