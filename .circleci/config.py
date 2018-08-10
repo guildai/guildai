@@ -18,7 +18,7 @@ import yaml
 
 class Build(object):
 
-    cache_scheme_version = 11
+    cache_scheme_version = 12
 
     name = None
     python = None
@@ -49,6 +49,7 @@ class Build(object):
             self.install_build_deps(),
             self.save_cache(),
             self.build(),
+            self.install_dist(),
             self.test(),
             self.store_artifacts(),
             self.upload_to_pypi(),
@@ -130,13 +131,18 @@ class Build(object):
     def _bdist_wheel_cmd():
         return "python setup.py bdist_wheel"
 
+    def install_dist(self):
+        return self._run("Install dist", [
+            "sudo {} install dist/*.whl".format(self.pip),
+        ])
+
     def test(self):
         return self._run("Test", [
-            self._init_env(self.test_dir),
-            self._activate_env(self.test_dir),
-            self._install_tensorflow(),
-            "{} install dist/*.whl".format(self.pip),
-            "WORKSPACE=%s guild check --uat" % self.test_dir,
+            ("guild init2 -y "
+             "--name guild-test "
+             "--guild dist/*.whl {}".format(self.test_dir)),
+            "source guild-env {}".format(self.test_dir),
+            "WORKSPACE={} guild check --uat".format(self.test_dir),
         ])
 
     @staticmethod
