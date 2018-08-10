@@ -157,12 +157,15 @@ def _install_guild(config):
             _install_default_guild_dist(config)
 
 def _install_guild_dist(config):
-    if os.path.exists(config.guild):
-        req = config.guild
-        cli.out("Installing %s" % req)
-    else:
-        req = "guildai==%s" % config.guild
+    assert config.guild
+    # If config.guild can be parsed as a version, use as
+    # 'guildai==VERSION'
+    if config.guild[0].isdigit():
         cli.out("Installing Guild %s" % config.guild)
+        req = "guildai==%s" % config.guild
+    else:
+        cli.out("Installing %s" % req)
+        req = config.guild
     _install_reqs([req], config.env_dir)
 
 def _guild_reqs_file():
