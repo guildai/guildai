@@ -44,12 +44,14 @@ class SSHRemote(guild.remote.Remote):
         return "{}:{}".format(self.host, self.guild_home)
 
     def _push_run(self, run, verbose):
-        opts = "-al"
+        cmd = ["rsync", "-al", "--delete"]
         if verbose:
-            opts += "v"
+            cmd.append("-vvv")
+        else:
+            cmd.append("-v")
         src = run.path + "/"
         dest = "{}:{}/runs/{}/".format(self.host, self.guild_home, run.id)
-        cmd = ["rsync", opts, src, dest]
+        cmd.extend([src, dest])
         log.info("Copying %s", run.id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
@@ -61,28 +63,30 @@ class SSHRemote(guild.remote.Remote):
     def _pull_run(self, run_id, verbose):
         src = "{}:{}/runs/{}/".format(self.host, self.guild_home, run_id)
         dest = os.path.join(var.runs_dir(), run_id + "/")
-        cmd = ["rsync"] + self._rsync_opts(verbose) + [src, dest]
+        cmd = ["rsync"] + self._pull_rsync_opts(verbose) + [src, dest]
         log.info("Copying %s", run_id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
 
+    @staticmethod
+    def _pull_rsync_opts(verbose):
+        opts = ["-al", "--inplace", "--delete"]
+        if verbose:
+            opts.append("-vvv")
+        else:
+            opts.append("-v")
+        return opts
+
     def pull_all(self, verbose=False):
         src = "{}:{}/runs/".format(self.host, self.guild_home)
         dest = var.runs_dir() + "/"
-        cmd = ["rsync"] + self._rsync_opts(verbose) + [src, dest]
+        cmd = ["rsync"] + self._pull_rsync_opts(verbose) + [src, dest]
         log.info("Copying all runs")
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
 
     def pull_src(self):
         return "{}:{}".format(self.host, self.guild_home)
-
-    @staticmethod
-    def _rsync_opts(verbose):
-        opts = ["-al", "--inplace"]
-        if verbose:
-            opts.append("-v")
-        return opts
 
     def start(self):
         raise guild.remote.OperationNotSupported(
