@@ -259,28 +259,7 @@ def _init_op(opdef, model, args, ctx):
     _validate_opdef_flags(opdef)
     _apply_arg_disable_plugins(args, opdef)
     extra_attrs = _init_op_extra_attrs(args)
-    if args.run_dir:
-        if args.restart:
-            cli.error(
-                "--restart and --run-dir cannot both be used\n"
-                "Try '%s' for more information"
-                % click_util.cmd_help(ctx))
-        if args.stage:
-            cli.error(
-                "--stage and --run-dir cannot both be used\n"
-                "Try '%s' for more information"
-                % click_util.cmd_help(ctx))
-        run_dir = os.path.abspath(args.run_dir)
-        cli.note(
-            "Run directory is '%s' (results will not be visible to Guild)"
-            % run_dir)
-    elif args.restart:
-        assert hasattr(args, "_restart_run")
-        run_dir = args._restart_run.path
-    elif args.stage:
-        run_dir = args.stage
-    else:
-        run_dir = None
+    run_dir = _op_run_dir(args, ctx)
     return guild.op.Operation(
         model.reference,
         opdef,
@@ -380,6 +359,31 @@ def _init_op_extra_attrs(args):
     if args.no_wait:
         attrs["_no-wait"] = True
     return attrs
+
+def _op_run_dir(args, ctx):
+    if args.run_dir and args.restart:
+        cli.error(
+            "--restart and --run-dir cannot both be used\n"
+            "Try '%s' for more information"
+            % click_util.cmd_help(ctx))
+    if args.run_dir and args.stage:
+        cli.error(
+            "--stage and --run-dir cannot both be used\n"
+            "Try '%s' for more information"
+            % click_util.cmd_help(ctx))
+    if args.run_dir:
+        run_dir = os.path.abspath(args.run_dir)
+        cli.note(
+            "Run directory is '%s' (results will not be visible to Guild)"
+            % run_dir)
+        return run_dir
+    elif args.restart:
+        assert hasattr(args, "_restart_run")
+        return args._restart_run.path
+    elif args.stage:
+        return os.path.abspath(args.stage)
+    else:
+        return None
 
 def _op_gpus(args, ctx):
     if args.no_gpus and args.gpus:
