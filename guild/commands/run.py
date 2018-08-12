@@ -72,6 +72,10 @@ def run_params(fn):
             help="Enter the Python debugger at the operation entry point.",
             is_flag=True),
         click.Option(
+            ("--quiet",),
+            help="Do not show output.",
+            is_flag=True),
+        click.Option(
             ("--print-cmd",),
             help="Show operation command and exit.",
             is_flag=True),

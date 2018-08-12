@@ -491,7 +491,7 @@ def _maybe_run(op, model, args):
     _maybe_warn_no_wait(op.opdef, args)
     if args.yes or _confirm_run(op, model, args):
         _check_restart_running(args)
-        _run(op)
+        _run(op, args.quiet)
 
 def _check_restart_running(args):
     restart_run = getattr(args, "_restart_run", None)
@@ -501,9 +501,9 @@ def _check_restart_running(args):
             "Wait for it to stop or try 'guild stop {id}' "
             "to stop it.".format(id=restart_run.id))
 
-def _run(op):
+def _run(op, quiet):
     try:
-        result = op.run()
+        result = op.run(quiet)
     except deps.DependencyError as e:
         _handle_dependency_error(e)
     else:
