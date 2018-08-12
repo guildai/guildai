@@ -90,7 +90,8 @@ def run_params(fn):
         click.Option(
             ("-w", "--workflow"),
             help="Experimental support for workflow.",
-            is_flag=True)
+            is_flag=True,
+            hidden=True)
     ])
     return fn
 
