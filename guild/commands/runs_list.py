@@ -18,6 +18,7 @@ from __future__ import division
 import click
 
 from guild import click_util
+
 from . import runs_support
 
 def runs_list_options(fn):
@@ -45,6 +46,9 @@ def runs_list_options(fn):
             ("-v", "--verbose"),
             help="Show run details.",
             is_flag=True),
+        click.Option(
+            ("-r", "--remote",), metavar="REMOTE",
+            help="List runs on REMOTE rather than local runs."),
     ])
     return fn
 
@@ -86,6 +90,14 @@ def list_runs(args):
 
     Use `--archive` to show runs in an archive directory. This option
     may not be used with `--delete`.
+
+    ### Show remote runs
+
+    To list runs on a remote, specify `--remote REMOTE`. Use ``guild
+    remotes`` to list available remotes.
+
+    For information on configuring remotes, see ``guild remotes
+    --help``.
 
     """
     from . import runs_impl

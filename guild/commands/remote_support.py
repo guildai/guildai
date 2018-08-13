@@ -69,7 +69,7 @@ def remote_for_args(args):
     except guild.remote.NoSuchRemote:
         cli.error(
             "remote '%s' is not defined\n"
-            "List available remotes by running 'guild remotes' or "
+            "Show remotes by running 'guild remotes' or "
             "'guild remotes --help' for more information."
             % args.remote)
     except guild.remote.UnsupportedRemoteType as e:

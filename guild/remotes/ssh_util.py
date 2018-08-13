@@ -17,15 +17,22 @@ from __future__ import division
 
 import subprocess
 
-import guild.remote
+from guild import remote as remotelib
 
 def ssh_ping(host, verbose=False):
     cmd = ["ssh"] + _ssh_opts(verbose) + [host, "true"]
     result = subprocess.call(cmd)
     if result != 0:
-        raise guild.remote.Down("cannot reach host %s" % host)
+        raise remotelib.Down("cannot reach host %s" % host)
 
-def _ssh_opts(verbose):
+def ssh_cmd(host, cmd):
+    cmd = ["ssh"] + _ssh_opts() + [host] + cmd
+    try:
+        subprocess.check_call(cmd)
+    except subprocess.CalledProcessError as e:
+        raise remotelib.RemoteProcessError.from_called_process_error(e)
+
+def _ssh_opts(verbose=False):
     opts = [
         "-oStrictHostKeyChecking=no"
     ]

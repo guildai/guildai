@@ -82,6 +82,7 @@
     guild.commands.runs_pull
     guild.commands.runs_purge
     guild.commands.runs_push
+    guild.commands.runs_remote_impl
     guild.commands.runs_restore
     guild.commands.runs_stop
     guild.commands.runs_support

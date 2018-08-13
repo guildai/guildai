@@ -35,6 +35,18 @@ class Down(Exception):
 class OperationError(Exception):
     pass
 
+class RemoteProcessError(Exception):
+
+    def __init__(self, exit_status, cmd, output):
+        super(RemoteProcessError, self).__init__(exit_status, cmd, output)
+        self.exit_status = exit_status
+        self.cmd = cmd
+        self.output = output
+
+    @classmethod
+    def from_called_process_error(cls, e):
+        return cls(e.returncode, e.cmd, e.output)
+
 class RemoteConfig(dict):
 
     def __getitem__(self, key):
@@ -72,6 +84,12 @@ class Remote(object):
         raise NotImplementedError()
 
     def stop(self):
+        raise NotImplementedError()
+
+    def run_op(self, op):
+        raise NotImplementedError()
+
+    def list_runs(self, filters, verbose=False):
         raise NotImplementedError()
 
 def for_name(name):

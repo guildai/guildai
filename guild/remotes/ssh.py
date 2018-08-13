@@ -35,6 +35,7 @@ class SSHRemote(guild.remote.Remote):
         self.host = config["host"]
         self.user = config.get("user")
         self.guild_home = config.get("guild-home", ".guild")
+        self.guild_env = config.get("guild-env")
 
     def push(self, runs, verbose=False):
         for run in runs:
@@ -103,3 +104,46 @@ class SSHRemote(guild.remote.Remote):
     def status(self, verbose=False):
         ssh_util.ssh_ping(self.host, verbose)
         sys.stdout.write("%s (%s) is available\n" % (self.name, self.host))
+
+    def run_op(self, op):
+        print("TODO: run %s on %s, somehow" % (op, self.host))
+
+    def list_runs(self, filters, verbose=False):
+        cmd_parts = []
+        if self.guild_env:
+            cmd_parts.append(
+                "cd '%s' && QUIET=1 source guild-env"
+                % self.guild_env)
+            cmd_parts.append("&&")
+        cmd_parts.extend(["guild", "runs", "list"])
+        cmd_parts.extend(_list_runs_filter_opts(**filters))
+        if verbose:
+            cmd_parts.append("--verbose")
+        cmd = [" ".join(cmd_parts)]
+        ssh_util.ssh_cmd(self.host, cmd)
+
+def _list_runs_filter_opts(ops, labels, unlabeled, running,
+                           completed, error, terminated, deleted,
+                           all, more):
+    opts = []
+    if all:
+        opts.append("--all")
+    if completed:
+        opts.append("--completed")
+    if deleted:
+        opts.append("--deleted")
+    if error:
+        opts.append("--error")
+    for label in labels:
+        opts.extend(["--label", label])
+    if more > 0:
+        opts.append("-" + ("m" * more))
+    for op in ops:
+        opts.extend(["-o", op])
+    if running:
+        opts.append("--running")
+    if terminated:
+        opts.append("--terminated")
+    if unlabeled:
+        opts.append("--unlabeled")
+    return opts

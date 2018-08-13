@@ -37,6 +37,7 @@ from guild import util
 from guild import var
 
 from . import remote_support
+from . import runs_remote_impl
 
 log = logging.getLogger("guild")
 
@@ -186,6 +187,12 @@ def _in_range(slice_start, slice_end, l):
     )
 
 def list_runs(args):
+    if args.remote:
+        runs_remote_impl.list_runs(args)
+    else:
+        _list_runs(args)
+
+def _list_runs(args):
     if args.archive and args.deleted:
         cli.error("--archive and --deleted may not both be used")
     runs = filtered_runs(args)
