@@ -258,16 +258,15 @@ def _init_op(opdef, model, args, ctx):
     _apply_flag_vals(flag_vals, opdef)
     _validate_opdef_flags(opdef)
     _apply_arg_disable_plugins(args, opdef)
-    extra_attrs = _init_op_extra_attrs(args)
-    run_dir = _op_run_dir(args, ctx)
     return guild.op.Operation(
         model.reference,
         opdef,
-        run_dir,
+        _op_run_dir(args, ctx),
         resource_vals,
-        extra_attrs,
+        _op_extra_attrs(args),
         args.stage,
-        _op_gpus(args, ctx))
+        _op_gpus(args, ctx)
+    )
 
 def _split_flags_and_resources(vals, opdef):
     ref_vars = _ref_vars_for_resource_lookup(vals, opdef)
@@ -352,7 +351,7 @@ def _apply_arg_disable_plugins(args, opdef):
 def _init_resource_config(args):
     return dict(args.resource_config)
 
-def _init_op_extra_attrs(args):
+def _op_extra_attrs(args):
     attrs = {}
     if args.label:
         attrs["label"] = args.label
