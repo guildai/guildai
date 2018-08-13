@@ -28,7 +28,7 @@ from . import runs_support
 @click.option("-O", "--output", help="Show run output.", is_flag=True)
 @click.option(
     "-p", "--page-output",
-    help="Show only run output in a pager",
+    help="Show only run output in a pager.",
     is_flag=True)
 @click.option("-F", "--files", help="Show run files.", is_flag=True)
 @click.option(
