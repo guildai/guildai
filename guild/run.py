@@ -46,7 +46,7 @@ class Run(object):
     def pid(self):
         lockfile = self.guild_path("LOCK")
         try:
-            raw = open(lockfile, "r").read()
+            raw = open(lockfile, "r").read(10)
         except (IOError, ValueError):
             return None
         else:
