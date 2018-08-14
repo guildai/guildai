@@ -107,6 +107,8 @@
     guild.commands.view
     guild.commands.view_impl
     guild.commands.view_tester
+    guild.commands.watch
+    guild.commands.watch_impl
     guild.commands.workflow_impl
     guild.config
     guild.deps

@@ -54,6 +54,7 @@ from .tensorboard import tensorboard
 from .tensorflow import tensorflow
 from .uninstall import uninstall
 from .view import view
+from .watch import watch
 
 try:
     _home = os.environ["CONDA_PREFIX"]
@@ -125,3 +126,4 @@ main.add_command(tensorboard)
 main.add_command(tensorflow)
 main.add_command(uninstall)
 main.add_command(view)
+main.add_command(watch)

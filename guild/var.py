@@ -90,6 +90,9 @@ def _all_init_runs(root, run_init):
         for name, path in _iter_dirs(root)
     ]
 
+def iter_run_dirs(root=None):
+    return _iter_dirs(root or runs_dir())
+
 def _iter_dirs(root):
     try:
         names = os.listdir(root)
