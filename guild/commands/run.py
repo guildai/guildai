@@ -63,6 +63,11 @@ def run_params(fn):
             help="Do not prompt before running operation.",
             is_flag=True),
         click.Option(
+            ("--background",), metavar="PIDFILE",
+            help=(
+                "Run operation in background. PIDFILE must be a path to a "
+                "file where the background process ID is written.")),
+        click.Option(
             ("-n", "--no-wait",),
             help=("Don't wait for a remote operation to complete. Ignored "
                   "if run is local."),
@@ -72,7 +77,7 @@ def run_params(fn):
             help="Enter the Python debugger at the operation entry point.",
             is_flag=True),
         click.Option(
-            ("--quiet",),
+            ("-q", "--quiet",),
             help="Do not show output.",
             is_flag=True),
         click.Option(

@@ -20,6 +20,7 @@ import pipes
 import re
 
 import click
+import daemonize
 
 import guild.help
 import guild.model
@@ -495,7 +496,10 @@ def _maybe_run(op, model, args):
     _maybe_warn_no_wait(op.opdef, args)
     if args.yes or _confirm_run(op, model, args):
         _check_restart_running(args)
-        _run(op, args.quiet)
+        if args.background:
+            _run_in_background(op, args.background, args.quiet)
+        else:
+            _run(op, args.quiet)
 
 def _check_restart_running(args):
     restart_run = getattr(args, "_restart_run", None)
@@ -504,6 +508,13 @@ def _check_restart_running(args):
             "{id} is still running\n"
             "Wait for it to stop or try 'guild stop {id}' "
             "to stop it.".format(id=restart_run.id))
+
+def _run_in_background(op, pidfile, quiet):
+    run = lambda: op.run(quiet=False)
+    daemon = daemonize.Daemonize(app="what-is-this", action=run, pid=pidfile)
+    if not quiet:
+        cli.out("Operation started in background (pidfile is %s)" % pidfile)
+    daemon.start()
 
 def _run(op, quiet):
     try:
