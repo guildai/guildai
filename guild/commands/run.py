@@ -36,13 +36,16 @@ def run_params(fn):
                 "Stage an operation in DIR but do not run. Cannot be used "
                 "with --run-dir.")),
         click.Option(
-            ("-r", "--rerun",), metavar="RUN",
+            ("--rerun",), metavar="RUN",
             help=(
                 "Use the operation and flags from RUN. Flags may "
                 "be added or redefined in this operation. Cannot "
                 "be used with --restart.")),
         click.Option(
-            ("-s", "--restart",), metavar="RUN",
+            ("--remote",), metavar="REMOTE",
+            help="Run the operation remotely."),
+        click.Option(
+            ("--restart",), metavar="RUN",
             help=(
                 "Restart RUN in-place without creating a new run. Cannot be "
                 "used with --rerun or --run-dir.")),
