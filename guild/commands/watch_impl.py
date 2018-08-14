@@ -32,6 +32,7 @@ def main(args):
     pid = _pid_arg(args.pid)
     run = _run_for_pid(pid)
     _tail(run)
+    _print_run_status(run)
 
 def _pid_arg(pid):
     try:
@@ -62,6 +63,7 @@ def _parent_pid(pid):
     return psutil.Process(pid).parent().pid
 
 def _tail(run):
+    cli.out("Watching run %s" % run.id, err=True)
     proc = psutil.Process(run.pid)
     output_path = run.guild_path("output")
     f = None
@@ -83,3 +85,8 @@ def _try_open(path):
         if e.errno != 2:
             raise
         return None
+
+def _print_run_status(run):
+    cli.out(
+        "Run %s stopped with a status of '%s'"
+        % (run.short_id, run.status), err=True)
