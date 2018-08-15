@@ -60,6 +60,7 @@
     guild.commands.push
     guild.commands.remote
     guild.commands.remote_impl
+    guild.commands.remote_impl_support
     guild.commands.remote_start
     guild.commands.remote_status
     guild.commands.remote_stop
@@ -82,7 +83,6 @@
     guild.commands.runs_pull
     guild.commands.runs_purge
     guild.commands.runs_push
-    guild.commands.runs_remote_impl
     guild.commands.runs_restore
     guild.commands.runs_stop
     guild.commands.runs_support
