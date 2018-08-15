@@ -374,9 +374,10 @@ def _op_run_dir(args, ctx):
             % click_util.cmd_help(ctx))
     if args.run_dir:
         run_dir = os.path.abspath(args.run_dir)
-        cli.note(
-            "Run directory is '%s' (results will not be visible to Guild)"
-            % run_dir)
+        if os.getenv("NO_WARN_RUNDIR") != "1":
+            cli.note(
+                "Run directory is '%s' (results will not be visible to Guild)"
+                % run_dir)
         return run_dir
     elif args.restart:
         assert hasattr(args, "_restart_run")
