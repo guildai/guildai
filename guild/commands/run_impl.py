@@ -35,7 +35,7 @@ from guild import op_util
 from guild import util
 from guild import var
 
-from . import run_remote_impl
+from . import remote_impl_support
 from . import runs_impl
 
 def main(args, ctx):
@@ -500,7 +500,7 @@ def _maybe_run(op, model, args):
 
 def _run(op, model, args):
     if args.remote:
-        run_remote_impl.run(op, model, args)
+        remote_impl_support.run(op, model, args)
     elif args.background:
         _run_in_background(op, args.background, args.quiet)
     else:

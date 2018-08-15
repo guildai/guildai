@@ -17,6 +17,7 @@ from __future__ import division
 
 from guild import cli
 from guild import remote as remotelib
+from guild import run as runlib
 
 from . import remote_support
 
@@ -26,7 +27,9 @@ def list_runs(args):
         cli.error("--archive and --remote cannot both be used")
     remote = remote_support.remote_for_args(args)
     try:
-        remote.list_runs(_remote_list_filters(args), args.verbose)
+        remote.list_runs(
+            verbose=args.verbose,
+            **_remote_list_filters(args))
     except remotelib.RemoteProcessError as e:
         cli.error(exit_status=e.exit_status)
 
@@ -54,3 +57,7 @@ def _remote_list_filters(args):
         del kw[name]
     assert not kw, kw
     return filters
+
+def run(op, _model, args):
+    remote = remote_support.remote_for_args(args)
+    remote.run_op(op)

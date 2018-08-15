@@ -108,7 +108,7 @@ class SSHRemote(guild.remote.Remote):
     def run_op(self, op):
         print("TODO: run %s on %s, somehow" % (op, self.host))
 
-    def list_runs(self, filters, verbose=False):
+    def list_runs(self, verbose=False, **filters):
         cmd_parts = []
         if self.guild_env:
             cmd_parts.append(

@@ -37,7 +37,7 @@ from guild import util
 from guild import var
 
 from . import remote_support
-from . import runs_remote_impl
+from . import remote_impl_support
 
 log = logging.getLogger("guild")
 
@@ -188,7 +188,7 @@ def _in_range(slice_start, slice_end, l):
 
 def list_runs(args):
     if args.remote:
-        runs_remote_impl.list_runs(args)
+        remote_impl_support.list_runs(args)
     else:
         _list_runs(args)
 
