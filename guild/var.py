@@ -100,8 +100,12 @@ def _iter_dirs(root):
         names = []
     for name in names:
         path = os.path.join(root, name)
-        if os.path.isdir(path):
+        if _opref_exists(path):
             yield name, path
+
+def _opref_exists(run_dir):
+    opref_path = os.path.join(run_dir, ".guild", "attrs", "opref")
+    return os.path.exists(opref_path)
 
 def _run_sort_key(sort):
     return functools.cmp_to_key(lambda x, y: _run_cmp(x, y, sort))
