@@ -35,7 +35,8 @@ from guild import op_util
 from guild import util
 from guild import var
 
-from guild.commands import runs_impl
+from . import run_remote_impl
+from . import runs_impl
 
 def main(args, ctx):
     if not (args.opspec or args.rerun or args.restart):
@@ -495,11 +496,16 @@ def _print_env(op):
 def _maybe_run(op, model, args):
     _maybe_warn_no_wait(op.opdef, args)
     if args.yes or _confirm_run(op, model, args):
+        _run(op, model, args)
+
+def _run(op, model, args):
+    if args.remote:
+        run_remote_impl.run(op, model, args)
+    elif args.background:
+        _run_in_background(op, args.background, args.quiet)
+    else:
         _check_restart_running(args)
-        if args.background:
-            _run_in_background(op, args.background, args.quiet)
-        else:
-            _run(op, args.quiet)
+        _run_in_foreground(op, args.quiet)
 
 def _check_restart_running(args):
     restart_run = getattr(args, "_restart_run", None)
@@ -516,7 +522,7 @@ def _run_in_background(op, pidfile, quiet):
         cli.out("Operation started in background (pidfile is %s)" % pidfile)
     daemon.start()
 
-def _run(op, quiet):
+def _run_in_foreground(op, quiet):
     try:
         result = op.run(quiet)
     except deps.DependencyError as e:
