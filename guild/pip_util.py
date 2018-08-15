@@ -47,7 +47,7 @@ def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
     args = []
     if pre_releases:
         args.append("--pre")
-    if not running_under_virtualenv():
+    if not running_under_virtualenv() and not target:
         args.append("--user")
     if upgrade:
         args.append("--upgrade")
