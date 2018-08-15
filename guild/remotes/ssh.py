@@ -111,9 +111,8 @@ class SSHRemote(guild.remote.Remote):
     def list_runs(self, verbose=False, **filters):
         cmd_parts = []
         if self.guild_env:
-            cmd_parts.append(
-                "cd '%s' && QUIET=1 source guild-env"
-                % self.guild_env)
+            cmd_parts.append("cd '%s'" % self.guild_env)
+            cmd_parts.append("&& QUIET=1 source guild-env")
             cmd_parts.append("&&")
         cmd_parts.extend(["guild", "runs", "list"])
         cmd_parts.extend(_list_runs_filter_opts(**filters))
