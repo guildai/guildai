@@ -74,4 +74,4 @@ def package(args):
 
     """
     from . import package_impl
-    package_impl.create_package(args)
+    package_impl.main(args)

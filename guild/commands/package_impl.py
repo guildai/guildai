@@ -22,7 +22,7 @@ from guild import cmd_impl_support
 from guild import config
 from guild import package
 
-def create_package(args):
+def main(args):
     package_file = os.path.join(config.cwd(), "guild.yml")
     if not os.path.exists(package_file):
         cli.error(
