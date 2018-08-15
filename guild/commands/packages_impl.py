@@ -75,7 +75,8 @@ def install_packages(args):
                 pre_releases=args.pre,
                 no_cache=args.no_cache,
                 no_deps=args.no_deps,
-                reinstall=args.reinstall)
+                reinstall=args.reinstall,
+                target=args.target)
         except pip_util.InstallError as e:
             cli.error(str(e))
 

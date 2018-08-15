@@ -822,7 +822,7 @@ class PackageDef(object):
         self.data_files = data.get("data-files") or []
         self.resources = _init_resources(data, self)
         self.python_requires = data.get("python-requires") or []
-        self.requires = data.get("requires") or []
+        self.requires = data.get("requires")
 
     def __repr__(self):
         return "<guild.guildfile.PackageDef '%s'>" % self.name

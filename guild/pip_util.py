@@ -40,7 +40,7 @@ class InstallError(Exception):
     pass
 
 def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
-            no_cache=False, no_deps=False, reinstall=False):
+            no_cache=False, no_deps=False, reinstall=False, target=None):
     _ensure_patch_pip_get_entry_points()
     cmd = InstallCommand()
     args = []
@@ -60,6 +60,8 @@ def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
         args.extend(["--index-url", index_urls[0]])
         for url in index_urls[1:]:
             args.extend(["--extra-index-url", url])
+    if target:
+        args.extend(["--target", target])
     args.extend(reqs)
     options, cmd_args = cmd.parse_args(args)
     try:

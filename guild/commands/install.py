@@ -32,6 +32,9 @@ from guild import click_util
 @click.option("--no-cache", help="Don't use cached packages.", is_flag=True)
 @click.option("--no-deps", help="Don't install dependencies.", is_flag=True)
 @click.option("--pre", help="Install pre-release versions.", is_flag=True)
+@click.option(
+    "--target", metavar="DIR",
+    help="Install package and requirements in DIR.")
 
 @click_util.use_args
 
