@@ -17,12 +17,17 @@ from __future__ import division
 
 import os
 import logging
+import shlex
 import subprocess
 import sys
 
 import guild.remote
 
+from guild import click_util
+from guild import run as runlib
+from guild import util
 from guild import var
+from guild.commands import package_impl
 
 from . import ssh_util
 
@@ -36,6 +41,7 @@ class SSHRemote(guild.remote.Remote):
         self.user = config.get("user")
         self.guild_home = config.get("guild-home", ".guild")
         self.guild_env = config.get("guild-env")
+        self.run_init = config.get("run-init")
 
     def push(self, runs, verbose=False):
         for run in runs:
@@ -105,8 +111,65 @@ class SSHRemote(guild.remote.Remote):
         ssh_util.ssh_ping(self.host, verbose)
         sys.stdout.write("%s (%s) is available\n" % (self.name, self.host))
 
-    def run_op(self, op):
-        print("TODO: run %s on %s, somehow" % (op, self.host))
+    def run_op(self, opspec, args, **opts):
+        print("- build package dist")
+        with util.TempDir(prefix="guild-remote-pkg-") as dist_dir:
+            _build_package(dist_dir)
+            remote_run_dir = self._init_remote_run(dist_dir)
+        self._run_op(remote_run_dir, opspec, args, **opts)
+        self._watch_op(remote_run_dir)
+
+    def _init_remote_run(self, package_dist_dir):
+        remote_run_dir = self._init_remote_run_dir()
+        self._copy_package_dist(package_dist_dir, remote_run_dir)
+        self._install_job_package(remote_run_dir)
+        return remote_run_dir
+
+    def _init_remote_run_dir(self):
+        run_id = runlib.mkid()
+        run_dir = os.path.join(self.guild_home, "runs", run_id)
+        pkg_dir = os.path.join(run_dir, ".guild", "job-packages")
+        cmd = ["ssh", self.host, "mkdir", "-p", pkg_dir]
+        log.info("Initializing remote run")
+        log.debug("ssh cmd: %s", cmd)
+        subprocess.check_call(cmd)
+        return run_dir
+
+    def _copy_package_dist(self, package_dist_dir, remote_run_dir):
+        src = package_dist_dir + "/"
+        dest = "{}:{}/.guild/job-packages/".format(self.host, remote_run_dir)
+        cmd = ["rsync", "-vr", src, dest]
+        log.info("Copying package")
+        log.debug("rsync cmd: %r", cmd)
+        subprocess.check_call(cmd)
+
+    def _install_job_package(self, remote_run_dir):
+        ssh_cmd = (
+            "cd %s/.guild/job-packages;"
+            "guild install *.whl --target ."
+            % remote_run_dir)
+        cmd = ["ssh", self.host, ssh_cmd]
+        log.info("Installing package and its dependencies")
+        log.debug("ssh cmd: %r", cmd)
+        subprocess.check_call(cmd)
+
+    def _run_op(self, remote_run_dir, opspec, args, **opts):
+        cmd_lines = ["set -e"]
+        if self.run_init:
+            cmd_lines.append(self.run_init.strip())
+        cmd_lines.append(
+            "export PYTHONPATH=%s:$PYTHONPATH"
+            % os.path.join(remote_run_dir, ".guild", "job-packages"))
+        cmd_lines.append(_remote_run_cmd(remote_run_dir, opspec, args, **opts))
+        cmd = ["\n".join(cmd_lines)]
+        log.info("Starting remote operation")
+        log.debug("cmd: %r", cmd)
+        ssh_util.ssh_cmd(self.host, cmd)
+
+    def _watch_op(self, remote_run_dir):
+        cmd = ["guild", "watch", "--pid", _remote_pidfile(remote_run_dir)]
+        log.debug("watch cmd: %r", cmd)
+        ssh_util.ssh_cmd(self.host, cmd)
 
     def list_runs(self, verbose=False, **filters):
         cmd_parts = []
@@ -123,7 +186,8 @@ class SSHRemote(guild.remote.Remote):
 
 def _list_runs_filter_opts(ops, labels, unlabeled, running,
                            completed, error, terminated, deleted,
-                           all, more):
+                           all, more, **kw):
+    assert not kw, kw
     opts = []
     if all:
         opts.append("--all")
@@ -146,3 +210,47 @@ def _list_runs_filter_opts(ops, labels, unlabeled, running,
     if unlabeled:
         opts.append("--unlabeled")
     return opts
+
+def _build_package(dist_dir):
+    log.info("Building package")
+    args = click_util.Args(
+        dist_dir=dist_dir,
+        upload=False,
+        sign=False,
+        identity=None,
+        user=None,
+        password=None,
+        skip_existing=False,
+        comment=None)
+    package_impl.main(args)
+
+def _remote_run_cmd(remote_run_dir, opspec, op_args, label,
+                    restart, rerun, disable_plugins, gpus,
+                    no_gpus, **kw):
+    assert not kw, kw
+    q = shlex.quote
+    cmd = [
+        "NO_WARN_RUNDIR=1",
+        "guild", "run", q(opspec),
+        "--run-dir", q(remote_run_dir),
+        "--background", _remote_pidfile(remote_run_dir),
+        "--quiet",
+        "--yes",
+    ]
+    if label:
+        cmd.extend(["--label", q(label)])
+    if restart:
+        cmd.extend(["--restart", q(restart)])
+    if rerun:
+        cmd.extend(["--rerun", q(rerun)])
+    if disable_plugins:
+        cmd.extend(["--disable_plugins", q(disable_plugins)])
+    if gpus:
+        cmd.extend(["--gpus", q(gpus)])
+    if no_gpus:
+        cmd.append("--no-gpus")
+    cmd.extend([q(arg) for arg in op_args])
+    return " ".join(cmd)
+
+def _remote_pidfile(remote_run_dir):
+    return os.path.join(remote_run_dir, ".guild", "JOB")

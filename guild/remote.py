@@ -86,10 +86,10 @@ class Remote(object):
     def stop(self):
         raise NotImplementedError()
 
-    def run_op(self, op):
+    def run_op(self, opspec, args, **opts):
         raise NotImplementedError()
 
-    def list_runs(self, filters, verbose=False):
+    def list_runs(self, verbose=False, **filters):
         raise NotImplementedError()
 
 def for_name(name):

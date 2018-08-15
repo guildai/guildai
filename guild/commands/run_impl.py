@@ -497,16 +497,17 @@ def _print_env(op):
 def _maybe_run(op, model, args):
     _maybe_warn_no_wait(op.opdef, args)
     if args.yes or _confirm_run(op, model, args):
-        _run(op, model, args)
+        _run(op, args)
 
-def _run(op, model, args):
+def _run(op, args):
     if args.remote:
-        remote_impl_support.run(op, model, args)
-    elif args.background:
-        _run_in_background(op, args.background, args.quiet)
+        remote_impl_support.run(args)
     else:
         _check_restart_running(args)
-        _run_in_foreground(op, args.quiet)
+        if args.background:
+            _run_in_background(op, args.background, args.quiet)
+        else:
+            _run_in_foreground(op, args.quiet)
 
 def _check_restart_running(args):
     restart_run = getattr(args, "_restart_run", None)
@@ -551,17 +552,28 @@ def _print_staged_info(op):
     )
 
 def _confirm_run(op, model, args):
+    if args.stage:
+        action = "stage"
+    else:
+        action = "run"
     op_desc = "%s:%s" % (model.fullname, op.opdef.name)
+    if args.remote:
+        remote_suffix = " on %s" % args.remote
+    else:
+        remote_suffix = ""
     flags = util.resolve_all_refs(op.opdef.flag_values(include_none=False))
     resources = op.resource_config
-    run_or_stage = "run" if not args.stage else "stage"
     prompt = (
-        "You are about to %s %s\n"
-        "%s"
-        "%s"
+        "You are about to {action} {op_desc}{remote_suffix}\n"
+        "{flags}"
+        "{resources}"
         "Continue?"
-        % (run_or_stage, op_desc, _format_op_flags(flags),
-           _format_op_resources(resources)))
+        .format(
+            action=action,
+            op_desc=op_desc,
+            remote_suffix=remote_suffix,
+            flags=_format_op_flags(flags),
+            resources=_format_op_resources(resources)))
     return cli.confirm(prompt, default=True)
 
 def _format_op_flags(flags):

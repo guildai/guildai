@@ -17,7 +17,6 @@ from __future__ import division
 
 from guild import cli
 from guild import remote as remotelib
-from guild import run as runlib
 
 from . import remote_support
 
@@ -27,15 +26,12 @@ def list_runs(args):
         cli.error("--archive and --remote cannot both be used")
     remote = remote_support.remote_for_args(args)
     try:
-        remote.list_runs(
-            verbose=args.verbose,
-            **_remote_list_filters(args))
+        remote.list_runs(**_list_runs_kw(args))
     except remotelib.RemoteProcessError as e:
         cli.error(exit_status=e.exit_status)
 
-def _remote_list_filters(args):
-    kw = args.as_kw()
-    filter_names = [
+def _list_runs_kw(args):
+    names = [
         "all",
         "completed",
         "deleted",
@@ -46,18 +42,54 @@ def _remote_list_filters(args):
         "running",
         "terminated",
         "unlabeled",
-    ]
-    filters = {name: kw[name] for name in filter_names}
-    ignore_names = [
-        "archive",
-        "remote",
         "verbose",
     ]
-    for name in filter_names + ignore_names:
-        del kw[name]
-    assert not kw, kw
-    return filters
+    ignore = [
+        "archive",
+        "remote",
+    ]
+    return _arg_kw(args, names, ignore)
 
-def run(op, _model, args):
+def _arg_kw(args, names, ignore):
+    kw_in = args.as_kw()
+    kw = {name: kw_in[name] for name in names}
+    for name in names + ignore:
+        del kw_in[name]
+    assert not kw_in, kw_in
+    return kw
+
+def run(args):
+    assert args.remote
     remote = remote_support.remote_for_args(args)
-    remote.run_op(op)
+    try:
+        remote.run_op(**_run_kw(args))
+    except remotelib.RemoteProcessError as e:
+        cli.error(exit_status=e.exit_status)
+
+def _run_kw(args):
+    names = [
+        "args",
+        "disable_plugins",
+        "gpus",
+        "label",
+        "no_gpus",
+        "opspec",
+        "rerun",
+        "restart",
+    ]
+    ignore = [
+        "background",
+        "help_model",
+        "help_op",
+        "no_wait",
+        "print_cmd",
+        "print_env",
+        "quiet",
+        "remote",
+        "run_dir",
+        "set_trace",
+        "stage",
+        "workflow",
+        "yes",
+    ]
+    return _arg_kw(args, names, ignore)
