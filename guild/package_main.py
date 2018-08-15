@@ -25,8 +25,9 @@ import yaml
 
 import guild.help
 
-from guild import namespace
 from guild import guildfile
+from guild import namespace
+from guild import pip_util
 from guild import util
 
 class Pkg(object):
@@ -55,7 +56,7 @@ def _load_pkg():
     path = os.getenv("PACKAGE_FILE")
     try:
         gf = guildfile.from_file(path)
-    except IOError as e:
+    except (IOError, guildfile.GuildfileError) as e:
         _exit("error reading %s\n%s" % (path, e))
     else:
         if not gf.package:
@@ -188,7 +189,19 @@ def _pkg_python_requires(pkg):
     return ", ".join(pkg.python_requires)
 
 def _pkg_install_requires(pkg):
+    if pkg.requires is None:
+        return _maybe_requirements_txt(pkg)
     return [_project_name(req) for req in pkg.requires]
+
+def _maybe_requirements_txt(pkg):
+    requirements_txt = os.path.join(pkg.guildfile.dir, "requirements.txt")
+    if not os.path.exists(requirements_txt):
+        return []
+    return _parse_requirements(requirements_txt)
+
+def _parse_requirements(path):
+    parsed = pip_util.parse_requirements(path)
+    return [str(req.req) for req in parsed]
 
 def _project_name(req):
     ns, project_name = namespace.split_name(req)

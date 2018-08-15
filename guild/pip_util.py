@@ -29,6 +29,7 @@ from pip.download import _download_http_url
 from pip.exceptions import InstallationError
 from pip.exceptions import UninstallationError
 from pip.index import Link
+from pip.req import req_file
 from pip.utils import get_installed_distributions
 
 from guild import namespace
@@ -285,3 +286,6 @@ def _ensure_print_package_logger():
     from pip.commands import show
     if not isinstance(show.logger, PrintPackageLogger):
         show.logger = PrintPackageLogger()
+
+def parse_requirements(path):
+    return req_file.parse_requirements(path, session="unused")
