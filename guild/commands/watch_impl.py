@@ -77,6 +77,7 @@ def _tail(run):
             time.sleep(0.1)
             continue
         sys.stdout.write(line)
+        sys.stdout.flush()
 
 def _try_open(path):
     try:
