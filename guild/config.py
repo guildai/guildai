@@ -109,7 +109,7 @@ class _Config(object):
             log.warning("cannot read user config in %s: %s", self.path, e)
         else:
             try:
-                return yaml.load(f)
+                return yaml.load(f) or {}
             except Exception as e:
                 log.warning("error loading user config in %s: %s", self.path, e)
         return {}
