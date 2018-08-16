@@ -30,9 +30,9 @@ class Config(object):
     def __init__(self, args):
         self.env_dir = os.path.abspath(args.dir)
         self.env_name = self._init_env_name(args.name, self.env_dir)
-        self.venv_python_ver = args.python
+        self.venv_python_ver = self._init_venv_python(args)
         self.guild = args.guild
-        self.reqs = args.requirement
+        self.reqs = self._init_reqs(args)
         self.tensorflow = args.tf_package
         self.local_resource_cache = args.local_resource_cache
         self.prompt_params = self._init_prompt_params()
@@ -48,10 +48,22 @@ class Config(object):
             return os.path.basename(abs_env_dir)
 
     @staticmethod
-    def _init_venv_python(arg):
+    def _init_venv_python(args):
+        arg = args.python
         if not arg or arg.startswith("python"):
             return arg
         return "python{}".format(arg)
+
+    @staticmethod
+    def _init_reqs(args):
+        if args.requirement:
+            return args.requirement
+        elif not args.no_reqs:
+            parent_dir = os.path.dirname(args.dir)
+            default_reqs = os.path.join(parent_dir, "requirements.txt")
+            if os.path.exists(default_reqs):
+                return (default_reqs,)
+        return ()
 
     def _init_prompt_params(self):
         params = []
@@ -64,7 +76,7 @@ class Config(object):
         if self.guild:
             params.append(("Guild version", self.guild))
         else:
-            params.append(("Guild version", guild.__version__))
+            params.append(("Guild version", _implicit_guild_version()))
         if self.reqs:
             params.append(("Requirements", self.reqs))
         if self.tensorflow == "no":
@@ -89,6 +101,13 @@ class Config(object):
 def _shorten_path(path):
     return path.replace(os.path.expanduser("~"), "~")
 
+def _implicit_guild_version():
+    reqs_file = _guild_reqs_file()
+    if reqs_file:
+        return "from source (%s)" % os.path.dirname(reqs_file)
+    else:
+        return guild.__version__
+
 def main(args):
     config = Config(args)
     if args.yes or _confirm(config):
@@ -109,7 +128,7 @@ def _init(config):
     _init_guild_env(config)
     _init_venv(config)
     _install_guild(config)
-    _install_cmd_reqs(config)
+    _install_user_reqs(config)
     _ensure_tensorflow(config)
     _initialized_msg(config)
 
@@ -193,26 +212,26 @@ def _install_default_guild_dist(config):
     _install_reqs([req], config)
 
 def _install_reqs(reqs, config):
-    cmd_args = (
+    cmd = (
         [_pip_bin(config.env_dir), "install"] +
         _pip_extra_opts(config) +
         reqs
     )
     try:
-        subprocess.check_call(cmd_args)
+        subprocess.check_call(cmd)
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
+
+def _pip_bin(env_dir):
+    pip_bin = os.path.join(env_dir, "bin", "pip")
+    assert os.path.exists(pip_bin), pip_bin
+    return pip_bin
 
 def _pip_extra_opts(config):
     if config.no_progress:
         return ["--progress", "off"]
     else:
         return []
-
-def _pip_bin(env_dir):
-    pip_bin = os.path.join(env_dir, "bin", "pip")
-    assert os.path.exists(pip_bin), pip_bin
-    return pip_bin
 
 def _install_req_files(req_files, config):
     cmd_args = [_pip_bin(config.env_dir), "install"] + _pip_extra_opts(config)
@@ -223,10 +242,10 @@ def _install_req_files(req_files, config):
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
 
-def _install_cmd_reqs(config):
+def _install_user_reqs(config):
     if config.reqs:
-        cli.out("Installing additional requirements")
-        _install_reqs(config.reqs, config)
+        cli.out("Installing requirements")
+        _install_req_files(config.reqs, config)
 
 def _ensure_tensorflow(config):
     if config.tensorflow == "no":
