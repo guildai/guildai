@@ -22,8 +22,7 @@ import re
 import subprocess
 import sys
 
-import guild.remote
-
+from guild import remote as remotelib
 from guild import util
 from guild import var
 
@@ -31,28 +30,29 @@ from . import ssh_util
 
 log = logging.getLogger("guild.remotes.ec2")
 
-class EC2Remote(guild.remote.Remote):
+class EC2Remote(remotelib.Remote):
 
     def __init__(self, name, config):
         self.name = name
         self.region = config["region"]
         self.ami = config["ami"]
-        self.public_key = config["public-key"]
         self.instance_type = config.get("instance_type", "p3.2xlarge")
         self.public_key = config.get("public-key")
-        self.private_key_path = config.get("private-key-path")
-        self.user = config.get("user")
+        self.connection = config.get("connection", {})
         self.init = config.get("init")
+        self.shutdown_timeout = config.get("shutdown-timeout")
         self.working_dir = var.remote_dir(name)
 
     def start(self):
         self._verify_aws_creds()
+        self._verify_terraform()
         util.ensure_dir(self.working_dir)
         self._refresh_config()
         self._ensure_terraform_init()
         self._terraform_apply()
 
     def reinit(self):
+        self._verify_terraform()
         self._taint_init()
         self.start()
 
@@ -71,18 +71,52 @@ class EC2Remote(guild.remote.Remote):
         self._require_env("AWS_ACCESS_KEY_ID")
         self._require_env("AWS_SECRET_ACCESS_KEY")
 
+    @staticmethod
+    def _verify_terraform():
+        if not util.which("terraform"):
+            raise remotelib.OperationError(
+                "Terraform is required for this operation - refer to "
+                "https://www.terraform.io/intro/getting-started/install.html "
+                "for more information.")
+
     def stop(self):
         self._verify_aws_creds()
+        self._verify_terraform()
         self._terraform_destroy()
 
     def status(self, verbose=False):
+        self._verify_terraform()
+        if os.path.exists(self.working_dir):
+            self._refresh_config()
+        self._terraform_refresh()
         if not self._has_state():
-            raise guild.remote.Down("not started")
+            raise remotelib.Down("not started")
+        if verbose:
+            self._terraform_show()
+        else:
+            self._try_ping_host(verbose)
+
+    def _terraform_refresh(self):
+        cmd = ["terraform", "refresh", "-no-color"]
+        subprocess.call(cmd, cwd=self.working_dir)
+
+    def _terraform_show(self):
+        cmd = ["terraform", "show", "-no-color"]
+        subprocess.call(cmd, cwd=self.working_dir)
+
+    def _try_ping_host(self, verbose):
         if self._empty_state():
-            raise guild.remote.Down("not running")
-        host = self._output("host")[0]
-        ssh_util.ssh_ping(host, verbose)
-        sys.stdout.write("%s (%s) is available\n" % (self.name, host))
+            raise remotelib.Down("not running")
+        try:
+            host = self._output("host")
+        except LookupError:
+            raise remotelib.Down("not running")
+        else:
+            if not host:
+                raise remotelib.Down("stopped")
+            user = self.connection.get("user")
+            ssh_util.ssh_ping(host, user, verbose)
+            sys.stdout.write("%s (%s) is available\n" % (self.name, host))
 
     def _has_state(self):
         state_filename = os.path.join(self.working_dir, "terraform.tfstate")
@@ -102,7 +136,7 @@ class EC2Remote(guild.remote.Remote):
         try:
             out = subprocess.check_output(cmd, cwd=self.working_dir)
         except subprocess.CalledProcessError:
-            raise guild.remote.OperationError(
+            raise remotelib.OperationError(
                 "unable to get Terraform output in %s"
                 % self.working_dir)
         else:
@@ -116,93 +150,111 @@ class EC2Remote(guild.remote.Remote):
             json.dump(config, out)
 
     def _init_config(self):
-        safe_name = self._safe_name()
+        remote_name = self._safe_name()
+        remote_key = "guild_%s" % remote_name
+        vpc = {
+            remote_key: {}
+        }
+        security_group = {
+            remote_key: {
+                "name": "guild-%s" % remote_name,
+                "description": ("Security group for Guild remote %s"
+                                % remote_name),
+                "vpc_id": "${aws_default_vpc.%s.id}" % remote_key,
+                "ingress": [
+                    {
+                        "from_port": -1,
+                        "to_port": -1,
+                        "protocol": "icmp",
+                        "cidr_blocks": ["0.0.0.0/0"]
+                    },
+                    {
+                        "from_port": 22,
+                        "to_port": 22,
+                        "protocol": "tcp",
+                        "cidr_blocks": ["0.0.0.0/0"]
+                    }
+                ],
+                "egress": [
+                    {
+                        "from_port": 0,
+                        "to_port": 0,
+                        "protocol": "-1",
+                        "cidr_blocks": ["0.0.0.0/0"]
+                    }
+                ]
+            }
+        }
+        instance = {
+            remote_key: {
+                "instance_type": self.instance_type,
+                "ami": self.ami,
+                "count": 1,
+                "vpc_security_group_ids": [
+                    "${aws_security_group.%s.id}" % remote_key
+                ]
+            }
+        }
+        output = {
+            "host": {
+                "value": "${aws_instance.%s.public_dns}" % remote_key
+            }
+        }
         config = {
             "provider": {
                 "aws": {
                     "region": self.region
-                }
+                },
+                "null": {}
             },
             "resource": {
-                "aws_default_vpc": {
-                    "guild_%s" % safe_name: {}
-                },
-                "aws_security_group": {
-                    "guild_%s" % safe_name: {
-                        "name": "guild-%s" % safe_name,
-                        "description": ("Security group for Guild remote %s"
-                                        % safe_name),
-                        "vpc_id": "${aws_default_vpc.guild_%s.id}" % safe_name,
-                        "ingress": [
-                            {
-                                "from_port": -1,
-                                "to_port": -1,
-                                "protocol": "icmp",
-                                "cidr_blocks": ["0.0.0.0/0"]
-                            },
-                            {
-                                "from_port": 22,
-                                "to_port": 22,
-                                "protocol": "tcp",
-                                "cidr_blocks": ["0.0.0.0/0"]
-                            }
-                        ],
-                        "egress": [
-                            {
-                                "from_port": 0,
-                                "to_port": 0,
-                                "protocol": "-1",
-                                "cidr_blocks": ["0.0.0.0/0"]
-                            }
-                        ]
-                    }
-                },
-                "aws_key_pair": {
-                    "guild_%s" % safe_name: {
-                        "key_name": "guild_%s" % safe_name,
-                        "public_key": self.public_key
-                    }
-                },
-                "aws_instance": {
-                    "guild_%s" % safe_name: {
-                        "instance_type": self.instance_type,
-                        "ami": self.ami,
-                        "count": 1,
-                        "vpc_security_group_ids": [
-                            "${aws_security_group.guild_%s.id}" % safe_name
-                        ],
-                        "key_name": "guild_%s" % safe_name
-                    }
-                }
+                "aws_default_vpc": vpc,
+                "aws_security_group": security_group,
+                "aws_instance": instance
             },
-            "output": {
-                "host": {
-                    "value": "${aws_instance.guild_%s.*.public_dns}" % safe_name
+            "output": output
+        }
+        public_key = self._public_key()
+        if public_key:
+            config["resource"]["aws_key_pair"] = {
+                remote_key: {
+                    "key_name": remote_key,
+                    "public_key": public_key
                 }
             }
-        }
-        if self.init:
-            self._write_init_script()
+            instance[remote_key]["key_name"] = remote_key
+        init_script = self._init_script()
+        if init_script:
+            init_script_path = self._write_init_script(init_script)
             connection = {
-                "host": "${aws_instance.guild_%s.public_ip}" % safe_name
+                "type": "ssh",
+                "host": "${aws_instance.%s.public_ip}" % remote_key
             }
-            if self.user:
-                connection["user"] = self.user
-            if self.private_key_path:
+            if "timeout" in self.connection:
+                connect_timeout = self.connection["timeout"]
+                if isinstance(connect_timeout, int):
+                    connect_timeout = "%im" % connect_timeout
+                connection["timeout"] = connect_timeout
+            if "private-key" in self.connection:
                 connection["private_key"] = (
-                    "${file(\"%s\")}" % self.private_key_path
+                    "${file(\"%s\")}" % self.connection["private-key"]
                 )
+            connection.update({
+                name: self.connection[name]
+                for name in ["user", "password", "port"]
+                if name in self.connection
+            })
             config["resource"]["null_resource"] = {
-                "guild_%s_init" % safe_name: {
+                "%s_init" % remote_key: {
                     "triggers": {
                         "cluster_instance_ids":
-                        "${aws_instance.guild_%s.id}" % safe_name
+                        "${aws_instance.%s.id}" % remote_key
                     },
                     "connection": connection,
                     "provisioner": [
                         {
                             "remote-exec": {
-                                "script": "init.sh"
+                                "script": init_script_path
                             }
                         }
                     ]
@@ -210,20 +262,26 @@ class EC2Remote(guild.remote.Remote):
             }
         return config
 
-    def _write_init_script(self):
-        assert self.init
+    def _public_key(self):
+        if not self.public_key:
+            return None
+        maybe_path = os.path.expanduser(os.path.expandvars(self.public_key))
+        if os.path.exists(maybe_path):
+            return open(maybe_path, "r").read()
+        else:
+            return self.public_key
+
+    def _init_script(self):
+        script = self.init or ""
+        if self.shutdown_timeout:
+            script += "\nsudo shutdown +%s" % self.shutdown_timeout
+        return script
+
+    def _write_init_script(self, init_script):
         init_filename = os.path.join(self.working_dir, "init.sh")
         with open(init_filename, "w") as f:
-            f.write(self.init)
+            f.write(init_script)
         return init_filename
-
-    @staticmethod
-    def _apply_remote_exec_provisioner(config, init_filename):
-        config["provisioner"] = {
-            "remote-exec": {
-                "scripts": [init_filename]
-            }
-        }
 
     def _ensure_terraform_init(self):
         if os.path.exists(os.path.join(self.working_dir, ".terraform")):
@@ -231,7 +289,7 @@ class EC2Remote(guild.remote.Remote):
         cmd = ["terraform", "init"]
         result = subprocess.call(cmd, cwd=self.working_dir)
         if result != 0:
-            raise guild.remote.OperationError(
+            raise remotelib.OperationError(
                 "unable to initialize Terraform in %s"
                 % self.working_dir)
 
@@ -239,14 +297,14 @@ class EC2Remote(guild.remote.Remote):
         cmd = ["terraform", "apply", "-auto-approve"]
         result = subprocess.call(cmd, cwd=self.working_dir)
         if result != 0:
-            raise guild.remote.OperationError(
+            raise remotelib.OperationError(
                 "error applying Terraform config in %s"
                 % self.working_dir)
 
     @staticmethod
     def _require_env(name):
         if name not in os.environ:
-            raise guild.remote.OperationError(
+            raise remotelib.OperationError(
                 "missing required %s environment variable"
                 % name)
 
@@ -254,7 +312,7 @@ class EC2Remote(guild.remote.Remote):
         cmd = ["terraform", "destroy", "-auto-approve"]
         result = subprocess.call(cmd, cwd=self.working_dir)
         if result != 0:
-            raise guild.remote.OperationError(
+            raise remotelib.OperationError(
                 "error destroying Terraform state in %s"
                 % self.working_dir)
 

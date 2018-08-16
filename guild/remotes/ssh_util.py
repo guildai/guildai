@@ -19,8 +19,10 @@ import subprocess
 
 from guild import remote as remotelib
 
-def ssh_ping(host, verbose=False):
-    cmd = ["ssh"] + _ssh_opts(verbose) + [host, "true"]
+def ssh_ping(host, user=None, verbose=False, connect_timeout=10):
+    if user:
+        host = "%s@%s" % (user, host)
+    cmd = ["ssh"] + _ssh_opts(verbose, connect_timeout) + [host, "true"]
     result = subprocess.call(cmd)
     if result != 0:
         raise remotelib.Down("cannot reach host %s" % host)
@@ -32,10 +34,12 @@ def ssh_cmd(host, cmd):
     except subprocess.CalledProcessError as e:
         raise remotelib.RemoteProcessError.from_called_process_error(e)
 
-def _ssh_opts(verbose=False):
+def _ssh_opts(verbose=False, connect_timeout=None):
     opts = [
         "-oStrictHostKeyChecking=no"
     ]
     if verbose:
         opts.append("-vvv")
+    if connect_timeout:
+        opts.append("-oConnectTimeout=%s" % connect_timeout)
     return opts

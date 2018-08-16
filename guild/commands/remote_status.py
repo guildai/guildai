@@ -22,7 +22,10 @@ from . import remote_support
 
 @click.command("status")
 @remote_support.remote_arg
-@click.option("--verbose", is_flag=True, help="Show more status information.")
+@click.option(
+    "-v", "--verbose",
+    is_flag=True,
+    help="Show more status information.")
 @click_util.use_args
 
 @click_util.render_doc
