@@ -26,6 +26,7 @@ from guild import remote as remotelib
 from guild import util
 from guild import var
 
+from . import ssh as ssh_remote
 from . import ssh_util
 
 log = logging.getLogger("guild.remotes.ec2")
@@ -88,7 +89,6 @@ class EC2Remote(remotelib.Remote):
         self._verify_terraform()
         if os.path.exists(self.working_dir):
             self._refresh_config()
-        self._terraform_refresh()
         if not self._has_state():
             raise remotelib.Down("not started")
         if verbose:
@@ -101,12 +101,14 @@ class EC2Remote(remotelib.Remote):
         subprocess.call(cmd, cwd=self.working_dir)
 
     def _terraform_show(self):
+        self._terraform_refresh()
         cmd = ["terraform", "show", "-no-color"]
         subprocess.call(cmd, cwd=self.working_dir)
 
     def _try_ping_host(self, verbose):
         if self._empty_state():
-            raise remotelib.Down("not running")
+            raise remotelib.Down("not started")
+        self._terraform_refresh()
         try:
             host = self._output("host")
         except LookupError:
@@ -330,3 +332,30 @@ class EC2Remote(remotelib.Remote):
 
     def pull_src(self):
         raise NotImplementedError()
+
+    def list_runs(self, verbose=False, **filters):
+        ssh_remote = self._ssh_remote()
+        return ssh_remote.list_runs(verbose, **filters)
+
+    def _ssh_remote(self):
+        host = self._ssh_host()
+        config = dict(
+            host=self._ssh_host(),
+            user=self.connection.get("user")
+        )
+        return ssh_remote.SSHRemote(self.name, config)
+
+    def _ssh_host(self):
+        try:
+            host = self._output("host")
+        except LookupError:
+            raise remotelib.OperationError(
+                "cannot get host for %s - is the remote started?"
+                % self.name)
+        else:
+            if not host:
+                raise remotelib.OperationError(
+                    "cannot get host for %s - the instance "
+                    "appears to be stopped"
+                    % self.name)
+            return host

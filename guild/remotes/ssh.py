@@ -164,12 +164,12 @@ class SSHRemote(guild.remote.Remote):
         cmd = ["\n".join(cmd_lines)]
         log.info("Starting remote operation")
         log.debug("cmd: %r", cmd)
-        ssh_util.ssh_cmd(self.host, cmd)
+        ssh_util.ssh_cmd(self.host, cmd, self.user)
 
     def _watch_op(self, remote_run_dir):
         cmd = ["guild", "watch", "--pid", _remote_pidfile(remote_run_dir)]
         log.debug("watch cmd: %r", cmd)
-        ssh_util.ssh_cmd(self.host, cmd)
+        ssh_util.ssh_cmd(self.host, cmd, self.user)
 
     def list_runs(self, verbose=False, **filters):
         cmd_parts = []
@@ -182,7 +182,7 @@ class SSHRemote(guild.remote.Remote):
         if verbose:
             cmd_parts.append("--verbose")
         cmd = [" ".join(cmd_parts)]
-        ssh_util.ssh_cmd(self.host, cmd)
+        ssh_util.ssh_cmd(self.host, cmd, self.user)
 
 def _list_runs_filter_opts(ops, labels, unlabeled, running,
                            completed, error, terminated, deleted,

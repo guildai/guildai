@@ -15,20 +15,33 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import subprocess
 
 from guild import remote as remotelib
 
-def ssh_ping(host, user=None, verbose=False, connect_timeout=10):
-    if user:
-        host = "%s@%s" % (user, host)
+log = logging.getLogger("guild.remotes.ssh_util")
+
+DEFAULT_CONNECT_TIMEOUT = 10
+
+def ssh_ping(host, user=None, verbose=False,
+             connect_timeout=DEFAULT_CONNECT_TIMEOUT):
+    host = _full_host(host, user)
     cmd = ["ssh"] + _ssh_opts(verbose, connect_timeout) + [host, "true"]
     result = subprocess.call(cmd)
     if result != 0:
         raise remotelib.Down("cannot reach host %s" % host)
 
-def ssh_cmd(host, cmd):
-    cmd = ["ssh"] + _ssh_opts() + [host] + cmd
+def _full_host(host, user):
+    if user:
+        return "%s@%s" % (user, host)
+    else:
+        return host
+
+def ssh_cmd(host, cmd, user=None, connect_timeout=DEFAULT_CONNECT_TIMEOUT):
+    host = _full_host(host, user)
+    cmd = ["ssh"] + _ssh_opts(False, connect_timeout) + [host] + cmd
+    log.debug("ssh cmd: %r", cmd)
     try:
         subprocess.check_call(cmd)
     except subprocess.CalledProcessError as e:
