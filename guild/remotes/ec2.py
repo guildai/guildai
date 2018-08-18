@@ -338,7 +338,6 @@ class EC2Remote(remotelib.Remote):
         return ssh_remote.list_runs(verbose, **filters)
 
     def _ssh_remote(self):
-        host = self._ssh_host()
         config = dict(
             host=self._ssh_host(),
             user=self.connection.get("user")
