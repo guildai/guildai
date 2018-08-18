@@ -18,7 +18,7 @@ import yaml
 
 class Build(object):
 
-    cache_scheme_version = 12
+    cache_scheme_version = 13
 
     name = None
     python = None
@@ -83,6 +83,7 @@ class Build(object):
             self._ensure_virtual_env_cmd(),
             self._init_env(self.build_dir),
             self._activate_env(self.build_dir),
+            self._upgrade_pip(),
             self._install_guild_reqs(),
             self._install_tensorflow(),
             self._install_guild_view_reqs(),
@@ -100,6 +101,10 @@ class Build(object):
     @staticmethod
     def _activate_env(path):
         return ". %s/bin/activate" % path
+
+    def _upgrade_pip(self):
+        # pipe to cat here effectively disables progress bar
+        return "{pip} install --upgrade {pip} | cat".format(pip=self.pip)
 
     def _install_guild_reqs(self):
         # pipe to cat here effectively disables progress bar
