@@ -17,9 +17,10 @@ from __future__ import division
 
 import os
 import logging
-import shlex
 import subprocess
 import sys
+
+import six
 
 import guild.remote
 
@@ -115,24 +116,31 @@ class SSHRemote(guild.remote.Remote):
         print("- build package dist")
         with util.TempDir(prefix="guild-remote-pkg-") as dist_dir:
             _build_package(dist_dir)
-            remote_run_dir = self._init_remote_run(dist_dir)
+            remote_run_dir = self._init_remote_run(dist_dir, opspec)
         self._run_op(remote_run_dir, opspec, args, **opts)
         self._watch_op(remote_run_dir)
 
-    def _init_remote_run(self, package_dist_dir):
-        remote_run_dir = self._init_remote_run_dir()
+    def _init_remote_run(self, package_dist_dir, opspec):
+        remote_run_dir = self._init_remote_run_dir(opspec)
         self._copy_package_dist(package_dist_dir, remote_run_dir)
         self._install_job_package(remote_run_dir)
         return remote_run_dir
 
-    def _init_remote_run_dir(self):
+    def _init_remote_run_dir(self, opspec):
         run_id = runlib.mkid()
         run_dir = os.path.join(self.guild_home, "runs", run_id)
-        pkg_dir = os.path.join(run_dir, ".guild", "job-packages")
-        cmd = ["ssh", self.host, "mkdir", "-p", pkg_dir]
+        cmd = (
+            "set -e; "
+            "mkdir -p {run_dir}/.guild; "
+            "touch {run_dir}/.guild/PENDING; "
+            "mkdir {run_dir}/.guild/attrs; "
+            "echo 'pending:? ? ? {opspec}' > {run_dir}/.guild/attrs/opref; "
+            "echo \"$(date +%s)000000\" > {run_dir}/.guild/attrs/started; "
+            "mkdir {run_dir}/.guild/job-packages"
+            .format(run_dir=run_dir, opspec=opspec)
+        )
         log.info("Initializing remote run")
-        log.debug("ssh cmd: %s", cmd)
-        subprocess.check_call(cmd)
+        ssh_util.ssh_cmd(self.host, [cmd], self.user)
         return run_dir
 
     def _copy_package_dist(self, package_dist_dir, remote_run_dir):
@@ -144,45 +152,52 @@ class SSHRemote(guild.remote.Remote):
         subprocess.check_call(cmd)
 
     def _install_job_package(self, remote_run_dir):
-        ssh_cmd = (
-            "cd %s/.guild/job-packages;"
+        cmd = (
+            "cd {run_dir}/.guild/job-packages;"
             "guild install *.whl --target ."
-            % remote_run_dir)
-        cmd = ["ssh", self.host, ssh_cmd]
+            .format(run_dir=remote_run_dir)
+        )
         log.info("Installing package and its dependencies")
-        log.debug("ssh cmd: %r", cmd)
-        subprocess.check_call(cmd)
+        ssh_util.ssh_cmd(self.host, [cmd], self.user)
 
     def _run_op(self, remote_run_dir, opspec, args, **opts):
         cmd_lines = ["set -e"]
-        if self.run_init:
-            cmd_lines.append(self.run_init.strip())
+        cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(
-            "export PYTHONPATH=%s:$PYTHONPATH"
-            % os.path.join(remote_run_dir, ".guild", "job-packages"))
+            "export PYTHONPATH={run_dir}/.guild/job-packages:$PYTHONPATH"
+            .format(run_dir=remote_run_dir))
         cmd_lines.append(_remote_run_cmd(remote_run_dir, opspec, args, **opts))
-        cmd = ["\n".join(cmd_lines)]
+        cmd = "; ".join(cmd_lines)
         log.info("Starting remote operation")
-        log.debug("cmd: %r", cmd)
-        ssh_util.ssh_cmd(self.host, cmd, self.user)
+        ssh_util.ssh_cmd(self.host, [cmd], self.user)
 
     def _watch_op(self, remote_run_dir):
-        cmd = ["guild", "watch", "--pid", _remote_pidfile(remote_run_dir)]
-        log.debug("watch cmd: %r", cmd)
-        ssh_util.ssh_cmd(self.host, cmd, self.user)
+        cmd_lines = ["set -e"]
+        cmd_lines.extend(self._env_activate_cmd_lines())
+        cmd_lines.append(
+            "guild watch --pid {run_dir}/.guild/JOB"
+            .format(run_dir=remote_run_dir))
+        cmd = "; ".join(cmd_lines)
+        log.debug("watching remote run")
+        ssh_util.ssh_cmd(self.host, [cmd], self.user)
 
     def list_runs(self, verbose=False, **filters):
-        cmd_parts = []
-        if self.guild_env:
-            cmd_parts.append("cd '%s'" % self.guild_env)
-            cmd_parts.append("&& QUIET=1 source guild-env")
-            cmd_parts.append("&&")
-        cmd_parts.extend(["guild", "runs", "list"])
-        cmd_parts.extend(_list_runs_filter_opts(**filters))
+        cmd_lines = ["set -e"]
+        cmd_lines.extend(self._env_activate_cmd_lines())
+        opts = _list_runs_filter_opts(**filters)
         if verbose:
-            cmd_parts.append("--verbose")
-        cmd = [" ".join(cmd_parts)]
-        ssh_util.ssh_cmd(self.host, cmd, self.user)
+            opts.append("--verbose")
+        cmd_lines.append("guild runs list %s" % " ".join(opts))
+        cmd = "; ".join(cmd_lines)
+        ssh_util.ssh_cmd(self.host, [cmd], self.user)
+
+    def _env_activate_cmd_lines(self):
+        if not self.guild_env:
+            return []
+        return [
+            "cd %s" % self.guild_env,
+            "QUIET=1 source guild-env"
+        ]
 
 def _list_runs_filter_opts(ops, labels, unlabeled, running,
                            completed, error, terminated, deleted,
@@ -198,7 +213,7 @@ def _list_runs_filter_opts(ops, labels, unlabeled, running,
     if error:
         opts.append("--error")
     for label in labels:
-        opts.extend(["--label", label])
+        opts.extend(["--label", six.moves.shlex_quote(label)])
     if more > 0:
         opts.append("-" + ("m" * more))
     for op in ops:
@@ -228,12 +243,12 @@ def _remote_run_cmd(remote_run_dir, opspec, op_args, label,
                     restart, rerun, disable_plugins, gpus,
                     no_gpus, **kw):
     assert not kw, kw
-    q = shlex.quote
+    q = six.moves.shlex_quote
     cmd = [
         "NO_WARN_RUNDIR=1",
         "guild", "run", q(opspec),
-        "--run-dir", q(remote_run_dir),
-        "--background", _remote_pidfile(remote_run_dir),
+        "--run-dir", remote_run_dir,
+        "--background", "%s/.guild/JOB" % remote_run_dir,
         "--quiet",
         "--yes",
     ]
@@ -251,6 +266,3 @@ def _remote_run_cmd(remote_run_dir, opspec, op_args, label,
         cmd.append("--no-gpus")
     cmd.extend([q(arg) for arg in op_args])
     return " ".join(cmd)
-
-def _remote_pidfile(remote_run_dir):
-    return os.path.join(remote_run_dir, ".guild", "JOB")
