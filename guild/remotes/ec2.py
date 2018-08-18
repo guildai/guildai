@@ -359,3 +359,7 @@ class EC2Remote(remotelib.Remote):
                     "appears to be stopped"
                     % self.name)
             return host
+
+    def run_op(self, opspec, args, **opts):
+        ssh_remote = self._ssh_remote()
+        return ssh_remote.run_op(opspec, args, **opts)
