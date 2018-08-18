@@ -59,6 +59,8 @@ class Run(object):
     def status(self):
         if os.path.exists(self.guild_path("LOCK.remote")):
             return "running"
+        elif os.path.exists(self.guild_path("PENDING")):
+            return "pending"
         else:
             if self.has_attr("exit_status.remote"):
                 return self._remote_exit_status()

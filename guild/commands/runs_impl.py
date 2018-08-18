@@ -269,6 +269,8 @@ def format_op_desc(opref, nowarn=False):
         return _format_guildfile_op(opref)
     elif opref.pkg_type == "package":
         return _format_package_op(opref)
+    elif opref.pkg_type == "pending":
+        return _format_pending_op(opref)
     else:
         if not nowarn:
             log.warning(
@@ -284,6 +286,9 @@ def _format_guildfile_op(opref):
 
 def _format_package_op(opref):
     return "%s/%s:%s" % (opref.pkg_name, opref.model_name, opref.op_name)
+
+def _format_pending_op(opref):
+    return opref.op_name
 
 def _format_command(cmd):
     if not cmd:
