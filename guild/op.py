@@ -90,10 +90,11 @@ class Operation(object):
     def _init_attrs(self):
         assert self._run is not None
         self._started = guild.run.timestamp()
+        self._run.write_attr("opref", self._opref_attr())
+        _delete_pending(self._run)
         self._run.write_attr("started", self._started)
         for name, val in (self.extra_attrs or {}).items():
             self._run.write_attr(name, val)
-        self._run.write_attr("opref", self._opref_attr())
         self._run.write_attr("flags", self.opdef.flag_values())
         self._run.write_attr("cmd", self.cmd_args)
         if self._flag_map:
@@ -426,6 +427,12 @@ def _op_exit_status(proc_exit_status, opdef):
 def _delete_proc_lock(run):
     try:
         os.remove(run.guild_path("LOCK"))
+    except OSError:
+        pass
+
+def _delete_pending(run):
+    try:
+        os.remove(run.guild_path("PENDING"))
     except OSError:
         pass
 
