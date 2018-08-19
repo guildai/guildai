@@ -21,10 +21,10 @@ import subprocess
 import sys
 
 import six
-
-import guild.remote
+import yaml
 
 from guild import click_util
+from guild import remote as remotelib
 from guild import run as runlib
 from guild import util
 from guild import var
@@ -34,7 +34,7 @@ from . import ssh_util
 
 log = logging.getLogger("guild.remotes.ssh")
 
-class SSHRemote(guild.remote.Remote):
+class SSHRemote(remotelib.Remote):
 
     def __init__(self, name, config):
         self.name = name
@@ -97,35 +97,66 @@ class SSHRemote(guild.remote.Remote):
         return "{}:{}".format(self.host, self.guild_home)
 
     def start(self):
-        raise guild.remote.OperationNotSupported(
+        raise remotelib.OperationNotSupported(
             "start is not supported for ssh remotes")
 
     def reinit(self):
-        raise guild.remote.OperationNotSupported(
+        raise remotelib.OperationNotSupported(
             "reinit is not supported for ssh remotes")
 
     def stop(self):
-        raise guild.remote.OperationNotSupported(
+        raise remotelib.OperationNotSupported(
             "stop is not supported for ssh remotes")
 
     def status(self, verbose=False):
         ssh_util.ssh_ping(self.host, verbose)
         sys.stdout.write("%s (%s) is available\n" % (self.name, self.host))
 
-    def run_op(self, opspec, args, **opts):
+    def run_op(self, opspec, args, restart, **opts):
         with util.TempDir(prefix="guild-remote-pkg-") as dist_dir:
             _build_package(dist_dir)
-            remote_run_dir = self._init_remote_run(dist_dir, opspec)
+            remote_run_dir = self._init_remote_run(dist_dir, opspec, restart)
         self._run_op(remote_run_dir, opspec, args, **opts)
-        self._watch_op(remote_run_dir)
+        try:
+            self._watch_op(remote_run_dir)
+        except KeyboardInterrupt:
+            run_id = os.path.basename(remote_run_dir)
+            raise remotelib.RemoteProcessDetached(run_id)
 
-    def _init_remote_run(self, package_dist_dir, opspec):
-        remote_run_dir = self._init_remote_run_dir(opspec)
+    def _init_remote_run(self, package_dist_dir, opspec, restart):
+        remote_run_dir = self._init_remote_run_dir(opspec, restart)
         self._copy_package_dist(package_dist_dir, remote_run_dir)
         self._install_job_package(remote_run_dir)
         return remote_run_dir
 
-    def _init_remote_run_dir(self, opspec):
+    def _init_remote_run_dir(self, opspec, restart_run_id):
+        if restart_run_id:
+            return self._init_remote_restart_run_dir(restart_run_id)
+        else:
+            return self._init_remote_new_run_dir(opspec)
+
+    def _init_remote_restart_run_dir(self, remote_run_id):
+        run_dir = os.path.join(self.guild_home, "runs", remote_run_id)
+        cmd = (
+            "set -e; "
+            "test ! -e {run_dir}/.guild/LOCK || exit 3; "
+            "touch {run_dir}/.guild/PENDING; "
+            "echo \"$(date +%s)000000\" > {run_dir}/.guild/attrs/started; "
+            "rm -rf {run_dir}/.guild/job-packages; "
+            "mkdir {run_dir}/.guild/job-packages"
+            .format(run_dir=run_dir)
+        )
+        log.info("Initializing remote run for restart")
+        try:
+            ssh_util.ssh_cmd(self.host, [cmd], self.user)
+        except remotelib.RemoteProcessError as e:
+            if e.exit_status == 3:
+                raise remotelib.OperationError("running", remote_run_id)
+            raise
+        else:
+            return run_dir
+
+    def _init_remote_new_run_dir(self, opspec):
         run_id = runlib.mkid()
         run_dir = os.path.join(self.guild_home, "runs", run_id)
         cmd = (
@@ -198,6 +229,21 @@ class SSHRemote(guild.remote.Remote):
             "QUIET=1 source guild-env"
         ]
 
+    def one_run(self, run_id_prefix, attrs):
+        """Returns run matching id prefix as remote.RunProxy with attrs.
+
+        Currently only supports attrs as ["flags"].
+        """
+        assert len(attrs) == 1 and attrs[0] == "flags", attrs
+        cmd_lines = ["set -e"]
+        cmd_lines.extend(self._env_activate_cmd_lines())
+        cmd_lines.append(
+            "guild runs info %s --flags --private-attrs"
+            % six.moves.shlex_quote(run_id_prefix))
+        cmd = "; ".join(cmd_lines)
+        out = ssh_util.ssh_output(self.host, [cmd], self.user)
+        return remotelib.RunProxy(yaml.load(out))
+
 def _list_runs_filter_opts(ops, labels, unlabeled, running,
                            completed, error, terminated, deleted,
                            all, more, **kw):
@@ -239,8 +285,7 @@ def _build_package(dist_dir):
     package_impl.main(args)
 
 def _remote_run_cmd(remote_run_dir, opspec, op_args, label,
-                    restart, rerun, disable_plugins, gpus,
-                    no_gpus, **kw):
+                    disable_plugins, gpus, no_gpus, **kw):
     assert not kw, kw
     q = six.moves.shlex_quote
     cmd = [
@@ -253,10 +298,6 @@ def _remote_run_cmd(remote_run_dir, opspec, op_args, label,
     ]
     if label:
         cmd.extend(["--label", q(label)])
-    if restart:
-        cmd.extend(["--restart", q(restart)])
-    if rerun:
-        cmd.extend(["--rerun", q(rerun)])
     if disable_plugins:
         cmd.extend(["--disable_plugins", q(disable_plugins)])
     if gpus:

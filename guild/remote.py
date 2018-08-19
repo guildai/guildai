@@ -17,6 +17,9 @@ from __future__ import division
 
 import guild.config
 
+from guild import opref
+from guild import run as runlib
+
 class NoSuchRemote(ValueError):
     pass
 
@@ -47,6 +50,9 @@ class RemoteProcessError(Exception):
     def from_called_process_error(cls, e):
         return cls(e.returncode, e.cmd, e.output)
 
+class RemoteProcessDetached(Exception):
+    pass
+
 class RemoteConfig(dict):
 
     def __getitem__(self, key):
@@ -54,6 +60,18 @@ class RemoteConfig(dict):
             return super(RemoteConfig, self).__getitem__(key)
         except KeyError:
             raise MissingRequiredConfig(key)
+
+class RunProxy(runlib.Run):
+
+    def __init__(self, data):
+        super(RunProxy, self).__init__(
+            data["id"],
+            data["run_dir"])
+        self._data = data
+        self.opref = opref.OpRef.from_run(self)
+
+    def __getitem__(self, key):
+        return self._data[key]
 
 class Remote(object):
 
@@ -90,6 +108,9 @@ class Remote(object):
         raise NotImplementedError()
 
     def list_runs(self, verbose=False, **filters):
+        raise NotImplementedError()
+
+    def one_run(self, run_id_prefix, attrs):
         raise NotImplementedError()
 
 def for_name(name):

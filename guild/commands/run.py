@@ -42,7 +42,7 @@ def run_params(fn):
                 "be added or redefined in this operation. Cannot "
                 "be used with --restart.")),
         click.Option(
-            ("--remote",), metavar="REMOTE",
+            ("-r", "--remote"), metavar="REMOTE",
             help="Run the operation remotely."),
         click.Option(
             ("--restart",), metavar="RUN",

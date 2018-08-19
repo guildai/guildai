@@ -65,6 +65,27 @@ def run(args):
         remote.run_op(**_run_kw(args))
     except remotelib.RemoteProcessError as e:
         cli.error(exit_status=e.exit_status)
+    except remotelib.RemoteProcessDetached as e:
+        cli.out(
+            "\nDetached from remote run {run_id} (still running)\n"
+            "To re-attach use 'guild watch {run_id} -r {remote}'"
+            .format(run_id=e.args[0], remote=args.remote))
+    except remotelib.OperationError as e:
+        _handle_run_op_error(e, remote)
+
+def _handle_run_op_error(e, remote):
+    if e.args[0] == "running":
+        assert len(e.args) == 2, e.args
+        msg = (
+            "{run_id} is still running\n"
+            "Wait for it to stop or try 'guild stop {run_id} -r {remote_name}' "
+            "to stop it."
+            .format(
+                run_id=e.args[1],
+                remote_name=remote.name))
+    else:
+        msg = e.args[0]
+    cli.error(msg)
 
 def _run_kw(args):
     names = [
@@ -74,7 +95,6 @@ def _run_kw(args):
         "label",
         "no_gpus",
         "opspec",
-        "rerun",
         "restart",
     ]
     ignore = [
@@ -86,6 +106,7 @@ def _run_kw(args):
         "print_env",
         "quiet",
         "remote",
+        "rerun",
         "run_dir",
         "set_trace",
         "stage",
@@ -93,3 +114,12 @@ def _run_kw(args):
         "yes",
     ]
     return _arg_kw(args, names, ignore)
+
+def one_run(run_id_prefix, args):
+    assert args.remote
+    cli.out("Reading remote run info")
+    remote = remote_support.remote_for_args(args)
+    try:
+        return remote.one_run(run_id_prefix, ["flags"])
+    except remotelib.RemoteProcessError as e:
+        cli.error(exit_status=e.exit_status)

@@ -44,7 +44,7 @@ def main(args, ctx):
             "missing [MODEL:]OPERATION or --rerun/--restart RUN\n"
             "Try 'guild ops' for a list of operations or '%s' "
             "for more information." % click_util.cmd_help(ctx))
-    _maybe_apply_run_args(args, ctx)
+    _apply_restart_or_rerun_args(args, ctx)
     assert args.opspec
     model_ref, op_name = _parse_opspec(args.opspec)
     model = _resolve_model(model_ref)
@@ -52,7 +52,7 @@ def main(args, ctx):
     _apply_opdef_args(opdef, args)
     _dispatch_cmd(args, opdef, model, ctx)
 
-def _maybe_apply_run_args(args, ctx):
+def _apply_restart_or_rerun_args(args, ctx):
     if not args.rerun and not args.restart:
         return
     if args.rerun and args.restart:
@@ -60,15 +60,25 @@ def _maybe_apply_run_args(args, ctx):
             "--rerun and --restart cannot both be used\n"
             "Try '%s' for more information."
             % click_util.cmd_help(ctx))
-    run = _apply_run_args(args.rerun or args.restart, args, ctx)
+    if (args.rerun or args.restart) and args.opspec:
+        # treat opspec as arg
+        args.args = (args.opspec,) + args.args
+        args.opspec = None
+    run, flag_args = _run_args(args.rerun or args.restart, args, ctx)
+    args.args = flag_args + args.args
     if args.restart:
         cli.out("Restarting {}".format(run.id))
+        args.restart = run.id
         args._restart_run = run
     else:
+        args.rerun = run.id
         cli.out("Rerunning {}".format(run.id))
 
-def _apply_run_args(run_id_prefix, args, ctx):
-    run = one_run(run_id_prefix, ctx)
+def _run_args(run_id_prefix, args, ctx):
+    if args.remote:
+        run = remote_impl_support.one_run(run_id_prefix, args)
+    else:
+        run = one_run(run_id_prefix, ctx)
     if not args.opspec:
         args.opspec = "{}:{}".format(run.opref.model_name, run.opref.op_name)
     flag_args = [
@@ -76,8 +86,7 @@ def _apply_run_args(run_id_prefix, args, ctx):
         for name, val in run.get("flags", {}).items()
         if val is not None
     ]
-    args.args = tuple(flag_args) + args.args
-    return run
+    return run, tuple(flag_args)
 
 def one_run(run_id_prefix, ctx):
     runs = [

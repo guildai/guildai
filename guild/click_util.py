@@ -27,15 +27,15 @@ import guild
 class Args(object):
 
     def __init__(self, **kw):
-        self.__kw = kw
         for name in kw:
             setattr(self, name, kw[name])
+        self.__names = list(kw)
 
     def __repr__(self):
         return "<guild.click_util.Args %s>" % self.__kw
 
     def as_kw(self):
-        return dict(self.__kw)
+        return {name: getattr(self, name) for name in self.__names}
 
 class Group(click.Group):
 

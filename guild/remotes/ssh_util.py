@@ -39,11 +39,22 @@ def _full_host(host, user):
         return host
 
 def ssh_cmd(host, cmd, user=None, connect_timeout=DEFAULT_CONNECT_TIMEOUT):
-    host = _full_host(host, user)
-    cmd = ["ssh"] + _ssh_opts(False, connect_timeout) + [host] + cmd
+    cmd = _ssh_cmd(host, cmd, user, connect_timeout)
     log.debug("ssh cmd: %r", cmd)
     try:
         subprocess.check_call(cmd)
+    except subprocess.CalledProcessError as e:
+        raise remotelib.RemoteProcessError.from_called_process_error(e)
+
+def _ssh_cmd(host, cmd, user, connect_timeout):
+    host = _full_host(host, user)
+    return ["ssh"] + _ssh_opts(False, connect_timeout) + [host] + cmd
+
+def ssh_output(host, cmd, user=None, connect_timeout=DEFAULT_CONNECT_TIMEOUT):
+    cmd = _ssh_cmd(host, cmd, user, connect_timeout)
+    log.debug("ssh cmd: %r", cmd)
+    try:
+        return subprocess.check_output(cmd)
     except subprocess.CalledProcessError as e:
         raise remotelib.RemoteProcessError.from_called_process_error(e)
 
