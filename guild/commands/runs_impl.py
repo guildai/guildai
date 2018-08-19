@@ -288,7 +288,7 @@ def _format_package_op(opref):
     return "%s/%s:%s" % (opref.pkg_name, opref.model_name, opref.op_name)
 
 def _format_pending_op(opref):
-    return "<pending '%s'>" % opref.op_name
+    return "<pending %s>" % opref.op_name
 
 def _format_command(cmd):
     if not cmd:
