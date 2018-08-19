@@ -97,8 +97,9 @@ class EC2Remote(remotelib.Remote):
             self._try_ping_host(verbose)
 
     def _terraform_refresh(self):
+        log.info("Getting remote status")
         cmd = ["terraform", "refresh", "-no-color"]
-        subprocess.call(cmd, cwd=self.working_dir)
+        subprocess.check_output(cmd, cwd=self.working_dir)
 
     def _terraform_show(self):
         self._terraform_refresh()
