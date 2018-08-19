@@ -28,17 +28,18 @@ Classifier: Topic :: Scientific/Engineering :: Visualization
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: Utilities
+Requires-Dist: PyYAML
+Requires-Dist: Werkzeug
+Requires-Dist: Whoosh
 Requires-Dist: chardet
+Requires-Dist: daemonize
 Requires-Dist: networkx
 Requires-Dist: pip
 Requires-Dist: python-dateutil
-Requires-Dist: PyYAML
 Requires-Dist: setuptools
 Requires-Dist: six
 Requires-Dist: tabview
 Requires-Dist: twine
-Requires-Dist: Werkzeug
-Requires-Dist: Whoosh
 
 Guild AI is a Python application that that streamlines TensorFlow and
 Keras deep learning development. It's released under the Apache 2 open

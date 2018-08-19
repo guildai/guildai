@@ -1,5 +1,8 @@
 # guildai - DO NOT DELETE THIS LINE
 
+# NOTE: Changes to this file should be reflected in
+# guildai.dist-info/METADATA.
+
 PyYAML>=2.12
 Werkzeug>=0.13
 Whoosh>=2.7.4
