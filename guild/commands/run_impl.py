@@ -506,10 +506,11 @@ def _print_env(op):
 def _maybe_run(op, model, args):
     _maybe_warn_no_wait(op.opdef, args)
     if args.yes or _confirm_run(op, model, args):
-        _run(op, args)
+        _run(op, model, args)
 
-def _run(op, args):
+def _run(op, model, args):
     if args.remote:
+        args.opspec = "%s:%s" % (model.name, op.opdef.name)
         remote_impl_support.run(args)
     else:
         _check_restart_running(args)
