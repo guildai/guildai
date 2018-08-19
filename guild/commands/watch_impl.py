@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import logging
+import os
 import sys
 import time
 
@@ -63,7 +64,8 @@ def _parent_pid(pid):
     return psutil.Process(pid).parent().pid
 
 def _tail(run):
-    cli.out("Watching run %s" % run.id, err=True)
+    if os.getenv("NO_WATCHING_MSG") != "1":
+        cli.out("Watching run %s" % run.id, err=True)
     proc = psutil.Process(run.pid)
     output_path = run.guild_path("output")
     f = None
