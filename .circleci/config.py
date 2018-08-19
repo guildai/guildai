@@ -104,7 +104,7 @@ class Build(object):
 
     def _upgrade_pip(self):
         # pipe to cat here effectively disables progress bar
-        return "{pip} install --upgrade {pip} | cat".format(pip=self.pip)
+        return "{pip} install --upgrade pip | cat".format(pip=self.pip)
 
     def _install_guild_reqs(self):
         # pipe to cat here effectively disables progress bar
