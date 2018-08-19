@@ -175,7 +175,7 @@ class SSHRemote(guild.remote.Remote):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(
-            "guild watch --pid {run_dir}/.guild/JOB"
+            "NO_WATCHING_MSG=1 guild watch --pid {run_dir}/.guild/JOB"
             .format(run_dir=remote_run_dir))
         cmd = "; ".join(cmd_lines)
         log.debug("watching remote run")
