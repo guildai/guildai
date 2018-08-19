@@ -426,7 +426,7 @@ def _print_run_info(run, args):
     out = cli.out
     for name in RUN_DETAIL:
         out("%s: %s" % (name, formatted[name]))
-    for name in other_attr_names(run):
+    for name in other_attr_names(run, args.private_attrs):
         out("%s: %s" % (name, _format_attr(run.get(name))))
     if args.env:
         out("environment:", nl=False)
@@ -452,10 +452,12 @@ def _print_run_info(run, args):
                 path = os.path.relpath(path, run.path)
             out("  %s" % path)
 
-def other_attr_names(run):
-    return [
-        name for name in sorted(run.attr_names())
-        if name[0] != "_" and name not in CORE_RUN_ATTRS]
+def other_attr_names(run, include_private=False):
+    if include_private:
+        include = lambda x: x == "opref" or x not in CORE_RUN_ATTRS
+    else:
+        include = lambda x: x[0] != "_" and x not in CORE_RUN_ATTRS
+    return [name for name in sorted(run.attr_names()) if include(name)]
 
 def _format_attr(val):
     if val is None:
