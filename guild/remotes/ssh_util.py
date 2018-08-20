@@ -67,3 +67,11 @@ def _ssh_opts(verbose=False, connect_timeout=None):
     if connect_timeout:
         opts.append("-oConnectTimeout=%s" % connect_timeout)
     return opts
+
+def rsync_copy_to(src, host, host_dest, user=None):
+    dest = "{}:{}".format(host, host_dest)
+    if user:
+        dest = "{}@{}".format(user, dest)
+    cmd = ["rsync", "-vr", src, dest]
+    log.debug("rsync cmd: %r", cmd)
+    subprocess.check_call(cmd)

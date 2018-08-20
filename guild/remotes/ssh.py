@@ -175,11 +175,9 @@ class SSHRemote(remotelib.Remote):
 
     def _copy_package_dist(self, package_dist_dir, remote_run_dir):
         src = package_dist_dir + "/"
-        dest = "{}:{}/.guild/job-packages/".format(self.host, remote_run_dir)
-        cmd = ["rsync", "-vr", src, dest]
+        host_dest = "{}/.guild/job-packages/".format(remote_run_dir)
         log.info("Copying package")
-        log.debug("rsync cmd: %r", cmd)
-        subprocess.check_call(cmd)
+        ssh_util.rsync_copy_to(src, self.host, host_dest, self.user)
 
     def _install_job_package(self, remote_run_dir):
         cmd = (
@@ -194,7 +192,8 @@ class SSHRemote(remotelib.Remote):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(
-            "export PYTHONPATH={run_dir}/.guild/job-packages:$PYTHONPATH"
+            "export PYTHONPATH=$(realpath {run_dir})/.guild/job-packages"
+            ":$PYTHONPATH"
             .format(run_dir=remote_run_dir))
         cmd_lines.append(_remote_run_cmd(remote_run_dir, opspec, args, **opts))
         cmd = "; ".join(cmd_lines)

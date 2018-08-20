@@ -31,13 +31,15 @@ from . import ssh_util
 
 log = logging.getLogger("guild.remotes.ec2")
 
+DEFAULT_INSTANCE_TYPE = "p2.xlarge"
+
 class EC2Remote(remotelib.Remote):
 
     def __init__(self, name, config):
         self.name = name
         self.region = config["region"]
         self.ami = config["ami"]
-        self.instance_type = config.get("instance_type", "p3.2xlarge")
+        self.instance_type = config.get("instance-type", DEFAULT_INSTANCE_TYPE)
         self.public_key = config.get("public-key")
         self.connection = config.get("connection", {})
         self.init = config.get("init")
@@ -86,6 +88,7 @@ class EC2Remote(remotelib.Remote):
         self._terraform_destroy()
 
     def status(self, verbose=False):
+        self._verify_aws_creds()
         self._verify_terraform()
         if os.path.exists(self.working_dir):
             self._refresh_config()
@@ -363,3 +366,7 @@ class EC2Remote(remotelib.Remote):
     def run_op(self, opspec, args, **opts):
         ssh_remote = self._ssh_remote()
         return ssh_remote.run_op(opspec, args, **opts)
+
+    def one_run(self, run_id_prefix, attrs):
+        ssh_remote = self._ssh_remote()
+        return ssh_remote.one_run(run_id_prefix, attrs)
