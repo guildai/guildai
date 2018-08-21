@@ -67,29 +67,48 @@ def _run(args, log, log_level=None):
     # log_level if provided.
     if log_level is not None:
         log.setLevel(log_level)
-    last_activity = last_log = _now()
+    last_activity = _now()
     while True:
-        last_activity, last_log  = _check_activity(last_activity, last_log, log)
+        last_activity = _check_activity(last_activity, log)
         if _timeout(last_activity, args.timeout):
             _shutdown(args, log)
             break
         time.sleep(INTERVAL)
     log.info("Quitting")
 
-def _check_activity(last_activity, last_log, log):
+def _check_activity(last_activity, log):
     pids = _guild_ops()
     now = _now()
+    log_f = _log_function(log, now, pids)
     if pids:
-        log.info("Runs: %s", ",".join(map(str, pids)))
-        return now, last_log
+        log_f("Active runs: %s", ",".join(map(str, pids)))
+        return now
     else:
-        msg = "No runs for %i seconds" % (now - last_activity)
-        if now >= last_log + LAST_LOG_MAX:
-            log.info(msg)
-            last_log = now
-        else:
-            log.debug(msg)
-        return last_activity, last_log
+        log_f("No runs for %i seconds", now - last_activity)
+        return last_activity
+
+def _log_function(log, now, pids):
+    # Tricky function that decides whether to log as info or debug.
+    # Uses lazily assigned log state to determine whether pids have
+    # changed or LAST_LOG_MAX seconds have ellapsed since the last
+    # info msg.
+    try:
+        last_pids = sorted(log.last_pids)
+    except AttributeError:
+        last_pids = []
+    if last_pids != pids:
+        log.last_pids = pids
+        log.last_log = now
+        return log.info
+    try:
+        last_log = log.last_log
+    except AttributeError:
+        log.last_log = last_log = now
+    if now >= last_log + LAST_LOG_MAX:
+        log.last_log = now
+        return log.info
+    else:
+        return log.debug
 
 def _guild_ops():
     return [
@@ -104,13 +123,13 @@ def _now():
 
 def _shutdown(args, log):
     log.info("RUN ACTIVITY TIMEOUT - SHUTTING DOWN SYSTEM")
-    if args.dont_shutdown:
-        log.info("SHUTDOWN would occur but --dont-shutdown was used")
-        return
     cmd = ["shutdown", "+%s" % args.grace_period]
     if args.su:
         cmd.insert(0, "sudo")
     log.debug("shutdown cmd: %r", cmd)
+    if args.dont_shutdown:
+        log.info("SHUTDOWN would occur but --dont-shutdown was used")
+        return
     try:
         subprocess.check_call(cmd)
     except Exception:
