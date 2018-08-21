@@ -529,7 +529,7 @@ def _check_restart_running(args):
 
 def _run_in_background(op, pidfile, quiet):
     run = lambda: op.run(quiet=False)
-    daemon = daemonize.Daemonize(app="what-is-this", action=run, pid=pidfile)
+    daemon = daemonize.Daemonize(app="guild", action=run, pid=pidfile)
     if not quiet:
         cli.out("Operation started in background (pidfile is %s)" % pidfile)
     daemon.start()
