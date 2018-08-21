@@ -94,9 +94,12 @@
     guild.commands.server_support
     guild.commands.shell
     guild.commands.shell_impl
+    guild.commands.shutdown_timer
+    guild.commands.shutdown_timer_impl
     guild.commands.stop
     guild.commands.sync
     guild.commands.sync_impl
+    guild.commands.sys
     guild.commands.tensorboard
     guild.commands.tensorboard_impl
     guild.commands.tensorflow

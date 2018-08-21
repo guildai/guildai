@@ -29,16 +29,20 @@ def shutdown_timer():
 @click.option(
     "-t", "--timeout", metavar="MINUTES",
     default=60,
-    help="Shutdown timeout in minutes (60).")
-@click.option(
-    "-i", "--check-interval", metavar="SECONDS",
-    type=click.IntRange(1, None),
-    default=60,
-    help="Interval between activity checks in seconds (60).")
+    help="Shutdown timeout in minutes (default is 60).")
 @click.option(
     "-f", "--foreground",
     is_flag=True,
     help="Run in the foreground.")
+@click.option(
+    "-g", "--grace-period",
+    type=click.IntRange(0, None),
+    default=1,
+    help="Number of minutes used in shutdown command (default 1).")
+@click.option(
+    "-d", "--dont-shutdown",
+    is_flag=True,
+    help="Don't issue a system shutdown command (use for testing).")
 
 @click_util.use_args
 

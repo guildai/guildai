@@ -43,7 +43,6 @@ class EC2Remote(remotelib.Remote):
         self.public_key = config.get("public-key")
         self.connection = config.get("connection", {})
         self.init = config.get("init")
-        self.shutdown_timeout = config.get("shutdown-timeout")
         self.working_dir = var.remote_dir(name)
 
     def start(self):
@@ -278,10 +277,7 @@ class EC2Remote(remotelib.Remote):
             return self.public_key
 
     def _init_script(self):
-        script = self.init or ""
-        if self.shutdown_timeout:
-            script += "\nsudo shutdown +%s" % self.shutdown_timeout
-        return script
+        return self.init or ""
 
     def _write_init_script(self, init_script):
         init_filename = os.path.join(self.working_dir, "init.sh")

@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 import os
+import subprocess
 import time
 
 import daemonize
@@ -26,11 +27,19 @@ from guild import cli
 from guild import util
 from guild import var
 
+INTERVAL = 5
 LOG_MAX_SIZE = 102400
 LOG_BACKUPS = 1
 
 def start(args):
     log = _init_log(args)
+    cli.out("Running shutdown timer with timeout of %i minutes" % args.timeout)
+    if args.dont_shutdown:
+        cli.out(
+            cli.style(
+                "Shutdown timer WILL NOT SHUTDOWN system because "
+                "--dont-shutdown was used",
+                bold=True))
     if args.foreground:
         _run(args, log)
     else:
@@ -46,37 +55,53 @@ def _init_log(args):
             logfile,
             maxBytes=LOG_MAX_SIZE,
             backupCount=LOG_BACKUPS)
-    handler.setFormatter(logging.Formatter(
-        "%(asctime)s %(levelname)s %(message)s"))
+    handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
     log = logging.getLogger("guild.shutdown_timer")
     log.propagate = False
     log.addHandler(handler)
     return log
 
 def _run(args, log):
-    last_activity = None
+    last = _now()
     while True:
-        last_activity = _check_activity(last_activity, log)
-        if _timeout(last_activity, args.timeout):
-            _shutdown(log)
+        last = _check_activity(last, log)
+        if _timeout(last, args.timeout):
+            _shutdown(args, last, log)
             break
-        time.sleep(args.check_interval)
+        time.sleep(INTERVAL)
     log.info("Quitting")
 
 def _check_activity(last, log):
-    log.info("TODO: check activity")
-    return last
+    pids = _guild_ops()
+    if pids:
+        log.info("Runs: %s", ",".join(map(str, pids)))
+        return _now()
+    else:
+        log.debug("No runs for %i seconds", (_now() - last))
+        return last
+
+def _guild_ops():
+    return [
+        p.pid for p in psutil.process_iter(attrs=['cmdline'])\
+        if "guild.op_main" in p.info["cmdline"]]
 
 def _timeout(last, timeout):
-    if last is None:
-        return False
-    return _now() > (last + timeout)
+    return _now() >= (last + (timeout * 60))
 
 def _now():
     return int(time.time())
 
-def _shutdown(log):
-    log.info("TODO: issue system shutdown")
+def _shutdown(args, last, log):
+    if args.dont_shutdown:
+        log.info("SHUTDOWN would occur but --dont-shutdown was used")
+        return
+    log.info(
+        "NO RUNS FOR %i SECONDS - SHUTTING DOWN SYSTEM",
+        (_now() - last))
+    try:
+        subprocess.check_call(["shutdown", "+%s" % args.grace_period])
+    except Exception:
+        log.exception("shutting down")
 
 def _start(args, log):
     pidfile = var.pidfile("SHUTDOWN-TIMER")
