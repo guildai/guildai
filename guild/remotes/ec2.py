@@ -339,7 +339,7 @@ class EC2Remote(remotelib.Remote):
 
     def list_runs(self, verbose=False, **filters):
         ssh_remote = self._ssh_remote()
-        return ssh_remote.list_runs(verbose, **filters)
+        ssh_remote.list_runs(verbose, **filters)
 
     def _ssh_remote(self):
         config = dict(
@@ -363,9 +363,9 @@ class EC2Remote(remotelib.Remote):
                     % self.name)
             return host
 
-    def run_op(self, opspec, args, **opts):
+    def run_op(self, opspec, args, restart, **opts):
         ssh_remote = self._ssh_remote()
-        return ssh_remote.run_op(opspec, args, **opts)
+        ssh_remote.run_op(opspec, args, restart, **opts)
 
     def one_run(self, run_id_prefix, attrs):
         ssh_remote = self._ssh_remote()

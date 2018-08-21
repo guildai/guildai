@@ -190,7 +190,7 @@ class SSHRemote(remotelib.Remote):
         log.info("Installing package and its dependencies")
         ssh_util.ssh_cmd(self.host, [cmd], self.user)
 
-    def _run_op(self, remote_run_dir, opspec, args, **opts):
+    def _start_op(self, remote_run_dir, opspec, args, **opts):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(
