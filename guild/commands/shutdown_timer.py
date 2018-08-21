@@ -31,6 +31,10 @@ def shutdown_timer():
     default=60,
     help="Shutdown timeout in minutes (default is 60).")
 @click.option(
+    "-s", "--su",
+    is_flag=True,
+    help="Run shutdown command as privileged user.")
+@click.option(
     "-f", "--foreground",
     is_flag=True,
     help="Run in the foreground.")

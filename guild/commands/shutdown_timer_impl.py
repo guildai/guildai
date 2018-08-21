@@ -30,10 +30,11 @@ from guild import var
 INTERVAL = 5
 LOG_MAX_SIZE = 102400
 LOG_BACKUPS = 1
+LAST_LOG_MAX = 60
 
 def start(args):
     log = _init_log(args)
-    cli.out("Running shutdown timer with timeout of %i minutes" % args.timeout)
+    log.info("Shutdown timer started with timeout = %im", args.timeout)
     if args.dont_shutdown:
         cli.out(
             cli.style(
@@ -61,24 +62,34 @@ def _init_log(args):
     log.addHandler(handler)
     return log
 
-def _run(args, log):
-    last = _now()
+def _run(args, log, log_level=None):
+    # When daemonized, log.level is 10 for some reason - reset to
+    # log_level if provided.
+    if log_level is not None:
+        log.setLevel(log_level)
+    last_activity = last_log = _now()
     while True:
-        last = _check_activity(last, log)
-        if _timeout(last, args.timeout):
-            _shutdown(args, last, log)
+        last_activity, last_log  = _check_activity(last_activity, last_log, log)
+        if _timeout(last_activity, args.timeout):
+            _shutdown(args, log)
             break
         time.sleep(INTERVAL)
     log.info("Quitting")
 
-def _check_activity(last, log):
+def _check_activity(last_activity, last_log, log):
     pids = _guild_ops()
+    now = _now()
     if pids:
         log.info("Runs: %s", ",".join(map(str, pids)))
-        return _now()
+        return now, last_log
     else:
-        log.debug("No runs for %i seconds", (_now() - last))
-        return last
+        msg = "No runs for %i seconds" % (now - last_activity)
+        if now >= last_log + LAST_LOG_MAX:
+            log.info(msg)
+            last_log = now
+        else:
+            log.debug(msg)
+        return last_activity, last_log
 
 def _guild_ops():
     return [
@@ -91,17 +102,19 @@ def _timeout(last, timeout):
 def _now():
     return int(time.time())
 
-def _shutdown(args, last, log):
+def _shutdown(args, log):
+    log.info("RUN ACTIVITY TIMEOUT - SHUTTING DOWN SYSTEM")
     if args.dont_shutdown:
         log.info("SHUTDOWN would occur but --dont-shutdown was used")
         return
-    log.info(
-        "NO RUNS FOR %i SECONDS - SHUTTING DOWN SYSTEM",
-        (_now() - last))
+    cmd = ["shutdown", "+%s" % args.grace_period]
+    if args.su:
+        cmd.insert(0, "sudo")
+    log.debug("shutdown cmd: %r", cmd)
     try:
-        subprocess.check_call(["shutdown", "+%s" % args.grace_period])
+        subprocess.check_call(cmd)
     except Exception:
-        log.exception("shutting down")
+        log.exception("shutdown")
 
 def _start(args, log):
     pidfile = var.pidfile("SHUTDOWN-TIMER")
@@ -110,9 +123,12 @@ def _start(args, log):
             "shutdown timer is already running "
             "(use 'guild sys shutdown-timer status' to verify)")
     util.ensure_dir(os.path.dirname(pidfile))
+    # Save original log level to workaround issue with daemonization
+    # (see note in _run).
+    log_level = log.getEffectiveLevel()
     daemon = daemonize.Daemonize(
         app="guild",
-        action=lambda: _run(args, log),
+        action=lambda: _run(args, log, log_level),
         pid=pidfile,
         keep_fds=_log_fds(log))
     cli.out(
