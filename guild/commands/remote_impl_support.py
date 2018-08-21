@@ -109,6 +109,7 @@ def _run_kw(args):
         "rerun",
         "run_dir",
         "set_trace",
+        "shutdown_timeout",
         "stage",
         "workflow",
         "yes",

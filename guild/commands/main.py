@@ -50,6 +50,7 @@ from .serve import serve
 from .shell import shell
 from .stop import stop
 from .sync import sync
+from .sys import sys
 from .tensorboard import tensorboard
 from .tensorflow import tensorflow
 from .uninstall import uninstall
@@ -122,6 +123,7 @@ main.add_command(serve)
 main.add_command(shell)
 main.add_command(stop)
 main.add_command(sync)
+main.add_command(sys)
 main.add_command(tensorboard)
 main.add_command(tensorflow)
 main.add_command(uninstall)

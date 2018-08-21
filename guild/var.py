@@ -43,6 +43,12 @@ def trash_dir(name=None):
 def cache_dir(name=None):
     return path("cache", name)
 
+def pidfile(name):
+    return path("proc", name)
+
+def logfile(name):
+    return path("log", name)
+
 def remote_dir(name=None):
     # Use directory containing user config to store remote info.
     config_path = config._user_config_path()
