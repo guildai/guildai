@@ -46,7 +46,7 @@ def main(args, ctx):
 def _check_non_pid_args(args):
     if (args.run or
         args.ops or
-        args.label or
+        args.labels or
         args.unlabeled):
         cli.error("--pid may not be used with other options")
 
