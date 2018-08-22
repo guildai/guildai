@@ -160,7 +160,7 @@ def _patch_git_obtain():
     """
 
     def obtain(self, dest):
-        url, rev = self.get_url_rev()
+        url, rev = self.get_url_rev(self.url)
         archive_url = "{}/archive/{}.zip".format(url, rev)
         util.ensure_dir(dest)
         downloaded_file = pip_util.download_url(archive_url, dest)

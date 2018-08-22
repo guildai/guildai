@@ -243,7 +243,8 @@ def _pip_download(link, download_dir):
     cmd = _pip_cmd(DownloadCommand)
     options, _ = cmd.parse_args(["--no-cache-dir"])
     session = cmd._build_session(options)
-    orig_path, _ = _download_http_url(link, session, download_dir, hashes=None)
+    orig_path, _ = _download_http_url(link, session, download_dir,
+                                      hashes=None, progress_bar="on")
     return orig_path
 
 def _ensure_expected_download_path(downloaded, link):
