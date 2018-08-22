@@ -125,6 +125,7 @@ def _format_plugins():
 
 def _print_python_info(check):
     guild.cli.out("python_version:            %s" % _python_version())
+    guild.cli.out("python_exe:                %s" % sys.executable)
     if check.args.verbose:
         guild.cli.out("python_path:           %s" % _python_path())
 
