@@ -131,10 +131,27 @@ def _pip_wheel(name, dist_spec, root):
     from pip._internal.commands.wheel import WheelCommand
     cmd = WheelCommand()
     options, cmd_args = cmd.parse_args(args)
+    _reset_env_for_pip_wheel()
     cmd.run(options, cmd_args)
     wheels = glob.glob(os.path.join(wheel_dir, "*.whl"))
     assert len(wheels) == 1, wheels
     return wheels[0]
+
+def _reset_env_for_pip_wheel():
+    """Resets env for building a wheel.
+
+    pip assumes that the wheel command is only used once during a
+    process and relies on that assumption in ways that thwart our
+    efforts to use the command multiple times in setup. This function
+    resets the env so the command can be used more than once.
+
+    See https://github.com/pypa/pip/issues/5725 for background.
+
+    """
+    try:
+        del os.environ["PIP_REQ_TRACKER"]
+    except KeyError:
+        pass
 
 def _install_external_wheel(wheel_path):
     zf = zipfile.ZipFile(wheel_path)

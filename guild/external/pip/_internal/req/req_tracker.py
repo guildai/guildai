@@ -14,10 +14,15 @@ logger = logging.getLogger(__name__)
 class RequirementTracker(object):
 
     def __init__(self):
-        self._temp_dir = TempDirectory(delete=False, kind='req-tracker')
-        self._temp_dir.create()
-        self._root = self._temp_dir.path
-        logger.debug('Created requirements tracker %r', self._root)
+        self._root = os.environ.get('PIP_REQ_TRACKER')
+        if self._root is None:
+            self._temp_dir = TempDirectory(delete=False, kind='req-tracker')
+            self._temp_dir.create()
+            self._root = os.environ['PIP_REQ_TRACKER'] = self._temp_dir.path
+            logger.debug('Created requirements tracker %r', self._root)
+        else:
+            self._temp_dir = None
+            logger.debug('Re-using requirements tracker %r', self._root)
         self._entries = set()
 
     def __enter__(self):
