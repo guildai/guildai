@@ -113,7 +113,7 @@ def _install_external(name, dist_spec):
     with util.TempDir(prefix="pip-", suffix="-download") as tmp:
         wheel_path = _pip_wheel(name, dist_spec, tmp)
         _install_external_wheel(wheel_path)
-        open(_external_marker(name), "w").close()
+        util.touch(_external_marker(name))
 
 def _pip_wheel(name, dist_spec, root):
     path, tag = dist_spec
