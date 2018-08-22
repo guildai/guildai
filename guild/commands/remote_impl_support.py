@@ -31,17 +31,10 @@ def list_runs(args):
         cli.error(exit_status=e.exit_status)
 
 def _list_runs_kw(args):
-    names = [
+    names = _runs_filter_names() + [
         "all",
-        "completed",
         "deleted",
-        "error",
-        "labels",
         "more",
-        "ops",
-        "running",
-        "terminated",
-        "unlabeled",
         "verbose",
     ]
     ignore = [
@@ -49,6 +42,20 @@ def _list_runs_kw(args):
         "remote",
     ]
     return _arg_kw(args, names, ignore)
+
+def _runs_filter_names():
+    return [
+        "completed",
+        "error",
+        "labels",
+        "ops",
+        "running",
+        "terminated",
+        "unlabeled",
+    ]
+
+def _runs_select_names():
+    return _runs_filter_names() + ["runs"]
 
 def _arg_kw(args, names, ignore):
     kw_in = args.as_kw()
@@ -149,26 +156,13 @@ def delete_runs(args):
     assert args.remote
     remote = remote_support.remote_for_args(args)
     try:
-        remote.delete_runs(**_runs_select_kw(args))
+        remote.delete_runs(**_runs_delete_kw(args))
     except remotelib.RemoteProcessError as e:
         cli.error(exit_status=e.exit_status)
 
-def _runs_select_kw(args):
-    names = [
-        "completed",
-        "error",
-        "labels",
-        "ops",
-        "permanent",
-        "running",
-        "runs",
-        "terminated",
-        "unlabeled",
-        "yes",
-    ]
-    ignore = [
-        "remote",
-    ]
+def _runs_delete_kw(args):
+    names = _runs_select_names() + ["permanent", "yes"]
+    ignore = ["remote"]
     return _arg_kw(args, names, ignore)
 
 def run_info(args):
@@ -180,23 +174,16 @@ def run_info(args):
         cli.error(exit_status=e.exit_status)
 
 def _run_info_kw(args):
-    names = [
+    names = _runs_filter_names() + [
         "all_files",
-        "completed",
         "deps",
         "env",
-        "error",
         "files",
         "flags",
         "follow_links",
-        "labels",
-        "ops",
         "output",
         "page_output",
         "run",
-        "running",
-        "terminated",
-        "unlabeled",
     ]
     ignore = [
         "private_attrs",

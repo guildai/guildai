@@ -257,7 +257,7 @@ class SSHRemote(remotelib.Remote):
         ssh_util.ssh_cmd(self.host, [cmd], self.user)
 
     def delete_runs(self, **opts):
-        self._guild_cmd("runs delete", _runs_delete_args(**opts))
+        self._guild_cmd("runs delete", _runs_op_args(**opts))
 
     def run_info(self, **opts):
         self._guild_cmd("runs info", _run_info_args(**opts))
@@ -275,14 +275,14 @@ def _list_runs_filter_opts(deleted, all, more, **filters):
     opts = []
     if all:
         opts.append("--all")
-    opts.extend(_run_filter_args(**filters))
+    opts.extend(_runs_filter_args(**filters))
     if deleted:
         opts.append("--deleted")
     if more > 0:
         opts.append("-" + ("m" * more))
     return opts
 
-def _run_filter_args(ops, labels, unlabeled, running,
+def _runs_filter_args(ops, labels, unlabeled, running,
                      completed, error, terminated):
     args = []
     if completed:
@@ -350,8 +350,8 @@ def _watch_run_args(run, ops, pid, labels, unlabeled):
         args.append(run)
     return args
 
-def _runs_delete_args(runs, permanent, yes, **filters):
-    args = _run_filter_args(**filters)
+def _runs_op_args(runs, permanent, yes, **filters):
+    args = _runs_filter_args(**filters)
     if permanent:
         args.append("-p")
     if yes:
@@ -361,7 +361,7 @@ def _runs_delete_args(runs, permanent, yes, **filters):
 
 def _run_info_args(run, files, all_files, flags, env, deps,
                    follow_links, output, page_output, **filters):
-    args = _run_filter_args(**filters)
+    args = _runs_filter_args(**filters)
     if files:
         args.append("-" + "f" * files)
     if all_files:
