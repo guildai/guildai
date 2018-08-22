@@ -26,20 +26,29 @@ from guild import cli
 from guild import run as runlib
 from guild import var
 
+from . import remote_impl_support
 from . import runs_impl
 
 log = logging.getLogger("guild")
 
 def main(args, ctx):
     if args.pid:
+        _check_non_pid_args(args)
         _watch_pid(args)
     elif args.remote:
-        _watch_remote(args)
+        remote_impl_support.watch_run(args)
     elif args.run:
         run = runs_impl.one_run(args, ctx)
         _watch_run(run)
     else:
-        _watch_default_running(args, ctx)
+        _watch_default_running(args)
+
+def _check_non_pid_args(args):
+    if (args.run or
+        args.ops or
+        args.label or
+        args.unlabeled):
+        cli.error("--pid may not be used with other options")
 
 def _watch_pid(args):
     pid = _pid_arg(args.pid)
@@ -134,7 +143,7 @@ def _print_run_status(run):
         "Run %s stopped with a status of '%s'"
         % (run.short_id, run.status), err=True)
 
-def _watch_default_running(args, ctx):
+def _watch_default_running(args):
     args.running = True
     runs = runs_impl.filtered_runs(args)
     if not runs:

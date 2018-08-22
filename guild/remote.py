@@ -113,6 +113,9 @@ class Remote(object):
     def one_run(self, run_id_prefix, attrs):
         raise NotImplementedError()
 
+    def watch_run(self, **opts):
+        raise NotImplementedError()
+
 def for_name(name):
     remotes = guild.config.user_config().get("remotes", {})
     try:

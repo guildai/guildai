@@ -19,7 +19,7 @@ import click
 
 from guild import click_util
 
-from . import remote_support
+from . import remote_support # pylint: disable=unused-import
 from . import runs_support
 
 @click.command()
@@ -59,6 +59,8 @@ def watch(ctx, args):
     You may alternatively specify the process ID of the run to watch,
     using `--pid`. ``PID`` may be a process ID or a path to a file
     containing a process ID.
+
+    PID may not be specified with other options.
 
     """
     from . import watch_impl

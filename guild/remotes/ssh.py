@@ -243,6 +243,16 @@ class SSHRemote(remotelib.Remote):
         out = ssh_util.ssh_output(self.host, [cmd], self.user)
         return remotelib.RunProxy(yaml.load(out))
 
+    def watch_run(self, **opts):
+        self._guild_cmd("watch", _watch_run_args(**opts))
+
+    def _guild_cmd(self, name, args):
+        cmd_lines = ["set -e"]
+        cmd_lines.extend(self._env_activate_cmd_lines())
+        cmd_lines.append("guild %s %s" % (name, " ".join(args)))
+        cmd = "; ".join(cmd_lines)
+        ssh_util.ssh_cmd(self.host, [cmd], self.user)
+
 def _list_runs_filter_opts(ops, labels, unlabeled, running,
                            completed, error, terminated, deleted,
                            all, more, **kw):
@@ -305,3 +315,18 @@ def _remote_run_cmd(remote_run_dir, opspec, op_args, label,
         cmd.append("--no-gpus")
     cmd.extend([q(arg) for arg in op_args])
     return " ".join(cmd)
+
+def _watch_run_args(run, ops, pid, labels, unlabeled):
+    if pid:
+        # Ignore other opts if pid is specified
+        return ["--pid", pid]
+    args = []
+    for op in ops:
+        args.extend(["-o", op])
+    for label in labels:
+        args.extend(["-l", label])
+    if unlabeled:
+        args.append("-u")
+    if run:
+        args.append(run)
+    return args

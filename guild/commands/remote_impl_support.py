@@ -117,9 +117,30 @@ def _run_kw(args):
 
 def one_run(run_id_prefix, args):
     assert args.remote
-    cli.out("Getting remote run info")
     remote = remote_support.remote_for_args(args)
+    cli.out("Getting remote run info")
     try:
         return remote.one_run(run_id_prefix, ["flags"])
     except remotelib.RemoteProcessError as e:
         cli.error(exit_status=e.exit_status)
+
+def watch_run(args):
+    assert args.remote
+    remote = remote_support.remote_for_args(args)
+    try:
+        remote.watch_run(**_watch_run_kw(args))
+    except remotelib.RemoteProcessError as e:
+        cli.error(exit_status=e.exit_status)
+
+def _watch_run_kw(args):
+    names = [
+        "ops",
+        "pid",
+        "labels",
+        "run",
+        "unlabeled",
+    ]
+    ignore = [
+        "remote",
+    ]
+    return _arg_kw(args, names, ignore)
