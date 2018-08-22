@@ -26,7 +26,6 @@ def runs_stop_params(fn):
     click_util.append_params(fn, [
         runs_support.runs_arg,
         runs_support.op_and_label_filters,
-        remote_support.remote_option("Stop remote runs."),
         click.Option(
             ("-y", "--yes"),
             help="Do not prompt before stopping.",
@@ -40,6 +39,7 @@ def runs_stop_params(fn):
 
 @click.command(name="stop")
 @runs_stop_params
+@remote_support.remote_option("Stop remote runs.")
 
 @click.pass_context
 @click_util.use_args

@@ -272,7 +272,7 @@ class SSHRemote(remotelib.Remote):
         sys.stdout.flush()
 
     def stop_runs(self, **opts):
-        self._guild_cmd("runs stop", _runs_op_args(**opts))
+        self._guild_cmd("runs stop", _stop_runs_args(**opts))
 
 def _list_runs_filter_opts(deleted, all, more, **filters):
     opts = []
@@ -389,4 +389,19 @@ def _check_args(verbose):
     args = []
     if verbose:
         args.append("-v")
+    return args
+
+def _stop_runs_args(runs, ops, labels, unlabeled, no_wait, yes):
+    args = []
+    for op in ops:
+        args.extend(["-o", q(op)])
+    for label in labels:
+        args.extend(["-l", q(label)])
+    if unlabeled:
+        args.append("-u")
+    if no_wait:
+        args.append("-n")
+    if yes:
+        args.append("-y")
+    args.extend(runs)
     return args
