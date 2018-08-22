@@ -157,11 +157,11 @@ def delete_runs(args):
     assert args.remote
     remote = remote_support.remote_for_args(args)
     try:
-        remote.delete_runs(**_runs_delete_kw(args))
+        remote.delete_runs(**_delete_runs_kw(args))
     except remotelib.RemoteProcessError as e:
         cli.error(exit_status=e.exit_status)
 
-def _runs_delete_kw(args):
+def _delete_runs_kw(args):
     names = _runs_select_names() + ["permanent", "yes"]
     ignore = ["remote"]
     return _arg_kw(args, names, ignore)

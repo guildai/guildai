@@ -257,7 +257,7 @@ class SSHRemote(remotelib.Remote):
         ssh_util.ssh_cmd(self.host, [cmd], self.user)
 
     def delete_runs(self, **opts):
-        self._guild_cmd("runs delete", _runs_op_args(**opts))
+        self._guild_cmd("runs delete", _delete_runs_args(**opts))
 
     def run_info(self, **opts):
         self._guild_cmd("runs info", _run_info_args(**opts))
@@ -353,7 +353,7 @@ def _watch_run_args(run, ops, pid, labels, unlabeled):
         args.append(run)
     return args
 
-def _runs_op_args(runs, permanent, yes, **filters):
+def _delete_runs_args(runs, permanent, yes, **filters):
     args = _runs_filter_args(**filters)
     if permanent:
         args.append("-p")
