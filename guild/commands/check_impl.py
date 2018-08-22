@@ -37,6 +37,7 @@ import guild.var
 log = logging.getLogger("guild")
 
 CHECK_MODS = [
+    "distutils",
     "pip",
     "psutil",
     "setuptools",
