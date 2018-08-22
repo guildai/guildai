@@ -26,14 +26,25 @@ from guild import cli
 from guild import run as runlib
 from guild import var
 
+from . import runs_impl
+
 log = logging.getLogger("guild")
 
-def main(args):
-    assert args.pid
+def main(args, ctx):
+    if args.pid:
+        _watch_pid(args)
+    elif args.remote:
+        _watch_remote(args)
+    elif args.run:
+        run = runs_impl.one_run(args, ctx)
+        _watch_run(run)
+    else:
+        _watch_default_running(args, ctx)
+
+def _watch_pid(args):
     pid = _pid_arg(args.pid)
     run = _run_for_pid(pid)
-    _tail(run)
-    _print_run_status(run)
+    _watch_run(run)
 
 def _pid_arg(pid):
     try:
@@ -63,9 +74,26 @@ def _run_for_pid(pid):
 def _parent_pid(pid):
     return psutil.Process(pid).parent().pid
 
+def _watch_run(run):
+    try:
+        _tail(run)
+        _print_run_status(run)
+    except KeyboardInterrupt:
+        if os.getenv("NO_WATCHING_MSG") != "1":
+            _stopped_msg(run)
+
+def _stopped_msg(run):
+    msg = "\nStopped watching %s" % run.short_id
+    if run.pid and psutil.Process(run.pid).is_running():
+        msg += " (still running)"
+    cli.out(msg)
+
 def _tail(run):
     if os.getenv("NO_WATCHING_MSG") != "1":
         cli.out("Watching run %s" % run.id, err=True)
+    if run.pid is None:
+        _print_output(run)
+        return
     proc = psutil.Process(run.pid)
     output_path = run.guild_path("output")
     f = None
@@ -81,6 +109,18 @@ def _tail(run):
         sys.stdout.write(line)
         sys.stdout.flush()
 
+def _print_output(run):
+    output_path = run.guild_path("output")
+    f = _try_open(output_path)
+    if not f:
+        return
+    while True:
+        line = f.readline()
+        if not line:
+            break
+        sys.stdout.write(line)
+        sys.stdout.flush()
+
 def _try_open(path):
     try:
         return open(path, "r")
@@ -93,3 +133,13 @@ def _print_run_status(run):
     cli.out(
         "Run %s stopped with a status of '%s'"
         % (run.short_id, run.status), err=True)
+
+def _watch_default_running(args, ctx):
+    args.running = True
+    runs = runs_impl.filtered_runs(args)
+    if not runs:
+        cli.error(
+            "there are no running operations to watch\n"
+            "You can view the output of a specific run using "
+            "'guild watch RUN'.")
+    _watch_run(runs[0])

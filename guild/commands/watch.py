@@ -19,21 +19,47 @@ import click
 
 from guild import click_util
 
+from . import remote_support
+from . import runs_support
+
 @click.command()
 
+@runs_support.run_arg
+@runs_support.op_and_label_filters
+@click.option(
+    "-r", "--remote", metavar="REMOTE",
+    help="Watch a remote run.")
 @click.option(
     "--pid", metavar="PID",
-    required=True,
-    help=("Watch the run associated with the specified process ID. "
-          "PID may be a path to a file containing the process ID."))
+    help=("Watch the run associated with the specified process. "
+          "PID may be a process ID or a path to a file containing "
+          "a process ID."))
 
+@click.pass_context
 @click_util.use_args
+@click_util.render_doc
 
-def watch(args):
+def watch(ctx, args):
     """Watch run output.
 
-    The watch command currently only supports watching runs by process
-    ID. The --pid option is therefore required.
+    By default, the command will watch output from the current running
+    operation.
+
+    {{ runs_support.run_arg }}
+    {{ runs_support.op_and_label_filters }}
+
+    ### Watching remote runs
+
+    Use `--remote` to watch a remote run.
+
+    {{ remote_support.remote_arg }}
+
+    ### Watching run by PID
+
+    You may alternatively specify the process ID of the run to watch,
+    using `--pid`. ``PID`` may be a process ID or a path to a file
+    containing a process ID.
+
     """
     from . import watch_impl
-    watch_impl.main(args)
+    watch_impl.main(args, ctx)
