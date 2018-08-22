@@ -610,5 +610,5 @@ def _format_op_resources(resources):
     ]) + "\n"
 
 def _maybe_warn_no_wait(opdef, args):
-    if args.no_wait and not opdef.remote:
+    if args.no_wait and not (args.remote or opdef.remote):
         cli.note("Operation is local, ignoring --no-wait")

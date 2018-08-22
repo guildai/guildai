@@ -94,6 +94,7 @@ def _run_kw(args):
         "gpus",
         "label",
         "no_gpus",
+        "no_wait",
         "opspec",
         "restart",
     ]
@@ -101,7 +102,6 @@ def _run_kw(args):
         "background",
         "help_model",
         "help_op",
-        "no_wait",
         "print_cmd",
         "print_env",
         "quiet",

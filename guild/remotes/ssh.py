@@ -112,11 +112,13 @@ class SSHRemote(remotelib.Remote):
         ssh_util.ssh_ping(self.host, verbose)
         sys.stdout.write("%s (%s) is available\n" % (self.name, self.host))
 
-    def run_op(self, opspec, args, restart, **opts):
+    def run_op(self, opspec, args, restart, no_wait, **opts):
         with util.TempDir(prefix="guild-remote-pkg-") as dist_dir:
             _build_package(dist_dir)
             remote_run_dir = self._init_remote_run(dist_dir, opspec, restart)
         self._start_op(remote_run_dir, opspec, args, **opts)
+        if no_wait:
+            return
         try:
             self._watch_op(remote_run_dir)
         except KeyboardInterrupt:
