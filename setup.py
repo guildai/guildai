@@ -21,7 +21,7 @@ import zipfile
 
 sys.path.insert(0, "./guild/external")
 
-from pip.vcs.git import Git
+from pip._internal.vcs.git import Git
 from pkg_resources import Distribution as PkgDist
 from pkg_resources import PathMetadata
 from setuptools import find_packages, setup
