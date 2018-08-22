@@ -2,7 +2,10 @@
 /build
 /dist
 /guildai.egg-info
-/guild/external
+/guild/external/click
+/guild/external/psutil
+/guild/external/.*
+/guild/external/*.dist-info
 /guild/view/node_modules
 /.pypi-creds
 /README.html
