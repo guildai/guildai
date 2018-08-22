@@ -10,6 +10,7 @@
     license: Apache 2.0
     location: /.../lib/python.../site-packages
     requires: []
+    required-by: []
     <exit 0>
 
     >>> run("guild models mnist")

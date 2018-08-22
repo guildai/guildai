@@ -4,8 +4,8 @@ This module provides a pool manager that uses Google App Engine's
 
 Example usage::
 
-    from urllib3 import PoolManager
-    from urllib3.contrib.appengine import AppEngineManager, is_appengine_sandbox
+    from pip._vendor.urllib3 import PoolManager
+    from pip._vendor.urllib3.contrib.appengine import AppEngineManager, is_appengine_sandbox
 
     if is_appengine_sandbox():
         # AppEngineManager uses AppEngine's URLFetch API behind the scenes
@@ -236,12 +236,21 @@ class AppEngineManager(RequestMethods):
             encodings.remove('chunked')
             urlfetch_resp.headers['transfer-encoding'] = ','.join(encodings)
 
-        return HTTPResponse(
+        original_response = HTTPResponse(
             # In order for decoding to work, we must present the content as
             # a file-like object.
             body=BytesIO(urlfetch_resp.content),
+            msg=urlfetch_resp.header_msg,
             headers=urlfetch_resp.headers,
             status=urlfetch_resp.status_code,
+            **response_kw
+        )
+
+        return HTTPResponse(
+            body=BytesIO(urlfetch_resp.content),
+            headers=urlfetch_resp.headers,
+            status=urlfetch_resp.status_code,
+            original_response=original_response,
             **response_kw
         )
 

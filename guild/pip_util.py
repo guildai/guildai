@@ -20,17 +20,17 @@ import os
 import re
 import sys
 
-from pip.commands.download import DownloadCommand
-from pip.commands.install import InstallCommand
-from pip.commands.search import SearchCommand
-from pip.commands.show import ShowCommand
-from pip.commands.uninstall import UninstallCommand
-from pip.download import _download_http_url
-from pip.exceptions import InstallationError
-from pip.exceptions import UninstallationError
-from pip.index import Link
-from pip.req import req_file
-from pip.utils import get_installed_distributions
+from pip._internal.commands.download import DownloadCommand
+from pip._internal.commands.install import InstallCommand
+from pip._internal.commands.search import SearchCommand
+from pip._internal.commands.show import ShowCommand
+from pip._internal.commands.uninstall import UninstallCommand
+from pip._internal.download import _download_http_url
+from pip._internal.exceptions import InstallationError
+from pip._internal.exceptions import UninstallationError
+from pip._internal.index import Link
+from pip._internal.req import req_file
+from pip._internal.utils.misc import get_installed_distributions
 
 from guild import namespace
 from guild import util
@@ -43,7 +43,7 @@ class InstallError(Exception):
 def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
             no_cache=False, no_deps=False, reinstall=False, target=None):
     _ensure_patch_pip_get_entry_points()
-    cmd = InstallCommand()
+    cmd = _pip_cmd(InstallCommand)
     args = []
     if pre_releases:
         args.append("--pre")
@@ -70,6 +70,11 @@ def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
     except InstallationError as e:
         raise InstallError(str(e))
 
+def _pip_cmd(cls):
+    cmd = cls()
+    cmd.verbosity = False
+    return cmd
+
 def running_under_virtualenv():
     return "VIRTUAL_ENV" in os.environ or "CONDA_PREFIX" in os.environ
 
@@ -84,9 +89,9 @@ def _ensure_patch_pip_get_entry_points():
     `_get_entrypoints_patch`, which is copied from their more recent
     source.
     """
-    import pip.wheel
-    if pip.wheel.get_entrypoints != _pip_get_entrypoints_patch:
-        pip.wheel.get_entrypoints = _pip_get_entrypoints_patch
+    from pip._internal import wheel
+    if wheel.get_entrypoints != _pip_get_entrypoints_patch:
+        wheel.get_entrypoints = _pip_get_entrypoints_patch
 
 def _pip_get_entrypoints_patch(filename):
     """See `_ensure_pip_get_entrypoints_patch` for details."""
@@ -130,7 +135,7 @@ def get_installed():
 
 def search(terms):
     _ensure_search_logger()
-    cmd = SearchCommand()
+    cmd = _pip_cmd(SearchCommand)
     args = terms
     options, query = cmd.parse_args(args)
     return cmd.search(query, options)
@@ -152,7 +157,7 @@ def _ensure_search_logger():
             connectionpool.log = QuietLogger(connectionpool.log)
 
 def uninstall(reqs, dont_prompt=False):
-    cmd = UninstallCommand()
+    cmd = _pip_cmd(UninstallCommand)
     for req in reqs:
         _uninstall(req, cmd, dont_prompt)
 
@@ -235,7 +240,7 @@ def _pip_download(link, download_dir):
     #
     # https://github.com/ionrock/cachecontrol/issues/145
     #
-    cmd = DownloadCommand()
+    cmd = _pip_cmd(DownloadCommand)
     options, _ = cmd.parse_args(["--no-cache-dir"])
     session = cmd._build_session(options)
     orig_path, _ = _download_http_url(link, session, download_dir, hashes=None)
@@ -249,7 +254,7 @@ def _ensure_expected_download_path(downloaded, link):
 
 def print_package_info(pkg, verbose=False, show_files=False):
     _ensure_print_package_logger()
-    cmd = ShowCommand()
+    cmd = _pip_cmd(ShowCommand)
     args = []
     if verbose:
         args.append("--verbose")
@@ -283,7 +288,7 @@ class PrintPackageLogger(object):
         return s
 
 def _ensure_print_package_logger():
-    from pip.commands import show
+    from pip._internal.commands import show
     if not isinstance(show.logger, PrintPackageLogger):
         show.logger = PrintPackageLogger()
 

@@ -12,6 +12,7 @@ Use `guild packages info PKG` to show information about a package:
     license: Apache 2.0
     location: /.../lib/python.../site-packages
     requires: []
+    required-by: []
     <exit 0>
 
 We can use the `--verbose` and `--files` flags to get more
@@ -27,6 +28,7 @@ information.
     license: Apache 2.0
     location: /.../lib/python.../site-packages
     requires: []
+    required-by: []
     metadata-version: 2.1
     installer: pip
     classifiers:

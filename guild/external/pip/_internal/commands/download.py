@@ -9,6 +9,7 @@ from pip._internal.exceptions import CommandError
 from pip._internal.index import FormatControl
 from pip._internal.operations.prepare import RequirementPreparer
 from pip._internal.req import RequirementSet
+from pip._internal.req.req_tracker import RequirementTracker
 from pip._internal.resolve import Resolver
 from pip._internal.utils.filesystem import check_path_owner
 from pip._internal.utils.misc import ensure_dir, normalize_path
@@ -52,6 +53,7 @@ class DownloadCommand(RequirementCommand):
         cmd_opts.add_option(cmdoptions.global_options())
         cmd_opts.add_option(cmdoptions.no_binary())
         cmd_opts.add_option(cmdoptions.only_binary())
+        cmd_opts.add_option(cmdoptions.prefer_binary())
         cmd_opts.add_option(cmdoptions.src())
         cmd_opts.add_option(cmdoptions.pre())
         cmd_opts.add_option(cmdoptions.no_clean())
@@ -179,7 +181,7 @@ class DownloadCommand(RequirementCommand):
                 )
                 options.cache_dir = None
 
-            with TempDirectory(
+            with RequirementTracker() as req_tracker, TempDirectory(
                 options.build_dir, delete=build_delete, kind="download"
             ) as directory:
 
@@ -203,6 +205,7 @@ class DownloadCommand(RequirementCommand):
                     wheel_download_dir=None,
                     progress_bar=options.progress_bar,
                     build_isolation=options.build_isolation,
+                    req_tracker=req_tracker,
                 )
 
                 resolver = Resolver(
