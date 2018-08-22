@@ -18,10 +18,12 @@ from __future__ import division
 import click
 
 from guild import click_util
+from . import remote_support
 from . import runs_support
 
 @click.command("delete, rm")
 @runs_support.runs_op
+@remote_support.remote_option("Delete remote runs.")
 @click.option(
     "-y", "--yes",
     help="Do not prompt before deleting.",
@@ -70,6 +72,12 @@ def delete_runs(ctx, args):
 
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
+
+    ### Deleting remote runs
+
+    To delete runs on a remote, use `--remote`.
+
+    {{ remote_support.remote_option }}
 
     """
 

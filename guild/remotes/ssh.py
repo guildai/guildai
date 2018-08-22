@@ -20,8 +20,9 @@ import logging
 import subprocess
 import sys
 
-import six
 import yaml
+
+from six.moves import shlex_quote as q
 
 from guild import click_util
 from guild import remote as remotelib
@@ -184,7 +185,7 @@ class SSHRemote(remotelib.Remote):
     def _install_job_package(self, remote_run_dir):
         cmd = (
             "cd {run_dir}/.guild/job-packages;"
-            "guild install *.whl --target ."
+            "guild install --upgrade *.whl --target ."
             .format(run_dir=remote_run_dir)
         )
         log.info("Installing package and its dependencies")
@@ -240,7 +241,7 @@ class SSHRemote(remotelib.Remote):
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(
             "guild runs info %s --flags --private-attrs"
-            % six.moves.shlex_quote(run_id_prefix))
+            % q(run_id_prefix))
         cmd = "; ".join(cmd_lines)
         out = ssh_util.ssh_output(self.host, [cmd], self.user)
         return remotelib.RunProxy(yaml.load(out))
@@ -254,6 +255,9 @@ class SSHRemote(remotelib.Remote):
         cmd_lines.append("guild %s %s" % (name, " ".join(args)))
         cmd = "; ".join(cmd_lines)
         ssh_util.ssh_cmd(self.host, [cmd], self.user)
+
+    def delete_runs(self, **opts):
+        self._guild_cmd("runs delete", _runs_select_args(**opts))
 
 def _list_runs_filter_opts(ops, labels, unlabeled, running,
                            completed, error, terminated, deleted,
@@ -269,7 +273,7 @@ def _list_runs_filter_opts(ops, labels, unlabeled, running,
     if error:
         opts.append("--error")
     for label in labels:
-        opts.extend(["--label", six.moves.shlex_quote(label)])
+        opts.extend(["--label", q(label)])
     if more > 0:
         opts.append("-" + ("m" * more))
     for op in ops:
@@ -296,9 +300,7 @@ def _build_package(dist_dir):
     package_impl.main(args)
 
 def _remote_run_cmd(remote_run_dir, opspec, op_args, label,
-                    disable_plugins, gpus, no_gpus, **kw):
-    assert not kw, kw
-    q = six.moves.shlex_quote
+                    disable_plugins, gpus, no_gpus):
     cmd = [
         "NO_WARN_RUNDIR=1",
         "guild", "run", q(opspec),
@@ -324,11 +326,35 @@ def _watch_run_args(run, ops, pid, labels, unlabeled):
         return ["--pid", pid]
     args = []
     for op in ops:
-        args.extend(["-o", op])
+        args.extend(["-o", q(op)])
     for label in labels:
-        args.extend(["-l", label])
+        args.extend(["-l", q(label)])
     if unlabeled:
         args.append("-u")
     if run:
         args.append(run)
+    return args
+
+def _runs_select_args(runs, completed, error, labels, ops, permanent,
+                      running, terminated, unlabeled, yes):
+    args = []
+    if completed:
+        args.append("-C")
+    if error:
+        args.append("-E")
+    for l in labels:
+        args.extend("-l", q(l))
+    for op in ops:
+        args.extend("-o", q(op))
+    if permanent:
+        args.append("-p")
+    if running:
+        args.append("-R")
+    if terminated:
+        args.append("-T")
+    if unlabeled:
+        args.append("-u")
+    if yes:
+        args.append("-y")
+    args.extend(runs)
     return args

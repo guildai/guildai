@@ -340,6 +340,12 @@ def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
         op_callback(selected)
 
 def delete_runs(args, ctx):
+    if args.remote:
+        remote_impl_support.delete_runs(args)
+    else:
+        _delete_runs(args, ctx)
+
+def _delete_runs(args, ctx):
     if args.permanent:
         preview = (
             "WARNING: You are about to permanently delete "

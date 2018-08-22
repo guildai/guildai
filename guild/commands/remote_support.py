@@ -35,6 +35,21 @@ def remote_arg(fn):
     ])
     return fn
 
+def remote_option(help):
+    """`REMOTE` is the name of a configured remote. Use ``guild remotes``
+    to list available remotes.
+
+    For information on configuring remotes, see ``guild remotes
+    --help``.
+
+    """
+    def wrapper(fn):
+        click_util.append_params(fn, [
+            click.Option(("-r", "--remote"), metavar="REMOTE", help=help),
+        ])
+        return fn
+    return wrapper
+
 def remotes():
     """### Remotes
 
