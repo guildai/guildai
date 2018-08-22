@@ -117,7 +117,7 @@ def _run_kw(args):
 
 def one_run(run_id_prefix, args):
     assert args.remote
-    cli.out("Reading remote run info")
+    cli.out("Getting remote run info")
     remote = remote_support.remote_for_args(args)
     try:
         return remote.one_run(run_id_prefix, ["flags"])
