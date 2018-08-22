@@ -73,10 +73,11 @@ def run(args):
     except remotelib.RemoteProcessError as e:
         cli.error(exit_status=e.exit_status)
     except remotelib.RemoteProcessDetached as e:
+        run_id = e.args[0]
         cli.out(
             "\nDetached from remote run {run_id} (still running)\n"
             "To re-attach use 'guild watch {run_id} -r {remote}'"
-            .format(run_id=e.args[0], remote=args.remote))
+            .format(run_id=run_id[:8], remote=args.remote))
     except remotelib.OperationError as e:
         _handle_run_op_error(e, remote)
 
