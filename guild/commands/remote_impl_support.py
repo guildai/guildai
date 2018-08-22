@@ -203,3 +203,29 @@ def _run_info_kw(args):
         "remote",
     ]
     return _arg_kw(args, names, ignore)
+
+def check(args):
+    assert args.remote
+    if args.tests or args.all_tests:
+        cli.error("tests are not supported for remote check")
+    if args.no_info:
+        cli.error("--no-info is not supported for remote check")
+    remote = remote_support.remote_for_args(args)
+    try:
+        remote.check(**_check_kw(args))
+    except remotelib.RemoteProcessError as e:
+        cli.error(exit_status=e.exit_status)
+
+def _check_kw(args):
+    names = [
+        "verbose",
+    ]
+    ignore = [
+        "all_tests",
+        "no_info",
+        "remote",
+        "skip",
+        "tests",
+        "uat",
+    ]
+    return _arg_kw(args, names, ignore)

@@ -262,6 +262,15 @@ class SSHRemote(remotelib.Remote):
     def run_info(self, **opts):
         self._guild_cmd("runs info", _run_info_args(**opts))
 
+    def check(self, **opts):
+        self._print_remote_info()
+        self._guild_cmd("check", _check_args(**opts))
+
+    def _print_remote_info(self):
+        sys.stdout.write("remote:                    %s (ssh)\n" % self.name)
+        sys.stdout.write("host:                      %s\n" % self.host)
+        sys.stdout.flush()
+
 def _list_runs_filter_opts(deleted, all, more, **filters):
     opts = []
     if all:
@@ -371,4 +380,10 @@ def _run_info_args(run, files, all_files, flags, env, deps,
         args.append("-p")
     if run:
         args.append(run)
+    return args
+
+def _check_args(verbose):
+    args = []
+    if verbose:
+        args.append("-v")
     return args

@@ -34,6 +34,8 @@ import guild.uat
 import guild.util
 import guild.var
 
+from . import remote_impl_support
+
 log = logging.getLogger("guild")
 
 CHECK_MODS = [
@@ -61,6 +63,12 @@ class Check(object):
         return self._errors
 
 def main(args):
+    if args.remote:
+        remote_impl_support.check(args)
+    else:
+        _check(args)
+
+def _check(args):
     if args.uat:
         _uat_and_exit()
     check = Check(args)
