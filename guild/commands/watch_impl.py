@@ -36,7 +36,7 @@ def main(args, ctx):
         _check_non_pid_args(args)
         _watch_pid(args)
     elif args.remote:
-        remote_impl_support.watch_run(args)
+        _watch_remote(args)
     elif args.run:
         run = runs_impl.one_run(args, ctx)
         _watch_run(run)
@@ -152,3 +152,11 @@ def _watch_default_running(args):
             "You can view the output of a specific run using "
             "'guild watch RUN'.")
     _watch_run(runs[0])
+
+def _watch_remote(args):
+    try:
+        remote_impl_support.watch_run(args)
+    except KeyboardInterrupt:
+        cli.out(
+            "\nStopped watching remote run (operations "
+            "continue running on remote)")
