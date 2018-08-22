@@ -128,7 +128,7 @@ def _pip_wheel(name, dist_spec, root):
         "--build", build_dir,
         "--wheel-dir", wheel_dir,
     ]
-    from pip.commands.wheel import WheelCommand
+    from pip._internal.commands.wheel import WheelCommand
     cmd = WheelCommand()
     options, cmd_args = cmd.parse_args(args)
     cmd.run(options, cmd_args)
