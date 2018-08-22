@@ -19,12 +19,14 @@ import click
 
 from guild import click_util
 
+from . import remote_support
 from . import runs_support
 
 def runs_stop_params(fn):
     click_util.append_params(fn, [
         runs_support.runs_arg,
         runs_support.op_and_label_filters,
+        remote_support.remote_option("Stop remote runs."),
         click.Option(
             ("-y", "--yes"),
             help="Do not prompt before stopping.",
@@ -62,6 +64,12 @@ def stop_runs(ctx, args):
 
     {{ runs_support.op_and_label_filters }}
 
+    ### Stopping remote runs
+
+    To stop remote runs, use `--remote`.
+
+    {{ remote_support.remote_option }}
+
     """
     from . import runs_impl
-    runs_impl.stop_run(args, ctx)
+    runs_impl.stop_runs(args, ctx)

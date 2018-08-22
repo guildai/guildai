@@ -32,4 +32,4 @@ def stop(ctx, args):
     """{{ runs_stop.stop_runs }}"""
 
     from . import runs_impl
-    runs_impl.stop_run(args, ctx)
+    runs_impl.stop_runs(args, ctx)

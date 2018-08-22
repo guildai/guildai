@@ -271,6 +271,9 @@ class SSHRemote(remotelib.Remote):
         sys.stdout.write("host:                      %s\n" % self.host)
         sys.stdout.flush()
 
+    def stop_runs(self, **opts):
+        self._guild_cmd("runs stop", _runs_op_args(**opts))
+
 def _list_runs_filter_opts(deleted, all, more, **filters):
     opts = []
     if all:

@@ -524,7 +524,13 @@ def _set_labels(args, ctx):
         args, ctx, False, preview, confirm, no_runs,
         set_labels, LATEST_RUN_ARG, True)
 
-def stop_run(args, ctx):
+def stop_runs(args, ctx):
+    if args.remote:
+        remote_impl_support.stop_runs(args)
+    else:
+        _stop_runs(args, ctx)
+
+def _stop_runs(args, ctx):
     preview = "WARNING: You are about to stop the following runs:"
     confirm = "Stop these runs?"
     no_runs_help = "Nothing to stop."
