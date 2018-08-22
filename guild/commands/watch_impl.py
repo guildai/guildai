@@ -157,6 +157,4 @@ def _watch_remote(args):
     try:
         remote_impl_support.watch_run(args)
     except KeyboardInterrupt:
-        cli.out(
-            "\nStopped watching remote run (operations "
-            "continue running on remote)")
+        cli.out("\nStopped watching remote run")
