@@ -397,6 +397,12 @@ def restore_runs(args, ctx):
         restore, confirm_default=True)
 
 def run_info(args, ctx):
+    if args.remote:
+        remote_impl_support.run_info(args)
+    else:
+        _run_info(args, ctx)
+
+def _run_info(args, ctx):
     run = one_run(args, ctx)
     if args.page_output:
         _page_run_output(run)

@@ -43,6 +43,7 @@ def remote_option(help):
     --help``.
 
     """
+    assert isinstance(help, str), "@remote_option must be called with help"
     def wrapper(fn):
         click_util.append_params(fn, [
             click.Option(("-r", "--remote"), metavar="REMOTE", help=help),

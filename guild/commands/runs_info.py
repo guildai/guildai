@@ -18,6 +18,8 @@ from __future__ import division
 import click
 
 from guild import click_util
+
+from . import remote_support
 from . import runs_support
 
 @click.command("info")
@@ -45,6 +47,7 @@ from . import runs_support
 @click.option("--private-attrs", is_flag=True, hidden=True)
 @runs_support.op_and_label_filters
 @runs_support.status_filters
+@remote_support.remote_option("Show info for remote run.")
 
 @click.pass_context
 @click_util.use_args
@@ -67,6 +70,12 @@ def run_info(ctx, args):
 
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
+
+    ### Remote runs
+
+    Use `--remote` to show info for a remote run.
+
+    {{ remote_support.remote_option }}
 
     """
     from . import runs_impl

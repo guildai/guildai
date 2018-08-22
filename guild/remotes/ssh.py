@@ -257,34 +257,40 @@ class SSHRemote(remotelib.Remote):
         ssh_util.ssh_cmd(self.host, [cmd], self.user)
 
     def delete_runs(self, **opts):
-        self._guild_cmd("runs delete", _runs_select_args(**opts))
+        self._guild_cmd("runs delete", _runs_delete_args(**opts))
 
-def _list_runs_filter_opts(ops, labels, unlabeled, running,
-                           completed, error, terminated, deleted,
-                           all, more, **kw):
-    assert not kw, kw
+    def run_info(self, **opts):
+        self._guild_cmd("runs info", _run_info_args(**opts))
+
+def _list_runs_filter_opts(deleted, all, more, **filters):
     opts = []
     if all:
         opts.append("--all")
-    if completed:
-        opts.append("--completed")
+    opts.extend(_run_filter_args(**filters))
     if deleted:
         opts.append("--deleted")
-    if error:
-        opts.append("--error")
-    for label in labels:
-        opts.extend(["--label", q(label)])
     if more > 0:
         opts.append("-" + ("m" * more))
-    for op in ops:
-        opts.extend(["-o", op])
-    if running:
-        opts.append("--running")
-    if terminated:
-        opts.append("--terminated")
-    if unlabeled:
-        opts.append("--unlabeled")
     return opts
+
+def _run_filter_args(ops, labels, unlabeled, running,
+                     completed, error, terminated):
+    args = []
+    if completed:
+        args.append("-C")
+    if error:
+        args.append("-E")
+    for label in labels:
+        args.extend(["--label", q(label)])
+    for op in ops:
+        args.extend(["-o", op])
+    if running:
+        args.append("-R")
+    if terminated:
+        args.append("-T")
+    if unlabeled:
+        args.append("-u")
+    return args
 
 def _build_package(dist_dir):
     log.info("Building package")
@@ -335,26 +341,34 @@ def _watch_run_args(run, ops, pid, labels, unlabeled):
         args.append(run)
     return args
 
-def _runs_select_args(runs, completed, error, labels, ops, permanent,
-                      running, terminated, unlabeled, yes):
-    args = []
-    if completed:
-        args.append("-C")
-    if error:
-        args.append("-E")
-    for l in labels:
-        args.extend("-l", q(l))
-    for op in ops:
-        args.extend("-o", q(op))
+def _runs_delete_args(runs, permanent, yes, **filters):
+    args = _run_filter_args(**filters)
     if permanent:
         args.append("-p")
-    if running:
-        args.append("-R")
-    if terminated:
-        args.append("-T")
-    if unlabeled:
-        args.append("-u")
     if yes:
         args.append("-y")
     args.extend(runs)
+    return args
+
+def _run_info_args(run, files, all_files, flags, env, deps,
+                   follow_links, output, page_output, **filters):
+    args = _run_filter_args(**filters)
+    if files:
+        args.append("-" + "f" * files)
+    if all_files:
+        args.append("-a")
+    if flags:
+        args.append("-g")
+    if env:
+        args.append("-e")
+    if deps:
+        args.append("-d")
+    if follow_links:
+        args.append("-L")
+    if output:
+        args.append("-O")
+    if page_output:
+        args.append("-p")
+    if run:
+        args.append(run)
     return args

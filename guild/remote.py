@@ -119,6 +119,9 @@ class Remote(object):
     def delete_runs(self, **opts):
         raise NotImplementedError()
 
+    def run_info(self, **opts):
+        raise NotImplementedError()
+
 def for_name(name):
     remotes = guild.config.user_config().get("remotes", {})
     try:

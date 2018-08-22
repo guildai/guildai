@@ -170,3 +170,36 @@ def _runs_select_kw(args):
         "remote",
     ]
     return _arg_kw(args, names, ignore)
+
+def run_info(args):
+    assert args.remote
+    remote = remote_support.remote_for_args(args)
+    try:
+        remote.run_info(**_run_info_kw(args))
+    except remotelib.RemoteProcessError as e:
+        cli.error(exit_status=e.exit_status)
+
+def _run_info_kw(args):
+    names = [
+        "all_files",
+        "completed",
+        "deps",
+        "env",
+        "error",
+        "files",
+        "flags",
+        "follow_links",
+        "labels",
+        "ops",
+        "output",
+        "page_output",
+        "run",
+        "running",
+        "terminated",
+        "unlabeled",
+    ]
+    ignore = [
+        "private_attrs",
+        "remote",
+    ]
+    return _arg_kw(args, names, ignore)
