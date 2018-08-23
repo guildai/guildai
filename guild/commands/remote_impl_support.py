@@ -69,7 +69,7 @@ def run(args):
     assert args.remote
     remote = remote_support.remote_for_args(args)
     try:
-        remote.run_op(**_run_kw(args))
+        run_id = remote.run_op(**_run_kw(args))
     except remotelib.RemoteProcessError as e:
         cli.error(exit_status=e.exit_status)
     except remotelib.RemoteProcessDetached as e:
@@ -80,6 +80,12 @@ def run(args):
             .format(run_id=run_id[:8], remote=args.remote))
     except remotelib.OperationError as e:
         _handle_run_op_error(e, remote)
+    else:
+        if args.no_wait:
+            cli.out(
+                "{run_id} is running remotely on {remote}\n"
+                "To watch use 'guild watch {run_id} -r {remote}'"
+                .format(run_id=run_id[:8], remote=args.remote))
 
 def _handle_run_op_error(e, remote):
     if e.args[0] == "running":

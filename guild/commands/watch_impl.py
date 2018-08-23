@@ -148,7 +148,7 @@ def _watch_default_running(args):
     runs = runs_impl.filtered_runs(args)
     if not runs:
         cli.error(
-            "there are no running operations to watch\n"
+            "nothing to watch\n"
             "You can view the output of a specific run using "
             "'guild watch RUN'.")
     _watch_run(runs[0])

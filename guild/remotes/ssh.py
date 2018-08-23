@@ -118,13 +118,15 @@ class SSHRemote(remotelib.Remote):
             _build_package(dist_dir)
             remote_run_dir = self._init_remote_run(dist_dir, opspec, restart)
         self._start_op(remote_run_dir, opspec, args, **opts)
+        run_id = os.path.basename(remote_run_dir)
         if no_wait:
-            return
+            return run_id
         try:
             self._watch_op(remote_run_dir)
         except KeyboardInterrupt:
-            run_id = os.path.basename(remote_run_dir)
             raise remotelib.RemoteProcessDetached(run_id)
+        else:
+            return run_id
 
     def _init_remote_run(self, package_dist_dir, opspec, restart):
         remote_run_dir = self._init_remote_run_dir(opspec, restart)
