@@ -264,6 +264,9 @@ class SSHRemote(remotelib.Remote):
     def restore_runs(self, **opts):
         self._guild_cmd("runs restore", _restore_runs_args(**opts))
 
+    def purge_runs(self, **opts):
+        self._guild_cmd("runs purge", _purge_runs_args(**opts))
+
     def run_info(self, **opts):
         self._guild_cmd("runs info", _run_info_args(**opts))
 
@@ -412,6 +415,13 @@ def _stop_runs_args(runs, ops, labels, unlabeled, no_wait, yes):
     return args
 
 def _restore_runs_args(runs, yes, **filters):
+    args = _runs_filter_args(**filters)
+    if yes:
+        args.append("-y")
+    args.extend(runs)
+    return args
+
+def _purge_runs_args(runs, yes, **filters):
     args = _runs_filter_args(**filters)
     if yes:
         args.append("-y")

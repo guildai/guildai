@@ -122,6 +122,9 @@ class Remote(object):
     def restore_runs(self, **opts):
         raise NotImplementedError()
 
+    def purge_runs(self, **opts):
+        raise NotImplementedError()
+
     def run_info(self, **opts):
         raise NotImplementedError()
 

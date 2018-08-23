@@ -375,6 +375,12 @@ def _delete_runs(args, ctx):
         delete, confirm_default=not args.permanent)
 
 def purge_runs(args, ctx):
+    if args.remote:
+        remote_impl_support.purge_runs(args)
+    else:
+        _purge_runs(args, ctx)
+
+def _purge_runs(args, ctx):
     preview = (
         "WARNING: You are about to permanently delete "
         "the following runs:")

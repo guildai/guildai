@@ -18,10 +18,13 @@ from __future__ import division
 import click
 
 from guild import click_util
+
+from . import remote_support
 from . import runs_support
 
 @click.command("purge")
 @runs_support.runs_op
+@remote_support.remote_option("Permanently delete remote runs.")
 @click.option(
     "-y", "--yes",
     help="Do not prompt before purging.",
@@ -60,6 +63,14 @@ def purge_runs(ctx, args):
 
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
+
+    ### Permanently deleting remote runs
+
+    If a run has been deleted remotely, you can permanently delete it
+    using `--remote` provided the remote type supports deleted run
+    recovery.
+
+    {{ remote_support.remote_option }}
 
     """
 
