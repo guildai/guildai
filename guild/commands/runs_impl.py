@@ -503,6 +503,12 @@ def _format_yaml(val):
     return "\n" + "\n".join(padded).rstrip()
 
 def label(args, ctx):
+    if args.remote:
+        remote_impl_support.label_runs(args)
+    else:
+        _label(args, ctx)
+
+def _label(args, ctx):
     if args.clear:
         _clear_labels(args, ctx)
     elif args.label:

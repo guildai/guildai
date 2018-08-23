@@ -18,6 +18,8 @@ from __future__ import division
 import click
 
 from guild import click_util
+
+from . import remote_support
 from . import runs_support
 
 def label_params(fn):
@@ -30,6 +32,7 @@ def label_params(fn):
             ("-c", "--clear"),
             help="Clear the run's label.",
             is_flag=True),
+        remote_support.remote_option("Label remote runs."),
         click.Option(
             ("-y", "--yes"),
             help="Do not prompt before modifying labels.",
@@ -67,6 +70,12 @@ def label_runs(ctx, args):
     {{ runs_support.op_and_label_filters }}
 
     {{ runs_support.status_filters }}
+
+    ### Labeling remote runs
+
+    To label remote runs, use `--remote`.
+
+    {{ remote_support.remote_option }}
 
     """
     from . import runs_impl

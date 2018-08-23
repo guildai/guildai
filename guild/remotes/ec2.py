@@ -383,6 +383,10 @@ class EC2Remote(remotelib.Remote):
         ssh_remote = self._ssh_remote()
         ssh_remote.purge_runs(**opts)
 
+    def label_runs(self, **opts):
+        ssh_remote = self._ssh_remote()
+        ssh_remote.label_runs(**opts)
+
     def run_info(self, **opts):
         ssh_remote = self._ssh_remote()
         ssh_remote.run_info(**opts)
