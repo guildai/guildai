@@ -95,7 +95,10 @@ def _run(f, log, log_level=None):
     # log_level if provided.
     if log_level is not None:
         log.setLevel(log_level)
-    f(log)
+    try:
+        f(log)
+    except:
+        log.exception("service callback")
 
 def _start(name, f, log):
     pidfile = var.pidfile(name)

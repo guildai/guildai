@@ -26,6 +26,26 @@ def s3_sync():
     """
 
 @click.command()
+@click.argument("uri", metavar="URI")
+@click.option(
+    "-i", "--sync-interval",
+    default=60,
+    type=click.IntRange(5, None),
+    help=(
+        "Maximum interval between synchronization attempts "
+        "(default is 60)."))
+@click.option(
+    "-m", "--log-max-size", metavar="MB",
+    default=100,
+    type=click.IntRange(1, None),
+    help="Maximum log size in megabytes (default is 100).")
+@click.option(
+    "-b", "--log-backups", metavar="N",
+    default=5,
+    type=click.IntRange(0, None),
+    help=(
+        "Number of log backups to maintain when run as a service "
+        "(default is 5)."))
 @click.option(
     "-f", "--foreground",
     is_flag=True,
@@ -35,6 +55,18 @@ def s3_sync():
 
 def start(args):
     """Start S3 sync service.
+
+    The S3 sync service synchronizes runs with S3 location
+    `URI`. `URI` must be in the format ``s3://BUCKET[/PATH]`` where
+    ``BUCKET`` is a writable S3 bucket and ``PATH`` is an optional
+    path within the bucket.
+
+    Credentials must be provided using ``AWS_ACCESS_KEY_ID`` and
+    ``AWS_SECRET_ACCESS_KEY`` environment variables.
+
+    The bucket region may be specified using `--region` or using
+    ``AWS_DEFAULT_REGION`` environment variable.
+
     """
     from . import s3_sync_impl
     s3_sync_impl.start(args)

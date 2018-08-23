@@ -18,14 +18,16 @@ from __future__ import division
 from guild import cli
 from guild import service
 
-def start(name, f, args, title=None, status_cmd=None, stop_cmd=None):
+def start(name, f, args, title=None, status_cmd=None, stop_cmd=None,
+          log_max_size=service.DEFAULT_LOG_MAX_SIZE,
+          log_backups=service.DEFAULT_LOG_BACKUPS):
     title = title or name
     status_cmd = status_cmd or "guild sys %s status" % name
     stop_cmd = stop_cmd or "guild sys %s stop" % name
     if not args.foreground:
         cli.out("Starting %s (use '%s' to stop)" % (title, stop_cmd))
     try:
-        service.start(name, f, args.foreground)
+        service.start(name, f, args.foreground, log_max_size, log_backups)
     except service.Running:
         cli.error(
             "%s is already running (use '%s' to verify)"
