@@ -86,12 +86,15 @@
     guild.commands.runs_restore
     guild.commands.runs_stop
     guild.commands.runs_support
+    guild.commands.s3_sync
+    guild.commands.s3_sync_impl
     guild.commands.search
     guild.commands.search_impl
     guild.commands.serve
     guild.commands.serve_impl
     guild.commands.serve_tester
     guild.commands.server_support
+    guild.commands.service_impl_support
     guild.commands.shell
     guild.commands.shell_impl
     guild.commands.shutdown_timer
@@ -158,6 +161,7 @@
     guild.resourcedef
     guild.run
     guild.serve
+    guild.service
     guild.serving_util
     guild.tabview
     guild.tensorboard

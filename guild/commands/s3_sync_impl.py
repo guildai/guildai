@@ -15,18 +15,25 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import click
+import time
 
-from guild import click_util
+from . import service_impl_support
 
-from .shutdown_timer import shutdown_timer
-from .s3_sync import s3_sync
+NAME = "s3-sync"
+TITLE = "S3 sync service"
 
-@click.group(cls=click_util.Group)
+def start(args):
+    sync = lambda log: _sync(args, log)
+    service_impl_support.start(NAME, sync, args, TITLE)
 
-def sys():
-    """System utilities.
-    """
+def _sync(_args, log):
+    log.info("%s started" % TITLE)
+    while True:
+        log.info("Sync it up kid, you earned it!")
+        time.sleep(2)
 
-sys.add_command(shutdown_timer)
-sys.add_command(s3_sync)
+def stop():
+    service_impl_support.stop(NAME, TITLE)
+
+def status():
+    service_impl_support.status(NAME, TITLE)

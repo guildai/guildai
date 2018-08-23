@@ -19,14 +19,42 @@ import click
 
 from guild import click_util
 
-from .shutdown_timer import shutdown_timer
-from .s3_sync import s3_sync
+@click.group("s3-sync", cls=click_util.Group)
 
-@click.group(cls=click_util.Group)
-
-def sys():
-    """System utilities.
+def s3_sync():
+    """Manage S3 sync service.
     """
 
-sys.add_command(shutdown_timer)
-sys.add_command(s3_sync)
+@click.command()
+@click.option(
+    "-f", "--foreground",
+    is_flag=True,
+    help="Run in the foreground.")
+
+@click_util.use_args
+
+def start(args):
+    """Start S3 sync service.
+    """
+    from . import s3_sync_impl
+    s3_sync_impl.start(args)
+
+@click.command()
+
+def stop():
+    """Stop S3 sync service.
+    """
+    from . import s3_sync_impl
+    s3_sync_impl.stop()
+
+@click.command()
+
+def status():
+    """Show S3 sync service status.
+    """
+    from . import s3_sync_impl
+    s3_sync_impl.status()
+
+s3_sync.add_command(start)
+s3_sync.add_command(stop)
+s3_sync.add_command(status)
