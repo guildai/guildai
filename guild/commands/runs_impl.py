@@ -386,6 +386,12 @@ def purge_runs(args, ctx):
     _runs_op(args, ctx, True, preview, confirm, no_runs_help, purge)
 
 def restore_runs(args, ctx):
+    if args.remote:
+        remote_impl_support.restore_runs(args)
+    else:
+        _restore_runs(args, ctx)
+
+def _restore_runs(args, ctx):
     preview = "You are about to restore the following runs:"
     confirm = "Restore these runs?"
     no_runs_help = "Nothing to restore."

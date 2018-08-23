@@ -375,6 +375,10 @@ class EC2Remote(remotelib.Remote):
         ssh_remote = self._ssh_remote()
         ssh_remote.delete_runs(**opts)
 
+    def restore_runs(self, **opts):
+        ssh_remote = self._ssh_remote()
+        ssh_remote.restore_runs(**opts)
+
     def run_info(self, **opts):
         ssh_remote = self._ssh_remote()
         ssh_remote.run_info(**opts)

@@ -18,10 +18,13 @@ from __future__ import division
 import click
 
 from guild import click_util
+
+from . import remote_support
 from . import runs_support
 
 @click.command("restore")
 @runs_support.runs_op
+@remote_support.remote_option("Restore remote runs.")
 @click.option(
     "-y", "--yes",
     help="Do not prompt before restoring.",
@@ -53,6 +56,13 @@ def restore_runs(ctx, args):
 
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
+
+    ### Restoring remote runs
+
+    If a run has been deleted remotely, you can restore it using
+    `--remote` provided the remote type supports this feature.
+
+    {{ remote_support.remote_option }}
 
     """
     from . import runs_impl

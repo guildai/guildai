@@ -245,3 +245,16 @@ def _stop_runs_kw(args):
         "remote"
     ]
     return _arg_kw(args, names, ignore)
+
+def restore_runs(args):
+    assert args.remote
+    remote = remote_support.remote_for_args(args)
+    try:
+        remote.restore_runs(**_restore_runs_kw(args))
+    except remotelib.RemoteProcessError as e:
+        cli.error(exit_status=e.exit_status)
+
+def _restore_runs_kw(args):
+    names = _runs_select_names() + ["yes"]
+    ignore = ["remote"]
+    return _arg_kw(args, names, ignore)
