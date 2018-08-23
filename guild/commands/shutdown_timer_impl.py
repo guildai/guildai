@@ -93,7 +93,7 @@ def _format_duration(seconds):
     if seconds < 60:
         return "%i second(s)" % seconds
     else:
-        return "%i minute(s)" % seconds // 60
+        return "%i minute(s)" % (seconds // 60)
 
 def _log_function(log, now, pids):
     # Tricky function that decides whether to log as info or debug.
