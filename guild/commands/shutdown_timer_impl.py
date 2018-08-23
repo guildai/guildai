@@ -50,13 +50,15 @@ def _init_log(args):
     if args.foreground:
         handler = logging.StreamHandler()
     else:
-        logfile = var.logfile("SHUTDOWN-TIMER")
+        logfile = var.logfile("shutdown-timer")
         util.ensure_dir(os.path.dirname(logfile))
         handler = logging.handlers.RotatingFileHandler(
             logfile,
             maxBytes=LOG_MAX_SIZE,
             backupCount=LOG_BACKUPS)
-    handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
+    handler.setFormatter(logging.Formatter(
+        "%(asctime)s %(message)s",
+        "%Y-%m-%d %H:%M:%S"))
     log = logging.getLogger("guild.shutdown_timer")
     log.propagate = False
     log.addHandler(handler)
@@ -84,8 +86,14 @@ def _check_activity(last_activity, log):
         log_f("Active runs: %s", ",".join(map(str, pids)))
         return now
     else:
-        log_f("No runs for %i seconds", now - last_activity)
+        log_f("No runs for %s", _format_duration(now - last_activity))
         return last_activity
+
+def _format_duration(seconds):
+    if seconds < 60:
+        return "%i second(s)" % seconds
+    else:
+        return "%i minute(s)" % seconds // 60
 
 def _log_function(log, now, pids):
     # Tricky function that decides whether to log as info or debug.
@@ -136,7 +144,7 @@ def _shutdown(args, log):
         log.exception("shutdown")
 
 def _start(args, log):
-    pidfile = var.pidfile("SHUTDOWN-TIMER")
+    pidfile = var.pidfile("shutdown-timer")
     if os.path.exists(pidfile):
         cli.error(
             "shutdown timer is already running "
@@ -159,7 +167,7 @@ def _log_fds(log):
     return [h.stream.fileno() for h in log.handlers if hasattr(h, "stream")]
 
 def stop():
-    pidfile = var.pidfile("SHUTDOWN-TIMER")
+    pidfile = var.pidfile("shutdown-timer")
     if not os.path.exists(pidfile):
         cli.out("Shutdown timer is not running")
         return
@@ -190,7 +198,7 @@ def _delete_pidfile(pidfile):
             % pidfile)
 
 def status():
-    pidfile = var.pidfile("SHUTDOWN-TIMER")
+    pidfile = var.pidfile("shutdown-timer")
     if os.path.exists(pidfile):
         try:
             pid = _read_pid(pidfile)
