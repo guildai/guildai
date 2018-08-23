@@ -361,8 +361,28 @@ class EC2Remote(remotelib.Remote):
 
     def run_op(self, opspec, args, restart, **opts):
         ssh_remote = self._ssh_remote()
-        ssh_remote.run_op(opspec, args, restart, **opts)
+        return ssh_remote.run_op(opspec, args, restart, **opts)
 
     def one_run(self, run_id_prefix, attrs):
         ssh_remote = self._ssh_remote()
         return ssh_remote.one_run(run_id_prefix, attrs)
+
+    def watch_run(self, **opts):
+        ssh_remote = self._ssh_remote()
+        ssh_remote.watch_run(**opts)
+
+    def delete_runs(self, **opts):
+        ssh_remote = self._ssh_remote()
+        ssh_remote.delete_runs(**opts)
+
+    def run_info(self, **opts):
+        ssh_remote = self._ssh_remote()
+        ssh_remote.run_info(**opts)
+
+    def check(self, **opts):
+        ssh_remote = self._ssh_remote()
+        ssh_remote.check(**opts)
+
+    def stop_runs(self, **opts):
+        ssh_remote = self._ssh_remote()
+        ssh_remote.stop_runs(**opts)
