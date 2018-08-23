@@ -359,9 +359,9 @@ class EC2Remote(remotelib.Remote):
                     % self.name)
             return host
 
-    def run_op(self, opspec, args, restart, **opts):
+    def run_op(self, opspec, args, restart, no_wait, **opts):
         ssh_remote = self._ssh_remote()
-        return ssh_remote.run_op(opspec, args, restart, **opts)
+        return ssh_remote.run_op(opspec, args, restart, no_wait, **opts)
 
     def one_run(self, run_id_prefix, attrs):
         ssh_remote = self._ssh_remote()

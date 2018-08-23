@@ -30,7 +30,7 @@ from guild import var
 INTERVAL = 5
 LOG_MAX_SIZE = 102400
 LOG_BACKUPS = 1
-LAST_LOG_MAX = 60
+LOG_HEARTBEAT = 60
 
 def start(args):
     log = _init_log(args)
@@ -98,7 +98,7 @@ def _format_duration(seconds):
 def _log_function(log, now, pids):
     # Tricky function that decides whether to log as info or debug.
     # Uses lazily assigned log state to determine whether pids have
-    # changed or LAST_LOG_MAX seconds have ellapsed since the last
+    # changed or LOG_HEARTBEAT seconds have ellapsed since the last
     # info msg.
     try:
         last_pids = sorted(log.last_pids)
@@ -112,7 +112,7 @@ def _log_function(log, now, pids):
         last_log = log.last_log
     except AttributeError:
         log.last_log = last_log = now
-    if now >= last_log + LAST_LOG_MAX:
+    if now >= last_log + LOG_HEARTBEAT:
         log.last_log = now
         return log.info
     else:
