@@ -157,6 +157,9 @@ def _for_type(remote_type, name, config):
     elif remote_type == "ec2":
         from guild.remotes import ec2
         cls = ec2.EC2Remote
+    elif remote_type == "s3":
+        from guild.remotes import s3
+        cls = s3.S3Remote
     elif remote_type == "tpu":
         from guild.remotes import tpu
         cls = tpu.TPURemote

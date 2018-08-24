@@ -23,6 +23,7 @@ import subprocess
 import sys
 
 from guild import remote as remotelib
+from guild import remote_util
 from guild import util
 from guild import var
 
@@ -70,8 +71,8 @@ class EC2Remote(remotelib.Remote):
         return re.sub(r"\W|^(?=\d)", "_", self.name)
 
     def _verify_aws_creds(self):
-        self._require_env("AWS_ACCESS_KEY_ID")
-        self._require_env("AWS_SECRET_ACCESS_KEY")
+        remote_util.require_env("AWS_ACCESS_KEY_ID")
+        remote_util.require_env("AWS_SECRET_ACCESS_KEY")
 
     @staticmethod
     def _verify_terraform():
@@ -302,13 +303,6 @@ class EC2Remote(remotelib.Remote):
             raise remotelib.OperationError(
                 "error applying Terraform config in %s"
                 % self.working_dir)
-
-    @staticmethod
-    def _require_env(name):
-        if name not in os.environ:
-            raise remotelib.OperationError(
-                "missing required %s environment variable"
-                % name)
 
     def _terraform_destroy(self):
         cmd = ["terraform", "destroy", "-auto-approve"]
