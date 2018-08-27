@@ -28,7 +28,9 @@ def list_runs(args):
     try:
         remote.list_runs(**_list_runs_kw(args))
     except remotelib.RemoteProcessError as e:
-        cli.error(exit_status=e.exit_status)
+        _handle_remote_process_error(e)
+    except remotelib.OperationNotSupported:
+        _handle_not_supported(remote)
 
 def _list_runs_kw(args):
     names = _runs_filter_names() + [
@@ -71,7 +73,7 @@ def run(args):
     try:
         run_id = remote.run_op(**_run_kw(args))
     except remotelib.RemoteProcessError as e:
-        cli.error(exit_status=e.exit_status)
+        _handle_remote_process_error(e)
     except remotelib.RemoteProcessDetached as e:
         run_id = e.args[0]
         cli.out(
@@ -80,6 +82,8 @@ def run(args):
             .format(run_id=run_id[:8], remote=args.remote))
     except remotelib.OperationError as e:
         _handle_run_op_error(e, remote)
+    except remotelib.OperationNotSupported:
+        _handle_not_supported(remote)
     else:
         if args.no_wait:
             cli.out(
@@ -136,7 +140,9 @@ def one_run(run_id_prefix, args):
     try:
         return remote.one_run(run_id_prefix, ["flags"])
     except remotelib.RemoteProcessError as e:
-        cli.error(exit_status=e.exit_status)
+        _handle_remote_process_error(e)
+    except remotelib.OperationNotSupported:
+        _handle_not_supported(remote)
 
 def watch_run(args):
     assert args.remote
@@ -144,7 +150,9 @@ def watch_run(args):
     try:
         remote.watch_run(**_watch_run_kw(args))
     except remotelib.RemoteProcessError as e:
-        cli.error(exit_status=e.exit_status)
+        _handle_remote_process_error(e)
+    except remotelib.OperationNotSupported:
+        _handle_not_supported(remote)
 
 def _watch_run_kw(args):
     names = [
@@ -165,7 +173,9 @@ def delete_runs(args):
     try:
         remote.delete_runs(**_delete_runs_kw(args))
     except remotelib.RemoteProcessError as e:
-        cli.error(exit_status=e.exit_status)
+        _handle_remote_process_error(e)
+    except remotelib.OperationNotSupported:
+        _handle_not_supported(remote)
 
 def _delete_runs_kw(args):
     names = _runs_select_names() + ["permanent", "yes"]
@@ -178,7 +188,9 @@ def run_info(args):
     try:
         remote.run_info(**_run_info_kw(args))
     except remotelib.RemoteProcessError as e:
-        cli.error(exit_status=e.exit_status)
+        _handle_remote_process_error(e)
+    except remotelib.OperationNotSupported:
+        _handle_not_supported(remote)
 
 def _run_info_kw(args):
     names = _runs_filter_names() + [
@@ -208,7 +220,9 @@ def check(args):
     try:
         remote.check(**_check_kw(args))
     except remotelib.RemoteProcessError as e:
-        cli.error(exit_status=e.exit_status)
+        _handle_remote_process_error(e)
+    except remotelib.OperationNotSupported:
+        _handle_not_supported(remote)
 
 def _check_kw(args):
     names = [
@@ -230,7 +244,9 @@ def stop_runs(args):
     try:
         remote.stop_runs(**_stop_runs_kw(args))
     except remotelib.RemoteProcessError as e:
-        cli.error(exit_status=e.exit_status)
+        _handle_remote_process_error(e)
+    except remotelib.OperationNotSupported:
+        _handle_not_supported(remote)
 
 def _stop_runs_kw(args):
     names = [
@@ -252,7 +268,9 @@ def restore_runs(args):
     try:
         remote.restore_runs(**_restore_runs_kw(args))
     except remotelib.RemoteProcessError as e:
-        cli.error(exit_status=e.exit_status)
+        _handle_remote_process_error(e)
+    except remotelib.OperationNotSupported:
+        _handle_not_supported(remote)
 
 def _restore_runs_kw(args):
     names = _runs_select_names() + ["yes"]
@@ -265,7 +283,9 @@ def purge_runs(args):
     try:
         remote.purge_runs(**_restore_runs_kw(args))
     except remotelib.RemoteProcessError as e:
-        cli.error(exit_status=e.exit_status)
+        _handle_remote_process_error(e)
+    except remotelib.OperationNotSupported:
+        _handle_not_supported(remote)
 
 def _purge_runs_kw(args):
     names = _runs_select_names() + ["yes"]
@@ -278,7 +298,9 @@ def label_runs(args):
     try:
         remote.label_runs(**_label_runs_kw(args))
     except remotelib.RemoteProcessError as e:
-        cli.error(exit_status=e.exit_status)
+        _handle_remote_process_error(e)
+    except remotelib.OperationNotSupported:
+        _handle_not_supported(remote)
 
 def _label_runs_kw(args):
     names = _runs_select_names() + [
@@ -288,3 +310,9 @@ def _label_runs_kw(args):
     ]
     ignore = ["remote"]
     return _arg_kw(args, names, ignore)
+
+def _handle_remote_process_error(e):
+    cli.error(exit_status=e.exit_status)
+
+def _handle_not_supported(remote):
+    cli.error("%s does not support this operation" % remote.name)
