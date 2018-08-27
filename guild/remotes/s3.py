@@ -249,7 +249,10 @@ class S3Remote(remotelib.Remote):
                 % (self.name, output))
 
     def start(self):
-        raise NotImplementedError("TODO")
+        try:
+            self._s3_cmd("mb", ["s3://%s" % self.bucket])
+        except remotelib.RemoteProcessError:
+            raise remotelib.OperationError()
 
     def reinit(self):
         self.start()
