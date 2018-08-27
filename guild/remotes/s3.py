@@ -22,7 +22,6 @@ import os
 import subprocess
 import sys
 
-from guild import cli
 from guild import click_util
 from guild import remote as remotelib
 from guild import remote_util
@@ -241,11 +240,11 @@ class S3Remote(remotelib.Remote):
     def _handle_status_error(self, e):
         output = e.output.decode()
         if "NoSuchBucket" in output:
-            cli.error(
+            raise remotelib.OperationError(
                 "%s is not available (%s does not exist)"
                 % (self.name, self.bucket))
         else:
-            cli.error(
+            raise remotelib.OperationError(
                 "%s is not available: %s"
                 % (self.name, output))
 
