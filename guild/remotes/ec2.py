@@ -70,7 +70,8 @@ class EC2Remote(remotelib.Remote):
     def _safe_name(self):
         return re.sub(r"\W|^(?=\d)", "_", self.name)
 
-    def _verify_aws_creds(self):
+    @staticmethod
+    def _verify_aws_creds():
         remote_util.require_env("AWS_ACCESS_KEY_ID")
         remote_util.require_env("AWS_SECRET_ACCESS_KEY")
 
