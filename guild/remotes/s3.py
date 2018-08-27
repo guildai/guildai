@@ -271,7 +271,17 @@ class S3Remote(remotelib.Remote):
             % self.bucket)
 
     def push(self, runs, verbose=False):
-        raise NotImplementedError("TODO")
+        self._verify_creds_and_region()
+        for run in runs:
+            self._push_run(run)
+        self._sync_runs_meta()
+
+    def _push_run(self, run):
+        local_run_src = run.path + "/"
+        remote_run_dest = self._s3_uri(*RUNS_PATH + [run.id]) + "/"
+        args = ["--delete", local_run_src, remote_run_dest]
+        log.info("Copying %s", run.id)
+        self._s3_cmd("sync", args)
 
     def pull(self, run_ids, verbose=False):
         raise NotImplementedError("TODO")
