@@ -147,13 +147,13 @@ class S3Remote(remotelib.Remote):
         except SystemExit as e:
             self._reraise_system_exit(e)
 
-    def _reraise_system_exit(self, e):
+    def _reraise_system_exit(self, e, deleted=False):
         if not e.args[0]:
             raise e
         exit_code = e.args[1]
         msg = e.args[0].replace(
             "guild runs list",
-            "guild runs list -r %s" % self.name)
+            "guild runs list %s-r %s" % (deleted and "-d " or "", self.name))
         raise SystemExit(msg, exit_code)
 
     def _delete_runs(self, runs, permanent):
@@ -172,6 +172,58 @@ class S3Remote(remotelib.Remote):
     def _s3_mv(self, src, dest):
         mv_args = ["--recursive", src, dest]
         self._s3_cmd("mv", mv_args)
+
+    def restore_runs(self, **opts):
+        self._verify_creds_and_region()
+        self._sync_runs_meta()
+        args = click_util.Args(**opts)
+        args.archive = self._deleted_runs_dir
+        preview = (
+            "You are about to restore the following runs from %s:"
+            % self.name)
+        confirm = "Restore these runs?"
+        no_runs_help = "Nothing to restore."
+        def restore_f(selected):
+            self._restore_runs(selected)
+            self._sync_runs_meta()
+        try:
+            runs_impl._runs_op(
+                args, None, False, preview, confirm, no_runs_help,
+                restore_f, confirm_default=True)
+        except SystemExit as e:
+            self._reraise_system_exit(e, deleted=True)
+
+    def _restore_runs(self, runs):
+        for run in runs:
+            deleted_uri = self._s3_uri(*(DELETED_RUNS_PATH + [run.id]))
+            restored_uri = self._s3_uri(*(RUNS_PATH + [run.id]))
+            self._s3_mv(deleted_uri, restored_uri)
+
+    def purge_runs(self, **opts):
+        self._verify_creds_and_region()
+        self._sync_runs_meta()
+        args = click_util.Args(**opts)
+        args.archive = self._deleted_runs_dir
+        preview = (
+            "WARNING: You are about to permanently delete "
+            "the following runs on %s:" % self.name)
+        confirm = "Permanently delete these runs?"
+        no_runs_help = "Nothing to purge."
+        def purge_f(selected):
+            self._purge_runs(selected)
+            self._sync_runs_meta()
+        try:
+            runs_impl._runs_op(
+                args, None, False, preview, confirm, no_runs_help,
+                purge_f, confirm_default=False)
+        except SystemExit as e:
+            self._reraise_system_exit(e, deleted=True)
+
+    def _purge_runs(self, runs):
+        for run in runs:
+            uri = self._s3_uri(*(DELETED_RUNS_PATH + [run.id]))
+            self._s3_rm(uri)
+
 
     def status(self, verbose=False):
         self._verify_creds_and_region()
