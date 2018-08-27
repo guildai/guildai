@@ -139,6 +139,7 @@ class S3Remote(remotelib.Remote):
         no_runs_help = "Nothing to delete."
         def delete_f(selected):
             self._delete_runs(selected, args.permanent)
+            self._sync_runs_meta()
         try:
             runs_impl._runs_op(
                 args, None, False, preview, confirm, no_runs_help,
