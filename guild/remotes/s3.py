@@ -248,6 +248,48 @@ class S3Remote(remotelib.Remote):
                 "%s is not available: %s"
                 % (self.name, output))
 
+    def start(self):
+        raise NotImplementedError("TODO")
+
+    def reinit(self):
+        self.start()
+
+    def push(self, runs, verbose=False):
+        raise NotImplementedError("TODO")
+
+    def pull(self, run_ids, verbose=False):
+        raise NotImplementedError("TODO")
+
+    def pull_all(self, verbose=False):
+        raise NotImplementedError("TODO")
+
+    def pull_src(self):
+        raise NotImplementedError("TODO")
+
+    def stop(self):
+        raise NotImplementedError("TODO")
+
+    def label_runs(self, **opts):
+        raise NotImplementedError("TODO")
+
+    def run_info(self, **opts):
+        raise NotImplementedError("TODO")
+
+    def one_run(self, run_id_prefix, attrs):
+        raise NotImplementedError("TODO")
+
+    def run_op(self, opspec, args, restart, no_wait, **opts):
+        raise remotelib.OperationNotSupported()
+
+    def watch_run(self, **opts):
+        raise remotelib.OperationNotSupported()
+
+    def check(self, **opts):
+        raise remotelib.OperationNotSupported()
+
+    def stop_runs(self, **opts):
+        raise remotelib.OperationNotSupported()
+
 def _subprocess_call_to_stderr(cmd):
     p = subprocess.Popen(
         cmd,
