@@ -19,11 +19,11 @@ import hashlib
 import logging
 import os
 import subprocess
+import sys
 
 from guild import click_util
 from guild import remote as remotelib
 from guild import remote_util
-from guild import util
 from guild import var
 
 from guild.commands import runs_impl
@@ -34,19 +34,24 @@ class S3Remote(remotelib.Remote):
 
     def __init__(self, name, config):
         self.name = name
-        self.uri = uri = util.strip_trailing_path(config["uri"])
+        self.bucket = bucket = config["bucket"]
+        self.root = root = config.get("root", "/")
         self.region = config.get("region")
-        self.meta_dir = self._meta_dir(name, uri)
+        self.local_sync_dir = lsd = self._local_sync_dir(name, bucket, root)
+        self._runs_dir = os.path.join(lsd, "runs")
+        self._deleted_runs_dir = os.path.join(lsd, "trash", "runs")
 
     @staticmethod
-    def _meta_dir(name, uri):
+    def _local_sync_dir(name, bucket, root):
         base_dir = var.remote_dir(name)
-        uri_hash = hashlib.md5(uri.encode()).hexdigest()
+        full_src = _s3_path_join(bucket, root)
+        uri_hash = hashlib.md5(full_src.encode()).hexdigest()
         return os.path.join(base_dir, "meta", uri_hash)
 
     def list_runs(self, verbose, **filters):
         self._verify_creds_and_region()
-        runs_dir = self._sync_runs_meta(filters.get("deleted", False))
+        self._sync_runs_meta()
+        runs_dir = self._runs_dir_for_filters(**filters)
         if not os.path.exists(runs_dir):
             return
         args = click_util.Args(verbose=verbose, **filters)
@@ -54,37 +59,82 @@ class S3Remote(remotelib.Remote):
         args.remote = False
         runs_impl.list_runs(args)
 
+    def _runs_dir_for_filters(self, deleted, **_filters):
+        if deleted:
+            return self._deleted_runs_dir
+        else:
+            return self._runs_dir
+
     def _verify_creds_and_region(self):
         remote_util.require_env("AWS_ACCESS_KEY_ID")
         remote_util.require_env("AWS_SECRET_ACCESS_KEY")
         if not self.region:
             remote_util.require_env("AWS_DEFAULT_REGION")
 
-    def _sync_runs_meta(self, deleted):
-        util.ensure_dir(self.meta_dir)
-        if deleted:
-            sync_src = self.uri + "/trash/runs/"
-            sync_target = os.path.join(self.meta_dir, "trash", "runs")
-        else:
-            sync_src = self.uri + "/runs/"
-            sync_target = os.path.join(self.meta_dir, "runs")
-        for run_id in self._ls_pre(sync_src):
-            print("TODO: get .guild/attrs and what not for {}".format(run_id))
-        return sync_target
+    def _sync_runs_meta(self):
+        s3_path = _s3_path_join(self.bucket, self.root)
+        args = [
+            "s3://%s" % s3_path,
+            self.local_sync_dir,
+            "--exclude", "*",
+            "--include", "*/.guild/*",
+            "--delete",
+        ]
+        log.info("Synchrozing runs with %s", s3_path)
+        self._s3_cmd("sync", args, to_stderr=True)
 
-    def _ls_pre(self, src):
-        out = self._s3_cmd("ls", [src])
-        print("#################")
-        print(out)
-        return []
-
-    def _s3_cmd(self, name, args):
+    def _s3api_cmd(self, name, args):
         cmd = ["aws"]
         if self.region:
             cmd.extend(["--region", self.region])
-        cmd.extend(["s3", name] + args)
-        log.debug("aws cmd: %r" % cmd)
+        cmd.extend(["s3api", name] + args)
+        log.debug("aws cmd: %r", cmd)
         try:
             return subprocess.check_output(cmd, env=os.environ)
         except subprocess.CalledProcessError as e:
             raise remotelib.RemoteProcessError.from_called_process_error(e)
+
+    def _s3_cmd(self, name, args, to_stderr=False):
+        cmd = ["aws"]
+        if self.region:
+            cmd.extend(["--region", self.region])
+        cmd.extend(["s3", name] + args)
+        log.debug("aws cmd: %r", cmd)
+        try:
+            if to_stderr:
+                _subprocess_call_to_stderr(cmd)
+            else:
+                subprocess.check_call(cmd, env=os.environ)
+        except subprocess.CalledProcessError as e:
+            raise remotelib.RemoteProcessError.from_called_process_error(e)
+
+def _subprocess_call_to_stderr(cmd):
+    p = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        env=os.environ)
+    while True:
+        line = p.stdout.readline()
+        if not line:
+            break
+        sys.stderr.write(line.decode())
+
+def _s3_path_join(*parts):
+    parts = [part for part in parts if part not in ("/", "")]
+    return "/".join(parts)
+
+def _list(d):
+    try:
+        return os.listdir(d)
+    except OSError as e:
+        if e.errno != 2:
+            raise
+        return []
+
+def _ids_from_prefixes(prefixes):
+    def strip(s):
+        if s.endswith("/"):
+            return s[:-1]
+        return s
+    return [strip(p) for p in prefixes]
