@@ -24,17 +24,26 @@ from . import remote_support
 def start(args):
     remote = remote_support.remote_for_args(args)
     if args.reinit:
-        _remote_op(remote.reinit, "re-initialize", remote, True, args)
+        prompt = "You are about to reinitialize %s" % remote.name
+        _remote_op(remote.reinit, prompt, remote, True, args)
     else:
-        _remote_op(remote.start, "start", remote, True, args)
+        prompt = "You are about to start %s" % remote.name
+        _remote_op(remote.start, prompt, remote, True, args)
 
 def stop(args):
     remote = remote_support.remote_for_args(args)
-    _remote_op(remote.stop, "stop", remote, False, args)
+    prompt = "WARNING: You are about to STOP %s" % remote.name
+    stop_details = remote.get_stop_details()
+    if stop_details:
+        prompt += "\nThis will result in the following:\n"
+        prompt += stop_details
+    else:
+        prompt += "\nThis action may result in permanent loss of data."
+    _remote_op(remote.stop, prompt, remote, False, args)
 
-def _remote_op(op, desc, remote, default_resp, args):
+def _remote_op(op, prompt, remote, default_resp, args):
     if not args.yes:
-        cli.out("You are about to %s %s" % (desc, remote.name))
+        cli.out(prompt)
     if args.yes or cli.confirm("Continue?", default_resp):
         try:
             op()

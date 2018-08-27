@@ -241,7 +241,7 @@ class S3Remote(remotelib.Remote):
         output = e.output.decode()
         if "NoSuchBucket" in output:
             raise remotelib.OperationError(
-                "%s is not available (%s does not exist)"
+                "%s is not available - %s does not exist"
                 % (self.name, self.bucket))
         else:
             raise remotelib.OperationError(
@@ -249,6 +249,7 @@ class S3Remote(remotelib.Remote):
                 % (self.name, output))
 
     def start(self):
+        log.info("Creating S3 bucket %s", self.bucket)
         try:
             self._s3_cmd("mb", ["s3://%s" % self.bucket])
         except remotelib.RemoteProcessError:
@@ -256,6 +257,18 @@ class S3Remote(remotelib.Remote):
 
     def reinit(self):
         self.start()
+
+    def stop(self):
+        log.info("Deleting S3 bucket %s", self.bucket)
+        try:
+            self._s3_cmd("rb", ["--force", "s3://%s" % self.bucket])
+        except remotelib.RemoteProcessError:
+            raise remotelib.OperationError()
+
+    def get_stop_details(self):
+        return (
+            "- S3 bucket %s will be deleted - THIS CANNOT BE UNDONE!"
+            % self.bucket)
 
     def push(self, runs, verbose=False):
         raise NotImplementedError("TODO")
@@ -267,9 +280,6 @@ class S3Remote(remotelib.Remote):
         raise NotImplementedError("TODO")
 
     def pull_src(self):
-        raise NotImplementedError("TODO")
-
-    def stop(self):
         raise NotImplementedError("TODO")
 
     def label_runs(self, **opts):
