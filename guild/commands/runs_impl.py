@@ -25,8 +25,6 @@ import six
 import yaml
 
 import guild.opref
-import guild.remote
-import guild.run
 
 from guild import cli
 from guild import click_util
