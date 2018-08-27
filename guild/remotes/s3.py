@@ -22,6 +22,7 @@ import os
 import subprocess
 import sys
 
+from guild import cli
 from guild import click_util
 from guild import remote as remotelib
 from guild import remote_util
@@ -92,14 +93,17 @@ class S3Remote(remotelib.Remote):
         log.info("Synchronizing runs with %s", self.name)
         self._s3_cmd("sync", sync_args, to_stderr=True)
 
-    def _s3api_cmd(self, name, args):
+    def _s3api_output(self, name, args):
         cmd = ["aws"]
         if self.region:
             cmd.extend(["--region", self.region])
         cmd.extend(["s3api", name] + args)
         log.debug("aws cmd: %r", cmd)
         try:
-            return subprocess.check_output(cmd, env=os.environ)
+            return subprocess.check_output(
+                cmd,
+                env=os.environ,
+                stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
             raise remotelib.RemoteProcessError.from_called_process_error(e)
 
@@ -167,6 +171,30 @@ class S3Remote(remotelib.Remote):
     def _s3_mv(self, src, dest):
         mv_args = ["--recursive", src, dest]
         self._s3_cmd("mv", mv_args)
+
+    def status(self, verbose=False):
+        self._verify_creds_and_region()
+        try:
+            self._s3api_output(
+                "get-bucket-location",
+                ["--bucket", self.bucket])
+        except remotelib.RemoteProcessError as e:
+            self._handle_status_error(e)
+        else:
+            sys.stdout.write(
+                "%s (S3 bucket %s) is available\n"
+                % (self.name, self.bucket))
+
+    def _handle_status_error(self, e):
+        output = e.output.decode()
+        if "NoSuchBucket" in output:
+            cli.error(
+                "%s is not available (%s does not exist)"
+                % (self.name, self.bucket))
+        else:
+            cli.error(
+                "%s is not available: %s"
+                % (self.name, output))
 
 def _subprocess_call_to_stderr(cmd):
     p = subprocess.Popen(
