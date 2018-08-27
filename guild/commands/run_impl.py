@@ -39,11 +39,7 @@ from . import remote_impl_support
 from . import runs_impl
 
 def main(args, ctx):
-    if not (args.opspec or args.rerun or args.restart):
-        cli.error(
-            "missing [MODEL:]OPERATION or --rerun/--restart RUN\n"
-            "Try 'guild ops' for a list of operations or '%s' "
-            "for more information." % click_util.cmd_help(ctx))
+    _check_opspec_args(args, ctx)
     _apply_restart_or_rerun_args(args, ctx)
     assert args.opspec
     model_ref, op_name = _parse_opspec(args.opspec)
@@ -51,6 +47,13 @@ def main(args, ctx):
     opdef = _resolve_opdef(op_name, model)
     _apply_opdef_args(opdef, args)
     _dispatch_cmd(args, opdef, model, ctx)
+
+def _check_opspec_args(args, ctx):
+    if not (args.opspec or args.rerun or args.restart):
+        cli.error(
+            "missing [MODEL:]OPERATION or --rerun/--restart RUN\n"
+            "Try 'guild ops' for a list of operations or '%s' "
+            "for more information." % click_util.cmd_help(ctx))
 
 def _apply_restart_or_rerun_args(args, ctx):
     if not args.rerun and not args.restart:
