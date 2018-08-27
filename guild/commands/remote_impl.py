@@ -25,10 +25,10 @@ def start(args):
     remote = remote_support.remote_for_args(args)
     if args.reinit:
         prompt = "You are about to reinitialize %s" % remote.name
-        _remote_op(remote.reinit, prompt, remote, True, args)
+        _remote_op(remote.reinit, prompt, True, args)
     else:
         prompt = "You are about to start %s" % remote.name
-        _remote_op(remote.start, prompt, remote, True, args)
+        _remote_op(remote.start, prompt, True, args)
 
 def stop(args):
     remote = remote_support.remote_for_args(args)
@@ -39,9 +39,9 @@ def stop(args):
         prompt += stop_details
     else:
         prompt += "\nThis action may result in permanent loss of data."
-    _remote_op(remote.stop, prompt, remote, False, args)
+    _remote_op(remote.stop, prompt, False, args)
 
-def _remote_op(op, prompt, remote, default_resp, args):
+def _remote_op(op, prompt, default_resp, args):
     if not args.yes:
         cli.out(prompt)
     if args.yes or cli.confirm("Continue?", default_resp):
