@@ -101,7 +101,8 @@ class Remote(object):
     def stop(self):
         raise NotImplementedError()
 
-    def get_stop_details(self):
+    @staticmethod
+    def get_stop_details():
         return None
 
     def run_op(self, opspec, args, restart, no_wait, **opts):
