@@ -663,8 +663,8 @@ def import_(args, ctx):
 def push(args, ctx):
     remote = remote_support.remote_for_args(args)
     preview = (
-        "You are about to copy the following runs to '%s':" %
-        remote.push_dest())
+        "You are about to copy the following runs to %s" %
+        remote.name)
     confirm = "Continue?"
     no_runs = "No runs to copy."
     def push(runs):

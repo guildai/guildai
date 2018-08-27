@@ -49,9 +49,6 @@ class SSHRemote(remotelib.Remote):
         for run in runs:
             self._push_run(run, verbose)
 
-    def push_dest(self):
-        return "{}:{}".format(self.host, self.guild_home)
-
     def _push_run(self, run, verbose):
         cmd = ["rsync", "-al", "--delete"]
         if verbose:

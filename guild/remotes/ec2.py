@@ -316,9 +316,6 @@ class EC2Remote(remotelib.Remote):
     def push(self, runs, verbose=False):
         raise NotImplementedError()
 
-    def push_dest(self):
-        raise NotImplementedError()
-
     def pull(self, run_ids, verbose=False):
         raise NotImplementedError()
 
