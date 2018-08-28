@@ -162,7 +162,7 @@ class S3Remote(remotelib.Remote):
         except subprocess.CalledProcessError as e:
             raise remotelib.RemoteProcessError.from_called_process_error(e)
 
-    def selected_runs(self, **filters):
+    def filtered_runs(self, **filters):
         self._verify_creds_and_region()
         self._sync_runs_meta()
         args = click_util.Args(**filters)

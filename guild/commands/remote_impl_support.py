@@ -41,6 +41,7 @@ def _list_runs_kw(args):
     ]
     ignore = [
         "archive",
+        "json",
         "remote",
     ]
     return _arg_kw(args, names, ignore)
@@ -317,18 +318,20 @@ def _handle_remote_process_error(e):
 def _handle_not_supported(remote):
     cli.error("%s does not support this operation" % remote.name)
 
-def selected_runs(remote, args):
+def filtered_runs(remote, args):
+    cli.note("Getting remote run info")
     try:
-        return remote.selected_runs(**_selected_runs_kw(args))
+        return remote.filtered_runs(**_filtered_runs_kw(args))
     except remotelib.RemoteProcessError as e:
         _handle_remote_process_error(e)
     except remotelib.OperationNotSupported:
         _handle_not_supported(remote)
 
-def _selected_runs_kw(args):
-    names = _runs_select_names()
+def _filtered_runs_kw(args):
+    names = _runs_filter_names()
     ignore = [
         "remote",
+        "runs",
         "yes",
     ]
     return _arg_kw(args, names, ignore)

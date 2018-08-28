@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import json
 import os
 import logging
 import subprocess
@@ -211,6 +212,20 @@ class SSHRemote(remotelib.Remote):
         cmd = "; ".join(cmd_lines)
         ssh_util.ssh_cmd(self.host, [cmd], self.user)
 
+    def filtered_runs(self, **filters):
+        cmd_lines = ["set -e"]
+        cmd_lines.extend(self._env_activate_cmd_lines())
+        opts = _filtered_runs_filter_opts(**filters)
+        cmd_lines.append("guild runs list %s" % " ".join(opts))
+        cmd = "; ".join(cmd_lines)
+        out = ssh_util.ssh_output(self.host, [cmd], self.user)
+        if not out:
+            data = []
+        else:
+            data = json.loads(out.decode())
+            assert isinstance(data, list), (data, self.name)
+        return [remotelib.RunProxy(run_data) for run_data in data]
+
     def _env_activate_cmd_lines(self):
         if not self.guild_env:
             return []
@@ -282,8 +297,13 @@ def _list_runs_filter_opts(deleted, all, more, **filters):
         opts.append("-" + ("m" * more))
     return opts
 
+def _filtered_runs_filter_opts(**filters):
+    opts = _runs_filter_args(**filters)
+    opts.append("--json")
+    return opts
+
 def _runs_filter_args(ops, labels, unlabeled, running,
-                     completed, error, terminated):
+                      completed, error, terminated):
     args = []
     if completed:
         args.append("-C")

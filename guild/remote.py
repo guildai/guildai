@@ -105,7 +105,7 @@ class Remote(object):
     def list_runs(self, verbose=False, **filters):
         raise NotImplementedError()
 
-    def select_runs(self, **filters):
+    def filtered_runs(self, **filters):
         raise NotImplementedError()
 
     def one_run(self, run_id_prefix, attrs):

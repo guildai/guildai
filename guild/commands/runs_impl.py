@@ -722,9 +722,10 @@ def pull(args, ctx):
     no_runs = "No runs to copy."
     def pull_f(runs):
         remote.pull(runs)
-    def selected_runs_f(args, _ctx, _default_runs_arg, _force_deleted):
-        return remote_impl_support.selected_runs(remote, args)
+    def filtered_runs_f(args, _ctx, _default_runs_arg, _force_deleted):
+        filtered = remote_impl_support.filtered_runs(remote, args)
+        return select_runs(filtered, args.runs, ctx)
     _runs_op(
         args, ctx, False, preview, confirm,
         no_runs, pull_f, ALL_RUNS_ARG, True,
-        selected_runs_f)
+        filtered_runs_f)
