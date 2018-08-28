@@ -669,11 +669,11 @@ def push(args, ctx):
         remote.name)
     confirm = "Continue?"
     no_runs = "No runs to copy."
-    def push(runs):
-        remote.push(runs, args.verbose)
+    def push_f(runs):
+        remote.push(runs)
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
-        push, ALL_RUNS_ARG, True)
+        push_f, ALL_RUNS_ARG, True)
 
 def pull(args, ctx):
     remote = remote_support.remote_for_args(args)
