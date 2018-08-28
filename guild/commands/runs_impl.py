@@ -703,8 +703,8 @@ def import_(args, ctx):
 def push(args, ctx):
     remote = remote_support.remote_for_args(args)
     preview = (
-        "You are about to copy the following runs to %s:" %
-        remote.name)
+        "You are about to copy %sthe following runs to %s:" %
+        (_no_delete_clause(args), remote.name))
     confirm = "Continue?"
     no_runs = "No runs to copy."
     def push_f(runs):
@@ -713,11 +713,17 @@ def push(args, ctx):
         args, ctx, False, preview, confirm, no_runs,
         push_f, ALL_RUNS_ARG, True)
 
+def _no_delete_clause(args):
+    if args.no_delete:
+        return "(no delete) "
+    else:
+        return ""
+
 def pull(args, ctx):
     remote = remote_support.remote_for_args(args)
     preview = (
-        "You are about to copy the following runs from %s"
-        % remote.name)
+        "You are about to copy %sthe following runs from %s"
+        % (_no_delete_clause(args), remote.name))
     confirm = "Continue?"
     no_runs = "No runs to copy."
     def pull_f(runs):
