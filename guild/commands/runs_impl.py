@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import json
 import logging
 import os
 import re
@@ -202,10 +203,16 @@ def _list_runs(args):
             log.exception("formatting run in %s", run.path)
         else:
             formatted.append(formatted_run)
-    formatted = _limit_runs(formatted, args)
+    limited_formatted = _limit_runs(formatted, args)
     cols = ["index", "operation", "started", "status", "label"]
     detail = RUN_DETAIL if args.verbose else None
-    cli.table(formatted, cols=cols, detail=detail)
+    if args.json:
+        _json_out(limited_formatted)
+    else:
+        cli.table(limited_formatted, cols=cols, detail=detail)
+
+def _json_out(data):
+    cli.out(json.dumps(data))
 
 def _limit_runs(runs, args):
     if args.all:

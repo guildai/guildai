@@ -43,6 +43,10 @@ def runs_list_options(fn):
                 "Show 20 more runs. Maybe used multiple times."),
             count=True),
         click.Option(
+            ("--json",),
+            help="Format runs as JSON.",
+            is_flag=True),
+        click.Option(
             ("-v", "--verbose"),
             help="Show run details.",
             is_flag=True),
