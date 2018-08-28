@@ -229,7 +229,7 @@ def parse_url(url):
         from urllib.parse import urlparse
     return urlparse(url)
 
-class TempDir(object):
+class TempBase(object):
 
     def __init__(self, prefix="guild-", suffix="", keep=False):
         self._prefix = prefix
@@ -238,12 +238,42 @@ class TempDir(object):
         self.path = None
 
     def __enter__(self):
-        self.path = tempfile.mkdtemp(prefix=self._prefix, suffix=self._suffix)
+        self.path = self._init_temp(self._prefix, self._suffix)
         return self.path
+
+    @staticmethod
+    def _init_temp(prefix, suffix):
+        raise NotImplementedError()
 
     def __exit__(self, *_exc):
         if not self._keep:
-            rmtempdir(self.path)
+            self._del_temp(self.path)
+
+    @staticmethod
+    def _del_temp(path):
+        raise NotImplementedError()
+
+class TempDir(TempBase):
+
+    @staticmethod
+    def _init_temp(prefix, suffix):
+        return tempfile.mkdtemp(prefix=prefix, suffix=suffix)
+
+    @staticmethod
+    def _del_temp(path):
+        rmtempdir(path)
+
+class TempFile(TempBase):
+
+    @staticmethod
+    def _init_temp(prefix, suffix):
+        f, path = tempfile.mkstemp(prefix=prefix, suffix=suffix)
+        os.close(f)
+        return path
+
+    @staticmethod
+    def _del_temp(path):
+        os.remove(path)
 
 def mktempdir(prefix=None):
     return tempfile.mkdtemp(prefix=prefix)

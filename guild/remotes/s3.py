@@ -21,10 +21,12 @@ import logging
 import os
 import subprocess
 import sys
+import uuid
 
 from guild import click_util
 from guild import remote as remotelib
 from guild import remote_util
+from guild import util
 from guild import var
 
 from guild.commands import runs_impl
@@ -51,10 +53,7 @@ class S3Remote(remotelib.Remote):
         return os.path.join(base_dir, "meta", uri_hash)
 
     def _s3_uri(self, *subpath):
-        path = [
-            part for part in itertools.chain([self.root], subpath)
-            if part not in ("/", "")]
-        joined_path = "/".join(path)
+        joined_path = _join_path(self.root, *subpath)
         return "s3://%s/%s" % (self.bucket, joined_path)
 
     def list_runs(self, verbose, **filters):
@@ -81,16 +80,59 @@ class S3Remote(remotelib.Remote):
         if not self.region:
             remote_util.require_env("AWS_DEFAULT_REGION")
 
-    def _sync_runs_meta(self):
+    def _sync_runs_meta(self, force=False):
+        log.info("Synchronizing runs with %s", self.name)
+        if not force and self._meta_current():
+            return
+        self._clear_local_meta_id()
         sync_args = [
             self._s3_uri(),
             self.local_sync_dir,
             "--exclude", "*",
             "--include", "*/.guild/*",
+            "--include", "meta-id",
             "--delete",
         ]
-        log.info("Synchronizing runs with %s", self.name)
         self._s3_cmd("sync", sync_args, to_stderr=True)
+
+    def _meta_current(self):
+        local_id = self._local_meta_id()
+        if local_id is None:
+            log.debug("local meta-id not found, meta not current")
+            return False
+        remote_id = self._remote_meta_id()
+        log.debug("local meta-id: %s", local_id)
+        log.debug("remote meta-id: %s", remote_id)
+        return local_id == remote_id
+
+    def _clear_local_meta_id(self):
+        id_path = os.path.join(self.local_sync_dir, "meta-id")
+        try:
+            os.remove(id_path)
+        except OSError as e:
+            if e.errno != 2:
+                raise
+
+    def _local_meta_id(self):
+        id_path = os.path.join(self.local_sync_dir, "meta-id")
+        try:
+            f = open(id_path, "r")
+        except OSError as e:
+            if e.errno != 2:
+                raise
+            return None
+        else:
+            return f.read().strip()
+
+    def _remote_meta_id(self):
+        with util.TempFile("guild-s3-") as tmp:
+            args = [
+                "--bucket", self.bucket,
+                "--key", _join_path(self.root, "meta-id"),
+                tmp,
+            ]
+            self._s3api_output("get-object", args)
+            return open(tmp, "r").read().strip()
 
     def _s3api_output(self, name, args):
         cmd = ["aws"]
@@ -138,7 +180,8 @@ class S3Remote(remotelib.Remote):
         no_runs_help = "Nothing to delete."
         def delete_f(selected):
             self._delete_runs(selected, args.permanent)
-            self._sync_runs_meta()
+            self._new_meta_id()
+            self._sync_runs_meta(force=True)
         try:
             runs_impl._runs_op(
                 args, None, False, preview, confirm, no_runs_help,
@@ -184,7 +227,8 @@ class S3Remote(remotelib.Remote):
         no_runs_help = "Nothing to restore."
         def restore_f(selected):
             self._restore_runs(selected)
-            self._sync_runs_meta()
+            self._new_meta_id()
+            self._sync_runs_meta(force=True)
         try:
             runs_impl._runs_op(
                 args, None, False, preview, confirm, no_runs_help,
@@ -210,7 +254,8 @@ class S3Remote(remotelib.Remote):
         no_runs_help = "Nothing to purge."
         def purge_f(selected):
             self._purge_runs(selected)
-            self._sync_runs_meta()
+            self._new_meta_id()
+            self._sync_runs_meta(force=True)
         try:
             runs_impl._runs_op(
                 args, None, False, preview, confirm, no_runs_help,
@@ -274,7 +319,8 @@ class S3Remote(remotelib.Remote):
         self._verify_creds_and_region()
         for run in runs:
             self._push_run(run)
-        self._sync_runs_meta()
+            self._new_meta_id()
+        self._sync_runs_meta(force=True)
 
     def _push_run(self, run):
         local_run_src = run.path + "/"
@@ -282,6 +328,18 @@ class S3Remote(remotelib.Remote):
         args = ["--delete", local_run_src, remote_run_dest]
         log.info("Copying %s", run.id)
         self._s3_cmd("sync", args)
+
+    def _new_meta_id(self):
+        meta_id = _uuid()
+        with util.TempFile("guild-s3-") as tmp:
+            with open(tmp, "w") as f:
+                f.write(meta_id)
+            args = [
+                "--bucket", self.bucket,
+                "--key", _join_path(self.root, "meta-id"),
+                "--body", tmp
+            ]
+            self._s3api_output("put-object", args)
 
     def pull(self, run_ids, verbose=False):
         raise NotImplementedError("TODO")
@@ -313,6 +371,12 @@ class S3Remote(remotelib.Remote):
     def stop_runs(self, **opts):
         raise remotelib.OperationNotSupported()
 
+def _join_path(root, *parts):
+    path = [
+        part for part in itertools.chain([root], parts)
+        if part not in ("/", "")]
+    return "/".join(path)
+
 def _subprocess_call_to_stderr(cmd):
     p = subprocess.Popen(
         cmd,
@@ -339,3 +403,10 @@ def _ids_from_prefixes(prefixes):
             return s[:-1]
         return s
     return [strip(p) for p in prefixes]
+
+def _uuid():
+    try:
+        return uuid.uuid1().hex
+    except ValueError:
+        # Workaround https://bugs.python.org/issue32502
+        return uuid.uuid4().hex
