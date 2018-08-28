@@ -65,7 +65,7 @@ class S3Remote(remotelib.Remote):
         args = click_util.Args(verbose=verbose, **filters)
         args.archive = runs_dir
         args.deleted = False
-        args.remote = False
+        args.remote = None
         runs_impl.list_runs(args)
 
     def _runs_dir_for_filters(self, deleted, **_filters):
@@ -331,10 +331,10 @@ class S3Remote(remotelib.Remote):
         self._sync_runs_meta(force=True)
 
     def _push_run(self, run):
-        local_run_src = run.path + "/"
+        local_run_src = os.path.join(run.path, "")
         remote_run_dest = self._s3_uri(*RUNS_PATH + [run.id]) + "/"
         args = ["--delete", local_run_src, remote_run_dest]
-        log.info("Copying %s", run.id)
+        log.info("Copying %s to %s", run.id, self.name)
         self._s3_cmd("sync", args)
 
     def _new_meta_id(self):
