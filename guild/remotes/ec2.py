@@ -313,10 +313,10 @@ class EC2Remote(remotelib.Remote):
                 "error destroying Terraform state in %s"
                 % self.working_dir)
 
-    def push(self, runs):
+    def push(self, runs, no_delete=False):
         raise NotImplementedError()
 
-    def pull(self, runs):
+    def pull(self, runs, no_delete=False):
         raise NotImplementedError()
 
     def list_runs(self, verbose=False, **filters):

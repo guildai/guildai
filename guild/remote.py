@@ -75,10 +75,10 @@ class Remote(object):
 
     name = None
 
-    def push(self, runs):
+    def push(self, runs, no_delete=False):
         raise NotImplementedError()
 
-    def pull(self, runs):
+    def pull(self, runs, no_delete=False):
         raise NotImplementedError()
 
     def status(self, verbose=False):

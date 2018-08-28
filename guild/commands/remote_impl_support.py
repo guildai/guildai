@@ -318,18 +318,19 @@ def _handle_remote_process_error(e):
 def _handle_not_supported(remote):
     cli.error("%s does not support this operation" % remote.name)
 
-def filtered_runs(remote, args):
+def filtered_runs_for_pull(remote, args):
     cli.note("Getting remote run info")
     try:
-        return remote.filtered_runs(**_filtered_runs_kw(args))
+        return remote.filtered_runs(**_filtered_runs_for_pull_kw(args))
     except remotelib.RemoteProcessError as e:
         _handle_remote_process_error(e)
     except remotelib.OperationNotSupported:
         _handle_not_supported(remote)
 
-def _filtered_runs_kw(args):
+def _filtered_runs_for_pull_kw(args):
     names = _runs_filter_names()
     ignore = [
+        "no_delete",
         "remote",
         "runs",
         "yes",

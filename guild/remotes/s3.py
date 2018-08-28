@@ -323,17 +323,19 @@ class S3Remote(remotelib.Remote):
             "- S3 bucket %s will be deleted - THIS CANNOT BE UNDONE!"
             % self.bucket)
 
-    def push(self, runs):
+    def push(self, runs, no_delete=False):
         self._verify_creds_and_region()
         for run in runs:
-            self._push_run(run)
+            self._push_run(run, no_delete)
             self._new_meta_id()
         self._sync_runs_meta(force=True)
 
-    def _push_run(self, run):
+    def _push_run(self, run, no_delete):
         local_run_src = os.path.join(run.path, "")
         remote_run_dest = self._s3_uri(*RUNS_PATH + [run.id]) + "/"
-        args = ["--delete", local_run_src, remote_run_dest]
+        args = [local_run_src, remote_run_dest]
+        if not no_delete:
+            args.insert(0, "--delete")
         log.info("Copying %s to %s", run.id, self.name)
         self._s3_cmd("sync", args)
 
@@ -349,15 +351,17 @@ class S3Remote(remotelib.Remote):
             ]
             self._s3api_output("put-object", args)
 
-    def pull(self, runs):
+    def pull(self, runs, no_delete=False):
         self._verify_creds_and_region()
         for run in runs:
-            self._pull_run(run)
+            self._pull_run(run, no_delete)
 
-    def _pull_run(self, run):
+    def _pull_run(self, run, no_delete):
         remote_run_src = self._s3_uri(*RUNS_PATH + [run.id]) + "/"
         local_run_dest = os.path.join(var.runs_dir(), run.id, "")
-        args = ["--delete", remote_run_src, local_run_dest]
+        args = [remote_run_src, local_run_dest]
+        if not no_delete:
+            args.insert(0, "--delete")
         log.info("Copying %s from %s", run.id, self.name)
         self._s3_cmd("sync", args)
 

@@ -46,12 +46,14 @@ class SSHRemote(remotelib.Remote):
         self.guild_env = config.get("guild-env")
         self.run_init = config.get("run-init")
 
-    def push(self, runs):
+    def push(self, runs, no_delete=False):
         for run in runs:
-            self._push_run(run)
+            self._push_run(run, no_delete)
 
-    def _push_run(self, run):
-        cmd = ["rsync", "-al", "--delete"]
+    def _push_run(self, run, no_delete):
+        cmd = ["rsync", "-al"]
+        if not no_delete:
+            cmd.append("--delete")
         if log.getEffectiveLevel() <= logging.DEBUG:
             cmd.append("-vvv")
         else:
@@ -63,21 +65,23 @@ class SSHRemote(remotelib.Remote):
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
 
-    def pull(self, runs):
+    def pull(self, runs, no_delete=False):
         for run in runs:
-            self._pull_run(run.id)
+            self._pull_run(run.id, no_delete)
 
-    def _pull_run(self, run_id):
+    def _pull_run(self, run_id, no_delete):
         src = "{}:{}/runs/{}/".format(self.host, self.guild_home, run_id)
         dest = os.path.join(var.runs_dir(), run_id + "/")
-        cmd = ["rsync"] + self._pull_rsync_opts() + [src, dest]
+        cmd = ["rsync"] + self._pull_rsync_opts(no_delete) + [src, dest]
         log.info("Copying %s", run_id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
 
     @staticmethod
-    def _pull_rsync_opts():
-        opts = ["-al", "--inplace", "--delete"]
+    def _pull_rsync_opts(no_delete):
+        opts = ["-al", "--inplace"]
+        if not no_delete:
+            opts.append("--delete")
         if log.getEffectiveLevel() <= logging.DEBUG:
             opts.append("-vvv")
         else:
