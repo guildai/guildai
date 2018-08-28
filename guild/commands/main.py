@@ -31,7 +31,6 @@ from .help import help
 from .import_ import import_
 from .index import index
 from .init import init
-from .init2 import init2
 from .install import install
 from .label import label
 from .models import models
@@ -104,7 +103,6 @@ main.add_command(help)
 main.add_command(import_)
 main.add_command(index)
 main.add_command(init)
-main.add_command(init2)
 main.add_command(install)
 main.add_command(label)
 main.add_command(models)

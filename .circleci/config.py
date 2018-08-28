@@ -143,7 +143,7 @@ class Build(object):
 
     def test(self):
         return self._run("Test", [
-            ("guild init2 -y"
+            ("guild init -y"
              " --no-progress"
              " --name guild-test"
              " --guild dist/*.whl {}".format(self.test_dir)),

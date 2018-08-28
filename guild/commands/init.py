@@ -20,125 +20,104 @@ import click
 from guild import click_util
 
 @click.command()
-@click.argument("dir", required=False)
-@click.argument("params", metavar="[PARAM=VALUE...]", nargs=-1)
+@click.argument("dir", default="env")
 @click.option(
-    "-e", "--env", is_flag=True,
-    help="Initialize an environment.")
+    "-n", "--name", metavar="NAME",
+    help="Environment name (default is env parent directory name).")
 @click.option(
-    "-p", "--project", "project_artifact", flag_value="project",
-    help="Initialize a new project.")
+    "--python", metavar="VERSION",
+    help="Version of Python to use for the environment.")
 @click.option(
-    "-t", "--template", metavar="TEMPLATE",
-    help="Use a template when initializing a project.")
+    "--guild", metavar="VERSION_OR_PATH",
+    help=(
+        "Version of Guild AI to use for the environment. "
+        "By default, the active version of Guild is installed. This "
+        "value may alternatively be a path to a Guild wheel distribution.")
+    )
 @click.option(
-    "--from-package", metavar="PACKAGE",
-    help="If initializing a project, use installed `PACKAGE` as a template.")
+    "--gpu", "tf_package", flag_value="tensorflow-gpu",
+    help="Use the GPU enabled tensorflow package for the environment.")
+@click.option(
+    "--no-gpu", "tf_package", flag_value="tensorflow",
+    help="Use the non-GPU tensorflow package for the environment.")
+@click.option(
+    "--no-tensorflow", "tf_package", flag_value="no",
+    help="Do not install TensorFlow in the environment.")
+@click.option(
+    "-r", "--requirement", metavar="FILE", multiple=True,
+    help="Install packages defined in FILE. May be used multiple times.")
+@click.option(
+    "--no-reqs", is_flag=True,
+    help="Don't install from requirements.txt in environment parent directory.")
 @click.option(
     "--local-resource-cache", is_flag=True,
     help="Use a local cache when initializing an environment.")
 @click.option(
     "-y", "--yes", is_flag=True,
-    help="Answer yes to all prompts.")
+    help="Initialize a Guild environment without prompting.")
 @click.option(
-    "-n", "--no-check", is_flag=True,
-    help="Don't check the environment after initialization.")
-@click.option(
-    "--list-templates", is_flag=True,
-    help="Show available templates and exit.")
-@click.option(
-    "--help-template", metavar="TEMPLATE",
-    help="Show help for `TEMPLATE` and exit.")
+    "--no-progress", is_flag=True,
+    help="Don't show progress when installing environment packages.")
 
-@click.pass_context
 @click_util.use_args
 
-def init(ctx, args):
-    """Initialize an environment or project.
+def init(args):
+    """Initialize a Guild environment.
 
-    You must specify either `--env` or `--prject`. Refer to the
-    sections below for more information.
+    `init` initializes a Guild environment in `DIR`, which is the
+    current directory by default.
 
-    ### Environments
+    `init` creates a virtual environment in `DIR` using `virtualenv`.
 
-    To initialize a Guild environment in `DIR`, use `--env`. If `DIR`
-    is not specified, its value is determined by whether or not the
-    `init` command is executed in a Python virtual environment. If
-    `init` is executed within a virtual environment, `DIR` is the
-    environment variable root directory. If `init` is not executed in
-    a virtual environment, `DIR` is the user's home directory.
+    Use `--python` to specify the Python interpreter to use within the
+    generated virtual environment. If `no-venv` is specified,
+    `--python` is ignored.
 
-    Environment files are always created in a `.guild` subdirectory of
-    `DIR` and no other system files will be modified.
+    The environment may be initialized with packages defined in Python
+    requirements files. For information in requirements files, see:
 
-    If `--project` is used, `init` will not initialize a Guild
-    environment but will instead initialize a project. See PROJECTS
-    below for more information.
+    https://pip.readthedocs.io/en/1.1/requirements.html
 
-    ### Projects
+    By default packages defined in `requirements.txt` in the
+    environment parent directory will be installed. Use `--no-reqs` to
+    surppress this behavior.
 
-    To initialize a project in `DIR`, use `--project`. If `DIR`
-    contains any files that would otherwise be overwritten by `init`,
-    the command will exit with an error.
+    You may explicitly specify requirements file using `-r` or
+    `--requirement`.
 
-    Projects may be generated using templates. See TEMPLATES below for
-    more information.
+    ### TensorFlow
 
-    Projects may alternatively be generated from installed packages by
-    using `--from-package`. When using `--from-package` the use of
-    `--project` is implied. If `PACKAGE` is not installed, the command
-    will exit with an error.
+    By default `init` installs TensorFlow in the initialized
+    environment if it's not already installed. When Guild installs
+    TensorFlow, it detects GPU support on the system and selects the
+    appropriate package: `tensorflow-gpu` for GPU support, otherwise
+    `tensorflow`.
 
-    ### Templates and parameters
+    To override the default package, use `--gpu` to install the
+    `tensorflow-gpu` package or `--no-gpu` to install the `tensorflow`
+    package.
 
-    By default, the template named `default` is used to initialize
-    projects. To use a different template, specify it using
-    `--template`.
+    To skip installing TensorFlow, use `--no-tensorflow`.
 
-    `--template` may not be used with `--from-package` for
-    initializing a project.
+    If TensorFlow was installed by way of a requirements file, either
+    `requirements.txt` located in the environment parent directory or
+    a file specified by a `--requirement` option, Guild will not
+    reinstall it.
 
-    Use `--list-templates` to list available templates.
+    ### Guild AI
 
-    Templates support parameters, some of which may be required when
-    initializing a project. Use `--help-template` to list template
-    parameters.
+    By default `init` installs the active version of Guild AI in the
+    initialized environment. To install a different version, or to
+    install a Guild wheel distribution file use the `--guild` option.
 
-    Specify parameter values using `PARAM=VALUE` arguments. If the
-    first argument, which would otherwise be consideted `DIR`, is in
-    the form `PARAM=VALUE`, it will be treated as a paramater and not
-    as `DIR.
+    ### Resource cache
 
-    ### Shared resource cache
-
-    By default, when initializing an environment outside the user's
-    home directory, the new environment will share cached resources
-    with the user level environment (i.e. the environment in the
-    user's home directory). If you want to completely isolate a new
-    environment and ensure that cached resource are not shared, use
-    `--local-resource-cache`.
-
-    ### Installing TensorFlow
-
-    When initializing an environment, `init` will check if TensorFlow
-    is installed and attempt to install it if it is not. This check
-    can be skipped using `--skip-checks`. `init` will prompt before
-    installing unless `--yes` is specified.
-
-    ### Examples
-
-    Initialize the default Guild AI environment:
-
-        $ guild init
-
-    Initialize a new default project in the current directory:
-
-        $ guild init --project
-
-    Create a new project from the installed package `guild.mnist`:
-
-        $ guild init --from-package guild.mnist
+    By default resources are cached and shared at the user level in
+    `~/.guild/cache/resources` so that resources downloaded from one
+    environment are available to other environments. You can modify
+    this behavior to have all resources downloaded local to the
+    environment by specifying `--local-resource-cache`.
 
     """
     from . import init_impl
-    init_impl.main(args, ctx)
+    init_impl.main(args)

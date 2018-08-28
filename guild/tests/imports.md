@@ -38,8 +38,6 @@
     guild.commands.index
     guild.commands.index_impl
     guild.commands.init
-    guild.commands.init2
-    guild.commands.init2_impl
     guild.commands.init_impl
     guild.commands.install
     guild.commands.label
