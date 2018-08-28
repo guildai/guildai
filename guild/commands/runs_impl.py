@@ -322,11 +322,9 @@ def _format_attr_dict(d):
 
 def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
              no_runs_help, op_callback, default_runs_arg=None,
-             confirm_default=False):
-    default_runs_arg = default_runs_arg or ALL_RUNS_ARG
-    runs_arg = args.runs or default_runs_arg
-    filtered = filtered_runs(args, force_deleted)
-    selected = select_runs(filtered, runs_arg, ctx)
+             confirm_default=False, runs_callback=None):
+    get_selected = runs_callback or _runs_op_selected
+    selected = get_selected(args, ctx, default_runs_arg, force_deleted)
     if not selected:
         _no_selected_runs_error(no_runs_help)
     preview = [format_run(run) for run in selected]
@@ -336,6 +334,12 @@ def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
         cli.table(preview, cols=cols, indent=2)
     if args.yes or cli.confirm(confirm_prompt, confirm_default):
         op_callback(selected)
+
+def _runs_op_selected(args, ctx, default_runs_arg, force_deleted):
+    default_runs_arg = default_runs_arg or ALL_RUNS_ARG
+    runs_arg = args.runs or default_runs_arg
+    filtered = filtered_runs(args, force_deleted)
+    return select_runs(filtered, runs_arg, ctx)
 
 def delete_runs(args, ctx):
     if args.remote:
@@ -672,43 +676,17 @@ def push(args, ctx):
         push, ALL_RUNS_ARG, True)
 
 def pull(args, ctx):
-    if not args.runs and not args.all:
-        cli.error(
-            "specify one or more runs or use --all\n"
-            "Try '%s' for more information."
-            % click_util.cmd_help(ctx))
-    if args.all and args.runs:
-        cli.error(
-            "RUN cannot be used with --all\n"
-            "Try '%s' for more information."
-            % click_util.cmd_help(ctx))
     remote = remote_support.remote_for_args(args)
-    if args.all:
-        run_ids = None
-        preview = (
-            "You are about to copy all runs from '%s'"
-            % remote.pull_src())
-    else:
-        run_ids = _validate_remote_run_ids(args.runs)
-        formatted_run_ids = "\n".join(["  %s" % run_id for run_id in run_ids])
-        preview = (
-            "You are about to copy the following runs from '%s':\n"
-            "%s" % (remote.pull_src(), formatted_run_ids))
+    preview = (
+        "You are about to copy the following runs from %s"
+        % remote.name)
     confirm = "Continue?"
-    if not args.yes:
-        cli.out(preview)
-    if args.yes or cli.confirm(confirm, True):
-        if args.all:
-            remote.pull_all(True)
-        else:
-            assert run_ids
-            remote.pull(run_ids, args.verbose)
-
-def _validate_remote_run_ids(run_ids):
-    for run_id in run_ids:
-        if len(run_id) != 32:
-            cli.error(
-                "invalid remote RUN '%s'\n"
-                "Remote run IDs must be 32 characters long."
-                % run_id)
-    return run_ids
+    no_runs = "No runs to copy."
+    def pull_f(runs):
+        remote.pull(runs)
+    def selected_runs_f(args, _ctx, _default_runs_arg, _force_deleted):
+        return remote_impl_support.selected_runs(remote, args)
+    _runs_op(
+        args, ctx, False, preview, confirm,
+        no_runs, pull_f, ALL_RUNS_ARG, True,
+        selected_runs_f)

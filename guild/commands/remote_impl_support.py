@@ -316,3 +316,19 @@ def _handle_remote_process_error(e):
 
 def _handle_not_supported(remote):
     cli.error("%s does not support this operation" % remote.name)
+
+def selected_runs(remote, args):
+    try:
+        return remote.selected_runs(**_selected_runs_kw(args))
+    except remotelib.RemoteProcessError as e:
+        _handle_remote_process_error(e)
+    except remotelib.OperationNotSupported:
+        _handle_not_supported(remote)
+
+def _selected_runs_kw(args):
+    names = _runs_select_names()
+    ignore = [
+        "remote",
+        "yes",
+    ]
+    return _arg_kw(args, names, ignore)

@@ -18,20 +18,16 @@ from __future__ import division
 import click
 
 from guild import click_util
+
 from . import remote_support
+from . import runs_support
 
 def pull_params(fn):
     click_util.append_params(fn, [
         click.Argument(("runs",), metavar="[RUN...]", nargs=-1),
         remote_support.remote_arg,
-        click.Option(
-            ("-a", "--all"),
-            help="Pull all remote runs.",
-            is_flag=True),
-        click.Option(
-            ("-v", "--verbose"),
-            help="Show more information.",
-            is_flag=True),
+        runs_support.op_and_label_filters,
+        runs_support.status_filters,
         click.Option(
             ("-y", "--yes"),
             help="Do not prompt before copying.",

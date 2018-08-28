@@ -162,6 +162,14 @@ class S3Remote(remotelib.Remote):
         except subprocess.CalledProcessError as e:
             raise remotelib.RemoteProcessError.from_called_process_error(e)
 
+    def selected_runs(self, **filters):
+        self._verify_creds_and_region()
+        self._sync_runs_meta()
+        args = click_util.Args(**filters)
+        args.archive = self._runs_dir
+        args.remote = None
+        return runs_impl.runs_for_args(args)
+
     def delete_runs(self, **opts):
         self._verify_creds_and_region()
         self._sync_runs_meta()
@@ -315,7 +323,7 @@ class S3Remote(remotelib.Remote):
             "- S3 bucket %s will be deleted - THIS CANNOT BE UNDONE!"
             % self.bucket)
 
-    def push(self, runs, verbose=False):
+    def push(self, runs):
         self._verify_creds_and_region()
         for run in runs:
             self._push_run(run)
@@ -341,14 +349,17 @@ class S3Remote(remotelib.Remote):
             ]
             self._s3api_output("put-object", args)
 
-    def pull(self, run_ids, verbose=False):
-        raise NotImplementedError("TODO")
+    def pull(self, runs):
+        self._verify_creds_and_region()
+        for run in runs:
+            self._pull_run(run)
 
-    def pull_all(self, verbose=False):
-        raise NotImplementedError("TODO")
-
-    def pull_src(self):
-        raise NotImplementedError("TODO")
+    def _pull_run(self, run):
+        remote_run_src = self._s3_uri(*RUNS_PATH + [run.id]) + "/"
+        local_run_dest = os.path.join(var.runs_dir(), run.id, "")
+        args = ["--delete", remote_run_src, local_run_dest]
+        log.info("Copying %s from %s", run.id, self.name)
+        self._s3_cmd("sync", args)
 
     def label_runs(self, **opts):
         raise NotImplementedError("TODO")

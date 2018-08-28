@@ -80,13 +80,7 @@ class Remote(object):
     def push(self, runs, verbose=False):
         raise NotImplementedError()
 
-    def pull(self, run_ids, verbose=False):
-        raise NotImplementedError()
-
-    def pull_all(self, verbose=False):
-        raise NotImplementedError()
-
-    def pull_src(self):
+    def pull(self, runs):
         raise NotImplementedError()
 
     def status(self, verbose=False):
@@ -109,6 +103,9 @@ class Remote(object):
         raise NotImplementedError()
 
     def list_runs(self, verbose=False, **filters):
+        raise NotImplementedError()
+
+    def select_runs(self, **filters):
         raise NotImplementedError()
 
     def one_run(self, run_id_prefix, attrs):
