@@ -28,7 +28,6 @@ import yaml
 import guild.opref
 
 from guild import cli
-from guild import click_util
 from guild import cmd_impl_support
 from guild import config
 from guild import remote_run_support
