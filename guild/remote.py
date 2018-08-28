@@ -64,9 +64,7 @@ class RemoteConfig(dict):
 class RunProxy(runlib.Run):
 
     def __init__(self, data):
-        super(RunProxy, self).__init__(
-            data["id"],
-            data["run_dir"])
+        super(RunProxy, self).__init__(data["id"], data["run_dir"])
         self._data = data
         self.opref = opref.OpRef.from_run(self)
 
