@@ -170,11 +170,11 @@ class S3Remote(remotelib.Remote):
         if args.permanent:
             preview = (
                 "WARNING: You are about to permanently delete "
-                "the following runs from %s:" % self.name)
+                "the following runs on %s:" % self.name)
             confirm = "Permanently delete these runs?"
         else:
             preview = (
-                "You are about to delete the following runs from %s:"
+                "You are about to delete the following runs on %s:"
                 % self.name)
             confirm = "Delete these runs?"
         no_runs_help = "Nothing to delete."
@@ -221,7 +221,7 @@ class S3Remote(remotelib.Remote):
         args = click_util.Args(**opts)
         args.archive = self._deleted_runs_dir
         preview = (
-            "You are about to restore the following runs from %s:"
+            "You are about to restore the following runs on %s:"
             % self.name)
         confirm = "Restore these runs?"
         no_runs_help = "Nothing to restore."
