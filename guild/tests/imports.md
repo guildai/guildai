@@ -151,8 +151,10 @@
     guild.plugins.training_pkg_main
     guild.remote
     guild.remote_run_support
+    guild.remote_util
     guild.remotes.__init__
     guild.remotes.ec2
+    guild.remotes.s3
     guild.remotes.ssh
     guild.remotes.ssh_util
     guild.remotes.tpu
