@@ -137,7 +137,7 @@ def _run_kw(args):
 def one_run(run_id_prefix, args):
     assert args.remote
     remote = remote_support.remote_for_args(args)
-    cli.out("Getting remote run info")
+    cli.note("Getting remote run info")
     try:
         return remote.one_run(run_id_prefix, ["flags"])
     except remotelib.RemoteProcessError as e:
