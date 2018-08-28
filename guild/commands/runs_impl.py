@@ -194,6 +194,44 @@ def _list_runs(args):
     if args.archive and args.deleted:
         cli.error("--archive and --deleted may not both be used")
     runs = filtered_runs(args)
+    if args.json:
+        if args.more or args.all:
+            cli.note("--json option always shows all runs")
+        _list_runs_json(runs)
+    else:
+        _list_formatted_runs(runs, args)
+
+def _list_runs_json(runs):
+    runs_data = [_listed_run_json_data(run) for run in runs]
+    cli.out(json.dumps(runs_data))
+
+def _listed_run_json_data(run):
+    return _run_data(run, (
+        "exit_status",
+        "cmd",
+        "label",
+        "opref",
+        "started",
+        "status",
+        "stopped",
+    ))
+
+def _run_data(run, attrs):
+    data = {
+        "id": run.id,
+        "run_dir": run.path
+    }
+    data.update({name: _run_attr(run, name) for name in attrs})
+    return data
+
+def _run_attr(run, name):
+    base_attrs = ("status",)
+    if name in base_attrs:
+        return getattr(run, name)
+    else:
+        return run.get(name)
+
+def _list_formatted_runs(runs, args):
     formatted = []
     for i, run in enumerate(runs):
         try:
@@ -205,13 +243,7 @@ def _list_runs(args):
     limited_formatted = _limit_runs(formatted, args)
     cols = ["index", "operation", "started", "status", "label"]
     detail = RUN_DETAIL if args.verbose else None
-    if args.json:
-        _json_out(limited_formatted)
-    else:
-        cli.table(limited_formatted, cols=cols, detail=detail)
-
-def _json_out(data):
-    cli.out(json.dumps(data))
+    cli.table(limited_formatted, cols=cols, detail=detail)
 
 def _limit_runs(runs, args):
     if args.all:
