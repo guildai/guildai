@@ -28,10 +28,6 @@ def push_params(fn):
         runs_support.op_and_label_filters,
         runs_support.status_filters,
         click.Option(
-            ("-v", "--verbose"),
-            help="Show more information.",
-            is_flag=True),
-        click.Option(
             ("-y", "--yes"),
             help="Do not prompt before copying.",
             is_flag=True),

@@ -45,13 +45,13 @@ class SSHRemote(remotelib.Remote):
         self.guild_env = config.get("guild-env")
         self.run_init = config.get("run-init")
 
-    def push(self, runs, verbose=False):
+    def push(self, runs):
         for run in runs:
-            self._push_run(run, verbose)
+            self._push_run(run)
 
-    def _push_run(self, run, verbose):
+    def _push_run(self, run):
         cmd = ["rsync", "-al", "--delete"]
-        if verbose:
+        if log.getEffectiveLevel() <= logging.DEBUG:
             cmd.append("-vvv")
         else:
             cmd.append("-v")
@@ -62,37 +62,26 @@ class SSHRemote(remotelib.Remote):
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
 
-    def pull(self, run_ids, verbose=False):
-        for run_id in run_ids:
-            self._pull_run(run_id, verbose)
+    def pull(self, runs):
+        for run in runs:
+            self._pull_run(run.id)
 
-    def _pull_run(self, run_id, verbose):
+    def _pull_run(self, run_id):
         src = "{}:{}/runs/{}/".format(self.host, self.guild_home, run_id)
         dest = os.path.join(var.runs_dir(), run_id + "/")
-        cmd = ["rsync"] + self._pull_rsync_opts(verbose) + [src, dest]
+        cmd = ["rsync"] + self._pull_rsync_opts() + [src, dest]
         log.info("Copying %s", run_id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
 
     @staticmethod
-    def _pull_rsync_opts(verbose):
+    def _pull_rsync_opts():
         opts = ["-al", "--inplace", "--delete"]
-        if verbose:
+        if log.getEffectiveLevel() <= logging.DEBUG:
             opts.append("-vvv")
         else:
             opts.append("-v")
         return opts
-
-    def pull_all(self, verbose=False):
-        src = "{}:{}/runs/".format(self.host, self.guild_home)
-        dest = var.runs_dir() + "/"
-        cmd = ["rsync"] + self._pull_rsync_opts(verbose) + [src, dest]
-        log.info("Copying all runs")
-        log.debug("rsync cmd: %r", cmd)
-        subprocess.check_call(cmd)
-
-    def pull_src(self):
-        return "{}:{}".format(self.host, self.guild_home)
 
     def start(self):
         raise remotelib.OperationNotSupported(

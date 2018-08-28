@@ -77,7 +77,7 @@ class Remote(object):
 
     name = None
 
-    def push(self, runs, verbose=False):
+    def push(self, runs):
         raise NotImplementedError()
 
     def pull(self, runs):
