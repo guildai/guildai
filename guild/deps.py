@@ -118,7 +118,8 @@ def _symlink(source_path, link):
 
 class ResourceProxy(object):
 
-    def __init__(self, name, config, ctx):
+    def __init__(self, dependency, name, config, ctx):
+        self.dependency = dependency
         self.name = name
         self.config = config
         self.ctx = ctx
@@ -166,7 +167,7 @@ def _dependency_resource(dep, flag_vals, ctx):
     except DependencyError as e:
         if spec in ctx.resource_config:
             log.warning("%s", e)
-            return ResourceProxy(spec, ctx.resource_config[spec], ctx)
+            return ResourceProxy(dep, spec, ctx.resource_config[spec], ctx)
         raise
     if res:
         res.dependency = spec
