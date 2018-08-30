@@ -66,6 +66,7 @@ class S3Remote(remotelib.Remote):
         args.archive = runs_dir
         args.deleted = False
         args.remote = None
+        args.json = False
         runs_impl.list_runs(args)
 
     def _runs_dir_for_filters(self, deleted, **_filters):
@@ -168,6 +169,7 @@ class S3Remote(remotelib.Remote):
         args = click_util.Args(**filters)
         args.archive = self._runs_dir
         args.remote = None
+        args.runs = []
         return runs_impl.runs_for_args(args)
 
     def delete_runs(self, **opts):
