@@ -101,7 +101,7 @@ def _no_matching_run_error(spec, ctx):
         " or '%s' for more information" % click_util.cmd_help(ctx)
         if ctx else "")
     cli.error(
-        "could not find run matching '%s'\n"
+        "could not find a run matching '%s'\n"
         "Try 'guild runs list' for a list%s."
         % (spec, help_msg))
 

@@ -722,7 +722,7 @@ def _no_delete_clause(args):
 def pull(args, ctx):
     remote = remote_support.remote_for_args(args)
     preview = (
-        "You are about to copy %sthe following runs from %s"
+        "You are about to copy %sthe following runs from %s:"
         % (_no_delete_clause(args), remote.name))
     confirm = "Continue?"
     no_runs = "No runs to copy."
