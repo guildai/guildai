@@ -48,6 +48,11 @@ def find_apply(funs, *args, **kw):
             return result
     return kw.get("default")
 
+def map_apply(funs, arg):
+    for f in funs:
+        arg = f(arg)
+    return arg
+
 def ensure_dir(d):
     d = os.path.realpath(d)
     try:
@@ -333,10 +338,10 @@ def resolve_refs(val, kv, undefined=_raise_error_marker):
     return _resolve_refs_recurse(val, kv, undefined, [])
 
 def resolve_all_refs(kv, undefined=_raise_error_marker):
-    resolved = {}
-    for name in sorted(kv):
-        resolved[name] = _resolve_refs_recurse(kv[name], kv, undefined, [])
-    return resolved
+    return {
+        name: _resolve_refs_recurse(kv[name], kv, undefined, [])
+        for name in sorted(kv)
+    }
 
 def _resolve_refs_recurse(val, kv, undefined, stack):
     if not isinstance(val, str):
@@ -347,6 +352,17 @@ def _resolve_refs_recurse(val, kv, undefined, stack):
         return resolved[0]
     else:
         return "".join([str(part) for part in resolved])
+
+def resolve_rel_paths(kv):
+    return {
+        name: _resolve_rel_path(kv[name])
+        for name in kv
+    }
+
+def _resolve_rel_path(maybe_path):
+    if os.path.exists(maybe_path) and not os.path.isabs(maybe_path):
+        return os.path.abspath(maybe_path)
+    return maybe_path
 
 class ReferenceCycleError(Exception):
     pass

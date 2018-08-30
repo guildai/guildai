@@ -217,7 +217,7 @@ class Operation(object):
 
 def _init_cmd_args(opdef):
     python_args = [_python_cmd(opdef), "-um", "guild.op_main"]
-    flag_vals = util.resolve_all_refs(opdef.flag_values())
+    flag_vals = _resolved_flag_vals(opdef.flag_values())
     try:
         cmd_args = _cmd_args(opdef.main, flag_vals)
     except guild.util.UndefinedReferenceError as e:
@@ -232,6 +232,12 @@ def _python_cmd(_opdef):
     # by the model (e.g. does it run under Python 2 or 3, etc.) and
     # not by whatever Python runtime is configured in the user env.
     return sys.executable
+
+def _resolved_flag_vals(flag_vals):
+    return util.map_apply(
+        [util.resolve_all_refs,
+         util.resolve_rel_paths],
+        flag_vals)
 
 def _cmd_args(main, flag_vals):
     def format_part(part):
