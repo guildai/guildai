@@ -54,7 +54,7 @@ def guild_packages():
 PKG_INFO, ENTRY_POINTS = guild_dist_info()
 
 EXTERNAL = {
-    "click": ("guildai/click", "bde8dd59c66f0a0a0954ce8bb0105fc490a4f52d"),
+    "click": ("guildai/click", "1ed032b55d1d886205ec9f6f2b9893303c04b71a"),
     "psutil": ("giampaolo/psutil", "release-5.4.2"),
 }
 
