@@ -48,11 +48,6 @@ def find_apply(funs, *args, **kw):
             return result
     return kw.get("default")
 
-def map_apply(funs, arg):
-    for f in funs:
-        arg = f(arg)
-    return arg
-
 def ensure_dir(d):
     d = os.path.realpath(d)
     try:

@@ -234,10 +234,7 @@ def _python_cmd(_opdef):
     return sys.executable
 
 def _resolved_flag_vals(flag_vals):
-    return util.map_apply(
-        [util.resolve_all_refs,
-         util.resolve_rel_paths],
-        flag_vals)
+    return util.resolve_all_refs(flag_vals)
 
 def _cmd_args(main, flag_vals):
     def format_part(part):

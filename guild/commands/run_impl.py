@@ -308,7 +308,13 @@ def _is_resource(name, opdef, ref_vars):
 
 def _apply_flag_vals(vals, opdef):
     for name, val in vals.items():
+        val = _resolve_rel_path(val)
         opdef.set_flag_value(name, val)
+
+def _resolve_rel_path(val):
+    if val and os.path.exists(val) and not os.path.isabs(val):
+        return os.path.abspath(val)
+    return val
 
 def _validate_opdef_flags(opdef):
     vals = opdef.flag_values()
