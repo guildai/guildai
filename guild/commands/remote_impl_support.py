@@ -20,17 +20,33 @@ from guild import remote as remotelib
 
 from . import remote_support
 
+class op_handler(object):
+
+    def __init__(self, remote):
+        self.remote = remote
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, etype, e, tb):
+        if etype is None:
+            return
+        if etype is remotelib.OperationError:
+            _handle_op_error(e, self.remote)
+        elif etype is remotelib.RemoteProcessError:
+            _handle_remote_process_error(e)
+        elif etype is remotelib.OperationNotSupported:
+            _handle_not_supported(self.remote)
+        else:
+            assert False, (etype, e, tb)
+
 def list_runs(args):
     assert args.remote
     if args.archive:
         cli.error("--archive and --remote cannot both be used")
     remote = remote_support.remote_for_args(args)
-    try:
+    with op_handler(remote):
         remote.list_runs(**_list_runs_kw(args))
-    except remotelib.RemoteProcessError as e:
-        _handle_remote_process_error(e)
-    except remotelib.OperationNotSupported:
-        _handle_not_supported(remote)
 
 def _list_runs_kw(args):
     names = _runs_filter_names() + [
@@ -82,7 +98,7 @@ def run(args):
             "To re-attach use 'guild watch {run_id} -r {remote}'"
             .format(run_id=run_id[:8], remote=args.remote))
     except remotelib.OperationError as e:
-        _handle_run_op_error(e, remote)
+        _handle_op_error(e, remote)
     except remotelib.OperationNotSupported:
         _handle_not_supported(remote)
     else:
@@ -92,7 +108,7 @@ def run(args):
                 "To watch use 'guild watch {run_id} -r {remote}'"
                 .format(run_id=run_id[:8], remote=args.remote))
 
-def _handle_run_op_error(e, remote):
+def _handle_op_error(e, remote):
     if e.args[0] == "running":
         assert len(e.args) == 2, e.args
         msg = (
@@ -148,12 +164,8 @@ def one_run(run_id_prefix, args):
 def watch_run(args):
     assert args.remote
     remote = remote_support.remote_for_args(args)
-    try:
+    with op_handler(remote):
         remote.watch_run(**_watch_run_kw(args))
-    except remotelib.RemoteProcessError as e:
-        _handle_remote_process_error(e)
-    except remotelib.OperationNotSupported:
-        _handle_not_supported(remote)
 
 def _watch_run_kw(args):
     names = [
@@ -171,12 +183,8 @@ def _watch_run_kw(args):
 def delete_runs(args):
     assert args.remote
     remote = remote_support.remote_for_args(args)
-    try:
+    with op_handler(remote):
         remote.delete_runs(**_delete_runs_kw(args))
-    except remotelib.RemoteProcessError as e:
-        _handle_remote_process_error(e)
-    except remotelib.OperationNotSupported:
-        _handle_not_supported(remote)
 
 def _delete_runs_kw(args):
     names = _runs_select_names() + ["permanent", "yes"]
@@ -186,12 +194,8 @@ def _delete_runs_kw(args):
 def run_info(args):
     assert args.remote
     remote = remote_support.remote_for_args(args)
-    try:
+    with op_handler(remote):
         remote.run_info(**_run_info_kw(args))
-    except remotelib.RemoteProcessError as e:
-        _handle_remote_process_error(e)
-    except remotelib.OperationNotSupported:
-        _handle_not_supported(remote)
 
 def _run_info_kw(args):
     names = _runs_filter_names() + [
@@ -218,12 +222,8 @@ def check(args):
     if args.no_info:
         cli.error("--no-info is not supported for remote check")
     remote = remote_support.remote_for_args(args)
-    try:
+    with op_handler(remote):
         remote.check(**_check_kw(args))
-    except remotelib.RemoteProcessError as e:
-        _handle_remote_process_error(e)
-    except remotelib.OperationNotSupported:
-        _handle_not_supported(remote)
 
 def _check_kw(args):
     names = [
@@ -242,12 +242,8 @@ def _check_kw(args):
 def stop_runs(args):
     assert args.remote
     remote = remote_support.remote_for_args(args)
-    try:
+    with op_handler(remote):
         remote.stop_runs(**_stop_runs_kw(args))
-    except remotelib.RemoteProcessError as e:
-        _handle_remote_process_error(e)
-    except remotelib.OperationNotSupported:
-        _handle_not_supported(remote)
 
 def _stop_runs_kw(args):
     names = [
@@ -266,12 +262,8 @@ def _stop_runs_kw(args):
 def restore_runs(args):
     assert args.remote
     remote = remote_support.remote_for_args(args)
-    try:
+    with op_handler(remote):
         remote.restore_runs(**_restore_runs_kw(args))
-    except remotelib.RemoteProcessError as e:
-        _handle_remote_process_error(e)
-    except remotelib.OperationNotSupported:
-        _handle_not_supported(remote)
 
 def _restore_runs_kw(args):
     names = _runs_select_names() + ["yes"]
@@ -281,12 +273,8 @@ def _restore_runs_kw(args):
 def purge_runs(args):
     assert args.remote
     remote = remote_support.remote_for_args(args)
-    try:
+    with op_handler(remote):
         remote.purge_runs(**_restore_runs_kw(args))
-    except remotelib.RemoteProcessError as e:
-        _handle_remote_process_error(e)
-    except remotelib.OperationNotSupported:
-        _handle_not_supported(remote)
 
 def _purge_runs_kw(args):
     names = _runs_select_names() + ["yes"]
@@ -296,12 +284,8 @@ def _purge_runs_kw(args):
 def label_runs(args):
     assert args.remote
     remote = remote_support.remote_for_args(args)
-    try:
+    with op_handler(remote):
         remote.label_runs(**_label_runs_kw(args))
-    except remotelib.RemoteProcessError as e:
-        _handle_remote_process_error(e)
-    except remotelib.OperationNotSupported:
-        _handle_not_supported(remote)
 
 def _label_runs_kw(args):
     names = _runs_select_names() + [
@@ -320,12 +304,8 @@ def _handle_not_supported(remote):
 
 def filtered_runs_for_pull(remote, args):
     cli.note("Getting remote run info")
-    try:
+    with op_handler(remote):
         return remote.filtered_runs(**_filtered_runs_for_pull_kw(args))
-    except remotelib.RemoteProcessError as e:
-        _handle_remote_process_error(e)
-    except remotelib.OperationNotSupported:
-        _handle_not_supported(remote)
 
 def _filtered_runs_for_pull_kw(args):
     names = _runs_filter_names()
