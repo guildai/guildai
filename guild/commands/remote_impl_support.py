@@ -28,17 +28,18 @@ class op_handler(object):
     def __enter__(self):
         return self
 
-    def __exit__(self, etype, e, tb):
-        if etype is None:
-            return
+    def __exit__(self, etype, e, _tb):
+        if etype is not None:
+            self._handle_error(etype, e)
+        return False
+
+    def _handle_error(self, etype, e):
         if etype is remotelib.OperationError:
             _handle_op_error(e, self.remote)
         elif etype is remotelib.RemoteProcessError:
             _handle_remote_process_error(e)
         elif etype is remotelib.OperationNotSupported:
             _handle_not_supported(self.remote)
-        else:
-            assert False, (etype, e, tb)
 
 def list_runs(args):
     assert args.remote
