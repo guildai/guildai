@@ -144,13 +144,25 @@ def _module_main(module_info):
         debugger = Debugger()
         debugger.runcall(imp.load_module, "__main__", f, path, desc)
     else:
+        # Create closure to handle anything post load_module, which
+        # effectively refefines the current module namespace.
+        handle_interrupt = _interrupt_handler()
         try:
             imp.load_module("__main__", f, path, desc)
         except KeyboardInterrupt:
-            if not os.getenv("HANDLE_KEYBOARD_INTERRUPT"):
-                raise
-            if log.getEffectiveLevel() <= logging.DEBUG:
-                log.exception("KeyboardInterrupt")
+            handle_interrupt()
+
+def _interrupt_handler():
+    """Returns interrupt handler that's independent of module namespace."""
+    handle_interrupt = os.getenv("HANDLE_KEYBOARD_INTERRUPT")
+    log_exception = log.getEffectiveLevel() <= logging.DEBUG
+    log_exception_f = log.exception
+    def handler():
+        if not handle_interrupt:
+            raise
+        if log_exception:
+            log_exception_f("interrupted")
+    return handler
 
 class Debugger(pdb.Pdb):
 
