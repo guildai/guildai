@@ -82,7 +82,11 @@ class SSHRemote(remotelib.Remote):
 
     @staticmethod
     def _pull_rsync_opts(no_delete):
-        opts = ["-al", "--inplace"]
+        opts = [
+            "-al",
+            "--inplace",
+            "--exclude", ".guild/job-packages",
+            "--exclude", ".guild/LOCK.remote"]
         if not no_delete:
             opts.append("--delete")
         if log.getEffectiveLevel() <= logging.DEBUG:
