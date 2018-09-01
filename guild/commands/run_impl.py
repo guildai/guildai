@@ -21,6 +21,7 @@ import re
 
 import click
 import daemonize
+import six
 
 import guild.help
 import guild.model
@@ -312,7 +313,10 @@ def _apply_flag_vals(vals, opdef):
         opdef.set_flag_value(name, val)
 
 def _resolve_rel_path(val):
-    if val and os.path.exists(val) and not os.path.isabs(val):
+    if (isinstance(val, six.string_types) and
+        val and
+        os.path.exists(val) and
+        not os.path.isabs(val)):
         return os.path.abspath(val)
     return val
 
