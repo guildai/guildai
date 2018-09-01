@@ -167,6 +167,8 @@ def _delete_run(src):
 def _move(src, dest):
     util.ensure_dir(os.path.dirname(dest))
     log.debug("moving %s to %s", src, dest)
+    if os.path.exists(dest):
+        _delete_run(dest)
     shutil.move(src, dest)
 
 def restore_runs(runs):
