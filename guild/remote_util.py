@@ -18,9 +18,22 @@ from __future__ import division
 import os
 
 from guild import remote as remotelib
+from guild import var
 
 def require_env(name):
     if name not in os.environ:
         raise remotelib.OperationError(
             "missing required %s environment variable"
             % name)
+
+def set_remote_lock(run_id_or_path, remote_name):
+    if os.path.exists(run_id_or_path):
+        run_dir = run_id_or_path
+    else:
+        run_dir = os.path.join(var.runs_dir(), run_id_or_path)
+    lock_file = os.path.join(run_dir, ".guild", "LOCK")
+    if os.path.exists(lock_file):
+        remote_lock_file = os.path.join(run_dir, ".guild", "LOCK.remote")
+        with open(remote_lock_file, "w") as f:
+            f.write(remote_name)
+        os.remove(lock_file)

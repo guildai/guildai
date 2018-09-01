@@ -27,9 +27,11 @@ from six.moves import shlex_quote as q
 
 from guild import click_util
 from guild import remote as remotelib
+from guild import remote_util
 from guild import run as runlib
 from guild import util
 from guild import var
+
 from guild.commands import package_impl
 
 from . import ssh_util
@@ -76,6 +78,7 @@ class SSHRemote(remotelib.Remote):
         log.info("Copying %s", run_id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
+        remote_util.set_remote_lock(run_id, self.name)
 
     @staticmethod
     def _pull_rsync_opts(no_delete):
