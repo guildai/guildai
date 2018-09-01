@@ -18,7 +18,6 @@ from __future__ import division
 import guild.config
 
 from guild import opref
-from guild import run as runlib
 
 class NoSuchRemote(ValueError):
     pass
@@ -61,15 +60,35 @@ class RemoteConfig(dict):
         except KeyError:
             raise MissingRequiredConfig(key)
 
-class RunProxy(runlib.Run):
+class RunProxy(object):
 
     def __init__(self, data):
-        super(RunProxy, self).__init__(data["id"], data["run_dir"])
+        self.id = data["id"]
+        self.short_id = self.id[:8]
+        self.path = data["run_dir"]
+        self.pid = None
+        self.status = data.get("status")
+        self.remote = None
         self._data = data
         self.opref = opref.OpRef.from_run(self)
 
+    def get(self, key, default=None):
+        return self._data.get(key, default)
+
     def __getitem__(self, key):
         return self._data[key]
+
+    def attr_names(self):
+        return sorted(self._data)
+
+    def has_attr(self, name):
+        return name in self._data
+
+    def iter_attrs(self):
+        return self._data.items()
+
+    def __repr__(self):
+        return "<guild.remote.RunProxy '%s'>" % self.id
 
 class Remote(object):
 
