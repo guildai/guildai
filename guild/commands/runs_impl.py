@@ -241,7 +241,7 @@ def _list_formatted_runs(runs, args):
         else:
             formatted.append(formatted_run)
     limited_formatted = _limit_runs(formatted, args)
-    cols = ["index", "operation", "started", "status", "label"]
+    cols = ["index", "operation", "started", "status_with_remote", "label"]
     detail = RUN_DETAIL if args.verbose else None
     cli.table(limited_formatted, cols=cols, detail=detail)
 
@@ -276,6 +276,7 @@ def init_opref_attr(run):
         return run
 
 def format_run(run, index=None):
+    status = run.status
     return {
         "id": run.id,
         "index": _format_run_index(run, index),
@@ -284,7 +285,8 @@ def format_run(run, index=None):
         "op_name": run.opref.op_name,
         "operation": format_op_desc(run.opref),
         "pkg": run.opref.pkg_name,
-        "status": run.status,
+        "status": status,
+        "status_with_remote": _status_with_remote(status, run.remote),
         "label": run.get("label") or "",
         "pid": run.pid or "",
         "started": util.format_timestamp(run.get("started")),
@@ -325,6 +327,12 @@ def _format_package_op(opref):
 
 def _format_pending_op(opref):
     return "<pending %s>" % opref.op_name
+
+def _status_with_remote(status, remote):
+    if remote:
+        return "{} ({})".format(status, remote)
+    else:
+        return status
 
 def _format_command(cmd):
     if not cmd:
@@ -368,7 +376,9 @@ def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
     preview = [format_run(run) for run in selected]
     if not args.yes:
         cli.out(preview_msg)
-        cols = ["short_index", "operation", "started", "status", "label"]
+        cols = [
+            "short_index", "operation", "started",
+            "status_with_remote", "label"]
         cli.table(preview, cols=cols, indent=2)
     if args.yes or cli.confirm(confirm_prompt, confirm_default):
         op_callback(selected)
@@ -396,14 +406,16 @@ def _delete_runs(args, ctx):
         confirm = "Delete these runs?"
     no_runs_help = "Nothing to delete."
     def delete(selected):
-        running = [run for run in selected if run.status == "running"]
-        if running and not args.yes:
+        stoppable = [
+            run for run in selected
+            if run.status == "running" and not run.remote]
+        if stoppable and not args.yes:
             cli.out(
                 "WARNING: one or more runs are still running "
                 "and will be stopped before being deleted.")
             if not cli.confirm("Really delete these runs?"):
                 return
-        for run in running:
+        for run in stoppable:
             _stop_run(run, no_wait=True)
         var.delete_runs(selected, args.permanent)
         if args.permanent:
@@ -593,10 +605,15 @@ def _stop_runs(args, ctx):
     confirm = "Stop these runs?"
     no_runs_help = "Nothing to stop."
     args.running = True
-    def stop(selected):
+    def stop_f(selected):
         for run in selected:
             _stop_run(run, args.no_wait)
-    _runs_op(args, ctx, False, preview, confirm, no_runs_help, stop)
+    def select_runs_f(args, ctx, default_runs_arg, force_deleted):
+        runs = _runs_op_selected(args, ctx, default_runs_arg, force_deleted)
+        return [run for run in runs if not run.remote]
+    _runs_op(
+        args, ctx, False, preview, confirm, no_runs_help, stop_f,
+        None, True, select_runs_f)
 
 def _stop_run(run, no_wait):
     remote_lock = remote_run_support.lock_for_run(run)

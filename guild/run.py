@@ -67,6 +67,17 @@ class Run(object):
             else:
                 return self._local_status()
 
+    @property
+    def remote(self):
+        try:
+            f = open(self.guild_path("LOCK.remote"), "r")
+        except OSError as e:
+            if e.errno != 2:
+                raise
+            return None
+        else:
+            return f.read().strip()
+
     def _remote_exit_status(self):
         status = self.get("exit_status.remote")
         if status == 0:
