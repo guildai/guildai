@@ -71,7 +71,7 @@ class Run(object):
     def remote(self):
         try:
             f = open(self.guild_path("LOCK.remote"), "r")
-        except OSError as e:
+        except IOError as e:
             if e.errno != 2:
                 raise
             return None
