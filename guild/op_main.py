@@ -150,16 +150,18 @@ def _module_main(module_info):
         try:
             imp.load_module("__main__", f, path, desc)
         except KeyboardInterrupt:
+            if not handle_interrupt:
+                raise
             handle_interrupt()
 
 def _interrupt_handler():
     """Returns interrupt handler that's independent of module namespace."""
-    handle_interrupt = os.getenv("HANDLE_KEYBOARD_INTERRUPT")
+    if os.getenv("HANDLE_KEYBOARD_INTERRUPT"):
+        return None
+    # Save everything we need to handle interrupt.
     log_exception = log.getEffectiveLevel() <= logging.DEBUG
     log_exception_f = log.exception
     def handler():
-        if not handle_interrupt:
-            raise
         if log_exception:
             log_exception_f("interrupted")
     return handler
