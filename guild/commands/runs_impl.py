@@ -613,7 +613,7 @@ def _stop_runs(args, ctx):
         return [run for run in runs if not run.remote]
     _runs_op(
         args, ctx, False, preview, confirm, no_runs_help, stop_f,
-        None, True, select_runs_f)
+        None, False, select_runs_f)
 
 def _stop_run(run, no_wait):
     remote_lock = remote_run_support.lock_for_run(run)
