@@ -81,7 +81,12 @@ def _run_for_pid(pid):
     cli.error("cannot find run for pid %i" % pid)
 
 def _parent_pid(pid):
-    return psutil.Process(pid).parent().pid
+    try:
+        p = psutil.Process(pid)
+    except psutil.NoSuchProcess:
+        return None
+    else:
+        return p.parent().pid
 
 def _watch_run(run):
     try:
