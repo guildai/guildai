@@ -436,24 +436,38 @@ def _untar(src, select, unpack_dir):
     return _gen_unpack(
         unpack_dir,
         src,
-        tf.getmembers,
-        lambda tfinfo: tfinfo.name,
+        _tar_members_fun(tf),
+        _tar_member_name,
         tf.extractall,
         select)
 
-def _gen_unpack(unpack_dir, src, list_members, member_name, extract_all,
+def _tar_members_fun(tf):
+    def f():
+        return [m for m in tf.getmembers() if m.name != "."]
+    return f
+
+def _tar_member_name(tfinfo):
+    return _strip_leading_dotdir(tfinfo.name)
+
+def _strip_leading_dotdir(path):
+    if path[:2] == "./":
+        return path[2:]
+    else:
+        return path
+
+def _gen_unpack(unpack_dir, src, list_members, member_name, extract,
                 select):
     members = list_members()
-    member_names = [member_name(m) for m in members]
+    names = [member_name(m) for m in members]
     to_extract = [
-        m for m in members
-        if not os.path.exists(os.path.join(unpack_dir, member_name(m)))]
-    extract_all(unpack_dir, to_extract)
-    _write_unpacked(member_names, unpack_dir, src)
+        m for m, name in zip(members, names)
+        if not os.path.exists(os.path.join(unpack_dir, name))]
+    extract(unpack_dir, to_extract)
+    _write_unpacked(names, unpack_dir, src)
     if select:
-        return _selected_source_paths(unpack_dir, member_names, select)
+        return _selected_source_paths(unpack_dir, names, select)
     else:
-        return _all_source_paths(unpack_dir, member_names)
+        return _all_source_paths(unpack_dir, names)
 
 def _write_unpacked(unpacked, unpack_dir, src):
     with open(_unpacked_src(unpack_dir, src), "w") as f:
