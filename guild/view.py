@@ -44,18 +44,24 @@ TB_REFRESH_INTERVAL = 5
 SCALAR_KEYS = [
     ("step", (
         "loss_step",
+        "total_loss_1_step",
         "train/loss_step",
         "train/cross_entropy_1_step",
-        "total_loss_1_step",
-        "model/loss_1_step",
+        "train/total_loss_1_step",
+        "model/loss_step",
+        "model/cross_entropy_1_step",
+        "model/total_loss_1_step",
         "OptimizeLoss_step",
     )),
     ("loss", (
         "loss",
+        "total_loss_1",
         "train/loss",
         "train/cross_entropy_1",
-        "total_loss_1",
-        "model/loss_1",
+        "train/total_loss_1",
+        "model/loss",
+        "model/cross_entropy_1",
+        "model/total_loss_1",
         "OptimizeLoss",
     )),
     ("val_acc", (
