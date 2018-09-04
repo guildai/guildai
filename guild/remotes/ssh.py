@@ -258,7 +258,13 @@ class SSHRemote(remotelib.Remote):
             % q(run_id_prefix))
         cmd = "; ".join(cmd_lines)
         out = ssh_util.ssh_output(self.host, [cmd], self.user)
-        return remotelib.RunProxy(yaml.load(out))
+        return remotelib.RunProxy(self._run_data_from_yaml(out))
+
+    @staticmethod
+    def _run_data_from_yaml(s):
+        data = yaml.load(s)
+        data["flags"] = data.get("flags") or {}
+        return data
 
     def watch_run(self, **opts):
         self._guild_cmd("watch", _watch_run_args(**opts))
