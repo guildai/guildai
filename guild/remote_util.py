@@ -26,14 +26,23 @@ def require_env(name):
             "missing required %s environment variable"
             % name)
 
-def set_remote_lock(run_id_or_path, remote_name):
-    if os.path.exists(run_id_or_path):
-        run_dir = run_id_or_path
-    else:
-        run_dir = os.path.join(var.runs_dir(), run_id_or_path)
-    lock_file = os.path.join(run_dir, ".guild", "LOCK")
-    if os.path.exists(lock_file):
-        remote_lock_file = os.path.join(run_dir, ".guild", "LOCK.remote")
+def set_remote_lock(remote_run, remote_name, runs_dir=None):
+    runs_dir = runs_dir or var.runs_dir()
+    local_run_dir = os.path.join(runs_dir, remote_run.id)
+    lock_file = os.path.join(local_run_dir, ".guild", "LOCK")
+    remote_lock_file = os.path.join(local_run_dir, ".guild", "LOCK.remote")
+    _ensure_deleted(lock_file)
+    _ensure_deleted(remote_lock_file)
+    if remote_run.status == "running":
         with open(remote_lock_file, "w") as f:
             f.write(remote_name)
-        os.remove(lock_file)
+    elif remote_run.status == "terminated":
+        with open(lock_file, "w") as f:
+            f.write("0")
+
+def _ensure_deleted(path):
+    try:
+        os.remove(path)
+    except IOError as e:
+        if e.errno != 2:
+            raise

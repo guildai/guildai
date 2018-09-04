@@ -69,16 +69,16 @@ class SSHRemote(remotelib.Remote):
 
     def pull(self, runs, no_delete=False):
         for run in runs:
-            self._pull_run(run.id, no_delete)
+            self._pull_run(run, no_delete)
 
-    def _pull_run(self, run_id, no_delete):
-        src = "{}:{}/runs/{}/".format(self.host, self.guild_home, run_id)
-        dest = os.path.join(var.runs_dir(), run_id + "/")
+    def _pull_run(self, run, no_delete):
+        src = "{}:{}/runs/{}/".format(self.host, self.guild_home, run.id)
+        dest = os.path.join(var.runs_dir(), run.id + "/")
         cmd = ["rsync"] + self._pull_rsync_opts(no_delete) + [src, dest]
-        log.info("Copying %s", run_id)
+        log.info("Copying %s", run.id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
-        remote_util.set_remote_lock(run_id, self.name)
+        remote_util.set_remote_lock(run, self.name)
 
     @staticmethod
     def _pull_rsync_opts(no_delete):
@@ -86,7 +86,7 @@ class SSHRemote(remotelib.Remote):
             "-al",
             "--inplace",
             "--exclude", ".guild/job-packages",
-            "--exclude", ".guild/LOCK.remote"]
+            "--exclude", ".guild/LOCK*"]
         if not no_delete:
             opts.append("--delete")
         if log.getEffectiveLevel() <= logging.DEBUG:
