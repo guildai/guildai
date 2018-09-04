@@ -331,8 +331,15 @@ def _check_missing_flag_vals(vals, opdef):
         _missing_required_flags_error(missing)
 
 def _missing_flag_vals(vals, opdef):
-    return [flag for flag in opdef.flags
-            if flag.required and not vals.get(flag.name)]
+    return [
+        flag for flag in opdef.flags
+        if flag.required and _flag_missing(vals.get(flag.name))
+    ]
+
+def _flag_missing(val):
+    if val is None or val == "":
+        return True
+    return False
 
 def _missing_required_flags_error(missing):
     cli.out("Operation requires the following missing flags:\n", err=True)
