@@ -544,9 +544,15 @@ def _format_attr(val):
         return _format_yaml(val)
 
 def _iter_output(run):
-    with open(run.guild_path("output"), "r") as f:
-        for line in f:
-            yield line
+    try:
+        f = open(run.guild_path("output"), "r")
+    except Error as e:
+        if e.errno != 2:
+            raise
+    else:
+        with f:
+            for line in f:
+                yield line
 
 def _format_yaml(val):
     formatted = yaml.dump(val)
