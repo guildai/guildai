@@ -26,7 +26,7 @@ def run_params(fn):
             ("-l", "--label"), metavar="LABEL",
             help="Set a label for the run."),
         click.Option(
-            ("--run-dir",), metavar="DIR",
+            ("-d", "--run-dir",), metavar="DIR",
             help=(
                 "Use alternative run directory DIR. Cannot be used with "
                 "--stage.")),
