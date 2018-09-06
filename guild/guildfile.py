@@ -709,6 +709,10 @@ def _init_resources(data, modeldef):
 class OpDef(FlagHost):
 
     def __init__(self, name, data, modeldef):
+        if not isinstance(data, dict):
+            raise GuildfileError(
+                modeldef.guildfile,
+                "invalid operation def: %r" % data)
         super(OpDef, self).__init__(data, modeldef.guildfile, modeldef)
         self.modeldef = modeldef
         self.guildfile = modeldef.guildfile
