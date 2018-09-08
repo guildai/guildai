@@ -336,7 +336,10 @@ class S3Remote(remotelib.Remote):
     def _push_run(self, run, no_delete):
         local_run_src = os.path.join(run.path, "")
         remote_run_dest = self._s3_uri(*RUNS_PATH + [run.id]) + "/"
-        args = [local_run_src, remote_run_dest]
+        args = [
+            "--no-follow-symlinks",
+            local_run_src,
+            remote_run_dest]
         if not no_delete:
             args.insert(0, "--delete")
         log.info("Copying %s to %s", run.id, self.name)
