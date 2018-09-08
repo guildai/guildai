@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 import os
+import re
 import sys
 import time
 
@@ -64,14 +65,30 @@ def _pid_arg(pid):
 def _read_pid(path):
     try:
         f = open(path, "r")
-    except OSError as e:
-        cli.error(e)
+    except IOError as e:
+        if e.errno != 2:
+            raise
+        _handle_missing_pidfile(path)
     else:
         raw = f.readline().strip()
         try:
             return int(raw)
         except ValueError:
             cli.error("pidfile %s does not contain a valid pid" % path)
+
+def _handle_missing_pidfile(path):
+    m = re.search(r"(.+)/\.guild/JOB$", path)
+    if m:
+        run_dir = m.group(1)
+        _handle_run_error(run_dir)
+    else:
+        cli.error("%s does not exist" % path)
+
+def _handle_run_error(run_dir):
+    run_id = os.path.basename(run_dir)
+    cli.error(
+        "JOB for %s is no longer running" % run_id,
+        exit_status=2)
 
 def _run_for_pid(pid):
     for run_id, run_dir in var.iter_run_dirs():
