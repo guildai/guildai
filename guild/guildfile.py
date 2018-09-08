@@ -624,7 +624,7 @@ def _apply_parent_pkg_guildfile(parent, child):
     child.setdefault("__parents__", []).extend(parents)
 
 def _apply_parent_data(parent, child, attrs=None):
-    if not isinstance(child, dict) or not isinstance(parent, dict):
+    if not isinstance(parent, dict) or not isinstance(child, dict):
         return
     for name, parent_val in parent.items():
         if attrs is not None and name not in attrs:
@@ -632,9 +632,12 @@ def _apply_parent_data(parent, child, attrs=None):
         try:
             child_val = child[name]
         except KeyError:
-            child[name] = copy.deepcopy(parent_val)
+            _apply_value(child, name, parent_val)
         else:
             _apply_parent_data(parent_val, child_val)
+
+def _apply_value(target, name, val):
+    target[name] = copy.deepcopy(val)
 
 def _resolve_param_refs(val, params):
     if isinstance(val, dict):
