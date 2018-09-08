@@ -20,7 +20,6 @@ import pipes
 import re
 
 import click
-import daemonize
 import six
 
 import guild.help
@@ -534,10 +533,7 @@ def _run(op, model, args):
         remote_impl_support.run(args)
     else:
         _check_restart_running(args)
-        if args.background:
-            _run_in_background(op, args.background, args.quiet)
-        else:
-            _run_in_foreground(op, args.quiet)
+        _run_op(op, args)
 
 def _check_restart_running(args):
     restart_run = getattr(args, "_restart_run", None)
@@ -547,16 +543,9 @@ def _check_restart_running(args):
             "Wait for it to stop or try 'guild stop {id}' "
             "to stop it.".format(id=restart_run.id))
 
-def _run_in_background(op, pidfile, quiet):
-    run = lambda: op.run(quiet=False)
-    daemon = daemonize.Daemonize(app="guild", action=run, pid=pidfile)
-    if not quiet:
-        cli.out("Operation started in background (pidfile is %s)" % pidfile)
-    daemon.start()
-
-def _run_in_foreground(op, quiet):
+def _run_op(op, args):
     try:
-        result = op.run(quiet)
+        result = op.run(args.quiet, args.background)
     except deps.DependencyError as e:
         _handle_dependency_error(e)
     else:

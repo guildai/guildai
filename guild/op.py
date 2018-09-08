@@ -23,6 +23,8 @@ import subprocess
 import sys
 import time
 
+import daemonize
+
 import guild.plugin
 import guild.run
 
@@ -73,10 +75,10 @@ class Operation(object):
     def run_dir(self):
         return self._run_dir or (self._run.path if self._run else None)
 
-    def run(self, quiet=False):
+    def run(self, quiet=False, background_pidfile=None):
         self.init()
         self.resolve_deps()
-        return self.proc(quiet)
+        return self.proc(quiet, background_pidfile)
 
     def init(self):
         self._init_run()
@@ -115,14 +117,27 @@ class Operation(object):
         resolved = deps.resolve(self.opdef.dependencies, ctx)
         self._run.write_attr("deps", resolved)
 
-    def proc(self, quiet=False):
+    def proc(self, quiet=False, background_pidfile=None):
         self._pre_proc()
         if self.stage_only:
             self._stage_proc()
         else:
-            self._start_proc()
-            self._wait_for_proc(quiet)
-            self._finalize_attrs()
+            if background_pidfile:
+                self._background_proc(background_pidfile, quiet)
+            else:
+                return self._foreground_proc(quiet)
+
+    def _background_proc(self, pidfile, quiet):
+        action = lambda: self._foreground_proc(quiet)
+        daemon = daemonize.Daemonize(app="guild_op", action=action, pid=pidfile)
+        if not quiet:
+            log.info("Operation started in background (pidfile is %s)", pidfile)
+        daemon.start()
+
+    def _foreground_proc(self, quiet):
+        self._start_proc()
+        self._wait_for_proc(quiet)
+        self._finalize_attrs()
         return self._exit_status
 
     def _pre_proc(self):
