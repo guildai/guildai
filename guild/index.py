@@ -343,7 +343,8 @@ class RunIndex(object):
         event_paths = sorted(glob.glob(os.path.join(path, "*.tfevents.*")))
         to_hash = "\n".join([
             "{}\n{}".format(event_path, os.path.getsize(event_path))
-            for event_path in event_paths])
+            for event_path in event_paths
+            if os.path.isfile(event_path)])
         return hashlib.md5(to_hash.encode("utf-8")).hexdigest()
 
     def _scalar_vals(self, events, events_prefix):
