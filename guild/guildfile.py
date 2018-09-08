@@ -255,33 +255,39 @@ class Guildfile(object):
 # Include attribute support
 ###################################################################
 
-def _resolve_includes(data, section_name, guildfile, coerce_data=None):
+def _resolve_includes(data, section_name, guildfiles, coerce_data=None):
     assert isinstance(data, dict), data
     resolved = {}
     seen_includes = set()
     section_data = data.get(section_name) or {}
     _apply_section_data(
         section_data,
-        guildfile,
+        guildfiles,
         section_name,
         coerce_data,
         seen_includes,
         resolved)
     return resolved
 
-def _apply_section_data(data, guildfile, section_name, coerce_data,
+def _apply_section_data(data, guildfile_path, section_name, coerce_data,
                         seen_includes, resolved):
     for name in _includes_first(data):
         if name == "$include":
+            includes = _coerce_includes(data[name], guildfile_path[0])
             _apply_includes(
-                _coerce_includes(data[name], guildfile),
-                guildfile,
+                includes,
+                guildfile_path,
                 section_name,
                 coerce_data,
                 seen_includes,
                 resolved)
         else:
-            _apply_data(name, data[name], resolved, coerce_data, guildfile)
+            _apply_data(
+                name,
+                data[name],
+                resolved,
+                coerce_data,
+                guildfile_path[0])
 
 def _coerce_includes(val, src):
     if isinstance(val, six.string_types):
@@ -291,9 +297,9 @@ def _coerce_includes(val, src):
     else:
         raise GuildfileError(src, "invalid $include value: %r" % val)
 
-def _apply_includes(includes, guildfile, section_name, coerce_data,
+def _apply_includes(includes, guildfile_path, section_name, coerce_data,
                     seen_includes, resolved):
-    _assert_guildfile_data(guildfile)
+    _assert_guildfile_data(guildfile_path[0])
     for ref in includes:
         if ref in seen_includes:
             break
@@ -301,32 +307,23 @@ def _apply_includes(includes, guildfile, section_name, coerce_data,
         # Have to access guildfile.data here rather than use
         # guildfile.get because guildfile may is not initialized at
         # this point.
-        include_model, include_op = _split_include_ref(ref, guildfile)
-        for model_data in guildfile.data:
-            if _item_name(model_data, MODEL_TYPES) == include_model:
-                if include_op:
-                    op_data = _op_data(model_data, include_op)
-                    if op_data is None:
-                        raise GuildfileReferenceError(
-                            guildfile,
-                            "invalid include reference '%s': operation "
-                            "'%s' is not defined" % (ref, include_op))
-                    section_data = op_data.get(section_name) or {}
-                else:
-                    section_data = model_data.get(section_name) or {}
-                _apply_section_data(
-                    section_data,
-                    guildfile,
-                    section_name,
-                    coerce_data,
-                    seen_includes,
-                    resolved)
-                break
-        else:
+        include_model, include_op = _split_include_ref(ref, guildfile_path[0])
+        include_data = _find_include_data(
+            include_model,
+            include_op,
+            section_name,
+            guildfile_path)
+        if include_data is None:
             raise GuildfileReferenceError(
-                guildfile,
-                "invalid include reference '%s': model '%s' "
-                "is not defined" % (ref, include_model))
+                guildfile_path[0],
+                "invalid include reference '%s'" % ref)
+        _apply_section_data(
+            include_data,
+            guildfile_path,
+            section_name,
+            coerce_data,
+            seen_includes,
+            resolved)
 
 def _assert_guildfile_data(guildfile):
     # This is called by guildfile components that need to access
@@ -343,6 +340,19 @@ def _split_include_ref(ref, src):
                 src, ("invalid include reference '%s': operation references "
                       "must be specified as MODEL:OPERATION" % ref))
         return parts
+
+def _find_include_data(model_name, op_name, section_name, guildfile_path):
+    for gf in guildfile_path:
+        for top_level_data in gf.data:
+            if _item_name(top_level_data, MODEL_TYPES) == model_name:
+                if op_name:
+                    op_data = _op_data(top_level_data, op_name)
+                    if op_data is None:
+                        continue
+                    return op_data.get(section_name) or {}
+                else:
+                    return top_level_data.get(section_name) or {}
+    return None
 
 def _item_name(data, types):
     for attr in types:
@@ -377,127 +387,13 @@ def _apply_missing_vals(target, source):
         target[name] = source[name]
 
 ###################################################################
-# Flag support
-###################################################################
-
-class FlagHost(object):
-
-    def __init__(self, data, guildfile, parent_host=None):
-        self.flags = _init_flags(data, guildfile)
-        self._parent = parent_host
-        self._flag_vals = _init_flag_values(self.flags)
-
-    def get_flagdef(self, name):
-        for flag in self.flags:
-            if flag.name == name:
-                return flag
-        if self._parent:
-            for flag in self._parent.flags:
-                if flag.name == name:
-                    return flag
-        return None
-
-    def flag_values(self, include_none=True):
-        return dict(self._iter_flag_values(include_none))
-
-    def _iter_flag_values(self, include_none):
-        for name, val in self._iter_flag_values_recurse(set()):
-            if val is not None or include_none:
-                yield name, val
-
-    def _iter_flag_values_recurse(self, seen):
-        for name in self._flag_vals:
-            if name not in seen:
-                yield name, self._flag_vals[name]
-                seen.add(name)
-        if self._parent:
-            for name, val in self._parent._iter_flag_values_recurse(seen):
-                yield name, val
-
-    def set_flag_value(self, name, val):
-        self._flag_vals[name] = val
-
-    def get_flag_value(self, name, default=None):
-        try:
-            return self._flag_vals[name]
-        except KeyError:
-            if self._parent:
-                return self._parent.get_flag_value(name)
-            else:
-                return default
-
-    def update_flags(self, flag_host):
-        merged_map = {flag.name: flag for flag in self.flags}
-        merged_map.update({flag.name: flag for flag in flag_host.flags})
-        merged_flags = [merged_map[name] for name in sorted(merged_map)]
-        merged_vals = {}
-        merged_vals.update(self._flag_vals)
-        merged_vals.update(flag_host.flag_values())
-        self.flags = merged_flags
-        self._flag_vals = merged_vals
-
-def _init_flags(data, guildfile):
-    data = _resolve_includes(data, "flags", guildfile, _coerce_flag_data)
-    return [FlagDef(name, data[name], guildfile) for name in sorted(data)]
-
-def _coerce_flag_data(data, src):
-    if isinstance(data, dict):
-        return data
-    elif isinstance(data, six.string_types + (int, float, bool)):
-        return {"default": data}
-    elif data is None:
-        return {"default": None}
-    else:
-        raise GuildfileError(src, "invalid flag value: %r" % data)
-
-class FlagDef(object):
-
-    def __init__(self, name, data, guildfile):
-        self.name = name
-        self.guildfile = guildfile
-        self.default = data.get("default")
-        self.description = data.get("description") or ""
-        self.required = bool(data.get("required"))
-        self.arg_name = data.get("arg-name")
-        self.arg_skip = bool(data.get("arg-skip"))
-        self.choices = _init_flag_choices(data.get("choices"), self)
-
-    def __repr__(self):
-        return "<guild.guildfile.FlagDef '%s'>" % self.name
-
-def _init_flag_values(flagdefs):
-    return {
-        flag.name: flag.default
-        for flag in flagdefs
-    }
-
-def _init_flag_choices(data, flagdef):
-    if not data:
-        return []
-    return [FlagChoice(choice_data, flagdef) for choice_data in data]
-
-class FlagChoice(object):
-
-    def __init__(self, data, flagdef):
-        self.flagdef = flagdef
-        if isinstance(data, dict):
-            self.value = data.get("value")
-            self.description = data.get("description") or ""
-            self.args = data.get("args") or {}
-        else:
-            self.value = data
-            self.description = ""
-            self.args = {}
-
-###################################################################
 # Model def
 ###################################################################
 
-class ModelDef(FlagHost):
+class ModelDef(object):
 
     def __init__(self, name, data, guildfile, extends_seen=None):
         data = _extended_data(data, guildfile, extends_seen or [])
-        super(ModelDef, self).__init__(data, guildfile)
         self.name = name
         self.guildfile = guildfile
         self.parents = _dedup_parents(data.get("__parents__", []))
@@ -508,6 +404,10 @@ class ModelDef(FlagHost):
         self.disabled_plugins = data.get("disabled-plugins") or []
         self.extra = data.get("extra") or {}
         self.default = data.get("default", False)
+
+    @property
+    def guildfile_path(self):
+        return [self.guildfile] + self.parents
 
     def __repr__(self):
         return "<guild.guildfile.ModelDef '%s'>" % self.name
@@ -703,22 +603,23 @@ def _coerce_op_data(data):
         return data
 
 def _init_resources(data, modeldef):
-    data = _resolve_includes(data, "resources", modeldef.guildfile)
+    data = _resolve_includes(data, "resources", modeldef.guildfile_path)
     return [ResourceDef(key, data[key], modeldef) for key in sorted(data)]
 
 ###################################################################
 # Op def
 ###################################################################
 
-class OpDef(FlagHost):
+class OpDef(object):
 
     def __init__(self, name, data, modeldef):
         if not isinstance(data, dict):
             raise GuildfileError(
                 modeldef.guildfile,
                 "invalid operation def: %r" % data)
-        super(OpDef, self).__init__(data, modeldef.guildfile, modeldef)
         self.modeldef = modeldef
+        self.flags = _init_flags(data, self)
+        self._flag_vals = _init_flag_values(self.flags)
         self.guildfile = modeldef.guildfile
         self.name = name
         data = _coerce_op_data(data)
@@ -742,8 +643,98 @@ class OpDef(FlagHost):
     def fullname(self):
         return "%s:%s" % (self.modeldef.name, self.name)
 
+    def get_flagdef(self, name):
+        for flag in self.flags:
+            if flag.name == name:
+                return flag
+        return None
+
+    def flag_values(self, include_none=True):
+        return dict(self._iter_flag_values(include_none))
+
+    def _iter_flag_values(self, include_none):
+        for name, val in self._flag_vals.items():
+            if val is not None or include_none:
+                yield name, val
+
+    def set_flag_value(self, name, val):
+        self._flag_vals[name] = val
+
+    def get_flag_value(self, name, default=None):
+        try:
+            return self._flag_vals[name]
+        except KeyError:
+            return default
+
+    def update_flags(self, flag_host):
+        merged_map = {flag.name: flag for flag in self.flags}
+        merged_map.update({flag.name: flag for flag in flag_host.flags})
+        merged_flags = [merged_map[name] for name in sorted(merged_map)]
+        merged_vals = {}
+        merged_vals.update(self._flag_vals)
+        merged_vals.update(flag_host.flag_values())
+        self.flags = merged_flags
+        self._flag_vals = merged_vals
+
     def update_dependencies(self, opdef):
         self.dependencies.extend(opdef.dependencies)
+
+def _init_flags(data, opdef):
+    data = _resolve_includes(
+        data,
+        "flags",
+        opdef.modeldef.guildfile_path,
+        _coerce_flag_data)
+    return [FlagDef(name, data[name], opdef) for name in sorted(data)]
+
+def _coerce_flag_data(data, src):
+    if isinstance(data, dict):
+        return data
+    elif isinstance(data, six.string_types + (int, float, bool)):
+        return {"default": data}
+    elif data is None:
+        return {"default": None}
+    else:
+        raise GuildfileError(src, "invalid flag value: %r" % data)
+
+class FlagDef(object):
+
+    def __init__(self, name, data, opdef):
+        self.name = name
+        self.opdef = opdef
+        self.default = data.get("default")
+        self.description = data.get("description") or ""
+        self.required = bool(data.get("required"))
+        self.arg_name = data.get("arg-name")
+        self.arg_skip = bool(data.get("arg-skip"))
+        self.choices = _init_flag_choices(data.get("choices"), self)
+
+    def __repr__(self):
+        return "<guild.guildfile.FlagDef '%s'>" % self.name
+
+def _init_flag_values(flagdefs):
+    return {
+        flag.name: flag.default
+        for flag in flagdefs
+    }
+
+def _init_flag_choices(data, flagdef):
+    if not data:
+        return []
+    return [FlagChoice(choice_data, flagdef) for choice_data in data]
+
+class FlagChoice(object):
+
+    def __init__(self, data, flagdef):
+        self.flagdef = flagdef
+        if isinstance(data, dict):
+            self.value = data.get("value")
+            self.description = data.get("description") or ""
+            self.args = data.get("args") or {}
+        else:
+            self.value = data
+            self.description = ""
+            self.args = {}
 
 def _init_dependencies(requires, opdef):
     if not requires:
@@ -828,7 +819,6 @@ class PackageDef(object):
         self.tags = data.get("tags") or []
         self.python_tag = data.get("python-tag")
         self.data_files = data.get("data-files") or []
-        self.resources = _init_resources(data, self)
         self.python_requires = data.get("python-requires") or []
         self.requires = data.get("requires")
 

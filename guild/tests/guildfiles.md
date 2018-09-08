@@ -61,9 +61,12 @@ The model name is used to identify the model:
 The description provides additional details:
 
     >>> gf.models["expert"].description
-    'Sample model'
+    'Expert model'
 
 ### Flags
+
+TODO: Rewrite these to operation on a sample operation - model flags
+are no longer supported.
 
 Flags are named values that are provided to operations during a
 run. Flags can be defined at the model level and at the operation
@@ -81,93 +84,55 @@ We'll use a helper function to print the flagdefs:
     ...     (flag.name, flag.description, flag.default)
     ...     for flag in flags]
 
-Let's look at the flags defined for the `intro` model:
+Let's look at the flags defined for `intro:train`:
 
-    >>> flagdefs(gf.models["intro"].flags)
-    [('batch-size', 'Number of images per batch', 100),
+    >>> intro_train = gf.models["intro"].get_operation("train")
+    >>> flagdefs(intro_train.flags)
+    [('batch-size', 'Number of images per train batch', 100),
      ('epochs', 'Number of epochs to train', 10),
      ('learning-rate', 'Learning rate for training', 0.001)]
 
-Note that while the value for `epochs` is redefined, the original flag
-description is not.
+Note that while the value for `epochs` is redefined (to 10 from 5),
+the flag description is not.
 
 Flag *values* are distinct from flag *definitions*. The default value
 associated with a flag definition is used as the initial flag
 value. We can read the flag values using `get_flag_value`:
 
-    >>> gf.models["intro"].get_flag_value("batch-size")
+    >>> intro_train.get_flag_value("batch-size")
     100
 
-    >>> gf.models["intro"].get_flag_value("epochs")
+    >> intro_train.get_flag_value("epochs")
     10
 
 These values can be modified without effecting the flag definitions.
 
-    >>> gf.models["intro"].set_flag_value("epochs", 3)
-
-    >>> gf.models["intro"].get_flag_value("epochs")
+    >>> intro_train.set_flag_value("epochs", 3)
+    >>> intro_train.get_flag_value("epochs")
     3
-
-    >>> gf.models["intro"].get_flagdef("epochs").default
+    >>> intro_train.get_flagdef("epochs").default
     10
 
-Here are the flag defs for `expert`:
+Here are the flag defs for `expert:train`:
 
-    >>> flagdefs(gf.models["expert"].flags)
-    [('batch-size', 'Number of images per batch', 100),
-     ('epochs', 'Number of epochs to train', 5)]
+    >>> expert_train = gf.models["expert"].get_operation("train")
+    >>> flagdefs(expert_train.flags)
+    [('batch-size', 'Number of images per train batch', 100),
+     ('epochs', 'Number of epochs to train', 5),
+     ('learning-rate', 'Learning rate for training', 0.001)]
 
-In this case the `expert` model included all of the `common`
+In this case the `expert:train` operation included all of the `common`
 flag definitions without redefining any.
 
-The third set of flags defined in the guildfile is associated with the
-`evaluate` operation of the `intro` model.
+Here are the flags for `intro:evaluate`:
 
-    >>> eval_op = gf.models["intro"].get_operation("evaluate")
-    >>> flagdefs(eval_op.flags)
-    [('batch-size', '', 50000),
-     ('epochs', '', 1)]
+    >>> intro_evaluate = gf.models["intro"].get_operation("evaluate")
+    >>> flagdefs(intro_evaluate.flags)
+    [('batch-size', 'Number of images per eval batch', 50000),
+     ('epochs', 'Epochs to evaluate', 2)]
 
-In this case the operation did not include flagdefs and did not
-provide descriptions for its flags.
-
-Operations inherit the values of flags defined in their host
-models. We can use `all_flag_values` to retrieve all of the flag
-values associated with a model or op definition.
-
-Flag values for `intro` model:
-
-    >>> pprint(gf.models["intro"].flag_values())
-    {'batch-size': 100, 'epochs': 3, 'learning-rate': 0.001}
-
-Flag values for `evaluate` op of `intro` model:
-
-    >>> pprint(gf.models["intro"].get_operation("evaluate").flag_values())
-    {'batch-size': 50000, 'epochs': 1, 'learning-rate': 0.001}
-
-Flag values for `expert` model:
-
-    >>> pprint(gf.models["expert"].flag_values())
-    {'batch-size': 100, 'epochs': 5}
-
-Flag values for `train` op of `expert` model:
-
-    >>> pprint(gf.models["expert"].get_operation("train").flag_values())
-    {'batch-size': 100, 'epochs': 5}
-
-If we set the value of a flag defined on a model that is not defined
-by the model's operation, the operation inherits that value:
-
-    >>> gf.models["intro"].set_flag_value("learning-rate", 0.002)
-    >>> pprint(gf.models["intro"].get_operation("evaluate").flag_values())
-    {'batch-size': 50000, 'epochs': 1, 'learning-rate': 0.002}
-
-However, if the operation defines a flag value, setting the value on
-the operation's model doesn't modify the operation's flag value:
-
-    >>> gf.models["intro"].set_flag_value("epochs", 4)
-    >>> pprint(gf.models["intro"].get_operation("evaluate").flag_values())
-    {'batch-size': 50000, 'epochs': 1, 'learning-rate': 0.002}
+In this case the operation redefined the value for `epochs` (to 2 from
+1) but did not change `batch-size`.
 
 ### Updating flags
 
@@ -814,8 +779,8 @@ First we'll try to load the project without including 'pkg' in the
 system path.
 
     >>> import sys
-    >>> extend_pkg_dir not in sys.path
-    True
+    >>> extend_pkg_dir in sys.path
+    False
 
     >>> gf = guildfile.from_dir(extend_pkg_dir)
     Traceback (most recent call last):
@@ -825,7 +790,7 @@ system path.
 Next we'll add 'extend-pkg' to the system path and try again.
 
     >>> sys_path_save = sys.path
-    >>> sys.path.append(extend_pkg_dir)
+    >>> sys.path = sys.path + [extend_pkg_dir]
     >>> extend_pkg_dir in sys.path
     True
 
@@ -847,6 +812,8 @@ inherited from the package.
 Let's restore the system path:
 
     >>> sys.path = sys_path_save
+    >>> extend_pkg_dir in sys.path
+    False
 
 ### Inheritance cycles
 
@@ -867,6 +834,62 @@ Below are some inheritance cycles:
     ... """)
     Traceback (most recent call last):
     GuildfileCycleError: error in <string>: cycle in 'extends' (b -> a -> b)
+
+### Using $includes and inheritance
+
+This test uses a sample project:
+
+    >>> project_dir = sample("projects/inherit-and-include")
+
+We need to modify the system path to find a package referenced inthe
+project:
+
+    >>> project_dir in sys.path
+    False
+    >>> sys_path_save = sys.path
+    >>> sys.path = sys.path + [project_dir]
+    >>> project_dir in sys.path
+    True
+
+We can load the project:
+
+    >>> gf = guildfile.from_dir(project_dir)
+
+Models:
+
+    >>> gf.models
+    {'m': <guild.guildfile.ModelDef 'm'>}
+
+Operations:
+
+    >>> gf.models["m"].operations
+    [<guild.guildfile.OpDef 'm:op-a'>,
+     <guild.guildfile.OpDef 'm:op-b'>]
+
+ The flags defined for `op-a` are included via `a-flags` config that's
+ defined in the project Guild file.
+
+    >>> gf.models["m"].get_operation("op-a").flags
+    [<guild.guildfile.FlagDef 'a-1'>,
+     <guild.guildfile.FlagDef 'a-2'>]
+
+    >>> pprint(gf.models["m"].get_operation("op-a").flag_values())
+    {'a-1': 1, 'a-2': 2}
+
+    >>> gf.models["m"].get_operation("op-b").flags
+    [<guild.guildfile.FlagDef 'b-1'>,
+     <guild.guildfile.FlagDef 'b-2'>,
+     <guild.guildfile.FlagDef 'b-3'>,
+     <guild.guildfile.FlagDef 'b-4'>]
+
+    >>> pprint(gf.models["m"].get_operation("op-b").flag_values())
+    {'b-1': 11, 'b-2': 22, 'b-3': 3, 'b-4': 4}
+
+And we restore the system path.
+
+    >>> sys.path = sys_path_save
+    >>> project_dir in sys.path
+    False
 
 ### Params
 

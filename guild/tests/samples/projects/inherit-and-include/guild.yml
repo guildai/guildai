@@ -1,0 +1,24 @@
+# Flags defined and used in this file.
+
+- config: a-flags
+  flags:
+    a-1: 1
+    a-2: 2
+
+# Config that includes `a-flags` defined above.
+
+- config: a
+  operations:
+    op-a:
+      flags:
+        $include: a-flags
+
+# Refinition of `b-flags-1` in `pkg/b` - this is reflect in `m:op-b`.
+
+- config: b-flags-1
+  flags:
+    b-1: 11
+    b-2: 22
+
+- model: m
+  extends: [a, pkg/b]

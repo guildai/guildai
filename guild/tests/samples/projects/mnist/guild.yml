@@ -1,38 +1,25 @@
-- model: intro
-  flags:
-    $include: common
-    epochs: 10
-    learning-rate:
-      default: 0.001
-      description: Learning rate for training
-  operations:
-    train: intro
-    evaluate:
-      main: intro --test
-      flags:
-        epochs: 1
-        batch-size: 50000
-  references:
-    - https://www.tensorflow.org/tutorials/layers
-
-- model: expert
-  description: Sample model
-  flags:
-    $include: common
-  operations:
-    train: expert
-    evaluate: expert --test
-  resources:
-    $include: common
-
-- config: common
+- config: default-train-flags
   flags:
     batch-size:
+      description: Number of images per train batch
       default: 100
-      description: Number of images per batch
     epochs:
-      default: 5
       description: Number of epochs to train
+      default: 5
+    learning-rate:
+      description: Learning rate for training
+      default: 0.001
+
+- config: default-eval-flags
+  flags:
+    epochs:
+      description: Epochs to evaluate
+      default: 1
+    batch-size:
+      description: Number of images per eval batch
+      default: 50000
+
+- config: default-resources
   resources:
     data:
       description: MNIST dataset
@@ -45,3 +32,32 @@
         sha256: 8d422c7b0a1c1c79245a5bcf07fe86e33eeafee792b84584aec276f5a2dbc4e6
       - url: http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
         sha256: f7ae60f92e00ec6debd23a6088c31dbd2371eca3ffa0defaefb259924204aec6
+
+- model: intro
+  references:
+    - https://www.tensorflow.org/tutorials/layers
+  operations:
+    train:
+      main: intro
+      flags:
+        $include: default-train-flags
+        epochs: 10
+    evaluate:
+      main: intro --test
+      flags:
+        $include: default-eval-flags
+        epochs: 2
+
+- model: expert
+  description: Expert model
+  operations:
+    train:
+      main: expert
+      flags:
+        $include: default-train-flags
+    evaluate:
+      main: expert --test
+      flags:
+        $include: default-eval-flags
+  resources:
+    $include: default-resources

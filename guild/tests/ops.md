@@ -278,31 +278,11 @@ method:
 Our sample operations aren't initialized with any flags, so we expect
 this list to be empty.
 
-Let's add some flags, starting with the operation model. We'll use the
-`set_flag_value` method:
-
-    >>> opdef.modeldef.set_flag_value("epochs", 100)
-
-And now enumerate flag values for the operation:
-
-    >>> opdef.flag_values()
-    {'epochs': 100}
-
-Let's define the same flag at the operation level:
+Let's add some flags:
 
     >>> opdef.set_flag_value("epochs", 200)
     >>> opdef.flag_values()
     {'epochs': 200}
-
-Here are a couple additional flags, one defined in the model and the
-other in the operations:
-
-    >>> opdef.set_flag_value("batch-size", 50)
-    >>> opdef.modeldef.set_flag_value("learning-rate", 0.1)
-    >>> pprint(opdef.flag_values())
-    {'batch-size': 50,
-     'epochs': 200,
-     'learning-rate': 0.1}
 
 ## Pre-processing
 

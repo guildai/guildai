@@ -162,10 +162,7 @@ def _model_entry_points(pkg):
     ]
 
 def _resource_entry_points(pkg):
-    return (
-        _model_resource_entry_points(pkg) +
-        _package_resource_entry_points(pkg)
-    )
+    return _model_resource_entry_points(pkg)
 
 def _model_resource_entry_points(pkg):
     return [
@@ -178,12 +175,6 @@ def _iter_guildfile_resdefs(pkg):
     for modeldef in pkg.guildfile.models.values():
         for resdef in modeldef.resources:
             yield resdef
-
-def _package_resource_entry_points(pkg):
-    return [
-        "%s = guild.package:PackageResource" % res.name
-        for res in pkg.resources
-    ]
 
 def _pkg_python_requires(pkg):
     return ", ".join(pkg.python_requires)

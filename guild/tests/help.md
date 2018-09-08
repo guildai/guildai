@@ -19,25 +19,36 @@ formatted string:
     expert
     ######
     <BLANKLINE>
-    *Sample model*
+    *Expert model*
     <BLANKLINE>
     Operations
     ==========
     <BLANKLINE>
     evaluate
     ^^^^^^^^
+    Flags
+    -----
+    <BLANKLINE>
+    **batch-size**
+      *Number of images per eval batch (default is 50000)*
+    <BLANKLINE>
+    **epochs**
+      *Epochs to evaluate (default is 1)*
     <BLANKLINE>
     train
     ^^^^^
-    <BLANKLINE>
-    Model flags
-    ===========
+    Flags
+    -----
     <BLANKLINE>
     **batch-size**
-      *Number of images per batch (default is 100)*
+      *Number of images per train batch (default is 100)*
     <BLANKLINE>
     **epochs**
       *Number of epochs to train (default is 5)*
+    <BLANKLINE>
+    **learning-rate**
+      *Learning rate for training (default is 0.001)*
+    <BLANKLINE>
     <BLANKLINE>
     intro
     #####
@@ -51,19 +62,18 @@ formatted string:
     -----
     <BLANKLINE>
     **batch-size**
-      * (default is 50000)*
+      *Number of images per eval batch (default is 50000)*
     <BLANKLINE>
     **epochs**
-      * (default is 1)*
+      *Epochs to evaluate (default is 2)*
     <BLANKLINE>
     train
     ^^^^^
-    <BLANKLINE>
-    Model flags
-    ===========
+    Flags
+    -----
     <BLANKLINE>
     **batch-size**
-      *Number of images per batch (default is 100)*
+      *Number of images per train batch (default is 100)*
     <BLANKLINE>
     **epochs**
       *Number of epochs to train (default is 10)*

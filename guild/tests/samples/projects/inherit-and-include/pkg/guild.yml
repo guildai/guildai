@@ -1,0 +1,19 @@
+# Shared flag defs are split up in two parts and used by `b`.
+
+- config: b-flags-1
+  flags:
+    b-1: 1
+    b-2: 2
+
+- config: b-flags-2
+  flags:
+    b-3: 3
+    b-4: 4
+
+- config: b
+  operations:
+    op-b:
+      flags:
+        $include:
+          - b-flags-1
+          - b-flags-2

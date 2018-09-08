@@ -15,14 +15,13 @@ Let's look at `a.yml`.
 
 As model 'a' extends 'base' it inherits its flags:
 
-    >>> gf.models["a"].flags
-    [<guild.guildfile.FlagDef 'base-flag-1'>,
-     <guild.guildfile.FlagDef 'base-flag-2'>]
+    >>> gf.models["a"].operations
+    [<guild.guildfile.OpDef 'a:op1'>, <guild.guildfile.OpDef 'a:op2'>]
 
-We can peek into the data used by `gf_a` to see how includes work:
+We can peek into the data used by `gf` to see how includes work:
 
     >>> pprint(gf.data)
-    [{'config': 'base', 'flags': {'base-flag-1': 'bf1', 'base-flag-2': 'bf2'}},
+    [{'config': 'base', 'operations': {'op1': {}, 'op2': {}}},
      {'extends': 'base', 'model': 'a'}]
 
 Note that the 'include' item was replaced with the contents of the
@@ -43,10 +42,10 @@ This is illustrated by
     >>> sorted(gf.models)
     ['c', 'uncommon']
 
-    >>> gf.models["c"].flags
-    [<guild.guildfile.FlagDef 'base-flag-1'>,
-     <guild.guildfile.FlagDef 'base-flag-2'>,
-     <guild.guildfile.FlagDef 'uncommon-flag-1'>]
+    >>> gf.models["c"].operations
+    [<guild.guildfile.OpDef 'c:op1'>,
+     <guild.guildfile.OpDef 'c:op2'>,
+     <guild.guildfile.OpDef 'c:op3'>]
 
 ## Include chains
 
