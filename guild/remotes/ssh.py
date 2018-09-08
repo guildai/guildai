@@ -44,9 +44,19 @@ class SSHRemote(remotelib.Remote):
         self.name = name
         self.host = config["host"]
         self.user = config.get("user")
-        self.guild_home = config.get("guild-home", ".guild")
+        self.guild_home = self._init_guild_home(config)
         self.guild_env = config.get("guild-env")
         self.run_init = config.get("run-init")
+
+    @staticmethod
+    def _init_guild_home(config):
+        guild_home = config.get("guild-home")
+        if guild_home is not None:
+            return guild_home
+        guild_env = config.get("guild-env")
+        if guild_env is None:
+            return ".guild"
+        return util.strip_trailing_path(guild_env) + "/env/.guild"
 
     def push(self, runs, no_delete=False):
         for run in runs:
