@@ -56,7 +56,7 @@ class S3Remote(remotelib.Remote):
         joined_path = _join_path(self.root, *subpath)
         return "s3://%s/%s" % (self.bucket, joined_path)
 
-    def list_runs(self, verbose, **filters):
+    def list_runs(self, verbose=False, **filters):
         self._verify_creds_and_region()
         self._sync_runs_meta()
         runs_dir = self._runs_dir_for_filters(**filters)
