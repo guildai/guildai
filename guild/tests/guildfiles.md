@@ -713,6 +713,90 @@ one config:
      <guild.guildfile.OpDef 'm:b_op'>,
      <guild.guildfile.OpDef 'm:c_op'>]
 
+### Multiple inheritance
+
+The order in which parents are listed in an extends list determines
+how parent values are applied. This rule is followed: as a parent is
+applied to a child, the child takes on the values of the parent _as if
+it defined those values itself_. Parents cannot redefine an attribute
+that was defined by a perviously applied parent.
+
+Here's an example that uses two configs, `a` and `b`:
+
+    >>> base_config = """
+    ... - config: a
+    ...   params:
+    ...     foo: 1
+    ... - config: b
+    ...   params:
+    ...     foo: 2
+    ... """
+
+In the first case, a model `m` extends `a` first and then `b`:
+
+    >>> gf = guildfile.from_string(base_config + """
+    ... - model: m
+    ...   extends: [a, b]
+    ...   description: foo is {{foo}}
+    ... """)
+    >>> gf.models["m"].description
+    'foo is 1'
+
+In the second case, the order of parents is `b` first and then `a`:
+
+    >>> gf = guildfile.from_string(base_config + """
+    ... - model: m
+    ...   extends: [b, a]
+    ...   description: foo is {{foo}}
+    ... """)
+    >>> gf.models["m"].description
+    'foo is 2'
+
+Finally, `m` defines `foo` itself:
+
+    >>> gf = guildfile.from_string(base_config + """
+    ... - model: m
+    ...   extends: [b, a]
+    ...   params:
+    ...     foo: 3
+    ...   description: foo is {{foo}}
+    ... """)
+    >>> gf.models["m"].description
+    'foo is 3'
+
+This will surprise a user who assumes that the last parent overrides
+previous parents. But this convention is used in Python's multiple
+inheritance scheme.
+
+Here's the same structure, applied in Python:
+
+    >>> class A(object):
+    ...   foo = 1
+
+    >>> class B(object):
+    ...   foo = 2
+
+In case 1, `M` extends `A` and then `B`.
+
+    >>> class M(A, B):
+    ...   pass
+    >>> M().foo
+    1
+
+In case 2, `M` extends `B` and then `A`:
+
+    >>> class M(B, A):
+    ...   pass
+    >>> M().foo
+    2
+
+Finally, `M` defines `foo` itself:
+
+    >>> class M(B, A):
+    ...   foo = 3
+    >>> M().foo
+    3
+
 ### Extending packages
 
 Guildfiles may extend models and config defined in packages.
