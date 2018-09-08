@@ -233,7 +233,7 @@ class Guildfile(object):
         if name in self.models:
             raise GuildfileError(self, "duplicate model '%s'" % name)
         model = ModelDef(name, data, self, extends_seen)
-        if not self.default_model:
+        if model.default or not self.default_model:
             self.default_model = model
         self.models[name] = model
 
@@ -507,6 +507,7 @@ class ModelDef(FlagHost):
         self.resources = _init_resources(data, self)
         self.disabled_plugins = data.get("disabled-plugins") or []
         self.extra = data.get("extra") or {}
+        self.default = data.get("default", False)
 
     def __repr__(self):
         return "<guild.guildfile.ModelDef '%s'>" % self.name
