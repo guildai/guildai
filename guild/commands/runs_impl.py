@@ -731,7 +731,7 @@ def push(args, ctx):
     confirm = "Continue?"
     no_runs = "No runs to copy."
     def push_f(runs):
-        remote.push(runs, args.no_delete)
+        remote_impl_support.push_runs(remote, runs, args)
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
         push_f, ALL_RUNS_ARG, True)
@@ -750,7 +750,7 @@ def pull(args, ctx):
     confirm = "Continue?"
     no_runs = "No runs to copy."
     def pull_f(runs):
-        remote.pull(runs, args.no_delete)
+        remote_impl_support.pull_runs(remote, runs, args)
     def filtered_runs_f(args, _ctx, _default_runs_arg, _force_deleted):
         filtered = remote_impl_support.filtered_runs_for_pull(remote, args)
         return select_runs(filtered, args.runs, ctx)

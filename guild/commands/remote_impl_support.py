@@ -317,3 +317,11 @@ def _filtered_runs_for_pull_kw(args):
         "yes",
     ]
     return _arg_kw(args, names, ignore)
+
+def push_runs(remote, runs, args):
+    with op_handler(remote):
+        remote.push(runs, args.no_delete)
+
+def pull_runs(remote, runs, args):
+    with op_handler(remote):
+        remote.pull(runs, args.no_delete)
