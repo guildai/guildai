@@ -546,7 +546,7 @@ def _format_attr(val):
 def _iter_output(run):
     try:
         f = open(run.guild_path("output"), "r")
-    except Error as e:
+    except IOError as e:
         if e.errno != 2:
             raise
     else:
