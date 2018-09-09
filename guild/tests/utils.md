@@ -216,3 +216,58 @@ If end is omitted, output is read to the end.
 When we're run reading we can close the reader:
 
     >>> reader.close()
+
+## Label templates
+
+The function `render_label_template` is used to render strings in the
+label template syntax.
+
+    >>> from guild.util import render_label_template as render
+
+Examples:
+
+    >>> render("", {})
+    ''
+
+    >>> render("hello", {})
+    'hello'
+
+    >>> render("a-${b}-c", {})
+    'a--c'
+
+    >>> render("${b}-c", {})
+    '-c'
+
+    >>> render("a-${b}", {})
+    'a-'
+
+    >>> render("a-${b|default:b}-c", {})
+    'a-b-c'
+
+    >>> render("${b|default:b}-c", {})
+    'b-c'
+
+    >>> render("a-${b|default:b}", {})
+    'a-b'
+
+    >>> render("a-${b}-c", {"b": "b"})
+    'a-b-c'
+
+    >>> render("${b}-c", {"b": "b"})
+    'b-c'
+
+    >>> render("a-${b}", {"b": "b"})
+    'a-b'
+
+A typical label:
+
+    >>> render("${trained-model}-${step|default:latest}", {
+    ...   "trained-model": "abcd1234",
+    ...   "step": "1234"
+    ... })
+    'abcd1234-1234'
+
+    >>> render("${trained-model}-${step|default:latest}", {
+    ...   "trained-model": "abcd1234"
+    ... })
+    'abcd1234-latest'

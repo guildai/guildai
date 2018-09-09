@@ -735,3 +735,42 @@ def gpu_available():
             log.debug("%s loaded", lib)
             return True
     return False
+
+def render_label_template(template, vals):
+    tokens = re.split(r"(\${.+?})", template)
+    return "".join([_rendered_str(_render_token(t, vals)) for t in tokens])
+
+def _render_token(t, vals):
+    m = re.match(r"\${(.+?)}", t)
+    if not m:
+        return t
+    ref_parts = m.group(1).split("|")
+    name = ref_parts[0]
+    transforms = ref_parts[1:]
+    val = vals.get(name)
+    for t in transforms:
+        val = _apply_template_transform(t, val)
+    return val
+
+def _apply_template_transform(t, val):
+    parts = t.split(":", 1)
+    if len(parts) == 1:
+        name = parts[0]
+        arg = None
+    else:
+        name, arg = parts
+    if name == "default":
+        return _transform_default(val, arg)
+    else:
+        log.warning("unsupported template transform: %r", t)
+        return "#error#"
+
+def _transform_default(val, arg):
+    if val is None:
+        return arg or ""
+    return val
+
+def _rendered_str(s):
+    if s is None:
+        return ""
+    return str(s)

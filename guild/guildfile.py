@@ -633,6 +633,7 @@ class OpDef(object):
         self.remote = data.get("remote") or False
         self.stoppable = data.get("stoppable") or False
         self.set_trace = data.get("set-trace") or False
+        self.label_template = data.get("label-template")
         self.handle_keyboard_interrupt = (
             data.get("handle-keyboard-interrupt") or False)
 
