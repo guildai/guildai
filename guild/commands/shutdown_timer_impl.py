@@ -46,11 +46,14 @@ def _run(args, log):
             "--dont-shutdown was used", TITLE)
     last_activity = _now()
     while True:
-        last_activity = _check_activity(last_activity, log)
-        if _timeout(last_activity, args.timeout):
-            _shutdown(args, log)
+        try:
+            last_activity = _check_activity(last_activity, log)
+            if _timeout(last_activity, args.timeout):
+                _shutdown(args, log)
+                break
+            time.sleep(INTERVAL)
+        except KeyboardInterrupt:
             break
-        time.sleep(INTERVAL)
     log.info("Stopping")
 
 def _check_activity(last_activity, log):
