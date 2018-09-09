@@ -501,7 +501,7 @@ def _dep_description(dep, model_resources):
 def _format_op_flags_dl(opdef):
     seen = set()
     flags = []
-    for flag in opdef.flags + opdef.modeldef.flags:
+    for flag in opdef.flags:
         if flag.name in seen:
             continue
         seen.add(flag.name)
