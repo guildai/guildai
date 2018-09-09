@@ -760,15 +760,22 @@ def _apply_template_transform(t, val):
     else:
         name, arg = parts
     if name == "default":
-        return _transform_default(val, arg)
+        return _t_default(val, arg)
+    elif name == "basename":
+        if arg:
+            log.warning("ignoring argment to baseline in %r", t)
+        return _t_basename(val)
     else:
         log.warning("unsupported template transform: %r", t)
         return "#error#"
 
-def _transform_default(val, arg):
+def _t_default(val, arg):
     if val is None:
         return arg or ""
     return val
+
+def _t_basename(val):
+    return os.path.basename(val)
 
 def _rendered_str(s):
     if s is None:
