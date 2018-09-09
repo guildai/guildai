@@ -81,8 +81,10 @@ class Build(build_py):
     def run(self):
         _validate_env()
         _ensure_external()
-        _build_view_dist()
-        _build_serve_dist()
+        if os.getenv("SKIP_VIEW") != "1":
+            _build_view_dist()
+        if os.getenv("SKIP_SERVE") != "1":
+            _build_serve_dist()
         build_py.run(self)
 
 def _validate_env():
