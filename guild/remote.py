@@ -49,6 +49,12 @@ class RemoteProcessError(Exception):
     def from_called_process_error(cls, e):
         return cls(e.returncode, e.cmd, e.output)
 
+class RunFailed(Exception):
+
+    def __init__(self, remote_run_dir):
+        super(RunFailed, self).__init__(remote_run_dir)
+        self.remote_run_dir = remote_run_dir
+
 class RemoteProcessDetached(Exception):
     pass
 

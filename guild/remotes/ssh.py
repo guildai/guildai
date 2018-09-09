@@ -221,7 +221,12 @@ class SSHRemote(remotelib.Remote):
             .format(run_dir=remote_run_dir))
         cmd = "; ".join(cmd_lines)
         log.debug("watching remote run")
-        ssh_util.ssh_cmd(self.host, [cmd], self.user)
+        try:
+            ssh_util.ssh_cmd(self.host, [cmd], self.user)
+        except remotelib.RemoteProcessError as e:
+            if e.exit_status != 2:
+                raise
+            raise remotelib.RunFailed(remote_run_dir)
 
     def list_runs(self, verbose=False, **filters):
         cmd_lines = ["set -e"]

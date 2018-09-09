@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
+
 from guild import cli
 from guild import remote as remotelib
 
@@ -90,6 +92,8 @@ def run(args):
     remote = remote_support.remote_for_args(args)
     try:
         run_id = remote.run_op(**_run_kw(args))
+    except remotelib.RunFailed as e:
+        _handle_run_failed(e, remote)
     except remotelib.RemoteProcessError as e:
         _handle_remote_process_error(e)
     except remotelib.RemoteProcessDetached as e:
@@ -108,6 +112,13 @@ def run(args):
                 "{run_id} is running remotely on {remote}\n"
                 "To watch use 'guild watch {run_id} -r {remote}'"
                 .format(run_id=run_id[:8], remote=args.remote))
+
+def _handle_run_failed(e, remote):
+    run_id = os.path.basename(e.remote_run_dir)
+    cli.out(
+        "Try 'guild runs info %s -O -r %s' to view its output."
+        % (run_id[:8], remote.name), err=True)
+    cli.error()
 
 def _handle_op_error(e, remote):
     if e.args[0] == "running":
