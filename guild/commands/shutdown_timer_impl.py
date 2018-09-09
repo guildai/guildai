@@ -61,7 +61,7 @@ def _check_activity(last_activity, log):
     now = _now()
     log_f = _log_function(log, now, pids)
     if pids:
-        log_f("Active runs: %s", ",".join(map(str, pids)))
+        log_f("Active runs (pids): %s", ",".join(map(str, pids)))
         return now
     else:
         log_f("No runs for %s", _format_duration(now - last_activity))
