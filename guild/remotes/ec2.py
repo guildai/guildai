@@ -32,15 +32,13 @@ from . import ssh_util
 
 log = logging.getLogger("guild.remotes.ec2")
 
-DEFAULT_INSTANCE_TYPE = "p2.xlarge"
-
 class EC2Remote(remotelib.Remote):
 
     def __init__(self, name, config):
         self.name = name
         self.region = config["region"]
         self.ami = config["ami"]
-        self.instance_type = config.get("instance-type", DEFAULT_INSTANCE_TYPE)
+        self.instance_type = config["instance-type"]
         self.public_key = config.get("public-key")
         self.connection = config.get("connection", {})
         self.init = config.get("init")
