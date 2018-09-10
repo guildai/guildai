@@ -163,7 +163,6 @@ def _meta_graph_info(mg):
     return {
         "tags": list(mg.meta_info_def.tags),
         "tensorflow_version": mg.meta_info_def.tensorflow_version,
-        "tensorflow_git_version": mg.meta_info_def.tensorflow_git_version,
         "signature_defs": _meta_graph_signature_def_info(mg),
     }
 
