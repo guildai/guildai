@@ -14,16 +14,16 @@ We can reference a guildfile in one of two ways:
 Here are the models associated with the MNIST example (using the `-C`
 option):
 
-    >>> run("guild -C examples/mnist2 models")
-    ./examples/mnist2/mnist-expert  MNIST model from TensorFlow expert tutorial
-    ./examples/mnist2/mnist-intro   MNIST model from TensorFlow intro tutorial
+    >>> run("guild -C examples/mnist models")
+    ./examples/mnist/mnist-expert  MNIST model from TensorFlow expert tutorial
+    ./examples/mnist/mnist-intro   MNIST model from TensorFlow intro tutorial
     hello/...
     keras.mnist/...
     <exit 0>
 
 Here's the same list after we've changed to that directory:
 
-    >>> cd("examples/mnist2")
+    >>> cd("examples/mnist")
     >>> run("guild models")
     ./mnist-expert  MNIST model from TensorFlow expert tutorial
     ./mnist-intro   MNIST model from TensorFlow intro tutorial

@@ -2,15 +2,15 @@
 
 The MNIST example provides the following resources:
 
-    >>> run("guild -C examples/mnist2 resources")
-    ./examples/mnist2/mnist-expert:model  Exported model
-    ./examples/mnist2/mnist-intro:model   Exported model
+    >>> run("guild -C examples/mnist resources")
+    ./examples/mnist/mnist-expert:model  Exported model
+    ./examples/mnist/mnist-intro:model   Exported model
     hello/...
     <exit 0>
 
 The same list after changing directories:
 
-    >>> cd("examples/mnist2")
+    >>> cd("examples/mnist")
     >>> run("guild resources")
     ./mnist-expert:model  Exported model
     ./mnist-intro:model   Exported model

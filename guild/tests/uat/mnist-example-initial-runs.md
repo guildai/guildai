@@ -5,7 +5,7 @@ listed.
 
 Here are the runs from previous tests:
 
-    >>> run("guild -C examples/mnist2 runs")
+    >>> run("guild -C examples/mnist runs")
     [0:...]  keras.mnist/mnist-mlp:train   ...  completed
     ...
     [6:...]  mnist/mnist-softmax:train     ...  completed
@@ -13,7 +13,7 @@ Here are the runs from previous tests:
 
 We can alternatively change to that directory and see the same results:
 
-    >>> cd("examples/mnist2")
+    >>> cd("examples/mnist")
     >>> run("guild runs")
     [0:...]  keras.mnist/mnist-mlp:train   ...  completed
     ...

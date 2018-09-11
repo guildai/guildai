@@ -2,7 +2,7 @@
 
 After running `evaluate` on `mnist-intro` we get a second run.
 
-    >>> cd("examples/mnist2")
+    >>> cd("examples/mnist")
     >>> run("guild runs")
     [0:...]  ./mnist-intro:evaluate  ... ...  completed
     [1:...]  ./mnist-intro:train     ... ...  completed
