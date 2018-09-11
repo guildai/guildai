@@ -126,6 +126,7 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
         cmd_env["VIRTUAL_ENV"] = os.environ["VIRTUAL_ENV"]
     cmd_env["COLUMNS"] = "999"
     cmd_env["LANG"] = os.getenv("LANG", "en_US.UTF-8")
+    cmd_env["CUDA_VISIBLE_DEVICES"] = ""
     if _cwd:
         cmd_cwd = os.path.join(WORKSPACE, _cwd)
     else:
