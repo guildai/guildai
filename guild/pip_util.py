@@ -66,7 +66,7 @@ def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
     args.extend(reqs)
     options, cmd_args = cmd.parse_args(args)
     try:
-        cmd.run(options, cmd_args)
+        return cmd.run(options, cmd_args)
     except InstallationError as e:
         raise InstallError(str(e))
 

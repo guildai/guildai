@@ -288,6 +288,17 @@ def rmtempdir(path):
         else:
             log.error("error removing %s: %s", path, e)
 
+def safe_rmtree(path):
+    """Removes path if it's not top level or user dir."""
+    assert not _top_level_dir(path), path
+    assert path != os.path.expanduser("~"), path
+    shutil.rmtree(path)
+
+def _top_level_dir(path):
+    abs_path = os.path.abspath(path)
+    parts = re.split(r"[/\\]", abs_path)
+    return len(parts) <= 2 and parts[0] == ""
+
 class LogCapture(object):
 
     def __init__(self):

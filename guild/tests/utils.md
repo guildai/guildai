@@ -271,3 +271,29 @@ A typical label:
     ...   "trained-model": "abcd1234"
     ... })
     'abcd1234-latest'
+
+## Safe rmtree check
+
+The function `safe_rmtree` will fail if the specified path is a
+top-level directory. Top level is defined as either the root or a
+directory in the root.
+
+The function `_top_level_dir` is used for this test.
+
+    >>> from guild.util import _top_level_dir
+
+Tests:
+
+    >>> import os
+
+    >>> _top_level_dir(os.path.sep)
+    True
+
+    >>> _top_level_dir(os.path.join(os.path.sep, "foo"))
+    True
+
+    >>> _top_level_dir(os.path.join(os.path.sep, "foo", "bar"))
+    False
+
+    >>> _top_level_dir(".")
+    False
