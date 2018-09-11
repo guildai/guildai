@@ -4,8 +4,9 @@ We'll train the `mnist-softmax` model with one epoch. Noe that we
 don't have to specify the full model name as long as our term refers
 to one and only one model.
 
-    >>> run("guild run -y softmax:train epochs=1",
+    >>> run("guild run -y --no-gpus softmax:train epochs=1",
     ...     ignore=["Successfully downloaded", "^INFO: ", "FutureWarning"])
+    Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
     Resolving mnist-dataset dependency
     ...
     Step 20: training=...

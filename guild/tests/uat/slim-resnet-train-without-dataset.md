@@ -15,7 +15,9 @@ Training without a dataset argument is an error:
 
 Training without a prepared dataset is an error:
 
-    >>> run("guild run resnet-50:train dataset=flowers -y", timeout=300)
+    >>> run("guild run resnet-50:train dataset=flowers -y --no-gpus",
+    ...     timeout=300)
+    Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
     Resolving slim/models-lib dependency
     ...
     Resolving flowers dependency

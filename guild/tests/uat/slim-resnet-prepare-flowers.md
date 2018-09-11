@@ -3,7 +3,9 @@
 Direct output to /dev/null to avoid freezing (I believe related to
 rapid stdout updates from the processing progress).
 
-    >>> run("guild run flowers:prepare -y > /dev/null", timeout=300)
+    >>> run("guild run flowers:prepare -y --no-gpus > /dev/null",
+    ...     timeout=300)
+    Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
     Resolving slim/models-lib dependency
     ...
     <exit 0>

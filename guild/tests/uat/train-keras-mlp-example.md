@@ -12,7 +12,9 @@ save model weights at each epoch. However, this callback requires the
 
 For our first training, we'll proceed without the `h5py` module.
 
-    >>> run("guild run mnist_mlp:train -y epochs=1", timeout=120, ignore="WARNING")
+    >>> run("guild run mnist_mlp:train -y --no-gpus epochs=1",
+    ...     timeout=120, ignore="WARNING")
+    Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
     Using TensorFlow backend.
     60000 train samples
     10000 test samples
@@ -60,9 +62,10 @@ Let install `h5py`:
 
 And train again:
 
-    >>> run("guild run -y mnist_mlp:train epochs=1",
+    >>> run("guild run -y --no-gpus mnist_mlp:train epochs=1",
     ...     timeout=120,
     ...     ignore=["FutureWarning", "_register_converters", "WARNING"])
+    Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
     Using TensorFlow backend.
     60000 train samples
     10000 test samples
