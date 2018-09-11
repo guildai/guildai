@@ -95,24 +95,70 @@ def _split_install_packages(pkgs):
 
 def _install_guild_source_packages(source_paths, args):
     for guildfile_path in source_paths:
-        project_path = os.path.dirname(guildfile_path)
-        pkg_name = _guild_source_package_name(guildfile_path)
-        dist_dir = util.mktempdir("guild-install-source-dist-")
-        log.info("Building package %s from %s", pkg_name, project_path)
-        package.create_package(guildfile_path, dist_dir)
-        dist_wheel = _dist_wheel(dist_dir)
-        log.info("Installing %s", pkg_name)
-        installed = pip_util.install(
-            [dist_wheel],
-            upgrade=args.upgrade or args.reinstall,
-            pre_releases=args.pre,
-            no_cache=args.no_cache,
-            no_deps=args.no_deps,
-            reinstall=args.reinstall,
-            target=args.target)
-        log.info("Linking %s to source %s", pkg_name, project_path)
-        _replace_installed_with_source_link(pkg_name, project_path, installed)
-        util.rmtempdir(dist_dir)
+        _install_guild_source_package(guildfile_path, args)
+
+def _install_guild_source_package(guildfile_path, args):
+    gf = _package_guildfile(guildfile_path)
+    _install_pip_packages(_guild_package_pip_deps(gf), args)
+    tmp_dist_dir = _build_guild_package(gf)
+    tmp_install_dir = _install_tmp_guild_package(tmp_dist_dir)
+
+def _package_guildfile(path):
+    try:
+        gf = guildfile.from_file(path)
+    except guildfile.GuildfileError as e:
+        cli.error("error reading %s: %s" % (path, e))
+    else:
+        if not gf.package:
+            cli.error("%s does not contain a package definition" % path)
+        return gf
+
+def _guild_package_pip_deps(gf):
+    return [_pip_pkg(dep) for dep in gf.package.requires or ()]
+
+def _pip_pkg(guild_pkg_req):
+    return namespace.pip_info(guild_pkg_req).project_name
+
+def _build_guild_package(gf):
+    log.info("Building package %s from %s", gf.package.name, gf.dir)
+    tmp_dir = util.mktempdir("guild-install-source-dist-")
+    package.create_package(gf.src, tmp_dir)
+    return tmp_dir
+
+def _install_tmp_guild_package(dist_dir):
+    tmp_target = util.mktempdir("guild-install-tmp-")
+    dist_wheel = _dist_wheel(dist_dir)
+    pip_util.install([dist_wheel], no_deps=True, target=tmp_target)
+    return tmp_target
+
+def _dist_wheel(path):
+    matches = glob.glob(os.path.join(path, "*.whl"))
+    if not matches:
+        cli.error(
+            "error building Guild source in %s: wheel was not "
+            "created in %s" % dist_dir)
+    if len(matches) > 1:
+        cli.error(
+            "error building Guild source in %s: more than one wheel "
+            "created in %s" % dist_dir)
+    return matches[0]
+
+def _stuff():
+    project_path = os.path.dirname(guildfile_path)
+    pkg_name = _guild_source_package_name(guildfile_path)
+    dist_wheel = _dist_wheel(dist_dir)
+    log.info("Installing %s", pkg_name)
+    installed = pip_util.install(
+        [dist_wheel],
+        upgrade=args.upgrade or args.reinstall,
+        pre_releases=args.pre,
+        no_cache=args.no_cache,
+        no_deps=args.no_deps,
+        reinstall=args.reinstall,
+        target=args.target)
+    log.info("Linking %s to source %s", pkg_name, project_path)
+    _replace_installed_with_source_link(pkg_name, project_path, installed)
+    util.rmtempdir(dist_dir)
 
 def _guild_source_package_name(guildfile_path):
     try:
@@ -128,18 +174,6 @@ def _guild_source_package_name(guildfile_path):
                 "Guild package in %s does define a package"
                 % project_path)
     return gf.package.name
-
-def _dist_wheel(path):
-    matches = glob.glob(os.path.join(path, "*.whl"))
-    if not matches:
-        cli.error(
-            "error building Guild source in %s: wheel was not "
-            "created in %s" % dist_dir)
-    if len(matches) > 1:
-        cli.error(
-            "error building Guild source in %s: more than one wheel "
-            "created in %s" % dist_dir)
-    return matches[0]
 
 def _replace_installed_with_source_link(pkg_name, project_path, installed):
     pip_project_name = namespace.pip_info(pkg_name).project_name
