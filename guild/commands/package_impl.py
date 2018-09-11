@@ -15,11 +15,13 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import re
 import os
 
 from guild import cli
 from guild import cmd_impl_support
 from guild import config
+from guild import guildfile
 from guild import package
 
 def main(args):
@@ -29,6 +31,7 @@ def main(args):
             "%s does not contain a guild.yml file\n"
             "Try specifying a different directory."
             % cmd_impl_support.cwd_desc(config.cwd()))
+    _check_upload_config(package_file, args)
     package.create_package(
         package_file,
         dist_dir=args.dist_dir,
@@ -39,3 +42,27 @@ def main(args):
         password=args.password,
         skip_existing=args.skip_existing,
         comment=args.comment)
+
+def _check_upload_config(package_file, args):
+    if not args.upload:
+        return
+    gf = guildfile.from_file(package_file)
+    if not gf.package.author_email:
+        cli.error(
+            "missing package author-email in %s - cannot upload\n"
+            "Specify a valid email for package.author-email and try again."
+            % package_file)
+
+    if not _valid_email(gf.package.author_email):
+        cli.error(
+            "invalid package author-email %r in %s - cannot upload\n"
+            "Specify a valid email for package.author-email and try again."
+            % (gf.package.author_email, package_file))
+
+def _valid_email(s):
+    try:
+        m = re.match(r".+?@.+", s)
+    except TypeError:
+        return False
+    else:
+        return bool(m)

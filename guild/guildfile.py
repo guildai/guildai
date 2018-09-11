@@ -806,16 +806,18 @@ class ResourceDef(resourcedef.ResourceDef):
 # Package def
 ###################################################################
 
+DEFAULT_PKG_VERSION = "0.0.0"
+
 class PackageDef(object):
 
     def __init__(self, name, data, guildfile):
         self.name = name
         self.guildfile = guildfile
         self.description = (data.get("description") or "").strip()
-        self.version = _required("version", data, guildfile)
+        self.version = data.get("version", DEFAULT_PKG_VERSION)
         self.url = data.get("url")
         self.author = data.get("author")
-        self.author_email = _required("author-email", data, guildfile)
+        self.author_email = data.get("author-email")
         self.license = data.get("license")
         self.tags = data.get("tags") or []
         self.python_tag = data.get("python-tag")
