@@ -148,3 +148,7 @@ def split_name(name):
 
 def limit_to_builtin():
     _namespaces.set_path([guild.__pkgdir__])
+
+def pip_info(pkg):
+    ns, req = split_name(pkg)
+    return ns.pip_info(req)

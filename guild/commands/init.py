@@ -48,7 +48,9 @@ from guild import click_util
     help="Install packages defined in FILE. May be used multiple times.")
 @click.option(
     "--no-reqs", is_flag=True,
-    help="Don't install from requirements.txt in environment parent directory.")
+    help=(
+        "Don't install from requirements.txt or guild.yml in environment "
+        "parent directory."))
 @click.option(
     "--local-resource-cache", is_flag=True,
     help="Use a local cache when initializing an environment.")
@@ -73,17 +75,28 @@ def init(args):
     generated virtual environment. If `no-venv` is specified,
     `--python` is ignored.
 
-    The environment may be initialized with packages defined in Python
-    requirements files. For information in requirements files, see:
+    ### Requirements
+
+    By default, any required packages listed under packages.requires
+    in `guild.yml` in the environment parent directory are installed
+    into the environment. Use `--no-reqs` to suppress this behavior.
+
+    Additionally, packages defined in `requirements.txt` in the
+    environment parent directory will be installed. Use `--no-reqs` to
+    suppress this behavior.
+
+    Note that packages defined in `guild.yml` use Guild package names
+    while packages defined in `requirements.txt` use PyPI package
+    names.
+
+    For information in requirements files, see:
 
     https://pip.readthedocs.io/en/1.1/requirements.html
 
-    By default packages defined in `requirements.txt` in the
-    environment parent directory will be installed. Use `--no-reqs` to
-    surppress this behavior.
-
     You may explicitly specify requirements file using `-r` or
-    `--requirement`.
+    `--requirement`. If `-r, --requirement` is specified, Guild will
+    not automatically install packages in `requirements.txt` -- that
+    file must be specified explicitly in the command.
 
     ### TensorFlow
 

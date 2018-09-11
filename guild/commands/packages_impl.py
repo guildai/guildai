@@ -96,15 +96,13 @@ def _installs(args):
 
 def _pip_info(pkg):
     try:
-        ns, req = namespace.split_name(pkg)
+        return namespace.pip_info(pkg)
     except namespace.NamespaceError as e:
         terms = " ".join(pkg.split("/")[1:])
         cli.error(
             "unsupported namespace %s in '%s'\n"
             "Try 'guild search %s -a' to find matching packages."
             % (e.value, pkg, terms))
-    else:
-        return ns.pip_info(req)
 
 def uninstall_packages(args):
     for reqs, _ in _installs(args):

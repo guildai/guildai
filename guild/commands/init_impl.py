@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import os
 import pkg_resources
 import subprocess
@@ -22,8 +23,12 @@ import subprocess
 import guild
 
 from guild import cli
+from guild import guildfile
 from guild import init
+from guild import namespace
 from guild import util
+
+log = logging.getLogger("guild")
 
 class Config(object):
 
@@ -32,7 +37,8 @@ class Config(object):
         self.env_name = self._init_env_name(args.name, self.env_dir)
         self.venv_python_ver = self._init_venv_python(args)
         self.guild = args.guild
-        self.reqs = self._init_reqs(args)
+        self.guild_pkg_reqs = self._init_guild_pkg_reqs(args)
+        self.user_reqs = self._init_user_reqs(args)
         self.tensorflow = args.tf_package
         self.local_resource_cache = args.local_resource_cache
         self.prompt_params = self._init_prompt_params()
@@ -55,12 +61,24 @@ class Config(object):
         return "python{}".format(arg)
 
     @staticmethod
-    def _init_reqs(args):
+    def _init_guild_pkg_reqs(args):
+        if args.no_reqs:
+            return ()
+        guildfile_path = _env_parent_path("guild.yml", args)
+        if not os.path.exists(guildfile_path):
+            return ()
+        return _guild_pkg_reqs(guildfile_path)
+
+    @staticmethod
+    def _init_user_reqs(args):
+        # -r options may be used with --no-reqs, in which case -r
+        # takes precedence (--no-reqs may still be used to suppress
+        # installation of Guild package reqs)
         if args.requirement:
+            _validate_req_files(args.requirement)
             return args.requirement
         elif not args.no_reqs:
-            parent_dir = os.path.dirname(args.dir)
-            default_reqs = os.path.join(parent_dir, "requirements.txt")
+            default_reqs = _env_parent_path("requirements.txt", args)
             if os.path.exists(default_reqs):
                 return (default_reqs,)
         return ()
@@ -77,8 +95,10 @@ class Config(object):
             params.append(("Guild version", self.guild))
         else:
             params.append(("Guild version", _implicit_guild_version()))
-        if self.reqs:
-            params.append(("Requirements", self.reqs))
+        if self.guild_pkg_reqs:
+            params.append(("Required Guild packages", self.guild_pkg_reqs))
+        if self.user_reqs:
+            params.append(("Python requirements", self.user_reqs))
         if self.tensorflow == "no":
             params.append(("TensorFlow support", "no"))
         elif self.tensorflow == "tensorflow":
@@ -95,8 +115,48 @@ class Config(object):
             params.append(("Resource cache", "shared"))
         return params
 
+    def _maybe_guild_pkg_reqs(self):
+        if self.no_guild_pkg_reqs:
+            return []
+
     def as_kw(self):
         return self.__dict__
+
+def _env_parent_path(name, args):
+    parent_dir = os.path.dirname(args.dir)
+    return os.path.join(parent_dir, name)
+
+def _guild_pkg_reqs(path):
+    try:
+        gf = guildfile.from_file(path)
+    except guildfile.GuildfileError as e:
+        log.warning(
+            "cannot get Guild package requirements: error reading %s: %s",
+            path, e)
+        return ()
+    else:
+        if not gf.package:
+            return ()
+        reqs = tuple(gf.package.requires or ())
+        return _validate_guild_reqs(reqs, path)
+
+def _validate_guild_reqs(reqs, guildfile_path):
+    # Make sure we can convert each to pip reqs
+    for req in reqs:
+        try:
+            namespace.pip_info(req)
+        except namespace.NamespaceError:
+            cli.error(
+                "invalid required Guild package '%s' in %s\n"
+                "Either correct the package name or use --no-reqs "
+                "to skip installing required Guild packages"
+                % (req, guildfile_path))
+    return reqs
+
+def _validate_req_files(paths):
+    for p in paths:
+        if not os.path.exists(p):
+            cli.error("requirement file %s does not exist" % p)
 
 def _shorten_path(path):
     return path.replace(os.path.expanduser("~"), "~")
@@ -128,6 +188,7 @@ def _init(config):
     _init_guild_env(config)
     _init_venv(config)
     _install_guild(config)
+    _install_guild_pkg_reqs(config)
     _install_user_reqs(config)
     _ensure_tensorflow(config)
     _initialized_msg(config)
@@ -242,10 +303,23 @@ def _install_req_files(req_files, config):
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
 
+def _install_guild_pkg_reqs(config):
+    if config.guild_pkg_reqs:
+        cli.out("Installing Python requirements")
+        reqs = _pip_package_reqs(config.guild_pkg_reqs)
+        _install_reqs(reqs, config)
+
+def _pip_package_reqs(guild_reqs):
+    reqs = []
+    for guild_req in guild_reqs:
+        pip_info = namespace.pip_info(guild_req)
+        reqs.append(pip_info.project_name)
+    return reqs
+
 def _install_user_reqs(config):
-    if config.reqs:
-        cli.out("Installing requirements")
-        _install_req_files(config.reqs, config)
+    if config.user_reqs:
+        cli.out("Installing Python requirements")
+        _install_req_files(config.user_reqs, config)
 
 def _ensure_tensorflow(config):
     if config.tensorflow == "no":
