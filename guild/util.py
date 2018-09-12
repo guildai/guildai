@@ -792,3 +792,10 @@ def _rendered_str(s):
     if s is None:
         return ""
     return str(s)
+
+def del_env(names):
+    for name in names:
+        try:
+            del os.environ[name]
+        except KeyError:
+            pass

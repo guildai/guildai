@@ -29,8 +29,10 @@ from pip._internal.download import _download_http_url
 from pip._internal.exceptions import InstallationError
 from pip._internal.exceptions import UninstallationError
 from pip._internal.index import Link
+from pip._internal.locations import distutils_scheme
 from pip._internal.req import req_file
 from pip._internal.utils.misc import get_installed_distributions
+from pip._internal.wheel import root_is_purelib
 
 from guild import namespace
 from guild import util
@@ -42,6 +44,7 @@ class InstallError(Exception):
 
 def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
             no_cache=False, no_deps=False, reinstall=False, target=None):
+    _reset_env_for_install()
     _ensure_patch_pip_get_entry_points()
     cmd = _pip_cmd(InstallCommand)
     args = []
@@ -69,6 +72,9 @@ def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
         return cmd.run(options, cmd_args)
     except InstallationError as e:
         raise InstallError(str(e))
+
+def _reset_env_for_install():
+    util.del_env(["PIP_REQ_TRACKER"])
 
 def _pip_cmd(cls):
     cmd = cls()
@@ -295,3 +301,13 @@ def _ensure_print_package_logger():
 
 def parse_requirements(path):
     return req_file.parse_requirements(path, session="unused")
+
+def lib_dir(name, wheeldir, user=False, home=None, root=None,
+            isolated=False, prefix=None):
+    scheme = distutils_scheme(
+        "", user=user, home=home, root=root,
+        isolated=isolated, prefix=prefix)
+    if root_is_purelib(name, wheeldir):
+        return scheme['purelib']
+    else:
+        return scheme['platlib']
