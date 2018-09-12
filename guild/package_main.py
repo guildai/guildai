@@ -53,7 +53,7 @@ def main():
     _maybe_upload(dist)
 
 def _load_pkg():
-    path = os.getenv("PACKAGE_FILE")
+    path = os.environ["PACKAGE_FILE"]
     try:
         gf = guildfile.from_file(path)
     except (IOError, guildfile.GuildfileError) as e:
