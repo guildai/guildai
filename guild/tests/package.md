@@ -37,12 +37,12 @@ We can access the package definition using the `package` attribute:
 
     >>> pkg = gf.package
     >>> pkg
-    <guild.guildfile.PackageDef 'hello'>
+    <guild.guildfile.PackageDef 'gpkg.hello'>
 
 Packages have various attributes that are used to create the package.
 
     >>> pkg.name
-    'hello'
+    'gpkg.hello'
 
     >>> pkg.version
     '0.3.0.dev4'

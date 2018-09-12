@@ -5,12 +5,12 @@ The `packages` command shows Guild packages (i.e. packages in the
 Guild packages:
 
     >>> run("guild packages")
-    mnist          0.4.1...  CNN and softmax regression classifiers for MNIST digits
+    gpkg.mnist     0.4.1...  CNN and softmax regression classifiers for MNIST digits
     <exit 0>
 
 Here's the list of all packages matching `mnist`:
 
     >>> run("guild packages ls -a mnist")
-    mnist          0.4.1...  CNN and softmax regression classifiers for MNIST digits
-    pypi.mnist     ...       Python utilities to download and parse the MNIST dataset
+    gpkg.mnist          0.4.1...  CNN and softmax regression classifiers for MNIST digits
+    mnist               ...       Python utilities to download and parse the MNIST dataset
     <exit 0>

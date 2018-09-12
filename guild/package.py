@@ -22,12 +22,13 @@ import sys
 
 import yaml
 
-from guild import namespace
 from guild import resource
 from guild import resourcedef
 from guild import util
 
 log = logging.getLogger("guild")
+
+GPKG_PREFIX = "gpkg."
 
 class Package(object):
 
@@ -105,5 +106,4 @@ def _apply_twine_env_creds(env):
         pass
 
 def is_gpkg(project_name):
-    ns = namespace.for_name("gpkg")
-    return ns.project_name_membership(project_name) == namespace.Membership.yes
+    return project_name.startswith(GPKG_PREFIX)

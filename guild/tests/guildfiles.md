@@ -970,7 +970,7 @@ The sample doesn't contain any models:
 It does contain a package:
 
     >>> gf.package
-    <guild.guildfile.PackageDef 'hello'>
+    <guild.guildfile.PackageDef 'gpkg.hello'>
 
 ## Errors
 

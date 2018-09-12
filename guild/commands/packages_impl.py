@@ -15,13 +15,10 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import glob
 import logging
 import os
-import shutil
 
 from guild import cli
-from guild import guildfile
 from guild import namespace
 from guild import package
 from guild import pip_util
@@ -46,7 +43,7 @@ def _filter_scope(pkg, args):
 
 def _format_pkg(pkg):
     return {
-        "name": namespace.apply_namespace(pkg.project_name),
+        "name": pkg.project_name,
         "summary": _pkg_summary(pkg),
         "version": pkg.version,
     }
@@ -69,113 +66,7 @@ def _filter_model(pkg, args):
     return util.match_filters(args.terms, [pkg["name"], pkg["summary"]])
 
 def install_packages(args):
-    pip_pkgs, source_paths = _split_install_packages(args.packages)
-    _install_guild_source_packages(source_paths, args)
-    _install_pip_packages(pip_pkgs, args)
-
-def _split_install_packages(pkgs):
-    pip_pkgs = []
-    source_paths = []
-    for pkg in pkgs:
-        if os.path.isdir(pkg):
-            setup_path = os.path.join(pkg, "setup.py")
-            if os.path.exists(setup_path):
-                pip_paths.append(pkg)
-            else:
-                guildfile_path = os.path.join(pkg, "guild.yml")
-                if os.path.exists(guildfile_path):
-                    source_paths.append(guildfile_path)
-                else:
-                    cli.error(
-                        "cannot install source directory %s: it "
-                        "does not contain setup.py or guild.yml"
-                        % pkg)
-        else:
-            pip_pkgs.append(pkg)
-    return pip_pkgs, source_paths
-
-def _install_guild_source_packages(source_paths, args):
-    for guildfile_path in source_paths:
-        _install_guild_source_package(guildfile_path, args)
-
-def _install_guild_source_package(guildfile_path, args):
-    gf = _package_guildfile(guildfile_path)
-    _install_pip_packages(_guild_package_pip_deps(gf), args)
-    _install_linked_guild_source_package(gf, args)
-
-def _package_guildfile(path):
-    try:
-        gf = guildfile.from_file(path)
-    except guildfile.GuildfileError as e:
-        cli.error("error reading %s: %s" % (path, e))
-    else:
-        if not gf.package:
-            cli.error("%s does not contain a package definition" % path)
-        return gf
-
-def _guild_package_pip_deps(gf):
-    return [_pip_pkg(dep) for dep in gf.package.requires or ()]
-
-def _pip_pkg(guild_pkg_req):
-    return namespace.pip_info(guild_pkg_req).project_name
-
-def _install_linked_guild_source_package(gf, args):
-    tmp_dist_dir = _build_guild_package(gf)
-    tmp_install_dir = _install_tmp_guild_package(tmp_dist_dir)
-    pip_pkg_name = _pip_pkg(gf.package.name)
-    lib_dir = pip_util.lib_dir(pip_pkg_name, tmp_install_dir)
-    _link_guild_source(gf.dir, pip_pkg_name, lib_dir)
-    _move_pkg_meta(tmp_install_dir, lib_dir)
-
-def _build_guild_package(gf):
-    log.info("Building package %s from %s", gf.package.name, gf.dir)
-    tmp_dir = util.mktempdir("guild-install-source-dist-")
-    package.create_package(gf.src, tmp_dir)
-    return tmp_dir
-
-def _install_tmp_guild_package(dist_dir):
-    tmp_target = util.mktempdir("guild-install-tmp-")
-    dist_wheel = _dist_wheel(dist_dir)
-    pip_util.install([dist_wheel], no_deps=True, target=tmp_target)
-    return tmp_target
-
-def _dist_wheel(path):
-    matches = glob.glob(os.path.join(path, "*.whl"))
-    if not matches:
-        cli.error(
-            "error building Guild source in %s: wheel was not "
-            "created in %s" % dist_dir)
-    if len(matches) > 1:
-        cli.error(
-            "error building Guild source in %s: more than one wheel "
-            "created in %s" % dist_dir)
-    return matches[0]
-
-def _link_guild_source(src_dir, pip_pkg_name, lib_dir):
-    dest = os.path.join(lib_dir, *pip_pkg_name.split("."))
-    _rm_lib_dir_path(dest)
-    util.ensure_dir(os.path.dirname(dest))
-    os.symlink(src_dir, dest)
-
-def _move_pkg_meta(src_dir, lib_dir):
-    src_patterns = (
-        os.path.join(src_dir, "*.dist-info"),
-        os.path.join(src_dir, "*.pth"),
-    )
-    for pattern in src_patterns:
-        for src in glob.glob(pattern):
-            dest = os.path.join(lib_dir, os.path.basename(src))
-            _rm_lib_dir_path(dest)
-            shutil.move(src, dest)
-
-def _rm_lib_dir_path(path):
-    if os.path.islink(path) or os.path.isfile(path):
-        os.remove(path)
-    elif os.path.isdir(path):
-        util.safe_rmtree(path)
-
-def _install_pip_packages(pip_pkgs, args):
-    for reqs, index_urls in _installs(pip_pkgs):
+    for reqs, index_urls in _installs(args.packages):
         try:
             pip_util.install(
                 reqs,
@@ -214,8 +105,7 @@ def _pip_info(pkg):
             % (e.value, pkg, terms))
 
 def uninstall_packages(args):
-    for reqs, _ in _installs(args.packages):
-        pip_util.uninstall(reqs, dont_prompt=args.yes)
+    pip_util.uninstall(args.packages, dont_prompt=args.yes)
 
 def package_info(args):
     for i, (project, pkg) in enumerate(_iter_project_names(args.packages)):

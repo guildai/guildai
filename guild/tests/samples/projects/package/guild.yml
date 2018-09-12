@@ -1,4 +1,4 @@
-package: hello
+package: gpkg.hello
 version: 0.3.0.dev4
 description: Example "hello world" model
 url: https://github.com/guildai/index/tree/master/hello

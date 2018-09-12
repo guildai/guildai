@@ -89,11 +89,10 @@ def _dist_dir_args():
         return []
 
 def _setup_kw(pkg):
-    pkg_name = "gpkg." + pkg.name
     project_dir = os.path.dirname(pkg.guildfile.src)
     desc, long_desc = _pkg_description(pkg)
     return dict(
-        name=pkg_name,
+        name=pkg.name,
         version=pkg.version,
         description=desc,
         long_description=long_desc,
@@ -104,11 +103,11 @@ def _setup_kw(pkg):
         keywords=" ".join(pkg.tags),
         python_requires=_pkg_python_requires(pkg),
         install_requires=_pkg_install_requires(pkg),
-        packages=[pkg_name],
-        package_dir={pkg_name: project_dir},
-        namespace_packages=["gpkg"],
+        packages=[pkg.name],
+        package_dir={pkg.name: project_dir},
+        namespace_packages=_namespace_packages(pkg),
         package_data={
-            pkg_name: _package_data(pkg)
+            pkg.name: _package_data(pkg)
         },
         entry_points=_entry_points(pkg),
     )
@@ -129,6 +128,12 @@ def _pkg_description(pkg):
     pkg_desc = guild.help.package_description(pkg.guildfile)
     long_desc += "\n\n" + pkg_desc
     return desc, long_desc
+
+def _namespace_packages(pkg):
+    if pkg.name.startswith("gpkg."):
+        return ["gpkg"]
+    else:
+        return []
 
 def _package_data(pkg):
     return _pkg_data_files(pkg) + _default_pkg_files()

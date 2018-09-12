@@ -1,9 +1,9 @@
-# Uninstall `mnist` package
+# Uninstall `gpkg.mnist` package
 
 We can remove an installed package using `uninstall` (which is a
 synonym for `packages delete`). In this case we'll uninstall `mnist`.
 
-    >>> run("guild uninstall mnist -y")
+    >>> run("guild uninstall gpkg.mnist -y")
     Uninstalling gpkg.mnist-...:
     Successfully uninstalled gpkg.mnist-...
     <exit 0>

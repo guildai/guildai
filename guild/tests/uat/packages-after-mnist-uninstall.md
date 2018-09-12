@@ -1,6 +1,6 @@
-# Packages after `mnist` uninstall
+# Packages after `gpkg.mnist` uninstall
 
-Here are the packages after we uninstall `mnist`:
+Here are the packages after we uninstall `gpkg.mnist`:
 
     >>> run("guild packages")
     <BLANKLINE>
@@ -9,5 +9,5 @@ Here are the packages after we uninstall `mnist`:
 Here's the list of all packages matching `mnist`:
 
     >>> run("guild packages ls -a mnist")
-    pypi.mnist  0.2.1  Python utilities to download and parse the MNIST dataset
+    mnist  0.2.1  Python utilities to download and parse the MNIST dataset
     <exit 0>
