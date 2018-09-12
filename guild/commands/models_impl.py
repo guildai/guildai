@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
+
 from guild import cli
 from guild import cmd_impl_support
 from guild import model
@@ -22,8 +24,8 @@ from guild import util
 
 def main(args):
     cmd_impl_support.init_model_path()
-    gf_dirs, filters = cmd_impl_support.guildfile_dirs(args.filters)
-    formatted = [_format_model(m) for m in iter_models(gf_dirs)]
+    dirs, filters = cmd_impl_support.guildfile_dirs(args.filters)
+    formatted = [_format_model(m) for m in iter_models(dirs)]
     filtered = [m for m in formatted if _filter_model(m, filters)]
     cli.table(
         sorted(filtered, key=lambda m: m["fullname"]),
@@ -31,11 +33,13 @@ def main(args):
         detail=(["source", "operations", "details"] if args.verbose else [])
     )
 
-def iter_models(gf_dirs):
+def iter_models(dirs):
+    abs_dirs = [os.path.abspath(d) for d in dirs]
     for m in model.iter_models():
-        if not gf_dirs:
+        if not dirs:
             yield m
-        if any((m.modeldef.guildfile.dir == dir for dir in gf_dirs)):
+        if any((os.path.abspath(m.modeldef.guildfile.dir) == abs_dir
+                for abs_dir in abs_dirs)):
             yield m
 
 def _format_model(model):
