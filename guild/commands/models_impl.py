@@ -36,7 +36,7 @@ def main(args):
 def iter_models(dirs):
     abs_dirs = [os.path.abspath(d) for d in dirs]
     for m in model.iter_models():
-        if not dirs:
+        if not abs_dirs:
             yield m
         if any((os.path.abspath(m.modeldef.guildfile.dir) == abs_dir
                 for abs_dir in abs_dirs)):
