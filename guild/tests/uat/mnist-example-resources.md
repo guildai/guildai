@@ -5,7 +5,7 @@ The MNIST example provides the following resources:
     >>> run("guild -C examples/mnist resources")
     ./examples/mnist/mnist-expert:model  Exported model
     ./examples/mnist/mnist-intro:model   Exported model
-    hello/...
+    gpkg.hello/...
     <exit 0>
 
 The same list after changing directories:
@@ -14,7 +14,7 @@ The same list after changing directories:
     >>> run("guild resources")
     ./mnist-expert:model  Exported model
     ./mnist-intro:model   Exported model
-    hello/...
+    gpkg.hello/...
     <exit 0>
 
 We can limit resources to those defined in the current directory:

@@ -58,7 +58,7 @@ any model weights.
 
 Let install `h5py`:
 
-    >>> quiet("guild install pypi.h5py")
+    >>> quiet("guild install h5py")
 
 And train again:
 

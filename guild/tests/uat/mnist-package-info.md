@@ -1,9 +1,9 @@
-# `mnist` package info
+# `gpkg.mnist` package info
 
 Use `guild packages info PKG` to show information about a package:
 
-    >>> run("guild packages info mnist") # doctest: +REPORT_UDIFF
-    name: mnist
+    >>> run("guild packages info gpkg.mnist") # doctest: +REPORT_UDIFF
+    name: gpkg.mnist
     version: 0.4.1...
     summary: CNN and softmax regression classifiers for MNIST digits
     home-page: https://github.com/guildai/index/tree/master/mnist
@@ -18,8 +18,8 @@ Use `guild packages info PKG` to show information about a package:
 We can use the `--verbose` and `--files` flags to get more
 information.
 
-    >>> run("guild packages info mnist --verbose --files") # doctest: +REPORT_UDIFF
-    name: mnist
+    >>> run("guild packages info gpkg.mnist --verbose --files") # doctest: +REPORT_UDIFF
+    name: gpkg.mnist
     version: 0.4.1...
     summary: CNN and softmax regression classifiers for MNIST digits
     home-page: https://github.com/guildai/index/tree/master/mnist

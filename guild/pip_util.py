@@ -34,7 +34,6 @@ from pip._internal.req import req_file
 from pip._internal.utils.misc import get_installed_distributions
 from pip._internal.wheel import root_is_purelib
 
-from guild import namespace
 from guild import util
 
 log = logging.getLogger("guild")
@@ -275,7 +274,6 @@ class PrintPackageLogger(object):
     def info(self, msg, args=None):
         args = args or []
         out = self._normalize_attr_case(msg % args)
-        out = self._apply_namespace(out)
         sys.stdout.write(out)
         sys.stdout.write("\n")
 
@@ -284,14 +282,6 @@ class PrintPackageLogger(object):
         m = re.match("([^:]+:)(.*)", s)
         if m:
             return m.group(1).lower() + m.group(2)
-        return s
-
-    @staticmethod
-    def _apply_namespace(s):
-        if s[:6] == "name: ":
-            project_name = s[6:]
-            package_name = namespace.apply_namespace(project_name)
-            return "name: %s" % package_name
         return s
 
 def _ensure_print_package_logger():

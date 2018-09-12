@@ -1,6 +1,6 @@
 # Install slim.reset
 
-    >>> run("guild install slim.resnet --pre")
+    >>> run("guild install gpkg.slim.resnet --pre")
     Looking in indexes: https://pypi.python.org/simple
     Collecting gpkg.slim.resnet
     ...

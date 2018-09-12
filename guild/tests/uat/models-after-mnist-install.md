@@ -4,7 +4,7 @@ Once we've installed the `mnist` package, we have the following models
 available:
 
     >>> run("guild models")
-    mnist/mnist-cnn      CNN classifier for MNIST
-    mnist/mnist-samples  Sample MNIST images
-    mnist/mnist-softmax  Softmax regression classifier for MNIST
+    gpkg.mnist/mnist-cnn      CNN classifier for MNIST
+    gpkg.mnist/mnist-samples  Sample MNIST images
+    gpkg.mnist/mnist-softmax  Softmax regression classifier for MNIST
     <exit 0>

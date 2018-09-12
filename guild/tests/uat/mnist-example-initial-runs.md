@@ -6,16 +6,16 @@ listed.
 Here are the runs from previous tests:
 
     >>> run("guild -C examples/mnist runs")
-    [0:...]  keras.mnist/mnist-mlp:train   ...  completed
+    [0:...]  gpkg.keras.mnist/mnist-mlp:train   ...  completed
     ...
-    [6:...]  mnist/mnist-softmax:train     ...  completed
+    [6:...]  gpkg.mnist/mnist-softmax:train     ...  completed
     <exit 0>
 
 We can alternatively change to that directory and see the same results:
 
     >>> cd("examples/mnist")
     >>> run("guild runs")
-    [0:...]  keras.mnist/mnist-mlp:train   ...  completed
+    [0:...]  gpkg.keras.mnist/mnist-mlp:train   ...  completed
     ...
-    [6:...]  mnist/mnist-softmax:train     ...  completed
+    [6:...]  gpkg.mnist/mnist-softmax:train     ...  completed
     <exit 0>

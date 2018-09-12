@@ -139,7 +139,8 @@ def split_name(name):
         except NamespaceError:
             pass
         else:
-            return ns, m.group(2)
+            if ns.name != DEFAULT_NAMESPACE:
+                return ns, m.group(2)
     return for_name(DEFAULT_NAMESPACE), name
 
 def limit_to_builtin():

@@ -5,7 +5,7 @@ run:
 
     >>> run("guild runs")
     [0:...]  ./examples/mnist/mnist-intro:train  ... ...  completed
-    [1:...]  mnist/mnist-softmax:train            ... ...  completed
+    [1:...]  gpkg.mnist/mnist-softmax:train      ... ...  completed
     <exit 0>
 
 Here we see the run for the MNIST example `mnist-intro` model along
@@ -33,6 +33,6 @@ To show all runs within the current context, we can use the `-a`
 option:
 
     >>> run("guild runs -a")
-    [0:...]  ./mnist-intro:train        ... ...  completed
-    [1:...]  mnist/mnist-softmax:train  ... ...  completed
+    [0:...]  ./mnist-intro:train             ... ...  completed
+    [1:...]  gpkg.mnist/mnist-softmax:train  ... ...  completed
     <exit 0>
