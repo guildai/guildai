@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
+
 from guild import cli
 from guild import resource
 from guild import cmd_impl_support
@@ -22,8 +24,8 @@ from guild import util
 
 def main(args):
     cmd_impl_support.init_resource_path()
-    gf_dirs, filters = cmd_impl_support.guildfile_dirs(args.filters)
-    formatted = [_format_resource(r) for r in iter_resources(gf_dirs)]
+    dirs, filters = cmd_impl_support.guildfile_dirs(args.filters)
+    formatted = [_format_resource(r) for r in iter_resources(dirs)]
     filtered = [r for r in formatted if _filter_resource(r, filters)]
     cli.table(
         sorted(filtered, key=lambda r: r["name"]),
@@ -31,16 +33,18 @@ def main(args):
         detail=(["sources"] if args.verbose else [])
     )
 
-def iter_resources(gf_dirs):
+def iter_resources(dirs):
+    abs_dirs = [os.path.abspath(d) for d in dirs]
     for r in resource.iter_resources():
-        if not gf_dirs:
+        if not abs_dirs:
             yield r
         try:
             gf = r.dist.guildfile
         except AttributeError:
             pass
         else:
-            if any((gf.dir == dir for dir in gf_dirs)):
+            if any((os.path.abspath(gf.dir) == abs_dir
+                    for abs_dir in abs_dirs)):
                 yield r
 
 def _format_resource(res):
