@@ -66,6 +66,7 @@ def _load_pkg():
 def _create_dist(pkg):
     sys.argv = _bdist_wheel_cmd_args(pkg)
     kw = _setup_kw(pkg)
+    _maybe_print_kw_and_exit(kw)
     _write_package_metadata(pkg, kw)
     return setuptools.setup(**kw)
 
@@ -203,6 +204,12 @@ def _project_name(req):
     ns, project_name = namespace.split_name(req)
     pip_info = ns.pip_info(project_name)
     return pip_info.project_name
+
+def _maybe_print_kw_and_exit(kw):
+    if os.getenv("DUMP_SETUP_KW") == "1":
+        import pprint
+        pprint.pprint(kw)
+        sys.exit(0)
 
 def _write_package_metadata(pkg, setup_kw):
     egg_info_dir = "%s.egg-info" % setup_kw["name"]
