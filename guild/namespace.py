@@ -24,7 +24,7 @@ from guild.entry_point_util import EntryPointResources
 
 _namespaces = EntryPointResources("guild.namespaces", "namespace")
 
-DEFAULT_NAMESPACE = "gpkg"
+DEFAULT_NAMESPACE = "pypi"
 
 class Membership(object):
     yes = "yes"
@@ -84,7 +84,7 @@ class PypiNamespace(Namespace):
         return PipInfo(req, [self.INDEX_INSTALL_URL])
 
     def package_name(self, project_name):
-        return self.name + "." + project_name
+        return project_name
 
 class PrefixNamespace(Namespace):
 
@@ -104,10 +104,6 @@ class PrefixNamespace(Namespace):
                 "%s is not a member of %s namespace"
                 % (project_name, self.name))
         return project_name[len(self.prefix):]
-
-class GpkgNamespace(PrefixNamespace):
-
-    prefix = "gpkg."
 
 def iter_namespaces():
     return iter(_namespaces)

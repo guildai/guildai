@@ -123,7 +123,7 @@ an escaped relative directory that contains the model's
 guildfile. This value can be unescaped using
 `model._unescape_project_name`.
 
-    >>> intro_pkg_path = guild.model._unescape_project_name(
+    >>> intro_pkg_path = guild.model.unescape_project_name(
     ...                    intro.dist.project_name[11:])
     >>> intro_pkg_path
     '.../samples/projects/mnist'
@@ -147,19 +147,19 @@ associated model definition.
 Models also provide a `fullname` attribute that applies namespaces to
 the model distribution project name:
 
-    >>> intro.fullname
-    '.../samples/projects/mnist/intro'
-
 Models from local guildfiles (i.e. not installed from standard Python
 packages) are named with a starting '.' and a path leading to the
 model name. Paths in these names are always relative to the current
 working directory.
 
-    >>> cnn.fullname
-    'mnist/mnist-cnn'
+    >>> intro.fullname
+    './guild/tests/samples/projects/mnist/intro'
 
 Models from installed packages are named with their Guild package
 names (i.e. after namespaces are applied) and do not start with a '.'.
+
+    >>> cnn.fullname
+    'gpkg.mnist/mnist-cnn'
 
 ## Model references
 
@@ -188,7 +188,7 @@ Here's the reference for the `cnn` model:
 
     >>> cnn.reference
     ModelRef(dist_type='package',
-             dist_name='mnist',
+             dist_name='gpkg.mnist',
              dist_version='0.1.0',
              model_name='mnist-cnn')
 

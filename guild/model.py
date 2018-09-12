@@ -199,7 +199,7 @@ class GuildfileDistribution(pkg_resources.Distribution):
 
         ESCAPED_GUILDFILE_PATH is a 'safe' project name (i.e. will not be
         modified in a call to `pkg_resources.safe_name`) that, when
-        unescaped using `_unescape_project_name`, is the relative path of
+        unescaped using `unescape_project_name`, is the relative path of
         the directory containing the guildfile. The modefile name itself
         (e.g. 'guild.yml') is not contained in the path.
 
@@ -210,7 +210,7 @@ class GuildfileDistribution(pkg_resources.Distribution):
         pkg_path = os.path.relpath(guildfile.dir)
         if pkg_path[0] != ".":
             pkg_path = os.path.join(".", pkg_path)
-        safe_path = _escape_project_name(pkg_path)
+        safe_path = escape_project_name(pkg_path)
         return ".guildfile.%s" % safe_path
 
     def _init_entry_map(self):
@@ -244,12 +244,12 @@ class GuildfileDistribution(pkg_resources.Distribution):
             attrs=("GuildfileResource",),
             dist=self)
 
-def _escape_project_name(name):
+def escape_project_name(name):
     """Escapes name for use as a valie pkg_resources project name."""
     return str(base64.b16encode(name.encode("utf-8")).decode("utf-8"))
 
-def _unescape_project_name(escaped_name):
-    """Unescapes names escaped with `_escape_project_name`."""
+def unescape_project_name(escaped_name):
+    """Unescapes names escaped with `escape_project_name`."""
     return str(base64.b16decode(escaped_name).decode("utf-8"))
 
 class GuildfileResource(resource.Resource):
@@ -371,7 +371,7 @@ class GuildfileNamespace(namespace.PrefixNamespace):
     def package_name(self, project_name):
         pkg = super(GuildfileNamespace, self).package_name(project_name)
         parts = pkg.split("/", 1)
-        decoded_project_name = _unescape_project_name(parts[0])
+        decoded_project_name = unescape_project_name(parts[0])
         rest = "/" + parts[1] if len(parts) == 2 else ""
         return decoded_project_name + rest
 
