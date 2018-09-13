@@ -30,7 +30,8 @@ training and use it to make predictions. The default behavior, shown
 below, is to serve the latest run.
 
     >>> run("echo dummy && "
-    ...     "guild serve --test serving_default --test-json-instances %s"
+    ...     "CUDA_VISIBLE_DEVICES= guild serve "
+    ...     "--test serving_default --test-json-instances %s"
     ...     % sample("serve/mnist-instances.json"))
     dummy
     ...
