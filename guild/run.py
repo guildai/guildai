@@ -149,16 +149,22 @@ class Run(object):
     def guild_path(self, subpath):
         return os.path.join(self._guild_dir, subpath)
 
-    def write_attr(self, name, val):
+    def write_attr(self, name, val, raw=False):
+        if not raw:
+            val = self._encode_attr_val(val)
+        with open(self._attr_path(name), "w") as f:
+            f.write(val)
+            f.close()
+
+    @staticmethod
+    def _encode_attr_val(val):
         encoded = yaml.safe_dump(
             val,
             default_flow_style=False,
             indent=2).strip()
         if encoded.endswith("\n..."):
             encoded = encoded[:-4]
-        with open(self._attr_path(name), "w") as f:
-            f.write(encoded)
-            f.close()
+        return encoded
 
     def del_attr(self, name):
         try:

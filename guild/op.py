@@ -92,7 +92,7 @@ class Operation(object):
     def _init_attrs(self):
         assert self._run is not None
         self._started = guild.run.timestamp()
-        self._run.write_attr("opref", self._opref_attr())
+        self._run.write_attr("opref", self._opref_attr(), raw=True)
         _delete_pending(self._run)
         self._run.write_attr("started", self._started)
         for name, val in (self.extra_attrs or {}).items():
