@@ -2,7 +2,7 @@
 
     >>> run("export samples=`guild runs info | grep run_dir: | cut -d' ' -f2`"
     ...     " && echo Testing softmax serve "
-    ...     " && guild serve "
+    ...     " && CUDA_VISIBLE_DEVICES= guild serve "
     ...     "    --operation mnist-softmax:train "
     ...     "    --test serving_default "
     ...     "    --test-json-instances $samples/all.json")
