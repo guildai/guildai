@@ -3,7 +3,8 @@
 We can train the MNIST example model `mnist-intro` as the default
 model in the `mnist` directory:
 
-    >>> run("guild -C examples/mnist run train -y epochs=1")
+    >>> run("guild -C examples/mnist run train -y --no-gpus epochs=1")
+    Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
     Resolving data dependency
     ...
     Step 0: training=...
