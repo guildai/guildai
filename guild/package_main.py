@@ -131,10 +131,11 @@ def _pkg_description(pkg):
     return desc, long_desc
 
 def _namespace_packages(pkg):
-    if pkg.name.startswith("gpkg."):
-        return ["gpkg"]
-    else:
+    parts = pkg.name.rsplit(".", 1)
+    if len(parts) == 1:
         return []
+    else:
+        return [parts[0]]
 
 def _package_data(pkg):
     return _pkg_data_files(pkg) + _default_pkg_files()
