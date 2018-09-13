@@ -110,7 +110,6 @@ class Guildfile(object):
             raise ValueError("either src or dir must be specified")
         self.src = src
         self.dir = dir
-        self.default_model = None
         self.models = {}
         self.package = None
         data = self._coerce_data(data)
@@ -233,14 +232,22 @@ class Guildfile(object):
         if name in self.models:
             raise GuildfileError(self, "duplicate model '%s'" % name)
         model = ModelDef(name, data, self, extends_seen)
-        if model.default or not self.default_model:
-            self.default_model = model
         self.models[name] = model
 
     def _apply_package(self, name, data):
         if self.package:
             raise GuildfileError(self, "mutiple package definitions")
         self.package = PackageDef(name, data, self)
+
+    @property
+    def default_model(self):
+        models = self.models.values()
+        if len(models) == 1:
+            return models[0]
+        for m in models:
+            if m.default:
+                return m
+        return None
 
     def __repr__(self):
         return "<guild.guildfile.Guildfile '%s'>" % self

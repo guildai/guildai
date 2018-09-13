@@ -42,11 +42,60 @@ We can lookup a models using dictionary semantics:
 
 ### Default model
 
-The first model defined in a project is considered to be the default
-model:
+Guild files may have a default model, which is implicitly used in
+cases where a model is not specified explicitly.
 
-    >>> gf.default_model
-    <guild.guildfile.ModelDef 'intro'>
+If a Guild file contains only one model, that model is always the
+default.
+
+    >>> gf_default_model_test = guildfile.from_string("""
+    ... - model: foo
+    ... """)
+    >>> gf_default_model_test.default_model
+    <guild.guildfile.ModelDef 'foo'>
+
+If the file contains more than one model, a model must explicitly be
+designated as default.
+
+In this case, foo is default:
+
+    >>> gf_default_model_test = guildfile.from_string("""
+    ... - model: foo
+    ...   default: yes
+    ... - model: bar
+    ... """)
+    >>> gf_default_model_test.default_model
+    <guild.guildfile.ModelDef 'foo'>
+
+In this case, bar is default:
+
+    >>> gf_default_model_test = guildfile.from_string("""
+    ... - model: foo
+    ... - model: bar
+    ...   default: yes
+    ... """)
+    >>> gf_default_model_test.default_model
+    <guild.guildfile.ModelDef 'bar'>
+
+In this case, neither are default:
+
+    >>> gf_default_model_test = guildfile.from_string("""
+    ... - model: foo
+    ... - model: bar
+    ... """)
+    >>> gf_default_model_test.default_model is None
+    True
+
+Of course, if a Guild file contains no models, there's no default.
+
+    >>> guildfile.from_string("- config: foo").default_model is None
+    True
+
+In the case of our sample mnist project, there are two models, none of
+which are designated as default. The default model is therefore None.
+
+    >>> gf.default_model is None
+    True
 
 ### Attributes
 
