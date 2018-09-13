@@ -241,7 +241,7 @@ class Guildfile(object):
 
     @property
     def default_model(self):
-        models = self.models.values()
+        models = list(self.models.values())
         if len(models) == 1:
             return models[0]
         for m in models:
