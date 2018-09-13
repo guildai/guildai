@@ -8,7 +8,7 @@ Here are the runs from previous tests:
     >>> run("guild -C examples/mnist runs")
     [0:...]  gpkg.keras.mnist/mnist-mlp:train   ...  completed
     ...
-    [6:...]  gpkg.mnist/mnist-softmax:train     ...  completed
+    [6:...]  gpkg.mnist/logreg:train            ...  completed
     <exit 0>
 
 We can alternatively change to that directory and see the same results:
@@ -17,5 +17,5 @@ We can alternatively change to that directory and see the same results:
     >>> run("guild runs")
     [0:...]  gpkg.keras.mnist/mnist-mlp:train   ...  completed
     ...
-    [6:...]  gpkg.mnist/mnist-softmax:train     ...  completed
+    [6:...]  gpkg.mnist/logreg:train            ...  completed
     <exit 0>

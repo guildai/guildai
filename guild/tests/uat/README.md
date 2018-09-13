@@ -82,12 +82,6 @@ Next we prepare sample images and run some predictions.
 - [prepare-mnist-samples](prepare-mnist-samples.md)
 - [predict-mnist-samples](predict-mnist-samples.md)
 
-Before we uninstall the package, we'll take advantage of the fact we
-have multiple models containing the term "mnist" and test an error
-condition.
-
-- [train-multiple-matches](train-multiple-matches.md)
-
 Finally we'll uninstall the `mnist` package and verify that its
 associated operations, models, and resources are removed.
 
@@ -170,6 +164,10 @@ the data provided by the model file resource.
 
 - [tmp-mnist-data-after-mnist-example](tmp-mnist-data-after-mnist-example.md)
 
+The mnist example defines two models containing 'mnist', which lets us
+test Guild's handling of an ambiguous model spec.
+
+- [train-multiple-matches](train-multiple-matches.md)
 
 ### `hello` example
 

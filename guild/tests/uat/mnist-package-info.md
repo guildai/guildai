@@ -4,8 +4,8 @@ Use `guild packages info PKG` to show information about a package:
 
     >>> run("guild packages info gpkg.mnist") # doctest: +REPORT_UDIFF
     name: gpkg.mnist
-    version: 0.4.1...
-    summary: CNN and softmax regression classifiers for MNIST digits
+    version: 0.5.0...
+    summary: CNN and multinomial logistic regression classifiers for MNIST digits
     home-page: https://github.com/guildai/index/tree/master/mnist
     author: Guild AI
     author-email: packages@guild.ai
@@ -20,8 +20,8 @@ information.
 
     >>> run("guild packages info gpkg.mnist --verbose --files") # doctest: +REPORT_UDIFF
     name: gpkg.mnist
-    version: 0.4.1...
-    summary: CNN and softmax regression classifiers for MNIST digits
+    version: 0.5.0...
+    summary: CNN and multinomial logistic regression classifiers for MNIST digits
     home-page: https://github.com/guildai/index/tree/master/mnist
     author: Guild AI
     author-email: packages@guild.ai
@@ -34,15 +34,15 @@ information.
     classifiers:
     entry-points:
       [guild.models]
-      mnist-cnn = guild.model:PackageModel
-      mnist-samples = guild.model:PackageModel
-      mnist-softmax = guild.model:PackageModel
+      cnn = guild.model:PackageModel
+      logreg = guild.model:PackageModel
+      samples = guild.model:PackageModel
       [guild.resources]
-      mnist-cnn:mnist-dataset = guild.model:PackageModelResource
-      mnist-cnn:trained-model = guild.model:PackageModelResource
-      mnist-samples:mnist-dataset = guild.model:PackageModelResource
-      mnist-softmax:mnist-dataset = guild.model:PackageModelResource
-      mnist-softmax:trained-model = guild.model:PackageModelResource
+      cnn:mnist-dataset = guild.model:PackageModelResource
+      cnn:trained-model = guild.model:PackageModelResource
+      logreg:mnist-dataset = guild.model:PackageModelResource
+      logreg:trained-model = guild.model:PackageModelResource
+      samples:mnist-dataset = guild.model:PackageModelResource
     files:
       ...
     <exit 0>

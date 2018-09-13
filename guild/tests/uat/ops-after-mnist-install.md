@@ -4,9 +4,9 @@ Once we've installed the `mnist` package, we have the following
 operations available:
 
     >>> run("guild ops")
-    gpkg.mnist/mnist-cnn:evaluate      Evaluate a trained CNN
-    gpkg.mnist/mnist-cnn:train         Train the CNN
-    gpkg.mnist/mnist-samples:prepare   Generate a set of sample MNIST images
-    gpkg.mnist/mnist-softmax:evaluate  Evaluate a trained softmax regression
-    gpkg.mnist/mnist-softmax:train     Train the softmax regression
+    gpkg.mnist/cnn:evaluate     Evaluate a trained CNN
+    gpkg.mnist/cnn:train        Train the CNN
+    gpkg.mnist/logreg:evaluate  Evaluate a trained logistic regression
+    gpkg.mnist/logreg:train     Train the logistic regression
+    gpkg.mnist/samples:prepare  Generate a set of sample MNIST images
     <exit 0>

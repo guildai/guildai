@@ -4,10 +4,11 @@ Guild lets the user specify a partial model name for operations, but
 if there are multiple matches for the specified term, Guild exits with
 an error message.
 
+    >>> cd("examples/mnist")
+
     >>> run("guild run -y mnist:train epochs=1")
     guild: there are multiple models that match 'mnist'
     Try specifying one of the following:
-      gpkg.mnist/mnist-cnn
-      gpkg.mnist/mnist-samples
-      gpkg.mnist/mnist-softmax
+      ./mnist-expert
+      ./mnist-intro
     <exit 1>
