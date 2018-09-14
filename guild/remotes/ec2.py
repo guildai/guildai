@@ -382,3 +382,11 @@ class EC2Remote(remotelib.Remote):
     def stop_runs(self, **opts):
         ssh_remote = self._ssh_remote()
         ssh_remote.stop_runs(**opts)
+
+    def push(self, runs, no_delete=False):
+        ssh_remote = self._ssh_remote()
+        ssh_remote.push(runs, no_delete)
+
+    def pull(self, runs, no_delete=False):
+        ssh_remote = self._ssh_remote()
+        ssh_remote.pull(runs, no_delete)
