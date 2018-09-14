@@ -47,6 +47,7 @@ class SSHRemote(remotelib.Remote):
         self.guild_home = self._init_guild_home(config)
         self.guild_env = config.get("guild-env")
         self.run_init = config.get("run-init")
+        self.use_prerelease = config.get("use-prerelease", False)
 
     @staticmethod
     def _init_guild_home(config):
@@ -195,11 +196,17 @@ class SSHRemote(remotelib.Remote):
     def _install_job_package(self, remote_run_dir):
         cmd = (
             "cd {run_dir}/.guild/job-packages;"
-            "guild install --upgrade *.whl --target ."
-            .format(run_dir=remote_run_dir)
+            "guild install {pre} --upgrade *.whl --target ."
+            .format(run_dir=remote_run_dir, pre=self._pre_flag())
         )
         log.info("Installing package and its dependencies")
         ssh_util.ssh_cmd(self.host, [cmd], self.user)
+
+    def _pre_flag(self):
+        if self.use_prerelease:
+            return "--pre"
+        else:
+            return ""
 
     def _start_op(self, remote_run_dir, opspec, args, **opts):
         cmd_lines = ["set -e"]

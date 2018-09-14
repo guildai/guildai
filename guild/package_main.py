@@ -15,12 +15,15 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import glob
 import logging
 import os
+import re
 import sys
 
 import setuptools
 import twine.commands.upload
+import uuid
 import yaml
 
 import guild.help
@@ -60,8 +63,31 @@ def _load_pkg():
         _exit("error reading %s\n%s" % (path, e))
     else:
         if not gf.package:
-            _exit("%s does not contain a package definition" % path)
-        return gf.package
+            return _default_package(gf)
+        else:
+            return gf.package
+
+def _default_package(gf):
+    # Use an internally generated package name based on Guild file
+    # location.
+    pkg_name = "guild-project-{}".format(_guildfile_id(gf))
+    return guildfile.PackageDef(pkg_name, {}, gf)
+
+def _guildfile_id(gf):
+    # Use local egg-info to get ID in use
+    egg_info = glob.glob(os.path.join(gf.dir, "guild-project-*.egg-info"))
+    if egg_info:
+        m = re.search(r"guild-project-(.+?)\.egg-info$", egg_info[0])
+        assert m
+        return m.group(1)
+    return _mk_guildfile_id()
+
+def _mk_guildfile_id():
+    try:
+        return uuid.uuid1().hex
+    except ValueError:
+        # Workaround https://bugs.python.org/issue32502
+        return uuid.uuid4().hex
 
 def _create_dist(pkg):
     sys.argv = _bdist_wheel_cmd_args(pkg)
@@ -223,7 +249,7 @@ def _pkg_metadata(pkg):
     for item in pkg.guildfile.data:
         if "package" in item:
             return item
-    raise AssertionError(pkg.data)
+    return {}
 
 def _maybe_upload(dist):
     upload_repo = os.getenv("UPLOAD_REPO")
