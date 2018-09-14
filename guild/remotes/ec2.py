@@ -60,7 +60,8 @@ class EC2Remote(ssh_remote.SSHRemote):
         return self._ssh_host()
 
     @host.setter
-    def host(self, val):
+    @staticmethod
+    def host(val):
         if val is not None:
             raise AssertionError("cannot set host attr on ec2 remote")
 
