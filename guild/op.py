@@ -403,7 +403,11 @@ def _plugin_disabled_in_project(name, opdef):
     return any([disabled_name in (name, "all") for disabled_name in disabled])
 
 def _python_path(opdef):
-    paths = _env_paths() + _model_paths(opdef) + _guild_paths()
+    paths = (
+        _env_paths() +
+        _model_paths(opdef) +
+        _guild_paths()
+    )
     return os.path.pathsep.join(paths)
 
 def _env_paths():
