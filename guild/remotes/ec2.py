@@ -32,7 +32,7 @@ from . import ssh_util
 
 log = logging.getLogger("guild.remotes.ec2")
 
-class EC2Remote(remotelib.Remote):
+class EC2Remote(ssh_remote.SSHRemote):
 
     def __init__(self, name, config):
         self.name = name
@@ -43,6 +43,26 @@ class EC2Remote(remotelib.Remote):
         self.connection = config.get("connection", {})
         self.init = config.get("init")
         self.working_dir = var.remote_dir(name)
+        super(EC2Remote, self).__init__(name, self._ssh_config(config))
+
+    def _ssh_config(self, config):
+        ignore = ("host", "user")
+        for name in ignore:
+            if name in config:
+                log.warning("config '%s' ignored in remote %s", name, self.name)
+        ssh_config = dict(config)
+        ssh_config["host"] = None
+        ssh_config["user"] = self.connection.get("user")
+        return ssh_config
+
+    @property
+    def host(self):
+        return self._ssh_host()
+
+    @host.setter
+    def host(self, val):
+        if val is not None:
+            raise AssertionError("cannot set host attr on ec2 remote")
 
     def start(self):
         self._verify_aws_creds()
@@ -311,25 +331,6 @@ class EC2Remote(remotelib.Remote):
                 "error destroying Terraform state in %s"
                 % self.working_dir)
 
-    def push(self, runs, no_delete=False):
-        ssh_remote = self._ssh_remote()
-        ssh_remote.push(runs, no_delete)
-
-    def pull(self, runs, no_delete=False):
-        ssh_remote = self._ssh_remote()
-        ssh_remote.pull(runs, no_delete)
-
-    def list_runs(self, verbose=False, **filters):
-        ssh_remote = self._ssh_remote()
-        ssh_remote.list_runs(verbose, **filters)
-
-    def _ssh_remote(self):
-        config = dict(
-            host=self._ssh_host(),
-            user=self.connection.get("user")
-        )
-        return ssh_remote.SSHRemote(self.name, config)
-
     def _ssh_host(self):
         try:
             host = self._output("host")
@@ -344,43 +345,3 @@ class EC2Remote(remotelib.Remote):
                     "appears to be stopped"
                     % self.name)
             return host
-
-    def run_op(self, opspec, args, restart, no_wait, **opts):
-        ssh_remote = self._ssh_remote()
-        return ssh_remote.run_op(opspec, args, restart, no_wait, **opts)
-
-    def one_run(self, run_id_prefix, attrs):
-        ssh_remote = self._ssh_remote()
-        return ssh_remote.one_run(run_id_prefix, attrs)
-
-    def watch_run(self, **opts):
-        ssh_remote = self._ssh_remote()
-        ssh_remote.watch_run(**opts)
-
-    def delete_runs(self, **opts):
-        ssh_remote = self._ssh_remote()
-        ssh_remote.delete_runs(**opts)
-
-    def restore_runs(self, **opts):
-        ssh_remote = self._ssh_remote()
-        ssh_remote.restore_runs(**opts)
-
-    def purge_runs(self, **opts):
-        ssh_remote = self._ssh_remote()
-        ssh_remote.purge_runs(**opts)
-
-    def label_runs(self, **opts):
-        ssh_remote = self._ssh_remote()
-        ssh_remote.label_runs(**opts)
-
-    def run_info(self, **opts):
-        ssh_remote = self._ssh_remote()
-        ssh_remote.run_info(**opts)
-
-    def check(self, **opts):
-        ssh_remote = self._ssh_remote()
-        ssh_remote.check(**opts)
-
-    def stop_runs(self, **opts):
-        ssh_remote = self._ssh_remote()
-        ssh_remote.stop_runs(**opts)
