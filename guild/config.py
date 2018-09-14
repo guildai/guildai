@@ -19,7 +19,10 @@ import logging
 import os
 import threading
 
+import six
 import yaml
+
+from guild import util
 
 log = logging.getLogger("guild")
 
@@ -29,6 +32,9 @@ _guild_home_lock = threading.Lock()
 _guild_home = None
 _log_output = False
 _user_config = None
+
+class ConfigError(Exception):
+    pass
 
 def set_cwd(cwd):
     globals()["_cwd"] = cwd
@@ -87,14 +93,15 @@ class _Config(object):
 
     def __init__(self, path):
         self.path = path
-        self._parsed = None
+        self._data = None
         self._mtime = 0
 
     def read(self):
-        if self._parsed is None or self._path_mtime() > self._mtime:
-            self._parsed = self._parse()
+        if self._data is None or self._path_mtime() > self._mtime:
+            self._data = self._parse()
+            _apply_config_inherits(self._data, self.path)
             self._mtime = self._path_mtime()
-        return self._parsed
+        return self._data
 
     def _path_mtime(self):
         try:
@@ -113,6 +120,65 @@ class _Config(object):
             except Exception as e:
                 log.warning("error loading user config in %s: %s", self.path, e)
         return {}
+
+def _apply_config_inherits(data, src):
+    for name, section in data.items():
+        if name != "config":
+            _apply_section_inherits(section, data, src)
+    data.pop("config", None)
+
+def _apply_section_inherits(section, data, src):
+    for _name, item in sorted(section.items()):
+        _apply_section_item_inherits(item, section, data, src)
+
+def _apply_section_item_inherits(item, section, data, src):
+    try:
+        parent_specs = item.pop("extends")
+    except KeyError:
+        pass
+    else:
+        if isinstance(parent_specs, six.string_types):
+            parent_specs = [parent_specs]
+        for spec in parent_specs:
+            parent = _resolved_parent(spec, section, data, src)
+            _apply_parent(parent, item)
+
+def _resolved_parent(spec, section, data, src):
+    parent = _find_parent(spec, section, data)
+    if parent is None:
+        raise ConfigError("cannot find '%s' in %s" % (spec, src))
+    parent_item, parent_section = parent
+    _apply_section_item_inherits(parent_item, parent_section, data, src)
+    return parent_item
+
+def _find_parent(spec, section, data):
+    return util.find_apply([
+        _section_item,
+        _config_item,
+    ], spec, section, data)
+
+def _section_item(spec, section, _data=None):
+    try:
+        item = section[spec]
+    except KeyError:
+        return None
+    else:
+        return item, section
+
+def _config_item(spec, _section, data):
+    return _section_item(spec, data.get("config", {}))
+
+def _apply_parent(parent, target):
+    if not isinstance(parent, dict) or not isinstance(target, dict):
+        return
+    for parent_attr, parent_val in parent.items():
+        try:
+            target_val = target[parent_attr]
+        except KeyError:
+            target[parent_attr] = parent_val
+        else:
+            if isinstance(parent_val, dict) and isinstance(target_val, dict):
+                _apply_parent(parent_val, target_val)
 
 def user_config():
     path = _user_config_path()

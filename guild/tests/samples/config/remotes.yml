@@ -1,0 +1,13 @@
+remotes:
+  v100:
+    type: ec2
+    description: V100 GPU running on EC2
+    instance-type: p3.2xlarge
+    region: us-east-2
+    ami: ami-4f62582a
+    init: echo hello
+  v100x8:
+    extends: v100
+    instance-type: p3.16xlarge
+    description: V100 x8 running on EC2
+    init: echo hello there
