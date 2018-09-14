@@ -211,10 +211,6 @@ class SSHRemote(remotelib.Remote):
     def _start_op(self, remote_run_dir, opspec, args, **opts):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
-        cmd_lines.append(
-            "export PYTHONPATH=$(realpath {run_dir})/.guild/job-packages"
-            ":$PYTHONPATH"
-            .format(run_dir=remote_run_dir))
         cmd_lines.append(_remote_run_cmd(remote_run_dir, opspec, args, **opts))
         cmd = "; ".join(cmd_lines)
         log.info("Starting remote operation")
