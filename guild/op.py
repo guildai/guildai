@@ -340,7 +340,9 @@ def _cmd_option_args(name, val):
     if val is None:
         return []
     elif val is True:
-        return [opt]
+        return [opt, "yes"]
+    elif val is False:
+        return [opt, "no"]
     else:
         return [opt, str(val)]
 

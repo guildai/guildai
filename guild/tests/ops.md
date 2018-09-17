@@ -153,10 +153,15 @@ If a flag value is None, the flag will not be included as an option.
     >>> flag_args({"test": None, "batch-size": 50})
     ['--batch-size', '50']
 
-If a flag value is True, the flag will be listed a flag option.
+If a flag value is True, the flag value will be 'yes'.
 
     >>> flag_args({"test": True, "batch-size": 50})
-    ['--batch-size', '50', '--test']
+    ['--batch-size', '50', '--test', 'yes']
+
+If a flag value is False, the flag value will be 'no'.
+
+    >>> flag_args({"test": False, "batch-size": 50})
+    ['--batch-size', '50', '--test', 'no']
 
 We can modify the argument name:
 
