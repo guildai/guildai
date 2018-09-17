@@ -40,6 +40,7 @@ Requires-Dist: setuptools
 Requires-Dist: six
 Requires-Dist: tabview
 Requires-Dist: twine
+Requires-Dist: virtualenv
 
 Guild AI is a Python application that that streamlines TensorFlow and
 Keras deep learning development. It's released under the Apache 2 open
