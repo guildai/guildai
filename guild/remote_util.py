@@ -43,6 +43,6 @@ def set_remote_lock(remote_run, remote_name, runs_dir=None):
 def _ensure_deleted(path):
     try:
         os.remove(path)
-    except IOError as e:
+    except (IOError, OSError) as e:
         if e.errno != 2:
             raise
