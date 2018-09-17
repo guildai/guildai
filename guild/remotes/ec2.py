@@ -59,12 +59,6 @@ class EC2Remote(ssh_remote.SSHRemote):
     def host(self):
         return self._ssh_host()
 
-    @staticmethod
-    @host.setter
-    def host(val):
-        if val is not None:
-            raise AssertionError("cannot set host attr on ec2 remote")
-
     def start(self):
         self._verify_aws_creds()
         self._verify_terraform()

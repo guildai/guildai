@@ -42,12 +42,16 @@ class SSHRemote(remotelib.Remote):
 
     def __init__(self, name, config):
         self.name = name
-        self.host = config["host"]
+        self._host = config["host"]
         self.user = config.get("user")
         self.guild_home = self._init_guild_home(config)
         self.guild_env = config.get("guild-env")
         self.run_init = config.get("run-init")
         self.use_prerelease = config.get("use-prerelease", False)
+
+    @property
+    def host(self):
+        return self._host
 
     @staticmethod
     def _init_guild_home(config):
