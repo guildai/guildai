@@ -1,13 +1,21 @@
-remotes:
-  v100:
+config:
+  ec2-base:
     type: ec2
-    description: V100 GPU running on EC2
-    instance-type: p3.2xlarge
     region: us-east-2
     ami: ami-4f62582a
+  fancy-init:
+    init: echo hello there
+
+remotes:
+  v100:
+    extends: ec2-base
+    description: V100 GPU running on EC2
+    instance-type: p3.2xlarge
     init: echo hello
   v100x8:
-    extends: v100
-    instance-type: p3.16xlarge
+    extends:
+      - v100
+      - fancy-init
     description: V100 x8 running on EC2
+    instance-type: p3.16xlarge
     init: echo hello there
