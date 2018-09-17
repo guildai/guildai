@@ -5,7 +5,9 @@ must first be prepared to create a train/test split.
 
 Training without a dataset argument is an error:
 
-    >>> run("guild run resnet-50:train -y")
+TODO: reinstate after 0.5 slim packages are finalized
+
+    >> run("guild run resnet-50:train -y")
     Operation requires the following missing flags:
     <BLANKLINE>
     dataset  Dataset to train with (cifar10, mnist, flowers, custom)
