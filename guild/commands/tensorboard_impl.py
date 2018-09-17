@@ -33,15 +33,19 @@ def main(args):
         monitor = util.RunsMonitor(
             list_runs_cb, logdir, args.refresh_interval)
         monitor.start()
-        tensorboard.serve_forever(
-            logdir=logdir,
-            host=(args.host or "0.0.0.0"),
-            port=(args.port or util.free_port()),
-            reload_interval=args.refresh_interval,
-            ready_cb=(_open_url if not args.no_open else None))
-        log.debug("Stopping")
-        monitor.stop()
-        log.debug("Removing logdir %s", logdir) # Handled by ctx mgr
+        try:
+            tensorboard.serve_forever(
+                logdir=logdir,
+                host=(args.host or "0.0.0.0"),
+                port=(args.port or util.free_port()),
+                reload_interval=args.refresh_interval,
+                ready_cb=(_open_url if not args.no_open else None))
+        except tensorboard.TensorboardError as e:
+            cli.error(str(e))
+        finally:
+            log.debug("Stopping")
+            monitor.stop()
+            log.debug("Removing logdir %s", logdir) # Handled by ctx mgr
     if util.PLATFORM != "Windows":
         cli.out()
 

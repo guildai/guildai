@@ -53,19 +53,27 @@ from guild import util
 
 DEFAULT_RELOAD_INTERVAL = 5
 
+class TensorboardError(Exception):
+    pass
+
 def create_app(logdir, reload_interval, path_prefix=""):
-    tb = program.TensorBoard()
-    argv = (
-        "",
-        "--logdir", logdir,
-        "--reload_interval", str(reload_interval),
-        "--path_prefix", path_prefix,
-    )
-    tb.configure(argv)
-    return application.standard_tensorboard_wsgi(
-        tb.flags,
-        tb.plugin_loaders,
-        tb.assets_zip_provider)
+    try:
+        tb_f = program.TensorBoard
+    except AttributeError:
+        raise TensorboardError("tensorboard>=1.10 required")
+    else:
+        tb = tb_f()
+        argv = (
+            "",
+            "--logdir", logdir,
+            "--reload_interval", str(reload_interval),
+            "--path_prefix", path_prefix,
+        )
+        tb.configure(argv)
+        return application.standard_tensorboard_wsgi(
+            tb.flags,
+            tb.plugin_loaders,
+            tb.assets_zip_provider)
 
 def setup_logging():
     tb_util.setup_logging()
