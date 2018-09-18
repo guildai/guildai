@@ -751,10 +751,10 @@ def render_label_template(template, vals):
     tokens = re.split(r"(\${.+?})", template)
     return "".join([_rendered_str(_render_token(t, vals)) for t in tokens])
 
-def _render_token(t, vals):
-    m = re.match(r"\${(.+?)}", t)
+def _render_token(token, vals):
+    m = re.match(r"\${(.+?)}", token)
     if not m:
-        return t
+        return token
     ref_parts = m.group(1).split("|")
     name = ref_parts[0]
     transforms = ref_parts[1:]
