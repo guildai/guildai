@@ -47,6 +47,9 @@ from guild import click_util
     "-r", "--requirement", metavar="FILE", multiple=True,
     help="Install packages defined in FILE. May be used multiple times.")
 @click.option(
+    "-p", "--path", metavar="DIR", multiple=True,
+    help="Include DIR as a Python path in the environment.")
+@click.option(
     "--no-reqs", is_flag=True,
     help=(
         "Don't install from requirements.txt or guild.yml in environment "

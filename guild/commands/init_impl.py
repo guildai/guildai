@@ -15,9 +15,11 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import hashlib
 import logging
 import os
 import pkg_resources
+import re
 import subprocess
 
 import guild
@@ -39,6 +41,7 @@ class Config(object):
         self.guild = args.guild
         self.guild_pkg_reqs = self._init_guild_pkg_reqs(args)
         self.user_reqs = self._init_user_reqs(args)
+        self.paths = args.path
         self.tensorflow = args.tf_package
         self.local_resource_cache = args.local_resource_cache
         self.prompt_params = self._init_prompt_params()
@@ -99,6 +102,8 @@ class Config(object):
             params.append(("Required Guild packages", self.guild_pkg_reqs))
         if self.user_reqs:
             params.append(("Python requirements", self.user_reqs))
+        if self.paths:
+            params.append(("Additional paths", self.paths))
         if self.tensorflow == "no":
             params.append(("TensorFlow support", "no"))
         elif self.tensorflow == "tensorflow":
@@ -190,6 +195,7 @@ def _init(config):
     _install_guild(config)
     _install_guild_pkg_reqs(config)
     _install_user_reqs(config)
+    _install_paths(config)
     _ensure_tensorflow(config)
     _initialized_msg(config)
 
@@ -320,6 +326,29 @@ def _install_user_reqs(config):
     if config.user_reqs:
         cli.out("Installing Python requirements")
         _install_req_files(config.user_reqs, config)
+
+def _install_paths(config):
+    if config.paths:
+        site_packages = _env_site_packages(config.env_dir)
+        for path in config.paths:
+            _write_path(path, site_packages)
+
+def _env_site_packages(env_dir):
+    python_bin = os.path.join(env_dir, "bin", "python")
+    out = subprocess.check_output([python_bin, "-m", "site"])
+    site_packages_pattern = r"(%s.+?site-packages)" % env_dir
+    m = re.search(site_packages_pattern, out)
+    assert m, out
+    return m.group(1)
+
+def _write_path(path, target_dir):
+    with open(_pth_filename(target_dir, path), "w") as f:
+        f.write(path)
+
+def _pth_filename(target_dir, path):
+    digest = hashlib.md5(path).hexdigest()[:8]
+    pth_name = "%s-%s.pth" % (os.path.basename(path), digest)
+    return os.path.join(target_dir, pth_name)
 
 def _ensure_tensorflow(config):
     if config.tensorflow == "no":
