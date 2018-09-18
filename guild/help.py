@@ -241,10 +241,12 @@ def flags_dl(flags):
 
 def _format_flag_desc(flag, max_flag_len):
     lines = flag.description.split("\n")
-    if flag.default:
-        line1_suffix = " (default is %r)" % flag.default
+    if flag.default is not None:
+        line1_suffix = " (%s)" % _default_label(flag.default)
     elif flag.required:
         line1_suffix = " (required)"
+    elif flag.no_value_label:
+        line1_suffix = " (%s)" % flag.no_value_label
     else:
         line1_suffix = ""
     lines[0] += line1_suffix
@@ -254,6 +256,14 @@ def _format_flag_desc(flag, max_flag_len):
         return "\n\n".join(lines) + "\n\b\n"
     else:
         return lines[0]
+
+def _default_label(val):
+    if val is True:
+        return "yes"
+    elif val is False:
+        return "no"
+    else:
+        return repr(val)
 
 def _format_flag_choices(choices, max_flag_len):
     out = click.HelpFormatter()

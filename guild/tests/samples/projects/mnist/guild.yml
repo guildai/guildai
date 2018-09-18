@@ -9,6 +9,9 @@
     learning-rate:
       description: Learning rate for training
       default: 0.001
+    clones:
+      description: Number of clones to deploy to
+      no-value-label: calculated
 
 - config: default-eval-flags
   flags:

@@ -716,6 +716,7 @@ class FlagDef(object):
         self.arg_name = data.get("arg-name")
         self.arg_skip = bool(data.get("arg-skip"))
         self.choices = _init_flag_choices(data.get("choices"), self)
+        self.no_value_label = data.get("no-value-label")
 
     def __repr__(self):
         return "<guild.guildfile.FlagDef '%s'>" % self.name

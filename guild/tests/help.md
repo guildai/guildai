@@ -30,10 +30,10 @@ formatted string:
     -----
     <BLANKLINE>
     **batch-size**
-      *Number of images per eval batch (default is 50000)*
+      *Number of images per eval batch (50000)*
     <BLANKLINE>
     **epochs**
-      *Epochs to evaluate (default is 1)*
+      *Epochs to evaluate (1)*
     <BLANKLINE>
     train
     ^^^^^
@@ -41,13 +41,16 @@ formatted string:
     -----
     <BLANKLINE>
     **batch-size**
-      *Number of images per train batch (default is 100)*
+      *Number of images per train batch (100)*
+    <BLANKLINE>
+    **clones**
+      *Number of clones to deploy to (calculated)*
     <BLANKLINE>
     **epochs**
-      *Number of epochs to train (default is 5)*
+      *Number of epochs to train (5)*
     <BLANKLINE>
     **learning-rate**
-      *Learning rate for training (default is 0.001)*
+      *Learning rate for training (0.001)*
     <BLANKLINE>
     <BLANKLINE>
     intro
@@ -62,10 +65,10 @@ formatted string:
     -----
     <BLANKLINE>
     **batch-size**
-      *Number of images per eval batch (default is 50000)*
+      *Number of images per eval batch (50000)*
     <BLANKLINE>
     **epochs**
-      *Epochs to evaluate (default is 2)*
+      *Epochs to evaluate (2)*
     <BLANKLINE>
     train
     ^^^^^
@@ -73,13 +76,16 @@ formatted string:
     -----
     <BLANKLINE>
     **batch-size**
-      *Number of images per train batch (default is 100)*
+      *Number of images per train batch (100)*
+    <BLANKLINE>
+    **clones**
+      *Number of clones to deploy to (calculated)*
     <BLANKLINE>
     **epochs**
-      *Number of epochs to train (default is 10)*
+      *Number of epochs to train (10)*
     <BLANKLINE>
     **learning-rate**
-      *Learning rate for training (default is 0.001)*
+      *Learning rate for training (0.001)*
     <BLANKLINE>
     References
     ==========

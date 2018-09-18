@@ -138,6 +138,7 @@ Let's look at the flags defined for `intro:train`:
     >>> intro_train = gf.models["intro"].get_operation("train")
     >>> flagdefs(intro_train.flags)
     [('batch-size', 'Number of images per train batch', 100),
+     ('clones', 'Number of clones to deploy to', None),
      ('epochs', 'Number of epochs to train', 10),
      ('learning-rate', 'Learning rate for training', 0.001)]
 
@@ -167,6 +168,7 @@ Here are the flag defs for `expert:train`:
     >>> expert_train = gf.models["expert"].get_operation("train")
     >>> flagdefs(expert_train.flags)
     [('batch-size', 'Number of images per train batch', 100),
+     ('clones', 'Number of clones to deploy to', None),
      ('epochs', 'Number of epochs to train', 5),
      ('learning-rate', 'Learning rate for training', 0.001)]
 

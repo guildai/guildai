@@ -580,7 +580,7 @@ def _confirm_run(op, model, args):
         remote_suffix = " on %s" % args.remote
     else:
         remote_suffix = ""
-    flags = util.resolve_all_refs(op.opdef.flag_values(include_none=False))
+    flags = util.resolve_all_refs(op.opdef.flag_values(include_none=True))
     resources = op.resource_config
     prompt = (
         "You are about to {action} {op_desc}{remote_suffix}\n"
@@ -591,24 +591,36 @@ def _confirm_run(op, model, args):
             action=action,
             op_desc=op_desc,
             remote_suffix=remote_suffix,
-            flags=_format_op_flags(flags),
+            flags=_format_op_flags(flags, op.opdef),
             resources=_format_op_resources(resources)))
     return cli.confirm(prompt, default=True)
 
-def _format_op_flags(flags):
+def _format_op_flags(flags, opdef):
     if not flags:
         return ""
     return "\n".join([
-        "  %s" % _format_flag(name, flags[name])
+        "  %s" % _format_flag(name, flags[name], opdef)
         for name in sorted(flags)
     ]) + "\n"
 
-def _format_flag(name, val):
+def _format_flag(name, val, opdef):
     if val is True:
-        val = "yes"
+        formatted = "yes"
     elif val is False:
-        val = "no"
-    return "%s: %s" % (name, val)
+        formatted = "no"
+    elif val is None:
+        formatted = _no_value_label(name, opdef)
+    else:
+        formatted = str(val)
+    return "%s: %s" % (name, formatted)
+
+def _no_value_label(name, opdef):
+    flagdef = opdef.get_flagdef(name)
+    if flagdef:
+        label = flagdef.no_value_label or "default"
+    else:
+        label = "default"
+    return "(%s)" % label
 
 def _format_op_resources(resources):
     if not resources:
