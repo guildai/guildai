@@ -174,9 +174,19 @@ def _implicit_guild_version():
         return guild.__version__
 
 def main(args):
+    _error_if_active_env()
     config = Config(args)
     if args.yes or _confirm(config):
         _init(config)
+
+def _error_if_active_env():
+    active_env = os.getenv("VIRTUAL_ENV")
+    if active_env:
+        cli.error(
+            "cannot run init from an activate environment (%s)\n"
+            "Deactivate the environment by running 'deactivate' "
+            "and try again."
+            % active_env)
 
 def _confirm(config):
     cli.out("You are about to initialize a Guild environment:")
