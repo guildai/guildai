@@ -338,10 +338,11 @@ def _install_user_reqs(config):
         _install_req_files(config.user_reqs, config)
 
 def _install_paths(config):
-    if config.paths:
-        site_packages = _env_site_packages(config.env_dir)
-        for path in config.paths:
-            _write_path(path, site_packages)
+    if not config.paths:
+        return
+    site_packages = _env_site_packages(config.env_dir)
+    for path in config.paths:
+        _write_path(path, site_packages)
 
 def _env_site_packages(env_dir):
     python_bin = os.path.join(env_dir, "bin", "python")
@@ -352,6 +353,7 @@ def _env_site_packages(env_dir):
     return m.group(1)
 
 def _write_path(path, target_dir):
+    path = os.path.abspath(path)
     with open(_pth_filename(target_dir, path), "w") as f:
         f.write(path)
 
