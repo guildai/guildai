@@ -112,8 +112,8 @@ class Guildfile(object):
         self.dir = dir
         self.models = {}
         self.package = None
-        data = self._coerce_data(data)
-        self.data = self._expand_data_includes(data, included or [])
+        coerced = _coerce_guildfile_data(data, self)
+        self.data = self._expand_data_includes(coerced, included or [])
         try:
             self._apply_data(extends_seen or [])
         except (GuildfileError, resourcedef.ResourceFormatError):
@@ -121,14 +121,6 @@ class Guildfile(object):
         except Exception as e:
             log.error("loading %s: %r", self.src, e)
             raise
-
-    def _coerce_data(self, data):
-        if isinstance(data, list):
-            return data
-        elif isinstance(data, dict):
-            return [data]
-        else:
-            raise GuildfileError(self, "invalid guildfile data: %r" % data)
 
     def _expand_data_includes(self, data, included):
         i = 0
@@ -145,7 +137,6 @@ class Guildfile(object):
         return data
 
     def _include_data(self, includes, included):
-        includes = self._coerce_data_includes(includes)
         if not _string_source(self.src):
             included.append(os.path.abspath(self.src))
         include_data = []
@@ -193,14 +184,6 @@ class Guildfile(object):
 
     def _gpkg_include(self, include):
         return self._sys_path_include("gpkg." + include)
-
-    def _coerce_data_includes(self, val):
-        if isinstance(val, six.string_types):
-            return [val]
-        elif isinstance(val, list):
-            return val
-        else:
-            raise GuildfileError(self, "invalid includes value: %r" % val)
 
     def _apply_data(self, extends_seen):
         for item in self.data:
@@ -259,10 +242,103 @@ class Guildfile(object):
         raise AssertionError()
 
 ###################################################################
+# Coercion rules
+###################################################################
+
+def _coerce_guildfile_data(data, guildfile):
+    if isinstance(data, dict):
+        data = [data]
+    if not isinstance(data, list):
+        raise GuildfileError(guildfile, "invalid guildfile data: %r" % data)
+    return [
+        _coerce_guildfile_item_data(item_data, guildfile)
+        for item_data in data]
+
+def _coerce_guildfile_item_data(data, guildfile):
+    if not isinstance(data, dict):
+        return data
+    return {
+        name: _coerce_top_level_attr(name, val, guildfile)
+        for name, val in data.items()
+    }
+
+def _coerce_top_level_attr(name, val, gf):
+    if name == "include":
+        return _coerce_include(val, gf)
+    elif name == "extends":
+        return _coerce_extends(val, gf)
+    elif name == "operations":
+        return _coerce_operations(val, gf)
+    elif name == "flags":
+        return _coerce_flags(val, gf)
+    else:
+        return val
+
+def _coerce_include(val, gf):
+    if isinstance(val, six.string_types):
+        return [val]
+    elif isinstance(val, list):
+        return val
+    else:
+        raise GuildfileError(gf, "invalid include value: %r" % val)
+
+def _coerce_extends(data, gf):
+    if isinstance(data, six.string_types):
+        return [data]
+    elif isinstance(data, list):
+        return data
+    else:
+        raise GuildfileError(gf, "invalid extends value: %r" % data)
+
+def _coerce_operations(data, gf):
+    if not isinstance(data, dict):
+        raise GuildfileError(gf, "invalid operations value: %r" % data)
+    return {
+        op_name: _coerce_operation(op, gf)
+        for op_name, op in data.items()
+    }
+
+def _coerce_operation(data, gf):
+    if isinstance(data, six.string_types):
+        return {
+            "main": data
+        }
+    return {
+        name: _coerce_operation_attr(name, val, gf)
+        for name, val in data.items()
+    }
+
+def _coerce_operation_attr(name, val, gf):
+    if name == "flags":
+        return _coerce_flags(val, gf)
+    else:
+        return val
+
+def _coerce_flags(data, gf):
+    if not isinstance(data, dict):
+        raise GuildfileError(gf, "invalid flags value: %r" % data)
+    return {
+        name: _coerce_flag(name, val, gf)
+        for name, val in data.items()
+    }
+
+def _coerce_flag(name, data, gf):
+    if name.startswith("$"):
+        return data
+    elif isinstance(data, dict):
+        return data
+    elif isinstance(data, six.string_types + (int, float, bool)):
+        return {"default": data}
+    elif data is None:
+        return {"default": None}
+    else:
+        raise GuildfileError(gf, "invalid flag value: %r" % data)
+
+###################################################################
 # Include attribute support
 ###################################################################
 
-def _resolve_includes(data, section_name, guildfiles, coerce_data=None):
+def _resolve_includes(data, section_name, guildfiles):
     assert isinstance(data, dict), data
     resolved = {}
     seen_includes = set()
@@ -271,12 +347,11 @@ def _resolve_includes(data, section_name, guildfiles, coerce_data=None):
         section_data,
         guildfiles,
         section_name,
-        coerce_data,
         seen_includes,
         resolved)
     return resolved
 
-def _apply_section_data(data, guildfile_path, section_name, coerce_data,
+def _apply_section_data(data, guildfile_path, section_name,
                         seen_includes, resolved):
     for name in _includes_first(data):
         if name == "$include":
@@ -285,16 +360,13 @@ def _apply_section_data(data, guildfile_path, section_name, coerce_data,
                 includes,
                 guildfile_path,
                 section_name,
-                coerce_data,
                 seen_includes,
                 resolved)
         else:
             _apply_data(
                 name,
                 data[name],
-                resolved,
-                coerce_data,
-                guildfile_path[0])
+                resolved)
 
 def _coerce_includes(val, src):
     if isinstance(val, six.string_types):
@@ -304,7 +376,7 @@ def _coerce_includes(val, src):
     else:
         raise GuildfileError(src, "invalid $include value: %r" % val)
 
-def _apply_includes(includes, guildfile_path, section_name, coerce_data,
+def _apply_includes(includes, guildfile_path, section_name,
                     seen_includes, resolved):
     _assert_guildfile_data(guildfile_path[0])
     for ref in includes:
@@ -328,7 +400,6 @@ def _apply_includes(includes, guildfile_path, section_name, coerce_data,
             include_data,
             guildfile_path,
             section_name,
-            coerce_data,
             seen_includes,
             resolved)
 
@@ -375,9 +446,7 @@ def _op_data(model_data, op_name):
 def _includes_first(names):
     return sorted(names, key=lambda x: "\x00" if x == "$include" else x)
 
-def _apply_data(name, data, resolved, coerce_data, guildfile):
-    if coerce_data:
-        data = coerce_data(data, guildfile)
+def _apply_data(name, data, resolved):
     try:
         cur = resolved[name]
     except KeyError:
@@ -433,20 +502,12 @@ class ModelDef(object):
 
 def _extended_data(config_data, guildfile, seen=None, resolve_params=True):
     data = copy.deepcopy(config_data)
-    extends = _coerce_extends((config_data.get("extends") or []), guildfile)
+    extends = config_data.get("extends") or []
     if extends:
         _apply_parents_data(extends, guildfile, seen, data)
     if resolve_params:
         data = _resolve_param_refs(data, data.get("params") or {})
     return data
-
-def _coerce_extends(val, guildfile):
-    if isinstance(val, six.string_types):
-        return [val]
-    elif isinstance(val, list):
-        return val
-    else:
-        raise GuildfileError(guildfile, "invalid extends value: %r" % val)
 
 def _apply_parents_data(extends, guildfile, seen, data):
     for name in extends:
@@ -597,17 +658,9 @@ def _dedup_parents(parents):
 def _init_ops(data, modeldef):
     ops_data = data.get("operations") or {}
     return [
-        OpDef(key, _coerce_op_data(ops_data[key]), modeldef)
+        OpDef(key, ops_data[key], modeldef)
         for key in sorted(ops_data)
     ]
-
-def _coerce_op_data(data):
-    if isinstance(data, six.string_types):
-        return {
-            "main": data
-        }
-    else:
-        return data
 
 def _init_resources(data, modeldef):
     data = _resolve_includes(data, "resources", modeldef.guildfile_path)
@@ -629,7 +682,6 @@ class OpDef(object):
         self._flag_vals = _init_flag_values(self.flags)
         self.guildfile = modeldef.guildfile
         self.name = name
-        data = _coerce_op_data(data)
         self.description = (data.get("description") or "").strip()
         self.main = data.get("main")
         self.env = data.get("env", {})
@@ -688,22 +740,8 @@ class OpDef(object):
         self.dependencies.extend(opdef.dependencies)
 
 def _init_flags(data, opdef):
-    data = _resolve_includes(
-        data,
-        "flags",
-        opdef.modeldef.guildfile_path,
-        _coerce_flag_data)
+    data = _resolve_includes(data, "flags", opdef.modeldef.guildfile_path)
     return [FlagDef(name, data[name], opdef) for name in sorted(data)]
-
-def _coerce_flag_data(data, src):
-    if isinstance(data, dict):
-        return data
-    elif isinstance(data, six.string_types + (int, float, bool)):
-        return {"default": data}
-    elif data is None:
-        return {"default": None}
-    else:
-        raise GuildfileError(src, "invalid flag value: %r" % data)
 
 class FlagDef(object):
 

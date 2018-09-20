@@ -22,7 +22,7 @@ We can peek into the data used by `gf` to see how includes work:
 
     >>> pprint(gf.data)
     [{'config': 'base', 'operations': {'op1': {}, 'op2': {}}},
-     {'extends': 'base', 'model': 'a'}]
+     {'extends': ['base'], 'model': 'a'}]
 
 Note that the 'include' item was replaced with the contents of the
 included file.

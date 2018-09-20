@@ -27,7 +27,7 @@ Models are access using the `models` attribute:
     {'expert': <guild.guildfile.ModelDef 'expert'>,
      'intro': <guild.guildfile.ModelDef 'intro'>}
 
-### Accessing modeldefs
+## Accessing modeldefs
 
 We can lookup a models using dictionary semantics:
 
@@ -40,7 +40,7 @@ We can lookup a models using dictionary semantics:
     >>> print(gf.models.get("undefined"))
     None
 
-### Default model
+## Default model
 
 Guild files may have a default model, which is implicitly used in
 cases where a model is not specified explicitly.
@@ -97,7 +97,7 @@ which are designated as default. The default model is therefore None.
     >>> gf.default_model is None
     True
 
-### Attributes
+## Model attributes
 
 The model name is used to identify the model:
 
@@ -112,10 +112,59 @@ The description provides additional details:
     >>> gf.models["expert"].description
     'Expert model'
 
-### Flags
+## Operations
 
-TODO: Rewrite these to operation on a sample operation - model flags
-are no longer supported.
+Operations are ordered by name:
+
+    >>> [op.name for op in gf.models["expert"].operations]
+    ['evaluate', 'train']
+
+Find an operation using a model's `get_op` method:
+
+    >>> gf.models["expert"].get_operation("train")
+    <guild.guildfile.OpDef 'expert:train'>
+
+`get_op` returns None if the operation isn't defined for the model:
+
+    >>> print(gf.models["expert"].get_operation("not-defined"))
+    None
+
+### Op coercion
+
+If an operation is specified as a string, the string value is assumed
+to be the `main` attribute.
+
+    >>> gf_op_coerce = guildfile.from_string("""
+    ... - model: foo
+    ...   operations:
+    ...     test: test
+    ... """)
+
+    >>> gf_op_coerce.models["foo"].get_operation("test").main
+    'test'
+
+### Plugin ops
+
+An operation can delegate its implementation to a plugin using the
+`plugin-op` attribute. Here's a sample guildfile:
+
+    >>> gf_plugin_ops = guildfile.from_string("""
+    ... model: sample
+    ... operations:
+    ...   train:
+    ...     plugin-op: foo-train
+    ... """)
+
+The opdef in this case will use `plugin_op` rather than `main`. Plugin
+ops are provided as guildfile.PluginOp objects and have `name` and
+`config` attributes:
+
+    >>> train = gf_plugin_ops.models["sample"].get_operation("train")
+
+    >>> train.plugin_op
+    'foo-train'
+
+### Flags
 
 Flags are named values that are provided to operations during a
 run. Flags can be defined at the model level and at the operation
@@ -191,7 +240,7 @@ Flags can be updated using flags from another flag host.
 
 Consider this guildfile:
 
-    >>> gf2 = guildfile.from_string("""
+    >>> gf_flag_update = guildfile.from_string("""
     ... model: sample
     ... operations:
     ...   a:
@@ -206,8 +255,8 @@ Consider this guildfile:
 
 The two opdefs:
 
-    >>> opdef_a = gf2.models["sample"].get_operation("a")
-    >>> opdef_b = gf2.models["sample"].get_operation("b")
+    >>> opdef_a = gf_flag_update.models["sample"].get_operation("a")
+    >>> opdef_b = gf_flag_update.models["sample"].get_operation("b")
 
 Here are the flags and values for opdef a:
 
@@ -240,44 +289,6 @@ and values:
 
     >>> pprint(opdef_a.flag_values())
     {'x': 'x2', 'y': 'Y', 'z': 'Z'}
-
-## Operations
-
-Operations are ordered by name:
-
-    >>> [op.name for op in gf.models["expert"].operations]
-    ['evaluate', 'train']
-
-Find an operation using a model's `get_op` method:
-
-    >>> gf.models["expert"].get_operation("train")
-    <guild.guildfile.OpDef 'expert:train'>
-
-`get_op` returns None if the operation isn't defined for the model:
-
-    >>> print(gf.models["expert"].get_operation("not-defined"))
-    None
-
-### Plugin ops
-
-An operation can delegate its implementation to a plugin using the
-`plugin-op` attribute. Here's a sample guildfile:
-
-    >>> gf2 = guildfile.from_string("""
-    ... model: sample
-    ... operations:
-    ...   train:
-    ...     plugin-op: foo-train
-    ... """)
-
-The opdef in this case will use `plugin_op` rather than `main`. Plugin
-ops are provided as guildfile.PluginOp objects and have `name` and
-`config` attributes:
-
-    >>> train = gf2.models["sample"].get_operation("train")
-
-    >>> train.plugin_op
-    'foo-train'
 
 ## Resources
 
@@ -728,6 +739,44 @@ one config:
     [<guild.guildfile.OpDef 'm:a_op'>,
      <guild.guildfile.OpDef 'm:b_op'>,
      <guild.guildfile.OpDef 'm:c_op'>]
+
+### Defining default flag values
+
+It's common to inherit from a model definition and modify default flag
+values.
+
+Here's an example where model `b` extends `a` and redefines two flag
+defaults for an operation. Note that `b` simply redefines the values.
+
+    >>> gf = guildfile.from_string("""
+    ... - model: a
+    ...   operations:
+    ...     test:
+    ...       flags:
+    ...         f1:
+    ...           description: Flag f1
+    ...           default: 1
+    ...         f2:
+    ...           description: Flag f2
+    ...           default: 2
+    ...
+    ... - model: b
+    ...   extends: a
+    ...   operations:
+    ...     test:
+    ...       flags:
+    ...         f1: 3
+    ...         f2: 4
+    ... """)
+
+    >>> [(f.name, f.description, f.default)
+    ...  for f in gf.models["a"].get_operation("test").flags]
+    [('f1', 'Flag f1', 1), ('f2', 'Flag f2', 2)]
+
+    >>> [(f.name, f.description, f.default)
+    ...  for f in gf.models["b"].get_operation("test").flags]
+    [('f1', 'Flag f1', 3), ('f2', 'Flag f2', 4)]
+
 
 ### Multiple inheritance
 
