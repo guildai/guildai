@@ -53,6 +53,8 @@ def _dir_guildfile(dir):
             "No help available (%s does not contain a model file)"
             % cmd_impl_support.cwd_desc(dir), err=True)
         cli.error()
+    except guild.guildfile.GuildfileError as e:
+        cli.error(str(e))
 
 def _try_plugin_models(dir):
     models_data = []
