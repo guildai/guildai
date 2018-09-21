@@ -27,7 +27,7 @@ import tempfile
 import threading
 
 import guild
-import guild.test
+import guild._test
 import guild.var
 
 from guild import pip_util
@@ -68,7 +68,7 @@ def _run_tests(tests):
             continue
         filename = os.path.join("tests", "uat", name + ".md")
         _reset_cwd()
-        failed, attempted = guild.test.run_test_file(filename, globs)
+        failed, attempted = guild._test.run_test_file(filename, globs)
         if not failed:
             print("  %i test(s) passed" % attempted)
             _mark_test_passed(name)
@@ -96,7 +96,7 @@ def _global_vars():
     }
 
 def _sample(path):
-    return os.path.abspath(guild.test.sample(path))
+    return os.path.abspath(guild._test.sample(path))
 
 def _test_passed(name):
     return os.path.exists(_test_passed_marker(name))

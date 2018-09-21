@@ -29,7 +29,7 @@ import guild
 import guild.cli
 import guild.config
 import guild.plugin
-import guild.test
+import guild._test
 import guild.uat
 import guild.util
 import guild.var
@@ -95,12 +95,12 @@ def _run_tests(check):
             log.warning(
                 "running all tests (--all-tests specified) - "
                 "ignoring individual tests")
-        success = guild.test.run_all(skip=check.args.skip)
+        success = guild._test.run_all(skip=check.args.skip)
     elif check.args.tests:
         if check.args.skip:
             log.warning(
                 "running individual tests - ignoring --skip")
-        success = guild.test.run(check.args.tests)
+        success = guild._test.run(check.args.tests)
     if not success:
         check.error()
 

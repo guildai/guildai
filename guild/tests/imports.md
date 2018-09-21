@@ -21,6 +21,7 @@
     ...   print(name) # doctest: +REPORT_UDIFF
     guild.__init__
     guild._api
+    guild._test
     guild.cli
     guild.click_util
     guild.cmd_impl_support
@@ -107,6 +108,8 @@
     guild.commands.tensorflow_check_main
     guild.commands.tensorflow_impl
     guild.commands.tensorflow_inspect
+    guild.commands.test
+    guild.commands.test_impl
     guild.commands.uninstall
     guild.commands.view
     guild.commands.view_impl
@@ -165,7 +168,6 @@
     guild.serving_util
     guild.tabview
     guild.tensorboard
-    guild.test
     guild.uat
     guild.util
     guild.var
