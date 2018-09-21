@@ -22,10 +22,11 @@ from guild import cli
 from guild import click_util
 from guild import config
 
-# Avoid expensive imports here. While this is used by cmd impls, which
-# are allowed to have longer import times, many impls don't need the
-# more expensive imports (e.g. guild.model, guild.resource - see
-# below) and expensive imports here will apply to them.
+# Avoid expensive or little used imports here. While this is used by
+# cmd impls, which are allowed to have longer import times, many impls
+# don't need the more expensive imports (e.g. guild.model,
+# guild.resource - see below) and expensive imports here will apply to
+# them.
 
 log = logging.getLogger("guild")
 
@@ -160,3 +161,67 @@ def guildfile_dirs(vals):
         else:
             other.append(val)
     return dirs, other
+
+def dir_or_package_guildfile(dir_or_package):
+    dir_or_package = dir_or_package or config.cwd()
+    if os.path.isdir(dir_or_package):
+        return _dir_guildfile(dir_or_package)
+    else:
+        return _package_guildfile(dir_or_package)
+
+def _dir_guildfile(dir):
+    from guild import guildfile
+    try:
+        return guildfile.from_dir(dir)
+    except guildfile.NoModels:
+        gf = _try_plugin_models(dir)
+        if gf:
+            return gf
+        cli.out(
+            "No help available (%s does not contain a model file)"
+            % cwd_desc(dir), err=True)
+        cli.error()
+    except guildfile.GuildfileError as e:
+        cli.error(str(e))
+
+def _try_plugin_models(dir):
+    from guild import guildfile
+    from guild import plugin as pluginlib
+    models_data = []
+    for _, plugin in pluginlib.iter_plugins():
+        for data in plugin.find_models(dir):
+            models_data.append(data)
+    if not models_data:
+        return None
+    return guildfile.Guildfile(models_data, dir=dir)
+
+def _package_guildfile(ref):
+    matches = _matching_packages(ref)
+    if len(matches) == 1:
+        _name, gf = matches[0]
+        return gf
+    if not matches:
+        cli.error(
+            "cannot find a package matching '%s'\n"
+            "Try 'guild packages' for a list of installed packages."
+            % ref)
+    cli.error(
+        "multiple packages match '%s'\n"
+        "Try again with one of these models: %s"
+        % (ref, ", ".join([name for name, _gf in matches])))
+
+def _matching_packages(ref):
+    from guild import model as modellib
+    matches = {}
+    for model in modellib.iter_models():
+        if model.reference.dist_type != "package":
+            continue
+        name = model.reference.dist_name
+        gf = model.modeldef.guildfile
+        # If exact match, return one
+        if ref == name:
+            return [(name, gf)]
+        # otherwise check for match in full name of model
+        elif ref in model.fullname:
+            matches[name] = gf
+    return sorted(matches.items())
