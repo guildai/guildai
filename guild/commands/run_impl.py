@@ -609,15 +609,15 @@ def _format_flag(name, val, opdef):
     elif val is False:
         formatted = "no"
     elif val is None:
-        formatted = _no_value_label(name, opdef)
+        formatted = _null_label(name, opdef)
     else:
         formatted = str(val)
     return "%s: %s" % (name, formatted)
 
-def _no_value_label(name, opdef):
+def _null_label(name, opdef):
     flagdef = opdef.get_flagdef(name)
     if flagdef:
-        label = flagdef.no_value_label or "default"
+        label = flagdef.null_label or "default"
     else:
         label = "default"
     return "(%s)" % label

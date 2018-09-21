@@ -245,8 +245,8 @@ def _format_flag_desc(flag, max_flag_len):
         line1_suffix = " (%s)" % _default_label(flag.default)
     elif flag.required:
         line1_suffix = " (required)"
-    elif flag.no_value_label:
-        line1_suffix = " (%s)" % flag.no_value_label
+    elif flag.null_label:
+        line1_suffix = " (%s)" % flag.null_label
     else:
         line1_suffix = ""
     lines[0] += line1_suffix
