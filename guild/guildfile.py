@@ -148,8 +148,8 @@ class Guildfile(object):
                     included[0],
                     included + [path])
             data = yaml.load(open(path, "r"))
-            gf = Guildfile(data, path, included=included)
-            include_data.extend(gf.data)
+            guildfile = Guildfile(data, path, included=included)
+            include_data.extend(guildfile.data)
         return include_data
 
     def _find_include(self, include):
@@ -262,67 +262,67 @@ def _coerce_guildfile_item_data(data, guildfile):
         for name, val in data.items()
     }
 
-def _coerce_top_level_attr(name, val, gf):
+def _coerce_top_level_attr(name, val, guildfile):
     if name == "include":
-        return _coerce_include(val, gf)
+        return _coerce_include(val, guildfile)
     elif name == "extends":
-        return _coerce_extends(val, gf)
+        return _coerce_extends(val, guildfile)
     elif name == "operations":
-        return _coerce_operations(val, gf)
+        return _coerce_operations(val, guildfile)
     elif name == "flags":
-        return _coerce_flags(val, gf)
+        return _coerce_flags(val, guildfile)
     else:
         return val
 
-def _coerce_include(val, gf):
+def _coerce_include(val, guildfile):
     if isinstance(val, six.string_types):
         return [val]
     elif isinstance(val, list):
         return val
     else:
-        raise GuildfileError(gf, "invalid include value: %r" % val)
+        raise GuildfileError(guildfile, "invalid include value: %r" % val)
 
-def _coerce_extends(data, gf):
+def _coerce_extends(data, guildfile):
     if isinstance(data, six.string_types):
         return [data]
     elif isinstance(data, list):
         return data
     else:
-        raise GuildfileError(gf, "invalid extends value: %r" % data)
+        raise GuildfileError(guildfile, "invalid extends value: %r" % data)
 
-def _coerce_operations(data, gf):
+def _coerce_operations(data, guildfile):
     if not isinstance(data, dict):
-        raise GuildfileError(gf, "invalid operations value: %r" % data)
+        raise GuildfileError(guildfile, "invalid operations value: %r" % data)
     return {
-        op_name: _coerce_operation(op, gf)
+        op_name: _coerce_operation(op, guildfile)
         for op_name, op in data.items()
     }
 
-def _coerce_operation(data, gf):
+def _coerce_operation(data, guildfile):
     if isinstance(data, six.string_types):
         return {
             "main": data
         }
     return {
-        name: _coerce_operation_attr(name, val, gf)
+        name: _coerce_operation_attr(name, val, guildfile)
         for name, val in data.items()
     }
 
-def _coerce_operation_attr(name, val, gf):
+def _coerce_operation_attr(name, val, guildfile):
     if name == "flags":
-        return _coerce_flags(val, gf)
+        return _coerce_flags(val, guildfile)
     else:
         return val
 
-def _coerce_flags(data, gf):
+def _coerce_flags(data, guildfile):
     if not isinstance(data, dict):
-        raise GuildfileError(gf, "invalid flags value: %r" % data)
+        raise GuildfileError(guildfile, "invalid flags value: %r" % data)
     return {
-        name: _coerce_flag(name, val, gf)
+        name: _coerce_flag(name, val, guildfile)
         for name, val in data.items()
     }
 
-def _coerce_flag(name, data, gf):
+def _coerce_flag(name, data, guildfile):
     if name.startswith("$"):
         return data
     elif isinstance(data, dict):
@@ -332,7 +332,7 @@ def _coerce_flag(name, data, gf):
     elif data is None:
         return {"default": None}
     else:
-        raise GuildfileError(gf, "invalid flag value: %r" % data)
+        raise GuildfileError(guildfile, "invalid flag value: %r" % data)
 
 ###################################################################
 # Include attribute support
@@ -420,8 +420,8 @@ def _split_include_ref(ref, src):
         return parts
 
 def _find_include_data(model_name, op_name, section_name, guildfile_path):
-    for gf in guildfile_path:
-        for top_level_data in gf.data:
+    for guildfile in guildfile_path:
+        for top_level_data in guildfile.data:
             if _item_name(top_level_data, MODEL_TYPES) == model_name:
                 if op_name:
                     op_data = _op_data(top_level_data, op_name)
