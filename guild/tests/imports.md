@@ -168,6 +168,7 @@
     guild.serving_util
     guild.tabview
     guild.tensorboard
+    guild.test
     guild.uat
     guild.util
     guild.var

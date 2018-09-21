@@ -902,7 +902,6 @@ class TestDef(object):
     def __init__(self, name, data, guildfile):
         self.name = name
         self.guildfile = guildfile
-        self.env_dir = data.get("env-dir")
         self.models = data.get("models") or []
         self.steps = data.get("steps") or []
 
