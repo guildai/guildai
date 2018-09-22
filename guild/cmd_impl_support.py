@@ -162,12 +162,14 @@ def guildfile_dirs(vals):
             other.append(val)
     return dirs, other
 
-def dir_or_package_guildfile(dir_or_package):
-    dir_or_package = dir_or_package or config.cwd()
-    if os.path.isdir(dir_or_package):
-        return _dir_guildfile(dir_or_package)
+def path_or_package_guildfile(path_or_package):
+    path_or_package = path_or_package or config.cwd()
+    if os.path.isdir(path_or_package):
+        return _dir_guildfile(path_or_package)
+    elif os.path.isfile(path_or_package):
+        return _guildfile(path_or_package)
     else:
-        return _package_guildfile(dir_or_package)
+        return _package_guildfile(path_or_package)
 
 def _dir_guildfile(dir):
     from guild import guildfile
@@ -194,6 +196,13 @@ def _try_plugin_models(dir):
     if not models_data:
         return None
     return guildfile.Guildfile(models_data, dir=dir)
+
+def _guildfile(path):
+    from guild import guildfile
+    try:
+        return guildfile.from_file(path)
+    except guildfile.GuildfileError as e:
+        cli.error(str(e))
 
 def _package_guildfile(ref):
     matches = _matching_packages(ref)
