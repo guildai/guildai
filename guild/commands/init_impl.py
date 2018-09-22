@@ -25,6 +25,7 @@ import subprocess
 import guild
 
 from guild import cli
+from guild import config
 from guild import guildfile
 from guild import init
 from guild import namespace
@@ -67,7 +68,7 @@ class Config(object):
     def _init_guild_pkg_reqs(args):
         if args.no_reqs:
             return ()
-        guildfile_path = _env_parent_path("guild.yml", args)
+        guildfile_path = os.path.join(config.cwd(), "guild.yml")
         if not os.path.exists(guildfile_path):
             return ()
         return _guild_pkg_reqs(guildfile_path)
@@ -81,7 +82,7 @@ class Config(object):
             _validate_req_files(args.requirement)
             return args.requirement
         elif not args.no_reqs:
-            default_reqs = _env_parent_path("requirements.txt", args)
+            default_reqs = os.path.join(config.cwd(), "requirements.txt")
             if os.path.exists(default_reqs):
                 return (default_reqs,)
         return ()
@@ -126,10 +127,6 @@ class Config(object):
 
     def as_kw(self):
         return self.__dict__
-
-def _env_parent_path(name, args):
-    parent_dir = os.path.dirname(args.dir)
-    return os.path.join(parent_dir, name)
 
 def _guild_pkg_reqs(path):
     try:
