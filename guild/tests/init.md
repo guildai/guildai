@@ -37,15 +37,15 @@ Here's a helper function to generate a Config object.
 Here's the default prompt, assuming we're creating the environment
 within the project directory:
 
-    >> config().prompt_params
+    >>> config().prompt_params
     [('Location', '~/SCM/guild/guild/tests/samples/projects/init-env/env'),
      ('Name', 'env'),
      ('Python version', 'default'),
      ('Guild version', 'from source (.)'),
-     ('Required Guild packages',
-      ['Pillow',
+     ('Guild package requirements',
+      ('Pillow',
        'pkg-a',
-       'pkg-b']),
+       'pkg-b')),
      ('TensorFlow support', 'auto-detect GPU'),
      ('Resource cache', 'shared')]
 
@@ -72,11 +72,11 @@ using a `--path` option.
      ('Name', 'env'),
      ('Python version', 'default'),
      ('Guild version', 'from source (.)'),
-     ('Required Guild packages',
-      ['Pillow',
+     ('Guild package requirements',
+      ('Pillow',
        'lxml',
        'matplotlib',
-       'numpy']),
+       'numpy')),
      ('Additional paths', ('.../samples/projects/init-env',)),
      ('TensorFlow support', 'auto-detect GPU'),
      ('Resource cache', 'shared')]

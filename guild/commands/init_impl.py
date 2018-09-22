@@ -69,7 +69,7 @@ class Config(object):
     def _init_guild_pkg_reqs(args):
         if args.no_reqs:
             return ()
-        return sorted(tuple(
+        return tuple(sorted(
             _iter_all_guild_pkg_reqs(config.cwd(), args.path)))
 
     @staticmethod
@@ -99,7 +99,7 @@ class Config(object):
         else:
             params.append(("Guild version", _implicit_guild_version()))
         if self.guild_pkg_reqs:
-            params.append(("Required Guild packages", self.guild_pkg_reqs))
+            params.append(("Guild package requirements", self.guild_pkg_reqs))
         if self.user_reqs:
             params.append(("Python requirements", self.user_reqs))
         if self.paths:
