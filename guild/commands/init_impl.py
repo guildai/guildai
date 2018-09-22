@@ -22,11 +22,12 @@ import pkg_resources
 import re
 import subprocess
 
+import yaml
+
 import guild
 
 from guild import cli
 from guild import config
-from guild import guildfile
 from guild import init
 from guild import namespace
 from guild import util
@@ -68,10 +69,8 @@ class Config(object):
     def _init_guild_pkg_reqs(args):
         if args.no_reqs:
             return ()
-        guildfile_path = os.path.join(config.cwd(), "guild.yml")
-        if not os.path.exists(guildfile_path):
-            return ()
-        return _guild_pkg_reqs(guildfile_path)
+        return sorted(tuple(
+            _iter_all_guild_pkg_reqs(config.cwd(), args.path)))
 
     @staticmethod
     def _init_user_reqs(args):
@@ -128,19 +127,64 @@ class Config(object):
     def as_kw(self):
         return self.__dict__
 
-def _guild_pkg_reqs(path):
+def _iter_all_guild_pkg_reqs(dir, search_path, seen=None):
+    seen = seen or set()
+    src = os.path.abspath(os.path.join(dir, "guild.yml"))
+    if not os.path.exists(src):
+        return
+    if src in seen:
+        return
+    seen.add(src)
+    for req in _guild_pkg_reqs(src):
+        dir_on_path = _find_req_on_path(req, search_path)
+        if dir_on_path:
+            for req in _iter_all_guild_pkg_reqs(dir_on_path, search_path, seen):
+                yield req
+        else:
+            yield req
+
+def _guild_pkg_reqs(src):
+    pkg = _pkg_for_guildfile(src)
+    if not pkg:
+        return []
+    return _pkg_requires(pkg, src)
+
+def _pkg_for_guildfile(src):
+    data = _guildfile_data(src)
+    if not isinstance(data, list):
+        data = [data]
+    for item in data:
+        if isinstance(item, dict) and "package" in item:
+            return item
+    return None
+
+def _guildfile_data(src):
+    # Use low level parsing to bypass path-related errors.
     try:
-        gf = guildfile.from_file(path)
-    except guildfile.GuildfileError as e:
+        f = open(src, "r")
+        return yaml.load(f)
+    except Exception as e:
         log.warning(
-            "cannot get Guild package requirements: error reading %s: %s",
-            path, e)
-        return ()
-    else:
-        if not gf.package:
-            return ()
-        reqs = tuple(gf.package.requires or ())
-        return _validate_guild_reqs(reqs, path)
+            "cannot read Guild package requirements for %s (%s) - ignoring",
+            src, e)
+        return []
+
+def _pkg_requires(pkg_data, src):
+    requires = pkg_data.get("requires") or []
+    if not isinstance(requires, list):
+        log.warning(
+            "invalid package requires list in %s (%r) - ignoring",
+            src, pkg_data)
+        return []
+    return requires
+
+def _find_req_on_path(req, path):
+    req_subpath = req.replace(".", os.path.sep)
+    for root in path:
+        full_path = os.path.join(root, req_subpath)
+        if os.path.exists(full_path):
+            return full_path
+    return None
 
 def _validate_guild_reqs(reqs, guildfile_path):
     # Make sure we can convert each to pip reqs

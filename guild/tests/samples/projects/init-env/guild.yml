@@ -1,0 +1,5 @@
+- package: test
+  requires:
+    - Pillow
+    - pkg-a
+    - pkg-b

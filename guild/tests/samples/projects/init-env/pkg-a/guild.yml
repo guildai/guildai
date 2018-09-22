@@ -1,0 +1,4 @@
+- package: pkg-a
+  requires:
+    - numpy
+    - pkg-b
