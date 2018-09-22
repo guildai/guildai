@@ -902,7 +902,7 @@ class TestDef(object):
     def __init__(self, name, data, guildfile):
         self.name = name
         self.guildfile = guildfile
-        self.models = data.get("models") or []
+        self.description = (data.get("description") or "").strip()
         self.steps = data.get("steps") or []
 
     def __repr__(self):

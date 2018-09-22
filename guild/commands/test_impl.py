@@ -15,47 +15,39 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import tempfile
-
 from guild import cli
 from guild import cmd_impl_support
 from guild import test as testlib
-from guild import util
 
 def main(args):
-    gf = cmd_impl_support.dir_or_package_guildfile(args.path_or_package)
+    gf = cmd_impl_support.path_or_package_guildfile(args.path_or_package)
     tests = [_gf_test(name, gf) for name in _test_names(gf, args)]
     if not tests:
         _no_tests_error(gf)
-    if args.yes or _confirm_tests(tests, args):
-        _run_tests(tests, args)
+    if args.yes or _confirm_tests(tests):
+        _run_tests(tests)
 
-def _confirm_tests(tests, args):
-    if args.no_env:
-        env_desc = " (no environment)"
-    elif args.env:
-        env_desc = " (environment %s)" % args.env
-    else:
-        env_desc = " (new environment"
-        if args.clean_env:
-            env_desc += ", auto-delete"
-        env_desc += ")"
-    prompt = ["You are about to run the following tests%s:" % env_desc]
-    prompt.extend(["  " + t.name for t in tests])
-    prompt.append("Continue?")
-    return cli.confirm("\n".join(prompt), default=True)
+def _confirm_tests(tests):
+    cli.out("You are about to run the following tests:")
+    test_data = [
+        dict(name=t.name, desc=_line1(t.description))
+        for t in tests
+    ]
+    cli.table(test_data, ["name", "desc"], indent=2)
+    return cli.confirm("Continue?", default=True)
 
-def _run_tests(tests, args):
-    env_dir, rm_env_dir = _init_env_dir(args)
-    if env_dir:
-        cli.out("Running tests in environment %s" % env_dir)
+def _line1(s):
+    return s.split("\n")[0]
+
+def _run_tests(tests):
     for test in tests:
-        testlib.run_guildfile_test(test, env_dir)
-    if rm_env_dir:
-        cli.out("Deleting environment %s" % env_dir)
-        util.safe_rmtree(env_dir)
-    elif env_dir:
-        cli.out("Keeping environment %s" % env_dir)
+        cli.out("Running %s" % test.name)
+        try:
+            testlib.run_guildfile_test(test)
+        except testlib.TestError as e:
+            cli.out("Test failed: %s" % e, err=True)
+            cli.error()
+    cli.out(cli.style("All tests passed", bold=True))
 
 def _test_names(gf, args):
     return args.tests or [t.name for t in gf.tests]
@@ -69,14 +61,3 @@ def _gf_test(name, gf):
 def _no_tests_error(gf):
     cli.out("There are no tests defined in %s" % gf.src, err=True)
     cli.error(exit_status=2)
-
-def _init_env_dir(args):
-    if args.no_env and args.env:
-        cli.error("--no-env and --env cannot both be used")
-    if args.clean_env and args.env:
-        cli.error("--clean-env and --env cannot both be used")
-    if args.no_env:
-        return None, False
-    if args.env:
-        return args.env, False
-    return tempfile.mkdtemp(prefix="guild-env-"), args.clean_env
