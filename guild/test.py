@@ -57,6 +57,7 @@ class _RunOp(object):
         self.guildfile = test.guildfile
         self.op_name = config[self.type_attr]
         self.no_gpus = config.get("no-gpus", False)
+        self.disable_plugins = config.get("disable-plugins")
         self.flag_vals = config.get("flags") or {}
         self.expect = [
             _resolve_op_expect(expect, test)
@@ -68,7 +69,7 @@ class _RunOp(object):
 
     def _run_op(self, model):
         op_name = self._op_name(model)
-        _status("Running %s" % op_name)
+        _status("Running operation %s" % op_name)
         _call(self._run_cmd(op_name), cwd=self.guildfile.dir)
 
     def _op_name(self, model):
@@ -81,6 +82,8 @@ class _RunOp(object):
         cmd = ["guild", "run", "-y", op_name]
         if self.no_gpus:
             cmd.append("--no-gpus")
+        if self.disable_plugins:
+            cmd.extend(["--disable-plugins", self.disable_plugins])
         for name, val in sorted(self.flag_vals.items()):
             cmd.append("%s=%s" % (name, val))
         return cmd
@@ -109,7 +112,7 @@ class _ForEachModel(object):
         if not models:
             models = sorted(test.guildfile.models)
         except_models = set(config[self.type_attr].get("except") or [])
-        return [m for m in models if not m in except_models]
+        return [m for m in models if m not in except_models]
 
     def run(self):
         for model in self.models:
@@ -123,14 +126,33 @@ class _ExpectFile(object):
     def __init__(self, config, test):
         self.path = config[self.type_attr]
         self.compare_to = _test_path(test, config.get("compare"))
+        self.pattern = config.get("contains")
+        self.pattern_re = _compile_pattern(self.pattern)
 
     def check(self, run_dir):
-        _status("file: %s" % self.path, False)
+        _status("file: %s%s" % (self.path, self._status_qualifiers), False)
         path = os.path.join(run_dir, self.path)
         if not os.path.isfile(path):
             raise Failed("%s does not exist" % path)
         if self.compare_to:
             _compare_files(path, self.compare_to)
+        if self.pattern_re:
+            out = _read_output(path)
+            if not self.pattern_re.search(out):
+                raise Failed(
+                    "could not find pattern %r in %s"
+                    % (self.pattern, path))
+
+    @property
+    def _status_qualifiers(self):
+        quals = []
+        if self.compare_to:
+            quals.append("compare to %s" % self.compare_to)
+        if self.pattern:
+            quals.append("contains %r" % self.pattern)
+        if not quals:
+            return ""
+        return " (%s)" % ", ".join(quals)
 
 class _ExpectOutput(object):
 
@@ -138,23 +160,16 @@ class _ExpectOutput(object):
 
     def __init__(self, config, _test):
         self.pattern = config[self.type_attr]
-        try:
-            self.compiled_pattern = re.compile(self.pattern)
-        except Exception:
-            raise TestError("invalid regular expression: %r" % self.pattern)
+        self.pattern_re = _compile_pattern(self.pattern)
 
     def check(self, run_dir):
         _status("output: %s" % self.pattern, False)
         output_path = os.path.join(run_dir, ".guild", "output")
-        try:
-            out = open(output_path, "r").read()
-        except Exception:
-            raise Failed("error reading run output from %s" % output_path)
-        else:
-            if not re.search(self.compiled_pattern, out):
-                raise Failed(
-                    "could not find pattern %r in %s"
-                    % (self.pattern, output_path))
+        out = _read_output(output_path)
+        if not self.pattern_re.search(out):
+            raise Failed(
+                "could not find pattern %r in %s"
+                % (self.pattern, output_path))
 
 def run_guildfile_test(test):
     steps = [
@@ -247,3 +262,17 @@ def _resolve_op_expect(expect, test):
         if expect_class.type_attr in expect:
             return expect_class(expect, test)
     raise TestError("invalid expect config: %r" %  expect)
+
+def _compile_pattern(pattern):
+    if pattern is None:
+        return None
+    try:
+        return re.compile(pattern)
+    except Exception:
+        raise TestError("invalid regular expression: %r" % pattern)
+
+def _read_output(path):
+    try:
+        return open(path, "r").read()
+    except Exception:
+        raise Failed("error reading run output from %s" % path)

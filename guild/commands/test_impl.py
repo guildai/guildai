@@ -25,7 +25,7 @@ def main(args):
     if not tests:
         _no_tests_error(gf)
     if args.yes or _confirm_tests(tests):
-        _run_tests(tests)
+        _run_tests(tests, args)
 
 def _confirm_tests(tests):
     cli.out("You are about to run the following tests:")
@@ -39,14 +39,19 @@ def _confirm_tests(tests):
 def _line1(s):
     return s.split("\n")[0]
 
-def _run_tests(tests):
+def _run_tests(tests, args):
+    failed = False
     for test in tests:
-        cli.out("Running %s" % test.name)
         try:
             testlib.run_guildfile_test(test)
         except testlib.TestError as e:
-            cli.out("Test failed: %s" % e, err=True)
-            cli.error()
+            _test_failed_msg(test, e)
+            failed = True
+            if args.stop_on_fail:
+                break
+    if failed:
+        _some_tests_failed_msg()
+        cli.error()
     cli.out(cli.style("All tests passed", bold=True))
 
 def _test_names(gf, args):
@@ -61,3 +66,11 @@ def _gf_test(name, gf):
 def _no_tests_error(gf):
     cli.out("There are no tests defined in %s" % gf.src, err=True)
     cli.error(exit_status=2)
+
+def _test_failed_msg(test, e):
+    msg = "Test %s failed: %s" % (test.name, e)
+    cli.out(cli.style(msg, bold=True, fg="red"), err=True)
+
+def _some_tests_failed_msg():
+    msg = "One or more tests failed - see above for details"
+    cli.out(cli.style(msg, bold=True, fg="red"), err=True)

@@ -28,6 +28,9 @@ from guild import click_util
     multiple=True,
     help="Run a specific test. May be used multiple times.")
 @click.option(
+    "-s", "--stop-on-fail", is_flag=True,
+    help="Stop testing after the first failed test.")
+@click.option(
     "-y", "--yes", is_flag=True,
     help="Do not prompt before running tests.")
 
@@ -44,11 +47,15 @@ def test(args):
     order specified. If no tests are specified, runs all of the tests
     defined in the referenced Guild file or package.
 
+    By default all tests are run even if one or more tests fail. To
+    stop testing on the first failed test, use `--stop-on-fail`.
+
     ### Environments
 
     Tests are run in the current environment. If you want to isolate
     tests from other environments, you must create a test-specific
     environment activate it before running ``test``.
+
     """
     from . import test_impl
     test_impl.main(args)

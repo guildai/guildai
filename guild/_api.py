@@ -19,6 +19,8 @@ import os
 import subprocess
 import sys
 
+import six
+
 # Consider all Guild imports expensive and move to functions
 
 class RunError(Exception):
@@ -51,7 +53,6 @@ def _init_env(cwd, guild_home):
     from guild.commands import main
     config.set_cwd(cwd)
     config.set_guild_home(guild_home or main.DEFAULT_GUILD_HOME)
-
 
 def run(spec, cwd=None, flags=None, run_dir=None, extra_env=None):
     import guild
@@ -118,3 +119,32 @@ def runs_list(
         deleted=deleted)
     with Env(cwd, guild_home):
         return runs_impl.filtered_runs(args)
+
+def guild_cmd(command, args, cwd=None, guild_home=None, capture_output=False):
+    if isinstance(command, six.string_types):
+        command = [command]
+    cmd_args = [
+        sys.executable,
+        "-m", "guild.main_bootstrap",
+    ] + command + args
+    env = dict(os.environ)
+    if guild_home:
+        env["GUILD_HOME"] = guild_home
+    env["PYTHONPATH"] = _prepend_guild_path(env.get("PYTHONPATH"))
+    if capture_output:
+        return subprocess.check_output(
+            cmd_args,
+            stderr=subprocess.STDOUT,
+            cwd=cwd,
+            env=env)
+    else:
+        return subprocess.call(
+            cmd_args,
+            cwd=cwd,
+            env=env)
+
+def _prepend_guild_path(cur_path):
+    guild_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+    if not cur_path:
+        return guild_path
+    return "{}{}{}".format(guild_path, os.path.sep, cur_path)

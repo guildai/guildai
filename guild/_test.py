@@ -27,6 +27,7 @@ import sys
 import tempfile
 
 from guild import _api
+from guild import init
 from guild import util
 
 PLATFORM = platform.system()
@@ -159,6 +160,7 @@ def _test_globals():
         "gapi": _api,
         "find": find,
         "mkdtemp": mkdtemp,
+        "mktemp_guild_dir": mktemp_guild_dir,
         "pprint": pprint.pprint,
         "sample": sample,
         "samples_dir": samples_dir,
@@ -175,8 +177,13 @@ def sample(*parts):
 def samples_dir():
     return os.path.join(tests_dir(), "samples")
 
-def mkdtemp():
-    return tempfile.mkdtemp(prefix="guild-test-")
+def mkdtemp(prefix="guild-test-"):
+    return tempfile.mkdtemp(prefix=prefix)
+
+def mktemp_guild_dir():
+    guild_dir = mkdtemp()
+    init.init_guild_dir(guild_dir)
+    return guild_dir
 
 def find(root):
     all = []

@@ -40,11 +40,13 @@ class RequiredParamError(InitError):
         return "missing required parameter '%s'" % self.name
 
 def init_env(path, local_resource_cache=False):
-    guild_dir = os.path.join(path, ".guild")
-    util.ensure_dir(os.path.join(guild_dir, "runs"))
-    util.ensure_dir(os.path.join(guild_dir, "trash"))
-    util.ensure_dir(os.path.join(guild_dir, "cache", "runs"))
-    _init_resource_cache(guild_dir, local_resource_cache)
+    init_guild_dir(os.path.join(path, ".guild"), local_resource_cache)
+
+def init_guild_dir(path, local_resource_cache=False):
+    util.ensure_dir(os.path.join(path, "runs"))
+    util.ensure_dir(os.path.join(path, "trash"))
+    util.ensure_dir(os.path.join(path, "cache", "runs"))
+    _init_resource_cache(path, local_resource_cache)
 
 def _init_resource_cache(guild_dir, local_resource_cache):
     env_resource_cache = os.path.join(guild_dir, "cache", "resources")
