@@ -56,13 +56,13 @@ def _opref_from_run(run):
     return OpRef(*m.groups())
 
 def _opref_from_string(s):
-    m = re.match(r"(?:(?:([^/]+)/)?([^:]+):)?([a-zA-Z0-9-_\.]+)$", s)
+    m = re.match(r"(?:(?:([^/]+)/)?([^:]+):)?([^/:]+)$", s)
     if not m:
         raise OpRefError("invalid reference: %r" % s)
     pkg_name, model_name, op_name = m.groups()
     return OpRef(None, pkg_name, None, model_name, op_name)
 
-def _opref_is_op_run(opref, run):
+def _opref_is_op_run(opref, run, match_regex=False):
     try:
         run_opref = _opref_from_run(run)
     except OpRefError as e:
@@ -76,8 +76,19 @@ def _opref_is_op_run(opref, run):
              run_opref.pkg_name == opref.pkg_name) and
             (opref.pkg_version is None or
              run_opref.pkg_version == opref.pkg_version) and
-            run_opref.model_name == opref.model_name and
-            run_opref.op_name == opref.op_name)
+            _cmp(run_opref.model_name, opref.model_name, match_regex) and
+            _cmp(run_opref.op_name, opref.op_name, match_regex))
+
+def _cmp(val, compare_to, regex):
+    log.debug("opref comparing %r to %r (regex=%r)", val, compare_to, regex)
+    if regex:
+        try:
+            return re.match(r"%s$" % compare_to, val)
+        except Exception as e:
+            log.warning("error comparing %s using %s: %s", val, compare_to, e)
+            return False
+    else:
+        return val == compare_to
 
 def _opref_to_string(opref):
     return "%s:%s %s %s %s" % (
