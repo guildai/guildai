@@ -155,7 +155,8 @@ The test resource has the following sources:
      <guild.resourcedef.ResourceSource 'file:test.txt'>,
      <guild.resourcedef.ResourceSource 'file:badhash.txt'>,
      <guild.resourcedef.ResourceSource 'file:files'>,
-     <guild.resourcedef.ResourceSource 'file:doesnt-exist'>]
+     <guild.resourcedef.ResourceSource 'file:doesnt-exist'>,
+     <guild.resourcedef.ResourceSource 'file:test.txt'>]
 
 In the tests below, we'll use a resolver to resolve each source.
 
@@ -171,7 +172,6 @@ resource def, a location, which is the sample project directory, and a
 context.
 
     >>> test_location = sample("projects/resources")
-
     >>> test_ctx = deps.ResolutionContext(
     ...   target_dir=None,
     ...   opdef=None,
@@ -343,3 +343,118 @@ extracted file.
 
     >>> dir(unpack_dir)
     []
+
+### Renaming sources
+
+The `rename` attribute can be used to rename resolved sources.
+
+    >>> rename_source = test_resdef.sources[7]
+    >>> rename_source.uri
+    'file:test.txt'
+
+The rename attr can be a string or a list of strings. Each string
+contains two parts, each part separated by a space. If a part contains
+spaces it must be quoted.
+
+Here's the rename spec for our source:
+
+    >>> rename_source.rename
+    ['(.+)\\.txt \\\\1.config']
+
+Resolve doesn't apply renames - it just resolves the source locations.
+
+    >>> resolver = test_resdef.get_source_resolver(rename_source, test_res)
+    >>> unpack_dir = mkdtemp()
+    >>> resolver.resolve(unpack_dir)
+    ['.../samples/projects/resources/test.txt']
+
+    >>> dir(unpack_dir)
+    []
+
+## Resolving sources
+
+NOTE: These tests modify `test_resdef` sources in place. Any tests on
+the original source list should be run before these tests.
+
+In these tests we'll resolve some sources to our target
+directory. We'll modify `test_resdef` with resolvable sources and
+modify `test_ctx` with new target directories so we can see the
+resolution results.
+
+### Plain source file
+
+Here's `plain_source` resolved:
+
+    >>> test_resdef.sources = [plain_source]
+    >>> test_ctx.target_dir = mkdtemp()
+    >>> test_res.resolve()
+    ['.../samples/projects/resources/test.txt']
+
+The target directory contains a link to the resolved file.
+
+    >>> dir(test_ctx.target_dir)
+    ['test.txt']
+
+    >>> realpath(join_path(test_ctx.target_dir, "test.txt"))
+    '.../samples/projects/resources/test.txt'
+
+### Tar source file
+
+Here's the resolved tar source. We'll use a temp directory for
+unpacking.
+
+    >>> unpack_dir = mkdtemp("guild-test-unpack-dir-")
+
+And resolve the archive source:
+
+    >>> test_resdef.sources = [tar_source]
+    >>> test_ctx.target_dir = mkdtemp()
+    >>> test_res.resolve(unpack_dir)
+    ['.../guild-test-unpack-dir-.../c.txt',
+     '.../guild-test-unpack-dir-.../d.txt']
+
+The target directory contains links to unpacked files:
+
+    >>> dir(test_ctx.target_dir)
+    ['c.txt', 'd.txt']
+
+    >>> realpath(join_path(test_ctx.target_dir, "c.txt"))
+    '.../guild-test-unpack-dir-.../c.txt'
+
+    >>> realpath(join_path(test_ctx.target_dir, "d.txt"))
+    '.../guild-test-unpack-dir-.../d.txt'
+
+### No unpack archive
+
+The unpack archive source resolves to the unpacked archive.
+
+    >>> test_resdef.sources = [nounpack_source]
+    >>> test_ctx.target_dir = mkdtemp()
+    >>> test_res.resolve()
+    ['.../samples/projects/resources/archive3.tar']
+
+And the target directory:
+
+    >>> dir(test_ctx.target_dir)
+    ['archive3.tar']
+
+    >>> realpath(join_path(test_ctx.target_dir, "archive3.tar"))
+    '.../samples/projects/resources/archive3.tar'
+
+### Renamed file
+
+In this test we'll resolve `rename_source`.
+
+    >>> test_resdef.sources = [rename_source]
+    >>> test_ctx.target_dir = mkdtemp()
+    >>> test_res.resolve()
+    ['.../samples/projects/resources/test.txt']
+
+Unlike the previous test, the link is renamed using the source
+`rename` spec.
+
+    >>> dir(test_ctx.target_dir)
+    ['test.config']
+
+    >>> realpath(join_path(test_ctx.target_dir, "test.config"))
+    '.../samples/projects/resources/test.txt'

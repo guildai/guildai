@@ -18,6 +18,7 @@ from __future__ import division
 import logging
 import os
 import re
+import shlex
 
 from guild import namespace
 from guild import resource
@@ -53,25 +54,25 @@ class Resource(object):
                 return config
         return None
 
-    def resolve(self):
+    def resolve(self, unpack_dir=None):
         if not self.resdef.sources:
             raise DependencyError(
                 "no sources defined for %s resource"
                 % self.resdef.name)
         resolved_acc = []
         for source in self.resdef.sources:
-            paths = self.resolve_source(source)
+            paths = self.resolve_source(source, unpack_dir)
             resolved_acc.extend(paths)
         return resolved_acc
 
-    def resolve_source(self, source):
+    def resolve_source(self, source, unpack_dir=None):
         resolver = self.resdef.get_source_resolver(source, self)
         if not resolver:
             raise DependencyError(
                 "unsupported source '%s' in %s resource"
                 % (source, self.resdef.name))
         try:
-            source_paths = resolver.resolve()
+            source_paths = resolver.resolve(unpack_dir)
         except ResolutionError as e:
             msg = (
                 "could not resolve '%s' in %s resource: %s"
@@ -90,22 +91,47 @@ class Resource(object):
             paths = []
             for path in source_paths:
                 paths.append(path)
-                self._link_to_source(path)
+                self._link_to_source(path, source)
             return paths
 
-    def _link_to_source(self, source_path):
+    def _link_to_source(self, source_path, source):
         source_path = util.strip_trailing_path(source_path)
-        link = self._link_path(source_path)
+        link = self._link_path(source_path, source)
         _symlink(source_path, link)
 
-    def _link_path(self, source_path):
+    def _link_path(self, source_path, source):
         basename = os.path.basename(source_path)
         res_path = self.resdef.path or ""
         if os.path.isabs(res_path):
             raise DependencyError(
                 "invalid path '%s' in %s resource (path must be relative)"
                 % (res_path, self.resdef.name))
+        if source.rename:
+            basename = _rename_source(basename, source.rename)
         return os.path.join(self.ctx.target_dir, res_path, basename)
+
+def _rename_source(name, rename):
+    for spec in rename:
+        pattern, repl = _split_rename_spec(spec)
+        try:
+            renamed = re.sub(pattern, repl, name)
+        except Exception as e:
+            raise DependencyError(
+                "error renaming source %s (%r %r): %s"
+                % (name, pattern, repl, e))
+        else:
+            if renamed != name:
+                return renamed
+    return name
+
+def _split_rename_spec(spec):
+    spec = spec or "" # shlex.split hangs forever on None
+    parts = shlex.split(spec)
+    if len(parts) != 2:
+        raise DependencyError(
+            "invalid rename spec: %s - expected 'PATTERN REPL'"
+            % spec)
+    return parts
 
 def _symlink(source_path, link):
     assert os.path.isabs(link), link

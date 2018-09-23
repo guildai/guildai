@@ -25,6 +25,8 @@ import copy
 import logging
 import pprint
 
+import six
+
 from guild import resolver
 from guild import util
 
@@ -117,7 +119,7 @@ class ResourceDef(object):
         if type == "file":
             return ResourceSource(self, "file:%s" % val, **data)
         elif type == "url":
-            return ResourceSource(self, val, **data)
+            return URLResourceSource(self, val, **data)
         elif type == "module":
             return ResourceSource(self, "module:%s" % val, **data)
         else:
@@ -133,33 +135,20 @@ class ResourceDef(object):
 class ResourceSource(object):
 
     def __init__(self, resdef, uri, sha256=None, unpack=True,
-                 type=None, select=None, post_process=None,
-                 help=None, **kw):
+                 type=None, select=None, rename=None, help=None, **kw):
         self.resdef = resdef
         self.uri = uri
         self._parsed_uri = None
         self.sha256 = sha256
         self.unpack = unpack
         self.type = type
-        self.select = self._coerce_select(select)
-        self.post_process = post_process
+        self.select = _coerce_list(select, "source select")
+        self.rename = _coerce_list(rename, "source rename")
         self.help = help
         for key in kw:
             log.warning(
                 "unexpected source attribute '%s' in resource '%s'",
                 key, resdef.fullname)
-
-    @staticmethod
-    def _coerce_select(select):
-        if select is None:
-            return []
-        elif isinstance(select, str):
-            return [select]
-        elif isinstance(select, list):
-            return select
-        else:
-            raise ResourceFormatError(
-                "invalid resource source select: %s" % select)
 
     @property
     def parsed_uri(self):
@@ -172,3 +161,19 @@ class ResourceSource(object):
 
     def __str__(self):
         return self.uri
+
+def _coerce_list(val, desc):
+    if val is None:
+        return []
+    elif isinstance(val, six.string_types):
+        return [val]
+    elif isinstance(val, list):
+        return val
+    else:
+        raise ResourceFormatError("invalid %s val: %s" % (desc, val))
+
+class URLResourceSource(ResourceSource):
+
+    def __init__(self, resdef, uri, post_process=None, **kw):
+        super(URLResourceSource, self).__init__(resdef, uri, **kw)
+        self.post_process = post_process

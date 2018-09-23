@@ -167,6 +167,7 @@ def _test_globals():
         "dirname": os.path.dirname,
         "abspath": os.path.abspath,
         "relpath": os.path.relpath,
+        "realpath": os.path.realpath,
         "join_path": os.path.join,
         "symlink": os.symlink,
     }

@@ -15,3 +15,5 @@ resources:
       - file: files
         select: .*\.txt
       - file: doesnt-exist
+      - file: test.txt
+        rename: (.+)\.txt \\1.config
