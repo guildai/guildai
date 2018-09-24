@@ -23,6 +23,12 @@ import yaml
 import guild.run
 from guild import util
 
+class ArgValueError(ValueError):
+
+    def __init__(self, arg):
+        super(ArgValueError, self).__init__(arg)
+        self.arg = arg
+
 class RunOutput(object):
 
     DEFAULT_WAIT_TIMEOUT = 10
@@ -169,10 +175,10 @@ def _cmd_file(filename):
 def parse_args(args):
     return dict([_parse_arg(os.path.expanduser(arg)) for arg in args])
 
-def _parse_arg(s):
-    parts = s.split("=", 1)
+def _parse_arg(arg):
+    parts = arg.split("=", 1)
     if len(parts) == 1:
-        return parts[0], None
+        raise ArgValueError(arg)
     else:
         return parts[0], _parse_arg_val(parts[1])
 

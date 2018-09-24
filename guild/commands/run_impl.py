@@ -267,7 +267,7 @@ def _no_such_operation_error(name, model):
         % (name, model.name, model.name))
 
 def _init_op(opdef, model, args, ctx):
-    parsed = op_util.parse_args(args.args)
+    parsed = _parse_args(args)
     flag_vals, resource_vals = _split_flags_and_resources(parsed, opdef)
     _apply_flag_vals(flag_vals, opdef)
     _validate_opdef_flags(opdef)
@@ -281,6 +281,12 @@ def _init_op(opdef, model, args, ctx):
         args.stage,
         _op_gpus(args, ctx)
     )
+
+def _parse_args(args):
+    try:
+        return op_util.parse_args(args.args)
+    except op_util.ArgValueError as e:
+        cli.error("invalid argument '%s' - expected NAME=VAL" % e.arg)
 
 def _split_flags_and_resources(vals, opdef):
     ref_vars = _ref_vars_for_resource_lookup(vals, opdef)
