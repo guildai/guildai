@@ -204,6 +204,14 @@ def _resdef_parent_dirs(resdef):
     else:
         return [parent.dir for parent in modeldef.parents]
 
+class opref_match_filter(object):
+
+    def __init__(self, opref):
+        self.opref = opref
+
+    def __call__(self, run):
+        return self.opref.is_op_run(run, match_regex=True)
+
 class OperationOutputResolver(Resolver):
 
     def __init__(self, source, resource, modeldef):
@@ -262,7 +270,7 @@ class OperationOutputResolver(Resolver):
                     var.run_filter("attr", "status", "terminated"),
                 ]),
                 var.run_filter("any", [
-                    lambda run: opref.is_op_run(run, match_regex=True)
+                    opref_match_filter(opref)
                     for opref in resolved_oprefs
                 ])
             ])
