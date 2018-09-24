@@ -25,6 +25,7 @@ import sys
 
 import click
 
+from guild import opref as opreflib
 from guild import var
 
 log = logging.getLogger("guild")
@@ -35,6 +36,34 @@ class TestError(Exception):
 class Failed(TestError):
     pass
 
+class TestConfig(object):
+
+    def __init__(self, models=None, operations=None):
+        self.models = models or ()
+        self.operations = operations or ()
+
+    def op_matches_models(self, opspec):
+        opref = opreflib.OpRef.from_string(opspec)
+        return (
+            self._filter_model(opref) and
+            self._filter_op(opref))
+
+    def _filter_model(self, opref):
+        if not self.models:
+            return True
+        for m in self.models:
+            if re.match(r"%s$" % m, opref.model_name):
+                return True
+        return False
+
+    def _filter_op(self, opref):
+        if not self.operations:
+            return True
+        for o in self.operations:
+            if re.match(r"%s$" % o, opref.op_name):
+                return True
+        return False
+
 class _CompareHelp(object):
 
     type_attr = "compare-help"
@@ -43,7 +72,7 @@ class _CompareHelp(object):
         self.compare_to = _test_path(test, config[self.type_attr])
         self.guildfile_src = test.guildfile.src
 
-    def run(self):
+    def run(self, _config):
         _status("Checking help in %s" % os.path.relpath(self.guildfile_src))
         help_out = _output(["guild", "help", self.guildfile_src])
         expected = _read(self.compare_to)
@@ -63,20 +92,23 @@ class _RunOp(object):
             _resolve_op_expect(expect, test)
             for expect in (config.get("expect") or [])]
 
-    def run(self, model=None):
-        self._run_op(model)
+    def run(self, config, model=None):
+        op_spec = self._op_spec(model)
+        if not config.op_matches_models(op_spec):
+            log.info("Skipping operation %s", op_spec)
+            return
+        self._run_op(op_spec)
         self._check_expected()
 
-    def _run_op(self, model):
-        op_name = self._op_name(model)
-        _status("Running operation %s" % op_name)
-        _call(self._run_cmd(op_name), cwd=self.guildfile.dir)
-
-    def _op_name(self, model):
+    def _op_spec(self, model):
         if model:
             return "%s:%s" % (model, self.op_name)
         else:
             return self.op_name
+
+    def _run_op(self, op_spec):
+        _status("Running operation %s" % op_spec)
+        _call(self._run_cmd(op_spec), cwd=self.guildfile.dir)
 
     def _run_cmd(self, op_name):
         cmd = ["guild", "run", "-y", op_name]
@@ -114,10 +146,10 @@ class _ForEachModel(object):
         except_models = set(config[self.type_attr].get("except") or [])
         return [m for m in models if m not in except_models]
 
-    def run(self):
+    def run(self, config):
         for model in self.models:
             for step in self.steps:
-                step.run(model=model)
+                step.run(config, model=model)
 
 class _ExpectFile(object):
 
@@ -171,13 +203,14 @@ class _ExpectOutput(object):
                 "could not find pattern %r in %s"
                 % (self.pattern, output_path))
 
-def run_guildfile_test(test):
+def run_guildfile_test(test, config=None):
+    config = config or TestConfig()
     steps = [
         _resolve_step(step, test) for step in test.steps
         if not _step_disabled(step)]
     _status("Testing %s" % test.name)
     for step in steps:
-        step.run()
+        step.run(config)
 
 def _step_disabled(step):
     return step.get("disabled") is True

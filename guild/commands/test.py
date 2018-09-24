@@ -28,6 +28,21 @@ from guild import click_util
     multiple=True,
     help="Run a specific test. May be used multiple times.")
 @click.option(
+    "-m", "--model",
+    metavar="MODEL",
+    multiple=True,
+    help=(
+        "Only test operations for MODEL. May be used multiple times. "
+        "Use with `--operation` to further limit tests."))
+@click.option(
+    "-o", "--operation",
+    metavar="NAME",
+    multiple=True,
+    help=(
+        "Only test tests operation NAME. May be used multiple times. "
+        "Use with `--model` to limit operation to specific models."))
+
+@click.option(
     "-s", "--stop-on-fail", is_flag=True,
     help="Stop testing after the first failed test.")
 @click.option(

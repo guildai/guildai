@@ -41,9 +41,12 @@ def _line1(s):
 
 def _run_tests(tests, args):
     failed = False
+    config = testlib.TestConfig(
+        models=args.model,
+        operations=args.operation)
     for test in tests:
         try:
-            testlib.run_guildfile_test(test)
+            testlib.run_guildfile_test(test, config)
         except testlib.TestError as e:
             _test_failed_msg(test, e)
             failed = True
