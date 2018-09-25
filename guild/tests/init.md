@@ -38,10 +38,10 @@ Here's the default prompt, assuming we're creating the environment
 within the project directory:
 
     >>> config().prompt_params
-    [('Location', '~/SCM/guild/guild/tests/samples/projects/init-env/env'),
+    [('Location', '.../samples/projects/init-env/env'),
      ('Name', 'env'),
      ('Python version', 'default'),
-     ('Guild version', 'from source (.)'),
+     ('Guild version', 'from source (...)'),
      ('Guild package requirements',
       ('Pillow',
        'pkg-a',
@@ -71,7 +71,7 @@ using a `--path` option.
     [('Location', '.../samples/projects/init-env/env'),
      ('Name', 'env'),
      ('Python version', 'default'),
-     ('Guild version', 'from source (.)'),
+     ('Guild version', 'from source (...)'),
      ('Guild package requirements',
       ('Pillow',
        'lxml',

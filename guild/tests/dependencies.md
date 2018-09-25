@@ -409,9 +409,13 @@ And resolve the archive source:
 
     >>> test_resdef.sources = [tar_source]
     >>> test_ctx.target_dir = mkdtemp()
-    >>> test_res.resolve(unpack_dir)
+    >>> with log:
+    ...   sorted(test_res.resolve(unpack_dir))
     ['.../guild-test-unpack-dir-.../c.txt',
      '.../guild-test-unpack-dir-.../d.txt']
+
+    >>> log.print_all()
+    Unpacking .../samples/projects/resources/archive2.tar
 
 The target directory contains links to unpacked files:
 

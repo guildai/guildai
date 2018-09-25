@@ -12,10 +12,12 @@ tests).
       dependencies:              ok
       disk-plugin:               ok
       entry-points:              ok
+      guild-test:                ok
       guildfiles:                ok
       help:                      ok
       imports:                   ok
       includes:                  ok
+      init:                      ok
       logging:                   ok
       main-bootstrap:            ok
       memory-plugin:             ok

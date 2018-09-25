@@ -28,9 +28,9 @@ Here's a helper function to run tests:
     ...                    guild_home=guild_dir,
     ...                    capture_output=True)
     ...   except subprocess.CalledProcessError as e:
-    ...     print("ERROR (%i): %s" % (e.returncode, e.output))
+    ...     print("ERROR (%i): %s" % (e.returncode, e.output.decode()))
     ...   else:
-    ...     print(out)
+    ...     print(out.decode())
 
 Let's first example the tests defined in the project.
 
