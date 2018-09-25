@@ -58,8 +58,11 @@ Use `op_util.parse_args` to parse a list of `NAME=VAL` args.
     >>> p(["a=A"])
     {'a': 'A'}
 
-    >>> p(["a=True"])
-    {'a': True}
+    >>> p(["a=True", "b=true", "c=yes"])
+    {'a': True, 'b': True, 'c': True}
+
+    >>> p(["a=False", "b=false", "c=no"])
+    {'a': False, 'b': False, 'c': False}
 
     >>> p(["a="])
     {'a': None}
