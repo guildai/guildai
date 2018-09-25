@@ -348,7 +348,7 @@ def _maybe_quote_arg(arg):
 def _exit_status(run):
     return run.get("exit_status.remote", "") or run.get("exit_status", "")
 
-def _format_attr_val(val):
+def _format_attr(val):
     if isinstance(val, list):
         return _format_attr_list(val)
     elif isinstance(val, dict):
@@ -363,7 +363,8 @@ def _format_attr_list(l):
 
 def _format_attr_dict(d):
     return "\n%s" % "\n".join([
-        "  %s: %s" % (key, d[key] or "") for key in sorted(d)
+        "  %s: %s" % (key, _format_val(d[key]))
+        for key in sorted(d)
     ])
 
 def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
@@ -503,13 +504,13 @@ def _print_run_info(run, args):
     for name in RUN_DETAIL:
         out("%s: %s" % (name, formatted[name]))
     for name in other_attr_names(run, args.private_attrs):
-        out("%s: %s" % (name, _format_attr(run.get(name))))
+        out("%s: %s" % (name, _format_val(run.get(name))))
     if args.env:
         out("environment:", nl=False)
-        out(_format_attr_val(run.get("env", "")))
+        out(_format_attr(run.get("env", "")))
     if args.flags:
         out("flags:", nl=False)
-        out(_format_attr_val(run.get("flags", "")))
+        out(_format_attr(run.get("flags", "")))
     if args.deps:
         out("dependencies:")
         deps = run.get("deps", {})
@@ -535,13 +536,17 @@ def other_attr_names(run, include_private=False):
         include = lambda x: x[0] != "_" and x not in CORE_RUN_ATTRS
     return [name for name in sorted(run.attr_names()) if include(name)]
 
-def _format_attr(val):
+def _format_val(val):
     if val is None:
         return ""
+    elif val is True:
+        return "yes"
+    elif val is False:
+        return "no"
     elif isinstance(val, (int, float, six.string_types)):
         return str(val)
     else:
-        return _format_yaml(val)
+        return _format_yaml_block(val)
 
 def _iter_output(run):
     try:
@@ -554,7 +559,7 @@ def _iter_output(run):
             for line in f:
                 yield line
 
-def _format_yaml(val):
+def _format_yaml_block(val):
     formatted = yaml.dump(val)
     lines = formatted.split("\n")
     padded = ["  " + line for line in lines]

@@ -18,7 +18,8 @@ import textwrap
 
 import click
 
-import guild.plugin
+from guild import op_util
+from guild import plugin as pluginlib
 
 log = logging.getLogger("guild")
 
@@ -194,7 +195,7 @@ def _write_operation(op, out):
 
 def _maybe_apply_plugin_op(op):
     if op.plugin_op:
-        for _name, plugin in guild.plugin.iter_plugins():
+        for _name, plugin in pluginlib.iter_plugins():
             plugin_op = plugin.get_operation(op.plugin_op, op.modeldef, op)
             if plugin_op:
                 return plugin_op
@@ -204,7 +205,7 @@ def _maybe_apply_plugin_op(op):
     return op
 
 def _maybe_plugin_opdef(name, model, parent_opdef=None):
-    for _name, plugin in guild.plugin.iter_plugins():
+    for _name, plugin in pluginlib.iter_plugins():
         opdef = plugin.get_operation(name, model, parent_opdef)
         if opdef:
             return opdef
@@ -258,12 +259,7 @@ def _format_flag_desc(flag, max_flag_len):
         return lines[0]
 
 def _default_label(val):
-    if val is True:
-        return "yes"
-    elif val is False:
-        return "no"
-    else:
-        return repr(val)
+    return op_util.format_arg_value(val)
 
 def _format_flag_choices(choices, max_flag_len):
     out = click.HelpFormatter()
@@ -271,7 +267,8 @@ def _format_flag_choices(choices, max_flag_len):
     out.write_heading("Choices")
     out.indent()
     out.write_dl(
-        [(str(choice.value), "\n\n".join(choice.description.split("\n")))
+        [(op_util.format_arg_value(choice.value),
+          "\n\n".join(choice.description.split("\n")))
          for choice in choices],
         preserve_paragraphs=True)
     return "\n\b\n" + out.getvalue()

@@ -183,12 +183,18 @@ def _parse_arg(arg):
         return parts[0], _parse_arg_val(parts[1])
 
 def _parse_arg_val(s):
-    if s in ("yes", "no"):
-        return s
     try:
         return yaml.safe_load(s)
     except yaml.YAMLError:
         return s
+
+def format_arg_value(v):
+    if v is True:
+        return "yes"
+    elif v is False:
+        return "no"
+    else:
+        return str(v)
 
 class NoCurrentRun(Exception):
     pass
