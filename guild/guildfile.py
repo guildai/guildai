@@ -772,6 +772,7 @@ class FlagDef(object):
         self.required = bool(data.get("required"))
         self.arg_name = data.get("arg-name")
         self.arg_skip = bool(data.get("arg-skip"))
+        self.arg_flag = bool(data.get("arg-flag"))
         self.choices = _init_flag_choices(data.get("choices"), self)
         self.null_label = data.get("null-label")
 

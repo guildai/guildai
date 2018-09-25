@@ -42,10 +42,10 @@ OP_RUNFILE_PATHS = [
     ["org_psutil"],
     ["guild", "external"],
 ]
-
 PROC_TERM_TIMEOUT_SECONDS = 30
-
 SIGTERM_EXIT_STATUS = -15
+
+FLAG = object()
 
 class InvalidMain(ValueError):
     pass
@@ -329,7 +329,11 @@ def _apply_flag_arg(flagdef, value, flag_vals, target, flag_map):
     else:
         arg_name = flagdef.name
     arg_val = util.resolve_refs(value, flag_vals)
-    target[arg_name] = arg_val
+    if flagdef.arg_flag:
+        if arg_val:
+            target[arg_name] = FLAG
+    else:
+        target[arg_name] = arg_val
 
 def _cmd_options(args):
     p = re.compile("--([^=]+)")
@@ -339,10 +343,8 @@ def _cmd_option_args(name, val):
     opt = "--%s" % name
     if val is None:
         return []
-    elif val is True:
-        return [opt, "yes"]
-    elif val is False:
-        return [opt, "no"]
+    elif val is FLAG:
+        return [opt]
     else:
         return [opt, str(val)]
 
