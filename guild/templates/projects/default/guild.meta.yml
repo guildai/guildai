@@ -1,8 +1,0 @@
-description: Basic project skeleton containing one model.
-params:
-  name:
-    description: Model name
-    default: ${DIR_NAME}
-  description:
-    description: Model description
-    default: A basic model.
