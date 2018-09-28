@@ -556,6 +556,11 @@ def _parent_data(name, guildfile, seen):
 
 def _pkg_parent_data(name, guildfile, seen):
     pkg, model_name = name.split("/", 1)
+    if not model_name:
+        raise GuildfileReferenceError(
+            guildfile,
+            "invalid model or config reference '%s': "
+            "missing model name" % name)
     pkg_guildfile_path = _find_pkg_guildfile(pkg)
     if not pkg_guildfile_path:
         raise GuildfileReferenceError(
