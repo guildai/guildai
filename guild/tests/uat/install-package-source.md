@@ -2,4 +2,4 @@
 
 We'll use `git` to clone our package repository.
 
-    >>> quiet("git -C $WORKSPACE clone https://github.com/guildai/packages.git packages")
+    >>> quiet("cd $WORKSPACE && git clone https://github.com/guildai/packages.git packages")
