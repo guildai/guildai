@@ -21,6 +21,7 @@ import logging
 import subprocess
 import sys
 
+import click
 import yaml
 
 from six.moves import shlex_quote as q
@@ -298,9 +299,15 @@ class SSHRemote(remotelib.Remote):
     def _guild_cmd(self, name, args):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
+        cmd_lines.extend(self._set_columns())
         cmd_lines.append("guild %s %s" % (name, " ".join(args)))
         cmd = "; ".join(cmd_lines)
         ssh_util.ssh_cmd(self.host, [cmd], self.user)
+
+    @staticmethod
+    def _set_columns():
+        w, _h = click.get_terminal_size()
+        return ["export COLUMNS=%i" % w]
 
     def delete_runs(self, **opts):
         self._guild_cmd("runs delete", _delete_runs_args(**opts))
