@@ -241,14 +241,10 @@ class SSHRemote(remotelib.Remote):
             raise remotelib.RunFailed(remote_run_dir)
 
     def list_runs(self, verbose=False, **filters):
-        cmd_lines = ["set -e"]
-        cmd_lines.extend(self._env_activate_cmd_lines())
         opts = _list_runs_filter_opts(**filters)
         if verbose:
             opts.append("--verbose")
-        cmd_lines.append("guild runs list %s" % " ".join(opts))
-        cmd = "; ".join(cmd_lines)
-        ssh_util.ssh_cmd(self.host, [cmd], self.user)
+        self._guild_cmd("runs list", opts)
 
     def filtered_runs(self, **filters):
         cmd_lines = ["set -e"]
