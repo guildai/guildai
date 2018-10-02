@@ -32,12 +32,10 @@ def main(args):
     _print_help(help, args)
 
 def _guildfile_desc(gf):
-    try:
-        pkg = gf.package
-    except AttributeError:
+    pkg = gf.package
+    if pkg is None:
         return None
-    else:
-        return "the '%s' package" % pkg.name
+    return "the '%s' package" % pkg.name
 
 def _format_guildfile_help(guildfile, desc, args):
     if args.package_description:
