@@ -263,8 +263,12 @@ class SSHRemote(remotelib.Remote):
     def _env_activate_cmd_lines(self):
         if not self.guild_env:
             return []
+        cwd = self.guild_env
+        if cwd.endswith("/env"):
+            cwd = cwd[:-4]
         return [
             "QUIET=1 source guild-env %s" % self.guild_env,
+            "cd %s" % cwd,
         ]
 
     def one_run(self, run_id_prefix, attrs):
