@@ -403,7 +403,7 @@ def _apply_includes(includes, guildfile_path, section_name,
             break
         seen_includes.add(ref)
         # Have to access guildfile.data here rather than use
-        # guildfile.get because guildfile may is not initialized at
+        # guildfile.get because guildfile may not be initialized at
         # this point.
         include_model, include_op = _split_include_ref(ref, guildfile_path[0])
         include_data = _find_include_data(
