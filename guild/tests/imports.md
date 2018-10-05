@@ -45,6 +45,8 @@
     guild.commands.main_impl
     guild.commands.models
     guild.commands.models_impl
+    guild.commands.open_
+    guild.commands.open_impl
     guild.commands.operations
     guild.commands.operations_impl
     guild.commands.package
