@@ -38,14 +38,15 @@ def main(args, ctx):
 
 def _open(run, args):
     path = os.path.join(run.path, args.path or "")
+    open_f = _open_f(args)
     try:
-        _open_f(path, args)(path)
+        open_f(path)
     except Exception as e:
         if log.getEffectiveLevel() <= logging.DEBUG:
-            log.exception("opening %s" % path)
+            log.exception("opening %s", path)
         cli.error(e)
 
-def _open_f(path, args):
+def _open_f(args):
     if args.cmd:
         return _subproc(args.cmd)
     elif os.name == "nt":
@@ -68,5 +69,4 @@ def _subproc(prog):
 
 def _flush_streams_and_exit():
     sys.stdout.flush()
-    time.sleep(0.1)
     sys.exit(0)
