@@ -950,8 +950,14 @@ def _cache_key(src):
     return os.path.abspath(src)
 
 def _load_guildfile(src, extends_seen):
-    data = yaml.safe_load(open(src, "r"))
-    return Guildfile(data, src, extends_seen=extends_seen)
+    try:
+        data = yaml.safe_load(open(src, "r"))
+    except yaml.YAMLError as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("loading yaml from %s" % src)
+        raise GuildfileError(src, str(e))
+    else:
+        return Guildfile(data, src, extends_seen=extends_seen)
 
 def from_file_or_dir(src):
     try:
