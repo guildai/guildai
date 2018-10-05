@@ -675,13 +675,13 @@ def _resolve_list_param_refs(l, params):
 
 def _resolve_str_param_refs(s, params):
     parts = [part for part in re.split(r"({{.+?}})", s) if part != ""]
-    resolved = [_maybe_resolve_param_ref(part, params) for part in parts]
+    resolved = [_resolve_param_ref(part, params) for part in parts]
     if len(resolved) == 1:
         return resolved[0]
     else:
         return "".join([str(part) for part in resolved])
 
-def _maybe_resolve_param_ref(val, params):
+def _resolve_param_ref(val, params):
     if val.startswith("{{") and val.endswith("}}"):
         ref_name = val[2:-2]
         try:
