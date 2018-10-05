@@ -34,6 +34,7 @@ from .index import index
 from .init import init
 from .install import install
 from .label import label
+from .ls import ls
 from .models import models
 from .open_ import open_
 from .operations import operations
@@ -109,6 +110,7 @@ main.add_command(index)
 main.add_command(init)
 main.add_command(install)
 main.add_command(label)
+main.add_command(ls)
 main.add_command(models)
 main.add_command(open_)
 main.add_command(operations)

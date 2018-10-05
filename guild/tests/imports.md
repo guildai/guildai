@@ -43,6 +43,8 @@
     guild.commands.init_impl
     guild.commands.install
     guild.commands.label
+    guild.commands.ls
+    guild.commands.ls_impl
     guild.commands.main
     guild.commands.main_impl
     guild.commands.models
