@@ -17,9 +17,6 @@ from __future__ import division
 
 import logging
 import os
-import sys
-
-import click
 
 from guild import cli
 
@@ -47,7 +44,7 @@ def _list(path, args):
         for name in (dirs + files):
             full_path = os.path.join(root, name)
             if os.path.isdir(full_path):
-               suffix = os.path.sep
+                suffix = os.path.sep
             else:
                 suffix = ""
             if args.full_path:
@@ -61,7 +58,7 @@ def _rm_walk_dirs(dirs, root, args):
 
 def _maybe_rm_guild_dir(dirs, args):
     if args.all:
-       return
+        return
     try:
         dirs.remove(".guild")
     except ValueError:

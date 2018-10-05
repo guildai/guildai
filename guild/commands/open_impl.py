@@ -19,7 +19,6 @@ import logging
 import os
 import subprocess
 import sys
-import time
 
 from guild import cli
 

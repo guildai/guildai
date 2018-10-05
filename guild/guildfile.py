@@ -525,17 +525,17 @@ def _extended_data(config_data, guildfile, seen=None, resolve_params=True):
     if extends:
         _apply_parents_data(extends, guildfile, seen, data)
     if resolve_params:
-        data = _resolve_param_refs(data, _params(data, guildfile))
+        data = _resolve_param_refs(data, _params(data))
     return data
 
-def _params(data, guildfile):
+def _params(data):
     params = data.get("params") or {}
     return {
-        name: _resolve_param(name, params, guildfile)
+        name: _resolve_param(name, params)
         for name in params
     }
 
-def _resolve_param(name, params, guildfile):
+def _resolve_param(name, params):
     iter_count = 0
     seen = set()
     val = str(params[name])
@@ -977,7 +977,7 @@ def _load_guildfile(src, extends_seen):
         data = yaml.safe_load(open(src, "r"))
     except yaml.YAMLError as e:
         if log.getEffectiveLevel() <= logging.DEBUG:
-            log.exception("loading yaml from %s" % src)
+            log.exception("loading yaml from %s", src)
         raise GuildfileError(src, str(e))
     else:
         return Guildfile(data, src, extends_seen=extends_seen)
