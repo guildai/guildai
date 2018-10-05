@@ -26,10 +26,10 @@ from . import runs_support
 @click.option(
     "-p", "--path",
     metavar="PATH",
-    help="Path to open under run directory")
+    help="Path to open under run directory.")
 @click.option(
     "-c", "--cmd",
-    help="Command used to open run")
+    help="Command used to open run.")
 @runs_support.op_and_label_filters
 @runs_support.status_filters
 

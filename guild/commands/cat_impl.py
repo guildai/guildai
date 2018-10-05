@@ -53,4 +53,4 @@ def _cat(path):
     f = _open_file(path)
     for line in f.readlines():
         sys.stdout.write(line)
-        sys.stdout.flush()
+    sys.stdout.flush()
