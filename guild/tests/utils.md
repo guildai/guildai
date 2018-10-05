@@ -259,6 +259,12 @@ Examples:
     >>> render("a-${b}", {"b": "b"})
     'a-b'
 
+    >>> render("${path|basename}", {"path": "foo/bar.txt"})
+    'bar.txt'
+
+    >>> render("${path|basename}", {})
+    ''
+
 A typical label:
 
     >>> render("${trained-model}-${step|default:latest}", {

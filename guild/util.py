@@ -786,6 +786,8 @@ def _t_default(val, arg):
     return val
 
 def _t_basename(val):
+    if not val:
+        return ""
     return os.path.basename(val)
 
 def _rendered_str(s):
