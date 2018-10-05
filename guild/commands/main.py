@@ -23,6 +23,7 @@ import click
 from guild import version as guild_version
 from guild import click_util
 
+from .cat import cat
 from .check import check
 from .compare import compare
 from .download import download
@@ -97,6 +98,7 @@ def main(args):
     from . import main_impl
     main_impl.main(args)
 
+main.add_command(cat)
 main.add_command(check)
 main.add_command(compare)
 main.add_command(download)

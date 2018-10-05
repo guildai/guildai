@@ -25,6 +25,8 @@
     guild.click_util
     guild.cmd_impl_support
     guild.commands.__init__
+    guild.commands.cat
+    guild.commands.cat_impl
     guild.commands.check
     guild.commands.check_impl
     guild.commands.compare
