@@ -39,8 +39,8 @@ def main(args, ctx):
 
 
 def _list(path, args):
-    for root, dirs, files in os.walk(path):
-        _rm_walk_dirs(dirs, root, args)
+    for root, dirs, files in os.walk(path, followlinks=args.follow_links):
+        _maybe_rm_guild_dir(dirs, args)
         for name in (dirs + files):
             full_path = os.path.join(root, name)
             if os.path.isdir(full_path):
@@ -52,10 +52,6 @@ def _list(path, args):
             else:
                 yield os.path.relpath(full_path, path) + suffix
 
-def _rm_walk_dirs(dirs, root, args):
-    _maybe_rm_guild_dir(dirs, args)
-    _maybe_rm_dir_links(dirs, root, args)
-
 def _maybe_rm_guild_dir(dirs, args):
     if args.all:
         return
@@ -63,11 +59,3 @@ def _maybe_rm_guild_dir(dirs, args):
         dirs.remove(".guild")
     except ValueError:
         pass
-
-def _maybe_rm_dir_links(dirs, root, args):
-    if args.follow_links:
-        return
-    for name in list(dirs):
-        path = os.path.join(root, name)
-        if os.path.islink(path):
-            dirs.remove(name)
