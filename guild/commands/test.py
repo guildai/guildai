@@ -41,10 +41,18 @@ from guild import click_util
     help=(
         "Only test tests operation NAME. May be used multiple times. "
         "Use with `--model` to limit operation to specific models."))
-
 @click.option(
     "-s", "--stop-on-fail", is_flag=True,
     help="Stop testing after the first failed test.")
+@click.option(
+    "--gpus", metavar="DEVICES",
+    help=("Limit availabe GPUs to DEVICES, a comma separated list of "
+          "device IDs. By default all GPUs are available. Cannot be"
+          "used with --no-gpus."))
+@click.option(
+    "--no-gpus", is_flag=True,
+    help="Disable GPUs for tests. Cannot be used with --gpu.")
+
 @click.option(
     "-y", "--yes", is_flag=True,
     help="Do not prompt before running tests.")

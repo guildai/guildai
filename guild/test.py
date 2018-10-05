@@ -38,9 +38,10 @@ class Failed(TestError):
 
 class TestConfig(object):
 
-    def __init__(self, models=None, operations=None):
+    def __init__(self, models=None, operations=None, gpus=None):
         self.models = models or ()
         self.operations = operations or ()
+        self.gpus = gpus
 
     def op_matches_models(self, opspec):
         opref = opreflib.OpRef.from_string(opspec)
@@ -85,7 +86,6 @@ class _RunOp(object):
     def __init__(self, config, test):
         self.guildfile = test.guildfile
         self.op_name = config[self.type_attr]
-        self.no_gpus = config.get("no-gpus", False)
         self.disable_plugins = config.get("disable-plugins")
         self.flag_vals = config.get("flags") or {}
         self.expect = [
@@ -97,7 +97,7 @@ class _RunOp(object):
         if not config.op_matches_models(op_spec):
             log.info("Skipping operation %s", op_spec)
             return
-        self._run_op(op_spec)
+        self._run_op(op_spec, config.gpus)
         self._check_expected()
 
     def _op_spec(self, model):
@@ -106,13 +106,15 @@ class _RunOp(object):
         else:
             return self.op_name
 
-    def _run_op(self, op_spec):
+    def _run_op(self, op_spec, gpus):
         _status("Running operation %s" % op_spec)
-        _call(self._run_cmd(op_spec), cwd=self.guildfile.dir)
+        _call(self._run_cmd(op_spec, gpus), cwd=self.guildfile.dir)
 
-    def _run_cmd(self, op_name):
+    def _run_cmd(self, op_name, gpus):
         cmd = ["guild", "run", "-y", op_name]
-        if self.no_gpus:
+        if gpus:
+            cmd.extend(["--gpus", gpus])
+        elif gpus == "":
             cmd.append("--no-gpus")
         if self.disable_plugins:
             cmd.extend(["--disable-plugins", self.disable_plugins])

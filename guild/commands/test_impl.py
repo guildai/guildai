@@ -24,38 +24,9 @@ def main(args):
     tests = [_gf_test(name, gf) for name in _test_names(gf, args)]
     if not tests:
         _no_tests_error(gf)
+    gpus = _test_gpus(args)
     if args.yes or _confirm_tests(tests):
-        _run_tests(tests, args)
-
-def _confirm_tests(tests):
-    cli.out("You are about to run the following tests:")
-    test_data = [
-        dict(name=t.name, desc=_line1(t.description))
-        for t in tests
-    ]
-    cli.table(test_data, ["name", "desc"], indent=2)
-    return cli.confirm("Continue?", default=True)
-
-def _line1(s):
-    return s.split("\n")[0]
-
-def _run_tests(tests, args):
-    failed = False
-    config = testlib.TestConfig(
-        models=args.model,
-        operations=args.operation)
-    for test in tests:
-        try:
-            testlib.run_guildfile_test(test, config)
-        except testlib.TestError as e:
-            _test_failed_msg(test, e)
-            failed = True
-            if args.stop_on_fail:
-                break
-    if failed:
-        _some_tests_failed_msg()
-        cli.error()
-    cli.out(cli.style("All tests passed", bold=True))
+        _run_tests(tests, gpus, args)
 
 def _test_names(gf, args):
     return args.tests or [t.name for t in gf.tests]
@@ -69,6 +40,47 @@ def _gf_test(name, gf):
 def _no_tests_error(gf):
     cli.out("There are no tests defined in %s" % gf.src, err=True)
     cli.error(exit_status=2)
+
+def _test_gpus(args):
+    if args.no_gpus and args.gpus:
+        cli.error("--gpus and --no-gpus cannot both be used")
+    if args.no_gpus:
+        return ""
+    elif args.gpus:
+        return args.gpus
+    else:
+        return None # use all available (default)
+
+def _confirm_tests(tests):
+    cli.out("You are about to run the following tests:")
+    test_data = [
+        dict(name=t.name, desc=_line1(t.description))
+        for t in tests
+    ]
+    cli.table(test_data, ["name", "desc"], indent=2)
+    return cli.confirm("Continue?", default=True)
+
+def _line1(s):
+    return s.split("\n")[0]
+
+def _run_tests(tests, gpus, args):
+    failed = False
+    config = testlib.TestConfig(
+        models=args.model,
+        operations=args.operation,
+        gpus=gpus)
+    for test in tests:
+        try:
+            testlib.run_guildfile_test(test, config)
+        except testlib.TestError as e:
+            _test_failed_msg(test, e)
+            failed = True
+            if args.stop_on_fail:
+                break
+    if failed:
+        _some_tests_failed_msg()
+        cli.error()
+    cli.out(cli.style("All tests passed", bold=True))
 
 def _test_failed_msg(test, e):
     msg = "Test %s failed: %s" % (test.name, e)
