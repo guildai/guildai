@@ -525,8 +525,31 @@ def _extended_data(config_data, guildfile, seen=None, resolve_params=True):
     if extends:
         _apply_parents_data(extends, guildfile, seen, data)
     if resolve_params:
-        data = _resolve_param_refs(data, data.get("params") or {})
+        data = _resolve_param_refs(data, _params(data, guildfile))
     return data
+
+def _params(data, guildfile):
+    params = data.get("params") or {}
+    return {
+        name: _resolve_param(name, params, guildfile)
+        for name in params
+    }
+
+def _resolve_param(name, params, guildfile):
+    iter_count = 0
+    seen = set()
+    val = str(params[name])
+    seen.add(val)
+    # Resolve val until we get a value that we've already seen (either
+    # fully resolved or a cycle). Use iter counter to guard against
+    # non-terminating loops.
+    while iter_count < 100:
+        val = _resolve_str_param_refs(val, params)
+        if val in seen:
+            return val
+        seen.add(val)
+        iter_count += 1
+    assert False, (name, params)
 
 def _apply_parents_data(extends, guildfile, seen, data):
     for name in extends:
