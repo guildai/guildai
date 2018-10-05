@@ -1051,6 +1051,44 @@ Here's an example of a parent that provides default param values.
     >>> gf.models["cnn"].description
     'A v2 CNN classifier'
 
+Parameters can include references to other parameters.
+
+    >>> gf = guildfile.from_string("""
+    ... - config: c1
+    ...   params:
+    ...     p1: 1
+    ... - config: c2
+    ...   extends: c1
+    ...   params:
+    ...     p2: '{{p1}} 2'
+    ... - model: m
+    ...   extends: c2
+    ...   params:
+    ...     p3: '{{p2}} 3'
+    ...   description: Model {{p3}}
+    ... """)
+
+    >>> gf.models["m"].description
+    'Model 1 2 3'
+
+Here's a param ref cycle:
+
+    >>> gf = guildfile.from_string("""
+    ... - config: c1
+    ...   params:
+    ...     p1: '{{p2}}'
+    ... - config: c2
+    ...   extends: c1
+    ...   params:
+    ...     p2: '{{p1}}'
+    ... - model: m
+    ...   extends: c2
+    ...   description: Model {{p2}}
+    ... """)
+
+    >>> gf.models["m"].description
+    'Model {{p1}}'
+
 ## Projects
 
 In addition to containing resources, Guildfiles may contain at most
