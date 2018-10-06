@@ -33,10 +33,9 @@ def main(args, ctx):
     path = run.path
     if args.path:
         path = os.path.join(path, args.path)
-    cli.out("%s:" % path)
+    _print_header(path, args)
     for val in sorted(_list(path, args)):
-        cli.out("  %s" % val)
-
+        _print_file(val, args)
 
 def _list(path, args):
     for root, dirs, files in os.walk(path, followlinks=args.follow_links):
@@ -59,3 +58,13 @@ def _maybe_rm_guild_dir(dirs, args):
         dirs.remove(".guild")
     except ValueError:
         pass
+
+def _print_header(path, args):
+    if not args.no_format:
+        cli.out("%s:" % path)
+
+def _print_file(path, args):
+    if args.no_format:
+        cli.out(path)
+    else:
+        cli.out("%s:" % path)

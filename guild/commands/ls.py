@@ -39,6 +39,10 @@ from . import runs_support
     "-a", "--all",
     is_flag=True,
     help="Show all files including Guild files.")
+@click.option(
+    "-n", "--no-format",
+    is_flag=True,
+    help="Show files without additional formatting.")
 @runs_support.op_and_label_filters
 @runs_support.status_filters
 
