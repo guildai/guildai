@@ -126,12 +126,33 @@ def _try_resolve_package_path(package_path):
     return package_path
 
 def _find_module(module):
+    """Find module using imp.find_module.
+
+    While imp is deprecated, it provides a Python 2/3 compatible
+    interface for finding a module. We use the result later to load
+    the module with imp.load_module with the '__main__' name, causing
+    it to execute.
+
+    The non-deprecated method of using importlib.util.find_spec and
+    loader.execute_module is not supported in Python 2.
+
+    The _find_module implementation uses a novel approach to bypass
+    imp.find_module's requirement that package directories contain
+    __init__.py/__init__.pyc markers. This lets users specify
+    namespace packages in main modules, which are not otherwise
+    supported by imp.find_module.
+    """
     parts = module.split(".")
-    path = sys.path
-    for part in parts:
-        info = imp.find_module(part, path)
-        path = [info[1]]
-    return info
+    module_path = parts[0:-1]
+    module_name_part = parts[-1]
+    # See function docstring for the rationale of this algorithm.
+    for sys_path_item in sys.path:
+        cur_path = os.path.join(sys_path_item, *module_path)
+        try:
+            return imp.find_module(module_name_part, [cur_path])
+        except ImportError:
+            pass
+    raise ImportError("No module named %s" % module)
 
 def _set_argv_for_module(module_info, args):
     _, path, _ = module_info
@@ -180,8 +201,7 @@ class Debugger(pdb.Pdb):
         return module_name != "__main__"
 
 def _error(msg):
-    sys.stderr.write(msg)
-    sys.stderr.write("\n")
+    sys.stderr.write("guild: %s\n" % msg)
     sys.exit(1)
 
 if __name__ == "__main__":
