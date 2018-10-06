@@ -605,10 +605,7 @@ def _modeldef_data(name, guildfile):
     return None
 
 def _find_pkg_guildfile(pkg):
-    return util.find_apply([_sys_path_guildfile, _gpkg_guildfile], pkg)
-
-def _sys_path_guildfile(pkg):
-    pkg_path = pkg.replace(".", os.path.sep)
+    pkg_path = pkg.replace("-", "_").replace(".", os.path.sep)
     for path in sys.path:
         log.debug("looking for pkg '%s' in %s", pkg, path)
         for name in NAMES:
@@ -617,9 +614,6 @@ def _sys_path_guildfile(pkg):
                 log.debug("found pkg Guild file %s", guildfile)
                 return guildfile
     return None
-
-def _gpkg_guildfile(pkg):
-    return _sys_path_guildfile("gpkg." + pkg)
 
 def _guildfile_parent_data(name, guildfile, seen):
     parent_data = _modeldef_data(name, guildfile)
