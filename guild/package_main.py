@@ -118,8 +118,10 @@ def _dist_dir_args():
 def _setup_kw(pkg):
     project_dir = os.path.dirname(pkg.guildfile.src)
     desc, long_desc = _pkg_description(pkg)
+    project_name = pkg.name
+    python_pkg_name = _python_pkg_name(pkg)
     return dict(
-        name=pkg.name,
+        name=project_name,
         version=pkg.version,
         description=desc,
         long_description=long_desc,
@@ -130,11 +132,11 @@ def _setup_kw(pkg):
         keywords=" ".join(pkg.tags),
         python_requires=_pkg_python_requires(pkg),
         install_requires=_pkg_install_requires(pkg),
-        packages=[pkg.name],
-        package_dir={pkg.name: project_dir},
-        namespace_packages=_namespace_packages(pkg),
+        packages=[python_pkg_name],
+        package_dir={python_pkg_name: project_dir},
+        namespace_packages=_namespace_packages(python_pkg_name),
         package_data={
-            pkg.name: _package_data(pkg)
+            python_pkg_name: _package_data(pkg)
         },
         entry_points=_entry_points(pkg),
     )
@@ -156,8 +158,11 @@ def _pkg_description(pkg):
     long_desc += "\n\n" + pkg_desc
     return desc, long_desc
 
-def _namespace_packages(pkg):
-    parts = pkg.name.rsplit(".", 1)
+def _python_pkg_name(pkg):
+    return pkg.name.replace("-", "_")
+
+def _namespace_packages(python_pkg_name):
+    parts = python_pkg_name.rsplit(".", 1)
     if len(parts) == 1:
         return []
     else:
