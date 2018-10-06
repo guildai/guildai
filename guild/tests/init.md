@@ -71,7 +71,7 @@ using a `--path` option.
     [('Location', '.../samples/projects/init-env/env'),
      ('Name', 'env'),
      ('Python version', 'default'),
-     ('Guild version', 'from source (...)'),
+     ('Guild version', '...'),
      ('Guild package requirements',
       ('Pillow',
        'lxml',
