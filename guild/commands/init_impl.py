@@ -312,7 +312,7 @@ def _guild_reqs_file():
     path = os.path.join(guild_parent, "requirements.txt")
     try:
         f = open(path, "r")
-    except OSError:
+    except (IOError, OSError):
         pass
     else:
         with f:
