@@ -83,9 +83,9 @@ def _parse_args():
     return sys.argv[1], sys.argv[2:]
 
 def _apply_plugins():
-    env = os.getenv("GUILD_PLUGINS")
-    if env:
-        for name in env.split(","):
+    plugins = os.getenv("GUILD_PLUGINS")
+    if plugins:
+        for name in plugins.split(","):
             _apply_plugin(name)
 
 def _apply_plugin(name):
