@@ -475,9 +475,9 @@ Here are values for an empty op:
     SET_TRACE: None
     HANDLE_KEYBOARD_INTERRUPT: None
 
-`PYTHONPATH` can only be appended to using `path`.
+`PYTHONPATH` can be prepended to using `python-path`.
 
-    >>> opdef_env({"path": "foo"}, ["PYTHONPATH"])
+    >>> opdef_env({"python-path": "foo"}, ["PYTHONPATH"])
     PYTHONPATH: <cwd>/sample/foo:...
 
 Additional env may be provided using `env`:

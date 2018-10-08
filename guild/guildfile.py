@@ -320,8 +320,8 @@ def _coerce_operation(data, guildfile):
 def _coerce_operation_attr(name, val, guildfile):
     if name == "flags":
         return _coerce_flags(val, guildfile)
-    elif name == "path":
-        return _coerce_op_path(val, guildfile)
+    elif name == "python-path":
+        return _coerce_op_python_path(val, guildfile)
     else:
         return val
 
@@ -345,10 +345,10 @@ def _coerce_flag(name, data, guildfile):
     else:
         raise GuildfileError(guildfile, "invalid flag value: %r" % data)
 
-def _coerce_op_path(data, guildfile):
+def _coerce_op_python_path(data, guildfile):
     if data is None:
         return None
-    return _coerce_string_to_list(data, guildfile, "path")
+    return _coerce_string_to_list(data, guildfile, "python-path")
 
 def _coerce_string_to_list(data, guildfile, name):
     if isinstance(data, six.string_types):
@@ -727,7 +727,7 @@ class OpDef(object):
         self.name = name
         self.description = (data.get("description") or "").strip()
         self.main = data.get("main")
-        self.path = data.get("path")
+        self.python_path = data.get("python-path")
         self.env = data.get("env") or {}
         self.plugin_op = data.get("plugin-op")
         self.disabled_plugins = data.get("disabled-plugins") or []

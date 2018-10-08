@@ -9,6 +9,7 @@ cpu = guild.plugins.cpu:CPUPlugin
 disk = guild.plugins.disk:DiskPlugin
 gpu = guild.plugins.gpu:GPUPlugin
 keras = guild.plugins.keras:KerasPlugin
+matplotlib = guild.plugins.matplotlib:MatplotlibPlugin
 memory = guild.plugins.memory:MemoryPlugin
 perf = guild.plugins.perf:PerfPlugin
 

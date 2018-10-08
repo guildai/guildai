@@ -425,8 +425,8 @@ def _opdef_paths(opdef):
     if not opdef.guildfile.dir:
         return []
     abs_gf_dir = os.path.abspath(opdef.guildfile.dir)
-    if opdef.path is not None:
-        return [os.path.join(abs_gf_dir, p) for p in opdef.path]
+    if opdef.python_path is not None:
+        return [os.path.join(abs_gf_dir, p) for p in opdef.python_path]
     return [abs_gf_dir]
 
 def _model_parent_paths(modeldef):
