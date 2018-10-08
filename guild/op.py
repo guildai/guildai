@@ -419,12 +419,18 @@ def _env_paths():
     return env.split(os.path.pathsep) if env else []
 
 def _model_paths(opdef):
-    paths = []
-    if opdef.guildfile.dir:
-        paths.append(os.path.abspath(opdef.guildfile.dir))
-    for parent in opdef.modeldef.parents:
-        paths.append(os.path.abspath(parent.dir))
-    return paths
+    return _opdef_paths(opdef) + _model_parent_paths(opdef.modeldef)
+
+def _opdef_paths(opdef):
+    if not opdef.guildfile.dir:
+        return []
+    abs_gf_dir = os.path.abspath(opdef.guildfile.dir)
+    if opdef.path is not None:
+        return [os.path.join(abs_gf_dir, p) for p in opdef.path]
+    return [abs_gf_dir]
+
+def _model_parent_paths(modeldef):
+    return [os.path.abspath(parent.dir) for parent in modeldef.parents]
 
 def _guild_paths():
     guild_path = os.path.dirname(os.path.dirname(__file__))

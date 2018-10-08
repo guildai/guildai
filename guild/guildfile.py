@@ -293,21 +293,11 @@ def _coerce_top_level_attr(name, val, guildfile):
     else:
         return val
 
-def _coerce_include(val, guildfile):
-    if isinstance(val, six.string_types):
-        return [val]
-    elif isinstance(val, list):
-        return val
-    else:
-        raise GuildfileError(guildfile, "invalid include value: %r" % val)
+def _coerce_include(data, guildfile):
+    return _coerce_string_to_list(data, guildfile, "include")
 
 def _coerce_extends(data, guildfile):
-    if isinstance(data, six.string_types):
-        return [data]
-    elif isinstance(data, list):
-        return data
-    else:
-        raise GuildfileError(guildfile, "invalid extends value: %r" % data)
+    return _coerce_string_to_list(data, guildfile, "extends")
 
 def _coerce_operations(data, guildfile):
     if not isinstance(data, dict):
@@ -330,6 +320,8 @@ def _coerce_operation(data, guildfile):
 def _coerce_operation_attr(name, val, guildfile):
     if name == "flags":
         return _coerce_flags(val, guildfile)
+    elif name == "path":
+        return _coerce_op_path(val, guildfile)
     else:
         return val
 
@@ -352,6 +344,21 @@ def _coerce_flag(name, data, guildfile):
         return {"default": None}
     else:
         raise GuildfileError(guildfile, "invalid flag value: %r" % data)
+
+def _coerce_op_path(data, guildfile):
+    if data is None:
+        return None
+    return _coerce_string_to_list(data, guildfile, "path")
+
+def _coerce_string_to_list(data, guildfile, name):
+    if isinstance(data, six.string_types):
+        return [data]
+    elif isinstance(data, list):
+        return data
+    else:
+        raise GuildfileError(
+            guildfile,
+            "invalid %s value: %r" % (name, data))
 
 ###################################################################
 # Include attribute support
@@ -388,12 +395,7 @@ def _apply_section_data(data, guildfile_path, section_name,
                 resolved)
 
 def _coerce_includes(val, src):
-    if isinstance(val, six.string_types):
-        return [val]
-    elif isinstance(val, list):
-        return val
-    else:
-        raise GuildfileError(src, "invalid $include value: %r" % val)
+    return _coerce_string_to_list(val, src, "$include")
 
 def _apply_includes(includes, guildfile_path, section_name,
                     seen_includes, resolved):
@@ -725,7 +727,8 @@ class OpDef(object):
         self.name = name
         self.description = (data.get("description") or "").strip()
         self.main = data.get("main")
-        self.env = data.get("env", {})
+        self.path = data.get("path")
+        self.env = data.get("env") or {}
         self.plugin_op = data.get("plugin-op")
         self.disabled_plugins = data.get("disabled-plugins") or []
         self.dependencies = _init_dependencies(data.get("requires"), self)

@@ -9,18 +9,20 @@ For our tests, we'll use a helper function that returns an instance of
 
     >>> from guild import guildfile
 
-    >>> def OpDef(main, name="op"):
+    >>> def OpDef(main, name="op", extra_data=None, gf_src=None):
+    ...   op_data = {
+    ...     "main": main
+    ...   }
+    ...   op_data.update(extra_data or {})
     ...   data = [
     ...     {
     ...       "model": "model",
     ...       "operations": {
-    ...         name: {
-    ...           "main": main
-    ...         }
+    ...         name: op_data
     ...       }
     ...     }
     ...   ]
-    ...   gf = guildfile.Guildfile(data, "<string>")
+    ...   gf = guildfile.Guildfile(data, gf_src or "<string>")
     ...   return gf.models["model"].get_operation(name)
 
 We'll also create a helper function that returns and instance of
@@ -424,3 +426,71 @@ Let's confirm that our run directory contains the expected files:
 
     >>> cat(join_path(run_dir, "abcxyz"))
     ABCXYZ
+
+### Op command env
+
+Operations configure the process environment with various values. The
+env init behavior is implemented by `op._init_cmd_env`.
+
+Here's a function that prints the various values set by
+`_init_cmd_env`. It uses `OpDef` above, which is named 'op' and
+defined in a model named 'model'.
+
+    >>> def opdef_env(data, to_print=None):
+    ...   import os
+    ...   from guild.op import _init_cmd_env
+    ...   opdef = OpDef("test", extra_data=data, gf_src="sample/guild.yml")
+    ...   env = _init_cmd_env(opdef, None)
+    ...   to_print = to_print or (
+    ...     "GUILD_HOME",
+    ...     "GUILD_OP",
+    ...     "GUILD_PLUGINS",
+    ...     "LOG_LEVEL",
+    ...     "PYTHONPATH",
+    ...     "SCRIPT_DIR",
+    ...     "CMD_DIR",
+    ...     "MODEL_DIR",
+    ...     "MODEL_PATH",
+    ...     "SET_TRACE",
+    ...     "HANDLE_KEYBOARD_INTERRUPT",
+    ...   )
+    ...   for name in to_print:
+    ...     val = env.get(name)
+    ...     if val is not None:
+    ...       val = val.replace(os.getcwd(), "<cwd>")
+    ...     print("%s: %s" % (name, val))
+
+Here are values for an empty op:
+
+    >>> opdef_env({})
+    GUILD_HOME: ...
+    GUILD_OP: model:op
+    GUILD_PLUGINS: cpu,disk,gpu,memory,perf
+    LOG_LEVEL: 20
+    PYTHONPATH: <cwd>/sample:...
+    SCRIPT_DIR:
+    CMD_DIR: <cwd>
+    MODEL_DIR: sample
+    MODEL_PATH: <cwd>/sample
+    SET_TRACE: None
+    HANDLE_KEYBOARD_INTERRUPT: None
+
+`PYTHONPATH` can only be appended to using `path`.
+
+    >>> opdef_env({"path": "foo"}, ["PYTHONPATH"])
+    PYTHONPATH: <cwd>/sample/foo:...
+
+Additional env may be provided using `env`:
+
+    >>> opdef_env({"env": {"foo": "FOO", "bar": "BAR"}}, ["foo", "bar"])
+    foo: FOO
+    bar: BAR
+
+`set_trace` and `handle_keyboard_interrupt`:
+
+    >>> opdef_env(
+    ...   {"set-trace": True,
+    ...    "handle-keyboard-interrupt": True},
+    ...   ["SET_TRACE", "HANDLE_KEYBOARD_INTERRUPT"])
+    SET_TRACE: 1
+    HANDLE_KEYBOARD_INTERRUPT: 1
