@@ -55,6 +55,7 @@ SCALAR_KEYS = [
         "model/cross_entropy_1_step",
         "model/total_loss_1_step",
         "OptimizeLoss_step",
+        "epoch_loss_step",
     )),
     ("loss", (
         "loss",
@@ -69,6 +70,7 @@ SCALAR_KEYS = [
         "model/cross_entropy_1",
         "model/total_loss_1",
         "OptimizeLoss",
+        "epoch_loss",
     )),
     ("val_acc", (
         "val_acc",
@@ -77,6 +79,7 @@ SCALAR_KEYS = [
         "logs/validation/accuracy_1",
         "eval/accuracy",
         "eval/Accuracy",
+        "epoch_acc",
     ))
 ]
 
