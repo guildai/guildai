@@ -623,10 +623,9 @@ def _format_flag(name, val, opdef):
 def _null_label(name, opdef):
     flagdef = opdef.get_flagdef(name)
     if flagdef:
-        label = flagdef.null_label or "default"
+        return flagdef.null_label or "default"
     else:
-        label = "default"
-    return "(%s)" % label
+        return "default"
 
 def _format_op_resources(resources):
     if not resources:
