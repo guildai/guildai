@@ -82,14 +82,14 @@ We'll create a helper function to get the args:
     >>> class FlagDefProxy(object):
     ...
     ...   def __init__(self, name, choices=None, arg_name=None,
-    ...                arg_skip=False, arg_value=None):
+    ...                arg_skip=False, arg_switch=None):
     ...     self.name = name
     ...     self.choices = [
     ...       ChoiceProxy(**choice) for choice in (choices or [])
     ...     ]
     ...     self.arg_name = arg_name
     ...     self.arg_skip = arg_skip
-    ...     self.arg_value = arg_value
+    ...     self.arg_switch = arg_switch
 
     >>> class ChoiceProxy(object):
     ...
@@ -119,7 +119,7 @@ We'll create a helper function to get the args:
     ...     if isinstance(flag, dict):
     ...       flagdef_args = {
     ...         name: flag[name] for name in flag
-    ...         if name in ("choices", "arg_name", "arg_skip", "arg_value")
+    ...         if name in ("choices", "arg_name", "arg_skip", "arg_switch")
     ...       }
     ...       return FlagDefProxy(name, **flagdef_args)
     ...     else:
@@ -165,47 +165,56 @@ representation:
     >>> flag_args({"test": False, "batch-size": 50})
     ['--batch-size', '50', '--test', 'False']
 
-### Flag arg values
+### Flag arg switches
 
-A flag may specify an arg value, which will be used to determine if
-the flag option is used as an argument. If used, the argument will not
-have a value as the value is implied.
+A flag may specify an arg switch, which will be used to determine if
+the flag option is used as an option switch--i.e. an option without a
+value.
 
 Here's a case where arg value is set to True and the corresponding
 value is also True.
 
-    >>> flag_args({"legacy": {"value": True, "arg_value": True}})
+    >>> flag_args({"legacy": {"value": True, "arg_switch": True}})
     ['--legacy']
 
 If the flag value is different from a non-None arg value, it won't
 appear in the arg list.
 
-    >>> flag_args({"legacy": {"value": False, "arg_value": True}})
+    >>> flag_args({"legacy": {"value": False, "arg_switch": True}})
     []
 
 Here we'll switch the logic and use an arg value of False:
 
-    >>> flag_args({"not-legacy": {"value": False, "arg_value": False}})
+    >>> flag_args({"not-legacy": {"value": False, "arg_switch": False}})
     ['--not-legacy']
 
-    >>> flag_args({"not-legacy": {"value": True, "arg_value": False}})
+    >>> flag_args({"not-legacy": {"value": True, "arg_switch": False}})
     []
 
 When arg value is None, an arg value is passed through:
 
-    >>> flag_args({"not-legacy": {"value": True, "arg_value": None}})
+    >>> flag_args({"not-legacy": {"value": True, "arg_switch": None}})
     ['--not-legacy', 'True']
 
 Values are compared using Python's `==` operator. In some cases this
 might lead to a surprising result. Here we'll compare 1 and True:
 
-    >>> flag_args({"legacy": {"value": 1, "arg_value": True}})
+    >>> flag_args({"legacy": {"value": 1, "arg_switch": True}})
     ['--legacy']
 
 But "1" is not equal to True:
 
-    >>> flag_args({"legacy": {"value": "1", "arg_value": True}})
+    >>> flag_args({"legacy": {"value": "1", "arg_switch": True}})
     []
+
+Here are cases using string values:
+
+    >>> flag_args({"legacy": {"value": "yes", "arg_switch": "yes"}})
+    ['--legacy']
+
+    >>> flag_args({"no-legacy": {"value": "no", "arg_switch": "no"}})
+    ['--no-legacy']
+
 
 ### Using a different argument name
 

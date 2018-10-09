@@ -329,8 +329,8 @@ def _apply_flag_arg(flagdef, value, flag_vals, target, flag_map):
     else:
         arg_name = flagdef.name
     arg_val = util.resolve_refs(value, flag_vals)
-    if flagdef.arg_value is not None:
-        if arg_val == flagdef.arg_value:
+    if flagdef.arg_switch is not None:
+        if arg_val == flagdef.arg_switch:
             target[arg_name] = NO_ARG_VALUE
     else:
         target[arg_name] = arg_val
