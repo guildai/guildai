@@ -115,7 +115,7 @@ class Operation(object):
             opdef=self.opdef,
             resource_config=self.resource_config)
         resolved = deps.resolve(self.opdef.dependencies, ctx)
-        self._run.write_attr("deps", resolved)
+        self._run.write_attr("deps", _sort_resolved(resolved))
         self._maybe_write_label(resolved)
 
     def _maybe_write_label(self, resolved):
@@ -516,3 +516,8 @@ def _run_id_label(path):
 
 def _file_label(path):
     return os.path.basename(path)
+
+def _sort_resolved(resolved):
+    return {
+        name: sorted(files) for name, files in resolved.items()
+    }
