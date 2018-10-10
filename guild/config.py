@@ -123,13 +123,14 @@ class _Config(object):
 
 def _apply_config_inherits(data, src):
     for name, section in data.items():
-        if name != "config":
+        if name != "config" and isinstance(section, dict):
             _apply_section_inherits(section, data, src)
     data.pop("config", None)
 
 def _apply_section_inherits(section, data, src):
     for _name, item in sorted(section.items()):
-        _apply_section_item_inherits(item, section, data, src)
+        if isinstance(item, dict):
+            _apply_section_item_inherits(item, section, data, src)
 
 def _apply_section_item_inherits(item, section, data, src):
     try:
