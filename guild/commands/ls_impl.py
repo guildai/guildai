@@ -67,4 +67,4 @@ def _print_file(path, args):
     if args.no_format:
         cli.out(path)
     else:
-        cli.out("%s" % path)
+        cli.out("  %s" % path)
