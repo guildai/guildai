@@ -161,8 +161,8 @@ class Run(object):
         encoded = yaml.safe_dump(
             val,
             default_flow_style=False,
-            indent=2).strip()
-        if encoded.endswith("\n..."):
+            indent=2)
+        if encoded.endswith("\n...\n"):
             encoded = encoded[:-4]
         return encoded
 
