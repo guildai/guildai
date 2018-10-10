@@ -26,6 +26,7 @@ from guild import click_util
 from .cat import cat
 from .check import check
 from .compare import compare
+from .diff import diff
 from .download import download
 from .export import export
 from .help import help
@@ -102,6 +103,7 @@ def main(args):
 main.add_command(cat)
 main.add_command(check)
 main.add_command(compare)
+main.add_command(diff)
 main.add_command(download)
 main.add_command(export)
 main.add_command(help)
