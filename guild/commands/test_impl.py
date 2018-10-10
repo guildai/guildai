@@ -25,7 +25,7 @@ def main(args):
     if not tests:
         _no_tests_error(gf)
     gpus = _test_gpus(args)
-    if args.yes or _confirm_tests(tests):
+    if args.yes or _confirm_tests(tests, args):
         _run_tests(tests, gpus, args)
 
 def _test_names(gf, args):
@@ -51,7 +51,11 @@ def _test_gpus(args):
     else:
         return None # use all available (default)
 
-def _confirm_tests(tests):
+def _confirm_tests(tests, args):
+    if args.one_model:
+        cli.note(
+            "NOTE: Only the first model in for-each-model steps "
+            "will be tested.")
     cli.out("You are about to run the following tests:")
     test_data = [
         dict(name=t.name, desc=_line1(t.description))
@@ -65,9 +69,10 @@ def _line1(s):
 
 def _run_tests(tests, gpus, args):
     failed = False
-    config = testlib.TestConfig(
+    config = testlib.RunConfig(
         models=args.model,
         operations=args.operation,
+        one_model=args.one_model,
         gpus=gpus)
     for test in tests:
         try:

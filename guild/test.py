@@ -36,11 +36,13 @@ class TestError(Exception):
 class Failed(TestError):
     pass
 
-class TestConfig(object):
+class RunConfig(object):
 
-    def __init__(self, models=None, operations=None, gpus=None):
+    def __init__(self, models=None, operations=None,
+                 one_model=False, gpus=None):
         self.models = models or ()
         self.operations = operations or ()
+        self.one_model = one_model
         self.gpus = gpus
 
     def op_matches_models(self, opspec):
@@ -69,11 +71,11 @@ class _CompareHelp(object):
 
     type_attr = "compare-help"
 
-    def __init__(self, config, test):
-        self.compare_to = _test_path(test, config[self.type_attr])
+    def __init__(self, step_config, test):
+        self.compare_to = _test_path(test, step_config[self.type_attr])
         self.guildfile_src = test.guildfile.src
 
-    def run(self, _config):
+    def run(self, _run_config):
         _status("Checking help in %s" % os.path.relpath(self.guildfile_src))
         help_out = _output(["guild", "help", self.guildfile_src])
         expected = _read(self.compare_to)
@@ -83,21 +85,21 @@ class _RunOp(object):
 
     type_attr = "run-op"
 
-    def __init__(self, config, test):
+    def __init__(self, step_config, test):
         self.guildfile = test.guildfile
-        self.op_name = config[self.type_attr]
-        self.disable_plugins = config.get("disable-plugins")
-        self.flag_vals = config.get("flags") or {}
+        self.op_name = step_config[self.type_attr]
+        self.disable_plugins = step_config.get("disable-plugins")
+        self.flag_vals = step_config.get("flags") or {}
         self.expect = [
             _resolve_op_expect(expect, test)
-            for expect in (config.get("expect") or [])]
+            for expect in (step_config.get("expect") or [])]
 
-    def run(self, config, model=None):
+    def run(self, run_config, model=None):
         op_spec = self._op_spec(model)
-        if not config.op_matches_models(op_spec):
+        if not run_config.op_matches_models(op_spec):
             log.info("Skipping operation %s", op_spec)
             return
-        self._run_op(op_spec, config.gpus)
+        self._run_op(op_spec, run_config.gpus)
         self._check_expected()
 
     def _op_spec(self, model):
@@ -134,33 +136,35 @@ class _ForEachModel(object):
 
     type_attr = "for-each-model"
 
-    def __init__(self, config, test):
-        self.models = self._init_models(config, test)
+    def __init__(self, step_config, test):
+        self.models = self._init_models(step_config, test)
         self.steps = [
             _resolve_model_step(step, test)
-            for step in (config[self.type_attr].get("steps") or [])
+            for step in (step_config[self.type_attr].get("steps") or [])
             if not _step_disabled(step)]
 
-    def _init_models(self, config, test):
-        models = config[self.type_attr].get("models")
+    def _init_models(self, step_config, test):
+        models = step_config[self.type_attr].get("models")
         if not models:
             models = sorted(test.guildfile.models)
-        except_models = set(config[self.type_attr].get("except") or [])
+        except_models = set(step_config[self.type_attr].get("except") or [])
         return [m for m in models if m not in except_models]
 
-    def run(self, config):
+    def run(self, run_config):
         for model in self.models:
             for step in self.steps:
-                step.run(config, model=model)
+                step.run(run_config, model=model)
+            if run_config.one_model:
+                break
 
 class _ExpectFile(object):
 
     type_attr = "file"
 
-    def __init__(self, config, test):
-        self.path = config[self.type_attr]
-        self.compare_to = _test_path(test, config.get("compare"))
-        self.pattern = config.get("contains")
+    def __init__(self, step_config, test):
+        self.path = step_config[self.type_attr]
+        self.compare_to = _test_path(test, step_config.get("compare"))
+        self.pattern = step_config.get("contains")
         self.pattern_re = _compile_pattern(self.pattern)
 
     def check(self, run_dir):
@@ -192,8 +196,8 @@ class _ExpectOutput(object):
 
     type_attr = "output"
 
-    def __init__(self, config, _test):
-        self.pattern = config[self.type_attr]
+    def __init__(self, step_config, _test):
+        self.pattern = step_config[self.type_attr]
         self.pattern_re = _compile_pattern(self.pattern)
 
     def check(self, run_dir):
@@ -205,14 +209,14 @@ class _ExpectOutput(object):
                 "could not find pattern %r in %s"
                 % (self.pattern, output_path))
 
-def run_guildfile_test(test, config=None):
-    config = config or TestConfig()
+def run_guildfile_test(test, run_config=None):
+    run_config = run_config or RunConfig()
     steps = [
         _resolve_step(step, test) for step in test.steps
         if not _step_disabled(step)]
     _status("Testing %s" % test.name)
     for step in steps:
-        step.run(config)
+        step.run(run_config)
 
 def _step_disabled(step):
     return step.get("disabled") is True

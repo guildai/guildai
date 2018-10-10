@@ -39,8 +39,13 @@ from guild import click_util
     metavar="NAME",
     multiple=True,
     help=(
-        "Only test tests operation NAME. May be used multiple times. "
+        "Only test operation NAME. May be used multiple times. "
         "Use with `--model` to limit operation to specific models."))
+@click.option(
+    "-1", "--one-model", is_flag=True,
+    help=(
+        "Only test operations for the first model in a for-each-model "
+        "step."))
 @click.option(
     "-s", "--stop-on-fail", is_flag=True,
     help="Stop testing after the first failed test.")
@@ -69,6 +74,14 @@ def test(args):
     Use one or more `--test` options to run specific tests in the
     order specified. If no tests are specified, runs all of the tests
     defined in the referenced Guild file or package.
+
+    Use one or more `--model` or `--operation` options to limit tests
+    to the specified models and operations respectively.
+
+    In cases where multiple models may be tested in a
+    ``for-each-model`` step, you may use `--one-model` to limit tests
+    to the first model. This is useful for reducing the test time at
+    the expense of test coverage.
 
     By default all tests are run even if one or more tests fail. To
     stop testing on the first failed test, use `--stop-on-fail`.
