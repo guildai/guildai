@@ -1089,6 +1089,18 @@ Here's a param ref cycle:
     >>> gf.models["m"].description
     'Model {{p1}}'
 
+Param values may be numbers:
+
+    >>> gf = guildfile.from_string("""
+    ... - model: m
+    ...   params:
+    ...     foo: 123
+    ...   description: Model {{foo}}
+    ... """)
+
+    >>> gf.models["m"].description
+    'Model 123'
+
 ## Projects
 
 In addition to containing resources, Guildfiles may contain at most

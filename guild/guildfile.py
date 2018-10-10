@@ -670,7 +670,10 @@ def _resolve_list_param_refs(l, params):
     return [_resolve_param_refs(x, params) for x in l]
 
 def _resolve_str_param_refs(s, params):
-    parts = [part for part in re.split(r"({{.+?}})", s) if part != ""]
+    parts = [
+        part for part in
+        re.split(r"({{.+?}})", str(s))
+        if part != ""]
     resolved = [_resolve_param_ref(part, params) for part in parts]
     if len(resolved) == 1:
         return resolved[0]
