@@ -399,11 +399,6 @@ def strip_trailing_path(path):
     else:
         return path
 
-def strip_trailing_period(s):
-    if s[-1:] == ".":
-        return s[:-1]
-    return s
-
 def which(cmd):
     which_cmd = "where" if PLATFORM == "Windows" else "which"
     devnull = open(os.devnull, "w")
