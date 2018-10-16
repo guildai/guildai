@@ -79,6 +79,7 @@ SCALAR_KEYS = [
         "logs/validation/accuracy_1",
         "eval/accuracy",
         "eval/Accuracy",
+        "acc",
         "epoch_acc",
     ))
 ]
