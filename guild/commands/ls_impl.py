@@ -19,6 +19,7 @@ import logging
 import os
 
 from guild import cli
+from guild import util
 
 from . import runs_impl
 
@@ -61,6 +62,8 @@ def _maybe_rm_guild_dir(dirs, args):
 
 def _print_header(path, args):
     if not args.no_format:
+        if not args.full_path:
+            path = util.format_dir(path)
         cli.out("%s:" % path)
 
 def _print_file(path, args):

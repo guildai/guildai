@@ -291,7 +291,7 @@ def format_run(run, index=None):
         "pid": run.pid or "",
         "started": util.format_timestamp(run.get("started")),
         "stopped": util.format_timestamp(run.get("stopped")),
-        "run_dir": run.path,
+        "run_dir": util.format_dir(run.path),
         "command": _format_command(run.get("cmd", "")),
         "exit_status": _exit_status(run)
     }
