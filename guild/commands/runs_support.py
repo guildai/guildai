@@ -23,7 +23,7 @@ def runs_arg(fn):
     """### Selecting runs
 
     You may use one or more `RUN` arguments to limit the runs that are
-    selected. `RUN` may be a run ID, a run ID prefix, or a zero-based
+    selected. `RUN` may be a run ID, a run ID prefix, or a one-based
     index corresponding to a run returned by the list command.
 
     Indexes may also be specified in ranges in the form `START:END`
@@ -44,7 +44,7 @@ def run_arg(fn):
     """### Selecting a run
 
     You may specify a run using a run ID, a run ID prefix, or a
-    zero-based index corresponding to a run returned by the list
+    one-based index corresponding to a run returned by the list
     command.
 
     """
@@ -97,7 +97,7 @@ def status_filters(fn):
     --error``, or the short form ``-ET``.
 
     Status filters are applied before `RUN` indexes are resolved. For
-    example, a run index of ``0`` is the latest run that matches the
+    example, a run index of ``1`` is the latest run that matches the
     status filters.
 
     """

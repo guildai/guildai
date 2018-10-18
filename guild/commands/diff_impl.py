@@ -40,7 +40,7 @@ class OneRunArgs(click_util.Args):
 
 def main(args, ctx):
     if len(args.runs) == 0:
-        args.runs = ("1", "0")
+        args.runs = ("2", "1")
     elif len(args.runs) == 1:
         cli.error(
             "diff requires two runs\n"

@@ -52,7 +52,7 @@ RUN_DETAIL = [
 ]
 
 ALL_RUNS_ARG = [":"]
-LATEST_RUN_ARG = ["0"]
+LATEST_RUN_ARG = ["1"]
 
 CORE_RUN_ATTRS = [
     "cmd",
@@ -157,20 +157,20 @@ def _parse_slice(spec):
         if m:
             try:
                 return (
-                    _slice_part(m.group(1)),
-                    _slice_part(m.group(2), incr=True)
+                    _slice_part(m.group(1), decr=True),
+                    _slice_part(m.group(2))
                 )
             except ValueError:
                 pass
         raise ValueError(spec)
     else:
-        return index, index + 1
+        return index - 1, index
 
-def _slice_part(s, incr=False):
+def _slice_part(s, decr=False):
     if s is None:
         return None
-    elif incr:
-        return int(s) + 1
+    elif decr:
+        return int(s) - 1
     else:
         return int(s)
 
@@ -235,7 +235,7 @@ def _list_formatted_runs(runs, args):
     formatted = []
     for i, run in enumerate(runs):
         try:
-            formatted_run = format_run(run, i)
+            formatted_run = format_run(run, i + 1)
         except Exception:
             log.exception("formatting run in %s", run.path)
         else:
@@ -479,7 +479,7 @@ def one_run(args, ctx):
     if not filtered:
         cli.out("No matching runs", err=True)
         cli.error()
-    runspec = args.run or "0"
+    runspec = args.run or "1"
     selected = select_runs(filtered, [runspec], ctx)
     return cmd_impl_support.one_run(selected, runspec, ctx)
 
