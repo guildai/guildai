@@ -37,6 +37,7 @@ from .install import install
 from .label import label
 from .ls import ls
 from .models import models
+from .new import new
 from .open_ import open_
 from .operations import operations
 from .package import package
@@ -114,6 +115,7 @@ main.add_command(install)
 main.add_command(label)
 main.add_command(ls)
 main.add_command(models)
+main.add_command(new)
 main.add_command(open_)
 main.add_command(operations)
 main.add_command(package)
