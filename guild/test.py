@@ -17,6 +17,7 @@ from __future__ import division
 from __future__ import print_function
 
 import difflib
+import glob
 import logging
 import os
 import re
@@ -169,9 +170,14 @@ class _ExpectFile(object):
 
     def check(self, run_dir):
         _status("file: %s%s" % (self.path, self._status_qualifiers), False)
-        path = os.path.join(run_dir, self.path)
-        if not os.path.isfile(path):
-            raise Failed("%s does not exist" % path)
+        path_glob = os.path.join(run_dir, self.path)
+        matches = glob.glob(path_glob)
+        if not matches:
+            raise Failed("no files matching %s" % path_glob)
+        for path in matches:
+            self._check_path(path)
+
+    def _check_path(self, path):
         if self.compare_to:
             _compare_files(path, self.compare_to)
         if self.pattern_re:
