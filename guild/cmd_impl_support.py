@@ -179,10 +179,9 @@ def _dir_guildfile(dir):
         gf = _try_plugin_models(dir)
         if gf:
             return gf
-        cli.out(
-            "No help available (%s does not contain a model file)"
-            % cwd_desc(dir), err=True)
-        cli.error()
+        cli.error(
+            "%s does not contain a model file"
+            % cwd_desc(dir))
     except guildfile.GuildfileError as e:
         cli.error(str(e))
 
