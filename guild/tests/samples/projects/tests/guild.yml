@@ -23,13 +23,13 @@
 
 - test: output-1
   steps:
-    - run-op: gen-output
+    - run: gen-output
       expect:
         - output: hi
 
 - test: output-2
   steps:
-    - run-op: gen-output
+    - run: gen-output
       flags:
         msg: hello car
       expect:
@@ -38,7 +38,7 @@
 
 - test: file-1
   steps:
-    - run-op: gen-files
+    - run: gen-files
       disable-plugins: all
       flags:
         count: 1
@@ -50,7 +50,7 @@
 
 - test: fail-1
   steps:
-    - run-op: gen-output
+    - run: gen-output
       disable-plugins: all
       expect:
         - output: bye
@@ -59,7 +59,7 @@
   steps:
     - for-each-model:
         steps:
-          - run-op: gen-output
+          - run: gen-output
             disable-plugins: all
-          - run-op: gen-files
+          - run: gen-files
             disable-plugins: all

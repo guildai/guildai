@@ -84,7 +84,7 @@ class _CompareHelp(object):
 
 class _RunOp(object):
 
-    type_attr = "run-op"
+    type_attr = "run"
 
     def __init__(self, step_config, test):
         self.guildfile = test.guildfile
