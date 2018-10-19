@@ -50,7 +50,6 @@ from .resources import resources
 from .run import run
 from .runs import runs
 from .search import search
-from .serve import serve
 from .shell import shell
 from .stop import stop
 from .sync import sync
@@ -128,7 +127,6 @@ main.add_command(resources)
 main.add_command(run)
 main.add_command(runs)
 main.add_command(search)
-main.add_command(serve)
 main.add_command(shell)
 main.add_command(stop)
 main.add_command(sync)

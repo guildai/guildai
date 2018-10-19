@@ -98,9 +98,6 @@
     guild.commands.s3_sync_impl
     guild.commands.search
     guild.commands.search_impl
-    guild.commands.serve
-    guild.commands.serve_impl
-    guild.commands.serve_tester
     guild.commands.server_support
     guild.commands.service_impl_support
     guild.commands.shell
@@ -172,7 +169,6 @@
     guild.resource
     guild.resourcedef
     guild.run
-    guild.serve
     guild.service
     guild.serving_util
     guild.tabview

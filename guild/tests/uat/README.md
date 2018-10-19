@@ -76,12 +76,6 @@ Next we train the `softmax` model and view the results.
 - [compare-after-softmax-train](compare-after-softmax-train.md)
 - [view-after-softmax-train](view-after-softmax-train.md)
 
-Next we prepare sample images and run some predictions.
-
-- [serve-after-softmax-train](serve-after-softmax-train.md)
-- [prepare-mnist-samples](prepare-mnist-samples.md)
-- [predict-mnist-samples](predict-mnist-samples.md)
-
 Finally we'll uninstall the `mnist` package and verify that its
 associated operations, models, and resources are removed.
 
