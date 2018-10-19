@@ -31,6 +31,7 @@ def remotes():
     """Show available remotes.
 
     {{ remote_support.remotes }}
+
     """
 
     from . import remotes_impl

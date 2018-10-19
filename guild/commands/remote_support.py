@@ -58,24 +58,8 @@ def remotes():
     are defined in ``~/.guild/config.yml`` under the ``remotes``
     section.
 
-    Each remote must specify a ``type`` attributes. Guild currently
-    supports one remote type: `ssh`.
-
-    ### ssh remote
-
-    An ``ssh`` remote is accessed using `ssh` and supports file copies
-    using `rsync`. Both `ssh` and `rsync` programs must be installed
-    and configured on the local system to run commands for this type
-    of remote.
-
-    ssh remotes support the following attributes:
-
-    **host** - hostname of the remote system (required)
-
-    **user** - user account on the remote host (defaults to current user)
-
-    **guild-home** - path to Guild home relative to home directory
-    associated with remote user (defaults to ``.guild``)
+    For a list of supported remotes, see
+    https://guild.ai/docs/remotes/
 
     """
 
