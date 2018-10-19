@@ -21,6 +21,7 @@ from guild import cli
 from guild import click_util
 
 from .runs_delete import delete_runs
+from .runs_diff import diff_runs
 from .runs_export import export_runs
 from .runs_import import import_runs
 from .runs_info import run_info
@@ -57,6 +58,7 @@ def _params_specified(kw):
     return any((kw[key] for key in kw))
 
 runs.add_command(delete_runs)
+runs.add_command(diff_runs)
 runs.add_command(export_runs)
 runs.add_command(run_info)
 runs.add_command(import_runs)

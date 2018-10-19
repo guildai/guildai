@@ -18,50 +18,17 @@ from __future__ import division
 import click
 
 from guild import click_util
+from . import runs_diff
 
-from . import runs_support
-
-@click.command("diff")
-@click.argument("runs", metavar="[RUN1 RUN2]", nargs=-1)
-@click.option("-O", "--output", is_flag=True, help="Diff run output.")
-@click.option("-e", "--env", is_flag=True, help="Diff run environment.")
-@click.option("-g", "--flags", is_flag=True, help="Diff run flags.")
-@click.option(
-    "-a", "--attrs",
-    is_flag=True,
-    help=(
-        "Diff all run attributes; if specified other attribute "
-        "options are ignored."))
-@click.option("-d", "--deps", is_flag=True, help="Diff run dependencies.")
-@click.option("-c", "--cmd", metavar="CMD", help="Command used to diff runs.")
-@runs_support.op_and_label_filters
-@runs_support.status_filters
+@click.command()
+@runs_diff.diff_params
 
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
 
 def diff(ctx, args):
-    """Diff two runs.
+    """{{ runs_diff.diff_runs }}"""
 
-    If `RUN1` and `RUN2` are omitted, the latest two filtered runs are
-    diffed. See FILTERING topics below for details on filtering runs
-    to diff.
-
-    If `RUN1` or `RUN2` is specified, both must be specified.
-
-    {{ runs_support.op_and_label_filters }}
-    {{ runs_support.status_filters }}
-
-    ### Diff command
-
-    By default the ``diff`` program is used to diff run details. An
-    alternative default command may be specified in
-    ``~/.guild/config.yml`` using the ``command`` attribute of the
-    ``diff`` section.
-
-    To use a specific diff program with the command, use `--cmd`.
-
-    """
     from . import diff_impl
     diff_impl.main(args, ctx)

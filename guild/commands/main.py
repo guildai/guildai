@@ -46,7 +46,6 @@ from .pull import pull
 from .push import push
 from .remote import remote
 from .remotes import remotes
-from .resources import resources
 from .run import run
 from .runs import runs
 from .search import search
@@ -123,7 +122,6 @@ main.add_command(pull)
 main.add_command(push)
 main.add_command(remote)
 main.add_command(remotes)
-main.add_command(resources)
 main.add_command(run)
 main.add_command(runs)
 main.add_command(search)

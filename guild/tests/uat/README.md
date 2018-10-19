@@ -172,6 +172,7 @@ demonstrate important Guild features.
 For simplicity we maintain a single test file.
 
 - [run-hello-examples](run-hello-examples.md)
+- [diff-hello-examples](diff-hello-examples.md)
 
 ### `keras` example
 
