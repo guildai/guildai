@@ -82,7 +82,7 @@ class JSONHelpFormatter(object):
         self._help_text = None
         self._cur_dl = None
         self._buf = []
-        self.width = 0
+        self.width = 999999999
 
     def write_usage(self, prog, args='', **_kw):
         self._val["usage"] = {
