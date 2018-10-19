@@ -40,8 +40,10 @@ class EC2Remote(ssh_remote.SSHRemote):
         self.ami = config["ami"]
         self.instance_type = config["instance-type"]
         self.public_key = config.get("public-key")
-        self.connection = config.get("connection", {})
         self.init = config.get("init")
+        self.init_timeout = config.get("init-timeout")
+        self.private_key = config.get("private-key")
+        self.password = config.get("password")
         self.working_dir = var.remote_dir(name)
         super(EC2Remote, self).__init__(name, self._ssh_config(config))
 
@@ -52,7 +54,7 @@ class EC2Remote(ssh_remote.SSHRemote):
                 log.warning("config '%s' ignored in remote %s", name, self.name)
         ssh_config = dict(config)
         ssh_config["host"] = None
-        ssh_config["user"] = self.connection.get("user")
+        ssh_config["user"] = self.user
         return ssh_config
 
     @property
@@ -134,8 +136,7 @@ class EC2Remote(ssh_remote.SSHRemote):
         else:
             if not host:
                 raise remotelib.Down("stopped")
-            user = self.connection.get("user")
-            ssh_util.ssh_ping(host, user, verbose)
+            ssh_util.ssh_ping(host, self.user, verbose)
             sys.stdout.write("%s (%s) is available\n" % (self.name, host))
 
     def _has_state(self):
@@ -250,20 +251,21 @@ class EC2Remote(ssh_remote.SSHRemote):
                 "type": "ssh",
                 "host": "${aws_instance.%s.public_ip}" % remote_key
             }
-            if "timeout" in self.connection:
-                connect_timeout = self.connection["timeout"]
+            if self.port:
+                connection["port"] = self.port
+            if self.init_timeout:
                 if isinstance(connect_timeout, int):
-                    connect_timeout = "%im" % connect_timeout
-                connection["timeout"] = connect_timeout
-            if "private-key" in self.connection:
+                    connection["timeout"] = "%im" % self.connect_timeout
+                else:
+                    connection["timeout"] = self.connect_timeout
+            if self.private_key:
                 connection["private_key"] = (
-                    "${file(\"%s\")}" % self.connection["private-key"]
+                    "${file(\"%s\")}" % self.private_key
                 )
-            connection.update({
-                name: self.connection[name]
-                for name in ["user", "password", "port"]
-                if name in self.connection
-            })
+            if self.user:
+                connection["user"] = self.user
+            if self.password:
+                connection["password"] = self.password
             config["resource"]["null_resource"] = {
                 "%s_init" % remote_key: {
                     "triggers": {
