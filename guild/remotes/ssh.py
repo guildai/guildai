@@ -47,7 +47,6 @@ class SSHRemote(remotelib.Remote):
         self.user = config.get("user")
         self.guild_home = self._init_guild_home(config)
         self.guild_env = config.get("guild-env")
-        self.run_init = config.get("run-init")
         self.use_prerelease = config.get("use-prerelease", False)
 
     @property
