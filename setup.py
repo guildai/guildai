@@ -72,7 +72,6 @@ class Build(build_py):
 
     - Ensure external dependencies
     - Build view distribution
-    - Build serve distribution
 
     See MANIFEST.in for a complete list of data files includes in the
     Guild distribution.
@@ -83,8 +82,6 @@ class Build(build_py):
         _ensure_external()
         if os.getenv("SKIP_VIEW") != "1":
             _build_view_dist()
-        if os.getenv("SKIP_SERVE") != "1":
-            _build_serve_dist()
         build_py.run(self)
 
 def _validate_env():
@@ -164,11 +161,6 @@ def _build_view_dist():
     """Build view distribution."""
     subprocess.check_call(["npm", "install"], cwd="./guild/view")
     subprocess.check_call(["npm", "run", "build"], cwd="./guild/view")
-
-def _build_serve_dist():
-    """Build serve distribution."""
-    subprocess.check_call(["npm", "install"], cwd="./guild/serve")
-    subprocess.check_call(["npm", "run", "build"], cwd="./guild/serve")
 
 def _patch_git_obtain():
     """Patch pip's git 'obtain' to download rather than clone.

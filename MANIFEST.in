@@ -2,5 +2,4 @@ include LICENSE.txt
 recursive-include guild/external *
 recursive-include guild/scripts *
 recursive-include guild/view/dist *
-recursive-include guild/serve/dist *
 recursive-include guild/tests *
