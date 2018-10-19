@@ -34,7 +34,6 @@ commands and helpfulness to the user for operations on missing models.
 - [tensorboard-package-info](tensorboard-package-info.md)
 - [initial-models](initial-models.md)
 - [initial-ops](initial-ops.md)
-- [initial-resources](initial-resources.md)
 - [initial-runs](initial-runs.md)
 - [train-missing-model](train-missing-model.md)
 - [run-with-missing-default-model](run-with-missing-default-model.md)
@@ -57,13 +56,12 @@ First we install the package.
 
 - [install-mnist-packages](install-mnist-packages.md)
 
-Then we confirm we have the expected models, operations and resources.
+Then we confirm we have the expected models and operations.
 
 - [mnist-package-info](mnist-package-info.md)
 - [packages-after-mnist-install](packages-after-mnist-install.md)
 - [models-after-mnist-install](models-after-mnist-install.md)
 - [ops-after-mnist-install](ops-after-mnist-install.md)
-- [resources-after-mnist-install](resources-after-mnist-install.md)
 
 Next we train the `softmax` model and view the results.
 
@@ -77,14 +75,13 @@ Next we train the `softmax` model and view the results.
 - [view-after-softmax-train](view-after-softmax-train.md)
 
 Finally we'll uninstall the `mnist` package and verify that its
-associated operations, models, and resources are removed.
+associated models and operations removed.
 
 - [uninstall-mnist-package](uninstall-mnist-package.md)
 - [mnist-package-info-after-uninstall](mnist-package-info-after-uninstall.md)
 - [packages-after-mnist-uninstall](packages-after-mnist-uninstall.md)
 - [models-after-mnist-uninstall](models-after-mnist-install.md)
 - [ops-after-mnist-install](ops-after-mnist-install.md)
-- [resources-after-mnist-uninstall](resources-after-mnist-uninstall.md)
 
 ### `hello`
 
@@ -105,14 +102,13 @@ Guild provides Keras packages under the `keras` package
 namespace. These tests demonstrate installing and training the
 `keras-mlp` model provided in the `keras.mnist` package.
 
-First we'll install the package and confirm the availbility of models,
-operations and resources.
+First we'll install the package and confirm the availbility of models
+and operations.
 
 - [install-keras-mnist-package](install-keras-mnist-package.md)
 - [packages-after-keras-mnist-install](packages-after-keras-mnist-install.md)
 - [models-after-keras-mnist-install](models-after-keras-mnist-install.md)
 - [operations-after-keras-mnist-install](operations-after-keras-mnist-install.md)
-- [resources-after-keras-mnist-install](resources-after-keras-mnist-install.md)
 
 Next we'll train the `mnist-mlp` model.
 
@@ -135,11 +131,10 @@ maintains its lineage from privious Guild releases by providing
 `expert` and `intro` models, which correspond to the TensorFlow
 tutorial examples.
 
-We start by listing the example models, operations and resources.
+We start by listing the example models and operations.
 
 - [mnist-example-models](mnist-example-models.md)
 - [mnist-example-ops](mnist-example-ops.md)
-- [mnist-example-resources](mnist-example-resources.md)
 
 Next we train `intro`.
 

@@ -26,9 +26,3 @@
     mnist/mnist-softmax:evaluate  Evaluate a trained softmax regression
     mnist/mnist-softmax:train     Train the softmax regression
     <exit 0>
-
-    >>> run("guild resources mnist")
-    <exit 0>
-
-UPDATE Jul 2018: Package resources are removed from mnist and are on
-the chopping block in general.

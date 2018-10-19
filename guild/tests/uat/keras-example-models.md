@@ -34,12 +34,6 @@ We can similarly list the supported operations for each model:
     ./mnist_mlp:train   Train the model
     <exit 0>
 
-Plugin defined models do not support resources, but we can still list
-them.
-
-    >>> run("guild resources .")
-    <exit 0>
-
 Without a guildfile directory filter, all models, operations, and
 resources are listed:
 
@@ -52,9 +46,5 @@ resources are listed:
     >>> run("guild operations")
     ./mnist_irnn:train            Train the model
     ./mnist_mlp:train             Train the model
-    gpkg.hello/...
-    <exit 0>
-
-    >>> run("guild resources")
     gpkg.hello/...
     <exit 0>
