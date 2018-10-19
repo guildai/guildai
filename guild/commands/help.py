@@ -30,9 +30,10 @@ from guild import click_util
     help="Do not use a pager when showing help.",
     is_flag=True)
 
+@click.pass_context
 @click_util.use_args
 
-def help(args):
+def help(ctx, args):
     """Show help for a path or package.
 
     By default shows information about the models defined in the
@@ -43,4 +44,4 @@ def help(args):
 
     """
     from . import help_impl
-    help_impl.main(args)
+    help_impl.main(args, ctx)

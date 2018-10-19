@@ -19,8 +19,8 @@ from guild import cli
 from guild import cmd_impl_support
 from guild import test as testlib
 
-def main(args):
-    gf = cmd_impl_support.path_or_package_guildfile(args.path_or_package)
+def main(args, ctx):
+    gf = cmd_impl_support.path_or_package_guildfile(args.path_or_package, ctx)
     tests = [_gf_test(name, gf) for name in _test_names(gf, args)]
     if not tests:
         _no_tests_error(gf)

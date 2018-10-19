@@ -62,9 +62,10 @@ from guild import click_util
     "-y", "--yes", is_flag=True,
     help="Do not prompt before running tests.")
 
+@click.pass_context
 @click_util.use_args
 
-def test(args):
+def test(ctx, args):
     """Run model or package tests.
 
     By default, tests are run for a Guild file in the current
@@ -94,4 +95,4 @@ def test(args):
 
     """
     from . import test_impl
-    test_impl.main(args)
+    test_impl.main(args, ctx)

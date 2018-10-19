@@ -162,16 +162,16 @@ def guildfile_dirs(vals):
             other.append(val)
     return dirs, other
 
-def path_or_package_guildfile(path_or_package):
+def path_or_package_guildfile(path_or_package, ctx=None):
     path_or_package = path_or_package or config.cwd()
     if os.path.isdir(path_or_package):
-        return _dir_guildfile(path_or_package)
+        return _dir_guildfile(path_or_package, ctx)
     elif os.path.isfile(path_or_package):
         return _guildfile(path_or_package)
     else:
         return _package_guildfile(path_or_package)
 
-def _dir_guildfile(dir):
+def _dir_guildfile(dir, ctx):
     from guild import guildfile
     try:
         return guildfile.from_dir(dir)
@@ -179,9 +179,14 @@ def _dir_guildfile(dir):
         gf = _try_plugin_models(dir)
         if gf:
             return gf
+        if ctx:
+            help_suffix = " or '%s' for help" % click_util.cmd_help(ctx)
+        else:
+            help_suffix = ""
         cli.error(
-            "%s does not contain a model file"
-            % cwd_desc(dir))
+            "%s does not contain a model file\n"
+            "Try specifying a project path or package name%s."
+            % (cwd_desc(dir), help_suffix))
     except guildfile.GuildfileError as e:
         cli.error(str(e))
 

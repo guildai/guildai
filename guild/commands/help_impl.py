@@ -25,8 +25,8 @@ class Pkg(object):
         self.name = name
         self.guildfile = guildfile
 
-def main(args):
-    gf = cmd_impl_support.path_or_package_guildfile(args.path_or_package)
+def main(args, ctx):
+    gf = cmd_impl_support.path_or_package_guildfile(args.path_or_package, ctx)
     desc = _guildfile_desc(gf)
     help = _format_guildfile_help(gf, desc, args)
     _print_help(help, args)
