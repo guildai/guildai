@@ -113,6 +113,8 @@ class RunOutput(object):
             with lock:
                 if stream_fileno is not None:
                     os_write(stream_fileno, b)
+                if b < b"\x09": # non-printable
+                    continue
                 line.append(b)
                 if b == b"\n":
                     os_write(output_fileno, b"".join(line))
