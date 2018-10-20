@@ -15,5 +15,5 @@
 from __future__ import absolute_import
 from __future__ import division
 
-def main(args):
+def main(_args):
     print("TODO new yo")

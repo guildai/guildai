@@ -254,10 +254,10 @@ class EC2Remote(ssh_remote.SSHRemote):
             if self.port:
                 connection["port"] = self.port
             if self.init_timeout:
-                if isinstance(connect_timeout, int):
-                    connection["timeout"] = "%im" % self.connect_timeout
+                if isinstance(self.init_timeout, int):
+                    connection["timeout"] = "%im" % self.init_timeout
                 else:
-                    connection["timeout"] = self.connect_timeout
+                    connection["timeout"] = self.init_timeout
             if self.private_key:
                 connection["private_key"] = (
                     "${file(\"%s\")}" % self.private_key
