@@ -68,7 +68,8 @@ def _line1(s):
     return s.split("\n")[0]
 
 def _run_tests(tests, gpus, args):
-    failed = False
+    failed = 0
+    passed = 0
     config = testlib.RunConfig(
         models=args.model,
         operations=args.operation,
@@ -79,18 +80,20 @@ def _run_tests(tests, gpus, args):
             testlib.run_guildfile_test(test, config)
         except testlib.TestError as e:
             _test_failed_msg(test, e)
-            failed = True
+            failed += 1
             if args.stop_on_fail:
                 break
+        else:
+            passed += 1
     if failed:
-        _some_tests_failed_msg()
+        _some_tests_failed_msg(failed)
         cli.error()
-    cli.out(cli.style("All tests passed", bold=True))
+    cli.out(cli.style("%i test(s) passed" % passed, bold=True))
 
 def _test_failed_msg(test, e):
     msg = "Test %s failed: %s" % (test.name, e)
     cli.out(cli.style(msg, bold=True, fg="red"), err=True)
 
-def _some_tests_failed_msg():
-    msg = "One or more tests failed - see above for details"
+def _some_tests_failed_msg(failed_count):
+    msg = "%i test(s) failed - see above for details" % failed_count
     cli.out(cli.style(msg, bold=True, fg="red"), err=True)
