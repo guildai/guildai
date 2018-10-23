@@ -64,11 +64,11 @@ def _apply_restart_or_rerun_args(args, ctx):
             "Try '%s' for more information."
             % click_util.cmd_help(ctx))
     if (args.rerun or args.restart) and args.opspec:
-        # treat opspec as arg
-        args.args = (args.opspec,) + args.args
+        # treat opspec as flag
+        args.flags = (args.opspec,) + args.flags
         args.opspec = None
     run, flag_args = _run_args(args.rerun or args.restart, args, ctx)
-    args.args = flag_args + args.args
+    args.flags = flag_args + args.flags
     if args.restart:
         cli.out("Restarting {}".format(run.id))
         args.restart = run.id
@@ -284,7 +284,7 @@ def _init_op(opdef, model, args, ctx):
 
 def _parse_args(args):
     try:
-        return op_util.parse_args(args.args)
+        return op_util.parse_flags(args.flags)
     except op_util.ArgValueError as e:
         cli.error("invalid argument '%s' - expected NAME=VAL" % e.arg)
 

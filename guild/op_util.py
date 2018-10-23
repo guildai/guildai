@@ -174,10 +174,10 @@ def _cmd_file(filename):
         return filename
     return None
 
-def parse_args(args):
-    return dict([_parse_arg(os.path.expanduser(arg)) for arg in args])
+def parse_flags(args):
+    return dict([_parse_flag_arg(os.path.expanduser(arg)) for arg in args])
 
-def _parse_arg(arg):
+def _parse_flag_arg(arg):
     parts = arg.split("=", 1)
     if len(parts) == 1:
         raise ArgValueError(arg)
@@ -298,11 +298,7 @@ def args_to_flags(args):
                 name = None
                 flags[arg[1]] = arg[2:]
         elif name is not None:
-            try:
-                arg = yaml.safe_load(arg)
-            except yaml.YAMLError:
-                pass
-            flags[name] = arg
+            flags[name] = _parse_arg_val(arg)
     return flags
 
 def find_file(path):

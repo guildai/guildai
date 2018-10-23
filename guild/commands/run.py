@@ -21,7 +21,7 @@ from guild import click_util
 
 def run_params(fn):
     click_util.append_params(fn, [
-        click.Argument(("args",), metavar="[ARG...]", nargs=-1),
+        click.Argument(("flags",), metavar="[FLAG=VAL...]", nargs=-1),
         click.Option(
             ("-l", "--label"), metavar="LABEL",
             help="Set a label for the run."),
@@ -127,6 +127,8 @@ def run(ctx, args):
 
     `[MODEL]:OPERATION` may be omitted if `--rerun` is specified, in
     which case the operation used in `RUN` will be used.
+
+    Specify `FLAG` values in the form `FLAG=VAL`.
 
     ### Re-running operations
 

@@ -42,43 +42,77 @@ If multipe option args are specified, only the last is used:
     >>> a2f(["--foo", "abd", "def"])
     {'foo': 'def'}
 
-## Parsing args
+## Parsing flags
 
-Use `op_util.parse_args` to parse a list of `NAME=VAL` args.
+Use `op_util.parse_flags` to parse a list of `NAME=VAL` args.
 
-    >>> def p(args):
-    ...   pprint(op_util.parse_args(args))
+    >>> def p_flags(args):
+    ...   pprint(op_util.parse_flags(args))
 
-    >>> p([])
+    >>> p_flags([])
     {}
 
-    >>> p(["a=1"])
+    >>> p_flags(["a=1"])
     {'a': 1}
 
-    >>> p(["a=A"])
+    >>> p_flags(["a=A"])
     {'a': 'A'}
 
-    >>> p(["a=True", "b=true", "c=yes"])
+    >>> p_flags(["a=True", "b=true", "c=yes"])
     {'a': True, 'b': True, 'c': True}
 
-    >>> p(["a=False", "b=false", "c=no"])
+    >>> p_flags(["a=False", "b=false", "c=no"])
     {'a': False, 'b': False, 'c': False}
 
-    >>> p(["a="])
+    >>> p_flags(["a="])
     {'a': None}
 
-    >>> p(["a=[1,2,3]"])
+    >>> p_flags(["a=[1,2,3]"])
     {'a': [1, 2, 3]}
 
-    >>> p(["a"])
+    >>> p_flags(["a"])
     Traceback (most recent call last):
     ArgValueError: a
 
-    >>> p(["a=['A','B']", "c=123", "d-e=", "f={'a':456,'b':'C'}"])
+    >>> p_flags(["a=['A','B']", "c=123", "d-e=", "f={'a':456,'b':'C'}"])
     {'a': ['A', 'B'],
      'c': 123,
      'd-e': None,
      'f': {'a': 456, 'b': 'C'}}
 
-    >>> p(["lr=1e-06"])
+    >>> p_flags(["lr=1e-06"])
     {'lr': 1e-06}
+
+## Parsing command line args as flags
+
+Use `op_util.args_to_flags` to parse command line args using `--` and
+`-` getopt style options as flags.
+
+    >>> def a2f(args):
+    ...   pprint(op_util.args_to_flags(args))
+
+    >>> a2f([])
+    {}
+
+    >>> a2f(["--lr", "0.0001"])
+    {'lr': 0.0001}
+
+    >>> a2f(["--lr", "1e-06"])
+    {'lr': 1e-06}
+
+    >>> a2f(["--switch"])
+    {'switch': True}
+
+    >>> a2f(["--switch", "yes"])
+    {'switch': True}
+
+    >>> a2f(["--switch", "no"])
+    {'switch': False}
+
+    >>> a2f(["--name", "Bob", "-e", "123", "-f", "--list", "[4,5,6]"])
+    {'e': 123, 'f': True, 'list': [4, 5, 6], 'name': 'Bob'}
+
+Non option style args are ignored:
+
+    >>> a2f(["foo", "123"])
+    {}
