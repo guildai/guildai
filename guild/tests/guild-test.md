@@ -63,7 +63,7 @@ Let's run some tests:
     Checking ...
     file: file-1 (contains 'bus')
     file: sample.txt
-    All tests passed
+    3 test(s) passed
     <BLANKLINE>
 
 This test fails:
@@ -75,7 +75,7 @@ This test fails:
     Checking ...
     output: bye
     Test fail-1 failed: could not find pattern 'bye' in .../.guild/output
-    One or more tests failed - see above for details
+    1 test(s) failed - see above for details
 
 The `all` test uses a `for-each-model` step to run a list of
 operations on each model.
@@ -86,5 +86,5 @@ operations on each model.
     hi
     Running operation test:gen-files
     Resolving sample-file dependency
-    All tests passed
+    1 test(s) passed
     <BLANKLINE>
