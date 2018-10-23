@@ -27,8 +27,8 @@ tests).
       op-utils:                  ok
       ops:                       ok
       package:                   ok
-      plugin-python-utils:       ok
       plugins:                   ok
+      python-utils:              ok
       run-output:                ok
       runs:                      ok
       tables:                    ok
