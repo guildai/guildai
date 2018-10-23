@@ -3,13 +3,13 @@
 The `gpkg.keras.mnist` models all provide a single `train` operation.
 
     >>> run("guild operations keras")
-    gpkg.keras.mnist/mnist-acgan:train                  Train the ACGAN
-    gpkg.keras.mnist/mnist-cnn:train                    Train the CNN
-    gpkg.keras.mnist/mnist-denoising-autoencoder:train  Train the autoencoder
-    gpkg.keras.mnist/mnist-hierarchical-rnn:train       Train the HRNN
-    gpkg.keras.mnist/mnist-irnn:train                   Train the RNN
-    gpkg.keras.mnist/mnist-mlp:train                    Train the MLP
-    gpkg.keras.mnist/mnist-net2net:train                Train the network
-    gpkg.keras.mnist/mnist-siamese:train                Train the MLP
-    gpkg.keras.mnist/mnist-swwae:train                  Train the MLP
+    gpkg.keras.mnist/acgan:train                  Train the model
+    gpkg.keras.mnist/cnn:train                    Train the model
+    gpkg.keras.mnist/denoising-autoencoder:train  Train the model
+    gpkg.keras.mnist/hierarchical-rnn:train       Train the model
+    gpkg.keras.mnist/irnn:train                   Train the model
+    gpkg.keras.mnist/mlp:train                    Train the model
+    gpkg.keras.mnist/net2net:train                Train the model
+    gpkg.keras.mnist/siamese:train                Train the model
+    gpkg.keras.mnist/swwae:train                  Train the model
     <exit 0>

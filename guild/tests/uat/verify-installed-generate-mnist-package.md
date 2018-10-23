@@ -1,9 +1,9 @@
 # Verify installed generated `mnist` package
 
-    >>> run("guild packages info mnist")
-    name: mnist
+    >>> run("guild packages info gpkg.mnist")
+    name: gpkg.mnist
     version: ...
-    summary: CNN and softmax regression classifiers for MNIST digits
+    summary: CNN and multinomial logistic regression classifiers for MNIST digits
     home-page: https://github.com/guildai/index/tree/master/mnist
     author: Guild AI
     author-email: packages@guild.ai
@@ -14,15 +14,15 @@
     <exit 0>
 
     >>> run("guild models mnist")
-    mnist/mnist-cnn      CNN classifier for MNIST
-    mnist/mnist-samples  Sample MNIST images
-    mnist/mnist-softmax  Softmax regression classifier for MNIST
+    gpkg.mnist/cnn      CNN classifier for MNIST
+    gpkg.mnist/logreg   Multinomial logistic regression classifier for MNIST
+    gpkg.mnist/samples  Sample MNIST images
     <exit 0>
 
     >>> run("guild operations mnist")
-    mnist/mnist-cnn:evaluate      Evaluate a trained CNN
-    mnist/mnist-cnn:train         Train the CNN
-    mnist/mnist-samples:prepare   Generate a set of sample MNIST images
-    mnist/mnist-softmax:evaluate  Evaluate a trained softmax regression
-    mnist/mnist-softmax:train     Train the softmax regression
+    gpkg.mnist/cnn:evaluate     Evaluate a trained CNN
+    gpkg.mnist/cnn:train        Train the CNN
+    gpkg.mnist/logreg:evaluate  Evaluate a trained logistic regression
+    gpkg.mnist/logreg:train     Train the logistic regression
+    gpkg.mnist/samples:prepare  Generate a set of sample MNIST images
     <exit 0>
