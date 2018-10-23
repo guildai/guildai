@@ -323,7 +323,10 @@ def _node_filter(globals):
     names = globals.keys()
     def f(node):
         if isinstance(node, ast.Assign):
-            return not any(t.id in names for t in node.targets)
+            return not any(
+                t.id in names
+                for t in node.targets
+                if isinstance(t, ast.Name))
         elif isinstance(node, ast.FunctionDef):
             return node.name not in names
         return True
@@ -332,37 +335,18 @@ def _node_filter(globals):
 def _compile_script(src, filename, node_filter):
     import __future__
     ast_root = ast.parse(src, filename)
-    ast_root.body = [node for node in ast_root.body if node_filter(node)]
+    ast_root = _filter_nodes(ast_root, node_filter)
     flags = __future__.absolute_import.compiler_flag
     return compile(ast_root, filename, "exec", flags=flags, dont_inherit=True)
 
-"""
-def _apply_global_assigns(node, assigns):
-    for child in ast.iter_child_nodes(node):
-        if isinstance(child, ast.Assign):
-            _try_apply_assign(child, assigns)
-        elif isinstance(child, ast.If):
-            _apply_global_assigns(child, assigns)
-
-def _try_apply_assign(assign, to_apply):
-    for target in assign.targets:
-        if not isinstance(target, ast.Name):
-            continue
-        try:
-            val_expr = to_apply[target.id]
-        except KeyError:
-            pass
-        else:
-            assign.value = _ast_value(val_expr, assign.value)
-
-def _ast_value(expr, orig):
-    if not isinstance(expr, six.string_types):
-        expr = str(expr)
-    val = ast.parse(expr).body[0].value
-    val.lineno = orig.lineno
-    val.col_offset = orig.col_offset
-    return val
-"""
+def _filter_nodes(root, node_filter):
+    if (isinstance(root, ast.Module) or
+        isinstance(root, ast.If)):
+        root.body = [
+            _filter_nodes(node, node_filter)
+            for node in root.body
+            if node_filter(node)]
+    return root
 
 def update_refs(module, ref_spec, new_val, recurse=False, seen=None):
     seen = seen or set()
