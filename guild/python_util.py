@@ -297,7 +297,7 @@ def script_models(dir, is_model_script, script_model, log=None):
         if is_model_script(script):
             yield script_model(script)
 
-def exec_script(filename, global_assigns=None):
+def exec_script(filename, globals):
     """Execute a Python script.
 
     This function can be used to execute a Python module as code
@@ -311,21 +311,32 @@ def exec_script(filename, global_assigns=None):
 
     """
     src = open(filename, "r").read()
-    code = _compile_script(src, filename, global_assigns)
-    script_globals = {
+    code = _compile_script(src, filename, _node_filter(globals))
+    script_globals = dict(globals)
+    script_globals.update({
         "__name__": "__main__",
         "__file__": filename,
-    }
+    })
     exec(code, script_globals)
 
-def _compile_script(src, filename, global_assigns):
+def _node_filter(globals):
+    names = globals.keys()
+    def f(node):
+        if isinstance(node, ast.Assign):
+            return not any(t.id in names for t in node.targets)
+        elif isinstance(node, ast.FunctionDef):
+            return node.name not in names
+        return True
+    return f
+
+def _compile_script(src, filename, node_filter):
     import __future__
     ast_root = ast.parse(src, filename)
-    if global_assigns:
-        _apply_global_assigns(ast_root, global_assigns)
+    ast_root.body = [node for node in ast_root.body if node_filter(node)]
     flags = __future__.absolute_import.compiler_flag
     return compile(ast_root, filename, "exec", flags=flags, dont_inherit=True)
 
+"""
 def _apply_global_assigns(node, assigns):
     for child in ast.iter_child_nodes(node):
         if isinstance(child, ast.Assign):
@@ -338,24 +349,20 @@ def _try_apply_assign(assign, to_apply):
         if not isinstance(target, ast.Name):
             continue
         try:
-            val = to_apply[target.id]
+            val_expr = to_apply[target.id]
         except KeyError:
             pass
         else:
-            assign.value = _ast_value(val, assign.value)
+            assign.value = _ast_value(val_expr, assign.value)
 
-def _ast_value(val, orig):
-    if isinstance(val, (int, float)):
-        val = ast.Num(val)
-    elif isinstance(val, six.string_types):
-        val = ast.Str(val)
-    elif isinstance(val, bool):
-        val = ast.NameConstant(val)
-    else:
-        raise AssertionError(val)
+def _ast_value(expr, orig):
+    if not isinstance(expr, six.string_types):
+        expr = str(expr)
+    val = ast.parse(expr).body[0].value
     val.lineno = orig.lineno
     val.col_offset = orig.col_offset
     return val
+"""
 
 def update_refs(module, ref_spec, new_val, recurse=False, seen=None):
     seen = seen or set()

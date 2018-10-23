@@ -17,8 +17,8 @@ from __future__ import division
 
 import time
 
+from guild import python_util
 from guild.plugin import Plugin
-from guild.plugins import python_util
 
 class SummaryPlugin(Plugin):
 

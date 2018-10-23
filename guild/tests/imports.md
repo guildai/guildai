@@ -151,9 +151,9 @@
     guild.plugins.keras_op_main
     guild.plugins.memory
     guild.plugins.perf
-    guild.plugins.python_util
     guild.plugins.tensorflow_util
     guild.plugins.training_pkg_main
+    guild.python_util
     guild.remote
     guild.remote_run_support
     guild.remote_util

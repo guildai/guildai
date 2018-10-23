@@ -27,7 +27,7 @@ import time
 # also slow, noisy, and side-effecty.
 
 from guild import op_util
-from guild.plugins import python_util
+from guild import python_util
 from guild import util
 
 log = logging.getLogger("guild.keras")

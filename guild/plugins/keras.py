@@ -16,7 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 from guild import plugin
-from guild.plugins import python_util
+from guild import python_util
 
 class KerasPlugin(plugin.Plugin):
 

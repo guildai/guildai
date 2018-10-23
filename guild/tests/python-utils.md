@@ -1,9 +1,9 @@
 # Plugin Python utils
 
-The module `guild.plugins.python_util` provides tools for plugins when
-working with Python scripts and modules.
+The module `guild.python_util` provides tools when working with Python
+scripts and modules.
 
-    >>> from guild.plugins import python_util
+    >>> from guild import python_util
 
 ## Enumerating Python scripts
 
