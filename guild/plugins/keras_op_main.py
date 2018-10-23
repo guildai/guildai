@@ -87,6 +87,29 @@ class Op(object):
             if name[:6] == "const:"
         }
 
+class Run(Op):
+
+    name = "run"
+
+    def __call__(self):
+        sys.argv = [self.script] + self._pop_const_args(self.script_args)
+        super(Run, self).__call__()
+
+    @staticmethod
+    def _pop_const_args(args0):
+        args = []
+        skip_next = False
+        for val in args0:
+            if skip_next:
+                skip_next = False
+                continue
+            if val.startswith("--const:"):
+                if "=" not in val:
+                    skip_next = True
+                continue
+            args.append(val)
+        return args
+
 class Train(Op):
 
     name = "train"
@@ -104,6 +127,8 @@ class Train(Op):
 class Predict(Op):
 
     name = "predict"
+
+_op_types = (Run, Train, Predict)
 
 def patch_keras(batch_size=None, epochs=None):
     import keras
@@ -184,12 +209,10 @@ def _set_tensorboard_params(_sp0, params):
     op_util.current_run().write_attr("flags", flags)
 
 def _init_op(name, op_args):
-    if name == "train":
-        return Train(op_args)
-    elif name == "predict":
-        return Predict(op_args)
-    else:
-        op_util.exit("unrecognized command '%s'" % name)
+    for op_type in _op_types:
+        if op_type.name == name:
+            return op_type(op_args)
+    op_util.exit("unrecognized plugin op '%s'" % name)
 
 def main(args):
     op_name, op_args = op_util.parse_op_args(args)
