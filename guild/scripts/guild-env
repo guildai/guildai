@@ -2,7 +2,11 @@
 
 _guild_env="$1"
 if [ -z "$_guild_env" ]; then
-    _guild_env=./env
+    if [ -e "bin/activate" ]; then
+        _guild_env=.
+    else
+        _guild_env=./env
+    fi
 fi
 
 if [ ! -e "$_guild_env" ]; then
