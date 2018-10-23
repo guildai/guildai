@@ -185,10 +185,17 @@ def _parse_arg(arg):
         return parts[0], _parse_arg_val(parts[1])
 
 def _parse_arg_val(s):
-    try:
-        return yaml.safe_load(s)
-    except yaml.YAMLError:
-        return s
+    parsers = [
+        (int, ValueError),
+        (float, ValueError),
+        (yaml.safe_load, yaml.YAMLError),
+    ]
+    for p, e_type in parsers:
+        try:
+            return p(s)
+        except e_type:
+            pass
+    return s
 
 def format_arg_value(v):
     if v is True:

@@ -79,3 +79,6 @@ Use `op_util.parse_args` to parse a list of `NAME=VAL` args.
      'c': 123,
      'd-e': None,
      'f': {'a': 456, 'b': 'C'}}
+
+    >>> p(["lr=1e-06"])
+    {'lr': 1e-06}
