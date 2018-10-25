@@ -122,7 +122,7 @@ class Remote(object):
     def get_stop_details():
         return None
 
-    def run_op(self, opspec, args, restart, no_wait, **opts):
+    def run_op(self, opspec, flags, restart, no_wait, **opts):
         raise NotImplementedError()
 
     def list_runs(self, verbose=False, **filters):

@@ -76,7 +76,8 @@ class SSHRemote(remotelib.Remote):
         else:
             cmd.append("-v")
         src = run.path + "/"
-        dest = "{}:{}/runs/{}/".format(self.host, self.guild_home, run.id)
+        dest_path = "{}/runs/{}/".format(self.guild_home, run.id)
+        dest = ssh_util.format_rsync_host_path(self.host, dest_path, self.user)
         cmd.extend([src, dest])
         log.info("Copying %s", run.id)
         log.debug("rsync cmd: %r", cmd)
@@ -87,7 +88,8 @@ class SSHRemote(remotelib.Remote):
             self._pull_run(run, no_delete)
 
     def _pull_run(self, run, no_delete):
-        src = "{}:{}/runs/{}/".format(self.host, self.guild_home, run.id)
+        src_path = "{}/runs/{}/".format(self.guild_home, run.id)
+        src = ssh_util.format_rsync_host_path(self.host, src_path, self.user)
         dest = os.path.join(var.runs_dir(), run.id + "/")
         cmd = ["rsync"] + self._pull_rsync_opts(no_delete) + [src, dest]
         log.info("Copying %s", run.id)
@@ -126,11 +128,11 @@ class SSHRemote(remotelib.Remote):
         ssh_util.ssh_ping(self.host, verbose)
         sys.stdout.write("%s (%s) is available\n" % (self.name, self.host))
 
-    def run_op(self, opspec, args, restart, no_wait, **opts):
+    def run_op(self, opspec, flags, restart, no_wait, **opts):
         with util.TempDir(prefix="guild-remote-pkg-") as dist_dir:
             _build_package(dist_dir)
             remote_run_dir = self._init_remote_run(dist_dir, opspec, restart)
-        self._start_op(remote_run_dir, opspec, args, **opts)
+        self._start_op(remote_run_dir, opspec, flags, **opts)
         run_id = os.path.basename(remote_run_dir)
         if no_wait:
             return run_id
@@ -212,14 +214,14 @@ class SSHRemote(remotelib.Remote):
         else:
             return ""
 
-    def _start_op(self, remote_run_dir, opspec, args, **opts):
+    def _start_op(self, remote_run_dir, opspec, flags, **opts):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(
             "export PYTHONPATH=$(realpath {run_dir})/.guild/job-packages"
             ":$PYTHONPATH"
             .format(run_dir=remote_run_dir))
-        cmd_lines.append(_remote_run_cmd(remote_run_dir, opspec, args, **opts))
+        cmd_lines.append(_remote_run_cmd(remote_run_dir, opspec, flags, **opts))
         cmd = "; ".join(cmd_lines)
         log.info("Starting remote operation")
         ssh_util.ssh_cmd(self.host, [cmd], self.user)
@@ -382,7 +384,7 @@ def _build_package(dist_dir):
         comment=None)
     package_impl.main(args)
 
-def _remote_run_cmd(remote_run_dir, opspec, op_args, label,
+def _remote_run_cmd(remote_run_dir, opspec, op_flags, label,
                     disable_plugins, gpus, no_gpus):
     cmd = [
         "NO_WARN_RUNDIR=1",
@@ -400,7 +402,7 @@ def _remote_run_cmd(remote_run_dir, opspec, op_args, label,
         cmd.extend(["--gpus", q(gpus)])
     if no_gpus:
         cmd.append("--no-gpus")
-    cmd.extend([q(arg) for arg in op_args])
+    cmd.extend([q(arg) for arg in op_flags])
     return " ".join(cmd)
 
 def _watch_run_args(run, ops, pid, labels, unlabeled):

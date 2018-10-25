@@ -69,9 +69,13 @@ def _ssh_opts(verbose=False, connect_timeout=None):
     return opts
 
 def rsync_copy_to(src, host, host_dest, user=None):
-    dest = "{}:{}".format(host, host_dest)
-    if user:
-        dest = "{}@{}".format(user, dest)
+    dest = format_rsync_host_path(host, host_dest, user)
     cmd = ["rsync", "-vr", src, dest]
     log.debug("rsync cmd: %r", cmd)
     subprocess.check_call(cmd)
+
+def format_rsync_host_path(host, path, user):
+    if user:
+        return "{}@{}:{}".format(user, host, path)
+    else:
+        return "{}:{}".format(host, path)

@@ -45,17 +45,14 @@ class EC2Remote(ssh_remote.SSHRemote):
         self.private_key = config.get("private-key")
         self.password = config.get("password")
         self.working_dir = var.remote_dir(name)
-        super(EC2Remote, self).__init__(name, self._ssh_config(config))
+        super(EC2Remote, self).__init__(name, self._ensure_none_host(config))
 
-    def _ssh_config(self, config):
-        ignore = ("host", "user")
-        for name in ignore:
-            if name in config:
-                log.warning("config '%s' ignored in remote %s", name, self.name)
-        ssh_config = dict(config)
-        ssh_config["host"] = None
-        ssh_config["user"] = self.user
-        return ssh_config
+    def _ensure_none_host(self, config):
+        if "host" in config:
+            log.warning("config 'host' ignored in remote %s", self.name)
+        config = dict(config)
+        config["host"] = None
+        return config
 
     @property
     def host(self):
@@ -251,8 +248,6 @@ class EC2Remote(ssh_remote.SSHRemote):
                 "type": "ssh",
                 "host": "${aws_instance.%s.public_ip}" % remote_key
             }
-            if self.port:
-                connection["port"] = self.port
             if self.init_timeout:
                 if isinstance(self.init_timeout, int):
                     connection["timeout"] = "%im" % self.init_timeout
