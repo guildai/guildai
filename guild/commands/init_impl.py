@@ -53,10 +53,10 @@ class Config(object):
     def _init_env_name(name, abs_env_dir):
         if name:
             return name
-        elif os.path.exists(abs_env_dir):
-            return os.path.basename(os.path.dirname(abs_env_dir))
-        else:
-            return os.path.basename(abs_env_dir)
+        basename = os.path.basename(abs_env_dir)
+        if basename != "env":
+            return basename
+        return os.path.basename(os.path.dirname(abs_env_dir))
 
     @staticmethod
     def _init_venv_python(args):
