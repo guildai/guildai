@@ -20,8 +20,6 @@ import logging
 import os
 import types
 
-import six
-
 log = logging.getLogger("guild")
 
 class Script(object):
@@ -340,8 +338,7 @@ def _compile_script(src, filename, node_filter):
     return compile(ast_root, filename, "exec", flags=flags, dont_inherit=True)
 
 def _filter_nodes(root, node_filter):
-    if (isinstance(root, ast.Module) or
-        isinstance(root, ast.If)):
+    if isinstance(root, (ast.Module, ast.If)):
         root.body = [
             _filter_nodes(node, node_filter)
             for node in root.body

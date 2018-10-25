@@ -136,7 +136,7 @@ def _handle_op_error(e, remote):
 
 def _run_kw(args):
     names = [
-        "args",
+        "flags",
         "disable_plugins",
         "gpus",
         "label",
