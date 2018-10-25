@@ -515,7 +515,10 @@ def _format_op_flags_dl(opdef):
     return guild.help.flags_dl(flags)
 
 def _print_cmd(op):
-    formatted = " ".join([_maybe_quote_arg(arg) for arg in op.cmd_args])
+    formatted = " ".join([
+        _maybe_quote_arg(arg)
+        for arg in op.cmd_args
+        if arg != "guild.op_main"])
     cli.out(formatted)
 
 def _maybe_quote_arg(arg):
