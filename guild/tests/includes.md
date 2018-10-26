@@ -104,9 +104,8 @@ system path:
 
     >>> guildfile.from_file(sample("projects/includes/include-pkg.yml"))
     Traceback (most recent call last):
-    GuildfileIncludeError: error in .../projects/includes/include-pkg.yml:
-    cannot find include 'mnist' (includes must be local to including Guild
-    file or a Guild package on the system path)
+    GuildfileReferenceError: error in .../projects/includes/include-pkg.yml:
+    cannot find Guild file for package 'mnist'
 
 We'll modify the system path to so Guild can find the `mnist` package.
 
