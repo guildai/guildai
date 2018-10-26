@@ -27,26 +27,26 @@ By default, this path is identical to the Python path
 
 Let's modify the model path by adding a sample model path:
 
-    >>> guild.model.insert_path(sample("projects/mnist"))
+    >>> guild.model.insert_path(sample("projects/mnist-pkg"))
 
 This has the effect of inserting the project location at the beginning
 of the model path:
 
     >>> guild.model.get_path()
-    ['.../samples/projects/mnist', ...]
+    ['.../samples/projects/mnist-pkg', ...]
 
 We can alternatively set the entire model path using `set_path`. We'll
 include both our sample MNIST project as well as the sample models
 defined in `packages`.
 
     >>> guild.model.set_path([
-    ...   sample("projects/mnist"),
+    ...   sample("projects/mnist-pkg"),
     ...   sample("packages")])
 
 Here's our new path:
 
     >>> guild.model.get_path()
-    ['.../samples/projects/mnist',
+    ['.../samples/projects/mnist-pkg',
      '.../samples/packages']
 
 ## Iterating models
@@ -126,7 +126,7 @@ guildfile. This value can be unescaped using
     >>> intro_pkg_path = guild.model.unescape_project_name(
     ...                    intro.dist.project_name[11:])
     >>> intro_pkg_path
-    '.../samples/projects/mnist'
+    '.../samples/projects/mnist-pkg'
 
 Guildfile distribution package paths always start with '.':
 
@@ -156,7 +156,7 @@ working directory.
     '.'
 
     >>> intro.fullname
-    '.../tests/samples/projects/mnist/intro'
+    '.../tests/samples/projects/mnist-pkg/intro'
 
 Models from installed packages are named with their Guild package
 names (i.e. after namespaces are applied) and do not start with a '.'.
@@ -177,7 +177,7 @@ Here's the reference for the `intro` model:
 
     >>> intro.reference
     ModelRef(dist_type='guildfile',
-             dist_name='.../samples/projects/mnist',
+             dist_name='.../samples/projects/mnist-pkg',
              dist_version='...',
              model_name='intro')
 
@@ -236,4 +236,4 @@ defined in.
     '.../samples/packages/gpkg/mnist/guild.yml'
 
     >>> intro_def.guildfile.src
-    '.../samples/projects/mnist/guild.yml'
+    '.../samples/projects/mnist-pkg/guild.yml'

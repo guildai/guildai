@@ -11,15 +11,15 @@ Support for guild files is provided by the `guildfile` module:
 
 Use `from_dir` to load a guild file from a directory:
 
-    >>> gf = guildfile.from_dir(sample("projects/mnist"))
+    >>> gf = guildfile.from_dir(sample("projects/mnist-pkg"))
     >>> gf.src
-    '.../samples/projects/mnist/guild.yml'
+    '.../samples/projects/mnist-pkg/guild.yml'
 
 ## Loading a guildfile from a file
 
 Use `from_file` to load a guildfile from a file directly:
 
-    >>> gf = guildfile.from_file(sample("projects/mnist/guild.yml"))
+    >>> gf = guildfile.from_file(sample("projects/mnist-pkg/guild.yml"))
 
 Models are access using the `models` attribute:
 
