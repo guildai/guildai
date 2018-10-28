@@ -23,6 +23,12 @@ Highlights:
 - Model packaging and distribution
 - Train on EC2 and backup to S3
 
+## Requirements
+
+- Linux or Mac OS/X
+- Python 2.7 or 3 with `pip` and `virtualenv`
+- TensorFlow
+
 ## Install Guild AI
 
 To install Guild AI with pip, run:
@@ -48,6 +54,12 @@ AI](https://www.guild.ai/install).
 Guild AI is used to automate TensorFlow training. In this example, we
 create simple project and train a model, capturing run results as
 experiments.
+
+Before proceeding, verify the following:
+
+- Guild AI is installed
+- TensorFlow is installed (see [Install
+  TensorFlow](https://www.tensorflow.org/install/) for assistance)
 
 Create a sample project:
 
@@ -99,7 +111,9 @@ Run the sample `train` operation:
 guild run train
 ```
 
-The sample model will train in a few seconds.
+Press `Enter` to continue.
+
+The sample model trains in a few seconds.
 
 List runs:
 
