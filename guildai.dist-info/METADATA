@@ -8,7 +8,7 @@ Author-email: packages@guild.ai
 License: Apache 2.0
 Keywords: guild guildai tensorflow keras deep machine learning
 Platform: UNKNOWN
-Classifier: Development Status :: 3 - Alpha
+Classifier: Development Status :: 4 - Beta
 Classifier: Environment :: Console
 Classifier: Intended Audience :: Developers
 Classifier: Intended Audience :: Education
@@ -42,9 +42,9 @@ Requires-Dist: tabview
 Requires-Dist: twine
 Requires-Dist: virtualenv
 
-Guild AI is a Python application that that streamlines TensorFlow and
-Keras deep learning development. It's released under the Apache 2 open
-source license.
+Guild AI is a task runner and package manager for TensorFlow. Use it
+to automate training, testing, and deployment of TensorFlow and Keras
+models.
 
 - `Guild AI website <https://www.guild.ai>`_
 - `Documentation <ttps://www.guild.ai/docs/>`_
@@ -53,12 +53,11 @@ source license.
 
 Highlights:
 
-- Automatically track training experiments
+- Automatically capture run output as unique experiments
 - Compare model performance at-a-glance
 - Visualize training results with TensorBoard
-- Seamless integration with Keras models
-- Model packaging and distribution
-- Train, deploy, and predict on Cloud Machine Learning Engine (Cloud ML)
+- Package and distribute models
+- Train on AWS EC2 and backup to S3
 
-To get started, see `Guild AI - Quick start
-<https://www.guild.ai/#quick-start>`_.
+To get started, see `Guild AI introduction
+<https://www.guild.ai/docs/intro>`_.

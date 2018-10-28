@@ -54,7 +54,7 @@ def _external_libs_path():
                 "If you're a Guild developer, run 'python setup.py build' "
                 "in the Guild project directory and try again. Otherwise "
                 "please report this as a bug at "
-                "https://github.com/guildai/guild/issues."))
+                "https://github.com/guildai/guildai/issues."))
         sys.stderr.write("\n")
         sys.exit(1)
     return path
