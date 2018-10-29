@@ -19,6 +19,7 @@ import functools
 import logging
 
 import click
+import six
 
 from guild import config
 
@@ -107,7 +108,12 @@ def _format_data(data, cols):
     return formatted
 
 def _str_or_list(x):
-    return x if isinstance(x, list) else str(x)
+    if isinstance(x, list):
+        return x
+    elif isinstance(x, six.string_types):
+        return x
+    else:
+        return str(x)
 
 def _col_info(data, cols):
     info = {}
