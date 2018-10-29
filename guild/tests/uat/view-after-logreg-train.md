@@ -1,4 +1,4 @@
-# View after softmax train
+# View after logreg train
 
 Guild View supports a `--test` option, which starts the serve, prints
 status, and exits.

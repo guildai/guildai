@@ -1,6 +1,6 @@
-# Runs after `mnist-softmax` train
+# Runs after `logreg` train
 
-After we've trained `mnist-softmax` we have one run:
+After we've trained `logreg` we have one run:
 
     >>> run("guild runs")
     [1:...]  gpkg.mnist/logreg:train  ... ...  completed

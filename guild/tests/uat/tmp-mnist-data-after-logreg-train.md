@@ -1,6 +1,6 @@
-# Tmp MNIST data after softmax train
+# Tmp MNIST data after logreg train
 
-The `mnist-softmax` model uses a software library that downloads the
+The `logreg` model uses a software library that downloads the
 MNIST dataset to `/tmp/MNIST_data` by default. As the `mnist` package
 is configured to use the its `dataset` resource, we want to confirm
 that nothing was downloaded to the default location.

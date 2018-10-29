@@ -50,7 +50,7 @@ exercise core Guild functionality.
 
 The `mnist` package contains two models that roughly correspond to the
 TensorFlow *expert* and *intro* tutorial examples. These are named
-`cnn` and `softmax` respectively.
+`cnn` and `logreg` respectively.
 
 First we install the package.
 
@@ -63,16 +63,16 @@ Then we confirm we have the expected models and operations.
 - [models-after-mnist-install](models-after-mnist-install.md)
 - [ops-after-mnist-install](ops-after-mnist-install.md)
 
-Next we train the `softmax` model and view the results.
+Next we train the `logreg` model and view the results.
 
-- [tmp-mnist-data-before-softmax-train](tmp-mnist-data-before-softmax-train.md)
-- [train-mnist-softmax-preview](train-mnist-softmax-preview.md)
-- [train-mnist-softmax](train-mnist-softmax.md)
-- [runs-after-mnist-softmax-train](runs-after-mnist-softmax-train.md)
-- [run-info-after-mnist-softmax-train](run-info-after-mnist-softmax-train.md)
-- [tmp-mnist-data-after-softmax-train](tmp-mnist-data-after-softmax-train.md)
-- [compare-after-softmax-train](compare-after-softmax-train.md)
-- [view-after-softmax-train](view-after-softmax-train.md)
+- [tmp-mnist-data-before-logreg-train](tmp-mnist-data-before-logreg-train.md)
+- [train-mnist-logreg-preview](train-mnist-logreg-preview.md)
+- [train-mnist-logreg](train-mnist-logreg.md)
+- [runs-after-mnist-logreg-train](runs-after-mnist-logreg-train.md)
+- [run-info-after-mnist-logreg-train](run-info-after-mnist-logreg-train.md)
+- [tmp-mnist-data-after-logreg-train](tmp-mnist-data-after-logreg-train.md)
+- [compare-after-logreg-train](compare-after-logreg-train.md)
+- [view-after-logreg-train](view-after-logreg-train.md)
 
 Finally we'll uninstall the `mnist` package and verify that its
 associated models and operations removed.

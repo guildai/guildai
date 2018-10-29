@@ -1,6 +1,6 @@
-# Train `mnist-softmax`
+# Train `logreg`
 
-We'll train the `mnist-softmax` model with one epoch. Noe that we
+We'll train the `logreg` model with one epoch. Noe that we
 don't have to specify the full model name as long as our term refers
 to one and only one model.
 

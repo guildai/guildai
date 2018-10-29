@@ -1,4 +1,4 @@
-# Run info after `mnist-softmax` train
+# Run info after `logreg` train
 
 Use `guild runs info` to show information about the latest run:
 
@@ -9,7 +9,7 @@ Use `guild runs info` to show information about the latest run:
     started: ...
     stopped: ...
     run_dir: ...
-    command: ... softmax --data-dir mnist-idx-data --run-dir . --batch-size 100 --epochs 1
+    command: ... logreg --data-dir mnist-idx-data --run-dir . --batch-size 100 --epochs 1
     exit_status: 0
     pid:
     <exit 0>
@@ -23,7 +23,7 @@ We can optionally show files, flags, and env for a run:
     started: ...
     stopped: ...
     run_dir: ...
-    command: ... guild.op_main softmax --data-dir mnist-idx-data --run-dir . --batch-size 100 --epochs 1
+    command: ... guild.op_main logreg --data-dir mnist-idx-data --run-dir . --batch-size 100 --epochs 1
     exit_status: 0
     pid:
     environment:

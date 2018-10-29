@@ -1,4 +1,4 @@
-# Train `mnist-softmax` preview
+# Train `logreg` preview
 
 By default Guild operations show the user a preview, allowing her to
 review the setting before continuing.

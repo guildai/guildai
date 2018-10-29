@@ -17,17 +17,17 @@ formatted string:
     ######
     <BLANKLINE>
     expert
-    ######
+    ======
     <BLANKLINE>
     *Expert model*
     <BLANKLINE>
     Operations
-    ==========
+    ^^^^^^^^^^
     <BLANKLINE>
     evaluate
-    ^^^^^^^^
+    --------
     Flags
-    -----
+    `````
     <BLANKLINE>
     **batch-size**
       *Number of images per eval batch (50000)*
@@ -36,9 +36,9 @@ formatted string:
       *Epochs to evaluate (1)*
     <BLANKLINE>
     train
-    ^^^^^
-    Flags
     -----
+    Flags
+    `````
     <BLANKLINE>
     **batch-size**
       *Number of images per train batch (100)*
@@ -54,15 +54,15 @@ formatted string:
     <BLANKLINE>
     <BLANKLINE>
     intro
-    #####
+    =====
     <BLANKLINE>
     Operations
-    ==========
+    ^^^^^^^^^^
     <BLANKLINE>
     evaluate
-    ^^^^^^^^
+    --------
     Flags
-    -----
+    `````
     <BLANKLINE>
     **batch-size**
       *Number of images per eval batch (50000)*
@@ -71,9 +71,9 @@ formatted string:
       *Epochs to evaluate (2)*
     <BLANKLINE>
     train
-    ^^^^^
-    Flags
     -----
+    Flags
+    `````
     <BLANKLINE>
     **batch-size**
       *Number of images per train batch (100)*
@@ -88,7 +88,7 @@ formatted string:
       *Learning rate for training (0.001)*
     <BLANKLINE>
     References
-    ==========
+    ^^^^^^^^^^
     <BLANKLINE>
     - https://www.tensorflow.org/tutorials/layers
     <BLANKLINE>

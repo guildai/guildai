@@ -1,4 +1,4 @@
-# Compare after softmax train
+# Compare after logreg train
 
 `guild compare` is used to print a tabular report of runs, including
 accuracy and loss.
