@@ -6,7 +6,7 @@ Home-page: https://www.guild.ai
 Author: Guild AI
 Author-email: packages@guild.ai
 License: Apache 2.0
-Keywords: guild guildai tensorflow keras deep machine learning
+Keywords: guild guildai tensorflow keras
 Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
 Classifier: Environment :: Console
