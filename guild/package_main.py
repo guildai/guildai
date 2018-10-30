@@ -117,19 +117,19 @@ def _dist_dir_args():
 
 def _setup_kw(pkg):
     project_dir = os.path.dirname(pkg.guildfile.src)
-    desc, long_desc = _pkg_description(pkg)
+    summary, help_desc = _pkg_description(pkg)
     project_name = pkg.name
     python_pkg_name = _python_pkg_name(pkg)
     return dict(
         name=project_name,
         version=pkg.version,
-        description=desc,
-        long_description=long_desc,
+        description=summary,
+        long_description=help_desc,
         url=pkg.url,
         author=pkg.author,
         author_email=pkg.author_email,
         license=pkg.license,
-        keywords=" ".join(pkg.tags),
+        keywords=_pkg_keywords(pkg),
         python_requires=_pkg_python_requires(pkg),
         install_requires=_pkg_install_requires(pkg),
         packages=[python_pkg_name],
@@ -142,21 +142,17 @@ def _setup_kw(pkg):
     )
 
 def _pkg_description(pkg):
-    """Returns a tuple of the package description and long description.
+    """Returns a tuple of the package summary and long description.
 
-    The description is the first line of the package description
-    field. Long description is generated and consists of subsequent
-    lines in the package description, if they exist, plus
-    reStructuredText content representing the models and model details
-    defined in the package.
+    The summary is the first line of the package description
+    field. Long description is generated using Guild's help generafor
+    the package description (restructured text format).
 
     """
-    desc_lines = pkg.description.split("\n")
-    desc = desc_lines[0]
-    long_desc = "\n\n".join(desc_lines[1:])
-    pkg_desc = guild.help.package_description(pkg.guildfile)
-    long_desc += "\n\n" + pkg_desc
-    return desc, long_desc
+    pkg_desc_lines = pkg.description.split("\n")
+    summary = pkg_desc_lines[0]
+    help_desc = guild.help.package_description(pkg.guildfile)
+    return summary, help_desc
 
 def _python_pkg_name(pkg):
     return pkg.name.replace("-", "_")
@@ -215,6 +211,12 @@ def _iter_guildfile_resdefs(pkg):
 
 def _pkg_python_requires(pkg):
     return ", ".join(pkg.python_requires)
+
+def _pkg_keywords(pkg):
+    tags = list(pkg.tags)
+    if "gpkg" not in tags:
+        tags.append("gpkg")
+    return " ".join(tags)
 
 def _pkg_install_requires(pkg):
     if pkg.requires is None:
