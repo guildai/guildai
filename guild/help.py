@@ -58,10 +58,12 @@ class RestFormatter(click.HelpFormatter):
 
     def start_section(self, val):
         if self._in_section:
+            self.dedent()
             self.write_paragraph()
         self.write_text(val)
         self.write_text(self._heading_char() * len(val))
         self.write_paragraph()
+        self.indent()
         self._in_section = True
 
     def _heading_char(self):
@@ -138,12 +140,21 @@ def _is_cwd(path):
     return os.path.abspath(path) == os.path.abspath(os.getcwd())
 
 def package_description(guildfile):
-    if not guildfile.models:
-        return ""
     out = RestFormatter()
-    out.start_section("Models")
-    _write_models(guildfile, out)
+    if guildfile.package:
+        out.start_section(guildfile.package.name)
+        _write_package_desc(guildfile.package, out)
+    if guildfile.models:
+        out.start_section("Models")
+        _write_models(guildfile, out)
     return "".join(out.buffer)
+
+def _write_package_desc(pkg, out):
+    if pkg.description:
+        out.write_description(pkg.description)
+    if pkg.tags:
+        out.write_paragraph()
+        out.write_text("Keywords: %s" % " ".join(pkg.tags))
 
 def _write_models(guildfile, out):
     i = 0
