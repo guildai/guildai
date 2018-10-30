@@ -20,47 +20,41 @@ import os
 
 from guild import cli
 from guild import namespace
-from guild import package
 from guild import pip_util
 from guild import util
 
 log = logging.getLogger("guild")
 
-INTERNAL_PACKAGES = ["guildai"]
-
 def list_packages(args):
     installed = pip_util.get_installed()
-    scope_filtered = [pkg for pkg in installed if _filter_scope(pkg, args)]
-    formatted = [_format_pkg(pkg) for pkg in scope_filtered]
+    guild_packages = [pkg for pkg in installed if _is_gpkg(pkg)]
+    formatted = [_format_pkg(pkg) for pkg in guild_packages]
     filtered = [pkg for pkg in formatted if _filter_model(pkg, args)]
     cli.table(filtered, cols=["name", "version", "summary"], sort=["name"])
 
-def _filter_scope(pkg, args):
-    return (
-        pkg.project_name not in INTERNAL_PACKAGES
-        and (args.all or package.is_gpkg(pkg.project_name))
-    )
+def _is_gpkg(pkg):
+    keywords = _pkg_metadata(pkg, "Keywords") or ""
+    return "gpkg" in keywords.split(" ")
 
-def _format_pkg(pkg):
-    return {
-        "name": pkg.project_name,
-        "summary": _pkg_summary(pkg),
-        "version": pkg.version,
-    }
-
-def _pkg_summary(pkg):
+def _pkg_metadata(pkg, name):
     try:
         metadata_lines = pkg.get_metadata_lines("METADATA")
     except IOError:
         # no METADATA
         metadata_lines = []
-    # For efficiency, just look at the first few lines for Summary
-    for i, line in enumerate(metadata_lines):
-        if line[:9] == "Summary: ":
-            return line[9:]
-        if i == 5:
-            break
-    return ""
+    line_prefix = "{}: ".format(name)
+    len_line_prefix = len(line_prefix)
+    for line in metadata_lines:
+        if line[:len_line_prefix] == line_prefix:
+            return line[len_line_prefix:]
+    return None
+
+def _format_pkg(pkg):
+    return {
+        "name": pkg.project_name,
+        "summary": _pkg_metadata(pkg, "Summary") or "",
+        "version": pkg.version,
+    }
 
 def _filter_model(pkg, args):
     return util.match_filters(args.terms, [pkg["name"], pkg["summary"]])
