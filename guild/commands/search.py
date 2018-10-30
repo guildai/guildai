@@ -33,7 +33,7 @@ def search(args):
 
     Specify one or more `TERM` arguments to search for.
 
-    By default, only matching `NAMESPACE` are returned. To search all
+    By default, only Guild packages are returned. To search all Python
     packages, use the `--all` option.
 
     """
