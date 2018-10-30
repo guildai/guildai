@@ -20,12 +20,15 @@ import os
 import re
 import sys
 
+from six.moves import xmlrpc_client
+
 from pip._internal.commands.download import DownloadCommand
 from pip._internal.commands.install import InstallCommand
-from pip._internal.commands.search import SearchCommand
+from pip._internal.commands.search import SearchCommand as SearchCommandBase
 from pip._internal.commands.show import ShowCommand
 from pip._internal.commands.uninstall import UninstallCommand
 from pip._internal.download import _download_http_url
+from pip._internal.download import PipXmlrpcTransport
 from pip._internal.exceptions import InstallationError
 from pip._internal.exceptions import UninstallationError
 from pip._internal.index import Link
@@ -40,6 +43,25 @@ log = logging.getLogger("guild")
 
 class InstallError(Exception):
     pass
+
+class SearchCommand(SearchCommandBase):
+    """Guild specific pip search implementation.
+
+    This exposes the search fields and operator, which were are hard
+    coded in the pip implementation.
+    """
+
+    def __init__(self, spec, operator, *args, **kw):
+        super(SearchCommand, self).__init__(*args, **kw)
+        self._spec = spec
+        self._operator = operator
+
+    def search(self, _query, options):
+        index_url = options.index
+        with self._build_session(options) as session:
+            transport = PipXmlrpcTransport(index_url, session)
+            pypi = xmlrpc_client.ServerProxy(index_url, transport)
+            return pypi.search(self._spec, self._operator)
 
 def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
             no_cache=False, no_deps=False, reinstall=False, target=None):
@@ -75,8 +97,8 @@ def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
 def _reset_env_for_install():
     util.del_env(["PIP_REQ_TRACKER"])
 
-def _pip_cmd(cls):
-    cmd = cls()
+def _pip_cmd(cls, *args, **kw):
+    cmd = cls(*args, **kw)
     cmd.verbosity = False
     return cmd
 
@@ -138,12 +160,11 @@ def get_installed():
         local_only=False,
         user_only=user_only)
 
-def search(terms):
+def search(spec, operator):
     _ensure_search_logger()
-    cmd = _pip_cmd(SearchCommand)
-    args = terms
-    options, query = cmd.parse_args(args)
-    return cmd.search(query, options)
+    cmd = _pip_cmd(SearchCommand, spec, operator)
+    options, unused_parsed_query = cmd.parse_args([])
+    return cmd.search(unused_parsed_query, options)
 
 class QuietLogger(logging.Logger):
 

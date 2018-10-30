@@ -21,7 +21,10 @@ from guild import click_util
 
 @click.command()
 @click.argument("terms", metavar="TERM...", nargs=-1, required=True)
-@click.option("-a", "--all", help="Search all packages.", is_flag=True)
+@click.option(
+    "-a", "--all",
+    is_flag=True,
+    help="Search all packages.")
 
 @click_util.use_args
 
@@ -30,7 +33,7 @@ def search(args):
 
     Specify one or more `TERM` arguments to search for.
 
-    By default, only Guild packages are returned. To search all
+    By default, only matching `NAMESPACE` are returned. To search all
     packages, use the `--all` option.
 
     """

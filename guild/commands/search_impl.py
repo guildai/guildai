@@ -17,22 +17,31 @@ from __future__ import division
 
 from guild import cli
 from guild import namespace
-from guild import package
 from guild import pip_util
 
 def main(args):
-    results = pip_util.search(list(args.terms))
-    filtered = _filter_packages(results, args)
-    formatted = [_format_package(pkg) for pkg in filtered]
+    formatted = [_format_package(pkg) for pkg in _search(args)]
     cli.table(
         formatted,
         cols=["name", "version", "description"],
         sort=["name"])
 
-def _filter_packages(pkgs, args):
+def _search(args):
+    spec, operator = _search_spec(args)
+    return pip_util.search(spec, operator)
+
+def _search_spec(args):
+    terms = list(args.terms)
     if args.all:
-        return pkgs
-    return [pkg for pkg in pkgs if package.is_gpkg(pkg["name"])]
+        return {
+            "name": terms,
+            "summary": terms
+        }, "or"
+    else:
+        return {
+            "description": terms,
+            "keywords": ["gpkg"]
+        }, "and"
 
 def _format_package(pkg):
     return {
