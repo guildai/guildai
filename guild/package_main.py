@@ -187,10 +187,9 @@ def _entry_points(pkg):
     return {
         name: eps
         for name, eps in [
-                ("guild.models", _model_entry_points(pkg)),
-                ("guild.resources", _resource_entry_points(pkg))
-        ]
-        if eps
+            ("guild.models", _model_entry_points(pkg)),
+            ("guild.resources", _resource_entry_points(pkg))
+        ] if eps
     }
 
 def _model_entry_points(pkg):
