@@ -43,9 +43,11 @@ TB_REFRESH_INTERVAL = 5
 
 SCALAR_KEYS = [
     ("step", (
+        # For loss
         "loss_step",
         "total_loss_1_step",
         "train/loss_step",
+        "train/loss_1_step",
         "train/cross_entropy_1_step",
         "train/total_loss_1_step",
         "logs/train/loss_step",
@@ -56,11 +58,22 @@ SCALAR_KEYS = [
         "model/total_loss_1_step",
         "OptimizeLoss_step",
         "epoch_loss_step",
+        # For accuracy
+        "val_acc_step",
+        "validate/accuracy_step",
+        "validation/accuracy_1_step",
+        "logs/validation/accuracy_1_step",
+        "eval/accuracy_step",
+        "eval/Accuracy_step",
+        "acc_step",
+        "epoch_acc_step",
+        "eval/DetectionBoxes_Precision/mAP_step",
     )),
     ("loss", (
         "loss",
         "total_loss_1",
         "train/loss",
+        "train/loss_1",
         "train/cross_entropy_1",
         "train/total_loss_1",
         "logs/train/loss",
@@ -81,6 +94,7 @@ SCALAR_KEYS = [
         "eval/Accuracy",
         "acc",
         "epoch_acc",
+        "eval/DetectionBoxes_Precision/mAP",
     ))
 ]
 
