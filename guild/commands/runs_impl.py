@@ -580,6 +580,9 @@ def _label(args, ctx):
         cli.error("specify a label")
 
 def _clear_labels(args, ctx):
+    # if a label arg is provided, assume it's a run spec
+    if args.label:
+        args.runs += (args.label,)
     preview = "You are about to clear the labels for the following runs:"
     confirm = "Continue?"
     no_runs = "No runs to modify."
