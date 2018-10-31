@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import fnmatch
 import logging
 import os
 
@@ -31,18 +32,24 @@ def main(args, ctx):
             "PATH must be relative\n"
             "Try 'guild ls --help' for more information.")
     run = runs_impl.one_run(args, ctx)
-    path = run.path
-    if args.path:
-        path = os.path.join(path, args.path)
-    _print_header(path, args)
-    for val in sorted(_list(path, args)):
+    _print_header(run.path, args)
+    for val in sorted(_list(run.path, args)):
         _print_file(val, args)
 
-def _list(path, args):
-    for root, dirs, files in os.walk(path, followlinks=args.follow_links):
+def _print_header(run_dir, args):
+    if not args.full_path and not args.no_format:
+        if not args.full_path:
+            run_dir = util.format_dir(run_dir)
+        cli.out("%s:" % run_dir)
+
+def _list(run_dir, args):
+    for root, dirs, files in os.walk(run_dir, followlinks=args.follow_links):
         _maybe_rm_guild_dir(dirs, args)
         for name in (dirs + files):
             full_path = os.path.join(root, name)
+            rel_path = os.path.relpath(full_path, run_dir)
+            if args.path and not _match_path(rel_path, args.path):
+                continue
             if os.path.isdir(full_path):
                 suffix = os.path.sep
             else:
@@ -50,7 +57,7 @@ def _list(path, args):
             if args.full_path:
                 yield full_path + suffix
             else:
-                yield os.path.relpath(full_path, path) + suffix
+                yield rel_path + suffix
 
 def _maybe_rm_guild_dir(dirs, args):
     if args.all:
@@ -60,14 +67,15 @@ def _maybe_rm_guild_dir(dirs, args):
     except ValueError:
         pass
 
-def _print_header(path, args):
-    if not args.no_format:
-        if not args.full_path:
-            path = util.format_dir(path)
-        cli.out("%s:" % path)
+def _match_path(filename, pattern):
+    return (
+        filename.startswith(pattern) or
+        fnmatch.fnmatch(filename, pattern))
 
 def _print_file(path, args):
-    if args.no_format:
+    if args.full_path:
+        cli.out(os.path.abspath(path))
+    elif args.no_format:
         cli.out(path)
     else:
         cli.out("  %s" % path)
