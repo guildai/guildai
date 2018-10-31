@@ -783,7 +783,7 @@ def _t_default(val, arg):
 def _t_basename(val):
     if not val:
         return ""
-    return os.path.basename(val)
+    return os.path.basename(strip_trailing_path(val))
 
 def _rendered_str(s):
     if s is None:
