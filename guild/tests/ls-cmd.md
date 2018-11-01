@@ -104,7 +104,7 @@ Show full path:
 Show all files, including Guild files:
 
     >>> ls(all=True)
-    ~/SCM/.../samples/ls-runs-home/runs/run-1:
+    ~/.../samples/ls-runs-home/runs/run-1:
       .guild/
       .guild/attrs/
       .guild/attrs/opref
