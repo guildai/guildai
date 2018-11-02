@@ -56,34 +56,22 @@ class FileResolver(Resolver):
             return resolve_source_files(source_path, self.source, unpack_dir)
 
     def _abs_source_path(self):
-        source_path = util.find_apply(
-            [_existing_resource_source,
-             _model_parent_source,
-             _resource_source],
-            self.resource,
-            self.source.parsed_uri.path)
-        return os.path.abspath(source_path)
+        source_path = self.source.parsed_uri.path
+        for root in self._source_location_paths():
+            abs_path = os.path.abspath(os.path.join(root, source_path))
+            if os.path.exists(abs_path):
+                return abs_path
+        raise ResolutionError("cannot find source file %s" % source_path)
 
-def _existing_resource_source(resource, path):
-    full_path = os.path.join((resource.location or ""), path)
-    if os.path.exists(full_path):
-        return full_path
-    return None
-
-def _model_parent_source(resource, path):
-    try:
-        modeldef = resource.resdef.modeldef
-    except AttributeError:
-        pass
-    else:
-        for parent in modeldef.parents:
-            full_path = os.path.join(parent.dir, path)
-            if os.path.exists(full_path):
-                return full_path
-    return None
-
-def _resource_source(resource, path):
-    return os.path.join((resource.location or ""), path)
+    def _source_location_paths(self):
+        yield self.resource.location
+        try:
+            modeldef = self.resource.resdef.modeldef
+        except AttributeError:
+            pass
+        else:
+            for parent in modeldef.parents:
+                yield parent.dir
 
 def _resolve_config_path(config, resource_name):
     config_path = os.path.abspath(config)
