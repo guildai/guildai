@@ -168,7 +168,10 @@ def _package_data(pkg):
     return _pkg_data_files(pkg) + _default_pkg_files()
 
 def _pkg_data_files(pkg):
-    return pkg.data_files
+    matches = []
+    for pattern in pkg.data_files:
+        matches.extend(glob.glob(pattern))
+    return matches
 
 def _default_pkg_files():
     return [
