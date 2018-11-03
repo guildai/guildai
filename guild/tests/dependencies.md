@@ -338,8 +338,7 @@ extracted file.
     >>> unpack_dir = mkdtemp()
     >>> resolver.resolve(unpack_dir)
     Traceback (most recent call last):
-    ResolutionError: '.../samples/projects/resources/doesnt-exist'
-    does not exist
+    ResolutionError: cannot find source file doesnt-exist
 
     >>> dir(unpack_dir)
     []

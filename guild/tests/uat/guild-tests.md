@@ -19,6 +19,7 @@ tests).
       includes:                  ok
       init:                      ok
       logging:                   ok
+      ls-cmd:                    ok
       main-bootstrap:            ok
       memory-plugin:             ok
       models:                    ok
