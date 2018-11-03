@@ -88,7 +88,7 @@ def free_port():
 def open_url(url):
     try:
         _open_url_with_cmd(url)
-    except OSError:
+    except (OSError, URLOpenError):
         _open_url_with_webbrowser(url)
 
 class URLOpenError(Exception):
