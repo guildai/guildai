@@ -41,10 +41,11 @@ from guild import click_util
 @click_util.use_args
 
 def inspect(args):
-    """Inspect a TensorFlow checkpoint file.
+    """Inspect a TensorFlow checkpoint or graph.
 
     `PATH` is the path to the checkpoint file (usually ending in
-    ``.ckpt``).
+    ``.ckpt``) or to a protobuf seralized graph (usually ending in
+    ``.pb``).
 
     """
     from . import tensorflow_impl
