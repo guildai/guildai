@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 import os
+import re
 
 from guild import cli
 from guild import namespace
@@ -52,9 +53,12 @@ def _pkg_metadata(pkg, name):
 def _format_pkg(pkg):
     return {
         "name": pkg.project_name,
-        "summary": _pkg_metadata(pkg, "Summary") or "",
+        "summary": _strip_guildai_suffix(_pkg_metadata(pkg, "Summary") or ""),
         "version": pkg.version,
     }
+
+def _strip_guildai_suffix(summary):
+    return re.sub(r" \(Guild AI\)$", "", summary)
 
 def _filter_model(pkg, args):
     return util.match_filters(args.terms, [pkg["name"], pkg["summary"]])
