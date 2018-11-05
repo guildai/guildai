@@ -4,9 +4,9 @@ Use `guild packages info PKG` to show information about a package:
 
     >>> run("guild packages info gpkg.mnist") # doctest: +REPORT_UDIFF
     name: gpkg.mnist
-    version: 0.5.0...
-    summary: CNN and multinomial logistic regression classifiers for MNIST digits
-    home-page: https://github.com/guildai/index/tree/master/mnist
+    version: 0.5.1...
+    summary: CNN and multinomial logistic regression classifiers for MNIST digits (Guild AI)
+    home-page: https://github.com/guildai/index/tree/master/gpkg/mnist
     author: Guild AI
     author-email: packages@guild.ai
     license: Apache 2.0
@@ -20,9 +20,9 @@ information.
 
     >>> run("guild packages info gpkg.mnist --verbose --files") # doctest: +REPORT_UDIFF
     name: gpkg.mnist
-    version: 0.5.0...
-    summary: CNN and multinomial logistic regression classifiers for MNIST digits
-    home-page: https://github.com/guildai/index/tree/master/mnist
+    version: 0.5.1...
+    summary: CNN and multinomial logistic regression classifiers for MNIST digits (Guild AI)
+    home-page: https://github.com/guildai/index/tree/master/gpkg/mnist
     author: Guild AI
     author-email: packages@guild.ai
     license: Apache 2.0
