@@ -46,11 +46,9 @@ def _handle_tensorflow_import_error(e):
 def _inspect_graph(args):
     graph = _load_graph(args.file_name)
     for op in graph.get_operations():
-        if op.type == "Placeholder":
-            sys.stdout.write("%s\n" % op.name)
-        else:
-            for out in op.outputs:
-                sys.stdout.write("%s\n" % op.name)
+        sys.stdout.write("%s\n" % op.name)
+        for out in op.outputs:
+            sys.stdout.write("%s\n" % out.name)
 
 def _load_graph(filename):
     import tensorflow as tf
