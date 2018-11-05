@@ -138,18 +138,30 @@ class _ForEachModel(object):
     type_attr = "for-each-model"
 
     def __init__(self, step_config, test):
-        self.models = self._init_models(step_config, test)
+        config = step_config[self.type_attr]
+        self.models = self._init_models(config, test)
         self.steps = [
             _resolve_model_step(step, test)
-            for step in (step_config[self.type_attr].get("steps") or [])
+            for step in (config.get("steps") or [])
             if not _step_disabled(step)]
 
-    def _init_models(self, step_config, test):
-        models = step_config[self.type_attr].get("models")
+    def _init_models(self, config, test):
+        models = config.get("models")
         if not models:
-            models = sorted(test.guildfile.models)
-        except_models = set(step_config[self.type_attr].get("except") or [])
+            models = self._all_models(config, test)
+        except_models = set(config.get("except") or [])
         return [m for m in models if m not in except_models]
+
+    @staticmethod
+    def _all_models(config, test):
+        first = config.get("first")
+        if not first:
+            return sorted(test.guildfile.models)
+        def sort_key(m):
+            if m == first:
+                return '\x00'
+            return m
+        return sorted(test.guildfile.models, key=sort_key)
 
     def run(self, run_config):
         for model in self.models:
