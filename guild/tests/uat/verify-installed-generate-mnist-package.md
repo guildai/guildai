@@ -3,8 +3,8 @@
     >>> run("guild packages info gpkg.mnist")
     name: gpkg.mnist
     version: ...
-    summary: CNN and multinomial logistic regression classifiers for MNIST digits
-    home-page: https://github.com/guildai/index/tree/master/mnist
+    summary: CNN and multinomial logistic regression classifiers for MNIST digits (Guild AI)
+    home-page: https://github.com/guildai/index/tree/master/gpkg/mnist
     author: Guild AI
     author-email: packages@guild.ai
     license: Apache 2.0
