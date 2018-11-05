@@ -17,19 +17,41 @@ We'll use an args proxy to simulate command arguments.
     ...       self.labels = ()
     ...       self.unlabeled = False
 
+To test list with a run containing symbolic links, we need to generate
+a sample run dynamically. We can't use a sample directory structure
+with links because the links will not be preserved when the directory
+is packaged with setuptools.
+
+Let's create a sample run structure:
+
+    >>> from guild import run as runlib
+    >>> guild_home = mkdtemp()
+    >>> runs_home = join_path(guild_home, "runs")
+    >>> mkdir(runs_home)
+    >>> run = runlib.Run("run-1", join_path(runs_home, "run-1"))
+    >>> run.init_skel()
+    >>> run.write_attr("opref", "guildfile:. abc123 foo bar")
+    >>> touch(join_path(run.path, "a"))
+    >>> touch(join_path(run.path, "b"))
+    >>> mkdir(join_path(run.path, "c"))
+    >>> touch(join_path(run.path, "c", "d.txt"))
+    >>> touch(join_path(run.path, "c", "e.txt"))
+    >>> touch(join_path(run.path, "c", "f.bin"))
+    >>> symlink("c", join_path(run.path, "l"))
+
 Here's a function that tests the ls command using sample runs.
 
     >>> from guild import config
     >>> from guild.commands import ls_impl
 
     >>> def ls(**kw):
-    ...     with config.SetGuildHome(sample("ls-runs-home")):
+    ...     with config.SetGuildHome(guild_home):
     ...         ls_impl.main(Args(**kw), None)
 
 By default ls prints all non-Guild files without following links:
 
     >>> ls()
-    ~/.../samples/ls-runs-home/runs/run-1:
+    /.../runs/run-1:
       a
       b
       c/
@@ -41,28 +63,28 @@ By default ls prints all non-Guild files without following links:
 We can list various paths:
 
     >>> ls(path="a")
-    ~/.../samples/ls-runs-home/runs/run-1:
+    /.../runs/run-1:
       a
 
     >>> ls(path="c")
-    ~/.../samples/ls-runs-home/runs/run-1:
+    /.../runs/run-1:
       c/
       c/d.txt
       c/e.txt
       c/f.bin
 
     >>> ls(path="*.txt")
-    ~/.../samples/ls-runs-home/runs/run-1:
+    /.../runs/run-1:
       c/d.txt
       c/e.txt
 
     >>> ls(path="no-match")
-    ~/.../samples/ls-runs-home/runs/run-1:
+    /.../runs/run-1:
 
 Follow links:
 
     >>> ls(follow_links=True)
-    ~/.../samples/ls-runs-home/runs/run-1:
+    /.../runs/run-1:
       a
       b
       c/
@@ -75,7 +97,7 @@ Follow links:
       l/f.bin
 
     >>> ls(follow_links=True, path="*.bin")
-    ~/.../samples/ls-runs-home/runs/run-1:
+    /.../runs/run-1:
       c/f.bin
       l/f.bin
 
@@ -93,23 +115,21 @@ Show without formatting:
 Show full path:
 
     >>> ls(full_path=True)
-    /.../samples/ls-runs-home/runs/run-1/a
-    /.../samples/ls-runs-home/runs/run-1/b
-    /.../samples/ls-runs-home/runs/run-1/c
-    /.../samples/ls-runs-home/runs/run-1/c/d.txt
-    /.../samples/ls-runs-home/runs/run-1/c/e.txt
-    /.../samples/ls-runs-home/runs/run-1/c/f.bin
-    /.../samples/ls-runs-home/runs/run-1/l
+    /.../runs/run-1/a
+    /.../runs/run-1/b
+    /.../runs/run-1/c
+    /.../runs/run-1/c/d.txt
+    /.../runs/run-1/c/e.txt
+    /.../runs/run-1/c/f.bin
+    /.../runs/run-1/l
 
 Show all files, including Guild files:
 
     >>> ls(all=True)
-    ~/.../samples/ls-runs-home/runs/run-1:
+    /.../runs/run-1:
       .guild/
       .guild/attrs/
       .guild/attrs/opref
-      .guild/e
-      .guild/f
       a
       b
       c/

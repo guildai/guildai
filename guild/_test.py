@@ -170,6 +170,8 @@ def _test_globals():
         "realpath": os.path.realpath,
         "join_path": os.path.join,
         "symlink": os.symlink,
+        "mkdir": os.mkdir,
+        "touch": util.touch,
     }
 
 def sample(*parts):
