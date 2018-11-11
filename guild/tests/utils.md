@@ -219,10 +219,10 @@ When we're run reading we can close the reader:
 
 ## Label templates
 
-The function `render_label_template` is used to render strings in the
+The function `render_label` is used to render strings in the
 label template syntax.
 
-    >>> from guild.util import render_label_template as render
+    >>> from guild.util import render_label as render
 
 Examples:
 

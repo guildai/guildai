@@ -742,7 +742,7 @@ def gpu_available():
             return True
     return False
 
-def render_label_template(template, vals):
+def render_label(template, vals):
     tokens = re.split(r"(\${.+?})", template)
     return "".join([_rendered_str(_render_token(t, vals)) for t in tokens])
 

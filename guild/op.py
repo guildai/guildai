@@ -119,10 +119,10 @@ class Operation(object):
         self._maybe_write_label(resolved)
 
     def _maybe_write_label(self, resolved):
-        if "label" in self.extra_attrs or not self.opdef.label_template:
+        if "label" in self.extra_attrs or not self.opdef.label:
             return
         label = _format_label(
-            self.opdef.label_template,
+            self.opdef.label,
             self.flag_vals,
             self.resource_config,
             resolved)
@@ -489,7 +489,7 @@ def init_run(path=None):
 
 def _format_label(template, flag_vals, resource_config, resolved_deps):
     vals = _init_label_val_lookup(flag_vals, resource_config, resolved_deps)
-    return util.render_label_template(template, vals)
+    return util.render_label(template, vals)
 
 def _init_label_val_lookup(flag_vals, resource_config, resolved_deps):
     lookup = {}
