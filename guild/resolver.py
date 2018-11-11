@@ -378,6 +378,8 @@ def _archive_type(source_path, source):
           parts[-1] == "tgz" or
           parts[-2:-1] == ["tar"]):
         return "tar"
+    elif parts[-1] == "gz":
+        return "gzip"
     else:
         return None
 
@@ -390,6 +392,8 @@ def _unpack(source_path, archive_type, select, unpack_dir):
         return _unzip(source_path, select, unpack_dir)
     elif archive_type == "tar":
         return _untar(source_path, select, unpack_dir)
+    elif archive_type == "gzip":
+        return _gunzip(source_path, select, unpack_dir)
     else:
         raise ResolutionError(
             "'%s' cannot be unpacked "
@@ -445,6 +449,43 @@ def _tar_members_fun(tf):
 
 def _tar_member_name(tfinfo):
     return _strip_leading_dotdir(tfinfo.name)
+
+def _gunzip(src, select, unpack_dir):
+    return _gen_unpack(
+        unpack_dir,
+        src,
+        _gzip_list_members_fun(src),
+        _gzip_member_name_fun,
+        _gzip_extract_fun(src),
+        select)
+
+def _gzip_list_members_fun(src):
+    return lambda: [_gzip_member_name(src)]
+
+def _gzip_member_name(src):
+    assert src[-3:] == ".gz", src
+    return os.path.basename(src)[:-3]
+
+def _gzip_member_name_fun(m):
+    return m
+
+def _gzip_extract_fun(src):
+    import gzip
+    def extract(unpack_dir, members):
+        if not members:
+            return
+        assert len(members) == 1, members
+        member_name = members[0]
+        assert _gzip_member_name(src) == member_name, (src, member_name)
+        dest = os.path.join(unpack_dir, member_name)
+        with gzip.open(src, "rb") as f_in:
+            with open(dest, "wb") as f_out:
+                while True:
+                    block = f_in.read(102400)
+                    if not block:
+                        break
+                    f_out.write(block)
+    return extract
 
 def _strip_leading_dotdir(path):
     if path[:2] == "./":
