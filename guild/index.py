@@ -22,8 +22,11 @@ import hashlib
 import logging
 import os
 import random
+import re
 import time
 import sys
+
+import six
 
 from whoosh import fields
 from whoosh import index
@@ -307,7 +310,7 @@ class RunIndex(object):
         from tensorboard.backend.event_processing import event_accumulator
         _ensure_tf_logger_patched()
         scalars = {}
-        scalar_map = run.get("_extra_scalar_map", {})
+        scalar_aliases = self._init_scalar_aliases(run)
         for path in io_wrapper.GetLogdirSubdirectories(run.path):
             events_checksum_field_name = self._events_checksum_field_name(path)
             last_checksum = fields.get(events_checksum_field_name)
@@ -320,9 +323,36 @@ class RunIndex(object):
                 rel_path = os.path.relpath(path, run.path)
                 events = event_accumulator._GeneratorFromPath(path).Load()
                 scalar_vals = self._scalar_vals(events, rel_path)
-                self._apply_scalar_vals(scalar_vals, scalars, scalar_map)
+                self._apply_scalar_vals(scalar_vals, scalars, scalar_aliases)
                 scalars[events_checksum_field_name] = cur_checksum
         return scalars
+
+    @staticmethod
+    def _init_scalar_aliases(run):
+        """Returns list of scalar aliases as `key`, `pattern` tuples.
+
+        `key` is the mapped scalar key and `pattern` is the associated
+        scalar key pattern. If a logged scalar key matches `pattern`,
+        `key` is treated as an alias of the logged scalar key.
+        """
+        attr = run.get("_extra_scalar-aliases", {})
+        if not isinstance(attr, dict):
+            log.debug(
+                "unexpected type for _extra_scalar-aliases: %s",
+                type(attr))
+            return []
+        aliases = []
+        for key, patterns in sorted(attr.items()):
+            if isinstance(patterns, six.string_types):
+                patterns = [patterns]
+            for p in patterns:
+                try:
+                    compiled_p = re.compile(p)
+                except Exception:
+                    log.debug("invalid alias pattern for %s: %s", key, p)
+                else:
+                    aliases.append((key, compiled_p))
+        return aliases
 
     @staticmethod
     def _events_checksum_field_name(path):
@@ -367,24 +397,26 @@ class RunIndex(object):
         else:
             return os.path.normpath(path_prefix) + "/" + tag
 
-    def _apply_scalar_vals(self, scalar_vals, scalars, scalar_map):
+    def _apply_scalar_vals(self, scalar_vals, scalars, aliases):
         for key, vals in scalar_vals.items():
             if not vals:
                 continue
             self._store_scalar_vals(key, vals, scalars)
-            try:
-                mapped_key = scalar_map[key]
-            except KeyError:
-                pass
-            else:
-                log.debug("mapping scalar %s to %s", key, mapped_key)
-                self._store_scalar_vals(mapped_key, vals, scalars)
+            for alias_key in self._alias_keys(key, aliases):
+                log.debug("using alias %s for %s", alias_key, key)
+                self._store_scalar_vals(alias_key, vals, scalars)
 
     @staticmethod
     def _store_scalar_vals(key, vals, scalars):
         last_val, step = vals[-1]
         scalars[_encode_field_name("scalar_", key)] = last_val
         scalars[_encode_field_name("scalar_", key + "_step")] = step
+
+    @staticmethod
+    def _alias_keys(logged_key, aliases):
+        for alias, pattern in aliases:
+            if pattern.match(logged_key):
+                yield alias
 
     def _index_run(self, run, writer):
         log.debug("indexing run %s", run.id)
