@@ -55,10 +55,6 @@ class Resource(object):
         return None
 
     def resolve(self, unpack_dir=None):
-        if not self.resdef.sources:
-            raise DependencyError(
-                "no sources defined for %s resource"
-                % self.resdef.name)
         resolved_acc = []
         for source in self.resdef.sources:
             paths = self.resolve_source(source, unpack_dir)

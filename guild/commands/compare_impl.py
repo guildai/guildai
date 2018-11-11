@@ -48,7 +48,7 @@ def _print_table(args):
     index = guild.index.RunIndex()
     runs, _logs = _get_runs_cb(args, index)()
     cols = runs[0]
-    col_indexes = zip(cols, range(len(cols)))
+    col_indexes = list(zip(cols, range(len(cols))))
     def format_row(row):
         return {
             col_name: row[i]
