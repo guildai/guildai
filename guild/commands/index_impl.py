@@ -47,5 +47,5 @@ def _print_fields(index):
 def _print_info(index):
     cli.out("path: {}".format(index.path))
     cli.out("runs: {}".format(index.ix.doc_count()))
-    last_modified = util.format_timestamp(index.ix.last_modified())
+    last_modified = util.format_timestamp(index.ix.last_modified() * 1000000)
     cli.out("last-modified: {}".format(last_modified))
