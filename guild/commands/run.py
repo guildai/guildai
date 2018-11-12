@@ -66,6 +66,10 @@ def run_params(fn):
             help="Do not prompt before running operation.",
             is_flag=True),
         click.Option(
+            ("-f", "--force-flags"),
+            help="Accept all flag assignments, even for undefined flags.",
+            is_flag=True),
+        click.Option(
             ("--background",), metavar="PIDFILE",
             help=(
                 "Run operation in background. PIDFILE must be a path to a "

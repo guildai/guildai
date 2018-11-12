@@ -269,7 +269,7 @@ def _no_such_operation_error(name, model):
 def _init_op(opdef, model, args, ctx):
     parsed = _parse_args(args)
     flag_vals, resource_vals = _split_flags_and_resources(parsed, opdef)
-    _apply_flag_vals(flag_vals, opdef)
+    _apply_flag_vals(flag_vals, opdef, args.force_flags)
     _validate_opdef_flags(opdef)
     _apply_arg_disable_plugins(args, opdef)
     return guild.op.Operation(
@@ -312,8 +312,15 @@ def _is_resource(name, opdef, ref_vars):
             return True
     return False
 
-def _apply_flag_vals(vals, opdef):
+def _apply_flag_vals(vals, opdef, force_apply=False):
     for name, val in vals.items():
+        flagdef = opdef.get_flagdef(name)
+        if not force_apply and not flagdef:
+            cli.error(
+                "undefined flag '%s'\n"
+                "Try 'guild run %s --help-op' for a list of "
+                "flags or use --force-flags to bypass this check."
+                % (name, opdef.fullname))
         val = _resolve_rel_path(val)
         opdef.set_flag_value(name, val)
 
