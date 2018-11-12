@@ -154,23 +154,25 @@ def _load_testfile(filename):
 
 def _test_globals():
     return {
+        "Chdir": Chdir,
         "LogCapture": util.LogCapture,
+        "StderrCapture": StderrCapture,
+        "abspath": os.path.abspath,
         "cat": cat,
         "dir": dir,
-        "gapi": _api,
+        "dirname": os.path.dirname,
         "find": find,
+        "gapi": _api,
+        "join_path": os.path.join,
+        "mkdir": os.mkdir,
         "mkdtemp": mkdtemp,
         "mktemp_guild_dir": mktemp_guild_dir,
         "pprint": pprint.pprint,
+        "realpath": os.path.realpath,
+        "relpath": os.path.relpath,
         "sample": sample,
         "samples_dir": samples_dir,
-        "dirname": os.path.dirname,
-        "abspath": os.path.abspath,
-        "relpath": os.path.relpath,
-        "realpath": os.path.realpath,
-        "join_path": os.path.join,
         "symlink": os.symlink,
-        "mkdir": os.mkdir,
         "touch": util.touch,
     }
 
@@ -230,3 +232,43 @@ def _strip_class_module(class_name):
 
 if sys.version_info[0] > 2:
     _patch_py3_exception_detail()
+
+class StderrCapture(object):
+
+    _stderr = None
+    _captured = []
+
+    def __enter__(self):
+        self._stderr = sys.stderr
+        self._captured = []
+        sys.stderr = self
+        return self
+
+    def __exit__(self, *exc):
+        assert self._stderr is not None
+        sys.stderr = self._stderr
+
+    def write(self, b):
+        self._captured.append(b)
+
+    def flush(self):
+        pass
+
+    def print(self):
+        sys.stdout.write("".join(self._captured))
+        sys.stdout.flush()
+
+class Chdir(object):
+
+    _cwd = None
+
+    def __init__(self, path):
+        self.path = path
+
+    def __enter__(self):
+        self._cwd = os.getcwd()
+        os.chdir(self.path)
+
+    def __exit__(self, *exc):
+        assert self._cwd is not None
+        os.chdir(self._cwd)

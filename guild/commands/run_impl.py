@@ -20,7 +20,6 @@ import pipes
 import re
 
 import click
-import six
 
 import guild.help
 import guild.model
@@ -270,7 +269,8 @@ def _init_op(opdef, model, args, ctx):
     parsed = _parse_args(args)
     flag_vals, resource_vals = _split_flags_and_resources(parsed, opdef)
     _apply_flag_vals(flag_vals, opdef, args.force_flags)
-    _validate_opdef_flags(opdef)
+    if not args.force_flags:
+        _validate_opdef_flags(opdef)
     _apply_arg_disable_plugins(args, opdef)
     return guild.op.Operation(
         model.reference,
@@ -312,51 +312,38 @@ def _is_resource(name, opdef, ref_vars):
             return True
     return False
 
-def _apply_flag_vals(vals, opdef, force_apply=False):
+def _apply_flag_vals(vals, opdef, force=False):
     for name, val in vals.items():
-        flagdef = opdef.get_flagdef(name)
-        if not force_apply and not flagdef:
+        flag = opdef.get_flagdef(name)
+        if not force and not flag:
             cli.error(
                 "undefined flag '%s'\n"
                 "Try 'guild run %s --help-op' for a list of "
                 "flags or use --force-flags to bypass this check."
                 % (name, opdef.fullname))
-        val = _resolve_rel_path(val)
-        opdef.set_flag_value(name, val)
-
-def _resolve_rel_path(val):
-    if (isinstance(val, six.string_types) and
-        val and
-        os.path.exists(val) and
-        not os.path.isabs(val)):
-        return os.path.abspath(val)
-    return val
+        try:
+            coerced = op_util.coerce_flag_value(val, flag)
+        except ValueError as e:
+            cli.error(
+                "cannot apply %r to flag '%s': %s"
+                % (val, name, e))
+        else:
+            opdef.set_flag_value(name, coerced)
 
 def _validate_opdef_flags(opdef):
-    vals = opdef.flag_values()
-    _check_missing_flag_vals(vals, opdef)
-    _check_valid_flag_vals(vals, opdef)
+    try:
+        op_util.validate_opdef_flags(opdef)
+    except op_util.MissingRequiredFlags as e:
+        _missing_required_flags_error(e)
+    except op_util.InvalidFlagChoice as e:
+        _invalid_flag_choice_error(e)
+    except op_util.InvalidFlagValue as e:
+        _invalid_flag_value_error(e)
 
-def _check_missing_flag_vals(vals, opdef):
-    missing = _missing_flag_vals(vals, opdef)
-    if missing:
-        _missing_required_flags_error(missing)
-
-def _missing_flag_vals(vals, opdef):
-    return [
-        flag for flag in opdef.flags
-        if flag.required and _flag_missing(vals.get(flag.name))
-    ]
-
-def _flag_missing(val):
-    if val is None or val == "":
-        return True
-    return False
-
-def _missing_required_flags_error(missing):
+def _missing_required_flags_error(e):
     cli.out("Operation requires the following missing flags:\n", err=True)
     cli.table(
-        [{"name": flag.name, "desc": flag.description} for flag in missing],
+        [{"name": flag.name, "desc": flag.description} for flag in e.missing],
         ["name", "desc"],
         indent=2,
         err=True)
@@ -365,25 +352,21 @@ def _missing_required_flags_error(missing):
         err=True)
     cli.error()
 
-def _check_valid_flag_vals(vals, opdef):
-    for flag in opdef.flags:
-        val = vals.get(flag.name)
-        if (val and flag.choices and
-            val not in [choice.value for choice in flag.choices]):
-            _invalid_flag_value_error(flag)
-
-def _invalid_flag_value_error(flag):
+def _invalid_flag_choice_error(e):
     cli.out(
         "Unsupported value for '%s' - supported values are:\n"
-        % flag.name, err=True)
+        % e.flag.name, err=True)
     cli.table(
         [{"val": choice.value, "desc": choice.description}
-         for choice in flag.choices],
+         for choice in e.flag.choices],
         ["val", "desc"],
         indent=2,
         err=True)
     cli.out("\nRun the command again using one of these options.", err=True)
     cli.error()
+
+def _invalid_flag_value_error(e):
+    cli.error("invalid value for '%s': %s" % (e.flag.name, e.msg))
 
 def _apply_arg_disable_plugins(args, opdef):
     if args.disable_plugins:
@@ -631,9 +614,9 @@ def _format_flag(name, val, opdef):
     return "%s: %s" % (name, formatted)
 
 def _null_label(name, opdef):
-    flagdef = opdef.get_flagdef(name)
-    if flagdef:
-        return flagdef.null_label or "default"
+    flag = opdef.get_flagdef(name)
+    if flag:
+        return flag.null_label or "default"
     else:
         return "default"
 

@@ -67,7 +67,9 @@ def run_params(fn):
             is_flag=True),
         click.Option(
             ("-f", "--force-flags"),
-            help="Accept all flag assignments, even for undefined flags.",
+            help=(
+                "Accept all flag assignments, even for undefined or "
+                "invalid flags."),
             is_flag=True),
         click.Option(
             ("--background",), metavar="PIDFILE",

@@ -797,6 +797,7 @@ class FlagDef(object):
         self.opdef = opdef
         self.default = data.get("default")
         self.description = data.get("description") or ""
+        self.type = data.get("type")
         self.required = bool(data.get("required"))
         self.arg_name = data.get("arg-name")
         self.arg_skip = bool(data.get("arg-skip"))

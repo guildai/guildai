@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 import struct
 import sys
@@ -23,11 +24,34 @@ import yaml
 import guild.run
 from guild import util
 
+log = logging.getLogger("guild")
+
 class ArgValueError(ValueError):
 
     def __init__(self, arg):
         super(ArgValueError, self).__init__(arg)
         self.arg = arg
+
+class MissingRequiredFlags(ValueError):
+
+    def __init__(self, missing):
+        super(MissingRequiredFlags, self).__init__(missing)
+        self.missing = missing
+
+class InvalidFlagChoice(ValueError):
+
+    def __init__(self, val, flag):
+        super(InvalidFlagChoice, self).__init__(val, flag)
+        self.val = val
+        self.flag = flag
+
+class InvalidFlagValue(ValueError):
+
+    def __init__(self, val, flag, msg):
+        super(InvalidFlagValue, self).__init__(val, flag, msg)
+        self.val = val
+        self.flag = flag
+        self.msg = msg
 
 class RunOutput(object):
 
@@ -317,3 +341,78 @@ def _model_file(path):
             if os.path.exists(full_path):
                 return full_path
     return None
+
+def coerce_flag_value(val, flag):
+    if not flag or not flag.type:
+        return val
+    if flag.type == "string":
+        return _try_coerce_flag_val(val, str, flag)
+    elif flag.type == "int":
+        if isinstance(val, float):
+            raise ValueError("invalid value for type 'int'")
+        return _try_coerce_flag_val(val, int, flag)
+    elif flag.type == "float":
+        return _try_coerce_flag_val(val, float, flag)
+    elif flag.type == "number":
+        if isinstance(val, (float, int)):
+            return val
+        return _try_coerce_flag_val(val, (int, float), flag)
+    elif flag.type in ("path", "existing-path"):
+        return _resolve_rel_path(val)
+    else:
+        log.warning(
+            "unknown flag type '%s' for %s - cannot coerce",
+            flag.type, flag.name)
+        return val
+
+def _try_coerce_flag_val(val, funs, flag):
+    if not isinstance(funs, tuple):
+        funs = (funs,)
+    for f in funs:
+        try:
+            return f(val)
+        except ValueError as e:
+            log.debug("value error applying %s to %r: %s", f, val, e)
+    raise ValueError("invalid value for type '%s'" % flag.type)
+
+def _resolve_rel_path(val):
+    if val is not None and not os.path.isabs(val):
+        return os.path.abspath(val)
+    return val
+
+def validate_opdef_flags(opdef):
+    vals = opdef.flag_values()
+    _check_missing_flags(vals, opdef)
+    _check_flag_vals(vals, opdef)
+
+def _check_missing_flags(vals, opdef):
+    missing = _missing_flags(vals, opdef)
+    if missing:
+        raise MissingRequiredFlags(missing)
+
+def _missing_flags(vals, opdef):
+    return [
+        flag for flag in opdef.flags
+        if flag.required and _flag_missing(vals.get(flag.name))
+    ]
+
+def _flag_missing(val):
+    if val is None or val == "":
+        return True
+    return False
+
+def _check_flag_vals(vals, opdef):
+    for flag in opdef.flags:
+        val = vals.get(flag.name)
+        _check_flag_choice(val, flag)
+        _check_flag_type(val, flag)
+
+def _check_flag_choice(val, flag):
+    if (val and flag.choices and
+        val not in [choice.value for choice in flag.choices]):
+        raise InvalidFlagChoice(val, flag)
+
+def _check_flag_type(val, flag):
+    if flag.type == "existing-path":
+        if val and not os.path.exists(val):
+            raise InvalidFlagValue(val, flag, "%s does not exist" % val)
