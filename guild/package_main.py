@@ -120,6 +120,8 @@ def _setup_kw(pkg):
     summary, help_desc = _pkg_description(pkg)
     project_name = pkg.name
     python_pkg_name = _python_pkg_name(pkg)
+    packages, package_dir = _python_packages(
+        pkg, python_pkg_name, project_dir)
     return dict(
         name=project_name,
         version=pkg.version,
@@ -132,8 +134,8 @@ def _setup_kw(pkg):
         keywords=_pkg_keywords(pkg),
         python_requires=_pkg_python_requires(pkg),
         install_requires=_pkg_install_requires(pkg),
-        packages=[python_pkg_name],
-        package_dir={python_pkg_name: project_dir},
+        packages=packages,
+        package_dir=package_dir,
         namespace_packages=_namespace_packages(python_pkg_name),
         package_data={
             python_pkg_name: _package_data(pkg)
@@ -156,6 +158,35 @@ def _pkg_description(pkg):
 
 def _python_pkg_name(pkg):
     return pkg.name.replace("-", "_")
+
+def _python_packages(pkg, base_pkg, project_dir):
+    if pkg.packages is not None:
+        return (
+            pkg.packages.keys(),
+            pkg.packages
+        )
+    return _default_python_packages(base_pkg, project_dir)
+
+def _default_python_packages(base_pkg, project_dir):
+    found_pkgs = setuptools.find_packages()
+    all_pkgs = [base_pkg] + _apply_base_pkg(base_pkg, found_pkgs)
+    pkg_dirs = _all_pkg_dirs(project_dir, base_pkg, found_pkgs)
+    return all_pkgs, pkg_dirs
+
+def _apply_base_pkg(base_pkg, found_pkgs):
+    return ["%s.%s" % (base_pkg, pkg) for pkg in found_pkgs]
+
+def _all_pkg_dirs(project_dir, base_pkg, found_pkgs):
+    pkg_dirs = {
+        base_pkg: project_dir
+    }
+    pkg_dirs.update({
+        found_pkg: os.path.join(
+            project_dir,
+            found_pkg.replace(".", os.path.sep))
+        for found_pkg in found_pkgs
+    })
+    return pkg_dirs
 
 def _namespace_packages(python_pkg_name):
     parts = python_pkg_name.rsplit(".", 1)
