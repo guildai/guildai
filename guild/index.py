@@ -335,10 +335,10 @@ class RunIndex(object):
         scalar key pattern. If a logged scalar key matches `pattern`,
         `key` is treated as an alias of the logged scalar key.
         """
-        attr = run.get("_extra_scalar-aliases", {})
+        attr = run.get("_extra_scalars", {})
         if not isinstance(attr, dict):
             log.debug(
-                "unexpected type for _extra_scalar-aliases: %s",
+                "unexpected type for _extra_scalar: %s",
                 type(attr))
             return []
         aliases = []
