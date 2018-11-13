@@ -25,10 +25,10 @@ from guild import click_util
     "-n", "--name", metavar="NAME",
     help="Environment name (default is env parent directory name).")
 @click.option(
-    "--python", metavar="VERSION",
+    "-p", "--python", metavar="VERSION",
     help="Version of Python to use for the environment.")
 @click.option(
-    "--guild", metavar="VERSION_OR_PATH",
+    "-g", "--guild", metavar="VERSION_OR_PATH",
     help=(
         "Version of Guild AI to use for the environment. "
         "By default, the active version of Guild is installed. This "
@@ -47,7 +47,7 @@ from guild import click_util
     "-r", "--requirement", metavar="FILE", multiple=True,
     help="Install packages defined in FILE. May be used multiple times.")
 @click.option(
-    "-p", "--path", metavar="DIR", multiple=True,
+    "-P", "--path", metavar="DIR", multiple=True,
     help="Include DIR as a Python path in the environment.")
 @click.option(
     "--no-reqs", is_flag=True,

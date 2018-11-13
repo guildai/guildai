@@ -39,7 +39,7 @@ class Config(object):
     def __init__(self, args):
         self.env_dir = os.path.abspath(args.dir)
         self.env_name = self._init_env_name(args.name, self.env_dir)
-        self.venv_python_ver = self._init_venv_python(args)
+        self.venv_python = self._init_venv_python(args)
         self.guild = args.guild
         self.guild_pkg_reqs = self._init_guild_pkg_reqs(args)
         self.user_reqs = self._init_user_reqs(args)
@@ -90,10 +90,10 @@ class Config(object):
         params = []
         params.append(("Location", _shorten_path(self.env_dir)))
         params.append(("Name", self.env_name))
-        if self.venv_python_ver:
-            params.append(("Python version", self.venv_python_ver))
+        if self.venv_python:
+            params.append(("Python interpreter", self.venv_python))
         else:
-            params.append(("Python version", "default"))
+            params.append(("Python interpreter", "default"))
         if self.guild:
             params.append(("Guild version", self.guild))
         else:
@@ -268,8 +268,8 @@ def _init_venv(config):
 def _venv_cmd_args(config):
     args = ["virtualenv", config.env_dir]
     args.extend(["--prompt", "({}) ".format(config.env_name)])
-    if config.venv_python_ver:
-        args.extend(["--python", "python{}".format(config.venv_python)])
+    if config.venv_python:
+        args.extend(["--python", config.venv_python])
     return args
 
 def _install_guild(config):
