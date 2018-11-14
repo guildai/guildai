@@ -21,6 +21,12 @@ from guild import python_util
 from guild.plugin import Plugin
 
 class SummaryPlugin(Plugin):
+    """Summary plugin base class.
+
+    Summary plugins log additional summary values (e.g. GPU usage,
+    etc.) per logged summary. This class is used to patch the TF env
+    to handle `add_summary` of`tensorflow.summary.FileWriter`.
+    """
 
     MIN_SUMMARY_INTERVAL = 5
 
@@ -36,23 +42,32 @@ class SummaryPlugin(Plugin):
             tensorflow.summary.FileWriter, "add_summary",
             self._handle_summary)
 
-    def _handle_summary(self, add_summary, _summary, step):
+    def _handle_summary(self, add_summary, _summary, global_step=None):
+        """Callback to apply summary values via read_summary_values.
+
+        See SummaryPlugin docstring above for background.
+        """
+        if global_step is None:
+            # Unsure what this means for summaries, which are always
+            # associated with a global step.
+            self.log.debug("summary plugin global_step is None, skipping")
+            return
         if self._summary_cache.expired():
             self.log.debug("reading summary values")
             try:
-                vals = self.read_summary_values(step)
+                vals = self.read_summary_values(global_step)
             except:
                 self.log.exception("reading summary values")
                 vals = {}
-            self._summary_cache.reset_for_step(step, vals)
-        vals = self._summary_cache.for_step(step)
+            self._summary_cache.reset_for_step(global_step, vals)
+        vals = self._summary_cache.for_step(global_step)
         if vals:
             self.log.debug("summary values: %s", vals)
             summary = tf_scalar_summary(vals)
-            add_summary(summary, step)
+            add_summary(summary, global_step)
 
     @staticmethod
-    def read_summary_values(_step):
+    def read_summary_values(_global_step):
         return {}
 
 def tf_scalar_summary(vals):
