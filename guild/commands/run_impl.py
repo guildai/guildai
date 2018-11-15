@@ -319,7 +319,7 @@ def _apply_flag_vals(vals, opdef, force=False):
             cli.error(
                 "unsupported flag '%s'\n"
                 "Try 'guild run %s --help-op' for a list of "
-                "flags or use --force-flags to bypass this check."
+                "flags or use --force-flags to skip this check."
                 % (name, opdef.fullname))
         try:
             coerced = op_util.coerce_flag_value(val, flag)

@@ -165,5 +165,5 @@ Undefined flags generate an error:
     >>> flags("simplest", {"not-defined": 123})
     unsupported flag 'not-defined'
     Try 'guild run test:simplest --help-op' for a list of flags or
-    use --force-flags to bypass this check.
+    use --force-flags to skip this check.
     <exit>
