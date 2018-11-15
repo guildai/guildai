@@ -40,7 +40,7 @@ within the project directory:
     >>> config().prompt_params
     [('Location', '.../samples/projects/init-env/env'),
      ('Name', 'init-env'),
-     ('Python version', 'default'),
+     ('Python interpreter', 'default'),
      ('Guild version', '...'),
      ('Guild package requirements',
       ('Pillow',
@@ -70,7 +70,7 @@ using a `--path` option.
     >>> config(path=(project_dir,)).prompt_params
     [('Location', '.../samples/projects/init-env/env'),
      ('Name', 'init-env'),
-     ('Python version', 'default'),
+     ('Python interpreter', 'default'),
      ('Guild version', '...'),
      ('Guild package requirements',
       ('Pillow',
