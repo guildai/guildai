@@ -4,5 +4,5 @@ This test assumes we're running under the source tree, which indicates
 "dev" mode. The version reflects this.
 
     >>> run("guild --version")
-    guild 0.5.1...
+    guild 0.5...
     <exit 0>
