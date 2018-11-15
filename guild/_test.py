@@ -235,18 +235,21 @@ if sys.version_info[0] > 2:
 
 class StderrCapture(object):
 
+    closed = False
     _stderr = None
     _captured = []
 
     def __enter__(self):
         self._stderr = sys.stderr
         self._captured = []
+        self.closed = False
         sys.stderr = self
         return self
 
     def __exit__(self, *exc):
         assert self._stderr is not None
         sys.stderr = self._stderr
+        self.closed = True
 
     def write(self, b):
         self._captured.append(b)
@@ -255,7 +258,8 @@ class StderrCapture(object):
         pass
 
     def print(self):
-        sys.stdout.write("".join(self._captured))
+        for part in self._captured:
+            sys.stdout.write(part.decode("utf-8"))
         sys.stdout.flush()
 
 class Chdir(object):
