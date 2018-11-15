@@ -159,3 +159,11 @@ exist.
     >>> flags("existing-path", {"f": "/not-existing"})
     invalid value for 'f': /not-existing does not exist
     <exit>
+
+Undefined flags generate an error:
+
+    >>> flags("simplest", {"not-defined": 123})
+    unsupported flag 'not-defined'
+    Try 'guild run test:simplest --help-op' for a list of flags or
+    use --force-flags to bypass this check.
+    <exit>

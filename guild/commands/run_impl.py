@@ -317,7 +317,7 @@ def _apply_flag_vals(vals, opdef, force=False):
         flag = opdef.get_flagdef(name)
         if not force and not flag:
             cli.error(
-                "undefined flag '%s'\n"
+                "unsupported flag '%s'\n"
                 "Try 'guild run %s --help-op' for a list of "
                 "flags or use --force-flags to bypass this check."
                 % (name, opdef.fullname))
