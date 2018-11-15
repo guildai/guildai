@@ -30,6 +30,7 @@ tests).
       package:                   ok
       plugins:                   ok
       python-utils:              ok
+      run-flags:                 ok
       run-output:                ok
       runs:                      ok
       tables:                    ok
