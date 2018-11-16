@@ -80,17 +80,21 @@ class Build(object):
 
     def _install_build_deps_cmd(self):
         return [
+            self._upgrade_pip(),
             self._ensure_virtual_env_cmd(),
             self._init_env(self.build_dir),
             self._activate_env(self.build_dir),
-            self._upgrade_pip(),
             self._install_guild_reqs(),
             self._install_tensorflow(),
             self._install_guild_view_reqs(),
         ]
 
+    def _upgrade_pip(self):
+        # pipe to cat here effectively disables progress bar
+        return "{pip} install --upgrade pip | cat".format(pip=self.pip)
+
     def _ensure_virtual_env_cmd(self):
-        return "sudo {} install --upgrade virtualenv".format(self.pip)
+        return "{pip} install --upgrade virtualenv".format(pip=self.pip)
 
     @staticmethod
     def _init_env(path):
@@ -102,16 +106,12 @@ class Build(object):
     def _activate_env(path):
         return ". %s/bin/activate" % path
 
-    def _upgrade_pip(self):
-        # pipe to cat here effectively disables progress bar
-        return "{pip} install --upgrade pip | cat".format(pip=self.pip)
-
     def _install_guild_reqs(self):
         # pipe to cat here effectively disables progress bar
-        return "{} install -r requirements.txt | cat".format(self.pip)
+        return "{pip} install -r requirements.txt | cat".format(pip=self.pip)
 
     def _install_tensorflow(self):
-        return "{} install grpcio==1.9.1 tensorflow".format(self.pip)
+        return "{pip} install grpcio==1.9.1 tensorflow".format(pip=self.pip)
 
     @staticmethod
     def _install_guild_view_reqs():
@@ -227,10 +227,18 @@ class MacBuild(Build):
 
     def _install_build_deps_cmd(self):
         lines = super(MacBuild, self)._install_build_deps_cmd()
-        if self.python.startswith("3."):
+        if self.python == "2.7":
+            # 2.7 is default on OSX
+            pass
+        elif self.python == "3.6":
             lines[:0] = [
-                "brew upgrade python > /dev/null",
+                "brew unlink python",
+                ("brew install https://raw.githubusercontent.com/Homebrew/"
+                 "homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/"
+                 "Formula/python.rb > /dev/null"),
             ]
+        else:
+            assert False, self.python
         return lines
 
 class Config(object):
