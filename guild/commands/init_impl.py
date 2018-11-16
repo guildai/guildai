@@ -260,6 +260,7 @@ def _init_venv(config):
         cli.out("Skipping virtual env")
         return
     cli.out("Creating virtual environment")
+    log.debug("venv args: %s", cmd_args)
     try:
         subprocess.check_call(cmd_args)
     except subprocess.CalledProcessError as e:
@@ -335,8 +336,9 @@ def _install_reqs(reqs, config):
         _pip_extra_opts(config) +
         reqs
     )
+    log.debug("pip cmd: %s", cmd)
     try:
-        subprocess.check_call(cmd)
+        subprocess.check_call(cmd, env={"PATH": ""})
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
 
@@ -355,8 +357,9 @@ def _install_req_files(req_files, config):
     cmd_args = [_pip_bin(config.env_dir), "install"] + _pip_extra_opts(config)
     for path in req_files:
         cmd_args.extend(["-r", path])
+    log.debug("pip cmd: %s", cmd_args)
     try:
-        subprocess.check_call(cmd_args)
+        subprocess.check_call(cmd_args, env={"PATH": ""})
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
 
