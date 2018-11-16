@@ -8,9 +8,9 @@ jobs:
         keys:
         - linux-python-2.7-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'pip install --upgrade pip | cat
+        command: 'sudo pip install --upgrade pip | cat
 
-          pip install --upgrade virtualenv
+          sudo pip install --upgrade virtualenv
 
           test -e build-env/bin/activate || virtualenv build-env
 
@@ -59,9 +59,9 @@ jobs:
         keys:
         - linux-python-3.5-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'pip install --upgrade pip | cat
+        command: 'sudo pip install --upgrade pip | cat
 
-          pip install --upgrade virtualenv
+          sudo pip install --upgrade virtualenv
 
           test -e build-env/bin/activate || virtualenv build-env
 
@@ -110,9 +110,9 @@ jobs:
         keys:
         - linux-python-3.6-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'pip install --upgrade pip | cat
+        command: 'sudo pip install --upgrade pip | cat
 
-          pip install --upgrade virtualenv
+          sudo pip install --upgrade virtualenv
 
           test -e build-env/bin/activate || virtualenv build-env
 
@@ -161,9 +161,9 @@ jobs:
         keys:
         - macos-python-2.7-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'pip install --upgrade pip | cat
+        command: 'sudo pip install --upgrade pip | cat
 
-          pip install --upgrade virtualenv
+          sudo pip install --upgrade virtualenv
 
           test -e build-env/bin/activate || virtualenv build-env
 
@@ -216,9 +216,9 @@ jobs:
 
           brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb > /dev/null
 
-          pip3 install --upgrade pip | cat
+          sudo pip3 install --upgrade pip | cat
 
-          pip3 install --upgrade virtualenv
+          sudo pip3 install --upgrade virtualenv
 
           test -e build-env/bin/activate || virtualenv build-env
 

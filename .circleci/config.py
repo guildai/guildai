@@ -91,10 +91,10 @@ class Build(object):
 
     def _upgrade_pip(self):
         # pipe to cat here effectively disables progress bar
-        return "{pip} install --upgrade pip | cat".format(pip=self.pip)
+        return "sudo {pip} install --upgrade pip | cat".format(pip=self.pip)
 
     def _ensure_virtual_env_cmd(self):
-        return "{pip} install --upgrade virtualenv".format(pip=self.pip)
+        return "sudo {pip} install --upgrade virtualenv".format(pip=self.pip)
 
     @staticmethod
     def _init_env(path):
