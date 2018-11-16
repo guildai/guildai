@@ -138,11 +138,11 @@ paths are resolved to be relative to the current directory.
 
     >>> with Chdir("/tmp"):
     ...   flags("path", {"f": ""})
-    {'f': '/tmp'}
+    {'f': '/...tmp'}
 
     >>> with Chdir("/tmp"):
     ...   flags("path", {"f": "foo"})
-    {'f': '/tmp/foo'}
+    {'f': '/...tmp/foo'}
 
     >>> with Chdir("/tmp"):
     ...   flags("path", {"f": "/foo"})
