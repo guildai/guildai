@@ -10,15 +10,15 @@ jobs:
     - run:
         command: 'sudo -H pip install --upgrade pip | cat
 
-          sudo -H pip install --upgrade virtualenv
+          sudo -H pip install --upgrade virtualenv | cat
 
           test -e build-env/bin/activate || virtualenv build-env
 
           . build-env/bin/activate
 
-          pip install -r requirements.txt | cat
+          pip install --upgrade -r requirements.txt | cat
 
-          pip install grpcio==1.9.1 tensorflow
+          pip install --upgrade grpcio==1.9.1 tensorflow | cat
 
           cd guild/view && npm install'
         name: Install build dependencies
@@ -32,7 +32,7 @@ jobs:
           python setup.py bdist_wheel -p manylinux1_x86_64'
         name: Build
     - run:
-        command: sudo pip install dist/*.whl
+        command: sudo -H pip install --upgrade dist/*.whl | cat
         name: Install dist
     - run:
         command: 'guild init -y --no-progress --name guild-test --guild dist/*.whl test-env
@@ -61,15 +61,15 @@ jobs:
     - run:
         command: 'sudo -H pip install --upgrade pip | cat
 
-          sudo -H pip install --upgrade virtualenv
+          sudo -H pip install --upgrade virtualenv | cat
 
           test -e build-env/bin/activate || virtualenv build-env
 
           . build-env/bin/activate
 
-          pip install -r requirements.txt | cat
+          pip install --upgrade -r requirements.txt | cat
 
-          pip install grpcio==1.9.1 tensorflow
+          pip install --upgrade grpcio==1.9.1 tensorflow | cat
 
           cd guild/view && npm install'
         name: Install build dependencies
@@ -83,7 +83,7 @@ jobs:
           python setup.py bdist_wheel -p manylinux1_x86_64'
         name: Build
     - run:
-        command: sudo pip install dist/*.whl
+        command: sudo -H pip install --upgrade dist/*.whl | cat
         name: Install dist
     - run:
         command: 'guild init -y --no-progress --name guild-test --guild dist/*.whl test-env
@@ -112,15 +112,15 @@ jobs:
     - run:
         command: 'sudo -H pip install --upgrade pip | cat
 
-          sudo -H pip install --upgrade virtualenv
+          sudo -H pip install --upgrade virtualenv | cat
 
           test -e build-env/bin/activate || virtualenv build-env
 
           . build-env/bin/activate
 
-          pip install -r requirements.txt | cat
+          pip install --upgrade -r requirements.txt | cat
 
-          pip install grpcio==1.9.1 tensorflow
+          pip install --upgrade grpcio==1.9.1 tensorflow | cat
 
           cd guild/view && npm install'
         name: Install build dependencies
@@ -134,7 +134,7 @@ jobs:
           python setup.py bdist_wheel -p manylinux1_x86_64'
         name: Build
     - run:
-        command: sudo pip install dist/*.whl
+        command: sudo -H pip install --upgrade dist/*.whl | cat
         name: Install dist
     - run:
         command: 'guild init -y --no-progress --name guild-test --guild dist/*.whl test-env
@@ -163,15 +163,15 @@ jobs:
     - run:
         command: 'sudo -H pip install --upgrade pip | cat
 
-          sudo -H pip install --upgrade virtualenv
+          sudo -H pip install --upgrade virtualenv | cat
 
           test -e build-env/bin/activate || virtualenv build-env
 
           . build-env/bin/activate
 
-          pip install -r requirements.txt | cat
+          pip install --upgrade -r requirements.txt | cat
 
-          pip install grpcio==1.9.1 tensorflow
+          pip install --upgrade grpcio==1.9.1 tensorflow | cat
 
           cd guild/view && npm install'
         name: Install build dependencies
@@ -185,7 +185,7 @@ jobs:
           python setup.py bdist_wheel'
         name: Build
     - run:
-        command: sudo pip install dist/*.whl
+        command: sudo -H pip install --upgrade dist/*.whl | cat
         name: Install dist
     - run:
         command: 'guild init -y --no-progress --name guild-test --guild dist/*.whl test-env
@@ -218,15 +218,15 @@ jobs:
 
           sudo -H pip3 install --upgrade pip | cat
 
-          sudo -H pip3 install --upgrade virtualenv
+          sudo -H pip3 install --upgrade virtualenv | cat
 
           test -e build-env/bin/activate || virtualenv build-env
 
           . build-env/bin/activate
 
-          pip3 install -r requirements.txt | cat
+          pip3 install --upgrade -r requirements.txt | cat
 
-          pip3 install grpcio==1.9.1 tensorflow
+          pip3 install --upgrade grpcio==1.9.1 tensorflow | cat
 
           cd guild/view && npm install'
         name: Install build dependencies
@@ -240,7 +240,7 @@ jobs:
           python setup.py bdist_wheel'
         name: Build
     - run:
-        command: sudo pip3 install dist/*.whl
+        command: sudo -H pip3 install --upgrade dist/*.whl | cat
         name: Install dist
     - run:
         command: 'guild init -y --no-progress --name guild-test --guild dist/*.whl test-env

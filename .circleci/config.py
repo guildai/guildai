@@ -89,12 +89,28 @@ class Build(object):
             self._install_guild_view_reqs(),
         ]
 
+    def _pip_install(self, pkgs, sudo=False):
+        sudo_part = "sudo -H " if sudo else ""
+        # pipe to cat effectively disables progress bar
+        pkgs_part = " ".join([self._pkg_spec(pkg) for pkg in pkgs])
+        return (
+            "{sudo}{pip} install --upgrade {pkgs} | cat"
+            .format(
+                sudo=sudo_part,
+                pip=self.pip,
+                pkgs=pkgs_part))
+
+    @staticmethod
+    def _pkg_spec(pkg):
+        if pkg.endswith(".txt"):
+            return "-r {}".format(pkg)
+        return pkg
+
     def _upgrade_pip(self):
-        # pipe to cat here effectively disables progress bar
-        return "sudo -H {pip} install --upgrade pip | cat".format(pip=self.pip)
+        return self._pip_install(["pip"], sudo=True)
 
     def _ensure_virtual_env_cmd(self):
-        return "sudo -H {pip} install --upgrade virtualenv".format(pip=self.pip)
+        return self._pip_install(["virtualenv"], sudo=True)
 
     @staticmethod
     def _init_env(path):
@@ -107,11 +123,10 @@ class Build(object):
         return ". %s/bin/activate" % path
 
     def _install_guild_reqs(self):
-        # pipe to cat here effectively disables progress bar
-        return "{pip} install -r requirements.txt | cat".format(pip=self.pip)
+        return self._pip_install(["requirements.txt"])
 
     def _install_tensorflow(self):
-        return "{pip} install grpcio==1.9.1 tensorflow".format(pip=self.pip)
+        return self._pip_install(["grpcio==1.9.1", "tensorflow"])
 
     @staticmethod
     def _install_guild_view_reqs():
@@ -138,7 +153,7 @@ class Build(object):
 
     def install_dist(self):
         return self._run("Install dist", [
-            "sudo {} install dist/*.whl".format(self.pip),
+            self._pip_install(["dist/*.whl"], sudo=True)
         ])
 
     def test(self):
