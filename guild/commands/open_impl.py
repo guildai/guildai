@@ -50,10 +50,10 @@ def _open_f(args):
         return _subproc(args.cmd)
     elif os.name == "nt":
         return os.startfile
-    elif os.name == "posix":
-        return _subproc("xdg-open")
     elif sys.platform.startswith("darwin"):
         return _subproc("open")
+    elif os.name == "posix":
+        return _subproc("xdg-open")
     else:
         cli.error(
             "unsupported platform: %s %s\n"
