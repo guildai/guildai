@@ -59,7 +59,7 @@ clean:
 	rm -rf build/
 	rm -rf dist/
 	rm -rf guildai.egg-info/
-	find -name *.pyc | grep -v guild/tests/samples | xargs -r rm
+	find -name *.pyc | grep -v guild/tests/samples | xargs rm
 	rm -rf guild/view/node_modules
 
 UAT_PYTHON = python3
