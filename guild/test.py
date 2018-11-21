@@ -89,6 +89,7 @@ class _RunOp(object):
     def __init__(self, step_config, test):
         self.guildfile = test.guildfile
         self.op_name = step_config[self.type_attr]
+        self.label = step_config.get("label")
         self.disable_plugins = step_config.get("disable-plugins")
         self.flag_vals = step_config.get("flags") or {}
         self.expect = [
@@ -119,6 +120,8 @@ class _RunOp(object):
             cmd.extend(["--gpus", gpus])
         elif gpus == "":
             cmd.append("--no-gpus")
+        if self.label:
+            cmd.extend(["--label", self.label])
         if self.disable_plugins:
             cmd.extend(["--disable-plugins", self.disable_plugins])
         for name, val in sorted(self.flag_vals.items()):
