@@ -112,6 +112,18 @@ Reference cycle:
     Traceback (most recent call last):
     ReferenceCycleError: ['b', 'a', 'b']
 
+Resolving non string values:
+
+    >>> resolve({
+    ...   "msg": "${i} ${f} ${none}",
+    ...   "i": 1,
+    ...   "f": 1.2345,
+    ...   "none": None})["msg"]
+    '1 1.2345 null'
+
+Note that None is resolved as 'null' for consistency with flag inputs,
+which convert the string 'null' into None.
+
 ## Testing text files
 
 Use `is_text_file` to test if a file is text or binary. This is used

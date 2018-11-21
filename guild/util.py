@@ -357,7 +357,12 @@ def _resolve_refs_recurse(val, kv, undefined, stack):
     if len(resolved) == 1:
         return resolved[0]
     else:
-        return "".join([str(part) for part in resolved])
+        return "".join([_resolved_part_str(part) for part in resolved])
+
+def _resolved_part_str(part):
+    if part is None:
+        return "null"
+    return str(part)
 
 def resolve_rel_paths(kv):
     return {
