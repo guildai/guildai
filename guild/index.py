@@ -312,6 +312,9 @@ class RunIndex(object):
         scalars = {}
         scalar_aliases = self._init_scalar_aliases(run)
         for path in io_wrapper.GetLogdirSubdirectories(run.path):
+            if not self._path_in_run(path, run):
+                log.debug("%s is not part of run %s, skipping", path, run.id)
+                continue
             events_checksum_field_name = self._events_checksum_field_name(path)
             last_checksum = fields.get(events_checksum_field_name)
             cur_checksum = self._events_checksum(path)
@@ -353,6 +356,16 @@ class RunIndex(object):
                 else:
                     aliases.append((key, compiled_p))
         return aliases
+
+    @staticmethod
+    def _path_in_run(path, run):
+        """Returns True if `path` is in run or False not.
+
+        `path` may be a link to another run.
+        """
+        real_path = os.path.realpath(path)
+        real_run_dir = os.path.realpath(run.path)
+        return real_path.startswith(real_run_dir)
 
     @staticmethod
     def _events_checksum_field_name(path):
