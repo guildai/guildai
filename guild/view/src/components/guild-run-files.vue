@@ -156,7 +156,6 @@ td.type-icon {
 .btn-link {
   text-transform: none;
   width: inherit;
-  font-size: 14px;
   height: unset;
   padding: 4px 0;
   display: block;
