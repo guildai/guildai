@@ -28,8 +28,8 @@ def push_params(fn):
         runs_support.op_and_label_filters,
         runs_support.status_filters,
         click.Option(
-            ("-n", "--no-delete",),
-            help="Don't delete remote files missing locally.",
+            ("-n", "--delete",),
+            help="Delete remote files missing locally.",
             is_flag=True),
         click.Option(
             ("-y", "--yes"),
