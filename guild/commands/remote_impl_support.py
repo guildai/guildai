@@ -323,7 +323,7 @@ def filtered_runs_for_pull(remote, args):
 def _filtered_runs_for_pull_kw(args):
     names = _runs_filter_names()
     ignore = [
-        "no_delete",
+        "delete",
         "remote",
         "runs",
         "yes",
@@ -332,8 +332,8 @@ def _filtered_runs_for_pull_kw(args):
 
 def push_runs(remote, runs, args):
     with op_handler(remote):
-        remote.push(runs, args.no_delete)
+        remote.push(runs, args.delete)
 
 def pull_runs(remote, runs, args):
     with op_handler(remote):
-        remote.pull(runs, args.no_delete)
+        remote.pull(runs, args.delete)

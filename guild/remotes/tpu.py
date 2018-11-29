@@ -36,10 +36,10 @@ class TPURemote(guild.remote.Remote):
     def status(self, verbose=False):
         log.info("TODO: print status")
 
-    def push(self, runs, no_delete=False):
+    def push(self, runs, delete=False):
         raise NotImplementedError()
 
-    def pull(self, runs, no_delete=False):
+    def pull(self, runs, delete=False):
         raise NotImplementedError()
 
     def pull_all(self, verbose=False):
