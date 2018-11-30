@@ -106,7 +106,7 @@ class _Config(object):
     def _path_mtime(self):
         try:
             return os.path.getmtime(self.path)
-        except IOError:
+        except (IOError, OSError):
             return 0
 
     def _parse(self):
