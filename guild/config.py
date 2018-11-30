@@ -182,12 +182,15 @@ def _apply_parent(parent, target):
                 _apply_parent(parent_val, target_val)
 
 def user_config():
-    path = _user_config_path()
+    path = user_config_path()
     config = _user_config
     if config is None or config.path != path:
         config = _Config(path)
         globals()["_user_config"] = config
     return config.read()
 
-def _user_config_path():
-    return os.path.join(os.path.expanduser("~"), ".guild", "config.yml")
+def user_config_path():
+    try:
+        return os.environ["GUILD_CONFIG"]
+    except KeyError:
+        return os.path.join(os.path.expanduser("~"), ".guild", "config.yml")
