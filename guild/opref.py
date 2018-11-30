@@ -120,7 +120,7 @@ def _opref_to_string(opref):
         opref.op_name or "?")
 
 def _maybe_quote(s):
-    if re.search("\s", s):
+    if re.search(r"\s", s):
         return "'{}'".format(s)
     return s
 
