@@ -51,7 +51,7 @@ def logfile(name):
 
 def remote_dir(name=None):
     # Use directory containing user config to store remote info.
-    config_path = config._user_config_path()
+    config_path = config.user_config_path()
     return os.path.join(os.path.dirname(config_path), "remotes", name)
 
 def runs(root=None, sort=None, filter=None, run_init=None):
