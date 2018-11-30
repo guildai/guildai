@@ -40,9 +40,9 @@ class EC2Remote(ssh_remote.SSHRemote):
         self.ami = config["ami"]
         self.instance_type = config["instance-type"]
         self.public_key = config.get("public-key")
+        self.private_key = config.get("private-key")
         self.init = config.get("init")
         self.init_timeout = config.get("init-timeout")
-        self.private_key = config.get("private-key")
         self.password = config.get("password")
         self.working_dir = var.remote_dir(name)
         super(EC2Remote, self).__init__(name, self._ensure_none_host(config))
@@ -255,7 +255,7 @@ class EC2Remote(ssh_remote.SSHRemote):
                     connection["timeout"] = self.init_timeout
             if self.private_key:
                 connection["private_key"] = (
-                    "${file(\"%s\")}" % self.private_key
+                    "${file(\"%s\")}" % remote_util.config_path(self.private_key)
                 )
             if self.user:
                 connection["user"] = self.user
@@ -282,7 +282,7 @@ class EC2Remote(ssh_remote.SSHRemote):
     def _public_key(self):
         if not self.public_key:
             return None
-        maybe_path = os.path.expanduser(os.path.expandvars(self.public_key))
+        maybe_path = remote_util.config_path(self.public_key)
         if os.path.exists(maybe_path):
             return open(maybe_path, "r").read()
         else:

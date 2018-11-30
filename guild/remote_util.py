@@ -17,6 +17,7 @@ from __future__ import division
 
 import os
 
+from guild import config
 from guild import remote as remotelib
 from guild import var
 
@@ -46,3 +47,16 @@ def _ensure_deleted(path):
     except (IOError, OSError) as e:
         if e.errno != 2:
             raise
+
+def config_path(path):
+    """Returns an absolute path for a config-relative path.
+
+    Variable and user refs are resolved in path.
+
+    If path is None, returns None.
+    """
+    if path is None:
+        return None
+    expanded = os.path.expanduser(os.path.expandvars(path))
+    config_dir = os.path.dirname(config.user_config_path())
+    return os.path.abspath(os.path.join(config_dir, expanded))

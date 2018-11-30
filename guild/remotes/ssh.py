@@ -45,6 +45,7 @@ class SSHRemote(remotelib.Remote):
         self.name = name
         self._host = config["host"]
         self.user = config.get("user")
+        self.private_key = config.get("private-key")
         self.guild_home = self._init_guild_home(config)
         self.guild_env = config.get("guild-env")
         self.use_prerelease = config.get("use-prerelease", False)
@@ -79,6 +80,10 @@ class SSHRemote(remotelib.Remote):
         dest_path = "{}/runs/{}/".format(self.guild_home, run.id)
         dest = ssh_util.format_rsync_host_path(self.host, dest_path, self.user)
         cmd.extend([src, dest])
+        if self.private_key:
+            ssh_opts = ssh_util.rsync_ssh_opts(
+                remote_util.config_path(self.private_key))
+            cmd.extend(ssh_opts)
         log.info("Copying %s", run.id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
@@ -92,6 +97,10 @@ class SSHRemote(remotelib.Remote):
         src = ssh_util.format_rsync_host_path(self.host, src_path, self.user)
         dest = os.path.join(var.runs_dir(), run.id + "/")
         cmd = ["rsync"] + self._pull_rsync_opts(delete) + [src, dest]
+        if self.private_key:
+            ssh_opts = ssh_util.rsync_ssh_opts(
+                remote_util.config_path(self.private_key))
+            cmd.extend(ssh_opts)
         log.info("Copying %s", run.id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
@@ -168,13 +177,18 @@ class SSHRemote(remotelib.Remote):
         )
         log.info("Initializing remote run for restart")
         try:
-            ssh_util.ssh_cmd(self.host, [cmd], self.user)
+            self._ssh_cmd(cmd)
         except remotelib.RemoteProcessError as e:
             if e.exit_status == 3:
                 raise remotelib.OperationError("running", remote_run_id)
             raise
         else:
             return run_dir
+
+    def _ssh_cmd(self, cmd):
+        ssh_util.ssh_cmd(
+            self.host, [cmd], self.user,
+            remote_util.config_path(self.private_key))
 
     def _init_remote_new_run_dir(self, opspec):
         run_id = runlib.mkid()
@@ -190,14 +204,16 @@ class SSHRemote(remotelib.Remote):
             .format(run_dir=run_dir, opspec=opspec)
         )
         log.info("Initializing remote run")
-        ssh_util.ssh_cmd(self.host, [cmd], self.user)
+        self._ssh_cmd(cmd)
         return run_dir
 
     def _copy_package_dist(self, package_dist_dir, remote_run_dir):
         src = package_dist_dir + "/"
         host_dest = "{}/.guild/job-packages/".format(remote_run_dir)
         log.info("Copying package")
-        ssh_util.rsync_copy_to(src, self.host, host_dest, self.user)
+        ssh_util.rsync_copy_to(
+            src, self.host, host_dest, self.user,
+            remote_util.config_path(self.private_key))
 
     def _install_job_package(self, remote_run_dir):
         cmd = (
@@ -206,7 +222,7 @@ class SSHRemote(remotelib.Remote):
             .format(run_dir=remote_run_dir, pre=self._pre_flag())
         )
         log.info("Installing package and its dependencies")
-        ssh_util.ssh_cmd(self.host, [cmd], self.user)
+        self._ssh_cmd(cmd)
 
     def _pre_flag(self):
         if self.use_prerelease:
@@ -224,7 +240,7 @@ class SSHRemote(remotelib.Remote):
         cmd_lines.append(_remote_run_cmd(remote_run_dir, opspec, flags, **opts))
         cmd = "; ".join(cmd_lines)
         log.info("Starting remote operation")
-        ssh_util.ssh_cmd(self.host, [cmd], self.user)
+        self._ssh_cmd(cmd)
 
     def _watch_op(self, remote_run_dir):
         cmd_lines = ["set -e"]
@@ -235,7 +251,7 @@ class SSHRemote(remotelib.Remote):
         cmd = "; ".join(cmd_lines)
         log.debug("watching remote run")
         try:
-            ssh_util.ssh_cmd(self.host, [cmd], self.user)
+            self._ssh_cmd(cmd)
         except remotelib.RemoteProcessError as e:
             if e.exit_status != 2:
                 raise
@@ -253,13 +269,18 @@ class SSHRemote(remotelib.Remote):
         opts = _filtered_runs_filter_opts(**filters)
         cmd_lines.append("guild runs list %s" % " ".join(opts))
         cmd = "; ".join(cmd_lines)
-        out = ssh_util.ssh_output(self.host, [cmd], self.user)
+        out = self._ssh_output(cmd)
         if not out:
             data = []
         else:
             data = json.loads(out.decode())
             assert isinstance(data, list), (data, self.name)
         return [remotelib.RunProxy(run_data) for run_data in data]
+
+    def _ssh_output(self, cmd):
+        return ssh_util.ssh_output(
+            self.host, [cmd], self.user,
+            remote_util.config_path(self.private_key))
 
     def _env_activate_cmd_lines(self):
         if not self.guild_env:
@@ -284,7 +305,7 @@ class SSHRemote(remotelib.Remote):
             "guild runs info %s --flags --private-attrs"
             % q(run_id_prefix))
         cmd = "; ".join(cmd_lines)
-        out = ssh_util.ssh_output(self.host, [cmd], self.user)
+        out = self._ssh_output(cmd)
         return remotelib.RunProxy(self._run_data_from_yaml(out))
 
     @staticmethod
@@ -302,7 +323,7 @@ class SSHRemote(remotelib.Remote):
         cmd_lines.extend(self._set_columns())
         cmd_lines.append("guild %s %s" % (name, " ".join(args)))
         cmd = "; ".join(cmd_lines)
-        ssh_util.ssh_cmd(self.host, [cmd], self.user)
+        self._ssh_cmd(cmd)
 
     @staticmethod
     def _set_columns():

@@ -38,39 +38,50 @@ def _full_host(host, user):
     else:
         return host
 
-def ssh_cmd(host, cmd, user=None, connect_timeout=DEFAULT_CONNECT_TIMEOUT):
-    cmd = _ssh_cmd(host, cmd, user, connect_timeout)
+def ssh_cmd(host, cmd, user=None, private_key=None,
+            connect_timeout=DEFAULT_CONNECT_TIMEOUT):
+    cmd = _ssh_cmd(host, cmd, user, private_key, connect_timeout)
     log.debug("ssh cmd: %r", cmd)
     try:
         subprocess.check_call(cmd)
     except subprocess.CalledProcessError as e:
         raise remotelib.RemoteProcessError.from_called_process_error(e)
 
-def _ssh_cmd(host, cmd, user, connect_timeout):
+def _ssh_cmd(host, cmd, user, private_key, connect_timeout):
     host = _full_host(host, user)
-    return ["ssh"] + _ssh_opts(False, connect_timeout) + [host] + cmd
+    return (
+        ["ssh"] +
+        _ssh_opts(private_key, False, connect_timeout) +
+        [host] +
+        cmd)
 
-def ssh_output(host, cmd, user=None, connect_timeout=DEFAULT_CONNECT_TIMEOUT):
-    cmd = _ssh_cmd(host, cmd, user, connect_timeout)
+def ssh_output(host, cmd, user=None, private_key=None,
+               connect_timeout=DEFAULT_CONNECT_TIMEOUT):
+    cmd = _ssh_cmd(host, cmd, user, private_key, connect_timeout)
     log.debug("ssh cmd: %r", cmd)
     try:
         return subprocess.check_output(cmd)
     except subprocess.CalledProcessError as e:
         raise remotelib.RemoteProcessError.from_called_process_error(e)
 
-def _ssh_opts(verbose=False, connect_timeout=None):
+def _ssh_opts(private_key=None, verbose=False, connect_timeout=None):
     opts = [
         "-oStrictHostKeyChecking=no"
     ]
+    if private_key:
+        opts.extend(["-i", private_key])
     if verbose:
         opts.append("-vvv")
     if connect_timeout:
         opts.append("-oConnectTimeout=%s" % connect_timeout)
     return opts
 
-def rsync_copy_to(src, host, host_dest, user=None):
+def rsync_copy_to(src, host, host_dest, user=None, private_key=None):
     dest = format_rsync_host_path(host, host_dest, user)
-    cmd = ["rsync", "-vr", src, dest]
+    cmd = (
+        ["rsync", "-vr"] +
+        rsync_ssh_opts(private_key) +
+        [src, dest])
     log.debug("rsync cmd: %r", cmd)
     subprocess.check_call(cmd)
 
@@ -79,3 +90,9 @@ def format_rsync_host_path(host, path, user):
         return "{}@{}:{}".format(user, host, path)
     else:
         return "{}:{}".format(host, path)
+
+def rsync_ssh_opts(private_key):
+    opts = ["-vr"]
+    if private_key:
+        opts.extend(["-e" "ssh -i '{}'".format(private_key)])
+    return opts
