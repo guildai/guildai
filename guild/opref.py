@@ -18,6 +18,7 @@ from __future__ import division
 import collections
 import logging
 import re
+import shlex
 
 log = logging.getLogger("guild")
 
@@ -41,21 +42,41 @@ def _opref_from_op(op_name, model_ref):
     return OpRef(pkg_type, pkg_name, pkg_version, model_name, op_name)
 
 def _opref_from_run(run):
+    """Parses saved opref attr to opref.
+
+    See _opref_from_string for parsing a user-provided value.
+
+    """
     opref_attr = run.get("opref")
     if not opref_attr:
         raise OpRefError(
             "run %s does not have attr 'opref')"
             % run.id)
-    m = re.match(
-        r"([^ :]+):([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)\s*$",
-        opref_attr)
-    if not m:
-        raise OpRefError(
-            "bad opref attr for run %s: %s"
-            % (run.id, opref_attr))
-    return OpRef(*m.groups())
+    # Use shlex as convenience for handling quoted parts
+    parts = shlex.split(opref_attr)
+    if len(parts) != 4:
+        _run_opref_error(run, opref_attr)
+    pkg_type_and_name, pkg_ver, model_name, op_name = parts
+    pkg_type, pkg_name = _split_pkg_type_and_name(
+        pkg_type_and_name, run, opref_attr)
+    return OpRef(pkg_type, pkg_name, pkg_ver, model_name, op_name)
+
+def _split_pkg_type_and_name(s, run, opref_attr):
+    parts = s.split(":", 1)
+    if len(parts) != 2:
+        _run_opref_error(run, opref_attr)
+    return parts
+
+def _run_opref_error(run, opref_attr):
+    raise OpRefError(
+        "bad opref attr for run %s: %s"
+        % (run.id, opref_attr))
 
 def _opref_from_string(s):
+    """Parses user-provided string to opref.
+
+    See _opref_from_run for parsing a saved opref attr.
+    """
     m = re.match(r"(?:(?:([^/]+)/)?([^:]+):)?([^/:]+)$", s)
     if not m:
         raise OpRefError("invalid reference: %r" % s)
@@ -93,10 +114,15 @@ def _cmp(val, compare_to, regex):
 def _opref_to_string(opref):
     return "%s:%s %s %s %s" % (
         opref.pkg_type or "?",
-        opref.pkg_name or "?",
+        _maybe_quote(opref.pkg_name) or "?",
         opref.pkg_version or "?",
         opref.model_name or "?",
         opref.op_name or "?")
+
+def _maybe_quote(s):
+    if re.search("\s", s):
+        return "'{}'".format(s)
+    return s
 
 OpRef.from_op = staticmethod(_opref_from_op)
 OpRef.from_run = staticmethod(_opref_from_run)

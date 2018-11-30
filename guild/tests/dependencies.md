@@ -128,6 +128,54 @@ Some invalid op references:
     Traceback (most recent call last):
     OpRefError: invalid reference: 'foo/bar'
 
+`OpRef.from_run` returns a `OpRef` instance for a run. OpRef values
+are stored in a run's `opref` attr.
+
+Here's a helper function to return OpRefs for a give sample run.
+
+    >>> from guild import run as runlib
+    >>> def from_run(id):
+    ...     path = join_path(sample("opref-runs"), id)
+    ...     run = runlib.Run(id, path)
+    ...     return OpRef.from_run(run)
+
+Below are various examples.
+
+    >>> from_run("guildfile")
+    OpRef(pkg_type='guildfile',
+          pkg_name='/foo/bar',
+          pkg_version='7253deeeaeb6dc85466cf691facff24e',
+          model_name='test',
+          op_name='go')
+
+    >>> from_run("package")
+    OpRef(pkg_type='package',
+          pkg_name='fashion',
+          pkg_version='1.0',
+          model_name='fashion',
+          op_name='train')
+
+    >>> from_run("with_space")
+    OpRef(pkg_type='guildfile',
+          pkg_name='/foo/project with spaces',
+          pkg_version='7253deeeaeb6dc85466cf691facff24e',
+          model_name='test',
+          op_name='go')
+
+    >>> from_run("invalid")
+    Traceback (most recent call last):
+    OpRefError: bad opref attr for run invalid: not a valid opref
+
+OpRefs are encoded by converting them to strings.
+
+    >>> str(OpRef("type", "pkg", "ver", "model", "op"))
+    'type:pkg ver model op'
+
+If the package name contains a space, it's quoted:
+
+    >>> str(OpRef("type", "pkg with spaces", "ver", "model", "op"))
+    "type:'pkg with spaces' ver model op"
+
 ## Resolvers
 
 Resolvers are objects that resolve dependency sources. Resolvers can
