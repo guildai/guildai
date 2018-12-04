@@ -323,7 +323,7 @@ class ModelImporter(object):
         if not os.path.isdir(self.path):
             return None
         try:
-            mf = guildfile.from_dir(self.path)
+            gf = guildfile.from_dir(self.path)
         except guildfile.NoModels:
             return self._plugin_model_dist()
         except Exception as e:
@@ -332,7 +332,7 @@ class ModelImporter(object):
             log.error("error loading guildfile from %s: %s", self.path, e)
             return BadGuildfileDistribution(self.path)
         else:
-            return GuildfileDistribution(mf)
+            return GuildfileDistribution(gf)
 
     def _plugin_model_dist(self):
         models_data = []
@@ -342,11 +342,11 @@ class ModelImporter(object):
                 models_data.append(data)
                 plugins_used.add(name)
         if models_data:
-            mf = guildfile.Guildfile(
+            gf = guildfile.Guildfile(
                 models_data,
                 src="<plugin-generated %s>" % ",".join(plugins_used),
                 dir=self.path)
-            return GuildfileDistribution(mf)
+            return GuildfileDistribution(gf)
         else:
             return None
 
