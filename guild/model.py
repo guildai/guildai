@@ -310,8 +310,8 @@ class ModelImporter(object):
     @staticmethod
     def _is_guildfile_dir(path):
         return (
-            guildfile.is_guildfile_dir(path) or
-            os.path.abspath(path) == os.path.abspath(config.cwd()))
+            os.path.abspath(path) == os.path.abspath(config.cwd()) or
+            guildfile.is_guildfile_dir(path))
 
     @property
     def dist(self):
