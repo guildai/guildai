@@ -174,6 +174,7 @@ def _test_globals():
         "samples_dir": samples_dir,
         "symlink": os.symlink,
         "touch": util.touch,
+        "sha256": util.file_sha256,
     }
 
 def sample(*parts):

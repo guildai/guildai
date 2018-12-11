@@ -7,6 +7,7 @@ tests).
     >>> run("guild check -nT") # doctest: +REPORT_UDIFF
     internal tests:
       config:                    ok
+      copy-source:               ok
       cpu-plugin:                ok
       cross-package-inheritance: ok
       dependencies:              ok

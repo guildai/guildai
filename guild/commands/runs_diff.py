@@ -29,6 +29,10 @@ def diff_params(fn):
             is_flag=True,
             help="Diff run output."),
         click.Option(
+            ("-s", "--source"),
+            is_flag=True,
+            help="Diff run source."),
+        click.Option(
             ("-e", "--env"),
             is_flag=True,
             help="Diff run environment."),

@@ -83,6 +83,7 @@ class Operation(object):
     def init(self):
         self._init_run()
         self._init_attrs()
+        self._copy_source()
 
     def _init_run(self):
         self._run = init_run(self._run_dir)
@@ -107,6 +108,12 @@ class Operation(object):
     def _opref_attr(self):
         ref = opref.OpRef.from_op(self.opdef.name, self.model_ref)
         return str(ref)
+
+    def _copy_source(self):
+        assert self._run is not None
+        if self.model_ref.dist_type == "guildfile":
+            # Only copy source for guildfile dist (i.e. projects)
+            op_util.copy_source(self._run, self.opdef)
 
     def resolve_deps(self):
         assert self._run is not None

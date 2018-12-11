@@ -501,6 +501,7 @@ class ModelDef(object):
         self.disabled_plugins = data.get("disabled-plugins") or []
         self.extra = data.get("extra") or {}
         self.default = data.get("default", False)
+        self.source = _init_source(data.get("source") or [], self)
 
     @property
     def guildfile_path(self):
@@ -712,6 +713,9 @@ def _init_resources(data, modeldef):
     data = _resolve_includes(data, "resources", modeldef.guildfile_path)
     return [ResourceDef(key, data[key], modeldef) for key in sorted(data)]
 
+def _init_source(data, modeldef):
+    return SourceDef(data, modeldef)
+
 ###################################################################
 # Op def
 ###################################################################
@@ -864,6 +868,43 @@ class NoSuchResourceError(ValueError):
             % (name, dep.opdef.modeldef.name))
         self.resource_name = name
         self.dependency = dep
+
+###################################################################
+# Source def
+###################################################################
+
+class SourceDef(object):
+
+    def __init__(self, data, modeldef):
+        if not isinstance(data, list):
+            raise GuildfileError(
+                modeldef.guildfile,
+                "invalid source def: %r" % data)
+        self.modeldef = modeldef
+        self.specs = [SourceSpec(item, modeldef) for item in data]
+
+class SourceSpec(object):
+
+    def __init__(self, data, modeldef):
+        if not isinstance(data, dict):
+            raise GuildfileError(
+                modeldef.guildfile,
+                "invalid source spec: %r" % data)
+        if "include" in data:
+            self.type = "include"
+            self.patterns = self._init_patterns(data, "include", modeldef)
+        elif "exclude" in data:
+            self.type = "exclude"
+            self.patterns = self._init_patterns(data, "exclude", modeldef)
+        else:
+            raise GuildfileError(
+                modeldef.guildfile,
+                "unsupported source spec: %r" % data)
+
+    @staticmethod
+    def _init_patterns(data, name, modeldef):
+        val = data[name]
+        return _coerce_string_to_list(val, modeldef.guildfile, name)
 
 ###################################################################
 # Resource def

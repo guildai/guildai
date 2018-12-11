@@ -90,6 +90,8 @@ def _diff_paths(args):
             paths.append(os.path.join(".guild", "attrs", "deps"))
     if args.output:
         paths.append(os.path.join(".guild", "output"))
+    if args.source:
+        paths.append(os.path.join(".guild", "source"))
     paths.extend(args.path)
     if not paths:
         paths.append("")

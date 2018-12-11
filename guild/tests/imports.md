@@ -21,6 +21,7 @@
     guild.__init__
     guild._api
     guild._test
+    guild.binaryornot
     guild.cli
     guild.click_util
     guild.cmd_impl_support

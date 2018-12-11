@@ -1,0 +1,21 @@
+- model: default
+
+- model: include-logo
+  source:
+    - include: subdir/logo.png
+
+- model: exclude-all
+  source:
+    - exclude: '*'
+
+- model: only-py
+  source:
+    - exclude: '*'
+    - include: '*.py'
+
+- model: py-and-guild
+  source:
+    - exclude: '*'
+    - include:
+        - '*.py'
+        - 'guild.yml'

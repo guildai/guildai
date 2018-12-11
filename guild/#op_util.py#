@@ -442,7 +442,7 @@ def _source_to_copy(src_dir, source_config):
     seen_dirs = set()
     for root, dirs, files in os.walk(src_dir, followlinks=True):
         seen_dirs.add(os.path.realpath(root))
-        _del_env_dirs(root, dirs)
+        _del_ignore_dirs(root, dirs)
         _del_seen_dirs(root, dirs, seen_dirs)
         for name in files:
             path = os.path.join(root, name)
@@ -451,9 +451,10 @@ def _source_to_copy(src_dir, source_config):
                 to_copy.append((path, rel_path))
     return to_copy
 
-def _del_env_dirs(root, dirs):
+def _del_ignore_dirs(root, dirs):
     for name in dirs:
-        if _is_env_dir(os.path.join(root, name)):
+        if (_is_env_dir(os.path.join(root, name)) of
+            _is_package_build_dir(
             dirs.remove(name)
 
 def _del_seen_dirs(root, dirs, seen):
