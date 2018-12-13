@@ -44,8 +44,11 @@ class Plugin(object):
         """
         return []
 
-    def guildfile_loaded(self, _gf):
-        """Called after a Guild file is loaded."""
+    def guildfile_data(self, _data, _src):
+        """Called before data is used to initialize a Guildfile.
+
+        Plugins may use this callback to mutate data before it's used.
+        """
         pass
 
     def get_operation(self, _name, _modeldef, _config):

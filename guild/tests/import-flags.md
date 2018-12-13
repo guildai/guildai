@@ -85,7 +85,7 @@ overwrite defined flag attributes.
      <guild.guildfile.FlagDef 'foo'>]
 
 In this case, the flag 'foo' is defined with a default value of 2. The
-imported value of 1 (see above) is not applied:
+imported value of 1 (see above) is not applied but the description is:
 
     >>> flag_info(gf, "import-2", "foo")
     description: Foo

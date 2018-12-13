@@ -735,8 +735,7 @@ class OpDef(object):
                 modeldef.guildfile,
                 "invalid operation def: %r" % data)
         self.modeldef = modeldef
-        (self.flags,
-         self.flags_special) = _init_flags(data, self)
+        self.flags = _init_flags(data, self)
         self._flag_vals = _init_flag_values(self.flags)
         self.guildfile = modeldef.guildfile
         self.name = name
@@ -800,13 +799,7 @@ class OpDef(object):
 
 def _init_flags(data, opdef):
     data = _resolve_includes(data, "flags", opdef.modeldef.guildfile_path)
-    flags, special = [], {}
-    for name in sorted(data):
-        if name.startswith("$"):
-            special[name] = data[name]
-        else:
-            flags.append(FlagDef(name, data[name], opdef))
-    return flags, special
+    return [FlagDef(name, data[name], opdef) for name in sorted(data)]
 
 class FlagDef(object):
 
@@ -1040,13 +1033,12 @@ def _load_guildfile(src, extends_seen):
             log.exception("loading yaml from %s", src)
         raise GuildfileError(src, str(e))
     else:
-        gf = Guildfile(data, src, extends_seen=extends_seen)
-        _notify_plugins_guildfile_loaded(gf)
-        return gf
+        _notify_plugins_guildfile_data(data, src)
+        return Guildfile(data, src, extends_seen=extends_seen)
 
-def _notify_plugins_guildfile_loaded(gf):
+def _notify_plugins_guildfile_data(data, src):
     for _name, plugin in pluginlib.iter_plugins():
-        plugin.guildfile_loaded(gf)
+        plugin.guildfile_data(data, src)
 
 def from_file_or_dir(src):
     try:
@@ -1057,4 +1049,6 @@ def from_file_or_dir(src):
         raise
 
 def from_string(s, src="<string>"):
-    return Guildfile(yaml.safe_load(s), src)
+    data = yaml.safe_load(s)
+    _notify_plugins_guildfile_data(data, src)
+    return Guildfile(data, src)
