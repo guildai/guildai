@@ -184,6 +184,18 @@ class Run(object):
             for name in files:
                 yield os.path.join(root, name)
 
+    def iter_guild_files(self, subpath):
+        guild_path = self.guild_path(subpath)
+        if os.path.exists(guild_path):
+            for root, dirs, files in os.walk(guild_path):
+                rel_root = os.path.relpath(root, guild_path)
+                if rel_root == ".":
+                    rel_root = ""
+                for name in dirs:
+                    yield os.path.join(rel_root, name)
+                for name in files:
+                    yield os.path.join(rel_root, name)
+
 def timestamp():
     """Returns an integer use for run timestamps."""
     return int(time.time() * 1000000)

@@ -32,6 +32,7 @@ from . import runs_support
 @click.option("-e", "--env", help="Show run environment.", is_flag=True)
 @click.option("-g", "--flags", help="Show run flags.", is_flag=True)
 @click.option("-d", "--deps", help="Show resolved dependencies.", is_flag=True)
+@click.option("-s", "--source", help="Show source code files.", is_flag=True)
 @click.option(
     "-p", "--page-output",
     help="Show only run output in a pager.",

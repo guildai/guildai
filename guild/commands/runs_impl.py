@@ -518,6 +518,10 @@ def _print_run_info(run, args):
             out("  %s:" % name)
             for path in deps[name]:
                 out("    %s" % path)
+    if args.source:
+        out("source:")
+        for path in sorted(run.iter_guild_files("source")):
+            out("  %s" % path)
     if args.output:
         out("output:")
         for line in _iter_output(run):
