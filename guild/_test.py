@@ -161,6 +161,7 @@ def _test_globals():
         "cat": cat,
         "dir": dir,
         "dirname": os.path.dirname,
+        "exists": os.path.exists,
         "find": find,
         "gapi": _api,
         "join_path": os.path.join,
@@ -172,9 +173,9 @@ def _test_globals():
         "relpath": os.path.relpath,
         "sample": sample,
         "samples_dir": samples_dir,
+        "sha256": util.file_sha256,
         "symlink": os.symlink,
         "touch": util.touch,
-        "sha256": util.file_sha256,
     }
 
 def sample(*parts):
