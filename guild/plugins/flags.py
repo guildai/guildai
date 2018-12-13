@@ -47,9 +47,9 @@ class FlagsPlugin(Plugin):
 
     def _iter_ops_with_flags_recurse(self, data):
         if isinstance(data, dict):
-            for name, val in data.items():
+            for name, val in sorted(data.items()):
                 if name == "operations" and isinstance(val, dict):
-                    for _, op_data in val.items():
+                    for _, op_data in sorted(val.items()):
                         if isinstance(op_data, dict) and "flags" in op_data:
                             yield op_data
                 else:
