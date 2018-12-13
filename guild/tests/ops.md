@@ -307,7 +307,12 @@ parts from a command string. However, like flag values, command args
 may contain references to flag values.
 
     >>> guild.op._cmd_args([], {})
-    []
+    Traceback (most recent call last):
+    InvalidMain: ('', 'missing command spec')
+
+    >>> guild.op._cmd_args("", {})
+    Traceback (most recent call last):
+    InvalidMain: ('', 'missing command spec')
 
     >>> guild.op._cmd_args(["foo", "--bar"], {})
     ['foo', '--bar']

@@ -18,7 +18,6 @@ from __future__ import division
 import logging
 import os
 import re
-import shlex
 import subprocess
 import sys
 import time
@@ -270,19 +269,10 @@ def _resolved_flag_vals(flag_vals):
     return util.resolve_all_refs(flag_vals)
 
 def _cmd_args(main, flag_vals):
-    def format_part(part):
-        return str(util.resolve_refs(part, flag_vals))
-    return [format_part(part) for part in _split_main(main)]
-
-def _split_main(main):
-    if isinstance(main, list):
-        return main
-    else:
-        # If main is None, this call will block (see
-        # https://bugs.python.org/issue27775)
-        if not main:
-            raise InvalidMain("", "missing command spec")
-        return shlex.split(main or "")
+    if not main:
+        raise InvalidMain("", "missing command spec")
+    format_part = lambda part: str(util.resolve_refs(part, flag_vals))
+    return [format_part(part) for part in op_util.split_main(main)]
 
 def _flag_args(flag_vals, opdef, cmd_args):
     flag_args = []

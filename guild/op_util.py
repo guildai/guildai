@@ -15,6 +15,7 @@
 import fnmatch
 import logging
 import os
+import shlex
 import shutil
 import struct
 import sys
@@ -482,3 +483,10 @@ def _to_copy_for_spec(spec):
 
 def _is_text_file(path):
     return not binaryornot.is_binary(path)
+
+def split_main(main):
+    if isinstance(main, list):
+        return main
+    # If main is None, this call will block (see
+    # https://bugs.python.org/issue27775)
+    return shlex.split(main or "")
