@@ -147,7 +147,9 @@
     guild.plugins.cloudml_op_main
     guild.plugins.cpu
     guild.plugins.disk
+    guild.plugins.flags
     guild.plugins.gpu
+    guild.plugins.import_flags_main
     guild.plugins.keras
     guild.plugins.keras_op_main
     guild.plugins.memory

@@ -44,6 +44,10 @@ class Plugin(object):
         """
         return []
 
+    def guildfile_loaded(self, _gf):
+        """Called after a Guild file is loaded."""
+        pass
+
     def get_operation(self, _name, _modeldef, _config):
         """Return instance of OpDef for name, if supported for modeldef.
 

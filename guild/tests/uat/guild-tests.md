@@ -16,6 +16,7 @@ tests).
       guild-test:                ok
       guildfiles:                ok
       help:                      ok
+      import-flags:              ok
       imports:                   ok
       includes:                  ok
       init:                      ok

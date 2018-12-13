@@ -25,6 +25,7 @@ import sys
 import six
 import yaml
 
+from guild import plugin as pluginlib
 from guild import resourcedef
 from guild import util
 
@@ -468,14 +469,20 @@ def _includes_first(names):
     return sorted(names, key=lambda x: "\x00" if x == "$include" else x)
 
 def _apply_data(name, data, resolved):
-    try:
-        cur = resolved[name]
-    except KeyError:
-        new = {}
-        new.update(data)
-        resolved[name] = new
+    assert isinstance(resolved, dict), resolved
+    if isinstance(data, dict):
+        # Safe to merge data items into resolved
+        try:
+            cur = resolved[name]
+        except KeyError:
+            new = {}
+            new.update(data)
+            resolved[name] = new
+        else:
+            _apply_missing_vals(cur, data)
     else:
-        _apply_missing_vals(cur, data)
+        # Non-dict data applied to resolved as-is
+        resolved[name] = data
 
 def _apply_missing_vals(target, source):
     assert isinstance(target, dict), target
@@ -728,7 +735,8 @@ class OpDef(object):
                 modeldef.guildfile,
                 "invalid operation def: %r" % data)
         self.modeldef = modeldef
-        self.flags = _init_flags(data, self)
+        (self.flags,
+         self.flags_special) = _init_flags(data, self)
         self._flag_vals = _init_flag_values(self.flags)
         self.guildfile = modeldef.guildfile
         self.name = name
@@ -792,7 +800,13 @@ class OpDef(object):
 
 def _init_flags(data, opdef):
     data = _resolve_includes(data, "flags", opdef.modeldef.guildfile_path)
-    return [FlagDef(name, data[name], opdef) for name in sorted(data)]
+    flags, special = [], {}
+    for name in sorted(data):
+        if name.startswith("$"):
+            special[name] = data[name]
+        else:
+            flags.append(FlagDef(name, data[name], opdef))
+    return flags, special
 
 class FlagDef(object):
 
@@ -984,14 +998,14 @@ class TestDef(object):
 # Module API
 ###################################################################
 
-def from_dir(path, filenames=None):
+def from_dir(path, filenames=None, no_cache=False):
     log.debug("checking '%s' for model sources", path)
     filenames = NAMES if filenames is None else filenames
     for name in filenames:
         model_file = os.path.abspath(os.path.join(path, name))
         if os.path.isfile(model_file):
             log.debug("found model source '%s'", model_file)
-            return from_file(model_file)
+            return from_file(model_file, no_cache=no_cache)
     raise NoModels(path)
 
 def is_guildfile_dir(path):
@@ -1004,12 +1018,15 @@ def is_guildfile_dir(path):
             return True
     return False
 
-def from_file(src, extends_seen=None):
-    cache_key = _cache_key(src)
-    cached = _cache.get(cache_key)
-    if cached:
-        return cached
-    _cache[cache_key] = mf = _load_guildfile(src, extends_seen)
+def from_file(src, extends_seen=None, no_cache=False):
+    if not no_cache:
+        cache_key = _cache_key(src)
+        cached = _cache.get(cache_key)
+        if cached:
+            return cached
+    mf = _load_guildfile(src, extends_seen)
+    if not no_cache:
+        _cache[cache_key] = mf
     return mf
 
 def _cache_key(src):
@@ -1023,7 +1040,13 @@ def _load_guildfile(src, extends_seen):
             log.exception("loading yaml from %s", src)
         raise GuildfileError(src, str(e))
     else:
-        return Guildfile(data, src, extends_seen=extends_seen)
+        gf = Guildfile(data, src, extends_seen=extends_seen)
+        _notify_plugins_guildfile_loaded(gf)
+        return gf
+
+def _notify_plugins_guildfile_loaded(gf):
+    for _name, plugin in pluginlib.iter_plugins():
+        plugin.guildfile_loaded(gf)
 
 def from_file_or_dir(src):
     try:
