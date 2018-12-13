@@ -13,6 +13,8 @@ For our tests, we'll use a helper function to print flag attributes.
     ...     op = gf.models["test"].get_operation(op_name)
     ...     flag = op.get_flagdef(flag_name)
     ...     print("description: {}".format(flag.description))
+    ...     if flag.choices:
+    ...         print("choices: {}".format([c.value for c in flag.choices]))
     ...     print("default: {}".format(flag.default))
 
 When `$import` is used, any referenced main modules must be available
@@ -71,6 +73,7 @@ the main module:
 
     >>> flag_info(gf, "import-1", "foo")
     description: Foo
+    choices: [1, 2]
     default: 1
 
     >>> flag_info(gf, "import-1", "bar")
@@ -89,6 +92,7 @@ imported value of 1 (see above) is not applied but the description is:
 
     >>> flag_info(gf, "import-2", "foo")
     description: Foo
+    choices: [1, 2]
     default: 2
 
 The 'bar' flag is imported in its entirety:
@@ -105,6 +109,7 @@ The `import-3` operation defines 'foo' and only imports 'bar':
 
     >>> flag_info(gf, "import-3", "foo")
     description:
+    choices: [1, 2, 3]
     default: 3
 
     >>> flag_info(gf, "import-3", "bar")

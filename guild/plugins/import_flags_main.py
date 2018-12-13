@@ -75,6 +75,8 @@ def _maybe_flag(action):
         attrs["description"] = action.help
     if action.default is not None:
         attrs["default"] = action.default
+    if action.choices:
+        attrs["choices"] = action.choices
     if isinstance(action, argparse._StoreTrueAction):
         attrs["arg-switch"] = True
     elif isinstance(action, argparse._StoreFalseAction):

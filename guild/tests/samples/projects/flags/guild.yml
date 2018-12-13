@@ -13,7 +13,9 @@
       main: main
       flags:
         $import: [bar]
-        foo: 3
+        foo:
+          default: 3
+          choices: [1,2,3]
     import-4:
       main: main2
       flags:
