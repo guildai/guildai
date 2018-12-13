@@ -30,9 +30,5 @@ And the generated files:
     hello-default/.guild/attrs/stopped
     hello-default/.guild/output
     hello-default/.guild/output.index
-    hello-default/.guild/source
-    hello-default/.guild/source/guild.yml
-    hello-default/.guild/source/msg.txt
-    hello-default/.guild/source/say.py
     hello-default/output
     <exit 0>
