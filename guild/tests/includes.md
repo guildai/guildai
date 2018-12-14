@@ -112,7 +112,7 @@ We'll modify the system path to so Guild can find the `mnist` package.
 
     >>> import sys
     >>> sys_path_save = sys.path
-    >>> sys.path.append(sample("projects"))
+    >>> sys.path = [sample("projects")] + sys.path
 
 Now we can load `include-pkg.yml`:
 

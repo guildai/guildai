@@ -890,7 +890,7 @@ system path.
 Next we'll add 'extend-pkg' to the system path and try again.
 
     >>> sys_path_save = sys.path
-    >>> sys.path = sys.path + [extend_pkg_dir]
+    >>> sys.path = [extend_pkg_dir] + sys.path
     >>> extend_pkg_dir in sys.path
     True
 
@@ -947,7 +947,7 @@ project:
     >>> project_dir in sys.path
     False
     >>> sys_path_save = sys.path
-    >>> sys.path = sys.path + [project_dir]
+    >>> sys.path = [project_dir] + sys.path
     >>> project_dir in sys.path
     True
 

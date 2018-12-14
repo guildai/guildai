@@ -44,7 +44,7 @@ Let's modify the system path to include our sample projects:
 
     >>> import sys
     >>> sys_path_save = sys.path
-    >>> sys.path.append(projects)
+    >>> sys.path = [projects] + sys.path
 
 We can now load `b`:
 

@@ -52,7 +52,7 @@ Let's now include the project directory in the system path:
 
     >>> import sys
     >>> sys_path_save = sys.path
-    >>> sys.path.append(project_dir)
+    >>> sys.path = [project_dir] + sys.path
 
 And load the Guild file again:
 
