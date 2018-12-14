@@ -1040,9 +1040,9 @@ def _notify_plugins_guildfile_data(data, src):
     for _name, plugin in pluginlib.iter_plugins():
         plugin.guildfile_data(data, src)
 
-def from_file_or_dir(src):
+def from_file_or_dir(src, no_cache=False):
     try:
-        return from_file(src)
+        return from_file(src, no_cache=no_cache)
     except IOError as e:
         if e.errno == errno.EISDIR:
             return from_dir(src)
