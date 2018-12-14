@@ -13,15 +13,20 @@
 # limitations under the License.
 
 import argparse
+import hashlib
 import imp
 import json
 import logging
 import os
+import shutil
 import sys
 
 from guild import python_util
+from guild import util
+from guild import var
 
 FLAGS = {}
+MOD_INFO = None
 
 action_types = (
     argparse._StoreAction,
@@ -33,9 +38,9 @@ def main():
     log = _init_log()
     args = _init_args()
     _patch_argparse(args.output)
-    # importing module as side-effect of printing help as JSON due to
+    # Importing module has the side-effect of writing flag data due to
     # patched argparse
-    _exec_module(args.module, log)
+    _exec_module(args.module, args.output, log)
 
 def _init_log():
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
@@ -91,9 +96,23 @@ def _flag_name(action):
 def _write_flags_and_exit(output, _parse_args, *_args, **_kw):
     with open(output, "w") as f:
         json.dump(FLAGS, f)
+    _cache_data(output)
+
+def _cache_data(output):
+    assert MOD_INFO is not None
+    _f, mod_path, _desc = MOD_INFO # pylint: disable=unpacking-non-sequence
+    cached_data_path = _cached_data_path(mod_path)
+    util.ensure_dir(os.path.dirname(cached_data_path))
+    shutil.copyfile(output, cached_data_path)
     sys.exit(0)
 
-def _exec_module(module, log):
+def _cached_data_path(module_path):
+    cache_dir = var.cache_dir("import-flags")
+    abs_path = os.path.abspath(module_path)
+    path_hash = hashlib.md5(abs_path.encode()).hexdigest()
+    return os.path.join(cache_dir, path_hash)
+
+def _exec_module(module, output, log):
     path, mod_name = _split_module(module)
     sys.path.insert(0, os.path.join(_guild_cwd(), path))
     try:
@@ -104,6 +123,8 @@ def _exec_module(module, log):
         sys.stderr.write("%s\n" % e)
         sys.exit(1)
     else:
+        globals()["MOD_INFO"] = module_info
+        _try_cached_data(module_info, output)
         _set_argv_for_module_help(module_info)
         _module_main(module_info, log)
 
@@ -128,6 +149,18 @@ def _find_module(module):
         except ImportError:
             pass
     raise ImportError("No module named %s" % module)
+
+def _try_cached_data(module_info, output):
+    _f, module_path, _desc = module_info
+    cached_data_path = _cached_data_path(module_path)
+    if _cache_valid(cached_data_path, module_path):
+        shutil.copyfile(cached_data_path, output)
+        sys.exit(0)
+
+def _cache_valid(cache, marker):
+    if not os.path.exists(cache):
+        return False
+    return os.path.getmtime(marker) <= os.path.getmtime(cache)
 
 def _set_argv_for_module_help(module_info):
     _, path, _ = module_info

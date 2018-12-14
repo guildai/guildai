@@ -81,14 +81,17 @@ class FlagsPlugin(Plugin):
                 sys.executable,
                 "-m", "guild.plugins.import_flags_main",
                 main_mod, data_path]
+            self.log.debug("import_flags_main cmd: %r", cmd)
             try:
-                subprocess.check_output(cmd, stderr=subprocess.STDOUT, env=env)
+                out = subprocess.check_output(
+                    cmd, stderr=subprocess.STDOUT, env=env)
             except subprocess.CalledProcessError as e:
                 self.log.warning(
                     "cannot import flags from %s: %s",
                     main_mod, e.output.decode().strip())
                 return {}
             else:
+                self.log.debug("import_flags_main output: %s", out)
                 return self._load_data(data_path)
 
     @staticmethod
