@@ -88,3 +88,65 @@ And its contents:
      'gpkg/hello/README.md',
      'gpkg/hello/a.txt',
      'gpkg/hello/guild.yml']
+
+## Default packages
+
+If a package def isn't specified, Guild will use the name of the
+default model as the package name.
+
+Let's create a new workspace:
+
+    >>> workspace = mkdtemp()
+    >>> dir(workspace)
+    []
+
+And create a sample Guild file in it that contains only a model def:
+
+    >>> open(join_path(workspace, "guild.yml"), "w").write("""
+    ... model: test
+    ... """)
+
+And generate a package for it:
+
+    >>> gf = guildfile.from_dir(workspace)
+    >>> out = guild.package.create_package(gf.src, capture_output=True)
+    >>> print("-\n" + out.decode("UTF-8"))
+    -
+    running bdist_wheel
+    running build
+    running build_py
+    ...
+    adding 'test/guild.yml'
+    adding 'test-0.0.0.dist-info/...'
+    ...
+    <BLANKLINE>
+
+The generated files::
+
+    >>> files = dir(join_path(workspace, "dist"))
+    >>> files
+    ['test-0.0.0-py2.py3-none-any.whl']
+
+And the package contents:
+
+    >>> wheel = zipfile.ZipFile(join_path(workspace, "dist", files[0]))
+    >>> pprint(sorted(wheel.namelist()))
+    ['test-0.0.0.dist-info/METADATA',
+     'test-0.0.0.dist-info/PACKAGE',
+     'test-0.0.0.dist-info/RECORD',
+     'test-0.0.0.dist-info/WHEEL',
+     'test-0.0.0.dist-info/entry_points.txt',
+     'test-0.0.0.dist-info/namespace_packages.txt',
+     'test-0.0.0.dist-info/top_level.txt',
+     'test/guild.yml']
+
+If a Guild file doesn't contain a package def or a model def, an error
+is generated:
+
+    >>> open(join_path(workspace, "guild.yml"), "w").write("""
+    ... config: test
+    ... """)
+    >>> gf = guildfile.from_dir(workspace)
+    >>> guild.package.create_package(gf.src, capture_output=True)
+    Traceback (most recent call last):
+    SystemExit: (1, 'cannot get package name: no default model\n')

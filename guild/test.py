@@ -23,6 +23,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 
 import click
 
@@ -30,6 +31,9 @@ from guild import opref as opreflib
 from guild import var
 
 log = logging.getLogger("guild")
+
+POLL_INTERVAL = 5
+KILL_AFTER = 30
 
 class TestError(Exception):
     pass
@@ -95,6 +99,7 @@ class _RunOp(object):
         self.expect = [
             _resolve_op_expect(expect, test)
             for expect in (step_config.get("expect") or [])]
+        self.stop_after = step_config.get("stop-after")
 
     def run(self, run_config, model=None):
         op_spec = self._op_spec(model)
@@ -112,7 +117,10 @@ class _RunOp(object):
 
     def _run_op(self, op_spec, gpus):
         _status("Running operation %s" % op_spec)
-        _call(self._run_cmd(op_spec, gpus), cwd=self.guildfile.dir)
+        _call(
+            self._run_cmd(op_spec, gpus),
+            cwd=self.guildfile.dir,
+            stop_after=self.stop_after)
 
     def _run_cmd(self, op_name, gpus):
         cmd = ["guild", "run", "-y", op_name]
@@ -276,12 +284,52 @@ def _output(cmd):
     else:
         return out.decode()
 
-def _call(cmd, **kw):
+def _call(cmd, stop_after=None, **kw):
     log.debug("cmd: %r", cmd)
     try:
-        subprocess.check_call(cmd, **kw)
+        p = subprocess.Popen(cmd, **kw)
     except subprocess.CalledProcessError:
         raise Failed("command failed")
+    else:
+        _wait(p, stop_after)
+
+def _wait(p, stop_after):
+    if stop_after is None:
+        _handle_returncode(p.wait())
+    else:
+        try:
+            _poll(p, stop_after)
+        finally:
+            if p.poll() is None:
+                _terminate(p)
+
+def _handle_returncode(code):
+    if code != 0:
+        raise Failed("command failed")
+
+def _poll(p, stop_after):
+    assert stop_after is not None
+    stop_at = time.time() + stop_after
+    while time.time() < stop_at:
+        time.sleep(POLL_INTERVAL)
+        code = p.poll()
+        if code is not None:
+            _handle_returncode(code)
+            break
+    log.info("Stopping process early (%i)", p.pid)
+    _terminate(p)
+
+def _terminate(p):
+    kill_at = time.time() + KILL_AFTER
+    p.terminate()
+    while p.poll() is None and time.time() < kill_at:
+        time.sleep(POLL_INTERVAL)
+    if p.poll() is None:
+        log.warning("Process did not terminate (%i), killing", p.pid)
+        p.kill()
+        time.sleep(POLL_INTERVAL)
+    if p.poll() not in (0, -15):
+        raise Failed("Process did not terminate gracefully (%i)" % p.pid)
 
 def _read(path):
     return open(path, "r").read()
