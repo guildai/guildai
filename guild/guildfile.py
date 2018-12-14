@@ -1017,10 +1017,10 @@ def from_file(src, extends_seen=None, no_cache=False):
         cached = _cache.get(cache_key)
         if cached:
             return cached
-    mf = _load_guildfile(src, extends_seen)
+    gf = _load_guildfile(src, extends_seen)
     if not no_cache:
-        _cache[cache_key] = mf
-    return mf
+        _cache[cache_key] = gf
+    return gf
 
 def _cache_key(src):
     return os.path.abspath(src)
