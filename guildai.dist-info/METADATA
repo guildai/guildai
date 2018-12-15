@@ -42,8 +42,8 @@ Requires-Dist: tabview
 Requires-Dist: twine
 Requires-Dist: virtualenv
 
-Guild AI is a task runner and package manager for TensorFlow. Use it
-to automate training, testing, and deployment of TensorFlow and Keras
+Guild AI is an experiment tracker TensorFlow and Keras. Use it to
+automate training, testing, and deployment of TensorFlow and Keras
 models.
 
 - `Guild AI website <https://www.guild.ai>`_
