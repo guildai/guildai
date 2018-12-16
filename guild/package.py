@@ -87,7 +87,7 @@ def create_package(package_file, dist_dir=None, upload_repo=False,
     out, _ = p.communicate()
     if p.returncode != 0:
         if capture_output:
-            raise SystemExit(p.returncode, out)
+            raise SystemExit(p.returncode, out.decode())
         else:
             raise SystemExit(p.returncode)
     return out

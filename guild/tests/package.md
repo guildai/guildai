@@ -102,7 +102,7 @@ Let's create a new workspace:
 
 And create a sample Guild file in it that contains only a model def:
 
-    >>> open(join_path(workspace, "guild.yml"), "w").write("""
+    >>> write(join_path(workspace, "guild.yml"), """
     ... model: test
     ... """)
 
@@ -143,10 +143,10 @@ And the package contents:
 If a Guild file doesn't contain a package def or a model def, an error
 is generated:
 
-    >>> open(join_path(workspace, "guild.yml"), "w").write("""
+    >>> write(join_path(workspace, "guild.yml"), """
     ... config: test
     ... """)
     >>> gf = guildfile.from_dir(workspace)
     >>> guild.package.create_package(gf.src, capture_output=True)
     Traceback (most recent call last):
-    SystemExit: (1, 'cannot get package name: no default model\n')
+    SystemExit: (1, u'cannot get package name: no default model\n')

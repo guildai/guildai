@@ -176,6 +176,7 @@ def _test_globals():
         "sha256": util.file_sha256,
         "symlink": os.symlink,
         "touch": util.touch,
+        "write": write,
     }
 
 def sample(*parts):
@@ -278,3 +279,7 @@ class Chdir(object):
     def __exit__(self, *exc):
         assert self._cwd is not None
         os.chdir(self._cwd)
+
+def write(filename, contents):
+    with open(filename, "w") as f:
+        f.write(contents)
