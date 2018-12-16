@@ -814,6 +814,7 @@ class FlagDef(object):
         self.arg_skip = bool(data.get("arg-skip"))
         self.arg_switch = data.get("arg-switch")
         self.choices = _init_flag_choices(data.get("choices"), self)
+        self.allow_other = data.get("allow-other", False)
         self.null_label = data.get("null-label")
 
     def __repr__(self):

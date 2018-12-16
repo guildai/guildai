@@ -82,7 +82,8 @@ We'll create a helper function to get the args:
     >>> class FlagDefProxy(object):
     ...
     ...   def __init__(self, name, choices=None, arg_name=None,
-    ...                arg_skip=False, arg_switch=None):
+    ...                arg_skip=False, arg_switch=None,
+    ...                allow_other=False):
     ...     self.name = name
     ...     self.choices = [
     ...       ChoiceProxy(**choice) for choice in (choices or [])
@@ -90,6 +91,7 @@ We'll create a helper function to get the args:
     ...     self.arg_name = arg_name
     ...     self.arg_skip = arg_skip
     ...     self.arg_switch = arg_switch
+    ...     self.allow_other = allow_other
 
     >>> class ChoiceProxy(object):
     ...
@@ -119,7 +121,7 @@ We'll create a helper function to get the args:
     ...     if isinstance(flag, dict):
     ...       flagdef_args = {
     ...         name: flag[name] for name in flag
-    ...         if name in ("choices", "arg_name", "arg_skip", "arg_switch")
+    ...         if name not in ("value")
     ...       }
     ...       return FlagDefProxy(name, **flagdef_args)
     ...     else:
@@ -299,6 +301,73 @@ We can use `arg_skip` to omit the choice value:
     ...   }
     ... })
     ['--hex', '00f', '--rgb', '0,0,255']
+
+Choices are generally used to validate user-specified values. If we
+specified a value that isn't a valid choice, Guild logs a warning.
+
+    >>> with LogCapture() as log:
+    ...   flag_args({
+    ...     "color": {
+    ...       "value": "white",
+    ...       "choices": [{"value": "blue"}]
+    ...     }
+    ...   })
+    ['--color', 'white']
+
+The log:
+
+    >>> log.print_all()
+    WARNING: unsupported choice 'white' for 'color' flag, ignoring
+
+We can indicate that the flag supports other values:
+
+    >>> with LogCapture() as log:
+    ...   flag_args({
+    ...     "color": {
+    ...       "value": "white",
+    ...       "allow_other": True,
+    ...       "choices": [{"value": "blue"}]
+    ...     }
+    ...   })
+    ['--color', 'white']
+
+The log:
+
+    >>> log.get_all()
+    []
+
+It's possible that the list of args associated with a choice overlaps
+with args provided by another flag. In this case, the value provided
+by the other flag takes precendence.
+
+    >>> flag_args({
+    ...   "color": {
+    ...     "value": "white"
+    ...   },
+    ...   "color-profile": {
+    ...     "value": "light",
+    ...     "arg_skip": True,
+    ...     "choices": [{"value": "light",
+    ...                  "args": {"color": "tan"}}
+    ...     ]
+    ...   }
+    ... })
+    ['--color', 'white']
+
+It's possible that two flags provide the same argument. In this case,
+the flag whose name has the highest ordinal string value is used:
+
+    >>> flag_args({
+    ...   "color1": {
+    ...     "value": "blue",
+    ...     "arg_name": "color"
+    ...   },
+    ...   "color2": {
+    ...     "value": "red",
+    ...     "arg_name": "color"
+    ...   }
+    ... })
+    ['--color', 'red']
 
 ## Command args
 

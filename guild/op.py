@@ -291,7 +291,7 @@ def _flag_args(flag_vals, opdef, cmd_args):
 def _flag_cmd_arg_vals(flag_vals, opdef):
     vals = {}
     flag_map = {}
-    for name, val in flag_vals.items():
+    for name, val in sorted(flag_vals.items()):
         if val is None:
             continue
         flagdef = opdef.get_flagdef(name)
@@ -312,12 +312,18 @@ def _apply_choice_args(flagdef, val, flag_vals, target):
                     name: util.resolve_refs(val, flag_vals)
                     for name, val in choice.args.items()
                 }
-                target.update(args)
+                # Choice args must not overwrite existing args
+                # (i.e. default values from other flags or values from
+                # user)
+                for name in args:
+                    if name not in target:
+                        target[name] = args[name]
             break
     else:
-        log.warning(
-            "unsupported choice %r for '%s' flag, ignoring",
-            val, flagdef.name)
+        if not flagdef.allow_other:
+            log.warning(
+                "unsupported choice %r for '%s' flag, ignoring",
+                val, flagdef.name)
 
 def _apply_flag_arg(flagdef, value, flag_vals, target, flag_map):
     if flagdef.arg_name:

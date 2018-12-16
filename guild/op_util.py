@@ -412,7 +412,7 @@ def _check_flag_vals(vals, opdef):
         _check_flag_type(val, flag)
 
 def _check_flag_choice(val, flag):
-    if (val and flag.choices and
+    if (val and flag.choices and not flag.allow_other and
         val not in [choice.value for choice in flag.choices]):
         raise InvalidFlagChoice(val, flag)
 
