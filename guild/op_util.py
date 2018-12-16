@@ -436,7 +436,7 @@ def _copy_source(src_base, source_config, dest_base):
         dest = os.path.join(dest_base, src_rel_path)
         log.debug("copying source %s to %s", src, dest)
         util.ensure_dir(os.path.dirname(dest))
-        shutil.copyfile(src, dest)
+        _try_copy_file(src, dest)
 
 def _source_to_copy(src_dir, source_config):
     to_copy = []
@@ -450,6 +450,17 @@ def _source_to_copy(src_dir, source_config):
             if _to_copy(path, rel_path, source_config):
                 to_copy.append((path, rel_path))
     return to_copy
+
+def _try_copy_file(src, dest):
+    try:
+        shutil.copyfile(src, dest)
+    except (IOError, OSError) as e:
+        # This is not an error we want to stop an operation for. Log
+        # and continue.
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("copy %s to %s", src, dest)
+        else:
+            log.warning("could not copy source file %s: %s", src, e)
 
 def _del_excluded_dirs(dirs, root, seen_dirs):
     _del_env_dirs(dirs, root)
