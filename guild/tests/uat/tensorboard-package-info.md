@@ -7,7 +7,7 @@ installed `pypi.tensorboard` package.
 
     >>> run("guild packages info tensorboard")
     name: tensorboard
-    version: 1.12.0
+    version: 1.12.1
     summary: TensorBoard lets you watch Tensors Flow
     home-page: https://github.com/tensorflow/tensorboard
     author: Google Inc.
