@@ -443,8 +443,7 @@ def _source_to_copy(src_dir, source_config):
     seen_dirs = set()
     for root, dirs, files in os.walk(src_dir, followlinks=True):
         seen_dirs.add(os.path.realpath(root))
-        _del_env_dirs(root, dirs)
-        _del_seen_dirs(root, dirs, seen_dirs)
+        _del_excluded_dirs(dirs, root, seen_dirs)
         for name in files:
             path = os.path.join(root, name)
             rel_path = os.path.relpath(path, src_dir)
@@ -452,12 +451,23 @@ def _source_to_copy(src_dir, source_config):
                 to_copy.append((path, rel_path))
     return to_copy
 
-def _del_env_dirs(root, dirs):
+def _del_excluded_dirs(dirs, root, seen_dirs):
+    _del_env_dirs(dirs, root)
+    _del_git_dir(dirs)
+    _del_seen_dirs(dirs, root, seen_dirs)
+
+def _del_env_dirs(dirs, root):
     for name in dirs:
         if _is_env_dir(os.path.join(root, name)):
             dirs.remove(name)
 
-def _del_seen_dirs(root, dirs, seen):
+def _del_git_dir(dirs):
+    try:
+        dirs.remove(".git")
+    except ValueError:
+        pass
+
+def _del_seen_dirs(dirs, root, seen):
     for dir_name in dirs:
         real_path = os.path.realpath(os.path.join(root, dir_name))
         if real_path in seen:
