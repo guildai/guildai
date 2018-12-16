@@ -23,7 +23,7 @@ from guild import click_util
 @click.argument("path-or-package", required=False)
 @click.option(
     "-t", "--test", "tests",
-    metavar="[TEST]...",
+    metavar="TEST",
     required=False,
     multiple=True,
     help="Run a specific test. May be used multiple times.")

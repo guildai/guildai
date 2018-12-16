@@ -334,7 +334,9 @@ def _poll(p, stop_after):
         if code is not None:
             _handle_returncode(code)
             break
-    log.info("Stopping process early (%i)", p.pid)
+    log.info(
+        "Stopping process early (pid %i)",
+        p.pid)
     _terminate(p)
 
 def _terminate(p):
@@ -343,11 +345,15 @@ def _terminate(p):
     while p.poll() is None and time.time() < kill_at:
         time.sleep(POLL_INTERVAL)
     if p.poll() is None:
-        log.warning("Process did not terminate (%i), killing", p.pid)
+        log.warning(
+            "Process did not terminate (pid %i), killing",
+            p.pid)
         p.kill()
         time.sleep(POLL_INTERVAL)
     if p.poll() not in (0, -15):
-        raise Failed("Process did not terminate gracefully (%i)" % p.pid)
+        raise Failed(
+            "Process did not terminate gracefully (pid %i)"
+            % p.pid)
 
 def _read(path):
     return open(path, "r").read()
