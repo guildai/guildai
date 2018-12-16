@@ -43,12 +43,13 @@ def _print_header(run_dir, args):
         cli.out("%s:" % run_dir)
 
 def _list(run_dir, args):
+    match_path_pattern = _match_path_pattern(args)
     for root, dirs, files in os.walk(run_dir, followlinks=args.follow_links):
         _maybe_rm_guild_dir(dirs, args)
         for name in (dirs + files):
             full_path = os.path.join(root, name)
             rel_path = os.path.relpath(full_path, run_dir)
-            if args.path and not _match_path(rel_path, args.path):
+            if not _match_path(rel_path, match_path_pattern):
                 continue
             if os.path.isdir(full_path):
                 suffix = os.path.sep
@@ -59,8 +60,18 @@ def _list(run_dir, args):
             else:
                 yield rel_path + suffix
 
+def _match_path_pattern(args):
+    pattern = args.path
+    if args.source:
+        source_base = os.path.join(".guild", "source")
+        if pattern:
+            pattern = os.path.join(source_base, pattern)
+        else:
+            pattern = source_base
+    return pattern
+
 def _maybe_rm_guild_dir(dirs, args):
-    if args.all:
+    if args.all or args.source:
         return
     try:
         dirs.remove(".guild")
@@ -68,6 +79,8 @@ def _maybe_rm_guild_dir(dirs, args):
         pass
 
 def _match_path(filename, pattern):
+    if not pattern:
+        return True
     return (
         filename.startswith(pattern) or
         fnmatch.fnmatch(filename, pattern))

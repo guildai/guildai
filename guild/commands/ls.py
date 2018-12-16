@@ -43,6 +43,10 @@ from . import runs_support
     "-n", "--no-format",
     is_flag=True,
     help="Show files without additional formatting.")
+@click.option(
+    "-s", "--source",
+    is_flag=True,
+    help="List source files.")
 @runs_support.op_and_label_filters
 @runs_support.status_filters
 
@@ -53,8 +57,12 @@ from . import runs_support
 def ls(ctx, args):
     """List run files.
 
-    `--path` may be specified as a relative path to a file within the
-    run directory to list.
+    `--path` may be specified as a relative path pattern to limit
+    results within the run directory to matching files.
+
+    `--source` limits the results to run source files. If `--path` is
+    specified with `--source`, the path pattern limits results within
+    the source directory rather than the run directory.
 
     {{ runs_support.run_arg }}
 

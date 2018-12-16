@@ -6,10 +6,12 @@ We'll use an args proxy to simulate command arguments.
 
     >>> class Args(object):
     ...   def __init__(self, run="1", path=None, full_path=False,
-    ...                no_format=None, follow_links=False, all=False):
+    ...                no_format=None, follow_links=False, all=False,
+    ...                source=False):
     ...       self.run = run
     ...       self.path = path
     ...       self.full_path = full_path
+    ...       self.source = source
     ...       self.no_format = no_format
     ...       self.follow_links = follow_links
     ...       self.all = all
@@ -38,6 +40,10 @@ Let's create a sample run structure:
     >>> touch(join_path(run.path, "c", "e.txt"))
     >>> touch(join_path(run.path, "c", "f.bin"))
     >>> symlink("c", join_path(run.path, "l"))
+    >>> touch(join_path(run.path, ".guild", "some-guild-file"))
+    >>> mkdir(join_path(run.path, ".guild", "source"))
+    >>> touch(join_path(run.path, ".guild", "source", "a.py"))
+    >>> touch(join_path(run.path, ".guild", "source", "guild.yml"))
 
 Here's a function that tests the ls command using sample runs.
 
@@ -130,6 +136,10 @@ Show all files, including Guild files:
       .guild/
       .guild/attrs/
       .guild/attrs/opref
+      .guild/some-guild-file
+      .guild/source/
+      .guild/source/a.py
+      .guild/source/guild.yml
       a
       b
       c/
@@ -137,3 +147,24 @@ Show all files, including Guild files:
       c/e.txt
       c/f.bin
       l/
+
+Show source files:
+
+    >>> ls(source=True)
+    /.../runs/run-1:
+      .guild/source/
+      .guild/source/a.py
+      .guild/source/guild.yml
+
+Source with fill path:
+
+    >>> ls(source=True, full_path=True)
+    /.../runs/run-1/.guild/source
+    /.../runs/run-1/.guild/source/a.py
+    /.../runs/run-1/.guild/source/guild.yml
+
+Source with path:
+
+    >>> ls(source=True, path="a.*")
+    /.../runs/run-1:
+      .guild/source/a.py
