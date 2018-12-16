@@ -87,7 +87,7 @@ def init_resource_path(cwd=None):
 def _init_path(mod, cwd):
     cwd_gf = cwd_guildfile(cwd)
     if cwd_gf:
-        mod.insert_path(cwd_gf.dir)
+        mod.insert_path(cwd_gf.dir, clear_cache=True)
 
 def one_run(runs, spec, ctx=None):
     """Returns runs[0] if len(runs) is 1 otherwise exits with an error."""

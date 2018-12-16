@@ -381,14 +381,14 @@ def get_path():
 def set_path(path, clear_cache=False):
     _models.set_path(path, clear_cache)
 
-def insert_path(item):
+def insert_path(item, clear_cache=False):
     path = _models.path()
     try:
         path.remove(item)
     except ValueError:
         pass
     path.insert(0, item)
-    _models.set_path(path)
+    _models.set_path(path, clear_cache)
 
 def iter_models():
     for _name, model in _models:
