@@ -28,6 +28,7 @@ import time
 import click
 
 from guild import opref as opreflib
+from guild import resolver
 from guild import var
 
 log = logging.getLogger("guild")
@@ -100,12 +101,20 @@ class _RunOp(object):
             _resolve_op_expect(expect, test)
             for expect in (step_config.get("expect") or [])]
         self.stop_after = step_config.get("stop-after")
+        self.use_existing = step_config.get("use-existing", False)
 
     def run(self, run_config, model=None):
         op_spec = self._op_spec(model)
         if not run_config.op_matches_models(op_spec):
             log.info("Skipping operation %s", op_spec)
             return
+        if self.use_existing:
+            existing = self._existing_run(op_spec)
+            if existing:
+                log.info(
+                    "Skipping operation %s - run exists (%s)",
+                    op_spec, existing.id)
+                return
         self._run_op(op_spec, run_config.gpus)
         self._check_expected()
 
@@ -114,6 +123,15 @@ class _RunOp(object):
             return "%s:%s" % (model, self.op_name)
         else:
             return self.op_name
+
+    @staticmethod
+    def _existing_run(op_spec):
+        try:
+            opref = opreflib.OpRef.from_string(op_spec)
+        except opreflib.OpRefError:
+            raise Failed("invalid operation %r" % op_spec)
+        else:
+            return resolver.latest_run([opref])
 
     def _run_op(self, op_spec, gpus):
         _status("Running operation %s" % op_spec)

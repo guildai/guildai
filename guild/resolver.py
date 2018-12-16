@@ -192,14 +192,6 @@ def _resdef_parent_dirs(resdef):
     else:
         return [parent.dir for parent in modeldef.parents]
 
-class opref_match_filter(object):
-
-    def __init__(self, opref):
-        self.opref = opref
-
-    def __call__(self, run):
-        return self.opref.is_op_run(run, match_regex=True)
-
 class OperationOutputResolver(Resolver):
 
     def __init__(self, source, resource, modeldef):
@@ -225,13 +217,12 @@ class OperationOutputResolver(Resolver):
 
     def _latest_op_run(self, run_id_prefix):
         oprefs = self._source_oprefs()
-        runs_filter = self._runs_filter(oprefs, run_id_prefix)
-        runs = var.runs(sort=["-started"], filter=runs_filter)
-        if runs:
-            return runs[0]
-        raise ResolutionError(
-            "no suitable run for %s"
-            % ",".join([self._opref_desc(opref) for opref in oprefs]))
+        latest = latest_run(oprefs, run_id_prefix)
+        if not latest:
+            raise ResolutionError(
+                "no suitable run for %s"
+                % ",".join([self._opref_desc(opref) for opref in oprefs]))
+        return latest
 
     def _source_oprefs(self):
         oprefs = []
@@ -246,32 +237,6 @@ class OperationOutputResolver(Resolver):
     def _split_opref_specs(spec):
         return [part.strip() for part in spec.split(",")]
 
-    def _runs_filter(self, oprefs, run_id_prefix):
-        if run_id_prefix:
-            return lambda run: run.id.startswith(run_id_prefix)
-        resolved_oprefs = [self._resolve_opref(opref) for opref in oprefs]
-        return var.run_filter(
-            "all", [
-                var.run_filter("any", [
-                    var.run_filter("attr", "status", "completed"),
-                    var.run_filter("attr", "status", "running"),
-                    var.run_filter("attr", "status", "terminated"),
-                ]),
-                var.run_filter("any", [
-                    opref_match_filter(opref)
-                    for opref in resolved_oprefs
-                ])
-            ])
-
-    def _resolve_opref(self, opref):
-        assert opref.op_name, opref
-        return guild.opref.OpRef(
-            pkg_type="package" if opref.pkg_name else None,
-            pkg_name=opref.pkg_name,
-            pkg_version=None,
-            model_name=opref.model_name or self.modeldef.name,
-            op_name=opref.op_name)
-
     @staticmethod
     def _opref_desc(opref):
         if opref.pkg_type == "guildfile":
@@ -284,6 +249,48 @@ class OperationOutputResolver(Resolver):
         return (
             "{}:{}".format(model_spec, opref.op_name)
             if model_spec else opref.op_name)
+
+def latest_run(oprefs, run_id_prefix=None):
+    oprefs = [_resolve_opref(opref) for opref in oprefs]
+    runs_filter = _runs_filter(oprefs, run_id_prefix)
+    runs = var.runs(sort=["-started"], filter=runs_filter)
+    log.debug("runs for %s: %s", oprefs, runs)
+    if runs:
+        return runs[0]
+    return None
+
+def _resolve_opref(opref):
+    if not opref.op_name:
+        raise RuntimeError("invalid opref: %s", opref)
+    return guild.opref.OpRef(
+        pkg_type="package" if opref.pkg_name else None,
+        pkg_name=opref.pkg_name,
+        pkg_version=None,
+        model_name=opref.model_name,
+        op_name=opref.op_name)
+
+def _runs_filter(oprefs, run_id_prefix):
+    if run_id_prefix:
+        return lambda run: run.id.startswith(run_id_prefix)
+    return var.run_filter(
+        "all", [
+            var.run_filter("any", [
+                var.run_filter("attr", "status", "completed"),
+                var.run_filter("attr", "status", "running"),
+                var.run_filter("attr", "status", "terminated"),
+            ]),
+            var.run_filter("any", [
+                opref_match_filter(opref) for opref in oprefs
+            ])
+        ])
+
+class opref_match_filter(object):
+
+    def __init__(self, opref):
+        self.opref = opref
+
+    def __call__(self, run):
+        return self.opref.is_op_run(run, match_regex=True)
 
 class ModuleResolver(Resolver):
 

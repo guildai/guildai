@@ -87,18 +87,27 @@ def _opref_is_op_run(opref, run, match_regex=False):
     try:
         run_opref = _opref_from_run(run)
     except OpRefError as e:
-        log.warning("unable to read opref for run %s: %s", run.id, e)
+        log.warning("cannot read opref for run %s: %s", run.id, e)
         return False
     else:
-        return (
-            (opref.pkg_type is None or
-             run_opref.pkg_type == opref.pkg_type) and
-            (opref.pkg_name is None or
-             run_opref.pkg_name == opref.pkg_name) and
-            (opref.pkg_version is None or
-             run_opref.pkg_version == opref.pkg_version) and
-            _cmp(run_opref.model_name, opref.model_name, match_regex) and
-            _cmp(run_opref.op_name, opref.op_name, match_regex))
+        if not run_opref.op_name:
+            log.warning("cannot get op name for run %s", run.id)
+            return False
+        return _cmp_oprefs(run_opref, opref, match_regex)
+
+def _cmp_oprefs(run_opref, opref, match_regex):
+    assert run_opref.op_name
+    assert opref.op_name
+    return (
+        (opref.pkg_type is None or
+         run_opref.pkg_type == opref.pkg_type) and
+        (opref.pkg_name is None or
+         run_opref.pkg_name == opref.pkg_name) and
+        (opref.pkg_version is None or
+         run_opref.pkg_version == opref.pkg_version) and
+        (opref.model_name is None or
+         _cmp(run_opref.model_name, opref.model_name, match_regex)) and
+        _cmp(run_opref.op_name, opref.op_name, match_regex))
 
 def _cmp(val, compare_to, regex):
     log.debug("opref comparing %r to %r (regex=%r)", val, compare_to, regex)
