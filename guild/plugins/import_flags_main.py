@@ -82,6 +82,8 @@ def _maybe_flag(action):
         attrs["default"] = action.default
     if action.choices:
         attrs["choices"] = action.choices
+    if action.required:
+        attrs["required"] = True
     if isinstance(action, argparse._StoreTrueAction):
         attrs["arg-switch"] = True
     elif isinstance(action, argparse._StoreFalseAction):
