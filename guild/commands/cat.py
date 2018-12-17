@@ -25,6 +25,10 @@ from . import runs_support
 @click.argument("path")
 @runs_support.run_arg
 @click.option(
+    "-s", "--source",
+    is_flag=True,
+    help="Apply PATH to source files.")
+@click.option(
     "-p", "--page",
     is_flag=True,
     help="Show file in pager.")
@@ -39,7 +43,8 @@ def cat(ctx, args):
     """Show contents of a run file.
 
     `PATH` must be a relative path to a file in the specified run
-    directory.
+    directory or to the run source directory if `--source` is
+    specified.
 
     {{ runs_support.run_arg }}
 

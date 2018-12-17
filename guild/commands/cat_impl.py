@@ -33,11 +33,18 @@ def main(args, ctx):
             "PATH must be relative\n"
             "Try 'guild cat --help' for more information.")
     run = runs_impl.one_run(args, ctx)
-    path = os.path.join(run.path, args.path)
+    path = _path(run, args)
     if args.page:
         _page(path)
     else:
         _cat(path)
+
+def _path(run, args):
+    if args.source:
+        root = run.guild_path("source")
+    else:
+        root = run.path
+    return os.path.join(root, args.path)
 
 def _page(path):
     f = _open_file(path)
