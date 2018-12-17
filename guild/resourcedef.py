@@ -119,7 +119,7 @@ class ResourceDef(object):
         if type == "file":
             return ResourceSource(self, "file:%s" % val, **data)
         elif type == "url":
-            return URLResourceSource(self, val, **data)
+            return ResourceSource(self, val, **data)
         elif type == "module":
             return ResourceSource(self, "module:%s" % val, **data)
         else:
@@ -135,7 +135,8 @@ class ResourceDef(object):
 class ResourceSource(object):
 
     def __init__(self, resdef, uri, sha256=None, unpack=True,
-                 type=None, select=None, rename=None, help=None, **kw):
+                 type=None, select=None, rename=None, help=None,
+                 post_process=None, **kw):
         self.resdef = resdef
         self.uri = uri
         self._parsed_uri = None
@@ -144,6 +145,7 @@ class ResourceSource(object):
         self.type = type
         self.select = _coerce_list(select, "source select")
         self.rename = _coerce_list(rename, "source rename")
+        self.post_process = post_process
         self.help = help
         for key in kw:
             log.warning(
@@ -171,9 +173,3 @@ def _coerce_list(val, desc):
         return val
     else:
         raise ResourceFormatError("invalid %s val: %s" % (desc, val))
-
-class URLResourceSource(ResourceSource):
-
-    def __init__(self, resdef, uri, post_process=None, **kw):
-        super(URLResourceSource, self).__init__(resdef, uri, **kw)
-        self.post_process = post_process

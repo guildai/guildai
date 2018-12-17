@@ -51,9 +51,14 @@ class FileResolver(Resolver):
                 self.source.resdef.name)
         source_path = self._abs_source_path()
         if os.path.isdir(source_path):
-            return [source_path]
+            resolved = [source_path]
         else:
-            return resolve_source_files(source_path, self.source, unpack_dir)
+            resolved = resolve_source_files(
+                source_path, self.source, unpack_dir)
+        post_process(
+            self.source,
+            unpack_dir or os.path.dirname(source_path))
+        return resolved
 
     def _abs_source_path(self):
         source_path = self.source.parsed_uri.path
