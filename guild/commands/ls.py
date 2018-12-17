@@ -28,6 +28,14 @@ from . import runs_support
     metavar="PATH",
     help="Path to list.")
 @click.option(
+    "-s", "--source",
+    is_flag=True,
+    help="List source files.")
+@click.option(
+    "-a", "--all",
+    is_flag=True,
+    help="Show all files including Guild files.")
+@click.option(
     "-f", "--full-path",
     is_flag=True,
     help="Show full path for files.")
@@ -36,17 +44,9 @@ from . import runs_support
     is_flag=True,
     help="Follow links.")
 @click.option(
-    "-a", "--all",
-    is_flag=True,
-    help="Show all files including Guild files.")
-@click.option(
     "-n", "--no-format",
     is_flag=True,
     help="Show files without additional formatting.")
-@click.option(
-    "-s", "--source",
-    is_flag=True,
-    help="List source files.")
 @runs_support.op_and_label_filters
 @runs_support.status_filters
 
