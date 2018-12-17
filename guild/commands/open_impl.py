@@ -36,14 +36,21 @@ def main(args, ctx):
     _flush_streams_and_exit()
 
 def _open(run, args):
-    path = os.path.join(run.path, args.path or "")
+    to_open = _path(run, args)
     open_f = _open_f(args)
     try:
-        open_f(path)
+        open_f(to_open)
     except Exception as e:
         if log.getEffectiveLevel() <= logging.DEBUG:
-            log.exception("opening %s", path)
+            log.exception("opening %s", to_open)
         cli.error(e)
+
+def _path(run, args):
+    if args.source:
+        base_path = run.guild_path("source")
+    else:
+        base_path = run.path
+    return os.path.join(base_path, args.path or "")
 
 def _open_f(args):
     if args.cmd:

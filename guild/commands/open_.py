@@ -27,6 +27,10 @@ from . import runs_support
     "-p", "--path",
     metavar="PATH", help="Path to open under run directory.")
 @click.option(
+    "-s", "--source",
+    is_flag=True,
+    help="Open run source directory.")
+@click.option(
     "-c", "--cmd", metavar="CMD",
     help="Command used to open run.")
 @runs_support.op_and_label_filters
@@ -49,6 +53,10 @@ def open_(ctx, args):
 
     `--path` may be used to open a path within the run directory. By
     default the run directory itself is opened. PATH must be relative.
+
+    `--source` may be used to open the run source directory. If
+    `--path` is also specified, the path applies to the source
+    directory rather than the run directory.
 
     ### Open command
 
