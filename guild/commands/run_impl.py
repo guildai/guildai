@@ -505,17 +505,15 @@ def _format_op_flags_dl(opdef):
     return guild.help.flags_dl(flags)
 
 def _print_cmd(op):
-    formatted = " ".join([
-        _maybe_quote_arg(arg)
-        for arg in op.cmd_args
-        if arg != "guild.op_main"])
+    formatted = " ".join(_preview_cmd(op))
     cli.out(formatted)
 
-def _maybe_quote_arg(arg):
-    if arg == "" or " " in arg:
-        return '"%s"' % arg
-    else:
-        return arg
+def _preview_cmd(op):
+    # Remove guild.op_main from preview cmd
+    return [
+        pipes.quote(arg) for arg in op.cmd_args
+        if arg != "guild.op_main"
+    ]
 
 def _print_env(op):
     for name, val in sorted(op.cmd_env.items()):
@@ -561,7 +559,7 @@ def _handle_run_result(exit_status, op):
         cli.error(exit_status=exit_status)
 
 def _print_staged_info(op):
-    cmd = " ".join([pipes.quote(arg) for arg in op.cmd_args])
+    cmd = " ".join(_preview_cmd(op))
     cli.out(
         "Operation is staged in %s\n"
         "To run the operation, use: "
