@@ -23,6 +23,7 @@ import sys
 from guild import config
 from guild import op_util
 from guild import util
+from guild import var
 
 from guild.plugin import Plugin
 
@@ -74,7 +75,8 @@ class FlagsPlugin(Plugin):
         env = {
             "PYTHONPATH": os.path.pathsep.join(sys.path),
             "GUILD_CWD": config.cwd(),
-            "LOG_LEVEL": str(self.log.getEffectiveLevel())
+            "LOG_LEVEL": str(self.log.getEffectiveLevel()),
+            "IMPORT_FLAGS_CACHE": var.cache_dir("import-flags"),
         }
         with util.TempFile() as data_path:
             cmd = [

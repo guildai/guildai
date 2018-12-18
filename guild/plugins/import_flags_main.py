@@ -109,10 +109,16 @@ def _cache_data(output):
     sys.exit(0)
 
 def _cached_data_path(module_path):
-    cache_dir = var.cache_dir("import-flags")
+    cache_dir = _import_flags_cache_dir()
     abs_path = os.path.abspath(module_path)
     path_hash = hashlib.md5(abs_path.encode()).hexdigest()
     return os.path.join(cache_dir, path_hash)
+
+def _import_flags_cache_dir():
+    try:
+        return os.environ["IMPORT_FLAGS_CACHE"]
+    except KeyError:
+        return var.cache_dir("import-flags")
 
 def _exec_module(module, output, log):
     path, mod_name = _split_module(module)
