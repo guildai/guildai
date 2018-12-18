@@ -957,8 +957,8 @@ We can load the project:
 
 Models:
 
-    >>> gf.models
-    {'m': <guild.guildfile.ModelDef 'm'>}
+    >>> sorted(gf.models)
+    ['m', 'm2', 'm3']
 
 Operations:
 
@@ -966,8 +966,8 @@ Operations:
     [<guild.guildfile.OpDef 'm:op-a'>,
      <guild.guildfile.OpDef 'm:op-b'>]
 
- The flags defined for `op-a` are included via `a-flags` config that's
- defined in the project Guild file.
+The flags defined for `op-a` are included via `a-flags` config that's
+defined in the project Guild file.
 
     >>> gf.models["m"].get_operation("op-a").flags
     [<guild.guildfile.FlagDef 'a-1'>,
@@ -984,6 +984,31 @@ Operations:
 
     >>> pprint(gf.models["m"].get_operation("op-b").flag_values())
     {'b-1': 11, 'b-2': 22, 'b-3': 3, 'b-4': 4}
+
+Model `m3` uses a variety of flag includes for its sample operation:
+
+    >>> m3_op = gf.models["m3"].get_operation("op")
+
+And its flags:
+
+    >>> m3_op_flags = [(f.name, f.default) for f in m3_op.flags]
+
+We expect this:
+
+    >>> expected = [
+    ...   # Include: a-flags#a-1
+    ...   ('a-1', 1),
+    ...   # Include: b-flags-1#b-1
+    ...   ('b-1', 11),
+    ...   # Include: c-flags
+    ...   ('c-1', 111),
+    ...   ('c-2', 222),
+    ...   # Include: m2:op#m-1,m-3
+    ...   ('m-1', 1111),
+    ...   ('m-3', 3333)]
+
+    >>> m3_op_flags == expected, m3_op_flags
+    (True, ...)
 
 And we restore the system path.
 

@@ -395,6 +395,9 @@ def _apply_section_data(data, guildfile_path, section_name,
                 data[name],
                 resolved)
 
+def _includes_first(names):
+    return sorted(names, key=lambda x: "\x00" if x == "$include" else x)
+
 def _coerce_includes(val, src):
     return _coerce_string_to_list(val, src, "$include")
 
@@ -408,7 +411,9 @@ def _apply_includes(includes, guildfile_path, section_name,
         # Have to access guildfile.data here rather than use
         # guildfile.get because guildfile may not be initialized at
         # this point.
-        include_model, include_op = _split_include_ref(ref, guildfile_path[0])
+        (include_model,
+         include_op,
+         include_attrs) = _split_include_ref(ref, guildfile_path[0])
         include_data = _find_include_data(
             include_model,
             include_op,
@@ -418,6 +423,8 @@ def _apply_includes(includes, guildfile_path, section_name,
             raise GuildfileReferenceError(
                 guildfile_path[0],
                 "invalid include reference '%s'" % ref)
+        if include_attrs:
+            include_data = _filter_data(include_data, include_attrs)
         _apply_section_data(
             include_data,
             guildfile_path,
@@ -431,15 +438,13 @@ def _assert_guildfile_data(guildfile):
     assert hasattr(guildfile, "data"), "modesfile data not initialized"
 
 def _split_include_ref(ref, src):
-    parts = ref.split(":", 1)
-    if len(parts) == 1:
-        return parts[0], None
-    else:
-        if not parts[0]:
-            raise GuildfileReferenceError(
-                src, ("invalid include reference '%s': operation references "
-                      "must be specified as MODEL:OPERATION" % ref))
-        return parts
+    m = re.match("([^:#]+)(?::([^#]+))?(?:#(.+))?", ref)
+    if not m:
+        raise GuildfileReferenceError(
+            src, ("invalid include reference '%s': operation references "
+                  "must be specified as "
+                  "MODEL_OR_CONFIG[:OPERATION][#ATTRS]" % ref))
+    return m.groups()
 
 def _find_include_data(model_name, op_name, section_name, guildfile_path):
     for guildfile in guildfile_path:
@@ -465,8 +470,11 @@ def _item_name(data, types):
 def _op_data(model_data, op_name):
     return model_data.get("operations", {}).get(op_name)
 
-def _includes_first(names):
-    return sorted(names, key=lambda x: "\x00" if x == "$include" else x)
+def _filter_data(data, attrs):
+    return {
+        name: data[name] for name in data
+        if name in attrs
+    }
 
 def _apply_data(name, data, resolved):
     assert isinstance(resolved, dict), resolved

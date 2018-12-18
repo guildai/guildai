@@ -13,7 +13,7 @@
       flags:
         $include: a-flags
 
-# Refinition of `b-flags-1` in `pkg/b` - this is reflect in `m:op-b`.
+# Refinition of `b-flags-1` in `pkg/b` - this is reflected in `m:op-b`.
 
 - config: b-flags-1
   flags:
@@ -22,3 +22,28 @@
 
 - model: m
   extends: [a, pkg/b]
+
+# Include explicit flags from different objects
+
+- config: c-flags
+  flags:
+    c-1: 111
+    c-2: 222
+
+- model: m2
+  operations:
+    op:
+      flags:
+        m-1: 1111
+        m-2: 2222
+        m-3: 3333
+
+- model: m3
+  operations:
+    op:
+      flags:
+        $include:
+          - a-flags#a-1
+          - b-flags-1#b-1
+          - c-flags
+          - m2:op#m-1,m-3
