@@ -327,7 +327,7 @@ def _handle_returncode(code):
 
 def _poll(p, stop_after):
     assert stop_after is not None
-    stop_at = time.time() + stop_after
+    stop_at = time.time() + stop_after * 60
     while time.time() < stop_at:
         time.sleep(POLL_INTERVAL)
         code = p.poll()
