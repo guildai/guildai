@@ -19,6 +19,7 @@ import functools
 import logging
 import os
 import shutil
+import tempfile
 
 import guild.run
 
@@ -168,8 +169,16 @@ def _move(src, dest):
     util.ensure_dir(os.path.dirname(dest))
     log.debug("moving %s to %s", src, dest)
     if os.path.exists(dest):
-        _delete_run(dest)
+        _move_to_backup(dest)
     shutil.move(src, dest)
+
+def _move_to_backup(path):
+    dir = os.path.dirname(path)
+    prefix = "%s_" % os.path.basename(path)
+    backup = tempfile.NamedTemporaryFile(prefix=prefix, dir=dir, delete=True)
+    log.warning("%s exists, moving to %s", path, backup.name)
+    backup.close()
+    shutil.move(path, backup.name)
 
 def restore_runs(runs):
     for run in runs:
