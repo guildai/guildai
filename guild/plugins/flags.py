@@ -15,12 +15,13 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import hashlib
+import imp
 import json
 import os
 import subprocess
 import sys
 
-from guild import config
 from guild import op_util
 from guild import util
 from guild import var
@@ -30,14 +31,14 @@ from guild.plugin import Plugin
 class FlagsPlugin(Plugin):
 
     def guildfile_data(self, data, _src):
-        cache = {}
+        local_cache = {}
         for op_data in self._iter_ops_with_flags(data):
             try:
                 flags_import = op_data["flags"].pop("$import")
             except KeyError:
                 continue
             else:
-                self._try_apply_imports(flags_import, op_data, cache)
+                self._try_apply_imports(flags_import, op_data, local_cache)
 
     def _iter_ops_with_flags(self, data):
         if not isinstance(data, list):
@@ -57,40 +58,108 @@ class FlagsPlugin(Plugin):
                     for op_data in self._iter_ops_with_flags_recurse(val):
                         yield op_data
 
-    def _try_apply_imports(self, flags_import, op_data, cache):
-        import_data = self._import_data(flags_import, op_data, cache)
+    def _try_apply_imports(self, flags_import, op_data, local_cache):
+        import_data = self._import_data(flags_import, op_data, local_cache)
         if import_data:
             self._apply_import_data(import_data, op_data)
 
-    def _import_data(self, imports, op_data, cache):
+    def _import_data(self, imports, op_data, local_cache):
         main_mod = op_util.split_main(op_data.get("main"))[0]
         try:
-            flags_data = cache[main_mod]
+            flags_data = local_cache[main_mod]
         except KeyError:
-            flags_data = self._load_flags_data(main_mod)
-            cache[main_mod] = flags_data
+            flags_data = self._flags_data(main_mod)
+            local_cache[main_mod] = flags_data
         return self._filter_flags(flags_data, imports)
 
-    def _load_flags_data(self, main_mod):
+    def _flags_data(self, main_mod):
+        try:
+            sys_path, mod_path = self._find_module(main_mod)
+        except ImportError as e:
+            self.log.warning(
+                "cannot import flags from %s: %s",
+                main_mod, e)
+            return {}
+        else:
+            return self._flags_data_for_path(mod_path, sys_path)
+
+    def _flags_data_for_path(self, mod_path, sys_path):
+        data, cached_data_path = self._cached_data(mod_path)
+        if data is not None:
+            return data
+        data = self._load_flags_data(mod_path, sys_path)
+        self._cache_data(data, cached_data_path)
+        return data
+
+    def _find_module(self, main_mod):
+        main_mod_sys_path, module = self._split_module(main_mod)
+        # Copied from guild.op_main
+        parts = module.split(".")
+        module_path = parts[0:-1]
+        module_name_part = parts[-1]
+        for sys_path_item in [main_mod_sys_path] + sys.path:
+            cur_path = os.path.join(sys_path_item, *module_path)
+            try:
+                mod_info = imp.find_module(module_name_part, [cur_path])
+            except ImportError:
+                pass
+            else:
+                _f, found_path, _desc = mod_info
+                return main_mod_sys_path, found_path
+        raise ImportError("No module named %s" % main_mod)
+
+    @staticmethod
+    def _split_module(main_mod):
+        parts = main_mod.rsplit("/", 1)
+        if len(parts) == 1:
+            return ".", parts[0]
+        return parts
+
+    def _cached_data(self, mod_path):
+        cached_path = self._cached_data_path(mod_path)
+        if self._cache_valid(cached_path, mod_path):
+            with open(cached_path, "r") as f:
+                return json.load(f), cached_path
+        return None, cached_path
+
+    @staticmethod
+    def _cached_data_path(mod_path):
+        cache_dir = var.cache_dir("import-flags")
+        abs_path = os.path.abspath(mod_path)
+        path_hash = hashlib.md5(abs_path.encode()).hexdigest()
+        return os.path.join(cache_dir, path_hash)
+
+    @staticmethod
+    def _cache_valid(cache_path, mod_path):
+        if not os.path.exists(cache_path):
+            return False
+        return os.path.getmtime(mod_path) <= os.path.getmtime(cache_path)
+
+    @staticmethod
+    def _cache_data(data, path):
+        util.ensure_dir(os.path.dirname(path))
+        with open(path, "w") as f:
+            json.dump(data, f)
+
+    def _load_flags_data(self, mod_path, sys_path):
         env = {
-            "PYTHONPATH": os.path.pathsep.join(sys.path),
-            "GUILD_CWD": config.cwd(),
+            "PYTHONPATH": os.path.pathsep.join([sys_path] + sys.path),
             "LOG_LEVEL": str(self.log.getEffectiveLevel()),
-            "IMPORT_FLAGS_CACHE": var.cache_dir("import-flags"),
         }
         with util.TempFile() as data_path:
             cmd = [
                 sys.executable,
                 "-m", "guild.plugins.import_flags_main",
-                main_mod, data_path]
-            self.log.debug("import_flags_main cmd: %r", cmd)
+                mod_path, data_path]
+            self.log.debug("import_flags_main env: %s", env)
+            self.log.debug("import_flags_main cmd: %s", cmd)
             try:
                 out = subprocess.check_output(
                     cmd, stderr=subprocess.STDOUT, env=env)
             except subprocess.CalledProcessError as e:
                 self.log.warning(
                     "cannot import flags from %s: %s",
-                    main_mod, e.output.decode().strip())
+                    mod_path, e.output.decode().strip())
                 return {}
             else:
                 self.log.debug("import_flags_main output: %s", out)
