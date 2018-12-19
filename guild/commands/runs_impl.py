@@ -386,9 +386,16 @@ def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
 
 def _runs_op_selected(args, ctx, default_runs_arg, force_deleted):
     default_runs_arg = default_runs_arg or ALL_RUNS_ARG
-    runs_arg = args.runs or default_runs_arg
+    runs_arg = _remove_duplicates(args.runs or default_runs_arg)
     filtered = filtered_runs(args, force_deleted)
     return select_runs(filtered, runs_arg, ctx)
+
+def _remove_duplicates(vals):
+    deduped = []
+    for val in vals:
+        if not val in deduped:
+            deduped.append(val)
+    return deduped
 
 def delete_runs(args, ctx):
     if args.remote:
