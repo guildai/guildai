@@ -93,7 +93,6 @@ class Operation(object):
         assert self._run is not None
         self._started = guild.run.timestamp()
         self._run.write_attr("opref", self._opref_attr(), raw=True)
-        _delete_pending(self._run)
         self._run.write_attr("started", self._started)
         for name, val in (self.extra_attrs or {}).items():
             self._run.write_attr(name, val)
@@ -162,6 +161,7 @@ class Operation(object):
         return self._exit_status
 
     def _pre_proc(self):
+        assert self._run is not None
         if not self.opdef.pre_process:
             return
         cmd = self.opdef.pre_process.strip()
@@ -173,6 +173,7 @@ class Operation(object):
         log.debug("pre-process command: %s", cmd)
         log.debug("pre-process env: %s", env)
         log.debug("pre-process cwd: %s", cwd)
+        _write_pending(self._run)
         subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
 
     def _stage_proc(self):
@@ -192,6 +193,7 @@ class Operation(object):
         log.debug("operation command: %s", args)
         log.debug("operation env: %s", env)
         log.debug("operation cwd: %s", cwd)
+        _delete_pending(self._run)
         self._proc = subprocess.Popen(
             args,
             env=env,
@@ -479,6 +481,9 @@ def _delete_proc_lock(run):
         os.remove(run.guild_path("LOCK"))
     except OSError:
         pass
+
+def _write_pending(run):
+    open(run.guild_path("PENDING"), "w").close()
 
 def _delete_pending(run):
     try:
