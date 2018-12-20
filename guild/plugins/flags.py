@@ -22,11 +22,15 @@ import os
 import subprocess
 import sys
 
+from guild import cli
 from guild import op_util
 from guild import util
 from guild import var
 
 from guild.plugin import Plugin
+
+class DataLoadError(Exception):
+    pass
 
 class FlagsPlugin(Plugin):
 
@@ -87,9 +91,14 @@ class FlagsPlugin(Plugin):
         data, cached_data_path = self._cached_data(mod_path)
         if data is not None:
             return data
-        data = self._load_flags_data(mod_path, sys_path)
-        self._cache_data(data, cached_data_path)
-        return data
+        cli.note_once("Refreshing project info...")
+        try:
+            data = self._load_flags_data(mod_path, sys_path)
+        except DataLoadError:
+            return {}
+        else:
+            self._cache_data(data, cached_data_path)
+            return data
 
     def _find_module(self, main_mod):
         main_mod_sys_path, module = self._split_module(main_mod)
@@ -160,7 +169,7 @@ class FlagsPlugin(Plugin):
                 self.log.warning(
                     "cannot import flags from %s: %s",
                     mod_path, e.output.decode().strip())
-                return {}
+                raise DataLoadError()
             else:
                 self.log.debug("import_flags_main output: %s", out)
                 return self._load_data(data_path)
