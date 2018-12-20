@@ -55,7 +55,7 @@ from guild import click_util
         "Don't install from requirements.txt or guild.yml in environment "
         "parent directory."))
 @click.option(
-    "--local-resource-cache", is_flag=True,
+    "-l", "--local-resource-cache", is_flag=True,
     help="Use a local cache when initializing an environment.")
 @click.option(
     "-y", "--yes", is_flag=True,

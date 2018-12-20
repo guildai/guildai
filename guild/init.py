@@ -48,20 +48,34 @@ def init_guild_dir(path, local_resource_cache=False):
     util.ensure_dir(os.path.join(path, "cache", "runs"))
     _init_resource_cache(path, local_resource_cache)
 
-def _init_resource_cache(guild_dir, local_resource_cache):
-    env_resource_cache = os.path.join(guild_dir, "cache", "resources")
-    if os.path.exists(env_resource_cache):
+def _init_resource_cache(guild_dir, local):
+    env_cache = os.path.join(guild_dir, "cache", "resources")
+    if os.path.exists(env_cache):
         log.info("Resource cache %s exists, skipping")
         return
-    if local_resource_cache:
-        if os.path.islink(env_resource_cache):
-            os.unlink(env_resource_cache)
-        util.ensure_dir(env_resource_cache)
+    if local:
+        if os.path.islink(env_cache):
+            os.unlink(env_cache)
+        util.ensure_dir(env_cache)
     else:
-        user_resource_cache = os.path.join(
-            os.path.expanduser("~"), ".guild", "cache", "resources")
-        util.ensure_dir(user_resource_cache)
-        os.symlink(user_resource_cache, env_resource_cache)
+        shared_cache = _shared_resource_cache(guild_dir)
+        util.ensure_dir(shared_cache)
+        os.symlink(shared_cache, env_cache)
+
+def _shared_resource_cache(guild_dir):
+    seen = set()
+    cur = os.path.dirname(guild_dir)
+    while True:
+        if cur in seen:
+            break
+        seen.add(cur)
+        maybe_cache = os.path.join(cur, ".guild", "cache", "resources")
+        if os.path.exists(maybe_cache):
+            return maybe_cache
+        cur = os.path.dirname(cur)
+    return os.path.join(
+        os.path.expanduser("~"),
+        ".guild", "cache", "resources")
 
 def init_project(project_dir, src, params):
     meta = _try_guild_meta(src)
