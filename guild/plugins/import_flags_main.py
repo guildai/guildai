@@ -99,7 +99,7 @@ def _write_flags_and_exit(output_path, _parse_args, *_args, **_kw):
 def _exec_module(mod_path, log):
     assert mod_path.endswith(".py")
     f = io.TextIOWrapper(open(mod_path, "r"))
-    details = (".py", "r", 1)
+    details = (b".py", b"r", 1)
     sys.argv = [mod_path, "--help"]
     log.debug("loading module from '%s'", mod_path)
     imp.load_module("__main__", f, mod_path, details)
