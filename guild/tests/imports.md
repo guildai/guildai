@@ -140,6 +140,7 @@
     guild.opref
     guild.package
     guild.package_main
+    guild.pass
     guild.pip_util
     guild.plugin
     guild.plugins.__init__
