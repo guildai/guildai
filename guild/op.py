@@ -135,14 +135,18 @@ class Operation(object):
         self._run.write_attr("label", label)
 
     def proc(self, quiet=False, background_pidfile=None):
-        self._pre_proc()
-        if self.stage_only:
-            self._stage_proc()
+        try:
+            self._pre_proc()
+        except subprocess.CalledProcessError as e:
+            return e.returncode
         else:
+            if self.stage_only:
+                self._stage_proc()
+                return 0
             if background_pidfile:
                 self._background_proc(background_pidfile, quiet)
-            else:
-                return self._foreground_proc(quiet)
+                return 0
+            return self._foreground_proc(quiet)
 
     def _background_proc(self, pidfile, quiet):
         action = lambda: self._foreground_proc(quiet)
