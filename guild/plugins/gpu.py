@@ -110,22 +110,22 @@ def _parse_raw(raw, parser):
         return parser(stripped)
 
 def _parse_pstate(val):
-    assert val.startswith("P")
+    assert val.startswith("P"), val
     return int(val[1:])
 
 def _parse_int(val):
     return int(val)
 
 def _parse_percent(val):
-    assert val.endswith(" %")
+    assert val.endswith(" %"), val
     return float(val[0:-2]) / 100
 
 def _parse_bytes(val):
-    assert val.endswith(" MiB")
+    assert val.endswith(" MiB"), val
     return int(val[0:-4]) * 1024 * 1024
 
 def _parse_watts(val):
-    assert val.endswith(" W")
+    assert val.endswith(" W"), val
     return float(val[0:-2])
 
 def _gpu_val_key(index, name):
