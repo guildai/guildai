@@ -164,7 +164,7 @@ class Operation(object):
     def _pre_proc(self):
         if not self.opdef.pre_process:
             return
-        cmd = self.opdef.pre_process.strip().replace("\n", " ")
+        cmd = self.opdef.pre_process.strip()
         cwd = self._run.path
         # env init order matters - we want _proc_env() to take
         # precedence over _cmd_arg_env()
