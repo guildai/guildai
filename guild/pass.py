@@ -24,3 +24,9 @@ E.g.
 This is useful during development or for operations that only perform
 pre-processing.
 """
+
+from __future__ import print_function
+
+import sys
+
+print(*sys.argv[1:])
