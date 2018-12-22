@@ -54,11 +54,12 @@ Let's now include the project directory in the system path:
     >>> sys_path_save = sys.path
     >>> sys.path = [project_dir] + sys.path
 
-And load the Guild file again (we use LogCapture to squelch and
-progress messages to the user):
+And load the Guild file again (we set NO_IMPORT_FLAGS_PROGRESS to
+squelch any progress messages to the user):
 
-    >>> with LogCapture() as log:
-    ...     gf = guildfile.from_dir(project_dir, no_cache=True)
+    >>> import os
+    >>> os.environ["NO_IMPORT_FLAGS_PROGRESS"] = "1"
+    >>> gf = guildfile.from_dir(project_dir, no_cache=True)
 
 We won't load anymore Guild files so we can restore the system path:
 

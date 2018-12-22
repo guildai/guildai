@@ -91,7 +91,8 @@ class FlagsPlugin(Plugin):
         data, cached_data_path = self._cached_data(mod_path)
         if data is not None:
             return data
-        cli.note_once("Refreshing project info...")
+        if os.getenv("NO_IMPORT_FLAGS_PROGRESS") != "1":
+            cli.note_once("Refreshing project info...")
         try:
             data = self._load_flags_data(mod_path, sys_path)
         except DataLoadError:
