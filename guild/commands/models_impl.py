@@ -24,9 +24,8 @@ from guild import util
 
 def main(args):
     cmd_impl_support.init_model_path()
-    dirs, filters = cmd_impl_support.guildfile_dirs(args.filters)
-    formatted = [_format_model(m) for m in iter_models(dirs)]
-    filtered = [m for m in formatted if _filter_model(m, filters)]
+    formatted = [_format_model(m) for m in iter_models(args.path)]
+    filtered = [m for m in formatted if _filter_model(m, args.filters)]
     cli.table(
         sorted(filtered, key=lambda m: m["fullname"]),
         cols=["fullname", "description"],

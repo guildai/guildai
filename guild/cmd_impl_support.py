@@ -145,23 +145,6 @@ def _arg_desc(name, ctx):
             return desc
     raise AssertionError(name)
 
-def guildfile_dirs(vals):
-    """Splits vals, returning a tuple of guildfile and other vals.
-
-    Used by filters that combine directory selection and value
-    filtering.
-    """
-    dirs = []
-    other = []
-    cwd = config.cwd()
-    for val in vals:
-        path = os.path.join(cwd, val)
-        if os.path.isdir(path):
-            dirs.append(path)
-        else:
-            other.append(val)
-    return dirs, other
-
 def path_or_package_guildfile(path_or_package, ctx=None):
     path_or_package = path_or_package or config.cwd()
     if os.path.isdir(path_or_package):

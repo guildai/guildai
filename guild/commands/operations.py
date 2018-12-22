@@ -21,6 +21,9 @@ from guild import click_util
 
 @click.command(name="operations, ops")
 @click.argument("filters", metavar="[FILTER]...", required=False, nargs=-1)
+@click.option(
+    "-p", "--path", metavar="DIR", multiple=True,
+    help="Show operations in DIR. May be used more than once.")
 @click.option("-v", "--verbose", help="Show operation details.", is_flag=True)
 
 @click_util.use_args
@@ -31,8 +34,7 @@ def operations(args):
     Use one or more `FILTER` arguments to show only operations whose
     names or models match the specified values.
 
-    `FILTER` may a directory to indicate that only operations of
-    models defined in that location are included in the list.
+    Use --path to view operations defined in the specified directory.
 
     """
     from . import operations_impl

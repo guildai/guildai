@@ -24,9 +24,9 @@ The ops available in this context example are:
     gpkg.keras.mnist/...
     <exit 0>
 
-We limit to ops defined in the current directory using a filter:
+We limit to ops defined in the current directory using a path filter:
 
-    >>> run("guild ops .")
+    >>> run("guild ops -p .")
     ./mnist-expert:evaluate    Evaluate a trained model using test data
     ./mnist-expert:train       Train the MNIST model
     ./mnist-intro:evaluate     Evaluate a trained model using test data

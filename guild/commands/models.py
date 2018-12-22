@@ -21,6 +21,9 @@ from guild import click_util
 
 @click.command()
 @click.argument("filters", metavar="[FILTER]...", required=False, nargs=-1)
+@click.option(
+    "-p", "--path", metavar="DIR", multiple=True,
+    help="Show models in DIR. May be used more than once.")
 @click.option("-v", "--verbose", help="Show model details.", is_flag=True)
 
 @click_util.use_args
@@ -31,8 +34,7 @@ def models(args):
     Use one or more `FILTER` arguments to show only models that match
     the specified values.
 
-    `FILTER` may a directory to indicate that only models defined in
-    that location are included in the list.
+    Use --path to view models defined in the specified directory.
 
     """
     from . import models_impl

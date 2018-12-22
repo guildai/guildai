@@ -9,13 +9,13 @@ We'll run through the various operations in this test.
 
 ## Models
 
-    >>> run("guild models .")
+    >>> run("guild models -p .")
     ./hello  A "hello world" sample model
     <exit 0>
 
 ## Operations
 
-    >>> run("guild operations .")
+    >>> run("guild operations -p .")
     ./hello:default           Print a default message
     ./hello:from-file         Print a message from a file
     ./hello:from-file-output  Print output from last file-output operation
