@@ -1,7 +1,43 @@
 # Hyperparameter Tuning
 
-Without this facility, Guild is just a toy. No one runs experiments
-manually - they script them.
+These are notes on hyperparameter tuning in Guild.
+
+## What to call the feature
+
+- Hyperparameter optimization
+- Hyperparameter tuning
+
+Short form:
+
+- Guild optimize
+- Guild tune
+- HP Tune
+
+## Random thoughts
+
+- Support multiple algorithms
+  - Grid search / sweep
+  - Random search
+  - Bayesian optimization
+  - Gradient based optimization
+  - Evolutionary optimization
+
+- It should, ideally, be simple to plug in an optimization
+  implementation
+
+- Try to avoid the need for daemons - use a local coordinator that
+  polls/waits or that can be run on demand - use files for state
+
+- Should tie into an upcoming indexing/query facility
+  - Use a time series database
+  - Support multiple data sources
+    - TF Event
+    - Output
+    - Run files (JSON, YAML, CSV, etc)
+
+- Needs a rudimentary workflow implementation so we can train and
+  evaluate to get an objective (this could be deferred possibly but we
+  could look to migrate the test facility to support this).
 
 ## Ray
 
