@@ -166,7 +166,8 @@ class Operation(object):
         assert self._run is not None
         if not self.opdef.pre_process:
             return
-        cmd = self.opdef.pre_process.strip()
+        cmd_unresolved = self.opdef.pre_process.strip()
+        cmd = util.resolve_refs(cmd_unresolved, self.flag_vals)
         cwd = self._run.path
         # env init order matters - we want _proc_env() to take
         # precedence over _cmd_arg_env()
