@@ -266,7 +266,7 @@ def latest_run(oprefs, run_id_prefix=None):
 
 def _resolve_opref(opref):
     if not opref.op_name:
-        raise RuntimeError("invalid opref: %s", opref)
+        raise RuntimeError("invalid opref: %s" % opref)
     return guild.opref.OpRef(
         pkg_type="package" if opref.pkg_name else None,
         pkg_name=opref.pkg_name,
