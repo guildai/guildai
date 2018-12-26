@@ -511,3 +511,6 @@ def split_main(main):
     # If main is None, this call will block (see
     # https://bugs.python.org/issue27775)
     return shlex.split(main or "")
+
+# Alias
+split_cmd = split_main

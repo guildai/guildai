@@ -17,7 +17,6 @@ from __future__ import division
 
 import os
 import pipes
-import re
 
 import click
 
@@ -114,8 +113,8 @@ def _dispatch_cmd(args, opdef, model, ctx):
 def _dispatch_op_cmd(opdef, model, args, ctx):
     try:
         op = _init_op(opdef, model, args, ctx)
-    except guild.op.InvalidMain as e:
-        _invalid_main_error(e, opdef)
+    except guild.op.InvalidOpSpec as e:
+        _invalid_op_spec_error(e, opdef)
     else:
         if args.print_cmd:
             _print_cmd(op)
@@ -128,12 +127,10 @@ def _dispatch_op_cmd(opdef, model, args, ctx):
         else:
             _maybe_run(op, model, args)
 
-def _invalid_main_error(e, opdef):
-    cmd, msg = e.args
-    cmd = re.sub(r"\s+", " ", cmd).strip()
+def _invalid_op_spec_error(e, opdef):
     cli.error(
-        "invalid main spec '%s' for operation '%s': %s"
-        % (cmd, opdef.name, msg))
+        "invalid specification for %s: %s"
+        % (opdef.fullname, e))
 
 def _parse_opspec(spec):
     parts = spec.split(":", 1)

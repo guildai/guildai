@@ -65,12 +65,6 @@ when running tests in Python 3. The regex that formats unicode refs as
 strings is fooled by the example. We need to break the line as a work
 around.
 
-Main modules cannot be empty:
-
-    >>> Operation(main="")
-    Traceback (most recent call last):
-    InvalidMain: ('', 'missing command spec')
-
 ## Flag args
 
 Flags are defined in guildfiles (defaults) and also provided as
@@ -371,25 +365,30 @@ the flag whose name has the highest ordinal string value is used:
 
 ## Command args
 
-Command args are created using `_cmd_args`. These are simply parsed
-parts from a command string. However, like flag values, command args
-may contain references to flag values.
+Command args are created using `_split_and_resolve_args`. These are
+simply parsed parts from a command string. However, like flag values,
+command args may contain references to flag values.
 
-    >>> guild.op._cmd_args([], {})
-    Traceback (most recent call last):
-    InvalidMain: ('', 'missing command spec')
+    >>> guild.op._split_and_resolve_args([], {})
+    []
 
-    >>> guild.op._cmd_args("", {})
-    Traceback (most recent call last):
-    InvalidMain: ('', 'missing command spec')
+    >>> guild.op._split_and_resolve_args("", {})
+    []
 
-    >>> guild.op._cmd_args(["foo", "--bar"], {})
+    >>> guild.op._split_and_resolve_args(["foo", "--bar"], {})
     ['foo', '--bar']
 
-    >>> guild.op._cmd_args(["foo", "--a=${a}"], {"a": 1})
+    >>> guild.op._split_and_resolve_args("foo --bar", {})
+    ['foo', '--bar']
+
+    >>> guild.op._split_and_resolve_args(["foo", "--a=${a}"], {"a": 1})
     ['foo', '--a=1']
 
-    >>> guild.op._cmd_args(["foo", "--a=${a}"], {"a": "foo-${b}-bar", "b": 2})
+    >>> guild.op._split_and_resolve_args("foo --a=${a}", {"a": 1})
+    ['foo', '--a=1']
+
+    >>> guild.op._split_and_resolve_args(
+    ...    ["foo", "--a=${a}"], {"a": "foo-${b}-bar", "b": 2})
     ['foo', '--a=foo-2-bar']
 
 ## Operation flags

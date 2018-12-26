@@ -46,7 +46,9 @@ SIGTERM_EXIT_STATUS = -15
 
 NO_ARG_VALUE = object()
 
-class InvalidMain(ValueError):
+DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args}"
+
+class InvalidOpSpec(ValueError):
     pass
 
 class Operation(object):
@@ -254,31 +256,73 @@ class Operation(object):
         self._run.write_attr("stopped", self._stopped)
 
 def _init_cmd_args(opdef):
-    python_args = [_python_cmd(opdef), "-um", "guild.op_main"]
-    flag_vals = _resolved_flag_vals(opdef.flag_values())
-    try:
-        cmd_args = _cmd_args(opdef.main, flag_vals)
-    except guild.util.UndefinedReferenceError as e:
-        raise InvalidMain(opdef.main, "undefined reference '%s'" % e)
-    else:
-        flag_args, flag_map = _flag_args(flag_vals, opdef, cmd_args)
-        cmd_args = python_args + cmd_args + flag_args
-        return cmd_args, flag_vals, flag_map
+    flag_vals = util.resolve_all_refs(opdef.flag_values())
+    main_args = _main_args(opdef, flag_vals)
+    exec_args = _exec_args(opdef, flag_vals, main_args)
+    flag_args, flag_map = _flag_args(flag_vals, opdef, main_args)
+    cmd_args = exec_args + flag_args
+    return cmd_args, flag_vals, flag_map
 
-def _python_cmd(_opdef):
+def _main_args(opdef, flag_vals):
+    try:
+        return _split_and_resolve_args(opdef.main or "", flag_vals)
+    except util.UndefinedReferenceError as e:
+        raise InvalidOpSpec(
+            "main contains invalid reference '%s'"
+            % e.args[0])
+
+def _split_and_resolve_args(cmd, flag_vals):
+    """Splits and resolve args for string or list cmd."""
+    format_part = lambda part: str(util.resolve_refs(part, flag_vals))
+    return [format_part(part) for part in op_util.split_cmd(cmd)]
+
+def _exec_args(opdef, flag_vals, main_args):
+    try:
+        args = _split_and_resolve_args(
+            opdef.exec_ or DEFAULT_EXEC,
+            _extended_flag_vals(flag_vals, opdef))
+    except util.UndefinedReferenceError as e:
+        raise InvalidOpSpec(
+            "exec contains invalid reference '%s'"
+            % e.args[0])
+    else:
+        return _repl_main_args(args, main_args)
+
+def _extended_flag_vals(flag_vals, opdef):
+    """Extend flag_vals with special flag vals for op exec resolution.
+
+    The following flag vals are included in the extended flag vals:
+
+      'python_exe': full path to Python exe per opdef
+
+      'main_args':  special marker object '__main_args__' designating
+                    the location of args specified in opdef main
+
+    If any of the extended values are defined in flag_vals, they are
+    replaced here.
+    """
+    extended = dict(flag_vals)
+    extended.update({
+        "python_exe": _python_exe(opdef),
+        "main_args": "__main_args__"
+    })
+    return extended
+
+def _python_exe(_opdef):
     # TODO: This is an important operation that should be controlled
     # by the model (e.g. does it run under Python 2 or 3, etc.) and
     # not by whatever Python runtime is configured in the user env.
     return sys.executable
 
-def _resolved_flag_vals(flag_vals):
-    return util.resolve_all_refs(flag_vals)
-
-def _cmd_args(main, flag_vals):
-    if not main:
-        raise InvalidMain("", "missing command spec")
-    format_part = lambda part: str(util.resolve_refs(part, flag_vals))
-    return [format_part(part) for part in op_util.split_main(main)]
+def _repl_main_args(args, main_args):
+    """Replaces occurrences of MAIN_ARGS in args with main_args."""
+    ret = []
+    for arg in args:
+        if arg == "__main_args__":
+            ret.extend(main_args)
+        else:
+            ret.append(arg)
+    return ret
 
 def _flag_args(flag_vals, opdef, cmd_args):
     flag_args = []
@@ -385,9 +429,7 @@ def _init_cmd_env(opdef, gpus):
     return env
 
 def _cmd_arg_env(args):
-    op_main_pos = args.index("guild.op_main")
-    assert op_main_pos != -1
-    flags = op_util.args_to_flags(args[op_main_pos+1:])
+    flags = op_util.args_to_flags(args)
     return {
         name.upper(): str(val)
         for name, val in flags.items()

@@ -748,6 +748,7 @@ class OpDef(object):
         self.guildfile = modeldef.guildfile
         self.name = name
         self.description = (data.get("description") or "").strip()
+        self.exec_ = data.get("exec")
         self.main = data.get("main")
         self.python_path = data.get("python-path")
         self.env = data.get("env") or {}
