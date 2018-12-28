@@ -104,8 +104,11 @@ class RunIndex(object):
     def run_flag(self, run, name):
         return self._flag_reader.read(run, name)
 
-    def run_scalar(self, run, key, qual, step):
-        return self._scalar_reader.read(run, key, qual, step)
+    def run_scalar(self, run, prefix, tag, qual, step):
+        return self._scalar_reader.read(run, prefix, tag, qual, step)
+
+    def run_scalars(self, run):
+        return list(self._scalar_reader.iter_scalars(run))
 
 class AttrReader(object):
 
@@ -225,11 +228,10 @@ class ScalarReader(object):
         return summarized
 
     def _del_scalars(self, run_id, prefix):
-        cur = self._db.execute("""
+        self._db.execute("""
           DELETE from scalar
           WHERE run = ? AND prefix = ?
         """, (run_id, prefix))
-        self._db.commit()
 
     def _write_summarized(self, run_id, prefix, summarized):
         cur = self._db.cursor()
@@ -266,13 +268,19 @@ class ScalarReader(object):
         """, (run_id, prefix, path_digest))
         self._db.commit()
 
-    def read(self, run, key, qual, step):
+    def read(self, run, prefix, tag, qual, step):
         col_index = self._read_col_index(qual, step)
         cur = self._db.cursor()
-        cur.execute("""
-          SELECT * FROM scalar WHERE
-            run = ? AND tag = ?
-        """, (run.id, key))
+        if prefix is None:
+            cur.execute("""
+              SELECT * FROM scalar
+              WHERE run = ? AND tag = ?
+            """, (run.id, tag))
+        else:
+            cur.execute("""
+              SELECT * FROM scalar
+              WHERE run = ? AND prefix = ? AND tag = ?
+            """, (run.id, prefix, tag))
         row = cur.fetchone()
         if not row:
             return None
@@ -285,6 +293,18 @@ class ScalarReader(object):
             raise ValueError(
                 "unsupported scalar type qual=%r step=%s"
                 % (qual, step))
+
+    def iter_scalars(self, run):
+        cur = self._db.execute("""
+          SELECT prefix, tag FROM scalar
+          WHERE run = ?
+          ORDER BY 'prefix', 'tag'
+        """, (run.id,))
+        for row in cur.fetchall():
+            yield {
+                "prefix": row[0],
+                "tag": row[1],
+            }
 
 class TagSummary(object):
 

@@ -19,6 +19,7 @@ import logging
 
 from guild import cli
 from guild import index2 as indexlib
+from guild import opref as opreflib
 from guild import query
 
 from . import runs_impl
@@ -26,9 +27,25 @@ from . import runs_impl
 log = logging.getLogger("guild")
 
 def main(args):
-    cols = _cols_for_args(args)
     runs = runs_impl.runs_for_args(args)
-    _compare(runs, cols)
+    if args.print_scalars:
+        _print_scalars(runs)
+    else:
+        cols = _cols_for_args(args)
+        _compare(runs, cols)
+
+def _print_scalars(runs):
+    index = indexlib.RunIndex()
+    index.refresh(runs, ["scalar"])
+    for run in runs:
+        opref = opreflib.OpRef.from_run(run)
+        cli.out("[%s] %s" % (run.short_id, runs_impl.format_op_desc(opref)))
+        for s in index.run_scalars(run):
+            prefix = s["prefix"]
+            if prefix:
+                cli.out("  %s#%s" % (s["prefix"], s["tag"]))
+            else:
+                cli.out("  %s" % s["tag"])
 
 def _cols_for_args(args):
     base_cols = (
@@ -94,7 +111,8 @@ def _col_data(run, col, index):
     elif isinstance(col, query.Attr):
         return index.run_attr(run, col.name)
     elif isinstance(col, query.Scalar):
-        return index.run_scalar(run, col.key, col.qualifier, col.step)
+        prefix, tag = col.split_key()
+        return index.run_scalar(run, prefix, tag, col.qualifier, col.step)
     else:
         assert False, col
 

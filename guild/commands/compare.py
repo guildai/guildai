@@ -34,6 +34,9 @@ from . import runs_support
     "-v", "--csv", "format", flag_value="csv",
     help="Generate comparison data as a CSV file.",
     is_flag=True)
+@click.option(
+    "--print-scalars", is_flag=True,
+    help="Show available scalars and exit.")
 
 @click_util.use_args
 @click_util.render_doc

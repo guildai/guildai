@@ -34,6 +34,7 @@
     guild.commands.check_impl
     guild.commands.compare
     guild.commands.compare_impl
+    guild.commands.compare_impl2
     guild.commands.diff
     guild.commands.diff_impl
     guild.commands.download
@@ -130,6 +131,7 @@
     guild.guildfile
     guild.help
     guild.index
+    guild.index2
     guild.init
     guild.log
     guild.main
@@ -161,7 +163,6 @@
     guild.plugins.training_pkg_main
     guild.python_util
     guild.query.__init__
-    guild.query.parsetab
     guild.query.qlex
     guild.query.qparse
     guild.remote
@@ -182,6 +183,7 @@
     guild.tabview
     guild.tensorboard
     guild.test
+    guild.tfevent
     guild.uat
     guild.util
     guild.var

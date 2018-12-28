@@ -59,8 +59,15 @@ class Scalar(Col):
     def header(self):
         if self.named_as:
             return self.named_as
+        key = self.key.replace("#", " ").strip()
         step = " step" if self.step else ""
-        return "%s%s" % (self.key, step)
+        return "%s%s" % (key, step)
+
+    def split_key(self):
+        parts = self.key.split("#", 1)
+        if len(parts) == 2:
+            return parts
+        return None, parts[0]
 
 class Attr(Col):
 
