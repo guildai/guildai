@@ -24,11 +24,14 @@ from . import runs_support
 @click.command()
 @runs_support.runs_op
 @click.option(
+    "-c", "--columns",
+    help="Additional columns to compare (experimental)")
+@click.option(
     "-t", "--table", "format", flag_value="table",
     help="Generate comparison data as a table.",
     is_flag=True)
 @click.option(
-    "-c", "--csv", "format", flag_value="csv",
+    "-v", "--csv", "format", flag_value="csv",
     help="Generate comparison data as a CSV file.",
     is_flag=True)
 

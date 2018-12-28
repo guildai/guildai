@@ -29,7 +29,13 @@ from guild import view
 
 from . import runs_impl
 
+from . import compare_impl2 # Experimental
+
 def main(args):
+    if args.columns:
+        # Fork handling to experimental module
+        compare_impl2.main(args)
+        return
     if args.format == "csv":
         _print_csv(args)
     elif args.format == "table":

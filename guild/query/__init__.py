@@ -39,6 +39,10 @@ class Col(object):
     def _as_suffix(self):
         return " as %s" % q(self.named_as) if self.named_as else ""
 
+    @property
+    def header(self):
+        return self.named_as or str(self)
+
 class Scalar(Col):
 
     def __init__(self, key, qualifier=None, step=False):
@@ -51,6 +55,13 @@ class Scalar(Col):
         step = " step" if self.step else ""
         return "scalar:%s%s%s%s" % (qual, self.key, step, self._as_suffix())
 
+    @property
+    def header(self):
+        if self.named_as:
+            return self.named_as
+        step = " step" if self.step else ""
+        return "%s%s" % (self.key, step)
+
 class Attr(Col):
 
     def __init__(self, name):
@@ -58,6 +69,10 @@ class Attr(Col):
 
     def __str__(self):
         return "attr:%s%s" % (self.name, self._as_suffix())
+
+    @property
+    def header(self):
+        return self.named_as or self.name
 
 class Flag(Col):
 
@@ -76,3 +91,8 @@ class Output(Col):
     def __str__(self):
         qual = "%s " % self.qualifier if self.qualifier else ""
         return "output:%s%s%s" % (qual, q(self.pattern), self._as_suffix())
+
+def parse(s):
+    from . import qparse
+    p = qparse.parser()
+    return p.parse(s)
