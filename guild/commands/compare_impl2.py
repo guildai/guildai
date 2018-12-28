@@ -18,6 +18,7 @@ from __future__ import division
 import logging
 
 from guild import cli
+from guild import index2 as indexlib
 from guild import query
 
 from . import runs_impl
@@ -31,7 +32,7 @@ def main(args):
 
 def _cols_for_args(args):
     base_cols = (
-        ".id as run",
+        ".run",
         ".model",
         ".operation",
         ".started",
@@ -47,10 +48,49 @@ def _cols_for_args(args):
         return select.cols
 
 def _compare(runs, cols):
-    table_cols = range(len(cols))
-    header = [{
+    all_cols = range(len(cols))
+    header = _table_header(cols)
+    index = _init_index(runs)
+    rows = _runs_table_data(runs, cols, index)
+    cli.table(header + rows, all_cols)
+
+def _table_header(cols):
+    return [{
         i: cols[i].header
-        for i in table_cols
+        for i in range(len(cols))
     }]
-    table_data = header + []
-    cli.table(table_data, table_cols)
+
+def _init_index(runs):
+    index = indexlib.RunIndex()
+    index.refresh(runs)
+    return index
+
+def _runs_table_data(runs, cols, index):
+    return [_run_data(run, cols, index) for run in runs]
+
+def _run_data(run, cols, index):
+    return {
+        i: _format(_col_data(run, col, index))
+        for i, col in enumerate(cols)
+    }
+
+def _col_data(run, col, index):
+    if isinstance(col, query.Flag):
+        return _run_flag(run, col)
+    elif isinstance(col, query.Attr):
+        return index.run_attr(run, col.name)
+    elif isinstance(col, query.Scalar):
+        return _run_scalar(run, col)
+    else:
+        assert False, col
+
+def _run_flag(run, flag_col):
+    return "yop"
+
+def _run_scalar(run, scalar_col):
+    return "yom"
+
+def _format(val):
+    if val is None:
+        return ""
+    return val

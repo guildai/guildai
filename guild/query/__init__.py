@@ -82,6 +82,10 @@ class Flag(Col):
     def __str__(self):
         return "flag:%s%s" % (self.name, self._as_suffix())
 
+    @property
+    def header(self):
+        return self.named_as or self.name
+
 class Output(Col):
 
     def __init__(self, pattern, qualifier=None):
