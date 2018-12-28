@@ -48,17 +48,18 @@ def _cols_for_args(args):
         return select.cols
 
 def _compare(runs, cols):
-    all_cols = range(len(cols))
-    header = _table_header(cols)
     index = _init_index(runs)
+    header = _table_header(cols)
     rows = _runs_table_data(runs, cols, index)
-    cli.table(header + rows, all_cols)
+    data, cols = _merge_cols(header, rows)
+    _format_data(data)
+    cli.table(data, cols)
 
 def _table_header(cols):
-    return [{
+    return {
         i: cols[i].header
         for i in range(len(cols))
-    }]
+    }
 
 def _init_index(runs):
     index = indexlib.RunIndex()
@@ -70,13 +71,13 @@ def _runs_table_data(runs, cols, index):
 
 def _run_data(run, cols, index):
     return {
-        i: _format(_col_data(run, col, index))
+        i: _col_data(run, col, index)
         for i, col in enumerate(cols)
     }
 
 def _col_data(run, col, index):
     if isinstance(col, query.Flag):
-        return _run_flag(run, col)
+        return index.run_flag(run, col.name)
     elif isinstance(col, query.Attr):
         return index.run_attr(run, col.name)
     elif isinstance(col, query.Scalar):
@@ -84,13 +85,54 @@ def _col_data(run, col, index):
     else:
         assert False, col
 
-def _run_flag(run, flag_col):
-    return "yop"
-
 def _run_scalar(run, scalar_col):
     return "yom"
 
-def _format(val):
-    if val is None:
-        return ""
-    return val
+def _merge_cols(header, rows):
+    """Merges header and row cols according to header val.
+
+    For columns with the same header, row values are merged so that
+    the first non-None col value is moved to the first col occurence
+    with that header. Duplicate cols are then dropped.
+    """
+    header_map = _header_map(header)
+    _merge_rows(rows, header_map)
+    return [header] + rows, _merged_header_cols(header_map)
+
+def _header_map(header):
+    """Returns a map of header name to header index list.
+
+    More than one index will occur if the same header is used more
+    than once.
+    """
+    header_map = {}
+    for index, name in sorted(header.items()):
+        header_map.setdefault(name, []).append(index)
+    return header_map
+
+def _merge_rows(rows, header_map):
+    for row in rows:
+        for cols in header_map.values():
+            # find next non-None value from left to right and apply it
+            # to first col
+            col0 = cols[0]
+            if row[col0] is not None:
+                continue
+            for next_col in cols[1:]:
+                if row[next_col] is not None:
+                    row[col0] = row[next_col]
+                    break
+
+def _merged_header_cols(header_map):
+    """Returns a list of col indexes for merged headers.
+
+    The merged header list is a unique list of header columns with
+    repeated header dropped.
+    """
+    return sorted([cols[0] for cols in header_map.values()])
+
+def _format_data(data):
+    for row in data:
+        for key, val in row.items():
+            if val is None:
+                row[key] = ""

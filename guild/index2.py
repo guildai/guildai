@@ -32,6 +32,7 @@ class RunIndex(object):
         self.path = path or var.cache_dir("runs")
         self._db = self._init_db()
         self._attr_reader = AttrReader()
+        self._flag_reader = FlagReader()
 
     def _init_db(self):
         db = sqlite3.connect(self._db_path())
@@ -70,12 +71,16 @@ class RunIndex(object):
         `runs` is list of runs or run IDs for each run to refresh.
         """
         self._attr_reader.refresh(runs)
+        self._flag_reader.refresh(runs)
 
     def _run_val_readers(self, _run):
         return self._base_readers
 
     def run_attr(self, run, name):
         return self._attr_reader.read(run, name)
+
+    def run_flag(self, run, name):
+        return self._flag_reader.read(run, name)
 
 class AttrReader(object):
 
@@ -119,3 +124,17 @@ class AttrReader(object):
             return run_data[attr]
         except KeyError:
             return run.get(attr)
+
+class FlagReader(object):
+
+    def __init__(self):
+        self._data = {}
+
+    def refresh(self, runs):
+        self._data = {
+            run.id: run.get("flags", {})
+            for run in runs
+        }
+
+    def read(self, run, flag):
+        return self._data.get(run.id, {}).get(flag)
