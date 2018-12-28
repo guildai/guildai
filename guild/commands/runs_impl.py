@@ -393,7 +393,7 @@ def _runs_op_selected(args, ctx, default_runs_arg, force_deleted):
 def _remove_duplicates(vals):
     deduped = []
     for val in vals:
-        if not val in deduped:
+        if val not in deduped:
             deduped.append(val)
     return deduped
 
