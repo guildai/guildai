@@ -20,7 +20,9 @@
     ...   print(name) # doctest: +REPORT_UDIFF
     guild.__init__
     guild._api
+    guild._lex
     guild._test
+    guild._yacc
     guild.binaryornot
     guild.cli
     guild.click_util
@@ -128,6 +130,7 @@
     guild.guildfile
     guild.help
     guild.index
+    guild.index2
     guild.init
     guild.log
     guild.main
@@ -158,6 +161,9 @@
     guild.plugins.tensorflow_util
     guild.plugins.training_pkg_main
     guild.python_util
+    guild.query.__init__
+    guild.query.qlex
+    guild.query.qparse
     guild.remote
     guild.remote_run_support
     guild.remote_util
@@ -176,6 +182,7 @@
     guild.tabview
     guild.tensorboard
     guild.test
+    guild.tfevent
     guild.uat
     guild.util
     guild.var

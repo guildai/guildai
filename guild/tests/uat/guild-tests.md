@@ -19,6 +19,7 @@ tests).
       import-flags:              ok
       imports:                   ok
       includes:                  ok
+      index2:                    ok
       init:                      ok
       logging:                   ok
       ls-cmd:                    ok
@@ -32,6 +33,7 @@ tests).
       package:                   ok
       plugins:                   ok
       python-utils:              ok
+      query-parser:              ok
       run-flags:                 ok
       run-output:                ok
       runs:                      ok

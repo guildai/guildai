@@ -24,13 +24,26 @@ from . import runs_support
 @click.command()
 @runs_support.runs_op
 @click.option(
+    "-c", "--columns", metavar="COLUMNS",
+    help=(
+        "Additional columns to compare. "
+        "Cannot be used with --strict-columns."))
+@click.option(
+    "--strict-columns", metavar="COLUMNS",
+    help=(
+        "Strict list of columns to compare. "
+        "Cannot be used with --columns."))
+@click.option(
     "-t", "--table", "format", flag_value="table",
     help="Generate comparison data as a table.",
     is_flag=True)
 @click.option(
-    "-c", "--csv", "format", flag_value="csv",
+    "-v", "--csv", "format", flag_value="csv",
     help="Generate comparison data as a CSV file.",
     is_flag=True)
+@click.option(
+    "--print-scalars", is_flag=True,
+    help="Show available scalars and exit.")
 
 @click_util.use_args
 @click_util.render_doc
@@ -57,6 +70,63 @@ def compare(args):
 
         guild compare --csv > RUNS.csv
 
+    ### Compare columns
+
+    Guild Compare shows columns for each run based on the columns
+    defined for each run operation. Additional columns may be
+    specified using the `--columns` option, which must be a comma
+    separated list of column specs. See below for column spec details.
+
+    If multiple columns have the same name, they are merged into a
+    single column. Cell values are merged by taking the first non-null
+    value in the list of cells with the common name from
+    left-to-right.
+
+    By default, columns always contain run ID, model, operation,
+    started, time, status, and the set of columns defined for each
+    displayed operatin. You may override this using
+    `--strict-columns`, which displays only the run ID and the columns
+    specified. Note that run ID is always displayed.
+
+    ### Column specs
+
+    Each column specified in `COLUMNS` must be a valid column spec. A
+    column spec is the name of a run flag or scalar key. Flag names
+    must be preceded by an equals sign ``=`` to differentiate them
+    from scalar keys.
+
+    For example, to include the flag ``epochs`` as a column, use
+    ``--columns =epochs``.
+
+    If a scalar is specified, it may be preceded by a qualifier of
+    `min`, `max`, `first`, `last`, `avg`, `total`, or `count` to
+    indicate the type of scalar value. For example, to include the
+    highest logged value for `accuracy`, use ``--columns "max
+    accuray"``.
+
+    By default `last` is assumed, so that the last logged value for
+    the specified scalar is used.
+
+    A scalar spec may additionally contain the key word `step` to
+    indicate that the step associated with the scalar is used. For
+    example, to include the step of the last `accuracy` value, use
+    ``--columns "accuracy step"``. Step may be used with scalar
+    qualifiers. For example, to include the value and associated step
+    of the lowest loss, use ``--columns "min loss, min loss step"``.
+
+    Column specs may contain an alternative column heading using the
+    keyword ``as`` in the format ``COL as HEADING``. Headings that
+    contain spaces must be quoted.
+
+    For example, to include the scalar ``val_loss`` with name
+    ``validation loss``, use ``--columns val_loss as 'validation
+    loss'``.
+
+    You may include run attributes as column specs by preceding the
+    run attribute name with a period ``.``. For example, to include
+    the `stopped` attribute, use ``--columns .stopped``. This is
+    useful when using `--strict-columns`.
+
     {{ runs_support.runs_arg }}
 
     If a `RUN` argument is not specified, ``:`` is assumed (all runs
@@ -64,6 +134,7 @@ def compare(args):
 
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
+
     """
     from . import compare_impl
     compare_impl.main(args)

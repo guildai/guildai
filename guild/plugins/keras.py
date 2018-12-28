@@ -73,14 +73,19 @@ class KerasPlugin(plugin.Plugin):
                             "description": "Number of epochs to train",
                             "default": self._default_epochs(script, fit)
                         },
-                        "batch-size": {
+                        "batch_size": {
                             "description": "Batch size per training step",
                             "default": self._default_batch_size(script, fit)
                         },
                         "datasets": {
                             "description": "Location of Keras datasets"
                         }
-                    }
+                    },
+                    "compare": [
+                        "loss step as step",
+                        "loss",
+                        "val_acc as accuracy"
+                    ]
                 }
             }
         }

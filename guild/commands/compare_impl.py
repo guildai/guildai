@@ -16,38 +16,68 @@ from __future__ import absolute_import
 from __future__ import division
 
 import csv
+import logging
 import sys
-
-import guild.index
 
 from guild import cli
 from guild import config
+from guild import index2 as indexlib
+from guild import opref as opreflib
+from guild import query
+from guild import run as runlib
 from guild import tabview
 from guild import util
 from guild import var
-from guild import view
 
 from . import runs_impl
 
+log = logging.getLogger("guild")
+
+BASE_COLS = ".run, .model, .operation, .started, .time, .status, .label"
+STRICT_BASE_COLS = ".run"
+
 def main(args):
-    if args.format == "csv":
+    if args.columns and args.strict_columns:
+        cli.error("--columns and --strict-columns cannot both be used")
+    if args.print_scalars:
+        _print_scalars(args)
+    elif args.format == "csv":
         _print_csv(args)
     elif args.format == "table":
         _print_table(args)
     else:
         _tabview(args)
 
+def _print_scalars(args):
+    runs = runs_impl.runs_for_args(args)
+    index = indexlib.RunIndex()
+    index.refresh(runs, ["scalar"])
+    for run in runs:
+        opref = opreflib.OpRef.from_run(run)
+        cli.out("[%s] %s" % (run.short_id, runs_impl.format_op_desc(opref)))
+        for s in index.run_scalars(run):
+            prefix = s["prefix"]
+            if prefix:
+                cli.out("  %s#%s" % (s["prefix"], s["tag"]))
+            else:
+                cli.out("  %s" % s["tag"])
+
 def _print_csv(args):
-    index = guild.index.RunIndex()
-    runs, _logs = _get_runs_cb(args, index)()
+    data = _get_data(args, format_cells=False)
     writer = csv.writer(sys.stdout)
-    for row in runs:
+    for row in data:
         writer.writerow(row)
 
+def _get_data(args, format_cells=True):
+    index = indexlib.RunIndex()
+    data, logs = _get_data_cb(args, index, format_cells)()
+    for record in logs:
+        log.handle(record)
+    return data
+
 def _print_table(args):
-    index = guild.index.RunIndex()
-    runs, _logs = _get_runs_cb(args, index)()
-    cols = runs[0]
+    data = _get_data(args)
+    cols = data[0]
     col_indexes = list(zip(cols, range(len(cols))))
     def format_row(row):
         return {
@@ -58,28 +88,33 @@ def _print_table(args):
         col_name: col_name
         for col_name in cols
     }
-    data = [heading] + [format_row(row) for row in runs[1:]]
+    data = [heading] + [format_row(row) for row in data[1:]]
     cli.table(data, cols)
 
 def _tabview(args):
     config.set_log_output(True)
-    index = guild.index.RunIndex()
+    index = indexlib.RunIndex()
     tabview.view_runs(
-        _get_runs_cb(args, index),
+        _get_data_cb(args, index),
         _get_run_detail_cb(index))
 
-def _get_runs_cb(args, index):
-    def get_runs():
+def _get_data_cb(args, index, format_cells=True):
+    def f():
         _try_init_tf_logging()
         log_capture = util.LogCapture()
         with log_capture:
             runs = runs_impl.runs_for_args(args)
-            flags = _compare_flags(runs)
-            header = _runs_header(flags)
-            data = _runs_data(runs, flags, index)
+            cols = _init_cols(args, runs)
+            refresh_types = _refresh_types(cols)
+            index.refresh(runs, refresh_types)
+            header = _table_header(cols)
+            rows = _runs_table_data(runs, cols, index)
+            header, rows = _merge_cols(header, rows)
+            if format_cells:
+                _format_cells(rows)
             log = log_capture.get_all()
-        return [header] + data, log
-    return get_runs
+        return [header] + rows, log
+    return f
 
 def _try_init_tf_logging():
     """Load TensorFlow, forcing init of TF logging.
@@ -94,109 +129,175 @@ def _try_init_tf_logging():
     except ImportError:
         pass
 
-def _compare_flags(runs):
-    flags = set()
-    for run in runs:
-        flags.update(run.get("_extra_compare", {}).get("flags", []))
-    return sorted(flags)
-
-def _runs_header(flags):
-    base = [
-        "run",
-        "model",
-        "operation",
-        "started",
-        "time",
-        "status",
-        "label",
-        "step",
-        "accuracy",
-        "loss",
-    ]
-    return base + flags
-
-def _runs_data(selected, flags, index):
-    ids = [run.id for run in selected]
-    return [_run_data(run, flags) for run in index.runs(ids)]
-
-def _run_data(run, flags):
-    flag_vals = dict(run.iter_flags())
-    base_data = [
-        run.short_id,
-        run.model_name,
-        run.op_name,
-        util.format_timestamp(run.started),
-        _run_duration(run),
-        run.status,
-        run.label,
-        _scalar_step(run),
-        _run_accuracy(run),
-        _run_loss(run),
-    ]
-    flag_data = [flag_vals.get(name, "") for name in flags]
-    return base_data + flag_data
-
-def _run_duration(run):
-    if run.status == "running":
-        return util.format_duration(run.started)
-    elif run.stopped:
-        return util.format_duration(run.started, run.stopped)
+def _init_cols(args, runs):
+    assert not (args.columns and args.strict_columns)
+    if args.strict_columns:
+        cols = _parse_cols(STRICT_BASE_COLS)
     else:
-        return ""
+        cols = _parse_cols(BASE_COLS)
+    if not args.strict_columns:
+        cols.extend(_runs_compare_cols(runs))
+    if args.columns:
+        cols.extend(_parse_cols(args.columns))
+    if args.strict_columns:
+        cols.extend(_parse_cols(args.strict_columns))
+    return cols
 
-def _scalar_step(run):
-    search_keys = view.SCALAR_KEYS[0][1]
-    return _format_int(run.scalar(search_keys))
+def _parse_cols(s):
+    """Parse string s as a list of query columns."""
+    try:
+        return query.parse("select %s" % s).cols
+    except query.ParseError as e:
+        log.warning("error parsing %r: %s", s, e)
+        return []
 
-def _run_accuracy(run):
-    search_keys = view.SCALAR_KEYS[2][1]
-    return _format_float(run.scalar(search_keys))
+def _runs_compare_cols(runs):
+    cols = []
+    for run in runs:
+        for col_spec in run.get("compare", []):
+            cols.extend(_parse_cols(col_spec))
+    return cols
 
-def _run_loss(run):
-    search_keys = view.SCALAR_KEYS[1][1]
-    return _format_float(run.scalar(search_keys))
+def _refresh_types(cols):
+    """Returns a set of types to refresh for cols.
 
-def _format_float(x):
-    return ("%0.6f" % x) if x is not None else ""
+    This scheme is used to avoid refreshing types that aren't needed
+    (e.g. scalars are expensive to refresh).
+    """
+    types = set()
+    for col in cols:
+        if isinstance(col, query.Flag):
+            types.add("flag")
+        elif isinstance(col, query.Attr):
+            types.add("attr")
+        elif isinstance(col, query.Scalar):
+            types.add("scalar")
+    if not types:
+        return None
+    return types
 
-def _format_int(x):
-    return ("%i" % x) if x is not None else ""
+def _table_header(cols):
+    return [col.header for col in cols]
+
+def _runs_table_data(runs, cols, index):
+    return [_run_data(run, cols, index) for run in runs]
+
+def _run_data(run, cols, index):
+    return [_col_data(run, col, index) for col in cols]
+
+def _col_data(run, col, index):
+    if isinstance(col, query.Flag):
+        return index.run_flag(run, col.name)
+    elif isinstance(col, query.Attr):
+        return index.run_attr(run, col.name)
+    elif isinstance(col, query.Scalar):
+        prefix, tag = col.split_key()
+        return index.run_scalar(run, prefix, tag, col.qualifier, col.step)
+    else:
+        assert False, col
+
+def _merge_cols(header, rows):
+    """Merges header and row cols according to header val.
+
+    For columns with the same header, row values are merged so that
+    the first non-None col value is moved to the first col occurence
+    with that header. Duplicate cols are then dropped.
+    """
+    header_map = _header_map(header)
+    return (
+        _merge_header(header_map),
+        _merge_row_cells(rows, header_map)
+    )
+
+def _header_map(header):
+    """Returns a map of header name to header index list.
+
+    More than one index will occur if the same header is used more
+    than once.
+    """
+    header_map = {}
+    for i, name in enumerate(header):
+        header_map.setdefault(name, []).append(i)
+    return header_map
+
+def _merge_header(header_map):
+    """Returns a new header list from a header map.
+
+    header_map is a map of header names to column indices. Uses the
+    first column index to position the header name in the merged list.
+    """
+    sorted_cols = sorted([(cols, name) for name, cols in header_map.items()])
+    return [name for _, name in sorted_cols]
+
+def _merge_row_cells(rows, header_map):
+    """Returns a new list of rows with merged cells.
+    """
+    col_indices = sorted(header_map.values())
+    return [_merge_row(row, col_indices) for row in rows]
+
+def _merge_row(row, col_indices):
+    """Returns a new row with merged cells.
+
+    col_indices must be a list of col indices sorted in ascending
+    order. Each list of indices is used to find and apply from left to
+    right non-None values to the row cell corresponding to the list
+    position in cols.
+    """
+    merged = [None] * len(col_indices)
+    for i, cols in enumerate(col_indices):
+        for col in cols:
+            if row[col] is not None:
+                merged[i] = row[col]
+                break
+    return merged
+
+def _format_cells(rows):
+    for row in rows:
+        for i, val in enumerate(row):
+            if val is None:
+                row[i] = ""
+            elif isinstance(val, float):
+                row[i] = "%0.6f" % val
 
 def _get_run_detail_cb(index):
-    def get_detail(data, y, _x):
+    def f(data, y, _x):
         run_short_id = data[y][0]
         title = "Run {}".format(run_short_id)
         try:
-            run_id, _ = next(var.find_runs(run_short_id))
+            run_id, path = next(var.find_runs(run_short_id))
         except StopIteration:
             return "This run no longer exists", title
         else:
-            hits = index.runs([run_id])
-            if not hits:
-                return "Detail not available", title
-            else:
-                return _format_run_detail(hits[0]), title
-    return get_detail
+            run = runlib.Run(run_id, path)
+            index.refresh([run], ["scalar"])
+            detail = _format_run_detail(run, index)
+            return detail, title
+    return f
 
-def _format_run_detail(run):
+def _format_run_detail(run, index):
+    opref = opreflib.OpRef.from_run(run)
     lines = [
-        "Id: {}".format(run.id),
-        "Model: {}".format(run.model_name),
-        "Operation: {}".format(run.op_name),
-        "Status: {}".format(run.status),
-        "Started: {}".format(util.format_timestamp(run.started)),
-        "Stopped: {}".format(util.format_timestamp(run.stopped)),
-        "Label: {}".format(run.label),
+        "Id: %s" % run.id,
+        "Model: %s" % opref.model_name,
+        "Operation: %s" % opref.op_name,
+        "Status: %s" % run.status,
+        "Started: %s" % util.format_timestamp(run.get("started")),
+        "Stopped: %s" % util.format_timestamp(run.get("stopped")),
+        "Label: %s" % (run.get("label") or ""),
     ]
-    flags = sorted(run.iter_flags())
+    flags = run.get("flags")
     if flags:
         lines.append("Flags:")
-        for name, val in flags:
+        for name, val in sorted(flags.items()):
             val = val if val is not None else ""
             lines.append("  {}: {}".format(name.decode(), val))
-    scalars = sorted(run.iter_scalars())
+    scalars = list(index.run_scalars(run))
     if scalars:
-        lines.append("Scalars (last recorded value):")
-        for key, val in scalars:
-            lines.append("  {}: {}".format(key.decode(), val))
+        lines.append("Scalars:")
+        for s in scalars:
+            prefix = s["prefix"]
+            if prefix:
+                lines.append("  %s#%s" % (s["prefix"], s["tag"]))
+            else:
+                lines.append("  %s" % s["tag"])
     return "\n".join(lines)
