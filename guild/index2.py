@@ -14,13 +14,18 @@
 
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
 
+import logging
 import os
 import sqlite3
 
 from guild import opref as opreflib
+from guild import tfevent
 from guild import util
 from guild import var
+
+log = logging.getLogger("guild")
 
 VERSION = 2
 DB_NAME = "index%i.db" % VERSION
@@ -33,6 +38,7 @@ class RunIndex(object):
         self._db = self._init_db()
         self._attr_reader = AttrReader()
         self._flag_reader = FlagReader()
+        self._scalar_reader = ScalarReader(self._db)
 
     def _init_db(self):
         db = sqlite3.connect(self._db_path())
@@ -44,34 +50,50 @@ class RunIndex(object):
 
     @staticmethod
     def _init_tables(db):
-        cur = db.cursor()
-        cur.execute(
-            """CREATE TABLE IF NOT EXISTS run_val (
-              run,
-              source,
-              name,
-              qual,
-              val,
-              step
-            )
-            """)
-        cur.execute(
-            """CREATE TABLE IF NOT EXISTS source (
-              run,
-              path,
-              last_read_size,
-              last_read_mtime
-            )
-            """)
-        db.commit()
+        db.execute("""
+          CREATE TABLE IF NOT EXISTS scalar (
+            run,
+            prefix,
+            tag,
+            first_val,
+            first_step,
+            last_val,
+            last_step,
+            min_val,
+            min_step,
+            max_val,
+            max_step
+          )
+        """)
+        db.execute("""
+          CREATE INDEX IF NOT EXISTS scalar_i
+          ON scalar (run, prefix, tag)
+        """)
+        db.execute("""
+          CREATE TABLE IF NOT EXISTS scalar_source (
+            run,
+            prefix,
+            path_digest
+          )
+        """)
+        db.execute("""
+          CREATE UNIQUE INDEX IF NOT EXISTS scalar_source_pk
+          ON scalar_source (run, prefix)
+        """)
 
-    def refresh(self, runs):
+    def refresh(self, runs, types=None):
         """Refreshes the index for the specified runs.
 
         `runs` is list of runs or run IDs for each run to refresh.
+
+        `types` is an optional list of data types to refresh.
         """
-        self._attr_reader.refresh(runs)
-        self._flag_reader.refresh(runs)
+        if types is None or "attr" in types:
+            self._attr_reader.refresh(runs)
+        if types is None or "flag" in types:
+            self._flag_reader.refresh(runs)
+        if types is None or "scalar" in types:
+            self._scalar_reader.refresh(runs)
 
     def _run_val_readers(self, _run):
         return self._base_readers
@@ -81,6 +103,9 @@ class RunIndex(object):
 
     def run_flag(self, run, name):
         return self._flag_reader.read(run, name)
+
+    def run_scalar(self, run, key, qual, step):
+        return self._scalar_reader.read(run, key, qual, step)
 
 class AttrReader(object):
 
@@ -138,3 +163,163 @@ class FlagReader(object):
 
     def read(self, run, flag):
         return self._data.get(run.id, {}).get(flag)
+
+class ScalarReader(object):
+
+    _col_index_map = {
+        ("first", False): 3,
+        ("first", True): 4,
+        ("last", False): 5,
+        ("last", True): 6,
+        ("min", False): 7,
+        ("min", True): 8,
+        ("max", False): 9,
+        ("max", True): 10,
+    }
+
+    def __init__(self, db):
+        self._db = db
+
+    def refresh(self, runs):
+        for run in runs:
+            for path, cur_digest, scalars in tfevent.iter_events(run.path):
+                log.debug("found events in %s (digest %s)", path, cur_digest)
+                prefix = self._scalar_prefix(path, run.path)
+                last_digest = self._scalar_source_digest(run.id, prefix)
+                if cur_digest != last_digest:
+                    log.debug(
+                        "last digest for %s (%s) is stale, refreshing scalars",
+                        path, last_digest or 'unset')
+                    summarized = self._summarize_scalars(scalars)
+                    if last_digest:
+                        self._del_scalars(run.id, prefix)
+                    self._write_summarized(run.id, prefix, summarized)
+                    self._write_source_digest(run.id, prefix, cur_digest)
+
+    @staticmethod
+    def _scalar_prefix(scalars_path, root):
+        rel_path = os.path.relpath(scalars_path, root)
+        if rel_path == ".":
+            return ""
+        return rel_path.replace(os.sep, "/")
+
+    def _scalar_source_digest(self, run_id, prefix):
+        cur = self._db.execute("""
+          SELECT path_digest FROM scalar_source
+          WHERE run = ? AND prefix = ?
+        """, (run_id, prefix))
+        row = cur.fetchone()
+        if not row:
+            return None
+        return row[0]
+
+    @staticmethod
+    def _summarize_scalars(scalars):
+        summarized = {}
+        for tag, val, step in scalars:
+            try:
+                tag_summary = summarized[tag]
+            except KeyError:
+                summarized[tag] = tag_summary = TagSummary()
+            tag_summary.add(val, step)
+        return summarized
+
+    def _del_scalars(self, run_id, prefix):
+        cur = self._db.execute("""
+          DELETE from scalar
+          WHERE run = ? AND prefix = ?
+        """, (run_id, prefix))
+        self._db.commit()
+
+    def _write_summarized(self, run_id, prefix, summarized):
+        cur = self._db.cursor()
+        for tag in summarized:
+            tsum = summarized[tag]
+            cur.execute("""
+              INSERT INTO scalar
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                run_id,
+                prefix,
+                tag,
+                tsum.first_val,
+                tsum.first_step,
+                tsum.last_val,
+                tsum.last_step,
+                tsum.min_val,
+                tsum.min_step,
+                tsum.max_val,
+                tsum.max_step
+            ))
+        self._db.commit()
+
+    def _write_source_digest(self, run_id, prefix, path_digest):
+        cur = self._db.cursor()
+        cur.execute("""
+          UPDATE scalar_source
+            SET path_digest = ?
+            WHERE run = ? AND prefix = ?
+        """, (path_digest, run_id, prefix))
+        cur.execute("""
+          INSERT OR IGNORE INTO scalar_source
+          VALUES (?, ?, ?)
+        """, (run_id, prefix, path_digest))
+        self._db.commit()
+
+    def read(self, run, key, qual, step):
+        col_index = self._read_col_index(qual, step)
+        cur = self._db.cursor()
+        cur.execute("""
+          SELECT * FROM scalar WHERE
+            run = ? AND tag = ?
+        """, (run.id, key))
+        row = cur.fetchone()
+        if not row:
+            return None
+        return row[col_index]
+
+    def _read_col_index(self, qual, step):
+        try:
+            return self._col_index_map[(qual or "last", step)]
+        except KeyError:
+            raise ValueError(
+                "unsupported scalar type qual=%r step=%s"
+                % (qual, step))
+
+class TagSummary(object):
+
+    def __init__(self):
+        self.first_val = None
+        self.first_step = None
+        self.last_val = None
+        self.last_step = None
+        self.min_val = None
+        self.min_step = None
+        self.max_val = None
+        self.max_step = None
+
+    def add(self, val, step):
+        self._set_first(val, step)
+        self._set_last(val, step)
+        self._set_min(val, step)
+        self._set_max(val, step)
+
+    def _set_first(self, val, step):
+        if self.first_step is None or step < self.first_step:
+            self.first_val = val
+            self.first_step = step
+
+    def _set_last(self, val, step):
+        if self.last_step is None or step > self.last_step:
+            self.last_val = val
+            self.last_step = step
+
+    def _set_min(self, val, step):
+        if self.min_val is None or val < self.min_val:
+            self.min_val = val
+            self.min_step = step
+
+    def _set_max(self, val, step):
+        if self.max_val is None or val > self.max_val:
+            self.max_val = val
+            self.max_step = step

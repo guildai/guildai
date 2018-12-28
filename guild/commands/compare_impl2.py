@@ -48,7 +48,7 @@ def _cols_for_args(args):
         return select.cols
 
 def _compare(runs, cols):
-    index = _init_index(runs)
+    index = _init_index(runs, cols)
     header = _table_header(cols)
     rows = _runs_table_data(runs, cols, index)
     data, cols = _merge_cols(header, rows)
@@ -61,10 +61,23 @@ def _table_header(cols):
         for i in range(len(cols))
     }
 
-def _init_index(runs):
+def _init_index(runs, cols):
     index = indexlib.RunIndex()
-    index.refresh(runs)
+    index.refresh(runs, _refresh_types(cols))
     return index
+
+def _refresh_types(cols):
+    types = set()
+    for col in cols:
+        if isinstance(col, query.Flag):
+            types.add("flag")
+        elif isinstance(col, query.Attr):
+            types.add("attr")
+        elif isinstance(col, query.Scalar):
+            types.add("scalar")
+    if not types:
+        return None
+    return types
 
 def _runs_table_data(runs, cols, index):
     return [_run_data(run, cols, index) for run in runs]
@@ -81,12 +94,9 @@ def _col_data(run, col, index):
     elif isinstance(col, query.Attr):
         return index.run_attr(run, col.name)
     elif isinstance(col, query.Scalar):
-        return _run_scalar(run, col)
+        return index.run_scalar(run, col.key, col.qualifier, col.step)
     else:
         assert False, col
-
-def _run_scalar(run, scalar_col):
-    return "yom"
 
 def _merge_cols(header, rows):
     """Merges header and row cols according to header val.
