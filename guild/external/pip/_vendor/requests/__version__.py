@@ -10,5 +10,5 @@ __build__ = 0x021901
 __author__ = 'Kenneth Reitz'
 __author_email__ = 'me@kennethreitz.org'
 __license__ = 'Apache 2.0'
-__copyright__ = 'Copyright 2018 Kenneth Reitz'
+__copyright__ = 'Copyright 2019 Kenneth Reitz'
 __cake__ = u'\u2728 \U0001f370 \u2728'
