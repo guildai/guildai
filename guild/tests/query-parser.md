@@ -43,6 +43,15 @@ A scalar may contain a qualifier (min, max, first, or last):
     >>> p("select last loss")
     <guild.query.Select ['scalar:last loss']>
 
+    >>> p("select avg gpu")
+    <guild.query.Select ['scalar:avg gpu']>
+
+    >>> p("select total hits")
+    <guild.query.Select ['scalar:total hits']>
+
+    >>> p("select count loss")
+    <guild.query.Select ['scalar:count loss']>
+
 A scalar step may be specified by adding 'step' after the scalar:
 
     >>> p("select loss step")
@@ -175,3 +184,8 @@ Unsupported scalar qualifier:
     >>> p("select minn loss")
     Traceback (most recent call last):
     ParseError: unexpected token 'loss', line 1, pos 12
+
+Using a scalar qualifier as a name (don't need to quote):
+
+    >>> p("select min loss as min")
+    <guild.query.Select ['scalar:min loss as min']>

@@ -14,7 +14,6 @@
 
 from __future__ import absolute_import
 from __future__ import division
-from __future__ import print_function
 
 import logging
 import os
@@ -27,8 +26,8 @@ from guild import var
 
 log = logging.getLogger("guild")
 
-VERSION = 2
-DB_NAME = "index%i.db" % VERSION
+VERSION = 1
+DB_NAME = "index_v%i.db" % VERSION
 
 class RunIndex(object):
     """Interface for using a run index."""
@@ -41,7 +40,9 @@ class RunIndex(object):
         self._scalar_reader = ScalarReader(self._db)
 
     def _init_db(self):
-        db = sqlite3.connect(self._db_path())
+        db_path = self._db_path()
+        util.ensure_dir(os.path.dirname(db_path))
+        db = sqlite3.connect(db_path)
         self._init_tables(db)
         return db
 
@@ -62,7 +63,10 @@ class RunIndex(object):
             min_val,
             min_step,
             max_val,
-            max_step
+            max_step,
+            avg_val,
+            total,
+            count
           )
         """)
         db.execute("""
@@ -178,6 +182,9 @@ class ScalarReader(object):
         ("min", True): 8,
         ("max", False): 9,
         ("max", True): 10,
+        ("avg", False): 11,
+        ("total", False): 12,
+        ("count", False): 13,
     }
 
     def __init__(self, db):
@@ -239,7 +246,7 @@ class ScalarReader(object):
             tsum = summarized[tag]
             cur.execute("""
               INSERT INTO scalar
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 run_id,
                 prefix,
@@ -251,7 +258,10 @@ class ScalarReader(object):
                 tsum.min_val,
                 tsum.min_step,
                 tsum.max_val,
-                tsum.max_step
+                tsum.max_step,
+                tsum.avg_val,
+                tsum.total,
+                tsum.count
             ))
         self._db.commit()
 
@@ -317,12 +327,18 @@ class TagSummary(object):
         self.min_step = None
         self.max_val = None
         self.max_step = None
+        self.avg_val = None
+        self.total = 0
+        self.count = 0
 
     def add(self, val, step):
         self._set_first(val, step)
         self._set_last(val, step)
         self._set_min(val, step)
         self._set_max(val, step)
+        self.total += val
+        self.count += 1
+        self.avg_val = self.total / self.count
 
     def _set_first(self, val, step):
         if self.first_step is None or step < self.first_step:

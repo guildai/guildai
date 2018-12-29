@@ -49,7 +49,9 @@ def p_col(p):
     p[0] = p[1]
 
 def p_named_col(p):
-    "col : col AS term"
+    """col : col AS term
+           | col AS scalar_qualifier
+    """
     col = p[1]
     col.named_as = p[3]
     p[0] = col
@@ -81,6 +83,9 @@ def p_scalar_qualifier(p):
                         | MAX
                         | FIRST
                         | LAST
+                        | AVG
+                        | TOTAL
+                        | COUNT
     """
     p[0] = p[1]
 

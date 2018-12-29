@@ -14,4 +14,4 @@ We can create an index in a directory:
 When instantiated, the index generates these files:
 
     >>> dir(tmp_dir)
-    ['index2.db']
+    ['index_v1.db']

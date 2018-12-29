@@ -16,8 +16,8 @@ from guild import _lex
 
 reserved = (
     "SELECT",
-    "MIN", "MAX", "FIRST", "LAST", "STEP",
-    "AS"
+    "MIN", "MAX", "FIRST", "LAST", "AVG", "TOTAL", "COUNT",
+    "STEP", "AS"
 )
 
 tokens = reserved + (
