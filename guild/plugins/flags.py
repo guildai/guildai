@@ -152,10 +152,11 @@ class FlagsPlugin(Plugin):
             json.dump(data, f)
 
     def _load_flags_data(self, mod_path, sys_path):
-        env = {
+        env = dict(os.environ)
+        env.update({
             "PYTHONPATH": os.path.pathsep.join([sys_path] + sys.path),
             "LOG_LEVEL": str(self.log.getEffectiveLevel()),
-        }
+        })
         with util.TempFile() as data_path:
             cmd = [
                 sys.executable,
