@@ -100,6 +100,7 @@ class Operation(object):
             self._run.write_attr(name, val)
         self._run.write_attr("flags", self.opdef.flag_values())
         self._run.write_attr("cmd", self.cmd_args)
+        self._run.write_attr("compare", self.opdef.compare)
         if self._flag_map:
             self._run.write_attr("_flag_map", self._flag_map)
         for key, val in self.opdef.modeldef.extra.items():

@@ -32,7 +32,8 @@ from . import runs_impl
 from . import compare_impl2 # Experimental
 
 def main(args):
-    if (args.columns or
+    if (args.v2 or
+        args.columns or
         args.print_scalars):
         # Fork handling to experimental module
         compare_impl2.main(args)

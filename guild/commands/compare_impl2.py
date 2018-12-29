@@ -30,9 +30,9 @@ def main(args):
     runs = runs_impl.runs_for_args(args)
     if args.print_scalars:
         _print_scalars(runs)
-    else:
-        cols = _cols_for_args(args)
-        _compare(runs, cols)
+        return
+    cols = _init_cols(args, runs)
+    _compare(runs, cols)
 
 def _print_scalars(runs):
     index = indexlib.RunIndex()
@@ -47,7 +47,16 @@ def _print_scalars(runs):
             else:
                 cli.out("  %s" % s["tag"])
 
-def _cols_for_args(args):
+def _init_cols(args, runs):
+    select_stmt = _init_select_stmt(args, runs)
+    try:
+        select = query.parse(select_stmt)
+    except query.ParseError as e:
+        cli.error(e)
+    else:
+        return select.cols
+
+def _init_select_stmt(args, runs):
     base_cols = (
         ".run",
         ".model",
@@ -56,13 +65,21 @@ def _cols_for_args(args):
         ".time",
         ".status",
     )
-    select_stmt = "select %s, %s" % (",".join(base_cols), args.columns)
-    try:
-        select = query.parse(select_stmt)
-    except query.ParseError as e:
-        cli.error(e)
-    else:
-        return select.cols
+    stmt = "select %s" % ",".join(base_cols)
+    runs_cols = _runs_compare_cols(runs)
+    if args.columns:
+        stmt += ", %s" % args.columns
+    if runs_cols:
+        stmt += ", %s" % ",".join(runs_cols)
+    return stmt
+
+def _runs_compare_cols(runs):
+    cols = []
+    for run in runs:
+        for col in run.get("compare", []):
+            if col not in cols:
+                cols.append(col)
+    return cols
 
 def _compare(runs, cols):
     index = _init_index(runs, cols)
@@ -164,3 +181,5 @@ def _format_data(data):
         for key, val in row.items():
             if val is None:
                 row[key] = ""
+            elif isinstance(val, float):
+                row[key] = "%0.6f" % val

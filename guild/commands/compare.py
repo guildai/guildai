@@ -25,7 +25,7 @@ from . import runs_support
 @runs_support.runs_op
 @click.option(
     "-c", "--columns",
-    help="Additional columns to compare (experimental)")
+    help="Additional columns to compare (uses v2, experimental)")
 @click.option(
     "-t", "--table", "format", flag_value="table",
     help="Generate comparison data as a table.",
@@ -36,7 +36,10 @@ from . import runs_support
     is_flag=True)
 @click.option(
     "--print-scalars", is_flag=True,
-    help="Show available scalars and exit.")
+    help="Show available scalars and exit (uses v2, experimental).")
+@click.option(
+    "v2", "-2", is_flag=True,
+    help="Force compare to use v2 (experimental).")
 
 @click_util.use_args
 @click_util.render_doc
