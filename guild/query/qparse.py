@@ -49,12 +49,17 @@ def p_col(p):
     p[0] = p[1]
 
 def p_named_col(p):
-    """col : col AS term
-           | col AS scalar_qualifier
-    """
+    """col : col AS col_name"""
     col = p[1]
     col.named_as = p[3]
     p[0] = col
+
+def p_col_name(p):
+    """col_name : term
+                | scalar_qualifier
+                | STEP
+    """
+    p[0] = p[1]
 
 def p_implicit_scalar_col(p):
     """scalar_col : scalar_key"""

@@ -82,7 +82,7 @@ class KerasPlugin(plugin.Plugin):
                         }
                     },
                     "compare": [
-                        "loss step as 'step'",
+                        "loss step as step",
                         "loss",
                         "val_acc as accuracy"
                     ]

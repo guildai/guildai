@@ -185,7 +185,10 @@ Unsupported scalar qualifier:
     Traceback (most recent call last):
     ParseError: unexpected token 'loss', line 1, pos 12
 
-Using a scalar qualifier as a name (don't need to quote):
+Using a scalar qualifiers as a name (don't need to quote):
 
     >>> p("select min loss as min")
     <guild.query.Select ['scalar:min loss as min']>
+
+    >>> p("select min loss step as step")
+    <guild.query.Select ['scalar:min loss step as step']>
