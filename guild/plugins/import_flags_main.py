@@ -105,6 +105,7 @@ def _exec_module(mod_path, log):
         imp.load_module("__main__", f, mod_path, details)
     except Exception as e:
         # Need to reimport because globals is reset on load_module
+        # pylint: disable=reimported
         import logging
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("importing %s", mod_path)
