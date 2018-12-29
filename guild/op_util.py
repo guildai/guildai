@@ -215,7 +215,7 @@ def _parse_flag_arg(arg):
 def _parse_arg_val(s):
     parsers = [
         (int, ValueError),
-        (float, ValueError),
+        (_safe_float, ValueError),
         (yaml.safe_load, yaml.YAMLError),
     ]
     for p, e_type in parsers:
@@ -224,6 +224,17 @@ def _parse_arg_val(s):
         except e_type:
             pass
     return s
+
+def _safe_float(s):
+    """Returns a float for a string or raises ValueError.
+
+    In cases where Python's float function would succeed in converting
+    exponent notation without a decimal (e.g. '1e2') this raises
+    ValueError.
+    """
+    if "." not in s:
+        raise ValueError(s)
+    return float(s)
 
 def format_arg_value(v):
     if v is True:
