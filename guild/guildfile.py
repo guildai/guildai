@@ -268,6 +268,8 @@ class Guildfile(object):
 def _coerce_guildfile_data(data, guildfile):
     if isinstance(data, dict):
         data = [data]
+    elif data is None:
+        data = []
     if not isinstance(data, list):
         raise GuildfileError(guildfile, "invalid guildfile data: %r" % data)
     return [
