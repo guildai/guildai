@@ -33,6 +33,7 @@
     guild.commands.check
     guild.commands.check_impl
     guild.commands.compare
+    guild.commands.compare_impl
     guild.commands.diff
     guild.commands.diff_impl
     guild.commands.download
