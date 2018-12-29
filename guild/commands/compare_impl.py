@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import csv
+import logging
 import sys
 
 from guild import cli
@@ -29,6 +30,11 @@ from guild import util
 from guild import var
 
 from . import runs_impl
+
+log = logging.getLogger("guild")
+
+BASE_COLS = ".run, .model, .operation, .started, .time, .status, .label"
+STRICT_BASE_COLS = ".run"
 
 def main(args):
     if args.columns and args.strict_columns:
@@ -64,7 +70,9 @@ def _print_csv(args):
 
 def _get_data(args, format_cells=True):
     index = indexlib.RunIndex()
-    data, _logs = _get_data_cb(args, index, format_cells)()
+    data, logs = _get_data_cb(args, index, format_cells)()
+    for record in logs:
+        log.handle(record)
     return data
 
 def _print_table(args):
@@ -122,44 +130,32 @@ def _try_init_tf_logging():
         pass
 
 def _init_cols(args, runs):
-    select_stmt = _init_select_stmt(args, runs)
-    try:
-        select = query.parse(select_stmt)
-    except query.ParseError as e:
-        cli.error(e)
-    else:
-        return select.cols
-
-def _init_select_stmt(args, runs):
     assert not (args.columns and args.strict_columns)
     if args.strict_columns:
-        base_cols = (".run",)
+        cols = _parse_cols(STRICT_BASE_COLS)
     else:
-        base_cols = (
-            ".run",
-            ".model",
-            ".operation",
-            ".started",
-            ".time",
-            ".status",
-        )
-    stmt = "select %s" % ",".join(base_cols)
+        cols = _parse_cols(BASE_COLS)
     if not args.strict_columns:
-        runs_cols = _runs_compare_cols(runs)
-        if runs_cols:
-            stmt += ", %s" % ",".join(runs_cols)
+        cols.extend(_runs_compare_cols(runs))
     if args.columns:
-        stmt += ", %s" % args.columns
+        cols.extend(_parse_cols(args.columns))
     if args.strict_columns:
-        stmt += ", %s" % args.strict_columns
-    return stmt
+        cols.extend(_parse_cols(args.strict_columns))
+    return cols
+
+def _parse_cols(s):
+    """Parse string s as a list of query columns."""
+    try:
+        return query.parse("select %s" % s).cols
+    except query.ParseError as e:
+        log.warning("error parsing %r: %s", s, e)
+        return []
 
 def _runs_compare_cols(runs):
     cols = []
     for run in runs:
-        for col in run.get("compare", []):
-            if col not in cols:
-                cols.append(col)
+        for col_spec in run.get("compare", []):
+            cols.extend(_parse_cols(col_spec))
     return cols
 
 def _refresh_types(cols):
