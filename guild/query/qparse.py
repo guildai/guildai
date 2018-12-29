@@ -135,7 +135,7 @@ class parser(object):
 
     def __init__(self):
         self._l = qlex.lexer()
-        self._p = _yacc.yacc()
+        self._p = _yacc.yacc(debug=False, write_tables=False)
 
     def parse(self, s):
         self._l.lineno = 1
