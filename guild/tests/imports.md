@@ -127,6 +127,7 @@
     guild.config
     guild.deps
     guild.entry_point_util
+    guild.fail
     guild.guildfile
     guild.help
     guild.index

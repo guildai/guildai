@@ -19,7 +19,7 @@ E.g.
     model: test
     operations:
       noop:
-        main: guild.pass
+        main: guild.fail 'Not implemented'
 
 This is useful during development or to simply print a message.
 """
@@ -30,3 +30,4 @@ import sys
 
 if __name__ == "__main__":
     print(*sys.argv[1:])
+    sys.exit(1)
