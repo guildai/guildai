@@ -1,4 +1,4 @@
-# Copyright 2017-2018 TensorHub, Inc.
+# Copyright 2017-2019 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -78,8 +78,11 @@ class Operation(object):
 
     def run(self, quiet=False, background_pidfile=None):
         self.init()
-        self.resolve_deps()
-        return self.proc(quiet, background_pidfile)
+        try:
+            self.resolve_deps()
+            return self.proc(quiet, background_pidfile)
+        finally:
+            self._cleanup()
 
     def init(self):
         self._init_run()
@@ -90,6 +93,7 @@ class Operation(object):
         self._run = init_run(self._run_dir)
         log.debug("initializing run in %s", self._run.path)
         self._run.init_skel()
+        _write_pending(self._run)
 
     def _init_attrs(self):
         assert self._run is not None
@@ -177,7 +181,6 @@ class Operation(object):
         log.debug("pre-process command: %s", cmd)
         log.debug("pre-process env: %s", env)
         log.debug("pre-process cwd: %s", cwd)
-        _write_pending(self._run)
         subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
 
     def _stage_proc(self):
@@ -256,6 +259,10 @@ class Operation(object):
             return
         self._run.write_attr("exit_status", self._exit_status)
         self._run.write_attr("stopped", self._stopped)
+
+    def _cleanup(self):
+        assert self._run is not None
+        _delete_pending(self._run)
 
 def _init_cmd_args(opdef):
     flag_vals = util.resolve_all_refs(opdef.flag_values())

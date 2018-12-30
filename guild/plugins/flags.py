@@ -1,4 +1,4 @@
-# Copyright 2017-2018 TensorHub, Inc.
+# Copyright 2017-2019 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -152,10 +152,11 @@ class FlagsPlugin(Plugin):
             json.dump(data, f)
 
     def _load_flags_data(self, mod_path, sys_path):
-        env = {
+        env = dict(os.environ)
+        env.update({
             "PYTHONPATH": os.path.pathsep.join([sys_path] + sys.path),
             "LOG_LEVEL": str(self.log.getEffectiveLevel()),
-        }
+        })
         with util.TempFile() as data_path:
             cmd = [
                 sys.executable,

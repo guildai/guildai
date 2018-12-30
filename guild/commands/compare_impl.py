@@ -1,4 +1,4 @@
-# Copyright 2017-2018 TensorHub, Inc.
+# Copyright 2017-2019 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,11 +34,9 @@ from . import runs_impl
 log = logging.getLogger("guild")
 
 BASE_COLS = ".run, .model, .operation, .started, .time, .status, .label"
-STRICT_BASE_COLS = ".run"
+MIN_COLS = ".run"
 
 def main(args):
-    if args.columns and args.strict_columns:
-        cli.error("--columns and --strict-columns cannot both be used")
     if args.print_scalars:
         _print_scalars(args)
     elif args.format == "csv":
@@ -130,17 +128,14 @@ def _try_init_tf_logging():
         pass
 
 def _init_cols(args, runs):
-    assert not (args.columns and args.strict_columns)
-    if args.strict_columns:
-        cols = _parse_cols(STRICT_BASE_COLS)
+    if args.skip_core:
+        cols = _parse_cols(MIN_COLS)
     else:
         cols = _parse_cols(BASE_COLS)
-    if not args.strict_columns:
+    if not args.skip_op_cols:
         cols.extend(_runs_compare_cols(runs))
     if args.columns:
         cols.extend(_parse_cols(args.columns))
-    if args.strict_columns:
-        cols.extend(_parse_cols(args.strict_columns))
     return cols
 
 def _parse_cols(s):
@@ -258,6 +253,8 @@ def _format_cells(rows):
                 row[i] = ""
             elif isinstance(val, float):
                 row[i] = "%0.6f" % val
+            else:
+                row[i] = str(val)
 
 def _get_run_detail_cb(index):
     def f(data, y, _x):
@@ -290,7 +287,7 @@ def _format_run_detail(run, index):
         lines.append("Flags:")
         for name, val in sorted(flags.items()):
             val = val if val is not None else ""
-            lines.append("  {}: {}".format(name.decode(), val))
+            lines.append("  {}: {}".format(name, val))
     scalars = list(index.run_scalars(run))
     if scalars:
         lines.append("Scalars:")

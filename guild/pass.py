@@ -1,4 +1,4 @@
-# Copyright 2017-2018 TensorHub, Inc.
+# Copyright 2017-2019 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@ E.g.
       noop:
         main: guild.pass
 
-This is useful during development or for operations that only perform
-pre-processing.
+This is useful during development or to simply print a message.
 """
 
 from __future__ import print_function

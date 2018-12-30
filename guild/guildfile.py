@@ -1,4 +1,4 @@
-# Copyright 2017-2018 TensorHub, Inc.
+# Copyright 2017-2019 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -268,6 +268,8 @@ class Guildfile(object):
 def _coerce_guildfile_data(data, guildfile):
     if isinstance(data, dict):
         data = [data]
+    elif data is None:
+        data = []
     if not isinstance(data, list):
         raise GuildfileError(guildfile, "invalid guildfile data: %r" % data)
     return [

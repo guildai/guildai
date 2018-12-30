@@ -12,23 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
+"""No-op module that can be used for operation main.
 
-import click
+E.g.
 
-from guild import click_util
-from . import runs_label
+    model: test
+    operations:
+      noop:
+        main: guild.fail 'Not implemented'
 
-@click.command()
-@runs_label.label_params
+This is useful during development or to simply print a message.
+"""
 
-@click.pass_context
-@click_util.use_args
-@click_util.render_doc
+from __future__ import print_function
 
-def label(ctx, args):
-    """{{ runs_label.label_runs }}"""
+import sys
 
-    from . import runs_impl
-    runs_impl.label(args, ctx)
+if __name__ == "__main__":
+    print(*sys.argv[1:])
+    sys.exit(1)

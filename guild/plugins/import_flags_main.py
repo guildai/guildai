@@ -1,4 +1,4 @@
-# Copyright 2017-2018 TensorHub, Inc.
+# Copyright 2017-2019 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -101,7 +101,15 @@ def _exec_module(mod_path, log):
     details = (".py", "r", 1)
     sys.argv = [mod_path, "--help"]
     log.debug("loading module from '%s'", mod_path)
-    imp.load_module("__main__", f, mod_path, details)
+    try:
+        imp.load_module("__main__", f, mod_path, details)
+    except Exception as e:
+        # Need to reimport because globals is reset on load_module
+        # pylint: disable=reimported
+        import logging
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("importing %s", mod_path)
+        raise SystemExit(e)
 
 if __name__ == "__main__":
     main()

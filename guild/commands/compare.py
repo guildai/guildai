@@ -1,4 +1,4 @@
-# Copyright 2017-2018 TensorHub, Inc.
+# Copyright 2017-2019 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,10 +29,11 @@ from . import runs_support
         "Additional columns to compare. "
         "Cannot be used with --strict-columns."))
 @click.option(
-    "--strict-columns", metavar="COLUMNS",
-    help=(
-        "Strict list of columns to compare. "
-        "Cannot be used with --columns."))
+    "-r", "--skip-core", is_flag=True,
+    help="Don't show core columns.")
+@click.option(
+    "-n", "--skip-op-cols", is_flag=True,
+    help="Don't show operation columns.")
 @click.option(
     "-t", "--table", "format", flag_value="table",
     help="Generate comparison data as a table.",
@@ -83,10 +84,10 @@ def compare(args):
     left-to-right.
 
     By default, columns always contain run ID, model, operation,
-    started, time, status, and the set of columns defined for each
-    displayed operatin. You may override this using
-    `--strict-columns`, which displays only the run ID and the columns
-    specified. Note that run ID is always displayed.
+    started, time, label, status, and the set of columns defined for
+    each displayed operation. You can skip the core columns by with
+    `--skip-core` and skip the operation columns with
+    `--skip-op-cols`.
 
     ### Column specs
 
@@ -125,7 +126,7 @@ def compare(args):
     You may include run attributes as column specs by preceding the
     run attribute name with a period ``.``. For example, to include
     the `stopped` attribute, use ``--columns .stopped``. This is
-    useful when using `--strict-columns`.
+    useful when using `--skip-core`.
 
     {{ runs_support.runs_arg }}
 
