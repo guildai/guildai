@@ -56,7 +56,6 @@ LATEST_RUN_ARG = ["1"]
 
 CORE_RUN_ATTRS = [
     "cmd",
-    "compare",
     "deps",
     "env",
     "exit_status",
