@@ -79,7 +79,7 @@ def _init_warnings():
 
 def _parse_args():
     if len(sys.argv) < 2:
-        _error("missing required arg\n")
+        _internal_error("missing required arg\n")
     return sys.argv[1], sys.argv[2:]
 
 def _apply_plugins():
@@ -199,6 +199,10 @@ class Debugger(pdb.Pdb):
 
     def is_skipped_module(self, module_name):
         return module_name != "__main__"
+
+def _internal_error(msg):
+    sys.stderr.write("guild.op_main: %s\n" % msg)
+    sys.exit(2)
 
 def _error(msg):
     sys.stderr.write("guild: %s\n" % msg)
