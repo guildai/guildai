@@ -123,7 +123,6 @@
     guild.commands.view_tester
     guild.commands.watch
     guild.commands.watch_impl
-    guild.commands.workflow_impl
     guild.config
     guild.deps
     guild.entry_point_util
@@ -189,7 +188,3 @@
     guild.util
     guild.var
     guild.view
-    guild.workflow.__init__
-    guild.workflow.deps
-    guild.workflow.op_node
-    guild.workflow.sources_node

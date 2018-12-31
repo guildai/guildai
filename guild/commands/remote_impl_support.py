@@ -158,7 +158,6 @@ def _run_kw(args):
         "run_dir",
         "set_trace",
         "stage",
-        "workflow",
         "yes",
     ]
     return _arg_kw(args, names, ignore)

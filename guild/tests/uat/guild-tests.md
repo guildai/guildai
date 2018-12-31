@@ -41,5 +41,4 @@ tests).
       tfevents:                  ok
       utils:                     ok
       var:                       ok
-      workflow:                  ok
     <exit 0>

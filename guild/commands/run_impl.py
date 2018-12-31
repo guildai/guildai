@@ -120,10 +120,6 @@ def _dispatch_op_cmd(opdef, model, args, ctx):
             _print_cmd(op)
         elif args.print_env:
             _print_env(op)
-        elif args.workflow:
-            # TEMP facility to dev/test workflow features
-            from guild.commands import workflow_impl
-            workflow_impl.run(op, args)
         else:
             _maybe_run(op, model, args)
 
