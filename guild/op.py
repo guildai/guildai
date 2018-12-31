@@ -47,6 +47,7 @@ SIGTERM_EXIT_STATUS = -15
 NO_ARG_VALUE = object()
 
 DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args}"
+STEPS_EXEC = "${python_exe} -um guild.steps_main ${main_args}"
 
 class InvalidOpSpec(ValueError):
     pass
@@ -112,6 +113,8 @@ class Operation(object):
         self._run.write_attr("cmd", self.cmd_args)
         if self.opdef.compare:
             self._run.write_attr("compare", self.opdef.compare)
+        if self.opdef.steps:
+            self._run.write_attr("steps", self.opdef.steps)
         if self._flag_map:
             self._run.write_attr("_flag_map", self._flag_map)
         for key, val in self.opdef.modeldef.extra.items():
@@ -293,16 +296,42 @@ def _split_and_resolve_args(cmd, flag_vals):
     return [format_part(part) for part in op_util.split_cmd(cmd)]
 
 def _exec_args(opdef, flag_vals, main_args):
+    template = _exec_template(opdef)
+    flag_vals = _extended_flag_vals(flag_vals, opdef)
     try:
-        args = _split_and_resolve_args(
-            opdef.exec_ or DEFAULT_EXEC,
-            _extended_flag_vals(flag_vals, opdef))
+        args = _split_and_resolve_args(template, flag_vals)
     except util.UndefinedReferenceError as e:
         raise InvalidOpSpec(
             "exec contains invalid reference '%s'"
             % e.args[0])
     else:
         return _repl_main_args(args, main_args)
+
+def _exec_template(opdef):
+    """Returns exec template for opdef.
+
+    If exec is specified explicitly, it's returned, otherwise main or
+    steps are used to generate a template.
+    """
+    if opdef.exec_:
+        if opdef.main:
+            log.warning(
+                "operation 'exec' and 'main' both specified, "
+                "ignoring 'main'")
+        if opdef.steps:
+            log.warning(
+                "operation 'exec' and 'steps' both specified, "
+                "ignoring 'steps'")
+        return opdef.exec_
+    elif opdef.main:
+        if opdef.steps:
+            log.warning(
+                "operation 'main' and 'steps' both specified, "
+                "ignoring 'steps'")
+        return DEFAULT_EXEC
+    elif opdef.steps:
+        return STEPS_EXEC
+    assert False, opdef
 
 def _extended_flag_vals(flag_vals, opdef):
     """Extend flag_vals with special flag vals for op exec resolution.
@@ -420,6 +449,7 @@ def _cmd_option_args(name, val):
 def _init_cmd_env(opdef, gpus):
     env = util.safe_osenv()
     env.update(opdef.env)
+    env["GUILD_SCRIPT"] = sys.argv[0]
     env["GUILD_HOME"] = config.guild_home()
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)

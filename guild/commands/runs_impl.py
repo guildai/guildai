@@ -65,6 +65,7 @@ CORE_RUN_ATTRS = [
     "label",
     "opref",
     "started",
+    "steps",
     "stopped",
 ]
 

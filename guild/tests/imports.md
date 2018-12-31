@@ -180,6 +180,7 @@
     guild.run
     guild.service
     guild.serving_util
+    guild.steps_main
     guild.tabview
     guild.tensorboard
     guild.test
