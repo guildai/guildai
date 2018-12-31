@@ -69,7 +69,7 @@ def _init_logging():
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     guild.log.init_logging(level, {"_": format})
-    globals()["log"] = logging.getLogger("guild.op_main")
+    globals()["log"] = logging.getLogger("guild")
 
 def _init_warnings():
     if log.getEffectiveLevel() > logging.DEBUG:
