@@ -322,7 +322,8 @@ def _format_guildfile_op(opref):
     relpath = os.path.relpath(opref.pkg_name, config.cwd())
     if relpath[0] != '.':
         relpath = os.path.join('.', relpath)
-    return "%s/%s:%s" % (relpath, opref.model_name, opref.op_name)
+    path_desc = re.sub(r"(\.\.[/])+", ".../", relpath)
+    return "%s/%s:%s" % (path_desc, opref.model_name, opref.op_name)
 
 def _format_package_op(opref):
     return "%s/%s:%s" % (opref.pkg_name, opref.model_name, opref.op_name)
