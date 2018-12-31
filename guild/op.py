@@ -55,6 +55,7 @@ class Operation(object):
 
     def __init__(self, model_ref, opdef, run_dir=None, resource_config=None,
                  extra_attrs=None, stage_only=False, gpus=None):
+        self._validate_opdef(opdef)
         self.model_ref = model_ref
         self.opdef = opdef
         (self.cmd_args,
@@ -71,6 +72,11 @@ class Operation(object):
         self._run = None
         self._proc = None
         self._exit_status = None
+
+    @staticmethod
+    def _validate_opdef(opdef):
+        if not (opdef.main or opdef.exec_ or opdef.steps):
+            raise InvalidOpSpec("requires one of: main, exec, steps")
 
     @property
     def run_dir(self):

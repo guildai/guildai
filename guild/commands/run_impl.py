@@ -128,9 +128,7 @@ def _dispatch_op_cmd(opdef, model, args, ctx):
             _maybe_run(op, model, args)
 
 def _invalid_op_spec_error(e, opdef):
-    cli.error(
-        "invalid specification for %s: %s"
-        % (opdef.fullname, e))
+    cli.error("invalid '%s' operation: %s" % (opdef.fullname, e))
 
 def _parse_opspec(spec):
     parts = spec.split(":", 1)
