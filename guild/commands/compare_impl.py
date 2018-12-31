@@ -149,7 +149,7 @@ def _parse_cols(s):
 def _runs_compare_cols(runs):
     cols = []
     for run in runs:
-        for col_spec in run.get("_compare", []):
+        for col_spec in run.get("compare", []):
             cols.extend(_parse_cols(col_spec))
     return cols
 
