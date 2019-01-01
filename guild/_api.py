@@ -25,20 +25,20 @@ import six
 
 class RunError(Exception):
 
-    def __init__(self, cmd, returncode, out_err):
-        super(RunError, self).__init__(cmd, returncode, out_err)
+    def __init__(self, cmd, returncode, out):
+        super(RunError, self).__init__(cmd, returncode, out)
         self.cmd_args, self.cmd_cwd, self.cmd_env = cmd
         self.returncode = returncode
-        self.out, self.err = out_err
+        self.out = out
 
 class Env(object):
 
-    def __init__(self, cwd, guild_home):
+    def __init__(self, cwd, guild_home=None):
         from guild import config
         from guild.commands import main
+        guild_home = guild_home or main.DEFAULT_GUILD_HOME
         self._set_cwd = config.SetCwd(cwd or ".")
-        self._set_guild_home = config.SetGuildHome(
-            guild_home or main.DEFAULT_GUILD_HOME)
+        self._set_guild_home = config.SetGuildHome(guild_home)
 
     def __enter__(self):
         self._set_cwd.__enter__()
@@ -54,42 +54,52 @@ def _init_env(cwd, guild_home):
     config.set_cwd(cwd)
     config.set_guild_home(guild_home or main.DEFAULT_GUILD_HOME)
 
-def run(spec, cwd=None, flags=None, run_dir=None, extra_env=None):
+def run(spec, cwd=None, flags=None, run_dir=None, guild_home=None,
+        extra_env=None):
     import guild
+    from guild import op_util
     cwd = cwd or "."
-    flags = flags or []
+    flags = flags or {}
     args = [
         sys.executable,
         "-um", "guild.main_bootstrap",
         "run", "-y", spec,
     ]
-    args.extend(["{}={}".format(name, val) for name, val in flags])
+    args.extend([
+        "{}={}".format(name, op_util.format_arg_value(val))
+        for name, val in flags.items()])
     if run_dir:
         args.extend(["--run-dir", run_dir])
-    guild_home = os.path.abspath(guild.__pkgdir__)
     env = dict(os.environ)
     if extra_env:
         env.update(extra_env)
-    _apply_python_path_env(env, guild_home)
+    _apply_guild_home_env(env, guild_home)
+    _apply_python_path_env(env)
     _apply_lang_env(env)
     p = subprocess.Popen(
         args,
         cwd=cwd,
         env=env,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-    out_raw, err_raw = p.communicate()
-    out, err = out_raw.decode(), err_raw.decode()
+        stderr=subprocess.STDOUT)
+    out_raw, _err = p.communicate()
+    out = out_raw.decode().rstrip()
     if p.returncode != 0:
-        raise RunError((args, cwd, env), p.returncode, (out, err))
-    return out.rstrip(), err.rstrip()
+        raise RunError((args, cwd, env), p.returncode, out)
+    return out
 
-def _apply_python_path_env(env, guild_home):
+def _apply_guild_home_env(env, guild_home):
+    if guild_home:
+        env["GUILD_HOME"] = guild_home
+
+def _apply_python_path_env(env):
+    import guild
+    guild_path = os.path.abspath(guild.__pkgdir__)
     path = env.get("PYTHONPATH")
     if path:
-        path = os.pathsep.join([guild_home, path])
+        path = os.pathsep.join([guild_path, path])
     else:
-        path = guild_home
+        path = guild_path
     env["PYTHONPATH"] = path
 
 def _apply_lang_env(env):
@@ -128,9 +138,9 @@ def guild_cmd(command, args, cwd=None, guild_home=None, capture_output=False):
         "-m", "guild.main_bootstrap",
     ] + command + args
     env = dict(os.environ)
-    if guild_home:
-        env["GUILD_HOME"] = guild_home
-    env["PYTHONPATH"] = _prepend_guild_path(env.get("PYTHONPATH"))
+    _apply_guild_home_env(env, guild_home)
+    _apply_python_path_env(env)
+    _apply_lang_env(env)
     if capture_output:
         return subprocess.check_output(
             cmd_args,
@@ -142,9 +152,3 @@ def guild_cmd(command, args, cwd=None, guild_home=None, capture_output=False):
             cmd_args,
             cwd=cwd,
             env=env)
-
-def _prepend_guild_path(cur_path):
-    guild_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    if not cur_path:
-        return guild_path
-    return "{}{}{}".format(guild_path, os.path.sep, cur_path)

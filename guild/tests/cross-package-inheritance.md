@@ -108,12 +108,14 @@ Let's run `a/model:test`.
 
     >>> a_test_run_dir = mkdtemp()
 
-    >>> out, _ = gapi.run(
+    >>> out = gapi.run(
     ...   spec="model:test",
     ...   cwd=join_path(projects, "a"),
     ...   run_dir=a_test_run_dir)
 
     >>> print(out)
+    Run directory is '...' (results will not be visible to Guild)
+    Resolving msg_file dependency
     Hello from a/model
     File from model/a
 
@@ -124,14 +126,14 @@ Next we'll run `b/model:test`:
     >>> b_test_run_dir = mkdtemp()
 
     >>> try:
-    ...   out, err = gapi.run(
+    ...   out = gapi.run(
     ...     spec="model:test",
     ...     cwd=join_path(projects, "b"),
     ...     run_dir=b_test_run_dir)
     ... except gapi.RunError as e:
-    ...   print(e.err)
+    ...   print(e.out)
     ... else:
-    ...   out, err
+    ...   out
     ERROR: error loading guildfile from .:
     error in .../cross-package-inherits/b/guild.yml: cannot find
     Guild file for package 'a'
@@ -144,13 +146,14 @@ In this case we receive an error because Guild can't find the package
 Let's re-run the operation and include our projects directory in the
 system path:
 
-    >>> out, _ = gapi.run(
+    >>> out = gapi.run(
     ...   spec="model:test",
     ...   cwd=join_path(projects, "b"),
     ...   run_dir=b_test_run_dir,
     ...   extra_env={"PYTHONPATH": ".."})
-
     >>> print(out)
+    Run directory is '...' (results will not be visible to Guild)
+    Resolving msg_file dependency
     Hello from b/model
     File from model/a
 
@@ -161,13 +164,14 @@ Next we'll run `c/model:test`:
 
     >>> c_test_run_dir = mkdtemp()
 
-    >>> out, _ = gapi.run(
+    >>> out = gapi.run(
     ...   spec="model:test",
     ...   cwd=join_path(projects, "c"),
     ...   run_dir=c_test_run_dir,
     ...   extra_env={"PYTHONPATH": ".."})
-
     >>> print(out)
+    Run directory is '...' (results will not be visible to Guild)
+    Resolving msg_file dependency
     Hello from c/model
     File from model/c
 
