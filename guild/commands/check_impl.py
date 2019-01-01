@@ -26,13 +26,14 @@ import pkg_resources
 import click
 
 import guild
-import guild.cli
-import guild.config
-import guild.plugin
-import guild._test
-import guild.uat
-import guild.util
-import guild.var
+
+from guild import _test
+from guild import cli
+from guild import config
+from guild import plugin
+from guild import uat
+from guild import util
+from guild import var
 
 from . import remote_impl_support
 
@@ -83,10 +84,10 @@ def _check(args):
         )
         if not args.verbose:
             msg += " or rerun check with the --verbose option."
-        guild.cli.error(msg)
+        cli.error(msg)
 
 def _uat_and_exit():
-    guild.uat.run()
+    uat.run()
     sys.exit(0)
 
 def _run_tests(check):
@@ -95,47 +96,48 @@ def _run_tests(check):
             log.warning(
                 "running all tests (--all-tests specified) - "
                 "ignoring individual tests")
-        success = guild._test.run_all(skip=check.args.skip)
+        success = _test.run_all(skip=check.args.skip)
     elif check.args.tests:
         if check.args.skip:
             log.warning(
                 "running individual tests - ignoring --skip")
-        success = guild._test.run(check.args.tests)
+        success = _test.run(check.args.tests)
     if not success:
         check.error()
 
 def _print_info(check):
     _print_guild_info()
     _print_python_info(check)
+    _print_tensorboard_info()
     _print_tensorflow_info(check)
     _print_nvidia_tools_info()
     if check.args.verbose:
         _print_mods_info(check)
 
 def _print_guild_info():
-    guild.cli.out("guild_version:             %s" % guild.version())
-    guild.cli.out("guild_install_location:    %s" % _guild_install_location())
-    guild.cli.out("guild_home:                %s" % guild.config.guild_home())
-    guild.cli.out("guild_resource_cache:      %s" % _guild_resource_cache())
-    guild.cli.out("installed_plugins:         %s" % _format_plugins())
+    cli.out("guild_version:             %s" % guild.version())
+    cli.out("guild_install_location:    %s" % _guild_install_location())
+    cli.out("guild_home:                %s" % config.guild_home())
+    cli.out("guild_resource_cache:      %s" % _guild_resource_cache())
+    cli.out("installed_plugins:         %s" % _format_plugins())
 
 def _guild_install_location():
     return pkg_resources.resource_filename("guild", "")
 
 def _guild_resource_cache():
-    return os.path.realpath(guild.var.cache_dir("resources"))
+    return os.path.realpath(var.cache_dir("resources"))
 
 def _format_plugins():
     return ", ".join([
         name
-        for name, _ in sorted(guild.plugin.iter_plugins())
+        for name, _ in sorted(plugin.iter_plugins())
     ])
 
 def _print_python_info(check):
-    guild.cli.out("python_version:            %s" % _python_version())
-    guild.cli.out("python_exe:                %s" % sys.executable)
+    cli.out("python_version:            %s" % _python_version())
+    cli.out("python_exe:                %s" % sys.executable)
     if check.args.verbose:
-        guild.cli.out("python_path:           %s" % _python_path())
+        cli.out("python_path:           %s" % _python_path())
 
 def _python_version():
     return sys.version.replace("\n", "")
@@ -143,10 +145,14 @@ def _python_version():
 def _python_path():
     return os.path.pathsep.join(sys.path)
 
+def _print_tensorboard_info():
+    import tensorboard.version as version
+    click.echo("tensorboard_version:       %s" % version.VERSION)
+
 def _print_tensorflow_info(check):
     # Run externally to avoid tf logging to our stderr
     cmd = [sys.executable, "-um", "guild.commands.tensorflow_check_main"]
-    env = guild.util.safe_osenv()
+    env = util.safe_osenv()
     env["PYTHONPATH"] = os.path.pathsep.join(sys.path)
     if check.args.verbose:
         stderr = None
@@ -158,10 +164,10 @@ def _print_tensorflow_info(check):
         check.error()
 
 def _print_nvidia_tools_info():
-    guild.cli.out("nvidia_smi_version:        %s" % _nvidia_smi_version())
+    cli.out("nvidia_smi_version:        %s" % _nvidia_smi_version())
 
 def _nvidia_smi_version():
-    cmd = guild.util.which("nvidia-smi")
+    cmd = util.which("nvidia-smi")
     if not cmd:
         return "not installed"
     try:
@@ -180,10 +186,9 @@ def _nvidia_smi_version():
 def _print_mods_info(check):
     for mod in CHECK_MODS:
         ver = _try_module_version(mod, check)
-        space = " " * (18 - len(mod))
-        guild.cli.out("%s_version:%s%s" % (mod, space, ver))
+        _print_module_ver(mod, ver)
 
-def _try_module_version(name, check):
+def _try_module_version(name, check, version_attr="__version__"):
     try:
         mod = __import__(name)
     except ImportError as e:
@@ -191,7 +196,7 @@ def _try_module_version(name, check):
         return _warn("NOT INSTALLED (%s)" % e)
     else:
         try:
-            ver = mod.__version__
+            ver = getattr(mod, version_attr)
         except AttributeError:
             return _warn("UNKNOWN")
         else:
@@ -202,6 +207,10 @@ def _format_version(ver):
         return ".".join([str(part) for part in ver])
     else:
         return str(ver)
+
+def _print_module_ver(mod, ver):
+    space = " " * (18 - len(mod))
+    cli.out("%s_version:%s%s" % (mod, space, ver))
 
 def _warn(msg):
     return click.style(msg, fg="red", bold=True)

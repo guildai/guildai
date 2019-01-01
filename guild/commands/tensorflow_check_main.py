@@ -23,7 +23,6 @@ import sys
 import click
 
 class State(object):
-
     errors = False
 
 def _warn(msg):
@@ -31,21 +30,21 @@ def _warn(msg):
 
 def print_info():
     state = State()
+    _print_tensorflow_info(state)
+    _print_cuda_info()
+    if state.errors:
+        sys.exit(1)
+
+def _print_tensorflow_info(state):
     try:
         import tensorflow as tf
     except ImportError as e:
         msg = _normalize_import_error_msg(e)
-        err = _warn("NOT INSTALLED (%s)" % msg)
-        click.echo("tensorflow_version:        %s" % err)
-        state.errors = True
+        click.echo("tensorflow_version:        Not installed (%s)" % msg)
     else:
         click.echo("tensorflow_version:        %s" % _tf_version(tf, state))
         click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
         click.echo("tensorflow_gpu_available:  %s" % _gpu_available(tf, state))
-        _print_tensorboard_info()
-        _print_cuda_info()
-    if state.errors:
-        sys.exit(1)
 
 def _tf_version(tf, state):
     try:
@@ -68,20 +67,6 @@ def _gpu_available(tf, state):
         return _warn("NO (CUDA support is enabled but GPU is not available)")
     else:
         return "no"
-
-def _print_tensorboard_info():
-    try:
-        import tensorboard.version as version
-    except ImportError as e:
-        msg = _normalize_import_error_msg(e)
-        click.echo(
-            "tensorboard_version:       %s"
-            % _warn("NOT INSTALLED (%s)" % msg))
-    else:
-        click.echo(
-            "tensorboard_version:       %s"
-            % version.VERSION)
-
 
 def _print_cuda_info():
     if sys.platform == "darwin":
