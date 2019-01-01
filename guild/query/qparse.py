@@ -16,7 +16,7 @@ import yaml
 
 from guild import _yacc
 
-from guild.query import Select, Scalar, Attr, Flag, Output
+from guild.query import Select, Scalar, Attr, Flag
 from guild.query import ParseError
 
 from guild.query import qlex
@@ -44,7 +44,6 @@ def p_col(p):
            | scalar_step_col
            | attr_col
            | flag_col
-           | output_col
     """
     p[0] = p[1]
 
@@ -116,14 +115,6 @@ def p_flag_col(p):
 
 def p_flag_name(p):
     "flag_name : UNQUOTED"
-    p[0] = p[1]
-
-def p_output_col(p):
-    "output_col : OUTPUT_PREFIX output_pattern"
-    p[0] = Output(p[2])
-
-def p_output_pattern(p):
-    "output_pattern : term"
     p[0] = p[1]
 
 def p_unquoted_term(p):

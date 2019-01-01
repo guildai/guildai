@@ -111,13 +111,6 @@ or by explicitly using the 'flag:' prefix:
     >>> p("select flag:learning-rate, flag:batch-size")
     <guild.query.Select ['flag:learning-rate', 'flag:batch-size']>
 
-### Selecting output
-
-Values from output can be selected using the 'output:' prefix.
-
-    >>> p("select output:'IoU: (.+)'")
-    <guild.query.Select ["output:'IoU: (.+)'"]>
-
 ### Specifying column names
 
 Any column may be named using 'AS NAME' syntax.
@@ -126,9 +119,6 @@ Any column may be named using 'AS NAME' syntax.
     <guild.query.Select ['scalar:last loss step as steps']>
 
 Other examples:
-
-    >>> p("select output:'Accuracy: (.+?)' as accuracy")
-    <guild.query.Select ["output:'Accuracy: (.+?)' as accuracy"]>
 
     >>> p("select =learning-rate as 'Learning Rate'")
     <guild.query.Select ["flag:learning-rate as 'Learning Rate'"]>

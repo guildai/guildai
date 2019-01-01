@@ -21,7 +21,7 @@ reserved = (
 )
 
 tokens = reserved + (
-    "SCALAR_PREFIX", "ATTR_PREFIX", "FLAG_PREFIX", "OUTPUT_PREFIX",
+    "SCALAR_PREFIX", "ATTR_PREFIX", "FLAG_PREFIX",
     "COMMA", "DOT", "EQUALS",
     "UNQUOTED",
     "QUOTED",
@@ -39,10 +39,6 @@ def t_ATTR_PREFIX(t):
 
 def t_FLAG_PREFIX(t):
     r"flag:"
-    return t
-
-def t_OUTPUT_PREFIX(t):
-    r"output:"
     return t
 
 def t_DOT(t):

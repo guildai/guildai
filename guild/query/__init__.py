@@ -93,16 +93,6 @@ class Flag(Col):
     def header(self):
         return self.named_as or self.name
 
-class Output(Col):
-
-    def __init__(self, pattern, qualifier=None):
-        self.pattern = pattern
-        self.qualifier = qualifier
-
-    def __str__(self):
-        qual = "%s " % self.qualifier if self.qualifier else ""
-        return "output:%s%s%s" % (qual, q(self.pattern), self._as_suffix())
-
 def parse(s):
     from . import qparse
     p = qparse.parser()
