@@ -241,6 +241,8 @@ def format_arg_value(v):
         return "yes"
     elif v is False:
         return "no"
+    elif v is None:
+        return "null"
     else:
         return str(v)
 
