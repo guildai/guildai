@@ -536,12 +536,17 @@ def _run_op(op, args):
         result = op.run(args.quiet, args.background)
     except deps.DependencyError as e:
         _handle_dependency_error(e)
+    except guild.op.ProcessError as e:
+        _handle_process_error(e)
     else:
         _handle_run_result(result, op)
 
 def _handle_dependency_error(e):
     cli.error(
         "run failed because a dependency was not met: %s" % e)
+
+def _handle_process_error(e):
+    cli.error("run failed: %s" % e)
 
 def _handle_run_result(exit_status, op):
     if op.stage_only:

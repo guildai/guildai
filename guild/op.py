@@ -52,6 +52,9 @@ STEPS_EXEC = "${python_exe} -um guild.steps_main ${main_args}"
 class InvalidOpSpec(ValueError):
     pass
 
+class ProcessError(Exception):
+    pass
+
 class Operation(object):
 
     def __init__(self, model_ref, opdef, run_dir=None, resource_config=None,
@@ -211,13 +214,18 @@ class Operation(object):
         log.debug("operation env: %s", env)
         log.debug("operation cwd: %s", cwd)
         _delete_pending(self._run)
-        self._proc = subprocess.Popen(
-            args,
-            env=env,
-            cwd=cwd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        _write_proc_lock(self._proc, self._run)
+        try:
+            proc = subprocess.Popen(
+                args,
+                env=env,
+                cwd=cwd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+        except OSError as e:
+            raise ProcessError(e)
+        else:
+            self._proc = proc
+            _write_proc_lock(self._proc, self._run)
 
     def _proc_env(self):
         assert self._run is not None
