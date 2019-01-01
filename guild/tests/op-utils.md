@@ -65,7 +65,7 @@ Use `op_util.parse_flags` to parse a list of `NAME=VAL` args.
     {'a': False, 'b': False, 'c': False}
 
     >>> p_flags(["a="])
-    {'a': None}
+    {'a': ''}
 
     >>> p_flags(["a=[1,2,3]"])
     {'a': [1, 2, 3]}
@@ -74,11 +74,17 @@ Use `op_util.parse_flags` to parse a list of `NAME=VAL` args.
     Traceback (most recent call last):
     ArgValueError: a
 
-    >>> p_flags(["a=['A','B']", "c=123", "d-e=", "f={'a':456,'b':'C'}"])
+    >>> p_flags([
+    ...   "a=['A','B']",
+    ...   "c=123",
+    ...   "d-e=",
+    ...   "f={'a':456,'b':'C'}",
+    ...   "g=null"])
     {'a': ['A', 'B'],
      'c': 123,
-     'd-e': None,
-     'f': {'a': 456, 'b': 'C'}}
+     'd-e': '',
+     'f': {'a': 456, 'b': 'C'},
+     'g': None}
 
  If exponent syntax is used, it must contain a decimal to be converted
  to a float:

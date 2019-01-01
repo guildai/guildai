@@ -213,6 +213,8 @@ def _parse_flag_arg(arg):
         return parts[0], _parse_arg_val(parts[1])
 
 def _parse_arg_val(s):
+    if s == "":
+        return s
     parsers = [
         (int, ValueError),
         (_safe_float, ValueError),
