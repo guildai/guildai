@@ -46,8 +46,8 @@ SIGTERM_EXIT_STATUS = -15
 
 NO_ARG_VALUE = object()
 
-DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args}"
-STEPS_EXEC = "${python_exe} -um guild.steps_main ${main_args}"
+DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} ${flag_args}"
+STEPS_EXEC = "${python_exe} -um guild.steps_main"
 
 class InvalidOpSpec(ValueError):
     pass
@@ -285,10 +285,9 @@ class Operation(object):
 def _init_cmd_args(opdef):
     flag_vals = util.resolve_all_refs(opdef.flag_values())
     main_args = _main_args(opdef, flag_vals)
-    exec_args = _exec_args(opdef, flag_vals, main_args)
     flag_args, flag_map = _flag_args(flag_vals, opdef, main_args)
-    cmd_args = exec_args + flag_args
-    return cmd_args, flag_vals, flag_map
+    exec_args = _exec_args(opdef, flag_vals, main_args, flag_args)
+    return exec_args, flag_vals, flag_map
 
 def _main_args(opdef, flag_vals):
     try:
@@ -303,7 +302,7 @@ def _split_and_resolve_args(cmd, flag_vals):
     format_part = lambda part: str(util.resolve_refs(part, flag_vals))
     return [format_part(part) for part in op_util.split_cmd(cmd)]
 
-def _exec_args(opdef, flag_vals, main_args):
+def _exec_args(opdef, flag_vals, main_args, flag_args):
     template = _exec_template(opdef)
     flag_vals = _extended_flag_vals(flag_vals, opdef)
     try:
@@ -313,7 +312,9 @@ def _exec_args(opdef, flag_vals, main_args):
             "exec contains invalid reference '%s'"
             % e.args[0])
     else:
-        return _repl_main_args(args, main_args)
+        args = _repl_args(args, "__main_args__", main_args)
+        args = _repl_args(args, "__flag_args__", flag_args)
+        return args
 
 def _exec_template(opdef):
     """Returns exec template for opdef.
@@ -357,7 +358,8 @@ def _extended_flag_vals(flag_vals, opdef):
     extended = dict(flag_vals)
     extended.update({
         "python_exe": _python_exe(opdef),
-        "main_args": "__main_args__"
+        "main_args": "__main_args__",
+        "flag_args": "__flag_args__",
     })
     return extended
 
@@ -367,12 +369,12 @@ def _python_exe(_opdef):
     # not by whatever Python runtime is configured in the user env.
     return sys.executable
 
-def _repl_main_args(args, main_args):
-    """Replaces occurrences of MAIN_ARGS in args with main_args."""
+def _repl_args(args, key, replacement):
+    """Replaces occurrences of key in args with replacement."""
     ret = []
     for arg in args:
-        if arg == "__main_args__":
-            ret.extend(main_args)
+        if arg == key:
+            ret.extend(replacement)
         else:
             ret.append(arg)
     return ret
@@ -457,7 +459,6 @@ def _cmd_option_args(name, val):
 def _init_cmd_env(opdef, gpus):
     env = util.safe_osenv()
     env.update(opdef.env)
-    env["GUILD_SCRIPT"] = sys.argv[0]
     env["GUILD_HOME"] = config.guild_home()
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)

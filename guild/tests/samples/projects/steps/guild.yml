@@ -1,0 +1,69 @@
+- model: m1
+  operations:
+    step-1:
+      exec: bash -c "echo hello step-1 && touch step-1"
+    step-2:
+      exec: bash -c "echo hello step-2 && touch step-2"
+    steps-basic:
+      steps:
+        - step-1
+        - step-2
+    steps-named:
+      steps:
+        - run: step-1
+          name: s1
+        - run: step-2
+          name: s2
+    steps-repeat:
+      steps:
+        - step-1
+        - step-1
+        - step-1
+    hello:
+      exec: echo ${msg}
+      flags:
+        msg: hello world
+    steps-hello:
+      steps:
+        - hello msg=${msg}
+        - hello msg='${msg} (again)'
+      flags:
+        msg: hello steps
+
+- model: m2
+  operations:
+    hello:
+      exec: echo ${msg}
+      flags:
+        msg: hello m2
+    composite:
+      steps:
+        - hello msg='hello m2, from ${name}'
+        - m1:hello msg='hello m1, from ${name}'
+      flags:
+        name: composite
+
+- model: m3
+  operations:
+    steps-invalid-no-steps:
+      steps: {}
+    steps-invalid-bad-type:
+      steps: 123
+    steps-invalid-bad-opspec-1:
+      steps:
+        - [1, 2, 3]
+    steps-invalid-bad-opspec-2:
+      steps:
+        - null
+    steps-invalid-bad-opspec-3:
+      steps:
+        - '   '
+    steps-invalid-bad-opspec-4:
+      steps:
+        - {}
+    steps-invalid-bad-op:
+      steps:
+        - not-defined
+    ignored-params:
+      steps:
+        - m1:hello --no-gpus --label hello
