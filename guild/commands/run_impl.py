@@ -403,17 +403,16 @@ def _op_run_dir(args, ctx):
         return None
 
 def _op_gpus(args, ctx):
-    if args.no_gpus and args.gpus:
+    if args.no_gpus and args.gpus is not None:
         cli.error(
             "--gpus and --no-gpus cannot both be used\n"
             "Try '%s' for more information."
             % click_util.cmd_help(ctx))
     if args.no_gpus:
         return ""
-    elif args.gpus:
+    elif args.gpus is not None:
         return args.gpus
-    else:
-        return None # use all available (default)
+    return None # use all available (default)
 
 def _print_model_help(model):
     out = click.HelpFormatter()
