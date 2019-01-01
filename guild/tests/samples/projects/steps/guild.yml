@@ -66,4 +66,4 @@
         - not-defined
     ignored-params:
       steps:
-        - m1:hello --no-gpus --label hello
+        - m1:hello --run-dir /tmp --remote foo

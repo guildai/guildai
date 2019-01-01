@@ -282,7 +282,7 @@ At the moment, steps do not support additional run options and any
 provided will cause Guild to print a warning message.
 
     >>> run_op("m3:ignored-params")
-    WARNING: [guild] run parameter no_gpus used in 'm1:hello --no-gpus --label hello' ignored
-    WARNING: [guild] run parameter label used in 'm1:hello --no-gpus --label hello' ignored
+    WARNING: [guild] run parameter run_dir used in 'm1:hello --run-dir /tmp --remote foo' ignored
+    WARNING: [guild] run parameter remote used in 'm1:hello --run-dir /tmp --remote foo' ignored
     INFO: [guild] running m1:hello: m1:hello
     hello world

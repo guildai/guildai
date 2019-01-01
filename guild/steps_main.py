@@ -36,6 +36,15 @@ log = None # intialized in _init_logging
 
 class Step(object):
 
+    used_params = (
+        "disable_plugins",
+        "flags",
+        "gpus",
+        "label",
+        "no_gpus",
+        "opspec",
+    )
+
     def __init__(self, data, parent_flags, parent_opref):
         if isinstance(data, six.string_types):
             data = {
@@ -47,8 +56,13 @@ class Step(object):
         assert params["opspec"], params
         opspec_param = params["opspec"]
         self.op_spec = self._apply_default_model(opspec_param, parent_opref)
-        self.flags = self._init_flags(params, parent_flags)
         self.name = data.get("name") or opspec_param
+        self.flags = self._init_flags(params, parent_flags)
+        self.label = self._resolve_param(params, "label", parent_flags)
+        self.disable_plugins = self._resolve_param(
+            params, "disable_plugins", parent_flags)
+        self.gpus = self._resolve_param(params, "gpus", parent_flags)
+        self.no_gpus = params["no_gpus"]
 
     def _parse_run(self, data):
         from guild.commands.run import run as run_cmd
@@ -64,13 +78,11 @@ class Step(object):
             self._warn_ignored_params(ctx, run_spec)
             return ctx.params
 
-    @staticmethod
-    def _warn_ignored_params(ctx, run_spec):
+    def _warn_ignored_params(self, ctx, run_spec):
         "Warn if any params set that we ignore."""
         defaults = {p.name: p.default for p in ctx.command.params}
-        used = ("opspec", "flags")
         for name, val in ctx.params.items():
-            if name not in used and val != defaults[name]:
+            if name not in self.used_params and val != defaults[name]:
                 log.warning(
                     "run parameter %s used in %r ignored",
                     name, run_spec)
@@ -109,6 +121,13 @@ class Step(object):
             name: val for name, val in flag_vals.items()
             if val is not None
         }
+
+    @staticmethod
+    def _resolve_param(params, name, flags):
+        resolved = util.resolve_refs(params[name], flags)
+        if resolved is None:
+            return resolved
+        return str(resolved)
 
     def __str__(self):
         return self.name or self.op_spec
@@ -174,13 +193,26 @@ def _init_step_run(parent_run):
     return os.path.join(runs_dir, run_id)
 
 def _init_step_cmd(step, step_run_dir):
-    flag_args = _step_flag_args(step)
     base_args = [
         sys.executable, "-um", "guild.main_bootstrap",
         "run", "-y",
         "--run-dir", step_run_dir,
         step.op_spec]
-    return base_args + flag_args
+    step_options = _step_options(step)
+    flag_args = _step_flag_args(step)
+    return base_args + step_options + flag_args
+
+def _step_options(step):
+    opts = []
+    if step.label:
+        opts.extend(["--label", step.label])
+    if step.disable_plugins:
+        opts.extend(["--disable-plugins", step.disable_plugins])
+    if step.gpus is not None:
+        opts.extend(["--gpus", step.gpus])
+    elif step.no_gpus:
+        opts.append("--no-gpus")
+    return opts
 
 def _step_flag_args(step):
     if not step.flags:
