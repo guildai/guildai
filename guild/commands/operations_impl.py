@@ -24,7 +24,7 @@ from guild.commands import models_impl
 def main(args):
     cmd_impl_support.init_model_path()
     formatted = [_format_op(op, model) for op, model in _iter_ops(args.path)]
-    filtered = [op for op in formatted if _filter_op(op, args.filters)]
+    filtered = [op for op in formatted if _filter_op(op, args)]
     cli.table(
         sorted(filtered, key=lambda m: m["fullname"]),
         cols=["fullname", "description"],
@@ -43,6 +43,7 @@ def _format_op(op, model):
         "description": description,
         "details": details,
         "model": model.fullname,
+        "model_name": model.name,
         "name": op.name,
         "main": op.main,
         "flags": [
@@ -60,9 +61,12 @@ def _format_flag_desc(flag):
 def _format_flag_value(flag):
     return " (default is %r)" % flag.default if flag.default is not None else ""
 
-def _filter_op(op, filters):
+def _filter_op(op, args):
     filter_vals = [
         op["fullname"],
         op["description"],
     ]
-    return util.match_filters(filters, filter_vals)
+    return (
+        (op["name"][:1] != "_" or args.all) and
+        (op["model_name"][:1] != "_" or args.all) and
+        util.match_filters(args.filters, filter_vals))

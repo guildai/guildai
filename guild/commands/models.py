@@ -24,6 +24,9 @@ from guild import click_util
 @click.option(
     "-p", "--path", metavar="DIR", multiple=True,
     help="Show models in DIR. May be used more than once.")
+@click.option(
+    "-a", "--all", is_flag=True,
+    help="Show all models including those designated as private.")
 @click.option("-v", "--verbose", help="Show model details.", is_flag=True)
 
 @click_util.use_args
@@ -35,7 +38,6 @@ def models(args):
     the specified values.
 
     Use --path to view models defined in the specified directory.
-
     """
     from . import models_impl
     models_impl.main(args)

@@ -24,6 +24,9 @@ from guild import click_util
 @click.option(
     "-p", "--path", metavar="DIR", multiple=True,
     help="Show operations in DIR. May be used more than once.")
+@click.option(
+    "-a", "--all", is_flag=True,
+    help="Show all operations including those designated as private.")
 @click.option("-v", "--verbose", help="Show operation details.", is_flag=True)
 
 @click_util.use_args
@@ -35,7 +38,6 @@ def operations(args):
     names or models match the specified values.
 
     Use --path to view operations defined in the specified directory.
-
     """
     from . import operations_impl
     operations_impl.main(args)

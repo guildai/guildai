@@ -25,7 +25,7 @@ from guild import util
 def main(args):
     cmd_impl_support.init_model_path()
     formatted = [_format_model(m) for m in iter_models(args.path)]
-    filtered = [m for m in formatted if _filter_model(m, args.filters)]
+    filtered = [m for m in formatted if _filter_model(m, args)]
     cli.table(
         sorted(filtered, key=lambda m: m["fullname"]),
         cols=["fullname", "description"],
@@ -50,12 +50,14 @@ def _format_model(model):
         "source": modeldef.guildfile.src,
         "description": description,
         "details": details,
-        "operations": ", ".join([op.name for op in modeldef.operations])
+        "operations": ", ".join([op.name for op in modeldef.operations]),
     }
 
-def _filter_model(model, filters):
+def _filter_model(model, args):
     filter_vals = [
         model["fullname"],
         model["description"],
     ]
-    return util.match_filters(filters, filter_vals)
+    return (
+        (model["name"][:1] != "_" or args.all) and
+        util.match_filters(args.filters, filter_vals))
