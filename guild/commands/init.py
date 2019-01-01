@@ -35,17 +35,10 @@ from guild import click_util
         "value may alternatively be a path to a Guild wheel distribution.")
     )
 @click.option(
-    "--gpu", "tf_package", flag_value="tensorflow-gpu",
-    help="Use the GPU enabled tensorflow package for the environment.")
-@click.option(
-    "--no-gpu", "tf_package", flag_value="tensorflow",
-    help="Use the non-GPU tensorflow package for the environment.")
-@click.option(
-    "--no-tensorflow", "tf_package", flag_value="no",
-    help="Do not install TensorFlow in the environment.")
-@click.option(
-    "-r", "--requirement", metavar="FILE", multiple=True,
-    help="Install packages defined in FILE. May be used multiple times.")
+    "-r", "--requirement", metavar="REQ", multiple=True,
+    help=(
+        "Install required package or packages defined in a file. May be "
+        "used multiple times."))
 @click.option(
     "-P", "--path", metavar="DIR", multiple=True,
     help="Include DIR as a Python path in the environment.")
@@ -54,6 +47,11 @@ from guild import click_util
     help=(
         "Don't install from requirements.txt or guild.yml in environment "
         "parent directory."))
+@click.option(
+    "--tensorflow", metavar="PACKAGE",
+    help=(
+        "Install PACKAGE wherever tensorflow-any is required. See "
+        "TENSORFLOW help for details."))
 @click.option(
     "-l", "--local-resource-cache", is_flag=True,
     help="Use a local cache when initializing an environment.")
@@ -75,8 +73,10 @@ def init(args):
     `init` creates a virtual environment in `DIR` using `virtualenv`.
 
     Use `--python` to specify the Python interpreter to use within the
-    generated virtual environment. If `no-venv` is specified,
-    `--python` is ignored.
+    generated virtual environment. By default, the default Python
+    interpreter for `virtualenv` is used unless `python` is explicitly
+    listed as a requirement. If `no-venv` is specified, `--python` is
+    ignored.
 
     ### Requirements
 
@@ -101,30 +101,23 @@ def init(args):
     not automatically install packages in `requirements.txt` -- that
     file must be specified explicitly in the command.
 
-    ### TensorFlow
-
-    By default `init` installs TensorFlow in the initialized
-    environment if it's not already installed. When Guild installs
-    TensorFlow, it detects GPU support on the system and selects the
-    appropriate package: `tensorflow-gpu` for GPU support, otherwise
-    `tensorflow`.
-
-    To override the default package, use `--gpu` to install the
-    `tensorflow-gpu` package or `--no-gpu` to install the `tensorflow`
-    package.
-
-    To skip installing TensorFlow, use `--no-tensorflow`.
-
-    If TensorFlow was installed by way of a requirements file, either
-    `requirements.txt` located in the environment parent directory or
-    a file specified by a `--requirement` option, Guild will not
-    reinstall it.
-
     ### Guild AI
 
     By default `init` installs the active version of Guild AI in the
     initialized environment. To install a different version, or to
     install a Guild wheel distribution file use the `--guild` option.
+
+    ### TensorFlow
+
+    TensorFlow is installed only if it is listed as a dependency,
+    either explicitly in a requirements file or in package definition
+    of a `guild.yml` file located in the environment parent directory.
+
+    If the special package ``tensorflow-any`` is listed as a Guild
+    package dependency, Guild installs the appropriate package --
+    either `tensorflow` or `tensorflow-gpu` -- based on the system GPU
+    support. You can specify the package explicitly using
+    `--tensorflow`.
 
     ### Resource cache
 

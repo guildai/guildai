@@ -801,3 +801,13 @@ def del_env(names):
             del os.environ[name]
         except KeyError:
             pass
+
+def python_interpreters():
+    import glob
+    bin_dir = os.path.dirname(sys.executable)
+    ret = []
+    for path in glob.glob(os.path.join(bin_dir, "python*")):
+        m = re.match(r"python([0-9\.]+)$", os.path.basename(path))
+        if m:
+            ret.append((path, m.group(1)))
+    return ret

@@ -3,3 +3,4 @@
     - Pillow
     - pkg-a
     - pkg-b
+    - tensorflow-any

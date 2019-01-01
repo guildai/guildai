@@ -980,7 +980,8 @@ class PackageDef(object):
         self.python_tag = data.get("python-tag")
         self.data_files = data.get("data-files") or []
         self.python_requires = data.get("python-requires") or []
-        self.requires = data.get("requires")
+        self.requires = _coerce_string_to_list(
+            data.get("requires") or [], guildfile, "requires")
         self.packages = data.get("packages")
 
     def __repr__(self):

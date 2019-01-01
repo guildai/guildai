@@ -22,6 +22,7 @@ import pkg_resources
 import re
 import subprocess
 
+import six
 import yaml
 
 import guild
@@ -39,12 +40,12 @@ class Config(object):
     def __init__(self, args):
         self.env_dir = os.path.abspath(args.dir)
         self.env_name = self._init_env_name(args.name, self.env_dir)
-        self.venv_python = self._init_venv_python(args)
         self.guild = args.guild
         self.guild_pkg_reqs = self._init_guild_pkg_reqs(args)
+        self.venv_python = self._init_venv_python(args, self.guild_pkg_reqs)
         self.user_reqs = self._init_user_reqs(args)
         self.paths = args.path
-        self.tensorflow = args.tf_package
+        self.tensorflow = args.tensorflow
         self.local_resource_cache = args.local_resource_cache
         self.prompt_params = self._init_prompt_params()
         self.no_progress = args.no_progress
@@ -59,18 +60,18 @@ class Config(object):
         return os.path.basename(os.path.dirname(abs_env_dir))
 
     @staticmethod
-    def _init_venv_python(args):
-        arg = args.python
-        if not arg or arg.startswith("python"):
-            return arg
-        return "python{}".format(arg)
+    def _init_venv_python(args, pkg_reqs):
+        if args.python:
+            return _python_interpreter_for_arg(args.python)
+        return _python_interpreter_for_reqs(pkg_reqs)
 
     @staticmethod
     def _init_guild_pkg_reqs(args):
         if args.no_reqs:
             return ()
-        return tuple(sorted(
-            _iter_all_guild_pkg_reqs(config.cwd(), args.path)))
+        reqs = list(_iter_all_guild_pkg_reqs(config.cwd(), args.path))
+        _apply_tensorflow_arg(args.tensorflow, reqs)
+        return tuple(sorted(reqs))
 
     @staticmethod
     def _init_user_reqs(args):
@@ -78,7 +79,6 @@ class Config(object):
         # takes precedence (--no-reqs may still be used to suppress
         # installation of Guild package reqs)
         if args.requirement:
-            _validate_req_files(args.requirement)
             return args.requirement
         elif not args.no_reqs:
             default_reqs = os.path.join(config.cwd(), "requirements.txt")
@@ -104,16 +104,6 @@ class Config(object):
             params.append(("Python requirements", self.user_reqs))
         if self.paths:
             params.append(("Additional paths", self.paths))
-        if self.tensorflow == "no":
-            params.append(("TensorFlow support", "no"))
-        elif self.tensorflow == "tensorflow":
-            params.append(("TensorFlow support", "non-GPU"))
-        elif self.tensorflow == "tensorflow-gpu":
-            params.append(("TensorFlow support", "GPU"))
-        elif self.tensorflow is None:
-            params.append(("TensorFlow support", "auto-detect GPU"))
-        else:
-            raise AssertionError(self.tensorflow)
         if self.local_resource_cache:
             params.append(("Resource cache", "local"))
         else:
@@ -144,12 +134,12 @@ def _iter_all_guild_pkg_reqs(dir, search_path, seen=None):
             yield req
 
 def _guild_pkg_reqs(src):
-    pkg = _pkg_for_guildfile(src)
+    pkg = _guildfile_pkg(src)
     if not pkg:
         return []
     return _pkg_requires(pkg, src)
 
-def _pkg_for_guildfile(src):
+def _guildfile_pkg(src):
     data = _guildfile_data(src)
     if not isinstance(data, list):
         data = [data]
@@ -171,6 +161,8 @@ def _guildfile_data(src):
 
 def _pkg_requires(pkg_data, src):
     requires = pkg_data.get("requires") or []
+    if isinstance(requires, six.string_types):
+        requires = [requires]
     if not isinstance(requires, list):
         log.warning(
             "invalid package requires list in %s (%r) - ignoring",
@@ -199,10 +191,33 @@ def _validate_guild_reqs(reqs, guildfile_path):
                 % (req, guildfile_path))
     return reqs
 
-def _validate_req_files(paths):
-    for p in paths:
-        if not os.path.exists(p):
-            cli.error("requirement file %s does not exist" % p)
+def _apply_tensorflow_arg(tensorflow_arg, reqs):
+    """Applies tensorflow arg to package reqs.
+
+    If tensorflow arg is specified, occurences of 'tensorflow-any'.
+
+    If tensorflow arg is not specified, occurences of 'tensorflow-any'
+    are replaced with the default tensorflow package for the system.
+    """
+    if tensorflow_arg:
+        tensorflow_pkg = tensorflow_arg
+    elif util.gpu_available():
+        tensorflow_pkg = "tensorflow-gpu"
+    else:
+        tensorflow_pkg = "tensorflow"
+    for i, spec in enumerate(reqs):
+        for req in _parse_requirements(spec):
+            if req.name == "tensorflow-any":
+                req.name = tensorflow_pkg
+                reqs[i] = str(req)
+
+def _parse_requirements(spec):
+    parsed = pkg_resources.parse_requirements(spec)
+    try:
+        return list(parsed)
+    except pkg_resources.RequirementParseError as e:
+        log.warning("invalid requirement %r: %s", spec, e)
+        return []
 
 def _shorten_path(path):
     return path.replace(os.path.expanduser("~"), "~")
@@ -247,7 +262,6 @@ def _init(config):
     _install_guild_pkg_reqs(config)
     _install_user_reqs(config)
     _install_paths(config)
-    _ensure_tensorflow(config)
     _initialized_msg(config)
 
 def _init_guild_env(config):
@@ -323,24 +337,12 @@ def _guild_reqs_file():
 
 def _install_guild_reqs(req_files, config):
     cli.out("Installing Guild requirements")
-    _install_req_files([req_files], config)
+    _install_reqs([req_files], config)
 
 def _install_default_guild_dist(config):
     req = "guildai==%s" % guild.__version__
     cli.out("Installing Guild %s" % req)
     _install_reqs([req], config)
-
-def _install_reqs(reqs, config):
-    cmd = (
-        [_pip_bin(config.env_dir), "install"] +
-        _pip_extra_opts(config) +
-        reqs
-    )
-    log.debug("pip cmd: %s", cmd)
-    try:
-        subprocess.check_call(cmd, env={"PATH": ""})
-    except subprocess.CalledProcessError as e:
-        cli.error(str(e), exit_status=e.returncode)
 
 def _pip_bin(env_dir):
     pip_bin = os.path.join(env_dir, "bin", "pip")
@@ -353,10 +355,13 @@ def _pip_extra_opts(config):
     else:
         return []
 
-def _install_req_files(req_files, config):
+def _install_reqs(reqs, config):
     cmd_args = [_pip_bin(config.env_dir), "install"] + _pip_extra_opts(config)
-    for path in req_files:
-        cmd_args.extend(["-r", path])
+    for req in reqs:
+        if os.path.exists(req):
+            cmd_args.extend(["-r", req])
+        else:
+            cmd_args.append(req)
     log.debug("pip cmd: %s", cmd_args)
     try:
         subprocess.check_call(cmd_args, env={"PATH": ""})
@@ -379,7 +384,7 @@ def _pip_package_reqs(guild_reqs):
 def _install_user_reqs(config):
     if config.user_reqs:
         cli.out("Installing Python requirements")
-        _install_req_files(config.user_reqs, config)
+        _install_reqs(config.user_reqs, config)
 
 def _install_paths(config):
     if not config.paths:
@@ -406,36 +411,31 @@ def _pth_filename(target_dir, path):
     pth_name = "%s-%s.pth" % (os.path.basename(path), digest)
     return os.path.join(target_dir, pth_name)
 
-def _ensure_tensorflow(config):
-    if config.tensorflow == "no":
-        cli.out("Skipping TensorFlow installation")
-        return
-    if _tensorflow_installed(config.env_dir):
-        cli.out("TensorFlow already installed, skipping installation")
-        return
-    tf_pkg = _tensorflow_package(config)
-    cli.out("Installing TensorFlow (%s)" % tf_pkg)
-    _install_reqs([tf_pkg], config)
+def _python_interpreter_for_arg(arg):
+    if arg.startswith("python"):
+        return arg
+    # Assume arg is a version
+    return "python{}".format(arg)
 
-def _tensorflow_installed(env_dir):
-    cli.out("Checking for TensorFlow")
-    python_bin = os.path.join(env_dir, "bin", "python")
-    assert os.path.exists(python_bin)
-    cmd_args = [python_bin, "-c", "import tensorflow; tensorflow.__version__"]
-    try:
-        subprocess.check_output(cmd_args, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError:
-        return False
-    else:
-        return True
+def _python_interpreter_for_reqs(reqs):
+    """Returns best guess Python interpreter for reqs.
 
-def _tensorflow_package(config):
-    if config.tensorflow is not None:
-        return config.tensorflow
-    if util.gpu_available():
-        return "tensorflow-gpu"
-    else:
-        return "tensorflow"
+    If reqs contains a `python` package req, we use it to guess the
+    interpreter.
+    """
+    python_reqs = list(_iter_python_reqs(reqs))
+    python_vers = [ver for _path, ver in sorted(util.python_interpreters())]
+    for req in python_reqs:
+        matching_vers = list(req.specifier.filter(python_vers))
+        if matching_vers:
+            return "python%s" % matching_vers[0]
+    return None
+
+def _iter_python_reqs(reqs):
+    for spec in reqs:
+        for req in _parse_requirements(spec):
+            if req.name == "python":
+                yield req
 
 def _initialized_msg(config):
     cli.out(

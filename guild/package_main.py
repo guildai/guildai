@@ -21,6 +21,7 @@ import os
 import sys
 
 import setuptools
+import six
 import twine.commands.upload
 import yaml
 
@@ -30,6 +31,8 @@ from guild import guildfile
 from guild import namespace
 from guild import pip_util
 from guild import util
+
+MULTI_ARCH_PACKAGES = ("tensorflow",)
 
 class Pkg(object):
 
@@ -236,9 +239,12 @@ def _pkg_keywords(pkg):
     return " ".join(tags)
 
 def _pkg_install_requires(pkg):
-    if pkg.requires is None:
+    if not pkg.requires:
         return _maybe_requirements_txt(pkg)
-    return [_project_name(req) for req in pkg.requires]
+    return [
+        _project_name(req)
+        for req in pkg.requires
+        if req not in MULTI_ARCH_PACKAGES]
 
 def _maybe_requirements_txt(pkg):
     requirements_txt = os.path.join(pkg.guildfile.dir, "requirements.txt")
@@ -271,8 +277,19 @@ def _write_package_metadata(pkg, setup_kw):
 def _pkg_metadata(pkg):
     for item in pkg.guildfile.data:
         if "package" in item:
-            return item
+            return _coerce_pkg_data(item)
     return {}
+
+def _coerce_pkg_data(data):
+    return {
+        attr: _coerce_pkg_attr(attr, val)
+        for attr, val in data.items()
+    }
+
+def _coerce_pkg_attr(name, val):
+    if name == "requires" and isinstance(val, six.string_types):
+        return [val]
+    return val
 
 def _maybe_upload(dist):
     upload_repo = os.getenv("UPLOAD_REPO")

@@ -33,12 +33,12 @@ Requires-Dist: Werkzeug
 Requires-Dist: Whoosh
 Requires-Dist: chardet
 Requires-Dist: daemonize
-Requires-Dist: networkx
 Requires-Dist: pip
 Requires-Dist: python-dateutil
 Requires-Dist: setuptools
 Requires-Dist: six
 Requires-Dist: tabview
+Requires-Dist: tensorboard
 Requires-Dist: twine
 Requires-Dist: virtualenv
 
