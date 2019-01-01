@@ -45,7 +45,6 @@ def _opref_from_run(run):
     """Parses saved opref attr to opref.
 
     See _opref_from_string for parsing a user-provided value.
-
     """
     opref_attr = run.get("opref")
     if not opref_attr:
@@ -129,12 +128,23 @@ def _opref_to_string(opref):
         opref.op_name or "?")
 
 def _maybe_quote(s):
-    if re.search(r"\s", s):
+    if s and re.search(r"\s", s):
         return "'{}'".format(s)
     return s
+
+def _opref_to_opspec(opref):
+    spec_parts = []
+    if opref.pkg_type == "package" and opref.pkg_name:
+        spec_parts.extend([opref.pkg_name, "/"])
+    if opref.model_name:
+        spec_parts.extend([opref.model_name, ":"])
+    if opref.op_name:
+        spec_parts.append(opref.op_name)
+    return "".join(spec_parts)
 
 OpRef.from_op = staticmethod(_opref_from_op)
 OpRef.from_run = staticmethod(_opref_from_run)
 OpRef.from_string = staticmethod(_opref_from_string)
 OpRef.is_op_run = _opref_is_op_run
 OpRef.__str__ = _opref_to_string
+OpRef.to_opspec = _opref_to_opspec
