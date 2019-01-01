@@ -158,6 +158,7 @@ def _test_globals():
         "LogCapture": util.LogCapture,
         "StderrCapture": StderrCapture,
         "abspath": os.path.abspath,
+        "basename": os.path.basename,
         "cat": cat,
         "dir": dir,
         "dirname": os.path.dirname,
