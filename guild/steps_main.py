@@ -43,6 +43,7 @@ class Step(object):
         "flags",
         "gpus",
         "label",
+        "needed",
         "no_gpus",
         "opspec",
         "stop_after",
@@ -61,13 +62,14 @@ class Step(object):
         self.op_spec = self._apply_default_model(opspec_param, parent_opref)
         self.name = data.get("name") or opspec_param
         self.flags = self._init_flags(params, parent_flags)
+        self.checks = self._init_checks(data)
         self.label = self._resolve_param(params, "label", parent_flags)
         self.disable_plugins = self._resolve_param(
             params, "disable_plugins", parent_flags)
         self.gpus = self._resolve_param(params, "gpus", parent_flags)
         self.no_gpus = params["no_gpus"]
         self.stop_after = params["stop_after"]
-        self.checks = self._init_checks(data)
+        self.needed = params["needed"]
 
     def _parse_run(self, data):
         from guild.commands.run import run as run_cmd
@@ -171,11 +173,7 @@ def _run_steps():
         return
     for step in steps:
         step_run = _run_step(step, run)
-        passed = _check_step_run(step, step_run)
-        if not passed:
-            _error(
-                "stopping because a check failed",
-                exit_code.TEST_FAILED)
+        _maybe_check_step_run(step, step_run)
 
 def _init_run():
     run_id, run_dir = _run_environ()
@@ -242,6 +240,8 @@ def _step_options(step):
         opts.append("--no-gpus")
     if step.stop_after:
         opts.extend(["--stop-after", step.stop_after])
+    if step.needed:
+        opts.append("--needed")
     return opts
 
 def _step_flag_args(step):
@@ -279,6 +279,28 @@ def _format_step_cmd(cmd):
         "run", "-y", "--run-dir"
     ], cmd
     return " ".join([shlex_quote(arg) for arg in cmd[7:]])
+
+def _maybe_check_step_run(step, run):
+    if not step.checks:
+        return
+    if _run_skipped(run):
+        log.info("skipping checks for %s", step.name)
+        return
+    checks_passed = _check_step_run(step, run)
+    if not checks_passed:
+        _error(
+            "stopping because a check failed",
+            exit_code.TEST_FAILED)
+
+def _run_skipped(run):
+    """Returns True if run was skipped.
+
+    We infer that a run was skipped if it's directory doesn't
+    exist. The rationale relies on the assertion that the step run
+    creates the specified run directory only when the run is not
+    skipped.
+    """
+    return not os.path.exists(run.path)
 
 def _check_step_run(step, run):
     if not step.checks:
