@@ -45,6 +45,7 @@ class Step(object):
         "label",
         "no_gpus",
         "opspec",
+        "stop_after",
     )
 
     def __init__(self, data, parent_flags, parent_opref):
@@ -65,6 +66,7 @@ class Step(object):
             params, "disable_plugins", parent_flags)
         self.gpus = self._resolve_param(params, "gpus", parent_flags)
         self.no_gpus = params["no_gpus"]
+        self.stop_after = params["stop_after"]
         self.checks = self._init_checks(data)
 
     def _parse_run(self, data):
@@ -238,6 +240,8 @@ def _step_options(step):
         opts.extend(["--gpus", step.gpus])
     elif step.no_gpus:
         opts.append("--no-gpus")
+    if step.stop_after:
+        opts.extend(["--stop-after", step.stop_after])
     return opts
 
 def _step_flag_args(step):
