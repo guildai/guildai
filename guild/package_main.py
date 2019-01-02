@@ -32,7 +32,7 @@ from guild import namespace
 from guild import pip_util
 from guild import util
 
-MULTI_ARCH_PACKAGES = ("tensorflow",)
+MULTI_ARCH_PACKAGES = ("tensorflow-any",)
 
 class Pkg(object):
 
@@ -118,7 +118,7 @@ def _setup_kw(pkg):
         author_email=pkg.author_email,
         license=pkg.license,
         keywords=_pkg_keywords(pkg),
-        python_requires=_pkg_python_requires(pkg),
+        python_requires=pkg.python_requires,
         install_requires=_pkg_install_requires(pkg),
         packages=packages,
         package_dir=package_dir,
@@ -229,9 +229,6 @@ def _iter_guildfile_resdefs(pkg):
         for resdef in modeldef.resources:
             yield resdef
 
-def _pkg_python_requires(pkg):
-    return ", ".join(pkg.python_requires)
-
 def _pkg_keywords(pkg):
     tags = list(pkg.tags)
     if "gpkg" not in tags:
@@ -244,7 +241,7 @@ def _pkg_install_requires(pkg):
     return [
         _project_name(req)
         for req in pkg.requires
-        if req not in MULTI_ARCH_PACKAGES]
+        if not _is_multi_arch_req(req)]
 
 def _maybe_requirements_txt(pkg):
     requirements_txt = os.path.join(pkg.guildfile.dir, "requirements.txt")
@@ -260,6 +257,12 @@ def _project_name(req):
     ns, project_name = namespace.split_name(req)
     pip_info = ns.pip_info(project_name)
     return pip_info.project_name
+
+def _is_multi_arch_req(req):
+    for multi_arch_pkg in MULTI_ARCH_PACKAGES:
+        if req.startswith(multi_arch_pkg):
+            return True
+    return False
 
 def _maybe_print_kw_and_exit(kw):
     if os.getenv("DUMP_SETUP_KW") == "1":

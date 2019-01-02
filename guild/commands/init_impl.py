@@ -41,7 +41,7 @@ class Config(object):
         self.env_name = self._init_env_name(args.name, self.env_dir)
         self.guild = args.guild
         self.guild_pkg_reqs = self._init_guild_pkg_reqs(args)
-        self.venv_python = self._init_venv_python(args, self.guild_pkg_reqs)
+        self.venv_python = self._init_venv_python(args)
         self.user_reqs = self._init_user_reqs(args)
         self.paths = args.path
         self.tensorflow = args.tensorflow
@@ -59,10 +59,10 @@ class Config(object):
         return os.path.basename(os.path.dirname(abs_env_dir))
 
     @staticmethod
-    def _init_venv_python(args, pkg_reqs):
+    def _init_venv_python(args):
         if args.python:
             return _python_interpreter_for_arg(args.python)
-        return _python_interpreter_for_reqs(pkg_reqs)
+        return _python_interpreter_for_pkg()
 
     @staticmethod
     def _init_guild_pkg_reqs(args):
@@ -351,21 +351,9 @@ def _install_reqs(reqs, config):
         cli.error(str(e), exit_status=e.returncode)
 
 def _install_guild_pkg_reqs(config):
-    reqs = _guild_to_pip_package_reqs(config.guild_pkg_reqs)
-    if reqs:
+    if config.guild_pkg_reqs:
         cli.out("Installing Guild package requirements")
-        _install_reqs(reqs, config)
-
-def _guild_to_pip_package_reqs(guild_reqs):
-    return [req for req in guild_reqs if not _is_python_req(req)]
-
-def _is_python_req(spec):
-    try:
-        req = pkg_resources.Requirement.parse(spec)
-    except pkg_resources.RequirementParseError:
-        return False
-    else:
-        return req.name == "python"
+        _install_reqs(config.guild_pkg_reqs, config)
 
 def _install_user_reqs(config):
     if config.user_reqs:
@@ -403,29 +391,48 @@ def _python_interpreter_for_arg(arg):
     # Assume arg is a version
     return "python{}".format(arg)
 
-def _python_interpreter_for_reqs(reqs):
-    """Returns best guess Python interpreter for reqs.
+def _python_interpreter_for_pkg():
+    """Returns best guess Python interpreter for cwd package def.
 
-    If reqs contains a `python` package req, we use it to guess the
-    interpreter.
+    Cwd package def is a 'package' top-level section in the cwd Guild
+    file, if it exists.
     """
-    python_reqs = list(_iter_python_reqs(reqs))
+    python_requires = _python_requires_for_pkg(config.cwd())
+    if not python_requires:
+        return None
     python_vers = [ver for _path, ver in sorted(util.python_interpreters())]
-    for req in python_reqs:
-        matching_vers = list(req.specifier.filter(python_vers))
-        if matching_vers:
-            return "python%s" % matching_vers[0]
+    matching_ver = _find_python_ver(python_requires, python_vers)
+    if matching_ver:
+        return "python%s" % matching_ver
     return None
 
-def _iter_python_reqs(reqs):
-    for spec in reqs:
-        try:
-            req = pkg_resources.Requirement.parse(spec)
-        except pkg_resources.RequirementParseError:
-            pass
-        else:
-            if req.name == "python":
-                yield req
+def _python_requires_for_pkg(dir):
+    pkg_data = _guildfile_pkg_data(dir)
+    if not pkg_data:
+        return None
+    return pkg_data.get("python-requires")
+
+def _guildfile_pkg_data(dir):
+    src = os.path.join(dir, "guild.yml")
+    if not os.path.exists(src):
+        return None
+    data = _guildfile_data(src)
+    for top_level in data:
+        if isinstance(top_level, dict) and "package" in top_level:
+            return top_level
+    return None
+
+def _find_python_ver(version_spec, python_vers):
+    # Requirement.parse wants a package name, so we use 'python' here,
+    # but anything would do.
+    python_spec = "python%s" % version_spec
+    try:
+        req = pkg_resources.Requirement.parse(python_spec)
+    except pkg_resources.RequirementParseError:
+        return None
+    else:
+        matching = list(req.specifier.filter(python_vers))
+        return matching[0] if matching else None
 
 def _initialized_msg(config):
     cli.out(
