@@ -30,7 +30,6 @@ import guild
 from guild import cli
 from guild import config
 from guild import init
-from guild import namespace
 from guild import util
 
 log = logging.getLogger("guild")
@@ -178,19 +177,6 @@ def _find_req_on_path(req, path):
             return full_path
     return None
 
-def _validate_guild_reqs(reqs, guildfile_path):
-    # Make sure we can convert each to pip reqs
-    for req in reqs:
-        try:
-            namespace.pip_info(req)
-        except namespace.NamespaceError:
-            cli.error(
-                "invalid required Guild package '%s' in %s\n"
-                "Either correct the package name or use --no-reqs "
-                "to skip installing required Guild packages"
-                % (req, guildfile_path))
-    return reqs
-
 def _apply_tensorflow_arg(tensorflow_arg, reqs):
     """Applies tensorflow arg to package reqs.
 
@@ -206,18 +192,14 @@ def _apply_tensorflow_arg(tensorflow_arg, reqs):
     else:
         tensorflow_pkg = "tensorflow"
     for i, spec in enumerate(reqs):
-        for req in _parse_requirements(spec):
+        try:
+            req = pkg_resources.Requirement.parse(spec)
+        except pkg_resources.RequirementParseError:
+            pass
+        else:
             if req.name == "tensorflow-any":
                 req.name = tensorflow_pkg
                 reqs[i] = str(req)
-
-def _parse_requirements(spec):
-    parsed = pkg_resources.parse_requirements(spec)
-    try:
-        return list(parsed)
-    except pkg_resources.RequirementParseError as e:
-        log.warning("invalid requirement %r: %s", spec, e)
-        return []
 
 def _shorten_path(path):
     return path.replace(os.path.expanduser("~"), "~")
@@ -369,17 +351,21 @@ def _install_reqs(reqs, config):
         cli.error(str(e), exit_status=e.returncode)
 
 def _install_guild_pkg_reqs(config):
-    if config.guild_pkg_reqs:
-        cli.out("Installing Python requirements")
-        reqs = _pip_package_reqs(config.guild_pkg_reqs)
+    reqs = _guild_to_pip_package_reqs(config.guild_pkg_reqs)
+    if reqs:
+        cli.out("Installing Guild package requirements")
         _install_reqs(reqs, config)
 
-def _pip_package_reqs(guild_reqs):
-    reqs = []
-    for guild_req in guild_reqs:
-        pip_info = namespace.pip_info(guild_req)
-        reqs.append(pip_info.project_name)
-    return reqs
+def _guild_to_pip_package_reqs(guild_reqs):
+    return [req for req in guild_reqs if not _is_python_req(req)]
+
+def _is_python_req(spec):
+    try:
+        req = pkg_resources.Requirement.parse(spec)
+    except pkg_resources.RequirementParseError:
+        return False
+    else:
+        return req.name == "python"
 
 def _install_user_reqs(config):
     if config.user_reqs:
@@ -433,7 +419,11 @@ def _python_interpreter_for_reqs(reqs):
 
 def _iter_python_reqs(reqs):
     for spec in reqs:
-        for req in _parse_requirements(spec):
+        try:
+            req = pkg_resources.Requirement.parse(spec)
+        except pkg_resources.RequirementParseError:
+            pass
+        else:
             if req.name == "python":
                 yield req
 
