@@ -56,7 +56,6 @@ def _init_env(cwd, guild_home):
 
 def run(spec, cwd=None, flags=None, run_dir=None, guild_home=None,
         extra_env=None):
-    import guild
     from guild import op_util
     cwd = cwd or "."
     flags = flags or {}
