@@ -532,13 +532,16 @@ def _check_restart_running(args):
 
 def _run_op(op, args):
     try:
-        result = op.run(args.quiet, args.background)
+        returncode = op.run(
+            args.quiet,
+            args.background,
+            args.stop_after)
     except deps.DependencyError as e:
         _handle_dependency_error(e)
     except guild.op.ProcessError as e:
         _handle_process_error(e)
     else:
-        _handle_run_result(result, op)
+        _handle_run_exit(returncode, op)
 
 def _handle_dependency_error(e):
     cli.error(
@@ -547,11 +550,11 @@ def _handle_dependency_error(e):
 def _handle_process_error(e):
     cli.error("run failed: %s" % e)
 
-def _handle_run_result(exit_status, op):
+def _handle_run_exit(returncode, op):
     if op.stage_only:
         _print_staged_info(op)
-    elif exit_status != 0:
-        cli.error(exit_status=exit_status)
+    elif returncode != 0:
+        cli.error(exit_status=returncode)
 
 def _print_staged_info(op):
     cmd = " ".join(_preview_cmd(op))

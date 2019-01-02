@@ -57,6 +57,9 @@ class InvalidFlagValue(ValueError):
         self.flag = flag
         self.msg = msg
 
+class ProcessError(Exception):
+    pass
+
 class RunOutput(object):
 
     DEFAULT_WAIT_TIMEOUT = 10
@@ -529,3 +532,31 @@ def split_main(main):
 
 # Alias
 split_cmd = split_main
+
+def wait_for_proc(p, stop_after_min, poll_interval=5, kill_delay=30):
+    stop_at = time.time() + stop_after_min * 60
+    while time.time() < stop_at:
+        time.sleep(poll_interval)
+        returncode = p.poll()
+        if returncode is not None:
+            return returncode
+    log.info(
+        "Stopping process early (pid %i) - %i minute(s) elapsed",
+        p.pid, stop_after_min)
+    return _terminate(p, poll_interval, kill_delay)
+
+def _terminate(p, poll_interval, kill_delay):
+    kill_at = time.time() + kill_delay
+    p.terminate()
+    while p.poll() is None and time.time() < kill_at:
+        time.sleep(poll_interval)
+    if p.poll() is None:
+        log.warning("Process did not terminate (pid %i), killing", p.pid)
+        p.kill()
+        time.sleep(poll_interval)
+    returncode = p.poll()
+    if returncode not in (0, -15):
+        raise ProcessError(
+            "Process did not terminate gracefully (pid %i)"
+            % p.pid)
+    return returncode

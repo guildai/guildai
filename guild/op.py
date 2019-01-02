@@ -86,11 +86,11 @@ class Operation(object):
     def run_dir(self):
         return self._run_dir or (self._run.path if self._run else None)
 
-    def run(self, quiet=False, background_pidfile=None):
+    def run(self, quiet=False, background_pidfile=None, stop_after=None):
         self.init()
         try:
             self.resolve_deps()
-            return self.proc(quiet, background_pidfile)
+            return self.proc(quiet, background_pidfile, stop_after)
         finally:
             self._cleanup()
 
@@ -153,7 +153,7 @@ class Operation(object):
             resolved)
         self._run.write_attr("label", label)
 
-    def proc(self, quiet=False, background_pidfile=None):
+    def proc(self, quiet=False, background_pidfile=None, stop_after=None):
         try:
             self._pre_proc()
         except subprocess.CalledProcessError as e:
@@ -163,20 +163,20 @@ class Operation(object):
                 self._stage_proc()
                 return 0
             if background_pidfile:
-                self._background_proc(background_pidfile, quiet)
+                self._background_proc(background_pidfile, quiet, stop_after)
                 return 0
-            return self._foreground_proc(quiet)
+            return self._foreground_proc(quiet, stop_after)
 
-    def _background_proc(self, pidfile, quiet):
-        action = lambda: self._foreground_proc(quiet)
+    def _background_proc(self, pidfile, quiet, stop_after):
+        action = lambda: self._foreground_proc(quiet, stop_after)
         daemon = daemonize.Daemonize(app="guild_op", action=action, pid=pidfile)
         if not quiet:
             log.info("Operation started in background (pidfile is %s)", pidfile)
         daemon.start()
 
-    def _foreground_proc(self, quiet):
+    def _foreground_proc(self, quiet, stop_after):
         self._start_proc()
-        self._wait_for_proc(quiet)
+        self._wait_for_proc(quiet, stop_after)
         self._finalize_attrs()
         return self._exit_status
 
@@ -234,20 +234,23 @@ class Operation(object):
         env["RUN_ID"] = self._run.id
         return env
 
-    def _wait_for_proc(self, quiet):
+    def _wait_for_proc(self, quiet, stop_after):
         assert self._proc is not None
         try:
-            proc_exit_status = self._watch_proc(quiet)
+            proc_exit_status = self._watch_proc(quiet, stop_after)
         except KeyboardInterrupt:
             proc_exit_status = self._handle_proc_interrupt()
         self._exit_status = _op_exit_status(proc_exit_status, self.opdef)
         self._stopped = guild.run.timestamp()
         _delete_proc_lock(self._run)
 
-    def _watch_proc(self, quiet):
+    def _watch_proc(self, quiet, stop_after):
         assert self._proc is not None
         output = op_util.RunOutput(self._run, self._proc, quiet)
-        exit_status = self._proc.wait()
+        if stop_after is None:
+            exit_status = self._proc.wait()
+        else:
+            exit_status = op_util.wait_for_proc(self._proc, stop_after)
         output.wait_and_close()
         return exit_status
 

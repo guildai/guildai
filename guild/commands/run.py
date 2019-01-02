@@ -72,6 +72,9 @@ def run_params(fn):
                 "invalid flags."),
             is_flag=True),
         click.Option(
+            ("--stop-after",), metavar="N", type=int,
+            help="Stop operation after N minutes."),
+        click.Option(
             ("--background",), metavar="PIDFILE",
             help=(
                 "Run operation in background. PIDFILE must be a path to a "
