@@ -256,19 +256,22 @@ class OperationOutputResolver(Resolver):
             if model_spec else opref.op_name)
 
 def latest_run(oprefs, run_id_prefix=None):
-    oprefs = [_resolve_opref(opref) for opref in oprefs]
-    runs_filter = _runs_filter(oprefs, run_id_prefix)
-    runs = var.runs(sort=["-started"], filter=runs_filter)
+    runs = matching_runs(oprefs, run_id_prefix)
     log.debug("runs for %s: %s", oprefs, runs)
     if runs:
         return runs[0]
     return None
 
+def matching_runs(oprefs, run_id_prefix=None):
+    oprefs = [_resolve_opref(opref) for opref in oprefs]
+    runs_filter = _runs_filter(oprefs, run_id_prefix)
+    return var.runs(sort=["-started"], filter=runs_filter)
+
 def _resolve_opref(opref):
     if not opref.op_name:
         raise RuntimeError("invalid opref: %s" % opref)
     return guild.opref.OpRef(
-        pkg_type="package" if opref.pkg_name else None,
+        pkg_type=opref.pkg_type or "package" if opref.pkg_name else None,
         pkg_name=opref.pkg_name,
         pkg_version=None,
         model_name=opref.model_name,

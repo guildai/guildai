@@ -75,6 +75,12 @@ def run_params(fn):
             ("--stop-after",), metavar="N", type=int,
             help="Stop operation after N minutes."),
         click.Option(
+            ("--needed",), is_flag=True,
+            help=(
+                "Run only if there is not an available matching run. "
+                "A matching run is of the same operation with the same "
+                "flag values that is not stopped due to an error.")),
+        click.Option(
             ("--background",), metavar="PIDFILE",
             help=(
                 "Run operation in background. PIDFILE must be a path to a "

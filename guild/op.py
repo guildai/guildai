@@ -62,6 +62,7 @@ class Operation(object):
         self._validate_opdef(opdef)
         self.model_ref = model_ref
         self.opdef = opdef
+        self.opref = opref.OpRef.from_op(opdef.name, model_ref)
         (self.cmd_args,
          self.flag_vals,
          self._flag_map) = _init_cmd_args(opdef)
@@ -108,7 +109,7 @@ class Operation(object):
     def _init_attrs(self):
         assert self._run is not None
         self._started = guild.run.timestamp()
-        self._run.write_attr("opref", self._opref_attr(), raw=True)
+        self._run.write_attr("opref", str(self.opref), raw=True)
         self._run.write_attr("started", self._started)
         for name, val in (self.extra_attrs or {}).items():
             self._run.write_attr(name, val)
@@ -122,10 +123,6 @@ class Operation(object):
             self._run.write_attr("_flag_map", self._flag_map)
         for key, val in self.opdef.modeldef.extra.items():
             self._run.write_attr("_extra_%s" % key, val)
-
-    def _opref_attr(self):
-        ref = opref.OpRef.from_op(self.opdef.name, self.model_ref)
-        return str(ref)
 
     def _copy_source(self):
         assert self._run is not None

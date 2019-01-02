@@ -29,8 +29,8 @@ We'll also create a helper function that returns and instance of
 `guild.op.Operation` given arguments to `OpDef` above:
 
     >>> def Operation(*args, **kw):
-    ...   model = None # not used
-    ...   return guild.op.Operation(model, OpDef(*args, **kw))
+    ...   model_ref = (None, None, None, None)
+    ...   return guild.op.Operation(model_ref, OpDef(*args, **kw))
 
 Note that the `"test"` argument is an operation reference, which is
 not used in our tests.

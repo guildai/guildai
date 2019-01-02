@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import os
 import pipes
 
@@ -30,11 +31,14 @@ from guild import click_util
 from guild import cmd_impl_support
 from guild import deps
 from guild import op_util
+from guild import resolver
 from guild import util
 from guild import var
 
 from . import remote_impl_support
 from . import runs_impl
+
+log = logging.getLogger("guild")
 
 def main(args, ctx):
     _check_opspec_args(args, ctx)
@@ -519,8 +523,44 @@ def _run(op, model, args):
         args.opspec = "%s:%s" % (model.name, op.opdef.name)
         remote_impl_support.run(args)
     else:
+        _check_needed(op, args)
         _check_restart_running(args)
         _run_op(op, args)
+
+def _check_needed(op, args):
+    if not args.needed:
+        return
+    matching = _find_matching_runs(op)
+    if matching:
+        cli.out(
+            "Skipping because the following runs match "
+            "this operation (--needed specified):")
+        _print_matching_runs(matching)
+        raise SystemExit(0)
+
+def _find_matching_runs(op):
+    return [
+        run for run in resolver.matching_runs([op.opref])
+        if _match_run_flags(run, op.flag_vals)
+    ]
+
+def _match_run_flags(run, target):
+    run_flags = run.get("flags")
+    log.debug(
+        "comparing run %s flags %r to target %r",
+        run.id, run_flags, target)
+    return run_flags == target
+
+def _print_matching_runs(runs):
+    formatted = [
+        runs_impl.format_run(runs_impl.init_opref_attr(run))
+        for run in runs
+    ]
+    cols = [
+        "index", "operation", "started",
+        "status_with_remote", "label"
+    ]
+    cli.table(formatted, cols=cols, indent=2)
 
 def _check_restart_running(args):
     restart_run = getattr(args, "_restart_run", None)
