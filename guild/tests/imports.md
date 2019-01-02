@@ -178,6 +178,7 @@
     guild.resource
     guild.resourcedef
     guild.run
+    guild.run_check
     guild.service
     guild.serving_util
     guild.steps_main

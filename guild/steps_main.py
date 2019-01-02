@@ -29,7 +29,9 @@ import guild.log
 import guild.opref
 import guild.run
 
+from guild import exit_code
 from guild import op_util
+from guild import run_check
 from guild import util
 
 log = None # intialized in _init_logging
@@ -63,6 +65,7 @@ class Step(object):
             params, "disable_plugins", parent_flags)
         self.gpus = self._resolve_param(params, "gpus", parent_flags)
         self.no_gpus = params["no_gpus"]
+        self.checks = self._init_checks(data)
 
     def _parse_run(self, data):
         from guild.commands.run import run as run_cmd
@@ -129,6 +132,22 @@ class Step(object):
             return resolved
         return str(resolved)
 
+    @staticmethod
+    def _init_checks(data):
+        expect = data.get("expect") or []
+        if not isinstance(expect, list):
+            log.warning("invalid expect data: %r", data)
+            return []
+        checks = []
+        for check_data in expect:
+            try:
+                check = run_check.init_check(check_data)
+            except ValueError as e:
+                log.warning("invalid check %r: %e", data, e)
+            else:
+                checks.append(check)
+        return checks
+
     def __str__(self):
         return self.name or self.op_spec
 
@@ -149,7 +168,12 @@ def _run_steps():
         log.warning("no steps defined for run %s", run.id)
         return
     for step in steps:
-        _run_step(step, run)
+        step_run = _run_step(step, run)
+        passed = _check_step_run(step, step_run)
+        if not passed:
+            _error(
+                "stopping because a check failed",
+                exit_code.TEST_FAILED)
 
 def _init_run():
     run_id, run_dir = _run_environ()
@@ -172,9 +196,9 @@ def _init_steps(run):
     return [Step(step_data, flags, opref) for step_data in data]
 
 def _run_step(step, parent_run):
-    step_run_dir = _init_step_run(parent_run)
-    cmd = _init_step_cmd(step, step_run_dir)
-    _link_to_step_run(step, step_run_dir, parent_run.path)
+    step_run = _init_step_run(parent_run)
+    cmd = _init_step_cmd(step, step_run.path)
+    _link_to_step_run(step, step_run.path, parent_run.path)
     env = dict(os.environ)
     env["NO_WARN_RUNDIR"] = "1"
     log.info("running %s: %s", step, _format_step_cmd(cmd))
@@ -182,15 +206,17 @@ def _run_step(step, parent_run):
     returncode = subprocess.call(cmd, env=env, cwd=os.getenv("CMD_DIR"))
     if returncode != 0:
         sys.exit(returncode)
+    return step_run
 
 def _init_step_run(parent_run):
     """Returns the run dir for a step run.
 
     Directory is based on a new, unique run ID but is not created.
     """
-    run_id = guild.run.mkid()
     runs_dir = os.path.dirname(parent_run.path)
-    return os.path.join(runs_dir, run_id)
+    step_run_id = guild.run.mkid()
+    step_run_dir = os.path.join(runs_dir, step_run_id)
+    return guild.run.Run(step_run_id, step_run_dir)
 
 def _init_step_cmd(step, step_run_dir):
     base_args = [
@@ -250,13 +276,31 @@ def _format_step_cmd(cmd):
     ], cmd
     return " ".join([shlex_quote(arg) for arg in cmd[7:]])
 
-def _internal_error(msg):
-    sys.stderr.write("guild.op_main: %s\n" % msg)
-    sys.exit(2)
+def _check_step_run(step, run):
+    if not step.checks:
+        return True
+    passed = 0
+    failed = 0
+    for check in step.checks:
+        try:
+            check.check_run(run)
+        except run_check.Failed as e:
+            log.error("check failed: %s", e)
+            failed += 1
+        else:
+            passed += 1
+    log.info("%i of %i checks passed", passed, passed + failed)
+    if failed > 0:
+        log.error("%i check(s) failed - see above for details", failed)
+    return failed == 0
 
-def _error(msg):
+def _internal_error(msg):
+    sys.stderr.write("guild.steps_main: %s\n" % msg)
+    sys.exit(exit_code.INTERNAL_ERROR)
+
+def _error(msg, exit_code=exit_code.DEFAULT):
     sys.stderr.write("guild: %s\n" % msg)
-    sys.exit(1)
+    sys.exit(exit_code)
 
 if __name__ == "__main__":
     main()
