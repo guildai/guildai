@@ -24,6 +24,8 @@ import warnings
 
 import guild.log
 
+from guild import exit_code
+
 # Avoid expensive imports here as load times directly add to runs.
 
 log = None # initialized in _init_logging
@@ -202,11 +204,11 @@ class Debugger(pdb.Pdb):
 
 def _internal_error(msg):
     sys.stderr.write("guild.op_main: %s\n" % msg)
-    sys.exit(2)
+    sys.exit(exit_code.INTERNAL_ERROR)
 
 def _error(msg):
     sys.stderr.write("guild: %s\n" % msg)
-    sys.exit(1)
+    sys.exit(exit_code.DEFAULT)
 
 if __name__ == "__main__":
     main()

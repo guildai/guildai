@@ -20,8 +20,10 @@ import sys
 
 import click
 
-import guild.click_util
-import guild.commands.main
+from guild import click_util
+from guild import exit_code
+
+from guild.commands import main as main_cmd
 
 def main():
     if os.getenv("PROFILE"):
@@ -33,7 +35,7 @@ def _main():
     _configure_help_formatter()
     try:
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-        guild.commands.main.main(standalone_mode=False)
+        main_cmd.main(standalone_mode=False)
     except click.exceptions.Abort:
         _handle_keyboard_interrupt()
     except click.exceptions.ClickException as e:
@@ -48,16 +50,16 @@ def _configure_help_formatter():
         click.Context.make_formatter = _make_plaintext_formatter
 
 def _make_json_formatter(_self):
-    return guild.click_util.JSONHelpFormatter()
+    return click_util.JSONHelpFormatter()
 
 def _make_plaintext_formatter(_self):
-    return guild.click_util.HelpFormatter()
+    return click_util.HelpFormatter()
 
 def _handle_keyboard_interrupt():
     sys.exit(1)
 
 def _handle_click_exception(e):
-    msg = guild.click_util.format_error_message(e)
+    msg = click_util.format_error_message(e)
     _print_error_and_exit(msg, e.exit_code)
 
 def _print_error_and_exit(msg, exit_status):
@@ -72,7 +74,7 @@ def _handle_system_exit(e):
     elif isinstance(e.code, int):
         msg, code = None, e.code
     else:
-        msg, code = e.message, 1
+        msg, code = e.message, exit_code.DEFAULT
     _print_error_and_exit(msg, code)
 
 def _profile_main():
