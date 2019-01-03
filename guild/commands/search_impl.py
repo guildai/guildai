@@ -47,5 +47,8 @@ def _format_package(pkg):
     return {
         "name": namespace.apply_namespace(pkg["name"]),
         "version": pkg["version"],
-        "description": pkg["summary"],
+        "description": _format_summary(pkg["summary"]),
     }
+
+def _format_summary(s):
+    return s.replace(" (Guild AI)", "")
