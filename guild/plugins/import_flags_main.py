@@ -30,19 +30,20 @@ action_types = (
     argparse._StoreFalseAction,
 )
 
-def main():
-    log = _init_log()
-    args = _init_args()
-    _patch_argparse(args.output_path)
-    # Importing module has the side-effect of writing flag data due to
-    # patched argparse
-    _exec_module(args.mod_path, log)
-
 def _init_log():
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     logging.basicConfig(level=level, format=format)
     return logging.getLogger("import_flags_main")
+
+log = _init_log()
+
+def main():
+    args = _init_args()
+    _patch_argparse(args.output_path)
+    # Importing module has the side-effect of writing flag data due to
+    # patched argparse
+    _exec_module(args.mod_path)
 
 def _init_args():
     p = argparse.ArgumentParser()
@@ -53,14 +54,19 @@ def _init_args():
 def _patch_argparse(output_path):
     python_util.listen_method(
         argparse.ArgumentParser,
-        "add_argument",
-        _handle_add_argument)
+        "add_argument", _handle_add_argument)
+    _handle_parse = lambda *args, **kw: _write_flags_and_exit(output_path)
     python_util.listen_method(
         argparse.ArgumentParser,
         "parse_args",
-        lambda *args, **kw: _write_flags_and_exit(output_path, *args, **kw))
+        _handle_parse)
+    python_util.listen_method(
+        argparse.ArgumentParser,
+        "parse_known_args",
+        _handle_parse)
 
 def _handle_add_argument(add_argument, *args, **kw):
+    log.debug("handling add_argument: %s %s", args, kw)
     action = add_argument(*args, **kw)
     _maybe_flag(action)
     raise python_util.Result(action)
@@ -91,11 +97,12 @@ def _flag_name(action):
             return opt[2:]
     return None
 
-def _write_flags_and_exit(output_path, _parse_args, *_args, **_kw):
+def _write_flags_and_exit(output_path):
+    log.debug("writing flags to %s: %s", output_path, FLAGS)
     with open(output_path, "w") as f:
         json.dump(FLAGS, f)
 
-def _exec_module(mod_path, log):
+def _exec_module(mod_path):
     assert mod_path.endswith(".py")
     f = open(mod_path, "r")
     details = (".py", "r", 1)
