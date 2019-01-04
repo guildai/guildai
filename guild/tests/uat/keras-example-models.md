@@ -15,8 +15,8 @@ This example doesn't have a guildfile:
 However, we can still list locally defined models:
 
     >>> run("guild models -p .")
-    ./mnist_irnn
-    ./mnist_mlp
+    mnist_irnn
+    mnist_mlp
     <exit 0>
 
 This list is derived from scripts in the working directory that the
@@ -30,21 +30,21 @@ keras plugin detects as valid Keras training scripts.
 We can similarly list the supported operations for each model:
 
     >>> run("guild operations -p .")
-    ./mnist_irnn:train  Train the model
-    ./mnist_mlp:train   Train the model
+    mnist_irnn:train  Train the model
+    mnist_mlp:train   Train the model
     <exit 0>
 
 Without a guildfile directory filter, all models, operations, and
 resources are listed:
 
     >>> run("guild models")
-    ./mnist_irnn
-    ./mnist_mlp
     gpkg.hello/...
+    mnist_irnn
+    mnist_mlp
     <exit 0>
 
     >>> run("guild operations")
-    ./mnist_irnn:train            Train the model
-    ./mnist_mlp:train             Train the model
     gpkg.hello/...
+    mnist_irnn:train            Train the model
+    mnist_mlp:train             Train the model
     <exit 0>

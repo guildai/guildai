@@ -9,6 +9,6 @@ an error message.
     >>> run("guild run -y mnist:train epochs=1")
     guild: there are multiple models that match 'mnist'
     Try specifying one of the following:
-      ./mnist-expert
-      ./mnist-intro
+      mnist-expert
+      mnist-intro
     <exit 1>

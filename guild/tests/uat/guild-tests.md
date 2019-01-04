@@ -27,7 +27,6 @@ tests).
       memory-plugin:             ok
       models:                    ok
       namespaces:                ok
-      nx:                        ok
       op-utils:                  ok
       ops:                       ok
       package:                   ok
@@ -37,6 +36,7 @@ tests).
       run-flags:                 ok
       run-output:                ok
       runs:                      ok
+      steps:                     ok
       tables:                    ok
       tfevents:                  ok
       utils:                     ok

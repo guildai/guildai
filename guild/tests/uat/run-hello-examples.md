@@ -10,16 +10,16 @@ We'll run through the various operations in this test.
 ## Models
 
     >>> run("guild models -p .")
-    ./hello  A "hello world" sample model
+    hello  A "hello world" sample model
     <exit 0>
 
 ## Operations
 
     >>> run("guild operations -p .")
-    ./hello:default           Print a default message
-    ./hello:from-file         Print a message from a file
-    ./hello:from-file-output  Print output from last file-output operation
-    ./hello:from-flag         Print a message
+    hello:default           Print a default message
+    hello:from-file         Print a message from a file
+    hello:from-file-output  Print output from last file-output operation
+    hello:from-flag         Print a message
     <exit 0>
 
 ### `default`
@@ -50,7 +50,7 @@ Guild captures project source, which we can list using `runs info`:
 
     >>> run("guild runs info --source")
     id: ...
-    operation: ./hello:from-flag
+    operation: hello:from-flag
     status: completed
     started: ...
     stopped: ...
@@ -101,7 +101,7 @@ the `--deps` option of `guild runs info`:
 
     >>> run("guild runs info --deps")
     id: ...
-    operation: ./hello:from-file-output
+    operation: hello:from-file-output
     status: completed
     ...
     dependencies:
@@ -115,7 +115,7 @@ We can specify an alternative run for `from-file-output` by specifying
 Here's a preview of the command:
 
     >>> run("guild run from-file-output file-output=foobar", timeout=1)
-    You are about to run ./hello:from-file-output
+    You are about to run hello:from-file-output
       file-output: foobar
     Continue? (Y/n)
     <exit ...>
@@ -123,7 +123,7 @@ Here's a preview of the command:
 We'll use the first run for `from-file`.
 
     >>> run("""
-    ... run_id=`guild runs -o ./hello:from-file | grep 'from-file ' | tail -n1 | cut -d: -f2 | cut -b 1-8`
+    ... run_id=`guild runs -o hello:from-file | grep 'from-file ' | tail -n1 | cut -d: -f2 | cut -b 1-8`
     ... guild run from-file-output file-output=$run_id -y
     ... """)
     Resolving file-output dependency

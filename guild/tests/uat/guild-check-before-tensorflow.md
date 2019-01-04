@@ -11,7 +11,7 @@ Guild `init` no longer installs TensorFlow automatically. When we run
     installed_plugins:         cloudml, cpu, disk, flags, gpu, keras, memory, perf
     python_version:            ...
     python_exe:                ...
-    tensorboard_version:       1.12.1
+    tensorboard_version:       1.12.2
     tensorflow_version:        Not installed (No module named 'tensorflow')
     libcuda_version:           not loaded
     libcudnn_version:          not loaded

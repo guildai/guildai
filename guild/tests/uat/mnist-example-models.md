@@ -25,16 +25,16 @@ Here's the same list after we've changed to that directory:
 
     >>> cd("examples/mnist")
     >>> run("guild models")
-    ./mnist-expert  MNIST model from TensorFlow expert tutorial
-    ./mnist-intro   MNIST model from TensorFlow intro tutorial
     gpkg.hello/...
     gpkg.keras.mnist/...
+    mnist-expert  MNIST model from TensorFlow expert tutorial
+    mnist-intro   MNIST model from TensorFlow intro tutorial
     <exit 0>
 
 We can limit the results to model defined in the current directory by
 specifying it as a path filter:
 
     >>> run("guild models -p .")
-    ./mnist-expert       MNIST model from TensorFlow expert tutorial
-    ./mnist-intro        MNIST model from TensorFlow intro tutorial
+    mnist-expert       MNIST model from TensorFlow expert tutorial
+    mnist-intro        MNIST model from TensorFlow intro tutorial
     <exit 0>

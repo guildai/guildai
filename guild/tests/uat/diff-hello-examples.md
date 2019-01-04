@@ -14,8 +14,8 @@ Let's run `from-flag` twice, each time with a different message.
 Here are our last two:
 
     >>> run("guild runs")
-    [1:...]   ./hello:from-flag  ...  completed
-    [2:...]   ./hello:from-flag  ...  completed
+    [1:...]   hello:from-flag  ...  completed
+    [2:...]   hello:from-flag  ...  completed
     ...<exit 0>
 
 Let's use Guild `diff` to compare the two runs.
