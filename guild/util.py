@@ -643,19 +643,21 @@ class RunsMonitor(LoopingThread):
 
     @staticmethod
     def _format_run_name(run):
-        model = run.opref.model_name
-        op_name = run.opref.op_name
-        started = format_timestamp(run.get("started"))
-        if PLATFORM == "Windows":
-            fmt = "{short_id} {model} {op_name} {started}"
-            started = started.replace(":", "_")
+        parts = [run.short_id]
+        if run.opref.model_name:
+            parts.append("%s:%s" % (run.opref.model_name, run.opref.op_name))
         else:
-            fmt = "{short_id} {model}:{op_name} {started}"
-        return fmt.format(
-            short_id=run.short_id,
-            model=model,
-            op_name=op_name,
-            started=started)
+            parts.append(run.opref.op_name)
+        parts.append(format_timestamp(run.get("started")))
+        label = run.get("label")
+        if label:
+            parts.append(label)
+        return _safe_filename(" ".join(parts))
+
+def _safe_filename(s):
+    if PLATFORM == "Windows":
+        return s.replace(":", "_")
+    return s
 
 def wait_forever(sleep_interval=0.1):
     while True:
