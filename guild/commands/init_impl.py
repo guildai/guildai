@@ -40,8 +40,8 @@ class Config(object):
         self.env_dir = os.path.abspath(args.dir)
         self.env_name = self._init_env_name(args.name, self.env_dir)
         self.guild = args.guild
-        self.guild_pkg_reqs = self._init_guild_pkg_reqs(args)
         self.user_reqs = self._init_user_reqs(args)
+        self.guild_pkg_reqs = self._init_guild_pkg_reqs(args, self.user_reqs)
         self.venv_python = self._init_venv_python(args, self.user_reqs)
         self.paths = args.path
         self.tensorflow = args.tensorflow
@@ -65,10 +65,11 @@ class Config(object):
         return _suggest_python_interpreter(user_reqs)
 
     @staticmethod
-    def _init_guild_pkg_reqs(args):
+    def _init_guild_pkg_reqs(args, user_reqs):
         if args.no_reqs:
             return ()
         reqs = list(_iter_all_guild_pkg_reqs(config.cwd(), args.path))
+        _maybe_append_tensorflow_any(user_reqs, reqs)
         _apply_tensorflow_arg(args.tensorflow, reqs)
         return tuple(sorted(reqs))
 
@@ -176,6 +177,31 @@ def _find_req_on_path(req, path):
         if os.path.exists(full_path):
             return full_path
     return None
+
+def _maybe_append_tensorflow_any(user_reqs, reqs):
+    """Append 'tensorflow-any' reqs if found in user_reqs.
+
+    user_reqs is the list of requirements files used on init, which
+    may include requirements.txt. If any of these files contains a
+    comment with the special string 'guild: tensorflow-any',
+    'tensorflow-any' is appended to reqs (provided it is not already
+    included in reqs).
+
+    This step has the effect of surfacing a tensorflow-any requirement
+    to init by way of requirements.txt.
+    """
+    if "tensorflow-any" in reqs:
+        return
+    p = re.compile(r"^\s*#\s*guild:\s*tensorflow-any\s*$", re.MULTILINE)
+    for req in user_reqs:
+        try:
+            s = open(req, "r").read()
+        except IOError:
+            pass
+        else:
+            if p.search(s):
+                reqs.append("tensorflow-any")
+                break
 
 def _apply_tensorflow_arg(tensorflow_arg, reqs):
     """Applies tensorflow arg to package reqs.
