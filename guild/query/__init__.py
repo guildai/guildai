@@ -23,7 +23,7 @@ class Select(object):
         self.cols = cols
 
     def __repr__(self):
-        return "<guild.query.Select %s>" % map(str, self.cols)
+        return "<guild.query.Select %s>" % [str(c) for c in self.cols]
 
 class Col(object):
 
