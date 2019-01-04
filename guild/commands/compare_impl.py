@@ -17,11 +17,13 @@ from __future__ import division
 
 import csv
 import logging
+import os
 import sys
 
 from guild import cli
 from guild import config
 from guild import index2 as indexlib
+from guild import guildfile
 from guild import opref as opreflib
 from guild import query
 from guild import run as runlib
@@ -33,7 +35,7 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
-BASE_COLS = ".run, .model, .operation, .started, .time, .status, .label"
+BASE_COLS = ".run, .operation, .started, .time, .status, .label"
 MIN_COLS = ".run"
 
 def main(args):
@@ -149,9 +151,46 @@ def _parse_cols(s):
 def _runs_compare_cols(runs):
     cols = []
     for run in runs:
-        for col_spec in run.get("compare", []):
+        compare = _run_op_compare(run)
+        for col_spec in compare:
             cols.extend(_parse_cols(col_spec))
     return cols
+
+def _run_op_compare(run):
+    """Returns compare cols for run.
+
+    If we can get the current compare cols for the run op source
+    definition (in the Guild file) we use that, otherwise we use the
+    run "compare" attr.
+    """
+    compare = _try_guildfile_compare(run)
+    if compare is not None:
+        return compare
+    return run.get("compare", [])
+
+def _try_guildfile_compare(run):
+    """Returns the current compare for run op if available."""
+    if run.opref.pkg_type != "guildfile":
+        return None
+    gf_path = run.opref.pkg_name
+    if not os.path.exists(gf_path):
+        return None
+    try:
+        gf = guildfile.from_dir(gf_path)
+    except guildfile.NoModels:
+        return None
+    else:
+        return _try_guildfile_op_compare(
+            gf, run.opref.model_name, run.opref.op_name)
+
+def _try_guildfile_op_compare(gf, model_name, op_name):
+    try:
+        m = gf.models[model_name]
+    except KeyError:
+        return None
+    else:
+        op = m.get_operation(op_name)
+        return op.compare if op else None
 
 def _refresh_types(cols):
     """Returns a set of types to refresh for cols.

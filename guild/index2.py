@@ -134,13 +134,19 @@ class AttrReader(object):
             "id": run.id,
             "run": run.short_id,
             "model": opref.model_name,
-            "operation": opref.op_name,
+            "operation": self._format_op_fullname(opref),
             "op": opref.op_name,
             "started": util.format_timestamp(started),
             "stopped": util.format_timestamp(stopped),
             "status": status,
             "time": self._duration(status, started, stopped),
         }
+
+    @staticmethod
+    def _format_op_fullname(opref):
+        if opref.model_name:
+            return "%s:%s" % (opref.model_name, opref.op_name)
+        return opref.op_name
 
     @staticmethod
     def _duration(status, started, stopped):
