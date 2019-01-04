@@ -92,24 +92,13 @@ class GuildfileModel(Model):
     def _init_reference(self):
         src = self.dist.guildfile.src
         if src and os.path.isfile(src):
-            version = self._guildfile_hash(src)
+            version = file_hash(src)
         else:
             version = "unknown"
         path = self.dist.guildfile.dir
         if path is not None:
             path = os.path.abspath(path)
         return ModelRef("guildfile", path, version, self.name)
-
-    @staticmethod
-    def _guildfile_hash(path):
-        try:
-            path_bytes = open(path, "rb").read()
-        except IOError:
-            log.warning(
-                "unable to read %s to calculate guildfile hash", path)
-            return "-"
-        else:
-            return hashlib.md5(path_bytes).hexdigest()
 
 class PackageModel(Model):
     """A model associated with a package.
@@ -377,6 +366,16 @@ class GuildfileNamespace(namespace.PrefixNamespace):
         decoded_project_name = unescape_project_name(parts[0])
         rest = "/" + parts[1] if len(parts) == 2 else ""
         return decoded_project_name + rest
+
+def file_hash(path):
+    try:
+        path_bytes = open(path, "rb").read()
+    except IOError:
+        log.warning(
+            "unable to read %s to calculate guildfile hash", path)
+        return "unknown"
+    else:
+        return hashlib.md5(path_bytes).hexdigest()
 
 def get_path():
     return _models.path()

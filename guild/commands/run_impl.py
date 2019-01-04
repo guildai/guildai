@@ -21,15 +21,19 @@ import pipes
 
 import click
 
+from six.moves import shlex_quote
+
 import guild.help
-import guild.model
 import guild.op
 import guild.plugin
 
 from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
+from guild import config
 from guild import deps
+from guild import guildfile
+from guild import model as modellib
 from guild import op_util
 from guild import resolver
 from guild import util
@@ -41,15 +45,87 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
+class PythonScriptModelProxy(object):
+
+    def __init__(self, script_path):
+        assert script_path[-3:] == ".py", script_path
+        self.script_path = script_path
+        self.name = ""
+        self.fullname = ""
+        self.op_name = os.path.basename(script_path)
+        self.modeldef = self._init_modeldef()
+        self.reference = self._init_reference()
+
+    def _init_modeldef(self):
+        data = [
+            {
+                "model": self.name,
+                "operations": {
+                    self.op_name: {
+                        "exec": self._exec_attr()
+                    }
+                }
+            }
+        ]
+        gf = guildfile.Guildfile(data, dir=config.cwd())
+        modeldef = gf.models[self.name]
+        self._patch_opref(modeldef.get_operation(self.op_name))
+        return modeldef
+
+    def _exec_attr(self):
+        abs_script_path = os.path.abspath(self.script_path)
+        return (
+            "${python_exe} %s ${flag_args}"
+            % shlex_quote(abs_script_path))
+
+    def _patch_opref(self, opref):
+        """Patches opref so that it always returns a flag def.
+
+        This allows flag checks to pass - any flags provided to run are
+        accepted.
+        """
+        opref.get_flagdef = lambda _: self._flagdef_proxy()
+
+    class _flagdef_proxy(object):
+        arg_name = None
+        arg_skip = False
+        arg_switch = None
+        choices = None
+        name = None
+        type = None
+
+    def _init_reference(self):
+        return modellib.ModelRef(
+            "script",
+            self.script_path,
+            modellib.file_hash(self.script_path),
+            self.name)
+
 def main(args, ctx):
     _check_opspec_args(args, ctx)
     _apply_restart_or_rerun_args(args, ctx)
     assert args.opspec
-    model_ref, op_name = _parse_opspec(args.opspec)
-    model = _resolve_model(model_ref)
+    model, op_name = _resolve_model_op(args.opspec)
     opdef = _resolve_opdef(op_name, model)
     _apply_opdef_args(opdef, args)
     _dispatch_cmd(args, opdef, model, ctx)
+
+def _resolve_model_op(opspec):
+    if _is_python_script(opspec):
+        return _python_script_model_op(opspec)
+    else:
+        return _resolve_model_op_from_spec(opspec)
+
+def _is_python_script(opspec):
+    return opspec[-3:] == ".py" and os.path.isfile(opspec)
+
+def _python_script_model_op(spec):
+    model = PythonScriptModelProxy(spec)
+    return model, model.op_name
+
+def _resolve_model_op_from_spec(opspec):
+    model_ref, op_name = _parse_opspec(opspec)
+    return _resolve_model(model_ref), op_name
 
 def _check_opspec_args(args, ctx):
     if not (args.opspec or args.rerun or args.restart):
@@ -152,10 +228,10 @@ def _try_resolve_cwd_model(model_ref):
     cwd_guildfile = cmd_impl_support.cwd_guildfile()
     if not cwd_guildfile:
         return None
-    path_save = guild.model.get_path()
-    guild.model.set_path([cwd_guildfile.dir], clear_cache=True)
+    path_save = modellib.get_path()
+    modellib.set_path([cwd_guildfile.dir], clear_cache=True)
     model = _match_one_model(model_ref, cwd_guildfile)
-    guild.model.set_path(path_save)
+    modellib.set_path(path_save)
     return model
 
 def _resolve_system_model(model_ref):
@@ -177,7 +253,7 @@ def _match_one_model(model_ref, cwd_guildfile=None):
         return matches[0]
 
 def _iter_matching_models(model_ref, cwd_guildfile):
-    for model in guild.model.iter_models():
+    for model in modellib.iter_models():
         if model_ref is None:
             if cwd_guildfile and _is_default_cwd_model(model, cwd_guildfile):
                 yield model

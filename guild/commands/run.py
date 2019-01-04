@@ -128,12 +128,15 @@ def run(ctx, args):
     """Run a model operation.
 
     By default Guild will try to run `OPERATION` for the default model
-    defined in a project. If a project location is not specified (see
-    `--project` option below), Guild looks for a project in the
-    current directory.
+    defined in the current project.
 
     If `MODEL` is specified, Guild will use it instead of the default
-    model defined in a project.
+    model.
+
+    `OPERATION` may alternatively be a Python script. In this case any
+    current project is ignored and the script is run directly. Options
+    in the format ``--NAME=VAL`` can be passed to the script using
+    flags (see below).
 
     `[MODEL]:OPERATION` may be omitted if `--rerun` is specified, in
     which case the operation used in `RUN` will be used.
