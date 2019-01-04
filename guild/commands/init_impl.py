@@ -41,8 +41,8 @@ class Config(object):
         self.env_name = self._init_env_name(args.name, self.env_dir)
         self.guild = args.guild
         self.guild_pkg_reqs = self._init_guild_pkg_reqs(args)
-        self.venv_python = self._init_venv_python(args)
         self.user_reqs = self._init_user_reqs(args)
+        self.venv_python = self._init_venv_python(args, self.user_reqs)
         self.paths = args.path
         self.tensorflow = args.tensorflow
         self.local_resource_cache = args.local_resource_cache
@@ -59,10 +59,10 @@ class Config(object):
         return os.path.basename(os.path.dirname(abs_env_dir))
 
     @staticmethod
-    def _init_venv_python(args):
+    def _init_venv_python(args, user_reqs):
         if args.python:
             return _python_interpreter_for_arg(args.python)
-        return _python_interpreter_for_pkg()
+        return _suggest_python_interpreter(user_reqs)
 
     @staticmethod
     def _init_guild_pkg_reqs(args):
@@ -391,13 +391,20 @@ def _python_interpreter_for_arg(arg):
     # Assume arg is a version
     return "python{}".format(arg)
 
-def _python_interpreter_for_pkg():
-    """Returns best guess Python interpreter for cwd package def.
+def _suggest_python_interpreter(user_reqs):
+    """Returns best guess Python interpreter.
 
-    Cwd package def is a 'package' top-level section in the cwd Guild
-    file, if it exists.
+    We look for a Python requirement in two places: a package def in
+    cwd Guild file and user requirements, which includes
+    requirements.txt by default.
+
+    A Python spec can be provided in a requirements file using a
+    special `guild: python<spec>` comment. E.g. `guild: python>=3.5`.
     """
-    python_requires = _python_requires_for_pkg(config.cwd())
+    python_requires = util.find_apply([
+        _python_requires_for_pkg,
+        lambda: _python_requires_for_reqs(user_reqs),
+    ])
     if not python_requires:
         return None
     python_vers = [ver for _path, ver in sorted(util.python_interpreters())]
@@ -406,20 +413,33 @@ def _python_interpreter_for_pkg():
         return "python%s" % matching_ver
     return None
 
-def _python_requires_for_pkg(dir):
-    pkg_data = _guildfile_pkg_data(dir)
+def _python_requires_for_pkg():
+    pkg_data = _guildfile_pkg_data()
     if not pkg_data:
         return None
     return pkg_data.get("python-requires")
 
-def _guildfile_pkg_data(dir):
-    src = os.path.join(dir, "guild.yml")
+def _guildfile_pkg_data():
+    src = os.path.join(config.cwd(), "guild.yml")
     if not os.path.exists(src):
         return None
     data = _guildfile_data(src)
     for top_level in data:
         if isinstance(top_level, dict) and "package" in top_level:
             return top_level
+    return None
+
+def _python_requires_for_reqs(reqs):
+    p = re.compile(r"^\s*#\s*guild:\s*python(\S+?)\s*$", re.MULTILINE)
+    for req_file in reqs:
+        try:
+            s = open(req_file, "r").read()
+        except IOError:
+            pass
+        else:
+            m = p.search(s)
+            if m:
+                return m.groups(1)
     return None
 
 def _find_python_ver(version_spec, python_vers):
