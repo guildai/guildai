@@ -88,7 +88,7 @@ class Step(object):
     def _warn_ignored_params(self, ctx, run_spec):
         "Warn if any params set that we ignore."""
         defaults = {p.name: p.default for p in ctx.command.params}
-        for name, val in ctx.params.items():
+        for name, val in sorted(ctx.params.items()):
             if name not in self.used_params and val != defaults[name]:
                 log.warning(
                     "run parameter %s used in %r ignored",
