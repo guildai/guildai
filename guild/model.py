@@ -60,7 +60,10 @@ class Model(object):
     def fullname(self):
         if self._fullname is None:
             pkg_name = namespace.apply_namespace(self.dist.project_name)
-            self._fullname = "%s/%s" % (pkg_name, self.name)
+            if pkg_name and pkg_name != ".":
+                self._fullname = "%s/%s" % (pkg_name, self.name)
+            else:
+                self._fullname = self.name
         return self._fullname
 
     @property

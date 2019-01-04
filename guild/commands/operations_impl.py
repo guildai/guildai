@@ -39,7 +39,7 @@ def _iter_ops(gf_dirs):
 def _format_op(op, model):
     description, details = util.split_description(op.description)
     return {
-        "fullname": "%s:%s" % (model.fullname, op.name),
+        "fullname": format_op_fullname(op.name, model.fullname),
         "description": description,
         "details": details,
         "model": model.fullname,
@@ -54,6 +54,11 @@ def _format_op(op, model):
             for flag in op.flags
         ]
     }
+
+def format_op_fullname(op_name, model_fullname):
+    if model_fullname:
+        return "%s:%s" % (model_fullname, op_name)
+    return op_name
 
 def _format_flag_desc(flag):
     return " %s" % flag.description if flag.description else ""

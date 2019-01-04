@@ -319,11 +319,25 @@ def format_op_desc(opref, nowarn=False):
         return "?"
 
 def _format_guildfile_op(opref):
+    parts = []
+    path = _guildfile_op_path(opref)
+    if path:
+        parts.extend([path, os.path.sep])
+    if opref.model_name:
+        parts.extend([opref.model_name, ":"])
+    parts.append(opref.op_name)
+    return "".join(parts)
+
+def _guildfile_op_path(opref):
     relpath = os.path.relpath(opref.pkg_name, config.cwd())
-    if relpath[0] != '.':
-        relpath = os.path.join('.', relpath)
-    path_desc = re.sub(r"(\.\.[/])+", ".../", relpath)
-    return "%s/%s:%s" % (path_desc, opref.model_name, opref.op_name)
+    if relpath == ".":
+        return ""
+    return re.sub(r"(\.\.[/])+", ".../", _ensure_dot_path(relpath))
+
+def _ensure_dot_path(path):
+    if path[0:1] == ".":
+        return path
+    return os.path.join(".", path)
 
 def _format_package_op(opref):
     return "%s/%s:%s" % (opref.pkg_name, opref.model_name, opref.op_name)

@@ -772,7 +772,9 @@ class OpDef(object):
 
     @property
     def fullname(self):
-        return "%s:%s" % (self.modeldef.name, self.name)
+        if self.modeldef.name:
+            return "%s:%s" % (self.modeldef.name, self.name)
+        return self.name
 
     def get_flagdef(self, name):
         for flag in self.flags:

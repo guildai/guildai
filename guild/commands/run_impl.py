@@ -35,6 +35,7 @@ from guild import resolver
 from guild import util
 from guild import var
 
+from . import operations_impl
 from . import remote_impl_support
 from . import runs_impl
 
@@ -610,7 +611,8 @@ def _confirm_run(op, model, args):
         action = "stage"
     else:
         action = "run"
-    op_desc = "%s:%s" % (model.fullname, op.opdef.name)
+    op_desc = operations_impl.format_op_fullname(
+        op.opdef.name, model.fullname)
     if args.remote:
         remote_suffix = " on %s" % args.remote
     else:

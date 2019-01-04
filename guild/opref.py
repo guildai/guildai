@@ -121,11 +121,11 @@ def _cmp(val, compare_to, regex):
 
 def _opref_to_string(opref):
     return "%s:%s %s %s %s" % (
-        opref.pkg_type or "?",
-        _maybe_quote(opref.pkg_name) or "?",
-        opref.pkg_version or "?",
-        opref.model_name or "?",
-        opref.op_name or "?")
+        opref.pkg_type or "''",
+        _maybe_quote(opref.pkg_name) or "''",
+        opref.pkg_version or "''",
+        opref.model_name or "''",
+        opref.op_name or "''")
 
 def _maybe_quote(s):
     if s and re.search(r"\s", s):
