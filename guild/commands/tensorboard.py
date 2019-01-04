@@ -22,7 +22,7 @@ from guild import click_util
 from . import runs_support
 from . import server_support
 
-@click.command(name="tensorboard, tb")
+@click.command(name="tensorboard")
 @runs_support.runs_arg
 @server_support.host_and_port_options
 @click.option(
