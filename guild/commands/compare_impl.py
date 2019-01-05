@@ -103,17 +103,16 @@ def _get_data_cb(args, index, format_cells=True):
         _try_init_tf_logging()
         log_capture = util.LogCapture()
         with log_capture:
-            runs = runs_impl.runs_for_args(args)
-            cols = _init_cols(args, runs)
-            refresh_types = _refresh_types(cols)
-            index.refresh(runs, refresh_types)
-            header = _table_header(cols)
-            rows = _runs_table_data(runs, cols, index)
-            header, rows = _merge_cols(header, rows)
+            runs = _runs_for_args(args)
+            cols_table = _cols_table(runs, args)
+            index.refresh(runs, _refresh_types(cols_table))
+            table = _resolve_table_cols(cols_table, index)
+            header = _table_header(table)
+            rows = _table_rows(table, header)
             if format_cells:
                 _format_cells(rows)
             log = log_capture.get_all()
-        return [header] + rows, log
+            return [header] + rows, log
     return f
 
 def _try_init_tf_logging():
@@ -129,31 +128,58 @@ def _try_init_tf_logging():
     except ImportError:
         pass
 
-def _init_cols(args, runs):
+def _runs_for_args(args):
+    """Returns runs for args, oldest runs first.
+
+    We process runs in oldest-first order to maintain column ordering
+    as new runs are generated. This is due to the algorithm of
+    processing columns from left to right as they're declared in the
+    various sources (core, run op, and user requested).
+    """
+    runs = runs_impl.runs_for_args(args)
+    return list(reversed(runs))
+
+def _cols_table(runs, args):
+    parse_cache = {}
+    return [(run, _run_cols(run, args, parse_cache)) for run in runs]
+
+def _run_cols(run, args, parse_cache):
+    return (
+        _core_cols(args, parse_cache),
+        _op_cols(run, args, parse_cache),
+        _user_cols(args, parse_cache)
+    )
+
+def _core_cols(args, parse_cache):
+    return _colspec_cols(_core_colspec(args), parse_cache)
+
+def _core_colspec(args):
     if args.skip_core:
-        cols = _parse_cols(MIN_COLS)
+        return MIN_COLS
     else:
-        cols = _parse_cols(BASE_COLS)
-    if not args.skip_op_cols:
-        cols.extend(_runs_compare_cols(runs))
-    if args.columns:
-        cols.extend(_parse_cols(args.columns))
-    return cols
+        return BASE_COLS
 
-def _parse_cols(s):
-    """Parse string s as a list of query columns."""
+def _colspec_cols(colspec, parse_cache):
     try:
-        return query.parse("select %s" % s).cols
-    except query.ParseError as e:
-        log.warning("error parsing %r: %s", s, e)
-        return []
+        return parse_cache[colspec]
+    except KeyError:
+        try:
+            cols = query.parse("select %s" % colspec).cols
+        except query.ParseError as e:
+            log.warning("error parsing %r: %s", colspec, e)
+            cols = []
+        parse_cache[colspec] = cols
+        return cols
 
-def _runs_compare_cols(runs):
+def _op_cols(run, args, parse_cache):
+    if args.skip_op_cols:
+        return []
+    compare = _run_op_compare(run)
+    if not compare:
+        return []
     cols = []
-    for run in runs:
-        compare = _run_op_compare(run)
-        for col_spec in compare:
-            cols.extend(_parse_cols(col_spec))
+    for colspec in compare:
+        cols.extend(_colspec_cols(colspec, parse_cache))
     return cols
 
 def _run_op_compare(run):
@@ -192,32 +218,40 @@ def _try_guildfile_op_compare(gf, model_name, op_name):
         op = m.get_operation(op_name)
         return op.compare if op else None
 
-def _refresh_types(cols):
+def _user_cols(args, parse_cache):
+    if not args.columns:
+        return []
+    return _colspec_cols(args.columns, parse_cache)
+
+def _refresh_types(cols_table):
     """Returns a set of types to refresh for cols.
 
     This scheme is used to avoid refreshing types that aren't needed
     (e.g. scalars are expensive to refresh).
     """
     types = set()
-    for col in cols:
-        if isinstance(col, query.Flag):
-            types.add("flag")
-        elif isinstance(col, query.Attr):
-            types.add("attr")
-        elif isinstance(col, query.Scalar):
-            types.add("scalar")
-    if not types:
-        return None
+    for _run, sections in cols_table:
+        for section in sections:
+            for col in section:
+                if isinstance(col, query.Flag):
+                    types.add("flag")
+                elif isinstance(col, query.Attr):
+                    types.add("attr")
+                elif isinstance(col, query.Scalar):
+                    types.add("scalar")
     return types
 
-def _table_header(cols):
-    return [col.header for col in cols]
+def _resolve_table_cols(table, index):
+    return [
+        _resolve_table_section(run, section, index)
+        for run, section in table
+    ]
 
-def _runs_table_data(runs, cols, index):
-    return [_run_data(run, cols, index) for run in runs]
+def _resolve_table_section(run, section, index):
+    return tuple([_resolve_run_cols(run, cols, index) for cols in section])
 
-def _run_data(run, cols, index):
-    return [_col_data(run, col, index) for col in cols]
+def _resolve_run_cols(run, cols, index):
+    return [(col.header, _col_data(run, col, index)) for col in cols]
 
 def _col_data(run, col, index):
     if isinstance(col, query.Flag):
@@ -230,60 +264,27 @@ def _col_data(run, col, index):
     else:
         assert False, col
 
-def _merge_cols(header, rows):
-    """Merges header and row cols according to header val.
+def _table_header(table):
+    header = []
+    for section in zip(*table):
+        for row in section:
+            for name, _val in row:
+                if name not in header:
+                    header.append(name)
+    return header
 
-    For columns with the same header, row values are merged so that
-    the first non-None col value is moved to the first col occurence
-    with that header. Duplicate cols are then dropped.
-    """
-    header_map = _header_map(header)
-    return (
-        _merge_header(header_map),
-        _merge_row_cells(rows, header_map)
-    )
+def _table_rows(table, header):
+    return [_table_row(row, header) for row in table]
 
-def _header_map(header):
-    """Returns a map of header name to header index list.
+def _table_row(row, header):
+    return [_row_val(col_name, row) for col_name in header]
 
-    More than one index will occur if the same header is used more
-    than once.
-    """
-    header_map = {}
-    for i, name in enumerate(header):
-        header_map.setdefault(name, []).append(i)
-    return header_map
-
-def _merge_header(header_map):
-    """Returns a new header list from a header map.
-
-    header_map is a map of header names to column indices. Uses the
-    first column index to position the header name in the merged list.
-    """
-    sorted_cols = sorted([(cols, name) for name, cols in header_map.items()])
-    return [name for _, name in sorted_cols]
-
-def _merge_row_cells(rows, header_map):
-    """Returns a new list of rows with merged cells.
-    """
-    col_indices = sorted(header_map.values())
-    return [_merge_row(row, col_indices) for row in rows]
-
-def _merge_row(row, col_indices):
-    """Returns a new row with merged cells.
-
-    col_indices must be a list of col indices sorted in ascending
-    order. Each list of indices is used to find and apply from left to
-    right non-None values to the row cell corresponding to the list
-    position in cols.
-    """
-    merged = [None] * len(col_indices)
-    for i, cols in enumerate(col_indices):
-        for col in cols:
-            if row[col] is not None:
-                merged[i] = row[col]
-                break
-    return merged
+def _row_val(col_name, sections):
+    for cells in sections:
+        for cell_name, val in reversed(cells):
+            if cell_name == col_name:
+                return val
+    return None
 
 def _format_cells(rows):
     for row in rows:
