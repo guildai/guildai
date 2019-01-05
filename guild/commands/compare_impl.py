@@ -272,11 +272,12 @@ def _table_row(row, header):
     return [_row_val(col_name, row) for col_name in header]
 
 def _row_val(col_name, sections):
+    val = None
     for cells in sections:
-        for cell_name, val in reversed(cells):
-            if cell_name == col_name:
-                return val
-    return None
+        for cell_name, cell_val in reversed(cells):
+            if cell_name == col_name and cell_val is not None:
+                val = cell_val
+    return val
 
 def _format_cells(rows):
     for row in rows:
