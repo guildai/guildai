@@ -30,6 +30,7 @@ import guild.opref
 from guild import cli
 from guild import cmd_impl_support
 from guild import config
+from guild import index2 as indexlib
 from guild import remote_run_support
 from guild import util
 from guild import var
@@ -540,6 +541,10 @@ def _print_run_info(run, args):
     if args.flags:
         out("flags:", nl=False)
         out(_format_attr(run.get("flags", "")))
+    if args.scalars:
+        out("scalars:")
+        for scalar in _iter_scalars(run):
+            out("  %s" % scalar)
     if args.deps:
         out("dependencies:")
         deps = run.get("deps", {})
@@ -580,6 +585,16 @@ def _format_val(val):
         return str(val)
     else:
         return _format_yaml_block(val)
+
+def _iter_scalars(run):
+    index = indexlib.RunIndex()
+    index.refresh([run], ["scalar"])
+    for s in index.run_scalars(run):
+        prefix = s["prefix"]
+        if prefix:
+            yield "%s#%s" % (s["prefix"], s["tag"])
+        else:
+            yield s["tag"]
 
 def _iter_output(run):
     try:
