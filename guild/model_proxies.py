@@ -79,7 +79,7 @@ class PythonScriptModelProxy(object):
     def _exec_attr(self):
         abs_script_path = os.path.abspath(self.script_path)
         return (
-            "${python_exe} %s ${flag_args}"
+            "${python_exe} -u %s ${flag_args}"
             % shlex_quote(abs_script_path))
 
     def _patch_opref(self, opref):
