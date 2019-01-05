@@ -88,15 +88,17 @@ class PythonScriptModelProxy(object):
         This allows flag checks to pass - any flags provided to run are
         accepted.
         """
-        opref.get_flagdef = lambda _: self._flagdef_proxy()
+        opref.get_flagdef = lambda name: self._flagdef_proxy(name)
 
     class _flagdef_proxy(object):
-        arg_name = None
-        arg_skip = False
-        arg_switch = None
-        choices = None
-        name = None
-        type = None
+
+        def __init__(self, name):
+            self.name = name
+            self.arg_name = None
+            self.arg_skip = False
+            self.arg_switch = None
+            self.choices = None
+            self.type = None
 
     def _init_reference(self):
         return modellib.ModelRef(
