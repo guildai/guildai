@@ -103,7 +103,7 @@ def _get_data_cb(args, index, format_cells=True):
         _try_init_tf_logging()
         log_capture = util.LogCapture()
         with log_capture:
-            runs = _runs_for_args(args)
+            runs = runs_impl.runs_for_args(args)
             cols_table = _cols_table(runs, args)
             index.refresh(runs, _refresh_types(cols_table))
             table = _resolve_table_cols(cols_table, index)
@@ -127,17 +127,6 @@ def _try_init_tf_logging():
         import tensorflow as _
     except ImportError:
         pass
-
-def _runs_for_args(args):
-    """Returns runs for args, oldest runs first.
-
-    We process runs in oldest-first order to maintain column ordering
-    as new runs are generated. This is due to the algorithm of
-    processing columns from left to right as they're declared in the
-    various sources (core, run op, and user requested).
-    """
-    runs = runs_impl.runs_for_args(args)
-    return list(reversed(runs))
 
 def _cols_table(runs, args):
     parse_cache = {}
@@ -266,7 +255,10 @@ def _col_data(run, col, index):
 
 def _table_header(table):
     header = []
-    for section in zip(*table):
+    # Build up headers from oldest run (bottom of table) first to
+    # ensure consistency in col ordering as new runs appear.
+    reversed_table = reversed(table)
+    for section in zip(*reversed_table):
         for row in section:
             for name, _val in row:
                 if name not in header:
