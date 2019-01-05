@@ -141,10 +141,12 @@ def _run_kw(args):
         "force_flags",
         "gpus",
         "label",
+        "needed",
         "no_gpus",
         "no_wait",
         "opspec",
         "restart",
+        "stop_after",
     ]
     ignore = [
         "background",

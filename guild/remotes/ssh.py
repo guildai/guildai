@@ -406,7 +406,8 @@ def _build_package(dist_dir):
     package_impl.main(args)
 
 def _remote_run_cmd(remote_run_dir, opspec, op_flags, label,
-                    disable_plugins, gpus, no_gpus, force_flags):
+                    disable_plugins, gpus, no_gpus, force_flags,
+                    needed, stop_after):
     cmd = [
         "NO_WARN_RUNDIR=1",
         "guild", "run", q(opspec),
@@ -425,6 +426,10 @@ def _remote_run_cmd(remote_run_dir, opspec, op_flags, label,
         cmd.append("--no-gpus")
     if force_flags:
         cmd.append("--force-flags")
+    if needed:
+        cmd.append("--needed")
+    if stop_after:
+        cmd.extend(["--stop-after", stop_after])
     cmd.extend([q(arg) for arg in op_flags])
     return " ".join(cmd)
 
