@@ -38,6 +38,6 @@ They are supported on Linux:
     ...   assert attrs[4] == "wps", attrs
 
 Here we read the first five results and assert their attribute
-values. Each value is in the form "system/DEVICE/ATTTR". As each
+values. Each value is in the form "sys/DEVICE/ATTTR". As each
 system has different devices and names, this is as much as we can
 assert generally.

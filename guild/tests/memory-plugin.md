@@ -9,11 +9,11 @@ summaries.
 We can read memory stats using the `read_summary_values` method:
 
     >>> pprint(plugin.read_summary_values(0))
-    {'system/mem_free': ...,
-     'system/mem_total': ...,
-     'system/mem_used': ...,
-     'system/mem_util': ...,
-     'system/swap_free': ...,
-     'system/swap_total': ...,
-     'system/swap_used': ...,
-     'system/swap_util': ...}
+    {'sys/mem_free': ...,
+     'sys/mem_total': ...,
+     'sys/mem_used': ...,
+     'sys/mem_util': ...,
+     'sys/swap_free': ...,
+     'sys/swap_total': ...,
+     'sys/swap_used': ...,
+     'sys/swap_util': ...}

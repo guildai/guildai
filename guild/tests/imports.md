@@ -137,6 +137,7 @@
     guild.main
     guild.main_bootstrap
     guild.model
+    guild.model_proxies
     guild.namespace
     guild.op
     guild.op_main

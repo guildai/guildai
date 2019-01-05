@@ -14,5 +14,5 @@ The initial stats are empty because stats are reported across
 intervals. Let's read them again:
 
     >>> pprint(plugin.read_summary_values(0))
-    {'system/cpu/util': ...,
-     'system/cpu0/util': ...}
+    {'sys/cpu/util': ...,
+     'sys/cpu0/util': ...}
