@@ -21,8 +21,6 @@ import pipes
 
 import click
 
-from six.moves import shlex_quote
-
 import guild.help
 import guild.op
 import guild.plugin
@@ -30,10 +28,9 @@ import guild.plugin
 from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
-from guild import config
 from guild import deps
-from guild import guildfile
 from guild import model as modellib
+from guild import model_proxies
 from guild import op_util
 from guild import resolver
 from guild import util
@@ -45,62 +42,6 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
-class PythonScriptModelProxy(object):
-
-    def __init__(self, script_path):
-        assert script_path[-3:] == ".py", script_path
-        self.script_path = script_path
-        self.name = ""
-        self.fullname = ""
-        self.op_name = os.path.basename(script_path)
-        self.modeldef = self._init_modeldef()
-        self.reference = self._init_reference()
-
-    def _init_modeldef(self):
-        data = [
-            {
-                "model": self.name,
-                "operations": {
-                    self.op_name: {
-                        "exec": self._exec_attr()
-                    }
-                }
-            }
-        ]
-        gf = guildfile.Guildfile(data, dir=config.cwd())
-        modeldef = gf.models[self.name]
-        self._patch_opref(modeldef.get_operation(self.op_name))
-        return modeldef
-
-    def _exec_attr(self):
-        abs_script_path = os.path.abspath(self.script_path)
-        return (
-            "${python_exe} %s ${flag_args}"
-            % shlex_quote(abs_script_path))
-
-    def _patch_opref(self, opref):
-        """Patches opref so that it always returns a flag def.
-
-        This allows flag checks to pass - any flags provided to run are
-        accepted.
-        """
-        opref.get_flagdef = lambda _: self._flagdef_proxy()
-
-    class _flagdef_proxy(object):
-        arg_name = None
-        arg_skip = False
-        arg_switch = None
-        choices = None
-        name = None
-        type = None
-
-    def _init_reference(self):
-        return modellib.ModelRef(
-            "script",
-            self.script_path,
-            modellib.file_hash(self.script_path),
-            self.name)
-
 def main(args, ctx):
     _check_opspec_args(args, ctx)
     _apply_restart_or_rerun_args(args, ctx)
@@ -111,19 +52,12 @@ def main(args, ctx):
     _dispatch_cmd(args, opdef, model, ctx)
 
 def _resolve_model_op(opspec):
-    if _is_python_script(opspec):
-        return _python_script_model_op(opspec)
-    else:
-        return _resolve_model_op_from_spec(opspec)
+    try:
+        return model_proxies.resolve_model_op(opspec)
+    except model_proxies.NotSupported:
+        return _resolve_model_op_(opspec)
 
-def _is_python_script(opspec):
-    return opspec[-3:] == ".py" and os.path.isfile(opspec)
-
-def _python_script_model_op(spec):
-    model = PythonScriptModelProxy(spec)
-    return model, model.op_name
-
-def _resolve_model_op_from_spec(opspec):
+def _resolve_model_op_(opspec):
     model_ref, op_name = _parse_opspec(opspec)
     return _resolve_model(model_ref), op_name
 

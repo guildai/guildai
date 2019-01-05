@@ -22,9 +22,9 @@ class KerasPlugin(plugin.Plugin):
 
     def find_models(self, path):
         return python_util.script_models(
-            path, self._is_keras_script, self._script_model, self.log)
+            path, self.is_keras_script, self.script_model, self.log)
 
-    def _is_keras_script(self, script):
+    def is_keras_script(self, script):
         return self._imports_keras(script) and self._op_method(script)
 
     @staticmethod
@@ -49,9 +49,9 @@ class KerasPlugin(plugin.Plugin):
                 predict = call
         return predict
 
-    def _script_model(self, script):
+    def script_model(self, script):
         op_method = self._op_method(script)
-        assert op_method, "should be caught in _is_keras_script"
+        assert op_method, "should be caught in is_keras_script"
         if op_method.name == "fit":
             return self._train_model(script, op_method)
         elif op_method.name == "predict":
@@ -83,8 +83,10 @@ class KerasPlugin(plugin.Plugin):
                     },
                     "compare": [
                         "loss step as step",
-                        "loss",
-                        "val_acc as accuracy"
+                        "loss as loss",
+                        "acc as acc",
+                        "val_loss as val_loss",
+                        "val_acc as val_acc",
                     ]
                 }
             }
