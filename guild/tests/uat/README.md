@@ -126,6 +126,10 @@ matter of coverage and to take advantage of any differences.
 
 - [install-examples](install-examples.md)
 
+## Simple example
+
+- [simple-example](simple-example.md)
+
 ### `mnist` example
 
 The `mnist` example is similar to the package of the same name. It
@@ -140,7 +144,6 @@ We start by listing the example models and operations.
 
 Next we train `intro`.
 
-- [mnist-example-initial-runs](mnist-example-initial-runs.md)
 - [train-mnist-intro-example](train-mnist-intro-example.md)
 - [mnist-example-runs-after-intro-train](mnist-example-runs-after-intro-train.md)
 
