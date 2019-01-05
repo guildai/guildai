@@ -94,4 +94,4 @@ def _calc_disk_stats(last, cur):
     return stats
 
 def _dev_stat_key(dev_name, stat_name):
-    return "system/dev%s/%s" % (dev_name, stat_name)
+    return "sys/dev%s/%s" % (dev_name, stat_name)

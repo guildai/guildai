@@ -129,4 +129,4 @@ def _parse_watts(val):
     return float(val[0:-2])
 
 def _gpu_val_key(index, name):
-    return "system/gpu%s/%s" % (index, name)
+    return "sys/gpu%s/%s" % (index, name)

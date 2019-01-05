@@ -36,9 +36,9 @@ class CPUPlugin(SummaryPlugin):
         if self._cpu_percent_init:
             i = 0
             for percent in percents:
-                stats["system/cpu%i/util" % i] = percent / 100
+                stats["sys/cpu%i/util" % i] = percent / 100
                 i += 1
             if percents:
-                stats["system/cpu/util"] = sum(percents) / len(percents) / 100
+                stats["sys/cpu/util"] = sum(percents) / len(percents) / 100
         self._cpu_percent_init = True
         return stats

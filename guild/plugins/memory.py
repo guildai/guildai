@@ -30,12 +30,12 @@ def _mem_stats():
     mem = psutil.virtual_memory()
     swap = psutil.swap_memory()
     return {
-        "system/mem_total": mem.total,
-        "system/mem_free": mem.free,
-        "system/mem_used": mem.used,
-        "system/mem_util": mem.percent / 100,
-        "system/swap_total": swap.total,
-        "system/swap_free": swap.free,
-        "system/swap_used": swap.used,
-        "system/swap_util": swap.percent / 100
+        "sys/mem_total": mem.total,
+        "sys/mem_free": mem.free,
+        "sys/mem_used": mem.used,
+        "sys/mem_util": mem.percent / 100,
+        "sys/swap_total": swap.total,
+        "sys/swap_free": swap.free,
+        "sys/swap_used": swap.used,
+        "sys/swap_util": swap.percent / 100
     }
