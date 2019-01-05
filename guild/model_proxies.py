@@ -33,7 +33,16 @@ GENERIC_COMPARE = [
     "loss",
 
     # accuracy
-    "accuracy",
+    "acc",
+    "accuracy as acc",
+
+    # val loss
+    "val_loss",
+    "val#loss as val_loss",
+
+    # val acc
+    "val_acc",
+    "val#acc as val_acc",
 ]
 
 class NotSupported(Exception):
