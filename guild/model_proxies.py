@@ -66,15 +66,14 @@ class PythonScriptModelProxy(object):
                 "operations": {
                     self.op_name: {
                         "exec": self._exec_attr(),
-                        "compare": GENERIC_COMPARE
+                        "compare": GENERIC_COMPARE,
+                        "flags": self._flags_data(),
                     }
                 }
             }
         ]
         gf = guildfile.Guildfile(data, dir=config.cwd())
-        modeldef = gf.models[self.name]
-        self._patch_opref(modeldef.get_operation(self.op_name))
-        return modeldef
+        return gf.models[self.name]
 
     def _exec_attr(self):
         abs_script_path = os.path.abspath(self.script_path)
@@ -82,23 +81,9 @@ class PythonScriptModelProxy(object):
             "${python_exe} -u %s ${flag_args}"
             % shlex_quote(abs_script_path))
 
-    def _patch_opref(self, opref):
-        """Patches opref so that it always returns a flag def.
-
-        This allows flag checks to pass - any flags provided to run are
-        accepted.
-        """
-        opref.get_flagdef = lambda name: self._flagdef_proxy(name)
-
-    class _flagdef_proxy(object):
-
-        def __init__(self, name):
-            self.name = name
-            self.arg_name = None
-            self.arg_skip = False
-            self.arg_switch = None
-            self.choices = None
-            self.type = None
+    def _flags_data(self):
+        plugin = plugins.for_name("flags")
+        return plugin._flags_data_for_path(self.script_path, ".")
 
     def _init_reference(self):
         return modellib.ModelRef(
