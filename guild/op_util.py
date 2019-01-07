@@ -30,6 +30,10 @@ from guild import binaryornot
 
 log = logging.getLogger("guild")
 
+# Legacy support for functionality moved to _api
+from guild._api import NoCurrentRun
+from guild._api import current_run
+
 class ArgValueError(ValueError):
 
     def __init__(self, arg):
@@ -250,22 +254,6 @@ def format_arg_value(v):
         return "null"
     else:
         return str(v)
-
-class NoCurrentRun(Exception):
-    pass
-
-def current_run():
-    """Returns an instance of guild.run.Run for the current run.
-
-    The current run directory must be specified with the RUN_DIR
-    environment variable. If this variable is not defined, raised
-    NoCurrentRun.
-
-    """
-    path = os.getenv("RUN_DIR")
-    if not path:
-        raise NoCurrentRun()
-    return guild.run.Run(os.getenv("RUN_ID"), path)
 
 class TFEvents(object):
 

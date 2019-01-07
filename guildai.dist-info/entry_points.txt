@@ -13,6 +13,10 @@ keras = guild.plugins.keras:KerasPlugin
 memory = guild.plugins.memory:MemoryPlugin
 perf = guild.plugins.perf:PerfPlugin
 
+[guild.optimizers]
+
+gp = guild.optimizers.skopt:GPOptimizer
+
 [guild.namespaces]
 
 pypi = guild.namespace:PypiNamespace
