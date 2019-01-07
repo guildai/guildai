@@ -22,6 +22,7 @@ from six.moves import shlex_quote
 from guild import config
 from guild import guildfile
 from guild import model as modellib
+from guild import optimizer as optimizers
 from guild import plugin as plugins
 from guild import python_util
 
@@ -117,6 +118,12 @@ class KerasScriptModelProxy(PythonScriptModelProxy):
         data["model"] = self.name
         data["operations"][self.op_name] = data["operations"].pop("train")
 
+class OptimizerModelProxy(object):
+
+    def __init__(self, plugin, config):
+        self.name = ""
+        self.op_name = "optimize"
+
 def resolve_model_op(opspec):
     if _is_python_script(opspec):
         model = _python_script_model(opspec)
@@ -135,3 +142,15 @@ def _python_script_model(opspec):
 def _is_keras_script(script):
     plugin = plugins.for_name("keras")
     return plugin.is_keras_script(script)
+
+def optimizer_model_op(xxx_op, config):
+    method = config.get("method")
+    if not method:
+        raise ValueError("config requires 'method' attribute")
+    try:
+        optimizer = optimizers.for_name(method)
+    except LookupError:
+        raise NotSupported()
+    else:
+        model = OptimizerModelProxy(optimizer, config)
+        return model, model.op_name

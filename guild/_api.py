@@ -151,3 +151,19 @@ def guild_cmd(command, args, cwd=None, guild_home=None, capture_output=False):
             cmd_args,
             cwd=cwd,
             env=env)
+
+class NoCurrentRun(Exception):
+    pass
+
+def current_run():
+    """Returns an instance of guild.run.Run for the current run.
+
+    The current run directory must be specified with the RUN_DIR
+    environment variable. If this variable is not defined, raised
+    NoCurrentRun.
+
+    """
+    path = os.getenv("RUN_DIR")
+    if not path:
+        raise NoCurrentRun()
+    return guild.run.Run(os.getenv("RUN_ID"), path)

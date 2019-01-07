@@ -23,6 +23,9 @@ def run_params(fn):
     click_util.append_params(fn, [
         click.Argument(("flags",), metavar="[FLAG=VAL...]", nargs=-1),
         click.Option(
+            ("--optimize",),
+            help="Run operation multiple times to optimize performance."),
+        click.Option(
             ("-l", "--label"), metavar="LABEL",
             help="Set a label for the run."),
         click.Option(

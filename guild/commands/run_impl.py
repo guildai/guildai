@@ -51,16 +51,6 @@ def main(args, ctx):
     _apply_opdef_args(opdef, args)
     _dispatch_cmd(args, opdef, model, ctx)
 
-def _resolve_model_op(opspec):
-    try:
-        return model_proxies.resolve_model_op(opspec)
-    except model_proxies.NotSupported:
-        return _resolve_model_op_(opspec)
-
-def _resolve_model_op_(opspec):
-    model_ref, op_name = _parse_opspec(opspec)
-    return _resolve_model(model_ref), op_name
-
 def _check_opspec_args(args, ctx):
     if not (args.opspec or args.rerun or args.restart):
         cli.error(
@@ -140,6 +130,52 @@ def _dispatch_op_cmd(opdef, model, args, ctx):
 
 def _invalid_op_spec_error(e, opdef):
     cli.error("operation '%s' is not valid: %s" % (opdef.fullname, e))
+
+def _resolve_model_op(opspec):
+    try:
+        return model_proxies.resolve_model_op(opspec)
+    except model_proxies.NotSupported:
+        return _resolve_model_op_(opspec)
+
+"""
+def _resolve_optimizer_model_op(optimize):
+    config = _optimizer_config(optimize)
+    try:
+        return model_proxies.optimizer_model_op(config)
+    except ValueError as e:
+        cli.error("cannot optimize with the specified config: %s" % e)
+    except model_proxies.NotSupported:
+        if os.path.isfile(optimize):
+            method = config.get("method")
+            assert method, config
+            cli.error(
+                "optimize method %s defined in %s is not supported"
+                % (method, optimize))
+        else:
+            cli.error("optimize method %s is not supported" % optimize)
+
+def _optimizer_config(spec):
+    if os.path.isfile(spec):
+        return _load_optimizer_config(spec)
+    else:
+        return _default_optimizer_config(spec)
+
+def _load_optimizer_config(path):
+    try:
+        return yaml.safe_load(open(path, "r"))
+    except (IOError, yaml.YAMLError) as e:
+        cli.error("error loading %s: %s" % path, e)
+
+def _default_optimizer_config(spec):
+    return {
+        "method": spec
+    }
+
+"""
+
+def _resolve_model_op_(opspec):
+    model_ref, op_name = _parse_opspec(opspec)
+    return _resolve_model(model_ref), op_name
 
 def _parse_opspec(spec):
     parts = spec.split(":", 1)
