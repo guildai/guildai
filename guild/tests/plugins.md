@@ -15,12 +15,16 @@ ensure we are only working with built-ins:
 Use `iter_plugins` to iterate through the list of available plugins:
 
     >>> sorted(guild.plugin.iter_plugins())
-    [('cloudml', <guild.plugins.cloudml.CloudMLPlugin object ...>),
-     ('cpu', <guild.plugins.cpu.CPUPlugin object ...>),
-     ('disk', <guild.plugins.disk.DiskPlugin object ...>),
-     ('gpu', <guild.plugins.gpu.GPUPlugin object ...>),
-     ('keras', <guild.plugins.keras.KerasPlugin object ...>),
-     ('memory', <guild.plugins.memory.MemoryPlugin object ...>)]
+    [('cpu', <guild.plugins.cpu.CPUPlugin ...>),
+     ('disk', <guild.plugins.disk.DiskPlugin ...>),
+     ('exec_script', <guild.plugins.exec_script.ExecScriptPlugin ...>),
+     ('flags', <guild.plugins.flags.FlagsPlugin ...>),
+     ('gpu', <guild.plugins.gpu.GPUPlugin ...>),
+     ('keras', <guild.plugins.keras.KerasPlugin ...>),
+     ('memory', <guild.plugins.memory.MemoryPlugin ...>),
+     ('perf', <guild.plugins.perf.PerfPlugin ...>),
+     ('python_script', <guild.plugins.python_script.PythonScriptPlugin ...>),
+     ('skopt', <guild.plugins.skopt.SkoptPlugin ...>)]
 
 ## Plugin instances
 

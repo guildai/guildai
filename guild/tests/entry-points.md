@@ -26,11 +26,13 @@ in `PKG_INFO/entry_points.txt` where `PKG_INFO` is the location of the
 their own distributions in the same way.
 
     >>> pprint(guild_entry_points("guild.plugins"))
-    [EntryPoint.parse('cloudml = guild.plugins.cloudml:CloudMLPlugin'),
-     EntryPoint.parse('cpu = guild.plugins.cpu:CPUPlugin'),
+    [EntryPoint.parse('cpu = guild.plugins.cpu:CPUPlugin'),
      EntryPoint.parse('disk = guild.plugins.disk:DiskPlugin'),
+     EntryPoint.parse('exec_script = guild.plugins.exec_script:ExecScriptPlugin'),
      EntryPoint.parse('flags = guild.plugins.flags:FlagsPlugin'),
      EntryPoint.parse('gpu = guild.plugins.gpu:GPUPlugin'),
      EntryPoint.parse('keras = guild.plugins.keras:KerasPlugin'),
      EntryPoint.parse('memory = guild.plugins.memory:MemoryPlugin'),
-     EntryPoint.parse('perf = guild.plugins.perf:PerfPlugin')]
+     EntryPoint.parse('perf = guild.plugins.perf:PerfPlugin'),
+     EntryPoint.parse('python_script = guild.plugins.python_script:PythonScriptPlugin'),
+     EntryPoint.parse('skopt = guild.plugins.skopt:SkoptPlugin')]

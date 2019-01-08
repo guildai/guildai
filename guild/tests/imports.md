@@ -143,6 +143,9 @@
     guild.op_main
     guild.op_util
     guild.opref
+    guild.optimizer
+    guild.optimizers.__init__
+    guild.optimizers.skopt
     guild.package
     guild.package_main
     guild.pass

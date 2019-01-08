@@ -13,8 +13,6 @@ These tests expect Guild to be installed.
 
 *Check the environment and run unit tests.*
 
-- [guild-check-before-tensorflow](guild-check-before-tensorflow.md)
-- [install-tensorflow](install-tensorflow.md)
 - [guild-check](guild-check.md)
 - [guild-tests](guild-tests.md)
 
