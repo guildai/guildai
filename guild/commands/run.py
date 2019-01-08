@@ -76,9 +76,6 @@ def run_params(fn):
                 "help for compare command for details specifying a column. "
                 "May not be used with --minimize.")),
         click.Option(
-            ("--max-runs",), type=int,
-            help="Maximum number of runs when running with an optimizer."),
-        click.Option(
             ("--opt-flag",), metavar="FLAG=VAL", multiple=True,
             help="Flag for OPTIMIZER. May be used multiple times."),
         click.Option(
