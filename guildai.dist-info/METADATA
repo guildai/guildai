@@ -38,7 +38,6 @@ Requires-Dist: python-dateutil
 Requires-Dist: setuptools
 Requires-Dist: six
 Requires-Dist: tabview
-Requires-Dist: tensorboard
 Requires-Dist: twine
 Requires-Dist: virtualenv
 
