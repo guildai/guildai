@@ -27,6 +27,7 @@ Here's a helper function to generate a Config object.
     ...     path=(),
     ...     requirement=(),
     ...     tensorflow=None,
+    ...     skip_tensorflow=False,
     ...     local_resource_cache=False,
     ...     no_progress=False)
     ...   arg_kw.update(kw)
@@ -42,6 +43,7 @@ within the project directory:
      ('Name', 'init-env'),
      ('Python interpreter', 'default'),
      ('Guild version', 'from source (...)'),
+     ('TensorFlow', 'tensorflow...'),
      ('Guild package requirements',
       ('Pillow',
        'pkg-a',
@@ -72,6 +74,7 @@ using a `--path` option.
      ('Name', 'init-env'),
      ('Python interpreter', 'default'),
      ('Guild version', '...'),
+     ('TensorFlow', 'tensorflow...'),
      ('Guild package requirements',
       ('Pillow',
        'lxml',
@@ -88,29 +91,39 @@ file.
 
 ## Specifying TensorFlow package
 
-Note the sample project lists `tensorflow-any` as a requirement. This
-is a special package name that Guild translates to either `tensorflow`
-or `tensorflow-gpu` during init based on system GPU support. However,
-the user may use the `--tensorflow` option to specify the requirement
-to use for `tensorflow-any`.
+We can specify a specific TensorFlow package:
 
-Here's helper function that returns the TensorFlow requirements entry:
+    >>> config(
+    ...   path=(project_dir,),
+    ...   tensorflow="tensorflow-gpu>=1.20").prompt_params
+    [('Location', '.../samples/projects/init-env/env'),
+     ('Name', 'init-env'),
+     ('Python interpreter', 'default'),
+     ('Guild version', '...'),
+     ('TensorFlow', 'tensorflow-gpu>=1.20'),
+     ('Guild package requirements',
+      ('Pillow',
+       'lxml',
+       'matplotlib',
+       'numpy',
+       'tensorflow...')),
+     ('Additional paths', ('.../samples/projects/init-env',)),
+     ('Resource cache', 'shared')]
 
-    >>> def tf_req(**kw):
-    ...   params = config(**kw).prompt_params
-    ...   assert len(params) == 7, params
-    ...   assert params[4][0] == "Guild package requirements", params
-    ...   assert len(params[4][1]) == 5, params
-    ...   assert params[4][1][4].startswith("tensorflow"), params
-    ...   return params[4][1][4]
+We can skip installing TensorFlow altogether:
 
-Here's the default, without a user-defined paramter:
-
-    >>> tf = tf_req(path=(project_dir,))
-    >>> tf in ("tensorflow", "tensorflow-gpu"), tf
-    (True, ...)
-
-If we specify the `tensorflow` option:
-
-    >>> tf_req(path=(project_dir,), tensorflow="tensorflow-gpu>=1.20")
-    'tensorflow-gpu>=1.20'
+    >>> config(
+    ...   path=(project_dir,),
+    ...   skip_tensorflow=True).prompt_params
+    [('Location', '.../samples/projects/init-env/env'),
+     ('Name', 'init-env'),
+     ('Python interpreter', 'default'),
+     ('Guild version', '...'),
+     ('Guild package requirements',
+      ('Pillow',
+       'lxml',
+       'matplotlib',
+       'numpy',
+       'tensorflow...')),
+     ('Additional paths', ('.../samples/projects/init-env',)),
+     ('Resource cache', 'shared')]

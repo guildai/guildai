@@ -50,8 +50,11 @@ from guild import click_util
 @click.option(
     "--tensorflow", metavar="PACKAGE",
     help=(
-        "Install PACKAGE wherever tensorflow-any is required. See "
-        "TENSORFLOW help for details."))
+        "Install PACKAGE for TensorFlow. By default installs the package "
+        "suitable for the system based on GPU support."))
+@click.option(
+    "--skip-tensorflow", is_flag=True,
+    help="Don't install TensorFlow.")
 @click.option(
     "-l", "--local-resource-cache", is_flag=True,
     help="Use a local cache when initializing an environment.")
@@ -109,15 +112,12 @@ def init(args):
 
     ### TensorFlow
 
-    TensorFlow is installed only if it is listed as a dependency,
-    either explicitly in a requirements file or in package definition
-    of a `guild.yml` file located in the environment parent directory.
-
-    If the special package ``tensorflow-any`` is listed as a Guild
-    package dependency, Guild installs the appropriate package --
-    either `tensorflow` or `tensorflow-gpu` -- based on the system GPU
-    support. You can specify the package explicitly using
-    `--tensorflow`.
+    TensorFlow is installed to the environment unless
+    `--skip-tensorflow` is specified. The TensorFlow package to
+    install can be specified using `--tensorflow`. By default, Guild
+    installs the TensorFlow package suited for the system:
+    ``tensorflow-gpu`` if a GPU is available, otherwise
+    ``tensorflow``.
 
     ### Resource cache
 

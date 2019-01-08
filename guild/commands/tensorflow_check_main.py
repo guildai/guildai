@@ -31,7 +31,7 @@ def _warn(msg):
 def print_info():
     state = State()
     _print_tensorflow_info(state)
-    _print_tensorboard_info()
+    _print_tensorboard_info(state)
     _print_cuda_info()
     if state.errors:
         sys.exit(1)
@@ -40,7 +40,8 @@ def _print_tensorflow_info(state):
     try:
         import tensorflow as tf
     except ImportError as e:
-        click.echo("tensorflow_version:        Not installed")
+        state.errors = True
+        click.echo("tensorflow_version:        %s" % _warn("Not installed"))
         click.echo(_normalize_import_error_msg(e), err=True)
     else:
         click.echo("tensorflow_version:        %s" % _tf_version(tf, state))
@@ -54,11 +55,12 @@ def _tf_version(tf, state):
         state.errors = True
         return _warn("ERROR (%s)" % e)
 
-def _print_tensorboard_info():
+def _print_tensorboard_info(state):
     try:
         import tensorboard.version as version
     except ImportError as e:
-        click.echo("tensorboard_version:       Not installed")
+        state.errors = True
+        click.echo("tensorboard_version:       %s" % _warn("Not installed"))
         click.echo(_normalize_import_error_msg(e), err=True)
     else:
         click.echo("tensorboard_version:       %s" % version.VERSION)

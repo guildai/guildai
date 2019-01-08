@@ -44,7 +44,7 @@ class Config(object):
         self.guild_pkg_reqs = self._init_guild_pkg_reqs(args, self.user_reqs)
         self.venv_python = self._init_venv_python(args, self.user_reqs)
         self.paths = args.path
-        self.tensorflow = args.tensorflow
+        self.tensorflow_package = self._init_tensorflow_package(args)
         self.local_resource_cache = args.local_resource_cache
         self.prompt_params = self._init_prompt_params()
         self.no_progress = args.no_progress
@@ -69,8 +69,6 @@ class Config(object):
         if args.no_reqs:
             return ()
         reqs = list(_iter_all_guild_pkg_reqs(config.cwd(), args.path))
-        _maybe_append_tensorflow_any(user_reqs, reqs)
-        _apply_tensorflow_arg(args.tensorflow, reqs)
         return tuple(sorted(reqs))
 
     @staticmethod
@@ -86,6 +84,21 @@ class Config(object):
                 return (default_reqs,)
         return ()
 
+    @staticmethod
+    def _init_tensorflow_package(args):
+        if args.tensorflow and args.skip_tensorflow:
+            cli.error(
+                "--tensorflow and --skip-tensorflow cannot both "
+                "be specified")
+        if args.tensorflow:
+            return args.tensorflow
+        if args.skip_tensorflow:
+            return None
+        if util.gpu_available():
+            return "tensorflow-gpu"
+        else:
+            return "tensorflow"
+
     def _init_prompt_params(self):
         params = []
         params.append(("Location", _shorten_path(self.env_dir)))
@@ -98,6 +111,8 @@ class Config(object):
             params.append(("Guild version", self.guild))
         else:
             params.append(("Guild version", _implicit_guild_version()))
+        if self.tensorflow_package:
+            params.append(("TensorFlow", self.tensorflow_package))
         if self.guild_pkg_reqs:
             params.append(("Guild package requirements", self.guild_pkg_reqs))
         if self.user_reqs:
@@ -178,55 +193,6 @@ def _find_req_on_path(req, path):
             return full_path
     return None
 
-def _maybe_append_tensorflow_any(user_reqs, reqs):
-    """Append 'tensorflow-any' reqs if found in user_reqs.
-
-    user_reqs is the list of requirements files used on init, which
-    may include requirements.txt. If any of these files contains a
-    comment with the special string 'guild: tensorflow-any',
-    'tensorflow-any' is appended to reqs (provided it is not already
-    included in reqs).
-
-    This step has the effect of surfacing a tensorflow-any requirement
-    to init by way of requirements.txt.
-    """
-    if "tensorflow-any" in reqs:
-        return
-    p = re.compile(r"^\s*#\s*guild:\s*tensorflow-any\s*$", re.MULTILINE)
-    for req in user_reqs:
-        try:
-            s = open(req, "r").read()
-        except IOError:
-            pass
-        else:
-            if p.search(s):
-                reqs.append("tensorflow-any")
-                break
-
-def _apply_tensorflow_arg(tensorflow_arg, reqs):
-    """Applies tensorflow arg to package reqs.
-
-    If tensorflow arg is specified, occurences of 'tensorflow-any'.
-
-    If tensorflow arg is not specified, occurences of 'tensorflow-any'
-    are replaced with the default tensorflow package for the system.
-    """
-    if tensorflow_arg:
-        tensorflow_pkg = tensorflow_arg
-    elif util.gpu_available():
-        tensorflow_pkg = "tensorflow-gpu"
-    else:
-        tensorflow_pkg = "tensorflow"
-    for i, spec in enumerate(reqs):
-        try:
-            req = pkg_resources.Requirement.parse(spec)
-        except pkg_resources.RequirementParseError:
-            pass
-        else:
-            if req.name == "tensorflow-any":
-                req.name = tensorflow_pkg
-                reqs[i] = str(req)
-
 def _shorten_path(path):
     return path.replace(os.path.expanduser("~"), "~")
 
@@ -267,6 +233,7 @@ def _init(config):
     _init_guild_env(config)
     _init_venv(config)
     _install_guild(config)
+    _maybe_install_tensorflow(config)
     _install_guild_pkg_reqs(config)
     _install_user_reqs(config)
     _install_paths(config)
@@ -375,6 +342,11 @@ def _install_reqs(reqs, config):
         subprocess.check_call(cmd_args, env={"PATH": ""})
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
+
+def _maybe_install_tensorflow(config):
+    if config.tensorflow_package:
+        cli.out("Installing TensorFlow")
+        _install_reqs([config.tensorflow_package], config)
 
 def _install_guild_pkg_reqs(config):
     if config.guild_pkg_reqs:
