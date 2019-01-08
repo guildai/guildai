@@ -55,7 +55,7 @@ def _init_env(cwd, guild_home):
     config.set_guild_home(guild_home or main.DEFAULT_GUILD_HOME)
 
 def run(spec, cwd=None, flags=None, run_dir=None, guild_home=None,
-        extra_env=None):
+        extra_env=None, print_cmd=False):
     from guild import op_util
     cwd = cwd or "."
     flags = flags or {}
@@ -69,6 +69,8 @@ def run(spec, cwd=None, flags=None, run_dir=None, guild_home=None,
         for name, val in flags.items()])
     if run_dir:
         args.extend(["--run-dir", run_dir])
+    if print_cmd:
+        args.append("--print-cmd")
     env = dict(os.environ)
     if extra_env:
         env.update(extra_env)

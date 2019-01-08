@@ -24,6 +24,7 @@ from guild import guildfile
 from guild import model as modellib
 from guild import plugin as plugins
 from guild import python_util
+from guild import util
 
 GENERIC_COMPARE = [
     # step
@@ -50,14 +51,14 @@ class NotSupported(Exception):
 
 class PythonScriptModelProxy(object):
 
-    def __init__(self, script_path):
-        assert script_path[-3:] == ".py", script_path
-        self.script_path = script_path
+    def __init__(self, script):
+        assert script[-3:] == ".py", script
+        self.script = script
         self.name = ""
         self.fullname = ""
-        self.op_name = os.path.basename(script_path)
+        self.op_name = os.path.basename(script)
         self.modeldef = self._init_modeldef()
-        self.reference = self._init_reference()
+        self.reference = _script_model_reference(self.name, script)
 
     def _init_modeldef(self):
         data = [
@@ -76,21 +77,14 @@ class PythonScriptModelProxy(object):
         return gf.models[self.name]
 
     def _exec_attr(self):
-        abs_script_path = os.path.abspath(self.script_path)
+        abs_script = os.path.abspath(self.script)
         return (
             "${python_exe} -u %s ${flag_args}"
-            % shlex_quote(abs_script_path))
+            % shlex_quote(abs_script))
 
     def _flags_data(self):
         plugin = plugins.for_name("flags")
-        return plugin._flags_data_for_path(self.script_path, ".")
-
-    def _init_reference(self):
-        return modellib.ModelRef(
-            "script",
-            self.script_path,
-            modellib.file_hash(self.script_path),
-            self.name)
+        return plugin._flags_data_for_path(self.script, ".")
 
 class KerasScriptModelProxy(PythonScriptModelProxy):
 
@@ -117,9 +111,44 @@ class KerasScriptModelProxy(PythonScriptModelProxy):
         data["model"] = self.name
         data["operations"][self.op_name] = data["operations"].pop("train")
 
+class ExecScriptModelProxy(object):
+
+    def __init__(self, script):
+        self.script = script
+        self.name = ""
+        self.fullname = ""
+        self.op_name = script
+        self.modeldef = self._init_modeldef()
+        self.reference = _script_model_reference(self.name, script)
+
+    def _init_modeldef(self):
+        abs_script = os.path.abspath(self.script)
+        data = [
+            {
+                "model": self.name,
+                "operations": {
+                    self.op_name: {
+                        "exec": abs_script
+                    }
+                }
+            }
+        ]
+        gf = guildfile.Guildfile(data, dir=config.cwd())
+        return gf.models[self.name]
+
+def _script_model_reference(model_name, script):
+    return modellib.ModelRef(
+        "script",
+        script,
+        modellib.file_hash(script),
+        model_name)
+
 def resolve_model_op(opspec):
     if _is_python_script(opspec):
         model = _python_script_model(opspec)
+        return model, model.op_name
+    elif util.is_executable_file(opspec):
+        model = ExecScriptModelProxy(opspec)
         return model, model.op_name
     raise NotSupported()
 
