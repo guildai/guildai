@@ -1,0 +1,10 @@
+prepare:
+  exec: base -c 'echo abc123 > data'
+
+train:
+  requires: pepare
+  exec: cp data model
+
+evaluate:
+  requires: train
+  exec: cat model
