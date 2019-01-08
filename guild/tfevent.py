@@ -36,15 +36,19 @@ class ScalarReader(object):
     def __iter__(self):
         """Yields (tag, val, step) for scalars.
         """
-        from tensorboard.backend.event_processing import event_accumulator
-        events = event_accumulator._GeneratorFromPath(self.dir).Load()
-        for event in events:
-            if not event.HasField("summary"):
-                continue
-            for val in event.summary.value:
-                if not val.HasField("simple_value"):
+        try:
+            from tensorboard.backend.event_processing import event_accumulator
+        except ImportError:
+            pass
+        else:
+            events = event_accumulator._GeneratorFromPath(self.dir).Load()
+            for event in events:
+                if not event.HasField("summary"):
                     continue
-                yield val.tag, val.simple_value, event.step
+                for val in event.summary.value:
+                    if not val.HasField("simple_value"):
+                        continue
+                    yield val.tag, val.simple_value, event.step
 
 def iter_events(path):
     """Returns an iterator that yields (dir, digest, reader) tuples.
@@ -56,13 +60,17 @@ def iter_events(path):
     scalars in dir.
     """
     _ensure_tf_logger_patched()
-    from tensorboard.backend.event_processing import io_wrapper
-    for dir in io_wrapper.GetLogdirSubdirectories(path):
-        if not _dir_under_path(dir, path):
-            log.debug("%s is not under %s, skipping", dir, path)
-            continue
-        digest = _event_files_digest(dir)
-        yield dir, digest, ScalarReader(dir)
+    try:
+        from tensorboard.backend.event_processing import io_wrapper
+    except ImportError:
+        pass
+    else:
+        for dir in io_wrapper.GetLogdirSubdirectories(path):
+            if not _dir_under_path(dir, path):
+                log.debug("%s is not under %s, skipping", dir, path)
+                continue
+            digest = _event_files_digest(dir)
+            yield dir, digest, ScalarReader(dir)
 
 def _dir_under_path(dir, path):
     """Returns True if `dir` is under `path`.
@@ -87,5 +95,9 @@ def _event_files_digest(dir):
     return hashlib.md5(to_hash.encode("utf-8")).hexdigest()
 
 def _ensure_tf_logger_patched():
-    from tensorflow import logging
-    logging.info = logging.debug = lambda *_arg, **_kw: None
+    try:
+        from tensorflow import logging
+    except ImportError:
+        pass
+    else:
+        logging.info = logging.debug = lambda *_arg, **_kw: None
