@@ -360,6 +360,7 @@ def _extended_flag_vals(flag_vals, opdef):
         "python_exe": _python_exe(opdef),
         "main_args": "__main_args__",
         "flag_args": "__flag_args__",
+        "model_dir": opdef.guildfile.dir,
     })
     return extended
 
