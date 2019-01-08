@@ -813,3 +813,6 @@ def python_interpreters():
         if m:
             ret.append((path, m.group(1)))
     return ret
+
+def is_executable_file(path):
+    return os.path.isfile(path) and os.access(path, os.X_OK)

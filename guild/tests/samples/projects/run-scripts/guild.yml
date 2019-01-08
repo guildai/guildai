@@ -1,0 +1,5 @@
+say2:
+  exec: echo hello from guild file
+
+say2.py:
+  exec: echo hello from guild file

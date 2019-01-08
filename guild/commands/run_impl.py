@@ -132,10 +132,30 @@ def _invalid_op_spec_error(e, opdef):
     cli.error("operation '%s' is not valid: %s" % (opdef.fullname, e))
 
 def _resolve_model_op(opspec):
+    proxy_model_op = _proxy_model_op(opspec)
+    try:
+        model, op_name = _default_model_op(opspec)
+    except SystemExit:
+        # SystemExit raised by default model resolution process
+        # (e.g. cli.error message). Before exiting, check for a model
+        # proxy based on opspec (e.g. a local script). We do this to
+        # give priority to Guild file defined operations over proxies.
+        if proxy_model_op:
+            return proxy_model_op
+        raise
+    else:
+        # We have a model via the default lookup process, but it might
+        # not have the op_name operation. If op_name is missing from
+        # model AND we have a proxy_model_op, return proxy_model_op.
+        if not model.modeldef.get_operation(op_name) and proxy_model_op:
+            return proxy_model_op
+        return model, op_name
+
+def _proxy_model_op(opspec):
     try:
         return model_proxies.resolve_model_op(opspec)
     except model_proxies.NotSupported:
-        return _resolve_model_op_(opspec)
+        None
 
 """
 def _resolve_optimizer_model_op(optimize):
@@ -173,7 +193,7 @@ def _default_optimizer_config(spec):
 
 """
 
-def _resolve_model_op_(opspec):
+def _default_model_op(opspec):
     model_ref, op_name = _parse_opspec(opspec)
     return _resolve_model(model_ref), op_name
 
@@ -191,7 +211,7 @@ def _resolve_model(model_ref):
     if not model_ref:
         cli.error(
             "a model is required for this operation\n"
-            "Try 'guild operations' for a list of model-qualified operations")
+            "Try 'guild operations' for a list of operations")
     return _resolve_system_model(model_ref)
 
 def _try_resolve_cwd_model(model_ref):
