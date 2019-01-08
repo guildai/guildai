@@ -103,7 +103,7 @@ Let's create a new workspace:
 And create a sample Guild file in it that contains only a model def:
 
     >>> write(join_path(workspace, "guild.yml"), """
-    ... model: test
+    ... - model: test
     ... """)
 
 And generate a package for it:
@@ -144,7 +144,7 @@ If a Guild file doesn't contain a package def or a model def, an error
 is generated:
 
     >>> write(join_path(workspace, "guild.yml"), """
-    ... config: test
+    ... - config: test
     ... """)
     >>> gf = guildfile.from_dir(workspace)
     >>> guild.package.create_package(gf.src, capture_output=True)

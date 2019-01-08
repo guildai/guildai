@@ -266,15 +266,26 @@ class Guildfile(object):
 ###################################################################
 
 def _coerce_guildfile_data(data, guildfile):
-    if isinstance(data, dict):
-        data = [data]
-    elif data is None:
-        data = []
+    if data is None:
+        return []
+    elif isinstance(data, dict):
+        data = [_anonymous_model_data(data)]
     if not isinstance(data, list):
         raise GuildfileError(guildfile, "invalid guildfile data: %r" % data)
     return [
         _coerce_guildfile_item_data(item_data, guildfile)
         for item_data in data]
+
+def _anonymous_model_data(ops_data):
+    """Returns a dict representing an anonymous model.
+
+    ops_data must be a dict representing the model operations. It will
+    be used unmodified for the model `operations` attribute.
+    """
+    return {
+        "model": "",
+        "operations": ops_data
+    }
 
 def _coerce_guildfile_item_data(data, guildfile):
     if not isinstance(data, dict):

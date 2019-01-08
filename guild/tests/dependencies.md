@@ -12,18 +12,18 @@ resource:
 
     >>> from guild import guildfile
     >>> gf = guildfile.from_string("""
-    ... model: sample
-    ... operations:
-    ...  test:
-    ...    main: <not used>
-    ...    requires: data
-    ... resources:
-    ...   data:
-    ...     sources:
-    ...     - abc.txt
-    ...     - file: def.txt
-    ...     - url: http://foo.com/bar.tar.gz
-    ...     - operation: foo/bar:baz
+    ... - model: sample
+    ...   operations:
+    ...    test:
+    ...      main: <not used>
+    ...      requires: data
+    ...   resources:
+    ...     data:
+    ...       sources:
+    ...       - abc.txt
+    ...       - file: def.txt
+    ...       - url: http://foo.com/bar.tar.gz
+    ...       - operation: foo/bar:baz
     ... """, "test")
 
 We can get the list of dependencies for an operation with the
