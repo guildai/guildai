@@ -15,37 +15,37 @@ Here is a test Guild file:
 
     >>> from guild import guildfile
     >>> gf = guildfile.from_string("""
-    ... model: test
-    ... operations:
-    ...   simplest:
-    ...     flags:
-    ...       f: null
-    ...   string:
-    ...     flags:
-    ...       f:
-    ...         type: string
-    ...   required-int:
-    ...     flags:
-    ...       f:
-    ...         description: Required int flag
-    ...         required: yes
-    ...         type: int
-    ...   numbers:
-    ...     flags:
-    ...       int:
-    ...         type: int
-    ...       float:
-    ...         type: float
-    ...       number:
-    ...         type: number
-    ...   path:
-    ...     flags:
-    ...       f:
-    ...         type: path
-    ...   existing-path:
-    ...     flags:
-    ...       f:
-    ...         type: existing-path
+    ... - model: test
+    ...   operations:
+    ...     simplest:
+    ...       flags:
+    ...         f: null
+    ...     string:
+    ...       flags:
+    ...         f:
+    ...           type: string
+    ...     required-int:
+    ...       flags:
+    ...         f:
+    ...           description: Required int flag
+    ...           required: yes
+    ...           type: int
+    ...     numbers:
+    ...       flags:
+    ...         int:
+    ...           type: int
+    ...         float:
+    ...           type: float
+    ...         number:
+    ...           type: number
+    ...     path:
+    ...       flags:
+    ...         f:
+    ...           type: path
+    ...     existing-path:
+    ...       flags:
+    ...         f:
+    ...           type: existing-path
     ... """)
 
 The function `_apply_flag_vals` mutates the operation definition,

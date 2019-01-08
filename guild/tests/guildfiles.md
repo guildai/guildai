@@ -149,10 +149,10 @@ An operation can delegate its implementation to a plugin using the
 `plugin-op` attribute. Here's a sample guildfile:
 
     >>> gf_plugin_ops = guildfile.from_string("""
-    ... model: sample
-    ... operations:
-    ...   train:
-    ...     plugin-op: foo-train
+    ... - model: sample
+    ...   operations:
+    ...     train:
+    ...       plugin-op: foo-train
     ... """)
 
 The opdef in this case will use `plugin_op` rather than `main`. Plugin
@@ -241,16 +241,16 @@ Flags can be updated using flags from another flag host.
 Consider this guildfile:
 
     >>> gf_flag_update = guildfile.from_string("""
-    ... model: sample
-    ... operations:
-    ...   a:
-    ...     flags:
-    ...       x: X1
-    ...       y: Y
-    ...   b:
-    ...     flags:
-    ...       x: x2
-    ...       z: Z
+    ... - model: sample
+    ...   operations:
+    ...     a:
+    ...       flags:
+    ...         x: X1
+    ...         y: Y
+    ...     b:
+    ...       flags:
+    ...         x: x2
+    ...         z: Z
     ... """)
 
 The two opdefs:
@@ -316,14 +316,14 @@ one of three source type attributes:
 Here's a model definition that contains various resource sources:
 
     >>> gf = guildfile.from_string("""
-    ... model: sample
-    ... resources:
-    ...   sample:
-    ...     sources:
-    ...       - foo.txt
-    ...       - file: bar.tar.gz
-    ...       - url: https://files.com/bar.tar.gz
-    ...       - operation: train/model.meta
+    ... - model: sample
+    ...   resources:
+    ...     sample:
+    ...       sources:
+    ...         - foo.txt
+    ...         - file: bar.tar.gz
+    ...         - url: https://files.com/bar.tar.gz
+    ...         - operation: train/model.meta
     ... """)
 
 Here are the associated resource sources:
@@ -340,11 +340,11 @@ file.
 At least one of the three type attributes is required:
 
     >>> guildfile.from_string("""
-    ... model: sample
-    ... resources:
-    ...   sample:
-    ...     sources:
-    ...       - foo: bar.txt
+    ... - model: sample
+    ...   resources:
+    ...     sample:
+    ...       sources:
+    ...         - foo: bar.txt
     ... """)
     Traceback (most recent call last):
     ResourceFormatError: invalid source {'foo': 'bar.txt'} in resource 'sample:sample':
@@ -353,12 +353,12 @@ At least one of the three type attributes is required:
 However, no more than one is allowed:
 
     >>> guildfile.from_string("""
-    ... model: sample
-    ... resources:
-    ...   sample:
-    ...     sources:
-    ...       - file: foo.txt
-    ...         url: http://files.com/bar.txt
+    ... - model: sample
+    ...   resources:
+    ...     sample:
+    ...       sources:
+    ...         - file: foo.txt
+    ...           url: http://files.com/bar.txt
     ... """)
     Traceback (most recent call last):
     ResourceFormatError: invalid source {'file': 'foo.txt', 'url': 'http://files.com/bar.txt'}
@@ -370,10 +370,10 @@ A list of references may be included for each model. These can be used
 to direct users to upstream sources and papers.
 
     >>> gf = guildfile.from_string("""
-    ... model: sample
-    ... references:
-    ...   - https://arxiv.org/abs/1603.05027
-    ...   - https://arxiv.org/abs/1512.03385
+    ... - model: sample
+    ...   references:
+    ...     - https://arxiv.org/abs/1603.05027
+    ...     - https://arxiv.org/abs/1512.03385
     ... """)
     >>> gf.models["sample"].references
     ['https://arxiv.org/abs/1603.05027', 'https://arxiv.org/abs/1512.03385']
@@ -1125,6 +1125,70 @@ Param values may be numbers:
 
     >>> gf.models["m"].description
     'Model 123'
+
+## Anonymous models
+
+A model named with the empty string is considered an *anonymous*
+model:
+
+    >>> gf = guildfile.from_string("""
+    ... - model: ''
+    ...   operations:
+    ...     foo: foo
+    ...     bar: bar
+    ... """)
+
+    >>> gf.models
+    {'': <guild.guildfile.ModelDef ''>}
+
+    >>> gf.models[""] == gf.default_model
+    True
+
+    >>> gf.default_model.operations
+    [<guild.guildfile.OpDef 'bar'>,
+     <guild.guildfile.OpDef 'foo'>]
+
+Anonymous models may be defined using a top-level map of operations:
+
+    >>> gf = guildfile.from_string("""
+    ... foo: foo
+    ... bar:
+    ...   description: Bar
+    ...   exec: hello
+    ... """)
+
+The model:
+
+    >>> gf.models
+    {'': <guild.guildfile.ModelDef ''>}
+
+    >>> gf.models[""] == gf.default_model
+    True
+
+Its operations:
+
+    >>> gf.default_model.operations
+    [<guild.guildfile.OpDef 'bar'>, <guild.guildfile.OpDef 'foo'>]
+
+foo:
+
+    >>> foo = gf.default_model.get_operation("foo")
+    >>> foo.description
+    ''
+    >>> foo.main
+    'foo'
+    >>> print(foo.exec_)
+    None
+
+bar:
+
+    >>> bar = gf.default_model.get_operation("bar")
+    >>> bar.description
+    'Bar'
+    >>> print(bar.main)
+    None
+    >>> bar.exec_
+    'hello'
 
 ## Projects
 
