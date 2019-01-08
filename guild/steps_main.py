@@ -46,6 +46,7 @@ class Step(object):
         "needed",
         "no_gpus",
         "opspec",
+        "opt_flag",
         "stop_after",
     )
 
@@ -242,6 +243,7 @@ def _step_options(step):
         opts.extend(["--stop-after", step.stop_after])
     if step.needed:
         opts.append("--needed")
+    # TODO: pass through opt_flag params
     return opts
 
 def _step_flag_args(step):

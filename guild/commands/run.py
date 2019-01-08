@@ -23,9 +23,6 @@ def run_params(fn):
     click_util.append_params(fn, [
         click.Argument(("flags",), metavar="[FLAG=VAL...]", nargs=-1),
         click.Option(
-            ("--optimize",),
-            help="Run operation multiple times to optimize performance."),
-        click.Option(
             ("-l", "--label"), metavar="LABEL",
             help="Set a label for the run."),
         click.Option(
@@ -45,9 +42,6 @@ def run_params(fn):
                 "be added or redefined in this operation. Cannot "
                 "be used with --restart.")),
         click.Option(
-            ("-r", "--remote"), metavar="REMOTE",
-            help="Run the operation remotely."),
-        click.Option(
             ("--restart",), metavar="RUN",
             help=(
                 "Restart RUN in-place without creating a new run. Cannot be "
@@ -64,6 +58,32 @@ def run_params(fn):
         click.Option(
             ("--no-gpus",), is_flag=True,
             help="Disable GPUs for run. Cannot be used with --gpu."),
+        click.Option(
+            ("-o", "--optimizer",), metavar="OPERATION",
+            help=(
+                "Optimize the run using OPERATION. See Optimizing "
+                "Runs for more information.")),
+        click.Option(
+            ("--minimize",), metavar="COLUMN",
+            help=(
+                "Column to minimize when running with an optimizer. See "
+                "help for compare command for details specifying a column. "
+                "May not be used with --maximize.")),
+        click.Option(
+            ("--maximize",), metavar="COLUMN",
+            help=(
+                "Column to maximize when running with an optimizer. See "
+                "help for compare command for details specifying a column. "
+                "May not be used with --minimize.")),
+        click.Option(
+            ("--max-runs",), type=int,
+            help="Maximum number of runs when running with an optimizer."),
+        click.Option(
+            ("--opt-flag",), metavar="FLAG=VAL", multiple=True,
+            help="Flag for OPTIMIZER. May be used multiple times."),
+        click.Option(
+            ("-r", "--remote"), metavar="REMOTE",
+            help="Run the operation remotely."),
         click.Option(
             ("-y", "--yes"),
             help="Do not prompt before running operation.",
@@ -197,6 +217,12 @@ def run(ctx, args):
     process. If `CUDA_VISIBLE_DEVICES` is set, using either of these
     options will cause it to be redefined for the run.
 
+    ### Optimizing runs
+
+    Use `--optimizer` to run the operation multiple times in attempt
+    to optimize a result. Use `--minimize` or `--maximize` to indicate
+    what should be optimized. Use `--max-runs` to indicate the maximum
+    number of runs the optimizer should generate.
     """
     from . import run_impl
     run_impl.main(args, ctx)
