@@ -13,7 +13,7 @@ Let's run `from-flag` twice, each time with a different message.
 
 Here are our last two:
 
-    >>> run("guild runs")
+    >>> run("guild runs", ignore="Showing the first 20")
     [1:...]   hello:from-flag  ...  completed
     [2:...]   hello:from-flag  ...  completed
     ...<exit 0>
