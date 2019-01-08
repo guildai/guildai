@@ -37,7 +37,12 @@ The operation is like any other. We can view info:
     started: ...
     stopped: ...
     run_dir: ...
-    command: ... -u .../examples/simple-mnist/train.py --epochs 1
+    command: ... -u
+      .../examples/simple-mnist/train.py
+        --batch_size 100
+        --datadir data
+        --epochs 1
+        --rundir .
     exit_status: 0
     pid:
     <exit 0>
@@ -54,7 +59,12 @@ Here are the flags:
     operation: train.py
     ...
     flags:
+      batch_size: 100
+      datadir: data
       epochs: 1
+      prepare: no
+      rundir: .
+      test: no
     <exit 0>
 
 The run writes a number of scalars, which we can view as info with the
