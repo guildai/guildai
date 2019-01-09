@@ -794,6 +794,25 @@ parameter name.
     >>> gf.default_model.description
     'Value of n is 10'
 
+Param values are passed through when they can be:
+
+Here's a case with a flag value:
+
+    >>> gf = guildfile.from_string("""
+    ... - model: m
+    ...   params:
+    ...     n: 10.0
+    ...   operations:
+    ...     o:
+    ...       flags:
+    ...         n: '{{n}}'
+    ...         n_str: n is {{n}}
+    ... """)
+
+    >>> op = gf.default_model.get_operation("o")
+    >>> pprint(op.flag_values())
+    {'n': 10.0, 'n_str': 'n is 10.0'}
+
 ### Multiple inheritance
 
 The order in which parents are listed in an extends list determines
