@@ -19,7 +19,7 @@ import click
 
 from guild import click_util
 
-@click.command()
+@click.command(hidden=True)
 @click.argument("path-or-package", required=False)
 @click.option(
     "-t", "--test", "tests",
