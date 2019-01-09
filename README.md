@@ -5,27 +5,26 @@
 
 This is the source repository for Guild AI.
 
-Guild AI is a Python application that that streamlines TensorFlow and
-Keras deep learning development. It's released under the Apache 2 open
-source license.
+Guild AI is an [open source](LICENSE.txt) toolkit, that automates and
+optimizes machine learning experiments.
+
+- Capture each run as a unique experiment
+- Compare and analyze runs to improve models
+- Automate training related operations such as data preparation and
+  test
+- Archive runs to S3 or other remote systems
+- Package and distribute models for easy reproducibility
+
+Important links:
 
 - **[Latest release on PyPI](https://pypi.python.org/pypi/guildai)**
 - **[Guild AI website](https://www.guild.ai)**
 - **[Documentation](https://www.guild.ai/docs/)**
 - **[Open issues](https://github.com/guildai/guildai/issues)**
 
-Highlights:
-
-- Automatically track training experiments
-- Compare model performance at-a-glance
-- Visualize training results with TensorBoard
-- Seamless integration with Keras models
-- Model packaging and distribution
-- Train on EC2 and backup to S3
-
 ## Requirements
 
-- Linux or Mac OS/X
+- Linux or Mac OS/X (Windows not currently supported)
 - Python 2.7 or 3 with `pip` and `virtualenv`
 - TensorFlow
 
@@ -51,8 +50,8 @@ AI](https://www.guild.ai/install).
 
 ## Task runner example
 
-Guild AI is used to automate TensorFlow training. In this example, we
-create simple project and train a model, capturing run results as
+Guild AI is used to automate training. In this example, we create
+simple project and train a model, capturing run results as
 experiments.
 
 Before proceeding, verify the following:
