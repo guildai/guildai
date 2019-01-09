@@ -38,7 +38,7 @@ Here's the default prompt, assuming we're creating the environment
 within the project directory:
 
     >>> config().prompt_params
-    [('Location', '~/SCM/guild/guild/tests/samples/projects/init-env/env'),
+    [('Location', '.../samples/projects/init-env/env'),
      ('Name', 'init-env'),
      ('Python interpreter', 'default'),
      ('Guild version', 'from source (...)'),
