@@ -41,7 +41,7 @@ within the project directory:
     [('Location', '.../samples/projects/init-env/env'),
      ('Name', 'init-env'),
      ('Python interpreter', 'default'),
-     ('Guild version', 'from source (...)'),
+     ('Guild version', '...'),
      ('Guild package requirements',
       ('Pillow',
        'pkg-a',
