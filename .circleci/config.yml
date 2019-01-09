@@ -6,7 +6,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python-2.7-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python-2.7-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo -H pip install --upgrade pip | cat
 
@@ -23,7 +23,7 @@ jobs:
           cd guild/view && npm install'
         name: Install build dependencies
     - save_cache:
-        key: linux-python-2.7-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python-2.7-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
     - run:
@@ -57,7 +57,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python-3.5-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python-3.5-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo -H pip install --upgrade pip | cat
 
@@ -74,7 +74,7 @@ jobs:
           cd guild/view && npm install'
         name: Install build dependencies
     - save_cache:
-        key: linux-python-3.5-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python-3.5-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
     - run:
@@ -108,7 +108,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - linux-python-3.6-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - linux-python-3.6-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo -H pip install --upgrade pip | cat
 
@@ -125,7 +125,7 @@ jobs:
           cd guild/view && npm install'
         name: Install build dependencies
     - save_cache:
-        key: linux-python-3.6-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: linux-python-3.6-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
     - run:
@@ -159,7 +159,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos-python-2.7-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos-python-2.7-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo -H pip install --upgrade pip | cat
 
@@ -176,7 +176,7 @@ jobs:
           cd guild/view && npm install'
         name: Install build dependencies
     - save_cache:
-        key: macos-python-2.7-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos-python-2.7-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
     - run:
@@ -210,7 +210,7 @@ jobs:
     - checkout
     - restore_cache:
         keys:
-        - macos-python-3.6-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos-python-3.6-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'brew unlink python
 
@@ -231,7 +231,7 @@ jobs:
           cd guild/view && npm install'
         name: Install build dependencies
     - save_cache:
-        key: macos-python-3.6-13-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos-python-3.6-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
     - run:
