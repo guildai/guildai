@@ -778,6 +778,22 @@ defaults for an operation. Note that `b` simply redefines the values.
     [('f1', 'Flag f1', 3), ('f2', 'Flag f2', 4)]
 
 
+### Parameters
+
+Parameters are defined in config or models. They can be used as values
+in other config using the syntax `{{NAME}}` where `NAME` is the
+parameter name.
+
+    >>> gf = guildfile.from_string("""
+    ... - model: m
+    ...   params:
+    ...     n: 10
+    ...   description: Value of n is {{n}}
+    ... """)
+
+    >>> gf.default_model.description
+    'Value of n is 10'
+
 ### Multiple inheritance
 
 The order in which parents are listed in an extends list determines
