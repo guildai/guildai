@@ -567,9 +567,11 @@ def _params(data):
     }
 
 def _resolve_param(name, params):
+    val = params[name]
+    if not isinstance(val, six.string_types):
+        return val
     iter_count = 0
     seen = set()
-    val = str(params[name])
     seen.add(val)
     # Resolve val until we get a value that we've already seen (either
     # fully resolved or a cycle). Use iter counter to guard against
@@ -701,7 +703,7 @@ def _resolve_list_param_refs(l, params):
 def _resolve_str_param_refs(s, params):
     parts = [
         part for part in
-        re.split(r"({{.+?}})", str(s))
+        re.split(r"({{.*?}})", str(s))
         if part != ""]
     resolved = [_resolve_param_ref(part, params) for part in parts]
     if len(resolved) == 1:
@@ -711,14 +713,13 @@ def _resolve_str_param_refs(s, params):
 
 def _resolve_param_ref(val, params):
     if val.startswith("{{") and val.endswith("}}"):
-        ref_name = val[2:-2]
-        try:
-            ref_val = params[ref_name]
-        except KeyError:
-            pass
-        else:
-            val = ref_val
-    return val
+        ref_name = val[2:-2].strip()
+    else:
+        return val
+    try:
+        return params[ref_name]
+    except KeyError:
+        return val
 
 def _dedup_parents(parents):
     seen = set()
