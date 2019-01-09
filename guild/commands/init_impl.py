@@ -366,7 +366,7 @@ def _pip_extra_opts(config):
 def _install_reqs(reqs, config):
     cmd_args = [_pip_bin(config.env_dir), "install"] + _pip_extra_opts(config)
     for req in reqs:
-        if os.path.exists(req):
+        if os.path.isfile(req) and _is_requirements_file(req):
             cmd_args.extend(["-r", req])
         else:
             cmd_args.append(req)
@@ -375,6 +375,11 @@ def _install_reqs(reqs, config):
         subprocess.check_call(cmd_args, env={"PATH": ""})
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
+
+def _is_requirements_file(req):
+    # Consider a requirements file if it ends in .txt or no ext
+    _, ext = os.path.splitext(req)
+    return ext.lower() in (".txt", "")
 
 def _install_guild_pkg_reqs(config):
     if config.guild_pkg_reqs:
