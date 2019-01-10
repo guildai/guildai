@@ -100,9 +100,10 @@ def _runs_filter(args):
     return var.run_filter("all", filters)
 
 def _apply_status_filter(args, filters):
+    filterable = ["running", "completed", "error", "terminated", "pending"]
     status_filters = [
         var.run_filter("attr", "status", status)
-        for status in ["running", "completed", "error", "terminated"]
+        for status in filterable
         if getattr(args, status, False)
     ]
     if status_filters:
