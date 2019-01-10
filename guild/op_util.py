@@ -24,15 +24,15 @@ import time
 
 import yaml
 
-import guild.run
 from guild import util
 from guild import binaryornot
 
 log = logging.getLogger("guild")
 
 # Legacy support for functionality moved to _api
-from guild._api import NoCurrentRun
-from guild._api import current_run
+from guild import _api
+NoCurrentRun = _api.NoCurrentRun
+current_run = _api.current_run
 
 class ArgValueError(ValueError):
 

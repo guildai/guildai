@@ -43,7 +43,7 @@ def _match_dirs(model, abs_dirs):
     if not abs_dirs:
         return True
     return any(
-        (os.path.abspath(m.modeldef.guildfile.dir) == abs_dir
+        (os.path.abspath(model.modeldef.guildfile.dir) == abs_dir
          for abs_dir in abs_dirs))
 
 def _format_model(model):
