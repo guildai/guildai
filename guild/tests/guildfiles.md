@@ -922,14 +922,10 @@ system path.
     GuildfileReferenceError: error in .../projects/extend-pkg/guild.yml:
     cannot find Guild file for package 'pkg'
 
-Next we'll add 'extend-pkg' to the system path and try again.
+Let's try again with 'extend-pkg' included in the system path:
 
-    >>> sys_path_save = sys.path
-    >>> sys.path = [extend_pkg_dir] + sys.path
-    >>> extend_pkg_dir in sys.path
-    True
-
-    >>> gf = guildfile.from_dir(extend_pkg_dir)
+    >>> with SysPath(prepend=[extend_pkg_dir]):
+    ...     gf = guildfile.from_dir(extend_pkg_dir)
 
 The Guildfile contains the two models, which both contain properties
 inherited from the package.
@@ -943,12 +939,6 @@ inherited from the package.
 
     >>> gf.models["b"].operations
     [<guild.guildfile.OpDef 'b:test'>, <guild.guildfile.OpDef 'b:train'>]
-
-Let's restore the system path:
-
-    >>> sys.path = sys_path_save
-    >>> extend_pkg_dir in sys.path
-    False
 
 ### Inheritance cycles
 
@@ -976,19 +966,11 @@ This test uses a sample project:
 
     >>> project_dir = sample("projects/inherit-and-include")
 
-We need to modify the system path to find a package referenced inthe
+We need to modify the system path to find a package referenced in the
 project:
 
-    >>> project_dir in sys.path
-    False
-    >>> sys_path_save = sys.path
-    >>> sys.path = [project_dir] + sys.path
-    >>> project_dir in sys.path
-    True
-
-We can load the project:
-
-    >>> gf = guildfile.from_dir(project_dir)
+    >>> with SysPath(prepend=[project_dir]):
+    ...     gf = guildfile.from_dir(project_dir)
 
 Models:
 
@@ -1044,12 +1026,6 @@ We expect this:
 
     >>> m3_op_flags == expected, m3_op_flags
     (True, ...)
-
-And we restore the system path.
-
-    >>> sys.path = sys_path_save
-    >>> project_dir in sys.path
-    False
 
 ### Params
 
