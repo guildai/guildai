@@ -156,7 +156,9 @@ def _test_globals():
     return {
         "Chdir": Chdir,
         "LogCapture": util.LogCapture,
+        "ModelPath": ModelPath,
         "StderrCapture": StderrCapture,
+        "SysPath": SysPath,
         "abspath": os.path.abspath,
         "basename": os.path.basename,
         "cat": cat,
@@ -284,3 +286,40 @@ class Chdir(object):
 def write(filename, contents):
     with open(filename, "w") as f:
         f.write(contents)
+
+class SysPath(object):
+
+    _sys_path0 = None
+
+    def __init__(self, path=None, prepend=None, append=None):
+        path = path if path is not None else sys.path
+        if prepend:
+            path = prepend + path
+        if append:
+            path = path + append
+        self.sys_path = path
+
+    def __enter__(self):
+        self._sys_path0 = sys.path
+        sys.path = self.sys_path
+
+    def __exit__(self, *exc):
+        assert self._sys_path0 is not None
+        sys.path = self._sys_path0
+
+class ModelPath(object):
+
+    _model_path0 = None
+
+    def __init__(self, path):
+        self.model_path = path
+
+    def __enter__(self):
+        from guild import model
+        self._model_path0 = model.get_path()
+        model.set_path(self.model_path)
+
+    def __exit__(self, *exc):
+        from guild import model
+        assert self._model_path0 is not None
+        model.set_path(self._model_path0)

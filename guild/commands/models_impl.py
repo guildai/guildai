@@ -32,14 +32,19 @@ def main(args):
         detail=(["source", "operations", "details"] if args.verbose else [])
     )
 
-def iter_models(dirs):
+def iter_models(dirs=None):
+    dirs = dirs or []
     abs_dirs = [os.path.abspath(d) for d in dirs]
     for m in model.iter_models():
-        if not abs_dirs:
+        if m.modeldef.name and _match_dirs(m, abs_dirs):
             yield m
-        if any((os.path.abspath(m.modeldef.guildfile.dir) == abs_dir
-                for abs_dir in abs_dirs)):
-            yield m
+
+def _match_dirs(model, abs_dirs):
+    if not abs_dirs:
+        return True
+    return any(
+        (os.path.abspath(m.modeldef.guildfile.dir) == abs_dir
+         for abs_dir in abs_dirs))
 
 def _format_model(model):
     modeldef = model.modeldef
