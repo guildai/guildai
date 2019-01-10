@@ -41,7 +41,7 @@ class Config(object):
         self.env_name = self._init_env_name(args.name, self.env_dir)
         self.guild = args.guild
         self.user_reqs = self._init_user_reqs(args)
-        self.guild_pkg_reqs = self._init_guild_pkg_reqs(args, self.user_reqs)
+        self.guild_pkg_reqs = self._init_guild_pkg_reqs(args)
         self.venv_python = self._init_venv_python(args, self.user_reqs)
         self.paths = args.path
         self.tensorflow_package = self._init_tensorflow_package(args)
@@ -65,7 +65,7 @@ class Config(object):
         return _suggest_python_interpreter(user_reqs)
 
     @staticmethod
-    def _init_guild_pkg_reqs(args, user_reqs):
+    def _init_guild_pkg_reqs(args):
         if args.no_reqs:
             return ()
         reqs = list(_iter_all_guild_pkg_reqs(config.cwd(), args.path))
