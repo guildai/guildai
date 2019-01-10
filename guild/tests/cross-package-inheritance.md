@@ -40,15 +40,17 @@ system path. Without including it, we get an error when we try to load
     .../samples/projects/cross-package-inherits/b/guild.yml: cannot
     find Guild file for package 'a'
 
-Let's modify the system path to include our sample projects:
+Let's create a context manager to modify the system path to include
+our projects directory as we load models:
 
-    >>> import sys
-    >>> sys_path_save = sys.path
-    >>> sys.path = [projects] + sys.path
+    >>> projects_sys_path = SysPath(prepend=[projects])
 
-We can now load `b`:
+We can use the project sys path now to successfully load models:
 
-    >>> gf_b = guildfile.from_dir(join_path(projects, "b"))
+    >>> with projects_sys_path:
+    ...    gf_b = guildfile.from_dir(join_path(projects, "b"))
+
+And the models:
 
     >>> gf_b.models
     {'model': <guild.guildfile.ModelDef 'model'>}
@@ -60,7 +62,8 @@ Model `b` parents include the Guildfile defining `a`:
 
 Package `c` in turn defines a model that extends `b/model`.
 
-    >>> gf_c = guildfile.from_dir(join_path(projects, "c"))
+    >>> with projects_sys_path:
+    ...     gf_c = guildfile.from_dir(join_path(projects, "c"))
 
     >>> gf_c.models
     {'model': <guild.guildfile.ModelDef 'model'>}
@@ -72,12 +75,14 @@ Package `c` in turn defines a model that extends `b/model`.
 There are two additional packages, which extend one another, creating
 a cycle:
 
-    >>> guildfile.from_dir(join_path(projects, "cycle_a"))
+    >>> with projects_sys_path:
+    ...     guildfile.from_dir(join_path(projects, "cycle_a"))
     Traceback (most recent call last):
     GuildfileCycleError: error in .../cross-package-inherits/cycle_a/guild.yml:
     cycle in 'extends' (cycle_b/model -> cycle_a/model -> cycle_b/model)
 
-    >>> guildfile.from_dir(join_path(projects, "cycle_b"))
+    >>> with projects_sys_path:
+    ...     guildfile.from_dir(join_path(projects, "cycle_b"))
     Traceback (most recent call last):
     GuildfileCycleError: error in .../cross-package-inherits/cycle_b/guild.yml:
     cycle in 'extends' (cycle_a/model -> cycle_b/model -> cycle_a/model)
@@ -174,9 +179,3 @@ Next we'll run `c/model:test`:
     Resolving msg_file dependency
     Hello from c/model
     File from model/c
-
-## Cleaup
-
-Restore the system path:
-
-    >>> sys.path = sys_path_save

@@ -108,23 +108,18 @@ system path:
     cannot find include 'mnist-pkg' (includes must be local to including Guild
     file or a Guild package on the system path)
 
-We'll modify the system path to so Guild can find the `mnist` package.
+Let's load `include-pkg.yml` with a modified system path, so we can
+find the `mnist` package:
 
-    >>> import sys
-    >>> sys_path_save = sys.path
-    >>> sys.path = [sample("projects")] + sys.path
+    >>> with SysPath(prepend=[sample("projects")]):
+    ...    gf = guildfile.from_file(sample("projects/includes/include-pkg.yml"))
 
-Now we can load `include-pkg.yml`:
+And the models:
 
-    >>> gf = guildfile.from_file(sample("projects/includes/include-pkg.yml"))
     >>> pprint(gf.models)
     {'b': <guild.guildfile.ModelDef 'b'>,
      'expert': <guild.guildfile.ModelDef 'expert'>,
      'intro': <guild.guildfile.ModelDef 'intro'>}
-
-Let's restore the system path:
-
-    >>> sys.path = sys_path_save
 
 ## Bad includes
 

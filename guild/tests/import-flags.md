@@ -48,22 +48,17 @@ flags could not be imported:
     >>> gf.models["test"].get_operation("import-1").flags
     []
 
-Let's now include the project directory in the system path:
-
-    >>> import sys
-    >>> sys_path_save = sys.path
-    >>> sys.path = [project_dir] + sys.path
-
-And load the Guild file again (we set NO_IMPORT_FLAGS_PROGRESS to
-squelch any progress messages to the user):
+Let's now include the project directory in the system path. First
+we'll set NO_IMPORT_FLAGS_PROGRESS to squelch any progress messages to
+the user:
 
     >>> import os
     >>> os.environ["NO_IMPORT_FLAGS_PROGRESS"] = "1"
-    >>> gf = guildfile.from_dir(project_dir, no_cache=True)
 
-We won't load anymore Guild files so we can restore the system path:
+Next load with the modified system path:
 
-    >>> sys.path = sys_path_save
+    >>> with SysPath(prepend=[project_dir]):
+    ...    gf = guildfile.from_dir(project_dir, no_cache=True)
 
 The flags for `import-1` are now:
 
