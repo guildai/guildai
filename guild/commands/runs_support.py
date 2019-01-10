@@ -118,6 +118,10 @@ def status_filters(fn):
             ("-T", "--terminated"),
             help="Include only runs terminated by the user.",
             is_flag=True),
+        click.Option(
+            ("-P", "--pending"),
+            help="Include only pending runs.",
+            is_flag=True),
     ])
     return fn
 
