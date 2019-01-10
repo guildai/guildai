@@ -103,34 +103,6 @@ def one_run(run_id_prefix, ctx):
     runs_impl.init_opref_attr(run)
     return run
 
-def _apply_opdef_args(opdef, args):
-    if args.set_trace:
-        opdef.set_trace = True
-
-def _dispatch_cmd(args, opdef, model, ctx):
-    if args.help_model:
-        _print_model_help(model)
-    elif args.help_op:
-        _print_op_help(opdef)
-    else:
-        _dispatch_op_cmd(opdef, model, args, ctx)
-
-def _dispatch_op_cmd(opdef, model, args, ctx):
-    try:
-        op = _init_op(opdef, model, args, ctx)
-    except guild.op.InvalidOpSpec as e:
-        _invalid_op_spec_error(e, opdef)
-    else:
-        if args.print_cmd:
-            _print_cmd(op)
-        elif args.print_env:
-            _print_env(op)
-        else:
-            _maybe_run(op, model, args)
-
-def _invalid_op_spec_error(e, opdef):
-    cli.error("operation '%s' is not valid: %s" % (opdef.fullname, e))
-
 def _resolve_model_op(opspec):
     proxy_model_op = _proxy_model_op(opspec)
     try:
@@ -155,43 +127,7 @@ def _proxy_model_op(opspec):
     try:
         return model_proxies.resolve_model_op(opspec)
     except model_proxies.NotSupported:
-        None
-
-"""
-def _resolve_optimizer_model_op(optimize):
-    config = _optimizer_config(optimize)
-    try:
-        return model_proxies.optimizer_model_op(config)
-    except ValueError as e:
-        cli.error("cannot optimize with the specified config: %s" % e)
-    except model_proxies.NotSupported:
-        if os.path.isfile(optimize):
-            method = config.get("method")
-            assert method, config
-            cli.error(
-                "optimize method %s defined in %s is not supported"
-                % (method, optimize))
-        else:
-            cli.error("optimize method %s is not supported" % optimize)
-
-def _optimizer_config(spec):
-    if os.path.isfile(spec):
-        return _load_optimizer_config(spec)
-    else:
-        return _default_optimizer_config(spec)
-
-def _load_optimizer_config(path):
-    try:
-        return yaml.safe_load(open(path, "r"))
-    except (IOError, yaml.YAMLError) as e:
-        cli.error("error loading %s: %s" % path, e)
-
-def _default_optimizer_config(spec):
-    return {
-        "method": spec
-    }
-
-"""
+        return None
 
 def _default_model_op(opspec):
     model_ref, op_name = _parse_opspec(opspec)
@@ -272,6 +208,17 @@ def _model_by_name(name, models):
             return model
     return None
 
+def _multiple_models_error(model_ref, models):
+    models_list = "\n".join([
+        "  %s" % name
+        for name in sorted([m.fullname for m in models])
+    ])
+    cli.error(
+        "there are multiple models that match '%s'\n"
+        "Try specifying one of the following:\n"
+        "%s"
+        % (model_ref, models_list))
+
 def _no_model_error(model_ref):
     if model_ref is None:
         cli.error(
@@ -284,17 +231,6 @@ def _no_model_error(model_ref):
             "cannot find a model matching '%s'\n"
             "Try 'guild models' for a list of available models."
             % model_ref)
-
-def _multiple_models_error(model_ref, models):
-    models_list = "\n".join([
-        "  %s" % name
-        for name in sorted([m.fullname for m in models])
-    ])
-    cli.error(
-        "there are multiple models that match '%s'\n"
-        "Try specifying one of the following:\n"
-        "%s"
-        % (model_ref, models_list))
 
 def _resolve_opdef(name, model):
     opdef = model.modeldef.get_operation(name)
@@ -326,6 +262,115 @@ def _no_such_operation_error(name, model):
         "operation '%s' is not defined for model '%s'\n"
         "Try 'guild operations %s' for a list of available operations."
         % (name, model.name, model.name))
+
+def _apply_opdef_args(opdef, args):
+    if args.set_trace:
+        opdef.set_trace = True
+
+def _dispatch_cmd(args, opdef, model, ctx):
+    if args.help_model:
+        _print_model_help(model)
+    elif args.help_op:
+        _print_op_help(opdef)
+    else:
+        _dispatch_op_cmd(opdef, model, args, ctx)
+
+def _print_model_help(model):
+    out = click.HelpFormatter()
+    out.write_usage(
+        "guild",
+        "run [OPTIONS] {}:OPERATION [FLAG]...".format(model.modeldef.name))
+    if model.modeldef.description:
+        out.write_paragraph()
+        out.write_text(model.modeldef.description.replace("\n", "\n\n"))
+    out.write_paragraph()
+    out.write_text(
+        "Use 'guild run {}:OPERATION --help-op' for help on "
+        "a particular operation.".format(model.modeldef.name))
+    ops = _format_model_ops_dl(model)
+    if ops:
+        _write_dl_section("Operations", ops, out)
+    resources = _format_model_resources_dl(model)
+    if resources:
+        _write_dl_section("Resources", resources, out)
+    click.echo(out.getvalue(), nl=False)
+
+def _format_model_ops_dl(model):
+    line1 = lambda s: s.split("\n")[0]
+    return [
+        (op.name, line1(op.description or ""))
+        for op in model.modeldef.operations
+    ]
+
+def _format_model_resources_dl(model):
+    return [(res.name, res.description) for res in model.modeldef.resources]
+
+def _write_dl_section(name, dl, out):
+    out.write_paragraph()
+    out.write_heading(name)
+    out.indent()
+    out.write_dl(dl, preserve_paragraphs=True)
+    out.dedent()
+
+def _print_op_help(opdef):
+    out = click.HelpFormatter()
+    out.write_usage(
+        "guild",
+        "run [OPTIONS] {} [FLAG]...".format(opdef.fullname))
+    if opdef.description:
+        out.write_paragraph()
+        out.write_text(opdef.description.replace("\n", "\n\n"))
+    out.write_paragraph()
+    out.write_text("Use 'guild run --help' for a list of options.")
+    deps = _format_op_deps_dl(opdef)
+    if deps:
+        _write_dl_section("Dependencies", deps, out)
+    flags = _format_op_flags_dl(opdef)
+    if flags:
+        _write_dl_section("Flags", flags, out)
+    click.echo(out.getvalue(), nl=False)
+
+def _format_op_deps_dl(opdef):
+    model_resources = {
+        res.name: res.description or ""
+        for res in opdef.modeldef.resources
+    }
+    formatted = [
+        (dep.spec, _dep_description(dep, model_resources))
+        for dep in opdef.dependencies
+    ]
+    # Show only deps that have descriptions (implicit user interface)
+    return [item for item in formatted if item[1]]
+
+def _dep_description(dep, model_resources):
+    return dep.description or model_resources.get(dep.spec) or ""
+
+def _format_op_flags_dl(opdef):
+    seen = set()
+    flags = []
+    for flag in opdef.flags:
+        if flag.name in seen:
+            continue
+        seen.add(flag.name)
+        flags.append(flag)
+    return guild.help.flags_dl(flags)
+
+def _print_cmd(op):
+    formatted = " ".join(_preview_cmd(op))
+    cli.out(formatted)
+
+def _dispatch_op_cmd(opdef, model, args, ctx):
+    try:
+        op = _init_op(opdef, model, args, ctx)
+    except guild.op.InvalidOpSpec as e:
+        _invalid_op_spec_error(e, opdef)
+    else:
+        if args.print_cmd:
+            _print_cmd(op)
+        elif args.print_env:
+            _print_env(op)
+        else:
+            _maybe_run(op, model, args)
 
 def _init_op(opdef, model, args, ctx):
     parsed = _parse_args(args)
@@ -436,17 +481,6 @@ def _apply_arg_disable_plugins(args, opdef):
             name.strip() for name in args.disable_plugins.split(",")
         ])
 
-def _init_resource_config(args):
-    return dict(args.resource_config)
-
-def _op_extra_attrs(args):
-    attrs = {}
-    if args.label:
-        attrs["label"] = args.label
-    if args.no_wait:
-        attrs["_no-wait"] = True
-    return attrs
-
 def _op_run_dir(args, ctx):
     if args.run_dir and args.restart:
         cli.error(
@@ -473,6 +507,14 @@ def _op_run_dir(args, ctx):
     else:
         return None
 
+def _op_extra_attrs(args):
+    attrs = {}
+    if args.label:
+        attrs["label"] = args.label
+    if args.no_wait:
+        attrs["_no-wait"] = True
+    return attrs
+
 def _op_gpus(args, ctx):
     if args.no_gpus and args.gpus is not None:
         cli.error(
@@ -485,89 +527,8 @@ def _op_gpus(args, ctx):
         return args.gpus
     return None # use all available (default)
 
-def _print_model_help(model):
-    out = click.HelpFormatter()
-    out.write_usage(
-        "guild",
-        "run [OPTIONS] {}:OPERATION [FLAG]...".format(model.modeldef.name))
-    if model.modeldef.description:
-        out.write_paragraph()
-        out.write_text(model.modeldef.description.replace("\n", "\n\n"))
-    out.write_paragraph()
-    out.write_text(
-        "Use 'guild run {}:OPERATION --help-op' for help on "
-        "a particular operation.".format(model.modeldef.name))
-    ops = _format_model_ops_dl(model)
-    if ops:
-        _write_dl_section("Operations", ops, out)
-    resources = _format_model_resources_dl(model)
-    if resources:
-        _write_dl_section("Resources", resources, out)
-    click.echo(out.getvalue(), nl=False)
-
-def _format_model_ops_dl(model):
-    line1 = lambda s: s.split("\n")[0]
-    return [
-        (op.name, line1(op.description or ""))
-        for op in model.modeldef.operations
-    ]
-
-def _format_model_resources_dl(model):
-    return [(res.name, res.description) for res in model.modeldef.resources]
-
-def _write_dl_section(name, dl, out):
-    out.write_paragraph()
-    out.write_heading(name)
-    out.indent()
-    out.write_dl(dl, preserve_paragraphs=True)
-    out.dedent()
-
-def _print_op_help(opdef):
-    out = click.HelpFormatter()
-    out.write_usage(
-        "guild",
-        "run [OPTIONS] {} [FLAG]...".format(opdef.fullname))
-    if opdef.description:
-        out.write_paragraph()
-        out.write_text(opdef.description.replace("\n", "\n\n"))
-    out.write_paragraph()
-    out.write_text("Use 'guild run --help' for a list of options.")
-    deps = _format_op_deps_dl(opdef)
-    if deps:
-        _write_dl_section("Dependencies", deps, out)
-    flags = _format_op_flags_dl(opdef)
-    if flags:
-        _write_dl_section("Flags", flags, out)
-    click.echo(out.getvalue(), nl=False)
-
-def _format_op_deps_dl(opdef):
-    model_resources = {
-        res.name: res.description or ""
-        for res in opdef.modeldef.resources
-    }
-    formatted = [
-        (dep.spec, _dep_description(dep, model_resources))
-        for dep in opdef.dependencies
-    ]
-    # Show only deps that have descriptions (implicit user interface)
-    return [item for item in formatted if item[1]]
-
-def _dep_description(dep, model_resources):
-    return dep.description or model_resources.get(dep.spec) or ""
-
-def _format_op_flags_dl(opdef):
-    seen = set()
-    flags = []
-    for flag in opdef.flags:
-        if flag.name in seen:
-            continue
-        seen.add(flag.name)
-        flags.append(flag)
-    return guild.help.flags_dl(flags)
-
-def _print_cmd(op):
-    formatted = " ".join(_preview_cmd(op))
-    cli.out(formatted)
+def _invalid_op_spec_error(e, opdef):
+    cli.error("operation '%s' is not valid: %s" % (opdef.fullname, e))
 
 def _preview_cmd(op):
     # Remove guild.op_main from preview cmd
@@ -584,6 +545,75 @@ def _maybe_run(op, model, args):
     _maybe_warn_no_wait(op.opdef, args)
     if args.yes or _confirm_run(op, model, args):
         _run(op, model, args)
+
+def _maybe_warn_no_wait(opdef, args):
+    if args.no_wait and not (args.remote or opdef.remote):
+        cli.note("Operation is local, ignoring --no-wait")
+
+def _confirm_run(op, model, args):
+    if args.stage:
+        action = "stage"
+    else:
+        action = "run"
+    op_desc = operations_impl.format_op_fullname(
+        op.opdef.name, model.fullname)
+    if args.remote:
+        remote_suffix = " on %s" % args.remote
+    else:
+        remote_suffix = ""
+    flags = util.resolve_all_refs(op.opdef.flag_values(include_none=True))
+    resources = op.resource_config
+    prompt = (
+        "You are about to {action} {op_desc}{remote_suffix}\n"
+        "{flags}"
+        "{resources}"
+        "Continue?"
+        .format(
+            action=action,
+            op_desc=op_desc,
+            remote_suffix=remote_suffix,
+            flags=_format_op_flags(flags, op.opdef),
+            resources=_format_op_resources(resources)))
+    return cli.confirm(prompt, default=True)
+
+def _format_op_flags(flags, opdef):
+    if not flags:
+        return ""
+    return "\n".join([
+        "  %s" % _format_flag(name, flags[name], opdef)
+        for name in sorted(flags)
+    ]) + "\n"
+
+def _format_flag(name, val, opdef):
+    if val is None:
+        formatted = _null_label(name, opdef)
+    else:
+        formatted = _format_flag_val(val)
+    return "%s: %s" % (name, formatted)
+
+def _null_label(name, opdef):
+    flag = opdef.get_flagdef(name)
+    if flag and flag.null_label is not None:
+        return _format_flag_val(flag.null_label)
+    return "default"
+
+def _format_flag_val(val):
+    if val is True:
+        return "yes"
+    elif val is False:
+        return "no"
+    elif val is None:
+        return ""
+    else:
+        return str(val)
+
+def _format_op_resources(resources):
+    if not resources:
+        return ""
+    return "\n".join([
+        "  %s: %s" % (spec, resources[spec])
+        for spec in sorted(resources)
+    ]) + "\n"
 
 def _run(op, model, args):
     if args.remote:
@@ -671,72 +701,3 @@ def _print_staged_info(op):
         "(cd %s && source .guild/env && %s)"
         % (op.run_dir, op.run_dir, cmd)
     )
-
-def _confirm_run(op, model, args):
-    if args.stage:
-        action = "stage"
-    else:
-        action = "run"
-    op_desc = operations_impl.format_op_fullname(
-        op.opdef.name, model.fullname)
-    if args.remote:
-        remote_suffix = " on %s" % args.remote
-    else:
-        remote_suffix = ""
-    flags = util.resolve_all_refs(op.opdef.flag_values(include_none=True))
-    resources = op.resource_config
-    prompt = (
-        "You are about to {action} {op_desc}{remote_suffix}\n"
-        "{flags}"
-        "{resources}"
-        "Continue?"
-        .format(
-            action=action,
-            op_desc=op_desc,
-            remote_suffix=remote_suffix,
-            flags=_format_op_flags(flags, op.opdef),
-            resources=_format_op_resources(resources)))
-    return cli.confirm(prompt, default=True)
-
-def _format_op_flags(flags, opdef):
-    if not flags:
-        return ""
-    return "\n".join([
-        "  %s" % _format_flag(name, flags[name], opdef)
-        for name in sorted(flags)
-    ]) + "\n"
-
-def _format_flag(name, val, opdef):
-    if val is None:
-        formatted = _null_label(name, opdef)
-    else:
-        formatted = _format_flag_val(val)
-    return "%s: %s" % (name, formatted)
-
-def _null_label(name, opdef):
-    flag = opdef.get_flagdef(name)
-    if flag and flag.null_label is not None:
-        return _format_flag_val(flag.null_label)
-    return "default"
-
-def _format_flag_val(val):
-    if val is True:
-        return "yes"
-    elif val is False:
-        return "no"
-    elif val is None:
-        return ""
-    else:
-        return str(val)
-
-def _format_op_resources(resources):
-    if not resources:
-        return ""
-    return "\n".join([
-        "  %s: %s" % (spec, resources[spec])
-        for spec in sorted(resources)
-    ]) + "\n"
-
-def _maybe_warn_no_wait(opdef, args):
-    if args.no_wait and not (args.remote or opdef.remote):
-        cli.note("Operation is local, ignoring --no-wait")
