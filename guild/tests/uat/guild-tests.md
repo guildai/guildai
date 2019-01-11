@@ -6,6 +6,7 @@ tests).
 
     >>> run("guild check -nT") # doctest: +REPORT_UDIFF
     internal tests:
+      anonymous-models:          ok
       config:                    ok
       copy-source:               ok
       cpu-plugin:                ok
@@ -34,7 +35,9 @@ tests).
       python-utils:              ok
       query-parser:              ok
       run-flags:                 ok
+      run-ops:                   ok
       run-output:                ok
+      run-scripts:               ok
       runs:                      ok
       steps:                     ok
       tables:                    ok

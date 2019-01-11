@@ -13,7 +13,7 @@ We'll use the `run-scripts` sample project:
 Here are the files in the project:
 
     >>> for name in dir(project):
-    ...   if not name.endswith(".pyc"):
+    ...   if not name.endswith(".pyc") and name != "__pycache__":
     ...     print(name)
     guild.yml
     say

@@ -8,5 +8,5 @@ If there is no default model, Guild prints an error message and exits.
 
     >>> run("guild run train")
     guild: a model is required for this operation
-    Try 'guild operations' for a list of model-qualified operations
+    Try 'guild operations' for a list of operations
     <exit 1>

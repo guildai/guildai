@@ -75,7 +75,7 @@ Running a non-existing operation with a model spec:
 
     >>> resolve_model_op(["__no_exists__:train"])
     Traceback (most recent call last):
-    SystemExit: (u"cannot find a model matching '__no_exists__'\nTry
+    SystemExit: (..."cannot find a model matching '__no_exists__'\nTry
     'guild models' for a list of available models.", 1)
 
 ## Op for a Python script
@@ -98,11 +98,13 @@ We'll resolve the operation, capturing any warnings:
     >>> model.modeldef.operations
     [<guild.guildfile.OpDef 'train.py'>]
 
-For the record, our warnings (just ignore):
+Ignore any warnings:
 
-    >>> log.print_all()
-    WARNING: cannot import flags from train.py: ...
-    No module named guild.plugins
+    >>> logs = log.get_all()
+    >>> assert (not logs or
+    ...         len(logs) == 1 and
+    ...         logs[0].getMessage().startswith(
+    ...            "cannot import flags from train.py")), logs
 
 ## Op for a shell script
 
@@ -138,3 +140,5 @@ And resolve again:
 ## Op for batches
 
 Markdown finished at Fri Jan 11 12:39:39
+
+Markdown finished at Fri Jan 11 13:04:12
