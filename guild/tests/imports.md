@@ -23,6 +23,8 @@
     guild._lex
     guild._test
     guild._yacc
+    guild.batch
+    guild.batch_main
     guild.binaryornot
     guild.cli
     guild.click_util

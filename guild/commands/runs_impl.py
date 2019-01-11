@@ -313,6 +313,8 @@ def format_op_desc(opref, nowarn=False):
         return _format_package_op(opref)
     elif opref.pkg_type == "script":
         return _format_script_op(opref)
+    elif opref.pkg_type == "batch":
+        return _format_batch_op(opref)
     elif opref.pkg_type == "pending":
         return _format_pending_op(opref)
     else:
@@ -347,6 +349,9 @@ def _format_package_op(opref):
     return "%s/%s:%s" % (opref.pkg_name, opref.model_name, opref.op_name)
 
 def _format_script_op(opref):
+    return opref.op_name
+
+def _format_batch_op(opref):
     return opref.op_name
 
 def _format_pending_op(opref):
