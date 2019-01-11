@@ -25,6 +25,7 @@ import guild.help
 import guild.op
 import guild.plugin
 
+from guild import batch
 from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
@@ -32,6 +33,7 @@ from guild import deps
 from guild import model as modellib
 from guild import model_proxies
 from guild import op_util
+from guild import opref as opreflib
 from guild import resolver
 from guild import util
 from guild import var
@@ -43,12 +45,21 @@ from . import runs_impl
 log = logging.getLogger("guild")
 
 def main(args, ctx):
+    """Main function for run command implementation.
+
+    The main function follows this sequence:
+
+    - Resolve the operation being run
+    - Generate a modified opdef with any specified arguments (flags,
+      etc.)
+    - Dispatch the command to either print opdef info or actually run
+      the operation
+
+    """
     _check_opspec_args(args, ctx)
     _apply_restart_or_rerun_args(args, ctx)
-    assert args.opspec
-    model, op_name = _resolve_model_op(args.opspec)
+    model, op_name = _resolve_model_op(args)
     opdef = _resolve_opdef(op_name, model)
-    _apply_opdef_args(opdef, args)
     _dispatch_cmd(args, opdef, model, ctx)
 
 def _check_opspec_args(args, ctx):
@@ -103,10 +114,11 @@ def one_run(run_id_prefix, ctx):
     runs_impl.init_opref_attr(run)
     return run
 
-def _resolve_model_op(opspec):
-    proxy_model_op = _proxy_model_op(opspec)
+def _resolve_model_op(args):
+    assert args.opspec
+    proxy_model_op = _proxy_model_op(args.opspec)
     try:
-        model, op_name = _default_model_op(opspec)
+        model, op_name = _default_model_op(args.opspec)
     except SystemExit:
         # SystemExit raised by default model resolution process
         # (e.g. cli.error message). Before exiting, check for a model
@@ -263,47 +275,43 @@ def _no_such_operation_error(name, model):
         "Try 'guild operations %s' for a list of available operations."
         % (name, model.name, model.name))
 
-def _apply_opdef_args(opdef, args):
-    if args.set_trace:
-        opdef.set_trace = True
-
 def _dispatch_cmd(args, opdef, model, ctx):
     if args.help_model:
-        _print_model_help(model)
+        _print_model_help(opdef.modeldef)
     elif args.help_op:
         _print_op_help(opdef)
     else:
         _dispatch_op_cmd(opdef, model, args, ctx)
 
-def _print_model_help(model):
+def _print_model_help(modeldef):
     out = click.HelpFormatter()
     out.write_usage(
         "guild",
-        "run [OPTIONS] {}:OPERATION [FLAG]...".format(model.modeldef.name))
-    if model.modeldef.description:
+        "run [OPTIONS] {}:OPERATION [FLAG]...".format(modeldef.name))
+    if modeldef.description:
         out.write_paragraph()
-        out.write_text(model.modeldef.description.replace("\n", "\n\n"))
+        out.write_text(modeldef.description.replace("\n", "\n\n"))
     out.write_paragraph()
     out.write_text(
         "Use 'guild run {}:OPERATION --help-op' for help on "
-        "a particular operation.".format(model.modeldef.name))
-    ops = _format_model_ops_dl(model)
+        "a particular operation.".format(modeldef.name))
+    ops = _format_model_ops_dl(modeldef)
     if ops:
         _write_dl_section("Operations", ops, out)
-    resources = _format_model_resources_dl(model)
+    resources = _format_model_resources_dl(modeldef)
     if resources:
         _write_dl_section("Resources", resources, out)
     click.echo(out.getvalue(), nl=False)
 
-def _format_model_ops_dl(model):
+def _format_model_ops_dl(modeldef):
     line1 = lambda s: s.split("\n")[0]
     return [
         (op.name, line1(op.description or ""))
-        for op in model.modeldef.operations
+        for op in modeldef.operations
     ]
 
-def _format_model_resources_dl(model):
-    return [(res.name, res.description) for res in model.modeldef.resources]
+def _format_model_resources_dl(modeldef):
+    return [(res.name, res.description) for res in modeldef.resources]
 
 def _write_dl_section(name, dl, out):
     out.write_paragraph()
@@ -360,8 +368,12 @@ def _print_cmd(op):
     cli.out(formatted)
 
 def _dispatch_op_cmd(opdef, model, args, ctx):
+    (flag_vals,
+     resource_config,
+     batch_files) = _split_flag_args(args.flags, opdef)
+    _apply_opdef_args(opdef, flag_vals, args)
     try:
-        op = _init_op(opdef, model, args, ctx)
+        op = _init_op(opdef, model, resource_config, batch_files, args, ctx)
     except guild.op.InvalidOpSpec as e:
         _invalid_op_spec_error(e, opdef)
     else:
@@ -372,26 +384,25 @@ def _dispatch_op_cmd(opdef, model, args, ctx):
         else:
             _maybe_run(op, model, args)
 
-def _init_op(opdef, model, args, ctx):
-    parsed = _parse_args(args)
-    flag_vals, resource_vals = _split_flags_and_resources(parsed, opdef)
-    _apply_flag_vals(flag_vals, opdef, args.force_flags)
-    if not args.force_flags:
-        _validate_opdef_flags(opdef)
-    _apply_arg_disable_plugins(args, opdef)
-    return guild.op.Operation(
-        model.reference,
-        opdef,
-        _op_run_dir(args, ctx),
-        resource_vals,
-        _op_extra_attrs(args),
-        args.stage,
-        _op_gpus(args, ctx)
-    )
+def _split_flag_args(flag_args, opdef):
+    batch_files, rest_args = _split_batch_files(flag_args)
+    assigns = _parse_assigns(rest_args)
+    flags, resources = _split_flags_and_resources(assigns, opdef)
+    return flags, resources, batch_files
 
-def _parse_args(args):
+def _split_batch_files(flag_args):
+    batch_files = []
+    rest = []
+    for arg in flag_args:
+        if arg[:1] == "@":
+            batch_files.append(arg[1:])
+        else:
+            rest.append(arg)
+    return batch_files, rest
+
+def _parse_assigns(assign_args):
     try:
-        return op_util.parse_flags(args.flags)
+        return op_util.parse_flags(assign_args)
     except op_util.ArgValueError as e:
         cli.error("invalid argument '%s' - expected NAME=VAL" % e.arg)
 
@@ -419,7 +430,14 @@ def _is_resource(name, opdef, ref_vars):
             return True
     return False
 
-def _apply_flag_vals(vals, opdef, force=False):
+def _apply_opdef_args(opdef, flag_vals, args):
+    _apply_flag_vals(flag_vals, opdef, args.force_flags)
+    if not args.force_flags:
+        _validate_opdef_flags(opdef)
+    _apply_arg_disable_plugins(args, opdef)
+    opdef.set_trace = args.set_trace
+
+def _apply_flag_vals(vals, opdef, force):
     for name, val in vals.items():
         flag = opdef.get_flagdef(name)
         if not force and not flag:
@@ -481,6 +499,18 @@ def _apply_arg_disable_plugins(args, opdef):
             name.strip() for name in args.disable_plugins.split(",")
         ])
 
+def _init_op(opdef, model, resource_config, batch_files, args, ctx):
+    opref = opreflib.OpRef.from_op(opdef.name, model.reference)
+    op = guild.op.Operation(
+        opref, opdef,
+        _op_run_dir(args, ctx),
+        resource_config,
+        _op_extra_attrs(args),
+        args.stage,
+        _op_gpus(args, ctx)
+    )
+    return _maybe_batch(op, batch_files)
+
 def _op_run_dir(args, ctx):
     if args.run_dir and args.restart:
         cli.error(
@@ -530,6 +560,12 @@ def _op_gpus(args, ctx):
 def _invalid_op_spec_error(e, opdef):
     cli.error("operation '%s' is not valid: %s" % (opdef.fullname, e))
 
+def _maybe_batch(op, batch_files):
+    batch_op = batch.for_op(op, batch_files)
+    if batch_op:
+        return batch_op
+    return op
+
 def _preview_cmd(op):
     # Remove guild.op_main from preview cmd
     return [
@@ -551,36 +587,46 @@ def _maybe_warn_no_wait(opdef, args):
         cli.note("Operation is local, ignoring --no-wait")
 
 def _confirm_run(op, model, args):
-    if args.stage:
-        action = "stage"
-    else:
-        action = "run"
-    op_desc = operations_impl.format_op_fullname(
-        op.opdef.name, model.fullname)
-    if args.remote:
-        remote_suffix = " on %s" % args.remote
-    else:
-        remote_suffix = ""
-    flags = util.resolve_all_refs(op.opdef.flag_values(include_none=True))
-    resources = op.resource_config
     prompt = (
         "You are about to {action} {op_desc}{remote_suffix}\n"
         "{flags}"
         "{resources}"
         "Continue?"
         .format(
-            action=action,
-            op_desc=op_desc,
-            remote_suffix=remote_suffix,
-            flags=_format_op_flags(flags, op.opdef),
-            resources=_format_op_resources(resources)))
+            action=_action_desc(args),
+            op_desc=_op_desc(op, model),
+            remote_suffix=_remote_suffix(args),
+            flags=_format_op_flags(op),
+            resources=_format_op_resources(op.resource_config)))
     return cli.confirm(prompt, default=True)
 
-def _format_op_flags(flags, opdef):
+def _action_desc(args):
+    if args.stage:
+        return "stage"
+    return "run"
+
+def _op_desc(op, model):
+    if isinstance(op, batch.Batch):
+        batch_prefix = "a batch of "
+        op = op.child_op
+    else:
+        batch_prefix = ""
+    op_name = operations_impl.format_op_fullname(op.opdef.name, model.fullname)
+    return "{}{}".format(batch_prefix, op_name)
+
+def _remote_suffix(args):
+    if args.remote:
+        return " on %s" % args.remote
+    return ""
+
+def _format_op_flags(op):
+    if isinstance(op, batch.Batch):
+        op = op.child_op
+    flags = util.resolve_all_refs(op.opdef.flag_values(include_none=True))
     if not flags:
         return ""
     return "\n".join([
-        "  %s" % _format_flag(name, flags[name], opdef)
+        "  %s" % _format_flag(name, flags[name], op.opdef)
         for name in sorted(flags)
     ]) + "\n"
 

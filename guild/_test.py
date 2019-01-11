@@ -171,6 +171,7 @@ def _test_globals():
         "mkdir": os.mkdir,
         "mkdtemp": mkdtemp,
         "mktemp_guild_dir": mktemp_guild_dir,
+        "os": os,
         "pprint": pprint.pprint,
         "realpath": os.path.realpath,
         "relpath": os.path.relpath,

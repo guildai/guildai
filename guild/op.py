@@ -30,7 +30,6 @@ import guild.run
 from guild import config
 from guild import deps
 from guild import op_util
-from guild import opref
 from guild import util
 from guild import var
 
@@ -57,12 +56,11 @@ class ProcessError(Exception):
 
 class Operation(object):
 
-    def __init__(self, model_ref, opdef, run_dir=None, resource_config=None,
+    def __init__(self, opref, opdef, run_dir=None, resource_config=None,
                  extra_attrs=None, stage_only=False, gpus=None):
         self._validate_opdef(opdef)
-        self.model_ref = model_ref
+        self.opref = opref
         self.opdef = opdef
-        self.opref = opref.OpRef.from_op(opdef.name, model_ref)
         (self.cmd_args,
          self.flag_vals,
          self._flag_map) = _init_cmd_args(opdef)
@@ -126,7 +124,7 @@ class Operation(object):
 
     def _copy_source(self):
         assert self._run is not None
-        if self.model_ref.dist_type == "guildfile":
+        if self.opref.pkg_type == "guildfile":
             # Only copy source for guildfile dist (i.e. projects)
             op_util.copy_source(self._run, self.opdef)
 
