@@ -165,7 +165,7 @@ def current_run():
     NoCurrentRun.
 
     """
-    import guild
+    import guild.run
     path = os.getenv("RUN_DIR")
     if not path:
         raise NoCurrentRun()
