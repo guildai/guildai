@@ -17,12 +17,27 @@ from __future__ import division
 
 import guild
 
+from guild import config
+from guild import guildfile
+from guild import model as modellib
+
+
+
+"""
+
+import logging
+
+import guild
+
 from guild import op
 from guild import opref as opreflib
 
-class BatchOpDefProxy(object):
+log = logging.getLogger("guild")
 
-    main = "guild.batch_main"
+class BatchError(Exception):
+    pass
+
+class BatchOpDefProxy(object):
 
     def __init__(self, child_opdef):
         self._opdef = child_opdef
@@ -30,7 +45,8 @@ class BatchOpDefProxy(object):
         self.fullname = child_opdef.fullname
         self.guildfile = child_opdef.guildfile
         self.modeldef = child_opdef.modeldef
-        self.exec_ = None
+        self.exec_ = "${python_exe} -um guild.batch_main"
+        self.main = None
         self.steps = None
         self.env = {}
         self.disabled_plugins = []
@@ -65,8 +81,9 @@ def _batch_op_name(child_op):
 
 class Batch(op.Operation):
 
-    def __init__(self, child_op, _batch_files):
+    def __init__(self, child_op, batch_files):
         self.child_op = child_op
+        self.batch_files = batch_files
         super(Batch, self).__init__(
             opref=BatchOpRef(child_op),
             opdef=BatchOpDefProxy(child_op.opdef),
@@ -76,13 +93,13 @@ class Batch(op.Operation):
             stage_only=None,
             gpus=None)
 
+    def init(self):
+        super(Batch, self).init()
+        self._init_trial_ops()
+
 def for_op(op, batch_files):
     if batch_files or _has_batch_flag_vals(op):
         return Batch(op, batch_files)
     return None
 
-def _has_batch_flag_vals(op):
-    for val in op.flag_vals.values():
-        if isinstance(val, list):
-            return True
-    return False
+"""

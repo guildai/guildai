@@ -41,10 +41,9 @@ Here's the working directory:
 
 And the helper function:
 
-    >>> def resolve_model_op(args):
-    ...     args, _ctx = parse_args(args)
+    >>> def resolve_model_op(opspec):
     ...     with Chdir(cwd):
-    ...         return run_impl._resolve_model_op(args)
+    ...         return run_impl._resolve_model_op(opspec)
 
 Before running any tests, we need to pre-emptively load Guild plugins
 as the act of changing the cwd while processing op specs will cause
@@ -66,14 +65,14 @@ To control our test context, we'll use a new directory:
 
 Running a non-existing operation with no model spec:
 
-    >>> resolve_model_op(["train"])
+    >>> resolve_model_op("train")
     Traceback (most recent call last):
     SystemExit: ("a model is required for this operation\nTry
     'guild operations' for a list of operations", 1)
 
 Running a non-existing operation with a model spec:
 
-    >>> resolve_model_op(["__no_exists__:train"])
+    >>> resolve_model_op("__no_exists__:train")
     Traceback (most recent call last):
     SystemExit: (..."cannot find a model matching '__no_exists__'\nTry
     'guild models' for a list of available models.", 1)
@@ -88,11 +87,11 @@ specify it as the op spec.
 We'll resolve the operation, capturing any warnings:
 
     >>> with LogCapture() as log:
-    ...     model, op_name = resolve_model_op(["train.py"])
+    ...     model, op_name = resolve_model_op("train.py")
     >>> model
     <guild.model_proxies.PythonScriptModelProxy object ...>
     >>> op_name
-    u'train.py'
+    'train.py'
     >>> model.modeldef.name
     ''
     >>> model.modeldef.operations
@@ -115,7 +114,7 @@ Here's a shell script:
 
 The resolved model before making the script to executable:
 
-    >>> resolve_model_op(["train.sh"])
+    >>> resolve_model_op("train.sh")
     Traceback (most recent call last):
     SystemExit: ("a model is required for this operation\nTry
     'guild operations' for a list of operations", 1)
@@ -127,18 +126,20 @@ Let's make the script executable:
 
 And resolve again:
 
-    >>> model, op_name = resolve_model_op(["train.sh"])
+    >>> model, op_name = resolve_model_op("train.sh")
     >>> model
     <guild.model_proxies.ExecScriptModelProxy ...>
     >>> op_name
-    u'train.sh'
+    'train.sh'
     >>> model.modeldef.name
     ''
     >>> model.modeldef.operations
     [<guild.guildfile.OpDef 'train.sh'>]
 
-## Op for batches
+## Op for batch spec
 
-Markdown finished at Fri Jan 11 12:39:39
+The special characeter '+' indicates that the operation should be a
+batch run.
 
-Markdown finished at Fri Jan 11 13:04:12
+    >>> resolve_model_op("+")
+    (<guild.model_proxies.BatchModelProxy ...>, '+')

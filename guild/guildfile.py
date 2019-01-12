@@ -25,6 +25,7 @@ import sys
 import six
 import yaml
 
+from guild import opref
 from guild import plugin as pluginlib
 from guild import resourcedef
 from guild import util
@@ -758,6 +759,7 @@ class OpDef(object):
                 "invalid operation def: %r" % data)
         self.modeldef = modeldef
         self.flags = _init_flags(data, self)
+        self._modelref = None
         self._flag_vals = _init_flag_values(self.flags)
         self.guildfile = modeldef.guildfile
         self.name = name
@@ -787,6 +789,15 @@ class OpDef(object):
         if self.modeldef.name:
             return "%s:%s" % (self.modeldef.name, self.name)
         return self.name
+
+    def set_modelref(self, modelref):
+        self._modelref = modelref
+
+    @property
+    def opref(self):
+        if self._modelref:
+            return opref.OpRef.from_op(self.name, self._modelref)
+        return None
 
     def get_flagdef(self, name):
         for flag in self.flags:

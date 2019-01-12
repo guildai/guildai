@@ -19,6 +19,8 @@ import os
 
 from six.moves import shlex_quote
 
+import guild
+
 from guild import config
 from guild import guildfile
 from guild import model as modellib
@@ -48,6 +50,35 @@ GENERIC_COMPARE = [
 
 class NotSupported(Exception):
     pass
+
+class BatchModelProxy(object):
+
+    def __init__(self):
+        self.name = ""
+        self.op_name = "+"
+        self.modeldef = self._init_modeldef()
+        self.reference = self._init_reference()
+
+    def _init_modeldef(self):
+        data = [
+            {
+                "model": self.name,
+                "operations": {
+                    self.op_name: {
+                        "exec": "${python_exe} -um guild.batch_main"
+                    }
+                }
+            }
+        ]
+        gf = guildfile.Guildfile(data, dir=config.cwd())
+        return gf.models[self.name]
+
+    def _init_reference(self):
+        return modellib.ModelRef(
+            "builtin",
+            "guildai",
+            guild.__version__,
+            self.name)
 
 class PythonScriptModelProxy(object):
 
@@ -144,7 +175,10 @@ def _script_model_reference(model_name, script):
         model_name)
 
 def resolve_model_op(opspec):
-    if _is_python_script(opspec):
+    if opspec == "+":
+        model = BatchModelProxy()
+        return model, model.op_name
+    elif _is_python_script(opspec):
         model = _python_script_model(opspec)
         return model, model.op_name
     elif util.is_executable_file(opspec):

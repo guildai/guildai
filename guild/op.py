@@ -56,10 +56,11 @@ class ProcessError(Exception):
 
 class Operation(object):
 
-    def __init__(self, opref, opdef, run_dir=None, resource_config=None,
+    def __init__(self, opdef, run_dir=None, resource_config=None,
                  extra_attrs=None, stage_only=False, gpus=None):
+        assert opdef.opref, (opdef, "needs call to set_modelref")
+        self.opref = opdef.opref
         self._validate_opdef(opdef)
-        self.opref = opref
         self.opdef = opdef
         (self.cmd_args,
          self.flag_vals,
@@ -85,6 +86,9 @@ class Operation(object):
     def run_dir(self):
         return self._run_dir or (self._run.path if self._run else None)
 
+    def set_run_dir(self, path):
+        self._run_dir = path
+
     def run(self, quiet=False, background_pidfile=None, stop_after=None):
         self.init()
         try:
@@ -97,6 +101,7 @@ class Operation(object):
         self._init_run()
         self._init_attrs()
         self._copy_source()
+        return self._run
 
     def _init_run(self):
         self._run = init_run(self._run_dir)
