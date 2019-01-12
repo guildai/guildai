@@ -76,7 +76,7 @@ def run_params(fn):
                 "help for compare command for details specifying a column. "
                 "May not be used with --minimize.")),
         click.Option(
-            ("--opt-flag",), metavar="FLAG=VAL", multiple=True,
+            ("--opt-flag", "opt_flags"), metavar="FLAG=VAL", multiple=True,
             help="Flag for OPTIMIZER. May be used multiple times."),
         click.Option(
             ("-r", "--remote"), metavar="REMOTE",
@@ -141,10 +141,9 @@ def run_params(fn):
 @click.argument("opspec", metavar="[[MODEL:]OPERATION]", required=False)
 @run_params
 
-@click.pass_context
 @click_util.use_args
 
-def run(ctx, args):
+def run(args):
     """Run a model operation.
 
     By default Guild will try to run `OPERATION` for the default model
@@ -222,4 +221,4 @@ def run(ctx, args):
     number of runs the optimizer should generate.
     """
     from . import run_impl
-    run_impl.main(args, ctx)
+    run_impl.main(args)

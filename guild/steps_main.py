@@ -46,7 +46,7 @@ class Step(object):
         "needed",
         "no_gpus",
         "opspec",
-        "opt_flag",
+        "opt_flags",
         "stop_after",
     )
 
@@ -71,6 +71,7 @@ class Step(object):
         self.no_gpus = params["no_gpus"]
         self.stop_after = params["stop_after"]
         self.needed = params["needed"]
+        self.opt_flags = params["opt_flags"]
 
     def _parse_run(self, data):
         from guild.commands.run import run as run_cmd
@@ -243,7 +244,8 @@ def _step_options(step):
         opts.extend(["--stop-after", step.stop_after])
     if step.needed:
         opts.append("--needed")
-    # TODO: pass through opt_flag params
+    for flag in step.opt_flags:
+        opts.extend(["--opt-flag", flag])
     return opts
 
 def _step_flag_args(step):
