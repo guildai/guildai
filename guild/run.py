@@ -21,6 +21,7 @@ import time
 import uuid
 import yaml
 
+from guild import opref as opreflib
 from guild import util
 
 class Run(object):
@@ -37,10 +38,20 @@ class Run(object):
         self.id = id
         self.path = path
         self._guild_dir = os.path.join(self.path, ".guild")
+        self._opref = None
 
     @property
     def short_id(self):
         return self.id[:8]
+
+    @property
+    def opref(self):
+        if not self._opref:
+            self._opref = opreflib.OpRef.from_run(self)
+        return self._opref
+
+    def reset_opref(self):
+        self._opref = None
 
     @property
     def pid(self):

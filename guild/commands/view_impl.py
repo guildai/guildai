@@ -55,8 +55,7 @@ class ViewDataImpl(view.ViewData):
         except StopIteration:
             return None
         else:
-            run = guild.run.Run(id, path)
-            return runs_impl.init_opref_attr(run)
+            return guild.run.Run(id, path)
 
     def one_run_data(self, run_id_prefix):
         run = self.one_run(run_id_prefix)
@@ -145,8 +144,7 @@ class ViewDataImpl(view.ViewData):
 
     @staticmethod
     def _run_for_id(run_id):
-        run = var.get_run(run_id)
-        return runs_impl.init_opref_attr(run)
+        return var.get_run(run_id)
 
     @staticmethod
     def _format_dep(run, paths):

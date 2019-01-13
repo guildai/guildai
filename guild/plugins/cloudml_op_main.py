@@ -898,9 +898,6 @@ def _one_run(run_prefix):
 def _find_run(run_prefix, referring_run, for_ops):
     if run_prefix:
         return _one_run(run_prefix)
-    # Simulate runs list with filter
-    if not runs_impl.init_opref_attr(referring_run):
-        _exit("Unable to get operation details for %s" % referring_run.id)
     model_name = referring_run.opref.model_name
     args = click_util.Args(
         ops=["%s:%s" % (model_name, op) for op in for_ops],
