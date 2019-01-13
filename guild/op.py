@@ -96,7 +96,7 @@ class Operation(object):
 
     def run(self, quiet=False, background_pidfile=None, stop_after=None):
         self.init()
-        self.run_impl(quiet, background_pidfile, stop_after)
+        return self.run_impl(quiet, background_pidfile, stop_after)
 
     def init(self):
         self._init_run()
