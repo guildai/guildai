@@ -86,6 +86,14 @@ class Operation(object):
     def run_dir(self):
         return self._run_dir or (self._run.path if self._run else None)
 
+    def set_run_dir(self, path):
+        self._run_dir = path
+
+    def write_run_attr(self, name, val, raw=False):
+        if self._run is None:
+            raise RuntimeError("op is not intialized - call init() first")
+        self._run.write_attr(name, val, raw)
+
     def run(self, quiet=False, background_pidfile=None, stop_after=None):
         self.init()
         try:

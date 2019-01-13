@@ -18,10 +18,13 @@ from __future__ import division
 import hashlib
 import itertools
 import os
+import shutil
 
 import guild.run
 
 from guild import op_util
+from guild import run as runlib
+from guild import var
 
 class Trial(object):
 
@@ -31,6 +34,7 @@ class Trial(object):
         self._flags = flags
         self._hash = self._init_flags_hash()
         self._hash_path = self._init_hash_path()
+        self._trial_run = None
 
     def _init_flags_hash(self):
         # Hash of sorted flag values
@@ -55,51 +59,21 @@ class Trial(object):
 
     def init(self):
         if not os.path.exists(self._hash_path):
-            op = self._init_op()
-            #run = op.init()
-            #self._make_hash_path(run.path)
+            self._trial_run = self._init_trial_run()
+            self._write_hash_path(trial_run.path)
 
-    def _init_op(self):
-        print("TODO: init yo")
+    def _init_trial_run(self):
+        run_id = runlib.mkid()
+        run_dir = os.path.join(var.runs_dir(), run_id)
+        shutil.copytree(self._proto.path, run_dir)
+        return runlib.Run(run_id, run_dir)
 
     def _make_hash_path(self, run_dir):
         util.ensure_dir(os.path.dirname(self._hash_path))
         os.symlink(run_dir, self._hash_path)
 
     def run(self):
-        print("TODO: run yo")
-
-    """
-
-    def _init_trials(proto, config):
-        trials = []
-        for flags in config:
-            trial_op = _trial_op(proto, flags)
-            trials.append(trial_op)
-            trial_hash = _trial_hash(flags)
-            trial_run_dir = _trial_run_id(trial_hash)
-            if not
-            if not _trial_hash_exists(trial_hash):
-                run = trial_op.init()
-                _write_trial_hash(trial_hash, run.path)
-        return trials
-
-    def _trial_op(proto, flags):
-        pass
-
-    def _trial_hash_exists(hash):
-        return os.path.exists(_trial_hash_path(hash))
-
-    def _trial_hash_path(hash):
-        run = op_util.current_run()
-        return os.path.join(run.path, hash)
-
-    def _write_trial_hash
-
-    def _run_trials(trials):
-        pass
-    """
-
+        print("TODO: run somethig with %s" % self._trial_run)
 
 def main():
     batch_run = op_util.current_run()
@@ -157,65 +131,6 @@ def _run(trials):
             assert trials.run_id
             log.info("trial %s deleted, skipping", trial.run_id)
         trial.run()
-
-"""
-
-def _init_trial_ops(self):
-    for trial_op in self._trial_ops():
-        trial_hash = self._trial_hash(trial_op)
-        if not self._trial_hash_exists(trial_hash):
-            trial_run = trial_op.init()
-            self._write_trial_hash(trial_hash, trial_run.id)
-
-def _trial_ops(self):
-    return [
-        TrialOp(self.child_op, trial_flags)
-        for trial_flags in self.trials]
-
-
-def _trial_hash_exists(self, trial_hash):
-    return os.path.exists(self._trial_hash_path(trial_hash))
-
-def _trial_hash_path(self, trial_hash):
-    return os.path.join(self._run.guild_path("trials"), trial_hash)
-
-def _write_trial_hash(self, trial_hash, run_id):
-    path = self._trial_hash_path(trial_hash)
-    util.ensure_dir(os.path.dirname(path))
-    with open(path, "w") as f:
-        f.write(run_id)
-
-class TrialOp(op.Operation):
-
-    def __init__(self, child_op, trial_flags):
-        super(TrialOp, self).__init__(
-            opref=child_op.opref,
-            opdef=self._trial_opdef(child_op, trial_flags),
-            run_dir=child_op.run_dir,
-            resource_config=child_op.resource_config,
-            extra_attrs=child_op.extra_attrs,
-            stage_only=child_op.stage_only,
-            gpus=child_op.gpus)
-
-    @staticmethod
-    def _trial_opdef(child_op, trial_flags):
-        trial_opdef = copy.deepcopy(child_op.opdef)
-        for name, val in trial_flags.items():
-            trial_opdef.set_flag_value(name, val)
-        return trial_opdef
-
-def _trial_run_for_hash(trial_hash):
-    path = self._trial_hash_path(trial_hash)
-    if not os.path.exists(path):
-        return None
-    with open(path, "r") as f:
-        run_dir = f.read()
-    run_id = os.path.basename(run_dir)
-    return runlib.Run(run_id, run_dir)
-
-# self.trials = self._init_trials(batch_files)
-
-"""
 
 if __name__ == "__main__":
     main()
