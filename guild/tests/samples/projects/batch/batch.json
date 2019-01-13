@@ -1,5 +1,5 @@
 [
-  {"msg": "hello 7"},
-  {"msg": "hello 8"},
+  {"msg": "hello 7", "loud": false},
+  {"msg": "hello 8", "loud": true},
   {"msg": "hello 9", "loud": true}
 ]

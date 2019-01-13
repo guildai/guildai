@@ -770,9 +770,9 @@ def _flag_vals(row):
 
 def _write_batch_proto(batch_run, proto_op, batches):
     proto_op.set_run_dir(batch_run.guild_path("proto"))
-    if batches:
-        proto_op.set_run_attr("batches", batches)
     proto_op.init()
+    if batches:
+        proto_op.write_run_attr("batches", batches)
 
 def _batch_op_cmd_args(opdef, run, args):
     params = args.as_kw()

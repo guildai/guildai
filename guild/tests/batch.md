@@ -12,11 +12,11 @@ We'll run everything in a temp Guild home:
 And a helper for running ops:
 
     >>> from guild import _api as gapi
-    >>> def run(op, **flags):
+    >>> def run(op, batches=None, **flags):
     ...   try:
     ...     output = gapi.run_capture_output(
     ...       op, cwd=project, flags=flags,
-    ...       guild_home=guild_home)
+    ...       batch_files=batches, guild_home=guild_home)
     ...   except gapi.RunError as e:
     ...     print("ERROR (%i)" % e.returncode)
     ...     print(e.output)
@@ -189,3 +189,166 @@ values as ordered in each flag value list.
     B
     INFO: [guild] Running say.py (loud=yes, msg=a)
     A
+
+Let's delete our runs in preparation for the next section.
+
+    >>> delete_runs()
+    Deleted ... run(s)
+
+## Batch files
+
+Batch files are used to explicitly run batches. A batch file contains
+one or more flag combinations that are each used to generate a trial
+run.
+
+Guild supports three batch file formats:
+
+- YAML
+- JSON
+- CSV
+
+Let's look at `batch.csv`, which we can use to run a batch:
+
+    >>> cat(join_path(project, "batch.csv"))
+    msg,loud
+    hello 1
+    hello 2,yes
+    hello 3
+
+CSV files must have a header row that defines the flag names separated
+by commas. Each subsequent row is a list of flag values, each
+corresponding to a flag name and also separate by commas.
+
+In this case we have a batch of three flag combinations.
+
+Let's use the batch file in an operation:
+
+    >>> run("say.py", batches=["batch.csv"])
+    INFO: [guild] Running say.py (loud=no, msg='hello 1')
+    hello 1
+    INFO: [guild] Running say.py (loud=yes, msg='hello 2')
+    HELLO 2
+    INFO: [guild] Running say.py (loud=no, msg='hello 3')
+    hello 3
+
+In cases where we explicitly define flag values, those flag values are
+applied only if they are not defined in the batch file - the batch
+file takes precedence over flags specified for the operation.
+
+    >>> run("say.py", batches=["batch.csv"], loud="no")
+    INFO: [guild] Running say.py (loud=no, msg='hello 1')
+    hello 1
+    INFO: [guild] Running say.py (loud=yes, msg='hello 2')
+    HELLO 2
+    INFO: [guild] Running say.py (loud=no, msg='hello 3')
+    hello 3
+
+We can additionally specify multiple flag values that are used to
+generate additional trials, in cases where the batch file doesn't
+specify a flag value.
+
+Here we'll use a list of `loud`, which is applied in cases where
+`loud` is not defined in the batch:
+
+    >>> run("say.py", batches=["batch.csv"], loud=["yes", "no"])
+    INFO: [guild] Running say.py (loud=yes, msg='hello 1')
+    HELLO 1
+    INFO: [guild] Running say.py (loud=no, msg='hello 1')
+    hello 1
+    INFO: [guild] Running say.py (loud=yes, msg='hello 2')
+    HELLO 2
+    INFO: [guild] Running say.py (loud=yes, msg='hello 3')
+    HELLO 3
+    INFO: [guild] Running say.py (loud=no, msg='hello 3')
+    hello 3
+
+Here's a case that further illustates the point. While we may request
+different values for `msg`, the batch file values are used when
+specified:
+
+    >>> run("say.py", batches=["batch.csv"], msg=["hello 4", "hello 5"])
+    INFO: [guild] Running say.py (loud=no, msg='hello 1')
+    hello 1
+    INFO: [guild] Running say.py (loud=yes, msg='hello 2')
+    HELLO 2
+    INFO: [guild] Running say.py (loud=no, msg='hello 3')
+    hello 3
+
+Next we'll look at `batch.yaml`:
+
+    >>> cat(join_path(project, "batch.yaml"))
+    - msg: hello 4
+    - msg: hello 5
+    - msg: hello 6
+      loud: yes
+
+In this case we have three flag batches as well, but with different
+values.
+
+Here's our batch using the file:
+
+    >>> run("say.py", batches=["batch.yaml"])
+    INFO: [guild] Running say.py (loud=no, msg='hello 4')
+    hello 4
+    INFO: [guild] Running say.py (loud=no, msg='hello 5')
+    hello 5
+    INFO: [guild] Running say.py (loud=yes, msg='hello 6')
+    HELLO 6
+
+We can apply a value for `loud` that will be used when the batch file
+doesn't define it:
+
+    >>> run("say.py", batches=["batch.yaml"], loud="yes")
+    INFO: [guild] Running say.py (loud=yes, msg='hello 4')
+    HELLO 4
+    INFO: [guild] Running say.py (loud=yes, msg='hello 5')
+    HELLO 5
+    INFO: [guild] Running say.py (loud=yes, msg='hello 6')
+    HELLO 6
+
+Next we'll look at JSON formatted batch files.
+
+    >>> cat(join_path(project, "batch.json"))
+    [
+      {"msg": "hello 7", "loud": false},
+      {"msg": "hello 8", "loud": true},
+      {"msg": "hello 9", "loud": true}
+    ]
+
+    >>> run("say.py", batches=["batch.json"])
+    INFO: [guild] Running say.py (loud=no, msg='hello 7')
+    hello 7
+    INFO: [guild] Running say.py (loud=yes, msg='hello 8')
+    HELLO 8
+    INFO: [guild] Running say.py (loud=yes, msg='hello 9')
+    HELLO 9
+
+Finally, Guild supports multiple batch files, each of which being
+applied in the order specified:
+
+    >>> run("say.py", batches=["batch.csv", "batch.yaml", "batch.json"])
+    INFO: [guild] Running say.py (loud=no, msg='hello 1')
+    hello 1
+    INFO: [guild] Running say.py (loud=yes, msg='hello 2')
+    HELLO 2
+    INFO: [guild] Running say.py (loud=no, msg='hello 3')
+    hello 3
+    INFO: [guild] Running say.py (loud=no, msg='hello 4')
+    hello 4
+    INFO: [guild] Running say.py (loud=no, msg='hello 5')
+    hello 5
+    INFO: [guild] Running say.py (loud=yes, msg='hello 6')
+    HELLO 6
+    INFO: [guild] Running say.py (loud=no, msg='hello 7')
+    hello 7
+    INFO: [guild] Running say.py (loud=yes, msg='hello 8')
+    HELLO 8
+    INFO: [guild] Running say.py (loud=yes, msg='hello 9')
+    HELLO 9
+
+Unsupported batch files generate an error:
+
+    >>> run("say.py", batches=["batch.unknown"])
+    ERROR (1)
+    main_bootstrap.py: unsupported batch file extension for batch.unknown
+    <BLANKLINE>
