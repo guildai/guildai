@@ -494,7 +494,7 @@ First we need a run directory:
 
 And we'll use gapi to run the test operation:
 
-    >>> output = gapi.run_output(
+    >>> output = gapi.run_capture_output(
     ...   "test", cwd=pre_process_project, run_dir=run_dir)
     >>> print(output)
     Run directory is '...' (results will not be visible to Guild)

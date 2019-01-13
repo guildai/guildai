@@ -31,7 +31,7 @@ Some helper functions:
 
     >>> def run_op(op_spec, **flags):
     ...   try:
-    ...     output = gapi.run_output(
+    ...     output = gapi.run_capture_output(
     ...       op_spec,
     ...       flags=flags,
     ...       cwd=project,

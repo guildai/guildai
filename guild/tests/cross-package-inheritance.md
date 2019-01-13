@@ -113,7 +113,7 @@ Let's run `a/model:test`.
 
     >>> a_test_run_dir = mkdtemp()
 
-    >>> output = gapi.run_output(
+    >>> output = gapi.run_capture_output(
     ...   spec="model:test",
     ...   cwd=join_path(projects, "a"),
     ...   run_dir=a_test_run_dir)
@@ -130,7 +130,7 @@ Next we'll run `b/model:test`:
     >>> b_test_run_dir = mkdtemp()
 
     >>> try:
-    ...   output = gapi.run_output(
+    ...   output = gapi.run_capture_output(
     ...     spec="model:test",
     ...     cwd=join_path(projects, "b"),
     ...     run_dir=b_test_run_dir)
@@ -150,7 +150,7 @@ In this case we receive an error because Guild can't find the package
 Let's re-run the operation and include our projects directory in the
 system path:
 
-    >>> output = gapi.run_output(
+    >>> output = gapi.run_capture_output(
     ...   spec="model:test",
     ...   cwd=join_path(projects, "b"),
     ...   run_dir=b_test_run_dir,
@@ -168,7 +168,7 @@ Next we'll run `c/model:test`:
 
     >>> c_test_run_dir = mkdtemp()
 
-    >>> output = gapi.run_output(
+    >>> output = gapi.run_capture_output(
     ...   spec="model:test",
     ...   cwd=join_path(projects, "c"),
     ...   run_dir=c_test_run_dir,
