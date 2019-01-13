@@ -57,9 +57,9 @@ Here's a helper function for print the command for an operation:
 
     >>> def print_cmd(opspec):
     ...   import sys
-    ...   out = gapi.run(opspec, cwd=project, print_cmd=True)
-    ...   out = out.replace(sys.executable, "python")
-    ...   print(out.strip())
+    ...   output = gapi.run_output(opspec, cwd=project, print_cmd=True)
+    ...   output = output.replace(sys.executable, "python")
+    ...   print(output.strip())
 
 Here's the command for `say2`:
 

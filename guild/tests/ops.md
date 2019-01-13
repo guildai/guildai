@@ -494,8 +494,9 @@ First we need a run directory:
 
 And we'll use gapi to run the test operation:
 
-    >>> out = gapi.run("test", cwd=pre_process_project, run_dir=run_dir)
-    >>> print(out)
+    >>> output = gapi.run_output(
+    ...   "test", cwd=pre_process_project, run_dir=run_dir)
+    >>> print(output)
     Run directory is '...' (results will not be visible to Guild)
     Resolving sample-file dependency
     abcdef: ABCDEF

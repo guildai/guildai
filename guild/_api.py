@@ -25,10 +25,11 @@ import six
 
 class RunError(Exception):
 
-    def __init__(self, cmd, returncode):
-        super(RunError, self).__init__(cmd, returncode, out)
+    def __init__(self, cmd, returncode, output=None):
+        super(RunError, self).__init__(cmd, returncode, output)
         self.cmd_args, self.cmd_cwd, self.cmd_env = cmd
         self.returncode = returncode
+        self.output = output
 
 class Env(object):
 
@@ -55,6 +56,32 @@ def _init_env(cwd, guild_home):
 
 def run(spec=None, cwd=None, flags=None, run_dir=None, restart=None,
         label=None, guild_home=None, extra_env=None, print_cmd=False):
+    args, cwd, env = _popen_args(
+        spec, cwd, flags, run_dir, restart, label,
+        guild_home, extra_env, print_cmd)
+    p = subprocess.Popen(args, cwd=cwd, env=env)
+    returncode = p.wait()
+    if returncode != 0:
+        raise RunError((args, cwd, env), returncode)
+
+def run_output(spec=None, cwd=None, flags=None, run_dir=None, restart=None,
+        label=None, guild_home=None, extra_env=None, print_cmd=False):
+    args, cwd, env = _popen_args(
+        spec, cwd, flags, run_dir, restart, label,
+        guild_home, extra_env, print_cmd)
+    p = subprocess.Popen(
+        args,
+        cwd=cwd,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT)
+    out, _err = p.communicate()
+    if p.returncode != 0:
+        raise RunError((args, cwd, env), p.returncode, out)
+    return out
+
+def _popen_args(spec, cwd, flags, run_dir, restart,
+              label, guild_home, extra_env, print_cmd):
     from guild import op_util
     cwd = cwd or "."
     flags = flags or {}
@@ -68,7 +95,7 @@ def run(spec=None, cwd=None, flags=None, run_dir=None, restart=None,
     if restart:
         args.extend(["--restart", restart])
     if label:
-        args.extend(["--label", label])
+        args.extend(['--label', label])
     args.extend([
         "{}={}".format(name, op_util.format_arg_value(val))
         for name, val in flags.items()])
@@ -82,10 +109,7 @@ def run(spec=None, cwd=None, flags=None, run_dir=None, restart=None,
     _apply_guild_home_env(env, guild_home)
     _apply_python_path_env(env)
     _apply_lang_env(env)
-    p = subprocess.Popen(args, cwd=cwd, env=env)
-    returncode = p.wait()
-    if returncode != 0:
-        raise RunError((args, cwd, env), returncode)
+    return args, cwd, env
 
 def _apply_guild_home_env(env, guild_home):
     if guild_home:
