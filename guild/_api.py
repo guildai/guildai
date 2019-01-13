@@ -76,6 +76,7 @@ def run_output(spec=None, cwd=None, flags=None, run_dir=None, restart=None,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
     out, _err = p.communicate()
+    out = out.decode()
     if p.returncode != 0:
         raise RunError((args, cwd, env), p.returncode, out)
     return out
