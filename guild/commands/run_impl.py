@@ -15,11 +15,13 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import csv
 import logging
 import os
 import pipes
 
 import click
+import yaml
 
 import guild.help
 import guild.op
@@ -32,8 +34,8 @@ from guild import deps
 from guild import model as modellib
 from guild import model_proxies
 from guild import op_util
-from guild import opref as opreflib
 from guild import resolver
+from guild import run as runlib
 from guild import util
 from guild import var
 
@@ -43,20 +45,8 @@ from . import runs_impl
 log = logging.getLogger("guild")
 
 def main(args):
-    """Main function for run command implementation.
-
-    The main function follows this sequence:
-
-    - Resolve the operation being run
-    - Generate a modified opdef with any specified arguments (flags,
-      etc.)
-    - Dispatch the command to either print opdef info or actually run
-      the operation
-
-    """
     _check_opspec_args(args)
     _apply_restart_or_rerun_args(args)
-    assert args.opspec
     model, op_name = _resolve_model_op(args.opspec)
     opdef = _resolve_opdef(model, op_name)
     _dispatch_cmd(args, opdef)
@@ -71,41 +61,83 @@ def _check_opspec_args(args):
 def _apply_restart_or_rerun_args(args):
     if not args.rerun and not args.restart:
         return
-    if args.rerun and args.restart:
-        cli.error(
-            "--rerun and --restart cannot both be used\n"
-            "Try 'guild run --help' for more information.")
-    if (args.rerun or args.restart) and args.opspec:
-        # treat opspec as flag
-        args.flags = (args.opspec,) + args.flags
-        args.opspec = None
-    run, flag_args = _run_args(args.rerun or args.restart, args)
-    args.flags = flag_args + args.flags
+    _check_restart_rerun_args(args)
+    _shift_opspec_arg(args)
+    run = _find_run(args.restart or args.rerun, args)
+    _apply_run_args(run, args)
     if args.restart:
         cli.out("Restarting {}".format(run.id))
         args.restart = run.id
         args._restart_run = run
     else:
-        args.rerun = run.id
         cli.out("Rerunning {}".format(run.id))
+        args.rerun = run.id
 
-def _run_args(run_id_prefix, args):
+def _check_restart_rerun_args(args):
+    if args.rerun and args.restart:
+        cli.error(
+            "--rerun and --restart cannot both be used\n"
+            "Try 'guild run --help' for more information.")
+
+def _shift_opspec_arg(args):
+    if args.opspec:
+        # args.opspec is actually a flag in this case
+        args.flags = (args.opspec,) + args.flags
+        args.opspec = None
+    assert not args.opspec
+
+def _find_run(run_id_prefix, args):
     if args.remote:
-        run = remote_impl_support.one_run(run_id_prefix, args)
+        return remote_impl_support.one_run(run_id_prefix, args)
     else:
-        run = one_run(run_id_prefix)
-    if not args.opspec:
-        args.opspec = "{}:{}".format(run.opref.model_name, run.opref.op_name)
-    flag_args = [
+        return one_run(run_id_prefix)
+
+def _apply_run_args(run, args):
+    if _is_batch_run(run):
+        _apply_batch_run_args(run, args)
+    else:
+        _apply_normal_run_args(run, args)
+
+def _is_batch_run(run):
+    return "+" in run.opref.op_name
+
+def _apply_batch_run_args(run, args):
+    _apply_batch_opspec(run, args)
+    _apply_batch_proto_args(run, args)
+
+def _apply_batch_opspec(run, args):
+    batch_opspec, child_opspec = run.opref.op_name.split("+", 1)
+    args.opspec = child_opspec
+    args.optimizer = batch_opspec
+
+def _apply_batch_proto_args(batch_run, args):
+    proto_path = batch_run.guild_path("proto")
+    assert os.path.exists(proto_path), proto_path
+    attr_path = lambda name: os.path.join(proto_path, name)
+    _apply_run_flags(runlib.read_attr(attr_path("flags"), {}), args)
+
+def _apply_run_flags(flags, args):
+    # Prepend run flag args to user provided args - last values take
+    # precedence in processing later
+    args.flags = _flag_args(flags) + args.flags
+
+def _flag_args(flags):
+    return tuple([
         "{}={}".format(name, val)
-        for name, val in run.get("flags", {}).items()
+        for name, val in sorted(flags.items())
         if val is not None
-    ]
-    return run, tuple(flag_args)
+    ])
+
+def _apply_normal_run_args(run, args):
+    _apply_run_opspec(run, args)
+    _apply_run_flags(run.get("flags", {}), args)
+
+def _apply_run_opspec(run, args):
+    args.opspec = run.opref.to_opspec()
 
 def one_run(run_id_prefix):
     runs = [
-        guild.run.Run(id, path)
+        runlib.Run(id, path)
         for id, path in var.find_runs(run_id_prefix)
     ]
     run = cmd_impl_support.one_run(runs, run_id_prefix)
@@ -684,8 +716,7 @@ def _has_batch_flag_vals(op):
 
 def _run_batch(batch_opspec, child_op, batch_files, args):
     batch_opdef = _resolve_batch_opdef(batch_opspec, child_op)
-    batch_run = _init_batch_run(child_op)
-    _copy_batch_files(batch_files, batch_run)
+    batch_run = _init_batch_run(child_op, batch_files)
     batch_args = _batch_op_cmd_args(batch_opdef, batch_run, args)
     _dispatch_op_cmd(batch_opdef, batch_args)
 
@@ -702,30 +733,81 @@ def _batch_op_name(batch_op_name, child_op_name):
     parts.append(child_op_name)
     return "".join(parts)
 
-def _init_batch_run(child_op):
+def _init_batch_run(child_op, batch_files):
+    batches = _batches_attr(batch_files)
     run = guild.op.init_run(child_op.run_dir)
     run.init_skel()
-    child_op.set_run_dir(run.guild_path("proto"))
-    child_op.init()
+    _write_batch_proto(run, child_op, batches)
     return run
 
-def _copy_batch_files(batch_files, run):
-    for i, path in enumerate(batch_files):
-        dest_name = "%0.5i-%s" % (i, os.path.basename(path))
-        dest = os.path.join(run.guild_path("batch-files"), dest_name)
-        print("######### TODO: copy %s to %s" % (path, dest))
+def _batches_attr(batch_files):
+    batches = []
+    for path in batch_files:
+        batches.extend(_read_batches(path))
+    return batches
+
+def _read_batches(path):
+    ext = os.path.splitext(path)[1].lower()
+    if ext in (".json", ".yml", ".yaml"):
+        return _yaml_batches(path)
+    elif ext in (".csv",):
+        return _csv_batches(path)
+    else:
+        cli.error(
+            "unsupported batch file extension for %s"
+            % path)
+
+def _yaml_batches(path):
+    data = yaml.safe_load(open(path, "r"))
+    if not isinstance(data, list):
+        cli.error(
+            "unsupported data type for batch file %s: %s"
+            % (path, type(data)))
+    for item in data:
+        if not isinstance(item, dict):
+            cli.error(
+                "supported data for batch file %s trial: %r"
+                % item)
+    return data
+
+def _csv_batches(path):
+    reader = csv.reader(open(path, "r"))
+    try:
+        flag_names = next(reader)
+    except StopIteration:
+        return []
+    else:
+        return [
+            dict(zip(flag_names, _flag_vals(row)))
+            for row in reader
+        ]
+
+def _flag_vals(row):
+    return [op_util.parse_arg_val(s) for s in row]
+
+def _write_batch_proto(batch_run, child_op, batches):
+    proto_path = batch_run.guild_path("proto")
+    util.ensure_dir(proto_path)
+    attr_path = lambda name: os.path.join(proto_path, name)
+    runlib.write_attr(attr_path("flags"), child_op.flag_vals)
+    if batches:
+        runlib.write_attr(attr_path("batches"), batches)
 
 def _batch_op_cmd_args(opdef, run, args):
     params = args.as_kw()
     params["opspec"] = opdef.opref.to_opspec()
+    if params["stage"]:
+        assert not params["run_dir"], params
+        params["stage"] = run.path
+    else:
+        params["run_dir"] = run.path
     params["flags"] = params["opt_flags"]
     params["op_flags"] = ()
     params["yes"] = True
-    params["run_dir"] = run.path
     params["restart"] = None
     params["rerun"] = None
     params["optimizer"] = None
-    params["needed"]  = False
+    params["needed"] = False
     params["minimize"] = None
     params["maximize"] = None
     args = click_util.Args(**params)

@@ -210,16 +210,16 @@ def _cmd_file(filename):
     return None
 
 def parse_flags(args):
-    return dict([_parse_flag_arg(os.path.expanduser(arg)) for arg in args])
+    return dict([parse_flag_arg(os.path.expanduser(arg)) for arg in args])
 
-def _parse_flag_arg(arg):
+def parse_flag_arg(arg):
     parts = arg.split("=", 1)
     if len(parts) == 1:
         raise ArgValueError(arg)
     else:
-        return parts[0], _parse_arg_val(parts[1])
+        return parts[0], parse_arg_val(parts[1])
 
-def _parse_arg_val(s):
+def parse_arg_val(s):
     if s == "":
         return s
     parsers = [
@@ -332,7 +332,7 @@ def args_to_flags(args):
                 name = None
                 flags[arg[1]] = arg[2:]
         elif name is not None:
-            flags[name] = _parse_arg_val(arg)
+            flags[name] = parse_arg_val(arg)
     return flags
 
 def find_file(path):
