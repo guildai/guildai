@@ -785,13 +785,11 @@ def _csv_batches(path):
 def _flag_vals(row):
     return [op_util.parse_arg_val(s) for s in row]
 
-def _write_batch_proto(batch_run, child_op, batches):
-    proto_path = batch_run.guild_path("proto")
-    util.ensure_dir(proto_path)
-    attr_path = lambda name: os.path.join(proto_path, name)
-    runlib.write_attr(attr_path("flags"), child_op.flag_vals)
+def _write_batch_proto(batch_run, proto_op, batches):
+    proto_op.set_run_dir(batch_run.guild_path("proto"))
     if batches:
-        runlib.write_attr(attr_path("batches"), batches)
+        proto_op.set_run_attr("batches", batches)
+    proto_op.init()
 
 def _batch_op_cmd_args(opdef, run, args):
     params = args.as_kw()
