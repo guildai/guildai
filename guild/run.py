@@ -23,6 +23,8 @@ import yaml
 
 from guild import util
 
+missing = object()
+
 class Run(object):
 
     __properties__ = [
@@ -127,12 +129,10 @@ class Run(object):
                 pass
 
     def __getitem__(self, name):
-        try:
-            f = open(self._attr_path(name), "r")
-        except IOError:
+        val = read_attr(self._attr_path(name), missing)
+        if val is missing:
             raise KeyError(name)
-        else:
-            return yaml.safe_load(f)
+        return val
 
     def _attr_path(self, name):
         return os.path.join(self._attrs_dir(), name)
@@ -150,21 +150,7 @@ class Run(object):
         return os.path.join(self._guild_dir, subpath)
 
     def write_attr(self, name, val, raw=False):
-        if not raw:
-            val = self._encode_attr_val(val)
-        with open(self._attr_path(name), "w") as f:
-            f.write(val)
-            f.close()
-
-    @staticmethod
-    def _encode_attr_val(val):
-        encoded = yaml.safe_dump(
-            val,
-            default_flow_style=False,
-            indent=2)
-        if encoded.endswith("\n...\n"):
-            encoded = encoded[:-4]
-        return encoded
+        write_attr(self._attr_path(name), val, raw)
 
     def del_attr(self, name):
         try:
@@ -195,6 +181,29 @@ class Run(object):
                     yield os.path.join(rel_root, name)
                 for name in files:
                     yield os.path.join(rel_root, name)
+
+def write_attr(path, val, raw=False):
+    if not raw:
+        val = _encode_attr_val(val)
+    with open(path, "w") as f:
+        f.write(val)
+
+def _encode_attr_val(val):
+    encoded = yaml.safe_dump(
+        val,
+        default_flow_style=False,
+        indent=2)
+    if encoded.endswith("\n...\n"):
+        encoded = encoded[:-4]
+    return encoded
+
+def read_attr(path, default=None):
+    try:
+        f = open(path, "r")
+    except IOError:
+        return default
+    else:
+        return yaml.safe_load(f)
 
 def timestamp():
     """Returns an integer use for run timestamps."""

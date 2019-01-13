@@ -15,12 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import guild
-
-from guild import config
-from guild import guildfile
-from guild import model as modellib
-
+def init_trials():
+    pass
 
 
 """
@@ -28,6 +24,12 @@ from guild import model as modellib
 import logging
 
 import guild
+
+import guild
+
+from guild import config
+from guild import guildfile
+from guild import model as modellib
 
 from guild import op
 from guild import opref as opreflib

@@ -86,9 +86,6 @@ class Operation(object):
     def run_dir(self):
         return self._run_dir or (self._run.path if self._run else None)
 
-    def set_run_dir(self, path):
-        self._run_dir = path
-
     def run(self, quiet=False, background_pidfile=None, stop_after=None):
         self.init()
         try:
@@ -116,7 +113,7 @@ class Operation(object):
         self._run.write_attr("started", self._started)
         for name, val in (self.extra_attrs or {}).items():
             self._run.write_attr(name, val)
-        self._run.write_attr("flags", self.opdef.flag_values())
+        self._run.write_attr("flags", self.flag_vals)
         self._run.write_attr("cmd", self.cmd_args)
         if self.opdef.compare:
             self._run.write_attr("compare", self.opdef.compare)
