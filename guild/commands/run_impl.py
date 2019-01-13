@@ -645,30 +645,14 @@ def _format_flag(name, val, opdef):
     if val is None:
         formatted = _null_label(name, opdef)
     else:
-        formatted = _format_flag_val(val)
+        formatted = op_util.format_flag_val(val, use_nulls=True)
     return "%s: %s" % (name, formatted)
 
 def _null_label(name, opdef):
     flag = opdef.get_flagdef(name)
     if flag and flag.null_label is not None:
-        return _format_flag_val(flag.null_label)
+        return op_util.format_flag_val(flag.null_label)
     return "default"
-
-def _format_flag_val(val):
-    if val is True:
-        return "yes"
-    elif val is False:
-        return "no"
-    elif val is None:
-        return ""
-    elif isinstance(val, list):
-        return _format_flag_val_list(val)
-    else:
-        return str(val)
-
-def _format_flag_val_list(l):
-    joined = ", ".join([_format_flag_val(val) for val in l])
-    return "[%s]" % joined
 
 def _format_op_resources(resources):
     if not resources:
