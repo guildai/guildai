@@ -54,10 +54,11 @@ def _init_env(cwd, guild_home):
     config.set_cwd(cwd)
     config.set_guild_home(guild_home or main.DEFAULT_GUILD_HOME)
 
-def run(spec=None, cwd=None, flags=None, run_dir=None, restart=None,
-        label=None, guild_home=None, extra_env=None, print_cmd=False):
+def run(spec=None, cwd=None, flags=None, batch_files=None, run_dir=None,
+        restart=None, label=None, guild_home=None, extra_env=None,
+        print_cmd=False):
     args, cwd, env = _popen_args(
-        spec, cwd, flags, run_dir, restart, label,
+        spec, cwd, flags, batch_files, run_dir, restart, label,
         guild_home, extra_env, print_cmd)
     p = subprocess.Popen(args, cwd=cwd, env=env)
     returncode = p.wait()
@@ -65,10 +66,11 @@ def run(spec=None, cwd=None, flags=None, run_dir=None, restart=None,
         raise RunError((args, cwd, env), returncode)
 
 def run_capture_output(
-        spec=None, cwd=None, flags=None, run_dir=None, restart=None,
-        label=None, guild_home=None, extra_env=None, print_cmd=False):
+        spec=None, cwd=None, flags=None, batch_files=None, run_dir=None,
+        restart=None, label=None, guild_home=None, extra_env=None,
+        print_cmd=False):
     args, cwd, env = _popen_args(
-        spec, cwd, flags, run_dir, restart, label,
+        spec, cwd, flags, batch_files, run_dir, restart, label,
         guild_home, extra_env, print_cmd)
     p = subprocess.Popen(
         args,
@@ -82,8 +84,8 @@ def run_capture_output(
         raise RunError((args, cwd, env), p.returncode, out)
     return out
 
-def _popen_args(spec, cwd, flags, run_dir, restart,
-              label, guild_home, extra_env, print_cmd):
+def _popen_args(spec, cwd, flags, batch_files, run_dir, restart,
+                label, guild_home, extra_env, print_cmd):
     from guild import op_util
     cwd = cwd or "."
     flags = flags or {}
@@ -101,6 +103,7 @@ def _popen_args(spec, cwd, flags, run_dir, restart,
     args.extend([
         "{}={}".format(name, op_util.format_flag_val(val, use_nulls=True))
         for name, val in flags.items()])
+    args.extend(["@%s" % path for path in (batch_files or [])])
     if run_dir:
         args.extend(["--run-dir", run_dir])
     if print_cmd:
