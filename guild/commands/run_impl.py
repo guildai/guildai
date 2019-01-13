@@ -141,9 +141,7 @@ def one_run(run_id_prefix):
         runlib.Run(id, path)
         for id, path in var.find_runs(run_id_prefix)
     ]
-    run = cmd_impl_support.one_run(runs, run_id_prefix)
-    runs_impl.init_opref_attr(run)
-    return run
+    return cmd_impl_support.one_run(runs, run_id_prefix)
 
 def _resolve_model_op(opspec):
     proxy_model_op = _proxy_model_op(opspec)
@@ -843,10 +841,7 @@ def _match_run_flags(run, target):
     return run_flags == target
 
 def _print_matching_runs(runs):
-    formatted = [
-        runs_impl.format_run(runs_impl.init_opref_attr(run))
-        for run in runs
-    ]
+    formatted = [runs_impl.format_run(run) for run in runs]
     cols = [
         "index", "operation", "started",
         "status_with_remote", "label"
