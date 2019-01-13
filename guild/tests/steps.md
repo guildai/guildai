@@ -31,16 +31,16 @@ Some helper functions:
 
     >>> def run_op(op_spec, **flags):
     ...   try:
-    ...     out = gapi.run(
+    ...     output = gapi.run_output(
     ...       op_spec,
     ...       flags=flags,
     ...       cwd=project,
     ...       guild_home=home)
     ...   except gapi.RunError as e:
     ...     print("ERROR (%i)" % e.returncode)
-    ...     print(e.out)
+    ...     print(e.output)
     ...   else:
-    ...     print(out)
+    ...     print(output)
 
     >>> def runs_list():
     ...   return gapi.runs_list(guild_home=home)
