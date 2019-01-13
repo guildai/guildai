@@ -25,11 +25,10 @@ import six
 
 class RunError(Exception):
 
-    def __init__(self, cmd, returncode, out):
+    def __init__(self, cmd, returncode):
         super(RunError, self).__init__(cmd, returncode, out)
         self.cmd_args, self.cmd_cwd, self.cmd_env = cmd
         self.returncode = returncode
-        self.out = out
 
 class Env(object):
 
@@ -54,16 +53,22 @@ def _init_env(cwd, guild_home):
     config.set_cwd(cwd)
     config.set_guild_home(guild_home or main.DEFAULT_GUILD_HOME)
 
-def run(spec, cwd=None, flags=None, run_dir=None, guild_home=None,
-        extra_env=None, print_cmd=False):
+def run(spec=None, cwd=None, flags=None, run_dir=None, restart=None,
+        label=None, guild_home=None, extra_env=None, print_cmd=False):
     from guild import op_util
     cwd = cwd or "."
     flags = flags or {}
     args = [
         sys.executable,
         "-um", "guild.main_bootstrap",
-        "run", "-y", spec,
+        "run", "-y"
     ]
+    if spec:
+        args.append(spec)
+    if restart:
+        args.extend(["--restart", restart])
+    if label:
+        args.extend(["--label", label])
     args.extend([
         "{}={}".format(name, op_util.format_arg_value(val))
         for name, val in flags.items()])
@@ -77,17 +82,10 @@ def run(spec, cwd=None, flags=None, run_dir=None, guild_home=None,
     _apply_guild_home_env(env, guild_home)
     _apply_python_path_env(env)
     _apply_lang_env(env)
-    p = subprocess.Popen(
-        args,
-        cwd=cwd,
-        env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT)
-    out_raw, _err = p.communicate()
-    out = out_raw.decode().rstrip()
-    if p.returncode != 0:
-        raise RunError((args, cwd, env), p.returncode, out)
-    return out
+    p = subprocess.Popen(args, cwd=cwd, env=env)
+    returncode = p.wait()
+    if returncode != 0:
+        raise RunError((args, cwd, env), returncode)
 
 def _apply_guild_home_env(env, guild_home):
     if guild_home:

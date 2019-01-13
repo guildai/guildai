@@ -96,11 +96,7 @@ class Operation(object):
 
     def run(self, quiet=False, background_pidfile=None, stop_after=None):
         self.init()
-        try:
-            self.resolve_deps()
-            return self.proc(quiet, background_pidfile, stop_after)
-        finally:
-            self._cleanup()
+        self.run_impl(quiet, background_pidfile, stop_after)
 
     def init(self):
         self._init_run()
@@ -116,9 +112,7 @@ class Operation(object):
 
     def _init_attrs(self):
         assert self._run is not None
-        self._started = guild.run.timestamp()
         self._run.write_attr("opref", str(self.opref), raw=True)
-        self._run.write_attr("started", self._started)
         for name, val in (self.extra_attrs or {}).items():
             self._run.write_attr(name, val)
         self._run.write_attr("flags", self.flag_vals)
@@ -137,6 +131,15 @@ class Operation(object):
         if self.opref.pkg_type == "guildfile":
             # Only copy source for guildfile dist (i.e. projects)
             op_util.copy_source(self._run, self.opdef)
+
+    def run_impl(self, quiet=False, background_pidfile=None, stop_after=None):
+        self._started = guild.run.timestamp()
+        self._run.write_attr("started", self._started)
+        try:
+            self.resolve_deps()
+            return self.proc(quiet, background_pidfile, stop_after)
+        finally:
+            self._cleanup()
 
     def resolve_deps(self):
         assert self._run is not None

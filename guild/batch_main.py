@@ -17,14 +17,23 @@ from __future__ import division
 
 import hashlib
 import itertools
+import logging
 import os
 import shutil
+import sys
+
+from six.moves import shlex_quote
 
 import guild.run
 
+from guild import _api as gapi
+from guild import cli
 from guild import op_util
 from guild import run as runlib
+from guild import util
 from guild import var
+
+log = logging.getLogger("guild")
 
 class Trial(object):
 
@@ -34,7 +43,6 @@ class Trial(object):
         self._flags = flags
         self._hash = self._init_flags_hash()
         self._hash_path = self._init_hash_path()
-        self._trial_run = None
 
     def _init_flags_hash(self):
         # Hash of sorted flag values
@@ -59,23 +67,61 @@ class Trial(object):
 
     def init(self):
         if not os.path.exists(self._hash_path):
-            self._trial_run = self._init_trial_run()
+            trial_run = self._init_trial_run()
             self._write_hash_path(trial_run.path)
 
     def _init_trial_run(self):
         run_id = runlib.mkid()
         run_dir = os.path.join(var.runs_dir(), run_id)
         shutil.copytree(self._proto.path, run_dir)
-        return runlib.Run(run_id, run_dir)
+        run = runlib.Run(run_id, run_dir)
+        run.write_attr("flags", self._flags)
+        return run
 
-    def _make_hash_path(self, run_dir):
+    def _write_hash_path(self, run_dir):
         util.ensure_dir(os.path.dirname(self._hash_path))
         os.symlink(run_dir, self._hash_path)
 
     def run(self):
-        print("TODO: run somethig with %s" % self._trial_run)
+        trial_run = self._initialized_trial_run()
+        if not trial_run:
+            raise RuntimeError("trial not initialized - needs call to init")
+        opspec = _run_opspec(trial_run)
+        flags = _run_flag_assigns(trial_run)
+        log.info("Running %s (%s)", opspec, ", ".join(flags))
+        try:
+            gapi.run(
+                restart=trial_run.id,
+                label=" ".join(flags),
+                cwd=os.environ["CMD_DIR"],
+                extra_env={"NO_RESTARTING_MSG": "1"})
+        except gapi.RunError as e:
+            sys.exit(e.returncode)
+
+    def _initialized_trial_run(self):
+        if not os.path.exists(self._hash_path):
+            return None
+        run_dir = os.path.realpath(self._hash_path)
+        run_id = os.path.basename(run_dir)
+        return runlib.Run(run_id, run_dir)
+
+def _run_opspec(run):
+    from guild.commands import runs_impl
+    runs_impl.init_opref_attr(run)
+    return run.opref.to_opspec()
+
+def _run_flag_assigns(run):
+    flags = run.get("flags", {})
+    return [
+        "%s=%s" % (name, _format_flag_val(flags[name]))
+        for name in sorted(flags)
+    ]
+
+def _format_flag_val(val):
+    return shlex_quote(op_util.format_arg_value(val))
 
 def main():
+    op_util.init_logging()
     batch_run = op_util.current_run()
     proto = _batch_proto(batch_run)
     trials = _init_trials(batch_run, proto)

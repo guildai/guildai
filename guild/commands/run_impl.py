@@ -66,7 +66,8 @@ def _apply_restart_or_rerun_args(args):
     run = _find_run(args.restart or args.rerun, args)
     _apply_run_args(run, args)
     if args.restart:
-        cli.out("Restarting {}".format(run.id))
+        if os.getenv("NO_RESTARTING_MSG") != "1":
+            cli.out("Restarting {}".format(run.id))
         args.restart = run.id
         args._restart_run = run
     else:
@@ -113,8 +114,8 @@ def _apply_batch_opspec(run, args):
 def _apply_batch_proto_args(batch_run, args):
     proto_path = batch_run.guild_path("proto")
     assert os.path.exists(proto_path), proto_path
-    attr_path = lambda name: os.path.join(proto_path, name)
-    _apply_run_flags(runlib.read_attr(attr_path("flags"), {}), args)
+    proto = runlib.Run("", proto_path)
+    _apply_run_flags(proto.get("flags", {}), args)
 
 def _apply_run_flags(flags, args):
     # Prepend run flag args to user provided args - last values take
