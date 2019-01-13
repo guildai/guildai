@@ -99,13 +99,14 @@ def _popen_args(spec, cwd, flags, run_dir, restart,
     if label:
         args.extend(['--label', label])
     args.extend([
-        "{}={}".format(name, op_util.format_arg_value(val))
+        "{}={}".format(name, op_util.format_flag_val(val, use_nulls=True))
         for name, val in flags.items()])
     if run_dir:
         args.extend(["--run-dir", run_dir])
     if print_cmd:
         args.append("--print-cmd")
     env = dict(os.environ)
+    env["NO_IMPORT_FLAGS_PROGRESS"] = "1"
     if extra_env:
         env.update(extra_env)
     _apply_guild_home_env(env, guild_home)
@@ -154,6 +155,16 @@ def runs_list(
         deleted=deleted)
     with Env(cwd, guild_home):
         return runs_impl.filtered_runs(args)
+
+def runs_delete(runs=None, cwd=".", guild_home=None):
+    from guild import click_util
+    from guild.commands import runs_delete
+    from guild.commands import runs_impl
+    runs = runs or []
+    args = runs + ["--yes"]
+    ctx = runs_delete.delete_runs.make_context("", args)
+    with Env(cwd, guild_home):
+        runs_impl.delete_runs(click_util.Args(**ctx.params), ctx)
 
 def guild_cmd(command, args, cwd=None, guild_home=None, capture_output=False):
     if isinstance(command, six.string_types):
