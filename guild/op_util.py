@@ -245,15 +245,21 @@ def _safe_float(s):
         raise ValueError(s)
     return float(s)
 
-def format_arg_value(v):
-    if v is True:
+def format_flag_val(val, use_nulls=False):
+    if val is True:
         return "yes"
-    elif v is False:
+    elif val is False:
         return "no"
-    elif v is None:
-        return "null"
+    elif val is None:
+        return "null" if use_nulls else ""
+    elif isinstance(val, list):
+        return _format_flag_list(val)
     else:
-        return str(v)
+        return str(val)
+
+def _format_flag_list(val_list):
+    joined = ", ".join([format_flag_val(val) for val in val_list])
+    return "[%s]" % joined
 
 class TFEvents(object):
 
