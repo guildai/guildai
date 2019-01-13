@@ -244,7 +244,7 @@ def _resolve_run_cols(run, cols, index):
 
 def _col_data(run, col, index):
     if isinstance(col, query.Flag):
-        return index.run_flag(run, col.name)
+        return _format_flag_val(index.run_flag(run, col.name))
     elif isinstance(col, query.Attr):
         return index.run_attr(run, col.name)
     elif isinstance(col, query.Scalar):
@@ -252,6 +252,18 @@ def _col_data(run, col, index):
         return index.run_scalar(run, prefix, tag, col.qualifier, col.step)
     else:
         assert False, col
+
+def _format_flag_val(val):
+    if val is True:
+        return "yes"
+    elif val is False:
+        return "no"
+    elif val is None:
+        return ""
+    elif isinstance(val, list):
+        return _format_flag_val_list(val)
+    else:
+        return str(val)
 
 def _table_header(table):
     header = []

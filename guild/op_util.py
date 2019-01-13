@@ -548,3 +548,10 @@ def _terminate(p, poll_interval, kill_delay):
             "Process did not terminate gracefully (pid %i)"
             % p.pid)
     return returncode
+
+def init_logging():
+    import guild.log
+    level = int(os.getenv("LOG_LEVEL", logging.WARN))
+    format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
+    guild.log.init_logging(level, {"_": format})
+    globals()["log"] = logging.getLogger("guild")
