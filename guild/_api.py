@@ -64,7 +64,8 @@ def run(spec=None, cwd=None, flags=None, run_dir=None, restart=None,
     if returncode != 0:
         raise RunError((args, cwd, env), returncode)
 
-def run_output(spec=None, cwd=None, flags=None, run_dir=None, restart=None,
+def run_capture_output(
+        spec=None, cwd=None, flags=None, run_dir=None, restart=None,
         label=None, guild_home=None, extra_env=None, print_cmd=False):
     args, cwd, env = _popen_args(
         spec, cwd, flags, run_dir, restart, label,

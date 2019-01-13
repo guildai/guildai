@@ -57,7 +57,7 @@ Here's a helper function for print the command for an operation:
 
     >>> def print_cmd(opspec):
     ...   import sys
-    ...   output = gapi.run_output(opspec, cwd=project, print_cmd=True)
+    ...   output = gapi.run_capture_output(opspec, cwd=project, print_cmd=True)
     ...   output = output.replace(sys.executable, "python")
     ...   print(output.strip())
 
