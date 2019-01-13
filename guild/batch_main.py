@@ -24,10 +24,7 @@ import sys
 
 from six.moves import shlex_quote
 
-import guild.run
-
 from guild import _api as gapi
-from guild import cli
 from guild import op_util
 from guild import run as runlib
 from guild import util
@@ -48,8 +45,9 @@ class Trial(object):
         # Hash of sorted flag values
         parts = []
         for name in sorted(self._flags):
-            parts.extend([name, str(self._flags[name])])
-        return hashlib.md5("\n".join(parts)).hexdigest()
+            parts.extend([name, ":", str(self._flags[name])])
+        joined_flags = "\n".join(parts).encode()
+        return hashlib.md5(joined_flags).hexdigest()
 
     def _init_hash_path(self):
         hashes_dir = self._batch_run.guild_path("hashes")
@@ -86,7 +84,7 @@ class Trial(object):
         trial_run = self._initialized_trial_run()
         if not trial_run:
             raise RuntimeError("trial not initialized - needs call to init")
-        opspec = _run_opspec(trial_run)
+        opspec = trial_run.opref.to_opspec()
         flags = _run_flag_assigns(trial_run)
         log.info("Running %s (%s)", opspec, ", ".join(flags))
         try:
@@ -105,11 +103,6 @@ class Trial(object):
         run_id = os.path.basename(run_dir)
         return runlib.Run(run_id, run_dir)
 
-def _run_opspec(run):
-    from guild.commands import runs_impl
-    runs_impl.init_opref_attr(run)
-    return run.opref.to_opspec()
-
 def _run_flag_assigns(run):
     flags = run.get("flags", {})
     return [
@@ -118,7 +111,7 @@ def _run_flag_assigns(run):
     ]
 
 def _format_flag_val(val):
-    return shlex_quote(op_util.format_arg_value(val))
+    return shlex_quote(op_util.format_flag_val(val))
 
 def main():
     op_util.init_logging()
@@ -132,7 +125,7 @@ def _batch_proto(batch_run):
     proto_path = batch_run.guild_path("proto")
     if not os.path.exists(proto_path):
         op_util.exit("missing operation proto in %s" % proto_path)
-    return guild.run.Run("", proto_path)
+    return runlib.Run("", proto_path)
 
 def _init_trials(batch_run, proto):
     trials = []
@@ -157,7 +150,7 @@ def _join_flags(base, extra):
 def _acc_trials(flags, trials):
     flag_list = [
         _trial_flags(name, val)
-        for name, val in flags.items()]
+        for name, val in sorted(flags.items())]
     for trial in itertools.product(*flag_list):
         trials.append(trial)
 
