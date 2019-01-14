@@ -83,6 +83,9 @@ def create_package(package_file, dist_dir=None, upload_repo=False,
     else:
         stdout = None
         stderr = None
+    log.debug("package cmd: %s", cmd)
+    log.debug("package env: %s", env)
+    log.debug("package cwd: %s", cwd)
     p = subprocess.Popen(cmd, env=env, cwd=cwd, stdout=stdout, stderr=stderr)
     out, _ = p.communicate()
     if p.returncode != 0:
