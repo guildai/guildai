@@ -374,7 +374,8 @@ def _filtered_runs_filter_opts(**filters):
     return opts
 
 def _runs_filter_args(ops, labels, unlabeled, running,
-                      completed, error, terminated):
+                      completed, error, terminated,
+                      pending):
     args = []
     if completed:
         args.append("-C")
@@ -388,6 +389,8 @@ def _runs_filter_args(ops, labels, unlabeled, running,
         args.append("-R")
     if terminated:
         args.append("-T")
+    if pending:
+        args.append("-P")
     if unlabeled:
         args.append("-u")
     return args
@@ -407,7 +410,8 @@ def _build_package(dist_dir):
 
 def _remote_run_cmd(remote_run_dir, opspec, op_flags, label,
                     disable_plugins, gpus, no_gpus, force_flags,
-                    needed, stop_after):
+                    needed, stop_after, optimizer, opt_flags,
+                    minimize, maximize):
     cmd = [
         "NO_WARN_RUNDIR=1",
         "guild", "run", q(opspec),
@@ -430,6 +434,12 @@ def _remote_run_cmd(remote_run_dir, opspec, op_flags, label,
         cmd.append("--needed")
     if stop_after:
         cmd.extend(["--stop-after", stop_after])
+    if optimizer:
+        cmd.extend(["--optimizer", optimizer])
+    if minimize:
+        cmd.extend(["--minimize", minimize])
+    if maximize:
+        cmd.extend(["--maximize", maximize])
     cmd.extend([q(arg) for arg in op_flags])
     return " ".join(cmd)
 
