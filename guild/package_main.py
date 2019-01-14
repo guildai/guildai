@@ -71,9 +71,10 @@ def _load_pkg():
 def _default_package(gf):
     # Use the name of the default model
     default_model = gf.default_model
-    if not default_model:
-        _exit("cannot get package name: no default model")
-    return guildfile.PackageDef(default_model.name, {}, gf)
+    package_name = (
+        default_model.name if (default_model and default_model.name)
+        else "package")
+    return guildfile.PackageDef(package_name, {}, gf)
 
 def _create_dist(pkg):
     sys.argv = _bdist_wheel_cmd_args(pkg)
