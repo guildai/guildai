@@ -27,7 +27,7 @@ DEFAULT_CONNECT_TIMEOUT = 10
 def ssh_ping(host, user=None, verbose=False,
              connect_timeout=DEFAULT_CONNECT_TIMEOUT):
     host = _full_host(host, user)
-    cmd = ["ssh"] + _ssh_opts(verbose, connect_timeout) + [host, "true"]
+    cmd = ["ssh"] + _ssh_opts(None, verbose, connect_timeout) + [host, "true"]
     result = subprocess.call(cmd)
     if result != 0:
         raise remotelib.Down("cannot reach host %s" % host)
