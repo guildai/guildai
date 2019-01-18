@@ -42,7 +42,7 @@ within the project directory:
     [('Location', '.../samples/projects/init-env/env'),
      ('Name', 'init-env'),
      ('Python interpreter', 'default'),
-     ('Guild version', '...'),
+     ('Guild', '...'),
      ('TensorFlow', 'tensorflow...'),
      ('Guild package requirements',
       ('Pillow',
