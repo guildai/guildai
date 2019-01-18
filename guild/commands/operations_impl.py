@@ -32,7 +32,7 @@ def main(args):
     )
 
 def _iter_ops(gf_dirs):
-    for model in models_impl.iter_models(gf_dirs):
+    for model in models_impl.iter_models(gf_dirs, include_anonymous=True):
         for op in model.modeldef.operations:
             yield op, model
 
