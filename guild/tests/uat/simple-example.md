@@ -55,7 +55,7 @@ guild.yml. Let's see what it wants to run by looking at a run preview:
       rundir: .
       test: no
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 ## Running the default operation
 
