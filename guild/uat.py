@@ -80,6 +80,7 @@ def _test_globals():
     globs.update(_global_vars())
     globs.update({
         "cd": _cd,
+        "cwd": _get_cwd,
         "pprint": pprint.pprint,
         "run": _run,
         "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
@@ -114,6 +115,11 @@ def _cd(path):
     if not os.path.isdir(os.path.join(WORKSPACE, path)):
         raise ValueError("'%s' does not exist" % path)
     globals()["_cwd"] = path
+
+def _get_cwd():
+    if _cwd:
+        return os.path.join(WORKSPACE, _cwd)
+    return WORKSPACE
 
 def _run(cmd, quiet=False, ignore=None, timeout=60):
     cmd = "set -eu && %s" % cmd

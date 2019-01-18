@@ -140,13 +140,26 @@ And the package contents:
      'test-0.0.0.dist-info/top_level.txt',
      'test/guild.yml']
 
-If a Guild file doesn't contain a package def or a model def, an error
-is generated:
+If a Guild file doesn't contain a package def or a model def, it
+creates a package named 'package':
+
+    >>> workspace = mkdtemp()
+    >>> dir(workspace)
+    []
 
     >>> write(join_path(workspace, "guild.yml"), """
     ... - config: test
     ... """)
     >>> gf = guildfile.from_dir(workspace)
-    >>> guild.package.create_package(gf.src, capture_output=True)
-    Traceback (most recent call last):
-    SystemExit: (1, u'cannot get package name: no default model\n')
+
+    >>> out = guild.package.create_package(gf.src, capture_output=True)
+    >>> print("-\n" + out.decode("UTF-8"))
+    -
+    running bdist_wheel
+    running build
+    running build_py
+    ...
+    adding 'package/guild.yml'
+    adding 'package-0.0.0.dist-info/...'
+    ...
+    <BLANKLINE>

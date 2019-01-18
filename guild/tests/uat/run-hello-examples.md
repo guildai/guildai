@@ -9,7 +9,7 @@ We'll run through the various operations in this test.
 
 ## Models
 
-    >>> run("guild models -p .")
+    >>> run("guild models -p .", ignore="Refreshing project")
     hello  A "hello world" sample model
     <exit 0>
 

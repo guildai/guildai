@@ -55,6 +55,7 @@
   description: Expert model
   operations:
     train:
+      default: yes
       main: expert
       flags:
         $include: default-train-flags

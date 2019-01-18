@@ -6,6 +6,77 @@ The code we'll be testing is in the `simple-mnist` example:
 
     >>> cd("examples/simple-mnist")
 
+Let's examine the project models and operation.
+
+The Guild file is a "simplified" format, which means it only defines
+operations. The operations are part of an anonymous model (name is
+empty) that is created implicitly when the Guild file is loaded.
+
+We can quickly see this using the API:
+
+    >>> from guild import guildfile
+    >>> gf = guildfile.from_dir(cwd())
+    >>> gf.models
+    {'': <guild.guildfile.ModelDef ''>}
+    >>> gf.models[''] is gf.default_model
+    True
+
+The anonymous model has the operations defined in the simplified Guild
+file:
+
+    >>> gf.default_model.operations
+    [<guild.guildfile.OpDef 'evaluate'>,
+     <guild.guildfile.OpDef 'train'>]
+
+When we list the models defined for the project, we get an empty
+list. This is because we don't present anonymous models to the user -
+anonymous models merely make operations available.
+
+    >>> run("guild models -p .", ignore="Refreshing project")
+    <BLANKLINE>
+    <exit 0>
+
+However, we do see the operations:
+
+    >>> run("guild ops -p .")
+    evaluate  Evaluate a trained model
+    train     Train on MNIST
+    <exit 0>
+
+The project has a default operation, which is defined in
+guild.yml. Let's see what it wants to run by looking at a run preview:
+
+    >>> run("guild run", timeout=2)
+    You are about to run train
+      batch_size: 100
+      datadir: data
+      epochs: 10
+      prepare: no
+      rundir: .
+      test: no
+    Continue? (Y/n)
+    <exit -9>
+
+## Running the default operation
+
+We've see that we can run the train operation by default. Let's run it
+for one epoch.
+
+    >>> run("echo dummy && guild run epochs=1 -y")
+    dummy
+    ...
+    Step 0: training=0...
+    Step 0: validate=0...
+    Step 20: training=0...
+    Step 20: validate=0...
+    ...
+    Step 540: training=0...
+    Step 540: validate=0...
+    Saving trained model
+    <exit 0>
+
+## Running scripts directly
+
 We can run a Python script directly as an operation:
 
     >>> run("echo dummy && guild run train.py epochs=1 -y")
@@ -37,12 +108,11 @@ The operation is like any other. We can view info:
     started: ...
     stopped: ...
     run_dir: ...
-    command: ... -u
-      .../examples/simple-mnist/train.py
-        --batch_size 100
-        --datadir data
-        --epochs 1
-        --rundir .
+    command: ... -u .../simple-mnist/train.py
+             --batch_size 100
+             --datadir data
+             --epochs 1
+             --rundir .
     exit_status: 0
     pid:
     <exit 0>
