@@ -7,6 +7,6 @@ one more (i.e. we can reasonably infer a model).
 If there is no default model, Guild prints an error message and exits.
 
     >>> run("guild run train")
-    guild: a model is required for this operation
-    Try 'guild operations' for a list of operations
+    guild: cannot find operation train
+    Try 'guild operations' for a list.
     <exit 1>

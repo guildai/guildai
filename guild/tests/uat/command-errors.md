@@ -3,6 +3,6 @@
 Try to run without an operation or a rerun:
 
     >>> run("guild run")
-    guild: missing [MODEL:]OPERATION or --rerun/--restart RUN
-    Try 'guild ops' for a list of operations or 'guild run --help' for more information.
+    guild: cannot find a default operation
+    Try 'guild operations' for a list.
     <exit 1>
