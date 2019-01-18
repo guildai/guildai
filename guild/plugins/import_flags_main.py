@@ -19,6 +19,7 @@ import logging
 import os
 import sys
 
+from guild import exit_code
 from guild import python_util
 
 FLAGS = {}
@@ -40,6 +41,8 @@ log = _init_log()
 
 def main():
     args = _init_args()
+    if not _imports_argparse(args.mod_path):
+        _not_supported_error(args.mod_path)
     _patch_argparse(args.output_path)
     # Importing module has the side-effect of writing flag data due to
     # patched argparse
@@ -51,15 +54,24 @@ def _init_args():
     p.add_argument("output_path")
     return p.parse_args()
 
+def _imports_argparse(mod_path):
+    script = python_util.Script(mod_path)
+    return "argparse" in script.imports
+
+def _not_supported_error(mod_path):
+    if log.getEffectiveLevel() <= logging.DEBUG:
+        log.warning(
+            "%s doesn't use argparse - cannot import flags",
+            mod_path)
+    raise SystemExit(exit_code.NOT_SUPPORTED)
+
 def _patch_argparse(output_path):
     python_util.listen_method(
         argparse.ArgumentParser,
         "add_argument", _handle_add_argument)
     _handle_parse = lambda *args, **kw: _write_flags_and_exit(output_path)
-    python_util.listen_method(
-        argparse.ArgumentParser,
-        "parse_args",
-        _handle_parse)
+    # parse_known_args is called by parse_args, so this handled both
+    # cases.
     python_util.listen_method(
         argparse.ArgumentParser,
         "parse_known_args",
@@ -74,8 +86,10 @@ def _handle_add_argument(add_argument, *args, **kw):
 def _maybe_flag(action):
     flag_name = _flag_name(action)
     if not flag_name:
+        log.debug("skipping %s - not a flag option" % action)
         return
     if not isinstance(action, action_types):
+        log.debug("skipping %s - not an action type" % action)
         return
     FLAGS[flag_name] = attrs = {}
     if action.help:
@@ -90,6 +104,7 @@ def _maybe_flag(action):
         attrs["arg-switch"] = True
     elif isinstance(action, argparse._StoreFalseAction):
         attrs["arg-switch"] = False
+    log.debug("added flag %s" % attrs)
 
 def _flag_name(action):
     for opt in action.option_strings:
@@ -111,11 +126,6 @@ def _exec_module(mod_path):
     try:
         imp.load_module("__main__", f, mod_path, details)
     except Exception as e:
-        # Need to reimport because globals is reset on load_module
-        # pylint: disable=reimported
-        import logging
-        if log.getEffectiveLevel() <= logging.DEBUG:
-            log.exception("importing %s", mod_path)
         raise SystemExit(e)
 
 if __name__ == "__main__":
