@@ -436,6 +436,8 @@ def _remote_run_cmd(remote_run_dir, opspec, op_flags, label,
         cmd.extend(["--stop-after", stop_after])
     if optimizer:
         cmd.extend(["--optimizer", optimizer])
+    for val in opt_flags:
+        cmd.extend(["--opt-flag", val])
     if minimize:
         cmd.extend(["--minimize", minimize])
     if maximize:
