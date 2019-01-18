@@ -80,8 +80,6 @@ associated models and operations removed.
 - [uninstall-mnist-package](uninstall-mnist-package.md)
 - [mnist-package-info-after-uninstall](mnist-package-info-after-uninstall.md)
 - [packages-after-mnist-uninstall](packages-after-mnist-uninstall.md)
-- [models-after-mnist-uninstall](models-after-mnist-install.md)
-- [ops-after-mnist-install](ops-after-mnist-install.md)
 
 ### `hello`
 
