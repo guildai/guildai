@@ -177,7 +177,7 @@ Here's the reference for the `intro` model:
 
     >>> intro.reference
     ModelRef(dist_type='guildfile',
-             dist_name='.../samples/projects/mnist-pkg',
+             dist_name='.../samples/projects/mnist-pkg/guild.yml',
              dist_version='...',
              model_name='intro')
 

@@ -95,10 +95,10 @@ class GuildfileModel(Model):
             version = file_hash(src)
         else:
             version = "unknown"
-        path = self.dist.guildfile.dir
-        if path is not None:
-            path = os.path.abspath(path)
-        return ModelRef("guildfile", path, version, self.name)
+        src = self.dist.guildfile.src
+        if src is not None:
+            src = os.path.abspath(src)
+        return ModelRef("guildfile", src, version, self.name)
 
 class PackageModel(Model):
     """A model associated with a package.
