@@ -540,6 +540,8 @@ class ModelDef(object):
         return "<guild.guildfile.ModelDef '%s'>" % self.name
 
     def get_operation(self, name):
+        if name is None:
+            raise ValueError("name cannot be None")
         for op in self.operations:
             if op.name == name:
                 return op

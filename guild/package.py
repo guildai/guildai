@@ -54,9 +54,10 @@ class PackageResource(resource.Resource):
         resdef.dist = self.dist
         return resdef
 
-def create_package(package_file, dist_dir=None, upload_repo=False,
-                   sign=False, identity=None, user=None, password=None,
-                   skip_existing=False, comment=None, capture_output=False):
+def create_package(
+        package_file, dist_dir=None, upload_repo=False,
+        sign=False, identity=None, user=None, password=None,
+        skip_existing=False, comment=None, capture_output=False):
     # Use a separate OS process as setup assumes it's running as a
     # command line op.
     cmd = [sys.executable, "-um", "guild.package_main"]
