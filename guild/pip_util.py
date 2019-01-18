@@ -313,6 +313,16 @@ def _ensure_print_package_logger():
 def parse_requirements(path):
     return req_file.parse_requirements(path, session="unused")
 
+def is_requirements(path):
+    if not util.is_text_file(path):
+        return False
+    try:
+        list(parse_requirements(path))
+    except Exception:
+        return False
+    else:
+        return True
+
 def lib_dir(name, wheeldir, user=False, home=None, root=None,
             isolated=False, prefix=None):
     scheme = distutils_scheme(
