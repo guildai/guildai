@@ -86,10 +86,10 @@ def _handle_add_argument(add_argument, *args, **kw):
 def _maybe_flag(action):
     flag_name = _flag_name(action)
     if not flag_name:
-        log.debug("skipping %s - not a flag option" % action)
+        log.debug("skipping %s - not a flag option", action)
         return
     if not isinstance(action, action_types):
-        log.debug("skipping %s - not an action type" % action)
+        log.debug("skipping %s - not an action type", action)
         return
     FLAGS[flag_name] = attrs = {}
     if action.help:
@@ -104,7 +104,7 @@ def _maybe_flag(action):
         attrs["arg-switch"] = True
     elif isinstance(action, argparse._StoreFalseAction):
         attrs["arg-switch"] = False
-    log.debug("added flag %s" % attrs)
+    log.debug("added flag %s", attrs)
 
 def _flag_name(action):
     for opt in action.option_strings:
