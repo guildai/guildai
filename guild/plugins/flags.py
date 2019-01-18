@@ -22,12 +22,17 @@ import os
 import subprocess
 import sys
 
+import six
+
 from guild import cli
+from guild import exit_code
 from guild import op_util
 from guild import util
 from guild import var
 
 from guild.plugin import Plugin
+
+IMPLICIT_ALL_FLAGS = object()
 
 class DataLoadError(Exception):
     pass
@@ -36,31 +41,54 @@ class FlagsPlugin(Plugin):
 
     def guildfile_data(self, data, _src):
         local_cache = {}
-        for op_data in self._iter_ops_with_flags(data):
-            try:
-                flags_import = op_data["flags"].pop("$import")
-            except KeyError:
-                continue
-            else:
+        for op_data in self._iter_ops_with_main(data):
+            flags_import = self._pop_flags_import(op_data)
+            if flags_import is IMPLICIT_ALL_FLAGS or flags_import:
                 self._try_apply_imports(flags_import, op_data, local_cache)
 
-    def _iter_ops_with_flags(self, data):
-        if not isinstance(data, list):
-            data = [data]
+    def _iter_ops_with_main(self, data):
+        if isinstance(data, dict):
+            data = [self._anonymous_model(data)]
         for top_level in data:
-            for op_data in self._iter_ops_with_flags_recurse(top_level):
+            for op_data in self._iter_ops_with_main_recurse(top_level):
                 yield op_data
 
-    def _iter_ops_with_flags_recurse(self, data):
+    @staticmethod
+    def _anonymous_model(data):
+        return {
+            "model": "",
+            "operations": data
+        }
+
+    def _iter_ops_with_main_recurse(self, data):
         if isinstance(data, dict):
             for name, val in sorted(data.items()):
                 if name == "operations" and isinstance(val, dict):
-                    for _, op_data in sorted(val.items()):
-                        if isinstance(op_data, dict) and "flags" in op_data:
+                    for op_name, op_data in sorted(val.items()):
+                        if isinstance(op_data, six.string_types):
+                            # Implicit main specified as string -
+                            # coerce to dict (this is typically
+                            # handled by guildfile but we coerce here
+                            # preemptively to support flag imports.
+                            op_data = {
+                                "main": op_data
+                            }
+                            val[op_name] = op_data
+                        if isinstance(op_data, dict) and "main" in op_data:
                             yield op_data
                 else:
-                    for op_data in self._iter_ops_with_flags_recurse(val):
+                    for op_data in self._iter_ops_with_main_recurse(val):
                         yield op_data
+
+    @staticmethod
+    def _pop_flags_import(op_data):
+        try:
+            flags_data = op_data["flags"]
+        except KeyError:
+            # No flag def - default to import all flags
+            return IMPLICIT_ALL_FLAGS
+        else:
+            return flags_data.pop("$import", None)
 
     def _try_apply_imports(self, flags_import, op_data, local_cache):
         import_data = self._import_data(flags_import, op_data, local_cache)
@@ -72,20 +100,22 @@ class FlagsPlugin(Plugin):
         try:
             flags_data = local_cache[main_mod]
         except KeyError:
-            flags_data = self._flags_data(main_mod)
+            flags_data = self._flags_data(main_mod, imports)
             local_cache[main_mod] = flags_data
         return self._filter_flags(flags_data, imports)
 
-    def _flags_data(self, main_mod):
+    def _flags_data(self, main_mod, imports):
         try:
             sys_path, mod_path = self._find_module(main_mod)
         except ImportError as e:
-            self.log.warning(
-                "cannot import flags from %s: %s",
-                main_mod, e)
+            # Log warning only if imports are explicit - i.e. user
+            # expects a specific list
+            if imports is not IMPLICIT_ALL_FLAGS:
+                self.log.warning(
+                    "cannot import flags from %s: %s",
+                    main_mod, e)
             return {}
-        else:
-            return self._flags_data_for_path(mod_path, sys_path)
+        return self._flags_data_for_path(mod_path, sys_path)
 
     def _flags_data_for_path(self, mod_path, sys_path):
         data, cached_data_path = self._cached_data(mod_path)
@@ -115,7 +145,10 @@ class FlagsPlugin(Plugin):
                 pass
             else:
                 _f, found_path, _desc = mod_info
-                return main_mod_sys_path, found_path
+                # Don't attempt to import flags from anything other
+                # than a file ending in '.py'
+                if os.path.isfile(found_path) and found_path.endswith(".py"):
+                    return main_mod_sys_path, found_path
         raise ImportError("No module named %s" % main_mod)
 
     @staticmethod
@@ -168,9 +201,10 @@ class FlagsPlugin(Plugin):
                 out = subprocess.check_output(
                     cmd, stderr=subprocess.STDOUT, env=env)
             except subprocess.CalledProcessError as e:
-                self.log.warning(
-                    "cannot import flags from %s: %s",
-                    mod_path, e.output.decode().strip())
+                if e.returncode != exit_code.NOT_SUPPORTED:
+                    self.log.warning(
+                        "cannot import flags from %s: %s",
+                        mod_path, e.output.decode().strip())
                 raise DataLoadError()
             else:
                 self.log.debug("import_flags_main output: %s", out)
@@ -185,13 +219,18 @@ class FlagsPlugin(Plugin):
 
     @staticmethod
     def _filter_flags(data, imports):
+        if imports is IMPLICIT_ALL_FLAGS:
+            return data
         return {
             name: data[name] for name in data if name in imports
         }
 
     def _apply_import_data(self, flag_import_data, op_data):
         for flag_name, flag_data in flag_import_data.items():
-            op_flags = op_data["flags"]
+            try:
+                op_flags = op_data["flags"]
+            except KeyError:
+                op_flags = op_data["flags"] = {}
             try:
                 op_flag_data = op_flags[flag_name]
             except KeyError:
