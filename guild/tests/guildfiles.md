@@ -124,10 +124,43 @@ Find an operation using a model's `get_op` method:
     >>> gf.models["expert"].get_operation("train")
     <guild.guildfile.OpDef 'expert:train'>
 
-`get_op` returns None if the operation isn't defined for the model:
+`get_operation` returns None if the operation isn't defined for the
+model:
 
     >>> print(gf.models["expert"].get_operation("not-defined"))
     None
+
+### Default operation
+
+If an operation is designated as `default` it can be accessed using
+the `default_operation` attribute of the model def:
+
+    >>> expert_model = gf.models["expert"]
+    >>> train_op = expert_model.get_operation("train")
+    >>> train_op.default
+    True
+
+    >>> expert_model.default_operation
+    <guild.guildfile.OpDef 'expert:train'>
+
+    >>> expert_model.default_operation is train_op
+    True
+
+The intro model doesn't have a default operation:
+
+    >>> intro_model = gf.models["intro"]
+    >>> train_op = intro_model.get_operation("train")
+    >>> train_op.default
+    False
+
+    >>> print(intro_model.default_operation)
+    None
+
+`get_operation` fails if op_name is None:
+
+    >>> expert_model.get_operation(None)
+    Traceback (most recent call last):
+    ValueError: name cannot be None
 
 ### Op coercion
 

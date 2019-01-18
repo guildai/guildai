@@ -520,8 +520,9 @@ class ModelDef(object):
 
     def __init__(self, name, data, guildfile, extends_seen=None):
         data = _extended_data(data, guildfile, extends_seen or [])
-        self.name = name
         self.guildfile = guildfile
+        self.name = name
+        self.default = bool(data.get("default"))
         self.parents = _dedup_parents(data.get("__parents__", []))
         self.description = (data.get("description") or "").strip()
         self.references = data.get("references") or []
@@ -529,7 +530,6 @@ class ModelDef(object):
         self.resources = _init_resources(data, self)
         self.disabled_plugins = data.get("disabled-plugins") or []
         self.extra = data.get("extra") or {}
-        self.default = data.get("default", False)
         self.source = _init_source(data.get("source") or [], self)
 
     @property
@@ -542,6 +542,13 @@ class ModelDef(object):
     def get_operation(self, name):
         for op in self.operations:
             if op.name == name:
+                return op
+        return None
+
+    @property
+    def default_operation(self):
+        for op in self.operations:
+            if op.default:
                 return op
         return None
 
@@ -758,6 +765,7 @@ class OpDef(object):
                 modeldef.guildfile,
                 "invalid operation def: %r" % data)
         self.modeldef = modeldef
+        self.default = bool(data.get("default"))
         self.flags = _init_flags(data, self)
         self._modelref = None
         self._flag_vals = _init_flag_values(self.flags)

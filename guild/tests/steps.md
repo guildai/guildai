@@ -275,8 +275,9 @@ configuration.
     >>> run_op("m3:steps-invalid-bad-op")
     ERROR (1)
     INFO: [guild] running not-defined: m3:not-defined
-    main_bootstrap.py: operation 'not-defined' is not defined for model 'm3'
-    Try 'guild operations m3' for a list of available operations.
+    main_bootstrap.py: cannot find operation m3:not-defined
+    Try 'guild operations' for a list.
+    <BLANKLINE>
 
 At the moment, steps do not support additional run options and any
 provided will cause Guild to print a warning message.

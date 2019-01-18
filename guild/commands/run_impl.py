@@ -45,24 +45,23 @@ from . import runs_impl
 log = logging.getLogger("guild")
 
 def main(args):
-    _check_opspec_args(args)
+    _maybe_shift_opspec(args)
     _apply_restart_or_rerun_args(args)
     model, op_name = _resolve_model_op(args.opspec)
     opdef = _resolve_opdef(model, op_name)
     _dispatch_cmd(args, opdef)
 
-def _check_opspec_args(args):
-    if not (args.opspec or args.rerun or args.restart):
-        cli.error(
-            "missing [MODEL:]OPERATION or --rerun/--restart RUN\n"
-            "Try 'guild ops' for a list of operations or "
-            "'guild run --help' for more information.")
+def _maybe_shift_opspec(args):
+    """Moves opspec to flags if it looks like a flag assignment.
+    """
+    if args.opspec and "=" in args.opspec:
+        args.flags = (args.opspec,) + args.flags
+        args.opspec = None
 
 def _apply_restart_or_rerun_args(args):
     if not args.rerun and not args.restart:
         return
     _check_restart_rerun_args(args)
-    _shift_opspec_arg(args)
     run = _find_run(args.restart or args.rerun, args)
     _apply_run_args(run, args)
     if args.restart:
@@ -79,13 +78,6 @@ def _check_restart_rerun_args(args):
         cli.error(
             "--rerun and --restart cannot both be used\n"
             "Try 'guild run --help' for more information.")
-
-def _shift_opspec_arg(args):
-    if args.opspec:
-        # args.opspec is actually a flag in this case
-        args.flags = (args.opspec,) + args.flags
-        args.opspec = None
-    assert not args.opspec
 
 def _find_run(run_id_prefix, args):
     if args.remote:
@@ -157,13 +149,21 @@ def _resolve_model_op(opspec):
         raise
     else:
         # We have a model via the default lookup process, but it might
-        # not have the op_name operation. If op_name is missing from
-        # model AND we have a proxy_model_op, return proxy_model_op.
-        if not model.modeldef.get_operation(op_name) and proxy_model_op:
+        # not have op_name operation or a default operation. If we
+        # can't find an op matching op_name or a default op AND we
+        # have a proxy_model_op, return proxy_model_op.
+        opdef = (
+            model.modeldef.get_operation(op_name) if op_name
+            else model.modeldef.default_operation)
+        if not opdef and proxy_model_op:
             return proxy_model_op
-        return model, op_name
+        if not opdef:
+            _no_such_op_error(opspec)
+        return model, opdef.name
 
 def _proxy_model_op(opspec):
+    if not opspec:
+        return None
     try:
         return model_proxies.resolve_model_op(opspec)
     except model_proxies.NotSupported:
@@ -171,9 +171,14 @@ def _proxy_model_op(opspec):
 
 def _model_op(opspec):
     model_ref, op_name = _parse_opspec(opspec)
-    return _resolve_model(model_ref), op_name
+    model = _resolve_model(model_ref)
+    if not model:
+        _no_such_op_error(opspec)
+    return model, op_name
 
 def _parse_opspec(spec):
+    if not spec:
+        return None, None
     parts = spec.split(":", 1)
     if len(parts) == 1:
         return None, parts[0]
@@ -185,9 +190,7 @@ def _resolve_model(model_ref):
     if model:
         return model
     if not model_ref:
-        cli.error(
-            "a model is required for this operation\n"
-            "Try 'guild operations' for a list of operations")
+        return None
     return _resolve_system_model(model_ref)
 
 def _try_resolve_cwd_model(model_ref):
@@ -271,6 +274,17 @@ def _no_model_error(model_ref):
             "cannot find a model matching '%s'\n"
             "Try 'guild models' for a list of available models."
             % model_ref)
+
+def _no_such_op_error(opspec):
+    if opspec:
+        cli.error(
+            "cannot find operation %s\n"
+            "Try 'guild operations' for a list."
+            % opspec)
+    else:
+        cli.error(
+            "cannot find a default operation\n"
+            "Try 'guild operations' for a list.")
 
 def _resolve_opdef(model, op_name):
     opdef = model.modeldef.get_operation(op_name)

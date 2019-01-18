@@ -67,8 +67,8 @@ Running a non-existing operation with no model spec:
 
     >>> resolve_model_op("train")
     Traceback (most recent call last):
-    SystemExit: ("a model is required for this operation\nTry
-    'guild operations' for a list of operations", 1)
+    SystemExit: ("cannot find operation train\nTry
+    'guild operations' for a list.", 1)
 
 Running a non-existing operation with a model spec:
 
@@ -116,8 +116,8 @@ The resolved model before making the script to executable:
 
     >>> resolve_model_op("train.sh")
     Traceback (most recent call last):
-    SystemExit: ("a model is required for this operation\nTry
-    'guild operations' for a list of operations", 1)
+    SystemExit: ("cannot find operation train.sh\nTry
+    'guild operations' for a list.", 1)
 
 Let's make the script executable:
 
