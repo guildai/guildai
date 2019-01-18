@@ -32,11 +32,11 @@ def main(args):
         detail=(["source", "operations", "details"] if args.verbose else [])
     )
 
-def iter_models(dirs=None):
+def iter_models(dirs=None, include_anonymous=False):
     dirs = dirs or []
     abs_dirs = [os.path.abspath(d) for d in dirs]
     for m in model.iter_models():
-        if m.modeldef.name and _match_dirs(m, abs_dirs):
+        if (m.modeldef.name or include_anonymous) and _match_dirs(m, abs_dirs):
             yield m
 
 def _match_dirs(model, abs_dirs):
