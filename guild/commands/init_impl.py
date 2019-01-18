@@ -30,6 +30,7 @@ import guild
 from guild import cli
 from guild import config
 from guild import init
+from guild import pip_util
 from guild import util
 
 log = logging.getLogger("guild")
@@ -108,9 +109,9 @@ class Config(object):
         else:
             params.append(("Python interpreter", "default"))
         if self.guild:
-            params.append(("Guild version", self.guild))
+            params.append(("Guild", self.guild))
         else:
-            params.append(("Guild version", _implicit_guild_version()))
+            params.append(("Guild", _implicit_guild_version()))
         if self.tensorflow_package:
             params.append(("TensorFlow", self.tensorflow_package))
         if self.guild_pkg_reqs:
@@ -333,7 +334,7 @@ def _pip_extra_opts(config):
 def _install_reqs(reqs, config):
     cmd_args = [_pip_bin(config.env_dir), "install"] + _pip_extra_opts(config)
     for req in reqs:
-        if os.path.isfile(req) and _is_requirements_file(req):
+        if _is_requirements_file(req):
             cmd_args.extend(["-r", req])
         else:
             cmd_args.append(req)
@@ -343,10 +344,10 @@ def _install_reqs(reqs, config):
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
 
-def _is_requirements_file(req):
-    # Consider a requirements file if it ends in .txt or no ext
-    _, ext = os.path.splitext(req)
-    return ext.lower() in (".txt", "")
+def _is_requirements_file(path):
+    if not os.path.isfile(path):
+        return False
+    return pip_util.is_requirements(path)
 
 def _maybe_install_tensorflow(config):
     if config.tensorflow_package:
