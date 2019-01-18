@@ -125,9 +125,9 @@ class KerasScriptModelProxy(PythonScriptModelProxy):
 
     def _init_modeldef(self):
         plugin = plugins.for_name("keras")
-        data = plugin.script_model(self._script)
-        self._rename_model_and_op(data)
-        gf = guildfile.Guildfile(data, dir=config.cwd())
+        model_data = plugin.script_model(self._script)
+        self._rename_model_and_op(model_data)
+        gf = guildfile.Guildfile([model_data], dir=config.cwd())
         return gf.models[self.name]
 
     def _rename_model_and_op(self, data):
@@ -168,9 +168,10 @@ class ExecScriptModelProxy(object):
         return gf.models[self.name]
 
 def _script_model_reference(model_name, script):
+    script_abs_path = os.path.abspath(os.path.join(config.cwd(), script))
     return modellib.ModelRef(
         "script",
-        script,
+        script_abs_path,
         modellib.file_hash(script),
         model_name)
 
