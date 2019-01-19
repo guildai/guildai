@@ -116,7 +116,7 @@ def _safe_project_init_copies(src, dest):
     ]
     safe_copies = []
     for root, dirs, files in os.walk(src):
-        util.try_remove(dirs, skip_dirs)
+        util.remove_all(skip_dirs, dirs)
         rel_path = root[len(src):]
         for name in files:
             if _matches(name, ignore_files):
