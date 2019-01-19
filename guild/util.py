@@ -629,20 +629,17 @@ class RunsMonitor(LoopingThread):
             self._refresh_run_links(runs)
 
     def _refresh_run_links(self, runs):
+        # List of links to delete - assume all to start
         to_delete = os.listdir(self.logdir)
         for run in runs:
             link_name = self._format_run_name(run)
+            remove(link_name, to_delete)
             link_path = os.path.join(self.logdir, link_name)
             if not os.path.exists(link_path):
-                log.debug("Linking %s to %s", link_name, run.path)
-                symlink(run.path, link_path)
-            try:
-                to_delete.remove(link_name)
-            except ValueError:
-                pass
+                self._create_run_link(link_path, run.path)
+            self._refresh_run_link(link_path, run.path)
         for link_name in to_delete:
-            log.debug("Removing %s", link_name)
-            os.remove(os.path.join(self.logdir, link_name))
+            self._remove_run_link(os.path.join(self.logdir, link_name))
 
     @staticmethod
     def _format_run_name(run):
@@ -656,6 +653,20 @@ class RunsMonitor(LoopingThread):
         if label:
             parts.append(label)
         return _safe_filename(" ".join(parts))
+
+    @staticmethod
+    def _create_run_link(link, run_dir):
+        log.debug("Linking %s to %s", link, run_dir)
+        symlink(run_dir, link)
+
+    def _refresh_run_link(self, link, run_dir):
+        """Callback to let subclass refresh links they may have created."""
+        pass
+
+    @staticmethod
+    def _remove_run_link(link):
+        log.debug("Removing %s", link)
+        os.remove(link)
 
 def _safe_filename(s):
     if PLATFORM == "Windows":
