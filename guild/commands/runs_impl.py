@@ -114,7 +114,7 @@ def _apply_ops_filter(args, filters):
 
 def _op_run_filter(op_refs):
     def f(run):
-        op_desc = format_op_desc(run.opref, nowarn=True)
+        op_desc = format_op_desc(run, nowarn=True)
         return any((ref in op_desc for ref in op_refs))
     return f
 
@@ -276,7 +276,7 @@ def format_run(run, index=None):
         "short_index": _format_run_index(run),
         "model": run.opref.model_name,
         "op_name": run.opref.op_name,
-        "operation": format_op_desc(run.opref),
+        "operation": format_op_desc(run),
         "pkg": run.opref.pkg_name,
         "status": status,
         "status_with_remote": _status_with_remote(status, run.remote),
@@ -295,15 +295,17 @@ def _format_run_index(run, index=None):
     else:
         return "[%s]" % run.short_id
 
-def format_op_desc(opref, nowarn=False):
+def format_op_desc(run, nowarn=False, seen_protos=None):
+    seen_protos = seen_protos or set()
+    opref = run.opref
     if opref.pkg_type == "guildfile":
         return _format_guildfile_op(opref)
     elif opref.pkg_type == "package":
         return _format_package_op(opref)
     elif opref.pkg_type == "script":
         return _format_script_op(opref)
-    elif opref.pkg_type == "builtin":
-        return _format_builtin_op(opref)
+    elif opref.pkg_type == "batch":
+        return _format_batch_op(opref, run, seen_protos)
     elif opref.pkg_type == "pending":
         return _format_pending_op(opref)
     else:
@@ -341,8 +343,20 @@ def _format_package_op(opref):
 def _format_script_op(opref):
     return _format_guildfile_op(opref)
 
-def _format_builtin_op(opref):
-    return opref.op_name
+def _format_batch_op(opref, run, seen_protos):
+    proto_dir = run.guild_path("proto")
+    if not os.path.exists(proto_dir):
+        return opref.op_name
+    if proto_dir in seen_protos:
+        # We have a cycle - drop this proto_dir
+        return opref.op_name
+    proto_run = guild.run.Run("", proto_dir)
+    proto_op_desc = format_op_desc(proto_run, seen_protos)
+    parts = [opref.op_name]
+    if not opref.op_name.endswith("+"):
+        parts.append("+")
+    parts.append(proto_op_desc)
+    return "".join(parts)
 
 def _format_pending_op(opref):
     return "<pending %s>" % opref.op_name

@@ -54,8 +54,7 @@ def _print_scalars(args):
     index = indexlib.RunIndex()
     index.refresh(runs, ["scalar"])
     for run in runs:
-        opref = opreflib.OpRef.from_run(run)
-        cli.out("[%s] %s" % (run.short_id, runs_impl.format_op_desc(opref)))
+        cli.out("[%s] %s" % (run.short_id, runs_impl.format_op_desc(run)))
         for s in index.run_scalars(run):
             prefix = s["prefix"]
             if prefix:
