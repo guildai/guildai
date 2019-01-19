@@ -53,9 +53,11 @@ class NotSupported(Exception):
 
 class BatchModelProxy(object):
 
+    name = ""
+    op_name = "+"
+    module_name = "guild.batch_main"
+
     def __init__(self):
-        self.name = ""
-        self.op_name = "+"
         self.modeldef = self._init_modeldef()
         self.reference = self._init_reference()
 
@@ -65,7 +67,7 @@ class BatchModelProxy(object):
                 "model": self.name,
                 "operations": {
                     self.op_name: {
-                        "exec": "${python_exe} -um guild.batch_main"
+                        "exec": "${python_exe} -um %s" % self.module_name
                     }
                 }
             }
@@ -79,6 +81,12 @@ class BatchModelProxy(object):
             "guildai",
             guild.__version__,
             self.name)
+
+class RandomOptimizerModelProxy(BatchModelProxy):
+
+    name = ""
+    op_name = "random"
+    module_name = "guild.optimizers.random_main"
 
 class PythonScriptModelProxy(object):
 
@@ -178,6 +186,9 @@ def _script_model_reference(model_name, script):
 def resolve_model_op(opspec):
     if opspec == "+":
         model = BatchModelProxy()
+        return model, model.op_name
+    elif opspec == "random":
+        model = RandomOptimizerModelProxy()
         return model, model.op_name
     elif _is_python_script(opspec):
         model = _python_script_model(opspec)

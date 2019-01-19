@@ -147,6 +147,7 @@
     guild.optimizer
     guild.optimizers.__init__
     guild.optimizers.skopt
+    guild.optimizers.random_main
     guild.package
     guild.package_main
     guild.pass
