@@ -75,7 +75,7 @@ class BatchModelProxy(object):
 
     def _init_reference(self):
         return modellib.ModelRef(
-            "builtin",
+            "batch",
             "guildai",
             guild.__version__,
             self.name)
