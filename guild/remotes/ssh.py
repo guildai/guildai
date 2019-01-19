@@ -416,7 +416,7 @@ def _remote_run_cmd(remote_run_dir, opspec, op_flags, label,
         "NO_WARN_RUNDIR=1",
         "guild", "run", q(opspec),
         "--run-dir", remote_run_dir,
-        "--background", "%s/.guild/JOB" % remote_run_dir,
+        "--pidfile", "%s/.guild/JOB" % remote_run_dir,
         "--quiet",
         "--yes",
     ]

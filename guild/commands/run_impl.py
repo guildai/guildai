@@ -876,7 +876,7 @@ def _run_op(op, args):
     try:
         returncode = op.run(
             args.quiet,
-            args.background,
+            args.pidfile,
             args.stop_after)
     except deps.DependencyError as e:
         _handle_dependency_error(e)
