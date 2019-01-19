@@ -276,7 +276,7 @@ configuration.
     ERROR (1)
     INFO: [guild] running not-defined: m3:not-defined
     main_bootstrap.py: cannot find operation m3:not-defined
-    Try 'guild operations' for a list.
+    Try 'guild operations' for a list of available operations.
     <BLANKLINE>
 
 At the moment, steps do not support additional run options and any

@@ -277,10 +277,17 @@ def _no_model_error(model_ref):
 
 def _no_such_op_error(opspec):
     if opspec:
-        cli.error(
-            "cannot find operation %s\n"
-            "Try 'guild operations' for a list."
-            % opspec)
+        if ":" in opspec:
+            cli.error(
+                "cannot find operation %s\n"
+                "Try 'guild operations' for a list of available operations."
+                % opspec)
+        else:
+            cli.error(
+                "cannot find operation %s\n"
+                "You may need to include a model in the form MODEL:OPERATION. "
+                "Try 'guild operations' for a list of available operations."
+                % opspec)
     else:
         cli.error(
             "cannot find a default operation\n"
@@ -729,8 +736,17 @@ def _run_batch(batch_opspec, child_op, batch_files, args):
     _dispatch_op_cmd(batch_opdef, batch_args)
 
 def _resolve_batch_opdef(batch_opspec):
-    model, op_name = _resolve_model_op(batch_opspec)
-    return _resolve_opdef(model, op_name)
+    try:
+        model, op_name = _resolve_model_op(batch_opspec)
+    except SystemExit as e:
+        assert e.args[0].startswith("cannot find operation"), e
+        cli.error(
+            "cannot find optimizer %r\n"
+            "Refer to Guild AI documentation for supported optimizers or "
+            "verify a custom optimizer by running " "'guild operations'."
+            % batch_opspec)
+    else:
+        return _resolve_opdef(model, op_name)
 
 def _init_batch_run(child_op, batch_files):
     batches = _batches_attr(batch_files)
