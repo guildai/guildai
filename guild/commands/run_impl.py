@@ -790,7 +790,7 @@ def _batch_op_cmd_args(opdef, run, args):
     else:
         params["run_dir"] = run.path
     params["flags"] = params["opt_flags"]
-    params["op_flags"] = ()
+    params["opt_flags"] = ()
     params["yes"] = True
     params["restart"] = None
     params["rerun"] = None
