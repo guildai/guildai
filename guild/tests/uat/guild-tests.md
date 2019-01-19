@@ -8,6 +8,7 @@ tests).
     internal tests:
       anonymous-models:          ok
       batch-1:                   ok
+      batch-2:                   ok
       config:                    ok
       copy-source:               ok
       cpu-plugin:                ok
