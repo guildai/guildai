@@ -24,6 +24,7 @@
     guild._test
     guild._yacc
     guild.batch_main
+    guild.batch_util
     guild.binaryornot
     guild.cli
     guild.click_util
