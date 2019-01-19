@@ -602,7 +602,7 @@ def _invalid_op_spec_error(e, opdef):
     cli.error("operation '%s' is not valid: %s" % (opdef.fullname, e))
 
 def _preview_cmd(op):
-    # Remove guild.op_main from preview cmd
+    # Quote args and remote guild.op_main
     return [
         pipes.quote(arg) for arg in op.cmd_args
         if arg != "guild.op_main"
