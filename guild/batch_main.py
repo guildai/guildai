@@ -18,6 +18,7 @@ from __future__ import division
 import hashlib
 import itertools
 import logging
+import random
 import os
 import shutil
 import sys
@@ -31,6 +32,8 @@ from guild import util
 from guild import var
 
 log = logging.getLogger("guild")
+
+DEFAULT_MAX_TRIALS = 100
 
 class Trial(object):
 
@@ -121,7 +124,8 @@ def main():
     op_util.init_logging()
     batch_run = op_util.current_run()
     proto = _batch_proto(batch_run)
-    trials = _init_trials(batch_run, proto)
+    all_trials = _init_trials(batch_run, proto)
+    trials = _sample_trials(all_trials, batch_run)
     if os.getenv("PRINT_TRIALS") == "1":
         _print_trials(trials)
     else:
@@ -165,6 +169,14 @@ def _trial_flags(flag_name, flag_val):
     if isinstance(flag_val, list):
         return [(flag_name, trial_val) for trial_val in flag_val]
     return [(flag_name, flag_val)]
+
+def _sample_trials(trials, batch_run):
+    max_trials = batch_run.get("_max_trials", DEFAULT_MAX_TRIALS)
+    if len(trials) <= max_trials:
+        return trials
+    random_seed = batch_run.get("_random_seed")
+    random.seed(random_seed)
+    return random.sample(trials, max_trials)
 
 def _print_trials(trials):
     op_util.print_trials([t.flags for t in trials])
