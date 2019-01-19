@@ -914,7 +914,7 @@ def _op_pidfile(args):
     if args.pidfile:
         return args.pidfile
     elif args.background:
-        with util.TempFile(keep=True) as pidfile:
+        with util.TempFile("guild-pid-", keep=True) as pidfile:
             return pidfile
     else:
         return None
