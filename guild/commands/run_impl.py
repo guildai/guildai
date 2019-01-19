@@ -585,6 +585,10 @@ def _op_extra_attrs(args):
         attrs["label"] = args.label
     if args.no_wait:
         attrs["_no-wait"] = True
+    if args.max_trials is not None:
+        attrs["_max_trials"] = args.max_trials
+    if args.random_seed is not None:
+        attrs["_random_seed"] = args.random_seed
     return attrs
 
 def _op_gpus(args):
@@ -798,6 +802,10 @@ def _batch_op_cmd_args(opdef, run, args):
     params["needed"] = False
     params["minimize"] = None
     params["maximize"] = None
+    if params["max_trials"] is None:
+        params["max_trials"] = opdef.max_trials
+    if params["random_seed"] is None:
+        params["random_seed"] = opdef.random_seed
     args = click_util.Args(**params)
     args._no_warn_rundir = 1
     return args

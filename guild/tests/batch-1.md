@@ -12,6 +12,7 @@ We'll run everything in a temp Guild home:
 And a helper for running ops:
 
     >>> from guild import _api as gapi
+
     >>> def run(op, batches=None, label=None, print_trials=False,
     ...         **flags):
     ...   try:

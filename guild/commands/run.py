@@ -79,6 +79,15 @@ def run_params(fn):
             ("--opt-flag", "opt_flags"), metavar="FLAG=VAL", multiple=True,
             help="Flag for OPTIMIZER. May be used multiple times."),
         click.Option(
+            ("--max-trials",), metavar="N", type=int,
+            help=(
+                "Maximum number of trials to run in batch operations. "
+                "Default is optimizer specific. If optimizer is not "
+                "specified, default is 100.")),
+        click.Option(
+            ("--random-seed",), metavar="N", type=int,
+            help="Random seed used when sampling trials or flag values."),
+        click.Option(
             ("-r", "--remote"), metavar="REMOTE",
             help="Run the operation remotely."),
         click.Option(
