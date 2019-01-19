@@ -24,8 +24,8 @@ import time
 
 import yaml
 
+# Move any import that's expensive or seldom used into function
 from guild import util
-from guild import binaryornot
 
 log = logging.getLogger("guild")
 
@@ -515,6 +515,7 @@ def _to_copy_for_spec(spec):
     return spec.type == "include"
 
 def _is_text_file(path):
+    from guild import binaryornot
     return not binaryornot.is_binary(path)
 
 def split_main(main):
