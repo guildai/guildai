@@ -8,5 +8,6 @@ If there is no default model, Guild prints an error message and exits.
 
     >>> run("guild run train")
     guild: cannot find operation train
-    Try 'guild operations' for a list.
+    You may need to include a model in the form MODEL:OPERATION.
+    Try 'guild operations' for a list of available operations.
     <exit 1>
