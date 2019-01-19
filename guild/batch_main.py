@@ -41,6 +41,10 @@ class Trial(object):
         self._hash = self._init_flags_hash()
         self._hash_path = self._init_hash_path()
 
+    @property
+    def flags(self):
+        return self._flags
+
     def _init_flags_hash(self):
         # Hash of sorted flag values
         parts = []
@@ -118,8 +122,11 @@ def main():
     batch_run = op_util.current_run()
     proto = _batch_proto(batch_run)
     trials = _init_trials(batch_run, proto)
-    _init_pending(trials)
-    _run(trials)
+    if os.getenv("PRINT_TRIALS") == "1":
+        _print_trials(trials)
+    else:
+        _init_pending(trials)
+        _run(trials)
 
 def _batch_proto(batch_run):
     proto_path = batch_run.guild_path("proto")
@@ -158,6 +165,9 @@ def _trial_flags(flag_name, flag_val):
     if isinstance(flag_val, list):
         return [(flag_name, trial_val) for trial_val in flag_val]
     return [(flag_name, flag_val)]
+
+def _print_trials(trials):
+    op_util.print_trials([t.flags for t in trials])
 
 def _init_pending(trials):
     for trial in trials:

@@ -56,10 +56,10 @@ def _init_env(cwd, guild_home):
 
 def run(spec=None, cwd=None, flags=None, batch_files=None, run_dir=None,
         restart=None, label=None, guild_home=None, extra_env=None,
-        print_cmd=False):
+        print_cmd=False, print_trials=False):
     args, cwd, env = _popen_args(
         spec, cwd, flags, batch_files, run_dir, restart, label,
-        guild_home, extra_env, print_cmd)
+        guild_home, extra_env, print_cmd, print_trials)
     p = subprocess.Popen(args, cwd=cwd, env=env)
     returncode = p.wait()
     if returncode != 0:
@@ -68,10 +68,10 @@ def run(spec=None, cwd=None, flags=None, batch_files=None, run_dir=None,
 def run_capture_output(
         spec=None, cwd=None, flags=None, batch_files=None, run_dir=None,
         restart=None, label=None, guild_home=None, extra_env=None,
-        print_cmd=False):
+        print_cmd=False, print_trials=False):
     args, cwd, env = _popen_args(
         spec, cwd, flags, batch_files, run_dir, restart, label,
-        guild_home, extra_env, print_cmd)
+        guild_home, extra_env, print_cmd, print_trials)
     p = subprocess.Popen(
         args,
         cwd=cwd,
@@ -85,7 +85,7 @@ def run_capture_output(
     return out
 
 def _popen_args(spec, cwd, flags, batch_files, run_dir, restart,
-                label, guild_home, extra_env, print_cmd):
+                label, guild_home, extra_env, print_cmd, print_trials):
     from guild import op_util
     cwd = cwd or "."
     flags = flags or {}
@@ -108,6 +108,8 @@ def _popen_args(spec, cwd, flags, batch_files, run_dir, restart,
         args.extend(["--run-dir", run_dir])
     if print_cmd:
         args.append("--print-cmd")
+    if print_trials:
+        args.append("--print-trials")
     env = dict(os.environ)
     env["NO_IMPORT_FLAGS_PROGRESS"] = "1"
     if extra_env:

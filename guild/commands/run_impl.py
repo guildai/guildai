@@ -86,13 +86,13 @@ def _find_run(run_id_prefix, args):
         return one_run(run_id_prefix)
 
 def _apply_run_args(run, args):
-    if _is_batch_run(run):
+    if _is_batch_run(run.opref.op_name):
         _apply_batch_run_args(run, args)
     else:
         _apply_normal_run_args(run, args)
 
-def _is_batch_run(run):
-    return "+" in run.opref.op_name
+def _is_batch_run(op_name):
+    return "+" in op_name
 
 def _apply_batch_run_args(run, args):
     _apply_batch_opspec(run, args)
@@ -424,6 +424,8 @@ def _dispatch_op_cmd(opdef, args):
             _print_cmd(op)
         elif args.print_env:
             _print_env(op)
+        elif args.print_trials:
+            _print_trials(op, batch_files, args)
         else:
             _maybe_run(op, batch_files, args)
 
@@ -712,23 +714,14 @@ def _has_batch_flag_vals(op):
     return False
 
 def _run_batch(batch_opspec, child_op, batch_files, args):
-    batch_opdef = _resolve_batch_opdef(batch_opspec, child_op)
+    batch_opdef = _resolve_batch_opdef(batch_opspec)
     batch_run = _init_batch_run(child_op, batch_files)
     batch_args = _batch_op_cmd_args(batch_opdef, batch_run, args)
     _dispatch_op_cmd(batch_opdef, batch_args)
 
-def _resolve_batch_opdef(batch_opspec, child_op):
+def _resolve_batch_opdef(batch_opspec):
     model, op_name = _resolve_model_op(batch_opspec)
-    opdef = _resolve_opdef(model, op_name)
-    opdef.name = _batch_op_name(opdef.name, child_op.opdef.name)
-    return opdef
-
-def _batch_op_name(batch_op_name, child_op_name):
-    parts = [batch_op_name]
-    if batch_op_name != "+":
-        parts.append("+")
-    parts.append(child_op_name)
-    return "".join(parts)
+    return _resolve_opdef(model, op_name)
 
 def _init_batch_run(child_op, batch_files):
     batches = _batches_attr(batch_files)
@@ -808,6 +801,31 @@ def _batch_op_cmd_args(opdef, run, args):
     args = click_util.Args(**params)
     args._no_warn_rundir = 1
     return args
+
+def _print_trials(op, batch_files, args):
+    if _is_batch_run(op.opdef.name):
+        _run_batch_print_trials(op)
+    else:
+        batch_opspec = _maybe_batch(op, batch_files, args)
+        if batch_opspec:
+            _print_batch_trials(batch_opspec, op, batch_files, args)
+        else:
+            _print_one_trial(op)
+
+def _run_batch_print_trials(op):
+    op.cmd_env["PRINT_TRIALS"] = "1"
+    op.run()
+
+def _print_batch_trials(batch_opspec, child_op, batch_files, args):
+    batch_opdef = _resolve_batch_opdef(batch_opspec)
+    with util.TempDir() as batch_run_dir:
+        child_op.set_run_dir(batch_run_dir)
+        batch_run = _init_batch_run(child_op, batch_files)
+        batch_args = _batch_op_cmd_args(batch_opdef, batch_run, args)
+        _dispatch_op_cmd(batch_opdef, batch_args)
+
+def _print_one_trial(op):
+    op_util.print_trials([op.opdef.flag_values(include_none=True)])
 
 def _run_non_batched(op, args):
     _check_needed(op, args)
