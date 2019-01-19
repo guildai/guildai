@@ -889,7 +889,7 @@ def _run_op(op, args):
     try:
         returncode = op.run(
             args.quiet,
-            args.pidfile,
+            _op_pidfile(args),
             args.stop_after)
     except deps.DependencyError as e:
         _handle_dependency_error(e)
@@ -897,6 +897,15 @@ def _run_op(op, args):
         _handle_process_error(e)
     else:
         _handle_run_exit(returncode, op)
+
+def _op_pidfile(args):
+    if args.pidfile:
+        return args.pidfile
+    elif args.background:
+        with util.TempFile(keep=True) as pidfile:
+            return pidfile
+    else:
+        return None
 
 def _handle_dependency_error(e):
     cli.error(
