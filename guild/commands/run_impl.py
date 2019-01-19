@@ -511,15 +511,18 @@ def _validate_opdef_flags(opdef):
         _invalid_flag_value_error(e)
 
 def _missing_required_flags_error(e):
-    cli.out("Operation requires the following missing flags:\n", err=True)
+    cli.out(
+        "Operation requires the following missing flags:\n",
+        err=True)
     cli.table(
-        [{"name": flag.name, "desc": flag.description} for flag in e.missing],
+        [{"name": flag.name, "desc": flag.description}
+         for flag in e.missing],
         ["name", "desc"],
         indent=2,
         err=True)
     cli.out(
-        "\nRun the command again with these flags specified as NAME=VAL.",
-        err=True)
+        "\nRun the command again with these flags specified "
+        "as NAME=VAL.", err=True)
     cli.error()
 
 def _invalid_flag_choice_error(e):
@@ -532,7 +535,9 @@ def _invalid_flag_choice_error(e):
         ["val", "desc"],
         indent=2,
         err=True)
-    cli.out("\nRun the command again using one of these options.", err=True)
+    cli.out(
+        "\nRun the command again using one of these options.",
+        err=True)
     cli.error()
 
 def _invalid_flag_value_error(e):
@@ -568,8 +573,8 @@ def _op_run_dir(args):
         if (os.getenv("NO_WARN_RUNDIR") != "1" and
             not hasattr(args, "_no_warn_rundir")):
             cli.note(
-                "Run directory is '%s' (results will not be visible to Guild)"
-                % run_dir)
+                "Run directory is '%s' (results will not be "
+                "visible to Guild)" % run_dir)
         return run_dir
     elif args.restart:
         assert hasattr(args, "_restart_run")
