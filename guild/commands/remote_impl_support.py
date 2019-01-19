@@ -154,7 +154,7 @@ def _run_kw(args):
         "stop_after",
     ]
     ignore = [
-        "background",
+        "pidfile",
         "help_model",
         "help_op",
         "print_cmd",

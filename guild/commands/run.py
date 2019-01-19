@@ -101,10 +101,10 @@ def run_params(fn):
                 "A matching run is of the same operation with the same "
                 "flag values that is not stopped due to an error.")),
         click.Option(
-            ("--background",), metavar="PIDFILE",
+            ("--pidfile",), metavar="PIDFILE",
             help=(
-                "Run operation in background. PIDFILE must be a path to a "
-                "file where the background process ID is written.")),
+                "Run operation in background, writing the background process "
+                "ID to PIDFILE.")),
         click.Option(
             ("-n", "--no-wait",),
             help=("Don't wait for a remote operation to complete. Ignored "
