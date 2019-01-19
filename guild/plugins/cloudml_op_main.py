@@ -359,7 +359,7 @@ class Train(object):
         self._init_job_dir()
         self._submit_job()
         self._write_lock()
-        if self.run.get("_no-wait"):
+        if self.run.get("_no_wait"):
             log.info(
                 "no-wait specified, exiting early\n"
                 "Job %s will continue to run remotely - use 'guild sync' "

@@ -589,7 +589,7 @@ def _op_extra_attrs(args):
     if args.label:
         attrs["label"] = args.label
     if args.no_wait:
-        attrs["_no-wait"] = True
+        attrs["_no_wait"] = True
     if args.max_trials is not None:
         attrs["_max_trials"] = args.max_trials
     if args.random_seed is not None:
