@@ -144,6 +144,8 @@
     guild.op_main
     guild.op_util
     guild.opref
+    guild.optimizers.__init__
+    guild.optimizers.random_main
     guild.package
     guild.package_main
     guild.pass
