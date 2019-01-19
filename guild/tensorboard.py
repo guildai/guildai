@@ -16,6 +16,8 @@ from __future__ import absolute_import
 from __future__ import division
 
 import logging
+import os
+import re
 import sys
 
 import pkg_resources
@@ -55,6 +57,40 @@ DEFAULT_RELOAD_INTERVAL = 5
 
 class TensorboardError(Exception):
     pass
+
+class RunsMonitor(util.RunsMonitor):
+
+    tfevent_pattern = re.compile(r"\.tfevents")
+
+    def _create_run_link(self, run_dir, link):
+        util.ensure_dir(link)
+
+    def _refresh_run_link(self, link, run_dir):
+        to_delete = [
+            os.path.relpath(p, link)
+            for p in self._iter_tfevent_paths(link)]
+        for tfevent_path in self._iter_tfevent_paths(run_dir):
+            tfevent_relpath = os.path.relpath(tfevent_path, run_dir)
+            util.remove(tfevent_relpath, to_delete)
+            tfevent_link = os.path.join(link, tfevent_relpath)
+            if not os.path.exists(tfevent_link):
+                log.debug("Creating link %s", tfevent_link)
+                util.ensure_dir(os.path.dirname(tfevent_link))
+                util.symlink(tfevent_path, tfevent_link)
+        for path in to_delete:
+            tfevent_link = os.path.join(link, path)
+            log.debug("Removing %s", tfevent_link)
+            os.remove(tfevent_link)
+
+    def _iter_tfevent_paths(self, run_dir):
+        for root, _dirs, files in os.walk(run_dir):
+            for name in files:
+                if self.tfevent_pattern.search(name):
+                    yield os.path.join(root, name)
+
+    @staticmethod
+    def _remove_run_link(link):
+        util.safe_rmtree(link)
 
 def create_app(logdir, reload_interval, path_prefix=""):
     try:
