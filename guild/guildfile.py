@@ -790,8 +790,6 @@ class OpDef(object):
         self.compare = data.get("compare")
         self.handle_keyboard_interrupt = (
             data.get("handle-keyboard-interrupt") or False)
-        self.max_trials = data.get("max-trials")
-        self.random_seed = data.get("random-seed")
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname

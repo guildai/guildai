@@ -823,10 +823,6 @@ def _batch_op_cmd_args(opdef, run, args):
     params["needed"] = False
     params["minimize"] = None
     params["maximize"] = None
-    if params["max_trials"] is None:
-        params["max_trials"] = opdef.max_trials
-    if params["random_seed"] is None:
-        params["random_seed"] = opdef.random_seed
     args = click_util.Args(**params)
     args._no_warn_rundir = 1
     return args
