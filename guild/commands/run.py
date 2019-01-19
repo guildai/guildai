@@ -127,6 +127,10 @@ def run_params(fn):
             help="Show operation environment and exit.",
             is_flag=True),
         click.Option(
+            ("--print-trials",),
+            help="Show generated trials and exit.",
+            is_flag=True),
+        click.Option(
             ("--help-model",),
             help="Show model help and exit.",
             is_flag=True),

@@ -561,3 +561,18 @@ def init_logging():
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     guild.log.init_logging(level, {"_": format})
     globals()["log"] = logging.getLogger("guild")
+
+def print_trials(trials):
+    from guild import cli
+    names = set()
+    data = []
+    for i, flags in enumerate(trials):
+        row = {"_trial": i + 1}
+        data.append(row)
+        row.update(
+            {name: format_flag_val(flags[name])
+             for name in flags})
+        names.update(flags)
+    heading = {name: name for name in names}
+    heading["_trial"] = "#"
+    cli.table([heading] + data, ["_trial"] + sorted(names))

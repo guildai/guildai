@@ -7,7 +7,7 @@ tests).
     >>> run("guild check -nT", timeout=120) # doctest: +REPORT_UDIFF
     internal tests:
       anonymous-models:          ok
-      batch:                     ok
+      batch-1:                   ok
       config:                    ok
       copy-source:               ok
       cpu-plugin:                ok
