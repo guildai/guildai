@@ -15,8 +15,25 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import numpy as np
+
+def f(x):
+    #import pdb;pdb.set_trace()
+    return (np.sin(5 * x[0]) * (1 - np.tanh(x[0] ** 2)) *
+            np.random.randn() * 0.1)
+
+def cb(res):
+    print("Trial: %s %s %s" % (res.x_iters, res.x, res.fun))
+
 def main():
-    pass
+    import skopt
+    res = skopt.dummy_minimize(
+        f,
+        [(-2.0, 2.0)],
+        n_calls=10,
+        callback=cb)
+    #import pdb;pdb.set_trace()
+    print("Best: %s -> %s" % (res.x, res.fun))
 
 if __name__ == "__main__":
     main()
