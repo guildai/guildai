@@ -19,7 +19,6 @@ import logging
 import os
 import sys
 
-from guild import exit_code
 from guild import python_util
 
 FLAGS = {}
@@ -41,8 +40,6 @@ log = _init_log()
 
 def main():
     args = _init_args()
-    if not _imports_argparse(args.mod_path):
-        _not_supported_error(args.mod_path)
     _patch_argparse(args.output_path)
     # Importing module has the side-effect of writing flag data due to
     # patched argparse
@@ -53,17 +50,6 @@ def _init_args():
     p.add_argument("mod_path")
     p.add_argument("output_path")
     return p.parse_args()
-
-def _imports_argparse(mod_path):
-    script = python_util.Script(mod_path)
-    return "argparse" in script.imports
-
-def _not_supported_error(mod_path):
-    if log.getEffectiveLevel() <= logging.DEBUG:
-        log.warning(
-            "%s doesn't use argparse - cannot import flags",
-            mod_path)
-    raise SystemExit(exit_code.NOT_SUPPORTED)
 
 def _patch_argparse(output_path):
     python_util.listen_method(
