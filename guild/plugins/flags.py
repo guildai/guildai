@@ -88,6 +88,8 @@ class FlagsPlugin(Plugin):
             # No flag def - default to import all flags
             return IMPLICIT_ALL_FLAGS
         else:
+            if not isinstance(flags_data, dict):
+                return None
             return flags_data.pop("$import", None)
 
     def _try_apply_imports(self, flags_import, op_data, local_cache):
