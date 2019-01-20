@@ -1,2 +1,2 @@
-tune:
-  exec: echo gonna tune it right on up
+noisy:
+  main: noisy
