@@ -618,11 +618,7 @@ def _invalid_op_spec_error(e, opdef):
     cli.error("operation '%s' is not valid: %s" % (opdef.fullname, e))
 
 def _preview_cmd(op):
-    # Quote args and remote guild.op_main
-    return [
-        pipes.quote(arg) for arg in op.cmd_args
-        if arg != "guild.op_main"
-    ]
+    return [pipes.quote(arg) for arg in op.cmd_args]
 
 def _print_env(op):
     for name, val in sorted(op.cmd_env.items()):
