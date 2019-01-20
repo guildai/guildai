@@ -76,7 +76,7 @@ class RunProxy(object):
         self.status = data.get("status")
         self.remote = None
         self._data = data
-        self.opref = opref.OpRef.from_run(self)
+        self.opref = opref.OpRef.parse(data.get("opref"))
 
     def get(self, key, default=None):
         return self._data.get(key, default)

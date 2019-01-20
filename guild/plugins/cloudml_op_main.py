@@ -35,7 +35,6 @@ import guild.run
 
 from guild import click_util
 from guild import op_util
-from guild import opref
 from guild import util
 from guild import var
 
@@ -190,7 +189,7 @@ class Sync(object):
 
     def _init_trial_run(self, run, trial):
         run.init_skel()
-        run.write_attr("opref", self.run.get("opref"))
+        run.write_opref(self.run.opref)
         run.write_attr("started", self._trial_started(trial))
         run.write_attr("exit_status", 0)
         run.write_attr("exit_status.remote", 0)
@@ -347,9 +346,7 @@ class Train(object):
         return "guild_train_%s" % self.run.id
 
     def _package_name(self):
-        from guild.opref import OpRef
-        opref = OpRef.from_run(self.run)
-        return opref.model_name
+        return self.run.opref.model_name
 
     def _package_version(self):
         return "0.0.0+%s" % self.run.short_id
@@ -535,7 +532,7 @@ class Deploy(object):
             self.args.trained_model,
             self.run,
             ["cloudml-train", "cloudml-hptune", "train"])
-        self.opref = opref.OpRef.from_run(self.trained_run)
+        self.opref = self.trained_run.opref
         self.model_name = self.args.model or self.opref.model_name
         self.safe_model_name = _safe_name(self.model_name)
         self.region = self.args.region or self._run_region() or DEFAULT_REGION

@@ -19,7 +19,6 @@ import logging
 import os
 import sqlite3
 
-from guild import opref as opreflib
 from guild import tfevent
 from guild import util
 from guild import var
@@ -126,7 +125,7 @@ class AttrReader(object):
         return {run.id: self._run_data(run) for run in runs}
 
     def _run_data(self, run):
-        opref = opreflib.OpRef.from_run(run)
+        opref = run.opref
         started = run.get("started")
         stopped = run.get("stopped")
         status = run.status

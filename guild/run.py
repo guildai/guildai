@@ -47,8 +47,36 @@ class Run(object):
     @property
     def opref(self):
         if not self._opref:
-            self._opref = opreflib.OpRef.from_run(self)
+            encoded = self._read_opref()
+            if encoded:
+                try:
+                    self._opref = opreflib.OpRef.parse(encoded)
+                except opreflib.OpRefError as e:
+                    raise opreflib.OpRefError(
+                        "invalid opref for run %r (%s): %s"
+                        % (self.id, self.path, e))
         return self._opref
+
+    def _read_opref(self):
+        try:
+            f = open(self._opref_path(), "r")
+        except IOError as e:
+            if e.errno != 2: # enoent
+                raise
+            return None
+        else:
+            return f.read()
+
+    def _opref_path(self):
+        return self.guild_path("opref")
+
+    def write_opref(self, opref):
+        self.write_encoded_opref(str(opref))
+
+    def write_encoded_opref(self, encoded):
+        with open(self._opref_path(), "w") as f:
+            f.write(encoded)
+        self._opref = None
 
     def reset_opref(self):
         self._opref = None

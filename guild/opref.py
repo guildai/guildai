@@ -41,35 +41,25 @@ def _opref_from_op(op_name, model_ref):
      model_name) = model_ref
     return OpRef(pkg_type, pkg_name, pkg_version, model_name, op_name)
 
-def _opref_from_run(run):
-    """Parses saved opref attr to opref.
+def _opref_parse(encoded):
+    """Parses encoded opref.
+
+    Format: PKG_TYPE_AND_NAME PKG_VER MODEL_NAME OP_NAME
 
     See _opref_from_string for parsing a user-provided value.
     """
-    opref_attr = run.get("opref")
-    if not opref_attr:
-        raise OpRefError(
-            "run %s does not have attr 'opref')"
-            % run.id)
-    # Use shlex as convenience for handling quoted parts
-    parts = shlex.split(opref_attr)
+    parts = shlex.split(encoded)
     if len(parts) != 4:
-        _run_opref_error(run, opref_attr)
+        raise OpRefError(encoded)
     pkg_type_and_name, pkg_ver, model_name, op_name = parts
-    pkg_type, pkg_name = _split_pkg_type_and_name(
-        pkg_type_and_name, run, opref_attr)
+    pkg_type, pkg_name = _split_pkg_type_and_name(pkg_type_and_name, encoded)
     return OpRef(pkg_type, pkg_name, pkg_ver, model_name, op_name)
 
-def _split_pkg_type_and_name(s, run, opref_attr):
+def _split_pkg_type_and_name(s, encoded):
     parts = s.split(":", 1)
     if len(parts) != 2:
-        _run_opref_error(run, opref_attr)
+        raise OpRefError(encoded)
     return parts
-
-def _run_opref_error(run, opref_attr):
-    raise OpRefError(
-        "bad opref attr for run %s: %s"
-        % (run.id, opref_attr))
 
 def _opref_from_string(s):
     """Parses user-provided string to opref.
@@ -84,7 +74,7 @@ def _opref_from_string(s):
 
 def _opref_is_op_run(opref, run, match_regex=False):
     try:
-        run_opref = _opref_from_run(run)
+        run_opref = run.opref
     except OpRefError as e:
         log.warning("cannot read opref for run %s: %s", run.id, e)
         return False
@@ -143,7 +133,7 @@ def _opref_to_opspec(opref):
     return "".join(spec_parts)
 
 OpRef.from_op = staticmethod(_opref_from_op)
-OpRef.from_run = staticmethod(_opref_from_run)
+OpRef.parse = staticmethod(_opref_parse)
 OpRef.from_string = staticmethod(_opref_from_string)
 OpRef.is_op_run = _opref_is_op_run
 OpRef.__str__ = _opref_to_string

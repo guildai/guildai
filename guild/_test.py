@@ -32,6 +32,8 @@ from guild import util
 
 PLATFORM = platform.system()
 
+TEST_NAME_WIDTH = 27
+
 class Py23DocChecker(doctest.OutputChecker):
     """Output checker that works around Python 2/3 unicode representations.
 
@@ -75,12 +77,12 @@ def run(tests, skip=None):
         else:
             sys.stdout.write(
                 "  %s:%s skipped\n"
-                % (test, " " * (23 - len(test))))
+                % (test, " " * (TEST_NAME_WIDTH - len(test))))
     return success
 
 def _run_test(name):
     sys.stdout.write("  %s:" % name)
-    sys.stdout.write(" " * (25 - len(name) + 1))
+    sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name) + 1))
     sys.stdout.flush()
     filename = _test_filename(name)
     globs = _test_globals()

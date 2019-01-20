@@ -32,7 +32,7 @@ Let's create a sample run structure:
     >>> mkdir(runs_home)
     >>> run = runlib.Run("run-1", join_path(runs_home, "run-1"))
     >>> run.init_skel()
-    >>> run.write_attr("opref", "guildfile:. abc123 foo bar")
+    >>> run.write_encoded_opref("guildfile:. abc123 foo bar")
     >>> touch(join_path(run.path, "a"))
     >>> touch(join_path(run.path, "b"))
     >>> mkdir(join_path(run.path, "c"))
@@ -40,6 +40,7 @@ Let's create a sample run structure:
     >>> touch(join_path(run.path, "c", "e.txt"))
     >>> touch(join_path(run.path, "c", "f.bin"))
     >>> symlink("c", join_path(run.path, "l"))
+    >>> touch(join_path(run.path, ".guild", "attrs", "exit_status"))
     >>> touch(join_path(run.path, ".guild", "some-guild-file"))
     >>> mkdir(join_path(run.path, ".guild", "source"))
     >>> touch(join_path(run.path, ".guild", "source", "a.py"))
@@ -135,7 +136,8 @@ Show all files, including Guild files:
     /.../runs/run-1:
       .guild/
       .guild/attrs/
-      .guild/attrs/opref
+      .guild/attrs/exit_status
+      .guild/opref
       .guild/some-guild-file
       .guild/source/
       .guild/source/a.py

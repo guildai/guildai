@@ -64,13 +64,21 @@ CORE_RUN_ATTRS = [
     "exit_status.remote",
     "flags",
     "label",
-    "opref",
+    "opdef",
     "started",
     "steps",
     "stopped",
 ]
 
 RUNS_PER_GROUP = 20
+
+FILTERABLE = [
+    "completed",
+    "error",
+    "pending",
+    "running",
+    "terminated",
+]
 
 def runs_for_args(args, ctx=None, force_deleted=False):
     filtered = filtered_runs(args, force_deleted)
@@ -99,10 +107,9 @@ def _runs_filter(args):
     return var.run_filter("all", filters)
 
 def _apply_status_filter(args, filters):
-    filterable = ["running", "completed", "error", "terminated", "pending"]
     status_filters = [
         var.run_filter("attr", "status", status)
-        for status in filterable
+        for status in FILTERABLE
         if getattr(args, status, False)
     ]
     if status_filters:
@@ -213,7 +220,6 @@ def _listed_run_json_data(run):
         "exit_status",
         "cmd",
         "label",
-        "opref",
         "started",
         "status",
         "stopped",
@@ -222,7 +228,8 @@ def _listed_run_json_data(run):
 def _run_data(run, attrs):
     data = {
         "id": run.id,
-        "run_dir": run.path
+        "run_dir": run.path,
+        "opref": str(run.opref) if run.opref else "",
     }
     data.update({name: _run_attr(run, name) for name in attrs})
     return data
@@ -308,6 +315,8 @@ def format_op_desc(run, nowarn=False, seen_protos=None):
         return _format_batch_op(opref, run, seen_protos)
     elif opref.pkg_type == "pending":
         return _format_pending_op(opref)
+    elif opref.pkg_type == "test":
+        return _format_test_op(opref)
     else:
         if not nowarn:
             log.warning(
@@ -360,6 +369,9 @@ def _format_batch_op(opref, run, seen_protos):
 
 def _format_pending_op(opref):
     return "<pending %s>" % opref.op_name
+
+def _format_test_op(opref):
+    return "%s:%s" % (opref.model_name, opref.op_name)
 
 def _status_with_remote(status, remote):
     if remote:
@@ -579,7 +591,7 @@ def _print_run_info(run, args):
 
 def other_attr_names(run, include_private=False):
     if include_private:
-        include = lambda x: x == "opref" or x not in CORE_RUN_ATTRS
+        include = lambda x: x not in CORE_RUN_ATTRS
     else:
         include = lambda x: x[0] != "_" and x not in CORE_RUN_ATTRS
     return [name for name in sorted(run.attr_names()) if include(name)]
