@@ -1,2 +1,8 @@
 noisy:
   main: noisy
+  flags:
+    x:
+      default: 0.1
+      min: -2.0
+      max: 2.0
+  flags-dest: globals
