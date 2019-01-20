@@ -161,7 +161,7 @@
     guild.plugins.disk
     guild.plugins.flags
     guild.plugins.gpu
-    guild.plugins.import_flags_main
+    guild.plugins.import_argparse_flags_main
     guild.plugins.keras
     guild.plugins.keras_op_main
     guild.plugins.memory

@@ -25,8 +25,8 @@ import sys
 import six
 
 from guild import cli
-from guild import exit_code
 from guild import op_util
+from guild import python_util
 from guild import util
 from guild import var
 
@@ -125,13 +125,25 @@ class FlagsPlugin(Plugin):
             return data
         if os.getenv("NO_IMPORT_FLAGS_PROGRESS") != "1":
             cli.note_once("Refreshing project info...")
+        script = python_util.Script(mod_path)
         try:
-            data = self._load_flags_data(mod_path, sys_path)
+            data = self._flags_data_for_script(
+                script, mod_path, sys_path)
         except DataLoadError:
             return {}
         else:
             self._cache_data(data, cached_data_path)
             return data
+
+    def _flags_data_for_script(self, script, mod_path, sys_path):
+        if self._imports_argparse(script):
+            return self._load_argparse_flags_data(mod_path, sys_path)
+        else:
+            return {}
+
+    @staticmethod
+    def _imports_argparse(script):
+        return "argparse" in script.imports
 
     def _find_module(self, main_mod):
         main_mod_sys_path, module = self._split_module(main_mod)
@@ -186,7 +198,7 @@ class FlagsPlugin(Plugin):
         with open(path, "w") as f:
             json.dump(data, f)
 
-    def _load_flags_data(self, mod_path, sys_path):
+    def _load_argparse_flags_data(self, mod_path, sys_path):
         env = dict(os.environ)
         env.update({
             "PYTHONPATH": os.path.pathsep.join([sys_path] + sys.path),
@@ -195,21 +207,20 @@ class FlagsPlugin(Plugin):
         with util.TempFile() as data_path:
             cmd = [
                 sys.executable,
-                "-m", "guild.plugins.import_flags_main",
+                "-m", "guild.plugins.import_argparse_flags_main",
                 mod_path, data_path]
-            self.log.debug("import_flags_main env: %s", env)
-            self.log.debug("import_flags_main cmd: %s", cmd)
+            self.log.debug("import_argparse_flags_main env: %s", env)
+            self.log.debug("import_argparse_flags_main cmd: %s", cmd)
             try:
                 out = subprocess.check_output(
                     cmd, stderr=subprocess.STDOUT, env=env)
             except subprocess.CalledProcessError as e:
-                if e.returncode != exit_code.NOT_SUPPORTED:
-                    self.log.warning(
-                        "cannot import flags from %s: %s",
-                        mod_path, e.output.decode().strip())
+                self.log.warning(
+                    "cannot import flags from %s: %s",
+                    mod_path, e.output.decode().strip())
                 raise DataLoadError()
             else:
-                self.log.debug("import_flags_main output: %s", out)
+                self.log.debug("import_argparse_flags_main output: %s", out)
                 return self._load_data(data_path)
 
     @staticmethod
