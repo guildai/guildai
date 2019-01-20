@@ -36,6 +36,15 @@ We'll also create a helper function that returns and instance of
 Note that the `"test"` argument is an operation reference, which is
 not used in our tests.
 
+## Representing an operation as data
+
+Before looking at other operation attributes, let's look at an
+operation as data.
+
+    >>> op = Operation(main="test")
+    >>> pprint(op.opdef.as_data())
+    {'main': 'test'}
+
 ## Command specs
 
 Command specs are used to generate Python commands. The first part of

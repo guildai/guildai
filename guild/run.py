@@ -18,6 +18,7 @@ from __future__ import division
 import os
 import time
 
+import json
 import uuid
 import yaml
 
@@ -80,6 +81,18 @@ class Run(object):
 
     def reset_opref(self):
         self._opref = None
+
+    def opdef_data(self):
+        return json.load(open(self._opdef_data_path(), "r"))
+
+    def _opdef_data_path(self):
+        return self.guild_path("opdef.json")
+
+    def write_opdef_data(self, data):
+        json.dump(
+            data,
+            open(self._opdef_data_path(), "w"),
+            sort_keys=True)
 
     @property
     def pid(self):

@@ -766,6 +766,8 @@ class OpDef(object):
             raise GuildfileError(
                 modeldef.guildfile,
                 "invalid operation def: %r" % data)
+        self.name = name
+        self._data = data
         self.modeldef = modeldef
         self.guildfile = modeldef.guildfile
         self.default = bool(data.get("default"))
@@ -773,7 +775,6 @@ class OpDef(object):
         self.flags_dest = data.get("flags-dest")
         self._modelref = None
         self._flag_vals = _init_flag_values(self.flags)
-        self.name = name
         self.description = (data.get("description") or "").strip()
         self.exec_ = data.get("exec")
         self.main = data.get("main")
@@ -794,6 +795,9 @@ class OpDef(object):
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname
+
+    def as_data(self):
+        return self._data
 
     @property
     def fullname(self):
