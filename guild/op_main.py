@@ -123,7 +123,7 @@ def _try_module(module_spec, args):
     except ImportError as e:
         _error(str(e))
     else:
-        _dispatch_module_exec(_flags_interface(args), module_info)
+        _dispatch_module_exec(_flags_dest(args), module_info)
 
 def _parse_module_spec(spec):
     parts = spec.rsplit("/", 1)
@@ -168,7 +168,7 @@ def _find_module(module):
             pass
     raise ImportError("No module named %s" % module)
 
-def _flags_interface(args):
+def _flags_dest(args):
     dest = os.getenv("FLAGS_DEST", "args")
     if dest == "args":
         return dest, args, {}
@@ -197,6 +197,7 @@ def _exec_module_with_args(module_info, args):
 def _set_argv_for_module_with_args(module_info, args):
     _, path, _ = module_info
     sys.argv = [path] + args
+    log.debug("argv: %s", sys.argv)
 
 def _module_main(module_info):
     f, path, desc = module_info
@@ -240,6 +241,7 @@ def _exec_module_with_globals(module_info, globals):
 def _set_argv_for_module(module_info):
     _, path, _ = module_info
     sys.argv = [path]
+    log.debug("argv: %s", sys.argv)
 
 def _module_with_globals(module_info, globals):
     from guild import python_util
