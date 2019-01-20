@@ -139,11 +139,50 @@ class FlagsPlugin(Plugin):
         if self._imports_argparse(script):
             return self._load_argparse_flags_data(mod_path, sys_path)
         else:
-            return {}
+            return self._global_assigns_flags_data(script)
 
     @staticmethod
     def _imports_argparse(script):
         return "argparse" in script.imports
+
+    def _load_argparse_flags_data(self, mod_path, sys_path):
+        env = dict(os.environ)
+        env.update({
+            "PYTHONPATH": os.path.pathsep.join([sys_path] + sys.path),
+            "LOG_LEVEL": str(self.log.getEffectiveLevel()),
+        })
+        with util.TempFile() as data_path:
+            cmd = [
+                sys.executable,
+                "-m", "guild.plugins.import_argparse_flags_main",
+                mod_path, data_path]
+            self.log.debug("import_argparse_flags_main env: %s", env)
+            self.log.debug("import_argparse_flags_main cmd: %s", cmd)
+            try:
+                out = subprocess.check_output(
+                    cmd, stderr=subprocess.STDOUT, env=env)
+            except subprocess.CalledProcessError as e:
+                self.log.warning(
+                    "cannot import flags from %s: %s",
+                    mod_path, e.output.decode().strip())
+                raise DataLoadError()
+            else:
+                self.log.debug("import_argparse_flags_main output: %s", out)
+                return self._load_data(data_path)
+
+    @staticmethod
+    def _global_assigns_flags_data(script):
+        flags_data = dict(script.params)
+        if flags_data:
+            flags_data["$dest"] = "globals"
+        return flags_data
+
+    @staticmethod
+    def _load_data(path):
+        out = open(path, "r").read().strip()
+        if not out:
+            return {}
+        return json.loads(out)
 
     def _find_module(self, main_mod):
         main_mod_sys_path, module = self._split_module(main_mod)
@@ -197,38 +236,6 @@ class FlagsPlugin(Plugin):
         util.ensure_dir(os.path.dirname(path))
         with open(path, "w") as f:
             json.dump(data, f)
-
-    def _load_argparse_flags_data(self, mod_path, sys_path):
-        env = dict(os.environ)
-        env.update({
-            "PYTHONPATH": os.path.pathsep.join([sys_path] + sys.path),
-            "LOG_LEVEL": str(self.log.getEffectiveLevel()),
-        })
-        with util.TempFile() as data_path:
-            cmd = [
-                sys.executable,
-                "-m", "guild.plugins.import_argparse_flags_main",
-                mod_path, data_path]
-            self.log.debug("import_argparse_flags_main env: %s", env)
-            self.log.debug("import_argparse_flags_main cmd: %s", cmd)
-            try:
-                out = subprocess.check_output(
-                    cmd, stderr=subprocess.STDOUT, env=env)
-            except subprocess.CalledProcessError as e:
-                self.log.warning(
-                    "cannot import flags from %s: %s",
-                    mod_path, e.output.decode().strip())
-                raise DataLoadError()
-            else:
-                self.log.debug("import_argparse_flags_main output: %s", out)
-                return self._load_data(data_path)
-
-    @staticmethod
-    def _load_data(path):
-        out = open(path, "r").read().strip()
-        if not out:
-            return {}
-        return json.loads(out)
 
     @staticmethod
     def _filter_flags(data, imports):

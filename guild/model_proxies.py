@@ -116,10 +116,12 @@ class PythonScriptModelProxy(object):
         return gf.models[self.name]
 
     def _exec_attr(self):
-        abs_script = os.path.abspath(self.script)
         return (
-            "${python_exe} -u %s ${flag_args}"
-            % shlex_quote(abs_script))
+            "${python_exe} -um guild.op_main %s ${flag_args}"
+            % shlex_quote(self._script_module()))
+
+    def _script_module(self):
+        return os.path.splitext(self.script)[0]
 
     def _flags_data(self):
         plugin = plugins.for_name("flags")
