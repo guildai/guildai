@@ -83,4 +83,4 @@ The same holds for `say2.py` and `say.py`:
     echo hello from guild file
 
     >>> print_cmd("say.py")
-    python -u /.../run-scripts/say.py
+    python -um guild.op_main say

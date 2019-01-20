@@ -67,8 +67,9 @@ files.
 
     >>> cat_run_file(first_run, ".guild/attrs/cmd")
     - ...
-    - -u
-    - /.../samples/projects/batch/say.py
+    - -um
+    - guild.op_main
+    - say
     - --msg
     - hi
 
@@ -94,14 +95,13 @@ files.
 
     >>> cat_run_file(first_run, ".guild/opdef.json")
     {"compare":
-      ["loss step as step", "loss", "acc",
-       "accuracy as acc", "val_loss",
-       "val#loss as val_loss", "val_acc",
-       "val#acc as val_acc"],
-     "exec": "${python_exe} -u /.../samples/projects/batch/say.py ${flag_args}",
+     ["loss step as step", "loss", "acc",
+      "accuracy as acc", "val_loss", "val#loss as val_loss",
+      "val_acc", "val#acc as val_acc"],
+     "exec": "${python_exe} -um guild.op_main say ${flag_args}",
      "flags":
-       {"loud": {"arg-switch": true, "default": false},
-        "msg": {"default": "hello"}}}
+      {"loud": {"arg-switch": true, "default": false},
+       "msg": {"default": "hello"}}}
 
     >>> cat_run_file(first_run, ".guild/opref")
     script:/.../samples/projects/batch/say.py ... '' say.py
