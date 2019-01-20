@@ -1,18 +1,18 @@
 args:
   main: args
   flags:
+    $dest: args
     i: 2
     f: 2.345
     s: hi
     b:
       arg-switch: yes
-  flags-dest: args
 
 globals:
   main: globals
   flags:
+    $dest: globals
     i: 2
     f: 2.345
     s: hi
     b: no
-  flags-dest: globals

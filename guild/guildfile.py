@@ -771,8 +771,8 @@ class OpDef(object):
         self.modeldef = modeldef
         self.guildfile = modeldef.guildfile
         self.default = bool(data.get("default"))
-        self.flags = _init_flags(data, self)
-        self.flags_dest = data.get("flags-dest")
+        (self.flags,
+         self.flags_dest) = _init_flags(data, self)
         self._modelref = None
         self._flag_vals = _init_flag_values(self.flags)
         self.description = (data.get("description") or "").strip()
@@ -852,7 +852,9 @@ class OpDef(object):
 
 def _init_flags(data, opdef):
     data = _resolve_includes(data, "flags", opdef.modeldef.guildfile_path)
-    return [FlagDef(name, data[name], opdef) for name in sorted(data)]
+    flags_dest = data.pop("$dest", "args")
+    flags = [FlagDef(name, data[name], opdef) for name in sorted(data)]
+    return flags, flags_dest
 
 class FlagDef(object):
 
