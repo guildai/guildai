@@ -37,6 +37,7 @@ tests).
       plugins:                     ok
       python-utils:                ok
       query-parser:                ok
+      run-files:                   ok
       run-flags:                   ok
       run-ops:                     ok
       run-output:                  ok

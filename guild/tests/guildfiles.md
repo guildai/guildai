@@ -323,6 +323,24 @@ and values:
     >>> pprint(opdef_a.flag_values())
     {'x': 'x2', 'y': 'Y', 'z': 'Z'}
 
+### Representing operation defs as data
+
+An operation def can be represented as data by calling `as_data()`.
+
+    >>> pprint(opdef_a.as_data())
+    {'flags': {'x': {'default': 'X1'}, 'y': {'default': 'Y'}}}
+
+    >>> pprint(opdef_b.as_data())
+    {'flags': {'x': {'default': 'x2'}, 'z': {'default': 'Z'}}}
+
+    >>> pprint(gf.models["expert"].get_operation("train").as_data())
+    {'default': True,
+     'flags': {'$include': 'default-train-flags'},
+     'main': 'expert'}
+
+    >>> pprint(gf.models["expert"].get_operation("evaluate").as_data())
+    {'flags': {'$include': 'default-eval-flags'}, 'main': 'expert --test'}
+
 ## Resources
 
 Model resources are are named lists of sources that may be required by

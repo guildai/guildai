@@ -200,15 +200,17 @@ def mktemp_guild_dir():
     init.init_guild_dir(guild_dir)
     return guild_dir
 
-def find(root):
+def find(root, followlinks=False):
     all = []
-    for path, _, files in os.walk(root):
+    relpath = lambda path, name: (
+        os.path.relpath(os.path.join(path, name), root))
+    for path, dirs, files in os.walk(root, followlinks=followlinks):
+        for name in dirs:
+            if os.path.islink(os.path.join(path, name)):
+                all.append(relpath(path, name))
         for name in files:
-            full_path = os.path.join(path, name)
-            rel_path = os.path.relpath(full_path, root)
-            all.append(rel_path)
-    all.sort()
-    return all
+            all.append(relpath(path, name))
+    return sorted(all)
 
 def cat(*parts):
     with open(os.path.join(*parts), "r") as f:
