@@ -17,15 +17,12 @@ from __future__ import division
 
 import itertools
 import logging
-import random
 import os
 
 from guild import batch_util
 from guild import op_util
 
 log = logging.getLogger("guild")
-
-DEFAULT_MAX_TRIALS = 100
 
 def main():
     op_util.init_logging()
@@ -38,7 +35,7 @@ def main():
         _run(trials)
 
 def _generate_trials(batch):
-    return _sample_trials(_all_trials(batch), batch)
+    return batch.sample_trials(_all_trials(batch))
 
 def _all_trials(batch):
     trials = []
@@ -71,14 +68,6 @@ def _trial_flags(flag_name, flag_val):
     if isinstance(flag_val, list):
         return [(flag_name, trial_val) for trial_val in flag_val]
     return [(flag_name, flag_val)]
-
-def _sample_trials(trials, batch):
-    max_trials = batch.batch_run.get("_max_trials", DEFAULT_MAX_TRIALS)
-    if len(trials) <= max_trials:
-        return trials
-    random_seed = batch.batch_run.get("_random_seed")
-    random.seed(random_seed)
-    return random.sample(trials, max_trials)
 
 def _init_pending(trials):
     for trial in trials:

@@ -14,6 +14,7 @@
 
 import logging
 import os
+import random
 import shutil
 import sys
 
@@ -25,6 +26,8 @@ from guild import run as runlib
 from guild import var
 
 log = logging.getLogger("guild")
+
+DEFAULT_MAX_TRIALS = 100
 
 class Trial(object):
 
@@ -101,6 +104,21 @@ class Batch(object):
         if not os.path.exists(proto_path):
             op_util.exit("missing operation proto in %s" % proto_path)
         return runlib.Run("", proto_path)
+
+    @property
+    def max_trials(self):
+        return self.batch_run.get("_max_trials")
+
+    @property
+    def random_seed(self):
+        return self.batch_run.get("_random_seed")
+
+    def sample_trials(self, trials, default_max=DEFAULT_MAX_TRIALS):
+        max_trials = self.max_trials or default_max
+        if len(trials) <= max_trials:
+            return trials
+        random.seed(self.random_seed)
+        return random.sample(trials, max_trials)
 
 def init_batch():
     return Batch(op_util.current_run())
