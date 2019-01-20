@@ -101,9 +101,6 @@ And our runs:
     say.py  msg=hi
     say.py  default
 
-TODO: show baseline for optimizing operation (e.g. copy over the
-train.py op from the Guild optimizer example).
-
 Let's delete our runs in preparation for the next section.
 
     >>> delete_runs()
