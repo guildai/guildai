@@ -193,8 +193,8 @@ def _init_steps(run):
         return []
     if not isinstance(data, list):
         _error("invalid steps data %r: expected list" % data)
-    opref = guild.opref.OpRef.from_run(run)
     flags = run.get("flags")
+    opref = run.opref
     return [Step(step_data, flags, opref) for step_data in data]
 
 def _run_step(step, parent_run):

@@ -32,8 +32,6 @@ from whoosh import fields
 from whoosh import index
 from whoosh import query
 
-import guild.opref
-
 from guild import util
 from guild import var
 
@@ -251,9 +249,9 @@ class RunIndex(object):
 
     @staticmethod
     def _maybe_opref_fields(fields, run):
-        if "priv_has_opref" in fields or not run.has_attr("opref"):
+        if "priv_has_opref" in fields or not run.opref:
             return {}
-        opref = guild.opref.OpRef.from_run(run)
+        opref = run.opref
         return {
             "pkg_type": _u(opref.pkg_type),
             "pkg_name": _u(opref.pkg_name),

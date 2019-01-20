@@ -25,7 +25,6 @@ from guild import config
 from guild import index2 as indexlib
 from guild import guildfile
 from guild import op_util
-from guild import opref as opreflib
 from guild import query
 from guild import run as runlib
 from guild import tabview
@@ -306,7 +305,7 @@ def _get_run_detail_cb(index):
     return f
 
 def _format_run_detail(run, index):
-    opref = opreflib.OpRef.from_run(run)
+    opref = run.opref
     lines = [
         "Id: %s" % run.id,
         "Model: %s" % opref.model_name,

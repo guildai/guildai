@@ -111,7 +111,7 @@ def _iter_dirs(root):
             yield name, path
 
 def _opref_exists(run_dir):
-    opref_path = os.path.join(run_dir, ".guild", "attrs", "opref")
+    opref_path = os.path.join(run_dir, ".guild", "opref")
     return os.path.exists(opref_path)
 
 def _run_sort_key(sort):

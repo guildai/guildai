@@ -230,19 +230,19 @@ the file system). We can can sort by various run attributes using the
 
 Sort by operation, then date:
 
-    >>> [(run.short_id, run["opref"], run["started"])
+    >>> [(run.short_id, str(run.opref), run["started"])
     ...  for run in runs(sort=["opref", "started"])]
-    [('42803252', 'mnist:evaluate', 1506790419),
-     ('360192fd', 'mnist:train', 1506790385),
-     ('7d145216', 'mnist:train', 1506790401)]
+    [('7d145216', "test:'' '' mnist train", 1506790401000000),
+     ('360192fd', "test:'' '' mnist train", 1506790385000000),
+     ('42803252', "test:'' '' mnist evaluate", 1506790419000000)]
 
 Sort by date, latest first:
 
     >>> [(run.short_id, run["started"])
     ...  for run in runs(sort=["-started"])]
-    [('42803252', 1506790419),
-     ('7d145216', 1506790401),
-     ('360192fd', 1506790385)]
+    [('42803252', 1506790419000000),
+     ('7d145216', 1506790401000000),
+     ('360192fd', 1506790385000000)]
 
 ## Run filters
 
@@ -285,8 +285,7 @@ Runs with op equal to "mnist:evaluate" and exit_status equal to "0"
 
     >>> filter = guild.var.run_filter(
     ...   "all",
-    ...   [guild.var.run_filter("attr", "opref", "mnist:evaluate"),
-    ...    guild.var.run_filter("attr", "exit_status", 0)])
+    ...   [guild.var.run_filter("attr", "exit_status", 0)])
     >>> [(run.short_id, run.get("exit_status")) for run in runs(filter=filter)]
     [('42803252', 0)]
 

@@ -161,14 +161,18 @@ def runs_list(
         ops=(ops or []),
         labels=(labels or []),
         unlabeled=unlabeled,
-        running=("running" in status),
-        completed=("completed" in status),
-        error=("error" in status),
-        terminated=("terminated" in status),
         all=all,
         deleted=deleted)
+    _apply_status_filters(status, args)
     with Env(cwd, guild_home):
         return runs_impl.filtered_runs(args)
+
+def _apply_status_filters(status, args):
+    from guild.commands import runs_impl
+    for val in status:
+        if val not in runs_impl.FILTERABLE:
+            raise ValueError("unsupportd status %r" % val)
+        setattr(args, val, True)
 
 def runs_delete(runs=None, cwd=".", guild_home=None):
     from guild import click_util

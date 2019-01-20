@@ -128,16 +128,12 @@ Some invalid op references:
     Traceback (most recent call last):
     OpRefError: invalid reference: 'foo/bar'
 
-`OpRef.from_run` returns a `OpRef` instance for a run. OpRef values
-are stored in a run's `opref` attr.
-
 Here's a helper function to return OpRefs for a give sample run.
 
     >>> from guild import run as runlib
     >>> def from_run(id):
     ...     path = join_path(sample("opref-runs"), id)
-    ...     run = runlib.Run(id, path)
-    ...     return OpRef.from_run(run)
+    ...     return runlib.Run(id, path).opref
 
 Below are various examples.
 
@@ -164,7 +160,8 @@ Below are various examples.
 
     >>> from_run("invalid")
     Traceback (most recent call last):
-    OpRefError: bad opref attr for run invalid: not a valid opref
+    OpRefError: invalid opref for run 'invalid'
+    (.../samples/opref-runs/invalid): not a valid opref
 
 OpRefs are encoded by converting them to strings.
 
