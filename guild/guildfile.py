@@ -309,10 +309,10 @@ def _coerce_top_level_attr(name, val, guildfile):
         return val
 
 def _coerce_include(data, guildfile):
-    return _coerce_string_to_list(data, guildfile, "include")
+    return _coerce_str_to_list(data, guildfile, "include")
 
 def _coerce_extends(data, guildfile):
-    return _coerce_string_to_list(data, guildfile, "extends")
+    return _coerce_str_to_list(data, guildfile, "extends")
 
 def _coerce_operations(data, guildfile):
     if not isinstance(data, dict):
@@ -363,17 +363,17 @@ def _coerce_flag(name, data, guildfile):
 def _coerce_op_python_path(data, guildfile):
     if data is None:
         return None
-    return _coerce_string_to_list(data, guildfile, "python-path")
+    return _coerce_str_to_list(data, guildfile, "python-path")
 
-def _coerce_string_to_list(data, guildfile, name):
-    if isinstance(data, six.string_types):
-        return [data]
-    elif isinstance(data, list):
-        return data
+def _coerce_str_to_list(val, guildfile, name):
+    if isinstance(val, six.string_types):
+        return [val]
+    elif isinstance(val, list):
+        return val
     else:
         raise GuildfileError(
             guildfile,
-            "invalid %s value: %r" % (name, data))
+            "invalid %s value: %r" % (name, val))
 
 ###################################################################
 # Include attribute support
@@ -413,7 +413,7 @@ def _includes_first(names):
     return sorted(names, key=lambda x: "\x00" if x == "$include" else x)
 
 def _coerce_includes(val, src):
-    return _coerce_string_to_list(val, src, "$include")
+    return _coerce_str_to_list(val, src, "$include")
 
 def _apply_includes(includes, guildfile_path, section_name,
                     seen_includes, resolved):
@@ -967,7 +967,7 @@ class SourceSpec(object):
     @staticmethod
     def _init_patterns(data, name, modeldef):
         val = data[name]
-        return _coerce_string_to_list(val, modeldef.guildfile, name)
+        return _coerce_str_to_list(val, modeldef.guildfile, name)
 
 ###################################################################
 # Resource def
@@ -1022,7 +1022,7 @@ class PackageDef(object):
         self.python_tag = data.get("python-tag")
         self.data_files = data.get("data-files") or []
         self.python_requires = data.get("python-requires")
-        self.requires = _coerce_string_to_list(
+        self.requires = _coerce_str_to_list(
             data.get("requires") or [], guildfile, "requires")
         self.packages = data.get("packages")
 
