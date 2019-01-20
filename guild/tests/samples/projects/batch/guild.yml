@@ -1,8 +1,8 @@
 noisy:
   main: noisy
   flags:
+    $dest: globals
     x:
       default: 0.2
       min: -2.0
       max: 2.0
-  flags-dest: globals
