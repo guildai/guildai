@@ -208,12 +208,6 @@ def _set_tensorboard_params(_sp0, params):
     }
     op_util.current_run().write_attr("flags", flags)
 
-def _init_op(name, op_args):
-    for op_type in _op_types:
-        if op_type.name == name:
-            return op_type(op_args)
-    op_util.exit("unrecognized plugin op '%s'" % name)
-
 def main(args):
     op_name, op_args = op_util.parse_op_args(args)
     try:
@@ -228,6 +222,12 @@ def main(args):
         sys.stderr.flush()
         time.sleep(1) # Hack to let TensorFlow shutdown gracefully
         sys.exit(1)
+
+def _init_op(name, op_args):
+    for op_type in _op_types:
+        if op_type.name == name:
+            return op_type(op_args)
+    op_util.exit("unrecognized plugin op '%s'" % name)
 
 if __name__ == "__main__":
     main(sys.argv)
