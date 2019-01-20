@@ -528,7 +528,7 @@ class ModelDef(object):
         self.references = data.get("references") or []
         self.operations = _init_ops(data, self)
         self.resources = _init_resources(data, self)
-        self.disabled_plugins = data.get("disabled-plugins") or []
+        self.disabled_plugins = _disabled_plugins(data, guildfile)
         self.extra = data.get("extra") or {}
         self.source = _init_source(data.get("source") or [], self)
 
@@ -755,6 +755,11 @@ def _init_resources(data, modeldef):
 def _init_source(data, modeldef):
     return SourceDef(data, modeldef)
 
+def _disabled_plugins(data, guildfile):
+    return _coerce_str_to_list(
+        data.get("disabled-plugins", []),
+        guildfile, "disabled-plugins")
+
 ###################################################################
 # Op def
 ###################################################################
@@ -782,7 +787,7 @@ class OpDef(object):
         self.python_path = data.get("python-path")
         self.env = data.get("env") or {}
         self.plugin_op = data.get("plugin-op")
-        self.disabled_plugins = data.get("disabled-plugins") or []
+        self.disabled_plugins = _disabled_plugins(data, modeldef.guildfile)
         self.dependencies = _init_dependencies(data.get("requires"), self)
         self.pre_process = data.get("pre-process")
         self.remote = data.get("remote") or False
