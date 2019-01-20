@@ -483,6 +483,8 @@ def _init_cmd_env(opdef, gpus):
     env["CMD_DIR"] = os.getcwd()
     env["MODEL_DIR"] = opdef.guildfile.dir
     env["MODEL_PATH"] = os.path.pathsep.join(_model_paths(opdef))
+    if opdef.flags_dest:
+        env["FLAGS_DEST"] = opdef.flags_dest
     if opdef.set_trace:
         env["SET_TRACE"] = "1"
     if opdef.handle_keyboard_interrupt:
