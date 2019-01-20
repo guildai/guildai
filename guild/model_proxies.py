@@ -109,7 +109,8 @@ class PythonScriptModelProxy(object):
                         "compare": GENERIC_COMPARE,
                         "flags": self._flags_data(),
                     }
-                }
+                },
+                "disabled-plugins": "all"
             }
         ]
         gf = guildfile.Guildfile(data, dir=config.cwd())
@@ -137,6 +138,7 @@ class KerasScriptModelProxy(PythonScriptModelProxy):
         plugin = plugins.for_name("keras")
         model_data = plugin.script_model(self._script)
         self._rename_model_and_op(model_data)
+        self._reenable_plugins(model_data)
         gf = guildfile.Guildfile([model_data], dir=config.cwd())
         return gf.models[self.name]
 
@@ -151,6 +153,11 @@ class KerasScriptModelProxy(PythonScriptModelProxy):
         assert "train" in data.get("operations", {}), data
         data["model"] = self.name
         data["operations"][self.op_name] = data["operations"].pop("train")
+
+    @staticmethod
+    def _reenable_plugins(data):
+        assert "disabled-plugins" in data, data
+        del data["disabled-plugins"]
 
 class ExecScriptModelProxy(object):
 
