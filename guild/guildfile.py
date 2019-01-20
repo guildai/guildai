@@ -770,6 +770,7 @@ class OpDef(object):
         self.default = bool(data.get("default"))
         self.flags = _init_flags(data, self)
         self._modelref = None
+        self.flags_dest = data.get("flags-dest")
         self._flag_vals = _init_flag_values(self.flags)
         self.guildfile = modeldef.guildfile
         self.name = name

@@ -30,6 +30,19 @@ from guild import exit_code
 
 log = None # initialized in _init_logging
 
+class Debugger(pdb.Pdb):
+
+    def __init__(self):
+        pdb.Pdb.__init__(self)
+        # Setting skip to True violates the Pdb interface, which is to
+        # provide a list of globs, but we don't have such a list and
+        # really just need a truthy value to trigger a call to
+        # is_skipped_module, which implements the actual skip logic.
+        self.skip = True
+
+    def is_skipped_module(self, module_name):
+        return module_name != "__main__"
+
 def main():
     if os.getenv("PROFILE"):
         _profile_main()
@@ -110,8 +123,7 @@ def _try_module(module_spec, args):
     except ImportError as e:
         _error(str(e))
     else:
-        _set_argv_for_module(module_info, args)
-        _module_main(module_info)
+        _dispatch_module_exec(_flags_interface(args), module_info)
 
 def _parse_module_spec(spec):
     parts = spec.rsplit("/", 1)
@@ -156,22 +168,54 @@ def _find_module(module):
             pass
     raise ImportError("No module named %s" % module)
 
-def _set_argv_for_module(module_info, args):
+def _flags_interface(args):
+    dest = os.getenv("FLAGS_DEST", "args")
+    if dest == "args":
+        return dest, args, {}
+    elif dest == "globals":
+        return dest, (), _args_to_flags(args)
+    else:
+        assert False, dest
+
+def _args_to_flags(args):
+    from guild import op_util
+    return op_util.args_to_flags(args)
+
+def _dispatch_module_exec(flags_interface, module_info):
+    dest, args, flags = flags_interface
+    if dest == "args":
+        _exec_module_with_args(module_info, args)
+    elif dest == "globals":
+        _exec_module_with_globals(module_info, flags)
+    else:
+        assert False, flags_interface
+
+def _exec_module_with_args(module_info, args):
+    _set_argv_for_module_with_args(module_info, args)
+    _module_main(module_info)
+
+def _set_argv_for_module_with_args(module_info, args):
     _, path, _ = module_info
     sys.argv = [path] + args
 
 def _module_main(module_info):
+    f, path, desc = module_info
+    def main():
+        imp.load_module("__main__", f, path, desc)
+    _gen_exec(module_info, main)
+
+def _gen_exec(module_info, exec_cb):
     f, path, desc = module_info
     log.debug("loading module from '%s'", path)
     if os.getenv("SET_TRACE"):
         debugger = Debugger()
         debugger.runcall(imp.load_module, "__main__", f, path, desc)
     else:
-        # Create closure to handle anything post load_module, which
+        # Use a closure to handle anything post load_module, which
         # effectively refefines the current module namespace.
         handle_interrupt = _interrupt_handler()
         try:
-            imp.load_module("__main__", f, path, desc)
+            exec_cb()
         except KeyboardInterrupt:
             if not handle_interrupt:
                 raise
@@ -189,18 +233,20 @@ def _interrupt_handler():
             log_exception_f("interrupted")
     return handler
 
-class Debugger(pdb.Pdb):
+def _exec_module_with_globals(module_info, globals):
+    _set_argv_for_module(module_info)
+    _module_with_globals(module_info, globals)
 
-    def __init__(self):
-        pdb.Pdb.__init__(self)
-        # Setting skip to True violates the Pdb interface, which is to
-        # provide a list of globs, but we don't have such a list and
-        # really just need a truthy value to trigger a call to
-        # is_skipped_module, which implements the actual skip logic.
-        self.skip = True
+def _set_argv_for_module(module_info):
+    _, path, _ = module_info
+    sys.argv = [path]
 
-    def is_skipped_module(self, module_name):
-        return module_name != "__main__"
+def _module_with_globals(module_info, globals):
+    from guild import python_util
+    _f, path, _desc = module_info
+    def exec_script():
+        python_util.exec_script(path, globals)
+    _gen_exec(module_info, exec_script)
 
 def _internal_error(msg):
     sys.stderr.write("guild.op_main: %s\n" % msg)
