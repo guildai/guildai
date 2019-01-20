@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+"""
 import numpy as np
 
 def f(x):
@@ -25,7 +26,7 @@ def f(x):
 def cb(res):
     print("Trial: %s %s %s" % (res.x_iters, res.x, res.fun))
 
-def main():
+def _stuff():
     import skopt
     res = skopt.dummy_minimize(
         f,
@@ -34,6 +35,16 @@ def main():
         callback=cb)
     #import pdb;pdb.set_trace()
     print("Best: %s -> %s" % (res.x, res.fun))
+"""
+
+def main():
+    op_util.init_logging()
+    batch = batch_util.init_batch()
+    trials = _generate_trials(batch)
+    print(trials)
+
+def _generate_trials(self):
+    pass
 
 if __name__ == "__main__":
     main()
