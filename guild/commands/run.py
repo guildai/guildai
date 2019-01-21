@@ -79,11 +79,11 @@ def run_params(fn):
             ("--opt-flag", "opt_flags"), metavar="FLAG=VAL", multiple=True,
             help="Flag for OPTIMIZER. May be used multiple times."),
         click.Option(
-            ("--max-trials",), metavar="N", type=int,
+            ("-m", "--max-trials",), metavar="N", type=int,
             help=(
                 "Maximum number of trials to run in batch operations. "
                 "Default is optimizer specific. If optimizer is not "
-                "specified, default is 100.")),
+                "specified, default is 20.")),
         click.Option(
             ("--random-seed",), metavar="N", type=int,
             help="Random seed used when sampling trials or flag values."),
@@ -122,6 +122,11 @@ def run_params(fn):
             help=("Don't wait for a remote operation to complete. Ignored "
                   "if run is local."),
             is_flag=True),
+        click.Option(
+            ("--save-trials",), metavar="PATH",
+            help=(
+                "Saves generated trials to a CSV batch file. See BATCH FILES "
+                "for more information.")),
         click.Option(
             ("--set-trace",),
             help="Enter the Python debugger at the operation entry point.",
@@ -177,6 +182,90 @@ def run(args):
     which case the operation used in `RUN` will be used.
 
     Specify `FLAG` values in the form `FLAG=VAL`.
+
+    ### Batch files
+
+    One or more batch files can be used to run multiple trials by
+    specifying the file path as `@PATH`.
+
+    For example, to run trials specified in a CSV file named
+    `trials.csv`, run:
+
+        guild run [MODEL:]OPERATION @trials.csv
+
+    NOTE: At this time you must specify the operation with batch files
+    - batch files only contain flag values and cannot be used to run
+    different operations for the same command.
+
+    Batch files may be formatted as CSV, JSON, or YAML. Format is
+    determined by the file extension.
+
+    Each entry in the file is used as a set of flags for a trial run.
+
+    CSV files must have a header row containing the flag names. Each
+    subsequent row is a corresponding list of flag values that will be
+    used for a generated trial.
+
+    JSON and YAML files must contain a top-level list of flag-to-value
+    maps.
+
+    Use `--print-trials` to preview the trials run for the specified
+    batch files.
+
+    ### Flag lists
+
+    A list of flag values may be specified using the syntax
+    `[VAL1[,VAL2]...]`. Lists containing white space must be
+    quoted. When a list of values is provided, Guild will generate a
+    trial run for each value. When multiple flags have list values,
+    Guild generates the cartesian product of all possible flag
+    combinations.
+
+    Flag lists may be used to perform grid search operations.
+
+    For example, the following generates four runs for operation
+    `train` and flags `learning-rate` and `batch-size`:
+
+        guild run train learning-rate[0.01,0.1] batch-size=[10,100]
+
+    You can preview the trials generated from flag lists using
+    `--print-trials`. You can save the generated trials to a batch
+    file using `--save-trials`. For more information, see PREVIEWING
+    AND SAVING TRIALS below.
+
+    When `--optimizer` is specified, flag lists may take on different
+    meaning depending on the type of optimizer. For example, the
+    `random` optimizer will randomly select values from a flag list,
+    rather than generate trials for each value. See OPTIMIZERS for
+    more information.
+
+    ### Optimizers
+
+    A run may be optimized using `--optimizer`. An optimizer runs up
+    to `--max-trials` runs using flag values and flag configuration.
+
+    For details on available optimizers and their behavior, refer to
+    https://guild.ai/docs/optimizers.
+
+    ### Limiting trials
+
+    When using flag lists or optimizers, which generate trials, you
+    can limit the number of trials with `--max-trials`. By default,
+    Guild limits the number of generated trials to 20.
+
+    Guild limits trials by randomly sampling the maximum number from
+    the total list of generated files. You can specify the seed used
+    for the random sample with `--random-seed`. The random seed is
+    guaranteed to generate consistent results when used on the same
+    version of Python. When used across different versions of Python,
+    the results may be inconsistent.
+
+    ### Previewing and saving trials
+
+    When flag lists (used for grid search) or an optimizer is used,
+    you can preview the generated trials using `--print-trials`. You
+    can save the generated trials as a CSV batch file using
+    `--save-trials`.
 
     ### Re-running operations
 
@@ -235,6 +324,7 @@ def run(args):
     to optimize a result. Use `--minimize` or `--maximize` to indicate
     what should be optimized. Use `--max-runs` to indicate the maximum
     number of runs the optimizer should generate.
+
     """
     from . import run_impl
     run_impl.main(args)

@@ -110,7 +110,7 @@ class PythonScriptModelProxy(object):
                         "flags": self._flags_data(),
                     }
                 },
-                "disabled-plugins": "all"
+                "disable-plugins": "all"
             }
         ]
         gf = guildfile.Guildfile(data, dir=config.cwd())
@@ -156,8 +156,8 @@ class KerasScriptModelProxy(PythonScriptModelProxy):
 
     @staticmethod
     def _reenable_plugins(data):
-        assert "disabled-plugins" in data, data
-        del data["disabled-plugins"]
+        assert "disable-plugins" in data, data
+        del data["disable-plugins"]
 
 class ExecScriptModelProxy(object):
 

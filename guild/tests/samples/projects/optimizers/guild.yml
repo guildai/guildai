@@ -1,9 +1,24 @@
 noisy:
   main: noisy
+  disable-plugins: all
   flags:
     $dest: globals
     x:
       default: 0.2
-      search:
-        min: -2.0
-        max: 2.0
+      min: -2.0
+      max: 2.0
+
+echo:
+  main: echo
+  disable-plugins: all
+  flags:
+    $dest: globals
+    x:
+      default: 1.0
+      min: -2.0
+      max: 2.0
+    y:
+      default: 2
+    z:
+      default: a
+      choices: [a, b, c, d]

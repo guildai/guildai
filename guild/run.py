@@ -82,8 +82,15 @@ class Run(object):
     def reset_opref(self):
         self._opref = None
 
-    def opdef_data(self):
-        return json.load(open(self._opdef_data_path(), "r"))
+    def get_opdef_data(self, default=None):
+        try:
+            f = open(self._opdef_data_path(), "r")
+        except IOError as e:
+            if e.errno != 2: # enoent
+                raise
+            return default
+        else:
+            return json.load(f)
 
     def _opdef_data_path(self):
         return self.guild_path("opdef.json")

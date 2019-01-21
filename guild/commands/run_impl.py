@@ -431,7 +431,7 @@ def _dispatch_op_cmd(opdef, args):
             _print_cmd(op)
         elif args.print_env:
             _print_env(op)
-        elif args.print_trials:
+        elif args.print_trials or args.save_trials:
             _print_trials(op, batch_files, args)
         else:
             _maybe_run(op, batch_files, args)
@@ -552,7 +552,7 @@ def _invalid_flag_value_error(e):
 
 def _apply_arg_disable_plugins(args, opdef):
     if args.disable_plugins:
-        opdef.disabled_plugins.extend([
+        opdef.disable_plugins.extend([
             name.strip() for name in args.disable_plugins.split(",")
         ])
 
@@ -825,19 +825,23 @@ def _batch_op_cmd_args(opdef, run, args):
 
 def _print_trials(op, batch_files, args):
     if _is_batch_op(op):
-        _run_batch_print_trials(op)
+        _run_batch_print_trials(op, args)
     else:
         batch_opspec = _maybe_batch(op, batch_files, args)
         if batch_opspec:
             _print_batch_trials(batch_opspec, op, batch_files, args)
         else:
-            _print_one_trial(op)
+            _print_one_trial(op, args)
 
 def _is_batch_op(op):
     return op.has_proto()
 
-def _run_batch_print_trials(op):
-    op.cmd_env["PRINT_TRIALS"] = "1"
+def _run_batch_print_trials(op, args):
+    if args.print_trials:
+        op.cmd_env["PRINT_TRIALS"] = "1"
+    else:
+        assert args.save_trials
+        op.cmd_env["SAVE_TRIALS"] = args.save_trials
     op.run()
 
 def _print_batch_trials(batch_opspec, child_op, batch_files, args):
@@ -848,8 +852,14 @@ def _print_batch_trials(batch_opspec, child_op, batch_files, args):
         batch_args = _batch_op_cmd_args(batch_opdef, batch_run, args)
         _dispatch_op_cmd(batch_opdef, batch_args)
 
-def _print_one_trial(op):
-    op_util.print_trials([op.opdef.flag_values(include_none=True)])
+def _print_one_trial(op, args):
+    flag_vals = op.opdef.flag_values(include_none=True)
+    if args.print_trials:
+        op_util.print_trials([flag_vals])
+    else:
+        assert args.save_trials
+        cli.out("Saving 1 trial to %s" % args.save_trials)
+        op_util.save_trials([flag_vals], args.save_trials)
 
 def _run_non_batched(op, args):
     _check_needed(op, args)

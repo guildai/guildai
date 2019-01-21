@@ -528,8 +528,8 @@ def _op_plugins(opdef):
     return ",".join(sorted(op_plugins))
 
 def _plugin_disabled_in_project(name, opdef):
-    disabled = (opdef.disabled_plugins +
-                opdef.modeldef.disabled_plugins)
+    disabled = (opdef.disable_plugins +
+                opdef.modeldef.disable_plugins)
     return any([disabled_name in (name, "all") for disabled_name in disabled])
 
 def _python_path(opdef):
