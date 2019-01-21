@@ -42,6 +42,18 @@ If multipe option args are specified, only the last is used:
     >>> a2f(["--foo", "abd", "def"])
     {'foo': 'def'}
 
+If a negative number is specified as an option value, it is treated as
+a number and not as a short form option:
+
+    >>> a2f(["--x", "-1"])
+    {'x': -1}
+
+    >>> a2f(["--x", "-1.123"])
+    {'x': -1.123}
+
+    >>> pprint(a2f(["--w", "--x", "-1.123", "--y", "-zab"]))
+    {'w': True, 'x': -1.123, 'y': True, 'z': 'ab'}
+
 ## Parsing flags
 
 Use `op_util.parse_flags` to parse a list of `NAME=VAL` args.
