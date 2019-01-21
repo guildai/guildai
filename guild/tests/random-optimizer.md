@@ -11,7 +11,8 @@ use with optimizers.
 
     >>> project = sample("projects", "optimizers")
 
-
+For our trials, we'll use Guild's ability to save trial information to
+check the bounds of our generated trials.
 
     >>> def trials(op, **flags):
     ...   print("whoop")

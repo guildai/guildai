@@ -110,7 +110,7 @@ def run_params(fn):
                 "A matching run is of the same operation with the same "
                 "flag values that is not stopped due to an error.")),
         click.Option(
-            ("--background",), is_flag=True,
+            ("-b", "--background",), is_flag=True,
             help="Run operation in background."),
         click.Option(
             ("--pidfile",), metavar="PIDFILE",
