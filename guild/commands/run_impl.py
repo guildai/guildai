@@ -635,13 +635,14 @@ def _maybe_warn_no_wait(opdef, args):
 
 def _confirm_run(op, args):
     prompt = (
-        "You are about to {action} {op_desc}{remote_suffix}\n"
+        "You are about to {action} {op_desc}{opt_suffix}{remote_suffix}\n"
         "{flags}"
         "{resources}"
         "Continue?"
         .format(
             action=_action_desc(args),
             op_desc=_op_desc(op),
+            opt_suffix=_opt_suffix(args),
             remote_suffix=_remote_suffix(args),
             flags=_format_op_flags(op),
             resources=_format_op_resources(op.resource_config)))
@@ -654,6 +655,17 @@ def _action_desc(args):
 
 def _op_desc(op):
     return op.opref.to_opspec()
+
+def _opt_suffix(args):
+    if not args.optimizer:
+        return ""
+    parts = [" with %s optimizer" % args.optimizer]
+    if args.max_trials:
+        parts.append(
+            " for %i %s" %
+            (args.max_trials,
+             "trials" if args.max_trials > 1 else "trial"))
+    return "".join(parts)
 
 def _remote_suffix(args):
     if args.remote:

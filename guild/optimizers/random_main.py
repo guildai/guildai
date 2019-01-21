@@ -120,7 +120,7 @@ def _gen_trial_vals(dimensions, trials, random_seed):
 def _native_python(l):
     def pyval(x):
         try:
-            return x.item
+            return x.item()
         except AttributeError:
             return x
     return [pyval(x) for x in l]

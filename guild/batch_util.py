@@ -41,13 +41,6 @@ class Trial(object):
         self._trial_link = os.path.join(
             self._batch.batch_run.path, self._run_id)
 
-    def _flag_assigns(self):
-        format_val = lambda val: shlex_quote(op_util.format_flag_val(val))
-        return [
-            "%s=%s" % (name, format_val(self._flags[name]))
-            for name in sorted(self._flags)
-        ]
-
     @property
     def flags(self):
         return self._flags
@@ -65,7 +58,18 @@ class Trial(object):
     def init(self):
         if not os.path.exists(self._trial_link):
             trial_run = self._init_trial_run()
-            os.symlink(trial_run.path, self._trial_link)
+            self._make_trial_link(trial_run)
+            self._write_batch_attr(trial_run)
+
+    def _make_trial_link(self, trial_run):
+        """Creates a link in batch run dir to trial."""
+        rel_trial_path = os.path.relpath(
+            trial_run.path, os.path.dirname(self._trial_link))
+        os.symlink(rel_trial_path, self._trial_link)
+
+    def _write_batch_attr(self, trial_run):
+        """Writes the batch_run_id ID as batch attr of trial_run."""
+        trial_run.write_attr("batch_run_id", self._batch.batch_run.id)
 
     def _init_trial_run(self):
         run_dir = os.path.join(var.runs_dir(), self._run_id)
@@ -74,6 +78,16 @@ class Trial(object):
         run.write_attr("flags", self._flags)
         run.write_attr("label", " ".join(self._flag_assigns()))
         return run
+
+    def _flag_assigns(self):
+        def fmt(val):
+            if isinstance(val, float):
+                val = round(val, 4)
+            return shlex_quote(op_util.format_flag_val(val))
+        return [
+            "%s=%s" % (name, fmt(self._flags[name]))
+            for name in sorted(self._flags)
+        ]
 
     def run(self):
         trial_run = self._initialized_trial_run()
@@ -88,6 +102,8 @@ class Trial(object):
                 extra_env={"NO_RESTARTING_MSG": "1"})
         except gapi.RunError as e:
             sys.exit(e.returncode)
+        except KeyboardInterrupt as e:
+            sys.exit(-15)
 
     def _initialized_trial_run(self):
         if not os.path.exists(self._trial_link):

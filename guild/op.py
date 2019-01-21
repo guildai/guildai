@@ -269,7 +269,8 @@ class Operation(object):
         return exit_status
 
     def _handle_proc_interrupt(self):
-        log.info("Operation interrupted - waiting for process to exit")
+        if not self.has_proto():
+            log.info("Operation interrupted - waiting for process to exit")
         kill_after = time.time() + PROC_TERM_TIMEOUT_SECONDS
         while time.time() < kill_after:
             if self._proc.poll() is not None:

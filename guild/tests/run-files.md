@@ -137,7 +137,8 @@ The latest run is the trial:
 
     >>> trial_run_files = ls(trial_run)
     >>> trial_run_files
-    ['.guild/attrs/cmd',
+    ['.guild/attrs/batch_run_id',
+     '.guild/attrs/cmd',
      '.guild/attrs/compare',
      '.guild/attrs/deps',
      '.guild/attrs/env',
@@ -151,12 +152,18 @@ The latest run is the trial:
      '.guild/output',
      '.guild/output.index']
 
-Note this is the same list as the first run, but with an additional
-label attr:
+Note this is the same list as the first run, but with the addition of two attrs:
+
+- batch_run_id
+- label
+
+When we remove these files:
+
+    >>> to_remove = [".guild/attrs/batch_run_id", ".guild/attrs/label"]
 
     >>> trial_run_files_without_label = [
     ...   f for f in trial_run_files
-    ...   if f != ".guild/attrs/label"]
+    ...   if f not in to_remove]
     >>> trial_run_files_without_label == first_run_files
     True
 
