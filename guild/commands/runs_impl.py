@@ -361,10 +361,10 @@ def _format_batch_op(opref, run, seen_protos):
         return opref.op_name
     proto_run = guild.run.Run("", proto_dir)
     proto_op_desc = format_op_desc(proto_run, seen_protos)
-    parts = [opref.op_name]
-    if not opref.op_name.endswith("+"):
+    parts = [proto_op_desc]
+    if not opref.op_name.startswith("+"):
         parts.append("+")
-    parts.append(proto_op_desc)
+    parts.append(opref.op_name)
     return "".join(parts)
 
 def _format_pending_op(opref):

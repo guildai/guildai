@@ -4,5 +4,6 @@ noisy:
     $dest: globals
     x:
       default: 0.2
-      min: -2.0
-      max: 2.0
+      search:
+        min: -2.0
+        max: 2.0
