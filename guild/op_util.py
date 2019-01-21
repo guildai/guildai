@@ -331,7 +331,10 @@ def args_to_flags(args):
             name = arg[2:]
             flags[name] = True
         elif arg[:1] == "-":
-            if len(arg) == 2:
+            val = parse_arg_val(arg)
+            if isinstance(val, (int, float)):
+                flags[name] = val
+            elif len(arg) == 2:
                 name = arg[1]
                 flags[name] = True
             elif len(arg) > 2:
