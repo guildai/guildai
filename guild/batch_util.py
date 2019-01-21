@@ -21,13 +21,14 @@ import sys
 from six.moves import shlex_quote
 
 from guild import _api as gapi
+from guild import cli
 from guild import op_util
 from guild import run as runlib
 from guild import var
 
 log = logging.getLogger("guild")
 
-DEFAULT_MAX_TRIALS = 100
+DEFAULT_MAX_TRIALS = 20
 
 init_logging = op_util.init_logging
 
@@ -100,6 +101,7 @@ class Batch(object):
     def __init__(self, batch_run):
         self.batch_run = batch_run
         self.proto_run = self._init_proto_run()
+        self._proto_opdef_data = None
 
     def _init_proto_run(self):
         proto_path = self.batch_run.guild_path("proto")
@@ -150,6 +152,17 @@ class Batch(object):
         random.seed(self.random_seed)
         return random.sample(trials, max_trials)
 
+    @property
+    def proto_opdef_data(self):
+        if self._proto_opdef_data is None:
+            opdef_data = self.proto_run.get_opdef_data({})
+            if not isinstance(opdef_data, dict):
+                log.warning(
+                    "unexpected opdef data for %s: %r",
+                    self.proto_run.id, opdef_data)
+            self._proto_opdef_data = opdef_data
+        return self._proto_opdef_data
+
 def init_batch():
     return Batch(op_util.current_run())
 
@@ -159,6 +172,8 @@ def default_main(gen_trials_cb):
     trials = batch.gen_trials(gen_trials_cb)
     if os.getenv("PRINT_TRIALS") == "1":
         print_trials(trials)
+    elif os.getenv("SAVE_TRIALS"):
+        save_trials(trials, os.getenv("SAVE_TRIALS"))
     else:
         init_pending_trials(trials)
         run_trials(trials)
@@ -166,6 +181,13 @@ def default_main(gen_trials_cb):
 def print_trials(trials):
     if trials:
         op_util.print_trials([t.flags for t in trials])
+
+def save_trials(trials, path):
+    if not trials:
+        cli.out("Nothing to save")
+        return
+    cli.out("Saving %i trial(s) to %s" % (len(trials), path))
+    op_util.save_trials([t.flags for t in trials], path)
 
 def init_pending_trials(trials):
     for trial in trials:

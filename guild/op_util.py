@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import fnmatch
+import csv
 import logging
 import os
 import shlex
@@ -568,6 +569,10 @@ def init_logging():
 
 def print_trials(trials):
     from guild import cli
+    data, cols = _trials_table_data(trials)
+    cli.table(data, cols)
+
+def _trials_table_data(trials):
     names = set()
     data = []
     for i, flags in enumerate(trials):
@@ -579,4 +584,12 @@ def print_trials(trials):
         names.update(flags)
     heading = {name: name for name in names}
     heading["_trial"] = "#"
-    cli.table([heading] + data, ["_trial"] + sorted(names))
+    return [heading] + data, ["_trial"] + sorted(names)
+
+def save_trials(trials, path):
+    data, cols = _trials_table_data(trials)
+    cols.remove("_trial") # Don't include trial number in CSV
+    with open(path, "w") as f:
+        out = csv.writer(f)
+        for row in data:
+            out.writerow([row.get(name, "") for name in cols])
