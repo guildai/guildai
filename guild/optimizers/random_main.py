@@ -15,36 +15,34 @@
 from __future__ import absolute_import
 from __future__ import division
 
-"""
-import numpy as np
+from guild import batch_util
 
-def f(x):
-    #import pdb;pdb.set_trace()
-    return (np.sin(5 * x[0]) * (1 - np.tanh(x[0] ** 2)) *
-            np.random.randn() * 0.1)
+DEFAULT_TRIALS = 20
 
-def cb(res):
-    print("Trial: %s %s %s" % (res.x_iters, res.x, res.fun))
+def _gen_trials(flags, batch):
+    trials = batch.max_trials or DEFAULT_TRIALS
+    random_seed = batch.random_seed
+    flag_names, dimensions = _flag_dimensions(flags, batch)
+    trial_vals = _random_vals(dimensions, trials, random_seed)
+    return [
+        dict(zip(flag_names, _native_python(flag_vals)))
+        for flag_vals in trial_vals]
 
-def _stuff():
+def _flag_dimensions(_flags, _batch):
+    # TODO - lookup search spec from batch proto opdef
+    return ["x"], [(-2.0, 2.0)]
+
+def _random_vals(dimensions, trials, random_seed):
     import skopt
     res = skopt.dummy_minimize(
-        f,
-        [(-2.0, 2.0)],
-        n_calls=10,
-        callback=cb)
-    #import pdb;pdb.set_trace()
-    print("Best: %s -> %s" % (res.x, res.fun))
-"""
+        lambda *args: 0,
+        dimensions,
+        n_calls=trials,
+        random_state=random_seed)
+    return res.x_iters
 
-def main():
-    op_util.init_logging()
-    batch = batch_util.init_batch()
-    trials = _generate_trials(batch)
-    print(trials)
-
-def _generate_trials(self):
-    pass
+def _native_python(l):
+    return [x.item() for x in l]
 
 if __name__ == "__main__":
-    main()
+    batch_util.default_main(_gen_trials)

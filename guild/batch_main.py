@@ -16,70 +16,20 @@ from __future__ import absolute_import
 from __future__ import division
 
 import itertools
-import logging
-import os
 
 from guild import batch_util
-from guild import op_util
 
-log = logging.getLogger("guild")
-
-def main():
-    op_util.init_logging()
-    batch = batch_util.init_batch()
-    trials = _generate_trials(batch)
-    if os.getenv("PRINT_TRIALS") == "1":
-        batch_util.print_trials(trials)
-    else:
-        _init_pending(trials)
-        _run(trials)
-
-def _generate_trials(batch):
-    return batch.sample_trials(_all_trials(batch))
-
-def _all_trials(batch):
-    trials = []
-    base_flags = batch.proto_run.get("flags") or {}
-    batches = batch.proto_run.get("batches") or []
-    if batches:
-        _acc_batch_trials(base_flags, batches, trials)
-    else:
-        _acc_trials(base_flags, trials)
-    return [batch_util.Trial(batch, dict(flags)) for flags in trials]
-
-def _acc_batch_trials(base_flags, batches, trials):
-    for batch_flags in batches:
-        _acc_trials(_join_flags(base_flags, batch_flags), trials)
-
-def _join_flags(base, extra):
-    joined = {}
-    joined.update(base)
-    joined.update(extra)
-    return joined
-
-def _acc_trials(flags, trials):
+def _gen_trials(flags, _batch):
     flag_list = [
         _trial_flags(name, val)
         for name, val in sorted(flags.items())]
     for trial in itertools.product(*flag_list):
-        trials.append(trial)
+        yield dict(trial)
 
 def _trial_flags(flag_name, flag_val):
     if isinstance(flag_val, list):
         return [(flag_name, trial_val) for trial_val in flag_val]
     return [(flag_name, flag_val)]
 
-def _init_pending(trials):
-    for trial in trials:
-        if not trial.initialized:
-            trial.init()
-
-def _run(trials):
-    for trial in trials:
-        if trial.run_deleted:
-            assert trials.run_id
-            log.info("trial %s deleted, skipping", trial.run_id)
-        trial.run()
-
 if __name__ == "__main__":
-    main()
+    batch_util.default_main(_gen_trials)

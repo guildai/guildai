@@ -29,6 +29,8 @@ log = logging.getLogger("guild")
 
 DEFAULT_MAX_TRIALS = 100
 
+init_logging = op_util.init_logging
+
 class Trial(object):
 
     def __init__(self, batch, flags):
@@ -113,6 +115,34 @@ class Batch(object):
     def random_seed(self):
         return self.batch_run.get("_random_seed")
 
+    def gen_trials(self, gen_trials_cb, default_max=DEFAULT_MAX_TRIALS):
+        all_trials = self._gen_all_trials(gen_trials_cb)
+        return self.sample_trials(all_trials, default_max)
+
+    def _gen_all_trials(self, gen_trials_cb):
+        trials = []
+        base_flags = self.proto_run.get("flags") or {}
+        batches = self.proto_run.get("batches") or []
+        if batches:
+            trials = self._acc_batch_trials(base_flags, batches, gen_trials_cb)
+        else:
+            trials = gen_trials_cb(base_flags, self)
+        return [Trial(self, flags) for flags in trials]
+
+    def _acc_batch_trials(self, base_flags, batches, gen_trials_cb):
+        trials = []
+        for batch_flags in batches:
+            joined_flags = self._join_flags(base_flags, batch_flags)
+            trials.extend(gen_trials_cb(joined_flags, self))
+        return trials
+
+    @staticmethod
+    def _join_flags(base, extra):
+        joined = {}
+        joined.update(base)
+        joined.update(extra)
+        return joined
+
     def sample_trials(self, trials, default_max=DEFAULT_MAX_TRIALS):
         max_trials = self.max_trials or default_max
         if len(trials) <= max_trials:
@@ -123,5 +153,28 @@ class Batch(object):
 def init_batch():
     return Batch(op_util.current_run())
 
+def default_main(gen_trials_cb):
+    init_logging()
+    batch = init_batch()
+    trials = batch.gen_trials(gen_trials_cb)
+    if os.getenv("PRINT_TRIALS") == "1":
+        print_trials(trials)
+    else:
+        init_pending_trials(trials)
+        run_trials(trials)
+
 def print_trials(trials):
-    op_util.print_trials([t.flags for t in trials])
+    if trials:
+        op_util.print_trials([t.flags for t in trials])
+
+def init_pending_trials(trials):
+    for trial in trials:
+        if not trial.initialized:
+            trial.init()
+
+def run_trials(trials):
+    for trial in trials:
+        if trial.run_deleted:
+            assert trials.run_id
+            log.info("trial %s deleted, skipping", trial.run_id)
+        trial.run()

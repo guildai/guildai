@@ -86,13 +86,13 @@ def _find_run(run_id_prefix, args):
         return one_run(run_id_prefix)
 
 def _apply_run_args(run, args):
-    if _is_batch_run(run.opref.op_name):
+    if _is_batch_run(run):
         _apply_batch_run_args(run, args)
     else:
         _apply_normal_run_args(run, args)
 
-def _is_batch_run(op_name):
-    return "+" in op_name
+def _is_batch_run(run):
+    return os.path.exists(run.guild_path("proto"))
 
 def _apply_batch_run_args(run, args):
     _apply_batch_opspec(run, args)
@@ -824,7 +824,7 @@ def _batch_op_cmd_args(opdef, run, args):
     return args
 
 def _print_trials(op, batch_files, args):
-    if _is_batch_run(op.opdef.name):
+    if _is_batch_op(op):
         _run_batch_print_trials(op)
     else:
         batch_opspec = _maybe_batch(op, batch_files, args)
@@ -832,6 +832,9 @@ def _print_trials(op, batch_files, args):
             _print_batch_trials(batch_opspec, op, batch_files, args)
         else:
             _print_one_trial(op)
+
+def _is_batch_op(op):
+    return op.has_proto()
 
 def _run_batch_print_trials(op):
     op.cmd_env["PRINT_TRIALS"] = "1"
