@@ -162,6 +162,7 @@ def _test_globals():
         "ModelPath": ModelPath,
         "StderrCapture": StderrCapture,
         "SysPath": SysPath,
+        "TempFile": util.TempFile,
         "abspath": os.path.abspath,
         "basename": os.path.basename,
         "cat": cat,
