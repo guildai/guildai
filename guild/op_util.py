@@ -362,30 +362,31 @@ def _model_file(path):
                 return full_path
     return None
 
-def coerce_flag_value(val, flag):
-    if not flag or not flag.type:
+def coerce_flag_value(val, flagdef):
+    """Coerces a flag value based on flagdef settings."""
+    if not flagdef or not flagdef.type:
         return val
-    if flag.type == "string":
-        return _try_coerce_flag_val(val, str, flag)
-    elif flag.type == "int":
+    if flagdef.type == "string":
+        return _try_coerce_flag_val(val, str, flagdef)
+    elif flagdef.type == "int":
         if isinstance(val, float):
             raise ValueError("invalid value for type 'int'")
-        return _try_coerce_flag_val(val, int, flag)
-    elif flag.type == "float":
-        return _try_coerce_flag_val(val, float, flag)
-    elif flag.type == "number":
+        return _try_coerce_flag_val(val, int, flagdef)
+    elif flagdef.type == "float":
+        return _try_coerce_flag_val(val, float, flagdef)
+    elif flagdef.type == "number":
         if isinstance(val, (float, int)):
             return val
-        return _try_coerce_flag_val(val, (int, float), flag)
-    elif flag.type in ("path", "existing-path"):
+        return _try_coerce_flag_val(val, (int, float), flagdef)
+    elif flagdef.type in ("path", "existing-path"):
         return _resolve_rel_path(val)
     else:
         log.warning(
             "unknown flag type '%s' for %s - cannot coerce",
-            flag.type, flag.name)
+            flagdef.type, flagdef.name)
         return val
 
-def _try_coerce_flag_val(val, funs, flag):
+def _try_coerce_flag_val(val, funs, flagdef):
     if not isinstance(funs, tuple):
         funs = (funs,)
     for f in funs:
@@ -393,7 +394,7 @@ def _try_coerce_flag_val(val, funs, flag):
             return f(val)
         except ValueError as e:
             log.debug("value error applying %s to %r: %s", f, val, e)
-    raise ValueError("invalid value for type '%s'" % flag.type)
+    raise ValueError("invalid value for type '%s'" % flagdef.type)
 
 def _resolve_rel_path(val):
     if val is not None and not os.path.isabs(val):

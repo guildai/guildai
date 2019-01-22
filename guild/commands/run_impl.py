@@ -539,15 +539,15 @@ def _apply_opdef_args(flag_vals, args, opdef):
 
 def _apply_flag_vals(vals, opdef, force):
     for name, val in vals.items():
-        flag = opdef.get_flagdef(name)
-        if not force and not flag:
+        flagdef = opdef.get_flagdef(name)
+        if not force and not flagdef:
             cli.error(
                 "unsupported flag '%s'\n"
                 "Try 'guild run %s --help-op' for a list of "
                 "flags or use --force-flags to skip this check."
                 % (name, opdef.fullname))
         try:
-            coerced = op_util.coerce_flag_value(val, flag)
+            coerced = op_util.coerce_flag_value(val, flagdef)
         except ValueError as e:
             cli.error(
                 "cannot apply %r to flag '%s': %s"
