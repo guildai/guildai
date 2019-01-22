@@ -9,7 +9,7 @@ We will use the functions `_apply_flag_vals` and
 processing behavior.
 
     >>> from guild.commands.run_impl import _apply_flag_vals
-    >>> from guild.commands.run_impl import _validate_opdef_flags
+    >>> from guild.commands.run_impl import _validate_op_flags
 
 Here is a test Guild file:
 
@@ -53,6 +53,16 @@ given arguments to the `run` command. We use a helper to apply this
 function to a copy of our test operation so we can reuse it for
 multiple tests.
 
+Because `_validate_op_flags` validates operation flags, we need a
+proxy to comply with its interface.
+
+    >>> class OpProxy(object):
+    ...     def __init__(self, opdef):
+    ...         self.opdef = opdef
+    ...         self.flag_vals = opdef.flag_values()
+
+And our helper function to validate flags:
+
     >>> import copy
     >>> def flags(op_name, flag_vals, force=False):
     ...     opdef_orig = gf.models["test"].get_operation(op_name)
@@ -60,7 +70,7 @@ multiple tests.
     ...     with StderrCapture() as stderr:
     ...         try:
     ...             _apply_flag_vals(flag_vals, opdef_copy, force)
-    ...             _validate_opdef_flags(opdef_copy)
+    ...             _validate_op_flags(OpProxy(opdef_copy))
     ...         except SystemExit as e:
     ...             if e.args[0]:
     ...                 print(e.args[0])
