@@ -15,15 +15,18 @@
 import logging
 import os
 import random
+import re
 import shutil
 import sys
 
+import six
 from six.moves import shlex_quote
 
 from guild import _api as gapi
 from guild import cli
 from guild import op_util
 from guild import run as runlib
+from guild import util
 from guild import var
 
 log = logging.getLogger("guild")
@@ -31,6 +34,9 @@ log = logging.getLogger("guild")
 DEFAULT_MAX_TRIALS = 20
 
 init_logging = op_util.init_logging
+
+slice_function_pattern = re.compile(r"\[([^:]+):([^:]+)(?::(.+))?\]")
+named_function_parts_pattern = re.compile(r"(\w+)\((.*?)\)")
 
 class BatchError(Exception):
     pass
@@ -232,4 +238,34 @@ def run_trials(trials):
         if trial.run_deleted:
             assert trials.run_id
             log.info("trial %s deleted, skipping", trial.run_id)
+
+def parse_function(s):
+    if not isinstance(s, six.string_types):
+        raise ValueError("requires string")
+    return util.find_apply([
+        _slice_function,
+        _named_function,
+        _not_a_function_error,
+    ], s)
+
+def _slice_function(s):
+    m = slice_function_pattern.match(s)
+    if not m:
+        return None
+    args_s = m.groups()
+    if args_s[2] is None:
+        args_s = args_s[0:2]
+    args = [op_util.parse_arg_val(arg) for arg in args_s]
+    return None, tuple(args)
+
+def _named_function(s):
+    parts_m = named_function_parts_pattern.match(s)
+    if not parts_m:
+        return None
+    name, args_s = parts_m.groups()
+    args = op_util.parse_arg_val("[%s]" % args_s)
+    return name, tuple(args)
+
+def _not_a_function_error(_s):
+    raise ValueError("not a function")
         trial.run()

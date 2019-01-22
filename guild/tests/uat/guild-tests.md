@@ -10,6 +10,7 @@ tests).
       batch-1:                     ok
       batch-2:                     ok
       batch-3:                     ok
+      batch-util                   ok
       config:                      ok
       copy-source:                 ok
       cpu-plugin:                  ok
