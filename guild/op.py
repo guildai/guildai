@@ -438,11 +438,6 @@ def _apply_choice_args(flagdef, val, flag_vals, target):
                     if name not in target:
                         target[name] = args[name]
             break
-    else:
-        if not flagdef.allow_other:
-            log.warning(
-                "unsupported choice %r for '%s' flag, ignoring",
-                val, flagdef.name)
 
 def _apply_flag_arg(flagdef, value, flag_vals, target, flag_map):
     if flagdef.arg_name:
