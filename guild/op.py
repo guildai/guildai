@@ -29,6 +29,7 @@ import guild.run
 
 from guild import config
 from guild import deps
+from guild import exit_code
 from guild import op_util
 from guild import util
 from guild import var
@@ -41,7 +42,6 @@ OP_RUNFILE_PATHS = [
     ["guild", "external"],
 ]
 PROC_TERM_TIMEOUT_SECONDS = 30
-SIGTERM_EXIT_STATUS = -15
 
 NO_ARG_VALUE = object()
 
@@ -274,7 +274,7 @@ class Operation(object):
         if self._proc.poll() is None:
             log.warning("Operation process did not exit - stopping forcefully")
             util.kill_process_tree(self._proc.pid, force=True)
-        return SIGTERM_EXIT_STATUS
+        return exit_code.SIGTERM_
 
     def _finalize_attrs(self):
         assert self._run is not None
@@ -585,7 +585,7 @@ def _write_proc_lock(proc, run):
         f.write(str(proc.pid))
 
 def _op_exit_status(proc_exit_status, opdef):
-    if proc_exit_status == SIGTERM_EXIT_STATUS and opdef.stoppable:
+    if proc_exit_status == exit_code.SIGTERM and opdef.stoppable:
         return 0
     return proc_exit_status
 
