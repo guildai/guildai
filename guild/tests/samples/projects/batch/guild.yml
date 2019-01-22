@@ -1,0 +1,3 @@
+tune:
+  main: tune
+  disable-plugins: all

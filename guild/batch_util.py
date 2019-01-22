@@ -32,6 +32,12 @@ DEFAULT_MAX_TRIALS = 20
 
 init_logging = op_util.init_logging
 
+class BatchError(Exception):
+    pass
+
+class MissingProtoError(BatchError):
+    pass
+
 class Trial(object):
 
     def __init__(self, batch, flags):
@@ -122,7 +128,8 @@ class Batch(object):
     def _init_proto_run(self):
         proto_path = self.batch_run.guild_path("proto")
         if not os.path.exists(proto_path):
-            op_util.exit("missing operation proto in %s" % proto_path)
+            raise MissingProtoError(
+                "missing operation proto in %s" % proto_path)
         return runlib.Run("", proto_path)
 
     @property
@@ -184,15 +191,21 @@ def init_batch():
 
 def default_main(gen_trials_cb):
     init_logging()
-    batch = init_batch()
-    trials = batch.gen_trials(gen_trials_cb)
+    try:
+        batch = init_batch()
+    except BatchError as e:
+        op_util.exit(str(e))
+    else:
+        trials = batch.gen_trials(gen_trials_cb)
+        _dispatch_trials_cmd(trials)
+
+def _dispatch_trials_cmd(trials):
     if os.getenv("PRINT_TRIALS") == "1":
         print_trials(trials)
     elif os.getenv("SAVE_TRIALS"):
         save_trials(trials, os.getenv("SAVE_TRIALS"))
     else:
-        init_pending_trials(trials)
-        run_trials(trials)
+        init_and_run_trials(trials)
 
 def print_trials(trials):
     if trials:
@@ -204,6 +217,10 @@ def save_trials(trials, path):
         return
     cli.out("Saving %i trial(s) to %s" % (len(trials), path))
     op_util.save_trials([t.flags for t in trials], path)
+
+def init_and_run_trials(trials):
+    init_pending_trials(trials)
+    run_trials(trials)
 
 def init_pending_trials(trials):
     for trial in trials:

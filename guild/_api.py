@@ -56,11 +56,11 @@ def _init_env(cwd, guild_home):
 
 def run(spec=None, cwd=None, flags=None, batch_files=None, run_dir=None,
         restart=None, label=None, guild_home=None, extra_env=None,
-        max_trials=None, random_seed=None, print_cmd=False,
+        optimizer=None, max_trials=None, random_seed=None, print_cmd=False,
         print_trials=False):
     args, cwd, env = _popen_args(
         spec, cwd, flags, batch_files, run_dir, restart, label,
-        guild_home, extra_env, max_trials, random_seed,
+        guild_home, extra_env, optimizer, max_trials, random_seed,
         print_cmd, print_trials)
     p = subprocess.Popen(args, cwd=cwd, env=env)
     returncode = p.wait()
@@ -70,11 +70,11 @@ def run(spec=None, cwd=None, flags=None, batch_files=None, run_dir=None,
 def run_capture_output(
         spec=None, cwd=None, flags=None, batch_files=None, run_dir=None,
         restart=None, label=None, guild_home=None, extra_env=None,
-        max_trials=None, random_seed=None, print_cmd=False,
+        optimizer=None, max_trials=None, random_seed=None, print_cmd=False,
         print_trials=False):
     args, cwd, env = _popen_args(
         spec, cwd, flags, batch_files, run_dir, restart, label,
-        guild_home, extra_env, max_trials, random_seed,
+        guild_home, extra_env, optimizer, max_trials, random_seed,
         print_cmd, print_trials)
     p = subprocess.Popen(
         args,
@@ -89,8 +89,8 @@ def run_capture_output(
     return out
 
 def _popen_args(spec, cwd, flags, batch_files, run_dir, restart,
-                label, guild_home, extra_env, max_trials, random_seed,
-                print_cmd, print_trials):
+                label, guild_home, extra_env, optimizer, max_trials,
+                random_seed, print_cmd, print_trials):
     from guild import op_util
     cwd = cwd or "."
     flags = flags or {}
@@ -111,6 +111,8 @@ def _popen_args(spec, cwd, flags, batch_files, run_dir, restart,
     args.extend(["@%s" % path for path in (batch_files or [])])
     if run_dir:
         args.extend(["--run-dir", run_dir])
+    if optimizer:
+        args.extend(["--optimizer", optimizer])
     if max_trials is not None:
         args.extend(["--max-trials", str(max_trials)])
     if random_seed is not None:
