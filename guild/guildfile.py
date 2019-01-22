@@ -353,7 +353,7 @@ def _coerce_flag(name, data, guildfile):
         return data
     elif isinstance(data, dict):
         return data
-    elif isinstance(data, six.string_types + (int, float, bool)):
+    elif isinstance(data, six.string_types + (int, float, bool, list)):
         return {"default": data}
     elif data is None:
         return {"default": None}
@@ -866,16 +866,20 @@ class FlagDef(object):
     def __init__(self, name, data, opdef):
         self.name = name
         self.opdef = opdef
-        self.default = data.get("default")
-        self.description = data.get("description") or ""
-        self.type = data.get("type")
-        self.required = bool(data.get("required"))
-        self.arg_name = data.get("arg-name")
-        self.arg_skip = bool(data.get("arg-skip"))
-        self.arg_switch = data.get("arg-switch")
-        self.choices = _init_flag_choices(data.get("choices"), self)
-        self.allow_other = data.get("allow-other", False)
-        self.null_label = data.get("null-label")
+        _data = dict(data)
+        self.default = _data.pop("default", None)
+        self.description = _data.pop("description", None) or ""
+        self.type = _data.pop("type", None)
+        self.required = bool(_data.pop("required", False))
+        self.arg_name = _data.pop("arg-name", None)
+        self.arg_skip = bool(_data.pop("arg-skip", False))
+        self.arg_switch = _data.pop("arg-switch", None)
+        self.choices = _init_flag_choices(_data.pop("choices", None), self)
+        self.allow_other = _data.pop("allow-other", False)
+        self.null_label = _data.pop("null-label", None)
+        self.min = _data.pop("min", None)
+        self.max = _data.pop("max", None)
+        self.extra = _data
 
     def __repr__(self):
         return "<guild.guildfile.FlagDef '%s'>" % self.name
@@ -903,6 +907,9 @@ class FlagChoice(object):
             self.value = data
             self.description = ""
             self.args = {}
+
+    def __repr__(self):
+        return "<guild.guildfile.FlagChoice %r>" % self.value
 
 def _init_dependencies(requires, opdef):
     if not requires:
