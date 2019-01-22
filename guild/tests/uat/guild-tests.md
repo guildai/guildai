@@ -18,6 +18,7 @@ tests).
       dependencies:                ok
       disk-plugin:                 ok
       entry-points:                ok
+      flagdefs:                    ok
       flags-dest:                  ok
       guild-test:                  ok
       guildfiles:                  ok
