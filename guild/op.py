@@ -108,7 +108,7 @@ class Operation(object):
         self._run = init_run(self._run_dir)
         log.debug("initializing run in %s", self._run.path)
         self._run.init_skel()
-        _write_pending(self._run)
+        write_pending(self._run)
 
     def _init_attrs(self):
         assert self._run is not None
@@ -222,7 +222,7 @@ class Operation(object):
         log.debug("operation command: %s", args)
         log.debug("operation env: %s", env)
         log.debug("operation cwd: %s", cwd)
-        _delete_pending(self._run)
+        delete_pending(self._run)
         try:
             proc = subprocess.Popen(
                 args,
@@ -293,7 +293,7 @@ class Operation(object):
 
     def _cleanup(self):
         assert self._run is not None
-        _delete_pending(self._run)
+        delete_pending(self._run)
 
 def _init_cmd_args(opdef):
     flag_vals = util.resolve_all_refs(opdef.flag_values())
@@ -595,10 +595,10 @@ def _delete_proc_lock(run):
     except OSError:
         pass
 
-def _write_pending(run):
+def write_pending(run):
     open(run.guild_path("PENDING"), "w").close()
 
-def _delete_pending(run):
+def delete_pending(run):
     try:
         os.remove(run.guild_path("PENDING"))
     except OSError:
