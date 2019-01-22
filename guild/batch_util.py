@@ -199,11 +199,10 @@ def default_main(gen_trials_cb):
     init_logging()
     try:
         batch = init_batch()
-    except BatchError as e:
-        op_util.exit(str(e))
-    else:
         trials = batch.gen_trials(gen_trials_cb)
         _dispatch_trials_cmd(trials)
+    except BatchError as e:
+        op_util.exit(str(e))
 
 def _dispatch_trials_cmd(trials):
     if os.getenv("PRINT_TRIALS") == "1":
@@ -238,6 +237,7 @@ def run_trials(trials):
         if trial.run_deleted:
             assert trials.run_id
             log.info("trial %s deleted, skipping", trial.run_id)
+        trial.run()
 
 def parse_function(s):
     if not isinstance(s, six.string_types):
@@ -268,4 +268,3 @@ def _named_function(s):
 
 def _not_a_function_error(_s):
     raise ValueError("not a function")
-        trial.run()
