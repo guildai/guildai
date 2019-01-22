@@ -24,6 +24,7 @@ import guild
 from guild import config
 from guild import guildfile
 from guild import model as modellib
+from guild import op_util
 from guild import plugin as plugins
 from guild import python_util
 from guild import util
@@ -56,6 +57,8 @@ class BatchModelProxy(object):
     name = ""
     op_name = "+"
     module_name = "guild.batch_main"
+    flag_encoder = None
+    default_max_trials = 20
 
     def __init__(self):
         self.modeldef = self._init_modeldef()
@@ -67,8 +70,10 @@ class BatchModelProxy(object):
                 "model": self.name,
                 "operations": {
                     self.op_name: {
-                        "exec": "${python_exe} -um %s" % self.module_name
-                    }
+                        "exec": "${python_exe} -um %s" % self.module_name,
+                        "flag-encoder": self.flag_encoder,
+                        "default-max-trials": self.default_max_trials,
+                    },
                 }
             }
         ]
@@ -87,6 +92,15 @@ class RandomOptimizerModelProxy(BatchModelProxy):
     name = ""
     op_name = "random"
     module_name = "guild.optimizers.random_main"
+    flag_encoder = "guild.model_proxies:encode_flag_for_random"
+
+def encode_flag_for_random(val, flagdef):
+    fmt = op_util.format_flag_val
+    if flagdef.choices:
+        return [c.value for c in flagdef.choices]
+    elif flagdef.min is not None and flagdef.max is not None:
+        return "[%s:%s]" % (fmt(flagdef.min), fmt(flagdef.max))
+    return val
 
 class PythonScriptModelProxy(object):
 
