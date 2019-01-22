@@ -170,12 +170,18 @@ class FlagsPlugin(Plugin):
                 self.log.debug("import_argparse_flags_main output: %s", out)
                 return self._load_data(data_path)
 
-    @staticmethod
-    def _global_assigns_flags_data(script):
-        flags_data = dict(script.params)
+    def _global_assigns_flags_data(self, script):
+        flags_data = self._public_params(script.params)
         if flags_data:
             flags_data["$dest"] = "globals"
         return flags_data
+
+    @staticmethod
+    def _public_params(params):
+        return {
+            name: params[name] for name in params
+            if name[:1] != "_"
+        }
 
     @staticmethod
     def _load_data(path):

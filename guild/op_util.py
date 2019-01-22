@@ -140,7 +140,6 @@ class RunOutput(object):
             stream_fileno = None
         output_fileno = self._output.fileno()
         index_fileno = self._index.fileno()
-        output_cb = self._output_cb
         time_ = time.time
         lock = self._output_lock
         line = []
@@ -161,8 +160,13 @@ class RunOutput(object):
                     entry = struct.pack(
                         "!QB", int(time_() * 1000), stream_type)
                     os_write(index_fileno, entry)
-                    if output_cb:
-                        output_cb.write(line_bytes)
+                    if self._output_cb:
+                        try:
+                            self._output_cb.write(line_bytes)
+                        except Exception:
+                            log.exception(
+                                "error in output callback (will be removed)")
+                            self._output_cb = None
 
     def wait(self, timeout=DEFAULT_WAIT_TIMEOUT):
         self._assert_open()
@@ -183,7 +187,10 @@ class RunOutput(object):
         self._output.close()
         self._index.close()
         if self._output_cb:
-            self._output_cb.close()
+            try:
+                self._output_cb.close()
+            except Exception:
+                log.exception("closing output callback")
         assert not self._out_tee.is_alive()
         assert not self._err_tee.is_alive()
         self._proc = None
