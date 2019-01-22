@@ -305,10 +305,10 @@ def _format_run_index(run, index=None):
 def format_op_desc(run, nowarn=False, seen_protos=None):
     seen_protos = seen_protos or set()
     opref = run.opref
-    base_desc = _base_op_desc(opref)
+    base_desc = _base_op_desc(opref, nowarn)
     return _apply_batch_desc(base_desc, run, seen_protos)
 
-def _base_op_desc(opref):
+def _base_op_desc(opref, nowarn):
     if opref.pkg_type == "guildfile":
         return _format_guildfile_op(opref)
     elif opref.pkg_type == "package":
