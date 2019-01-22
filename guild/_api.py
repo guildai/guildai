@@ -57,11 +57,11 @@ def _init_env(cwd, guild_home):
 def run(spec=None, cwd=None, flags=None, batch_files=None, run_dir=None,
         restart=None, label=None, guild_home=None, extra_env=None,
         optimizer=None, max_trials=None, random_seed=None, print_cmd=False,
-        print_trials=False):
+        print_trials=False, save_trials=None):
     args, cwd, env = _popen_args(
         spec, cwd, flags, batch_files, run_dir, restart, label,
         guild_home, extra_env, optimizer, max_trials, random_seed,
-        print_cmd, print_trials)
+        print_cmd, print_trials, save_trials)
     p = subprocess.Popen(args, cwd=cwd, env=env)
     returncode = p.wait()
     if returncode != 0:
@@ -71,11 +71,11 @@ def run_capture_output(
         spec=None, cwd=None, flags=None, batch_files=None, run_dir=None,
         restart=None, label=None, guild_home=None, extra_env=None,
         optimizer=None, max_trials=None, random_seed=None, print_cmd=False,
-        print_trials=False):
+        print_trials=False, save_trials=None):
     args, cwd, env = _popen_args(
         spec, cwd, flags, batch_files, run_dir, restart, label,
         guild_home, extra_env, optimizer, max_trials, random_seed,
-        print_cmd, print_trials)
+        print_cmd, print_trials, save_trials)
     p = subprocess.Popen(
         args,
         cwd=cwd,
@@ -90,7 +90,7 @@ def run_capture_output(
 
 def _popen_args(spec, cwd, flags, batch_files, run_dir, restart,
                 label, guild_home, extra_env, optimizer, max_trials,
-                random_seed, print_cmd, print_trials):
+                random_seed, print_cmd, print_trials, save_trials):
     from guild import op_util
     cwd = cwd or "."
     flags = flags or {}
@@ -121,6 +121,8 @@ def _popen_args(spec, cwd, flags, batch_files, run_dir, restart,
         args.append("--print-cmd")
     if print_trials:
         args.append("--print-trials")
+    if save_trials:
+        args.extend(["--save-trials", save_trials])
     env = dict(os.environ)
     env["NO_IMPORT_FLAGS_PROGRESS"] = "1"
     if extra_env:
