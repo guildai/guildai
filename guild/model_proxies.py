@@ -122,6 +122,7 @@ class PythonScriptModelProxy(object):
                         "exec": self._exec_attr(),
                         "compare": GENERIC_COMPARE,
                         "flags": self._flags_data(),
+                        # TODO "output-scalars": "not sure what's here"
                     }
                 },
                 "disable-plugins": "all"

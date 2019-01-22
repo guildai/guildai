@@ -69,10 +69,11 @@ class RunOutput(object):
 
     DEFAULT_WAIT_TIMEOUT = 10
 
-    def __init__(self, run, proc=None, quiet=False):
+    def __init__(self, run, proc=None, quiet=False, output_cb=None):
         assert run
         self._run = run
         self._quiet = quiet
+        self._output_cb = output_cb
         self._output_lock = threading.Lock()
         self._open = False
         self._proc = None
@@ -139,6 +140,7 @@ class RunOutput(object):
             stream_fileno = None
         output_fileno = self._output.fileno()
         index_fileno = self._index.fileno()
+        output_cb = self._output_cb
         time_ = time.time
         lock = self._output_lock
         line = []
@@ -153,11 +155,14 @@ class RunOutput(object):
                     continue
                 line.append(b)
                 if b == b"\n":
-                    os_write(output_fileno, b"".join(line))
+                    line_bytes = b"".join(line)
+                    os_write(output_fileno, line_bytes)
                     line = []
                     entry = struct.pack(
                         "!QB", int(time_() * 1000), stream_type)
                     os_write(index_fileno, entry)
+                    if output_cb:
+                        output_cb.write(line_bytes)
 
     def wait(self, timeout=DEFAULT_WAIT_TIMEOUT):
         self._assert_open()
@@ -177,6 +182,8 @@ class RunOutput(object):
         self._assert_open()
         self._output.close()
         self._index.close()
+        if self._output_cb:
+            self._output_cb.close()
         assert not self._out_tee.is_alive()
         assert not self._err_tee.is_alive()
         self._proc = None

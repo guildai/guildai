@@ -13,6 +13,6 @@ python-dateutil>=2.6.1
 scikit-optimize>=0.5.2
 six>=1.10.0
 tabview>=1.4.3
-tensorboard>=1.6
+tensorboardX>=1.6
 twine>=1.9.1
 virtualenv>=15.1.0

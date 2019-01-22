@@ -31,6 +31,7 @@ from guild import config
 from guild import deps
 from guild import exit_code
 from guild import op_util
+from guild import summary
 from guild import util
 from guild import var
 
@@ -255,13 +256,21 @@ class Operation(object):
 
     def _watch_proc(self, quiet, stop_after):
         assert self._proc is not None
-        output = op_util.RunOutput(self._run, self._proc, quiet)
+        output = op_util.RunOutput(
+            self._run, self._proc, quiet,
+            self._output_scalars())
         if stop_after is None:
             exit_status = self._proc.wait()
         else:
             exit_status = op_util.wait_for_proc(self._proc, stop_after)
         output.wait_and_close()
         return exit_status
+
+    def _output_scalars(self):
+        config = self.opdef.output_scalars
+        if not config:
+            return None
+        return summary.OutputScalars(config, self._run)
 
     def _handle_proc_interrupt(self):
         if not self.has_proto():

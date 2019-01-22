@@ -205,7 +205,9 @@ class Run(object):
     def init_skel(self):
         util.ensure_dir(self.guild_path("attrs"))
 
-    def guild_path(self, subpath):
+    def guild_path(self, subpath=None):
+        if subpath is None:
+            return self._guild_dir
         return os.path.join(self._guild_dir, subpath)
 
     def write_attr(self, name, val, raw=False):
