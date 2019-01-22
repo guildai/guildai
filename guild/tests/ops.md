@@ -309,19 +309,13 @@ We can use `arg_skip` to omit the choice value:
 Choices are generally used to validate user-specified values. If we
 specified a value that isn't a valid choice, Guild logs a warning.
 
-    >>> with LogCapture() as log:
-    ...   flag_args({
-    ...     "color": {
-    ...       "value": "white",
-    ...       "choices": [{"value": "blue"}]
-    ...     }
-    ...   })
+    >>> flag_args({
+    ...   "color": {
+    ...     "value": "white",
+    ...     "choices": [{"value": "blue"}]
+    ...   }
+    ... })
     ['--color', 'white']
-
-The log:
-
-    >>> log.print_all()
-    WARNING: unsupported choice 'white' for 'color' flag, ignoring
 
 We can indicate that the flag supports other values:
 
