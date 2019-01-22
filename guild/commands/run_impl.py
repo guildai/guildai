@@ -473,7 +473,9 @@ def _init_op(opdef, args):
     except guild.op.InvalidOpSpec as e:
         _invalid_op_spec_error(e, opdef)
     else:
-        _apply_batch_op(op, batch_files, args)
+        _apply_batch_op(op, batch_files, flag_vals, args)
+        if not args.force_flags and not op.batch_op:
+            _validate_op_flags(op)
         return op
 
 def _split_flag_args(flag_args, opdef):
@@ -528,8 +530,6 @@ def _is_resource(name, opdef, ref_vars):
 
 def _apply_opdef_args(flag_vals, args, opdef):
     _apply_flag_vals(flag_vals, opdef, args.force_flags)
-    if not args.force_flags:
-        _validate_opdef_flags(opdef)
     _apply_arg_disable_plugins(args, opdef)
     opdef.set_trace = args.set_trace
 
@@ -550,49 +550,6 @@ def _apply_flag_vals(vals, opdef, force):
                 % (val, name, e))
         else:
             opdef.set_flag_value(name, coerced)
-
-def _validate_opdef_flags(opdef):
-    try:
-        op_util.validate_opdef_flags(opdef)
-    except op_util.MissingRequiredFlags as e:
-        _missing_required_flags_error(e)
-    except op_util.InvalidFlagChoice as e:
-        _invalid_flag_choice_error(e)
-    except op_util.InvalidFlagValue as e:
-        _invalid_flag_value_error(e)
-
-def _missing_required_flags_error(e):
-    cli.out(
-        "Operation requires the following missing flags:\n",
-        err=True)
-    cli.table(
-        [{"name": flag.name, "desc": flag.description}
-         for flag in e.missing],
-        ["name", "desc"],
-        indent=2,
-        err=True)
-    cli.out(
-        "\nRun the command again with these flags specified "
-        "as NAME=VAL.", err=True)
-    cli.error()
-
-def _invalid_flag_choice_error(e):
-    cli.out(
-        "Unsupported value for '%s' - supported values are:\n"
-        % e.flag.name, err=True)
-    cli.table(
-        [{"val": choice.value, "desc": choice.description}
-         for choice in e.flag.choices],
-        ["val", "desc"],
-        indent=2,
-        err=True)
-    cli.out(
-        "\nRun the command again using one of these options.",
-        err=True)
-    cli.error()
-
-def _invalid_flag_value_error(e):
-    cli.error("invalid value for '%s': %s" % (e.flag.name, e.msg))
 
 def _apply_arg_disable_plugins(args, opdef):
     if args.disable_plugins:
@@ -658,7 +615,7 @@ def _invalid_op_spec_error(e, opdef):
 # Batch op init
 ###################################################################
 
-def _apply_batch_op(op, batch_files, args):
+def _apply_batch_op(op, batch_files, user_flags, args):
     """Applies batch_op attr to op.
 
     If we determine this is a batch run, resolve the batch opspec to
@@ -666,6 +623,10 @@ def _apply_batch_op(op, batch_files, args):
     used downstream to run the batch op as a parent of op.
 
     If we determine this is not a batch run, op.batch_op is None.
+
+    If this is a batch run, the associated optimizer has an
+    opportunity to modify op's flag vals to encode values that require
+    search space info or other metadata.
     """
     batch_opspec = _batch_opspec(op, batch_files, args)
     if not batch_opspec:
@@ -675,6 +636,7 @@ def _apply_batch_op(op, batch_files, args):
     batch_args = _batch_op_init_args(batch_opdef, args)
     batch_op = _init_batch_op(batch_opdef, batch_args, batch_files)
     op.batch_op = batch_op
+    _apply_batch_flag_encoder(op, user_flags)
 
 def _batch_opspec(op, batch_files, args):
     if args.optimizer:
@@ -722,6 +684,77 @@ def _init_batch_op(opdef, args, batch_files):
     op = _init_op(opdef, args)
     op.batch_files = batch_files
     return op
+
+def _apply_batch_flag_encoder(op, user_flags):
+    """Allow a batch op to encode child op flag vals.
+
+    Encoded values are applies when a batch wants to represent a flag
+    value using additional configuration. For example, an optimizer
+    will encode search parameters into a value so that search spec can
+    be used downstream by the optimizer by decoding the flag value.
+
+    If a flag is specified in `user_flags` it is always accepted as
+    is - it is never encoded.
+    """
+    assert op.batch_op
+    encode_flag_val = op_util.op_flag_encoder(op.batch_op)
+    if not encode_flag_val:
+        return
+    for flag_name in op.flag_vals:
+        if flag_name in user_flags:
+            continue
+        flagdef = op.opdef.get_flagdef(flag_name)
+        if not flagdef:
+            continue
+        op.flag_vals[flag_name] = encode_flag_val(
+            op.flag_vals[flag_name], flagdef)
+
+###################################################################
+# Validate op flags
+###################################################################
+
+def _validate_op_flags(op):
+    try:
+        op_util.validate_flag_vals(op.flag_vals, op.opdef)
+    except op_util.MissingRequiredFlags as e:
+        _missing_required_flags_error(e)
+    except op_util.InvalidFlagChoice as e:
+        _invalid_flag_choice_error(e)
+    except op_util.InvalidFlagValue as e:
+        _invalid_flag_value_error(e)
+
+def _missing_required_flags_error(e):
+    cli.out(
+        "Operation requires the following missing flags:\n",
+        err=True)
+    cli.table(
+        [{"name": flag.name, "desc": flag.description}
+         for flag in e.missing],
+        ["name", "desc"],
+        indent=2,
+        err=True)
+    cli.out(
+        "\nRun the command again with these flags specified "
+        "as NAME=VAL.", err=True)
+    cli.error()
+
+def _invalid_flag_choice_error(e):
+    cli.out(
+        "Unsupported value for '%s' - supported values are:\n"
+        % e.flag.name, err=True)
+    cli.table(
+        [{"val": choice.value, "desc": choice.description}
+         for choice in e.flag.choices],
+        ["val", "desc"],
+        indent=2,
+        err=True)
+    cli.out(
+        "\nRun the command again using one of these options.",
+        err=True)
+    cli.error()
+
+def _invalid_flag_value_error(e):
+    cli.error("invalid value for '%s': %s" % (e.flag.name, e.msg))
 
 ###################################################################
 # Print op cmd
@@ -791,14 +824,14 @@ def _maybe_warn_no_wait(opdef, args):
 
 def _confirm_run(op, args):
     prompt = (
-        "You are about to {action} {op_desc}{opt_suffix}{remote_suffix}\n"
+        "You are about to {action} {op_desc}{batch_suffix}{remote_suffix}\n"
         "{flags}"
         "{resources}"
         "Continue?"
         .format(
             action=_action_desc(args),
             op_desc=_op_desc(op),
-            opt_suffix=_opt_suffix(args),
+            batch_suffix=_batch_suffix(op, args),
             remote_suffix=_remote_suffix(args),
             flags=_format_op_flags(op),
             resources=_format_op_resources(op.resource_config)))
@@ -812,15 +845,21 @@ def _action_desc(args):
 def _op_desc(op):
     return op.opref.to_opspec()
 
-def _opt_suffix(args):
-    if not args.optimizer:
+def _batch_suffix(op, args):
+    if not op.batch_op:
         return ""
-    parts = [" with %s optimizer" % args.optimizer]
-    if args.max_trials:
-        parts.append(
-            " for %i %s" %
-            (args.max_trials,
-             "trials" if args.max_trials > 1 else "trial"))
+    parts = []
+    if op.batch_op.opdef.name == "+":
+        parts.append(" in a batch")
+    else:
+        parts.append(" with %s optimizer" % op.batch_op.opdef.name)
+    max_trials = args.max_trials or op.batch_op.opdef.default_max_trials
+    if max_trials is None:
+        parts.append(" (unknown number of trials)")
+    elif max_trials == 1:
+        parts.append(" (max 1 trial)")
+    else:
+        parts.append(" (max %s trials)" % max_trials)
     return "".join(parts)
 
 def _remote_suffix(args):
@@ -829,12 +868,11 @@ def _remote_suffix(args):
     return ""
 
 def _format_op_flags(op):
-    flags = util.resolve_all_refs(op.opdef.flag_values(include_none=True))
-    if not flags:
+    if not op.flag_vals:
         return ""
     return "\n".join([
-        "  %s" % _format_flag(name, flags[name], op.opdef)
-        for name in sorted(flags)
+        "  %s" % _format_flag(name, val, op.opdef)
+        for name, val in sorted(op.flag_vals.items())
     ]) + "\n"
 
 def _format_flag(name, val, opdef):

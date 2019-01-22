@@ -401,8 +401,7 @@ def _resolve_rel_path(val):
         return os.path.abspath(val)
     return val
 
-def validate_opdef_flags(opdef):
-    vals = opdef.flag_values()
+def validate_flag_vals(vals, opdef):
     _check_missing_flags(vals, opdef)
     _check_flag_vals(vals, opdef)
 
@@ -594,6 +593,37 @@ def save_trials(trials, path):
         out = csv.writer(f)
         for row in data:
             out.writerow([row.get(name, "") for name in cols])
+
+def op_flag_encoder(op):
+    import importlib
+    spec = op.opdef.flag_encoder
+    if not spec:
+        return None
+    parts = spec.split(":")
+    if len(parts) != 2:
+        log.warning(
+            "invalid flag decoder %r - must be MODULE:FUNCTION",
+            spec)
+        return None
+    mod_name, fun_name = parts
+    try:
+        mod = importlib.import_module(mod_name)
+    except Exception as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("importing %s", mod_name)
+        else:
+            log.warning(
+                "cannot load flag decoder %r: %s",
+                spec, e)
+        return None
+    fun = getattr(mod, fun_name, None)
+    if fun is None:
+        log.warning(
+            "cannot load flag decoder %r: no such attribute in %s",
+            spec, mod_name)
+        return None
+    return fun
+
 def ensure_exit_status(run, exit_status):
     from guild import op as oplib
     run_exit_status = run.get("exit_status")
