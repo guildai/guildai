@@ -1,0 +1,15 @@
+one-line:
+  main: one_line
+  output-scalars:
+    step: 'Step (\d+)'
+    loss: 'loss=([^ ]+)'
+    acc: 'acc=([^ ]+)'
+  disable-plugins: all
+
+multi-line:
+  main: multi_line
+  output-scalars:
+    step: 'Step (\d+):'
+    loss: 'loss: (.+)'
+    acc: 'acc: (.+)'
+  disable-plugins: all
