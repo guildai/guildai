@@ -25,6 +25,7 @@ from six.moves import shlex_quote
 
 from guild import _api as gapi
 from guild import cli
+from guild import exit_code
 from guild import op_util
 from guild import run as runlib
 from guild import util
@@ -110,9 +111,10 @@ class Trial(object):
                 cwd=os.environ["CMD_DIR"],
                 extra_env={"NO_RESTARTING_MSG": "1"})
         except gapi.RunError as e:
-            sys.exit(e.returncode)
+            op_util.ensure_exit_status(trial_run, e.returncode)
+            log.error("Run %s failed - see logs for details", trial_run.id)
         except KeyboardInterrupt as e:
-            sys.exit(-15)
+            sys.exit(exit_code.SIGTERM)
 
     def _initialized_trial_run(self):
         if not os.path.exists(self._trial_link):

@@ -594,3 +594,9 @@ def save_trials(trials, path):
         out = csv.writer(f)
         for row in data:
             out.writerow([row.get(name, "") for name in cols])
+def ensure_exit_status(run, exit_status):
+    from guild import op as oplib
+    run_exit_status = run.get("exit_status")
+    if run_exit_status is None:
+        run.write_attr("exit_status", exit_status)
+    oplib.delete_pending(run)
