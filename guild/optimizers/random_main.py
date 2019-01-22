@@ -43,17 +43,27 @@ def _flag_dimensions(flags, batch):
 
 def _apply_flag_dims(flags, dims):
     for name, val in flags.items():
-        flag_dim = _flag_dim(val)
+        flag_dim = _flag_dim(val, name)
         if flag_dim != dims.get(name):
             dims[name] = flag_dim
 
-def _flag_dim(val):
+def _flag_dim(val, flag_name):
     if isinstance(val, list):
         return val
     try:
-        return _parse_range(val)
+        dist_name, min_max = batch_util.parse_function(val)
     except ValueError:
         return [val]
+    else:
+        if dist_name not in (None, "uniform"):
+            raise batch_util.BatchError(
+                "unsupported distribution %s for flag %s"
+                % (dist_name, flag_name))
+        if len(min_max) != 2:
+            raise batch_util.BatchError(
+                "unexpected third arguemt in %s for flag %s"
+                % (val, flag_name))
+        return min_max
 
 def _parse_range(val):
     if not isinstance(val, six.string_types):
