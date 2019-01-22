@@ -94,11 +94,6 @@ class Operation(object):
             raise RuntimeError("op is not intialized - call init() first")
         self._run.write_attr(name, val, raw)
 
-    def has_proto(self):
-        if not self.run_dir:
-            return False
-        return os.path.exists(os.path.join(self._run_dir, ".guild", "proto"))
-
     def run(self, quiet=False, background_pidfile=None, stop_after=None):
         self.init()
         return self.run_impl(quiet, background_pidfile, stop_after)

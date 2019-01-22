@@ -44,6 +44,10 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
+###################################################################
+# Main
+###################################################################
+
 def main(args):
     _maybe_shift_opspec(args)
     _apply_restart_or_rerun_args(args)
@@ -57,6 +61,10 @@ def _maybe_shift_opspec(args):
     if args.opspec and "=" in args.opspec:
         args.flags = (args.opspec,) + args.flags
         args.opspec = None
+
+###################################################################
+# Apply args from existing runs (restart/rerun)
+###################################################################
 
 def _apply_restart_or_rerun_args(args):
     if not args.rerun and not args.restart:
@@ -134,6 +142,10 @@ def one_run(run_id_prefix):
         for id, path in var.find_runs(run_id_prefix)
     ]
     return cmd_impl_support.one_run(runs, run_id_prefix)
+
+###################################################################
+# Model op (model, op_name tuple) from opspec
+###################################################################
 
 def _resolve_model_op(opspec):
     proxy_model_op = _proxy_model_op(opspec)
@@ -293,6 +305,10 @@ def _no_such_op_error(opspec):
             "cannot find a default operation\n"
             "Try 'guild operations' for a list.")
 
+###################################################################
+# Opdef from model op (model, op_name tuple)
+###################################################################
+
 def _resolve_opdef(model, op_name):
     opdef = model.modeldef.get_operation(op_name)
     if opdef is None:
@@ -325,6 +341,10 @@ def _no_such_operation_error(name, model):
         "Try 'guild operations %s' for a list of available operations."
         % (name, model.name, model.name))
 
+###################################################################
+# Dispatch cmd
+###################################################################
+
 def _dispatch_cmd(args, opdef):
     if args.help_model:
         _print_model_help(opdef.modeldef)
@@ -332,6 +352,10 @@ def _dispatch_cmd(args, opdef):
         _print_op_help(opdef)
     else:
         _dispatch_op_cmd(opdef, args)
+
+###################################################################
+# Model help
+###################################################################
 
 def _print_model_help(modeldef):
     out = click.HelpFormatter()
@@ -369,6 +393,10 @@ def _write_dl_section(name, dl, out):
     out.indent()
     out.write_dl(dl, preserve_paragraphs=True)
     out.dedent()
+
+###################################################################
+# Op help
+###################################################################
 
 def _print_op_help(opdef):
     out = click.HelpFormatter()
@@ -413,28 +441,44 @@ def _format_op_flags_dl(opdef):
         flags.append(flag)
     return guild.help.flags_dl(flags)
 
-def _print_cmd(op):
-    formatted = " ".join(_preview_cmd(op))
-    cli.out(formatted)
+###################################################################
+# Op command
+###################################################################
 
 def _dispatch_op_cmd(opdef, args):
+    op = _init_op(opdef, args)
+    if args.print_cmd:
+        _print_cmd(op)
+    elif args.print_env:
+        _print_env(op)
+    elif args.print_trials or args.save_trials:
+        _print_or_save_trials(op, args)
+    else:
+        _maybe_run(op, args)
+
+###################################################################
+# Init op
+###################################################################
+
+def _init_op(opdef, args):
     (flag_vals,
      resource_config,
      batch_files) = _split_flag_args(args.flags, opdef)
-    _apply_opdef_args(opdef, flag_vals, args)
+    _apply_opdef_args(flag_vals, args, opdef)
     try:
-        op = _init_op(opdef, resource_config, args)
+        op = guild.op.Operation(
+            opdef,
+            _op_run_dir(args),
+            resource_config,
+            _op_extra_attrs(args),
+            bool(args.stage),
+            _op_gpus(args)
+        )
     except guild.op.InvalidOpSpec as e:
         _invalid_op_spec_error(e, opdef)
     else:
-        if args.print_cmd:
-            _print_cmd(op)
-        elif args.print_env:
-            _print_env(op)
-        elif args.print_trials or args.save_trials:
-            _print_trials(op, batch_files, args)
-        else:
-            _maybe_run(op, batch_files, args)
+        _apply_batch_op(op, batch_files, args)
+        return op
 
 def _split_flag_args(flag_args, opdef):
     batch_files, rest_args = _split_batch_files(flag_args)
@@ -482,7 +526,11 @@ def _is_resource(name, opdef, ref_vars):
             return True
     return False
 
-def _apply_opdef_args(opdef, flag_vals, args):
+###################################################################
+# Update opdef with flag vals and applicable args
+###################################################################
+
+def _apply_opdef_args(flag_vals, args, opdef):
     _apply_flag_vals(flag_vals, opdef, args.force_flags)
     if not args.force_flags:
         _validate_opdef_flags(opdef)
@@ -556,15 +604,9 @@ def _apply_arg_disable_plugins(args, opdef):
             name.strip() for name in args.disable_plugins.split(",")
         ])
 
-def _init_op(opdef, resource_config, args):
-    return guild.op.Operation(
-        opdef,
-        _op_run_dir(args),
-        resource_config,
-        _op_extra_attrs(args),
-        bool(args.stage),
-        _op_gpus(args)
-    )
+###################################################################
+# Other op attrs
+###################################################################
 
 def _op_run_dir(args):
     if args.run_dir and args.restart:
@@ -577,8 +619,7 @@ def _op_run_dir(args):
             "Try 'guild run --help' for more information")
     if args.run_dir:
         run_dir = os.path.abspath(args.run_dir)
-        if (os.getenv("NO_WARN_RUNDIR") != "1" and
-            not hasattr(args, "_no_warn_rundir")):
+        if os.getenv("NO_WARN_RUNDIR") != "1":
             cli.note(
                 "Run directory is '%s' (results will not be "
                 "visible to Guild)" % run_dir)
@@ -617,21 +658,140 @@ def _op_gpus(args):
 def _invalid_op_spec_error(e, opdef):
     cli.error("operation '%s' is not valid: %s" % (opdef.fullname, e))
 
+###################################################################
+# Batch op init
+###################################################################
+
+def _apply_batch_op(op, batch_files, args):
+    """Applies batch_op attr to op.
+
+    If we determine this is a batch run, resolve the batch opspec to
+    an operation in its own right and set it as op.batch_op. This is
+    used downstream to run the batch op as a parent of op.
+
+    If we determine this is not a batch run, op.batch_op is None.
+    """
+    batch_opspec = _batch_opspec(op, batch_files, args)
+    if not batch_opspec:
+        op.batch_op = None
+        return
+    batch_opdef = _resolve_batch_opdef(batch_opspec)
+    batch_args = _batch_op_init_args(batch_opdef, args)
+    batch_op = _init_batch_op(batch_opdef, batch_args, batch_files)
+    op.batch_op = batch_op
+
+def _batch_opspec(op, batch_files, args):
+    if args.optimizer:
+        return args.optimizer
+    if batch_files or _has_batch_flag_vals(op):
+        return "+"
+    return None
+
+def _has_batch_flag_vals(op):
+    for val in op.flag_vals.values():
+        if isinstance(val, list):
+            return True
+    return False
+
+def _resolve_batch_opdef(batch_opspec):
+    try:
+        model, op_name = _resolve_model_op(batch_opspec)
+    except SystemExit as e:
+        assert e.args[0].startswith("cannot find operation"), e
+        cli.error(
+            "cannot find optimizer %r\n"
+            "Refer to Guild AI documentation for supported optimizers or "
+            "verify a custom optimizer by running " "'guild operations'."
+            % batch_opspec)
+    else:
+        return _resolve_opdef(model, op_name)
+
+def _batch_op_init_args(opdef, args):
+    """Returns run args suitable for initializing a batch op."""
+    params = args.as_kw()
+    params["opspec"] = opdef.opref.to_opspec()
+    params["flags"] = params["opt_flags"]
+    params["opt_flags"] = ()
+    params["yes"] = True
+    params["restart"] = None
+    params["rerun"] = None
+    params["optimizer"] = None
+    params["needed"] = False
+    params["minimize"] = None
+    params["maximize"] = None
+    args = click_util.Args(**params)
+    return args
+
+def _init_batch_op(opdef, args, batch_files):
+    op = _init_op(opdef, args)
+    op.batch_files = batch_files
+    return op
+
+###################################################################
+# Print op cmd
+###################################################################
+
+def _print_cmd(op):
+    formatted = " ".join(_preview_cmd(op))
+    cli.out(formatted)
+
 def _preview_cmd(op):
     return [pipes.quote(arg) for arg in op.cmd_args]
+
+###################################################################
+# Print op env
+###################################################################
 
 def _print_env(op):
     for name, val in sorted(op.cmd_env.items()):
         cli.out("export %s=%s" % (name, val))
 
-def _maybe_run(op, batch_files, args):
+###################################################################
+# Print trials
+###################################################################
+
+def _print_or_save_trials(op, args):
+    if op.batch_op:
+        _print_or_save_batch_trials(op, args)
+    else:
+        _print_or_save_one_trial(op, args)
+
+def _print_or_save_batch_trials(op, args):
+    with util.TempDir() as batch_run_dir:
+        op.set_run_dir(batch_run_dir)
+        _init_batch_run(op)
+        if args.print_trials:
+            op.batch_op.cmd_env["PRINT_TRIALS"] = "1"
+        else:
+            assert args.save_trials
+            op.batch_op.cmd_env["SAVE_TRIALS"] = args.save_trials
+        _run_op(op.batch_op, args)
+
+def _print_or_save_one_trial(op, args):
+    flag_vals = op.opdef.flag_values(include_none=True)
+    if args.print_trials:
+        op_util.print_trials([flag_vals])
+    else:
+        assert args.save_trials
+        cli.out("Saving 1 trial to %s" % args.save_trials)
+        op_util.save_trials([flag_vals], args.save_trials)
+
+###################################################################
+# Prompt user and run
+###################################################################
+
+def _maybe_run(op, args):
     _maybe_warn_no_wait(op.opdef, args)
     if args.yes or _confirm_run(op, args):
-        _run(op, batch_files, args)
+        _run(op, args)
 
 def _maybe_warn_no_wait(opdef, args):
     if args.no_wait and not (args.remote or opdef.remote):
         cli.note("Operation is local, ignoring --no-wait")
+
+###################################################################
+# Run confirmation prompt
+###################################################################
 
 def _confirm_run(op, args):
     prompt = (
@@ -702,66 +862,49 @@ def _format_op_resources(resources):
         for spec in sorted(resources)
     ]) + "\n"
 
-def _run(op, batch_files, args):
+###################################################################
+# Run dispatch - remote or local
+###################################################################
+
+def _run(op, args):
     if args.remote:
-        _check_remote_batch_files(batch_files)
+        _check_remote_batch_files(op)
         _run_remote(op, args)
     else:
-        _run_local(op, batch_files, args)
+        _run_local(op, args)
 
-def _check_remote_batch_files(batch_files):
-    if batch_files:
+def _check_remote_batch_files(op):
+    if op.batch_op.batch_files:
         cli.error("batch files are not supported with remote operations")
 
 def _run_remote(op, args):
     args.opspec = op.opref.to_opspec()
     remote_impl_support.run(args)
 
-def _run_local(op, batch_files, args):
-    batch_opspec = _maybe_batch(op, batch_files, args)
-    if batch_opspec:
-        _run_batch(batch_opspec, op, batch_files, args)
+###################################################################
+# Run dispatch - batch or non-batch
+###################################################################
+
+def _run_local(op, args):
+    if op.batch_op:
+        _run_batch(op, args)
     else:
-        _run_non_batched(op, args)
+        _run_normal(op, args)
 
-def _maybe_batch(op, batch_files, args):
-    if args.optimizer:
-        return args.optimizer
-    if batch_files or _has_batch_flag_vals(op):
-        return "+"
-    return None
+###################################################################
+# Batch run
+###################################################################
 
-def _has_batch_flag_vals(op):
-    for val in op.flag_vals.values():
-        if isinstance(val, list):
-            return True
-    return False
+def _run_batch(op, args):
+    _init_batch_run(op)
+    return _run_op(op.batch_op, args)
 
-def _run_batch(batch_opspec, child_op, batch_files, args):
-    batch_opdef = _resolve_batch_opdef(batch_opspec)
-    batch_run = _init_batch_run(child_op, batch_files)
-    batch_args = _batch_op_cmd_args(batch_opdef, batch_run, args)
-    _dispatch_op_cmd(batch_opdef, batch_args)
-
-def _resolve_batch_opdef(batch_opspec):
-    try:
-        model, op_name = _resolve_model_op(batch_opspec)
-    except SystemExit as e:
-        assert e.args[0].startswith("cannot find operation"), e
-        cli.error(
-            "cannot find optimizer %r\n"
-            "Refer to Guild AI documentation for supported optimizers or "
-            "verify a custom optimizer by running " "'guild operations'."
-            % batch_opspec)
-    else:
-        return _resolve_opdef(model, op_name)
-
-def _init_batch_run(child_op, batch_files):
-    batches = _batches_attr(batch_files)
-    run = guild.op.init_run(child_op.run_dir)
+def _init_batch_run(op):
+    batches = _batches_attr(op.batch_op.batch_files)
+    run = guild.op.init_run(op.run_dir)
     run.init_skel()
-    _write_batch_proto(run, child_op, batches)
-    return run
+    op.batch_op.set_run_dir(run.path)
+    _write_batch_proto(run, op, batches)
 
 def _batches_attr(batch_files):
     batches = []
@@ -814,66 +957,13 @@ def _write_batch_proto(batch_run, proto_op, batches):
     if batches:
         proto_op.write_run_attr("batches", batches)
 
-def _batch_op_cmd_args(opdef, run, args):
-    params = args.as_kw()
-    params["opspec"] = opdef.opref.to_opspec()
-    if params["stage"]:
-        assert not params["run_dir"], params
-        params["stage"] = run.path
-    else:
-        params["run_dir"] = run.path
-    params["flags"] = params["opt_flags"]
-    params["opt_flags"] = ()
-    params["yes"] = True
-    params["restart"] = None
-    params["rerun"] = None
-    params["optimizer"] = None
-    params["needed"] = False
-    params["minimize"] = None
-    params["maximize"] = None
-    args = click_util.Args(**params)
-    args._no_warn_rundir = 1
-    return args
 
-def _print_trials(op, batch_files, args):
-    if _is_batch_op(op):
-        _run_batch_print_trials(op, args)
-    else:
-        batch_opspec = _maybe_batch(op, batch_files, args)
-        if batch_opspec:
-            _print_batch_trials(batch_opspec, op, batch_files, args)
-        else:
-            _print_one_trial(op, args)
+###################################################################
+# Non-batch run
+###################################################################
 
-def _is_batch_op(op):
-    return op.has_proto()
 
-def _run_batch_print_trials(op, args):
-    if args.print_trials:
-        op.cmd_env["PRINT_TRIALS"] = "1"
-    else:
-        assert args.save_trials
-        op.cmd_env["SAVE_TRIALS"] = args.save_trials
-    op.run()
-
-def _print_batch_trials(batch_opspec, child_op, batch_files, args):
-    batch_opdef = _resolve_batch_opdef(batch_opspec)
-    with util.TempDir() as batch_run_dir:
-        child_op.set_run_dir(batch_run_dir)
-        batch_run = _init_batch_run(child_op, batch_files)
-        batch_args = _batch_op_cmd_args(batch_opdef, batch_run, args)
-        _dispatch_op_cmd(batch_opdef, batch_args)
-
-def _print_one_trial(op, args):
-    flag_vals = op.opdef.flag_values(include_none=True)
-    if args.print_trials:
-        op_util.print_trials([flag_vals])
-    else:
-        assert args.save_trials
-        cli.out("Saving 1 trial to %s" % args.save_trials)
-        op_util.save_trials([flag_vals], args.save_trials)
-
-def _run_non_batched(op, args):
+def _run_normal(op, args):
     _check_needed(op, args)
     _check_restart_running(args)
     _run_op(op, args)
@@ -917,6 +1007,10 @@ def _check_restart_running(args):
             "{id} is still running\n"
             "Wait for it to stop or try 'guild stop {id}' "
             "to stop it.".format(id=restart_run.id))
+
+###################################################################
+# Run op process
+###################################################################
 
 def _run_op(op, args):
     try:
