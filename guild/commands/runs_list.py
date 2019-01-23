@@ -56,7 +56,7 @@ def runs_list_options(fn):
     ])
     return fn
 
-@click.command("list, ls")
+@click.command("list")
 @runs_list_options
 
 @click_util.use_args
