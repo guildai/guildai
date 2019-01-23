@@ -57,7 +57,8 @@ class OutputScalars(object):
         for key, pattern in self._patterns:
             val = self._try_float(pattern, line)
             if val is not None:
-                self._ensure_writer().add_scalar(key, val, self._step)
+                writer = self._ensure_writer()
+                writer.add_scalar(key, val, self._step)
 
     def _refresh_step(self, out):
         if self._step_pattern:
@@ -91,7 +92,3 @@ class OutputScalars(object):
     def close(self):
         if self._writer:
             self._writer.close()
-
-def _init_writer(run):
-    import tensorboardX
-    return tensorboardX.SummaryWriter(run.guild_path())
