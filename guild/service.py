@@ -132,23 +132,16 @@ def stop(name, title=None):
         log.info(
             "%s has an invalid pidfile (%s) - deleting",
             title, pidfile)
-        _delete_pidfile(pidfile)
+        util.ensure_deleted(pidfile)
     else:
         try:
             proc = psutil.Process(pid)
         except psutil.NoSuchProcess:
             log.info("%s did not shut down cleanly - cleaning up", title)
-            _delete_pidfile(pidfile)
+            util.ensure_deleted(pidfile)
         else:
             log.info("Stopping %s (pid %i)", title, proc.pid)
             proc.terminate()
-
-def _delete_pidfile(pidfile):
-    try:
-        os.remove(pidfile)
-    except OSError as e:
-        if e.errno != 2:
-            raise
 
 def status(name):
     pidfile = var.pidfile(name)

@@ -59,14 +59,7 @@ class Run(object):
         return self._opref
 
     def _read_opref(self):
-        try:
-            f = open(self._opref_path(), "r")
-        except IOError as e:
-            if e.errno != 2: # enoent
-                raise
-            return None
-        else:
-            return f.read()
+        return util.try_read(self._opref_path())
 
     def _opref_path(self):
         return self.guild_path("opref")
@@ -129,14 +122,7 @@ class Run(object):
     @property
     def remote(self):
         remote_lock_file = self.guild_path("LOCK.remote")
-        try:
-            f = open(remote_lock_file, "r")
-        except IOError as e:
-            if e.errno != 2:
-                raise
-            return None
-        else:
-            return f.read().strip()
+        return util.try_read(remote_lock_file, apply=str.strip)
 
     def _remote_exit_status(self):
         status = self.get("exit_status.remote")

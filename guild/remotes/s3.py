@@ -109,22 +109,11 @@ class S3Remote(remotelib.Remote):
 
     def _clear_local_meta_id(self):
         id_path = os.path.join(self.local_sync_dir, "meta-id")
-        try:
-            os.remove(id_path)
-        except OSError as e:
-            if e.errno != 2:
-                raise
+        util.ensure_deleted(id_path)
 
     def _local_meta_id(self):
         id_path = os.path.join(self.local_sync_dir, "meta-id")
-        try:
-            f = open(id_path, "r")
-        except OSError as e:
-            if e.errno != 2:
-                raise
-            return None
-        else:
-            return f.read().strip()
+        return util.try_read(id_path, apply=str.strip)
 
     def _remote_meta_id(self):
         with util.TempFile("guild-s3-") as tmp:

@@ -56,6 +56,29 @@ def ensure_dir(d):
         if e.errno != errno.EEXIST:
             raise
 
+def ensure_deleted(path):
+    try:
+        os.remove(path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+
+def try_read(path, default=None, apply=None):
+    try:
+        f = open(path, "r")
+    except IOError as e:
+        if e.errno != errno.ENOENT:
+            raise
+        return default
+    else:
+        out = f.read()
+        if apply:
+            if not isinstance(apply, list):
+                apply = [apply]
+            for f in apply:
+                out = f(out)
+        return out
+
 def pid_exists(pid):
     import psutil
     return psutil.pid_exists(pid)
@@ -705,7 +728,7 @@ class RunOutputReader(object):
         try:
             output, index = self._ensure_open()
         except IOError as e:
-            if e.errno != 2: # not found
+            if e.errno != errno.EEXIST:
                 raise
         else:
             lines = self._lines
