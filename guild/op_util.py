@@ -184,6 +184,22 @@ class RunOutput(object):
         assert self._err_tee
 
     def close(self):
+        lock = self._acquire_output_lock()
+        try:
+            self._close()
+        finally:
+            lock.release()
+
+    def _acquire_output_lock(self, timeout=60):
+        """Polling verison of acquire to support timeouts on Python 2."""
+        timeout_at = time.time() + timeout
+        while time.time() < timeout_at:
+            if self._output_lock.acquire(False):
+                return self._output_lock
+            time.sleep(1)
+        raise RuntimeError("timeout")
+
+    def _close(self):
         self._assert_open()
         self._output.close()
         self._index.close()
