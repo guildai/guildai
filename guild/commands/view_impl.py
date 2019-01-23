@@ -27,6 +27,7 @@ import guild.run
 
 from guild import cli
 from guild import config
+from guild import op_util
 from guild import util
 from guild import var
 from guild import view
@@ -150,7 +151,7 @@ class ViewDataImpl(view.ViewData):
     def _format_dep(run, paths):
         return {
             "run": run.short_id,
-            "operation": runs_impl.format_op_desc(run, nowarn=True),
+            "operation": op_util.format_op_desc(run, nowarn=True),
             "paths": paths
         }
 
@@ -251,7 +252,7 @@ class ViewDataImpl(view.ViewData):
         except LookupError:
             return "%s (deleted)" % parts[0][:8], None
         else:
-            operation = runs_impl.format_op_desc(run, nowarn=True)
+            operation = op_util.format_op_desc(run, nowarn=True)
             return operation, run.short_id
 
     def config(self):
