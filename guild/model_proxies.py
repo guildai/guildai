@@ -49,6 +49,14 @@ GENERIC_COMPARE = [
     "val#acc as val_acc",
 ]
 
+GENERIC_OUTPUT_SCALARS = {
+    "step": r"step:\s*(\S+)",
+    "loss": r"loss:\s*(\S+)",
+    "acc": r"acc:\s*(\S+)",
+    "val_loss": r"val_loss:\s*(\S+)",
+    "val_acc": r"val_acc:\s*(\S+)",
+}
+
 class NotSupported(Exception):
     pass
 
@@ -73,7 +81,7 @@ class BatchModelProxy(object):
                         "exec": "${python_exe} -um %s" % self.module_name,
                         "flag-encoder": self.flag_encoder,
                         "default-max-trials": self.default_max_trials,
-                    },
+                    }
                 }
             }
         ]
@@ -104,11 +112,14 @@ def encode_flag_for_random(val, flagdef):
 
 class PythonScriptModelProxy(object):
 
+    name = ""
+    fullname = ""
+    output_scalars = GENERIC_OUTPUT_SCALARS
+    compare = GENERIC_COMPARE
+
     def __init__(self, script):
         assert script[-3:] == ".py", script
         self.script = script
-        self.name = ""
-        self.fullname = ""
         self.op_name = os.path.basename(script)
         self.modeldef = self._init_modeldef()
         self.reference = _script_model_reference(self.name, script)
@@ -120,12 +131,13 @@ class PythonScriptModelProxy(object):
                 "operations": {
                     self.op_name: {
                         "exec": self._exec_attr(),
-                        "compare": GENERIC_COMPARE,
                         "flags": self._flags_data(),
-                        # TODO "output-scalars": "not sure what's here"
+                        "compare": self.compare,
+                        "output-scalars": self.output_scalars,
                     }
                 },
-                "disable-plugins": "all"
+                "disable-plugins": "all",
+                "output-scalars": self.output_scalars,
             }
         ]
         gf = guildfile.Guildfile(data, dir=config.cwd())
@@ -144,6 +156,11 @@ class PythonScriptModelProxy(object):
         return plugin._flags_data_for_path(self.script, ".")
 
 class KerasScriptModelProxy(PythonScriptModelProxy):
+
+    # Assuming Keras plugin installs TensorBoard callback, which
+    # collets scalars
+    #
+    output_scalars = None
 
     def __init__(self, script):
         self._script = script

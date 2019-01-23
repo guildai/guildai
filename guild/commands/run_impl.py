@@ -50,6 +50,7 @@ log = logging.getLogger("guild")
 
 def main(args):
     _maybe_shift_opspec(args)
+    _validate_args(args)
     _apply_restart_or_rerun_args(args)
     model, op_name = _resolve_model_op(args.opspec)
     opdef = _resolve_opdef(model, op_name)
@@ -63,13 +64,43 @@ def _maybe_shift_opspec(args):
         args.opspec = None
 
 ###################################################################
+# Validate run args
+###################################################################
+
+def _validate_args(args):
+    if args.rerun and args.restart:
+        cli.error(
+            "--rerun and --restart cannot both be used\n"
+            "Try 'guild run --help' for more information.")
+    if args.run_dir and args.restart:
+        cli.error(
+            "--restart and --run-dir cannot both be used\n"
+            "Try 'guild run --help' for more information")
+    if args.run_dir and args.stage:
+        cli.error(
+            "--stage and --run-dir cannot both be used\n"
+            "Try 'guild run --help' for more information")
+    if args.no_gpus and args.gpus is not None:
+        cli.error(
+            "--gpus and --no-gpus cannot both be used\n"
+            "Try 'guild run --help' for more information.")
+    if args.restart and args.optimizer:
+        cli.error(
+            "--restart and --optimizr cannot both be used\n"
+            "Try 'guild run --help' for more information.")
+    if args.rerun and args.optimizer:
+        cli.error(
+            "--rerun and --optimizr cannot both be used\n"
+            "Try 'guild run --help' for more information.")
+
+###################################################################
 # Apply args from existing runs (restart/rerun)
 ###################################################################
 
 def _apply_restart_or_rerun_args(args):
     if not args.rerun and not args.restart:
         return
-    _check_restart_rerun_args(args)
+    assert not (args.rerun and not args.restart)
     run = _find_run(args.restart or args.rerun, args)
     _apply_run_args(run, args)
     if args.restart:
@@ -80,12 +111,6 @@ def _apply_restart_or_rerun_args(args):
     else:
         cli.out("Rerunning {}".format(run.id))
         args.rerun = run.id
-
-def _check_restart_rerun_args(args):
-    if args.rerun and args.restart:
-        cli.error(
-            "--rerun and --restart cannot both be used\n"
-            "Try 'guild run --help' for more information.")
 
 def _find_run(run_id_prefix, args):
     if args.remote:
@@ -562,14 +587,6 @@ def _apply_arg_disable_plugins(args, opdef):
 ###################################################################
 
 def _op_run_dir(args):
-    if args.run_dir and args.restart:
-        cli.error(
-            "--restart and --run-dir cannot both be used\n"
-            "Try 'guild run --help' for more information")
-    if args.run_dir and args.stage:
-        cli.error(
-            "--stage and --run-dir cannot both be used\n"
-            "Try 'guild run --help' for more information")
     if args.run_dir:
         run_dir = os.path.abspath(args.run_dir)
         if os.getenv("NO_WARN_RUNDIR") != "1":
@@ -598,10 +615,7 @@ def _op_extra_attrs(args):
     return attrs
 
 def _op_gpus(args):
-    if args.no_gpus and args.gpus is not None:
-        cli.error(
-            "--gpus and --no-gpus cannot both be used\n"
-            "Try 'guild run --help' for more information.")
+    assert not (args.no_gpus and args.gpus)
     if args.no_gpus:
         return ""
     elif args.gpus is not None:
@@ -788,7 +802,7 @@ def _print_or_save_trials(op, args):
 def _print_or_save_batch_trials(op, args):
     with util.TempDir() as batch_run_dir:
         op.set_run_dir(batch_run_dir)
-        _init_batch_run(op)
+        _init_batch_run(op, args)
         if args.print_trials:
             op.batch_op.cmd_env["PRINT_TRIALS"] = "1"
         else:
@@ -930,15 +944,15 @@ def _run_local(op, args):
 ###################################################################
 
 def _run_batch(op, args):
-    _init_batch_run(op)
+    _init_batch_run(op, args)
     return _run_op(op.batch_op, args)
 
-def _init_batch_run(op):
+def _init_batch_run(op, args):
     batches = _batches_attr(op.batch_op.batch_files)
     run = guild.op.init_run(op.run_dir)
     run.init_skel()
     op.batch_op.set_run_dir(run.path)
-    _write_batch_proto(run, op, batches)
+    _write_batch_proto(run, op, batches, args)
 
 def _batches_attr(batch_files):
     batches = []
@@ -985,12 +999,20 @@ def _csv_batches(path):
 def _flag_vals(row):
     return [op_util.parse_arg_val(s) for s in row]
 
-def _write_batch_proto(batch_run, proto_op, batches):
+def _write_batch_proto(batch_run, proto_op, batches, args):
     proto_op.set_run_dir(batch_run.guild_path("proto"))
     proto_op.init()
     if batches:
         proto_op.write_run_attr("batches", batches)
+    proto_op.write_run_attr("run_params", _proto_run_params(args))
 
+def _proto_run_params(args):
+    supported_params = [
+        "needed",
+        "random_seed",
+    ]
+    params = args.as_kw()
+    return {name: params[name]for name in supported_params}
 
 ###################################################################
 # Non-batch run

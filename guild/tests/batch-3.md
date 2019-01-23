@@ -45,9 +45,9 @@ Now let's use the custom optimizer with `say.py`.
 
 The generated runs:
 
-    >>> from guild.commands import runs_impl
+    >>> from guild import op_util
     >>> with Chdir(project):
     ...     for run in gapi.runs_list(guild_home=workspace):
-    ...         print(runs_impl.format_op_desc(run))
+    ...         print(op_util.format_op_desc(run))
     say.py+tune
     tune

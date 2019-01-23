@@ -6,4 +6,7 @@ def f(x):
     return (np.sin(5 * x) * (1 - np.tanh(x ** 2)) *
             np.random.randn() * 0.1)
 
-print("noisy(%f): %f" % (x, f(x)))
+loss = f(x)
+
+print("x: %f" % x)
+print("loss: %f" % loss)
