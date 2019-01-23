@@ -93,16 +93,6 @@ files.
     loud: false
     msg: hi
 
-    >>> cat_run_file(first_run, ".guild/opdef.json")
-    {"compare":
-     ["loss step as step", "loss", "acc",
-      "accuracy as acc", "val_loss", "val#loss as val_loss",
-      "val_acc", "val#acc as val_acc"],
-     "exec": "${python_exe} -um guild.op_main say ${flag_args}",
-     "flags":
-      {"loud": {"arg-switch": true, "default": false},
-       "msg": {"default": "hello"}}}
-
     >>> cat_run_file(first_run, ".guild/opref")
     script:/.../samples/projects/batch/say.py ... '' say.py
 
@@ -136,36 +126,23 @@ The latest run is the trial:
     'say.py'
 
     >>> trial_run_files = ls(trial_run)
-    >>> trial_run_files
-    ['.guild/attrs/batch_run_id',
-     '.guild/attrs/cmd',
-     '.guild/attrs/compare',
-     '.guild/attrs/deps',
-     '.guild/attrs/env',
-     '.guild/attrs/exit_status',
-     '.guild/attrs/flags',
-     '.guild/attrs/label',
-     '.guild/attrs/started',
-     '.guild/attrs/stopped',
-     '.guild/opdef.json',
-     '.guild/opref',
-     '.guild/output',
-     '.guild/output.index']
-
-Note this is the same list as the first run, but with the addition of two attrs:
-
-- batch_run_id
-- label
-
-When we remove these files:
-
-    >>> to_remove = [".guild/attrs/batch_run_id", ".guild/attrs/label"]
-
-    >>> trial_run_files_without_label = [
-    ...   f for f in trial_run_files
-    ...   if f not in to_remove]
-    >>> trial_run_files_without_label == first_run_files
-    True
+    >>> for file in trial_run_files:
+    ...     print(file) # doctest: +REPORT_UDIFF
+    .guild/attrs/batch
+    .guild/attrs/cmd
+    .guild/attrs/compare
+    .guild/attrs/deps
+    .guild/attrs/env
+    .guild/attrs/exit_status
+    .guild/attrs/flags
+    .guild/attrs/label
+    .guild/attrs/run_params
+    .guild/attrs/started
+    .guild/attrs/stopped
+    .guild/opdef.json
+    .guild/opref
+    .guild/output
+    .guild/output.index
 
 The next run is the batch:
 
@@ -175,25 +152,28 @@ The next run is the batch:
 
 Its files:
 
-    >>> ls(batch_run)
-    ['.guild/attrs/cmd',
-     '.guild/attrs/deps',
-     '.guild/attrs/env',
-     '.guild/attrs/exit_status',
-     '.guild/attrs/flags',
-     '.guild/attrs/started',
-     '.guild/attrs/stopped',
-     '.guild/opdef.json',
-     '.guild/opref',
-     '.guild/output',
-     '.guild/output.index',
-     '.guild/proto/.guild/PENDING',
-     '.guild/proto/.guild/attrs/cmd',
-     '.guild/proto/.guild/attrs/compare',
-     '.guild/proto/.guild/attrs/flags',
-     '.guild/proto/.guild/opdef.json',
-     '.guild/proto/.guild/opref',
-     '...']
+    >>> for file in ls(batch_run):
+    ...     print(file) # doctest: +REPORT_UDIFF
+    .guild/attrs/cmd
+    .guild/attrs/deps
+    .guild/attrs/env
+    .guild/attrs/exit_status
+    .guild/attrs/flags
+    .guild/attrs/started
+    .guild/attrs/stopped
+    .guild/opdef.json
+    .guild/opref
+    .guild/output
+    .guild/output.index
+    .guild/proto/.guild/PENDING
+    .guild/proto/.guild/attrs/cmd
+    .guild/proto/.guild/attrs/compare
+    .guild/proto/.guild/attrs/flags
+    .guild/proto/.guild/attrs/run_params
+    .guild/proto/.guild/opdef.json
+    .guild/proto/.guild/opref
+    .guild/trials
+    ...
 
 Note the additional `proto` directory. This contains the prototype for
 the `say.py` operation, which is used by the batch operation to
