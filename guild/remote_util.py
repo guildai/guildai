@@ -19,6 +19,7 @@ import os
 
 from guild import config
 from guild import remote as remotelib
+from guild import util
 from guild import var
 
 def require_env(name):
@@ -32,21 +33,14 @@ def set_remote_lock(remote_run, remote_name, runs_dir=None):
     local_run_dir = os.path.join(runs_dir, remote_run.id)
     lock_file = os.path.join(local_run_dir, ".guild", "LOCK")
     remote_lock_file = os.path.join(local_run_dir, ".guild", "LOCK.remote")
-    _ensure_deleted(lock_file)
-    _ensure_deleted(remote_lock_file)
+    util.ensure_deleted(lock_file)
+    util.ensure_deleted(remote_lock_file)
     if remote_run.status == "running":
         with open(remote_lock_file, "w") as f:
             f.write(remote_name)
     elif remote_run.status == "terminated":
         with open(lock_file, "w") as f:
             f.write("0")
-
-def _ensure_deleted(path):
-    try:
-        os.remove(path)
-    except (IOError, OSError) as e:
-        if e.errno != 2:
-            raise
 
 def config_path(path):
     """Returns an absolute path for a config-relative path.
