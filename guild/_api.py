@@ -54,28 +54,15 @@ def _init_env(cwd, guild_home):
     config.set_cwd(cwd)
     config.set_guild_home(guild_home or main.DEFAULT_GUILD_HOME)
 
-def run(spec=None, cwd=None, flags=None, batch_files=None, run_dir=None,
-        restart=None, label=None, guild_home=None, extra_env=None,
-        optimizer=None, max_trials=None, random_seed=None, print_cmd=False,
-        print_trials=False, save_trials=None):
-    args, cwd, env = _popen_args(
-        spec, cwd, flags, batch_files, run_dir, restart, label,
-        guild_home, extra_env, optimizer, max_trials, random_seed,
-        print_cmd, print_trials, save_trials)
+def run(*args, **kw):
+    args, cwd, env = _popen_args(*args, **kw)
     p = subprocess.Popen(args, cwd=cwd, env=env)
     returncode = p.wait()
     if returncode != 0:
         raise RunError((args, cwd, env), returncode)
 
-def run_capture_output(
-        spec=None, cwd=None, flags=None, batch_files=None, run_dir=None,
-        restart=None, label=None, guild_home=None, extra_env=None,
-        optimizer=None, max_trials=None, random_seed=None, print_cmd=False,
-        print_trials=False, save_trials=None):
-    args, cwd, env = _popen_args(
-        spec, cwd, flags, batch_files, run_dir, restart, label,
-        guild_home, extra_env, optimizer, max_trials, random_seed,
-        print_cmd, print_trials, save_trials)
+def run_capture_output(*args, **kw):
+    args, cwd, env = _popen_args(*args, **kw)
     p = subprocess.Popen(
         args,
         cwd=cwd,
@@ -88,9 +75,23 @@ def run_capture_output(
         raise RunError((args, cwd, env), p.returncode, out)
     return out
 
-def _popen_args(spec, cwd, flags, batch_files, run_dir, restart,
-                label, guild_home, extra_env, optimizer, max_trials,
-                random_seed, print_cmd, print_trials, save_trials):
+def _popen_args(
+        spec=None,
+        cwd=None,
+        flags=None,
+        batch_files=None,
+        run_dir=None,
+        restart=None,
+        label=None,
+        guild_home=None,
+        extra_env=None,
+        optimizer=None,
+        max_trials=None,
+        random_seed=None,
+        needed=False,
+        print_cmd=False,
+        print_trials=False,
+        save_trials=None):
     from guild import op_util
     cwd = cwd or "."
     flags = flags or {}
@@ -117,6 +118,8 @@ def _popen_args(spec, cwd, flags, batch_files, run_dir, restart,
         args.extend(["--max-trials", str(max_trials)])
     if random_seed is not None:
         args.extend(["--random-seed", str(random_seed)])
+    if needed:
+        args.append("--needed")
     if print_cmd:
         args.append("--print-cmd")
     if print_trials:
