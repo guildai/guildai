@@ -19,6 +19,7 @@ import logging
 import os
 import sqlite3
 
+from guild import op_util
 from guild import tfevent
 from guild import util
 from guild import var
@@ -27,91 +28,6 @@ log = logging.getLogger("guild")
 
 VERSION = 1
 DB_NAME = "index_v%i.db" % VERSION
-
-class RunIndex(object):
-    """Interface for using a run index."""
-
-    def __init__(self, path=None):
-        self.path = path or var.cache_dir("runs")
-        self._db = self._init_db()
-        self._attr_reader = AttrReader()
-        self._flag_reader = FlagReader()
-        self._scalar_reader = ScalarReader(self._db)
-
-    def _init_db(self):
-        db_path = self._db_path()
-        util.ensure_dir(os.path.dirname(db_path))
-        db = sqlite3.connect(db_path)
-        self._init_tables(db)
-        return db
-
-    def _db_path(self):
-        return os.path.join(self.path, DB_NAME)
-
-    @staticmethod
-    def _init_tables(db):
-        db.execute("""
-          CREATE TABLE IF NOT EXISTS scalar (
-            run,
-            prefix,
-            tag,
-            first_val,
-            first_step,
-            last_val,
-            last_step,
-            min_val,
-            min_step,
-            max_val,
-            max_step,
-            avg_val,
-            total,
-            count
-          )
-        """)
-        db.execute("""
-          CREATE INDEX IF NOT EXISTS scalar_i
-          ON scalar (run, prefix, tag)
-        """)
-        db.execute("""
-          CREATE TABLE IF NOT EXISTS scalar_source (
-            run,
-            prefix,
-            path_digest
-          )
-        """)
-        db.execute("""
-          CREATE UNIQUE INDEX IF NOT EXISTS scalar_source_pk
-          ON scalar_source (run, prefix)
-        """)
-
-    def refresh(self, runs, types=None):
-        """Refreshes the index for the specified runs.
-
-        `runs` is list of runs or run IDs for each run to refresh.
-
-        `types` is an optional list of data types to refresh.
-        """
-        if types is None or "attr" in types:
-            self._attr_reader.refresh(runs)
-        if types is None or "flag" in types:
-            self._flag_reader.refresh(runs)
-        if types is None or "scalar" in types:
-            self._scalar_reader.refresh(runs)
-
-    def _run_val_readers(self, _run):
-        return self._base_readers
-
-    def run_attr(self, run, name):
-        return self._attr_reader.read(run, name)
-
-    def run_flag(self, run, name):
-        return self._flag_reader.read(run, name)
-
-    def run_scalar(self, run, prefix, tag, qual, step):
-        return self._scalar_reader.read(run, prefix, tag, qual, step)
-
-    def run_scalars(self, run):
-        return list(self._scalar_reader.iter_scalars(run))
 
 class AttrReader(object):
 
@@ -133,19 +49,13 @@ class AttrReader(object):
             "id": run.id,
             "run": run.short_id,
             "model": opref.model_name,
-            "operation": self._format_op_fullname(opref),
+            "operation": op_util.format_op_desc(run),
             "op": opref.op_name,
             "started": util.format_timestamp(started),
             "stopped": util.format_timestamp(stopped),
             "status": status,
             "time": self._duration(status, started, stopped),
         }
-
-    @staticmethod
-    def _format_op_fullname(opref):
-        if opref.model_name:
-            return "%s:%s" % (opref.model_name, opref.op_name)
-        return opref.op_name
 
     @staticmethod
     def _duration(status, started, stopped):
@@ -364,3 +274,88 @@ class TagSummary(object):
         if self.max_val is None or val > self.max_val:
             self.max_val = val
             self.max_step = step
+
+class RunIndex(object):
+    """Interface for using a run index."""
+
+    def __init__(self, path=None):
+        self.path = path or var.cache_dir("runs")
+        self._db = self._init_db()
+        self._attr_reader = AttrReader()
+        self._flag_reader = FlagReader()
+        self._scalar_reader = ScalarReader(self._db)
+
+    def _init_db(self):
+        db_path = self._db_path()
+        util.ensure_dir(os.path.dirname(db_path))
+        db = sqlite3.connect(db_path)
+        self._init_tables(db)
+        return db
+
+    def _db_path(self):
+        return os.path.join(self.path, DB_NAME)
+
+    @staticmethod
+    def _init_tables(db):
+        db.execute("""
+          CREATE TABLE IF NOT EXISTS scalar (
+            run,
+            prefix,
+            tag,
+            first_val,
+            first_step,
+            last_val,
+            last_step,
+            min_val,
+            min_step,
+            max_val,
+            max_step,
+            avg_val,
+            total,
+            count
+          )
+        """)
+        db.execute("""
+          CREATE INDEX IF NOT EXISTS scalar_i
+          ON scalar (run, prefix, tag)
+        """)
+        db.execute("""
+          CREATE TABLE IF NOT EXISTS scalar_source (
+            run,
+            prefix,
+            path_digest
+          )
+        """)
+        db.execute("""
+          CREATE UNIQUE INDEX IF NOT EXISTS scalar_source_pk
+          ON scalar_source (run, prefix)
+        """)
+
+    def refresh(self, runs, types=None):
+        """Refreshes the index for the specified runs.
+
+        `runs` is list of runs or run IDs for each run to refresh.
+
+        `types` is an optional list of data types to refresh.
+        """
+        if types is None or "attr" in types:
+            self._attr_reader.refresh(runs)
+        if types is None or "flag" in types:
+            self._flag_reader.refresh(runs)
+        if types is None or "scalar" in types:
+            self._scalar_reader.refresh(runs)
+
+    def _run_val_readers(self, _run):
+        return self._base_readers
+
+    def run_attr(self, run, name):
+        return self._attr_reader.read(run, name)
+
+    def run_flag(self, run, name):
+        return self._flag_reader.read(run, name)
+
+    def run_scalar(self, run, prefix, tag, qual, step):
+        return self._scalar_reader.read(run, prefix, tag, qual, step)
+
+    def run_scalars(self, run):
+        return list(self._scalar_reader.iter_scalars(run))

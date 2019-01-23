@@ -15,6 +15,7 @@
 import fnmatch
 import csv
 import logging
+import re
 import os
 import shlex
 import shutil
@@ -644,3 +645,83 @@ def ensure_exit_status(run, exit_status):
     if run_exit_status is None:
         run.write_attr("exit_status", exit_status)
     oplib.delete_pending(run)
+
+def format_op_desc(run, nowarn=False, seen_protos=None):
+    seen_protos = seen_protos or set()
+    opref = run.opref
+    base_desc = _base_op_desc(opref, nowarn)
+    return _apply_batch_desc(base_desc, run, seen_protos)
+
+def _base_op_desc(opref, nowarn):
+    if opref.pkg_type == "guildfile":
+        return _format_guildfile_op(opref)
+    elif opref.pkg_type == "package":
+        return _format_package_op(opref)
+    elif opref.pkg_type == "script":
+        return _format_script_op(opref)
+    elif opref.pkg_type == "builtin":
+        return _format_builtin_op(opref)
+    elif opref.pkg_type == "pending":
+        return _format_pending_op(opref)
+    elif opref.pkg_type == "test":
+        return _format_test_op(opref)
+    else:
+        if not nowarn:
+            log.warning(
+                "cannot format op desc, unexpected pkg type: %s (%s)",
+                opref.pkg_type, opref.pkg_name)
+        return "?"
+
+def _format_guildfile_op(opref):
+    parts = []
+    gf_dir = _guildfile_dir(opref)
+    if gf_dir:
+        parts.extend([gf_dir, os.path.sep])
+    if opref.model_name:
+        parts.extend([opref.model_name, ":"])
+    parts.append(opref.op_name)
+    return "".join(parts)
+
+def _guildfile_dir(opref):
+    from guild import config
+    gf_dir = os.path.dirname(opref.pkg_name)
+    relpath = os.path.relpath(gf_dir, config.cwd())
+    if relpath == ".":
+        return ""
+    return re.sub(r"\.\./(\.\./)+", ".../", _ensure_dot_path(relpath))
+
+def _ensure_dot_path(path):
+    if path[0:1] == ".":
+        return path
+    return os.path.join(".", path)
+
+def _format_package_op(opref):
+    return "%s/%s:%s" % (opref.pkg_name, opref.model_name, opref.op_name)
+
+def _format_script_op(opref):
+    return _format_guildfile_op(opref)
+
+def _format_builtin_op(opref):
+    return opref.op_name
+
+def _format_pending_op(opref):
+    return "<pending %s>" % opref.op_name
+
+def _format_test_op(opref):
+    return "%s:%s" % (opref.model_name, opref.op_name)
+
+def _apply_batch_desc(base_desc, run, seen_protos):
+    import guild.run
+    proto_dir = run.guild_path("proto")
+    if not os.path.exists(proto_dir):
+        return base_desc
+    if proto_dir in seen_protos:
+        # We have a cycle - drop this proto_dir
+        return base_desc
+    proto_run = guild.run.Run("", proto_dir)
+    proto_op_desc = format_op_desc(proto_run, seen_protos)
+    parts = [proto_op_desc]
+    if not base_desc.startswith("+"):
+        parts.append("+")
+    parts.append(base_desc)
+    return "".join(parts)

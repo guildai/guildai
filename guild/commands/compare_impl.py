@@ -53,7 +53,7 @@ def _print_scalars(args):
     index = indexlib.RunIndex()
     index.refresh(runs, ["scalar"])
     for run in runs:
-        cli.out("[%s] %s" % (run.short_id, runs_impl.format_op_desc(run)))
+        cli.out("[%s] %s" % (run.short_id, op_util.format_op_desc(run)))
         for s in index.run_scalars(run):
             prefix = s["prefix"]
             if prefix:
@@ -243,8 +243,7 @@ def _resolve_run_cols(run, cols, index):
 
 def _col_data(run, col, index):
     if isinstance(col, query.Flag):
-        val = index.run_flag(run, col.name)
-        return op_util.format_flag_val(val)
+        return index.run_flag(run, col.name)
     elif isinstance(col, query.Attr):
         return index.run_attr(run, col.name)
     elif isinstance(col, query.Scalar):
@@ -305,11 +304,9 @@ def _get_run_detail_cb(index):
     return f
 
 def _format_run_detail(run, index):
-    opref = run.opref
     lines = [
         "Id: %s" % run.id,
-        "Model: %s" % opref.model_name,
-        "Operation: %s" % opref.op_name,
+        "Operation: %s" % op_util.format_op_desc(run),
         "Status: %s" % run.status,
         "Started: %s" % util.format_timestamp(run.get("started")),
         "Stopped: %s" % util.format_timestamp(run.get("stopped")),
