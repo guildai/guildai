@@ -809,7 +809,9 @@ def _apply_template_transform(t, val):
         arg = None
     else:
         name, arg = parts
-    if name == "default":
+    if name[:1] == "%":
+        return _t_python_format(val, name)
+    elif name == "default":
         return _t_default(val, arg)
     elif name == "basename":
         if arg:
@@ -818,6 +820,13 @@ def _apply_template_transform(t, val):
     else:
         log.warning("unsupported template transform: %r", t)
         return "#error#"
+
+def _t_python_format(val, fmt):
+    try:
+        return fmt % val
+    except TypeError as e:
+        log.warning("error formatting %r with %r: %s", val, fmt, e)
+        return val
 
 def _t_default(val, arg):
     if val is None:
