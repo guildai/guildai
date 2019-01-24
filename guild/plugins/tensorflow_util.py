@@ -25,7 +25,8 @@ class SummaryPlugin(Plugin):
 
     Summary plugins log additional summary values (e.g. GPU usage,
     etc.) per logged summary. This class is used to patch the TF env
-    to handle `add_summary` of`tensorflow.summary.FileWriter`.
+    to handle `add_summary` of `tensorflow.summary.FileWriter` and of
+    `tensorboardX.writer.SummaryToEventTransformer`.
     """
 
     MIN_SUMMARY_INTERVAL = 5
@@ -35,12 +36,21 @@ class SummaryPlugin(Plugin):
         self._summary_cache = SummaryCache(self.MIN_SUMMARY_INTERVAL)
 
     def patch_env(self):
-        # pylint: disable=import-error
-        import tensorflow
-        self.log.debug("wrapping tensorflow.summary.FileWriter.add_summary")
-        python_util.listen_method(
-            tensorflow.summary.FileWriter, "add_summary",
-            self._handle_summary)
+        self._try_patch_tensorflow()
+
+    def _try_patch_tensorflow(self):
+        try:
+            import tensorflow
+        except ImportError:
+            self.log.debug(
+                "tensorflow cannot be imported - skipping summaries for %s",
+                self.name)
+        else:
+            self.log.debug(
+                "wrapping tensorflow.summary.FileWriter.add_summary")
+            python_util.listen_method(
+                tensorflow.summary.FileWriter, "add_summary",
+                self._handle_summary)
 
     def _handle_summary(self, add_summary, _summary, global_step=None):
         """Callback to apply summary values via read_summary_values.
