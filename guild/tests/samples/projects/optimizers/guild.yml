@@ -5,6 +5,7 @@ noisy:
   flags:
     $dest: globals
     x:
+      description: Input to noisy function
       default: 0.2
       min: -2.0
       max: 2.0
@@ -20,10 +21,12 @@ echo:
   flags:
     $dest: globals
     x:
+      description: X value to print
       default: 1.0
       min: -2.0
       max: 2.0
     y:
+      description: Y value to print
       default: 2
     z:
       default: a
