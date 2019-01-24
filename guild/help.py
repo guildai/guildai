@@ -165,7 +165,7 @@ def _write_models(guildfile, out):
         i += 1
 
 def _write_model(m, out):
-    out.write_heading(m.name)
+    out.write_heading(m.name or "Anonymous model")
     out.indent()
     if m.description:
         out.write_paragraph()
@@ -182,10 +182,12 @@ def _write_operations(m, out):
     out.write_paragraph()
     out.indent()
     if m.operations:
+        last_op = None
         for i, op in enumerate(m.operations):
-            if i > 0:
+            if last_op and not last_op.flags:
                 out.write_paragraph()
             _write_operation(op, out)
+            last_op = op
     else:
         out.write_text(
             "No operations defined for this model")
@@ -196,7 +198,6 @@ def _write_operation(op, out):
     out.write_heading(op.name)
     out.indent()
     if op.description:
-        out.write_paragraph()
         out.write_description(op.description)
     if op.flags:
         if op.description:
@@ -230,10 +231,8 @@ def _plugin_opdef(name, model, parent_opdef):
             parent_opdef.plugin_op.name, parent_opdef.fullname)
     return opdef
 
-
 def _write_flags(flags, heading, out, no_flags_msg=None):
     out.write_subheading(heading)
-    out.write_paragraph()
     out.indent()
     if flags:
         out.write_dl(flags_dl(flags), preserve_paragraphs=True)
@@ -254,13 +253,15 @@ def flags_dl(flags):
 def _format_flag_desc(flag, max_flag_len):
     lines = flag.description.split("\n")
     if flag.default is not None:
-        line1_suffix = " (%s)" % _default_label(flag.default)
+        line1_suffix = "(default is %s)" % _default_label(flag.default)
     elif flag.required:
-        line1_suffix = " (required)"
+        line1_suffix = "(required)"
     elif flag.null_label:
-        line1_suffix = " (%s)" % flag.null_label
+        line1_suffix = "(default is %s)" % flag.null_label
     else:
         line1_suffix = ""
+    if lines[0]:
+        lines[0] += " "
     lines[0] += line1_suffix
     if flag.choices:
         lines.append(_format_flag_choices(flag.choices, max_flag_len))
@@ -274,7 +275,22 @@ def _default_label(val):
 
 def _format_flag_choices(choices, max_flag_len):
     out = click.HelpFormatter()
-    out.width = out.width - max_flag_len - 4
+    if _choices_have_description(choices):
+        out.width = out.width - max_flag_len - 4
+        _format_flag_choices_dl(choices, out)
+        return "\n\b\n" + out.getvalue()
+    else:
+        out.width = out.width - max_flag_len - 4 - len("Choices:")
+        _format_flag_choices_value_list(choices, out)
+        return "\n\b\n" + out.getvalue()
+
+def _choices_have_description(choices):
+    for c in choices:
+        if c.description:
+            return True
+    return False
+
+def _format_flag_choices_dl(choices, out):
     out.write_heading("Choices")
     out.indent()
     out.write_dl(
@@ -282,7 +298,11 @@ def _format_flag_choices(choices, max_flag_len):
           "\n\n".join(choice.description.split("\n")))
          for choice in choices],
         preserve_paragraphs=True)
-    return "\n\b\n" + out.getvalue()
+    out.dedent()
+
+def _format_flag_choices_value_list(choices, out):
+    vals = [c.value for c in choices]
+    out.write_dl([("Choices:", op_util.format_flag_val(vals))])
 
 def _write_references(refs, out):
     out.write_subheading("References")
