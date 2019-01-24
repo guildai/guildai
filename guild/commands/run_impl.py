@@ -1018,7 +1018,6 @@ def _proto_run_params(args):
 # Non-batch run
 ###################################################################
 
-
 def _run_normal(op, args):
     _check_needed(op, args)
     _check_restart_running(args)
@@ -1027,6 +1026,24 @@ def _run_normal(op, args):
 def _check_needed(op, args):
     if not args.needed:
         return
+    if args.restart:
+        _check_needed_restart(op, args)
+    else:
+        _check_needed_matching_runs(op)
+
+def _check_needed_restart(op, args):
+    # Assert that we're restarting something that exists.
+    assert os.path.exists(op.run_dir), op.run_dir
+    run_id = os.path.basename(op.run_dir)
+    assert run_id.startswith(args.restart), (run_id, args.restart)
+    run = runlib.Run(run_id, op.run_dir)
+    if run.get("flags") == op.flag_vals:
+        cli.out(
+            "Skipping run because flags have not changed "
+            "(--needed specified)")
+        raise SystemExit(0)
+
+def _check_needed_matching_runs(op):
     matching = _find_matching_runs(op)
     if matching:
         cli.out(

@@ -74,7 +74,7 @@ class OutputScalars(object):
 
     @staticmethod
     def _gen_try(pattern, s, type_conv):
-        m = pattern.search(s)
+        m = pattern.search(s.decode())
         if not m:
             return None
         try:
