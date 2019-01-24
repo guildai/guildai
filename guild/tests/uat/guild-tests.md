@@ -41,6 +41,7 @@ tests).
       python-utils:                ok
       query-parser:                ok
       random-optimizer:            ok
+      restart-runs:                ok
       run-files:                   ok
       run-flags:                   ok
       run-ops:                     ok

@@ -4,6 +4,6 @@
 accuracy and loss.
 
     >>> run("guild compare --table")
-    run  operation     started  time  status     label  step  loss  accuracy
-    ...  logreg:train  ...      ...   completed         550   ...
+    run  operation                started  time  status     label  step  loss      accuracy
+    ...  gpkg.mnist/logreg:train  ...      ...   completed         550   ...
     <exit 0>

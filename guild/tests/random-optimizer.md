@@ -44,8 +44,8 @@ operation - it's just used for generating trials).
     >>> echo_op.name
     'echo'
 
-    >>> echo_op.flag_values()
-    {'y': 2, 'x': 1.0, 'z': 'a'}
+    >>> pprint(echo_op.flag_values())
+    {'x': 1.0, 'y': 2, 'z': 'a'}
 
 For the tests below, note the min and max values for `x`:
 
