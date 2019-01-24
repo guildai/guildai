@@ -356,7 +356,8 @@ def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
             "short_index", "operation", "started",
             "status_with_remote", "label"]
         cli.table(preview, cols=cols, indent=2)
-    if args.yes or cli.confirm(confirm_prompt, confirm_default):
+    formatted_confirm_prompt = confirm_prompt.format(count=len(preview))
+    if args.yes or cli.confirm(formatted_confirm_prompt, confirm_default):
         op_callback(selected)
 
 def _runs_op_selected(args, ctx, default_runs_arg, force_deleted):
@@ -383,10 +384,10 @@ def _delete_runs(args, ctx):
         preview = (
             "WARNING: You are about to permanently delete "
             "the following runs:")
-        confirm = "Permanently delete these runs?"
+        confirm = "Permanently delete {count} run(s)?"
     else:
         preview = "You are about to delete the following runs:"
-        confirm = "Delete these runs?"
+        confirm = "Delete {count} run(s)?"
     no_runs_help = "Nothing to delete."
     def delete(selected):
         stoppable = [
@@ -419,7 +420,7 @@ def _purge_runs(args, ctx):
     preview = (
         "WARNING: You are about to permanently delete "
         "the following runs:")
-    confirm = "Permanently delete these runs?"
+    confirm = "Permanently delete {count} run(s)?"
     no_runs_help = "Nothing to purge."
     def purge(selected):
         var.purge_runs(selected)
@@ -434,7 +435,7 @@ def restore_runs(args, ctx):
 
 def _restore_runs(args, ctx):
     preview = "You are about to restore the following runs:"
-    confirm = "Restore these runs?"
+    confirm = "Restore {count} run(s)?"
     no_runs_help = "Nothing to restore."
     def restore(selected):
         var.restore_runs(selected)
@@ -616,7 +617,7 @@ def stop_runs(args, ctx):
 
 def _stop_runs(args, ctx):
     preview = "WARNING: You are about to stop the following runs:"
-    confirm = "Stop these runs?"
+    confirm = "Stop {count} run(s)?"
     no_runs_help = "Nothing to stop."
     args.running = True
     def stop_f(selected):
