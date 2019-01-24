@@ -100,7 +100,7 @@ def _validate_args(args):
 def _apply_restart_or_rerun_args(args):
     if not args.rerun and not args.restart:
         return
-    assert not (args.rerun and not args.restart)
+    assert not (args.rerun and args.restart)
     run = _find_run(args.restart or args.rerun, args)
     _apply_run_args(run, args)
     if args.restart:
