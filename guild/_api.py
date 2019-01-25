@@ -91,7 +91,8 @@ def _popen_args(
         needed=False,
         print_cmd=False,
         print_trials=False,
-        save_trials=None):
+        save_trials=None,
+        quiet=False):
     from guild import op_util
     cwd = cwd or "."
     flags = flags or {}
@@ -126,6 +127,8 @@ def _popen_args(
         args.append("--print-trials")
     if save_trials:
         args.extend(["--save-trials", save_trials])
+    if quiet:
+        args.append("--quiet")
     env = dict(os.environ)
     env["NO_IMPORT_FLAGS_PROGRESS"] = "1"
     if extra_env:
