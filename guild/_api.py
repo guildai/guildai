@@ -199,7 +199,7 @@ def guild_cmd(command, args, cwd=None, guild_home=None, capture_output=False):
         command = [command]
     cmd_args = [
         sys.executable,
-        "-m", "guild.main_bootstrap",
+        "-um", "guild.main_bootstrap",
     ] + command + args
     env = dict(os.environ)
     _apply_guild_home_env(env, guild_home)
