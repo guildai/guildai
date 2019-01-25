@@ -105,7 +105,7 @@ def _apply_restart_or_rerun_args(args):
     _apply_run_args(run, args)
     run_desc = _run_desc_for_restart(run)
     if args.restart:
-        if os.getenv("NO_RESTARTING_MSG") != "1":
+        if not args.quiet and os.getenv("NO_RESTARTING_MSG") != "1":
             cli.out("Restarting {}".format(run_desc))
         args.restart = run.id
         args._restart_run = run
@@ -492,7 +492,7 @@ def _format_op_flags_dl(opdef):
 def _dispatch_op_cmd(opdef, args):
     op = _init_op(opdef, args)
     if args.print_cmd:
-        _print_cmd(op)
+        _print_cmd(op, args)
     elif args.print_env:
         _print_env(op)
     elif args.print_trials or args.save_trials:
@@ -667,8 +667,7 @@ def _apply_batch_op(op, batch_files, user_flags, args):
         return
     batch_opdef = _resolve_batch_opdef(batch_opspec)
     batch_args = _batch_op_init_args(batch_opdef, args)
-    batch_op = _init_batch_op(batch_opdef, batch_args, batch_files)
-    op.batch_op = batch_op
+    op.batch_op = _init_batch_op(batch_opdef, batch_args, batch_files)
     _apply_batch_flag_encoder(op, user_flags)
 
 def _batch_opspec(op, batch_files, args):
@@ -716,6 +715,8 @@ def _batch_op_init_args(opdef, args):
 def _init_batch_op(opdef, args, batch_files):
     op = _init_op(opdef, args)
     op.batch_files = batch_files
+    if args.init_trials:
+        op.cmd_env.update({"INIT_TRIALS_ONLY": "1"})
     return op
 
 def _apply_batch_flag_encoder(op, user_flags):
@@ -793,12 +794,17 @@ def _invalid_flag_value_error(e):
 # Print op cmd
 ###################################################################
 
-def _print_cmd(op):
+def _print_cmd(op, args):
     formatted = " ".join(_preview_cmd(op))
     cli.out(formatted)
+    if op.batch_op:
+        _print_batch_trials_cmd(op, args)
 
 def _preview_cmd(op):
     return [pipes.quote(arg) for arg in op.cmd_args]
+
+def _print_batch_trials_cmd(op, args):
+    _run_batch_tmp_with_env(op, {"PRINT_TRIALS_CMD": "1"}, args)
 
 ###################################################################
 # Print op env
@@ -819,14 +825,17 @@ def _print_or_save_trials(op, args):
         _print_or_save_one_trial(op, args)
 
 def _print_or_save_batch_trials(op, args):
+    if args.print_trials:
+        _run_batch_tmp_with_env(op, {"PRINT_TRIALS": "1"}, args)
+    else:
+        assert args.save_trials
+        _run_batch_tmp_with_env(op, {"SAVE_TRIALS": args.save_trials}, args)
+
+def _run_batch_tmp_with_env(op, cmd_env, args):
     with util.TempDir() as batch_run_dir:
         op.set_run_dir(batch_run_dir)
-        _init_batch_run(op, args)
-        if args.print_trials:
-            op.batch_op.cmd_env["PRINT_TRIALS"] = "1"
-        else:
-            assert args.save_trials
-            op.batch_op.cmd_env["SAVE_TRIALS"] = args.save_trials
+        op.batch_op.cmd_env.update(cmd_env)
+        _init_batch_run(op)
         _run_op(op.batch_op, args)
 
 def _print_or_save_one_trial(op, args):

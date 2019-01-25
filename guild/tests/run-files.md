@@ -111,7 +111,8 @@ Let's run a batch operation to illustrate. We can indicate a run
 should be a batch by specifying a list of values for a flag.
 
     >>> run("say.py", msg=["ho"])
-    INFO: [guild] Running say.py (loud=no, msg=ho)
+    INFO: [guild] Initialed trial ... (loud=no, msg=ho)
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=ho)
     ho
 
 The batch generates two runs, one for the batch and the other for the

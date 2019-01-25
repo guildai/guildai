@@ -249,7 +249,7 @@ configuration.
 
     >>> run_op("m3:steps-invalid-no-steps")
     ERROR (1)
-    main_bootstrap.py: operation 'm3:steps-invalid-no-steps' is not valid:
+    guild: operation 'm3:steps-invalid-no-steps' is not valid:
     requires one of: main, exec, steps
 
     >>> run_op("m3:steps-invalid-bad-type")
@@ -275,7 +275,7 @@ configuration.
     >>> run_op("m3:steps-invalid-bad-op")
     ERROR (1)
     INFO: [guild] running not-defined: m3:not-defined
-    main_bootstrap.py: cannot find operation m3:not-defined
+    guild: cannot find operation m3:not-defined
     Try 'guild operations' for a list of available operations.
     <BLANKLINE>
 

@@ -18,7 +18,6 @@ import logging
 import os
 import random
 import re
-import shutil
 import sys
 
 import six
@@ -90,9 +89,17 @@ class Trial(object):
             os.path.exists(self._trial_link) and
             not os.path.exists(os.path.realpath(self._trial_link)))
 
-    def init(self):
-        trial_run = self._init_trial_run()
+    def init(self, run_dir=None, quiet=False):
+        trial_run = self._init_trial_run(run_dir)
         self._make_trial_link(trial_run)
+        if not quiet:
+            log.info(
+                "Initialed trial %s (%s)", self._run_desc(trial_run),
+                ", ".join(self._flag_assigns()))
+
+    @staticmethod
+    def _run_desc(run):
+        return run.short_id or " in %s" % run.run_dir
 
     def _make_trial_link(self, trial_run):
         """Creates a link in batch run dir to trial."""
@@ -101,10 +108,9 @@ class Trial(object):
         util.ensure_deleted(self._trial_link)
         os.symlink(rel_trial_path, self._trial_link)
 
-    def _init_trial_run(self):
-        run_dir = os.path.join(var.runs_dir(), self.run_id)
-        if not os.path.exists(run_dir):
-            shutil.copytree(self.batch.proto_run.path, run_dir)
+    def _init_trial_run(self, run_dir=None):
+        run_dir = run_dir or os.path.join(var.runs_dir(), self.run_id)
+        util.copytree(self.batch.proto_run.path, run_dir)
         run = runlib.Run(self.run_id, run_dir)
         run.write_attr("flags", self.flags)
         run.write_attr("label", " ".join(self._flag_assigns()))
@@ -121,7 +127,7 @@ class Trial(object):
             for name in sorted(self.flags)
         ]
 
-    def run(self):
+    def run(self, quiet=False, **kw):
         trial_run = self._trial_run()
         if not trial_run:
             raise RuntimeError("trial not initialized - needs call to init")
@@ -130,12 +136,17 @@ class Trial(object):
         extra_env = {
             "NO_RESTARTING_MSG": "1"
         }
-        log.info("Running %s (%s)", opspec, ", ".join(self._flag_assigns()))
+        if not quiet:
+            log.info(
+                "Running trial %s: %s (%s)", self._run_desc(trial_run),
+                opspec, ", ".join(self._flag_assigns()))
         try:
             gapi.run(
-                restart=trial_run.id,
+                restart=trial_run.path,
                 cwd=cwd,
-                extra_env=extra_env)
+                extra_env=extra_env,
+                quiet=quiet,
+                **kw)
         except gapi.RunError as e:
             op_util.ensure_exit_status(trial_run, e.returncode)
             log.error("Run %s failed - see logs for details", trial_run.id)
@@ -233,7 +244,7 @@ class Batch(object):
         return random.sample(trials, max_trials)
 
     def init_trials(self, trials):
-        index = self._load_index()
+        index = self._load_index(filter_existing=True)
         orphaned = self._remove_missing_trials(trials, index)
         self._delete_pending_trials(orphaned)
         self._add_new_trials(trials, index)
@@ -241,13 +252,25 @@ class Batch(object):
         for trial in index:
             trial.init()
 
-    def _load_index(self):
+    def _load_index(self, filter_existing=False):
         if not os.path.exists(self._index_path):
             return []
         data = json.load(open(self._index_path, "r"))
-        return [
+        trials = [
             Trial(self, trial_data["flags"], trial_data["run_id"])
             for trial_data in data]
+        if not filter_existing:
+            return trials
+        return [t for t in trials if self._trial_run_exists(t)]
+
+    @staticmethod
+    def _trial_run_exists(t):
+        try:
+            var.get_run(t.run_id)
+        except LookupError:
+            return False
+        else:
+            return True
 
     def _remove_missing_trials(self, trials, index):
         return [
@@ -265,6 +288,17 @@ class Batch(object):
             if trial.flags_match(candidate):
                 return True
         return False
+
+    @staticmethod
+    def _sync_run_ids(index):
+        for trial in index:
+            if not trial.run_id:
+                continue
+            try:
+                var.get_run(trial.run_id)
+            except LookupError:
+                # Trial run doesn't exist - generate a new ID
+                trial.run_id = runlib.mkid()
 
     def _add_new_trials(self, source, target):
         for trial in source:
@@ -290,17 +324,23 @@ class Batch(object):
 def default_main(gen_trials_cb, default_max_trials=DEFAULT_MAX_TRIALS):
     init_logging()
     try:
-        batch = init_batch()
-        trials = batch.gen_trials(gen_trials_cb, default_max_trials)
-        if os.getenv("PRINT_TRIALS") == "1":
-            print_trials(trials)
-        elif os.getenv("SAVE_TRIALS"):
-            save_trials(trials, os.getenv("SAVE_TRIALS"))
-        else:
-            batch.init_trials(trials)
-            batch.run_trials()
+        _default_main(gen_trials_cb, default_max_trials)
     except BatchError as e:
         op_util.exit(str(e))
+
+def _default_main(gen_trials_cb, default_max_trials):
+    batch = init_batch()
+    trials = batch.gen_trials(gen_trials_cb, default_max_trials)
+    if os.getenv("PRINT_TRIALS") == "1":
+        print_trials(trials)
+    elif os.getenv("SAVE_TRIALS"):
+        save_trials(trials, os.getenv("SAVE_TRIALS"))
+    elif os.getenv("PRINT_TRIALS_CMD") == "1":
+        print_trials_cmd(trials)
+    else:
+        batch.init_trials(trials)
+        if os.getenv("INIT_TRIALS_ONLY") != "1":
+            batch.run_trials()
 
 def init_batch():
     return Batch(op_util.current_run())
@@ -315,6 +355,15 @@ def save_trials(trials, path):
         return
     cli.out("Saving %i trial(s) to %s" % (len(trials), path))
     op_util.save_trials([t.flags for t in trials], path)
+
+def print_trials_cmd(trials):
+    for trial in trials:
+        _print_trial_cmd(trial)
+
+def _print_trial_cmd(trial):
+    with util.TempDir("guild-trial-") as run_dir:
+        trial.init(run_dir, quiet=True)
+        trial.run(print_cmd=True, quiet=True)
 
 def parse_function(s):
     if not isinstance(s, six.string_types):

@@ -183,7 +183,7 @@ def _write_operations(m, out):
     out.indent()
     if m.operations:
         last_op = None
-        for i, op in enumerate(m.operations):
+        for op in m.operations:
             if last_op and not last_op.flags:
                 out.write_paragraph()
             _write_operation(op, out)

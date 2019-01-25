@@ -114,7 +114,8 @@ flag.
 Let's run `say.py` with a list of one `msg` flag value:
 
     >>> run("say.py", msg=["hi"])
-    INFO: [guild] Running say.py (loud=no, msg=hi)
+    INFO: [guild] Initialed trial ... (loud=no, msg=hi)
+    INFO: [guild] Running trial ... say.py (loud=no, msg=hi)
     hi
 
 Here are the trial runs:
@@ -143,9 +144,11 @@ Note that we can preview the trials that will be generated using the
 Next we'll run `say.py` with two values for `msg`:
 
     >>> run("say.py", msg=["hello", "hola"])
-    INFO: [guild] Running say.py (loud=no, msg=hello)
+    INFO: [guild] Initialed trial ... (loud=no, msg=hello)
+    INFO: [guild] Initialed trial ... (loud=no, msg=hola)
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=hello)
     hello
-    INFO: [guild] Running say.py (loud=no, msg=hola)
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=hola)
     hola
 
 In this case, we have three runs, one for the batch and two for each
@@ -170,11 +173,14 @@ Trials are run in order corresponding to the flag value in the
 list.
 
     >>> run("say.py", msg=["c", "a", "b"])
-    INFO: [guild] Running say.py (loud=no, msg=c)
+    INFO: [guild] Initialed trial ... (loud=no, msg=c)
+    INFO: [guild] Initialed trial ... (loud=no, msg=a)
+    INFO: [guild] Initialed trial ... (loud=no, msg=b)
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=c)
     c
-    INFO: [guild] Running say.py (loud=no, msg=a)
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=a)
     a
-    INFO: [guild] Running say.py (loud=no, msg=b)
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=b)
     b
 
     >>> run("say.py", msg=["c", "a", "b"], print_trials=True)
@@ -186,9 +192,11 @@ list.
 We can specify other flags along with our batch specifiers:
 
     >>> run("say.py", msg=["a", "b"], loud="yes")
-    INFO: [guild] Running say.py (loud=yes, msg=a)
+    INFO: [guild] Initialed trial ... (loud=yes, msg=a)
+    INFO: [guild] Initialed trial ... (loud=yes, msg=b)
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg=a)
     A
-    INFO: [guild] Running say.py (loud=yes, msg=b)
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg=b)
     B
 
     >>> run("say.py", msg=["a", "b"], loud="yes", print_trials=True)
@@ -202,13 +210,17 @@ corresponds to the flag names in ascending order followed by the flag
 values as ordered in each flag value list.
 
     >>> run("say.py", msg=["b", "a"], loud=["no", "yes"])
-    INFO: [guild] Running say.py (loud=no, msg=b)
+    INFO: [guild] Initialed trial ... (loud=no, msg=b)
+    INFO: [guild] Initialed trial ... (loud=no, msg=a)
+    INFO: [guild] Initialed trial ... (loud=yes, msg=b)
+    INFO: [guild] Initialed trial ... (loud=yes, msg=a)
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=b)
     b
-    INFO: [guild] Running say.py (loud=no, msg=a)
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=a)
     a
-    INFO: [guild] Running say.py (loud=yes, msg=b)
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg=b)
     B
-    INFO: [guild] Running say.py (loud=yes, msg=a)
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg=a)
     A
 
     >>> run("say.py", msg=["b", "a"], loud=["no", "yes"], print_trials=True)
@@ -252,11 +264,14 @@ In this case we have a batch of three flag combinations.
 Let's use the batch file in an operation:
 
     >>> run("say.py", batches=["batch.csv"])
-    INFO: [guild] Running say.py (loud=no, msg='hello 1')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 1')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 2')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 3')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 1')
     hello 1
-    INFO: [guild] Running say.py (loud=yes, msg='hello 2')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 2')
     HELLO 2
-    INFO: [guild] Running say.py (loud=no, msg='hello 3')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 3')
     hello 3
 
     >>> run("say.py", batches=["batch.csv"], print_trials=True)
@@ -278,11 +293,14 @@ applied only if they are not defined in the batch file - the batch
 file takes precedence over flags specified for the operation.
 
     >>> run("say.py", batches=["batch.csv"], loud="no")
-    INFO: [guild] Running say.py (loud=no, msg='hello 1')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 1')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 2')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 3')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 1')
     hello 1
-    INFO: [guild] Running say.py (loud=yes, msg='hello 2')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 2')
     HELLO 2
-    INFO: [guild] Running say.py (loud=no, msg='hello 3')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 3')
     hello 3
 
     >>> run("say.py", batches=["batch.csv"], loud="no", print_trials=True)
@@ -299,15 +317,20 @@ Here we'll use a list of `loud`, which is applied in cases where
 `loud` is not defined in the batch:
 
     >>> run("say.py", batches=["batch.csv"], loud=["yes", "no"])
-    INFO: [guild] Running say.py (loud=yes, msg='hello 1')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 1')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 1')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 2')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 3')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 3')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 1')
     HELLO 1
-    INFO: [guild] Running say.py (loud=no, msg='hello 1')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 1')
     hello 1
-    INFO: [guild] Running say.py (loud=yes, msg='hello 2')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 2')
     HELLO 2
-    INFO: [guild] Running say.py (loud=yes, msg='hello 3')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 3')
     HELLO 3
-    INFO: [guild] Running say.py (loud=no, msg='hello 3')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 3')
     hello 3
 
     >>> run("say.py", batches=["batch.csv"], loud=["yes", "no"],
@@ -324,11 +347,14 @@ different values for `msg`, the batch file values are used when
 specified:
 
     >>> run("say.py", batches=["batch.csv"], msg=["hello 4", "hello 5"])
-    INFO: [guild] Running say.py (loud=no, msg='hello 1')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 1')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 2')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 3')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 1')
     hello 1
-    INFO: [guild] Running say.py (loud=yes, msg='hello 2')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 2')
     HELLO 2
-    INFO: [guild] Running say.py (loud=no, msg='hello 3')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 3')
     hello 3
 
     >>> run("say.py", batches=["batch.csv"], msg=["hello 4", "hello 5"],
@@ -352,11 +378,14 @@ values.
 Here's our batch using the file:
 
     >>> run("say.py", batches=["batch.yaml"])
-    INFO: [guild] Running say.py (loud=no, msg='hello 4')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 4')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 5')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 6')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 4')
     hello 4
-    INFO: [guild] Running say.py (loud=no, msg='hello 5')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 5')
     hello 5
-    INFO: [guild] Running say.py (loud=yes, msg='hello 6')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 6')
     HELLO 6
 
     >>> run("say.py", batches=["batch.yaml"], print_trials=True)
@@ -369,11 +398,14 @@ We can apply a value for `loud` that will be used when the batch file
 doesn't define it:
 
     >>> run("say.py", batches=["batch.yaml"], loud="yes")
-    INFO: [guild] Running say.py (loud=yes, msg='hello 4')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 4')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 5')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 6')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 4')
     HELLO 4
-    INFO: [guild] Running say.py (loud=yes, msg='hello 5')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 5')
     HELLO 5
-    INFO: [guild] Running say.py (loud=yes, msg='hello 6')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 6')
     HELLO 6
 
     >>> run("say.py", batches=["batch.yaml"], loud="yes", print_trials=True)
@@ -392,11 +424,14 @@ Next we'll look at JSON formatted batch files.
     ]
 
     >>> run("say.py", batches=["batch.json"])
-    INFO: [guild] Running say.py (loud=no, msg='hello 7')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 7')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 8')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 9')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 7')
     hello 7
-    INFO: [guild] Running say.py (loud=yes, msg='hello 8')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 8')
     HELLO 8
-    INFO: [guild] Running say.py (loud=yes, msg='hello 9')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 9')
     HELLO 9
 
     >>> run("say.py", batches=["batch.json"], print_trials=True)
@@ -409,23 +444,32 @@ Finally, Guild supports multiple batch files, each of which being
 applied in the order specified:
 
     >>> run("say.py", batches=["batch.csv", "batch.yaml", "batch.json"])
-    INFO: [guild] Running say.py (loud=no, msg='hello 1')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 1')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 2')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 3')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 4')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 5')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 6')
+    INFO: [guild] Initialed trial ... (loud=no, msg='hello 7')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 8')
+    INFO: [guild] Initialed trial ... (loud=yes, msg='hello 9')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 1')
     hello 1
-    INFO: [guild] Running say.py (loud=yes, msg='hello 2')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 2')
     HELLO 2
-    INFO: [guild] Running say.py (loud=no, msg='hello 3')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 3')
     hello 3
-    INFO: [guild] Running say.py (loud=no, msg='hello 4')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 4')
     hello 4
-    INFO: [guild] Running say.py (loud=no, msg='hello 5')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 5')
     hello 5
-    INFO: [guild] Running say.py (loud=yes, msg='hello 6')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 6')
     HELLO 6
-    INFO: [guild] Running say.py (loud=no, msg='hello 7')
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 7')
     hello 7
-    INFO: [guild] Running say.py (loud=yes, msg='hello 8')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 8')
     HELLO 8
-    INFO: [guild] Running say.py (loud=yes, msg='hello 9')
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 9')
     HELLO 9
 
     >>> run("say.py", batches=["batch.csv", "batch.yaml", "batch.json"],
@@ -445,5 +489,5 @@ Unsupported batch files generate an error:
 
     >>> run("say.py", batches=["batch.unknown"])
     ERROR (1)
-    main_bootstrap.py: unsupported batch file extension for batch.unknown
+    guild: unsupported batch file extension for batch.unknown
     <BLANKLINE>
