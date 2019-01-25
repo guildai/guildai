@@ -141,7 +141,7 @@ Next we'll run `b/model:test`:
     ERROR: error loading guildfile from .:
     error in .../cross-package-inherits/b/guild.yml: cannot find
     Guild file for package 'a'
-    main_bootstrap.py: guildfile in the current directory contains
+    guild: guildfile in the current directory contains
     an error (see above for details)
 
 In this case we receive an error because Guild can't find the package

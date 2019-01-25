@@ -88,6 +88,10 @@ def run_params(fn):
             ("--random-seed",), metavar="N", type=int,
             help="Random seed used when sampling trials or flag values."),
         click.Option(
+            ("--init-trials",), is_flag=True,
+            help=("For batch operations, initialize trials without "
+                  "running them.")),
+        click.Option(
             ("-r", "--remote"), metavar="REMOTE",
             help="Run the operation remotely."),
         click.Option(
