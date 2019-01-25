@@ -57,6 +57,8 @@ class ProcessError(Exception):
 
 class Operation(object):
 
+    batch_op = None
+
     def __init__(self, opdef, run_dir=None, resource_config=None,
                  extra_attrs=None, stage_only=False, gpus=None):
         assert opdef.opref, (opdef, "needs call to set_modelref")
@@ -273,7 +275,7 @@ class Operation(object):
         return summary.OutputScalars(config, self._run)
 
     def _handle_proc_interrupt(self):
-        if not self.has_proto():
+        if not self.batch_op:
             log.info("Operation interrupted - waiting for process to exit")
         kill_after = time.time() + PROC_TERM_TIMEOUT_SECONDS
         while time.time() < kill_after:
@@ -283,7 +285,7 @@ class Operation(object):
         if self._proc.poll() is None:
             log.warning("Operation process did not exit - stopping forcefully")
             util.kill_process_tree(self._proc.pid, force=True)
-        return exit_code.SIGTERM_
+        return exit_code.SIGTERM
 
     def _finalize_attrs(self):
         assert self._run is not None
