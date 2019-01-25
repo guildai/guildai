@@ -1,4 +1,4 @@
-# Random optimizer
+# Batch runs - random optimizer
 
 These tests illustrate the behavior of the random search optimizer.
 
@@ -32,7 +32,8 @@ of flags.
     ...             max_trials=max_trials,
     ...             save_trials=csv_path,
     ...             cwd=project)
-    ...         return list(csv.reader(open(csv_path, "r")))
+    ...         rows = list(csv.reader(open(csv_path, "r")))
+    ...         return rows[0], rows[1:]
 
 We can use `echo` as our operation (we won't actually run the
 operation - it's just used for generating trials).
@@ -65,10 +66,15 @@ Note also that `z` defines choices:
 At the moment, when we run `echo` with random without additional
 information, random uses the default flags for each trial.
 
-    >>> trials = gen_trials("echo")
+    >>> flags, trials = gen_trials("echo")
+    >>> flags
+    ['x', 'y', 'z']
+
+    >>> len(trials)
+    5
+
     >>> trials
-    [['x', 'y', 'z'],
-     ['...', '2', '...'],
+    [['...', '2', '...'],
      ['...', '2', '...'],
      ['...', '2', '...'],
      ['...', '2', '...'],
@@ -81,8 +87,8 @@ within the prescribed min and max (see above).
 Here's a helper function:
 
     >>> def check_echo_trials(trials, x_min, x_max, z_vals):
-    ...     print("Checking %i trials" % (len(trials) - 1))
-    ...     for row in trials[1:]:
+    ...     print("Checking %i trials" % (len(trials)))
+    ...     for row in trials:
     ...         x = float(row[0])
     ...         if x < x_min or x > x_max:
     ...             print("x is out of range: %s" % z)
@@ -101,9 +107,13 @@ Guild file.
 Here's a run that doesn't use any random flags - each flag value is a
 scalar:
 
-    >>> gen_trials("echo", x=1, y=2.1, z="d")
-    [['x', 'y', 'z'],
-    ['1', '2.1', 'd'],
+    >>> _, trials = gen_trials("echo", x=1, y=2.1, z="d")
+
+    >>> len(trials)
+    5
+
+    >>> trials
+    [['1', '2.1', 'd'],
     ['1', '2.1', 'd'],
     ['1', '2.1', 'd'],
     ['1', '2.1', 'd'],
@@ -111,10 +121,13 @@ scalar:
 
 Let's experiment with some different changes, specified as flags:
 
-    >>> trials = gen_trials("echo", x="[-0.1:0.1]", y="hat", z="[a,b]")
+    >>> _, trials = gen_trials("echo", x="[-0.1:0.1]", y="hat", z="[a,b]")
+
+    >>> len(trials)
+    5
+
     >>> trials
-    [['x', 'y', 'z'],
-     ['...', 'hat', '...'],
+    [['...', 'hat', '...'],
      ['...', 'hat', '...'],
      ['...', 'hat', '...'],
      ['...', 'hat', '...'],

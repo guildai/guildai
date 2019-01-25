@@ -46,19 +46,21 @@ The files generated for our run:
 
     >>> first_run = runs[0]
     >>> first_run_files = ls(first_run)
-    >>> first_run_files
-    ['.guild/attrs/cmd',
-     '.guild/attrs/compare',
-     '.guild/attrs/deps',
-     '.guild/attrs/env',
-     '.guild/attrs/exit_status',
-     '.guild/attrs/flags',
-     '.guild/attrs/started',
-     '.guild/attrs/stopped',
-     '.guild/opdef.json',
-     '.guild/opref',
-     '.guild/output',
-     '.guild/output.index']
+    >>> for file in first_run_files:
+    ...    print(file) # doctest: +REPORT_UDIFF
+    .guild/attrs/cmd
+    .guild/attrs/compare
+    .guild/attrs/deps
+    .guild/attrs/env
+    .guild/attrs/exit_status
+    .guild/attrs/flags
+    .guild/attrs/opdef
+    .guild/attrs/run_params
+    .guild/attrs/started
+    .guild/attrs/stopped
+    .guild/opref
+    .guild/output
+    .guild/output.index
 
 Let's look at some of the generated files.
 
@@ -136,10 +138,10 @@ The latest run is the trial:
     .guild/attrs/exit_status
     .guild/attrs/flags
     .guild/attrs/label
+    .guild/attrs/opdef
     .guild/attrs/run_params
     .guild/attrs/started
     .guild/attrs/stopped
-    .guild/opdef.json
     .guild/opref
     .guild/output
     .guild/output.index
@@ -159,9 +161,10 @@ Its files:
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/flags
+    .guild/attrs/opdef
+    .guild/attrs/run_params
     .guild/attrs/started
     .guild/attrs/stopped
-    .guild/opdef.json
     .guild/opref
     .guild/output
     .guild/output.index
@@ -169,8 +172,8 @@ Its files:
     .guild/proto/.guild/attrs/cmd
     .guild/proto/.guild/attrs/compare
     .guild/proto/.guild/attrs/flags
+    .guild/proto/.guild/attrs/opdef
     .guild/proto/.guild/attrs/run_params
-    .guild/proto/.guild/opdef.json
     .guild/proto/.guild/opref
     .guild/trials
     ...

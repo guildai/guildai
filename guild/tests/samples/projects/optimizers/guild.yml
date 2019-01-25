@@ -10,8 +10,8 @@ noisy:
       min: -2.0
       max: 2.0
   output-scalars:
-    loss: 'noisy\(.+\): (.+)'
-  compare: [=x, loss]
+    loss: 'loss: (\S+)'
+  compare: [=x, loss step as step, loss]
   label: x=${x|%.4f}
 
 echo:

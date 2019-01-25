@@ -110,3 +110,10 @@ needed flag.
     >>> run(restart=run_2, z="d", needed=True)
     Restarting ...
     Skipping run because flags have not changed (--needed specified)
+
+## Run params for restarts
+
+The `op_util` module provides a function that returns a list of run
+params that should be used when restarting a particular run. The
+params are based on the params that were used when originally running
+or staging the run.

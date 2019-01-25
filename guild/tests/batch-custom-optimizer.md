@@ -1,7 +1,6 @@
-# Batch runs - part 3
+# Batch runs - custom optimizer
 
-This is a continuation of batch tests [Part 1](batch-1.md) and [Part
-2](batch-2.md). It illustrates the use of a project-defined optimizer.
+These tests illustrate the use of a custom optimizer.
 
 As with the previous tests, we use the `batch` sample project:
 

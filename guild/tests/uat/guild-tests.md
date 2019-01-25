@@ -7,9 +7,10 @@ tests).
     >>> run("guild check -nT", timeout=120) # doctest: +REPORT_UDIFF
     internal tests:
       anonymous-models:            ok
-      batch-1:                     ok
-      batch-2:                     ok
-      batch-3:                     ok
+      batch-basics:                ok
+      batch-custom-optimizer:      ok
+      batch-grid-search:           ok
+      batch-random-optimizer:      ok
       batch-util:                  ok
       config:                      ok
       copy-source:                 ok
@@ -40,7 +41,6 @@ tests).
       plugins:                     ok
       python-utils:                ok
       query-parser:                ok
-      random-optimizer:            ok
       restart-runs:                ok
       run-files:                   ok
       run-flags:                   ok

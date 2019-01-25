@@ -1,4 +1,4 @@
-# Batch runs
+# Batch runs - basics
 
 These tests illustrate batch run behavior. We'll use the `batch`
 sample project:

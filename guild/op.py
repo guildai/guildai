@@ -114,7 +114,7 @@ class Operation(object):
     def _init_attrs(self):
         assert self._run is not None
         self._run.write_opref(self.opref)
-        self._run.write_opdef_data(self.opdef.as_data())
+        self._run.write_attr("opdef", self.opdef.as_data())
         for name, val in (self.extra_attrs or {}).items():
             self._run.write_attr(name, val)
         self._run.write_attr("flags", self.flag_vals)

@@ -1,7 +1,6 @@
-# Batch runs - part 2
+# Batch runs - grid search
 
-[Part 1](batch-1.md) illustrated basic grid search. These tests look
-at the random search features of Guild batch runs.
+These tests look at the random search features of Guild batch runs.
 
 There are two applications of random search in Guild's batch facility:
 

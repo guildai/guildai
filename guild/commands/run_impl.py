@@ -103,26 +103,46 @@ def _apply_restart_or_rerun_args(args):
     assert not (args.rerun and args.restart)
     run = _find_run(args.restart or args.rerun, args)
     _apply_run_args(run, args)
+    run_desc = _run_desc_for_restart(run)
     if args.restart:
         if os.getenv("NO_RESTARTING_MSG") != "1":
-            cli.out("Restarting {}".format(run.id))
+            cli.out("Restarting {}".format(run_desc))
         args.restart = run.id
         args._restart_run = run
     else:
-        cli.out("Rerunning {}".format(run.id))
+        cli.out("Rerunning {}".format(run_desc))
         args.rerun = run.id
 
-def _find_run(run_id_prefix, args):
+def _run_desc_for_restart(run):
+    rel_to_runs_dir = os.path.relpath(run.path, var.runs_dir())
+    if rel_to_runs_dir == run.id:
+        return run.id
+    return "run in %s" % run.path
+
+def _find_run(run_id_prefix_or_path, args):
     if args.remote:
-        return remote_impl_support.one_run(run_id_prefix, args)
+        return remote_impl_support.one_run(run_id_prefix_or_path, args)
     else:
-        return one_run(run_id_prefix)
+        if os.path.isdir(run_id_prefix_or_path):
+            return _run_from_dir(run_id_prefix_or_path)
+        return one_run(run_id_prefix_or_path)
+
+def _run_from_dir(run_dir):
+    run_id = os.path.basename(run_dir)
+    return runlib.Run(run_id, run_dir)
+
+def one_run(run_id_prefix):
+    runs = [
+        runlib.Run(id, path)
+        for id, path in var.find_runs(run_id_prefix)
+    ]
+    return cmd_impl_support.one_run(runs, run_id_prefix)
 
 def _apply_run_args(run, args):
     if _is_batch_run(run):
         _apply_batch_run_args(run, args)
     else:
-        _apply_normal_run_args(run, args)
+        _gen_apply_run_args(run, args)
 
 def _is_batch_run(run):
     return os.path.exists(run.guild_path("proto"))
@@ -134,9 +154,26 @@ def _apply_batch_run_args(run, args):
             "cannot find operation proto in %s"
             % proto_path)
     proto = runlib.Run("", proto_path)
-    args.opspec = proto.opref.to_opspec()
+    _gen_apply_run_args(proto)
     args.optimizer = run.opref.to_opspec()
-    _apply_run_flags(proto.get("flags", {}), args)
+
+def _gen_apply_run_args(run, args):
+    _apply_run_params(run, args)
+    _apply_run_opspec(run, args)
+    _apply_run_flags(run.get("flags", {}), args)
+
+def _apply_run_params(run, args):
+    """Loads applicable run params attr and applies them to args.
+
+    A run param value is applied only the current value in arg is
+    equal to the default value for the run command.
+    """
+    run_params = op_util.run_params_for_restart(run, args.as_kw())
+    for name, val in run_params.items():
+        setattr(args, name, val)
+
+def _apply_run_opspec(run, args):
+    args.opspec = run.opref.to_opspec()
 
 def _apply_run_flags(flags, args):
     # Prepend run flag args to user provided args - last values take
@@ -149,20 +186,6 @@ def _flag_args(flags):
         for name, val in sorted(flags.items())
         if val is not None
     ])
-
-def _apply_normal_run_args(run, args):
-    _apply_run_opspec(run, args)
-    _apply_run_flags(run.get("flags", {}), args)
-
-def _apply_run_opspec(run, args):
-    args.opspec = run.opref.to_opspec()
-
-def one_run(run_id_prefix):
-    runs = [
-        runlib.Run(id, path)
-        for id, path in var.find_runs(run_id_prefix)
-    ]
-    return cmd_impl_support.one_run(runs, run_id_prefix)
 
 ###################################################################
 # Model op (model, op_name tuple) from opspec
@@ -603,15 +626,11 @@ def _op_run_dir(args):
         return None
 
 def _op_extra_attrs(args):
-    attrs = {}
+    attrs = {
+        "run_params": args.as_kw()
+    }
     if args.label:
         attrs["label"] = args.label
-    if args.no_wait:
-        attrs["_no_wait"] = True
-    if args.max_trials is not None:
-        attrs["_max_trials"] = args.max_trials
-    if args.random_seed is not None:
-        attrs["_random_seed"] = args.random_seed
     return attrs
 
 def _op_gpus(args):
@@ -1004,15 +1023,6 @@ def _write_batch_proto(batch_run, proto_op, batches, args):
     proto_op.init()
     if batches:
         proto_op.write_run_attr("batches", batches)
-    proto_op.write_run_attr("run_params", _proto_run_params(args))
-
-def _proto_run_params(args):
-    supported_params = [
-        "needed",
-        "random_seed",
-    ]
-    params = args.as_kw()
-    return {name: params[name]for name in supported_params}
 
 ###################################################################
 # Non-batch run
