@@ -741,3 +741,71 @@ def _apply_batch_desc(base_desc, run, seen_protos):
         parts.append("+")
     parts.append(base_desc)
     return "".join(parts)
+
+def run_params_for_restart(run, user_specified_params=None):
+    """Returns params for use in run command for a restart of run.
+
+    The set of applicable params in the run "run_params" attribute are
+    considered. If user_specified_params contains a non-default value
+    (i.e. the user has indicated she wants to use a specific value)
+    that param will not be included in the result. If
+    user_specified_params is None (default) then all applicable params
+    for a restart that are defined in run are returned.
+    """
+    # Note about applicable run params:
+    #
+    # A limited number of params could possibly apply to args - those
+    # are listed here. This list has to be maintained as new args are
+    # added to the run command. Params must be included where the user
+    # would reasonably assume applicability and never in cases where
+    # the use of the parameter would be clearly surprising to the user
+    # (e.g. reusing the 'yes' param, which would alter the expected
+    # behavior of the command on a restart/rerun).
+    #
+    # Params that are saved as run attrs or otherwise available under
+    # the run guild path (e.g. opspec, label, flags) should NOT be
+    # returned in this value in the interest of elimiting redundancy
+    # and potential mismtach bugs. Anyone needing those values MUST
+    # read them via run attrs or applicable run interface
+    # (e.g. opref in the case of opsec).
+    #
+    applicable_run_params = [
+        "disable_plugins",
+        "force_flags",
+        "gpus",
+        "max_trials",
+        "maximize",
+        "minimize",
+        "no_gpus",
+        "opt_flags",
+        "optimizer",
+        "random_seed",
+    ]
+    from guild.commands.run import run as run_cmd
+    run_params = run.get("run_params", {})
+    if not isinstance(run_params, dict):
+        return
+    baseline_params = run_cmd.make_context("", []).params
+    result = {}
+    for name in run_params:
+        val = _coerce_run_param(name, run_params[name])
+        if name not in applicable_run_params:
+            continue
+        if user_specified_params is None:
+            result[name] = val
+            continue
+        try:
+            user_specified_val = user_specified_params[name]
+        except KeyError:
+            result[name] = val
+            continue
+        if user_specified_val != baseline_params[name]:
+            continue
+        result[name] = val
+    return result
+
+def _coerce_run_param(name, val):
+    """Ensures that named param is valid for the run command."""
+    if name == "flags":
+        return tuple(val)
+    return val

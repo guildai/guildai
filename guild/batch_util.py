@@ -85,8 +85,7 @@ class Trial(object):
         run_id = os.path.basename(run_dir)
         return runlib.Run(run_id, run_dir)
 
-    @property
-    def run_deleted(self):
+    def is_run_deleted(self):
         return (
             os.path.exists(self._trial_link) and
             not os.path.exists(os.path.realpath(self._trial_link)))
@@ -128,7 +127,6 @@ class Trial(object):
             raise RuntimeError("trial not initialized - needs call to init")
         opspec = trial_run.opref.to_opspec()
         cwd = os.environ["CMD_DIR"]
-        run_params = trial_run.get("run_params", {})
         extra_env = {
             "NO_RESTARTING_MSG": "1"
         }
@@ -137,8 +135,7 @@ class Trial(object):
             gapi.run(
                 restart=trial_run.id,
                 cwd=cwd,
-                extra_env=extra_env,
-                **run_params)
+                extra_env=extra_env)
         except gapi.RunError as e:
             op_util.ensure_exit_status(trial_run, e.returncode)
             log.error("Run %s failed - see logs for details", trial_run.id)
@@ -162,7 +159,7 @@ class Batch(object):
 
     @property
     def max_trials(self):
-        return self.batch_run.get("_max_trials")
+        return self._get_run_param("max_trials")
 
     @property
     def random_seed(self):
@@ -171,12 +168,22 @@ class Batch(object):
         Guaranteed to return the same non-None value for any given
         batch.
         """
-        val = self.batch_run.get("_random_seed")
-        if val is None:
-            # Must have a consistent random seed for batch - generate
-            # a new seed and save it for any subsequent uses.
-            val = random.randint(0, pow(2, 32))
-            self.batch_run.write_attr("_random_seed", val)
+        return util.find_apply([
+            lambda: self._get_run_param("random_seed"),
+            self._gen_persistent_random_seed])
+
+    def _get_run_param(self, name):
+        return self.batch_run.get("run_params", {}).get(name)
+
+    def _gen_persistent_random_seed(self):
+        """Generates a new random seed and saves it as _random_seed atts.
+
+        The batch needs a consistent random seed for restarts - to
+        ensure consistent trial generation for a given set of
+        inputs. If we need to generated a seed, we save it for subsequent use.
+        """
+        val = random.randint(0, pow(2, 32))
+        self.batch_run.write_attr("_random_seed", val)
         return val
 
     @property
@@ -275,7 +282,7 @@ class Batch(object):
     def run_trials(self):
         index = self._load_index()
         for trial in index:
-            if trial.run_deleted:
+            if trial.is_run_deleted():
                 log.info("trial %s deleted, skipping", trial.run_id)
                 continue
             trial.run()

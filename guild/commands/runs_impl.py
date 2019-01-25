@@ -66,6 +66,7 @@ CORE_RUN_ATTRS = [
     "flags",
     "label",
     "opdef",
+    "run_params",
     "started",
     "steps",
     "stopped",
