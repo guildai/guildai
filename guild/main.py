@@ -64,8 +64,7 @@ def _handle_click_exception(e):
 
 def _print_error_and_exit(msg, exit_status):
     if msg:
-        prog = os.path.basename(sys.argv[0])
-        click.echo("%s: %s" % (prog, msg), err=True)
+        click.echo("guild: %s" % msg, err=True)
     sys.exit(exit_status)
 
 def _handle_system_exit(e):
