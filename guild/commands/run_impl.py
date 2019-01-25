@@ -154,7 +154,7 @@ def _apply_batch_run_args(run, args):
             "cannot find operation proto in %s"
             % proto_path)
     proto = runlib.Run("", proto_path)
-    _gen_apply_run_args(proto)
+    _gen_apply_run_args(proto, args)
     args.optimizer = run.opref.to_opspec()
 
 def _gen_apply_run_args(run, args):
@@ -963,15 +963,15 @@ def _run_local(op, args):
 ###################################################################
 
 def _run_batch(op, args):
-    _init_batch_run(op, args)
+    _init_batch_run(op)
     return _run_op(op.batch_op, args)
 
-def _init_batch_run(op, args):
+def _init_batch_run(op):
     batches = _batches_attr(op.batch_op.batch_files)
     run = guild.op.init_run(op.run_dir)
     run.init_skel()
     op.batch_op.set_run_dir(run.path)
-    _write_batch_proto(run, op, batches, args)
+    _write_batch_proto(run, op, batches)
 
 def _batches_attr(batch_files):
     batches = []
@@ -1018,8 +1018,9 @@ def _csv_batches(path):
 def _flag_vals(row):
     return [op_util.parse_arg_val(s) for s in row]
 
-def _write_batch_proto(batch_run, proto_op, batches, args):
+def _write_batch_proto(batch_run, proto_op, batches):
     proto_op.set_run_dir(batch_run.guild_path("proto"))
+    proto_op.extra_attrs["run_params"]["optimizer"] = None
     proto_op.init()
     if batches:
         proto_op.write_run_attr("batches", batches)
