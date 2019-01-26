@@ -83,8 +83,7 @@ def run(tests, skip=None):
     return success
 
 def _run_test(name):
-    sys.stdout.write("  %s:" % name)
-    sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name) + 1))
+    sys.stdout.write("  %s: " % name)
     sys.stdout.flush()
     filename = _test_filename(name)
     globs = _test_globals()
@@ -95,7 +94,9 @@ def _run_test(name):
         return False
     else:
         if not failures:
+            sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
             sys.stdout.write("ok\n")
+            sys.stdout.flush()
         return failures == 0
 
 def _test_filename(name):
