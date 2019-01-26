@@ -94,7 +94,7 @@ class Trial(object):
         self._make_trial_link(trial_run)
         if not quiet:
             log.info(
-                "Initialed trial %s (%s)", self._run_desc(trial_run),
+                "Initialized trial %s (%s)", self._run_desc(trial_run),
                 ", ".join(self._flag_assigns()))
 
     @staticmethod
