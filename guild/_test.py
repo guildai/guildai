@@ -26,8 +26,10 @@ import re
 import sys
 import tempfile
 
-from guild import _api
+from guild import _api as gapi
+from guild import cli
 from guild import init
+from guild import op_util
 from guild import util
 
 PLATFORM = platform.system()
@@ -105,9 +107,14 @@ def run_test_file(filename, globs):
         filename,
         globs=globs,
         optionflags=(
-            doctest.REPORT_ONLY_FIRST_FAILURE |
+            _report_first_flag() |
             doctest.ELLIPSIS |
             doctest.NORMALIZE_WHITESPACE))
+
+def _report_first_flag():
+    if os.getenv("REPORT_ONLY_FIRST_FAILURE") == "1":
+        return doctest.REPORT_ONLY_FIRST_FAILURE
+    return 0
 
 def run_test_file_with_config(filename, globs, optionflags):
     """Modified from doctest.py to use custom checker."""
@@ -160,6 +167,7 @@ def _test_globals():
         "Chdir": Chdir,
         "LogCapture": util.LogCapture,
         "ModelPath": ModelPath,
+        "Project": Project,
         "StderrCapture": StderrCapture,
         "SysPath": SysPath,
         "TempFile": util.TempFile,
@@ -170,7 +178,7 @@ def _test_globals():
         "dirname": os.path.dirname,
         "exists": os.path.exists,
         "find": find,
-        "gapi": _api,
+        "gapi": gapi,
         "join_path": os.path.join,
         "mkdir": os.mkdir,
         "mkdtemp": mkdtemp,
@@ -331,3 +339,87 @@ class ModelPath(object):
         from guild import model
         assert self._model_path0 is not None
         model.set_path(self._model_path0)
+
+class Project(object):
+
+    simplify_trials_output_patterns = [
+        (re.compile(r"INFO: \[guild\] "), ""),
+        (re.compile(r"trial [a-f0-9]+"), "trial"),
+    ]
+
+    def __init__(self, cwd):
+        self.guild_home = mkdtemp()
+        self.cwd = cwd
+
+    def run(self, *args, **kw):
+        print(self._run(*args, **kw))
+
+    def _run(self, *args, **kw):
+        simplify_trials_output = kw.pop("simplify_trials_output", False)
+        try:
+            out = gapi.run_capture_output(
+                guild_home=self.guild_home,
+                cwd=self.cwd,
+                *args, **kw)
+        except gapi.RunError as e:
+            return "ERROR ({})\n{}".format(e.returncode, e.output.strip())
+        else:
+            if simplify_trials_output:
+                out = self._simplify_trials_output(out)
+            return out.strip()
+
+    def _simplify_trials_output(self, out):
+        for p, repl in self.simplify_trials_output_patterns:
+            out = p.sub(repl, out)
+        return out
+
+    def list_runs(self, **kw):
+        return gapi.runs_list(
+            cwd=self.cwd,
+            guild_home=self.guild_home,
+            **kw)
+
+    def print_runs(self, runs=None, flags=False, labels=False):
+        if runs is None:
+            runs = self.list_runs()
+        cols = self._cols_for_print_runs(flags, labels)
+        rows = []
+        with Chdir(self.cwd):
+            for run in runs:
+                rows.append(self._row_for_print_run(run, flags, labels))
+        cli.table(rows, cols)
+
+    @staticmethod
+    def _cols_for_print_runs(flags, labels):
+        cols = ["opspec"]
+        if flags:
+            cols.append("flags")
+        if labels:
+            cols.append("label")
+        return cols
+
+    @staticmethod
+    def _row_for_print_run(run, flags, labels):
+        row = {
+            "opspec": op_util.format_op_desc(run)
+        }
+        if flags:
+            flags_desc = " ".join(
+                ["%s=%s" % (name, op_util.format_flag_val(val))
+                 for name, val in sorted(run.get("flags").items())])
+            row["flags"] = flags_desc
+        if labels:
+            row["label"] = run.get("label", "")
+        return row
+
+    def delete_runs(self, runs=None):
+        gapi.runs_delete(runs, guild_home=self.guild_home)
+
+    def print_trials(self, *args, **kw):
+        print(self._run(print_trials=True, *args, **kw))
+
+    def ls(self, run):
+        return find(run.path)
+
+    def cat(self, run, path):
+        cat(os.path.join(run.path, path))

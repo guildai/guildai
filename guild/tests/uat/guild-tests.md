@@ -11,6 +11,7 @@ tests).
       batch-custom-optimizer:      ok
       batch-grid-search:           ok
       batch-random-optimizer:      ok
+      batch-restart:               ok
       batch-util:                  ok
       config:                      ok
       copy-source:                 ok

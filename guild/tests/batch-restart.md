@@ -27,51 +27,23 @@ follows this process:
   successfully. To skip completed trials, the user can specify the
   `--needed` option.
 
-For our tests we'll use a temporary workspace:
+For our tests we'll work with the `optimizers` sample project:
 
-    >>> workspace = mkdtemp()
+    >>> project = Project(sample("projects", "optimizers"))
 
-We'll work with the `echo.py` script in the `optimizers` sample
-project:
+And some helpers:
 
-    >>> project = sample("projects", "optimizers")
+    >>> def run(op, **flags):
+    ...     project.run(
+    ...         op,
+    ...         flags=flags,
+    ...         simplify_trials_output=True)
+
+    >>> def print_runs():
+    ...     project.print_runs(flags=True)
 
 We'll use Guild's built-in batch processing for grid search so we can
 generate batch trials with consistent values.
-
-Here's a helper to run ops:
-
-    >>> def run(op, **flags):
-    ...     from guild import _api as gapi
-    ...     out = gapi.run_capture_output(
-    ...         op,
-    ...         flags=flags,
-    ...         cwd=project,
-    ...         guild_home=workspace)
-    ...     print(out.strip())
-
-A helper to list runs:
-
-    >>> def list_runs():
-    ...     return gapi.runs_list(guild_home=workspace)
-
-A helper to print runs:
-
-    >>> def print_runs(runs):
-    ...     from guild import op_util
-    ...     with Chdir(project):
-    ...         for run in runs:
-    ...             op_desc = op_util.format_op_desc(run)
-    ...             flags_desc = " ".join(
-    ...                 ["%s=%s" % (name, op_util.format_flag_val(val))
-    ...                  for name, val in sorted(run.get("flags").items())])
-    ...             print("[%s] %s %s" % (run.short_id, op_desc, flags_desc))
-
-And a helper for deleting runs:
-
-    >>> def delete_runs(runs=None):
-    ...     from guild import _api as gapi
-    ...     gapi.runs_delete(runs, guild_home=workspace)
 
 As a baseline, let's run `echo.py` once using its default values:
 
@@ -80,23 +52,23 @@ As a baseline, let's run `echo.py` once using its default values:
 
 Our runs:
 
-    >>> print_runs(list_runs())
-    [...] echo.py x=1.0 y=2 z=a
+    >>> print_runs()
+    echo.py x=1.0 y=2 z=a
 
 Next we'll run a batch of four using flag lists.
 
     >>> run("echo.py", x=[1.0, 2.0], y=[2, 3])
-    INFO: [guild] Initialed trial ... (x=1.0, y=2, z=a)
-    INFO: [guild] Initialed trial ... (x=1.0, y=3, z=a)
-    INFO: [guild] Initialed trial ... (x=2.0, y=2, z=a)
-    INFO: [guild] Initialed trial ... (x=2.0, y=3, z=a)
-    INFO: [guild] Running trial ...: echo.py (x=1.0, y=2, z=a)
+    Initialized trial (x=1.0, y=2, z=a)
+    Initialized trial (x=1.0, y=3, z=a)
+    Initialized trial (x=2.0, y=2, z=a)
+    Initialized trial (x=2.0, y=3, z=a)
+    Running trial: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
-    INFO: [guild] Running trial ...: echo.py (x=1.0, y=3, z=a)
+    Running trial: echo.py (x=1.0, y=3, z=a)
     1.0 3 'a'
-    INFO: [guild] Running trial ...: echo.py (x=2.0, y=2, z=a)
+    Running trial: echo.py (x=2.0, y=2, z=a)
     2.0 2 'a'
-    INFO: [guild] Running trial ...: echo.py (x=2.0, y=3, z=a)
+    Running trial: echo.py (x=2.0, y=3, z=a)
     2.0 3 'a'
 
 TODO (in no particular order):
