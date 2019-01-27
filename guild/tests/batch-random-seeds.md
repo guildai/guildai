@@ -1,4 +1,4 @@
-# Random seeds
+# Batch runs - random seeds
 
 Random seeds play an important role in supporting consistent behavior
 for operations that use random sampling. Not all operations use random
@@ -45,10 +45,6 @@ Because we didn't explicitly provide a random seed for the operation,
 the random seed for this run is generated at random.
 
     >>> rs = random_seed()
-
-    >>> type(rs)
-    <type 'int'>
-
     >>> assert_random_seed(rs)
 
 Let's now run the same operation, but with an explicit random seed:
