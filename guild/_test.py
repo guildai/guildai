@@ -12,6 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Internal test support.
+
+Notes on improving the pattern matching:
+
+- `...` should only match for one line, if it is not on its own
+  line. It's all too common to have `...` match unexpected content
+  spanning multiple lines.
+
+- If `...` is on its own line, it should match multiple lines.
+
+- Matching support support variables along these lines:
+
+    >> foo = 123
+    >> print(foo)
+    {{foo}}
+
+- `?...` should be an alias for `...`. This can be used on the first
+  line of a matching section. Currently we have to print some dummy
+  var to work-around the ambiguity of `...`.
+
+"""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
