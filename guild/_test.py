@@ -343,7 +343,7 @@ class ModelPath(object):
 
 class Project(object):
 
-    simplify_trials_output_patterns = [
+    simplify_trial_output_patterns = [
         (re.compile(r"INFO: \[guild\] "), ""),
         (re.compile(r"trial [a-f0-9]+"), "trial"),
     ]
@@ -356,7 +356,7 @@ class Project(object):
         print(self._run(*args, **kw))
 
     def _run(self, *args, **kw):
-        simplify_trials_output = kw.pop("simplify_trials_output", False)
+        simplify_trial_output = kw.pop("simplify_trial_output", False)
         try:
             out = gapi.run_capture_output(
                 guild_home=self.guild_home,
@@ -365,12 +365,12 @@ class Project(object):
         except gapi.RunError as e:
             return "ERROR ({})\n{}".format(e.returncode, e.output.strip())
         else:
-            if simplify_trials_output:
-                out = self._simplify_trials_output(out)
+            if simplify_trial_output:
+                out = self._simplify_trial_output(out)
             return out.strip()
 
-    def _simplify_trials_output(self, out):
-        for p, repl in self.simplify_trials_output_patterns:
+    def _simplify_trial_output(self, out):
+        for p, repl in self.simplify_trial_output_patterns:
             out = p.sub(repl, out)
         return out
 
@@ -380,27 +380,30 @@ class Project(object):
             guild_home=self.guild_home,
             **kw)
 
-    def print_runs(self, runs=None, flags=False, labels=False):
+    def print_runs(self, runs=None, flags=False, labels=False, status=False):
         if runs is None:
             runs = self.list_runs()
-        cols = self._cols_for_print_runs(flags, labels)
+        cols = self._cols_for_print_runs(flags, labels, status)
         rows = []
         with Chdir(self.cwd):
             for run in runs:
-                rows.append(self._row_for_print_run(run, flags, labels))
+                rows.append(self._row_for_print_run(
+                    run, flags, labels, status))
         cli.table(rows, cols)
 
     @staticmethod
-    def _cols_for_print_runs(flags, labels):
+    def _cols_for_print_runs(flags, labels, status):
         cols = ["opspec"]
         if flags:
             cols.append("flags")
         if labels:
             cols.append("label")
+        if status:
+            cols.append("status")
         return cols
 
     @staticmethod
-    def _row_for_print_run(run, flags, labels):
+    def _row_for_print_run(run, flags, labels, status):
         row = {
             "opspec": op_util.format_op_desc(run)
         }
@@ -411,6 +414,8 @@ class Project(object):
             row["flags"] = flags_desc
         if labels:
             row["label"] = run.get("label", "")
+        if status:
+            row["status"] = run.status
         return row
 
     def delete_runs(self, runs=None):
@@ -419,8 +424,10 @@ class Project(object):
     def print_trials(self, *args, **kw):
         print(self._run(print_trials=True, *args, **kw))
 
-    def ls(self, run):
+    @staticmethod
+    def ls(run):
         return find(run.path)
 
-    def cat(self, run, path):
+    @staticmethod
+    def cat(run, path):
         cat(os.path.join(run.path, path))

@@ -111,6 +111,9 @@ class Operation(object):
         self._run = init_run(self._run_dir)
         log.debug("initializing run in %s", self._run.path)
         self._run.init_skel()
+        self.set_pending()
+
+    def set_pending(self):
         write_pending(self._run)
 
     def _init_attrs(self):

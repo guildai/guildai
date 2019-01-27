@@ -89,6 +89,7 @@ def _popen_args(
         max_trials=None,
         random_seed=None,
         needed=False,
+        init_trials=False,
         print_cmd=False,
         print_trials=False,
         save_trials=None,
@@ -127,6 +128,8 @@ def _popen_args(
         args.append("--print-trials")
     if save_trials:
         args.extend(["--save-trials", save_trials])
+    if init_trials:
+        args.append("--init-trials")
     if quiet:
         args.append("--quiet")
     env = dict(os.environ)
