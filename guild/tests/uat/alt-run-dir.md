@@ -26,6 +26,7 @@ And the generated files:
     hello-default/.guild/attrs/exit_status
     hello-default/.guild/attrs/flags
     hello-default/.guild/attrs/opdef
+    hello-default/.guild/attrs/random_seed
     hello-default/.guild/attrs/run_params
     hello-default/.guild/attrs/started
     hello-default/.guild/attrs/stopped
