@@ -247,6 +247,9 @@ class Guildfile(object):
                 return m
         return None
 
+    def get_operation(self, name):
+        return self.default_model.get_operation(name)
+
     def get_test(self, name):
         for t in self.tests:
             if t.name == name:
@@ -917,11 +920,15 @@ class FlagChoice(object):
 def _init_dependencies(requires, opdef):
     if not requires:
         return []
-    if isinstance(requires, six.string_types):
+    if not isinstance(requires, list):
         requires = [requires]
     return [OpDependency(data, opdef) for data in requires]
 
 class OpDependency(object):
+
+    spec = None
+    description = None
+    inline_resource = None
 
     def __init__(self, data, opdef):
         self.opdef = opdef
@@ -929,14 +936,39 @@ class OpDependency(object):
             self.spec = data
             self.description = ""
         elif isinstance(data, dict):
-            self.spec = _required("resource", data, self.opdef.guildfile)
-            self.description = data.get("description") or ""
+            if "resource" in data:
+                self.spec = data["resource"]
+                self.description = data.get("description") or ""
+            else:
+                self.inline_resource = _init_inline_resource(data, opdef)
         else:
             raise GuildfileError(
                 self, "invalid dependency value: %r" % data)
+        # Op dependency must always be a spec or an inline resource.
+        assert self.spec or self.inline_resource
 
     def __repr__(self):
-        return "<guild.guildfile.OpDependency '%s'>" % self.spec
+        if self.inline_resource:
+            return ("<guild.guildfile.OpDependency %s>"
+                    % self.inline_resource.name)
+        else:
+            return "<guild.guildfile.OpDependency '%s'>" % self.spec
+
+def _init_inline_resource(data, opdef):
+    data = _coerce_inline_resource_data(data)
+    res = ResourceDef(data.get("name"), data, opdef.modeldef)
+    if not res.name:
+        res.name = ",".join([s.uri for s in res.sources])
+    return res
+
+def _coerce_inline_resource_data(data):
+    if "sources" in data:
+        return data
+    # If sources not explicitly provided in data, assume data is a
+    # source.
+    return {
+        "sources": [data]
+    }
 
 class NoSuchResourceError(ValueError):
 

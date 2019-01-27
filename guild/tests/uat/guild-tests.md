@@ -20,6 +20,7 @@ tests).
       cpu-plugin:                  ok
       cross-package-inheritance:   ok
       dependencies:                ok
+      dependencies-2:              ok
       disk-plugin:                 ok
       entry-points:                ok
       flagdefs:                    ok

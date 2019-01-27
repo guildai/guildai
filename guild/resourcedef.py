@@ -38,6 +38,7 @@ class ResourceFormatError(ValueError):
 class ResourceDef(object):
 
     source_types = ["file", "url", "module"]
+    default_source_type = "file"
 
     def __init__(self, name, data, fullname=None):
         self.name = name
@@ -108,7 +109,7 @@ class ResourceDef(object):
             )
             return self._source_for_type(type_name, type_val, data_copy)
         elif isinstance(data, str):
-            return self._source_for_type("file", data, {})
+            return self._source_for_type(self.default_source_type, data, {})
         else:
             raise ResourceFormatError(
                 "invalid source for resource '%s': %s"
