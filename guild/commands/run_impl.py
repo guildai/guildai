@@ -19,6 +19,7 @@ import csv
 import logging
 import os
 import pipes
+import random
 
 import click
 import yaml
@@ -92,6 +93,10 @@ def _validate_args(args):
         cli.error(
             "--rerun and --optimizr cannot both be used\n"
             "Try 'guild run --help' for more information.")
+    if args.print_trials and args.init_trials:
+        cli.error(
+            "--print-trials and --init-trials cannot both be used\n"
+            "Try 'guild run --help' for more information.")
 
 ###################################################################
 # Apply args from existing runs (restart/rerun)
@@ -160,7 +165,8 @@ def _apply_batch_run_args(run, args):
 def _gen_apply_run_args(run, args):
     _apply_run_params(run, args)
     _apply_run_opspec(run, args)
-    _apply_run_flags(run.get("flags", {}), args)
+    _apply_run_flags(run, args)
+    _apply_run_random_seed(run, args)
 
 def _apply_run_params(run, args):
     """Loads applicable run params attr and applies them to args.
@@ -175,7 +181,8 @@ def _apply_run_params(run, args):
 def _apply_run_opspec(run, args):
     args.opspec = run.opref.to_opspec()
 
-def _apply_run_flags(flags, args):
+def _apply_run_flags(run, args):
+    flags = run.get("flags", {})
     # Prepend run flag args to user provided args - last values take
     # precedence in processing later
     args.flags = _flag_args(flags) + args.flags
@@ -186,6 +193,10 @@ def _flag_args(flags):
         for name, val in sorted(flags.items())
         if val is not None
     ])
+
+def _apply_run_random_seed(run, args):
+    if args.random_seed is None:
+        args.random_seed = run.get("random_seed")
 
 ###################################################################
 # Model op (model, op_name tuple) from opspec
@@ -627,11 +638,19 @@ def _op_run_dir(args):
 
 def _op_extra_attrs(args):
     attrs = {
-        "run_params": args.as_kw()
+        "run_params": args.as_kw(),
+        "random_seed": _random_seed(args)
     }
     if args.label:
         attrs["label"] = args.label
+    if args.max_trials:
+        attrs["max_trials"] = args.max_trials
     return attrs
+
+def _random_seed(args):
+    if args.random_seed is not None:
+        return args.random_seed
+    return random.randint(0, pow(2, 32))
 
 def _op_gpus(args):
     assert not (args.no_gpus and args.gpus)
@@ -668,6 +687,7 @@ def _apply_batch_op(op, batch_files, user_flags, args):
     batch_opdef = _resolve_batch_opdef(batch_opspec)
     batch_args = _batch_op_init_args(batch_opdef, args)
     op.batch_op = _init_batch_op(batch_opdef, batch_args, batch_files)
+    _apply_batch_random_seed(op)
     _apply_batch_flag_encoder(op, user_flags)
 
 def _batch_opspec(op, batch_files, args):
@@ -718,6 +738,18 @@ def _init_batch_op(opdef, args, batch_files):
     if args.init_trials:
         op.cmd_env.update({"INIT_TRIALS_ONLY": "1"})
     return op
+
+def _apply_batch_random_seed(op):
+    """Applies batch op random seed to op.
+
+    random_seed is conveyed to each operation via `extra_attrs`, which
+    are saved when the operation is initialized. As a rule, the batch
+    and proto ops use the same random seed to ensure consistent
+    behavior across restarts.
+    """
+    assert op.batch_op
+    assert "random_seed" in op.batch_op.extra_attrs
+    op.extra_attrs["random_seed"] = op.batch_op.extra_attrs["random_seed"]
 
 def _apply_batch_flag_encoder(op, user_flags):
     """Allow a batch op to encode child op flag vals.
@@ -1116,7 +1148,7 @@ def _run_op(op, args):
     except guild.op.ProcessError as e:
         _handle_process_error(e)
     else:
-        _handle_run_exit(returncode, op)
+        _handle_run_exit(returncode, op, args)
 
 def _op_pidfile(args):
     if args.pidfile:
@@ -1134,10 +1166,12 @@ def _handle_dependency_error(e):
 def _handle_process_error(e):
     cli.error("run failed: %s" % e)
 
-def _handle_run_exit(returncode, op):
+def _handle_run_exit(returncode, op, args):
     if op.stage_only:
         _print_staged_info(op)
-    elif returncode != 0:
+    if args.init_trials:
+        op.set_pending()
+    if returncode != 0:
         cli.error(exit_status=returncode)
 
 def _print_staged_info(op):

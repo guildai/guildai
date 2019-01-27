@@ -31,7 +31,8 @@ class Run(object):
         "path",
         "short_id",
         "pid",
-        "status"
+        "status",
+        "started_or_mtime",
     ]
 
     def __init__(self, id, path):
@@ -103,6 +104,16 @@ class Run(object):
     def remote(self):
         remote_lock_file = self.guild_path("LOCK.remote")
         return util.try_read(remote_lock_file, apply=str.strip)
+
+    @property
+    def started_or_mtime(self):
+        started = self.get("started")
+        if started is not None:
+            return started
+        mtime = util.getmtime(self.path)
+        if mtime is not None:
+            mtime = int(mtime * 1000000)
+        return mtime
 
     def _remote_exit_status(self):
         status = self.get("exit_status.remote")

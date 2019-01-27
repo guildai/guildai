@@ -9,7 +9,7 @@ We'l use the `batch` sample project for our tests.
 Some helper functions:
 
     >>> def run(op, **flags):
-    ...     project.run(op, flags=flags, simplify_trials_output=True)
+    ...     project.run(op, flags=flags, simplify_trial_output=True)
 
 ## Normal runs
 
@@ -37,6 +37,7 @@ The files generated for our run:
     .guild/attrs/exit_status
     .guild/attrs/flags
     .guild/attrs/opdef
+    .guild/attrs/random_seed
     .guild/attrs/run_params
     .guild/attrs/started
     .guild/attrs/stopped
@@ -122,6 +123,7 @@ The latest run is the trial:
     .guild/attrs/flags
     .guild/attrs/label
     .guild/attrs/opdef
+    .guild/attrs/random_seed
     .guild/attrs/run_params
     .guild/attrs/started
     .guild/attrs/stopped
@@ -145,6 +147,7 @@ Its files:
     .guild/attrs/exit_status
     .guild/attrs/flags
     .guild/attrs/opdef
+    .guild/attrs/random_seed
     .guild/attrs/run_params
     .guild/attrs/started
     .guild/attrs/stopped
@@ -156,6 +159,7 @@ Its files:
     .guild/proto/.guild/attrs/compare
     .guild/proto/.guild/attrs/flags
     .guild/proto/.guild/attrs/opdef
+    .guild/proto/.guild/attrs/random_seed
     .guild/proto/.guild/attrs/run_params
     .guild/proto/.guild/opref
     .guild/trials

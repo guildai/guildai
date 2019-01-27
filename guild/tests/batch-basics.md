@@ -14,7 +14,7 @@ A helper to run project ops:
     ...         batch_files=batches,
     ...         label=label,
     ...         print_trials=print_trials,
-    ...         simplify_trials_output=True)
+    ...         simplify_trial_output=True)
 
 We start with no runs:
 

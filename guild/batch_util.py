@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import hashlib
 import json
 import logging
 import os
 import random
 import re
 import sys
+import time
 
 import six
 from six.moves import shlex_quote
@@ -51,18 +51,9 @@ class Trial(object):
     def __init__(self, batch, flags, run_id=None):
         self.batch = batch
         self.flags = flags
-        self._flags_hash = self._init_flags_hash(flags)
+        self._flags_hash = op_util.flags_hash(flags)
         self.run_id = run_id or runlib.mkid()
         self._trial_link = os.path.join(self.batch.batch_run.path, self.run_id)
-
-    @staticmethod
-    def _init_flags_hash(flags):
-        flag_parts = [
-            "%s:%s" % (name, op_util.format_flag_val(val))
-            for name, val in sorted(flags.items())
-        ]
-        to_hash = "\n".join(flag_parts).encode()
-        return hashlib.md5(to_hash).hexdigest()
 
     def flags_match(self, trial):
         return self._flags_hash == trial._flags_hash
@@ -170,32 +161,11 @@ class Batch(object):
 
     @property
     def max_trials(self):
-        return self._get_run_param("max_trials")
+        return self.batch_run.get("max_trials")
 
     @property
     def random_seed(self):
-        """Random seed associated with batch.
-
-        Guaranteed to return the same non-None value for any given
-        batch.
-        """
-        return util.find_apply([
-            lambda: self._get_run_param("random_seed"),
-            self._gen_persistent_random_seed])
-
-    def _get_run_param(self, name):
-        return self.batch_run.get("run_params", {}).get(name)
-
-    def _gen_persistent_random_seed(self):
-        """Generates a new random seed and saves it as _random_seed atts.
-
-        The batch needs a consistent random seed for restarts - to
-        ensure consistent trial generation for a given set of
-        inputs. If we need to generated a seed, we save it for subsequent use.
-        """
-        val = random.randint(0, pow(2, 32))
-        self.batch_run.write_attr("_random_seed", val)
-        return val
+        return self.batch_run.get("random_seed")
 
     @property
     def proto_opdef_data(self):
@@ -251,6 +221,7 @@ class Batch(object):
         self._write_index(index)
         for trial in index:
             trial.init()
+            self._trial_init_wait_state()
 
     def _load_index(self, filter_existing=False):
         if not os.path.exists(self._index_path):
@@ -273,14 +244,16 @@ class Batch(object):
             return True
 
     def _remove_missing_trials(self, trials, index):
-        return [
-            candidate for candidate in index
-            if not self._in_trials(candidate, trials)]
+        """Removes any trials in index that aren't in trials.
 
-    @staticmethod
-    def _delete_pending_trials(trials):
-        for trial in trials:
-            trial.delete_pending_run()
+        Returns the list of removed trials.
+        """
+        removed = []
+        for trial in list(index):
+            if not self._in_trials(trial, trials):
+                index.remove(trial)
+                removed.append(trial)
+        return removed
 
     @staticmethod
     def _in_trials(candidate, trials):
@@ -288,6 +261,11 @@ class Batch(object):
             if trial.flags_match(candidate):
                 return True
         return False
+
+    @staticmethod
+    def _delete_pending_trials(trials):
+        for trial in trials:
+            trial.delete_pending_run()
 
     @staticmethod
     def _sync_run_ids(index):
@@ -313,6 +291,17 @@ class Batch(object):
         with open(self._index_path, "w") as f:
             json.dump(data, f)
 
+    @staticmethod
+    def _trial_init_wait_state():
+        """Wait for a short period after initializing a trial.
+
+        This wait state lets (non guaranteed but highlight likely)
+        each trial directory get an incrementing mtime from the
+        OS. This is used for (pseudo) deterministic sorting of
+        generated trials using their run dir mtime attrs.
+        """
+        time.sleep(0.01)
+
     def run_trials(self):
         index = self._load_index()
         for trial in index:
@@ -324,11 +313,11 @@ class Batch(object):
 def default_main(gen_trials_cb, default_max_trials=DEFAULT_MAX_TRIALS):
     init_logging()
     try:
-        _default_main(gen_trials_cb, default_max_trials)
+        _default_main_impl(gen_trials_cb, default_max_trials)
     except BatchError as e:
         op_util.exit(str(e))
 
-def _default_main(gen_trials_cb, default_max_trials):
+def _default_main_impl(gen_trials_cb, default_max_trials):
     batch = init_batch()
     trials = batch.gen_trials(gen_trials_cb, default_max_trials)
     if os.getenv("PRINT_TRIALS") == "1":

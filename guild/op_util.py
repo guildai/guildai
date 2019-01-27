@@ -14,6 +14,7 @@
 
 import fnmatch
 import csv
+import hashlib
 import logging
 import re
 import os
@@ -809,3 +810,11 @@ def _coerce_run_param(name, val):
     if name == "flags":
         return tuple(val)
     return val
+
+def flags_hash(flags):
+    flag_parts = [
+        "%s:%s" % (name, format_flag_val(val))
+        for name, val in sorted(flags.items())
+    ]
+    to_hash = "\n".join(flag_parts).encode()
+    return hashlib.md5(to_hash).hexdigest()

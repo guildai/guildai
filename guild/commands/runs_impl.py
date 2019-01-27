@@ -66,6 +66,7 @@ CORE_RUN_ATTRS = [
     "flags",
     "label",
     "opdef",
+    "random_seed",
     "run_params",
     "started",
     "steps",
@@ -89,7 +90,7 @@ def runs_for_args(args, ctx=None, force_deleted=False):
 def filtered_runs(args, force_deleted=False):
     return var.runs(
         _runs_root_for_args(args, force_deleted),
-        sort=["-started"],
+        sort=["-started_or_mtime"],
         filter=_runs_filter(args))
 
 def _runs_root_for_args(args, force_deleted):
