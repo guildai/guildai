@@ -10,7 +10,6 @@ include `common.yml`.
 
 Let's look at `a.yml`.
 
-    >>> from guild import guildfile
     >>> gf = guildfile.from_file(sample("projects/includes/a.yml"))
 
 As model 'a' extends 'base' it inherits its flags:

@@ -30,7 +30,6 @@ logger prior to capturing logs:
 
 Let's load the sample project:
 
-    >>> from guild import guildfile
     >>> with LogCapture() as log:
     ...     gf = guildfile.from_dir(project_dir)
     ...     log.print_all()

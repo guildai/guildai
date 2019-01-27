@@ -50,6 +50,7 @@ import tempfile
 
 from guild import _api as gapi
 from guild import cli
+from guild import guildfile
 from guild import init
 from guild import op_util
 from guild import util
@@ -202,6 +203,7 @@ def _test_globals():
         "exists": os.path.exists,
         "find": find,
         "gapi": gapi,
+        "guildfile": guildfile,
         "join_path": os.path.join,
         "mkdir": os.mkdir,
         "mkdtemp": mkdtemp,

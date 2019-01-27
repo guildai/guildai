@@ -5,7 +5,6 @@ These tests examine flag defs in more detail than in
 
 Here's a helper function to parse a string into a flag def:
 
-    >>> from guild import guildfile
     >>> import yaml
 
     >>> def flagdef(s, name="flag"):

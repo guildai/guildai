@@ -12,7 +12,6 @@ provides an interface suitable for testing.
 We'll use the sample project `copy-source` to illustrate the supported
 copy behavior.
 
-    >>> from guild import guildfile
     >>> gf = guildfile.from_dir(sample("projects/copy-source"))
 
 The project contains these models:

@@ -2,7 +2,6 @@
 
 An anonymous model a model that has an empty name ('').
 
-    >>> from guild import guildfile
     >>> gf = guildfile.from_string("""
     ... - model: ''
     ... """)
