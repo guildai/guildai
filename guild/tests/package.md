@@ -30,7 +30,6 @@ Our workspace:
 The package we'll build is defined in the project guildfile. Let's
 load that.
 
-    >>> from guild import guildfile
     >>> gf = guildfile.from_dir(workspace)
 
 We can access the package definition using the `package` attribute:

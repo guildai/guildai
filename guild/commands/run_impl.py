@@ -726,7 +726,6 @@ def _batch_op_init_args(opdef, args):
     params["restart"] = None
     params["rerun"] = None
     params["optimizer"] = None
-    params["needed"] = False
     params["minimize"] = None
     params["maximize"] = None
     args = click_util.Args(**params)
@@ -1005,7 +1004,8 @@ def _run_local(op, args):
 
 def _run_batch(op, args):
     _init_batch_run(op)
-    return _run_op(op.batch_op, args)
+    _check_needed(op.batch_op, args)
+    _run_op(op.batch_op, args)
 
 def _init_batch_run(op):
     batches = _batches_attr(op.batch_op.batch_files)

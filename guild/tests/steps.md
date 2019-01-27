@@ -9,7 +9,6 @@ We'll use the sample project 'steps' to illustrate the behavior.
 
 Here's the project Guild file:
 
-    >>> from guild import guildfile
     >>> gf = guildfile.from_dir(project)
 
 Here are the suported models:

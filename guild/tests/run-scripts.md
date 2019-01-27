@@ -23,7 +23,6 @@ Here are the files in the project:
 
 The Guild file:
 
-    >>> from guild import guildfile
     >>> gf = guildfile.from_dir(project)
 
 The Guild file in this example uses an anonymous model to define

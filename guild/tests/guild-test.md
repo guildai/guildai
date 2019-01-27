@@ -34,7 +34,6 @@ Here's a helper function to run tests:
 
 Let's first example the tests defined in the project.
 
-    >>> from guild import guildfile
     >>> gf = guildfile.from_dir(project_dir)
     >>> gf.tests
     [<guild.guildfile.TestDef 'output-1'>,

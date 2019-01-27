@@ -24,7 +24,6 @@ We'll use the sample project `flags-dest` to illustrate.
 This project uses a Guild file with an anonymous model to define
 operations that we can test.
 
-    >>> from guild import guildfile
     >>> gf = guildfile.from_dir(project)
 
 The anonymous model:

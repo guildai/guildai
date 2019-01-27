@@ -10,7 +10,6 @@ operations.
 To illustrate, we'll define a model operation that requires a
 resource:
 
-    >>> from guild import guildfile
     >>> gf = guildfile.from_string("""
     ... - model: sample
     ...   operations:

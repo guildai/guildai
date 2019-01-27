@@ -7,8 +7,6 @@ Operation support is implemented by the `op` module:
 For our tests, we'll use a helper function that returns an instance of
 `guild.guildfile.OpDef`:
 
-    >>> from guild import guildfile
-
     >>> def OpDef(main, name="op", extra_data=None, gf_src=None):
     ...   op_data = {
     ...     "main": main

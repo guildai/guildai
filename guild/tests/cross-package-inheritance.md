@@ -3,10 +3,6 @@
 These tests cover the **Extending packages** topic in `guildfiles.md`
 in more depth.
 
-We'll work with the `guildfile` interface:
-
-    >>> from guild import guildfile
-
 Guild is a system that enables reuse of project configuration by way
 of *model extension*.
 
