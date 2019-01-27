@@ -1,10 +1,48 @@
-prepare:
-  exec: base -c 'echo abc123 > data'
+print-msg:
+  exec: cat msg.txt
+  requires:
+    - file: msg.txt
 
-train:
-  requires: pepare
-  exec: cp data model
+print-msg-2:
+  exec: cat msg.txt
+  requires:
+    operation: print-msg
 
-evaluate:
-  requires: train
-  exec: cat model
+print-msg-3:
+  exec: cat msg-1.txt msg-2.txt
+  requires:
+    - file: msg.txt
+      rename: msg.txt msg-1.txt
+    - file: msg-2.txt
+      sha256: 3000dfe470d85e4b32dc78f083da866f24d6183c48d83b42b36da98e64701ade
+
+print-msg-4:
+  exec: cat messages/msg.txt messages/msg-2.txt
+  requires:
+    path: messages
+    sources:
+      - msg.txt
+      - msg-2.txt
+
+test-all:
+  steps:
+    - run: print-msg
+      expect:
+        - file: msg.txt
+          compare-to: ${MODEL_DIR}/msg.txt
+    - run: print-msg-2
+      expect:
+        - file: msg.txt
+          compare-to: ${MODEL_DIR}/msg.txt
+    - run: print-msg-3
+      expect:
+        - file: msg-1.txt
+          compare-to: ${MODEL_DIR}/msg.txt
+        - file: msg-2.txt
+          compare-to: ${MODEL_DIR}/msg-2.txt
+    - run: print-msg-4
+      expect:
+        - file: messages/msg.txt
+          compare-to: ${MODEL_DIR}/msg.txt
+        - file: messages/msg-2.txt
+          compare-to: ${MODEL_DIR}/msg-2.txt

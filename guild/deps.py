@@ -164,7 +164,7 @@ def _dep_desc(dep):
 def resolve(dependencies, ctx):
     resolved = {}
     for res in resources(dependencies, ctx):
-        log.info("Resolving %s dependency", res.dependency)
+        log.info("Resolving %s dependency", res.resdef.name)
         resolved_sources = res.resolve()
         log.debug(
             "resolved sources for %s: %r",
@@ -179,6 +179,8 @@ def resources(dependencies, ctx):
     return [_dependency_resource(dep, flag_vals, ctx) for dep in dependencies]
 
 def _dependency_resource(dep, flag_vals, ctx):
+    if dep.inline_resource:
+        return _inline_resource(dep.inline_resource, ctx)
     spec = util.resolve_refs(dep.spec, flag_vals)
     try:
         res = util.find_apply(
@@ -197,6 +199,9 @@ def _dependency_resource(dep, flag_vals, ctx):
     raise DependencyError(
         "invalid dependency '%s' in operation '%s'"
         % (spec, ctx.opdef.fullname))
+
+def _inline_resource(resdef, ctx):
+    return Resource(resdef, resdef.modeldef.guildfile.dir, ctx)
 
 def _model_resource(spec, ctx):
     m = re.match(r"(%s)$" % RESOURCE_TERM, spec)
