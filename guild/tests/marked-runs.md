@@ -149,6 +149,11 @@ Here are the marked runs:
     >>> project.print_runs(project.list_runs(marked=True), flags=True)
     train  lr=0.1
 
+And the `marked` attribute:
+
+    >>> explicit_train_run.get("marked")
+    True
+
 And run serve, this time without an explicit train run:
 
     >>> project.run("serve")
@@ -177,6 +182,11 @@ serve run once again uses the latest trian run for its dependency.
 We no longer have marked runs:
 
     >>> project.print_runs(project.list_runs(marked=True))
+
+And the `marked` attr:
+
+    >>> print(explicit_train_run.get("marked"))
+    None
 
 Our runs:
 
