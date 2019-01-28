@@ -242,10 +242,7 @@ class MacBuild(Build):
 
     def _install_build_deps_cmd(self):
         default_lines = super(MacBuild, self)._install_build_deps_cmd()
-        mac_lines = [
-            "brew update-reset",
-            "brew upgrade",
-        ]
+        mac_lines = []
         mac_lines.extend(self._python_install_cmd())
         return mac_lines + default_lines
 
