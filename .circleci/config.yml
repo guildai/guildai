@@ -161,7 +161,11 @@ jobs:
         keys:
         - macos-python-2.7-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'sudo -H pip install --upgrade pip | cat
+        command: 'brew update-reset
+
+          brew upgrade
+
+          sudo -H pip install --upgrade pip | cat
 
           sudo -H pip install --upgrade virtualenv | cat
 
@@ -173,11 +177,7 @@ jobs:
 
           pip install --upgrade grpcio==1.9.1 tensorflow | cat
 
-          cd guild/view && npm install
-
-          brew update-reset
-
-          brew upgrade'
+          cd guild/view && npm install'
         name: Install build dependencies
     - save_cache:
         key: macos-python-2.7-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
@@ -216,7 +216,11 @@ jobs:
         keys:
         - macos-python-3.6-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'brew unlink python
+        command: 'brew update-reset
+
+          brew upgrade
+
+          brew unlink python
 
           brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb > /dev/null
 
@@ -232,11 +236,7 @@ jobs:
 
           pip3 install --upgrade grpcio==1.9.1 tensorflow | cat
 
-          cd guild/view && npm install
-
-          brew update-reset
-
-          brew upgrade'
+          cd guild/view && npm install'
         name: Install build dependencies
     - save_cache:
         key: macos-python-3.6-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
