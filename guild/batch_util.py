@@ -54,6 +54,7 @@ class Trial(object):
         self._flags_hash = op_util.flags_hash(flags)
         self.run_id = run_id or runlib.mkid()
         self._trial_link = os.path.join(self.batch.batch_run.path, self.run_id)
+        self.skip = False
 
     def flags_match(self, trial):
         return self._flags_hash == trial._flags_hash
@@ -74,11 +75,6 @@ class Trial(object):
         run_dir = os.path.realpath(self._trial_link)
         run_id = os.path.basename(run_dir)
         return runlib.Run(run_id, run_dir)
-
-    def is_run_deleted(self):
-        return (
-            os.path.exists(self._trial_link) and
-            not os.path.exists(os.path.realpath(self._trial_link)))
 
     def init(self, run_dir=None, quiet=False):
         trial_run = self._init_trial_run(run_dir)
@@ -118,6 +114,12 @@ class Trial(object):
             for name in sorted(self.flags)
         ]
 
+    def run_needed(self):
+        run = self._trial_run()
+        if not run:
+            return True
+        return op_util.restart_needed(run, self.flags)
+
     def run(self, quiet=False, **kw):
         trial_run = self._trial_run()
         if not trial_run:
@@ -151,6 +153,7 @@ class Batch(object):
         self.proto_run = self._init_proto_run()
         self._proto_opdef_data = None
         self._index_path = batch_run.guild_path("trials")
+        self._needed_only = os.getenv("NEEDED_TRIALS_ONLY") == "1"
 
     def _init_proto_run(self):
         proto_path = self.batch_run.guild_path("proto")
@@ -220,6 +223,11 @@ class Batch(object):
         self._add_new_trials(trials, index)
         self._write_index(index)
         for trial in index:
+            if self._needed_only and not trial.run_needed():
+                log.info(
+                    "Skipping trial %s because flags have not "
+                    "changed (--needed specified)", trial.run_id)
+                continue
             trial.init()
             self._trial_init_wait_state()
 
@@ -305,8 +313,8 @@ class Batch(object):
     def run_trials(self):
         index = self._load_index()
         for trial in index:
-            if trial.is_run_deleted():
-                log.info("trial %s deleted, skipping", trial.run_id)
+            if self._needed_only and not trial.run_needed():
+                log.debug("skipping trial %s", trial.run_id)
                 continue
             trial.run()
 
