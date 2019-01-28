@@ -36,6 +36,7 @@ tests).
       logging:                     ok
       ls-cmd:                      ok
       main-bootstrap:              ok
+      marked-runs:                 ok
       memory-plugin:               ok
       models:                      ok
       namespaces:                  ok
