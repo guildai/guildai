@@ -19,57 +19,47 @@ import click
 
 from guild import click_util
 
-from . import remote_support
 from . import runs_support
 
-def runs_stop_params(fn):
+def mark_params(fn):
     click_util.append_params(fn, [
         runs_support.runs_arg,
         runs_support.op_and_label_filters,
-        remote_support.remote_option("Stop remote runs."),
+        runs_support.status_filters,
         click.Option(
-            ("-y", "--yes"),
-            help="Do not prompt before stopping.",
+            ("-c", "--clear"),
+            help="Clear the run's selected designation.",
             is_flag=True),
         click.Option(
-            ("-n", "--no-wait"),
-            help="Don't wait for remote runs to stop.",
+            ("-y", "--yes"),
+            help="Do not prompt before modifying runs.",
             is_flag=True),
     ])
     return fn
 
-@click.command(name="stop")
-@runs_stop_params
+@click.command("mark")
+@mark_params
 
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
 
-def stop_runs(ctx, args):
-    """Stop one or more runs.
+def mark_runs(ctx, args):
+    """Mark a run.
 
-    Runs are stopped by specifying one or more RUN arguments. See
-    SPECIFYING RUNS and FILTER topics for information on specifying
-    runs to be stopped.
+    Marked runs are used to resolve operation dependencies. If a run
+    for a required operation is marked, it is used rather than the
+    latest run.
 
-    Only runs with status of 'running' are considered for this
-    operation.
+    Marked runs may be viewed when listing runs using the `--marked`
+    option.
 
-    If a `RUN` is not specified, the latest selected run is stopped.
+    To unmark the run, use `--clear`.
 
-    {{ runs_support.runs_arg }}
+    {{ runs_support.run_arg }}
 
-    If a `RUN` argument is not specified, ``0`` is assumed (the most
-    recent run with status 'running').
-
-    {{ runs_support.op_and_label_filters }}
-
-    ### Stopping remote runs
-
-    To stop remote runs, use `--remote`.
-
-    {{ remote_support.remote_option }}
+    If `RUN` isn't specified, the latest run is used.
 
     """
     from . import runs_impl
-    runs_impl.stop_runs(args, ctx)
+    runs_impl.mark(args, ctx)

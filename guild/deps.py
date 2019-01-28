@@ -171,7 +171,7 @@ def resolve(dependencies, ctx):
             res.dependency, resolved_sources)
         if not resolved_sources:
             log.warning("Nothing resolved for %s dependency", res.dependency)
-        resolved.setdefault(res.dependency, []).extend(resolved_sources)
+        resolved.setdefault(res.resdef.name, []).extend(resolved_sources)
     return resolved
 
 def resources(dependencies, ctx):

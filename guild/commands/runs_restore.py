@@ -37,10 +37,10 @@ from . import runs_support
 def restore_runs(ctx, args):
     """Restore one or more deleted runs.
 
-    Runs are restored by selecting them with `RUN` arguments. If a
-    `RUN` argument is not specified, all runs matching the filter
-    criteria are restored. See SELECTING RUNS and FILTERING topics
-    below for more information on how runs are selected.
+    Runs are restored using `RUN` arguments. If a `RUN` argument is
+    not specified, all runs matching the filter criteria are
+    restored. See SPECIFYING RUNS and FILTERING topics for more
+    information.
 
     Use ``guild runs list --deleted`` for a list of runs that can be
     restored.

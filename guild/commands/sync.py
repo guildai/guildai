@@ -51,9 +51,8 @@ def sync(args):
     terminated, or exits with an error), Guild will no longer
     synchronize with it.
 
-    You can synchronize specific runs by selecting them using `RUN`
-    arguments. For more information, see SELECTING RUNS and FILTERING
-    topics below.
+    You can synchronize specific runs using `RUN` arguments. For more
+    information, see SPECIFYING RUNS and FILTERING topics.
 
     {{ runs_support.runs_arg }}
 

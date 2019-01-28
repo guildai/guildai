@@ -40,10 +40,10 @@ from . import runs_support
 def delete_runs(ctx, args):
     """Delete one or more runs.
 
-    Runs are deleting by selecting them with `RUN` arguments. If a
-    `RUN` argument is not specified, all runs matching the filter
-    criteria are deleted. See SELECTING RUNS and FILTERING topics
-    below for more information on how runs are selected.
+    Runs are deleting by specifying `RUN` arguments. If a `RUN`
+    argument is not specified, all runs matching the filter criteria
+    are deleted. See SPECIFYING RUNS and FILTERING topics for more
+    information on how runs are selected.
 
     By default, Guild will display the list of runs to be deleted and
     ask you to confirm the operation. If you want to delete the runs

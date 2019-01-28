@@ -165,6 +165,7 @@ def runs_list(
         unlabeled=False,
         all=False,
         deleted=False,
+        marked=False,
         cwd=".",
         guild_home=None):
     from guild import click_util
@@ -175,7 +176,8 @@ def runs_list(
         labels=(labels or []),
         unlabeled=unlabeled,
         all=all,
-        deleted=deleted)
+        deleted=deleted,
+        marked=marked)
     _apply_status_filters(status, args)
     with Env(cwd, guild_home):
         return runs_impl.filtered_runs(args)
@@ -236,3 +238,15 @@ def current_run():
     if not path:
         raise NoCurrentRun()
     return guild.run.Run(os.getenv("RUN_ID"), path)
+
+def mark(run, clear=False, cwd=".", guild_home=None):
+    from guild import click_util
+    from guild.commands import mark
+    from guild.commands import runs_impl
+    args = [run, "--yes"]
+    if clear:
+        args.append("--clear")
+    ctx = mark.mark.make_context("", args)
+    args = click_util.Args(**ctx.params)
+    with Env(cwd, guild_home):
+        return runs_impl.mark(args, ctx)

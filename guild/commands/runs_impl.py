@@ -46,6 +46,7 @@ RUN_DETAIL = [
     "status",
     "started",
     "stopped",
+    "marked",
     "label",
     "run_dir",
     "command",
@@ -65,6 +66,7 @@ CORE_RUN_ATTRS = [
     "exit_status.remote",
     "flags",
     "label",
+    "marked",
     "opdef",
     "random_seed",
     "run_params",
@@ -107,6 +109,7 @@ def _runs_filter(args):
     _apply_status_filter(args, filters)
     _apply_ops_filter(args, filters)
     _apply_labels_filter(args, filters)
+    _apply_marked_filter(args, filters)
     return var.run_filter("all", filters)
 
 def _apply_status_filter(args, filters):
@@ -144,6 +147,15 @@ def _label_filter(labels):
 def _unlabeled_filter():
     def f(run):
         return not run.get("label", "").strip()
+    return f
+
+def _apply_marked_filter(args, filters):
+    if args.marked:
+        filters.append(_marked_filter())
+
+def _marked_filter():
+    def f(run):
+        return bool(run.get("marked"))
     return f
 
 def select_runs(runs, select_specs, ctx=None):
@@ -222,6 +234,7 @@ def _listed_run_json_data(run):
     return _run_data(run, (
         "exit_status",
         "cmd",
+        "marked",
         "label",
         "started",
         "status",
@@ -254,7 +267,12 @@ def _list_formatted_runs(runs, args):
         else:
             formatted.append(formatted_run)
     limited_formatted = _limit_runs(formatted, args)
-    cols = ["index", "operation", "started", "status_with_remote", "label"]
+    cols = [
+        "index",
+        "operation_with_marked",
+        "started",
+        "status_with_remote",
+        "label"]
     detail = RUN_DETAIL if args.verbose else None
     cli.table(limited_formatted, cols=cols, detail=detail)
 
@@ -280,16 +298,20 @@ def _no_selected_runs_error(help_msg=None):
 
 def format_run(run, index=None):
     status = run.status
+    operation = op_util.format_op_desc(run)
+    marked = bool(run.get("marked"))
     return {
         "id": run.id,
         "index": _format_run_index(run, index),
         "short_index": _format_run_index(run),
         "model": run.opref.model_name,
         "op_name": run.opref.op_name,
-        "operation": op_util.format_op_desc(run),
+        "operation": operation,
+        "operation_with_marked": _op_with_marked(operation, marked),
         "pkg": run.opref.pkg_name,
         "status": status,
         "status_with_remote": _status_with_remote(status, run.remote),
+        "marked": _format_val(marked),
         "label": run.get("label") or "",
         "pid": run.pid or "",
         "started": util.format_timestamp(run.get("started")),
@@ -305,11 +327,25 @@ def _format_run_index(run, index=None):
     else:
         return "[%s]" % run.short_id
 
+def _op_with_marked(operation, marked):
+    if marked:
+        return operation + " *"
+    return operation
+
 def _status_with_remote(status, remote):
     if remote:
         return "{} ({})".format(status, remote)
     else:
         return status
+
+def _format_label(run):
+    parts = []
+    if run.get("selected"):
+        parts.append("*")
+    label = run.get("label")
+    if label:
+        parts.append(label)
+    return " ".join(parts)
 
 def _format_command(cmd):
     if not cmd:
@@ -355,7 +391,7 @@ def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
     if not args.yes:
         cli.out(preview_msg)
         cols = [
-            "short_index", "operation", "started",
+            "short_index", "operation_with_marked", "started",
             "status_with_remote", "label"]
         cli.table(preview, cols=cols, indent=2)
     formatted_confirm_prompt = confirm_prompt.format(count=len(preview))
@@ -769,3 +805,33 @@ def pull(args, ctx):
         args, ctx, False, preview, confirm,
         no_runs, pull_f, ALL_RUNS_ARG, True,
         filtered_runs_f)
+
+def mark(args, ctx):
+    if args.clear:
+        _clear_marked(args, ctx)
+    else:
+        _mark(args, ctx)
+
+def _clear_marked(args, ctx):
+    preview = "You are about to unmark the following runs:"
+    confirm = "Continue?"
+    no_runs = "No runs to modify."
+    def clear(selected):
+        for run in selected:
+            run.del_attr("marked")
+        cli.out("Unmarked %i run(s)" % len(selected))
+    _runs_op(
+        args, ctx, False, preview, confirm, no_runs,
+        clear, LATEST_RUN_ARG, True)
+
+def _mark(args, ctx):
+    preview = "You are about to mark the following runs:"
+    confirm = "Continue?"
+    no_runs = "No runs to modify."
+    def mark(selected):
+        for run in selected:
+            run.write_attr("marked", True)
+        cli.out("Marked %i run(s)" % len(selected))
+    _runs_op(
+        args, ctx, False, preview, confirm, no_runs,
+        mark, LATEST_RUN_ARG, True)

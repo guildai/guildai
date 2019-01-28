@@ -39,11 +39,10 @@ def purge_runs(ctx, args):
 
     **WARNING**: Purged runs cannot be recovered!
 
-    Runs are purged (i.e. permanently deleted) by selecting them with
-    `RUN` arguments. If a `RUN` argument is not specified, all runs
-    matching the filter criteria are purged. See SELECTING RUNS and
-    FILTERING topics below for more information on how runs are
-    selected.
+    Runs are purged (i.e. permanently deleted) by specifying `RUN`
+    arguments. If a `RUN` argument is not specified, all runs matching
+    the filter criteria are purged. See SPECIFYING RUNS and FILTERING
+    topics for more information on how runs are selected.
 
     Use ``guild runs list --deleted`` for a list of runs that can be
     purged.
