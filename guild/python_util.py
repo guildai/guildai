@@ -102,8 +102,12 @@ def _try_param_val(val):
         return val.n
     elif isinstance(val, ast.Str):
         return val.s
-    else:
-        return None
+    elif isinstance(val, ast.Name):
+        if val.id == "True":
+            return True
+        elif val.id == "False":
+            return False
+    return None
 
 class Call(object):
 
