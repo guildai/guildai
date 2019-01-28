@@ -18,7 +18,7 @@ import yaml
 
 class Build(object):
 
-    cache_scheme_version = 13
+    cache_scheme_version = 14
 
     name = None
     python = None
@@ -242,6 +242,10 @@ class MacBuild(Build):
 
     def _install_build_deps_cmd(self):
         lines = super(MacBuild, self)._install_build_deps_cmd()
+        lines.extend([
+            "brew update-reset",
+            "brew upgrade",
+        ])
         if self.python == "2.7":
             # 2.7 is default on OSX
             pass
