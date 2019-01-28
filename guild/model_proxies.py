@@ -153,7 +153,7 @@ class PythonScriptModelProxy(object):
 
     def _flags_data(self):
         plugin = plugins.for_name("flags")
-        return plugin._flags_data_for_path(self.script, ".")
+        return plugin.flags_data_for_path(self.script, ".")
 
 class KerasScriptModelProxy(PythonScriptModelProxy):
 
