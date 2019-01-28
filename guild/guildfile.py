@@ -954,11 +954,15 @@ class OpDependency(object):
         else:
             return "<guild.guildfile.OpDependency '%s'>" % self.spec
 
+    @property
+    def name(self):
+        return self.spec or self.inline_resource.name
+
 def _init_inline_resource(data, opdef):
     data = _coerce_inline_resource_data(data)
     res = ResourceDef(data.get("name"), data, opdef.modeldef)
     if not res.name:
-        res.name = ",".join([s.uri for s in res.sources])
+        res.name = ",".join([s.name for s in res.sources])
     return res
 
 def _coerce_inline_resource_data(data):

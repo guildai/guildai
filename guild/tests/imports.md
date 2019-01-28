@@ -54,6 +54,7 @@
     guild.commands.ls_impl
     guild.commands.main
     guild.commands.main_impl
+    guild.commands.mark
     guild.commands.models
     guild.commands.models_impl
     guild.commands.new
@@ -91,6 +92,7 @@
     guild.commands.runs_info
     guild.commands.runs_label
     guild.commands.runs_list
+    guild.commands.runs_mark
     guild.commands.runs_pull
     guild.commands.runs_purge
     guild.commands.runs_push

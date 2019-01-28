@@ -131,7 +131,7 @@ class _RunOp(object):
         except opreflib.OpRefError:
             raise Failed("invalid operation %r" % op_spec)
         else:
-            return resolver.latest_run([opref])
+            return resolver.select_or_latest_run([opref])
 
     def _run_op(self, op_spec, gpus):
         _status("Running operation %s" % op_spec)

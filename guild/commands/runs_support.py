@@ -20,11 +20,12 @@ import click
 from guild import click_util
 
 def runs_arg(fn):
-    """### Selecting runs
+    """### Specifying runs
 
-    You may use one or more `RUN` arguments to limit the runs that are
-    selected. `RUN` may be a run ID, a run ID prefix, or a one-based
-    index corresponding to a run returned by the list command.
+    You may use one or more `RUN` arguments to indicate which runs
+    apply to the command. `RUN` may be a run ID, a run ID prefix, or a
+    one-based index corresponding to a run returned by the list
+    command.
 
     Indexes may also be specified in ranges in the form `START:END`
     where `START` is the start index and `END` is the end
@@ -41,7 +42,7 @@ def runs_arg(fn):
     return fn
 
 def run_arg(fn):
-    """### Selecting a run
+    """### Specifying a run
 
     You may specify a run using a run ID, a run ID prefix, or a
     one-based index corresponding to a run returned by the list
@@ -69,6 +70,8 @@ def op_and_label_filters(fn):
     Use `--unlabeled` to only include runs without labels. This option
     may not be used with `--label`.
 
+    Use `--marked` to only include marked runs.
+
     """
     click_util.append_params(fn, [
         click.Option(
@@ -80,9 +83,13 @@ def op_and_label_filters(fn):
             help="Include runs with labels matching `VAL`.",
             multiple=True),
         click.Option(
-            ("-u", "--unlabeled"),
+            ("--unlabeled",),
             help="Include only runs without labels.",
-            is_flag=True)
+            is_flag=True),
+        click.Option(
+            ("--marked",),
+            help="Include only marked runs.",
+            is_flag=True),
     ])
     return fn
 

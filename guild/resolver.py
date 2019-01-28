@@ -214,20 +214,20 @@ class OperationOutputResolver(Resolver):
                 "Using output in %s for %s resource",
                 run_spec, self.source.resdef.name)
             return run_spec
-        run = self._latest_op_run(run_spec)
+        run = self._resolve_op_run(run_spec)
         log.info(
             "Using output from run %s for %s resource",
             run.id, self.source.resdef.name)
         return run.path
 
-    def _latest_op_run(self, run_id_prefix):
+    def _resolve_op_run(self, run_id_prefix):
         oprefs = self._source_oprefs()
-        latest = latest_run(oprefs, run_id_prefix)
-        if not latest:
+        run = marked_or_latest_run(oprefs, run_id_prefix)
+        if not run:
             raise ResolutionError(
                 "no suitable run for %s"
                 % ",".join([self._opref_desc(opref) for opref in oprefs]))
-        return latest
+        return run
 
     def _source_oprefs(self):
         oprefs = []
@@ -255,12 +255,15 @@ class OperationOutputResolver(Resolver):
             "{}:{}".format(model_spec, opref.op_name)
             if model_spec else opref.op_name)
 
-def latest_run(oprefs, run_id_prefix=None):
+def marked_or_latest_run(oprefs, run_id_prefix=None):
     runs = matching_runs(oprefs, run_id_prefix)
     log.debug("runs for %s: %s", oprefs, runs)
-    if runs:
-        return runs[0]
-    return None
+    if not runs:
+        return None
+    for run in runs:
+        if run.get("marked"):
+            return run
+    return runs[0]
 
 def matching_runs(oprefs, run_id_prefix=None):
     oprefs = [_resolve_opref(opref) for opref in oprefs]

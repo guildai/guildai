@@ -455,3 +455,10 @@ class Project(object):
     @staticmethod
     def cat(run, path):
         cat(os.path.join(run.path, path))
+
+    def mark(self, run, **kw):
+        gapi.mark(
+            run,
+            cwd=self.cwd,
+            guild_home=self.guild_home,
+            **kw)

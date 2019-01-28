@@ -578,7 +578,7 @@ def _ref_vars_for_resource_lookup(parsed_run_args, opdef):
 
 def _is_resource(name, opdef, ref_vars):
     for dep in opdef.dependencies:
-        resolved_spec = util.resolve_refs(dep.spec, ref_vars, undefined=None)
+        resolved_spec = util.resolve_refs(dep.name, ref_vars, undefined=None)
         if resolved_spec == name:
             return True
     return False

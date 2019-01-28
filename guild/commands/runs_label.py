@@ -53,8 +53,8 @@ def label_runs(ctx, args):
     If `LABEL` is provided, the command will label the selected
     runs. To clear a run label, use the ``--clear`` option.
 
-    Select runs to modify using one or more `RUN` arguments. See
-    SELECT RUNS below for information on selecting runs.
+    Specify runs to modify using one or more `RUN` arguments. See
+    SPECIFYING RUNS for more information.
 
     If `RUN` isn't specified, the most recent run is selected.
 
