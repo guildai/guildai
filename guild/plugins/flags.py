@@ -117,9 +117,9 @@ class FlagsPlugin(Plugin):
                     "cannot import flags from %s: %s",
                     main_mod, e)
             return {}
-        return self._flags_data_for_path(mod_path, sys_path)
+        return self.flags_data_for_path(mod_path, sys_path)
 
-    def _flags_data_for_path(self, mod_path, sys_path):
+    def flags_data_for_path(self, mod_path, sys_path):
         data, cached_data_path = self._cached_data(mod_path)
         if data is not None:
             return data
