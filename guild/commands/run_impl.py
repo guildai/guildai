@@ -203,7 +203,6 @@ def _apply_run_random_seed(run, args):
 ###################################################################
 
 def _resolve_model_op(opspec):
-    proxy_model_op = _proxy_model_op(opspec)
     try:
         model, op_name = _model_op(opspec)
     except SystemExit:
@@ -211,22 +210,24 @@ def _resolve_model_op(opspec):
         # (e.g. cli.error message). Before exiting, check for a model
         # proxy based on opspec (e.g. a local script). We do this to
         # give priority to Guild file defined operations over proxies.
+        proxy_model_op = _proxy_model_op(opspec)
         if proxy_model_op:
             return proxy_model_op
         raise
     else:
         # We have a model via the default lookup process, but it might
         # not have op_name operation or a default operation. If we
-        # can't find an op matching op_name or a default op AND we
-        # have a proxy_model_op, return proxy_model_op.
+        # can't find an op matching op_name or a default op try
+        # proxy_model_op. Otherwise error.
         opdef = (
             model.modeldef.get_operation(op_name) if op_name
             else model.modeldef.default_operation)
-        if not opdef and proxy_model_op:
+        if opdef:
+            return model, opdef.name
+        proxy_model_op = _proxy_model_op(opspec)
+        if proxy_model_op:
             return proxy_model_op
-        if not opdef:
-            _no_such_op_error(opspec)
-        return model, opdef.name
+        _no_such_op_error(opspec)
 
 def _proxy_model_op(opspec):
     if not opspec:
