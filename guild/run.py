@@ -30,6 +30,7 @@ class Run(object):
         "id",
         "path",
         "short_id",
+        "opref",
         "pid",
         "status",
         "started_or_mtime",
