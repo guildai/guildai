@@ -37,6 +37,8 @@ from guild import _api
 NoCurrentRun = _api.NoCurrentRun
 current_run = _api.current_run
 
+RESTART_NEEDED_STATUS = ("pending",)
+
 class ArgValueError(ValueError):
 
     def __init__(self, arg):
@@ -818,3 +820,6 @@ def flags_hash(flags):
     ]
     to_hash = "\n".join(flag_parts).encode()
     return hashlib.md5(to_hash).hexdigest()
+
+def restart_needed(run, flags):
+    return run.status in RESTART_NEEDED_STATUS or run.get("flags") != flags

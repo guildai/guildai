@@ -999,13 +999,54 @@ def _run_local(op, args):
         _run_normal(op, args)
 
 ###################################################################
+# Non-batch run
+###################################################################
+
+def _run_normal(op, args):
+    _check_normal_needed(op, args)
+    _check_restart_running(args)
+    _run_op(op, args)
+
+def _check_normal_needed(op, args):
+    if not args.needed:
+        return
+    if args.restart:
+        _check_needed_restart(op, args)
+    else:
+        _check_needed_matching_runs(op)
+
+###################################################################
 # Batch run
 ###################################################################
 
 def _run_batch(op, args):
+    _check_batch_needed(op, args)
+    _check_restart_running(args)
     _init_batch_run(op)
-    _check_needed(op.batch_op, args)
     _run_op(op.batch_op, args)
+
+def _check_batch_needed(op, args):
+    """Check whether or not a batch op is needed.
+
+    `op` must be the proto op - not the batch op.
+
+    The needed check for batch runs is the same as for normal runs
+    when restart is not specified - the run will proceed only if
+    another batch op with the same name does not exist.
+
+    Needed checks for batch restarts are different - the batch is run
+    with run_params containing the needed flag and is allowed to
+    restart generated trials only if they are needed (i.e. the
+    applicable trial is not in an error or pending state).
+    """
+    assert op.batch_op
+    if not args.needed:
+        return
+    if args.restart:
+        # Run the batch but indicate only needed trials.
+        op.batch_op.cmd_env["NEEDED_TRIALS_ONLY"] = "1"
+    else:
+        _check_needed_matching_runs(op)
 
 def _init_batch_run(op):
     batches = _batches_attr(op.batch_op.batch_files)
@@ -1067,21 +1108,8 @@ def _write_batch_proto(batch_run, proto_op, batches):
         proto_op.write_run_attr("batches", batches)
 
 ###################################################################
-# Non-batch run
+# Needed check support
 ###################################################################
-
-def _run_normal(op, args):
-    _check_needed(op, args)
-    _check_restart_running(args)
-    _run_op(op, args)
-
-def _check_needed(op, args):
-    if not args.needed:
-        return
-    if args.restart:
-        _check_needed_restart(op, args)
-    else:
-        _check_needed_matching_runs(op)
 
 def _check_needed_restart(op, args):
     # Assert that we're restarting something that exists.
@@ -1089,7 +1117,7 @@ def _check_needed_restart(op, args):
     run_id = os.path.basename(op.run_dir)
     assert run_id.startswith(args.restart), (run_id, args.restart)
     run = runlib.Run(run_id, op.run_dir)
-    if run.get("flags") == op.flag_vals:
+    if not op_util.restart_needed(run, op.flag_vals):
         cli.out(
             "Skipping run because flags have not changed "
             "(--needed specified)")
@@ -1105,10 +1133,17 @@ def _check_needed_matching_runs(op):
         raise SystemExit(0)
 
 def _find_matching_runs(op):
-    return [
-        run for run in resolver.matching_runs([op.opref])
-        if _match_run_flags(run, op.flag_vals)
+    if op.batch_op:
+        to_match = op.batch_op
+    else:
+        to_match = op
+    matching = [
+        run for run in resolver.matching_runs([to_match.opref])
+        if _match_run_flags(run, to_match.flag_vals)
     ]
+    if op.batch_op:
+        matching = [run for run in matching if _match_proto_run(run, op)]
+    return matching
 
 def _match_run_flags(run, target):
     run_flags = run.get("flags")
@@ -1117,6 +1152,12 @@ def _match_run_flags(run, target):
         run.id, run_flags, target)
     return run_flags == target
 
+def _match_proto_run(batch_run, proto_op):
+    proto_run = runlib.Run("", batch_run.guild_path("proto"))
+    return (
+        proto_op.opref.is_op_run(proto_run) and
+        _match_run_flags(proto_run, proto_op.flag_vals))
+
 def _print_matching_runs(runs):
     formatted = [runs_impl.format_run(run) for run in runs]
     cols = [
@@ -1124,6 +1165,10 @@ def _print_matching_runs(runs):
         "status_with_remote", "label"
     ]
     cli.table(formatted, cols=cols, indent=2)
+
+###################################################################
+# Check for request to restart a running op
+###################################################################
 
 def _check_restart_running(args):
     restart_run = getattr(args, "_restart_run", None)
