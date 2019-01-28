@@ -121,8 +121,8 @@ def _maybe_quote(s):
         return "'{}'".format(s)
     return s
 
-def _opref_cmp(self, a, b):
-    return cmp(str(a), str(b))
+def _opref_cmp(self, compare_to):
+    return cmp(str(self), str(compare_to))
 
 def _opref_to_opspec(opref):
     spec_parts = []
