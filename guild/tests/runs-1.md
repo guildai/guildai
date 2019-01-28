@@ -232,9 +232,9 @@ Sort by operation, then date:
 
     >>> [(run.short_id, str(run.opref), run["started"])
     ...  for run in runs(sort=["opref", "started"])]
-    [('7d145216', "test:'' '' mnist train", 1506790401000000),
+    [('42803252', "test:'' '' mnist evaluate", 1506790419000000),
      ('360192fd', "test:'' '' mnist train", 1506790385000000),
-     ('42803252', "test:'' '' mnist evaluate", 1506790419000000)]
+     ('7d145216', "test:'' '' mnist train", 1506790401000000)]
 
 Sort by date, latest first:
 
