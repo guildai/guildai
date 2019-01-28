@@ -241,24 +241,26 @@ class MacBuild(Build):
         }
 
     def _install_build_deps_cmd(self):
-        lines = super(MacBuild, self)._install_build_deps_cmd()
-        lines.extend([
+        default_lines = super(MacBuild, self)._install_build_deps_cmd()
+        mac_lines = [
             "brew update-reset",
             "brew upgrade",
-        ])
+        ]
+        mac_lines.extend(self._python_install_cmd())
+        return mac_lines + default_lines
+
+    def _python_install_cmd(self):
         if self.python == "2.7":
             # 2.7 is default on OSX
-            pass
+            return []
         elif self.python == "3.6":
-            lines[:0] = [
+            return [
                 "brew unlink python",
                 ("brew install https://raw.githubusercontent.com/Homebrew/"
                  "homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/"
                  "Formula/python.rb > /dev/null"),
             ]
-        else:
-            assert False, self.python
-        return lines
+        assert False, self.python
 
 class Config(object):
 
