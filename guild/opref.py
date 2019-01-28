@@ -100,14 +100,13 @@ def _cmp_oprefs(run_opref, opref, match_regex):
 
 def _cmp(val, compare_to, regex):
     log.debug("opref comparing %r to %r (regex=%r)", val, compare_to, regex)
-    if regex:
-        try:
-            return re.match(r"%s$" % compare_to, val)
-        except Exception as e:
-            log.warning("error comparing %s using %s: %s", val, compare_to, e)
-            return False
-    else:
+    if not regex or compare_to == "+":
         return val == compare_to
+    try:
+        return re.match(r"%s$" % compare_to, val)
+    except Exception as e:
+        log.warning("error comparing %s using %s: %s", val, compare_to, e)
+        return False
 
 def _opref_to_string(opref):
     return "%s:%s %s %s %s" % (
