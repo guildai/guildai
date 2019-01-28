@@ -173,7 +173,11 @@ jobs:
 
           pip install --upgrade grpcio==1.9.1 tensorflow | cat
 
-          cd guild/view && npm install'
+          cd guild/view && npm install
+
+          brew update-reset
+
+          brew upgrade'
         name: Install build dependencies
     - save_cache:
         key: macos-python-2.7-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
@@ -228,7 +232,11 @@ jobs:
 
           pip3 install --upgrade grpcio==1.9.1 tensorflow | cat
 
-          cd guild/view && npm install'
+          cd guild/view && npm install
+
+          brew update-reset
+
+          brew upgrade'
         name: Install build dependencies
     - save_cache:
         key: macos-python-3.6-14-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
