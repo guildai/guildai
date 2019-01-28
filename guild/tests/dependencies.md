@@ -172,6 +172,13 @@ If the package name contains a space, it's quoted:
     >>> str(OpRef("type", "pkg with spaces", "ver", "model", "op"))
     "type:'pkg with spaces' ver model op"
 
+OpRefs are compared using their string representations:
+
+    >>> for _ in range(100):
+    ...     # If OpRef is using object __cmp__ then this should fail
+    ...     # over 100 attempts.
+    ...     assert OpRef("", "", "", "", "a") < OpRef("", "", "", "", "b")
+
 ## Resolvers
 
 Resolvers are objects that resolve dependency sources. Resolvers can
