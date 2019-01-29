@@ -64,9 +64,11 @@ class BatchModelProxy(object):
 
     name = ""
     op_name = "+"
+    op_description = "Default batch processor."
     module_name = "guild.batch_main"
     flag_encoder = None
     default_max_trials = 20
+    flags_data = {}
 
     def __init__(self):
         self.modeldef = self._init_modeldef()
@@ -78,9 +80,11 @@ class BatchModelProxy(object):
                 "model": self.name,
                 "operations": {
                     self.op_name: {
+                        "description": self.op_description,
                         "exec": "${python_exe} -um %s" % self.module_name,
                         "flag-encoder": self.flag_encoder,
                         "default-max-trials": self.default_max_trials,
+                        "flags": self.flags_data,
                     }
                 }
             }

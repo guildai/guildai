@@ -149,7 +149,11 @@
     guild.opref
     guild.optimizer
     guild.optimizers.__init__
+<<<<<<< e6b46a78c94573647025a06fb3525203e8fcf23a
     guild.optimizers.skopt
+=======
+    guild.optimizers.bayesian_main
+>>>>>>> Bayesian optimization wip
     guild.optimizers.random_main
     guild.optimizers.skopt
     guild.package
