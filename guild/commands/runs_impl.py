@@ -340,8 +340,6 @@ def _status_with_remote(status, remote):
 
 def _format_label(run):
     parts = []
-    if run.get("selected"):
-        parts.append("*")
     label = run.get("label")
     if label:
         parts.append(label)
