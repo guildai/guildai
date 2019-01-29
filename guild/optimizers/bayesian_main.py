@@ -25,50 +25,31 @@ DEFAULT_TRIALS = 20
 
 def _gen_trials(flags, batch):
     num_trials = batch.max_trials or DEFAULT_TRIALS
-    random_seed = batch.random_seed
     flag_names, dimensions = skopt.flag_dimensions(flags, _flag_dim)
-    trial_vals = _gen_trial_vals(dimensions, num_trials, random_seed)
-    return [
-        dict(zip(flag_names, _native_python(flag_vals)))
-        for flag_vals in trial_vals]
+    print("TODO: setup %i trial(s) somehow for dims: %s"
+          % (num_trials, zip(flag_names, dimensions)))
+    return []
 
 def _flag_dim(val, flag_name):
     if isinstance(val, list):
         return val
     try:
-        dist_name, min_max = batch_util.parse_function(val)
+        func_name, search_dim = batch_util.parse_function(val)
     except ValueError:
         return [val]
     else:
-        _validate_min_max(min_max, dist_name, flag_name)
-        return min_max
+        _validate_search_dim(search_dim, func_name, flag_name)
+        return search_dim
 
-def _validate_min_max(val, dist_name, flag_name):
-    if dist_name not in (None, "uniform"):
+def _validate_search_dim(val, dist_name, flag_name):
+    if dist_name not in (None, "search"):
         raise batch_util.BatchError(
-            "unsupported distribution %r for flag %s - must be 'uniform'"
+            "unsupported function %r for flag %s - must be 'search'"
             % (dist_name, flag_name))
-    if len(val) != 2:
+    if len(val) not in (2, 3):
         raise batch_util.BatchError(
-            "unexpected arguemt list %r for flag %s - expected 2 arguments"
-            % (val, flag_name))
-
-def _gen_trial_vals(dimensions, num_trials, random_seed):
-    import skopt
-    res = skopt.dummy_minimize(
-        lambda *args: 0,
-        dimensions,
-        n_calls=num_trials,
-        random_state=random_seed)
-    return res.x_iters
-
-def _native_python(l):
-    def pyval(x):
-        try:
-            return x.item()
-        except AttributeError:
-            return x
-    return [pyval(x) for x in l]
+            "unexpected arguemt list in %s for flag %s - "
+            "expected 2 or 3 arguments" % (val, flag_name))
 
 def _patch_numpy_deprecation_warnings():
     warnings.filterwarnings("ignore", category=Warning)

@@ -149,6 +149,7 @@
     guild.opref
     guild.optimizer
     guild.optimizers.__init__
+    guild.optimizers.bayesian_main
     guild.optimizers.random_main
     guild.optimizers.skopt
     guild.package
