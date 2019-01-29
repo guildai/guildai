@@ -4,7 +4,6 @@ guild = guild.main_bootstrap:main
 
 [guild.plugins]
 
-cloudml = guild.plugins.cloudml:CloudMLPlugin
 cpu = guild.plugins.cpu:CPUPlugin
 disk = guild.plugins.disk:DiskPlugin
 flags = guild.plugins.flags:FlagsPlugin
