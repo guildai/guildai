@@ -163,15 +163,13 @@ case we do not specify a random seed.
 
 Here are the generated trials:
 
-    >>> runs = project.list_runs()
-    >>> len(runs)
-    6
-
-Note their status is all `pending` - this is due to the `init_trial`
-option above:
-
-    >>> for _run in runs:
-    ...     assert _run.status == "pending", _run.status
+    >>> project.print_runs(status=True)
+    echo.py   pending
+    echo.py   pending
+    echo.py   pending
+    echo.py   pending
+    echo.py   pending
+    echo.py+  pending
 
 Let's note both the run ID and the flags hash for each of these
 runs. We'll use these for comparison later.
@@ -180,28 +178,42 @@ runs. We'll use these for comparison later.
 
     >>> trials_before_restart = [
     ...     (_run.id, flags_hash(_run.get("flags")))
-    ...     for _run in runs]
+    ...     for _run in project.list_runs()]
 
 Next we'll restart the batch. Note again, we do not specify a random
 seed, or any other parameter for that matter. The batch reuses the
 settings from the original run.
 
-    >>> batch_run = runs[-1]
+    >>> batch_run = project.list_runs()[-1]
 
     >>> run(restart=batch_run.id)
     Restarting ...
+    Initialized trial ...
+    Initialized trial ...
+    Initialized trial ...
+    Initialized trial ...
+    Initialized trial ...
+    Running trial: echo.py ...
+    Running trial: echo.py ...
+    Running trial: echo.py ...
+    Running trial: echo.py ...
+    Running trial: echo.py ...
 
 Here are the runs after the restart:
 
-    >>> runs = project.list_runs()
-    >>> len(runs)
-    6
+    >>> project.print_runs(status=True)
+    echo.py   completed
+    echo.py   completed
+    echo.py   completed
+    echo.py   completed
+    echo.py   completed
+    echo.py+  completed
 
 Let's again generate a list of run IDs and flags hash:
 
     >>> trials_after_restart = [
     ...     (_run.id, flags_hash(_run.get("flags")))
-    ...     for _run in runs]
+    ...     for _run in project.list_runs()]
 
 Because we sampled only 5 runs from 100, the random seed used in the
 sampling process must be the same for the two lists - before restart
