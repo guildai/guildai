@@ -90,7 +90,7 @@ We'll resolve the operation, capturing any warnings:
     >>> with LogCapture() as log:
     ...     model, op_name = resolve_model_op("train.py")
     >>> model
-    <guild.model_proxies.PythonScriptModelProxy object ...>
+    <guild.model_proxy.PythonScriptModelProxy object ...>
     >>> op_name
     'train.py'
     >>> model.modeldef.name
@@ -130,7 +130,7 @@ And resolve again:
 
     >>> model, op_name = resolve_model_op("train.sh")
     >>> model
-    <guild.model_proxies.ExecScriptModelProxy ...>
+    <guild.model_proxy.ExecScriptModelProxy ...>
     >>> op_name
     'train.sh'
     >>> model.modeldef.name
@@ -144,4 +144,4 @@ The special characeter '+' indicates that the operation should be a
 batch run.
 
     >>> resolve_model_op("+")
-    (<guild.model_proxies.BatchModelProxy ...>, '+')
+    (<guild.model_proxy.BatchModelProxy ...>, '+')

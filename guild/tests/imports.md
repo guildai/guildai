@@ -141,14 +141,16 @@
     guild.main
     guild.main_bootstrap
     guild.model
-    guild.model_proxies
+    guild.model_proxy
     guild.namespace
     guild.op
     guild.op_main
     guild.op_util
     guild.opref
+    guild.optimizer
     guild.optimizers.__init__
     guild.optimizers.random_main
+    guild.optimizers.skopt
     guild.package
     guild.package_main
     guild.pass

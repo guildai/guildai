@@ -33,7 +33,7 @@ from guild import click_util
 from guild import cmd_impl_support
 from guild import deps
 from guild import model as modellib
-from guild import model_proxies
+from guild import model_proxy
 from guild import op_util
 from guild import resolver
 from guild import run as runlib
@@ -233,8 +233,8 @@ def _proxy_model_op(opspec):
     if not opspec:
         return None
     try:
-        return model_proxies.resolve_model_op(opspec)
-    except model_proxies.NotSupported:
+        return model_proxy.resolve_model_op(opspec)
+    except model_proxy.NotSupported:
         return None
 
 def _model_op(opspec):
