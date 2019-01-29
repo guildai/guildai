@@ -51,13 +51,6 @@ class Plugin(object):
         """
         pass
 
-    def get_operation(self, _name, _modeldef, _config):
-        """Return instance of OpDef for name, if supported for modeldef.
-
-        Returns None if operation is not supported.
-        """
-        return None
-
     def enabled_for_op(self, _op):
         return False, None
 
