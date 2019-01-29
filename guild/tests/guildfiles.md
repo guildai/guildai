@@ -176,27 +176,6 @@ to be the `main` attribute.
     >>> gf_op_coerce.models["foo"].get_operation("test").main
     'test'
 
-### Plugin ops
-
-An operation can delegate its implementation to a plugin using the
-`plugin-op` attribute. Here's a sample guildfile:
-
-    >>> gf_plugin_ops = guildfile.from_string("""
-    ... - model: sample
-    ...   operations:
-    ...     train:
-    ...       plugin-op: foo-train
-    ... """)
-
-The opdef in this case will use `plugin_op` rather than `main`. Plugin
-ops are provided as guildfile.PluginOp objects and have `name` and
-`config` attributes:
-
-    >>> train = gf_plugin_ops.models["sample"].get_operation("train")
-
-    >>> train.plugin_op
-    'foo-train'
-
 ### Flags
 
 Flags are named values that are provided to operations during a

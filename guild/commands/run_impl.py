@@ -368,27 +368,8 @@ def _no_such_op_error(opspec):
 def _resolve_opdef(model, op_name):
     opdef = model.modeldef.get_operation(op_name)
     if opdef is None:
-        opdef = _maybe_plugin_opdef(op_name, model.modeldef)
-    elif opdef.plugin_op:
-        opdef = _plugin_opdef(op_name, model.modeldef, opdef)
-    if opdef is None:
         _no_such_operation_error(op_name, model)
     opdef.set_modelref(model.reference)
-    return opdef
-
-def _maybe_plugin_opdef(name, modeldef, parent_opdef=None):
-    for _name, plugin in guild.plugin.iter_plugins():
-        opdef = plugin.get_operation(name, modeldef, parent_opdef)
-        if opdef:
-            return opdef
-    return None
-
-def _plugin_opdef(name, modeldef, parent_opdef):
-    opdef = _maybe_plugin_opdef(name, modeldef, parent_opdef)
-    if opdef is None:
-        cli.error(
-            "plugin-op '%s' specified by %s is not defined"
-            % (parent_opdef.plugin_op, parent_opdef.fullname))
     return opdef
 
 def _no_such_operation_error(name, model):

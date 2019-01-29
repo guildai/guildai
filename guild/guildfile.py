@@ -789,7 +789,6 @@ class OpDef(object):
         self.steps = data.get("steps")
         self.python_path = data.get("python-path")
         self.env = data.get("env") or {}
-        self.plugin_op = data.get("plugin-op")
         self.disable_plugins = _disable_plugins(data, modeldef.guildfile)
         self.dependencies = _init_dependencies(data.get("requires"), self)
         self.pre_process = data.get("pre-process")
