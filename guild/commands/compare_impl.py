@@ -38,6 +38,8 @@ log = logging.getLogger("guild")
 BASE_COLS = ".run, .operation, .started, .time, .status, .label"
 MIN_COLS = ".run"
 
+NO_RUNS_CAPTION = "no runs"
+
 def main(args):
     if args.print_scalars:
         _print_scalars(args)
@@ -62,20 +64,28 @@ def _print_scalars(args):
                 cli.out("  %s" % s["tag"])
 
 def _print_csv(args):
-    data = _get_data(args, format_cells=False)
+    data = _get_data(args, format_cells=False, skip_header_if_empty=True)
+    if not data:
+        return
     writer = csv.writer(sys.stdout)
     for row in data:
         writer.writerow(row)
 
-def _get_data(args, format_cells=True):
+def _get_data(args, format_cells=True, skip_header_if_empty=False):
     index = indexlib.RunIndex()
-    data, logs = _get_data_cb(args, index, format_cells)()
+    cb = _get_data_cb(
+        args, index,
+        format_cells=format_cells,
+        skip_header_if_empty=skip_header_if_empty)
+    data, logs = cb()
     for record in logs:
         log.handle(record)
     return data
 
 def _print_table(args):
-    data = _get_data(args)
+    data = _get_data(args, skip_header_if_empty=True)
+    if not data:
+        return
     cols = data[0]
     col_indexes = list(zip(cols, range(len(cols))))
     def format_row(row):
@@ -97,7 +107,7 @@ def _tabview(args):
         _get_data_cb(args, index),
         _get_run_detail_cb(index))
 
-def _get_data_cb(args, index, format_cells=True):
+def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
     def f():
         _try_init_tf_logging()
         log_capture = util.LogCapture()
@@ -107,6 +117,10 @@ def _get_data_cb(args, index, format_cells=True):
             index.refresh(runs, _refresh_types(cols_table))
             table = _resolve_table_cols(cols_table, index)
             header = _table_header(table)
+            if not header:
+                if skip_header_if_empty:
+                    return [], []
+                header = [NO_RUNS_CAPTION]
             rows = _table_rows(table, header)
             if format_cells:
                 _format_cells(rows)
@@ -291,6 +305,10 @@ def _format_cells(rows):
 def _get_run_detail_cb(index):
     def f(data, y, _x):
         run_short_id = data[y][0]
+        if run_short_id == NO_RUNS_CAPTION:
+            return (
+                "\nPress 'r' in the main screen to refresh the list.",
+                "There are no matching runs currently")
         title = "Run {}".format(run_short_id)
         try:
             run_id, path = next(var.find_runs(run_short_id))
