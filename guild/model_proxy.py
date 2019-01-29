@@ -24,7 +24,7 @@ import guild
 from guild import config
 from guild import guildfile
 from guild import model as modellib
-from guild import op_util
+from guild import optimizer as optimizers
 from guild import plugin as plugins
 from guild import python_util
 from guild import util
@@ -94,21 +94,6 @@ class BatchModelProxy(object):
             "guildai",
             guild.__version__,
             self.name)
-
-class RandomOptimizerModelProxy(BatchModelProxy):
-
-    name = ""
-    op_name = "random"
-    module_name = "guild.optimizers.random_main"
-    flag_encoder = "guild.model_proxies:encode_flag_for_random"
-
-def encode_flag_for_random(val, flagdef):
-    fmt = op_util.format_flag_val
-    if flagdef.choices:
-        return [c.value for c in flagdef.choices]
-    elif flagdef.min is not None and flagdef.max is not None:
-        return "[%s:%s]" % (fmt(flagdef.min), fmt(flagdef.max))
-    return val
 
 class PythonScriptModelProxy(object):
 
@@ -225,19 +210,33 @@ def _script_model_reference(model_name, script):
         model_name)
 
 def resolve_model_op(opspec):
+    return util.find_apply([
+        _default_batch_model_op,
+        _optimizer_model_op,
+        _python_script_model_op,
+        _executable_file_model_op,
+        _not_supported_error,
+    ], opspec)
+
+def _default_batch_model_op(opspec):
     if opspec == "+":
         model = BatchModelProxy()
         return model, model.op_name
-    elif opspec == "random":
-        model = RandomOptimizerModelProxy()
-        return model, model.op_name
-    elif _is_python_script(opspec):
+    return None
+
+def _optimizer_model_op(opspec):
+    try:
+        optimizer = optimizers.for_name(opspec)
+    except LookupError:
+        return None
+    else:
+        return optimizer.resolve_model_op(opspec)
+
+def _python_script_model_op(opspec):
+    if _is_python_script(opspec):
         model = _python_script_model(opspec)
         return model, model.op_name
-    elif util.is_executable_file(opspec):
-        model = ExecScriptModelProxy(opspec)
-        return model, model.op_name
-    raise NotSupported()
+    return None
 
 def _is_python_script(opspec):
     return os.path.isfile(opspec) and opspec[-3:] == ".py"
@@ -251,3 +250,12 @@ def _python_script_model(opspec):
 def _is_keras_script(script):
     plugin = plugins.for_name("keras")
     return plugin.is_keras_script(script)
+
+def _executable_file_model_op(opspec):
+    if util.is_executable_file(opspec):
+        model = ExecScriptModelProxy(opspec)
+        return model, model.op_name
+    return None
+
+def _not_supported_error(_):
+    raise NotSupported()

@@ -17,3 +17,8 @@ perf = guild.plugins.perf:PerfPlugin
 
 pypi = guild.namespace:PypiNamespace
 guildfile = guild.model:GuildfileNamespace
+
+[guild.optimizers]
+
+random = guild.optimizers.skopt:RandomOptimizer
+bayesian = guild.optimizers.skopt:BayesianOptimizer
