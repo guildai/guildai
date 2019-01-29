@@ -166,6 +166,7 @@ def runs_list(
         all=False,
         deleted=False,
         marked=False,
+        unmarked=False,
         cwd=".",
         guild_home=None):
     from guild import click_util
@@ -177,7 +178,8 @@ def runs_list(
         unlabeled=unlabeled,
         all=all,
         deleted=deleted,
-        marked=marked)
+        marked=marked,
+        unmarked=unmarked)
     _apply_status_filters(status, args)
     with Env(cwd, guild_home):
         return runs_impl.filtered_runs(args)
