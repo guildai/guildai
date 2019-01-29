@@ -77,13 +77,7 @@ And its contents:
     >>> import zipfile
     >>> wheel = zipfile.ZipFile(join_path(workspace, "dist", files[0]))
     >>> pprint(sorted(wheel.namelist()))
-    ['gpkg.hello-0.3.0.dev4-...-nspkg.pth',
-     'gpkg.hello-0.3.0.dev4.dist-info/METADATA',
-     'gpkg.hello-0.3.0.dev4.dist-info/PACKAGE',
-     'gpkg.hello-0.3.0.dev4.dist-info/RECORD',
-     'gpkg.hello-0.3.0.dev4.dist-info/WHEEL',
-     'gpkg.hello-0.3.0.dev4.dist-info/namespace_packages.txt',
-     'gpkg.hello-0.3.0.dev4.dist-info/top_level.txt',
+    [...
      'gpkg/hello/README.md',
      'gpkg/hello/a.txt',
      'gpkg/hello/guild.yml']
@@ -130,13 +124,7 @@ And the package contents:
 
     >>> wheel = zipfile.ZipFile(join_path(workspace, "dist", files[0]))
     >>> pprint(sorted(wheel.namelist()))
-    ['test-0.0.0.dist-info/METADATA',
-     'test-0.0.0.dist-info/PACKAGE',
-     'test-0.0.0.dist-info/RECORD',
-     'test-0.0.0.dist-info/WHEEL',
-     'test-0.0.0.dist-info/entry_points.txt',
-     'test-0.0.0.dist-info/namespace_packages.txt',
-     'test-0.0.0.dist-info/top_level.txt',
+    [...
      'test/guild.yml']
 
 If a Guild file doesn't contain a package def or a model def, it
