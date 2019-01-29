@@ -90,6 +90,10 @@ def op_and_label_filters(fn):
             ("--marked",),
             help="Include only marked runs.",
             is_flag=True),
+        click.Option(
+            ("--unmarked",),
+            help="Include only unmarked runs.",
+            is_flag=True),
     ])
     return fn
 

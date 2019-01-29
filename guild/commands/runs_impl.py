@@ -150,12 +150,17 @@ def _unlabeled_filter():
     return f
 
 def _apply_marked_filter(args, filters):
+    if args.marked and args.unmarked:
+        cli.error("--marked and --unmarked cannot both be used")
     if args.marked:
         filters.append(_marked_filter())
+    if args.unmarked:
+        filters.append(_marked_filter(False))
 
-def _marked_filter():
+def _marked_filter(test_for=True):
     def f(run):
-        return bool(run.get("marked"))
+        marked = bool(run.get("marked"))
+        return marked if test_for is True else not marked
     return f
 
 def select_runs(runs, select_specs, ctx=None):
