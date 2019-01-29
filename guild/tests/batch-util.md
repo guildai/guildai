@@ -30,7 +30,21 @@ The slice syntax:
     >>> pf("[1:2:3]")
     (None, (1, 2, 3))
 
-The named syntaxL
+    >>> pf("[1:2:3:4:5]")
+    (None, (1, 2, 3, 4, 5))
+
+If a slice-like expression does not contain at least two elements, it
+is not considered a function:
+
+    >>> pf("[]")
+    Traceback (most recent call last):
+    ValueError: not a function
+
+    >>> pf("[1]")
+    Traceback (most recent call last):
+    ValueError: not a function
+
+The named syntax:
 
     >>> pf("uniform(-2.0,2.0)")
     ('uniform', (-2.0, 2.0))
