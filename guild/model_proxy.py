@@ -177,8 +177,7 @@ class KerasScriptModelProxy(PythonScriptModelProxy):
 
     @staticmethod
     def _reenable_plugins(data):
-        assert "disable-plugins" in data, data
-        del data["disable-plugins"]
+        data.pop("disable-plugins", None)
 
 class ExecScriptModelProxy(object):
 

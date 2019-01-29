@@ -21,8 +21,6 @@ import sys
 
 import pkg_resources
 
-import guild.plugin
-
 from guild import config
 from guild import entry_point_util
 from guild import guildfile
@@ -317,7 +315,7 @@ class ModelImporter(object):
         try:
             gf = guildfile.from_dir(self.path)
         except guildfile.NoModels:
-            return self._plugin_model_dist()
+            return None
         except Exception as e:
             if log.getEffectiveLevel() <= logging.DEBUG:
                 log.exception(self.path)
@@ -325,22 +323,6 @@ class ModelImporter(object):
             return BadGuildfileDistribution(self.path)
         else:
             return GuildfileDistribution(gf)
-
-    def _plugin_model_dist(self):
-        models_data = []
-        plugins_used = set()
-        for name, plugin in guild.plugin.iter_plugins():
-            for data in plugin.find_models(self.path):
-                models_data.append(data)
-                plugins_used.add(name)
-        if models_data:
-            gf = guildfile.Guildfile(
-                models_data,
-                src="<plugin-generated %s>" % ",".join(plugins_used),
-                dir=self.path)
-            return GuildfileDistribution(gf)
-        else:
-            return None
 
     @staticmethod
     def find_module(_fullname, _path=None):

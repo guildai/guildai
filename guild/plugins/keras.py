@@ -16,13 +16,8 @@ from __future__ import absolute_import
 from __future__ import division
 
 from guild import plugin
-from guild import python_util
 
 class KerasPlugin(plugin.Plugin):
-
-    def find_models(self, path):
-        return python_util.script_models(
-            path, self.is_keras_script, self.script_model, self.log)
 
     def is_keras_script(self, script):
         return self._imports_keras(script) and self._op_method(script)

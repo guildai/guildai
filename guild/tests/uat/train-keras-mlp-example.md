@@ -1,18 +1,17 @@
 # Train Keras MLP example
 
-The keras plugin supports a single `train` operation for Keras models
-that it detects. We can use the `mnist_mlp` Keras example to
-illustrate.
+Keras models can be trained simply by running them.
 
     >>> cd("examples/keras/mnist")
 
-The keras plugin automatically adds a model checkpoint callback to
-save model weights at each epoch. However, this callback requires the
-`h5py` module, which isn't installed by default.
+The keras plugin repsonsible for running Keras scripts automatically
+adds a model checkpoint callback to save model weights at each
+epoch. However, this callback requires the `h5py` module, which isn't
+installed by default.
 
 For our first training, we'll proceed without the `h5py` module.
 
-    >>> run("guild run mnist_mlp:train -y --no-gpus epochs=1",
+    >>> run("guild run mnist_mlp.py -y --no-gpus epochs=1",
     ...     timeout=180, ignore="WARNING")
     Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
     Using TensorFlow backend.
@@ -62,8 +61,7 @@ Let install `h5py`:
 
 And train again:
 
-    >>> run("guild run -y --no-gpus mnist_mlp:train epochs=1",
-    ...     timeout=120,
+    >>> run("guild run -y --no-gpus mnist_mlp.py epochs=1", timeout=120,
     ...     ignore=["FutureWarning", "_register_converters", "WARNING"])
     Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
     Using TensorFlow backend.

@@ -159,9 +159,6 @@ def _dir_guildfile(dir, ctx):
     try:
         return guildfile.from_dir(dir)
     except guildfile.NoModels:
-        gf = _try_plugin_models(dir)
-        if gf:
-            return gf
         if ctx:
             help_suffix = " or '%s' for help" % click_util.cmd_help(ctx)
         else:
@@ -172,17 +169,6 @@ def _dir_guildfile(dir, ctx):
             % (cwd_desc(dir), help_suffix))
     except guildfile.GuildfileError as e:
         cli.error(str(e))
-
-def _try_plugin_models(dir):
-    from guild import guildfile
-    from guild import plugin as pluginlib
-    models_data = []
-    for _, plugin in pluginlib.iter_plugins():
-        for data in plugin.find_models(dir):
-            models_data.append(data)
-    if not models_data:
-        return None
-    return guildfile.Guildfile(models_data, dir=dir)
 
 def _guildfile(path):
     from guild import guildfile
