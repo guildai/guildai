@@ -329,7 +329,7 @@ def _format_run_index(run, index=None):
 
 def _op_with_marked(operation, marked):
     if marked:
-        return operation + " *"
+        return operation + " [marked]"
     return operation
 
 def _status_with_remote(status, remote):
