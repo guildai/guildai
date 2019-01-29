@@ -36,14 +36,6 @@ class Plugin(object):
         self.name = ep.name
         self.log = logging.getLogger("guild." + self.name)
 
-    def find_models(self, _path):
-        """Return an iterator of models for path.
-
-        A model must be a Python dict containing model attributes. See
-        guild.guildfile.Guildfile for the expected structure.
-        """
-        return []
-
     def guildfile_data(self, _data, _src):
         """Called before data is used to initialize a Guildfile.
 

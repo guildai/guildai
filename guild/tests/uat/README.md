@@ -182,7 +182,6 @@ packages that were installed in pervious tests.
 
 And test the `keras` example.
 
-- [keras-example-models](keras-example-models.md)
 - [train-keras-example-with-missing-dep](train-keras-example-with-missing-dep.md)
 - [install-keras](install-keras.md)
 - [train-keras-mlp-example](train-keras-mlp-example.md)
