@@ -28,8 +28,6 @@ class NotSupported(TypeError):
 class Plugin(object):
     """Abstract interface for a Guild plugin."""
 
-    # pylint: disable=no-self-use
-
     name = None
 
     def __init__(self, ep):
@@ -46,22 +44,8 @@ class Plugin(object):
     def enabled_for_op(self, _op):
         return False, None
 
-    def run_op(self, op_spec, args):
-        """The plugin should run the specified operation.
-
-        Raises NotSupported if the plugin doesn't support the
-        operation.
-        """
-        raise NotSupported(op_spec, args)
-
     def patch_env(self):
         pass
-
-    def sync_run(self, _run, _options):
-        raise TypeError("plugin '%s' does not support sync_run" % self.name)
-
-    def stop_run(self, _run, _options):
-        raise TypeError("plugin '%s' does not support stop_run" % self.name)
 
 def iter_plugins():
     return iter(_plugins)
