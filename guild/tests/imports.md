@@ -158,8 +158,6 @@
     guild.pip_util
     guild.plugin
     guild.plugins.__init__
-    guild.plugins.cloudml
-    guild.plugins.cloudml_op_main
     guild.plugins.cpu
     guild.plugins.disk
     guild.plugins.flags
