@@ -37,8 +37,9 @@ DEFAULT_MAX_TRIALS = 20
 
 init_logging = op_util.init_logging
 
-slice_function_pattern = re.compile(r"\[([^:]+):([^:]+)(?::(.+))?\]")
-named_function_parts_pattern = re.compile(r"(\w+)\((.*?)\)")
+slice_function_pattern = re.compile(r"\[(.+)\]\s*$")
+slice_args_delimiter = ":"
+named_function_parts_pattern = re.compile(r"(\w+)\((.*?)\)\s*$")
 
 class BatchError(Exception):
     pass
@@ -375,10 +376,12 @@ def _slice_function(s):
     m = slice_function_pattern.match(s)
     if not m:
         return None
-    args_s = m.groups()
-    if args_s[2] is None:
-        args_s = args_s[0:2]
-    args = [op_util.parse_arg_val(arg) for arg in args_s]
+    args_s = m.group(1).split(slice_args_delimiter)
+    if len(args_s) < 2:
+        # Slice must contain a delimieter - i.e. always contains at
+        # least two elements.
+        return None
+    args = [op_util.parse_arg_val(arg.strip()) for arg in args_s]
     return None, tuple(args)
 
 def _named_function(s):
