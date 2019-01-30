@@ -56,6 +56,7 @@ tests).
       run-scripts:                 ok
       runs-1:                      ok
       runs-2:                      ok
+      skopt:                       ok
       steps:                       ok
       tables:                      ok
       tfevents:                    ok
