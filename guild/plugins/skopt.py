@@ -56,8 +56,8 @@ class BayesianOptimizerModelProxy(model_proxy.BatchModelProxy):
   details on this algorithm and its flags.
   """)
 
-    module_name = "guild.optimizers.bayesian_main"
-    flag_encoder = "guild.optimizers.skopt:encode_flag_for_bayesian"
+    module_name = "guild.plugins.bayesian_main"
+    flag_encoder = "guild.plugins.skopt:encode_flag_for_bayesian"
 
     flags_data = yaml.safe_load("""
 random-starts:
@@ -84,20 +84,37 @@ acq-optimizer:
   description: Method to minimize the acquistion function
   default: lbfgs
   choices: [auto, sampling, lbfgs]
+inputs:
+  description: >
+    Path to a file containing a list of flags and associated scalar values
+
+    The inputs are used by the optimizer as additional information when
+    generating new trials.
+
+    The file may be YAML or JSON and contain a top-level list of maps. Each
+    map must include the flag names with associated values as well as a special
+    name 'y0' with associated scalar value.
+  type: existing-path
 """)
 
 def encode_flag_for_bayesian(val, flagdef):
     """Encodes a flag def for the full range of supported skopt search spaces.
     """
-    fmt = op_util.format_flag_val
     if flagdef.choices:
         return [c.value for c in flagdef.choices]
     elif flagdef.min is not None and flagdef.max is not None:
-        search_args = [fmt(flagdef.min), fmt(flagdef.max)]
-        if val is not None:
-            search_args.append(fmt(val))
-        return "search(%s)" % ",".join(search_args)
+        return _encode_search(flagdef, val)
     return val
+
+def _encode_search(flagdef, val):
+    assert flagdef.min is not None and flagdef.max is not None
+    args = [
+        op_util.format_flag_val(flagdef.min),
+        op_util.format_flag_val(flagdef.max)
+    ]
+    if val is not None:
+        args.append(op_util.format_flag_val(val))
+    return "search(%s)" % ",".join(args)
 
 def flag_dimensions(flags, flag_dim_cb):
     dims = {
