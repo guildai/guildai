@@ -217,7 +217,7 @@ class Batch(object):
         random.seed(self.random_seed)
         return random.sample(trials, max_trials)
 
-    def init_trials(self, trials):
+    def run_trials(self, trials, init_only=False):
         index = self._load_index(filter_existing=True)
         orphaned = self._remove_missing_trials(trials, index)
         self._delete_pending_trials(orphaned)
@@ -231,6 +231,8 @@ class Batch(object):
                 continue
             trial.init()
             self._trial_init_wait_state()
+            if not init_only:
+                self._run_if_needed(trial)
 
     def _load_index(self, filter_existing=False):
         if not os.path.exists(self._index_path):
@@ -311,12 +313,7 @@ class Batch(object):
         """
         time.sleep(0.01)
 
-    def run_trials(self):
-        index = self._load_index()
-        for trial in index:
-            self._maybe_run_trial(trial)
-
-    def _maybe_run_trial(self, trial):
+    def _run_if_needed(self, trial):
         if self._needed and not trial.run_needed():
             log.debug("skipping trial %s", trial.run_id)
             return
@@ -339,9 +336,8 @@ def _default_main_impl(gen_trials_cb, default_max_trials):
     elif os.getenv("PRINT_TRIALS_CMD") == "1":
         print_trials_cmd(trials)
     else:
-        batch.init_trials(trials)
-        if os.getenv("INIT_TRIALS_ONLY") != "1":
-            batch.run_trials()
+        init_only = os.getenv("INIT_TRIALS_ONLY") == "1"
+        batch.run_trials(trials, init_only)
 
 def init_batch():
     return Batch(op_util.current_run())

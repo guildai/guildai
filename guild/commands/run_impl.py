@@ -895,6 +895,8 @@ def _confirm_run(op, args):
 def _action_desc(args):
     if args.stage:
         return "stage"
+    elif args.init_trials:
+        return "initialize trials for"
     return "run"
 
 def _op_desc(op):
