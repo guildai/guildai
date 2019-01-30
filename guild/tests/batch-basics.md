@@ -63,7 +63,7 @@ message, optionally capitalizing it.
     >>> run("say.py", msg="hi", label="msg=hi")
     hi
 
-    >>> run("say.py", msg="hi", loud="yes", label="msg=hi loud=yes")
+    >>> run("say.py", msg="hi", loud=True, label="msg=hi loud=yes")
     HI
 
 And our runs:
@@ -163,7 +163,7 @@ list.
 
 We can specify other flags along with our batch specifiers:
 
-    >>> run("say.py", msg=["a", "b"], loud="yes")
+    >>> run("say.py", msg=["a", "b"], loud=True)
     Initialized trial (loud=yes, msg=a)
     Initialized trial (loud=yes, msg=b)
     Running trial: say.py (loud=yes, msg=a)
@@ -171,7 +171,7 @@ We can specify other flags along with our batch specifiers:
     Running trial: say.py (loud=yes, msg=b)
     B
 
-    >>> run("say.py", msg=["a", "b"], loud="yes", print_trials=True)
+    >>> run("say.py", msg=["a", "b"], loud=True, print_trials=True)
     #  loud  msg
     1  yes   a
     2  yes   b
@@ -181,7 +181,7 @@ cartesian product of all flag combinations. The order of trials
 corresponds to the flag names in ascending order followed by the flag
 values as ordered in each flag value list.
 
-    >>> run("say.py", msg=["b", "a"], loud=["no", "yes"])
+    >>> run("say.py", msg=["b", "a"], loud=[False, True])
     Initialized trial (loud=no, msg=b)
     Initialized trial (loud=no, msg=a)
     Initialized trial (loud=yes, msg=b)
@@ -195,7 +195,7 @@ values as ordered in each flag value list.
     Running trial: say.py (loud=yes, msg=a)
     A
 
-    >>> run("say.py", msg=["b", "a"], loud=["no", "yes"], print_trials=True)
+    >>> run("say.py", msg=["b", "a"], loud=[False, True], print_trials=True)
     #  loud  msg
     1  no    b
     2  no    a
@@ -264,7 +264,7 @@ In cases where we explicitly define flag values, those flag values are
 applied only if they are not defined in the batch file - the batch
 file takes precedence over flags specified for the operation.
 
-    >>> run("say.py", batches=["batch.csv"], loud="no")
+    >>> run("say.py", batches=["batch.csv"], loud=False)
     Initialized trial (loud=no, msg='hello 1')
     Initialized trial (loud=yes, msg='hello 2')
     Initialized trial (loud=no, msg='hello 3')
@@ -275,7 +275,7 @@ file takes precedence over flags specified for the operation.
     Running trial: say.py (loud=no, msg='hello 3')
     hello 3
 
-    >>> run("say.py", batches=["batch.csv"], loud="no", print_trials=True)
+    >>> run("say.py", batches=["batch.csv"], loud=False, print_trials=True)
     #  loud  msg
     1  no    hello 1
     2  yes   hello 2
@@ -288,7 +288,7 @@ specify a flag value.
 Here we'll use a list of `loud`, which is applied in cases where
 `loud` is not defined in the batch:
 
-    >>> run("say.py", batches=["batch.csv"], loud=["yes", "no"])
+    >>> run("say.py", batches=["batch.csv"], loud=[True, False])
     Initialized trial (loud=yes, msg='hello 1')
     Initialized trial (loud=no, msg='hello 1')
     Initialized trial (loud=yes, msg='hello 2')
@@ -305,7 +305,7 @@ Here we'll use a list of `loud`, which is applied in cases where
     Running trial: say.py (loud=no, msg='hello 3')
     hello 3
 
-    >>> run("say.py", batches=["batch.csv"], loud=["yes", "no"],
+    >>> run("say.py", batches=["batch.csv"], loud=[True, False],
     ...     print_trials=True)
     #  loud  msg
     1  yes   hello 1
@@ -369,7 +369,7 @@ Here's our batch using the file:
 We can apply a value for `loud` that will be used when the batch file
 doesn't define it:
 
-    >>> run("say.py", batches=["batch.yaml"], loud="yes")
+    >>> run("say.py", batches=["batch.yaml"], loud=True)
     Initialized trial (loud=yes, msg='hello 4')
     Initialized trial (loud=yes, msg='hello 5')
     Initialized trial (loud=yes, msg='hello 6')
@@ -380,7 +380,7 @@ doesn't define it:
     Running trial: say.py (loud=yes, msg='hello 6')
     HELLO 6
 
-    >>> run("say.py", batches=["batch.yaml"], loud="yes", print_trials=True)
+    >>> run("say.py", batches=["batch.yaml"], loud=True, print_trials=True)
     #  loud  msg
     1  yes   hello 4
     2  yes   hello 5

@@ -120,7 +120,7 @@ scalar:
 
 Let's experiment with some different changes, specified as flags:
 
-    >>> _, trials = gen_trials("echo", x="[-0.1:0.1]", y="hat", z="[a,b]")
+    >>> _, trials = gen_trials("echo", x="[-0.1:0.1]", y="hat", z=["a","b"])
 
     >>> len(trials)
     5
