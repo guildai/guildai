@@ -23,8 +23,7 @@ def _gen_trials(flags, _batch):
     flag_list = [
         _trial_flags(name, val)
         for name, val in sorted(flags.items())]
-    for trial in itertools.product(*flag_list):
-        yield dict(trial)
+    return [dict(trial) for trial in itertools.product(*flag_list)]
 
 def _trial_flags(flag_name, flag_val):
     if isinstance(flag_val, list):

@@ -52,13 +52,14 @@ class Trial(object):
     def __init__(self, batch, flags, run_id=None):
         self.batch = batch
         self.flags = flags
-        self._flags_hash = op_util.flags_hash(flags)
+        self._hash = op_util.flags_hash(flags)
         self.run_id = run_id or runlib.mkid()
         self._trial_link = os.path.join(self.batch.batch_run.path, self.run_id)
         self.skip = False
 
-    def flags_match(self, trial):
-        return self._flags_hash == trial._flags_hash
+    def __cmp__(self, trial):
+        assert isinstance(trial, Trial)
+        return cmp(self._hash, trial._hash)
 
     def delete_pending_run(self):
         run = self._trial_run()
@@ -70,8 +71,10 @@ class Trial(object):
             if os.path.exists(self._trial_link):
                 os.remove(self._trial_link)
 
-    def _trial_run(self):
+    def _trial_run(self, required=False):
         if not os.path.exists(self._trial_link):
+            if required:
+                raise RuntimeError("trial not initialized - needs call to init")
             return None
         run_dir = os.path.realpath(self._trial_link)
         run_id = os.path.basename(run_dir)
@@ -122,9 +125,7 @@ class Trial(object):
         return op_util.restart_needed(run, self.flags)
 
     def run(self, quiet=False, **kw):
-        trial_run = self._trial_run()
-        if not trial_run:
-            raise RuntimeError("trial not initialized - needs call to init")
+        trial_run = self._trial_run(required=True)
         opspec = trial_run.opref.to_opspec()
         cwd = os.environ["CMD_DIR"]
         extra_env = {
@@ -149,8 +150,9 @@ class Trial(object):
 
 class Batch(object):
 
-    def __init__(self, batch_run):
+    def __init__(self, batch_run, trial_cls=None):
         self.batch_run = batch_run
+        self._trial_cls = trial_cls or Trial
         self.proto_run = self._init_proto_run()
         self._proto_opdef_data = None
         self._index_path = batch_run.guild_path("trials")
@@ -194,7 +196,7 @@ class Batch(object):
             trials = self._acc_batch_trials(base_flags, batches, gen_cb)
         else:
             trials = gen_cb(base_flags, self)
-        return [Trial(self, flags) for flags in trials]
+        return [self._trial_cls(self, flags) for flags in trials]
 
     def _acc_batch_trials(self, base_flags, batches, gen_cb):
         trials = []
@@ -269,7 +271,7 @@ class Batch(object):
     @staticmethod
     def _in_trials(candidate, trials):
         for trial in trials:
-            if trial.flags_match(candidate):
+            if trial == candidate:
                 return True
         return False
 
@@ -319,15 +321,17 @@ class Batch(object):
             return
         trial.run()
 
-def default_main(gen_trials_cb, default_max_trials=DEFAULT_MAX_TRIALS):
+def default_main(gen_trials_cb,
+                 default_max_trials=DEFAULT_MAX_TRIALS,
+                 trial_cls=None):
     init_logging()
     try:
-        _default_main_impl(gen_trials_cb, default_max_trials)
+        _default_main_impl(gen_trials_cb, default_max_trials, trial_cls)
     except BatchError as e:
         op_util.exit(str(e))
 
-def _default_main_impl(gen_trials_cb, default_max_trials):
-    batch = init_batch()
+def _default_main_impl(gen_trials_cb, default_max_trials, trial_cls):
+    batch = init_batch(trial_cls)
     trials = batch.gen_trials(gen_trials_cb, default_max_trials)
     if os.getenv("PRINT_TRIALS") == "1":
         print_trials(trials)
@@ -339,8 +343,8 @@ def _default_main_impl(gen_trials_cb, default_max_trials):
         init_only = os.getenv("INIT_TRIALS_ONLY") == "1"
         batch.run_trials(trials, init_only)
 
-def init_batch():
-    return Batch(op_util.current_run())
+def init_batch(trial_cls=None):
+    return Batch(op_util.current_run(), trial_cls)
 
 def print_trials(trials):
     if trials:
