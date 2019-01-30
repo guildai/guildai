@@ -74,9 +74,9 @@ run a batch using both previous values for `x`:
 
     >>> run_echo(x=[1,2], needed=True)
     Initialized trial (x=1, y=2, z=a)
-    Initialized trial (x=2, y=2, z=a)
     Running trial: echo.py (x=1, y=2, z=a)
     1 2 'a'
+    Initialized trial (x=2, y=2, z=a)
     Running trial: echo.py (x=2, y=2, z=a)
     2 2 'a'
 
@@ -117,9 +117,9 @@ Let's run a new batch in a fresh workspace.
 
     >>> run_echo(x=[1,2])
     Initialized trial (x=1, y=2, z=a)
-    Initialized trial (x=2, y=2, z=a)
     Running trial: echo.py (x=1, y=2, z=a)
     1 2 'a'
+    Initialized trial (x=2, y=2, z=a)
     Running trial: echo.py (x=2, y=2, z=a)
     2 2 'a'
 
@@ -134,9 +134,9 @@ Let's first restart the batch without the restart option:
     >>> run_echo(restart=batch_run.id)
     Restarting ...
     Initialized trial (x=1, y=2, z=a)
-    Initialized trial (x=2, y=2, z=a)
     Running trial: echo.py (x=1, y=2, z=a)
     1 2 'a'
+    Initialized trial (x=2, y=2, z=a)
     Running trial: echo.py (x=2, y=2, z=a)
     2 2 'a'
 

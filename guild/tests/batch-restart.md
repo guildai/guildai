@@ -76,15 +76,15 @@ For our initial batch run, we use two values each for flags `x` and
 
     >>> run("echo.py", x=[1.0,2.0], y=[2,3])
     Initialized trial (x=1.0, y=2, z=a)
-    Initialized trial (x=1.0, y=3, z=a)
-    Initialized trial (x=2.0, y=2, z=a)
-    Initialized trial (x=2.0, y=3, z=a)
     Running trial: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
+    Initialized trial (x=1.0, y=3, z=a)
     Running trial: echo.py (x=1.0, y=3, z=a)
     1.0 3 'a'
+    Initialized trial (x=2.0, y=2, z=a)
     Running trial: echo.py (x=2.0, y=2, z=a)
     2.0 2 'a'
+    Initialized trial (x=2.0, y=3, z=a)
     Running trial: echo.py (x=2.0, y=3, z=a)
     2.0 3 'a'
 
@@ -113,15 +113,15 @@ Let's restart our batch run without modification:
     >>> run(restart=batch_run.id)
     Restarting ...
     Initialized trial (x=1.0, y=2, z=a)
-    Initialized trial (x=1.0, y=3, z=a)
-    Initialized trial (x=2.0, y=2, z=a)
-    Initialized trial (x=2.0, y=3, z=a)
     Running trial: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
+    Initialized trial (x=1.0, y=3, z=a)
     Running trial: echo.py (x=1.0, y=3, z=a)
     1.0 3 'a'
+    Initialized trial (x=2.0, y=2, z=a)
     Running trial: echo.py (x=2.0, y=2, z=a)
     2.0 2 'a'
+    Initialized trial (x=2.0, y=3, z=a)
     Running trial: echo.py (x=2.0, y=3, z=a)
     2.0 3 'a'
 
@@ -161,9 +161,9 @@ previous values of `x`:
     >>> run(restart=batch_run.id, x=1.0)
     Restarting ...
     Initialized trial (x=1.0, y=2, z=a)
-    Initialized trial (x=1.0, y=3, z=a)
     Running trial: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
+    Initialized trial (x=1.0, y=3, z=a)
     Running trial: echo.py (x=1.0, y=3, z=a)
     1.0 3 'a'
 
@@ -187,9 +187,9 @@ Next we restart using without specifying any modified flags:
     >>> run(restart=batch_run.id)
     Restarting ...
     Initialized trial (x=1.0, y=2, z=a)
-    Initialized trial (x=1.0, y=3, z=a)
     Running trial: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
+    Initialized trial (x=1.0, y=3, z=a)
     Running trial: echo.py (x=1.0, y=3, z=a)
     1.0 3 'a'
 
@@ -203,12 +203,12 @@ existing trials as well as some new trials.
     >>> run(restart=batch_run.id, x=1.0, y=[2,3,4])
     Restarting ...
     Initialized trial (x=1.0, y=2, z=a)
-    Initialized trial (x=1.0, y=3, z=a)
-    Initialized trial (x=1.0, y=4, z=a)
     Running trial: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
+    Initialized trial (x=1.0, y=3, z=a)
     Running trial: echo.py (x=1.0, y=3, z=a)
     1.0 3 'a'
+    Initialized trial (x=1.0, y=4, z=a)
     Running trial: echo.py (x=1.0, y=4, z=a)
     1.0 4 'a'
 
@@ -258,12 +258,12 @@ Let's now restart the batch:
     >>> run(restart=batch_run.id)
     Restarting ...
     Initialized trial (x=1.0, y=4, z=a)
-    Initialized trial (x=1.0, y=2, z=a)
-    Initialized trial (x=1.0, y=3, z=a)
     Running trial: echo.py (x=1.0, y=4, z=a)
     1.0 4 'a'
+    Initialized trial (x=1.0, y=2, z=a)
     Running trial: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
+    Initialized trial (x=1.0, y=3, z=a)
     Running trial: echo.py (x=1.0, y=3, z=a)
     1.0 3 'a'
 
@@ -409,27 +409,27 @@ Next we restart the entire batch:
     >>> run(restart=batch_run.id)
     Restarting ...
     Initialized trial (x=3.0, y=5, z=b)
-    Initialized trial (x=3.0, y=5, z=c)
-    Initialized trial (x=3.0, y=6, z=b)
-    Initialized trial (x=3.0, y=6, z=c)
-    Initialized trial (x=4.0, y=5, z=b)
-    Initialized trial (x=4.0, y=5, z=c)
-    Initialized trial (x=4.0, y=6, z=b)
-    Initialized trial (x=4.0, y=6, z=c)
     Running trial: echo.py (x=3.0, y=5, z=b)
     3.0 5 'b'
+    Initialized trial (x=3.0, y=5, z=c)
     Running trial: echo.py (x=3.0, y=5, z=c)
     3.0 5 'c'
+    Initialized trial (x=3.0, y=6, z=b)
     Running trial: echo.py (x=3.0, y=6, z=b)
     3.0 6 'b'
+    Initialized trial (x=3.0, y=6, z=c)
     Running trial: echo.py (x=3.0, y=6, z=c)
     3.0 6 'c'
+    Initialized trial (x=4.0, y=5, z=b)
     Running trial: echo.py (x=4.0, y=5, z=b)
     4.0 5 'b'
+    Initialized trial (x=4.0, y=5, z=c)
     Running trial: echo.py (x=4.0, y=5, z=c)
     4.0 5 'c'
+    Initialized trial (x=4.0, y=6, z=b)
     Running trial: echo.py (x=4.0, y=6, z=b)
     4.0 6 'b'
+    Initialized trial (x=4.0, y=6, z=c)
     Running trial: echo.py (x=4.0, y=6, z=c)
     4.0 6 'c'
 
