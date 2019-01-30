@@ -149,11 +149,6 @@
     guild.opref
     guild.optimizer
     guild.optimizers.__init__
-<<<<<<< e6b46a78c94573647025a06fb3525203e8fcf23a
-    guild.optimizers.skopt
-=======
-    guild.optimizers.bayesian_main
->>>>>>> Bayesian optimization wip
     guild.optimizers.random_main
     guild.optimizers.skopt
     guild.package
@@ -162,8 +157,10 @@
     guild.pip_util
     guild.plugin
     guild.plugins.__init__
+    guild.plugins.bayesian_main
     guild.plugins.cpu
     guild.plugins.disk
+    guild.plugins.exec_script
     guild.plugins.flags
     guild.plugins.gpu
     guild.plugins.import_argparse_flags_main
@@ -171,6 +168,9 @@
     guild.plugins.keras_op_main
     guild.plugins.memory
     guild.plugins.perf
+    guild.plugins.python_script
+    guild.plugins.random_main
+    guild.plugins.skopt
     guild.plugins.tensorflow_util
     guild.plugins.training_pkg_main
     guild.python_util

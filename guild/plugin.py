@@ -22,13 +22,15 @@ from guild import entry_point_util
 
 _plugins = entry_point_util.EntryPointResources("guild.plugins", "plugin")
 
-class NotSupported(TypeError):
+class NotSupported(Exception):
     pass
 
 class Plugin(object):
     """Abstract interface for a Guild plugin."""
 
     name = None
+
+    resolve_model_op_priority = 100
 
     def __init__(self, ep):
         self.name = ep.name
@@ -41,11 +43,22 @@ class Plugin(object):
         """
         pass
 
-    def enabled_for_op(self, _op):
+    @staticmethod
+    def enabled_for_op(_op):
         return False, None
 
-    def patch_env(self):
+    @staticmethod
+    def patch_env():
         pass
+
+    @staticmethod
+    def resolve_model_op(_opspec):
+        """Return a tuple of model, op_name for opspec.
+
+        If opspec cannot be resolved to a model, the function should
+        return None.
+        """
+        return None
 
 def iter_plugins():
     return iter(_plugins)

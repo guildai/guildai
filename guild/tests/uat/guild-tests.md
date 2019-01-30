@@ -38,6 +38,7 @@ tests).
       main-bootstrap:              ok
       marked-runs:                 ok
       memory-plugin:               ok
+      model-proxies:               ok
       models:                      ok
       namespaces:                  ok
       needed:                      ok

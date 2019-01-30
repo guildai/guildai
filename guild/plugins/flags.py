@@ -127,8 +127,7 @@ class FlagsPlugin(Plugin):
             cli.note_once("Refreshing project info...")
         script = python_util.Script(mod_path)
         try:
-            data = self._flags_data_for_script(
-                script, mod_path, sys_path)
+            data = self._flags_data_for_script(script, mod_path, sys_path)
         except DataLoadError:
             return {}
         else:

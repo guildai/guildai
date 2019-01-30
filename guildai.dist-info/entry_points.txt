@@ -6,18 +6,16 @@ guild = guild.main_bootstrap:main
 
 cpu = guild.plugins.cpu:CPUPlugin
 disk = guild.plugins.disk:DiskPlugin
+exec_script = guild.plugins.exec_script:ExecScriptPlugin
 flags = guild.plugins.flags:FlagsPlugin
 gpu = guild.plugins.gpu:GPUPlugin
 keras = guild.plugins.keras:KerasPlugin
 memory = guild.plugins.memory:MemoryPlugin
 perf = guild.plugins.perf:PerfPlugin
+python_script = guild.plugins.python_script:PythonScriptPlugin
+skopt = guild.plugins.skopt:SkoptPlugin
 
 [guild.namespaces]
 
 pypi = guild.namespace:PypiNamespace
 guildfile = guild.model:GuildfileNamespace
-
-[guild.optimizers]
-
-random = guild.optimizers.skopt:RandomOptimizer
-bayesian = guild.optimizers.skopt:BayesianOptimizer

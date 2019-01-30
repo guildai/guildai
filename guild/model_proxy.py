@@ -15,19 +15,16 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import os
-
-from six.moves import shlex_quote
+import logging
 
 import guild
 
 from guild import config
 from guild import guildfile
 from guild import model as modellib
-from guild import optimizer as optimizers
-from guild import plugin as plugins
-from guild import python_util
-from guild import util
+from guild import plugin as pluginlib
+
+log = logging.getLogger("guild")
 
 GENERIC_COMPARE = [
     # step
@@ -99,166 +96,24 @@ class BatchModelProxy(object):
             guild.__version__,
             self.name)
 
-class PythonScriptModelProxy(object):
-
-    name = ""
-    fullname = ""
-    output_scalars = GENERIC_OUTPUT_SCALARS
-    compare = GENERIC_COMPARE
-
-    def __init__(self, script):
-        assert script[-3:] == ".py", script
-        self.script = script
-        self.op_name = os.path.basename(script)
-        self.modeldef = self._init_modeldef()
-        self.reference = _script_model_reference(self.name, script)
-
-    def _init_modeldef(self):
-        data = [
-            {
-                "model": self.name,
-                "operations": {
-                    self.op_name: {
-                        "exec": self._exec_attr(),
-                        "flags": self._flags_data(),
-                        "compare": self.compare,
-                        "output-scalars": self.output_scalars,
-                    }
-                },
-                "disable-plugins": "all",
-                "output-scalars": self.output_scalars,
-            }
-        ]
-        gf = guildfile.Guildfile(data, dir=config.cwd())
-        return gf.models[self.name]
-
-    def _exec_attr(self):
-        return (
-            "${python_exe} -um guild.op_main %s ${flag_args}"
-            % shlex_quote(self._script_module()))
-
-    def _script_module(self):
-        return os.path.splitext(self.script)[0]
-
-    def _flags_data(self):
-        plugin = plugins.for_name("flags")
-        return plugin.flags_data_for_path(self.script, ".")
-
-class KerasScriptModelProxy(PythonScriptModelProxy):
-
-    # Assuming Keras plugin installs TensorBoard callback, which
-    # collets scalars
-    #
-    output_scalars = None
-
-    def __init__(self, script):
-        self._script = script
-        super(KerasScriptModelProxy, self).__init__(script.src)
-
-    def _init_modeldef(self):
-        plugin = plugins.for_name("keras")
-        model_data = plugin.script_model(self._script)
-        self._rename_model_and_op(model_data)
-        self._reenable_plugins(model_data)
-        gf = guildfile.Guildfile([model_data], dir=config.cwd())
-        return gf.models[self.name]
-
-    def _rename_model_and_op(self, data):
-        """Rename model and op in data provided by Keras plugin.
-
-        The Keras plugin uses the script name for the model and
-        'train' for the operation. We want to make sure our model is
-        named `self.name` and has an operation named `self.op_name`.
-        """
-        assert "model" in data, data
-        assert "train" in data.get("operations", {}), data
-        data["model"] = self.name
-        data["operations"][self.op_name] = data["operations"].pop("train")
-
-    @staticmethod
-    def _reenable_plugins(data):
-        data.pop("disable-plugins", None)
-
-class ExecScriptModelProxy(object):
-
-    def __init__(self, script):
-        self.script = script
-        self.name = ""
-        self.fullname = ""
-        self.op_name = script
-        self.modeldef = self._init_modeldef()
-        self.reference = _script_model_reference(self.name, script)
-
-    def _init_modeldef(self):
-        abs_script = os.path.abspath(self.script)
-        data = [
-            {
-                "model": self.name,
-                "operations": {
-                    self.op_name: {
-                        "exec": abs_script
-                    }
-                }
-            }
-        ]
-        gf = guildfile.Guildfile(data, dir=config.cwd())
-        return gf.models[self.name]
-
-def _script_model_reference(model_name, script):
-    script_abs_path = os.path.abspath(os.path.join(config.cwd(), script))
-    return modellib.ModelRef(
-        "script",
-        script_abs_path,
-        modellib.file_hash(script),
-        model_name)
-
 def resolve_model_op(opspec):
-    return util.find_apply([
-        _default_batch_model_op,
-        _optimizer_model_op,
-        _python_script_model_op,
-        _executable_file_model_op,
-        _not_supported_error,
-    ], opspec)
-
-def _default_batch_model_op(opspec):
     if opspec == "+":
         model = BatchModelProxy()
         return model, model.op_name
-    return None
+    return _resolve_plugin_model_op(opspec)
 
-def _optimizer_model_op(opspec):
-    try:
-        optimizer = optimizers.for_name(opspec)
-    except LookupError:
-        return None
-    else:
-        return optimizer.resolve_model_op(opspec)
-
-def _python_script_model_op(opspec):
-    if _is_python_script(opspec):
-        model = _python_script_model(opspec)
-        return model, model.op_name
-    return None
-
-def _is_python_script(opspec):
-    return os.path.isfile(opspec) and opspec[-3:] == ".py"
-
-def _python_script_model(opspec):
-    script = python_util.Script(opspec)
-    if _is_keras_script(script):
-        return KerasScriptModelProxy(script)
-    return PythonScriptModelProxy(opspec)
-
-def _is_keras_script(script):
-    plugin = plugins.for_name("keras")
-    return plugin.is_keras_script(script)
-
-def _executable_file_model_op(opspec):
-    if util.is_executable_file(opspec):
-        model = ExecScriptModelProxy(opspec)
-        return model, model.op_name
-    return None
-
-def _not_supported_error(_):
+def _resolve_plugin_model_op(opspec):
+    for name, plugin in _plugins_by_resolve_model_op_priority():
+        log.debug("resolving model op for %r with plugin %r", opspec, name)
+        model_op = plugin.resolve_model_op(opspec)
+        if model_op:
+            log.debug(
+                "got model op for %r from plugin %r: %s:%s",
+                opspec, name, model_op[0].name, model_op[1])
+            return model_op
     raise NotSupported()
+
+def _plugins_by_resolve_model_op_priority():
+    return sorted(
+        pluginlib.iter_plugins(),
+        key=lambda x: x[1].resolve_model_op_priority)

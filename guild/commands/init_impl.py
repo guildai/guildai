@@ -352,6 +352,9 @@ def _is_requirements_file(path):
 def _maybe_install_tensorflow(config):
     if config.tensorflow_package:
         cli.out("Installing TensorFlow")
+        # Temporary work-around for
+        # https://github.com/keras-team/keras-preprocessing/issues/154
+        _install_reqs(["Keras-Preprocessing==1.0.5"], config)
         _install_reqs([config.tensorflow_package], config)
 
 def _install_guild_pkg_reqs(config):
