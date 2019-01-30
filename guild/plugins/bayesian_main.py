@@ -29,15 +29,23 @@ class Trial(batch_util.Trial):
         print(" - collect inputs from batch flags and index")
         print("   %s" % self.batch.batch_run.get("flags"))
         print(" - collect search space from trial run flags")
-        print("   %s" % trial_run.get("flags"))
+        print("   %s" % self.batch.proto_run.get("flags"))
         print(" - feed to gp_min to get suggested xs")
-        print(" - rewrite trial run flags with suggested xs")
-        print(" - call super run")
-        import time; time.sleep(2)
+        import random
+        suggested = {"x": 1 + random.uniform(-1.0, 1.0)}
+        trial_run.write_attr("flags", suggested)
+        super(Trial, self).run(**kw)
 
-def _gen_trials(flags, batch):
+    def __cmp__(self, trial):
+        # If we haven't generated suggested flags for this trial yet,
+        # consider not equal.
+        if self.flags == {}:
+            return -1
+        return super(Trial, self).__cmp__(trial)
+
+def _gen_trials(_flags, batch):
     num_trials = batch.max_trials or DEFAULT_TRIALS
-    return [flags] * num_trials
+    return [{}] * num_trials
 
 """
 def _flag_dim(val, flag_name):
