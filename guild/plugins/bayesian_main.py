@@ -26,9 +26,7 @@ DEFAULT_TRIALS = 20
 def _gen_trials(flags, batch):
     num_trials = batch.max_trials or DEFAULT_TRIALS
     flag_names, dimensions = skopt.flag_dimensions(flags, _flag_dim)
-    print("TODO: setup %i trial(s) somehow for dims: %s"
-          % (num_trials, zip(flag_names, dimensions)))
-    return []
+    return [dict(zip(flag_names, dimensions))] * num_trials
 
 def _flag_dim(val, flag_name):
     if isinstance(val, list):
