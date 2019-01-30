@@ -19,17 +19,16 @@ import yaml
 
 from guild import model_proxy
 from guild import op_util
-
-from guild.optimizer import Optimizer
+from guild import plugin as pluginlib
 
 class RandomOptimizerModelProxy(model_proxy.BatchModelProxy):
 
-    name = ""
+    name = "skopt"
     op_name = "random"
     op_description = (
         "Batch processor supporting random flag value generation.")
-    module_name = "guild.optimizers.random_main"
-    flag_encoder = "guild.optimizers.skopt:encode_flag_for_random"
+    module_name = "guild.plugins.random_main"
+    flag_encoder = "guild.plugins.skopt:encode_flag_for_random"
 
 def encode_flag_for_random(val, flagdef):
     """Encodes a flag def as either a list or a slice range.
@@ -44,13 +43,6 @@ def encode_flag_for_random(val, flagdef):
     elif flagdef.min is not None and flagdef.max is not None:
         return "[%s:%s]" % (fmt(flagdef.min), fmt(flagdef.max))
     return val
-
-class RandomOptimizer(Optimizer):
-
-    @staticmethod
-    def resolve_model_op(_opspec):
-        model = RandomOptimizerModelProxy()
-        return model, model.op_name
 
 class BayesianOptimizerModelProxy(model_proxy.BatchModelProxy):
 
@@ -107,13 +99,6 @@ def encode_flag_for_bayesian(val, flagdef):
         return "search(%s)" % ",".join(search_args)
     return val
 
-class BayesianOptimizer(Optimizer):
-
-    @staticmethod
-    def resolve_model_op(_opspec):
-        model = BayesianOptimizerModelProxy()
-        return model, model.op_name
-
 def flag_dimensions(flags, flag_dim_cb):
     dims = {
         name: flag_dim_cb(val, name)
@@ -121,3 +106,15 @@ def flag_dimensions(flags, flag_dim_cb):
     }
     names = sorted(dims)
     return names, [dims[name] for name in names]
+
+class SkoptPlugin(pluginlib.Plugin):
+
+    @staticmethod
+    def resolve_model_op(opspec):
+        if opspec in ("random", "skopt:random"):
+            model = RandomOptimizerModelProxy()
+            return model, model.op_name
+        elif opspec in ("bayesian", "skopt:bayesian"):
+            model = BayesianOptimizerModelProxy()
+            return model, model.op_name
+        return None

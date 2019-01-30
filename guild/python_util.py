@@ -370,3 +370,10 @@ def _match_ref(name, val, ref_spec):
 def _match_ref_attrs(val, attrs):
     undef = object()
     return all((getattr(val, name, undef) == attrs[name] for name in attrs))
+
+def is_python_script(opspec):
+    return os.path.isfile(opspec) and opspec[-3:] == ".py"
+
+def script_module(script_path, cwd="."):
+    mod_path = os.path.splitext(script_path)[0]
+    return os.path.relpath(mod_path, cwd)

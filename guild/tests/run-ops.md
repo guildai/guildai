@@ -90,7 +90,7 @@ We'll resolve the operation, capturing any warnings:
     >>> with LogCapture() as log:
     ...     model, op_name = resolve_model_op("train.py")
     >>> model
-    <guild.model_proxy.PythonScriptModelProxy object ...>
+    <guild.plugins.python_script.PythonScriptModelProxy ...>
     >>> op_name
     'train.py'
     >>> model.modeldef.name
@@ -130,7 +130,7 @@ And resolve again:
 
     >>> model, op_name = resolve_model_op("train.sh")
     >>> model
-    <guild.model_proxy.ExecScriptModelProxy ...>
+    <guild.plugins.exec_script.ExecScriptModelProxy ...>
     >>> op_name
     'train.sh'
     >>> model.modeldef.name

@@ -147,19 +147,16 @@
     guild.op_main
     guild.op_util
     guild.opref
-    guild.optimizer
-    guild.optimizers.__init__
-    guild.optimizers.bayesian_main
-    guild.optimizers.random_main
-    guild.optimizers.skopt
     guild.package
     guild.package_main
     guild.pass
     guild.pip_util
     guild.plugin
     guild.plugins.__init__
+    guild.plugins.bayesian_main
     guild.plugins.cpu
     guild.plugins.disk
+    guild.plugins.exec_script
     guild.plugins.flags
     guild.plugins.gpu
     guild.plugins.import_argparse_flags_main
@@ -167,6 +164,9 @@
     guild.plugins.keras_op_main
     guild.plugins.memory
     guild.plugins.perf
+    guild.plugins.python_script
+    guild.plugins.random_main
+    guild.plugins.skopt
     guild.plugins.tensorflow_util
     guild.plugins.training_pkg_main
     guild.python_util

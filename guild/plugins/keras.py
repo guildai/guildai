@@ -15,9 +15,63 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from guild import plugin
+import os
 
-class KerasPlugin(plugin.Plugin):
+from guild import config
+from guild import guildfile
+from guild import plugin as pluginlib
+from guild import python_util
+
+from .python_script import PythonScriptModelProxy
+
+class KerasScriptModelProxy(PythonScriptModelProxy):
+
+    # Assuming Keras plugin installs TensorBoard callback, which
+    # collets scalars
+    #
+    output_scalars = None
+
+    def __init__(self, op_name, script):
+        self._script = script
+        super(KerasScriptModelProxy, self).__init__(op_name, script.src)
+
+    def _init_modeldef(self):
+        plugin = pluginlib.for_name("keras")
+        model_data = plugin.script_model(self._script)
+        self._rename_model_and_op(model_data)
+        self._reenable_plugins(model_data)
+        gf = guildfile.Guildfile([model_data], dir=config.cwd())
+        return gf.models[self.name]
+
+    def _rename_model_and_op(self, data):
+        """Rename model and op in data provided by Keras plugin.
+
+        The Keras plugin uses the script name for the model and
+        'train' for the operation. We want to make sure our model is
+        named `self.name` and has an operation named `self.op_name`.
+        """
+        assert "model" in data, data
+        assert "train" in data.get("operations", {}), data
+        data["model"] = self.name
+        data["operations"][self.op_name] = data["operations"].pop("train")
+
+    @staticmethod
+    def _reenable_plugins(data):
+        data.pop("disable-plugins", None)
+
+class KerasPlugin(pluginlib.Plugin):
+
+    resolve_model_op_priority = 50
+
+    def resolve_model_op(self, opspec):
+        path = os.path.join(config.cwd(), opspec)
+        if not python_util.is_python_script(path):
+            return None
+        script = python_util.Script(path)
+        if not self.is_keras_script(script):
+            return None
+        model = KerasScriptModelProxy(opspec, script)
+        return model, model.op_name
 
     def is_keras_script(self, script):
         return self._imports_keras(script) and self._op_method(script)
