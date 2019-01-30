@@ -19,16 +19,29 @@ import warnings
 
 from guild import batch_util
 
-from . import skopt
-
 DEFAULT_TRIALS = 20
+
+class Trial(batch_util.Trial):
+
+    def run(self, **kw):
+        trial_run = self._trial_run(required=True)
+        print("TODO:")
+        print(" - collect inputs from batch flags and index")
+        print("   %s" % self.batch.batch_run.get("flags"))
+        print(" - collect search space from trial run flags")
+        print("   %s" % trial_run.get("flags"))
+        print(" - feed to gp_min to get suggested xs")
+        print(" - rewrite trial run flags with suggested xs")
+        print(" - call super run")
+        import time; time.sleep(2)
 
 def _gen_trials(flags, batch):
     num_trials = batch.max_trials or DEFAULT_TRIALS
-    flag_names, dimensions = skopt.flag_dimensions(flags, _flag_dim)
-    return [dict(zip(flag_names, dimensions))] * num_trials
+    return [flags] * num_trials
 
+"""
 def _flag_dim(val, flag_name):
+    import pdb;pdb.set_trace()
     if isinstance(val, list):
         return val
     try:
@@ -48,6 +61,7 @@ def _validate_search_dim(val, dist_name, flag_name):
         raise batch_util.BatchError(
             "unexpected arguemt list in %s for flag %s - "
             "expected 2 or 3 arguments" % (val, flag_name))
+"""
 
 def _patch_numpy_deprecation_warnings():
     warnings.filterwarnings("ignore", category=Warning)
@@ -55,4 +69,4 @@ def _patch_numpy_deprecation_warnings():
 
 if __name__ == "__main__":
     _patch_numpy_deprecation_warnings()
-    batch_util.default_main(_gen_trials)
+    batch_util.default_main(_gen_trials, trial_cls=Trial)

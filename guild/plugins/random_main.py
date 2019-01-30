@@ -28,9 +28,7 @@ def _gen_trials(flags, batch):
     random_seed = batch.random_seed
     flag_names, dimensions = skopt.flag_dimensions(flags, _flag_dim)
     trial_vals = _gen_trial_vals(dimensions, num_trials, random_seed)
-    return [
-        dict(zip(flag_names, _native_python(flag_vals)))
-        for flag_vals in trial_vals]
+    return [_trial_flags(flag_names, flag_vals) for flag_vals in trial_vals]
 
 def _flag_dim(val, flag_name):
     if isinstance(val, list):
@@ -61,6 +59,9 @@ def _gen_trial_vals(dimensions, num_trials, random_seed):
         n_calls=num_trials,
         random_state=random_seed)
     return res.x_iters
+
+def _trial_flags(flag_names, flag_vals):
+    return dict(zip(flag_names, _native_python(flag_vals)))
 
 def _native_python(l):
     def pyval(x):
