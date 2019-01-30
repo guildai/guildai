@@ -41,7 +41,7 @@ def encode_flag_for_random(val, flagdef):
     if flagdef.choices:
         return [c.value for c in flagdef.choices]
     elif flagdef.min is not None and flagdef.max is not None:
-        return "[%s:%s]" % (fmt(flagdef.min), fmt(flagdef.max))
+        return "uniform(%s,%s)" % (fmt(flagdef.min), fmt(flagdef.max))
     return val
 
 class BayesianOptimizerModelProxy(model_proxy.BatchModelProxy):
