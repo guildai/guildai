@@ -117,9 +117,9 @@ Next we'll run `say.py` with two values for `msg`:
 
     >>> run("say.py", msg=["hello", "hola"])
     Initialized trial (loud=no, msg=hello)
-    Initialized trial (loud=no, msg=hola)
     Running trial: say.py (loud=no, msg=hello)
     hello
+    Initialized trial (loud=no, msg=hola)
     Running trial: say.py (loud=no, msg=hola)
     hola
 
@@ -146,12 +146,12 @@ list.
 
     >>> run("say.py", msg=["c", "a", "b"])
     Initialized trial (loud=no, msg=c)
-    Initialized trial (loud=no, msg=a)
-    Initialized trial (loud=no, msg=b)
     Running trial: say.py (loud=no, msg=c)
     c
+    Initialized trial (loud=no, msg=a)
     Running trial: say.py (loud=no, msg=a)
     a
+    Initialized trial (loud=no, msg=b)
     Running trial: say.py (loud=no, msg=b)
     b
 
@@ -165,9 +165,9 @@ We can specify other flags along with our batch specifiers:
 
     >>> run("say.py", msg=["a", "b"], loud=True)
     Initialized trial (loud=yes, msg=a)
-    Initialized trial (loud=yes, msg=b)
     Running trial: say.py (loud=yes, msg=a)
     A
+    Initialized trial (loud=yes, msg=b)
     Running trial: say.py (loud=yes, msg=b)
     B
 
@@ -183,15 +183,15 @@ values as ordered in each flag value list.
 
     >>> run("say.py", msg=["b", "a"], loud=[False, True])
     Initialized trial (loud=no, msg=b)
-    Initialized trial (loud=no, msg=a)
-    Initialized trial (loud=yes, msg=b)
-    Initialized trial (loud=yes, msg=a)
     Running trial: say.py (loud=no, msg=b)
     b
+    Initialized trial (loud=no, msg=a)
     Running trial: say.py (loud=no, msg=a)
     a
+    Initialized trial (loud=yes, msg=b)
     Running trial: say.py (loud=yes, msg=b)
     B
+    Initialized trial (loud=yes, msg=a)
     Running trial: say.py (loud=yes, msg=a)
     A
 
@@ -237,12 +237,12 @@ Let's use the batch file in an operation:
 
     >>> run("say.py", batches=["batch.csv"])
     Initialized trial (loud=no, msg='hello 1')
-    Initialized trial (loud=yes, msg='hello 2')
-    Initialized trial (loud=no, msg='hello 3')
     Running trial: say.py (loud=no, msg='hello 1')
     hello 1
+    Initialized trial (loud=yes, msg='hello 2')
     Running trial: say.py (loud=yes, msg='hello 2')
     HELLO 2
+    Initialized trial (loud=no, msg='hello 3')
     Running trial: say.py (loud=no, msg='hello 3')
     hello 3
 
@@ -266,12 +266,12 @@ file takes precedence over flags specified for the operation.
 
     >>> run("say.py", batches=["batch.csv"], loud=False)
     Initialized trial (loud=no, msg='hello 1')
-    Initialized trial (loud=yes, msg='hello 2')
-    Initialized trial (loud=no, msg='hello 3')
     Running trial: say.py (loud=no, msg='hello 1')
     hello 1
+    Initialized trial (loud=yes, msg='hello 2')
     Running trial: say.py (loud=yes, msg='hello 2')
     HELLO 2
+    Initialized trial (loud=no, msg='hello 3')
     Running trial: say.py (loud=no, msg='hello 3')
     hello 3
 
@@ -290,18 +290,18 @@ Here we'll use a list of `loud`, which is applied in cases where
 
     >>> run("say.py", batches=["batch.csv"], loud=[True, False])
     Initialized trial (loud=yes, msg='hello 1')
-    Initialized trial (loud=no, msg='hello 1')
-    Initialized trial (loud=yes, msg='hello 2')
-    Initialized trial (loud=yes, msg='hello 3')
-    Initialized trial (loud=no, msg='hello 3')
     Running trial: say.py (loud=yes, msg='hello 1')
     HELLO 1
+    Initialized trial (loud=no, msg='hello 1')
     Running trial: say.py (loud=no, msg='hello 1')
     hello 1
+    Initialized trial (loud=yes, msg='hello 2')
     Running trial: say.py (loud=yes, msg='hello 2')
     HELLO 2
+    Initialized trial (loud=yes, msg='hello 3')
     Running trial: say.py (loud=yes, msg='hello 3')
     HELLO 3
+    Initialized trial (loud=no, msg='hello 3')
     Running trial: say.py (loud=no, msg='hello 3')
     hello 3
 
@@ -320,12 +320,12 @@ specified:
 
     >>> run("say.py", batches=["batch.csv"], msg=["hello 4", "hello 5"])
     Initialized trial (loud=no, msg='hello 1')
-    Initialized trial (loud=yes, msg='hello 2')
-    Initialized trial (loud=no, msg='hello 3')
     Running trial: say.py (loud=no, msg='hello 1')
     hello 1
+    Initialized trial (loud=yes, msg='hello 2')
     Running trial: say.py (loud=yes, msg='hello 2')
     HELLO 2
+    Initialized trial (loud=no, msg='hello 3')
     Running trial: say.py (loud=no, msg='hello 3')
     hello 3
 
@@ -351,12 +351,12 @@ Here's our batch using the file:
 
     >>> run("say.py", batches=["batch.yaml"])
     Initialized trial (loud=no, msg='hello 4')
-    Initialized trial (loud=no, msg='hello 5')
-    Initialized trial (loud=yes, msg='hello 6')
     Running trial: say.py (loud=no, msg='hello 4')
     hello 4
+    Initialized trial (loud=no, msg='hello 5')
     Running trial: say.py (loud=no, msg='hello 5')
     hello 5
+    Initialized trial (loud=yes, msg='hello 6')
     Running trial: say.py (loud=yes, msg='hello 6')
     HELLO 6
 
@@ -371,12 +371,12 @@ doesn't define it:
 
     >>> run("say.py", batches=["batch.yaml"], loud=True)
     Initialized trial (loud=yes, msg='hello 4')
-    Initialized trial (loud=yes, msg='hello 5')
-    Initialized trial (loud=yes, msg='hello 6')
     Running trial: say.py (loud=yes, msg='hello 4')
     HELLO 4
+    Initialized trial (loud=yes, msg='hello 5')
     Running trial: say.py (loud=yes, msg='hello 5')
     HELLO 5
+    Initialized trial (loud=yes, msg='hello 6')
     Running trial: say.py (loud=yes, msg='hello 6')
     HELLO 6
 
@@ -397,12 +397,12 @@ Next we'll look at JSON formatted batch files.
 
     >>> run("say.py", batches=["batch.json"])
     Initialized trial (loud=no, msg='hello 7')
-    Initialized trial (loud=yes, msg='hello 8')
-    Initialized trial (loud=yes, msg='hello 9')
     Running trial: say.py (loud=no, msg='hello 7')
     hello 7
+    Initialized trial (loud=yes, msg='hello 8')
     Running trial: say.py (loud=yes, msg='hello 8')
     HELLO 8
+    Initialized trial (loud=yes, msg='hello 9')
     Running trial: say.py (loud=yes, msg='hello 9')
     HELLO 9
 
@@ -417,30 +417,30 @@ applied in the order specified:
 
     >>> run("say.py", batches=["batch.csv", "batch.yaml", "batch.json"])
     Initialized trial (loud=no, msg='hello 1')
-    Initialized trial (loud=yes, msg='hello 2')
-    Initialized trial (loud=no, msg='hello 3')
-    Initialized trial (loud=no, msg='hello 4')
-    Initialized trial (loud=no, msg='hello 5')
-    Initialized trial (loud=yes, msg='hello 6')
-    Initialized trial (loud=no, msg='hello 7')
-    Initialized trial (loud=yes, msg='hello 8')
-    Initialized trial (loud=yes, msg='hello 9')
     Running trial: say.py (loud=no, msg='hello 1')
     hello 1
+    Initialized trial (loud=yes, msg='hello 2')
     Running trial: say.py (loud=yes, msg='hello 2')
     HELLO 2
+    Initialized trial (loud=no, msg='hello 3')
     Running trial: say.py (loud=no, msg='hello 3')
     hello 3
+    Initialized trial (loud=no, msg='hello 4')
     Running trial: say.py (loud=no, msg='hello 4')
     hello 4
+    Initialized trial (loud=no, msg='hello 5')
     Running trial: say.py (loud=no, msg='hello 5')
     hello 5
+    Initialized trial (loud=yes, msg='hello 6')
     Running trial: say.py (loud=yes, msg='hello 6')
     HELLO 6
+    Initialized trial (loud=no, msg='hello 7')
     Running trial: say.py (loud=no, msg='hello 7')
     hello 7
+    Initialized trial (loud=yes, msg='hello 8')
     Running trial: say.py (loud=yes, msg='hello 8')
     HELLO 8
+    Initialized trial (loud=yes, msg='hello 9')
     Running trial: say.py (loud=yes, msg='hello 9')
     HELLO 9
 
