@@ -189,7 +189,7 @@ def _apply_run_flags(run, args):
 
 def _flag_args(flags):
     return tuple([
-        "{}={}".format(name, val)
+        op_util.format_flag_arg(name, val)
         for name, val in sorted(flags.items())
         if val is not None
     ])
@@ -934,7 +934,7 @@ def _format_flag(name, val, opdef):
     if val is None:
         formatted = _null_label(name, opdef)
     else:
-        formatted = op_util.format_flag_val(val, use_nulls=True)
+        formatted = op_util.format_flag_val(val)
     return "%s: %s" % (name, formatted)
 
 def _null_label(name, opdef):

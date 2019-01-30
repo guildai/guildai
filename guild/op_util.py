@@ -25,6 +25,7 @@ import sys
 import threading
 import time
 
+import six
 import yaml
 
 # Move any import that's expensive or seldom used into function
@@ -280,21 +281,32 @@ def _safe_float(s):
         raise ValueError(s)
     return float(s)
 
-def format_flag_val(val, use_nulls=False):
+def format_flag_val(val):
     if val is True:
         return "yes"
     elif val is False:
         return "no"
     elif val is None:
-        return "null" if use_nulls else ""
+        return "null"
     elif isinstance(val, list):
         return _format_flag_list(val)
+    elif isinstance(val, (six.string_types, float)):
+        return _yaml_format(val)
     else:
         return str(val)
 
 def _format_flag_list(val_list):
     joined = ", ".join([format_flag_val(val) for val in val_list])
     return "[%s]" % joined
+
+def _yaml_format(val):
+    formatted = yaml.safe_dump(val).strip()
+    if formatted.endswith("\n..."):
+        formatted = formatted[:-4]
+    return formatted
+
+def format_flag_arg(name, val):
+    return "%s=%s" % (name, format_flag_val(val))
 
 class TFEvents(object):
 
