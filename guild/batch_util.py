@@ -154,7 +154,7 @@ class Batch(object):
         self.proto_run = self._init_proto_run()
         self._proto_opdef_data = None
         self._index_path = batch_run.guild_path("trials")
-        self._needed_only = os.getenv("NEEDED_TRIALS_ONLY") == "1"
+        self._needed = os.getenv("NEEDED_TRIALS_ONLY") == "1"
 
     def _init_proto_run(self):
         proto_path = self.batch_run.guild_path("proto")
@@ -224,7 +224,7 @@ class Batch(object):
         self._add_new_trials(trials, index)
         self._write_index(index)
         for trial in index:
-            if self._needed_only and not trial.run_needed():
+            if self._needed and not trial.run_needed():
                 log.info(
                     "Skipping trial %s because flags have not "
                     "changed (--needed specified)", trial.run_id)
@@ -314,10 +314,13 @@ class Batch(object):
     def run_trials(self):
         index = self._load_index()
         for trial in index:
-            if self._needed_only and not trial.run_needed():
-                log.debug("skipping trial %s", trial.run_id)
-                continue
-            trial.run()
+            self._maybe_run_trial(trial)
+
+    def _maybe_run_trial(self, trial):
+        if self._needed and not trial.run_needed():
+            log.debug("skipping trial %s", trial.run_id)
+            return
+        trial.run()
 
 def default_main(gen_trials_cb, default_max_trials=DEFAULT_MAX_TRIALS):
     init_logging()
