@@ -56,16 +56,16 @@ class Trial(batch_util.Trial):
         self._write_trial_flags(trial_flags)
         super(Trial, self).run(**kw)
 
-    def __cmp__(self, trial):
-        """Compares trial to this trial.
+    def config_equals(self, trial):
+        """Return True if trial config equals our config.
 
-        Compare is used to determine whether or not to re-run a
-        trial. It important that we indicate inequality when our flags
-        are in not yet initialized to ensure that we're run.
+        Used to determine whether or not to re-run a trial. It
+        important that we indicate inequality when our flags are in
+        not yet initialized to ensure that we're run.
         """
         if self.flags == {}:
-            return -1
-        return super(Trial, self).__cmp__(trial)
+            return False
+        return super(Trial, self).config_equals(trial)
 
     def _next_trial_flags(self):
         """Return a next set of trial flags given previous trial data.

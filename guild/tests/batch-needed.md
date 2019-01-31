@@ -68,9 +68,9 @@ batch:
     Skipping because the following runs match this operation (--needed specified):
       [...]  echo.py+  ...  completed
 
-If we request a batch run with any new set of flags - even if those
-flags correspond to existing trials, we get a new batch run. Here we
-run a batch using both previous values for `x`:
+If we request a batch run with any new set of flags - even if some of
+the specified flag values correspond to existing trials, we get a new
+batch run. Here we run a batch using both previous values for `x`:
 
     >>> run_echo(x=[1,2], needed=True)
     Initialized trial (x=1, y=2, z=a)
@@ -88,7 +88,7 @@ values for `x`:
       [...]  echo.py+  ...  completed
 
 If we have two matching batch runs, both are listed in the skipping
-message:
+message. Let's run with `x=[1]` again so we have two such runs:
 
     >>> run_echo(x=[1])
     Initialized trial (x=1, y=2, z=a)
@@ -129,7 +129,7 @@ Here's our batch run:
     >>> batch_run.opref.to_opspec()
     '+'
 
-Let's first restart the batch without the restart option:
+Let's first restart the batch without the needed option:
 
     >>> run_echo(restart=batch_run.id)
     Restarting ...
