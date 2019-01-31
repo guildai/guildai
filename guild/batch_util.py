@@ -443,8 +443,7 @@ def _not_a_function_error(_s):
 # Iter trials main
 ###################################################################
 
-def iter_trials_main(init_state_cb,
-                     init_trial_cb,
+def iter_trials_main(init_state_cb, init_trial_cb,
                      default_max_trials=DEFAULT_MAX_TRIALS):
     default_main(
         _gen_iter_trials_cb(init_state_cb, default_max_trials),
