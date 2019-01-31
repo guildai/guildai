@@ -52,14 +52,13 @@ class Trial(object):
     def __init__(self, batch, flags, run_id=None):
         self.batch = batch
         self.flags = flags
-        self._hash = op_util.flags_hash(flags)
+        self._config_digest = op_util.flags_hash(flags)
         self.run_id = run_id or runlib.mkid()
         self._trial_link = os.path.join(self.batch.batch_run.path, self.run_id)
         self.skip = False
 
-    def __cmp__(self, trial):
-        assert isinstance(trial, Trial)
-        return cmp(self._hash, trial._hash)
+    def config_equals(self, trial):
+        return self._config_digest == trial._config_digest
 
     def delete_pending_run(self):
         run = self.trial_run()
@@ -262,7 +261,8 @@ class Batch(object):
         Returns the list of removed trials.
         """
         removed = []
-        for trial in list(index):
+        index_copy = list(index)
+        for trial in index_copy:
             if not self._in_trials(trial, trials):
                 index.remove(trial)
                 removed.append(trial)
@@ -270,10 +270,7 @@ class Batch(object):
 
     @staticmethod
     def _in_trials(candidate, trials):
-        for trial in trials:
-            if trial == candidate:
-                return True
-        return False
+        return any((trial.config_equals(candidate) for trial in trials))
 
     @staticmethod
     def _delete_pending_trials(trials):
