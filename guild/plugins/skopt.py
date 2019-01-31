@@ -127,14 +127,3 @@ class SkoptPlugin(pluginlib.Plugin):
             model = BayesianOptimizerModelProxy()
             return model, model.op_name
         return None
-
-def trial_flags(flag_names, flag_vals):
-    return dict(zip(flag_names, _native_python(flag_vals)))
-
-def _native_python(l):
-    def pyval(x):
-        try:
-            return x.item()
-        except AttributeError:
-            return x
-    return [pyval(x) for x in l]
