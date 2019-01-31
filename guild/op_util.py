@@ -412,7 +412,9 @@ def coerce_flag_value(val, flagdef):
     """Coerces a flag value based on flagdef settings."""
     if not flagdef or not flagdef.type:
         return val
-    if flagdef.type == "string":
+    if isinstance(val, list):
+        return [coerce_flag_value(x, flagdef) for x in val]
+    elif flagdef.type == "string":
         return _try_coerce_flag_val(val, str, flagdef)
     elif flagdef.type == "int":
         if isinstance(val, float):

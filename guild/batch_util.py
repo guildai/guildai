@@ -62,7 +62,7 @@ class Trial(object):
         return cmp(self._hash, trial._hash)
 
     def delete_pending_run(self):
-        run = self._trial_run()
+        run = self.trial_run()
         if not run:
             return False
         if run.status == "pending":
@@ -71,7 +71,7 @@ class Trial(object):
             if os.path.exists(self._trial_link):
                 os.remove(self._trial_link)
 
-    def _trial_run(self, required=False):
+    def trial_run(self, required=False):
         if not os.path.exists(self._trial_link):
             if required:
                 raise RuntimeError("trial not initialized - needs call to init")
@@ -119,13 +119,13 @@ class Trial(object):
         ]
 
     def run_needed(self):
-        run = self._trial_run()
+        run = self.trial_run()
         if not run:
             return True
         return op_util.restart_needed(run, self.flags)
 
     def run(self, quiet=False, **kw):
-        trial_run = self._trial_run(required=True)
+        trial_run = self.trial_run(required=True)
         opspec = trial_run.opref.to_opspec()
         cwd = os.environ["CMD_DIR"]
         extra_env = {
@@ -220,7 +220,7 @@ class Batch(object):
         return random.sample(trials, max_trials)
 
     def run_trials(self, trials, init_only=False):
-        index = self._load_index(filter_existing=True)
+        index = self.read_index(filter_existing=True)
         orphaned = self._remove_missing_trials(trials, index)
         self._delete_pending_trials(orphaned)
         self._add_new_trials(trials, index)
@@ -236,7 +236,7 @@ class Batch(object):
             if not init_only:
                 self._run_if_needed(trial)
 
-    def _load_index(self, filter_existing=False):
+    def read_index(self, filter_existing=False):
         if not os.path.exists(self._index_path):
             return []
         data = json.load(open(self._index_path, "r"))

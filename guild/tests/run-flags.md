@@ -63,12 +63,15 @@ proxy to comply with its interface.
 And our helper function to validate flags:
 
     >>> import copy
+    >>> from guild import click_util
+
     >>> def flags(op_name, flag_vals, force=False):
     ...     opdef_orig = gf.models["test"].get_operation(op_name)
     ...     opdef_copy = copy.deepcopy(opdef_orig)
+    ...     args_proxy = click_util.Args(force_flags=force, optimizer=None)
     ...     with StderrCapture() as stderr:
     ...         try:
-    ...             _apply_flag_vals(flag_vals, opdef_copy, force)
+    ...             _apply_flag_vals(flag_vals, opdef_copy, args_proxy)
     ...             _validate_op_flags(OpProxy(opdef_copy))
     ...         except SystemExit as e:
     ...             if e.args[0]:
