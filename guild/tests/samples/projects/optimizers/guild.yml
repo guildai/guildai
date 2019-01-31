@@ -11,7 +11,7 @@ noisy:
       max: 2.0
   output-scalars:
     loss: 'loss: (\S+)'
-  compare: [=x, loss step as step, loss]
+  compare: [=x, loss]
   label: x=${x|%.4f}
 
 echo:
@@ -25,9 +25,14 @@ echo:
       default: 1.0
       min: -2.0
       max: 2.0
+      type: float
     y:
       description: Y value to print
       default: 2
     z:
       default: a
       choices: [a, b, c, d]
+  output-scalars:
+    loss: '^(.+?) '
+  compare: [=x, loss]
+  label: x=${x|%.2f} y=${y} z=${z}

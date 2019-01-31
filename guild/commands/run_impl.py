@@ -570,14 +570,14 @@ def _is_resource(name, opdef, ref_vars):
 ###################################################################
 
 def _apply_opdef_args(flag_vals, args, opdef):
-    _apply_flag_vals(flag_vals, opdef, args.force_flags)
+    _apply_flag_vals(flag_vals, opdef, args)
     _apply_arg_disable_plugins(args, opdef)
     opdef.set_trace = args.set_trace
 
-def _apply_flag_vals(vals, opdef, force):
+def _apply_flag_vals(vals, opdef, args):
     for name, val in vals.items():
         flagdef = opdef.get_flagdef(name)
-        if not force and not flagdef:
+        if not args.force_flags and not flagdef:
             cli.error(
                 "unsupported flag '%s'\n"
                 "Try 'guild run %s --help-op' for a list of "
@@ -585,10 +585,15 @@ def _apply_flag_vals(vals, opdef, force):
                 % (name, opdef.fullname))
         try:
             coerced = op_util.coerce_flag_value(val, flagdef)
-        except ValueError as e:
-            cli.error(
-                "cannot apply %r to flag '%s': %s"
-                % (val, name, e))
+        except (ValueError, TypeError) as e:
+            if not args.optimizer:
+                cli.error(
+                    "cannot apply %r to flag '%s': %s"
+                    % (val, name, e))
+            # Silently ignore in case of optimizer, which may support
+            # various search space encodings that violate flagdef
+            # types.
+            opdef.set_flag_value(name, val)
         else:
             opdef.set_flag_value(name, coerced)
 

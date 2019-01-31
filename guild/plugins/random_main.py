@@ -19,16 +19,24 @@ import warnings
 
 from guild import batch_util
 
-from . import skopt as skopt_plugin
+from .skopt import trial_flags
 
 DEFAULT_TRIALS = 20
 
 def _gen_trials(flags, batch):
     num_trials = batch.max_trials or DEFAULT_TRIALS
     random_seed = batch.random_seed
-    flag_names, dimensions = skopt_plugin.flag_dimensions(flags, _flag_dim)
-    trial_vals = _gen_trial_vals(dimensions, num_trials, random_seed)
-    return [_trial_flags(flag_names, flag_vals) for flag_vals in trial_vals]
+    flag_names, dims = _flag_dims(flags)
+    trial_vals = _gen_trial_vals(dims, num_trials, random_seed)
+    return [trial_flags(flag_names, flag_vals) for flag_vals in trial_vals]
+
+def _flag_dims(flags):
+    dims = {
+        name: _flag_dim(val, name)
+        for name, val in flags.items()
+    }
+    names = sorted(dims)
+    return names, [dims[name] for name in names]
 
 def _flag_dim(val, flag_name):
     if isinstance(val, list):
@@ -51,25 +59,14 @@ def _validate_min_max(val, dist_name, flag_name):
             "unexpected arguemt list %r for flag %s - expected 2 arguments"
             % (val, flag_name))
 
-def _gen_trial_vals(dimensions, num_trials, random_seed):
+def _gen_trial_vals(dims, num_trials, random_seed):
     import skopt
     res = skopt.dummy_minimize(
         lambda *args: 0,
-        dimensions,
+        dims,
         n_calls=num_trials,
         random_state=random_seed)
     return res.x_iters
-
-def _trial_flags(flag_names, flag_vals):
-    return dict(zip(flag_names, _native_python(flag_vals)))
-
-def _native_python(l):
-    def pyval(x):
-        try:
-            return x.item()
-        except AttributeError:
-            return x
-    return [pyval(x) for x in l]
 
 def _patch_numpy_deprecation_warnings():
     warnings.filterwarnings("ignore", category=Warning)

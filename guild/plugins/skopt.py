@@ -37,11 +37,10 @@ def encode_flag_for_random(val, flagdef):
     typically used for a uniform random distribution with min and max
     values.
     """
-    fmt = op_util.format_flag_val
     if flagdef.choices:
         return [c.value for c in flagdef.choices]
     elif flagdef.min is not None and flagdef.max is not None:
-        return "uniform(%s,%s)" % (fmt(flagdef.min), fmt(flagdef.max))
+        return (flagdef.min, flagdef.max)
     return val
 
 class BayesianOptimizerModelProxy(model_proxy.BatchModelProxy):
@@ -80,21 +79,22 @@ acq-func:
       description: Negative expected improvement per second
     - value: PIps
       description: Negative probability of improvement per second
-acq-optimizer:
-  description: Method to minimize the acquistion function
-  default: lbfgs
-  choices: [auto, sampling, lbfgs]
-inputs:
-  description: >
-    Path to a file containing a list of flags and associated scalar values
+kappa:
+  description:
+    Degree to which variance in the predicted values is taken into account
+  default: 1.96
+  type: float
+xi:
+  description: Improvement to seek over the previous best values
+  default: 0.01
+  type: float
+noise:
+  description:
+    Level of noise associated with the objective
 
-    The inputs are used by the optimizer as additional information when
-    generating new trials.
-
-    The file may be YAML or JSON and contain a top-level list of maps. Each
-    map must include the flag names with associated values as well as a special
-    name 'y0' with associated scalar value.
-  type: existing-path
+    Use 'gaussian' if the objective returns noisy observations, otherwise
+    specify the expected variance of the noise.
+  default: gaussian
 """)
 
 def encode_flag_for_bayesian(val, flagdef):
@@ -116,14 +116,6 @@ def _encode_search(flagdef, val):
         args.append(op_util.format_flag_val(val))
     return "search(%s)" % ",".join(args)
 
-def flag_dimensions(flags, flag_dim_cb):
-    dims = {
-        name: flag_dim_cb(val, name)
-        for name, val in flags.items()
-    }
-    names = sorted(dims)
-    return names, [dims[name] for name in names]
-
 class SkoptPlugin(pluginlib.Plugin):
 
     @staticmethod
@@ -135,3 +127,14 @@ class SkoptPlugin(pluginlib.Plugin):
             model = BayesianOptimizerModelProxy()
             return model, model.op_name
         return None
+
+def trial_flags(flag_names, flag_vals):
+    return dict(zip(flag_names, _native_python(flag_vals)))
+
+def _native_python(l):
+    def pyval(x):
+        try:
+            return x.item()
+        except AttributeError:
+            return x
+    return [pyval(x) for x in l]

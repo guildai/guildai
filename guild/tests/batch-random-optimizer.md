@@ -90,7 +90,7 @@ Here's a helper function:
     ...     for row in trials:
     ...         x = float(row[0])
     ...         if x < x_min or x > x_max:
-    ...             print("x is out of range: %s" % z)
+    ...             print("x is out of range: %s" % x)
     ...         z = row[2]
     ...         if z not in z_vals:
     ...             print("unexpected value for z: %s" % z)
@@ -106,17 +106,17 @@ Guild file.
 Here's a run that doesn't use any random flags - each flag value is a
 scalar:
 
-    >>> _, trials = gen_trials("echo", x=1, y=2.1, z="d")
+    >>> _, trials = gen_trials("echo", x=1.0, y=2.1, z="d")
 
     >>> len(trials)
     5
 
     >>> trials
-    [['1', '2.1', 'd'],
-    ['1', '2.1', 'd'],
-    ['1', '2.1', 'd'],
-    ['1', '2.1', 'd'],
-    ['1', '2.1', 'd']]
+    [['1.0', '2.1', 'd'],
+     ['1.0', '2.1', 'd'],
+     ['1.0', '2.1', 'd'],
+     ['1.0', '2.1', 'd'],
+     ['1.0', '2.1', 'd']]
 
 Let's experiment with some different changes, specified as flags:
 
