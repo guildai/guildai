@@ -47,17 +47,31 @@ class BatchError(Exception):
 class MissingProtoError(BatchError):
     pass
 
+###################################################################
+# Default trial
+###################################################################
+
 class Trial(object):
 
-    def __init__(self, batch, flags, run_id=None):
+    def __init__(self, batch, flags=None, run_id=None):
         self.batch = batch
         self.flags = flags
-        self._config_digest = op_util.flags_hash(flags)
         self.run_id = run_id or runlib.mkid()
         self._trial_link = os.path.join(self.batch.batch_run.path, self.run_id)
-        self.skip = False
+        self._config_digest = self._init_config_digest()
+
+    def _init_config_digest(self):
+        if self.flags is None:
+            return None
+        return op_util.flags_hash(self.flags)
+
+    def set_flags(self, flags):
+        self.flags = flags
+        self._config_digest = self._init_config_digest()
 
     def config_equals(self, trial):
+        if self._config_digest is None:
+            return False
         return self._config_digest == trial._config_digest
 
     def delete_pending_run(self):
@@ -87,6 +101,15 @@ class Trial(object):
                 "Initialized trial %s (%s)", self._run_desc(trial_run),
                 ", ".join(self._flag_assigns()))
 
+    def _init_trial_run(self, run_dir=None):
+        run_dir = run_dir or os.path.join(var.runs_dir(), self.run_id)
+        util.copytree(self.batch.proto_run.path, run_dir)
+        run = runlib.Run(self.run_id, run_dir)
+        run.write_attr("flags", self.flags)
+        run.write_attr("label", " ".join(self._flag_assigns()))
+        run.write_attr("batch", self.batch.batch_run.id)
+        return run
+
     @staticmethod
     def _run_desc(run):
         return run.short_id or " in %s" % run.run_dir
@@ -97,15 +120,6 @@ class Trial(object):
             trial_run.path, os.path.dirname(self._trial_link))
         util.ensure_deleted(self._trial_link)
         os.symlink(rel_trial_path, self._trial_link)
-
-    def _init_trial_run(self, run_dir=None):
-        run_dir = run_dir or os.path.join(var.runs_dir(), self.run_id)
-        util.copytree(self.batch.proto_run.path, run_dir)
-        run = runlib.Run(self.run_id, run_dir)
-        run.write_attr("flags", self.flags)
-        run.write_attr("label", " ".join(self._flag_assigns()))
-        run.write_attr("batch", self.batch.batch_run.id)
-        return run
 
     def _flag_assigns(self):
         def fmt(val):
@@ -147,11 +161,37 @@ class Trial(object):
         except KeyboardInterrupt as e:
             sys.exit(exit_code.SIGTERM)
 
+###################################################################
+# Iter trial
+###################################################################
+
+class IterTrial(Trial):
+
+    def __init__(self, init_trial_cb, batch, flags, run_dir=None):
+        assert hasattr(batch, "_iter_trials_state")
+        self.state = batch._iter_trials_state
+        self.init_trial_cb = init_trial_cb
+        super(IterTrial, self).__init__(batch, flags, run_dir)
+
+    def init(self, quiet=False, **kw):
+        """Initialize an iter trial.
+
+        We use `self.init_trial_cb` to perform additional trial
+        initialization after the default init process.
+        """
+        flags = self.init_trial_cb(self, self.state)
+        self.set_flags(flags)
+        super(IterTrial, self).init(**kw)
+
+###################################################################
+# Batch
+###################################################################
+
 class Batch(object):
 
-    def __init__(self, batch_run, trial_cls=None):
+    def __init__(self, batch_run, new_trial_cb=None):
         self.batch_run = batch_run
-        self._trial_cls = trial_cls or Trial
+        self._new_trial_cb = new_trial_cb or Trial
         self.proto_run = self._init_proto_run()
         self._proto_opdef_data = None
         self._index_path = batch_run.guild_path("trials")
@@ -195,7 +235,7 @@ class Batch(object):
             trials = self._acc_batch_trials(base_flags, batches, gen_cb)
         else:
             trials = gen_cb(base_flags, self)
-        return [self._trial_cls(self, flags) for flags in trials]
+        return [self._new_trial_cb(self, flags) for flags in trials]
 
     def _acc_batch_trials(self, base_flags, batches, gen_cb):
         trials = []
@@ -318,17 +358,21 @@ class Batch(object):
             return
         trial.run()
 
+###################################################################
+# Default main
+###################################################################
+
 def default_main(gen_trials_cb,
-                 default_max_trials=DEFAULT_MAX_TRIALS,
-                 trial_cls=None):
+                 new_trial_cb=None,
+                 default_max_trials=DEFAULT_MAX_TRIALS):
     init_logging()
     try:
-        _default_main_impl(gen_trials_cb, default_max_trials, trial_cls)
+        _default_main_impl(gen_trials_cb, default_max_trials, new_trial_cb)
     except BatchError as e:
         op_util.exit(str(e))
 
-def _default_main_impl(gen_trials_cb, default_max_trials, trial_cls):
-    batch = init_batch(trial_cls)
+def _default_main_impl(gen_trials_cb, default_max_trials, new_trial_cb):
+    batch = init_batch(new_trial_cb)
     trials = batch.gen_trials(gen_trials_cb, default_max_trials)
     if os.getenv("PRINT_TRIALS") == "1":
         print_trials(trials)
@@ -340,8 +384,8 @@ def _default_main_impl(gen_trials_cb, default_max_trials, trial_cls):
         init_only = os.getenv("INIT_TRIALS_ONLY") == "1"
         batch.run_trials(trials, init_only)
 
-def init_batch(trial_cls=None):
-    return Batch(op_util.current_run(), trial_cls)
+def init_batch(new_trial_cb=None):
+    return Batch(op_util.current_run(), new_trial_cb)
 
 def print_trials(trials):
     if trials:
@@ -394,3 +438,27 @@ def _named_function(s):
 
 def _not_a_function_error(_s):
     raise ValueError("not a function")
+
+###################################################################
+# Iter trials main
+###################################################################
+
+def iter_trials_main(init_state_cb,
+                     init_trial_cb,
+                     default_max_trials=DEFAULT_MAX_TRIALS):
+    default_main(
+        _gen_iter_trials_cb(init_state_cb, default_max_trials),
+        _new_iter_trial_cb(init_trial_cb),
+        default_max_trials)
+
+def _gen_iter_trials_cb(init_state_cb, default_max_trials):
+    def f(_flags, batch):
+        batch._iter_trials_state = init_state_cb(batch)
+        num_trials = batch.max_trials or default_max_trials
+        return [None] * num_trials
+    return f
+
+def _new_iter_trial_cb(init_trial_cb):
+    def f(batch, flags, run_id=None):
+        return IterTrial(init_trial_cb, batch, flags, run_id)
+    return f
