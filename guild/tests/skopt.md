@@ -96,3 +96,48 @@ Case where we have a single x0 rather than 3.
     >>> x1 = res.x_iters[1][0]
     >>> x1 >= -2.0 and x1 <= 2.0, x1
     (True, ...)
+
+## Repeating trials
+
+This fragment demonstrates that gp_minimimize repeats trials.
+
+    >>> res = gp_minimize(
+    ...     lambda xs: xs[0],
+    ...     [(-2.0, 2.0)],
+    ...     n_calls=10,
+    ...     n_random_starts=1,
+    ...     random_state=1)
+    >>> trials = [iter[0] for iter in res.x_iters]
+    >>> unique_trials = set(trials)
+    >>> len(trials) > len(unique_trials), trials
+    (True, ...)
+
+However, random forest does not:
+
+    >>> from skopt import forest_minimize
+
+    >>> res = forest_minimize(
+    ...     lambda xs: xs[0],
+    ...     [(-2.0, 2.0)],
+    ...     n_calls=10,
+    ...     n_random_starts=1,
+    ...     random_state=1)
+    >>> trials = [iter[0] for iter in res.x_iters]
+    >>> unique_trials = set(trials)
+    >>> len(trials) == len(unique_trials), trials
+    (True, ...)
+
+Nor does gbrt:
+
+    >>> from skopt import gbrt_minimize
+
+    >>> res = gbrt_minimize(
+    ...     lambda xs: xs[0],
+    ...     [(-2.0, 2.0)],
+    ...     n_calls=10,
+    ...     n_random_starts=1,
+    ...     random_state=1)
+    >>> trials = [iter[0] for iter in res.x_iters]
+    >>> unique_trials = set(trials)
+    >>> len(trials) == len(unique_trials), trials
+    (True, ...)
