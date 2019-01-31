@@ -171,6 +171,7 @@
     guild.plugins.python_script
     guild.plugins.random_main
     guild.plugins.skopt
+    guild.plugins.skopt_util
     guild.plugins.tensorflow_util
     guild.plugins.training_pkg_main
     guild.python_util

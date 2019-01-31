@@ -19,7 +19,7 @@ import warnings
 
 from guild import batch_util
 
-from .skopt import trial_flags
+from . import skopt_util
 
 DEFAULT_TRIALS = 20
 
@@ -28,7 +28,10 @@ def _gen_trials(flags, batch):
     random_seed = batch.random_seed
     flag_names, dims = _flag_dims(flags)
     trial_vals = _gen_trial_vals(dims, num_trials, random_seed)
-    return [trial_flags(flag_names, flag_vals) for flag_vals in trial_vals]
+    return [
+        skopt_util.trial_flags(flag_names, flag_vals)
+        for flag_vals in trial_vals
+    ]
 
 def _flag_dims(flags):
     dims = {

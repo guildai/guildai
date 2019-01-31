@@ -21,7 +21,7 @@ import warnings
 from guild import batch_util
 from guild import index2
 
-from .skopt import trial_flags
+from . import skopt_util
 
 log = logging.getLogger("guild")
 
@@ -85,7 +85,7 @@ class Trial(batch_util.Trial):
             xi=batch_flags["xi"],
             noise=batch_flags["noise"])
         self.batch._random_state = res.random_state
-        return trial_flags(flag_names, res.x_iters[-1])
+        return skopt_util.trial_flags(flag_names, res.x_iters[-1])
 
     def _flag_dims(self):
         # Use cached value set in _gen_trials.
