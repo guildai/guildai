@@ -45,17 +45,6 @@ class Trial(batch_util.Trial):
                 "Initialized trial %s (%s)", self._run_desc(trial_run),
                 ", ".join(self._flag_assigns()))
 
-    def __run(self, **kw):
-        """Run a bayseian optimization trial.
-
-        Overrides default to lookup previous trial results and use
-        those to generate a next set of trial flags based on skopts's
-        gp_minimize function.
-        """
-        trial_flags = self._next_trial_flags()
-        self._write_trial_flags(trial_flags)
-        super(Trial, self).run(**kw)
-
     def config_equals(self, trial):
         """Return True if trial config equals our config.
 
