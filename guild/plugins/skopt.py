@@ -173,7 +173,7 @@ class SkoptPlugin(pluginlib.Plugin):
         elif opspec in ("bayesian", "skopt:bayesian"):
             model = BayesianOptimizerModelProxy()
             return model, model.op_name
-        elif opspec in ():
+        elif opspec in ("forest", "skopt:forest"):
             model = ForestOptimizerModelProxy()
             return model, model.op_name
         return None
