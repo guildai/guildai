@@ -29,11 +29,11 @@ from . import runs_support
         "Additional columns to compare. "
         "Cannot be used with --strict-columns."))
 @click.option(
-    "-r", "--skip-core", is_flag=True,
-    help="Don't show core columns.")
-@click.option(
     "-n", "--skip-op-cols", is_flag=True,
     help="Don't show operation columns.")
+@click.option(
+    "-r", "--skip-core", is_flag=True,
+    help="Don't show core columns.")
 @click.option(
     "-t", "--table", "format", flag_value="table",
     help="Generate comparison data as a table.",
@@ -42,6 +42,9 @@ from . import runs_support
     "-s", "--csv", "format", flag_value="csv",
     help="Generate comparison data as a CSV file.",
     is_flag=True)
+@click.option(
+    "--include-batch", is_flag=True,
+    help="Include batch runs.")
 @click.option(
     "--print-scalars", is_flag=True,
     help="Show available scalars and exit.")
@@ -136,6 +139,10 @@ def compare(args):
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
 
+    ### Batch runs
+
+    By default, batch runs are not included in comparisons. To include
+    batch runs, specify `--include-batch`.
     """
     from . import compare_impl
     compare_impl.main(args)

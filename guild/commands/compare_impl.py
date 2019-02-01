@@ -112,7 +112,7 @@ def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
         _try_init_tf_logging()
         log_capture = util.LogCapture()
         with log_capture:
-            runs = runs_impl.runs_for_args(args)
+            runs = _runs_for_args(args)
             cols_table = _cols_table(runs, args)
             index.refresh(runs, _refresh_types(cols_table))
             table = _resolve_table_cols(cols_table, index)
@@ -140,6 +140,15 @@ def _try_init_tf_logging():
         import tensorflow as _
     except ImportError:
         pass
+
+def _runs_for_args(args):
+    runs = runs_impl.runs_for_args(args)
+    if not args.include_batch:
+        runs = [run for run in runs if not _is_batch(run)]
+    return runs
+
+def _is_batch(run):
+    return os.path.exists(run.guild_path("proto"))
 
 def _cols_table(runs, args):
     parse_cache = {}

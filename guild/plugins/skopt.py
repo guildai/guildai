@@ -21,6 +21,10 @@ from guild import model_proxy
 from guild import op_util
 from guild import plugin as pluginlib
 
+###################################################################
+# Random optimizer
+###################################################################
+
 class RandomOptimizerModelProxy(model_proxy.BatchModelProxy):
 
     name = "skopt"
@@ -43,9 +47,13 @@ def encode_flag_for_random(val, flagdef):
         return (flagdef.min, flagdef.max)
     return val
 
+###################################################################
+# Bayesian optimizer
+###################################################################
+
 class BayesianOptimizerModelProxy(model_proxy.BatchModelProxy):
 
-    name = ""
+    name = "skopt"
     op_name = "bayesian"
     op_description = yaml.safe_load(""">
 
@@ -56,7 +64,7 @@ class BayesianOptimizerModelProxy(model_proxy.BatchModelProxy):
   """)
 
     module_name = "guild.plugins.bayesian_main"
-    flag_encoder = "guild.plugins.skopt:encode_flag_for_bayesian"
+    flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
 
     flags_data = yaml.safe_load("""
 random-starts:
@@ -97,7 +105,42 @@ noise:
   default: gaussian
 """)
 
-def encode_flag_for_bayesian(val, flagdef):
+###################################################################
+# Forest optimizer
+###################################################################
+
+class ForestOptimizerModelProxy(model_proxy.BatchModelProxy):
+
+    name = "skopt"
+    op_name = "forest"
+    op_description = yaml.safe_load(""">
+
+  Sequential optimisation using decision trees.
+
+  Refer to https://scikit-optimize.github.io/#skopt.forest_minimize
+  for details on this algorithm and its flags.
+  """)
+
+    module_name = "guild.plugins.forest_main"
+    flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
+
+    flags_data = yaml.safe_load("""
+random-starts:
+  description: Number of trials using random values before optimizing.
+  default: 0
+  type: int
+kappa:
+  description:
+    Degree to which variance in the predicted values is taken into account
+  default: 1.96
+  type: float
+xi:
+  description: Improvement to seek over the previous best values
+  default: 0.01
+  type: float
+""")
+
+def encode_flag_for_optimizer(val, flagdef):
     """Encodes a flag def for the full range of supported skopt search spaces.
     """
     if flagdef.choices:
@@ -116,6 +159,10 @@ def _encode_search(flagdef, val):
         args.append(op_util.format_flag_val(val))
     return "uniform(%s)" % ",".join(args)
 
+###################################################################
+# Plugin
+###################################################################
+
 class SkoptPlugin(pluginlib.Plugin):
 
     @staticmethod
@@ -125,5 +172,8 @@ class SkoptPlugin(pluginlib.Plugin):
             return model, model.op_name
         elif opspec in ("bayesian", "skopt:bayesian"):
             model = BayesianOptimizerModelProxy()
+            return model, model.op_name
+        elif opspec in ():
+            model = ForestOptimizerModelProxy()
             return model, model.op_name
         return None
