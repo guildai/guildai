@@ -53,9 +53,10 @@ class MissingProtoError(BatchError):
 
 class Trial(object):
 
-    def __init__(self, batch, flags=None, run_id=None):
+    def __init__(self, batch, flags=None, attrs=None, run_id=None):
         self.batch = batch
         self.flags = flags
+        self.attrs = attrs or {}
         self.run_id = run_id or runlib.mkid()
         self._trial_link = os.path.join(self.batch.batch_run.path, self.run_id)
         self._config_digest = self._init_config_digest()
@@ -105,10 +106,20 @@ class Trial(object):
         run_dir = run_dir or os.path.join(var.runs_dir(), self.run_id)
         util.copytree(self.batch.proto_run.path, run_dir)
         run = runlib.Run(self.run_id, run_dir)
+        for name, val in self.attrs:
+            run.write_attr(name, val)
         run.write_attr("flags", self.flags)
-        run.write_attr("label", " ".join(self._flag_assigns()))
+        if "label" not in self.attrs:
+            run.write_attr("label", self._default_label())
         run.write_attr("batch", self.batch.batch_run.id)
         return run
+
+    def _default_label(self):
+        opt_desc = self.batch.batch_run.get("label")
+        if not opt_desc:
+            opt_desc = self.batch.batch_run.opref.op_name
+        flags = " ".join(self._flag_assigns())
+        return "%s %s" % (opt_desc, flags)
 
     @staticmethod
     def _run_desc(run):
