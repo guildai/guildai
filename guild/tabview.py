@@ -31,6 +31,7 @@ S                        Sort by current column (descending)
 a                        Reset sort order
 A                        Reset sort order (reversed)
 r                        Reload file/data (resets sort order)
+{{actions}}
 Cursor keys or h,j,k,l   Move highlighted cell
 Q or q                   Quit
 Home, 0, ^, C-a          Move to start of the current line
@@ -58,10 +59,13 @@ p                        Move to previous search result
 [num]}                   Skip to [num]th change in column value (forward)
 """
 
+viewer_help_key_width = 25
+
 class Viewer(ViewerBase):
 
     get_data = None
     get_detail = None
+    actions = None
 
     max_header_width = 12
     max_data_width = 20
@@ -107,10 +111,16 @@ class Viewer(ViewerBase):
         self.keys["1"] = self.sort_by_column_numeric
         self.keys["2"] = self.sort_by_column_numeric_reverse
         self.keys["`"] = self.show_logs
+        self.keys.update({
+            key: self._action_handler(action_cb)
+            for (key, _), action_cb in self.actions
+        })
 
     def show_logs(self):
-        formatted = self._format_logs()
-        tabview.TextBox(self.scr, data=formatted, title="Logs")()
+        self.text_box(self._format_logs(), "Logs")
+
+    def text_box(self, contents, title):
+        tabview.TextBox(self.scr, data=contents, title=title)()
         self.resize()
 
     def _format_logs(self):
@@ -118,23 +128,37 @@ class Viewer(ViewerBase):
         fmt = logging.Formatter("%(asctime)s: %(levelname)s %(message)s")
         return "\n".join([fmt.format(r) for r in logs])
 
+    def _action_handler(self, action_cb):
+        return lambda: action_cb(self)
+
     def help(self):
-        tabview.TextBox(self.scr, viewer_help.strip(), "Key bindings")()
+        help_text = self._insert_actions_help(viewer_help.strip())
+        tabview.TextBox(self.scr, help_text, "Key bindings")()
         self.resize()
+
+    def _insert_actions_help(self, text):
+        actions_help = "\n".join([
+            key.ljust(viewer_help_key_width) + help_text
+            for (key, help_text), _ in self.actions
+        ])
+        if actions_help:
+            actions_help += "\n"
+        return text.replace("{{actions}}\n", actions_help)
 
     def sort_by_column_numeric(self):
         from operator import itemgetter
         xp = self.x + self.win_x
-        self.data = sorted(self.data, key=lambda x:
-                           self.float_string_key(itemgetter(xp)(x)))
+        self.data = sorted(
+            self.data,
+            key=lambda x: self.float_string_key(itemgetter(xp)(x)))
 
     def sort_by_column_numeric_reverse(self):
         from operator import itemgetter
         xp = self.x + self.win_x
-
-        self.data = sorted(self.data, key=lambda x:
-                           self.float_string_key(itemgetter(xp)(x)),
-                           reverse=True)
+        self.data = sorted(
+            self.data,
+            key=lambda x: self.float_string_key(itemgetter(xp)(x)),
+            reverse=True)
 
     @staticmethod
     def float_string_key(value):
@@ -173,9 +197,10 @@ class StatusWin(object):
     def __exit__(self, *_):
         curses.endwin()
 
-def view_runs(get_data_cb, get_detail_cb):
+def view_runs(get_data_cb, get_detail_cb, actions):
     Viewer.get_data = staticmethod(get_data_cb)
     Viewer.get_detail = staticmethod(get_detail_cb)
+    Viewer.actions = actions
     tabview.Viewer = Viewer
     tabview.view(
         [[]],

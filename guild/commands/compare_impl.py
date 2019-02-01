@@ -105,7 +105,8 @@ def _tabview(args):
     index = indexlib.RunIndex()
     tabview.view_runs(
         _get_data_cb(args, index),
-        _get_run_detail_cb(index))
+        _get_run_detail_cb(index),
+        _tabview_actions())
 
 def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
     def f():
@@ -123,7 +124,7 @@ def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
                 header = [NO_RUNS_CAPTION]
             rows = _table_rows(table, header)
             if format_cells:
-                _format_cells(rows)
+                _format_cells(rows, header, runs)
             log = log_capture.get_all()
             return [header] + rows, log
     return f
@@ -301,10 +302,16 @@ def _row_val(col_name, sections):
                 val = cell_val
     return val
 
-def _format_cells(rows):
+def _format_cells(rows, col_names, runs):
+    runs_lookup = {run.short_id: run for run in runs}
     for row in rows:
-        for i, val in enumerate(row):
-            if val is None:
+        for i, (name, val) in enumerate(zip(col_names, row)):
+            if name == "operation":
+                run_id = row[0]
+                run = runs_lookup[run_id]
+                if run.get("marked"):
+                    row[i] += " [marked]"
+            elif val is None:
                 row[i] = ""
             elif isinstance(val, float):
                 row[i] = "%0.6f" % val
@@ -322,7 +329,7 @@ def _get_run_detail_cb(index):
         try:
             run_id, path = next(var.find_runs(run_short_id))
         except StopIteration:
-            return "This run no longer exists", title
+            return "This run no longer exists.", title
         else:
             run = runlib.Run(run_id, path)
             index.refresh([run], ["scalar"])
@@ -355,3 +362,65 @@ def _format_run_detail(run, index):
             else:
                 lines.append("  %s" % s["tag"])
     return "\n".join(lines)
+
+def _tabview_actions():
+    return [
+        (("m", "Mark run"), _mark),
+        (("u", "Unmark run"), _unmark),
+    ]
+
+def _mark(view):
+    _mark_impl(view, True)
+
+def _unmark(view):
+    _mark_impl(view, False)
+
+def _mark_impl(view, flag):
+    if not view.data:
+        return
+    run_short_id = view.data[view.y][0]
+    try:
+        run_id, path = next(var.find_runs(run_short_id))
+    except StopIteration:
+        view.text_box(
+            "This run no longer exists.\n"
+            "\n"
+            "Press 'q' to exist this screen and then press 'r' to "
+            "refresh the list.",
+            run_short_id)
+    else:
+        run = runlib.Run(run_id, path)
+        _mark_run(run, flag)
+        _try_mark_operation(view, flag)
+
+def _mark_run(run, flag):
+    if flag:
+        run.write_attr("marked", True)
+    else:
+        run.del_attr("marked")
+
+def _try_mark_operation(view, flag):
+    try:
+        op_index = view.header.index("operation")
+    except ValueError:
+        pass
+    else:
+        op = view.data[view.y][op_index]
+        if flag:
+            new_op = _ensure_marked(op)
+        else:
+            new_op = _strip_marked(op)
+        view.data[view.y][op_index] = new_op
+        view.column_width[op_index] = max(
+            view.column_width[op_index],
+            len(new_op))
+
+def _ensure_marked(op):
+    if not op.endswith(" [marked]"):
+        op += " [marked]"
+    return op
+
+def _strip_marked(op):
+    if op.endswith(" [marked]"):
+        op = op[:-9]
+    return op
