@@ -97,6 +97,10 @@ def _validate_args(args):
         cli.error(
             "--print-trials and --init-trials cannot both be used\n"
             "Try 'guild run --help' for more information.")
+    if args.minimize and args.maximize:
+        cli.error(
+            "--minimize and --maximize cannot both be used\n"
+            "Try 'guild run --help' for more information.")
 
 ###################################################################
 # Apply args from existing runs (restart/rerun)
@@ -572,6 +576,7 @@ def _is_resource(name, opdef, ref_vars):
 def _apply_opdef_args(flag_vals, args, opdef):
     _apply_flag_vals(flag_vals, opdef, args)
     _apply_arg_disable_plugins(args, opdef)
+    _apply_arg_objective(args, opdef)
     opdef.set_trace = args.set_trace
 
 def _apply_flag_vals(vals, opdef, args):
@@ -602,6 +607,14 @@ def _apply_arg_disable_plugins(args, opdef):
         opdef.disable_plugins.extend([
             name.strip() for name in args.disable_plugins.split(",")
         ])
+
+def _apply_arg_objective(args, opdef):
+    if args.minimize:
+        opdef.objective = args.minimize
+    elif args.maximize:
+        opdef.objective = {
+            "maximize": args.maximize
+        }
 
 ###################################################################
 # Other op attrs
@@ -713,8 +726,6 @@ def _batch_op_init_args(opdef, args):
     params["restart"] = None
     params["rerun"] = None
     params["optimizer"] = None
-    params["minimize"] = None
-    params["maximize"] = None
     args = click_util.Args(**params)
     return args
 

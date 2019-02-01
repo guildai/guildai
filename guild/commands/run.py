@@ -64,13 +64,13 @@ def run_params(fn):
                 "Optimize the run using OPERATION. See Optimizing "
                 "Runs for more information.")),
         click.Option(
-            ("--minimize",), metavar="COLUMN",
+            ("-N", "--minimize",), metavar="COLUMN",
             help=(
                 "Column to minimize when running with an optimizer. See "
                 "help for compare command for details specifying a column. "
                 "May not be used with --maximize.")),
         click.Option(
-            ("--maximize",), metavar="COLUMN",
+            ("-X", "--maximize",), metavar="COLUMN",
             help=(
                 "Column to maximize when running with an optimizer. See "
                 "help for compare command for details specifying a column. "

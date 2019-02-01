@@ -114,7 +114,7 @@ def _encode_search(flagdef, val):
     ]
     if val is not None:
         args.append(op_util.format_flag_val(val))
-    return "search(%s)" % ",".join(args)
+    return "uniform(%s)" % ",".join(args)
 
 class SkoptPlugin(pluginlib.Plugin):
 

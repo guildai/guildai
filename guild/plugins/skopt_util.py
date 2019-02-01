@@ -15,10 +15,16 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import warnings
+
+import six
 
 from guild import batch_util
 from guild import index2
+from guild import query
+
+log = logging.getLogger("guild")
 
 class State(object):
 
@@ -29,6 +35,8 @@ class State(object):
          self.flag_dims,
          self.defaults) = self._init_flag_dims(batch)
         self.run_index = index2.RunIndex()
+        (self._run_loss,
+         self.loss_desc) = self._init_run_loss_fun(batch)
         self.random_state = batch.random_seed
 
     def _init_flag_dims(self, batch):
@@ -59,9 +67,9 @@ class State(object):
         except ValueError:
             return [val], None
         else:
-            if func_name not in (None, "search"):
+            if func_name not in (None, "uniform"):
                 raise batch_util.BatchError(
-                    "unsupported function %r for flag %s - must be 'search'"
+                    "unsupported function %r for flag %s - must be 'uniform'"
                     % (func_name, flag_name))
             if len(search_dim) == 2:
                 return search_dim, None
@@ -72,6 +80,49 @@ class State(object):
                     "unexpected arguemt list in %s for flag %s - "
                     "expected 2 arguments" % (val, flag_name))
 
+    def _init_run_loss_fun(self, batch):
+        negate, col = self._init_objective(batch)
+        prefix, tag = col.split_key()
+        def f(run):
+            loss = self.run_index.run_scalar(
+                run, prefix, tag, col.qualifier, col.step)
+            if loss is None:
+                return loss
+            return loss * negate
+        return f, str(col)
+
+    def _init_objective(self, batch):
+        negate, colspec = self._objective_colspec(batch)
+        try:
+            cols = query.parse_colspec(colspec).cols
+        except query.ParseError as e:
+            raise batch_util.BatchError(
+                "cannot parse objective %r: %s" % (colspec, e))
+        else:
+            if len(cols) > 1:
+                raise batch_util.BatchError(
+                    "invalid objective %r: only one column may "
+                    "be specified" % colspec)
+            return negate, cols[0]
+
+    @staticmethod
+    def _objective_colspec(batch):
+        objective = batch.proto_run.get("objective")
+        if not objective:
+            return 1, "loss"
+        elif isinstance(objective, six.string_types):
+            return 1, objective
+        elif isinstance(objective, dict):
+            minimize = objective.get("minimize")
+            if minimize:
+                return 1, minimize
+            maximize = objective.get("maximize")
+            if maximize:
+                return -1, maximize
+        raise batch_util.BatchError(
+            "unsupported objective type %r"
+            % objective)
+
     def previous_trials(self, trial_run_id):
         other_trial_runs = self._previous_trial_run_candidates(trial_run_id)
         if not other_trial_runs:
@@ -79,8 +130,11 @@ class State(object):
         trials = []
         self.run_index.refresh(other_trial_runs, ["scalar"])
         for run in other_trial_runs:
-            loss = self.run_index.run_scalar(run, None, "loss", "last", False)
+            loss = self._run_loss(run)
             if loss is None:
+                log.warning(
+                    "could not get loss %r for run %s, ignoring",
+                    self.loss_desc, run.id)
                 continue
             self._try_apply_previous_trial(run, self.flag_names, loss, trials)
         return trials
