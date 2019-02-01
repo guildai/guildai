@@ -802,6 +802,7 @@ class OpDef(object):
         self.flag_encoder = data.get("flag-encoder")
         self.default_max_trials = data.get("default-max-trials")
         self.output_scalars = data.get("output-scalars")
+        self.objective = data.get("objective")
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname

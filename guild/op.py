@@ -128,6 +128,8 @@ class Operation(object):
             self._run.write_attr("compare", self.opdef.compare)
         if self.opdef.steps:
             self._run.write_attr("steps", self.opdef.steps)
+        if self.opdef.objective:
+            self._run.write_attr("objective", self.opdef.objective)
         if self._flag_map:
             self._run.write_attr("_flag_map", self._flag_map)
         for key, val in self.opdef.modeldef.extra.items():

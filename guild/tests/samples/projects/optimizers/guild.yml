@@ -12,6 +12,7 @@ noisy:
   output-scalars:
     loss: 'loss: (\S+)'
   compare: [=x, loss]
+  objective: loss
   label: x=${x|%.4f}
 
 echo:
