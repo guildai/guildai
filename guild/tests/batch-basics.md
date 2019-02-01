@@ -460,5 +460,5 @@ applied in the order specified:
 Unsupported batch files generate an error:
 
     >>> run("say.py", batches=["batch.unknown"])
-    ERROR (1)
     guild: unsupported batch file extension for batch.unknown
+    <exit 1>
