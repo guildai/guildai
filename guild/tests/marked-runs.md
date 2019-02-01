@@ -13,10 +13,10 @@ We'll illustrate using the `batch-deps` sample project.
 In this project, the `serve` operation requires a `train` operation.
 
     >>> project.run("serve")
-    ERROR (1)
     Resolving train dependency
     guild: run failed because a dependency was not met: could not resolve
     'operation:train' in train resource: no suitable run for train
+    <exit 1>
 
 ## Using the latest run for a required operation
 

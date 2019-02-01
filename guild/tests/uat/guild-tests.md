@@ -14,6 +14,7 @@ tests).
       batch-random-optimizer:      ok
       batch-random-seeds:          ok
       batch-restart:               ok
+      batch-skopt:                 ok
       batch-util:                  ok
       config:                      ok
       copy-source:                 ok
