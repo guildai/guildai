@@ -260,7 +260,7 @@ def parse_arg_val(s):
         return s
     parsers = [
         (int, ValueError),
-        (_safe_float, ValueError),
+        (float, ValueError),
         (yaml.safe_load, yaml.YAMLError),
     ]
     for p, e_type in parsers:
@@ -269,17 +269,6 @@ def parse_arg_val(s):
         except e_type:
             pass
     return s
-
-def _safe_float(s):
-    """Returns a float for a string or raises ValueError.
-
-    In cases where Python's float function would succeed in converting
-    exponent notation without a decimal (e.g. '1e2') this raises
-    ValueError.
-    """
-    if "." not in s:
-        raise ValueError(s)
-    return float(s)
 
 def format_flag_val(val):
     if val is True:

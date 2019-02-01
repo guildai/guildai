@@ -98,14 +98,27 @@ Use `op_util.parse_flags` to parse a list of `NAME=VAL` args.
      'f': {'a': 456, 'b': 'C'},
      'g': None}
 
- If exponent syntax is used, it must contain a decimal to be converted
- to a float:
+Exponent notation is supported:
 
     >>> p_flags(["lr=1e-06"])
-    {'lr': '1e-06'}
+    {'lr': 1e-06}
+
+    >>> p_flags(["run=1234567e1"])
+    {'run': 12345670.0}
+
+    >>> p_flags(["run=1e2345671"])
+    {'run': inf}
 
     >>> p_flags(["lr=1.0e-06"])
     {'lr': 1e-06}
+
+If an exponent needs to be treated as a string, it must be quoted:
+
+    >>> p_flags(["run='1234567e1'"])
+    {'run': '1234567e1'}
+
+    >>> p_flags(["run='1e2345671'"])
+    {'run': '1e2345671'}
 
 ## Parsing command line args as flags
 
@@ -122,7 +135,7 @@ Use `op_util.args_to_flags` to parse command line args using `--` and
     {'lr': 0.0001}
 
     >>> a2f(["--lr", "1e-06"])
-    {'lr': '1e-06'}
+    {'lr': 1e-06}
 
     >>> a2f(["--lr", "1.e-06"])
     {'lr': 1e-06}
