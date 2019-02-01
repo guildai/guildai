@@ -162,6 +162,8 @@
     guild.plugins.disk
     guild.plugins.exec_script
     guild.plugins.flags
+    guild.plugins.forest_main
+    guild.plugins.gbrt_main
     guild.plugins.gpu
     guild.plugins.import_argparse_flags_main
     guild.plugins.keras
