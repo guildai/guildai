@@ -123,6 +123,7 @@ The latest run is the trial:
     .guild/attrs/flags
     .guild/attrs/label
     .guild/attrs/opdef
+    .guild/attrs/optimizer
     .guild/attrs/random_seed
     .guild/attrs/run_params
     .guild/attrs/started
@@ -130,6 +131,13 @@ The latest run is the trial:
     .guild/opref
     .guild/output
     .guild/output.index
+
+The trial run has an `optimizer` attribute, which contains the full
+opspec for the associated optimizer. In this case, the optimizer is
+the special name "+" for generalized batch support:
+
+    >>> project.cat(trial_run, ".guild/attrs/optimizer")
+    +
 
 The next run is the batch:
 
@@ -159,6 +167,7 @@ Its files:
     .guild/proto/.guild/attrs/compare
     .guild/proto/.guild/attrs/flags
     .guild/proto/.guild/attrs/opdef
+    .guild/proto/.guild/attrs/optimizer
     .guild/proto/.guild/attrs/random_seed
     .guild/proto/.guild/attrs/run_params
     .guild/proto/.guild/opref
