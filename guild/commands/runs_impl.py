@@ -32,6 +32,7 @@ from guild import cmd_impl_support
 from guild import index2 as indexlib
 from guild import op_util
 from guild import remote_run_support
+from guild import run as runlib
 from guild import util
 from guild import var
 
@@ -535,6 +536,7 @@ def _print_run_info(run, args):
     if args.flags:
         out("flags:", nl=False)
         out(_format_attr(run.get("flags", "")))
+        _maybe_print_proto_flags(run, out)
     if args.scalars:
         out("scalars:")
         for scalar in _iter_scalars(run):
@@ -567,6 +569,13 @@ def other_attr_names(run, include_private=False):
     else:
         include = lambda x: x[0] != "_" and x not in CORE_RUN_ATTRS
     return [name for name in sorted(run.attr_names()) if include(name)]
+
+def _maybe_print_proto_flags(run, out):
+    proto_dir = run.guild_path("proto")
+    if os.path.exists(proto_dir):
+        proto_run = runlib.Run("", proto_dir)
+        out("proto-flags:", nl=False)
+        out(_format_attr(proto_run.get("flags", "")))
 
 def _format_val(val):
     if val is None:
