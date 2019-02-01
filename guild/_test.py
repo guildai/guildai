@@ -387,7 +387,7 @@ class Project(object):
                 cwd=self.cwd,
                 *args, **kw)
         except gapi.RunError as e:
-            return "ERROR ({})\n{}".format(e.returncode, e.output.strip())
+            return "{}\n<exit {}>".format(e.output.strip(), e.returncode)
         else:
             if simplify_trial_output:
                 out = self._simplify_trial_output(out)

@@ -39,7 +39,6 @@ ALL_TYPES = [
     "include",
     "model",
     "package",
-    "test",
 ]
 
 MODEL_TYPES = ["model", "config"]
@@ -121,7 +120,6 @@ class Guildfile(object):
         self.dir = dir
         self.models = {}
         self.package = None
-        self.tests = []
         coerced = _coerce_guildfile_data(data, self)
         self.data = self._expand_data_includes(coerced, included or [])
         try:
@@ -202,8 +200,6 @@ class Guildfile(object):
                 self._apply_model(name, item, extends_seen)
             elif item_type == "package":
                 self._apply_package(name, item)
-            elif item_type == "test":
-                self._apply_test(name, item)
 
     def _validated_item_type(self, item):
         used = [name for name in ALL_TYPES if name in item]
@@ -234,9 +230,6 @@ class Guildfile(object):
             raise GuildfileError(self, "mutiple package definitions")
         self.package = PackageDef(name, data, self)
 
-    def _apply_test(self, name, data):
-        self.tests.append(TestDef(name, data, self))
-
     @property
     def default_model(self):
         models = list(self.models.values())
@@ -249,12 +242,6 @@ class Guildfile(object):
 
     def get_operation(self, name):
         return self.default_model.get_operation(name)
-
-    def get_test(self, name):
-        for t in self.tests:
-            if t.name == name:
-                return t
-        raise ValueError(name)
 
     def __repr__(self):
         return "<guild.guildfile.Guildfile '%s'>" % self
@@ -1081,21 +1068,6 @@ class PackageDef(object):
 
     def __repr__(self):
         return "<guild.guildfile.PackageDef '%s'>" % self.name
-
-###################################################################
-# Test def
-###################################################################
-
-class TestDef(object):
-
-    def __init__(self, name, data, guildfile):
-        self.name = name
-        self.guildfile = guildfile
-        self.description = (data.get("description") or "").strip()
-        self.steps = data.get("steps") or []
-
-    def __repr__(self):
-        return "<guild.guildfile.TestDef '%s'>" % self.name
 
 ###################################################################
 # Module API

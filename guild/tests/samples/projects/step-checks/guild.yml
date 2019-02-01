@@ -1,0 +1,54 @@
+gen-output:
+  main: echo ${msg}
+  flags:
+    msg:
+      default: hi
+      arg-skip: yes
+  disable-plugins: all
+
+gen-files:
+  main: write ${count} ${msg}
+  flags:
+    count:
+      default: 1
+      arg-skip: yes
+    msg:
+      default: hi
+      arg-skip: yes
+  requires:
+    - file: sample.txt
+  disable-plugins: all
+
+_test-output-1:
+  steps:
+    - run: gen-output
+      expect:
+        - output: hi
+
+_test-output-2:
+  steps:
+    - run: gen-output msg='hello car'
+      expect:
+        - output: hello
+        - output: car
+
+_test-file-1:
+  steps:
+    - run: gen-files count=1 msg='hello bus'
+      expect:
+        - file: file-1
+          contains: 'hello bus'
+        - file: sample.txt
+
+_test-fail-1:
+  steps:
+    - run: gen-output
+      expect:
+        - output: bye
+
+_test-all:
+  steps:
+    - _test-output-1
+    - _test-output-2
+    - _test-file-1
+    - _test-fail-1
