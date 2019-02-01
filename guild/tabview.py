@@ -26,8 +26,8 @@ viewer_help = """
 F1 or ?                  Show this help
 s                        Sort by current column (ascending)
 S                        Sort by current column (descending)
-1                        Sort numerically by current column (descending)
-!                        Sort numerically by current column (ascending)
+1                        Sort numerically by current column (ascending)
+2                        Sort numerically by current column (descending)
 a                        Reset sort order
 A                        Reset sort order (reversed)
 r                        Reload file/data (resets sort order)
@@ -104,8 +104,8 @@ class Viewer(ViewerBase):
         del self.keys["t"]
         del self.keys["y"]
         del self.keys[tabview.KEY_CTRL('g')]
-        self.keys["1"] = self.sort_by_column_numeric_reverse
-        self.keys["!"] = self.sort_by_column_numeric
+        self.keys["1"] = self.sort_by_column_numeric
+        self.keys["2"] = self.sort_by_column_numeric_reverse
         self.keys["`"] = self.show_logs
 
     def show_logs(self):
