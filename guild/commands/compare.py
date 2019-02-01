@@ -39,7 +39,7 @@ from . import runs_support
     help="Generate comparison data as a table.",
     is_flag=True)
 @click.option(
-    "-v", "--csv", "format", flag_value="csv",
+    "-s", "--csv", "format", flag_value="csv",
     help="Generate comparison data as a CSV file.",
     is_flag=True)
 @click.option(
