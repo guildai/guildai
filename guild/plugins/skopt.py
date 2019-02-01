@@ -34,19 +34,6 @@ class RandomOptimizerModelProxy(model_proxy.BatchModelProxy):
     module_name = "guild.plugins.random_main"
     flag_encoder = "guild.plugins.skopt:encode_flag_for_random"
 
-def encode_flag_for_random(val, flagdef):
-    """Encodes a flag def as either a list or a slice range.
-
-    A slice range is used to convey a range from MIN to MAX. It's
-    typically used for a uniform random distribution with min and max
-    values.
-    """
-    if flagdef.choices:
-        return [c.value for c in flagdef.choices]
-    elif flagdef.min is not None and flagdef.max is not None:
-        return (flagdef.min, flagdef.max)
-    return val
-
 ###################################################################
 # Bayesian optimizer
 ###################################################################
@@ -115,7 +102,7 @@ class ForestOptimizerModelProxy(model_proxy.BatchModelProxy):
     op_name = "forest"
     op_description = yaml.safe_load(""">
 
-  Sequential optimisation using decision trees.
+  Sequential optimization using decision trees.
 
   Refer to https://scikit-optimize.github.io/#skopt.forest_minimize
   for details on this algorithm and its flags.
@@ -139,6 +126,58 @@ xi:
   default: 0.01
   type: float
 """)
+
+###################################################################
+# Gradient boosted regression tree (GBRT) optimizer
+###################################################################
+
+class GBRTOptimizerModelProxy(model_proxy.BatchModelProxy):
+
+    name = "skopt"
+    op_name = "gbrt"
+    op_description = yaml.safe_load(""">
+
+  Sequential optimization using gradient boosted regression trees.
+
+  Refer to https://scikit-optimize.github.io/#skopt.gbrt_minimize
+  for details on this algorithm and its flags.
+  """)
+
+    module_name = "guild.plugins.gbrt_main"
+    flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
+
+    flags_data = yaml.safe_load("""
+random-starts:
+  description: Number of trials using random values before optimizing.
+  default: 0
+  type: int
+kappa:
+  description:
+    Degree to which variance in the predicted values is taken into account
+  default: 1.96
+  type: float
+xi:
+  description: Improvement to seek over the previous best values
+  default: 0.01
+  type: float
+""")
+
+###################################################################
+# Flag encoders
+###################################################################
+
+def encode_flag_for_random(val, flagdef):
+    """Encodes a flag def as either a list or a slice range.
+
+    A slice range is used to convey a range from MIN to MAX. It's
+    typically used for a uniform random distribution with min and max
+    values.
+    """
+    if flagdef.choices:
+        return [c.value for c in flagdef.choices]
+    elif flagdef.min is not None and flagdef.max is not None:
+        return (flagdef.min, flagdef.max)
+    return val
 
 def encode_flag_for_optimizer(val, flagdef):
     """Encodes a flag def for the full range of supported skopt search spaces.
@@ -175,5 +214,8 @@ class SkoptPlugin(pluginlib.Plugin):
             return model, model.op_name
         elif opspec in ("forest", "skopt:forest"):
             model = ForestOptimizerModelProxy()
+            return model, model.op_name
+        elif opspec in ("gbrt", "skopt:gbrt"):
+            model = GBRTOptimizerModelProxy()
             return model, model.op_name
         return None
