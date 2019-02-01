@@ -668,7 +668,7 @@ def _invalid_op_spec_error(e, opdef):
 ###################################################################
 
 def _apply_batch_op(op, batch_files, user_flags, args):
-    """Applies batch_op attr to op.
+    """Applies batch_op attrs to op.
 
     If we determine this is a batch run, resolve the batch opspec to
     an operation in its own right and set it as op.batch_op. This is
@@ -687,6 +687,7 @@ def _apply_batch_op(op, batch_files, user_flags, args):
     batch_opdef = _resolve_batch_opdef(batch_opspec)
     batch_args = _batch_op_init_args(batch_opdef, args)
     op.batch_op = _init_batch_op(batch_opdef, batch_args, batch_files)
+    _apply_optimizer_attr(op)
     _apply_batch_random_seed(op)
     _apply_batch_flag_encoder(op, user_flags)
 
@@ -709,7 +710,7 @@ def _resolve_batch_opdef(batch_opspec):
     except SystemExit as e:
         assert e.args[0].startswith("cannot find operation"), e
         cli.error(
-            "cannot find optimizer %r\n"
+            "cannot find optimizer '%s'\n"
             "Refer to Guild AI documentation for supported optimizers or "
             "verify a custom optimizer by running " "'guild operations'."
             % batch_opspec)
@@ -735,6 +736,10 @@ def _init_batch_op(opdef, args, batch_files):
     if args.init_trials:
         op.cmd_env.update({"INIT_TRIALS_ONLY": "1"})
     return op
+
+def _apply_optimizer_attr(op):
+    assert op.batch_op
+    op.extra_attrs["optimizer"] = op.batch_op.opref.to_opspec()
 
 def _apply_batch_random_seed(op):
     """Applies batch op random seed to op.
