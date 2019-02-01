@@ -54,7 +54,6 @@ from .shell import shell
 from .stop import stop
 from .sync import sync
 from .sys import sys
-from .test import test
 from .tensorboard import tensorboard
 from .tensorflow import tensorflow
 from .uninstall import uninstall
@@ -133,7 +132,6 @@ main.add_command(sync)
 main.add_command(sys)
 main.add_command(tensorboard)
 main.add_command(tensorflow)
-main.add_command(test)
 main.add_command(uninstall)
 main.add_command(view)
 main.add_command(watch)

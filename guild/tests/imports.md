@@ -119,8 +119,6 @@
     guild.commands.tensorflow_check_main
     guild.commands.tensorflow_impl
     guild.commands.tensorflow_inspect
-    guild.commands.test
-    guild.commands.test_impl
     guild.commands.uninstall
     guild.commands.view
     guild.commands.view_impl
@@ -200,7 +198,6 @@
     guild.summary
     guild.tabview
     guild.tensorboard
-    guild.test
     guild.tfevent
     guild.uat
     guild.util

@@ -142,8 +142,7 @@ class Step(object):
     def _init_checks(data):
         expect = data.get("expect") or []
         if not isinstance(expect, list):
-            log.warning("invalid expect data: %r", data)
-            return []
+            expect = [expect]
         checks = []
         for check_data in expect:
             try:
