@@ -957,7 +957,7 @@ def _format_flag(name, val, opdef):
     if val is None:
         formatted = _null_label(name, opdef)
     else:
-        formatted = op_util.format_flag_val(val)
+        formatted = _strip_quotes(op_util.format_flag_val(val))
     return "%s: %s" % (name, formatted)
 
 def _null_label(name, opdef):
@@ -965,6 +965,11 @@ def _null_label(name, opdef):
     if flag and flag.null_label is not None:
         return op_util.format_flag_val(flag.null_label)
     return "default"
+
+def _strip_quotes(s):
+    if s[:1] == "'" and s[-1:] == "'":
+        return s[1:-1]
+    return s
 
 def _format_op_resources(resources):
     if not resources:
