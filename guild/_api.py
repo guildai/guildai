@@ -86,6 +86,7 @@ def _popen_args(
         guild_home=None,
         extra_env=None,
         optimizer=None,
+        opt_flags=None,
         max_trials=None,
         random_seed=None,
         needed=False,
@@ -97,6 +98,7 @@ def _popen_args(
     from guild import op_util
     cwd = cwd or "."
     flags = flags or {}
+    opt_flags = opt_flags or {}
     args = [
         sys.executable,
         "-um", "guild.main_bootstrap",
@@ -116,6 +118,11 @@ def _popen_args(
         args.extend(["--run-dir", run_dir])
     if optimizer:
         args.extend(["--optimizer", optimizer])
+    for name, val in opt_flags.items():
+        args.extend([
+            "--opt-flag",
+            "{}={}".format(name, op_util.format_flag_val(val))
+        ])
     if max_trials is not None:
         args.extend(["--max-trials", str(max_trials)])
     if random_seed is not None:
