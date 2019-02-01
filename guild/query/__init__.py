@@ -97,3 +97,6 @@ def parse(s):
     from . import qparse
     p = qparse.parser()
     return p.parse(s)
+
+def parse_colspec(colspec):
+    return parse("select %s" % colspec)

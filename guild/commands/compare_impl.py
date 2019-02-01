@@ -166,7 +166,7 @@ def _colspec_cols(colspec, parse_cache):
         return parse_cache[colspec]
     except KeyError:
         try:
-            cols = query.parse("select %s" % colspec).cols
+            cols = query.parse_colspec(colspec).cols
         except query.ParseError as e:
             log.warning("error parsing %r: %s", colspec, e)
             cols = []
