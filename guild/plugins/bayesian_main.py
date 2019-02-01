@@ -18,13 +18,6 @@ from __future__ import division
 from . import skopt_util
 
 def _init_trial(trial, state):
-    """Return a next set of trial flags given previous trial data.
-
-    If there is no previous trial data, we provide a set of starting
-    flags based on the proto flags. In cases where defaults are
-    provided, those are used, otherwise random values are generated
-    based on the flag search space.
-    """
     import skopt
     random_starts, x0, y0, dims = state.minimize_inputs(trial.run_id)
     res = skopt.gp_minimize(
