@@ -552,6 +552,8 @@ class ModelDef(object):
 
     @property
     def default_operation(self):
+        if len(self.operations) == 1:
+            return self.operations[0]
         for op in self.operations:
             if op.default:
                 return op
