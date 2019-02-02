@@ -181,12 +181,14 @@ def _write_operations(m, out):
     out.write_paragraph()
     out.indent()
     if m.operations:
-        last_op = None
+        prev_op = None
         for op in m.operations:
-            if last_op and not last_op.flags:
+            if op.name[:1] == "_":
+                continue
+            if prev_op:
                 out.write_paragraph()
             _write_operation(op, out)
-            last_op = op
+            prev_op = op
     else:
         out.write_text(
             "No operations defined for this model")
