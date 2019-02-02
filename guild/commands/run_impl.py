@@ -829,10 +829,13 @@ def _invalid_flag_value_error(e):
 ###################################################################
 
 def _print_cmd(op, args):
-    formatted = " ".join(_preview_cmd(op))
-    cli.out(formatted)
     if op.batch_op:
+        formatted = " ".join(_preview_cmd(op.batch_op))
+        cli.out(formatted)
         _print_batch_trials_cmd(op, args)
+    else:
+        formatted = " ".join(_preview_cmd(op))
+        cli.out(formatted)
 
 def _preview_cmd(op):
     return [pipes.quote(arg) for arg in op.cmd_args]
