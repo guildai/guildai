@@ -42,6 +42,7 @@ class FlagsPlugin(Plugin):
     def guildfile_data(self, data, _src):
         local_cache = {}
         for op_data in self._iter_ops_with_main(data):
+            self._coerce_flags_import_list(op_data)
             flags_import = self._pop_flags_import(op_data)
             if flags_import is IMPLICIT_ALL_FLAGS or flags_import:
                 self._try_apply_imports(flags_import, op_data, local_cache)
@@ -79,6 +80,19 @@ class FlagsPlugin(Plugin):
                 else:
                     for op_data in self._iter_ops_with_main_recurse(val):
                         yield op_data
+
+    @staticmethod
+    def _coerce_flags_import_list(op_data):
+        """Coerces op flags from a list to dict with '$import' key."""
+        try:
+            flags_data = op_data["flags"]
+        except KeyError:
+            pass
+        else:
+            if isinstance(flags_data, list):
+                op_data["flags"] = {
+                    "$import": flags_data
+                }
 
     @staticmethod
     def _pop_flags_import(op_data):
