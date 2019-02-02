@@ -38,6 +38,10 @@ from guild import _api
 NoCurrentRun = _api.NoCurrentRun
 current_run = _api.current_run
 
+slice_function_pattern = re.compile(r"\[(.+)\]\s*$")
+slice_args_delimiter = ":"
+named_function_parts_pattern = re.compile(r"(\w+)\((.*?)\)\s*$")
+
 RESTART_NEEDED_STATUS = ("pending",)
 
 class ArgValueError(ValueError):
@@ -826,3 +830,35 @@ def flags_hash(flags):
 
 def restart_needed(run, flags):
     return run.status in RESTART_NEEDED_STATUS or run.get("flags") != flags
+
+def parse_function(s):
+    if not isinstance(s, six.string_types):
+        raise ValueError("requires string")
+    return util.find_apply([
+        _slice_function,
+        _named_function,
+        _not_a_function_error,
+    ], s)
+
+def _slice_function(s):
+    m = slice_function_pattern.match(s)
+    if not m:
+        return None
+    args_s = m.group(1).split(slice_args_delimiter)
+    if len(args_s) < 2:
+        # Slice must contain a delimieter - i.e. always contains at
+        # least two elements.
+        return None
+    args = [parse_arg_val(arg.strip()) for arg in args_s]
+    return None, tuple(args)
+
+def _named_function(s):
+    parts_m = named_function_parts_pattern.match(s)
+    if not parts_m:
+        return None
+    name, args_s = parts_m.groups()
+    args = parse_arg_val("[%s]" % args_s)
+    return name, tuple(args)
+
+def _not_a_function_error(_s):
+    raise ValueError("not a function")

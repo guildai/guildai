@@ -22,6 +22,7 @@ import pipes
 import random
 
 import click
+import six
 import yaml
 
 import guild.help
@@ -505,7 +506,7 @@ def _init_op(opdef, args):
     (flag_vals,
      resource_config,
      batch_files) = _split_flag_args(args.flags, opdef)
-    _apply_opdef_args(flag_vals, args, opdef)
+    _apply_opdef_args(flag_vals, batch_files, args, opdef)
     try:
         op = guild.op.Operation(
             opdef,
@@ -518,8 +519,8 @@ def _init_op(opdef, args):
     except guild.op.InvalidOpSpec as e:
         _invalid_op_spec_error(e, opdef)
     else:
-        _apply_batch_op(op, batch_files, flag_vals, args)
-        if not args.force_flags and not op.batch_op:
+        _apply_batch_op(opdef.batch_opspec, batch_files, flag_vals, args, op)
+        if not op.batch_op and not args.force_flags:
             _validate_op_flags(op)
         return op
 
@@ -573,13 +574,15 @@ def _is_resource(name, opdef, ref_vars):
 # Update opdef with flag vals and applicable args
 ###################################################################
 
-def _apply_opdef_args(flag_vals, args, opdef):
+def _apply_opdef_args(flag_vals, batch_files, args, opdef):
     _apply_flag_vals(flag_vals, opdef, args)
     _apply_arg_disable_plugins(args, opdef)
     _apply_arg_objective(args, opdef)
-    opdef.set_trace = args.set_trace
+    _apply_arg_set_trace(args, opdef)
+    _apply_batch_opspec(flag_vals, batch_files, args, opdef)
 
 def _apply_flag_vals(vals, opdef, args):
+    _seed_random_for_flag_functions(args)
     for name, val in vals.items():
         flagdef = opdef.get_flagdef(name)
         if not args.force_flags and not flagdef:
@@ -588,19 +591,48 @@ def _apply_flag_vals(vals, opdef, args):
                 "Try 'guild run %s --help-op' for a list of "
                 "flags or use --force-flags to skip this check."
                 % (name, opdef.fullname))
-        try:
-            coerced = op_util.coerce_flag_value(val, flagdef)
-        except (ValueError, TypeError) as e:
-            if not args.optimizer:
-                cli.error(
-                    "cannot apply %r to flag '%s': %s"
-                    % (val, name, e))
-            # Silently ignore in case of optimizer, which may support
-            # various search space encodings that violate flagdef
-            # types.
-            opdef.set_flag_value(name, val)
-        else:
-            opdef.set_flag_value(name, coerced)
+        if not args.optimizer:
+            val = _apply_flag_function(val)
+            val = _coerce_flag_val(val, flagdef)
+        opdef.set_flag_value(name, val)
+
+def _seed_random_for_flag_functions(args):
+    random.seed(args.random_seed)
+
+def _apply_flag_function(val):
+    if not isinstance(val, six.string_types):
+        return val
+    try:
+        func_name, func_args = op_util.parse_function(val)
+    except ValueError:
+        return val
+    else:
+        return _call_function(func_name, func_args)
+
+def _call_function(name, func_args):
+    if name in (None, "uniform"):
+        return _uniform(func_args)
+    else:
+        cli.error("unsupported function '%s'" % name)
+
+def _uniform(func_args):
+    if len(func_args) == 0:
+        a, b = 0, 1
+        b = 1
+    elif len(func_args) == 1:
+        a, b = 0, func_args[0]
+    else:
+        a, b = func_args[:2]
+    return random.uniform(a, b)
+
+def _coerce_flag_val(val, flagdef):
+    try:
+        return op_util.coerce_flag_value(val, flagdef)
+    except (ValueError, TypeError) as e:
+        cli.error(
+            "cannot apply %r to flag '%s': %s"
+            % (val, flagdef.name, e))
+
 
 def _apply_arg_disable_plugins(args, opdef):
     if args.disable_plugins:
@@ -615,6 +647,25 @@ def _apply_arg_objective(args, opdef):
         opdef.objective = {
             "maximize": args.maximize
         }
+
+def _apply_arg_set_trace(args, opdef):
+    opdef.set_trace = args.set_trace
+
+def _apply_batch_opspec(flag_vals, batch_files, args, opdef):
+    opdef.batch_opspec = _batch_opspec(flag_vals, batch_files, args)
+
+def _batch_opspec(flag_vals, batch_files, args):
+    if args.optimizer:
+        return args.optimizer
+    if batch_files or _has_batch_flag_vals(flag_vals):
+        return "+"
+    return None
+
+def _has_batch_flag_vals(flag_vals):
+    for val in flag_vals.values():
+        if isinstance(val, list):
+            return True
+    return False
 
 ###################################################################
 # Other op attrs
@@ -664,10 +715,10 @@ def _invalid_op_spec_error(e, opdef):
     cli.error("operation '%s' is not valid: %s" % (opdef.fullname, e))
 
 ###################################################################
-# Batch op init
+# Apply batch op
 ###################################################################
 
-def _apply_batch_op(op, batch_files, user_flags, args):
+def _apply_batch_op(batch_opspec, batch_files, user_flags, args, op):
     """Applies batch_op attrs to op.
 
     If we determine this is a batch run, resolve the batch opspec to
@@ -680,29 +731,15 @@ def _apply_batch_op(op, batch_files, user_flags, args):
     opportunity to modify op's flag vals to encode values that require
     search space info or other metadata.
     """
-    batch_opspec = _batch_opspec(op, batch_files, args)
-    if not batch_opspec:
+    if batch_opspec:
+        batch_opdef = _resolve_batch_opdef(batch_opspec)
+        batch_args = _batch_op_init_args(batch_opdef, args)
+        op.batch_op = _init_batch_op(batch_opdef, batch_args, batch_files)
+        _apply_optimizer_attr(op)
+        _apply_batch_random_seed(op)
+        _apply_batch_flag_encoder(op, user_flags)
+    else:
         op.batch_op = None
-        return
-    batch_opdef = _resolve_batch_opdef(batch_opspec)
-    batch_args = _batch_op_init_args(batch_opdef, args)
-    op.batch_op = _init_batch_op(batch_opdef, batch_args, batch_files)
-    _apply_optimizer_attr(op)
-    _apply_batch_random_seed(op)
-    _apply_batch_flag_encoder(op, user_flags)
-
-def _batch_opspec(op, batch_files, args):
-    if args.optimizer:
-        return args.optimizer
-    if batch_files or _has_batch_flag_vals(op):
-        return "+"
-    return None
-
-def _has_batch_flag_vals(op):
-    for val in op.flag_vals.values():
-        if isinstance(val, list):
-            return True
-    return False
 
 def _resolve_batch_opdef(batch_opspec):
     try:

@@ -22,6 +22,7 @@ import six
 
 from guild import batch_util
 from guild import index2
+from guild import op_util
 from guild import query
 
 log = logging.getLogger("guild")
@@ -63,7 +64,7 @@ class State(object):
         if isinstance(val, list):
             return val, None
         try:
-            func_name, search_dim = batch_util.parse_function(val)
+            func_name, search_dim = op_util.parse_function(val)
         except ValueError:
             return [val], None
         else:

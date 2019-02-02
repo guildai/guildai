@@ -15,7 +15,6 @@ tests).
       batch-random-seeds:          ok
       batch-restart:               ok
       batch-skopt:                 ok
-      batch-util:                  ok
       config:                      ok
       copy-source:                 ok
       cpu-plugin:                  ok
@@ -24,6 +23,7 @@ tests).
       dependencies-2:              ok
       disk-plugin:                 ok
       entry-points:                ok
+      flag-functions:              ok
       flagdefs:                    ok
       flags-dest:                  ok
       guildfiles:                  ok

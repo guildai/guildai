@@ -18,6 +18,7 @@ from __future__ import division
 import warnings
 
 from guild import batch_util
+from guild import op_util
 
 from . import skopt_util
 
@@ -45,7 +46,7 @@ def _flag_dim(val, flag_name):
     if isinstance(val, list):
         return val
     try:
-        dist_name, min_max = batch_util.parse_function(val)
+        dist_name, min_max = op_util.parse_function(val)
     except ValueError:
         return [val]
     else:
