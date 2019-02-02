@@ -180,7 +180,7 @@ class IterTrial(Trial):
         self.init_trial_cb = init_trial_cb
         super(IterTrial, self).__init__(batch, flags, run_dir)
 
-    def init(self, quiet=False, **kw):
+    def init(self, *args, **kw):
         """Initialize an iter trial.
 
         We use `self.init_trial_cb` to perform additional trial
@@ -188,7 +188,7 @@ class IterTrial(Trial):
         """
         flags = self.init_trial_cb(self, self.state)
         self.set_flags(flags)
-        super(IterTrial, self).init(**kw)
+        super(IterTrial, self).init(*args, **kw)
 
 ###################################################################
 # Batch
