@@ -141,3 +141,62 @@ Nor does gbrt:
     >>> unique_trials = set(trials)
     >>> len(trials) == len(unique_trials), trials
     (True, ...)
+
+## Minimizing objective
+
+Let's use the bayesian optimizer to minimize loss for the `echo`
+operation. Loss in this case is simply the value of `x` that we
+specify.
+
+    >>> project = Project(sample("projects", "optimizers"))
+
+And the run:
+
+    >>> project.run("echo", flags={"x": "[-2.0:2.0:0.0]", "z": "a"},
+    ...             optimizer="bayesian",
+    ...             minimize="loss",
+    ...             random_seed=1,
+    ...             max_trials=3)
+    INFO: [guild] Initialized trial ... (x=0.0, y=2, z=a)
+    INFO: [guild] Running trial ...: echo (x=0.0, y=2, z=a)
+    0.0 2 'a'
+    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
+    ... 2 'a'
+    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
+    ... 2 'a'
+
+Let's get the loss for the latest run:
+
+    >>> latest_run = project.list_runs()[0]
+    >>> loss = project.run_scalar(latest_run, None, "loss", "last", False)
+    >>> isinstance(loss, float) and loss < 0, loss, latest_run.path
+    (True, ...)
+
+## Maximizing objective
+
+While we generally don't want to maximize loss, let's run the same
+operation with maximize:
+
+    >>> project.run("echo", flags={"x": "[-2.0:2.0:0.0]", "z": "a"},
+    ...             optimizer="bayesian",
+    ...             maximize="loss",
+    ...             random_seed=1,
+    ...             max_trials=4)
+    INFO: [guild] Initialized trial ... (x=0.0, y=2, z=a)
+    INFO: [guild] Running trial ...: echo (x=0.0, y=2, z=a)
+    0.0 2 'a'
+    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
+    ... 2 'a'
+    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
+    ... 2 'a'
+
+And the latest loss:
+
+    >>> latest_run = project.list_runs()[0]
+    >>> loss = project.run_scalar(latest_run, None, "loss", "last", False)
+    >>> isinstance(loss, float) and loss > 0, loss, latest_run.path
+    (True, ...)

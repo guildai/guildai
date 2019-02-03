@@ -51,6 +51,7 @@ import tempfile
 from guild import _api as gapi
 from guild import cli
 from guild import guildfile
+from guild import index2
 from guild import init
 from guild import op_util
 from guild import util
@@ -375,6 +376,8 @@ class Project(object):
     def __init__(self, cwd):
         self.guild_home = mkdtemp()
         self.cwd = cwd
+        runs_path = os.path.join(self.guild_home, "runs")
+        self.index = index2.RunIndex(runs_path)
 
     def run(self, *args, **kw):
         print(self._run(*args, **kw))
@@ -462,3 +465,11 @@ class Project(object):
             cwd=self.cwd,
             guild_home=self.guild_home,
             **kw)
+
+    def run_scalars(self, run):
+        self.index.refresh([run], ["scalar"])
+        return self.index.run_scalars(run)
+
+    def run_scalar(self, run, prefix, tag, qual, step):
+        self.index.refresh([run], ["scalar"])
+        return self.index.run_scalar(run, prefix, tag, qual, step)
