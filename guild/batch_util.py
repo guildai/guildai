@@ -100,11 +100,11 @@ class Trial(object):
         util.copytree(self.batch.proto_run.path, run_dir)
         run = runlib.Run(self.run_id, run_dir)
         run.write_attr("flags", self.flags)
-        run.write_attr("label", self._default_label())
+        run.write_attr("label", self._init_label())
         run.write_attr("batch", self.batch.batch_run.id)
         return run
 
-    def _default_label(self):
+    def _init_label(self):
         opt_desc = self.batch.batch_run.get("label")
         if not opt_desc:
             opt_desc = self.batch.batch_run.opref.op_name
@@ -142,6 +142,7 @@ class Trial(object):
         trial_run = self.trial_run(required=True)
         opspec = trial_run.opref.to_opspec()
         cwd = os.environ["CMD_DIR"]
+        label = trial_run.get("label") or self._init_label()
         extra_env = {
             "NO_RESTARTING_MSG": "1"
         }
@@ -153,6 +154,7 @@ class Trial(object):
             gapi.run(
                 restart=trial_run.path,
                 cwd=cwd,
+                label=label,
                 extra_env=extra_env,
                 quiet=quiet,
                 **kw)
