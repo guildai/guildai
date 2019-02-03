@@ -59,8 +59,7 @@ class State(object):
             [dims[name] for name in names],
             [defaults[name] for name in names])
 
-    @staticmethod
-    def _flag_dim(val, flag_name):
+    def _flag_dim(self, val, flag_name):
         if isinstance(val, list):
             return val, None
         try:
@@ -72,14 +71,25 @@ class State(object):
                 raise batch_util.BatchError(
                     "unsupported function %r for flag %s - must be 'uniform'"
                     % (func_name, flag_name))
-            if len(search_dim) == 2:
-                return search_dim, None
-            elif len(search_dim) == 3:
-                return search_dim[:2], search_dim[2]
-            else:
+            return self._distribution_dim(search_dim)
+
+    def _distribution_dim(self, args):
+        self._validate_distribution_args(args)
+        if len(args) == 2:
+            return args, None
+        elif len(args) == 3:
+            return args[:2], args[2]
+        else:
+            raise batch_util.BatchError(
+                "unexpected arguemt list in %s for flag %s - "
+                "expected 2 arguments" % (val, flag_name))
+
+    @staticmethod
+    def _validate_distribution_args(args):
+        for val in args:
+            if not isinstance(val, (int, float)):
                 raise batch_util.BatchError(
-                    "unexpected arguemt list in %s for flag %s - "
-                    "expected 2 arguments" % (val, flag_name))
+                    "invalid distribution %r - must be float or int" % val)
 
     def _init_run_loss_fun(self, batch):
         negate, col = self._init_objective(batch)
