@@ -611,7 +611,7 @@ def _iter_output(run):
                 yield line
 
 def _format_yaml_block(val):
-    formatted = yaml.dump(val)
+    formatted = yaml.dump(val, default_flow_style=False)
     lines = formatted.split("\n")
     padded = ["  " + line for line in lines]
     return "\n" + "\n".join(padded).rstrip()
