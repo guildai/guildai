@@ -86,6 +86,8 @@ def _popen_args(
         guild_home=None,
         extra_env=None,
         optimizer=None,
+        minimize=None,
+        maximize=None,
         opt_flags=None,
         max_trials=None,
         random_seed=None,
@@ -118,6 +120,10 @@ def _popen_args(
         args.extend(["--run-dir", run_dir])
     if optimizer:
         args.extend(["--optimizer", optimizer])
+    if minimize:
+        args.extend(["--minimize", minimize])
+    if maximize:
+        args.extend(["--maximize", maximize])
     for name, val in opt_flags.items():
         args.extend([
             "--opt-flag",
