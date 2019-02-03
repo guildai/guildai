@@ -72,7 +72,6 @@ CORE_RUN_ATTRS = [
     "random_seed",
     "run_params",
     "started",
-    "steps",
     "stopped",
 ]
 
