@@ -52,11 +52,6 @@ class Trial(object):
         self.flags = flags
         self.run_id = run_id or runlib.mkid()
 
-    def config_equals(self, trial):
-        if self.flags is None:
-            return False
-        return self.flags == trial.flags
-
     def trial_run(self, required=False):
         trial_link = self._trial_link()
         if not os.path.exists(trial_link):
@@ -74,16 +69,18 @@ class Trial(object):
         self._make_trial_link(trial_run)
         if not quiet:
             log.info(
-                "Initialized trial %s (%s)", self._run_desc(trial_run),
+                "Initialized trial %s (%s)",
+                self._run_desc(trial_run),
                 ", ".join(self._flag_assigns()))
 
     def _init_trial_run(self, run_dir=None):
         run_dir = run_dir or os.path.join(var.runs_dir(), self.run_id)
-        util.copytree(self.batch.proto_run.path, run_dir)
         run = runlib.Run(self.run_id, run_dir)
-        run.write_attr("flags", self.flags)
-        run.write_attr("label", self._init_label())
-        run.write_attr("batch", self.batch.batch_run.id)
+        if run.get("batch") != self.batch.batch_run.id:
+            util.copytree(self.batch.proto_run.path, run_dir)
+            run.write_attr("flags", self.flags)
+            run.write_attr("label", self._init_label())
+            run.write_attr("batch", self.batch.batch_run.id)
         return run
 
     def _init_label(self):
@@ -192,7 +189,7 @@ class Batch(object):
         self.proto_run = self._init_proto_run()
         self._proto_opdef_data = None
         self._index_path = batch_run.guild_path("trials")
-        self._needed = os.getenv("NEEDED_TRIALS_ONLY") == "1"
+        self.needed = os.getenv("NEEDED_TRIALS_ONLY") == "1"
 
     def _init_proto_run(self):
         proto_path = self.batch_run.guild_path("proto")
@@ -256,23 +253,30 @@ class Batch(object):
         return random.sample(trials, max_trials)
 
     def run_trials(self, trials, init_only=False):
+        trial_runs = [
+            (run.id, run.get("flags"))
+            for run in self.iter_trial_runs()
+        ]
         for trial in trials:
-            self._apply_existing_run_id(trial)
-            if self._needed and not trial.run_needed():
+            self._apply_existing_run_id(trial, trial_runs)
+            trial.init()
+            self._trial_init_wait_state()
+            if init_only:
+                continue
+            if self.needed and not trial.run_needed():
                 log.info(
                     "Skipping trial %s because flags have not "
                     "changed (--needed specified)", trial.run_id)
                 continue
-            trial.init()
-            self._trial_init_wait_state()
-            if not init_only:
-                self._run_if_needed(trial)
+            trial.run()
 
-    def _apply_existing_run_id(self, trial):
-        for run in self.iter_trial_runs():
-            proxy = Trial(self, run.get("flags"), run.id)
-            if trial.config_equals(proxy):
-                trial.run_id = run.id
+    @staticmethod
+    def _apply_existing_run_id(trial, trial_runs):
+        if trial.flags is None:
+            return
+        for run_id, run_flags in trial_runs:
+            if trial.flags == run_flags:
+                trial.run_id = run_id
                 break
 
     @staticmethod
@@ -285,12 +289,6 @@ class Batch(object):
         generated trials using their run dir mtime attrs.
         """
         time.sleep(0.01)
-
-    def _run_if_needed(self, trial):
-        if self._needed and not trial.run_needed():
-            log.debug("skipping trial %s", trial.run_id)
-            return
-        trial.run()
 
     def iter_trial_runs(self, status=None):
         if isinstance(status, six.string_types):
