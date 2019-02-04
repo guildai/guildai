@@ -67,3 +67,44 @@
     ignored-params:
       steps:
         - m1:hello --run-dir /tmp --remote foo
+
+- model: m4
+  operations:
+    prepare:
+      exec: bash -c "touch data && echo prepared data"
+    train:
+      exec: bash -c "touch model && echo loss=${loss}"
+      flags:
+        loss: 1.234
+      requires:
+        - operation: prepare
+          select: data
+      output-scalars:
+        loss: loss=(.+)
+      compare:
+        - loss
+    evaluate:
+      exec: bash -c "echo acc=${acc}"
+      flags:
+        acc: 0.789
+      requires:
+        - operation: prepare
+          select: data
+        - operation: train
+          select: model
+      output-scalars:
+        acc: acc=(.+)
+      compare:
+        - acc
+    end-to-end:
+      flags:
+        loss: 1.0
+        acc: 0.5
+      steps:
+        - prepare --needed
+        - train loss=${loss}
+        - run: evaluate acc=${acc}
+          name: eval
+      compare:
+        - train#loss as loss
+        - eval#acc as acc
