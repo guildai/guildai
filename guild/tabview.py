@@ -150,20 +150,18 @@ class Viewer(ViewerBase):
         xp = self.x + self.win_x
         self.data = sorted(
             self.data,
-            key=lambda x: self.float_string_key(
-                itemgetter(xp)(x), float('inf')))
+            key=lambda x: self.float_key(itemgetter(xp)(x), float('inf')))
 
     def sort_by_column_numeric_reverse(self):
         from operator import itemgetter
         xp = self.x + self.win_x
         self.data = sorted(
             self.data,
-            key=lambda x: self.float_string_key(
-                itemgetter(xp)(x), float('-inf')),
+            key=lambda x: self.float_key(itemgetter(xp)(x), float('-inf')),
             reverse=True)
 
     @staticmethod
-    def float_string_key(value, default):
+    def float_key(value, default):
         try:
             return float(value)
         except ValueError:

@@ -63,7 +63,7 @@ class State(object):
         if isinstance(val, list):
             return val, None
         try:
-            func_name, search_dim = op_util.parse_function(val)
+            func_name, func_args = op_util.parse_function(val)
         except ValueError:
             return [val], None
         else:
@@ -71,9 +71,9 @@ class State(object):
                 raise batch_util.BatchError(
                     "unsupported function %r for flag %s - must be 'uniform'"
                     % (func_name, flag_name))
-            return self._distribution_dim(search_dim)
+            return self._distribution_dim(func_args, val, flag_name)
 
-    def _distribution_dim(self, args):
+    def _distribution_dim(self, args, val, flag_name):
         self._validate_distribution_args(args)
         if len(args) == 2:
             return args, None
