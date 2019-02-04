@@ -204,8 +204,9 @@ class ScalarReader(object):
         else:
             cur.execute("""
               SELECT * FROM scalar
-              WHERE run = ? AND prefix = ? AND tag = ?
-            """, (run.id, prefix, tag))
+              WHERE run = ? AND prefix LIKE ? AND tag = ?
+              ORDER BY prefix, tag
+            """, (run.id, "%s%%" % prefix, tag))
         row = cur.fetchone()
         if not row:
             return None
