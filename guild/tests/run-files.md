@@ -171,7 +171,6 @@ Its files:
     .guild/proto/.guild/attrs/random_seed
     .guild/proto/.guild/attrs/run_params
     .guild/proto/.guild/opref
-    .guild/trials
     ...
 
 Note the additional `proto` directory. This contains the prototype for

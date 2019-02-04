@@ -257,22 +257,22 @@ Let's now restart the batch:
 
     >>> run(restart=batch_run.id)
     Restarting ...
-    Initialized trial (x=1.0, y=4, z=a)
-    Running trial: echo.py (x=1.0, y=4, z=a)
-    1.0 4 'a'
     Initialized trial (x=1.0, y=2, z=a)
     Running trial: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
     Initialized trial (x=1.0, y=3, z=a)
     Running trial: echo.py (x=1.0, y=3, z=a)
     1.0 3 'a'
+    Initialized trial (x=1.0, y=4, z=a)
+    Running trial: echo.py (x=1.0, y=4, z=a)
+    1.0 4 'a'
 
 And our runs:
 
     >>> print_runs()
+    echo.py   x=1.0 y=4 z=a
     echo.py   x=1.0 y=3 z=a
     echo.py   x=1.0 y=2 z=a
-    echo.py   x=1.0 y=4 z=a
     echo.py+
     echo.py   x=2.0 y=3 z=a
     echo.py   x=2.0 y=2 z=a
@@ -310,9 +310,9 @@ And our runs:
 
     >>> print_runs()
     echo.py   x=2.0 y=2 z=a
+    echo.py   x=1.0 y=4 z=a
     echo.py   x=1.0 y=3 z=a
     echo.py   x=1.0 y=2 z=a
-    echo.py   x=1.0 y=4 z=a
     echo.py+
     echo.py   x=2.0 y=3 z=a
 
@@ -329,9 +329,9 @@ And our runs:
 
     >>> print_runs()
     echo.py   x=3.0 y=5 z=b
+    echo.py   x=1.0 y=4 z=a
     echo.py   x=1.0 y=3 z=a
     echo.py   x=1.0 y=2 z=a
-    echo.py   x=1.0 y=4 z=a
     echo.py+
     echo.py   x=2.0 y=3 z=a
 
