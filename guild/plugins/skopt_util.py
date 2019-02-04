@@ -172,7 +172,7 @@ class State(object):
             trials.append(trial)
 
     def minimize_inputs(self, trial_run_id):
-        """Returns random starts, x0, y0 and dims given a host of inputs.
+        """Returns random_starts, x0, y0 and dims given a host of inputs.
 
         Priority is given to the requested number of random starts in
         batch flags. If the number is larger than the number of
@@ -228,6 +228,37 @@ def _patch_numpy_deprecation_warnings():
     warnings.filterwarnings("ignore", category=Warning)
     import numpy.core.umath_tests
 
-def default_main(iter_trials_cb):
+def default_main(iter_trial_cb, non_repeating=True):
     _patch_numpy_deprecation_warnings()
-    batch_util.iter_trials_main(State, iter_trials_cb)
+    if non_repeating:
+        iter_trial_cb = NonRepeatingTrials(iter_trial_cb)
+    batch_util.iter_trials_main(State, iter_trial_cb)
+
+class NonRepeatingTrials(object):
+    """Wrapper to ensure that iter trial callbacks don't repeat trials.
+
+    If an skopt minimizer suggests a trial that we've already run,
+    this wrapper uses dummy_minimize to generate a random trial within
+    the state search space.
+    """
+
+    def __init__(self, iter_trial_cb):
+        self.iter_trial_cb = iter_trial_cb
+
+    def __call__(self, trial, state):
+        next_trial_flags = self.iter_trial_cb(trial, state)
+        for run in trial.batch.iter_trial_runs(status="completed"):
+            if next_trial_flags == run.get("flags"):
+                return self._random_trial(state)
+        return next_trial_flags
+
+    @staticmethod
+    def _random_trial(state):
+        import skopt
+        res = skopt.dummy_minimize(
+            lambda *args: 0,
+            state.flag_dims,
+            n_calls=1,
+            random_state=state.random_state)
+        state.random_state = res.random_state
+        return trial_flags(state.flag_names, res.x_iters[-1])

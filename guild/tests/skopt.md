@@ -156,7 +156,7 @@ And the run:
     ...             optimizer="bayesian",
     ...             minimize="loss",
     ...             random_seed=1,
-    ...             max_trials=3)
+    ...             max_trials=4)
     INFO: [guild] Initialized trial ... (x=0.0, y=2, z=a)
     INFO: [guild] Running trial ...: echo (x=0.0, y=2, z=a)
     0.0 2 'a'
