@@ -105,11 +105,20 @@ class Trial(object):
         return run
 
     def _init_label(self):
+        parts = []
         opt_desc = self.batch.batch_run.get("label")
         if not opt_desc:
-            opt_desc = self.batch.batch_run.opref.op_name
-        flags = " ".join(self._flag_assigns())
-        return "%s %s" % (opt_desc, flags)
+            opt_desc = self._batch_label()
+        if opt_desc:
+            parts.append(opt_desc)
+        parts.append(" ".join(self._flag_assigns()))
+        return " ".join(parts)
+
+    def _batch_label(self):
+        batch_op_name = self.batch.batch_run.opref.op_name
+        if batch_op_name == "+":
+            return ""
+        return batch_op_name
 
     @staticmethod
     def _run_desc(run):
