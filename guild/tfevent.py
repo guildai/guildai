@@ -50,7 +50,7 @@ class ScalarReader(object):
                         continue
                     yield val.tag, val.simple_value, event.step
 
-def iter_events(path):
+def iter_events(root_path):
     """Returns an iterator that yields (dir, digest, reader) tuples.
 
     For each yielded events dir, `digest` changes whenever events have
@@ -65,21 +65,42 @@ def iter_events(path):
     except ImportError:
         pass
     else:
-        for dir in io_wrapper.GetLogdirSubdirectories(path):
-            if not _dir_under_path(dir, path):
-                log.debug("%s is not under %s, skipping", dir, path)
+        for subdir_path in io_wrapper.GetLogdirSubdirectories(root_path):
+            if _linked_resource_path(subdir_path, root_path):
+                log.debug("skpping linked resource path %s", subdir_path)
                 continue
-            digest = _event_files_digest(dir)
-            yield dir, digest, ScalarReader(dir)
+            digest = _event_files_digest(subdir_path)
+            yield subdir_path, digest, ScalarReader(subdir_path)
 
-def _dir_under_path(dir, path):
-    """Returns True if `dir` is under `path`.
+def _linked_resource_path(path, root):
+    """Returns True if path is a linked resource under root.
 
-    This is used to filter out links outside of path.
+    This is used to exclude tfevents under root that are linked
+    resources.
     """
-    real_dir = os.path.realpath(dir)
+    if _has_steps(root):
+        return _links_under_root(path, root) > 1
+    else:
+        return not _real_path_under_root(path, root)
+
+def _has_steps(path):
+    return os.path.exists(os.path.join(path, ".guild", "attrs", "steps"))
+
+def _links_under_root(path, root):
+    """Returns the number of links to path uses user root."""
+    links = 0
+    last_path = None
+    while path != root and path != last_path:
+        if os.path.islink(path):
+            links += 1
+        last_path = path
+        path = os.path.dirname(path)
+    return links
+
+def _real_path_under_root(path, root):
+    """Returns True if real path is under root."""
     real_path = os.path.realpath(path)
-    return real_dir.startswith(real_path)
+    return real_path.startswith(root)
 
 def _event_files_digest(dir):
     """Returns a digest for dir that changes when events change.
