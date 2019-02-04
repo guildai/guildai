@@ -18,6 +18,7 @@ import random
 import sys
 import time
 
+import six
 from six.moves import shlex_quote
 
 from guild import _api as gapi
@@ -50,31 +51,23 @@ class Trial(object):
         self.batch = batch
         self.flags = flags
         self.run_id = run_id or runlib.mkid()
-        self._trial_link = os.path.join(self.batch.batch_run.path, self.run_id)
 
     def config_equals(self, trial):
         if self.flags is None:
             return False
         return self.flags == trial.flags
 
-    def delete_pending_run(self):
-        run = self.trial_run()
-        if not run:
-            return False
-        if run.status == "pending":
-            log.info("Deleting pending run %s (no longer needed)", run.id)
-            util.safe_rmtree(run.path)
-            if os.path.exists(self._trial_link):
-                os.remove(self._trial_link)
-
     def trial_run(self, required=False):
-        if not os.path.exists(self._trial_link):
+        trial_link = self._trial_link()
+        if not os.path.exists(trial_link):
             if required:
                 raise RuntimeError("trial not initialized - needs call to init")
             return None
-        run_dir = os.path.realpath(self._trial_link)
-        run_id = os.path.basename(run_dir)
-        return runlib.Run(run_id, run_dir)
+        run_dir = os.path.realpath(trial_link)
+        return runlib.Run(self.run_id, run_dir)
+
+    def _trial_link(self):
+        return os.path.join(self.batch.batch_run.path, self.run_id)
 
     def init(self, run_dir=None, quiet=False):
         trial_run = self._init_trial_run(run_dir)
@@ -115,10 +108,12 @@ class Trial(object):
 
     def _make_trial_link(self, trial_run):
         """Creates a link in batch run dir to trial."""
+        trial_link = self._trial_link()
         rel_trial_path = os.path.relpath(
-            trial_run.path, os.path.dirname(self._trial_link))
-        util.ensure_deleted(self._trial_link)
-        os.symlink(rel_trial_path, self._trial_link)
+            trial_run.path,
+            os.path.dirname(trial_link))
+        util.ensure_deleted(trial_link)
+        os.symlink(rel_trial_path, trial_link)
 
     def _flag_assigns(self):
         def fmt(val):
@@ -167,6 +162,7 @@ class Trial(object):
 ###################################################################
 
 class IterTrial(Trial):
+    """Variant of Trial that initializes flags lazily."""
 
     def __init__(self, init_trial_cb, batch, flags, run_dir=None):
         assert hasattr(batch, "_iter_trials_state")
@@ -260,12 +256,8 @@ class Batch(object):
         return random.sample(trials, max_trials)
 
     def run_trials(self, trials, init_only=False):
-        index = self.read_index(filter_existing=True)
-        orphaned = self._remove_missing_trials(trials, index)
-        self._delete_pending_trials(orphaned)
-        self._add_new_trials(trials, index)
-        self._write_index(index)
-        for trial in index:
+        for trial in trials:
+            self._apply_existing_run_id(trial)
             if self._needed and not trial.run_needed():
                 log.info(
                     "Skipping trial %s because flags have not "
@@ -276,71 +268,12 @@ class Batch(object):
             if not init_only:
                 self._run_if_needed(trial)
 
-    def read_index(self, filter_existing=False):
-        if not os.path.exists(self._index_path):
-            return []
-        data = json.load(open(self._index_path, "r"))
-        trials = [
-            Trial(self, trial_data["flags"], trial_data["run_id"])
-            for trial_data in data]
-        if not filter_existing:
-            return trials
-        return [t for t in trials if self._trial_run_exists(t)]
-
-    @staticmethod
-    def _trial_run_exists(t):
-        try:
-            var.get_run(t.run_id)
-        except LookupError:
-            return False
-        else:
-            return True
-
-    def _remove_missing_trials(self, trials, index):
-        """Removes any trials in index that aren't in trials.
-
-        Returns the list of removed trials.
-        """
-        removed = []
-        index_copy = list(index)
-        for trial in index_copy:
-            if not self._in_trials(trial, trials):
-                index.remove(trial)
-                removed.append(trial)
-        return removed
-
-    @staticmethod
-    def _in_trials(candidate, trials):
-        return any((trial.config_equals(candidate) for trial in trials))
-
-    @staticmethod
-    def _delete_pending_trials(trials):
-        for trial in trials:
-            trial.delete_pending_run()
-
-    @staticmethod
-    def _sync_run_ids(index):
-        for trial in index:
-            if not trial.run_id:
-                continue
-            try:
-                var.get_run(trial.run_id)
-            except LookupError:
-                # Trial run doesn't exist - generate a new ID
-                trial.run_id = runlib.mkid()
-
-    def _add_new_trials(self, source, target):
-        for trial in source:
-            if not self._in_trials(trial, target):
-                target.append(trial)
-
-    def _write_index(self, index):
-        data = [{
-            "run_id": trial.run_id,
-            "flags": trial.flags
-        } for trial in index]
-        with open(self._index_path, "w") as f:
-            json.dump(data, f)
+    def _apply_existing_run_id(self, trial):
+        for run in self.iter_trial_runs():
+            proxy = Trial(self, run.get("flags"), run.id)
+            if trial.config_equals(proxy):
+                trial.run_id = run.id
+                break
 
     @staticmethod
     def _trial_init_wait_state():
@@ -358,6 +291,16 @@ class Batch(object):
             log.debug("skipping trial %s", trial.run_id)
             return
         trial.run()
+
+    def iter_trial_runs(self, status=None):
+        if isinstance(status, six.string_types):
+            status = [status]
+        batch_run_id = self.batch_run.id
+        def filter(run):
+            return (
+                run.get("batch") == batch_run_id and
+                (status is None or run.status in status))
+        return var.runs(filter=filter)
 
 ###################################################################
 # Default main

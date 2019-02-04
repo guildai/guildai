@@ -151,15 +151,10 @@ class State(object):
         return trials
 
     def _previous_trial_run_candidates(self, cur_trial_run_id):
-        trials = self.batch.read_index(filter_existing=True)
-        other_trial_runs = [
-            trial.trial_run(required=True)
-            for trial in trials
-            if trial.run_id != cur_trial_run_id
-        ]
         return [
-            run for run in other_trial_runs
-            if run.status in ("completed", "terminated")
+            run
+            for run in self.batch.iter_trial_runs(status="completed")
+            if run.id != cur_trial_run_id
         ]
 
     @staticmethod
