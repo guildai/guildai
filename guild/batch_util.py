@@ -52,21 +52,11 @@ class Trial(object):
         self.flags = flags
         self.run_id = run_id or runlib.mkid()
         self._trial_link = os.path.join(self.batch.batch_run.path, self.run_id)
-        self._config_digest = self._init_config_digest()
-
-    def _init_config_digest(self):
-        if self.flags is None:
-            return None
-        return op_util.flags_hash(self.flags)
-
-    def set_flags(self, flags):
-        self.flags = flags
-        self._config_digest = self._init_config_digest()
 
     def config_equals(self, trial):
-        if self._config_digest is None:
+        if self.flags is None:
             return False
-        return self._config_digest == trial._config_digest
+        return self.flags == trial.flags
 
     def delete_pending_run(self):
         run = self.trial_run()
@@ -192,7 +182,7 @@ class IterTrial(Trial):
         initialization after the default init process.
         """
         flags = self.init_trial_cb(self, self.state)
-        self.set_flags(flags)
+        self.flags = flags
         super(IterTrial, self).init(*args, **kw)
 
 ###################################################################
