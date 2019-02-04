@@ -452,8 +452,12 @@ class Project(object):
         print(self._run(print_trials=True, *args, **kw))
 
     @staticmethod
-    def ls(run):
-        return find(run.path)
+    def ls(run, all=False):
+        def filter(path):
+            if all:
+                return True
+            return not path.startswith(".guild")
+        return [path for path in find(run.path) if filter(path)]
 
     @staticmethod
     def cat(run, path):
@@ -473,3 +477,10 @@ class Project(object):
     def run_scalar(self, run, prefix, tag, qual, step):
         self.index.refresh([run], ["scalar"])
         return self.index.run_scalar(run, prefix, tag, qual, step)
+
+    def compare(self, runs=None, **kw):
+        return gapi.compare(
+            runs=runs,
+            cwd=self.cwd,
+            guild_home=self.guild_home,
+            **kw)

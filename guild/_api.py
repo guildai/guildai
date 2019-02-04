@@ -265,3 +265,24 @@ def mark(run, clear=False, cwd=".", guild_home=None):
     args = click_util.Args(**ctx.params)
     with Env(cwd, guild_home):
         return runs_impl.mark(args, ctx)
+
+def compare(
+        runs=None,
+        columns=None,
+        skip_op_cols=False,
+        skip_core=False,
+        cwd=".", guild_home=None):
+    from guild import click_util
+    from guild.commands import compare
+    from guild.commands import compare_impl
+    args = list(runs or ())
+    if columns:
+        args.extend(["--columns", columns])
+    if skip_op_cols:
+        args.append("--skip-op-cols")
+    if skip_core:
+        args.append("--skip-core")
+    ctx = compare.compare.make_context("", args)
+    args = click_util.Args(**ctx.params)
+    with Env(cwd, guild_home):
+        return compare_impl._get_data(args, format_cells=False)
