@@ -153,7 +153,9 @@ Next we'll restart with the needed option:
 
     >>> run_echo(restart=batch_run.id, needed=True)
     Restarting ...
+    Initialized trial (x=1, y=2, z=a)
     Skipping trial because flags have not changed (--needed specified)
+    Initialized trial (x=2, y=2, z=a)
     Skipping trial because flags have not changed (--needed specified)
 
 And our runs after:
