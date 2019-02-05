@@ -68,46 +68,4 @@ Arguments may be of any type, in both slice and named forms.
 
 ## Using flag functions in runs
 
-When a flag function is specified for an optimized batch - i.e. a
-batch with an explicit optimizer - it is passed through to the
-optimizer unmodified.
-
-However, when specified for a non-optimized batch - i.e. a run with a
-flag list value - or for a normal run, Guild resolves the flag value
-by applying the function.
-
-For our tests, we'll use the `optimizers` sample project.
-
-    >>> project = Project(sample("projects", "optimizers"))
-
-We'll start by running `echo` with a non-function string value for
-`x`, which will cause an error because `x` is defined by `echo as a
-float.
-
-    >>> project.run("echo", flags={"x": "badvalue"})
-    guild: cannot apply 'badvalue' to flag 'x': invalid value for type 'float'
-    <exit 1>
-
-Let's now use a string value that's a valid flag function:
-
-    >>> project.run("echo", flags={"x": "[0:1]"})
-    0... 2 'a'
-
-In this case, Guild converted the slice formatted function to a random
-value.
-
-We can limit the range to get a predictable value:
-
-    >>> project.run("echo", flags={"x": "[1:1]"})
-    1.0 2 'a'
-
-The slice format is equivalent to using the 'uniform' function:
-
-    >>> project.run("echo", flags={"x": "uniform(1,1)"})
-    1.0 2 'a'
-
-If an unsupported function is specified, Guild exits with an error:
-
-    >>> project.run("echo", flags={"x": "normal(1,1)"})
-    guild: unsupported function 'normal'
-    <exit 1>
+See [Batch runs - implied random optimizer](batch-implied-random.md).
