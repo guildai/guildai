@@ -213,7 +213,7 @@ The `m3` model contains various operations that have invalid step
 configuration.
 
     >>> project.run("m3:steps-invalid-no-steps")
-    guild: operation 'm3:steps-invalid-no-steps' is not valid:
+    guild: operation m3:steps-invalid-no-steps is not valid:
     requires one of: main, exec, steps
     <exit 1>
 
