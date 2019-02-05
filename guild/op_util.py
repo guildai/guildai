@@ -26,6 +26,8 @@ import threading
 import time
 
 import six
+from six.moves import shlex_quote
+
 import yaml
 
 # Move any import that's expensive or seldom used into function
@@ -862,3 +864,13 @@ def _named_function(s):
 
 def _not_a_function_error(_s):
     raise ValueError("not a function")
+
+def flag_assigns(flags):
+    def fmt(val):
+        if isinstance(val, float):
+            val = round(val, 4)
+        return shlex_quote(format_flag_val(val))
+    return [
+        "%s=%s" % (name, fmt(flags[name]))
+        for name in sorted(flags)
+    ]

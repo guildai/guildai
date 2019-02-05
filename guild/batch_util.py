@@ -19,7 +19,6 @@ import sys
 import time
 
 import six
-from six.moves import shlex_quote
 
 from guild import _api as gapi
 from guild import cli
@@ -47,10 +46,11 @@ class MissingProtoError(BatchError):
 
 class Trial(object):
 
-    def __init__(self, batch, flags=None, run_id=None):
+    def __init__(self, batch, flags=None, run_id=None, attrs=None):
         self.batch = batch
         self.flags = flags
         self.run_id = run_id or runlib.mkid()
+        self.attrs = attrs or {}
 
     def trial_run(self, required=False):
         trial_link = self._trial_link()
@@ -78,22 +78,26 @@ class Trial(object):
         run = runlib.Run(self.run_id, run_dir)
         if run.get("batch") != self.batch.batch_run.id:
             util.copytree(self.batch.proto_run.path, run_dir)
+            for name, val in self.attrs.items():
+                run.write_attr(name, val)
+            assert isinstance(self.flags, dict)
             run.write_attr("flags", self.flags)
-            run.write_attr("label", self._init_label())
+            if "label" not in self.attrs:
+                run.write_attr("label", self.init_label())
             run.write_attr("batch", self.batch.batch_run.id)
         return run
 
-    def _init_label(self):
+    def init_label(self):
         parts = []
         opt_desc = self.batch.batch_run.get("label")
         if not opt_desc:
-            opt_desc = self._batch_label()
+            opt_desc = self.batch_label()
         if opt_desc:
             parts.append(opt_desc)
         parts.append(" ".join(self._flag_assigns()))
         return " ".join(parts)
 
-    def _batch_label(self):
+    def batch_label(self):
         batch_op_name = self.batch.batch_run.opref.op_name
         if batch_op_name == "+":
             return ""
@@ -113,14 +117,7 @@ class Trial(object):
         os.symlink(rel_trial_path, trial_link)
 
     def _flag_assigns(self):
-        def fmt(val):
-            if isinstance(val, float):
-                val = round(val, 4)
-            return shlex_quote(op_util.format_flag_val(val))
-        return [
-            "%s=%s" % (name, fmt(self.flags[name]))
-            for name in sorted(self.flags)
-        ]
+        return op_util.flag_assigns(self.flags)
 
     def run_needed(self):
         run = self.trial_run()
@@ -132,7 +129,7 @@ class Trial(object):
         trial_run = self.trial_run(required=True)
         opspec = trial_run.opref.to_opspec()
         cwd = os.environ["CMD_DIR"]
-        label = trial_run.get("label") or self._init_label()
+        label = trial_run.get("label") or self.init_label()
         extra_env = {
             "NO_RESTARTING_MSG": "1"
         }
@@ -161,11 +158,11 @@ class Trial(object):
 class IterTrial(Trial):
     """Variant of Trial that initializes flags lazily."""
 
-    def __init__(self, init_trial_cb, batch, flags, run_dir=None):
+    def __init__(self, init_trial_cb, batch, **kw):
         assert hasattr(batch, "_iter_trials_state")
         self.state = batch._iter_trials_state
         self.init_trial_cb = init_trial_cb
-        super(IterTrial, self).__init__(batch, flags, run_dir)
+        super(IterTrial, self).__init__(batch, **kw)
 
     def init(self, *args, **kw):
         """Initialize an iter trial.
@@ -173,8 +170,12 @@ class IterTrial(Trial):
         We use `self.init_trial_cb` to perform additional trial
         initialization after the default init process.
         """
-        flags = self.init_trial_cb(self, self.state)
-        self.flags = flags
+        result = self.init_trial_cb(self, self.state)
+        try:
+            (self.flags,
+             self.attrs) = result
+        except ValueError:
+            self.flags = result
         super(IterTrial, self).init(*args, **kw)
 
 ###################################################################
@@ -229,7 +230,7 @@ class Batch(object):
             trials = self._acc_batch_trials(base_flags, batches, gen_cb)
         else:
             trials = gen_cb(base_flags, self)
-        return [self._new_trial_cb(self, flags) for flags in trials]
+        return [self._new_trial_cb(self, flags=flags) for flags in trials]
 
     def _acc_batch_trials(self, base_flags, batches, gen_cb):
         trials = []
@@ -368,6 +369,6 @@ def _gen_iter_trials_cb(init_state_cb, default_max_trials):
     return f
 
 def _new_iter_trial_cb(init_trial_cb):
-    def f(batch, flags, run_id=None):
-        return IterTrial(init_trial_cb, batch, flags, run_id)
+    def f(batch, **kw):
+        return IterTrial(init_trial_cb, batch, **kw)
     return f
