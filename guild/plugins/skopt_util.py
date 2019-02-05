@@ -247,9 +247,15 @@ class NonRepeatingTrials(object):
 
     def __call__(self, trial, state):
         next_trial_flags = self.iter_trial_cb(trial, state)
-        for run in trial.batch.iter_trial_runs(status="completed"):
+        for run in trial.batch.iter_trial_runs():
             if next_trial_flags == run.get("flags"):
-                return self._random_trial(state)
+                flag_desc = " ".join(op_util.flag_assigns(next_trial_flags))
+                log.warning(
+                    "optimizer repeated trial (%s) - using random",
+                    flag_desc)
+                return (
+                    self._random_trial(state),
+                    {"label": self._random_trial_label(trial, flag_desc)})
         return next_trial_flags
 
     @staticmethod
@@ -262,3 +268,7 @@ class NonRepeatingTrials(object):
             random_state=state.random_state)
         state.random_state = res.random_state
         return trial_flags(state.flag_names, res.x_iters[-1])
+
+    @staticmethod
+    def _random_trial_label(trial, flag_desc):
+        return "%s+random %s" % (trial.batch_label(), flag_desc)
