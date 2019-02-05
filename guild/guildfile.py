@@ -546,8 +546,8 @@ class ModelDef(object):
                 return op
             if op.name[:1] != "_":
                 public_ops.append(op)
-        if public_ops == 1:
-            return self.operations[0]
+        if len(public_ops) == 1:
+            return public_ops[0]
         return None
 
     def get_resource(self, name):
