@@ -414,10 +414,10 @@ def _suggest_python_interpreter(user_reqs):
     ])
     if not python_requires:
         return None
-    python_vers = [ver for _path, ver in sorted(util.python_interpreters())]
-    matching_ver = _find_python_ver(python_requires, python_vers)
-    if matching_ver:
-        return "python%s" % matching_ver
+    matching = util.find_python_interpreter(python_requires)
+    if matching:
+        _path, ver = matching
+        return "python%s" % ver
     return None
 
 def _python_requires_for_pkg():
@@ -448,18 +448,6 @@ def _python_requires_for_reqs(reqs):
             if m:
                 return m.groups(1)
     return None
-
-def _find_python_ver(version_spec, python_vers):
-    # Requirement.parse wants a package name, so we use 'python' here,
-    # but anything would do.
-    python_spec = "python%s" % version_spec
-    try:
-        req = pkg_resources.Requirement.parse(python_spec)
-    except pkg_resources.RequirementParseError:
-        return None
-    else:
-        matching = list(req.specifier.filter(python_vers))
-        return matching[0] if matching else None
 
 def _initialized_msg(config):
     cli.out(

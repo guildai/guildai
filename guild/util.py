@@ -860,6 +860,21 @@ def python_interpreters():
             ret.append((path, m.group(1)))
     return ret
 
+def find_python_interpreter(version_spec):
+    import pkg_resources
+    try:
+        # Requirement.parse wants a package name, so we use 'python'
+        # here, but anything would do.
+        req = pkg_resources.Requirement.parse("python%s" % version_spec)
+    except pkg_resources.RequirementParseError:
+        raise ValueError(version_spec)
+    python_interps = {ver: path for path, ver in python_interpreters()}
+    matching = list(req.specifier.filter(sorted(python_interps)))
+    if matching:
+        matching_ver = matching[0]
+        return python_interps[matching_ver], matching_ver
+    return None
+
 def is_executable_file(path):
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
