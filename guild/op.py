@@ -127,7 +127,7 @@ class Operation(object):
             self._run.write_attr(name, val)
         self._run.write_attr("flags", self.flag_vals)
         self._run.write_attr("cmd", self.cmd_args)
-        if self.opdef.compare:
+        if self.opdef.compare is not None:
             self._run.write_attr("compare", self.opdef.compare)
         if self.opdef.steps:
             self._run.write_attr("steps", self.opdef.steps)

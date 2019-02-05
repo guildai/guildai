@@ -72,6 +72,7 @@
   operations:
     prepare:
       exec: bash -c "touch data && echo prepared data"
+      compare: []
     train:
       exec: bash -c "touch model && echo loss=${loss}"
       flags:
