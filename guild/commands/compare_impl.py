@@ -37,6 +37,7 @@ log = logging.getLogger("guild")
 
 BASE_COLS = ".run, .operation, .started, .time, .status, .label"
 MIN_COLS = ".run"
+DEFAULT_COMPARE = ["loss step as step", "loss"]
 
 NO_RUNS_CAPTION = "no runs"
 
@@ -204,7 +205,7 @@ def _run_op_compare(run):
     compare = _try_guildfile_compare(run)
     if compare is not None:
         return compare
-    return run.get("compare", [])
+    return run.get("compare", DEFAULT_COMPARE)
 
 def _try_guildfile_compare(run):
     """Returns the current compare for run op if available."""
