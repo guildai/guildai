@@ -521,6 +521,7 @@ class ModelDef(object):
         self.disable_plugins = _disable_plugins(data, guildfile)
         self.extra = data.get("extra") or {}
         self.source = _init_source(data.get("source") or [], self)
+        self.python_requires = data.get("python-requires")
 
     @property
     def guildfile_path(self):
@@ -776,6 +777,7 @@ class OpDef(object):
         self.exec_ = data.get("exec")
         self.main = data.get("main")
         self.steps = data.get("steps")
+        self.python_requires = data.get("python-requires")
         self.python_path = data.get("python-path")
         self.env = data.get("env") or {}
         self.disable_plugins = _disable_plugins(data, modeldef.guildfile)

@@ -518,6 +518,8 @@ def _init_op(opdef, args):
         )
     except guild.op.InvalidOpSpec as e:
         _invalid_op_spec_error(e, opdef)
+    except guild.op.OpInitError as e:
+        _op_init_error(e, opdef)
     else:
         _apply_batch_op(opdef.batch_opspec, batch_files, flag_vals, args, op)
         if not op.batch_op and not args.force_flags:
@@ -712,7 +714,10 @@ def _op_gpus(args):
     return None # use all available (default)
 
 def _invalid_op_spec_error(e, opdef):
-    cli.error("operation '%s' is not valid: %s" % (opdef.fullname, e))
+    cli.error("operation %s is not valid: %s" % (opdef.fullname, e))
+
+def _op_init_error(e, opdef):
+    cli.error("cannot start %s: %s" % (opdef.fullname, e))
 
 ###################################################################
 # Apply batch op

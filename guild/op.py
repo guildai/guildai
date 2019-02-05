@@ -52,6 +52,9 @@ STEPS_EXEC = "${python_exe} -um guild.steps_main"
 class InvalidOpSpec(ValueError):
     pass
 
+class OpInitError(Exception):
+    pass
+
 class ProcessError(Exception):
     pass
 
@@ -393,10 +396,16 @@ def _extended_flag_vals(flag_vals, opdef):
     })
     return extended
 
-def _python_exe(_opdef):
-    # TODO: This is an important operation that should be controlled
-    # by the model (e.g. does it run under Python 2 or 3, etc.) and
-    # not by whatever Python runtime is configured in the user env.
+def _python_exe(opdef):
+    req = opdef.python_requires or opdef.modeldef.python_requires
+    if req:
+        matching = util.find_python_interpreter(req)
+        if not matching:
+            raise OpInitError(
+                "cannot find a python interpreter for "
+                "version requirement %r" % req)
+        path, _ver = matching
+        return path
     return sys.executable
 
 def _repl_args(args, key, replacement):
