@@ -31,7 +31,6 @@ The files generated for our run:
     >>> for file in first_run_files:
     ...    print(file) # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
-    .guild/attrs/compare
     .guild/attrs/deps
     .guild/attrs/env
     .guild/attrs/exit_status
@@ -57,16 +56,6 @@ files.
     - say
     - --msg
     - hi
-
-    >>> project.cat(first_run, ".guild/attrs/compare")
-    - loss step as step
-    - loss
-    - acc
-    - accuracy as acc
-    - val_loss
-    - val#loss as val_loss
-    - val_acc
-    - val#acc as val_acc
 
     >>> project.cat(first_run, ".guild/attrs/deps")
     {}
@@ -116,7 +105,6 @@ The latest run is the trial:
     ...     print(file) # doctest: +REPORT_UDIFF
     .guild/attrs/batch
     .guild/attrs/cmd
-    .guild/attrs/compare
     .guild/attrs/deps
     .guild/attrs/env
     .guild/attrs/exit_status
@@ -164,7 +152,6 @@ Its files:
     .guild/output.index
     .guild/proto/.guild/PENDING
     .guild/proto/.guild/attrs/cmd
-    .guild/proto/.guild/attrs/compare
     .guild/proto/.guild/attrs/flags
     .guild/proto/.guild/attrs/opdef
     .guild/proto/.guild/attrs/optimizer
