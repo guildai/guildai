@@ -26,32 +26,11 @@ from guild import plugin as pluginlib
 
 log = logging.getLogger("guild")
 
-GENERIC_COMPARE = [
-    # step
-    "loss step as step",
-
-    # loss
-    "loss",
-
-    # accuracy
-    "acc",
-    "accuracy as acc",
-
-    # val loss
-    "val_loss",
-    "val#loss as val_loss",
-
-    # val acc
-    "val_acc",
-    "val#acc as val_acc",
-]
+GENERIC_COMPARE = None
 
 GENERIC_OUTPUT_SCALARS = {
     "step": r"step:\s*(\S+)",
     "loss": r"loss:\s*(\S+)",
-    "acc": r"acc:\s*(\S+)",
-    "val_loss": r"val_loss:\s*(\S+)",
-    "val_acc": r"val_acc:\s*(\S+)",
 }
 
 class NotSupported(Exception):
