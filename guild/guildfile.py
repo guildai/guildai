@@ -540,11 +540,14 @@ class ModelDef(object):
 
     @property
     def default_operation(self):
-        if len(self.operations) == 1:
-            return self.operations[0]
+        public_ops = []
         for op in self.operations:
             if op.default:
                 return op
+            if op.name[:1] != "_":
+                public_ops.append(op)
+        if public_ops == 1:
+            return self.operations[0]
         return None
 
     def get_resource(self, name):
