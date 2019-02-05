@@ -124,7 +124,7 @@ class ScalarReader(object):
     @staticmethod
     def _scalar_prefix(scalars_path, root):
         rel_path = os.path.relpath(scalars_path, root)
-        if rel_path == ".":
+        if rel_path in (".", ".guild"):
             return ""
         return rel_path.replace(os.sep, "/")
 
