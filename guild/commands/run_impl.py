@@ -502,11 +502,11 @@ def _dispatch_op_cmd(opdef, args):
 # Init op
 ###################################################################
 
-def _init_op(opdef, args):
+def _init_op(opdef, args, is_batch=False):
     (flag_vals,
      resource_config,
      batch_files) = _split_flag_args(args.flags, opdef)
-    _apply_opdef_args(flag_vals, batch_files, args, opdef)
+    _apply_opdef_args(flag_vals, batch_files, args, opdef, is_batch)
     try:
         op = guild.op.Operation(
             opdef,
@@ -576,15 +576,36 @@ def _is_resource(name, opdef, ref_vars):
 # Update opdef with flag vals and applicable args
 ###################################################################
 
-def _apply_opdef_args(flag_vals, batch_files, args, opdef):
+def _apply_opdef_args(flag_vals, batch_files, args, opdef, is_batch):
+    _apply_implicit_optimizer(flag_vals, args)
     _apply_flag_vals(flag_vals, opdef, args)
     _apply_arg_disable_plugins(args, opdef)
     _apply_arg_objective(args, opdef)
     _apply_arg_set_trace(args, opdef)
-    _apply_batch_opspec(flag_vals, batch_files, args, opdef)
+    if not is_batch:
+        opdef.batch_opspec = _batch_opspec(flag_vals, batch_files, args)
+    else:
+        opdef.batch_opspec = None
+
+def _apply_implicit_optimizer(flag_vals, args):
+    if args.optimizer:
+        return
+    for val in flag_vals.values():
+        if _is_function(val):
+            args.optimizer = "random"
+            break
+
+def _is_function(val):
+    if not isinstance(val, six.string_types):
+        return False
+    try:
+        op_util.parse_function(val)
+    except ValueError:
+        return False
+    else:
+        return True
 
 def _apply_flag_vals(vals, opdef, args):
-    _seed_random_for_flag_functions(args)
     for name, val in vals.items():
         flagdef = opdef.get_flagdef(name)
         if not args.force_flags and not flagdef:
@@ -594,38 +615,8 @@ def _apply_flag_vals(vals, opdef, args):
                 "flags or use --force-flags to skip this check."
                 % (name, opdef.fullname))
         if not args.optimizer:
-            val = _apply_flag_function(val)
             val = _coerce_flag_val(val, flagdef)
         opdef.set_flag_value(name, val)
-
-def _seed_random_for_flag_functions(args):
-    random.seed(args.random_seed)
-
-def _apply_flag_function(val):
-    if not isinstance(val, six.string_types):
-        return val
-    try:
-        func_name, func_args = op_util.parse_function(val)
-    except ValueError:
-        return val
-    else:
-        return _call_function(func_name, func_args)
-
-def _call_function(name, func_args):
-    if name in (None, "uniform"):
-        return _uniform(func_args)
-    else:
-        cli.error("unsupported function '%s'" % name)
-
-def _uniform(func_args):
-    if len(func_args) == 0:
-        a, b = 0, 1
-        b = 1
-    elif len(func_args) == 1:
-        a, b = 0, func_args[0]
-    else:
-        a, b = func_args[:2]
-    return random.uniform(a, b)
 
 def _coerce_flag_val(val, flagdef):
     try:
@@ -634,7 +625,6 @@ def _coerce_flag_val(val, flagdef):
         cli.error(
             "cannot apply %r to flag '%s': %s"
             % (val, flagdef.name, e))
-
 
 def _apply_arg_disable_plugins(args, opdef):
     if args.disable_plugins:
@@ -653,15 +643,13 @@ def _apply_arg_objective(args, opdef):
 def _apply_arg_set_trace(args, opdef):
     opdef.set_trace = args.set_trace
 
-def _apply_batch_opspec(flag_vals, batch_files, args, opdef):
-    opdef.batch_opspec = _batch_opspec(flag_vals, batch_files, args)
-
 def _batch_opspec(flag_vals, batch_files, args):
     if args.optimizer:
         return args.optimizer
-    if batch_files or _has_batch_flag_vals(flag_vals):
+    elif batch_files or _has_batch_flag_vals(flag_vals):
         return "+"
-    return None
+    else:
+        return None
 
 def _has_batch_flag_vals(flag_vals):
     for val in flag_vals.values():
@@ -773,7 +761,7 @@ def _batch_op_init_args(opdef, args):
     return args
 
 def _init_batch_op(opdef, args, batch_files):
-    op = _init_op(opdef, args)
+    op = _init_op(opdef, args, is_batch=True)
     op.batch_files = batch_files
     if args.init_trials:
         op.cmd_env.update({"INIT_TRIALS_ONLY": "1"})
