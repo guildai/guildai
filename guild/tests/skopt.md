@@ -153,7 +153,7 @@ specify.
 And the run:
 
     >>> project.run("echo", flags={"x": "[-2.0:2.0:0.0]", "z": "a"},
-    ...             optimizer="bayesian",
+    ...             optimizer="gp",
     ...             minimize="loss",
     ...             random_seed=1,
     ...             max_trials=4)
@@ -180,7 +180,7 @@ While we generally don't want to maximize loss, let's run the same
 operation with maximize:
 
     >>> project.run("echo", flags={"x": "[-2.0:2.0:0.0]", "z": "a"},
-    ...             optimizer="bayesian",
+    ...             optimizer="gp",
     ...             maximize="loss",
     ...             random_seed=1,
     ...             max_trials=4)

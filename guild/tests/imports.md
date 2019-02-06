@@ -151,13 +151,10 @@
     guild.pip_util
     guild.plugin
     guild.plugins.__init__
-    guild.plugins.bayesian_main
     guild.plugins.cpu
     guild.plugins.disk
     guild.plugins.exec_script
     guild.plugins.flags
-    guild.plugins.forest_main
-    guild.plugins.gbrt_main
     guild.plugins.gpu
     guild.plugins.import_argparse_flags_main
     guild.plugins.keras
@@ -167,6 +164,9 @@
     guild.plugins.python_script
     guild.plugins.random_main
     guild.plugins.skopt
+    guild.plugins.skopt_forest_main
+    guild.plugins.skopt_gbrt_main
+    guild.plugins.skopt_gp_main
     guild.plugins.skopt_util
     guild.plugins.tensorflow_util
     guild.plugins.training_pkg_main

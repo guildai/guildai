@@ -35,13 +35,13 @@ class RandomOptimizerModelProxy(model_proxy.BatchModelProxy):
     flag_encoder = "guild.plugins.skopt:encode_flag_for_random"
 
 ###################################################################
-# Bayesian optimizer
+# Bayesian with gaussian process optimizer
 ###################################################################
 
-class BayesianOptimizerModelProxy(model_proxy.BatchModelProxy):
+class GPOptimizerModelProxy(model_proxy.BatchModelProxy):
 
     name = "skopt"
-    op_name = "bayesian"
+    op_name = "gp"
     op_description = yaml.safe_load(""">
 
   Bayesian optimizer using Gaussian processes.
@@ -50,7 +50,7 @@ class BayesianOptimizerModelProxy(model_proxy.BatchModelProxy):
   details on this algorithm and its flags.
   """)
 
-    module_name = "guild.plugins.bayesian_main"
+    module_name = "guild.plugins.skopt_gp_main"
     flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
 
     flags_data = yaml.safe_load("""
@@ -103,12 +103,11 @@ class ForestOptimizerModelProxy(model_proxy.BatchModelProxy):
     op_description = yaml.safe_load(""">
 
   Sequential optimization using decision trees.
-
   Refer to https://scikit-optimize.github.io/#skopt.forest_minimize
   for details on this algorithm and its flags.
   """)
 
-    module_name = "guild.plugins.forest_main"
+    module_name = "guild.plugins.skopt_forest_main"
     flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
 
     flags_data = yaml.safe_load("""
@@ -143,7 +142,7 @@ class GBRTOptimizerModelProxy(model_proxy.BatchModelProxy):
   for details on this algorithm and its flags.
   """)
 
-    module_name = "guild.plugins.gbrt_main"
+    module_name = "guild.plugins.skopt_gbrt_main"
     flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
 
     flags_data = yaml.safe_load("""
@@ -209,8 +208,8 @@ class SkoptPlugin(pluginlib.Plugin):
         if opspec in ("random", "skopt:random"):
             model = RandomOptimizerModelProxy()
             return model, model.op_name
-        elif opspec in ("bayesian", "skopt:bayesian"):
-            model = BayesianOptimizerModelProxy()
+        elif opspec in ("gp", "skopt:gp"):
+            model = GPOptimizerModelProxy()
             return model, model.op_name
         elif opspec in ("forest", "skopt:forest"):
             model = ForestOptimizerModelProxy()
