@@ -27,7 +27,7 @@ F1 or ?                  Show this help
 s                        Sort by current column (ascending)
 S                        Sort by current column (descending)
 1                        Sort numerically by current column (ascending)
-!                        Sort numerically by current column (descending)
+! or 2                   Sort numerically by current column (descending)
 a                        Reset sort order
 A                        Reset sort order (reversed)
 r                        Reload file/data (resets sort order)
@@ -110,6 +110,7 @@ class Viewer(ViewerBase):
         del self.keys[tabview.KEY_CTRL('g')]
         self.keys["1"] = self.sort_by_column_numeric
         self.keys["!"] = self.sort_by_column_numeric_reverse
+        self.keys["2"] = self.sort_by_column_numeric_reverse
         self.keys["`"] = self.show_logs
         self.keys.update({
             key: self._action_handler(action_cb)
