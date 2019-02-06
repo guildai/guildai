@@ -80,7 +80,13 @@ def try_read(path, default=None, apply=None):
         return out
 
 def pid_exists(pid):
-    import psutil
+    try:
+        import psutil
+    except Exception as e:
+        log.warning("cannot get stat for pid %s: %s", pid, e)
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("importing psutil")
+        return False
     return psutil.pid_exists(pid)
 
 def free_port():
