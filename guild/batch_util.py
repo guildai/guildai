@@ -152,20 +152,24 @@ class Trial(object):
             sys.exit(exit_code.SIGTERM)
 
 ###################################################################
-# Iter trial
+# Seq trial
 ###################################################################
 
-class IterTrial(Trial):
-    """Variant of Trial that initializes flags lazily."""
+class SeqTrial(Trial):
+    """Variant of Trial used in sequential optimization.
+
+    When optimizing in a sequence to take advantage of previous
+    results to make better suggestions.
+    """
 
     def __init__(self, init_trial_cb, batch, **kw):
-        assert hasattr(batch, "_iter_trials_state")
-        self.state = batch._iter_trials_state
+        assert hasattr(batch, "_seq_trials_state")
+        self.state = batch._seq_trials_state
         self.init_trial_cb = init_trial_cb
-        super(IterTrial, self).__init__(batch, **kw)
+        super(SeqTrial, self).__init__(batch, **kw)
 
     def init(self, *args, **kw):
-        """Initialize an iter trial.
+        """Initialize a sequential trial.
 
         We use `self.init_trial_cb` to perform additional trial
         initialization after the default init process.
@@ -176,7 +180,7 @@ class IterTrial(Trial):
              self.attrs) = result
         except ValueError:
             self.flags = result
-        super(IterTrial, self).init(*args, **kw)
+        super(SeqTrial, self).init(*args, **kw)
 
 ###################################################################
 # Batch
@@ -256,7 +260,7 @@ class Batch(object):
     def run_trials(self, trials, init_only=False):
         trial_runs = [
             (run.id, run.get("flags"))
-            for run in self.iter_trial_runs()
+            for run in self.seq_trial_runs()
         ]
         for trial in trials:
             self._apply_existing_run_id(trial, trial_runs)
@@ -291,7 +295,7 @@ class Batch(object):
         """
         time.sleep(0.01)
 
-    def iter_trial_runs(self, status=None):
+    def seq_trial_runs(self, status=None):
         if isinstance(status, six.string_types):
             status = [status]
         batch_run_id = self.batch_run.id
@@ -351,24 +355,24 @@ def _print_trial_cmd(trial):
         trial.run(print_cmd=True, quiet=True)
 
 ###################################################################
-# Iter trials main
+# Seq trials main
 ###################################################################
 
-def iter_trials_main(init_state_cb, init_trial_cb,
+def seq_trials_main(init_state_cb, init_trial_cb,
                      default_max_trials=DEFAULT_MAX_TRIALS):
     default_main(
-        _gen_iter_trials_cb(init_state_cb, default_max_trials),
-        _new_iter_trial_cb(init_trial_cb),
+        _gen_seq_trials_cb(init_state_cb, default_max_trials),
+        _new_seq_trial_cb(init_trial_cb),
         default_max_trials)
 
-def _gen_iter_trials_cb(init_state_cb, default_max_trials):
+def _gen_seq_trials_cb(init_state_cb, default_max_trials):
     def f(_flags, batch):
-        batch._iter_trials_state = init_state_cb(batch)
+        batch._seq_trials_state = init_state_cb(batch)
         num_trials = batch.max_trials or default_max_trials
         return [None] * num_trials
     return f
 
-def _new_iter_trial_cb(init_trial_cb):
+def _new_seq_trial_cb(init_trial_cb):
     def f(batch, **kw):
-        return IterTrial(init_trial_cb, batch, **kw)
+        return SeqTrial(init_trial_cb, batch, **kw)
     return f

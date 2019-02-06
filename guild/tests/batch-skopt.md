@@ -2,7 +2,7 @@
 
 These tests run each of the skopt based optimizers:
 
-    - bayesian
+    - gp
     - forest
     - gbrt
 
@@ -21,11 +21,11 @@ A helper to run an optimizer batch:
     ...        max_trials=trials,
     ...        simplify_trial_output=True)
 
-## Bayesian
+## Bayesian with gaussian process
 
 Range without an initial value:
 
-    >>> run("bayesian", "[-2.0:2.0]", 3)
+    >>> run("gp", "[-2.0:2.0]", 3)
     Initialized trial ...
     Running trial: noisy.py ...
     x: ...
@@ -41,7 +41,7 @@ Range without an initial value:
 
 Range with an initial value and opt flags:
 
-    >>> run("bayesian", "[-2.0:2.0:0.1]", 2, {"kappa": 1.5, "xi": 0.2})
+    >>> run("gp", "[-2.0:2.0:0.1]", 2, {"kappa": 1.5, "xi": 0.2})
     Initialized trial (x=0.1)
     Running trial: noisy.py (x=0.1)
     x: 0.100000
@@ -54,13 +54,13 @@ Range with an initial value and opt flags:
 Our trials:
 
     >>> project.print_runs(flags=True, status=True)
-    noisy.py           x=...                                                                completed
-    noisy.py           x=0.1                                                                completed
-    noisy.py+bayesian  acq-func=gp_hedge kappa=1.5 noise=gaussian random-starts=0 xi=0.2    completed
-    noisy.py           x=...                                                                completed
-    noisy.py           x=...                                                                completed
-    noisy.py           x=...                                                                completed
-    noisy.py+bayesian  acq-func=gp_hedge kappa=1.96 noise=gaussian random-starts=0 xi=0.01  completed
+    noisy.py     x=...                                                                completed
+    noisy.py     x=0.1                                                                completed
+    noisy.py+gp  acq-func=gp_hedge kappa=1.5 noise=gaussian random-starts=0 xi=0.2    completed
+    noisy.py     x=...                                                                completed
+    noisy.py     x=...                                                                completed
+    noisy.py     x=...                                                                completed
+    noisy.py+gp  acq-func=gp_hedge kappa=1.96 noise=gaussian random-starts=0 xi=0.01  completed
 
 Cleanup for next tests:
 

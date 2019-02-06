@@ -27,11 +27,11 @@ And using the `random` optimizer:
 Note we can't assert the values for `x` because they're randomly
 generated.
 
-And with `bayesian` optimizer:
+And with `gp` optimizer:
 
-    >>> project.run("echo.py", flags={"x": [1,2,3]}, optimizer="bayesian",
+    >>> project.run("echo.py", flags={"x": [1,2,3]}, optimizer="gp",
     ...             max_trials=3, print_cmd=True)
-    /... -um guild.plugins.bayesian_main
+    /... -um guild.plugins.skopt_gp_main
     /... -um guild.op_main echo --x ... --y 2 --z a
     /... -um guild.op_main echo --x ... --y 2 --z a
     /... -um guild.op_main echo --x ... --y 2 --z a

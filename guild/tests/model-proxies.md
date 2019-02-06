@@ -58,8 +58,14 @@ And a helper function to resolve op specs:
 
 ## Bayesian optimizer
 
-    >>> resolve("bayesian")
-    (<guild.plugins.skopt.BayesianOptimizerModelProxy ...>, 'bayesian')
+    >>> resolve("gp")
+    (<guild.plugins.skopt.GPOptimizerModelProxy ...>, 'gp')
 
-    >>> resolve("skopt:bayesian")
-    (<guild.plugins.skopt.BayesianOptimizerModelProxy ...>, 'bayesian')
+    >>> resolve("skopt:gp")
+    (<guild.plugins.skopt.GPOptimizerModelProxy ...>, 'gp')
+
+## Not supported
+
+    >>> resolve("never heard of")
+    Traceback (most recent call last):
+    NotSupported

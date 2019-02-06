@@ -153,7 +153,7 @@ class State(object):
     def _previous_trial_run_candidates(self, cur_trial_run_id):
         return [
             run
-            for run in self.batch.iter_trial_runs(status="completed")
+            for run in self.batch.seq_trial_runs(status="completed")
             if run.id != cur_trial_run_id
         ]
 
@@ -228,26 +228,26 @@ def _patch_numpy_deprecation_warnings():
     warnings.filterwarnings("ignore", category=Warning)
     import numpy.core.umath_tests
 
-def default_main(iter_trial_cb, non_repeating=True):
+def default_main(seq_trial_cb, non_repeating=True):
     _patch_numpy_deprecation_warnings()
     if non_repeating:
-        iter_trial_cb = NonRepeatingTrials(iter_trial_cb)
-    batch_util.iter_trials_main(State, iter_trial_cb)
+        seq_trial_cb = NonRepeatingTrials(seq_trial_cb)
+    batch_util.seq_trials_main(State, seq_trial_cb)
 
 class NonRepeatingTrials(object):
-    """Wrapper to ensure that iter trial callbacks don't repeat trials.
+    """Wrapper to ensure that seq trial callbacks don't repeat trials.
 
     If an skopt minimizer suggests a trial that we've already run,
     this wrapper uses dummy_minimize to generate a random trial within
     the state search space.
     """
 
-    def __init__(self, iter_trial_cb):
-        self.iter_trial_cb = iter_trial_cb
+    def __init__(self, seq_trial_cb):
+        self.seq_trial_cb = seq_trial_cb
 
     def __call__(self, trial, state):
-        next_trial_flags = self.iter_trial_cb(trial, state)
-        for run in trial.batch.iter_trial_runs():
+        next_trial_flags = self.seq_trial_cb(trial, state)
+        for run in trial.batch.seq_trial_runs():
             if next_trial_flags == run.get("flags"):
                 flag_desc = " ".join(op_util.flag_assigns(next_trial_flags))
                 log.warning(
