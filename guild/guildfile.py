@@ -92,9 +92,12 @@ class GuildfileIncludeError(GuildfileError):
 # Helpers
 ###################################################################
 
-def _required(name, data, guildfile):
+def _required(name, data, guildfile, pop=False):
     try:
-        return data[name]
+        if pop:
+            return data.pop(name)
+        else:
+            return data[name]
     except KeyError:
         raise GuildfileError(
             guildfile,
@@ -797,6 +800,7 @@ class OpDef(object):
         self.default_max_trials = data.get("default-max-trials")
         self.output_scalars = data.get("output-scalars")
         self.objective = data.get("objective")
+        self.optimizers = _init_optimizers(data, self)
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname
@@ -854,6 +858,21 @@ class OpDef(object):
 
     def update_dependencies(self, opdef):
         self.dependencies.extend(opdef.dependencies)
+
+    def get_optimizer(self, name):
+        for opt in self.optimizers:
+            if opt.name == name:
+                return opt
+        return None
+
+    @property
+    def default_optimizer(self):
+        if len(self.optimizers) == 1:
+            return self.optimizers[0]
+        for opt in self.optimizers:
+            if opt.default:
+                return opt
+        return None
 
 def _init_flags(data, opdef):
     data = _resolve_includes(data, "flags", opdef.modeldef.guildfile_path)
@@ -976,6 +995,64 @@ class NoSuchResourceError(ValueError):
             % (name, dep.opdef.modeldef.name))
         self.resource_name = name
         self.dependency = dep
+
+def _init_optimizers(data, opdef):
+    opts_data = _coerce_opts_data(data, opdef)
+    return [
+        OptimizerDef(name, opt_data, opdef)
+        for name, opt_data in sorted(opts_data.items())
+    ]
+
+def _coerce_opts_data(data, opdef):
+    if "optimizer" in data and "optimizers" in data:
+        raise GuildfileError(
+            opdef.modeldef.guildfile,
+            "conflicting optimizer configuration in operation '%s' "
+            "- cannot define both 'optimizer' and 'optimizers'"
+            % opdef.name)
+    opts_data = util.find_apply([
+        lambda: data.get("optimizers"),
+        lambda: _coerce_single_optimizer(data.get("optimizer"), opdef),
+        lambda: {}])
+    return {
+        name: _coerce_opt_data_item(opt_data)
+        for name, opt_data in opts_data.items()
+    }
+
+def _coerce_single_optimizer(data, opdef):
+    if data is None:
+        return None
+    coerced = _coerce_opt_data_item(data)
+    name = _required("algorithm", coerced, opdef.modeldef.guildfile)
+    return {
+        name: coerced
+    }
+
+def _coerce_opt_data_item(data):
+    if isinstance(data, six.string_types):
+        data = {
+            "algorithm": data
+        }
+    return data
+
+class OptimizerDef(object):
+
+    def __init__(self, name, data, opdef):
+        data = dict(data)
+        self.name = name
+        self.opdef = opdef
+        # Internally an optimizer algorithm is an opspec but we
+        # represent it to the user as an algorithm.
+        self.opspec = data.pop("algorithm", None) or name
+        self.default = data.pop("default", False)
+        self.flags = data
+
+    @classmethod
+    def from_name(cls, name, opdef):
+        return cls(name, {"algorithm": name}, opdef)
+
+    def __repr__(self):
+        return "<guild.guildfile.OptimizerDef '%s'>" % self.name
 
 ###################################################################
 # Source def

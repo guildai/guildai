@@ -33,6 +33,7 @@ from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
 from guild import deps
+from guild import guildfile
 from guild import model as modellib
 from guild import model_proxy
 from guild import op_util
@@ -45,6 +46,11 @@ from . import remote_impl_support
 from . import runs_impl
 
 log = logging.getLogger("guild")
+
+# Use Bayesian with gaussian process as default optimizer when opdef
+# does not contain any optimizers.
+#
+DEFAULT_OPTIMIZER = "gp"
 
 ###################################################################
 # Main
@@ -101,6 +107,10 @@ def _validate_args(args):
     if args.minimize and args.maximize:
         cli.error(
             "--minimize and --maximize cannot both be used\n"
+            "Try 'guild run --help' for more information.")
+    if args.optimize and args.optimizer:
+        cli.error(
+            "--optimize and --optimizer cannot both be used\n"
             "Try 'guild run --help' for more information.")
 
 ###################################################################
@@ -181,6 +191,9 @@ def _apply_run_params(run, args):
     """
     run_params = op_util.run_params_for_restart(run, args.as_kw())
     for name, val in run_params.items():
+        # args repeated params are tuples so restore as expected.
+        if isinstance(val, list):
+            val = tuple(val)
         setattr(args, name, val)
 
 def _apply_run_opspec(run, args):
@@ -577,7 +590,7 @@ def _is_resource(name, opdef, ref_vars):
 ###################################################################
 
 def _apply_opdef_args(flag_vals, batch_files, args, opdef, is_batch):
-    _apply_implicit_optimizer(flag_vals, args)
+    _apply_optimizer(flag_vals, opdef, args)
     _apply_flag_vals(flag_vals, opdef, args)
     _apply_arg_disable_plugins(args, opdef)
     _apply_arg_objective(args, opdef)
@@ -587,9 +600,41 @@ def _apply_opdef_args(flag_vals, batch_files, args, opdef, is_batch):
     else:
         opdef.batch_opspec = None
 
-def _apply_implicit_optimizer(flag_vals, args):
+def _apply_optimizer(flag_vals, opdef, args):
     if args.optimizer:
-        return
+        _apply_named_optimizer(args.optimizer, opdef, args)
+    elif args.optimize:
+        _apply_default_optimizer(opdef, args)
+    else:
+        _maybe_apply_random_optimizer(flag_vals, args)
+
+def _apply_named_optimizer(opt_name, opdef, args):
+    optdef = opdef.get_optimizer(opt_name)
+    if not optdef:
+        optdef = guildfile.OptimizerDef.from_name(opt_name, opdef)
+    _apply_optimizer_and_flags(optdef, args)
+
+def _apply_optimizer_and_flags(optdef, args):
+    args.optimizer = optdef.opspec
+    default_opt_flags = tuple([
+        op_util.format_flag_arg(name, val)
+        for name, val in sorted(optdef.flags.items())
+    ])
+    args.opt_flags = default_opt_flags + args.opt_flags
+
+def _apply_default_optimizer(opdef, args):
+    optdef = opdef.default_optimizer
+    if not optdef:
+        if opdef.optimizers:
+            optimizers_desc = ", ".join([opt.name for opt in opdef.optimizers])
+            cli.error(
+                "no default optimizer for %s\n"
+                "Try 'guild run %s --optimize NAME' where NAME is one of: %s"
+                % (opdef.name, opdef.fullname, optimizers_desc))
+        optdef = guildfile.OptimizerDef.from_name(DEFAULT_OPTIMIZER, opdef)
+    _apply_optimizer_and_flags(optdef, args)
+
+def _maybe_apply_random_optimizer(flag_vals, args):
     for val in flag_vals.values():
         if _is_function(val):
             args.optimizer = "random"
