@@ -59,10 +59,13 @@ def run_params(fn):
             ("--no-gpus",), is_flag=True,
             help="Disable GPUs for run. Cannot be used with --gpu."),
         click.Option(
-            ("-o", "--optimizer",), metavar="OPERATION",
+            ("-o", "--optimizer",), metavar="ALGORITHM",
             help=(
-                "Optimize the run using OPERATION. See Optimizing "
-                "Runs for more information.")),
+                "Optimize the run using the specified algorithm. See "
+                "Optimizing Runs for more information.")),
+        click.Option(
+            ("-O", "--optimize",), is_flag=True,
+            help="Optimize the run using the default optimizer."),
         click.Option(
             ("-N", "--minimize",), metavar="COLUMN",
             help=(
@@ -76,7 +79,8 @@ def run_params(fn):
                 "help for compare command for details specifying a column. "
                 "May not be used with --minimize.")),
         click.Option(
-            ("--opt-flag", "opt_flags"), metavar="FLAG=VAL", multiple=True,
+            ("-F", "--opt-flag", "opt_flags"),
+            metavar="FLAG=VAL", multiple=True,
             help="Flag for OPTIMIZER. May be used multiple times."),
         click.Option(
             ("-m", "--max-trials",), metavar="N", type=int,

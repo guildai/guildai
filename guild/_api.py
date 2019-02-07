@@ -85,6 +85,7 @@ def _popen_args(
         label=None,
         guild_home=None,
         extra_env=None,
+        optimize=False,
         optimizer=None,
         minimize=None,
         maximize=None,
@@ -118,6 +119,8 @@ def _popen_args(
     args.extend(["@%s" % path for path in (batch_files or [])])
     if run_dir:
         args.extend(["--run-dir", run_dir])
+    if optimize:
+        args.append("--optimize")
     if optimizer:
         args.extend(["--optimizer", optimizer])
     if minimize:

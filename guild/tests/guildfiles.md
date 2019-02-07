@@ -302,6 +302,207 @@ and values:
     >>> pprint(opdef_a.flag_values())
     {'x': 'x2', 'y': 'Y', 'z': 'Z'}
 
+### Optimizer defs
+
+Operations may define one or more optimizers. Optimizers may be
+specified for an operation in two ways:
+
+- As a string, which is the optimizer algorithm
+- As a dict containing the optimizer algorithm and flag vals
+
+An optimizer has a name, opspec, default status, and flags:
+
+    >>> def print_optimizer(opt):
+    ...     print("name:", opt.name)
+    ...     print("opspec:", opt.opspec)
+    ...     print("default:", opt.default)
+    ...     print("flags: ", end="")
+    ...     pprint(opt.flags)
+
+A single optimizer may be defined using the `optimizer` attribute.
+
+    >>> op = guildfile.from_string("""
+    ... test:
+    ...   optimizer: gp
+    ... """).default_model.default_operation
+
+    >>> op.optimizers
+    [<guild.guildfile.OptimizerDef 'gp'>]
+
+Optimizers can be read by name:
+
+    >>> op.get_optimizer("gp")
+    <guild.guildfile.OptimizerDef 'gp'>
+
+When specified as a string, the optimizer opspec is the same as the
+string and the optimizer has no flags:
+
+    >>> print_optimizer(op.get_optimizer("gp"))
+    name: gp
+    opspec: gp
+    default: False
+    flags: {}
+
+A single optimizer is always the default regardless of its default
+status:
+
+    >>> op.default_optimizer is op.get_optimizer("gp")
+    True
+
+A single optimizer may alternatively be specified as a dict, in which
+case it must contain an `algorithm` attribute:
+
+    >>> op = guildfile.from_string("""
+    ... test:
+    ...   optimizer:
+    ...     algorithm: gp
+    ... """).default_model.default_operation
+
+    >>> print_optimizer(op.default_optimizer)
+    name: gp
+    opspec: gp
+    default: False
+    flags: {}
+
+If it doesn't specify an algorithm, an error is generated:
+
+    >>> guildfile.from_string("""
+    ... test:
+    ...   optimizer: {}
+    ... """)
+    Traceback (most recent call last):
+    GuildfileError: error in <string>: missing required 'algorithm'
+    attribute in {}
+
+When specified as a dict, additional attributes - with the exception
+of `default` - are considered optimizer flags:
+
+    >>> op = guildfile.from_string("""
+    ... test:
+    ...   optimizer:
+    ...     algorithm: gp
+    ...     default: yes
+    ...     random-starts: 3
+    ...     kappa: 1.8
+    ...     noise: 0.1
+    ... """).default_model.default_operation
+
+    >>> print_optimizer(op.default_optimizer)
+    name: gp
+    opspec: gp
+    default: True
+    flags: {'kappa': 1.8, 'noise': 0.1, 'random-starts': 3}
+
+Multiple optimizers may be defined using the `optimizers` attribute.
+
+    >>> op = guildfile.from_string("""
+    ... test:
+    ...   optimizers:
+    ...     gp-1:
+    ...       algorithm: gp
+    ...       kappa: 1.6
+    ...     gp-2:
+    ...       algorithm: gp
+    ...       kappa: 1.8
+    ... """).default_model.default_operation
+
+    >>> op.optimizers
+    [<guild.guildfile.OptimizerDef 'gp-1'>,
+     <guild.guildfile.OptimizerDef 'gp-2'>]
+
+    >>> print_optimizer(op.get_optimizer("gp-1"))
+    name: gp-1
+    opspec: gp
+    default: False
+    flags: {'kappa': 1.6}
+
+    >>> print_optimizer(op.get_optimizer("gp-2"))
+    name: gp-2
+    opspec: gp
+    default: False
+    flags: {'kappa': 1.8}
+
+When multiple optimizers are specified and none have a default
+designation, there is no default optimizer:
+
+    >>> print(op.default_optimizer)
+    None
+
+When multiple optimizers are specified, the algorithm may be omitted
+when specifying dict values, in which case the dict name is used as
+the algorithm:
+
+    >>> op = guildfile.from_string("""
+    ... test:
+    ...   optimizers:
+    ...     gp:
+    ...       kappa: 1.6
+    ...       noise: 0.1
+    ...     forest:
+    ...       default: yes
+    ...       kappa: 1.8
+    ... """).default_model.default_operation
+
+    >>> op.optimizers
+    [<guild.guildfile.OptimizerDef 'forest'>,
+     <guild.guildfile.OptimizerDef 'gp'>]
+
+    >>> print_optimizer(op.get_optimizer("forest"))
+    name: forest
+    opspec: forest
+    default: True
+    flags: {'kappa': 1.8}
+
+    >>> print_optimizer(op.get_optimizer("gp"))
+    name: gp
+    opspec: gp
+    default: False
+    flags: {'kappa': 1.6, 'noise': 0.1}
+
+Note also in this example that we have a default optimizer:
+
+    >>> op.default_optimizer
+    <guild.guildfile.OptimizerDef 'forest'>
+
+When specifying multiple optimizers, string values are coerced in the
+same way they with a single optimizer. This is effectively a way of
+renaming optimizer algorithms:
+
+    >>> op = guildfile.from_string("""
+    ... test:
+    ...   optimizers:
+    ...     bayesian: skopt:gp
+    ...     experimental: tune
+    ... """).default_model.default_operation
+
+    >>> op.optimizers
+    [<guild.guildfile.OptimizerDef 'bayesian'>,
+     <guild.guildfile.OptimizerDef 'experimental'>]
+
+    >>> print_optimizer(op.get_optimizer("bayesian"))
+    name: bayesian
+    opspec: skopt:gp
+    default: False
+    flags: {}
+
+    >>> print_optimizer(op.get_optimizer("experimental"))
+    name: experimental
+    opspec: tune
+    default: False
+    flags: {}
+
+An operation may not contain both `optimizer` and `optimizers`.
+
+    >>> guildfile.from_string("""
+    ... test:
+    ...   optimizer: gp
+    ...   optimizers:
+    ...     gp-2: gp
+    ... """)
+    Traceback (most recent call last):
+    GuildfileError: error in <string>: conflicting optimizer configuration
+    in operation 'test' - cannot define both 'optimizer' and 'optimizers'
+
 ### Representing operation defs as data
 
 An operation def can be represented as data by calling `as_data()`.
