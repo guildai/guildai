@@ -55,11 +55,11 @@ class GPOptimizerModelProxy(model_proxy.BatchModelProxy):
 
     flags_data = yaml.safe_load("""
 random-starts:
-  description: Number of trials using random values before optimizing.
+  description: Number of trials using random values before optimizing
   default: 0
   type: int
 acq-func:
-  description: Function to minimize over the gaussian prior.
+  description: Function to minimize over the gaussian prior
   default: gp_hedge
   choices:
     - value: LCB
@@ -112,7 +112,7 @@ class ForestOptimizerModelProxy(model_proxy.BatchModelProxy):
 
     flags_data = yaml.safe_load("""
 random-starts:
-  description: Number of trials using random values before optimizing.
+  description: Number of trials using random values before optimizing
   default: 0
   type: int
 kappa:
@@ -147,7 +147,7 @@ class GBRTOptimizerModelProxy(model_proxy.BatchModelProxy):
 
     flags_data = yaml.safe_load("""
 random-starts:
-  description: Number of trials using random values before optimizing.
+  description: Number of trials using random values before optimizing
   default: 0
   type: int
 kappa:
