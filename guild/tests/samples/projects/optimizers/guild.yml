@@ -59,7 +59,6 @@ poly:
   flags:
     $dest: globals
     x:
-      default: 0
       min: -6.0
       max: 5.0
   output-scalars:
