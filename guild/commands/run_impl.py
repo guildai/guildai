@@ -37,6 +37,7 @@ from guild import guildfile
 from guild import model as modellib
 from guild import model_proxy
 from guild import op_util
+from guild import opref as opreflib
 from guild import resolver
 from guild import run as runlib
 from guild import util
@@ -139,17 +140,29 @@ def _run_desc_for_restart(run):
         return run.id
     return "run in %s" % run.path
 
-def _find_run(run_id_prefix_or_path, args):
+def _find_run(run_spec, args):
     if args.remote:
-        return remote_impl_support.one_run(run_id_prefix_or_path, args)
+        return remote_impl_support.one_run(run_spec, args)
     else:
-        if os.path.isdir(run_id_prefix_or_path):
-            return _run_from_dir(run_id_prefix_or_path)
-        return one_run(run_id_prefix_or_path)
+        return util.find_apply([
+            _run_from_dir,
+            _marked_or_latest_run_from_spec,
+            one_run,
+        ], run_spec)
 
 def _run_from_dir(run_dir):
+    if not os.path.isdir(run_dir):
+        return None
     run_id = os.path.basename(run_dir)
     return runlib.Run(run_id, run_dir)
+
+def _marked_or_latest_run_from_spec(spec):
+    try:
+        opref = opreflib.OpRef.from_string(spec)
+    except opreflib.OpRefError:
+        return None
+    else:
+        return resolver.marked_or_latest_run([opref])
 
 def one_run(run_id_prefix):
     runs = [
