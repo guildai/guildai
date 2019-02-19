@@ -208,7 +208,7 @@ class SkoptPlugin(pluginlib.Plugin):
         if opspec in ("random", "skopt:random"):
             model = RandomOptimizerModelProxy()
             return model, model.op_name
-        elif opspec in ("gp", "skopt:gp"):
+        elif opspec in ("gp", "skopt:gp", "bayesian", "gaussian"):
             model = GPOptimizerModelProxy()
             return model, model.op_name
         elif opspec in ("forest", "skopt:forest"):
