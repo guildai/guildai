@@ -37,7 +37,11 @@ log = logging.getLogger("guild")
 
 BASE_COLS = ".run, .operation, .started, .time, .status, .label"
 MIN_COLS = ".run"
-DEFAULT_COMPARE = ["loss step as step", "loss"]
+DEFAULT_COMPARE = [
+    "loss step as step",
+    "loss",
+    "acc",
+]
 
 NO_RUNS_CAPTION = "no runs"
 
