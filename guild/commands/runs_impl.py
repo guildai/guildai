@@ -85,6 +85,8 @@ FILTERABLE = [
     "terminated",
 ]
 
+MAX_LABEL_LEN = 40
+
 def runs_for_args(args, ctx=None, force_deleted=False):
     filtered = filtered_runs(args, force_deleted)
     return select_runs(filtered, args.runs, ctx)
@@ -317,7 +319,7 @@ def format_run(run, index=None):
         "status": status,
         "status_with_remote": _status_with_remote(status, run.remote),
         "marked": _format_val(marked),
-        "label": run.get("label") or "",
+        "label": _format_label(run.get("label") or ""),
         "pid": run.pid or "",
         "started": util.format_timestamp(run.get("started")),
         "stopped": util.format_timestamp(run.get("stopped")),
@@ -343,12 +345,10 @@ def _status_with_remote(status, remote):
     else:
         return status
 
-def _format_label(run):
-    parts = []
-    label = run.get("label")
-    if label:
-        parts.append(label)
-    return " ".join(parts)
+def _format_label(label):
+    if len(label) > MAX_LABEL_LEN:
+        label = label[:MAX_LABEL_LEN] + u"\u2026"
+    return label
 
 def _format_command(cmd):
     if not cmd:
