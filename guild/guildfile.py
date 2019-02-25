@@ -1198,11 +1198,17 @@ def _load_guildfile(src, extends_seen):
         raise GuildfileError(src, str(e))
     else:
         _notify_plugins_guildfile_data(data, src)
-        return Guildfile(data, src, extends_seen=extends_seen)
+        gf = Guildfile(data, src, extends_seen=extends_seen)
+        _notify_plugins_guildfile_loaded(gf)
+        return gf
 
 def _notify_plugins_guildfile_data(data, src):
     for _name, plugin in pluginlib.iter_plugins():
         plugin.guildfile_data(data, src)
+
+def _notify_plugins_guildfile_loaded(gf):
+    for _name, plugin in pluginlib.iter_plugins():
+        plugin.guildfile_loaded(gf)
 
 def from_file_or_dir(src, no_cache=False):
     try:

@@ -73,6 +73,14 @@ class PythonScriptModelProxy(object):
 
 class PythonScriptPlugin(pluginlib.Plugin):
 
+    def guildfile_loaded(self, gf):
+        for m in gf.models.values():
+            for op in m.operations:
+                if op.main or op.exec_ or op.steps:
+                    continue
+                if op.name.endswith(".py"):
+                    op.main = op.name[:-3]
+
     @staticmethod
     def resolve_model_op(opspec):
         path = os.path.join(config.cwd(), opspec)

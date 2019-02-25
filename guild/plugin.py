@@ -40,6 +40,17 @@ class Plugin(object):
         """Called before data is used to initialize a Guildfile.
 
         Plugins may use this callback to mutate data before it's used.
+        To modify a Guild file after it's been loaded, use
+        `guildfile_loaded`.
+        """
+        pass
+
+    def guildfile_loaded(self, _gf):
+        """Called immediately after a Guild file is loaded.
+
+        Plugins may use this callback to modify a Guild file after
+        it's been loaded. To modify the data before it's used to load
+        the Guild file, use `guildfile_data`.
         """
         pass
 
