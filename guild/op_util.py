@@ -621,10 +621,11 @@ def _trials_table_data(trials):
     for i, flags in enumerate(trials):
         row = {"_trial": i + 1}
         data.append(row)
-        row.update(
-            {name: format_flag_val(flags[name])
-             for name in flags})
-        names.update(flags)
+        if flags:
+            row.update(
+                {name: format_flag_val(flags[name])
+                 for name in flags})
+            names.update(flags)
     heading = {name: name for name in names}
     heading["_trial"] = "#"
     return [heading] + data, ["_trial"] + sorted(names)
