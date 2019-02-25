@@ -860,7 +860,7 @@ def _named_function(s):
     if not parts_m:
         return None
     name, args_s = parts_m.groups()
-    args = parse_arg_val("[%s]" % args_s)
+    args = [parse_arg_val(s) for s in args_s.split(",")]
     return name, tuple(args)
 
 def _not_a_function_error(_s):
