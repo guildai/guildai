@@ -204,6 +204,10 @@ def _apply_run_params(run, args):
     """
     run_params = op_util.run_params_for_restart(run, args.as_kw())
     for name, val in run_params.items():
+        # Special handling for mutually exclusive args
+        if ((name == "no_gpus" and args.gpus) or
+            (name == "gpus" and args.no_gpus)):
+            continue
         # args repeated params are tuples so restore as expected.
         if isinstance(val, list):
             val = tuple(val)
