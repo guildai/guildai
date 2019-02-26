@@ -66,6 +66,9 @@ Arguments may be of any type, in both slice and named forms.
     >>> pf("myfun(this has spaces, no, [1, 2, null])")
     ('myfun', ('this has spaces', False, [1, 2, None]))
 
+    >>> pf("myfun(1e-1, 1.1e-1, [1e-2, 1.1e-2])")
+    ('myfun', (0.1, 0.11, [0.01, 0.011]))
+
 ## Using flag functions in runs
 
 See [Batch runs - implied random optimizer](batch-implied-random.md).

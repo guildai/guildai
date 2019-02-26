@@ -860,7 +860,7 @@ def _named_function(s):
     if not parts_m:
         return None
     name, args_s = parts_m.groups()
-    args = [parse_arg_val(s) for s in args_s.split(",")]
+    args = parse_arg_val("[%s]" % args_s)
     return name, tuple(args)
 
 def _not_a_function_error(_s):
@@ -875,3 +875,21 @@ def flag_assigns(flags):
         "%s=%s" % (name, fmt(flags[name]))
         for name in sorted(flags)
     ]
+
+def _patch_yaml_safe_loader():
+    # Credit: https://stackoverflow.com/users/1307905/anthon
+    # Ref:    https://stackoverflow.com/questions/30458977/
+    #         yaml-loads-5e-6-as-string-and-not-a-number
+    loader = yaml.SafeLoader
+    loader.add_implicit_resolver(
+        u'tag:yaml.org,2002:float',
+        re.compile(u'''^(?:
+        [-+]?(?:[0-9][0-9_]*)\\.[0-9_]*(?:[eE][-+]?[0-9]+)?
+        |[-+]?(?:[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)
+        |\\.[0-9_]+(?:[eE][-+][0-9]+)?
+        |[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\\.[0-9_]*
+        |[-+]?\\.(?:inf|Inf|INF)
+        |\\.(?:nan|NaN|NAN))$''', re.X),
+        list(u'-+0123456789.'))
+
+_patch_yaml_safe_loader()
