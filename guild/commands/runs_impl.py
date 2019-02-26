@@ -356,6 +356,7 @@ def _format_command(cmd):
     return " ".join([_maybe_quote_arg(arg) for arg in cmd])
 
 def _maybe_quote_arg(arg):
+    arg = str(arg)
     if arg == "" or " " in arg:
         return '"%s"' % arg
     else:
