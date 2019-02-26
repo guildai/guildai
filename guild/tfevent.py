@@ -59,7 +59,7 @@ def iter_events(root_path):
     `reader` is an instance of ScalarReader that can be used to read
     scalars in dir.
     """
-    _ensure_tf_logger_patched()
+    _ensure_tf_logging_patched()
     try:
         from tensorboard.backend.event_processing import io_wrapper
     except ImportError:
@@ -115,10 +115,23 @@ def _event_files_digest(dir):
         if os.path.isfile(filename)])
     return hashlib.md5(to_hash.encode("utf-8")).hexdigest()
 
-def _ensure_tf_logger_patched():
+def _ensure_tf_logging_patched():
+    _ensure_tf_oldstyle_logging_patched()
+    _ensure_tf_newstyle_logging_patched()
+
+def _ensure_tf_oldstyle_logging_patched():
     try:
         from tensorflow import logging
     except ImportError:
         pass
     else:
         logging.info = logging.debug = lambda *_arg, **_kw: None
+
+def _ensure_tf_newstyle_logging_patched():
+    try:
+        from tensorboard.util import tb_logging
+    except ImportError:
+        pass
+    else:
+        logger = tb_logging.get_logger()
+        logger.info = logger.debug = lambda *_arg, **_kw: None
