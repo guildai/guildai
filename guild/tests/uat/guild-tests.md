@@ -10,7 +10,10 @@ tests).
       batch-basics:                ok
       batch-custom-optimizer:      ok
       batch-grid-search:           ok
+      batch-guildfile-optimizers:  ok
+      batch-implied-random:        ok
       batch-needed:                ok
+      batch-print-cmd:             ok
       batch-random-optimizer:      ok
       batch-random-seeds:          ok
       batch-restart:               ok

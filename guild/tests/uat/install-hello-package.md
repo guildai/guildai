@@ -3,7 +3,7 @@
 The `gpkg.hello` package is used to test some basic functionality without
 actually training anything.
 
-    >>> quiet("guild install gpkg.hello --pre")
+    >>> quiet("guild install gpkg.hello --pre --no-cache")
 
 Once installed we have a `hello` model:
 

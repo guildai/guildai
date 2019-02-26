@@ -6,7 +6,7 @@ namespace (the originl `mnist` package in PyPI).
 
 The package `gpkg.mnist` contains MNIST models:
 
-    >>> quiet("guild install gpkg.mnist --pre")
+    >>> quiet("guild install gpkg.mnist --pre --no-cache")
 
 The package `mnist` contains tools for working with MNIST data. We
 don't use this package, but it illustrates how the Guild packaging

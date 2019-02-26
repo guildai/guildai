@@ -9,6 +9,7 @@ process using a timeout:
     >>> run("guild run logreg:train", timeout=2)
     You are about to run gpkg.mnist/logreg:train
       batch-size: 100
-      epochs: 10
+      epochs: 5
+      learning-rate: 0.5
     Continue? (Y/n)
     <exit ...>

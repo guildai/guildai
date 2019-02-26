@@ -11,7 +11,7 @@ Use `guild runs info` to show information about the latest run:
     marked: no
     label:
     run_dir: ...
-    command: ... logreg --data-dir mnist-idx-data --run-dir . --batch-size 100 --epochs 1
+    command: ... guild.op_main logreg --data-dir mnist-idx-data --run-dir . --batch-size 100 --epochs 1 --learning-rate 0.5
     exit_status: 0
     pid:
     <exit 0>
@@ -27,7 +27,7 @@ We can optionally show files, flags, and env for a run:
     marked: no
     label:
     run_dir: ...
-    command: ... guild.op_main logreg --data-dir mnist-idx-data --run-dir . --batch-size 100 --epochs 1
+    command: ... guild.op_main logreg --data-dir mnist-idx-data --run-dir . --batch-size 100 --epochs 1 --learning-rate 0.5
     exit_status: 0
     pid:
     environment:
@@ -39,17 +39,22 @@ We can optionally show files, flags, and env for a run:
       LANG: ...
       LOG_LEVEL: 20
       MODEL_DIR: .../site-packages/gpkg/mnist
+      MODEL_PATH: .../site-packages/gpkg/mnist
       PATH: ...
       PWD: ...
       PYTHONPATH: ...
+      REQUIREMENTS_PATH: ...
       RUN_DIR: ...
-      SCRIPT_DIR:...
+      RUN_ID: ...
+      SCRIPT_DIR:
       TEMP: ...
     flags:
       batch-size: 100
       epochs: 1
+      learning-rate: 0.5
     files:
       checkpoint
+      events.out.tfevents...
       export
       export/saved_model.pb
       export/variables
@@ -67,8 +72,6 @@ We can optionally show files, flags, and env for a run:
       model.ckpt-550.data-00000-of-00001
       model.ckpt-550.index
       model.ckpt-550.meta
-      train
-      train/events.out.tfevents...
-      validate
-      validate/events.out.tfevents...
+      val
+      val/events.out.tfevents...
     <exit 0>

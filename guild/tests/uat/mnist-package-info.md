@@ -34,6 +34,7 @@ information.
     classifiers:
     entry-points:
       [guild.models]
+      _check = guild.model:PackageModel
       cnn = guild.model:PackageModel
       logreg = guild.model:PackageModel
       samples = guild.model:PackageModel
