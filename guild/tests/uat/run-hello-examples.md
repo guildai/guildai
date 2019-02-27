@@ -61,6 +61,7 @@ Guild captures project source, which we can list using `runs info`:
     exit_status: 0
     pid:
     source:
+      Makefile
       guild.yml
       msg.txt
       say.py

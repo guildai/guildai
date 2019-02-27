@@ -15,7 +15,8 @@ empty) that is created implicitly when the Guild file is loaded.
 We can quickly see this using the API:
 
     >>> from guild import guildfile
-    >>> gf = guildfile.from_dir(cwd())
+    >>> with SysPath([cwd()]):
+    ...     gf = guildfile.from_dir(cwd())
     >>> gf.models
     {'': <guild.guildfile.ModelDef ''>}
     >>> gf.models[''] is gf.default_model
@@ -49,11 +50,7 @@ guild.yml. Let's see what it wants to run by looking at a run preview:
     >>> run("guild run", timeout=2)
     You are about to run train
       batch_size: 100
-      datadir: data
       epochs: 10
-      prepare: no
-      rundir: .
-      test: no
     Continue? (Y/n)
     <exit ...>
 
@@ -62,7 +59,7 @@ guild.yml. Let's see what it wants to run by looking at a run preview:
 We've see that we can run the train operation by default. Let's run it
 for one epoch.
 
-    >>> run("echo dummy && guild run epochs=1 -y")
+    >>> run("echo dummy && guild run epochs=1 --no-gpus -y")
     dummy
     ...
     Step 0: training=0...
@@ -75,11 +72,20 @@ for one epoch.
     Saving trained model...
     <exit 0>
 
+## Viewing results with compare
+
+The `train` operation, defined in the Guild file, defines non-default columns:
+
+    >>> run("guild compare -t 1")
+    run  operation  started  time  status     label     step  train_loss  train_acc
+    ...  train      ...      ...   completed  epochs=1  540   0...        0...
+    <exit 0>
+
 ## Running scripts directly
 
 We can run a Python script directly as an operation:
 
-    >>> run("echo dummy && guild run train.py epochs=1 -y")
+    >>> run("echo dummy && guild run train.py --no-gpus epochs=1 -y")
     dummy
     ...
     Step 0: training=0...
@@ -169,9 +175,18 @@ The run writes a number of scalars, which we can view as info with the
       val#weights/stddev
     <exit 0>
 
-We can view the compare columns:
+We can view the compare columns for the script op - these are default
+for scripts:
 
     >>> run("guild compare -t 1")
-    run  operation  started  time  status     label  step  loss  acc  val_loss  val_acc
-    ...  train.py   ...      ...   completed         540   0...  0... 0...      0...
+    run  operation  started  time  status     label  step  loss  acc
+    ...  train.py   ...      ...   completed         540   0...  0...
+    <exit 0>
+
+When we compare the last two runs (the `train` op and the `train.py` script):
+
+    >>> run("guild compare -t 1 2")
+    run  operation  started  time  status     label     step  train_loss  train_acc  loss  acc
+    ...  train.py   ...      ...   completed            540                          0...  0...
+    ...  train      ...      ...   completed  epochs=1  540   0...        0...
     <exit 0>

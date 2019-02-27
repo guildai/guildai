@@ -2,7 +2,7 @@
 
 Keras models can be trained simply by running them.
 
-    >>> cd("examples/keras/mnist")
+    >>> cd("examples/keras")
 
 The keras plugin repsonsible for running Keras scripts automatically
 adds a model checkpoint callback to save model weights at each
@@ -16,7 +16,7 @@ For our first training, we'll proceed without the `h5py` module.
     Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
     Using TensorFlow backend.
     60000 train samples
-    10000 test samples
+    10000 test samples...
     _________________________________________________________________
     Layer (type)                 Output Shape              Param #
     =================================================================
@@ -34,7 +34,7 @@ For our first training, we'll proceed without the `h5py` module.
     Trainable params: 669,706
     Non-trainable params: 0
     _________________________________________________________________
-    Train on 60000 samples, validate on 10000 samples...
+    ...Train on 60000 samples, validate on 10000 samples...
     Epoch 1/1
     <BLANKLINE>
     ...
@@ -66,7 +66,7 @@ And train again:
     Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
     Using TensorFlow backend.
     60000 train samples
-    10000 test samples
+    10000 test samples...
     _________________________________________________________________
     Layer (type)                 Output Shape              Param #
     =================================================================
@@ -84,7 +84,7 @@ And train again:
     Trainable params: 669,706
     Non-trainable params: 0
     _________________________________________________________________
-    Train on 60000 samples, validate on 10000 samples...
+    ...Train on 60000 samples, validate on 10000 samples...
     Epoch 1/1
     <BLANKLINE>
     ...

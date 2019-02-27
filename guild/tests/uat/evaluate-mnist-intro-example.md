@@ -6,11 +6,9 @@ operation to test it against all of the test data.
     >>> cd("examples/mnist")
     >>> run("guild run intro:evaluate -y --no-gpus")
     Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
-    Resolving model dependency
-    Using output from run ... for model resource
-    Resolving data dependency
-    ...
-    Test accuracy=...
+    Resolving data dependency...
+    Resolving operation:train dependency
+    Using output from run ...
+    INFO: [tensorflow] Restoring parameters from ./model/export
+    Test accuracy=0...
     <exit 0>
-
-Markdown finished at Thu Nov 30 19:55:33
