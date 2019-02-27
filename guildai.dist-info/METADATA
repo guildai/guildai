@@ -32,6 +32,7 @@ Requires-Dist: PyYAML
 Requires-Dist: Werkzeug
 Requires-Dist: Whoosh
 Requires-Dist: chardet
+Requires-Dist: cryptography
 Requires-Dist: daemonize
 Requires-Dist: pip
 Requires-Dist: pyopenssl
