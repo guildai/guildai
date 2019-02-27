@@ -76,7 +76,7 @@ def _run_tests(tests):
             sys.exit(1)
 
 def _test_globals():
-    globs = {}
+    globs = guild._test.test_globals()
     globs.update(_global_vars())
     globs.update({
         "cd": _cd,

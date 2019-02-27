@@ -110,7 +110,7 @@ def _run_test(name):
     sys.stdout.write("  %s: " % name)
     sys.stdout.flush()
     filename = _test_filename(name)
-    globs = _test_globals()
+    globs = test_globals()
     try:
         failures, _tests = run_test_file(filename, globs)
     except IOError:
@@ -187,7 +187,7 @@ def _load_testfile(filename):
         # pylint: disable=too-many-function-args
         return doctest._load_testfile(filename, None, True, "utf-8")
 
-def _test_globals():
+def test_globals():
     return {
         "Chdir": Chdir,
         "LogCapture": util.LogCapture,

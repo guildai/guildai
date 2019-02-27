@@ -275,7 +275,6 @@ class TBServers(object):
         if self._tb is None:
             from guild import tensorboard
             self._tb = tensorboard
-            self._tb.setup_logging()
         return self._tb
 
     def iter_servers(self):

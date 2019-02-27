@@ -306,7 +306,8 @@ class RunIndex(object):
     def _maybe_scalars(self, fields, run):
         from tensorboard.backend.event_processing import io_wrapper
         from tensorboard.backend.event_processing import event_accumulator
-        _ensure_tf_logger_patched()
+        from guild import tfevent
+        tfevent.ensure_tf_logging_patched()
         scalars = {}
         scalar_aliases = self._init_scalar_aliases(run)
         for path in io_wrapper.GetLogdirSubdirectories(run.path):
@@ -475,10 +476,6 @@ def _decode_field_name(prefix, field_name):
         raise ValueError((prefix, field_name))
     encoded = field_name[len(prefix):]
     return base64.b32decode(encoded.replace("_", "="))
-
-def _ensure_tf_logger_patched():
-    from tensorflow import logging
-    logging.info = logging.debug = lambda *_arg, **_kw: None
 
 def _patch_whoosh_write_pickle():
     # See https://bitbucket.org/mchaput/whoosh/issues/473
