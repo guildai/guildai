@@ -7,6 +7,7 @@ PyYAML>=2.12
 Werkzeug>=0.13
 Whoosh>=2.7.4
 chardet>=3.0.4
+cryptography>=2.1.4
 daemonize>=2.4.7
 pip>=9.0
 pyopenssl>=19.0.0
