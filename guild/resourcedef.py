@@ -46,9 +46,10 @@ class ResourceDef(object):
         self.fullname = fullname or name
         self.description = data.get("description", "")
         self.path = data.get("path")
-        self.sources = self._init_sources(data.get("sources", []))
+        self.default_unpack = data.get("default-unpack", True)
         self.private = bool(data.get("private"))
         self.references = data.get("references", [])
+        self.sources = self._init_sources(data.get("sources", []))
 
     def get_source_resolver(self, source, resource):
         scheme = source.parsed_uri.scheme
@@ -135,7 +136,7 @@ class ResourceDef(object):
 
 class ResourceSource(object):
 
-    def __init__(self, resdef, uri, name=None, sha256=None, unpack=True,
+    def __init__(self, resdef, uri, name=None, sha256=None, unpack=None,
                  type=None, select=None, rename=None, help=None,
                  post_process=None, **kw):
         self.resdef = resdef
@@ -143,7 +144,10 @@ class ResourceSource(object):
         self._parsed_uri = None
         self.name = name or uri
         self.sha256 = sha256
-        self.unpack = unpack
+        if unpack is not None:
+            self.unpack = unpack
+        else:
+            self.unpack = resdef.default_unpack
         self.type = type
         self.select = _coerce_list(select, "source select")
         self.rename = _coerce_list(rename, "source rename")
