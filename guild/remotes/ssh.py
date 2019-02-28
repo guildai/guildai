@@ -375,7 +375,7 @@ def _filtered_runs_filter_opts(**filters):
 
 def _runs_filter_args(ops, labels, unlabeled, running,
                       completed, error, terminated,
-                      pending):
+                      pending, marked, unmarked):
     args = []
     if completed:
         args.append("-C")
@@ -393,6 +393,10 @@ def _runs_filter_args(ops, labels, unlabeled, running,
         args.append("-P")
     if unlabeled:
         args.append("-u")
+    if marked:
+        args.append("--marked")
+    if unmarked:
+        args.append("--unmarked")
     return args
 
 def _build_package(dist_dir):
@@ -410,8 +414,9 @@ def _build_package(dist_dir):
 
 def _remote_run_cmd(remote_run_dir, opspec, op_flags, label,
                     disable_plugins, gpus, no_gpus, force_flags,
-                    needed, stop_after, optimizer, opt_flags,
-                    minimize, maximize):
+                    needed, stop_after, optimize, optimizer, opt_flags,
+                    minimize, maximize, random_seed, max_trials,
+                    init_trials):
     cmd = [
         "NO_WARN_RUNDIR=1",
         "guild", "run", q(opspec),
@@ -434,6 +439,8 @@ def _remote_run_cmd(remote_run_dir, opspec, op_flags, label,
         cmd.append("--needed")
     if stop_after:
         cmd.extend(["--stop-after", stop_after])
+    if optimize:
+        cmd.append("--optimize")
     if optimizer:
         cmd.extend(["--optimizer", optimizer])
     for val in opt_flags:
@@ -442,6 +449,12 @@ def _remote_run_cmd(remote_run_dir, opspec, op_flags, label,
         cmd.extend(["--minimize", minimize])
     if maximize:
         cmd.extend(["--maximize", maximize])
+    if random_seed is not None:
+        cmd.extend(["--random-seed", random_seed])
+    if max_trials is not None:
+        cmd.extend(["--max-trials", max_trials])
+    if init_trials:
+        cmd.append("--init-trials")
     cmd.extend([q(arg) for arg in op_flags])
     return " ".join(cmd)
 

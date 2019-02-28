@@ -1086,7 +1086,7 @@ def _run(op, args):
         _run_local(op, args)
 
 def _check_remote_batch_files(op):
-    if op.batch_op.batch_files:
+    if op.batch_op and op.batch_op.batch_files:
         cli.error("batch files are not supported with remote operations")
 
 def _run_remote(op, args):

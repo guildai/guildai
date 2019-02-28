@@ -96,6 +96,9 @@ class RunProxy(object):
     def __repr__(self):
         return "<guild.remote.RunProxy '%s'>" % self.id
 
+    def guild_path(self, path):
+        return ""
+
 class Remote(object):
 
     name = None
