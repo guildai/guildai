@@ -217,13 +217,3 @@ identical to the distributed package we tested earlier.
 *Guild behavior with various error cases.*
 
 - [invalid-chdir](invalid-chdir.md)
-
-## Packages
-
-### `slim.resnet`
-
-- [slim-resnet-install](slim-resnet-install.md)
-- [slim-resnet-ops](slim-resnet-ops.md)
-- [slim-resnet-train-without-dataset](slim-resnet-train-without-dataset.md)
-- [slim-resnet-prepare-flowers](slim-resnet-prepare-flowers.md)
-- [slim-resnet-train-ambiguous](slim-resnet-train-ambiguous.md)
