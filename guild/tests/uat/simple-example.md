@@ -15,7 +15,7 @@ empty) that is created implicitly when the Guild file is loaded.
 We can quickly see this using the API:
 
     >>> from guild import guildfile
-    >>> with SysPath([cwd()]):
+    >>> with SysPath(prepend=[cwd()]):
     ...     gf = guildfile.from_dir(cwd())
     >>> gf.models
     {'': <guild.guildfile.ModelDef ''>}
