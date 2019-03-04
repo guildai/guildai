@@ -163,7 +163,7 @@ class Build(object):
              " --name guild-test"
              " --guild dist/*.whl {}".format(self.test_dir)),
             "TERM=xterm-256color source guild-env {}".format(self.test_dir),
-            "WORKSPACE=%s UAT_SKIP=remote-ssh-* guild check --uat"
+            "WORKSPACE=%s UAT_SKIP=remote-* guild check --uat"
             % self.test_dir,
         ])
 
