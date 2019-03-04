@@ -217,3 +217,16 @@ identical to the distributed package we tested earlier.
 *Guild behavior with various error cases.*
 
 - [invalid-chdir](invalid-chdir.md)
+
+## Remotes
+
+- [remote-invalid-remote](remote-invalid-remote.md)
+- [remote-ssh-check](remote-ssh-check.md)
+- [remote-ssh-delete-runs](remote-ssh-delete-runs.md)
+- [remote-ssh-run-hello](remote-ssh-run-hello.md)
+- [remote-ssh-runs-after-hello](remote-ssh-runs-after-hello.md)
+- [remote-ssh-watch-last-hello](remote-ssh-watch-last-hello.md)
+- [remote-ssh-stop-last-hello](remote-ssh-stop-last-hello.md)
+- [remote-ssh-label-hello](remote-ssh-label-hello.md)
+- [remote-ssh-pull-hello](remote-ssh-pull-hello.md)
+- [remote-ssh-push-hello](remote-ssh-push-hello.md)
