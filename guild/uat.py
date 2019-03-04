@@ -148,6 +148,7 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
         cmd_cwd = os.path.join(WORKSPACE, _cwd)
     else:
         cmd_cwd = WORKSPACE
+    _apply_ssh_env(cmd_env)
     p = subprocess.Popen(
         [cmd],
         shell=True,
@@ -165,6 +166,17 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
             out = _strip_lines(out, ignore)
         print(out)
         print("<exit %i>" % exit_code)
+
+def _apply_ssh_env(env):
+    ssh_env = (
+        "SSH_AUTH_SOCK",
+        "USER",
+    )
+    for name in ssh_env:
+        try:
+            env[name] = os.environ[name]
+        except KeyError:
+            pass
 
 class _kill_after(object):
 
