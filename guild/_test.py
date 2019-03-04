@@ -50,6 +50,7 @@ import tempfile
 
 from guild import _api as gapi
 from guild import cli
+from guild import config as configlib
 from guild import guildfile
 from guild import index2
 from guild import init
@@ -143,23 +144,19 @@ def _report_first_flag():
 
 def run_test_file_with_config(filename, globs, optionflags):
     """Modified from doctest.py to use custom checker."""
-
     text, filename = _load_testfile(filename)
     name = os.path.basename(filename)
-
     if globs is None:
         globs = {}
     else:
         globs = globs.copy()
     if '__name__' not in globs:
         globs['__name__'] = '__main__'
-
     checker = Py23DocChecker()
     runner = doctest.DocTestRunner(
         checker=checker,
         verbose=None,
         optionflags=optionflags)
-
     parser = doctest.DocTestParser()
     test = parser.get_doctest(text, globs, name, filename, 0)
     flags = (
@@ -168,14 +165,11 @@ def run_test_file_with_config(filename, globs, optionflags):
         division.compiler_flag
     )
     runner.run(test, flags)
-
     runner.summarize()
-
     if doctest.master is None:
         doctest.master = runner
     else:
         doctest.master.merge(runner)
-
     return doctest.TestResults(runner.failures, runner.tries)
 
 def _load_testfile(filename):
@@ -196,6 +190,7 @@ def test_globals():
         "StderrCapture": StderrCapture,
         "SysPath": SysPath,
         "TempFile": util.TempFile,
+        "UserConfig": UserConfig,
         "abspath": os.path.abspath,
         "basename": os.path.basename,
         "cat": cat,
@@ -484,3 +479,25 @@ class Project(object):
             cwd=self.cwd,
             guild_home=self.guild_home,
             **kw)
+
+class _MockConfig(object):
+
+    def __init__(self, data):
+        self.path = configlib.user_config_path()
+        self.data = data
+
+    def read(self):
+        return self.data
+
+class UserConfig(object):
+
+    def __init__(self, config):
+        self._config = _MockConfig(config)
+
+    def __enter__(self):
+        configlib._user_config = self._config
+
+    def __exit__(self, *exc):
+        # None forces a lazy re-reread from disk, which is the correct
+        # behavior for a reset here
+        configlib._user_config = None
