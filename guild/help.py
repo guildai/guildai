@@ -166,8 +166,7 @@ def _write_models(guildfile, out):
 def _sorted_models(models):
     def sort_key(m):
         if m.name[:1] == "_":
-            # Force private models to end
-            return (m.name,)
+            return "\xff" + m.name
         return m.name
     return sorted(models.values(), key=sort_key)
 
