@@ -294,14 +294,14 @@ def _limit_runs(runs, args):
             % (len(limited), len(runs)))
     return limited
 
-def _no_selected_runs_error(help_msg=None):
+def _no_selected_runs_exit(help_msg=None):
     help_msg = (
         help_msg or
         "No matching runs\n"
         "Try 'guild runs list' to list available runs."
     )
     cli.out(help_msg, err=True)
-    cli.error()
+    raise SystemExit(0)
 
 def format_run(run, index=None):
     status = run.status
@@ -390,7 +390,7 @@ def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
     get_selected = runs_callback or _runs_op_selected
     selected = get_selected(args, ctx, default_runs_arg, force_deleted)
     if not selected:
-        _no_selected_runs_error(no_runs_help)
+        _no_selected_runs_exit(no_runs_help)
     preview = [format_run(run) for run in selected]
     if not args.yes:
         cli.out(preview_msg)
