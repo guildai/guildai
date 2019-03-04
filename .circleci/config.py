@@ -254,7 +254,8 @@ class MacBuild(Build):
         elif self.python == "3.6":
             return [
                 "brew unlink python",
-                ("brew install https://raw.githubusercontent.com/Homebrew/"
+                ("brew install --ignore-dependencies "
+                 "https://raw.githubusercontent.com/Homebrew/"
                  "homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/"
                  "Formula/python.rb > /dev/null"),
             ]
