@@ -96,8 +96,8 @@ class RunProxy(object):
     def __repr__(self):
         return "<guild.remote.RunProxy '%s'>" % self.id
 
-    def guild_path(self, path):
-        return ""
+    def guild_path(self, _path):
+        raise TypeError("guild_path not supported by %s" % self)
 
 class Remote(object):
 
@@ -162,7 +162,8 @@ class Remote(object):
         raise NotImplementedError()
 
 def for_name(name):
-    remotes = guild.config.user_config().get("remotes", {})
+    user_config = guild.config.user_config()
+    remotes = user_config.get("remotes", {})
     try:
         remote = remotes[name]
     except KeyError:
@@ -187,6 +188,9 @@ def _for_type(remote_type, name, config):
     elif remote_type == "tpu":
         from guild.remotes import tpu
         cls = tpu.TPURemote
+    elif remote_type == "mock-ssh":
+        from guild.remotes import ssh
+        cls = ssh.MockSSHRemote
     else:
         raise UnsupportedRemoteType(remote_type)
     remote = cls(name, config)

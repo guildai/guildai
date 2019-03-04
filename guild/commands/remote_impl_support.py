@@ -200,8 +200,10 @@ def _watch_run_kw(args):
         "ops",
         "pid",
         "labels",
+        "marked",
         "run",
         "unlabeled",
+        "unmarked",
     ]
     ignore = [
         "remote",
@@ -276,10 +278,12 @@ def stop_runs(args):
 def _stop_runs_kw(args):
     names = [
         "labels",
+        "marked",
         "no_wait",
         "ops",
         "runs",
         "unlabeled",
+        "unmarked",
         "yes",
     ]
     ignore = [

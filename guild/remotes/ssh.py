@@ -458,7 +458,7 @@ def _remote_run_cmd(remote_run_dir, opspec, op_flags, label,
     cmd.extend([q(arg) for arg in op_flags])
     return " ".join(cmd)
 
-def _watch_run_args(run, ops, pid, labels, unlabeled):
+def _watch_run_args(run, ops, pid, labels, unlabeled, marked, unmarked):
     if pid:
         # Ignore other opts if pid is specified
         return ["--pid", pid]
@@ -469,6 +469,10 @@ def _watch_run_args(run, ops, pid, labels, unlabeled):
         args.extend(["-l", q(label)])
     if unlabeled:
         args.append("-u")
+    if marked:
+        args.append("--marked")
+    if unmarked:
+        args.append("--unmarked")
     if run:
         args.append(run)
     return args
@@ -511,7 +515,7 @@ def _check_args(verbose):
         args.append("-v")
     return args
 
-def _stop_runs_args(runs, ops, labels, unlabeled, no_wait, yes):
+def _stop_runs_args(runs, ops, labels, unlabeled, no_wait, marked, unmarked, yes):
     args = []
     for op in ops:
         args.extend(["-o", q(op)])
@@ -523,6 +527,10 @@ def _stop_runs_args(runs, ops, labels, unlabeled, no_wait, yes):
         args.append("-n")
     if yes:
         args.append("-y")
+    if marked:
+        args.append("--marked")
+    if unmarked:
+        args.append("--unmarked")
     args.extend(runs)
     return args
 

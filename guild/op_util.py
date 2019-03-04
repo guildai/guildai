@@ -741,7 +741,13 @@ def _format_test_op(opref):
 
 def _apply_batch_desc(base_desc, run, seen_protos):
     import guild.run
-    proto_dir = run.guild_path("proto")
+    try:
+        proto_dir = run.guild_path("proto")
+    except TypeError:
+        # Occurs for run proxies that don't support guild_path - punt
+        # with generic descriptor. (TODO: implement explicit behavior
+        # in run interface + proxy)
+        proto_dir = ""
     if not os.path.exists(proto_dir):
         return base_desc
     if proto_dir in seen_protos:
