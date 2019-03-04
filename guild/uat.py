@@ -17,6 +17,7 @@ from __future__ import division
 from __future__ import print_function
 
 import errno
+import fnmatch
 import os
 import pprint
 import re
@@ -52,7 +53,18 @@ def run():
 def _tests_from_index():
     index_path = os.path.join(os.path.dirname(__file__), INDEX)
     index = open(index_path).read()
-    return re.findall(r"\((.+?)\.md\)", index)
+    to_skip = os.getenv("UAT_SKIP", "").split(",")
+    for name in re.findall(r"\((.+?)\.md\)", index):
+        if _skip_test(name, to_skip):
+            print("Skipping %s" % name)
+            continue
+        yield name
+
+def _skip_test(name, skip_patterns):
+    for p in skip_patterns:
+        if fnmatch.fnmatch(name, p):
+            return True
+    return False
 
 def _init_workspace():
     print("Initializing workspace %s under %s" % (WORKSPACE, sys.executable))
