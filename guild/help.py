@@ -157,11 +157,19 @@ def _write_package_desc(pkg, out):
 
 def _write_models(guildfile, out):
     i = 0
-    for _name, model in sorted(guildfile.models.items()):
+    for model in _sorted_models(guildfile.models):
         if i > 0:
             out.write_paragraph()
         _write_model(model, out)
         i += 1
+
+def _sorted_models(models):
+    def sort_key(m):
+        if m.name[:1] == "_":
+            # Force private models to end
+            return (m.name,)
+        return m.name
+    return sorted(models.values(), key=sort_key)
 
 def _write_model(m, out):
     out.write_heading(m.name or "Anonymous model")
