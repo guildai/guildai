@@ -51,6 +51,7 @@ tests).
       plugins:                     ok
       python-utils:                ok
       query-parser:                ok
+      remotes:                     ok
       restart-runs:                ok
       run-files:                   ok
       run-flags:                   ok
