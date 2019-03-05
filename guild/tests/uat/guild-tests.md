@@ -4,7 +4,7 @@ Guild tests can be run with the `check` command using the `-T` option
 (`-n` here skips the general check info as we're just interested in
 tests).
 
-    >>> run("guild check -nT", timeout=300) # doctest: +REPORT_UDIFF
+    >>> run("guild check -nT", timeout=600) # doctest: +REPORT_UDIFF
     internal tests:
       anonymous-models:            ok
       batch-basics:                ok
