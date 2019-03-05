@@ -35,8 +35,7 @@ class Env(object):
 
     def __init__(self, cwd, guild_home=None):
         from guild import config
-        from guild.commands import main
-        guild_home = guild_home or main.DEFAULT_GUILD_HOME
+        guild_home = guild_home or config.guild_home()
         self._set_cwd = config.SetCwd(cwd or ".")
         self._set_guild_home = config.SetGuildHome(guild_home)
 
@@ -47,12 +46,6 @@ class Env(object):
     def __exit__(self, *args):
         self._set_cwd.__exit__(*args)
         self._set_guild_home.__exit__(*args)
-
-def _init_env(cwd, guild_home):
-    from guild import config
-    from guild.commands import main
-    config.set_cwd(cwd)
-    config.set_guild_home(guild_home or main.DEFAULT_GUILD_HOME)
 
 def run(*args, **kw):
     args, cwd, env = _popen_args(*args, **kw)
@@ -160,6 +153,11 @@ def _popen_args(
 def _apply_guild_home_env(env, guild_home):
     if guild_home:
         env["GUILD_HOME"] = guild_home
+    else:
+        try:
+            env["GUILD_HOME"] = os.environ["GUILD_HOME"]
+        except KeyError:
+            pass
 
 def _apply_python_path_env(env):
     import guild
