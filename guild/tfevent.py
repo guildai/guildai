@@ -67,7 +67,7 @@ def iter_events(root_path):
     else:
         for subdir_path in io_wrapper.GetLogdirSubdirectories(root_path):
             if _linked_resource_path(subdir_path, root_path):
-                log.debug("skpping linked resource path %s", subdir_path)
+                log.debug("skipping linked resource path %s", subdir_path)
                 continue
             digest = _event_files_digest(subdir_path)
             yield subdir_path, digest, ScalarReader(subdir_path)
@@ -100,7 +100,8 @@ def _links_under_root(path, root):
 def _real_path_under_root(path, root):
     """Returns True if real path is under root."""
     real_path = os.path.realpath(path)
-    return real_path.startswith(root)
+    real_root = os.path.realpath(root)
+    return real_path.startswith(real_root)
 
 def _event_files_digest(dir):
     """Returns a digest for dir that changes when events change.
