@@ -16,7 +16,6 @@ import logging
 import os
 import random
 import sys
-import time
 
 import six
 
@@ -78,6 +77,7 @@ class Trial(object):
         run = runlib.Run(self.run_id, run_dir)
         if run.get("batch") != self.batch.batch_run.id:
             util.copytree(self.batch.proto_run.path, run_dir)
+            run.write_attr("initialized", runlib.timestamp())
             for name, val in self.attrs.items():
                 run.write_attr(name, val)
             assert isinstance(self.flags, dict)
@@ -265,7 +265,6 @@ class Batch(object):
         for trial in trials:
             self._apply_existing_run_id(trial, trial_runs)
             trial.init()
-            self._trial_init_wait_state()
             if init_only:
                 continue
             if self.needed and not trial.run_needed():
@@ -283,17 +282,6 @@ class Batch(object):
             if trial.flags == run_flags:
                 trial.run_id = run_id
                 break
-
-    @staticmethod
-    def _trial_init_wait_state():
-        """Wait for a short period after initializing a trial.
-
-        This wait state lets (non guaranteed but highlight likely)
-        each trial directory get an incrementing mtime from the
-        OS. This is used for (pseudo) deterministic sorting of
-        generated trials using their run dir mtime attrs.
-        """
-        time.sleep(0.01)
 
     def seq_trial_runs(self, status=None):
         if isinstance(status, six.string_types):

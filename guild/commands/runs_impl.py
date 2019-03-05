@@ -94,7 +94,7 @@ def runs_for_args(args, ctx=None, force_deleted=False):
 def filtered_runs(args, force_deleted=False):
     return var.runs(
         _runs_root_for_args(args, force_deleted),
-        sort=["-started_or_mtime"],
+        sort=["-timestamp"],
         filter=_runs_filter(args))
 
 def _runs_root_for_args(args, force_deleted):

@@ -35,6 +35,7 @@ The files generated for our run:
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/flags
+    .guild/attrs/initialized
     .guild/attrs/opdef
     .guild/attrs/random_seed
     .guild/attrs/run_params
@@ -109,6 +110,7 @@ The latest run is the trial:
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/flags
+    .guild/attrs/initialized
     .guild/attrs/label
     .guild/attrs/opdef
     .guild/attrs/optimizer
@@ -142,6 +144,7 @@ Its files:
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/flags
+    .guild/attrs/initialized
     .guild/attrs/opdef
     .guild/attrs/random_seed
     .guild/attrs/run_params
@@ -153,6 +156,7 @@ Its files:
     .guild/proto/.guild/PENDING
     .guild/proto/.guild/attrs/cmd
     .guild/proto/.guild/attrs/flags
+    .guild/proto/.guild/attrs/initialized
     .guild/proto/.guild/attrs/opdef
     .guild/proto/.guild/attrs/optimizer
     .guild/proto/.guild/attrs/random_seed

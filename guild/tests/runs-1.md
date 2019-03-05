@@ -48,7 +48,7 @@ We can initialize the run directory using `init_skel`:
 
     >>> run.init_skel()
     >>> run_files(run)
-    ['.guild', '.guild/attrs']
+    ['.guild', '.guild/attrs', '.guild/attrs/initialized']
 
 Note that Guild manages files under a run directory inside a `.guild`
 directory ("guild directory").
@@ -60,7 +60,7 @@ Run attributes are stored in the `attrs` guild sub-directory.
 We can iterate attributes using `iter_attrs`:
 
     >>> list(run.iter_attrs())
-    []
+    [('initialized', ...)]
 
 We can read attribute values as run items or using the `get` method:
 
@@ -81,7 +81,10 @@ We can write them using the `write_attr` method:
 Here are the run files after writing the attribute:
 
     >>> run_files(run)
-    ['.guild', '.guild/attrs', '.guild/attrs/msg']
+    ['.guild',
+     '.guild/attrs',
+     '.guild/attrs/initialized',
+     '.guild/attrs/msg']
 
 And the value of our attribute:
 

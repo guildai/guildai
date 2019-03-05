@@ -33,7 +33,7 @@ class Run(object):
         "opref",
         "pid",
         "status",
-        "started_or_mtime",
+        "timestamp",
     ]
 
     def __init__(self, id, path):
@@ -107,14 +107,12 @@ class Run(object):
         return util.try_read(remote_lock_file, apply=str.strip)
 
     @property
-    def started_or_mtime(self):
-        started = self.get("started")
-        if started is not None:
-            return started
-        mtime = util.getmtime(self.path)
-        if mtime is not None:
-            mtime = int(mtime * 1000000)
-        return mtime
+    def timestamp(self):
+        return util.find_apply([
+            lambda: self.get("started"),
+            lambda: self.get("initialized"),
+            lambda: None
+        ])
 
     def _remote_exit_status(self):
         status = self.get("exit_status.remote")
@@ -182,6 +180,8 @@ class Run(object):
 
     def init_skel(self):
         util.ensure_dir(self.guild_path("attrs"))
+        if not self.has_attr("initialized"):
+            self.write_attr("initialized", timestamp())
 
     def guild_path(self, subpath=None):
         if subpath is None:
