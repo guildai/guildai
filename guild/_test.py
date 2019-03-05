@@ -184,6 +184,7 @@ def _load_testfile(filename):
 def test_globals():
     return {
         "Chdir": Chdir,
+        "Env": Env,
         "LogCapture": util.LogCapture,
         "ModelPath": ModelPath,
         "Project": Project,
@@ -501,3 +502,39 @@ class UserConfig(object):
         # None forces a lazy re-reread from disk, which is the correct
         # behavior for a reset here
         configlib._user_config = None
+
+class Env(object):
+
+    def __init__(self, vals):
+        self._vals = vals
+        self._revert_ops = []
+
+    def __enter__(self):
+        env = os.environ
+        for name, val in self._vals.items():
+            try:
+                cur = env.pop(name)
+            except KeyError:
+                self._revert_ops.append(self._del_env_fun(name, env))
+            else:
+                self._revert_ops.append(self._set_env_fun(name, cur, env))
+            env[name] = val
+
+    @staticmethod
+    def _del_env_fun(name, env):
+        def f():
+            try:
+                del env[name]
+            except KeyError:
+                pass
+        return f
+
+    @staticmethod
+    def _set_env_fun(name, val, env):
+        def f():
+            env[name] = val
+        return f
+
+    def __exit__(self, *exc):
+        for op in self._revert_ops:
+            op()

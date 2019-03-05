@@ -16,7 +16,8 @@ We can quickly see this using the API:
 
     >>> from guild import guildfile
     >>> with SysPath(prepend=[cwd()]):
-    ...     gf = guildfile.from_dir(cwd())
+    ...     with Env({"NO_IMPORT_FLAGS_PROGRESS": "1"}):
+    ...         gf = guildfile.from_dir(cwd())
     >>> gf.models
     {'': <guild.guildfile.ModelDef ''>}
     >>> gf.models[''] is gf.default_model
