@@ -706,8 +706,6 @@ def _try_stop_local_run(run):
         os.kill(pid, signal.SIGTERM)
 
 def export(args, ctx):
-    if not os.path.isdir(args.location):
-        cli.error("directory '{}' does not exist".format(args.location))
     preview = (
         "You are about to %s the following runs to '%s':" %
         (args.move and "move" or "copy", args.location))
@@ -721,6 +719,7 @@ def export(args, ctx):
                 "")
             if not cli.confirm("Really copy resources exported runs?"):
                 return
+        util.ensure_dir(args.location)
         exported = 0
         for run in selected:
             dest = os.path.join(args.location, run.id)
