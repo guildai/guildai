@@ -66,6 +66,7 @@ CORE_RUN_ATTRS = [
     "exit_status",
     "exit_status.remote",
     "flags",
+    "initialized",
     "label",
     "marked",
     "opdef",

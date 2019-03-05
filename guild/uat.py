@@ -53,18 +53,7 @@ def run():
 def _tests_from_index():
     index_path = os.path.join(os.path.dirname(__file__), INDEX)
     index = open(index_path).read()
-    to_skip = os.getenv("UAT_SKIP", "").split(",")
-    for name in re.findall(r"\((.+?)\.md\)", index):
-        if _skip_test(name, to_skip):
-            print("Skipping %s" % name)
-            continue
-        yield name
-
-def _skip_test(name, skip_patterns):
-    for p in skip_patterns:
-        if fnmatch.fnmatch(name, p):
-            return True
-    return False
+    return re.findall(r"\((.+?)\.md\)", index)
 
 def _init_workspace():
     print("Initializing workspace %s under %s" % (WORKSPACE, sys.executable))
@@ -73,8 +62,12 @@ def _init_workspace():
 
 def _run_tests(tests):
     globs = _test_globals()
+    to_skip = os.getenv("UAT_SKIP", "").split(",")
     for name in tests:
         print("Running %s:" % name)
+        if _skip_test(name, to_skip):
+            print("  skipped (user requested)")
+            continue
         if _test_passed(name):
             print("  skipped (already passed)")
             continue
@@ -110,6 +103,12 @@ def _global_vars():
 
 def _sample(path):
     return os.path.abspath(guild._test.sample(path))
+
+def _skip_test(name, skip_patterns):
+    for p in skip_patterns:
+        if fnmatch.fnmatch(name, p):
+            return True
+    return False
 
 def _test_passed(name):
     return os.path.exists(_test_passed_marker(name))
