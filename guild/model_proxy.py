@@ -26,8 +26,6 @@ from guild import plugin as pluginlib
 
 log = logging.getLogger("guild")
 
-GENERIC_COMPARE = None
-
 GENERIC_OUTPUT_SCALARS = {
     "step": r"step:\s*(\S+)",
     "loss": r"loss:\s*(\S+)",

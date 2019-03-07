@@ -31,7 +31,7 @@ class PythonScriptModelProxy(object):
     name = ""
     fullname = ""
     output_scalars = model_proxy.GENERIC_OUTPUT_SCALARS
-    compare = model_proxy.GENERIC_COMPARE
+    base_loss = ["loss step as step", "loss"]
 
     def __init__(self, op_name, script_path):
         assert script_path[-3:] == ".py", script_path
@@ -41,14 +41,15 @@ class PythonScriptModelProxy(object):
         self.reference = modellib.script_model_ref(self.name, script_path)
 
     def _init_modeldef(self):
+        flags_data = self._flags_data()
         data = [
             {
                 "model": self.name,
                 "operations": {
                     self.op_name: {
                         "exec": self._exec_attr(),
-                        "flags": self._flags_data(),
-                        "compare": self.compare,
+                        "flags": flags_data,
+                        "compare": self._compare(flags_data),
                         "output-scalars": self.output_scalars,
                     }
                 },
@@ -70,6 +71,13 @@ class PythonScriptModelProxy(object):
     def _flags_data(self):
         plugin = pluginlib.for_name("flags")
         return plugin.flags_data_for_path(self.script_path, ".")
+
+    def _compare(self, flags_data):
+        flags = [
+            "=%s" % name
+            for name in sorted(flags_data)
+            if name[:1] != "$"]
+        return flags + self.base_loss
 
 class PythonScriptPlugin(pluginlib.Plugin):
 
