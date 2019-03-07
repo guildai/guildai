@@ -422,22 +422,19 @@ def _flag_args(flag_vals, opdef, cmd_args):
     flag_args = []
     flag_vals, flag_map = _flag_cmd_arg_vals(flag_vals, opdef)
     cmd_options = _cmd_options(cmd_args)
-    for name in sorted(flag_vals):
-        value = flag_vals[name]
+    for name, val in sorted(flag_vals.items()):
         if name in cmd_options:
             log.warning(
                 "ignoring flag '%s = %s' because it's shadowed "
-                "in the operation cmd", name, value)
+                "in the operation cmd", name, val)
             continue
-        flag_args.extend(_cmd_option_args(name, value))
+        flag_args.extend(_cmd_option_args(name, val))
     return flag_args, flag_map
 
 def _flag_cmd_arg_vals(flag_vals, opdef):
     vals = {}
     flag_map = {}
-    for name, val in sorted(flag_vals.items()):
-        if val is None:
-            continue
+    for name, val in flag_vals.items():
         flagdef = opdef.get_flagdef(name)
         if flagdef:
             if flagdef.choices:

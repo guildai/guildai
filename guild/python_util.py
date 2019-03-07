@@ -92,8 +92,11 @@ class Script(object):
             self._try_apply_param(node)
 
     def _try_apply_param(self, node):
-        val = _try_param_val(node.value)
-        if val is not None:
+        try:
+            val = _try_param_val(node.value)
+        except TypeError:
+            pass
+        else:
             for target in node.targets:
                 self._params[target.id] = val
 
@@ -107,7 +110,9 @@ def _try_param_val(val):
             return True
         elif val.id == "False":
             return False
-    return None
+        elif val.id == "None":
+            return None
+    raise TypeError()
 
 class Call(object):
 
@@ -130,7 +135,10 @@ class Call(object):
     def kwarg_param(self, name):
         for kw in self.node.keywords:
             if kw.arg == name:
-                return _try_param_val(kw.value)
+                try:
+                    _try_param_val(kw.value)
+                except TypeError:
+                    return None
         return None
 
 def _script_name(src):
