@@ -31,6 +31,7 @@ from werkzeug import serving
 
 import tensorflow as tf
 from tensorboard import version
+from tensorboard import util as tb_util
 
 log = logging.getLogger("guild")
 
@@ -47,7 +48,6 @@ if version.VERSION not in _req:
 
 # pylint: disable=wrong-import-position
 
-from tensorboard import util as tb_util
 from tensorboard import program
 from tensorboard.backend import application
 
@@ -112,6 +112,12 @@ def create_app(logdir, reload_interval, path_prefix=""):
             tb.assets_zip_provider)
 
 def setup_logging():
+    if hasattr(tb_util, "setup_logging"):
+        _setup_logging_legacy()
+    else:
+        _setup_logging()
+
+def _setup_logging_legacy():
     tb_util.setup_logging()
     _filter_logging()
 
@@ -132,6 +138,25 @@ def _filter_warn(warn0, msg, *args, **kw):
         if msg.startswith(s):
             return
     warn0(msg, *args, **kw)
+
+def _setup_logging():
+    _setup_tensorboard_logging()
+    _setup_werkzeug_logging()
+
+def _setup_tensorboard_logging():
+    from tensorboard.util import tb_logging
+    tb_logging.get_logger().info = lambda *_args, **_kw: None
+
+def _setup_werkzeug_logging():
+    from werkzeug._internal import _log as log0
+    serving._log = _silent_logger(log0)
+
+def _silent_logger(log0):
+    def f(type, msg, *args):
+        if type == "info":
+            return
+        log0(type, msg, *args)
+    return f
 
 def run_simple_server(tb_app, host, port, ready_cb):
     server, _ = make_simple_server(tb_app, host, port)
