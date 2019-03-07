@@ -86,7 +86,7 @@ FILTERABLE = [
     "terminated",
 ]
 
-MAX_LABEL_LEN = 40
+MAX_LABEL_LEN = 60
 
 def runs_for_args(args, ctx=None, force_deleted=False):
     filtered = filtered_runs(args, force_deleted)
