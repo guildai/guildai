@@ -256,7 +256,7 @@ class NonRepeatingTrials(object):
                 return (
                     self._random_trial(state),
                     {"label": self._random_trial_label(trial, flag_desc)})
-        return next_trial_flags
+        return next_trial_flags, {}
 
     @staticmethod
     def _random_trial(state):

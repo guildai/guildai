@@ -175,11 +175,8 @@ class SeqTrial(Trial):
         initialization after the default init process.
         """
         result = self.init_trial_cb(self, self.state)
-        try:
-            (self.flags,
-             self.attrs) = result
-        except ValueError:
-            self.flags = result
+        assert isinstance(result, tuple) and len(result) == 2
+        self.flags, self.attrs = result
         super(SeqTrial, self).init(*args, **kw)
 
 ###################################################################
