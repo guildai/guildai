@@ -32,7 +32,7 @@ class RandomOptimizerModelProxy(model_proxy.BatchModelProxy):
     op_description = (
         "Batch processor supporting random flag value generation.")
     module_name = "guild.plugins.random_main"
-    flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
+    flag_encoder = "guild.plugins.skopt:encode_flag_for_random"
 
 ###################################################################
 # Bayesian with gaussian process optimizer
@@ -164,6 +164,9 @@ xi:
 ###################################################################
 # Flag encoders
 ###################################################################
+
+def encode_flag_for_random(val, flagdef):
+    return encode_flag_for_optimizer(None, flagdef)
 
 def encode_flag_for_optimizer(val, flagdef):
     """Encodes a flag def for the full range of supported skopt search spaces.
