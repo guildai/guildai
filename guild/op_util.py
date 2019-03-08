@@ -40,7 +40,7 @@ from guild import _api
 NoCurrentRun = _api.NoCurrentRun
 current_run = _api.current_run
 
-function_pattern = re.compile(r"([a-zA-Z0-9_\-\.]*)\[(.+)\]\s*$")
+function_pattern = re.compile(r"([a-zA-Z0-9_\-\.]*)\[(.*)\]\s*$")
 function_arg_delimiter = ":"
 
 RESTART_NEEDED_STATUS = ("pending",)
@@ -846,11 +846,11 @@ def parse_function(s):
     if not m:
         raise ValueError("not a function")
     name = m.group(1) or None
-    args_s = m.group(2).split(function_arg_delimiter)
-    if len(args_s) < 2:
-        # Slice must contain a delimiter - i.e. always contains at
-        # least two elements.
-        raise ValueError("not a function")
+    args_raw = m.group(2).strip()
+    if args_raw:
+        args_s = args_raw.split(function_arg_delimiter)
+    else:
+        args_s = []
     args = [parse_arg_val(arg.strip()) for arg in args_s]
     return name, tuple(args)
 
