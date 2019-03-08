@@ -32,7 +32,7 @@ class RandomOptimizerModelProxy(model_proxy.BatchModelProxy):
     op_description = (
         "Batch processor supporting random flag value generation.")
     module_name = "guild.plugins.random_main"
-    flag_encoder = "guild.plugins.skopt:encode_flag_for_random"
+    flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
 
 ###################################################################
 # Bayesian with gaussian process optimizer
@@ -164,19 +164,6 @@ xi:
 ###################################################################
 # Flag encoders
 ###################################################################
-
-def encode_flag_for_random(val, flagdef):
-    """Encodes a flag def as either a list or a slice range.
-
-    A slice range is used to convey a range from MIN to MAX. It's
-    typically used for a uniform random distribution with min and max
-    values.
-    """
-    if flagdef.choices:
-        return [c.value for c in flagdef.choices]
-    elif flagdef.min is not None and flagdef.max is not None:
-        return (flagdef.min, flagdef.max)
-    return val
 
 def encode_flag_for_optimizer(val, flagdef):
     """Encodes a flag def for the full range of supported skopt search spaces.
