@@ -404,7 +404,7 @@ def _model_file(path):
 
 def coerce_flag_value(val, flagdef):
     """Coerces a flag value based on flagdef settings."""
-    if not flagdef or not flagdef.type:
+    if val is None or not flagdef or not flagdef.type:
         return val
     if isinstance(val, list):
         return [coerce_flag_value(x, flagdef) for x in val]

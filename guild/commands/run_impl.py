@@ -668,7 +668,8 @@ def _is_function(val):
         return True
 
 def _apply_flag_vals(vals, opdef, args):
-    for name, val in vals.items():
+    joined_vals = _join_user_vals_and_defaults(vals, opdef)
+    for name, val in sorted(joined_vals.items()):
         flagdef = opdef.get_flagdef(name)
         if not args.force_flags and not flagdef:
             cli.error(
@@ -679,6 +680,13 @@ def _apply_flag_vals(vals, opdef, args):
         if not args.optimizer:
             val = _coerce_flag_val(val, flagdef)
         opdef.set_flag_value(name, val)
+
+def _join_user_vals_and_defaults(user_vals, opdef):
+    joined = {}
+    # Apply defaults first, then user_vals so user_vals take precedence.
+    joined.update({flagdef.name: flagdef.default for flagdef in opdef.flags})
+    joined.update(user_vals)
+    return joined
 
 def _coerce_flag_val(val, flagdef):
     try:

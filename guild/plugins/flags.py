@@ -297,6 +297,8 @@ class FlagsPlugin(Plugin):
     @staticmethod
     def _apply_full_paths(data):
         for flag_data in data.values():
+            if not isinstance(flag_data, dict):
+                continue
             default = flag_data.get("default")
             if (not default or
                 not isinstance(default, six.string_types) or
