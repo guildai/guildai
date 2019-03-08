@@ -898,6 +898,7 @@ class FlagDef(object):
         self.null_label = _data.pop("null-label", None)
         self.min = _data.pop("min", None)
         self.max = _data.pop("max", None)
+        self.distribution = data.pop("distribution", None)
         self.extra = _data
 
     def __repr__(self):
