@@ -93,14 +93,6 @@ def _validate_args(args):
         cli.error(
             "--gpus and --no-gpus cannot both be used\n"
             "Try 'guild run --help' for more information.")
-    if args.restart and args.optimizer:
-        cli.error(
-            "--restart and --optimizr cannot both be used\n"
-            "Try 'guild run --help' for more information.")
-    if args.rerun and args.optimizer:
-        cli.error(
-            "--rerun and --optimizr cannot both be used\n"
-            "Try 'guild run --help' for more information.")
     if args.print_trials and args.init_trials:
         cli.error(
             "--print-trials and --init-trials cannot both be used\n"
@@ -188,7 +180,8 @@ def _apply_batch_run_args(run, args):
             % proto_path)
     proto = runlib.Run("", proto_path)
     _gen_apply_run_args(proto, args)
-    args.optimizer = run.opref.to_opspec()
+    if not args.optimizer:
+        args.optimizer = run.opref.to_opspec()
 
 def _gen_apply_run_args(run, args):
     _apply_run_params(run, args)
