@@ -84,6 +84,11 @@ Arguments may be of any type:.
     >>> pf("myfun[1e-1:1.1e-1:[1e-2, 1.1e-2]]")
     ('myfun', (0.1, 0.11, [0.01, 0.011]))
 
+Functions may contain spaces:
+
+    >>> pf("[a : b : c]")
+    (None, ('a', 'b', 'c'))
+
 ## Using flag functions in runs
 
 See [Batch runs - implied random optimizer](batch-implied-random.md).
