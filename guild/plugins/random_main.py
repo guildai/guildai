@@ -27,7 +27,7 @@ DEFAULT_TRIALS = 20
 def _gen_trials(flags, batch):
     num_trials = batch.max_trials or DEFAULT_TRIALS
     random_seed = batch.random_seed
-    flag_names, dims = _flag_dims(flags)
+    flag_names, dims, _initials = skopt_util.flag_dims(flags)
     trial_vals = _gen_trial_vals(dims, num_trials, random_seed)
     return [
         skopt_util.trial_flags(flag_names, flag_vals)

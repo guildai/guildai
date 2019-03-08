@@ -171,18 +171,19 @@ def encode_flag_for_optimizer(val, flagdef):
     if flagdef.choices:
         return [c.value for c in flagdef.choices]
     elif flagdef.min is not None and flagdef.max is not None:
-        return _encode_search(flagdef, val)
+        return _encode_function(flagdef, val)
     return val
 
-def _encode_search(flagdef, val):
+def _encode_function(flagdef, val):
     assert flagdef.min is not None and flagdef.max is not None
-    args = [
-        op_util.format_flag_val(flagdef.min),
-        op_util.format_flag_val(flagdef.max)
-    ]
+    func_name = flagdef.distribution or "uniform"
+    low = op_util.format_flag_val(flagdef.min)
+    high = op_util.format_flag_val(flagdef.max)
+    args = [low, high]
     if val is not None:
-        args.append(op_util.format_flag_val(val))
-    return "uniform(%s)" % ",".join(args)
+        initial = op_util.format_flag_val(val)
+        args.append(initial)
+    return "%s[%s]" % (func_name, ":".join(args))
 
 ###################################################################
 # Plugin

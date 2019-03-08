@@ -2,7 +2,7 @@
 
 Flag functions are specifying using the format:
 
-    NAME? '[' N ( ':' M )+ ']'
+    NAME? '[' N? ( ':' M )* ']'
 
 The format resembles Python's slice format. It may have an optional
 name preceding the opening bracket.
@@ -25,6 +25,12 @@ for parsing functions.
 
 Unnamed functions:
 
+    >>> pf("[]")
+    (None, ())
+
+    >>> pf("[1]")
+    (None, (1,))
+
     >>> pf("[1:2]")
     (None, (1, 2))
 
@@ -33,17 +39,6 @@ Unnamed functions:
 
     >>> pf("[1:2:3:4:5]")
     (None, (1, 2, 3, 4, 5))
-
-If an expression does not contain at least two elements, it is not a
-function:
-
-    >>> pf("[]")
-    Traceback (most recent call last):
-    ValueError: not a function
-
-    >>> pf("[1]")
-    Traceback (most recent call last):
-    ValueError: not a function
 
 Named functions:
 

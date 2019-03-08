@@ -32,64 +32,14 @@ class State(object):
     def __init__(self, batch):
         self.batch = batch
         self.batch_flags = batch.batch_run.get("flags")
+        proto_flags = batch.proto_run.get("flags", {})
         (self.flag_names,
          self.flag_dims,
-         self.defaults) = self._init_flag_dims(batch)
+         self.initials) = flag_dims(proto_flags)
         self.run_index = index2.RunIndex()
         (self._run_loss,
          self.loss_desc) = self._init_run_loss_fun(batch)
         self.random_state = batch.random_seed
-
-    def _init_flag_dims(self, batch):
-        """Return flag names, dims, and defaults based on proto flags.
-
-        A flag value in the form 'search=(min, max [, default])' may
-        be used to specify a range with an optional default.
-        """
-        proto_flags = batch.proto_run.get("flags", {})
-        dims = {}
-        defaults = {}
-        for name, val in proto_flags.items():
-            flag_dim, default = self._flag_dim(val, name)
-            dims[name] = flag_dim
-            defaults[name] = default
-        names = sorted(proto_flags)
-        return (
-            names,
-            [dims[name] for name in names],
-            [defaults[name] for name in names])
-
-    def _flag_dim(self, val, flag_name):
-        if isinstance(val, list):
-            return val, None
-        try:
-            func_name, func_args = op_util.parse_function(val)
-        except ValueError:
-            return [val], None
-        else:
-            if func_name not in (None, "uniform"):
-                raise batch_util.BatchError(
-                    "unsupported function %r for flag %s - must be 'uniform'"
-                    % (func_name, flag_name))
-            return self._distribution_dim(func_args, val, flag_name)
-
-    def _distribution_dim(self, args, val, flag_name):
-        self._validate_distribution_args(args)
-        if len(args) == 2:
-            return args, None
-        elif len(args) == 3:
-            return args[:2], args[2]
-        else:
-            raise batch_util.BatchError(
-                "unexpected arguemt list in %s for flag %s - "
-                "expected 2 arguments" % (val, flag_name))
-
-    @staticmethod
-    def _validate_distribution_args(args):
-        for val in args:
-            if not isinstance(val, (int, float)):
-                raise batch_util.BatchError(
-                    "invalid distribution %r - must be float or int" % val)
 
     def _init_run_loss_fun(self, batch):
         negate, col = self._init_objective(batch)
@@ -183,18 +133,18 @@ class State(object):
         returned.
 
         If there are no previous trials, the dimensions are altered to
-        include default values and a random start is returned.
+        include initial values and a random start is returned.
         """
         previous_trials = self.previous_trials(trial_run_id)
         if self.batch_flags["random-starts"] > len(previous_trials):
             # Next run should use randomly generated values.
             return 1, None, None, self.flag_dims
         x0, y0 = self._split_previous_trials(previous_trials)
-        if x0:
-            return 0, x0, y0, self.flag_dims
-        # No previous trials - use defaults where available with
-        # randomly generated values.
-        return 1, None, None, self._flag_dims_with_defaults()
+        if not x0:
+            # No previous trials - use initial value if provided or
+            # random start.
+            return 1, None, None, self._flag_dims_with_initial()
+        return 0, x0, y0, self.flag_dims
 
     def _split_previous_trials(self, trials):
         """Splits trials into x0 and y0 based on flag names."""
@@ -202,15 +152,15 @@ class State(object):
         y0 = [trial["__loss__"] for trial in trials]
         return x0, y0
 
-    def _flag_dims_with_defaults(self):
-        """Returns flag dims with default values where available.
+    def _flag_dims_with_initial(self):
+        """Returns flag dims with initial values where available.
 
-        A default value is represented by a single choice value in
+        An initial value is represented by a single choice value in
         dims.
         """
         return [
-            dim if default is None else [default]
-            for default, dim in zip(self.defaults, self.flag_dims)
+            dim if initial is None else [initial]
+            for dim, initial in zip(self.flag_dims, self.initials)
         ]
 
 def trial_flags(flag_names, flag_vals):
@@ -272,3 +222,70 @@ class NonRepeatingTrials(object):
     @staticmethod
     def _random_trial_label(trial, flag_desc):
         return "%s+random %s" % (trial.batch_label(), flag_desc)
+
+def flag_dims(flags):
+    """Return flag names, dims, and initials for flags.
+    """
+    dims = {}
+    initials = {}
+    for name, val in flags.items():
+        flag_dim, initial = _flag_dim(val, name)
+        dims[name] = flag_dim
+        initials[name] = initial
+    names = sorted(flags)
+    return (
+        names,
+        [dims[name] for name in names],
+        [initials[name] for name in names])
+
+def _flag_dim(val, flag_name):
+    _patch_numpy_deprecation_warnings()
+    from skopt.space import space
+    if isinstance(val, list):
+        return space.Categorical(val), None
+    try:
+        func_name, func_args = op_util.parse_function(val)
+    except ValueError:
+        return space.Categorical([val]), val
+    else:
+        return _function_dim(func_name, func_args, flag_name)
+
+def _function_dim(func_name, args, flag_name):
+    if func_name is None:
+        func_name = "uniform"
+    if func_name == "uniform":
+        return _uniform_dim(args, func_name, flag_name)
+    elif func_name == "loguniform":
+        return _real_dim(args, "log-uniform", func_name, flag_name)
+    raise batch_util.BatchError(
+        "unsupported function %r for flag %s"
+        % (func_name, flag_name))
+
+def _uniform_dim(args, func_name, flag_name):
+    from skopt.space import space
+    if len(args) == 2:
+        dim_args = args
+        initial = None
+    elif len(args) == 3:
+        dim_args = args[:2]
+        initial = args[2]
+    else:
+        raise batch_util.BatchError(
+            "%s requires 2 or 3 args, got %r for flag %s"
+            % (func_name, args, flag_name))
+    return space.check_dimension(dim_args), initial
+
+def _real_dim(args, prior, func_name, flag_name):
+    from skopt.space import space
+    if len(args) == 2:
+        dim_args = args
+        initial = None
+    elif len(args) == 3:
+        dim_args = args[:2]
+        initial = args[2]
+    else:
+        raise batch_util.BatchError(
+            "%s requires 2 or 3 args, got %r for flag %s"
+            % (func_name, args, flag_name))
+    real_init_args = list(dim_args) + [prior]
+    return space.Real(*real_init_args), initial
