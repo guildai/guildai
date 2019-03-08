@@ -31,7 +31,7 @@ class PythonScriptModelProxy(object):
     name = ""
     fullname = ""
     output_scalars = model_proxy.GENERIC_OUTPUT_SCALARS
-    base_loss = ["loss step as step", "loss"]
+    base_loss = ["loss"]
 
     def __init__(self, op_name, script_path):
         assert script_path[-3:] == ".py", script_path
