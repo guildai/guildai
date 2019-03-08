@@ -136,6 +136,9 @@ class State(object):
         include initial values and a random start is returned.
         """
         previous_trials = self.previous_trials(trial_run_id)
+        log.info(
+            "found %i previous trial(s) for use in optimization",
+            len(previous_trials))
         if self.batch_flags["random-starts"] > len(previous_trials):
             # Next run should use randomly generated values.
             return 1, None, None, self.flag_dims
