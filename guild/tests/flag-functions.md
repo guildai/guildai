@@ -1,21 +1,19 @@
 # Flag functions
 
-Flag functions are specifying using one of two forms:
+Flag functions are specifying using the format:
 
-    '[' N ( ':' M )* ']'
+    NAME? '[' N ( ':' M )+ ']'
 
-    NAME '(' N ( ',' M )* ')'
+The format resembles Python's slice format. It may have an optional
+name preceding the opening bracket.
 
-The first form is a slice format, or an unnamed function, while the
-second form is a named function.
-
-Example of a slice format:
+Example of an unnamed function:
 
     [1e-4:1e-1]
 
 Example of a named function:
 
-    uniform(1e-4,1e-1)
+    uniform[1e-4:1e-1]
 
 ## Parsing flag functions
 
@@ -25,7 +23,7 @@ for parsing functions.
     >>> from guild import op_util
     >>> pf = op_util.parse_function
 
-The slice syntax:
+Unnamed functions:
 
     >>> pf("[1:2]")
     (None, (1, 2))
@@ -36,8 +34,8 @@ The slice syntax:
     >>> pf("[1:2:3:4:5]")
     (None, (1, 2, 3, 4, 5))
 
-If a slice-like expression does not contain at least two elements, it
-is not considered a function:
+If an expression does not contain at least two elements, it is not a
+function:
 
     >>> pf("[]")
     Traceback (most recent call last):
@@ -47,12 +45,34 @@ is not considered a function:
     Traceback (most recent call last):
     ValueError: not a function
 
-The named syntax:
+Named functions:
 
-    >>> pf("uniform(-2.0,2.0)")
+    >>> pf("uniform[-2.0:2.0]")
     ('uniform', (-2.0, 2.0))
 
-Arguments may be of any type, in both slice and named forms.
+    >>> pf("log-uniform[-2.0:2.0]")
+    ('log-uniform', (-2.0, 2.0))
+
+    >>> pf("foo.bar.baz[-2.0:2.0]")
+    ('foo.bar.baz', (-2.0, 2.0))
+
+    >>> pf("three_args[1:2:3]")
+    ('three_args', (1, 2, 3))
+
+    >>> pf("four_args[1:2:3:4]")
+    ('four_args', (1, 2, 3, 4))
+
+    >>> pf("five_args[1:2:3:4:5]")
+    ('five_args', (1, 2, 3, 4, 5))
+
+Names may contain only characters, digits, underscores, dashes, or
+dots:
+
+    >>> pf("a^z[1:2:3:4:5]")
+    Traceback (most recent call last):
+    ValueError: not a function
+
+Arguments may be of any type:.
 
     >>> pf("[hello:1:1.2]")
     (None, ('hello', 1, 1.2))
@@ -60,13 +80,13 @@ Arguments may be of any type, in both slice and named forms.
     >>> pf("[this has spaces:yes:[1,2,3]]")
     (None, ('this has spaces', True, [1, 2, 3]))
 
-    >>> pf("myfun(hello, 1, 1.2)")
+    >>> pf("myfun[hello:1:1.2]")
     ('myfun', ('hello', 1, 1.2))
 
-    >>> pf("myfun(this has spaces, no, [1, 2, null])")
+    >>> pf("myfun[this has spaces:no:[1, 2, null]]")
     ('myfun', ('this has spaces', False, [1, 2, None]))
 
-    >>> pf("myfun(1e-1, 1.1e-1, [1e-2, 1.1e-2])")
+    >>> pf("myfun[1e-1:1.1e-1:[1e-2, 1.1e-2]]")
     ('myfun', (0.1, 0.11, [0.01, 0.011]))
 
 ## Using flag functions in runs
