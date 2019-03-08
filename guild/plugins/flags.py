@@ -145,6 +145,7 @@ class FlagsPlugin(Plugin):
         except DataLoadError:
             return {}
         else:
+            self._apply_full_paths(data)
             self._cache_data(data, cached_data_path)
             return data
 
@@ -292,3 +293,13 @@ class FlagsPlugin(Plugin):
         for name, val in flag_import_data.items():
             if name not in op_flag_data:
                 op_flag_data[name] = val
+
+    @staticmethod
+    def _apply_full_paths(data):
+        for flag_data in data.values():
+            default = flag_data.get("default")
+            if (not default or
+                not isinstance(default, six.string_types) or
+                not os.path.exists(default)):
+                continue
+            flag_data["default"] = os.path.abspath(default)
