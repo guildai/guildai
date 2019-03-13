@@ -157,13 +157,20 @@ And the run:
     ...             minimize="loss",
     ...             random_seed=1,
     ...             max_trials=4)
+    INFO: [guild] Found 0 previous trial(s) for use in optimization
     INFO: [guild] Initialized trial ... (x=0.0, y=2, z=a)
     INFO: [guild] Running trial ...: echo (x=0.0, y=2, z=a)
     0.0 2 'a'
+    INFO: [guild] Found 1 previous trial(s) for use in optimization
     INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
     ... 2 'a'
+    INFO: [guild] Found 2 previous trial(s) for use in optimization...
     INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
+    ... 2 'a'
+    INFO: [guild] Found 3 previous trial(s) for use in optimization...
+    INFO: [guild] Initialized trial ... (x=-..., y=2, z=a)
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
     ... 2 'a'
 
@@ -184,12 +191,19 @@ operation with maximize:
     ...             maximize="loss",
     ...             random_seed=1,
     ...             max_trials=4)
+    INFO: [guild] Found 0 previous trial(s) for use in optimization
     INFO: [guild] Initialized trial ... (x=0.0, y=2, z=a)
     INFO: [guild] Running trial ...: echo (x=0.0, y=2, z=a)
     0.0 2 'a'
+    INFO: [guild] Found 1 previous trial(s) for use in optimization
     INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
     ... 2 'a'
+    INFO: [guild] Found 2 previous trial(s) for use in optimization
+    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
+    ... 2 'a'
+    INFO: [guild] Found 3 previous trial(s) for use in optimization
     INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
     ... 2 'a'

@@ -531,13 +531,12 @@ def _print_run_info(run, args):
         out("%s: %s" % (name, formatted[name]))
     for name in other_attr_names(run, args.private_attrs):
         out("%s: %s" % (name, _format_val(run.get(name))))
+    out("flags:", nl=False)
+    out(_format_attr(run.get("flags", "")))
+    _maybe_print_proto_flags(run, out)
     if args.env:
         out("environment:", nl=False)
         out(_format_attr(run.get("env", "")))
-    if args.flags:
-        out("flags:", nl=False)
-        out(_format_attr(run.get("flags", "")))
-        _maybe_print_proto_flags(run, out)
     if args.scalars:
         out("scalars:")
         for scalar in _iter_scalars(run):

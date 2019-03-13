@@ -277,7 +277,5 @@ The trials before and after are equivalent for the same reason as
 before: the batch operation used the same random seed when generating
 trials.
 
-    >>> (trials_before_restart == trials_after_restart,
-    ...  trials_before_restart,
-    ...  trials_after_restart)
-    (True, ...)
+    >>> trials_before_restart == trials_after_restart
+    True

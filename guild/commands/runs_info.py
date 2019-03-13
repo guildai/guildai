@@ -30,7 +30,6 @@ from . import runs_support
     count=True)
 @click.option("-O", "--output", help="Show run output.", is_flag=True)
 @click.option("-e", "--env", help="Show run environment.", is_flag=True)
-@click.option("-g", "--flags", help="Show run flags.", is_flag=True)
 @click.option("-S", "--scalars", help="Show run scalars.", is_flag=True)
 @click.option("-d", "--deps", help="Show resolved dependencies.", is_flag=True)
 @click.option("-s", "--source", help="Show source code files.", is_flag=True)
@@ -66,9 +65,9 @@ def run_info(ctx, args):
 
     ### Additional information
 
-    You can show additional run information by specifying option
-    flags. You may use multiple flags to show more information. Refer
-    to the options below for what additional information is available.
+    You can show additional run information by specifying options. You
+    may use multiple options to show more information. Refer to the
+    options below for what additional information is available.
 
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.status_filters }}
