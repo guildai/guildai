@@ -61,6 +61,7 @@ tests).
       runs-1:                      ok
       runs-2:                      ok
       skopt:                       ok
+      skopt-utils:                 ok
       step-checks:                 ok
       steps:                       ok
       tables:                      ok
