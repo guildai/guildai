@@ -152,16 +152,18 @@ paths are resolved to be relative to the current directory.
     {'f': None}
 
     >>> with Chdir("/tmp"):
-    ...   flags("path", {"f": ""})
-    {'f': '/...tmp'}
-
-    >>> with Chdir("/tmp"):
     ...   flags("path", {"f": "foo"})
     {'f': '/...tmp/foo'}
 
     >>> with Chdir("/tmp"):
     ...   flags("path", {"f": "/foo"})
     {'f': '/foo'}
+
+Empty strings are not considered paths:
+
+    >>> with Chdir("/tmp"):
+    ...   flags("path", {"f": ""})
+    {'f': ''}
 
 The `existing-path` operation defines a flag `f` of type
 'existing-path'. Existing paths are resolved in the same way normal
