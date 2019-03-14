@@ -86,7 +86,7 @@ The `train` operation, defined in the Guild file, defines non-default columns:
 
 We can run a Python script directly as an operation:
 
-    >>> run("echo dummy && guild run train.py --no-gpus epochs=1 -y")
+    >>> run("echo dummy && guild run train.py --no-gpus epochs=1 -y", timeout=120)
     dummy
     ...
     Step 0: training=0...
@@ -124,19 +124,6 @@ The operation is like any other. We can view info:
              --rundir .
     exit_status: 0
     pid:
-    <exit 0>
-
-Note the command, which uses the Python intreper (not listed
-explicitly above) to run the script directly.
-
-The flag value for `epochs` is passed through as command option.
-
-Here are the flags:
-
-    >>> run("guild runs info -g")
-    id: ...
-    operation: train.py
-    ...
     flags:
       batch_size: 100
       datadir: data
@@ -145,6 +132,9 @@ Here are the flags:
       rundir: .
       test: no
     <exit 0>
+
+Note the command, which uses the Python intreper (not listed
+explicitly above) to run the script directly.
 
 The run writes a number of scalars, which we can view as info with the
 `-S` option:
@@ -180,6 +170,10 @@ We can view the compare columns for the script op - these are default
 for scripts:
 
     >>> run("guild compare -t 1")
+    run  operation  started  time  status     label  batch_size  datadir  epochs  prepare  rundir  test   loss
+    ...  train.py   ... ...  ...   completed         100         data     1       False    .       False  0...
+    <exit 0>
+
     run  operation  started  time  status     label  step  loss  acc
     ...  train.py   ...      ...   completed         540   0...  0...
     <exit 0>
@@ -187,7 +181,7 @@ for scripts:
 When we compare the last two runs (the `train` op and the `train.py` script):
 
     >>> run("guild compare -t 1 2")
-    run  operation  started  time  status     label     step  train_loss  train_acc  loss  acc
-    ...  train.py   ...      ...   completed            540                          0...  0...
-    ...  train      ...      ...   completed  epochs=1  540   0...        0...
+    run  operation  started  time  status     label     step  train_loss  train_acc  batch_size  datadir  epochs  prepare  rundir  test   loss
+    ...  train.py   ... ...  ...   completed                                         100         data     1       False    .       False  0...
+    ...  train      ... ...  ...   completed  epochs=1  540   0...        ...
     <exit 0>

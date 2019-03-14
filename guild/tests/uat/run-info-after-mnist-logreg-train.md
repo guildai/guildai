@@ -14,11 +14,15 @@ Use `guild runs info` to show information about the latest run:
     command: ... guild.op_main logreg --data-dir mnist-idx-data --run-dir . --batch-size 100 --epochs 1 --learning-rate 0.5
     exit_status: 0
     pid:
+    flags:
+      batch-size: 100
+      epochs: 1
+      learning-rate: 0.5
     <exit 0>
 
-We can optionally show files, flags, and env for a run:
+We can optionally show files and env for a run:
 
-    >>> run("guild runs info --files --flags --env") # doctest: +REPORT_UDIFF
+    >>> run("guild runs info --files --env") # doctest: +REPORT_UDIFF
     id: ...
     operation: gpkg.mnist/logreg:train
     status: completed
@@ -30,6 +34,10 @@ We can optionally show files, flags, and env for a run:
     command: ... guild.op_main logreg --data-dir mnist-idx-data --run-dir . --batch-size 100 --epochs 1 --learning-rate 0.5
     exit_status: 0
     pid:
+    flags:
+      batch-size: 100
+      epochs: 1
+      learning-rate: 0.5
     environment:
       CMD_DIR: ...
       GUILD_HOME: ...
@@ -48,10 +56,6 @@ We can optionally show files, flags, and env for a run:
       RUN_ID: ...
       SCRIPT_DIR: ...
       TEMP: ...
-    flags:
-      batch-size: 100
-      epochs: 1
-      learning-rate: 0.5
     files:
       checkpoint
       events.out.tfevents...

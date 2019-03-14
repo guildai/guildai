@@ -60,6 +60,8 @@ Guild captures project source, which we can list using `runs info`:
     command: ... -um guild.op_main say --message "Howdy Guild!"
     exit_status: 0
     pid:
+    flags:
+      message: Howdy Guild!
     source:
       Makefile
       guild.yml

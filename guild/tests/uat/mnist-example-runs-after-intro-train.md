@@ -5,6 +5,5 @@ run:
 
     >>> run("guild runs -o examples")
     [1:...]  ./examples/mnist/mnist-intro:train  ...  completed
-    [2:...]  ./examples/simple-mnist/train.py    ...  completed
-    [3:...]  ./examples/simple-mnist/train       ...  completed  epochs=1
+    ...
     <exit 0>
