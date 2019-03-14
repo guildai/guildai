@@ -434,7 +434,7 @@ def _flag_args(flag_vals, opdef, cmd_args):
 def _flag_cmd_arg_vals(flag_vals, opdef):
     vals = {}
     flag_map = {}
-    for name, val in flag_vals.items():
+    for name, val in sorted(flag_vals.items()):
         flagdef = opdef.get_flagdef(name)
         if flagdef:
             if flagdef.choices:
