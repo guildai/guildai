@@ -486,15 +486,13 @@ def _delete_runs_args(runs, permanent, yes, **filters):
     args.extend(runs)
     return args
 
-def _run_info_args(run, files, all_files, flags, env, deps,
+def _run_info_args(run, files, all_files, env, deps,
                    follow_links, output, page_output, **filters):
     args = _runs_filter_args(**filters)
     if files:
         args.append("-" + "f" * files)
     if all_files:
         args.append("-a")
-    if flags:
-        args.append("-g")
     if env:
         args.append("-e")
     if deps:

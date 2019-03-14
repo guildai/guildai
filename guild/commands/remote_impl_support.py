@@ -233,7 +233,6 @@ def _run_info_kw(args):
         "deps",
         "env",
         "files",
-        "flags",
         "follow_links",
         "output",
         "page_output",
