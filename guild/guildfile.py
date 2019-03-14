@@ -158,7 +158,7 @@ class Guildfile(object):
                     "cycle in 'includes'",
                     included[0],
                     included + [path])
-            data = yaml.load(open(path, "r"))
+            data = yaml.safe_load(open(path, "r"))
             guildfile = Guildfile(data, path, included=included)
             include_data.extend(guildfile.data)
         return include_data

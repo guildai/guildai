@@ -168,7 +168,7 @@ def _guildfile_data(src):
     # Use low level parsing to bypass path-related errors.
     try:
         f = open(src, "r")
-        return yaml.load(f)
+        return yaml.safe_load(f)
     except Exception as e:
         log.warning(
             "cannot read Guild package requirements for %s (%s) - ignoring",
