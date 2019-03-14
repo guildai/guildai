@@ -145,7 +145,7 @@ class FlagsPlugin(Plugin):
         except DataLoadError:
             return {}
         else:
-            self._apply_full_paths(data)
+            self._apply_abs_paths(data, os.path.dirname(script.src))
             self._cache_data(data, cached_data_path)
             return data
 
@@ -295,13 +295,15 @@ class FlagsPlugin(Plugin):
                 op_flag_data[name] = val
 
     @staticmethod
-    def _apply_full_paths(data):
+    def _apply_abs_paths(data, script_dir):
         for flag_data in data.values():
             if not isinstance(flag_data, dict):
                 continue
             default = flag_data.get("default")
             if (not default or
                 not isinstance(default, six.string_types) or
-                not os.path.exists(default)):
+                os.path.sep not in default):
                 continue
-            flag_data["default"] = os.path.abspath(default)
+            abs_path = os.path.join(script_dir, default)
+            if os.path.exists(abs_path):
+                flag_data["default"] = abs_path

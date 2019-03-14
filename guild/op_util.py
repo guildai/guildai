@@ -439,7 +439,7 @@ def _try_coerce_flag_val(val, funs, flagdef):
     raise ValueError("invalid value for type '%s'" % flagdef.type)
 
 def _resolve_rel_path(val):
-    if val is not None and not os.path.isabs(val):
+    if val and not os.path.isabs(val):
         return os.path.abspath(val)
     return val
 
