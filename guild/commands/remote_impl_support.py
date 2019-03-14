@@ -237,6 +237,8 @@ def _run_info_kw(args):
         "output",
         "page_output",
         "run",
+        "scalars",
+        "source",
     ]
     ignore = [
         "private_attrs",
