@@ -19,6 +19,7 @@ import logging
 import os
 import re
 import sys
+import warnings
 
 import pkg_resources
 from werkzeug import serving
@@ -29,7 +30,10 @@ from werkzeug import serving
 
 # pylint: disable=unused-import,wrong-import-order
 
-import tensorflow as tf
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    import tensorflow as tf
+
 from tensorboard import version
 from tensorboard import util as tb_util
 
