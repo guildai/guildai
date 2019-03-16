@@ -266,6 +266,7 @@ def parse_arg_val(s):
     parsers = [
         (int, ValueError),
         (float, ValueError),
+        (_flag_function_as_str, ValueError),
         (yaml.safe_load, yaml.YAMLError),
     ]
     for p, e_type in parsers:
@@ -273,6 +274,14 @@ def parse_arg_val(s):
             return p(s)
         except e_type:
             pass
+    return s
+
+def _flag_function_as_str(s):
+    """Returns s if s is a valid flag function.
+
+    Raises ValueError otherwise.
+    """
+    parse_function(s)
     return s
 
 def format_flag_val(val):
@@ -847,10 +856,9 @@ def parse_function(s):
         raise ValueError("not a function")
     name = m.group(1) or None
     args_raw = m.group(2).strip()
-    if args_raw:
-        args_s = args_raw.split(function_arg_delimiter)
-    else:
-        args_s = []
+    args_s = args_raw.split(function_arg_delimiter)
+    if len(args_s) < 2:
+        raise ValueError("not a function")
     args = [parse_arg_val(arg.strip()) for arg in args_s]
     return name, tuple(args)
 

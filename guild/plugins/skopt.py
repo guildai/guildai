@@ -166,7 +166,7 @@ xi:
 ###################################################################
 
 def encode_flag_for_optimizer(val, flagdef):
-    """Encodes a flag def for the full range of supported skopt search spaces.
+    """Encodes a flag def for the range of supported skopt search spaces.
     """
     if flagdef.choices:
         return [c.value for c in flagdef.choices]
