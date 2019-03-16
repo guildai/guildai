@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import csv
+import itertools
 import logging
 import os
 import sys
@@ -79,7 +80,8 @@ def _print_csv(args):
 def _get_data(args, format_cells=True, skip_header_if_empty=False):
     index = indexlib.RunIndex()
     cb = _get_data_cb(
-        args, index,
+        args,
+        index,
         format_cells=format_cells,
         skip_header_if_empty=skip_header_if_empty)
     data, logs = cb()
@@ -127,7 +129,9 @@ def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
                 if skip_header_if_empty:
                     return [], []
                 header = [NO_RUNS_CAPTION]
-            rows = _table_rows(table, header)
+            rows = _sorted_table_rows(table, header, args)
+            if args.top:
+                rows = rows[:args.top]
             if format_cells:
                 _format_cells(rows, header, runs)
             log = log_capture.get_all()
@@ -292,6 +296,24 @@ def _table_header(table):
                 if name not in header:
                     header.append(name)
     return header
+
+def _sorted_table_rows(table, header, args):
+    if args.min:
+        table = _sort_table(table, args.min)
+    elif args.max:
+        table = _sort_table(table, args.max, reverse=True)
+    return _table_rows(table, header)
+
+def _sort_table(table, sort_col, reverse=False):
+    def key(row):
+        for name, val in itertools.chain(row[0], row[1], row[2]):
+            if name == sort_col:
+                return val
+        if reverse:
+            return float("-inf")
+        else:
+            return float("inf")
+    return sorted(table, key=key, reverse=reverse)
 
 def _table_rows(table, header):
     return [_table_row(row, header) for row in table]

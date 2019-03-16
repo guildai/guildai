@@ -35,11 +35,20 @@ from . import runs_support
     "-r", "--skip-core", is_flag=True,
     help="Don't show core columns.")
 @click.option(
-    "-t", "--table", "format", flag_value="table",
+    "-t", "--top", metavar="N", type=click.IntRange(min=1),
+    help="Only show the top N runs.")
+@click.option(
+    "-m", "--min", metavar="COLUMN",
+    help="Show the lowest values for COLUMN first.")
+@click.option(
+    "-x", "--max", metavar="COLUMN",
+    help="Show the highest values for COLUMN first.")
+@click.option(
+    "-T", "--table", "format", flag_value="table",
     help="Generate comparison data as a table.",
     is_flag=True)
 @click.option(
-    "-s", "--csv", "format", flag_value="csv",
+    "-C", "--csv", "format", flag_value="csv",
     help="Generate comparison data as a CSV file.",
     is_flag=True)
 @click.option(
@@ -131,6 +140,22 @@ def compare(args):
     the `stopped` attribute, use ``--columns .stopped``. This is
     useful when using `--skip-core`.
 
+    ### Sorting
+
+    Use `--min` and `--max` to sort results by a particular
+    column. `--min` sorts in ascending order and `--max` sorts in
+    descending order.
+
+    When specifying `COLUMN`, use the column name as displayed in the
+    table output. If the column name contains spaces, quote the value.
+
+    By default, runs are sorted by start time in ascending order -
+    i.e. the most recent runs are listed first.
+
+    ### Limting results
+
+    To limit the results to the top `N` runs, use `--top`.
+
     {{ runs_support.runs_arg }}
 
     If a `RUN` argument is not specified, ``:`` is assumed (all runs
@@ -143,6 +168,7 @@ def compare(args):
 
     By default, batch runs are not included in comparisons. To include
     batch runs, specify `--include-batch`.
+
     """
     from . import compare_impl
     compare_impl.main(args)
