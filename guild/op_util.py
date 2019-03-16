@@ -266,8 +266,7 @@ def parse_arg_val(s):
     parsers = [
         (int, ValueError),
         (float, ValueError),
-        (_flag_function_as_str, ValueError),
-        (yaml.safe_load, yaml.YAMLError),
+        (_yaml_parse, (ValueError, yaml.YAMLError)),
     ]
     for p, e_type in parsers:
         try:
@@ -276,13 +275,22 @@ def parse_arg_val(s):
             pass
     return s
 
-def _flag_function_as_str(s):
-    """Returns s if s is a valid flag function.
+def _yaml_parse(s):
+    """Uses yaml module to parse s to a Python value.
 
-    Raises ValueError otherwise.
+    First tries to parse as an unnamed flag function with at least two
+    args and, if successful, returns s unmodified. This prevents yaml
+    from attempting to parse strings like '1:1' which it considers to
+    be timestamps.
     """
-    parse_function(s)
-    return s
+    try:
+        name, args = parse_function(s)
+    except ValueError:
+        pass
+    else:
+        if name is None and len(args) >= 2:
+            return s
+    return yaml.safe_load(s)
 
 def format_flag_val(val):
     if val is True:
@@ -856,9 +864,10 @@ def parse_function(s):
         raise ValueError("not a function")
     name = m.group(1) or None
     args_raw = m.group(2).strip()
-    args_s = args_raw.split(function_arg_delimiter)
-    if len(args_s) < 2:
-        raise ValueError("not a function")
+    if args_raw:
+        args_s = args_raw.split(function_arg_delimiter)
+    else:
+        args_s = []
     args = [parse_arg_val(arg.strip()) for arg in args_s]
     return name, tuple(args)
 

@@ -25,6 +25,12 @@ for parsing functions.
 
 Unnamed functions:
 
+    >>> pf("[]")
+    (None, ())
+
+    >>> pf("[1]")
+    (None, (1,))
+
     >>> pf("[1:2]")
     (None, (1, 2))
 
@@ -58,24 +64,6 @@ Names may contain only characters, digits, underscores, dashes, or
 dots:
 
     >>> pf("a^z[1:2:3:4:5]")
-    Traceback (most recent call last):
-    ValueError: not a function
-
-Functions must contain at least two arguments:
-
-    >>> pf("[]")
-    Traceback (most recent call last):
-    ValueError: not a function
-
-    >>> pf("[1]")
-    Traceback (most recent call last):
-    ValueError: not a function
-
-    >>> pf("foo[]")
-    Traceback (most recent call last):
-    ValueError: not a function
-
-    >>> pf("foo[1]")
     Traceback (most recent call last):
     ValueError: not a function
 
