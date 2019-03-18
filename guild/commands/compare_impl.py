@@ -47,6 +47,7 @@ DEFAULT_COMPARE = [
 NO_RUNS_CAPTION = "no runs"
 
 def main(args):
+    _apply_strict_columns(args)
     if args.print_scalars:
         _print_scalars(args)
     elif args.format == "csv":
@@ -55,6 +56,14 @@ def main(args):
         _print_table(args)
     else:
         _tabview(args)
+
+def _apply_strict_columns(args):
+    if args.strict_cols:
+        if args.cols:
+            cli.error("--cols cannot be used with --strict-cols")
+        args.cols = args.strict_cols
+        args.skip_core = True
+        args.skip_op_cols = True
 
 def _print_scalars(args):
     runs = runs_impl.runs_for_args(args)
@@ -240,9 +249,9 @@ def _try_guildfile_op_compare(gf, model_name, op_name):
         return op.compare if op else None
 
 def _user_cols(args, parse_cache):
-    if not args.columns:
+    if not args.cols:
         return []
-    return _colspec_cols(args.columns, parse_cache)
+    return _colspec_cols(args.cols, parse_cache)
 
 def _refresh_types(cols_table):
     """Returns a set of types to refresh for cols.

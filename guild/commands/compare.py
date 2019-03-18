@@ -24,10 +24,13 @@ from . import runs_support
 @click.command()
 @runs_support.runs_op
 @click.option(
-    "-c", "--columns", metavar="COLUMNS",
+    "-c", "--cols", metavar="COLUMNS",
     help=(
         "Additional columns to compare. "
         "Cannot be used with --strict-columns."))
+@click.option(
+    "-cc", "--strict-cols", metavar="COLUMNS",
+    help="Columns to compare. Cannot be used with --columns.")
 @click.option(
     "-n", "--skip-op-cols", is_flag=True,
     help="Don't show operation columns.")
