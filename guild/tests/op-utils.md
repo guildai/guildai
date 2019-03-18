@@ -244,3 +244,31 @@ A case where an argument follows a flag spec:
 
     >>> a2f2(["foo", "--bar", "123"])
     ({'bar': 123}, ['foo'])
+
+## Global dest
+
+The function `global_dest` applies a dict of flags to a global
+destination, returning a globals dict. Global destination is a string
+of names separated by dots, each dot generating a named sub-dict
+within its parent.
+
+    >>> def global_dest(name, flags):
+    ...     pprint(op_util.global_dest(name, flags))
+
+Top-level dest named "foo" with no flags:
+
+    >>> op_util.global_dest("foo", {})
+    {'foo': {}}
+
+Same top-level with flags:
+
+    >>> op_util.global_dest("foo", {"a": 1, "b": 2})
+    {'foo': {'a': 1, 'b': 2}}
+
+Multi-level dest:
+
+    >>> op_util.global_dest("foo.bar", {"a": 1, "b": 2})
+    {'foo': {'bar': {'a': 1, 'b': 2}}}
+
+    >>> op_util.global_dest("foo.bar.baz", {"a": 1, "b": 2})
+    {'foo': {'bar': {'baz': {'a': 1, 'b': 2}}}}

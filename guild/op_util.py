@@ -410,7 +410,7 @@ def args_to_flags2(args):
             extra.append(arg)
     return flags, extra
 
-def global_dest(name, flags):
+def global_dest(global_name, flags):
     dest = cur = {}
     for name in global_name.split("."):
         cur = cur.setdefault(name, {})
