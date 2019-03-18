@@ -77,7 +77,7 @@ for one epoch.
 
 The `train` operation, defined in the Guild file, defines non-default columns:
 
-    >>> run("guild compare -t 1")
+    >>> run("guild compare --table 1")
     run  operation  started  time  status     label     step  train_loss  train_acc
     ...  train      ...      ...   completed  epochs=1  540   0...        0...
     <exit 0>
@@ -124,6 +124,7 @@ The operation is like any other. We can view info:
              --rundir .
     exit_status: 0
     pid:
+    objective: loss
     flags:
       batch_size: 100
       datadir: data
@@ -169,7 +170,7 @@ The run writes a number of scalars, which we can view as info with the
 We can view the compare columns for the script op - these are default
 for scripts:
 
-    >>> run("guild compare -t 1")
+    >>> run("guild compare -T 1")
     run  operation  started  time  status     label  batch_size  datadir  epochs  prepare  rundir  test   loss
     ...  train.py   ... ...  ...   completed         100         data     1       False    .       False  0...
     <exit 0>
@@ -180,7 +181,7 @@ for scripts:
 
 When we compare the last two runs (the `train` op and the `train.py` script):
 
-    >>> run("guild compare -t 1 2")
+    >>> run("guild compare -T 1 2")
     run  operation  started  time  status     label     step  train_loss  train_acc  batch_size  datadir  epochs  prepare  rundir  test   loss
     ...  train.py   ... ...  ...   completed                                         100         data     1       False    .       False  0...
     ...  train      ... ...  ...   completed  epochs=1  540   0...        ...
