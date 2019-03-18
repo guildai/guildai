@@ -140,8 +140,8 @@ class Operation(object):
 
     def _copy_source(self):
         assert self._run is not None
-        if self.opref.pkg_type == "guildfile":
-            # Only copy source for guildfile dist (i.e. projects)
+        # Only copy source for guildfile or script dist (i.e. projects)
+        if self.opref.pkg_type in ("guildfile", "script"):
             op_util.copy_source(self._run, self.opdef)
 
     def run_impl(self, quiet=False, background_pidfile=None, stop_after=None):
