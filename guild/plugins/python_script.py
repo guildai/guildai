@@ -31,7 +31,9 @@ class PythonScriptModelProxy(object):
     name = ""
     fullname = ""
     output_scalars = model_proxy.GENERIC_OUTPUT_SCALARS
-    base_loss = ["loss"]
+    base_compare = ["loss"]
+    objective = "loss"
+    disable_plugins = "all"
 
     def __init__(self, op_name, script_path):
         assert script_path[-3:] == ".py", script_path
@@ -51,10 +53,10 @@ class PythonScriptModelProxy(object):
                         "flags": flags_data,
                         "compare": self._compare(flags_data),
                         "output-scalars": self.output_scalars,
+                        "objective": self.objective,
+                        "disable-plugins": self.disable_plugins,
                     }
-                },
-                "disable-plugins": "all",
-                "output-scalars": self.output_scalars,
+                }
             }
         ]
         gf = guildfile.Guildfile(data, dir=config.cwd())
@@ -77,7 +79,7 @@ class PythonScriptModelProxy(object):
             "=%s" % name
             for name in sorted(flags_data)
             if name[:1] != "$"]
-        return flags + self.base_loss
+        return flags + self.base_compare
 
 class PythonScriptPlugin(pluginlib.Plugin):
 
@@ -92,7 +94,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
     @staticmethod
     def resolve_model_op(opspec):
         path = os.path.join(config.cwd(), opspec)
-        if python_util.is_python_script(path):
-            model = PythonScriptModelProxy(opspec, path)
-            return model, model.op_name
-        return None
+        if not python_util.is_python_script(path):
+            return None
+        model = PythonScriptModelProxy(opspec, path)
+        return model, model.op_name

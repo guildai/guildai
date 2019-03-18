@@ -300,13 +300,6 @@ def scripts_for_dir(dir, exclude=None):
         if not any((fnmatch.fnmatch(src, pattern) for pattern in exclude))
     ]
 
-def script_models(dir, is_model_script, script_model, log=None):
-    for script in sorted(scripts_for_dir(dir)):
-        if log:
-            log.debug("checking %s for models", script.src)
-        if is_model_script(script):
-            yield script_model(script)
-
 def exec_script(filename, globals):
     """Execute a Python script.
 

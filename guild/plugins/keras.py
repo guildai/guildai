@@ -18,7 +18,6 @@ from __future__ import division
 import os
 
 from guild import config
-from guild import guildfile
 from guild import plugin as pluginlib
 from guild import python_util
 
@@ -26,38 +25,27 @@ from .python_script import PythonScriptModelProxy
 
 class KerasScriptModelProxy(PythonScriptModelProxy):
 
-    # Assuming Keras plugin installs TensorBoard callback, which
-    # collets scalars
-    #
-    output_scalars = None
+    output_scalars = {
+        "step": r"Epoch ([0-9]+)/[0-9]+",
+        "loss": r"step - loss: ([0-9\.]+)",
+        "acc": r"acc: ([0-9\.]+) - val_loss",
+        "val_loss": r"val_loss: ([0-9\.]+)",
+        "val_acc": r"val_acc: ([0-9\.]+)",
+    }
 
-    def __init__(self, op_name, script):
-        self._script = script
-        super(KerasScriptModelProxy, self).__init__(op_name, script.src)
+    base_compare = [
+        "loss step as step",
+        "loss",
+        "acc",
+        "val_loss",
+        "val_acc",
+    ]
 
-    def _init_modeldef(self):
-        plugin = pluginlib.for_name("keras")
-        model_data = plugin.script_model(self._script)
-        self._rename_model_and_op(model_data)
-        self._reenable_plugins(model_data)
-        gf = guildfile.Guildfile([model_data], dir=config.cwd())
-        return gf.models[self.name]
+    objective = {
+        "maximize": "val_acc"
+    }
 
-    def _rename_model_and_op(self, data):
-        """Rename model and op in data provided by Keras plugin.
-
-        The Keras plugin uses the script name for the model and
-        'train' for the operation. We want to make sure our model is
-        named `self.name` and has an operation named `self.op_name`.
-        """
-        assert "model" in data, data
-        assert "train" in data.get("operations", {}), data
-        data["model"] = self.name
-        data["operations"][self.op_name] = data["operations"].pop("train")
-
-    @staticmethod
-    def _reenable_plugins(data):
-        data.pop("disable-plugins", None)
+    disable_plugins = []
 
 class KerasPlugin(pluginlib.Plugin):
 
@@ -70,7 +58,7 @@ class KerasPlugin(pluginlib.Plugin):
         script = python_util.Script(path)
         if not self.is_keras_script(script):
             return None
-        model = KerasScriptModelProxy(opspec, script)
+        model = KerasScriptModelProxy(opspec, script.src)
         return model, model.op_name
 
     def is_keras_script(self, script):
@@ -88,7 +76,6 @@ class KerasPlugin(pluginlib.Plugin):
 
         If fit is called, the last call is always returned, regardless
         of whether predict is called.
-
         """
         predict = None
         for call in reversed(script.calls):
@@ -97,76 +84,3 @@ class KerasPlugin(pluginlib.Plugin):
             elif call.name == "predict":
                 predict = call
         return predict
-
-    def script_model(self, script):
-        op_method = self._op_method(script)
-        assert op_method, "should be caught in is_keras_script"
-        if op_method.name == "fit":
-            return self._train_model(script, op_method)
-        elif op_method.name == "predict":
-            return self._predict_model(script)
-        else:
-            raise AssertionError(op_method)
-
-    def _train_model(self, script, fit):
-        return {
-            "model": script.name,
-            "operations": {
-                "train": {
-                    "main": (
-                        "guild.plugins.keras_op_main train %s" % script.src
-                    ),
-                    "description": "Train the model",
-                    "flags": {
-                        "epochs": {
-                            "description": "Number of epochs to train",
-                            "default": self._default_epochs(script, fit)
-                        },
-                        "batch_size": {
-                            "description": "Batch size per training step",
-                            "default": self._default_batch_size(script, fit)
-                        },
-                        "datasets": {
-                            "description": "Location of Keras datasets"
-                        }
-                    },
-                    "compare": [
-                        "loss step as step",
-                        "loss as loss",
-                        "acc as acc",
-                        "val_loss as val_loss",
-                        "val_acc as val_acc",
-                    ]
-                }
-            }
-        }
-
-    @staticmethod
-    def _default_epochs(script, fit):
-        return (
-            fit.kwarg_param("epochs") or
-            script.params.get("epochs") or
-            script.params.get("EPOCHS")
-        )
-
-    @staticmethod
-    def _default_batch_size(script, fit):
-        return (
-            fit.kwarg_param("batch_size") or
-            script.params.get("batch_size") or
-            script.params.get("BATCH_SIZE")
-        )
-
-    @staticmethod
-    def _predict_model(script):
-        return {
-            "model": script.name,
-            "operations": {
-                "predict": {
-                    "main": (
-                        "guild.plugins.keras_op_main predict %s" % script.src
-                    ),
-                    "description": "Use a trained model to make a prediction"
-                }
-            }
-        }

@@ -37,6 +37,7 @@ The files generated for our run:
     .guild/attrs/exit_status
     .guild/attrs/flags
     .guild/attrs/initialized
+    .guild/attrs/objective
     .guild/attrs/opdef
     .guild/attrs/random_seed
     .guild/attrs/run_params
@@ -45,6 +46,14 @@ The files generated for our run:
     .guild/opref
     .guild/output
     .guild/output.index
+    .guild/source/add.py
+    .guild/source/batch.csv
+    .guild/source/batch.json
+    .guild/source/batch.unknown
+    .guild/source/batch.yaml
+    .guild/source/guild.yml
+    .guild/source/say.py
+    .guild/source/tune.py
 
 Let's look at some of the generated files.
 
@@ -114,6 +123,7 @@ The latest run is the trial:
     .guild/attrs/flags
     .guild/attrs/initialized
     .guild/attrs/label
+    .guild/attrs/objective
     .guild/attrs/opdef
     .guild/attrs/optimizer
     .guild/attrs/random_seed
@@ -123,6 +133,14 @@ The latest run is the trial:
     .guild/opref
     .guild/output
     .guild/output.index
+    .guild/source/add.py
+    .guild/source/batch.csv
+    .guild/source/batch.json
+    .guild/source/batch.unknown
+    .guild/source/batch.yaml
+    .guild/source/guild.yml
+    .guild/source/say.py
+    .guild/source/tune.py
 
 The trial run has an `optimizer` attribute, which contains the full
 opspec for the associated optimizer. In this case, the optimizer is
@@ -160,11 +178,20 @@ Its files:
     .guild/proto/.guild/attrs/compare
     .guild/proto/.guild/attrs/flags
     .guild/proto/.guild/attrs/initialized
+    .guild/proto/.guild/attrs/objective
     .guild/proto/.guild/attrs/opdef
     .guild/proto/.guild/attrs/optimizer
     .guild/proto/.guild/attrs/random_seed
     .guild/proto/.guild/attrs/run_params
     .guild/proto/.guild/opref
+    .guild/proto/.guild/source/add.py
+    .guild/proto/.guild/source/batch.csv
+    .guild/proto/.guild/source/batch.json
+    .guild/proto/.guild/source/batch.unknown
+    .guild/proto/.guild/source/batch.yaml
+    .guild/proto/.guild/source/guild.yml
+    .guild/proto/.guild/source/say.py
+    .guild/proto/.guild/source/tune.py
     ...
 
 Note the additional `proto` directory. This contains the prototype for
