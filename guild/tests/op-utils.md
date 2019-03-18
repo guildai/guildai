@@ -37,10 +37,11 @@ Short form arguments are supported:
     >>> a2f(["-abar"])
     {'a': 'bar'}
 
-If multipe option args are specified, only the last is used:
+If multipe option args are specified, the subsequent args are ignored
+(note: these are available in `args_to_flags2` as 'extra' args).
 
     >>> a2f(["--foo", "abd", "def"])
-    {'foo': 'def'}
+    {'foo': 'abd'}
 
 If a negative number is specified as an option value, it is treated as
 a number and not as a short form option:
@@ -201,3 +202,45 @@ parsed verion equals the original value.
     ("['', a, 1, 1.0, 0.3333333333333333, yes, no, null]",
      ['', 'a', 1, 1.0, 0.3333333333333333, True, False, None],
      True)
+
+## Args to flags 2
+
+The function `args_to_flags2` returns flags along with any 'extra' arg
+-- i.e. args that can't be processed as flags.
+
+    >>> def a2f2(args):
+    ...   pprint(op_util.args_to_flags2(args))
+
+
+Empty list
+
+    >>> a2f2([])
+    ({}, [])
+
+A single non-option arg:
+
+    >>> a2f2(["foo"])
+    ({}, ['foo'])
+
+A series of non-option args:
+
+    >>> a2f2(["foo", "bar"])
+    ({}, ['foo', 'bar'])
+
+A starting option arg:
+
+    >>> a2f2(["--foo"])
+    ({'foo': True}, [])
+
+A starting option arg with value:
+
+    >>> a2f2(["--foo", "123"])
+    ({'foo': 123}, [])
+
+A case where an argument follows a flag spec:
+
+    >>> a2f2(["--foo", "123", "456"])
+    ({'foo': 123}, ['456'])
+
+    >>> a2f2(["foo", "--bar", "123"])
+    ({'bar': 123}, ['foo'])

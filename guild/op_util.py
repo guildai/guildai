@@ -382,7 +382,12 @@ def parse_op_args(args):
     return args[1], args[2:]
 
 def args_to_flags(args):
+    flags, _args = args_to_flags2(args)
+    return flags
+
+def args_to_flags2(args):
     flags = {}
+    extra = []
     name = None
     for arg in args:
         if arg[:2] == "--":
@@ -400,7 +405,17 @@ def args_to_flags(args):
                 flags[arg[1]] = arg[2:]
         elif name is not None:
             flags[name] = parse_arg_val(arg)
-    return flags
+            name = None
+        else:
+            extra.append(arg)
+    return flags, extra
+
+def global_dest(name, flags):
+    dest = cur = {}
+    for name in global_name.split("."):
+        cur = cur.setdefault(name, {})
+    cur.update(flags)
+    return dest
 
 def find_file(path):
     return util.find_apply([_cwd_file, _model_file], path)
