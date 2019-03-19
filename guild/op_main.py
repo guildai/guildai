@@ -173,20 +173,32 @@ def _flags_dest(args):
     if dest == "args":
         return dest, args, {}
     elif dest == "globals":
-        return dest, (), _args_to_flags(args)
+        return _globals_dest(args)
+    elif dest.startswith("global:"):
+        return _global_dest(args, dest[7:])
     else:
-        assert False, dest
+        _error("unsupported flags dest: %s" % dest)
 
-def _args_to_flags(args):
+def _globals_dest(args):
+    flags, extra_args = _split_args_and_flags(args)
+    return "globals", extra_args, flags
+
+def _split_args_and_flags(args):
     from guild import op_util
-    return op_util.args_to_flags(args)
+    return op_util.args_to_flags2(args)
+
+def _global_dest(args, global_name):
+    from guild import op_util
+    flags, extra_args = _split_args_and_flags(args)
+    global_dest = op_util.global_dest(global_name, flags)
+    return "globals", extra_args, global_dest
 
 def _dispatch_module_exec(flags_interface, module_info):
     dest, args, flags = flags_interface
     if dest == "args":
         _exec_module_with_args(module_info, args)
     elif dest == "globals":
-        _exec_module_with_globals(module_info, flags)
+        _exec_module_with_globals(module_info, flags, args)
     else:
         assert False, flags_interface
 
@@ -234,14 +246,9 @@ def _interrupt_handler():
             log_exception_f("interrupted")
     return handler
 
-def _exec_module_with_globals(module_info, globals):
-    _set_argv_for_module(module_info)
+def _exec_module_with_globals(module_info, globals, args):
+    _set_argv_for_module_with_args(module_info, args)
     _module_with_globals(module_info, globals)
-
-def _set_argv_for_module(module_info):
-    _, path, _ = module_info
-    sys.argv = [path]
-    log.debug("argv: %s", sys.argv)
 
 def _module_with_globals(module_info, globals):
     from guild import python_util
