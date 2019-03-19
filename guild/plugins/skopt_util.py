@@ -93,10 +93,9 @@ class State(object):
         for run in other_trial_runs:
             loss = self._run_loss(run)
             if loss is None:
-                log.warning(
-                    "could not get loss %r for run %s, ignoring",
-                    self.loss_desc, run.id)
-                continue
+                raise batch_util.BatchError(
+                    "could not get %r for run %s, quitting" %
+                    (self.loss_desc, run.id))
             self._try_apply_previous_trial(run, self.flag_names, loss, trials)
         return trials
 
