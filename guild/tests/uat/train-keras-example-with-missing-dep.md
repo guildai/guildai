@@ -22,5 +22,5 @@ Let's next attempt to train a Keras example.
     >>> run("guild run -y mnist_irnn.py", timeout=10, ignore="Refreshing")
     Traceback (most recent call last):
     ...
-    ImportError: No module named keras
+    ImportError: No module named ...keras...
     <exit 1>
