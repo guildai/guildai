@@ -296,10 +296,7 @@ def _col_data(run, col, index):
 
 def _table_header(table):
     header = []
-    # Build up headers from oldest run (bottom of table) first to
-    # ensure consistency in col ordering as new runs appear.
-    reversed_table = reversed(table)
-    for section in zip(*reversed_table):
+    for section in zip(*table):
         for row in section:
             for name, _val in row:
                 if name not in header:

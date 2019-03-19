@@ -320,10 +320,10 @@ Let's look at each run in turn.
 When we compare the runs:
 
     >>> project.compare()
-    [['run', 'operation',     'started', 'time', 'status',   'label', 'loss', 'acc'],
-     ['...', 'm4:evaluate',   '...',     '...',  'completed', None,   None,   0.5],
-     ['...', 'm4:train',      '...',     '...',  'completed', None,   1.0,    None],
-     ['...', 'm4:prepare',    '...',     '...',  'completed', None,   None,   None],
-     ['...', 'm4:end-to-end', '...',     '...',  'completed', None,   1.0,    0.5]]
+    [['run', 'operation',     'started', 'time', 'status',   'label', 'acc', 'loss'],
+     ['...', 'm4:evaluate',   '...',     '...',  'completed', None,   0.5,   None],
+     ['...', 'm4:train',      '...',     '...',  'completed', None,   None,  1.0],
+     ['...', 'm4:prepare',    '...',     '...',  'completed', None,   None,  None],
+     ['...', 'm4:end-to-end', '...',     '...',  'completed', None,   0.5,   1.0]]
 
 Note that `end-to-end` reflects the `loss` and `acc` of its steps.
