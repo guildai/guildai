@@ -375,5 +375,3 @@ exclude-protected=_asdict,_fields,_replace,_source,_make
 # Exceptions that will emit a warning when being caught. Defaults to
 # "Exception"
 overgeneral-exceptions=Exception
-
-Fundamental finished at Wed Mar 20 07:06:57
