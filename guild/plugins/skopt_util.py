@@ -178,6 +178,7 @@ def _native_python(l):
 
 def _patch_numpy_deprecation_warnings():
     warnings.filterwarnings("ignore", category=Warning)
+    # pylint: disable=unused-variable
     import numpy.core.umath_tests
 
 def default_main(seq_trial_cb, non_repeating=True):

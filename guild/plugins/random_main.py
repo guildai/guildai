@@ -74,6 +74,7 @@ def _gen_trial_vals(dims, num_trials, random_seed):
 
 def _patch_numpy_deprecation_warnings():
     warnings.filterwarnings("ignore", category=Warning)
+    # pylint: disable=unused-variable
     import numpy.core.umath_tests
 
 if __name__ == "__main__":

@@ -66,9 +66,6 @@ class RunsMonitor(util.RunsMonitor):
 
     tfevent_pattern = re.compile(r"\.tfevents")
 
-    def _create_run_link(self, run_dir, link):
-        util.ensure_dir(link)
-
     def _refresh_run_link(self, link, run_dir):
         to_delete = [
             os.path.relpath(p, link)

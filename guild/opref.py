@@ -121,8 +121,8 @@ def _maybe_quote(s):
         return "'{}'".format(s)
     return s
 
-def _opref_cmp(self, compare_to):
-    return cmp(str(self), str(compare_to))
+def _opref_lt(self, compare_to):
+    return str(self) < str(compare_to)
 
 def _opref_to_opspec(opref):
     spec_parts = []
@@ -139,5 +139,5 @@ OpRef.parse = staticmethod(_opref_parse)
 OpRef.from_string = staticmethod(_opref_from_string)
 OpRef.is_op_run = _opref_is_op_run
 OpRef.__str__ = _opref_to_string
-OpRef.__cmp__ = _opref_cmp
+OpRef.__lt__ = _opref_lt
 OpRef.to_opspec = _opref_to_opspec

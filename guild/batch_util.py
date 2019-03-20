@@ -168,7 +168,7 @@ class SeqTrial(Trial):
         self.init_trial_cb = init_trial_cb
         super(SeqTrial, self).__init__(batch, **kw)
 
-    def init(self, *args, **kw):
+    def init(self, run_dir=None, quiet=False):
         """Initialize a sequential trial.
 
         We use `self.init_trial_cb` to perform additional trial
@@ -177,7 +177,7 @@ class SeqTrial(Trial):
         result = self.init_trial_cb(self, self.state)
         assert isinstance(result, tuple) and len(result) == 2
         self.flags, self.attrs = result
-        super(SeqTrial, self).init(*args, **kw)
+        super(SeqTrial, self).init(run_dir, quiet)
 
 ###################################################################
 # Batch
