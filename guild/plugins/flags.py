@@ -262,7 +262,8 @@ class FlagsPlugin(Plugin):
         if imports is IMPLICIT_ALL_FLAGS:
             return data
         return {
-            name: data[name] for name in data if name in imports
+            name: data[name] for name in data
+            if imports == "all" or name in imports
         }
 
     def _apply_import_data(self, flag_import_data, op_data):
