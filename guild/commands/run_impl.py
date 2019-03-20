@@ -1027,13 +1027,13 @@ def _batch_suffix(op, args):
         parts.append(" in a batch")
     else:
         parts.append(" with %s optimizer" % op.batch_op.opdef.name)
-    max_trials = args.max_trials or op.batch_op.opdef.default_max_trials
-    if max_trials is None:
-        parts.append(" (unknown number of trials)")
-    elif max_trials == 1:
-        parts.append(" (max 1 trial)")
-    else:
-        parts.append(" (max %s trials)" % max_trials)
+        max_trials = args.max_trials or op.batch_op.opdef.default_max_trials
+        if max_trials is None:
+            parts.append(" (unknown number of trials)")
+        elif max_trials == 1:
+            parts.append(" (max 1 trial)")
+        else:
+            parts.append(" (max %s trials)" % max_trials)
     return "".join(parts)
 
 def _remote_suffix(args):
