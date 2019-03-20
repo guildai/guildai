@@ -291,6 +291,10 @@ class FlagsPlugin(Plugin):
 
     @staticmethod
     def _apply_import_flag(flag_import_data, op_flag_data):
+        if not isinstance(flag_import_data, dict):
+            flag_import_data = {
+                "default": flag_import_data
+            }
         for name, val in flag_import_data.items():
             if name not in op_flag_data:
                 op_flag_data[name] = val
