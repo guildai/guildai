@@ -104,7 +104,12 @@ class FlagsPlugin(Plugin):
         else:
             if not isinstance(flags_data, dict):
                 return None
-            return flags_data.pop("$import", None)
+            try:
+                return flags_data.pop("$import")
+            except KeyError:
+                # No explicit import, assume import of all defined
+                # flags
+                return list(flags_data)
 
     def _try_apply_imports(self, flags_import, op_data, local_cache):
         import_data = self._import_data(flags_import, op_data, local_cache)
@@ -263,7 +268,7 @@ class FlagsPlugin(Plugin):
             return data
         return {
             name: data[name] for name in data
-            if imports == "all" or name in imports
+            if name == "$dest" or imports == "all" or name in imports
         }
 
     def _apply_import_data(self, flag_import_data, op_data):

@@ -3,7 +3,6 @@ noisy:
   main: noisy
   disable-plugins: all
   flags:
-    $dest: globals
     x:
       description: Input to noisy function
       default: 0.2
@@ -30,7 +29,6 @@ echo:
   description: Prints x, y, z flags
   disable-plugins: all
   flags:
-    $dest: globals
     x:
       description: X value to print
       default: 1.0
@@ -57,7 +55,6 @@ poly:
     gaussian: gp
     trees: forest
   flags:
-    $dest: globals
     x:
       min: -6.0
       max: 5.0

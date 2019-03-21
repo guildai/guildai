@@ -38,7 +38,8 @@ of flags.
 We can use `echo` as our operation (we won't actually run the
 operation - it's just used for generating trials).
 
-    >>> gf = guildfile.from_dir(project)
+    >>> with SysPath(append=[project]):
+    ...    gf = guildfile.from_dir(project)
     >>> echo_op = gf.default_model.get_operation("echo")
 
     >>> echo_op.name

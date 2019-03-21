@@ -77,7 +77,7 @@ Next we'll run train again, generating a more recent train op.
 
     >>> project.run("train", flags={"lr": 0.01})
     params:
-     lr=0.100000
+     lr=0.010000
     loss: ...
     Saving model as ./trained-model
 

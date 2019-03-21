@@ -876,7 +876,7 @@ class OpDef(object):
 
 def _init_flags(data, opdef):
     data = _resolve_includes(data, "flags", opdef.modeldef.guildfile_path)
-    flags_dest = data.pop("$dest", "args")
+    flags_dest = data.pop("$dest", None)
     flags = [FlagDef(name, data[name], opdef) for name in sorted(data)]
     return flags, flags_dest
 
