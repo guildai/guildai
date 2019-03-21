@@ -257,18 +257,18 @@ within its parent.
 
 Top-level dest named "foo" with no flags:
 
-    >>> op_util.global_dest("foo", {})
+    >>> global_dest("foo", {})
     {'foo': {}}
 
 Same top-level with flags:
 
-    >>> op_util.global_dest("foo", {"a": 1, "b": 2})
+    >>> global_dest("foo", {"a": 1, "b": 2})
     {'foo': {'a': 1, 'b': 2}}
 
 Multi-level dest:
 
-    >>> op_util.global_dest("foo.bar", {"a": 1, "b": 2})
+    >>> global_dest("foo.bar", {"a": 1, "b": 2})
     {'foo': {'bar': {'a': 1, 'b': 2}}}
 
-    >>> op_util.global_dest("foo.bar.baz", {"a": 1, "b": 2})
+    >>> global_dest("foo.bar.baz", {"a": 1, "b": 2})
     {'foo': {'bar': {'baz': {'a': 1, 'b': 2}}}}
