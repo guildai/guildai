@@ -36,6 +36,7 @@ tests).
       includes:                    ok
       index2:                      ok
       init:                        ok
+      keras:                       ok
       logging:                     ok
       ls-cmd:                      ok
       main-bootstrap:              ok

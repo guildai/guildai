@@ -18,7 +18,6 @@ Use `iter_plugins` to iterate through the list of available plugins:
     [('cpu', <guild.plugins.cpu.CPUPlugin ...>),
      ('disk', <guild.plugins.disk.DiskPlugin ...>),
      ('exec_script', <guild.plugins.exec_script.ExecScriptPlugin ...>),
-     ('flags', <guild.plugins.flags.FlagsPlugin ...>),
      ('gpu', <guild.plugins.gpu.GPUPlugin ...>),
      ('keras', <guild.plugins.keras.KerasPlugin ...>),
      ('memory', <guild.plugins.memory.MemoryPlugin ...>),

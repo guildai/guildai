@@ -154,7 +154,6 @@
     guild.plugins.cpu
     guild.plugins.disk
     guild.plugins.exec_script
-    guild.plugins.flags
     guild.plugins.gpu
     guild.plugins.import_argparse_flags_main
     guild.plugins.keras

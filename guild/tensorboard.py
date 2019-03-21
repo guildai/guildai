@@ -91,7 +91,7 @@ class RunsMonitor(util.RunsMonitor):
 
     @staticmethod
     def _remove_run_link(link):
-        util.safe_rmtree(link)
+        os.remove(link)
 
 def create_app(logdir, reload_interval, path_prefix=""):
     try:
