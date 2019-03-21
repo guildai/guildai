@@ -11,7 +11,8 @@ Support for guild files is provided by the `guildfile` module:
 
 Use `from_dir` to load a guild file from a directory:
 
-    >>> gf = guildfile.from_dir(sample("projects/mnist-pkg"))
+    >>> project = sample("projects/mnist-pkg")
+    >>> gf = guildfile.from_dir(project)
     >>> gf.src
     '.../samples/projects/mnist-pkg/guild.yml'
 
@@ -31,7 +32,7 @@ Models are access using the `models` attribute:
 
 We can lookup a models using dictionary semantics:
 
-    >>> gf.models["intro"]
+    >> gf.models["intro"]
     <guild.guildfile.ModelDef 'intro'>
 
     >>> gf.models.get("intro")
@@ -213,7 +214,7 @@ value. We can read the flag values using `get_flag_value`:
     >>> intro_train.get_flag_value("batch-size")
     100
 
-    >> intro_train.get_flag_value("epochs")
+    >>> intro_train.get_flag_value("epochs")
     10
 
 These values can be modified without effecting the flag definitions.
@@ -783,10 +784,9 @@ Here's a guild file that defines a model that extends another:
     ...   description: A trainable model
     ...   operations:
     ...     train:
-    ...       main: train
+    ...       exec: train
     ...       flags:
     ...         batch-size: 32
-    ...
     ... - model: model-1
     ...   extends: trainable
     ... """)
@@ -815,7 +815,7 @@ models.
     ...   description: A trainable model
     ...   operations:
     ...     train:
-    ...       main: train
+    ...       exec: train
     ...       flags:
     ...         batch-size: 32
     ...
@@ -823,7 +823,7 @@ models.
     ...   description: An evaluatable model
     ...   operations:
     ...     evaluate:
-    ...       main: train --test
+    ...       exec: train --test
     ...
     ... - model: model-1
     ...   description: A trainable, evaluatable model
@@ -877,7 +877,7 @@ model:
     ... - model: a
     ...   operations:
     ...     train:
-    ...       main: train
+    ...       exec: train
     ...       flags:
     ...         f1:
     ...           description: f1 in a
@@ -897,7 +897,7 @@ model:
     ...           description: f2 in b
     ...           default: 22
     ...     eval:
-    ...       main: eval
+    ...       exec: eval
     ... - model: c
     ...   extends: b
     ...   operations:

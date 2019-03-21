@@ -91,6 +91,7 @@ def _uat_and_exit():
     sys.exit(0)
 
 def _run_tests(check):
+    os.environ["NO_IMPORT_FLAGS_PROGRESS"] = "1"
     if check.args.all_tests:
         if check.args.tests:
             log.warning(

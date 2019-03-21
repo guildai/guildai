@@ -25,6 +25,7 @@ import sys
 import six
 
 from guild import cli
+from guild import config as configlib
 from guild import op_util
 from guild import python_util
 from guild import util
@@ -39,13 +40,15 @@ class DataLoadError(Exception):
 
 class FlagsPlugin(Plugin):
 
-    def guildfile_data(self, data, _src):
+    def guildfile_data(self, data, src):
         local_cache = {}
         for op_data in self._iter_ops_with_main(data):
             self._coerce_flags_import_list(op_data)
             flags_import = self._pop_flags_import(op_data)
             if flags_import is IMPLICIT_ALL_FLAGS or flags_import:
-                self._try_apply_imports(flags_import, op_data, local_cache)
+                gf_dir = self._gf_dir_from_src(src)
+                self._try_apply_imports(
+                    flags_import, op_data, gf_dir, local_cache)
 
     def _iter_ops_with_main(self, data):
         if isinstance(data, dict):
@@ -111,23 +114,30 @@ class FlagsPlugin(Plugin):
                 # flags
                 return list(flags_data)
 
-    def _try_apply_imports(self, flags_import, op_data, local_cache):
-        import_data = self._import_data(flags_import, op_data, local_cache)
+    @staticmethod
+    def _gf_dir_from_src(src):
+        if os.path.exists(src):
+            return os.path.dirname(src)
+        return configlib.cwd()
+
+    def _try_apply_imports(self, flags_import, op_data, gf_dir, local_cache):
+        import_data = self._import_data(
+            flags_import, op_data, gf_dir, local_cache)
         if import_data:
             self._apply_import_data(import_data, op_data)
 
-    def _import_data(self, imports, op_data, local_cache):
+    def _import_data(self, imports, op_data, gf_dir, local_cache):
         main_mod = op_util.split_main(op_data.get("main"))[0]
         try:
             flags_data = local_cache[main_mod]
         except KeyError:
-            flags_data = self._flags_data(main_mod, imports)
+            flags_data = self._flags_data(main_mod, imports, gf_dir)
             local_cache[main_mod] = flags_data
         return self._filter_flags(flags_data, imports)
 
-    def _flags_data(self, main_mod, imports):
+    def _flags_data(self, main_mod, imports, gf_dir):
         try:
-            sys_path, mod_path = self._find_module(main_mod)
+            sys_path, mod_path = self._find_module(main_mod, gf_dir)
         except ImportError as e:
             # Log warning only if imports are explicit - i.e. user
             # expects a specific list
@@ -209,8 +219,8 @@ class FlagsPlugin(Plugin):
             return {}
         return json.loads(out)
 
-    def _find_module(self, main_mod):
-        main_mod_sys_path, module = self._split_module(main_mod)
+    def _find_module(self, main_mod, gf_dir):
+        main_mod_sys_path, module = self._split_module(main_mod, gf_dir)
         # Copied from guild.op_main
         parts = module.split(".")
         module_path = parts[0:-1]
@@ -230,11 +240,11 @@ class FlagsPlugin(Plugin):
         raise ImportError("No module named %s" % main_mod)
 
     @staticmethod
-    def _split_module(main_mod):
+    def _split_module(main_mod, gf_dir):
         parts = main_mod.rsplit("/", 1)
         if len(parts) == 1:
-            return ".", parts[0]
-        return parts
+            parts = ".", parts[0]
+        return os.path.join(gf_dir, parts[0]), parts[1]
 
     def _cached_data(self, mod_path):
         cached_path = self._cached_data_path(mod_path)
@@ -273,20 +283,20 @@ class FlagsPlugin(Plugin):
 
     def _apply_import_data(self, flag_import_data, op_data):
         for flag_name, flag_data in flag_import_data.items():
-            try:
-                op_flags = op_data["flags"]
-            except KeyError:
-                op_flags = op_data["flags"] = {}
+            op_flags = op_data.setdefault("flags", {})
             try:
                 op_flag_data = op_flags[flag_name]
             except KeyError:
                 op_flags[flag_name] = flag_data
             else:
-                if not isinstance(op_flag_data, dict):
-                    # Coerce default value to full data
-                    op_flag_data = {"default": op_flag_data}
+                if flag_name.startswith("$"):
                     op_flags[flag_name] = op_flag_data
-                self._apply_import_flag(flag_data, op_flag_data)
+                else:
+                    if not isinstance(op_flag_data, dict):
+                        # Coerce default value to full data
+                        op_flag_data = {"default": op_flag_data}
+                        op_flags[flag_name] = op_flag_data
+                    self._apply_import_flag(flag_data, op_flag_data)
 
     @staticmethod
     def _coerce_flag_data(data):

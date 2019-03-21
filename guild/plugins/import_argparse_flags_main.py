@@ -12,72 +12,74 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
-import imp
-import json
-import logging
-import os
-import sys
+# The odd naming convention below is to minimize the changes of
+# colliding with symbols in the imported module.
 
-from guild import python_util
+import argparse as ___argparse
+import imp as ___imp
+import json as ___json
+import logging as ___logging
+import os as ___os
+import sys as ___sys
 
-FLAGS = {}
-MOD_INFO = None
+from guild import python_util as ___python_util
 
-action_types = (
-    argparse._StoreAction,
-    argparse._StoreTrueAction,
-    argparse._StoreFalseAction,
+___FLAGS = {}
+
+___action_types = (
+    ___argparse._StoreAction,
+    ___argparse._StoreTrueAction,
+    ___argparse._StoreFalseAction,
 )
 
-def _init_log():
-    level = int(os.getenv("LOG_LEVEL", logging.WARN))
-    format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
-    logging.basicConfig(level=level, format=format)
-    return logging.getLogger("import_flags_main")
+def ___init_log():
+    level = int(___os.getenv("LOG_LEVEL", ___logging.WARN))
+    format = ___os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
+    ___logging.basicConfig(level=level, format=format)
+    return ___logging.getLogger("import_flags_main")
 
-log = _init_log()
+___log = ___init_log()
 
-def main():
-    args = _init_args()
-    _patch_argparse(args.output_path)
+def ___main():
+    args = ___init_args()
+    ___patch_argparse(args.output_path)
     # Importing module has the side-effect of writing flag data due to
     # patched argparse
-    _exec_module(args.mod_path)
+    ___exec_module(args.mod_path)
 
-def _init_args():
-    p = argparse.ArgumentParser()
+def ___init_args():
+    p = ___argparse.ArgumentParser()
     p.add_argument("mod_path")
     p.add_argument("output_path")
     return p.parse_args()
 
-def _patch_argparse(output_path):
-    python_util.listen_method(
-        argparse.ArgumentParser,
-        "add_argument", _handle_add_argument)
-    _handle_parse = lambda *args, **kw: _write_flags_and_exit(output_path)
+def ___patch_argparse(output_path):
+    ___python_util.listen_method(
+        ___argparse.ArgumentParser,
+        "add_argument", ___handle_add_argument)
+    ___handle_parse = lambda *args, **kw: ___write_flags_and_exit(output_path)
     # parse_known_args is called by parse_args, so this handled both
     # cases.
-    python_util.listen_method(
-        argparse.ArgumentParser,
+    ___python_util.listen_method(
+        ___argparse.ArgumentParser,
         "parse_known_args",
-        _handle_parse)
+        ___handle_parse)
 
-def _handle_add_argument(add_argument, *args, **kw):
-    log.debug("handling add_argument: %s %s", args, kw)
+def ___handle_add_argument(add_argument, *args, **kw):
+    ___log.debug("handling add_argument: %s %s", args, kw)
     action = add_argument(*args, **kw)
-    _maybe_flag(action)
-    raise python_util.Result(action)
+    ___maybe_flag(action)
+    raise ___python_util.Result(action)
 
-def _maybe_flag(action):
-    flag_name = _flag_name(action)
+def ___maybe_flag(action):
+    flag_name = ___flag_name(action)
     if not flag_name:
-        log.debug("skipping %s - not a flag option", action)
+        ___log.debug("skipping %s - not a flag option", action)
         return
-    if not isinstance(action, action_types):
-        log.debug("skipping %s - not an action type", action)
+    if not isinstance(action, ___action_types):
+        ___log.debug("skipping %s - not an action type", action)
         return
-    FLAGS[flag_name] = attrs = {}
+    ___FLAGS[flag_name] = attrs = {}
     if action.help:
         attrs["description"] = action.help
     if action.default is not None:
@@ -86,33 +88,33 @@ def _maybe_flag(action):
         attrs["choices"] = action.choices
     if action.required:
         attrs["required"] = True
-    if isinstance(action, argparse._StoreTrueAction):
+    if isinstance(action, ___argparse._StoreTrueAction):
         attrs["arg-switch"] = True
-    elif isinstance(action, argparse._StoreFalseAction):
+    elif isinstance(action, ___argparse._StoreFalseAction):
         attrs["arg-switch"] = False
-    log.debug("added flag %s", attrs)
+    ___log.debug("added flag %s", attrs)
 
-def _flag_name(action):
+def ___flag_name(action):
     for opt in action.option_strings:
         if opt.startswith("--"):
             return opt[2:]
     return None
 
-def _write_flags_and_exit(output_path):
-    log.debug("writing flags to %s: %s", output_path, FLAGS)
+def ___write_flags_and_exit(output_path):
+    ___log.debug("writing flags to %s: %s", output_path, ___FLAGS)
     with open(output_path, "w") as f:
-        json.dump(FLAGS, f)
+        ___json.dump(___FLAGS, f)
 
-def _exec_module(mod_path):
+def ___exec_module(mod_path):
     assert mod_path.endswith(".py")
     f = open(mod_path, "r")
     details = (".py", "r", 1)
-    sys.argv = [mod_path, "--help"]
-    log.debug("loading module from '%s'", mod_path)
+    ___sys.argv = [mod_path, "--help"]
+    ___log.debug("loading module from '%s'", mod_path)
     try:
-        imp.load_module("__main__", f, mod_path, details)
+        ___imp.load_module("__main__", f, mod_path, details)
     except Exception as e:
         raise SystemExit(e)
 
 if __name__ == "__main__":
-    main()
+    ___main()

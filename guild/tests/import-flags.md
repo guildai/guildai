@@ -17,49 +17,11 @@ For our tests, we'll use a helper function to print flag attributes.
     ...         print("choices: {}".format([c.value for c in flag.choices]))
     ...     print("default: {}".format(flag.default))
 
-When `$import` is used, any referenced main modules must be available
-on the system path. If it's not, the Guild file will still load, but a
-warning message is logged.
+Load the guild file:
 
-NOTE: We need to preemptively load the flags plugin to register its
-logger prior to capturing logs:
+    >>> gf = guildfile.from_dir(project_dir, no_cache=True)
 
-    >>> from guild import plugin
-    >>> plugin.for_name("flags")
-    <guild.plugins.flags.FlagsPlugin object ...>
-
-Let's load the sample project:
-
-    >>> with LogCapture() as log:
-    ...     gf = guildfile.from_dir(project_dir)
-    ...     log.print_all()
-    WARNING: cannot import flags from main: No module named main
-    WARNING: cannot import flags from main2: No module named main2
-
-In this case, we have a loaded Guild file:
-
-    >>> gf
-    <guild.guildfile.Guildfile '.../samples/projects/flags/guild.yml'>
-
-The flags for the `import-1` operation are empty - the referenced
-flags could not be imported:
-
-    >>> gf.models["test"].get_operation("import-1").flags
-    []
-
-Let's now include the project directory in the system path. First
-we'll set NO_IMPORT_FLAGS_PROGRESS to squelch any progress messages to
-the user:
-
-    >>> import os
-    >>> os.environ["NO_IMPORT_FLAGS_PROGRESS"] = "1"
-
-Next load with the modified system path:
-
-    >>> with SysPath(prepend=[project_dir]):
-    ...    gf = guildfile.from_dir(project_dir, no_cache=True)
-
-The flags for `import-1` are now:
+Flags for `import-1`:
 
     >>> gf.models["test"].get_operation("import-1").flags
     [<guild.guildfile.FlagDef 'bar'>,

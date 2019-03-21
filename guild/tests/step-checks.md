@@ -10,6 +10,7 @@ The project has two public operations and a number of private
 operation (i.e. operations starting with `_`).
 
     >>> gf = guildfile.from_dir(project.cwd)
+
     >>> gf.models
     {'': <guild.guildfile.ModelDef ''>}
 
