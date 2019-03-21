@@ -142,7 +142,7 @@ def maybe_log_accuracy(step, last_training_batch):
 def evaluate(step, data, writer, name):
     accuracy_val, summary = sess.run([accuracy, summaries], data)
     writer.add_summary(summary, step)
-    print "Step %i: %s=%f" % (step, name, accuracy_val)
+    print("Step %i: %s=%f" % (step, name, accuracy_val))
 
 def maybe_save_model(step):
     epoch_step = mnist.train.num_examples / FLAGS.batch_size
@@ -150,7 +150,7 @@ def maybe_save_model(step):
         save_model()
 
 def save_model():
-    print "Saving trained model"
+    print("Saving trained model")
     tf.gfile.MakeDirs(FLAGS.run_dir + "/model")
     tf.train.Saver().save(sess, FLAGS.run_dir + "/model/export")
 
@@ -169,7 +169,7 @@ def init_exported_collections():
 def test():
     data = {x: mnist.test.images, y_: mnist.test.labels}
     test_accuracy = sess.run(accuracy, data)
-    print "Test accuracy=%f" % test_accuracy
+    print("Test accuracy=%f" % test_accuracy)
 
 if __name__ == "__main__":
     init_flags()
