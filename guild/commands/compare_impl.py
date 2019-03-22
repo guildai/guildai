@@ -20,6 +20,7 @@ import itertools
 import logging
 import os
 import sys
+import warnings
 
 from guild import cli
 from guild import config
@@ -155,10 +156,12 @@ def _try_init_tf_logging():
     we can patch loggers with LogCapture (see guild.tabview module)
     for display in a curses window.
     """
-    try:
-        import tensorflow as _
-    except ImportError:
-        pass
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        try:
+            import tensorflow as _
+        except ImportError:
+            pass
 
 def _runs_for_args(args):
     runs = runs_impl.runs_for_args(args)
