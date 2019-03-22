@@ -365,7 +365,13 @@ class S3Remote(remotelib.Remote):
         raise NotImplementedError("TODO")
 
     def run_info(self, **opts):
-        raise NotImplementedError("TODO")
+        self._verify_creds_and_region()
+        self._sync_runs_meta()
+        args = click_util.Args(**opts)
+        args.archive = self._runs_dir
+        args.remote = None
+        args.private_attrs = False
+        runs_impl.run_info(args, None)
 
     def one_run(self, run_id_prefix, attrs):
         raise NotImplementedError("TODO")
