@@ -36,6 +36,7 @@ The files generated for our run:
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/flags
+    .guild/attrs/host
     .guild/attrs/initialized
     .guild/attrs/objective
     .guild/attrs/opdef
@@ -43,6 +44,7 @@ The files generated for our run:
     .guild/attrs/run_params
     .guild/attrs/started
     .guild/attrs/stopped
+    .guild/attrs/user
     .guild/opref
     .guild/output
     .guild/output.index
@@ -121,6 +123,7 @@ The latest run is the trial:
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/flags
+    .guild/attrs/host
     .guild/attrs/initialized
     .guild/attrs/label
     .guild/attrs/objective
@@ -130,6 +133,7 @@ The latest run is the trial:
     .guild/attrs/run_params
     .guild/attrs/started
     .guild/attrs/stopped
+    .guild/attrs/user
     .guild/opref
     .guild/output
     .guild/output.index
@@ -164,12 +168,14 @@ Its files:
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/flags
+    .guild/attrs/host
     .guild/attrs/initialized
     .guild/attrs/opdef
     .guild/attrs/random_seed
     .guild/attrs/run_params
     .guild/attrs/started
     .guild/attrs/stopped
+    .guild/attrs/user
     .guild/opref
     .guild/output
     .guild/output.index
@@ -177,12 +183,14 @@ Its files:
     .guild/proto/.guild/attrs/cmd
     .guild/proto/.guild/attrs/compare
     .guild/proto/.guild/attrs/flags
+    .guild/proto/.guild/attrs/host
     .guild/proto/.guild/attrs/initialized
     .guild/proto/.guild/attrs/objective
     .guild/proto/.guild/attrs/opdef
     .guild/proto/.guild/attrs/optimizer
     .guild/proto/.guild/attrs/random_seed
     .guild/proto/.guild/attrs/run_params
+    .guild/proto/.guild/attrs/user
     .guild/proto/.guild/opref
     .guild/proto/.guild/source/add.py
     .guild/proto/.guild/source/batch.csv
