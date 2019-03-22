@@ -14,7 +14,7 @@ These tests run various hello operations remotely.
     ...
     Installing collected packages: hello
     Successfully installed hello-0.0.0
-    Starting remote operation
+    Starting remote operation...
     Hello Guild!
     Run ... stopped with a status of 'completed'
     <exit 0>
@@ -29,7 +29,7 @@ These tests run various hello operations remotely.
     ...
     Installing collected packages: hello
     Successfully installed hello-0.0.0
-    Starting remote operation
+    Starting remote operation...
     Howdy Guild!
     Run ... stopped with a status of 'completed'
     <exit 0>
