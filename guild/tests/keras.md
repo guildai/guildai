@@ -39,11 +39,11 @@ Operation details:
      <guild.guildfile.FlagDef 'lr_decay'>]
 
     >>> pprint(opdef.flag_values())
-    {u'batch_size': 128,
-     u'dropout': 0.2,
-     u'epochs': 5,
-     u'lr': 0.001,
-     u'lr_decay': 0.0}
+    {...'batch_size': 128,
+     ...'dropout': 0.2,
+     ...'epochs': 5,
+     ...'lr': 0.001,
+     ...'lr_decay': 0.0}
 
     >>> opdef.compare
     ['=batch_size',
@@ -97,14 +97,14 @@ Flag defs:
      <guild.guildfile.FlagDef 'lr'>,
      <guild.guildfile.FlagDef 'lr_decay'>]
 
- Flag vals:
+Flag vals:
 
     >>> pprint(opdef2.flag_values())
-    {u'batch_size': 128,
-     u'dropout': 0.2,
-     u'epochs': 5,
-     u'lr': 0.001,
-     u'lr_decay': 0.0}
+    {...'batch_size': 128,
+     ...'dropout': 0.2,
+     ...'epochs': 5,
+     ...'lr': 0.001,
+     ...'lr_decay': 0.0}
 
     >>> opdef.flag_values() == opdef2.flag_values()
     True
