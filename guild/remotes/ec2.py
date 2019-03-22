@@ -39,6 +39,7 @@ class EC2Remote(ssh_remote.SSHRemote):
         self.region = config["region"]
         self.ami = config["ami"]
         self.instance_type = config["instance-type"]
+        self.root_device_size = config.get("root-device-size")
         self.public_key = config.get("public-key")
         self.private_key = config.get("private-key")
         self.init = config.get("init")
@@ -213,6 +214,10 @@ class EC2Remote(ssh_remote.SSHRemote):
                 ]
             }
         }
+        if self.root_device_size:
+            instance[remote_key]["root_block_device"] = {
+                "volume_size": self.root_device_size
+            }
         output = {
             "host": {
                 "value": "${aws_instance.%s.public_dns}" % remote_key
