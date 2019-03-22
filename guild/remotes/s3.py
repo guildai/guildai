@@ -90,6 +90,7 @@ class S3Remote(remotelib.Remote):
             self._s3_uri(),
             self.local_sync_dir,
             "--exclude", "*",
+            "--include", "*/.guild/opref",
             "--include", "*/.guild/attrs/*",
             "--include", "*/.guild/LOCK*",
             "--include", "meta-id",
