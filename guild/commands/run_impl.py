@@ -915,7 +915,7 @@ def _invalid_flag_choice_error(e):
     cli.error()
 
 def _invalid_flag_value_error(e):
-    cli.error("invalid value for '%s': %s" % (e.flag.name, e.msg))
+    cli.error("invalid value for %s: %s" % (e.flag.name, e.msg))
 
 ###################################################################
 # Print op cmd

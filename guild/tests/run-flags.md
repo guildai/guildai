@@ -174,7 +174,7 @@ exist.
     {'f': None}
 
     >>> flags("existing-path", {"f": "/not-existing"})
-    invalid value for 'f': /not-existing does not exist
+    invalid value for f: /not-existing does not exist
     <exit>
 
 Undefined flags generate an error:
