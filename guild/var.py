@@ -55,10 +55,10 @@ def remote_dir(name=None):
     config_path = config.user_config_path()
     return os.path.join(os.path.dirname(config_path), "remotes", name)
 
-def runs(root=None, sort=None, filter=None, run_init=None):
+def runs(root=None, sort=None, filter=None):
     root = root or runs_dir()
     filter = filter or (lambda _: True)
-    runs = [run for run in _all_runs(root, run_init) if filter(run)]
+    runs = [run for run in _all_runs(root) if filter(run)]
     if sort:
         runs = sorted(runs, key=_run_sort_key(sort))
     return runs
@@ -87,13 +87,9 @@ def run_filter(name, *args):
         raise ValueError(name)
     return maybe_negate(filter)
 
-def _all_runs(root, run_init):
-    return [run for run in _all_init_runs(root, run_init) if run]
-
-def _all_init_runs(root, run_init):
-    run_init = run_init if run_init else lambda x: x
+def _all_runs(root):
     return [
-        run_init(guild.run.Run(name, path))
+        guild.run.Run(name, path)
         for name, path in _iter_dirs(root)
     ]
 
