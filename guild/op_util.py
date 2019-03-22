@@ -500,6 +500,7 @@ def _check_flag_vals(vals, opdef):
         val = vals.get(flag.name)
         _check_flag_choice(val, flag)
         _check_flag_type(val, flag)
+        _check_flag_range(val, flag)
 
 def _check_flag_choice(val, flag):
     if (val and flag.choices and not flag.allow_other and
@@ -510,6 +511,16 @@ def _check_flag_type(val, flag):
     if flag.type == "existing-path":
         if val and not os.path.exists(val):
             raise InvalidFlagValue(val, flag, "%s does not exist" % val)
+
+def _check_flag_range(val, flag):
+    if val is None:
+        return
+    if flag.min is not None and val < flag.min:
+        raise InvalidFlagValue(
+            val, flag, "out of range (less than min %s)" % flag.min)
+    if flag.max is not None and val > flag.max:
+        raise InvalidFlagValue(
+            val, flag, "out of range (greater than max %s)" % flag.max)
 
 def copy_source(run, opdef):
     _copy_source(

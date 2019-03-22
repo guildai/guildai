@@ -272,3 +272,128 @@ Multi-level dest:
 
     >>> global_dest("foo.bar.baz", {"a": 1, "b": 2})
     {'foo': {'bar': {'baz': {'a': 1, 'b': 2}}}}
+
+## Coerce flag vals
+
+The function `coerce_flag_value` is used to coerce flag values into
+legal values based on a flag definition.
+
+To illustrate, we'll use a helper function:
+
+    >>> def coerce(val, **kw):
+    ...     from guild.guildfile import FlagDef
+    ...     flagdef = FlagDef("test", kw, None)
+    ...     return op_util.coerce_flag_value(val, flagdef)
+
+Floats:
+
+    >>> coerce(1, type="float")
+    1.0
+
+    >>> coerce("1", type="float")
+    1.0
+
+    >>> coerce("1.1", type="float")
+    1.1
+
+    >>> coerce("nan", type="float")
+    nan
+
+    >>> coerce("invalid", type="float")
+    Traceback (most recent call last):
+    ValueError: invalid value for type 'float'
+
+Ints:
+
+    >>> coerce(1, type="int")
+    1
+
+    >>> coerce(1.0, type="int")
+    Traceback (most recent call last):
+    ValueError: invalid value for type 'int'
+
+    >>> coerce("1", type="int")
+    1
+
+    >>> coerce("invalid", type="int")
+    Traceback (most recent call last):
+    ValueError: invalid value for type 'int'
+
+Numbers (int or float):
+
+    >>> coerce(1, type="number")
+    1
+
+    >>> coerce(1.0, type="number")
+    1.0
+
+    >>> coerce("invalid", type="number")
+    Traceback (most recent call last):
+    ValueError: invalid value for type 'number'
+
+Lists of values:
+
+    >>> coerce([1, 1.0], type="number")
+    [1, 1.0]
+
+    >>> coerce([1, 1.0, "invalid"], type="number")
+    Traceback (most recent call last):
+    ValueError: invalid value for type 'number'
+
+## Validating flag vals
+
+We can validate a list of flag values against an operation def using
+`validate_flag_vals`.
+
+Here's an operation to test with:
+
+    >>> from guild import guildfile
+    >>> gf = guildfile.from_string("""
+    ... test:
+    ...   flags:
+    ...     choice:
+    ...       choices: [1,2,3]
+    ...     required:
+    ...       required: yes
+    ...     range:
+    ...       min: 0.0
+    ...       max: 1.0
+    ... """)
+    >>> opdef = gf.default_model.operations[0]
+
+And a helper function to validate:
+
+    >>> def validate(skip_required=False, **vals):
+    ...     if not skip_required:
+    ...         vals["required"] = "some val"
+    ...     op_util.validate_flag_vals(vals, opdef)
+
+Choices:
+
+    >>> validate(choice=1)
+
+    >>> validate(choice=4)
+    Traceback (most recent call last):
+    InvalidFlagChoice: (4, <guild.guildfile.FlagDef 'choice'>)
+
+Missing required val:
+
+    >>> validate(skip_required=True)
+    Traceback (most recent call last):
+    MissingRequiredFlags: [<guild.guildfile.FlagDef 'required'>]
+
+Range:
+
+    >>> validate(range=0.0)
+
+    >>> validate(range=1.0)
+
+    >>> validate(range=-1)
+    Traceback (most recent call last):
+    InvalidFlagValue: (-1, <guild.guildfile.FlagDef 'range'>,
+    'out of range (less than min 0.0)')
+
+    >>> validate(range=1.1)
+    Traceback (most recent call last):
+    InvalidFlagValue: (1.1, <guild.guildfile.FlagDef 'range'>,
+    'out of range (greater than max 1.0)')
