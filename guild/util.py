@@ -889,6 +889,9 @@ def copytree(src, dest):
     dir_util.copy_tree(src, dest)
 
 def hostname():
+    return os.getenv("HOST") or _real_hostname()
+
+def _real_hostname():
     import socket
     try:
         return socket.gethostname()
@@ -896,3 +899,6 @@ def hostname():
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("socket.gethostname()")
         return ""
+
+def user():
+    return os.getenv("USER") or ""

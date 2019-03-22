@@ -745,6 +745,7 @@ def _op_extra_attrs(args):
         "run_params": args.as_kw(),
         "random_seed": _random_seed(args),
         "host": util.hostname(),
+        "user": util.user(),
     }
     if args.label:
         attrs["label"] = args.label

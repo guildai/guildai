@@ -75,6 +75,7 @@ CORE_RUN_ATTRS = [
     "run_params",
     "started",
     "stopped",
+    "user",
 ]
 
 RUNS_PER_GROUP = 20
