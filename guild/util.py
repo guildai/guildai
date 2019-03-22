@@ -887,3 +887,12 @@ def is_executable_file(path):
 def copytree(src, dest):
     from distutils import dir_util
     dir_util.copy_tree(src, dest)
+
+def hostname():
+    import socket
+    try:
+        return socket.gethostname()
+    except Exception:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("socket.gethostname()")
+        return ""

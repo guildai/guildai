@@ -743,7 +743,8 @@ def _op_run_dir(args):
 def _op_extra_attrs(args):
     attrs = {
         "run_params": args.as_kw(),
-        "random_seed": _random_seed(args)
+        "random_seed": _random_seed(args),
+        "host": util.hostname(),
     }
     if args.label:
         attrs["label"] = args.label
