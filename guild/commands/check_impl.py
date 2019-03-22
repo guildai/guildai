@@ -87,6 +87,7 @@ def _check(args):
         cli.error(msg)
 
 def _uat_and_exit():
+    os.environ["NO_IMPORT_FLAGS_PROGRESS"] = "1"
     uat.run()
     sys.exit(0)
 
