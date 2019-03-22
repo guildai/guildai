@@ -72,8 +72,10 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpSupport):
     @staticmethod
     def _imports_keras(script):
         return any(
-            (name == "keras" or name.startswith("keras.")
-             for name in script.imports))
+            (name == "keras" or
+             name.startswith("keras.") or
+             name.startswith("tensorflow.keras"))
+             for name in script.imports)
 
     @staticmethod
     def _op_method(script):
