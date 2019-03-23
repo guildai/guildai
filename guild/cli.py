@@ -26,6 +26,7 @@ from guild import config
 log = logging.getLogger("guild")
 
 TABLE_COL_SPACING = 2
+MAX_WIDTH = 999
 
 try:
     input = raw_input
@@ -68,9 +69,8 @@ def table(data, cols, sort=None, detail=None, indent=0, err=False):
     data = sorted(data, key=_table_row_sort_key(sort))
     formatted = _format_data(data, cols + (detail or []))
     col_info = _col_info(formatted, cols)
-    width, _ = click.get_terminal_size()
     for item in formatted:
-        _item_out(item, cols, col_info, detail, indent, width, err)
+        _item_out(item, cols, col_info, detail, indent, MAX_WIDTH, err)
 
 def _table_row_sort_key(sort):
     if not sort:
