@@ -11,5 +11,4 @@ The `gpkg.keras.mnist` models all provide a single `train` operation.
     gpkg.keras.mnist/mlp:train                    Train the model
     gpkg.keras.mnist/net2net:train                Train the model
     gpkg.keras.mnist/siamese:train                Train the model
-    gpkg.keras.mnist/swwae:train                  Train the model
     <exit 0>

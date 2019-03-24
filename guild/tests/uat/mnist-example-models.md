@@ -14,7 +14,7 @@ We can reference a guildfile in one of two ways:
 Here are the models associated with the MNIST example (using the `-C`
 option):
 
-    >>> run("guild -C examples/mnist models")
+    >>> run("guild -C examples/mnist models", ignore="Refreshing")
     ./examples/mnist/mnist-expert  MNIST model from TensorFlow expert tutorial
     ./examples/mnist/mnist-intro   MNIST model from TensorFlow intro tutorial
     gpkg.hello/...
