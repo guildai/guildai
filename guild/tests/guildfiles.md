@@ -247,29 +247,29 @@ Here are the flags for `intro:evaluate`:
 In this case the operation redefined the value for `epochs` (to 2 from
 1) but did not change `batch-size`.
 
-### Updating flags
+### Merging flags
 
-Flags can be updated using flags from another flag host.
+From from one opdef can be merged into another opdef.
 
 Consider this guildfile:
 
     >>> gf_flag_update = guildfile.from_string("""
-    ... - model: sample
-    ...   operations:
-    ...     a:
-    ...       flags:
-    ...         x: X1
-    ...         y: Y
-    ...     b:
-    ...       flags:
-    ...         x: x2
-    ...         z: Z
+    ... a:
+    ...   exec: a
+    ...   flags:
+    ...     x: X1
+    ...     y: Y
+    ... b:
+    ...   exec: b
+    ...   flags:
+    ...     x: X2
+    ...     z: Z
     ... """)
 
 The two opdefs:
 
-    >>> opdef_a = gf_flag_update.models["sample"].get_operation("a")
-    >>> opdef_b = gf_flag_update.models["sample"].get_operation("b")
+    >>> opdef_a = gf_flag_update.default_model.get_operation("a")
+    >>> opdef_b = gf_flag_update.default_model.get_operation("b")
 
 Here are the flags and values for opdef a:
 
@@ -285,13 +285,13 @@ And the flags and values for opdef b:
     [<guild.guildfile.FlagDef 'x'>, <guild.guildfile.FlagDef 'z'>]
 
     >>> pprint(opdef_b.flag_values())
-    {'x': 'x2', 'z': 'Z'}
+    {'x': 'X2', 'z': 'Z'}
 
-We'll update opdef a flags with those from opdef b:
+Let's merge the values from b into a:
 
-    >>> opdef_a.update_flags(opdef_b)
+    >>> opdef_a.merge_flags(opdef_b)
 
-The updated flags:
+The merged flags:
 
     >>> opdef_a.flags
     [<guild.guildfile.FlagDef 'x'>,
@@ -301,7 +301,9 @@ The updated flags:
 and values:
 
     >>> pprint(opdef_a.flag_values())
-    {'x': 'x2', 'y': 'Y', 'z': 'Z'}
+    {'x': 'X1', 'y': 'Y', 'z': 'Z'}
+
+Note that values for a take precedence over values from b in a merge.
 
 ### Optimizer defs
 
@@ -509,10 +511,10 @@ An operation may not contain both `optimizer` and `optimizers`.
 An operation def can be represented as data by calling `as_data()`.
 
     >>> pprint(opdef_a.as_data())
-    {'flags': {'x': {'default': 'X1'}, 'y': {'default': 'Y'}}}
+    {'exec': 'a', 'flags': {'x': {'default': 'X1'}, 'y': {'default': 'Y'}}}
 
     >>> pprint(opdef_b.as_data())
-    {'flags': {'x': {'default': 'x2'}, 'z': {'default': 'Z'}}}
+    {'exec': 'b', 'flags': {'x': {'default': 'X2'}, 'z': {'default': 'Z'}}}
 
     >>> pprint(gf.models["expert"].get_operation("train").as_data())
     {'default': True,

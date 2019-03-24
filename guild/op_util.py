@@ -907,6 +907,20 @@ def flag_assigns(flags):
         for name in sorted(flags)
     ]
 
+def opdef_model_paths(opdef):
+    return _opdef_paths(opdef) + _model_parent_paths(opdef.modeldef)
+
+def _opdef_paths(opdef):
+    if not opdef.guildfile.dir:
+        return []
+    abs_gf_dir = os.path.abspath(opdef.guildfile.dir)
+    if opdef.python_path is not None:
+        return [os.path.join(abs_gf_dir, p) for p in opdef.python_path]
+    return [abs_gf_dir]
+
+def _model_parent_paths(modeldef):
+    return [os.path.abspath(parent.dir) for parent in modeldef.parents]
+
 def _patch_yaml_safe_loader():
     # Credit: https://stackoverflow.com/users/1307905/anthon
     # Ref:    https://stackoverflow.com/questions/30458977/

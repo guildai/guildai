@@ -20,7 +20,8 @@ As model 'a' extends 'base' it inherits its flags:
 We can peek into the data used by `gf` to see how includes work:
 
     >>> pprint(gf.data)
-    [{'config': 'base', 'operations': {'op1': {}, 'op2': {}}},
+    [{'config': 'base', 'operations': {'op1': {'exec': 'op1'},
+                                       'op2': {'exec': 'op2'}}},
      {'extends': ['base'], 'model': 'a'}]
 
 Note that the 'include' item was replaced with the contents of the
@@ -110,7 +111,8 @@ system path:
 Let's load `include-pkg.yml` with a modified system path, so we can
 find the `mnist` package:
 
-    >>> with SysPath(prepend=[sample("projects")]):
+    >>> with SysPath(prepend=[sample("projects"),
+    ...                       sample("projects/mnist-pkg")]):
     ...    gf = guildfile.from_file(sample("projects/includes/include-pkg.yml"))
 
 And the models:

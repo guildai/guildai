@@ -13,6 +13,7 @@
 - config: b
   operations:
     op-b:
+      exec: op
       flags:
         $include:
           - b-flags-1

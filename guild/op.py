@@ -553,23 +553,12 @@ def _python_path(opdef):
     )
     return os.path.pathsep.join(paths)
 
+def _model_paths(opdef):
+    return op_util.opdef_model_paths(opdef)
+
 def _env_paths():
     env = os.getenv("PYTHONPATH")
     return env.split(os.path.pathsep) if env else []
-
-def _model_paths(opdef):
-    return _opdef_paths(opdef) + _model_parent_paths(opdef.modeldef)
-
-def _opdef_paths(opdef):
-    if not opdef.guildfile.dir:
-        return []
-    abs_gf_dir = os.path.abspath(opdef.guildfile.dir)
-    if opdef.python_path is not None:
-        return [os.path.join(abs_gf_dir, p) for p in opdef.python_path]
-    return [abs_gf_dir]
-
-def _model_parent_paths(modeldef):
-    return [os.path.abspath(parent.dir) for parent in modeldef.parents]
 
 def _guild_paths():
     guild_path = os.path.dirname(os.path.dirname(__file__))

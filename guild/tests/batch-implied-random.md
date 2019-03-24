@@ -13,9 +13,9 @@ As a baseline, we'll run the `echo.py` script with some sample flags:
     ...             max_trials=2)
     5.0 6 'seven'
 
-We specified `max_trial` as a baseline - we'll use the same value in
-our next run to control the number of generated trials. In this case,
-the value is ignored.
+We specify `max_trial` as a baseline - we use the same value in our
+next run to control the number of generated trials. In this case, the
+value is ignored.
 
 And our runs:
 

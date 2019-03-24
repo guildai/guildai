@@ -18,6 +18,7 @@ from __future__ import division
 import os
 
 from guild import config
+from guild import op_util
 from guild import plugin as pluginlib
 from guild import python_util
 
@@ -92,29 +93,22 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpSupport):
                 predict = call
         return predict
 
-    def python_script_op_data(self, op_data, gf_dir):
-        # TODO: This interface is related to the TODO note in
-        # python_script.py. It should be replaced with a generalized
-        # facility for getting this information once with proper
-        # caching.
-        if (op_data.get("compare") is not None and
-            op_data.get("output-scalars") is not None):
+    def python_script_opdef(self, op):
+        if (op.compare is not None and
+            op.output_scalars is not None):
             return
-        assert "main" in op_data, op_data
-        main_mod = op_data["main"]
+        assert op.main, op
         plugin = pluginlib.for_name("python_script")
+        main_mod = op_util.split_main(op.main)[0]
+        model_paths = op_util.opdef_model_paths(op)
         try:
-            _sys_path, mod_path = plugin.find_module(main_mod, gf_dir)
+            _sys_path, mod_path = plugin.find_module(main_mod, model_paths)
         except ImportError:
             return
         script = python_util.Script(mod_path)
         if self.is_keras_script(script):
-            if op_data.get("compare") is None:
-                flags_data = op_data.get("flags", {})
-                flags = [
-                    "=%s" % name
-                    for name in sorted(flags_data)
-                    if name[:1] != "$"]
-                op_data["compare"] = flags + KERAS_BASE_COMPARE
-            if op_data.get("output-scalars") is None:
-                op_data["output-scalars"] = KERAS_OUTPUT_SCALARS
+            if op.compare is None:
+                flags = ["=%s" % f.name for f in op.flags]
+                op.compare = flags + KERAS_BASE_COMPARE
+            if op.output_scalars is None:
+                op.output_scalars = KERAS_OUTPUT_SCALARS

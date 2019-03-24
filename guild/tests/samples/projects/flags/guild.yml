@@ -1,22 +1,54 @@
 - model: test
   operations:
-    import-1:
-      main: main
+
+    implicit-args:
+      main: main_args
+
+    implicit-globals:
+      main: main_globals
+
+    implicit-args-with-mods:
+      main: main_args
       flags:
-        $import: [foo, bar]
-    import-2:
-      main: main
-      flags:
-        $import: [foo, bar]
         foo: 2
-    import-3:
-      main: main
+        bar:
+          description: Raised bar
+
+    implicit-globals-with-mods:
+      main: main_globals
       flags:
-        $import: [bar]
+        bam:
+          default: pow
+          description: A sound
+          choices: [pow, bam, zap]
+        baz2:
+          description: Nuther baz
+          default: 8.8
+
+    explicit-args:
+      main: main_args
+      flags-import: [foo]
+
+    explicit-globals:
+      main: main_globals
+      flags-import: [bam]
+
+    no-imports-1:
+      main: main_globals
+      flags-import: no
+
+    no-imports-2:
+      main: main_globals
+      flags-import: []
+
+    no-imports-3:
+      main: main_args
+      flags-import: no
+      flags:
         foo:
+          description: New def of foo
+          choices: [3, 4]
           default: 3
-          choices: [1,2,3]
-    import-4:
-      main: main2
-      flags:
-        $import: [foo, bar]
+
+    implicit-args2:
+      main: main_args2

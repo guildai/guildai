@@ -103,7 +103,7 @@ The links generated in the stepped run reflect the step names:
 The stepped run `steps-basic` contains symbolic links to the two
 genated runs:
 
-    >> project.ls(runs[2])
+    >>> project.ls(runs[2])
     ['s1', 's2']
 
     >>> s1_target = basename(realpath(join_path(runs[2].path, "s1")))

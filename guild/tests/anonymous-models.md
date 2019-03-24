@@ -13,9 +13,9 @@ Anonymous models are most commonly defined implicitly when a Guild
 file is a map of operations:
 
     >>> gf = guildfile.from_string("""
-    ...   op1: op1
-    ...   op2: op2
-    ...   op3: op3
+    ...   op1: {exec: 'true'}
+    ...   op2: {exec: 'true'}
+    ...   op3: {exec: 'true'}
     ... """)
 
     >>> gf.models

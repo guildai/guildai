@@ -1,3 +1,6 @@
-op1: op1
-op2: op2
-op3: op3
+op1:
+  exec: op1
+op2:
+  exec: op2
+op3:
+  exec: op3

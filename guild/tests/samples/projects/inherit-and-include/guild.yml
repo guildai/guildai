@@ -10,6 +10,7 @@
 - config: a
   operations:
     op-a:
+      exec: op
       flags:
         $include: a-flags
 
@@ -33,6 +34,7 @@
 - model: m2
   operations:
     op:
+      exec: op
       flags:
         m-1: 1111
         m-2: 2222
@@ -41,6 +43,7 @@
 - model: m3
   operations:
     op:
+      exec: op
       flags:
         $include:
           - a-flags#a-1

@@ -1,7 +1,7 @@
 args:
   main: args
+  flags-dest: args
   flags:
-    $dest: args
     i: 2
     f: 2.345
     s: hi
@@ -10,8 +10,8 @@ args:
 
 globals:
   main: globals
+  flags-dest: globals
   flags:
-    $dest: globals
     i: 2
     f: 2.345
     s: hi

@@ -1,4 +1,4 @@
 - config: base
   operations:
-    op1: {}
-    op2: {}
+    op1: {exec: op1}
+    op2: {exec: op2}

@@ -39,11 +39,11 @@ Operation details:
      <guild.guildfile.FlagDef 'lr_decay'>]
 
     >>> pprint(opdef.flag_values())
-    {...'batch_size': 128,
-     ...'dropout': 0.2,
-     ...'epochs': 5,
-     ...'lr': 0.001,
-     ...'lr_decay': 0.0}
+    {'batch_size': 128,
+     'dropout': 0.2,
+     'epochs': 5,
+     'lr': 0.001,
+     'lr_decay': 0.0}
 
     >>> opdef.compare
     ['=batch_size',
@@ -67,7 +67,7 @@ Operation details:
 ## Keras model from Guild file
 
 The Guild file in `project` reference `fashion_mnist_fashion.py` as
-`main` for the `train` method.
+`main` for the `train` operation.
 
     >>> from guild import guildfile
 
@@ -81,6 +81,8 @@ The Guild file in `project` reference `fashion_mnist_fashion.py` as
     [<guild.guildfile.OpDef 'fashion:train'>]
 
     >>> opdef2 = model.operations[0]
+    >>> opdef2.name
+    'train'
     >>> opdef2.main
     'fashion_mnist_mlp'
 
@@ -100,11 +102,11 @@ Flag defs:
 Flag vals:
 
     >>> pprint(opdef2.flag_values())
-    {...'batch_size': 128,
-     ...'dropout': 0.2,
-     ...'epochs': 5,
-     ...'lr': 0.001,
-     ...'lr_decay': 0.0}
+    {'batch_size': 128,
+     'dropout': 0.2,
+     'epochs': 5,
+     'lr': 0.001,
+     'lr_decay': 0.0}
 
     >>> opdef.flag_values() == opdef2.flag_values()
     True

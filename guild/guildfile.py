@@ -337,12 +337,12 @@ def _coerce_flags(data, guildfile):
     if not isinstance(data, dict):
         raise GuildfileError(guildfile, "invalid flags value: %r" % data)
     return {
-        name: _coerce_flag(name, val, guildfile)
+        name: coerce_flag_data(name, val, guildfile)
         for name, val in data.items()
     }
 
-def _coerce_flag(name, data, guildfile):
-    if name.startswith("$"):
+def coerce_flag_data(name, data, guildfile):
+    if name == "$include":
         return data
     elif isinstance(data, dict):
         return data
@@ -351,7 +351,8 @@ def _coerce_flag(name, data, guildfile):
     elif data is None:
         return {"default": None}
     else:
-        raise GuildfileError(guildfile, "invalid flag value: %r" % data)
+        raise GuildfileError(
+            guildfile, "invalid value for flag %s: %r" % (name, data))
 
 def _coerce_op_python_path(data, guildfile):
     if data is None:
@@ -775,8 +776,9 @@ class OpDef(object):
         self.modeldef = modeldef
         self.guildfile = modeldef.guildfile
         self.default = bool(data.get("default"))
-        (self.flags,
-         self.flags_dest) = _init_flags(data, self)
+        self.flags = _init_flags(data, self)
+        self.flags_dest = data.get("flags-dest")
+        self.flags_import = data.get("flags-import")
         self._modelref = None
         self._flag_vals = _init_flag_values(self.flags)
         self.description = (data.get("description") or "").strip()
@@ -846,15 +848,24 @@ class OpDef(object):
         except KeyError:
             return default
 
-    def update_flags(self, flag_host):
-        merged_map = {flag.name: flag for flag in self.flags}
-        merged_map.update({flag.name: flag for flag in flag_host.flags})
-        merged_flags = [merged_map[name] for name in sorted(merged_map)]
-        merged_vals = {}
-        merged_vals.update(self._flag_vals)
-        merged_vals.update(flag_host.flag_values())
-        self.flags = merged_flags
-        self._flag_vals = merged_vals
+    def merge_flags(self, op):
+        """Merges flags defined in op into self
+
+        Self values take precedence over op values.
+        """
+        merged = {}
+        for op_flag in op.flags:
+            self_flag = self.get_flagdef(op_flag.name)
+            if self_flag is None:
+                merged[op_flag.name] = _new_merged_flag(op_flag, self)
+            else:
+                merged[op_flag.name] = self_flag
+                _apply_flag_attrs(op_flag, self_flag)
+        for self_flag in self.flags:
+            if self_flag.name not in merged:
+                merged[self_flag.name] = self_flag
+        self.flags = [merged[name] for name in sorted(merged)]
+        self._flag_vals = _init_flag_values(self.flags)
 
     def update_dependencies(self, opdef):
         self.dependencies.extend(opdef.dependencies)
@@ -876,9 +887,23 @@ class OpDef(object):
 
 def _init_flags(data, opdef):
     data = _resolve_includes(data, "flags", opdef.modeldef.guildfile_path)
-    flags_dest = data.pop("$dest", None)
-    flags = [FlagDef(name, data[name], opdef) for name in sorted(data)]
-    return flags, flags_dest
+    return [FlagDef(name, data[name], opdef) for name in sorted(data)]
+
+def _new_merged_flag(src_flag, opdef):
+    new_flag = copy.deepcopy(src_flag)
+    new_flag.opdef = opdef
+    return new_flag
+
+def _apply_flag_attrs(src_flag, dest_flag):
+    # Use a baseline flag def to get default values for empty data.
+    baseline_flag = FlagDef("", {}, None)
+    for name in dir(src_flag):
+        if name[:1] == "_":
+            continue
+        dest_val = getattr(dest_flag, name, None)
+        baseline_val = getattr(baseline_flag, name, None)
+        if dest_val == baseline_val:
+            setattr(dest_flag, name, getattr(src_flag, name))
 
 class FlagDef(object):
 
