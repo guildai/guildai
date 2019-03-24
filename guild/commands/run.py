@@ -79,7 +79,7 @@ def run_params(fn):
                 "help for compare command for details specifying a column. "
                 "May not be used with --minimize.")),
         click.Option(
-            ("-F", "--opt-flag", "opt_flags"),
+            ("-Fo", "--opt-flag", "opt_flags"),
             metavar="FLAG=VAL", multiple=True,
             help="Flag for OPTIMIZER. May be used multiple times."),
         click.Option(
