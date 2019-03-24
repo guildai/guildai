@@ -227,7 +227,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
             with open(cached_path, "r") as f:
                 # Use yaml to avoid json's insistence on treating
                 # strings as unicode.
-                return yaml.load(f), cached_path
+                return yaml.safe_load(f), cached_path
         return None, cached_path
 
     @staticmethod
@@ -305,7 +305,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
         out = open(path, "r").read().strip()
         if not out:
             return {}
-        return yaml.load(out)
+        return yaml.safe_load(out)
 
     def _global_assigns_flags_data(self, script):
         return self._public_params(script.params)
