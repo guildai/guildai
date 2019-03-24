@@ -359,3 +359,14 @@ module without reimporting it.
     >>> howdy.say("Bye!")
     I'm saying 'Bye!' now!
     Bye!
+
+## Python module names
+
+    >>> python_util.safe_module_name("hello")
+    'hello'
+
+    >>> python_util.safe_module_name("hello-there")
+    'hello_there'
+
+    >>> python_util.safe_module_name("train.py")
+    'train'

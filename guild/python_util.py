@@ -18,6 +18,7 @@ from __future__ import division
 import ast
 import logging
 import os
+import re
 import types
 
 log = logging.getLogger("guild")
@@ -378,3 +379,8 @@ def is_python_script(opspec):
 def script_module(script_path, cwd="."):
     mod_path = os.path.splitext(script_path)[0]
     return os.path.relpath(mod_path, cwd)
+
+def safe_module_name(s):
+    if s.lower().endswith(".py"):
+        s = s[:-3]
+    return re.sub("-", "_", s)
