@@ -883,9 +883,12 @@ def _init_flags(data, opdef):
 class FlagDef(object):
 
     def __init__(self, name, data, opdef):
+        if not isinstance(data, dict):
+            raise GuildfileError(
+                opdef.guildfile, "invalid flag data: %r" % data)
         self.name = name
         self.opdef = opdef
-        _data = dict(data)
+        _data = dict(data) # copy - used for pop
         self.default = _data.pop("default", None)
         self.description = _data.pop("description", None) or ""
         self.type = _data.pop("type", None)
