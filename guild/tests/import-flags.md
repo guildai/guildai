@@ -9,7 +9,9 @@ We'll use the sample project `flags`:
 
 Load the guild file:
 
-    >>> gf = guildfile.from_dir(project_dir, no_cache=True)
+    >>> with Env({"NO_IMPORT_FLAGS_CACHE": "1",
+    ...           "NO_IMPORT_FLAGS_PROGRESS": "1"}):
+    ...     gf = guildfile.from_dir(project_dir, no_cache=True)
 
 For our tests, we'll use a helper function to print flag attributes.
 
@@ -61,16 +63,25 @@ the main module:
 This applies equally to `implicit-globals`:
 
     >>> gf.models["test"].get_operation("implicit-globals").flags
-    [<guild.guildfile.FlagDef 'bam'>, <guild.guildfile.FlagDef 'baz'>]
+    [<guild.guildfile.FlagDef 'f_bool'>,
+     <guild.guildfile.FlagDef 'f_float'>,
+     <guild.guildfile.FlagDef 'f_int'>,
+     <guild.guildfile.FlagDef 'f_str'>]
 
-    >>> flag_info("implicit-globals", "baz")
-    default: 6
+    >>> flag_info("implicit-globals", "f_bool")
+    default: False
 
-    >>> flag_info("implicit-globals", "bam")
+    >>> flag_info("implicit-globals", "f_float")
     default: 7.0
 
+    >>> flag_info("implicit-globals", "f_int")
+    default: 6
+
+    >>> flag_info("implicit-globals", "f_str")
+    default: hi
+
     >>> flag_vals("implicit-globals")
-    {'bam': 7.0, 'baz': 6}
+    {'f_bool': False, 'f_float': 7.0, 'f_int': 6, 'f_str': 'hi'}
 
     >>> flags_dest("implicit-globals")
     globals
@@ -99,24 +110,28 @@ Here are new defaults for `main_args`:
 And for `main_globals`:
 
     >>> gf.models["test"].get_operation("implicit-globals-with-mods").flags
-    [<guild.guildfile.FlagDef 'bam'>,
-     <guild.guildfile.FlagDef 'baz'>,
-     <guild.guildfile.FlagDef 'baz2'>]
+    [<guild.guildfile.FlagDef 'f_bool'>,
+     <guild.guildfile.FlagDef 'f_float'>,
+     <guild.guildfile.FlagDef 'f_int'>,
+     <guild.guildfile.FlagDef 'f_str'>]
 
-    >>> flag_info("implicit-globals-with-mods", "baz")
-    default: 6
+    >>> flag_info("implicit-globals-with-mods", "f_bool")
+    default: False
 
-    >>> flag_info("implicit-globals-with-mods", "bam")
-    description: A sound
-    choices: ['pow', 'bam', 'zap']
-    default: pow
-
-    >>> flag_info("implicit-globals-with-mods", "baz2")
-    description: Nuther baz
+    >>> flag_info("implicit-globals-with-mods", "f_float")
+    description: A float
     default: 8.8
 
+    >>> flag_info("implicit-globals-with-mods", "f_int")
+    default: 6
+
+    >>> flag_info("implicit-globals-with-mods", "f_str")
+    description: A greeting
+    choices: ['hi', 'hola']
+    default: hola
+
     >>> flag_vals("implicit-globals-with-mods")
-    {'bam': 'pow', 'baz': 6, 'baz2': 8.8}
+    {'f_bool': False, 'f_float': 8.8, 'f_int': 6, 'f_str': 'hola'}
 
 ## Explicit flag imports
 
@@ -137,13 +152,13 @@ imports:
 Similarly for `explicit-globals`:
 
     >>> gf.models["test"].get_operation("explicit-globals").flags
-    [<guild.guildfile.FlagDef 'bam'>]
+    [<guild.guildfile.FlagDef 'f_str'>]
 
-    >>> flag_info("explicit-globals", "bam")
-    default: 7.0
+    >>> flag_info("explicit-globals", "f_str")
+    default: hi
 
     >>> flag_vals("explicit-globals")
-    {'bam': 7.0}
+    {'f_str': 'hi'}
 
 ## Disabling imports
 

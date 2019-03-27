@@ -239,7 +239,8 @@ class PythonScriptPlugin(pluginlib.Plugin):
 
     @staticmethod
     def _cache_valid(cache_path, mod_path):
-        if not os.path.exists(cache_path):
+        if (os.getenv("NO_IMPORT_FLAGS_CACHE") == "1" or
+            not os.path.exists(cache_path)):
             return False
         return os.path.getmtime(mod_path) <= os.path.getmtime(cache_path)
 

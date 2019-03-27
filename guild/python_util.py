@@ -21,6 +21,13 @@ import os
 import re
 import types
 
+try:
+    from ast import NameConstant
+except ImportError:
+    class FakeType:
+        pass
+    NameConstant = FakeType
+
 log = logging.getLogger("guild")
 
 class Script(object):
@@ -106,6 +113,8 @@ def _try_param_val(val):
         return val.n
     elif isinstance(val, ast.Str):
         return val.s
+    elif isinstance(val, NameConstant):
+        return val.value
     elif isinstance(val, ast.Name):
         if val.id == "True":
             return True

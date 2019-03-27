@@ -17,12 +17,12 @@
     implicit-globals-with-mods:
       main: main_globals
       flags:
-        bam:
-          default: pow
-          description: A sound
-          choices: [pow, bam, zap]
-        baz2:
-          description: Nuther baz
+        f_str:
+          default: hola
+          description: A greeting
+          choices: [hi, hola]
+        f_float:
+          description: A float
           default: 8.8
 
     explicit-args:
@@ -31,7 +31,7 @@
 
     explicit-globals:
       main: main_globals
-      flags-import: [bam]
+      flags-import: [f_str]
 
     no-imports-1:
       main: main_globals
