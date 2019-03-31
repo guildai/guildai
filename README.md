@@ -1,6 +1,6 @@
 # Guild AI
 
-[![CircleCI](https://circleci.com/gh/guildai/guildai.svg?style=shield)](https://circleci.com/gh/guildai/guild)
+[![CircleCI](https://circleci.com/gh/guildai/guildai.svg?style=shield)](https://circleci.com/gh/guildai/guildai/tree/release)
 [![PyPI version](https://badge.fury.io/py/guildai.svg)](https://badge.fury.io/py/guildai)
 
 This is the source repository for Guild AI.
