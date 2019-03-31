@@ -1,31 +1,39 @@
 # Guild AI
 
-[![CircleCI](https://circleci.com/gh/guildai/guildai.svg?style=shield)](https://circleci.com/gh/guildai/guildai/tree/release)
+[![CircleCI](https://circleci.com/gh/guildai/guildai/tree/release.svg?style=shield)](https://circleci.com/gh/guildai/guildai/tree/release)
 [![PyPI version](https://badge.fury.io/py/guildai.svg)](https://badge.fury.io/py/guildai)
 
 This is the source repository for Guild AI.
 
-Guild AI is an [open source](LICENSE.txt) toolkit, that automates and
+Guild AI is an [open source](LICENSE.txt) toolkit that automates and
 optimizes machine learning experiments.
 
-- Capture each run as a unique experiment
-- Compare and analyze runs to improve models
-- Automate training related operations such as data preparation and
+- Run unmodified training scripts, capturing each run result as a
+  unique experiment
+- Automate trials using grid search, random search, and Bayesian
+  optimization
+- Compare and analyze runs to understand and improve models
+- Backup training related operations such as data preparation and
   test
 - Archive runs to S3 or other remote systems
+- Run operations remotely on cloud accelerators
 - Package and distribute models for easy reproducibility
+
+For more on features, see [Guild AI -
+Features](https://guild.ai/features/).
 
 Important links:
 
 - **[Latest release on PyPI](https://pypi.python.org/pypi/guildai)**
 - **[Guild AI website](https://www.guild.ai)**
+- **[Guild AI Slack](https://guildai.slack.com/join/shared_invite/enQtNDgxNDg5ODk2MjI2LWQ5ODI3ZGE2YzljYWViNTA0NjFmNDg4NTI3ZjY2Mjk2YTkzZjAxZWM3M2EyNTcyZWU0YzgzM2IwMTI0ZjFhNTU)** (for questions/support)
 - **[Documentation](https://www.guild.ai/docs/)**
 - **[Open issues](https://github.com/guildai/guildai/issues)**
 
 ## Requirements
 
-- Linux or Mac OS/X (Windows not currently supported)
-- Python 2.7 or 3 with `pip` and `virtualenv`
+- Linux, macOS, Windows (Windows requires Docker)
+- Python 2.7 or 3 with `pip` and `virtualenv` or Conda
 - TensorFlow
 
 ## Install Guild AI
@@ -43,271 +51,292 @@ latest release using:
 pip install guildai --upgrade
 ```
 
+To install pre-release versions (e.g. you want the latest features or
+fixes), include the `--pre` command line option:
+
+```
+pip install guildai --upgrade --pre
+```
+
+NOTE: You may need to run `pip` as a privileged user (e.g. run using
+`sudo`) or else specify the `--user` command line option if you file
+permission errors when running `pip install`.
+
+Ensure that you have [TensorFlow
+installed](https://www.tensorflow.org/install/).
+
+NOTE: As of Guild 0.6, all major computational and ML frameworks are
+supported including PyTorch, Keras, MLKit, scikit-learn, and
+XGBoost. TensorFlow is required for TensorBoard integration. **Your
+models do not have to use TensorFlow to work with Guild AI**. The
+TensorFlow requirement will be removed in future releases of Guild.
+
 For detailed install instructions, see [Install Guild
 AI](https://www.guild.ai/install).
 
-<a id="task-runner-example">
+## Quick start
 
-## Task runner example
+In this Quick Start guide, we create a mock training script and run it
+to illustrate the following features:
 
-Guild AI is used to automate training. In this example, we create
-simple project and train a model, capturing run results as
-experiments.
+- Run, capture and compare experiments
+- Use grid search and random search to explore hyperparameter space
+- Use Bayesian optimization to achieve the best performance
 
-Before proceeding, verify the following:
+Links to more advanced topics are provided at the end of this section.
 
-- Guild AI is installed
-- TensorFlow is installed (see [Install
-  TensorFlow](https://www.tensorflow.org/install/) for assistance)
+### Mock training script
 
-Create a sample project:
+In a new project directory, create a file named `train.py`:
 
-``` bash
-mkdir sample-project
-cd sample-project
-wget https://raw.githubusercontent.com/guildai/examples/master/mnist/intro.py
+``` python
+import numpy as np
+
+x = 0.1
+noise = 0.1
+
+loss = (np.sin(5 * x) * (1 - np.tanh(x ** 2)) + np.random.randn() * noise)
+
+print("x: %f" % x)
+print("noise: %f" % noise)
+print("loss: %f" % loss)
 ```
 
-Add the following Guild file to the project as
-`sample-project/guild.yml`:
+NOTE: This is a *mock (fake) training script* — it doesn't train
+anything! However, it illustrates the basics of training, where an
+operation is used to minimize loss given a set of inputs. In this
+example, we calculate loss using a noisy function and a single input
+*x*, which represents our hyperparameter.
 
-``` yaml
-- model: sample
-  description: A sample model (MNIST logistic regression)
-  operations:
-    train:
-      description: Train the model
-      main: intro
-      flags:
-        epochs:
-          description: Number of epochs to train
-          default: 1
+### Run an experiment
+
+Open a command console and change to the project directory.
+
+Use Guild to run the mock training script:
+
+```
+guild run train.py
 ```
 
-Save you changes to `guild.yml` and verify that the sample project
-contains these two files:
+Guild prompts you with the default values as defined in
+`train.py`. Press `Enter` to run the script.
 
-- `intro.py`
-- `guild.yml`
+NOTE: Guild automatically detects the flags defined in `train.py` and
+uses the default values. Later we run `train.py` with different values
+for `x` and even use Guild to find values that minimize the function
+loss.
 
-View available project operations by running:
+When Guild runs a script, it captures the run as a unique
+experiment. You can list runs by running:
 
-``` bash
-guild operations
 ```
-
-View project help:
-
-``` bash
-guild help
-```
-
-Press `q` to exit help.
-
-Run the sample `train` operation:
-
-``` bash
-guild run train
-```
-
-Press `Enter` to continue.
-
-The sample model trains in a few seconds.
-
-List runs:
-
-``` bash
 guild runs
 ```
 
-Runs are file system directories that contain run metadata and
-generated output. Each run represents an experiment and is
-automatically generated with the `run` command.
+View information for this run using:
 
-Run `train` again, but with more training:
-
-``` bash
-guild run train epochs=5
 ```
-
-Compare run performance:
-
-``` bash
-guild compare
-```
-
-Note that the run with more training has a higher accuracy.
-
-Feel free to experiment with other Guild commands (see below).
-
-View information for the latest run:
-
-``` bash
 guild runs info
 ```
 
-List files from most recent run:
+By default, Guild shows information for the latest run.
 
-``` bash
+NOTE: For information on any Guild command, use: `guild COMMAND
+--help`. For a list of commands, use `guild --help`. Online help is
+available at
+[https://guild.ai/docs/commands/](https://guild.ai/docs/commands/).
+
+Experiments are saved on disk within file system directories. List
+files associated with the latest run using:
+
+```
 guild ls
 ```
 
-View runs with Guild View:
+In the case of our mock training script, the files list is empty
+because the script doesn't generate any files. However, you can see
+the path where the run is located.
 
-``` bash
-guild view
-```
-
-Note that you must quit Guild View by pressing `Ctrl-C` in the console
-to return to a command prompt.
-
-View runs with TensorBoard:
-
-``` bash
-guild tensorboard
-```
-
-Note that as with Guild View you must quit TensorBoard by pressing
-`Ctrl-C` in the console to return to a command prompt.
-
-You may optionally delete the runs by running:
-
-``` bash
-guild runs rm -o sample:train
-```
-
-For a complete list of commands, see [Commands](http://www.guild.ai/docs/commands/).
-
-For a more in-depth example, see [Guild AI
-introduction](https://www.guild.ai/docs/intro/).
-
-## Package example
-
-Guild package are standard Python packages that contain Guild
-files. You generate them using the `package` command. Distribute
-packages to colleauges to share your projects. In this example, we
-create a package for the sample project created in the previous
-section (see above).
-
-Note that the steps below must be run after completing the previous
-section [Task runner example](#task-runner-example).
-
-Add the following to the project Guild file
-(`sample-project/guild.yml`):
-
-``` yaml
-- package: sample
-  version: 1.0
-```
-
-Save you changes to `guild.yml`.
-
-From the `sample-project` directory, create a Python package:
-
-``` bash
-guild package
-```
-
-Guild creates `dist/sample-1.0-py2.py3-none-any.whl`. You can
-distribute this file to colleagues to share your project.
-
-To simulate how your colleagues would use your package, follow the
-steps below.
-
-Create a temporary Python virtual environment:
-
-``` bash
-virtualenv /tmp/sample-project-test
-```
-
-Activate the environment:
-
-``` bash
-source /tmp/sample-project-test/bin/activate
-```
-
-The activated environment does not share packages with the system. You
-must install required packages, just as if you were a new user.
-
-Install Guild AI and TensorFlow into the environment:
-
-``` bash
-pip install guildai tensorflow
-```
-
-Install `dist/sample-1.0-py2.py3-none-any.whl` into the environment:
-
-``` bash
-pip install dist/sample-1.0-py2.py3-none-any.whl
-```
-
-Change out of the `sample-project` directory (this ensures that you do
-not see operations in the project directory):
-
-``` bash
-cd ~
-```
-
-List available operations:
-
-``` bash
-guild operations
-```
-
-You see the `train` operation available from the installed `sample`
-package.
+Guild stores information associated with each run in files located in
+the `.guild` subdirectory of each run. You can list all of the files
+associated with the latest run, including Guild files, by specifying
+the `--all` command line option:
 
 ```
-sample/sample:train  Train the model
+guild ls --all
 ```
 
-The value `sample/sample:train` means that the model and its
-operations are defined in the installed `sample` package.
+If you want to export an experiment, use the `export` command:
 
-Train the model:
-
-``` bash
-guild run sample:train
+```
+guild export /tmp/my-experiments
 ```
 
-Runs that are generated in an activated virtual environment are stored
-within the environment directory. Environments are useful for
-isolating both installed packages and runs.
+This is useful for creating archives of runs that can be imported by
+you and others using the `import` command. For a more advanced example
+of backing runs up to the cloud, see [Get Started - Backup and
+Restore](https://guild.ai/docs/start/backup-restore/).
 
-All of the Guild commands above apply to runs created from packaged
-models.
+### Run a second experiment
 
-When you are done experimenting with the installed package, feel free
-to deactivate the environment and delete the temporary directory:
+In the command console, run:
 
-``` bash
-deactivate
-rm -rf /tmp/sample-project-test
+```
+guild run x=0.2
 ```
 
-Note that deleting `/tmp/sample-project-test` deletes all runs that
-were generated when the environment was active.
+Press `Enter` to confirm the operation.
+
+Guild runs `train.py` a second time using a new value for `x`.
+
+Compare the two runs using `compare`:
+
+```
+guild compare
+```
+
+Guild Compare is spreadsheet-like application that lets you view
+experiment results. Use the cursor keys to navigate to various
+columns. Sort a column in ascending order by press `1` and in
+descending order by pressing `2`. Press `?` to view a list of key
+bindings for Guild Compare.
+
+When you're done comparing the runs, press `q` to return to the
+command prompt.
+
+### Run multiple trials using grid and random search
+
+Guild supports running multiple trials using various methods.
+
+First, use Guild to run three trials over a discrete search space for
+`x` (i.e. a *grid search*, or *parameter sweep*) run:
+
+```
+guild run train.py x=[-2.0,0.0,2.0]
+```
+
+Press `Enter` to confirm. Guild generates three trials, one for each
+specified value of `x`.
+
+Next, run three trials using *random search* over a uniform
+distribution of `x`:
+
+```
+guild run train.py x=uniform[-1.0:1.0] --max-trials 3
+```
+
+Press `Enter` to run the trials. Guild generates another three trials,
+according to the command line option `--max-trials`.
+
+Compare the runs again:
+
+```
+guild compare --table
+```
+
+This time we use the `--table` command line option for `compare`. This
+tells Guild to print the results as a table rather than run
+interactively.
+
+Sort the results by `loss` in ascending order by running:
+
+```
+guild compare --table --min loss
+```
+
+Limit the results to the top three results (i.e. the three results
+with the lowest *loss*) by using the `--top` option:
+
+```
+guild compare --table --min loss --top 3
+```
+
+### Optimize loss using Bayesian methods
+
+As you can see from the previous sections, Guild specializes in
+running, capturing, and comparing experiments. In this section, we
+demonstrate how this facility can be further used to *optimize*
+hyperparameters.
+
+Let's try to find values for `x` that minimize `loss`. Because our
+mock training script is noisy (to simulate machine learning processes
+that are inherently noisy) we cannot find a single value for `x` where
+`loss` is always lowest. Nonetheless, we can find a range of values
+that are tend to produce better results.
+
+In the command console, run:
+
+```
+guild run train.py x=uniform[-2.0:2.0] --optimizer bayesian --max-trials 20
+```
+
+Press `Enter` to continue. Guild runs 20 trials, trying values for `x`
+with the goal of minimizing `loss`. Guild uses a Bayesian method with
+Gaussian processes to explore values for `x` that have a higher
+likelihood of producing lower values of `loss`.
+
+View the top-3 runs:
+
+```
+guild compare
+```
+
+In this case we run `compare` in interactive mode.
+
+Values for `x` that are close to `-0.3` should be listed at the top.
+
+The function defined in `train.py` (again, this is a mock function
+used for illustration purposes — it doesn't train anything) can be
+used to plot the relationship between `x` and `loss`:
+
+![](https://guild.ai/assets/img/bayesian-optimization.png)
+
+We indeed see that loss is lowest where `x` is around `-0.3`.
+
+Press `q` to exit Guild Compare.
+
+### Clean up
+
+If you want to delete a run, use:
+
+```
+guild runs rm RUN_ID_OR_INDEX
+```
+
+You can get the `RUN_ID` using `guild runs`. You can also specify a
+run `INDEX`, which is included in the runs list.
+
+To delete all runs, use:
+
+```
+guild runs rm
+```
+
+You can restore deleted runs using the `restore` command.
+
+For more complete coverage of managing runs with Guild, see [Get
+Started - Manage Runs](https://guild.ai/docs/start/manage-runs/).
 
 ## Learn more
 
-For a more in-depth example, see [Guild AI
-introduction](https://www.guild.ai/docs/intro/).
+Refer to the [Guild AI website](https://guild.ai) for more information
+on Guild.
 
-The examples above illustrate two core applications of Guild AI:
+For more step-by-step tutorials, see the other Get Started guides:
 
-- Automate TensorFlow workflow by running operations
-- Package and distribute models with operation support
+- [Manage Runs](https://guild.ai/docs/start/manage-runs/)
+- [Train an Image Classifier](https://guild.ai/docs/start/image-classifier/)
+- [Reproducibility](https://guild.ai/docs/start/reproducibility/)
+- [Backup and Restore](https://guild.ai/docs/start/backup-restore/)
+- [Remote Training](https://guild.ai/docs/start/remote-train/)
 
-Guild AI supports a number of other useful features, including:
+For a complete list of commands supported by Guild, see:
 
-- [Train remotely on EC2](https://www.guild.ai/docs/guides/train-on-ec2/)
-- [Backup runs to S3](https://www.guild.ai/docs/guides/backup-to-s3/)
+- [Command Reference](https://guild.ai/docs/commands/)
 
-Guild AI supports an ever-growing ecosystem of
-[packages](https://www.guild.ai/packages/).
+## Get help
 
-Refer to [https://www.guild.ai](https://www.guild.ai) for complete
-coverage of Guild AI.
-
-If you have questions or are facing problems, please open an issue at
-[https://github.com/guildai/guildai/issues](https://github.com/guildai/guildai/issues).
+If you have questions or are facing problems, please contact us on
+[Guild AI
+Slack](https://join.slack.com/t/guildai/shared_invite/enQtNDgxNDg5ODk2MjI2LWQ5ODI3ZGE2YzljYWViNTA0NjFmNDg4NTI3ZjY2Mjk2YTkzZjAxZWM3M2EyNTcyZWU0YzgzM2IwMTI0ZjFhNTU)
+[open an issue on GitHub](https://github.com/guildai/guildai/issues).

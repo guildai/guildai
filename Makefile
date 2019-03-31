@@ -82,3 +82,6 @@ commit-check:
 	make uat
 	make timing-test
 	@echo "Commit check passed on `python --version 2>&1`"
+
+README.html: README.md
+	markdown_py README.md > README.html

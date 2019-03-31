@@ -1,12 +1,12 @@
 Metadata-Version: 2.0
 Name: guildai
 Version: 1!0
-Summary: Toolkit to streamline TensorFlow™ and Keras deep learning.
-Home-page: https://www.guild.ai
+Summary: Toolkit to automate and optimize machine learning model development
+Home-page: https://guild.ai
 Author: Guild AI
 Author-email: packages@guild.ai
 License: Apache 2.0
-Keywords: guild guildai tensorflow keras
+Keywords: guild guildai tensorflow keras pytorch mxnet xgboost scikit-learn
 Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
 Classifier: Environment :: Console
@@ -44,22 +44,28 @@ Requires-Dist: tensorboardX
 Requires-Dist: twine
 Requires-Dist: virtualenv
 
-Guild AI is an experiment tracker TensorFlow and Keras. Use it to
-automate training, testing, and deployment of TensorFlow and Keras
-models.
+Guild AI is an `open source
+<https://raw.githubusercontent.com/guildai/guildai/master/LICENSE.txt>`_
+toolkit that automates and optimizes machine learning experiments.
 
-- `Guild AI website <https://www.guild.ai>`_
-- `Documentation <ttps://www.guild.ai/docs/>`_
-- `Open issues <https://github.com/guildai/guild/issues>`_
-- `GitHub source repository <https://github.com/guildai/guild>`_
+- Run unmodified training scripts, capturing each run result as a
+  unique experiment
+- Automate trials using grid search, random search, and Bayesian
+  optimization
+- Compare and analyze runs to understand and improve models
+- Automate training related operations such as data preparation and
+  test
+- Backup runs to S3 or other remote systems
+- Run operations remotely on cloud accelerators
+- Package and distribute models for easy reproducibility
 
-Highlights:
+For more information, visit `Guild AI website <https://guild.ai/>`_.
 
-- Automatically capture run output as unique experiments
-- Compare model performance at-a-glance
-- Visualize training results with TensorBoard
-- Package and distribute models
-- Train on AWS EC2 and backup to S3
+Other links:
 
-To get started, see `Guild AI introduction
-<https://www.guild.ai/docs/intro>`_.
+- `GitHub repository <https://github.com/guildai/guildai>`_
+- `Latest release on PyPI <https://pypi.python.org/pypi/guildai>`_
+- `Guild AI website  <https://www.guild.ai>`_
+- `Guild AI Slack  <https://guildai.slack.com/join/shared_invite/enQtNDgxNDg5ODk2MjI2LWQ5ODI3ZGE2YzljYWViNTA0NjFmNDg4NTI3ZjY2Mjk2YTkzZjAxZWM3M2EyNTcyZWU0YzgzM2IwMTI0ZjFhNTU>`_
+- `Documentation  <https://www.guild.ai/docs/>`_
+- `Open issues  <https://github.com/guildai/guildai/issues>`_
