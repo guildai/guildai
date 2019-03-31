@@ -177,12 +177,19 @@ you and others using the `import` command. For a more advanced example
 of backing runs up to the cloud, see [Get Started - Backup and
 Restore](https://guild.ai/docs/start/backup-restore/).
 
+You can list runs located in an archive directory by specifying the
+`--archive` command line option:
+
+```
+guild runs --archive /tmp/my-experiments
+```
+
 ### Run a second experiment
 
 In the command console, run:
 
 ```
-guild run x=0.2
+guild run train.py x=0.2
 ```
 
 Press `Enter` to confirm the operation.
@@ -271,22 +278,37 @@ guild run train.py x=uniform[-2.0:2.0] --optimizer bayesian --max-trials 20
 ```
 
 Press `Enter` to continue. Guild runs 20 trials, trying values for `x`
-with the goal of minimizing `loss`. Guild uses a Bayesian method with
-Gaussian processes to explore values for `x` that have a higher
-likelihood of producing lower values of `loss`.
+with the goal of minimizing `loss`. By default, uild uses a Bayesian
+method with Gaussian processes to explore values for `x` that have a
+higher likelihood of producing lower values of `loss`. You can specify
+other optimizers including `forest` (decision trees) and `ggbrt`
+(gradient boosted trees).
 
-View the top-3 runs:
+NOTE: Guild's built-in Bayesian optimization support is implemented
+using the excellent [skopt
+library](https://scikit-optimize.github.io/). In future releases,
+Guild will support additional optimization libraries, including
+optimizers you define yourself.
+
+For more information on using Bayesian optimizers in Guild, see [Get
+Started - Bayesian Optimization
+](https://guild.ai/docs/start/optimization/#bayesian-optimization).
+
+Compare all of the runs:
 
 ```
 guild compare
 ```
 
-In this case we run `compare` in interactive mode.
+In this case we run `compare` in interactive mode. To quickly find
+runs with the lowest loss, use the cursor keys to navigate to the
+`loss` column and press `1` to sort in ascending order.
 
-Values for `x` that are close to `-0.3` should be listed at the top.
+Values for `x` that are close to `-0.3` should be listed toward the
+top.
 
-The function defined in `train.py` (again, this is a mock function
-used for illustration purposes — it doesn't train anything) can be
+The function defined in `train.py` (again, a mock function used for
+illustration purposes — it doesn't actually train anything) can be
 used to plot the relationship between `x` and `loss`:
 
 ![](https://guild.ai/assets/img/bayesian-optimization.png)
