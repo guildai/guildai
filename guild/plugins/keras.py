@@ -27,10 +27,10 @@ from .python_script import PythonScriptOpSupport
 
 KERAS_OUTPUT_SCALARS = {
     "step": r"Epoch ([0-9]+)/[0-9]+",
-    "loss": r"step - loss: ([0-9\.]+)",
-    "acc": r"acc: ([0-9\.]+) - val_loss",
-    "val_loss": r"val_loss: ([0-9\.]+)",
-    "val_acc": r"val_acc: ([0-9\.]+)",
+    "loss": r" - loss: ([0-9\.]+)",
+    "acc": r" - acc: ([0-9\.]+)",
+    "val_loss": r" - val_loss: ([0-9\.]+)",
+    "val_acc": r" - val_acc: ([0-9\.]+)",
 }
 
 KERAS_BASE_COMPARE = [
