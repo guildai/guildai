@@ -565,7 +565,7 @@ def _try_copy_file(src, dest):
 
 def _del_excluded_dirs(dirs, root, seen_dirs):
     _del_env_dirs(dirs, root)
-    _del_git_dir(dirs)
+    _del_dot_dir(dirs)
     _del_seen_dirs(dirs, root, seen_dirs)
 
 def _del_env_dirs(dirs, root):
@@ -573,11 +573,10 @@ def _del_env_dirs(dirs, root):
         if _is_env_dir(os.path.join(root, name)):
             dirs.remove(name)
 
-def _del_git_dir(dirs):
-    try:
-        dirs.remove(".git")
-    except ValueError:
-        pass
+def _del_dot_dir(dirs):
+    for d in list(dirs):
+        if d[:1] == ".":
+            dirs.remove(d)
 
 def _del_seen_dirs(dirs, root, seen):
     for dir_name in dirs:
