@@ -43,10 +43,13 @@ class Step(object):
         "flags",
         "gpus",
         "label",
+        "max_trials",
         "needed",
         "no_gpus",
         "opspec",
         "opt_flags",
+        "optimizer",
+        "random_seed",
         "stop_after",
     )
 
@@ -71,7 +74,10 @@ class Step(object):
         self.no_gpus = params["no_gpus"]
         self.stop_after = params["stop_after"]
         self.needed = params["needed"]
+        self.optimizer = params["optimizer"]
         self.opt_flags = params["opt_flags"]
+        self.max_trials = params["max_trials"]
+        self.random_seed = params["random_seed"]
 
     def _parse_run(self, data):
         from guild.commands.run import run as run_cmd
@@ -84,17 +90,31 @@ class Step(object):
         except click.exceptions.ClickException as e:
             _error("invalid run spec %r: %s" % (run_spec, e))
         else:
-            self._warn_ignored_params(ctx, run_spec)
+            self._apply_data_params(data, ctx, run_spec)
             return ctx.params
 
-    def _warn_ignored_params(self, ctx, run_spec):
-        "Warn if any params set that we ignore."""
+    def _apply_data_params(self, data, ctx, run_spec):
+        """Apply applicable data to params.
+
+        Warns if params contains unused values.
+        """
+        "Warn if any params set that we ignore."
         defaults = {p.name: p.default for p in ctx.command.params}
         for name, val in sorted(ctx.params.items()):
-            if name not in self.used_params and val != defaults[name]:
-                log.warning(
-                    "run parameter %s used in %r ignored",
-                    name, run_spec)
+            if name in self.used_params:
+                data_name = name.replace("_", "-")
+                try:
+                    data_val = data[data_name]
+                except KeyError:
+                    pass
+                else:
+                    if data_val != defaults[name]:
+                        ctx.params[name] = data_val
+            else:
+                if val != defaults[name]:
+                    log.warning(
+                        "run parameter %s used in %r ignored",
+                        name, run_spec)
 
     @staticmethod
     def _apply_default_model(step_opspec, parent_opref):
@@ -240,11 +260,17 @@ def _step_options(step):
     elif step.no_gpus:
         opts.append("--no-gpus")
     if step.stop_after:
-        opts.extend(["--stop-after", step.stop_after])
+        opts.extend(["--stop-after", str(step.stop_after)])
     if step.needed:
         opts.append("--needed")
+    if step.optimizer:
+        opts.extend(["--optimizer", step.optimizer])
     for flag in step.opt_flags:
         opts.extend(["--opt-flag", flag])
+    if step.max_trials:
+        opts.extend(["--max-trials", str(step.max_trials)])
+    if step.random_seed is not None:
+        opts.extend(["--random-seed", str(step.random_seed)])
     return opts
 
 def _step_flag_args(step):
