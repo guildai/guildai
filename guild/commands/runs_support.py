@@ -83,15 +83,15 @@ def op_and_label_filters(fn):
             help="Include runs with labels matching `VAL`.",
             multiple=True),
         click.Option(
-            ("--unlabeled",),
+            ("-u", "--unlabeled",),
             help="Include only runs without labels.",
             is_flag=True),
         click.Option(
-            ("--marked",),
+            ("-M", "--marked",),
             help="Include only marked runs.",
             is_flag=True),
         click.Option(
-            ("--unmarked",),
+            ("-U", "--unmarked",),
             help="Include only unmarked runs.",
             is_flag=True),
     ])
