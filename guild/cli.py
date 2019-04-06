@@ -26,7 +26,8 @@ from guild import config
 log = logging.getLogger("guild")
 
 TABLE_COL_SPACING = 2
-MAX_WIDTH = 999
+#MAX_WIDTH = 999
+MAX_WIDTH = click.get_terminal_size()[0]
 
 try:
     input = raw_input

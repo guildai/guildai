@@ -37,7 +37,8 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
-BASE_COLS = ".run, .operation, .started, .time, .status, .label"
+#BASE_COLS = ".run, .operation, .started, .time, .status, .label"
+BASE_COLS = ".run, .operation, .started, .time, .status, .user, .label"
 MIN_COLS = ".run"
 DEFAULT_COMPARE = [
     "loss step as step",
