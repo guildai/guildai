@@ -722,6 +722,7 @@ def export(args, ctx):
             if not cli.confirm("Really copy resources exported runs?"):
                 return
         util.ensure_dir(args.location)
+        util.touch(os.path.join(args.location, ".guild-archive"))
         exported = 0
         for run in selected:
             dest = os.path.join(args.location, run.id)

@@ -564,9 +564,16 @@ def _try_copy_file(src, dest):
             log.warning("could not copy source file %s: %s", src, e)
 
 def _del_excluded_dirs(dirs, root, seen_dirs):
+    _del_seen_dirs(dirs, root, seen_dirs)
     _del_env_dirs(dirs, root)
     _del_dot_dir(dirs)
-    _del_seen_dirs(dirs, root, seen_dirs)
+    _del_archive_dirs(dirs)
+
+def _del_seen_dirs(dirs, root, seen):
+    for dir_name in dirs:
+        real_path = os.path.realpath(os.path.join(root, dir_name))
+        if real_path in seen:
+            dirs.remove(dir_name)
 
 def _del_env_dirs(dirs, root):
     for name in dirs:
@@ -578,11 +585,10 @@ def _del_dot_dir(dirs):
         if d[:1] == ".":
             dirs.remove(d)
 
-def _del_seen_dirs(dirs, root, seen):
-    for dir_name in dirs:
-        real_path = os.path.realpath(os.path.join(root, dir_name))
-        if real_path in seen:
-            dirs.remove(dir_name)
+def _del_archive_dirs(dirs):
+    for d in list(dirs):
+        if os.path.exists(os.path.join(d, ".guild-archive")):
+            dirs.remove(d)
 
 def _is_env_dir(path):
     return os.path.exists(os.path.join(path, "bin", "activate"))
