@@ -194,17 +194,10 @@ class Build(object):
 
     def workflow_job(self):
         return {
-            self.name + "-pre": {
-                "filters": {
-                    "branches": {
-                        "only": "pre-release"
-                    }
-                }
-            },
             self.name: {
                 "filters": {
                     "branches": {
-                        "only": "release"
+                        "only": ["release", "pre-release"]
                     }
                 }
             }
