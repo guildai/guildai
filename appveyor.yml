@@ -1,0 +1,13 @@
+environment:
+
+  matrix:
+
+    - PYTHON: "C:\\Python27"
+
+  build:
+
+    - "%PYTHON%\\python.exe setup.py build"
+
+  artifacts:
+
+    - path: dist\*
