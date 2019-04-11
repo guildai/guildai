@@ -110,7 +110,8 @@ version will generate an error:
 
     >>> intro.dist.version
     Traceback (most recent call last):
-    ValueError: ("Missing 'Version:' header and/or PKG-INFO file"...
+    ...
+    ValueError: ...
 
 Guildfile distribution project names start with '.guildfile.' to
 distinguish them from standard distributions:
