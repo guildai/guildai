@@ -15,8 +15,12 @@
 # The odd naming convention below is to minimize the changes of
 # colliding with symbols in the imported module.
 
+import warnings as ___warnings
+with ___warnings.catch_warnings():
+    ___warnings.filterwarnings('ignore', category=DeprecationWarning)
+    import imp as ___imp
+
 import argparse as ___argparse
-import imp as ___imp
 import json as ___json
 import logging as ___logging
 import os as ___os

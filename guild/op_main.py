@@ -15,12 +15,15 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import imp
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', category=DeprecationWarning)
+    import imp
+
 import logging
 import os
 import pdb
 import sys
-import warnings
 
 import guild.log
 

@@ -15,8 +15,12 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', category=DeprecationWarning)
+    import imp
+
 import hashlib
-import imp
 import json
 import os
 import subprocess
