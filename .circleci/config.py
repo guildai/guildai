@@ -18,7 +18,7 @@ import yaml
 
 class Build(object):
 
-    cache_scheme_version = 15
+    cache_scheme_version = 16
 
     name = None
     python = None
@@ -228,7 +228,7 @@ class MacBuild(Build):
 
     env = "macos"
 
-    xcode_version = "9.2.0"
+    xcode_version = "10.2.0"
 
     def __init__(self, python):
         self.python = python
