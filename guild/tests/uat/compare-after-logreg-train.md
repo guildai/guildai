@@ -6,3 +6,4 @@ accuracy and loss.
     >>> run("guild compare --table")
     run  operation                started  time  status     user  label  epochs  batch-size  learning-rate  step  train_loss  train_acc  val_loss  val_acc
     ...  gpkg.mnist/logreg:train  ...      ...   completed  ...          1       100         0.500000       550   ...         ...        ...       ...
+    <exit 0>
