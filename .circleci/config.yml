@@ -266,20 +266,40 @@ workflows:
         filters:
           branches:
             only: release
+      linux-python-2.7-pre:
+        filters:
+          branches:
+            only: pre-release
     - linux-python-3.5:
         filters:
           branches:
             only: release
+      linux-python-3.5-pre:
+        filters:
+          branches:
+            only: pre-release
     - linux-python-3.6:
         filters:
           branches:
             only: release
+      linux-python-3.6-pre:
+        filters:
+          branches:
+            only: pre-release
     - macos-python-2.7:
         filters:
           branches:
             only: release
+      macos-python-2.7-pre:
+        filters:
+          branches:
+            only: pre-release
     - macos-python-3.6:
         filters:
           branches:
             only: release
+      macos-python-3.6-pre:
+        filters:
+          branches:
+            only: pre-release
   version: 2
