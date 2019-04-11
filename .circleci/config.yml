@@ -61,7 +61,7 @@ jobs:
     - run:
         command: 'brew unlink python
 
-          brew install --ignore-dependencies https://raw.githubusercontent.com/Homebrew/homebrew-core/3.7/Formula/python.rb > /dev/null
+          brew install --ignore-dependencies https://raw.githubusercontent.com/Homebrew/homebrew-core/22c80fc362ac8f87c59c446a85a97cb99ff160fb/Formula/python.rb > /dev/null
 
           sudo -H pip3 install --upgrade pip | cat
 

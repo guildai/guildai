@@ -262,7 +262,7 @@ class MacBuild(Build):
             "brew unlink python",
             ("brew install --ignore-dependencies "
              "https://raw.githubusercontent.com/Homebrew/homebrew-core/%s/"
-             "Formula/python.rb > /dev/null" % self.python)
+             "Formula/python.rb > /dev/null" % commit)
         ]
 
 class Config(object):
