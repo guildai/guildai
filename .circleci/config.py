@@ -209,8 +209,9 @@ class LinuxBuild(Build):
 
     images = {
         "linux-python-2.7": "circleci/python:2.7-stretch-node",
-        "linux-python-3.5": "circleci/python:3.5-jessie-node",
+        "linux-python-3.5": "circleci/python:3.5-stretch-node",
         "linux-python-3.6": "circleci/python:3.6-stretch-node",
+        "linux-python-3.7": "circleci/python:3.7-stretch-node"
     }
 
     def __init__(self, python):
@@ -229,6 +230,11 @@ class MacBuild(Build):
     env = "macos"
 
     xcode_version = "10.2.0"
+
+    homebrew_commits = {
+        "3.6": "f2a764ef944b1080be64bd88dca9a1d80130c558",
+        "3.7": "22c80fc362ac8f87c59c446a85a97cb99ff160fb"
+    }
 
     def __init__(self, python):
         self.python = python
@@ -251,15 +257,13 @@ class MacBuild(Build):
         if self.python == "2.7":
             # 2.7 is default on OSX
             return []
-        elif self.python == "3.6":
-            return [
-                "brew unlink python",
-                ("brew install --ignore-dependencies "
-                 "https://raw.githubusercontent.com/Homebrew/"
-                 "homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/"
-                 "Formula/python.rb > /dev/null")
-            ]
-        assert False, self.python
+        commit = self.homebrew_commits[self.python]
+        return [
+            "brew unlink python",
+            ("brew install --ignore-dependencies "
+             "https://raw.githubusercontent.com/Homebrew/homebrew-core/%s/"
+             "Formula/python.rb > /dev/null" % self.python)
+        ]
 
 class Config(object):
 
@@ -291,11 +295,14 @@ class Config(object):
         }
 
 builds = [
-    LinuxBuild(python="2.7"),
-    LinuxBuild(python="3.5"),
-    LinuxBuild(python="3.6"),
-    MacBuild(python="2.7"),
-    MacBuild(python="3.6"),
+    #LinuxBuild(python="2.7"),
+    #LinuxBuild(python="3.5"),
+    #LinuxBuild(python="3.6"),
+    LinuxBuild(python="3.7"),
+
+    #MacBuild(python="2.7"),
+    #MacBuild(python="3.6"),
+    MacBuild(python="3.7"),
 ]
 
 def main():
