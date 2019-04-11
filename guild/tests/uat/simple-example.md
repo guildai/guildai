@@ -76,8 +76,8 @@ for one epoch.
 The `train` operation, defined in the Guild file, defines non-default columns:
 
     >>> run("guild compare --table 1")
-    run  operation  started  time  status     user  label     step  train_loss  train_acc
-    ...  train      ...      ...   completed  ...   epochs=1  540   0...        0...
+    run  operation  started  time  status     label     step  train_loss  train_acc
+    ...  train      ...      ...   completed  epochs=1  540   0...        0...
     <exit 0>
 
 ## Running scripts directly
@@ -168,8 +168,8 @@ We can view the compare columns for the script op - these are default
 for scripts:
 
     >>> run("guild compare -T 1")
-    run  operation  started  time  status     user  label  batch_size  datadir  epochs  prepare  rundir  test   loss
-    ...  train.py   ... ...  ...   completed  ...          100         data     1       False    .       False  0...
+    run  operation  started  time  status     label  batch_size  datadir  epochs  prepare  rundir  test   loss
+    ...  train.py   ... ...  ...   completed         100         data     1       False    .       False  0...
     <exit 0>
 
     run  operation  started  time  status     label  step  loss  acc
@@ -179,7 +179,7 @@ for scripts:
 When we compare the last two runs (the `train` op and the `train.py` script):
 
     >>> run("guild compare -T 1 2")
-    run  operation  started  time  status     user  label     batch_size  datadir  epochs  prepare  rundir  test   loss  step  train_loss  train_acc
-    ...  train.py   ... ...  ...   completed  ...             100         data     1       False    .       False  0...
-    ...  train      ... ...  ...   completed  ...   epochs=1                                                             540   0...        0...
+    run  operation  started  time  status     label     batch_size  datadir  epochs  prepare  rundir  test   loss  step  train_loss  train_acc
+    ...  train.py   ... ...  ...   completed            100         data     1       False    .       False  0...
+    ...  train      ... ...  ...   completed  epochs=1                                                             540   0...        0...
     <exit 0>

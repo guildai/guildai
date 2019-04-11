@@ -5,7 +5,6 @@
 ### Enhancements
 
 - Record user and host information per run
-- Include user in default compare columns
 
 ### Fixes
 
