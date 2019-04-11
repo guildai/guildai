@@ -21,7 +21,7 @@ and our logging function:
     >>> def log_sample_messages():
     ...   test_logger.debug("debug entry")
     ...   test_logger.info("info entry")
-    ...   test_logger.warn("warning entry")
+    ...   test_logger.warning("warning entry")
     ...   test_logger.error("error entry")
 
 ## Initializing logging
