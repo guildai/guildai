@@ -126,7 +126,7 @@ class Build(object):
         return self._pip_install(["requirements.txt"])
 
     def _install_tensorflow(self):
-        return self._pip_install(["grpcio==1.9.1", "tensorflow"])
+        return self._pip_install(["tensorflow"])
 
     @staticmethod
     def _install_guild_view_reqs():
@@ -188,7 +188,8 @@ class Build(object):
         return {
             "run": {
                 "name": name,
-                "command": "\n".join(cmd_lines)
+                "command": "\n".join(cmd_lines),
+                "no_output_timeout": 1200,
             }
         }
 
