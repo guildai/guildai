@@ -98,7 +98,6 @@ class Step(object):
 
         Warns if params contains unused values.
         """
-        "Warn if any params set that we ignore."
         defaults = {p.name: p.default for p in ctx.command.params}
         for name, val in sorted(ctx.params.items()):
             if name in self.used_params:

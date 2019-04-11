@@ -22,9 +22,10 @@ import re
 import types
 
 try:
+    # pylint: disable=ungrouped-imports
     from ast import NameConstant
 except ImportError:
-    class FakeType:
+    class FakeType(object):
         pass
     NameConstant = FakeType
 
