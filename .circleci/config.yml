@@ -1,4 +1,172 @@
 jobs:
+  linux-python-2.7:
+    docker:
+    - image: circleci/python:2.7-stretch-node
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - linux-python-2.7-16-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+    - run:
+        command: 'sudo -H pip install --upgrade pip | cat
+
+          sudo -H pip install --upgrade virtualenv | cat
+
+          test -e build-env/bin/activate || virtualenv build-env
+
+          . build-env/bin/activate
+
+          pip install --upgrade -r requirements.txt | cat
+
+          pip install --upgrade tensorflow | cat
+
+          cd guild/view && npm install'
+        name: Install build dependencies
+        no_output_timeout: 1200
+    - save_cache:
+        key: linux-python-2.7-16-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        paths:
+        - build-env
+    - run:
+        command: '. build-env/bin/activate
+
+          python setup.py bdist_wheel -p manylinux1_x86_64'
+        name: Build
+        no_output_timeout: 1200
+    - run:
+        command: sudo -H pip install --upgrade dist/*.whl | cat
+        name: Install dist
+        no_output_timeout: 1200
+    - run:
+        command: 'guild init -y --no-progress --name guild-test --guild dist/*.whl test-env
+
+          TERM=xterm-256color source guild-env test-env
+
+          WORKSPACE=test-env UAT_SKIP=remote-* guild check --uat'
+        name: Test
+        no_output_timeout: 1200
+    - store_artifacts:
+        destination: dist
+        path: dist
+    - run:
+        command: '. build-env/bin/activate
+
+          twine upload --skip-existing dist/*.whl'
+        name: Upload to PyPI
+        no_output_timeout: 1200
+    working_directory: ~/repo
+  linux-python-3.5:
+    docker:
+    - image: circleci/python:3.5-stretch-node
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - linux-python-3.5-16-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+    - run:
+        command: 'sudo -H pip install --upgrade pip | cat
+
+          sudo -H pip install --upgrade virtualenv | cat
+
+          test -e build-env/bin/activate || virtualenv build-env
+
+          . build-env/bin/activate
+
+          pip install --upgrade -r requirements.txt | cat
+
+          pip install --upgrade tensorflow | cat
+
+          cd guild/view && npm install'
+        name: Install build dependencies
+        no_output_timeout: 1200
+    - save_cache:
+        key: linux-python-3.5-16-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        paths:
+        - build-env
+    - run:
+        command: '. build-env/bin/activate
+
+          python setup.py bdist_wheel -p manylinux1_x86_64'
+        name: Build
+        no_output_timeout: 1200
+    - run:
+        command: sudo -H pip install --upgrade dist/*.whl | cat
+        name: Install dist
+        no_output_timeout: 1200
+    - run:
+        command: 'guild init -y --no-progress --name guild-test --guild dist/*.whl test-env
+
+          TERM=xterm-256color source guild-env test-env
+
+          WORKSPACE=test-env UAT_SKIP=remote-* guild check --uat'
+        name: Test
+        no_output_timeout: 1200
+    - store_artifacts:
+        destination: dist
+        path: dist
+    - run:
+        command: '. build-env/bin/activate
+
+          twine upload --skip-existing dist/*.whl'
+        name: Upload to PyPI
+        no_output_timeout: 1200
+    working_directory: ~/repo
+  linux-python-3.6:
+    docker:
+    - image: circleci/python:3.6-stretch-node
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - linux-python-3.6-16-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+    - run:
+        command: 'sudo -H pip install --upgrade pip | cat
+
+          sudo -H pip install --upgrade virtualenv | cat
+
+          test -e build-env/bin/activate || virtualenv build-env
+
+          . build-env/bin/activate
+
+          pip install --upgrade -r requirements.txt | cat
+
+          pip install --upgrade tensorflow | cat
+
+          cd guild/view && npm install'
+        name: Install build dependencies
+        no_output_timeout: 1200
+    - save_cache:
+        key: linux-python-3.6-16-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        paths:
+        - build-env
+    - run:
+        command: '. build-env/bin/activate
+
+          python setup.py bdist_wheel -p manylinux1_x86_64'
+        name: Build
+        no_output_timeout: 1200
+    - run:
+        command: sudo -H pip install --upgrade dist/*.whl | cat
+        name: Install dist
+        no_output_timeout: 1200
+    - run:
+        command: 'guild init -y --no-progress --name guild-test --guild dist/*.whl test-env
+
+          TERM=xterm-256color source guild-env test-env
+
+          WORKSPACE=test-env UAT_SKIP=remote-* guild check --uat'
+        name: Test
+        no_output_timeout: 1200
+    - store_artifacts:
+        destination: dist
+        path: dist
+    - run:
+        command: '. build-env/bin/activate
+
+          twine upload --skip-existing dist/*.whl'
+        name: Upload to PyPI
+        no_output_timeout: 1200
+    working_directory: ~/repo
   linux-python-3.7:
     docker:
     - image: circleci/python:3.7-stretch-node
@@ -35,6 +203,122 @@ jobs:
         no_output_timeout: 1200
     - run:
         command: sudo -H pip install --upgrade dist/*.whl | cat
+        name: Install dist
+        no_output_timeout: 1200
+    - run:
+        command: 'guild init -y --no-progress --name guild-test --guild dist/*.whl test-env
+
+          TERM=xterm-256color source guild-env test-env
+
+          WORKSPACE=test-env UAT_SKIP=remote-* guild check --uat'
+        name: Test
+        no_output_timeout: 1200
+    - store_artifacts:
+        destination: dist
+        path: dist
+    - run:
+        command: '. build-env/bin/activate
+
+          twine upload --skip-existing dist/*.whl'
+        name: Upload to PyPI
+        no_output_timeout: 1200
+    working_directory: ~/repo
+  macos-python-2.7:
+    macos:
+      xcode: 10.2.0
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - macos-python-2.7-16-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+    - run:
+        command: 'sudo -H pip install --upgrade pip | cat
+
+          sudo -H pip install --upgrade virtualenv | cat
+
+          test -e build-env/bin/activate || virtualenv build-env
+
+          . build-env/bin/activate
+
+          pip install --upgrade -r requirements.txt | cat
+
+          pip install --upgrade tensorflow | cat
+
+          cd guild/view && npm install'
+        name: Install build dependencies
+        no_output_timeout: 1200
+    - save_cache:
+        key: macos-python-2.7-16-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        paths:
+        - build-env
+    - run:
+        command: '. build-env/bin/activate
+
+          python setup.py bdist_wheel'
+        name: Build
+        no_output_timeout: 1200
+    - run:
+        command: sudo -H pip install --upgrade dist/*.whl | cat
+        name: Install dist
+        no_output_timeout: 1200
+    - run:
+        command: 'guild init -y --no-progress --name guild-test --guild dist/*.whl test-env
+
+          TERM=xterm-256color source guild-env test-env
+
+          WORKSPACE=test-env UAT_SKIP=remote-* guild check --uat'
+        name: Test
+        no_output_timeout: 1200
+    - store_artifacts:
+        destination: dist
+        path: dist
+    - run:
+        command: '. build-env/bin/activate
+
+          twine upload --skip-existing dist/*.whl'
+        name: Upload to PyPI
+        no_output_timeout: 1200
+    working_directory: ~/repo
+  macos-python-3.6:
+    macos:
+      xcode: 10.2.0
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - macos-python-3.6-16-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+    - run:
+        command: 'brew unlink python
+
+          brew install --ignore-dependencies https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb > /dev/null
+
+          sudo -H pip3 install --upgrade pip | cat
+
+          sudo -H pip3 install --upgrade virtualenv | cat
+
+          test -e build-env/bin/activate || virtualenv build-env
+
+          . build-env/bin/activate
+
+          pip3 install --upgrade -r requirements.txt | cat
+
+          pip3 install --upgrade tensorflow | cat
+
+          cd guild/view && npm install'
+        name: Install build dependencies
+        no_output_timeout: 1200
+    - save_cache:
+        key: macos-python-3.6-16-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        paths:
+        - build-env
+    - run:
+        command: '. build-env/bin/activate
+
+          python setup.py bdist_wheel'
+        name: Build
+        no_output_timeout: 1200
+    - run:
+        command: sudo -H pip3 install --upgrade dist/*.whl | cat
         name: Install dist
         no_output_timeout: 1200
     - run:
@@ -119,7 +403,37 @@ version: 2
 workflows:
   all:
     jobs:
+    - linux-python-2.7:
+        filters:
+          branches:
+            only:
+            - release
+            - pre-release
+    - linux-python-3.5:
+        filters:
+          branches:
+            only:
+            - release
+            - pre-release
+    - linux-python-3.6:
+        filters:
+          branches:
+            only:
+            - release
+            - pre-release
     - linux-python-3.7:
+        filters:
+          branches:
+            only:
+            - release
+            - pre-release
+    - macos-python-2.7:
+        filters:
+          branches:
+            only:
+            - release
+            - pre-release
+    - macos-python-3.6:
         filters:
           branches:
             only:
