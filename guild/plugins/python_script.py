@@ -313,14 +313,15 @@ class PythonScriptPlugin(pluginlib.Plugin):
         return yaml.safe_load(out)
 
     def _global_assigns_flags_data(self, script):
-        return self._public_params(script.params)
-
-    @staticmethod
-    def _public_params(params):
+        params = script.params
         return {
             str(name): params[name] for name in params
-            if name[:1] != "_"
+            if self._is_global_assign_flag(name)
         }
+
+    @staticmethod
+    def _is_global_assign_flag(name):
+        return name[:1] != "_"
 
     @staticmethod
     def _apply_abs_paths(data, script_dir):
