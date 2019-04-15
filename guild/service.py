@@ -18,7 +18,6 @@ from __future__ import division
 import os
 import logging
 
-import daemonize
 import psutil
 
 from guild import var
@@ -101,6 +100,7 @@ def _run(f, log, log_level=None):
         log.exception("service callback")
 
 def _start(name, f, log):
+    import daemonize
     pidfile = var.pidfile(name)
     if os.path.exists(pidfile):
         raise Running(name, pidfile)
