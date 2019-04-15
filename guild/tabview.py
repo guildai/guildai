@@ -208,3 +208,19 @@ def view_runs(get_data_cb, get_detail_cb, actions):
         column_width="max",
         info="Guild run comparison",
     )
+
+def _patch_for_tabview():
+    _patch_os_unsetenv()
+    _patch_curses_resizeterm()
+
+def _patch_os_unsetenv():
+    import os
+    if not hasattr(os, "unsetenv"):
+        os.unsetenv = lambda _val: None
+
+def _patch_curses_resizeterm():
+    if not hasattr(curses, "resizeterm"):
+        assert hasattr(curses, "resize_term")
+        curses.resizeterm = curses.resize_term
+
+_patch_for_tabview()
