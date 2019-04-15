@@ -779,6 +779,7 @@ class OpDef(object):
         self.flags = _init_flags(data, self)
         self.flags_dest = data.get("flags-dest")
         self.flags_import = data.get("flags-import")
+        self.flags_no_import = data.get("flags-no-import")
         self._modelref = None
         self._flag_vals = _init_flag_values(self.flags)
         self.description = (data.get("description") or "").strip()

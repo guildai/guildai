@@ -50,5 +50,13 @@
           choices: [3, 4]
           default: 3
 
+    skip-imports-1:
+      main: main_globals
+      flags-no-import: [f_int]
+
+    skip-imports-2:
+      main: main_args
+      flags-no-import: [foo]
+
     implicit-args2:
       main: main_args2

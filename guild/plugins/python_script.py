@@ -168,9 +168,15 @@ class PythonScriptPlugin(pluginlib.Plugin):
         import_data = {
             name: flags_data[name]
             for name in flags_data
-            if op.flags_import is None or name in op.flags_import
+            if self._is_import_flag(name, op)
         }
         op.merge_flags(ImportedFlagsOpProxy(import_data, op, self.log))
+
+    @staticmethod
+    def _is_import_flag(name, op):
+        return (
+            (op.flags_import is None or name in op.flags_import) and
+            (op.flags_no_import is None or name not in op.flags_no_import))
 
     def _flags_data(self, main, model_paths, local_cache):
         main_mod = op_util.split_main(main)[0]

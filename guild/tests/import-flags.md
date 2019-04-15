@@ -183,6 +183,19 @@ Imports can be disabled by specifying `no` or `[]` for `flags-import`:
     >>> flag_vals("no-imports-3")
     {'foo': 3}
 
+## Don't import specific flags
+
+In cases where a user wants to import all flags *except* certain
+flags, she can use `flags-no-import`.
+
+    >>> gf.models["test"].get_operation("skip-imports-1").flags
+    [<guild.guildfile.FlagDef 'f_bool'>,
+     <guild.guildfile.FlagDef 'f_float'>,
+     <guild.guildfile.FlagDef 'f_str'>]
+
+    >>> gf.models["test"].get_operation("skip-imports-2").flags
+    [<guild.guildfile.FlagDef 'bar'>]
+
 ## Alt argparse usage
 
 The module `main_args2` - used by the `implicit-args2` operation - has
