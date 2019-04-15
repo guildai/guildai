@@ -1,3 +1,5 @@
+skip-windows: yes
+
 # Step checks
 
 Steps can be used to check run results.

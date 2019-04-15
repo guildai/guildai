@@ -1,4 +1,6 @@
-# Operation steps
+skip-windows: yes
+#
+ Operation steps
 
 Operations may be defined using a sequence of steps, rather than a
 main or exec spec.

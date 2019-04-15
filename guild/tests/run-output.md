@@ -1,3 +1,5 @@
+skip-windows: yes
+
 # Run output
 
 Guild captures run output by logging it to an `output` file and also

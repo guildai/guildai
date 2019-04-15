@@ -1,3 +1,5 @@
+skip-windows: yes
+
 # Guild utils
 
 ## Matching filters
