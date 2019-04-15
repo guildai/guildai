@@ -136,6 +136,8 @@ class ImportedFlagsOpProxy(object):
 
 class PythonScriptPlugin(pluginlib.Plugin):
 
+    resolve_model_op_priority = 60
+
     def resolve_model_op(self, opspec):
         path = os.path.join(config.cwd(), opspec)
         if not python_util.is_python_script(path):
