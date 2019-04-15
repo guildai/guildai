@@ -14,6 +14,7 @@
 
 import glob
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -37,6 +38,8 @@ from guild import pip_util
 log.init_logging()
 
 guild_dist_basename = "guildai.dist-info"
+
+npm_cmd = "npm.cmd" if platform.system() == "Windows" else "npm"
 
 def guild_dist_info():
     metadata = PathMetadata(".", guild_dist_basename)
@@ -86,7 +89,7 @@ class Build(build_py):
 
 def _validate_env():
     try:
-        subprocess.check_output(["npm", "--version"])
+        subprocess.check_output([npm_cmd, "--version"])
     except OSError as e:
         _exit("npm is not installed: %s", e)
 
@@ -159,8 +162,8 @@ def _install_external_wheel(wheel_path):
 
 def _build_view_dist():
     """Build view distribution."""
-    subprocess.check_call(["npm", "install"], cwd="./guild/view")
-    subprocess.check_call(["npm", "run", "build"], cwd="./guild/view")
+    subprocess.check_call([npm_cmd, "install"], cwd="./guild/view")
+    subprocess.check_call([npm_cmd, "run", "build"], cwd="./guild/view")
 
 def _patch_git_obtain():
     """Patch pip's git 'obtain' to download rather than clone.
