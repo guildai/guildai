@@ -1,0 +1,12 @@
+@ECHO OFF
+
+SETLOCAL
+
+SET "PYTHON_EXE=%~dp0\python.exe"
+IF NOT EXIST "%PYTHON_EXE%" (
+  SET "PYTHON_EXE=python"
+)
+
+SET "GUILD_SCRIPT=%~dp0\guild"
+
+"%PYTHON_EXE%" "%GUILD_SCRIPT%" %*

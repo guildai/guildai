@@ -23,7 +23,7 @@ def main():
     guild.main_bootstrap.main()
 
 def _guild_import_path():
-    script_home = os.path.dirname(__file__)
+    script_home = os.path.abspath(os.path.dirname(__file__))
     return os.path.dirname(os.path.dirname(script_home))
 
 if __name__ == '__main__':
