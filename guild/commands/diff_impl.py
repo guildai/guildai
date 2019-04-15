@@ -17,12 +17,12 @@ from __future__ import division
 
 import logging
 import os
-import shlex
 import subprocess
 
 from guild import cli
 from guild import click_util
 from guild import config
+from guild import util
 
 from . import runs_impl
 
@@ -57,7 +57,7 @@ def main(args, ctx):
     _diff(run1, run2, args)
 
 def _diff(run1, run2, args):
-    cmd_base = shlex.split(_diff_cmd(args))
+    cmd_base = util.shlex_split(_diff_cmd(args))
     for path in _diff_paths(args):
         dir1 = os.path.join(run1.path, path)
         dir2 = os.path.join(run2.path, path)

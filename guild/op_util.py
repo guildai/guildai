@@ -18,7 +18,6 @@ import hashlib
 import logging
 import re
 import os
-import shlex
 import shutil
 import struct
 import sys
@@ -615,9 +614,7 @@ def _is_text_file(path):
 def split_main(main):
     if isinstance(main, list):
         return main
-    # If main is None, this call will block (see
-    # https://bugs.python.org/issue27775)
-    return shlex.split(main or "")
+    return util.shlex_split(main or "")
 
 # Alias
 split_cmd = split_main

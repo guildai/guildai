@@ -20,7 +20,6 @@ import importlib
 import logging
 import os
 import re
-import shlex
 import subprocess
 
 import guild.opref
@@ -158,7 +157,7 @@ def _apply_source_script_function_to_part(part, fun_name, fun):
     m = re.match(r"\$\(%s (.*?)\)" % fun_name, part)
     if m is None:
         return part
-    args = shlex.split(m.group(1))
+    args = util.shlex_split(m.group(1))
     fun, extra_args = fun
     log.debug("Applying %s to %s", fun_name, args)
     return fun(*(args + extra_args))

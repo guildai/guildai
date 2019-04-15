@@ -18,7 +18,6 @@ from __future__ import division
 import logging
 import os
 import re
-import shlex
 import subprocess
 import sys
 
@@ -84,7 +83,7 @@ class Step(object):
         run_spec = data.get("run", "").strip()
         if not run_spec:
             _error("invalid step %r: must define run" % data)
-        args = shlex.split(run_spec)
+        args = util.shlex_split(run_spec)
         try:
             ctx = run_cmd.make_context("run", args)
         except click.exceptions.ClickException as e:

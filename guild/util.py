@@ -22,6 +22,7 @@ import os
 import logging
 import platform
 import re
+import shlex
 import shutil
 import struct
 import subprocess
@@ -902,3 +903,9 @@ def _real_hostname():
 
 def user():
     return os.getenv("USER") or ""
+
+def shlex_split(s):
+    posix = PLATFORM != "Windows"
+    # If s is None, this call will block (see
+    # https://bugs.python.org/issue27775)
+    return shlex.split(s or "", posix=posix)

@@ -18,7 +18,6 @@ from __future__ import division
 import logging
 import os
 import re
-import shlex
 
 from guild import namespace
 from guild import resource
@@ -121,8 +120,7 @@ def _rename_source(name, rename):
     return name
 
 def _split_rename_spec(spec):
-    spec = spec or "" # shlex.split hangs forever on None
-    parts = shlex.split(spec)
+    parts = util.shlex_split(spec)
     if len(parts) != 2:
         raise DependencyError(
             "invalid rename spec: %s - expected 'PATTERN REPL'"

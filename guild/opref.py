@@ -18,7 +18,8 @@ from __future__ import division
 import collections
 import logging
 import re
-import shlex
+
+from guild import util
 
 log = logging.getLogger("guild")
 
@@ -48,7 +49,7 @@ def _opref_parse(encoded):
 
     See _opref_from_string for parsing a user-provided value.
     """
-    parts = shlex.split(encoded)
+    parts = util.shlex_split(encoded)
     if len(parts) != 4:
         raise OpRefError(encoded)
     pkg_type_and_name, pkg_ver, model_name, op_name = parts
