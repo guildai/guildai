@@ -908,4 +908,9 @@ def shlex_split(s):
     posix = PLATFORM != "Windows"
     # If s is None, this call will block (see
     # https://bugs.python.org/issue27775)
-    return shlex.split(s or "", posix=posix)
+    s = s or ""
+    parts = shlex.split(s, posix=posix)
+    if not posix:
+        # Workaround issue where '' in Windows is split as "''"
+        parts = ["" if part == "''" else part for part in parts]
+    return parts
