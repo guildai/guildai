@@ -10,19 +10,19 @@ We'll use the `optimizers` sample project:
 Here's a batch run with three values:
 
     >>> project.run("echo.py", flags={"x": [1,2,3]}, print_cmd=True)
-    /... -um guild.batch_main
-    /... -um guild.op_main echo --x 1 --y 2 --z a
-    /... -um guild.op_main echo --x 2 --y 2 --z a
-    /... -um guild.op_main echo --x 3 --y 2 --z a
+    ??? -um guild.batch_main
+    ... -um guild.op_main echo --x 1 --y 2 --z a
+    ... -um guild.op_main echo --x 2 --y 2 --z a
+    ... -um guild.op_main echo --x 3 --y 2 --z a
 
 And using the `random` optimizer:
 
     >>> project.run("echo.py", flags={"x": [1,2,3]}, optimizer="random",
     ...             max_trials=3, print_cmd=True)
-    /... -um guild.plugins.random_main
-    /... -um guild.op_main echo --x ... --y 2 --z a
-    /... -um guild.op_main echo --x ... --y 2 --z a
-    /... -um guild.op_main echo --x ... --y 2 --z a
+    ??? -um guild.plugins.random_main
+    ... -um guild.op_main echo --x ... --y 2 --z a
+    ... -um guild.op_main echo --x ... --y 2 --z a
+    ... -um guild.op_main echo --x ... --y 2 --z a
 
 Note we can't assert the values for `x` because they're randomly
 generated.
@@ -31,10 +31,10 @@ And with `gp` optimizer:
 
     >>> project.run("echo.py", flags={"x": [1,2,3]}, optimizer="gp",
     ...             max_trials=3, print_cmd=True)
-    /... -um guild.plugins.skopt_gp_main
+    ??? -um guild.plugins.skopt_gp_main
     INFO: [guild] Found 0 previous trial(s) for use in optimization
-    /... -um guild.op_main echo --x ... --y 2 --z a
+    ... -um guild.op_main echo --x ... --y 2 --z a
     INFO: [guild] Found 0 previous trial(s) for use in optimization
-    /... -um guild.op_main echo --x ... --y 2 --z a
+    ... -um guild.op_main echo --x ... --y 2 --z a
     INFO: [guild] Found 0 previous trial(s) for use in optimization
-    /... -um guild.op_main echo --x ... --y 2 --z a
+    ... -um guild.op_main echo --x ... --y 2 --z a
