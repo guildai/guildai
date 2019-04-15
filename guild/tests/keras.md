@@ -58,8 +58,8 @@ Operation details:
      'val_acc']
 
     >>> pprint(opdef.output_scalars)
-    {'acc': ' - acc: ([0-9\\.]+)',
-     'loss': ' - loss: ([0-9\\.]+)',
+    {'acc': 'step - loss: [0-9\\.]+ - acc: ([0-9\\.]+)',
+     'loss': 'step - loss: ([0-9\\.]+)',
      'step': 'Epoch ([0-9]+)/[0-9]+',
      'val_acc': ' - val_acc: ([0-9\\.]+)',
      'val_loss': ' - val_loss: ([0-9\\.]+)'}
@@ -131,8 +131,8 @@ Compare colspecs:
 Output scalars:
 
     >>> pprint(opdef2.output_scalars)
-    {'acc': ' - acc: ([0-9\\.]+)',
-     'loss': ' - loss: ([0-9\\.]+)',
+    {'acc': 'step - loss: [0-9\\.]+ - acc: ([0-9\\.]+)',
+     'loss': 'step - loss: ([0-9\\.]+)',
      'step': 'Epoch ([0-9]+)/[0-9]+',
      'val_acc': ' - val_acc: ([0-9\\.]+)',
      'val_loss': ' - val_loss: ([0-9\\.]+)'}
