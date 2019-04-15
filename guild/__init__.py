@@ -20,6 +20,8 @@ import subprocess
 
 __version__ = "0.6.1.dev1"
 
+# Used by bootstrap_main to ensure minimum required set of modules
+# before continuing.
 __requires__ = [
     # (<required module>, <distutils package req>)
     ("pip", "pip"),
@@ -29,7 +31,6 @@ __requires__ = [
     ("tabview", "tabview"),
     ("twine", "twine"),
     ("werkzeug", "Werkzeug"),
-    ("whoosh", "Whoosh"),
 ]
 
 __pkgdir__ = os.path.dirname(os.path.dirname(__file__))
