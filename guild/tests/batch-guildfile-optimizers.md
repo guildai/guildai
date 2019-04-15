@@ -1,3 +1,6 @@
+skip-windows: yes
+
+
 # Batch runs - Guild file optimizers
 
 Optimizers may be defined in a Guild file, in which case the

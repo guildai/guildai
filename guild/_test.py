@@ -112,22 +112,48 @@ def _run_test(name):
     sys.stdout.write("  %s: " % name)
     sys.stdout.flush()
     filename = _test_filename(name)
+    if _skip_windows_test(filename):
+        _log_skipped_windows_test(name)
+        return True
     globs = test_globals()
     try:
         failures, _tests = run_test_file(filename, globs)
     except IOError:
-        sys.stdout.write(" ERROR test not found\n")
+        _log_test_not_found()
         return False
     else:
         if not failures:
-            sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
-            sys.stdout.write("ok\n")
-            sys.stdout.flush()
+            _log_test_ok(name)
         return failures == 0
 
 def _test_filename(name):
     # Path must be relative to module
     return os.path.join("tests", name + ".md")
+
+def _skip_windows_test(filename):
+    if PLATFORM != "Windows":
+        return False
+    full_filename = os.path.join(os.path.dirname(__file__), filename)
+    try:
+        with open(full_filename, "r") as f:
+            head = f.read(256)
+    except IOError:
+        return False
+    else:
+        return re.search(r"^skip-windows: *yes$", head, re.MULTILINE)
+
+def _log_skipped_windows_test(name):
+    sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
+    sys.stdout.write("ok (skipped test on Windows)\n")
+    sys.stdout.flush()
+
+def _log_test_not_found():
+    sys.stdout.write(" ERROR test not found\n")
+
+def _log_test_ok(name):
+    sys.stdout.write(" " * (TEST_NAME_WIDTH - len(name)))
+    sys.stdout.write("ok\n")
+    sys.stdout.flush()
 
 def run_test_file(filename, globs):
     return run_test_file_with_config(
