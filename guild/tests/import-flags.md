@@ -203,3 +203,23 @@ a different argparse usage.
 
     >>> gf.models["test"].get_operation("implicit-args2").flags
     [<guild.guildfile.FlagDef 'bar'>, <guild.guildfile.FlagDef 'foo'>]
+
+## Marge based on arg-name
+
+    >>> gf.models["test"].get_operation("merge-by-arg-name").flags
+    [<guild.guildfile.FlagDef 'f_bool2'>,
+     <guild.guildfile.FlagDef 'f_float'>,
+     <guild.guildfile.FlagDef 'f_int'>,
+     <guild.guildfile.FlagDef 'f_str2'>]
+
+    >>> flag_info("merge-by-arg-name", "f_bool2")
+    default: False
+
+    >>> flag_info("merge-by-arg-name", "f_float")
+    default: 8.0
+
+    >>> flag_info("merge-by-arg-name", "f_int")
+    default: 6
+
+    >>> flag_info("merge-by-arg-name", "f_str2")
+    default: hi2

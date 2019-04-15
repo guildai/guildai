@@ -60,3 +60,14 @@
 
     implicit-args2:
       main: main_args2
+
+    merge-by-arg-name:
+      main: main_globals
+      flags:
+        f_str2:
+          arg-name: f_str
+          default: hi2
+        f_bool2:
+          arg-name: f_bool
+        f_float:
+          default: 8.0

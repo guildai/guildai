@@ -856,17 +856,30 @@ class OpDef(object):
         """
         merged = {}
         for op_flag in op.flags:
-            self_flag = self.get_flagdef(op_flag.name)
+            self_flag = self._mergeable_flagdef(op_flag.name)
             if self_flag is None:
                 merged[op_flag.name] = _new_merged_flag(op_flag, self)
             else:
-                merged[op_flag.name] = self_flag
+                merged[self_flag.name] = self_flag
                 _apply_flag_attrs(op_flag, self_flag)
         for self_flag in self.flags:
             if self_flag.name not in merged:
                 merged[self_flag.name] = self_flag
         self.flags = [merged[name] for name in sorted(merged)]
         self._flag_vals = _init_flag_values(self.flags)
+
+    def _mergeable_flagdef(self, name):
+        """Returns flagdef that can be merge per name.
+
+        Considers flag arg_name if name cannot be found.
+        """
+        by_name = self.get_flagdef(name)
+        if by_name is not None:
+            return by_name
+        for flag in self.flags:
+            if flag.arg_name and flag.arg_name == name:
+                return flag
+        return None
 
     def update_dependencies(self, opdef):
         self.dependencies.extend(opdef.dependencies)
