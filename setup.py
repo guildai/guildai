@@ -202,6 +202,7 @@ setup(
     description=PKG_INFO.get("Summary"),
     install_requires=PKG_INFO.get_all("Requires-Dist"),
     long_description=PKG_INFO.get_payload(),
+    long_description_content_type="text/markdown",
     url=PKG_INFO.get("Home-page"),
     maintainer=PKG_INFO.get("Author"),
     maintainer_email=PKG_INFO.get("Author-email"),

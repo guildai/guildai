@@ -44,28 +44,27 @@ Requires-Dist: tensorboardX
 Requires-Dist: twine
 Requires-Dist: virtualenv
 
-Guild AI is an `open source
-<https://raw.githubusercontent.com/guildai/guildai/master/LICENSE.txt>`_
-toolkit that automates and optimizes machine learning experiments.
+Guild AI is an [open source](LICENSE.txt) toolkit that automates and
+optimizes machine learning experiments.
 
 - Run unmodified training scripts, capturing each run result as a
   unique experiment
 - Automate trials using grid search, random search, and Bayesian
   optimization
 - Compare and analyze runs to understand and improve models
-- Automate training related operations such as data preparation and
+- Backup training related operations such as data preparation and
   test
-- Backup runs to S3 or other remote systems
+- Archive runs to S3 or other remote systems
 - Run operations remotely on cloud accelerators
 - Package and distribute models for easy reproducibility
 
-For more information, visit `Guild AI website <https://guild.ai/>`_.
+For more on features, see [Guild AI -
+Features](https://guild.ai/features/).
 
-Other links:
+Important links:
 
-- `GitHub repository <https://github.com/guildai/guildai>`_
-- `Latest release on PyPI <https://pypi.python.org/pypi/guildai>`_
-- `Guild AI website  <https://www.guild.ai>`_
-- `Guild AI Slack  <https://guildai.slack.com/join/shared_invite/enQtNDgxNDg5ODk2MjI2LWQ5ODI3ZGE2YzljYWViNTA0NjFmNDg4NTI3ZjY2Mjk2YTkzZjAxZWM3M2EyNTcyZWU0YzgzM2IwMTI0ZjFhNTU>`_
-- `Documentation  <https://www.guild.ai/docs/>`_
-- `Open issues  <https://github.com/guildai/guildai/issues>`_
+- **[Latest release on PyPI](https://pypi.python.org/pypi/guildai)**
+- **[Guild AI website](https://www.guild.ai)**
+- **[Guild AI Slack](https://guildai.slack.com/join/shared_invite/enQtNDgxNDg5ODk2MjI2LWQ5ODI3ZGE2YzljYWViNTA0NjFmNDg4NTI3ZjY2Mjk2YTkzZjAxZWM3M2EyNTcyZWU0YzgzM2IwMTI0ZjFhNTU)** (for questions/support)
+- **[Documentation](https://www.guild.ai/docs/)**
+- **[Open issues](https://github.com/guildai/guildai/issues)**
