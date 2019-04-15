@@ -22,8 +22,6 @@ import subprocess
 import sys
 import time
 
-import daemonize
-
 import guild.plugin
 import guild.run
 
@@ -188,6 +186,7 @@ class Operation(object):
             return self._foreground_proc(quiet, stop_after)
 
     def _background_proc(self, pidfile, quiet, stop_after):
+        import daemonize
         action = lambda: self._foreground_proc(quiet, stop_after)
         daemon = daemonize.Daemonize(app="guild_op", action=action, pid=pidfile)
         if not quiet:
