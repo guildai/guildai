@@ -9,10 +9,8 @@ install:
 build: off
 
 test_script:
-  - "%PYTHON%\\python.exe guild\\scripts\\guild check -nT"
-
-after_test:
   - "%PYTHON%\\python.exe setup.py bdist_wheel"
+  - "%PYTHON%\\python.exe guild\\scripts\\guild check -nT"
 
 artifacts:
   - path: dist\*
