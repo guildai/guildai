@@ -3,7 +3,7 @@ environment:
     - PYTHON: "C:\\Python36"
 
 install:
-  - "%PYTHON%\\Scripts\\pip.exe pip install wheel"
+  - "%PYTHON%\\Scripts\\pip.exe install wheel"
   - "%PYTHON%\\Scripts\\pip.exe install -r requirements.txt"
 
 build: off
