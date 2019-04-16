@@ -3,11 +3,13 @@ environment:
     - PYTHON: "C:\\Python36-x64"
 
 install:
+  - "%PYTHON%\\python.exe -m pip install twine"
+  - "%PYTHON%\\python.exec -m twine upload --skipt-existing dist\\*.whl"
+
   - "%PYTHON%\\python.exe -m pip install wheel"
   - "%PYTHON%\\python.exe -m pip install -r requirements.txt"
   - "%PYTHON%\\python.exe -m pip install windows-curses"
   - "%PYTHON%\\python.exe -m pip install tensorflow"
-  - "%PYTHON%\\python.exe -m pip install twine"
 
 build: off
 
@@ -15,8 +17,7 @@ test_script:
   - "%PYTHON%\\python.exe setup.py bdist_wheel"
   - "%PYTHON%\\python.exe guild\\scripts\\guild check -nT"
 
-after_test:
-  - "twine upload --skipt-existing dist\\*.whl"
+#after_test:
 
 artifacts:
   - path: dist\*
