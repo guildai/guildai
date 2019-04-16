@@ -4,7 +4,7 @@ environment:
 
 install:
   - "%PYTHON%\\python.exe -m pip install twine"
-  - "%PYTHON%\\python.exec -m twine upload --skipt-existing dist\\*.whl"
+  - "%PYTHON%\\python.exe -m twine upload --skipt-existing dist\\*.whl"
 
   - "%PYTHON%\\python.exe -m pip install wheel"
   - "%PYTHON%\\python.exe -m pip install -r requirements.txt"
