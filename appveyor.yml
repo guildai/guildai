@@ -1,13 +1,10 @@
 environment:
-
   matrix:
-
     - PYTHON: "C:\\Python27"
-
-  build:
-
-    - "%PYTHON%\\python.exe setup.py build"
-
+  install:
+    - "%PYTHON%\\python.exe -m pip install wheel"
+  build: off
+  after_test:
+    - "build.cmd %PYTHON%\\python.exe setup.py bdist_wheel"
   artifacts:
-
     - path: dist\*
