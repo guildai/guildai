@@ -9,7 +9,7 @@ install:
 build: off
 
 test_script:
-  - "guild/guild/scripts/guild.cmd check -nT"
+  - "build.cmd %PYTHON%\\python.exe guild/guild/scripts/guild check -nT"
 
 after_test:
   - "build.cmd %PYTHON%\\python.exe setup.py bdist_wheel"
