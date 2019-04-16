@@ -1,3 +1,5 @@
+skip-windows: yes
+
 # Batch runs - random seeds
 
 Random seeds play an important role in supporting consistent behavior

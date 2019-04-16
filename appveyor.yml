@@ -1,10 +1,22 @@
 environment:
   matrix:
-    - PYTHON: "C:\\Python27"
-  install:
-    - "%PYTHON%\\python.exe -m pip install wheel"
-  build: off
-  after_test:
-    - "build.cmd %PYTHON%\\python.exe setup.py bdist_wheel"
-  artifacts:
-    - path: dist\*
+    - PYTHON: "C:\\Python36-x64"
+
+install:
+  - "%PYTHON%\\python.exe -m pip install wheel"
+  - "%PYTHON%\\python.exe -m pip install twine"
+  - "%PYTHON%\\python.exe -m pip install -r requirements.txt"
+  - "%PYTHON%\\python.exe -m pip install windows-curses"
+  - "%PYTHON%\\python.exe -m pip install tensorflow"
+
+build: off
+
+test_script:
+  - "%PYTHON%\\python.exe setup.py bdist_wheel"
+  - "%PYTHON%\\python.exe guild\\scripts\\guild check -nT"
+
+after_test:
+  - "%PYTHON%\\python.exe -m twine upload --skip-existing dist\\*.whl"
+
+artifacts:
+  - path: dist\*
