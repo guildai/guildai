@@ -1,6 +1,6 @@
 environment:
   matrix:
-    - PYTHON: "C:\\Python36"
+    - PYTHON: "C:\\Python36-x64"
 
 install:
   - "%PYTHON%\\python.exe -m pip install wheel"
