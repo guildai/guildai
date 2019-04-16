@@ -171,7 +171,6 @@ def _patch_pip_download_progress():
     Windows builds. This patch disables the progress UI, which is the
     culprit. This has no practical impact on user experience so
     disabling for all platforms.
-
     """
     from pip._internal import download
     download.DownloadProgressProvider = DownloadProgressProxy
