@@ -134,7 +134,7 @@ def _pip_wheel(name, dist_spec, root):
     cmd = WheelCommand()
     options, cmd_args = cmd.parse_args(args)
     _reset_env_for_pip_wheel()
-    _patch_pip_for_windows()
+    _patch_pip_download_progress()
     cmd.run(options, cmd_args)
     wheels = glob.glob(os.path.join(wheel_dir, "*.whl"))
     assert len(wheels) == 1, wheels
@@ -164,16 +164,17 @@ class DownloadProgressProxy(object):
     def __call__(self, iterator, _len):
         return iterator
 
-def _patch_pip_for_windows():
+def _patch_pip_download_progress():
     """Work-around problem on Windows CI.
 
     Get "ValueError: underlying buffer has been detached" when running
     Windows builds. This patch disables the progress UI, which is the
-    culprit.
+    culprit. This has no practical impact on user experience so
+    disabling for all platforms.
+
     """
-    if platform.system() == "Windows":
-        from pip._internal import download
-        download.DownloadProgressProvider = DownloadProgressProxy
+    from pip._internal import download
+    download.DownloadProgressProvider = DownloadProgressProxy
 
 def _install_external_wheel(wheel_path):
     zf = zipfile.ZipFile(wheel_path)
