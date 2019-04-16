@@ -6,7 +6,7 @@ install:
   - "%PYTHON%\\python.exe -m pip install wheel"
   - "%PYTHON%\\python.exe -m pip install -r requirements.txt"
 
-test:
+test_script:
   - "guild/guild/scripts/guild.cmd check -nT"
 
 after_test:
