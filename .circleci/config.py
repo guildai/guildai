@@ -239,6 +239,7 @@ class MacBuild(Build):
 
     pip_cmds = {
         "3.6": "pip3",
+        "3.7": "pip3",
     }
 
     def __init__(self, python):
@@ -266,7 +267,8 @@ class MacBuild(Build):
             "brew unlink python",
             ("brew install --ignore-dependencies "
              "https://raw.githubusercontent.com/Homebrew/homebrew-core/%s/"
-             "Formula/python.rb > /dev/null" % commit)
+             "Formula/python.rb > /dev/null" % commit),
+            "brew link python",
         ]
 
 class Config(object):
