@@ -115,7 +115,7 @@ class Build(object):
     @staticmethod
     def _init_env(path):
         return (
-            "test -e {path}/bin/activate || virtualenv {path}"
+            "test -e {path}/bin/activate || python -m virtualenv {path}"
             .format(path=path))
 
     @staticmethod
