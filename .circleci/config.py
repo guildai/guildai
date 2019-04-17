@@ -237,11 +237,14 @@ class MacBuild(Build):
         "3.7": "22c80fc362ac8f87c59c446a85a97cb99ff160fb"
     }
 
+    pip_cmds = {
+        "3.6": "pip3",
+    }
+
     def __init__(self, python):
         self.python = python
         self.name = "macos-python-%s" % python
-        if self.python.startswith("3."):
-            self.pip = "pip3"
+        self.pip = self.pip_cmds.get(self.python, self.pip)
 
     def env_config(self):
         return {
