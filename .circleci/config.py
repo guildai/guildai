@@ -114,9 +114,8 @@ class Build(object):
 
     def _init_env(self, path):
         return (
-            "test -e {path}/bin/activate || {venv_init}"
-            .format(path=path,
-                    venv_init=self._venv_init_cmd(path)))
+            "rm -rf {path} && {venv_init}"
+            .format(path=path, venv_init=self._venv_init_cmd(path)))
 
     @staticmethod
     def _venv_init_cmd(path):
