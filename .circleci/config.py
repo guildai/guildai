@@ -24,7 +24,8 @@ class Build(object):
     python = None
     env = None
 
-    pip = "pip"
+    python_cmd = "python"
+    pip_cmd = "pip"
 
     build_dir = "build-env"
     test_dir = "test-env"
@@ -97,7 +98,7 @@ class Build(object):
             "{sudo}{pip} install --upgrade {pkgs} | cat"
             .format(
                 sudo=sudo_part,
-                pip=self.pip,
+                pip=self.pip_cmd,
                 pkgs=pkgs_part))
 
     @staticmethod
@@ -117,9 +118,8 @@ class Build(object):
             "rm -rf {path} && {venv_init}"
             .format(path=path, venv_init=self._venv_init_cmd(path)))
 
-    @staticmethod
-    def _venv_init_cmd(path):
-        return "python -m virtualenv %s" % path
+    def _venv_init_cmd(self, path):
+        return "%s -m virtualenv %s" % (self.python_cmd, path)
 
     @staticmethod
     def _activate_env(path):
@@ -150,9 +150,8 @@ class Build(object):
                 self._bdist_wheel_cmd(),
             ])
 
-    @staticmethod
-    def _bdist_wheel_cmd():
-        return "python setup.py bdist_wheel"
+    def _bdist_wheel_cmd(self):
+        return "%s setup.py bdist_wheel" % self.python_cmd
 
     def install_dist(self):
         return self._run("Install dist", [
@@ -225,9 +224,8 @@ class LinuxBuild(Build):
     def env_config(self):
         return [{"image": self.images[self.name]}]
 
-    @staticmethod
-    def _bdist_wheel_cmd():
-        return "python setup.py bdist_wheel -p manylinux1_x86_64"
+    def _bdist_wheel_cmd(self):
+        return "%s setup.py bdist_wheel -p manylinux1_x86_64" % self.python_cmd
 
 class MacBuild(Build):
 
@@ -240,7 +238,13 @@ class MacBuild(Build):
         "3.7": "22c80fc362ac8f87c59c446a85a97cb99ff160fb"
     }
 
+    python_cmds = {
+        "3.6": "python3",
+        "3.7": "python3",
+    }
+
     pip_cmds = {
+        "2.7": "pip2",
         "3.6": "pip3",
         "3.7": "pip3",
     }
@@ -248,7 +252,8 @@ class MacBuild(Build):
     def __init__(self, python):
         self.python = python
         self.name = "macos-python-%s" % python
-        self.pip = self.pip_cmds.get(self.python, self.pip)
+        self.python_cmd = self.python_cmds.get(self.python, self.python_cmd)
+        self.pip_cmd = self.pip_cmds.get(self.python, self.pip_cmd)
 
     def env_config(self):
         return {
@@ -273,11 +278,6 @@ class MacBuild(Build):
              "Formula/python.rb > /dev/null" % commit),
             "brew link python",
         ]
-
-    def _venv_init_cmd(self, path):
-        if self.python == "2.7":
-            return "python2.7 -m virtualenv %s" % path
-        return super(MacBuild, self)._venv_init_cmd(path)
 
 class Config(object):
 
