@@ -1,3 +1,8 @@
+branches:
+  only:
+    - release
+    - pre-release
+
 environment:
   matrix:
     - PYTHON: "C:\\Python35-x64"
