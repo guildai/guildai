@@ -236,7 +236,7 @@ jobs:
 
           sudo -H pip2 install --upgrade virtualenv | cat
 
-          rm -rf build-env && python -m virtualenv build-env
+          rm -rf build-env && python2 -m virtualenv build-env
 
           . build-env/bin/activate
 
@@ -254,7 +254,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          python setup.py bdist_wheel'
+          python2 setup.py bdist_wheel'
         name: Build
         no_output_timeout: 1200
     - run:

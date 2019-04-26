@@ -239,6 +239,7 @@ class MacBuild(Build):
     }
 
     python_cmds = {
+        "2.7": "python2",
         "3.6": "python3",
         "3.7": "python3",
     }
