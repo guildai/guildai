@@ -1,15 +1,14 @@
 # Changes
 
-## 0.6.1 (pending release)
+## 0.6.1
 
 ### Enhancements
 
-- Record user and host information per run
+- Windows support for Python 3.5, 3.6, 3.7
 
 ### Fixes
 
-- Fix import of boolean flags on Python 3 (thanks to @OliverRichter
-  for report)
+- Fix import of boolean flags on Python 3 (report by @OliverRichter)
 - Skip all dot directories during source snapshots
 - Skip archive diretories during source snapshots
 
