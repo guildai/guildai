@@ -112,11 +112,15 @@ class Build(object):
     def _ensure_virtual_env_cmd(self):
         return self._pip_install(["virtualenv"], sudo=True)
 
-    @staticmethod
-    def _init_env(path):
+    def _init_env(self, path):
         return (
-            "test -e {path}/bin/activate || python -m virtualenv {path}"
-            .format(path=path))
+            "test -e {path}/bin/activate || {venv_init}"
+            .format(path=path,
+                    venv_init=self._venv_init_cmd(path)))
+
+    @staticmethod
+    def _venv_init_cmd(path):
+        return "python -m virtualenv %s" % path
 
     @staticmethod
     def _activate_env(path):
@@ -270,6 +274,11 @@ class MacBuild(Build):
              "Formula/python.rb > /dev/null" % commit),
             "brew link python",
         ]
+
+    def _venv_init_cmd(self, path):
+        if self.python == "2.7":
+            return "python2.7 -m virtualenv %s" % path
+        return super(MacBuild, self)._venv_init_cmd(path)
 
 class Config(object):
 

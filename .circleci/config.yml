@@ -236,7 +236,7 @@ jobs:
 
           sudo -H pip install --upgrade virtualenv | cat
 
-          test -e build-env/bin/activate || python -m virtualenv build-env
+          test -e build-env/bin/activate || python2.7 -m virtualenv build-env
 
           . build-env/bin/activate
 
