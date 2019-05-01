@@ -196,7 +196,8 @@ resources.
 Here are the model resources:
 
     >>> res_model.resources
-    [<guild.guildfile.ResourceDef 'test'>]
+    [<guild.guildfile.ResourceDef 'test'>,
+     <guild.guildfile.ResourceDef 'test2'>]
 
 The test resource has the following sources:
 
@@ -514,3 +515,76 @@ Unlike the previous test, the link is renamed using the source
 
     >>> realpath(join_path(test_ctx.target_dir, "test.config"))
     '.../samples/projects/resources/test.txt'
+
+## Resolving sources - part 2
+
+These tests continue testing resource resolution, but use the `test2`
+resource, which specifically tests `path`
+
+    >>> test2_resdef = res_model.get_resource("test2")
+    >>> test2_resdef.sources
+    [<guild.resourcedef.ResourceSource 'file:test.txt'>,
+     <guild.resourcedef.ResourceSource 'file:files/a.bin'>]
+
+To illustrate how paths are used, we'll resolve each source.
+
+Here's the resource we'll use to resolve sources:
+
+    >>> test2_ctx = deps.ResolutionContext(
+    ...   target_dir=None,
+    ...   opdef=None,
+    ...   resource_config={})
+    >>> test2_res = deps.Resource(test2_resdef, test_location, test2_ctx)
+
+### Resource paths
+
+A path may be defined for a resource:
+
+    >>> test2_resdef.path
+    'foo'
+
+This path is used when resolving any resource sources.
+
+Our first source:
+
+    >>> source1 = test2_resdef.sources[0]
+    >>> source1
+    <guild.resourcedef.ResourceSource 'file:test.txt'>
+    >>> print(source1.path)
+    None
+
+Let's resolve the source to a new temp dir:
+
+    >>> test2_ctx.target_dir = mkdtemp()
+    >>> test2_res.resolve_source(source1)
+    ['.../samples/projects/resources/test.txt']
+
+The resolved files are under the resource path `foo`:
+
+    >>> find(test2_ctx.target_dir)
+    ['foo/test.txt']
+
+### Source paths
+
+A source may also have a path, in which case that path is appended to
+any resource path.
+
+Here's the second source:
+
+    >>> source2 = test2_resdef.sources[1]
+    >>> source2
+    <guild.resourcedef.ResourceSource 'file:files/a.bin'>
+    >>> source2.path
+    'bar'
+
+Let's resolve the source:
+
+    >>> test2_ctx.target_dir = mkdtemp()
+    >>> test2_res.resolve_source(source2)
+    ['.../samples/projects/resources/files/a.bin']
+
+The resolved files are under the resource path `foo/bar`, which is
+defined by both the resource and the source:
+
+    >>> find(test2_ctx.target_dir)
+    ['foo/bar/a.bin']

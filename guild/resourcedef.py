@@ -138,7 +138,7 @@ class ResourceSource(object):
 
     def __init__(self, resdef, uri, name=None, sha256=None, unpack=None,
                  type=None, select=None, rename=None, help=None,
-                 post_process=None, **kw):
+                 post_process=None, path=None, **kw):
         self.resdef = resdef
         self.uri = uri
         self._parsed_uri = None
@@ -152,6 +152,7 @@ class ResourceSource(object):
         self.select = _coerce_list(select, "source select")
         self.rename = _coerce_list(rename, "source rename")
         self.post_process = post_process
+        self.path = path
         self.help = help
         for key in kw:
             log.warning(

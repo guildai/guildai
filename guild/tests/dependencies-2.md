@@ -138,6 +138,44 @@ A resource `name` may be provided for any full resource definition:
      'sources': [{'url': 'http://my.co/stuff.gz'},
                  {'url': 'http://my.co/more-suff.tar'}]}
 
+## Inline list
+
+An inline list can be used to list source. Each list item is converted
+to a dependency where `sources` contains a list containing the item.
+
+    >>> gf = guildfile.from_string("""
+    ... train:
+    ...   requires:
+    ...     - url: http://my.co/stuff.gz
+    ...     - operation: foo
+    ... """)
+
+    >>> print_deps(gf.get_operation("train").dependencies)
+    <guild.guildfile.OpDependency http://my.co/stuff.gz>
+      inline-resource: {'sources': [{'url': 'http://my.co/stuff.gz'}]}
+    <guild.guildfile.OpDependency operation:foo>
+      inline-resource: {'sources': [{'operation': 'foo'}]}
+
+## Source paths
+
+As of 0.6.2, a source may contain a path, which is in addition to any
+path defined in the source resource. A source path is appended to a
+resource path, if a resource path is defined.
+
+    >>> gf = guildfile.from_string("""
+    ... train:
+    ...   requires:
+    ...     - operation: foo
+    ...       select: .+\.txt
+    ...       path: bar
+    ... """)
+
+    >>> print_deps(gf.get_operation("train").dependencies)
+    <guild.guildfile.OpDependency operation:foo>
+      inline-resource: {'sources': [{'operation': 'foo',
+                                     'path': 'bar',
+                                     'select': '.+\\.txt'}]}
+
 ## Project tests
 
 The sample project `inline-resources` contains a variety of inline

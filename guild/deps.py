@@ -97,6 +97,8 @@ class Resource(object):
     def _link_path(self, source_path, source):
         basename = os.path.basename(source_path)
         res_path = self.resdef.path or ""
+        if source.path:
+            res_path = os.path.join(res_path, source.path)
         if os.path.isabs(res_path):
             raise DependencyError(
                 "invalid path '%s' in %s resource (path must be relative)"
