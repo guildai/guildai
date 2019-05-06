@@ -69,8 +69,12 @@ Named groups:
     ...             out.write(line + "\n")
     ...         out.close()
     ...     logs.print_all()
-    ...     for tag, val, step in tfevent.ScalarReader(output_dir):
-    ...         print(tag, val, step)
+    ...     reader = tfevent.ScalarReader(output_dir)
+    ...     try:
+    ...         for tag, val, step in reader:
+    ...             print(tag, val, step)
+    ...     except StopIteration:
+    ...         pass
 
 Empty config:
 
