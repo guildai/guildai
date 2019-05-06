@@ -330,6 +330,8 @@ def _coerce_operation_attr(name, val, guildfile):
         return _coerce_flags(val, guildfile)
     elif name == "python-path":
         return _coerce_op_python_path(val, guildfile)
+    elif name == "output-scalars":
+        return _coerce_output_scalars(val, guildfile)
     else:
         return val
 
@@ -358,6 +360,15 @@ def _coerce_op_python_path(data, guildfile):
     if data is None:
         return None
     return _coerce_str_to_list(data, guildfile, "python-path")
+
+def _coerce_output_scalars(data, guildfile):
+    if isinstance(data, dict):
+        return [data]
+    elif isinstance(data, list):
+        return data
+    else:
+        raise GuildfileError(
+            guildfile, "invalid vsalue for output-scalars: %r" % data)
 
 def _coerce_str_to_list(val, guildfile, name):
     if isinstance(val, six.string_types):

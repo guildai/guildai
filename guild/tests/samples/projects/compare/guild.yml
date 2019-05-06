@@ -1,2 +1,3 @@
-train:
-  main: guild.pass
+op1:
+  main: op1
+  disable-plugins: all

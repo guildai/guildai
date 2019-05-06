@@ -267,7 +267,7 @@ class Operation(object):
         assert self._proc is not None
         output = op_util.RunOutput(
             self._run, self._proc, quiet,
-            self._output_scalars())
+            self._output_scalars_summary())
         if stop_after is None:
             exit_status = self._proc.wait()
         else:
@@ -275,11 +275,11 @@ class Operation(object):
         output.wait_and_close()
         return exit_status
 
-    def _output_scalars(self):
+    def _output_scalars_summary(self):
         config = self.opdef.output_scalars
         if not config:
             return None
-        return summary.OutputScalars(config, self._run)
+        return summary.OutputScalars(config, self._run.guild_path())
 
     def _handle_proc_interrupt(self):
         if not self.batch_op:

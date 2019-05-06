@@ -65,6 +65,7 @@ tests).
       skopt-utils:                 ok
       step-checks:                 ok
       steps:                       ok
+      summary:                     ok
       tables:                      ok
       tfevents:                    ok
       utils:                       ok

@@ -111,4 +111,4 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpSupport):
                 flags = ["=%s" % f.name for f in op.flags]
                 op.compare = flags + KERAS_BASE_COMPARE
             if op.output_scalars is None:
-                op.output_scalars = KERAS_OUTPUT_SCALARS
+                op.output_scalars = [KERAS_OUTPUT_SCALARS]
