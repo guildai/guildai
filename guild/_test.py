@@ -47,6 +47,7 @@ import pprint
 import re
 import sys
 import tempfile
+import time
 
 from guild import _api as gapi
 from guild import cli
@@ -240,6 +241,7 @@ def test_globals():
         "sample": sample,
         "samples_dir": samples_dir,
         "sha256": util.file_sha256,
+        "sleep": time.sleep,
         "symlink": os.symlink,
         "touch": util.touch,
         "write": write,
