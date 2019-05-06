@@ -38,6 +38,7 @@ Requires-Dist: pip
 Requires-Dist: pyopenssl
 Requires-Dist: python-dateutil
 Requires-Dist: setuptools
+Requires-Dist: scikit-optimize
 Requires-Dist: six
 Requires-Dist: tabview
 Requires-Dist: tensorboardX
