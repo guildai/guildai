@@ -1,3 +1,5 @@
+skip-windows: yes
+
 # Summary utils
 
     >>> from guild import summary
