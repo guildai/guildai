@@ -142,26 +142,26 @@ The run writes a number of scalars, which we can view as info with the
     operation: train.py
     ...
     scalars:
-      acc
-      biases/max_1
-      biases/mean_1
-      biases/min_1
-      biases/stddev
-      loss
-      weights/max_1
-      weights/mean_1
-      weights/min_1
-      weights/stddev
-      val#acc
-      val#biases/max_1
-      val#biases/mean_1
-      val#biases/min_1
-      val#biases/stddev
-      val#loss
-      val#weights/max_1
-      val#weights/mean_1
-      val#weights/min_1
-      val#weights/stddev
+      acc: ... (step 540)
+      biases/max_1: ... (step 540)
+      biases/mean_1: ... (step 540)
+      biases/min_1: ... (step 540)
+      biases/stddev: ... (step 540)
+      loss: ... (step 540)
+      weights/max_1: ... (step 540)
+      weights/mean_1: ... (step 540)
+      weights/min_1: ... (step 540)
+      weights/stddev: ... (step 540)
+      val#acc: ... (step 540)
+      val#biases/max_1: ... (step 540)
+      val#biases/mean_1: ... (step 540)
+      val#biases/min_1: ... (step 540)
+      val#biases/stddev: ... (step 540)
+      val#loss: ... (step 540)
+      val#weights/max_1: ... (step 540)
+      val#weights/mean_1: ... (step 540)
+      val#weights/min_1: ... (step 540)
+      val#weights/stddev: ... (step 540)
     <exit 0>
 
 We can view the compare columns for the script op - these are default

@@ -222,14 +222,14 @@ class ScalarReader(object):
 
     def iter_scalars(self, run):
         cur = self._db.execute("""
-          SELECT prefix, tag FROM scalar
+          SELECT * FROM scalar
           WHERE run = ?
           ORDER BY 'prefix', 'tag'
         """, (run.id,))
         for row in cur.fetchall():
             yield {
-                "prefix": row[0],
-                "tag": row[1],
+                col[0]: row[i]
+                for i, col in enumerate(cur.description)
             }
 
 class TagSummary(object):

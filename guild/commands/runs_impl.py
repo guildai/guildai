@@ -596,11 +596,20 @@ def _iter_scalars(run):
     index = indexlib.RunIndex()
     index.refresh([run], ["scalar"])
     for s in index.run_scalars(run):
-        prefix = s["prefix"]
-        if prefix:
-            yield "%s#%s" % (s["prefix"], s["tag"])
-        else:
-            yield s["tag"]
+        yield "%s: %f (step %i)" % (_s_key(s), _s_val(s), _s_step(s))
+
+def _s_key(s):
+    prefix = s["prefix"]
+    if prefix:
+        return "%s#%s" % (s["prefix"], s["tag"])
+    else:
+        return s["tag"]
+
+def _s_val(s):
+    return s["last_val"]
+
+def _s_step(s):
+    return s["last_step"]
 
 def _iter_output(run):
     try:
