@@ -35,7 +35,6 @@ from guild import cli
 from guild import config
 from guild import guildfile
 from guild import model as modellib
-from guild import model_proxy
 from guild import op_util
 from guild import plugin as pluginlib
 from guild import python_util
@@ -65,7 +64,7 @@ class PythonScriptModelProxy(object):
 
     name = ""
     fullname = ""
-    output_scalars = model_proxy.GENERIC_OUTPUT_SCALARS
+    output_scalars = None
     objective = "loss"
     disable_plugins = "all"
 

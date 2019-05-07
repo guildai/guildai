@@ -26,15 +26,6 @@ from guild import plugin as pluginlib
 
 log = logging.getLogger("guild")
 
-#GENERIC_OUTPUT_SCALARS = [
-#    "(\S+):\s+([\d\.eE\-+]+)",
-#]
-
-GENERIC_OUTPUT_SCALARS = [{
-    "step": r"step:\s*(\S+)",
-    "loss": r"loss:\s*(\S+)",
-}]
-
 class NotSupported(Exception):
     pass
 

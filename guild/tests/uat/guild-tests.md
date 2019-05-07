@@ -18,6 +18,7 @@ tests).
       batch-random-seeds:          ok
       batch-restart:               ok
       batch-skopt:                 ok
+      compare:                     ok
       config:                      ok
       copy-source:                 ok
       cpu-plugin:                  ok

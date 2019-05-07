@@ -362,13 +362,15 @@ def _coerce_op_python_path(data, guildfile):
     return _coerce_str_to_list(data, guildfile, "python-path")
 
 def _coerce_output_scalars(data, guildfile):
+    if data is None:
+        return None
     if isinstance(data, dict):
         return [data]
     elif isinstance(data, list):
         return data
     else:
         raise GuildfileError(
-            guildfile, "invalid vsalue for output-scalars: %r" % data)
+            guildfile, "invalid value for output-scalars: %r" % data)
 
 def _coerce_str_to_list(val, guildfile, name):
     if isinstance(val, six.string_types):

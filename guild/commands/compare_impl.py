@@ -39,11 +39,6 @@ log = logging.getLogger("guild")
 
 BASE_COLS = ".run, .operation, .started, .time, .status, .label"
 MIN_COLS = ".run"
-DEFAULT_COMPARE = [
-    "loss step as step",
-    "loss",
-    "acc",
-]
 
 NO_RUNS_CAPTION = "no runs"
 
@@ -131,8 +126,8 @@ def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
         log_capture = util.LogCapture()
         with log_capture:
             runs = _runs_for_args(args)
-            cols_table = _cols_table(runs, args)
-            index.refresh(runs, _refresh_types(cols_table))
+            index.refresh(runs)
+            cols_table = _cols_table(runs, args, index)
             table = _resolve_table_cols(cols_table, index)
             header = _table_header(table)
             if not header:
@@ -172,14 +167,16 @@ def _runs_for_args(args):
 def _is_batch(run):
     return os.path.exists(run.guild_path("proto"))
 
-def _cols_table(runs, args):
+def _cols_table(runs, args, index):
     parse_cache = {}
-    return [(run, _run_cols(run, args, parse_cache)) for run in runs]
+    return [
+        (run, _run_cols(run, args, parse_cache, index))
+        for run in runs]
 
-def _run_cols(run, args, parse_cache):
+def _run_cols(run, args, parse_cache, index):
     return (
         _core_cols(args, parse_cache),
-        _op_cols(run, args, parse_cache),
+        _op_cols(run, args, parse_cache, index),
         _user_cols(args, parse_cache)
     )
 
@@ -204,10 +201,10 @@ def _colspec_cols(colspec, parse_cache):
         parse_cache[colspec] = cols
         return cols
 
-def _op_cols(run, args, parse_cache):
+def _op_cols(run, args, parse_cache, index):
     if args.skip_op_cols:
         return []
-    compare = _run_op_compare(run)
+    compare = _run_op_compare(run, index)
     if not compare:
         return []
     cols = []
@@ -215,19 +212,19 @@ def _op_cols(run, args, parse_cache):
         cols.extend(_colspec_cols(colspec, parse_cache))
     return cols
 
-def _run_op_compare(run):
+def _run_op_compare(run, index):
     """Returns compare cols for run.
 
     If we can get the current compare cols for the run op source
     definition (in the Guild file) we use that, otherwise we use the
     run "compare" attr.
     """
-    compare = _try_guildfile_compare(run)
-    if compare is not None:
-        return compare
-    return run.get("compare", DEFAULT_COMPARE)
+    return util.find_apply([
+        _try_guildfile_compare,
+        _run_compare_attr,
+        _default_run_compare], run, index)
 
-def _try_guildfile_compare(run):
+def _try_guildfile_compare(run, _index):
     """Returns the current compare for run op if available."""
     if run.opref.pkg_type != "guildfile":
         return None
@@ -235,7 +232,7 @@ def _try_guildfile_compare(run):
     if not os.path.exists(gf_path):
         return None
     try:
-        gf = guildfile.from_dir(gf_path)
+        gf = guildfile.from_file(gf_path)
     except guildfile.NoModels:
         return None
     else:
@@ -251,28 +248,41 @@ def _try_guildfile_op_compare(gf, model_name, op_name):
         op = m.get_operation(op_name)
         return op.compare if op else None
 
+def _run_compare_attr(run, _index):
+    return run.get("compare")
+
+def _default_run_compare(run, index):
+    return (
+        _run_flag_compares(run) +
+        _run_scalar_compares(run, index))
+
+def _run_flag_compares(run):
+    flags = run.get("flags") or {}
+    return ["=%s" % name for name in sorted(flags)]
+
+def _run_scalar_compares(run, index):
+    # Assuming index has been refreshed to include run
+    scalars = set()
+    for s in index.run_scalars(run):
+        tag = str(s["tag"])
+        if "/" not in tag:
+            scalars.add(tag)
+    return _apply_step_col(sorted(scalars))
+
+def _apply_step_col(cols):
+    if not cols:
+        return cols
+    return [_step_col_for_cols(cols)] + cols
+
+def _step_col_for_cols(cols):
+    if "loss" in cols:
+        return "loss step as step"
+    return "%s step as step" % cols[0]
+
 def _user_cols(args, parse_cache):
     if not args.cols:
         return []
     return _colspec_cols(args.cols, parse_cache)
-
-def _refresh_types(cols_table):
-    """Returns a set of types to refresh for cols.
-
-    This scheme is used to avoid refreshing types that aren't needed
-    (e.g. scalars are expensive to refresh).
-    """
-    types = set()
-    for _run, sections in cols_table:
-        for section in sections:
-            for col in section:
-                if isinstance(col, query.Flag):
-                    types.add("flag")
-                elif isinstance(col, query.Attr):
-                    types.add("attr")
-                elif isinstance(col, query.Scalar):
-                    types.add("scalar")
-    return types
 
 def _resolve_table_cols(table, index):
     return [

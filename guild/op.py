@@ -25,7 +25,7 @@ import time
 import guild.plugin
 import guild.run
 
-from guild import config
+from guild import config as configlib
 from guild import deps
 from guild import exit_code
 from guild import op_util
@@ -46,6 +46,10 @@ NO_ARG_VALUE = object()
 
 DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} ${flag_args}"
 STEPS_EXEC = "${python_exe} -um guild.steps_main"
+
+DEFAULT_OUTPUT_SCALARS = [
+    r"^(\S+):\s+([\d\.eE\-+]+)$",
+]
 
 class InvalidOpSpec(ValueError):
     pass
@@ -276,10 +280,16 @@ class Operation(object):
         return exit_status
 
     def _output_scalars_summary(self):
-        config = self.opdef.output_scalars
+        config = self._output_scalars_config()
         if not config:
             return None
         return summary.OutputScalars(config, self._run.guild_path())
+
+    def _output_scalars_config(self):
+        config = self.opdef.output_scalars
+        if config is None:
+            config = DEFAULT_OUTPUT_SCALARS
+        return config
 
     def _handle_proc_interrupt(self):
         if not self.batch_op:
@@ -489,7 +499,7 @@ def _cmd_option_args(name, val):
 def _init_cmd_env(opdef, gpus):
     env = util.safe_osenv()
     env.update(opdef.env)
-    env["GUILD_HOME"] = config.guild_home()
+    env["GUILD_HOME"] = configlib.guild_home()
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["LOG_LEVEL"] = str(logging.getLogger().getEffectiveLevel())

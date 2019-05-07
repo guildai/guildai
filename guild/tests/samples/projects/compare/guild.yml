@@ -1,3 +1,9 @@
 op1:
   main: op1
   disable-plugins: all
+  compare:
+    - =a as A
+    - =b as B
+    - x step as x_step
+    - x
+    - y
