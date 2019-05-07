@@ -364,7 +364,9 @@ def _coerce_op_python_path(data, guildfile):
 def _coerce_output_scalars(data, guildfile):
     if data is None:
         return None
-    if isinstance(data, dict):
+    if isinstance(data, six.string_types):
+        return [data]
+    elif isinstance(data, dict):
         return [data]
     elif isinstance(data, list):
         return data
