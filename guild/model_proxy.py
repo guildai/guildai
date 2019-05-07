@@ -30,10 +30,10 @@ log = logging.getLogger("guild")
 #    "(\S+):\s+([\d\.eE\-+]+)",
 #]
 
-GENERIC_OUTPUT_SCALARS = {
+GENERIC_OUTPUT_SCALARS = [{
     "step": r"step:\s*(\S+)",
     "loss": r"loss:\s*(\S+)",
-}
+}]
 
 class NotSupported(Exception):
     pass

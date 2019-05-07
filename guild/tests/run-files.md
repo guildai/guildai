@@ -31,7 +31,6 @@ The files generated for our run:
     >>> for file in first_run_files:
     ...    print(file) # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
-    .guild/attrs/compare
     .guild/attrs/deps
     .guild/attrs/env
     .guild/attrs/exit_status
@@ -118,7 +117,6 @@ The latest run is the trial:
     ...     print(file) # doctest: +REPORT_UDIFF
     .guild/attrs/batch
     .guild/attrs/cmd
-    .guild/attrs/compare
     .guild/attrs/deps
     .guild/attrs/env
     .guild/attrs/exit_status
@@ -181,7 +179,6 @@ Its files:
     .guild/output.index
     .guild/proto/.guild/PENDING
     .guild/proto/.guild/attrs/cmd
-    .guild/proto/.guild/attrs/compare
     .guild/proto/.guild/attrs/flags
     .guild/proto/.guild/attrs/host
     .guild/proto/.guild/attrs/initialized

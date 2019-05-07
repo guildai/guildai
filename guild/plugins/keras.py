@@ -23,29 +23,19 @@ from guild import plugin as pluginlib
 from guild import python_util
 
 from .python_script import PythonScriptModelProxy
-from .python_script import PythonScriptOpSupport
+from .python_script import PythonScriptOpdefSupport
 
-KERAS_OUTPUT_SCALARS = {
+KERAS_OUTPUT_SCALARS = [{
     "step": r"Epoch ([0-9]+)/[0-9]+",
     "loss": r"step - loss: ([0-9\.]+)",
     "acc": r"step - loss: [0-9\.]+ - acc: ([0-9\.]+)",
     "val_loss": r" - val_loss: ([0-9\.]+)",
     "val_acc": r" - val_acc: ([0-9\.]+)",
-}
-
-KERAS_BASE_COMPARE = [
-    "loss step as step",
-    "loss",
-    "acc",
-    "val_loss",
-    "val_acc",
-]
+}]
 
 class KerasScriptModelProxy(PythonScriptModelProxy):
 
     output_scalars = KERAS_OUTPUT_SCALARS
-
-    base_compare = KERAS_BASE_COMPARE
 
     objective = {
         "maximize": "val_acc"
@@ -53,7 +43,7 @@ class KerasScriptModelProxy(PythonScriptModelProxy):
 
     disable_plugins = []
 
-class KerasPlugin(pluginlib.Plugin, PythonScriptOpSupport):
+class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
 
     resolve_model_op_priority = 50
 
@@ -93,22 +83,18 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpSupport):
                 predict = call
         return predict
 
-    def python_script_opdef(self, op):
-        if (op.compare is not None and
-            op.output_scalars is not None):
+    def python_script_opdef_loaded(self, opdef):
+        if opdef.output_scalars is not None:
             return
-        assert op.main, op
+        assert opdef.main, opdef
         plugin = pluginlib.for_name("python_script")
-        main_mod = op_util.split_main(op.main)[0]
-        model_paths = op_util.opdef_model_paths(op)
+        main_mod = op_util.split_main(opdef.main)[0]
+        model_paths = op_util.opdef_model_paths(opdef)
         try:
             _sys_path, mod_path = plugin.find_module(main_mod, model_paths)
         except ImportError:
             return
         script = python_util.Script(mod_path)
         if self.is_keras_script(script):
-            if op.compare is None:
-                flags = ["=%s" % f.name for f in op.flags]
-                op.compare = flags + KERAS_BASE_COMPARE
-            if op.output_scalars is None:
-                op.output_scalars = [KERAS_OUTPUT_SCALARS]
+            if opdef.output_scalars is None:
+                opdef.output_scalars = KERAS_OUTPUT_SCALARS

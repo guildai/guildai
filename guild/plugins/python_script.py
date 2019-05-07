@@ -47,13 +47,18 @@ IMPLICIT_ALL_FLAGS = object()
 class DataLoadError(Exception):
     pass
 
-class PythonScriptOpSupport(object):
-    """Interface for Python script op support.
+class PythonScriptOpdefSupport(object):
+    """Interface for Python script opdef support.
 
-    `python_script_op` is called to potentially update op.
+    `python_script_opdef_loaded` is called to potentially update
+    opdef.
     """
 
-    def python_script_opdef(self, opdef):
+    def python_script_opdef_loaded(self, opdef):
+        """Called by Python plugin when an opdef is loaded.
+
+        Gives implementor an opportunity to modify the opdef.
+        """
         pass
 
 class PythonScriptModelProxy(object):
@@ -61,7 +66,6 @@ class PythonScriptModelProxy(object):
     name = ""
     fullname = ""
     output_scalars = model_proxy.GENERIC_OUTPUT_SCALARS
-    base_compare = ["loss"]
     objective = "loss"
     disable_plugins = "all"
 
@@ -83,7 +87,6 @@ class PythonScriptModelProxy(object):
                         "exec": self._exec_attr(),
                         "flags": flags_data,
                         "flags-dest": flags_dest,
-                        "compare": self._compare(flags_data),
                         "output-scalars": self.output_scalars,
                         "objective": self.objective,
                         "disable-plugins": self.disable_plugins,
@@ -105,13 +108,6 @@ class PythonScriptModelProxy(object):
     def _flags_data(self):
         plugin = pluginlib.for_name("python_script")
         return plugin.flags_data_for_path(self.script_path, ".")
-
-    def _compare(self, flags_data):
-        flags = [
-            "=%s" % name
-            for name in sorted(flags_data)
-            if name[:1] != "$"]
-        return flags + self.base_compare
 
 class ImportedFlagsOpProxy(object):
 
@@ -147,11 +143,11 @@ class PythonScriptPlugin(pluginlib.Plugin):
 
     def guildfile_loaded(self, gf):
         for m in gf.models.values():
-            for op in m.operations:
-                self._maybe_apply_main(op)
-                if op.main:
-                    self._apply_script_flags(op)
-                    self._notify_plugins_opdef(op)
+            for opdef in m.operations:
+                self._maybe_apply_main(opdef)
+                if opdef.main:
+                    self._apply_script_flags(opdef)
+                    self._notify_plugins_opdef_loaded(opdef)
 
     @staticmethod
     def _maybe_apply_main(op):
@@ -346,7 +342,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 flag_data["default"] = abs_path
 
     @staticmethod
-    def _notify_plugins_opdef(opdef):
+    def _notify_plugins_opdef_loaded(opdef):
         for _name, plugin in pluginlib.iter_plugins():
-            if isinstance(plugin, PythonScriptOpSupport):
-                plugin.python_script_opdef(opdef)
+            if isinstance(plugin, PythonScriptOpdefSupport):
+                plugin.python_script_opdef_loaded(opdef)

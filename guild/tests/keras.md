@@ -51,17 +51,10 @@ Operation details:
      'lr': 0.001,
      'lr_decay': 0.0}
 
-    >>> opdef.compare
-    ['=batch_size',
-     '=dropout',
-     '=epochs',
-     '=lr',
-     '=lr_decay',
-     'loss step as step',
-     'loss',
-     'acc',
-     'val_loss',
-     'val_acc']
+    # NOTE: As of 0.6.2 compare is None so that defaults are
+    # applied at runtime.
+    >>> print(opdef.compare)
+    None
 
     >>> pprint(opdef.output_scalars)
     [{'acc': 'step - loss: [0-9\\.]+ - acc: ([0-9\\.]+)',
@@ -119,17 +112,8 @@ Flag vals:
 
 Compare colspecs:
 
-    >>> opdef2.compare
-    ['=batch_size',
-     '=dropout',
-     '=epochs',
-     '=lr',
-     '=lr_decay',
-     'loss step as step',
-     'loss',
-     'acc',
-     'val_loss',
-     'val_acc']
+    >>> print(opdef2.compare)
+    None
 
     >>> opdef.compare == opdef2.compare
     True
