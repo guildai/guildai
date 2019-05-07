@@ -42,13 +42,19 @@ class ScalarReader(object):
             pass
         else:
             events = event_accumulator._GeneratorFromPath(self.dir).Load()
-            for event in events:
-                if not event.HasField("summary"):
-                    continue
-                for val in event.summary.value:
-                    if not val.HasField("simple_value"):
+            try:
+                for event in events:
+                    if not event.HasField("summary"):
                         continue
-                    yield val.tag, val.simple_value, event.step
+                    for val in event.summary.value:
+                        if not val.HasField("simple_value"):
+                            continue
+                        yield val.tag, val.simple_value, event.step
+            except RuntimeError as e:
+                # PEP 479 landed in Python 3.7 and TB triggers this
+                # runtime error when there are no events to read.
+                if e.args[0] != "generator raised StopIteration":
+                    raise
 
 def iter_events(root_path):
     """Returns an iterator that yields (dir, digest, reader) tuples.

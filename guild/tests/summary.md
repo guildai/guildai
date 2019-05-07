@@ -68,7 +68,6 @@ Named groups:
     ...         for line in lines:
     ...             out.write(line + "\n")
     ...         out.close()
-    ...         sleep(0.1)
     ...     logs.print_all()
     ...     reader = tfevent.ScalarReader(output_dir)
     ...     for tag, val, step in reader:
