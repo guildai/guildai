@@ -1,5 +1,18 @@
 # Changes
 
+## 0.6.2
+
+- Improved scheme for capturing script output as scalars
+  - Two-group captures used for key/value logging
+  - Named group captures
+- Show all flags and scalars by default in compare
+- Show scalar values in runs info (requireds --scalars option)
+  (previously only scalar names were shown)
+
+### Fixes
+
+- Distribution dependency on scikit-optimize
+
 ## 0.6.1
 
 ### Enhancements
