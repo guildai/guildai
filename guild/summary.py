@@ -95,6 +95,7 @@ def _match_line(line, patterns):
     vals = {}
     if isinstance(line, bytes):
         line = line.decode()
+    line = line.rstrip()
     for key, p in patterns:
         m = p.search(line)
         if not m:

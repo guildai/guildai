@@ -108,18 +108,27 @@ class ScalarReader(object):
     def refresh(self, runs):
         for run in runs:
             for path, cur_digest, scalars in tfevent.iter_events(run.path):
-                log.debug("found events in %s (digest %s)", path, cur_digest)
-                prefix = self._scalar_prefix(path, run.path)
-                last_digest = self._scalar_source_digest(run.id, prefix)
-                if cur_digest != last_digest:
-                    log.debug(
-                        "last digest for %s (%s) is stale, refreshing scalars",
-                        path, last_digest or 'unset')
-                    summarized = self._summarize_scalars(scalars)
-                    if last_digest:
-                        self._del_scalars(run.id, prefix)
-                    self._write_summarized(run.id, prefix, summarized)
-                    self._write_source_digest(run.id, prefix, cur_digest)
+                self._maybe_refresh_run_scalars(run, path, cur_digest, scalars)
+
+    def _maybe_refresh_run_scalars(self, run, path, cur_digest, scalars):
+        log.debug("found events in %s (digest %s)", path, cur_digest)
+        prefix = self._scalar_prefix(path, run.path)
+        last_digest = self._scalar_source_digest(run.id, prefix)
+        if cur_digest != last_digest:
+            log.debug(
+                "last digest for %s (%s) is stale, refreshing scalars",
+                path, last_digest or 'unset')
+            self._refresh_run_scalars(
+                run, prefix, cur_digest,
+                last_digest, scalars)
+
+    def _refresh_run_scalars(self, run, prefix, cur_digest, last_digest,
+                             scalars):
+        summarized = self._summarize_scalars(scalars)
+        if last_digest:
+            self._del_scalars(run.id, prefix)
+        self._write_summarized(run.id, prefix, summarized)
+        self._write_source_digest(run.id, prefix, cur_digest)
 
     @staticmethod
     def _scalar_prefix(scalars_path, root):
