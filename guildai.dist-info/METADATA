@@ -34,6 +34,7 @@ Requires-Dist: Whoosh
 Requires-Dist: chardet
 Requires-Dist: cryptography
 Requires-Dist: daemonize
+Requires-Dist: jinja2
 Requires-Dist: pip
 Requires-Dist: pyopenssl
 Requires-Dist: python-dateutil

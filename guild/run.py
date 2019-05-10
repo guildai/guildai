@@ -249,3 +249,8 @@ def mkid():
     except ValueError:
         # Workaround https://bugs.python.org/issue32502
         return uuid.uuid4().hex
+
+def from_dir(run_dir, id=None):
+    if not id:
+        id = os.path.basename(run_dir)
+    return Run(id, run_dir)

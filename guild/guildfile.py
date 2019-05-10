@@ -332,6 +332,8 @@ def _coerce_operation_attr(name, val, guildfile):
         return _coerce_op_python_path(val, guildfile)
     elif name == "output-scalars":
         return _coerce_output_scalars(val, guildfile)
+    elif name == "publish":
+        return _coerce_publish(val, guildfile)
     else:
         return val
 
@@ -364,7 +366,7 @@ def _coerce_op_python_path(data, guildfile):
 def _coerce_output_scalars(data, guildfile):
     if data is None:
         return None
-    if isinstance(data, six.string_types):
+    elif isinstance(data, six.string_types):
         return [data]
     elif isinstance(data, dict):
         return [data]
@@ -373,6 +375,19 @@ def _coerce_output_scalars(data, guildfile):
     else:
         raise GuildfileError(
             guildfile, "invalid value for output-scalars: %r" % data)
+
+def _coerce_publish(data, guildfile):
+    if data is None:
+        return None
+    elif isinstance(data, six.string_types):
+        return {
+            "dest": data
+        }
+    elif isinstance(data, dict):
+        return data
+    else:
+        raise GuildfileError(
+            guildfile, "invalid value for publish: %r" % data)
 
 def _coerce_str_to_list(val, guildfile, name):
     if isinstance(val, six.string_types):
@@ -819,6 +834,7 @@ class OpDef(object):
         self.output_scalars = data.get("output-scalars")
         self.objective = data.get("objective")
         self.optimizers = _init_optimizers(data, self)
+        self.publish = data.get("publish")
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname
@@ -1280,3 +1296,9 @@ def from_string(s, src="<string>"):
     data = yaml.safe_load(s)
     _notify_plugins_guildfile_data(data, src)
     return Guildfile(data, src)
+
+def from_run(run):
+    if run.opref is None or run.opref.pkg_type != "guildfile":
+        raise TypeError("run (%s) pkg type must be 'guildfile'" % run.path)
+    gf_path = run.opref.pkg_name
+    return from_file(gf_path)

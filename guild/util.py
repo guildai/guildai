@@ -362,11 +362,11 @@ class LogCapture(object):
     def get_all(self):
         return self._records
 
-def format_timestamp(ts):
+def format_timestamp(ts, fmt=None):
     if not ts:
         return ""
     dt = datetime.datetime.fromtimestamp(ts / 1000000)
-    return dt.strftime("%Y-%m-%d %H:%M:%S")
+    return dt.strftime(fmt or "%Y-%m-%d %H:%M:%S")
 
 _raise_error_marker = object()
 
@@ -682,7 +682,7 @@ class RunsMonitor(LoopingThread):
         label = run.get("label")
         if label:
             parts.append(label)
-        return _safe_filename(" ".join(parts))
+        return safe_filename(" ".join(parts))
 
     @staticmethod
     def _create_run_link(link, run_dir):
@@ -698,10 +698,10 @@ class RunsMonitor(LoopingThread):
         log.debug("Removing %s", link)
         os.remove(link)
 
-def _safe_filename(s):
+def safe_filename(s):
     if PLATFORM == "Windows":
         return s.replace(":", "_")
-    return s
+    return re.sub(r"[/\\]+", "_", s)
 
 def wait_forever(sleep_interval=0.1):
     while True:

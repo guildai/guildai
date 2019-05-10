@@ -70,6 +70,7 @@
     guild.commands.packages_impl
     guild.commands.packages_info
     guild.commands.packages_list
+    guild.commands.publish
     guild.commands.pull
     guild.commands.push
     guild.commands.remote
@@ -168,6 +169,7 @@
     guild.plugins.skopt_util
     guild.plugins.tensorflow_util
     guild.plugins.training_pkg_main
+    guild.publish
     guild.python_util
     guild.query.__init__
     guild.query.qlex

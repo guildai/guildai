@@ -226,18 +226,14 @@ def _run_op_compare(run, index):
 
 def _try_guildfile_compare(run, _index):
     """Returns the current compare for run op if available."""
-    if run.opref.pkg_type != "guildfile":
-        return None
-    gf_path = run.opref.pkg_name
-    if not os.path.exists(gf_path):
-        return None
     try:
-        gf = guildfile.from_file(gf_path)
-    except guildfile.NoModels:
+        gf = guildfile.from_run(run)
+    except (guildfile.NoModels, TypeError):
         return None
     else:
         return _try_guildfile_op_compare(
-            gf, run.opref.model_name, run.opref.op_name)
+            gf, run.opref.model_name,
+            run.opref.op_name)
 
 def _try_guildfile_op_compare(gf, model_name, op_name):
     try:

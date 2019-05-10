@@ -9,6 +9,7 @@ Whoosh>=2.7.4
 chardet>=3.0.4
 cryptography>=2.1.4
 daemonize>=2.4.7
+jinja2>=2.10
 pip>=9.0
 pyopenssl>=19.0.0
 python-dateutil>=2.6.1

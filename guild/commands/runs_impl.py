@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import inspect
 import json
 import logging
 import os
@@ -31,6 +32,7 @@ from guild import cli
 from guild import cmd_impl_support
 from guild import index2 as indexlib
 from guild import op_util
+from guild import publish as publishlib
 from guild import remote_run_support
 from guild import run as runlib
 from guild import util
@@ -313,6 +315,7 @@ def format_run(run, index=None):
     marked = bool(run.get("marked"))
     return {
         "id": run.id,
+        "short_id": run.short_id,
         "index": _format_run_index(run, index),
         "short_index": _format_run_index(run),
         "model": run.opref.model_name,
@@ -395,16 +398,19 @@ def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
     selected = get_selected(args, ctx, default_runs_arg, force_deleted)
     if not selected:
         _no_selected_runs_exit(no_runs_help)
-    preview = [format_run(run) for run in selected]
+    formatted = [format_run(run) for run in selected]
     if not args.yes:
         cli.out(preview_msg)
         cols = [
             "short_index", "operation_with_marked", "started",
             "status_with_remote", "label"]
-        cli.table(preview, cols=cols, indent=2)
-    formatted_confirm_prompt = confirm_prompt.format(count=len(preview))
+        cli.table(formatted, cols=cols, indent=2)
+    formatted_confirm_prompt = confirm_prompt.format(count=len(formatted))
     if args.yes or cli.confirm(formatted_confirm_prompt, confirm_default):
-        op_callback(selected)
+        if len(inspect.getargspec(op_callback).args) == 2:
+            op_callback(selected, formatted)
+        else:
+            op_callback(selected)
 
 def _runs_op_selected(args, ctx, default_runs_arg, force_deleted):
     default_runs_arg = default_runs_arg or ALL_RUNS_ARG
@@ -859,3 +865,23 @@ def _mark(args, ctx):
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
         mark, LATEST_RUN_ARG, True)
+
+def publish(args, ctx):
+    preview = (
+        "You are about to publish the following run(s)%s:" %
+        (" to %s" % args.dest if args.dest else ""))
+    confirm = "Continue?"
+    no_runs = "No runs to publish."
+    def publish_f(runs, formatted):
+        for run, fmt in zip(runs, formatted):
+            print("Publishing [%s] %s %s %s %s" % (
+                fmt["short_id"],
+                fmt["operation"],
+                fmt["started"],
+                fmt["status"],
+                fmt["label"]))
+            fmt["_run"] = run
+            publishlib.publish_run(run, args.dest, formatted_run=fmt)
+    _runs_op(
+        args, ctx, False, preview, confirm, no_runs,
+        publish_f, ALL_RUNS_ARG, True)

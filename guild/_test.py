@@ -49,6 +49,8 @@ import sys
 import tempfile
 import time
 
+import guild
+
 from guild import _api as gapi
 from guild import cli
 from guild import config as configlib
@@ -228,12 +230,14 @@ def test_globals():
         "exists": os.path.exists,
         "find": find,
         "gapi": gapi,
+        "guild": guild,
         "guildfile": guildfile,
         "join_path": os.path.join,
         "mkdir": os.mkdir,
         "mkdtemp": mkdtemp,
         "mktemp_guild_dir": mktemp_guild_dir,
         "os": os,
+        "path": os.path.join,
         "pprint": pprint.pprint,
         "re": re,
         "realpath": os.path.realpath,
