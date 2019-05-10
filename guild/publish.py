@@ -38,7 +38,12 @@ class TemplateError(PublishError):
 
     def __str__(self):
         e = self._e
-        return "%s:%i: %s" % (e.filename, e.lineno, e.message)
+        msg = e.filename
+        if hasattr(e, "lineno"):
+            msg += ":" + str(e.lineno)
+        if e.message:
+            msg += ": " + e.message
+        return msg
 
 class GenerateError(PublishError):
 
@@ -97,11 +102,13 @@ def _format_run_files(run, subdir=None):
         for name in names:
             abspath = os.path.join(root, name)
             relpath = os.path.relpath(abspath, source_dir)
-            file_size = os.path.getsize(abspath)
+            size = os.path.getsize(abspath)
+            mtime = os.path.getmtime(abspath)
             files.append({
                 "path": relpath,
                 "url": os.path.join(url_relpath, relpath),
-                "size": util.format_bytes(file_size)
+                "size": util.format_bytes(size),
+                "modified": util.format_utctimestamp(mtime * 1000000),
             })
     files.sort(key=lambda i: i["path"])
     return files

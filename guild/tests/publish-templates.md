@@ -126,7 +126,9 @@ Here's a new dest dir:
      'mnist-train-2017_09_30-11_53_05-360192fd/README.md']
 
     >>> cat(path(dest, "mnist-train-2017_09_30-11_53_05-360192fd/README.md"))
-    # mnist:train on 2017-09-30 11:53:05
+    # mnist:train
+    <BLANKLINE>
+    2017-09-30 11:53:05
     <BLANKLINE>
     ## Attributes
     <BLANKLINE>
@@ -140,7 +142,6 @@ Here's a new dest dir:
     | Started   | 2017-09-30 11:53:05 |
     | Stopped   |  |
     <BLANKLINE>
-    <BLANKLINE>
     ## Process Info
     <BLANKLINE>
     | Name      | Value             |
@@ -148,15 +149,12 @@ Here's a new dest dir:
     | Command     |      |
     | Exit Status |  |
     <BLANKLINE>
-    <BLANKLINE>
     ## Files
     <BLANKLINE>
-    | File | Size |
-    | ---- | ---- |
-    <BLANKLINE>
+    There are no files for this run.
     <BLANKLINE>
     ## Source
     <BLANKLINE>
-    | File | Size |
-    | ---- | ---- |
+    | File | Size | Modified |
+    | ---- | ---- | -------- |
     <BLANKLINE>

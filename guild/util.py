@@ -368,6 +368,12 @@ def format_timestamp(ts, fmt=None):
     dt = datetime.datetime.fromtimestamp(ts / 1000000)
     return dt.strftime(fmt or "%Y-%m-%d %H:%M:%S")
 
+def format_utctimestamp(ts, fmt=None):
+    if not ts:
+        return None
+    dt = datetime.datetime.utcfromtimestamp(ts / 1000000)
+    return dt.strftime(fmt or "%Y-%m-%d %H:%M:%S UTC")
+
 _raise_error_marker = object()
 
 def resolve_refs(val, kv, undefined=_raise_error_marker):
