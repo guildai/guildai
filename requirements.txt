@@ -14,6 +14,7 @@ pip>=9.0
 pyopenssl>=19.0.0
 python-dateutil>=2.6.1
 setuptools>=40.6.3
+scikit-learn>=0.19.1,<0.21.0
 scikit-optimize>=0.5.2
 six>=1.10.0
 tabview>=1.4.3

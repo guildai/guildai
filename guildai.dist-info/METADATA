@@ -39,6 +39,7 @@ Requires-Dist: pip
 Requires-Dist: pyopenssl
 Requires-Dist: python-dateutil
 Requires-Dist: setuptools
+Requires-Dist: scikit-learn>=0.19.1,<0.21.0
 Requires-Dist: scikit-optimize
 Requires-Dist: six
 Requires-Dist: tabview
