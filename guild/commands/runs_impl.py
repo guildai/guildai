@@ -881,7 +881,12 @@ def publish(args, ctx):
                 fmt["status"],
                 fmt["label"]))
             fmt["_run"] = run
-            publishlib.publish_run(run, args.dest, formatted_run=fmt)
+            try:
+                publishlib.publish_run(run, args.dest, formatted_run=fmt)
+            except publishlib.PublishError as e:
+                cli.error(
+                    "error publishing run %s:\n%s"
+                    % (run.id, e))
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
         publish_f, ALL_RUNS_ARG, True)

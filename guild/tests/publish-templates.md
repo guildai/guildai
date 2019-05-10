@@ -117,14 +117,46 @@ Here's a new dest dir:
     >>> publish.publish_run(run, dest)
 
     >>> find(dest)
-    ['mnist-train-2017_09_30-11_53_05-360192fd/.guild/PENDING',
-     'mnist-train-2017_09_30-11_53_05-360192fd/.guild/attrs/_id',
+    ['.guild-archive',
+     'mnist-train-2017_09_30-11_53_05-360192fd/.guild/PENDING',
      'mnist-train-2017_09_30-11_53_05-360192fd/.guild/attrs/env',
+     'mnist-train-2017_09_30-11_53_05-360192fd/.guild/attrs/id',
      'mnist-train-2017_09_30-11_53_05-360192fd/.guild/attrs/started',
      'mnist-train-2017_09_30-11_53_05-360192fd/.guild/opref',
      'mnist-train-2017_09_30-11_53_05-360192fd/README.md']
 
     >>> cat(path(dest, "mnist-train-2017_09_30-11_53_05-360192fd/README.md"))
-    Hello, this is a fancy published report!
+    # mnist:train on 2017-09-30 11:53:05
     <BLANKLINE>
-    It's for 360192fd yo.
+    ## Attributes
+    <BLANKLINE>
+    | Name      | Value             |
+    | -         | -                 |
+    | ID        | 360192fdf9b74f2fad5f514e9f2fdadb      |
+    | Model     | mnist   |
+    | Operation | train |
+    | Status    | pending  |
+    | Marked    | no  |
+    | Started   | 2017-09-30 11:53:05 |
+    | Stopped   |  |
+    <BLANKLINE>
+    <BLANKLINE>
+    ## Process Info
+    <BLANKLINE>
+    | Name      | Value             |
+    | -         | -                 |
+    | Command     |      |
+    | Exit Status |  |
+    <BLANKLINE>
+    <BLANKLINE>
+    ## Files
+    <BLANKLINE>
+    | File | Size |
+    | ---- | ---- |
+    <BLANKLINE>
+    <BLANKLINE>
+    ## Source
+    <BLANKLINE>
+    | File | Size |
+    | ---- | ---- |
+    <BLANKLINE>

@@ -885,9 +885,9 @@ def find_python_interpreter(version_spec):
 def is_executable_file(path):
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
-def copytree(src, dest):
+def copytree(src, dest, preserve_links=True):
     from distutils import dir_util
-    dir_util.copy_tree(src, dest)
+    dir_util.copy_tree(src, dest, preserve_symlinks=preserve_links)
 
 def hostname():
     return os.getenv("HOST") or _real_hostname()
@@ -914,3 +914,13 @@ def shlex_split(s):
         # Workaround issue where '' in Windows is split as "''"
         parts = ["" if part == "''" else part for part in parts]
     return parts
+
+def format_bytes(n):
+    units = [None, "K", "M", "G", "T", "P", "E", "Z"]
+    for unit in units[:-1]:
+        if abs(n) < 1024:
+            if not unit:
+                return str(n)
+            return "%3.1f%s" % (n, unit)
+        n /= 1024.0
+    return "%.1f%s" % (n, units[-1])
