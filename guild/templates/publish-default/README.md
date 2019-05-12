@@ -12,9 +12,21 @@
 {% include "_run_process_info.md" %}
 {%- endif %}
 
+## Flags
+
+{% include "_flags.md" %}
+
+## Scalars
+
+{% include "_scalars.md" %}
+
 ## Files
 
 {% include "_files.md" %}
+
+## Images
+
+{% include "_images.md" %}
 
 ## Source
 

@@ -16,11 +16,13 @@ from __future__ import absolute_import
 from __future__ import division
 
 import os
+import re
 import shutil
 
 import jinja2
 
 from guild import guildfile
+from guild import index2 as indexlib
 from guild import run as runlib
 from guild import util
 
@@ -66,12 +68,20 @@ def _format_template_files(t):
 
 class RunFilters(object):
 
+    IMG_PATTERN = re.compile(
+        r"\.(png|gif|jpe?g|tiff?|bmp|webp)",
+        re.IGNORECASE)
+
     @classmethod
     def install(cls, env):
         env.filters.update({
             "env": cls._env,
             "files": cls._files,
             "source": cls._source,
+            "images": cls._images,
+            "flags": cls._flags,
+            "scalars": cls._scalars,
+            "scalar_key": cls._scalar_key,
         })
 
     @staticmethod
@@ -90,7 +100,31 @@ class RunFilters(object):
     def _source(run):
         return _format_run_files(run["_run"], ".guild/source")
 
-def _format_run_files(run, subdir=None):
+    @classmethod
+    def _images(cls, run):
+        return _format_run_files(run["_run"], filter=cls.IMG_PATTERN)
+
+    @staticmethod
+    def _flags(run):
+        run = run["_run"]
+        return sorted((run.get("flags") or {}).items())
+
+    @staticmethod
+    def _scalars(run):
+        run = run["_run"]
+        index = indexlib.RunIndex()
+        index.refresh([run], ["scalar"])
+        return list(index.run_scalars(run))
+
+    @staticmethod
+    def _scalar_key(s):
+        prefix = s["prefix"]
+        if prefix:
+            return "%s#%s" % (s["prefix"], s["tag"])
+        else:
+            return s["tag"]
+
+def _format_run_files(run, subdir=None, filter=None):
     files = []
     if subdir:
         source_dir = os.path.join(run.path, subdir)
@@ -102,6 +136,8 @@ def _format_run_files(run, subdir=None):
         for name in names:
             abspath = os.path.join(root, name)
             relpath = os.path.relpath(abspath, source_dir)
+            if filter and not filter.search(relpath):
+                continue
             size = os.path.getsize(abspath)
             mtime = os.path.getmtime(abspath)
             files.append({
