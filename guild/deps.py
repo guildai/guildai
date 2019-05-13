@@ -136,7 +136,14 @@ def _symlink(source_path, link):
         return
     util.ensure_dir(os.path.dirname(link))
     log.debug("resolving source %s as link %s", source_path, link)
-    util.symlink(source_path, link)
+    rel_source_path = _rel_source_path(source_path, link)
+    util.symlink(rel_source_path, link)
+
+def _rel_source_path(source, link):
+    source_dir, source_name = os.path.split(source)
+    link_dir = os.path.dirname(link)
+    source_rel_dir = os.path.relpath(source_dir, link_dir)
+    return os.path.join(source_rel_dir, source_name)
 
 class ResourceProxy(object):
 
