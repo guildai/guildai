@@ -94,6 +94,7 @@
     guild.commands.runs_label
     guild.commands.runs_list
     guild.commands.runs_mark
+    guild.commands.runs_publish
     guild.commands.runs_pull
     guild.commands.runs_purge
     guild.commands.runs_push

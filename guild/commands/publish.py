@@ -18,44 +18,17 @@ from __future__ import division
 import click
 
 from guild import click_util
-
-from . import runs_support
-
-def publish_params(fn):
-    click_util.append_params(fn, [
-        runs_support.runs_arg,
-        click.Option(
-            ("-d", "--dest"),
-            metavar="VAL",
-            help="Destination to publish runs."),
-        runs_support.op_and_label_filters,
-        runs_support.status_filters,
-        click.Option(
-            ("-y", "--yes"),
-            help="Do not prompt before publishing.",
-            is_flag=True),
-    ])
-    return fn
+from . import runs_publish
 
 @click.command()
-@publish_params
+@runs_publish.publish_params
 
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
 
 def publish(ctx, args):
-    """Publish one or more runs.
+    """{{ runs_publish.publish_runs }}"""
 
-    By default, runs are published to the local directory
-    'published-results'. To specify a different location, use
-    `--dest`.
-
-    Each run operation may define its own destination using the
-    `publish-to` attribute in the Guild file. This value will be used
-    for any associated runs unless `--dest` is provided, in which case
-    the user provided value is used.
-
-    """
     from . import runs_impl
     runs_impl.publish(args, ctx)
