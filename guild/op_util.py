@@ -30,6 +30,7 @@ from six.moves import shlex_quote
 import yaml
 
 # Move any import that's expensive or seldom used into function
+from guild import binaryornot
 from guild import util
 from guild import run_util
 
@@ -44,6 +45,8 @@ function_pattern = re.compile(r"([a-zA-Z0-9_\-\.]*)\[(.*)\]\s*$")
 function_arg_delimiter = ":"
 
 RESTART_NEEDED_STATUS = ("pending",)
+
+MAX_SOURCE_FILE_SIZE = 1024 * 1024
 
 class ArgValueError(ValueError):
 
@@ -582,7 +585,7 @@ def _to_copy(path, rel_path, source_config):
                 last_match = spec
     if last_match:
         return _to_copy_for_spec(last_match)
-    return _is_text_file(path)
+    return _is_default_source_file(path)
 
 def _source_match(rel_path, spec):
     return any((fnmatch.fnmatch(rel_path, p) for p in spec.patterns))
@@ -590,9 +593,13 @@ def _source_match(rel_path, spec):
 def _to_copy_for_spec(spec):
     return spec.type == "include"
 
-def _is_text_file(path):
-    from guild import binaryornot
-    return not binaryornot.is_binary(path)
+def _is_default_source_file(path):
+    ext = os.path.splitext(path)[1].lower()
+    if binaryornot.is_binary(path):
+        return False
+    if os.path.getsize(path) > MAX_SOURCE_FILE_SIZE:
+        return False
+    return True
 
 def split_main(main):
     if isinstance(main, list):
