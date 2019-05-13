@@ -25,7 +25,6 @@
     guild._yacc
     guild.batch_main
     guild.batch_util
-    guild.binaryornot
     guild.cli
     guild.click_util
     guild.cmd_impl_support

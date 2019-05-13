@@ -30,7 +30,6 @@ from six.moves import shlex_quote
 import yaml
 
 # Move any import that's expensive or seldom used into function
-from guild import binaryornot
 from guild import util
 from guild import run_util
 
@@ -595,7 +594,7 @@ def _to_copy_for_spec(spec):
 
 def _is_default_source_file(path):
     ext = os.path.splitext(path)[1].lower()
-    if binaryornot.is_binary(path):
+    if not util.is_text_file(path):
         return False
     if os.path.getsize(path) > MAX_SOURCE_FILE_SIZE:
         return False
