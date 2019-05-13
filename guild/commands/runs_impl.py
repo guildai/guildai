@@ -66,6 +66,7 @@ CORE_RUN_ATTRS = [
     "exit_status.remote",
     "flags",
     "host",
+    "id",
     "initialized",
     "label",
     "marked",

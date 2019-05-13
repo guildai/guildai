@@ -181,6 +181,7 @@ class Run(object):
     def init_skel(self):
         util.ensure_dir(self.guild_path("attrs"))
         if not self.has_attr("initialized"):
+            self.write_attr("id", self.id)
             self.write_attr("initialized", timestamp())
 
     def guild_path(self, subpath=None):

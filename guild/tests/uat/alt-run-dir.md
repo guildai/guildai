@@ -26,6 +26,7 @@ And the generated files:
     hello-default/.guild/attrs/exit_status
     hello-default/.guild/attrs/flags
     hello-default/.guild/attrs/host
+    hello-default/.guild/attrs/id
     hello-default/.guild/attrs/initialized
     hello-default/.guild/attrs/opdef
     hello-default/.guild/attrs/random_seed
