@@ -504,7 +504,7 @@ def _check_flag_range(val, flag):
 def copy_source(run, opdef):
     _copy_source(
         opdef.guildfile.dir,
-        opdef.modeldef.source,
+        [opdef.source, opdef.modeldef.source],
         run.guild_path("source"))
 
 def _copy_source(src_base, source_config, dest_base):
@@ -574,9 +574,12 @@ def _is_env_dir(path):
 
 def _to_copy(path, rel_path, source_config):
     last_match = None
-    for spec in source_config.specs:
-        if _source_match(rel_path, spec):
-            last_match = spec
+    if not isinstance(source_config, list):
+        source_config = [source_config]
+    for config in source_config:
+        for spec in config.specs:
+            if _source_match(rel_path, spec):
+                last_match = spec
     if last_match:
         return _to_copy_for_spec(last_match)
     return _is_text_file(path)

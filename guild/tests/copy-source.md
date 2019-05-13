@@ -19,16 +19,20 @@ copy behavior.
 The project contains these models:
 
     >>> sorted(gf.models)
-    ['default', 'exclude-all', 'include-logo', 'only-py', 'py-and-guild']
+    ['default', 'exclude-all', 'include-logo', 'model-and-op',
+     'only-py-1', 'only-py-2', 'py-and-guild']
 
 We'll use temporary run directories to test each copy
 operation. Here's a helper function that copies the source for the
 applicable model and prints the copied source files.
 
-    >>> def copy_model_source(model_name):
+    >>> def copy_model_source(model_name, op_name=None):
     ...     model = gf.models[model_name]
+    ...     source_config = [model.source]
+    ...     if op_name:
+    ...         source_config.append(model.get_operation(op_name).source)
     ...     temp_dir = mkdtemp()
-    ...     _copy_source(gf.dir, model.source, temp_dir)
+    ...     _copy_source(gf.dir, source_config, temp_dir)
     ...     copied = find(temp_dir)
     ...     if not copied:
     ...         print("<empty>")
@@ -65,7 +69,10 @@ nothing:
 
 The `only-py` model specifies that only `*.py` files be copied:
 
-    >>> copy_model_source("only-py")
+    >>> copy_model_source("only-py-1")
+    hello.py 6ae95c9c
+
+    >>> copy_model_source("only-py-2")
     hello.py 6ae95c9c
 
 The `py-and-guild` model specifies Python source and the Guild file:
@@ -73,6 +80,19 @@ The `py-and-guild` model specifies Python source and the Guild file:
     >>> copy_model_source("py-and-guild")
     guild.yml ...
     hello.py 6ae95c9c
+
+The `model-and-op` model include a model source spec and a source
+spec. These two specs are applied with the op spec being appended to
+the model spec.
+
+In this example, the model includes `logo.png` and the op exclude
+`*.py` and `a.*` files.
+
+    >>> copy_model_source("model-and-op", "op")
+    empty e3b0c442
+    guild.yml ...
+    subdir/b.txt 43451775
+    subdir/logo.png 4a9bf008
 
 ## Links
 

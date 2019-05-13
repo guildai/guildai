@@ -8,7 +8,10 @@
   source:
     - exclude: '*'
 
-- model: only-py
+- model: only-py-1
+  source: '*.py'
+
+- model: only-py-2
   source:
     - exclude: '*'
     - include: '*.py'
@@ -19,3 +22,11 @@
     - include:
         - '*.py'
         - 'guild.yml'
+
+- model: model-and-op
+  source:
+    - include: subdir/logo.png
+  operations:
+    op:
+      source:
+        - exclude: ['*.py', 'a.*']
