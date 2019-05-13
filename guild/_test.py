@@ -514,6 +514,13 @@ class Project(object):
             guild_home=self.guild_home,
             **kw)
 
+    def publish(self, runs=None, **kw):
+        return gapi.publish(
+            runs=runs,
+            cwd=self.cwd,
+            guild_home=self.guild_home,
+            **kw)
+
 class _MockConfig(object):
 
     def __init__(self, data):

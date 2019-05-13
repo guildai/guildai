@@ -179,6 +179,8 @@ def _remove_guild_dir(dirs):
 class Template(object):
 
     def __init__(self, path):
+        if not os.path.exists(path):
+            raise RuntimeError("invalid template source: %s" % path)
         self.path = path
         self._file_templates = sorted(_init_file_templates(path))
 
@@ -212,8 +214,9 @@ def _init_file_template(path):
     if not util.is_text_file(path):
         return None
     dirname, basename = os.path.split(path)
+    templates_home = _local_path("templates")
     env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader([dirname]),
+        loader=jinja2.FileSystemLoader([dirname, templates_home]),
         autoescape=jinja2.select_autoescape(['html', 'xml']))
     RunFilters.install(env)
     try:
@@ -230,16 +233,16 @@ def _render_template(template, vars, dest):
 def publish_run(run, dest=None, template=None, formatted_run=None):
     opdef = _run_opdef(run)
     dest_home = dest or DEFAULT_DEST_HOME
-    util.ensure_dir(dest_home)
-    util.touch(os.path.join(dest_home, ".guild-archive"))
-    run_dest = _published_run_dest(dest_home, run)
     template = _init_template(template, opdef)
+    run_dest = _published_run_dest(dest_home, run)
     if not formatted_run:
         formatted_run = _format_run_for_publish(run)
     render_vars = {
         "run": formatted_run,
         "config": _template_config(opdef)
     }
+    util.ensure_dir(dest_home)
+    util.touch(os.path.join(dest_home, ".guild-archive"))
     # Clean target directoy for re-publishing.
     if os.path.exists(run_dest):
         util.safe_rmtree(run_dest)
@@ -248,6 +251,9 @@ def publish_run(run, dest=None, template=None, formatted_run=None):
     try:
         template.generate(run_dest, render_vars)
     except jinja2.TemplateRuntimeError as e:
+        raise GenerateError(e, template)
+    except jinja2.exceptions.TemplateNotFound as e:
+        e.message = "template not found: %s" % e.message
         raise GenerateError(e, template)
     else:
         util.copytree(run.path, run_dest)
@@ -296,18 +302,33 @@ def _opdef_publish_template(opdef):
     return opdef.publish.get("template")
 
 def _find_template(name, opdef):
+    return util.find_apply([
+        lambda: _abs_template(name),
+        lambda: _default_template(name),
+        lambda: _project_template(name, opdef),
+        lambda: _cannot_find_template_error(name)])
+
+def _abs_template(name):
+    if name[:1] == "." and os.path.exists(name):
+        return name
+    return None
+
+def _default_template(name):
     if name == "default":
         return _local_path("templates/publish-default")
-    elif name[:0] == ".":
-        return _project_template(name, opdef)
-    else:
-        raise PublishError("cannot find template %s" % name)
+    return None
 
 def _local_path(path):
     return os.path.join(os.path.dirname(__file__), path)
 
-def _project_template(path, opdef):
-    return os.path.join(opdef.guildfile.dir, path)
+def _project_template(name, opdef):
+    path = os.path.join(opdef.guildfile.dir, name)
+    if os.path.exists(path):
+        return path
+    return None
+
+def _cannot_find_template_error(name):
+    raise PublishError("cannot find template %s" % name)
 
 def _template_config(opdef):
     if not opdef or not opdef.publish:

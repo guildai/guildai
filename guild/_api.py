@@ -287,3 +287,17 @@ def compare(
     args = click_util.Args(**ctx.params)
     with Env(cwd, guild_home):
         return compare_impl._get_data(args, format_cells=False)
+
+def publish(runs=None, dest=None, template=None, cwd=".", guild_home=None):
+    from guild import click_util
+    from guild.commands import runs_publish
+    from guild.commands import runs_impl
+    args = list(runs or ()) + ["-y"]
+    if dest:
+        args.extend(["--dest", dest])
+    if template:
+        args.extend(["--template", template])
+    ctx = runs_publish.publish_runs.make_context("", args)
+    args = click_util.Args(**ctx.params)
+    with Env(cwd, guild_home):
+        return runs_impl.publish(args, ctx)

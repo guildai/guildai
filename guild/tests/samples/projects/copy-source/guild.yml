@@ -28,5 +28,6 @@
     - include: subdir/logo.png
   operations:
     op:
+      exec: 'true'
       source:
         - exclude: ['*.py', 'a.*']
