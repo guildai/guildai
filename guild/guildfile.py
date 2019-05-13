@@ -617,11 +617,11 @@ class ModelDef(object):
             return public_ops[0]
         return None
 
-    def get_resource(self, name):
+    def get_resource(self, name, default=None):
         for res in self.resources:
             if res.name == name:
                 return res
-        return None
+        return default
 
 def _extended_data(config_data, guildfile, seen=None, resolve_params=True):
     data = copy.deepcopy(config_data)
