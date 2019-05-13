@@ -120,7 +120,7 @@ README.md:
     | Package     |          |
     | Status      | pending      |
     | Marked      | no      |
-    | Started     | 2017-09-30 11:53:05     |
+    | Started     | ...     |
     | Stopped     |      |
     | Command     |      |
     | Exit Status |  |
@@ -156,7 +156,7 @@ Here's a new dest dir:
     <BLANKLINE>
     | ID                | Operation         | Started           | Duration           | Status           | Label           |
     | --                | ---------         | ---------         | --------           | ------           | -----           |
-    | 360192fd | mnist:train | 2017-09-30 11:53:05 | &nbsp; | pending |  |
+    | 360192fd | mnist:train | ... | &nbsp; | pending |  |
     <BLANKLINE>
     ## Flags
     <BLANKLINE>
@@ -187,7 +187,7 @@ Here's a new dest dir:
     | Operation   | train     |
     | Status      | pending      |
     | Marked      | no      |
-    | Started     | 2017-09-30 11:53:05     |
+    | Started     | ...     |
     | Stopped     |      |
     | Label       |        |
     | Exit Status |  |
