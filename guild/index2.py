@@ -19,7 +19,7 @@ import logging
 import os
 import sqlite3
 
-from guild import op_util
+from guild import run_util
 from guild import tfevent
 from guild import util
 from guild import var
@@ -49,7 +49,7 @@ class AttrReader(object):
             "id": run.id,
             "run": run.short_id,
             "model": opref.model_name,
-            "operation": op_util.format_op_desc(run),
+            "operation": run_util.format_op_desc(run),
             "op": opref.op_name,
             "started": util.format_timestamp(started),
             "stopped": util.format_timestamp(stopped),

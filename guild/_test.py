@@ -57,7 +57,7 @@ from guild import config as configlib
 from guild import guildfile
 from guild import index2
 from guild import init
-from guild import op_util
+from guild import run_util
 from guild import util
 
 PLATFORM = platform.system()
@@ -461,11 +461,11 @@ class Project(object):
     @staticmethod
     def _row_for_print_run(run, flags, labels, status):
         row = {
-            "opspec": op_util.format_op_desc(run)
+            "opspec": run_util.format_op_desc(run)
         }
         if flags:
             flags_desc = " ".join(
-                ["%s=%s" % (name, op_util.format_flag_val(val))
+                ["%s=%s" % (name, run_util.format_flag_val(val))
                  for name, val in sorted(run.get("flags").items())])
             row["flags"] = flags_desc
         if labels:

@@ -37,8 +37,6 @@ PLATFORM = platform.system()
 
 OS_ENVIRON_BLACKLIST = set([])
 
-MIN_MONITOR_INTERVAL = 5
-
 class Stop(Exception):
     """Raise to stop loops started with `loop`."""
 
@@ -628,81 +626,6 @@ def apply_env(target, source, names):
             target[name] = source[name]
         except KeyError:
             pass
-
-class RunsMonitor(LoopingThread):
-
-    STOP_TIMEOUT = 5
-
-    def __init__(self, list_runs_cb, logdir, interval):
-        """Create a RunsMonitor.
-
-        Note that run links are created initially by this
-        function. Any errors result from user input will propagate
-        during this call. Similar errors occuring after the monitor is
-        started will be logged but will not propagate.
-        """
-        interval = min(interval, MIN_MONITOR_INTERVAL)
-        super(RunsMonitor, self).__init__(
-            cb=self.run_once,
-            interval=interval,
-            stop_timeout=self.STOP_TIMEOUT)
-        self.logdir = logdir
-        self.list_runs_cb = list_runs_cb
-        self.run_once(exit_on_error=True)
-
-    def run_once(self, exit_on_error=False):
-        log.debug("Refreshing runs")
-        try:
-            runs = self.list_runs_cb()
-        except SystemExit as e:
-            if exit_on_error:
-                raise
-            log.error(
-                "An error occurred while reading runs. "
-                "Use --debug for details.")
-            log.debug(e)
-        else:
-            self._refresh_run_links(runs)
-
-    def _refresh_run_links(self, runs):
-        # List of links to delete - assume all to start
-        to_delete = os.listdir(self.logdir)
-        for run in runs:
-            link_name = self._format_run_name(run)
-            remove(link_name, to_delete)
-            link_path = os.path.join(self.logdir, link_name)
-            if not os.path.exists(link_path):
-                self._create_run_link(link_path, run.path)
-            self._refresh_run_link(link_path, run.path)
-        for link_name in to_delete:
-            self._remove_run_link(os.path.join(self.logdir, link_name))
-
-    @staticmethod
-    def _format_run_name(run):
-        parts = [run.short_id]
-        if run.opref.model_name:
-            parts.append("%s:%s" % (run.opref.model_name, run.opref.op_name))
-        else:
-            parts.append(run.opref.op_name)
-        parts.append(format_timestamp(run.get("started")))
-        label = run.get("label")
-        if label:
-            parts.append(label)
-        return safe_filename(" ".join(parts))
-
-    @staticmethod
-    def _create_run_link(link, run_dir):
-        log.debug("Linking %s to %s", link, run_dir)
-        symlink(run_dir, link)
-
-    def _refresh_run_link(self, link, run_dir):
-        """Callback to let subclass refresh links they may have created."""
-        pass
-
-    @staticmethod
-    def _remove_run_link(link):
-        log.debug("Removing %s", link)
-        os.remove(link)
 
 def safe_filename(s):
     if PLATFORM == "Windows":

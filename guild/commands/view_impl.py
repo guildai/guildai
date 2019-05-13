@@ -27,7 +27,7 @@ import guild.run
 
 from guild import cli
 from guild import config
-from guild import op_util
+from guild import run_util
 from guild import util
 from guild import var
 from guild import view
@@ -75,7 +75,7 @@ class ViewDataImpl(view.ViewData):
                     log.error("error processing run data for %s: %r", run.id, e)
 
     def _run_data(self, run):
-        formatted = runs_impl.format_run(run)
+        formatted = run_util.format_run(run)
         return {
             "id": run.id,
             "shortId": run.short_id,
@@ -151,7 +151,7 @@ class ViewDataImpl(view.ViewData):
     def _format_dep(run, paths):
         return {
             "run": run.short_id,
-            "operation": op_util.format_op_desc(run, nowarn=True),
+            "operation": run_util.format_op_desc(run, nowarn=True),
             "paths": paths
         }
 
@@ -252,7 +252,7 @@ class ViewDataImpl(view.ViewData):
         except LookupError:
             return "%s (deleted)" % parts[0][:8], None
         else:
-            operation = op_util.format_op_desc(run, nowarn=True)
+            operation = run_util.format_op_desc(run, nowarn=True)
             return operation, run.short_id
 
     def config(self):
@@ -298,7 +298,7 @@ def _view_files(args):
     with util.TempDir("guild-view-") as logdir:
         log.debug("Using logdir %s", logdir)
         list_runs_cb = lambda: runs_impl.runs_for_args(args)
-        monitor = util.RunsMonitor(
+        monitor = run_util.RunsMonitor(
             list_runs_cb, logdir, VIEW_FILES_REFRESH_INTERVAL)
         monitor.start()
         click.launch(logdir)

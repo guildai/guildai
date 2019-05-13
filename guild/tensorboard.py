@@ -55,6 +55,7 @@ if version.VERSION not in _req:
 from tensorboard import program
 from tensorboard.backend import application
 
+from guild import run_util
 from guild import util
 
 DEFAULT_RELOAD_INTERVAL = 5
@@ -62,7 +63,7 @@ DEFAULT_RELOAD_INTERVAL = 5
 class TensorboardError(Exception):
     pass
 
-class RunsMonitor(util.RunsMonitor):
+class RunsMonitor(run_util.RunsMonitor):
 
     tfevent_pattern = re.compile(r"\.tfevents")
 

@@ -26,9 +26,9 @@ from guild import cli
 from guild import config
 from guild import index2 as indexlib
 from guild import guildfile
-from guild import op_util
 from guild import query
 from guild import run as runlib
+from guild import run_util
 from guild import tabview
 from guild import util
 from guild import var
@@ -66,7 +66,7 @@ def _print_scalars(args):
     index = indexlib.RunIndex()
     index.refresh(runs, ["scalar"])
     for run in runs:
-        cli.out("[%s] %s" % (run.short_id, op_util.format_op_desc(run)))
+        cli.out("[%s] %s" % (run.short_id, run_util.format_op_desc(run)))
         for s in index.run_scalars(run):
             prefix = s["prefix"]
             if prefix:
@@ -382,7 +382,7 @@ def _get_run_detail_cb(index):
 def _format_run_detail(run, index):
     lines = [
         "Id: %s" % run.id,
-        "Operation: %s" % op_util.format_op_desc(run),
+        "Operation: %s" % run_util.format_op_desc(run),
         "Status: %s" % run.status,
         "Started: %s" % util.format_timestamp(run.get("started")),
         "Stopped: %s" % util.format_timestamp(run.get("stopped")),

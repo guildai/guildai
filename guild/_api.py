@@ -91,7 +91,7 @@ def _popen_args(
         print_trials=False,
         save_trials=None,
         quiet=False):
-    from guild import op_util
+    from guild import run_util
     cwd = cwd or "."
     flags = flags or {}
     opt_flags = opt_flags or {}
@@ -107,7 +107,7 @@ def _popen_args(
     if label:
         args.extend(['--label', label])
     args.extend([
-        "{}={}".format(name, op_util.format_flag_val(val))
+        "{}={}".format(name, run_util.format_flag_val(val))
         for name, val in flags.items()])
     args.extend(["@%s" % path for path in (batch_files or [])])
     if run_dir:
@@ -123,7 +123,7 @@ def _popen_args(
     for name, val in opt_flags.items():
         args.extend([
             "--opt-flag",
-            "{}={}".format(name, op_util.format_flag_val(val))
+            "{}={}".format(name, run_util.format_flag_val(val))
         ])
     if max_trials is not None:
         args.extend(["--max-trials", str(max_trials)])

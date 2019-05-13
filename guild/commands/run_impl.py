@@ -40,11 +40,11 @@ from guild import op_util
 from guild import opref as opreflib
 from guild import resolver
 from guild import run as runlib
+from guild import run_util
 from guild import util
 from guild import var
 
 from . import remote_impl_support
-from . import runs_impl
 
 log = logging.getLogger("guild")
 
@@ -1055,7 +1055,7 @@ def _format_flag(name, val, opdef):
     if val is None:
         formatted = _null_label(name, opdef)
     else:
-        formatted = _strip_quotes(op_util.format_flag_val(val))
+        formatted = _strip_quotes(run_util.format_flag_val(val))
     return "%s: %s" % (name, formatted)
 
 def _null_label(name, opdef):
@@ -1267,7 +1267,7 @@ def _match_proto_run(batch_run, proto_op):
         _match_run_flags(proto_run, proto_op.flag_vals))
 
 def _print_matching_runs(runs):
-    formatted = [runs_impl.format_run(run) for run in runs]
+    formatted = [run_util.format_run(run) for run in runs]
     cols = [
         "index", "operation", "started",
         "status_with_remote", "label"
