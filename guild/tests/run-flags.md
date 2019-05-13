@@ -68,7 +68,7 @@ And our helper function to validate flags:
     >>> from guild import click_util
 
     >>> def flags(op_name, flag_vals, force=False):
-    ...     opdef_orig = gf.models["test"].get_operation(op_name)
+    ...     opdef_orig = gf.models["test"][op_name]
     ...     opdef_copy = copy.deepcopy(opdef_orig)
     ...     args_proxy = click_util.Args(
     ...        force_flags=force,

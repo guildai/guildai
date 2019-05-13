@@ -47,7 +47,7 @@ file operation.
 Let's illustrate by running `say2`. Let's first note the `say2` exec
 spec from the Guild file:
 
-    >>> say2 = m.get_operation("say2")
+    >>> say2 = m["say2"]
     >>> say2.exec_
     'echo hello from guild file'
 

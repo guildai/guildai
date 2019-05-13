@@ -16,7 +16,7 @@ Load the guild file:
 For our tests, we'll use a helper function to print flag attributes.
 
     >>> def flag_info(op_name, flag_name):
-    ...     op = gf.models["test"].get_operation(op_name)
+    ...     op = gf.models["test"][op_name]
     ...     flag = op.get_flagdef(flag_name)
     ...     if flag.description:
     ...         print("description: {}".format(flag.description))
@@ -27,18 +27,18 @@ For our tests, we'll use a helper function to print flag attributes.
 And a helper to print flag values:
 
     >>> def flag_vals(op_name):
-    ...     pprint(gf.models["test"].get_operation(op_name).flag_values())
+    ...     pprint(gf.models["test"][op_name].flag_values())
 
 And for flags dest:
 
     >>> def flags_dest(op_name):
-    ...     print(gf.models["test"].get_operation(op_name).flags_dest)
+    ...     print(gf.models["test"][op_name].flags_dest)
 
 ## Implicitly import all available flags
 
 Flags for `implicit-args`:
 
-    >>> gf.models["test"].get_operation("implicit-args").flags
+    >>> gf.models["test"]["implicit-args"].flags
     [<guild.guildfile.FlagDef 'bar'>,
      <guild.guildfile.FlagDef 'foo'>]
 
@@ -62,7 +62,7 @@ the main module:
 
 This applies equally to `implicit-globals`:
 
-    >>> gf.models["test"].get_operation("implicit-globals").flags
+    >>> gf.models["test"]["implicit-globals"].flags
     [<guild.guildfile.FlagDef 'f_bool'>,
      <guild.guildfile.FlagDef 'f_float'>,
      <guild.guildfile.FlagDef 'f_int'>,
@@ -92,7 +92,7 @@ Guild files can redefine default values.
 
 Here are new defaults for `main_args`:
 
-    >>> gf.models["test"].get_operation("implicit-args-with-mods").flags
+    >>> gf.models["test"]["implicit-args-with-mods"].flags
     [<guild.guildfile.FlagDef 'bar'>, <guild.guildfile.FlagDef 'foo'>]
 
     >>> flag_info("implicit-args-with-mods", "foo")
@@ -109,7 +109,7 @@ Here are new defaults for `main_args`:
 
 And for `main_globals`:
 
-    >>> gf.models["test"].get_operation("implicit-globals-with-mods").flags
+    >>> gf.models["test"]["implicit-globals-with-mods"].flags
     [<guild.guildfile.FlagDef 'f_bool'>,
      <guild.guildfile.FlagDef 'f_float'>,
      <guild.guildfile.FlagDef 'f_int'>,
@@ -138,7 +138,7 @@ And for `main_globals`:
 The `explicit-args` operation uses `flags-import` to limit the
 imports:
 
-    >>> gf.models["test"].get_operation("explicit-args").flags
+    >>> gf.models["test"]["explicit-args"].flags
     [<guild.guildfile.FlagDef 'foo'>]
 
     >>> flag_info("explicit-args", "foo")
@@ -151,7 +151,7 @@ imports:
 
 Similarly for `explicit-globals`:
 
-    >>> gf.models["test"].get_operation("explicit-globals").flags
+    >>> gf.models["test"]["explicit-globals"].flags
     [<guild.guildfile.FlagDef 'f_str'>]
 
     >>> flag_info("explicit-globals", "f_str")
@@ -164,15 +164,15 @@ Similarly for `explicit-globals`:
 
 Imports can be disabled by specifying `no` or `[]` for `flags-import`:
 
-    >>> gf.models["test"].get_operation("no-imports-1").flags
+    >>> gf.models["test"]["no-imports-1"].flags
     []
 
-    >>> gf.models["test"].get_operation("no-imports-2").flags
+    >>> gf.models["test"]["no-imports-2"].flags
     []
 
 `no-imports-3` disables imports and then defines its own flags:
 
-    >>> gf.models["test"].get_operation("no-imports-3").flags
+    >>> gf.models["test"]["no-imports-3"].flags
     [<guild.guildfile.FlagDef 'foo'>]
 
     >>> flag_info("no-imports-3", "foo")
@@ -188,12 +188,12 @@ Imports can be disabled by specifying `no` or `[]` for `flags-import`:
 In cases where a user wants to import all flags *except* certain
 flags, she can use `flags-no-import`.
 
-    >>> gf.models["test"].get_operation("skip-imports-1").flags
+    >>> gf.models["test"]["skip-imports-1"].flags
     [<guild.guildfile.FlagDef 'f_bool'>,
      <guild.guildfile.FlagDef 'f_float'>,
      <guild.guildfile.FlagDef 'f_str'>]
 
-    >>> gf.models["test"].get_operation("skip-imports-2").flags
+    >>> gf.models["test"]["skip-imports-2"].flags
     [<guild.guildfile.FlagDef 'bar'>]
 
 ## Alt argparse usage
@@ -201,12 +201,12 @@ flags, she can use `flags-no-import`.
 The module `main_args2` - used by the `implicit-args2` operation - has
 a different argparse usage.
 
-    >>> gf.models["test"].get_operation("implicit-args2").flags
+    >>> gf.models["test"]["implicit-args2"].flags
     [<guild.guildfile.FlagDef 'bar'>, <guild.guildfile.FlagDef 'foo'>]
 
 ## Marge based on arg-name
 
-    >>> gf.models["test"].get_operation("merge-by-arg-name").flags
+    >>> gf.models["test"]["merge-by-arg-name"].flags
     [<guild.guildfile.FlagDef 'f_bool2'>,
      <guild.guildfile.FlagDef 'f_float'>,
      <guild.guildfile.FlagDef 'f_int'>,

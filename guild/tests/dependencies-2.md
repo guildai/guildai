@@ -31,7 +31,7 @@ resource.
     ...   requires: prepare
     ... """)
 
-    >>> print_deps(gf.get_operation("train").dependencies)
+    >>> print_deps(gf.default_model["train"].dependencies)
     <guild.guildfile.OpDependency 'prepare'>
       spec: prepare
       description: ''
@@ -46,7 +46,7 @@ A list of strings is treated in the same manner:
     ...     - prepare-3
     ... """)
 
-    >>> print_deps(gf.get_operation("train").dependencies)
+    >>> print_deps(gf.default_model["train"].dependencies)
     <guild.guildfile.OpDependency 'prepare-1'>
       spec: prepare-1
       description: ''
@@ -70,7 +70,7 @@ a resource spec:
     ...     description: required data
     ... """)
 
-    >>> print_deps(gf.get_operation("train").dependencies)
+    >>> print_deps(gf.default_model["train"].dependencies)
     <guild.guildfile.OpDependency 'data'>
       spec: data
       description: required data
@@ -88,7 +88,7 @@ attribute, it is treated as an implicit resource source:
     ...     unpack: no
     ... """)
 
-    >>> print_deps(gf.get_operation("train").dependencies)
+    >>> print_deps(gf.default_model["train"].dependencies)
     <guild.guildfile.OpDependency http://my.co/stuff.gz>
       inline-resource: {'sources': [{'sha256': 'abc123',
                   'unpack': False,
@@ -111,7 +111,7 @@ complete resource definition:
     ...         sha256: dev456
     ... """)
 
-    >>> print_deps(gf.get_operation("train").dependencies)
+    >>> print_deps(gf.default_model["train"].dependencies)
     <guild.guildfile.OpDependency http://my.co/stuff.gz,http://my.co/more-suff.tar>
       inline-resource: {'path': 'data',
      'sources': [{'sha256': 'abc123',
@@ -132,7 +132,7 @@ A resource `name` may be provided for any full resource definition:
     ...       - url: http://my.co/more-suff.tar
     ... """)
 
-    >>> print_deps(gf.get_operation("train").dependencies)
+    >>> print_deps(gf.default_model["train"].dependencies)
     <guild.guildfile.OpDependency data>
       inline-resource: {'name': 'data',
      'sources': [{'url': 'http://my.co/stuff.gz'},
@@ -150,7 +150,7 @@ to a dependency where `sources` contains a list containing the item.
     ...     - operation: foo
     ... """)
 
-    >>> print_deps(gf.get_operation("train").dependencies)
+    >>> print_deps(gf.default_model["train"].dependencies)
     <guild.guildfile.OpDependency http://my.co/stuff.gz>
       inline-resource: {'sources': [{'url': 'http://my.co/stuff.gz'}]}
     <guild.guildfile.OpDependency operation:foo>
@@ -170,7 +170,7 @@ resource path, if a resource path is defined.
     ...       path: bar
     ... """)
 
-    >>> print_deps(gf.get_operation("train").dependencies)
+    >>> print_deps(gf.default_model["train"].dependencies)
     <guild.guildfile.OpDependency operation:foo>
       inline-resource: {'sources': [{'operation': 'foo',
                                      'path': 'bar',

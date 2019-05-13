@@ -243,9 +243,6 @@ class Guildfile(object):
                 return m
         return None
 
-    def get_operation(self, name):
-        return self.default_model.get_operation(name)
-
     def __repr__(self):
         return "<guild.guildfile.Guildfile '%s'>" % self
 
@@ -594,13 +591,19 @@ class ModelDef(object):
     def __repr__(self):
         return "<guild.guildfile.ModelDef '%s'>" % self.name
 
-    def get_operation(self, name):
+    def __getitem__(self, name):
         if name is None:
             raise ValueError("name cannot be None")
         for op in self.operations:
             if op.name == name:
                 return op
-        return None
+        raise KeyError(name)
+
+    def get_operation(self, name, default=None):
+        try:
+            return self[name]
+        except KeyError:
+            return default
 
     @property
     def default_operation(self):

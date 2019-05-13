@@ -11,7 +11,7 @@ may be specified as an optimizer. In this case, `tune` is an operation
 defined in the project Guild file.
 
     >>> gf = guildfile.from_dir(project)
-    >>> gf.default_model.get_operation("tune")
+    >>> gf.default_model["tune"]
     <guild.guildfile.OpDef 'tune'>
 
 For our tests, we'll use a new workspace:

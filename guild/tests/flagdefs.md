@@ -17,7 +17,7 @@ Here's a helper function to parse a string into a flag def:
     ...         }
     ...     }
     ...     gf = guildfile.Guildfile(gf_data, "<string>")
-    ...     return gf.default_model.get_operation("op").get_flagdef(name)
+    ...     return gf.default_model["op"].get_flagdef(name)
 
 ## Simple values
 

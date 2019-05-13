@@ -30,7 +30,7 @@ applicable model and prints the copied source files.
     ...     model = gf.models[model_name]
     ...     source_config = [model.source]
     ...     if op_name:
-    ...         source_config.append(model.get_operation(op_name).source)
+    ...         source_config.append(model[op_name].source)
     ...     temp_dir = mkdtemp()
     ...     _copy_source(gf.dir, source_config, temp_dir)
     ...     copied = find(temp_dir)

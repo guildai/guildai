@@ -62,7 +62,7 @@ the Guild tests. We'll demonstrate here however for completeness.
 
 The `args` operation uses `args` for its flag dest:
 
-    >>> args_op = gf.default_model.get_operation("args")
+    >>> args_op = gf.default_model["args"]
     >>> args_op.flags_dest
     'args'
 
@@ -81,7 +81,7 @@ Lets run the operation:
 
 The `globals` operation specifies `globals` for the flags dest:
 
-    >>> globals_op = gf.default_model.get_operation("globals")
+    >>> globals_op = gf.default_model["globals"]
     >>> globals_op.flags_dest
     'globals'
 

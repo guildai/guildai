@@ -30,7 +30,7 @@ resource:
 We can get the list of dependencies for an operation with the
 `dependencies` attribute:
 
-    >>> test_op = gf.models["sample"].get_operation("test")
+    >>> test_op = gf.models["sample"]["test"]
     >>> test_op.dependencies
     [<guild.guildfile.OpDependency 'data'>]
 

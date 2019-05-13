@@ -122,7 +122,7 @@ Operations are ordered by name:
 
 Find an operation using a model's `get_op` method:
 
-    >>> gf.models["expert"].get_operation("train")
+    >>> gf.models["expert"]["train"]
     <guild.guildfile.OpDef 'expert:train'>
 
 `get_operation` returns None if the operation isn't defined for the
@@ -137,7 +137,7 @@ If an operation is designated as `default` it can be accessed using
 the `default_operation` attribute of the model def:
 
     >>> expert_model = gf.models["expert"]
-    >>> train_op = expert_model.get_operation("train")
+    >>> train_op = expert_model["train"]
     >>> train_op.default
     True
 
@@ -150,7 +150,7 @@ the `default_operation` attribute of the model def:
 The intro model doesn't have a default operation:
 
     >>> intro_model = gf.models["intro"]
-    >>> train_op = intro_model.get_operation("train")
+    >>> train_op = intro_model["train"]
     >>> train_op.default
     False
 
@@ -174,7 +174,7 @@ to be the `main` attribute.
     ...     test: test
     ... """)
 
-    >>> gf_op_coerce.models["foo"].get_operation("test").main
+    >>> gf_op_coerce.models["foo"]["test"].main
     'test'
 
 ### Flags
@@ -197,7 +197,7 @@ We'll use a helper function to print the flagdefs:
 
 Let's look at the flags defined for `intro:train`:
 
-    >>> intro_train = gf.models["intro"].get_operation("train")
+    >>> intro_train = gf.models["intro"]["train"]
     >>> flagdefs(intro_train.flags)
     [('batch-size', 'Number of images per train batch', 100),
      ('clones', 'Number of clones to deploy to', None),
@@ -227,7 +227,7 @@ These values can be modified without effecting the flag definitions.
 
 Here are the flag defs for `expert:train`:
 
-    >>> expert_train = gf.models["expert"].get_operation("train")
+    >>> expert_train = gf.models["expert"]["train"]
     >>> flagdefs(expert_train.flags)
     [('batch-size', 'Number of images per train batch', 100),
      ('clones', 'Number of clones to deploy to', None),
@@ -239,7 +239,7 @@ flag definitions without redefining any.
 
 Here are the flags for `intro:evaluate`:
 
-    >>> intro_evaluate = gf.models["intro"].get_operation("evaluate")
+    >>> intro_evaluate = gf.models["intro"]["evaluate"]
     >>> flagdefs(intro_evaluate.flags)
     [('batch-size', 'Number of images per eval batch', 50000),
      ('epochs', 'Epochs to evaluate', 2)]
@@ -268,8 +268,8 @@ Consider this guildfile:
 
 The two opdefs:
 
-    >>> opdef_a = gf_flag_update.default_model.get_operation("a")
-    >>> opdef_b = gf_flag_update.default_model.get_operation("b")
+    >>> opdef_a = gf_flag_update.default_model["a"]
+    >>> opdef_b = gf_flag_update.default_model["b"]
 
 Here are the flags and values for opdef a:
 
@@ -516,12 +516,12 @@ An operation def can be represented as data by calling `as_data()`.
     >>> pprint(opdef_b.as_data())
     {'exec': 'b', 'flags': {'x': {'default': 'X2'}, 'z': {'default': 'Z'}}}
 
-    >>> pprint(gf.models["expert"].get_operation("train").as_data())
+    >>> pprint(gf.models["expert"]["train"].as_data())
     {'default': True,
      'flags': {'$include': 'default-train-flags'},
      'main': 'expert'}
 
-    >>> pprint(gf.models["expert"].get_operation("evaluate").as_data())
+    >>> pprint(gf.models["expert"]["evaluate"].as_data())
     {'flags': {'$include': 'default-eval-flags'}, 'main': 'expert --test'}
 
 ## Resources
@@ -859,7 +859,7 @@ It's other attributes:
 As a point of comparison to `model-2` below, `model-1` inherits the
 default for the `batch-size` attribute:
 
-    >>> m1.get_operation("train").get_flagdef("batch-size").default
+    >>> m1["train"].get_flagdef("batch-size").default
     32
 
 `model-2` only extends one parent, but it modifies a flag default.
@@ -869,7 +869,7 @@ default for the `batch-size` attribute:
     >>> m2.operations
     [<guild.guildfile.OpDef 'model-2:train'>]
 
-    >>> m2.get_operation("train").get_flagdef("batch-size").default
+    >>> m2["train"].get_flagdef("batch-size").default
     16
 
 In this example, a model extends a model that in turn extends another
@@ -921,7 +921,7 @@ Model `a`:
     [<guild.guildfile.OpDef 'a:train'>]
 
     >>> [(f.name, f.description, f.default)
-    ...   for f in a.get_operation("train").flags]
+    ...   for f in a["train"].flags]
     [('f1', 'f1 in a', 1), ('f2', 'f2 in a', 2), ('f3', 'f3 in a', 3)]
 
 Model `b`:
@@ -933,7 +933,7 @@ Model `b`:
      <guild.guildfile.OpDef 'b:train'>]
 
     >>> [(f.name, f.description, f.default)
-    ...   for f in b.get_operation("train").flags]
+    ...   for f in b["train"].flags]
     [('f1', 'f1 in a', 1), ('f2', 'f2 in b', 22), ('f3', 'f3 in a', 3)]
 
 Model `c`:
@@ -946,7 +946,7 @@ Model `c`:
      <guild.guildfile.OpDef 'c:train'>]
 
     >>> [(f.name, f.description, f.default)
-    ...   for f in c.get_operation("train").flags]
+    ...   for f in c["train"].flags]
     [('f1', 'f1 in a', 1), ('f2', 'f2 in b', 22), ('f3', 'f3 in c', 33)]
 
 In this example, one model extends two configs, each of which extends
@@ -1003,11 +1003,11 @@ defaults for an operation. Note that `b` simply redefines the values.
     ... """)
 
     >>> [(f.name, f.description, f.default)
-    ...  for f in gf.models["a"].get_operation("test").flags]
+    ...  for f in gf.models["a"]["test"].flags]
     [('f1', 'Flag f1', 1), ('f2', 'Flag f2', 2)]
 
     >>> [(f.name, f.description, f.default)
-    ...  for f in gf.models["b"].get_operation("test").flags]
+    ...  for f in gf.models["b"]["test"].flags]
     [('f1', 'Flag f1', 3), ('f2', 'Flag f2', 4)]
 
 
@@ -1042,7 +1042,7 @@ Here's a case with a flag value:
     ...         n_str: n is {{n}}
     ... """)
 
-    >>> op = gf.default_model.get_operation("o")
+    >>> op = gf.default_model["o"]
     >>> pprint(op.flag_values())
     {'n': 10.0, 'n_str': 'n is 10.0'}
 
@@ -1219,25 +1219,25 @@ Operations:
 The flags defined for `op-a` are included via `a-flags` config that's
 defined in the project Guild file.
 
-    >>> gf.models["m"].get_operation("op-a").flags
+    >>> gf.models["m"]["op-a"].flags
     [<guild.guildfile.FlagDef 'a-1'>,
      <guild.guildfile.FlagDef 'a-2'>]
 
-    >>> pprint(gf.models["m"].get_operation("op-a").flag_values())
+    >>> pprint(gf.models["m"]["op-a"].flag_values())
     {'a-1': 1, 'a-2': 2}
 
-    >>> gf.models["m"].get_operation("op-b").flags
+    >>> gf.models["m"]["op-b"].flags
     [<guild.guildfile.FlagDef 'b-1'>,
      <guild.guildfile.FlagDef 'b-2'>,
      <guild.guildfile.FlagDef 'b-3'>,
      <guild.guildfile.FlagDef 'b-4'>]
 
-    >>> pprint(gf.models["m"].get_operation("op-b").flag_values())
+    >>> pprint(gf.models["m"]["op-b"].flag_values())
     {'b-1': 11, 'b-2': 22, 'b-3': 3, 'b-4': 4}
 
 Model `m3` uses a variety of flag includes for its sample operation:
 
-    >>> m3_op = gf.models["m3"].get_operation("op")
+    >>> m3_op = gf.models["m3"]["op"]
 
 And its flags:
 
@@ -1416,7 +1416,7 @@ Its operations:
 
 foo:
 
-    >>> foo = gf.default_model.get_operation("foo")
+    >>> foo = gf.default_model["foo"]
     >>> foo.description
     ''
     >>> foo.main
@@ -1426,7 +1426,7 @@ foo:
 
 bar:
 
-    >>> bar = gf.default_model.get_operation("bar")
+    >>> bar = gf.default_model["bar"]
     >>> bar.description
     'Bar'
     >>> print(bar.main)

@@ -28,7 +28,7 @@ operation (i.e. operations starting with `_`).
 Here's a helper for printing op steps:
 
     >>> def print_steps(op):
-    ...     pprint(gf.default_model.get_operation(op).steps)
+    ...     pprint(gf.default_model[op].steps)
 
 As a convention, tests in Guild are implemented as private operations
 and use `steps` attrs.

@@ -29,7 +29,7 @@ processed by the Guild file as they are merely passed through to
 
 Here are the steps for `m1:steps-basic`.
 
-    >>> gf.models["m1"].get_operation("steps-basic").steps
+    >>> gf.models["m1"]["steps-basic"].steps
     ['step-1', 'step-2']
 
 Note that the raw data structure is provided rather than any higher

@@ -23,7 +23,7 @@ For our tests, we'll use a helper function that returns an instance of
     ...     }
     ...   ]
     ...   gf = guildfile.Guildfile(data, gf_src or "<string>")
-    ...   return gf.models["model"].get_operation(name)
+    ...   return gf.models["model"][name]
 
 We'll also create a helper function that returns and instance of
 `guild.op.Operation` given arguments to `OpDef` above:
