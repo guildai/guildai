@@ -1,16 +1,10 @@
-# {{ run.operation }}
+[Published runs](../README.md)
 
-{{ run.started }}
+# {{ run|op_desc }}
 
-## Attributes
-
-{% include "_run_attrs.md" %}
-
-{% if config.process_info|default(true) -%}
-## Process Info
-
-{% include "_run_process_info.md" %}
-{%- endif %}
+| ID                | Operation         | Started           | Duration                     | Status           | Label           |
+| --                | ---------         | ---------         | --------                     | ------           | -----           |
+| {{ run.short_id}} | {{ run|op_desc }} | {{ run.started }} | {{ run.duration|safe_cell }} | {{ run.status }} | {{ run.label }} |
 
 ## Flags
 
@@ -31,3 +25,7 @@
 ## Source
 
 {% include "_source.md" %}
+
+## Attributes
+
+{% include "_run_attrs.md" %}

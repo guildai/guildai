@@ -1,17 +1,42 @@
 # Publish Templates
 
+Templates are used to generate a published run. Template consist of
+rendered files and supporting files. A published run is first copied
+to its destination. Next the template is used to generate rendered
+files that are written to the destination.
+
+Publish support is provided by `guild.publish`.
+
     >>> from guild import publish
 
-## Simple Example
+## Simple template
 
-Load a simple example:
+Here's a simple template:
 
-    >>> pt = publish.Template(sample("templates/simple"))
+    >>> simple = sample("templates/simple")
+
+    >>> dir(simple)
+    ['README.md',
+     '_footer.md',
+     '_footer_header.html',
+     '_header.md',
+     'a',
+     'b',
+     'hello.png']
+
+Files starting with "_" are supporting files that are included by
+templates and are not written when the template is generated.
+
+Let's create a template:
+
+    >>> pt = publish.Template(simple)
 
 The template generates these files:
 
     >>> pt.files
     ['README.md', 'a/A.md', 'b/B.html', 'hello.png']
+
+Note that files starting with "_" are not generated.
 
 Let's create a directory to contain the generated files:
 
@@ -118,43 +143,52 @@ Here's a new dest dir:
 
     >>> find(dest)
     ['.guild-archive',
-     'mnist-train-2017_09_30-11_53_05-360192fd/.guild/PENDING',
-     'mnist-train-2017_09_30-11_53_05-360192fd/.guild/attrs/env',
-     'mnist-train-2017_09_30-11_53_05-360192fd/.guild/attrs/id',
-     'mnist-train-2017_09_30-11_53_05-360192fd/.guild/attrs/started',
-     'mnist-train-2017_09_30-11_53_05-360192fd/.guild/opref',
-     'mnist-train-2017_09_30-11_53_05-360192fd/README.md']
+     '360192fdf9b74f2fad5f514e9f2fdadb/.guild/PENDING',
+     '360192fdf9b74f2fad5f514e9f2fdadb/.guild/attrs/env',
+     '360192fdf9b74f2fad5f514e9f2fdadb/.guild/attrs/started',
+     '360192fdf9b74f2fad5f514e9f2fdadb/.guild/opref',
+     '360192fdf9b74f2fad5f514e9f2fdadb/README.md']
 
-    >>> cat(path(dest, "mnist-train-2017_09_30-11_53_05-360192fd/README.md"))
+    >>> cat(path(dest, "360192fdf9b74f2fad5f514e9f2fdadb/README.md")) # doctest: +REPORT_UDIFF
+    [Published runs](../README.md)
+    <BLANKLINE>
     # mnist:train
     <BLANKLINE>
-    2017-09-30 11:53:05
+    | ID                | Operation         | Started           | Duration           | Status           | Label           |
+    | --                | ---------         | ---------         | --------           | ------           | -----           |
+    | 360192fd | mnist:train | 2017-09-30 11:53:05 | &nbsp; | pending |  |
     <BLANKLINE>
-    ## Attributes
+    ## Flags
     <BLANKLINE>
-    | Name      | Value             |
-    | -         | -                 |
-    | ID        | 360192fdf9b74f2fad5f514e9f2fdadb      |
-    | Model     | mnist   |
-    | Operation | train |
-    | Status    | pending  |
-    | Marked    | no  |
-    | Started   | 2017-09-30 11:53:05 |
-    | Stopped   |  |
+    There are no flags for this run.
     <BLANKLINE>
-    ## Process Info
+    ## Scalars
     <BLANKLINE>
-    | Name      | Value             |
-    | -         | -                 |
-    | Command     |      |
-    | Exit Status |  |
+    There are no scalars for this run.
     <BLANKLINE>
     ## Files
     <BLANKLINE>
     There are no files for this run.
     <BLANKLINE>
+    ## Images
+    <BLANKLINE>
+    There are no images for this run.
+    <BLANKLINE>
     ## Source
     <BLANKLINE>
-    | File | Size | Modified |
-    | ---- | ---- | -------- |
+    There are no source files for this run.
+    <BLANKLINE>
+    ## Attributes
+    <BLANKLINE>
+    | Name        | Value                 |
+    | -           | -                     |
+    | ID          | 360192fdf9b74f2fad5f514e9f2fdadb          |
+    | Model       | mnist       |
+    | Operation   | train     |
+    | Status      | pending      |
+    | Marked      | no      |
+    | Started     | 2017-09-30 11:53:05     |
+    | Stopped     |      |
+    | Label       |        |
+    | Exit Status |  |
     <BLANKLINE>

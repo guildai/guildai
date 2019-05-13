@@ -23,10 +23,11 @@ import jinja2
 
 from guild import guildfile
 from guild import index2 as indexlib
-from guild import run as runlib
+from guild import run_util
 from guild import util
+from guild import var
 
-DEFAULT_DEST_HOME = "published-results"
+DEFAULT_DEST_HOME = "published-runs"
 DEFAULT_TEMPLATE = "default"
 
 class PublishError(Exception):
@@ -82,6 +83,8 @@ class RunFilters(object):
             "flags": cls._flags,
             "scalars": cls._scalars,
             "scalar_key": cls._scalar_key,
+            "op_desc": cls._op_desc,
+            "safe_cell": cls._safe_cell,
         })
 
     @staticmethod
@@ -124,6 +127,21 @@ class RunFilters(object):
         else:
             return s["tag"]
 
+    @staticmethod
+    def _op_desc(run):
+        model = run.get("model")
+        op = run.get("op_name")
+        if model:
+            return "%s:%s" % (model, op)
+        else:
+            return op
+
+    @staticmethod
+    def _safe_cell(x):
+        if not x:
+            return "&nbsp;"
+        return x
+
 def _format_run_files(run, subdir=None, filter=None):
     files = []
     if subdir:
@@ -138,12 +156,15 @@ def _format_run_files(run, subdir=None, filter=None):
             relpath = os.path.relpath(abspath, source_dir)
             if filter and not filter.search(relpath):
                 continue
-            size = os.path.getsize(abspath)
+            if os.path.islink(abspath):
+                size = "link"
+            else:
+                size = util.format_bytes(os.path.getsize(abspath))
             mtime = os.path.getmtime(abspath)
             files.append({
                 "path": relpath,
                 "url": os.path.join(url_relpath, relpath),
-                "size": util.format_bytes(size),
+                "size": size,
                 "modified": util.format_utctimestamp(mtime * 1000000),
             })
     files.sort(key=lambda i: i["path"])
@@ -204,16 +225,17 @@ def _render_template(template, vars, dest):
     with open(dest, "w") as f:
         for part in template.generate(vars):
             f.write(part)
+        f.write(os.linesep)
 
-def publish_run(run, dest=None, formatted_run=None):
+def publish_run(run, dest=None, template=None, formatted_run=None):
     opdef = _run_opdef(run)
-    dest_home = _dest_home(dest, opdef)
+    dest_home = dest or DEFAULT_DEST_HOME
     util.ensure_dir(dest_home)
     util.touch(os.path.join(dest_home, ".guild-archive"))
     run_dest = _published_run_dest(dest_home, run)
-    template = _init_template(opdef)
+    template = _init_template(template, opdef)
     if not formatted_run:
-        formatted_run = format_run(run)
+        formatted_run = _format_run_for_publish(run)
     render_vars = {
         "run": formatted_run,
         "config": _template_config(opdef)
@@ -229,9 +251,13 @@ def publish_run(run, dest=None, formatted_run=None):
         raise GenerateError(e, template)
     else:
         util.copytree(run.path, run_dest)
-        # user-friendly (non ID) directory.
-        # Write run ID as attr because we are storing the run under a
-        _write_run_id(run.id, run_dest)
+
+def _format_run_for_publish(run):
+    fmt = run_util.format_run(run)
+    # Format adjustments for published run
+    if not fmt["stopped"]:
+        fmt["duration"] = ""
+    return fmt
 
 def _run_opdef(run):
     try:
@@ -247,44 +273,15 @@ def _run_opdef(run):
         else:
             return m.get_operation(run.opref.op_name)
 
-def _dest_home(dest_home_arg, opdef):
-    return util.find_apply([
-        lambda: dest_home_arg,
-        lambda: _opdef_publish_dest(opdef),
-        lambda: DEFAULT_DEST_HOME])
-
 def _published_run_dest(dest_home, run):
-    run_dest_basename = _run_dest_basename(run)
-    return os.path.join(dest_home, run_dest_basename)
+    return os.path.join(dest_home, run.id)
 
-def _opdef_publish_dest(opdef):
-    if not opdef or not opdef.publish:
-        return None
-    return opdef.publish.get("dest")
-
-def _run_dest_basename(run):
-    parts = []
-    model = _safe_model_name(run)
-    if model:
-        parts.append(model)
-    parts.append(_safe_op_name(run))
-    parts.append(_format_run_started(run))
-    parts.append(run.short_id)
-    return "-".join(parts)
-
-def _safe_model_name(run):
-    return util.safe_filename(run.opref.model_name)
-
-def _safe_op_name(run):
-    return util.safe_filename(run.opref.op_name)
-
-def _format_run_started(run):
-    started = run.get("started")
-    return util.format_timestamp(started, "%Y_%m_%d-%H_%M_%S")
-
-def _init_template(opdef):
-    template_name = _opdef_template(opdef)
-    template_path = _find_template(template_name, opdef)
+def _init_template(template, opdef):
+    template_spec = util.find_apply([
+        lambda: template,
+        lambda: _opdef_template(opdef)
+    ])
+    template_path = _find_template(template_spec, opdef)
     return Template(template_path)
 
 def _opdef_template(opdef):
@@ -312,17 +309,6 @@ def _local_path(path):
 def _project_template(path, opdef):
     return os.path.join(opdef.guildfile.dir, path)
 
-def format_run(run):
-    # Function level import as temp measure since the canonical
-    # format_run is in commands.runs_impl, which imports this module.
-    # Canonical format_run should be moved to guild.run_util or
-    # similar.
-    from guild.commands import runs_impl
-    fmt = runs_impl.format_run(run)
-    # Opportunistic use of dict to make run available to filters.
-    fmt["_run"] = run
-    return fmt
-
 def _template_config(opdef):
     if not opdef or not opdef.publish:
         return {}
@@ -332,7 +318,15 @@ def _template_config(opdef):
         for name, val in config.items()
     }
 
-def _write_run_id(run_id, run_dest_dir):
-    run = runlib.Run(run_id, run_dest_dir)
-    util.ensure_dir(run.guild_path("attrs"))
-    run.write_attr("id", run_id)
+def refresh_index(dest):
+    dest_home = dest or DEFAULT_DEST_HOME
+    index_template_path = _local_path("templates/runs-index/README.md")
+    index_template = _init_file_template(index_template_path)
+    assert index_template, index_template_path
+    index_path = os.path.join(dest_home, "README.md")
+    runs = _published_runs(dest_home)
+    _render_template(index_template, {"runs": runs}, index_path)
+
+def _published_runs(dir):
+    runs = var.runs(dir, sort=["-timestamp"])
+    return [_format_run_for_publish(run) for run in runs]

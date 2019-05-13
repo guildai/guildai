@@ -763,26 +763,48 @@ def _mark(args, ctx):
         mark, LATEST_RUN_ARG, True)
 
 def publish(args, ctx):
+    if args.refresh_index:
+        _refresh_publish_index(args)
+    else:
+        _publish(args, ctx)
+
+def _publish(args, ctx):
     preview = (
-        "You are about to publish the following run(s)%s:" %
-        (" to %s" % args.dest if args.dest else ""))
+        "You are about to publish the following run(s) to %s:"
+        % (args.dest or publishlib.DEFAULT_DEST_HOME))
     confirm = "Continue?"
     no_runs = "No runs to publish."
     def publish_f(runs, formatted):
-        for run, fmt in zip(runs, formatted):
-            print("Publishing [%s] %s %s %s %s" % (
-                fmt["short_id"],
-                fmt["operation"],
-                fmt["started"],
-                fmt["status"],
-                fmt["label"]))
-            fmt["_run"] = run
-            try:
-                publishlib.publish_run(run, args.dest, formatted_run=fmt)
-            except publishlib.PublishError as e:
-                cli.error(
-                    "error publishing run %s:\n%s"
-                    % (run.id, e))
+        _publish_runs(runs, formatted, args)
+        _refresh_publish_index(args, no_dest=True)
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
         publish_f, ALL_RUNS_ARG, True)
+
+def _publish_runs(runs, formatted, args):
+    for run, fmt in zip(runs, formatted):
+        print("Publishing [%s] %s %s %s %s" % (
+            fmt["short_id"],
+            fmt["operation"],
+            fmt["started"],
+            fmt["status"],
+            fmt["label"]))
+        fmt["_run"] = run
+        try:
+            publishlib.publish_run(
+                run,
+                args.dest,
+                args.template,
+                formatted_run=fmt)
+        except publishlib.PublishError as e:
+            cli.error(
+                "error publishing run %s:\n%s"
+                % (run.id, e))
+
+def _refresh_publish_index(args, no_dest=False):
+    if no_dest:
+        dest_suffix = ""
+    else:
+        dest_suffix = " in %s" % (args.dest or publishlib.DEFAULT_DEST_HOME)
+    print("Refreshing runs index%s" % dest_suffix)
+    publishlib.refresh_index(args.dest)

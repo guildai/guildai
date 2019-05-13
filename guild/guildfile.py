@@ -332,8 +332,6 @@ def _coerce_operation_attr(name, val, guildfile):
         return _coerce_op_python_path(val, guildfile)
     elif name == "output-scalars":
         return _coerce_output_scalars(val, guildfile)
-    elif name == "publish":
-        return _coerce_publish(val, guildfile)
     else:
         return val
 
@@ -375,19 +373,6 @@ def _coerce_output_scalars(data, guildfile):
     else:
         raise GuildfileError(
             guildfile, "invalid value for output-scalars: %r" % data)
-
-def _coerce_publish(data, guildfile):
-    if data is None:
-        return None
-    elif isinstance(data, six.string_types):
-        return {
-            "dest": data
-        }
-    elif isinstance(data, dict):
-        return data
-    else:
-        raise GuildfileError(
-            guildfile, "invalid value for publish: %r" % data)
 
 def _coerce_str_to_list(val, guildfile, name):
     if isinstance(val, six.string_types):

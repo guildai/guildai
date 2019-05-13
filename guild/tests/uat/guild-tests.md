@@ -51,6 +51,7 @@ tests).
       ops:                         ok
       package:                     ok
       plugins:                     ok
+      publish-templates:            ok
       python-utils:                ok
       query-parser:                ok
       remotes:                     ok
