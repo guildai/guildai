@@ -91,7 +91,7 @@ def _popen_args(
         print_trials=False,
         save_trials=None,
         quiet=False):
-    from guild import op_util
+    from guild import run_util
     cwd = cwd or "."
     flags = flags or {}
     opt_flags = opt_flags or {}
@@ -107,7 +107,7 @@ def _popen_args(
     if label:
         args.extend(['--label', label])
     args.extend([
-        "{}={}".format(name, op_util.format_flag_val(val))
+        "{}={}".format(name, run_util.format_flag_val(val))
         for name, val in flags.items()])
     args.extend(["@%s" % path for path in (batch_files or [])])
     if run_dir:
@@ -123,7 +123,7 @@ def _popen_args(
     for name, val in opt_flags.items():
         args.extend([
             "--opt-flag",
-            "{}={}".format(name, op_util.format_flag_val(val))
+            "{}={}".format(name, run_util.format_flag_val(val))
         ])
     if max_trials is not None:
         args.extend(["--max-trials", str(max_trials)])
@@ -287,3 +287,17 @@ def compare(
     args = click_util.Args(**ctx.params)
     with Env(cwd, guild_home):
         return compare_impl._get_data(args, format_cells=False)
+
+def publish(runs=None, dest=None, template=None, cwd=".", guild_home=None):
+    from guild import click_util
+    from guild.commands import runs_publish
+    from guild.commands import runs_impl
+    args = list(runs or ()) + ["-y"]
+    if dest:
+        args.extend(["--dest", dest])
+    if template:
+        args.extend(["--template", template])
+    ctx = runs_publish.publish_runs.make_context("", args)
+    args = click_util.Args(**ctx.params)
+    with Env(cwd, guild_home):
+        return runs_impl.publish(args, ctx)

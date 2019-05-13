@@ -141,6 +141,7 @@ Show all files, including Guild files:
       .guild/
       .guild/attrs/
       .guild/attrs/exit_status
+      .guild/attrs/id
       .guild/attrs/initialized
       .guild/opref
       .guild/some-guild-file

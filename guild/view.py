@@ -30,6 +30,7 @@ from werkzeug.utils import redirect
 
 import guild.index
 
+from guild import run_util
 from guild import serving_util
 from guild import util
 from guild import var
@@ -208,7 +209,7 @@ class TBServer(object):
         if self._started:
             raise RuntimeError("already started")
         self.log_dir = util.mktempdir("guild-tensorboard-")
-        self._monitor = util.RunsMonitor(
+        self._monitor = run_util.RunsMonitor(
             self._list_runs,
             self.log_dir,
             TB_RUNS_MONITOR_INTERVAL)

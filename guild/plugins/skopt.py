@@ -18,8 +18,8 @@ from __future__ import division
 import yaml
 
 from guild import model_proxy
-from guild import op_util
 from guild import plugin as pluginlib
+from guild import run_util
 
 ###################################################################
 # Random optimizer
@@ -177,11 +177,11 @@ def encode_flag_for_optimizer(val, flagdef):
 def _encode_function(flagdef, val):
     assert flagdef.min is not None and flagdef.max is not None
     func_name = flagdef.distribution or "uniform"
-    low = op_util.format_flag_val(flagdef.min)
-    high = op_util.format_flag_val(flagdef.max)
+    low = run_util.format_flag_val(flagdef.min)
+    high = run_util.format_flag_val(flagdef.max)
     args = [low, high]
     if val is not None:
-        initial = op_util.format_flag_val(val)
+        initial = run_util.format_flag_val(val)
         args.append(initial)
     return "%s[%s]" % (func_name, ":".join(args))
 

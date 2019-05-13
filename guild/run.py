@@ -181,6 +181,7 @@ class Run(object):
     def init_skel(self):
         util.ensure_dir(self.guild_path("attrs"))
         if not self.has_attr("initialized"):
+            self.write_attr("id", self.id)
             self.write_attr("initialized", timestamp())
 
     def guild_path(self, subpath=None):
@@ -249,3 +250,8 @@ def mkid():
     except ValueError:
         # Workaround https://bugs.python.org/issue32502
         return uuid.uuid4().hex
+
+def from_dir(run_dir, id=None):
+    if not id:
+        id = os.path.basename(run_dir)
+    return Run(id, run_dir)

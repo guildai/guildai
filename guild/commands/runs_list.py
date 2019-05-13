@@ -30,12 +30,12 @@ def runs_list_options(fn):
             help="Show deleted runs.",
             is_flag=True),
         click.Option(
-            ("--archive",),
+            ("-A", "--archive",),
             metavar="DIR",
-            help="Show archived runs in DIR"),
+            help="Show archived runs in DIR."),
         click.Option(
             ("-a", "--all"),
-            help="Show all runs (by default only the last 20 runs are shown)",
+            help="Show all runs (by default only the last 20 runs are shown).",
             is_flag=True),
         click.Option(
             ("-m", "--more"),

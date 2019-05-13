@@ -55,6 +55,7 @@ if version.VERSION not in _req:
 from tensorboard import program
 from tensorboard.backend import application
 
+from guild import run_util
 from guild import util
 
 DEFAULT_RELOAD_INTERVAL = 5
@@ -62,7 +63,7 @@ DEFAULT_RELOAD_INTERVAL = 5
 class TensorboardError(Exception):
     pass
 
-class RunsMonitor(util.RunsMonitor):
+class RunsMonitor(run_util.RunsMonitor):
 
     tfevent_pattern = re.compile(r"\.tfevents")
 
@@ -72,7 +73,7 @@ class RunsMonitor(util.RunsMonitor):
             for p in self._iter_tfevent_paths(link)]
         for tfevent_path in self._iter_tfevent_paths(run_dir):
             tfevent_relpath = os.path.relpath(tfevent_path, run_dir)
-            util.remove(tfevent_relpath, to_delete)
+            util.apply_remove(tfevent_relpath, to_delete)
             tfevent_link = os.path.join(link, tfevent_relpath)
             if not os.path.exists(tfevent_link):
                 log.debug("Creating link %s", tfevent_link)

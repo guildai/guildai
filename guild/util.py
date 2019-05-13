@@ -37,8 +37,6 @@ PLATFORM = platform.system()
 
 OS_ENVIRON_BLACKLIST = set([])
 
-MIN_MONITOR_INTERVAL = 5
-
 class Stop(Exception):
     """Raise to stop loops started with `loop`."""
 
@@ -362,11 +360,17 @@ class LogCapture(object):
     def get_all(self):
         return self._records
 
-def format_timestamp(ts):
+def format_timestamp(ts, fmt=None):
     if not ts:
         return ""
     dt = datetime.datetime.fromtimestamp(ts / 1000000)
-    return dt.strftime("%Y-%m-%d %H:%M:%S")
+    return dt.strftime(fmt or "%Y-%m-%d %H:%M:%S")
+
+def format_utctimestamp(ts, fmt=None):
+    if not ts:
+        return None
+    dt = datetime.datetime.utcfromtimestamp(ts / 1000000)
+    return dt.strftime(fmt or "%Y-%m-%d %H:%M:%S UTC")
 
 _raise_error_marker = object()
 
@@ -579,13 +583,13 @@ def safe_mtime(path):
     except OSError:
         return None
 
-def remove(x, l):
-    remove_all([x], l)
+def apply_remove(x, f):
+    apply_remove_all([x], f)
 
-def remove_all(to_remove, l):
-    for x in to_remove:
+def apply_remove_all(xs, f):
+    for x in xs:
         try:
-            l.remove(x)
+            f.remove(x)
         except ValueError:
             pass
 
@@ -623,85 +627,10 @@ def apply_env(target, source, names):
         except KeyError:
             pass
 
-class RunsMonitor(LoopingThread):
-
-    STOP_TIMEOUT = 5
-
-    def __init__(self, list_runs_cb, logdir, interval):
-        """Create a RunsMonitor.
-
-        Note that run links are created initially by this
-        function. Any errors result from user input will propagate
-        during this call. Similar errors occuring after the monitor is
-        started will be logged but will not propagate.
-        """
-        interval = min(interval, MIN_MONITOR_INTERVAL)
-        super(RunsMonitor, self).__init__(
-            cb=self.run_once,
-            interval=interval,
-            stop_timeout=self.STOP_TIMEOUT)
-        self.logdir = logdir
-        self.list_runs_cb = list_runs_cb
-        self.run_once(exit_on_error=True)
-
-    def run_once(self, exit_on_error=False):
-        log.debug("Refreshing runs")
-        try:
-            runs = self.list_runs_cb()
-        except SystemExit as e:
-            if exit_on_error:
-                raise
-            log.error(
-                "An error occurred while reading runs. "
-                "Use --debug for details.")
-            log.debug(e)
-        else:
-            self._refresh_run_links(runs)
-
-    def _refresh_run_links(self, runs):
-        # List of links to delete - assume all to start
-        to_delete = os.listdir(self.logdir)
-        for run in runs:
-            link_name = self._format_run_name(run)
-            remove(link_name, to_delete)
-            link_path = os.path.join(self.logdir, link_name)
-            if not os.path.exists(link_path):
-                self._create_run_link(link_path, run.path)
-            self._refresh_run_link(link_path, run.path)
-        for link_name in to_delete:
-            self._remove_run_link(os.path.join(self.logdir, link_name))
-
-    @staticmethod
-    def _format_run_name(run):
-        parts = [run.short_id]
-        if run.opref.model_name:
-            parts.append("%s:%s" % (run.opref.model_name, run.opref.op_name))
-        else:
-            parts.append(run.opref.op_name)
-        parts.append(format_timestamp(run.get("started")))
-        label = run.get("label")
-        if label:
-            parts.append(label)
-        return _safe_filename(" ".join(parts))
-
-    @staticmethod
-    def _create_run_link(link, run_dir):
-        log.debug("Linking %s to %s", link, run_dir)
-        symlink(run_dir, link)
-
-    def _refresh_run_link(self, link, run_dir):
-        """Callback to let subclass refresh links they may have created."""
-        pass
-
-    @staticmethod
-    def _remove_run_link(link):
-        log.debug("Removing %s", link)
-        os.remove(link)
-
-def _safe_filename(s):
+def safe_filename(s):
     if PLATFORM == "Windows":
         return s.replace(":", "_")
-    return s
+    return re.sub(r"[/\\]+", "_", s)
 
 def wait_forever(sleep_interval=0.1):
     while True:
@@ -885,9 +814,9 @@ def find_python_interpreter(version_spec):
 def is_executable_file(path):
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
-def copytree(src, dest):
+def copytree(src, dest, preserve_links=True):
     from distutils import dir_util
-    dir_util.copy_tree(src, dest)
+    dir_util.copy_tree(src, dest, preserve_symlinks=preserve_links)
 
 def hostname():
     return os.getenv("HOST") or _real_hostname()
@@ -914,3 +843,13 @@ def shlex_split(s):
         # Workaround issue where '' in Windows is split as "''"
         parts = ["" if part == "''" else part for part in parts]
     return parts
+
+def format_bytes(n):
+    units = [None, "K", "M", "G", "T", "P", "E", "Z"]
+    for unit in units[:-1]:
+        if abs(n) < 1024:
+            if not unit:
+                return str(n)
+            return "%3.1f%s" % (n, unit)
+        n /= 1024.0
+    return "%.1f%s" % (n, units[-1])

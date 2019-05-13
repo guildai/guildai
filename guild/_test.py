@@ -49,13 +49,15 @@ import sys
 import tempfile
 import time
 
+import guild
+
 from guild import _api as gapi
 from guild import cli
 from guild import config as configlib
 from guild import guildfile
 from guild import index2
 from guild import init
-from guild import op_util
+from guild import run_util
 from guild import util
 
 PLATFORM = platform.system()
@@ -228,12 +230,14 @@ def test_globals():
         "exists": os.path.exists,
         "find": find,
         "gapi": gapi,
+        "guild": guild,
         "guildfile": guildfile,
         "join_path": os.path.join,
         "mkdir": os.mkdir,
         "mkdtemp": mkdtemp,
         "mktemp_guild_dir": mktemp_guild_dir,
         "os": os,
+        "path": os.path.join,
         "pprint": pprint.pprint,
         "re": re,
         "realpath": os.path.realpath,
@@ -457,11 +461,11 @@ class Project(object):
     @staticmethod
     def _row_for_print_run(run, flags, labels, status):
         row = {
-            "opspec": op_util.format_op_desc(run)
+            "opspec": run_util.format_op_desc(run)
         }
         if flags:
             flags_desc = " ".join(
-                ["%s=%s" % (name, op_util.format_flag_val(val))
+                ["%s=%s" % (name, run_util.format_flag_val(val))
                  for name, val in sorted(run.get("flags").items())])
             row["flags"] = flags_desc
         if labels:
@@ -505,6 +509,13 @@ class Project(object):
 
     def compare(self, runs=None, **kw):
         return gapi.compare(
+            runs=runs,
+            cwd=self.cwd,
+            guild_home=self.guild_home,
+            **kw)
+
+    def publish(self, runs=None, **kw):
+        return gapi.publish(
             runs=runs,
             cwd=self.cwd,
             guild_home=self.guild_home,

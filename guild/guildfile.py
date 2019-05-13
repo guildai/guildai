@@ -298,6 +298,8 @@ def _coerce_top_level_attr(name, val, guildfile):
         return _coerce_operations(val, guildfile)
     elif name == "flags":
         return _coerce_flags(val, guildfile)
+    elif name == "source":
+        return _coerce_source(val, guildfile)
     else:
         return val
 
@@ -332,6 +334,8 @@ def _coerce_operation_attr(name, val, guildfile):
         return _coerce_op_python_path(val, guildfile)
     elif name == "output-scalars":
         return _coerce_output_scalars(val, guildfile)
+    elif name == "source":
+        return _coerce_source(val, guildfile)
     else:
         return val
 
@@ -364,7 +368,7 @@ def _coerce_op_python_path(data, guildfile):
 def _coerce_output_scalars(data, guildfile):
     if data is None:
         return None
-    if isinstance(data, six.string_types):
+    elif isinstance(data, six.string_types):
         return [data]
     elif isinstance(data, dict):
         return [data]
@@ -373,6 +377,47 @@ def _coerce_output_scalars(data, guildfile):
     else:
         raise GuildfileError(
             guildfile, "invalid value for output-scalars: %r" % data)
+
+def _coerce_source(data, guildfile):
+    if data is None:
+        return None
+    if isinstance(data, six.string_types):
+        return [
+            {"exclude": "*"},
+            {"include": data}
+        ]
+    elif isinstance(data, list):
+        return _coerce_source_list(data, guildfile)
+    else:
+        raise GuildfileError(
+            guildfile, "invalid value for source: %r" % data)
+
+def _coerce_source_list(data, guildfile):
+    all_strings = True
+    items = []
+    for item in data:
+        if isinstance(item, six.string_types):
+            items.append({"include": item})
+        elif isinstance(item, dict):
+            items.append(item)
+            all_strings = False
+        else:
+            raise GuildfileError(
+                guildfile, "invalid value for source item: %r" % item)
+    if all_strings:
+        items.insert(0, {"exclude": "*"})
+    return items
+
+def _coerce_source_item(item, guildfile):
+    if isinstance(item, six.string_types):
+        return {
+            "include": item
+        }
+    elif isinstance(item, dict):
+        return item
+    else:
+        raise GuildfileError(
+            guildfile, "invalid value for source item: %r" % item)
 
 def _coerce_str_to_list(val, guildfile, name):
     if isinstance(val, six.string_types):
@@ -539,7 +584,7 @@ class ModelDef(object):
         self.resources = _init_resources(data, self)
         self.disable_plugins = _disable_plugins(data, guildfile)
         self.extra = data.get("extra") or {}
-        self.source = _init_source(data.get("source") or [], self)
+        self.source = _init_source(data.get("source") or [], self.guildfile)
         self.python_requires = data.get("python-requires")
 
     @property
@@ -767,8 +812,8 @@ def _init_resources(data, modeldef):
     data = _resolve_includes(data, "resources", modeldef.guildfile_path)
     return [ResourceDef(key, data[key], modeldef) for key in sorted(data)]
 
-def _init_source(data, modeldef):
-    return SourceDef(data, modeldef)
+def _init_source(data, gf):
+    return SourceDef(data, gf)
 
 def _disable_plugins(data, guildfile):
     return _coerce_str_to_list(
@@ -819,6 +864,8 @@ class OpDef(object):
         self.output_scalars = data.get("output-scalars")
         self.objective = data.get("objective")
         self.optimizers = _init_optimizers(data, self)
+        self.publish = data.get("publish")
+        self.source = _init_source(data.get("source") or [], self.guildfile)
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname
@@ -1118,36 +1165,32 @@ class OptimizerDef(object):
 
 class SourceDef(object):
 
-    def __init__(self, data, modeldef):
+    def __init__(self, data, gf):
         if not isinstance(data, list):
-            raise GuildfileError(
-                modeldef.guildfile,
-                "invalid source def: %r" % data)
-        self.modeldef = modeldef
-        self.specs = [SourceSpec(item, modeldef) for item in data]
+            raise GuildfileError(gf, "invalid source def: %r" % data)
+        self.specs = [SourceSpec(item, gf) for item in data]
+
+    def __nonzero__(self):
+        return len(self.specs) > 0
 
 class SourceSpec(object):
 
-    def __init__(self, data, modeldef):
+    def __init__(self, data, gf):
         if not isinstance(data, dict):
-            raise GuildfileError(
-                modeldef.guildfile,
-                "invalid source spec: %r" % data)
+            raise GuildfileError(gf, "invalid source spec: %r" % data)
         if "include" in data:
             self.type = "include"
-            self.patterns = self._init_patterns(data, "include", modeldef)
+            self.patterns = self._init_patterns(data, "include", gf)
         elif "exclude" in data:
             self.type = "exclude"
-            self.patterns = self._init_patterns(data, "exclude", modeldef)
+            self.patterns = self._init_patterns(data, "exclude", gf)
         else:
-            raise GuildfileError(
-                modeldef.guildfile,
-                "unsupported source spec: %r" % data)
+            raise GuildfileError(gf, "unsupported source spec: %r" % data)
 
     @staticmethod
-    def _init_patterns(data, name, modeldef):
+    def _init_patterns(data, name, gf):
         val = data[name]
-        return _coerce_str_to_list(val, modeldef.guildfile, name)
+        return _coerce_str_to_list(val, gf, name)
 
 ###################################################################
 # Resource def
@@ -1280,3 +1323,9 @@ def from_string(s, src="<string>"):
     data = yaml.safe_load(s)
     _notify_plugins_guildfile_data(data, src)
     return Guildfile(data, src)
+
+def from_run(run):
+    if run.opref is None or run.opref.pkg_type != "guildfile":
+        raise TypeError("run (%s) pkg type must be 'guildfile'" % run.path)
+    gf_path = run.opref.pkg_name
+    return from_file(gf_path)

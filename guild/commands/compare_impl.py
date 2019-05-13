@@ -26,9 +26,9 @@ from guild import cli
 from guild import config
 from guild import index2 as indexlib
 from guild import guildfile
-from guild import op_util
 from guild import query
 from guild import run as runlib
+from guild import run_util
 from guild import tabview
 from guild import util
 from guild import var
@@ -66,7 +66,7 @@ def _print_scalars(args):
     index = indexlib.RunIndex()
     index.refresh(runs, ["scalar"])
     for run in runs:
-        cli.out("[%s] %s" % (run.short_id, op_util.format_op_desc(run)))
+        cli.out("[%s] %s" % (run.short_id, run_util.format_op_desc(run)))
         for s in index.run_scalars(run):
             prefix = s["prefix"]
             if prefix:
@@ -226,18 +226,14 @@ def _run_op_compare(run, index):
 
 def _try_guildfile_compare(run, _index):
     """Returns the current compare for run op if available."""
-    if run.opref.pkg_type != "guildfile":
-        return None
-    gf_path = run.opref.pkg_name
-    if not os.path.exists(gf_path):
-        return None
     try:
-        gf = guildfile.from_file(gf_path)
-    except guildfile.NoModels:
+        gf = guildfile.from_run(run)
+    except (guildfile.NoModels, TypeError):
         return None
     else:
         return _try_guildfile_op_compare(
-            gf, run.opref.model_name, run.opref.op_name)
+            gf, run.opref.model_name,
+            run.opref.op_name)
 
 def _try_guildfile_op_compare(gf, model_name, op_name):
     try:
@@ -386,7 +382,7 @@ def _get_run_detail_cb(index):
 def _format_run_detail(run, index):
     lines = [
         "Id: %s" % run.id,
-        "Operation: %s" % op_util.format_op_desc(run),
+        "Operation: %s" % run_util.format_op_desc(run),
         "Status: %s" % run.status,
         "Started: %s" % util.format_timestamp(run.get("started")),
         "Stopped: %s" % util.format_timestamp(run.get("stopped")),

@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import inspect
 import json
 import logging
 import os
@@ -22,17 +23,15 @@ import re
 import shutil
 import signal
 
-import six
-import yaml
-
 import guild.opref
 
 from guild import cli
 from guild import cmd_impl_support
 from guild import index2 as indexlib
-from guild import op_util
+from guild import publish as publishlib
 from guild import remote_run_support
 from guild import run as runlib
+from guild import run_util
 from guild import util
 from guild import var
 
@@ -67,6 +66,7 @@ CORE_RUN_ATTRS = [
     "exit_status.remote",
     "flags",
     "host",
+    "id",
     "initialized",
     "label",
     "marked",
@@ -88,8 +88,6 @@ FILTERABLE = [
     "running",
     "terminated",
 ]
-
-MAX_LABEL_LEN = 60
 
 def runs_for_args(args, ctx=None, force_deleted=False):
     filtered = filtered_runs(args, force_deleted)
@@ -133,7 +131,7 @@ def _apply_ops_filter(args, filters):
 
 def _op_run_filter(op_refs):
     def f(run):
-        op_desc = op_util.format_op_desc(run, nowarn=True)
+        op_desc = run_util.format_op_desc(run, nowarn=True)
         return any((ref in op_desc for ref in op_refs))
     return f
 
@@ -272,7 +270,7 @@ def _list_formatted_runs(runs, args):
     formatted = []
     for i, run in enumerate(runs):
         try:
-            formatted_run = format_run(run, i + 1)
+            formatted_run = run_util.format_run(run, i + 1)
         except Exception:
             log.exception("formatting run in %s", run.path)
         else:
@@ -307,87 +305,6 @@ def _no_selected_runs_exit(help_msg=None):
     cli.out(help_msg, err=True)
     raise SystemExit(0)
 
-def format_run(run, index=None):
-    status = run.status
-    operation = op_util.format_op_desc(run)
-    marked = bool(run.get("marked"))
-    return {
-        "id": run.id,
-        "index": _format_run_index(run, index),
-        "short_index": _format_run_index(run),
-        "model": run.opref.model_name,
-        "op_name": run.opref.op_name,
-        "operation": operation,
-        "operation_with_marked": _op_with_marked(operation, marked),
-        "pkg": run.opref.pkg_name,
-        "status": status,
-        "status_with_remote": _status_with_remote(status, run.remote),
-        "marked": _format_val(marked),
-        "label": _format_label(run.get("label") or ""),
-        "pid": run.pid or "",
-        "started": util.format_timestamp(run.get("started")),
-        "stopped": util.format_timestamp(run.get("stopped")),
-        "run_dir": util.format_dir(run.path),
-        "command": _format_command(run.get("cmd", "")),
-        "exit_status": _exit_status(run)
-    }
-
-def _format_run_index(run, index=None):
-    if index is not None:
-        return "[%i:%s]" % (index, run.short_id)
-    else:
-        return "[%s]" % run.short_id
-
-def _op_with_marked(operation, marked):
-    if marked:
-        return operation + " [marked]"
-    return operation
-
-def _status_with_remote(status, remote):
-    if remote:
-        return "{} ({})".format(status, remote)
-    else:
-        return status
-
-def _format_label(label):
-    if len(label) > MAX_LABEL_LEN:
-        label = label[:MAX_LABEL_LEN] + u"\u2026"
-    return label
-
-def _format_command(cmd):
-    if not cmd:
-        return ""
-    return " ".join([_maybe_quote_arg(arg) for arg in cmd])
-
-def _maybe_quote_arg(arg):
-    arg = str(arg)
-    if arg == "" or " " in arg:
-        return '"%s"' % arg
-    else:
-        return arg
-
-def _exit_status(run):
-    return run.get("exit_status.remote", "") or run.get("exit_status", "")
-
-def _format_attr(val):
-    if isinstance(val, list):
-        return _format_attr_list(val)
-    elif isinstance(val, dict):
-        return _format_attr_dict(val)
-    else:
-        return str(val)
-
-def _format_attr_list(l):
-    return "\n%s" % "\n".join([
-        "  %s" % item for item in l
-    ])
-
-def _format_attr_dict(d):
-    return "\n%s" % "\n".join([
-        "  %s: %s" % (key, _format_val(d[key]))
-        for key in sorted(d)
-    ])
-
 def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
              no_runs_help, op_callback, default_runs_arg=None,
              confirm_default=False, runs_callback=None):
@@ -395,16 +312,19 @@ def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
     selected = get_selected(args, ctx, default_runs_arg, force_deleted)
     if not selected:
         _no_selected_runs_exit(no_runs_help)
-    preview = [format_run(run) for run in selected]
+    formatted = [run_util.format_run(run) for run in selected]
     if not args.yes:
         cli.out(preview_msg)
         cols = [
             "short_index", "operation_with_marked", "started",
             "status_with_remote", "label"]
-        cli.table(preview, cols=cols, indent=2)
-    formatted_confirm_prompt = confirm_prompt.format(count=len(preview))
+        cli.table(formatted, cols=cols, indent=2)
+    formatted_confirm_prompt = confirm_prompt.format(count=len(formatted))
     if args.yes or cli.confirm(formatted_confirm_prompt, confirm_default):
-        op_callback(selected)
+        if len(inspect.getargspec(op_callback).args) == 2:
+            op_callback(selected, formatted)
+        else:
+            op_callback(selected)
 
 def _runs_op_selected(args, ctx, default_runs_arg, force_deleted):
     default_runs_arg = default_runs_arg or ALL_RUNS_ARG
@@ -528,18 +448,18 @@ def _format_output_line(stream, line):
     return line
 
 def _print_run_info(run, args):
-    formatted = format_run(run)
+    formatted = run_util.format_run(run)
     out = cli.out
     for name in RUN_DETAIL:
         out("%s: %s" % (name, formatted[name]))
     for name in other_attr_names(run, args.private_attrs):
-        out("%s: %s" % (name, _format_val(run.get(name))))
+        out("%s: %s" % (name, run_util.format_attr(run.get(name))))
     out("flags:", nl=False)
-    out(_format_attr(run.get("flags", "")))
+    out(run_util.format_attr(run.get("flags", "")))
     _maybe_print_proto_flags(run, out)
     if args.env:
         out("environment:", nl=False)
-        out(_format_attr(run.get("env", "")))
+        out(run_util.format_attr(run.get("env", "")))
     if args.scalars:
         out("scalars:")
         for scalar in _iter_scalars(run):
@@ -578,19 +498,7 @@ def _maybe_print_proto_flags(run, out):
     if os.path.exists(proto_dir):
         proto_run = runlib.Run("", proto_dir)
         out("proto-flags:", nl=False)
-        out(_format_attr(proto_run.get("flags", "")))
-
-def _format_val(val):
-    if val is None:
-        return ""
-    elif val is True:
-        return "yes"
-    elif val is False:
-        return "no"
-    elif isinstance(val, (int, float, six.string_types)):
-        return str(val)
-    else:
-        return _format_yaml_block(val)
+        out(run_util.format_attr(proto_run.get("flags", "")))
 
 def _iter_scalars(run):
     index = indexlib.RunIndex()
@@ -621,12 +529,6 @@ def _iter_output(run):
         with f:
             for line in f:
                 yield line
-
-def _format_yaml_block(val):
-    formatted = yaml.dump(val, default_flow_style=False)
-    lines = formatted.split("\n")
-    padded = ["  " + line for line in lines]
-    return "\n" + "\n".join(padded).rstrip()
 
 def label(args, ctx):
     if args.remote:
@@ -859,3 +761,50 @@ def _mark(args, ctx):
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
         mark, LATEST_RUN_ARG, True)
+
+def publish(args, ctx):
+    if args.refresh_index:
+        _refresh_publish_index(args)
+    else:
+        _publish(args, ctx)
+
+def _publish(args, ctx):
+    preview = (
+        "You are about to publish the following run(s) to %s:"
+        % (args.dest or publishlib.DEFAULT_DEST_HOME))
+    confirm = "Continue?"
+    no_runs = "No runs to publish."
+    def publish_f(runs, formatted):
+        _publish_runs(runs, formatted, args)
+        _refresh_publish_index(args, no_dest=True)
+    _runs_op(
+        args, ctx, False, preview, confirm, no_runs,
+        publish_f, ALL_RUNS_ARG, True)
+
+def _publish_runs(runs, formatted, args):
+    for run, fmt in zip(runs, formatted):
+        print("Publishing [%s] %s %s %s %s" % (
+            fmt["short_id"],
+            fmt["operation"],
+            fmt["started"],
+            fmt["status"],
+            fmt["label"]))
+        fmt["_run"] = run
+        try:
+            publishlib.publish_run(
+                run,
+                args.dest,
+                args.template,
+                formatted_run=fmt)
+        except publishlib.PublishError as e:
+            cli.error(
+                "error publishing run %s:\n%s"
+                % (run.id, e))
+
+def _refresh_publish_index(args, no_dest=False):
+    if no_dest:
+        dest_suffix = ""
+    else:
+        dest_suffix = " in %s" % (args.dest or publishlib.DEFAULT_DEST_HOME)
+    print("Refreshing runs index%s" % dest_suffix)
+    publishlib.refresh_index(args.dest)

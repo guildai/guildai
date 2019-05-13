@@ -42,6 +42,7 @@ from .open_ import open_
 from .operations import operations
 from .package import package
 from .packages import packages
+from .publish import publish
 from .pull import pull
 from .push import push
 from .remote import remote
@@ -118,6 +119,7 @@ main.add_command(open_)
 main.add_command(operations)
 main.add_command(package)
 main.add_command(packages)
+main.add_command(publish)
 main.add_command(pull)
 main.add_command(push)
 main.add_command(remote)

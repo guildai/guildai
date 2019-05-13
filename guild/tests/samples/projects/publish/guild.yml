@@ -1,0 +1,8 @@
+op:
+  source: op.py
+
+op2:
+  main: op
+  source: []
+  publish:
+    template: t2

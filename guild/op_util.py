@@ -31,6 +31,7 @@ import yaml
 
 # Move any import that's expensive or seldom used into function
 from guild import util
+from guild import run_util
 
 log = logging.getLogger("guild")
 
@@ -291,32 +292,11 @@ def _yaml_parse(s):
             return s
     return yaml.safe_load(s)
 
-def format_flag_val(val):
-    if val is True:
-        return "yes"
-    elif val is False:
-        return "no"
-    elif val is None:
-        return "null"
-    elif isinstance(val, list):
-        return _format_flag_list(val)
-    elif isinstance(val, (six.string_types, float)):
-        return _yaml_format(val)
-    else:
-        return str(val)
-
-def _format_flag_list(val_list):
-    joined = ", ".join([format_flag_val(val) for val in val_list])
-    return "[%s]" % joined
-
-def _yaml_format(val):
-    formatted = yaml.safe_dump(val).strip()
-    if formatted.endswith("\n..."):
-        formatted = formatted[:-4]
-    return formatted
-
 def format_flag_arg(name, val):
     return "%s=%s" % (name, format_flag_val(val))
+
+def format_flag_val(val):
+    return run_util.format_flag_val(val)
 
 class TFEvents(object):
 
@@ -524,7 +504,7 @@ def _check_flag_range(val, flag):
 def copy_source(run, opdef):
     _copy_source(
         opdef.guildfile.dir,
-        opdef.modeldef.source,
+        [opdef.source, opdef.modeldef.source],
         run.guild_path("source"))
 
 def _copy_source(src_base, source_config, dest_base):
@@ -594,9 +574,12 @@ def _is_env_dir(path):
 
 def _to_copy(path, rel_path, source_config):
     last_match = None
-    for spec in source_config.specs:
-        if _source_match(rel_path, spec):
-            last_match = spec
+    if not isinstance(source_config, list):
+        source_config = [source_config]
+    for config in source_config:
+        for spec in config.specs:
+            if _source_match(rel_path, spec):
+                last_match = spec
     if last_match:
         return _to_copy_for_spec(last_match)
     return _is_text_file(path)
@@ -718,92 +701,6 @@ def ensure_exit_status(run, exit_status):
     if run_exit_status is None:
         run.write_attr("exit_status", exit_status)
     oplib.delete_pending(run)
-
-def format_op_desc(run, nowarn=False, seen_protos=None):
-    seen_protos = seen_protos or set()
-    opref = run.opref
-    base_desc = _base_op_desc(opref, nowarn)
-    return _apply_batch_desc(base_desc, run, seen_protos)
-
-def _base_op_desc(opref, nowarn):
-    if opref.pkg_type == "guildfile":
-        return _format_guildfile_op(opref)
-    elif opref.pkg_type == "package":
-        return _format_package_op(opref)
-    elif opref.pkg_type == "script":
-        return _format_script_op(opref)
-    elif opref.pkg_type == "builtin":
-        return _format_builtin_op(opref)
-    elif opref.pkg_type == "pending":
-        return _format_pending_op(opref)
-    elif opref.pkg_type == "test":
-        return _format_test_op(opref)
-    else:
-        if not nowarn:
-            log.warning(
-                "cannot format op desc, unexpected pkg type: %s (%s)",
-                opref.pkg_type, opref.pkg_name)
-        return "?"
-
-def _format_guildfile_op(opref):
-    parts = []
-    gf_dir = _guildfile_dir(opref)
-    if gf_dir:
-        parts.extend([gf_dir, os.path.sep])
-    if opref.model_name:
-        parts.extend([opref.model_name, ":"])
-    parts.append(opref.op_name)
-    return "".join(parts)
-
-def _guildfile_dir(opref):
-    from guild import config
-    gf_dir = os.path.dirname(opref.pkg_name)
-    relpath = os.path.relpath(gf_dir, config.cwd())
-    if relpath == ".":
-        return ""
-    return re.sub(r"\.\./(\.\./)+", ".../", _ensure_dot_path(relpath))
-
-def _ensure_dot_path(path):
-    if path[0:1] == ".":
-        return path
-    return os.path.join(".", path)
-
-def _format_package_op(opref):
-    return "%s/%s:%s" % (opref.pkg_name, opref.model_name, opref.op_name)
-
-def _format_script_op(opref):
-    return _format_guildfile_op(opref)
-
-def _format_builtin_op(opref):
-    return opref.op_name
-
-def _format_pending_op(opref):
-    return "<pending %s>" % opref.op_name
-
-def _format_test_op(opref):
-    return "%s:%s" % (opref.model_name, opref.op_name)
-
-def _apply_batch_desc(base_desc, run, seen_protos):
-    import guild.run
-    try:
-        proto_dir = run.guild_path("proto")
-    except TypeError:
-        # Occurs for run proxies that don't support guild_path - punt
-        # with generic descriptor. (TODO: implement explicit behavior
-        # in run interface + proxy)
-        proto_dir = ""
-    if not os.path.exists(proto_dir):
-        return base_desc
-    if proto_dir in seen_protos:
-        # We have a cycle - drop this proto_dir
-        return base_desc
-    proto_run = guild.run.Run("", proto_dir)
-    proto_op_desc = format_op_desc(proto_run, seen_protos)
-    parts = [proto_op_desc]
-    if not base_desc.startswith("+"):
-        parts.append("+")
-    parts.append(base_desc)
-    return "".join(parts)
 
 def run_params_for_restart(run, user_specified_params=None):
     """Returns params for use in run command for a restart of run.

@@ -18,7 +18,7 @@ import textwrap
 
 import click
 
-from guild import op_util
+from guild import run_util
 
 log = logging.getLogger("guild")
 
@@ -252,7 +252,7 @@ def _format_flag_desc(flag, max_flag_len):
         return lines[0]
 
 def _default_label(val):
-    return op_util.format_flag_val(val)
+    return run_util.format_flag_val(val)
 
 def _format_flag_choices(choices, max_flag_len):
     out = click.HelpFormatter()
@@ -275,7 +275,7 @@ def _format_flag_choices_dl(choices, out):
     out.write_heading("Choices")
     out.indent()
     out.write_dl(
-        [(op_util.format_flag_val(choice.value),
+        [(run_util.format_flag_val(choice.value),
           "\n\n".join(choice.description.split("\n")))
          for choice in choices],
         preserve_paragraphs=True)
@@ -283,7 +283,7 @@ def _format_flag_choices_dl(choices, out):
 
 def _format_flag_choices_value_list(choices, out):
     vals = [c.value for c in choices]
-    out.write_dl([("Choices:", op_util.format_flag_val(vals))])
+    out.write_dl([("Choices:", run_util.format_flag_val(vals))])
 
 def _write_references(refs, out):
     out.write_subheading("References")
