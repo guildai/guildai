@@ -593,7 +593,6 @@ def _to_copy_for_spec(spec):
     return spec.type == "include"
 
 def _is_default_source_file(path):
-    ext = os.path.splitext(path)[1].lower()
     if not util.is_text_file(path):
         return False
     if os.path.getsize(path) > MAX_SOURCE_FILE_SIZE:
