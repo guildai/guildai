@@ -605,6 +605,8 @@ def local_server_url(host, port):
     return "http://{}:{}".format(host, port)
 
 def format_duration(start_time, end_time=None):
+    if start_time is None:
+        return None
     if end_time is None:
         end_time = time.time() * 1000000
     seconds = (end_time - start_time) // 1000000
