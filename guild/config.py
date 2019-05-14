@@ -59,13 +59,13 @@ class SetGuildHome(object):
 
     _save = None
 
-    def __init__(self, guild_home):
-        self._guild_home = guild_home
+    def __init__(self, path):
+        self.path = path
 
     def __enter__(self):
         _guild_home_lock.acquire()
         self._save = guild_home()
-        set_guild_home(self._guild_home)
+        set_guild_home(self.path)
 
     def __exit__(self, *_args):
         set_guild_home(self._save)
