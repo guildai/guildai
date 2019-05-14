@@ -6,10 +6,10 @@ Source code is copied for each run according to the model `source`
 attr.
 
 The function that copies the source is `op_util.copy_source`. For our
-tests however, we'll use the private version `_copy_source`, which
+tests however, we'll use the private version `copy_source`, which
 provides an interface suitable for testing.
 
-    >>> from guild.op_util import _copy_source
+    >>> from guild.op_util import copy_source
 
 We'll use the sample project `copy-source` to illustrate the supported
 copy behavior.
@@ -32,7 +32,7 @@ applicable model and prints the copied source files.
     ...     if op_name:
     ...         source_config.append(model[op_name].source)
     ...     temp_dir = mkdtemp()
-    ...     _copy_source(gf.dir, source_config, temp_dir)
+    ...     copy_source(gf.dir, source_config, temp_dir)
     ...     copied = find(temp_dir)
     ...     if not copied:
     ...         print("<empty>")
@@ -122,12 +122,6 @@ Let's verify that a cycle actually exists:
     >>> exists(join_path(project_dir, *(["cycle"] * 10)))
     True
 
-A proxy for source:
-
-    >>> class Source(object):
-    ...     def __init__(self, specs):
-    ...         self.specs = specs
-
 A helper to print results:
 
     >>> def copied_files(dir):
@@ -137,10 +131,133 @@ A helper to print results:
 Here's out copied source:
 
     >>> tmp_dir = mkdtemp()
-    >>> _copy_source(project_dir, Source([]), tmp_dir)
+    >>> copy_source(project_dir, guildfile.SourceDef([], None), tmp_dir)
     >>> copied_files(tmp_dir)
     a.txt 2cf24dba
     cycle/b.txt c940b581
     link-to-a.txt 2cf24dba
 
 Note that the cycle is handled in the copy.
+
+## Safeguards
+
+Guild has two safeguards used to avoid incorrectly copying source
+files when config is not explicitly provided:
+
+- Skips files larger than 1M
+- Copies at most 100 files
+
+To test these measures, let's create a project containing a single
+large file and many smaller files:
+
+    >>> project_dir = mkdtemp()
+
+A large file:
+
+    >>> open(path(project_dir, "big.txt"), "w").write("0" * (1024 * 1024 + 1))
+
+Many small files:
+
+    >>> for i in range(110):
+    ...     open(path(project_dir, "small-%0.3i.txt" % (i + 1)), "w").write("")
+
+Our file project files:
+
+    >>> project_files = find(project_dir)
+
+    >>> len(project_files)
+    111
+
+    >>> project_files
+    ['big.txt',
+     'small-001.txt',
+     ...
+     'small-110.txt']
+
+### Copying without explicit config
+
+Copy the source without config:
+
+    >>> tmp_dir = mkdtemp()
+    >>> with LogCapture() as logs:
+    ...     copy_source(project_dir, guildfile.SourceDef([], None), tmp_dir)
+
+Logs:
+
+    >>> logs.print_all()
+    WARNING: Skipping potential source file .../big.txt because it's too big.
+    WARNING: Found 110 source files using default snapshot-source config but
+    will only copy 100 as a safety measure.
+
+And the copied files:
+
+    >>> copied = find(tmp_dir)
+    >>> len(copied)
+    100
+
+    >>> copied
+    ['small-001.txt',
+     ...
+     'small-100.txt']
+
+ We can improve our logged error message by providing an OpDef to
+ `copy_source`.
+
+    >>> gf = guildfile.from_string("""
+    ... - model: m1
+    ...   operations:
+    ...     op: {}
+    ... """)
+
+Copy the source without config:
+
+    >>> tmp_dir = mkdtemp()
+    >>> with LogCapture() as logs:
+    ...     copy_source(
+    ...         project_dir,
+    ...         guildfile.SourceDef([], None),
+    ...         tmp_dir,
+    ...         gf.default_model["op"])
+
+Now our logs contain some advice to the user:
+
+    >>> logs.print_all()
+    WARNING: Skipping potential source file .../big.txt because it's too big.
+    To control which source files are copied, specify snapshot-source for
+    m1:op.
+    WARNING: Found 110 source files using default snapshot-source config but
+    will only copy 100 as a safety measure. To control which source files are
+    copied, specify snapshot-source for m1:op.
+
+And the files:
+
+    >>> find(tmp_dir)
+    ['small-001.txt',
+     ...
+     'small-100.txt']
+
+### Copying with config
+
+Let's copy the source with config that explicitly enables all files:
+
+    >>> include_all = guildfile.SourceDef([{"include": "*"}], None)
+
+    >>> tmp_dir = mkdtemp()
+    >>> with LogCapture() as logs:
+    ...     copy_source(project_dir, include_all, tmp_dir)
+
+Nothing logged;
+
+    >>> logs.print_all()
+
+And all files are copied:
+
+    >>> copied = find(tmp_dir)
+    >>> len(copied)
+    111
+
+    >>> copied
+    ['big.txt',
+     'small-001.txt',
+     ...
+     'small-110.txt']

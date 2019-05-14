@@ -45,7 +45,8 @@ function_arg_delimiter = ":"
 
 RESTART_NEEDED_STATUS = ("pending",)
 
-MAX_SOURCE_FILE_SIZE = 1024 * 1024
+MAX_DEFAULT_SOURCE_FILE_SIZE = 1024 * 1024
+MAX_DEFAULT_SOURCE_COUNT = 100
 
 class ArgValueError(ValueError):
 
@@ -503,14 +504,17 @@ def _check_flag_range(val, flag):
         raise InvalidFlagValue(
             val, flag, "out of range (greater than max %s)" % flag.max)
 
-def copy_source(run, opdef):
-    _copy_source(
+def copy_run_source(run, opdef):
+    copy_source(
         opdef.guildfile.dir,
         [opdef.source, opdef.modeldef.source],
-        run.guild_path("source"))
+        run.guild_path("source"),
+        opdef)
 
-def _copy_source(src_base, source_config, dest_base):
-    to_copy = _source_to_copy(src_base, source_config)
+def copy_source(src_base, source_config, dest_base, opdef=None):
+    if not isinstance(source_config, list):
+        source_config = [source_config]
+    to_copy = _source_to_copy(src_base, source_config, opdef)
     if not to_copy:
         log.debug("no source to copy")
         return
@@ -520,7 +524,7 @@ def _copy_source(src_base, source_config, dest_base):
         util.ensure_dir(os.path.dirname(dest))
         _try_copy_file(src, dest)
 
-def _source_to_copy(src_dir, source_config):
+def _source_to_copy(src_dir, source_config, opdef):
     to_copy = []
     seen_dirs = set()
     for root, dirs, files in os.walk(src_dir, followlinks=True):
@@ -529,9 +533,30 @@ def _source_to_copy(src_dir, source_config):
         for name in files:
             path = os.path.join(root, name)
             rel_path = os.path.relpath(path, src_dir)
-            if _to_copy(path, rel_path, source_config):
+            if _to_copy(path, rel_path, source_config, opdef):
                 to_copy.append((path, rel_path))
+    to_copy.sort()
+    _maybe_prune_source_to_copy(to_copy, source_config, opdef)
     return to_copy
+
+def _maybe_prune_source_to_copy(to_copy, source_config, opdef):
+    if not any(source_config) and len(to_copy) > MAX_DEFAULT_SOURCE_COUNT:
+        _warn_source_to_copy_prune(to_copy, opdef)
+        del to_copy[MAX_DEFAULT_SOURCE_COUNT:]
+
+def _warn_source_to_copy_prune(to_copy, opdef):
+    log.warning(
+        "Found %i source files using default snapshot-source config "
+        "but will only copy %i as a safety measure.%s",
+        len(to_copy), MAX_DEFAULT_SOURCE_COUNT,
+        _snapshot_source_help_suffix(opdef))
+
+def _snapshot_source_help_suffix(opdef):
+    if opdef:
+        return (
+            " To control which source files are copied, "
+            "specify snapshot-source for %s." % opdef.fullname)
+    return ""
 
 def _try_copy_file(src, dest):
     try:
@@ -574,17 +599,16 @@ def _del_archive_dirs(dirs):
 def _is_env_dir(path):
     return os.path.exists(os.path.join(path, "bin", "activate"))
 
-def _to_copy(path, rel_path, source_config):
+def _to_copy(path, rel_path, source_config, opdef):
+    assert isinstance(source_config, list)
     last_match = None
-    if not isinstance(source_config, list):
-        source_config = [source_config]
     for config in source_config:
         for spec in config.specs:
             if _source_match(rel_path, spec):
                 last_match = spec
     if last_match:
         return _to_copy_for_spec(last_match)
-    return _is_default_source_file(path)
+    return _is_default_source_file(path, opdef)
 
 def _source_match(rel_path, spec):
     return any((fnmatch.fnmatch(rel_path, p) for p in spec.patterns))
@@ -592,12 +616,18 @@ def _source_match(rel_path, spec):
 def _to_copy_for_spec(spec):
     return spec.type == "include"
 
-def _is_default_source_file(path):
+def _is_default_source_file(path, opdef):
     if not util.is_text_file(path):
         return False
-    if os.path.getsize(path) > MAX_SOURCE_FILE_SIZE:
+    if os.path.getsize(path) > MAX_DEFAULT_SOURCE_FILE_SIZE:
+        _warn_default_source_file_too_big(path, opdef)
         return False
     return True
+
+def _warn_default_source_file_too_big(path, opdef):
+    log.warning(
+        "Skipping potential source file %s because it's too "
+        "big.%s", path, _snapshot_source_help_suffix(opdef))
 
 def split_main(main):
     if isinstance(main, list):

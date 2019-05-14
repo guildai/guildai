@@ -144,7 +144,7 @@ class Operation(object):
         assert self._run is not None
         # Only copy source for guildfile or script dist (i.e. projects)
         if self.opref.pkg_type in ("guildfile", "script"):
-            op_util.copy_source(self._run, self.opdef)
+            op_util.copy_run_source(self._run, self.opdef)
 
     def run_impl(self, quiet=False, background_pidfile=None, stop_after=None):
         self._started = guild.run.timestamp()
