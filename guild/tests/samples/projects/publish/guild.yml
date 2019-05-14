@@ -1,8 +1,8 @@
 op:
-  source: op.py
+  snapshot-source: op.py
 
 op2:
   main: op
-  source: []
+  snapshot-source: no
   publish:
     template: t2

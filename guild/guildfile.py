@@ -295,7 +295,7 @@ def _coerce_top_level_attr(name, val, guildfile):
         return _coerce_operations(val, guildfile)
     elif name == "flags":
         return _coerce_flags(val, guildfile)
-    elif name == "source":
+    elif name == "snapshot-source":
         return _coerce_source(val, guildfile)
     else:
         return val
@@ -331,7 +331,7 @@ def _coerce_operation_attr(name, val, guildfile):
         return _coerce_op_python_path(val, guildfile)
     elif name == "output-scalars":
         return _coerce_output_scalars(val, guildfile)
-    elif name == "source":
+    elif name == "snapshot-source":
         return _coerce_source(val, guildfile)
     else:
         return val
@@ -376,7 +376,7 @@ def _coerce_output_scalars(data, guildfile):
             guildfile, "invalid value for output-scalars: %r" % data)
 
 def _coerce_source(data, guildfile):
-    if data is None:
+    if data is None or data is True:
         return None
     if isinstance(data, six.string_types):
         return [
@@ -385,9 +385,11 @@ def _coerce_source(data, guildfile):
         ]
     elif isinstance(data, list):
         return _coerce_source_list(data, guildfile)
+    elif data is False:
+        return []
     else:
         raise GuildfileError(
-            guildfile, "invalid value for source: %r" % data)
+            guildfile, "invalid value for snapshot-source: %r" % data)
 
 def _coerce_source_list(data, guildfile):
     all_strings = True
@@ -400,7 +402,8 @@ def _coerce_source_list(data, guildfile):
             all_strings = False
         else:
             raise GuildfileError(
-                guildfile, "invalid value for source item: %r" % item)
+                guildfile,
+                "invalid value for snapshot-source item: %r" % item)
     if all_strings:
         items.insert(0, {"exclude": "*"})
     return items
@@ -414,7 +417,8 @@ def _coerce_source_item(item, guildfile):
         return item
     else:
         raise GuildfileError(
-            guildfile, "invalid value for source item: %r" % item)
+            guildfile,
+            "invalid value for snapshot-source item: %r" % item)
 
 def _coerce_str_to_list(val, guildfile, name):
     if isinstance(val, six.string_types):
@@ -581,7 +585,8 @@ class ModelDef(object):
         self.resources = _init_resources(data, self)
         self.disable_plugins = _disable_plugins(data, guildfile)
         self.extra = data.get("extra") or {}
-        self.source = _init_source(data.get("source") or [], self.guildfile)
+        self.source = _init_source(
+            data.get("snapshot-source") or [], self.guildfile)
         self.python_requires = data.get("python-requires")
 
     @property
@@ -868,7 +873,8 @@ class OpDef(object):
         self.objective = data.get("objective")
         self.optimizers = _init_optimizers(data, self)
         self.publish = data.get("publish")
-        self.source = _init_source(data.get("source") or [], self.guildfile)
+        self.source = _init_source(
+            data.get("snapshot-source") or [], self.guildfile)
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname
