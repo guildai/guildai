@@ -72,15 +72,3 @@ def version():
         return __version__
 
 _try_init_git_attrs()
-
-###################################################################
-# Guild API
-###################################################################
-
-def format_run(run):
-    from guild import run_util
-    return run_util.format_run(run)
-
-def Run(run_dir, id=None):
-    from guild import run
-    return run.from_dir(run_dir, id)

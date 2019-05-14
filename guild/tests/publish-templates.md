@@ -88,8 +88,11 @@ Load a run report:
 
 Format a run for the report:
 
-    >>> run = guild.Run(sample("runs", "360192fdf9b74f2fad5f514e9f2fdadb"))
-    >>> formatted = guild.format_run(run)
+    >>> from guild import run as runlib
+    >>> run = runlib.from_dir(sample("runs", "360192fdf9b74f2fad5f514e9f2fdadb"))
+
+    >>> from guild import run_util
+    >>> formatted = run_util.format_run(run)
 
 Target directory;
 
