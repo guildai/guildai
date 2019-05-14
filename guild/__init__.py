@@ -35,6 +35,9 @@ __requires__ = [
 
 __pkgdir__ = os.path.dirname(os.path.dirname(__file__))
 
+__git_commit__ = None
+__git_status__ = None
+
 def _try_init_git_attrs():
     try:
         _init_git_commit()
@@ -47,27 +50,39 @@ def _try_init_git_attrs():
             pass
 
 def _init_git_commit():
-    commit = _git_cmd("git -C \"%(repo)s\" log -1 --oneline | cut -d' ' -f1")
+    repo = _guild_repo()
+    if repo:
+        line = _cmd_out("git -C \"%s\" log -1 --oneline" % repo)
+        commit = line.split(" ")[0]
+    else:
+        commit = None
     globals()["__git_commit__"] = commit
 
+def _guild_repo():
+    repo = os.path.dirname(os.path.dirname(__file__))
+    if os.path.isdir(os.path.join(repo, ".git")):
+        return repo
+    return None
+
 def _init_git_status():
-    raw = _git_cmd("git -C \"%(repo)s\" status -s")
+    repo = _guild_repo()
+    if repo:
+        raw = _cmd_out("git -C \"%s\" status -s" % repo)
+    else:
+        raw = None
     globals()["__git_status__"] = raw.split("\n") if raw else []
 
-def _git_cmd(cmd, **kw):
-    repo = os.path.dirname(__file__)
-    cmd = cmd % dict(repo=repo, **kw)
+def _cmd_out(cmd):
     null = open(os.devnull, "w")
     out = subprocess.check_output(cmd, stderr=null, shell=True)
     return out.decode("utf-8").strip()
 
 def version():
-    git_commit = globals().get("__git_commit__")
-    if git_commit:
-        git_status = globals().get("__git_status__", [])
-        workspace_changed_marker = "*" if git_status else ""
-        return "%s (dev %s%s)" % (__version__, git_commit,
-                                 workspace_changed_marker)
+    if __git_commit__:
+        workspace_changed_marker = "*" if __git_status__ else ""
+        return "%s (dev %s%s)" % (
+            __version__, __git_commit__,
+            workspace_changed_marker)
     else:
         return __version__
 
