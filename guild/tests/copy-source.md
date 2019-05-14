@@ -2,8 +2,8 @@ skip-windows: yes
 
 # Copying source
 
-Source code is copied for each run according to the model `source`
-attr.
+Source code is copied for each run according to the model
+`snapshot-source` attr.
 
 The function that copies the source is `op_util.copy_source`. For our
 tests however, we'll use the private version `copy_source`, which
@@ -261,3 +261,5 @@ And all files are copied:
      'small-001.txt',
      ...
      'small-110.txt']
+
+Markdown finished at Tue May 14 13:25:02
