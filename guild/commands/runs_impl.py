@@ -477,7 +477,7 @@ def _print_run_info(run, args):
             out("  %s" % path)
     if args.output:
         out("output:")
-        for line in _iter_output(run):
+        for line in run_util.iter_output(run):
             out("  %s" % line, nl=False)
     if args.files or args.all_files:
         out("files:")
@@ -518,17 +518,6 @@ def _s_val(s):
 
 def _s_step(s):
     return s["last_step"]
-
-def _iter_output(run):
-    try:
-        f = open(run.guild_path("output"), "r")
-    except IOError as e:
-        if e.errno != 2:
-            raise
-    else:
-        with f:
-            for line in f:
-                yield line
 
 def label(args, ctx):
     if args.remote:

@@ -318,3 +318,14 @@ def _format_attr_dict(d):
         "  %s: %s" % (key, _format_val(d[key]))
         for key in sorted(d)
     ])
+
+def iter_output(run):
+    try:
+        f = open(run.guild_path("output"), "r")
+    except IOError as e:
+        if e.errno != 2:
+            raise
+    else:
+        with f:
+            for line in f:
+                yield line
