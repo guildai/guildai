@@ -20,6 +20,7 @@
     ...   print(name) # doctest: +REPORT_UDIFF
     guild.__init__
     guild._api
+    guild._api2
     guild._lex
     guild._test
     guild._yacc

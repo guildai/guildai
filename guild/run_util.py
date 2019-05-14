@@ -191,6 +191,8 @@ def _base_op_desc(opref, nowarn):
         return _format_pending_op(opref)
     elif opref.pkg_type == "test":
         return _format_test_op(opref)
+    elif opref.pkg_type == "func":
+        return _format_func_op(opref)
     else:
         if not nowarn:
             log.warning(
@@ -235,6 +237,9 @@ def _format_pending_op(opref):
 
 def _format_test_op(opref):
     return "%s:%s" % (opref.model_name, opref.op_name)
+
+def _format_func_op(opref):
+    return "%s()" % opref.op_name
 
 def _apply_batch_desc(base_desc, run, seen_protos):
     import guild.run
