@@ -37,6 +37,7 @@ tests).
       includes:                    ok
       index2:                      ok
       init:                        ok
+      ipy:                         ok
       keras:                       ok
       logging:                     ok
       ls-cmd:                      ok

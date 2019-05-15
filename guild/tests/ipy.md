@@ -1,9 +1,9 @@
-# API2
+# Interactive Python interface
 
-The `_api2` module provides an alternative interface to Guild
-operations that is Notebook friendly.
+The `ipy` module provides an interactive interface to Guild operations
+that is Notebook friendly.
 
-    >>> from guild import _api2
+    >>> from guild import ipy
     >>> from guild import config
 
 Create a Guild home for our tests:
@@ -19,11 +19,11 @@ Define a simple function to run:
 
 ## Running an operation
 
-The `_api2` interface runs operations as Python functions. Flags are
+The `ipy` interface runs operations as Python functions. Flags are
 provided as key words:
 
     >>> with guild_home:
-    ...     run, result = _api2.run(hello, msg="Hello")
+    ...     run, result = ipy.run(hello, msg="Hello")
     Hello 1!
     Hello 2!
     Hello 3!
@@ -56,7 +56,7 @@ Output:
 Run another operation:
 
     >>> with guild_home:
-    ...     _api2.run(hello, msg="Hola", n=2)
+    ...     ipy.run(hello, msg="Hola", n=2)
     Hola 1!
     Hola 2!
     (<guild.run.Run '...'>, None)
@@ -66,7 +66,7 @@ Run another operation:
 List runs:
 
     >>> with guild_home:
-    ...     _api2.runs()
+    ...     ipy.runs()
        run  operation  started     status
     0  ...    hello()      ...  completed
     1  ...    hello()      ...  completed
@@ -76,7 +76,7 @@ List runs:
 Print latest run info:
 
     >>> with guild_home:
-    ...     _api2.runs().info()
+    ...     ipy.runs().info()
     id: ...
     operation: hello()
     status: completed
@@ -92,7 +92,7 @@ Print latest run info:
 Info for a specific run:
 
     >>> with guild_home:
-    ...     _api2.runs().iloc[1].info()
+    ...     ipy.runs().iloc[1].info()
     id: ...
     operation: hello()
     status: completed
@@ -108,7 +108,7 @@ Info for a specific run:
 Flags can be read as a data frame using the `flags()` function on runs.
 
     >>> with guild_home:
-    ...     runs = _api2.runs()
+    ...     runs = ipy.runs()
 
     >>> flags = runs.flags()
 
@@ -126,11 +126,11 @@ Flags can be read as a data frame using the `flags()` function on runs.
 Delete runs:
 
     >>> with guild_home:
-    ...     _api2.runs().delete()
+    ...     ipy.runs().delete()
     ['...', '...']
 
     >>> with guild_home:
-    ...     _api2.runs()
+    ...     ipy.runs()
     Empty RunsDataFrame
     Columns: [run, operation, started, status]
     Index: []
@@ -138,12 +138,12 @@ Delete runs:
 Deleting an empty list:
 
     >>> with guild_home:
-    ...     _api2.runs().delete()
+    ...     ipy.runs().delete()
     []
 
 ## Logging scalars
 
-The `_api2` interface does not provide an explicit interface for
+The `ipy` interface does not provide an explicit interface for
 logging scalars. This follows the convention used in Guild's script
 interface, which is to not provide a Guild-specific
 interface. Instead, operations use standard conventions.
@@ -159,7 +159,7 @@ insufficient.
 Furthermore, we want to support a seamless migration of functions to
 scripts.
 
-With these points in mind, `_api2` supports scalar logging in two ways:
+With these points in mind, `ipy` supports scalar logging in two ways:
 
 - Printing values to stdout
 - Logging scalars in TF event files
@@ -176,7 +176,7 @@ Here's a function that prints scalar values to stdout:
 Run the operation:
 
     >>> with guild_home:
-    ...     run, _result = _api2.run(op1, a=1, b=2)
+    ...     run, _result = ipy.run(op1, a=1, b=2)
     x: 3
     y: -1
     z: 1
@@ -199,7 +199,7 @@ Note that output now contains a `tsevents` file.
 Read the scalars:
 
     >>> with guild_home:
-    ...     scalars = _api2.runs().scalars()
+    ...     scalars = ipy.runs().scalars()
 
     >>> scalars
        avg_val  count  first_step  ...  run  tag  total
@@ -230,7 +230,7 @@ This function uses tensorboardX to write scalars.
 Let's run the function as an operation:
 
     >>> with guild_home:
-    ...     run, _result = _api2.run(op2, a=1.0, c=0.0)
+    ...     run, _result = ipy.run(op2, a=1.0, c=0.0)
 
 The run files:
 
@@ -248,7 +248,7 @@ The run files:
 And its scalars:
 
     >>> with guild_home:
-    ...     runs = _api2.runs()
+    ...     runs = ipy.runs()
     >>> scalars = runs.loc[runs["run"] == run.id].scalars()
     >>> pprint(scalars.to_dict("records"))
     [{'avg_val': 2.0,
@@ -272,7 +272,7 @@ The `compare()` function can be applied to a list of runs to return a
 data frame that has both flags and scalars.
 
     >>> with guild_home:
-    ...     runs = _api2.runs()
+    ...     runs = ipy.runs()
 
     >>> compare = runs.compare()
 
