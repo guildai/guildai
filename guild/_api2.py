@@ -17,9 +17,12 @@ from __future__ import division
 from __future__ import print_function
 
 import datetime
+import functools
 import os
 import sys
 import threading
+
+import six
 
 import pandas as pd
 
@@ -29,6 +32,7 @@ from guild import opref as opreflib
 from guild import run as runlib
 from guild import run_util
 from guild import summary
+from guild import util
 from guild import var
 
 RUN_DETAIL = [
@@ -89,6 +93,30 @@ class RunOutput(object):
         sys.stdout = self._stdout
         sys.stderr = self._stderr
 
+@functools.total_ordering
+class RunIndex(object):
+
+    def __init__(self, run, fmt):
+        self.run = run
+        self.fmt = fmt
+
+    def __str__(self):
+        return self.run.short_id
+
+    def __eq__(self, x):
+        return self._x_id(x) == self.run.id
+
+    def __lt__(self, x):
+        return self.run.id < self._x_id(x)
+
+    @staticmethod
+    def _x_id(x):
+        if isinstance(x, six.string_types):
+            return x
+        elif isinstance(x, RunIndex):
+            return x.run.id
+        return None
+
 class RunsSeries(pd.Series):
 
     @property
@@ -108,6 +136,9 @@ class RunsSeries(pd.Series):
     def scalars(self):
         return _runs_scalars([self[0].run])
 
+    def flags(self):
+        return _runs_flags([self[0].run])
+
 class RunsDataFrame(pd.DataFrame):
 
     @property
@@ -119,16 +150,21 @@ class RunsDataFrame(pd.DataFrame):
         return RunsSeries
 
     def delete(self, permanent=False):
-        runs = [row[1][0].run for row in self.iterrows()]
+        runs = self._runs()
         var.delete_runs(runs, permanent)
         return [run.id for run in runs]
+
+    def _runs(self):
+        return [row[1][0].run for row in self.iterrows()]
 
     def info(self, **kw):
         self.loc[0].info(**kw)
 
     def scalars(self):
-        runs = [row[1][0].run for row in self.iterrows()]
-        return _runs_scalars(runs)
+        return _runs_scalars(self._runs())
+
+    def flags(self):
+        return _runs_flags(self._runs())
 
 def run(op, *args, **kw):
     opts = _pop_opts(kw)
@@ -137,7 +173,8 @@ def run(op, *args, **kw):
     summary = _init_output_scalars(run, opts)
     try:
         with RunOutput(run, summary):
-            result = op(*args, **kw)
+            with util.Chdir(run.path):
+                result = op(*args, **kw)
     except Exception as e:
         exit_status = 1
         raise RunError(run, e)
@@ -198,15 +235,6 @@ def _format_run(run, cols):
         _run_attr(run, name, fmt) for name in cols
     ]
 
-class RunIndex(object):
-
-    def __init__(self, run, fmt):
-        self.run = run
-        self.fmt = fmt
-
-    def __str__(self):
-        return self.run.short_id
-
 def _run_attr(run, name, fmt):
     if name == "run":
         return RunIndex(run, fmt)
@@ -238,3 +266,18 @@ def _runs_scalars(runs):
         for s in indexlib.iter_run_scalars(run):
             data.append(s)
     return pd.DataFrame(data)
+
+def _runs_flags(runs):
+    data = [_run_flags_data(run) for run in runs]
+    return pd.DataFrame(data)
+
+def _run_flags_data(run):
+    flags = run.get("flags") or {}
+    flags[_run_flags_key(flags)] = run.id
+    return flags
+
+def _run_flags_key(flags):
+    run_key = "run"
+    while run_key in flags:
+        run_key = "_" + run_key
+    return run_key

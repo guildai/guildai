@@ -855,3 +855,17 @@ def format_bytes(n):
             return "%3.1f%s" % (n, unit)
         n /= 1024.0
     return "%.1f%s" % (n, units[-1])
+
+class Chdir(object):
+
+    _save = None
+
+    def __init__(self, path):
+        self._path = path
+
+    def __enter__(self):
+        self._save = os.getcwd()
+        os.chdir(self._path)
+
+    def __exit__(self, *_args):
+        os.chdir(self._save)

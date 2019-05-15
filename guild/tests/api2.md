@@ -69,6 +69,7 @@ List runs:
     ...     _api2.runs()
        run  operation  started     status
     0  ...    hello()      ...  completed
+    1  ...    hello()      ...  completed
 
 ## Runs info
 
@@ -91,7 +92,7 @@ Print latest run info:
 Info for a specific run:
 
     >>> with guild_home:
-    ...     _api2.runs().loc[1].info()
+    ...     _api2.runs().iloc[1].info()
     id: ...
     operation: hello()
     status: completed
@@ -101,6 +102,24 @@ Info for a specific run:
     run_dir: ...
     flags:
       msg: Hello
+
+## Flags
+
+Flags can be read as a data frame using the `flags()` function on runs.
+
+    >>> with guild_home:
+    ...     runs = _api2.runs()
+
+    >>> flags = runs.flags()
+
+    >>> flags
+         msg    n  run
+    0   Hola  2.0  ...
+    1  Hello  NaN  ...
+
+    >>> pprint(flags.to_dict("records"))
+    [{'msg': 'Hola', 'n': 2.0, 'run': '...'},
+     {'msg': 'Hello', 'n': nan, 'run': '...'}]
 
 ## Delete runs
 
@@ -195,3 +214,54 @@ Read the scalars:
     0  ...          0       3.0
     1  ...          0      -1.0
     2  ...          0       1.0
+
+### Logging scalars as TFEvents
+
+This function uses tensorboardX to write scalars.
+
+    >>> def op2():
+    ...     import tensorboardX
+    ...     writer = tensorboardX.SummaryWriter(".")
+    ...     writer.add_scalar("x", 1.0, 1)
+    ...     writer.add_scalar("x", 2.0, 2)
+    ...     writer.add_scalar("x", 3.0, 3)
+    ...     writer.close()
+
+Let's run the function as an operation:
+
+    >>> with guild_home:
+    ...     run, _result = _api2.run(op2)
+
+The run files:
+
+    >>> find(run.path)
+    ['.guild/attrs/exit_status',
+     '.guild/attrs/flags',
+     '.guild/attrs/id',
+     '.guild/attrs/initialized',
+     '.guild/attrs/started',
+     '.guild/attrs/stopped',
+     '.guild/opref',
+     '.guild/output',
+     'events.out.tfevents...']
+
+And its scalars:
+
+    >>> with guild_home:
+    ...     runs = _api2.runs()
+    >>> scalars = runs.loc[runs["run"] == run.id].scalars()
+    >>> pprint(scalars.to_dict("records"))
+    [{'avg_val': 2.0,
+      'count': 3,
+      'first_step': 1,
+      'first_val': 1.0,
+      'last_step': 3,
+      'last_val': 3.0,
+      'max_step': 3,
+      'max_val': 3.0,
+      'min_step': 1,
+      'min_val': 1.0,
+      'prefix': u'',
+      'run': u'...',
+      'tag': u'x',
+      'total': 6.0}]
