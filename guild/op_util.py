@@ -505,6 +505,7 @@ def _check_flag_range(val, flag):
             val, flag, "out of range (greater than max %s)" % flag.max)
 
 def copy_run_source(run, opdef):
+    log.debug("copying source files for run %s", run.id)
     copy_source(
         opdef.guildfile.dir,
         [opdef.source, opdef.modeldef.source],
@@ -512,28 +513,34 @@ def copy_run_source(run, opdef):
         opdef)
 
 def copy_source(src_base, source_config, dest_base, opdef=None):
+    log.debug("copying source files from %s to %s", src_base, dest_base)
     if not isinstance(source_config, list):
         source_config = [source_config]
     to_copy = _source_to_copy(src_base, source_config, opdef)
     if not to_copy:
-        log.debug("no source to copy")
+        log.debug("no source files to copy")
         return
     for src, src_rel_path in to_copy:
         dest = os.path.join(dest_base, src_rel_path)
-        log.debug("copying source %s to %s", src, dest)
+        log.debug("copying source file %s to %s", src, dest)
         util.ensure_dir(os.path.dirname(dest))
         _try_copy_file(src, dest)
 
 def _source_to_copy(src_dir, source_config, opdef):
     to_copy = []
     seen_dirs = set()
+    log.debug("generating source file list from %s", src_dir)
     for root, dirs, files in os.walk(src_dir, followlinks=True):
         seen_dirs.add(os.path.realpath(root))
         _del_excluded_dirs(dirs, root, seen_dirs)
         for name in files:
             path = os.path.join(root, name)
+            if not os.path.isfile(path):
+                continue
             rel_path = os.path.relpath(path, src_dir)
+            log.debug("considering source file %s", path)
             if _to_copy(path, rel_path, source_config, opdef):
+                log.debug("seleted source file %s", path)
                 to_copy.append((path, rel_path))
     to_copy.sort()
     _maybe_prune_source_to_copy(to_copy, source_config, opdef)
