@@ -168,7 +168,7 @@ With these points in mind, `_api2` supports scalar logging in two ways:
 
 Here's a function that prints scalar values to stdout:
 
-    >>> def op1(a=1, b=2):
+    >>> def op1(a, b):
     ...     print("x: %i" % (a + b))
     ...     print("y: %i" % (a - b))
     ...     print("z: %i" % (b - a))
@@ -176,7 +176,7 @@ Here's a function that prints scalar values to stdout:
 Run the operation:
 
     >>> with guild_home:
-    ...     run, _result = _api2.run(op1)
+    ...     run, _result = _api2.run(op1, a=1, b=2)
     x: 3
     y: -1
     z: 1
@@ -219,18 +219,18 @@ Read the scalars:
 
 This function uses tensorboardX to write scalars.
 
-    >>> def op2():
+    >>> def op2(a, c):
     ...     import tensorboardX
     ...     writer = tensorboardX.SummaryWriter(".")
-    ...     writer.add_scalar("x", 1.0, 1)
-    ...     writer.add_scalar("x", 2.0, 2)
-    ...     writer.add_scalar("x", 3.0, 3)
+    ...     writer.add_scalar("x", a + c, 1)
+    ...     writer.add_scalar("x", a + c + 1, 2)
+    ...     writer.add_scalar("x", a + c + 2, 3)
     ...     writer.close()
 
 Let's run the function as an operation:
 
     >>> with guild_home:
-    ...     run, _result = _api2.run(op2)
+    ...     run, _result = _api2.run(op2, a=1.0, c=0.0)
 
 The run files:
 
@@ -265,3 +265,18 @@ And its scalars:
       'run': u'...',
       'tag': u'x',
       'total': 6.0}]
+
+## Comparing runs
+
+The `compare()` function can be applied to a list of runs to return a
+data frame that has both flags and scalars.
+
+    >>> with guild_home:
+    ...     runs = _api2.runs()
+
+    >>> compare = runs.compare()
+
+    >>> compare
+         a    b    c  run  step    x    y    z
+    0  1.0  NaN  0.0  ...     3  3.0  NaN  NaN
+    1  1.0  2.0  NaN  ...     0  3.0 -1.0  1.0

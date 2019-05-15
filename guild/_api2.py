@@ -139,6 +139,9 @@ class RunsSeries(pd.Series):
     def flags(self):
         return _runs_flags([self[0].run])
 
+    def compare(self):
+        return _runs_compare([self[0].run])
+
 class RunsDataFrame(pd.DataFrame):
 
     @property
@@ -165,6 +168,9 @@ class RunsDataFrame(pd.DataFrame):
 
     def flags(self):
         return _runs_flags(self._runs())
+
+    def compare(self):
+        return _runs_compare(self._runs())
 
 def run(op, *args, **kw):
     opts = _pop_opts(kw)
@@ -272,12 +278,40 @@ def _runs_flags(runs):
     return pd.DataFrame(data)
 
 def _run_flags_data(run):
-    flags = run.get("flags") or {}
-    flags[_run_flags_key(flags)] = run.id
-    return flags
+    data = run.get("flags") or {}
+    data[_run_flags_key(data)] = run.id
+    return data
 
 def _run_flags_key(flags):
     run_key = "run"
     while run_key in flags:
         run_key = "_" + run_key
     return run_key
+
+def _runs_compare(runs):
+    data = [_run_compare_data(run) for run in runs]
+    return pd.DataFrame(data)
+
+def _run_compare_data(run):
+    data = {}
+    # Order matters here - we want flag vals to take precedence over
+    # scalar vals with the same name.
+    data.update(_run_scalar_data(run))
+    data.update(_run_flags_data(run))
+    return data
+
+def _run_scalar_data(run):
+    data = {}
+    step = None
+    last_step = None
+    for s in indexlib.iter_run_scalars(run):
+        key = s["tag"]
+        data[key] = s["last_val"]
+        last_step = s["last_step"]
+        if key == "loss":
+            step = last_step
+    if data:
+        if step is None:
+            step = last_step
+        data["step"] = step
+    return data
