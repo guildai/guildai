@@ -499,13 +499,10 @@ else:
     _printable_ascii = _control_chars + bytes(range(32, 127))
     _printable_high_ascii = bytes(range(127, 256))
 
-def is_fifo(path):
-    return stat.S_ISFIFO(os.stat(path).st_mode)
-
 def is_text_file(path, ignore_ext=False):
     # Adapted from https://github.com/audreyr/binaryornot under the
     # BSD 3-clause License
-    if os.path.isdir(path) or is_fifo(path):
+    if not os.path.isfile(path):
         return False
     if not ignore_ext:
         ext = os.path.splitext(path)[1].lower()
