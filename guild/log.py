@@ -62,5 +62,14 @@ def init_logging(level=logging.INFO, formats=None):
     })
     globals()["__last_init_kw"] = dict(level=level, formats=formats)
 
+def disable_noisy_loggers(level=logging.INFO):
+    if level <= logging.DEBUG:
+        _set_logger_level(["chardet"], logging.INFO)
+
+def _set_logger_level(pkgs, level):
+    for pkg in pkgs:
+        log = logging.getLogger(pkg)
+        log.setLevel(level)
+
 def current_settings():
     return __last_init_kw

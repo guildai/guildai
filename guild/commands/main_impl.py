@@ -24,10 +24,20 @@ from guild import log
 from guild import util
 
 def main(args):
-    log.init_logging(args.log_level or logging.INFO)
-    config.set_cwd(_validated_dir(args.cwd))
-    config.set_guild_home(
-        _validated_dir(args.guild_home, abs=True, create=True))
+    _init_logging(args)
+    config.set_cwd(_cwd(args))
+    config.set_guild_home(_guild_home(args))
+
+def _init_logging(args):
+    log_level = args.log_level or logging.INFO
+    log.init_logging(log_level)
+    log.disable_noisy_loggers(log_level)
+
+def _cwd(args):
+    return _validated_dir(args.cwd)
+
+def _guild_home(args):
+    return _validated_dir(args.guild_home, abs=True, create=True)
 
 def _validated_dir(path, abs=False, create=False):
     path = os.path.expanduser(path)
