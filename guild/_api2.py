@@ -20,13 +20,15 @@ import datetime
 import os
 import sys
 import threading
-import warnings
 
 import pandas as pd
 
+from guild import index2 as indexlib
+from guild import op as oplib
 from guild import opref as opreflib
 from guild import run as runlib
 from guild import run_util
+from guild import summary
 from guild import var
 
 RUN_DETAIL = [
@@ -48,20 +50,20 @@ class RunError(Exception):
 
 class OutputTee(object):
 
-    def __init__(self, out1, out2, lock):
-        self._out1 = out1
-        self._out2 = out2
+    def __init__(self, fs, lock):
+        self._fs = fs
         self._lock = lock
 
     def write(self, b):
         with self._lock:
-            self._out1.write(b)
-            self._out2.write(b)
+            for f in self._fs:
+                f.write(b)
 
 class RunOutput(object):
 
-    def __init__(self, run):
+    def __init__(self, run, cb=None):
         self.run = run
+        self.cb = cb
         self._f = None
         self._f_lock = None
         self._stdout = None
@@ -71,9 +73,15 @@ class RunOutput(object):
         self._f = open(self.run.guild_path("output"), "wb")
         self._f_lock = threading.Lock()
         self._stdout = sys.stdout
-        sys.stdout = OutputTee(sys.stdout, self._f, self._f_lock)
+        sys.stdout = OutputTee(self._tee_fs(sys.stdout), self._f_lock)
         self._stderr = sys.stderr
-        sys.stderr = OutputTee(sys.stderr, self._f, self._f_lock)
+        sys.stderr = OutputTee(self._tee_fs(sys.stderr), self._f_lock)
+
+    def _tee_fs(self, iof):
+        fs = [iof, self._f]
+        if self.cb:
+            fs.append(self.cb)
+        return fs
 
     def __exit__(self, *exc):
         with self._f_lock:
@@ -81,12 +89,54 @@ class RunOutput(object):
         sys.stdout = self._stdout
         sys.stderr = self._stderr
 
+class RunsSeries(pd.Series):
+
+    @property
+    def _constructor(self):
+        return RunsSeries
+
+    @property
+    def _constructor_expanddim(self):
+        return RunsDataFrame
+
+    def delete(self, **kw):
+        self.to_frame().delete(**kw)
+
+    def info(self, **kw):
+        _print_run_info(self[0], **kw)
+
+    def scalars(self):
+        return _runs_scalars([self[0].run])
+
+class RunsDataFrame(pd.DataFrame):
+
+    @property
+    def _constructor(self):
+        return RunsDataFrame
+
+    @property
+    def _constructor_sliced(self):
+        return RunsSeries
+
+    def delete(self, permanent=False):
+        runs = [row[1][0].run for row in self.iterrows()]
+        var.delete_runs(runs, permanent)
+        return [run.id for run in runs]
+
+    def info(self, **kw):
+        self.loc[0].info(**kw)
+
+    def scalars(self):
+        runs = [row[1][0].run for row in self.iterrows()]
+        return _runs_scalars(runs)
+
 def run(op, *args, **kw):
-    _opts = _pop_opts(kw)
+    opts = _pop_opts(kw)
     run = _init_run()
     _init_run_attrs(run, op, kw)
+    summary = _init_output_scalars(run, opts)
     try:
-        with RunOutput(run):
+        with RunOutput(run, summary):
             result = op(*args, **kw)
     except Exception as e:
         exit_status = 1
@@ -117,6 +167,12 @@ def _init_run_attrs(run, op, kw):
     run.write_attr("started", runlib.timestamp())
     run.write_attr("flags", kw)
 
+def _init_output_scalars(run, opts):
+    config = opts.get("output_scalars", oplib.DEFAULT_OUTPUT_SCALARS)
+    if not config:
+        return None
+    return summary.OutputScalars(config, run.guild_path())
+
 def _finalize_run_attrs(run, exit_status):
     run.write_attr("exit_status", exit_status)
     run.write_attr("stopped", runlib.timestamp())
@@ -124,7 +180,7 @@ def _finalize_run_attrs(run, exit_status):
 def runs():
     runs = var.runs(sort=["-timestamp"])
     data, cols = _format_runs(runs)
-    return pd.DataFrame(data=data, columns=cols)
+    return RunsDataFrame(data=data, columns=cols)
 
 def _format_runs(runs):
     cols = (
@@ -166,53 +222,6 @@ def _datetime(ts):
         return None
     return datetime.datetime.fromtimestamp(int(ts / 1000000))
 
-@pd.api.extensions.register_dataframe_accessor("delete")
-class RunsDelete(object):
-
-    def __init__(self, df):
-        self.df = df
-
-    def __call__(self, permanent=False):
-        runs = [row[1][0].run for row in self.df.iterrows()]
-        var.delete_runs(runs, permanent)
-        return [run.id for run in runs]
-
-@pd.api.extensions.register_series_accessor("delete")
-class RunDelete(object):
-
-    def __init__(self, s):
-        self.s = s
-
-    def __call__(self, permanent=False):
-        runs = [self.s[0].run]
-        var.delete_runs(runs, permanent)
-        return [run.id for run in runs]
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    @pd.api.extensions.register_dataframe_accessor("info")
-    class RunsInfo(object):
-
-        def __init__(self, df):
-            self.df = df
-
-        def __call__(self, **kw):
-            try:
-                row = next(self.df.iterrows())
-            except StopIteration:
-                pass
-            else:
-                _print_run_info(row[1][0], **kw)
-
-    @pd.api.extensions.register_series_accessor("info")
-    class RunInfo(object):
-
-        def __init__(self, s):
-            self.s = s
-
-        def __call__(self, **kw):
-            _print_run_info(self.s[0], **kw)
-
 def _print_run_info(item, output=False):
     for name in RUN_DETAIL:
         print("%s: %s" % (name, item.fmt.get(name, "")))
@@ -222,3 +231,10 @@ def _print_run_info(item, output=False):
         print("output:")
         for line in run_util.iter_output(item.run):
             print("  %s" % line, end="")
+
+def _runs_scalars(runs):
+    data = []
+    for run in runs:
+        for s in indexlib.iter_run_scalars(run):
+            data.append(s)
+    return pd.DataFrame(data)

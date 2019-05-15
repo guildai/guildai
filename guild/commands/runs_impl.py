@@ -501,9 +501,7 @@ def _maybe_print_proto_flags(run, out):
         out(run_util.format_attr(proto_run.get("flags", "")))
 
 def _iter_scalars(run):
-    index = indexlib.RunIndex()
-    index.refresh([run], ["scalar"])
-    for s in index.run_scalars(run):
+    for s in indexlib.iter_run_scalars(run):
         yield "%s: %f (step %i)" % (_s_key(s), _s_val(s), _s_step(s))
 
 def _s_key(s):

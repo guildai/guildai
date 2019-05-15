@@ -369,3 +369,9 @@ class RunIndex(object):
 
     def run_scalars(self, run):
         return list(self._scalar_reader.iter_scalars(run))
+
+def iter_run_scalars(run):
+    index = RunIndex()
+    index.refresh([run], ["scalar"])
+    for s in index.run_scalars(run):
+        yield s
