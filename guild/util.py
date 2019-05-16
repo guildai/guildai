@@ -24,7 +24,6 @@ import platform
 import re
 import shlex
 import shutil
-import stat
 import struct
 import subprocess
 import sys
