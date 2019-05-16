@@ -297,8 +297,54 @@ data frame that has both flags and scalars.
     >>> compare = runs.compare()
 
     >>> compare
-       run operation     time     status label  ...    c  step    x    y    z
-    0  ...     op2()  0:00:00  completed        ...  0.0     3  3.0  NaN  NaN
-    1  ...     op1()  0:00:00  completed        ...  NaN     0  3.0 -1.0  1.0
+       run operation started     time  ... step    x    y    z
+    0  ...     op2()     ...  0:00:00  ...    3  3.0  NaN  NaN
+    1  ...     op1()     ...  0:00:00  ...    0  3.0 -1.0  1.0
     <BLANKLINE>
-    [2 rows x 12 columns]
+    [2 rows x 13 columns]
+
+## Grid search
+
+The `run` function will generate trials for values provided in list
+args.
+
+Let's clear our runs in preparation for our new trials.
+
+    >>> with guild_home:
+    ...     len(runs.delete())
+    2
+
+Run `op1` with two values for each of the two arguments. This will
+generate four trials.
+
+    >>> with guild_home:
+    ...     runs, results = ipy.run(op1, a=[1,2], b=[3,4])
+    Running op1 (a=1, b=3):
+    x: 4
+    y: -2
+    z: 2
+    Running op1 (a=1, b=4):
+    x: 5
+    y: -3
+    z: 3
+    Running op1 (a=2, b=3):
+    x: 5
+    y: -1
+    z: 1
+    Running op1 (a=2, b=4):
+    x: 6
+    y: -2
+    z: 2
+
+Generated runs:
+
+    >>> runs
+    [<guild.run.Run '...'>,
+     <guild.run.Run '...'>,
+     <guild.run.Run '...'>,
+     <guild.run.Run '...'>]
+
+And op return values:
+
+    >>> results
+    [None, None, None, None]

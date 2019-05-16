@@ -19,7 +19,7 @@ import itertools
 
 from guild import batch_util
 
-def _gen_trials(flags, _batch):
+def gen_trials(flags, _batch=None):
     flag_list = [
         _trial_flags(name, val)
         for name, val in sorted(flags.items())]
@@ -31,4 +31,4 @@ def _trial_flags(flag_name, flag_val):
     return [(flag_name, flag_val)]
 
 if __name__ == "__main__":
-    batch_util.default_main(_gen_trials)
+    batch_util.default_main(gen_trials)

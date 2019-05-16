@@ -27,9 +27,11 @@ import six
 
 import pandas as pd
 
+from guild import batch_main
 from guild import config
 from guild import index2 as indexlib
 from guild import op as oplib
+from guild import op_util
 from guild import opref as opreflib
 from guild import run as runlib
 from guild import run_util
@@ -177,15 +179,64 @@ class RunsDataFrame(pd.DataFrame):
     def compare(self):
         return _runs_compare(self._items())
 
+class Batch(object):
+
+    def __init__(self, op, flags, opts):
+        self.op = op
+        self.flags = flags
+        self.opts = opts
+
+    def run(self):
+        runs = []
+        results = []
+        for trial_flags in batch_main.gen_trials(self.flags):
+            print(
+                "Running %s (%s):"
+                % (self.op.__name__, _format_flags(trial_flags)))
+            run, result = _run(self.op, trial_flags, self.opts)
+            runs.append(run)
+            results.append(result)
+        return runs, results
+
+def _format_flags(flags):
+    return ", ".join([
+        op_util.format_flag_arg(name, val)
+        for name, val in sorted(flags.items())])
+
 def run(op, *args, **kw):
     opts = _pop_opts(kw)
+    flags = _init_flags(op, args, kw)
+    batch = _maybe_batch(op, flags, opts)
+    if batch:
+        return batch.run()
+    else:
+        return _run(op, flags, opts)
+
+def _pop_opts(kw):
+    opts = {}
+    for name in list(kw):
+        if name[:1] == "_":
+            opts[name[1:]] = kw.pop(name)
+    return opts
+
+def _init_flags(op, args, kw):
+    return inspect.getcallargs(op, *args, **kw)
+
+def _maybe_batch(op, flags, opts):
+    assert "optimizer" not in opts, opts
+    for val in flags.values():
+        if isinstance(val, list):
+            return Batch(op, flags, opts)
+    return None
+
+def _run(op, flags, opts):
     run = _init_run()
-    _init_run_attrs(run, op, kw, opts)
+    _init_run_attrs(run, op, flags, opts)
     summary = _init_output_scalars(run, opts)
     try:
         with RunOutput(run, summary):
             with util.Chdir(run.path):
-                result = op(*args, **kw)
+                result = op(**flags)
     except Exception as e:
         exit_status = 1
         raise RunError(run, e)
@@ -195,13 +246,6 @@ def run(op, *args, **kw):
     finally:
         _finalize_run_attrs(run, exit_status)
 
-def _pop_opts(kw):
-    opts = {}
-    for name in list(kw):
-        if name[:1] == "_":
-            opts[name[1:]] = kw.pop(name)
-    return opts
-
 def _init_run():
     run_id = runlib.mkid()
     run_dir = os.path.join(var.runs_dir(), run_id)
@@ -209,16 +253,13 @@ def _init_run():
     run.init_skel()
     return run
 
-def _init_run_attrs(run, op, kw, opts):
+def _init_run_attrs(run, op, flags, opts):
     opref = opreflib.OpRef("func", "", "", "", op.__name__)
     run.write_opref(opref)
     run.write_attr("started", runlib.timestamp())
-    run.write_attr("flags", _op_flags(op, kw))
+    run.write_attr("flags", flags)
     if "label" in opts:
         run.write_attr("label", opts["label"])
-
-def _op_flags(op, kw):
-    return inspect.getcallargs(op, **kw)
 
 def _init_output_scalars(run, opts):
     config = opts.get("output_scalars", oplib.DEFAULT_OUTPUT_SCALARS)
@@ -313,7 +354,7 @@ def _run_flags_key(flags):
     return run_key
 
 def _runs_compare(items):
-    core_cols = ["run", "operation", "time", "status", "label"]
+    core_cols = ["run", "operation", "started", "time", "status", "label"]
     flag_cols = set()
     scalar_cols = set()
     data = []
