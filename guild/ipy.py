@@ -18,6 +18,7 @@ from __future__ import print_function
 
 import datetime
 import functools
+import inspect
 import os
 import sys
 import threading
@@ -26,6 +27,7 @@ import six
 
 import pandas as pd
 
+from guild import config
 from guild import index2 as indexlib
 from guild import op as oplib
 from guild import opref as opreflib
@@ -140,7 +142,7 @@ class RunsSeries(pd.Series):
         return _runs_flags([self[0].run])
 
     def compare(self):
-        return _runs_compare([self[0].run])
+        return _runs_compare([self[0]])
 
 class RunsDataFrame(pd.DataFrame):
 
@@ -160,6 +162,9 @@ class RunsDataFrame(pd.DataFrame):
     def _runs(self):
         return [row[1][0].run for row in self.iterrows()]
 
+    def _items(self):
+        return [row[1][0] for row in self.iterrows()]
+
     def info(self, **kw):
         self.loc[0].info(**kw)
 
@@ -170,12 +175,12 @@ class RunsDataFrame(pd.DataFrame):
         return _runs_flags(self._runs())
 
     def compare(self):
-        return _runs_compare(self._runs())
+        return _runs_compare(self._items())
 
 def run(op, *args, **kw):
     opts = _pop_opts(kw)
     run = _init_run()
-    _init_run_attrs(run, op, kw)
+    _init_run_attrs(run, op, kw, opts)
     summary = _init_output_scalars(run, opts)
     try:
         with RunOutput(run, summary):
@@ -204,17 +209,23 @@ def _init_run():
     run.init_skel()
     return run
 
-def _init_run_attrs(run, op, kw):
+def _init_run_attrs(run, op, kw, opts):
     opref = opreflib.OpRef("func", "", "", "", op.__name__)
     run.write_opref(opref)
     run.write_attr("started", runlib.timestamp())
-    run.write_attr("flags", kw)
+    run.write_attr("flags", _op_flags(op, kw))
+    if "label" in opts:
+        run.write_attr("label", opts["label"])
+
+def _op_flags(op, kw):
+    return inspect.getcallargs(op, **kw)
 
 def _init_output_scalars(run, opts):
     config = opts.get("output_scalars", oplib.DEFAULT_OUTPUT_SCALARS)
     if not config:
         return None
-    return summary.OutputScalars(config, run.guild_path())
+    abs_guild_path = os.path.abspath(run.guild_path())
+    return summary.OutputScalars(config, abs_guild_path)
 
 def _finalize_run_attrs(run, exit_status):
     run.write_attr("exit_status", exit_status)
@@ -231,6 +242,7 @@ def _format_runs(runs):
         "operation",
         "started",
         "status",
+        "label",
     )
     data = [_format_run(run, cols) for run in runs]
     return data, cols
@@ -246,8 +258,14 @@ def _run_attr(run, name, fmt):
         return RunIndex(run, fmt)
     elif name in ("operation",):
         return fmt[name]
-    elif name in ("started",):
+    elif name in ("started", "stopped"):
         return _datetime(run.get(name))
+    elif name in ("label",):
+        return run.get(name, "")
+    elif name == "time":
+        return util.format_duration(
+            run.get("started"),
+            run.get("stopped"))
     else:
         return getattr(run, name)
 
@@ -256,11 +274,17 @@ def _datetime(ts):
         return None
     return datetime.datetime.fromtimestamp(int(ts / 1000000))
 
-def _print_run_info(item, output=False):
+def _print_run_info(item, output=False, scalars=False):
     for name in RUN_DETAIL:
         print("%s: %s" % (name, item.fmt.get(name, "")))
     print("flags:", end="")
     print(run_util.format_attr(item.run.get("flags", "")))
+    if scalars:
+        print("scalars:")
+        for s in indexlib.iter_run_scalars(item.run):
+            print(
+                "  %s: %f (step %i)"
+                % (s["tag"], s["last_val"], s["last_step"]))
     if output:
         print("output:")
         for line in run_util.iter_output(item.run):
@@ -288,17 +312,29 @@ def _run_flags_key(flags):
         run_key = "_" + run_key
     return run_key
 
-def _runs_compare(runs):
-    data = [_run_compare_data(run) for run in runs]
-    return pd.DataFrame(data)
+def _runs_compare(items):
+    core_cols = ["run", "operation", "time", "status", "label"]
+    flag_cols = set()
+    scalar_cols = set()
+    data = []
+    for item in items:
+        row_data = {}
+        data.append(row_data)
+        # Order matters here - we want flag vals to take precedence
+        # over scalar vals with the same name.
+        _apply_scalar_data(item.run, scalar_cols, row_data)
+        _apply_flag_data(item.run, flag_cols, row_data)
+        _apply_run_core_data(item, core_cols, row_data)
+    cols = (
+        core_cols +
+        sorted(flag_cols) +
+        _sort_scalar_cols(scalar_cols, flag_cols))
+    return pd.DataFrame(data, columns=cols)
 
-def _run_compare_data(run):
-    data = {}
-    # Order matters here - we want flag vals to take precedence over
-    # scalar vals with the same name.
-    data.update(_run_scalar_data(run))
-    data.update(_run_flags_data(run))
-    return data
+def _apply_scalar_data(run, cols, data):
+    for name, val in _run_scalar_data(run).items():
+        cols.add(name)
+        data[name] = val
 
 def _run_scalar_data(run):
     data = {}
@@ -315,3 +351,29 @@ def _run_scalar_data(run):
             step = last_step
         data["step"] = step
     return data
+
+def _apply_flag_data(run, cols, data):
+    for name, val in _run_flags_data(run).items():
+        if name == "run":
+            continue
+        cols.add(name)
+        data[name] = val
+
+def _apply_run_core_data(item, cols, data):
+    for name in cols:
+        data[name] = _run_attr(item.run, name, item.fmt)
+
+def _sort_scalar_cols(scalar_cols, flag_cols):
+    # - List step first if it exists
+    # - Don't include flag cols in result
+    cols = []
+    if "step" in scalar_cols:
+        cols.append("step")
+    for col in sorted(scalar_cols):
+        if col == "step" or col in flag_cols:
+            continue
+        cols.append(col)
+    return cols
+
+def set_guild_home(path):
+    config.set_guild_home(path)

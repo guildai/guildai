@@ -56,7 +56,7 @@ Output:
 Run another operation:
 
     >>> with guild_home:
-    ...     ipy.run(hello, msg="Hola", n=2)
+    ...     ipy.run(hello, msg="Hola", n=2, _label="run2")
     Hola 1!
     Hola 2!
     (<guild.run.Run '...'>, None)
@@ -67,8 +67,8 @@ List runs:
 
     >>> with guild_home:
     ...     ipy.runs()
-       run  operation  started     status
-    0  ...    hello()      ...  completed
+       run  operation  started     status label
+    0  ...    hello()      ...  completed run2
     1  ...    hello()      ...  completed
 
 ## Runs info
@@ -82,7 +82,7 @@ Print latest run info:
     status: completed
     started: ...
     stopped: ...
-    label:
+    label: run2
     run_dir: ...
     flags:
       msg: Hola
@@ -102,6 +102,26 @@ Info for a specific run:
     run_dir: ...
     flags:
       msg: Hello
+      n: 3
+
+Info with output:
+
+    >>> with guild_home:
+    ...     ipy.runs().iloc[1].info(output=True)
+    id: ...
+    ...
+    output:
+      Hello 1!
+      Hello 2!
+      Hello 3!
+
+Info with scalars (no scalars for this run, so list is empty):
+
+    >>> with guild_home:
+    ...     ipy.runs().iloc[1].info(scalars=True)
+    id: ...
+    ...
+    scalars:
 
 ## Flags
 
@@ -113,13 +133,13 @@ Flags can be read as a data frame using the `flags()` function on runs.
     >>> flags = runs.flags()
 
     >>> flags
-         msg    n  run
-    0   Hola  2.0  ...
-    1  Hello  NaN  ...
+         msg  n  run
+    0   Hola  2  ...
+    1  Hello  3  ...
 
     >>> pprint(flags.to_dict("records"))
-    [{'msg': 'Hola', 'n': 2.0, 'run': '...'},
-     {'msg': 'Hello', 'n': nan, 'run': '...'}]
+    [{'msg': 'Hola', 'n': 2, 'run': '...'},
+     {'msg': 'Hello', 'n': 3, 'run': '...'}]
 
 ## Delete runs
 
@@ -132,7 +152,7 @@ Delete runs:
     >>> with guild_home:
     ...     ipy.runs()
     Empty RunsDataFrame
-    Columns: [run, operation, started, status]
+    Columns: [run, operation, started, status, label]
     Index: []
 
 Deleting an empty list:
@@ -277,6 +297,8 @@ data frame that has both flags and scalars.
     >>> compare = runs.compare()
 
     >>> compare
-         a    b    c  run  step    x    y    z
-    0  1.0  NaN  0.0  ...     3  3.0  NaN  NaN
-    1  1.0  2.0  NaN  ...     0  3.0 -1.0  1.0
+       run operation     time     status label  ...    c  step    x    y    z
+    0  ...     op2()  0:00:00  completed        ...  0.0     3  3.0  NaN  NaN
+    1  ...     op1()  0:00:00  completed        ...  NaN     0  3.0 -1.0  1.0
+    <BLANKLINE>
+    [2 rows x 12 columns]
