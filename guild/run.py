@@ -47,6 +47,10 @@ class Run(object):
         return self.id[:8]
 
     @property
+    def dir(self):
+        return self.path
+
+    @property
     def opref(self):
         if not self._opref:
             encoded = self._read_opref()
