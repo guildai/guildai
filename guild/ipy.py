@@ -18,7 +18,9 @@ from __future__ import print_function
 
 import datetime
 import functools
+import importlib
 import inspect
+import logging
 import os
 import sys
 import threading
@@ -30,6 +32,7 @@ import pandas as pd
 from guild import batch_main
 from guild import config
 from guild import index2 as indexlib
+from guild import model_proxy
 from guild import op as oplib
 from guild import op_util
 from guild import opref as opreflib
@@ -38,6 +41,8 @@ from guild import run_util
 from guild import summary
 from guild import util
 from guild import var
+
+log = logging.getLogger("guild")
 
 RUN_DETAIL = [
     "id",
@@ -48,6 +53,8 @@ RUN_DETAIL = [
     "label",
     "run_dir",
 ]
+
+DEFAULT_MAX_TRIALS = 20
 
 class RunError(Exception):
 
@@ -181,15 +188,16 @@ class RunsDataFrame(pd.DataFrame):
 
 class Batch(object):
 
-    def __init__(self, op, flags, opts):
+    def __init__(self, gen_trials, op, flags, opts):
+        self.gen_trials = gen_trials
         self.op = op
-        self.flags = flags
+        self.flags = _coerce_range_functions(flags)
         self.opts = opts
 
-    def run(self):
+    def __call__(self):
         runs = []
         results = []
-        for trial_flags in batch_main.gen_trials(self.flags):
+        for trial_flags in self.gen_trials(self.flags, **self.opts):
             print(
                 "Running %s (%s):"
                 % (self.op.__name__, _format_flags(trial_flags)))
@@ -197,6 +205,48 @@ class Batch(object):
             runs.append(run)
             results.append(result)
         return runs, results
+
+def _coerce_range_functions(flags):
+    return {
+        name: _coerce_range_function(val)
+        for name, val in flags.items()
+    }
+
+def _coerce_range_function(val):
+    if isinstance(val, RangeFunction):
+        return str(val)
+    return val
+
+class RangeFunction(object):
+
+    def __init__(self, name, *args):
+        self.name = name
+        self.args = args
+
+    def __str__(self):
+        args = ":".join([str(arg) for arg in self.args])
+        return "%s[%s]" % (self.name, args)
+
+def batch_gen_trials(flags, max_trials=None, **kw):
+    if kw:
+        log.warning("ignoring batch config: %s", kw)
+    max_trials = max_trials or DEFAULT_MAX_TRIALS
+    trials = 0
+    for trial_flags in batch_main.gen_trials(flags):
+        if trials >= max_trials:
+            return
+        trials += 1
+        yield trial_flags
+
+def optimizer_trial_generator(model_op):
+    main_mod = importlib.import_module(model_op.module_name)
+    return main_mod.gen_trials
+
+def uniform(low, high):
+    return RangeFunction("uniform", low, high)
+
+def loguniform(low, high):
+    return RangeFunction("loguniform", low, high)
 
 def _format_flags(flags):
     return ", ".join([
@@ -206,11 +256,8 @@ def _format_flags(flags):
 def run(op, *args, **kw):
     opts = _pop_opts(kw)
     flags = _init_flags(op, args, kw)
-    batch = _maybe_batch(op, flags, opts)
-    if batch:
-        return batch.run()
-    else:
-        return _run(op, flags, opts)
+    run = _init_runner(op, flags, opts)
+    return run()
 
 def _pop_opts(kw):
     opts = {}
@@ -220,14 +267,58 @@ def _pop_opts(kw):
     return opts
 
 def _init_flags(op, args, kw):
-    return inspect.getcallargs(op, *args, **kw)
+    op_flags = inspect.getcallargs(op, *args, **kw)
+    return _coerce_slice_vals(op_flags)
 
-def _maybe_batch(op, flags, opts):
-    assert "optimizer" not in opts, opts
+def _coerce_slice_vals(flags):
+    return {
+        name: _coerce_slice_val(val)
+        for name, val in flags.items()
+    }
+
+def _coerce_slice_val(val):
+    if isinstance(val, slice):
+        return uniform(val.start, val.stop)
+    return val
+
+def _init_runner(op, flags, opts):
+    return util.find_apply([
+        _optimize_runner,
+        _batch_runner,
+        _single_runner], op, flags, opts)
+
+def _optimize_runner(op, flags, opts):
+    optimizer = opts.get("optimizer")
+    if not optimizer:
+        return _maybe_random_runner(op, flags, opts)
+    opts = _filter_kw(opts, ["optimizer"])
+    return Batch(_init_gen_trials(optimizer), op, flags, opts)
+
+def _filter_kw(opts, keys):
+    return {
+        k: v for k, v in opts.items()
+        if k not in keys
+    }
+
+def _maybe_random_runner(op, flags, opts):
+    assert not opts.get("optimizer"), opts
+    for val in flags.values():
+        if isinstance(val, RangeFunction):
+            return Batch(_init_gen_trials("random"), op, flags, opts)
+    return None
+
+def _init_gen_trials(optimizer):
+    model_op, _name = model_proxy.resolve_plugin_model_op(optimizer)
+    return optimizer_trial_generator(model_op)
+
+def _batch_runner(op, flags, opts):
     for val in flags.values():
         if isinstance(val, list):
-            return Batch(op, flags, opts)
+            return Batch(batch_gen_trials, op, flags, opts)
     return None
+
+def _single_runner(op, flags, opts):
+    return lambda: _run(op, flags, opts)
 
 def _run(op, flags, opts):
     run = _init_run()

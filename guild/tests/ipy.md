@@ -348,3 +348,90 @@ And op return values:
 
     >>> results
     [None, None, None, None]
+
+## Random search
+
+Random search uses randomly generated flag values when running
+trials. A random search can be performed in various ways:
+
+- Explicitly specify "random" as the `_optimizer` run option
+- Specify a slice object for one or more flag values when `_optimizer`
+  is not specified
+
+Let's run three trials using "random" optimizer. First, clear existing
+runs.
+
+    >>> with guild_home:
+    ...     len(ipy.runs().delete())
+    4
+
+Run three trials selecting random values for `a` over the range `-10`
+to `10` and the value `12` for `b`. Use fixed random seed to let us
+assert the generated values.
+
+    >>> with guild_home:
+    ...     runs, _ = ipy.run(op1, a=slice(0, 5), b=12,
+    ...                       _max_trials=3, _random_seed=1)
+    Running op1 (a=3, b=12):
+    x: 15
+    y: -9
+    z: 9
+    Running op1 (a=1, b=12):
+    x: 13
+    y: -11
+    z: 11
+    Running op1 (a=0, b=12):
+    x: 12
+    y: -12
+    z: 12
+
+    >>> len(runs)
+    3
+
+    >>> pprint(runs[0].get("flags"))
+    {'a': 3, 'b': 12}
+
+    >>> pprint(runs[1].get("flags"))
+    {'a': 1, 'b': 12}
+
+    >>> pprint(runs[2].get("flags"))
+    {'a': 0, 'b': 12}
+
+We can alternatively use a range function, which indicates the type of
+distribution to sample from.
+
+    >>> with guild_home:
+    ...     _ = ipy.run(op1, a=ipy.uniform(0, 5), b=12,
+    ...                 _max_trials=3, _random_seed=1)
+    Running op1 (a=3, b=12):
+    x: 15
+    y: -9
+    z: 9
+    Running op1 (a=1, b=12):
+    x: 13
+    y: -11
+    z: 11
+    Running op1 (a=0, b=12):
+    x: 12
+    y: -12
+    z: 12
+
+Finally, we can specify an explicit optimizer:
+
+    >>> with guild_home:
+    ...     _ = ipy.run(op1, a=slice(0, 5), b=12,
+    ...                 _optimizer="random",
+    ...                 _max_trials=3,
+    ...                 _random_seed=1)
+    Running op1 (a=3, b=12):
+    x: 15
+    y: -9
+    z: 9
+    Running op1 (a=1, b=12):
+    x: 13
+    y: -11
+    z: 11
+    Running op1 (a=0, b=12):
+    x: 12
+    y: -12
+    z: 12

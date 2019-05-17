@@ -72,9 +72,9 @@ def resolve_model_op(opspec):
     if opspec == "+":
         model = BatchModelProxy()
         return model, model.op_name
-    return _resolve_plugin_model_op(opspec)
+    return resolve_plugin_model_op(opspec)
 
-def _resolve_plugin_model_op(opspec):
+def resolve_plugin_model_op(opspec):
     for name, plugin in _plugins_by_resolve_model_op_priority():
         log.debug("resolving model op for %r with plugin %r", opspec, name)
         model_op = plugin.resolve_model_op(opspec)

@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import warnings
 
 from guild import batch_util
@@ -22,11 +23,17 @@ from guild import op_util
 
 from . import skopt_util
 
+log = logging.getLogger("guild")
+
 DEFAULT_TRIALS = 20
 
-def _gen_trials(flags, batch):
-    num_trials = batch.max_trials or DEFAULT_TRIALS
-    random_seed = batch.random_seed
+def _gen_batch_trials(flags, batch):
+    return gen_trials(flags, batch.max_trials, batch.random_seed)
+
+def gen_trials(flags, max_trials=None, random_seed=None, **kw):
+    if kw:
+        log.warning("ignoring configuration %s", kw)
+    num_trials = max_trials or DEFAULT_TRIALS
     flag_names, dims, _initials = skopt_util.flag_dims(flags)
     trial_vals = _gen_trial_vals(dims, num_trials, random_seed)
     return [
@@ -79,4 +86,4 @@ def _patch_numpy_deprecation_warnings():
 
 if __name__ == "__main__":
     _patch_numpy_deprecation_warnings()
-    batch_util.default_main(_gen_trials)
+    batch_util.default_main(_gen_batch_trials)
