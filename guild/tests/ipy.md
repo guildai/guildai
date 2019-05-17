@@ -416,7 +416,7 @@ distribution to sample from.
     y: -12
     z: 12
 
-Finally, we can specify an explicit optimizer:
+Finally, we can specify an explicit "random" optimizer:
 
     >>> with guild_home:
     ...     _ = ipy.run(op1, a=slice(0, 5), b=12,
@@ -435,3 +435,24 @@ Finally, we can specify an explicit optimizer:
     x: 12
     y: -12
     z: 12
+
+## Hyperparameter optimization
+
+Guild `ipy` supports other optimizers including "gp", "forest", and
+"gbrt".
+
+Let's clear our runs first:
+
+    >>> with guild_home:
+    ...     len(ipy.runs().delete())
+    9
+
+Run `op1` for three runs using the "gp" optimizer to minimize scalar
+`x` where both `a` and `b` are selected from uniform distributions.
+
+    >>> with guild_home:
+    ...     ipy.run(op1, a=slice(-10,10), b=slice(-5, 5),
+    ...             _optimizer="gp",
+    ...             _minimize="x",
+    ...             _max_trials=3,
+    ...             _random_seed=1)

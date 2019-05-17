@@ -41,42 +41,6 @@ class State(object):
          self.loss_desc) = _init_run_loss_fun(self.batch, self.run_index)
         self.random_state = batch.random_seed
 
-    def previous_trials(self, trial_run_id):
-        other_trial_runs = self._previous_trial_run_candidates(trial_run_id)
-        if not other_trial_runs:
-            return []
-        trials = []
-        self.run_index.refresh(other_trial_runs, ["scalar"])
-        for run in other_trial_runs:
-            loss = self._run_loss(run)
-            if loss is None:
-                raise batch_util.BatchError(
-                    "could not get %r for run %s, quitting" %
-                    (self.loss_desc, run.id))
-            self._try_apply_previous_trial(run, self.flag_names, loss, trials)
-        return trials
-
-    def _previous_trial_run_candidates(self, cur_trial_run_id):
-        return [
-            run
-            for run in self.batch.seq_trial_runs(status="completed")
-            if run.id != cur_trial_run_id
-        ]
-
-    @staticmethod
-    def _try_apply_previous_trial(run, flag_names, loss, trials):
-        run_flags = run.get("flags", {})
-        try:
-            trial = {
-                name: run_flags[name]
-                for name in flag_names
-            }
-        except KeyError:
-            pass
-        else:
-            trial["__loss__"] = loss
-            trials.append(trial)
-
     def minimize_inputs(self, trial_run_id):
         """Returns random_starts, x0, y0 and dims given a host of inputs.
 
@@ -91,22 +55,41 @@ class State(object):
         If there are no previous trials, the dimensions are altered to
         include initial values and a random start is returned.
         """
-        previous_trials = self.previous_trials(trial_run_id)
+        prev_trials = self.previous_trials(trial_run_id)
         log.info(
             "Found %i previous trial(s) for use in optimization",
-            len(previous_trials))
-        if self.batch_flags["random-starts"] > len(previous_trials):
+            len(prev_trials))
+        if self.batch_flags["random-starts"] > len(prev_trials):
             # Next run should use randomly generated values.
             return 1, None, None, self.flag_dims
-        x0, y0 = self._split_previous_trials(previous_trials)
+        x0, y0 = self._split_prev_trials(prev_trials)
         if not x0:
             # No previous trials - use initial value if provided or
             # random start.
             return 1, None, None, self._flag_dims_with_initial()
         return 0, x0, y0, self.flag_dims
 
-    def _split_previous_trials(self, trials):
-        """Splits trials into x0 and y0 based on flag names."""
+    def previous_trials(self, trial_run_id):
+        other_trial_runs = _prev_trial_candidates(self.batch, trial_run_id)
+        if not other_trial_runs:
+            return []
+        trials = []
+        self.run_index.refresh(other_trial_runs, ["scalar"])
+        for run in other_trial_runs:
+            loss = self._run_loss(run)
+            if loss is None:
+                raise batch_util.BatchError(
+                    "could not get %r for run %s, quitting" %
+                    (self.loss_desc, run.id))
+            _try_append_prev_trial(run, self.flag_names, loss, trials)
+        return trials
+
+    def _split_prev_trials(self, trials):
+        """Splits trials into x0 and y0.
+
+        y0 is represented by the magic flag value `__loss__`, which is
+        added to the trial prior to this split.
+        """
         x0 = [[trial[name] for name in self.flag_names] for trial in trials]
         y0 = [trial["__loss__"] for trial in trials]
         return x0, y0
@@ -163,6 +146,25 @@ def _objective_colspec(batch):
     raise batch_util.BatchError(
         "unsupported objective type %r"
         % objective)
+
+def _prev_trial_candidates(batch, cur_trial_run_id):
+    return [
+        run for run in batch.seq_trial_runs(status="completed")
+        if run.id != cur_trial_run_id
+    ]
+
+def _try_append_prev_trial(run, flag_names, loss, trials):
+    run_flags = run.get("flags", {})
+    try:
+        trial = {
+            name: run_flags[name]
+            for name in flag_names
+        }
+    except KeyError:
+        pass
+    else:
+        trial["__loss__"] = loss
+        trials.append(trial)
 
 def trial_flags(flag_names, flag_vals):
     return dict(zip(flag_names, _native_python(flag_vals)))

@@ -15,7 +15,11 @@
 from __future__ import absolute_import
 from __future__ import division
 
+from . import skopt_ipy
 from . import skopt_util
+
+def gen_trials(flags, **kw):
+    return skopt_ipy.gen_trials(_init_trial, flags, **kw)
 
 def _init_trial(trial, state):
     import skopt
