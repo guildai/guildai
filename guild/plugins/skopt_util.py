@@ -38,51 +38,8 @@ class State(object):
          self.initials) = flag_dims(proto_flags)
         self.run_index = index2.RunIndex()
         (self._run_loss,
-         self.loss_desc) = self._init_run_loss_fun(batch)
+         self.loss_desc) = _init_run_loss_fun(self.batch, self.run_index)
         self.random_state = batch.random_seed
-
-    def _init_run_loss_fun(self, batch):
-        negate, col = self._init_objective(batch)
-        prefix, tag = col.split_key()
-        def f(run):
-            loss = self.run_index.run_scalar(
-                run, prefix, tag, col.qualifier, col.step)
-            if loss is None:
-                return loss
-            return loss * negate
-        return f, str(col)
-
-    def _init_objective(self, batch):
-        negate, colspec = self._objective_colspec(batch)
-        try:
-            cols = query.parse_colspec(colspec).cols
-        except query.ParseError as e:
-            raise batch_util.BatchError(
-                "cannot parse objective %r: %s" % (colspec, e))
-        else:
-            if len(cols) > 1:
-                raise batch_util.BatchError(
-                    "invalid objective %r: only one column may "
-                    "be specified" % colspec)
-            return negate, cols[0]
-
-    @staticmethod
-    def _objective_colspec(batch):
-        objective = batch.proto_run.get("objective")
-        if not objective:
-            return 1, "loss"
-        elif isinstance(objective, six.string_types):
-            return 1, objective
-        elif isinstance(objective, dict):
-            minimize = objective.get("minimize")
-            if minimize:
-                return 1, minimize
-            maximize = objective.get("maximize")
-            if maximize:
-                return -1, maximize
-        raise batch_util.BatchError(
-            "unsupported objective type %r"
-            % objective)
 
     def previous_trials(self, trial_run_id):
         other_trial_runs = self._previous_trial_run_candidates(trial_run_id)
@@ -164,6 +121,48 @@ class State(object):
             dim if initial is None else [initial]
             for dim, initial in zip(self.flag_dims, self.initials)
         ]
+
+def _init_run_loss_fun(batch, run_index):
+    negate, col = _init_objective(batch)
+    prefix, tag = col.split_key()
+    def f(run):
+        loss = run_index.run_scalar(
+            run, prefix, tag, col.qualifier, col.step)
+        if loss is None:
+            return loss
+        return loss * negate
+    return f, str(col)
+
+def _init_objective(batch):
+    negate, colspec = _objective_colspec(batch)
+    try:
+        cols = query.parse_colspec(colspec).cols
+    except query.ParseError as e:
+        raise batch_util.BatchError(
+            "cannot parse objective %r: %s" % (colspec, e))
+    else:
+        if len(cols) > 1:
+            raise batch_util.BatchError(
+                "invalid objective %r: only one column may "
+                "be specified" % colspec)
+        return negate, cols[0]
+
+def _objective_colspec(batch):
+    objective = batch.proto_run.get("objective")
+    if not objective:
+        return 1, "loss"
+    elif isinstance(objective, six.string_types):
+        return 1, objective
+    elif isinstance(objective, dict):
+        minimize = objective.get("minimize")
+        if minimize:
+            return 1, minimize
+        maximize = objective.get("maximize")
+        if maximize:
+            return -1, maximize
+    raise batch_util.BatchError(
+        "unsupported objective type %r"
+        % objective)
 
 def trial_flags(flag_names, flag_vals):
     return dict(zip(flag_names, _native_python(flag_vals)))
