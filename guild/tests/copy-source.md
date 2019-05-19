@@ -154,12 +154,14 @@ large file and many smaller files:
 
 A large file:
 
-    >>> open(path(project_dir, "big.txt"), "w").write("0" * (1024 * 1024 + 1))
+    >>> f = open(path(project_dir, "big.txt"), "w")
+    >>> _witten = f.write("0" * (1024 * 1024 + 1))
 
 Many small files:
 
     >>> for i in range(110):
-    ...     open(path(project_dir, "small-%0.3i.txt" % (i + 1)), "w").write("")
+    ...     f = open(path(project_dir, "small-%0.3i.txt" % (i + 1)), "w")
+    ...     _written = f.write("")
 
 Our file project files:
 
