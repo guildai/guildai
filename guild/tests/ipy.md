@@ -13,9 +13,14 @@ Create a Guild home for our tests:
 Define a simple function to run:
 
     >>> def hello(msg, n=3):
-    ...     import sys
     ...     for i in range(n):
-    ...         sys.stdout.write("%s %i!\n" % (msg, i + 1))
+    ...         print("%s %i!" % (msg, i + 1))
+
+For displaying Pandas dataframes, which are used by `ipy` for tabular
+data, we want to control the formatting for consistency across tests.
+
+    >>> import pandas as pd
+    >>> pd.set_option("display.expand_frame_repr", False)
 
 ## Running an operation
 
@@ -222,18 +227,18 @@ Read the scalars:
     ...     scalars = ipy.runs().scalars()
 
     >>> scalars
-       avg_val  count  first_step  ...  run  tag  total
-    0      3.0      1           0  ...  ...    x    3.0
-    1     -1.0      1           0  ...  ...    y   -1.0
-    2      1.0      1           0  ...  ...    z    1.0
-    <BLANKLINE>
-    [3 rows x 14 columns]
+       avg_val  count  first_step  first_val  last_step  last_val  max_step  max_val  min_step  min_val prefix  run tag  total
+    0      3.0      1           0        3.0          0       3.0         0      3.0         0      3.0         ...   x    3.0
+    1     -1.0      1           0       -1.0          0      -1.0         0     -1.0         0     -1.0         ...   y   -1.0
+    2      1.0      1           0        1.0          0       1.0         0      1.0         0      1.0         ...   z    1.0
 
-    >>> scalars[["run", "last_step", "last_val"]]
-       run  last_step  last_val
-    0  ...          0       3.0
-    1  ...          0      -1.0
-    2  ...          0       1.0
+Print some of the more interesting columns:
+
+    >>> scalars[["run", "tag", "last_step", "last_val"]]
+       run tag  last_step  last_val
+    0  ...   x          0       3.0
+    1  ...   y          0      -1.0
+    2  ...   z          0       1.0
 
 ### Logging scalars as TFEvents
 
@@ -292,16 +297,12 @@ The `compare()` function can be applied to a list of runs to return a
 data frame that has both flags and scalars.
 
     >>> with guild_home:
-    ...     runs = ipy.runs()
-
-    >>> compare = runs.compare()
+    ...     compare = ipy.runs().compare()
 
     >>> compare
-       run operation started     time  ... step    x    y    z
-    0  ...     op2()     ...  0:00:00  ...    3  3.0  NaN  NaN
-    1  ...     op1()     ...  0:00:00  ...    0  3.0 -1.0  1.0
-    <BLANKLINE>
-    [2 rows x 13 columns]
+       run operation started     time     status label    a    b    c  step    x    y    z
+    0  ...     op2()     ...  0:00:00  completed        1.0  NaN  0.0     3  3.0  NaN  NaN
+    1  ...     op1()     ...  0:00:00  completed        1.0  2.0  NaN     0  3.0 -1.0  1.0
 
 ## Grid search
 
