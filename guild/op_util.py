@@ -542,14 +542,20 @@ def _source_to_copy(src_dir, source_config, opdef):
             if _to_copy(path, rel_path, source_config, opdef):
                 log.debug("seleted source file %s", path)
                 to_copy.append((path, rel_path))
+    # Order matters - sort before pruning to have deterministic
+    # result.
     to_copy.sort()
-    _maybe_prune_source_to_copy(to_copy, source_config, opdef)
+    _maybe_prune_source_to_copy(source_config, to_copy, opdef)
     return to_copy
 
-def _maybe_prune_source_to_copy(to_copy, source_config, opdef):
-    if not any(source_config) and len(to_copy) > MAX_DEFAULT_SOURCE_COUNT:
+def _maybe_prune_source_to_copy(source_config, to_copy, opdef):
+    if (_undefined_source_config(source_config) and
+        len(to_copy) > MAX_DEFAULT_SOURCE_COUNT):
         _warn_source_to_copy_prune(to_copy, opdef)
         del to_copy[MAX_DEFAULT_SOURCE_COUNT:]
+
+def _undefined_source_config(source_config):
+    return not any((len(cfg.specs) > 0 for cfg in source_config))
 
 def _warn_source_to_copy_prune(to_copy, opdef):
     log.warning(

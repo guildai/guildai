@@ -1179,9 +1179,6 @@ class SourceDef(object):
             raise GuildfileError(gf, "invalid source def: %r" % data)
         self.specs = [SourceSpec(item, gf) for item in data]
 
-    def __nonzero__(self):
-        return len(self.specs) > 0
-
 class SourceSpec(object):
 
     def __init__(self, data, gf):
