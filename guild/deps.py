@@ -131,7 +131,7 @@ def _split_rename_spec(spec):
 
 def _symlink(source_path, link):
     assert os.path.isabs(link), link
-    if os.path.exists(link):
+    if os.path.lexists(link) or os.path.exists(link):
         log.warning("%s already exists, skipping link", link)
         return
     util.ensure_dir(os.path.dirname(link))
@@ -141,7 +141,8 @@ def _symlink(source_path, link):
 
 def _rel_source_path(source, link):
     source_dir, source_name = os.path.split(source)
-    link_dir = os.path.dirname(link)
+    real_link = os.path.realpath(link)
+    link_dir = os.path.dirname(real_link)
     source_rel_dir = os.path.relpath(source_dir, link_dir)
     return os.path.join(source_rel_dir, source_name)
 

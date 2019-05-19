@@ -112,7 +112,7 @@ Let's run `a/model:test`.
     >>> a_test_run_dir = mkdtemp()
 
     >>> output = gapi.run_capture_output(
-    ...   spec="model:test",
+    ...   "model:test",
     ...   cwd=join_path(projects, "a"),
     ...   run_dir=a_test_run_dir)
     >>> print(output)
@@ -129,7 +129,7 @@ Next we'll run `b/model:test`:
 
     >>> try:
     ...   output = gapi.run_capture_output(
-    ...     spec="model:test",
+    ...     "model:test",
     ...     cwd=join_path(projects, "b"),
     ...     run_dir=b_test_run_dir)
     ... except gapi.RunError as e:
@@ -149,7 +149,7 @@ Let's re-run the operation and include our projects directory in the
 system path:
 
     >>> output = gapi.run_capture_output(
-    ...   spec="model:test",
+    ...   "model:test",
     ...   cwd=join_path(projects, "b"),
     ...   run_dir=b_test_run_dir,
     ...   extra_env={"PYTHONPATH": ".."})
@@ -167,7 +167,7 @@ Next we'll run `c/model:test`:
     >>> c_test_run_dir = mkdtemp()
 
     >>> output = gapi.run_capture_output(
-    ...   spec="model:test",
+    ...   "model:test",
     ...   cwd=join_path(projects, "c"),
     ...   run_dir=c_test_run_dir,
     ...   extra_env={"PYTHONPATH": ".."})
