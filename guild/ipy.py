@@ -69,10 +69,10 @@ class OutputTee(object):
         self._fs = fs
         self._lock = lock
 
-    def write(self, b):
+    def write(self, s):
         with self._lock:
             for f in self._fs:
-                f.write(b)
+                f.write(s)
 
 class RunOutput(object):
 
@@ -85,7 +85,7 @@ class RunOutput(object):
         self._stderr = None
 
     def __enter__(self):
-        self._f = open(self.run.guild_path("output"), "wb")
+        self._f = open(self.run.guild_path("output"), "w")
         self._f_lock = threading.Lock()
         self._stdout = sys.stdout
         sys.stdout = OutputTee(self._tee_fs(sys.stdout), self._f_lock)
