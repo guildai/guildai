@@ -38,7 +38,7 @@ Let's initialize logging with the default settings:
 
 Debug is not logged by default:
 
-    >>> log_capture = LogCapture()
+    >>> log_capture = LogCapture(use_root_handler=True)
     >>> with log_capture:
     ...   log_sample_messages()
     >>> log_capture.print_all()

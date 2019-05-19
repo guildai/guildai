@@ -329,8 +329,9 @@ def _top_level_dir(path):
 
 class LogCapture(object):
 
-    def __init__(self):
+    def __init__(self, use_root_handler=False):
         self._records = []
+        self._use_root_handler = use_root_handler
 
     def __enter__(self):
         for logger in self._iter_loggers():
@@ -353,9 +354,15 @@ class LogCapture(object):
         self._records.append(record)
 
     def print_all(self):
-        format = logging.root.handlers[0].format
+        handler = self._handler()
         for r in self._records:
-            print(format(r))
+            print(handler.format(r))
+
+    def _handler(self):
+        if self._use_root_handler:
+            return logging.root.handlers[0]
+        from guild import log
+        return log.ConsoleLogHandler()
 
     def get_all(self):
         return self._records
