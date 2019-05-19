@@ -36,6 +36,7 @@ Requires-Dist: cryptography
 Requires-Dist: daemonize
 Requires-Dist: jinja2
 Requires-Dist: numpy>=1.16
+Requires-Dist: pandas
 Requires-Dist: pip
 Requires-Dist: pyopenssl
 Requires-Dist: python-dateutil

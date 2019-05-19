@@ -11,6 +11,7 @@ cryptography>=2.1.4
 daemonize>=2.4.7
 jinja2>=2.10
 numpy>=1.16
+pandas>=0.24.2
 pip>=9.0
 pyopenssl>=19.0.0
 python-dateutil>=2.6.1
