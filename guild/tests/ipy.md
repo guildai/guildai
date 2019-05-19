@@ -397,12 +397,19 @@ assert the generated values.
     >>> pprint(runs[2].get("flags"))
     {'a': 0, 'b': 12}
 
+Randomly generated runs have the label "random" by default:
+
+    >>> [runs[i].get("label") for i in range(3)]
+    ['random', 'random', 'random']
+
 We can alternatively use a range function, which indicates the type of
-distribution to sample from.
+distribution to sample from. We also specify a label.
 
     >>> with guild_home:
-    ...     _ = ipy.run(op1, a=ipy.uniform(0, 5), b=12,
-    ...                 _max_trials=3, _random_seed=1)
+    ...     runs, _ = ipy.run(op1, a=ipy.uniform(0, 5), b=12,
+    ...                       _label="random-2",
+    ...                       _max_trials=3,
+    ...                       _random_seed=1)
     Running op1 (a=3, b=12):
     x: 15
     y: -9
@@ -415,14 +422,20 @@ distribution to sample from.
     x: 12
     y: -12
     z: 12
+
+The specified label is used for each run:
+
+    >>> [runs[i].get("label") for i in range(3)]
+    ['random-2', 'random-2', 'random-2']
 
 Finally, we can specify an explicit "random" optimizer:
 
     >>> with guild_home:
-    ...     _ = ipy.run(op1, a=slice(0, 5), b=12,
-    ...                 _optimizer="random",
-    ...                 _max_trials=3,
-    ...                 _random_seed=1)
+    ...     runs, _ = ipy.run(op1, a=slice(0, 5), b=12,
+    ...                      _optimizer="random",
+    ...                      _label="random-3",
+    ...                      _max_trials=3,
+    ...                      _random_seed=1)
     Running op1 (a=3, b=12):
     x: 15
     y: -9
@@ -435,6 +448,9 @@ Finally, we can specify an explicit "random" optimizer:
     x: 12
     y: -12
     z: 12
+
+    >>> [runs[i].get("label") for i in range(3)]
+    ['random-3', 'random-3', 'random-3']
 
 ## Hyperparameter optimization
 
@@ -450,9 +466,96 @@ Let's clear our runs first:
 Run `op1` for three runs using the "gp" optimizer to minimize scalar
 `x` where both `a` and `b` are selected from uniform distributions.
 
+This operation logs progress, so we capture logs.
+
     >>> with guild_home:
-    ...     ipy.run(op1, a=slice(-10,10), b=slice(-5, 5),
-    ...             _optimizer="gp",
-    ...             _minimize="x",
-    ...             _max_trials=3,
-    ...             _random_seed=1)
+    ...     with LogCapture() as logs:
+    ...         runs, _ = ipy.run(op1, a=slice(-10,10), b=slice(-5, 5),
+    ...                 _optimizer="gp",
+    ...                 _minimize="x",
+    ...                 _max_trials=3,
+    ...                 _random_seed=1)
+    Running op1 (a=10, b=4):
+    x: 14
+    y: 6
+    z: -6
+    Running op1 (a=-10, b=-5):
+    x: -15
+    y: -5
+    z: 5
+    Running op1 (a=-9, b=-5):
+    x: -14
+    y: -4
+    z: 4
+
+    >>> logs.print_all()
+    Found 0 previous trial(s) for use in optimization
+    Found 1 previous trial(s) for use in optimization
+    Found 2 previous trial(s) for use in optimization
+
+    >>> len(runs)
+    3
+
+By default, the label for generated trials is the name of the
+optimizer:
+
+    >>> [runs[i].get("label") for i in range(3)]
+    ['gp', 'gp', 'gp']
+
+### Other optimizers
+
+Random forest:
+
+    >>> with guild_home:
+    ...     with LogCapture() as logs:
+    ...         runs, _ = ipy.run(op1, a=slice(-10,10), b=slice(-5, 5),
+    ...                 _optimizer="forest",
+    ...                 _minimize="x",
+    ...                 _max_trials=3,
+    ...                 _random_seed=1)
+    Running op1 (a=1, b=3):
+    x: 4
+    y: -2
+    z: 2
+    Running op1 (a=8, b=5):
+    x: 13
+    y: 3
+    z: -3
+    Running op1 (a=-10, b=1):
+    x: -9
+    y: -11
+    z: 11
+
+    >>> [runs[i].get("label") for i in range(3)]
+    ['forest', 'forest', 'forest']
+
+Gradient boosted regression trees:
+
+    >>> with guild_home:
+    ...     with LogCapture() as logs:
+    ...         runs, _ = ipy.run(op1, a=slice(-10,10), b=slice(-5, 5),
+    ...                 _optimizer="gbrt",
+    ...                 _minimize="x",
+    ...                 _max_trials=3,
+    ...                 _random_seed=1)
+    Running op1 (a=-5, b=3):
+    x: -2
+    y: -8
+    z: 8
+    Running op1 (a=-2, b=-1):
+    x: -3
+    y: -1
+    z: 1
+    Running op1 (a=8, b=-2):
+    x: 6
+    y: 10
+    z: -10
+
+    >>> [runs[i].get("label") for i in range(3)]
+    ['gbrt', 'gbrt', 'gbrt']
+
+Unsupported optimizer:
+
+    >>> ipy.run(op1, a=1, b=2, _optimizer="not supported")
+    Traceback (most recent call last):
+    TypeError: optimizer 'not supported' is not supported

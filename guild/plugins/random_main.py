@@ -27,19 +27,25 @@ log = logging.getLogger("guild")
 
 DEFAULT_TRIALS = 20
 
-def _gen_batch_trials(flags, batch):
-    return gen_trials(flags, batch.max_trials, batch.random_seed)
-
-def gen_trials(flags, max_trials=None, random_seed=None, **kw):
+def gen_trials(flags, _runs, max_trials=None, random_seed=None,
+               label=None, **kw):
+    """Public interface for ipy."""
     if kw:
         log.warning("ignoring configuration %s", kw)
     num_trials = max_trials or DEFAULT_TRIALS
     flag_names, dims, _initials = skopt_util.flag_dims(flags)
     trial_vals = _gen_trial_vals(dims, num_trials, random_seed)
+    trial_opts = {
+        "label": label or "random"
+    }
     return [
-        skopt_util.trial_flags(flag_names, flag_vals)
+        (skopt_util.trial_flags(flag_names, flag_vals), trial_opts)
         for flag_vals in trial_vals
     ]
+
+def _gen_batch_trials(flags, batch):
+    trials = gen_trials(flags, None, batch.max_trials, batch.random_seed)
+    return [t[0] for t in trials]
 
 def _flag_dims(flags):
     dims = {

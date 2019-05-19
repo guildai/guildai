@@ -76,9 +76,9 @@ class OutputTee(object):
 
 class RunOutput(object):
 
-    def __init__(self, run, cb=None):
+    def __init__(self, run, summary=None):
         self.run = run
-        self.cb = cb
+        self.summary = summary
         self._f = None
         self._f_lock = None
         self._stdout = None
@@ -94,13 +94,15 @@ class RunOutput(object):
 
     def _tee_fs(self, iof):
         fs = [iof, self._f]
-        if self.cb:
-            fs.append(self.cb)
+        if self.summary:
+            fs.append(self.summary)
         return fs
 
     def __exit__(self, *exc):
         with self._f_lock:
             self._f.close()
+        if self.summary:
+            self.summary.close()
         sys.stdout = self._stdout
         sys.stderr = self._stderr
 
@@ -197,11 +199,12 @@ class Batch(object):
     def __call__(self):
         runs = []
         results = []
-        for trial_flags in self.gen_trials(self.flags, **self.opts):
+        trials = self.gen_trials(self.flags, runs, **self.opts)
+        for trial_flags, trial_opts in trials:
             print(
                 "Running %s (%s):"
                 % (self.op.__name__, _format_flags(trial_flags)))
-            run, result = _run(self.op, trial_flags, self.opts)
+            run, result = _run(self.op, trial_flags, trial_opts)
             runs.append(run)
             results.append(result)
         return runs, results
@@ -227,20 +230,28 @@ class RangeFunction(object):
         args = ":".join([str(arg) for arg in self.args])
         return "%s[%s]" % (self.name, args)
 
-def batch_gen_trials(flags, max_trials=None, **kw):
+def batch_gen_trials(flags, max_trials=None, label=None, **kw):
     if kw:
         log.warning("ignoring batch config: %s", kw)
     max_trials = max_trials or DEFAULT_MAX_TRIALS
     trials = 0
+    trial_opts = {
+        "label": label
+    }
     for trial_flags in batch_main.gen_trials(flags):
         if trials >= max_trials:
             return
         trials += 1
-        yield trial_flags
+        yield trial_flags, trial_opts
 
 def optimizer_trial_generator(model_op):
     main_mod = importlib.import_module(model_op.module_name)
-    return main_mod.gen_trials
+    try:
+        return main_mod.gen_trials
+    except AttributeError:
+        raise TypeError(
+            "%s optimizer module does not implement gen_trials"
+            % main_mod.__name__)
 
 def uniform(low, high):
     return RangeFunction("uniform", low, high)
@@ -308,8 +319,12 @@ def _maybe_random_runner(op, flags, opts):
     return None
 
 def _init_gen_trials(optimizer):
-    model_op, _name = model_proxy.resolve_plugin_model_op(optimizer)
-    return optimizer_trial_generator(model_op)
+    try:
+        model_op, _name = model_proxy.resolve_plugin_model_op(optimizer)
+    except model_proxy.NotSupported:
+        raise TypeError("optimizer %r is not supported" % optimizer)
+    else:
+        return optimizer_trial_generator(model_op)
 
 def _batch_runner(op, flags, opts):
     for val in flags.values():

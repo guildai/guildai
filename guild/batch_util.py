@@ -80,7 +80,7 @@ class Trial(object):
             run.write_attr("initialized", runlib.timestamp())
             for name, val in self.attrs.items():
                 run.write_attr(name, val)
-            assert isinstance(self.flags, dict)
+            assert isinstance(self.flags, dict), self.flags
             run.write_attr("flags", self.flags)
             if "label" not in self.attrs:
                 run.write_attr("label", self.init_label())

@@ -18,8 +18,20 @@ from __future__ import division
 from . import skopt_ipy
 from . import skopt_util
 
-def gen_trials(flags, **kw):
-    return skopt_ipy.gen_trials(_init_trial, flags, **kw)
+def gen_trials(flags, runs, random_starts=0, acq_func="gp_hedge",
+               kappa=1.96, xi=0.01, noise="gaussian", label=None,
+               **kw):
+    batch_flags = {
+        "random-starts": random_starts,
+        "acq-func": acq_func,
+        "kappa": kappa,
+        "xi": xi,
+        "noise": noise,
+    }
+    label = label or "gp"
+    return skopt_ipy.gen_trials(
+        _init_trial, runs, flags, batch_flags,
+        label=label, **kw)
 
 def _init_trial(trial, state):
     import skopt
