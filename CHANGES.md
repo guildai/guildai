@@ -3,7 +3,14 @@
 ## 0.6.3
 
 - Early release support for publishing runs
-- Early release Notebook support
+- Early release Notebook support (`guild.ipy` module)
+- Renamed `source` to `snapshot-source` to disambiguate from resource
+  source config
+- Simplified snapshot source config
+- Safe guards for default source snapshots (can be overridden by
+  adding snapshot-source config)
+  - Skip files larger than 1M
+  - Don't copy more than 100 files
 
 ## 0.6.2
 
@@ -19,8 +26,6 @@
 - Distribution dependency on scikit-optimize
 
 ## 0.6.1
-
-### Enhancements
 
 - Windows support for Python 3.5, 3.6, 3.7
 
