@@ -1,5 +1,10 @@
 # Changes
 
+## 0.6.3
+
+- Early release support for publishing runs
+- Early release Notebook support
+
 ## 0.6.2
 
 - Improved scheme for capturing script output as scalars
