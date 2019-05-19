@@ -61,10 +61,14 @@ Output:
 Run another operation:
 
     >>> with guild_home:
-    ...     ipy.run(hello, msg="Hola", n=2, _label="run2")
+    ...     run2, _ = ipy.run(hello, msg="Hola", n=2, _label="run2")
     Hola 1!
     Hola 2!
-    (<guild.run.Run '...'>, None)
+
+run2 occurs after run:
+
+    >>> run2.timestamp > run.timestamp, run2.timestamp, run.timestamp
+    (True, ...)
 
 ## List runs
 
