@@ -29,6 +29,12 @@ import six
 
 import pandas as pd
 
+# ipy makes use of the full Guild API and so, like main_bootstrap,
+# requires the external modules.
+
+from guild import main_bootstrap
+main_bootstrap.ensure_external_path()
+
 from guild import batch_main
 from guild import config
 from guild import index2 as indexlib

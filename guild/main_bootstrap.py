@@ -42,10 +42,15 @@ import os
 import sys
 
 def main():
-    sys.path.insert(0, _external_libs_path())
+    ensure_external_path()
     _check_requires()
     import guild.main
     guild.main.main()
+
+def ensure_external_path():
+    path = _external_libs_path()
+    if path not in sys.path:
+        sys.path.insert(0, path)
 
 def _external_libs_path():
     guild_pkg_dir = os.path.dirname(__file__)
