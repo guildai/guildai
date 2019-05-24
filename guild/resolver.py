@@ -362,6 +362,7 @@ def _all_dir_files(dir):
 
 def _selected_source_paths(root, paths, select):
     selected = set()
+    paths = sorted(paths)
     for pattern_str, reduce_f in select:
         matches = _match_paths(paths, pattern_str)
         if reduce_f:
@@ -379,7 +380,7 @@ def _match_paths(paths, pattern_str):
         return [m for m in [p.match(path) for path in paths] if m]
 
 def _all_source_paths(root, files):
-    root_names = [path.split("/")[0] for path in files]
+    root_names = [path.split("/")[0] for path in sorted(files)]
     return [
         os.path.join(root, name) for name in set(root_names)
         if not name.startswith(".guild")
