@@ -164,7 +164,7 @@ def _dir_guildfile(dir, ctx):
         else:
             help_suffix = ""
         cli.error(
-            "%s does not contain a model file\n"
+            "%s does not contain a Guild file (guild.yml)\n"
             "Try specifying a project path or package name%s."
             % (cwd_desc(dir), help_suffix))
     except guildfile.GuildfileError as e:
