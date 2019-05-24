@@ -49,7 +49,7 @@ class FileResolver(Resolver):
                 self.resource.config,
                 self.source.resdef.name)
         source_path = self._abs_source_path()
-        if os.path.isdir(source_path):
+        if os.path.isdir(source_path) and not self.source.select:
             resolved = [source_path]
         else:
             resolved = resolve_source_files(
