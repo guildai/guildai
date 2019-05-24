@@ -83,11 +83,11 @@ class Resource(object):
                 "unexpected error resolving '%s' in %s resource: %r"
                 % (source, self.resdef.name, e))
         else:
-            paths = []
+            resolved_paths = []
             for path in source_paths:
-                paths.append(path)
+                resolved_paths.append(path)
                 self._link_to_source(path, source)
-            return paths
+            return resolved_paths
 
     def _link_to_source(self, source_path, source):
         source_path = util.strip_trailing_path(source_path)
