@@ -109,25 +109,16 @@ class Resource(object):
 
 def _rename_source(name, rename):
     for spec in rename:
-        pattern, repl = _split_rename_spec(spec)
         try:
-            renamed = re.sub(pattern, repl, name)
+            renamed = re.sub(spec.pattern, spec.repl, name)
         except Exception as e:
             raise DependencyError(
                 "error renaming source %s (%r %r): %s"
-                % (name, pattern, repl, e))
+                % (name, spec.pattern, spec.repl, e))
         else:
             if renamed != name:
                 return renamed
     return name
-
-def _split_rename_spec(spec):
-    parts = util.shlex_split(spec)
-    if len(parts) != 2:
-        raise DependencyError(
-            "invalid rename spec: %s - expected 'PATTERN REPL'"
-            % spec)
-    return parts
 
 def _symlink(source_path, link):
     assert os.path.isabs(link), link

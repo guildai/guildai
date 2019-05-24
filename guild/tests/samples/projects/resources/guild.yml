@@ -13,13 +13,39 @@
         - file: badhash.txt
           sha256: xxx
         - file: files
-          select: .*\.txt
+        - file: files
+          select: .+\.txt
         - file: doesnt-exist
         - file: test.txt
-          rename: (.+)\.txt \\1.config
+          rename:
+            pattern: (.+)\.txt
+            repl: \1.config
     test2:
       path: foo
       sources:
         - file: test.txt
         - file: files/a.bin
           path: bar
+
+    test3:
+      sources:
+        - file: files
+          # Fully specified rename (map)
+          rename:
+            pattern: files
+            repl: all_files
+        - file: files
+          select: .+\.bin
+          path: bin
+          # Inline rename ('PATTERN REPL' string)
+          rename: \.bin ''
+        - file: archive1.zip
+          select: .+\.txt
+          path: archive1
+          rename:
+            pattern: (.+)\.txt
+            repl: \g<1>2.txt
+        - file: archive2.tar
+          rename:
+            pattern: (.+)
+            repl: archive2_\1

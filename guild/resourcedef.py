@@ -21,8 +21,10 @@ guildfiles and in packages, which are otherwise unrelated.
 from __future__ import absolute_import
 from __future__ import division
 
+import collections
 import copy
 import logging
+import operator
 import pprint
 
 import six
@@ -137,8 +139,8 @@ class ResourceDef(object):
 class ResourceSource(object):
 
     def __init__(self, resdef, uri, name=None, sha256=None, unpack=None,
-                 type=None, select=None, rename=None, help=None,
-                 post_process=None, path=None, **kw):
+                 type=None, select=None, select_min=None, select_max=None,
+                 rename=None, help=None, post_process=None, path=None, **kw):
         self.resdef = resdef
         self.uri = uri
         self._parsed_uri = None
@@ -149,8 +151,9 @@ class ResourceSource(object):
         else:
             self.unpack = resdef.default_unpack
         self.type = type
-        self.select = _coerce_list(select, "source select")
-        self.rename = _coerce_list(rename, "source rename")
+        self.select = _init_resource_source_select(
+             select, select_min, select_max)
+        self.rename = _init_rename(rename)
         self.post_process = post_process
         self.path = path
         self.help = help
@@ -170,6 +173,87 @@ class ResourceSource(object):
 
     def __str__(self):
         return self.uri
+
+SelectSpec = collections.namedtuple(
+    "SelectSpec", [
+        "pattern",
+        "reduce",
+    ])
+
+def _init_resource_source_select(s, s_min, s_max):
+    select = []
+    select.extend([
+        SelectSpec(x, None)
+        for x in _coerce_list(s, "select")])
+    select.extend([
+        SelectSpec(x, _select_reduce_min)
+        for x in _coerce_list(s_min, "select-min")])
+    select.extend([
+        SelectSpec(x, _select_reduce_max)
+        for x in _coerce_list(s_max, "select-max")])
+    return select
+
+def _select_reduce_min(matches):
+    return _select_reduce_op(matches, operator.__lt__)
+
+def _select_reduce_max(matches):
+    return _select_reduce_op(matches, operator.__gt__)
+
+def _select_reduce_op(matches, op):
+    reduced_val = None
+    reduced_m = None
+    for m in matches:
+        try:
+            m_val_str = m.group(1)
+        except IndexError:
+            pass
+        else:
+            try:
+                m_val = float(m_val_str)
+            except ValueError:
+                pass
+            else:
+                if reduced_val is None or op(m_val, reduced_val):
+                    reduced_val = m_val
+                    reduced_m = m
+    if reduced_m:
+        assert reduced_val is not None
+        return [reduced_m]
+    return []
+
+def _init_rename(data):
+    if data is None:
+        return None
+    if not isinstance(data, list):
+        data = [data]
+    return [_init_rename_spec(item) for item in data]
+
+RenameSpec = collections.namedtuple(
+    "RenameSpec", [
+        "pattern",
+        "repl",
+    ])
+
+def _init_rename_spec(data):
+    if isinstance(data, six.string_types):
+        pattern, repl = _split_rename_spec(data)
+        return RenameSpec(pattern, repl)
+    elif isinstance(data, dict):
+        return RenameSpec(
+            data.get("pattern", ""),
+            data.get("repl", ""))
+    else:
+        raise ResourceFormatError(
+            "invalid rename spec %r: expected string or map"
+            % data)
+
+def _split_rename_spec(spec):
+    parts = util.shlex_split(spec)
+    if len(parts) != 2:
+        raise ResourceFormatError(
+            "invalid rename spec %r: expected 'PATTERN REPL'"
+            % spec)
+    return parts
 
 def _coerce_list(val, desc):
     if val is None:

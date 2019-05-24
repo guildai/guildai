@@ -360,15 +360,23 @@ def _all_dir_files(dir):
             all.append(normalized_path)
     return all
 
-def _selected_source_paths(root, files, select):
+def _selected_source_paths(root, paths, select):
     selected = set()
-    patterns = [re.compile(s + "$") for s in select]
-    for path in files:
-        path = util.strip_trailing_path(path)
-        for p in patterns:
-            if p.match(path):
-                selected.add(os.path.join(root, path))
-    return list(selected)
+    for pattern_str, reduce_f in select:
+        matches = _match_paths(paths, pattern_str)
+        if reduce_f:
+            matches = reduce_f(matches)
+        selected.update([os.path.join(root, m.string) for m in matches])
+    return sorted(selected)
+
+def _match_paths(paths, pattern_str):
+    try:
+        p = re.compile(pattern_str + "$")
+    except Exception as e:
+        log.error("error compiling regular expression %r: %s", pattern_str, e)
+        return []
+    else:
+        return [m for m in [p.match(path) for path in paths] if m]
 
 def _all_source_paths(root, files):
     root_names = [path.split("/")[0] for path in files]

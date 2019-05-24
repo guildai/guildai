@@ -197,7 +197,8 @@ Here are the model resources:
 
     >>> res_model.resources
     [<guild.guildfile.ResourceDef 'test'>,
-     <guild.guildfile.ResourceDef 'test2'>]
+     <guild.guildfile.ResourceDef 'test2'>,
+     <guild.guildfile.ResourceDef 'test3'>]
 
 The test resource has the following sources:
 
@@ -208,6 +209,7 @@ The test resource has the following sources:
      <guild.resourcedef.ResourceSource 'file:archive3.tar'>,
      <guild.resourcedef.ResourceSource 'file:test.txt'>,
      <guild.resourcedef.ResourceSource 'file:badhash.txt'>,
+     <guild.resourcedef.ResourceSource 'file:files'>,
      <guild.resourcedef.ResourceSource 'file:files'>,
      <guild.resourcedef.ResourceSource 'file:doesnt-exist'>,
      <guild.resourcedef.ResourceSource 'file:test.txt'>]
@@ -253,7 +255,7 @@ invalid hash.
     '8d172fde27ec89ae0a76832f8ff714e3e498b23d14bac7edfb55e3c4729e3265'
 
     >>> zip_source.select
-    ['a.txt']
+    [SelectSpec(pattern='a.txt', reduce=None)]
 
     >>> resolver = test_resdef.get_source_resolver(zip_source, test_res)
     >>> unpack_dir = mkdtemp()
@@ -370,9 +372,14 @@ extracted file.
 
 ### Directory source file
 
+When a file is a directory and it doesn't specify a `select`
+attribute, just the directory path is resolved:
+
     >>> dir_source = test_resdef.sources[5]
     >>> dir_source.uri
     'file:files'
+    >>> dir_source.select
+    []
 
     >>> resolver = test_resdef.get_source_resolver(dir_source, test_res)
     >>> unpack_dir = mkdtemp()
@@ -382,9 +389,29 @@ extracted file.
     >>> dir(unpack_dir)
     []
 
+When a file is a directory and specifies a `select`, files that are
+selected from the directory are resolved:
+
+    >>> dir_source = test_resdef.sources[6]
+    >>> dir_source.uri
+    'file:files'
+    >>> dir_source.select
+    [SelectSpec(pattern='.+\\.txt', reduce=None)]
+
+    >>> resolver = test_resdef.get_source_resolver(dir_source, test_res)
+    >>> unpack_dir = mkdtemp()
+    >>> sorted(resolver.resolve(unpack_dir))
+    ['.../samples/projects/resources/files/e.txt',
+     '.../samples/projects/resources/files/f.txt']
+
+    >>> dir(unpack_dir)
+    []
+
 ### Non existing source file
 
-    >>> noexist_source = test_resdef.sources[6]
+Non-existing files generate an error when resolved:
+
+    >>> noexist_source = test_resdef.sources[7]
     >>> noexist_source.uri
     'file:doesnt-exist'
 
@@ -401,7 +428,7 @@ extracted file.
 
 The `rename` attribute can be used to rename resolved sources.
 
-    >>> rename_source = test_resdef.sources[7]
+    >>> rename_source = test_resdef.sources[8]
     >>> rename_source.uri
     'file:test.txt'
 
@@ -412,7 +439,7 @@ spaces it must be quoted.
 Here's the rename spec for our source:
 
     >>> rename_source.rename
-    ['(.+)\\.txt \\\\1.config']
+    [RenameSpec(pattern='(.+)\\.txt', repl='\\1.config')]
 
 Resolve doesn't apply renames - it just resolves the source locations.
 
@@ -423,6 +450,132 @@ Resolve doesn't apply renames - it just resolves the source locations.
 
     >>> dir(unpack_dir)
     []
+
+### test3 resource
+
+The `test3` resource contains a more complex rename spec.
+
+    >>> test3_resdef = res_model.get_resource("test3")
+    >>> test3_resdef.sources
+    [<guild.resourcedef.ResourceSource 'file:files'>,
+     <guild.resourcedef.ResourceSource 'file:files'>,
+     <guild.resourcedef.ResourceSource 'file:archive1.zip'>,
+     <guild.resourcedef.ResourceSource 'file:archive2.tar'>]
+
+A resource to resolve sources with:
+
+    >>> test3_res = deps.Resource(test3_resdef, test_location, test_ctx)
+
+### Renamed directory
+
+The first source specifies the `files` directory but renames it to
+`all_files`.
+
+    >>> all_files = test3_resdef.sources[0]
+    >>> all_files
+    <guild.resourcedef.ResourceSource 'file:files'>
+
+    >>> print(all_files.path)
+    None
+
+    >>> all_files.select
+    []
+
+    >>> all_files.rename
+    [RenameSpec(pattern='files', repl='all_files')]
+
+    >>> test_ctx.target_dir = mkdtemp()
+    >>> test3_res.resolve_source(all_files)
+    ['.../samples/projects/resources/files']
+
+    >>> find(test_ctx.target_dir)
+    ['all_files']
+
+### bin files
+
+The second source selects *.bin files from `files` and renames them to
+strip off the `.bin` suffix. The files are additionally stored in a
+`bin` directory (path).
+
+    >>> bin_files = test3_resdef.sources[1]
+    >>> bin_files
+    <guild.resourcedef.ResourceSource 'file:files'>
+
+    >>> print(bin_files.path)
+    bin
+
+    >>> bin_files.select
+    [SelectSpec(pattern='.+\\.bin', reduce=None)]
+
+    >>> bin_files.rename
+    [RenameSpec(pattern='.bin', repl='')]
+
+    >>> test_ctx.target_dir = mkdtemp()
+    >>> test3_res.resolve_source(bin_files)
+    ['.../samples/projects/resources/files/a.bin']
+
+    >>> find(test_ctx.target_dir)
+    ['bin/a']
+
+### archive1 text files
+
+The third source selects text files from `archive1.zip`, stores them
+in an `archive1` directory (path) and adds a `2` to their basename.
+
+    >>> archive1_txt_files = test3_resdef.sources[2]
+    >>> archive1_txt_files
+    <guild.resourcedef.ResourceSource 'file:archive1.zip'>
+
+    >>> print(archive1_txt_files.path)
+    archive1
+
+    >>> archive1_txt_files.select
+    [SelectSpec(pattern='.+\\.txt', reduce=None)]
+
+    >>> archive1_txt_files.rename
+    [RenameSpec(pattern='(.+)\\.txt', repl='\\g<1>2.txt')]
+
+    >>> test_ctx.target_dir = mkdtemp()
+    >>> unpack_dir = mkdtemp()
+    >>> with LogCapture() as logs:
+    ...   test3_res.resolve_source(archive1_txt_files, unpack_dir)
+    ['.../a.txt', '.../b.txt']
+
+    >>> logs.print_all()
+    Unpacking .../samples/projects/resources/archive1.zip
+
+    >>> find(test_ctx.target_dir)
+    ['archive1/a2.txt', 'archive1/b2.txt']
+
+### All archive2 files
+
+The fourth source selects all of the files from `archive2.tar` and
+renames them with an `archive2_` prefix.
+
+    >>> archive2_files = test3_resdef.sources[3]
+    >>> archive2_files
+    <guild.resourcedef.ResourceSource 'file:archive2.tar'>
+
+    >>> print(archive2_files.path)
+    None
+
+    >>> archive2_files.select
+    []
+
+    >>> archive2_files.rename
+    [RenameSpec(pattern='(.+)', repl='archive2_\\1')]
+
+    >>> test_ctx.target_dir = mkdtemp()
+    >>> unpack_dir = mkdtemp()
+    >>> with LogCapture() as logs:
+    ...   test3_res.resolve_source(archive2_files, unpack_dir)
+    ['.../c.txt', '.../d.txt']
+
+    >>> logs.print_all()
+    Unpacking .../samples/projects/resources/archive2.tar
+
+    >>> find(test_ctx.target_dir)
+    ['archive2_c.txt', 'archive2_d.txt']
 
 ## Resolving sources
 
