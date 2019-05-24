@@ -182,8 +182,8 @@ class RunsDataFrame(pd.DataFrame):
     def _items(self):
         return [row[1][0] for row in self.iterrows()]
 
-    def info(self, **kw):
-        self.loc[0].info(**kw)
+    def info(self, *args, **kw):
+        self.loc[0].info(*args, **kw)
 
     def scalars(self):
         return _runs_scalars(self._runs())
