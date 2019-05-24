@@ -65,6 +65,7 @@ tests).
       run-scripts:                 ok
       runs-1:                      ok
       runs-2:                      ok
+      select-resources:            ok
       skopt:                       ok
       skopt-utils:                 ok
       step-checks:                 ok

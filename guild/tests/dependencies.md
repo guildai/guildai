@@ -568,7 +568,8 @@ renames them with an `archive2_` prefix.
     >>> test_ctx.target_dir = mkdtemp()
     >>> unpack_dir = mkdtemp()
     >>> with LogCapture() as logs:
-    ...   test3_res.resolve_source(archive2_files, unpack_dir)
+    ...   resolved = test3_res.resolve_source(archive2_files, unpack_dir)
+    ...   sorted(resolved)
     ['.../c.txt', '.../d.txt']
 
     >>> logs.print_all()
