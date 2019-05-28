@@ -172,8 +172,8 @@ def _apply_run_args(run, args):
 def _is_batch_run(run):
     return os.path.exists(run.guild_path("proto"))
 
-def _apply_batch_run_args(run, args):
-    proto_path = run.guild_path("proto")
+def _apply_batch_run_args(batch_run, args):
+    proto_path = batch_run.guild_path("proto")
     if not os.path.exists(proto_path):
         cli.error(
             "cannot find operation proto in %s"
@@ -181,7 +181,7 @@ def _apply_batch_run_args(run, args):
     proto = runlib.Run("", proto_path)
     _gen_apply_run_args(proto, args)
     if not args.optimizer:
-        args.optimizer = run.opref.to_opspec()
+        args.optimizer = batch_run.opref.to_opspec()
 
 def _gen_apply_run_args(run, args):
     _apply_run_params(run, args)
