@@ -1,5 +1,14 @@
 # Changes
 
+## 0.6.4
+
+- `select-min` and `select-max` patterns for reducing source file
+  selection to a min and max version respectively
+
+### Fixes
+
+- Import error when using `guild.ipy` (missing click module)
+
 ## 0.6.3
 
 - Early release support for publishing runs
