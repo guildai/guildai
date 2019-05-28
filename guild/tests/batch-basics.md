@@ -60,7 +60,7 @@ message, optionally capitalizing it.
     >>> run("say.py", label="default")
     hello
 
-    >>> run("say.py", msg="hi", label="msg=hi")
+    >>> run("say.py", msg="hi", label="${msg}")
     hi
 
     >>> run("say.py", msg="hi", loud=True, label="msg=hi loud=yes")
@@ -70,7 +70,7 @@ And our runs:
 
     >>> project.print_runs(labels=True)
     say.py  msg=hi loud=yes
-    say.py  msg=hi
+    say.py  hi
     say.py  default
 
 Let's delete our runs in preparation for the next section.
@@ -103,8 +103,54 @@ uses the special name `+`.
 The batch operation manages the trial runs. Failed batch operations,
 for example, can be restarted by restarting the associated runs.
 
+By default, trials generated are labeled using the sorted trial flag
+assignments.
+
+    >>> project.print_runs(labels=True)
+    say.py   loud=no msg=hi
+    say.py+
+
+We can override the label when we run a batch:
+
+    >>> run("say.py", msg=["hi 2"], label="sample ${msg}")
+    Initialized trial (loud=no, msg='hi 2')
+    Running trial: say.py (loud=no, msg='hi 2')
+    hi 2
+
+    >>> project.print_runs(labels=True)
+    say.py   sample hi 2
+    say.py+  sample
+    ...
+
+If an operation defines a label, as in the case of `say-with-label`,
+the label is used by default:
+
+    >>> run("say-with-label", msg=["hi 3"])
+    Initialized trial (loud=no, msg='hi 3')
+    Running trial: say-with-label (loud=no, msg='hi 3')
+    hi 3
+
+    >>> project.print_runs(labels=True)
+    say-with-label   msg is 'hi 3'
+    say-with-label+
+    ...
+
+The default label can be overriden:
+
+    >>> run("say-with-label", msg=["hi 4"], label="a test")
+    Initialized trial (loud=no, msg='hi 4')
+    Running trial: say-with-label (loud=no, msg='hi 4')
+    hi 4
+
+    >>> project.print_runs(labels=True)
+    say-with-label   a test
+    say-with-label+
+    ...
+
+Let's delete runs in preparation for the next tests:
+
     >>> project.delete_runs()
-    Deleted 2 run(s)
+    Deleted 8 run(s)
 
 Note that we can preview the trials that will be generated using the
 `print_trials` flag:

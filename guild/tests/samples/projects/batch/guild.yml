@@ -1,3 +1,8 @@
 tune:
   main: tune
   disable-plugins: all
+
+say-with-label:
+  main: say
+  disable-plugins: all
+  label: msg is '${msg}'

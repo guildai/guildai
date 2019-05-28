@@ -166,14 +166,15 @@ class Operation(object):
         self._maybe_write_label(resolved)
 
     def _maybe_write_label(self, resolved):
-        if "label" in self.extra_attrs or not self.opdef.label:
+        label = self.extra_attrs.get("label") or self.opdef.label
+        if not label:
             return
-        label = _format_label(
-            self.opdef.label,
+        formatted = _format_label(
+            label,
             self.flag_vals,
             self.resource_config,
             resolved)
-        self._run.write_attr("label", label)
+        self._run.write_attr("label", formatted)
 
     def proc(self, quiet=False, background_pidfile=None, stop_after=None):
         try:

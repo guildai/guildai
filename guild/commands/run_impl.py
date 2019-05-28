@@ -1211,6 +1211,8 @@ def _flag_vals(row):
 def _write_batch_proto(batch_run, proto_op, batches):
     proto_op.set_run_dir(batch_run.guild_path("proto"))
     proto_op.extra_attrs["run_params"]["optimizer"] = None
+    if "label" not in proto_op.extra_attrs:
+        proto_op.extra_attrs["label"] = proto_op.opdef.label
     proto_op.init()
     if batches:
         proto_op.write_run_attr("batches", batches)

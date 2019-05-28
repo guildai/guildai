@@ -8,6 +8,7 @@
 ### Fixes
 
 - Import error when using `guild.ipy` (missing click module)
+- Cleanup use of labels for batch trials
 
 ## 0.6.3
 

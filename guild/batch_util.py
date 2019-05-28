@@ -88,13 +88,19 @@ class Trial(object):
         return run
 
     def init_label(self):
+        label = self.batch.proto_run.get("label")
+        if label:
+            return util.render_label(label, self.flags)
+        return self._default_label()
+
+    def _default_label(self):
         parts = []
-        opt_desc = self.batch.batch_run.get("label")
-        if not opt_desc:
-            opt_desc = self.batch_label()
-        if opt_desc:
-            parts.append(opt_desc)
-        parts.append(" ".join(self._flag_assigns()))
+        batch_label = self.batch_label()
+        if batch_label:
+            parts.append(batch_label)
+        flag_assigns = self._flag_assigns()
+        if flag_assigns:
+            parts.append(" ".join(flag_assigns))
         return " ".join(parts)
 
     def batch_label(self):
