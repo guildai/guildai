@@ -139,3 +139,52 @@ also redefines the `_flags.md` include.
     | Exit Status | 0         |
     <BLANKLINE>
     Ze footer
+
+## Run file links
+
+The default template displays a table of run files including links. If
+a file is a link, it's name is displayed with " (link)" suffix.
+
+Generate a new run that includes a source link (see `op3` operation in
+sample project):
+
+    >>> project.run("op3")
+    Resolving file:src.txt dependency
+    x: 3
+    y: 1
+
+    >>> run_id = project.list_runs()[0].id
+
+Publish using a `just-files` template (only prints the files table):
+
+    >>> publish_dest = mkdtemp()
+    >>> project.publish(["1"], template="just-files", dest=publish_dest)
+    Publishing [...] op3 ... completed
+    Refreshing runs index
+
+    >>> cat(path(publish_dest, run_id, "README.md"))
+    | File | Size | Modified |
+    | ---- | ---- | -------- |
+    | [src.txt](./src.txt) <small>(link)</small> | 6 | ... UTC |
+
+If the link target is missing (e.g. it was deleted), the table shows
+that it's missing.
+
+To illustrate, let's modify the run link to reference a non-existing
+file:
+
+    >>> link_path = path(project.guild_home, "runs", run_id, "src.txt")
+    >>> os.remove(link_path)
+    >>> os.symlink(path(project.cwd, "not-existing"), link_path)
+
+Publish again:
+
+    >>> publish_dest = mkdtemp()
+    >>> project.publish(["1"], template="just-files", dest=publish_dest)
+    Publishing [...] op3 ... completed
+    Refreshing runs index
+
+    >>> cat(path(publish_dest, run_id, "README.md"))
+    | File | Size | Modified |
+    | ---- | ---- | -------- |
+    | src.txt <small>(link - target missing)</small> |  |  |

@@ -156,16 +156,12 @@ def _format_run_files(run, subdir=None, filter=None):
             relpath = os.path.relpath(abspath, source_dir)
             if filter and not filter.search(relpath):
                 continue
-            if os.path.islink(abspath):
-                size = "link"
-            else:
-                size = util.format_bytes(os.path.getsize(abspath))
-            mtime = os.path.getmtime(abspath)
             files.append({
                 "path": relpath,
-                "url": os.path.join(url_relpath, relpath),
-                "size": size,
-                "modified": util.format_utctimestamp(mtime * 1000000),
+                "url": _format_file_url(abspath, url_relpath, relpath),
+                "islink": os.path.islink(abspath),
+                "size": _format_file_size(abspath),
+                "modified": _format_file_mtime(abspath),
             })
     files.sort(key=lambda i: i["path"])
     return files
@@ -175,6 +171,31 @@ def _remove_guild_dir(dirs):
         dirs.remove(".guild")
     except ValueError:
         pass
+
+def _format_file_url(real_path, url_relpath, file_relpath):
+    if not os.path.exists(real_path):
+        return None
+    return os.path.join(url_relpath, file_relpath)
+
+def _format_file_size(path):
+    if not os.path.exists(path):
+        return ""
+    try:
+        size = os.path.getsize(path)
+    except Exception as e:
+        return "ERROR (%s)" % e
+    else:
+        return util.format_bytes(size)
+
+def _format_file_mtime(path):
+    if not os.path.isfile(path):
+        return ""
+    try:
+        mtime = os.path.getmtime(path)
+    except Exception as e:
+        return "ERROR (%s)" % e
+    else:
+        return util.format_utctimestamp(mtime * 1000000)
 
 class Template(object):
 

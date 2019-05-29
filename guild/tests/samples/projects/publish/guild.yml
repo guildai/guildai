@@ -6,3 +6,8 @@ op2:
   snapshot-source: no
   publish:
     template: t2
+
+op3:
+  main: op
+  requires:
+    - file: src.txt
