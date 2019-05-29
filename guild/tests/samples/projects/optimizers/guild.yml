@@ -46,7 +46,7 @@ echo:
   compare: [=x, loss]
   label: x=${x|%.2f} y=${y} z=${z}
   optimizer:
-    algorithm: forest
+    algorithm: gp
     noise: 0.1
 
 poly:

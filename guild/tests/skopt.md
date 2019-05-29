@@ -172,7 +172,7 @@ And the run:
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
     ... 2 'a'
     INFO: [guild] Found 3 previous trial(s) for use in optimization...
-    INFO: [guild] Initialized trial ... (x=-..., y=2, z=a)
+    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
     ... 2 'a'
 

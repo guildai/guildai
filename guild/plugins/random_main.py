@@ -33,15 +33,27 @@ def gen_trials(flags, _runs, max_trials=None, random_seed=None,
     if kw:
         log.warning("ignoring configuration %s", kw)
     num_trials = max_trials or DEFAULT_TRIALS
-    flag_names, dims, _initials = skopt_util.flag_dims(flags)
+    dim_names, dims, _initials = skopt_util.flag_dims(flags)
+    if not dim_names:
+        flag_desc = ", ".join(op_util.flag_assigns(flags))
+        log.error(
+            "flags for batch (%s) do not contain any search "
+            "dimension - quitting", flag_desc)
+        raise batch_util.StopBatch(error=True)
     trial_vals = _gen_trial_vals(dims, num_trials, random_seed)
     trial_opts = {
         "label": label or "random"
     }
     return [
-        (skopt_util.trial_flags(flag_names, flag_vals), trial_opts)
-        for flag_vals in trial_vals
+        (_trial_flags(dim_names, dim_vals, flags), trial_opts)
+        for dim_vals in trial_vals
     ]
+
+def _trial_flags(dim_names, dim_vals, base_flags):
+    trial_flags = {}
+    trial_flags.update(base_flags)
+    trial_flags.update(skopt_util.trial_flags(dim_names, dim_vals))
+    return trial_flags
 
 def _gen_batch_trials(flags, batch):
     trials = gen_trials(flags, None, batch.max_trials, batch.random_seed)

@@ -106,19 +106,13 @@ We can specify flags for the run, which override those defined in the
 Guild file.
 
 Here's a run that doesn't use any random flags - each flag value is a
-scalar:
+scalar. It generates an error.
 
-    >>> _, trials = gen_trials("echo", x=1.0, y=2.1, z="d")
-
-    >>> len(trials)
-    5
-
-    >>> trials
-    [['1.0', '2.1', 'd'],
-     ['1.0', '2.1', 'd'],
-     ['1.0', '2.1', 'd'],
-     ['1.0', '2.1', 'd'],
-     ['1.0', '2.1', 'd']]
+    >>> gen_trials("echo", x=1.0, y=2.1, z="d")
+    Traceback (most recent call last):
+    RunError: (([...], '...', {...}), 1,
+    u'ERROR: [guild] flags for batch (x=1.0, y=2.1, z=d) do not
+    contain any search dimension - quitting\n')
 
 Let's experiment with some different changes, specified as flags:
 

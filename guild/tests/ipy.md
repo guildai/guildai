@@ -381,10 +381,10 @@ assert the generated values.
     x: 15
     y: -9
     z: 9
-    Running op1 (a=1, b=12):
-    x: 13
-    y: -11
-    z: 11
+    Running op1 (a=4, b=12):
+    x: 16
+    y: -8
+    z: 8
     Running op1 (a=0, b=12):
     x: 12
     y: -12
@@ -397,7 +397,7 @@ assert the generated values.
     {'a': 3, 'b': 12}
 
     >>> pprint(runs[1].get("flags"))
-    {'a': 1, 'b': 12}
+    {'a': 4, 'b': 12}
 
     >>> pprint(runs[2].get("flags"))
     {'a': 0, 'b': 12}
@@ -419,10 +419,10 @@ distribution to sample from. We also specify a label.
     x: 15
     y: -9
     z: 9
-    Running op1 (a=1, b=12):
-    x: 13
-    y: -11
-    z: 11
+    Running op1 (a=4, b=12):
+    x: 16
+    y: -8
+    z: 8
     Running op1 (a=0, b=12):
     x: 12
     y: -12
@@ -445,10 +445,10 @@ Finally, we can specify an explicit "random" optimizer:
     x: 15
     y: -9
     z: 9
-    Running op1 (a=1, b=12):
-    x: 13
-    y: -11
-    z: 11
+    Running op1 (a=4, b=12):
+    x: 16
+    y: -8
+    z: 8
     Running op1 (a=0, b=12):
     x: 12
     y: -12

@@ -20,17 +20,16 @@ Here's the empty case:
     >>> flag_dims({})
     ([], [], [])
 
-Non-list values are always returned as categorical with a single
-element:
+Scalar and string values are never included in dims:
 
     >>> flag_dims({"a": 1})
-    (['a'], [Categorical(categories=(1,), prior=None)], [1])
+    ([], [], [])
 
     >>> flag_dims({"a": 2.1})
-    (['a'], [Categorical(categories=(2.1,), prior=None)], [2.1])
+    ([], [], [])
 
     >>> flag_dims({"a": "hello"})
-    (['a'], [Categorical(categories=('hello',), prior=None)], ['hello'])
+    ([], [], [])
 
 Lists are always returned as categorical containing the list values:
 
@@ -128,9 +127,9 @@ If a function doesn't meet the minimal requirement of a function
 
 Dims are always returned in sorted order by name:
 
-    >>> flag_dims({"a": 3, "b": 2, "c": 1})
+    >>> flag_dims({"a": [3], "b": [2], "c": [1]})
     (['a', 'b', 'c'],
      [Categorical(categories=(3,), prior=None),
       Categorical(categories=(2,), prior=None),
       Categorical(categories=(1,), prior=None)],
-     [3, 2, 1])
+     [None, None, None])

@@ -876,3 +876,20 @@ class Chdir(object):
 
     def __exit__(self, *_args):
         os.chdir(self._save)
+
+def log_apply(f, *args, **kw):
+    level = kw.pop("logging_level", logging.DEBUG)
+    prefix = kw.pop("logging_prefix", "CALLING")
+    log.log(level, "%s %s", prefix, _log_apply_msg(f, args, kw))
+    return f(*args, **kw)
+
+class _log_apply_msg(object):
+
+    def __init__(self, f, args, kw):
+        self.f = f
+        self.args = args
+        self.kw = kw
+
+    def __str__(self):
+        return "%s %s %s %s" % (
+            self.f.__module__, self.f.__name__, self.args, self.kw)

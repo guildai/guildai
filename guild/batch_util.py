@@ -39,6 +39,12 @@ class BatchError(Exception):
 class MissingProtoError(BatchError):
     pass
 
+class StopBatch(Exception):
+
+    def __init__(self, error=False):
+        super(StopBatch, self).__init__(error)
+        self.error = error
+
 ###################################################################
 # Default trial
 ###################################################################
@@ -266,16 +272,26 @@ class Batch(object):
             for run in self.seq_trial_runs()
         ]
         for trial in trials:
-            self._apply_existing_run_id(trial, trial_runs)
-            trial.init()
-            if init_only:
-                continue
-            if self.needed and not trial.run_needed():
-                log.info(
-                    "Skipping trial %s because flags have not "
-                    "changed (--needed specified)", trial.run_id)
-                continue
-            trial.run()
+            try:
+                self._run_trial(trial, trial_runs, init_only)
+            except StopBatch as e:
+                if e.error:
+                    raise
+            except Exception as e:
+                log.exception(
+                    "error running trial %s: %s", trial.run_id, e)
+
+    def _run_trial(self, trial, trial_runs, init_only):
+        self._apply_existing_run_id(trial, trial_runs)
+        trial.init()
+        if init_only:
+            return
+        if self.needed and not trial.run_needed():
+            log.info(
+                "Skipping trial %s because flags have not "
+                "changed (--needed specified)", trial.run_id)
+            return
+        trial.run()
 
     @staticmethod
     def _apply_existing_run_id(trial, trial_runs):
@@ -306,6 +322,9 @@ def default_main(gen_trials_cb,
     init_logging()
     try:
         _default_main_impl(gen_trials_cb, default_max_trials, new_trial_cb)
+    except StopBatch as e:
+        if e.error:
+            sys.exit(1)
     except BatchError as e:
         op_util.exit(str(e))
 

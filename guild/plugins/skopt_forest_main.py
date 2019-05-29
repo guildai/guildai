@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+from guild import util
+
 from . import skopt_ipy
 from . import skopt_util
 
@@ -32,8 +34,9 @@ def gen_trials(flags, runs, random_starts=0, kappa=1.96,
 
 def _init_trial(trial, state):
     import skopt
-    random_starts, x0, y0, dims = state.minimize_inputs(trial.run_id)
-    res = skopt.forest_minimize(
+    random_starts, x0, y0, dims = state.opt_inputs(trial.run_id)
+    res = util.log_apply(
+        skopt.forest_minimize,
         lambda *args: 0,
         dims,
         n_calls=1,
@@ -43,8 +46,8 @@ def _init_trial(trial, state):
         random_state=state.random_state,
         kappa=state.batch_flags["kappa"],
         xi=state.batch_flags["xi"])
-    state.random_state = res.random_state
-    return skopt_util.trial_flags(state.flag_names, res.x_iters[-1])
+    state.update(res)
+    return state.next_trial_flags()
 
 if __name__ == "__main__":
     skopt_util.default_main(_init_trial)

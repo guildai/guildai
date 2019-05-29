@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+from guild import util
+
 from . import skopt_ipy
 from . import skopt_util
 
@@ -35,21 +37,22 @@ def gen_trials(flags, runs, random_starts=0, acq_func="gp_hedge",
 
 def _init_trial(trial, state):
     import skopt
-    random_starts, x0, y0, dims = state.minimize_inputs(trial.run_id)
-    res = skopt.gp_minimize(
+    inputs = state.opt_inputs(trial.run_id)
+    res = util.log_apply(
+        skopt.gp_minimize,
         lambda *args: 0,
-        dims,
+        inputs.dims,
         n_calls=1,
-        n_random_starts=random_starts,
-        x0=x0,
-        y0=y0,
+        n_random_starts=inputs.random_starts,
+        x0=inputs.x0,
+        y0=inputs.y0,
         random_state=state.random_state,
         acq_func=state.batch_flags["acq-func"],
         kappa=state.batch_flags["kappa"],
         xi=state.batch_flags["xi"],
         noise=state.batch_flags["noise"])
-    state.random_state = res.random_state
-    return skopt_util.trial_flags(state.flag_names, res.x_iters[-1])
+    state.update(res)
+    return state.next_trial_flags()
 
 if __name__ == "__main__":
     skopt_util.default_main(_init_trial)
