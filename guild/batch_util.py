@@ -191,6 +191,16 @@ class SeqTrial(Trial):
         self.flags, self.attrs = result
         super(SeqTrial, self).init(run_dir, quiet)
 
+class SeqState(object):
+    """Default state used by sequential optimizers."""
+
+    def __init__(self, batch, **attrs):
+        self.batch = batch
+        self.batch_flags = batch.batch_run.get("flags")
+        self.proto_flags = batch.proto_run.get("flags", {})
+        for name in attrs:
+            setattr(self, name, attrs[name])
+
 ###################################################################
 # Batch
 ###################################################################
@@ -368,8 +378,11 @@ def _print_trial_cmd(trial):
 # Seq trials main
 ###################################################################
 
-def seq_trials_main(init_state_cb, init_trial_cb,
+def seq_trials_main(init_trial_cb,
+                    init_state_cb=None,
                     default_max_trials=DEFAULT_MAX_TRIALS):
+    if init_state_cb is None:
+        init_state_cb = SeqState
     default_main(
         _gen_seq_trials_cb(init_state_cb, default_max_trials),
         _new_seq_trial_cb(init_trial_cb),

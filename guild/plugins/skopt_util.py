@@ -37,12 +37,10 @@ OptInputs = collections.namedtuple(
         "dims"
     ])
 
-class State(object):
+class State(batch_util.SeqState):
 
     def __init__(self, batch):
-        self.batch = batch
-        self.batch_flags = batch.batch_run.get("flags")
-        self.proto_flags = batch.proto_run.get("flags", {})
+        super(State, self).__init__(batch)
         (self.dim_names,
          self.dims,
          self.initials) = flag_dims(self.proto_flags)
@@ -208,7 +206,7 @@ def default_main(seq_trial_cb, non_repeating=True):
     if non_repeating:
         seq_trial_cb = NonRepeatingTrials(seq_trial_cb)
     try:
-        batch_util.seq_trials_main(State, seq_trial_cb)
+        batch_util.seq_trials_main(seq_trial_cb, State)
     except batch_util.StopBatch as e:
         assert e.error
         sys.exit(1)
