@@ -90,16 +90,16 @@ def _popen_args(
         print_cmd=False,
         print_trials=False,
         save_trials=None,
-        quiet=False):
+        quiet=False,
+        debug=False):
     from guild import run_util
     cwd = cwd or "."
     flags = flags or {}
     opt_flags = opt_flags or {}
-    args = [
-        sys.executable,
-        "-um", "guild.main_bootstrap",
-        "run", "-y"
-    ]
+    args = [sys.executable, "-um", "guild.main_bootstrap"]
+    if debug:
+        args.append("--debug")
+    args.extend(["run", "-y"])
     if spec:
         args.append(spec)
     if restart:

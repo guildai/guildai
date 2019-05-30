@@ -33,6 +33,8 @@ from guild import exit_code
 
 log = None # initialized in _init_logging
 
+__argv0 = sys.argv
+
 class Debugger(pdb.Pdb):
 
     def __init__(self):
@@ -197,6 +199,7 @@ def _global_dest(args, global_name):
     return "globals", extra_args, global_dest
 
 def _dispatch_module_exec(flags_interface, module_info):
+    _maybe_test_internal_error()
     dest, args, flags = flags_interface
     if dest == "args":
         _exec_module_with_args(module_info, args)
@@ -204,6 +207,12 @@ def _dispatch_module_exec(flags_interface, module_info):
         _exec_module_with_globals(module_info, flags, args)
     else:
         assert False, flags_interface
+
+def _maybe_test_internal_error():
+    # Simulate an internal error by checking env for a special
+    # variable. This is used by Guild tests to verify internal error
+    # handling.
+    assert os.getenv("__GUILD_OP_MAIN_INTERNAL_ERROR") != "1"
 
 def _exec_module_with_args(module_info, args):
     _set_argv_for_module_with_args(module_info, args)
@@ -269,4 +278,29 @@ def _error(msg):
     sys.exit(exit_code.DEFAULT)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        if log is None or log.getEffectiveLevel() <= logging.DEBUG:
+            raise
+        import traceback
+        exc_lines = traceback.format_exception(*sys.exc_info())
+        if len(exc_lines) < 3 or len(__argv0) < 2:
+            # Assertion failure, but we want to be defensive in
+            # deference to the actual error.
+            raise
+        # Print exception start with mod (argv[0])
+        filtered_exc_lines = []
+        mod_path = __argv0[1]
+        for line in exc_lines[1:]:
+            if filtered_exc_lines or mod_path in line:
+                filtered_exc_lines.append(line)
+        if not filtered_exc_lines:
+            raise
+        log.info(
+            "Limiting traceback below to user code. Use "
+            "'guild --debug run ...' for full stack.")
+        sys.stderr.write(exc_lines[0])
+        for line in filtered_exc_lines:
+            sys.stderr.write(line)
+        sys.exit(1)

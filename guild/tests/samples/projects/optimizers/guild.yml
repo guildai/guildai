@@ -98,3 +98,7 @@ opt-test-4:
   optimizers:
     tune-echo: {}
     alt-tune: tune-echo-2
+
+fail:
+  disable-plugins: all
+  main: fail

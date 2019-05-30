@@ -19,6 +19,10 @@ Let's next attempt to train a Keras example.
 
     >>> cd("examples/keras")
     >>> run("guild run -y mnist_irnn.py", timeout=10, ignore="Refreshing")
+    INFO: [guild] Limiting traceback below to user code. Use 'guild --debug
+    run ...' for full stack.
     Traceback (most recent call last):
+      File ".../keras/mnist_irnn.py", line ..., in <module>
+        import keras
     ...: No module named ...keras...
     <exit 1>
