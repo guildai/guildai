@@ -4,6 +4,9 @@
 
 - `select-min` and `select-max` patterns for reducing source file
   selection to a min and max version respectively
+- User script exceptions are shown with Guild stack layers removed to
+  reduce noise (this behavior can be disabled for additional
+  debugging)
 
 ### Fixes
 
