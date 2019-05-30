@@ -12,7 +12,7 @@ def init_state(batch):
         trials_fail=_trials_fail())
 
 def _trials_fail():
-    return [int(s) for s in str(trials_fail).split(",")]
+    return [int(s) for s in str(trials_fail).split(",") if s]
 
 def init_trial(trial, state):
     flags = {}

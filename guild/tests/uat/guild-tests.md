@@ -9,6 +9,7 @@ tests).
       anonymous-models:            ok
       batch-basics:                ok
       batch-custom-optimizer:      ok
+      batch-error-handling:        ok
       batch-grid-search:           ok
       batch-guildfile-optimizers:  ok
       batch-implied-random:        ok
@@ -18,6 +19,7 @@ tests).
       batch-random-seeds:          ok
       batch-restart:               ok
       batch-skopt:                 ok
+      batch-skopt2:                ok
       compare:                     ok
       config:                      ok
       copy-source:                 ok
@@ -48,6 +50,7 @@ tests).
       models:                      ok
       namespaces:                  ok
       needed:                      ok
+      op-main:                     ok
       op-utils:                    ok
       ops:                         ok
       package:                     ok

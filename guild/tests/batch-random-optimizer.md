@@ -108,11 +108,14 @@ Guild file.
 Here's a run that doesn't use any random flags - each flag value is a
 scalar. It generates an error.
 
-    >>> gen_trials("echo", x=1.0, y=2.1, z="d")
-    Traceback (most recent call last):
-    RunError: (([...], '...', {...}), 1,
-    u'ERROR: [guild] flags for batch (x=1.0, y=2.1, z=d) do not
-    contain any search dimension - quitting\n')
+    >>> try:
+    ...   gen_trials("echo", x=1.0, y=2.1, z="d")
+    ... except guild._api.RunError as e:
+    ...   print(e.output)
+    ...   print("<exit %i>" % e.returncode)
+    ERROR: [guild] flags for batch (x=1.0, y=2.1, z=d) do not contain any
+    search dimension - quitting
+    <exit 1>
 
 Let's experiment with some different changes, specified as flags:
 

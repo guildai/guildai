@@ -1,6 +1,6 @@
 import sys
 
-fail = True
+fail = False
 
 if fail:
     print("TRIAL FAIL")
