@@ -487,6 +487,7 @@ _binary_ext = set([
     ".jpeg",
     ".jpg",
     ".png",
+    ".pyc",
     ".rar",
     ".tar",
     ".tif",
@@ -508,6 +509,8 @@ else:
 def is_text_file(path, ignore_ext=False):
     # Adapted from https://github.com/audreyr/binaryornot under the
     # BSD 3-clause License
+    if not os.path.exists(path):
+        raise ValueError("%s does not exist" % path)
     if not os.path.isfile(path):
         return False
     if not ignore_ext:

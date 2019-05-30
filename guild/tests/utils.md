@@ -151,7 +151,7 @@ Our samples:
     >>> is_text("empty.txt")
     True
 
-    >>> is_text("hello_world.py")
+    >>> is_text("hello.py")
     True
 
     >>> is_text("hello_world.pyc")
@@ -169,10 +169,11 @@ Our samples:
     >>> is_text("lookup-error.txt")
     True
 
-A non-existing file is considered not test:
+A non-existing file generates an error:
 
     >>> is_text("non-existing")
-    False
+    Traceback (most recent call last):
+    ValueError: .../samples/textorbinary/non-existing does not exist
 
 Directories aren't text files:
 
