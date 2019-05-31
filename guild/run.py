@@ -203,13 +203,7 @@ class Run(object):
 
     @staticmethod
     def _encode_attr_val(val):
-        encoded = yaml.safe_dump(
-            val,
-            default_flow_style=False,
-            indent=2)
-        if encoded.endswith("\n...\n"):
-            encoded = encoded[:-4]
-        return encoded
+        return util.encode_yaml(val)
 
     def del_attr(self, name):
         try:

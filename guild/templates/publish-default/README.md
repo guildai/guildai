@@ -4,14 +4,16 @@
 
 {% block body %}
 {% block title %}
-# {{ run|op_desc }}
+# {{ run.operation }}
 {% endblock title %}
 
 {% block summary%}
-| ID                | Operation         | Started           | Duration                     | Status           | Label           |
-| --                | ---------         | ---------         | --------                     | ------           | -----           |
-| {{ run.short_id}} | {{ run|op_desc }} | {{ run.started }} | {{ run.duration|safe_cell }} | {{ run.status }} | {{ run.label }} |
+| ID                   | Operation           | Started                      | Duration                     | Status           | Label           |
+| --                   | ---------           | ---------                    | --------                     | ------           | -----           |
+| {{ run.id|short_id}} | {{ run.operation }} | {{ run.started|nb_hyphens }} | {{ run.duration|or_nbsp }} | {{ run.status }} | {{ run.label }} |
 {% endblock summary %}
+
+{#
 
 {% block flags %}
 ## Flags
@@ -48,6 +50,9 @@
 
 {% include ["_run_attrs.md", "publish-default/_run_attrs.md"] %}
 {% endblock attributes %}
+
+#}
+
 {% endblock body %}
 
 {% block footer %}

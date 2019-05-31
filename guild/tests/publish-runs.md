@@ -1,7 +1,13 @@
 # Publishing Runs
 
 The `runs publish` commands is used to publish runs. A published run
-consists of:
+is the public interface to a run. It consists of:
+
+- Run info as formatted files
+- Optional generated report
+- Optional run files
+
+
 
 - Copying runs to dest
 - Generating a report using a template for each run
@@ -9,31 +15,31 @@ consists of:
 
 We'll use the `publish` sample project:
 
-    >>> project = Project(sample("projects/publish"))
+    >> project = Project(sample("projects/publish"))
 
 Generate a run to publish:
 
-    >>> project.run("op")
+    >> project.run("op")
     x: 3
     y: 1
 
-    >>> run_id = project.list_runs()[0].id
+    >> run_id = project.list_runs()[0].id
 
 ## Extending default and redefining blocks (template `t1`)
 
 Template `t1` extends `publish-default/README.md` and redefines each
 block in the default template.
 
-    >>> publish_dest = mkdtemp()
+    >> publish_dest = mkdtemp()
 
-    >>> project.publish(template="t1", dest=publish_dest)
+    >> project.publish(template="t1", dest=publish_dest)
     Publishing [...] op ... ... completed
     Refreshing runs index
 
-    >>> dir(path(publish_dest, run_id))
+    >> dir(path(publish_dest, run_id))
     ['.guild', 'README.md']
 
-    >>> cat(path(publish_dest, run_id, "README.md"))
+    >> cat(path(publish_dest, run_id, "README.md"))
     Header
     <BLANKLINE>
     Title
@@ -58,16 +64,16 @@ block in the default template.
 
 Template `t2` replaces the default entirely but includes `_flags.md`.
 
-    >>> publish_dest = mkdtemp()
+    >> publish_dest = mkdtemp()
 
-    >>> project.publish(template="t2", dest=publish_dest)
+    >> project.publish(template="t2", dest=publish_dest)
     Publishing [...] op ... ... completed
     Refreshing runs index
 
-    >>> dir(path(publish_dest, run_id))
+    >> dir(path(publish_dest, run_id))
     ['.guild', 'README.md', 'some_other_file.md']
 
-    >>> cat(path(publish_dest, run_id, "README.md"))
+    >> cat(path(publish_dest, run_id, "README.md"))
     # Totally new report
     <BLANKLINE>
     Run: ...
@@ -82,16 +88,16 @@ Template `t2` replaces the default entirely but includes `_flags.md`.
 Template `t3` extends default and defines header and footer blocks. It
 also redefines the `_flags.md` include.
 
-    >>> publish_dest = mkdtemp()
+    >> publish_dest = mkdtemp()
 
-    >>> project.publish(template="t3", dest=publish_dest)
+    >> project.publish(template="t3", dest=publish_dest)
     Publishing [...] op ... ... completed
     Refreshing runs index
 
-    >>> dir(path(publish_dest, run_id))
+    >> dir(path(publish_dest, run_id))
     ['.guild', 'README.md']
 
-    >>> cat(path(publish_dest, run_id, "README.md"))
+    >> cat(path(publish_dest, run_id, "README.md"))
     Ze header
     <BLANKLINE>
     # op
@@ -148,21 +154,21 @@ a file is a link, it's name is displayed with " (link)" suffix.
 Generate a new run that includes a source link (see `op3` operation in
 sample project):
 
-    >>> project.run("op3")
+    >> project.run("op3")
     Resolving file:src.txt dependency
     x: 3
     y: 1
 
-    >>> run_id = project.list_runs()[0].id
+    >> run_id = project.list_runs()[0].id
 
 Publish using a `just-files` template (only prints the files table):
 
-    >>> publish_dest = mkdtemp()
-    >>> project.publish(["1"], template="just-files", dest=publish_dest)
+    >> publish_dest = mkdtemp()
+    >> project.publish(["1"], template="just-files", dest=publish_dest)
     Publishing [...] op3 ... completed
     Refreshing runs index
 
-    >>> cat(path(publish_dest, run_id, "README.md"))
+    >> cat(path(publish_dest, run_id, "README.md"))
     | File | Size | Modified |
     | ---- | ---- | -------- |
     | [src.txt](./src.txt) <small>(link)</small> | 6 | ... UTC |
@@ -173,18 +179,18 @@ that it's missing.
 To illustrate, let's modify the run link to reference a non-existing
 file:
 
-    >>> link_path = path(project.guild_home, "runs", run_id, "src.txt")
-    >>> os.remove(link_path)
-    >>> os.symlink(path(project.cwd, "not-existing"), link_path)
+    >> link_path = path(project.guild_home, "runs", run_id, "src.txt")
+    >> os.remove(link_path)
+    >> os.symlink(path(project.cwd, "not-existing"), link_path)
 
 Publish again:
 
-    >>> publish_dest = mkdtemp()
-    >>> project.publish(["1"], template="just-files", dest=publish_dest)
+    >> publish_dest = mkdtemp()
+    >> project.publish(["1"], template="just-files", dest=publish_dest)
     Publishing [...] op3 ... completed
     Refreshing runs index
 
-    >>> cat(path(publish_dest, run_id, "README.md"))
+    >> cat(path(publish_dest, run_id, "README.md"))
     | File | Size | Modified |
     | ---- | ---- | -------- |
     | src.txt <small>(link - target missing)</small> |  |  |

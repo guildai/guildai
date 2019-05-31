@@ -15,11 +15,14 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import codecs
+import collections
 import os
 import re
 import shutil
 
 import jinja2
+import yaml
 
 from guild import guildfile
 from guild import index2 as indexlib
@@ -76,15 +79,16 @@ class RunFilters(object):
     @classmethod
     def install(cls, env):
         env.filters.update({
+            "nb_hyphens": cls._nb_hyphens,
             "env": cls._env,
             "files": cls._files,
-            "source": cls._source,
-            "images": cls._images,
             "flags": cls._flags,
-            "scalars": cls._scalars,
+            "images": cls._images,
+            "or_nbsp": cls._or_nbsp,
             "scalar_key": cls._scalar_key,
-            "op_desc": cls._op_desc,
-            "safe_cell": cls._safe_cell,
+            "scalars": cls._scalars,
+            "short_id": cls._short_id,
+            "source": cls._source,
         })
 
     @staticmethod
@@ -128,19 +132,20 @@ class RunFilters(object):
             return s["tag"]
 
     @staticmethod
-    def _op_desc(run):
-        model = run.get("model")
-        op = run.get("op_name")
-        if model:
-            return "%s:%s" % (model, op)
-        else:
-            return op
-
-    @staticmethod
-    def _safe_cell(x):
+    def _or_nbsp(x):
         if not x:
             return "&nbsp;"
         return x
+
+    @staticmethod
+    def _short_id(id):
+        return id[:8]
+
+    @staticmethod
+    def _nb_hyphens(s):
+        if not s:
+            return s
+        return s.replace("-", "&#8209;")
 
 def _format_run_files(run, subdir=None, filter=None):
     files = []
@@ -251,40 +256,38 @@ def _render_template(template, vars, dest):
             f.write(part)
         f.write(os.linesep)
 
+PublishRunState = collections.namedtuple(
+    "PublishRunState", [
+        "run",
+        "opdef",
+        "formatted_run",
+        "dest_home",
+        "template",
+        "run_dest",
+    ])
+
 def publish_run(run, dest=None, template=None, formatted_run=None):
+    state = _init_publish_run_state(run, dest, template, formatted_run)
+    _init_published_run(state)
+    _publish_run_guild_files(state)
+    _copy_run_files(state)
+    _generate_template(state)
+
+def _init_publish_run_state(run, dest, template, formatted_run):
     opdef = _run_opdef(run)
     dest_home = dest or DEFAULT_DEST_HOME
     template = _init_template(template, opdef)
     run_dest = _published_run_dest(dest_home, run)
     if not formatted_run:
         formatted_run = _format_run_for_publish(run)
-    render_vars = {
-        "run": formatted_run,
-        "config": _template_config(opdef)
-    }
-    util.ensure_dir(dest_home)
-    util.touch(os.path.join(dest_home, ".guild-nocopy"))
-    # Clean target directoy for re-publishing.
-    if os.path.exists(run_dest):
-        util.safe_rmtree(run_dest)
-    # Generate template first, allowing run output to replace template
-    # files.
-    try:
-        template.generate(run_dest, render_vars)
-    except jinja2.TemplateRuntimeError as e:
-        raise GenerateError(e, template)
-    except jinja2.exceptions.TemplateNotFound as e:
-        e.message = "template not found: %s" % e.message
-        raise GenerateError(e, template)
-    else:
-        util.copytree(run.path, run_dest)
-
-def _format_run_for_publish(run):
-    fmt = run_util.format_run(run)
-    # Format adjustments for published run
-    if not fmt["stopped"]:
-        fmt["duration"] = ""
-    return fmt
+    return PublishRunState(
+        run,
+        opdef,
+        formatted_run,
+        dest_home,
+        template,
+        run_dest,
+        )
 
 def _run_opdef(run):
     try:
@@ -299,9 +302,6 @@ def _run_opdef(run):
             return None
         else:
             return m.get_operation(run.opref.op_name)
-
-def _published_run_dest(dest_home, run):
-    return os.path.join(dest_home, run.id)
 
 def _init_template(template, opdef):
     template_spec = util.find_apply([
@@ -350,6 +350,141 @@ def _project_template(name, opdef):
 
 def _cannot_find_template_error(name):
     raise PublishError("cannot find template %s" % name)
+
+def _published_run_dest(dest_home, run):
+    return os.path.join(dest_home, run.id)
+
+def _format_run_for_publish(run):
+    fmt = run_util.format_run(run)
+    # Format adjustments for published run
+    if not fmt["stopped"]:
+        fmt["duration"] = ""
+    return fmt
+
+def _init_published_run(state):
+    """Ensure empty target directory for published run.
+
+    As a side effect, lazily creates `state.dest_home` and creates
+    `.guild-nocopy` to ensure that the published runs home is not
+    considered by Guild for source snapshots.
+    """
+    util.ensure_dir(state.dest_home)
+    util.touch(os.path.join(state.dest_home, ".guild-nocopy"))
+    if os.path.exists(state.run_dest):
+        util.safe_rmtree(state.run_dest)
+    os.mkdir(state.run_dest)
+
+def _publish_run_guild_files(state):
+    _publish_run_info(state)
+    _publish_run_flags(state)
+    _publish_run_output(state)
+    _publish_run_source(state)
+
+def _publish_run_info(state):
+    """Write run.yml to run publish dest.
+
+    This function should be kept in sync with output generated by
+    `guild runs info` - minus system-specific values (e.g. run_dir and
+    pid) and flags (which are written to a separate file).
+    """
+    run = state.run
+    frun = state.formatted_run
+    path = os.path.join(state.run_dest, "run.yml")
+    enc = util.encode_yaml
+    fmt_ts = util.format_timestamp_utc
+    with codecs.open(path, "w", "utf-8") as f:
+        f.write("id: %s\n" % run.id)
+        f.write("operation: %s\n" % enc(frun["operation"]))
+        f.write("status: %s\n" % frun["status"])
+        f.write("started: %s\n" % fmt_ts(run.get("started")))
+        f.write("stopped: %s\n" % fmt_ts(run.get("stopped")))
+        f.write("marked: %s\n" % frun["marked"])
+        f.write("label: %s\n" % enc(run.get("label")))
+        f.write("command: %s\n" % frun["command"])
+        f.write("exit_status: %s\n" % frun["exit_status"])
+
+def _publish_run_flags(state):
+    flags = state.run.get("flags") or {}
+    dest = os.path.join(state.run_dest, "flags.yml")
+    _save_yaml(flags, dest)
+
+def _save_yaml(val, path):
+    with open(path, "w") as f:
+        yaml.safe_dump(
+            val, f,
+            default_flow_style=False,
+            indent=2,
+            encoding="utf-8",
+            allow_unicode=True)
+
+def _publish_run_output(state):
+    src = state.run.guild_path("output")
+    dest = os.path.join(state.run_dest, "output.txt")
+    shutil.copyfile(src, dest)
+
+def _publish_run_source(state):
+    src = state.run.guild_path("source")
+    if os.path.exists(src):
+        dest = os.path.join(state.run_dest, "source")
+        shutil.copytree(src, dest)
+
+def _copy_run_files(_state):
+    print("TODO: copy run files")
+
+class PublishRunVars(object):
+
+    def __init__(self, state):
+        self._state = state
+        self._cache = {}
+
+    def __getitem__(self, name):
+        return self._lazy_load(name)
+
+    def _lazy_load(self, name):
+        try:
+            return self._cache[name]
+        except KeyError:
+            self._cache[name] = val = self._load(name)
+            return val
+
+    def _load(self, name):
+        return util.find_apply([
+            self._load_yaml,
+            self._load_csv,
+            self._load_txt], name)
+
+    def _load_yaml(self, name):
+        path = os.path.join(self._state.run_dest, name + ".yml")
+        if not os.path.exists(path):
+            return None
+        return yaml.safe_load(open(path, "r"))
+
+    def _load_csv(self, name):
+        path = os.path.join(self._state.run_dest, name + ".csv")
+        if not os.path.exists(path):
+            return None
+        assert False, "TODO"
+
+    def _load_txt(self, name):
+        path = os.path.join(self._state.run_dest, name + ".txt")
+        if not os.path.exists(path):
+            return None
+        return open(path, "r").read()
+
+    @staticmethod
+    def keys():
+        return ["run"]
+
+def _generate_template(state):
+    template = state.template
+    render_vars = PublishRunVars(state)
+    try:
+        template.generate(state.run_dest, render_vars)
+    except jinja2.TemplateRuntimeError as e:
+        raise GenerateError(e, template)
+    except jinja2.exceptions.TemplateNotFound as e:
+        e.message = "template not found: %s" % e.message
+        raise GenerateError(e, template)
 
 def _template_config(opdef):
     if not opdef or not opdef.publish:

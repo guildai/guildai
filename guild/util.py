@@ -373,7 +373,7 @@ def format_timestamp(ts, fmt=None):
     dt = datetime.datetime.fromtimestamp(ts / 1000000)
     return dt.strftime(fmt or "%Y-%m-%d %H:%M:%S")
 
-def format_utctimestamp(ts, fmt=None):
+def format_timestamp_utc(ts, fmt=None):
     if not ts:
         return None
     dt = datetime.datetime.utcfromtimestamp(ts / 1000000)
@@ -896,3 +896,13 @@ class _log_apply_msg(object):
     def __str__(self):
         return "%s %s %s %s" % (
             self.f.__module__, self.f.__name__, self.args, self.kw)
+
+def encode_yaml(val):
+    import yaml
+    encoded = yaml.safe_dump(
+        val,
+        default_flow_style=False,
+        indent=2)
+    if encoded.endswith("\n...\n"):
+        encoded = encoded[:-4]
+    return encoded
