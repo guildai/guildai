@@ -532,7 +532,7 @@ def _source_to_copy(src_dir, source_config, opdef):
     log.debug("generating source file list from %s", src_dir)
     for root, dirs, files in os.walk(src_dir, followlinks=True):
         seen_dirs.add(os.path.realpath(root))
-        _del_excluded_dirs(dirs, root, seen_dirs)
+        _del_excluded_copy_source_dirs(dirs, root, seen_dirs)
         for name in files:
             path = os.path.join(root, name)
             if not os.path.isfile(path):
@@ -582,11 +582,11 @@ def _try_copy_file(src, dest):
         else:
             log.warning("could not copy source file %s: %s", src, e)
 
-def _del_excluded_dirs(dirs, root, seen_dirs):
+def _del_excluded_copy_source_dirs(dirs, root, seen_dirs):
     _del_seen_dirs(dirs, root, seen_dirs)
     _del_env_dirs(dirs, root)
     _del_dot_dir(dirs)
-    _del_archive_dirs(dirs)
+    _del_nocopy_dirs(dirs)
 
 def _del_seen_dirs(dirs, root, seen):
     for dir_name in dirs:
@@ -604,9 +604,9 @@ def _del_dot_dir(dirs):
         if d[:1] == ".":
             dirs.remove(d)
 
-def _del_archive_dirs(dirs):
+def _del_nocopy_dirs(dirs):
     for d in list(dirs):
-        if os.path.exists(os.path.join(d, ".guild-archive")):
+        if os.path.exists(os.path.join(d, ".guild-nocopy")):
             dirs.remove(d)
 
 def _is_env_dir(path):

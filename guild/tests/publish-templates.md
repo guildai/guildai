@@ -145,7 +145,7 @@ Here's a new dest dir:
     >>> publish.publish_run(run, dest)
 
     >>> find(dest)
-    ['.guild-archive',
+    ['.guild-nocopy',
      '360192fdf9b74f2fad5f514e9f2fdadb/.guild/PENDING',
      '360192fdf9b74f2fad5f514e9f2fdadb/.guild/attrs/env',
      '360192fdf9b74f2fad5f514e9f2fdadb/.guild/attrs/started',

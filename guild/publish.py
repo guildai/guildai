@@ -263,7 +263,7 @@ def publish_run(run, dest=None, template=None, formatted_run=None):
         "config": _template_config(opdef)
     }
     util.ensure_dir(dest_home)
-    util.touch(os.path.join(dest_home, ".guild-archive"))
+    util.touch(os.path.join(dest_home, ".guild-nocopy"))
     # Clean target directoy for re-publishing.
     if os.path.exists(run_dest):
         util.safe_rmtree(run_dest)
