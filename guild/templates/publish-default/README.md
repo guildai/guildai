@@ -11,6 +11,7 @@
 | ID                   | Operation           | Started                  | Duration                | Status           | Label                |
 | --                   | ---------           | ---------                | --------                | ------           | -----                |
 | {{ run.id|short_id}} | {{ run.operation }} | {{ run.started|nbhyph }} | {{ run.duration|nbsp }} | {{ run.status }} | {{ run.label|nbsp }} |
+
 {% endblock summary %}
 
 [run.yml](run.yml)
@@ -21,6 +22,8 @@
 - [Flags](#flags)
 - [Scalars](#scalars)
 - [Run Files](#run-files)
+- [Source Code](#source-code)
+- [Output](#output)
 
 {% endblock contents %}
 
@@ -42,6 +45,18 @@
 {% include ["_runfiles.md", "publish-default/_runfiles.md"] %}
 {% endblock runfiles %}
 
+{% block sourcecode %}
+## Source Code
+
+{% include ["_sourcecode.md", "publish-default/_sourcecode.md"] %}
+{% endblock sourcecode %}
+
+{% block output %}
+## Output
+
+{% include ["_output.md", "publish-default/_output.md"] %}
+{% endblock output %}
+
 {#
 
 {% block images %}
@@ -49,18 +64,6 @@
 
 {% include ["_images.md", "publish-default/_images.md"] %}
 {% endblock images %}
-
-{% block source %}
-## Source Code
-
-{% include ["_sourcecode.md", "publish-default/_source.md"] %}
-{% endblock source %}
-
-{% block attributes %}
-## Attributes
-
-{% include ["_run_attrs.md", "publish-default/_run_attrs.md"] %}
-{% endblock attributes %}
 
 #}
 

@@ -790,7 +790,7 @@ def _publish_runs(runs, formatted, args):
                 dest=args.dest,
                 template=args.template,
                 copy_files=copy_files,
-                no_md5=args.no_md5,
+                md5s=not args.no_md5,
                 formatted_run=frun)
         except publishlib.PublishError as e:
             cli.error(

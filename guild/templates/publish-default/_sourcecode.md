@@ -1,10 +1,11 @@
-{% set source = run|source -%}
+{% set rows = sourcecode|csv_dict_rows -%}
 
-{% if source -%}
-| File | Size | Modified |
-| ---- | ---- | -------- |
-{% for file in source %}| [{{ file.path }}]({{ file.url }}) | {{ file.size }} | {{ file.modified }} |
+{% if rows -%}
+| Path | Size | Modified | MD5 |
+| ---- | ---- | -------- | --- |
+{% for row in rows %}| [{{ row.path }}](sourcecode/{{ row.path }}) | {{ row.size|file_size }} | {{ row.mtime|utc_date('us') }} | {{ row.md5 }} |
 {% endfor %}
+[sourcecode.csv](sourcecode.csv)
 {% else -%}
-There are no source files for this run.
+There are no source code files for this run.
 {%- endif %}

@@ -235,24 +235,25 @@ PublishRunState = collections.namedtuple(
         "dest_home",
         "template",
         "run_dest",
-        "no_md5",
+        "md5s",
     ])
 
 def publish_run(run, dest=None, template=None, copy_files=None,
-                no_md5=False, formatted_run=None):
+                md5s=True, formatted_run=None):
     state = _init_publish_run_state(
         run,
         dest,
         template,
         copy_files,
-        no_md5,
+        md5s,
         formatted_run)
     _init_published_run(state)
     _publish_run_guild_files(state)
+    _copy_sourcecode(state)
     _copy_runfiles(state)
     _generate_template(state)
 
-def _init_publish_run_state(run, dest, template, copy_files, no_md5,
+def _init_publish_run_state(run, dest, template, copy_files, md5s,
                             formatted_run):
     dest_home = dest or DEFAULT_DEST_HOME
     opdef = _run_opdef(run)
@@ -268,7 +269,7 @@ def _init_publish_run_state(run, dest, template, copy_files, no_md5,
         dest_home,
         template,
         run_dest,
-        no_md5,
+        md5s,
         )
 
 def _run_opdef(run):
@@ -357,10 +358,10 @@ def _init_published_run(state):
 
 def _publish_run_guild_files(state):
     _publish_run_info(state)
-    _publish_run_flags(state)
-    _publish_run_scalars(state)
-    _publish_run_output(state)
-    _publish_run_sourcecode(state)
+    _publish_flags(state)
+    _publish_scalars(state)
+    _publish_output(state)
+    _publish_sourcecode_list(state)
     _publish_runfiles_list(state)
 
 def _publish_run_info(state):
@@ -386,7 +387,7 @@ def _publish_run_info(state):
         f.write("command: %s\n" % frun["command"])
         f.write("exit_status: %s\n" % frun["exit_status"])
 
-def _publish_run_flags(state):
+def _publish_flags(state):
     flags = state.run.get("flags") or {}
     dest = os.path.join(state.run_dest, "flags.yml")
     _save_yaml(flags, dest)
@@ -400,7 +401,7 @@ def _save_yaml(val, path):
             encoding="utf-8",
             allow_unicode=True)
 
-def _publish_run_scalars(state):
+def _publish_scalars(state):
     cols = [
         "prefix",
         "tag",
@@ -429,33 +430,23 @@ def _run_scalars(state):
     index.refresh([state.run], ["scalar"])
     return list(index.run_scalars(state.run))
 
-def _publish_run_output(state):
+def _publish_output(state):
     src = state.run.guild_path("output")
     dest = os.path.join(state.run_dest, "output.txt")
     shutil.copyfile(src, dest)
 
-def _publish_run_sourcecode(state):
+def _publish_sourcecode_list(state):
     src = state.run.guild_path("sourcecode")
-    if not os.path.isdir(src):
-        return
-    if os.path.exists(src):
-        dest = os.path.join(state.run_dest, "sourcecode")
-        shutil.copytree(src, dest)
-
-def _publish_runfiles_list(state):
-    dest = os.path.join(state.run_dest, "runfiles.csv")
-    paths = _non_guild_files(state.run.dir)
+    dest = os.path.join(state.run_dest, "sourcecode.csv")
+    paths = _dir_paths(src, skip_guildfiles=True)
     with open(dest, "w") as f:
-        out = csv.writer(f)
-        out.writerow(["path", "type", "size", "mtime", "md5"])
-        for path in paths:
-            out.writerow(_run_file_row(path, state))
+        _write_paths_csv(paths, src, state.md5s, f)
 
-def _non_guild_files(dir):
+def _dir_paths(dir, skip_guildfiles=False):
     seen = set()
     paths = []
     for root, dirs, names in os.walk(dir, followlinks=True):
-        if root == dir:
+        if skip_guildfiles and root == dir:
             _remove_guild_dir(dirs)
         for name in dirs + names:
             path = os.path.join(root, name)
@@ -473,18 +464,24 @@ def _remove_guild_dir(dirs):
     except ValueError:
         pass
 
-def _run_file_row(path, state):
+def _write_paths_csv(paths, root, md5s, f):
+    out = csv.writer(f)
+    out.writerow(["path", "type", "size", "mtime", "md5"])
+    for path in paths:
+        out.writerow(_path_row(path, root, md5s))
+
+def _path_row(path, root, md5):
     st = os.stat(path)
     lst = os.lstat(path)
     return [
-        os.path.relpath(path, state.run.dir),
-        _file_type(st, lst),
+        os.path.relpath(path, root),
+        _path_type(st, lst),
         st.st_size,
-        _file_mtime(st),
-        _file_md5(path, st, state),
+        _path_mtime(st),
+        _path_md5(path, st) if md5 else "",
     ]
 
-def _file_type(st, lst):
+def _path_type(st, lst):
     parts = []
     if stat.S_ISREG(st.st_mode):
         parts.append("file")
@@ -496,7 +493,7 @@ def _file_type(st, lst):
         parts.append("link")
     return " ".join(parts)
 
-def _file_mtime(st):
+def _path_mtime(st):
     return int((st.st_mtime + _utc_offset()) * 1000000)
 
 def _utc_offset():
@@ -508,10 +505,23 @@ def _utc_offset():
              datetime.datetime.utcnow()).total_seconds()))
         return offset
 
-def _file_md5(path, st, state):
-    if state.no_md5 or not stat.S_ISREG(st.st_mode):
+def _path_md5(path, st):
+    if not stat.S_ISREG(st.st_mode):
         return ""
     return util.file_md5(path)
+
+def _publish_runfiles_list(state):
+    dest = os.path.join(state.run_dest, "runfiles.csv")
+    paths = _dir_paths(state.run.dir, skip_guildfiles=True)
+    with open(dest, "w") as f:
+        _write_paths_csv(paths, state.run.dir, state.md5s, f)
+
+def _copy_sourcecode(state):
+    src = state.run.guild_path("sourcecode")
+    if not os.path.isdir(src):
+        return
+    dest = os.path.join(state.run_dest, "sourcecode")
+    shutil.copytree(src, dest)
 
 class PublishRunVars(object):
 
@@ -519,10 +529,12 @@ class PublishRunVars(object):
         self._state = state
         self._cache = {}
         self._keys = [
+            "flags",
+            "output",
             "run",
             "runfiles",
-            "flags",
             "scalars",
+            "sourcecode",
         ]
 
     def keys(self):
