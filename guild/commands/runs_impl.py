@@ -455,7 +455,7 @@ def _print_run_info(run, args):
     for name in other_attr_names(run, args.private_attrs):
         out("%s: %s" % (name, run_util.format_attr(run.get(name))))
     out("flags:", nl=False)
-    out(run_util.format_attr(run.get("flags", "")))
+    out(run_util.format_attr(run.get("flags", "")).rstrip())
     _maybe_print_proto_flags(run, out)
     if args.env:
         out("environment:", nl=False)
