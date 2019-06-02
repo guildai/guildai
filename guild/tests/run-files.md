@@ -48,14 +48,14 @@ The files generated for our run:
     .guild/opref
     .guild/output
     .guild/output.index
-    .guild/source/add.py
-    .guild/source/batch.csv
-    .guild/source/batch.json
-    .guild/source/batch.unknown
-    .guild/source/batch.yaml
-    .guild/source/guild.yml
-    .guild/source/say.py
-    .guild/source/tune.py
+    .guild/sourcecode/add.py
+    .guild/sourcecode/batch.csv
+    .guild/sourcecode/batch.json
+    .guild/sourcecode/batch.unknown
+    .guild/sourcecode/batch.yaml
+    .guild/sourcecode/guild.yml
+    .guild/sourcecode/say.py
+    .guild/sourcecode/tune.py
 
 Let's look at some of the generated files.
 
@@ -137,14 +137,14 @@ The latest run is the trial:
     .guild/opref
     .guild/output
     .guild/output.index
-    .guild/source/add.py
-    .guild/source/batch.csv
-    .guild/source/batch.json
-    .guild/source/batch.unknown
-    .guild/source/batch.yaml
-    .guild/source/guild.yml
-    .guild/source/say.py
-    .guild/source/tune.py
+    .guild/sourcecode/add.py
+    .guild/sourcecode/batch.csv
+    .guild/sourcecode/batch.json
+    .guild/sourcecode/batch.unknown
+    .guild/sourcecode/batch.yaml
+    .guild/sourcecode/guild.yml
+    .guild/sourcecode/say.py
+    .guild/sourcecode/tune.py
 
 The trial run has an `optimizer` attribute, which contains the full
 opspec for the associated optimizer. In this case, the optimizer is
@@ -194,14 +194,14 @@ Its files:
     .guild/proto/.guild/attrs/run_params
     .guild/proto/.guild/attrs/user
     .guild/proto/.guild/opref
-    .guild/proto/.guild/source/add.py
-    .guild/proto/.guild/source/batch.csv
-    .guild/proto/.guild/source/batch.json
-    .guild/proto/.guild/source/batch.unknown
-    .guild/proto/.guild/source/batch.yaml
-    .guild/proto/.guild/source/guild.yml
-    .guild/proto/.guild/source/say.py
-    .guild/proto/.guild/source/tune.py
+    .guild/proto/.guild/sourcecode/add.py
+    .guild/proto/.guild/sourcecode/batch.csv
+    .guild/proto/.guild/sourcecode/batch.json
+    .guild/proto/.guild/sourcecode/batch.unknown
+    .guild/proto/.guild/sourcecode/batch.yaml
+    .guild/proto/.guild/sourcecode/guild.yml
+    .guild/proto/.guild/sourcecode/say.py
+    .guild/proto/.guild/sourcecode/tune.py
     ...
 
 Note the additional `proto` directory. This contains the prototype for

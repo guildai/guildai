@@ -471,9 +471,9 @@ def _print_run_info(run, args):
             out("  %s:" % name)
             for path in deps[name]:
                 out("    %s" % path)
-    if args.source:
-        out("source:")
-        for path in sorted(run.iter_guild_files("source")):
+    if args.sourcecode:
+        out("sourcecode:")
+        for path in sorted(run.iter_guild_files("sourcecode")):
             out("  %s" % path)
     if args.output:
         out("output:")

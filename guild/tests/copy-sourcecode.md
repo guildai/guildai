@@ -1,20 +1,20 @@
 skip-windows: yes
 
-# Copying source
+# Copying source code
 
-Source code is copied for each run according to the model
-`snapshot-source` attr.
+Source code is copied for each run according to the model `sourcecode`
+attr.
 
-The function that copies the source is `op_util.copy_source`. For our
-tests however, we'll use the private version `copy_source`, which
-provides an interface suitable for testing.
+The function that copies the source is `op_util.copy_sourcecode`. For
+our tests however, we'll use the private version `copy_sourcecode`,
+which provides an interface suitable for testing.
 
-    >>> from guild.op_util import copy_source
+    >>> from guild.op_util import copy_sourcecode
 
-We'll use the sample project `copy-source` to illustrate the supported
-copy behavior.
+We'll use the sample project `copy-sourcecode` to illustrate the
+supported copy behavior.
 
-    >>> gf = guildfile.from_dir(sample("projects/copy-source"))
+    >>> gf = guildfile.from_dir(sample("projects/copy-sourcecode"))
 
 The project contains these models:
 
@@ -23,16 +23,16 @@ The project contains these models:
      'only-py-1', 'only-py-2', 'py-and-guild']
 
 We'll use temporary run directories to test each copy
-operation. Here's a helper function that copies the source for the
-applicable model and prints the copied source files.
+operation. Here's a helper function that copies the source code for
+the applicable model and prints the copied source files.
 
-    >>> def copy_model_source(model_name, op_name=None):
+    >>> def copy_model_sourcecode(model_name, op_name=None):
     ...     model = gf.models[model_name]
-    ...     source_config = [model.source]
+    ...     sourcecode_config = [model.sourcecode]
     ...     if op_name:
-    ...         source_config.append(model[op_name].source)
+    ...         sourcecode_config.append(model[op_name].sourcecode)
     ...     temp_dir = mkdtemp()
-    ...     copy_source(gf.dir, source_config, temp_dir)
+    ...     copy_sourcecode(gf.dir, sourcecode_config, temp_dir)
     ...     copied = find(temp_dir)
     ...     if not copied:
     ...         print("<empty>")
@@ -43,7 +43,7 @@ applicable model and prints the copied source files.
 By default, all text files are copied, including links and files
 within linked directories:
 
-    >>> copy_model_source("default")
+    >>> copy_model_sourcecode("default")
     a.txt 90605548
     empty e3b0c442
     guild.yml ...
@@ -53,7 +53,7 @@ within linked directories:
 The `include-logo` model explicitly includes `subdir/logo.png`, which
 would otherwise not be copied:
 
-    >>> copy_model_source("include-logo")
+    >>> copy_model_sourcecode("include-logo")
     a.txt 90605548
     empty e3b0c442
     guild.yml ...
@@ -64,20 +64,20 @@ would otherwise not be copied:
 The `exclude-all` model excludes all source and therefore copies
 nothing:
 
-    >>> copy_model_source("exclude-all")
+    >>> copy_model_sourcecode("exclude-all")
     <empty>
 
 The `only-py` model specifies that only `*.py` files be copied:
 
-    >>> copy_model_source("only-py-1")
+    >>> copy_model_sourcecode("only-py-1")
     hello.py 6ae95c9c
 
-    >>> copy_model_source("only-py-2")
+    >>> copy_model_sourcecode("only-py-2")
     hello.py 6ae95c9c
 
 The `py-and-guild` model specifies Python source and the Guild file:
 
-    >>> copy_model_source("py-and-guild")
+    >>> copy_model_sourcecode("py-and-guild")
     guild.yml ...
     hello.py 6ae95c9c
 
@@ -88,7 +88,7 @@ the model spec.
 In this example, the model includes `logo.png` and the op exclude
 `*.py` and `a.*` files.
 
-    >>> copy_model_source("model-and-op", "op")
+    >>> copy_model_sourcecode("model-and-op", "op")
     empty e3b0c442
     guild.yml ...
     subdir/b.txt 43451775
@@ -131,7 +131,10 @@ A helper to print results:
 Here's out copied source:
 
     >>> tmp_dir = mkdtemp()
-    >>> copy_source(project_dir, guildfile.SourceDef([], None), tmp_dir)
+    >>> copy_sourcecode(
+    ...   project_dir,
+    ...   guildfile.SourceCodeDef([], None),
+    ...   tmp_dir)
     >>> copied_files(tmp_dir)
     a.txt 2cf24dba
     cycle/b.txt c940b581
@@ -182,13 +185,16 @@ Copy the source without config:
 
     >>> tmp_dir = mkdtemp()
     >>> with LogCapture() as logs:
-    ...     copy_source(project_dir, guildfile.SourceDef([], None), tmp_dir)
+    ...   copy_sourcecode(
+    ...     project_dir,
+    ...     guildfile.SourceCodeDef([], None),
+    ...     tmp_dir)
 
 Logs:
 
     >>> logs.print_all()
-    WARNING: Skipping potential source file .../big.txt because it's too big.
-    WARNING: Found 110 source files using default snapshot-source config but
+    WARNING: Skipping potential source code file .../big.txt because it's too big.
+    WARNING: Found 110 source code files using default sourcecode config but
     will only copy 100 as a safety measure.
 
 And the copied files:
@@ -215,21 +221,21 @@ Copy the source without config:
 
     >>> tmp_dir = mkdtemp()
     >>> with LogCapture() as logs:
-    ...     copy_source(
+    ...     copy_sourcecode(
     ...         project_dir,
-    ...         guildfile.SourceDef([], None),
+    ...         guildfile.SourceCodeDef([], None),
     ...         tmp_dir,
     ...         gf.default_model["op"])
 
 Now our logs contain some advice to the user:
 
     >>> logs.print_all()
-    WARNING: Skipping potential source file .../big.txt because it's too big.
-    To control which source files are copied, specify snapshot-source for
+    WARNING: Skipping potential source code file .../big.txt because it's too big.
+    To control which source code files are copied, specify sourcecode for
     m1:op.
-    WARNING: Found 110 source files using default snapshot-source config but
-    will only copy 100 as a safety measure. To control which source files are
-    copied, specify snapshot-source for m1:op.
+    WARNING: Found 110 source code files using default sourcecode config but
+    will only copy 100 as a safety measure. To control which source code files are
+    copied, specify sourcecode for m1:op.
 
 And the files:
 
@@ -242,11 +248,11 @@ And the files:
 
 Let's copy the source with config that explicitly enables all files:
 
-    >>> include_all = guildfile.SourceDef([{"include": "*"}], None)
+    >>> include_all = guildfile.SourceCodeDef([{"include": "*"}], None)
 
     >>> tmp_dir = mkdtemp()
     >>> with LogCapture() as logs:
-    ...     copy_source(project_dir, include_all, tmp_dir)
+    ...     copy_sourcecode(project_dir, include_all, tmp_dir)
 
 Nothing logged;
 
@@ -263,5 +269,3 @@ And all files are copied:
      'small-001.txt',
      ...
      'small-110.txt']
-
-Markdown finished at Tue May 14 13:25:02

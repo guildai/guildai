@@ -28,9 +28,9 @@ from . import runs_support
     metavar="PATH",
     help="Path to list.")
 @click.option(
-    "-s", "--source",
+    "-s", "--sourcecode",
     is_flag=True,
-    help="List source files.")
+    help="List source code files.")
 @click.option(
     "-a", "--all",
     is_flag=True,

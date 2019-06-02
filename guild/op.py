@@ -109,7 +109,7 @@ class Operation(object):
     def init(self):
         self._init_run()
         self._init_attrs()
-        self._copy_source()
+        self._copy_sourcecode()
         return self._run
 
     def _init_run(self):
@@ -140,11 +140,12 @@ class Operation(object):
         for key, val in self.opdef.modeldef.extra.items():
             self._run.write_attr("_extra_%s" % key, val)
 
-    def _copy_source(self):
+    def _copy_sourcecode(self):
         assert self._run is not None
-        # Only copy source for guildfile or script dist (i.e. projects)
+        # Only copy source code for guildfile or script dist
+        # (i.e. projects)
         if self.opref.pkg_type in ("guildfile", "script"):
-            op_util.copy_run_source(self._run, self.opdef)
+            op_util.copy_run_sourcecode(self._run, self.opdef)
 
     def run_impl(self, quiet=False, background_pidfile=None, stop_after=None):
         self._started = guild.run.timestamp()

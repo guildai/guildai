@@ -46,8 +46,8 @@ def _open(run, args):
         cli.error(e)
 
 def _path(run, args):
-    if args.source:
-        base_path = run.guild_path("source")
+    if args.sourcecode:
+        base_path = run.guild_path("sourcecode")
     else:
         base_path = run.path
     return os.path.join(base_path, args.path or "")

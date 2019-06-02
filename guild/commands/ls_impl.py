@@ -62,8 +62,8 @@ def _list(run_dir, args):
 
 def _match_path_pattern(args):
     pattern = args.path
-    if args.source:
-        source_base = os.path.join(".guild", "source")
+    if args.sourcecode:
+        source_base = os.path.join(".guild", "sourcecode")
         if pattern:
             pattern = os.path.join(source_base, pattern)
         else:
@@ -71,7 +71,7 @@ def _match_path_pattern(args):
     return pattern
 
 def _maybe_rm_guild_dir(dirs, args):
-    if args.all or args.source:
+    if args.all or args.sourcecode:
         return
     try:
         dirs.remove(".guild")

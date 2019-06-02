@@ -28,11 +28,26 @@ from . import runs_support
     "-f", "--files",
     help="Show run files. Use twice (-ff) to show full paths.",
     count=True)
-@click.option("-O", "--output", help="Show run output.", is_flag=True)
-@click.option("-e", "--env", help="Show run environment.", is_flag=True)
-@click.option("-S", "--scalars", help="Show run scalars.", is_flag=True)
-@click.option("-d", "--deps", help="Show resolved dependencies.", is_flag=True)
-@click.option("-s", "--source", help="Show source code files.", is_flag=True)
+@click.option(
+    "-O", "--output",
+    help="Show run output.",
+    is_flag=True)
+@click.option(
+    "-e", "--env",
+    help="Show run environment.",
+    is_flag=True)
+@click.option(
+    "-S", "--scalars",
+    help="Show run scalars.",
+    is_flag=True)
+@click.option(
+    "-d", "--deps",
+    help="Show resolved dependencies.",
+    is_flag=True)
+@click.option(
+    "-s", "--sourcecode",
+    help="Show source code files.",
+    is_flag=True)
 @click.option(
     "-p", "--page-output",
     help="Show only run output in a pager.",

@@ -45,8 +45,8 @@ function_arg_delimiter = ":"
 
 RESTART_NEEDED_STATUS = ("pending",)
 
-MAX_DEFAULT_SOURCE_FILE_SIZE = 1024 * 1024
-MAX_DEFAULT_SOURCE_COUNT = 100
+MAX_DEFAULT_SOURCECODE_FILE_SIZE = 1024 * 1024
+MAX_DEFAULT_SOURCECODE_COUNT = 100
 
 class ArgValueError(ValueError):
 
@@ -504,71 +504,71 @@ def _check_flag_range(val, flag):
         raise InvalidFlagValue(
             val, flag, "out of range (greater than max %s)" % flag.max)
 
-def copy_run_source(run, opdef):
-    log.debug("copying source files for run %s", run.id)
-    copy_source(
+def copy_run_sourcecode(run, opdef):
+    log.debug("copying source code files for run %s", run.id)
+    copy_sourcecode(
         opdef.guildfile.dir,
-        [opdef.source, opdef.modeldef.source],
-        run.guild_path("source"),
+        [opdef.sourcecode, opdef.modeldef.sourcecode],
+        run.guild_path("sourcecode"),
         opdef)
 
-def copy_source(src_base, source_config, dest_base, opdef=None):
-    log.debug("copying source files from %s to %s", src_base, dest_base)
-    if not isinstance(source_config, list):
-        source_config = [source_config]
-    to_copy = _source_to_copy(src_base, source_config, opdef)
+def copy_sourcecode(src_base, sourcecode_config, dest_base, opdef=None):
+    log.debug("copying source code files from %s to %s", src_base, dest_base)
+    if not isinstance(sourcecode_config, list):
+        sourcecode_config = [sourcecode_config]
+    to_copy = _sourcecode_to_copy(src_base, sourcecode_config, opdef)
     if not to_copy:
-        log.debug("no source files to copy")
+        log.debug("no source code files to copy")
         return
     for src, src_rel_path in to_copy:
         dest = os.path.join(dest_base, src_rel_path)
-        log.debug("copying source file %s to %s", src, dest)
+        log.debug("copying source code file %s to %s", src, dest)
         util.ensure_dir(os.path.dirname(dest))
         _try_copy_file(src, dest)
 
-def _source_to_copy(src_dir, source_config, opdef):
+def _sourcecode_to_copy(src_dir, sourcecode_config, opdef):
     to_copy = []
     seen_dirs = set()
-    log.debug("generating source file list from %s", src_dir)
+    log.debug("generating source code file list from %s", src_dir)
     for root, dirs, files in os.walk(src_dir, followlinks=True):
         seen_dirs.add(os.path.realpath(root))
-        _del_excluded_copy_source_dirs(dirs, root, seen_dirs)
+        _del_excluded_copy_sourcecode_dirs(dirs, root, seen_dirs)
         for name in files:
             path = os.path.join(root, name)
             if not os.path.isfile(path):
                 continue
             rel_path = os.path.relpath(path, src_dir)
-            log.debug("considering source file %s", path)
-            if _to_copy(path, rel_path, source_config, opdef):
-                log.debug("seleted source file %s", path)
+            log.debug("considering source code file %s", path)
+            if _to_copy(path, rel_path, sourcecode_config, opdef):
+                log.debug("seleted source code file %s", path)
                 to_copy.append((path, rel_path))
     # Order matters - sort before pruning to have deterministic
     # result.
     to_copy.sort()
-    _maybe_prune_source_to_copy(source_config, to_copy, opdef)
+    _maybe_prune_sourcecode_to_copy(sourcecode_config, to_copy, opdef)
     return to_copy
 
-def _maybe_prune_source_to_copy(source_config, to_copy, opdef):
-    if (_undefined_source_config(source_config) and
-        len(to_copy) > MAX_DEFAULT_SOURCE_COUNT):
-        _warn_source_to_copy_prune(to_copy, opdef)
-        del to_copy[MAX_DEFAULT_SOURCE_COUNT:]
+def _maybe_prune_sourcecode_to_copy(sourcecode_config, to_copy, opdef):
+    if (_undefined_sourcecode_config(sourcecode_config) and
+        len(to_copy) > MAX_DEFAULT_SOURCECODE_COUNT):
+        _warn_sourcecode_to_copy_prune(to_copy, opdef)
+        del to_copy[MAX_DEFAULT_SOURCECODE_COUNT:]
 
-def _undefined_source_config(source_config):
-    return not any((len(cfg.specs) > 0 for cfg in source_config))
+def _undefined_sourcecode_config(sourcecode_config):
+    return not any((len(cfg.specs) > 0 for cfg in sourcecode_config))
 
-def _warn_source_to_copy_prune(to_copy, opdef):
+def _warn_sourcecode_to_copy_prune(to_copy, opdef):
     log.warning(
-        "Found %i source files using default snapshot-source config "
+        "Found %i source code files using default sourcecode config "
         "but will only copy %i as a safety measure.%s",
-        len(to_copy), MAX_DEFAULT_SOURCE_COUNT,
-        _snapshot_source_help_suffix(opdef))
+        len(to_copy), MAX_DEFAULT_SOURCECODE_COUNT,
+        _snapshot_sourcecode_help_suffix(opdef))
 
-def _snapshot_source_help_suffix(opdef):
+def _snapshot_sourcecode_help_suffix(opdef):
     if opdef:
         return (
-            " To control which source files are copied, "
-            "specify snapshot-source for %s." % opdef.fullname)
+            " To control which source code files are copied, "
+            "specify sourcecode for %s." % opdef.fullname)
     return ""
 
 def _try_copy_file(src, dest):
@@ -580,9 +580,9 @@ def _try_copy_file(src, dest):
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("copy %s to %s", src, dest)
         else:
-            log.warning("could not copy source file %s: %s", src, e)
+            log.warning("could not copy source code file %s: %s", src, e)
 
-def _del_excluded_copy_source_dirs(dirs, root, seen_dirs):
+def _del_excluded_copy_sourcecode_dirs(dirs, root, seen_dirs):
     _del_seen_dirs(dirs, root, seen_dirs)
     _del_env_dirs(dirs, root)
     _del_dot_dir(dirs)
@@ -612,35 +612,35 @@ def _del_nocopy_dirs(dirs):
 def _is_env_dir(path):
     return os.path.exists(os.path.join(path, "bin", "activate"))
 
-def _to_copy(path, rel_path, source_config, opdef):
-    assert isinstance(source_config, list)
+def _to_copy(path, rel_path, sourcecode_config, opdef):
+    assert isinstance(sourcecode_config, list)
     last_match = None
-    for config in source_config:
+    for config in sourcecode_config:
         for spec in config.specs:
-            if _source_match(rel_path, spec):
+            if _sourcecode_match(rel_path, spec):
                 last_match = spec
     if last_match:
         return _to_copy_for_spec(last_match)
-    return _is_default_source_file(path, opdef)
+    return _is_default_sourcecode_file(path, opdef)
 
-def _source_match(rel_path, spec):
+def _sourcecode_match(rel_path, spec):
     return any((fnmatch.fnmatch(rel_path, p) for p in spec.patterns))
 
 def _to_copy_for_spec(spec):
     return spec.type == "include"
 
-def _is_default_source_file(path, opdef):
+def _is_default_sourcecode_file(path, opdef):
     if not util.is_text_file(path):
         return False
-    if os.path.getsize(path) > MAX_DEFAULT_SOURCE_FILE_SIZE:
-        _warn_default_source_file_too_big(path, opdef)
+    if os.path.getsize(path) > MAX_DEFAULT_SOURCECODE_FILE_SIZE:
+        _warn_default_sourcecode_file_too_big(path, opdef)
         return False
     return True
 
-def _warn_default_source_file_too_big(path, opdef):
+def _warn_default_sourcecode_file_too_big(path, opdef):
     log.warning(
-        "Skipping potential source file %s because it's too "
-        "big.%s", path, _snapshot_source_help_suffix(opdef))
+        "Skipping potential source code file %s because it's too "
+        "big.%s", path, _snapshot_sourcecode_help_suffix(opdef))
 
 def split_main(main):
     if isinstance(main, list):

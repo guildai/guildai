@@ -9,11 +9,11 @@ We'll use an args proxy to simulate command arguments.
     >>> class Args(object):
     ...   def __init__(self, run="1", path=None, full_path=False,
     ...                no_format=None, follow_links=False, all=False,
-    ...                source=False, marked=False, unmarked=False):
+    ...                sourcecode=False, marked=False, unmarked=False):
     ...       self.run = run
     ...       self.path = path
     ...       self.full_path = full_path
-    ...       self.source = source
+    ...       self.sourcecode = sourcecode
     ...       self.no_format = no_format
     ...       self.follow_links = follow_links
     ...       self.all = all
@@ -46,9 +46,9 @@ Let's create a sample run structure:
     >>> symlink("c", join_path(run.path, "l"))
     >>> touch(join_path(run.path, ".guild", "attrs", "exit_status"))
     >>> touch(join_path(run.path, ".guild", "some-guild-file"))
-    >>> mkdir(join_path(run.path, ".guild", "source"))
-    >>> touch(join_path(run.path, ".guild", "source", "a.py"))
-    >>> touch(join_path(run.path, ".guild", "source", "guild.yml"))
+    >>> mkdir(join_path(run.path, ".guild", "sourcecode"))
+    >>> touch(join_path(run.path, ".guild", "sourcecode", "a.py"))
+    >>> touch(join_path(run.path, ".guild", "sourcecode", "guild.yml"))
 
 Here's a function that tests the ls command using sample runs.
 
@@ -145,9 +145,9 @@ Show all files, including Guild files:
       .guild/attrs/initialized
       .guild/opref
       .guild/some-guild-file
-      .guild/source/
-      .guild/source/a.py
-      .guild/source/guild.yml
+      .guild/sourcecode/
+      .guild/sourcecode/a.py
+      .guild/sourcecode/guild.yml
       a
       b
       c/
@@ -156,23 +156,23 @@ Show all files, including Guild files:
       c/f.bin
       l/
 
-Show source files:
+Show source code files:
 
-    >>> ls(source=True)
+    >>> ls(sourcecode=True)
     /.../runs/run-1:
-      .guild/source/
-      .guild/source/a.py
-      .guild/source/guild.yml
+      .guild/sourcecode/
+      .guild/sourcecode/a.py
+      .guild/sourcecode/guild.yml
 
-Source with fill path:
+Source code with fill path:
 
-    >>> ls(source=True, full_path=True)
-    /.../runs/run-1/.guild/source
-    /.../runs/run-1/.guild/source/a.py
-    /.../runs/run-1/.guild/source/guild.yml
+    >>> ls(sourcecode=True, full_path=True)
+    /.../runs/run-1/.guild/sourcecode
+    /.../runs/run-1/.guild/sourcecode/a.py
+    /.../runs/run-1/.guild/sourcecode/guild.yml
 
-Source with path:
+Source code with path:
 
-    >>> ls(source=True, path="a.*")
+    >>> ls(sourcecode=True, path="a.*")
     /.../runs/run-1:
-      .guild/source/a.py
+      .guild/sourcecode/a.py

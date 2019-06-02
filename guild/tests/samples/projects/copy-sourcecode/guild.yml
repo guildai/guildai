@@ -1,33 +1,33 @@
 - model: default
 
 - model: include-logo
-  snapshot-source:
+  sourcecode:
     - include: subdir/logo.png
 
 - model: exclude-all
-  snapshot-source:
+  sourcecode:
     - exclude: '*'
 
 - model: only-py-1
-  snapshot-source: '*.py'
+  sourcecode: '*.py'
 
 - model: only-py-2
-  snapshot-source:
+  sourcecode:
     - exclude: '*'
     - include: '*.py'
 
 - model: py-and-guild
-  snapshot-source:
+  sourcecode:
     - exclude: '*'
     - include:
         - '*.py'
         - 'guild.yml'
 
 - model: model-and-op
-  snapshot-source:
+  sourcecode:
     - include: subdir/logo.png
   operations:
     op:
       exec: 'true'
-      snapshot-source:
+      sourcecode:
         - exclude: ['*.py', 'a.*']
