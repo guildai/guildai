@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import fnmatch
 import csv
 import hashlib
 import logging
 import re
 import os
-import shutil
 import struct
 import sys
 import threading
@@ -512,135 +510,82 @@ def copy_run_sourcecode(run, opdef):
         run.guild_path("sourcecode"),
         opdef)
 
-def copy_sourcecode(src_base, sourcecode_config, dest_base, opdef=None):
-    log.debug("copying source code files from %s to %s", src_base, dest_base)
-    if not isinstance(sourcecode_config, list):
-        sourcecode_config = [sourcecode_config]
-    to_copy = _sourcecode_to_copy(src_base, sourcecode_config, opdef)
-    if not to_copy:
-        log.debug("no source code files to copy")
-        return
-    for src, src_rel_path in to_copy:
-        dest = os.path.join(dest_base, src_rel_path)
-        log.debug("copying source code file %s to %s", src, dest)
-        util.ensure_dir(os.path.dirname(dest))
-        _try_copy_file(src, dest)
+class SourceCodeFilter(object):
 
-def _sourcecode_to_copy(src_dir, sourcecode_config, opdef):
-    to_copy = []
-    seen_dirs = set()
-    log.debug("generating source code file list from %s", src_dir)
-    for root, dirs, files in os.walk(src_dir, followlinks=True):
-        seen_dirs.add(os.path.realpath(root))
-        _del_excluded_copy_sourcecode_dirs(dirs, root, seen_dirs)
-        for name in files:
-            path = os.path.join(root, name)
-            if not os.path.isfile(path):
-                continue
-            rel_path = os.path.relpath(path, src_dir)
-            log.debug("considering source code file %s", path)
-            if _to_copy(path, rel_path, sourcecode_config, opdef):
-                log.debug("seleted source code file %s", path)
-                to_copy.append((path, rel_path))
-    # Order matters - sort before pruning to have deterministic
-    # result.
-    to_copy.sort()
-    _maybe_prune_sourcecode_to_copy(sourcecode_config, to_copy, opdef)
-    return to_copy
+    def __init__(self, config, opdef):
+        self.config = config
+        self.opdef = opdef
 
-def _maybe_prune_sourcecode_to_copy(sourcecode_config, to_copy, opdef):
-    if (_undefined_sourcecode_config(sourcecode_config) and
-        len(to_copy) > MAX_DEFAULT_SOURCECODE_COUNT):
-        _warn_sourcecode_to_copy_prune(to_copy, opdef)
-        del to_copy[MAX_DEFAULT_SOURCECODE_COUNT:]
+    def delete_excluded_dirs(self, root, dirs):
+        self._del_env_dirs(dirs, root)
+        self._del_dot_dir(dirs)
+        self._del_nocopy_dirs(root, dirs)
 
-def _undefined_sourcecode_config(sourcecode_config):
-    return not any((len(cfg.specs) > 0 for cfg in sourcecode_config))
+    def _del_env_dirs(self, dirs, root):
+        for name in list(dirs):
+            if self._is_env_dir(os.path.join(root, name)):
+                dirs.remove(name)
 
-def _warn_sourcecode_to_copy_prune(to_copy, opdef):
-    log.warning(
-        "Found %i source code files using default sourcecode config "
-        "but will only copy %i as a safety measure.%s",
-        len(to_copy), MAX_DEFAULT_SOURCECODE_COUNT,
-        _snapshot_sourcecode_help_suffix(opdef))
+    @staticmethod
+    def _is_env_dir(path):
+        return os.path.exists(os.path.join(path, "bin", "activate"))
 
-def _snapshot_sourcecode_help_suffix(opdef):
-    if opdef:
-        return (
-            " To control which source code files are copied, "
-            "specify sourcecode for %s." % opdef.fullname)
-    return ""
+    @staticmethod
+    def _del_dot_dir(dirs):
+        for name in list(dirs):
+            if name[:1] == ".":
+                dirs.remove(name)
 
-def _try_copy_file(src, dest):
-    try:
-        shutil.copyfile(src, dest)
-    except (IOError, OSError) as e:
-        # This is not an error we want to stop an operation for. Log
-        # and continue.
-        if log.getEffectiveLevel() <= logging.DEBUG:
-            log.exception("copy %s to %s", src, dest)
-        else:
-            log.warning("could not copy source code file %s: %s", src, e)
+    @staticmethod
+    def _del_nocopy_dirs(root, dirs):
+        for name in list(dirs):
+            if os.path.exists(os.path.join(root, name, ".guild-nocopy")):
+                dirs.remove(name)
 
-def _del_excluded_copy_sourcecode_dirs(dirs, root, seen_dirs):
-    _del_seen_dirs(dirs, root, seen_dirs)
-    _del_env_dirs(dirs, root)
-    _del_dot_dir(dirs)
-    _del_nocopy_dirs(dirs)
+    def default_select_path(self, path):
+        if not util.is_text_file(path):
+            return False
+        if os.path.getsize(path) > MAX_DEFAULT_SOURCECODE_FILE_SIZE:
+            self._warn_default_sourcecode_file_too_big(path)
+            return False
+        return True
 
-def _del_seen_dirs(dirs, root, seen):
-    for dir_name in dirs:
-        real_path = os.path.realpath(os.path.join(root, dir_name))
-        if real_path in seen:
-            dirs.remove(dir_name)
+    def _warn_default_sourcecode_file_too_big(self, path):
+        log.warning(
+            "Skipping potential source code file %s because it's too "
+            "big.%s", path, self._snapshot_sourcecode_help_suffix())
 
-def _del_env_dirs(dirs, root):
-    for name in dirs:
-        if _is_env_dir(os.path.join(root, name)):
-            dirs.remove(name)
+    def _snapshot_sourcecode_help_suffix(self):
+        if self.opdef:
+            return (
+                " To control which source code files are copied, "
+                "specify sourcecode for %s." % self.opdef.fullname)
+        return ""
 
-def _del_dot_dir(dirs):
-    for d in list(dirs):
-        if d[:1] == ".":
-            dirs.remove(d)
+    def pre_copy(self, to_copy):
+        if (self._undefined_sourcecode_config() and
+            len(to_copy) > MAX_DEFAULT_SOURCECODE_COUNT):
+            self._warn_sourcecode_to_copy_prune(to_copy)
+            del to_copy[MAX_DEFAULT_SOURCECODE_COUNT:]
 
-def _del_nocopy_dirs(dirs):
-    for d in list(dirs):
-        if os.path.exists(os.path.join(d, ".guild-nocopy")):
-            dirs.remove(d)
+    def _undefined_sourcecode_config(self):
+        return not any((len(cfg_item.specs) > 0 for cfg_item in self.config))
 
-def _is_env_dir(path):
-    return os.path.exists(os.path.join(path, "bin", "activate"))
+    def _warn_sourcecode_to_copy_prune(self, to_copy):
+        log.warning(
+            "Found %i source code files using default sourcecode config "
+            "but will only copy %i as a safety measure.%s",
+            len(to_copy), MAX_DEFAULT_SOURCECODE_COUNT,
+            self._snapshot_sourcecode_help_suffix())
 
-def _to_copy(path, rel_path, sourcecode_config, opdef):
-    assert isinstance(sourcecode_config, list)
-    last_match = None
-    for config in sourcecode_config:
-        for spec in config.specs:
-            if _sourcecode_match(rel_path, spec):
-                last_match = spec
-    if last_match:
-        return _to_copy_for_spec(last_match)
-    return _is_default_sourcecode_file(path, opdef)
-
-def _sourcecode_match(rel_path, spec):
-    return any((fnmatch.fnmatch(rel_path, p) for p in spec.patterns))
-
-def _to_copy_for_spec(spec):
-    return spec.type == "include"
-
-def _is_default_sourcecode_file(path, opdef):
-    if not util.is_text_file(path):
-        return False
-    if os.path.getsize(path) > MAX_DEFAULT_SOURCECODE_FILE_SIZE:
-        _warn_default_sourcecode_file_too_big(path, opdef)
-        return False
-    return True
-
-def _warn_default_sourcecode_file_too_big(path, opdef):
-    log.warning(
-        "Skipping potential source code file %s because it's too "
-        "big.%s", path, _snapshot_sourcecode_help_suffix(opdef))
+def copy_sourcecode(src_base, config, dest_base, opdef=None):
+    if not isinstance(config, list):
+        config = [config]
+    util.select_copytree(
+        src_base,
+        dest_base,
+        config,
+        SourceCodeFilter(config, opdef))
 
 def split_main(main):
     if isinstance(main, list):

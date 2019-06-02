@@ -133,7 +133,7 @@ Here's out copied source:
     >>> tmp_dir = mkdtemp()
     >>> copy_sourcecode(
     ...   project_dir,
-    ...   guildfile.SourceCodeDef([], None),
+    ...   guildfile.FileSelectDef([], None),
     ...   tmp_dir)
     >>> copied_files(tmp_dir)
     a.txt 2cf24dba
@@ -187,7 +187,7 @@ Copy the source without config:
     >>> with LogCapture() as logs:
     ...   copy_sourcecode(
     ...     project_dir,
-    ...     guildfile.SourceCodeDef([], None),
+    ...     guildfile.FileSelectDef([], None),
     ...     tmp_dir)
 
 Logs:
@@ -223,7 +223,7 @@ Copy the source without config:
     >>> with LogCapture() as logs:
     ...     copy_sourcecode(
     ...         project_dir,
-    ...         guildfile.SourceCodeDef([], None),
+    ...         guildfile.FileSelectDef([], None),
     ...         tmp_dir,
     ...         gf.default_model["op"])
 
@@ -248,7 +248,7 @@ And the files:
 
 Let's copy the source with config that explicitly enables all files:
 
-    >>> include_all = guildfile.SourceCodeDef([{"include": "*"}], None)
+    >>> include_all = guildfile.FileSelectDef([{"include": "*"}], None)
 
     >>> tmp_dir = mkdtemp()
     >>> with LogCapture() as logs:

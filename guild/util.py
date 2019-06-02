@@ -18,6 +18,7 @@ from __future__ import division
 import chardet
 import datetime
 import errno
+import fnmatch
 import os
 import logging
 import platform
@@ -249,6 +250,17 @@ def write_cached_sha(sha, for_file):
     with open(_cached_sha_filename(for_file), "w") as f:
         f.write(sha)
 
+def file_md5(path):
+    import hashlib
+    hash = hashlib.md5()
+    with open(path, "rb") as f:
+        while True:
+            data = f.read(102400)
+            if not data:
+                break
+            hash.update(data)
+    return hash.hexdigest()
+
 def parse_url(url):
     try:
         from urlparse import urlparse
@@ -373,7 +385,7 @@ def format_timestamp(ts, fmt=None):
     dt = datetime.datetime.fromtimestamp(ts / 1000000)
     return dt.strftime(fmt or "%Y-%m-%d %H:%M:%S")
 
-def format_timestamp_utc(ts, fmt=None):
+def utcformat_timestamp(ts, fmt=None):
     if not ts:
         return None
     dt = datetime.datetime.utcfromtimestamp(ts / 1000000)
@@ -830,6 +842,83 @@ def copytree(src, dest, preserve_links=True):
     from distutils import dir_util
     dir_util.copy_tree(src, dest, preserve_symlinks=preserve_links)
 
+def select_copytree(src, dest, config, copy_filter=None):
+    if not isinstance(config, list):
+        raise ValueError("invalid config: expected list got %r" % config)
+    log.debug("copying files from %s to %s", src, dest)
+    to_copy = _select_files_to_copy(src, config, copy_filter)
+    if not to_copy:
+        log.debug("no files to copy")
+        return
+    for file_src, file_src_rel_path in to_copy:
+        file_dest = os.path.join(dest, file_src_rel_path)
+        log.debug("copying file %s to %s", file_src, file_dest)
+        ensure_dir(os.path.dirname(file_dest))
+        _try_copy_file(file_src, file_dest)
+
+def _select_files_to_copy(src_dir, config, copy_filter):
+    to_copy = []
+    seen_dirs = set()
+    log.debug("generating file list from %s", src_dir)
+    for root, dirs, files in os.walk(src_dir, followlinks=True):
+        seen_dirs.add(os.path.realpath(root))
+        _del_excluded_select_copy_dirs(root, dirs, seen_dirs, copy_filter)
+        for name in files:
+            path = os.path.join(root, name)
+            if not os.path.isfile(path):
+                continue
+            rel_path = os.path.relpath(path, src_dir)
+            log.debug("considering file to copy %s", path)
+            if _select_to_copy(path, rel_path, config, copy_filter):
+                log.debug("seleted file to copy %s", path)
+                to_copy.append((path, rel_path))
+    # Sort before notifying copy_filter to have deterministic result.
+    to_copy.sort()
+    if copy_filter:
+        copy_filter.pre_copy(to_copy)
+    return to_copy
+
+def _del_excluded_select_copy_dirs(root, dirs, seen_dirs, copy_filter):
+    _del_seen_dirs(dirs, root, seen_dirs)
+    if copy_filter:
+        copy_filter.delete_excluded_dirs(root, dirs)
+
+def _del_seen_dirs(dirs, root, seen):
+    for dir_name in dirs:
+        real_path = os.path.realpath(os.path.join(root, dir_name))
+        if real_path in seen:
+            dirs.remove(dir_name)
+
+def _select_to_copy(path, rel_path, config, copy_filter):
+    assert isinstance(config, list)
+    last_match = None
+    for config_item in config:
+        for spec in config_item.specs:
+            if _select_file_match(rel_path, spec):
+                last_match = spec
+    if last_match:
+        return _select_to_copy_for_spec(last_match)
+    if copy_filter:
+        return copy_filter.default_select_path(path)
+    return True
+
+def _select_file_match(rel_path, spec):
+    return any((fnmatch.fnmatch(rel_path, p) for p in spec.patterns))
+
+def _select_to_copy_for_spec(spec):
+    return spec.type == "include"
+
+def _try_copy_file(src, dest):
+    try:
+        shutil.copyfile(src, dest)
+    except (IOError, OSError) as e:
+        # This is not an error we want to stop an operation for. Log
+        # and continue.
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("copy %s to %s", src, dest)
+        else:
+            log.warning("could not copy source code file %s: %s", src, e)
+
 def hostname():
     return os.getenv("HOST") or _real_hostname()
 
@@ -906,3 +995,10 @@ def encode_yaml(val):
     if encoded.endswith("\n...\n"):
         encoded = encoded[:-4]
     return encoded
+
+def dir_size(dir):
+    size = 0
+    for root, dirs, names in os.walk(dir):
+        for name in dirs + names:
+            size += os.path.getsize(os.path.join(root, name))
+    return size

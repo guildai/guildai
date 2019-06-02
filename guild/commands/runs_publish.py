@@ -33,7 +33,19 @@ def publish_params(fn):
             metavar="VAL",
             help="Template used to publish runs."),
         click.Option(
-            ("--refresh-index",),
+            ("-f", "--files"),
+            help="Publish default run files.",
+            is_flag=True),
+        click.Option(
+            ("-a", "--all-files"),
+            help="Publish all run files.",
+            is_flag=True),
+        click.Option(
+            ("--no-md5",),
+            help="Do not calculate MD5 digests for run files.",
+            is_flag=True),
+        click.Option(
+            ("-r", "--refresh-index"),
             help="Refresh runs index without publishing anything.",
             is_flag=True),
         runs_support.op_and_label_filters,
@@ -58,14 +70,24 @@ def publish_runs(ctx, args):
     By default, runs are published to 'published-runs'
     subdirectory. To specify a different location, use `--dest`.
 
-    Each run operation may define an alternative destination using the
-    `publish` attribute in the Guild file. This value will be used for
-    any associated runs unless `--dest` is provided, in which case the
-    user provided value is used.
+    A published run is a subdirectory of destination `DIR` that
+    contains run-specific files:
 
-    After publishing runs to destination `DIR`, Guild updates the runs
-    index `README.md` in `DIR`. To refresh the index without
-    publishing anything, use `--refresh-index`.
+    - `run.yml` - run information (e.g. run ID, operation, status,
+      etc.)
+
+    - `flags.yml` - run flags
+
+    - `output.txt` - run output written to stdout/stderr
+
+    - `scalars.csv` - summary of run scalar values
+
+    - `files.csv` - list of files associated with the run
+
+    - `code/` - subdirectory containing project source code at the
+      time run was started
+
+    - `files/` - files associated with the run
 
     """
     from . import runs_impl

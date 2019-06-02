@@ -1,10 +1,10 @@
-{% set scalars = run|scalars -%}
 
 {% if scalars -%}
 | Key | Step | Value |
 | --- | ---- | ----- |
-{% for s in scalars %}| {{ s|scalar_key }} | {{ s.last_step }} | {{ s.last_val }} |
+{% for row in scalars|csv_dict_rows %} | {{ row|scalar_key }} | {{ row.last_step|nbsp }} | {{ row.last_val|nbsp }} |
 {% endfor %}
+[scalars.csv](scalars.csv)
 {% else -%}
 There are no scalars for this run.
 {%- endif %}

@@ -750,10 +750,13 @@ def _mark(args, ctx):
         mark, LATEST_RUN_ARG, True)
 
 def publish(args, ctx):
+    if args.files and args.all_files:
+        cli.error("--files and --all-files cannot both be used")
     if args.refresh_index:
         _refresh_publish_index(args)
     else:
         _publish(args, ctx)
+    _report_dir_size(args)
 
 def _publish(args, ctx):
     preview = (
@@ -769,24 +772,34 @@ def _publish(args, ctx):
         publish_f, ALL_RUNS_ARG, True)
 
 def _publish_runs(runs, formatted, args):
-    for run, fmt in zip(runs, formatted):
-        print("Publishing [%s] %s %s %s %s" % (
-            fmt["short_id"],
-            fmt["operation"],
-            fmt["started"],
-            fmt["status"],
-            fmt["label"]))
-        fmt["_run"] = run
+    if args.files:
+        assert not args.all_files
+        copy_files = publishlib.COPY_DEFAULT_FILES
+    elif args.all_files:
+        copy_files = publishlib.COPY_ALL_FILES
+    else:
+        copy_files = None
+    for run, frun in zip(runs, formatted):
+        cli.out("Publishing [%s] %s " % (
+            frun["short_id"],
+            frun["operation"]), nl=False)
+        frun["_run"] = run
         try:
             publishlib.publish_run(
                 run,
-                args.dest,
-                args.template,
-                formatted_run=fmt)
+                dest=args.dest,
+                template=args.template,
+                copy_files=copy_files,
+                no_md5=args.no_md5,
+                formatted_run=frun)
         except publishlib.PublishError as e:
             cli.error(
                 "error publishing run %s:\n%s"
                 % (run.id, e))
+        else:
+            dest = args.dest or publishlib.DEFAULT_DEST_HOME
+            size = util.dir_size(os.path.join(dest, run.id))
+            cli.out("- %s" % util.format_bytes(size))
 
 def _refresh_publish_index(args, no_dest=False):
     if no_dest:
@@ -795,3 +808,8 @@ def _refresh_publish_index(args, no_dest=False):
         dest_suffix = " in %s" % (args.dest or publishlib.DEFAULT_DEST_HOME)
     print("Refreshing runs index%s" % dest_suffix)
     publishlib.refresh_index(args.dest)
+
+def _report_dir_size(args):
+    dest = args.dest or publishlib.DEFAULT_DEST_HOME
+    size = util.dir_size(dest)
+    cli.out("Published runs using %s" % util.format_bytes(size))

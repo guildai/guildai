@@ -296,7 +296,7 @@ def _coerce_top_level_attr(name, val, guildfile):
     elif name == "flags":
         return _coerce_flags(val, guildfile)
     elif name == "sourcecode":
-        return _coerce_sourcecode(val, guildfile)
+        return _coerce_select_files(val, guildfile)
     else:
         return val
 
@@ -332,7 +332,9 @@ def _coerce_operation_attr(name, val, guildfile):
     elif name == "output-scalars":
         return _coerce_output_scalars(val, guildfile)
     elif name == "sourcecode":
-        return _coerce_sourcecode(val, guildfile)
+        return _coerce_select_files(val, guildfile)
+    elif name == "publish":
+        return _coerce_publish(val, guildfile)
     else:
         return val
 
@@ -375,7 +377,17 @@ def _coerce_output_scalars(data, guildfile):
         raise GuildfileError(
             guildfile, "invalid value for output-scalars: %r" % data)
 
-def _coerce_sourcecode(data, guildfile):
+def _coerce_publish(data, guildfile):
+    try:
+        files = data["files"]
+    except KeyError:
+        pass
+    else:
+        data = dict(data)
+        data["files"] = _coerce_select_files(files, guildfile)
+    return data
+
+def _coerce_select_files(data, guildfile):
     if data is None or data is True:
         return None
     if isinstance(data, six.string_types):
@@ -384,14 +396,14 @@ def _coerce_sourcecode(data, guildfile):
             {"include": data}
         ]
     elif isinstance(data, list):
-        return _coerce_sourcecode_list(data, guildfile)
+        return _coerce_select_files_list(data, guildfile)
     elif data is False:
         return []
     else:
         raise GuildfileError(
             guildfile, "invalid value for sourcecode: %r" % data)
 
-def _coerce_sourcecode_list(data, guildfile):
+def _coerce_select_files_list(data, guildfile):
     all_strings = True
     items = []
     for item in data:
@@ -408,7 +420,7 @@ def _coerce_sourcecode_list(data, guildfile):
         items.insert(0, {"exclude": "*"})
     return items
 
-def _coerce_sourcecode_item(item, guildfile):
+def _coerce_select_files_item(item, guildfile):
     if isinstance(item, six.string_types):
         return {
             "include": item
@@ -821,7 +833,7 @@ def _init_resources(data, modeldef):
     return [ResourceDef(key, data[key], modeldef) for key in sorted(data)]
 
 def _init_sourcecode(data, gf):
-    return SourceCodeDef(data, gf)
+    return FileSelectDef(data, gf)
 
 def _disable_plugins(data, guildfile):
     return _coerce_str_to_list(
@@ -872,7 +884,7 @@ class OpDef(object):
         self.output_scalars = data.get("output-scalars")
         self.objective = data.get("objective")
         self.optimizers = _init_optimizers(data, self)
-        self.publish = data.get("publish")
+        self.publish = _init_publish(data.get("publish"), self)
         self.sourcecode = _init_sourcecode(
             data.get("sourcecode") or [], self.guildfile)
 
@@ -1168,22 +1180,34 @@ class OptimizerDef(object):
     def __repr__(self):
         return "<guild.guildfile.OptimizerDef '%s'>" % self.name
 
+class PublishDef(object):
+
+    def __init__(self, data, opdef):
+        self.opdef = opdef
+        if data is None:
+            data = {}
+        self.files = FileSelectDef(data.get("files") or [], opdef.guildfile)
+        self.template = data.get("template")
+
+def _init_publish(data, opdef):
+    return PublishDef(data, opdef)
+
 ###################################################################
-# Source code def
+# File select def
 ###################################################################
 
-class SourceCodeDef(object):
+class FileSelectDef(object):
 
     def __init__(self, data, gf):
         if not isinstance(data, list):
-            raise GuildfileError(gf, "invalid sourcecode def: %r" % data)
-        self.specs = [SourceCodeSpec(item, gf) for item in data]
+            raise GuildfileError(gf, "invalid file select def: %r" % data)
+        self.specs = [FileSelectSpec(item, gf) for item in data]
 
-class SourceCodeSpec(object):
+class FileSelectSpec(object):
 
     def __init__(self, data, gf):
         if not isinstance(data, dict):
-            raise GuildfileError(gf, "invalid sourcecode spec: %r" % data)
+            raise GuildfileError(gf, "invalid file select spec: %r" % data)
         if "include" in data:
             self.type = "include"
             self.patterns = self._init_patterns(data, "include", gf)
@@ -1191,7 +1215,7 @@ class SourceCodeSpec(object):
             self.type = "exclude"
             self.patterns = self._init_patterns(data, "exclude", gf)
         else:
-            raise GuildfileError(gf, "unsupported sourcecode spec: %r" % data)
+            raise GuildfileError(gf, "unsupported file select spec: %r" % data)
 
     @staticmethod
     def _init_patterns(data, name, gf):

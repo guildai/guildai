@@ -8,12 +8,21 @@
 {% endblock title %}
 
 {% block summary%}
-| ID                   | Operation           | Started                      | Duration                     | Status           | Label           |
-| --                   | ---------           | ---------                    | --------                     | ------           | -----           |
-| {{ run.id|short_id}} | {{ run.operation }} | {{ run.started|nb_hyphens }} | {{ run.duration|or_nbsp }} | {{ run.status }} | {{ run.label }} |
+| ID                   | Operation           | Started                  | Duration                | Status           | Label                |
+| --                   | ---------           | ---------                | --------                | ------           | -----                |
+| {{ run.id|short_id}} | {{ run.operation }} | {{ run.started|nbhyph }} | {{ run.duration|nbsp }} | {{ run.status }} | {{ run.label|nbsp }} |
 {% endblock summary %}
 
-{#
+[run.yml](run.yml)
+
+{% block contents %}
+## Contents
+
+- [Flags](#flags)
+- [Scalars](#scalars)
+- [Run Files](#run-files)
+
+{% endblock contents %}
 
 {% block flags %}
 ## Flags
@@ -27,11 +36,13 @@
 {% include ["_scalars.md", "publish-default/_scalars.md"] %}
 {% endblock scalars %}
 
-{% block files %}
-## Files
+{% block runfiles %}
+## Run Files
 
-{% include ["_files.md", "publish-default/_files.md"] %}
-{% endblock files %}
+{% include ["_runfiles.md", "publish-default/_runfiles.md"] %}
+{% endblock runfiles %}
+
+{#
 
 {% block images %}
 ## Images
@@ -40,9 +51,9 @@
 {% endblock images %}
 
 {% block source %}
-## Source
+## Source Code
 
-{% include ["_source.md", "publish-default/_source.md"] %}
+{% include ["_sourcecode.md", "publish-default/_source.md"] %}
 {% endblock source %}
 
 {% block attributes %}
