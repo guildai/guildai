@@ -22,7 +22,7 @@ tests).
       batch-skopt2:                ok
       compare:                     ok
       config:                      ok
-      copy-source:                 ok
+      copy-sourcecode:             ok
       cpu-plugin:                  ok
       cross-package-inheritance:   ok
       dependencies:                ok

@@ -48,7 +48,7 @@ And the output when we provide a value for the message flag:
 
 Guild captures project source, which we can list using `runs info`:
 
-    >>> run("guild runs info --source")
+    >>> run("guild runs info --sourcecode")
     id: ...
     operation: hello:from-flag
     status: completed
@@ -62,7 +62,7 @@ Guild captures project source, which we can list using `runs info`:
     pid:
     flags:
       message: Howdy Guild!
-    source:
+    sourcecode:
       Makefile
       guild.yml
       msg.txt
