@@ -37,12 +37,20 @@ def publish_params(fn):
             help="Publish default run files.",
             is_flag=True),
         click.Option(
+            ("-L", "--follow-links"),
+            help="Follow links when publishing files.",
+            is_flag=True),
+        click.Option(
             ("-a", "--all-files"),
-            help="Publish all run files.",
+            help="Publish all run files. Implies --follow-links.",
             is_flag=True),
         click.Option(
             ("--no-md5",),
             help="Do not calculate MD5 digests for run files.",
+            is_flag=True),
+        click.Option(
+            ("--include-batch",),
+            help="Include batch runs.",
             is_flag=True),
         click.Option(
             ("-r", "--refresh-index"),
@@ -87,7 +95,7 @@ def publish_runs(ctx, args):
     - `code/` - subdirectory containing project source code at the
       time run was started
 
-    - `files/` - files associated with the run
+    - `runfiles/` - files associated with the run
 
     """
     from . import runs_impl

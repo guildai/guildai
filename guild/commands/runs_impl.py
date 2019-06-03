@@ -25,6 +25,7 @@ import signal
 
 import guild.opref
 
+from guild import batch_util
 from guild import cli
 from guild import cmd_impl_support
 from guild import index2 as indexlib
@@ -767,9 +768,15 @@ def _publish(args, ctx):
     def publish_f(runs, formatted):
         _publish_runs(runs, formatted, args)
         _refresh_publish_index(args, no_dest=True)
+    def select_runs_f(args, ctx, default_runs_arg, force_deleted):
+        runs = _runs_op_selected(args, ctx, default_runs_arg, force_deleted)
+        return [
+            run for run in runs
+            if args.include_batch or not batch_util.is_batch(run)
+        ]
     _runs_op(
         args, ctx, False, preview, confirm, no_runs,
-        publish_f, ALL_RUNS_ARG, True)
+        publish_f, ALL_RUNS_ARG, True, select_runs_f)
 
 def _publish_runs(runs, formatted, args):
     if args.files:
@@ -780,7 +787,7 @@ def _publish_runs(runs, formatted, args):
     else:
         copy_files = None
     for run, frun in zip(runs, formatted):
-        cli.out("Publishing [%s] %s " % (
+        cli.out("Publishing [%s] %s... " % (
             frun["short_id"],
             frun["operation"]), nl=False)
         frun["_run"] = run
@@ -790,6 +797,7 @@ def _publish_runs(runs, formatted, args):
                 dest=args.dest,
                 template=args.template,
                 copy_files=copy_files,
+                follow_links=args.follow_links,
                 md5s=not args.no_md5,
                 formatted_run=frun)
         except publishlib.PublishError as e:
@@ -799,7 +807,7 @@ def _publish_runs(runs, formatted, args):
         else:
             dest = args.dest or publishlib.DEFAULT_DEST_HOME
             size = util.dir_size(os.path.join(dest, run.id))
-            cli.out("- %s" % util.format_bytes(size))
+            cli.out("using %s" % util.format_bytes(size))
 
 def _refresh_publish_index(args, no_dest=False):
     if no_dest:

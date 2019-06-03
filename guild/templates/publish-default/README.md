@@ -8,9 +8,9 @@
 {% endblock title %}
 
 {% block summary%}
-| ID                   | Operation           | Started                  | Duration                | Status           | Label                |
-| --                   | ---------           | ---------                | --------                | ------           | -----                |
-| {{ run.id|short_id}} | {{ run.operation }} | {{ run.started|nbhyph }} | {{ run.duration|nbsp }} | {{ run.status }} | {{ run.label|nbsp }} |
+| ID                   | Operation           | Started                  | Time                | Status           | Label                |
+| --                   | ---------           | ---------                | ----                | ------           | -----                |
+| {{ run.id|short_id}} | {{ run.operation }} | {{ run.started|nbhyph }} | {{ run.time|nbsp }} | {{ run.status }} | {{ run.label|nbsp }} |
 
 {% endblock summary %}
 

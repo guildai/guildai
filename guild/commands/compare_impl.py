@@ -18,10 +18,10 @@ from __future__ import division
 import csv
 import itertools
 import logging
-import os
 import sys
 import warnings
 
+from guild import batch_util
 from guild import cli
 from guild import config
 from guild import index2 as indexlib
@@ -161,11 +161,8 @@ def _try_init_tf_logging():
 def _runs_for_args(args):
     runs = runs_impl.runs_for_args(args)
     if not args.include_batch:
-        runs = [run for run in runs if not _is_batch(run)]
+        runs = [run for run in runs if not batch_util.is_batch(run)]
     return runs
-
-def _is_batch(run):
-    return os.path.exists(run.guild_path("proto"))
 
 def _cols_table(runs, args, index):
     parse_cache = {}

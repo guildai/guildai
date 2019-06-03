@@ -89,6 +89,7 @@ class RunFilters(object):
             "csv_dict_rows": self.csv_dict_rows,
             "env": self.env,
             "file_size": self.file_size,
+            "flag_val": self.flag_val,
             "nbhyph": self.nbhyph,
             "nbsp": self.nbsp,
             "runfile_link": self.runfile_link,
@@ -96,6 +97,10 @@ class RunFilters(object):
             "short_id": self.short_id,
             "utc_date": self.utc_date,
         })
+
+    @staticmethod
+    def flag_val(val):
+        return run_util.format_attr(val)
 
     def runfile_link(self, path):
         if self.run_dest is None:
@@ -231,6 +236,7 @@ PublishRunState = collections.namedtuple(
         "run",
         "opdef",
         "copy_files",
+        "follow_links",
         "formatted_run",
         "dest_home",
         "template",
@@ -239,12 +245,13 @@ PublishRunState = collections.namedtuple(
     ])
 
 def publish_run(run, dest=None, template=None, copy_files=None,
-                md5s=True, formatted_run=None):
+                follow_links=False, md5s=True, formatted_run=None):
     state = _init_publish_run_state(
         run,
         dest,
         template,
         copy_files,
+        follow_links,
         md5s,
         formatted_run)
     _init_published_run(state)
@@ -253,8 +260,8 @@ def publish_run(run, dest=None, template=None, copy_files=None,
     _copy_runfiles(state)
     _generate_template(state)
 
-def _init_publish_run_state(run, dest, template, copy_files, md5s,
-                            formatted_run):
+def _init_publish_run_state(run, dest, template, copy_files, follow_links,
+                            md5s, formatted_run):
     dest_home = dest or DEFAULT_DEST_HOME
     opdef = _run_opdef(run)
     run_dest = _published_run_dest(dest_home, run)
@@ -265,6 +272,7 @@ def _init_publish_run_state(run, dest, template, copy_files, md5s,
         run,
         opdef,
         copy_files,
+        follow_links,
         formatted_run,
         dest_home,
         template,
@@ -376,12 +384,15 @@ def _publish_run_info(state):
     path = os.path.join(state.run_dest, "run.yml")
     encode = lambda x: util.encode_yaml(x).rstrip()
     fmt_ts = util.utcformat_timestamp
+    started = run.get("started")
+    stopped = run.get("stopped")
     with codecs.open(path, "w", "utf-8") as f:
         f.write("id: %s\n" % run.id)
         f.write("operation: %s\n" % encode(frun["operation"]))
         f.write("status: %s\n" % frun["status"])
-        f.write("started: %s\n" % fmt_ts(run.get("started")))
-        f.write("stopped: %s\n" % fmt_ts(run.get("stopped")))
+        f.write("started: %s\n" % fmt_ts(started))
+        f.write("stopped: %s\n" % fmt_ts(stopped))
+        f.write("time: %s\n" % util.format_duration(started, stopped))
         f.write("marked: %s\n" % frun["marked"])
         f.write("label: %s\n" % encode(run.get("label")))
         f.write("command: %s\n" % frun["command"])
@@ -446,7 +457,7 @@ def _dir_paths(dir, skip_guildfiles=False):
     seen = set()
     paths = []
     for root, dirs, names in os.walk(dir, followlinks=True):
-        if skip_guildfiles and root == dir:
+        if skip_guildfiles:
             _remove_guild_dir(dirs)
         for name in dirs + names:
             path = os.path.join(root, name)
@@ -471,29 +482,39 @@ def _write_paths_csv(paths, root, md5s, f):
         out.writerow(_path_row(path, root, md5s))
 
 def _path_row(path, root, md5):
-    st = os.stat(path)
-    lst = os.lstat(path)
+    try:
+        st = os.stat(path)
+    except OSError:
+        st = None
+    try:
+        lst = os.lstat(path)
+    except OSError:
+        lst = None
     return [
         os.path.relpath(path, root),
         _path_type(st, lst),
-        st.st_size,
+        st.st_size if st else "",
         _path_mtime(st),
         _path_md5(path, st) if md5 else "",
     ]
 
 def _path_type(st, lst):
     parts = []
-    if stat.S_ISREG(st.st_mode):
-        parts.append("file")
-    elif stat.S_ISDIR(st.st_mode):
-        parts.append("dir")
-    else:
-        parts.append("other")
-    if stat.S_ISLNK(lst.st_mode):
-        parts.append("link")
+    if st:
+        if stat.S_ISREG(st.st_mode):
+            parts.append("file")
+        elif stat.S_ISDIR(st.st_mode):
+            parts.append("dir")
+        else:
+            parts.append("other")
+    if lst:
+        if stat.S_ISLNK(lst.st_mode):
+            parts.append("link")
     return " ".join(parts)
 
 def _path_mtime(st):
+    if not st:
+        return ""
     return int((st.st_mtime + _utc_offset()) * 1000000)
 
 def _utc_offset():
@@ -506,7 +527,7 @@ def _utc_offset():
         return offset
 
 def _path_md5(path, st):
-    if not stat.S_ISREG(st.st_mode):
+    if not st or not stat.S_ISREG(st.st_mode):
         return ""
     return util.file_md5(path)
 
@@ -576,29 +597,29 @@ class CopyRunFilesFilter(object):
 
     def __init__(self, state):
         self._run_dir = state.run.dir
+        self._follow_links = state.follow_links
         self._copy_all = state.copy_files == COPY_ALL_FILES
 
     def delete_excluded_dirs(self, root, dirs):
-        self._maybe_delete_guild_dir(root, dirs)
+        self._delete_guild_dir(dirs)
         self._maybe_delete_links(root, dirs)
 
-    def _maybe_delete_guild_dir(self, root, dirs):
-        if root != self._run_dir:
-            return
+    @staticmethod
+    def _delete_guild_dir(dirs):
         try:
             dirs.remove(".guild")
         except ValueError:
             pass
 
     def _maybe_delete_links(self, root, dirs):
-        if self._copy_all:
+        if self._copy_all or self._follow_links:
             return
         for name in list(dirs):
             if os.path.islink(os.path.join(root, name)):
-                dirs.delete(name)
+                dirs.remove(name)
 
     def default_select_path(self, path):
-        return self._copy_all or not os.path.islink(path)
+        return self._copy_all or self._follow_links or not os.path.islink(path)
 
     @staticmethod
     def pre_copy(_to_copy):
@@ -617,7 +638,7 @@ def _runfiles_dest(state):
     return os.path.join(state.run_dest, "runfiles")
 
 def _copy_runfiles_config(state):
-    if not state.opdef:
+    if state.copy_files == COPY_ALL_FILES or not state.opdef:
         return []
     return [state.opdef.publish.files]
 

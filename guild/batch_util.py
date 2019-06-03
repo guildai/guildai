@@ -399,3 +399,10 @@ def _new_seq_trial_cb(init_trial_cb):
     def f(batch, **kw):
         return SeqTrial(init_trial_cb, batch, **kw)
     return f
+
+###################################################################
+# Other API
+###################################################################
+
+def is_batch(run):
+    return os.path.exists(run.guild_path("proto"))
