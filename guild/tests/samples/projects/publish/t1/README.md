@@ -12,6 +12,10 @@ Title
 Summary
 {% endblock %}
 
+{% block contents %}
+Contents
+{% endblock %}
+
 {% block flags %}
 Flags
 {% endblock %}
@@ -20,20 +24,16 @@ Flags
 Scalars
 {% endblock %}
 
-{% block files %}
+{% block runfiles %}
 Files
 {% endblock %}
 
-{% block images %}
-Images
+{% block sourcecode %}
+Source Code
 {% endblock %}
 
-{% block source %}
-Source
-{% endblock %}
-
-{% block attributes %}
-Attributes
+{% block output %}
+Output
 {% endblock %}
 
 {% block footer %}

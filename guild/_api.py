@@ -288,7 +288,17 @@ def compare(
     with Env(cwd, guild_home):
         return compare_impl._get_data(args, format_cells=False)
 
-def publish(runs=None, dest=None, template=None, cwd=".", guild_home=None):
+def publish(
+        runs=None,
+        dest=None,
+        template=None,
+        files=False,
+        all_files=False,
+        include_links=False,
+        include_batch=False,
+        no_md5=False,
+        cwd=".",
+        guild_home=None):
     from guild import click_util
     from guild.commands import runs_publish
     from guild.commands import runs_impl
@@ -297,6 +307,16 @@ def publish(runs=None, dest=None, template=None, cwd=".", guild_home=None):
         args.extend(["--dest", dest])
     if template:
         args.extend(["--template", template])
+    if files:
+        args.append("--files")
+    if all_files:
+        args.append("--all-files")
+    if include_links:
+        args.append("--include-links")
+    if include_batch:
+        args.append("--include-batch")
+    if no_md5:
+        args.append("--no-md5")
     ctx = runs_publish.publish_runs.make_context("", args)
     args = click_util.Args(**ctx.params)
     with Env(cwd, guild_home):

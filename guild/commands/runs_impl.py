@@ -779,11 +779,10 @@ def _publish(args, ctx):
         publish_f, ALL_RUNS_ARG, True, select_runs_f)
 
 def _publish_runs(runs, formatted, args):
-    if args.files:
-        assert not args.all_files
-        copy_files = publishlib.COPY_DEFAULT_FILES
-    elif args.all_files:
+    if args.all_files:
         copy_files = publishlib.COPY_ALL_FILES
+    elif args.files or args.include_links:
+        copy_files = publishlib.COPY_DEFAULT_FILES
     else:
         copy_files = None
     for run, frun in zip(runs, formatted):
@@ -797,7 +796,7 @@ def _publish_runs(runs, formatted, args):
                 dest=args.dest,
                 template=args.template,
                 copy_files=copy_files,
-                follow_links=args.follow_links,
+                include_links=args.include_links,
                 md5s=not args.no_md5,
                 formatted_run=frun)
         except publishlib.PublishError as e:

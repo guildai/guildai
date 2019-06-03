@@ -1,13 +1,18 @@
 op:
-  snapshot-source: op.py
+  sourcecode: op.py
 
 op2:
   main: op
-  snapshot-source: no
+  sourcecode: []
   publish:
     template: t2
 
 op3:
   main: op
+  sourcecode: op.py
   requires:
     - file: src.txt
+      rename: src link
+  publish:
+    files:
+      exclude: '*-2.txt'

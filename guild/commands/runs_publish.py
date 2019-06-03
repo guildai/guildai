@@ -37,12 +37,12 @@ def publish_params(fn):
             help="Publish default run files.",
             is_flag=True),
         click.Option(
-            ("-L", "--follow-links"),
-            help="Follow links when publishing files.",
+            ("-a", "--all-files"),
+            help="Publish all run files.",
             is_flag=True),
         click.Option(
-            ("-a", "--all-files"),
-            help="Publish all run files. Implies --follow-links.",
+            ("-L", "--include-links"),
+            help="Include links when publishing files. Implies --files.",
             is_flag=True),
         click.Option(
             ("--no-md5",),

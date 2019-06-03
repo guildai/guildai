@@ -388,20 +388,22 @@ def _coerce_publish(data, guildfile):
     return data
 
 def _coerce_select_files(data, guildfile):
-    if data is None or data is True:
+    if data is None:
         return None
     if isinstance(data, six.string_types):
         return [
             {"exclude": "*"},
             {"include": data}
         ]
+    elif isinstance(data, dict):
+        return [data]
     elif isinstance(data, list):
         return _coerce_select_files_list(data, guildfile)
     elif data is False:
         return []
     else:
         raise GuildfileError(
-            guildfile, "invalid value for sourcecode: %r" % data)
+            guildfile, "invalid value for select files: %r" % data)
 
 def _coerce_select_files_list(data, guildfile):
     all_strings = True

@@ -8,13 +8,8 @@
 {% endblock title %}
 
 {% block summary%}
-| ID                   | Operation           | Started                  | Time                | Status           | Label                |
-| --                   | ---------           | ---------                | ----                | ------           | -----                |
-| {{ run.id|short_id}} | {{ run.operation }} | {{ run.started|nbhyph }} | {{ run.time|nbsp }} | {{ run.status }} | {{ run.label|nbsp }} |
-
+{% include ["_summary.md", "publish-default/_summary.md"] %}
 {% endblock summary %}
-
-[run.yml](run.yml)
 
 {% block contents %}
 ## Contents
@@ -24,7 +19,6 @@
 - [Run Files](#run-files)
 - [Source Code](#source-code)
 - [Output](#output)
-
 {% endblock contents %}
 
 {% block flags %}
@@ -56,16 +50,6 @@
 
 {% include ["_output.md", "publish-default/_output.md"] %}
 {% endblock output %}
-
-{#
-
-{% block images %}
-## Images
-
-{% include ["_images.md", "publish-default/_images.md"] %}
-{% endblock images %}
-
-#}
 
 {% endblock body %}
 

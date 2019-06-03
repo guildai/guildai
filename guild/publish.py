@@ -87,7 +87,7 @@ class RunFilters(object):
     def install(self, env):
         env.filters.update({
             "csv_dict_rows": self.csv_dict_rows,
-            "env": self.env,
+            "empty": self.empty,
             "file_size": self.file_size,
             "flag_val": self.flag_val,
             "nbhyph": self.nbhyph,
@@ -97,6 +97,12 @@ class RunFilters(object):
             "short_id": self.short_id,
             "utc_date": self.utc_date,
         })
+
+    @staticmethod
+    def empty(val):
+        if val is None or val == "":
+            return ""
+        return val
 
     @staticmethod
     def flag_val(val):
@@ -154,14 +160,6 @@ class RunFilters(object):
         return [dict(zip(keys, row)) for row in csv_rows[1:]]
 
     @staticmethod
-    def env(run):
-        env = run["_run"].get("env", {})
-        return "\n".join([
-            "%s: %s" % (name, val)
-            for name, val in sorted(env.items())
-        ])
-
-    @staticmethod
     def nbsp(x):
         if not x:
             return "&nbsp;"
@@ -179,11 +177,12 @@ class RunFilters(object):
 
 class Template(object):
 
-    def __init__(self, path, run_dest=None):
+    def __init__(self, path, run_dest=None, filters=None):
         if not os.path.exists(path):
             raise RuntimeError("invalid template source: %s" % path)
         self.path = path
-        self._file_templates = sorted(_init_file_templates(path, run_dest))
+        self._file_templates = sorted(
+            _init_file_templates(path, run_dest, filters))
 
     @property
     def files(self):
@@ -199,7 +198,7 @@ class Template(object):
             else:
                 _render_template(template, vars, file_dest)
 
-def _init_file_templates(path, run_dest=None):
+def _init_file_templates(path, run_dest=None, filters=None):
     ts = []
     for root, _dirs, files in os.walk(path):
         for name in files:
@@ -207,11 +206,11 @@ def _init_file_templates(path, run_dest=None):
                 continue
             abspath = os.path.join(root, name)
             relpath = os.path.relpath(abspath, path)
-            template = _init_file_template(abspath, run_dest)
+            template = _init_file_template(abspath, run_dest, filters)
             ts.append((relpath, abspath, template))
     return ts
 
-def _init_file_template(path, run_dest=None):
+def _init_file_template(path, run_dest=None, filters=None):
     if not util.is_text_file(path):
         return None
     dirname, basename = os.path.split(path)
@@ -220,6 +219,8 @@ def _init_file_template(path, run_dest=None):
         loader=jinja2.FileSystemLoader([dirname, templates_home]),
         autoescape=jinja2.select_autoescape(['html', 'xml']))
     RunFilters(run_dest).install(env)
+    if filters:
+        env.filters.update(filters)
     try:
         return env.get_template(basename)
     except jinja2.TemplateError as e:
@@ -236,7 +237,7 @@ PublishRunState = collections.namedtuple(
         "run",
         "opdef",
         "copy_files",
-        "follow_links",
+        "include_links",
         "formatted_run",
         "dest_home",
         "template",
@@ -245,13 +246,13 @@ PublishRunState = collections.namedtuple(
     ])
 
 def publish_run(run, dest=None, template=None, copy_files=None,
-                follow_links=False, md5s=True, formatted_run=None):
+                include_links=False, md5s=True, formatted_run=None):
     state = _init_publish_run_state(
         run,
         dest,
         template,
         copy_files,
-        follow_links,
+        include_links,
         md5s,
         formatted_run)
     _init_published_run(state)
@@ -260,7 +261,7 @@ def publish_run(run, dest=None, template=None, copy_files=None,
     _copy_runfiles(state)
     _generate_template(state)
 
-def _init_publish_run_state(run, dest, template, copy_files, follow_links,
+def _init_publish_run_state(run, dest, template, copy_files, include_links,
                             md5s, formatted_run):
     dest_home = dest or DEFAULT_DEST_HOME
     opdef = _run_opdef(run)
@@ -272,7 +273,7 @@ def _init_publish_run_state(run, dest, template, copy_files, follow_links,
         run,
         opdef,
         copy_files,
-        follow_links,
+        include_links,
         formatted_run,
         dest_home,
         template,
@@ -392,11 +393,16 @@ def _publish_run_info(state):
         f.write("status: %s\n" % frun["status"])
         f.write("started: %s\n" % fmt_ts(started))
         f.write("stopped: %s\n" % fmt_ts(stopped))
-        f.write("time: %s\n" % util.format_duration(started, stopped))
+        f.write("time: %s\n" % _format_time(started, stopped))
         f.write("marked: %s\n" % frun["marked"])
         f.write("label: %s\n" % encode(run.get("label")))
         f.write("command: %s\n" % frun["command"])
         f.write("exit_status: %s\n" % frun["exit_status"])
+
+def _format_time(started, stopped):
+    if started and stopped:
+        return util.format_duration(started, stopped)
+    return ""
 
 def _publish_flags(state):
     flags = state.run.get("flags") or {}
@@ -443,8 +449,9 @@ def _run_scalars(state):
 
 def _publish_output(state):
     src = state.run.guild_path("output")
-    dest = os.path.join(state.run_dest, "output.txt")
-    shutil.copyfile(src, dest)
+    if os.path.isfile(src):
+        dest = os.path.join(state.run_dest, "output.txt")
+        shutil.copyfile(src, dest)
 
 def _publish_sourcecode_list(state):
     src = state.run.guild_path("sourcecode")
@@ -597,8 +604,7 @@ class CopyRunFilesFilter(object):
 
     def __init__(self, state):
         self._run_dir = state.run.dir
-        self._follow_links = state.follow_links
-        self._copy_all = state.copy_files == COPY_ALL_FILES
+        self._include_links = state.include_links
 
     def delete_excluded_dirs(self, root, dirs):
         self._delete_guild_dir(dirs)
@@ -612,14 +618,16 @@ class CopyRunFilesFilter(object):
             pass
 
     def _maybe_delete_links(self, root, dirs):
-        if self._copy_all or self._follow_links:
+        if self._include_links:
             return
         for name in list(dirs):
             if os.path.islink(os.path.join(root, name)):
                 dirs.remove(name)
 
     def default_select_path(self, path):
-        return self._copy_all or self._follow_links or not os.path.islink(path)
+        if os.path.islink(path):
+            return self._include_links
+        return True
 
     @staticmethod
     def pre_copy(_to_copy):

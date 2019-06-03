@@ -1,5 +1,5 @@
 ```
-{{ output }}
+{{ output|empty -}}
 ```
 
 [output.txt](output.txt)
