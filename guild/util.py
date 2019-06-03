@@ -935,6 +935,10 @@ def user():
     return os.getenv("USER") or ""
 
 def shlex_split(s):
+    s = s or ""
+    return shlex.split(s)
+
+    # TODO: this causes problems! Do we need it?
     posix = PLATFORM != "Windows"
     # If s is None, this call will block (see
     # https://bugs.python.org/issue27775)

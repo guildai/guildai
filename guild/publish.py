@@ -25,6 +25,7 @@ import shutil
 import stat
 
 import jinja2
+import six
 import yaml
 
 from guild import guildfile
@@ -100,12 +101,14 @@ class RunFilters(object):
 
     @staticmethod
     def empty(val):
-        if val is None or val == "":
+        if val in (None, "") or isinstance(val, jinja2.Undefined):
             return ""
         return val
 
     @staticmethod
     def flag_val(val):
+        if isinstance(val, jinja2.Undefined):
+            return ""
         return run_util.format_attr(val)
 
     def runfile_link(self, path):
@@ -113,6 +116,8 @@ class RunFilters(object):
             raise TemplateError(
                 "runfile_link cannot be used in this context "
                 "(not publishing a run")
+        if not isinstance(path, six.string_types):
+            return ""
         maybe_runfile = os.path.join(self.run_dest, "runfiles", path)
         if os.path.isfile(maybe_runfile):
             return "runfiles/" + path
@@ -120,6 +125,8 @@ class RunFilters(object):
 
     @staticmethod
     def utc_date(val, unit="s"):
+        if not isinstance(val, (int, float) + six.string_types):
+            return ""
         try:
             val = int(val)
         except (ValueError, TypeError):
@@ -139,6 +146,8 @@ class RunFilters(object):
 
     @staticmethod
     def file_size(val):
+        if not isinstance(val, (int, float) + six.string_types):
+            return ""
         try:
             bytes = int(val)
         except (ValueError, TypeError):
@@ -148,6 +157,8 @@ class RunFilters(object):
 
     @staticmethod
     def scalar_key(s):
+        if not isinstance(s, dict):
+            return ""
         prefix = s.get("prefix")
         tag = s.get("tag")
         if prefix:
@@ -167,6 +178,8 @@ class RunFilters(object):
 
     @staticmethod
     def short_id(id):
+        if not isinstance(id, six.string_types):
+            return ""
         return id[:8]
 
     @staticmethod
@@ -390,14 +403,14 @@ def _publish_run_info(state):
     with codecs.open(path, "w", "utf-8") as f:
         f.write("id: %s\n" % run.id)
         f.write("operation: %s\n" % encode(frun["operation"]))
-        f.write("status: %s\n" % frun["status"])
+        f.write("status: %s\n" % encode(frun["status"]))
         f.write("started: %s\n" % fmt_ts(started))
         f.write("stopped: %s\n" % fmt_ts(stopped))
         f.write("time: %s\n" % _format_time(started, stopped))
-        f.write("marked: %s\n" % frun["marked"])
+        f.write("marked: %s\n" % encode(frun["marked"]))
         f.write("label: %s\n" % encode(run.get("label")))
-        f.write("command: %s\n" % frun["command"])
-        f.write("exit_status: %s\n" % frun["exit_status"])
+        f.write("command: %s\n" % encode(frun["command"]))
+        f.write("exit_status: %s\n" % encode(frun["exit_status"]))
 
 def _format_time(started, stopped):
     if started and stopped:
@@ -437,7 +450,7 @@ def _publish_scalars(state):
     dest = os.path.join(state.run_dest, "scalars.csv")
     scalars = _run_scalars(state)
     with open(dest, "w") as f:
-        out = csv.writer(f)
+        out = csv.writer(f, lineterminator="\n")
         out.writerow(cols)
         for s in scalars:
             out.writerow([s[col] for col in cols])
@@ -483,7 +496,7 @@ def _remove_guild_dir(dirs):
         pass
 
 def _write_paths_csv(paths, root, md5s, f):
-    out = csv.writer(f)
+    out = csv.writer(f, lineterminator="\n")
     out.writerow(["path", "type", "size", "mtime", "md5"])
     for path in paths:
         out.writerow(_path_row(path, root, md5s))
