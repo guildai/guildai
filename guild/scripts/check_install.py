@@ -23,6 +23,24 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 # For more information, please refer to <http://unlicense.org>
+#
+# To use this script, run it with a requirement specifier:
+#
+#   python check_install.py guildai
+#
+# You can optionally provide any `pip install` command line options to
+# the script. For a list of options, run `pip install --help`.
+#
+# This script reports the following information:
+#
+# - Specified requirements specifier
+# - System info
+# - Valid tags (used to select candidates)
+# - Skipped candidates (those that did not match valid tags)
+# - All selected candidates
+# - Applicable candidates (matching requirement version specifier)
+# - Best candidate (the candidate that will be selected by pip for
+#   install)
 
 from __future__ import absolute_import
 from __future__ import print_function
