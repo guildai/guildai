@@ -935,19 +935,10 @@ def user():
     return os.getenv("USER") or ""
 
 def shlex_split(s):
-    s = s or ""
-    return shlex.split(s)
-
-    # TODO: this causes problems! Do we need it?
-    posix = PLATFORM != "Windows"
     # If s is None, this call will block (see
     # https://bugs.python.org/issue27775)
     s = s or ""
-    parts = shlex.split(s, posix=posix)
-    if not posix:
-        # Workaround issue where '' in Windows is split as "''"
-        parts = ["" if part == "''" else part for part in parts]
-    return parts
+    return shlex.split(s)
 
 def format_bytes(n):
     units = [None, "K", "M", "G", "T", "P", "E", "Z"]
