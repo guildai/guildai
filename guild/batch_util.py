@@ -274,7 +274,9 @@ class Batch(object):
         if max_trials is None or len(trials) <= max_trials:
             return trials
         random.seed(self.random_seed)
-        return random.sample(trials, max_trials)
+        # Sample indices and re-sort to preserve original trial order.
+        sampled_i = random.sample(range(len(trials)), max_trials)
+        return [trials[i] for i in sorted(sampled_i)]
 
     def run_trials(self, trials, init_only=False):
         trial_runs = [
