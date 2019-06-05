@@ -289,9 +289,6 @@ class Batch(object):
             except StopBatch as e:
                 if e.error:
                     raise
-            except Exception as e:
-                log.exception(
-                    "error running trial %s: %s", trial.run_id, e)
 
     def _run_trial(self, trial, trial_runs, init_only):
         self._apply_existing_run_id(trial, trial_runs)
