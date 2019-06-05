@@ -42,21 +42,21 @@ Running with fixed args (i.e. no search ranges).
 
 Running with a single category for `i`:
 
-    >>> run("gp", i=[3])
+    >>> run("gp", i=[3]) # doctest: +REPORT_UDIFF
     Found 0 previous trial(s) for use in optimization
     Initialized trial (b=yes, f=2.0, i=3, s=hello)
     Running trial: echo2.py (b=yes, f=2.0, i=3, s=hello)
     i: 3
     f: 2.000000
-    f: True
+    b: True
     s: hello
     loss: 1.000000
     Found 1 previous trial(s) for use in optimization
     WARNING: [guild] optimizer repeated trial (b=yes f=2.0 i=3 s=hello) - using random
-    Initialized trial (i=3)
-    Running trial: echo2.py (i=3)
+    Initialized trial (b=yes, f=2.0, i=3, s=hello)
+    Running trial: echo2.py (b=yes, f=2.0, i=3, s=hello)
     i: 3
     f: 2.000000
-    f: True
+    b: True
     s: hello
     loss: 1.000000

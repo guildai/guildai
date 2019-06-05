@@ -9,7 +9,7 @@ assert isinstance(b, bool), b
 
 print("i: %i" % i)
 print("f: %f" % f)
-print("f: %s" % b)
+print("b: %s" % b)
 print("s: %s" % s)
 
 print("loss: %f" % (f - 1))
