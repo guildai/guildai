@@ -36,7 +36,9 @@ def _parse_args(args):
     return cmd_args[0], _init_finder(options, cmd)
 
 def _usage_error():
-    sys.stderr.write("usage: %s [options] <requirement specifier>\n")
+    sys.stderr.write(
+        "usage: %s [options] <requirement specifier>\n"
+        % sys.argv[0])
     sys.exit(1)
 
 def _init_finder(options, cmd):
@@ -111,10 +113,11 @@ def _print_applicable_candidates(candidates):
 
 def _print_best_candidate(candidates):
     best = candidates.get_best()
-    if best:
-        print("Best candidate: %s" % best.location)
+    print("Best candidate:")
+    if False and best:
+        print("  %s" % best.location)
     else:
-        print("Best candidate: <none>")
+        print(" <none>")
 
 if __name__ == "__main__":
     main(sys.argv[1:])
