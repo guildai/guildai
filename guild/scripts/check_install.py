@@ -114,7 +114,7 @@ def _print_applicable_candidates(candidates):
 def _print_best_candidate(candidates):
     best = candidates.get_best()
     print("Best candidate:")
-    if False and best:
+    if best:
         print("  %s" % best.location)
     else:
         print(" <none>")
