@@ -271,7 +271,7 @@ class Batch(object):
 
     def sample_trials(self, trials, default_max=DEFAULT_MAX_TRIALS):
         max_trials = self.max_trials or default_max
-        if len(trials) <= max_trials:
+        if max_trials is None or len(trials) <= max_trials:
             return trials
         random.seed(self.random_seed)
         return random.sample(trials, max_trials)

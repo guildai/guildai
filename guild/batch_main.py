@@ -31,4 +31,4 @@ def _trial_flags(flag_name, flag_val):
     return [(flag_name, flag_val)]
 
 if __name__ == "__main__":
-    batch_util.default_main(gen_trials)
+    batch_util.default_main(gen_trials, default_max_trials=None)
