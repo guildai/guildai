@@ -244,8 +244,8 @@ class NonRepeatingTrials(object):
             state.dims,
             n_calls=1,
             random_state=state.random_state)
-        state.random_state = res.random_state
-        return trial_flags(state.dim_names, res.x_iters[-1])
+        state.update(res)
+        return state.next_trial_flags()
 
     @staticmethod
     def _random_trial_label(trial, flag_desc):
