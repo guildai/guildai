@@ -151,17 +151,25 @@ paths are resolved to be relative to the current directory.
     >>> flags("path", {})
     {'f': None}
 
-    >>> with Chdir("/tmp"):
-    ...   flags("path", {"f": "foo"})
-    {'f': '/...tmp/foo'}
+Let's use an existing directory to ensure we can change to it:
 
-    >>> with Chdir("/tmp"):
+    >>> tmp = mkdtemp()
+
+Verify that relative paths are converted to an absolute path:
+
+    >>> with Chdir(tmp):
+    ...   flags("path", {"f": "foo"})
+    {'f': '/.../foo'}
+
+Absolute paths are left as is:
+
+    >>> with Chdir(tmp):
     ...   flags("path", {"f": "/foo"})
     {'f': '/foo'}
 
-Empty strings are not considered paths:
+Empty strings are not considered paths and so are not converted:
 
-    >>> with Chdir("/tmp"):
+    >>> with Chdir(tmp):
     ...   flags("path", {"f": ""})
     {'f': ''}
 

@@ -168,7 +168,7 @@ resource path, if a resource path is defined.
     ...       path: bar
     ... """)
 
-    >>> print_deps(gf.default_model["train"].dependencies)
+    >>> print_deps(gf.default_model["train"].dependencies) # doctest: +DONT_NORMALIZE_PATH
     <guild.guildfile.OpDependency operation:foo>
       inline-resource: {'sources': [{'operation': 'foo',
                                      'path': 'bar',
@@ -181,9 +181,15 @@ resource definitions. We can test the resolution of all of the
 resources by running the `test-all` operation, which serves as a
 validation of the expected results.
 
+Note we skip running the operations on Windows because they use POSIX
+executables.
+
     >>> project = Project(sample("projects", "inline-resources"))
 
-    >>> project.run("test-all")
+Note we skip running the operations on Windows because they use POSIX
+executables.
+
+    >>> project.run("test-all") # doctest: +SKIP_WINDOWS
     INFO: [guild] running print-msg: print-msg
     Resolving file:msg.txt dependency
     hola

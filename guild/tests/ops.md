@@ -493,11 +493,12 @@ First we need a run directory:
     >>> dir(run_dir)
     []
 
-And we'll use gapi to run the test operation:
+And we'll use gapi to run the test operation (skipped on Windows
+because it uses sed):
 
     >>> output = gapi.run_capture_output(
-    ...   "test", cwd=pre_process_project, run_dir=run_dir)
-    >>> print(output)
+    ...   "test", cwd=pre_process_project, run_dir=run_dir) # doctest: +SKIP_WINDOWS
+    >>> print(output) # doctest: +SKIP_WINDOWS
     Run directory is '...' (results will not be visible to Guild)
     Resolving sample-file dependency
     abcdef: ABCDEF
@@ -505,13 +506,13 @@ And we'll use gapi to run the test operation:
 
 Let's confirm that our run directory contains the expected files:
 
-    >>> dir(run_dir)
+    >>> dir(run_dir) # doctest: +SKIP_WINDOWS
     ['.guild', 'abcdef', 'abcxyz']
 
-    >>> cat(join_path(run_dir, "abcdef"))
+    >>> cat(join_path(run_dir, "abcdef")) # doctest: +SKIP_WINDOWS
     ABCDEF
 
-    >>> cat(join_path(run_dir, "abcxyz"))
+    >>> cat(join_path(run_dir, "abcxyz")) # doctest: +SKIP_WINDOWS
     ABCXYZ
 
 ### Op command env
@@ -554,7 +555,7 @@ Here are values for an empty op:
     GUILD_OP: model:op
     GUILD_PLUGINS: ...
     LOG_LEVEL: 20
-    PYTHONPATH: <cwd>/sample:...
+    PYTHONPATH: <cwd>/sample...
     SCRIPT_DIR:
     CMD_DIR: <cwd>
     MODEL_DIR: sample
@@ -565,7 +566,7 @@ Here are values for an empty op:
 `PYTHONPATH` can be prepended to using `python-path`.
 
     >>> opdef_env({"python-path": "foo"}, ["PYTHONPATH"])
-    PYTHONPATH: <cwd>/sample/foo:...
+    PYTHONPATH: <cwd>/sample/foo...
 
 Additional env may be provided using `env`:
 

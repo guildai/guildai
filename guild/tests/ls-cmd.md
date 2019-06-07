@@ -60,7 +60,7 @@ Here's a function that tests the ls command using sample runs.
 By default ls prints all non-Guild files without following links:
 
     >>> ls()
-    /.../runs/run-1:
+    ???/runs/run-1:
       a
       b
       c/
@@ -72,28 +72,28 @@ By default ls prints all non-Guild files without following links:
 We can list various paths:
 
     >>> ls(path="a")
-    /.../runs/run-1:
+    ???/runs/run-1:
       a
 
     >>> ls(path="c")
-    /.../runs/run-1:
+    ???/runs/run-1:
       c/
       c/d.txt
       c/e.txt
       c/f.bin
 
     >>> ls(path="*.txt")
-    /.../runs/run-1:
+    ???/runs/run-1:
       c/d.txt
       c/e.txt
 
     >>> ls(path="no-match")
-    /.../runs/run-1:
+    ???/runs/run-1:
 
 Follow links:
 
     >>> ls(follow_links=True)
-    /.../runs/run-1:
+    ???/runs/run-1:
       a
       b
       c/
@@ -106,7 +106,7 @@ Follow links:
       l/f.bin
 
     >>> ls(follow_links=True, path="*.bin")
-    /.../runs/run-1:
+    ???/runs/run-1:
       c/f.bin
       l/f.bin
 
@@ -135,7 +135,7 @@ Show full path:
 Show all files, including Guild files:
 
     >>> ls(all=True)
-    /.../runs/run-1:
+    ???/runs/run-1:
       .guild/
       .guild/attrs/
       .guild/attrs/exit_status
@@ -157,7 +157,7 @@ Show all files, including Guild files:
 Show source code files:
 
     >>> ls(sourcecode=True)
-    /.../runs/run-1:
+    ???/runs/run-1:
       .guild/sourcecode/
       .guild/sourcecode/a.py
       .guild/sourcecode/guild.yml
@@ -172,5 +172,5 @@ Source code with fill path:
 Source code with path:
 
     >>> ls(sourcecode=True, path="a.*")
-    /.../runs/run-1:
+    ???/runs/run-1:
       .guild/sourcecode/a.py
