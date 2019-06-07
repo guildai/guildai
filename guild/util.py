@@ -337,11 +337,9 @@ def safe_rmtree(path):
 def _top_level_dir(path):
     abs_path = os.path.abspath(path)
     parts = [p for p in re.split(r"[/\\]", abs_path) if p]
-    if not parts:
-        return True
     if PLATFORM == "Windows":
         return len(parts) <= 2
-    return False
+    return len(parts) <= 1
 
 class LogCapture(object):
 
