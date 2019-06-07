@@ -70,16 +70,19 @@ local `say2` script. In fact, the only way to run the `say2` locally
 is to run it directly - Guild won't run it as long as `say2` is
 defined for the anonymous model.
 
+Note the remaining tests are skipped on Windows because they use POSIX
+style commands defined in the Guild file.
+
 Let's run `say` now, which is not defined as an operation in the Guild
 file:
 
-    >>> print_cmd("say")
+    >>> print_cmd("say") # doctest: +SKIP_WINDOWS
     /.../run-scripts/say
 
 The same holds for `say2.py` and `say.py`:
 
-    >>> print_cmd("say2.py")
+    >>> print_cmd("say2.py") # doctest: +SKIP_WINDOWS
     echo hello from guild file
 
-    >>> print_cmd("say.py")
+    >>> print_cmd("say.py") # doctest: +SKIP_WINDOWS
     python -um guild.op_main say

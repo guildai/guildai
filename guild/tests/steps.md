@@ -1,3 +1,7 @@
+Skipping Windows until remaining tests are resolved.
+
+skip-windows: yes
+
 # Operation steps
 
 Operations may be defined using a sequence of steps, rather than a

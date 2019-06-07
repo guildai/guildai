@@ -33,16 +33,16 @@ Invalid config:
 
 Maps:
 
-    >>> compiled([{"loss": "loss: (\S+)"}])
+    >>> compiled([{"loss": "loss: (\S+)"}]) # doctest: +DONT_NORMALIZE_PATH
     loss: loss: (\S+)
 
-    >>> compiled([{"step": "step=(\d+)", "loss": "loss=(\d+\.\d+)"}])
+    >>> compiled([{"step": "step=(\d+)", "loss": "loss=(\d+\.\d+)"}]) # doctest: +DONT_NORMALIZE_PATH
     loss: loss=(\d+\.\d+)
     step: step=(\d+)
 
 Two group (key and value):
 
-    >>> compiled(["(\S+): ([+-]?\d+\.\d+)"])
+    >>> compiled(["(\S+): ([+-]?\d+\.\d+)"]) # doctest: +DONT_NORMALIZE_PATH
     None: (\S+): ([+-]?\d+\.\d+)
 
 Named groups:
@@ -51,7 +51,7 @@ Named groups:
     ...     "Epochs (?P<step>\d+): "
     ...     "loss=(?P<loss>\S+) "
     ...     "acc=(?P<acc>\S+) "
-    ...     "val_acc=(?P<val_acc>\S+)"])
+    ...     "val_acc=(?P<val_acc>\S+)"]) # doctest: +DONT_NORMALIZE_PATH
     None: Epochs (?P<step>\d+):
           loss=(?P<loss>\S+)
           acc=(?P<acc>\S+)
