@@ -78,7 +78,7 @@ def _print_csv(args):
     data = _get_data(args, format_cells=False, skip_header_if_empty=True)
     if not data:
         return
-    writer = csv.writer(sys.stdout)
+    writer = csv.writer(sys.stdout, lineterminator="\n")
     for row in data:
         writer.writerow(row)
 

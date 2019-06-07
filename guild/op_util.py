@@ -654,7 +654,7 @@ def save_trials(trials, path):
     data, cols = _trials_table_data(trials)
     cols.remove("_trial") # Don't include trial number in CSV
     with open(path, "w") as f:
-        out = csv.writer(f)
+        out = csv.writer(f, lineterminator="\n")
         for row in data:
             out.writerow([row.get(name, "") for name in cols])
 
