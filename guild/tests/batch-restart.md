@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Batch runs - restarting
 
 This test illustrates how a random optimized batch handles restarts.

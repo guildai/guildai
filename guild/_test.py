@@ -64,25 +64,8 @@ PLATFORM = platform.system()
 
 TEST_NAME_WIDTH = 27
 
-# Test option to disable conversion of backslash path separators on Windows.
 DONT_NORMALIZE_PATH = doctest.register_optionflag("DONT_NORMALIZE_PATH")
-
-class Py23DocChecker(doctest.OutputChecker):
-    """Output checker that works around Python 2/3 unicode representations.
-
-    https://dirkjan.ochtman.nl/writing/2014/07/06/single-source-python-23-doctests.html
-    """
-
-    def check_output(self, want, got, optionflags):
-        if sys.version_info[0] > 2:
-            # Strip unicode prefix from expected output on Python 2
-            want = re.sub("u'(.*?)'", "'\\1'", want)
-            want = re.sub('u"(.*?)"', '"\\1"', want)
-        if PLATFORM == "Windows" and optionflags & DONT_NORMALIZE_PATH == 0:
-            # Convert Windows paths to UNIXy paths
-            got = re.sub(r"[c-zC-Z]:\\\\?|\\\\?", "/", got)
-        want = re.sub(r"^\?\?\?", "...", want)
-        return doctest.OutputChecker.check_output(self, want, got, optionflags)
+SKIP_WINDOWS = doctest.register_optionflag("SKIP_WINDOWS")
 
 def run_all(skip=None):
     return run(all_tests(), skip)
@@ -175,6 +158,42 @@ def _report_first_flag():
         return doctest.REPORT_ONLY_FIRST_FAILURE
     return 0
 
+class Py23DocChecker(doctest.OutputChecker):
+    """Output checker that works around Python 2/3 unicode representations.
+
+    https://dirkjan.ochtman.nl/writing/2014/07/06/single-source-python-23-doctests.html
+    """
+
+    def check_output(self, want, got, optionflags):
+        if sys.version_info[0] > 2:
+            # Strip unicode prefix from expected output on Python 2
+            want = re.sub("u'(.*?)'", "'\\1'", want)
+            want = re.sub('u"(.*?)"', '"\\1"', want)
+        if PLATFORM == "Windows" and optionflags & DONT_NORMALIZE_PATH == 0:
+            # Convert Windows paths to UNIXy paths
+            got = re.sub(r"[c-zC-Z]:\\\\?|\\\\?", "/", got)
+        want = re.sub(r"^\?\?\?", "...", want)
+        return doctest.OutputChecker.check_output(self, want, got, optionflags)
+
+class TestRunner(doctest.DocTestRunner):
+
+    def __init__(self, checker=None, verbose=None, optionflags=0):
+        super(TestRunner, self).__init__(checker, verbose, optionflags)
+        self.skipped = 0
+
+    def run(self, test, compileflags=None, out=None, clear_globs=True):
+        self._apply_skip(test)
+        super(TestRunner, self).run(test, compileflags, out, clear_globs)
+
+    def _apply_skip(self, test):
+        if PLATFORM == "Windows":
+            self._apply_skip_windows(test)
+
+    def _apply_skip_windows(self, test):
+        for example in test.examples:
+            if example.options.get(SKIP_WINDOWS):
+                example.options[doctest.SKIP] = True
+
 def run_test_file_with_config(filename, globs, optionflags):
     """Modified from doctest.py to use custom checker."""
     text, filename = _load_testfile(filename)
@@ -186,7 +205,7 @@ def run_test_file_with_config(filename, globs, optionflags):
     if '__name__' not in globs:
         globs['__name__'] = '__main__'
     checker = Py23DocChecker()
-    runner = doctest.DocTestRunner(
+    runner = TestRunner(
         checker=checker,
         verbose=None,
         optionflags=optionflags)
@@ -198,12 +217,12 @@ def run_test_file_with_config(filename, globs, optionflags):
         division.compiler_flag
     )
     runner.run(test, flags)
-    runner.summarize()
+    results = runner.summarize()
     if doctest.master is None:
         doctest.master = runner
     else:
         doctest.master.merge(runner)
-    return doctest.TestResults(runner.failures, runner.tries)
+    return results
 
 def _load_testfile(filename):
     # Wrapper to handle Python 2/3 differences

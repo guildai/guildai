@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Batch runs - skopt 2
 
 These tests cover various ranges of dimensions that are not covered by

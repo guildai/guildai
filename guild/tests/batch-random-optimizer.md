@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Batch runs - random optimizer
 
 These tests illustrate the behavior of the random search optimizer.

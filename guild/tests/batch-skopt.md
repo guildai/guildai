@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Batch runs - skopt
 
 These tests run each of the skopt based optimizers:
