@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Scikit optimize
 
 Before running tests with the `skopt` module, let's silence the

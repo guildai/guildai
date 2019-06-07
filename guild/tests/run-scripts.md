@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Run scripts
 
 Guild can run scripts directly.

@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Run Flags
 
 Flags are provided to runs as command line arguments in the form

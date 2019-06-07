@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Copying source code
 
 Source code is copied for each run according to the model `sourcecode`

@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Disk plugin
 
 The disk plugin is used to read and log disk stats as TF summaries.

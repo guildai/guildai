@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Run ops
 
 When an operation is run, the module `guild.commands.run_impl`

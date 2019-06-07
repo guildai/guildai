@@ -1,9 +1,3 @@
-skip-windows: yes
-
-NOTE: Skipping on Windows due to odd failure on lines 60
-and 133. Doctest shows exact output and UDIFF report shows no diff,
-but test fails for those two examples.
-
 # Keras support
 
 The plugin module:

@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Dependencies 2
 
 These tests cover the various alternative dependency definition

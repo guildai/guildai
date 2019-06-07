@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # ls command
 
 The ls command is used to list run files.

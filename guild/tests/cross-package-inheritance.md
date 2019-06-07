@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Cross package inheritance
 
 These tests cover the **Extending packages** topic in `guildfiles.md`

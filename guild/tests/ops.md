@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Operations
 
 Operation support is implemented by the `op` module:

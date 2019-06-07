@@ -1,6 +1,6 @@
-# Uses OS scrcipts that don't run on Windows.
-
 skip-windows: yes
+
+Uses OS scrcipts that don't run on Windows.
 
 # Batch runs - Guild file optimizers
 

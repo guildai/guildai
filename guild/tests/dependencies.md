@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Dependencies
 
 Guild dependencies are managed by the `deps` module:
