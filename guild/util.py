@@ -940,6 +940,10 @@ def shlex_split(s):
     s = s or ""
     return shlex.split(s)
 
+def shlex_quote(s):
+    # Symmetry with shlex_split.
+    return shlex.quote(s)
+
 def format_bytes(n):
     units = [None, "K", "M", "G", "T", "P", "E", "Z"]
     for unit in units[:-1]:

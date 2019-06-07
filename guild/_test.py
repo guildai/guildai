@@ -64,6 +64,9 @@ PLATFORM = platform.system()
 
 TEST_NAME_WIDTH = 27
 
+# Test option to disable conversion of backslash path separators on Windows.
+DONT_NORMALIZE_PATH = doctest.register_optionflag("DONT_NORMALIZE_PATH")
+
 class Py23DocChecker(doctest.OutputChecker):
     """Output checker that works around Python 2/3 unicode representations.
 
@@ -75,7 +78,7 @@ class Py23DocChecker(doctest.OutputChecker):
             # Strip unicode prefix from expected output on Python 2
             want = re.sub("u'(.*?)'", "'\\1'", want)
             want = re.sub('u"(.*?)"', '"\\1"', want)
-        if PLATFORM == "Windows":
+        if PLATFORM == "Windows" and optionflags & DONT_NORMALIZE_PATH == 0:
             # Convert Windows paths to UNIXy paths
             got = re.sub(r"[c-zC-Z]:\\\\?|\\\\?", "/", got)
         want = re.sub(r"^\?\?\?", "...", want)

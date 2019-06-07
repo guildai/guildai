@@ -1,5 +1,3 @@
-skip-windows: yes
-
 # Guild utils
 
 ## Matching filters
@@ -318,3 +316,68 @@ Tests:
 
     >>> _top_level_dir(".")
     False
+
+## Shlex quote
+
+    >>> from guild.util import shlex_quote as quote
+
+    >>> quote(None)
+    "''"
+
+    >>> quote("")
+    "''"
+
+    >>> quote("foo")
+    'foo'
+
+    >>> quote("foo bar")
+    "'foo bar'"
+
+    >>> quote("/foo/bar")
+    '/foo/bar'
+
+    >>> quote("/foo bar")
+    "'/foo bar'"
+
+    >>> quote("\\foo\\bar") # doctest: +DONT_NORMALIZE_PATH
+    "'\\foo\\bar'"
+
+    >>> quote("D:\\foo\\bar") # doctest: +DONT_NORMALIZE_PATH
+    "'D:\\foo\\bar'"
+
+    >>> quote("D:\\foo bar") # doctest: +DONT_NORMALIZE_PATH
+    "'D:\\foo bar'"
+
+## Shlex split
+
+    >>> from guild.util import shlex_split as split
+
+    >>> split(None)
+    []
+
+    >>> split("")
+    []
+
+    >>> split("foo")
+    ['foo']
+
+    >>> split("foo bar")
+    ['foo', 'bar']
+
+    >>> split("'foo bar'")
+    ['foo bar']
+
+    >>> split("'foo bar' baz")
+    ['foo bar', 'baz']
+
+    >>> split("'/foo/bar'")
+    ['/foo/bar']
+
+    >>> split("'/foo bar'")
+    ['/foo bar']
+
+    >>> split("'/foo bar' baz bam")
+    ['/foo bar', 'baz', 'bam']
+
+    >>> split("'\\foo\\bar'") # doctest: +DONT_NORMALIZE_PATH
+    ['\\foo\\bar']

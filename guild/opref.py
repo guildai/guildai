@@ -110,12 +110,13 @@ def _cmp(val, compare_to, regex):
         return False
 
 def _opref_to_string(opref):
+    q = util.shlex_quote
     return "%s:%s %s %s %s" % (
-        opref.pkg_type or "''",
-        _maybe_quote(opref.pkg_name) or "''",
-        opref.pkg_version or "''",
-        opref.model_name or "''",
-        opref.op_name or "''")
+        q(opref.pkg_type),
+        q(opref.pkg_name),
+        q(opref.pkg_version),
+        q(opref.model_name),
+        q(opref.op_name))
 
 def _maybe_quote(s):
     if s and re.search(r"\s", s):
