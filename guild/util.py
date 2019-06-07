@@ -943,8 +943,10 @@ def shlex_split(s):
     return shlex.split(s)
 
 def shlex_quote(s):
-    # Symmetry with shlex_split.
-    return shlex.quote(s)
+    # If s can't be None in case where pipes.quote is used by six.
+    import six
+    s = s or ""
+    return six.moves.shlex_quote(s)
 
 def format_bytes(n):
     units = [None, "K", "M", "G", "T", "P", "E", "Z"]
