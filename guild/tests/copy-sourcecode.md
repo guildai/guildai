@@ -42,6 +42,7 @@ By default, all text files are copied, including links and files
 within linked directories:
 
     >>> copy_model_sourcecode("default")
+    .gitattributes 0a0772f0
     a.txt 90605548
     empty e3b0c442
     guild.yml ...
@@ -52,6 +53,7 @@ The `include-logo` model explicitly includes `subdir/logo.png`, which
 would otherwise not be copied:
 
     >>> copy_model_sourcecode("include-logo")
+    .gitattributes 0a0772f0
     a.txt 90605548
     empty e3b0c442
     guild.yml ...
@@ -87,6 +89,7 @@ In this example, the model includes `logo.png` and the op exclude
 `*.py` and `a.*` files.
 
     >>> copy_model_sourcecode("model-and-op", "op")
+    .gitattributes 0a0772f0
     empty e3b0c442
     guild.yml ...
     subdir/b.txt 43451775
@@ -117,8 +120,10 @@ Here's a directory with various files and links:
 
 Let's verify that a cycle actually exists:
 
-    >>> exists(join_path(project_dir, *(["cycle"] * 10)))
+    >>> exists(join_path(project_dir, *(["cycle"] * 10))) # doctest: +SKIP_WINDOWS
     True
+
+Note on Windows symlink cycles can't be traversed.
 
 A helper to print results:
 
