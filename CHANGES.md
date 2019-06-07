@@ -2,6 +2,14 @@
 
 ## 0.6.4
 
+- Refactor publish implementation
+  - Publish series of user-facing run files (e.g. run.yml, flags.yml,
+    scalars.csv, etc.)
+  - Don't publish files by default (can explicitly publish using
+    `--files` option)
+  - Complete include and exclude support for selecting files to
+    publish
+  - Include run output in default report
 - `select-min` and `select-max` patterns for reducing source file
   selection to a min and max version respectively
 - User script exceptions are shown with Guild stack layers removed to
