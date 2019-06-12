@@ -170,6 +170,9 @@ class Py23DocChecker(doctest.OutputChecker):
             # Strip unicode prefix from expected output on Python 2
             want = re.sub("u'(.*?)'", "'\\1'", want)
             want = re.sub('u"(.*?)"', '"\\1"', want)
+        else:
+            # Normalize long integers on Python 2
+            got = re.sub("([0-9]+)L", "\\1", got)
         if PLATFORM == "Windows" and optionflags & DONT_NORMALIZE_PATH == 0:
             # Convert Windows paths to UNIXy paths
             got = re.sub(r"[c-zC-Z]:\\\\?|\\\\?", "/", got)
