@@ -65,7 +65,7 @@ To control our test context, we'll use a new directory:
 
 Running a non-existing operation with no model spec:
 
-    >>> resolve_model_op("train") # doctest: +DONT_NORMALIZE_PATH
+    >>> resolve_model_op("train") # doctest: -NORMALIZE_PATHS
     Traceback (most recent call last):
     SystemExit: ("cannot find operation train\nYou may need
     to include a model in the form MODEL:OPERATION. Try
@@ -73,7 +73,7 @@ Running a non-existing operation with no model spec:
 
 Running a non-existing operation with a model spec:
 
-    >>> resolve_model_op("__no_exists__:train") # doctest: +DONT_NORMALIZE_PATH
+    >>> resolve_model_op("__no_exists__:train") # doctest: -NORMALIZE_PATHS
     Traceback (most recent call last):
     SystemExit: (..."cannot find a model matching '__no_exists__'\nTry
     'guild models' for a list of available models.", 1)
@@ -116,7 +116,7 @@ Here's a shell script:
 The resolved model before making the script to executable (skipped on
 Windows because exe permission isn't supported):
 
-    >>> resolve_model_op("train.sh") # doctest: +SKIP_WINDOWS
+    >>> resolve_model_op("train.sh") # doctest: -WINDOWS
     Traceback (most recent call last):
     SystemExit: ("cannot find operation train.sh\nYou may need to include
     a model in the form MODEL:OPERATION. Try 'guild operations'

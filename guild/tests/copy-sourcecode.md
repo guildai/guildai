@@ -120,7 +120,7 @@ Here's a directory with various files and links:
 
 Let's verify that a cycle actually exists:
 
-    >>> exists(join_path(project_dir, *(["cycle"] * 10))) # doctest: +SKIP_WINDOWS
+    >>> exists(join_path(project_dir, *(["cycle"] * 10))) # doctest: -WINDOWS
     True
 
 Note on Windows symlink cycles can't be traversed.

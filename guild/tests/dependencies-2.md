@@ -168,7 +168,7 @@ resource path, if a resource path is defined.
     ...       path: bar
     ... """)
 
-    >>> print_deps(gf.default_model["train"].dependencies) # doctest: +DONT_NORMALIZE_PATH
+    >>> print_deps(gf.default_model["train"].dependencies) # doctest: -NORMALIZE_PATHS
     <guild.guildfile.OpDependency operation:foo>
       inline-resource: {'sources': [{'operation': 'foo',
                                      'path': 'bar',
@@ -189,7 +189,7 @@ executables.
 Note we skip running the operations on Windows because they use POSIX
 executables.
 
-    >>> project.run("test-all") # doctest: +SKIP_WINDOWS
+    >>> project.run("test-all") # doctest: -WINDOWS
     INFO: [guild] running print-msg: print-msg
     Resolving file:msg.txt dependency
     hola

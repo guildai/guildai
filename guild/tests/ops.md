@@ -497,8 +497,8 @@ And we'll use gapi to run the test operation (skipped on Windows
 because it uses sed):
 
     >>> output = gapi.run_capture_output(
-    ...   "test", cwd=pre_process_project, run_dir=run_dir) # doctest: +SKIP_WINDOWS
-    >>> print(output) # doctest: +SKIP_WINDOWS
+    ...   "test", cwd=pre_process_project, run_dir=run_dir) # doctest: -WINDOWS
+    >>> print(output) # doctest: -WINDOWS
     Run directory is '...' (results will not be visible to Guild)
     Resolving sample-file dependency
     abcdef: ABCDEF
@@ -506,13 +506,13 @@ because it uses sed):
 
 Let's confirm that our run directory contains the expected files:
 
-    >>> dir(run_dir) # doctest: +SKIP_WINDOWS
+    >>> dir(run_dir) # doctest: -WINDOWS
     ['.guild', 'abcdef', 'abcxyz']
 
-    >>> cat(join_path(run_dir, "abcdef")) # doctest: +SKIP_WINDOWS
+    >>> cat(join_path(run_dir, "abcdef")) # doctest: -WINDOWS
     ABCDEF
 
-    >>> cat(join_path(run_dir, "abcxyz")) # doctest: +SKIP_WINDOWS
+    >>> cat(join_path(run_dir, "abcxyz")) # doctest: -WINDOWS
     ABCXYZ
 
 ### Op command env

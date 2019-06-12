@@ -65,8 +65,8 @@ PLATFORM = platform.system()
 
 TEST_NAME_WIDTH = 27
 
-DONT_NORMALIZE_PATH = doctest.register_optionflag("DONT_NORMALIZE_PATH")
-SKIP_WINDOWS = doctest.register_optionflag("SKIP_WINDOWS")
+NORMALIZE_PATHS = doctest.register_optionflag("NORMALIZE_PATHS")
+WINDOWS = doctest.register_optionflag("WINDOWS")
 
 def run_all(skip=None):
     return run(all_tests(), skip)
@@ -152,7 +152,9 @@ def run_test_file(filename, globs):
         optionflags=(
             _report_first_flag() |
             doctest.ELLIPSIS |
-            doctest.NORMALIZE_WHITESPACE))
+            doctest.NORMALIZE_WHITESPACE |
+            NORMALIZE_PATHS |
+            WINDOWS))
 
 def _report_first_flag():
     if os.getenv("REPORT_ONLY_FIRST_FAILURE") == "1":
@@ -173,7 +175,7 @@ class Py23DocChecker(doctest.OutputChecker):
         else:
             # Normalize long integers on Python 2
             got = re.sub("([0-9]+)L", "\\1", got)
-        if PLATFORM == "Windows" and optionflags & DONT_NORMALIZE_PATH == 0:
+        if PLATFORM == "Windows" and optionflags & NORMALIZE_PATHS == 0:
             # Convert Windows paths to UNIXy paths
             got = re.sub(r"[c-zC-Z]:\\\\?|\\\\?", "/", got)
         want = re.sub(r"^\?\?\?", "...", want)
@@ -195,7 +197,7 @@ class TestRunner(doctest.DocTestRunner, object):
 
     def _apply_skip_windows(self, test):
         for example in test.examples:
-            if example.options.get(SKIP_WINDOWS):
+            if not example.options.get(WINDOWS):
                 example.options[doctest.SKIP] = True
 
 def run_test_file_with_config(filename, globs, optionflags):

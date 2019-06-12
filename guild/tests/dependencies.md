@@ -393,7 +393,7 @@ selected from the directory are resolved:
     >>> dir_source = test_resdef.sources[6]
     >>> dir_source.uri
     'file:files'
-    >>> dir_source.select # doctest: +DONT_NORMALIZE_PATH
+    >>> dir_source.select # doctest: -NORMALIZE_PATHS
     [SelectSpec(pattern='.+\\.txt', reduce=None)]
 
     >>> resolver = test_resdef.get_source_resolver(dir_source, test_res)
@@ -436,7 +436,7 @@ spaces it must be quoted.
 
 Here's the rename spec for our source:
 
-    >>> rename_source.rename # doctest: +DONT_NORMALIZE_PATH
+    >>> rename_source.rename # doctest: -NORMALIZE_PATHS
     [RenameSpec(pattern='(.+)\\.txt', repl='\\1.config')]
 
 Resolve doesn't apply renames - it just resolves the source locations.
@@ -502,7 +502,7 @@ strip off the `.bin` suffix. The files are additionally stored in a
     >>> print(bin_files.path)
     bin
 
-    >>> bin_files.select # doctest: +DONT_NORMALIZE_PATH
+    >>> bin_files.select # doctest: -NORMALIZE_PATHS
     [SelectSpec(pattern='.+\\.bin', reduce=None)]
 
     >>> bin_files.rename
@@ -527,10 +527,10 @@ in an `archive1` directory (path) and adds a `2` to their basename.
     >>> print(archive1_txt_files.path)
     archive1
 
-    >>> archive1_txt_files.select # doctest: +DONT_NORMALIZE_PATH
+    >>> archive1_txt_files.select # doctest: -NORMALIZE_PATHS
     [SelectSpec(pattern='.+\\.txt', reduce=None)]
 
-    >>> archive1_txt_files.rename # doctest: +DONT_NORMALIZE_PATH
+    >>> archive1_txt_files.rename # doctest: -NORMALIZE_PATHS
     [RenameSpec(pattern='(.+)\\.txt', repl='\\g<1>2.txt')]
 
     >>> test_ctx.target_dir = mkdtemp()
@@ -560,7 +560,7 @@ renames them with an `archive2_` prefix.
     >>> archive2_files.select
     []
 
-    >>> archive2_files.rename # doctest: +DONT_NORMALIZE_PATH
+    >>> archive2_files.rename # doctest: -NORMALIZE_PATHS
     [RenameSpec(pattern='(.+)', repl='archive2_\\1')]
 
     >>> test_ctx.target_dir = mkdtemp()
@@ -600,7 +600,7 @@ The target directory contains a link to the resolved file.
     >>> dir(test_ctx.target_dir)
     ['test.txt']
 
-    >>> realpath(join_path(test_ctx.target_dir, "test.txt")) # doctest: +SKIP_WINDOWS
+    >>> realpath(join_path(test_ctx.target_dir, "test.txt")) # doctest: -WINDOWS
     '.../samples/projects/resources/test.txt'
 
 Note that under Windows os.path.realpath doesn't reliably resolve
@@ -630,10 +630,10 @@ The target directory contains links to unpacked files:
     >>> dir(test_ctx.target_dir)
     ['c.txt', 'd.txt']
 
-    >>> realpath(join_path(test_ctx.target_dir, "c.txt")) # doctest: +SKIP_WINDOWS
+    >>> realpath(join_path(test_ctx.target_dir, "c.txt")) # doctest: -WINDOWS
     '.../guild-test-unpack-dir-.../c.txt'
 
-    >>> realpath(join_path(test_ctx.target_dir, "d.txt")) # doctest: +SKIP_WINDOWS
+    >>> realpath(join_path(test_ctx.target_dir, "d.txt")) # doctest: -WINDOWS
     '.../guild-test-unpack-dir-.../d.txt'
 
 ### No unpack archive
@@ -650,7 +650,7 @@ And the target directory:
     >>> dir(test_ctx.target_dir)
     ['archive3.tar']
 
-    >>> realpath(join_path(test_ctx.target_dir, "archive3.tar")) # doctest: +SKIP_WINDOWS
+    >>> realpath(join_path(test_ctx.target_dir, "archive3.tar")) # doctest: -WINDOWS
     '.../samples/projects/resources/archive3.tar'
 
 ### Renamed file
@@ -668,7 +668,7 @@ Unlike the previous test, the link is renamed using the source
     >>> dir(test_ctx.target_dir)
     ['test.config']
 
-    >>> realpath(join_path(test_ctx.target_dir, "test.config")) # doctest: +SKIP_WINDOWS
+    >>> realpath(join_path(test_ctx.target_dir, "test.config")) # doctest: -WINDOWS
     '.../samples/projects/resources/test.txt'
 
 ## Resolving sources - part 2

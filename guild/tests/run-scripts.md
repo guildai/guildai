@@ -76,13 +76,13 @@ style commands defined in the Guild file.
 Let's run `say` now, which is not defined as an operation in the Guild
 file:
 
-    >>> print_cmd("say") # doctest: +SKIP_WINDOWS
+    >>> print_cmd("say") # doctest: -WINDOWS
     /.../run-scripts/say
 
 The same holds for `say2.py` and `say.py`:
 
-    >>> print_cmd("say2.py") # doctest: +SKIP_WINDOWS
+    >>> print_cmd("say2.py") # doctest: -WINDOWS
     echo hello from guild file
 
-    >>> print_cmd("say.py") # doctest: +SKIP_WINDOWS
+    >>> print_cmd("say.py") # doctest: -WINDOWS
     python -um guild.op_main say
