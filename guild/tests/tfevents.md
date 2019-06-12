@@ -38,6 +38,6 @@ using a TensorBoard utility.
     ...     if event.HasField("summary"):
     ...         for val in event.summary.value:
     ...             print((int(event.step), val.tag, val.simple_value))
-    (0, u'a', 1.0)
-    (0, u'b', 2.0)
-    (0, u'c', 3.0)
+    (0, 'a', 1.0)
+    (0, 'b', 2.0)
+    (0, 'c', 3.0)

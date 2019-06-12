@@ -168,13 +168,12 @@ class Py23DocChecker(doctest.OutputChecker):
     """
 
     def check_output(self, want, got, optionflags):
-        if sys.version_info[0] > 2:
+        if sys.version_info[0] < 3:
             # Strip unicode prefix from expected output on Python 2
-            want = re.sub("u'(.*?)'", "'\\1'", want)
-            want = re.sub('u"(.*?)"', '"\\1"', want)
-        else:
+            got = re.sub(r"[^\w]u'(.*?)'", "'\\1'", got)
+            got = re.sub(r'[^\w]u"(.*?)"', '"\\1"', got)
             # Normalize long integers on Python 2
-            got = re.sub("([0-9]+)L", "\\1", got)
+            got = re.sub(r"([0-9]+)L", "\\1", got)
         if PLATFORM == "Windows" and optionflags & NORMALIZE_PATHS == 0:
             # Convert Windows paths to UNIXy paths
             got = re.sub(r"[c-zC-Z]:\\\\?|\\\\?", "/", got)

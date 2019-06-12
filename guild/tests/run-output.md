@@ -83,9 +83,9 @@ stream info.
     >>> reader = RunOutputReader(run.path)
     >>> indexed = reader.read()
     >>> indexed
-    [(..., 0, u'This is to stdout'),
-     (..., 1, u'This is to stderr'),
-     (..., 0, u'This is delayed by 0.2 seconds')]
+    [(..., 0, 'This is to stdout'),
+     (..., 1, 'This is to stderr'),
+     (..., 0, 'This is delayed by 0.2 seconds')]
 
 Let's confirm that the last entry is in fact delayed.
 

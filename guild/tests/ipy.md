@@ -290,9 +290,9 @@ And its scalars:
       'max_val': 3.0,
       'min_step': 1,
       'min_val': 1.0,
-      'prefix': u'',
-      'run': u'...',
-      'tag': u'x',
+      'prefix': '',
+      'run': '...',
+      'tag': 'x',
       'total': 6.0}]
 
 ## Comparing runs

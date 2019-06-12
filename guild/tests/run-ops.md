@@ -23,10 +23,10 @@ Here's an example of parsing run args:
 
     >>> args, _ctx = parse_args(["train", "lr=0.1", "--yes"])
     >>> args.opspec
-    u'train'
+    'train'
 
     >>> args.flags
-    (u'lr=0.1',)
+    ('lr=0.1',)
 
     >>> args.yes
     True
