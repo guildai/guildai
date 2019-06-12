@@ -45,6 +45,7 @@ class ConsoleLogHandler(logging.StreamHandler):
             return super(ConsoleLogHandler, self).format(record)
 
 def init_logging(level=logging.INFO, formats=None):
+    _preempt_logging_mods()
     console_handler = {
         "class": "guild.log.ConsoleLogHandler",
         "formats": formats,
@@ -61,6 +62,18 @@ def init_logging(level=logging.INFO, formats=None):
         "disable_existing_loggers": False,
     })
     globals()["__last_init_kw"] = dict(level=level, formats=formats)
+
+def _preempt_logging_mods():
+    """Preempt known logging mods.
+
+    Some modules modify logging without respecting previous config
+    (e.g. absl.logging). This function preempts those changes so that
+    our config is applied afterward.
+    """
+    try:
+        import absl.logging
+    except Exception:
+        pass
 
 def disable_noisy_loggers(level=logging.INFO):
     if level <= logging.DEBUG:
