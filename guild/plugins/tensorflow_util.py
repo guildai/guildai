@@ -18,6 +18,8 @@ from __future__ import division
 import time
 
 from guild import python_util
+from guild import util
+
 from guild.plugin import Plugin
 
 class SummaryPlugin(Plugin):
@@ -39,29 +41,62 @@ class SummaryPlugin(Plugin):
         self._try_patch_tensorflow()
 
     def _try_patch_tensorflow(self):
+        util.try_apply([
+            self._try_listen_tf1,
+            self._try_listen_tf2,
+            self._log_listen_failed])
+
+    def _try_listen_tf1(self):
         try:
-            import tensorflow
-        except ImportError:
+            from tensorflow.summary import FileWriter
+        except Exception as e:
             self.log.debug(
-                "tensorflow cannot be imported - skipping summaries for %s",
-                self.name)
+                "error importing tensorflow.summary.FileWriter: %s", e)
+            raise util.TryFailed()
         else:
             self.log.debug(
                 "wrapping tensorflow.summary.FileWriter.add_summary")
             python_util.listen_method(
-                tensorflow.summary.FileWriter, "add_summary",
+                FileWriter, "add_summary",
                 self._handle_summary)
 
+    def _try_listen_tf2(self):
+        try:
+            from tensorboard.plugins.scalar import summary_v2
+            from tensorflow import summary
+        except Exception as e:
+            self.log.debug(
+                "error importing tensorboard.plugins.scalar.summary_v2: %s", e)
+            raise util.TryFailed()
+        else:
+            self.log.debug(
+                "wrapping tensorboard.plugins.scalar.summary_v2.scalar")
+            python_util.listen_function(
+                summary_v2, "scalar",
+                self._handle_scalar)
+            python_util.listen_function(
+                summary, "scalar",
+                self._handle_scalar)
+
+    def _log_listen_failed(self):
+        self.log.warning(
+            "unable to find TensorFlow summary writer, skipping "
+            "summaries for %s", self.name)
+
     def _handle_summary(self, add_summary, _summary, global_step=None):
-        """Callback to apply summary values via read_summary_values.
+        """Callback to apply summary values via add_summary callback.
+
+        This is the TF 1.x API for logging scalars.
 
         See SummaryPlugin docstring above for background.
         """
-        if global_step is None:
-            # Unsure what this means for summaries, which are always
-            # associated with a global step.
-            self.log.debug("summary plugin global_step is None, skipping")
-            return
+        vals = self._summary_values(global_step)
+        if vals:
+            self.log.debug("summary values via add_summary: %s", vals)
+            summary = tf_scalar_summary(vals)
+            add_summary(summary, global_step)
+
+    def _summary_values(self, global_step):
         if self._summary_cache.expired():
             self.log.debug("reading summary values")
             try:
@@ -70,11 +105,20 @@ class SummaryPlugin(Plugin):
                 self.log.exception("reading summary values")
                 vals = {}
             self._summary_cache.reset_for_step(global_step, vals)
-        vals = self._summary_cache.for_step(global_step)
+        return self._summary_cache.for_step(global_step)
+
+    def _handle_scalar(self, scalar, name, data, step=None, description=None):
+        """Callback to apply summary values via scalars API.
+
+        This is the TF 2.x API for logging scalars.
+        """
+        vals = self._summary_values(step)
         if vals:
-            self.log.debug("summary values: %s", vals)
-            summary = tf_scalar_summary(vals)
-            add_summary(summary, global_step)
+            self.log.debug("summary values via scalar: %s", vals)
+            for tag, val in vals.items():
+                if val is None:
+                    continue
+                scalar(tag, val, step)
 
     @staticmethod
     def read_summary_values(_global_step):

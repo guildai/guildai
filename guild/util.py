@@ -41,12 +41,23 @@ OS_ENVIRON_BLACKLIST = set([])
 class Stop(Exception):
     """Raise to stop loops started with `loop`."""
 
+class TryFailed(RuntimeError):
+    """Raise to indicate an attempt in try_apply failed."""
+
 def find_apply(funs, *args, **kw):
     for f in funs:
         result = f(*args)
         if result is not None:
             return result
     return kw.get("default")
+
+def try_apply(funs, *args):
+    for f in funs:
+        try:
+            return f(*args)
+        except TryFailed:
+            continue
+    raise TryFailed(funs, args)
 
 def ensure_dir(d):
     d = os.path.realpath(d)

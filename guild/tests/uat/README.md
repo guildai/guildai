@@ -206,11 +206,18 @@ identical to the distributed package we tested earlier.
 - [install-generated-mnist-package](install-generated-mnist-package.md)
 - [verify-installed-generate-mnist-package](verify-installed-generate-mnist-package.md)
 
+## TensorFlow versions
+
+Tests addressing various versions of TensorFlow, API changes, etc.
+
+- [tensorflow1.md](tensorflow1.md)
+- [tensorflow2.md](tensorflow2.md)
+
 ## Other tests
 
 *Tests covering miscellaneous behavior.*
 
-[alt-run-dir](alt-run-dir.md)
+- [alt-run-dir](alt-run-dir.md)
 
 ## Error cases
 

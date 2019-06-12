@@ -26,6 +26,8 @@ import hashlib
 import logging
 import os
 
+from guild import util
+
 log = logging.getLogger("guild")
 
 class ScalarReader(object):
@@ -34,27 +36,63 @@ class ScalarReader(object):
         self.dir = dir
 
     def __iter__(self):
-        """Yields (tag, val, step) for scalars.
-        """
+        """Yields (tag, val, step) for scalars."""
+        events = self._tf_events()
+        if not events:
+            log.warning(
+                "TF events API not supported - cannot read events "
+                "from %r", self.dir)
+            return
         try:
-            from tensorboard.backend.event_processing import event_accumulator
-        except ImportError:
-            pass
+            for event in events:
+                if not event.HasField("summary"):
+                    continue
+                for val in event.summary.value:
+                    try:
+                        yield util.try_apply([
+                            self._try_tfevent_v2,
+                            self._try_tfevent_v1
+                        ], event, val)
+                    except util.TryFailed:
+                        log.debug("could not read event summary %s", val)
+
+        except RuntimeError as e:
+            # PEP 479 landed in Python 3.7 and TB triggers this
+            # runtime error when there are no events to read.
+            if e.args[0] != "generator raised StopIteration":
+                raise
+
+    @staticmethod
+    def _try_tfevent_v2(event, val):
+        if not val.HasField("tensor") or not _is_float_tensor(val.tensor):
+            raise util.TryFailed()
+        try:
+            from tensorboard.util.tensor_util import make_ndarray
+        except ImportError as e:
+            log.debug("error importing make_ndarray: %s", e)
+            raise util.TryFailed()
+        return val.tag, make_ndarray(val.tensor).item(), event.step
+
+    @staticmethod
+    def _try_tfevent_v1(event, val):
+        if not val.HasField("simple_value"):
+            raise util.TryFailed()
+        return val.tag, val.simple_value, event.step
+
+    def _tf_events(self):
+        try:
+            from tensorboard.backend.event_processing.event_accumulator \
+                import _GeneratorFromPath
+        except ImportError as e:
+            log.debug("error importing event generator: %s", e)
+            return None
         else:
-            events = event_accumulator._GeneratorFromPath(self.dir).Load()
-            try:
-                for event in events:
-                    if not event.HasField("summary"):
-                        continue
-                    for val in event.summary.value:
-                        if not val.HasField("simple_value"):
-                            continue
-                        yield val.tag, val.simple_value, event.step
-            except RuntimeError as e:
-                # PEP 479 landed in Python 3.7 and TB triggers this
-                # runtime error when there are no events to read.
-                if e.args[0] != "generator raised StopIteration":
-                    raise
+            return _GeneratorFromPath(self.dir).Load()
+
+def _is_float_tensor(t):
+    # See tensorboard.compat.tensorflow_stub.dtypes for float types (1
+    # and 2).
+    return t.dtype in (1, 2)
 
 def iter_events(root_path):
     """Returns an iterator that yields (dir, digest, reader) tuples.
