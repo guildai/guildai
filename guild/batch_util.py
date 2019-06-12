@@ -95,7 +95,7 @@ class Trial(object):
 
     def init_label(self):
         label = self.batch.proto_run.get("label")
-        if label:
+        if label is not None:
             return util.render_label(label, self.flags)
         return self._default_label()
 
