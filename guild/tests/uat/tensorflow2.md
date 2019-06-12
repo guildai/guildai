@@ -42,8 +42,7 @@ Run `summary2` op, which uses the TF 2.x API to log some scalars.
 Use `guild.tfevent.ScalarReader` to read the logged scalars:
 
     >>> sorted(guild.tfevent.ScalarReader(logdir))
-    [...
-     ('sys/mem_free', ..., 1),
+    [...('sys/mem_free', ..., 1),
      ('sys/mem_total', ..., 1),
      ('sys/mem_used', ..., 1),
      ...
