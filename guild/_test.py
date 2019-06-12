@@ -176,7 +176,7 @@ class Py23DocChecker(doctest.OutputChecker):
         want = re.sub(r"^\?\?\?", "...", want)
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
-class TestRunner(doctest.DocTestRunner):
+class TestRunner(doctest.DocTestRunner, object):
 
     def __init__(self, checker=None, verbose=None, optionflags=0):
         super(TestRunner, self).__init__(checker, verbose, optionflags)
