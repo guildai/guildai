@@ -35,9 +35,9 @@ Use `guild.tfevent.ScalarReader` to read the logged scalars:
      ('sys/mem_total', ..., 1),
      ('sys/mem_used', ..., 1),
      ...
-     ('x', 1.0, 1),
-     ('x', 2.0, 2),
-     ('x', 3.0, 3)]
+     (u'x', 1.0, 1),
+     (u'x', 2.0, 2),
+     (u'x', 3.0, 3)]
 
 ## Behavior running TF 2.0 compatible script
 
@@ -49,6 +49,5 @@ error because TF 1.x doesn't support that interface:
     run ...' for full stack.
     Traceback (most recent call last):
     ...
-    AttributeError: module 'tensorflow.summary' has no attribute
-    'create_file_writer'
+    AttributeError: ... has no attribute 'create_file_writer'
     <exit 1>

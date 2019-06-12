@@ -7,7 +7,8 @@ These tests use `guild.tfevent`, which requires that we call
 
 Install the latest pre-release version of 2.0 or greater):
 
-    >>> run("pip install tensorflow>=2.0 --upgrade --pre")
+    >>> run("pip install tensorflow>=2.0 --upgrade --pre",
+    ...     ignore="DEPRECATION")
     <BLANKLINE>
     <exit 0>
 
@@ -46,9 +47,9 @@ Use `guild.tfevent.ScalarReader` to read the logged scalars:
      ('sys/mem_total', ..., 1),
      ('sys/mem_used', ..., 1),
      ...
-     ('x', 1.0, 1),
-     ('x', 2.0, 2),
-     ('x', 3.0, 3)]
+     (u'x', 1.0, 1),
+     (u'x', 2.0, 2),
+     (u'x', 3.0, 3)]
 
 ## Behavior running TF 1.0 compatible script
 
@@ -59,5 +60,5 @@ error because TF 1.x doesn't support that interface:
     INFO: [guild] Limiting traceback to user code. Use 'guild --debug run ...' for full stack.
     Traceback (most recent call last):
     ...
-    AttributeError: module 'tensorflow.summary' has no attribute 'FileWriter'
+    AttributeError: ... has no attribute 'FileWriter'
     <exit 1>
