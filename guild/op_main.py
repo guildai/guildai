@@ -110,6 +110,7 @@ def _apply_plugins():
 
 def _apply_plugin(name):
     plugin = _plugin_for_name(name)
+    log.debug("patching env with plugin %r", name)
     plugin.patch_env()
 
 def _plugin_for_name(name):

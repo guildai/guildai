@@ -50,15 +50,24 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
     def resolve_model_op(self, opspec):
         path = os.path.join(config.cwd(), opspec)
         if not python_util.is_python_script(path):
+            self.log.debug("%s is not a python script", path)
             return None
         script = python_util.Script(path)
         if not self.is_keras_script(script):
+            self.log.debug("%s is not a Keras script", path)
             return None
         model = KerasScriptModelProxy(opspec, script.src)
+        self.log.debug("%s is a Keras script", path)
         return model, model.op_name
 
     def is_keras_script(self, script):
-        return self._imports_keras(script) and self._op_method(script)
+        imports_keras = self._imports_keras(script)
+        op_method = self._op_method(script)
+        self.log.debug(
+            "%s imports keras = %s, op_method = %s",
+            script.src, imports_keras,
+            op_method.name if op_method else "None")
+        return imports_keras and op_method
 
     @staticmethod
     def _imports_keras(script):
