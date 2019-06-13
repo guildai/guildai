@@ -123,6 +123,7 @@ class SummaryPlugin(Plugin):
 
     @staticmethod
     def read_summary_values(_global_step):
+        """Overridden by subclasses."""
         return {}
 
 def tf_scalar_summary(vals):
