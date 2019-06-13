@@ -237,4 +237,5 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [remote-ssh-label-hello](remote-ssh-label-hello.md)
 - [remote-ssh-pull-hello](remote-ssh-pull-hello.md)
 - [remote-ssh-push-hello](remote-ssh-push-hello.md)
+- [remote-ssh-runs-info](remote-ssh-runs-info.md)
 - [remote-ssh-ls](remote-ssh-ls.md)
