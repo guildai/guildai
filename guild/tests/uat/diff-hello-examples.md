@@ -43,8 +43,6 @@ Run generated output file:
     >>> run("guild diff -p output -c 'diff'")
     1c1
     < message is foo
-    \ No newline at end of file
     ---
     > message is bar
-    \ No newline at end of file
     <exit 0>

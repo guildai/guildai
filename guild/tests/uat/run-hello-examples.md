@@ -63,7 +63,6 @@ Guild captures project source, which we can list using `runs info`:
     flags:
       message: Howdy Guild!
     sourcecode:
-      Makefile
       guild.yml
       msg.txt
       say.py
