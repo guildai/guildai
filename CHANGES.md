@@ -2,6 +2,7 @@
 
 ## 0.6.4
 
+- TensorFlow 2 support (beta)
 - Refactor publish implementation
   - Publish series of user-facing run files (e.g. run.yml, flags.yml,
     scalars.csv, etc.)
@@ -15,6 +16,7 @@
 - User script exceptions are shown with Guild stack layers removed to
   reduce noise (this behavior can be disabled for additional
   debugging)
+- Support for `port` and `connect-timeout` SSH remote attributes
 
 ### Fixes
 
