@@ -134,7 +134,13 @@ class EC2Remote(ssh_remote.SSHRemote):
         else:
             if not host:
                 raise remotelib.Down("stopped")
-            ssh_util.ssh_ping(host, self.user, verbose)
+            ssh_util.ssh_ping(
+                host,
+                user=self.user,
+                private_key=self.private_key,
+                verbose=verbose,
+                connect_timeout=self.connect_timeout,
+                port=self.port)
             sys.stdout.write("%s (%s) is available\n" % (self.name, host))
 
     def _has_state(self):

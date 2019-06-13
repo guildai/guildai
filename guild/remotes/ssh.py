@@ -44,8 +44,10 @@ class SSHRemote(remotelib.Remote):
     def __init__(self, name, config):
         self.name = name
         self._host = config["host"]
+        self.port = config.get("port")
         self.user = config.get("user")
         self.private_key = config.get("private-key")
+        self.connect_timeout = config.get("connect-timeout")
         self.guild_home = self._init_guild_home(config)
         self.guild_env = config.get("guild-env")
         self.use_prerelease = config.get("use-prerelease", False)
@@ -80,10 +82,11 @@ class SSHRemote(remotelib.Remote):
         dest_path = "{}/runs/{}/".format(self.guild_home, run.id)
         dest = ssh_util.format_rsync_host_path(self.host, dest_path, self.user)
         cmd.extend([src, dest])
-        if self.private_key:
-            ssh_opts = ssh_util.rsync_ssh_opts(
-                remote_util.config_path(self.private_key))
-            cmd.extend(ssh_opts)
+        cmd.extend(
+            ssh_util.rsync_ssh_opts(
+                remote_util.config_path(self.private_key),
+                self.connect_timeout,
+                self.port))
         log.info("Copying %s", run.id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
@@ -97,10 +100,11 @@ class SSHRemote(remotelib.Remote):
         src = ssh_util.format_rsync_host_path(self.host, src_path, self.user)
         dest = os.path.join(var.runs_dir(), run.id + "/")
         cmd = ["rsync"] + self._pull_rsync_opts(delete) + [src, dest]
-        if self.private_key:
-            ssh_opts = ssh_util.rsync_ssh_opts(
-                remote_util.config_path(self.private_key))
-            cmd.extend(ssh_opts)
+        cmd.extend(
+            ssh_util.rsync_ssh_opts(
+                remote_util.config_path(self.private_key),
+                self.connect_timeout,
+                self.port))
         log.info("Copying %s", run.id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
@@ -134,7 +138,13 @@ class SSHRemote(remotelib.Remote):
             "stop is not supported for ssh remotes")
 
     def status(self, verbose=False):
-        ssh_util.ssh_ping(self.host, verbose)
+        ssh_util.ssh_ping(
+            self.host,
+            user=self.user,
+            private_key=self.private_key,
+            verbose=verbose,
+            connect_timeout=self.connect_timeout,
+            port=self.port)
         sys.stdout.write("%s (%s) is available\n" % (self.name, self.host))
 
     def run_op(self, opspec, flags, restart, no_wait, **opts):
@@ -187,8 +197,11 @@ class SSHRemote(remotelib.Remote):
 
     def _ssh_cmd(self, cmd):
         ssh_util.ssh_cmd(
-            self.host, [cmd], self.user,
-            remote_util.config_path(self.private_key))
+            self.host, [cmd],
+            user=self.user,
+            private_key=remote_util.config_path(self.private_key),
+            connect_timeout=self.connect_timeout,
+            port=self.port)
 
     def _init_remote_new_run_dir(self, opspec):
         run_id = runlib.mkid()
@@ -212,8 +225,10 @@ class SSHRemote(remotelib.Remote):
         host_dest = "{}/.guild/job-packages/".format(remote_run_dir)
         log.info("Copying package")
         ssh_util.rsync_copy_to(
-            src, self.host, host_dest, self.user,
-            remote_util.config_path(self.private_key))
+            src, self.host, host_dest,
+            user=self.user,
+            private_key=remote_util.config_path(self.private_key),
+            port=self.port)
 
     def _install_job_package(self, remote_run_dir):
         cmd = (
@@ -279,8 +294,11 @@ class SSHRemote(remotelib.Remote):
 
     def _ssh_output(self, cmd):
         return ssh_util.ssh_output(
-            self.host, [cmd], self.user,
-            remote_util.config_path(self.private_key))
+            self.host, [cmd],
+            user=self.user,
+            private_key=remote_util.config_path(self.private_key),
+            connect_timeout=self.connect_timeout,
+            port=self.port)
 
     def _env_activate_cmd_lines(self):
         if not self.guild_env:
