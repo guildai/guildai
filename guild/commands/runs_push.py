@@ -23,8 +23,8 @@ from . import runs_support
 
 def push_params(fn):
     click_util.append_params(fn, [
-        runs_support.runs_arg,
         remote_support.remote_arg,
+        runs_support.runs_arg,
         runs_support.op_and_label_filters,
         runs_support.status_filters,
         click.Option(

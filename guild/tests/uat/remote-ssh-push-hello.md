@@ -13,7 +13,7 @@ Run the op locally:
 
 Push the latest run to the remote:
 
-    >>> run("guild push 1 guild-uat-ssh -y")
+    >>> run("guild push guild-uat-ssh 1 -y")
     Copying ...
     sending incremental file list
     ...
