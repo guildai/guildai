@@ -156,7 +156,7 @@ class SSHRemote(remotelib.Remote):
         if no_wait:
             return run_id
         try:
-            self._watch_op(remote_run_dir)
+            self._watch_started_op(remote_run_dir)
         except KeyboardInterrupt:
             raise remotelib.RemoteProcessDetached(run_id)
         else:
@@ -257,7 +257,7 @@ class SSHRemote(remotelib.Remote):
         log.info("Starting remote operation")
         self._ssh_cmd(cmd)
 
-    def _watch_op(self, remote_run_dir):
+    def _watch_started_op(self, remote_run_dir):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(
