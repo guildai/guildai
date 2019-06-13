@@ -22,9 +22,11 @@ import sys
 import time
 
 import psutil
+import six
 
 from guild import cli
 from guild import run as runlib
+from guild import util
 from guild import var
 
 from . import remote_impl_support
@@ -52,15 +54,31 @@ def _check_non_pid_args(args):
         cli.error("--pid may not be used with other options")
 
 def _watch_pid(args):
-    pid = _pid_arg(args.pid)
-    run = _run_for_pid(pid)
+    run = _run_for_pid_arg(args.pid)
     _watch_run(run)
 
-def _pid_arg(pid):
-    try:
-        return int(pid)
-    except ValueError:
-        return _read_pid(pid)
+def _run_for_pid_arg(pid):
+    return util.find_apply([
+        _run_for_job_pidfile,
+        _run_for_pidfile,
+        _run_for_pid,
+        _handle_no_run_for_pid_arg
+    ], pid)
+
+def _run_for_job_pidfile(pid):
+    if not isinstance(pid, six.string_types):
+        return None
+    m = re.search(r"(.+)/\.guild/JOB$", pid)
+    if not m:
+        return None
+    run_dir = m.group(1)
+    return runlib.from_dir(run_dir)
+
+def _run_for_pidfile(path):
+    pid = _read_pid(path)
+    if pid is None:
+        return None
+    return _run_for_pid(pid)
 
 def _read_pid(path):
     try:
@@ -68,7 +86,7 @@ def _read_pid(path):
     except IOError as e:
         if e.errno != 2:
             raise
-        _handle_missing_pidfile(path)
+        return None
     else:
         raw = f.readline().strip()
         try:
@@ -76,26 +94,21 @@ def _read_pid(path):
         except ValueError:
             cli.error("pidfile %s does not contain a valid pid" % path)
 
-def _handle_missing_pidfile(path):
-    m = re.search(r"(.+)/\.guild/JOB$", path)
-    if m:
-        run_dir = m.group(1)
-        _handle_run_error(run_dir)
-    else:
-        cli.error("%s does not exist" % path)
-
-def _handle_run_error(run_dir):
-    run_id = os.path.basename(run_dir)
-    cli.error(
-        "JOB for %s is no longer running" % run_id,
-        exit_status=2)
-
 def _run_for_pid(pid):
+    pid = _try_int(pid)
+    if pid is None:
+        return None
     for run_id, run_dir in var.iter_run_dirs():
         run = runlib.Run(run_id, run_dir)
         if run.pid and (run.pid == pid or _parent_pid(run.pid) == pid):
             return run
     cli.error("cannot find run for pid %i" % pid)
+
+def _try_int(pid):
+    try:
+        return int(pid)
+    except ValueError:
+        return None
 
 def _parent_pid(pid):
     try:
@@ -105,13 +118,16 @@ def _parent_pid(pid):
     else:
         return p.parent().pid
 
+def _handle_no_run_for_pid_arg(pid_arg):
+    # Assume pid_arg is a pidfile path.
+    cli.error("%s does not exist" % pid_arg)
+
 def _watch_run(run):
     try:
         _tail(run)
         _print_run_status(run)
     except KeyboardInterrupt:
-        if os.getenv("NO_WATCHING_MSG") != "1":
-            _stopped_msg(run)
+        _stopped_msg(run)
 
 def _stopped_msg(run):
     msg = "\nStopped watching %s" % run.short_id

@@ -28,7 +28,7 @@ from . import runs_support
 @runs_support.op_and_label_filters
 @remote_support.remote_option("Watch a remote run.")
 @click.option(
-    "--pid", metavar="PID",
+    "-p", "--pid", metavar="PID",
     help=("Watch the run associated with the specified process. "
           "PID may be a process ID or a path to a file containing "
           "a process ID."))
