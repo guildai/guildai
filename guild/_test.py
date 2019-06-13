@@ -65,6 +65,8 @@ PLATFORM = platform.system()
 TEST_NAME_WIDTH = 27
 
 NORMALIZE_PATHS = doctest.register_optionflag("NORMALIZE_PATHS")
+STRIP_U = doctest.register_optionflag("STRIP_U")
+STRIP_L = doctest.register_optionflag("STRIP_L")
 WINDOWS = doctest.register_optionflag("WINDOWS")
 
 def run_all(skip=None):
@@ -153,7 +155,9 @@ def run_test_file(filename, globs):
             doctest.ELLIPSIS |
             doctest.NORMALIZE_WHITESPACE |
             NORMALIZE_PATHS |
-            WINDOWS))
+            WINDOWS |
+            STRIP_U |
+            STRIP_L))
 
 def _report_first_flag():
     if os.getenv("REPORT_ONLY_FIRST_FAILURE") == "1":
@@ -167,17 +171,51 @@ class Py23DocChecker(doctest.OutputChecker):
     """
 
     def check_output(self, want, got, optionflags):
+        got = self._got(got, optionflags)
+        want = self._want(want)
+        return doctest.OutputChecker.check_output(self, want, got, optionflags)
+
+    def _got(self, got, optionflags):
         if sys.version_info[0] < 3:
-            # Strip unicode prefix from expected output on Python 2
-            got = re.sub(r"[^\w]u'(.*?)'", "'\\1'", got)
-            got = re.sub(r'[^\w]u"(.*?)"', '"\\1"', got)
-            # Normalize long integers on Python 2
-            got = re.sub(r"([0-9]+)L", "\\1", got)
-        if PLATFORM == "Windows" and optionflags & NORMALIZE_PATHS == 0:
+            got = self._py2_got(got, optionflags)
+        if PLATFORM == "Windows":
+            got = self._windows_got(got, optionflags)
+        return got
+
+    def _py2_got(self, got, optionflags):
+        if optionflags & STRIP_U:
+            got = self._strip_u(got)
+        if optionflags & STRIP_L:
+            got = self._strip_L(got)
+        return got
+
+    @staticmethod
+    def _strip_u(got):
+        # Strip unicode prefix
+        got = re.sub(r"([\W])u'(.*?)'", "\\1'\\2'", got)
+        got = re.sub(r'([\W])u"(.*?)"', '\\1"\\2"', got)
+        got = re.sub(r"^u'(.*?)'", "'\\1'", got)
+        got = re.sub(r'^u"(.*?)"', '"\\1"', got)
+        return got
+
+    @staticmethod
+    def _strip_L(got):
+        # Normalize long integers
+        return re.sub(r"([0-9]+)L", "\\1", got)
+
+    @staticmethod
+    def _windows_got(got, optionflags):
+        if optionflags & NORMALIZE_PATHS:
             # Convert Windows paths to UNIXy paths
             got = re.sub(r"[c-zC-Z]:\\\\?|\\\\?", "/", got)
+        return got
+
+    @staticmethod
+    def _want(want):
+        # Treat leading '???' like '...' (work around for '...' as
+        # code continuation token in doctest.
         want = re.sub(r"^\?\?\?", "...", want)
-        return doctest.OutputChecker.check_output(self, want, got, optionflags)
+        return want
 
 class TestRunner(doctest.DocTestRunner, object):
 
@@ -193,7 +231,8 @@ class TestRunner(doctest.DocTestRunner, object):
         if PLATFORM == "Windows":
             self._apply_skip_windows(test)
 
-    def _apply_skip_windows(self, test):
+    @staticmethod
+    def _apply_skip_windows(test):
         for example in test.examples:
             if not example.options.get(WINDOWS):
                 example.options[doctest.SKIP] = True

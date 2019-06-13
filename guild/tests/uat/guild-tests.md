@@ -75,6 +75,7 @@ tests).
       steps:                       ok
       summary:                     ok
       tables:                      ok
+      test:                        ok
       tfevents:                    ok
       utils:                       ok
       var:                         ok
