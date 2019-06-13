@@ -22,7 +22,6 @@ import sys
 import time
 
 import psutil
-import six
 
 from guild import cli
 from guild import run as runlib
@@ -65,17 +64,15 @@ def _run_for_pid_arg(pid):
         _handle_no_run_for_pid_arg
     ], pid)
 
-def _run_for_job_pidfile(pid):
-    if not isinstance(pid, six.string_types):
-        return None
-    m = re.search(r"(.+)/\.guild/JOB$", pid)
+def _run_for_job_pidfile(pid_arg):
+    m = re.search(r"(.+)/\.guild/JOB$", pid_arg)
     if not m:
         return None
     run_dir = m.group(1)
     return runlib.from_dir(run_dir)
 
-def _run_for_pidfile(path):
-    pid = _read_pid(path)
+def _run_for_pidfile(pid_arg):
+    pid = _read_pid(pid_arg)
     if pid is None:
         return None
     return _run_for_pid(pid)
