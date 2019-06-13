@@ -22,11 +22,25 @@ import os
 from guild import cli
 from guild import util
 
+from . import remote_impl_support
 from . import runs_impl
 
 log = logging.getLogger("guild")
 
 def main(args, ctx):
+    if args.remote:
+        _check_ignored_remote_opts(args)
+        remote_impl_support.list_files(args)
+    else:
+        _main(args, ctx)
+
+def _check_ignored_remote_opts(args):
+    if args.full_path:
+        log.warning(
+            "--full-path is not supported for remote "
+            "file lists, ignoring")
+
+def _main(args, ctx):
     if args.path and os.path.isabs(args.path):
         cli.error(
             "PATH must be relative\n"
@@ -38,9 +52,15 @@ def main(args, ctx):
 
 def _print_header(run_dir, args):
     if not args.full_path and not args.no_format:
-        if not args.full_path:
-            run_dir = util.format_dir(run_dir)
-        cli.out("%s:" % run_dir)
+        cli.out("%s:" % _run_dir_header(run_dir, args))
+
+def _run_dir_header(run_dir, args):
+    if os.getenv("NO_PATH_HEADER") == "1":
+        return os.path.basename(run_dir)
+    elif not args.full_path:
+        return util.format_dir(run_dir)
+    else:
+        return run_dir
 
 def _list(run_dir, args):
     match_path_pattern = _match_path_pattern(args)
