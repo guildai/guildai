@@ -500,7 +500,10 @@ def _cmd_option_args(name, val):
 
 def _init_cmd_env(opdef, gpus):
     env = util.safe_osenv()
-    env.update(opdef.env)
+    env.update({
+        name: str(val)
+        for name, val in opdef.env.items()
+    })
     env["GUILD_HOME"] = configlib.guild_home()
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
