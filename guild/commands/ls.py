@@ -19,6 +19,7 @@ import click
 
 from guild import click_util
 
+from . import remote_support
 from . import runs_support
 
 @click.command("ls")
@@ -49,6 +50,7 @@ from . import runs_support
     help="Show files without additional formatting.")
 @runs_support.op_and_label_filters
 @runs_support.status_filters
+@remote_support.remote_option("List files for for remote run.")
 
 @click.pass_context
 @click_util.use_args
@@ -67,6 +69,12 @@ def ls(ctx, args):
     {{ runs_support.run_arg }}
 
     If `RUN` isn't specified, the latest run is selected.
+
+    ### Remote runs
+
+    Use `--remote` to list files for a remote run.
+
+    {{ remote_support.remote_option }}
 
     """
     from . import ls_impl

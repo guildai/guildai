@@ -317,10 +317,12 @@ class SSHRemote(remotelib.Remote):
     def watch_run(self, **opts):
         self._guild_cmd("watch", _watch_run_args(**opts))
 
-    def _guild_cmd(self, name, args):
+    def _guild_cmd(self, name, args, env=None):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.extend(self._set_columns())
+        if env:
+            cmd_lines.extend(self._cmd_env(env))
         cmd_lines.append("guild %s %s" % (name, " ".join(args)))
         cmd = "; ".join(cmd_lines)
         self._ssh_cmd(cmd)
@@ -329,6 +331,13 @@ class SSHRemote(remotelib.Remote):
     def _set_columns():
         w, _h = click.get_terminal_size()
         return ["export COLUMNS=%i" % w]
+
+    @staticmethod
+    def _cmd_env(env):
+        return [
+            "export %s=%s" % (name, val)
+            for name, val in sorted(env.items())
+        ]
 
     def delete_runs(self, **opts):
         self._guild_cmd("runs delete", _delete_runs_args(**opts))
@@ -356,6 +365,9 @@ class SSHRemote(remotelib.Remote):
 
     def stop_runs(self, **opts):
         self._guild_cmd("runs stop", _stop_runs_args(**opts))
+
+    def list_files(self, **opts):
+        self._guild_cmd("ls", _ls_args(**opts), {"NO_PATH_HEADER": "1"})
 
 def _list_runs_filter_opts(deleted, all, more, **filters):
     opts = []
@@ -559,4 +571,21 @@ def _label_runs_args(runs, label, clear, yes, **filters):
     args.extend(runs)
     if label:
         args.append(q(label))
+    return args
+
+def _ls_args(run, all, follow_links, no_format, path, sourcecode,
+             **filters):
+    args = _runs_filter_args(**filters)
+    if all:
+        args.append("-a")
+    if follow_links:
+        args.append("-L")
+    if no_format:
+        args.append("-n")
+    if path:
+        args.append("-p")
+    if sourcecode:
+        args.append("-s")
+    if run:
+        args.append(run)
     return args

@@ -228,7 +228,7 @@ def run_info(args):
         remote.run_info(**_run_info_kw(args))
 
 def _run_info_kw(args):
-    names = _runs_filter_names() + [
+    names = _run_select_names() + [
         "all_files",
         "deps",
         "env",
@@ -236,15 +236,17 @@ def _run_info_kw(args):
         "follow_links",
         "output",
         "page_output",
-        "run",
         "scalars",
-        "source",
+        "sourcecode",
     ]
     ignore = [
         "private_attrs",
         "remote",
     ]
     return _arg_kw(args, names, ignore)
+
+def _run_select_names():
+    return _runs_filter_names() + ["run"]
 
 def check(args):
     assert args.remote
@@ -357,3 +359,23 @@ def push_runs(remote, runs, args):
 def pull_runs(remote, runs, args):
     with op_handler(remote):
         remote.pull(runs, args.delete)
+
+def list_files(args):
+    assert args.remote
+    remote = remote_support.remote_for_args(args)
+    with op_handler(remote):
+        remote.list_files(**_ls_kw(args))
+
+def _ls_kw(args):
+    names = _run_select_names() + [
+        "all",
+        "follow_links",
+        "no_format",
+        "path",
+        "sourcecode",
+    ]
+    ignore = [
+        "full_path", # Don't break remote abstraction.
+        "remote",
+    ]
+    return _arg_kw(args, names, ignore)

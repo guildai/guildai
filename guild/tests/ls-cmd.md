@@ -20,6 +20,7 @@ We'll use an args proxy to simulate command arguments.
     ...       self.unlabeled = False
     ...       self.marked = marked
     ...       self.unmarked = unmarked
+    ...       self.remote = False
 
 To test list with a run containing symbolic links, we need to generate
 a sample run dynamically. We can't use a sample directory structure

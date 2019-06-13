@@ -161,6 +161,9 @@ class Remote(object):
     def stop_runs(self, **opts):
         raise NotImplementedError()
 
+    def list_files(self, **opts):
+        raise NotImplementedError()
+
 def for_name(name):
     user_config = guild.config.user_config()
     remotes = user_config.get("remotes", {})

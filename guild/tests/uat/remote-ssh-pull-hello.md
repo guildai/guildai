@@ -3,7 +3,7 @@
 This test assumes that there are two remote runs, each from the
 `hello` example. Only the last two runs are pulled.
 
-    >>> run("guild pull 1:2 guild-uat-ssh -y")
+    >>> run("guild pull guild-uat-ssh 1:2 -y")
     Getting remote run info
     Copying ...
     receiving incremental file list
