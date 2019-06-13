@@ -17,6 +17,7 @@ from __future__ import division
 
 import functools
 import logging
+import os
 
 import click
 import six
@@ -26,7 +27,14 @@ from guild import config
 log = logging.getLogger("guild")
 
 TABLE_COL_SPACING = 2
-MAX_WIDTH = click.get_terminal_size()[0]
+
+def _max_width():
+    try:
+        return int(os.environ["COLUMNS"])
+    except (KeyError, ValueError):
+        return click.get_terminal_size()[0]
+
+MAX_WIDTH = _max_width()
 
 try:
     input = raw_input
