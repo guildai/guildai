@@ -112,6 +112,7 @@ class SummaryPlugin(Plugin):
 
         This is the TF 2.x API for logging scalars.
         """
+        # pylint: disable=unused-argument
         vals = self._summary_values(step)
         if vals:
             self.log.debug("summary values via scalar: %s", vals)
