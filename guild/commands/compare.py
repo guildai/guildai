@@ -47,11 +47,11 @@ from . import runs_support
     "-x", "--max", metavar="COLUMN",
     help="Show the highest values for COLUMN first.")
 @click.option(
-    "-T", "--table", "format", flag_value="table",
+    "--table", "format", flag_value="table",
     help="Generate comparison data as a table.",
     is_flag=True)
 @click.option(
-    "-C", "--csv", "format", flag_value="csv",
+    "--csv", "format", flag_value="csv",
     help="Generate comparison data as a CSV file.",
     is_flag=True)
 @click.option(
