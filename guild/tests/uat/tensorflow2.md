@@ -19,7 +19,7 @@ Check:
 
     >>> run("guild check")
     guild_version:             ...
-    tensorflow_version:        2.0.0-beta0
+    tensorflow_version:        2.0.0-beta1
     tensorflow_cuda_support:   no
     tensorflow_gpu_available:  no
     tensorboard_version:       1.14.0a20190603
