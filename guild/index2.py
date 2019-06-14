@@ -107,7 +107,7 @@ class ScalarReader(object):
 
     def refresh(self, runs):
         for run in runs:
-            for path, cur_digest, scalars in tfevent.iter_events(run.path):
+            for path, cur_digest, scalars in tfevent.scalar_readers(run.path):
                 self._maybe_refresh_run_scalars(run, path, cur_digest, scalars)
 
     def _maybe_refresh_run_scalars(self, run, path, cur_digest, scalars):
@@ -151,6 +151,8 @@ class ScalarReader(object):
     def _summarize_scalars(scalars):
         summarized = {}
         for tag, val, step in scalars:
+            # Don't use dict.setdefault to avoid repeated calls to
+            # TagSummary.
             try:
                 tag_summary = summarized[tag]
             except KeyError:
@@ -271,7 +273,7 @@ class TagSummary(object):
             self.first_step = step
 
     def _set_last(self, val, step):
-        if self.last_step is None or step > self.last_step:
+        if self.last_step is None or step >= self.last_step:
             self.last_val = val
             self.last_step = step
 

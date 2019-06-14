@@ -94,7 +94,7 @@ def _is_float_tensor(t):
     # and 2).
     return t.dtype in (1, 2)
 
-def iter_events(root_path):
+def scalar_readers(root_path):
     """Returns an iterator that yields (dir, digest, reader) tuples.
 
     For each yielded events dir, `digest` changes whenever events have
