@@ -283,14 +283,12 @@ class Operation(object):
 
     def _output_scalars_summary(self):
         config = self._output_scalars_config()
-        if not config:
-            return None
         return summary.OutputScalars(config, self._run.guild_path())
 
     def _output_scalars_config(self):
         config = self.opdef.output_scalars
         if config is None:
-            config = DEFAULT_OUTPUT_SCALARS
+            return DEFAULT_OUTPUT_SCALARS
         return config
 
     def _handle_proc_interrupt(self):
