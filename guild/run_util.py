@@ -213,7 +213,8 @@ def _format_guildfile_op(opref):
 def _guildfile_dir(opref):
     from guild import config
     gf_dir = os.path.dirname(opref.pkg_name)
-    relpath = os.path.relpath(gf_dir, config.cwd())
+    real_cwd = config.cwd()
+    relpath = os.path.relpath(gf_dir, real_cwd)
     if relpath == ".":
         return ""
     return re.sub(r"\.\./(\.\./)+", ".../", _ensure_dot_path(relpath))
