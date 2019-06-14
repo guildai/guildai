@@ -299,54 +299,6 @@ def format_flag_arg(name, val):
 def format_flag_val(val):
     return run_util.format_flag_val(val)
 
-class TFEvents(object):
-
-    def __init__(self, logdir):
-        self.logdir = logdir
-        self._writer = None
-
-    def add_scalars(self, scalars, global_step=None):
-        self._ensure_writer()
-        self._writer.add_summary(self._scalars_summary(scalars), global_step)
-
-    @staticmethod
-    def _scalars_summary(scalars):
-        import tensorflow as tf
-        value = [
-            tf.summary.Summary.Value(tag=tag, simple_value=val)
-            for tag, val in scalars
-        ]
-        return tf.summary.Summary(value=value)
-
-    def _ensure_writer(self):
-        import tensorflow as tf
-        if not self._writer:
-            self._writer = tf.summary.FileWriter(self.logdir, max_queue=0)
-
-    def flush(self):
-        if self._writer:
-            self._writer.flush()
-
-    def close(self):
-        if self._writer:
-            self._writer.close()
-            self._writer = None
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *_args):
-        self.close()
-
-def tfevents(subdir=None, run=None):
-    if not run:
-        run = current_run()
-    if subdir:
-        logdir = os.path.join(run.path, subdir)
-    else:
-        logdir = run.path
-    return TFEvents(logdir)
-
 def exit(msg, exit_status=1):
     """Exit the Python runtime with a message.
     """

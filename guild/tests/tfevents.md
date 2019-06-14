@@ -1,8 +1,8 @@
 # TF Events
 
-TF events can be logged using `guild.op_util.TFEvents`.
+TF events are logged using `tensorboardX.SummaryWriter`.
 
-    >>> from guild import op_util
+    >>> import tensorboardX
 
 We'll create our events log in a temp diretory:
 
@@ -10,17 +10,19 @@ We'll create our events log in a temp diretory:
     >>> dir(logdir)
     []
 
-Our events log:
+Our writer:
 
-    >>> events = op_util.TFEvents(logdir)
+    >>> writer = tensorboardX.SummaryWriter(logdir)
 
-We can use events to log scalar summaries:
+We can use writer to write scalars:
 
-    >>> events.add_scalars([("a", 1.0), ("b", 2.0), ("c", 3.0)])
+    >>> writer.add_scalar("a", 1.0)
+    >>> writer.add_scalar("b", 2.0)
+    >>> writer.add_scalar("c", 3.0)
 
-and close the events:
+and close the writer:
 
-    >>> events.close()
+    >>> writer.close()
 
 The logdir:
 
@@ -28,16 +30,12 @@ The logdir:
     >>> logged
     ['events.out.tfevents...']
 
-The TFEvents interface is write only. We can read the summaries back
-using a TensorBoard utility.
+The `tensorboardX` interface is write only. We can read the events
+using `guild.tfevent.ScalarReader` to read back scalars:
 
-    >>> from tensorboard.backend.event_processing import event_file_loader
-    >>> tf_events_path = join_path(logdir, logged[0])
-    >>> loader = event_file_loader.EventFileLoader(tf_events_path)
-    >>> for event in loader.Load():
-    ...     if event.HasField("summary"):
-    ...         for val in event.summary.value:
-    ...             print((int(event.step), val.tag, val.simple_value))
-    (0, 'a', 1.0)
-    (0, 'b', 2.0)
-    (0, 'c', 3.0)
+    >>> from guild import tfevent
+    >>> reader = tfevent.ScalarReader(logdir)
+    >>> list(reader)
+    [('a', 1.0, 0),
+     ('b', 2.0, 0),
+     ('c', 3.0, 0)]
