@@ -174,6 +174,7 @@ def _run_kw(args):
         "save_trials",
         "set_trace",
         "stage",
+        "test_output_scalars",
         "yes",
     ]
     return _arg_kw(args, names, ignore)

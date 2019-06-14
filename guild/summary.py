@@ -137,3 +137,34 @@ def _try_apply_float(s, key, vals):
         pass
     else:
         vals[key] = f
+
+class TestOutputLogger(object):
+
+    @staticmethod
+    def line(line):
+        print(line)
+
+    @staticmethod
+    def pattern_no_matches(pattern):
+        print("  %s: <no matches>" % pattern)
+
+    @staticmethod
+    def pattern_matches(pattern, matches, vals):
+        groups = [m.groups() for m in matches]
+        print("  %s: %s (%s)" % (pattern, groups, vals))
+
+def test_output(f, config, cb=None):
+    cb = cb or TestOutputLogger()
+    patterns = _init_patterns(config)
+    for line in f:
+        line = _line_to_match(line)
+        cb.line(line)
+        for key, p in patterns:
+            matches = list(p.finditer(line))
+            if not matches:
+                cb.pattern_no_matches(p.pattern)
+                continue
+            vals = {}
+            for m in matches:
+                _try_apply_match(m, key, vals)
+            cb.pattern_matches(p.pattern, matches, vals)

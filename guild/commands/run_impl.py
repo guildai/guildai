@@ -20,6 +20,7 @@ import logging
 import os
 import pipes
 import random
+import re
 
 import click
 import six
@@ -41,6 +42,7 @@ from guild import opref as opreflib
 from guild import resolver
 from guild import run as runlib
 from guild import run_util
+from guild import summary
 from guild import util
 from guild import var
 
@@ -415,6 +417,8 @@ def _dispatch_cmd(args, opdef):
         _print_model_help(opdef.modeldef)
     elif args.help_op:
         _print_op_help(opdef)
+    elif args.test_output_scalars:
+        _test_output_scalars(opdef, args)
     else:
         _dispatch_op_cmd(opdef, args)
 
@@ -1337,3 +1341,49 @@ def _print_staged_info(op):
         "(cd %s && source .guild/env && %s)"
         % (op.run_dir, op.run_dir, cmd)
     )
+
+class TestOutputLogger(object):
+
+    @staticmethod
+    def line(line):
+        cli.out(line)
+
+    @staticmethod
+    def pattern_no_matches(pattern):
+        msg = "  %r: <no match>" % pattern
+        cli.out(click.style(msg, dim=True))
+
+    @staticmethod
+    def pattern_matches(pattern, matches, vals):
+        groups = [m.groups() for m in matches]
+        fmt_groups = _strip_u(str(groups))
+        fmt_vals = "(%s)" % ", ".join(
+            ["%s=%s" % (name, val)
+             for name, val in sorted(vals.items())])
+        msg = "  %r: %s %s" % (pattern, fmt_groups, fmt_vals)
+        cli.out(click.style(msg, fg="yellow"))
+
+def _strip_u(s):
+    s = re.sub(r"u'(.*?)'", "\\1", s)
+    s = re.sub(r"u\"(.*?)\"", "\\1", s)
+    return s
+
+def _test_output_scalars(opdef, args):
+    f = _open_output(args.test_output_scalars)
+    cb = TestOutputLogger()
+    with f:
+        summary.test_output(f, _testable_output_scalars(opdef), cb)
+
+def _open_output(path):
+    try:
+        return open(path, "r")
+    except (IOError, OSError) as e:
+        if e.errno == 2:
+            cli.error("%s does not exist" % path)
+        else:
+            cli.error("error opening %s: %s" % (path, e))
+
+def _testable_output_scalars(opdef):
+    if opdef.output_scalars is None:
+        return guild.op.DEFAULT_OUTPUT_SCALARS
+    return opdef.output_scalars

@@ -163,6 +163,10 @@ def run_params(fn):
             ("--help-op",),
             help="Show operation help and exit.",
             is_flag=True),
+        click.Option(
+            ("--test-output-scalars",),
+            metavar="OUTPUT",
+            help="Test output scalars on output.")
     ])
     return fn
 
