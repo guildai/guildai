@@ -65,13 +65,13 @@ def _echo(s, err=False, **kw):
     else:
         click.echo(s, err=err, **kw)
 
-def note(msg):
-    _echo(click.style(msg, dim=True), err=True)
-    _noted.add(msg)
+def note(msg, err=True, **kw):
+    _echo(click.style(msg, dim=True), err=err, **kw)
 
 def note_once(msg):
     if msg not in _noted:
         note(msg)
+        _noted.add(msg)
 
 def table(data, cols, sort=None, detail=None, indent=0, err=False):
     data = sorted(data, key=_table_row_sort_key(sort))
