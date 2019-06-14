@@ -38,6 +38,7 @@ class OutputScalars(object):
         if vals:
             writer = self._ensure_writer()
             for key, val in sorted(vals.items()):
+                log.debug("scalar %s val=%s step=%s", key, val, self._step)
                 writer.add_scalar(key, val, self._step)
 
     def _ensure_writer(self):
@@ -93,15 +94,16 @@ def _compile_patterns(val, key):
 
 def _match_line(line, patterns):
     vals = {}
+    line = _line_to_match(line)
+    for key, p in patterns:
+        for m in p.finditer(line):
+            _try_apply_match(m, key, vals)
+    return vals
+
+def _line_to_match(line):
     if isinstance(line, bytes):
         line = line.decode()
-    line = line.rstrip()
-    for key, p in patterns:
-        m = p.search(line)
-        if not m:
-            continue
-        _try_apply_match(m, key, vals)
-    return vals
+    return line.rstrip()
 
 def _try_apply_match(m, key, vals):
     groupdict = m.groupdict()

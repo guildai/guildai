@@ -160,3 +160,54 @@ Special groupdict convention for controlling order of key and value:
     loss 1.12300... 0
     acc 0.45600... 0
     val_acc 0.56... 0
+
+Multiple matches per line:
+
+    >>> match([{"x": "x=(\d+)"}],
+    ...  ["x=1 y=1 - x=2 y=2 - x=3 y=3"])
+    x 3.0 0
+
+    >>> match(["(\w+)=(\d+)"],
+    ...  ["x=1 y=1 - x=2 y=2 - x=3 y=3"])
+    x 3.0 0
+    y 3.0 0
+
+    >>> match([r"x=(?P<x2>\d+)", "y=(?P<y2>\d+)"],
+    ...  ["x=1 y=1 - x=2 y=2 - x=3 y=3"])
+    x2 3.0 0
+    y2 3.0 0
+
+## Logging scalars
+
+The tests below use the `summary` sample project.
+
+    >>> project = Project(sample("projects/summary"))
+
+### Repeating lines
+
+    >>> project.run("repeating_lines.py")
+    step: 1
+    x: 1
+    step: 2
+    x: 2
+    step: 3
+    x: 3
+    x: 4
+
+    >>> last_run = project.list_runs()[0]
+    >>> scalars = project.run_scalars(last_run)
+    >>> pprint(scalars) # doctest: +REPORT_UDIFF
+    [{'avg_val': 2.5,
+      'count': 4,
+      'first_step': 1,
+      'first_val': 1.0,
+      'last_step': 3,
+      'last_val': 4.0,
+      'max_step': 3,
+      'max_val': 4.0,
+      'min_step': 1,
+      'min_val': 1.0,
+      'prefix': '',
+      'run': '...',
+      'tag': 'x',
+      'total': 10.0}]
