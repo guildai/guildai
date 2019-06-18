@@ -1,5 +1,15 @@
 # Changes
 
+## 0.6.5
+
+- Saving platform information for runs
+
+Fixes:
+
+- Performance of compare with resource directories containing large
+  numbers of files
+- Bug in reading flags from Python scripts
+
 ## 0.6.4
 
 - TensorFlow 2 support (beta)
