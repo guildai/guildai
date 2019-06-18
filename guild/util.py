@@ -875,7 +875,9 @@ def _select_files_to_copy(src_dir, config, copy_filter):
     log.debug("generating file list from %s", src_dir)
     for root, dirs, files in os.walk(src_dir, followlinks=True):
         seen_dirs.add(os.path.realpath(root))
-        _del_excluded_select_copy_dirs(root, dirs, seen_dirs, copy_filter)
+        _del_excluded_select_copy_dirs(
+            dirs, src_dir, root, seen_dirs,
+            config, copy_filter)
         for name in files:
             path = os.path.join(root, name)
             if not os.path.isfile(path):
@@ -891,8 +893,10 @@ def _select_files_to_copy(src_dir, config, copy_filter):
         copy_filter.pre_copy(to_copy)
     return to_copy
 
-def _del_excluded_select_copy_dirs(root, dirs, seen_dirs, copy_filter):
+def _del_excluded_select_copy_dirs(dirs, src_dir, root, seen_dirs,
+                                   config, copy_filter):
     _del_seen_dirs(dirs, root, seen_dirs)
+    _del_config_excluded_dirs(dirs, src_dir, root, config)
     if copy_filter:
         copy_filter.delete_excluded_dirs(root, dirs)
 
@@ -902,7 +906,14 @@ def _del_seen_dirs(dirs, root, seen):
         if real_path in seen:
             dirs.remove(dir_name)
 
-def _select_to_copy(path, rel_path, config, copy_filter):
+def _del_config_excluded_dirs(dirs, src_dir, root, config):
+    for name in list(dirs):
+        path = os.path.join(root, name)
+        rel_path = os.path.relpath(path, src_dir)
+        if not _select_to_copy(path, rel_path, config):
+            dirs.remove(name)
+
+def _select_to_copy(path, rel_path, config, copy_filter=None):
     assert isinstance(config, list)
     last_match = None
     for config_item in config:

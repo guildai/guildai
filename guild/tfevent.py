@@ -62,6 +62,16 @@ class ScalarReader(object):
             if e.args[0] != "generator raised StopIteration":
                 raise
 
+    def _tf_events(self):
+        try:
+            from tensorboard.backend.event_processing.event_accumulator \
+                import _GeneratorFromPath
+        except ImportError as e:
+            log.debug("error importing event generator: %s", e)
+            return None
+        else:
+            return _GeneratorFromPath(self.dir).Load()
+
     @staticmethod
     def _try_tfevent_v2(event, val):
         if not val.HasField("tensor") or not _is_float_tensor(val.tensor):
@@ -79,16 +89,6 @@ class ScalarReader(object):
             raise util.TryFailed()
         return val.tag, val.simple_value, event.step
 
-    def _tf_events(self):
-        try:
-            from tensorboard.backend.event_processing.event_accumulator \
-                import _GeneratorFromPath
-        except ImportError as e:
-            log.debug("error importing event generator: %s", e)
-            return None
-        else:
-            return _GeneratorFromPath(self.dir).Load()
-
 def _is_float_tensor(t):
     # See tensorboard.compat.tensorflow_stub.dtypes for float types (1
     # and 2).
@@ -104,48 +104,32 @@ def scalar_readers(root_path):
     scalars in dir.
     """
     ensure_tf_logging_patched()
-    try:
-        from tensorboard.backend.event_processing import io_wrapper
-    except ImportError:
-        pass
-    else:
-        for subdir_path in io_wrapper.GetLogdirSubdirectories(root_path):
-            if _linked_resource_path(subdir_path, root_path):
-                log.debug("skipping linked resource path %s", subdir_path)
-                continue
-            digest = _event_files_digest(subdir_path)
-            yield subdir_path, digest, ScalarReader(subdir_path)
+    for subdir_path in _tfevent_subdirs(root_path):
+        digest = _event_files_digest(subdir_path)
+        yield subdir_path, digest, ScalarReader(subdir_path)
 
-def _linked_resource_path(path, root):
-    """Returns True if path is a linked resource under root.
+def _tfevent_subdirs(dir):
+    for root, dirs, files in os.walk(dir, followlinks=True):
+        _del_non_run_linked_dirs(dirs, root)
+        if any(_is_event_file(name) for name in files):
+            yield root
 
-    This is used to exclude tfevents under root that are linked
-    resources.
-    """
-    if _has_steps(root):
-        return _links_under_root(path, root) > 1
-    else:
-        return not _real_path_under_root(path, root)
+def _del_non_run_linked_dirs(dirs, root):
+    """Removes dirs that are links but not runs."""
+    for name in list(dirs):
+        path = os.path.join(root, name)
+        if not os.path.islink(path):
+            continue
+        if _is_run(path):
+            continue
+        dirs.remove(name)
 
-def _has_steps(path):
-    return os.path.exists(os.path.join(path, ".guild", "attrs", "steps"))
+def _is_run(dir):
+    opref_path = os.path.join(dir, ".guild", "opref")
+    return os.path.exists(opref_path)
 
-def _links_under_root(path, root):
-    """Returns the number of links to path uses user root."""
-    links = 0
-    last_path = None
-    while path != root and path != last_path:
-        if os.path.islink(path):
-            links += 1
-        last_path = path
-        path = os.path.dirname(path)
-    return links
-
-def _real_path_under_root(path, root):
-    """Returns True if real path is under root."""
-    real_path = os.path.realpath(path)
-    real_root = os.path.realpath(root)
-    return real_path.startswith(real_root)
+def _is_event_file(name):
+    return ".tfevents." in name
 
 def _event_files_digest(dir):
     """Returns a digest for dir that changes when events change.
