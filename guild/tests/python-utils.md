@@ -20,12 +20,14 @@ Let's sort by name:
 The scripts:
 
     >>> [script.name for script in scripts]
-    ['mnist_mlp', 'sample_run']
+    ['flag_imports', 'mnist_mlp', 'sample_run']
+
+## Script properties
 
 Scripts can be inspected for various declarations. Let's example the
 'mnist_mlp' script:
 
-    >>> mnist_mlp = scripts[0]
+    >>> mnist_mlp = scripts[1]
     >>> mnist_mlp.name
     'mnist_mlp'
 
@@ -83,6 +85,18 @@ Calls:
      'Dense',
      'RMSprop',
      'TensorBoard']
+
+ Params:
+
+    >>> pprint(mnist_mlp.params)
+    {'batch_size': 128, 'epochs': 20, 'num_classes': 10}
+
+    >>> flag_imports = scripts[0]
+    >>> flag_imports.name
+    'flag_imports'
+
+    >>> pprint(flag_imports.params)
+    {'b': True, 'f': 1.0, 'i': 1, 'ii': 2, 's': 'hello'}
 
 ## Sorting script objects
 
