@@ -1445,10 +1445,10 @@ to illustrate.
 
     >>> gf = guildfile.from_dir(sample("projects/package"))
 
-The sample doesn't contain any models:
+The sample contains one model:
 
     >>> gf.models
-    {}
+    {'model-1': <guild.guildfile.ModelDef 'model-1'>}
 
 It does contain a package:
 
