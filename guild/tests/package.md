@@ -18,14 +18,14 @@ We'll create a package from the sample project
 [samples/projects/package](samples/projects/package). Let's setup our
 workspace by linking to the project files.
 
-    >>> for name in ["guild.yml", "README.md", "a.txt"]:
+    >>> for name in ["guild.yml", "README.md", "a.txt", "train.py"]:
     ...   symlink(abspath(join_path(sample("projects/package"), name)),
     ...           join_path(workspace, name))
 
 Our workspace:
 
     >>> dir(workspace)
-    ['README.md', 'a.txt', 'guild.yml']
+    ['README.md', 'a.txt', 'guild.yml', 'train.py']
 
 The package we'll build is defined in the project guildfile. Let's
 load that.
@@ -80,7 +80,18 @@ And its contents:
     [...
      'gpkg/hello/README.md',
      'gpkg/hello/a.txt',
-     'gpkg/hello/guild.yml']
+     'gpkg/hello/guild.yml',
+     'gpkg/hello/train.py']
+
+Use `twine` to check the generated distribution:
+
+    >>> from twine.commands import check
+    >>> dist_path = join_path(
+    ...     workspace, "dist",
+    ...     "gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl")
+    >>> check.check([dist_path])
+    Checking distribution .../dist/gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl: Passed
+    False
 
 ## Default packages
 

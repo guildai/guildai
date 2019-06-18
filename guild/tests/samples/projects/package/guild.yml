@@ -9,3 +9,20 @@
   tags: [example, model]
   data-files:
     - a.txt
+
+- model: model-1
+  description:
+    A sample model.
+
+    Line 1
+
+    Line 2
+  operations:
+    train:
+      description: Train the model
+      flags:
+        lr: 0.1
+        dropout:
+          default: 0.2
+          description: Dropout rate
+        another_flag: null

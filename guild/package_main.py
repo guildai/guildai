@@ -114,6 +114,7 @@ def _setup_kw(pkg):
         version=pkg.version,
         description=summary,
         long_description=help_desc,
+        long_description_content_type="text/x-rst",
         url=pkg.url,
         author=pkg.author,
         author_email=pkg.author_email,

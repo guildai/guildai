@@ -49,7 +49,7 @@ class ConsoleFormatter(click.HelpFormatter):
                 self.write_paragraph()
             self.write_text(par)
 
-class RestFormatter(click.HelpFormatter):
+class RstFormatter(click.HelpFormatter):
 
     _in_section = False
     _heading_chars = "#=^-`"
@@ -79,7 +79,7 @@ class RestFormatter(click.HelpFormatter):
     def write_description(self, val):
         for i, par in enumerate(val.split("\n")):
             if i == 0:
-                self.write_text("*%s*" % par)
+                self.write_text(self._emph(par))
             else:
                 self.write_paragraph()
                 self.write_text(par)
@@ -89,16 +89,28 @@ class RestFormatter(click.HelpFormatter):
         for i, (name, desc) in enumerate(rows):
             if i > 0:
                 self.write_paragraph()
-            self.write_text("**%s**" % name)
-            super(RestFormatter, self).indent()
-            self.write_text("*%s*" % desc)
-            super(RestFormatter, self).dedent()
+            self.write_text(self._strong(name))
+            super(RstFormatter, self).indent()
+            self.write_text(self._emph(desc))
+            super(RstFormatter, self).dedent()
 
     def indent(self):
         self._indent_level += 1
 
     def dedent(self):
         self._indent_level -= 1
+
+    @staticmethod
+    def _emph(s):
+        if not s:
+            return ""
+        return "*%s*" % s
+
+    @staticmethod
+    def _strong(s):
+        if not s:
+            return ""
+        return "**%s**" % s
 
 def guildfile_console_help(guildfile, model_desc=None):
     out = ConsoleFormatter()
@@ -139,7 +151,7 @@ def _is_cwd(path):
     return os.path.abspath(path) == os.path.abspath(os.getcwd())
 
 def package_description(guildfile):
-    out = RestFormatter()
+    out = RstFormatter()
     if guildfile.package:
         out.start_section(guildfile.package.name)
         _write_package_desc(guildfile.package, out)
