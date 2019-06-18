@@ -70,8 +70,25 @@ class Script(object):
                 log.exception("parsing %s", self.src)
             else:
                 for node in ast.walk(parsed):
-                    self._apply_node(node)
+                    self._safe_apply_node(node)
             self._parsed = True
+
+    def _safe_apply_node(self, node):
+        try:
+            self._apply_node(node)
+        except Exception as e:
+            self._handle_apply_node_error(e, node)
+
+    def _handle_apply_node_error(self, e, node):
+        msg = "error applying AST node %s from %s:%s:" % (
+            node.__class__.__name__,
+            self.src,
+            node.lineno)
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception(msg)
+        else:
+            msg += " %s (use 'guild --debug ...' for more information)" % e
+            log.warning(msg)
 
     def _apply_node(self, node):
         if isinstance(node, ast.ImportFrom):
@@ -107,6 +124,8 @@ class Script(object):
             pass
         else:
             for target in node.targets:
+                if not isinstance(target, ast.Name):
+                    continue
                 self._params[target.id] = val
 
 def _try_param_val(val):
@@ -123,7 +142,7 @@ def _try_param_val(val):
             return False
         elif val.id == "None":
             return None
-    raise TypeError()
+    raise TypeError(val)
 
 class Call(object):
 
