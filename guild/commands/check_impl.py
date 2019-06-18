@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 import os
+import platform
 import re
 import subprocess
 import sys
@@ -110,6 +111,7 @@ def _run_tests(check):
 def _print_info(check):
     _print_guild_info()
     _print_python_info(check)
+    _print_platform_info()
     _print_tensorflow_info(check)
     _print_nvidia_tools_info()
     if check.args.verbose:
@@ -145,6 +147,13 @@ def _python_version():
 
 def _python_path():
     return os.path.pathsep.join(sys.path)
+
+def _print_platform_info():
+    cli.out("platform:                  %s" % _platform_desc())
+
+def _platform_desc():
+    system, _node, _rel, version, machine, _proc = platform.uname()
+    return " ".join([system, version, machine])
 
 def _print_tensorflow_info(check):
     # Run externally to avoid tf logging to our stderr
