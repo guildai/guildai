@@ -750,6 +750,7 @@ def _op_extra_attrs(args):
         "random_seed": _random_seed(args),
         "host": util.hostname(),
         "user": util.user(),
+        "platform": util.platform_info(),
     }
     if args.label:
         attrs["label"] = args.label

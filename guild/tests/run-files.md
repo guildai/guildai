@@ -40,6 +40,7 @@ The files generated for our run:
     .guild/attrs/initialized
     .guild/attrs/objective
     .guild/attrs/opdef
+    .guild/attrs/platform
     .guild/attrs/random_seed
     .guild/attrs/run_params
     .guild/attrs/started
@@ -86,6 +87,13 @@ files.
     >>> project.cat(first_run, ".guild/output")
     hi
 
+    >>> project.cat(first_run, ".guild/attrs/platform")
+    architecture: ...
+    cpus: ...
+    processor: ...
+    python_version: ...
+    uname: ...
+
 ## Batch runs
 
 Batch runs are normal runs and so have a similar list of
@@ -129,6 +137,7 @@ The latest run is the trial:
     .guild/attrs/objective
     .guild/attrs/opdef
     .guild/attrs/optimizer
+    .guild/attrs/platform
     .guild/attrs/random_seed
     .guild/attrs/run_params
     .guild/attrs/started
@@ -172,6 +181,7 @@ Its files:
     .guild/attrs/id
     .guild/attrs/initialized
     .guild/attrs/opdef
+    .guild/attrs/platform
     .guild/attrs/random_seed
     .guild/attrs/run_params
     .guild/attrs/started
@@ -190,6 +200,7 @@ Its files:
     .guild/proto/.guild/attrs/objective
     .guild/proto/.guild/attrs/opdef
     .guild/proto/.guild/attrs/optimizer
+    .guild/proto/.guild/attrs/platform
     .guild/proto/.guild/attrs/random_seed
     .guild/proto/.guild/attrs/run_params
     .guild/proto/.guild/attrs/user

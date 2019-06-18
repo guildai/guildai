@@ -1016,3 +1016,14 @@ def dir_size(dir):
         for name in dirs + names:
             size += os.path.getsize(os.path.join(root, name))
     return size
+
+def platform_info():
+    """Returns a dict of system info."""
+    import psutil
+    return {
+        "uname": " ".join(platform.uname()),
+        "architecture": " ".join(platform.architecture()),
+        "processor": platform.processor(),
+        "cpus": psutil.cpu_count(),
+        "python_version": sys.version.replace("\n", ""),
+    }
