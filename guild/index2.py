@@ -133,8 +133,10 @@ class ScalarReader(object):
     @staticmethod
     def _scalar_prefix(scalars_path, root):
         rel_path = os.path.relpath(scalars_path, root)
-        if rel_path in (".", ".guild"):
+        if rel_path == ".":
             return ""
+        if os.path.basename(rel_path) == ".guild":
+            rel_path = os.path.dirname(rel_path)
         return rel_path.replace(os.sep, "/")
 
     def _scalar_source_digest(self, run_id, prefix):
