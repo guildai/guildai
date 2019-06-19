@@ -19,6 +19,7 @@
       .guild/attrs/id
       .guild/attrs/initialized
       .guild/attrs/opdef
+      .guild/attrs/platform
       .guild/attrs/random_seed
       .guild/attrs/run_params
       .guild/attrs/started
