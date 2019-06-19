@@ -1030,11 +1030,24 @@ def dir_size(dir):
 
 def platform_info():
     """Returns a dict of system info."""
-    import psutil
+    info = _platform_base_info()
+    info.update(_platform_psutil_info())
+    return info
+
+def _platform_base_info():
     return {
-        "uname": " ".join(platform.uname()),
         "architecture": " ".join(platform.architecture()),
         "processor": platform.processor(),
-        "cpus": psutil.cpu_count(),
         "python_version": sys.version.replace("\n", ""),
+        "uname": " ".join(platform.uname()),
     }
+
+def _platform_psutil_info():
+    try:
+        import psutil
+    except ImportError:
+        return {}
+    else:
+        return {
+            "cpus": psutil.cpu_count(),
+        }
