@@ -38,29 +38,17 @@ class SummaryPlugin(Plugin):
         self._summary_cache = SummaryCache(self.MIN_SUMMARY_INTERVAL)
 
     def patch_env(self):
+        self.log.debug("patching tensorflow")
         self._try_patch_tensorflow()
 
     def _try_patch_tensorflow(self):
         util.try_apply([
-            self._try_listen_tf1,
-            self._try_listen_tf2,
+            self._try_listen_tf_v2,
+            self._try_listen_tf_v1,
+            self._try_listen_tf_legacy,
             self._log_listen_failed])
 
-    def _try_listen_tf1(self):
-        try:
-            from tensorflow.summary import FileWriter
-        except Exception as e:
-            self.log.debug(
-                "error importing tensorflow.summary.FileWriter: %s", e)
-            raise util.TryFailed()
-        else:
-            self.log.debug(
-                "wrapping tensorflow.summary.FileWriter.add_summary")
-            python_util.listen_method(
-                FileWriter, "add_summary",
-                self._handle_summary)
-
-    def _try_listen_tf2(self):
+    def _try_listen_tf_v2(self):
         try:
             from tensorboard.plugins.scalar import summary_v2
             from tensorflow import summary
@@ -77,6 +65,35 @@ class SummaryPlugin(Plugin):
             python_util.listen_function(
                 summary, "scalar",
                 self._handle_scalar)
+
+    def _try_listen_tf_v1(self):
+        try:
+            from tensorflow.compat.v1.summary import FileWriter
+        except Exception as e:
+            self.log.debug(
+                "error importing tensorflow.compat.v1.summary.FileWriter: %s",
+                e)
+            raise util.TryFailed()
+        else:
+            self.log.debug(
+                "wrapping tensorflow.compat.v1.summary.FileWriter.add_summary")
+            python_util.listen_method(
+                FileWriter, "add_summary",
+                self._handle_summary)
+
+    def _try_listen_tf_legacy(self):
+        try:
+            from tensorflow.summary import FileWriter
+        except Exception as e:
+            self.log.debug(
+                "error importing tensorflow.summary.FileWriter: %s", e)
+            raise util.TryFailed()
+        else:
+            self.log.debug(
+                "wrapping tensorflow.summary.FileWriter.add_summary")
+            python_util.listen_method(
+                FileWriter, "add_summary",
+                self._handle_summary)
 
     def _log_listen_failed(self):
         self.log.warning(
