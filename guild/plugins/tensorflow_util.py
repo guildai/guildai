@@ -49,24 +49,25 @@ class SummaryPlugin(Plugin):
             self._log_listen_failed])
 
     def _try_listen_tf_v2(self):
-        try:
-            from tensorboard.plugins.scalar import summary_v2
-            from tensorflow import summary
-        except Exception as e:
-            self.log.debug(
-                "error importing tensorboard.plugins.scalar.summary_v2: %s", e)
+        if not _tf_version().startswith("2."):
             raise util.TryFailed()
-        else:
-            self.log.debug(
-                "wrapping tensorboard.plugins.scalar.summary_v2.scalar")
-            python_util.listen_function(
-                summary_v2, "scalar",
-                self._handle_scalar)
-            python_util.listen_function(
-                summary, "scalar",
-                self._handle_scalar)
+        self._listen_tf_v2_summary()
+        self._maybe_listen_tf_summary()
+
+    def _listen_tf_v2_summary(self):
+        from tensorboard.plugins.scalar import summary_v2
+        self.log.debug(
+            "wrapping tensorboard.plugins.scalar.summary_v2.scalar")
+        python_util.listen_function(summary_v2, "scalar", self._handle_scalar)
+
+    def _listen_tf_summary(self):
+        from tensorflow import summary
+        self.log.debug("wrapping tensorflow.summary.scalar")
+        python_util.listen_function(summary, "scalar", self._handle_scalar)
 
     def _try_listen_tf_v1(self):
+        if not _tf_version().startswith("1."):
+            raise util.TryFailed()
         try:
             from tensorflow.compat.v1.summary import FileWriter
         except Exception as e:
@@ -82,6 +83,8 @@ class SummaryPlugin(Plugin):
                 self._handle_summary)
 
     def _try_listen_tf_legacy(self):
+        if not _tf_version().startswith("1."):
+            raise util.TryFailed()
         try:
             from tensorflow.summary import FileWriter
         except Exception as e:
@@ -142,6 +145,14 @@ class SummaryPlugin(Plugin):
     def read_summary_values(_global_step):
         """Overridden by subclasses."""
         return {}
+
+def _tf_version():
+    try:
+        import tensorflow
+    except ImportError:
+        return ""
+    else:
+        return tensorflow.__version__
 
 def tf_scalar_summary(vals):
     # pylint: disable=import-error,no-name-in-module
