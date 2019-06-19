@@ -73,6 +73,7 @@ CORE_RUN_ATTRS = [
     "marked",
     "objective",
     "opdef",
+    "platform",
     "random_seed",
     "run_params",
     "started",
