@@ -114,9 +114,10 @@ def _ensure_external():
         _install_external(name, EXTERNAL[name])
 
 def _external_marker(name):
+    py_ver = ".".join([str(n) for n in sys.version_info[0:2]])
     return os.path.join(
         "./guild/external",
-        ".{}-py{}".format(name, sys.version_info[0]))
+        ".{}-py{}".format(name, py_ver))
 
 def _install_external(name, dist_spec):
     with util.TempDir(prefix="pip-", suffix="-download") as tmp:
