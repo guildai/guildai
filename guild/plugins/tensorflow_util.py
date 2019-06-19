@@ -52,7 +52,7 @@ class SummaryPlugin(Plugin):
         if not _tf_version().startswith("2."):
             raise util.TryFailed()
         self._listen_tf_v2_summary()
-        self._maybe_listen_tf_summary()
+        self._listen_tf_summary()
 
     def _listen_tf_v2_summary(self):
         from tensorboard.plugins.scalar import summary_v2
