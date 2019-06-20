@@ -2,7 +2,8 @@
 
 ## 0.6.5
 
-- Saving platform information for runs
+- Save platform information for runs
+- Check latest version of Guild AI in check command
 
 Fixes:
 

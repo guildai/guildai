@@ -40,6 +40,10 @@ from . import remote_support
     multiple=True)
 @click.option("-v", "--verbose", help="Show more information.", is_flag=True)
 @remote_support.remote_option("Check remote environment.")
+@click.option(
+    "--offline",
+    help="Don't check guild.ai for latest versions.",
+    is_flag=True)
 @click.option("--uat", hidden=True, is_flag=True)
 
 @click_util.use_args

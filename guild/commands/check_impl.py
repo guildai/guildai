@@ -22,9 +22,9 @@ import re
 import subprocess
 import sys
 
-import pkg_resources
-
 import click
+import pkg_resources
+import requests
 
 import guild
 
@@ -56,6 +56,7 @@ class Check(object):
     def __init__(self, args):
         self.args = args
         self._errors = False
+        self.newer_version_available = False
 
     def error(self):
         self._errors = True
@@ -116,6 +117,10 @@ def _print_info(check):
     _print_nvidia_tools_info()
     if check.args.verbose:
         _print_mods_info(check)
+    if not check.args.offline:
+        _print_guild_latest_versions(check)
+    if check.newer_version_available:
+        _notify_newer_version()
 
 def _print_guild_info():
     cli.out("guild_version:             %s" % guild.version())
@@ -217,6 +222,50 @@ def _format_version(ver):
 def _print_module_ver(mod, ver):
     space = " " * (18 - len(mod))
     cli.out("%s_version:%s%s" % (mod, space, ver))
+
+def _print_guild_latest_versions(check):
+    cur_ver = guild.__version__
+    latest_ver = _latest_version()
+    cli.out("latest_guild_version:      %s" % (latest_ver or "unknown"))
+    if latest_ver:
+        check.newer_version_available = _is_newer(latest_ver, cur_ver)
+
+def _latest_version():
+    url = "https://www-pre.guild.ai"
+    log.debug("getting latest version from %s", url)
+    try:
+        resp = requests.post(
+            url,
+            data={
+                "form-name": "check-version-Kn0VtNKO",
+                "installed-version": guild.version()},
+            timeout=10)
+    except Exception as e:
+        log.debug("error reading latest version: %s", e)
+        return None
+    else:
+        if resp.status_code == 200:
+            return _parse_latest_version(resp.text)
+        return None
+
+def _parse_latest_version(s):
+    m = re.match(r"(\S+) (\S+)", s)
+    if not m:
+        log.debug("unexpected latest version response: %s", s[:200])
+        return None
+    return m.group(1)
+
+def _is_newer(latest, cur):
+    return (
+        pkg_resources.parse_version(latest) >
+        pkg_resources.parse_version(cur))
+
+def _notify_newer_version():
+    cli.out(
+        click.style(
+            "A newer version of Guild AI is available. Run "
+            "'pip install guildai --upgrade' to install it.",
+            bold=True))
 
 def _warn(msg):
     return click.style(msg, fg="red", bold=True)
