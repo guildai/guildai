@@ -265,7 +265,8 @@ def _notify_newer_version():
         click.style(
             "A newer version of Guild AI is available. Run "
             "'pip install guildai --upgrade' to install it.",
-            bold=True))
+            bold=True),
+        err=True)
 
 def _warn(msg):
     return click.style(msg, fg="red", bold=True)
