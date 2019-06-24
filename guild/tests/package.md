@@ -15,8 +15,8 @@ Packages are built from guildfiles. The contain the guildfile and
 other files needed by the package.
 
 We'll create a package from the sample project
-[samples/projects/package](samples/projects/package). Let's setup our
-workspace by linking to the project files.
+[package](samples/projects/package). Let's setup our workspace by
+linking to the project files.
 
     >>> for name in ["guild.yml", "README.md", "a.txt", "train.py"]:
     ...   symlink(abspath(join_path(sample("projects/package"), name)),
@@ -139,7 +139,7 @@ And the package contents:
      'test/guild.yml']
 
 If a Guild file doesn't contain a package def or a model def, it
-creates a package named 'package':
+creates a package named 'gpkg.anonymous_DIGEST':
 
     >>> workspace = mkdtemp()
     >>> dir(workspace)
@@ -151,13 +151,32 @@ creates a package named 'package':
     >>> gf = guildfile.from_dir(workspace)
 
     >>> out = guild.package.create_package(gf.src, capture_output=True)
-    >>> print("-\n" + out.decode("UTF-8"))
-    -
+    >>> print(out)
+    WARNING: package name not defined in .../guild.yml - using gpkg.anonymous_...
     running bdist_wheel
     running build
     running build_py
     ...
-    adding 'package/guild.yml'
-    adding 'package-0.0.0.dist-info/...'
+    adding 'gpkg/anonymous_.../guild.yml'
+    adding 'gpkg.anonymous_...-0.0.0.dist-info/...'
     ...
-    <BLANKLINE>
+
+## Project based error messages
+
+A project must have a Guild file to be packaged.
+
+    >>> workspace = mkdtemp()
+    >>> dir(workspace)
+    []
+
+    >>> Project(workspace).package()
+    Traceback (most recent call last):
+    SystemExit: ("'...' does not contain a guild.yml
+    file\nTry specifying a different directory.", 1)
+
+A project must exist:
+
+    >>> Project("NOT_EXISTS").package()
+    Traceback (most recent call last):
+    SystemExit: ("'NOT_EXISTS' does not exist\nTry specifying a
+    different directory.", 1)

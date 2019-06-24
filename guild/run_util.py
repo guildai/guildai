@@ -225,6 +225,8 @@ def _ensure_dot_path(path):
     return os.path.join(".", path)
 
 def _format_package_op(opref):
+    if not opref.model_name:
+        return "%s/%s" % (opref.pkg_name, opref.op_name)
     return "%s/%s:%s" % (opref.pkg_name, opref.model_name, opref.op_name)
 
 def _format_script_op(opref):

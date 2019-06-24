@@ -321,3 +321,45 @@ def publish(
     args = click_util.Args(**ctx.params)
     with Env(cwd, guild_home):
         return runs_impl.publish(args, ctx)
+
+def package(
+        dist_dir=None,
+        upload=False,
+        upload_test=False,
+        repo=None,
+        sign=False,
+        identity=None,
+        user=None,
+        password=None,
+        skip_existing=False,
+        comment=None,
+        cwd=".",
+        guild_home=None):
+    from guild import click_util
+    from guild.commands import package
+    from guild.commands import package_impl
+    args = []
+    if dist_dir:
+        args.extend(["--dist-dir", dist_dir])
+    if upload:
+        args.append("--upload")
+    if upload_test:
+        args.append("--upload-test")
+    if repo:
+        args.extend(["--repo", repo])
+    if sign:
+        args.append("--sign")
+    if identity:
+        args.extend(["--identity", identity])
+    if user:
+        args.extend(["--user", user])
+    if password:
+        args.extend(["--password", password])
+    if skip_existing:
+        args.append("--skip-existing")
+    if comment:
+        args.extend(["--comment", command])
+    ctx = package.package.make_context("", args)
+    args = click_util.Args(**ctx.params)
+    with Env(cwd, guild_home):
+        return package_impl.main(args)

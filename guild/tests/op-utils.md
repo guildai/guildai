@@ -397,3 +397,80 @@ Range:
     Traceback (most recent call last):
     InvalidFlagValue: (1.1, <guild.guildfile.FlagDef 'range'>,
     'out of range (greater than max 1.0)')
+
+## Parsing op specs
+
+`op_util.parse_opspec` is used to parse op specs into model_ref,
+op_name tuples.
+
+    >>> from guild.op_util import parse_opspec
+
+Helper to raise exception if parse fails:
+
+    >>> def parse(spec):
+    ...     parsed = parse_opspec(spec)
+    ...     if not parsed:
+    ...         raise ValueError(spec)
+    ...     return parsed
+
+Empty cases:
+
+    >>> parse(None)
+    (None, None)
+
+    >>> parse("")
+    (None, None)
+
+Just the operation name:
+
+    >>> parse("op")
+    (None, 'op')
+
+Explicit empty model with operation:
+
+    >>> parse(":op")
+    ('', 'op')
+
+Model and op:
+
+    >>> parse("model:op")
+    ('model', 'op')
+
+Package and op:
+
+    >>> parse("package/op")
+    ('package/', 'op')
+
+    >>> parse("package/:op")
+    ('package/', 'op')
+
+Pakcage, model, and op:
+
+    >>> parse("package/model:op")
+    ('package/model', 'op')
+
+Invalid:
+
+    >>> parse("a:b:c")
+    Traceback (most recent call last):
+    ValueError: a:b:c
+
+    >>> parse("a/b/c")
+    Traceback (most recent call last):
+    ValueError: a/b/c
+
+    >>> parse("a:b/c")
+    Traceback (most recent call last):
+    ValueError: a:b/c
+
+    >>> parse("a/b:c:d")
+    Traceback (most recent call last):
+    ValueError: a/b:c:d
+
+    >>> parse("a/b:c/d")
+    Traceback (most recent call last):
+    ValueError: a/b:c/d
+
+    >>> parse("a:b/c:d")
+    Traceback (most recent call last):
+    ValueError: a:b/c:d

@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import glob
+import hashlib
 import logging
 import os
 import sys
@@ -26,11 +27,14 @@ import twine.commands.upload
 import yaml
 
 import guild.help
+import guild.log
 
 from guild import guildfile
 from guild import namespace
 from guild import pip_util
 from guild import util
+
+log = logging.getLogger("guild")
 
 MULTI_ARCH_PACKAGES = ("tensorflow-any",)
 
@@ -52,6 +56,7 @@ class Pkg(object):
         return self.data.get(attr, default)
 
 def main():
+    guild.log.init_logging()
     pkg = _load_pkg()
     dist = _create_dist(pkg)
     _maybe_upload(dist)
@@ -70,11 +75,24 @@ def _load_pkg():
 
 def _default_package(gf):
     # Use the name of the default model
-    default_model = gf.default_model
-    package_name = (
-        default_model.name if (default_model and default_model.name)
-        else "package")
+    package_name = _default_package_name(gf)
     return guildfile.PackageDef(package_name, {}, gf)
+
+def _default_package_name(gf):
+    default_model = gf.default_model
+    if default_model and default_model.name:
+        return default_model.name
+    return _anonymous_package_name(gf)
+
+def _anonymous_package_name(gf):
+    name = "gpkg.anonymous_%s" % _gf_digest(gf)
+    log.warning(
+        "package name not defined in %s - using %s",
+        gf.src, name)
+    return name
+
+def _gf_digest(gf):
+    return hashlib.md5(os.path.abspath(gf.src)).hexdigest()[:8]
 
 def _create_dist(pkg):
     sys.argv = _bdist_wheel_cmd_args(pkg)
@@ -212,9 +230,12 @@ def _entry_points(pkg):
 
 def _model_entry_points(pkg):
     return [
-        "%s = guild.model:PackageModel" % model.name
-        for _name, model in sorted(pkg.guildfile.models.items())
+        "%s = guild.model:PackageModel" % _model_entry_point_name(model)
+        for model in sorted(pkg.guildfile.models.values())
     ]
+
+def _model_entry_point_name(model):
+    return model.name or "__anonymous__"
 
 def _resource_entry_points(pkg):
     return _model_resource_entry_points(pkg)
@@ -376,7 +397,7 @@ def _twine_dist_file_args(dist):
 
 def _handle_twine_error(e):
     if os.getenv("DEBUG"):
-        logging.exception("twine error")
+        log.exception("twine error")
     try:
         msg = e.message
     except AttributeError:

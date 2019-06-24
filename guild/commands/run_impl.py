@@ -275,21 +275,15 @@ def _model_op(opspec):
     return model, op_name
 
 def _parse_opspec(spec):
-    if not spec:
-        return None, None
-    parts = spec.split(":", 1)
-    if len(parts) == 1:
-        return None, parts[0]
-    else:
-        return parts
+    parsed = op_util.parse_opspec(spec)
+    if parsed is None:
+        cli.error("invalid operation %s" % spec)
+    return parsed
 
 def _resolve_model(model_ref):
-    model = _try_resolve_cwd_model(model_ref)
-    if model:
-        return model
-    if not model_ref:
-        return None
-    return _resolve_system_model(model_ref)
+    return util.find_apply([
+        _try_resolve_cwd_model,
+        _try_resolve_system_model], model_ref)
 
 def _try_resolve_cwd_model(model_ref):
     cwd_guildfile = cmd_impl_support.cwd_guildfile()
@@ -300,6 +294,11 @@ def _try_resolve_cwd_model(model_ref):
     model = _match_one_model(model_ref, cwd_guildfile)
     modellib.set_path(path_save)
     return model
+
+def _try_resolve_system_model(model_ref):
+    if not model_ref:
+        return None
+    return _resolve_system_model(model_ref)
 
 def _resolve_system_model(model_ref):
     model = _match_one_model(model_ref)

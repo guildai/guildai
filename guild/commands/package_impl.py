@@ -25,6 +25,11 @@ from guild import guildfile
 from guild import package
 
 def main(args):
+    if not os.path.exists(config.cwd()):
+        cli.error(
+            "%s does not exist\n"
+            "Try specifying a different directory."
+            % cmd_impl_support.cwd_desc(config.cwd()))
     package_file = os.path.join(config.cwd(), "guild.yml")
     if not os.path.exists(package_file):
         cli.error(

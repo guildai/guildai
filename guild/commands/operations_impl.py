@@ -57,6 +57,8 @@ def _format_op(op, model):
 
 def format_op_fullname(op_name, model_fullname):
     if model_fullname:
+        if model_fullname.endswith("/"):
+            return "%s%s" % (model_fullname, op_name)
         return "%s:%s" % (model_fullname, op_name)
     return op_name
 

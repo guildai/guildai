@@ -290,6 +290,7 @@ def test_globals():
         "abspath": os.path.abspath,
         "basename": os.path.basename,
         "cat": cat,
+        "copytree": util.copytree,
         "dir": dir,
         "dirname": os.path.dirname,
         "exists": os.path.exists,
@@ -585,6 +586,9 @@ class Project(object):
             cwd=self.cwd,
             guild_home=self.guild_home,
             **kw)
+
+    def package(self, **kw):
+        return gapi.package(cwd=self.cwd, guild_home=self.guild_home, **kw)
 
 class _MockConfig(object):
 

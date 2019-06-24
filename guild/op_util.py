@@ -765,6 +765,43 @@ def _opdef_paths(opdef):
 def _model_parent_paths(modeldef):
     return [os.path.abspath(parent.dir) for parent in modeldef.parents]
 
+def parse_opspec(spec):
+    return util.find_apply([
+        _empty_spec,
+        _op_spec,
+        _model_op_spec,
+        _package_model_op_spec,
+        _package_op_spec,
+    ], spec)
+
+def _empty_spec(spec):
+    if spec:
+        return None
+    return None, None
+
+def _op_spec(spec):
+    if "/" in spec or ":" in spec:
+        return None
+    return None, spec
+
+def _model_op_spec(spec):
+    m = re.match(r"([^/:]*):([^/:]+)$", spec)
+    if not m:
+        return None
+    return m.groups()
+
+def _package_model_op_spec(spec):
+    m = re.match(r"([^/:]+/[^/:?]+):([^/:]+)$", spec)
+    if not m:
+        return None
+    return m.groups()
+
+def _package_op_spec(spec):
+    m = re.match(r"([^/:]+/):?([^/:]+)$", spec)
+    if not m:
+        return None
+    return m.groups()
+
 def _patch_yaml_safe_loader():
     # Credit: https://stackoverflow.com/users/1307905/anthon
     # Ref:    https://stackoverflow.com/questions/30458977/

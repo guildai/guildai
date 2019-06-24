@@ -42,11 +42,17 @@ ModelRef = collections.namedtuple(
 class Model(object):
 
     def __init__(self, ep):
-        self.name = ep.name
+        self.name = self._ep_model_name(ep)
         self.dist = ep.dist
         self.modeldef = self._init_modeldef()
         self._fullname = None # lazy
         self._reference = None # lazy
+
+    @staticmethod
+    def _ep_model_name(ep):
+        if ep.name == "__anonymous__":
+            return ""
+        return ep.name
 
     def __repr__(self):
         return "<%s.%s '%s'>" % (
