@@ -56,6 +56,7 @@ class Check(object):
     def __init__(self, args):
         self.args = args
         self._errors = False
+        self.offline = args.offline or config.user_config().get("offline")
         self.newer_version_available = False
 
     def error(self):
@@ -117,8 +118,7 @@ def _print_info(check):
     _print_nvidia_tools_info()
     if check.args.verbose:
         _print_mods_info(check)
-    if not check.args.offline:
-        _print_guild_latest_versions(check)
+    _print_guild_latest_versions(check)
     if check.newer_version_available:
         _notify_newer_version()
 
@@ -224,11 +224,14 @@ def _print_module_ver(mod, ver):
     cli.out("%s_version:%s%s" % (mod, space, ver))
 
 def _print_guild_latest_versions(check):
-    cur_ver = guild.__version__
-    latest_ver = _latest_version()
-    cli.out("latest_guild_version:      %s" % (latest_ver or "unknown"))
-    if latest_ver:
-        check.newer_version_available = _is_newer(latest_ver, cur_ver)
+    if check.offline:
+        cli.out("latest_guild_version:      unchecked")
+    else:
+        cur_ver = guild.__version__
+        latest_ver = _latest_version()
+        cli.out("latest_guild_version:      %s" % (latest_ver or "unknown"))
+        if latest_ver:
+            check.newer_version_available = _is_newer(latest_ver, cur_ver)
 
 def _latest_version():
     url = "https://www-pre.guild.ai"
