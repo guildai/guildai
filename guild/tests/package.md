@@ -151,7 +151,7 @@ creates a package named 'gpkg.anonymous_DIGEST':
     >>> gf = guildfile.from_dir(workspace)
 
     >>> out = guild.package.create_package(gf.src, capture_output=True)
-    >>> print(out)
+    >>> print(out.decode())
     WARNING: package name not defined in .../guild.yml - using gpkg.anonymous_...
     running bdist_wheel
     running build

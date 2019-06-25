@@ -92,7 +92,8 @@ def _anonymous_package_name(gf):
     return name
 
 def _gf_digest(gf):
-    return hashlib.md5(os.path.abspath(gf.src)).hexdigest()[:8]
+    path = os.path.abspath(gf.src)
+    return hashlib.md5(path.encode()).hexdigest()[:8]
 
 def _create_dist(pkg):
     sys.argv = _bdist_wheel_cmd_args(pkg)
@@ -229,9 +230,10 @@ def _entry_points(pkg):
     }
 
 def _model_entry_points(pkg):
+    models = sorted(pkg.guildfile.models.values(), key=lambda m: m.name)
     return [
         "%s = guild.model:PackageModel" % _model_entry_point_name(model)
-        for model in sorted(pkg.guildfile.models.values())
+        for model in models
     ]
 
 def _model_entry_point_name(model):
