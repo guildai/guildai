@@ -225,7 +225,7 @@ def _print_module_ver(mod, ver):
 
 def _print_guild_latest_versions(check):
     if check.offline:
-        cli.out("latest_guild_version:      unchecked")
+        cli.out("latest_guild_version:      unchecked (offline)")
     else:
         cur_ver = guild.__version__
         latest_ver = _latest_version()
