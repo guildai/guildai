@@ -234,11 +234,13 @@ class SSHRemote(remotelib.Remote):
             port=self.port)
 
     def _install_job_package(self, remote_run_dir):
-        cmd = (
-            "cd {run_dir}/.guild/job-packages;"
-            "guild install {pre} --upgrade *.whl --target ."
-            .format(run_dir=remote_run_dir, pre=self._pre_flag())
-        )
+        cmd_lines = []
+        cmd_lines.extend(self._env_activate_cmd_lines())
+        cmd_lines.extend([
+            "cd %s/.guild/job-packages" % remote_run_dir,
+            "guild install %s --upgrade *.whl --target ." % self._pre_flag(),
+        ])
+        cmd = "; ".join(cmd_lines)
         log.info("Installing package and its dependencies")
         self._ssh_cmd(cmd)
 
@@ -309,10 +311,7 @@ class SSHRemote(remotelib.Remote):
         cwd = self.guild_env
         if cwd.endswith("/env"):
             cwd = cwd[:-4]
-        return [
-            "QUIET=1 source guild-env %s" % self.guild_env,
-            "cd %s" % cwd,
-        ]
+        return ["QUIET=1 source %s/bin/activate" % self.guild_env]
 
     def one_run(self, run_id_prefix, attrs):
         """Returns run matching id prefix as remote.RunProxy with attrs.
