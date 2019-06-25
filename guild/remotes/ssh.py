@@ -51,6 +51,7 @@ class SSHRemote(remotelib.Remote):
         self.guild_home = self._init_guild_home(config)
         self.guild_env = config.get("guild-env")
         self.use_prerelease = config.get("use-prerelease", False)
+        self.init = config.get("init")
 
     @property
     def host(self):
@@ -130,8 +131,10 @@ class SSHRemote(remotelib.Remote):
             "start is not supported for ssh remotes")
 
     def reinit(self):
-        raise remotelib.OperationNotSupported(
-            "reinit is not supported for ssh remotes")
+        if not self.init:
+            raise remotelib.OperationNotSupported(
+                "init is not defined for this remote")
+        self._ssh_cmd(self.init)
 
     def stop(self):
         raise remotelib.OperationNotSupported(

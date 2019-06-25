@@ -42,10 +42,9 @@ class EC2Remote(ssh_remote.SSHRemote):
         self.root_device_size = config.get("root-device-size")
         self.public_key = config.get("public-key")
         self.private_key = config.get("private-key")
-        self.init = config.get("init")
-        self.init_timeout = config.get("init-timeout")
         self.password = config.get("password")
         self.working_dir = var.remote_dir(name)
+        self.init_timeout = config.get("init-timeout")
         super(EC2Remote, self).__init__(name, self._ensure_none_host(config))
 
     def _ensure_none_host(self, config):
