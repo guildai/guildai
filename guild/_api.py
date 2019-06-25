@@ -358,7 +358,7 @@ def package(
     if skip_existing:
         args.append("--skip-existing")
     if comment:
-        args.extend(["--comment", command])
+        args.extend(["--comment", comment])
     ctx = package.package.make_context("", args)
     args = click_util.Args(**ctx.params)
     with Env(cwd, guild_home):
