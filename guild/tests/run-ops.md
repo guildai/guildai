@@ -9,73 +9,39 @@ These tests look at this behavior by running various module functions.
 
     >>> from guild.commands import run_impl
 
-We'll be testing functions with parsed command line arguments, so
-we'll need a helper.
-
-    >>> from guild import click_util
-    >>> from guild.commands import run as run_cmd
-
-    >>> def parse_args(args):
-    ...     ctx = run_cmd.run.make_context("test", args)
-    ...     return click_util.Args(**ctx.params), ctx
-
-Here's an example of parsing run args:
-
-    >>> args, _ctx = parse_args(["train", "lr=0.1", "--yes"])
-    >>> args.opspec
-    'train'
-
-    >>> args.flags
-    ('lr=0.1',)
-
-    >>> args.yes
-    True
-
 For the tests below, we'll call `run_impl._resolve_model_op` with
 various combinations of parsed arguments within a temp working
 directory to control what the run command sees.
 
 Here's the working directory:
 
-    >>> cwd = mkdtemp()
-
 And the helper function:
 
-    >>> def resolve_model_op(opspec):
+    >>> def resolve_model_op(opspec, cwd):
     ...     with Chdir(cwd):
     ...         return run_impl._resolve_model_op(opspec)
-
-Before running any tests, we need to pre-emptively load Guild plugins
-as the act of changing the cwd while processing op specs will cause
-spurious error messages when plugins are loaded for the op resolution
-process. (Not sure why this is, but no matter - this step resolves the
-issue.)
-
-    >>> from guild import plugin
-    >>> list(plugin.iter_plugins())
-    [...]
 
 ## Bad op specs
 
 The tests below illustrate various invalid operation specs.
 
-To control our test context, we'll use a new directory:
+To control our test context, we'll use a new directory.
 
     >>> cwd = mkdtemp()
 
 Running a non-existing operation with no model spec:
 
-    >>> resolve_model_op("train") # doctest: -NORMALIZE_PATHS
+    >>> resolve_model_op("train", cwd) # doctest: -NORMALIZE_PATHS
     Traceback (most recent call last):
-    SystemExit: ("cannot find operation train\nYou may need
-    to include a model in the form MODEL:OPERATION. Try
-    'guild operations' for a list of available operations.", 1)
+    SystemExit: ("cannot find operation train\nYou may need to include
+    a model in the form MODEL:OPERATION. Try 'guild operations' for a
+    list of available operations.", 1)
 
 Running a non-existing operation with a model spec:
 
-    >>> resolve_model_op("__no_exists__:train") # doctest: -NORMALIZE_PATHS
+    >>> resolve_model_op("model:train", cwd) # doctest: -NORMALIZE_PATHS
     Traceback (most recent call last):
-    SystemExit: (..."cannot find a model matching '__no_exists__'\nTry
+    SystemExit: ("cannot find a model matching 'model'\nTry
     'guild models' for a list of available models.", 1)
 
 ## Op for a Python script
@@ -88,7 +54,7 @@ specify it as the op spec.
 We'll resolve the operation, capturing any warnings:
 
     >>> with LogCapture() as log:
-    ...     model, op_name = resolve_model_op("train.py")
+    ...     model, op_name = resolve_model_op("train.py", cwd)
     >>> model
     <guild.plugins.python_script.PythonScriptModelProxy ...>
     >>> op_name
@@ -113,10 +79,15 @@ Here's a shell script:
     >>> train_sh = join_path(cwd, "train.sh")
     >>> write(train_sh, "")
 
+And the files in cwd:
+
+    >>> find(cwd)
+    ['train.py', 'train.sh']
+
 The resolved model before making the script to executable (skipped on
 Windows because exe permission isn't supported):
 
-    >>> resolve_model_op("train.sh") # doctest: -WINDOWS
+    >>> resolve_model_op("train.sh", cwd) # doctest: -WINDOWS
     Traceback (most recent call last):
     SystemExit: ("cannot find operation train.sh\nYou may need to include
     a model in the form MODEL:OPERATION. Try 'guild operations'
@@ -129,7 +100,7 @@ Let's make the script executable:
 
 And resolve again:
 
-    >>> model, op_name = resolve_model_op("train.sh")
+    >>> model, op_name = resolve_model_op("train.sh", cwd)
     >>> model
     <guild.plugins.exec_script.ExecScriptModelProxy ...>
     >>> op_name
@@ -144,5 +115,5 @@ And resolve again:
 The special characeter '+' indicates that the operation should be a
 batch run.
 
-    >>> resolve_model_op("+")
+    >>> resolve_model_op("+", cwd)
     (<guild.model_proxy.BatchModelProxy ...>, '+')

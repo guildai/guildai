@@ -257,7 +257,7 @@ def _resolve_model_op(opspec):
         proxy_model_op = _proxy_model_op(opspec)
         if proxy_model_op:
             return proxy_model_op
-        _no_such_op_error(opspec)
+        _no_such_opspec_error(opspec)
 
 def _proxy_model_op(opspec):
     if not opspec:
@@ -271,7 +271,7 @@ def _model_op(opspec):
     model_ref, op_name = _parse_opspec(opspec)
     model = _resolve_model(model_ref)
     if not model:
-        _no_such_op_error(opspec)
+        _no_such_opspec_error(opspec)
     return model, op_name
 
 def _parse_opspec(spec):
@@ -282,10 +282,11 @@ def _parse_opspec(spec):
 
 def _resolve_model(model_ref):
     return util.find_apply([
-        _try_resolve_cwd_model,
-        _try_resolve_system_model], model_ref)
+        _resolve_cwd_model,
+        _resolve_system_model,
+        _maybe_no_model_error], model_ref)
 
-def _try_resolve_cwd_model(model_ref):
+def _resolve_cwd_model(model_ref):
     cwd_guildfile = cmd_impl_support.cwd_guildfile()
     if not cwd_guildfile:
         return None
@@ -295,35 +296,25 @@ def _try_resolve_cwd_model(model_ref):
     modellib.set_path(path_save)
     return model
 
-def _try_resolve_system_model(model_ref):
-    if not model_ref:
-        return None
-    return _resolve_system_model(model_ref)
-
 def _resolve_system_model(model_ref):
-    model = _match_one_model(model_ref)
-    if not model:
-        _no_model_error(model_ref)
-    return model
+    return _match_one_model(model_ref)
 
 def _match_one_model(model_ref, cwd_guildfile=None):
     matches = list(_iter_matching_models(model_ref, cwd_guildfile))
-    if not matches:
-        return None
-    elif len(matches) > 1:
-        complete_match = _model_by_name(model_ref, matches)
-        if complete_match:
-            return complete_match
-        _multiple_models_error(model_ref, matches)
-    else:
+    if len(matches) == 1:
         return matches[0]
+    if len(matches) > 0 and model_ref:
+        return _complete_match_one_model(model_ref, matches)
+    return None
 
 def _iter_matching_models(model_ref, cwd_guildfile):
     for model in modellib.iter_models():
-        if model_ref is None:
+        if not model_ref:
             if cwd_guildfile and _is_default_cwd_model(model, cwd_guildfile):
                 yield model
                 break
+            if not model.name:
+                yield model
         else:
             if _match_model_ref(model_ref, model):
                 yield model
@@ -342,6 +333,12 @@ def _match_model_ref(model_ref, model):
         # otherwise treat as a match term
         return model_ref in model.name
 
+def _complete_match_one_model(model_ref, matches):
+    complete_match = _model_by_name(model_ref, matches)
+    if complete_match:
+        return complete_match
+    _multiple_models_error(model_ref, matches)
+
 def _model_by_name(name, models):
     for model in models:
         if model.name == name:
@@ -349,6 +346,8 @@ def _model_by_name(name, models):
     return None
 
 def _multiple_models_error(model_ref, models):
+    assert model_ref
+    assert len(models) >= 2, models
     models_list = "\n".join([
         "  %s" % name
         for name in sorted([m.fullname for m in models])
@@ -359,20 +358,16 @@ def _multiple_models_error(model_ref, models):
         "%s"
         % (model_ref, models_list))
 
-def _no_model_error(model_ref):
+def _maybe_no_model_error(model_ref):
     if model_ref is None:
-        cli.error(
-            "there are no models in %s\n"
-            "Try a different directory or 'guild operations' for "
-            "available operations."
-            % cmd_impl_support.cwd_desc())
-    else:
-        cli.error(
-            "cannot find a model matching '%s'\n"
-            "Try 'guild models' for a list of available models."
-            % model_ref)
+        # find_apply pattern - return None indicates can't find/no-error
+        return None
+    cli.error(
+        "cannot find a model matching '%s'\n"
+        "Try 'guild models' for a list of available models."
+        % model_ref)
 
-def _no_such_op_error(opspec):
+def _no_such_opspec_error(opspec):
     if opspec:
         if ":" in opspec:
             cli.error(
@@ -397,11 +392,11 @@ def _no_such_op_error(opspec):
 def _resolve_opdef(model, op_name):
     opdef = model.modeldef.get_operation(op_name)
     if opdef is None:
-        _no_such_operation_error(op_name, model)
+        _no_such_model_op_error(op_name, model)
     opdef.set_modelref(model.reference)
     return opdef
 
-def _no_such_operation_error(name, model):
+def _no_such_model_op_error(name, model):
     cli.error(
         "operation '%s' is not defined for model '%s'\n"
         "Try 'guild operations %s' for a list of available operations."
