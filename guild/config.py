@@ -113,12 +113,17 @@ class _Config(object):
         try:
             f = open(self.path, "r")
         except IOError as e:
-            log.warning("cannot read user config in %s: %s", self.path, e)
+            if e.errno != 2: # file not found
+                log.warning(
+                    "cannot read user config in %s: %s",
+                    self.path, e)
         else:
             try:
                 return yaml.safe_load(f) or {}
             except Exception as e:
-                log.warning("error loading user config in %s: %s", self.path, e)
+                log.warning(
+                    "error loading user config in %s: %s",
+                    self.path, e)
         return {}
 
 def _apply_config_inherits(data, src):
