@@ -1051,3 +1051,13 @@ def _platform_psutil_info():
         return {
             "cpus": psutil.cpu_count(),
         }
+
+def guild_user_agent():
+    import guild
+    system, _node, release, _ver, machine, _proc = platform.uname()
+    return (
+        "python-guildai/%s (%s; %s; %s)" % (
+            guild.__version__,
+            system,
+            machine,
+            release))

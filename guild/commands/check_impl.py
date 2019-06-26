@@ -56,8 +56,15 @@ class Check(object):
     def __init__(self, args):
         self.args = args
         self._errors = False
-        self.offline = args.offline or config.user_config().get("offline")
+        self.offline = self._init_offline(args)
         self.newer_version_available = False
+
+    @staticmethod
+    def _init_offline(args):
+        if args.offline is not None:
+            return args.offline
+        else:
+            return _check_config().get("offline")
 
     def error(self):
         self._errors = True
@@ -65,6 +72,9 @@ class Check(object):
     @property
     def has_error(self):
         return self._errors
+
+def _check_config():
+    return config.user_config().get("check") or {}
 
 def main(args):
     if args.remote:
@@ -154,11 +164,11 @@ def _python_path():
     return os.path.pathsep.join(sys.path)
 
 def _print_platform_info():
-    cli.out("platform:                  %s" % _platform_desc())
+    cli.out("platform:                  %s" % _platform())
 
-def _platform_desc():
-    system, _node, _rel, version, machine, _proc = platform.uname()
-    return " ".join([system, version, machine])
+def _platform():
+    system, _node, release, _ver, machine, _proc = platform.uname()
+    return " ".join([system, release, machine])
 
 def _print_tensorflow_info(check):
     # Run externally to avoid tf logging to our stderr
@@ -192,7 +202,7 @@ def _nvidia_smi_version():
             return m.group(1)
         else:
             log.debug("Unexpected output from nvidia-smi: %s", out)
-            return "unknown"
+            return "unknown (error)"
 
 def _print_mods_info(check):
     for mod in CHECK_MODS:
@@ -229,27 +239,51 @@ def _print_guild_latest_versions(check):
     else:
         cur_ver = guild.__version__
         latest_ver = _latest_version()
-        cli.out("latest_guild_version:      %s" % (latest_ver or "unknown"))
+        latest_ver_desc = latest_ver or "unknown (error)"
+        cli.out("latest_guild_version:      %s" % latest_ver_desc)
         if latest_ver:
             check.newer_version_available = _is_newer(latest_ver, cur_ver)
 
 def _latest_version():
-    url = "https://www-pre.guild.ai"
+    url = _latest_version_url()
     log.debug("getting latest version from %s", url)
     try:
         resp = requests.post(
             url,
             data={
-                "form-name": "check-version-Kn0VtNKO",
-                "installed-version": guild.version()},
+                "form-name": _latest_version_form_name(),
+                "guild-version": guild.__version__,
+                "python-version": _python_short_version(),
+                "platform": _platform(),
+            },
+            headers={
+                "User-Agent": util.guild_user_agent(),
+            },
             timeout=10)
     except Exception as e:
         log.debug("error reading latest version: %s", e)
         return None
     else:
-        if resp.status_code == 200:
-            return _parse_latest_version(resp.text)
-        return None
+        if resp.status_code == 404:
+            log.debug("error reading latest version: %s not found" % url)
+            return None
+        if resp.status_code != 200:
+            log.debug("error reading latest version: %s" % resp.text)
+            return None
+        return _parse_latest_version(resp.text)
+
+def _latest_version_url():
+    return (
+        _check_config().get("latest-version-url") or
+        "https://www-pre.guild.ai/version")
+
+def _latest_version_form_name():
+    return (
+        _check_config().get("latest-version-form") or
+        "check-version-Kn0VtNKO")
+
+def _python_short_version():
+    return sys.version.split(" ", 1)[0]
 
 def _parse_latest_version(s):
     m = re.match(r"(\S+) (\S+)", s)
