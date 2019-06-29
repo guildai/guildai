@@ -24,16 +24,6 @@ import warnings
 import pkg_resources
 from werkzeug import serving
 
-# Proactively check imports for tensorflow and tensorboard. Check
-# tensorflow first because import problems with tensorboard are likely
-# a result of TensorFlow not being installed.
-
-# pylint: disable=unused-import,wrong-import-order
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    import tensorflow as tf
-
 from tensorboard import version
 from tensorboard import util as tb_util
 
@@ -114,34 +104,6 @@ def create_app(logdir, reload_interval, path_prefix=""):
             tb.assets_zip_provider)
 
 def setup_logging():
-    if hasattr(tb_util, "setup_logging"):
-        _setup_logging_legacy()
-    else:
-        _setup_logging()
-
-def _setup_logging_legacy():
-    tb_util.setup_logging()
-    _filter_logging()
-
-def _filter_logging():
-    warn0 = tf.logging.warn
-    tf.logging.warn = (
-        lambda *args, **kw: _filter_warn(warn0, *args, **kw)
-    )
-    tf.logging.warning = tf.logging.warn
-
-def _filter_warn(warn0, msg, *args, **kw):
-    skip = [
-        "Found more than one graph event per run",
-        "Found more than one metagraph event per run",
-        "Deleting accumulator",
-    ]
-    for s in skip:
-        if msg.startswith(s):
-            return
-    warn0(msg, *args, **kw)
-
-def _setup_logging():
     _setup_tensorboard_logging()
     _setup_werkzeug_logging()
 

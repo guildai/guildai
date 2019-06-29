@@ -22,7 +22,7 @@ import sys
 
 from guild import util
 
-from guild.plugins.tensorflow_util import SummaryPlugin
+from guild.plugins.summary_util import SummaryPlugin
 
 STATS = [
     "index",

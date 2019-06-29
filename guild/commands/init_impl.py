@@ -45,7 +45,6 @@ class Config(object):
         self.guild_pkg_reqs = self._init_guild_pkg_reqs(args)
         self.venv_python = self._init_venv_python(args, self.user_reqs)
         self.paths = args.path
-        self.tensorflow_package = self._init_tensorflow_package(args)
         self.local_resource_cache = args.local_resource_cache
         self.prompt_params = self._init_prompt_params()
         self.no_progress = args.no_progress
@@ -85,21 +84,6 @@ class Config(object):
                 return (default_reqs,)
         return ()
 
-    @staticmethod
-    def _init_tensorflow_package(args):
-        if args.tensorflow and args.skip_tensorflow:
-            cli.error(
-                "--tensorflow and --skip-tensorflow cannot both "
-                "be specified")
-        if args.tensorflow:
-            return args.tensorflow
-        if args.skip_tensorflow:
-            return None
-        if util.gpu_available():
-            return "tensorflow-gpu"
-        else:
-            return "tensorflow"
-
     def _init_prompt_params(self):
         params = []
         params.append(("Location", _shorten_path(self.env_dir)))
@@ -112,8 +96,6 @@ class Config(object):
             params.append(("Guild", self.guild))
         else:
             params.append(("Guild", _implicit_guild_version()))
-        if self.tensorflow_package:
-            params.append(("TensorFlow", self.tensorflow_package))
         if self.guild_pkg_reqs:
             params.append(("Guild package requirements", self.guild_pkg_reqs))
         if self.user_reqs:
@@ -234,7 +216,6 @@ def _init(config):
     _init_guild_env(config)
     _init_venv(config)
     _install_guild(config)
-    _maybe_install_tensorflow(config)
     _install_guild_pkg_reqs(config)
     _install_user_reqs(config)
     _install_paths(config)
@@ -348,14 +329,6 @@ def _is_requirements_file(path):
     if not os.path.isfile(path):
         return False
     return pip_util.is_requirements(path)
-
-def _maybe_install_tensorflow(config):
-    if config.tensorflow_package:
-        cli.out("Installing TensorFlow")
-        # Temporary work-around for
-        # https://github.com/keras-team/keras-preprocessing/issues/154
-        _install_reqs(["Keras-Preprocessing==1.0.5"], config)
-        _install_reqs([config.tensorflow_package], config)
 
 def _install_guild_pkg_reqs(config):
     if config.guild_pkg_reqs:

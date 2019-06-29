@@ -17,7 +17,7 @@ from __future__ import division
 
 import time
 
-from guild.plugins.tensorflow_util import SummaryPlugin
+from guild.plugins.summary_util import SummaryPlugin
 
 class PerfPlugin(SummaryPlugin):
 

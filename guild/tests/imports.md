@@ -169,7 +169,7 @@
     guild.plugins.skopt_gp_main
     guild.plugins.skopt_ipy
     guild.plugins.skopt_util
-    guild.plugins.tensorflow_util
+    guild.plugins.summary_util
     guild.plugins.training_pkg_main
     guild.publish
     guild.python_util

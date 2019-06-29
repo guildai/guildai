@@ -124,7 +124,10 @@ def _print_info(check):
     _print_guild_info()
     _print_python_info(check)
     _print_platform_info()
-    _print_tensorflow_info(check)
+    _print_tensorboard_info(check)
+    if check.args.tensorflow:
+        _print_tensorflow_info(check)
+    _print_cuda_info()
     _print_nvidia_tools_info()
     if check.args.verbose:
         _print_mods_info(check)
@@ -170,6 +173,17 @@ def _platform():
     system, _node, release, _ver, machine, _proc = platform.uname()
     return " ".join([system, release, machine])
 
+def _print_tensorboard_info(check):
+    try:
+        import tensorboard.version as version
+    except ImportError as e:
+        check.error()
+        cli.out("tensorboard_version:       %s" % _warn("not installed"))
+        if check.args.verbose:
+            cli.out("                           %s" % _warn(str(e)))
+    else:
+        cli.out("tensorboard_version:       %s" % version.VERSION)
+
 def _print_tensorflow_info(check):
     # Run externally to avoid tf logging to our stderr
     cmd = [sys.executable, "-um", "guild.commands.tensorflow_check_main"]
@@ -183,6 +197,26 @@ def _print_tensorflow_info(check):
     exit_status = p.wait()
     if exit_status != 0:
         check.error()
+
+def _print_cuda_info():
+    cli.out("cuda_version:              %s" % _cuda_version())
+
+def _cuda_version():
+    nvcc = util.which("nvcc")
+    if not nvcc:
+        return "not installed"
+    try:
+        out = subprocess.check_output([nvcc, "--version"])
+    except subprocess.CalledProcessError as e:
+        return _warn("ERROR: %s" % e.output.strip())
+    else:
+        out = out.decode("utf-8")
+        m = re.search(r"V([0-9\.]+)", out, re.MULTILINE)
+        if m:
+            return m.group(1)
+        else:
+            log.debug("Unexpected output from nvidia-smi: %s", out)
+            return "unknown (error)"
 
 def _print_nvidia_tools_info():
     cli.out("nvidia_smi_version:        %s" % _nvidia_smi_version())

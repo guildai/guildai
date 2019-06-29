@@ -43,7 +43,6 @@ within the project directory:
      ('Name', 'init-env'),
      ('Python interpreter', 'default'),
      ('Guild', '...'),
-     ('TensorFlow', 'tensorflow...'),
      ('Guild package requirements',
       ('Pillow',
        'pkg-a',
@@ -74,7 +73,6 @@ using a `--path` option.
      ('Name', 'init-env'),
      ('Python interpreter', 'default'),
      ('Guild', '...'),
-     ('TensorFlow', 'tensorflow...'),
      ('Guild package requirements',
       ('Pillow',
        'lxml',
@@ -88,42 +86,3 @@ Note that there are cycles in the Guild package requirements in the
 sample project: `pkg-a` requires `pkg-b` and vise-versa. Guild init
 stop traversing package requirements if it's already processed a Guild
 file.
-
-## Specifying TensorFlow package
-
-We can specify a specific TensorFlow package:
-
-    >>> config(
-    ...   path=(project_dir,),
-    ...   tensorflow="tensorflow-gpu>=1.20").prompt_params
-    [('Location', '.../samples/projects/init-env/env'),
-     ('Name', 'init-env'),
-     ('Python interpreter', 'default'),
-     ('Guild', '...'),
-     ('TensorFlow', 'tensorflow-gpu>=1.20'),
-     ('Guild package requirements',
-      ('Pillow',
-       'lxml',
-       'matplotlib',
-       'numpy',
-       'tensorflow...')),
-     ('Additional paths', ('.../samples/projects/init-env',)),
-     ('Resource cache', 'shared')]
-
-We can skip installing TensorFlow altogether:
-
-    >>> config(
-    ...   path=(project_dir,),
-    ...   skip_tensorflow=True).prompt_params
-    [('Location', '.../samples/projects/init-env/env'),
-     ('Name', 'init-env'),
-     ('Python interpreter', 'default'),
-     ('Guild', '...'),
-     ('Guild package requirements',
-      ('Pillow',
-       'lxml',
-       'matplotlib',
-       'numpy',
-       'tensorflow...')),
-     ('Additional paths', ('.../samples/projects/init-env',)),
-     ('Resource cache', 'shared')]

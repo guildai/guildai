@@ -31,7 +31,6 @@ def _warn(msg):
 def print_info():
     state = State()
     _print_tensorflow_info(state)
-    _print_tensorboard_info(state)
     _print_cuda_info()
     if state.errors:
         sys.exit(1)
@@ -54,16 +53,6 @@ def _tf_version(tf, state):
     except AttributeError as e:
         state.errors = True
         return _warn("ERROR (%s)" % e)
-
-def _print_tensorboard_info(state):
-    try:
-        import tensorboard.version as version
-    except ImportError as e:
-        state.errors = True
-        click.echo("tensorboard_version:       %s" % _warn("Not installed"))
-        click.echo(_normalize_import_error_msg(e), err=True)
-    else:
-        click.echo("tensorboard_version:       %s" % version.VERSION)
 
 def _cuda_support(tf):
     if tf.test.is_built_with_cuda():

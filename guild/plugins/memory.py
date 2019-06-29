@@ -15,7 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from guild.plugins.tensorflow_util import SummaryPlugin
+from guild.plugins.summary_util import SummaryPlugin
 
 class MemoryPlugin(SummaryPlugin):
 

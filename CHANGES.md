@@ -4,6 +4,7 @@
 
 - Save platform information for runs
 - Check latest version of Guild AI in check command
+- Remove dependency on TensorFlow
 
 Fixes:
 

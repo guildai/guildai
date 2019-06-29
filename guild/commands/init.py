@@ -48,14 +48,6 @@ from guild import click_util
         "Don't install from requirements.txt or guild.yml in environment "
         "parent directory."))
 @click.option(
-    "--tensorflow", metavar="PACKAGE",
-    help=(
-        "Install PACKAGE for TensorFlow. By default installs the package "
-        "suitable for the system based on GPU support."))
-@click.option(
-    "--skip-tensorflow", is_flag=True,
-    help="Don't install TensorFlow.")
-@click.option(
     "-l", "--local-resource-cache", is_flag=True,
     help="Use a local cache when initializing an environment.")
 @click.option(
@@ -109,15 +101,6 @@ def init(args):
     By default `init` installs the active version of Guild AI in the
     initialized environment. To install a different version, or to
     install a Guild wheel distribution file use the `--guild` option.
-
-    ### TensorFlow
-
-    TensorFlow is installed to the environment unless
-    `--skip-tensorflow` is specified. The TensorFlow package to
-    install can be specified using `--tensorflow`. By default, Guild
-    installs the TensorFlow package suited for the system:
-    ``tensorflow-gpu`` if a GPU is available, otherwise
-    ``tensorflow``.
 
     ### Resource cache
 

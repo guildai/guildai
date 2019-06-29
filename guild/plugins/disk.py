@@ -20,7 +20,7 @@ import re
 import sys
 import time
 
-from guild.plugins.tensorflow_util import SummaryPlugin
+from guild.plugins.summary_util import SummaryPlugin
 
 PLATFORM = platform.system()
 

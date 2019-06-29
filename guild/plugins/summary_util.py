@@ -39,14 +39,29 @@ class SummaryPlugin(Plugin):
 
     def patch_env(self):
         self.log.debug("patching tensorflow")
+        self._patch_tensorboardX()
         self._try_patch_tensorflow()
 
+    def _patch_tensorboardX(self):
+        from tensorboardX import SummaryWriter
+        self.log.debug("wrapping tensorboardX.SummaryWriter.add_scalar")
+        python_util.listen_method(
+            SummaryWriter,
+            "add_scalar",
+            self._handle_scalar)
+
     def _try_patch_tensorflow(self):
-        util.try_apply([
-            self._try_listen_tf_v2,
-            self._try_listen_tf_v1,
-            self._try_listen_tf_legacy,
-            self._log_listen_failed])
+        try:
+            import tensorflow
+        except ImportError:
+            pass
+        else:
+            util.try_apply([
+                self._try_listen_tf_v2,
+                self._try_listen_tf_v1,
+                self._try_listen_tf_legacy,
+                self._listen_tf_failed,
+            ])
 
     def _try_listen_tf_v2(self):
         if not _tf_version().startswith("2."):
@@ -98,7 +113,7 @@ class SummaryPlugin(Plugin):
                 FileWriter, "add_summary",
                 self._handle_summary)
 
-    def _log_listen_failed(self):
+    def _listen_tf_failed(self):
         self.log.warning(
             "unable to find TensorFlow summary writer, skipping "
             "summaries for %s", self.name)
@@ -130,7 +145,7 @@ class SummaryPlugin(Plugin):
     def _handle_scalar(self, scalar, name, data, step=None, description=None):
         """Callback to apply summary values via scalars API.
 
-        This is the TF 2.x API for logging scalars.
+        This is the TF 2.x and tensorboardX API for logging scalars.
         """
         # pylint: disable=unused-argument
         vals = self._summary_values(step)
