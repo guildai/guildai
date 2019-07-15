@@ -28,26 +28,26 @@ Classifier: Topic :: Scientific/Engineering :: Visualization
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: Utilities
-Requires-Dist: PyYAML
-Requires-Dist: Werkzeug
-Requires-Dist: Whoosh
-Requires-Dist: chardet
-Requires-Dist: cryptography
-Requires-Dist: daemonize
-Requires-Dist: jinja2
+Requires-Dist: PyYAML>=2.12
+Requires-Dist: Werkzeug>=0.13
+Requires-Dist: Whoosh>=2.7.4
+Requires-Dist: chardet>=3.0.4
+Requires-Dist: cryptography>=2.1.4
+Requires-Dist: daemonize>=2.4.7
+Requires-Dist: jinja2>=2.10
 Requires-Dist: numpy>=1.16
-Requires-Dist: pandas
-Requires-Dist: pip
-Requires-Dist: pyopenssl
-Requires-Dist: python-dateutil
-Requires-Dist: setuptools
+Requires-Dist: pandas>=0.24.2
+Requires-Dist: pyopenssl>=19.0.0
+Requires-Dist: python-dateutil>=2.6.1
+Requires-Dist: setuptools>=40.6.3
 Requires-Dist: scikit-learn>=0.19.1,<0.21.0
-Requires-Dist: scikit-optimize
-Requires-Dist: six
-Requires-Dist: tabview
-Requires-Dist: tensorboardX
-Requires-Dist: twine
-Requires-Dist: virtualenv
+Requires-Dist: scikit-optimize>=0.5.2
+Requires-Dist: six>=1.10.0
+Requires-Dist: tabview>=1.4.3
+Requires-Dist: tensorboard>=1.10
+Requires-Dist: tensorboardX>=1.6
+Requires-Dist: twine>=1.12.1
+Requires-Dist: virtualenv>=15.1.0
 
 Guild AI is an [open source](LICENSE.txt) toolkit that automates and
 optimizes machine learning experiments.
