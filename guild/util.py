@@ -511,6 +511,7 @@ _binary_ext = set([
     ".gz",
     ".jpeg",
     ".jpg",
+    ".pickle",
     ".png",
     ".pyc",
     ".rar",
