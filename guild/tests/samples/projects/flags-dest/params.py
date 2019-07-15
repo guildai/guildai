@@ -1,11 +1,7 @@
+import pprint
+
 params = {
-    "i": 1,
-    "f": 1.234,
-    "s": "hello",
-    "b": True
+    "i": 3
 }
 
-print("i: %i" % params["i"])
-print("f: %f" % params["f"])
-print("s: %s" % params["s"])
-print("b: %s" % params["b"])
+pprint.pprint(params)

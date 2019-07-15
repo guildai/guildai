@@ -39,6 +39,7 @@ And its operations:
     >>> gf.default_model.operations
     [<guild.guildfile.OpDef 'args'>,
      <guild.guildfile.OpDef 'globals'>,
+     <guild.guildfile.OpDef 'params'>,
      <guild.guildfile.OpDef 'yml'>]
 
 We'll illustrate the various interfaces by running operations in a
@@ -93,6 +94,21 @@ Let's run it:
     f: 4.321000
     s: yo yo yo
     b: False
+
+## Global dict
+
+Guild supports setting flags as items of a global dict.
+
+The `params` operations specifies `global:params` as the flags dest.
+
+    >>> params_op = gf.default_model["params"]
+    >>> params_op.flags_dest
+    'global:params'
+
+Let's run it:
+
+    >>> run("params", i=5, s2="Whah")
+    {'i': 5, 'strings': {'s1': 'Hola', 's2': 'Whah'}}
 
 ## Flags as YAML config
 

@@ -17,6 +17,17 @@ globals:
     s: hi
     b: no
 
+params:
+  main: params
+  flags-dest: global:params
+  flags:
+    i: 2
+    s1:
+      default: Hola
+      arg-name: strings.s1
+    s2:
+      arg-name: strings.s2
+
 yml:
   main: yml
   flags-dest: config.yml

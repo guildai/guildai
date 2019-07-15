@@ -25,12 +25,13 @@ import os
 import pdb
 import sys
 
+# Avoid expensive imports here as load times directly add to runs.
+
 import guild.log
 
 from guild import exit_code
 from guild import op_util
-
-# Avoid expensive imports here as load times directly add to runs.
+from guild import util
 
 log = None # initialized in _init_logging
 
@@ -203,6 +204,7 @@ def _split_args_and_flags(args):
 
 def _global_dest(args, global_name):
     base_args, flags = _split_args_and_flags(args)
+    flags = util.nested_config(flags)
     global_dest = op_util.global_dest(global_name, flags)
     return "globals", base_args, global_dest
 
@@ -212,7 +214,6 @@ def _yml_dest(args, dest):
     return "args", base_args, {}
 
 def _write_flags_yml(flags, dest):
-    from guild import util
     util.ensure_dir(os.path.dirname(dest))
     flags = util.nested_config(flags)
     encoded = util.encode_yaml(flags)
