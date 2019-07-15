@@ -543,8 +543,10 @@ def _run_info_args(run, files, all_files, env, deps, scalars, sourcecode,
         args.append(run)
     return args
 
-def _check_args(verbose):
+def _check_args(tensorflow, verbose):
     args = []
+    if tensorflow:
+        args.append("--tensorflow")
     if verbose:
         args.append("-v")
     return args

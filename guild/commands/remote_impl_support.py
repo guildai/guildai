@@ -261,6 +261,7 @@ def check(args):
 
 def _check_kw(args):
     names = [
+        "tensorflow",
         "verbose",
     ]
     ignore = [
