@@ -76,6 +76,7 @@ class SummaryPlugin(Plugin):
         python_util.listen_function(summary_v2, "scalar", self._handle_scalar)
 
     def _listen_tf_summary(self):
+        # pylint: disable=import-error
         from tensorflow import summary
         self.log.debug("wrapping tensorflow.summary.scalar")
         python_util.listen_function(summary, "scalar", self._handle_scalar)

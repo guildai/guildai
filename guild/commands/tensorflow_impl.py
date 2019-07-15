@@ -51,6 +51,7 @@ def _inspect_graph(args):
             sys.stdout.write("%s\n" % out.name)
 
 def _load_graph(filename):
+    # pylint: disable=import-error
     import tensorflow as tf
     graph = tf.Graph()
     sess = tf.Session(graph=graph)
@@ -62,7 +63,7 @@ def _load_graph(filename):
     return graph
 
 def _inspect_checkpoint(args):
-    # pylint: disable=no-name-in-module
+    # pylint: disable=import-error
     from tensorflow.python.tools import inspect_checkpoint as inspect
     inspect.FLAGS = args
     inspect.main([])

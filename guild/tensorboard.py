@@ -19,13 +19,11 @@ import logging
 import os
 import re
 import sys
-import warnings
 
 import pkg_resources
 from werkzeug import serving
 
 from tensorboard import version
-from tensorboard import util as tb_util
 
 log = logging.getLogger("guild")
 
