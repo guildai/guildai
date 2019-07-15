@@ -17,12 +17,12 @@ TensorFlow. The version does not support GPU.
 
 Check:
 
-    >>> run("guild check --offline")
+    >>> run("guild check --offline --tensorflow")
     guild_version:             ...
+    tensorboard_version:       1.14.0a20190603
     tensorflow_version:        2.0.0-beta1
     tensorflow_cuda_support:   no
     tensorflow_gpu_available:  no
-    tensorboard_version:       1.14.0a20190603
     ...
     <exit 0>
 
