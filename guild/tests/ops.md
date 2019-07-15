@@ -53,7 +53,7 @@ Here's an operation that uses the "train" main module:
 
     >>> op = Operation(main="train")
     >>> op.cmd_args
-    ['...python...', '-um', 'guild.op_main', 'train']
+    ['...python...', '-um', 'guild.op_main', 'train', '--']
 
 NOTE: The above formatting, with the line feed after '-u' is required
 when running tests in Python 3. The regex that formats unicode refs as
@@ -66,7 +66,7 @@ in the Python command.
     >>> op = Operation(main="train epoch=10 tags='tag1 tag2'")
     >>> op.cmd_args
     ['...python...', '-um', 'guild.op_main', 'train', 'epoch=10',
-     'tags=tag1 tag2']
+     'tags=tag1 tag2', '--']
 
 NOTE: The above formatting, with the line feed after '-u' is required
 when running tests in Python 3. The regex that formats unicode refs as

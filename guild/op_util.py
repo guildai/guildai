@@ -314,12 +314,16 @@ def parse_op_args(args):
     return args[1], args[2:]
 
 def args_to_flags(args):
-    flags, _args = args_to_flags2(args)
-    return flags
+    """Returns `flags, other_args` for `args`.
 
-def args_to_flags2(args):
+    `other_args` is a list of args that cannot be converted to flag
+    values.
+
+    If args contains `--` then all args before the last occuring `--`
+    are included in `other_args`.
+    """
     flags = {}
-    extra = []
+    args, other_args = split_args_for_flags(args)
     name = None
     for arg in args:
         if arg[:2] == "--":
@@ -339,8 +343,20 @@ def args_to_flags2(args):
             flags[name] = parse_arg_val(arg)
             name = None
         else:
-            extra.append(arg)
-    return flags, extra
+            other_args.append(arg)
+    return flags, other_args
+
+def split_args_for_flags(args):
+    """Returns `split_args, other_args` for `args`.
+
+    Split occurs using the last occurrence of `--` in `args`.
+
+    If `arg` does not contain `--` returns `args, []`.
+    """
+    for i in range(len(args) - 1, -1, -1):
+        if args[i] == "--":
+            return args[i + 1:], args[:i]
+    return args, []
 
 def global_dest(global_name, flags):
     dest = cur = {}

@@ -155,43 +155,43 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 op.steps is not None):
             op.main = python_util.safe_module_name(op.name)
 
-    def _apply_script_flags(self, op):
-        if op.flags_import in ([], False):
+    def _apply_script_flags(self, opdef):
+        if opdef.flags_import in ([], False):
             return
         local_cache = {}
-        model_paths = op_util.opdef_model_paths(op)
-        flags_data = self._flags_data(op.main, model_paths, local_cache)
-        op.flags_dest = flags_data.pop("$dest", None)
+        model_paths = op_util.opdef_model_paths(opdef)
+        flags_data = self._flags_data(opdef, model_paths, local_cache)
+        opdef.flags_dest = flags_data.pop("$dest", None)
         import_data = {
             name: flags_data[name]
             for name in flags_data
-            if self._is_import_flag(name, op)
+            if self._is_import_flag(name, opdef)
         }
-        op.merge_flags(ImportedFlagsOpProxy(import_data, op, self.log))
+        opdef.merge_flags(ImportedFlagsOpProxy(import_data, opdef, self.log))
 
     @staticmethod
-    def _is_import_flag(name, op):
+    def _is_import_flag(name, opdef):
         return (
-            (op.flags_import is None or name in op.flags_import) and
-            (op.flags_no_import is None or name not in op.flags_no_import))
+            (opdef.flags_import is None or name in opdef.flags_import) and
+            (opdef.flags_no_import is None or name not in opdef.flags_no_import))
 
-    def _flags_data(self, main, model_paths, local_cache):
-        main_mod = op_util.split_main(main)[0]
+    def _flags_data(self, opdef, model_paths, local_cache):
+        main_mod = op_util.split_main(opdef.main)[0]
         try:
             flags_data = local_cache[main_mod]
         except KeyError:
-            flags_data = self._flags_data_(main_mod, model_paths)
+            flags_data = self._flags_data_(main_mod, model_paths, opdef)
             local_cache[main_mod] = flags_data
         return flags_data
 
-    def _flags_data_(self, main_mod, model_paths):
+    def _flags_data_(self, main_mod, model_paths, opdef):
         try:
             sys_path, mod_path = self.find_module(main_mod, model_paths)
         except ImportError as e:
             self.log.warning("cannot import flags from %s: %s", main_mod, e)
             return {}
         else:
-            return self.flags_data_for_path(mod_path, sys_path)
+            return self.flags_data_for_path(mod_path, sys_path, opdef)
 
     def find_module(self, main_mod, model_paths):
         for model_path in model_paths:
@@ -221,12 +221,12 @@ class PythonScriptPlugin(pluginlib.Plugin):
             parts = ".", parts[0]
         return os.path.join(gf_dir, parts[0]), parts[1]
 
-    def flags_data_for_path(self, mod_path, sys_path):
+    def flags_data_for_path(self, mod_path, sys_path, opdef=None):
         data, cached_data_path = self._cached_data(mod_path)
         if data is not None:
             return data
         return self._load_and_cache_flags_data(
-            mod_path, sys_path, cached_data_path)
+            mod_path, sys_path, opdef, cached_data_path)
 
     def _cached_data(self, mod_path):
         cached_path = self._cached_data_path(mod_path)
@@ -251,12 +251,14 @@ class PythonScriptPlugin(pluginlib.Plugin):
             return False
         return os.path.getmtime(mod_path) <= os.path.getmtime(cache_path)
 
-    def _load_and_cache_flags_data(self, mod_path, sys_path, cached_data_path):
+    def _load_and_cache_flags_data(self, mod_path, sys_path, opdef,
+                                   cached_data_path):
         if os.getenv("NO_IMPORT_FLAGS_PROGRESS") != "1":
             cli.note_once("Refreshing project info...")
         script = python_util.Script(mod_path)
         try:
-            data = self._flags_data_for_script(script, mod_path, sys_path)
+            data = self._flags_data_for_script(
+                script, mod_path, sys_path, opdef)
         except DataLoadError:
             return {}
         else:
@@ -270,14 +272,24 @@ class PythonScriptPlugin(pluginlib.Plugin):
         with open(path, "w") as f:
             json.dump(data, f)
 
-    def _flags_data_for_script(self, script, mod_path, sys_path):
-        if self._imports_argparse(script):
+    def _flags_data_for_script(self, script, mod_path, sys_path, opdef):
+        flags_dest = self._script_flags_dest(script, opdef)
+        if flags_dest == "args":
             data = self._load_argparse_flags_data(mod_path, sys_path)
-            data["$dest"] = "args"
-        else:
+        elif flags_dest == "globals":
             data = self._global_assigns_flags_data(script)
-            data["$dest"] = "globals"
+        else:
+            data = {}
+        data["$dest"] = flags_dest
         return data
+
+    def _script_flags_dest(self, script, opdef):
+        if opdef and opdef.flags_dest:
+            return opdef.flags_dest
+        if self._imports_argparse(script):
+            return "args"
+        else:
+            return "globals"
 
     @staticmethod
     def _imports_argparse(script):

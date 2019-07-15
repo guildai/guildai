@@ -8,52 +8,107 @@ user operations.
 ## Converting plugin args to flags
 
 Use `args_to_flags` to convert a list of command line args to flag
-keyvals.
+keyvals. Result includes a list of "other args" that cannot be
+converted to flags.
 
     >>> a2f = op_util.args_to_flags
 
     >>> a2f([])
-    {}
+    ({}, [])
 
     >>> a2f(["--foo", "123"])
-    {'foo': 123}
+    ({'foo': 123}, [])
 
     >>> pprint(a2f(["--foo", "123", "--bar", "hello"]))
-    {'bar': 'hello', 'foo': 123}
+    ({'bar': 'hello', 'foo': 123}, [])
+
+If we include an arg that cannot be converted to a flag:
+
+    >>> pprint(a2f(["other1", "--foo", "123", "--bar", "hello", "other2"]))
+    ({'bar': 'hello', 'foo': 123}, ['other1', 'other2'])
 
 Options without values are treated as True:
 
     >>> a2f(["--foo"])
-    {'foo': True}
+    ({'foo': True}, [])
 
     >>> pprint(a2f(["--foo", "--bar", "1.123"]))
-    {'bar': 1.123, 'foo': True}
+    ({'bar': 1.123, 'foo': True}, [])
 
 Short form arguments are supported:
 
     >>> a2f(["-a", "bar"])
-    {'a': 'bar'}
+    ({'a': 'bar'}, [])
 
     >>> a2f(["-abar"])
-    {'a': 'bar'}
-
-If multipe option args are specified, the subsequent args are ignored
-(note: these are available in `args_to_flags2` as 'extra' args).
-
-    >>> a2f(["--foo", "abd", "def"])
-    {'foo': 'abd'}
+    ({'a': 'bar'}, [])
 
 If a negative number is specified as an option value, it is treated as
 a number and not as a short form option:
 
     >>> a2f(["--x", "-1"])
-    {'x': -1}
+    ({'x': -1}, [])
 
     >>> a2f(["--x", "-1.123"])
-    {'x': -1.123}
+    ({'x': -1.123}, [])
 
     >>> pprint(a2f(["--w", "--x", "-1.123", "--y", "-zab"]))
-    {'w': True, 'x': -1.123, 'y': True, 'z': 'ab'}
+    ({'w': True, 'x': -1.123, 'y': True, 'z': 'ab'}, [])
+
+Converting various types:
+
+    >>> a2f(["--lr", "0.0001"])
+    ({'lr': 0.0001}, [])
+
+    >>> a2f(["--lr", "1e-06"])
+    ({'lr': 1e-06}, [])
+
+    >>> a2f(["--lr", "1.e-06"])
+    ({'lr': 1e-06}, [])
+
+    >>> a2f(["--lr", "1.123e-06"])
+    ({'lr': 1.123e-06}, [])
+
+    >>> a2f(["--switch"])
+    ({'switch': True}, [])
+
+    >>> a2f(["--switch", "yes"])
+    ({'switch': True}, [])
+
+    >>> a2f(["--switch", "no"])
+    ({'switch': False}, [])
+
+    >>> pprint(a2f(["--name", "Bob", "-e", "123", "-f", "--list", "[4,5,6]"]))
+    ({'e': 123, 'f': True, 'list': [4, 5, 6], 'name': 'Bob'}, [])
+
+    >>> a2f(["foo", "123"])
+    ({}, ['foo', '123'])
+
+Handling various "other arg" cases:
+
+    >>> a2f(["foo"])
+    ({}, ['foo'])
+
+    >>> a2f(["foo", "bar"])
+    ({}, ['foo', 'bar'])
+
+    >>> a2f(["--foo", "123", "456"])
+    ({'foo': 123}, ['456'])
+
+    >>> a2f(["foo", "--bar", "123"])
+    ({'bar': 123}, ['foo'])
+
+A special marker `--` can be used to explicitly specify "other
+args". All args preceding the last `--` are always treated as other:
+
+    >>> a2f(["--foo", "123", "--"])
+    ({}, ['--foo', '123'])
+
+    >>> a2f(["--foo", "123", "--", "--bar", "456"])
+    ({'bar': 456}, ['--foo', '123'])
+
+    >>> a2f(["--foo", "123", "--", "--bar", "456", "--"])
+    ({}, ['--foo', '123', '--', '--bar', '456'])
 
 ## Parsing flags
 
@@ -121,46 +176,6 @@ If an exponent needs to be treated as a string, it must be quoted:
     >>> p_flags(["run='1e2345671'"])
     {'run': '1e2345671'}
 
-## Parsing command line args as flags
-
-Use `op_util.args_to_flags` to parse command line args using `--` and
-`-` getopt style options as flags.
-
-    >>> def a2f(args):
-    ...   pprint(op_util.args_to_flags(args))
-
-    >>> a2f([])
-    {}
-
-    >>> a2f(["--lr", "0.0001"])
-    {'lr': 0.0001}
-
-    >>> a2f(["--lr", "1e-06"])
-    {'lr': 1e-06}
-
-    >>> a2f(["--lr", "1.e-06"])
-    {'lr': 1e-06}
-
-    >>> a2f(["--lr", "1.123e-06"])
-    {'lr': 1.123e-06}
-
-    >>> a2f(["--switch"])
-    {'switch': True}
-
-    >>> a2f(["--switch", "yes"])
-    {'switch': True}
-
-    >>> a2f(["--switch", "no"])
-    {'switch': False}
-
-    >>> a2f(["--name", "Bob", "-e", "123", "-f", "--list", "[4,5,6]"])
-    {'e': 123, 'f': True, 'list': [4, 5, 6], 'name': 'Bob'}
-
-Non option style args are ignored:
-
-    >>> a2f(["foo", "123"])
-    {}
-
 ## Formatting flag vals
 
 The `format_flag_val` function formats flag values into strings that
@@ -202,48 +217,6 @@ parsed verion equals the original value.
     ("['', a, 1, 1.0, 0.3333333333333333, yes, no, null]",
      ['', 'a', 1, 1.0, 0.3333333333333333, True, False, None],
      True)
-
-## Args to flags 2
-
-The function `args_to_flags2` returns flags along with any 'extra' arg
--- i.e. args that can't be processed as flags.
-
-    >>> def a2f2(args):
-    ...   pprint(op_util.args_to_flags2(args))
-
-
-Empty list
-
-    >>> a2f2([])
-    ({}, [])
-
-A single non-option arg:
-
-    >>> a2f2(["foo"])
-    ({}, ['foo'])
-
-A series of non-option args:
-
-    >>> a2f2(["foo", "bar"])
-    ({}, ['foo', 'bar'])
-
-A starting option arg:
-
-    >>> a2f2(["--foo"])
-    ({'foo': True}, [])
-
-A starting option arg with value:
-
-    >>> a2f2(["--foo", "123"])
-    ({'foo': 123}, [])
-
-A case where an argument follows a flag spec:
-
-    >>> a2f2(["--foo", "123", "456"])
-    ({'foo': 123}, ['456'])
-
-    >>> a2f2(["foo", "--bar", "123"])
-    ({'bar': 123}, ['foo'])
 
 ## Global dest
 

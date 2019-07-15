@@ -1062,3 +1062,21 @@ def guild_user_agent():
             system,
             machine,
             release))
+
+def nested_config(kv):
+    nested = {}
+    for name, val in sorted(kv.items()):
+        _apply_nested(name, val, nested)
+    return nested
+
+def _apply_nested(name, val, nested):
+    parts = name.split(".")
+    cur = nested
+    for i in range(0, len(parts) - 1):
+        cur = cur.setdefault(parts[i], {})
+        if not isinstance(cur, dict):
+            conflicts_with = ".".join(parts[0:i + 1])
+            raise ValueError(
+                "%r cannot be nested: conflicts with {%r: %s}"
+                % (name, conflicts_with, cur))
+    cur[parts[-1]] = val

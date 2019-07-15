@@ -44,7 +44,7 @@ PROC_TERM_TIMEOUT_SECONDS = 30
 
 NO_ARG_VALUE = object()
 
-DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} ${flag_args}"
+DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} -- ${flag_args}"
 STEPS_EXEC = "${python_exe} -um guild.steps_main"
 
 DEFAULT_OUTPUT_SCALARS = [
@@ -390,8 +390,13 @@ def _extended_flag_vals(flag_vals, opdef):
 
       'python_exe': full path to Python exe per opdef
 
-      'main_args':  special marker object '__main_args__' designating
-                    the location of args specified in opdef main
+      'main_args':  special marker object designating the location of
+                    args specified in opdef main
+
+      'flag_args':  special marker object designating the location of
+                    flag args
+
+      'model_dir':  directory containing the operation guild file
 
     If any of the extended values are defined in flag_vals, they are
     replaced here.
@@ -529,7 +534,7 @@ def _init_cmd_env(opdef, gpus):
     return env
 
 def _cmd_arg_env(args):
-    flags = op_util.args_to_flags(args)
+    flags, _other_args = op_util.args_to_flags(args)
     return {
         name.upper(): str(val)
         for name, val in flags.items()

@@ -381,3 +381,34 @@ Tests:
 
     >>> split("'\\foo\\bar'") # doctest: -NORMALIZE_PATHS
     ['\\foo\\bar']
+
+## Nested config
+
+    >>> from guild.util import nested_config as nc
+
+    >>> nc({})
+    {}
+
+    >>> nc({"1": 1})
+    {'1': 1}
+
+    >>> nc({"1.1": 11})
+    {'1': {'1': 11}}
+
+    >>> pprint(nc({"1.1": 11, "1.2": 12}))
+    {'1': {'1': 11, '2': 12}}
+
+Cannot nest within a non-dict:
+
+    >>> pprint(nc({"1": 1, "1.1": 11, "1.2": 12}))
+    Traceback (most recent call last):
+    ValueError: '1.1' cannot be nested: conflicts with {'1': 1}
+
+    >>> pprint(nc({"1.2": 12, "1.1.1": 111, "1.2.1": 121}))
+    Traceback (most recent call last):
+    ValueError: '1.2.1' cannot be nested: conflicts with {'1.2': 12}
+
+An explicit dict is okay:
+
+    >>> pprint(nc({"1.2": {}, "1.1.1": 111, "1.2.1": 121}))
+    {'1': {'1': {'1': 111}, '2': {'1': 121}}}

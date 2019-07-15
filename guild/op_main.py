@@ -28,6 +28,7 @@ import sys
 import guild.log
 
 from guild import exit_code
+from guild import op_util
 
 # Avoid expensive imports here as load times directly add to runs.
 
@@ -177,27 +178,46 @@ def _find_module(module):
 def _flags_dest(args):
     dest = os.getenv("FLAGS_DEST", "args")
     if dest == "args":
-        return dest, args, {}
+        return _args_dest(args)
     elif dest == "globals":
         return _globals_dest(args)
     elif dest.startswith("global:"):
         return _global_dest(args, dest[7:])
+    elif dest.endswith(".yml"):
+        return _yml_dest(args, dest)
     else:
         _error("unsupported flags dest: %s" % dest)
 
+def _args_dest(args):
+    # Strip last occurring `--` from args
+    flag_args, base_args = op_util.split_args_for_flags(args)
+    return "args", base_args + flag_args, {}
+
 def _globals_dest(args):
-    flags, extra_args = _split_args_and_flags(args)
-    return "globals", extra_args, flags
+    base_args, flags = _split_args_and_flags(args)
+    return "globals", base_args, flags
 
 def _split_args_and_flags(args):
-    from guild import op_util
-    return op_util.args_to_flags2(args)
+    flags, other_args = op_util.args_to_flags(args)
+    return other_args, flags
 
 def _global_dest(args, global_name):
-    from guild import op_util
-    flags, extra_args = _split_args_and_flags(args)
+    base_args, flags = _split_args_and_flags(args)
     global_dest = op_util.global_dest(global_name, flags)
-    return "globals", extra_args, global_dest
+    return "globals", base_args, global_dest
+
+def _yml_dest(args, dest):
+    base_args, flags = _split_args_and_flags(args)
+    _write_flags_yml(flags, dest)
+    return "args", base_args, {}
+
+def _write_flags_yml(flags, dest):
+    from guild import util
+    util.ensure_dir(os.path.dirname(dest))
+    flags = util.nested_config(flags)
+    encoded = util.encode_yaml(flags)
+    with open(dest, "w") as f:
+        f.write(encoded)
 
 def _dispatch_module_exec(flags_interface, module_info):
     _maybe_test_internal_error()
