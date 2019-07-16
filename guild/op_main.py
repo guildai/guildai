@@ -184,8 +184,6 @@ def _flags_dest(args):
         return _globals_dest(args)
     elif dest.startswith("global:"):
         return _global_dest(args, dest[7:])
-    elif dest.endswith(".yml"):
-        return _yml_dest(args, dest)
     else:
         _error("unsupported flags dest: %s" % dest)
 
@@ -207,18 +205,6 @@ def _global_dest(args, global_name):
     flags = util.nested_config(flags)
     global_dest = op_util.global_dest(global_name, flags)
     return "globals", base_args, global_dest
-
-def _yml_dest(args, dest):
-    base_args, flags = _split_args_and_flags(args)
-    _write_flags_yml(flags, dest)
-    return "args", base_args, {}
-
-def _write_flags_yml(flags, dest):
-    util.ensure_dir(os.path.dirname(dest))
-    flags = util.nested_config(flags)
-    encoded = util.encode_yaml(flags)
-    with open(dest, "w") as f:
-        f.write(encoded)
 
 def _dispatch_module_exec(flags_interface, module_info):
     _maybe_test_internal_error()

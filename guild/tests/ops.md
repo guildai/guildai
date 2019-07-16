@@ -83,9 +83,10 @@ We'll create a helper function to get the args:
 
     >>> class FlagDefProxy(object):
     ...
-    ...   def __init__(self, name, choices=None, arg_name=None,
-    ...                arg_skip=False, arg_switch=None,
-    ...                allow_other=False):
+    ...   def __init__(self, opdef, name, choices=None, arg_name=None,
+    ...                arg_skip=None, arg_switch=None,
+    ...                allow_other=False, default_arg_skip=None):
+    ...     self.opdef = opdef
     ...     self.name = name
     ...     self.choices = [
     ...       ChoiceProxy(**choice) for choice in (choices or [])
@@ -103,7 +104,8 @@ We'll create a helper function to get the args:
 
     >>> class OpDefProxy(object):
     ...
-    ...   def __init__(self, flags):
+    ...   def __init__(self, flags, default_flag_arg_skip=None):
+    ...     self.default_flag_arg_skip = default_flag_arg_skip
     ...     self._flags = flags
     ...
     ...   def flag_values(self):
@@ -114,7 +116,7 @@ We'll create a helper function to get the args:
     ...
     ...   def _flag_val(self, flag):
     ...     try:
-    ...       return flag["value"]
+    ...       return flag["default"]
     ...     except TypeError:
     ...       return flag
     ...
@@ -123,16 +125,16 @@ We'll create a helper function to get the args:
     ...     if isinstance(flag, dict):
     ...       flagdef_args = {
     ...         name: flag[name] for name in flag
-    ...         if name not in ("value")
+    ...         if name not in ("default")
     ...       }
-    ...       return FlagDefProxy(name, **flagdef_args)
+    ...       return FlagDefProxy(self, name, **flagdef_args)
     ...     else:
-    ...       return FlagDefProxy(name)
+    ...       return FlagDefProxy(self, name)
 
-    >>> def flag_args(flags, cmd_args=None):
+    >>> def flag_args(flags, cmd_args=None, default_flag_arg_skip=None):
     ...   from guild import util
     ...   cmd_args = cmd_args or []
-    ...   opdef = OpDefProxy(flags)
+    ...   opdef = OpDefProxy(flags, default_flag_arg_skip)
     ...   resolved_flag_vals = util.resolve_all_refs(opdef.flag_values())
     ...   flags, _flag_map = guild.op._flag_args(
     ...     resolved_flag_vals,
@@ -178,45 +180,45 @@ value.
 Here's a case where arg value is set to True and the corresponding
 value is also True.
 
-    >>> flag_args({"legacy": {"value": True, "arg_switch": True}})
+    >>> flag_args({"legacy": {"default": True, "arg_switch": True}})
     ['--legacy']
 
 If the flag value is different from a non-None arg value, it won't
 appear in the arg list.
 
-    >>> flag_args({"legacy": {"value": False, "arg_switch": True}})
+    >>> flag_args({"legacy": {"default": False, "arg_switch": True}})
     []
 
 Here we'll switch the logic and use an arg value of False:
 
-    >>> flag_args({"not-legacy": {"value": False, "arg_switch": False}})
+    >>> flag_args({"not-legacy": {"default": False, "arg_switch": False}})
     ['--not-legacy']
 
-    >>> flag_args({"not-legacy": {"value": True, "arg_switch": False}})
+    >>> flag_args({"not-legacy": {"default": True, "arg_switch": False}})
     []
 
 When arg value is None, an arg value is passed through:
 
-    >>> flag_args({"not-legacy": {"value": True, "arg_switch": None}})
+    >>> flag_args({"not-legacy": {"default": True, "arg_switch": None}})
     ['--not-legacy', 'True']
 
 Values are compared using Python's `==` operator. In some cases this
 might lead to a surprising result. Here we'll compare 1 and True:
 
-    >>> flag_args({"legacy": {"value": 1, "arg_switch": True}})
+    >>> flag_args({"legacy": {"default": 1, "arg_switch": True}})
     ['--legacy']
 
 But "1" is not equal to True:
 
-    >>> flag_args({"legacy": {"value": "1", "arg_switch": True}})
+    >>> flag_args({"legacy": {"default": "1", "arg_switch": True}})
     []
 
 Here are cases using string values:
 
-    >>> flag_args({"legacy": {"value": "yes", "arg_switch": "yes"}})
+    >>> flag_args({"legacy": {"default": "yes", "arg_switch": "yes"}})
     ['--legacy']
 
-    >>> flag_args({"no-legacy": {"value": "no", "arg_switch": "no"}})
+    >>> flag_args({"no-legacy": {"default": "no", "arg_switch": "no"}})
     ['--no-legacy']
 
 
@@ -224,7 +226,7 @@ Here are cases using string values:
 
 We can modify the argument name by specifying `arg_name`:
 
-    >>> flag_args({"batch-size": {"value": 50, "arg_name": "batch_size"}})
+    >>> flag_args({"batch-size": {"default": 50, "arg_name": "batch_size"}})
     ['--batch_size', '50']
 
 ### Shadowed flag values
@@ -273,7 +275,7 @@ doesn't effect the generated arguments.
 
     >>> flag_args({
     ...   "color": {
-    ...     "value": "blue",
+    ...     "default": "blue",
     ...     "choices": []
     ...    }
     ... })
@@ -283,7 +285,7 @@ We can however use choice `args` to modify the arguments:
 
     >>> flag_args({
     ...   "color": {
-    ...      "value": "blue",
+    ...      "default": "blue",
     ...      "choices": [{"value": "blue",
     ...                   "args": {"hex": "00f",
     ...                            "rgb": "0,0,255"}}]
@@ -295,7 +297,7 @@ We can use `arg_skip` to omit the choice value:
 
     >>> flag_args({
     ...   "color": {
-    ...      "value": "blue",
+    ...      "default": "blue",
     ...      "arg_skip": True,
     ...      "choices": [{"value": "blue",
     ...                   "args": {"hex": "00f",
@@ -304,12 +306,29 @@ We can use `arg_skip` to omit the choice value:
     ... })
     ['--hex', '00f', '--rgb', '0,0,255']
 
+Alternatively, we can skip all flags by default by specifying
+`default_flag_arg_skip` attribute for the associated operation def:
+
+    >>> flag_args({"a": 1, "b": 2}, default_flag_arg_skip=True)
+    []
+
+With the default arg skip set to True, we can unskip specific flags:
+
+    >>> flag_args({
+    ...   "a": {
+    ...     "default": 1,
+    ...     "arg_skip": False
+    ...   },
+    ...   "b": 2
+    ...   }, default_flag_arg_skip=True)
+    ['--a', '1']
+
 Choices are generally used to validate user-specified values. If we
 specified a value that isn't a valid choice, Guild logs a warning.
 
     >>> flag_args({
     ...   "color": {
-    ...     "value": "white",
+    ...     "default": "white",
     ...     "choices": [{"value": "blue"}]
     ...   }
     ... })
@@ -320,7 +339,7 @@ We can indicate that the flag supports other values:
     >>> with LogCapture() as log:
     ...   flag_args({
     ...     "color": {
-    ...       "value": "white",
+    ...       "default": "white",
     ...       "allow_other": True,
     ...       "choices": [{"value": "blue"}]
     ...     }
@@ -338,10 +357,10 @@ by the other flag takes precendence.
 
     >>> flag_args({
     ...   "color": {
-    ...     "value": "white"
+    ...     "default": "white"
     ...   },
     ...   "color-profile": {
-    ...     "value": "light",
+    ...     "default": "light",
     ...     "arg_skip": True,
     ...     "choices": [{"value": "light",
     ...                  "args": {"color": "tan"}}
@@ -355,11 +374,11 @@ the flag whose name has the highest ordinal string value is used:
 
     >>> flag_args({
     ...   "color1": {
-    ...     "value": "blue",
+    ...     "default": "blue",
     ...     "arg_name": "color"
     ...   },
     ...   "color2": {
-    ...     "value": "red",
+    ...     "default": "red",
     ...     "arg_name": "color"
     ...   }
     ... })

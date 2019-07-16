@@ -42,8 +42,6 @@ OP_RUNFILE_PATHS = [
 ]
 PROC_TERM_TIMEOUT_SECONDS = 30
 
-NO_ARG_VALUE = object()
-
 DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} -- ${flag_args}"
 STEPS_EXEC = "${python_exe} -um guild.steps_main"
 
@@ -434,7 +432,7 @@ def _repl_args(args, key, replacement):
 
 def _flag_args(flag_vals, opdef, cmd_args):
     flag_args = []
-    flag_vals, flag_map = _flag_cmd_arg_vals(flag_vals, opdef)
+    flag_vals, flag_map = op_util.mapped_flag_vals(flag_vals, opdef)
     cmd_options = _cmd_options(cmd_args)
     for name, val in sorted(flag_vals.items()):
         if name in cmd_options:
@@ -445,49 +443,6 @@ def _flag_args(flag_vals, opdef, cmd_args):
         flag_args.extend(_cmd_option_args(name, val))
     return flag_args, flag_map
 
-def _flag_cmd_arg_vals(flag_vals, opdef):
-    vals = {}
-    flag_map = {}
-    for name, val in sorted(flag_vals.items()):
-        flagdef = opdef.get_flagdef(name)
-        if flagdef:
-            if flagdef.choices:
-                _apply_choice_args(flagdef, val, flag_vals, vals)
-            if not flagdef.arg_skip:
-                _apply_flag_arg(flagdef, val, flag_vals, vals, flag_map)
-        else:
-            vals[name] = val
-    return vals, flag_map
-
-def _apply_choice_args(flagdef, val, flag_vals, target):
-    for choice in flagdef.choices:
-        if choice.value == val:
-            if choice.args:
-                args = {
-                    name: util.resolve_refs(val, flag_vals)
-                    for name, val in choice.args.items()
-                }
-                # Choice args must not overwrite existing args
-                # (i.e. default values from other flags or values from
-                # user)
-                for name in args:
-                    if name not in target:
-                        target[name] = args[name]
-            break
-
-def _apply_flag_arg(flagdef, value, flag_vals, target, flag_map):
-    if flagdef.arg_name:
-        arg_name = flagdef.arg_name
-        flag_map[arg_name] = flagdef.name
-    else:
-        arg_name = flagdef.name
-    arg_val = util.resolve_refs(value, flag_vals)
-    if flagdef.arg_switch is not None:
-        if arg_val == flagdef.arg_switch:
-            target[arg_name] = NO_ARG_VALUE
-    else:
-        target[arg_name] = arg_val
-
 def _cmd_options(args):
     p = re.compile("--([^=]+)")
     return [m.group(1) for m in [p.match(arg) for arg in args] if m]
@@ -496,7 +451,7 @@ def _cmd_option_args(name, val):
     opt = "--%s" % name
     if val is None:
         return []
-    elif val is NO_ARG_VALUE:
+    elif val is op_util.NO_ARG_VALUE:
         return [opt]
     else:
         return [opt, str(val)]

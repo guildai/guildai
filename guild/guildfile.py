@@ -889,6 +889,8 @@ class OpDef(object):
         self.publish = _init_publish(data.get("publish"), self)
         self.sourcecode = _init_sourcecode(
             data.get("sourcecode") or [], self.guildfile)
+        self.default_flag_arg_skip = (
+            data.get("default-flag-arg-skip") or False)
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname
@@ -1018,7 +1020,7 @@ class FlagDef(object):
         self.type = _data.pop("type", None)
         self.required = bool(_data.pop("required", False))
         self.arg_name = _data.pop("arg-name", None)
-        self.arg_skip = bool(_data.pop("arg-skip", False))
+        self.arg_skip = _data.pop("arg-skip", None)
         self.arg_switch = _data.pop("arg-switch", None)
         self.choices = _init_flag_choices(_data.pop("choices", None), self)
         self.allow_other = _data.pop("allow-other", False)

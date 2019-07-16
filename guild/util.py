@@ -1063,8 +1063,8 @@ def guild_user_agent():
             machine,
             release))
 
-def nested_config(kv):
-    nested = {}
+def nested_config(kv, nested=None):
+    nested = nested or {}
     for name, val in sorted(kv.items()):
         _apply_nested(name, val, nested)
     return nested

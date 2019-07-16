@@ -41,6 +41,8 @@ current_run = _api.current_run
 function_pattern = re.compile(r"([a-zA-Z0-9_\-\.]*)\[(.*)\]\s*$")
 function_arg_delimiter = ":"
 
+NO_ARG_VALUE = object()
+
 RESTART_NEEDED_STATUS = ("pending",)
 
 MAX_DEFAULT_SOURCECODE_FILE_SIZE = 1024 * 1024
@@ -817,6 +819,54 @@ def _package_op_spec(spec):
     if not m:
         return None
     return m.groups()
+
+def mapped_flag_vals(flag_vals, opdef):
+    vals = {}
+    flag_map = {}
+    for name, val in sorted(flag_vals.items()):
+        flagdef = opdef.get_flagdef(name)
+        if flagdef:
+            if flagdef.choices:
+                _apply_choice_args(flagdef, val, flag_vals, vals)
+            if not _skip_flag_arg(flagdef):
+                _apply_flag_arg(flagdef, val, flag_vals, vals, flag_map)
+        else:
+            vals[name] = val
+    return vals, flag_map
+
+def _apply_choice_args(flagdef, val, flag_vals, target):
+    for choice in flagdef.choices:
+        if choice.value == val:
+            if choice.args:
+                args = {
+                    name: util.resolve_refs(val, flag_vals)
+                    for name, val in choice.args.items()
+                }
+                # Choice args must not overwrite existing args
+                # (i.e. default values from other flags or values from
+                # user)
+                for name in args:
+                    if name not in target:
+                        target[name] = args[name]
+            break
+
+def _skip_flag_arg(flagdef):
+    if flagdef.arg_skip is not None:
+        return flagdef.arg_skip
+    return flagdef.opdef.default_flag_arg_skip
+
+def _apply_flag_arg(flagdef, value, flag_vals, target, flag_map):
+    if flagdef.arg_name:
+        arg_name = flagdef.arg_name
+        flag_map[arg_name] = flagdef.name
+    else:
+        arg_name = flagdef.name
+    arg_val = util.resolve_refs(value, flag_vals)
+    if flagdef.arg_switch is not None:
+        if arg_val == flagdef.arg_switch:
+            target[arg_name] = NO_ARG_VALUE
+    else:
+        target[arg_name] = arg_val
 
 def _patch_yaml_safe_loader():
     # Credit: https://stackoverflow.com/users/1307905/anthon

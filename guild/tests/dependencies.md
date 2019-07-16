@@ -196,7 +196,8 @@ Here are the model resources:
     >>> res_model.resources
     [<guild.guildfile.ResourceDef 'test'>,
      <guild.guildfile.ResourceDef 'test2'>,
-     <guild.guildfile.ResourceDef 'test3'>]
+     <guild.guildfile.ResourceDef 'test3'>,
+     <guild.guildfile.ResourceDef 'test4'>]
 
 The test resource has the following sources:
 
@@ -576,10 +577,211 @@ renames them with an `archive2_` prefix.
     >>> find(test_ctx.target_dir)
     ['archive2_c.txt', 'archive2_d.txt']
 
+### Config sources
+
+The test4 resource contains a config sources. We'll use those to
+illustrate the config source type.
+
+    >>> test4_resdef = res_model.get_resource("test4")
+    >>> test4_resdef.sources
+    [<guild.resourcedef.ResourceSource 'config:config.yml'>,
+     <guild.resourcedef.ResourceSource 'config:config.yml'>,
+     <guild.resourcedef.ResourceSource 'config:config.yml'>]
+
+A resource to resolve sources with:
+
+    >>> test4_res = deps.Resource(test4_resdef, test_location, test_ctx)
+
+Let's resolve each source in turn. First we need a target directory.
+
+    >>> test_ctx.target_dir = mkdtemp()
+
+#### Simple config
+
+The first config source simply resolves the source file as is.
+
+    >>> simple_config = test4_resdef.sources[0]
+
+    >>> resolved = test4_res.resolve_source(simple_config)
+    >>> resolved
+    ['.../.guild/generated/.../config.yml']
+
+The resolved source is generated under the run directory:
+
+    >>> resolved[0].startswith(test_ctx.target_dir)
+    True
+
+Here's another view with the resolved link to the generated config:
+
+    >>> find(test_ctx.target_dir)
+    ['.guild/generated/.../config.yml', 'config.yml']
+
+And the config:
+
+    >>> cat(join_path(test_ctx.target_dir, "config.yml"))
+    a: 1
+    b: 2
+    c:
+      d: 3
+
+Here the config is the same as the source:
+
+    >>> cat(sample("projects/resources/config.yml"))
+    a: 1
+    b: 2
+    c:
+      d: 3
+
+#### Renamed config with flags
+
+The second config is renamed:
+
+    >>> renamed_config = test4_resdef.sources[1]
+    >>> renamed_config.rename
+    [RenameSpec(pattern='config', repl='c2')]
+
+When we resolve this source, we'll apply flag values. Flag values are
+provided by way of the resource context.
+
+In our previous tests, the context does not provide an operation def:
+
+    >>> print(test_ctx.opdef)
+    None
+
+Let's provide an operation def that has some flag values. We'll use a
+proxy.
+
+    >>> class OpDefProxy(object):
+    ...
+    ...   def __init__(self, flags):
+    ...     self._flags = flags
+    ...
+    ...   def flag_values(self):
+    ...     return self._flags
+    ...
+    ...   @staticmethod
+    ...   def get_flagdef(_name):
+    ...     return None
+
+And set some flag values that will be used when resolving the config
+file:
+
+    >>> test_ctx.opdef = OpDefProxy({
+    ...   "a": 11,
+    ...   "b": "22",
+    ...   "c.d": 33
+    ... })
+
+Let's resolve the config source:
+
+    >>> resolved = test4_res.resolve_source(renamed_config)
+    >>> resolved
+    ['.../.guild/generated/.../config.yml']
+
+Here's the target dir:
+
+    >>> find(test_ctx.target_dir)
+    ['.guild/generated/.../config.yml',
+     '.guild/generated/.../config.yml',
+     'c2.yml',
+     'config.yml']
+
+Note the second generated config. Generated config files are created
+under a unique directory of `.guild/generated` to ensure that their
+base names are preserved.
+
+Here's the resolved and renamed config file:
+
+    >>> cat(join_path(test_ctx.target_dir, "c2.yml"))
+    a: 11
+    b: '22'
+    c:
+      d: 33
+
+Note that the flag values are applied to each of the applicable config
+values using the "nested flags" syntax, which uses dots to delimit
+config levels (see flag names above).
+
+#### Config with params
+
+Out third source defines params that are applied to config.
+
+    >>> param_config = test4_resdef.sources[2]
+    >>> pprint(param_config.params)
+    {'a': 111, 'c.d': 333}
+
+This source is also stored under a path:
+
+    >>> param_config.path
+    'c3'
+
+To see how params are applied, let's first reset our context to use no
+flags.
+
+    >>> test_ctx.opdef = None
+
+Let's resolve the config source:
+
+    >>> resolved = test4_res.resolve_source(param_config)
+    >>> resolved
+    ['.../.guild/generated/.../config.yml']
+
+Here's the target dir:
+
+    >>> find(test_ctx.target_dir)
+    ['.guild/generated/.../config.yml',
+     '.guild/generated/.../config.yml',
+     '.guild/generated/.../config.yml',
+     'c2.yml',
+     'c3/config.yml',
+     'config.yml']
+
+Again, note the third generated config.
+
+Here's the resolved config under a path:
+
+    >>> cat(join_path(test_ctx.target_dir, "c3/config.yml"))
+    a: 111
+    b: 2
+    c:
+      d: 333
+
+Note the new values for `a` and `c.d` -- these values are provided by
+the params (see above).
+
+We can redefine params using flags. Let's re-resolve with flags for
+our context.
+
+    >>> test_ctx.opdef = OpDefProxy({"b": 222, "c.d": 444})
+
+We'll also use a new target directory since we've already resolve this
+source.
+
+    >>> test_ctx.target_dir = mkdtemp()
+
+Let's resolve the source:
+
+    >>> test4_res.resolve_source(param_config)
+    [...]
+
+Here's our target directory:
+
+    >>> find(test_ctx.target_dir)
+    ['.guild/generated/.../config.yml', 'c3/config.yml']
+
+And the resolved config:
+
+    >>> cat(join_path(test_ctx.target_dir, "c3/config.yml"))
+    a: 111
+    b: 222
+    c:
+      d: 444
+
 ## Resolving sources
 
-NOTE: These tests modify `test_resdef` sources in place. Any tests on
-the original source list should be run before these tests.
+NOTE: These tests modify `test_resdef` sources (defined above) in
+place. Any tests on the original source list should be run before
+these tests.
 
 In these tests we'll resolve some sources to our target
 directory. We'll modify `test_resdef` with resolvable sources and

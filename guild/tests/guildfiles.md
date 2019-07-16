@@ -582,7 +582,7 @@ At least one of the three type attributes is required:
     ... """)
     Traceback (most recent call last):
     ResourceFormatError: invalid source {'foo': 'bar.txt'} in resource 'sample:sample':
-    missing required attribute (one of file, url, module, operation)
+    missing required attribute (one of config, file, module, url, operation)
 
 However, no more than one is allowed:
 

@@ -49,3 +49,25 @@
           rename:
             pattern: (.+)
             repl: archive2_\1
+
+    test4:
+      sources:
+        - config: config.yml
+        - config: config.yml
+          rename: config c2
+        - config: config.yml
+          path: c3
+          params:
+            a: 111
+            c.d: 333
+
+  operations:
+    test4:
+      main: guild.pass
+      requires: test4
+      flags:
+        a: 11
+        b: 22
+        d:
+          default: 33
+          arg-name: c.d

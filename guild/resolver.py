@@ -21,6 +21,9 @@ import logging
 import os
 import re
 import subprocess
+import tempfile
+
+import yaml
 
 import guild.opref
 
@@ -312,6 +315,87 @@ class ModuleResolver(Resolver):
             raise ResolutionError(str(e))
         else:
             return []
+
+class ConfigResolver(FileResolver):
+    """Resolves config sources.
+
+    Config sources are resolved by applying source params and flag
+    vals to the config source file. A new config file is generated and
+    stored in the run directory under `.guild/generated/RAND/CONFIG`.
+
+    `CONFIG` is assumed to be a YAML file containing a root map
+    element.
+
+    Param and flag values are applied using the nesting rules
+    implemented in `util.nested_config`. These use dot delimieters to
+    designate additional levels in the config map.
+
+    flag values take precedence over param values of the same name.
+
+    Resolves sources are linked to link other resolved resources.
+    """
+
+    def resolve(self, unpack_dir=None):
+        resolved = super(ConfigResolver, self).resolve(unpack_dir)
+        return [self._generate_config(path) for path in resolved]
+
+    def _generate_config(self, path):
+        try:
+            config = self._load_config(path)
+        except Exception as e:
+            raise ResolutionError(
+                "error loading config from %s: %s"
+                % (path, e))
+        else:
+            self._apply_params(config)
+            self._apply_flags(config)
+            target_path = self._init_target_path(path)
+            self._write_config(config, target_path)
+            return target_path
+
+    @staticmethod
+    def _load_config(path):
+        with open(path, "r") as f:
+            return yaml.safe_load(f)
+
+    def _apply_params(self, config):
+        params = self.source.params
+        if params:
+            if not isinstance(params, dict):
+                log.warning(
+                    "unexpected params %r - cannot apply to config",
+                    params)
+                return
+            util.nested_config(params, config)
+
+    def _apply_flags(self, config):
+        flags = self._ctx_flags()
+        util.nested_config(flags, config)
+
+    def _ctx_flags(self):
+        # Steps copied from guild.op
+        from guild import op_util
+        opdef = self.resource.ctx.opdef
+        if not opdef:
+            return {}
+        flags = util.resolve_all_refs(opdef.flag_values())
+        flags, _map = op_util.mapped_flag_vals(flags, opdef)
+        return flags
+
+    def _init_target_path(self, path):
+        generated = os.path.join(
+            self.resource.ctx.target_dir,
+            ".guild",
+            "generated")
+        util.ensure_dir(generated)
+        target_dir = tempfile.mkdtemp(suffix="", prefix="", dir=generated)
+        basename = os.path.basename(path)
+        return os.path.join(target_dir, basename)
+
+    @staticmethod
+    def _write_config(config, path):
+        with open(path, "w") as f:
+            f.write(util.encode_yaml(config))
 
 def resolve_source_files(source_path, source, unpack_dir):
     _verify_path(source_path, source.sha256)

@@ -109,17 +109,3 @@ Let's run it:
 
     >>> run("params", i=5, s2="Whah")
     {'i': 5, 'strings': {'s1': 'Hola', 's2': 'Whah'}}
-
-## Flags as YAML config
-
-The `yml` operation specifies `config.yml` for the flags dest. This
-tells Guild to generate a YAML file containing the flag defs.
-
-    >>> yml_op = gf.default_model["yml"]
-    >>> yml_op.flags_dest
-    'config.yml'
-
-Let's run it:
-
-    >>> run("yml", i=4, f=1.1, s='whoop')
-    {'f': 1.1, 'i': 4, 'strings': {'s1': 'whoop'}}

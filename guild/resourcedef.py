@@ -39,7 +39,12 @@ class ResourceFormatError(ValueError):
 
 class ResourceDef(object):
 
-    source_types = ["file", "url", "module"]
+    source_types = [
+        "config",
+        "file",
+        "module",
+        "url",
+    ]
     default_source_type = "file"
 
     def __init__(self, name, data, fullname=None):
@@ -68,6 +73,8 @@ class ResourceDef(object):
             return resolver.URLResolver
         elif scheme == "module":
             return resolver.ModuleResolver
+        elif scheme == "config":
+            return resolver.ConfigResolver
         else:
             return None
 
@@ -126,6 +133,8 @@ class ResourceDef(object):
             return ResourceSource(self, val, **data)
         elif type == "module":
             return ResourceSource(self, "module:%s" % val, **data)
+        elif type == "config":
+            return ResourceSource(self, "config:%s" % val, **data)
         else:
             raise AssertionError(type, val, data)
 
@@ -140,7 +149,8 @@ class ResourceSource(object):
 
     def __init__(self, resdef, uri, name=None, sha256=None, unpack=None,
                  type=None, select=None, select_min=None, select_max=None,
-                 rename=None, help=None, post_process=None, path=None, **kw):
+                 rename=None, help=None, post_process=None, path=None,
+                 params=None, **kw):
         self.resdef = resdef
         self.uri = uri
         self._parsed_uri = None
@@ -156,6 +166,7 @@ class ResourceSource(object):
         self.rename = _init_rename(rename)
         self.post_process = post_process
         self.path = path
+        self.params = params or {}
         self.help = help
         for key in kw:
             log.warning(
