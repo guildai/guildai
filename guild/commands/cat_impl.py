@@ -40,11 +40,28 @@ def main(args, ctx):
         _cat(path)
 
 def _path(run, args):
-    if args.source:
-        root = run.guild_path("source")
+    if args.output:
+        _check_non_output_args(args)
+        return run.guild_path("output")
+    if not args.path:
+        cli.error("-p / --path is required unless --output is specified")
+    if os.path.isabs(args.path):
+        cli.error(
+            "PATH must be relative\n"
+            "Try 'guild cat --help' for more information.")
+    return os.path.join(_path_root(args, run), args.path)
+
+def _check_non_output_args(args):
+    if args.path or args.sourcecode:
+        cli.out(
+            "--output cannot be used with other options - "
+            "ignorning other options", err=True)
+
+def _path_root(args, run):
+    if args.sourcecode:
+        return run.guild_path("sourcecode")
     else:
-        root = run.path
-    return os.path.join(root, args.path)
+        return run.path
 
 def _page(path):
     f = _open_file(path)

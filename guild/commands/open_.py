@@ -31,6 +31,10 @@ from . import runs_support
     is_flag=True,
     help="Open run source code directory.")
 @click.option(
+    "-O", "--output",
+    is_flag=True,
+    help="Open run output. Cannot be used with other options.")
+@click.option(
     "-c", "--cmd", metavar="CMD",
     help="Command used to open run.")
 @runs_support.op_and_label_filters
@@ -57,6 +61,11 @@ def open_(ctx, args):
     `--sourcecode` may be used to open the run source code
     directory. If `--path` is also specified, the path applies to the
     source code directory rather than the run directory.
+
+    ### Output
+
+    `--output` may be used to open the output for a run. This option
+    may not be used with other options.
 
     ### Open command
 

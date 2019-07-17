@@ -22,14 +22,21 @@ from guild import click_util
 from . import runs_support
 
 @click.command("cat")
-@click.argument("path")
 @runs_support.run_arg
 @click.option(
-    "-s", "--source",
-    is_flag=True,
-    help="Apply PATH to source files.")
+    "-p", "--path",
+    metavar="PATH",
+    help="Path of file to show. Require unless --output is used.")
 @click.option(
-    "-p", "--page",
+    "-s", "--sourcecode",
+    is_flag=True,
+    help="Apply PATH to source code files.")
+@click.option(
+    "-O", "--output",
+    is_flag=True,
+    help="Show run output. Cannot be used with other options.")
+@click.option(
+    "--page",
     is_flag=True,
     help="Show file in pager.")
 @runs_support.op_and_label_filters
@@ -42,14 +49,18 @@ from . import runs_support
 def cat(ctx, args):
     """Show contents of a run file.
 
-    `PATH` must be a relative path to a file in the specified run
-    directory or to the run source directory if `--source` is
-    specified.
-
     {{ runs_support.run_arg }}
 
     If `RUN` isn't specified, the latest run is selected.
 
+    `-p, --path` is required unless `--output` is used. `PATH` must be
+    a relative path to a file in the specified run directory or to the
+    run source directory if `--sourcecode` is specified.
+
+    `--sourcecode` may be used to show a source code file.
+
+    `--output` may be used to show output for a run. This option
+    may not be used with other options.
     """
     from . import cat_impl
     cat_impl.main(args, ctx)

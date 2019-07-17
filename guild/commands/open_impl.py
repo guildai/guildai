@@ -46,11 +46,22 @@ def _open(run, args):
         cli.error(e)
 
 def _path(run, args):
+    if args.output:
+        _check_non_output_args(args)
+        return run.guild_path("output")
+    return os.path.join(_path_root(args, run), args.path or "")
+
+def _check_non_output_args(args):
+    if args.path or args.sourcecode:
+        cli.out(
+            "--output cannot be used with other options - "
+            "ignorning other options", err=True)
+
+def _path_root(args, run):
     if args.sourcecode:
-        base_path = run.guild_path("sourcecode")
+        return run.guild_path("sourcecode")
     else:
-        base_path = run.path
-    return os.path.join(base_path, args.path or "")
+        return run.path
 
 def _open_f(args):
     if args.cmd:
