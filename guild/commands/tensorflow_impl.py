@@ -63,7 +63,7 @@ def _load_graph(filename):
     return graph
 
 def _inspect_checkpoint(args):
-    # pylint: disable=import-error
+    # pylint: disable=import-error,no-name-in-module
     from tensorflow.python.tools import inspect_checkpoint as inspect
     inspect.FLAGS = args
     inspect.main([])
