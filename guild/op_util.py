@@ -48,6 +48,8 @@ RESTART_NEEDED_STATUS = ("pending",)
 MAX_DEFAULT_SOURCECODE_FILE_SIZE = 1024 * 1024
 MAX_DEFAULT_SOURCECODE_COUNT = 100
 
+RUN_OUTPUT_STREAM_BUFFER = 4096
+
 class ArgValueError(ValueError):
 
     def __init__(self, arg):
@@ -157,29 +159,31 @@ class RunOutput(object):
         lock = self._output_lock
         line = []
         while True:
-            b = os_read(input_fileno, 1)
-            if not b:
+            buf = os_read(input_fileno, RUN_OUTPUT_STREAM_BUFFER)
+            if not buf:
                 break
             with lock:
-                if stream_fileno is not None:
-                    os_write(stream_fileno, b)
-                if b < b"\x09": # non-printable
-                    continue
-                line.append(b)
-                if b == b"\n":
-                    line_bytes = b"".join(line)
-                    os_write(output_fileno, line_bytes)
-                    line = []
-                    entry = struct.pack(
-                        "!QB", int(time_() * 1000), stream_type)
-                    os_write(index_fileno, entry)
-                    if self._output_cb:
-                        try:
-                            self._output_cb.write(line_bytes)
-                        except Exception:
-                            log.exception(
-                                "error in output callback (will be removed)")
-                            self._output_cb = None
+                for b in buf:
+                    if stream_fileno is not None:
+                        os_write(stream_fileno, b)
+                    if b < b"\x09": # non-printable
+                        continue
+                    line.append(b)
+                    if b == b"\n":
+                        line_bytes = b"".join(line)
+                        os_write(output_fileno, line_bytes)
+                        line = []
+                        entry = struct.pack(
+                            "!QB", int(time_() * 1000), stream_type)
+                        os_write(index_fileno, entry)
+                        if self._output_cb:
+                            try:
+                                self._output_cb.write(line_bytes)
+                            except Exception:
+                                log.exception(
+                                    "error in output callback (will be "
+                                    "removed)")
+                                self._output_cb = None
 
     def wait(self, timeout=DEFAULT_WAIT_TIMEOUT):
         self._assert_open()
