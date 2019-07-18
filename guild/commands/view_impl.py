@@ -197,8 +197,7 @@ class ViewDataImpl(view.ViewData):
             iconTooltip = "Link"
         return typeDesc, icon, iconTooltip, viewer
 
-    @staticmethod
-    def _base_file_type_info(path):
+    def _base_file_type_info(self, path):
         path_lower = path.lower()
         if re.search(r"\.tfevents\.", path_lower):
             return "Event log", "file-chart", "File", None
@@ -233,10 +232,15 @@ class ViewDataImpl(view.ViewData):
         elif re.search(r"\.(csv|tsv)", path_lower):
             return "Table", "file-delimited", "Delimited", "table"
         else:
-            if util.is_text_file(path):
-                return "Text file", "file-document", "Text file", "text"
-            else:
-                return "File", "file", "File", None
+            return self._default_file_type_info(path)
+
+    @staticmethod
+    def _default_file_type_info(path):
+        if not os.path.exists(path):
+            return "File", "file", "File", None
+        if util.is_text_file(path):
+            return "Text file", "file-document", "Text file", "text"
+        return "File", "file", "File", None
 
     def _op_source_info(self, path):
         if not os.path.islink(path):
