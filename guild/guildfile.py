@@ -1212,6 +1212,12 @@ class FileSelectSpec(object):
     def __init__(self, data, gf):
         if not isinstance(data, dict):
             raise GuildfileError(gf, "invalid file select spec: %r" % data)
+        if "include" in data and "exclude" in data:
+            raise GuildfileError(
+                gf,
+                "file select spec cannot include both include and exclude - "
+                "use multiple select specs in the order you want to apply "
+                "the filters")
         if "include" in data:
             self.type = "include"
             self.patterns = self._init_patterns(data, "include", gf)
