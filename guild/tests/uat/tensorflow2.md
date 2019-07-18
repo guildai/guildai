@@ -36,7 +36,7 @@ Run `summary2` op, which uses the TF 2.x API to log some scalars.
 
     >>> logdir = mkdtemp()
     >>> run("guild run -y summary2 logdir='%s'" % logdir,
-    ...     ignore="I tensorflow/")
+    ...     ignore=["I tensorflow/", "NVIDIA-SMI has failed"])
     <exit 0>
 
 

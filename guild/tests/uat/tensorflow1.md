@@ -29,7 +29,7 @@ Run `summary1` op, which uses the TF 1.x API to log some scalars.
 
     >>> logdir = mkdtemp()
     >>> run("guild run -y summary1 logdir='%s'" % logdir,
-    ...     ignore=["Refreshing", "is deprecated"])
+    ...     ignore=["Refreshing", "is deprecated", "NVIDIA-SMI has failed"])
     <exit 0>
 
 Use `guild.tfevent.ScalarReader` to read the logged scalars:
