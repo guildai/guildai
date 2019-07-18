@@ -475,10 +475,16 @@ def _check_flag_range(val, flag):
 def copy_run_sourcecode(run, opdef):
     log.debug("copying source code files for run %s", run.id)
     copy_sourcecode(
-        opdef.guildfile.dir,
+        _copy_sourcecode_root(opdef),
         [opdef.sourcecode, opdef.modeldef.sourcecode],
         run.guild_path("sourcecode"),
         opdef)
+
+def _copy_sourcecode_root(opdef):
+    config_root = opdef.sourcecode.root or opdef.modeldef.sourcecode.root
+    if not config_root:
+        return opdef.guildfile.dir
+    return os.path.join(opdef.guildfile.dir, config_root)
 
 class SourceCodeFilter(object):
 
@@ -493,7 +499,9 @@ class SourceCodeFilter(object):
 
     def _del_env_dirs(self, dirs, root):
         for name in list(dirs):
-            if self._is_env_dir(os.path.join(root, name)):
+            path = os.path.join(root, name)
+            if self._is_env_dir(path):
+                log.debug("ignoring virtual env dir for copy %s", path)
                 dirs.remove(name)
 
     @staticmethod
@@ -551,11 +559,29 @@ class SourceCodeFilter(object):
 def copy_sourcecode(src_base, config, dest_base, opdef=None):
     if not isinstance(config, list):
         config = [config]
+    if _sourcecode_disabled(config):
+        log.debug("sourcecode filters disabled, skipping copy")
+        return
     util.select_copytree(
         src_base,
         dest_base,
         config,
         SourceCodeFilter(config, opdef))
+
+def _sourcecode_disabled(config):
+    """Returns True if source code copy is disabled for config.
+
+    If config does not contain any specs or contains any specs that
+    aren't 'exclude: *' then copies are enabled.
+    """
+    assert isinstance(config, list), config
+    has_specs = False
+    for c in config:
+        for spec in c.specs:
+            if not (spec.type == "exclude" and spec.patterns == ['*']):
+                return False
+            has_specs = True
+    return has_specs
 
 def split_main(main):
     if isinstance(main, list):

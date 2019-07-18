@@ -284,6 +284,18 @@ This time the published run contains `generated-1.txt`:
      'sourcecode.csv',
      'sourcecode/op.py']
 
+    ['README.md',
+     'flags.yml',
+     'output.txt',
+     'run.yml',
+     'runfiles.csv',
+     'runfiles/generated-1.txt',
+     'runfiles/generated-2.txt',
+     'scalars.csv',
+     'sourcecode.csv',
+     'sourcecode/op.py']
+
+
 And the report contains the applicable hyperlink:
 
     >>> cat(path(publish_dest, run_id, "README.md"))

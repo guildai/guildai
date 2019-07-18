@@ -4,14 +4,18 @@
   sourcecode:
     - include: subdir/logo.png
 
+- model: exclude-py
+  sourcecode:
+    - exclude: '*.py'
+
 - model: exclude-all
   sourcecode:
     - exclude: '*'
 
-- model: only-py-1
+- model: only-py
   sourcecode: '*.py'
 
-- model: only-py-2
+- model: only-py2
   sourcecode:
     - exclude: '*'
     - include: '*.py'
@@ -28,6 +32,34 @@
     - include: subdir/logo.png
   operations:
     op:
-      exec: 'true'
+      main: guild.pass
       sourcecode:
         - exclude: ['*.py', 'a.*']
+
+- model: disable
+  sourcecode: []
+  operations:
+    op: guild.pass
+
+- model: disable2
+  sourcecode: no
+
+- model: model-disable-op-enable
+  sourcecode: no
+  operations:
+    op:
+      main: guild.pass
+      sourcecode: '*.py'
+
+- model: model-enable-op-disable
+  sourcecode: '*'
+  operations:
+    op:
+      main: guild.pass
+      sourcecode: no
+
+- model: alt-root
+  sourcecode:
+    root: subdir
+  operations:
+    op: guild.pass

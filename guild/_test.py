@@ -283,6 +283,7 @@ def test_globals():
         "LogCapture": util.LogCapture,
         "ModelPath": ModelPath,
         "Project": Project,
+        "Proxy": Proxy,
         "StderrCapture": StderrCapture,
         "SysPath": SysPath,
         "TempFile": util.TempFile,
@@ -647,3 +648,6 @@ class Env(object):
     def __exit__(self, *exc):
         for op in self._revert_ops:
             op()
+
+class Proxy(object):
+    """Empty object for use as proxy."""

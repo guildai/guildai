@@ -14,15 +14,22 @@ supported copy behavior.
 
     >>> gf = guildfile.from_dir(sample("projects/copy-sourcecode"))
 
-The project contains these models:
-
-    >>> sorted(gf.models)
-    ['default', 'exclude-all', 'include-logo', 'model-and-op',
-     'only-py-1', 'only-py-2', 'py-and-guild']
-
 We'll use temporary run directories to test each copy
 operation. Here's a helper function that copies the source code for
 the applicable model and prints the copied source files.
+
+    >>> def _sourcecode_root(modeldef, op_name):
+    ...     # Use op_util._copy_sourcecode_root with an opdef proxy
+    ...     # that provides the info from our modeldef and optional
+    ...     # op spec.
+    ...     from guild.op_util import _copy_sourcecode_root
+    ...     opdef = Proxy()
+    ...     opdef.sourcecode = (
+    ...         modeldef[op_name].sourcecode if op_name
+    ...         else guildfile.FileSelectDef(None, None))
+    ...     opdef.modeldef = modeldef
+    ...     opdef.guildfile = modeldef.guildfile
+    ...     return _copy_sourcecode_root(opdef)
 
     >>> def copy_model_sourcecode(model_name, op_name=None):
     ...     model = gf.models[model_name]
@@ -30,7 +37,8 @@ the applicable model and prints the copied source files.
     ...     if op_name:
     ...         sourcecode_config.append(model[op_name].sourcecode)
     ...     temp_dir = mkdtemp()
-    ...     copy_sourcecode(gf.dir, sourcecode_config, temp_dir)
+    ...     sourcecode_root = _sourcecode_root(model, op_name)
+    ...     copy_sourcecode(sourcecode_root, sourcecode_config, temp_dir)
     ...     copied = find(temp_dir)
     ...     if not copied:
     ...         print("<empty>")
@@ -61,6 +69,15 @@ would otherwise not be copied:
     subdir/b.txt 43451775
     subdir/logo.png 4a9bf008
 
+A subset of the default files can be excluded.
+
+    >>> copy_model_sourcecode("exclude-py")
+    .gitattributes 0a0772f0
+    a.txt 90605548
+    empty e3b0c442
+    guild.yml ...
+    subdir/b.txt 43451775
+
 The `exclude-all` model excludes all source and therefore copies
 nothing:
 
@@ -69,10 +86,12 @@ nothing:
 
 The `only-py` model specifies that only `*.py` files be copied:
 
-    >>> copy_model_sourcecode("only-py-1")
+    >>> copy_model_sourcecode("only-py")
     hello.py 6ae95c9c
 
-    >>> copy_model_sourcecode("only-py-2")
+`only-py2` provides a differnt spelling:
+
+    >>> copy_model_sourcecode("only-py2")
     hello.py 6ae95c9c
 
 The `py-and-guild` model specifies Python source and the Guild file:
@@ -94,6 +113,44 @@ In this example, the model includes `logo.png` and the op exclude
     guild.yml ...
     subdir/b.txt 43451775
     subdir/logo.png 4a9bf008
+
+Source code copies can be disabled by either specifying an empty list,
+as is used with `disable`:
+
+    >>> copy_model_sourcecode("disable")
+    <empty>
+
+Or alternatively with `no` (boolean False) as is used with
+`disable`:
+
+    >>> copy_model_sourcecode("disable")
+    <empty>
+
+A more complex scenario is where source copies are disabled by either
+the model or the operation.
+
+`model-disable-op-enable` disables copies at the model level, but
+re-enables them at the operation level.
+
+    >>> copy_model_sourcecode("model-disable-op-enable", "op")
+    hello.py 6ae95c9c
+
+`model-enable-op-disable` explicitly includes all files at the model
+level but disables source copies at the operation level.
+
+    >>> copy_model_sourcecode("model-enable-op-disable", "op")
+    <empty>
+
+## Alternate roots
+
+Guild supports copies from alternative root directories, which can be
+defined at both the model and operation levels.
+
+The `alt-root` model specifies a root of `subdir` without any
+additional select specs.
+
+    >>> copy_model_sourcecode("alt-root", "op")
+    b.txt 43451775
 
 ## Links
 
@@ -272,3 +329,69 @@ And all files are copied:
      'small-001.txt',
      ...
      'small-110.txt']
+
+## Copy disabled optimization
+
+`op_util` performs an optimization to avoid checking project files if
+it knows all files are exclude. The logic of this check is implemented
+by `_sourcecode_disabled`.
+
+    >>> from guild.op_util import _sourcecode_disabled as disabled
+
+Here's a helper to create a config.
+
+    >>> def Config(data):
+    ...     return guildfile.FileSelectDef(data, None)
+
+Copies are disabled only if the config specs only contain at least one
+'exclude: *' item.
+
+Empty config - defaults to copy text files:
+
+    >>> disabled([])
+    False
+
+One config with empty (default) select def:
+
+    >>> disabled([Config(None)])
+    False
+
+    >>> disabled([Config([])])
+    False
+
+Include something:
+
+    >>> disabled([Config([{"include": "*.py"}])])
+    False
+
+Include and exclude:
+
+    >>> disabled([
+    ...     Config([{"exclude": "*"}]),
+    ...     Config([{"include": "*.py"}])])
+    False
+
+    >>> disabled([
+    ...     Config([{"include": "*.py"}]),
+    ...     Config([{"exclude": "*"}])])
+    False
+
+Exclude something other than '*':
+
+    >>> disabled([Config([{"exclude": "*.py"}])])
+    False
+
+    >>> disabled([
+    ...     Config([{"exclude": "*.txt"}]),
+    ...     Config([{"exclude": "*"}])])
+    False
+
+Only ever exclude everything:
+
+    >>> disabled([Config([{"exclude": "*"}])])
+    True
+
+    >>> disabled([
+    ...     Config([{"exclude": "*"}]),
+    ...     Config([{"exclude": "*"}])])
+    True

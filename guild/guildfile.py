@@ -387,25 +387,45 @@ def _coerce_publish(data, guildfile):
         data["files"] = _coerce_select_files(files, guildfile)
     return data
 
-def _coerce_select_files(data, guildfile):
+def _coerce_select_files(data, gf):
     if data is None:
-        return None
-    if isinstance(data, six.string_types):
-        return [
-            {"exclude": "*"},
-            {"include": data}
-        ]
+        return _coerce_select_files_default()
+    elif data is False or data == []:
+        return _coerce_select_files_exclude_all()
+    elif isinstance(data, six.string_types):
+        return _coerce_select_files_one_include(data)
     elif isinstance(data, dict):
-        return [data]
+        return _coerce_select_files_dict(data, gf)
     elif isinstance(data, list):
-        return _coerce_select_files_list(data, guildfile)
-    elif data is False:
-        return []
+        return _coerce_select_files_list(data, gf)
     else:
         raise GuildfileError(
             guildfile, "invalid value for select files: %r" % data)
 
+def _coerce_select_files_default():
+    # By default, no select criteria
+    return []
+
+def _coerce_select_files_exclude_all():
+    return [
+        {"exclude": "*"}
+    ]
+
+def _coerce_select_files_one_include(data):
+    return [
+        {"exclude": "*"},
+        {"include": data}
+    ]
+
+def _coerce_select_files_dict(data, gf):
+    assert isinstance(data, dict)
+    return {
+        "root": data.get("root"),
+        "select": _coerce_select_files(data.get("select"), gf)
+    }
+
 def _coerce_select_files_list(data, guildfile):
+    assert isinstance(data, list), data
     all_strings = True
     items = []
     for item in data:
@@ -600,7 +620,7 @@ class ModelDef(object):
         self.disable_plugins = _disable_plugins(data, guildfile)
         self.extra = data.get("extra") or {}
         self.sourcecode = _init_sourcecode(
-            data.get("sourcecode") or [], self.guildfile)
+            data.get("sourcecode"), self.guildfile)
         self.python_requires = data.get("python-requires")
 
     @property
@@ -1190,7 +1210,7 @@ class PublishDef(object):
         self.opdef = opdef
         if data is None:
             data = {}
-        self.files = FileSelectDef(data.get("files") or [], opdef.guildfile)
+        self.files = FileSelectDef(data.get("files"), opdef.guildfile)
         self.template = data.get("template")
 
 def _init_publish(data, opdef):
@@ -1203,21 +1223,34 @@ def _init_publish(data, opdef):
 class FileSelectDef(object):
 
     def __init__(self, data, gf):
+        if isinstance(data, dict):
+            self._dict_init(data, gf)
+        else:
+            self._default_init(data, gf)
+
+    def _dict_init(self, data, gf):
+        assert isinstance(data, dict), data
+        self._default_init(data.get("select"), gf, data.get("root"))
+
+    def _default_init(self, data, gf, root=None):
+        if data is None:
+            data = []
         if not isinstance(data, list):
-            raise GuildfileError(gf, "invalid file select def: %r" % data)
+            raise GuildfileError(gf, "invalid file select spec %r" % data)
+        self.root = root
         self.specs = [FileSelectSpec(item, gf) for item in data]
 
 class FileSelectSpec(object):
 
     def __init__(self, data, gf):
         if not isinstance(data, dict):
-            raise GuildfileError(gf, "invalid file select spec: %r" % data)
+            raise GuildfileError(gf, "invalid file select spec %r" % data)
         if "include" in data and "exclude" in data:
             raise GuildfileError(
                 gf,
-                "file select spec cannot include both include and exclude - "
-                "use multiple select specs in the order you want to apply "
-                "the filters")
+                "invalid file select spec %r: cannot include both include "
+                "and exclude - use multiple select specs in the order you "
+                "want to apply the filters" % data)
         if "include" in data:
             self.type = "include"
             self.patterns = self._init_patterns(data, "include", gf)

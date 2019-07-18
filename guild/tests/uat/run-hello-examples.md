@@ -57,7 +57,7 @@ Guild captures project source, which we can list using `runs info`:
     marked: no
     label:
     run_dir: ...
-    command: ... -um guild.op_main say --message "Howdy Guild!"
+    command: ... -um guild.op_main say -- --message "Howdy Guild!"
     exit_status: 0
     pid:
     flags:

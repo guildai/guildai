@@ -15,4 +15,4 @@ op3:
       rename: src link
   publish:
     files:
-      exclude: '*-2.txt'
+      - exclude: '*-2.txt'
