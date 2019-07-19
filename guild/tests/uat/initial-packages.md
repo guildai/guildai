@@ -14,7 +14,7 @@ Note that we're cutting (showing) only col 1 to avoid using any `...`
 to match versions and descriptions (`...` matches across lines, which
 leaves room for false positives).
 
-    >>> run("guild packages -a", cut=[0])
+    >>> run("guild packages -a", cut=[0]) # doctest: +REPORT_UDIFF
     Jinja2
     Keras-Applications
     Keras-Preprocessing
