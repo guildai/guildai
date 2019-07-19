@@ -86,7 +86,6 @@ class Build(object):
             self._init_env(self.build_dir),
             self._activate_env(self.build_dir),
             self._install_guild_reqs(),
-            self._install_tensorflow(),
             self._install_guild_view_reqs(),
         ]
 
@@ -127,9 +126,6 @@ class Build(object):
 
     def _install_guild_reqs(self):
         return self._pip_install(["requirements.txt"])
-
-    def _install_tensorflow(self):
-        return self._pip_install(["tensorflow"])
 
     @staticmethod
     def _install_guild_view_reqs():

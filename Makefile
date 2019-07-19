@@ -65,7 +65,7 @@ clean:
 UAT_PYTHON = python3
 
 uat:
-	@test -e $(guild-uat) || $(guild) init -p 3 -r tensorflow $(guild-uat) -y
+	@test -e $(guild-uat) || $(guild) init -p 3 $(guild-uat) -y
 	@. $(guild-uat)/bin/activate && \
 	  WORKSPACE=$(guild-uat) $(guild) check --uat
 	@echo "Run 'make clean-uat' to remove uat workspace for re-running uat"

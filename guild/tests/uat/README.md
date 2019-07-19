@@ -63,6 +63,11 @@ Then we confirm we have the expected models and operations.
 - [models-after-mnist-install](models-after-mnist-install.md)
 - [ops-after-mnist-install](ops-after-mnist-install.md)
 
+Before training some of our models, we need to install TensorFlow as a
+prereq.
+
+- [install-tensorflow](install-tensorflow.md)
+
 Next we train the `logreg` model and view the results.
 
 - [tmp-mnist-data-before-logreg-train](tmp-mnist-data-before-logreg-train.md)

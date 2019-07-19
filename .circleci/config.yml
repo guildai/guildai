@@ -18,8 +18,6 @@ jobs:
 
           pip install --upgrade -r requirements.txt | cat
 
-          pip install --upgrade tensorflow | cat
-
           cd guild/view && npm install'
         name: Install build dependencies
         no_output_timeout: 1200
@@ -73,8 +71,6 @@ jobs:
           . build-env/bin/activate
 
           pip install --upgrade -r requirements.txt | cat
-
-          pip install --upgrade tensorflow | cat
 
           cd guild/view && npm install'
         name: Install build dependencies
@@ -130,8 +126,6 @@ jobs:
 
           pip install --upgrade -r requirements.txt | cat
 
-          pip install --upgrade tensorflow | cat
-
           cd guild/view && npm install'
         name: Install build dependencies
         no_output_timeout: 1200
@@ -186,8 +180,6 @@ jobs:
 
           pip install --upgrade -r requirements.txt | cat
 
-          pip install --upgrade tensorflow | cat
-
           cd guild/view && npm install'
         name: Install build dependencies
         no_output_timeout: 1200
@@ -241,8 +233,6 @@ jobs:
           . build-env/bin/activate
 
           pip2 install --upgrade -r requirements.txt | cat
-
-          pip2 install --upgrade tensorflow | cat
 
           cd guild/view && npm install'
         name: Install build dependencies
@@ -304,8 +294,6 @@ jobs:
 
           pip3 install --upgrade -r requirements.txt | cat
 
-          pip3 install --upgrade tensorflow | cat
-
           cd guild/view && npm install'
         name: Install build dependencies
         no_output_timeout: 1200
@@ -365,8 +353,6 @@ jobs:
           . build-env/bin/activate
 
           pip3 install --upgrade -r requirements.txt | cat
-
-          pip3 install --upgrade tensorflow | cat
 
           cd guild/view && npm install'
         name: Install build dependencies

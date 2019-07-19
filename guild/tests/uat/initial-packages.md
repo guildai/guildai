@@ -16,8 +16,6 @@ leaves room for false positives).
 
     >>> run("guild packages -a", cut=[0]) # doctest: +REPORT_UDIFF
     Jinja2
-    Keras-Applications
-    Keras-Preprocessing
     Markdown
     MarkupSafe
     PyYAML
@@ -26,7 +24,6 @@ leaves room for false positives).
     Whoosh
     absl-py
     asn1crypto
-    astor
     bleach
     certifi
     cffi
@@ -35,11 +32,8 @@ leaves room for false positives).
     cryptography
     daemonize
     docutils
-    gast
-    google-pasta
     grpcio
     guildai
-    h5py
     idna
     numpy
     pandas
@@ -62,14 +56,10 @@ leaves room for false positives).
     tabview
     tensorboard
     tensorboardX
-    tensorflow
-    tensorflow-estimator
-    termcolor
     tqdm
     twine
     urllib3
     virtualenv
     webencodings
     wheel
-    wrapt
     <exit 0>
