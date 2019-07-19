@@ -26,8 +26,8 @@ from .python_script import PythonScriptModelProxy
 from .python_script import PythonScriptOpdefSupport
 
 KERAS_OUTPUT_SCALARS = [
-    r"Epoch (?P<step>[0-9]+)/",
-    r" - ([a-z_]+): ([0-9\.e\-]+)"
+    r"Epoch (?P<step>[0-9]+)",
+    r" - ([a-z_]+): (\value)"
 ]
 
 class KerasScriptModelProxy(PythonScriptModelProxy):

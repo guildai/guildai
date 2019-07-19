@@ -22,6 +22,11 @@ import six
 
 log = logging.getLogger("guild")
 
+ALIASES = [
+    (re.compile(r"\\key"), "\w+"),
+    (re.compile(r"\\value"), "[0-9\.e\-]+"),
+]
+
 class OutputScalars(object):
 
     def __init__(self, config, output_dir):
@@ -85,12 +90,18 @@ def _compile_patterns(val, key):
     if not isinstance(val, six.string_types):
         log.warning("invalid output scalar pattern: %r", val)
         return
+    val = _replace_aliases(val)
     try:
         p = re.compile(val)
     except Exception as e:
         log.warning("error compiling pattern %s: %s", val, e)
     else:
         yield key, p
+
+def _replace_aliases(val):
+    for alias, repl in ALIASES:
+        val = alias.sub(repl, val)
+    return val
 
 def _match_line(line, patterns):
     vals = {}
