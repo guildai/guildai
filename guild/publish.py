@@ -157,13 +157,7 @@ class RunFilters(object):
 
     @staticmethod
     def scalar_key(s):
-        if not isinstance(s, dict):
-            return ""
-        prefix = s.get("prefix")
-        tag = s.get("tag")
-        if prefix:
-            return "%s#%s" % (prefix, tag)
-        return tag
+        return run_util.run_scalar_key(s)
 
     @staticmethod
     def csv_dict_rows(csv_rows):

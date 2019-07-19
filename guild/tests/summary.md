@@ -207,7 +207,7 @@ The tests below use the `summary` sample project.
       'max_val': 4.0,
       'min_step': 1,
       'min_val': 1.0,
-      'prefix': '',
+      'prefix': '.guild',
       'run': '...',
       'tag': 'x',
       'total': 10.0}]

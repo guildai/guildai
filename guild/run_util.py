@@ -337,3 +337,12 @@ def iter_output(run):
         with f:
             for line in f:
                 yield line
+
+def run_scalar_key(scalar):
+    if not isinstance(scalar, dict):
+        return ""
+    prefix = scalar.get("prefix")
+    tag = scalar.get("tag")
+    if not prefix or prefix == ".guild":
+        return tag
+    return "%s#%s" % (prefix, tag)

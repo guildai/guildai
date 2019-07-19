@@ -68,11 +68,7 @@ def _print_scalars(args):
     for run in runs:
         cli.out("[%s] %s" % (run.short_id, run_util.format_op_desc(run)))
         for s in index.run_scalars(run):
-            prefix = s["prefix"]
-            if prefix:
-                cli.out("  %s#%s" % (s["prefix"], s["tag"]))
-            else:
-                cli.out("  %s" % s["tag"])
+            cli.out("  %s" % run_util.run_scalar_key(s))
 
 def _print_csv(args):
     data = _get_data(args, format_cells=False, skip_header_if_empty=True)
@@ -395,11 +391,7 @@ def _format_run_detail(run, index):
     if scalars:
         lines.append("Scalars:")
         for s in scalars:
-            prefix = s["prefix"]
-            if prefix:
-                lines.append("  %s#%s" % (s["prefix"], s["tag"]))
-            else:
-                lines.append("  %s" % s["tag"])
+            lines.append("  %s" % run_util.run_scalar_key(s))
     return "\n".join(lines)
 
 def _tabview_actions():

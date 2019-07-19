@@ -507,11 +507,7 @@ def _iter_scalars(run):
         yield "%s: %f (step %i)" % (_s_key(s), _s_val(s), _s_step(s))
 
 def _s_key(s):
-    prefix = s["prefix"]
-    if prefix:
-        return "%s#%s" % (s["prefix"], s["tag"])
-    else:
-        return s["tag"]
+    return run_util.run_scalar_key(s)
 
 def _s_val(s):
     return s["last_val"]
