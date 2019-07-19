@@ -51,8 +51,8 @@ Operation details:
     None
 
     >>> pprint(opdef.output_scalars) # doctest: -NORMALIZE_PATHS
-    ['Epoch (?P<step>[0-9]+)/',
-     ' - ([a-z_]+): ([0-9\\.e\\-]+)']
+    ['Epoch (?P<step>[0-9]+)',
+     ' - (\\key): (\\value)']
 
 ## Keras model from Guild file
 
@@ -112,8 +112,8 @@ Compare colspecs:
 Output scalars:
 
     >>> pprint(opdef2.output_scalars) # doctest: -NORMALIZE_PATHS
-    ['Epoch (?P<step>[0-9]+)/',
-     ' - ([a-z_]+): ([0-9\\.e\\-]+)']
+    ['Epoch (?P<step>[0-9]+)',
+     ' - (\\key): (\\value)']
 
     >>> opdef.output_scalars == opdef2.output_scalars
     True

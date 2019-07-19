@@ -185,6 +185,7 @@ And test the `keras` example.
 - [train-keras-example-with-missing-dep](train-keras-example-with-missing-dep.md)
 - [install-keras](install-keras.md)
 - [train-keras-mlp-example](train-keras-mlp-example.md)
+- [train-keras-mlp-example-2](train-keras-mlp-example-2.md)
 
 ## Packaging
 
