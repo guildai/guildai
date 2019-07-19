@@ -77,6 +77,17 @@ class InvalidFlagValue(ValueError):
         self.flag = flag
         self.msg = msg
 
+try:
+    bytes('')
+except TypeError:
+    # Python 3
+    LF = 10
+    BYTES_JOIN = bytes
+else:
+    # Python 2
+    LF = b"\n"
+    BYTES_JOIN = lambda l: b"".join(l)
+
 class ProcessError(Exception):
     pass
 
@@ -163,14 +174,14 @@ class RunOutput(object):
             if not buf:
                 break
             with lock:
+                if stream_fileno is not None:
+                    os_write(stream_fileno, buf)
                 for b in buf:
-                    if stream_fileno is not None:
-                        os_write(stream_fileno, b)
-                    if b < b"\x09": # non-printable
+                    if b < 9: # non-printable
                         continue
                     line.append(b)
-                    if b == b"\n":
-                        line_bytes = b"".join(line)
+                    if b == LF:
+                        line_bytes = BYTES_JOIN(line)
                         os_write(output_fileno, line_bytes)
                         line = []
                         entry = struct.pack(
