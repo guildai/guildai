@@ -132,7 +132,7 @@ def _get_cwd():
         return os.path.join(WORKSPACE, _cwd)
     return WORKSPACE
 
-def _run(cmd, quiet=False, ignore=None, timeout=60):
+def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None):
     cmd = "set -eu && %s" % cmd
     cmd_env = {}
     cmd_env.update(_global_vars())
@@ -163,6 +163,8 @@ def _run(cmd, quiet=False, ignore=None, timeout=60):
         out = out.strip().decode("utf-8")
         if ignore:
             out = _strip_lines(out, ignore)
+        if cut:
+            out = _cut_cols(out, cut)
         print(out)
         print("<exit %i>" % exit_code)
 
@@ -204,3 +206,15 @@ def _strip_lines(out, patterns):
         if not any((re.search(p, line) for p in patterns))
     ]
     return "\n".join(stripped_lines)
+
+def _cut_cols(out, to_cut):
+    assert isinstance(to_cut, list) and to_cut, to_cut
+    cut_lines = [_cut_line(line, to_cut) for line in out.split("\n")]
+    return "\n".join([" ".join(cut_line) for cut_line in cut_lines])
+
+def _cut_line(line, to_cut):
+    cut_line = []
+    cols = line.split()
+    for i in to_cut:
+        cut_line.extend(cols[i:i+1])
+    return cut_line

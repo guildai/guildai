@@ -10,15 +10,66 @@ namespace). We don't have any installed yet so this is an empty list.
 If we use the `-a` option, we get all packages, which at this point
 consists of all of the pip packages that are installed in the env.
 
-Note, the following list is abbreviated to avoid spurious failures.
+Note that we're cutting (showing) only col 1 to avoid using any `...`
+to match versions and descriptions (`...` matches across lines, which
+leaves room for false positives).
 
-    >>> run("guild packages -a")
-    Jinja2             ...
-    Markdown           ...
-    PyYAML             ...
-    Werkzeug           ...
-    Whoosh             ...
-    tensorboard        ...
-    tensorflow...      ...
-    wheel              ...
+    >>> run("guild packages -a", cut=[0])
+    Jinja2
+    Keras-Applications
+    Keras-Preprocessing
+    Markdown
+    MarkupSafe
+    PyYAML
+    Pygments
+    Werkzeug
+    Whoosh
+    absl-py
+    asn1crypto
+    astor
+    bleach
+    certifi
+    cffi
+    chardet
+    click
+    cryptography
+    daemonize
+    docutils
+    gast
+    google-pasta
+    grpcio
+    guildai
+    h5py
+    idna
+    numpy
+    pandas
+    pip
+    pkginfo
+    protobuf
+    psutil
+    pyOpenSSL
+    pycparser
+    python-dateutil
+    pytz
+    readme-renderer
+    requests
+    requests-toolbelt
+    scikit-learn
+    scikit-optimize
+    scipy
+    setuptools
+    six
+    tabview
+    tensorboard
+    tensorboardX
+    tensorflow
+    tensorflow-estimator
+    termcolor
+    tqdm
+    twine
+    urllib3
+    virtualenv
+    webencodings
+    wheel
+    wrapt
     <exit 0>
