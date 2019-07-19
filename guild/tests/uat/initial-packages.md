@@ -14,7 +14,10 @@ Note that we're cutting (showing) only col 1 to avoid using any `...`
 to match versions and descriptions (`...` matches across lines, which
 leaves room for false positives).
 
-    >>> run("guild packages -a", cut=[0]) # doctest: +REPORT_UDIFF
+    >>> run("guild packages -a", cut=[0],
+    ...     # Some additional Python 2 packages land that we just
+    ...     # ignore in our list below.
+    ...     ignore=["enum34", "futures", "ipaddress"])
     Jinja2
     Markdown
     MarkupSafe
