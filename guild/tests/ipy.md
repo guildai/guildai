@@ -231,10 +231,10 @@ Read the scalars:
     ...     scalars = ipy.runs().scalars()
 
     >>> scalars
-       avg_val  count  first_step  first_val  last_step  last_val  max_step  max_val  min_step  min_val prefix  run tag  total
-    0      3.0      1           0        3.0          0       3.0         0      3.0         0      3.0         ...   x    3.0
-    1     -1.0      1           0       -1.0          0      -1.0         0     -1.0         0     -1.0         ...   y   -1.0
-    2      1.0      1           0        1.0          0       1.0         0      1.0         0      1.0         ...   z    1.0
+       run  prefix tag  first_val  first_step  last_val  last_step  min_val  min_step  max_val  max_step  avg_val  count  total
+    0  ...  .guild   x        3.0           0       3.0          0      3.0         0      3.0         0      3.0      1    3.0
+    1  ...  .guild   y       -1.0           0      -1.0          0     -1.0         0     -1.0         0     -1.0      1   -1.0
+    2  ...  .guild   z        1.0           0       1.0          0      1.0         0      1.0         0      1.0      1    1.0
 
 Print some of the more interesting columns:
 

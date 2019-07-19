@@ -445,10 +445,26 @@ def _print_run_info(item, output=False, scalars=False):
 
 def _runs_scalars(runs):
     data = []
+    cols = [
+        "run",
+        "prefix",
+        "tag",
+        "first_val",
+        "first_step",
+        "last_val",
+        "last_step",
+        "min_val",
+        "min_step",
+        "max_val",
+        "max_step",
+        "avg_val",
+        "count",
+        "total",
+    ]
     for run in runs:
         for s in indexlib.iter_run_scalars(run):
             data.append(s)
-    return pd.DataFrame(data)
+    return pd.DataFrame(data, columns=cols)
 
 def _runs_flags(runs):
     data = [_run_flags_data(run) for run in runs]
