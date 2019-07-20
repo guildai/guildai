@@ -218,8 +218,9 @@ class Guildfile(object):
         name = item[validated_type]
         if not isinstance(name, six.string_types):
             raise GuildfileError(
-                self, ("invalid %s name: %r"
-                       % (validated_type, name)))
+                self,
+                "invalid %s name %r: expected a string"
+                % (validated_type, name))
         return validated_type, name
 
     def _apply_model(self, name, data, extends_seen):
@@ -262,7 +263,9 @@ def _coerce_guildfile_data(data, guildfile):
     elif isinstance(data, dict):
         data = [_anonymous_model_data(data)]
     if not isinstance(data, list):
-        raise GuildfileError(guildfile, "invalid guildfile data: %r" % data)
+        raise GuildfileError(
+            guildfile,
+            "invalid guildfile data %r: expected a mapping" % data)
     return [
         _coerce_guildfile_item_data(item_data, guildfile)
         for item_data in data]
@@ -308,7 +311,9 @@ def _coerce_extends(data, guildfile):
 
 def _coerce_operations(data, guildfile):
     if not isinstance(data, dict):
-        raise GuildfileError(guildfile, "invalid operations value: %r" % data)
+        raise GuildfileError(
+            guildfile,
+            "invalid operations value %r: expected a mapping" % data)
     return {
         op_name: _coerce_operation(op, guildfile)
         for op_name, op in data.items()
@@ -340,7 +345,9 @@ def _coerce_operation_attr(name, val, guildfile):
 
 def _coerce_flags(data, guildfile):
     if not isinstance(data, dict):
-        raise GuildfileError(guildfile, "invalid flags value: %r" % data)
+        raise GuildfileError(
+            guildfile,
+            "invalid flags value %r: expected a mapping" % data)
     return {
         name: coerce_flag_data(name, val, guildfile)
         for name, val in data.items()
@@ -357,7 +364,10 @@ def coerce_flag_data(name, data, guildfile):
         return {"default": None}
     else:
         raise GuildfileError(
-            guildfile, "invalid value for flag %s: %r" % (name, data))
+            guildfile,
+            "invalid value for %s flag %r: expected a mapping of "
+            "flag attributes or default flag value" % (name, data))
+
 
 def _coerce_op_python_path(data, guildfile):
     if data is None:
@@ -375,7 +385,9 @@ def _coerce_output_scalars(data, guildfile):
         return data
     else:
         raise GuildfileError(
-            guildfile, "invalid value for output-scalars: %r" % data)
+            guildfile,
+            "invalid output-scalars %r: expected a mapping, "
+            "list, or string" % data)
 
 def _coerce_publish(data, guildfile):
     try:
@@ -400,7 +412,9 @@ def _coerce_select_files(data, gf):
         return _coerce_select_files_list(data, gf)
     else:
         raise GuildfileError(
-            guildfile, "invalid value for select files: %r" % data)
+            guildfile,
+            "invalid select files spec %r: expected "
+            "a string, list, or mapping" % data)
 
 def _coerce_select_files_default():
     # By default, no select criteria
@@ -437,7 +451,8 @@ def _coerce_select_files_list(data, guildfile):
         else:
             raise GuildfileError(
                 guildfile,
-                "invalid value for sourcecode item: %r" % item)
+                "invalid sourcecode %r: expected a string "
+                "or mapping" % item)
     if all_strings:
         items.insert(0, {"exclude": "*"})
     return items
@@ -452,7 +467,8 @@ def _coerce_select_files_item(item, guildfile):
     else:
         raise GuildfileError(
             guildfile,
-            "invalid value for sourcecode item: %r" % item)
+            "invalid sourcecode item %r: expected a "
+            "string or mapping" % item)
 
 def _coerce_str_to_list(val, guildfile, name):
     if isinstance(val, six.string_types):
@@ -462,7 +478,8 @@ def _coerce_str_to_list(val, guildfile, name):
     else:
         raise GuildfileError(
             guildfile,
-            "invalid %s value: %r" % (name, val))
+            "invalid %s value %r: expected a string or "
+            "list" % (name, val))
 
 ###################################################################
 # Include attribute support
@@ -525,7 +542,7 @@ def _apply_includes(includes, guildfile_path, section_name,
         if include_data is None:
             raise GuildfileReferenceError(
                 guildfile_path[0],
-                "invalid include reference '%s'" % ref)
+                "invalid include reference '%s': cannot find target" % ref)
         if include_attrs:
             include_data = _filter_data(include_data, include_attrs)
         _apply_section_data(
@@ -872,7 +889,7 @@ class OpDef(object):
         if not isinstance(data, dict):
             raise GuildfileError(
                 modeldef.guildfile,
-                "invalid operation def: %r" % data)
+                "invalid operation def %r: expected a mapping" % data)
         self.name = name
         self._data = data
         self.modeldef = modeldef
@@ -1031,7 +1048,8 @@ class FlagDef(object):
     def __init__(self, name, data, opdef):
         if not isinstance(data, dict):
             raise GuildfileError(
-                opdef.guildfile, "invalid flag data: %r" % data)
+                opdef.guildfile,
+                "invalid flag data %r: expected a mapping" % data)
         self.name = name
         self.opdef = opdef
         _data = dict(data) # copy - used for pop
@@ -1106,7 +1124,9 @@ class OpDependency(object):
                 self.inline_resource = _init_inline_resource(data, opdef)
         else:
             raise GuildfileError(
-                self, "invalid dependency value: %r" % data)
+                self,
+                "invalid dependency value %r: expected a string or "
+                "mapping" % data)
         # Op dependency must always be a spec or an inline resource.
         assert self.spec or self.inline_resource
 
@@ -1236,7 +1256,8 @@ class FileSelectDef(object):
         if data is None:
             data = []
         if not isinstance(data, list):
-            raise GuildfileError(gf, "invalid file select spec %r" % data)
+            raise GuildfileError(
+                gf, "invalid file select spec %r: expected a list" % data)
         self.root = root
         self.specs = [FileSelectSpec(item, gf) for item in data]
 
@@ -1244,7 +1265,8 @@ class FileSelectSpec(object):
 
     def __init__(self, data, gf):
         if not isinstance(data, dict):
-            raise GuildfileError(gf, "invalid file select spec %r" % data)
+            raise GuildfileError(
+                gf, "invalid file select spec %r: expected a mapping" % data)
         if "include" in data and "exclude" in data:
             raise GuildfileError(
                 gf,

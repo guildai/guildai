@@ -1462,7 +1462,7 @@ It does contain a package:
     >>> guildfile.from_dir(sample("projects/invalid-format"))
     Traceback (most recent call last):
     GuildfileError: error in .../samples/projects/invalid-format/guild.yml:
-    invalid guildfile data: 'This is invalid YAML!'
+    invalid guildfile data 'This is invalid YAML!': expected a mapping
 
 ### No models (missing guild file)
 
