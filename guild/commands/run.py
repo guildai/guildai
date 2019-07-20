@@ -166,7 +166,9 @@ def run_params(fn):
         click.Option(
             ("--test-output-scalars",),
             metavar="OUTPUT",
-            help="Test output scalars on output.")
+            help=(
+                "Test output scalars on output. Use '-' to read from standard "
+                "intput."))
     ])
     return fn
 

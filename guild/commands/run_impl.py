@@ -21,6 +21,7 @@ import os
 import pipes
 import random
 import re
+import sys
 
 import click
 import six
@@ -1370,6 +1371,24 @@ def _test_output_scalars(opdef, args):
         summary.test_output(f, _testable_output_scalars(opdef), cb)
 
 def _open_output(path):
+    if path == "-":
+        return _stdin_reader()
+    return _open_output_(path)
+
+class _stdin_reader(object):
+
+    __enter__ = lambda *_args: None
+    __exit__ = lambda *_args: None
+
+    @staticmethod
+    def __iter__():
+        while True:
+            line = sys.stdin.readline()
+            if not line.strip():
+                raise StopIteration()
+            yield line
+
+def _open_output_(path):
     try:
         return open(path, "r")
     except (IOError, OSError) as e:

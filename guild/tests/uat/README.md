@@ -127,7 +127,7 @@ matter of coverage and to take advantage of any differences.
 
 - [install-examples](install-examples.md)
 
-## Simple example
+### Simple example
 
 - [simple-example](simple-example.md)
 
@@ -191,6 +191,10 @@ And test the `keras` example.
 - [install-keras](install-keras.md)
 - [train-keras-mlp-example](train-keras-mlp-example.md)
 - [train-keras-mlp-example-2](train-keras-mlp-example-2.md)
+
+### `custom-scalars` example
+
+- [custom-scalars-example](custom-scalars-example.md)
 
 ## Packaging
 
