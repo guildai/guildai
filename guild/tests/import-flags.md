@@ -183,6 +183,26 @@ Imports can be disabled by specifying `no` or `[]` for `flags-import`:
     >>> flag_vals("no-imports-3")
     {'foo': 3}
 
+## Importing all flags
+
+By default, Guild imports all detected flags. However, this behavior
+can be made explicit in the Guild file.
+
+`all-imports` and `all-imports-2` both indicate that all flags should
+be imported.
+
+    >>> gf.models["test"]["all-imports-1"].flags
+    [<guild.guildfile.FlagDef 'f_bool'>,
+     <guild.guildfile.FlagDef 'f_float'>,
+     <guild.guildfile.FlagDef 'f_int'>,
+     <guild.guildfile.FlagDef 'f_str'>]
+
+    >>> gf.models["test"]["all-imports-2"].flags
+    [<guild.guildfile.FlagDef 'f_bool'>,
+     <guild.guildfile.FlagDef 'f_float'>,
+     <guild.guildfile.FlagDef 'f_int'>,
+     <guild.guildfile.FlagDef 'f_str'>]
+
 ## Don't import specific flags
 
 In cases where a user wants to import all flags *except* certain

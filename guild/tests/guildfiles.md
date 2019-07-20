@@ -1479,3 +1479,16 @@ content.
     ... except IOError as e:
     ...   print(str(e))
     [Errno 2] No such file or directory: '.../projects/missing-sources/guild.yml'
+
+### Values
+
+## flags-import
+
+    >>> guildfile.from_string("""
+    ... op:
+    ...   flags-import: hello
+    ... """)
+    Traceback (most recent call last):
+    GuildfileError: error in <string>: invalid flags-import value 'hello':
+    expected yes/all, no, or a list of flag names
+

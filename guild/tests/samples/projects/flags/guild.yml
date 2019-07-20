@@ -71,3 +71,11 @@
           arg-name: f_bool
         f_float:
           default: 8.0
+
+    all-imports-1:
+      main: main_globals
+      flags-import: yes
+
+    all-imports-2:
+      main: main_globals
+      flags-import: all

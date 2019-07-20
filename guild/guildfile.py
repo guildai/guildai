@@ -332,6 +332,8 @@ def _coerce_operation(data, guildfile):
 def _coerce_operation_attr(name, val, guildfile):
     if name == "flags":
         return _coerce_flags(val, guildfile)
+    elif name == "flags-import":
+        return _coerce_flags_import(val, guildfile)
     elif name == "python-path":
         return _coerce_op_python_path(val, guildfile)
     elif name == "output-scalars":
@@ -368,6 +370,18 @@ def coerce_flag_data(name, data, guildfile):
             "invalid value for %s flag %r: expected a mapping of "
             "flag attributes or default flag value" % (name, data))
 
+def _coerce_flags_import(data, gf):
+    if data in (None, True, "all"):
+        return None
+    elif data is False:
+        return []
+    elif isinstance(data, list):
+        return data
+    else:
+        raise GuildfileError(
+            gf,
+            "invalid flags-import value %r: expected yes/all, "
+            "no, or a list of flag names" % data)
 
 def _coerce_op_python_path(data, guildfile):
     if data is None:
