@@ -9,7 +9,7 @@ default scalar capture mechanism and custom scalars.
 
 Default scalars captured when running `train.py` as a script:
 
-    >>> run("guild run train.py -y")
+    >>> run("guild run train.py -y", ignore="Refreshing")
     step: 1
     loss: 2.345
     accuracy: 0.123
@@ -17,8 +17,6 @@ Default scalars captured when running `train.py` as a script:
     step: 2
     loss: 1.234
     accuracy: 0.456
-    <BLANKLINE>
-    mse: 0.1231
     <exit 0>
 
     >>> run("guild runs info --scalars")
@@ -26,7 +24,6 @@ Default scalars captured when running `train.py` as a script:
     scalars:
       accuracy: 0.456000 (step 2)
       loss: 1.234000 (step 2)
-      mse: 0.123100 (step 2)
     <exit 0>
 
 We can use the `--test-output-scalars` option of the `run` command to
@@ -63,8 +60,6 @@ Let's run it to see what's generated:
     step: 2
     loss: 1.234
     accuracy: 0.456
-    <BLANKLINE>
-    mse: 0.1231
     <exit 0>
 
     >>> run("guild runs info --scalars")
