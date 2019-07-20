@@ -9,7 +9,7 @@
     marked: no
     label:
     run_dir: ...
-    command: ... -um guild.op_main say --file msg.txt
+    command: ... -um guild.op_main say -- --file msg.txt
     exit_status: 0
     pid:
     flags:
