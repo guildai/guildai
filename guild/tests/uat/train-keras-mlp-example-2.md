@@ -9,16 +9,11 @@ The example is in the `keras` directory.
 
 Here are the operations available:
 
-    >>> run("guild ops mlp-mnist")
+    >>> run("guild ops mlp-mnist", ignore="Refreshing")
     mlp-mnist:train  Train MLP on MNIST
     <exit 0>
 
-The keras plugin repsonsible for running Keras scripts automatically
-adds a model checkpoint callback to save model weights at each
-epoch. However, this callback requires the `h5py` module, which isn't
-installed by default.
-
-For our first training, we'll proceed without the `h5py` module.
+Train `mlp-mnist`:
 
     >>> run("guild run mlp-mnist:train -y --no-gpus epochs=1")
     Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
