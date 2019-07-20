@@ -206,7 +206,7 @@ be imported.
 ## Don't import specific flags
 
 In cases where a user wants to import all flags *except* certain
-flags, she can use `flags-no-import`.
+flags, she can use `flags-import-skip`.
 
     >>> gf.models["test"]["skip-imports-1"].flags
     [<guild.guildfile.FlagDef 'f_bool'>,

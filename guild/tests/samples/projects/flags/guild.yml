@@ -52,11 +52,11 @@
 
     skip-imports-1:
       main: main_globals
-      flags-no-import: [f_int]
+      flags-import-skip: [f_int]
 
     skip-imports-2:
       main: main_args
-      flags-no-import: [foo]
+      flags-import-skip: [foo]
 
     implicit-args2:
       main: main_args2

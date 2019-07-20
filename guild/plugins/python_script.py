@@ -172,8 +172,10 @@ class PythonScriptPlugin(pluginlib.Plugin):
     @staticmethod
     def _is_import_flag(name, opdef):
         return (
-            (opdef.flags_import is None or name in opdef.flags_import) and
-            (opdef.flags_no_import is None or name not in opdef.flags_no_import))
+            (opdef.flags_import is None or
+             name in opdef.flags_import) and
+            (opdef.flags_import_skip is None or
+             name not in opdef.flags_import_skip))
 
     def _flags_data(self, opdef, model_paths, local_cache):
         main_mod = op_util.split_main(opdef.main)[0]
