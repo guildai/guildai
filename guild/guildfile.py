@@ -426,7 +426,7 @@ def _coerce_select_files(data, gf):
         return _coerce_select_files_list(data, gf)
     else:
         raise GuildfileError(
-            guildfile,
+            gf,
             "invalid select files spec %r: expected "
             "a string, list, or mapping" % data)
 

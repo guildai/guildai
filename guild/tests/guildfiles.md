@@ -1492,3 +1492,12 @@ content.
     GuildfileError: error in <string>: invalid flags-import value 'hello':
     expected yes/all, no, or a list of flag names
 
+## sourcecode
+
+    >>> guildfile.from_string("""
+    ... op:
+    ...   sourcecode: 123
+    ... """)
+    Traceback (most recent call last):
+    GuildfileError: error in <string>: invalid select files spec 123:
+    expected a string, list, or mapping
