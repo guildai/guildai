@@ -261,12 +261,12 @@ def check(args):
 
 def _check_kw(args):
     names = [
+        "offline",
         "tensorflow",
         "verbose",
     ]
     ignore = [
         "all_tests",
-        "offline",
         "no_info",
         "remote",
         "skip",

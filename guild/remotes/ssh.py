@@ -543,12 +543,14 @@ def _run_info_args(run, files, all_files, env, deps, scalars, sourcecode,
         args.append(run)
     return args
 
-def _check_args(tensorflow, verbose):
+def _check_args(tensorflow, verbose, offline):
     args = []
     if tensorflow:
         args.append("--tensorflow")
     if verbose:
         args.append("-v")
+    if offline:
+        args.append("--offline")
     return args
 
 def _stop_runs_args(runs, ops, labels, unlabeled, no_wait, marked, unmarked, yes):
