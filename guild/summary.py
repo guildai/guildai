@@ -23,8 +23,8 @@ import six
 log = logging.getLogger("guild")
 
 ALIASES = [
-    (re.compile(r"\\key"), "[0-9a-zA-Z_-]+"),
-    (re.compile(r"\\value"), "[0-9\.e\-]+"),
+    (re.compile(r"\key"), "[0-9a-zA-Z_-]+"),
+    (re.compile(r"\value"), "[0-9\\.e\\-]+"),
 ]
 
 class OutputScalars(object):
