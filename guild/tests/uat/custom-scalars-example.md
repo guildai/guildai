@@ -36,7 +36,7 @@ test custom output scalar patterns against sample script output.
 
     >>> run("echo 'bar' | guild run train.py --test-output-scalars -")
     bar
-      '^([^ \t]+):\\s+([[0-9\\.e\\-]+)$': <no match>
+      '^([^ \t]+):\\s+([[0-9\\.e\\-]+)$': <no matches>
     <exit 0>
 
 ## train
@@ -79,29 +79,29 @@ we don't match unless `NAME` is either `loss`, `accuracy`, or `step`:
     ... foo: 2.2
     ... bar 3.3
     ... faz
-    ... EOF""")
+    ... EOF""") # doctest: +REPORT_UDIFF
     step: 1
-      'accuracy: ([0-9\\.e\\-]+)': <no match>
-      'loss: ([0-9\\.e\\-]+)': <no match>
+      'accuracy: ([0-9\\.e\\-]+)': <no matches>
+      'loss: ([0-9\\.e\\-]+)': <no matches>
       'step: ([0-9\\.e\\-]+)': [('1',)] (step=1.0)
     loss: 1.1
-      'accuracy: ([0-9\\.e\\-]+)': <no match>
+      'accuracy: ([0-9\\.e\\-]+)': <no matches>
       'loss: ([0-9\\.e\\-]+)': [('1.1',)] (loss=1.1)
-      'step: ([0-9\\.e\\-]+)': <no match>
+      'step: ([0-9\\.e\\-]+)': <no matches>
     accuracy: 0.22
       'accuracy: ([0-9\\.e\\-]+)': [('0.22',)] (accuracy=0.22)
-      'loss: ([0-9\\.e\\-]+)': <no match>
-      'step: ([0-9\\.e\\-]+)': <no match>
+      'loss: ([0-9\\.e\\-]+)': <no matches>
+      'step: ([0-9\\.e\\-]+)': <no matches>
     foo: 2.2
-      'accuracy: ([0-9\\.e\\-]+)': <no match>
-      'loss: ([0-9\\.e\\-]+)': <no match>
-      'step: ([0-9\\.e\\-]+)': <no match>
+      'accuracy: ([0-9\\.e\\-]+)': <no matches>
+      'loss: ([0-9\\.e\\-]+)': <no matches>
+      'step: ([0-9\\.e\\-]+)': <no matches>
     bar 3.3
-      'accuracy: ([0-9\\.e\\-]+)': <no match>
-      'loss: ([0-9\\.e\\-]+)': <no match>
-      'step: ([0-9\\.e\\-]+)': <no match>
+      'accuracy: ([0-9\\.e\\-]+)': <no matches>
+      'loss: ([0-9\\.e\\-]+)': <no matches>
+      'step: ([0-9\\.e\\-]+)': <no matches>
     faz
-      'accuracy: ([0-9\\.e\\-]+)': <no match>
-      'loss: ([0-9\\.e\\-]+)': <no match>
-      'step: ([0-9\\.e\\-]+)': <no match>
+      'accuracy: ([0-9\\.e\\-]+)': <no matches>
+      'loss: ([0-9\\.e\\-]+)': <no matches>
+      'step: ([0-9\\.e\\-]+)': <no matches>
     <exit 0>

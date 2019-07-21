@@ -20,7 +20,6 @@ import logging
 import os
 import pipes
 import random
-import re
 import sys
 
 import click
@@ -1338,31 +1337,19 @@ def _print_staged_info(op):
         % (op.run_dir, op.run_dir, cmd)
     )
 
-class TestOutputLogger(object):
+class TestOutputLogger(summary.TestOutputLogger):
 
     @staticmethod
     def line(line):
         cli.out(line)
 
-    @staticmethod
-    def pattern_no_matches(pattern):
-        msg = "  %r: <no match>" % pattern
+    def pattern_no_matches(self, pattern):
+        msg = self._format_pattern_no_matches(pattern)
         cli.out(click.style(msg, dim=True))
 
-    @staticmethod
-    def pattern_matches(pattern, matches, vals):
-        groups = [m.groups() for m in matches]
-        fmt_groups = _strip_u(str(groups))
-        fmt_vals = "(%s)" % ", ".join(
-            ["%s=%s" % (name, val)
-             for name, val in sorted(vals.items())])
-        msg = "  %r: %s %s" % (pattern, fmt_groups, fmt_vals)
+    def pattern_matches(self, pattern, matches, vals):
+        msg = self._format_pattern_matches(pattern, matches, vals)
         cli.out(click.style(msg, fg="yellow"))
-
-def _strip_u(s):
-    s = re.sub(r"u'(.*?)'", "\\1", s)
-    s = re.sub(r"u\"(.*?)\"", "\\1", s)
-    return s
 
 def _test_output_scalars(opdef, args):
     f = _open_output(args.test_output_scalars)

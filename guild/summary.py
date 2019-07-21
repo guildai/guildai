@@ -159,14 +159,31 @@ class TestOutputLogger(object):
         sys.stdout.write(line)
         sys.stdout.write("\n")
 
-    @staticmethod
-    def pattern_no_matches(pattern):
-        sys.stdout.write("  %s: <no matches>\n" % pattern)
+    def pattern_no_matches(self, pattern):
+        sys.stdout.write(self._format_pattern_no_matches(pattern))
+        sys.stdout.write("\n")
 
     @staticmethod
-    def pattern_matches(pattern, matches, vals):
+    def _format_pattern_no_matches(pattern):
+        return "  %r: <no matches>" % pattern
+
+    def pattern_matches(self, pattern, matches, vals):
+        sys.stdout.write(self._format_pattern_matches(pattern, matches, vals))
+        sys.stdout.write("\n")
+
+    def _format_pattern_matches(self, pattern, matches, vals):
         groups = [m.groups() for m in matches]
-        sys.stdout.write("  %s: %s (%s)\n" % (pattern, groups, vals))
+        fmt_groups = self._strip_u(str(groups))
+        fmt_vals = "(%s)" % ", ".join(
+            ["%s=%s" % (name, val)
+             for name, val in sorted(vals.items())])
+        return "  %r: %s %s" % (pattern, fmt_groups, fmt_vals)
+
+    @staticmethod
+    def _strip_u(s):
+        s = re.sub(r"u'(.*?)'", "'\\1'", s)
+        s = re.sub(r"u\"(.*?)\"", "\"\\1\"", s)
+        return s
 
 def test_output(f, config, cb=None):
     cb = cb or TestOutputLogger()
