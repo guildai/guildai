@@ -17,13 +17,14 @@ from __future__ import division
 
 import re
 import logging
+import sys
 
 import six
 
 log = logging.getLogger("guild")
 
 ALIASES = [
-    (re.compile(r"\\key"), "\S+"),
+    (re.compile(r"\\key"), "[^ \t]+"),
     (re.compile(r"\\value"), "[0-9\\.e\\-]+"),
 ]
 
@@ -155,16 +156,17 @@ class TestOutputLogger(object):
 
     @staticmethod
     def line(line):
-        print(line)
+        sys.stdout.write(line)
+        sys.stdout.write("\n")
 
     @staticmethod
     def pattern_no_matches(pattern):
-        print("  %s: <no matches>" % pattern)
+        sys.stdout.write("  %s: <no matches>\n" % pattern)
 
     @staticmethod
     def pattern_matches(pattern, matches, vals):
         groups = [m.groups() for m in matches]
-        print("  %s: %s (%s)" % (pattern, groups, vals))
+        sys.stdout.write("  %s: %s (%s)\n" % (pattern, groups, vals))
 
 def test_output(f, config, cb=None):
     cb = cb or TestOutputLogger()
