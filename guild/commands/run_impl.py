@@ -1372,7 +1372,7 @@ class _stdin_reader(object):
         while True:
             line = sys.stdin.readline()
             if not line.strip():
-                raise StopIteration()
+                break
             yield line
 
 def _open_output_(path):
