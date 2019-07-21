@@ -279,7 +279,7 @@ guild run train.py x=uniform[-2.0:2.0] --optimizer bayesian --max-trials 20
 ```
 
 Press `Enter` to continue. Guild runs 20 trials, trying values for `x`
-with the goal of minimizing `loss`. By default, guild uses a Bayesian
+with the goal of minimizing `loss`. By default, Guild uses a Bayesian
 method with Gaussian processes to explore values for `x` that have a
 higher likelihood of producing lower values of `loss`. You can specify
 other optimizers including `forest` (decision trees) and `ggbrt`
