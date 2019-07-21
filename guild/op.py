@@ -46,7 +46,7 @@ DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} -- ${flag_args}"
 STEPS_EXEC = "${python_exe} -um guild.steps_main"
 
 DEFAULT_OUTPUT_SCALARS = [
-    r"^(\key):\s+([\value)$",
+    r"^(\key):\s+(\value)$",
 ]
 
 class InvalidOpSpec(ValueError):
