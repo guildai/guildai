@@ -31,12 +31,12 @@ test custom output scalar patterns against sample script output.
 
     >>> run("echo 'foo: 1.123' | guild run train.py --test-output-scalars -")
     foo: 1.123
-      '^([^ \t]+):\\s+([[0-9\\.e\\-]+)$': [('foo', '1.123')] (foo=1.123)
+      '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': [('foo', '1.123')] (foo=1.123)
     <exit 0>
 
     >>> run("echo 'bar' | guild run train.py --test-output-scalars -")
     bar
-      '^([^ \t]+):\\s+([[0-9\\.e\\-]+)$': <no matches>
+      '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': <no matches>
     <exit 0>
 
 ## train
