@@ -59,7 +59,7 @@ class OutputScalars(object):
 
     def print_patterns(self):
         for key, p in self._patterns:
-            print("{}: {}".format(key, p.pattern))
+            sys.stdout.write("{}: {}\n".format(key, p.pattern))
 
 def _init_patterns(config):
     if not isinstance(config, list):
