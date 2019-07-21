@@ -34,14 +34,15 @@ Requires-Dist: Whoosh>=2.7.4
 Requires-Dist: chardet>=3.0.4
 Requires-Dist: cryptography>=2.1.4
 Requires-Dist: daemonize>=2.4.7
+Requires-Dist: docutils==0.14
 Requires-Dist: jinja2>=2.10
 Requires-Dist: numpy>=1.16
 Requires-Dist: pandas>=0.24.2
 Requires-Dist: pyopenssl>=19.0.0
 Requires-Dist: python-dateutil>=2.6.1
-Requires-Dist: setuptools>=40.6.3
 Requires-Dist: scikit-learn>=0.19.1,<0.21.0
 Requires-Dist: scikit-optimize>=0.5.2
+Requires-Dist: setuptools>=40.6.3
 Requires-Dist: six>=1.10.0
 Requires-Dist: tabview>=1.4.3
 Requires-Dist: tensorboard>=1.10
