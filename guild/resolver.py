@@ -52,6 +52,7 @@ class FileResolver(Resolver):
                 self.resource.config,
                 self.source.resdef.name)
         source_path = self._abs_source_path()
+        unpack_dir = self._unpack_dir(source_path, unpack_dir)
         if os.path.isdir(source_path) and not self.source.select:
             resolved = [source_path]
         else:
@@ -80,6 +81,27 @@ class FileResolver(Resolver):
             for parent in modeldef.parents:
                 yield parent.dir
 
+    @staticmethod
+    def _unpack_dir(source_path, explicit_unpack_dir):
+        """Returns unpack dir for local archives.
+
+        If explicit_unpack_dir is specified (non blank) it is always
+        used. Otherwise a location under the resource cache is used
+        based on the value of source_path. In this case, source_path
+        must be absolute.
+
+        As with downloaded archives, local archives are unacked into a
+        resource cache dir. This avoid unpacking project local files
+        within the project.
+
+        """
+        if explicit_unpack_dir:
+            return explicit_unpack_dir
+        assert os.path.isabs(source_path), source_path
+        key = "\n".join(["file", source_path]).encode("utf-8")
+        digest = hashlib.sha224(key).hexdigest()
+        return os.path.join(var.cache_dir("resources"), digest)
+
 def _resolve_config_path(config, resource_name):
     config_path = os.path.abspath(config)
     if not os.path.exists(config_path):
@@ -90,7 +112,7 @@ def _resolve_config_path(config, resource_name):
 class URLResolver(Resolver):
 
     def resolve(self, unpack_dir=None):
-        from guild import pip_util # expensive and far reaching
+        from guild import pip_util # expensive
         if self.resource.config:
             return _resolve_config_path(
                 self.resource.config,
@@ -107,12 +129,17 @@ class URLResolver(Resolver):
                 "bad sha256 for '%s' (expected %s but got %s)"
                 % (e.path, e.expected, e.actual))
         else:
+            unpack_dir = self._unpack_dir(source_path, unpack_dir)
             resolved = resolve_source_files(
                 source_path, self.source, unpack_dir)
             post_process(
                 self.source,
                 unpack_dir or os.path.dirname(source_path))
             return resolved
+
+    @staticmethod
+    def _unpack_dir(source_path, explicit_unpack_dir):
+        return explicit_unpack_dir or os.path.dirname(source_path)
 
 def url_source_download_dir(source):
     key = "\n".join(source.parsed_uri).encode("utf-8")
@@ -398,6 +425,8 @@ class ConfigResolver(FileResolver):
             f.write(util.encode_yaml(config))
 
 def resolve_source_files(source_path, source, unpack_dir):
+    if not unpack_dir:
+        raise ValueError("unpack_dir required")
     _verify_path(source_path, source.sha256)
     return _resolve_source_files(source_path, source, unpack_dir)
 
@@ -494,7 +523,7 @@ def _archive_type(source_path, source):
         return None
 
 def _unpack(source_path, archive_type, select, unpack_dir):
-    unpack_dir = unpack_dir or os.path.dirname(source_path)
+    assert unpack_dir
     unpacked = _list_unpacked(source_path, unpack_dir)
     if unpacked:
         return _from_unpacked(unpack_dir, unpacked, select)
