@@ -10,6 +10,7 @@ Lets run the `mnist_mlp.py` script:
     ...     timeout=180, ignore=("WARNING", "Refreshing"))
     Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
     Using TensorFlow backend.
+    ...
     60000 train samples
     10000 test samples...
     _________________________________________________________________

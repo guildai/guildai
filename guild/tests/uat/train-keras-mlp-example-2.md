@@ -18,6 +18,7 @@ Train `mlp-mnist`:
     >>> run("guild run mlp-mnist:train -y --no-gpus epochs=1")
     Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
     Using TensorFlow backend.
+    ...
     60000 train samples
     10000 test samples
     ...
