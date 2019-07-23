@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 
+from guild import batch_util
 from guild import cli
 from guild import util
 
@@ -29,7 +30,7 @@ def main(args):
     tensorboard.setup_logging()
     with util.TempDir("guild-tensorboard-") as logdir:
         log.debug("Using logdir %s", logdir)
-        list_runs_cb = lambda: runs_impl.runs_for_args(args)
+        list_runs_cb = lambda: _runs_for_args(args)
         monitor = tensorboard.RunsMonitor(
             list_runs_cb, logdir, args.refresh_interval)
         monitor.start()
@@ -48,6 +49,15 @@ def main(args):
             log.debug("Removing logdir %s", logdir) # Handled by ctx mgr
     if util.PLATFORM != "Windows":
         cli.out()
+
+def _runs_for_args(args):
+    runs = runs_impl.runs_for_args(args)
+    if args.include_batch:
+        return runs
+    return _remove_batch_runs(runs)
+
+def _remove_batch_runs(runs):
+    return [run for run in runs if not batch_util.is_batch(run)]
 
 def _load_guild_tensorboard_module():
     try:

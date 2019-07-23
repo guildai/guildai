@@ -26,6 +26,9 @@ from . import server_support
 @runs_support.runs_arg
 @server_support.host_and_port_options
 @click.option(
+    "--include-batch", is_flag=True,
+    help="Include batch runs.")
+@click.option(
     "--refresh-interval", metavar="SECONDS",
     help="Refresh interval (defaults to 5 seconds).",
     type=click.IntRange(1, None),
@@ -48,7 +51,7 @@ def tensorboard(args):
     using the commands filters. This list corresponds to the the runs
     shown when running ``guild runs``.
 
-    This command will not exit until you type ``CTRL-c`` to stop it.
+    This command will not exit until you type ``Ctrl-c`` to stop it.
 
     If you'd like to change the filters used to select runs, stop the
     command and re-run it with a different set of filters. You may
@@ -62,8 +65,10 @@ def tensorboard(args):
 
     By default, Guild will start the TensorBoard process on a randomly
     selected free port. If you'd like to specify the port that
-    TensorBoard runs on, use the ``--port`` option.
+    TensorBoard runs on, use the `--port` option.
 
+    Guild will not include batch runs by default. To include batch
+    runs, use `--include-batch`.
     """
     from . import tensorboard_impl
     tensorboard_impl.main(args)
