@@ -23,8 +23,6 @@ import threading
 import time
 
 import six
-from six.moves import shlex_quote
-
 import yaml
 
 # Move any import that's expensive or seldom used into function
@@ -309,12 +307,6 @@ def _yaml_parse(s):
         if name is None and len(args) >= 2:
             return s
     return yaml.safe_load(s)
-
-def format_flag_arg(name, val):
-    return "%s=%s" % (name, format_flag_val(val))
-
-def format_flag_val(val):
-    return run_util.format_flag_val(val)
 
 def exit(msg, exit_status=1):
     """Exit the Python runtime with a message.
@@ -654,7 +646,7 @@ def _trials_table_data(trials):
         data.append(row)
         if flags:
             row.update(
-                {name: format_flag_val(flags[name])
+                {name: run_util.format_flag_val(flags[name])
                  for name in flags})
             names.update(flags)
     heading = {name: name for name in names}
@@ -776,7 +768,7 @@ def _coerce_run_param(name, val):
 
 def flags_hash(flags):
     flag_parts = [
-        "%s:%s" % (name, format_flag_val(val))
+        "%s:%s" % (name, run_util.format_flag_val(val))
         for name, val in sorted(flags.items())
     ]
     to_hash = "\n".join(flag_parts).encode()
@@ -799,16 +791,6 @@ def parse_function(s):
         args_s = []
     args = [parse_arg_val(arg.strip()) for arg in args_s]
     return name, tuple(args)
-
-def flag_assigns(flags):
-    def fmt(val):
-        if isinstance(val, float):
-            val = round(val, 4)
-        return shlex_quote(format_flag_val(val))
-    return [
-        "%s=%s" % (name, fmt(flags[name]))
-        for name in sorted(flags)
-    ]
 
 def opdef_model_paths(opdef):
     return _opdef_paths(opdef) + _model_parent_paths(opdef.modeldef)
@@ -908,6 +890,51 @@ def _apply_flag_arg(flagdef, value, flag_vals, target, flag_map):
             target[arg_name] = NO_ARG_VALUE
     else:
         target[arg_name] = arg_val
+
+def default_label(opdef):
+    if opdef.label:
+        return opdef.label
+    flags = _non_default_flag_vals(opdef)
+    if not flags:
+        return None
+    return " ".join(flag_assigns(flags, quote=True, truncate_floats=True))
+
+def _non_default_flag_vals(opdef):
+    return {
+        name: val
+        for name, val in opdef.flag_values().items()
+        if not _is_default_flag_val(val, name, opdef)
+    }
+
+def _is_default_flag_val(val, name, opdef):
+    flagdef = opdef.get_flagdef(name)
+    if not flagdef:
+        return False
+    return val == flagdef.default
+
+def _format_default_label(flags):
+    return flag_assigns(flags, truncate_floats=True)
+
+def flag_assign(name, val, quote=False, shell_safe=False,
+                truncate_floats=False):
+    if truncate_floats and isinstance(val, float):
+        val = round(val, 4) # hardcode to keep it simple
+    formatted = run_util.format_flag_val(val)
+    if quote or shell_safe:
+        formatted = util.shlex_quote(formatted)
+        if not shell_safe:
+            formatted = _strip_shlex_single_quotes(formatted)
+    return "%s=%s" % (name, formatted)
+
+def _strip_shlex_single_quotes(s):
+    return s.replace("''\"'\"'", "'").replace("'\"'\"''", "'")
+
+def flag_assigns(flags, quote=False, shell_safe=False,
+                 truncate_floats=False):
+    return [
+        flag_assign(name, val, quote, shell_safe, truncate_floats)
+        for name, val in sorted(flags.items())
+    ]
 
 def _patch_yaml_safe_loader():
     # Credit: https://stackoverflow.com/users/1307905/anthon

@@ -226,7 +226,7 @@ def _resdef_parent_dirs(resdef):
     else:
         return [parent.dir for parent in modeldef.parents]
 
-class OperationOutputResolver(Resolver):
+class OperationOutputResolver(FileResolver):
 
     def __init__(self, source, resource, modeldef):
         super(OperationOutputResolver, self).__init__(source, resource)
@@ -234,6 +234,7 @@ class OperationOutputResolver(Resolver):
 
     def resolve(self, unpack_dir=None):
         source_path = self._source_path()
+        unpack_dir = self._unpack_dir(source_path, unpack_dir)
         return resolve_source_files(source_path, self.source, unpack_dir)
 
     def _source_path(self):

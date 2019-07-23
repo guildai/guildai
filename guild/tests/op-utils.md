@@ -176,48 +176,6 @@ If an exponent needs to be treated as a string, it must be quoted:
     >>> p_flags(["run='1e2345671'"])
     {'run': '1e2345671'}
 
-## Formatting flag vals
-
-The `format_flag_val` function formats flag values into strings that
-can later be converted back to values using `parse_arg_val`.
-
-Here's a function that formats a Python value and verifies that the
-parsed verion equals the original value.
-
-    >>> def fmt(val):
-    ...     formatted = op_util.format_flag_val(val)
-    ...     parsed = op_util.parse_arg_val(formatted)
-    ...     return formatted, parsed, parsed == val
-
-    >>> fmt("")
-    ("''", '', True)
-
-    >>> fmt("a")
-    ('a', 'a', True)
-
-    >>> fmt(1)
-    ('1', 1, True)
-
-    >>> fmt(1.0)
-    ('1.0', 1.0, True)
-
-    >>> fmt(1/3)
-    ('0.3333333333333333', 0.3333333333333333, True)
-
-    >>> fmt(True)
-    ('yes', True, True)
-
-    >>> fmt(False)
-    ('no', False, True)
-
-    >>> fmt(None)
-    ('null', None, True)
-
-    >>> fmt(["", "a", 1, 1.0, 1/3, True, False, None])
-    ("['', a, 1, 1.0, 0.3333333333333333, yes, no, null]",
-     ['', 'a', 1, 1.0, 0.3333333333333333, True, False, None],
-     True)
-
 ## Global dest
 
 The function `global_dest` applies a dict of flags to a global
@@ -447,3 +405,39 @@ Invalid:
     >>> parse("a:b/c:d")
     Traceback (most recent call last):
     ValueError: a:b/c:d
+
+## Flag assigns
+
+    >>> flag_assigns = op_util.flag_assigns
+
+    >>> flag_assigns({})
+    []
+
+    >>> flag_assigns({
+    ...   "i": 1,
+    ...   "f": 1.123,
+    ...   "b": True,
+    ...   "s": "hello",
+    ...   "l": [1, 1.123, True, "hello"],
+    ... })
+    ['b=yes', 'f=1.123', 'i=1', 'l=[1, 1.123, yes, hello]', 's=hello']
+
+    >>> flag_assigns({"a": "a", "b": "b b"})
+    ['a=a', 'b=b b']
+
+    >>> flag_assigns({"a": "a", "b": "b b"}, quote=True)
+    ['a=a', "b='b b'"]
+
+The quoting mechanism supports decoding via YAML syntax and so strings
+that contain numeric values (i.e. values that YAML would interpret as
+numbers) must be quoted. `flag_assigns` can quote the value using
+`shlex_quote`, which applies an elaborate quoting mechanism for single
+quotes.
+
+    >>> flag_assigns({"numeric_string": "1"}, shell_safe=True)
+    ['numeric_string=\'\'"\'"\'1\'"\'"\'\'']
+
+The default behavior:
+
+    >>> flag_assigns({"numeric_string": "1"})
+    ["numeric_string='1'"]

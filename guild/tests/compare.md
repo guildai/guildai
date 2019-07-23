@@ -36,7 +36,7 @@ The project Guild file defines explicit compare cols for the `op1` operation.
 
 Let's run the operation:
 
-    >>> project.run("op1", flags=dict(a=2, b=3))
+    >>> project.run("op1", flags={"a": 2, "b": 3})
     x: 3
     y: 5
 
@@ -45,5 +45,5 @@ And compare the runs:
     >>> project.compare()
     [['run', 'operation', 'started', 'time', 'status', 'label', 'A', 'B', 'x_step',
       'x', 'y', 'a', 'b', 'step'],
-     ['...', 'op1', '...', '...', 'completed', None, 2, 3, 0, 3.0, 5.0, None, None, None],
+     ['...', 'op1', '...', '...', 'completed', 'a=2 b=3', 2, 3, 0, 3.0, 5.0, None, None, None],
      ['...', 'op1.py', '...', '...', 'completed', None, None, None, None, 2.0, 4.0, 1, 2, 0]]

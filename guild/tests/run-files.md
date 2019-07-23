@@ -38,6 +38,7 @@ The files generated for our run:
     .guild/attrs/host
     .guild/attrs/id
     .guild/attrs/initialized
+    .guild/attrs/label
     .guild/attrs/objective
     .guild/attrs/opdef
     .guild/attrs/platform
@@ -196,7 +197,6 @@ Its files:
     .guild/proto/.guild/attrs/host
     .guild/proto/.guild/attrs/id
     .guild/proto/.guild/attrs/initialized
-    .guild/proto/.guild/attrs/label
     .guild/proto/.guild/attrs/objective
     .guild/proto/.guild/attrs/opdef
     .guild/proto/.guild/attrs/optimizer

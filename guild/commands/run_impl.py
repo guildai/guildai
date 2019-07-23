@@ -27,7 +27,6 @@ import six
 import yaml
 
 import guild.help
-import guild.op
 import guild.plugin
 
 from guild import cli
@@ -37,6 +36,7 @@ from guild import deps
 from guild import guildfile
 from guild import model as modellib
 from guild import model_proxy
+from guild import op as oplib
 from guild import op_util
 from guild import opref as opreflib
 from guild import resolver
@@ -166,6 +166,10 @@ def one_run(run_id_prefix):
     return cmd_impl_support.one_run(runs, run_id_prefix)
 
 def _apply_run_args(run, args):
+    """Applies run property to args.
+
+    Used to sync args with run when restarting or rerunning it.
+    """
     if _is_batch_run(run):
         _apply_batch_run_args(run, args)
     else:
@@ -219,7 +223,7 @@ def _apply_run_flags(run, args):
 
 def _flag_args(flags):
     return tuple([
-        op_util.format_flag_arg(name, val)
+        op_util.flag_assign(name, val)
         for name, val in sorted(flags.items())
         if val is not None
     ])
@@ -529,7 +533,7 @@ def _init_op(opdef, args, is_batch=False):
      batch_files) = _split_flag_args(args.flags, opdef)
     _apply_opdef_args(flag_vals, batch_files, args, opdef, is_batch)
     try:
-        op = guild.op.Operation(
+        op = oplib.Operation(
             opdef,
             _op_run_dir(args),
             resource_config,
@@ -537,12 +541,17 @@ def _init_op(opdef, args, is_batch=False):
             bool(args.stage),
             _op_gpus(args)
         )
-    except guild.op.InvalidOpSpec as e:
+    except oplib.InvalidOpSpec as e:
         _invalid_op_spec_error(e, opdef)
-    except guild.op.OpInitError as e:
+    except oplib.OpInitError as e:
         _op_init_error(e, opdef)
     else:
-        _apply_batch_op(opdef.batch_opspec, batch_files, flag_vals, args, op)
+        _maybe_apply_batch_op(
+            opdef.batch_opspec,
+            batch_files,
+            flag_vals,
+            args,
+            op)
         if not op.batch_op and not args.force_flags:
             _validate_op_flags(op)
         return op
@@ -625,7 +634,7 @@ def _apply_named_optimizer(opt_name, opdef, args):
 def _apply_optimizer_and_flags(optdef, args):
     args.optimizer = optdef.opspec
     default_opt_flags = tuple([
-        op_util.format_flag_arg(name, val)
+        op_util.flag_assign(name, val)
         for name, val in sorted(optdef.flags.items())
     ])
     args.opt_flags = default_opt_flags + args.opt_flags
@@ -775,8 +784,8 @@ def _op_init_error(e, opdef):
 # Apply batch op
 ###################################################################
 
-def _apply_batch_op(batch_opspec, batch_files, user_flags, args, op):
-    """Applies batch_op attrs to op.
+def _maybe_apply_batch_op(batch_opspec, batch_files, user_flags, args, op):
+    """Applies batch_op attrs to op if batch_opspec is defined.
 
     If we determine this is a batch run, resolve the batch opspec to
     an operation in its own right and set it as op.batch_op. This is
@@ -821,6 +830,7 @@ def _batch_op_init_args(opdef, args):
     params["restart"] = None
     params["rerun"] = None
     params["optimizer"] = None
+    params["label"] = args.batch_label
     args = click_util.Args(**params)
     return args
 
@@ -1156,11 +1166,29 @@ def _check_batch_needed(op, args):
         _check_needed_matching_runs(op)
 
 def _init_batch_run(op):
-    batches = _batches_attr(op.batch_op.batch_files)
-    run = guild.op.init_run(op.run_dir)
+    run = oplib.init_run(op.run_dir)
     run.init_skel()
     op.batch_op.set_run_dir(run.path)
+    batches = _batches_attr(op.batch_op.batch_files)
     _write_batch_proto(run, op, batches)
+
+def _write_batch_proto(batch_run, proto_op, batches):
+    proto_op.set_run_dir(batch_run.guild_path("proto"))
+    _apply_proto_op_extra_attrs(proto_op)
+    proto_op.init()
+    if batches:
+        proto_op.write_run_attr("batches", batches)
+
+def _apply_proto_op_extra_attrs(proto_op):
+    """Applies applicable attrs to proto_op.extra_attrs.
+
+    The proto op is generated from the original opspec when a batch is
+    specified (either as an explicit optimizer or implicitly through a
+    batch flag spec). Most of the original operation attributes apply
+    to the proto op, but some are different. This function modifies
+    proto_op.extra_attrs accordingly.
+    """
+    proto_op.extra_attrs["run_params"]["optimizer"] = None
 
 def _batches_attr(batch_files):
     batches = []
@@ -1206,15 +1234,6 @@ def _csv_batches(path):
 
 def _flag_vals(row):
     return [op_util.parse_arg_val(s) for s in row]
-
-def _write_batch_proto(batch_run, proto_op, batches):
-    proto_op.set_run_dir(batch_run.guild_path("proto"))
-    proto_op.extra_attrs["run_params"]["optimizer"] = None
-    if "label" not in proto_op.extra_attrs:
-        proto_op.extra_attrs["label"] = proto_op.opdef.label
-    proto_op.init()
-    if batches:
-        proto_op.write_run_attr("batches", batches)
 
 ###################################################################
 # Needed check support
@@ -1299,7 +1318,7 @@ def _run_op(op, args):
             args.stop_after)
     except deps.DependencyError as e:
         _handle_dependency_error(e)
-    except guild.op.ProcessError as e:
+    except oplib.ProcessError as e:
         _handle_process_error(e)
     else:
         _handle_run_exit(returncode, op, args)
@@ -1386,5 +1405,5 @@ def _open_output_(path):
 
 def _testable_output_scalars(opdef):
     if opdef.output_scalars is None:
-        return guild.op.DEFAULT_OUTPUT_SCALARS
+        return oplib.DEFAULT_OUTPUT_SCALARS
     return opdef.output_scalars

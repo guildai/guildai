@@ -59,6 +59,9 @@ def run_params(fn):
             ("--no-gpus",), is_flag=True,
             help="Disable GPUs for run. Cannot be used with --gpu."),
         click.Option(
+            ("--batch-label",), metavar="LABEL",
+            help="Label to use for batch runs. Ignored for non-batch runs."),
+        click.Option(
             ("-o", "--optimizer",), metavar="ALGORITHM",
             help=(
                 "Optimize the run using the specified algorithm. See "

@@ -76,6 +76,7 @@ def _popen_args(
         run_dir=None,
         restart=None,
         label=None,
+        batch_label=None,
         guild_home=None,
         extra_env=None,
         optimize=False,
@@ -90,8 +91,11 @@ def _popen_args(
         print_cmd=False,
         print_trials=False,
         save_trials=None,
+        force_flags=False,
+        disable_plugins=None,
         quiet=False,
         debug=False):
+    from guild import op_util
     from guild import run_util
     cwd = cwd or "."
     flags = flags or {}
@@ -106,9 +110,9 @@ def _popen_args(
         args.extend(["--restart", restart])
     if label:
         args.extend(['--label', label])
-    args.extend([
-        "{}={}".format(name, run_util.format_flag_val(val))
-        for name, val in flags.items()])
+    if batch_label:
+        args.extend(['--batch-label', batch_label])
+    args.extend(op_util.flag_assigns(flags))
     args.extend(["@%s" % path for path in (batch_files or [])])
     if run_dir:
         args.extend(["--run-dir", run_dir])
@@ -120,11 +124,8 @@ def _popen_args(
         args.extend(["--minimize", minimize])
     if maximize:
         args.extend(["--maximize", maximize])
-    for name, val in opt_flags.items():
-        args.extend([
-            "--opt-flag",
-            "{}={}".format(name, run_util.format_flag_val(val))
-        ])
+    for name, val in sorted(opt_flags.items()):
+        args.extend(["--opt-flag", op_util.flag_assign(name, val)])
     if max_trials is not None:
         args.extend(["--max-trials", str(max_trials)])
     if random_seed is not None:
@@ -139,6 +140,10 @@ def _popen_args(
         args.extend(["--save-trials", save_trials])
     if init_trials:
         args.append("--init-trials")
+    if force_flags:
+        args.append("--force-flags")
+    if disable_plugins:
+        args.extend(["--disable-plugins", disable_plugins])
     if quiet:
         args.append("--quiet")
     env = dict(os.environ)

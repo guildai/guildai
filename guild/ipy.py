@@ -267,8 +267,9 @@ def loguniform(low, high):
 
 def _format_flags(flags):
     return ", ".join([
-        op_util.format_flag_arg(name, val)
-        for name, val in sorted(flags.items())])
+        op_util.flag_assign(name, flags[name])
+        for name in sorted(flags)
+    ])
 
 def run(op, *args, **kw):
     opts = _pop_opts(kw)

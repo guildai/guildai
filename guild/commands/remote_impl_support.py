@@ -145,6 +145,7 @@ def _run_kw(args):
         "gpus",
         "init_trials",
         "label",
+        "batch_label",
         "max_trials",
         "maximize",
         "minimize",

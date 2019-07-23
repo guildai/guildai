@@ -38,11 +38,11 @@ should fail.
 Here are our runs:
 
     >>> project.print_runs(status=True, labels=True)
-    trial_fail.py                trials  completed
-    trial_fail.py                trials  error
-    trial_fail.py                trials  error
-    trial_fail.py                trials  completed
-    trial_fail.py+batch_fail.py  trials  completed
+    trial_fail.py                trials           completed
+    trial_fail.py                trials           error
+    trial_fail.py                trials           error
+    trial_fail.py                trials           completed
+    trial_fail.py+batch_fail.py  trials_fail=1,2  completed
 
 We can see that all 4 trials ran, with trials 1 and 2 (zero based
 index) failing.
@@ -73,10 +73,10 @@ index).
 And our runs:
 
     >>> project.print_runs(status=True, labels=True)
-    trial_fail.py                batch   completed
-    trial_fail.py+batch_fail.py  batch   error
-    trial_fail.py                trials  completed
-    trial_fail.py                trials  error
-    trial_fail.py                trials  error
-    trial_fail.py                trials  completed
-    trial_fail.py+batch_fail.py  trials  completed
+    trial_fail.py                batch                         completed
+    trial_fail.py+batch_fail.py  batch_fail=1 trials_fail='1'  error
+    trial_fail.py                trials                        completed
+    trial_fail.py                trials                        error
+    trial_fail.py                trials                        error
+    trial_fail.py                trials                        completed
+    trial_fail.py+batch_fail.py  trials_fail=1,2               completed

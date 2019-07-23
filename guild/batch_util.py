@@ -76,40 +76,22 @@ class Trial(object):
             log.info(
                 "Initialized trial %s (%s)",
                 self._run_desc(trial_run),
-                ", ".join(self._flag_assigns()))
+                ", ".join(op_util.flag_assigns(self.flags, quote=True)))
 
     def _init_trial_run(self, run_dir=None):
+        assert isinstance(self.flags, dict), self.flags
         run_dir = run_dir or os.path.join(var.runs_dir(), self.run_id)
         run = runlib.Run(self.run_id, run_dir)
         if run.get("batch") != self.batch.batch_run.id:
             util.copytree(self.batch.proto_run.path, run_dir)
-            run.write_attr("initialized", runlib.timestamp())
             for name, val in self.attrs.items():
                 run.write_attr(name, val)
-            assert isinstance(self.flags, dict), self.flags
+            run.write_attr("initialized", runlib.timestamp())
             run.write_attr("flags", self.flags)
-            if "label" not in self.attrs:
-                run.write_attr("label", self.init_label())
             run.write_attr("batch", self.batch.batch_run.id)
         return run
 
-    def init_label(self):
-        label = self.batch.proto_run.get("label")
-        if label is not None:
-            return util.render_label(label, self.flags)
-        return self._default_label()
-
-    def _default_label(self):
-        parts = []
-        batch_label = self.batch_label()
-        if batch_label:
-            parts.append(batch_label)
-        flag_assigns = self._flag_assigns()
-        if flag_assigns:
-            parts.append(" ".join(flag_assigns))
-        return " ".join(parts)
-
-    def batch_label(self):
+    def _batch_op_name(self):
         batch_op_name = self.batch.batch_run.opref.op_name
         if batch_op_name == "+":
             return ""
@@ -128,9 +110,6 @@ class Trial(object):
         util.ensure_deleted(trial_link)
         os.symlink(rel_trial_path, trial_link)
 
-    def _flag_assigns(self):
-        return op_util.flag_assigns(self.flags)
-
     def run_needed(self):
         run = self.trial_run()
         if not run:
@@ -141,14 +120,16 @@ class Trial(object):
         trial_run = self.trial_run(required=True)
         opspec = trial_run.opref.to_opspec()
         cwd = os.environ["CMD_DIR"]
-        label = trial_run.get("label") or self.init_label()
+        label = trial_run.get("label")
         extra_env = {
             "NO_RESTARTING_MSG": "1"
         }
         if not quiet:
             log.info(
-                "Running trial %s: %s (%s)", self._run_desc(trial_run),
-                opspec, ", ".join(self._flag_assigns()))
+                "Running trial %s: %s (%s)",
+                self._run_desc(trial_run),
+                opspec,
+                ", ".join(op_util.flag_assigns(self.flags, quote=True)))
         try:
             gapi.run(
                 restart=trial_run.path,

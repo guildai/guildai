@@ -50,7 +50,7 @@ Running with a single category for `i`:
     s: hello
     loss: 1.000000
     Found 1 previous trial(s) for use in optimization
-    WARNING: [guild] optimizer repeated trial (b=yes f=2.0 i=3 s=hello) - using random
+    WARNING: [guild] optimizer repeated trial (b=yes, f=2.0, i=3, s=hello) - using random
     Initialized trial (b=yes, f=2.0, i=3, s=hello)
     Running trial: echo2.py (b=yes, f=2.0, i=3, s=hello)
     i: 3

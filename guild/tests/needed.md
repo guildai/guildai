@@ -36,7 +36,7 @@ And again, the same command:
 
     >>> project.run("echo.py", flags={"x": 2.0}, needed=True)
     Skipping because the following runs match this operation (--needed specified):
-      [...]  echo.py  ...  completed
+      [...]  echo.py  ...  completed  x=2.0
 
 And our runs:
 

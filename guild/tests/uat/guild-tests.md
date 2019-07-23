@@ -63,9 +63,11 @@ tests).
       restart-runs:                ok
       run-files:                   ok
       run-flags:                   ok
+      run-labels:                  ok
       run-ops:                     ok
       run-output:                  ok
       run-scripts:                 ok
+      run-utils:                   ok
       runs-1:                      ok
       runs-2:                      ok
       select-resources:            ok

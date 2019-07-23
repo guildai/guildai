@@ -227,17 +227,15 @@ class NonRepeatingTrials(object):
         next_trial_flags = self.seq_trial_cb(trial, state)
         for run in trial.batch.seq_trial_runs():
             if next_trial_flags == run.get("flags"):
-                flag_desc = " ".join(op_util.flag_assigns(next_trial_flags))
+                flag_desc = ", ".join(op_util.flag_assigns(next_trial_flags))
                 log.warning(
                     "optimizer repeated trial (%s) - using random",
                     flag_desc)
-                return (
-                    self._random_trial(state),
-                    {"label": self._random_trial_label(trial, flag_desc)})
+                next_trial_flags = self._random_trial_flags(state)
         return next_trial_flags, {}
 
     @staticmethod
-    def _random_trial(state):
+    def _random_trial_flags(state):
         import skopt
         res = skopt.dummy_minimize(
             lambda *args: 0,
@@ -246,10 +244,6 @@ class NonRepeatingTrials(object):
             random_state=state.random_state)
         state.update(res)
         return state.next_trial_flags()
-
-    @staticmethod
-    def _random_trial_label(trial, flag_desc):
-        return "%s+random %s" % (trial.batch_label(), flag_desc)
 
 def _check_state_dims(state):
     if not state.dim_names:

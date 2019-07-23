@@ -57,6 +57,7 @@ from guild import config as configlib
 from guild import guildfile
 from guild import index2
 from guild import init
+from guild import op_util
 from guild import run_util
 from guild import util
 
@@ -531,9 +532,8 @@ class Project(object):
             "opspec": run_util.format_op_desc(run)
         }
         if flags:
-            flags_desc = " ".join(
-                ["%s=%s" % (name, run_util.format_flag_val(val))
-                 for name, val in sorted(run.get("flags").items())])
+            flag_vals = run.get("flags") or {}
+            flags_desc = " ".join(op_util.flag_assigns(flag_vals, quote=True))
             row["flags"] = flags_desc
         if labels:
             row["label"] = run.get("label", "")

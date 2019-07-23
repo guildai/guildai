@@ -103,54 +103,35 @@ uses the special name `+`.
 The batch operation manages the trial runs. Failed batch operations,
 for example, can be restarted by restarting the associated runs.
 
-By default, trials generated are labeled using the sorted trial flag
-assignments.
+For details on how trial and batch labels are set, see
+[run-labels](run-labels.md).
+
+Here are our runs, which include one trial and the batch.
 
     >>> project.print_runs(labels=True)
-    say.py   loud=no msg=hi
+    say.py   msg=hi
     say.py+
 
-We can override the label when we run a batch:
+Let's run `say-with-label` for two runs:
 
-    >>> run("say.py", msg=["hi 2"], label="sample ${msg}")
+    >>> run("say-with-label", msg=["hi 1", "hi 2"])
+    Initialized trial (loud=no, msg='hi 1')
+    Running trial: say-with-label (loud=no, msg='hi 1')
+    hi 1
     Initialized trial (loud=no, msg='hi 2')
-    Running trial: say.py (loud=no, msg='hi 2')
+    Running trial: say-with-label (loud=no, msg='hi 2')
     hi 2
 
     >>> project.print_runs(labels=True)
-    say.py   sample hi 2
-    say.py+  sample
-    ...
-
-If an operation defines a label, as in the case of `say-with-label`,
-the label is used by default:
-
-    >>> run("say-with-label", msg=["hi 3"])
-    Initialized trial (loud=no, msg='hi 3')
-    Running trial: say-with-label (loud=no, msg='hi 3')
-    hi 3
-
-    >>> project.print_runs(labels=True)
-    say-with-label   msg is 'hi 3'
-    say-with-label+
-    ...
-
-The default label can be overriden:
-
-    >>> run("say-with-label", msg=["hi 4"], label="a test")
-    Initialized trial (loud=no, msg='hi 4')
-    Running trial: say-with-label (loud=no, msg='hi 4')
-    hi 4
-
-    >>> project.print_runs(labels=True)
-    say-with-label   a test
+    say-with-label   msg is 'hi 2'
+    say-with-label   msg is 'hi 1'
     say-with-label+
     ...
 
 Let's delete runs in preparation for the next tests:
 
     >>> project.delete_runs()
-    Deleted 8 run(s)
+    Deleted 5 run(s)
 
 Note that we can preview the trials that will be generated using the
 `print_trials` flag:
@@ -301,9 +282,9 @@ Let's use the batch file in an operation:
 Here's what our runs look like after the batch operation:
 
     >>> project.print_runs(flags=True)
-    say.py   loud=no msg=hello 3
-    say.py   loud=yes msg=hello 2
-    say.py   loud=no msg=hello 1
+    say.py   loud=no msg='hello 3'
+    say.py   loud=yes msg='hello 2'
+    say.py   loud=no msg='hello 1'
     say.py+
 
 In cases where we explicitly define flag values, those flag values are

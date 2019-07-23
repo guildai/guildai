@@ -99,7 +99,7 @@ The operation is like any other. We can view info:
     started: ...
     stopped: ...
     marked: no
-    label:
+    label: epochs=1
     run_dir: ...
     command: ... -um guild.op_main train
              --batch_size 100
@@ -154,8 +154,8 @@ We can view the compare columns for the script op - these are default
 for scripts:
 
     >>> run("guild compare --table 1")
-    run  operation  started  time  status     label  batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss
-    ...  train.py   ... ...  ...   completed         100         data     1       False    .       False  540   0...  0...
+    run  operation  started  time  status     label     batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss
+    ...  train.py   ... ...  ...   completed  epochs=1  100         data     1       False    .       False  540   0...  0...
     <exit 0>
 
     run  operation  started  time  status     label  step  loss  acc
@@ -166,6 +166,6 @@ When we compare the last two runs (the `train` op and the `train.py` script):
 
     >>> run("guild compare --table 1 2")
     run  operation  started  time  status     label     batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss  train_loss  train_acc
-    ...  train.py   ... ...  ...   completed            100         data     1       False    .       False  540   0...  0...
+    ...  train.py   ... ...  ...   completed  epochs=1  100         data     1       False    .       False  540   0...  0...
     ...  train      ... ...  ...   completed  epochs=1                                                       540               0...        0...
     <exit 0>

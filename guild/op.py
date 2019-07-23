@@ -165,7 +165,9 @@ class Operation(object):
         self._maybe_write_label(resolved)
 
     def _maybe_write_label(self, resolved):
-        label = self.extra_attrs.get("label") or self.opdef.label
+        label = (
+            self.extra_attrs.get("label") or
+            op_util.default_label(self.opdef))
         if not label:
             return
         formatted = _format_label(
