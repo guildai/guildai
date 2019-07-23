@@ -76,7 +76,7 @@ class Trial(object):
             log.info(
                 "Initialized trial %s (%s)",
                 self._run_desc(trial_run),
-                ", ".join(op_util.flag_assigns(self.flags, quote=True)))
+                self._flags_desc())
 
     def _init_trial_run(self, run_dir=None):
         assert isinstance(self.flags, dict), self.flags
@@ -128,8 +128,7 @@ class Trial(object):
             log.info(
                 "Running trial %s: %s (%s)",
                 self._run_desc(trial_run),
-                opspec,
-                ", ".join(op_util.flag_assigns(self.flags, quote=True)))
+                opspec, self._flags_desc())
         try:
             gapi.run(
                 restart=trial_run.path,
@@ -143,6 +142,12 @@ class Trial(object):
             log.error("Run %s failed - see logs for details", trial_run.id)
         except KeyboardInterrupt as e:
             sys.exit(exit_code.SIGTERM)
+
+    def _flags_desc(self):
+        return ", ".join(op_util.flag_assigns(
+            self.flags,
+            quote=True,
+            truncate_floats=True))
 
 ###################################################################
 # Seq trial
