@@ -2,9 +2,14 @@
 
 ## 0.6.5
 
+- Remove TensorFlow requirement
+- Convenience option to view and open run output
 - Save platform information for runs
 - Check latest version of Guild AI in check command
 - Remove dependency on TensorFlow
+- Sensible default run labels (specifies non-default flag vals)
+- Simplify output scalar patterns with \key and \value regex aliases
+- Batches are no longer included in the TensorBoard view by default
 
 Fixes:
 
