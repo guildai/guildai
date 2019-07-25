@@ -268,6 +268,7 @@ def _check_kw(args):
     ]
     ignore = [
         "all_tests",
+        "check_url",
         "no_info",
         "remote",
         "skip",
