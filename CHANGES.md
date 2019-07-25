@@ -35,7 +35,7 @@ Fixes:
   debugging)
 - Support for `port` and `connect-timeout` SSH remote attributes
 
-### Fixes
+Fixes:
 
 - Import error when using `guild.ipy` (missing click module)
 - Cleanup use of labels for batch trials
@@ -61,7 +61,7 @@ Fixes:
 - Show scalar values in runs info (requireds --scalars option)
   (previously only scalar names were shown)
 
-### Fixes
+Fixes:
 
 - Distribution dependency on scikit-optimize
 
@@ -69,7 +69,7 @@ Fixes:
 
 - Windows support for Python 3.5, 3.6, 3.7
 
-### Fixes
+Fixes:
 
 - Fix import of boolean flags on Python 3 (report by @OliverRichter)
 - Skip all dot directories during source snapshots
