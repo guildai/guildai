@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import json
 import logging
 import os
 import platform
@@ -272,20 +273,19 @@ def _print_guild_latest_versions(check):
         cli.out("latest_guild_version:      unchecked (offline)")
     else:
         cur_ver = guild.__version__
-        latest_ver = _latest_version()
+        latest_ver = _latest_version(check)
         latest_ver_desc = latest_ver or "unknown (error)"
         cli.out("latest_guild_version:      %s" % latest_ver_desc)
         if latest_ver:
             check.newer_version_available = _is_newer(latest_ver, cur_ver)
 
-def _latest_version():
-    url = _latest_version_url()
+def _latest_version(check):
+    url = _latest_version_url(check)
     log.debug("getting latest version from %s", url)
     try:
         resp = requests.post(
             url,
             data={
-                "form-name": _latest_version_form_name(),
                 "guild-version": guild.__version__,
                 "python-version": _python_short_version(),
                 "platform": _platform(),
@@ -306,25 +306,20 @@ def _latest_version():
             return None
         return _parse_latest_version(resp.text)
 
-def _latest_version_url():
-    return (
-        _check_config().get("latest-version-url") or
-        "https://www-pre.guild.ai/version")
-
-def _latest_version_form_name():
-    return (
-        _check_config().get("latest-version-form") or
-        "check-version-Kn0VtNKO")
+def _latest_version_url(check):
+    return _check_config().get("check-url") or check.args.check_url
 
 def _python_short_version():
     return sys.version.split(" ", 1)[0]
 
 def _parse_latest_version(s):
-    m = re.match(r"(\S+) (\S+)", s)
-    if not m:
-        log.debug("unexpected latest version response: %s", s[:200])
+    try:
+        decoded = json.loads(s)
+    except Exception as e:
+        log.debug("error parsing latest version response %s: %s", s, e)
         return None
-    return m.group(1)
+    else:
+        return decoded.get("latest-version", "unknown")
 
 def _is_newer(latest, cur):
     return (

@@ -49,6 +49,9 @@ from . import remote_support
     default=None,
     help="Don't check guild.ai for latest versions.",
     is_flag=True)
+@click.option(
+    "--check-url", hidden=True,
+    default="http://api.guild.ai/check")
 @click.option("--uat", hidden=True, is_flag=True)
 
 @click_util.use_args
