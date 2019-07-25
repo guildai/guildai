@@ -190,13 +190,23 @@ class EC2Remote(ssh_remote.SSHRemote):
                         "from_port": -1,
                         "to_port": -1,
                         "protocol": "icmp",
-                        "cidr_blocks": ["0.0.0.0/0"]
+                        "cidr_blocks": ["0.0.0.0/0"],
+                        "description": None,
+                        "ipv6_cidr_blocks": None,
+                        "prefix_list_ids": None,
+                        "security_groups": None,
+                        "self": None,
                     },
                     {
                         "from_port": 22,
                         "to_port": 22,
                         "protocol": "tcp",
-                        "cidr_blocks": ["0.0.0.0/0"]
+                        "cidr_blocks": ["0.0.0.0/0"],
+                        "description": None,
+                        "ipv6_cidr_blocks": None,
+                        "prefix_list_ids": None,
+                        "security_groups": None,
+                        "self": None,
                     }
                 ],
                 "egress": [
@@ -204,7 +214,12 @@ class EC2Remote(ssh_remote.SSHRemote):
                         "from_port": 0,
                         "to_port": 0,
                         "protocol": "-1",
-                        "cidr_blocks": ["0.0.0.0/0"]
+                        "cidr_blocks": ["0.0.0.0/0"],
+                        "description": None,
+                        "ipv6_cidr_blocks": None,
+                        "prefix_list_ids": None,
+                        "security_groups": None,
+                        "self": None,
                     }
                 ]
             }
@@ -213,7 +228,6 @@ class EC2Remote(ssh_remote.SSHRemote):
             remote_key: {
                 "instance_type": self.instance_type,
                 "ami": self.ami,
-                "count": 1,
                 "vpc_security_group_ids": [
                     "${aws_security_group.%s.id}" % remote_key
                 ]
