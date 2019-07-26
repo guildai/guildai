@@ -29,6 +29,7 @@ log = logging.getLogger("guild")
 MIN_MONITOR_INTERVAL = 5
 
 MAX_LABEL_LEN = 60
+FLOAT_TRUNCATE_LEN = 4
 
 class RunsMonitor(util.LoopingThread):
 
@@ -284,7 +285,7 @@ def _format_yaml_block(val):
     padded = ["  " + line for line in lines]
     return "\n" + "\n".join(padded).rstrip()
 
-def format_flag_val(val):
+def format_flag_val(val, truncate_floats=False):
     if val is True:
         return "yes"
     elif val is False:
@@ -293,7 +294,9 @@ def format_flag_val(val):
         return "null"
     elif isinstance(val, list):
         return _format_flag_list(val)
-    elif isinstance(val, (six.string_types, float)):
+    elif isinstance(val, float):
+        return _format_flag_float(val, truncate_floats)
+    elif isinstance(val, six.string_types):
         return _yaml_format(val)
     else:
         return str(val)
@@ -301,6 +304,25 @@ def format_flag_val(val):
 def _format_flag_list(val_list):
     joined = ", ".join([format_flag_val(val) for val in val_list])
     return "[%s]" % joined
+
+def _format_flag_float(val, truncate):
+    formatted = _yaml_format(val)
+    if not truncate:
+        return formatted
+    return _truncate_float(formatted)
+
+def _truncate_float(formatted):
+    parts = re.split(r"(\.[0-9]+)", formatted)
+    return "".join([_maybe_truncate_dec_part(part) for part in parts])
+
+def _maybe_truncate_dec_part(part):
+    if part[:1] != ".":
+        return part
+    if len(part) <= FLOAT_TRUNCATE_LEN: # lte to include leading '.'
+        return part
+    truncated = str(round(float(part), FLOAT_TRUNCATE_LEN))
+    assert truncated[:2] == "0.", (truncated, part)
+    return truncated[1:] # strip leading 0
 
 def _yaml_format(val):
     formatted = yaml.safe_dump(val).strip()

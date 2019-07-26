@@ -917,9 +917,7 @@ def _format_default_label(flags):
 
 def flag_assign(name, val, quote=False, shell_safe=False,
                 truncate_floats=False):
-    if truncate_floats and isinstance(val, float):
-        val = round(val, 4) # hardcode to keep it simple
-    formatted = run_util.format_flag_val(val)
+    formatted = run_util.format_flag_val(val, truncate_floats)
     if quote or shell_safe:
         formatted = util.shlex_quote(formatted)
         if not shell_safe:
