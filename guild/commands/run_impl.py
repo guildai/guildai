@@ -1070,7 +1070,7 @@ def _format_flag(name, val, opdef):
 def _null_label(name, opdef):
     flag = opdef.get_flagdef(name)
     if flag and flag.null_label is not None:
-        return op_util.format_flag_val(flag.null_label)
+        return run_util.format_flag_val(flag.null_label)
     return "default"
 
 def _strip_quotes(s):
