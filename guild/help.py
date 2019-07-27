@@ -218,10 +218,10 @@ def _write_operation(op, out):
     out.indent()
     if op.description:
         out.write_description(op.description)
-    if op.flags:
+    if op.visible_flags:
         if op.description:
             out.write_paragraph()
-        _write_flags(op.flags, "Flags", out)
+        _write_flags(op.visible_flags, "Flags", out)
     out.dedent()
 
 def _write_flags(flags, heading, out, no_flags_msg=None):
