@@ -36,6 +36,7 @@ from guild import main_bootstrap
 main_bootstrap.ensure_external_path()
 
 from guild import batch_main
+from guild import click_util
 from guild import config
 from guild import index2 as indexlib
 from guild import model_proxy
@@ -47,6 +48,8 @@ from guild import run_util
 from guild import summary
 from guild import util
 from guild import var
+
+from guild.commands import runs_impl
 
 log = logging.getLogger("guild")
 
@@ -385,10 +388,33 @@ def _finalize_run_attrs(run, exit_status):
     run.write_attr("exit_status", exit_status)
     run.write_attr("stopped", runlib.timestamp())
 
-def runs():
-    runs = var.runs(sort=["-timestamp"])
+def runs(**kw):
+    runs = runs_impl.filtered_runs(_runs_cmd_args(**kw))
     data, cols = _format_runs(runs)
     return RunsDataFrame(data=data, columns=cols)
+
+def _runs_cmd_args(
+        operations=None,
+        labels=None,
+        running=False,
+        completed=False,
+        error=False,
+        terminated=False,
+        pending=False,
+        unlabeled=None,
+        marked=False,
+        unmarked=False):
+    return click_util.Args(
+        ops=operations,
+        labels=labels,
+        running=running,
+        completed=completed,
+        error=error,
+        terminated=terminated,
+        pending=pending,
+        unlabeled=unlabeled,
+        marked=marked,
+        unmarked=unmarked)
 
 def _format_runs(runs):
     cols = (

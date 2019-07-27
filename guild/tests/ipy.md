@@ -80,6 +80,35 @@ List runs:
     0  ...    hello()      ...  completed run2
     1  ...    hello()      ...  completed
 
+Filter using a label:
+
+    >>> with guild_home:
+    ...     ipy.runs(labels=["run2"])
+       run  operation  started     status label
+    0  ...    hello()      ...  completed run2
+
+Filter with status:
+
+    >>> with guild_home:
+    ...     ipy.runs(error=True, terminated=True)
+    Empty RunsDataFrame
+    Columns: [run, operation, started, status, label]
+    Index: []
+
+With operation:
+
+    >>> with guild_home:
+    ...     ipy.runs(operations=["hello"], completed=True)
+            run operation             started     status label
+    0  ...    hello()      ...  completed run2
+    1  ...    hello()      ...  completed
+
+    >>> with guild_home:
+    ...     ipy.runs(operations=["bye"])
+    Empty RunsDataFrame
+    Columns: [run, operation, started, status, label]
+    Index: []
+
 ## Runs info
 
 Print latest run info:
