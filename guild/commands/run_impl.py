@@ -499,7 +499,14 @@ def _dep_description(dep, model_resources):
     return dep.description or model_resources.get(dep.spec) or ""
 
 def _format_op_flags_dl(opdef):
-    return guild.help.flags_dl(opdef.visible_flags)
+    seen = set()
+    flags = []
+    for flag in opdef.flags:
+        if flag.name in seen:
+            continue
+        seen.add(flag.name)
+        flags.append(flag)
+    return guild.help.flags_dl(flags)
 
 ###################################################################
 # Op command
@@ -1046,17 +1053,12 @@ def _remote_suffix(args):
     return ""
 
 def _format_op_flags(op):
-    formatted = [
-        "  %s" % _format_flag(name, op.flag_vals[name], op.opdef)
-        for name in sorted(op.flag_vals)
-        if not _is_flag_hidden(op.opdef.get_flagdef(name))
-    ]
-    if not formatted:
+    if not op.flag_vals:
         return ""
-    return "\n".join(formatted) + "\n"
-
-def _is_flag_hidden(flagdef):
-    return flagdef and flagdef.hidden
+    return "\n".join([
+        "  %s" % _format_flag(name, val, op.opdef)
+        for name, val in sorted(op.flag_vals.items())
+    ]) + "\n"
 
 def _format_flag(name, val, opdef):
     if val is None:

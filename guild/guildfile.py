@@ -980,10 +980,6 @@ class OpDef(object):
             if val is not None or include_none:
                 yield name, val
 
-    @property
-    def visible_flags(self):
-        return [f for f in self.flags if not f.hidden]
-
     def set_flag_value(self, name, val):
         self._flag_vals[name] = val
 
@@ -1077,7 +1073,6 @@ class FlagDef(object):
         self.description = _data.pop("description", None) or ""
         self.type = _data.pop("type", None)
         self.required = bool(_data.pop("required", False))
-        self.hidden = bool(_data.pop("hidden", False))
         self.arg_name = _data.pop("arg-name", None)
         self.arg_skip = _data.pop("arg-skip", None)
         self.arg_switch = _data.pop("arg-switch", None)
