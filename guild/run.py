@@ -256,11 +256,7 @@ def timestamp_seconds(ts):
     return float(ts / 1000000)
 
 def mkid():
-    try:
-        return uuid.uuid1().hex
-    except ValueError:
-        # Workaround https://bugs.python.org/issue32502
-        return uuid.uuid4().hex
+    return uuid.uuid4().hex
 
 def from_dir(run_dir, id=None):
     if not id:
