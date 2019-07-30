@@ -55,14 +55,14 @@ template README.md, the run data files, and operation source code
 `op.py`).
 
     >>> find(path(publish_dest, run_id))
-    ['README.md',
-     'flags.yml',
-     'output.txt',
-     'run.yml',
-     'runfiles.csv',
-     'scalars.csv',
-     'sourcecode.csv',
-     'sourcecode/op.py']
+    README.md
+    flags.yml
+    output.txt
+    run.yml
+    runfiles.csv
+    scalars.csv
+    sourcecode.csv
+    sourcecode/op.py
 
  Here's the template generated report:
 
@@ -234,14 +234,14 @@ Publish using a `just-files` template (only prints the files table):
 Here are the published files:
 
     >>> find(path(publish_dest, run_id))
-    ['README.md',
-     'flags.yml',
-     'output.txt',
-     'run.yml',
-     'runfiles.csv',
-     'scalars.csv',
-     'sourcecode.csv',
-     'sourcecode/op.py']
+    README.md
+    flags.yml
+    output.txt
+    run.yml
+    runfiles.csv
+    scalars.csv
+    sourcecode.csv
+    sourcecode/op.py
 
 And the generated report:
 
@@ -274,27 +274,15 @@ publish files associated with the run:
 This time the published run contains `generated-1.txt`:
 
     >>> find(path(publish_dest, run_id))
-    ['README.md',
-     'flags.yml',
-     'output.txt',
-     'run.yml',
-     'runfiles.csv',
-     'runfiles/generated-1.txt',
-     'scalars.csv',
-     'sourcecode.csv',
-     'sourcecode/op.py']
-
-    ['README.md',
-     'flags.yml',
-     'output.txt',
-     'run.yml',
-     'runfiles.csv',
-     'runfiles/generated-1.txt',
-     'runfiles/generated-2.txt',
-     'scalars.csv',
-     'sourcecode.csv',
-     'sourcecode/op.py']
-
+    README.md
+    flags.yml
+    output.txt
+    run.yml
+    runfiles.csv
+    runfiles/generated-1.txt
+    scalars.csv
+    sourcecode.csv
+    sourcecode/op.py
 
 And the report contains the applicable hyperlink:
 
@@ -329,16 +317,16 @@ otherwise be excluded by an operation, by publishing with the
 The published run now contains both generated files:
 
     >>> find(path(publish_dest, run_id))
-    ['README.md',
-     'flags.yml',
-     'output.txt',
-     'run.yml',
-     'runfiles.csv',
-     'runfiles/generated-1.txt',
-     'runfiles/generated-2.txt',
-     'scalars.csv',
-     'sourcecode.csv',
-     'sourcecode/op.py']
+    README.md
+    flags.yml
+    output.txt
+    run.yml
+    runfiles.csv
+    runfiles/generated-1.txt
+    runfiles/generated-2.txt
+    scalars.csv
+    sourcecode.csv
+    sourcecode/op.py
 
  And the report contains the applicable hyperlinks:
 
@@ -370,16 +358,16 @@ Publish including links:
 The files now contain `link.txt` as well as `generated-1.txt`:
 
     >>> find(path(publish_dest, run_id))
-    ['README.md',
-     'flags.yml',
-     'output.txt',
-     'run.yml',
-     'runfiles.csv',
-     'runfiles/generated-1.txt',
-     'runfiles/link.txt',
-     'scalars.csv',
-     'sourcecode.csv',
-     'sourcecode/op.py']
+    README.md
+    flags.yml
+    output.txt
+    run.yml
+    runfiles.csv
+    runfiles/generated-1.txt
+    runfiles/link.txt
+    scalars.csv
+    sourcecode.csv
+    sourcecode/op.py
 
 And the generated report contains the applicable links:
 
@@ -412,17 +400,17 @@ Publish all files and links:
 Now all files are published:
 
     >>> find(path(publish_dest, run_id))
-    ['README.md',
-     'flags.yml',
-     'output.txt',
-     'run.yml',
-     'runfiles.csv',
-     'runfiles/generated-1.txt',
-     'runfiles/generated-2.txt',
-     'runfiles/link.txt',
-     'scalars.csv',
-     'sourcecode.csv',
-     'sourcecode/op.py']
+    README.md
+    flags.yml
+    output.txt
+    run.yml
+    runfiles.csv
+    runfiles/generated-1.txt
+    runfiles/generated-2.txt
+    runfiles/link.txt
+    scalars.csv
+    sourcecode.csv
+    sourcecode/op.py
 
 And each file has a hyperlink in the generated report:
 

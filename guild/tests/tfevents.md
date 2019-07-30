@@ -77,7 +77,7 @@ Let's write some events into the subdirectory:
 The generated files:
 
     >>> find(basedir)
-    ['subdir/events.out.tfevents...']
+    subdir/events.out.tfevents...
 
 We can load the events from the subdirectory as expected:
 
@@ -103,7 +103,7 @@ We'll use our prior example as a starting point.
 Here is the directory structure:
 
     >>> find(basedir)
-    ['subdir/events.out.tfevents...']
+    subdir/events.out.tfevents...
 
 `tfevent.scalar_readers()` is a generator that yields tuples of
 directory, digest, and reader.
@@ -146,8 +146,8 @@ event filename timestamp is incremented):
 This generates a new log file:
 
     >>> find(basedir)
-    ['subdir/events.out.tfevents...',
-     'subdir/events.out.tfevents...]
+    subdir/events.out.tfevents...
+    subdir/events.out.tfevents...
 
 Re-reading from `basedir`:
 
@@ -192,11 +192,11 @@ Let's link `subdir` to `subdir_link`:
 Our directory structure:
 
     >>> find(basedir, followlinks=True)
-    ['subdir/events.out.tfevents...',
-     'subdir/events.out.tfevents...',
-     'subdir_link',
-     'subdir_link/events.out.tfevents...',
-     'subdir_link/events.out.tfevents...']
+    subdir/events.out.tfevents...
+    subdir/events.out.tfevents...
+    subdir_link
+    subdir_link/events.out.tfevents...
+    subdir_link/events.out.tfevents...
 
 And our readers:
 

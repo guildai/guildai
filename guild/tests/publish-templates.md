@@ -56,7 +56,10 @@ the template:
 Here are the generated files in our temp directory:
 
     >>> find(dest)
-    ['README.md', 'a/A.md', 'b/B.html', 'hello.png']
+    README.md
+    a/A.md
+    b/B.html
+    hello.png
 
 README.md:
 
@@ -143,7 +146,7 @@ Let's generate the template:
 The report generates one file, `README.md`:
 
     >>> find(dest)
-    ['README.md']
+    README.md
 
 Here's the README.md:
 
@@ -191,13 +194,13 @@ And call `publish_run()`:
 Here are the generated files:
 
     >>> find(dest)
-    ['.guild-nocopy',
-     '360192fdf9b74f2fad5f514e9f2fdadb/README.md',
-     '360192fdf9b74f2fad5f514e9f2fdadb/flags.yml',
-     '360192fdf9b74f2fad5f514e9f2fdadb/run.yml',
-     '360192fdf9b74f2fad5f514e9f2fdadb/runfiles.csv',
-     '360192fdf9b74f2fad5f514e9f2fdadb/scalars.csv',
-     '360192fdf9b74f2fad5f514e9f2fdadb/sourcecode.csv']
+    .guild-nocopy
+    360192fdf9b74f2fad5f514e9f2fdadb/README.md
+    360192fdf9b74f2fad5f514e9f2fdadb/flags.yml
+    360192fdf9b74f2fad5f514e9f2fdadb/run.yml
+    360192fdf9b74f2fad5f514e9f2fdadb/runfiles.csv
+    360192fdf9b74f2fad5f514e9f2fdadb/scalars.csv
+    360192fdf9b74f2fad5f514e9f2fdadb/sourcecode.csv
 
 The publish facility generates a number of run related files (ending
 in `.yml`, `.csv`, and `.txt`) that represent the public data for a

@@ -488,7 +488,7 @@ The first source specifies the `files` directory but renames it to
     ['.../samples/projects/resources/files']
 
     >>> find(test_ctx.target_dir)
-    ['all_files']
+    all_files
 
 ### bin files
 
@@ -514,7 +514,7 @@ strip off the `.bin` suffix. The files are additionally stored in a
     ['.../samples/projects/resources/files/a.bin']
 
     >>> find(test_ctx.target_dir)
-    ['bin/a']
+    bin/a
 
 ### archive1 text files
 
@@ -544,7 +544,8 @@ in an `archive1` directory (path) and adds a `2` to their basename.
     Unpacking .../samples/projects/resources/archive1.zip
 
     >>> find(test_ctx.target_dir)
-    ['archive1/a2.txt', 'archive1/b2.txt']
+    archive1/a2.txt
+    archive1/b2.txt
 
 ### All archive2 files
 
@@ -575,7 +576,8 @@ renames them with an `archive2_` prefix.
     Unpacking .../samples/projects/resources/archive2.tar
 
     >>> find(test_ctx.target_dir)
-    ['archive2_c.txt', 'archive2_d.txt']
+    archive2_c.txt
+    archive2_d.txt
 
 ### Config sources
 
@@ -614,7 +616,8 @@ The resolved source is generated under the run directory:
 Here's another view with the resolved link to the generated config:
 
     >>> find(test_ctx.target_dir)
-    ['.guild/generated/.../config.yml', 'config.yml']
+    .guild/generated/.../config.yml
+    config.yml
 
 And the config:
 
@@ -681,10 +684,10 @@ Let's resolve the config source:
 Here's the target dir:
 
     >>> find(test_ctx.target_dir)
-    ['.guild/generated/.../config.yml',
-     '.guild/generated/.../config.yml',
-     'c2.yml',
-     'config.yml']
+    .guild/generated/.../config.yml
+    .guild/generated/.../config.yml
+    c2.yml
+    config.yml
 
 Note the second generated config. Generated config files are created
 under a unique directory of `.guild/generated` to ensure that their
@@ -729,12 +732,12 @@ Let's resolve the config source:
 Here's the target dir:
 
     >>> find(test_ctx.target_dir)
-    ['.guild/generated/.../config.yml',
-     '.guild/generated/.../config.yml',
-     '.guild/generated/.../config.yml',
-     'c2.yml',
-     'c3/config.yml',
-     'config.yml']
+    .guild/generated/.../config.yml
+    .guild/generated/.../config.yml
+    .guild/generated/.../config.yml
+    c2.yml
+    c3/config.yml
+    config.yml
 
 Again, note the third generated config.
 
@@ -767,7 +770,8 @@ Let's resolve the source:
 Here's our target directory:
 
     >>> find(test_ctx.target_dir)
-    ['.guild/generated/.../config.yml', 'c3/config.yml']
+    .guild/generated/.../config.yml
+    c3/config.yml
 
 And the resolved config:
 
@@ -919,7 +923,7 @@ Let's resolve the source to a new temp dir:
 The resolved files are under the resource path `foo`:
 
     >>> find(test2_ctx.target_dir)
-    ['foo/test.txt']
+    foo/test.txt
 
 ### Source paths
 
@@ -944,4 +948,4 @@ The resolved files are under the resource path `foo/bar`, which is
 defined by both the resource and the source:
 
     >>> find(test2_ctx.target_dir)
-    ['foo/bar/a.bin']
+    foo/bar/a.bin

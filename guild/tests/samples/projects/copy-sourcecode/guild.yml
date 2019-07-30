@@ -1,4 +1,11 @@
 - model: default
+  operations:
+    default:
+      main: guild.pass
+
+# ------------------------------------------
+# Old stuff
+# ------------------------------------------
 
 - model: include-logo
   sourcecode:

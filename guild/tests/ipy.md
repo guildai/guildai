@@ -42,14 +42,14 @@ provided as key words:
 Files:
 
     >>> find(run.path)
-    ['.guild/attrs/exit_status',
-     '.guild/attrs/flags',
-     '.guild/attrs/id',
-     '.guild/attrs/initialized',
-     '.guild/attrs/started',
-     '.guild/attrs/stopped',
-     '.guild/opref',
-     '.guild/output']
+    .guild/attrs/exit_status
+    .guild/attrs/flags
+    .guild/attrs/id
+    .guild/attrs/initialized
+    .guild/attrs/started
+    .guild/attrs/stopped
+    .guild/opref
+    .guild/output
 
 Output:
 
@@ -242,15 +242,15 @@ Run the operation:
 Files:
 
     >>> find(run.path)
-    ['.guild/attrs/exit_status',
-     '.guild/attrs/flags',
-     '.guild/attrs/id',
-     '.guild/attrs/initialized',
-     '.guild/attrs/started',
-     '.guild/attrs/stopped',
-     '.guild/events.out.tfevents...',
-     '.guild/opref',
-     '.guild/output']
+    .guild/attrs/exit_status
+    .guild/attrs/flags
+    .guild/attrs/id
+    .guild/attrs/initialized
+    .guild/attrs/started
+    .guild/attrs/stopped
+    .guild/events.out.tfevents...
+    .guild/opref
+    .guild/output
 
 Note that output now contains a `tsevents` file.
 
@@ -293,15 +293,15 @@ Let's run the function as an operation:
 The run files:
 
     >>> find(run.path)
-    ['.guild/attrs/exit_status',
-     '.guild/attrs/flags',
-     '.guild/attrs/id',
-     '.guild/attrs/initialized',
-     '.guild/attrs/started',
-     '.guild/attrs/stopped',
-     '.guild/opref',
-     '.guild/output',
-     'events.out.tfevents...']
+    .guild/attrs/exit_status
+    .guild/attrs/flags
+    .guild/attrs/id
+    .guild/attrs/initialized
+    .guild/attrs/started
+    .guild/attrs/stopped
+    .guild/opref
+    .guild/output
+    events.out.tfevents...
 
 And its scalars:
 

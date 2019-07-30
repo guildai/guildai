@@ -297,6 +297,7 @@ def test_globals():
         "dirname": os.path.dirname,
         "exists": os.path.exists,
         "find": find,
+        "findl": findl,
         "gapi": gapi,
         "guild": guild,
         "guildfile": guildfile,
@@ -334,6 +335,10 @@ def mktemp_guild_dir():
     return guild_dir
 
 def find(root, followlinks=False):
+    for path in findl(root, followlinks):
+        print(path)
+
+def findl(root, followlinks=False):
     all = []
     relpath = lambda path, name: (
         os.path.relpath(os.path.join(path, name), root))

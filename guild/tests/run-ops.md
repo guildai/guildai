@@ -82,7 +82,8 @@ Here's a shell script:
 And the files in cwd:
 
     >>> find(cwd)
-    ['train.py', 'train.sh']
+    train.py
+    train.sh
 
 The resolved model before making the script to executable (skipped on
 Windows because exe permission isn't supported):
