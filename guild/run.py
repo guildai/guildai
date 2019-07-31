@@ -49,6 +49,7 @@ class Run(object):
 
     @property
     def dir(self):
+        """Alias for path attr."""
         return self.path
 
     @property
