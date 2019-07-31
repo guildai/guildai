@@ -107,7 +107,7 @@ class FileSelectRule(object):
     def test(self, src_root, relpath):
         fullpath = os.path.join(src_root, relpath)
         tests = [
-            lambda: self._test_max_matches(relpath),
+            lambda: self._test_max_matches(),
             lambda: self._test_patterns(relpath),
             lambda: self._test_type(fullpath),
             lambda: self._test_size(fullpath),
@@ -118,7 +118,7 @@ class FileSelectRule(object):
         self._matches += 1
         return self.result
 
-    def _test_max_matches(self, path):
+    def _test_max_matches(self):
         if self.max_matches is None:
             return True
         return self._matches < self.max_matches
@@ -195,6 +195,7 @@ class FileCopyHandler(object):
     def ignore(self, path):
         pass
 
+    @staticmethod
     def handle_copy_error(self, _e, _src, _dest):
         return False
 

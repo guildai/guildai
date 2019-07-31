@@ -488,19 +488,14 @@ def copy_sourcecode(opdef, dest, handler_cls=None):
     select = _sourcecode_select_for_opdef(opdef)
     root_start = opdef.guildfile.dir
     file_util.copytree(dest, select, root_start, handler_cls=handler_cls)
-    """
-    config = [opdef.sourcecode, opdef.modeldef.sourcecode]
-    if _sourcecode_disabled(config):
-        log.debug("sourcecode filters disabled, skipping copy")
-        return
-    root = _copy_sourcecode_root(opdef)
-    filter = SourceCodeFilter(config, opdef)
-    util.select_copytree(root, dest, config, filter)
-    """
 
 def _sourcecode_select_for_opdef(opdef):
     root = opdef.sourcecode.root or opdef.modeldef.sourcecode.root
-    rules = _base_sourcecode_select_rules()
+    rules = (
+        _base_sourcecode_select_rules() +
+        _sourcecode_config_rules(opdef.modeldef.sourcecode) +
+        _sourcecode_config_rules(opdef.sourcecode)
+    )
     return file_util.FileSelect(root, rules)
 
 def _base_sourcecode_select_rules():
@@ -526,6 +521,17 @@ def _rule_include_limited_text_files():
         type="text",
         size_lt=MAX_DEFAULT_SOURCECODE_FILE_SIZE,
         max_matches=MAX_DEFAULT_SOURCECODE_COUNT)
+
+def _sourcecode_config_rules(config):
+    return [_rule_for_select_spec(spec) for spec in config.specs]
+
+def _rule_for_select_spec(spec):
+    if spec.type == "include":
+        return file_util.include(spec.patterns)
+    elif spec.type == "exclude":
+        return file_util.exclude(spec.patterns)
+    else:
+        assert False, spec.type
 
 """
 def _copy_sourcecode_root(opdef):
