@@ -169,9 +169,6 @@ def include(patterns, **kw):
 def exclude(patterns, **kw):
     return FileSelectRule(False, patterns, **kw)
 
-class DebugCallback(object):
-    pass
-
 class FileCopyHandler(object):
 
     def __init__(self, src_root, dest_root):
@@ -201,8 +198,12 @@ class FileCopyHandler(object):
     def handle_copy_error(self, _e, _src, _dest):
         return False
 
-def copytree(dest, select, root_start=None, followlinks=True,
-             handler_cls=None):
+def copytree(
+        dest,
+        select,
+        root_start=None,
+        followlinks=True,
+        handler_cls=None):
     """Copies files to dest for a FileSelect.
 
     root_start is an optional location from which select.root, if

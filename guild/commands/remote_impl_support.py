@@ -176,6 +176,7 @@ def _run_kw(args):
         "set_trace",
         "stage",
         "test_output_scalars",
+        "test_sourcecode",
         "yes",
     ]
     return _arg_kw(args, names, ignore)

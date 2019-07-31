@@ -1,7 +1,18 @@
 - model: default
+  disable-plugins: all
   operations:
+
     default:
       main: guild.pass
+
+    alt-root:
+      main: guild.pass
+      sourcecode:
+        root: subdir
+
+    include-png:
+      main: guild.pass
+      sourcecode: '*.png'
 
 # ------------------------------------------
 # Old stuff

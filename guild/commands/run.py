@@ -171,7 +171,11 @@ def run_params(fn):
             metavar="OUTPUT",
             help=(
                 "Test output scalars on output. Use '-' to read from standard "
-                "intput."))
+                "intput.")),
+        click.Option(
+            ("--test-sourcecode",),
+            help="Test source code selection.",
+            is_flag=True),
     ])
     return fn
 

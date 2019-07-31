@@ -26,8 +26,9 @@ import six
 import yaml
 
 # Move any import that's expensive or seldom used into function
-from guild import util
+from guild import file_util
 from guild import run_util
+from guild import util
 
 log = logging.getLogger("guild")
 
@@ -481,12 +482,52 @@ def _check_flag_range(val, flag):
 
 def copy_run_sourcecode(run, opdef):
     log.debug("copying source code files for run %s", run.id)
-    copy_sourcecode(
-        _copy_sourcecode_root(opdef),
-        [opdef.sourcecode, opdef.modeldef.sourcecode],
-        run.guild_path("sourcecode"),
-        opdef)
+    copy_sourcecode(opdef, run.guild_path("sourcecode"))
 
+def copy_sourcecode(opdef, dest, handler_cls=None):
+    select = _sourcecode_select_for_opdef(opdef)
+    root_start = opdef.guildfile.dir
+    file_util.copytree(dest, select, root_start, handler_cls=handler_cls)
+    """
+    config = [opdef.sourcecode, opdef.modeldef.sourcecode]
+    if _sourcecode_disabled(config):
+        log.debug("sourcecode filters disabled, skipping copy")
+        return
+    root = _copy_sourcecode_root(opdef)
+    filter = SourceCodeFilter(config, opdef)
+    util.select_copytree(root, dest, config, filter)
+    """
+
+def _sourcecode_select_for_opdef(opdef):
+    root = opdef.sourcecode.root or opdef.modeldef.sourcecode.root
+    rules = _base_sourcecode_select_rules()
+    return file_util.FileSelect(root, rules)
+
+def _base_sourcecode_select_rules():
+    return [
+        _rule_exclude_dot_dirs(),
+        _rule_exclude_nocopy_dirs(),
+        _rule_exclude_venv_dirs(),
+        _rule_include_limited_text_files(),
+    ]
+
+def _rule_exclude_dot_dirs():
+    return file_util.exclude(".*", type="dir")
+
+def _rule_exclude_nocopy_dirs():
+    return file_util.exclude("*", type="dir", sentinel=".guild-nocopy")
+
+def _rule_exclude_venv_dirs():
+    return file_util.exclude("*", type="dir", sentinel="bin/activate")
+
+def _rule_include_limited_text_files():
+    return file_util.include(
+        "*",
+        type="text",
+        size_lt=MAX_DEFAULT_SOURCECODE_FILE_SIZE,
+        max_matches=MAX_DEFAULT_SOURCECODE_COUNT)
+
+"""
 def _copy_sourcecode_root(opdef):
     config_root = opdef.sourcecode.root or opdef.modeldef.sourcecode.root
     if not config_root:
@@ -563,24 +604,12 @@ class SourceCodeFilter(object):
             len(to_copy), MAX_DEFAULT_SOURCECODE_COUNT,
             self._snapshot_sourcecode_help_suffix())
 
-def copy_sourcecode(src_base, config, dest_base, opdef=None):
-    if not isinstance(config, list):
-        config = [config]
-    if _sourcecode_disabled(config):
-        log.debug("sourcecode filters disabled, skipping copy")
-        return
-    util.select_copytree(
-        src_base,
-        dest_base,
-        config,
-        SourceCodeFilter(config, opdef))
-
 def _sourcecode_disabled(config):
-    """Returns True if source code copy is disabled for config.
+    ""Returns True if source code copy is disabled for config.
 
     If config does not contain any specs or contains any specs that
     aren't 'exclude: *' then copies are enabled.
-    """
+    ""
     assert isinstance(config, list), config
     has_specs = False
     for c in config:
@@ -589,6 +618,7 @@ def _sourcecode_disabled(config):
                 return False
             has_specs = True
     return has_specs
+"""
 
 def split_main(main):
     if isinstance(main, list):

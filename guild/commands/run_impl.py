@@ -417,6 +417,8 @@ def _dispatch_cmd(args, opdef):
         _print_op_help(opdef)
     elif args.test_output_scalars:
         _test_output_scalars(opdef, args)
+    elif args.test_sourcecode:
+        _test_sourcecode(opdef)
     else:
         _dispatch_op_cmd(opdef, args)
 
@@ -1407,3 +1409,33 @@ def _testable_output_scalars(opdef):
     if opdef.output_scalars is None:
         return oplib.DEFAULT_OUTPUT_SCALARS
     return opdef.output_scalars
+
+def _test_sourcecode(opdef):
+    logger = _CopyLogger()
+    op_util.copy_sourcecode(opdef, None, handler_cls=logger.handler_cls)
+    cli.out("Selected for copy:")
+    for path in logger.selected:
+        cli.out(click.style("  %s" % path, fg="yellow"))
+    cli.out("Skipped:")
+    for path in logger.skipped:
+        cli.out(click.style("  %s" % path, dim=True))
+
+class _CopyLogger(object):
+
+    root = None
+
+    def __init__(self):
+        self.selected = []
+        self.skipped = []
+        self.handler_cls = self._handler
+
+    def _handler(self, src_root, dest_root):
+        assert dest_root is None, dest_root
+        self.root = os.path.relpath(src_root)
+        return self
+
+    def copy(self, path):
+        self.selected.append(os.path.join(self.root, path))
+
+    def ignore(self, path):
+        self.skipped.append(os.path.join(self.root, path))
