@@ -335,8 +335,12 @@ def mktemp_guild_dir():
     return guild_dir
 
 def find(root, followlinks=False):
-    for path in findl(root, followlinks):
-        print(path)
+    paths = findl(root, followlinks)
+    if not paths:
+        print("<empty>")
+    else:
+        for path in paths:
+            print(path)
 
 def findl(root, followlinks=False):
     all = []

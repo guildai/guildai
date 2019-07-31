@@ -62,10 +62,12 @@ Here's a facility for generating a source directory of files to copy:
 
 Here's a function to copy a directory using `copytree`:
 
-    >>> def cp(src, select_rules, select_root=None):
+    >>> def cp(src, select_rules, select_root=None, handler_cls=None):
     ...   dest = mkdtemp()
     ...   select = file_util.FileSelect(select_root, select_rules)
-    ...   file_util.copytree(dest, select, src)
+    ...   file_util.copytree(
+    ...     dest, select, src,
+    ...     handler_cls=handler_cls)
     ...   find(dest)
 
 Here are the functions from `file_util` that define rules:
@@ -84,6 +86,7 @@ Here's a src containing a single text file:
 Without any rules, `copytree` will not copy any files:
 
     >>> cp(src, [])
+    <empty>
 
 Here's a select with a single include rule that matches any file name:
 
@@ -95,6 +98,7 @@ file is the applied rule. Let's end our rules list with an exclude
 that matches any file name:
 
     >>> cp(src, [include("*"), exclude("*")])
+    <empty>
 
 If we further add another include at the end of our rules list:
 
@@ -273,6 +277,86 @@ And the large file:
 
     >>> cp(src, [include("*", size_gt=99)])
     large.txt
+
+### Skipping files after a number of matches
+
+A select rule may include a `max_matches` attribute, which specifies
+the maximum number of matches that rule can make before it stops
+matching. This is used to prevent copying unexpectedly large number of
+files.
+
+Here's a source directory containing ten files:
+
+    >>> src = mksrc([empty("%i.txt" % i) for i in range(10)])
+    >>> find(src)
+    0.txt
+    ...
+    9.txt
+
+Let's copy this source, but limit the number of included files to 6.
+
+    >>> cp(src, [include("*.txt", max_matches=6)])
+    0.txt
+    1.txt
+    2.txt
+    3.txt
+    4.txt
+    5.txt
+
+### Custom copytree handlers
+
+Guild supports custom handlers for the copy tree operation. We can use
+a custom handler to modify file copy and ignore behavior as well as
+error handling.
+
+Let's create a custom handler that simply logs information.
+
+    >>> class Handler(object):
+    ...
+    ...   def __init__(self, src_root, dest_root):
+    ...     self.src_root = src_root
+    ...     self.dest_root = dest_root
+    ...
+    ...   def copy(self, path):
+    ...     print("copy: %s" % path)
+    ...
+    ...   def ignore(self, path):
+    ...     print("ignore: %s" % path)
+    ...
+    ...   def handle_copy_error(self, e, src, dest):
+    ...     assert False, (e, src, dest)
+
+Our source directory:
+
+    >>> src = mksrc([
+    ...   empty("a.txt"),
+    ...   binary("a.bin", size=1),
+    ... ])
+
+We specify the class for our handler in the call to `copytree`.
+
+    >>> cp(src, [include("*")], handler_cls=Handler)
+    copy: a.bin
+    copy: a.txt
+    <empty>
+
+    >>> cp(src, [include("*.bin")], handler_cls=Handler)
+    copy: a.bin
+    ignore: a.txt
+    <empty>
+
+    >>> cp(src, [include("*", size_lt=1)], handler_cls=Handler)
+    ignore: a.bin
+    copy: a.txt
+    <empty>
+
+### Symlinks
+
+TODO
+
+### Alternative source roots
+
+TODO
 
 ### Validation
 

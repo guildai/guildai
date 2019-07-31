@@ -17,6 +17,7 @@ from __future__ import division
 
 import fnmatch
 import glob
+import logging
 import os
 import re
 import shutil
@@ -24,6 +25,8 @@ import shutil
 import six
 
 from guild import util
+
+log = logging.getLogger("guild")
 
 class FileSelect(object):
 
@@ -41,16 +44,18 @@ class FileSelect(object):
                 last_rule_result = rule_result
         return last_rule_result is True
 
-    def prune_dirs(self, src_root, relpath, dirs):
+    def prune_dirs(self, src_root, relroot, dirs):
         for name in list(dirs):
             last_rule_result = None
+            relpath = os.path.join(relroot, name)
             for rule in self.rules:
                 if rule.type != "dir":
                     continue
-                rule_result = rule.test(src_root, os.path.join(relpath, name))
+                rule_result = rule.test(src_root, relpath)
                 if rule_result is not None:
                     last_rule_result = rule_result
             if last_rule_result is False:
+                log.debug("skipping directory %s", relpath)
                 dirs.remove(name)
 
 class FileSelectRule(object):
@@ -63,7 +68,8 @@ class FileSelectRule(object):
             type=None,
             sentinel=None,
             size_gt=None,
-            size_lt=None):
+            size_lt=None,
+            max_matches=None):
         self.result = result
         if isinstance(patterns, six.string_types):
             patterns = [patterns]
@@ -74,6 +80,8 @@ class FileSelectRule(object):
         self.sentinel = sentinel
         self.size_gt = size_gt
         self.size_lt = size_lt
+        self.max_matches = max_matches
+        self._matches = 0
 
     @staticmethod
     def _patterns_match_f(patterns, regex):
@@ -93,9 +101,13 @@ class FileSelectRule(object):
                 % (type, ", ".join(valid)))
         return type
 
+    def reset_matches(self):
+        self._matches = 0
+
     def test(self, src_root, relpath):
         fullpath = os.path.join(src_root, relpath)
         tests = [
+            lambda: self._test_max_matches(relpath),
             lambda: self._test_patterns(relpath),
             lambda: self._test_type(fullpath),
             lambda: self._test_size(fullpath),
@@ -103,7 +115,13 @@ class FileSelectRule(object):
         for test in tests:
             if not test():
                 return None
+        self._matches += 1
         return self.result
+
+    def _test_max_matches(self, path):
+        if self.max_matches is None:
+            return True
+        return self._matches < self.max_matches
 
     def _test_patterns(self, path):
         return self._patterns_match(path)
@@ -156,11 +174,9 @@ class DebugCallback(object):
 
 class FileCopyHandler(object):
 
-    def __init__(self, src_root, dest_root, debug_cb=None, error_handler=None):
+    def __init__(self, src_root, dest_root):
         self.src_root = src_root
         self.dest_root = dest_root
-        self.debug_cb = debug_cb
-        self.error_handler = error_handler
 
     def copy(self, path):
         src = os.path.join(self.src_root, path)
@@ -173,18 +189,20 @@ class FileCopyHandler(object):
             shutil.copyfile(src, dest)
         except IOError as e:
             if e.errno != 2: # Ignore file not exists
-                if not self.error_handler:
+                if not self.handle_copy_error(e, src, dest):
                     raise
-                self.error_handler(e)
         except OSError as e:
-            if not self.error_handler:
+            if not self.handle_copy_error(e, src, dest):
                 raise
-            self.error_handler(e)
 
     def ignore(self, path):
         pass
 
-def copytree(dest, select, root_start=None, followlinks=True, debug_cb=None):
+    def handle_copy_error(self, _e, _src, _dest):
+        return False
+
+def copytree(dest, select, root_start=None, followlinks=True,
+             handler_cls=None):
     """Copies files to dest for a FileSelect.
 
     root_start is an optional location from which select.root, if
@@ -193,16 +211,16 @@ def copytree(dest, select, root_start=None, followlinks=True, debug_cb=None):
     If followlinks is True (the default), follows linked directories
     when copying the tree.
 
-    If debug_cb is specified, does not copy files but instead invokes
-    debub_cb methods as it evaluates source files to copy. debug_cb
-    must implement the DebugCallback interface.
+    A handler class may be specified to create a handler of copy
+    events. FileCopyHandler is used by default.
     """
     src = _copytree_src(root_start, select)
-    handler = FileCopyHandler(src, dest, debug_cb)
+    handler = (handler_cls or FileCopyHandler)(src, dest)
     for root, dirs, files in os.walk(src, followlinks=followlinks):
+        dirs.sort()
         relroot = _relpath(root, src)
         select.prune_dirs(src, relroot, dirs)
-        for name in files:
+        for name in sorted(files):
             relpath = os.path.join(relroot, name)
             if select.select_file(src, relpath):
                 handler.copy(relpath)
