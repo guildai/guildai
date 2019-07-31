@@ -73,7 +73,7 @@ Here are the functions from `file_util` that define rules:
     >>> include = file_util.include
     >>> exclude = file_util.exclude
 
-## Basic file selection
+### Basic file selection
 
 Here's a src containing a single text file:
 
@@ -100,3 +100,189 @@ If we further add another include at the end of our rules list:
 
     >>> cp(src, [include("*"), exclude("*"), include("*")])
     a.txt
+
+Let's create a more complex source directory structure.
+
+    >>> src = mksrc([
+    ...   empty("a.txt"),
+    ...   empty("d1/a.txt"),
+    ...   empty("d1/d1_1/b.txt"),
+    ...   empty("d1/d1_2/c.txt"),
+    ...   empty("d2/d.txt"),
+    ...   empty("d2/d.yml"),
+    ...   ])
+
+Include all:
+
+    >>> cp(src, [include("*")])
+    a.txt
+    d1/a.txt
+    d1/d1_1/b.txt
+    d1/d1_2/c.txt
+    d2/d.txt
+    d2/d.yml
+
+Include only files with `.txt` extension:
+
+    >>> cp(src, [include("*.txt")])
+    a.txt
+    d1/a.txt
+    d1/d1_1/b.txt
+    d1/d1_2/c.txt
+    d2/d.txt
+
+Include only files with `.yml` extension:
+
+    >>> cp(src, [include("*.yml")])
+    d2/d.yml
+
+Select all files under `d1` subdirectory:
+
+    >>> cp(src, [include("d1/*")])
+    d1/a.txt
+    d1/d1_1/b.txt
+    d1/d1_2/c.txt
+
+We can specify multiple patterns at once:
+
+    >>> cp(src, [include(["d1/a.txt", "d1/d1_1/*"])])
+    d1/a.txt
+    d1/d1_1/b.txt
+
+Note that a single '*' matches all files under the prefix. This is the
+behavior of Python's `fnmatch` module, which Guild uses to match
+files.
+
+To select only `d1/a.txt` and ignore other files under `d1`, we can
+add an exclude to our rules:
+
+    >>> cp(src, [include("d1/*"), exclude("d1/d1*")])
+    d1/a.txt
+
+This approach relies on our foreknowledge that the other files under
+`d1` are under `d1/d1`. We can be more explicit in our rules by using
+regular expressions in our match.
+
+    >>> cp(src, [include("d1/[^/]+$", regex=True)])
+    d1/a.txt
+
+### Selecting directories
+
+Guild provides special support for selecting directories. Excluding
+directories, rather than the files under the directory, has a
+performance benefit as Guild doesn't have to evaluate files.
+
+Here's a structure with a directory:
+
+    >>> src = mksrc([
+    ...   empty("d/a.txt"),
+    ...   empty("b.txt"),
+    ... ])
+
+We can exclude the directory `d` this way:
+
+    >>> cp(src, [include("*"), exclude("d", type="dir")])
+    b.txt
+
+### Selecting text or binary files
+
+We can define a rule that selects for a particular file type: text or
+binary (i.e. not text).
+
+Let's create another source directory structure, which includes both a
+text file and a binary file.
+
+    >>> src = mksrc([
+    ...   text("a.txt", 10),
+    ...   binary("a.bin", 10),
+    ... ])
+
+Here's a rule that selects only text files:
+
+    >>> cp(src, [include("*", type="text")])
+    a.txt
+
+And a rule that only selects binary files:
+
+    >>> cp(src, [include("*", type="binary")])
+    a.bin
+
+### Skipping special directories
+
+In some cases, a copytree operation may want to skip special
+directories. These directories would include sentinels to indicate
+that they should be skipped.
+
+Here's a sample source structure that contains two such
+directories. One is marked with a `.nocopy` sentinel and another
+contains a file `bin/activat` (e.g. as in the case of a virtual
+environment, which uses this file for activation).
+
+    >>> src = mksrc([
+    ...   empty("skip_dir/.nocopy"),
+    ...   empty("skip_dir/a.txt"),
+    ...   empty("skip_dir/b.txt"),
+    ...   empty("venv/bin/activate"),
+    ...   empty("venv/c.txt"),
+    ...   empty("keep_dir/d.txt"),
+    ...   empty("e.txt"),
+    ... ])
+
+To exclude `skip_dir` and `venv`, we need to indicate in our exclude
+spec that we're excluding a directory (type="dir") and a pattern for
+the applicable sentinel.
+
+    >>> cp(src, [
+    ...   include("*"),
+    ...   exclude("*", type="dir", sentinel=".nocopy"),
+    ...   exclude("*", type="dir", sentinel="bin/activate"),
+    ... ])
+    e.txt
+    keep_dir/d.txt
+
+We can re-enable an excluded directory this way:
+
+    >>> cp(src, [
+    ...   include("*"),
+    ...   exclude("*", type="dir", sentinel=".nocopy"),
+    ...   exclude("*", type="dir", sentinel="bin/activate"),
+    ...   include("venv", type="dir"),
+    ... ])
+    e.txt
+    keep_dir/d.txt
+    venv/bin/activate
+    venv/c.txt
+
+### Skipping files by size
+
+We can exclude files that are larger than a specified size.
+
+Let's create a source directory containing two files:
+
+    >>> src = mksrc([
+    ...   empty("small.txt"),
+    ...   text("large.txt", size=100),
+    ... ])
+
+Let's copy only the small file:
+
+    >>> cp(src, [include("*", size_lt=99)])
+    small.txt
+
+And the large file:
+
+    >>> cp(src, [include("*", size_gt=99)])
+    large.txt
+
+### Validation
+
+Valid and invalid rule types:
+
+    >>> _ = include("*", type=None)
+    >>> _ = include("*", type="text")
+    >>> _ = include("*", type="binary")
+    >>> _ = include("*", type="dir")
+    >>> _ = include("*", type="invalid")
+    Traceback (most recent call last):
+    ValueError: invalid value for type 'invalid': expected one of text,
+    binary, dir

@@ -16,7 +16,9 @@ from __future__ import absolute_import
 from __future__ import division
 
 import fnmatch
+import glob
 import os
+import re
 import shutil
 
 import six
@@ -32,35 +34,122 @@ class FileSelect(object):
     def select_file(self, src_root, relpath):
         last_rule_result = None
         for rule in self.rules:
+            if rule.type == "dir":
+                continue
             rule_result = rule.test(src_root, relpath)
             if rule_result is not None:
                 last_rule_result = rule_result
         return last_rule_result is True
 
+    def prune_dirs(self, src_root, relpath, dirs):
+        for name in list(dirs):
+            last_rule_result = None
+            for rule in self.rules:
+                if rule.type != "dir":
+                    continue
+                rule_result = rule.test(src_root, os.path.join(relpath, name))
+                if rule_result is not None:
+                    last_rule_result = rule_result
+            if last_rule_result is False:
+                dirs.remove(name)
+
 class FileSelectRule(object):
 
-    def __init__(self, result, patterns):
+    def __init__(
+            self,
+            result,
+            patterns,
+            regex=False,
+            type=None,
+            sentinel=None,
+            size_gt=None,
+            size_lt=None):
         self.result = result
         if isinstance(patterns, six.string_types):
             patterns = [patterns]
         self.patterns = patterns
+        self.regex = regex
+        self._patterns_match = self._patterns_match_f(patterns, regex)
+        self.type = self._validate_type(type)
+        self.sentinel = sentinel
+        self.size_gt = size_gt
+        self.size_lt = size_lt
+
+    @staticmethod
+    def _patterns_match_f(patterns, regex):
+        if regex:
+            compiled = [re.compile(p) for p in patterns]
+            return lambda path: any((p.match(path) for p in compiled))
+        else:
+            match = fnmatch.fnmatch
+            return lambda path: any((match(path, p) for p in patterns))
+
+    @staticmethod
+    def _validate_type(type):
+        valid = ("text", "binary", "dir")
+        if type is not None and type not in valid:
+            raise ValueError(
+                "invalid value for type %r: expected one of %s"
+                % (type, ", ".join(valid)))
+        return type
 
     def test(self, src_root, relpath):
-        return util.find_apply([
+        fullpath = os.path.join(src_root, relpath)
+        tests = [
             lambda: self._test_patterns(relpath),
-            lambda: None,
-        ])
+            lambda: self._test_type(fullpath),
+            lambda: self._test_size(fullpath),
+        ]
+        for test in tests:
+            if not test():
+                return None
+        return self.result
 
     def _test_patterns(self, path):
-        if any((fnmatch.fnmatch(path, p) for p in self.patterns)):
-            return self.result
-        return None
+        return self._patterns_match(path)
 
-def include(patterns):
-    return FileSelectRule(True, patterns)
+    def _test_type(self, path):
+        if self.type is None:
+            return True
+        if self.type == "text":
+            return self._test_text_file(path)
+        elif self.type == "binary":
+            return self._test_binary_file(path)
+        elif self.type == "dir":
+            return self._test_dir(path)
+        else:
+            assert False, self.type
 
-def exclude(patterns):
-    return FileSelectRule(False, patterns)
+    @staticmethod
+    def _test_text_file(path):
+        return util.is_text_file(path)
+
+    @staticmethod
+    def _test_binary_file(path):
+        return not util.is_text_file(path)
+
+    def _test_dir(self, path):
+        if not os.path.isdir(path):
+            return False
+        if self.sentinel:
+            return glob.glob(os.path.join(path, self.sentinel))
+        return True
+
+    def _test_size(self, path):
+        if self.size_gt is None and self.size_lt is None:
+            return True
+        size = os.path.getsize(path)
+        if self.size_gt and size > self.size_gt:
+            return True
+        if self.size_lt and size < self.size_lt:
+            return True
+        return False
+
+def include(patterns, **kw):
+    return FileSelectRule(True, patterns, **kw)
+
+def exclude(patterns, **kw):
+    return FileSelectRule(False, patterns, **kw)
 
 class DebugCallback(object):
     pass
@@ -111,8 +200,8 @@ def copytree(dest, select, root_start=None, followlinks=True, debug_cb=None):
     src = _copytree_src(root_start, select)
     handler = FileCopyHandler(src, dest, debug_cb)
     for root, dirs, files in os.walk(src, followlinks=followlinks):
-        ##select.prune_dirs(src, root, dirs)
         relroot = _relpath(root, src)
+        select.prune_dirs(src, relroot, dirs)
         for name in files:
             relpath = os.path.join(relroot, name)
             if select.select_file(src, relpath):
