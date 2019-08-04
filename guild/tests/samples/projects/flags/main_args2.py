@@ -11,8 +11,8 @@ def _init_args():
     return p.parse_args()
 
 def _print_args(args):
-    print("foo: {}".format(args.foo))
     print("bar: {}".format(args.bar))
+    print("foo: {}".format(args.foo))
 
 if __name__ == "__main__":
     main()
