@@ -131,6 +131,7 @@
     guild.entry_point_util
     guild.exit_code
     guild.fail
+    guild.file_util
     guild.guildfile
     guild.help
     guild.index

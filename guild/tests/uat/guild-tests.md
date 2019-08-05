@@ -29,6 +29,7 @@ tests).
       dependencies-2:              ok
       disk-plugin:                 ok
       entry-points:                ok
+      file-utils:                  ok
       flag-functions:              ok
       flagdefs:                    ok
       flags-dest:                  ok
