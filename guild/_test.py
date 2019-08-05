@@ -558,7 +558,7 @@ class Project(object):
             if all:
                 return True
             return not path.startswith(".guild")
-        return [path for path in find(run.path) if filter(path)]
+        return [path for path in findl(run.path) if filter(path)]
 
     @staticmethod
     def cat(run, path):

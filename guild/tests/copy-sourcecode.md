@@ -39,7 +39,7 @@ the applicable model and prints the copied source files.
     ...     temp_dir = mkdtemp()
     ...     sourcecode_root = _sourcecode_root(model, op_name)
     ...     copy_sourcecode(sourcecode_root, sourcecode_config, temp_dir)
-    ...     copied = find(temp_dir)
+    ...     copied = findl(temp_dir)
     ...     if not copied:
     ...         print("<empty>")
     ...         return
@@ -185,7 +185,7 @@ Note on Windows symlink cycles can't be traversed.
 A helper to print results:
 
     >>> def copied_files(dir):
-    ...     for path in find(dir):
+    ...     for path in findl(dir):
     ...         print(path, sha256(join_path(dir, path))[:8])
 
 Here's out copied source:
@@ -228,7 +228,7 @@ Many small files:
 
 Our file project files:
 
-    >>> project_files = find(project_dir)
+    >>> project_files = findl(project_dir)
 
     >>> len(project_files)
     111
@@ -259,7 +259,7 @@ Logs:
 
 And the copied files:
 
-    >>> copied = find(tmp_dir)
+    >>> copied = findl(tmp_dir)
     >>> len(copied)
     100
 
@@ -299,7 +299,7 @@ Now our logs contain some advice to the user:
 
 And the files:
 
-    >>> find(tmp_dir)
+    >>> findl(tmp_dir)
     ['small-001.txt',
      ...
      'small-100.txt']
@@ -320,7 +320,7 @@ Nothing logged;
 
 And all files are copied:
 
-    >>> copied = find(tmp_dir)
+    >>> copied = findl(tmp_dir)
     >>> len(copied)
     111
 
