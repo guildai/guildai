@@ -19,6 +19,7 @@ import logging
 import os
 import re
 import sys
+import warnings
 
 import pkg_resources
 from werkzeug import serving
@@ -41,7 +42,10 @@ if version.VERSION not in _req:
 # pylint: disable=wrong-import-position
 
 from tensorboard import program
-from tensorboard.backend import application
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", FutureWarning)
+    from tensorboard.backend import application
 
 from guild import run_util
 from guild import util

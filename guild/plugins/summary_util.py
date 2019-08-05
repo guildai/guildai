@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import time
+import warnings
 
 from guild import python_util
 from guild import util
@@ -70,7 +71,9 @@ class SummaryPlugin(Plugin):
         self._listen_tf_summary()
 
     def _listen_tf_v2_summary(self):
-        from tensorboard.plugins.scalar import summary_v2
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            from tensorboard.plugins.scalar import summary_v2
         self.log.debug(
             "wrapping tensorboard.plugins.scalar.summary_v2.scalar")
         python_util.listen_function(summary_v2, "scalar", self._handle_scalar)
