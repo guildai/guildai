@@ -25,6 +25,7 @@ import glob
 import hashlib
 import logging
 import os
+import warnings
 
 from guild import util
 
@@ -70,14 +71,18 @@ class ScalarReader(object):
             log.debug("error importing event generator: %s", e)
             return None
         else:
-            return _GeneratorFromPath(self.dir).Load()
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", FutureWarning)
+                return _GeneratorFromPath(self.dir).Load()
 
     @staticmethod
     def _try_tfevent_v2(event, val):
         if not val.HasField("tensor") or not _is_float_tensor(val.tensor):
             raise util.TryFailed()
         try:
-            from tensorboard.util.tensor_util import make_ndarray
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", FutureWarning)
+                from tensorboard.util.tensor_util import make_ndarray
         except ImportError as e:
             log.debug("error importing make_ndarray: %s", e)
             raise util.TryFailed()
@@ -150,7 +155,9 @@ def ensure_tf_logging_patched():
 
 def _ensure_tf_oldstyle_logging_patched():
     try:
-        from tensorflow import logging
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            from tensorflow import logging
     except ImportError:
         pass
     else:
