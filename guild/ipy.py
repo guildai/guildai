@@ -174,6 +174,10 @@ class RunsDataFrame(pd.DataFrame):
     def _constructor_sliced(self):
         return RunsSeries
 
+    @property
+    def _constructor_expanddim(self):
+        return RunsDataFrame
+
     def delete(self, permanent=False):
         runs = self._runs()
         var.delete_runs(runs, permanent)
@@ -185,6 +189,7 @@ class RunsDataFrame(pd.DataFrame):
     def _items(self):
         return [row[1][0] for row in self.iterrows()]
 
+    # pylint: disable=arguments-differ
     def info(self, *args, **kw):
         self.loc[0].info(*args, **kw)
 
@@ -288,6 +293,7 @@ def _pop_opts(kw):
     return opts
 
 def _init_flags(op, args, kw):
+    # pylint: disable=deprecated-method
     op_flags = inspect.getcallargs(op, *args, **kw)
     return _coerce_slice_vals(op_flags)
 

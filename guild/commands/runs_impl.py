@@ -323,6 +323,7 @@ def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
         cli.table(formatted, cols=cols, indent=2)
     formatted_confirm_prompt = confirm_prompt.format(count=len(formatted))
     if args.yes or cli.confirm(formatted_confirm_prompt, confirm_default):
+        # pylint: disable=deprecated-method
         if len(inspect.getargspec(op_callback).args) == 2:
             op_callback(selected, formatted)
         else:
