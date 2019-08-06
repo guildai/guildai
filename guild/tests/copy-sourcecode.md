@@ -13,35 +13,35 @@ Here's a helper function for printing operation sourcecode config.
 
     >>> from guild import util
     >>> def print_config(op):
-    ...   parts = op.split(":")
-    ...   if len(parts) == 1:
-    ...     model = ""
-    ...   else:
-    ...     model, op = parts
-    ...   for model_data in data:
-    ...     if model_data["model"] == model:
-    ...       break
-    ...   else:
-    ...     assert False, (model, op)
-    ...   config = {}
-    ...   if "sourcecode" in model_data:
-    ...     config["model-sourcecode"] = model_data["sourcecode"]
-    ...   op_data = model_data["operations"][op]
-    ...   if "sourcecode" in op_data:
-    ...     config["op-sourcecode"] = op_data["sourcecode"]
-    ...   if config:
-    ...     print(util.encode_yaml(config).strip())
-    ...   else:
-    ...     print("<none>")
+    ...     parts = op.split(":")
+    ...     if len(parts) == 1:
+    ...         model = ""
+    ...     else:
+    ...         model, op = parts
+    ...     for model_data in data:
+    ...         if model_data["model"] == model:
+    ...             break
+    ...     else:
+    ...         assert False, (model, op)
+    ...     config = {}
+    ...     if "sourcecode" in model_data:
+    ...         config["model-sourcecode"] = model_data["sourcecode"]
+    ...     op_data = model_data["operations"][op]
+    ...     if "sourcecode" in op_data:
+    ...         config["op-sourcecode"] = op_data["sourcecode"]
+    ...     if config:
+    ...         print(util.encode_yaml(config).strip())
+    ...     else:
+    ...         print("<none>")
 
 Here's a helper function that runs the specified operation and prints
 the list of copied source code files for the generated run.
 
     >>> def run(op):
-    ...   run_dir = mkdtemp()
-    ...   with Env({"NO_WARN_RUNDIR": "1"}):
-    ...     project.run(op, run_dir=run_dir)
-    ...   find(join_path(run_dir, ".guild/sourcecode"))
+    ...     run_dir = mkdtemp()
+    ...     with Env({"NO_WARN_RUNDIR": "1"}):
+    ...         project.run(op, run_dir=run_dir)
+    ...     find(join_path(run_dir, ".guild/sourcecode"))
 
 ## Default files
 

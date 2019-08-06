@@ -1412,6 +1412,8 @@ def _testable_output_scalars(opdef):
 
 def _test_sourcecode(opdef):
     logger = _CopyLogger()
+    root = op_util.opdef_sourcecode_root(opdef)
+    cli.out("Copying from %s" % root)
     op_util.copy_sourcecode(opdef, None, handler_cls=logger.handler_cls)
     cli.out("Selected for copy:")
     for path in logger.selected:
@@ -1434,8 +1436,8 @@ class _CopyLogger(object):
         self.root = os.path.relpath(src_root)
         return self
 
-    def copy(self, path):
+    def copy(self, path, _results):
         self.selected.append(os.path.join(self.root, path))
 
-    def ignore(self, path):
+    def ignore(self, path, _results):
         self.skipped.append(os.path.join(self.root, path))

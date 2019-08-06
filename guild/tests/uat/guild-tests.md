@@ -23,6 +23,7 @@ tests).
       compare:                     ok
       config:                      ok
       copy-sourcecode:             ok
+      copy-sourcecode-warnings:    ok
       cpu-plugin:                  ok
       cross-package-inheritance:   ok
       dependencies:                ok

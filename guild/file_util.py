@@ -35,14 +35,31 @@ class FileSelect(object):
         self.rules = rules
 
     def select_file(self, src_root, relpath):
-        last_rule_result = None
-        for rule in self.rules:
-            if rule.type == "dir":
-                continue
-            rule_result = rule.test(src_root, relpath)
-            if rule_result is not None:
-                last_rule_result = rule_result
-        return last_rule_result is True
+        """Apply rules to file located under src_root with relpath.
+
+        All rules are applied to the file. The last rule to apply
+        (i.e. its `test` method returns a non-None value) determines
+        whether or not the file is selected - selected if test returns
+        True, not selected if returns False.
+
+        If no rules return a non-None value, the file is not selected.
+
+        Returns a tuple of the selected flag (True or False) and list
+        of applied rules and their results (two-tuples).
+        """
+        rule_results = [
+            (rule.test(src_root, relpath), rule)
+            for rule in self.rules
+            if rule.type != "dir"]
+        selected = self._last_non_none_result(rule_results)
+        return selected is True, rule_results
+
+    @staticmethod
+    def _last_non_none_result(results):
+        for val, _rule in reversed(results):
+            if val is not None:
+                return val
+        return None
 
     def prune_dirs(self, src_root, relroot, dirs):
         for name in list(dirs):
@@ -101,6 +118,10 @@ class FileSelectRule(object):
                 % (type, ", ".join(valid)))
         return type
 
+    @property
+    def matches(self):
+        return self._matches
+
     def reset_matches(self):
         self._matches = 0
 
@@ -156,7 +177,9 @@ class FileSelectRule(object):
     def _test_size(self, path):
         if self.size_gt is None and self.size_lt is None:
             return True
-        size = os.path.getsize(path)
+        size = util.safe_filesize(path)
+        if size is None:
+            return True
         if self.size_gt and size > self.size_gt:
             return True
         if self.size_lt and size < self.size_lt:
@@ -175,7 +198,7 @@ class FileCopyHandler(object):
         self.src_root = src_root
         self.dest_root = dest_root
 
-    def copy(self, path):
+    def copy(self, path, _rule_results):
         src = os.path.join(self.src_root, path)
         dest = os.path.join(self.dest_root, path)
         util.ensure_dir(os.path.dirname(dest))
@@ -188,15 +211,15 @@ class FileCopyHandler(object):
             if e.errno != 2: # Ignore file not exists
                 if not self.handle_copy_error(e, src, dest):
                     raise
-        except OSError as e:
+        except OSError as e: # pylint: disable=duplicate-except
             if not self.handle_copy_error(e, src, dest):
                 raise
 
-    def ignore(self, path):
+    def ignore(self, _path, _rule_results):
         pass
 
     @staticmethod
-    def handle_copy_error(self, _e, _src, _dest):
+    def handle_copy_error(_e, _src, _dest):
         return False
 
 def copytree(
@@ -224,10 +247,11 @@ def copytree(
         select.prune_dirs(src, relroot, dirs)
         for name in sorted(files):
             relpath = os.path.join(relroot, name)
-            if select.select_file(src, relpath):
-                handler.copy(relpath)
+            selected, results = select.select_file(src, relpath)
+            if selected:
+                handler.copy(relpath, results)
             else:
-                handler.ignore(relpath)
+                handler.ignore(relpath, results)
 
 def _copytree_src(root_start, select):
     root_start = root_start or os.curdir

@@ -317,10 +317,10 @@ Let's create a custom handler that simply logs information.
     ...     self.src_root = src_root
     ...     self.dest_root = dest_root
     ...
-    ...   def copy(self, path):
+    ...   def copy(self, path, _rule_results):
     ...     print("copy: %s" % path)
     ...
-    ...   def ignore(self, path):
+    ...   def ignore(self, path, _rule_results):
     ...     print("ignore: %s" % path)
     ...
     ...   def handle_copy_error(self, e, src, dest):

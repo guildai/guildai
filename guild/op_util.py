@@ -482,7 +482,76 @@ def _check_flag_range(val, flag):
 
 def copy_run_sourcecode(run, opdef):
     log.debug("copying source code files for run %s", run.id)
-    copy_sourcecode(opdef, run.guild_path("sourcecode"))
+    copy_sourcecode(
+        opdef,
+        run.guild_path("sourcecode"),
+        SourceCodeCopyHandler.handler_cls(opdef))
+
+class SourceCodeCopyHandler(file_util.FileCopyHandler):
+    """Handler to log warnings when soure code files are skipped.
+
+    Only logs warnings when the default rules are in effect.
+    """
+
+    @classmethod
+    def handler_cls(cls, opdef):
+        def f(src_root, dest_root):
+            handler = cls(src_root, dest_root)
+            handler.opdef = opdef
+            return handler
+        return f
+
+    opdef = None
+    _warned_max_matches = False
+
+    def ignore(self, path, rule_results):
+        fullpath = os.path.join(self.src_root, path)
+        if self._ignored_max_matches(rule_results):
+            self._warn_max_matches()
+        if self._ignored_max_size(fullpath, rule_results):
+            self._warn_max_size(fullpath)
+
+    def _ignored_max_matches(self, results):
+        matches_exceeded = lambda: (
+            results[0][1].matches >= results[0][1].max_matches)
+        return self._default_rules_in_effect(results) and matches_exceeded()
+
+    @staticmethod
+    def _default_rules_in_effect(results):
+        return (
+            len(results) == 1 and
+            results[0][1].result is True and
+            results[0][1].size_lt == MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1 and
+            results[0][1].max_matches == MAX_DEFAULT_SOURCECODE_COUNT)
+
+    def _warn_max_matches(self):
+        if self._warned_max_matches:
+            return
+        log.warning(
+            "Found more than %i source code files but will only "
+            "copy %i as a safety measure.%s",
+            MAX_DEFAULT_SOURCECODE_COUNT,
+            MAX_DEFAULT_SOURCECODE_COUNT,
+            self._opdef_help_suffix())
+        self._warned_max_matches = True
+
+    def _opdef_help_suffix(self):
+        if self.opdef:
+            return (
+                " To control which source code files are copied, "
+                "specify 'sourcecode' for the '%s' operation in "
+                "guild.yml." % self.opdef.fullname)
+        return ""
+
+    def _ignored_max_size(self, path, results):
+        size_exceeded = lambda: (
+            util.safe_filesize(path) >= results[0][1].size_lt)
+        return self._default_rules_in_effect(results) and size_exceeded()
+
+    def _warn_max_size(self, path):
+        log.warning(
+            "Skipping potential source code file %s because it's "
+            "too big.%s", path, self._opdef_help_suffix())
 
 def copy_sourcecode(opdef, dest, handler_cls=None):
     select = _sourcecode_select_for_opdef(opdef)
@@ -490,13 +559,16 @@ def copy_sourcecode(opdef, dest, handler_cls=None):
     file_util.copytree(dest, select, root_start, handler_cls=handler_cls)
 
 def _sourcecode_select_for_opdef(opdef):
-    root = opdef.sourcecode.root or opdef.modeldef.sourcecode.root
+    root = opdef_sourcecode_root(opdef)
     rules = (
         _base_sourcecode_select_rules() +
         _sourcecode_config_rules(opdef.modeldef.sourcecode) +
         _sourcecode_config_rules(opdef.sourcecode)
     )
     return file_util.FileSelect(root, rules)
+
+def opdef_sourcecode_root(opdef):
+    return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
 
 def _base_sourcecode_select_rules():
     return [
@@ -519,7 +591,7 @@ def _rule_include_limited_text_files():
     return file_util.include(
         "*",
         type="text",
-        size_lt=MAX_DEFAULT_SOURCECODE_FILE_SIZE,
+        size_lt=MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1,
         max_matches=MAX_DEFAULT_SOURCECODE_COUNT)
 
 def _sourcecode_config_rules(config):
@@ -532,99 +604,6 @@ def _rule_for_select_spec(spec):
         return file_util.exclude(spec.patterns)
     else:
         assert False, spec.type
-
-"""
-def _copy_sourcecode_root(opdef):
-    config_root = opdef.sourcecode.root or opdef.modeldef.sourcecode.root
-    if not config_root:
-        return opdef.guildfile.dir
-    return os.path.join(opdef.guildfile.dir, config_root)
-
-class SourceCodeFilter(object):
-
-    def __init__(self, config, opdef):
-        self.config = config
-        self.opdef = opdef
-
-    def delete_excluded_dirs(self, root, dirs):
-        self._del_env_dirs(dirs, root)
-        self._del_dot_dir(dirs)
-        self._del_nocopy_dirs(root, dirs)
-
-    def _del_env_dirs(self, dirs, root):
-        for name in list(dirs):
-            path = os.path.join(root, name)
-            if self._is_env_dir(path):
-                log.debug("ignoring virtual env dir for copy %s", path)
-                dirs.remove(name)
-
-    @staticmethod
-    def _is_env_dir(path):
-        return os.path.exists(os.path.join(path, "bin", "activate"))
-
-    @staticmethod
-    def _del_dot_dir(dirs):
-        for name in list(dirs):
-            if name[:1] == ".":
-                dirs.remove(name)
-
-    @staticmethod
-    def _del_nocopy_dirs(root, dirs):
-        for name in list(dirs):
-            if os.path.exists(os.path.join(root, name, ".guild-nocopy")):
-                dirs.remove(name)
-
-    def default_select_path(self, path):
-        if not util.is_text_file(path):
-            return False
-        if os.path.getsize(path) > MAX_DEFAULT_SOURCECODE_FILE_SIZE:
-            self._warn_default_sourcecode_file_too_big(path)
-            return False
-        return True
-
-    def _warn_default_sourcecode_file_too_big(self, path):
-        log.warning(
-            "Skipping potential source code file %s because it's too "
-            "big.%s", path, self._snapshot_sourcecode_help_suffix())
-
-    def _snapshot_sourcecode_help_suffix(self):
-        if self.opdef:
-            return (
-                " To control which source code files are copied, "
-                "specify sourcecode for %s." % self.opdef.fullname)
-        return ""
-
-    def pre_copy(self, to_copy):
-        if (self._undefined_sourcecode_config() and
-            len(to_copy) > MAX_DEFAULT_SOURCECODE_COUNT):
-            self._warn_sourcecode_to_copy_prune(to_copy)
-            del to_copy[MAX_DEFAULT_SOURCECODE_COUNT:]
-
-    def _undefined_sourcecode_config(self):
-        return not any((len(cfg_item.specs) > 0 for cfg_item in self.config))
-
-    def _warn_sourcecode_to_copy_prune(self, to_copy):
-        log.warning(
-            "Found %i source code files using default sourcecode config "
-            "but will only copy %i as a safety measure.%s",
-            len(to_copy), MAX_DEFAULT_SOURCECODE_COUNT,
-            self._snapshot_sourcecode_help_suffix())
-
-def _sourcecode_disabled(config):
-    ""Returns True if source code copy is disabled for config.
-
-    If config does not contain any specs or contains any specs that
-    aren't 'exclude: *' then copies are enabled.
-    ""
-    assert isinstance(config, list), config
-    has_specs = False
-    for c in config:
-        for spec in c.specs:
-            if not (spec.type == "exclude" and spec.patterns == ['*']):
-                return False
-            has_specs = True
-    return has_specs
-"""
 
 def split_main(main):
     if isinstance(main, list):
