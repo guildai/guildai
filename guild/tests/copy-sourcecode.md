@@ -52,6 +52,7 @@ Guild copies text files by default.
 
     >>> run("default")
     .gitattributes
+    __pycache__/...
     a.txt
     empty
     guild.yml
@@ -81,6 +82,7 @@ not text files), use explicit includes.
     >>> run("include-png")
     <BLANKLINE>
     .gitattributes
+    __pycache__/...
     a.txt
     empty
     guild.yml
@@ -142,6 +144,7 @@ exclude specs.
 
     >>> run("exclude-py")
     .gitattributes
+    __pycache__/...
     a.txt
     empty
     guild.yml
@@ -196,6 +199,7 @@ Model adds png and operation excludes `*.py` and `a.*` files:
 
     >>> run("m1:op")
     .gitattributes
+    __pycache__/...
     empty
     guild.yml
     subdir/b.txt
@@ -230,6 +234,7 @@ Model enables all files to copy:
     >>> run("m3:op1")
     <BLANKLINE>
     .gitattributes
+    __pycache__/...
     a.txt
     empty
     guild.yml
