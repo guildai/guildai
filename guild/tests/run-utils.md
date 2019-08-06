@@ -86,20 +86,26 @@ It has no effect on floats with decimal parts that are less than four characters
     '0.1234'
 
 When the formatted value would otherwise need more than four
-characters, Guild truncates the decimate part.
+characters, Guild does not truncate:
 
     >>> trunc(0.12345)
-    '0.1235'
+    '0.1234'
 
     >>> trunc(0.12344)
     '0.1234'
 
 Note that Guild rounds the formatted value.
 
+In the case where the truncated value would be rounded to "1.0", Guild
+returns "0.9999".
+
+    >>> trunc(0.99995)
+    '0.9999'
+
 Leading digits aren't truncated.
 
     >>> trunc(12345.12345)
-    '12345.1235'
+    '12345.1234'
 
 Exponent formatting is use as needed for small numbers:
 
@@ -110,7 +116,7 @@ Any leading digits will precent exponent notation and cause loss of
 precision on the decimal part.
 
     >>> trunc(1.0000012345)
-    '1.0'
+    '1.0000'
 
     >>> trunc(1.00012345)
     '1.0001'

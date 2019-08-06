@@ -320,9 +320,7 @@ def _maybe_truncate_dec_part(part):
         return part
     if len(part) <= FLOAT_TRUNCATE_LEN: # lte to include leading '.'
         return part
-    truncated = str(round(float(part), FLOAT_TRUNCATE_LEN))
-    assert truncated[:2] == "0.", (truncated, part)
-    return truncated[1:] # strip leading 0
+    return part[:FLOAT_TRUNCATE_LEN + 1]
 
 def _yaml_format(val):
     formatted = yaml.safe_dump(val).strip()
