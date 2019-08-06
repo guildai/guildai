@@ -1,40 +1,60 @@
-- model: default
+- model: ''
+  disable-plugins: all
   operations:
+
     default:
       main: guild.pass
 
-# ------------------------------------------
-# Old stuff
-# ------------------------------------------
+    alt-root:
+      main: guild.pass
+      sourcecode:
+        root: subdir
 
-- model: include-logo
-  sourcecode:
-    - include: subdir/logo.png
+    include-png:
+      main: guild.pass
+      sourcecode:
+        - include: '*.png'
 
-- model: exclude-py
-  sourcecode:
-    - exclude: '*.py'
+    only-png:
+      main: guild.pass
+      sourcecode: '*.png'
 
-- model: exclude-all
-  sourcecode:
-    - exclude: '*'
-
-- model: only-py
-  sourcecode: '*.py'
-
-- model: only-py2
-  sourcecode:
-    - exclude: '*'
-    - include: '*.py'
-
-- model: py-and-guild
-  sourcecode:
-    - exclude: '*'
-    - include:
+    only-py:
+      main: guild.pass
+      sourcecode:
         - '*.py'
-        - 'guild.yml'
 
-- model: model-and-op
+    only-py2:
+      main: guild.pass
+      sourcecode:
+        - exclude: '*'
+        - include: '*.py'
+
+    png-and-py:
+      main: guild.pass
+      sourcecode:
+        - '*.png'
+        - '*.py'
+
+    exclude-py:
+      main: guild.pass
+      sourcecode:
+        - exclude: '*.py'
+
+    disabled:
+      main: guild.pass
+      sourcecode: no
+
+    disabled2:
+      main: guild.pass
+      sourcecode: []
+
+    disabled3:
+      main: guild.pass
+      sourcecode:
+        - exclude: '*'
+
+- model: m1
   sourcecode:
     - include: subdir/logo.png
   operations:
@@ -43,30 +63,20 @@
       sourcecode:
         - exclude: ['*.py', 'a.*']
 
-- model: disable
-  sourcecode: []
-  operations:
-    op: guild.pass
-
-- model: disable2
-  sourcecode: no
-
-- model: model-disable-op-enable
+- model: m2
   sourcecode: no
   operations:
-    op:
+    op1:
       main: guild.pass
-      sourcecode: '*.py'
+    op2:
+      main: guild.pass
+      sourcecode: ['*.py', '*.yml']
 
-- model: model-enable-op-disable
+- model: m3
   sourcecode: '*'
   operations:
-    op:
+    op1:
+      main: guild.pass
+    op2:
       main: guild.pass
       sourcecode: no
-
-- model: alt-root
-  sourcecode:
-    root: subdir
-  operations:
-    op: guild.pass

@@ -16,12 +16,17 @@ from __future__ import absolute_import
 from __future__ import division
 
 import fnmatch
+import glob
+import logging
 import os
+import re
 import shutil
 
 import six
 
 from guild import util
+
+log = logging.getLogger("guild")
 
 class FileSelect(object):
 
@@ -30,50 +35,170 @@ class FileSelect(object):
         self.rules = rules
 
     def select_file(self, src_root, relpath):
-        last_rule_result = None
-        for rule in self.rules:
-            rule_result = rule.test(src_root, relpath)
-            if rule_result is not None:
-                last_rule_result = rule_result
-        return last_rule_result is True
+        """Apply rules to file located under src_root with relpath.
+
+        All rules are applied to the file. The last rule to apply
+        (i.e. its `test` method returns a non-None value) determines
+        whether or not the file is selected - selected if test returns
+        True, not selected if returns False.
+
+        If no rules return a non-None value, the file is not selected.
+
+        Returns a tuple of the selected flag (True or False) and list
+        of applied rules and their results (two-tuples).
+        """
+        rule_results = [
+            (rule.test(src_root, relpath), rule)
+            for rule in self.rules
+            if rule.type != "dir"]
+        selected = self._last_non_none_result(rule_results)
+        return selected is True, rule_results
+
+    @staticmethod
+    def _last_non_none_result(results):
+        for val, _rule in reversed(results):
+            if val is not None:
+                return val
+        return None
+
+    def prune_dirs(self, src_root, relroot, dirs):
+        for name in list(dirs):
+            last_rule_result = None
+            relpath = os.path.join(relroot, name)
+            for rule in self.rules:
+                if rule.type != "dir":
+                    continue
+                rule_result = rule.test(src_root, relpath)
+                if rule_result is not None:
+                    last_rule_result = rule_result
+            if last_rule_result is False:
+                log.debug("skipping directory %s", relpath)
+                dirs.remove(name)
 
 class FileSelectRule(object):
 
-    def __init__(self, result, patterns):
+    def __init__(
+            self,
+            result,
+            patterns,
+            regex=False,
+            type=None,
+            sentinel=None,
+            size_gt=None,
+            size_lt=None,
+            max_matches=None):
         self.result = result
         if isinstance(patterns, six.string_types):
             patterns = [patterns]
         self.patterns = patterns
+        self.regex = regex
+        self._patterns_match = self._patterns_match_f(patterns, regex)
+        self.type = self._validate_type(type)
+        self.sentinel = sentinel
+        self.size_gt = size_gt
+        self.size_lt = size_lt
+        self.max_matches = max_matches
+        self._matches = 0
+
+    @staticmethod
+    def _patterns_match_f(patterns, regex):
+        if regex:
+            compiled = [re.compile(p) for p in patterns]
+            return lambda path: any((p.match(path) for p in compiled))
+        else:
+            match = fnmatch.fnmatch
+            return lambda path: any((match(path, p) for p in patterns))
+
+    @staticmethod
+    def _validate_type(type):
+        valid = ("text", "binary", "dir")
+        if type is not None and type not in valid:
+            raise ValueError(
+                "invalid value for type %r: expected one of %s"
+                % (type, ", ".join(valid)))
+        return type
+
+    @property
+    def matches(self):
+        return self._matches
+
+    def reset_matches(self):
+        self._matches = 0
 
     def test(self, src_root, relpath):
-        return util.find_apply([
+        fullpath = os.path.join(src_root, relpath)
+        tests = [
+            lambda: self._test_max_matches(),
             lambda: self._test_patterns(relpath),
-            lambda: None,
-        ])
+            lambda: self._test_type(fullpath),
+            lambda: self._test_size(fullpath),
+        ]
+        for test in tests:
+            if not test():
+                return None
+        self._matches += 1
+        return self.result
+
+    def _test_max_matches(self):
+        if self.max_matches is None:
+            return True
+        return self._matches < self.max_matches
 
     def _test_patterns(self, path):
-        if any((fnmatch.fnmatch(path, p) for p in self.patterns)):
-            return self.result
-        return None
+        return self._patterns_match(path)
 
-def include(patterns):
-    return FileSelectRule(True, patterns)
+    def _test_type(self, path):
+        if self.type is None:
+            return True
+        if self.type == "text":
+            return self._test_text_file(path)
+        elif self.type == "binary":
+            return self._test_binary_file(path)
+        elif self.type == "dir":
+            return self._test_dir(path)
+        else:
+            assert False, self.type
 
-def exclude(patterns):
-    return FileSelectRule(False, patterns)
+    @staticmethod
+    def _test_text_file(path):
+        return util.is_text_file(path)
 
-class DebugCallback(object):
-    pass
+    @staticmethod
+    def _test_binary_file(path):
+        return not util.is_text_file(path)
+
+    def _test_dir(self, path):
+        if not os.path.isdir(path):
+            return False
+        if self.sentinel:
+            return glob.glob(os.path.join(path, self.sentinel))
+        return True
+
+    def _test_size(self, path):
+        if self.size_gt is None and self.size_lt is None:
+            return True
+        size = util.safe_filesize(path)
+        if size is None:
+            return True
+        if self.size_gt and size > self.size_gt:
+            return True
+        if self.size_lt and size < self.size_lt:
+            return True
+        return False
+
+def include(patterns, **kw):
+    return FileSelectRule(True, patterns, **kw)
+
+def exclude(patterns, **kw):
+    return FileSelectRule(False, patterns, **kw)
 
 class FileCopyHandler(object):
 
-    def __init__(self, src_root, dest_root, debug_cb=None, error_handler=None):
+    def __init__(self, src_root, dest_root):
         self.src_root = src_root
         self.dest_root = dest_root
-        self.debug_cb = debug_cb
-        self.error_handler = error_handler
 
-    def copy(self, path):
+    def copy(self, path, _rule_results):
         src = os.path.join(self.src_root, path)
         dest = os.path.join(self.dest_root, path)
         util.ensure_dir(os.path.dirname(dest))
@@ -84,18 +209,25 @@ class FileCopyHandler(object):
             shutil.copyfile(src, dest)
         except IOError as e:
             if e.errno != 2: # Ignore file not exists
-                if not self.error_handler:
+                if not self.handle_copy_error(e, src, dest):
                     raise
-                self.error_handler(e)
-        except OSError as e:
-            if not self.error_handler:
+        except OSError as e: # pylint: disable=duplicate-except
+            if not self.handle_copy_error(e, src, dest):
                 raise
-            self.error_handler(e)
 
-    def ignore(self, path):
+    def ignore(self, _path, _rule_results):
         pass
 
-def copytree(dest, select, root_start=None, followlinks=True, debug_cb=None):
+    @staticmethod
+    def handle_copy_error(_e, _src, _dest):
+        return False
+
+def copytree(
+        dest,
+        select,
+        root_start=None,
+        followlinks=True,
+        handler_cls=None):
     """Copies files to dest for a FileSelect.
 
     root_start is an optional location from which select.root, if
@@ -104,21 +236,22 @@ def copytree(dest, select, root_start=None, followlinks=True, debug_cb=None):
     If followlinks is True (the default), follows linked directories
     when copying the tree.
 
-    If debug_cb is specified, does not copy files but instead invokes
-    debub_cb methods as it evaluates source files to copy. debug_cb
-    must implement the DebugCallback interface.
+    A handler class may be specified to create a handler of copy
+    events. FileCopyHandler is used by default.
     """
     src = _copytree_src(root_start, select)
-    handler = FileCopyHandler(src, dest, debug_cb)
+    handler = (handler_cls or FileCopyHandler)(src, dest)
     for root, dirs, files in os.walk(src, followlinks=followlinks):
-        ##select.prune_dirs(src, root, dirs)
+        dirs.sort()
         relroot = _relpath(root, src)
-        for name in files:
+        select.prune_dirs(src, relroot, dirs)
+        for name in sorted(files):
             relpath = os.path.join(relroot, name)
-            if select.select_file(src, relpath):
-                handler.copy(relpath)
+            selected, results = select.select_file(src, relpath)
+            if selected:
+                handler.copy(relpath, results)
             else:
-                handler.ignore(relpath)
+                handler.ignore(relpath, results)
 
 def _copytree_src(root_start, select):
     root_start = root_start or os.curdir

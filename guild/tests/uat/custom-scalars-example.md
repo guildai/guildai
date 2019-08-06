@@ -41,11 +41,12 @@ test custom output scalar patterns against sample script output.
 
 ## train
 
-The project defines two operations:
+The project defines three operations:
 
     >>> run("guild ops -p .")
-    train
-    train2
+    train   Example using explicit output-scalars
+    train2  Example using a generalized scalar pattern
+    train3  Example disabling output scalars and using TF event files
     <exit 0>
 
 `train` defines a different set of scalars to capture.
@@ -104,4 +105,35 @@ we don't match unless `NAME` is either `loss`, `accuracy`, or `step`:
       'accuracy: ([0-9\\.e\\-]+)': <no matches>
       'loss: ([0-9\\.e\\-]+)': <no matches>
       'step: ([0-9\\.e\\-]+)': <no matches>
+    <exit 0>
+
+Here are the other two operations:
+
+    >>> run("guild run train2 -y")
+    step: 1
+    loss: 2.345
+    accuracy: 0.123
+    <BLANKLINE>
+    step: 2
+    loss: 1.234
+    accuracy: 0.456
+    <exit 0>
+
+    >>> run("guild runs info --scalars")
+    id: ...
+    scalars:
+      accuracy: 0.456000 (step 2)
+      loss: 1.234000 (step 2)
+    <exit 0>
+
+    >>> run("guild run train3 -y")
+    Step 1: loss=2.235 accuracy=0.123
+    Step 2: loss=1.234 accuracy=0.456
+    <exit 0>
+
+    >>> run("guild runs info --scalars")
+    id: ...
+    scalars:
+      accuracy: 0.456000 (step 2)
+      loss: 1.234000 (step 2)...
     <exit 0>

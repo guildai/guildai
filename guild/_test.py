@@ -58,6 +58,7 @@ from guild import guildfile
 from guild import index2
 from guild import init
 from guild import op_util
+from guild import run as runlib
 from guild import run_util
 from guild import util
 
@@ -297,7 +298,7 @@ def test_globals():
         "dirname": os.path.dirname,
         "exists": os.path.exists,
         "find": find,
-        "findl": findl,
+        "find2": find2,
         "gapi": gapi,
         "guild": guild,
         "guildfile": guildfile,
@@ -335,10 +336,14 @@ def mktemp_guild_dir():
     return guild_dir
 
 def find(root, followlinks=False):
-    for path in findl(root, followlinks):
-        print(path)
+    paths = find2(root, followlinks)
+    if not paths:
+        print("<empty>")
+    else:
+        for path in paths:
+            print(path)
 
-def findl(root, followlinks=False):
+def find2(root, followlinks=False):
     all = []
     relpath = lambda path, name: (
         os.path.relpath(os.path.join(path, name), root))
@@ -482,7 +487,27 @@ class Project(object):
         self.index = index2.RunIndex(runs_path)
 
     def run(self, *args, **kw):
-        print(self._run(*args, **kw))
+        out = self._run(*args, **kw)
+        print(out)
+
+    def run2(self, *args, **kw):
+        """Variant of run that returns a run object."""
+        run_dir = kw.pop("run_dir", None)
+        if run_dir is None:
+            out, run_dir = self._run_init_run_dir(*args, **kw)
+        else:
+            out = self._run(run_dir=run_dir, *args, **kw)
+        print(out)
+        return runlib.from_dir(run_dir)
+
+    def _run_init_run_dir(self, *args, **kw):
+        """Variation of _run that returns out, run_dir."""
+        assert "run_dir" not in kw, kw
+        run_id = runlib.mkid()
+        run_dir = os.path.join(self.guild_home, "runs", run_id)
+        with Env({"NO_WARN_RUNDIR": "1"}):
+            out = self._run(*args, run_dir=run_dir, **kw)
+        return out, run_dir
 
     def _run(self, *args, **kw):
         simplify_trial_output = kw.pop("simplify_trial_output", False)
@@ -553,12 +578,14 @@ class Project(object):
         print(self._run(print_trials=True, *args, **kw))
 
     @staticmethod
-    def ls(run, all=False):
+    def ls(run, all=False, sourcecode=False):
         def filter(path):
             if all:
                 return True
+            if sourcecode:
+                return path.startswith(os.path.join(".guild", "sourcecode"))
             return not path.startswith(".guild")
-        return [path for path in findl(run.path) if filter(path)]
+        return [path for path in find2(run.path) if filter(path)]
 
     @staticmethod
     def cat(run, path):

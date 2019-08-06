@@ -26,8 +26,9 @@ import six
 import yaml
 
 # Move any import that's expensive or seldom used into function
-from guild import util
+from guild import file_util
 from guild import run_util
+from guild import util
 
 log = logging.getLogger("guild")
 
@@ -482,113 +483,127 @@ def _check_flag_range(val, flag):
 def copy_run_sourcecode(run, opdef):
     log.debug("copying source code files for run %s", run.id)
     copy_sourcecode(
-        _copy_sourcecode_root(opdef),
-        [opdef.sourcecode, opdef.modeldef.sourcecode],
+        opdef,
         run.guild_path("sourcecode"),
-        opdef)
+        SourceCodeCopyHandler.handler_cls(opdef))
 
-def _copy_sourcecode_root(opdef):
-    config_root = opdef.sourcecode.root or opdef.modeldef.sourcecode.root
-    if not config_root:
-        return opdef.guildfile.dir
-    return os.path.join(opdef.guildfile.dir, config_root)
+class SourceCodeCopyHandler(file_util.FileCopyHandler):
+    """Handler to log warnings when soure code files are skipped.
 
-class SourceCodeFilter(object):
+    Only logs warnings when the default rules are in effect.
+    """
 
-    def __init__(self, config, opdef):
-        self.config = config
-        self.opdef = opdef
+    @classmethod
+    def handler_cls(cls, opdef):
+        def f(src_root, dest_root):
+            handler = cls(src_root, dest_root)
+            handler.opdef = opdef
+            return handler
+        return f
 
-    def delete_excluded_dirs(self, root, dirs):
-        self._del_env_dirs(dirs, root)
-        self._del_dot_dir(dirs)
-        self._del_nocopy_dirs(root, dirs)
+    opdef = None
+    _warned_max_matches = False
 
-    def _del_env_dirs(self, dirs, root):
-        for name in list(dirs):
-            path = os.path.join(root, name)
-            if self._is_env_dir(path):
-                log.debug("ignoring virtual env dir for copy %s", path)
-                dirs.remove(name)
+    def ignore(self, path, rule_results):
+        fullpath = os.path.join(self.src_root, path)
+        if self._ignored_max_matches(rule_results):
+            self._warn_max_matches()
+        if self._ignored_max_size(fullpath, rule_results):
+            self._warn_max_size(fullpath)
 
-    @staticmethod
-    def _is_env_dir(path):
-        return os.path.exists(os.path.join(path, "bin", "activate"))
-
-    @staticmethod
-    def _del_dot_dir(dirs):
-        for name in list(dirs):
-            if name[:1] == ".":
-                dirs.remove(name)
+    def _ignored_max_matches(self, results):
+        matches_exceeded = lambda: (
+            results[0][1].matches >= results[0][1].max_matches)
+        return self._default_rules_in_effect(results) and matches_exceeded()
 
     @staticmethod
-    def _del_nocopy_dirs(root, dirs):
-        for name in list(dirs):
-            if os.path.exists(os.path.join(root, name, ".guild-nocopy")):
-                dirs.remove(name)
+    def _default_rules_in_effect(results):
+        return (
+            len(results) == 1 and
+            results[0][1].result is True and
+            results[0][1].size_lt == MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1 and
+            results[0][1].max_matches == MAX_DEFAULT_SOURCECODE_COUNT)
 
-    def default_select_path(self, path):
-        if not util.is_text_file(path):
-            return False
-        if os.path.getsize(path) > MAX_DEFAULT_SOURCECODE_FILE_SIZE:
-            self._warn_default_sourcecode_file_too_big(path)
-            return False
-        return True
-
-    def _warn_default_sourcecode_file_too_big(self, path):
+    def _warn_max_matches(self):
+        if self._warned_max_matches:
+            return
         log.warning(
-            "Skipping potential source code file %s because it's too "
-            "big.%s", path, self._snapshot_sourcecode_help_suffix())
+            "Found more than %i source code files but will only "
+            "copy %i as a safety measure.%s",
+            MAX_DEFAULT_SOURCECODE_COUNT,
+            MAX_DEFAULT_SOURCECODE_COUNT,
+            self._opdef_help_suffix())
+        self._warned_max_matches = True
 
-    def _snapshot_sourcecode_help_suffix(self):
+    def _opdef_help_suffix(self):
         if self.opdef:
             return (
                 " To control which source code files are copied, "
-                "specify sourcecode for %s." % self.opdef.fullname)
+                "specify 'sourcecode' for the '%s' operation in "
+                "guild.yml." % self.opdef.fullname)
         return ""
 
-    def pre_copy(self, to_copy):
-        if (self._undefined_sourcecode_config() and
-            len(to_copy) > MAX_DEFAULT_SOURCECODE_COUNT):
-            self._warn_sourcecode_to_copy_prune(to_copy)
-            del to_copy[MAX_DEFAULT_SOURCECODE_COUNT:]
+    def _ignored_max_size(self, path, results):
+        size_exceeded = lambda: (
+            util.safe_filesize(path) >= results[0][1].size_lt)
+        return self._default_rules_in_effect(results) and size_exceeded()
 
-    def _undefined_sourcecode_config(self):
-        return not any((len(cfg_item.specs) > 0 for cfg_item in self.config))
-
-    def _warn_sourcecode_to_copy_prune(self, to_copy):
+    def _warn_max_size(self, path):
         log.warning(
-            "Found %i source code files using default sourcecode config "
-            "but will only copy %i as a safety measure.%s",
-            len(to_copy), MAX_DEFAULT_SOURCECODE_COUNT,
-            self._snapshot_sourcecode_help_suffix())
+            "Skipping potential source code file %s because it's "
+            "too big.%s", path, self._opdef_help_suffix())
 
-def copy_sourcecode(src_base, config, dest_base, opdef=None):
-    if not isinstance(config, list):
-        config = [config]
-    if _sourcecode_disabled(config):
-        log.debug("sourcecode filters disabled, skipping copy")
-        return
-    util.select_copytree(
-        src_base,
-        dest_base,
-        config,
-        SourceCodeFilter(config, opdef))
+def copy_sourcecode(opdef, dest, handler_cls=None):
+    select = _sourcecode_select_for_opdef(opdef)
+    root_start = opdef.guildfile.dir
+    file_util.copytree(dest, select, root_start, handler_cls=handler_cls)
 
-def _sourcecode_disabled(config):
-    """Returns True if source code copy is disabled for config.
+def _sourcecode_select_for_opdef(opdef):
+    root = opdef_sourcecode_root(opdef)
+    rules = (
+        _base_sourcecode_select_rules() +
+        _sourcecode_config_rules(opdef.modeldef.sourcecode) +
+        _sourcecode_config_rules(opdef.sourcecode)
+    )
+    return file_util.FileSelect(root, rules)
 
-    If config does not contain any specs or contains any specs that
-    aren't 'exclude: *' then copies are enabled.
-    """
-    assert isinstance(config, list), config
-    has_specs = False
-    for c in config:
-        for spec in c.specs:
-            if not (spec.type == "exclude" and spec.patterns == ['*']):
-                return False
-            has_specs = True
-    return has_specs
+def opdef_sourcecode_root(opdef):
+    return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
+
+def _base_sourcecode_select_rules():
+    return [
+        _rule_exclude_dot_dirs(),
+        _rule_exclude_nocopy_dirs(),
+        _rule_exclude_venv_dirs(),
+        _rule_include_limited_text_files(),
+    ]
+
+def _rule_exclude_dot_dirs():
+    return file_util.exclude(".*", type="dir")
+
+def _rule_exclude_nocopy_dirs():
+    return file_util.exclude("*", type="dir", sentinel=".guild-nocopy")
+
+def _rule_exclude_venv_dirs():
+    return file_util.exclude("*", type="dir", sentinel="bin/activate")
+
+def _rule_include_limited_text_files():
+    return file_util.include(
+        "*",
+        type="text",
+        size_lt=MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1,
+        max_matches=MAX_DEFAULT_SOURCECODE_COUNT)
+
+def _sourcecode_config_rules(config):
+    return [_rule_for_select_spec(spec) for spec in config.specs]
+
+def _rule_for_select_spec(spec):
+    if spec.type == "include":
+        return file_util.include(spec.patterns)
+    elif spec.type == "exclude":
+        return file_util.exclude(spec.patterns)
+    else:
+        assert False, spec.type
 
 def split_main(main):
     if isinstance(main, list):

@@ -53,7 +53,7 @@ class SummaryPlugin(Plugin):
 
     def _try_patch_tensorflow(self):
         try:
-            import tensorflow
+            import tensorflow as _
         except ImportError:
             pass
         else:
@@ -79,7 +79,7 @@ class SummaryPlugin(Plugin):
         python_util.listen_function(summary_v2, "scalar", self._handle_scalar)
 
     def _listen_tf_summary(self):
-        # pylint: disable=import-error
+        # pylint: disable=import-error,no-name-in-module
         from tensorflow import summary
         self.log.debug("wrapping tensorflow.summary.scalar")
         python_util.listen_function(summary, "scalar", self._handle_scalar)
@@ -88,6 +88,7 @@ class SummaryPlugin(Plugin):
         if not _tf_version().startswith("1."):
             raise util.TryFailed()
         try:
+            # pylint: disable=import-error,no-name-in-module
             from tensorflow.compat.v1.summary import FileWriter
         except Exception as e:
             self.log.debug(
@@ -105,6 +106,7 @@ class SummaryPlugin(Plugin):
         if not _tf_version().startswith("1."):
             raise util.TryFailed()
         try:
+            # pylint: disable=import-error,no-name-in-module
             from tensorflow.summary import FileWriter
         except Exception as e:
             self.log.debug(

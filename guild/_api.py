@@ -96,7 +96,6 @@ def _popen_args(
         quiet=False,
         debug=False):
     from guild import op_util
-    from guild import run_util
     cwd = cwd or "."
     flags = flags or {}
     opt_flags = opt_flags or {}

@@ -71,7 +71,7 @@ def _preempt_logging_mods():
     our config is applied afterward.
     """
     try:
-        import absl.logging
+        import absl.logging as _
     except Exception:
         pass
 
