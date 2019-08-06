@@ -65,7 +65,7 @@ class GPUPlugin(SummaryPlugin):
         if result == 0:
             return raw_lines
         else:
-            self.log.error("reading GPU stats (smi output: '%s')", raw_lines)
+            self.log.debug("reading GPU stats (smi output: '%s')", raw_lines)
             return []
 
     @staticmethod
