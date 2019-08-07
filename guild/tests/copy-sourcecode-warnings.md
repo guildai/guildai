@@ -65,7 +65,7 @@ We can override this behavior with explicit Guild file config.
     ... no_op.py:
     ...   sourcecode: '*.txt'
     ... """
-    >>> _ = open(path(project_dir, "guild.yml"), "w").write(cfg)
+    >>> write(path(project_dir, "guild.yml"), cfg)
 
 Let's run the operation again:
 
@@ -100,13 +100,13 @@ Let's create a new project with various files:
 
 A file that is one byte too big:
 
-    >>> with open(path(project_dir, "too-big.txt"), "w") as f:
-    ...     _ = f.write("0" * (op_util.MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1))
+    >>> write(path(project_dir, "too-big.txt"),
+    ...       "0" * (op_util.MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1))
 
 A file that is exactly at the max size:
 
-    >>> with open(path(project_dir, "max.txt"), "w") as f:
-    ...     _ = f.write("0" * op_util.MAX_DEFAULT_SOURCECODE_FILE_SIZE)
+    >>> write(path(project_dir, "max.txt"),
+    ...       "0" * op_util.MAX_DEFAULT_SOURCECODE_FILE_SIZE)
 
 An empty file:
 
@@ -149,7 +149,7 @@ extend the file select logic to include any `*.txt` file.
     ...   sourcecode:
     ...     - include: '*.txt'
     ... """
-    >>> _ = open(path(project_dir, "guild.yml"), "w").write(cfg)
+    >>> write(path(project_dir, "guild.yml"), cfg)
 
 Run again with our new config:
 
@@ -179,8 +179,8 @@ Create max number of files:
 
 Next create a large file:
 
-    >>> with open(path(project_dir, "big.txt"), "w") as f:
-    ...     _ = f.write("0" * (op_util.MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1))
+    >>> write(path(project_dir, "big.txt"),
+    ...       "0" * (op_util.MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1))
 
 Our no_op operation:
 
