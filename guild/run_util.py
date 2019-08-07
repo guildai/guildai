@@ -114,26 +114,26 @@ def format_run(run, index=None):
     stopped = run.get("stopped")
     return {
         "_run": run,
+        "command": _format_command(run.get("cmd", "")),
+        "duration": util.format_duration(started, stopped),
+        "exit_status": _format_exit_status(run),
         "id": run.id,
-        "short_id": run.short_id,
         "index": _format_run_index(run, index),
-        "short_index": _format_run_index(run),
+        "label": _format_label(run.get("label") or ""),
+        "marked": _format_val(marked),
         "model": run.opref.model_name,
         "op_name": run.opref.op_name,
         "operation": operation,
         "operation_with_marked": _op_with_marked(operation, marked),
+        "pid": run.pid or "",
         "pkg": run.opref.pkg_name,
+        "run_dir": util.format_dir(run.path),
+        "short_id": run.short_id,
+        "short_index": _format_run_index(run),
+        "started": util.format_timestamp(started),
         "status": status,
         "status_with_remote": _status_with_remote(status, run.remote),
-        "marked": _format_val(marked),
-        "label": _format_label(run.get("label") or ""),
-        "pid": run.pid or "",
-        "started": util.format_timestamp(started),
         "stopped": util.format_timestamp(stopped),
-        "duration": util.format_duration(started, stopped),
-        "run_dir": util.format_dir(run.path),
-        "command": _format_command(run.get("cmd", "")),
-        "exit_status": _format_exit_status(run)
     }
 
 def _format_run_index(run, index=None):
