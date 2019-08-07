@@ -25,11 +25,16 @@ import signal
 
 import guild.opref
 
-from guild import batch_util
+# IMPORTANT: Keep expensive imports out of this list. This module is
+# used by several commands and any latency here will be automatically
+# applied to those commands. If the import is used once or twice, move
+# it into the applicable function(s). If it's used more than once or
+# twice, move the command impl into a separate module (see
+# publish_impl for example).
+
 from guild import cli
 from guild import cmd_impl_support
 from guild import index2 as indexlib
-from guild import publish as publishlib
 from guild import remote_run_support
 from guild import run as runlib
 from guild import run_util
@@ -74,6 +79,7 @@ CORE_RUN_ATTRS = [
     "objective",
     "opdef",
     "platform",
+    "sourcecode_digest",
     "random_seed",
     "run_params",
     "started",
@@ -307,10 +313,10 @@ def _no_selected_runs_exit(help_msg=None):
     cli.out(help_msg, err=True)
     raise SystemExit(0)
 
-def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
-             no_runs_help, op_callback, default_runs_arg=None,
-             confirm_default=False, runs_callback=None):
-    get_selected = runs_callback or _runs_op_selected
+def runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
+            no_runs_help, op_callback, default_runs_arg=None,
+            confirm_default=False, runs_callback=None):
+    get_selected = runs_callback or runs_op_selected
     selected = get_selected(args, ctx, default_runs_arg, force_deleted)
     if not selected:
         _no_selected_runs_exit(no_runs_help)
@@ -329,7 +335,7 @@ def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
         else:
             op_callback(selected)
 
-def _runs_op_selected(args, ctx, default_runs_arg, force_deleted):
+def runs_op_selected(args, ctx, default_runs_arg, force_deleted):
     default_runs_arg = default_runs_arg or ALL_RUNS_ARG
     runs_arg = _remove_duplicates(args.runs or default_runs_arg)
     filtered = filtered_runs(args, force_deleted)
@@ -375,7 +381,7 @@ def _delete_runs(args, ctx):
             cli.out("Permanently deleted %i run(s)" % len(selected))
         else:
             cli.out("Deleted %i run(s)" % len(selected))
-    _runs_op(
+    runs_op(
         args, ctx, False, preview, confirm, no_runs_help,
         delete, confirm_default=not args.permanent)
 
@@ -394,7 +400,7 @@ def _purge_runs(args, ctx):
     def purge(selected):
         var.purge_runs(selected)
         cli.out("Permanently deleted %i run(s)" % len(selected))
-    _runs_op(args, ctx, True, preview, confirm, no_runs_help, purge)
+    runs_op(args, ctx, True, preview, confirm, no_runs_help, purge)
 
 def restore_runs(args, ctx):
     if args.remote:
@@ -409,7 +415,7 @@ def _restore_runs(args, ctx):
     def restore(selected):
         var.restore_runs(selected)
         cli.out("Restored %i run(s)" % len(selected))
-    _runs_op(
+    runs_op(
         args, ctx, True, preview, confirm, no_runs_help,
         restore, confirm_default=True)
 
@@ -541,7 +547,7 @@ def _clear_labels(args, ctx):
         for run in selected:
             run.del_attr("label")
         cli.out("Cleared label for %i run(s)" % len(selected))
-    _runs_op(
+    runs_op(
         args, ctx, False, preview, confirm, no_runs,
         clear_labels, LATEST_RUN_ARG, True)
 
@@ -555,7 +561,7 @@ def _set_labels(args, ctx):
         for run in selected:
             run.write_attr("label", args.label)
         cli.out("Labeled %i run(s)" % len(selected))
-    _runs_op(
+    runs_op(
         args, ctx, False, preview, confirm, no_runs,
         set_labels, LATEST_RUN_ARG, True)
 
@@ -574,9 +580,9 @@ def _stop_runs(args, ctx):
         for run in selected:
             _stop_run(run, args.no_wait)
     def select_runs_f(args, ctx, default_runs_arg, force_deleted):
-        runs = _runs_op_selected(args, ctx, default_runs_arg, force_deleted)
+        runs = runs_op_selected(args, ctx, default_runs_arg, force_deleted)
         return [run for run in runs if not run.remote]
-    _runs_op(
+    runs_op(
         args, ctx, False, preview, confirm, no_runs_help, stop_f,
         None, False, select_runs_f)
 
@@ -639,7 +645,7 @@ def export(args, ctx):
                 shutil.copytree(run.path, dest, symlinks)
             exported += 1
         cli.out("Exported %i run(s)" % exported)
-    _runs_op(
+    runs_op(
         args, ctx, False, preview, confirm, no_runs,
         export, ALL_RUNS_ARG, True)
 
@@ -678,7 +684,7 @@ def import_(args, ctx):
                 shutil.copytree(run.path, dest, symlinks)
             imported += 1
         cli.out("Imported %i run(s)" % imported)
-    _runs_op(
+    runs_op(
         args, ctx, False, preview, confirm, no_runs,
         export, ALL_RUNS_ARG, True)
 
@@ -691,7 +697,7 @@ def push(args, ctx):
     no_runs = "No runs to copy."
     def push_f(runs):
         remote_impl_support.push_runs(remote, runs, args)
-    _runs_op(
+    runs_op(
         args, ctx, False, preview, confirm, no_runs,
         push_f, ALL_RUNS_ARG, True)
 
@@ -713,7 +719,7 @@ def pull(args, ctx):
     def filtered_runs_f(args, _ctx, _default_runs_arg, _force_deleted):
         filtered = remote_impl_support.filtered_runs_for_pull(remote, args)
         return select_runs(filtered, args.runs, ctx)
-    _runs_op(
+    runs_op(
         args, ctx, False, preview, confirm,
         no_runs, pull_f, ALL_RUNS_ARG, True,
         filtered_runs_f)
@@ -732,7 +738,7 @@ def _clear_marked(args, ctx):
         for run in selected:
             run.del_attr("marked")
         cli.out("Unmarked %i run(s)" % len(selected))
-    _runs_op(
+    runs_op(
         args, ctx, False, preview, confirm, no_runs,
         clear, LATEST_RUN_ARG, True)
 
@@ -744,77 +750,6 @@ def _mark(args, ctx):
         for run in selected:
             run.write_attr("marked", True)
         cli.out("Marked %i run(s)" % len(selected))
-    _runs_op(
+    runs_op(
         args, ctx, False, preview, confirm, no_runs,
         mark, LATEST_RUN_ARG, True)
-
-def publish(args, ctx):
-    if args.files and args.all_files:
-        cli.error("--files and --all-files cannot both be used")
-    if args.refresh_index:
-        _refresh_publish_index(args)
-    else:
-        _publish(args, ctx)
-    _report_dir_size(args)
-
-def _publish(args, ctx):
-    preview = (
-        "You are about to publish the following run(s) to %s:"
-        % (args.dest or publishlib.DEFAULT_DEST_HOME))
-    confirm = "Continue?"
-    no_runs = "No runs to publish."
-    def publish_f(runs, formatted):
-        _publish_runs(runs, formatted, args)
-        _refresh_publish_index(args, no_dest=True)
-    def select_runs_f(args, ctx, default_runs_arg, force_deleted):
-        runs = _runs_op_selected(args, ctx, default_runs_arg, force_deleted)
-        return [
-            run for run in runs
-            if args.include_batch or not batch_util.is_batch(run)
-        ]
-    _runs_op(
-        args, ctx, False, preview, confirm, no_runs,
-        publish_f, ALL_RUNS_ARG, True, select_runs_f)
-
-def _publish_runs(runs, formatted, args):
-    if args.all_files:
-        copy_files = publishlib.COPY_ALL_FILES
-    elif args.files or args.include_links:
-        copy_files = publishlib.COPY_DEFAULT_FILES
-    else:
-        copy_files = None
-    for run, frun in zip(runs, formatted):
-        cli.out("Publishing [%s] %s... " % (
-            frun["short_id"],
-            frun["operation"]), nl=False)
-        frun["_run"] = run
-        try:
-            publishlib.publish_run(
-                run,
-                dest=args.dest,
-                template=args.template,
-                copy_files=copy_files,
-                include_links=args.include_links,
-                md5s=not args.no_md5,
-                formatted_run=frun)
-        except publishlib.PublishError as e:
-            cli.error(
-                "error publishing run %s:\n%s"
-                % (run.id, e))
-        else:
-            dest = args.dest or publishlib.DEFAULT_DEST_HOME
-            size = util.dir_size(os.path.join(dest, run.id))
-            cli.out("using %s" % util.format_bytes(size))
-
-def _refresh_publish_index(args, no_dest=False):
-    if no_dest:
-        dest_suffix = ""
-    else:
-        dest_suffix = " in %s" % (args.dest or publishlib.DEFAULT_DEST_HOME)
-    print("Refreshing runs index%s" % dest_suffix)
-    publishlib.refresh_index(args.dest)
-
-def _report_dir_size(args):
-    dest = args.dest or publishlib.DEFAULT_DEST_HOME
-    size = util.dir_size(dest)
-    cli.out("Published runs using %s" % util.format_bytes(size))

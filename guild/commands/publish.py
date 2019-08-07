@@ -30,5 +30,5 @@ from . import runs_publish
 def publish(ctx, args):
     """{{ runs_publish.publish_runs }}"""
 
-    from . import runs_impl
-    runs_impl.publish(args, ctx)
+    from . import publish_impl
+    publish_impl.publish(args, ctx)

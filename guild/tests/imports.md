@@ -70,6 +70,7 @@
     guild.commands.packages_info
     guild.commands.packages_list
     guild.commands.publish
+    guild.commands.publish_impl
     guild.commands.pull
     guild.commands.push
     guild.commands.remote

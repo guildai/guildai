@@ -305,7 +305,7 @@ def publish(
         guild_home=None):
     from guild import click_util
     from guild.commands import runs_publish
-    from guild.commands import runs_impl
+    from guild.commands import publish_impl
     args = list(runs or ()) + ["-y"]
     if dest:
         args.extend(["--dest", dest])
@@ -324,7 +324,7 @@ def publish(
     ctx = runs_publish.publish_runs.make_context("", args)
     args = click_util.Args(**ctx.params)
     with Env(cwd, guild_home):
-        return runs_impl.publish(args, ctx)
+        return publish_impl.publish(args, ctx)
 
 def package(
         dist_dir=None,
