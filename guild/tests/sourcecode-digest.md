@@ -36,7 +36,7 @@ by using the `file_util.files_digest` function.
 
 Let's run `op` and examine the results.
 
-    >>> run = project.run2("op", run_dir=mkdtemp())
+    >>> run, _out = project.run_capture("op", run_dir=mkdtemp())
 
 Here's the copied source:
 
@@ -69,7 +69,7 @@ And our digest:
 
 Next we'll generate a new run:
 
-    >>> run = project.run2("op", run_dir=mkdtemp())
+    >>> run, _out = project.run_capture("op", run_dir=mkdtemp())
 
 Our copied source code:
 
@@ -95,7 +95,7 @@ Our new project digest:
 
 And our run:
 
-    >>> run = project.run2("op", run_dir=mkdtemp())
+    >>> run, _out = project.run_capture("op", run_dir=mkdtemp())
 
 Copied source code:
 
@@ -123,7 +123,8 @@ Let's modify the project Guild file to disable source code digests.
 
 Let's generate a new run:
 
-    >>> run = project.run2("op", run_dir=mkdtemp())
+    >>> run, out = project.run_capture("op", run_dir=mkdtemp())
+    >>> print(out)
     sourcecode digest disabled for operation 'op' - skipping
 
 The operation still copies source code:
@@ -148,7 +149,8 @@ We can alternatively disable digests at the model level:
     ...       digest: off
     ... """)
 
-    >>> run = project.run2("m:op", run_dir=mkdtemp())
+    >>> run, out = project.run_capture("m:op", run_dir=mkdtemp())
+    >>> print(out)
     sourcecode digest disabled for model 'm' - skipping
 
     >>> print(run.get("sourcecode_digest"))
@@ -167,7 +169,7 @@ However, the operation can override the model:
     ...       digest: off
     ... """)
 
-    >>> run = project.run2("m:op", run_dir=mkdtemp())
+    >>> run, _out = project.run_capture("m:op", run_dir=mkdtemp())
 
     >>> run.get("sourcecode_digest")
     'f1b6bf6fe35769b9a708f9073b125730'

@@ -140,7 +140,7 @@ def _find_run(run_spec, args):
     else:
         return util.find_apply([
             _run_from_dir,
-            _marked_or_latest_run_from_spec,
+            marked_or_latest_run_from_spec,
             one_run,
         ], run_spec)
 
@@ -150,7 +150,7 @@ def _run_from_dir(run_dir):
     run_id = os.path.basename(run_dir)
     return runlib.Run(run_id, run_dir)
 
-def _marked_or_latest_run_from_spec(spec):
+def marked_or_latest_run_from_spec(spec):
     try:
         opref = opreflib.OpRef.from_string(spec)
     except opreflib.OpRefError:

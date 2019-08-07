@@ -9,12 +9,12 @@ sample project.
 A helper to run a batch:
 
     >>> def run(optimizer, max_trials=2, **flags):
-    ...    return project.run(
-    ...        "echo2.py",
-    ...        flags=flags,
-    ...        optimizer=optimizer,
-    ...        max_trials=max_trials,
-    ...        simplify_trial_output=True)
+    ...     project.run(
+    ...         "echo2.py",
+    ...         flags=flags,
+    ...         optimizer=optimizer,
+    ...         max_trials=max_trials,
+    ...         simplify_trial_output=True)
 
 Running with fixed args (i.e. no search ranges).
 

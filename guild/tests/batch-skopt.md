@@ -13,13 +13,13 @@ We'll use the `noisy.py` script in the `optimizers` sample project.
 A helper to run an optimizer batch:
 
     >>> def run(optimizer, x, trials, opt_flags=None):
-    ...    return project.run(
-    ...        "noisy.py",
-    ...        flags={"x": x},
-    ...        opt_flags=opt_flags,
-    ...        optimizer=optimizer,
-    ...        max_trials=trials,
-    ...        simplify_trial_output=True)
+    ...     project.run(
+    ...         "noisy.py",
+    ...         flags={"x": x},
+    ...         opt_flags=opt_flags,
+    ...         optimizer=optimizer,
+    ...         max_trials=trials,
+    ...         simplify_trial_output=True)
 
 ## Bayesian with gaussian process
 

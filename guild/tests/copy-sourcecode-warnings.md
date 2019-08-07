@@ -39,7 +39,8 @@ Here's a no-op script that we can run to test an operation:
 Let's run the no-op script using a project:
 
     >>> project = Project(project_dir)
-    >>> run = project.run2("no_op.py")
+    >>> run, out = project.run_capture("no_op.py")
+    >>> print(out)
     WARNING: Found more than 100 source code files but will only
     copy 100 as a safety measure. To control which source code
     files are copied, specify 'sourcecode' for the 'no_op.py'
@@ -69,7 +70,7 @@ We can override this behavior with explicit Guild file config.
 
 Let's run the operation again:
 
-    >>> run = project.run2("no_op.py")
+    >>> run, _out = project.run_capture("no_op.py")
 
 And get the list of copied soure code files:
 
@@ -127,7 +128,8 @@ Here are the project files:
 Let's run an operation with the default source code settings.
 
     >>> project = Project(project_dir)
-    >>> run = project.run2("no_op.py")
+    >>> run, out = project.run_capture("no_op.py")
+    >>> print(out)
     WARNING: Skipping potential source code file ./too-big.txt
     because it's too big. To control which source code files
     are copied, specify 'sourcecode' for the 'no_op.py'
@@ -153,7 +155,7 @@ extend the file select logic to include any `*.txt` file.
 
 Run again with our new config:
 
-    >>> run = project.run2("no_op.py")
+    >>> run, _out = project.run_capture("no_op.py")
 
 And the run source code:
 
@@ -189,7 +191,8 @@ Our no_op operation:
 And a run:
 
     >>> project = Project(project_dir)
-    >>> run = project.run2("no_op.py")
+    >>> run, out = project.run_capture("no_op.py")
+    >>> print(out)
     WARNING: Found more than 100 source code files but will only
     copy 100 as a safety measure. To control which source code files
     are copied, specify 'sourcecode' for the 'no_op.py' operation

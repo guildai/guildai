@@ -486,34 +486,77 @@ class Project(object):
         runs_path = os.path.join(self.guild_home, "runs")
         self.index = index2.RunIndex(runs_path)
 
-    def run(self, *args, **kw):
+    def run_capture(self, *args, **kw):
+        """Runs an operation returning a tuple of run and output."""
+        run_dir = self._run_dir_apply(kw)
         out = self._run(*args, **kw)
-        print(out)
+        return runlib.from_dir(run_dir), out
 
-    def run2(self, *args, **kw):
-        """Variant of run that returns a run object."""
-        run_dir = kw.pop("run_dir", None)
-        if run_dir is None:
-            run_id = runlib.mkid()
-            run_dir = os.path.join(self.guild_home, "runs", run_id)
-        with Env({"NO_WARN_RUNDIR": "1"}):
-            out = self._run(run_dir=run_dir, *args, **kw)
-        print(out)
-        return runlib.from_dir(run_dir)
+    def _run_dir_apply(self, kw):
+        """Returns a run directory for kw, optionally apply it to kw.
+
+        If kw contains an explicit run directory, returns
+        it. Otherwise checks if kw is a restart/rerun and if so
+        returns the run directory associated with the
+        rerun/restart. If it's a normal run, creates a new run ID and
+        applies it to kw.
+
+        This scheme is used so that we know the run directory prior to
+        running an operation. This lets us return a corresponding run
+        object after the operation is finished.
+        """
+        return util.find_apply([
+            lambda: kw.get("run_dir"),
+            lambda: self._maybe_restart_rerun_run_dir(kw),
+            lambda: self._init_run_dir_apply(kw),
+        ])
+
+    def _maybe_restart_rerun_run_dir(self, kw):
+        """Return the run dir for a rerun or restart kw.
+
+        If kw contains either a rerun or restart spec, performs a
+        lookup within the project Guild home for a single matching run
+        and returns its directory.
+
+        This is used to identify the run directory prior to passing
+        rerunning/restarting it.
+        """
+        for name in ("rerun", "restart"):
+            spec = kw.get(name)
+            if spec:
+                from guild.commands import run_impl
+                with configlib.SetGuildHome(self.guild_home):
+                    run = util.find_apply([
+                        run_impl.marked_or_latest_run_from_spec,
+                        run_impl.one_run,
+                    ], spec)
+                    return run.dir
+        return None
+
+    def _init_run_dir_apply(self, kw):
+        run_id = runlib.mkid()
+        run_dir = os.path.join(self.guild_home, "runs", run_id)
+        kw["run_dir"] = run_dir
+        return run_dir
 
     def _run(self, *args, **kw):
         simplify_trial_output = kw.pop("simplify_trial_output", False)
-        try:
+        with Env({"NO_WARN_RUNDIR": "1"}):
             out = gapi.run_capture_output(
                 guild_home=self.guild_home,
                 cwd=self.cwd,
                 *args, **kw)
+        if simplify_trial_output:
+            out = self._simplify_trial_output(out)
+        return out.strip()
+
+    def run(self, *args, **kw):
+        try:
+            _run, out = self.run_capture(*args, **kw)
         except gapi.RunError as e:
-            return "{}\n<exit {}>".format(e.output.strip(), e.returncode)
+            print("{}\n<exit {}>".format(e.output.strip(), e.returncode))
         else:
-            if simplify_trial_output:
-                out = self._simplify_trial_output(out)
-            return out.strip()
+            print(out)
 
     def _simplify_trial_output(self, out):
         for p, repl in self.simplify_trial_output_patterns:
