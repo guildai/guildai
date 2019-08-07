@@ -2,7 +2,7 @@
 
     >>> quiet("pip install tensorflow")
 
-    >>> run("guild check --tensorflow")
+    >>> run("guild check --offline --tensorflow")
     guild_version:             ...
     ...
     tensorflow_version:        1.14.0
@@ -12,4 +12,5 @@
     libcudnn_version:          not loaded
     cuda_version:              not installed
     ...
+    latest_guild_version:      unchecked (offline)
     <exit 0>
