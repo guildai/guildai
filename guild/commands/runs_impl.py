@@ -34,7 +34,6 @@ import guild.opref
 
 from guild import cli
 from guild import cmd_impl_support
-from guild import index2 as indexlib
 from guild import remote_run_support
 from guild import run as runlib
 from guild import run_util
@@ -511,6 +510,7 @@ def _maybe_print_proto_flags(run, out):
         out(run_util.format_attr(proto_run.get("flags", "")))
 
 def _iter_scalars(run):
+    from guild import index2 as indexlib # slightly expensive
     for s in indexlib.iter_run_scalars(run):
         yield "%s: %f (step %i)" % (_s_key(s), _s_val(s), _s_step(s))
 
