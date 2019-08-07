@@ -17,8 +17,8 @@ Here's a run of the script, which has no compare info:
 Here's the default compare output:
 
     >>> project.compare()
-    [['run', 'operation', 'started', 'time', 'status', 'label', 'a', 'b', 'step', 'x', 'y'],
-     ['...', 'op1.py', '...', '...', 'completed', None, 1, 2, 0, 2.0, 4.0]]
+    [['run', 'operation', 'started', 'time', 'status', 'label', 'sourcecode', 'a', 'b', 'step', 'x', 'y'],
+     ['...', 'op1.py', '...', '...', 'completed', None, '7f0ce7d2', 1, 2, 0, 2.0, 4.0]]
 
 ## Explicit compare columns
 
@@ -43,7 +43,6 @@ Let's run the operation:
 And compare the runs:
 
     >>> project.compare()
-    [['run', 'operation', 'started', 'time', 'status', 'label', 'A', 'B', 'x_step',
-      'x', 'y', 'a', 'b', 'step'],
-     ['...', 'op1', '...', '...', 'completed', 'a=2 b=3', 2, 3, 0, 3.0, 5.0, None, None, None],
-     ['...', 'op1.py', '...', '...', 'completed', None, None, None, None, 2.0, 4.0, 1, 2, 0]]
+    [['run', 'operation', 'started', 'time', 'status', 'label', 'sourcecode', 'A', 'B', 'x_step', 'x', 'y', 'a', 'b', 'step'],
+     ['...', 'op1', '...', '...', 'completed', 'a=2 b=3', '7f0ce7d2', 2, 3, 0, 3.0, 5.0, None, None, None],
+     ['...', 'op1.py', '...', '...', 'completed', None, '7f0ce7d2', None, None, None, 2.0, 4.0, 1, 2, 0]]

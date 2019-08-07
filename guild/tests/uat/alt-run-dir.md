@@ -32,6 +32,7 @@ And the generated files:
     hello-default/.guild/attrs/platform
     hello-default/.guild/attrs/random_seed
     hello-default/.guild/attrs/run_params
+    hello-default/.guild/attrs/sourcecode_digest
     hello-default/.guild/attrs/started
     hello-default/.guild/attrs/stopped
     hello-default/.guild/attrs/user

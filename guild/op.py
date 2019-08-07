@@ -108,6 +108,7 @@ class Operation(object):
         self._init_run()
         self._init_attrs()
         self._copy_sourcecode()
+        self._init_digests()
         return self._run
 
     def _init_run(self):
@@ -144,6 +145,10 @@ class Operation(object):
         # (i.e. projects)
         if self.opref.pkg_type in ("guildfile", "script"):
             op_util.copy_run_sourcecode(self._run, self.opdef)
+
+    def _init_digests(self):
+        assert self._run is not None
+        op_util.write_sourcecode_digest(self._run, self.opdef)
 
     def run_impl(self, quiet=False, background_pidfile=None, stop_after=None):
         self._started = guild.run.timestamp()

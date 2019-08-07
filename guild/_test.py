@@ -480,8 +480,8 @@ class Project(object):
         (re.compile(r"trial [a-f0-9]+"), "trial"),
     ]
 
-    def __init__(self, cwd):
-        self.guild_home = mkdtemp()
+    def __init__(self, cwd, guild_home=None):
+        self.guild_home = guild_home or mkdtemp()
         self.cwd = cwd
         runs_path = os.path.join(self.guild_home, "runs")
         self.index = index2.RunIndex(runs_path)
@@ -494,20 +494,12 @@ class Project(object):
         """Variant of run that returns a run object."""
         run_dir = kw.pop("run_dir", None)
         if run_dir is None:
-            out, run_dir = self._run_init_run_dir(*args, **kw)
-        else:
+            run_id = runlib.mkid()
+            run_dir = os.path.join(self.guild_home, "runs", run_id)
+        with Env({"NO_WARN_RUNDIR": "1"}):
             out = self._run(run_dir=run_dir, *args, **kw)
         print(out)
         return runlib.from_dir(run_dir)
-
-    def _run_init_run_dir(self, *args, **kw):
-        """Variation of _run that returns out, run_dir."""
-        assert "run_dir" not in kw, kw
-        run_id = runlib.mkid()
-        run_dir = os.path.join(self.guild_home, "runs", run_id)
-        with Env({"NO_WARN_RUNDIR": "1"}):
-            out = self._run(*args, run_dir=run_dir, **kw)
-        return out, run_dir
 
     def _run(self, *args, **kw):
         simplify_trial_output = kw.pop("simplify_trial_output", False)

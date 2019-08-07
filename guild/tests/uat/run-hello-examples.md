@@ -66,6 +66,7 @@ Guild captures project source, which we can list using `runs info`:
       guild.yml
       msg.txt
       say.py
+    sourcecode_digest: f38982035347da4129fb0f98ef48bb5a
     <exit 0>
 
 ### `from-file`

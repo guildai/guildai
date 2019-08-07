@@ -44,6 +44,7 @@ The files generated for our run:
     .guild/attrs/platform
     .guild/attrs/random_seed
     .guild/attrs/run_params
+    .guild/attrs/sourcecode_digest
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/attrs/user
@@ -141,6 +142,7 @@ The latest run is the trial:
     .guild/attrs/platform
     .guild/attrs/random_seed
     .guild/attrs/run_params
+    .guild/attrs/sourcecode_digest
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/attrs/user
@@ -185,6 +187,7 @@ Its files:
     .guild/attrs/platform
     .guild/attrs/random_seed
     .guild/attrs/run_params
+    .guild/attrs/sourcecode_digest
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/attrs/user
@@ -203,6 +206,7 @@ Its files:
     .guild/proto/.guild/attrs/platform
     .guild/proto/.guild/attrs/random_seed
     .guild/proto/.guild/attrs/run_params
+    .guild/proto/.guild/attrs/sourcecode_digest
     .guild/proto/.guild/attrs/user
     .guild/proto/.guild/opref
     .guild/proto/.guild/sourcecode/add.py

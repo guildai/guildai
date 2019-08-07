@@ -949,6 +949,21 @@ def flag_assigns(flags, quote=False, shell_safe=False,
         for name, val in sorted(flags.items())
     ]
 
+def write_sourcecode_digest(run, opdef):
+    if opdef.sourcecode.digest is False:
+        log.info(
+            "sourcecode digest disabled for operation '%s' - skipping",
+            opdef.fullname)
+        return
+    if (opdef.sourcecode.digest is not True and
+        opdef.modeldef.sourcecode.digest is False):
+        log.info(
+            "sourcecode digest disabled for model '%s' - skipping",
+            opdef.modeldef.name)
+        return
+    digest = file_util.files_digest(run.guild_path("sourcecode"))
+    run.write_attr("sourcecode_digest", digest)
+
 def _patch_yaml_safe_loader():
     # Credit: https://stackoverflow.com/users/1307905/anthon
     # Ref:    https://stackoverflow.com/questions/30458977/

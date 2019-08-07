@@ -37,7 +37,16 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
-BASE_COLS = ".run, .operation, .started, .time, .status, .label"
+BASE_COLS = ",".join([
+    ".run",
+    ".operation",
+    ".started",
+    ".time",
+    ".status",
+    ".label",
+    ".sourcecode",
+])
+
 MIN_COLS = ".run"
 
 NO_RUNS_CAPTION = "no runs"

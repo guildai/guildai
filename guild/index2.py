@@ -51,6 +51,7 @@ class AttrReader(object):
             "model": opref.model_name,
             "operation": run_util.format_op_desc(run),
             "op": opref.op_name,
+            "sourcecode": util.short_digest(run.get("sourcecode_digest")),
             "started": util.format_timestamp(started),
             "stopped": util.format_timestamp(stopped),
             "status": status,

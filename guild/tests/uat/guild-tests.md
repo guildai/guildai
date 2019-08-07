@@ -75,6 +75,7 @@ tests).
       select-resources:            ok
       skopt:                       ok
       skopt-utils:                 ok
+      sourcecode-digest:           ok
       step-checks:                 ok
       steps:                       ok
       summary:                     ok

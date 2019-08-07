@@ -450,8 +450,9 @@ def _coerce_select_files_one_include(data):
 def _coerce_select_files_dict(data, gf):
     assert isinstance(data, dict)
     return {
+        "select": _coerce_select_files(data.get("select"), gf),
         "root": data.get("root"),
-        "select": _coerce_select_files(data.get("select"), gf)
+        "digest": data.get("digest"),
     }
 
 def _coerce_select_files_list(data, guildfile):
@@ -1266,9 +1267,13 @@ class FileSelectDef(object):
 
     def _dict_init(self, data, gf):
         assert isinstance(data, dict), data
-        self._default_init(data.get("select"), gf, data.get("root"))
+        self._default_init(
+            data.get("select"),
+            gf,
+            data.get("root"),
+            data.get("digest"))
 
-    def _default_init(self, data, gf, root=None):
+    def _default_init(self, data, gf, root=None, digest=None):
         if data is None:
             data = []
         if not isinstance(data, list):
@@ -1276,6 +1281,7 @@ class FileSelectDef(object):
                 gf, "invalid file select spec %r: expected a list" % data)
         self.root = root
         self.specs = [FileSelectSpec(item, gf) for item in data]
+        self.digest = digest
 
 class FileSelectSpec(object):
 

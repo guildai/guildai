@@ -17,6 +17,7 @@ from __future__ import division
 
 import fnmatch
 import glob
+import hashlib
 import logging
 import os
 import re
@@ -263,3 +264,36 @@ def _relpath(path, start):
     if path == start:
         return ""
     return os.path.relpath(path, start)
+
+def files_digest(root):
+    files = _files_for_digest(root)
+    if not files:
+        return None
+    md5 = hashlib.md5()
+    for path in files:
+        relpath = os.path.relpath(path, root)
+        md5.update(_encode_file_path_for_digest(relpath))
+        md5.update(b"\x00")
+        _file_bytes_digest_update(path, md5)
+        md5.update(b"\x00")
+    return md5.hexdigest()
+
+def _files_for_digest(root):
+    all = []
+    for path, _dirs, files in os.walk(root, followlinks=False):
+        for name in files:
+            all.append(os.path.join(path, name))
+    all.sort()
+    return all
+
+def _encode_file_path_for_digest(path):
+    return path.encode("UTF-8")
+
+def _file_bytes_digest_update(path, d):
+    BUF_SIZE = 1024 * 1024
+    with open(path, "rb") as f:
+        while True:
+            buf = f.read(BUF_SIZE)
+            if not buf:
+                break
+            d.update(buf)

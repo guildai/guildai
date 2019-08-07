@@ -1080,3 +1080,8 @@ def _apply_nested(name, val, nested):
                 "%r cannot be nested: conflicts with {%r: %s}"
                 % (name, conflicts_with, cur))
     cur[parts[-1]] = val
+
+def short_digest(s):
+    if not s:
+        return ""
+    return s[:8]
