@@ -135,7 +135,6 @@ def t_error(t):
     raise SyntaxError(
         "unexpected '%s' at position %s"
         % (t.value, t.lexpos))
-    assert False, t
 
 def lexer():
     return _lex.lex(
