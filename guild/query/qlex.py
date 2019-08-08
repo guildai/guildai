@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+
+import sys
+
 from guild import _lex
 
 reserved = (
@@ -70,5 +75,4 @@ def t_error(t):
     assert False, t
 
 def lexer():
-    import sys
     return _lex.lex(module=sys.modules[__name__])
