@@ -195,138 +195,188 @@ a reference time and prints the start and end times.
     >>> def apply(s, ref):
     ...     f = parser.parse(s)
     ...     start, end = f(ref)
-    ...     print(start)
-    ...     print(end)
+    ...     print("ref:   %s" % ref)
+    ...     print("start: %s" % start)
+    ...     print("end:   %s" % end)
 
 Here's a reference date for our core tests:
 
     >>> from datetime import datetime
     >>> ref = datetime(2019, 5, 1, 14, 35, 23)
 
+### Unit periods
+
+Unit periods are specs that imply a period of time that is defined by
+a specified unit. Unites include minutes, hours, days, weeks, months,
+and years.
+
+Periods can be specified using special keywords "this" and "last",
+indicating the period that falls within the reference time and the
+period that occurs just prior to the reference time respectively. For
+example, "this hour" indicates that the period should fall within the
+reference time hour as defined by the period "00:00" and
+"00:59". Similarly, "last hour" secifies the period in the hour prior
+to the reference time.
+
+Periods can also be specified using the syntax "N <unit(s)> ago". For
+example, "1 hour ago" specifies the period of one hour occuring prior
+to the reference time hour start.
+
+Below are examples applied to our reference time.
+
 Minute periods:
 
     >>> apply("this minute", ref)
-    2019-05-01 14:35:00
-    2019-05-01 14:36:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 14:35:00
+    end:   2019-05-01 14:36:00
 
     >>> apply("last minute", ref)
-    2019-05-01 14:34:00
-    2019-05-01 14:35:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 14:34:00
+    end:   2019-05-01 14:35:00
 
     >>> apply("1 minute ago", ref)
-    2019-05-01 14:34:00
-    2019-05-01 14:35:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 14:34:00
+    end:   2019-05-01 14:35:00
 
     >>> apply("5 minutes ago", ref)
-    2019-05-01 14:30:00
-    2019-05-01 14:31:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 14:30:00
+    end:   2019-05-01 14:31:00
 
 Hour periods:
 
     >>> apply("this hour", ref)
-    2019-05-01 14:00:00
-    2019-05-01 15:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 14:00:00
+    end:   2019-05-01 15:00:00
 
     >>> apply("last hour", ref)
-    2019-05-01 13:00:00
-    2019-05-01 14:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 13:00:00
+    end:   2019-05-01 14:00:00
 
     >>> apply("1 hour ago", ref)
-    2019-05-01 13:00:00
-    2019-05-01 14:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 13:00:00
+    end:   2019-05-01 14:00:00
 
     >>> apply("5 hours ago", ref)
-    2019-05-01 09:00:00
-    2019-05-01 10:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 09:00:00
+    end:   2019-05-01 10:00:00
 
     >>> apply("24 hours ago", ref)
-    2019-04-30 14:00:00
-    2019-04-30 15:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-30 14:00:00
+    end:   2019-04-30 15:00:00
 
 Day periods:
 
     >>> apply("today", ref)
-    2019-05-01 00:00:00
-    2019-05-02 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 00:00:00
+    end:   2019-05-02 00:00:00
 
     >>> apply("yesterday", ref)
-    2019-04-30 00:00:00
-    2019-05-01 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-30 00:00:00
+    end:   2019-05-01 00:00:00
 
     >>> apply("1 day ago", ref)
-    2019-04-30 00:00:00
-    2019-05-01 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-30 00:00:00
+    end:   2019-05-01 00:00:00
 
     >>> apply("2 days ago", ref)
-    2019-04-29 00:00:00
-    2019-04-30 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-29 00:00:00
+    end:   2019-04-30 00:00:00
 
     >>> apply("10 days ago", ref)
-    2019-04-21 00:00:00
-    2019-04-22 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-21 00:00:00
+    end:   2019-04-22 00:00:00
 
 Week periods:
 
     >>> apply("this week", ref)
-    2019-04-29 00:00:00
-    2019-05-06 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-29 00:00:00
+    end:   2019-05-06 00:00:00
 
     >>> apply("last week", ref)
-    2019-04-22 00:00:00
-    2019-04-29 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-22 00:00:00
+    end:   2019-04-29 00:00:00
 
     >>> apply("1 week ago", ref)
-    2019-04-22 00:00:00
-    2019-04-29 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-22 00:00:00
+    end:   2019-04-29 00:00:00
 
     >>> apply("2 weeks ago", ref)
-    2019-04-15 00:00:00
-    2019-04-22 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-15 00:00:00
+    end:   2019-04-22 00:00:00
 
     >>> apply("10 weeks ago", ref)
-    2019-02-18 00:00:00
-    2019-02-25 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-02-18 00:00:00
+    end:   2019-02-25 00:00:00
 
 Month periods:
 
     >>> apply("this month", ref)
-    2019-05-01 00:00:00
-    2019-05-31 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 00:00:00
+    end:   2019-05-31 00:00:00
 
     >>> apply("last month", ref)
-    2019-04-01 00:00:00
-    2019-04-30 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-01 00:00:00
+    end:   2019-04-30 00:00:00
 
     >>> apply("1 month ago", ref)
-    2019-04-01 00:00:00
-    2019-04-30 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-01 00:00:00
+    end:   2019-04-30 00:00:00
 
     >>> apply("3 months ago", ref)
-    2019-02-01 00:00:00
-    2019-02-28 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-02-01 00:00:00
+    end:   2019-02-28 00:00:00
 
     >>> apply("15 months ago", ref)
-    2018-02-01 00:00:00
-    2018-02-28 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2018-02-01 00:00:00
+    end:   2018-02-28 00:00:00
 
     >>> apply("39 months ago", ref)  # leap year
-    2016-02-01 00:00:00
-    2016-02-29 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2016-02-01 00:00:00
+    end:   2016-02-29 00:00:00
 
 Year periods:
 
     >>> apply("this year", ref)
-    2019-01-01 00:00:00
-    2020-01-01 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2019-01-01 00:00:00
+    end:   2020-01-01 00:00:00
 
     >>> apply("last year", ref)
-    2018-01-01 00:00:00
-    2019-01-01 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2018-01-01 00:00:00
+    end:   2019-01-01 00:00:00
 
     >>> apply("1 year ago", ref)
-    2018-01-01 00:00:00
-    2019-01-01 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2018-01-01 00:00:00
+    end:   2019-01-01 00:00:00
 
     >>> apply("5 years ago", ref)
-    2014-01-01 00:00:00
-    2015-01-01 00:00:00
+    ref:   2019-05-01 14:35:23
+    start: 2014-01-01 00:00:00
+    end:   2015-01-01 00:00:00
