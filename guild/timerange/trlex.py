@@ -28,7 +28,6 @@ reserved = (
     "AGO",
     "BEFORE",
     "AFTER",
-    "SINCE",
     "BETWEEN",
     "AND",
 )

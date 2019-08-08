@@ -25,9 +25,7 @@ unit : MINUTE | HOUR | DAY | WEEK | MONTH | YEAR
 
 operator-period : operator period-marker
 
-operator : BEFORE | after
-
-after : AFTER | SINCE
+operator : BEFORE | AFTER
 
 datetime : date
          | TIME
@@ -241,20 +239,14 @@ def p_operator_period_before_datetime(p):
     p[0] = lambda ref: (None, end(ref))
 
 def p_operator_period_after_unit_period(p):
-    "operator_period : after unit_period"
+    "operator_period : AFTER unit_period"
     unit_period = p[2]
     p[0] = lambda ref: (unit_period(ref)[1], None)
 
 def p_operator_period_after_datetime(p):
-    "operator_period : after datetime"
+    "operator_period : AFTER datetime"
     start = p[2]
     p[0] = lambda ref: (start(ref), None)
-
-def p_after(p):
-    """after : AFTER
-             | SINCE
-    """
-    p[0] = p[1]
 
 ###################################################################
 # Explicit period
