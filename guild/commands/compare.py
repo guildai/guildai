@@ -22,7 +22,8 @@ from guild import click_util
 from . import runs_support
 
 @click.command()
-@runs_support.runs_op
+@runs_support.runs_arg
+@runs_support.all_filters
 @click.option(
     "-c", "--cols", metavar="COLUMNS",
     help=(
@@ -164,8 +165,7 @@ def compare(args):
     If a `RUN` argument is not specified, ``:`` is assumed (all runs
     are selected).
 
-    {{ runs_support.op_and_label_filters }}
-    {{ runs_support.status_filters }}
+    {{ runs_support.all_filters }}
 
     ### Batch runs
 

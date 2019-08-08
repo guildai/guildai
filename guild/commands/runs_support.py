@@ -136,10 +136,74 @@ def status_filters(fn):
     ])
     return fn
 
-def runs_op(fn):
+def time_filters(fn):
+    """### Filtering by start time
+
+    Use `--started` to limit runs to those that have started within a
+    specified period of time.
+
+    Guild supports various specifications for a time period:
+
+      \b
+      after DATETIME
+      before DATETIME
+      between DATETIME and DATETIME
+      N UNIT ago
+      after N UNIT ago
+      before N UNIT ago
+      this UNIT
+      last UNIT
+
+    `DATETIME` may be specified as a date in the format ``YY-MM-DD``
+    (the leading ``YY-`` may be omitted) or as a time in the format
+    ``HH:MM`` (24 hour clock). A date and time may be specified
+    together as `DATE TIME`.
+
+    `UNIT` may be ``minutes``, ``hours``, ``days``, ``weeks``,
+    ``months``, or ``years``. A unit may be specified without the
+    trailing ``s`` for readability.
+
+    When using `between`, `DATETIME` values may be specified in any
+    order.
+
+    Special values ``today``, ``yesterday`` may be used for
+    readability.
+
+    Examples:
+
+      \b
+      after 7-1
+      between 1-1 and 4-30
+      between 10:00 and 15:00
+      3 months ago
+      after 10 days ago
+      before 10 days ago
+      between yesterday and 3 days ago
+      this week
+      last year
+
+    """
     click_util.append_params(fn, [
-        runs_arg,
+        click.Option(
+            ("--started",),
+            metavar="PERIOD",
+            help=(
+                "Limit to runs started with PERIOD. See above for "
+                "ways to specify PERIOD."))
+    ])
+    return fn
+
+@click_util.render_doc
+
+def all_filters(fn):
+    """
+    {{ op_and_label_filters }}
+    {{ status_filters }}
+    {{ time_filters }}
+    """
+    click_util.append_params(fn, [
         op_and_label_filters,
         status_filters,
+        time_filters,
     ])
     return fn

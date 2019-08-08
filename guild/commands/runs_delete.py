@@ -22,7 +22,8 @@ from . import remote_support
 from . import runs_support
 
 @click.command("delete, rm")
-@runs_support.runs_op
+@runs_support.runs_arg
+@runs_support.all_filters
 @remote_support.remote_option("Delete remote runs.")
 @click.option(
     "-y", "--yes",
@@ -70,8 +71,7 @@ def delete_runs(ctx, args):
     If a `RUN` argument is not specified, ``:`` is assumed (all runs
     are selected).
 
-    {{ runs_support.op_and_label_filters }}
-    {{ runs_support.status_filters }}
+    {{ runs_support.all_filters }}
 
     ### Deleting remote runs
 
