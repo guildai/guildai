@@ -23,7 +23,8 @@ from . import remote_support
 from . import runs_support
 
 @click.command("restore")
-@runs_support.runs_op
+@runs_support.runs_arg
+@runs_support.all_filters
 @remote_support.remote_option("Restore remote runs.")
 @click.option(
     "-y", "--yes",
@@ -54,8 +55,7 @@ def restore_runs(ctx, args):
     If a `RUN` argument is not specified, ``:`` is assumed (all runs
     are selected).
 
-    {{ runs_support.op_and_label_filters }}
-    {{ runs_support.status_filters }}
+    {{ runs_support.all_filters }}
 
     ### Restoring remote runs
 
