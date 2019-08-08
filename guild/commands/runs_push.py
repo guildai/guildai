@@ -25,8 +25,7 @@ def push_params(fn):
     click_util.append_params(fn, [
         remote_support.remote_arg,
         runs_support.runs_arg,
-        runs_support.op_and_label_filters,
-        runs_support.status_filters,
+        runs_support.all_filters,
         click.Option(
             ("-n", "--delete",),
             help="Delete remote files missing locally.",
@@ -60,9 +59,7 @@ def push_runs(ctx, args):
     If a `RUN` argument is not specified, ``:`` is assumed (all runs
     are selected).
 
-    {{ runs_support.op_and_label_filters }}
-
-    {{ runs_support.status_filters }}
+    {{ runs_support.all_filters }}
 
     {{ remote_support.remotes }}
 

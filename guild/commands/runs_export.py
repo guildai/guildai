@@ -32,8 +32,7 @@ def export_params(fn):
             ("--copy-resources",),
             help="Copy resources for each exported run.",
             is_flag=True),
-        runs_support.op_and_label_filters,
-        runs_support.status_filters,
+        runs_support.all_filters,
         click.Option(
             ("-y", "--yes"),
             help="Do not prompt before exporting.",
@@ -68,8 +67,7 @@ def export_runs(ctx, args):
     If a `RUN` argument is not specified, ``:`` is assumed (all runs
     are selected).
 
-    {{ runs_support.op_and_label_filters }}
-    {{ runs_support.status_filters }}
+    {{ runs_support.all_filters }}
 
     """
 

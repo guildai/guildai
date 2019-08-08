@@ -37,8 +37,7 @@ from . import server_support
         "View. Guild View related options (`--no-open`, `--logging`) "
         "are ignored."),
     is_flag=True)
-@runs_support.op_and_label_filters
-@runs_support.status_filters
+@runs_support.all_filters
 @click.option("--dev", is_flag=True, hidden=True)
 @click.option("--test", is_flag=True, hidden=True)
 
@@ -46,7 +45,28 @@ from . import server_support
 @click_util.render_doc
 
 def view(args):
-    """Visualize runs.
+    """Visualize runs in a local web application.
+
+    Features include:
+
+      \b
+      - View and filter runs
+      - Compare runs
+      - Browse run files
+      - View run images and other media
+      - View run output
+
+    Guild View does not currently support starting or modifying
+    runs. For these operations, use the applicable command line
+    interface. Run 'guild help' for a complete list of commands.
+
+    By default Guild View shows all runs. You can filter runs using
+    the command options described below.
+
+    {{ runs_support.runs_arg }}
+
+    {{ runs_support.all_filters }}
+
     """
     from . import view_impl
     view_impl.main(args)

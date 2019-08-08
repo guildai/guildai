@@ -59,8 +59,7 @@ def diff_params(fn):
             ("-c", "--cmd"),
             metavar="CMD",
             help="Command used to diff runs."),
-        runs_support.op_and_label_filters,
-        runs_support.status_filters,
+        runs_support.all_filters,
     ])
     return fn
 
@@ -80,8 +79,7 @@ def diff_runs(ctx, args):
 
     If `RUN1` or `RUN2` is specified, both must be specified.
 
-    {{ runs_support.op_and_label_filters }}
-    {{ runs_support.status_filters }}
+    {{ runs_support.all_filters }}
 
     ### Diff command
 

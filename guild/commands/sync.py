@@ -27,6 +27,7 @@ from . import runs_support
     is_flag=True,
     help="Watch a remote run and synchronize in the background.")
 @runs_support.op_and_label_filters
+@runs_support.time_filters
 
 @click_util.use_args
 @click_util.render_doc
@@ -60,6 +61,7 @@ def sync(args):
     are selected).
 
     {{ runs_support.op_and_label_filters }}
+    {{ runs_support.time_filters }}
 
     """
     from . import sync_impl

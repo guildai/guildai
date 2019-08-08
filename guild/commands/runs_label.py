@@ -26,8 +26,7 @@ def label_params(fn):
     click_util.append_params(fn, [
         runs_support.runs_arg,
         click.Argument(("label",), required=False),
-        runs_support.op_and_label_filters,
-        runs_support.status_filters,
+        runs_support.all_filters,
         click.Option(
             ("-c", "--clear"),
             help="Clear the run's label.",
@@ -67,9 +66,7 @@ def label_runs(ctx, args):
     If a `RUN` argument is not specified, ``0`` is assumed (the most
     recent run).
 
-    {{ runs_support.op_and_label_filters }}
-
-    {{ runs_support.status_filters }}
+    {{ runs_support.all_filters }}
 
     ### Labeling remote runs
 

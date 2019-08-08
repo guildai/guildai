@@ -23,8 +23,7 @@ from . import runs_support
 
 def runs_list_options(fn):
     click_util.append_params(fn, [
-        runs_support.op_and_label_filters,
-        runs_support.status_filters,
+        runs_support.all_filters,
         click.Option(
             ("-d", "--deleted"),
             help="Show deleted runs.",
@@ -81,8 +80,7 @@ def list_runs(args):
 
     To show run detail, use `--verbose`.
 
-    {{ runs_support.op_and_label_filters }}
-    {{ runs_support.status_filters }}
+    {{ runs_support.all_filters }}
 
     ### Show deleted runs
 

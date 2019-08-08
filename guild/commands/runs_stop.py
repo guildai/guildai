@@ -26,6 +26,7 @@ def runs_stop_params(fn):
     click_util.append_params(fn, [
         runs_support.runs_arg,
         runs_support.op_and_label_filters,
+        runs_support.time_filters,
         remote_support.remote_option("Stop remote runs."),
         click.Option(
             ("-y", "--yes"),
@@ -63,6 +64,7 @@ def stop_runs(ctx, args):
     recent run with status 'running').
 
     {{ runs_support.op_and_label_filters }}
+    {{ runs_support.time_filters }}
 
     ### Stopping remote runs
 

@@ -24,8 +24,7 @@ from . import runs_support
 def mark_params(fn):
     click_util.append_params(fn, [
         runs_support.runs_arg,
-        runs_support.op_and_label_filters,
-        runs_support.status_filters,
+        runs_support.all_filters,
         click.Option(
             ("-c", "--clear"),
             help="Clear the run's selected designation.",
@@ -59,6 +58,8 @@ def mark_runs(ctx, args):
     {{ runs_support.run_arg }}
 
     If `RUN` isn't specified, the latest run is used.
+
+    {{ runs_support.all_filters }}
 
     """
     from . import runs_impl

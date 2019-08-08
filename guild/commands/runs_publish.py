@@ -56,8 +56,7 @@ def publish_params(fn):
             ("-r", "--refresh-index"),
             help="Refresh runs index without publishing anything.",
             is_flag=True),
-        runs_support.op_and_label_filters,
-        runs_support.status_filters,
+        runs_support.all_filters,
         click.Option(
             ("-y", "--yes"),
             help="Do not prompt before publishing.",
@@ -96,6 +95,10 @@ def publish_runs(ctx, args):
       time run was started
 
     - `runfiles/` - files associated with the run
+
+    {{ runs_support.runs_arg }}
+
+    {{ runs_support.all_filters }}
 
     """
     from . import runs_impl

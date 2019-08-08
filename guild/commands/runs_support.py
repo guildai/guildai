@@ -137,12 +137,12 @@ def status_filters(fn):
     return fn
 
 def time_filters(fn):
-    """### Filtering by start time
+    """### Filtering by run start time
 
     Use `--started` to limit runs to those that have started within a
     specified period of time.
 
-    Guild supports various specifications for a time period:
+    You can specify a time period in different ways:
 
       \b
       after DATETIME

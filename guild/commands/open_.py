@@ -37,8 +37,7 @@ from . import runs_support
 @click.option(
     "-c", "--cmd", metavar="CMD",
     help="Command used to open run.")
-@runs_support.op_and_label_filters
-@runs_support.status_filters
+@runs_support.all_filters
 
 @click.pass_context
 @click_util.use_args
@@ -71,6 +70,8 @@ def open_(ctx, args):
 
     `--cmd` may be used to specify the command used to open the
     path. By default the system-defined program is used.
+
+    {{ runs_support.all_filters }}
 
     """
     from . import open_impl
