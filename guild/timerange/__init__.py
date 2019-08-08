@@ -15,5 +15,10 @@
 from __future__ import absolute_import
 from __future__ import division
 
-class ParseError(Exception):
-    pass
+import datetime
+
+from .trparse import parser
+
+def parse_spec(s):
+    f = parser().parse(s)
+    return f(datetime.datetime.now())

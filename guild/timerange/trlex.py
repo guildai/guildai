@@ -20,6 +20,9 @@ import sys
 
 from guild import _lex
 
+class LexError(ValueError):
+    pass
+
 reserved = (
     "TODAY",
     "YESTERDAY",
@@ -46,7 +49,7 @@ tokens = reserved + (
     "YEAR",
 )
 
-t_ignore = " \t"
+t_ignore = " \t\n"
 
 reserved_map = {name.lower(): name for name in reserved}
 
@@ -108,14 +111,14 @@ def t_RESERVED(t):
     try:
         t.type = reserved_map[t.value.lower()]
     except KeyError:
-        raise SyntaxError(
+        raise LexError(
             "unexpected '%s' at position %i"
             % (t.value, t.lexpos))
     else:
         return t
 
 def t_error(t):
-    raise SyntaxError(
+    raise LexError(
         "unexpected '%s' at position %s"
         % (t.value, t.lexpos))
 
