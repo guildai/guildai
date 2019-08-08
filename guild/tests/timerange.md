@@ -179,24 +179,154 @@ Invalid:
 
 ## Parser
 
+The time range parser generates a function that returns a tuple of
+start and end times for a reference time. The function can be used to
+implement a filter for a time range by matching times greater than or
+equal to start and less than end.
+
+Let's first create a parser:
+
     >>> from guild.timerange import trparse
     >>> parser = trparse.parser()
-    >>> p = parser.parse
 
-    >>> p("this year")
+Next we'll create a helper function that applies a time range spec to
+a reference time and prints the start and end times.
 
-    >>> p("this month")
+    >>> def apply(s, ref):
+    ...     f = parser.parse(s)
+    ...     start, end = f(ref)
+    ...     print(start)
+    ...     print(end)
 
-    >>> p("this week")
+Here's a reference date for our core tests:
 
-    >>> p("this day")
+    >>> from datetime import datetime
+    >>> ref = datetime(2019, 5, 1, 14, 35, 23)
 
-    >>> p("this hour")
+Minute periods:
 
-    >>> p("this minute")
+    >>> apply("this minute", ref)
+    2019-05-01 14:35:00
+    2019-05-01 14:36:00
 
-    >>> p("today")
+    >>> apply("last minute", ref)
+    2019-05-01 14:34:00
+    2019-05-01 14:35:00
 
-    >>> p("yesterday")
+    >>> apply("1 minute ago", ref)
+    2019-05-01 14:34:00
+    2019-05-01 14:35:00
 
-    >>> p("before today")
+    >>> apply("5 minutes ago", ref)
+    2019-05-01 14:30:00
+    2019-05-01 14:31:00
+
+Hour periods:
+
+    >>> apply("this hour", ref)
+    2019-05-01 14:00:00
+    2019-05-01 15:00:00
+
+    >>> apply("last hour", ref)
+    2019-05-01 13:00:00
+    2019-05-01 14:00:00
+
+    >>> apply("1 hour ago", ref)
+    2019-05-01 13:00:00
+    2019-05-01 14:00:00
+
+    >>> apply("5 hours ago", ref)
+    2019-05-01 09:00:00
+    2019-05-01 10:00:00
+
+    >>> apply("24 hours ago", ref)
+    2019-04-30 14:00:00
+    2019-04-30 15:00:00
+
+Day periods:
+
+    >>> apply("today", ref)
+    2019-05-01 00:00:00
+    2019-05-02 00:00:00
+
+    >>> apply("yesterday", ref)
+    2019-04-30 00:00:00
+    2019-05-01 00:00:00
+
+    >>> apply("1 day ago", ref)
+    2019-04-30 00:00:00
+    2019-05-01 00:00:00
+
+    >>> apply("2 days ago", ref)
+    2019-04-29 00:00:00
+    2019-04-30 00:00:00
+
+    >>> apply("10 days ago", ref)
+    2019-04-21 00:00:00
+    2019-04-22 00:00:00
+
+Week periods:
+
+    >>> apply("this week", ref)
+    2019-04-29 00:00:00
+    2019-05-06 00:00:00
+
+    >>> apply("last week", ref)
+    2019-04-22 00:00:00
+    2019-04-29 00:00:00
+
+    >>> apply("1 week ago", ref)
+    2019-04-22 00:00:00
+    2019-04-29 00:00:00
+
+    >>> apply("2 weeks ago", ref)
+    2019-04-15 00:00:00
+    2019-04-22 00:00:00
+
+    >>> apply("10 weeks ago", ref)
+    2019-02-18 00:00:00
+    2019-02-25 00:00:00
+
+Month periods:
+
+    >>> apply("this month", ref)
+    2019-05-01 00:00:00
+    2019-05-31 00:00:00
+
+    >>> apply("last month", ref)
+    2019-04-01 00:00:00
+    2019-04-30 00:00:00
+
+    >>> apply("1 month ago", ref)
+    2019-04-01 00:00:00
+    2019-04-30 00:00:00
+
+    >>> apply("3 months ago", ref)
+    2019-02-01 00:00:00
+    2019-02-28 00:00:00
+
+    >>> apply("15 months ago", ref)
+    2018-02-01 00:00:00
+    2018-02-28 00:00:00
+
+    >>> apply("39 months ago", ref)  # leap year
+    2016-02-01 00:00:00
+    2016-02-29 00:00:00
+
+Year periods:
+
+    >>> apply("this year", ref)
+    2019-01-01 00:00:00
+    2020-01-01 00:00:00
+
+    >>> apply("last year", ref)
+    2018-01-01 00:00:00
+    2019-01-01 00:00:00
+
+    >>> apply("1 year ago", ref)
+    2018-01-01 00:00:00
+    2019-01-01 00:00:00
+
+    >>> apply("5 years ago", ref)
+    2014-01-01 00:00:00
+    2015-01-01 00:00:00
