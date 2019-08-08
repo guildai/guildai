@@ -199,6 +199,9 @@
     guild.tabview
     guild.tensorboard
     guild.tfevent
+    guild.timerange.__init__
+    guild.timerange.trlex
+    guild.timerange.trparse
     guild.uat
     guild.util
     guild.var
