@@ -13,17 +13,19 @@
 # limitations under the License.
 
 """
-spec : unit-period | operator-period | explicit-period
+spec : unit-range
+     | operator-range
+     | last-unit
+     | explicit-range
 
-unit-period : TODAY
-            | YESTERDAY
-            | THIS unit
-            | LAST unit
-            | NUMBER unit AGO
+unit-range : TODAY
+           | YESTERDAY
+           | THIS unit
+           | NUMBER unit AGO
 
 unit : MINUTE | HOUR | DAY | WEEK | MONTH | YEAR
 
-operator-period : operator period-marker
+operator-range : operator range
 
 operator : BEFORE | AFTER
 
@@ -35,9 +37,14 @@ date : SHORTDATE
      | MEDIUMDATE
      | LONGDATE
 
-explicit-period : BETWEEN period AND period
+last-unit : LAST delta-unit
+          | LAST NUMBER delta-unit
 
-period : unit-period | operator-period | datetime
+delta-unit : MINUTE | HOUR | DAY
+
+explicit-range : BETWEEN range AND range
+
+range : unit-range | operator-range | datetime
 """
 
 from __future__ import absolute_import
@@ -55,108 +62,95 @@ class ParseError(ValueError):
 tokens = trlex.tokens
 
 def p_spec(p):
-    """spec : unit_period
-            | operator_period
-            | explicit_period
+    """spec : unit_range
+            | operator_range
+            | last_unit
+            | explicit_range
     """
     p[0] = p[1]
 
 ###################################################################
-# Special periods
+# Minute ranges
 ###################################################################
 
-def p_unit_period_today(p):
-    "unit_period : TODAY"
-    p_unit_period_this_day(p)
+def p_unit_range_this_minute(p):
+    "unit_range : THIS MINUTE"
+    p[0] = _minute_range
 
-def p_unit_period_yesterday(p):
-    "unit_period : YESTERDAY"
-    p_unit_period_last_day(p)
-
-###################################################################
-# Minute periods
-###################################################################
-
-def p_unit_period_this_minute(p):
-    "unit_period : THIS MINUTE"
-    p[0] = _minute_period
-
-def p_unit_period_last_minute(p):
-    "unit_period : LAST MINUTE"
-    p[0] = lambda ref: _minute_period(ref, -1)
-
-def p_unit_period_minute_ago(p):
-    "unit_period : NUMBER MINUTE AGO"
+def p_unit_range_minute_ago(p):
+    "unit_range : NUMBER MINUTE AGO"
     shift = p[1]
-    p[0] = lambda ref: _minute_period(ref, -shift)
+    p[0] = lambda ref: _minute_range(ref, -shift)
 
-def _minute_period(ref, shift=0):
-    start = ref.replace(second=0, microsecond=0)
+def _minute_range(ref, shift=0):
+    start = _reset_minute(ref)
     end = start + timedelta(minutes=1)
     return _shift(start, end, minutes=shift)
 
+def _reset_minute(ref):
+    return ref.replace(second=0, microsecond=0)
+
 ###################################################################
-# Hour periods
+# Hour ranges
 ###################################################################
 
-def p_unit_period_this_hour(p):
-    "unit_period : THIS HOUR"
-    p[0] = _hour_period
+def p_unit_range_this_hour(p):
+    "unit_range : THIS HOUR"
+    p[0] = _hour_range
 
-def p_unit_period_last_hour(p):
-    "unit_period : LAST HOUR"
-    p[0] = lambda ref: _hour_period(ref, -1)
-
-def p_unit_period_hour_ago(p):
-    "unit_period : NUMBER HOUR AGO"
+def p_unit_range_hour_ago(p):
+    "unit_range : NUMBER HOUR AGO"
     shift = p[1]
-    p[0] = lambda ref: _hour_period(ref, -shift)
+    p[0] = lambda ref: _hour_range(ref, -shift)
 
-def _hour_period(ref, shift=0):
-    start = ref.replace(minute=0, second=0, microsecond=0)
+def _hour_range(ref, shift=0):
+    start = _reset_hour(ref)
     end = start + timedelta(hours=1)
     return _shift(start, end, hours=shift)
 
+def _reset_hour(ref):
+    return ref.replace(minute=0, second=0, microsecond=0)
+
 ###################################################################
-# Day periods
+# Day ranges
 ###################################################################
 
-def p_unit_period_this_day(p):
-    "unit_period : THIS DAY"
-    p[0] = _day_period
+def p_unit_range_this_day(p):
+    "unit_range : THIS DAY"
+    p[0] = _day_range
 
-def p_unit_period_last_day(p):
-    "unit_period : LAST DAY"
-    p[0] = lambda ref: _day_period(ref, -1)
+def p_unit_range_today(p):
+    "unit_range : TODAY"
+    p[0] = _day_range
 
-def p_unit_period_day_ago(p):
-    "unit_period : NUMBER DAY AGO"
+def p_unit_range_day_ago(p):
+    "unit_range : NUMBER DAY AGO"
     shift = p[1]
-    p[0] = lambda ref: _day_period(ref, -shift)
+    p[0] = lambda ref: _day_range(ref, -shift)
 
-def _day_period(ref, shift=0):
+def p_unit_range_yesterday(p):
+    "unit_range : YESTERDAY"
+    p[0] = lambda ref: _day_range(ref, -1)
+
+def _day_range(ref, shift=0):
     start = ref.replace(hour=0, minute=0, second=0, microsecond=0)
     end = start + timedelta(days=1)
     return _shift(start, end, days=shift)
 
 ###################################################################
-# Week periods
+# Week ranges
 ###################################################################
 
-def p_unit_period_this_week(p):
-    "unit_period : THIS WEEK"
-    p[0] = _week_period
+def p_unit_range_this_week(p):
+    "unit_range : THIS WEEK"
+    p[0] = _week_range
 
-def p_unit_period_last_week(p):
-    "unit_period : LAST WEEK"
-    p[0] = lambda ref: _week_period(ref, -1)
-
-def p_unit_period_week_ago(p):
-    "unit_period : NUMBER WEEK AGO"
+def p_unit_range_week_ago(p):
+    "unit_range : NUMBER WEEK AGO"
     shift = p[1]
-    p[0] = lambda ref: _week_period(ref, -shift)
+    p[0] = lambda ref: _week_range(ref, -shift)
 
-def _week_period(ref, shift=0):
+def _week_range(ref, shift=0):
     ref_day = ref.replace(hour=0, minute=0, second=0, microsecond=0)
     start = ref_day - timedelta(days=ref_day.weekday())
     shifted_start = start + timedelta(days=shift * 7)
@@ -164,23 +158,19 @@ def _week_period(ref, shift=0):
     return shifted_start, shifted_end
 
 ###################################################################
-# Month periods
+# Month ranges
 ###################################################################
 
-def p_unit_period_this_month(p):
-    "unit_period : THIS MONTH"
-    p[0] = _month_period
+def p_unit_range_this_month(p):
+    "unit_range : THIS MONTH"
+    p[0] = _month_range
 
-def p_unit_period_last_month(p):
-    "unit_period : LAST MONTH"
-    p[0] = lambda ref: _month_period(ref, -1)
-
-def p_unit_period_month_ago(p):
-    "unit_period : NUMBER MONTH AGO"
+def p_unit_range_month_ago(p):
+    "unit_range : NUMBER MONTH AGO"
     shift = p[1]
-    p[0] = lambda ref: _month_period(ref, -shift)
+    p[0] = lambda ref: _month_range(ref, -shift)
 
-def _month_period(ref, shift=0):
+def _month_range(ref, shift=0):
     assert shift <= 0, ("shifting forward not supported", shift)
     start = ref.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     shifted_start = _shift_months_back(start, -shift)
@@ -198,23 +188,19 @@ def _end_of_month(ref):
     return next_month - timedelta(days=next_month.day)
 
 ###################################################################
-# Year periods
+# Year ranges
 ###################################################################
 
-def p_unit_period_this_year(p):
-    "unit_period : THIS YEAR"
-    p[0] = _year_period
+def p_unit_range_this_year(p):
+    "unit_range : THIS YEAR"
+    p[0] = _year_range
 
-def p_unit_period_last_year(p):
-    "unit_period : LAST YEAR"
-    p[0] = lambda ref: _year_period(ref, -1)
-
-def p_unit_period_year_ago(p):
-    "unit_period : NUMBER YEAR AGO"
+def p_unit_range_year_ago(p):
+    "unit_range : NUMBER YEAR AGO"
     shift = p[1]
-    p[0] = lambda ref: _year_period(ref, -shift)
+    p[0] = lambda ref: _year_range(ref, -shift)
 
-def _year_period(ref, shift=0):
+def _year_range(ref, shift=0):
     start = ref.replace(
         year=ref.year + shift,
         month=1,
@@ -227,35 +213,66 @@ def _year_period(ref, shift=0):
     return start, end
 
 ###################################################################
-# Operator periods
+# Operator ranges
 ###################################################################
 
-def p_operator_period_before_unit_period(p):
-    "operator_period : BEFORE unit_period"
-    unit_period = p[2]
-    p[0] = lambda ref: (None, unit_period(ref)[0])
+def p_operator_range_before_unit_range(p):
+    "operator_range : BEFORE unit_range"
+    unit_range = p[2]
+    p[0] = lambda ref: (None, unit_range(ref)[0])
 
-def p_operator_period_before_datetime(p):
-    "operator_period : BEFORE datetime"
+def p_operator_range_before_datetime(p):
+    "operator_range : BEFORE datetime"
     end = p[2]
     p[0] = lambda ref: (None, end(ref))
 
-def p_operator_period_after_unit_period(p):
-    "operator_period : AFTER unit_period"
-    unit_period = p[2]
-    p[0] = lambda ref: (unit_period(ref)[1], None)
+def p_operator_range_after_unit_range(p):
+    "operator_range : AFTER unit_range"
+    unit_range = p[2]
+    p[0] = lambda ref: (unit_range(ref)[1], None)
 
-def p_operator_period_after_datetime(p):
-    "operator_period : AFTER datetime"
+def p_operator_range_after_datetime(p):
+    "operator_range : AFTER datetime"
     start = p[2]
     p[0] = lambda ref: (start(ref), None)
 
 ###################################################################
-# Explicit period
+# Last unit
 ###################################################################
 
-def p_explicit_period(p):
-    "explicit_period : BETWEEN period AND period"
+def p_last_unit(p):
+    "last_unit : LAST delta_unit"
+    delta = _unit_delta(1, p[2])
+    p[0] = lambda ref: (ref - delta, None)
+
+def p_last_n_unit(p):
+    "last_unit : LAST NUMBER delta_unit"
+    delta = _unit_delta(p[2], p[3])
+    p[0] = lambda ref: (ref - delta, None)
+
+def p_delta_unit(p):
+    """delta_unit : MINUTE
+                  | HOUR
+                  | DAY"""
+    p[0] = p[1].lower()[:1]
+
+def _unit_delta(n, unit):
+    unit = unit.lower()
+    if unit == "m":
+        return timedelta(minutes=n)
+    elif unit == "h":
+        return timedelta(hours=n)
+    elif unit == "d":
+        return timedelta(days=n)
+    else:
+        assert False, unit
+
+###################################################################
+# Explicit range
+###################################################################
+
+def p_explicit_range(p):
+    "explicit_range : BETWEEN range AND range"
     p1 = p[2]
     p2 = p[4]
     p[0] = lambda ref: _between(p1, p2, ref)
@@ -268,13 +285,13 @@ def _between(p1, p2, ref):
     else:
         return start2, end1
 
-def p_period_range(p):
-    """period : unit_period
-              | operator_period"""
+def p_range_range(p):
+    """range : unit_range
+              | operator_range"""
     p[0] = p[1]
 
-def p_period_datetime(p):
-    "period : datetime"
+def p_range_datetime(p):
+    "range : datetime"
     datetime = p[1]
     p[0] = lambda ref: (datetime(ref), datetime(ref))
 

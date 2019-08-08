@@ -142,54 +142,56 @@ def time_filters(fn):
     Use `--started` to limit runs to those that have started within a
     specified time range.
 
-    You can specify a time range in different ways:
+    **IMPORTANT:** You must quote RANGE values that contain
+    spaces. For example, to filter runs started within the last hour,
+    use the option:
+
+        --selected 'last hour'
+
+    You can specify a time range using several different forms:
 
       \b
       after DATETIME
       before DATETIME
       between DATETIME and DATETIME
-      N UNIT ago
-      after N UNIT ago
-      before N UNIT ago
-      this UNIT
-      last UNIT
+      last N minutes|hours|days
+      today|yesterday
+      this week|month|year
+      last week|month|year
+      N days|weeks|months|years ago
 
     `DATETIME` may be specified as a date in the format ``YY-MM-DD``
     (the leading ``YY-`` may be omitted) or as a time in the format
     ``HH:MM`` (24 hour clock). A date and time may be specified
     together as `DATE TIME`.
 
-    `UNIT` may be ``minutes``, ``hours``, ``days``, ``weeks``,
-    ``months``, or ``years``. A unit may be specified without the
-    trailing ``s`` for readability.
+    When using ``between DATETIME and DATETIME``, values for
+    `DATETIME` may be specified in either order.
 
-    When using `between`, `DATETIME` values may be specified in any
-    order.
-
-    Special values ``today``, ``yesterday`` may be used for
-    readability.
+    When specifying values like ``minutes`` and ``hours`` the training
+    ``s`` may be omitted to improve readability.
 
     Examples:
 
       \b
       after 7-1
+      after 9:00
       between 1-1 and 4-30
       between 10:00 and 15:00
-      3 months ago
-      after 10 days ago
-      before 10 days ago
-      between yesterday and 3 days ago
+      last 6 hours
+      today
       this week
-      last year
+      last month
+      3 weeks ago
 
     """
     click_util.append_params(fn, [
         click.Option(
-            ("--started",),
+            ("-st", "--started",),
             metavar="RANGE",
             help=(
-                "Limit to runs started with RANGE. See above for "
-                "ways to specify time ranges."))
+                "Include only runs started within RANGE. See above "
+                "for valid time ranges."))
     ])
     return fn
 
