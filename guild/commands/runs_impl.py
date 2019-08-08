@@ -174,6 +174,7 @@ def _marked_filter(test_for=True):
 def _apply_started_filter(args, ctx, filters):
     if args.started:
         start, end = _parse_timerange(args.started, ctx)
+        log.debug("time range filter: %s to %s", start, end)
         filters.append(_started_filter(start, end))
 
 def _parse_timerange(spec, ctx):
@@ -194,12 +195,16 @@ def _started_filter(start, end):
     def f(run):
         started = run.timestamp
         if not started:
+            log.debug("%s no timestamp, skipping", run.id)
             return False
         started = datetime.datetime.fromtimestamp(started // 1000000)
         if start and started < start:
+            log.debug("%s timestamp %s < %s, skipping", run.id, started, start)
             return False
         if end and started >= end:
+            log.debug("%s timestamp %s >= %s, skipping", run.id, started, start)
             return False
+        log.debug("%s timestamp %s in range", run.id, started)
         return True
     return f
 

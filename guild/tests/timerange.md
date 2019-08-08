@@ -202,37 +202,32 @@ Here's a reference date for our core tests:
     >>> from datetime import datetime
     >>> ref = datetime(2019, 5, 1, 14, 35, 23)
 
-### Unit periods
+### Unit ranges
 
-Unit periods are specs that imply a period of time that is defined by
+Unit ranges are specs that imply a range of time that is defined by
 a specified unit. Unites include minutes, hours, days, weeks, months,
 and years.
 
-Periods can be specified using special keywords "this" and "last",
-indicating the period that falls within the reference time and the
-period that occurs just prior to the reference time respectively. For
-example, "this hour" indicates that the period should fall within the
-reference time hour as defined by the period "00:00" and
-"00:59". Similarly, "last hour" secifies the period in the hour prior
+Ranges can be specified using special keywords "this" and "last",
+indicating the range that falls within the reference time and the
+range that occurs just prior to the reference time respectively. For
+example, "this hour" indicates that the range should fall within the
+reference time hour as defined by the range "00:00" and
+"00:59". Similarly, "last hour" secifies the range in the hour prior
 to the reference time.
 
-Periods can also be specified using the syntax "N <unit(s)> ago". For
-example, "1 hour ago" specifies the period of one hour occuring prior
+Ranges can also be specified using the syntax "N <unit(s)> ago". For
+example, "1 hour ago" specifies the range of one hour occuring prior
 to the reference time hour start.
 
 Below are examples applied to our reference time.
 
-Minute periods:
+Minute ranges:
 
     >>> apply("this minute", ref)
     ref:   2019-05-01 14:35:23
     start: 2019-05-01 14:35:00
     end:   2019-05-01 14:36:00
-
-    >>> apply("last minute", ref)
-    ref:   2019-05-01 14:35:23
-    start: 2019-05-01 14:34:00
-    end:   2019-05-01 14:35:00
 
     >>> apply("1 minute ago", ref)
     ref:   2019-05-01 14:35:23
@@ -244,17 +239,12 @@ Minute periods:
     start: 2019-05-01 14:30:00
     end:   2019-05-01 14:31:00
 
-Hour periods:
+Hour ranges:
 
     >>> apply("this hour", ref)
     ref:   2019-05-01 14:35:23
     start: 2019-05-01 14:00:00
     end:   2019-05-01 15:00:00
-
-    >>> apply("last hour", ref)
-    ref:   2019-05-01 14:35:23
-    start: 2019-05-01 13:00:00
-    end:   2019-05-01 14:00:00
 
     >>> apply("1 hour ago", ref)
     ref:   2019-05-01 14:35:23
@@ -271,7 +261,7 @@ Hour periods:
     start: 2019-04-30 14:00:00
     end:   2019-04-30 15:00:00
 
-Day periods:
+Day ranges:
 
     >>> apply("today", ref)
     ref:   2019-05-01 14:35:23
@@ -298,17 +288,12 @@ Day periods:
     start: 2019-04-21 00:00:00
     end:   2019-04-22 00:00:00
 
-Week periods:
+Week ranges:
 
     >>> apply("this week", ref)
     ref:   2019-05-01 14:35:23
     start: 2019-04-29 00:00:00
     end:   2019-05-06 00:00:00
-
-    >>> apply("last week", ref)
-    ref:   2019-05-01 14:35:23
-    start: 2019-04-22 00:00:00
-    end:   2019-04-29 00:00:00
 
     >>> apply("1 week ago", ref)
     ref:   2019-05-01 14:35:23
@@ -325,17 +310,12 @@ Week periods:
     start: 2019-02-18 00:00:00
     end:   2019-02-25 00:00:00
 
-Month periods:
+Month ranges:
 
     >>> apply("this month", ref)
     ref:   2019-05-01 14:35:23
     start: 2019-05-01 00:00:00
     end:   2019-05-31 00:00:00
-
-    >>> apply("last month", ref)
-    ref:   2019-05-01 14:35:23
-    start: 2019-04-01 00:00:00
-    end:   2019-04-30 00:00:00
 
     >>> apply("1 month ago", ref)
     ref:   2019-05-01 14:35:23
@@ -357,17 +337,12 @@ Month periods:
     start: 2016-02-01 00:00:00
     end:   2016-02-29 00:00:00
 
-Year periods:
+Year ranges:
 
     >>> apply("this year", ref)
     ref:   2019-05-01 14:35:23
     start: 2019-01-01 00:00:00
     end:   2020-01-01 00:00:00
-
-    >>> apply("last year", ref)
-    ref:   2019-05-01 14:35:23
-    start: 2018-01-01 00:00:00
-    end:   2019-01-01 00:00:00
 
     >>> apply("1 year ago", ref)
     ref:   2019-05-01 14:35:23
@@ -379,16 +354,16 @@ Year periods:
     start: 2014-01-01 00:00:00
     end:   2015-01-01 00:00:00
 
-### Operator periods
+### Operator ranges
 
-Operator periods apply a "before" or "after" operator to an explicit
-time or unit period.
+Operator ranges apply a "before" or "after" operator to an explicit
+time or unit range.
 
-If the operator is "before" and a unit period is specified, the time
-range will have no start time and end with the period start time.
+If the operator is "before" and a unit range is specified, the time
+range will have no start time and end with the range start time.
 
-If the operator is "after" and a unit period is specified, the time
-range will start with the period end time and have no end time.
+If the operator is "after" and a unit range is specified, the time
+range will start with the range end time and have no end time.
 
 #### Before operations
 
@@ -447,7 +422,7 @@ Time only (ref date applies):
     start: None
     end:   1989-03-28 23:30:00
 
-Unit periods:
+Unit ranges:
 
     >>> apply("before today", ref)
     ref:   2019-05-01 14:35:23
@@ -506,7 +481,7 @@ Time only (current date applies):
     start: ... 23:30:00
     end:   None
 
-Unit periods:
+Unit ranges:
 
     >>> apply("after yesterday", ref)
     ref:   2019-05-01 14:35:23
@@ -523,10 +498,34 @@ Unit periods:
     start: 2018-05-31 00:00:00
     end:   None
 
-### Explicit Periods
+### Last N unit ranges
 
-An explicit period is specified using the syntax "between TIME_1 and
-TIME_2" where `TIME_1` and `TIME_2` are any valid time or unit period.
+A range can also be specified as `last N UNIT`.
+
+    >>> apply("last 2 minutes", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 14:33:23
+    end:   None
+
+    >>> apply("last hour", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 13:35:23
+    end:   None
+
+    >>> apply("last 6 hours", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 08:35:23
+    end:   None
+
+    >>> apply("last 10 days", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-21 14:35:23
+    end:   None
+
+### Explicit ranges
+
+An explicit range is specified using the syntax "between TIME_1 and
+TIME_2" where `TIME_1` and `TIME_2` are any valid time or unit range.
 
 The times values do not have to be in order.
 
