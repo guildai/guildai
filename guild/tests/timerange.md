@@ -382,7 +382,7 @@ Year periods:
 ### Operator periods
 
 Operator periods apply a "before" or "after" operator to an explicit
-time or unit period. "since" may be used as an alias for "after".
+time or unit period.
 
 If the operator is "before" and a unit period is specified, the time
 range will have no start time and end with the period start time.
@@ -473,11 +473,6 @@ Explicit date:
     start: 2018-04-29 00:00:00
     end:   None
 
-    >>> apply("since 2018-4-29", ref)
-    ref:   2019-05-01 14:35:23
-    start: 2018-04-29 00:00:00
-    end:   None
-
 Explicit date and time:
 
     >>> apply("after 2019-4-29 9:35", ref)
@@ -485,17 +480,7 @@ Explicit date and time:
     start: 2019-04-29 09:35:00
     end:   None
 
-    >>> apply("since 2019-4-29 9:35", ref)
-    ref:   2019-05-01 14:35:23
-    start: 2019-04-29 09:35:00
-    end:   None
-
     >>> apply("after 19-4-29 9:35", ref)
-    ref:   2019-05-01 14:35:23
-    start: 2019-04-29 09:35:00
-    end:   None
-
-    >>> apply("since 19-4-29 9:35", ref)
     ref:   2019-05-01 14:35:23
     start: 2019-04-29 09:35:00
     end:   None
@@ -507,19 +492,9 @@ Short date (current year applies):
     start: ...-04-29 00:00:00
     end:   None
 
-    >>> apply("since 4-29", ref)
-    ref:   2019-05-01 14:35:23
-    start: ...-04-29 00:00:00
-    end:   None
-
 Short date and time:
 
     >>> apply("after 4-28 15:45", ref)
-    ref:   2019-05-01 14:35:23
-    start: ...-04-28 15:45:00
-    end:   None
-
-    >>> apply("since 4-28 15:45", ref)
     ref:   2019-05-01 14:35:23
     start: ...-04-28 15:45:00
     end:   None
@@ -531,19 +506,9 @@ Time only (current date applies):
     start: ... 23:30:00
     end:   None
 
-    >>> apply("since 23:30", ref)
-    ref:   2019-05-01 14:35:23
-    start: ... 23:30:00
-    end:   None
-
 Unit periods:
 
     >>> apply("after yesterday", ref)
-    ref:   2019-05-01 14:35:23
-    start: 2019-05-01 00:00:00
-    end:   None
-
-    >>> apply("since yesterday", ref)
     ref:   2019-05-01 14:35:23
     start: 2019-05-01 00:00:00
     end:   None
@@ -553,17 +518,7 @@ Unit periods:
     start: 2019-05-01 00:00:00
     end:   None
 
-    >>> apply("since 1 day ago", ref)
-    ref:   2019-05-01 14:35:23
-    start: 2019-05-01 00:00:00
-    end:   None
-
     >>> apply("after 12 months ago", ref)
-    ref:   2019-05-01 14:35:23
-    start: 2018-05-31 00:00:00
-    end:   None
-
-    >>> apply("since 12 months ago", ref)
     ref:   2019-05-01 14:35:23
     start: 2018-05-31 00:00:00
     end:   None
