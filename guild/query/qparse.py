@@ -12,14 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+
 import yaml
 
 from guild import _yacc
 
-from guild.query import Select, Scalar, Attr, Flag
-from guild.query import ParseError
+from . import Select, Scalar, Attr, Flag
+from . import ParseError
 
-from guild.query import qlex
+from . import qlex
 
 tokens = qlex.tokens
 

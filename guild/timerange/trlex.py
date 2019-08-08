@@ -25,6 +25,7 @@ reserved = (
     "TODAY",
     "YESTERDAY",
     "THIS",
+    "LAST",
     "AGO",
     "BEFORE",
     "AFTER",
@@ -41,12 +42,12 @@ tokens = reserved + (
     "TIME",
     "NUMBER",
     "RESERVED",
-    "MINUTES",
-    "HOURS",
-    "DAYS",
-    "WEEKS",
-    "MONTHS",
-    "YEARS",
+    "MINUTE",
+    "HOUR",
+    "DAY",
+    "WEEK",
+    "MONTH",
+    "YEAR",
 )
 
 t_ignore = " \t"
@@ -90,27 +91,27 @@ def t_TIME(t):
         t.value = (d.hour, d.minute)
         return t
 
-def t_MINUTES(t):
+def t_MINUTE(t):
     r"minutes?"
     return t
 
-def t_HOURS(t):
+def t_HOUR(t):
     r"hours?"
     return t
 
-def t_DAYS(t):
+def t_DAY(t):
     r"days?"
     return t
 
-def t_WEEKS(t):
+def t_WEEK(t):
     r"weeks?"
     return t
 
-def t_MONTHS(t):
+def t_MONTH(t):
     r"months?"
     return t
 
-def t_YEARS(t):
+def t_YEAR(t):
     r"years?"
     return t
 

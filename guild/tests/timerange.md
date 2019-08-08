@@ -81,70 +81,72 @@ Times:
 Units:
 
     >>> tokens("minutes hours days weeks months years")
-    LexToken(MINUTES,'minutes',1,0)
-    LexToken(HOURS,'hours',1,8)
-    LexToken(DAYS,'days',1,14)
-    LexToken(WEEKS,'weeks',1,19)
-    LexToken(MONTHS,'months',1,25)
-    LexToken(YEARS,'years',1,32)
+    LexToken(MINUTE,'minutes',1,0)
+    LexToken(HOUR,'hours',1,8)
+    LexToken(DAY,'days',1,14)
+    LexToken(WEEK,'weeks',1,19)
+    LexToken(MONTH,'months',1,25)
+    LexToken(YEAR,'years',1,32)
 
     >>> tokens("minute hour day week month year")
-    LexToken(MINUTES,'minute',1,0)
-    LexToken(HOURS,'hour',1,7)
-    LexToken(DAYS,'day',1,12)
-    LexToken(WEEKS,'week',1,16)
-    LexToken(MONTHS,'month',1,21)
-    LexToken(YEARS,'year',1,27)
+    LexToken(MINUTE,'minute',1,0)
+    LexToken(HOUR,'hour',1,7)
+    LexToken(DAY,'day',1,12)
+    LexToken(WEEK,'week',1,16)
+    LexToken(MONTH,'month',1,21)
+    LexToken(YEAR,'year',1,27)
 
     >>> tokens("MINutes houR DaY WEEKs MONths yeARs")
-    LexToken(MINUTES,'MINutes',1,0)
-    LexToken(HOURS,'houR',1,8)
-    LexToken(DAYS,'DaY',1,13)
-    LexToken(WEEKS,'WEEKs',1,17)
-    LexToken(MONTHS,'MONths',1,23)
-    LexToken(YEARS,'yeARs',1,30)
+    LexToken(MINUTE,'MINutes',1,0)
+    LexToken(HOUR,'houR',1,8)
+    LexToken(DAY,'DaY',1,13)
+    LexToken(WEEK,'WEEKs',1,17)
+    LexToken(MONTH,'MONths',1,23)
+    LexToken(YEAR,'yeARs',1,30)
 
 Other reserved:
 
-    >>> tokens("today yesterday this ago before after between and")
+    >>> tokens("today yesterday this last ago before after between and")
     LexToken(TODAY,'today',1,0)
     LexToken(YESTERDAY,'yesterday',1,6)
     LexToken(THIS,'this',1,16)
-    LexToken(AGO,'ago',1,21)
-    LexToken(BEFORE,'before',1,25)
-    LexToken(AFTER,'after',1,32)
-    LexToken(BETWEEN,'between',1,38)
-    LexToken(AND,'and',1,46)
+    LexToken(LAST,'last',1,21)
+    LexToken(AGO,'ago',1,26)
+    LexToken(BEFORE,'before',1,30)
+    LexToken(AFTER,'after',1,37)
+    LexToken(BETWEEN,'between',1,43)
+    LexToken(AND,'and',1,51)
 
-    >>> tokens("toDaY yesTERday thIS AGO beFoRE AFTer betWEEn AND")
+    >>> tokens("toDaY yesTERday thIS LAsT AGO beFoRE AFTer betWEEn AND")
     LexToken(TODAY,'toDaY',1,0)
     LexToken(YESTERDAY,'yesTERday',1,6)
     LexToken(THIS,'thIS',1,16)
-    LexToken(AGO,'AGO',1,21)
-    LexToken(BEFORE,'beFoRE',1,25)
-    LexToken(AFTER,'AFTer',1,32)
-    LexToken(BETWEEN,'betWEEn',1,38)
-    LexToken(AND,'AND',1,46)
+    LexToken(LAST,'LAsT',1,21)
+    LexToken(AGO,'AGO',1,26)
+    LexToken(BEFORE,'beFoRE',1,30)
+    LexToken(AFTER,'AFTer',1,37)
+    LexToken(BETWEEN,'betWEEn',1,43)
+    LexToken(AND,'AND',1,51)
 
 Expressions:
 
     >>> tokens("after 5 minutes ago")
     LexToken(AFTER,'after',1,0)
     LexToken(NUMBER,5,1,6)
-    LexToken(MINUTES,'minutes',1,8)
+    LexToken(MINUTE,'minutes',1,8)
     LexToken(AGO,'ago',1,16)
 
     >>> tokens("before this week")
     LexToken(BEFORE,'before',1,0)
     LexToken(THIS,'this',1,7)
-    LexToken(WEEKS,'week',1,12)
+    LexToken(WEEK,'week',1,12)
 
     >>> tokens("between 1 and 3 hours ago")
     LexToken(BETWEEN,'between',1,0)
     LexToken(NUMBER,1,1,8)
     LexToken(AND,'and',1,10)
     LexToken(NUMBER,3,1,14)
-    LexToken(HOURS,'hours',1,16)
+    LexToken(HOUR,'hours',1,16)
     LexToken(AGO,'ago',1,22)
 
     >>> tokens("between 5-1 and 5-31")
@@ -174,3 +176,27 @@ Invalid:
     >>> tokens("2015-01-03-01")
     Traceback (most recent call last):
     SyntaxError: unexpected '-01' at position 10
+
+## Parser
+
+    >>> from guild.timerange import trparse
+    >>> parser = trparse.parser()
+    >>> p = parser.parse
+
+    >>> p("this year")
+
+    >>> p("this month")
+
+    >>> p("this week")
+
+    >>> p("this day")
+
+    >>> p("this hour")
+
+    >>> p("this minute")
+
+    >>> p("today")
+
+    >>> p("yesterday")
+
+    >>> p("before today")
