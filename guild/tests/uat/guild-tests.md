@@ -82,6 +82,7 @@ tests).
       tables:                      ok
       test:                        ok
       tfevents:                    ok
+      timerange:                   ok
       utils:                       ok
       var:                         ok
     <exit 0>

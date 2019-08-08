@@ -15,7 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import datetime
 import re
 import sys
 
@@ -29,6 +28,7 @@ reserved = (
     "AGO",
     "BEFORE",
     "AFTER",
+    "SINCE",
     "BETWEEN",
     "AND",
 )
@@ -37,11 +37,8 @@ tokens = reserved + (
     "LONGDATE",
     "SHORTDATE",
     "MEDIUMDATE",
-    "SHORTDATE",
-    "DATETIME",
     "TIME",
     "NUMBER",
-    "RESERVED",
     "MINUTE",
     "HOUR",
     "DAY",
@@ -55,41 +52,28 @@ t_ignore = " \t"
 reserved_map = {name.lower(): name for name in reserved}
 
 def t_LONGDATE(t):
-    r"[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}"
-    d = _parse_date(t.value, "%Y-%m-%d")
-    t.value = (d.year, d.month, d.day)
-    t.type = "DATETIME"
+    r"([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})"
+    t.value = _parse_ints(t)
     return t
 
-def _parse_date(s, fmt):
-    try:
-        return datetime.datetime.strptime(s, fmt)
-    except ValueError:
-        raise ValueError("invalid date '%s'" % s)
+def _parse_ints(t):
+    groups = [g for g in t.lexer.lexmatch.groups() if g is not None]
+    return tuple([int(g) for g in groups[1:]])
 
 def t_MEDIUMDATE(t):
-    r"[0-9]{2}-[0-9]{1,2}-[0-9]{1,2}"
-    d = _parse_date(t.value, "%y-%m-%d")
-    t.value = (d.year, d.month, d.day)
-    t.type = "DATETIME"
+    r"([0-9]{2})-([0-9]{1,2})-([0-9]{1,2})"
+    t.value = _parse_ints(t)
     return t
 
 def t_SHORTDATE(t):
-    r"[0-9]{1,2}-[0-9]{1,2}"
-    d = _parse_date(t.value, "%m-%d")
-    t.value = (datetime.datetime.today().year, d.month, d.day)
-    t.type = "DATETIME"
+    r"([0-9]{1,2})-([0-9]{1,2})"
+    t.value = _parse_ints(t)
     return t
 
 def t_TIME(t):
-    r"[0-9]+:[0-9]+"
-    try:
-        d = datetime.datetime.strptime(t.value, "%H:%M")
-    except ValueError:
-        raise ValueError("invalid time '%s'" % t.value)
-    else:
-        t.value = (d.hour, d.minute)
-        return t
+    r"([0-9]+):([0-9]+)"
+    t.value = _parse_ints(t)
+    return t
 
 def t_MINUTE(t):
     r"minutes?"

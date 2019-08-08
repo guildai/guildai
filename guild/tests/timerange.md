@@ -28,31 +28,31 @@ Numbers:
 Dates:
 
     >>> tokens("2019-10-31")
-    LexToken(DATETIME,(2019, 10, 31),1,0)
+    LexToken(LONGDATE,(2019, 10, 31),1,0)
 
     >>> tokens("19-11-30")
-    LexToken(DATETIME,(2019, 11, 30),1,0)
+    LexToken(MEDIUMDATE,(19, 11, 30),1,0)
 
     >>> tokens("12-31")
-    LexToken(DATETIME,(20..., 12, 31),1,0)
+    LexToken(SHORTDATE,(12, 31),1,0)
 
     >>> tokens("9-8")
-    LexToken(DATETIME,(20..., 9, 8),1,0)
+    LexToken(SHORTDATE,(9, 8),1,0)
 
     >>> tokens("1-31")
-    LexToken(DATETIME,(2019, 1, 31),1,0)
+    LexToken(SHORTDATE,(1, 31),1,0)
 
     >>> tokens("1-32")
-    Traceback (most recent call last):
-    ValueError: invalid date '1-32'
+    LexToken(SHORTDATE,(1, 32),1,0)
 
     >>> tokens("2018-13-01")
-    Traceback (most recent call last):
-    ValueError: invalid date '2018-13-01'
+    LexToken(LONGDATE,(2018, 13, 1),1,0)
 
 Times:
 
     >>> tokens("11:10")
+    LexToken(TIME,(11, 10),1,0)
+
     LexToken(TIME,(11, 10),1,0)
 
     >>> tokens("0:00")
@@ -71,12 +71,10 @@ Times:
     LexToken(TIME,(23, 59),1,0)
 
     >>> tokens("24:00")
-    Traceback (most recent call last):
-    ValueError: invalid time '24:00'
+    LexToken(TIME,(24, 0),1,0)
 
     >>> tokens("000:0")
-    Traceback (most recent call last):
-    ValueError: invalid time '000:0'
+    LexToken(TIME,(0, 0),1,0)
 
 Units:
 
@@ -151,9 +149,9 @@ Expressions:
 
     >>> tokens("between 5-1 and 5-31")
     LexToken(BETWEEN,'between',1,0)
-    LexToken(DATETIME,(20..., 5, 1),1,8)
+    LexToken(SHORTDATE,(5, 1),1,8)
     LexToken(AND,'and',1,12)
-    LexToken(DATETIME,(20..., 5, 31),1,16)
+    LexToken(SHORTDATE,(5, 31),1,16)
 
 Invalid:
 
@@ -380,3 +378,249 @@ Year periods:
     ref:   2019-05-01 14:35:23
     start: 2014-01-01 00:00:00
     end:   2015-01-01 00:00:00
+
+### Operator periods
+
+Operator periods apply a "before" or "after" operator to an explicit
+time or unit period. "since" may be used as an alias for "after".
+
+If the operator is "before" and a unit period is specified, the time
+range will have no start time and end with the period start time.
+
+If the operator is "after" and a unit period is specified, the time
+range will start with the period end time and have no end time.
+
+#### Before operations
+
+Explicit date:
+
+    >>> apply("before 2018-4-29", ref)
+    ref:   2019-05-01 14:35:23
+    start: None
+    end:   2018-04-29 00:00:00
+
+Explicit date and time:
+
+    >>> apply("before 2019-4-29 9:35", ref)
+    ref:   2019-05-01 14:35:23
+    start: None
+    end:   2019-04-29 09:35:00
+
+    >>> apply("before 19-4-29 9:35", ref)
+    ref:   2019-05-01 14:35:23
+    start: None
+    end:   2019-04-29 09:35:00
+
+    >>> apply("before 89-4-1", datetime(1900, 1, 1))
+    ref:   1900-01-01 00:00:00
+    start: None
+    end:   1989-04-01 00:00:00
+
+Short date (ref year applies):
+
+    >>> apply("before 4-29", ref)
+    ref:   2019-05-01 14:35:23
+    start: None
+    end:   2019-04-29 00:00:00
+
+    >>> apply("before 4-29", datetime(1900, 1, 1))
+    ref:   1900-01-01 00:00:00
+    start: None
+    end:   1900-04-29 00:00:00
+
+Short date and time:
+
+    >>> apply("before 4-28 15:45", ref)
+    ref:   2019-05-01 14:35:23
+    start: None
+    end:   2019-04-28 15:45:00
+
+Time only (ref date applies):
+
+    >>> apply("before 23:30", ref)
+    ref:   2019-05-01 14:35:23
+    start: None
+    end:   2019-05-01 23:30:00
+
+    >>> apply("before 23:30", datetime(1989, 3, 28))
+    ref:   1989-03-28 00:00:00
+    start: None
+    end:   1989-03-28 23:30:00
+
+Unit periods:
+
+    >>> apply("before today", ref)
+    ref:   2019-05-01 14:35:23
+    start: None
+    end:   2019-05-01 00:00:00
+
+    >>> apply("before 10 minutes ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: None
+    end:   2019-05-01 14:25:00
+
+    >>> apply("before 2 days ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: None
+    end:   2019-04-29 00:00:00
+
+#### After operations
+
+Explicit date:
+
+    >>> apply("after 2018-4-29", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2018-04-29 00:00:00
+    end:   None
+
+    >>> apply("since 2018-4-29", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2018-04-29 00:00:00
+    end:   None
+
+Explicit date and time:
+
+    >>> apply("after 2019-4-29 9:35", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-29 09:35:00
+    end:   None
+
+    >>> apply("since 2019-4-29 9:35", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-29 09:35:00
+    end:   None
+
+    >>> apply("after 19-4-29 9:35", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-29 09:35:00
+    end:   None
+
+    >>> apply("since 19-4-29 9:35", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-29 09:35:00
+    end:   None
+
+Short date (current year applies):
+
+    >>> apply("after 4-29", ref)
+    ref:   2019-05-01 14:35:23
+    start: ...-04-29 00:00:00
+    end:   None
+
+    >>> apply("since 4-29", ref)
+    ref:   2019-05-01 14:35:23
+    start: ...-04-29 00:00:00
+    end:   None
+
+Short date and time:
+
+    >>> apply("after 4-28 15:45", ref)
+    ref:   2019-05-01 14:35:23
+    start: ...-04-28 15:45:00
+    end:   None
+
+    >>> apply("since 4-28 15:45", ref)
+    ref:   2019-05-01 14:35:23
+    start: ...-04-28 15:45:00
+    end:   None
+
+Time only (current date applies):
+
+    >>> apply("after 23:30", ref)
+    ref:   2019-05-01 14:35:23
+    start: ... 23:30:00
+    end:   None
+
+    >>> apply("since 23:30", ref)
+    ref:   2019-05-01 14:35:23
+    start: ... 23:30:00
+    end:   None
+
+Unit periods:
+
+    >>> apply("after yesterday", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 00:00:00
+    end:   None
+
+    >>> apply("since yesterday", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 00:00:00
+    end:   None
+
+    >>> apply("after 1 day ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 00:00:00
+    end:   None
+
+    >>> apply("since 1 day ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 00:00:00
+    end:   None
+
+    >>> apply("after 12 months ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2018-05-31 00:00:00
+    end:   None
+
+    >>> apply("since 12 months ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2018-05-31 00:00:00
+    end:   None
+
+### Explicit Periods
+
+An explicit period is specified using the syntax "between TIME_1 and
+TIME_2" where `TIME_1` and `TIME_2` are any valid time or unit period.
+
+The times values do not have to be in order.
+
+    >>> apply("between yesterday and today", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-30 00:00:00
+    end:   2019-05-02 00:00:00
+
+    >>> apply("between today and yesterday", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-30 00:00:00
+    end:   2019-05-02 00:00:00
+
+    >>> apply("between 10 minutes ago and 5 minutes ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 14:25:00
+    end:   2019-05-01 14:31:00
+
+    >>> apply("between 1-1 and 1-31", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-01-01 00:00:00
+    end:   2019-01-31 00:00:00
+
+    >>> apply("between 1-31 and 1-1", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-01-01 00:00:00
+    end:   2019-01-31 00:00:00
+
+    >>> apply("between 0:00 and 12:00", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 00:00:00
+    end:   2019-05-01 12:00:00
+
+    >>> apply("between 2018-1-1 and 10 days ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2018-01-01 00:00:00
+    end:   2019-04-22 00:00:00
+
+    >>> apply("between 10 days ago and today", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-21 00:00:00
+    end:   2019-05-02 00:00:00
+
+### Invalid dates and time
+
+    >>> apply("before 2018-4-31", None)
+    Traceback (most recent call last):
+    ValueError: day is out of range for month
+
+    >>> apply("between 11:00 and 24:00", None)
+    Traceback (most recent call last):
+    ValueError: hour must be in 0..23
