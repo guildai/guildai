@@ -48,8 +48,7 @@ from . import runs_support
     "-n", "--no-format",
     is_flag=True,
     help="Show files without additional formatting.")
-@runs_support.op_and_label_filters
-@runs_support.status_filters
+@runs_support.all_filters
 @remote_support.remote_option("List files for for remote run.")
 
 @click.pass_context
@@ -69,6 +68,8 @@ def ls(ctx, args):
     {{ runs_support.run_arg }}
 
     If `RUN` isn't specified, the latest run is selected.
+
+    {{ runs_support.all_filters }}
 
     ### Remote runs
 

@@ -26,8 +26,7 @@ def pull_params(fn):
     click_util.append_params(fn, [
         remote_support.remote_arg,
         runs_support.runs_arg,
-        runs_support.op_and_label_filters,
-        runs_support.status_filters,
+        runs_support.all_filters,
         click.Option(
             ("-d", "--delete",),
             help="Delete local files missing on remote.",
@@ -66,6 +65,10 @@ def pull_runs(ctx, args):
     By default Guild will prompt you before copying. If you want to
     apply the changes without being prompted, use the ``--yes``
     option.
+
+    {{ runs_support.runs_arg }}
+
+    {{ runs_support.all_filters }}
 
     {{ remote_support.remotes }}
 

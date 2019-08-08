@@ -39,8 +39,7 @@ from . import runs_support
     "--page",
     is_flag=True,
     help="Show file in pager.")
-@runs_support.op_and_label_filters
-@runs_support.status_filters
+@runs_support.all_filters
 
 @click.pass_context
 @click_util.use_args
@@ -61,6 +60,9 @@ def cat(ctx, args):
 
     `--output` may be used to show output for a run. This option
     may not be used with other options.
+
+    {{ runs_support.all_filters }}
+
     """
     from . import cat_impl
     cat_impl.main(args, ctx)

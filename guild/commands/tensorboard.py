@@ -37,8 +37,7 @@ from . import server_support
     "-n", "--no-open",
     help="Don't open TensorBoard in a browser.",
     is_flag=True)
-@runs_support.op_and_label_filters
-@runs_support.status_filters
+@runs_support.all_filters
 
 @click_util.use_args
 @click_util.render_doc
@@ -69,6 +68,10 @@ def tensorboard(args):
 
     Guild will not include batch runs by default. To include batch
     runs, use `--include-batch`.
+
+    {{ runs_support.runs_arg }}
+
+    {{ runs_support.all_filters }}
     """
     from . import tensorboard_impl
     tensorboard_impl.main(args)

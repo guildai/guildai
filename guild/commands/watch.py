@@ -26,6 +26,7 @@ from . import runs_support
 
 @runs_support.run_arg
 @runs_support.op_and_label_filters
+@runs_support.time_filters
 @remote_support.remote_option("Watch a remote run.")
 @click.option(
     "-p", "--pid", metavar="PID",
@@ -44,7 +45,9 @@ def watch(ctx, args):
     operation.
 
     {{ runs_support.run_arg }}
+
     {{ runs_support.op_and_label_filters }}
+    {{ runs_support.time_filters }}
 
     ### Watching remote runs
 
