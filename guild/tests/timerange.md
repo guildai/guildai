@@ -157,23 +157,23 @@ Invalid:
 
     >>> tokens("a")
     Traceback (most recent call last):
-    SyntaxError: unexpected 'a' at position 0
+    LexError: unexpected 'a' at position 0
 
     >>> tokens("aftr last week")
     Traceback (most recent call last):
-    SyntaxError: unexpected 'aftr' at position 0
+    LexError: unexpected 'aftr' at position 0
 
     >>> tokens("after the equinox")
     Traceback (most recent call last):
-    SyntaxError: unexpected 'the' at position 6
+    LexError: unexpected 'the' at position 6
 
     >>> tokens("yearsss")
     Traceback (most recent call last):
-    SyntaxError: unexpected 'ss' at position 5
+    LexError: unexpected 'ss' at position 5
 
     >>> tokens("2015-01-03-01")
     Traceback (most recent call last):
-    SyntaxError: unexpected '-01' at position 10
+    LexError: unexpected '-01' at position 10
 
 ## Parser
 

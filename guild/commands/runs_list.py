@@ -58,10 +58,11 @@ def runs_list_options(fn):
 @click.command("list")
 @runs_list_options
 
+@click.pass_context
 @click_util.use_args
 @click_util.render_doc
 
-def list_runs(args):
+def list_runs(ctx, args):
     """List runs.
 
     Run lists may be filtered using a variety of options. See below
@@ -103,4 +104,4 @@ def list_runs(args):
 
     """
     from . import runs_impl
-    runs_impl.list_runs(args)
+    runs_impl.list_runs(args, ctx)

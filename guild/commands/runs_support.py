@@ -140,9 +140,9 @@ def time_filters(fn):
     """### Filtering by run start time
 
     Use `--started` to limit runs to those that have started within a
-    specified period of time.
+    specified time range.
 
-    You can specify a time period in different ways:
+    You can specify a time range in different ways:
 
       \b
       after DATETIME
@@ -186,10 +186,10 @@ def time_filters(fn):
     click_util.append_params(fn, [
         click.Option(
             ("--started",),
-            metavar="PERIOD",
+            metavar="RANGE",
             help=(
-                "Limit to runs started with PERIOD. See above for "
-                "ways to specify PERIOD."))
+                "Limit to runs started with RANGE. See above for "
+                "ways to specify time ranges."))
     ])
     return fn
 

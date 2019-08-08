@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import datetime
 import inspect
 import json
 import logging
@@ -91,15 +92,15 @@ FILTERABLE = [
     "terminated",
 ]
 
-def runs_for_args(args, ctx=None, force_deleted=False):
-    filtered = filtered_runs(args, force_deleted)
+def runs_for_args(args, force_deleted=False, ctx=None):
+    filtered = filtered_runs(args, force_deleted, ctx)
     return select_runs(filtered, args.runs, ctx)
 
-def filtered_runs(args, force_deleted=False):
+def filtered_runs(args, force_deleted=False, ctx=None):
     return var.runs(
         _runs_root_for_args(args, force_deleted),
         sort=["-timestamp"],
-        filter=_runs_filter(args))
+        filter=_runs_filter(args, ctx))
 
 def _runs_root_for_args(args, force_deleted):
     archive = getattr(args, "archive", None)
@@ -110,12 +111,13 @@ def _runs_root_for_args(args, force_deleted):
     deleted = force_deleted or getattr(args, "deleted", False)
     return var.runs_dir(deleted=deleted)
 
-def _runs_filter(args):
+def _runs_filter(args, ctx):
     filters = []
     _apply_status_filter(args, filters)
     _apply_ops_filter(args, filters)
     _apply_labels_filter(args, filters)
     _apply_marked_filter(args, filters)
+    _apply_started_filter(args, ctx, filters)
     return var.run_filter("all", filters)
 
 def _apply_status_filter(args, filters):
@@ -169,6 +171,38 @@ def _marked_filter(test_for=True):
         return marked if test_for is True else not marked
     return f
 
+def _apply_started_filter(args, ctx, filters):
+    if args.started:
+        start, end = _parse_timerange(args.started, ctx)
+        filters.append(_started_filter(start, end))
+
+def _parse_timerange(spec, ctx):
+    from guild import timerange
+    try:
+        return timerange.parse_spec(spec)
+    except ValueError as e:
+        cli.error("invalid RANGE: %s%s" % (e, _range_help_suffix(ctx)))
+
+def _range_help_suffix(ctx):
+    if not ctx:
+        return ""
+    return (
+        "\nTry '%s --help' for help specifying time ranges."
+        % ctx.command_path)
+
+def _started_filter(start, end):
+    def f(run):
+        started = run.timestamp
+        if not started:
+            return False
+        started = datetime.datetime.fromtimestamp(started // 1000000)
+        if start and started < start:
+            return False
+        if end and started >= end:
+            return False
+        return True
+    return f
+
 def select_runs(runs, select_specs, ctx=None):
     if not select_specs:
         return runs
@@ -220,16 +254,16 @@ def _in_range(slice_start, slice_end, l):
         (slice_end is None or slice_end <= len(l))
     )
 
-def list_runs(args):
+def list_runs(args, ctx=None):
     if args.remote:
         remote_impl_support.list_runs(args)
     else:
-        _list_runs(args)
+        _list_runs(args, ctx)
 
-def _list_runs(args):
+def _list_runs(args, ctx):
     if args.archive and args.deleted:
         cli.error("--archive and --deleted may not both be used")
-    runs = filtered_runs(args)
+    runs = filtered_runs(args, ctx=ctx)
     if args.json:
         if args.more or args.all:
             cli.note("--json option always shows all runs")
@@ -332,7 +366,7 @@ def _runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
 def _runs_op_selected(args, ctx, default_runs_arg, force_deleted):
     default_runs_arg = default_runs_arg or ALL_RUNS_ARG
     runs_arg = _remove_duplicates(args.runs or default_runs_arg)
-    filtered = filtered_runs(args, force_deleted)
+    filtered = filtered_runs(args, force_deleted, ctx)
     return select_runs(filtered, runs_arg, ctx)
 
 def _remove_duplicates(vals):
@@ -427,7 +461,7 @@ def _run_info(args, ctx):
         _print_run_info(run, args)
 
 def one_run(args, ctx):
-    filtered = filtered_runs(args)
+    filtered = filtered_runs(args, ctx=ctx)
     if not filtered:
         cli.out("No matching runs", err=True)
         cli.error()

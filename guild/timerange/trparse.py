@@ -47,8 +47,10 @@ from datetime import datetime, date, time, timedelta
 
 from guild import _yacc
 
-from . import ParseError
 from . import trlex
+
+class ParseError(ValueError):
+    pass
 
 tokens = trlex.tokens
 
