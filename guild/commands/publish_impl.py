@@ -24,7 +24,7 @@ from guild import util
 
 from . import runs_impl
 
-def publish(args, ctx):
+def publish(args, ctx=None):
     if args.files and args.all_files:
         cli.error("--files and --all-files cannot both be used")
     if args.refresh_index:

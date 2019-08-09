@@ -68,6 +68,11 @@ def run_capture_output(*args, **kw):
         raise RunError((args, cwd, env), p.returncode, out)
     return out
 
+def run_quiet(*args, **kw):
+    # Use run_capture_output for raising run errors that contain
+    # output.
+    run_capture_output(*args, **kw)
+
 def _popen_args(
         spec=None,
         cwd=None,
@@ -176,33 +181,23 @@ def _apply_python_path_env(env):
 def _apply_lang_env(env):
     env["LANG"] = os.getenv("LANG", "en_US.UTF-8")
 
-def runs_list(
-        ops=None,
-        status=None,
-        labels=None,
-        unlabeled=False,
-        all=False,
-        deleted=False,
-        marked=False,
-        unmarked=False,
-        started=None,
-        cwd=".",
-        guild_home=None):
+def runs_list(all=False, deleted=False, cwd=".", guild_home=None, **kw):
     from guild import click_util
     from guild.commands import runs_impl
-    status = status or []
-    args = click_util.Args(
-        ops=(ops or []),
-        labels=(labels or []),
-        unlabeled=unlabeled,
-        all=all,
-        deleted=deleted,
-        marked=marked,
-        unmarked=unmarked,
-        started=started)
-    _apply_status_filters(status, args)
+    args = click_util.Args(all=all, deleted=deleted)
+    _apply_runs_filters(kw, args)
+    _assert_empty_kw(kw, "runs_list()")
     with Env(cwd, guild_home):
         return runs_impl.filtered_runs(args)
+
+def _apply_runs_filters(kw, args):
+    args.ops = kw.pop("ops", [])
+    args.labels = kw.pop("labels", [])
+    args.unlabeled = kw.pop("unlabeled", False)
+    args.marked = kw.pop("marked", False)
+    args.unmarked = kw.pop("unmarked", False)
+    args.started = kw.pop("started", None)
+    _apply_status_filters(kw.pop("status", []), args)
 
 def _apply_status_filters(status, args):
     from guild.commands import runs_impl
@@ -211,15 +206,29 @@ def _apply_status_filters(status, args):
             raise ValueError("unsupportd status %r" % val)
         setattr(args, val, True)
 
-def runs_delete(runs=None, cwd=".", guild_home=None):
+def _assert_empty_kw(kw, f):
+    try:
+        arg = next(iter(kw))
+    except StopIteration:
+        pass
+    else:
+        raise TypeError(
+            "%s got an unexpected keyword argument '%s'"
+            % (f, arg))
+
+def runs_delete(runs=None, permanent=False, cwd=".", guild_home=None, **kw):
     from guild import click_util
     from guild.commands import runs_delete
     from guild.commands import runs_impl
-    runs = runs or []
-    args = runs + ["--yes"]
-    ctx = runs_delete.delete_runs.make_context("", args)
+    args = click_util.Args(
+        runs=(runs or []),
+        permanent=permanent,
+        remote=False,
+        yes=True)
+    _apply_runs_filters(kw, args)
+    _assert_empty_kw(kw, "runs_delete()")
     with Env(cwd, guild_home):
-        runs_impl.delete_runs(click_util.Args(**ctx.params), ctx)
+        runs_impl.delete_runs(args)
 
 def guild_cmd(command, args, cwd=None, guild_home=None, capture_output=False):
     if isinstance(command, six.string_types):
@@ -261,38 +270,50 @@ def current_run():
         raise NoCurrentRun()
     return guild.run.Run(os.getenv("RUN_ID"), path)
 
-def mark(run, clear=False, cwd=".", guild_home=None):
+def mark(runs, clear=False, cwd=".", guild_home=None, **kw):
     from guild import click_util
     from guild.commands import mark
     from guild.commands import runs_impl
-    args = [run, "--yes"]
-    if clear:
-        args.append("--clear")
-    ctx = mark.mark.make_context("", args)
-    args = click_util.Args(**ctx.params)
+    args = click_util.Args(
+        runs=(runs or []),
+        clear=clear,
+        yes=True)
+    _apply_runs_filters(kw, args)
+    _assert_empty_kw(kw, "mark()")
     with Env(cwd, guild_home):
-        return runs_impl.mark(args, ctx)
+        runs_impl.mark(args)
 
 def compare(
         runs=None,
-        columns=None,
+        cols=None,
         skip_op_cols=False,
         skip_core=False,
-        cwd=".", guild_home=None):
+        include_batch=False,
+        min_col=None,
+        max_col=None,
+        top=None,
+        cwd=".",
+        guild_home=None,
+        **kw):
     from guild import click_util
     from guild.commands import compare
     from guild.commands import compare_impl
-    args = list(runs or ())
-    if columns:
-        args.extend(["--columns", columns])
-    if skip_op_cols:
-        args.append("--skip-op-cols")
-    if skip_core:
-        args.append("--skip-core")
-    ctx = compare.compare.make_context("", args)
-    args = click_util.Args(**ctx.params)
+    args = click_util.Args(
+        runs=(runs or []),
+        cols=cols,
+        skip_op_cols=skip_op_cols,
+        skip_core=skip_core,
+        include_batch=include_batch,
+        min_col=min_col,
+        max_col=max_col,
+        top=top,
+    )
+    _apply_runs_filters(kw, args)
+    _assert_empty_kw(kw, "compare()")
     with Env(cwd, guild_home):
-        return compare_impl._get_data(args, format_cells=False)
+        return compare_impl._get_data(
+            args,
+            format_cells=False)
 
 def publish(
         runs=None,
@@ -303,30 +324,28 @@ def publish(
         include_links=False,
         include_batch=False,
         no_md5=False,
+        refresh_index=False,
         cwd=".",
-        guild_home=None):
+        guild_home=None,
+        **kw):
     from guild import click_util
     from guild.commands import runs_publish
     from guild.commands import publish_impl
-    args = list(runs or ()) + ["-y"]
-    if dest:
-        args.extend(["--dest", dest])
-    if template:
-        args.extend(["--template", template])
-    if files:
-        args.append("--files")
-    if all_files:
-        args.append("--all-files")
-    if include_links:
-        args.append("--include-links")
-    if include_batch:
-        args.append("--include-batch")
-    if no_md5:
-        args.append("--no-md5")
-    ctx = runs_publish.publish_runs.make_context("", args)
-    args = click_util.Args(**ctx.params)
+    args = click_util.Args(
+        runs=(runs or []),
+        dest=dest,
+        template=template,
+        files=files,
+        all_files=all_files,
+        include_links=include_links,
+        include_batch=include_batch,
+        no_md5=no_md5,
+        refresh_index=refresh_index,
+        yes=True)
+    _apply_runs_filters(kw, args)
+    _assert_empty_kw(kw, "publish()")
     with Env(cwd, guild_home):
-        return publish_impl.publish(args, ctx)
+        publish_impl.publish(args, None)
 
 def package(
         dist_dir=None,
@@ -344,28 +363,17 @@ def package(
     from guild import click_util
     from guild.commands import package
     from guild.commands import package_impl
-    args = []
-    if dist_dir:
-        args.extend(["--dist-dir", dist_dir])
-    if upload:
-        args.append("--upload")
-    if upload_test:
-        args.append("--upload-test")
-    if repo:
-        args.extend(["--repo", repo])
-    if sign:
-        args.append("--sign")
-    if identity:
-        args.extend(["--identity", identity])
-    if user:
-        args.extend(["--user", user])
-    if password:
-        args.extend(["--password", password])
-    if skip_existing:
-        args.append("--skip-existing")
-    if comment:
-        args.extend(["--comment", comment])
-    ctx = package.package.make_context("", args)
-    args = click_util.Args(**ctx.params)
+    args = click_util.Args(
+        dist_dir=dist_dir,
+        upload=upload,
+        upload_test=upload_test,
+        repo=repo,
+        sign=sign,
+        identity=identity,
+        user=user,
+        password=password,
+        skip_existing=skip_existing,
+        comment=comment,
+    )
     with Env(cwd, guild_home):
-        return package_impl.main(args)
+        package_impl.main(args)

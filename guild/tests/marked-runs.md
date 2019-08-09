@@ -141,7 +141,7 @@ Let's confirm that the latest run is using the expected train run.
 Next, we'll mark a train run to indicate it should be used for
 serve's train dependency.
 
-    >>> project.mark(explicit_train_run.id)
+    >>> project.mark([explicit_train_run.id])
     Marked 1 run(s)
 
 Here are the marked runs:
@@ -176,7 +176,7 @@ And confirm that the train dependency uses the marked run:
 Finally, we'll unmark the marked train run and verify that the next
 serve run once again uses the latest trian run for its dependency.
 
-    >>> project.mark(explicit_train_run.id, clear=True)
+    >>> project.mark([explicit_train_run.id], clear=True)
     Unmarked 1 run(s)
 
 We no longer have marked runs:

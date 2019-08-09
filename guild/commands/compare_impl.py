@@ -315,10 +315,10 @@ def _table_header(table):
     return header
 
 def _sorted_table_rows(table, header, args):
-    if args.min:
-        table = _sort_table(table, args.min)
-    elif args.max:
-        table = _sort_table(table, args.max, reverse=True)
+    if args.min_col:
+        table = _sort_table(table, args.min_col)
+    elif args.max_col:
+        table = _sort_table(table, args.max_col, reverse=True)
     return _table_rows(table, header)
 
 def _sort_table(table, sort_col, reverse=False):

@@ -386,7 +386,7 @@ def _remove_duplicates(vals):
             deduped.append(val)
     return deduped
 
-def delete_runs(args, ctx):
+def delete_runs(args, ctx=None):
     if args.remote:
         remote_impl_support.delete_runs(args)
     else:
@@ -764,7 +764,7 @@ def pull(args, ctx):
         no_runs, pull_f, ALL_RUNS_ARG, True,
         filtered_runs_f)
 
-def mark(args, ctx):
+def mark(args, ctx=None):
     if args.clear:
         _clear_marked(args, ctx)
     else:

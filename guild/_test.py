@@ -558,6 +558,13 @@ class Project(object):
         else:
             print(out)
 
+    def run_quiet(self, *args, **kw):
+        with Env({"NO_WARN_RUNDIR": "1"}):
+            gapi.run_quiet(
+                guild_home=self.guild_home,
+                cwd=self.cwd,
+                *args, **kw)
+
     def _simplify_trial_output(self, out):
         for p, repl in self.simplify_trial_output_patterns:
             out = p.sub(repl, out)
@@ -606,8 +613,8 @@ class Project(object):
             row["status"] = run.status
         return row
 
-    def delete_runs(self, runs=None):
-        gapi.runs_delete(runs, guild_home=self.guild_home)
+    def delete_runs(self, runs=None, **kw):
+        gapi.runs_delete(runs, guild_home=self.guild_home, **kw)
 
     def print_trials(self, *args, **kw):
         print(self._run(print_trials=True, *args, **kw))
@@ -626,9 +633,9 @@ class Project(object):
     def cat(run, path):
         cat(os.path.join(run.path, path))
 
-    def mark(self, run, **kw):
+    def mark(self, runs, **kw):
         gapi.mark(
-            run,
+            runs,
             cwd=self.cwd,
             guild_home=self.guild_home,
             **kw)
@@ -649,14 +656,21 @@ class Project(object):
             **kw)
 
     def publish(self, runs=None, **kw):
-        return gapi.publish(
+        gapi.publish(
             runs=runs,
             cwd=self.cwd,
             guild_home=self.guild_home,
             **kw)
 
     def package(self, **kw):
-        return gapi.package(cwd=self.cwd, guild_home=self.guild_home, **kw)
+        gapi.package(cwd=self.cwd, guild_home=self.guild_home, **kw)
+
+    def label(self, runs=None, **kw):
+        gapi.label(
+            runs,
+            cwd=self.cwd,
+            guild_home=self.guild_home,
+            **kw)
 
 class _MockConfig(object):
 

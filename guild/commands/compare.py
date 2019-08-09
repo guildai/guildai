@@ -42,10 +42,10 @@ from . import runs_support
     "-t", "--top", metavar="N", type=click.IntRange(min=1),
     help="Only show the top N runs.")
 @click.option(
-    "-m", "--min", metavar="COLUMN",
+    "-m", "--min", "min_col", metavar="COLUMN",
     help="Show the lowest values for COLUMN first.")
 @click.option(
-    "-x", "--max", metavar="COLUMN",
+    "-x", "--max", "max_col", metavar="COLUMN",
     help="Show the highest values for COLUMN first.")
 @click.option(
     "--table", "format", flag_value="table",
