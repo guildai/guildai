@@ -151,7 +151,7 @@ def time_filters(fn):
     You can specify a time range using several different forms:
 
       \b
-      after DATETIME
+      `after DATETIME`
       before DATETIME
       between DATETIME and DATETIME
       last N minutes|hours|days
