@@ -405,9 +405,9 @@ def _filtered_runs_filter_opts(**filters):
     opts.append("--json")
     return opts
 
-def _runs_filter_args(ops, labels, unlabeled, running,
-                      completed, error, terminated,
-                      pending, marked, unmarked):
+def _runs_filter_args(
+        ops, labels, unlabeled, running, completed, error,
+        terminated, pending, marked, unmarked, started):
     args = []
     if completed:
         args.append("-C")
@@ -429,6 +429,8 @@ def _runs_filter_args(ops, labels, unlabeled, running,
         args.append("--marked")
     if unmarked:
         args.append("--unmarked")
+    if started:
+        args.append(["--started", started])
     return args
 
 def _build_package(dist_dir):
@@ -444,11 +446,12 @@ def _build_package(dist_dir):
         comment=None)
     package_impl.main(args)
 
-def _remote_run_cmd(remote_run_dir, opspec, op_flags, label, batch_label,
-                    disable_plugins, gpus, no_gpus, force_flags,
-                    needed, stop_after, optimize, optimizer, opt_flags,
-                    minimize, maximize, random_seed, max_trials,
-                    init_trials):
+def _remote_run_cmd(
+        remote_run_dir, opspec, op_flags, label, batch_label,
+        disable_plugins, gpus, no_gpus, force_flags,
+        needed, stop_after, optimize, optimizer, opt_flags,
+        minimize, maximize, random_seed, max_trials,
+        init_trials):
     cmd = [
         "NO_WARN_RUNDIR=1",
         "guild", "run", q(opspec),
@@ -492,7 +495,9 @@ def _remote_run_cmd(remote_run_dir, opspec, op_flags, label, batch_label,
     cmd.extend([q(arg) for arg in op_flags])
     return " ".join(cmd)
 
-def _watch_run_args(run, ops, pid, labels, unlabeled, marked, unmarked):
+def _watch_run_args(
+        run, ops, pid, labels, unlabeled, marked, unmarked,
+        started):
     if pid:
         # Ignore other opts if pid is specified
         return ["--pid", pid]
@@ -507,6 +512,8 @@ def _watch_run_args(run, ops, pid, labels, unlabeled, marked, unmarked):
         args.append("--marked")
     if unmarked:
         args.append("--unmarked")
+    if started:
+        args.extend(["--started", started])
     if run:
         args.append(run)
     return args
@@ -520,8 +527,9 @@ def _delete_runs_args(runs, permanent, yes, **filters):
     args.extend(runs)
     return args
 
-def _run_info_args(run, files, all_files, env, deps, scalars, sourcecode,
-                   follow_links, output, page_output, **filters):
+def _run_info_args(
+        run, files, all_files, env, deps, scalars, sourcecode,
+        follow_links, output, page_output, **filters):
     args = _runs_filter_args(**filters)
     if files:
         args.append("-" + "f" * files)
@@ -555,7 +563,9 @@ def _check_args(tensorflow, verbose, offline):
         args.append("--offline")
     return args
 
-def _stop_runs_args(runs, ops, labels, unlabeled, no_wait, marked, unmarked, yes):
+def _stop_runs_args(
+        runs, ops, labels, unlabeled, no_wait, marked, unmarked,
+        started, yes):
     args = []
     for op in ops:
         args.extend(["-o", q(op)])
@@ -571,6 +581,8 @@ def _stop_runs_args(runs, ops, labels, unlabeled, no_wait, marked, unmarked, yes
         args.append("--marked")
     if unmarked:
         args.append("--unmarked")
+    if started:
+        args.extend(["--selected", started])
     args.extend(runs)
     return args
 

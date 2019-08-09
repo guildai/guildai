@@ -22,6 +22,7 @@
       .guild/attrs/platform
       .guild/attrs/random_seed
       .guild/attrs/run_params
+      .guild/attrs/sourcecode_digest
       .guild/attrs/started
       .guild/attrs/stopped
       .guild/attrs/user
