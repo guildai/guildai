@@ -7,7 +7,8 @@ We'll use an args proxy to simulate command arguments.
     >>> class Args(object):
     ...   def __init__(self, run="1", path=None, full_path=False,
     ...                no_format=None, follow_links=False, all=False,
-    ...                sourcecode=False, marked=False, unmarked=False):
+    ...                sourcecode=False, marked=False, unmarked=False,
+    ...                started=None):
     ...       self.run = run
     ...       self.path = path
     ...       self.full_path = full_path
@@ -20,6 +21,7 @@ We'll use an args proxy to simulate command arguments.
     ...       self.unlabeled = False
     ...       self.marked = marked
     ...       self.unmarked = unmarked
+    ...       self.started = started
     ...       self.remote = False
 
 To test list with a run containing symbolic links, we need to generate
