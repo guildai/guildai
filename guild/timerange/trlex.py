@@ -39,7 +39,8 @@ tokens = reserved + (
     "LONGDATE",
     "SHORTDATE",
     "MEDIUMDATE",
-    "TIME",
+    "SHORTTIME",
+    "LONGTIME",
     "NUMBER",
     "MINUTE",
     "HOUR",
@@ -72,8 +73,13 @@ def t_SHORTDATE(t):
     t.value = _parse_ints(t)
     return t
 
-def t_TIME(t):
-    r"([0-9]+):([0-9]+)"
+def t_LONGTIME(t):
+    r"([0-9]{1,2}):([0-9]{2}):([0-9]{2})"
+    t.value = _parse_ints(t)
+    return t
+
+def t_SHORTTIME(t):
+    r"([0-9]{1,2}):([0-9]{2})"
     t.value = _parse_ints(t)
     return t
 

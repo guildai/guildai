@@ -51,30 +51,36 @@ Dates:
 Times:
 
     >>> tokens("11:10")
-    LexToken(TIME,(11, 10),1,0)
-
-    LexToken(TIME,(11, 10),1,0)
+    LexToken(SHORTTIME,(11, 10),1,0)
 
     >>> tokens("0:00")
-    LexToken(TIME,(0, 0),1,0)
+    LexToken(SHORTTIME,(0, 0),1,0)
 
     >>> tokens("1:00")
-    LexToken(TIME,(1, 0),1,0)
+    LexToken(SHORTTIME,(1, 0),1,0)
 
     >>> tokens("1:2")
-    LexToken(TIME,(1, 2),1,0)
+    Traceback (most recent call last):
+    LexError: unexpected ':2' at position 1
 
     >>> tokens("13:30")
-    LexToken(TIME,(13, 30),1,0)
+    LexToken(SHORTTIME,(13, 30),1,0)
 
     >>> tokens("23:59")
-    LexToken(TIME,(23, 59),1,0)
+    LexToken(SHORTTIME,(23, 59),1,0)
 
     >>> tokens("24:00")
-    LexToken(TIME,(24, 0),1,0)
+    LexToken(SHORTTIME,(24, 0),1,0)
+
+    >>> tokens("24:00:00")
+    LexToken(LONGTIME,(24, 0, 0),1,0)
+
+    >>> tokens("24:01:02")
+    LexToken(LONGTIME,(24, 1, 2),1,0)
 
     >>> tokens("000:0")
-    LexToken(TIME,(0, 0),1,0)
+    Traceback (most recent call last):
+    LexError: unexpected ':0' at position 3
 
 Units:
 
@@ -393,6 +399,11 @@ Explicit date and time:
     start: None
     end:   2019-04-29 09:35:00
 
+    >>> apply("before 2019-4-29 9:35:05", ref)
+    ref:   2019-05-01 14:35:23
+    start: None
+    end:   2019-04-29 09:35:05
+
     >>> apply("before 19-4-29 9:35", ref)
     ref:   2019-05-01 14:35:23
     start: None
@@ -571,6 +582,16 @@ The times values do not have to be in order.
     start: 2019-05-01 00:00:00
     end:   2019-05-01 12:00:00
 
+    >>> apply("between 0:00:05 and 12:00:45", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 00:00:05
+    end:   2019-05-01 12:00:45
+
+    >>> apply("between 1-1 0:00:05 and 1-1 12:00:45", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-01-01 00:00:05
+    end:   2019-01-01 12:00:45
+
     >>> apply("between 2018-1-1 and 10 days ago", ref)
     ref:   2019-05-01 14:35:23
     start: 2018-01-01 00:00:00
@@ -592,6 +613,11 @@ The times values do not have to be in order.
     ref:   2019-05-01 14:35:23
     start: 2018-10-31 14:30:00
     end:   2018-10-31 14:31:00
+
+    >>> apply("2018-10-31 14:30:05", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2018-10-31 14:30:05
+    end:   2018-10-31 14:30:06
 
     >>> apply("2018-10-31", ref)
     ref:   2019-05-01 14:35:23

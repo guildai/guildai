@@ -29,13 +29,11 @@ operator-range : operator range
 
 operator : BEFORE | AFTER
 
-datetime : date
-         | TIME
-         | date TIME
+datetime : date | time | date time
 
-date : SHORTDATE
-     | MEDIUMDATE
-     | LONGDATE
+date : SHORTDATE | MEDIUMDATE | LONGDATE
+
+time : SHORTTIME | LONGTIME
 
 last-unit : LAST delta-unit
           | LAST NUMBER delta-unit
@@ -77,22 +75,27 @@ def p_spec(p):
 def p_datetime_date(p):
     "datetime : date"
     date = p[1]
-    p[0] = lambda ref: _from_date(datetime.combine(date(ref), time()))
+    p[0] = lambda ref: _datetime_from_date(date(ref))
 
-def _from_date(dt):
-    assert dt.hour == 0 and dt.minute == 0 and dt.second == 0, dt
-    return datetime_from_date(dt.year, dt.month, dt.day)
+def _datetime_from_date(d):
+    return datetime_from_date(d.year, d.month, d.day)
 
 def p_datetime_time(p):
     "datetime : time"
     time = p[1]
-    p[0] = lambda ref: datetime.combine(ref.date(), time)
+    p[0] = lambda ref: _datetime(ref.date(), time)
 
 def p_datetime_datetime(p):
     "datetime : date time"
     date = p[1]
     time = p[2]
-    p[0] = lambda ref: datetime.combine(date(ref), time)
+    p[0] = lambda ref: _datetime(date(ref), time)
+
+def _datetime(d, t):
+    args = (d.year, d.month, d.day, t.hour, t.minute, t.second)
+    if isinstance(t, time_from_longtime):
+        return datetime_from_longtime(*args)
+    return datetime(*args)
 
 def p_date_short(p):
     "date : SHORTDATE"
@@ -119,10 +122,15 @@ def p_date_long(p):
     year, month, day = p[1]
     p[0] = lambda _ref: date(year, month, day)
 
-def p_time(p):
-    "time : TIME"
+def p_time_shorttime(p):
+    "time : SHORTTIME"
     hour, minute = p[1]
     p[0] = time(hour, minute)
+
+def p_time_longtime(p):
+    "time : LONGTIME"
+    hour, minute, second = p[1]
+    p[0] = time_from_longtime(hour, minute, second)
 
 ###################################################################
 # Minute ranges
@@ -362,7 +370,18 @@ def p_explicit_datetime(p):
 def _datetime_range(dt):
     if isinstance(dt, datetime_from_date):
         return _day_range(dt)
-    return _minute_range(dt)
+    elif isinstance(dt, datetime_from_longtime):
+        return _second_range(dt)
+    else:
+        return _minute_range(dt)
+
+def _second_range(ref):
+    start = _reset_second(ref)
+    end = start + timedelta(seconds=1)
+    return start, end
+
+def _reset_second(dt):
+    return dt.replace(microsecond=0)
 
 ###################################################################
 # Remaining API
@@ -381,8 +400,23 @@ def _shift(start, end, **delta_kw):
 
 class datetime_from_date(datetime):
     """Denotes a datetime object created from a date-only user spec.
+
+    Date only spec has a different meaning in some cases as it implies
+    a day interval rather than a minute or second interval.
     """
 
+class time_from_longtime(time):
+    """Denotes a time object created with a long time user spec.
+
+    Used when constructing a `datetime_from_longtime` object.
+    """
+
+class datetime_from_longtime(datetime):
+    """Denotes a datetime object created with a long time user spec.
+
+    A long time spec includes seconds, which implies in some cases
+    that an interval should be in seconds rather than minutes.
+    """
 class parser(object):
 
     def __init__(self):
