@@ -58,6 +58,7 @@ tests).
       ops:                         ok
       package:                     ok
       plugins:                     ok
+      project-api:                 ok
       publish-runs:                ok
       publish-templates:           ok
       python-utils:                ok

@@ -166,6 +166,9 @@ And unmarked:
 Runs can be compared:
 
     >>> project.compare()
+    [['run', 'operation', 'started', 'time', 'status', 'label', 'sourcecode', 'x', 'step'],
+     ['...', 'simple', '...', '0:00:00', 'completed', None, '3adf88b4', 1.0, 0],
+     ['...', 'simple', '...', '0:00:00', 'completed', None, '3adf88b4', 1.0, 0]]
 
 ## Other functions
 
