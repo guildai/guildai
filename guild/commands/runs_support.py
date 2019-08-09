@@ -152,13 +152,13 @@ def time_filters(fn):
 
       \b
       `after DATETIME`
-      before DATETIME
-      between DATETIME and DATETIME
-      last N minutes|hours|days
-      today|yesterday
-      this week|month|year
-      last week|month|year
-      N days|weeks|months|years ago
+      `before DATETIME`
+      `between DATETIME and DATETIME`
+      `last N minutes|hours|days`
+      `today|yesterday`
+      `this week|month|year`
+      `last week|month|year`
+      `N days|weeks|months|years ago`
 
     `DATETIME` may be specified as a date in the format ``YY-MM-DD``
     (the leading ``YY-`` may be omitted) or as a time in the format
@@ -175,16 +175,16 @@ def time_filters(fn):
     Examples:
 
       \b
-      after 7-1
-      after 9:00
-      between 1-1 and 4-30
-      between 10:00 and 15:00
-      last 30 min
-      last 6 hours
-      today
-      this week
-      last month
-      3 weeks ago
+      `after 7-1`
+      `after 9:00`
+      `between 1-1 and 4-30`
+      `between 10:00 and 15:00`
+      `last 30 min`
+      `last 6 hours`
+      `today`
+      `this week`
+      `last month`
+      `3 weeks ago`
 
     """
     click_util.append_params(fn, [
