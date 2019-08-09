@@ -10,6 +10,7 @@ Use `guild runs info` to show information about the latest run:
     stopped: ...
     marked: no
     label: epochs=1
+    sourcecode_digest:
     run_dir: ...
     command: ... guild.op_main logreg --data-dir mnist-idx-data --run-dir . -- --batch-size 100 --epochs 1 --learning-rate 0.5
     exit_status: 0
@@ -30,6 +31,7 @@ We can optionally show files and env for a run:
     stopped: ...
     marked: no
     label: epochs=1
+    sourcecode_digest:
     run_dir: ...
     command: ... guild.op_main logreg --data-dir mnist-idx-data --run-dir . -- --batch-size 100 --epochs 1 --learning-rate 0.5
     exit_status: 0

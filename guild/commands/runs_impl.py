@@ -54,6 +54,7 @@ RUN_DETAIL = [
     "stopped",
     "marked",
     "label",
+    "sourcecode_digest",
     "run_dir",
     "command",
     "exit_status",
@@ -522,7 +523,6 @@ def _print_run_info(run, args):
         out("sourcecode:")
         for path in sorted(run.iter_guild_files("sourcecode")):
             out("  %s" % path)
-        out("sourcecode_digest: %s" % run.get("sourcecode_digest", ""))
     if args.output:
         out("output:")
         for line in run_util.iter_output(run):

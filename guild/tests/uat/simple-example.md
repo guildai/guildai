@@ -100,6 +100,7 @@ The operation is like any other. We can view info:
     stopped: ...
     marked: no
     label: epochs=1
+    sourcecode_digest: afbdf55e01c505eaf3034f4d4965a9f8
     run_dir: ...
     command: ... -um guild.op_main train
              --batch_size 100
