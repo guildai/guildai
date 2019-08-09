@@ -581,6 +581,23 @@ The times values do not have to be in order.
     start: 2019-04-21 00:00:00
     end:   2019-05-02 00:00:00
 
+### Explicit date/time
+
+    >>> apply("10:00", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 10:00:00
+    end:   2019-05-01 10:01:00
+
+    >>> apply("2018-10-31 14:30", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2018-10-31 14:30:00
+    end:   2018-10-31 14:31:00
+
+    >>> apply("2018-10-31", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2018-10-31 00:00:00
+    end:   2018-11-01 00:00:00
+
 ### Invalid dates and time
 
     >>> apply("before 2018-4-31", None)

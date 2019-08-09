@@ -66,8 +66,63 @@ def p_spec(p):
             | operator_range
             | last_unit
             | explicit_range
+            | explicit_datetime
     """
     p[0] = p[1]
+
+###################################################################
+# Date / time
+###################################################################
+
+def p_datetime_date(p):
+    "datetime : date"
+    date = p[1]
+    p[0] = lambda ref: _from_date(datetime.combine(date(ref), time()))
+
+def _from_date(dt):
+    assert dt.hour == 0 and dt.minute == 0 and dt.second == 0, dt
+    return datetime_from_date(dt.year, dt.month, dt.day)
+
+def p_datetime_time(p):
+    "datetime : time"
+    time = p[1]
+    p[0] = lambda ref: datetime.combine(ref.date(), time)
+
+def p_datetime_datetime(p):
+    "datetime : date time"
+    date = p[1]
+    time = p[2]
+    p[0] = lambda ref: datetime.combine(date(ref), time)
+
+def p_date_short(p):
+    "date : SHORTDATE"
+    short = p[1]
+    p[0] = lambda ref: _date_from_short(short, ref)
+
+def _date_from_short(short, ref):
+    month, day = short
+    return date(ref.year, month, day)
+
+def p_date_medium(p):
+    "date : MEDIUMDATE"
+    medium = p[1]
+    p[0] = lambda ref: _date_from_medium(medium, ref)
+
+def _date_from_medium(medium, ref):
+    year, month, day = medium
+    assert year >= 0 and year <= 100, year
+    ref_c = ref.year // 100 * 100
+    return date(ref_c + year, month, day)
+
+def p_date_long(p):
+    "date : LONGDATE"
+    year, month, day = p[1]
+    p[0] = lambda _ref: date(year, month, day)
+
+def p_time(p):
+    "time : TIME"
+    hour, minute = p[1]
+    p[0] = time(hour, minute)
 
 ###################################################################
 # Minute ranges
@@ -296,54 +351,22 @@ def p_range_datetime(p):
     p[0] = lambda ref: (datetime(ref), datetime(ref))
 
 ###################################################################
-# Core
+# Explicit date/time
 ###################################################################
 
-def p_datetime_date(p):
-    "datetime : date"
-    date = p[1]
-    p[0] = lambda ref: datetime.combine(date(ref), time())
+def p_explicit_datetime(p):
+    "explicit_datetime : datetime"
+    datetime = p[1]
+    p[0] = lambda ref: _datetime_range(datetime(ref))
 
-def p_datetime_time(p):
-    "datetime : time"
-    time = p[1]
-    p[0] = lambda ref: datetime.combine(ref.date(), time)
+def _datetime_range(dt):
+    if isinstance(dt, datetime_from_date):
+        return _day_range(dt)
+    return _minute_range(dt)
 
-def p_datetime_datetime(p):
-    "datetime : date time"
-    date = p[1]
-    time = p[2]
-    p[0] = lambda ref: datetime.combine(date(ref), time)
-
-def p_date_short(p):
-    "date : SHORTDATE"
-    short = p[1]
-    p[0] = lambda ref: _date_from_short(short, ref)
-
-def _date_from_short(short, ref):
-    month, day = short
-    return date(ref.year, month, day)
-
-def p_date_medium(p):
-    "date : MEDIUMDATE"
-    medium = p[1]
-    p[0] = lambda ref: _date_from_medium(medium, ref)
-
-def _date_from_medium(medium, ref):
-    year, month, day = medium
-    assert year >= 0 and year <= 100, year
-    ref_c = ref.year // 100 * 100
-    return date(ref_c + year, month, day)
-
-def p_date_long(p):
-    "date : LONGDATE"
-    year, month, day = p[1]
-    p[0] = lambda _ref: date(year, month, day)
-
-def p_time(p):
-    "time : TIME"
-    hour, minute = p[1]
-    p[0] = time(hour, minute)
+###################################################################
+# Remaining API
+###################################################################
 
 def p_error(t):
     if t is None:
@@ -355,6 +378,10 @@ def p_error(t):
 def _shift(start, end, **delta_kw):
     shift = timedelta(**delta_kw)
     return start + shift, end + shift
+
+class datetime_from_date(datetime):
+    """Denotes a datetime object created from a date-only user spec.
+    """
 
 class parser(object):
 
