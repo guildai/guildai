@@ -18,6 +18,7 @@ tests).
       batch-random-optimizer:      ok
       batch-random-seeds:          ok
       batch-restart:               ok
+      batch-save-trials:           ok
       batch-skopt:                 ok
       batch-skopt2:                ok
       compare:                     ok

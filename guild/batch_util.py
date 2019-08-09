@@ -347,8 +347,15 @@ def save_trials(trials, path):
     if not trials:
         cli.out("Nothing to save")
         return
+    trials = [t.flags for t in trials]
     cli.out("Saving %i trial(s) to %s" % (len(trials), path))
-    op_util.save_trials([t.flags for t in trials], path)
+    op_util.save_trials(trials, _save_trials_path(path))
+
+def _save_trials_path(path):
+    cmd_dir = os.getenv("CMD_DIR")
+    if not cmd_dir:
+        return path
+    return os.path.join(cmd_dir, path)
 
 def print_trials_cmd(trials):
     for trial in trials:
