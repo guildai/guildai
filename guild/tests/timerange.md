@@ -547,42 +547,41 @@ A range can also be specified as `last N UNIT`.
 
 #### Comparing after and last forms
 
-There's a subtle and somewhat surprising behavior between the `after
-... ago` and `last ...` forms.
+There's an important difference between the `after ... ago` and `last
+...` forms.
 
-The `after ... ago` form reaches back to the start of the specified
-unit and applies the range from there. Here's an example using `5
-minutes`:
+The `after ... ago` form goes back to the start of the specified unit
+and starts the range *after* the specified interval ends. Here's an
+example using `5 minutes`:
 
     >>> apply("after 5 minutes ago", ref)
     ref:   2019-05-01 14:35:23
     start: 2019-05-01 14:31:00
     end:   None
 
-The `last ...` form reaches back the specified units without reaching
-the start of the unit. Here's the same example using `5 minutes`:
+The `last ...` form simply goes back the specified units
+without. Here's the same example using `5 minutes`:
 
     >>> apply("last 5 minutes", ref)
     ref:   2019-05-01 14:35:23
     start: 2019-05-01 14:30:23
     end:   None
 
-Note the diffrences in ranges.
+Consider this distinction for larger intervals such as weeks, months,
+and years. Does "1 week ago" mean the start of the previous week
+through the end of the same week, or does it mean exactly 7 days (168
+hours) ago? By English convention, "1 week ago" unambiguously means
+the former. In this light, the expression "after 1 week ago" means to
+start after the prior week ended, or, at the start of the current
+week.
 
-This is arguably a strange distinction within the minute interval.
+The distinction therefore can be summarized as:
 
-The distinction makes more sense in the context of larger intervals
-such as weeks, months, and years. Consider the range for the "last
-week". Does "last week" mean the start of the previous week through
-the end of the same week, or does it mean exactly 7 days (168 hours)
-ago? By English convention, "last week" unambiguously means the
-former.
+- `after ... ago` starts after the specified period has ended
+- `last N ...` starts precisely N units in the past
 
-Guild resolves the issue of ambiguity by using the two different
-forms: `last ...` and `N ... ago`. The `last` form always specifies an
-unambiguous interval relative to the current time and is therefore
-limited to units of minutes, hours, and days. The `last` form cannot
-be used with weeks, months, or years.
+To avoid the ambiguity of calculating weeks, months, and years in the
+past, the form `last N` cannot be used with those units:
 
     >>> apply("last 2 weeks", None)
     Traceback (most recent call last):
@@ -596,7 +595,8 @@ be used with weeks, months, or years.
     Traceback (most recent call last):
     ParseError: unexpected 'year' at pos 7
 
-For these intervals, you must use `after ... ago`:
+For these intervals, you must use `after ... ago` - noting again that
+the period starts *after* the specified interval.
 
     >>> apply("after 2 weeks ago", ref)
     ref:   2019-05-01 14:35:23
@@ -613,32 +613,42 @@ For these intervals, you must use `after ... ago`:
     start: 2019-01-01 00:00:00
     end:   None
 
-Note in each case the start time is the start of the applicable
-interval.
+When applied to smaller intervals, both forms can be used, but with
+different meaning.
 
-The same logic applies within the smaller intervals. The `last N days`
-specifies exactly N * 24 hours from the current time:
+Here's `last ...` applied to `3 days`:
 
     >>> apply("last 3 days", ref)
     ref:   2019-05-01 14:35:23
     start: 2019-04-28 14:35:23
     end:   None
 
-However, `after 3 days ago` specifies the interval starting at `00:00`
-*after* three days in the past.
+Note the interval is exactly 3 days prior to the reference date.
+
+Here's `after ... ago` applied to `3 days`:
 
     >>> apply("after 3 days ago", ref)
     ref:   2019-05-01 14:35:23
     start: 2019-04-29 00:00:00
     end:   None
 
-Note that this maintains symmetry with the expression `3 days ago`,
-which means the range from `00:00` to `23:59` 3 days in the past.
+The interval starts *after* the 3rd day ends.
+
+To further explain the rationale for this distinction, consider the
+time range expression "3 days ago". In keeping with the example "1
+week ago", which means the range "starting on Monday at 00:00 of the
+previous week and ending on the following Monday at 00:00 (exclusive),
+the expression "3 days ago" means the range "starting at 00:00 three
+days in the past and ending at 00:00 on the following day (again,
+exslusive).
 
     >>> apply("3 days ago", ref)
     ref:   2019-05-01 14:35:23
     start: 2019-04-28 00:00:00
     end:   2019-04-29 00:00:00
+
+By specifying a range that starts *after* "3 days ago", the range must
+start at 00:00 on the following day, as shown above.
 
 ### Explicit ranges
 
