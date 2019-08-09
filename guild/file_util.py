@@ -162,11 +162,11 @@ class FileSelectRule(object):
 
     @staticmethod
     def _test_text_file(path):
-        return util.is_text_file(path)
+        return util.safe_is_text_file(path)
 
     @staticmethod
     def _test_binary_file(path):
-        return not util.is_text_file(path)
+        return not util.safe_is_text_file(path)
 
     def _test_dir(self, path):
         if not os.path.isdir(path):

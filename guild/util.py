@@ -536,7 +536,7 @@ def is_text_file(path, ignore_ext=False):
     # Adapted from https://github.com/audreyr/binaryornot under the
     # BSD 3-clause License
     if not os.path.exists(path):
-        raise ValueError("%s does not exist" % path)
+        raise OSError("%s does not exist" % path)
     if not os.path.isfile(path):
         return False
     if not ignore_ext:
@@ -584,6 +584,13 @@ def is_text_file(path, ignore_ext=False):
             if b'\x00' in sample or b'\xff' in sample:
                 return False
         return True
+
+def safe_is_text_file(path, ignore_ext=False):
+    try:
+        return is_text_file(path, ignore_ext)
+    except OSError as e:
+        log.warning("could not check for text file %s: %s", path, e)
+        return False
 
 def touch(filename):
     open(filename, "a").close()
