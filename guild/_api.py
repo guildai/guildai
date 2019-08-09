@@ -75,14 +75,13 @@ def run_quiet(*args, **kw):
 
 def _popen_args(
         spec=None,
-        cwd=None,
         flags=None,
-        batch_files=None,
+        label=None,
         run_dir=None,
         restart=None,
-        label=None,
+        disable_plugins=None,
+        batch_files=None,
         batch_label=None,
-        guild_home=None,
         extra_env=None,
         optimize=False,
         optimizer=None,
@@ -93,11 +92,12 @@ def _popen_args(
         random_seed=None,
         needed=False,
         init_trials=False,
+        force_flags=False,
         print_cmd=False,
         print_trials=False,
         save_trials=None,
-        force_flags=False,
-        disable_plugins=None,
+        guild_home=None,
+        cwd=None,
         quiet=False,
         debug=False):
     from guild import op_util
