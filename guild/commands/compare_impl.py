@@ -230,7 +230,7 @@ def _try_guildfile_compare(run, _index):
     """Returns the current compare for run op if available."""
     try:
         gf = guildfile.from_run(run)
-    except (guildfile.NoModels, TypeError):
+    except (guildfile.NoModels, guildfile.GuildfileMissing, TypeError):
         return None
     else:
         return _try_guildfile_op_compare(

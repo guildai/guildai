@@ -1,13 +1,13 @@
-# Guildfiles
+# Guild files
 
-Guildfiles are files that contain model definitions. By convention
+Guild files are files that contain model definitions. By convention
 guild files are named `guild.yml`.
 
-Support for guild files is provided by the `guildfile` module:
+Support for Guild files is provided by the `guildfile` module:
 
     >>> from guild import guildfile
 
-## Loading a guild file from a directory
+## Loading a Guild file from a directory
 
 Use `from_dir` to load a guild file from a directory:
 
@@ -16,7 +16,7 @@ Use `from_dir` to load a guild file from a directory:
     >>> gf.src
     '.../samples/projects/mnist-pkg/guild.yml'
 
-## Loading a guildfile from a file
+## Loading a Guild file from a file
 
 Use `from_file` to load a guildfile from a file directly:
 
@@ -1501,3 +1501,39 @@ content.
     Traceback (most recent call last):
     GuildfileError: error in <string>: invalid select files spec 123:
     expected a string, list, or mapping
+
+## Loading from a run
+
+If a run references a Guild file (in its `opref` attribute), the
+references Guild file can be loaded using `from_run`.
+
+Let's create a run in a temporary location:
+
+    >>> from guild import run as runlib
+    >>> run = runlib.from_dir(mkdtemp())
+    >>> run.init_skel()
+
+Next, configure the run's opref to reference a valid Guild file:
+
+    >>> from guild import opref
+    >>> gf_path = sample("projects", "mnist-pkg", "guild.yml")
+    >>> run.write_opref(opref.OpRef("guildfile", gf_path, "", "", ""))
+
+Now we can load the referenced Guild file using `from_run`:
+
+    >>> gf = guildfile.from_run(run)
+    >>> gf.src == gf_path
+    True
+
+If we try to load a Guild file from a run that references a missing
+file, we get an error:
+
+    >>> bad_path = path(mkdtemp(), "guild.yml")
+    >>> run.write_opref(opref.OpRef("guildfile", bad_path, "", "", ""))
+
+    >>> exists(bad_path)
+    False
+
+    >>> guildfile.from_run(run)
+    Traceback (most recent call last):
+    GuildfileMissing: .../guild.yml
