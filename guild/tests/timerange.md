@@ -545,6 +545,101 @@ A range can also be specified as `last N UNIT`.
     start: 2019-04-21 14:35:23
     end:   None
 
+#### Comparing after and last forms
+
+There's a subtle and somewhat surprising behavior between the `after
+... ago` and `last ...` forms.
+
+The `after ... ago` form reaches back to the start of the specified
+unit and applies the range from there. Here's an example using `5
+minutes`:
+
+    >>> apply("after 5 minutes ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 14:31:00
+    end:   None
+
+The `last ...` form reaches back the specified units without reaching
+the start of the unit. Here's the same example using `5 minutes`:
+
+    >>> apply("last 5 minutes", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-05-01 14:30:23
+    end:   None
+
+Note the diffrences in ranges.
+
+This is arguably a strange distinction within the minute interval.
+
+The distinction makes more sense in the context of larger intervals
+such as weeks, months, and years. Consider the range for the "last
+week". Does "last week" mean the start of the previous week through
+the end of the same week, or does it mean exactly 7 days (168 hours)
+ago? By English convention, "last week" unambiguously means the
+former.
+
+Guild resolves the issue of ambiguity by using the two different
+forms: `last ...` and `N ... ago`. The `last` form always specifies an
+unambiguous interval relative to the current time and is therefore
+limited to units of minutes, hours, and days. The `last` form cannot
+be used with weeks, months, or years.
+
+    >>> apply("last 2 weeks", None)
+    Traceback (most recent call last):
+    ParseError: unexpected 'weeks' at pos 7
+
+    >>> apply("last month", None)
+    Traceback (most recent call last):
+    ParseError: unexpected 'month' at pos 5
+
+    >>> apply("last 1 year", None)
+    Traceback (most recent call last):
+    ParseError: unexpected 'year' at pos 7
+
+For these intervals, you must use `after ... ago`:
+
+    >>> apply("after 2 weeks ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-22 00:00:00
+    end:   None
+
+    >>> apply("after 1 month ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-30 00:00:00
+    end:   None
+
+    >>> apply("after 1 year ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-01-01 00:00:00
+    end:   None
+
+Note in each case the start time is the start of the applicable
+interval.
+
+The same logic applies within the smaller intervals. The `last N days`
+specifies exactly N * 24 hours from the current time:
+
+    >>> apply("last 3 days", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-28 14:35:23
+    end:   None
+
+However, `after 3 days ago` specifies the interval starting at `00:00`
+*after* three days in the past.
+
+    >>> apply("after 3 days ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-29 00:00:00
+    end:   None
+
+Note that this maintains symmetry with the expression `3 days ago`,
+which means the range from `00:00` to `23:59` 3 days in the past.
+
+    >>> apply("3 days ago", ref)
+    ref:   2019-05-01 14:35:23
+    start: 2019-04-28 00:00:00
+    end:   2019-04-29 00:00:00
+
 ### Explicit ranges
 
 An explicit range is specified using the syntax "between TIME_1 and
