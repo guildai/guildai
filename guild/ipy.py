@@ -409,7 +409,8 @@ def _runs_cmd_args(
         pending=False,
         unlabeled=None,
         marked=False,
-        unmarked=False):
+        unmarked=False,
+        started=None):
     return click_util.Args(
         ops=operations,
         labels=labels,
@@ -420,7 +421,8 @@ def _runs_cmd_args(
         pending=pending,
         unlabeled=unlabeled,
         marked=marked,
-        unmarked=unmarked)
+        unmarked=unmarked,
+        started=started)
 
 def _format_runs(runs):
     cols = (
