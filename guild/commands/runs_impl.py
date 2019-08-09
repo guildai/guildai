@@ -599,11 +599,18 @@ def _set_labels(args, ctx):
     no_runs = "No runs to modify."
     def set_labels(selected):
         for run in selected:
-            run.write_attr("label", args.label)
+            formatted = _format_run_label(args.label, run)
+            run.write_attr("label", formatted)
         cli.out("Labeled %i run(s)" % len(selected))
     runs_op(
         args, ctx, False, preview, confirm, no_runs,
         set_labels, LATEST_RUN_ARG, True)
+
+def _format_run_label(template, run):
+    vals = {}
+    vals.update(run.get("flags", {}))
+    vals.update(run_util.format_run(run))
+    return util.render_label(template, vals).strip()
 
 def stop_runs(args, ctx):
     if args.remote:
