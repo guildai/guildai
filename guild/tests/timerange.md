@@ -102,6 +102,18 @@ Units:
     LexToken(MONTH,'MONths',1,23)
     LexToken(YEAR,'yeARs',1,30)
 
+Variations / abbreviations:
+
+    >>> tokens("min minute minutes")
+    LexToken(MINUTE,'min',1,0)
+    LexToken(MINUTE,'minute',1,4)
+    LexToken(MINUTE,'minutes',1,11)
+
+    >>> tokens("hr hour hours")
+    LexToken(HOUR,'hr',1,0)
+    LexToken(HOUR,'hour',1,3)
+    LexToken(HOUR,'hours',1,8)
+
 Other reserved:
 
     >>> tokens("today yesterday this last ago before after between and")

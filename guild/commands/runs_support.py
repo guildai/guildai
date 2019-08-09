@@ -169,7 +169,8 @@ def time_filters(fn):
     `DATETIME` may be specified in either order.
 
     When specifying values like ``minutes`` and ``hours`` the training
-    ``s`` may be omitted to improve readability.
+    ``s`` may be omitted to improve readability. You may also use
+    ``min`` instead of ``minutes`` and ``hr`` instead of ``hours``.
 
     Examples:
 
@@ -178,6 +179,7 @@ def time_filters(fn):
       after 9:00
       between 1-1 and 4-30
       between 10:00 and 15:00
+      last 30 min
       last 6 hours
       today
       this week

@@ -77,14 +77,6 @@ def t_TIME(t):
     t.value = _parse_ints(t)
     return t
 
-def t_MINUTE(t):
-    r"minutes?"
-    return t
-
-def t_HOUR(t):
-    r"hours?"
-    return t
-
 def t_DAY(t):
     r"days?"
     return t
@@ -104,6 +96,14 @@ def t_YEAR(t):
 def t_NUMBER(t):
     r"[0-9]+"
     t.value = int(t.value)
+    return t
+
+def t_HOUR(t):
+    r"hours?|hr"
+    return t
+
+def t_MINUTE(t):
+    r"minutes?|min"
     return t
 
 def t_RESERVED(t):
