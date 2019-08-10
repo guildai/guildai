@@ -29,6 +29,7 @@ import guild
 
 from guild import cli
 from guild import config
+from guild import guildfile
 from guild import init
 from guild import pip_util
 from guild import util
@@ -117,7 +118,7 @@ class Config(object):
 
 def _iter_all_guild_pkg_reqs(dir, search_path, seen=None):
     seen = seen or set()
-    src = os.path.abspath(os.path.join(dir, "guild.yml"))
+    src = os.path.abspath(guildfile.guildfile_path(dir))
     if not os.path.exists(src):
         return
     if src in seen:
@@ -400,7 +401,7 @@ def _python_requires_for_pkg():
     return pkg_data.get("python-requires")
 
 def _guildfile_pkg_data():
-    src = os.path.join(config.cwd(), "guild.yml")
+    src = guildfile.guildfile_path()
     if not os.path.exists(src):
         return None
     data = _guildfile_data(src)

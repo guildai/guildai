@@ -22,6 +22,7 @@ import shutil
 
 import yaml
 
+from guild import guildfile
 from guild import util
 
 log = logging.getLogger("guild")
@@ -137,7 +138,7 @@ def _matches(s, patterns):
     return False
 
 def _apply_params(dest, params, meta):
-    guild_file = os.path.join(dest, "guild.yml")
+    guild_file = guildfile.guildfile_path(dest)
     lines = _read_lines(guild_file)
     if lines is not None:
         log.info("Updating %s", guild_file)

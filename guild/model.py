@@ -147,7 +147,7 @@ def _load_dist_modeldefs(dist):
     else:
         for line in record:
             path = line.split(",", 1)[0]
-            if os.path.basename(path) in guildfile.NAMES:
+            if os.path.basename(path) == guildfile.NAME:
                 fullpath = os.path.join(dist.location, path)
                 _try_acc_modeldefs(fullpath, modeldefs)
     return modeldefs

@@ -25,6 +25,7 @@ import sys
 import six
 import yaml
 
+from guild import config
 from guild import opref
 from guild import plugin as pluginlib
 from guild import resourcedef
@@ -32,7 +33,7 @@ from guild import util
 
 log = logging.getLogger("guild")
 
-NAMES = ["guild.yml"]
+NAME = "guild.yml"
 
 ALL_TYPES = [
     "config",
@@ -189,11 +190,10 @@ class Guildfile(object):
         include_path = include.replace(".", os.path.sep)
         for path in sys.path:
             log.debug("looking for include '%s' in %s", include, path)
-            for name in NAMES:
-                guildfile = os.path.join(path, include_path, name)
-                if os.path.exists(guildfile):
-                    log.debug("found include %s", guildfile)
-                    return guildfile
+            guildfile = guildfile_path(path, include_path)
+            if os.path.exists(guildfile):
+                log.debug("found include %s", guildfile)
+                return guildfile
         return None
 
     def _gpkg_include(self, include):
@@ -518,14 +518,14 @@ def _resolve_includes(data, section_name, guildfiles):
         resolved)
     return resolved
 
-def _apply_section_data(data, guildfile_path, section_name,
+def _apply_section_data(data, gf_path, section_name,
                         seen_includes, resolved):
     for name in _includes_first(data):
         if name == "$include":
-            includes = _coerce_includes(data[name], guildfile_path[0])
+            includes = _coerce_includes(data[name], gf_path[0])
             _apply_includes(
                 includes,
-                guildfile_path,
+                gf_path,
                 section_name,
                 seen_includes,
                 resolved)
@@ -541,9 +541,9 @@ def _includes_first(names):
 def _coerce_includes(val, src):
     return _coerce_str_to_list(val, src, "$include")
 
-def _apply_includes(includes, guildfile_path, section_name,
+def _apply_includes(includes, gf_path, section_name,
                     seen_includes, resolved):
-    _assert_guildfile_data(guildfile_path[0])
+    _assert_guildfile_data(gf_path[0])
     for ref in includes:
         if ref in seen_includes:
             break
@@ -553,21 +553,21 @@ def _apply_includes(includes, guildfile_path, section_name,
         # this point.
         (include_model,
          include_op,
-         include_attrs) = _split_include_ref(ref, guildfile_path[0])
+         include_attrs) = _split_include_ref(ref, gf_path[0])
         include_data = _find_include_data(
             include_model,
             include_op,
             section_name,
-            guildfile_path)
+            gf_path)
         if include_data is None:
             raise GuildfileReferenceError(
-                guildfile_path[0],
+                gf_path[0],
                 "invalid include reference '%s': cannot find target" % ref)
         if include_attrs:
             include_data = _filter_data(include_data, include_attrs)
         _apply_section_data(
             include_data,
-            guildfile_path,
+            gf_path,
             section_name,
             seen_includes,
             resolved)
@@ -586,8 +586,8 @@ def _split_include_ref(ref, src):
                   "MODEL_OR_CONFIG[:OPERATION][#ATTRS]" % ref))
     return m.groups()
 
-def _find_include_data(model_name, op_name, section_name, guildfile_path):
-    for guildfile in guildfile_path:
+def _find_include_data(model_name, op_name, section_name, gf_path):
+    for guildfile in gf_path:
         for top_level_data in guildfile.data:
             if _item_name(top_level_data, MODEL_TYPES) == model_name:
                 if op_name:
@@ -661,7 +661,7 @@ class ModelDef(object):
         self.python_requires = data.get("python-requires")
 
     @property
-    def guildfile_path(self):
+    def guildfile_search_path(self):
         return [self.guildfile] + self.parents
 
     def __repr__(self):
@@ -790,11 +790,10 @@ def _find_pkg_guildfile(pkg):
     pkg_path = pkg.replace("-", "_").replace(".", os.path.sep)
     for path in sys.path:
         log.debug("looking for pkg '%s' in %s", pkg, path)
-        for name in NAMES:
-            guildfile = os.path.join(path, pkg_path, name)
-            if os.path.exists(guildfile):
-                log.debug("found pkg Guild file %s", guildfile)
-                return guildfile
+        guildfile = guildfile_path(path, pkg_path)
+        if os.path.exists(guildfile):
+            log.debug("found pkg Guild file %s", guildfile)
+            return guildfile
     return None
 
 def _guildfile_parent_data(name, guildfile, seen):
@@ -888,7 +887,7 @@ def _init_ops(data, modeldef):
     ]
 
 def _init_resources(data, modeldef):
-    data = _resolve_includes(data, "resources", modeldef.guildfile_path)
+    data = _resolve_includes(data, "resources", modeldef.guildfile_search_path)
     return [ResourceDef(key, data[key], modeldef) for key in sorted(data)]
 
 def _init_sourcecode(data, gf):
@@ -1044,7 +1043,8 @@ class OpDef(object):
         return None
 
 def _init_flags(data, opdef):
-    data = _resolve_includes(data, "flags", opdef.modeldef.guildfile_path)
+    data = _resolve_includes(
+        data, "flags", opdef.modeldef.guildfile_search_path)
     return [FlagDef(name, data[name], opdef) for name in sorted(data)]
 
 def _new_merged_flag(src_flag, opdef):
@@ -1376,25 +1376,21 @@ class PackageDef(object):
 # Module API
 ###################################################################
 
-def from_dir(path, filenames=None, no_cache=False):
+def from_dir(path, no_cache=False):
     log.debug("checking '%s' for model sources", path)
-    filenames = NAMES if filenames is None else filenames
-    for name in filenames:
-        model_file = os.path.abspath(os.path.join(path, name))
-        if os.path.isfile(model_file):
-            log.debug("found model source '%s'", model_file)
-            return from_file(model_file, no_cache=no_cache)
+    model_file = os.path.abspath(guildfile_path(path))
+    if os.path.isfile(model_file):
+        log.debug("found model source '%s'", model_file)
+        return from_file(model_file, no_cache=no_cache)
     raise NoModels(path)
 
 def is_guildfile_dir(path):
-    try:
-        names = os.listdir(path)
-    except OSError:
-        names = []
-    for name in names:
-        if name in NAMES:
-            return True
-    return False
+    return os.path.exists(guildfile_path(path))
+
+def guildfile_path(*paths):
+    if not paths:
+        paths = (config.cwd(),)
+    return os.path.join(*(paths + (NAME,)))
 
 def from_file(src, extends_seen=None, no_cache=False):
     if not no_cache:

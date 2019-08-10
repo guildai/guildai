@@ -213,7 +213,7 @@ def _pkg_data_files(pkg):
 
 def _default_pkg_files():
     return [
-        "guild.yml",
+        guildfile.NAME,
         "LICENSE",
         "LICENSE.*",
         "README",

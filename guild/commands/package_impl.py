@@ -30,7 +30,7 @@ def main(args):
             "%s does not exist\n"
             "Try specifying a different directory."
             % cmd_impl_support.cwd_desc(config.cwd()))
-    package_file = os.path.join(config.cwd(), "guild.yml")
+    package_file = guildfile.guildfile_path()
     if not os.path.exists(package_file):
         cli.error(
             "%s does not contain a guild.yml file\n"
