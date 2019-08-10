@@ -256,7 +256,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
     def _load_and_cache_flags_data(self, mod_path, sys_path, opdef,
                                    cached_data_path):
         if os.getenv("NO_IMPORT_FLAGS_PROGRESS") != "1":
-            cli.note_once("Refreshing project info...")
+            cli.note_once("Refreshing flags...")
         script = python_util.Script(mod_path)
         try:
             data = self._flags_data_for_script(
