@@ -155,7 +155,7 @@ class Run(object):
             return val if val is not None else default
 
     def attr_names(self):
-        return sorted(os.listdir(self._attrs_dir()))
+        return sorted(util.safe_listdir(self._attrs_dir()))
 
     def has_attr(self, name):
         return os.path.exists(self._attr_path(name))

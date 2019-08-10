@@ -1092,3 +1092,9 @@ def short_digest(s):
     if not s:
         return ""
     return s[:8]
+
+def safe_listdir(path):
+    try:
+        return os.listdir(path)
+    except OSError:
+        return []
