@@ -68,9 +68,9 @@ class PythonScriptModelProxy(object):
     objective = "loss"
     disable_plugins = "all"
 
-    def __init__(self, op_name, script_path):
+    def __init__(self, script_path):
         assert script_path[-3:] == ".py", script_path
-        self.op_name = op_name
+        self.op_name = os.path.basename(script_path)
         self.script_path = script_path
         self.modeldef = self._init_modeldef()
         self.reference = modellib.script_model_ref(self.name, script_path)
@@ -137,7 +137,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
         path = os.path.join(config.cwd(), opspec)
         if not python_util.is_python_script(path):
             return None
-        model = PythonScriptModelProxy(opspec, path)
+        model = PythonScriptModelProxy(path)
         return model, model.op_name
 
     def guildfile_loaded(self, gf):

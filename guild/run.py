@@ -72,7 +72,15 @@ class Run(object):
         return self.guild_path("opref")
 
     def write_opref(self, opref):
-        self.write_encoded_opref(str(opref))
+        rel_opref = self._rel_opref(opref)
+        self.write_encoded_opref(str(rel_opref))
+
+    def _rel_opref(self, opref):
+        if opref.pkg_type in ("guildfile", "script"):
+            # OpRef stores project paths in pkg_name
+            relpath = os.path.relpath(opref.pkg_name, self.dir)
+            return opref._replace(pkg_name=relpath)
+        return opref
 
     def write_encoded_opref(self, encoded):
         with open(self._opref_path(), "w") as f:

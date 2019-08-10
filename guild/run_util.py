@@ -177,16 +177,16 @@ def _format_exit_status(run):
 def format_op_desc(run, nowarn=False, seen_protos=None):
     seen_protos = seen_protos or set()
     opref = run.opref
-    base_desc = _base_op_desc(opref, nowarn)
+    base_desc = _base_op_desc(opref, run, nowarn)
     return _apply_batch_desc(base_desc, run, seen_protos)
 
-def _base_op_desc(opref, nowarn):
+def _base_op_desc(opref, run, nowarn):
     if opref.pkg_type == "guildfile":
-        return _format_guildfile_op(opref)
+        return _format_guildfile_op(opref, run)
     elif opref.pkg_type == "package":
         return _format_package_op(opref)
     elif opref.pkg_type == "script":
-        return _format_script_op(opref)
+        return _format_script_op(opref, run)
     elif opref.pkg_type == "builtin":
         return _format_builtin_op(opref)
     elif opref.pkg_type == "pending":
@@ -202,37 +202,24 @@ def _base_op_desc(opref, nowarn):
                 opref.pkg_type, opref.pkg_name)
         return "?"
 
-def _format_guildfile_op(opref):
-    parts = []
-    gf_dir = _guildfile_dir(opref)
-    if gf_dir:
-        parts.extend([gf_dir, os.path.sep])
-    if opref.model_name:
-        parts.extend([opref.model_name, ":"])
-    parts.append(opref.op_name)
-    return "".join(parts)
-
-def _guildfile_dir(opref):
-    from guild import config
+def _format_guildfile_op(opref, run):
     gf_dir = os.path.dirname(opref.pkg_name)
-    real_cwd = config.cwd()
-    relpath = os.path.relpath(gf_dir, real_cwd)
-    if relpath == ".":
-        return ""
-    return re.sub(r"\.\./(\.\./)+", ".../", _ensure_dot_path(relpath))
+    abs_gf_dir = os.path.normpath(os.path.join(run.dir, gf_dir))
+    op_name = _full_op_name(opref)
+    return os.path.join(abs_gf_dir, op_name)
 
-def _ensure_dot_path(path):
-    if path[0:1] == ".":
-        return path
-    return os.path.join(".", path)
+def _full_op_name(opref):
+    if opref.model_name:
+        return "".join([opref.model_name, ":", opref.op_name])
+    return opref.op_name
 
 def _format_package_op(opref):
     if not opref.model_name:
         return "%s/%s" % (opref.pkg_name, opref.op_name)
     return "%s/%s:%s" % (opref.pkg_name, opref.model_name, opref.op_name)
 
-def _format_script_op(opref):
-    return _format_guildfile_op(opref)
+def _format_script_op(opref, run):
+    return _format_guildfile_op(opref, run)
 
 def _format_builtin_op(opref):
     return opref.op_name

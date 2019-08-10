@@ -1443,7 +1443,7 @@ def from_string(s, src="<string>"):
 def from_run(run):
     if run.opref is None or run.opref.pkg_type != "guildfile":
         raise TypeError("run (%s) pkg type must be 'guildfile'" % run.path)
-    gf_path = run.opref.pkg_name
+    gf_path = os.path.join(run.dir, run.opref.pkg_name)
     if not os.path.exists(gf_path):
         raise GuildfileMissing(gf_path)
     return from_file(gf_path)
