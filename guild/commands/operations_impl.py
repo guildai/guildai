@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 from guild import cli
-from guild import config
 from guild import cmd_impl_support
 from guild import model
 from guild import util
@@ -25,7 +24,8 @@ from guild.commands import models_impl
 
 def main(args):
     cmd_impl_support.init_model_path()
-    formatted = [_format_op(op, model) for op, model in _iter_ops(args)]
+    dirs = models_impl.models_iter_dirs(args)
+    formatted = [_format_op(op, model) for op, model in _iter_ops(dirs)]
     filtered = [op for op in formatted if _filter_op(op, args)]
     cli.table(
         sorted(filtered, key=_op_sort_key),
@@ -33,9 +33,8 @@ def main(args):
         detail=(["main", "flags", "details"] if args.verbose else [])
     )
 
-def _iter_ops(args):
-    gf_dirs = [] if args.installed else [config.cwd()]
-    for model in models_impl.iter_models(gf_dirs, include_anonymous=True):
+def _iter_ops(dirs):
+    for model in models_impl.iter_models(dirs, include_anonymous=True):
         for op in model.modeldef.operations:
             yield op, model
 

@@ -20,12 +20,13 @@ import os
 from guild import cli
 from guild import cmd_impl_support
 from guild import config
+from guild import guildfile
 from guild import model
 from guild import util
 
 def main(args):
     cmd_impl_support.init_model_path()
-    dirs = [] if args.installed else [config.cwd()]
+    dirs = models_iter_dirs(args)
     formatted = [_format_model(m) for m in iter_models(dirs)]
     filtered = [m for m in formatted if _filter_model(m, args)]
     cli.table(
@@ -33,6 +34,12 @@ def main(args):
         cols=["fullname", "description"],
         detail=(["source", "operations", "details"] if args.verbose else [])
     )
+
+def models_iter_dirs(args):
+    cwd = config.cwd()
+    if not args.installed and guildfile.is_guildfile_dir(cwd):
+        return [cwd]
+    return []
 
 def iter_models(dirs=None, include_anonymous=False):
     dirs = dirs or []
