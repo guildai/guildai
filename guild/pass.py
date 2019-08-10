@@ -29,4 +29,6 @@ from __future__ import print_function
 import sys
 
 if __name__ == "__main__":
-    print(*sys.argv[1:])
+    to_print = sys.argv[1:]
+    if to_print:
+        print(*to_print)
