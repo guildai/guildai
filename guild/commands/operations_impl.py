@@ -16,22 +16,25 @@ from __future__ import absolute_import
 from __future__ import division
 
 from guild import cli
+from guild import config
 from guild import cmd_impl_support
+from guild import model
 from guild import util
 
 from guild.commands import models_impl
 
 def main(args):
     cmd_impl_support.init_model_path()
-    formatted = [_format_op(op, model) for op, model in _iter_ops(args.path)]
+    formatted = [_format_op(op, model) for op, model in _iter_ops(args)]
     filtered = [op for op in formatted if _filter_op(op, args)]
     cli.table(
-        sorted(filtered, key=lambda m: m["fullname"]),
+        sorted(filtered, key=_op_sort_key),
         cols=["fullname", "description"],
         detail=(["main", "flags", "details"] if args.verbose else [])
     )
 
-def _iter_ops(gf_dirs):
+def _iter_ops(args):
+    gf_dirs = [] if args.installed else [config.cwd()]
     for model in models_impl.iter_models(gf_dirs, include_anonymous=True):
         for op in model.modeldef.operations:
             yield op, model
@@ -52,7 +55,8 @@ def _format_op(op, model):
                 _format_flag_desc(flag),
                 _format_flag_value(flag))
             for flag in op.flags
-        ]
+        ],
+        "_model": model,
     }
 
 def format_op_fullname(op_name, model_fullname):
@@ -77,3 +81,11 @@ def _filter_op(op, args):
         (op["name"][:1] != "_" or args.all) and
         (op["model_name"][:1] != "_" or args.all) and
         util.match_filters(args.filters, filter_vals))
+
+def _op_sort_key(op):
+    return (_op_type_key(op), op["model"], op["name"])
+
+def _op_type_key(op):
+    if isinstance(op["_model"], model.GuildfileModel):
+        return 999
+    return 0

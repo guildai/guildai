@@ -22,11 +22,13 @@ from guild import click_util
 @click.command(name="operations, ops")
 @click.argument("filters", metavar="[FILTER]...", required=False, nargs=-1)
 @click.option(
-    "-p", "--path", metavar="DIR", multiple=True,
-    help="Show operations in DIR. May be used more than once.")
-@click.option(
     "-a", "--all", is_flag=True,
     help="Show all operations including those designated as private.")
+@click.option(
+    "-i", "--installed", is_flag=True,
+    help=(
+        "Include operations installed from packages when running "
+        "command from a project directory."))
 @click.option("-v", "--verbose", help="Show operation details.", is_flag=True)
 
 @click_util.use_args
@@ -34,10 +36,18 @@ from guild import click_util
 def operations(args):
     """Show model operations.
 
-    Use one or more `FILTER` arguments to show only operations whose
-    names or models match the specified values.
+    If the current directory is a project directory (i.e. contains a
+    Guild file), the command shows operations defined for the
+    project. Otherwise, the command shows operations defined in
+    installed packages.
 
-    Use --path to view operations defined in the specified directory.
+    Note that operations defined in packages are always available to
+    run, even when running within a project directory. To always show
+    installed operations, use the `--installed` option.
+
+    Use one or more `FILTER` arguments to show only operations with
+    names or models that match the specified values.
+
     """
     from . import operations_impl
     operations_impl.main(args)

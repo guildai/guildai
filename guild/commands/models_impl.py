@@ -19,15 +19,17 @@ import os
 
 from guild import cli
 from guild import cmd_impl_support
+from guild import config
 from guild import model
 from guild import util
 
 def main(args):
     cmd_impl_support.init_model_path()
-    formatted = [_format_model(m) for m in iter_models(args.path)]
+    dirs = [] if args.installed else [config.cwd()]
+    formatted = [_format_model(m) for m in iter_models(dirs)]
     filtered = [m for m in formatted if _filter_model(m, args)]
     cli.table(
-        sorted(filtered, key=lambda m: m["fullname"]),
+        sorted(filtered, key=_model_sort_key),
         cols=["fullname", "description"],
         detail=(["source", "operations", "details"] if args.verbose else [])
     )
@@ -56,6 +58,7 @@ def _format_model(model):
         "description": description,
         "details": details,
         "operations": ", ".join([op.name for op in modeldef.operations]),
+        "_model": model,
     }
 
 def _filter_model(model, args):
@@ -66,3 +69,11 @@ def _filter_model(model, args):
     return (
         (model["name"][:1] != "_" or args.all) and
         util.match_filters(args.filters, filter_vals))
+
+def _model_sort_key(m):
+    return (_model_type_key(m), m["fullname"])
+
+def _model_type_key(m):
+    if isinstance(m["_model"], model.GuildfileModel):
+        return 999
+    return 0
