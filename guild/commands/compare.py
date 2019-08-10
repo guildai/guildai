@@ -48,7 +48,7 @@ from . import runs_support
     "-x", "--max", "max_col", metavar="COLUMN",
     help="Show the highest values for COLUMN first.")
 @click.option(
-    "--table", "format", flag_value="table",
+    "-tb", "--table", "format", flag_value="table",
     help="Generate comparison data as a table.",
     is_flag=True)
 @click.option(
