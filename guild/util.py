@@ -1112,10 +1112,9 @@ def _abs_path_with_cache(p):
         return abs
 
 def shorten_dir(path, max_len=30):
-    fmt = format_dir(path)
-    if len(fmt) <= max_len:
-        return fmt
-    parts = fmt.split(os.path.sep)
+    if len(path) <= max_len:
+        return path
+    parts = path.split(os.path.sep)
     if len(parts) == 1:
         return parts[0]
     l = [parts.pop(0)]
@@ -1129,7 +1128,6 @@ def shorten_dir(path, max_len=30):
         if len_l + len_r + len(part) + 6 < max_len:
             side.append(part)
         pop_r = not pop_r
-
     return "%s/.../%s" % (
         os.path.sep.join(l),
         os.path.sep.join(reversed(r)))

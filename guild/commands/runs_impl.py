@@ -387,7 +387,9 @@ def _dim(s):
 
 def _shorten_op_dir(op_dir, cwd):
     if op_dir.startswith(cwd):
-        return op_dir[len(cwd) + 1:]
+        op_dir = op_dir[len(cwd) + 1:]
+    else:
+        op_dir = util.format_dir(op_dir)
     return util.shorten_dir(op_dir)
 
 def _run_op_dir(run):
