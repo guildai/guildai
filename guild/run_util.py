@@ -175,22 +175,19 @@ def _format_exit_status(run):
 def format_pkg_name(run):
     opref = run.opref
     if opref.pkg_type == "guildfile":
-        return _format_guildfile_pkg_name(opref, run)
+        return _format_guildfile_pkg_name(opref)
     elif opref.pkg_type == "script":
-        return _format_script_pkg_name(opref, run)
+        return _format_script_pkg_name(opref)
     elif opref.pkg_type == "package":
         return "%s==%s" % (opref.pkg_name, opref.pkg_version)
     else:
         return opref.pkg_name
 
-def _format_guildfile_pkg_name(opref, run):
-    return util.format_dir(_opref_path(opref.pkg_name, run))
+def _format_guildfile_pkg_name(opref):
+    return util.format_dir(opref.pkg_name)
 
-def _opref_path(path, run):
-    return os.path.abspath(os.path.join(run.dir, path))
-
-def _format_script_pkg_name(opref, run):
-    return util.format_dir(_opref_path(opref.pkg_name, run))
+def _format_script_pkg_name(opref):
+    return util.format_dir(opref.pkg_name)
 
 def format_operation(run, nowarn=False, seen_protos=None):
     seen_protos = seen_protos or set()
