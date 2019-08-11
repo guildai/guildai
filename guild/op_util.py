@@ -555,6 +555,9 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
             "too big.%s", path, self._opdef_help_suffix())
 
 def copy_sourcecode(opdef, dest, handler_cls=None):
+    if os.getenv("DISABLE_SOURCECODE") == "1":
+        log.debug("DISABLE_SOURCECODE=1, skipping sourcecode copy")
+        return
     if _sourcecode_disabled(opdef):
         log.debug("sourcecode for %s disabled", opdef.name)
         return
