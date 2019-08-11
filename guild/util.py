@@ -464,11 +464,15 @@ def _iter_resolved_ref_parts(parts, kv, undefined, stack):
         else:
             yield part
 
-def strip_trailing_path(path):
+def strip_trailing_sep(path):
     if path and path[-1] in ("/", "\\"):
         return path[:-1]
-    else:
-        return path
+    return path
+
+def strip_leading_sep(path):
+    if path and path[0] in ("/", "\\"):
+        return path[1:]
+    return path
 
 def which(cmd):
     which_cmd = "where" if PLATFORM == "Windows" else "which"
@@ -817,7 +821,7 @@ def _t_default(val, arg):
 def _t_basename(val):
     if not val:
         return ""
-    return os.path.basename(strip_trailing_path(val))
+    return os.path.basename(strip_trailing_sep(val))
 
 def _rendered_str(s):
     if s is None:
@@ -1111,23 +1115,56 @@ def _abs_path_with_cache(p):
         __abs_path[p] = abs = os.path.abspath(os.path.expanduser(p))
         return abs
 
-def shorten_dir(path, max_len=30):
+def shorten_dir(path, max_len=30, ellipsis="...", sep=os.path.sep):
     if len(path) <= max_len:
         return path
-    parts = path.split(os.path.sep)
+    parts = _shorten_dir_split_path(path, sep)
     if len(parts) == 1:
         return parts[0]
-    l = [parts.pop(0)]
-    r = [parts.pop()]
-    pop_r = True
+    assert all(parts), parts
+    r = [parts.pop()] # Always include rightmost part
+    if parts[0][0] == sep:
+        l = []
+        pop_r = False
+    else:
+        # Relative path, always include leftmost part
+        l = [parts.pop(0)]
+        pop_r = True
     while parts:
         len_l = sum([len(s) + 1 for s in l])
         len_r = sum([len(s) + 1 for s in r])
         part = parts.pop() if pop_r else parts.pop(0)
         side = r if pop_r else l
-        if len_l + len_r + len(part) + 6 < max_len:
-            side.append(part)
+        if len_l + len_r + len(part) + len(ellipsis) >= max_len:
+            break
+        side.append(part)
         pop_r = not pop_r
-    return "%s/.../%s" % (
+    shortened = "%s/%s/%s" % (
         os.path.sep.join(l),
+        ellipsis,
         os.path.sep.join(reversed(r)))
+    if len(shortened) >= len(path):
+        return path
+    return shortened
+
+def _shorten_dir_split_path(path, sep):
+    """Splits path into parts.
+
+    Leading and repeated '/' chars are prepended to the
+    part. E.g. "/foo/bar" is returned as ["/foo", "bar"] and
+    "foo//bar" as ["foo", "/bar"].
+    """
+    if not path:
+        return []
+    parts = path.split(sep)
+    packed = []
+    blanks = []
+    for part in parts:
+        if part == "":
+            blanks.append("")
+        else:
+            packed.append(sep.join(blanks + [part]))
+            blanks = []
+    if len(blanks) > 1:
+        packed.append(sep.join(blanks))
+    return packed

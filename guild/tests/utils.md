@@ -412,3 +412,113 @@ An explicit dict is okay:
 
     >>> pprint(nc({"1.2": {}, "1.1.1": 111, "1.2.1": 121}))
     {'1': {'1': {'1': 111}, '2': {'1': 121}}}
+
+## Shorten dirs
+
+The function `util.shorten_dirs()` is used to shorten directories by
+removing path segments and replacing them with an ellipsis ('...') as
+needed to keep them under a specified length.
+
+    >>> from guild.util import shorten_dir
+    >>> shorten = lambda s, max_len: shorten_dir(s, max_len, sep="/")
+
+Any paths under the specified length are returned unmodified:
+
+    >>> shorten("/foo/bar/baz", max_len=20)
+    '/foo/bar/baz'
+
+If a path is longer than `max_len`, the function tries to shorten it
+by replacing path segments with an ellipsis.
+
+If a path has fewer then two segments, it is returned unmodified
+regardless of the max length:
+
+    >>> shorten("foo", max_len=0)
+    'foo'
+
+If a shortened path is longer than the original path, the original
+path is returned unmodified.
+
+    >>> shorten("/a/b", max_len=0)
+    '/a/b'
+
+    >>> shorten("/aaa/bbb/ccc", max_len=12)
+    '/aaa/bbb/ccc'
+
+The function attempts to include as much of the original path in the
+shortened version as possible. It will always at least include the
+last segment in a shortened version.
+
+    >>> shorten("/aaa/bbb/ccc", max_len=0) # doctest: -ELLIPSIS
+    '/.../ccc'
+
+If able to, the function includes path segments from both the left and
+right sides.
+
+    >>> shorten("/aaa/bbbb/ccc", max_len=12) # doctest: -ELLIPSIS
+    '/aaa/.../ccc'
+
+The function checks each segment side, starting with the right side
+and then alternating, to include segment parts. It stops when the
+shortened path would exceed max length.
+
+    >>> shorten("/aaa/bbbb/cccc/ddd", max_len=17) # doctest: -ELLIPSIS
+    '/aaa/.../cccc/ddd'
+
+    >>> shorten("/aaa/bbbb/cccc/ddd", max_len=16) # doctest: -ELLIPSIS
+    '/aaa/.../ddd'
+
+    >>> shorten("/aaa/bbbb/cccc/ddd", max_len=12) # doctest: -ELLIPSIS
+    '/aaa/.../ddd'
+
+    >>> shorten("/aaa/bbbb/cccc/ddd", max_len=0) # doctest: -ELLIPSIS
+    '/.../ddd'
+
+The same rules applied to relative paths:
+
+    >>> shorten("aaa/bbbb/cccc/ddd", max_len=16) # doctest: -ELLIPSIS
+    'aaa/.../cccc/ddd'
+
+    >>> shorten("aaa/bbbb/cccc/ddd", max_len=15) # doctest: -ELLIPSIS
+    'aaa/.../ddd'
+
+    >>> shorten("aaa/bbbb/cccc/ddd", max_len=11) # doctest: -ELLIPSIS
+    'aaa/.../ddd'
+
+    >>> shorten("aaa/bbbb/cccc/ddd", max_len=0) # doctest: -ELLIPSIS
+    'aaa/.../ddd'
+
+### Splitting paths for shorten dir
+
+The shorten dir algorithm uses `util._shorten_dir_split_path`, which
+handles cases of leading and repeating path separators by appending
+them to the next respective part.
+
+    >>> from guild.util import _shorten_dir_split_path
+    >>> ds_split = lambda s: _shorten_dir_split_path(s, "/")
+
+Examples:
+
+    >>> ds_split("")
+    []
+
+    >>> ds_split("/")
+    ['/']
+
+    >>> ds_split("foo")
+    ['foo']
+
+    >>> ds_split("/foo")
+    ['/foo']
+
+    >>> ds_split("foo/bar")
+    ['foo', 'bar']
+
+    >>> ds_split("/foo/bar")
+    ['/foo', 'bar']
+
+    >>> ds_split("/foo/bar/")
+    ['/foo', 'bar']
+
+    >>> ds_split("//foo//bar")
+    ['//foo', '/bar']
