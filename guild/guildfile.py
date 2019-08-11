@@ -422,7 +422,7 @@ def _coerce_select_files(data, gf):
     if data is None:
         return _coerce_select_files_default()
     elif data is False or data == []:
-        return _coerce_select_files_exclude_all()
+        return _coerce_select_files_disabled()
     elif isinstance(data, six.string_types):
         return _coerce_select_files_one_include(data)
     elif isinstance(data, dict):
@@ -439,10 +439,8 @@ def _coerce_select_files_default():
     # By default, no select criteria
     return []
 
-def _coerce_select_files_exclude_all():
-    return [
-        {"exclude": "*"}
-    ]
+def _coerce_select_files_disabled():
+    return False
 
 def _coerce_select_files_one_include(data):
     return [
@@ -944,7 +942,7 @@ class OpDef(object):
         self.optimizers = _init_optimizers(data, self)
         self.publish = _init_publish(data.get("publish"), self)
         self.sourcecode = _init_sourcecode(
-            data.get("sourcecode") or [], self.guildfile)
+            data.get("sourcecode"), self.guildfile)
         self.default_flag_arg_skip = (
             data.get("default-flag-arg-skip") or False)
 
@@ -1277,11 +1275,14 @@ class FileSelectDef(object):
             data.get("digest"))
 
     def _default_init(self, data, gf, root=None, digest=None):
-        if data is None:
+        self.disabled = data is False
+        if data in (None, False):
             data = []
         if not isinstance(data, list):
             raise GuildfileError(
-                gf, "invalid file select spec %r: expected a list" % data)
+                gf,
+                "invalid file select spec %r: expected "
+                "a list or no/off" % data)
         self.root = root
         self.specs = [FileSelectSpec(item, gf) for item in data]
         self.digest = digest

@@ -554,9 +554,26 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
             "too big.%s", path, self._opdef_help_suffix())
 
 def copy_sourcecode(opdef, dest, handler_cls=None):
+    if _sourcecode_disabled(opdef):
+        log.debug("sourcecode for %s disabled", opdef.name)
+        return
     select = _sourcecode_select_for_opdef(opdef)
     root_start = opdef.guildfile.dir
     file_util.copytree(dest, select, root_start, handler_cls=handler_cls)
+
+def _sourcecode_disabled(opdef):
+    op_config = opdef.sourcecode
+    model_config = opdef.modeldef.sourcecode
+    return (
+        op_config.disabled or
+        model_config.disabled and not op_config.specs or
+        _excludes_all(model_config.specs + op_config.specs))
+
+def _excludes_all(specs):
+    return specs and _spec_excludes_all(specs[-1])
+
+def _spec_excludes_all(spec):
+    return spec.type == "exclude" and "*" in spec.patterns
 
 def _sourcecode_select_for_opdef(opdef):
     root = opdef_sourcecode_root(opdef)
