@@ -12,10 +12,6 @@ project:
 
     >>> project = Project(sample("projects", "optimizers"))
 
-Verifying that there are no runs associated with the project:
-
-    >>> project.print_runs()
-
 Let's run `echo.py` for the first time without any options:
 
     >>> project.run("echo.py")

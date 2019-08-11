@@ -86,9 +86,6 @@ def _opref_is_op_run(opref, run, match_regex=False):
         return _cmp_oprefs(run_opref, opref, match_regex)
 
 def _cmp_oprefs(run_opref, opref, match_regex):
-    print("###########", run_opref)
-    print("###########", opref)
-
     assert run_opref.op_name
     assert opref.op_name
     return (
