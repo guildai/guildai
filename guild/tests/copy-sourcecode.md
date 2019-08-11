@@ -1,7 +1,8 @@
 # Copying source code
 
 These tests exercise each of the operations defined in the
-`copy-sourcecode` sample project.
+[`copy-sourcecode`](samples/projects/copy-sourcecode/guild.yml) sample
+project.
 
     >>> project_dir = sample("projects/copy-sourcecode")
     >>> project = Project(project_dir)
