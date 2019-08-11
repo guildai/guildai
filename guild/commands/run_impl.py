@@ -1413,7 +1413,7 @@ def _testable_output_scalars(opdef):
 def _test_sourcecode(opdef):
     logger = _CopyLogger()
     root = op_util.opdef_sourcecode_root(opdef)
-    cli.out("Copying from %s" % root)
+    cli.out("Copying from %s" % cmd_impl_support.cwd_desc(root))
     op_util.copy_sourcecode(opdef, None, handler_cls=logger.handler_cls)
     cli.out("Selected for copy:")
     for path in logger.selected:
