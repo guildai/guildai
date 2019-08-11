@@ -65,7 +65,7 @@ class SSHRemote(remotelib.Remote):
         guild_env = config.get("guild-env")
         if guild_env is None:
             return ".guild"
-        return util.strip_trailing_path(guild_env) + "/.guild"
+        return util.strip_trailing_sep(guild_env) + "/.guild"
 
     def push(self, runs, delete=False):
         for run in runs:

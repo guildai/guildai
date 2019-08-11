@@ -88,7 +88,7 @@ class Resource(object):
             return source_paths
 
     def _link_to_source(self, source_path, source):
-        source_path = util.strip_trailing_path(source_path)
+        source_path = util.strip_trailing_sep(source_path)
         link = self._link_path(source_path, source)
         _symlink(source_path, link)
 
