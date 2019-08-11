@@ -28,81 +28,146 @@ This project contains various scripts and project operations (defined
 in the project Guild file) that we can run to see how operations are
 formatted.
 
-Let's start by running `a/train.py` - a script located in the `a`
-project subdirectory.
+## Basics
 
-    >>> run, _ = project.run_capture("a/train.py")
+Let's start by running `train.py` - a script located in the project root.
+
+    >>> run, _ = project.run_capture("train.py")
 
 When we print the runs, we see the operation is listed as we specified
 for the run call.
 
     >>> project.print_runs()
-    a/train.py
+    train.py
 
 Let's look at this run more closely.
 
 Here's its opref file:
 
     >>> cat(run.guild_path("opref"))
-    script:../.../samples/projects/op-desc '' '' a/train.py
+    script:.../samples/projects/op-desc '' '' train.py
 
 Here's the information decoded in the run's opref attribute:
 
     >>> run.opref
     OpRef(pkg_type='script',
-          pkg_name='../.../samples/projects/op-desc',
+          pkg_name='.../samples/projects/op-desc',
           pkg_version='',
           model_name='',
-          op_name='a/train.py')
+          op_name='train.py')
 
-In the case of `script` operations, the `op_name` attribute is used as
-the operation whenever displaying the run (see above). However, the
-operation description depends on the current directory. If the current
-directoy is the origin of the project - i.e. the directory specified
-in the opref `pkg_name` attribute relative to the run - the operation
-name is shown without qualification.
+In the case of `script` operations, the `pkg_name` opref attribute is
+the project directory.
 
-Note that the resolved opref `pkg_name` directory is in fact the same
-as the project directory.
-
-    >>> resolved_opref_origin = path(run.dir, run.opref.pkg_name)
-    >>> compare_paths(resolved_opref_origin, project.cwd)
+    >>> compare_paths(run.opref.pkg_name, project.cwd)
     True
 
-However, if we show the run from another directory, the operation name
-is qualified to show where the operation originated from, relative to
-the current directory.
+This path is always stored as an absolute path.
 
-Let's show the runs from the project parent directory.
+    >>> os.path.isabs(run.opref.pkg_name)
+    True
+
+Here is how the run is displayed when listing from the project
+directory:
+
+    >>> project.print_runs()
+    train.py
+
+Guild alters the way operations are shown when the current directory
+is different from opref project location.
+
+Here's how the run is displayed when listing from the project parent
+directory:
 
     >>> project.print_runs(cwd="..")
-    a/train.py (op-desc)
+    train.py (op-desc)
 
-Note that the operation name is the same - `a/train.py`. This always
-reflets the name of the operation as run (see above). The qualified
-`(op-desc)` indicates that the origin of the operation is the
-`op-desc` subdirectory.
+This shows that the `train.py` operation originated from the `op-desc`
+subdirectory.
 
-Let's show the runs from the project `a` subdirectory. From the `a`
-subdirectory, the run is shown as originating from the project
-directory.
+Next we'll show the run from a project subdirectory.
 
     >>> project.print_runs(cwd="a")
-    a/train.py (.../projects/op-desc)
+    train.py (.../op-desc)
 
+Note that a path to `op-desc` is shown. The path may be the full path
+if it's short enough or a shortened version if it's too long.
 
-    >> project.run("b/train.py")
-    >> project.run("a:train")
-    >> project.run("b:train")
+Refer to [Utils - Shorten dirs](utils.md#shorten-dirs) for how
+directories are shortened.
 
-    >> project.print_runs()
-    b:train
-    a:train
-    b/train.py
-    a/train.py
+## Test matrix
 
-    >> project.print_runs(cwd="..")
-    b:train (op-desc)
-    a:train (op-desc)
-    b/train.py (op-desc)
-    a/train.py (op-desc)
+To test various scenarios, we use a matrix of tests (see below).
+
+We use `runs_impl.format_run` to format op descriptions. We modify the
+function slightly to remove user dir symbols ("~") so we can assert
+absolute paths using leading "/" chars.
+
+    >>> def op_desc(run, show_from_dir):
+    ...     from guild.commands.runs_impl import format_run
+    ...     with SetCwd(os.path.join(project.cwd, show_from_dir)):
+    ...         return format_run(run)["op_desc"].replace("~", "")
+
+Here's our test loop, which runs the matrix above and prints the
+result as a table.
+
+    >>> def run_tests(tests):
+    ...     results = [{
+    ...         "op_spec": "Spec",
+    ...         "run_from": "Run From",
+    ...         "show_from": "Shown From",
+    ...         "op_desc": "Displayed As",
+    ...     }]
+    ...     for run_from_dir, op_spec, show_from in tests:
+    ...         run, _ = project.run_capture(op_spec, cwd=run_from_dir)
+    ...         for show_from_dir in show_from:
+    ...             results.append({
+    ...                 "op_spec": op_spec,
+    ...                 "run_from": run_from_dir,
+    ...                 "show_from": show_from_dir,
+    ...                 "op_desc": op_desc(run, show_from_dir),
+    ...             })
+    ...     cli.table(results, ["op_spec", "run_from", "show_from", "op_desc"])
+
+Here are our tests:
+
+    >>> tests = [
+    ...     (".",    "train.py",      (".", "a", "a/b")),
+    ...     ("a",    "train.py",      ("a", ".", "a/b", "b")),
+    ...     ("a/b",  "train.py",      ("a/b", ".", "a", "b")),
+    ...     (".",    "a/train.py",    (".", "a", "a/b")),
+    ...     (".",    "a/b/train.py",  (".", "a", "a/b", "b")),
+    ...     (".",    "a:train",       (".", "a", "a/b")),
+    ...     ("a",    "../train.py",   ("a", ".", "a/b", "b")),
+    ... ]
+
+And the results:
+
+    >>> run_tests(tests)
+    Spec          Run From  Shown From  Displayed As
+    train.py      .         .           train.py
+    train.py      .         a           train.py (/.../op-desc)
+    train.py      .         a/b         train.py (/.../op-desc)
+    train.py      a         a           train.py
+    train.py      a         .           train.py (a)
+    train.py      a         a/b         train.py (/.../op-desc/a)
+    train.py      a         b           train.py (/.../op-desc/a)
+    train.py      a/b       a/b         train.py
+    train.py      a/b       .           train.py (a/b)
+    train.py      a/b       a           train.py (b)
+    train.py      a/b       b           train.py (/.../op-desc/a/b)
+    a/train.py    .         .           a/train.py
+    a/train.py    .         a           a/train.py (/.../op-desc)
+    a/train.py    .         a/b         a/train.py (/.../op-desc)
+    a/b/train.py  .         .           a/b/train.py
+    a/b/train.py  .         a           a/b/train.py (/.../op-desc)
+    a/b/train.py  .         a/b         a/b/train.py (/.../op-desc)
+    a/b/train.py  .         b           a/b/train.py (/.../op-desc)
+    a:train       .         .           a:train
+    a:train       .         a           a:train (/.../op-desc)
+    a:train       .         a/b         a:train (/.../op-desc)
+    ../train.py   a         a           train.py (/.../op-desc)
+    ../train.py   a         .           train.py
+    ../train.py   a         a/b         train.py (/.../op-desc)
+    ../train.py   a         b           train.py (/.../op-desc)

@@ -147,7 +147,7 @@ serve's train dependency.
 Here are the marked runs:
 
     >>> project.print_runs(project.list_runs(marked=True), flags=True)
-    train  lr=0.1
+    train [marked]  lr=0.1
 
 And the `marked` attribute:
 

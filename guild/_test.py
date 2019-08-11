@@ -281,6 +281,7 @@ def test_globals():
         "ModelPath": ModelPath,
         "Project": Project,
         "Proxy": Proxy,
+        "SetCwd": configlib.SetCwd,
         "StderrCapture": StderrCapture,
         "SysPath": SysPath,
         "TempFile": util.TempFile,
@@ -288,6 +289,7 @@ def test_globals():
         "abspath": os.path.abspath,
         "basename": os.path.basename,
         "cat": cat,
+        "cli": cli,
         "compare_paths": util.compare_paths,
         "copytree": util.copytree,
         "dir": dir,
@@ -537,10 +539,11 @@ class Project(object):
 
     def _run(self, *args, **kw):
         simplify_trial_output = kw.pop("simplify_trial_output", False)
+        cwd = os.path.join(self.cwd, kw.pop("cwd", "."))
         with Env({"NO_WARN_RUNDIR": "1"}):
             out = gapi.run_capture_output(
                 guild_home=self.guild_home,
-                cwd=self.cwd,
+                cwd=cwd,
                 *args, **kw)
         if simplify_trial_output:
             out = self._simplify_trial_output(out)
@@ -555,10 +558,11 @@ class Project(object):
             print(out)
 
     def run_quiet(self, *args, **kw):
+        cwd = os.path.join(self.cwd, kw.pop("cwd", "."))
         with Env({"NO_WARN_RUNDIR": "1"}):
             gapi.run_quiet(
                 guild_home=self.guild_home,
-                cwd=self.cwd,
+                cwd=cwd,
                 *args, **kw)
 
     def _simplify_trial_output(self, out):

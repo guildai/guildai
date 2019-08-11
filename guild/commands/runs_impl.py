@@ -363,21 +363,22 @@ def _op_desc(fmt_run, style=True):
     op = fmt_run["operation"]
     run = fmt_run["_run"]
     if run.opref.pkg_type not in ("guildfile", "script"):
-        return _maybe_empty_style(style, op)
+        return _empty_style(style, op)
     op_dir = _run_op_dir(run)
     cwd = os.path.abspath(config.cwd())
     if util.compare_paths(op_dir, cwd):
-        return _maybe_empty_style(style, op)
-    op_dir_suffix = " (%s)" % _shorten_op_dir(op_dir, cwd)
-    return "%s%s" % (op, _maybe_dim(style, op_dir_suffix))
+        return _empty_style(style, op)
+    shortened_op_dir = _shorten_op_dir(op_dir, cwd)
+    op_dir_suffix = " (%s)" % shortened_op_dir
+    return "%s%s" % (op, _dim_style(style, op_dir_suffix))
 
-def _maybe_empty_style(style, s):
+def _empty_style(style, s):
     # Pad a string with an empty style for alignment in tables.
     if not style:
         return s
     return s + _dim("")
 
-def _maybe_dim(style, s):
+def _dim_style(style, s):
     if not style:
         return s
     return _dim(s)
@@ -387,20 +388,20 @@ def _dim(s):
 
 def _shorten_op_dir(op_dir, cwd):
     if op_dir.startswith(cwd):
-        op_dir = op_dir[len(cwd) + 1:]
+        op_dir = util.strip_leading_sep(op_dir[len(cwd):])
     else:
         op_dir = util.format_dir(op_dir)
     return util.shorten_dir(op_dir)
 
 def _run_op_dir(run):
     opref = run.opref
-    assert opref.pkg_type in ("guildfile", "script")
+    assert opref.pkg_type in ("guildfile", "script"), opref
     if opref.pkg_type == "guildfile":
         # pkg_name referes to Guild file
         op_dir = os.path.dirname(opref.pkg_name)
     elif opref.pkg_type == "script":
         op_dir = opref.pkg_name
-    return os.path.abspath(os.path.join(run.dir, op_dir))
+    return op_dir
 
 def format_run(run):
     formatted = format_runs([run])

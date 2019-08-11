@@ -72,9 +72,12 @@ class PythonScriptModelProxy(object):
         assert script_path[-3:] == ".py", script_path
         assert script_path.endswith(op_name), (script_path, op_name)
         self.script_path = script_path
-        self.op_name = op_name
+        if os.path.isabs(op_name) or op_name.startswith(".."):
+            self.op_name = os.path.basename(op_name)
+        else:
+            self.op_name = op_name
+        script_base = script_path[:-len(self.op_name)]
         self.modeldef = self._init_modeldef()
-        script_base = script_path[:-len(op_name)]
         self.reference = modellib.script_model_ref(self.name, script_base)
 
     def _init_modeldef(self):
