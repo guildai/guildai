@@ -1098,3 +1098,38 @@ def safe_listdir(path):
         return os.listdir(path)
     except OSError:
         return []
+
+def compare_paths(p1, p2):
+    return _abs_path_with_cache(p1) == _abs_path_with_cache(p2)
+
+__abs_path = {}
+
+def _abs_path_with_cache(p):
+    try:
+        return __abs_path[p]
+    except KeyError:
+        __abs_path[p] = abs = os.path.abspath(os.path.expanduser(p))
+        return abs
+
+def shorten_dir(path, max_len=30):
+    fmt = format_dir(path)
+    if len(fmt) <= max_len:
+        return fmt
+    parts = fmt.split(os.path.sep)
+    if len(parts) == 1:
+        return parts[0]
+    l = [parts.pop(0)]
+    r = [parts.pop()]
+    pop_r = True
+    while parts:
+        len_l = sum([len(s) + 1 for s in l])
+        len_r = sum([len(s) + 1 for s in r])
+        part = parts.pop() if pop_r else parts.pop(0)
+        side = r if pop_r else l
+        if len_l + len_r + len(part) + 6 < max_len:
+            side.append(part)
+        pop_r = not pop_r
+
+    return "%s/.../%s" % (
+        os.path.sep.join(l),
+        os.path.sep.join(reversed(r)))

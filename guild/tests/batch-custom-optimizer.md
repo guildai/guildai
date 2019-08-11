@@ -46,6 +46,6 @@ The generated runs:
     >>> from guild import run_util
     >>> with Chdir(project):
     ...     for run in gapi.runs_list(guild_home=workspace):
-    ...         print(run_util.format_op_desc(run))
+    ...         print(run_util.format_operation(run))
     say.py+tune
     tune

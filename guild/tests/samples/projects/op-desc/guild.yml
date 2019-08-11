@@ -1,0 +1,25 @@
+- model: ''
+  disable-plugins: all
+  operations:
+    train:
+      description: Sample op
+      flags-import: off
+      main: guild.pass
+
+- model: a
+  description: Sample model
+  disable-plugins: all
+  operations:
+    train:
+      description: Sample op
+      flags-import: off
+      main: guild.pass
+
+- model: b
+  description: Sample model
+  disable-plugins: all
+  operations:
+    train:
+      description: Sample op
+      flags-import: off
+      main: guild.pass

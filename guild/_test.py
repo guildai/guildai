@@ -59,7 +59,6 @@ from guild import index2
 from guild import init
 from guild import op_util
 from guild import run as runlib
-from guild import run_util
 from guild import util
 
 PLATFORM = platform.system()
@@ -293,6 +292,7 @@ def test_globals():
         "abspath": os.path.abspath,
         "basename": os.path.basename,
         "cat": cat,
+        "compare_paths": util.compare_paths,
         "copytree": util.copytree,
         "dir": dir,
         "dirname": os.path.dirname,
@@ -576,12 +576,15 @@ class Project(object):
             guild_home=self.guild_home,
             **kw)
 
-    def print_runs(self, runs=None, flags=False, labels=False, status=False):
+    def print_runs(
+            self, runs=None, flags=False, labels=False,
+            status=False, cwd=None):
+        cwd = os.path.join(self.cwd, cwd) if cwd else self.cwd
         if runs is None:
             runs = self.list_runs()
         cols = self._cols_for_print_runs(flags, labels, status)
         rows = []
-        with Chdir(self.cwd):
+        with Chdir(cwd):
             for run in runs:
                 rows.append(self._row_for_print_run(
                     run, flags, labels, status))
@@ -600,8 +603,10 @@ class Project(object):
 
     @staticmethod
     def _row_for_print_run(run, flags, labels, status):
+        from guild.commands import runs_impl
+        fmt_run = runs_impl.format_run(run)
         row = {
-            "opspec": run_util.format_op_desc(run)
+            "opspec": fmt_run["op_desc"]
         }
         if flags:
             flag_vals = run.get("flags") or {}

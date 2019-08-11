@@ -151,7 +151,7 @@ class ViewDataImpl(view.ViewData):
     def _format_dep(run, paths):
         return {
             "run": run.short_id,
-            "operation": run_util.format_op_desc(run, nowarn=True),
+            "operation": run_util.format_operation(run, nowarn=True),
             "paths": paths
         }
 
@@ -256,7 +256,7 @@ class ViewDataImpl(view.ViewData):
         except LookupError:
             return "%s (deleted)" % parts[0][:8], None
         else:
-            operation = run_util.format_op_desc(run, nowarn=True)
+            operation = run_util.format_operation(run, nowarn=True)
             return operation, run.short_id
 
     def config(self):

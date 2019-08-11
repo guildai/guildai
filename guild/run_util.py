@@ -108,8 +108,6 @@ class RunsMonitor(util.LoopingThread):
 
 def format_run(run, index=None):
     status = run.status
-    operation = format_op_desc(run)
-    marked = bool(run.get("marked"))
     started = run.get("started")
     stopped = run.get("stopped")
     return {
@@ -117,16 +115,16 @@ def format_run(run, index=None):
         "command": _format_command(run.get("cmd", "")),
         "duration": util.format_duration(started, stopped),
         "exit_status": _format_exit_status(run),
+        "from": format_pkg_name(run),
         "id": run.id,
         "index": _format_run_index(run, index),
         "label": _format_label(run.get("label") or ""),
-        "marked": _format_val(marked),
+        "marked": _format_val(bool(run.get("marked"))),
         "model": run.opref.model_name,
         "op_name": run.opref.op_name,
-        "operation": operation,
-        "operation_with_marked": _op_with_marked(operation, marked),
+        "operation": format_operation(run),
         "pid": run.pid or "",
-        "pkg": run.opref.pkg_name,
+        "pkg_name": run.opref.pkg_name,
         "run_dir": util.format_dir(run.path),
         "short_id": run.short_id,
         "short_index": _format_run_index(run),
@@ -143,10 +141,10 @@ def _format_run_index(run, index=None):
     else:
         return "[%s]" % run.short_id
 
-def _op_with_marked(operation, marked):
+def _with_marked(s, marked):
     if marked:
-        return operation + " [marked]"
-    return operation
+        return s + " [marked]"
+    return s
 
 def _status_with_remote(status, remote):
     if remote:
@@ -174,19 +172,39 @@ def _maybe_quote_arg(arg):
 def _format_exit_status(run):
     return run.get("exit_status.remote", "") or run.get("exit_status", "")
 
-def format_op_desc(run, nowarn=False, seen_protos=None):
+def format_pkg_name(run):
+    opref = run.opref
+    if opref.pkg_type == "guildfile":
+        return _format_guildfile_pkg_name(opref, run)
+    elif opref.pkg_type == "script":
+        return _format_script_pkg_name(opref, run)
+    elif opref.pkg_type == "package":
+        return "%s==%s" % (opref.pkg_name, opref.pkg_version)
+    else:
+        return opref.pkg_name
+
+def _format_guildfile_pkg_name(opref, run):
+    return util.format_dir(_opref_path(opref.pkg_name, run))
+
+def _opref_path(path, run):
+    return os.path.abspath(os.path.join(run.dir, path))
+
+def _format_script_pkg_name(opref, run):
+    return util.format_dir(_opref_path(opref.pkg_name, run))
+
+def format_operation(run, nowarn=False, seen_protos=None):
     seen_protos = seen_protos or set()
     opref = run.opref
-    base_desc = _base_op_desc(opref, run, nowarn)
+    base_desc = _base_op_desc(opref, nowarn)
     return _apply_batch_desc(base_desc, run, seen_protos)
 
-def _base_op_desc(opref, run, nowarn):
+def _base_op_desc(opref, nowarn):
     if opref.pkg_type == "guildfile":
-        return _format_guildfile_op(opref, run)
+        return _format_guildfile_op(opref)
     elif opref.pkg_type == "package":
         return _format_package_op(opref)
     elif opref.pkg_type == "script":
-        return _format_script_op(opref, run)
+        return _format_script_op(opref)
     elif opref.pkg_type == "builtin":
         return _format_builtin_op(opref)
     elif opref.pkg_type == "pending":
@@ -202,11 +220,8 @@ def _base_op_desc(opref, run, nowarn):
                 opref.pkg_type, opref.pkg_name)
         return "?"
 
-def _format_guildfile_op(opref, run):
-    gf_dir = os.path.dirname(opref.pkg_name)
-    abs_gf_dir = os.path.normpath(os.path.join(run.dir, gf_dir))
-    op_name = _full_op_name(opref)
-    return os.path.join(abs_gf_dir, op_name)
+def _format_guildfile_op(opref):
+    return _full_op_name(opref)
 
 def _full_op_name(opref):
     if opref.model_name:
@@ -218,8 +233,8 @@ def _format_package_op(opref):
         return "%s/%s" % (opref.pkg_name, opref.op_name)
     return "%s/%s:%s" % (opref.pkg_name, opref.model_name, opref.op_name)
 
-def _format_script_op(opref, run):
-    return _format_guildfile_op(opref, run)
+def _format_script_op(opref):
+    return _full_op_name(opref)
 
 def _format_builtin_op(opref):
     return opref.op_name
@@ -248,7 +263,7 @@ def _apply_batch_desc(base_desc, run, seen_protos):
         # We have a cycle - drop this proto_dir
         return base_desc
     proto_run = guild.run.Run("", proto_dir)
-    proto_op_desc = format_op_desc(proto_run, seen_protos)
+    proto_op_desc = format_operation(proto_run, seen_protos)
     parts = [proto_op_desc]
     if not base_desc.startswith("+"):
         parts.append("+")

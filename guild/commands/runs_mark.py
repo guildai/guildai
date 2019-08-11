@@ -57,7 +57,9 @@ def mark_runs(ctx, args):
 
     {{ runs_support.run_arg }}
 
-    If `RUN` isn't specified, the latest run is used.
+    When marking, if `RUN` isn't specified, the latest unmarked run is
+    used. When clearning, if `RUN` isn't specified, all marked runs
+    are used.
 
     {{ runs_support.all_filters }}
 

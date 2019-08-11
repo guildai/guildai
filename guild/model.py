@@ -365,12 +365,8 @@ def file_hash(path):
     else:
         return hashlib.md5(path_bytes).hexdigest()
 
-def script_model_ref(model_name, script_path):
-    return ModelRef(
-        "script",
-        os.path.abspath(script_path),
-        file_hash(script_path),
-        model_name)
+def script_model_ref(model_name, script_base):
+    return ModelRef("script", os.path.abspath(script_base), "", model_name)
 
 def get_path():
     return _models.path()

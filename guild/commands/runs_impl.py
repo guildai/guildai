@@ -24,6 +24,8 @@ import re
 import shutil
 import signal
 
+import click
+
 import guild.opref
 
 # IMPORTANT: Keep expensive imports out of this list. This module is
@@ -35,6 +37,7 @@ import guild.opref
 
 from guild import cli
 from guild import cmd_impl_support
+from guild import config
 from guild import remote_run_support
 from guild import run as runlib
 from guild import run_util
@@ -49,6 +52,7 @@ log = logging.getLogger("guild")
 RUN_DETAIL = [
     "id",
     "operation",
+    "from",
     "status",
     "started",
     "stopped",
@@ -141,8 +145,10 @@ def _apply_ops_filter(args, filters):
 
 def _op_run_filter(op_refs):
     def f(run):
-        op_desc = run_util.format_op_desc(run, nowarn=True)
-        return any((ref in op_desc for ref in op_refs))
+        op = run_util.format_operation(run, nowarn=True)
+        pkg = run_util.format_pkg_name(run)
+        full_op = "%s/%s" % (pkg, op)
+        return any((ref in full_op for ref in op_refs))
     return f
 
 def _apply_labels_filter(args, filters):
@@ -314,23 +320,15 @@ def _run_attr(run, name):
         return run.get(name)
 
 def _list_formatted_runs(runs, args):
-    formatted = []
-    for i, run in enumerate(runs):
-        try:
-            formatted_run = run_util.format_run(run, i + 1)
-        except Exception:
-            log.exception("formatting run in %s", run.path)
-        else:
-            formatted.append(formatted_run)
-    limited_formatted = _limit_runs(formatted, args)
+    formatted = format_runs(_limit_runs(runs, args))
     cols = [
         "index",
-        "operation_with_marked",
+        "op_desc",
         "started",
         "status_with_remote",
         "label"]
     detail = RUN_DETAIL if args.verbose else None
-    cli.table(limited_formatted, cols=cols, detail=detail)
+    cli.table(formatted, cols=cols, detail=detail)
 
 def _limit_runs(runs, args):
     if args.all:
@@ -342,6 +340,72 @@ def _limit_runs(runs, args):
             "to show all or -m to show more"
             % (len(limited), len(runs)))
     return limited
+
+def format_runs(runs):
+    formatted = []
+    for i, run in enumerate(runs):
+        try:
+            formatted_run = run_util.format_run(run, i + 1)
+        except Exception:
+            log.exception("formatting run in %s", run.path)
+        else:
+            formatted.append(formatted_run)
+    _apply_op_desc(formatted)
+    return formatted
+
+def _apply_op_desc(formatted):
+    for fmt_run in formatted:
+        op_desc = _op_desc(fmt_run)
+        marked_suffix = " [marked]" if fmt_run["marked"] == "yes" else ""
+        fmt_run["op_desc"] = op_desc + marked_suffix
+
+def _op_desc(fmt_run, style=True):
+    op = fmt_run["operation"]
+    run = fmt_run["_run"]
+    if run.opref.pkg_type not in ("guildfile", "script"):
+        return _maybe_empty_style(style, op)
+    op_dir = _run_op_dir(run)
+    cwd = os.path.abspath(config.cwd())
+    if util.compare_paths(op_dir, cwd):
+        return _maybe_empty_style(style, op)
+    op_dir_suffix = " (%s)" % _shorten_op_dir(op_dir, cwd)
+    return "%s%s" % (op, _maybe_dim(style, op_dir_suffix))
+
+def _maybe_empty_style(style, s):
+    # Pad a string with an empty style for alignment in tables.
+    if not style:
+        return s
+    return s + _dim("")
+
+def _maybe_dim(style, s):
+    if not style:
+        return s
+    return _dim(s)
+
+def _dim(s):
+    return click.style(s, dim=True)
+
+def _shorten_op_dir(op_dir, cwd):
+    if op_dir.startswith(cwd):
+        return op_dir[len(cwd) + 1:]
+    return util.shorten_dir(op_dir)
+
+def _run_op_dir(run):
+    opref = run.opref
+    assert opref.pkg_type in ("guildfile", "script")
+    if opref.pkg_type == "guildfile":
+        # pkg_name referes to Guild file
+        op_dir = os.path.dirname(opref.pkg_name)
+    elif opref.pkg_type == "script":
+        op_dir = opref.pkg_name
+    return os.path.abspath(os.path.join(run.dir, op_dir))
+
+def format_run(run):
+    formatted = format_runs([run])
+    if not formatted:
+        raise ValueError("error formatting %s" % run)
+    assert len(formatted) == 1, formatted
+    return formatted[0]
 
 def _no_selected_runs_exit(help_msg=None):
     help_msg = (
@@ -359,11 +423,11 @@ def runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
     selected = get_selected(args, ctx, default_runs_arg, force_deleted)
     if not selected:
         _no_selected_runs_exit(no_runs_help)
-    formatted = [run_util.format_run(run) for run in selected]
+    formatted = format_runs(selected)
     if not args.yes:
         cli.out(preview_msg)
         cols = [
-            "short_index", "operation_with_marked", "started",
+            "short_index", "op_desc", "started",
             "status_with_remote", "label"]
         cli.table(formatted, cols=cols, indent=2)
     formatted_confirm_prompt = confirm_prompt.format(count=len(formatted))
@@ -496,10 +560,10 @@ def _format_output_line(stream, line):
     return line
 
 def _print_run_info(run, args):
-    formatted = run_util.format_run(run)
+    fmt_run = format_run(run)
     out = cli.out
     for name in RUN_DETAIL:
-        out("%s: %s" % (name, formatted[name]))
+        out("%s: %s" % (name, fmt_run[name]))
     for name in other_attr_names(run, args.private_attrs):
         out("%s: %s" % (name, run_util.format_attr(run.get(name))))
     out("flags:", nl=False)
@@ -599,18 +663,23 @@ def _set_labels(args, ctx):
     no_runs = "No runs to modify."
     def set_labels(selected):
         for run in selected:
-            formatted = _format_run_label(args.label, run)
+            formatted = format_run_label(args.label, run)
             run.write_attr("label", formatted)
         cli.out("Labeled %i run(s)" % len(selected))
     runs_op(
         args, ctx, False, preview, confirm, no_runs,
         set_labels, LATEST_RUN_ARG, True)
 
-def _format_run_label(template, run):
+def format_run_label(template, run):
     vals = {}
     vals.update(run.get("flags", {}))
-    vals.update(run_util.format_run(run))
+    vals.update(_attrs_for_render_label(run))
     return util.render_label(template, vals).strip()
+
+def _attrs_for_render_label(run):
+    return {
+        "label": run.get("label"),
+    }
 
 def stop_runs(args, ctx):
     if args.remote:
@@ -780,23 +849,25 @@ def mark(args, ctx=None):
 def _clear_marked(args, ctx):
     preview = "You are about to unmark the following runs:"
     confirm = "Continue?"
-    no_runs = "No runs to modify."
+    no_runs = "No runs to unmark."
     def clear(selected):
         for run in selected:
             run.del_attr("marked")
         cli.out("Unmarked %i run(s)" % len(selected))
+    args.marked = True
     runs_op(
         args, ctx, False, preview, confirm, no_runs,
-        clear, LATEST_RUN_ARG, True)
+        clear, ALL_RUNS_ARG, True)
 
 def _mark(args, ctx):
     preview = "You are about to mark the following runs:"
     confirm = "Continue?"
-    no_runs = "No runs to modify."
+    no_runs = "No runs to mark."
     def mark(selected):
         for run in selected:
             run.write_attr("marked", True)
         cli.out("Marked %i run(s)" % len(selected))
+    args.unmarked = True
     runs_op(
         args, ctx, False, preview, confirm, no_runs,
         mark, LATEST_RUN_ARG, True)

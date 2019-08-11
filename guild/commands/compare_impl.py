@@ -75,9 +75,15 @@ def _print_scalars(args):
     index = indexlib.RunIndex()
     index.refresh(runs, ["scalar"])
     for run in runs:
-        cli.out("[%s] %s" % (run.short_id, run_util.format_op_desc(run)))
+        cli.out("[%s] %s" % (
+            run.short_id,
+            run_util.format_operation(run, nowarn=True)))
         for s in index.run_scalars(run):
-            cli.out("  %s" % run_util.run_scalar_key(s))
+            key, step, val = (
+                run_util.run_scalar_key(s),
+                s["last_step"],
+                s["last_val"])
+            cli.out("  %s: %f (step %i)" % (key, val, step))
 
 def _print_csv(args):
     data = _get_data(args, format_cells=False, skip_header_if_empty=True)
@@ -384,7 +390,8 @@ def _get_run_detail_cb(index):
 def _format_run_detail(run, index):
     lines = [
         "Id: %s" % run.id,
-        "Operation: %s" % run_util.format_op_desc(run),
+        "Operation: %s" % run_util.format_operation(run),
+        "From: %s" % run_util.format_pkg_name(run),
         "Status: %s" % run.status,
         "Started: %s" % util.format_timestamp(run.get("started")),
         "Stopped: %s" % util.format_timestamp(run.get("stopped")),

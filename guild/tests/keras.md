@@ -15,7 +15,7 @@ script.
 
     >>> script_path = os.path.join(project, "fashion_mnist_mlp.py")
     >>> model_proxy = keras.KerasScriptModelProxy(
-    ...                   "fashion_mnist_mlp.py", script_path)
+    ...                   script_path, "fashion_mnist_mlp.py")
 
 Model name:
 

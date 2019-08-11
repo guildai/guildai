@@ -25,13 +25,15 @@ from guild import util
 
 class ExecScriptModelProxy(object):
 
-    def __init__(self, op_name, script_path):
-        self.op_name = op_name
+    def __init__(self, script_path, op_name):
+        assert script_path.endswith(op_name), (script_path, op_name)
         self.script_path = script_path
+        self.op_name = op_name
         self.name = ""
         self.fullname = ""
         self.modeldef = self._init_modeldef()
-        self.reference = modellib.script_model_ref(self.name, script_path)
+        script_base = script_path[:-len(op_name)]
+        self.reference = modellib.script_model_ref(self.name, script_base)
 
     def _init_modeldef(self):
         abs_script = os.path.abspath(self.script_path)
@@ -54,6 +56,6 @@ class ExecScriptPlugin(plugin.Plugin):
     def resolve_model_op(opspec):
         path = os.path.join(config.cwd(), opspec)
         if util.is_executable_file(path):
-            model = ExecScriptModelProxy(opspec, path)
+            model = ExecScriptModelProxy(path, opspec)
             return model, model.op_name
         return None

@@ -171,7 +171,7 @@ A non-existing file generates an error:
 
     >>> is_text("non-existing")
     Traceback (most recent call last):
-    ValueError: .../samples/textorbinary/non-existing does not exist
+    OSError: .../samples/textorbinary/non-existing does not exist
 
 Directories aren't text files:
 
