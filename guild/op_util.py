@@ -544,9 +544,10 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
         return ""
 
     def _ignored_max_size(self, path, results):
-        size_exceeded = lambda: (
-            util.safe_filesize(path) >= results[0][1].size_lt)
-        return self._default_rules_in_effect(results) and size_exceeded()
+        if not self._default_rules_in_effect(results):
+            return False
+        size = util.safe_filesize(path)
+        return size is not None and size >= results[0][1].size_lt
 
     def _warn_max_size(self, path):
         log.warning(
