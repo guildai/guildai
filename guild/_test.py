@@ -28,10 +28,6 @@ Notes on improving the pattern matching:
     >> print(foo)
     {{foo}}
 
-- `?...` should be an alias for `...`. This can be used on the first
-  line of a matching section. Currently we have to print some dummy
-  var to work-around the ambiguity of `...`.
-
 """
 
 from __future__ import absolute_import
