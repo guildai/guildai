@@ -436,8 +436,8 @@ regardless of the max length:
     >>> shorten("foo", max_len=0)
     'foo'
 
-If a shortened path is longer than the original path, the original
-path is returned unmodified.
+If a shortened path is not actually shorter than the original path,
+the original path is returned unmodified.
 
     >>> shorten("/a/b", max_len=0)
     '/a/b'
