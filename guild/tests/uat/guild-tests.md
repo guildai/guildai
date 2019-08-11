@@ -53,6 +53,7 @@ tests).
       models:                      ok
       namespaces:                  ok
       needed:                      ok
+      op-desc:                     ok
       op-main:                     ok
       op-utils:                    ok
       ops:                         ok

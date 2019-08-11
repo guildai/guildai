@@ -16,17 +16,19 @@ directory to the MNIST example:
 The ops available in this context example are:
 
     >>> run("guild ops")
-    gpkg.hello/...
-    gpkg.keras.mnist/...
     mnist-expert:evaluate  Evaluate a trained model using test data
     mnist-expert:train     Train the MNIST model
     mnist-intro:evaluate   Evaluate a trained model using test data
     mnist-intro:train      Train the MNIST model
     <exit 0>
 
-We limit to ops defined in the current directory using a path filter:
+As with models, operations are limited to those available in the
+project when shown from the project directory. To include installed
+operations as well, use the `-i, --installed` option:
 
-    >>> run("guild ops -p .")
+    >>> run("guild ops -i")
+    gpkg.hello/...
+    gpkg.keras.mnist/...
     mnist-expert:evaluate    Evaluate a trained model using test data
     mnist-expert:train       Train the MNIST model
     mnist-intro:evaluate     Evaluate a trained model using test data

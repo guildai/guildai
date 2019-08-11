@@ -9,13 +9,13 @@ We'll run through the various operations in this test.
 
 ## Models
 
-    >>> run("guild models -p .", ignore="Refreshing project")
+    >>> run("guild models", ignore="Refreshing project")
     hello  A "hello world" sample model
     <exit 0>
 
 ## Operations
 
-    >>> run("guild operations -p .")
+    >>> run("guild operations")
     hello:default           Print a default message
     hello:from-file         Print a message from a file
     hello:from-file-output  Print output from last file-output operation
@@ -51,6 +51,7 @@ Guild captures project source, which we can list using `runs info`:
     >>> run("guild runs info --sourcecode")
     id: ...
     operation: hello:from-flag
+    from: /.../examples/hello/guild.yml
     status: completed
     started: ...
     stopped: ...
@@ -107,6 +108,7 @@ the `--deps` option of `guild runs info`:
     >>> run("guild runs info --deps")
     id: ...
     operation: hello:from-file-output
+    from: /.../examples/hello/guild.yml
     status: completed
     ...
     dependencies:

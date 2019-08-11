@@ -32,13 +32,13 @@ When we list the models defined for the project, we get an empty
 list. This is because we don't present anonymous models to the user -
 anonymous models merely make operations available.
 
-    >>> run("guild models -p .", ignore="Refreshing project")
+    >>> run("guild models", ignore="Refreshing project")
     <BLANKLINE>
     <exit 0>
 
 However, we do see the operations:
 
-    >>> run("guild ops -p .")
+    >>> run("guild ops")
     evaluate  Evaluate a trained model
     train     Train on MNIST
     <exit 0>
@@ -95,6 +95,7 @@ The operation is like any other. We can view info:
     >>> run("guild runs info")
     id: ...
     operation: train.py
+    from: /.../examples/simple-mnist
     status: completed
     started: ...
     stopped: ...
@@ -154,7 +155,7 @@ The run writes a number of scalars, which we can view as info with the
 We can view the compare columns for the script op - these are default
 for scripts:
 
-    >>> run("guild compare --table 1")
+    >>> run("guild compare -tb 1")
     run  operation  started  time  status     label     sourcecode  batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss
     ...  train.py   ... ...  ...   completed  epochs=1  afbdf55e    100         data     1       False    .       False  540   0...  0...
     <exit 0>
@@ -165,7 +166,7 @@ for scripts:
 
 When we compare the last two runs (the `train` op and the `train.py` script):
 
-    >>> run("guild compare --table 1 2")
+    >>> run("guild compare -tb 1 2")
     run  operation  started  time  status     label     sourcecode  batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss  train_loss  train_acc
     ...  train.py   ... ...  ...   completed  epochs=1  afbdf55e    100         data     1       False    .       False  540   0...  0...
     ...  train      ... ...  ...   completed  epochs=1  afbdf55e                                                         540               0...        0...

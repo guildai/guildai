@@ -43,7 +43,7 @@ test custom output scalar patterns against sample script output.
 
 The project defines three operations:
 
-    >>> run("guild ops -p .")
+    >>> run("guild ops")
     train   Example using explicit output-scalars
     train2  Example using a generalized scalar pattern
     train3  Example disabling output scalars and using TF event files

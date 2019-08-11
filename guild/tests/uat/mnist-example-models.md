@@ -17,24 +17,32 @@ option):
     >>> run("guild -C examples/mnist models", ignore="Refreshing")
     ./examples/mnist/mnist-expert  MNIST model from TensorFlow expert tutorial
     ./examples/mnist/mnist-intro   MNIST model from TensorFlow intro tutorial
+    <exit 0>
+
+Note that the installed packages are not included in this list. This
+is because the list is shown from the project directory. To include
+installed packages, use the `-i, --installed` option:
+
+    >>> run("guild -C examples/mnist models -i", ignore="Refreshing")
     gpkg.hello/...
     gpkg.keras.mnist/...
+    ./examples/mnist/mnist-expert  MNIST model from TensorFlow expert tutorial
+    ./examples/mnist/mnist-intro   MNIST model from TensorFlow intro tutorial
     <exit 0>
 
 Here's the same list after we've changed to that directory:
 
     >>> cd("examples/mnist")
     >>> run("guild models")
-    gpkg.hello/...
-    gpkg.keras.mnist/...
     mnist-expert  MNIST model from TensorFlow expert tutorial
     mnist-intro   MNIST model from TensorFlow intro tutorial
     <exit 0>
 
-We can limit the results to model defined in the current directory by
-specifying it as a path filter:
+And with installed models:
 
-    >>> run("guild models -p .")
+    >>> run("guild models -i")
+    gpkg.hello/...
+    gpkg.keras.mnist/...
     mnist-expert       MNIST model from TensorFlow expert tutorial
     mnist-intro        MNIST model from TensorFlow intro tutorial
     <exit 0>
