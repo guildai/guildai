@@ -51,7 +51,7 @@ Guild captures project source, which we can list using `runs info`:
     >>> run("guild runs info --sourcecode")
     id: ...
     operation: hello:from-flag
-    from: /.../examples/hello/guild.yml
+    from: .../examples/hello/guild.yml
     status: completed
     started: ...
     stopped: ...
@@ -108,7 +108,7 @@ the `--deps` option of `guild runs info`:
     >>> run("guild runs info --deps")
     id: ...
     operation: hello:from-file-output
-    from: /.../examples/hello/guild.yml
+    from: .../examples/hello/guild.yml
     status: completed
     ...
     dependencies:
