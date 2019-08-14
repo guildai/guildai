@@ -15,8 +15,8 @@
     <v-content>
       <guild-compare
         v-if="selected.compare"
-        :runs="runs"
-        @run-selected="run => { selected = {run: run} }" />
+        :compare="compare"
+        @run-selected="run => { selected = {run: findRun(run)} }" />
       <guild-run
         v-else-if="selected.run"
         :run="selected.run" />
@@ -42,6 +42,7 @@ export default {
       footerFixed: window.innerWidth >= drawerBreakPoint,
       selected: {},
       runs: [],
+      compare: [],
       config: {},
       fetchRunsTimeout: undefined
     };
@@ -87,10 +88,24 @@ export default {
 
     fetchRuns() {
       var this_ = this;
-      fetchData('/runs', function(runs) {
-        this_.runs = formatRuns(runs);
+      fetchData('/runs', function(data) {
+        this_.runs = formatRuns(data);
+        this_.fetchCompare();
         this_.scheduleNextFetchRuns();
       });
+    },
+
+    fetchCompare() {
+      var this_ = this;
+      fetchData('/compare', function(data) {
+        this_.compare = this_.formatCompare(data);
+        // Calls to fetchCompare are called in handler of
+        // fetchRuns so no need to schedule next call here.
+      });
+    },
+
+    formatCompare(data) {
+      return data;
     },
 
     scheduleNextFetchRuns() {
@@ -104,6 +119,13 @@ export default {
       if (window.innerWidth < drawerBreakPoint) {
         this.drawer = false;
       }
+    },
+
+    findRun(runOrId) {
+      if (typeof runOrId === 'object') {
+        return runOrId;
+      }
+      return this.runs.find(run => run.id.startsWith(runOrId));
     }
   }
 };

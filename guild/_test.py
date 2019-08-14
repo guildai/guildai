@@ -51,7 +51,7 @@ from guild import _api as gapi
 from guild import cli
 from guild import config as configlib
 from guild import guildfile
-from guild import index2
+from guild import index2 as indexlib
 from guild import init
 from guild import op_util
 from guild import run as runlib
@@ -482,7 +482,7 @@ class Project(object):
         self.guild_home = guild_home or mkdtemp()
         self.cwd = cwd
         runs_path = os.path.join(self.guild_home, "runs")
-        self.index = index2.RunIndex(runs_path)
+        self.index = indexlib.RunIndex(runs_path)
 
     def run_capture(self, *args, **kw):
         """Runs an operation returning a tuple of run and output."""

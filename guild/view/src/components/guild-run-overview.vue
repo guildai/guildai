@@ -131,25 +131,8 @@
         </v-card>
       </v-flex>
       <v-flex xs12 lg5 xl4>
-        <v-expansion-panel focusable v-if="scalars.length > 0">
-          <v-expansion-panel-content :value="true">
-            <div slot="header">Scalars</div>
-            <v-card>
-              <v-data-table
-                :items="scalars"
-                item-key="key"
-                hide-headers
-                hide-actions>
-                <template slot="items" slot-scope="scalars">
-                  <td>{{ scalars.item.key }}</td>
-                  <td>{{ formatScalar(scalars.item.value) }}</td>
-                </template>
-              </v-data-table>
-            </v-card>
-          </v-expansion-panel-content>
-        </v-expansion-panel>
         <v-expansion-panel focusable>
-          <v-expansion-panel-content>
+          <v-expansion-panel-content :value="true">
             <div slot="header">Flags</div>
             <v-card>
               <v-data-table
@@ -158,9 +141,27 @@
                 hide-headers
                 hide-actions
                 no-data-text="There are no flags for this run">
-                <template slot="items" slot-scope="flags">
-                  <td>{{ flags.item.name }}</td>
-                  <td>{{ flags.item.value }}</td>
+                <template slot="items" slot-scope="flag">
+                  <td>{{ flag.item.name }}</td>
+                  <td>{{ flag.item.value }}</td>
+                </template>
+              </v-data-table>
+            </v-card>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+        <v-expansion-panel focusable>
+          <v-expansion-panel-content :value="true">
+            <div slot="header">Scalars</div>
+            <v-card>
+              <v-data-table
+                :items="runScalars(run)"
+                item-key="name"
+                hide-headers
+                hide-actions
+                no-data-text="There are no scalars for this run">
+                <template slot="items" slot-scope="scalar">
+                  <td>{{ scalar.item.name }}</td>
+                  <td>{{ scalar.item.value }}</td>
                 </template>
               </v-data-table>
             </v-card>
@@ -206,7 +207,7 @@
 </template>
 
 <script>
-import { formatScalar } from './guild-runs.js';
+import { tryFormatScalar } from './guild-runs.js';
 
 export default {
   name: 'guild-run-overview',
@@ -226,36 +227,33 @@ export default {
       const attrs = this.run.otherAttrs;
       const names = Object.keys(attrs);
       names.sort();
-      return names.map(name => ({name: name, value: attrs[name]}));
-    },
-
-    scalars() {
-      const keys = ['step', 'val_acc', 'loss'];
-      const scalars = keys.map(key => (
-        {
-          key: key,
-          value: this.run.scalars[key]
-        }
-      ));
-      return scalars.filter(scalar => scalar.value !== undefined);
+      return names.map(name => ({ name: name, value: attrs[name] }));
     }
   },
 
   methods: {
-
     runFlags(run) {
       var keys = Object.keys(run.flags);
       keys.sort();
       return keys.map(key => ({ name: key, value: run.flags[key] }));
     },
 
+    runScalars(run) {
+      var scalars = {};
+      run.scalars.forEach(function(s) {
+        const val = tryFormatScalar(s.last_val);
+        scalars[s.tag] = val + ' (step ' + s.last_step + ')';
+      });
+      var keys = Object.keys(scalars);
+      keys.sort();
+      return keys.map(key => ({ name: key, value: scalars[key] }));
+    },
+
     runEnv(run) {
       var keys = Object.keys(run.env);
       keys.sort();
       return keys.map(key => ({ name: key, value: envVal(run.env[key]) }));
-    },
-
-    formatScalar: formatScalar
+    }
   }
 };
 

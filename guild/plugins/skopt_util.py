@@ -23,7 +23,7 @@ import warnings
 import six
 
 from guild import batch_util
-from guild import index2
+from guild import index2 as indexlib
 from guild import op_util
 from guild import query
 
@@ -44,7 +44,7 @@ class State(batch_util.SeqState):
         (self.dim_names,
          self.dims,
          self.initials) = flag_dims(self.proto_flags)
-        self.run_index = index2.RunIndex()
+        self.run_index = indexlib.RunIndex()
         (self._run_loss,
          self.loss_desc) = _init_run_loss_fun(self.batch, self.run_index)
         self.random_state = batch.random_seed

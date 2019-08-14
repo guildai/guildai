@@ -24,30 +24,17 @@
         must-sort
         no-data-text="There are currently no runs to compare"
         no-results-text="No matches for the current filter">
-        <template slot="items" slot-scope="runs">
-          <td class="nowrap">
-            <v-tooltip
-              top transition="fade-transition"
-              tag="div">
-              <!-- padding for link is to stave off tooltip -->
-              <a slot="activator"
-                 href="javascript:void(0)"
-                 style="padding: 4px 0"
-                 @click.prevent="$emit('run-selected', runs.item)"
-              >{{ runs.item.operation }}</a>
-              <span>[{{ runs.item.shortId }}] {{ runs.item.operation }}</span>
-            </v-tooltip>
-          </td>
-          <td class="nowrap">{{ runs.item.started }}</td>
-          <td>{{ runs.item.time }}</td>
-          <td>{{ runs.item.status }}</td>
-          <td>{{ runs.item.label }}</td>
-          <td v-for="header in scalarHeaders">
-            {{ formatScalar(runs.item.scalars[header.value.substr(8)]) }}
-          </td>
-          <td v-for="header in flagHeaders">
-            {{ runs.item.flags[header.value.substr(6)] }}
-          </td>
+        <template slot="items" slot-scope="run">
+          <tr>
+            <template v-for="val, index in run.item">
+              <td v-if="index == 'run'">
+                <a href="javascript:void(0)"
+                   @click.prevent="$emit('run-selected', val)"
+                >{{ val }}</a>
+              </td>
+              <td v-else>{{ tryFormatScalar(val) }}</td>
+            </template>
+          </tr>
         </template>
       </v-data-table>
     </v-card>
@@ -55,14 +42,14 @@
 </template>
 
 <script>
-import { formatScalar } from './guild-runs.js';
+import { tryFormatScalar } from './guild-runs.js';
 
 export default {
 
   name: 'guild-compare',
 
   props: {
-    runs: {
+    compare: {
       type: Array,
       required: true
     }
@@ -81,46 +68,44 @@ export default {
 
   computed: {
     headers() {
-      return [].concat(
-        [
-          {text: 'Run', value: 'operation', align: 'left'},
-          {text: 'Started', value: 'started', align: 'left'},
-          {text: 'Time', value: 'time', align: 'left'},
-          {text: 'Status', value: 'status', align: 'left'},
-          {text: 'Label', value: 'label', align: 'left'}
-        ],
-        this.scalarHeaders,
-        this.flagHeaders);
+      if (!this.compare.length) {
+        return [];
+      }
+      var row1 = this.compare[0];
+      return row1.map(name => (
+        {text: this.formatHeader(name), value: name, align: 'left'}
+      ));
     },
 
-    scalarHeaders() {
-      return [
-        {text: 'Step', value: 'scalars.step', align: 'left'},
-        {text: 'Accuracy', value: 'scalars.val_acc', align: 'left'},
-        {text: 'Loss', value: 'scalars.loss', align: 'left'}
-      ];
-    },
-
-    flagHeaders() {
-      const flags = [];
-      this.runs.forEach(run => {
-        Object.keys(run.flags).forEach(flag => {
-          if (!flags.includes(flag)) {
-            flags.push(flag);
-          }
-        });
-      });
-      flags.sort();
-      return flags.map(flag => ({
-        text: flag,
-        value: 'flags.' + flag,
-        align: 'left'
-      }));
+    runs() {
+      if (!this.compare.length) {
+        return [];
+      }
+      var row1 = this.compare[0];
+      return this.compare.slice(1).map(data => this.runsRow(data, row1));
     }
   },
 
   methods: {
-    formatScalar: formatScalar
+    tryFormatScalar: tryFormatScalar,
+
+    formatHeader(s) {
+      const cap = [
+        'run', 'operation', 'started', 'time',
+        'status', 'label', 'sourcecode'];
+      if (cap.includes(s)) {
+        return s.charAt(0).toUpperCase() + s.slice(1);
+      }
+      return s;
+    },
+
+    runsRow(data, headers) {
+      var row = {};
+      headers.forEach(function(name, index) {
+        row[headers[index]] = data[index];
+      });
+      return row;
+    }
   }
 };
 </script>

@@ -58,12 +58,12 @@ function statusIcon(status) {
   }
 }
 
-export function formatScalar(n) {
-  if (Number.isInteger(n)) {
-    return n;
-  } else if (n) {
-    return n.toPrecision(4);
-  } else {
-    return n;
+export function tryFormatScalar(x) {
+  if (typeof x === 'number') {
+    if (Number.isInteger(x)) {
+      return x;
+    }
+    return parseFloat(x.toFixed(4));
   }
+  return x;
 }

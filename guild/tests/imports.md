@@ -135,7 +135,6 @@
     guild.file_util
     guild.guildfile
     guild.help
-    guild.index
     guild.index2
     guild.init
     guild.ipy

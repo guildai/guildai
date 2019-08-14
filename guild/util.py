@@ -100,18 +100,22 @@ def pid_exists(pid):
         return False
     return psutil.pid_exists(pid)
 
-def free_port():
+def free_port(start=None):
     import random
     import socket
     min_port = 49152
     max_port = 65535
     max_attempts = 100
     attempts = 0
-
+    if start is None:
+        next_port = lambda _p: random.randint(min_port, max_port)
+        port = next_port(None)
+    else:
+        next_port = lambda p: p + 1
+        port = start
     while True:
         if attempts > max_attempts:
             raise RuntimeError("too many free port attempts")
-        port = random.randint(min_port, max_port)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(0.1)
         try:
@@ -124,6 +128,7 @@ def free_port():
         else:
             sock.close()
         attempts += 1
+        port = next_port(port)
 
 def open_url(url):
     try:

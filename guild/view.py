@@ -28,8 +28,6 @@ import requests
 from werkzeug.exceptions import NotFound
 from werkzeug.utils import redirect
 
-import guild.index
-
 from guild import run_util
 from guild import serving_util
 from guild import util
@@ -42,64 +40,8 @@ MODULE_DIR = os.path.dirname(__file__)
 TB_RUNS_MONITOR_INTERVAL = 5
 TB_REFRESH_INTERVAL = 5
 
-SCALAR_KEYS = [
-    ("step", (
-        # For loss
-        "loss_step",
-        "total_loss_1_step",
-        "train/loss_step",
-        "train/loss_1_step",
-        "train/cross_entropy_1_step",
-        "train/total_loss_1_step",
-        "logs/train/loss_step",
-        "logs/train/cross_entropy_1_step",
-        "logs/train/total_loss_1_step",
-        "model/loss_step",
-        "model/cross_entropy_1_step",
-        "model/total_loss_1_step",
-        "OptimizeLoss_step",
-        "epoch_loss_step",
-        # For accuracy
-        "val_acc_step",
-        "validate/accuracy_step",
-        "validation/accuracy_1_step",
-        "logs/validation/accuracy_1_step",
-        "eval/accuracy_step",
-        "eval/Accuracy_step",
-        "acc_step",
-        "epoch_acc_step",
-        "eval/DetectionBoxes_Precision/mAP_step",
-    )),
-    ("loss", (
-        "loss",
-        "total_loss_1",
-        "train/loss",
-        "train/loss_1",
-        "train/cross_entropy_1",
-        "train/total_loss_1",
-        "logs/train/loss",
-        "logs/train/cross_entropy_1",
-        "logs/train/total_loss_1",
-        "model/loss",
-        "model/cross_entropy_1",
-        "model/total_loss_1",
-        "OptimizeLoss",
-        "epoch_loss",
-    )),
-    ("val_acc", (
-        "val_acc",
-        "validate/accuracy",
-        "validation/accuracy_1",
-        "logs/validation/accuracy_1",
-        "eval/accuracy",
-        "eval/Accuracy",
-        "acc",
-        "epoch_acc",
-        "eval/DetectionBoxes_Precision/mAP",
-    ))
-]
-
 class ViewData(object):
+    """Interface for providing View related data."""
 
     def runs(self):
         """Returns a list of unformatted runs.
@@ -339,7 +281,7 @@ def serve_forever(data, host, port, no_open=False, dev=False, logging=False):
         _serve_prod(data, host, port, no_open, logging)
 
 def _serve_dev(data, host, port, no_open, logging):
-    view_port = util.free_port()
+    view_port = util.free_port(port + 1)
     dev_server = DevServer(host, port, view_port)
     dev_server.start()
     dev_server.wait_for_ready()
@@ -363,19 +305,19 @@ def _serve_prod(data, host, port, no_open, logging):
 
 def _start_view(data, host, port, logging):
     tb_servers = TBServers(data)
-    index = guild.index.RunIndex()
-    app = _view_app(data, tb_servers, index)
+    app = _view_app(data, tb_servers)
     server = serving_util.make_server(host, port, app, logging)
     sys.stdout.flush()
     server.serve_forever()
     tb_servers.stop_servers()
 
-def _view_app(data, tb_servers, index):
+def _view_app(data, tb_servers):
     dist_files = DistFiles()
     run_files = RunFiles()
     run_output = RunOutput()
     routes = serving_util.Map([
-        ("/runs", _handle_runs, (data, index)),
+        ("/runs", _handle_runs, (data,)),
+        ("/compare", _handle_compare, (data,)),
         ("/files/<path:_>", run_files.handle, ()),
         ("/runs/<run>/output", run_output.handle, ()),
         ("/config", _handle_config, (data,)),
@@ -387,9 +329,8 @@ def _view_app(data, tb_servers, index):
     ])
     return serving_util.App(routes)
 
-def _handle_runs(req, data, index):
+def _handle_runs(req, data):
     runs_data = _runs_data(req, data)
-    _apply_scalars(runs_data, index)
     return serving_util.json_resp(runs_data)
 
 def _runs_data(req, data):
@@ -398,29 +339,14 @@ def _runs_data(req, data):
     except KeyError:
         return data.runs_data()
     else:
-        return [_one_run_data(run_id_prefix, data)]
+        data = data.one_run_data(run_id_prefix)
+        if not data:
+            raise NotFound()
+        return [data]
 
-def _one_run_data(run_id_prefix, data):
-    data = data.one_run_data(run_id_prefix)
-    if not data:
-        raise NotFound()
-    return data
-
-def _apply_scalars(runs_data, index):
-    run_ids = [run["id"] for run in runs_data]
-    scalars = _run_scalars(run_ids, index)
-    for run in runs_data:
-        run["scalars"] = scalars[run["id"]]
-
-def _run_scalars(run_ids, index):
-    scalars = {}
-    for run_result in index.runs(run_ids):
-        run_scalars = scalars.setdefault(run_result.id, {})
-        for normalized_key, possible_keys in SCALAR_KEYS:
-            val = run_result.scalar(possible_keys)
-            if val is not None:
-                run_scalars[normalized_key] = val
-    return scalars
+def _handle_compare(_req, data):
+    compare_data = data.compare_data()
+    return serving_util.json_resp(compare_data)
 
 def _handle_config(_req, data):
     return serving_util.json_resp(data.config())

@@ -86,14 +86,14 @@ def _print_scalars(args):
             cli.out("  %s: %f (step %i)" % (key, val, step))
 
 def _print_csv(args):
-    data = _get_data(args, format_cells=False, skip_header_if_empty=True)
+    data = get_data(args, format_cells=False, skip_header_if_empty=True)
     if not data:
         return
     writer = csv.writer(sys.stdout, lineterminator="\n")
     for row in data:
         writer.writerow(row)
 
-def _get_data(args, format_cells=True, skip_header_if_empty=False):
+def get_data(args, format_cells=True, skip_header_if_empty=False):
     index = indexlib.RunIndex()
     cb = _get_data_cb(
         args,
@@ -106,7 +106,7 @@ def _get_data(args, format_cells=True, skip_header_if_empty=False):
     return data
 
 def _print_table(args):
-    data = _get_data(args, skip_header_if_empty=True)
+    data = get_data(args, skip_header_if_empty=True)
     if not data:
         return
     cols = data[0]

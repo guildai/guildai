@@ -311,7 +311,7 @@ def compare(
     _apply_runs_filters(kw, args)
     _assert_empty_kw(kw, "compare()")
     with Env(cwd, guild_home):
-        return compare_impl._get_data(
+        return compare_impl.get_data(
             args,
             format_cells=False)
 

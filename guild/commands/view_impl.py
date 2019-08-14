@@ -26,12 +26,15 @@ import guild
 import guild.run
 
 from guild import cli
+from guild import click_util
 from guild import config
+from guild import index2 as indexlib
 from guild import run_util
 from guild import util
 from guild import var
 from guild import view
 
+from guild.commands import compare_impl
 from guild.commands import runs_impl
 
 log = logging.getLogger("guild")
@@ -42,6 +45,20 @@ class ViewDataImpl(view.ViewData):
 
     def __init__(self, args):
         self._args = args
+        self._compare_args = self._init_compare_args(args)
+
+    @staticmethod
+    def _init_compare_args(view_args):
+        return click_util.Args(
+            cols=None,
+            strict_cols=None,
+            top=None,
+            min_col=None,
+            max_col=None,
+            include_batch=False,
+            skip_core=False,
+            skip_op_cols=False,
+            **view_args.as_kw())
 
     def runs(self):
         return runs_impl.runs_for_args(self._args)
@@ -62,19 +79,27 @@ class ViewDataImpl(view.ViewData):
         run = self.one_run(run_id_prefix)
         if not run:
             return None
-        return self._run_data(run)
+        index = self._init_index([run])
+        return self._run_data(run, index)
 
     def _runs_data_iter(self, runs):
+        index = self._init_index(runs)
         for run in runs:
             try:
-                yield self._run_data(run)
+                yield self._run_data(run, index)
             except Exception as e:
                 if log.getEffectiveLevel() <= logging.DEBUG:
                     log.exception("error processing run data for %s", run.id)
                 else:
                     log.error("error processing run data for %s: %r", run.id, e)
 
-    def _run_data(self, run):
+    @staticmethod
+    def _init_index(runs):
+        index = indexlib.RunIndex()
+        index.refresh(runs, ["scalar"])
+        return index
+
+    def _run_data(self, run, index):
         formatted = run_util.format_run(run)
         return {
             "id": run.id,
@@ -92,6 +117,7 @@ class ViewDataImpl(view.ViewData):
             "command": formatted["command"],
             "otherAttrs": self._other_attrs(run),
             "flags": run.get("flags", {}),
+            "scalars": self._run_scalars(run, index),
             "env": run.get("env", {}),
             "deps": self._format_deps(run.get("deps", {})),
             "files": self._format_files(run.iter_files(), run.path),
@@ -113,6 +139,10 @@ class ViewDataImpl(view.ViewData):
             name: run.get(name)
             for name in runs_impl.other_attr_names(run)
         }
+
+    @staticmethod
+    def _run_scalars(run, index):
+        return index.run_scalars(run)
 
     def _format_deps(self, deps):
         runs_dir = var.runs_dir()
@@ -291,6 +321,11 @@ class ViewDataImpl(view.ViewData):
             return cwd
         else:
             return os.path.join(*parts[-2:])
+
+    def compare_data(self):
+        return compare_impl.get_data(
+            self._compare_args,
+            format_cells=False)
 
 def main(args):
     if args.files:
