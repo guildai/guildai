@@ -69,8 +69,8 @@ for one epoch.
 The `train` operation, defined in the Guild file, defines non-default columns:
 
     >>> run("guild compare --table 1")
-    run  operation  started  time  status     label     sourcecode  step  train_loss  train_acc
-    ...  train      ...      ...   completed  epochs=1  afbdf55e    540   0...        0...
+    run  operation  started  time  status     label     step  train_loss  train_acc
+    ...  train      ...      ...   completed  epochs=1  540   0...        0...
     <exit 0>
 
 ## Running scripts directly
@@ -155,9 +155,9 @@ The run writes a number of scalars, which we can view as info with the
 We can view the compare columns for the script op - these are default
 for scripts:
 
-    >>> run("guild compare -tb 1")
-    run  operation  started  time  status     label     sourcecode  batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss
-    ...  train.py   ... ...  ...   completed  epochs=1  afbdf55e    100         data     1       False    .       False  540   0...  0...
+    >>> run("guild compare -t 1")
+    run  operation  started  time  status     label     batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss
+    ...  train.py   ... ...  ...   completed  epochs=1  100         data     1       False    .       False  540   0...  0...
     <exit 0>
 
     run  operation  started  time  status     label  step  loss  acc
@@ -166,8 +166,8 @@ for scripts:
 
 When we compare the last two runs (the `train` op and the `train.py` script):
 
-    >>> run("guild compare -tb 1 2")
-    run  operation  started  time  status     label     sourcecode  batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss  train_loss  train_acc
-    ...  train.py   ... ...  ...   completed  epochs=1  afbdf55e    100         data     1       False    .       False  540   0...  0...
-    ...  train      ... ...  ...   completed  epochs=1  afbdf55e                                                         540               0...        0...
+    >>> run("guild compare -t 1 2")
+    run  operation  started  time  status     label     batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss  train_loss  train_acc
+    ...  train.py   ... ...  ...   completed  epochs=1  100         data     1       False    .       False  540   0...  0...
+    ...  train      ... ...  ...   completed  epochs=1                                                       540               0...        0...
     <exit 0>

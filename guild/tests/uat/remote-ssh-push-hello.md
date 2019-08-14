@@ -22,6 +22,6 @@ Push the latest run to the remote:
 List remote runs:
 
     >>> run("guild runs -r guild-uat-ssh")
-    [1:...]   ...examples/hello/hello:from-file  ... ...  completed
+    [1:...]  hello:from-file (.../examples/hello)  ...  completed
     ...
     <exit 0>

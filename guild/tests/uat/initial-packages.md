@@ -17,14 +17,13 @@ leaves room for false positives).
     >>> run("guild packages -a", cut=[0],
     ...     # Some additional Python 2 packages land that we just
     ...     # ignore in our list below.
-    ...     ignore=["enum34", "futures", "ipaddress"])
+    ...     ignore=["enum34", "futures", "ipaddress"]) # doctest: +REPORT_UDIFF
     Jinja2
     Markdown
     MarkupSafe
     PyYAML
     Pygments
     Werkzeug
-    Whoosh
     absl-py
     asn1crypto
     bleach
