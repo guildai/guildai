@@ -25,6 +25,9 @@ from . import runs_support
 @runs_support.runs_arg
 @runs_support.all_filters
 @click.option(
+    "-e", "--extra-cols", is_flag=True,
+    help="Show extra columns such as source code hash.")
+@click.option(
     "-c", "--cols", metavar="COLUMNS",
     help=(
         "Additional columns to compare. "
@@ -39,20 +42,20 @@ from . import runs_support
     "-r", "--skip-core", is_flag=True,
     help="Don't show core columns.")
 @click.option(
-    "-t", "--top", metavar="N", type=click.IntRange(min=1),
+    "-top", "--top", metavar="N", type=click.IntRange(min=1),
     help="Only show the top N runs.")
 @click.option(
-    "-m", "--min", "min_col", metavar="COLUMN",
+    "-min", "--min", "min_col", metavar="COLUMN",
     help="Show the lowest values for COLUMN first.")
 @click.option(
-    "-x", "--max", "max_col", metavar="COLUMN",
+    "-min", "--max", "max_col", metavar="COLUMN",
     help="Show the highest values for COLUMN first.")
 @click.option(
-    "-tb", "--table", "format", flag_value="table",
+    "-t", "--table", "format", flag_value="table",
     help="Generate comparison data as a table.",
     is_flag=True)
 @click.option(
-    "--csv", "format", flag_value="csv",
+    "-csv", "--csv", "format", flag_value="csv",
     help="Generate comparison data as a CSV file.",
     is_flag=True)
 @click.option(

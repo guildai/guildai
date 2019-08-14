@@ -44,8 +44,9 @@ BASE_COLS = ",".join([
     ".time",
     ".status",
     ".label",
-    ".sourcecode",
 ])
+
+EXTRA_COLS = ".sourcecode"
 
 MIN_COLS = ".run"
 
@@ -192,10 +193,17 @@ def _core_cols(args, parse_cache):
     return _colspec_cols(_core_colspec(args), parse_cache)
 
 def _core_colspec(args):
+    return _base_colspec(args) + _extra_colspec(args)
+
+def _base_colspec(args):
     if args.skip_core:
         return MIN_COLS
-    else:
-        return BASE_COLS
+    return BASE_COLS
+
+def _extra_colspec(args):
+    if args.extra_cols:
+        return "," + EXTRA_COLS
+    return ""
 
 def _colspec_cols(colspec, parse_cache):
     try:
