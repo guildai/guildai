@@ -92,13 +92,7 @@ def _check(args):
     if args.all_tests or args.tests:
         _run_tests(check)
     if check.has_error:
-        msg = (
-            "there are problems with your setup\n"
-            "Refer to the issues above for more information"
-        )
-        if not args.verbose:
-            msg += " or rerun check with the --verbose option."
-        cli.error(msg)
+        _print_error_and_exit(args)
 
 def _uat_and_exit():
     os.environ["NO_IMPORT_FLAGS_PROGRESS"] = "1"
@@ -333,6 +327,25 @@ def _notify_newer_version():
             "'pip install guildai --upgrade' to install it.",
             bold=True),
         err=True)
+
+def _print_error_and_exit(args):
+    if args.all_tests or args.tests:
+        msg = _tests_failed_msg()
+    else:
+        msg = _general_error_msg(args)
+    cli.error(msg)
+
+def _tests_failed_msg():
+    return "one or more tests failed - see above for details"
+
+def _general_error_msg(args):
+    msg = (
+        "there are problems with your setup\n"
+        "Refer to the issues above for more information"
+    )
+    if not args.verbose:
+        msg += " or rerun check with the --verbose option."
+    return msg
 
 def _warn(msg):
     return click.style(msg, fg="red", bold=True)
