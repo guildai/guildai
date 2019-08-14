@@ -61,7 +61,7 @@ class GuildfileError(Exception):
         self.msg = msg
 
     def __str__(self):
-        return "error in %s: %s" % (self.path, self.msg)
+        return "error in %s: %s" % (self.path or "<generated>", self.msg)
 
 class NoModels(GuildfileError):
 
@@ -1301,17 +1301,29 @@ class FileSelectSpec(object):
                 "want to apply the filters" % data)
         if "include" in data:
             self.type = "include"
-            self.patterns = self._init_patterns(data, "include", gf)
+            (self.patterns,
+             self.patterns_type) = self._init_patterns(data, "include", gf)
         elif "exclude" in data:
             self.type = "exclude"
-            self.patterns = self._init_patterns(data, "exclude", gf)
+            (self.patterns,
+             self.patterns_type) = self._init_patterns(data, "exclude", gf)
         else:
             raise GuildfileError(gf, "unsupported file select spec: %r" % data)
 
+    def _init_patterns(self, data, name, gf):
+        config = data[name]
+        if isinstance(config, (six.string_types, list)):
+            return (_coerce_str_to_list(config, gf, name), None)
+        elif isinstance(config, dict):
+            return self._init_typed_patterns(config, gf, name)
+        raise GuildfileError(gf, "unsupported %s value: %r" % (name, config))
+
     @staticmethod
-    def _init_patterns(data, name, gf):
-        val = data[name]
-        return _coerce_str_to_list(val, gf, name)
+    def _init_typed_patterns(data, gf, name):
+        for type in ("dir", "text", "binary"):
+            if type in data:
+                return (_coerce_str_to_list(data[type], gf, name), type)
+        raise GuildfileError(gf, "unsupported %s value: %r" % (name, config))
 
 ###################################################################
 # Resource def

@@ -313,7 +313,7 @@ Let's create a custom handler that simply logs information.
 
     >>> class Handler(object):
     ...
-    ...   def __init__(self, src_root, dest_root):
+    ...   def __init__(self, src_root, dest_root, _select):
     ...     self.src_root = src_root
     ...     self.dest_root = dest_root
     ...

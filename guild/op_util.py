@@ -495,8 +495,8 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
 
     @classmethod
     def handler_cls(cls, opdef):
-        def f(src_root, dest_root):
-            handler = cls(src_root, dest_root)
+        def f(src_root, dest_root, select):
+            handler = cls(src_root, dest_root, select)
             handler.opdef = opdef
             return handler
         return f
@@ -558,35 +558,30 @@ def copy_sourcecode(opdef, dest, handler_cls=None):
     if os.getenv("DISABLE_SOURCECODE") == "1":
         log.debug("DISABLE_SOURCECODE=1, skipping sourcecode copy")
         return
-    if _sourcecode_disabled(opdef):
-        log.debug("sourcecode for %s disabled", opdef.name)
-        return
     select = _sourcecode_select_for_opdef(opdef)
     root_start = opdef.guildfile.dir
     file_util.copytree(dest, select, root_start, handler_cls=handler_cls)
+
+def _sourcecode_select_for_opdef(opdef):
+    root = opdef_sourcecode_root(opdef)
+    rules = _select_rules_for_opdef(opdef)
+    return file_util.FileSelect(root, rules)
+
+def _select_rules_for_opdef(opdef):
+    if _sourcecode_disabled(opdef):
+        return [file_util.exclude("*")]
+    return (
+        _base_sourcecode_select_rules() +
+        _sourcecode_config_rules(opdef.modeldef.sourcecode) +
+        _sourcecode_config_rules(opdef.sourcecode)
+    )
 
 def _sourcecode_disabled(opdef):
     op_config = opdef.sourcecode
     model_config = opdef.modeldef.sourcecode
     return (
         op_config.disabled or
-        model_config.disabled and not op_config.specs or
-        _excludes_all(model_config.specs + op_config.specs))
-
-def _excludes_all(specs):
-    return specs and _spec_excludes_all(specs[-1])
-
-def _spec_excludes_all(spec):
-    return spec.type == "exclude" and "*" in spec.patterns
-
-def _sourcecode_select_for_opdef(opdef):
-    root = opdef_sourcecode_root(opdef)
-    rules = (
-        _base_sourcecode_select_rules() +
-        _sourcecode_config_rules(opdef.modeldef.sourcecode) +
-        _sourcecode_config_rules(opdef.sourcecode)
-    )
-    return file_util.FileSelect(root, rules)
+        model_config.disabled and not op_config.specs)
 
 def opdef_sourcecode_root(opdef):
     return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
@@ -620,9 +615,9 @@ def _sourcecode_config_rules(config):
 
 def _rule_for_select_spec(spec):
     if spec.type == "include":
-        return file_util.include(spec.patterns)
+        return file_util.include(spec.patterns, type=spec.patterns_type)
     elif spec.type == "exclude":
-        return file_util.exclude(spec.patterns)
+        return file_util.exclude(spec.patterns, type=spec.patterns_type)
     else:
         assert False, spec.type
 

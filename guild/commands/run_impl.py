@@ -1418,28 +1418,60 @@ def _testable_output_scalars(opdef):
 
 def _test_sourcecode(opdef):
     logger = _CopyLogger()
-    root = op_util.opdef_sourcecode_root(opdef)
-    cli.out("Copying from %s" % cmd_impl_support.cwd_desc(root))
     op_util.copy_sourcecode(opdef, None, handler_cls=logger.handler_cls)
-    cli.out("Selected for copy:")
-    for path in logger.selected:
-        cli.out(click.style("  %s" % path, fg="yellow"))
-    cli.out("Skipped:")
-    for path in logger.skipped:
-        cli.out(click.style("  %s" % path, dim=True))
+    cli.out("Copying from %s" % cmd_impl_support.cwd_desc(logger.root))
+    cli.out("Rules:")
+    for rule in logger.select.rules:
+        cli.out("  %s" % _format_file_select_rule(rule))
+    if logger.select.disabled:
+        assert not logger.selected, logger.selected
+        assert not logger.skipped, logger.skipped
+        cli.out("Source code copy disabled")
+    else:
+        cli.out("Selected for copy:")
+        for path in logger.selected:
+            cli.out(click.style("  %s" % path, fg="yellow"))
+        cli.out("Skipped:")
+        for path in logger.skipped:
+            cli.out(click.style("  %s" % path, dim=True))
+
+def _format_file_select_rule(rule):
+    parts = ["include" if rule.result else "exclude"]
+    if rule.type:
+        parts.append(rule.type)
+    parts.append(", ".join([repr(p) for p in rule.patterns]))
+    extras = _format_file_select_rule_extras(rule)
+    if extras:
+        parts.append("(%s)" % extras)
+    return " ".join(parts)
+
+def _format_file_select_rule_extras(rule):
+    parts = []
+    if rule.regex:
+        parts.append("regex")
+    if rule.sentinel:
+        parts.append("with %r" % rule.sentinel)
+    if rule.size_gt:
+        parts.append("size > %s" % rule.size_gt)
+    if rule.size_lt:
+        parts.append("size < %s" % rule.size_lt)
+    if rule.max_matches:
+        parts.append("max match %s" % rule.max_matches)
+    return ", ".join(parts)
 
 class _CopyLogger(object):
 
     root = None
+    select = None
 
     def __init__(self):
         self.selected = []
         self.skipped = []
-        self.handler_cls = self._handler
 
-    def _handler(self, src_root, dest_root):
+    def handler_cls(self, src_root, dest_root, select):
         assert dest_root is None, dest_root
         self.root = os.path.relpath(src_root)
+        self.select = select
         return self
 
     def copy(self, path, _results):

@@ -99,7 +99,8 @@ def _popen_args(
         guild_home=None,
         cwd=None,
         quiet=False,
-        debug=False):
+        debug=False,
+        test_sourcecode=False):
     from guild import op_util
     cwd = cwd or "."
     flags = flags or {}
@@ -150,6 +151,8 @@ def _popen_args(
         args.extend(["--disable-plugins", disable_plugins])
     if quiet:
         args.append("--quiet")
+    if test_sourcecode:
+        args.append("--test-sourcecode")
     env = dict(os.environ)
     env["NO_IMPORT_FLAGS_PROGRESS"] = "1"
     if extra_env:

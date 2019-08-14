@@ -34,6 +34,28 @@ class FileSelect(object):
     def __init__(self, root, rules):
         self.root = root
         self.rules = rules
+        self._disabled = None
+
+    @property
+    def disabled(self):
+        if self._disabled is None:
+            self._disabled = self._init_disabled()
+        return self._disabled
+
+    def _init_disabled(self):
+        """Returns True if file select is disabled.
+
+        Assumes not disabled until finds a disable all pattern (untyped
+        match of '*'). Disable pattern can be reset by any include
+        pattern.
+        """
+        disabled = False
+        for rule in self.rules:
+            if rule.result:
+                disabled = False
+            elif "*" in rule.patterns and rule.type is None:
+                disabled = True
+        return disabled
 
     def select_file(self, src_root, relpath):
         """Apply rules to file located under src_root with relpath.
@@ -82,8 +104,8 @@ class FileSelectRule(object):
             self,
             result,
             patterns,
-            regex=False,
             type=None,
+            regex=False,
             sentinel=None,
             size_gt=None,
             size_lt=None,
@@ -195,9 +217,10 @@ def exclude(patterns, **kw):
 
 class FileCopyHandler(object):
 
-    def __init__(self, src_root, dest_root):
+    def __init__(self, src_root, dest_root, select):
         self.src_root = src_root
         self.dest_root = dest_root
+        self.select = select
 
     def copy(self, path, _rule_results):
         src = os.path.join(self.src_root, path)
@@ -238,10 +261,23 @@ def copytree(
     when copying the tree.
 
     A handler class may be specified to create a handler of copy
-    events. FileCopyHandler is used by default.
+    events. FileCopyHandler is used by default. If specified, the
+    class is used to instantiate a handler with `(src, dest,
+    select)`. Handler methods `copy()` and `ignore()` are called with
+    `(relpath, results)` where `results` is a list of results from
+    each rule as `(result, rule)` tuples.
+
+    As an optimization, `copytree` skips evaluation of files if the
+    file select is disabled. File selects are disabled if no files can
+    be selected for their rules. If select is disabled and a handler
+    class is specified, the handler is still instantiated, however, no
+    calls to `copy()` or `ignore()` will be made.
     """
     src = _copytree_src(root_start, select)
-    handler = (handler_cls or FileCopyHandler)(src, dest)
+    # Must instantiate handler as part of the copytree contract.
+    handler = (handler_cls or FileCopyHandler)(src, dest, select)
+    if select.disabled:
+        return
     for root, dirs, files in os.walk(src, followlinks=followlinks):
         dirs.sort()
         relroot = _relpath(root, src)

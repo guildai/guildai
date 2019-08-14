@@ -94,6 +94,7 @@ class PythonScriptModelProxy(object):
                         "output-scalars": self.output_scalars,
                         "objective": self.objective,
                         "disable-plugins": self.disable_plugins,
+                        "sourcecode": self._sourcecode(),
                     }
                 }
             }
@@ -112,6 +113,12 @@ class PythonScriptModelProxy(object):
     def _flags_data(self):
         plugin = pluginlib.for_name("python_script")
         return plugin.flags_data_for_path(self.script_path, ".")
+
+    @staticmethod
+    def _sourcecode():
+        return [
+            {"exclude": {"dir": "*"}},
+        ]
 
 class ImportedFlagsOpProxy(object):
 
