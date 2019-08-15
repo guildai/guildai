@@ -117,50 +117,22 @@ Use `op_util.parse_flags` to parse a list of `NAME=VAL` args.
     >>> def p_flags(args):
     ...   pprint(op_util.parse_flag_assigns(args))
 
+Empty arg list:
+
     >>> p_flags([])
     {}
+
+Integers:
 
     >>> p_flags(["a=1"])
     {'a': 1}
 
+Floats:
+
     >>> p_flags(["a=1.1", "b=.1", "c=1.", "d=1e1", "e=1.2e2"])
     {'a': 1.1, 'b': 0.1, 'c': 1.0, 'd': 10.0, 'e': 120.0}
 
-    >>> p_flags(["a=A"])
-    {'a': 'A'}
-
-    >>> p_flags(["a='1'", "b=\"2\"", "c='1e3'"])
-    {'a': '1', 'b': '2', 'c': '1e3'}
-
-    >>> p_flags(["a=True", "b=true", "c=yes"])
-    {'a': True, 'b': True, 'c': True}
-
-    >>> p_flags(["a=False", "b=false", "c=no"])
-    {'a': False, 'b': False, 'c': False}
-
-    >>> p_flags(["a="])
-    {'a': ''}
-
-    >>> p_flags(["a=[1,2,3]"])
-    {'a': [1, 2, 3]}
-
-    >>> p_flags(["a"])
-    Traceback (most recent call last):
-    ArgValueError: a
-
-    >>> p_flags([
-    ...   "a=['A','B']",
-    ...   "c=123",
-    ...   "d-e=",
-    ...   "f={'a':456,'b':'C'}",
-    ...   "g=null"])
-    {'a': ['A', 'B'],
-     'c': 123,
-     'd-e': '',
-     'f': {'a': 456, 'b': 'C'},
-     'g': None}
-
-Exponent notation is supported:
+Various exponent notation:
 
     >>> p_flags(["lr=1e-06"])
     {'lr': 1e-06}
@@ -174,13 +146,59 @@ Exponent notation is supported:
     >>> p_flags(["lr=1.0e-06"])
     {'lr': 1e-06}
 
-If an exponent needs to be treated as a string, it must be quoted:
+Strings:
+
+    >>> p_flags(["a=A"])
+    {'a': 'A'}
+
+Quoted numbers:
+
+    >>> p_flags(["a='1'", "b=\"2\"", "c='1e3'"])
+    {'a': '1', 'b': '2', 'c': '1e3'}
 
     >>> p_flags(["run='1234567e1'"])
     {'run': '1234567e1'}
 
     >>> p_flags(["run='1e2345671'"])
     {'run': '1e2345671'}
+
+Booleans:
+
+    >>> p_flags(["a=True", "b=true", "c=yes"])
+    {'a': True, 'b': True, 'c': True}
+
+    >>> p_flags(["a=False", "b=false", "c=no"])
+    {'a': False, 'b': False, 'c': False}
+
+Empty values:
+
+    >>> p_flags(["a="])
+    {'a': ''}
+
+Lists:
+
+    >>> p_flags(["a=[1,2,3,a,b,1.,1.2]"])
+    {'a': [1, 2, 3, 'a', 'b', 1.0, 1.2]}
+
+Missing '=':
+
+    >>> p_flags(["a"])
+    Traceback (most recent call last):
+    ArgValueError: a
+
+Various values:
+
+    >>> p_flags([
+    ...   "a=['A','B']",
+    ...   "c=123",
+    ...   "d-e=",
+    ...   "f={'a':456,'b':'C'}",
+    ...   "g=null"])
+    {'a': ['A', 'B'],
+     'c': 123,
+     'd-e': '',
+     'f': {'a': 456, 'b': 'C'},
+     'g': None}
 
 ## Global dest
 
