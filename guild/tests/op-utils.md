@@ -123,8 +123,14 @@ Use `op_util.parse_flags` to parse a list of `NAME=VAL` args.
     >>> p_flags(["a=1"])
     {'a': 1}
 
+    >>> p_flags(["a=1.1", "b=.1", "c=1.", "d=1e1", "e=1.2e2"])
+    {'a': 1.1, 'b': 0.1, 'c': 1.0, 'd': 10.0, 'e': 120.0}
+
     >>> p_flags(["a=A"])
     {'a': 'A'}
+
+    >>> p_flags(["a='1'", "b=\"2\"", "c='1e3'"])
+    {'a': '1', 'b': '2', 'c': '1e3'}
 
     >>> p_flags(["a=True", "b=true", "c=yes"])
     {'a': True, 'b': True, 'c': True}
