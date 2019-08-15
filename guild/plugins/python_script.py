@@ -281,6 +281,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
         env.update({
             "PYTHONPATH": os.path.pathsep.join([sys_path] + sys.path),
             "LOG_LEVEL": str(self.log.getEffectiveLevel()),
+            "PYTHONDONTWRITEBYTECODE": "1",
         })
         with util.TempFile() as data_path:
             cmd = [
