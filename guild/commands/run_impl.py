@@ -576,7 +576,7 @@ def _split_batch_files(flag_args):
 
 def _parse_assigns(assign_args):
     try:
-        return op_util.parse_flags(assign_args)
+        return op_util.parse_flag_assigns(assign_args)
     except op_util.ArgValueError as e:
         cli.error("invalid argument '%s' - expected NAME=VAL" % e.arg)
 

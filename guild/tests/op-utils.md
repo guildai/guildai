@@ -115,7 +115,7 @@ args". All args preceding the last `--` are always treated as other:
 Use `op_util.parse_flags` to parse a list of `NAME=VAL` args.
 
     >>> def p_flags(args):
-    ...   pprint(op_util.parse_flags(args))
+    ...   pprint(op_util.parse_flag_assigns(args))
 
     >>> p_flags([])
     {}

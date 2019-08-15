@@ -267,7 +267,7 @@ def _cmd_file(filename):
         return filename
     return None
 
-def parse_flags(args):
+def parse_flag_assigns(args):
     return dict([parse_flag_arg(os.path.expanduser(arg)) for arg in args])
 
 def parse_flag_arg(arg):

@@ -128,7 +128,7 @@ class Step(object):
 
     def _init_flags(self, params, parent_flags):
         try:
-            parsed = op_util.parse_flags(params["flags"])
+            parsed = op_util.parse_flag_assigns(params["flags"])
         except op_util.ArgValueError as e:
             _error("invalid argument '%s' - expected NAME=VAL" % e.arg)
         else:
