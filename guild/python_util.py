@@ -15,10 +15,16 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', category=DeprecationWarning)
+    import imp
+
 import ast
 import logging
 import os
 import re
+import sys
 import types
 
 try:
@@ -413,3 +419,40 @@ def safe_module_name(s):
     if s.lower().endswith(".py"):
         s = s[:-3]
     return re.sub("-", "_", s)
+
+__modules = {}
+
+def find_module(main_mod, model_paths):
+    cache_key = (main_mod, tuple(model_paths))
+    try:
+        return __modules[cache_key]
+    except KeyError:
+        __modules[cache_key] = result = _find_module(main_mod, model_paths)
+        return result
+
+def _find_module(main_mod, model_paths):
+    for model_path in model_paths:
+        main_mod_sys_path, module = _split_module(main_mod, model_path)
+        # Copied from guild.op_main
+        parts = module.split(".")
+        module_path = parts[0:-1]
+        module_name_part = parts[-1]
+        for sys_path_item in [main_mod_sys_path] + sys.path:
+            cur_path = os.path.join(sys_path_item, *module_path)
+            try:
+                mod_info = imp.find_module(module_name_part, [cur_path])
+            except ImportError:
+                pass
+            else:
+                _f, found_path, _desc = mod_info
+                # Don't attempt to import flags from anything other
+                # than a file ending in '.py'
+                if os.path.isfile(found_path) and found_path.endswith(".py"):
+                    return main_mod_sys_path, found_path
+    raise ImportError("No module named %s" % main_mod)
+
+def _split_module(main_mod, gf_dir):
+    parts = main_mod.rsplit("/", 1)
+    if len(parts) == 1:
+        parts = ".", parts[0]
+    return os.path.join(gf_dir, parts[0]), parts[1]

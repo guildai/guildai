@@ -93,11 +93,10 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
         if opdef.output_scalars is not None:
             return
         assert opdef.main, opdef
-        plugin = pluginlib.for_name("python_script")
         main_mod = op_util.split_main(opdef.main)[0]
         model_paths = op_util.opdef_model_paths(opdef)
         try:
-            _sys_path, mod_path = plugin.find_module(main_mod, model_paths)
+            _path, mod_path = python_util.find_module(main_mod, model_paths)
         except ImportError:
             return
         script = python_util.Script(mod_path)
