@@ -455,10 +455,10 @@ def _cmd_options(args):
     return [m.group(1) for m in [p.match(arg) for arg in args] if m]
 
 def _cmd_option_args(name, val):
-    opt = "--%s" % name
     if val is None:
         return []
-    elif val is op_util.NO_ARG_VALUE:
+    opt = "--%s" % name
+    if val is op_util.NO_ARG_VALUE:
         return [opt]
     else:
         return [opt, str(val)]
