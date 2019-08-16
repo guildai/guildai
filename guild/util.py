@@ -985,7 +985,22 @@ def shlex_quote(s):
     # If s can't be None in case where pipes.quote is used by six.
     import six
     s = s or ""
-    return six.moves.shlex_quote(s)
+    return _simplify_shlex_quote(six.moves.shlex_quote(s))
+
+def _simplify_shlex_quote(s):
+    repls = [
+        ("''\"'\"'", "\"'"),
+    ]
+    for pattern_start, repl_start in repls:
+        if not s.startswith(pattern_start):
+            continue
+        pattern_end = "".join(reversed(pattern_start))
+        if not s.endswith(pattern_end):
+            continue
+        repl_end = "".join(reversed(repl_start))
+        stripped = s[len(pattern_start):-len(pattern_end)]
+        return repl_start + stripped + repl_end
+    return s
 
 def format_bytes(n):
     units = [None, "K", "M", "G", "T", "P", "E", "Z"]
@@ -1120,7 +1135,7 @@ def _abs_path_with_cache(p):
         __abs_path[p] = abs = os.path.abspath(os.path.expanduser(p))
         return abs
 
-def shorten_dir(path, max_len=30, ellipsis="...", sep=os.path.sep):
+def shorten_dir(path, max_len=28, ellipsis="...", sep=os.path.sep):
     if len(path) <= max_len:
         return path
     parts = _shorten_dir_split_path(path, sep)

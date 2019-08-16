@@ -23,6 +23,7 @@ import warnings
 import six
 
 from guild import batch_util
+from guild import flag_util
 from guild import index2 as indexlib
 from guild import op_util
 from guild import query
@@ -227,10 +228,9 @@ class NonRepeatingTrials(object):
         next_trial_flags = self.seq_trial_cb(trial, state)
         for run in trial.batch.seq_trial_runs():
             if next_trial_flags == run.get("flags"):
-                flag_desc = ", ".join(op_util.flag_assigns(next_trial_flags))
                 log.warning(
                     "optimizer repeated trial (%s) - using random",
-                    flag_desc)
+                    op_util.flags_desc(next_trial_flags))
                 next_trial_flags = self._random_trial_flags(state)
         return next_trial_flags, {}
 
@@ -247,10 +247,10 @@ class NonRepeatingTrials(object):
 
 def _check_state_dims(state):
     if not state.dim_names:
-        flag_desc = ", ".join(op_util.flag_assigns(state.proto_flags))
         log.error(
             "flags for batch (%s) do not contain any search "
-            "dimension - quitting", flag_desc)
+            "dimension - quitting",
+            op_util.flags_desc(state.proto_flags))
         raise batch_util.StopBatch(error=True)
 
 def flag_dims(flags):
@@ -291,7 +291,7 @@ def _categorical_dim(vals, initial):
 def _try_function_dim(val, flag_name):
     assert isinstance(val, six.string_types), val
     try:
-        func_name, func_args = op_util.parse_function(val)
+        func_name, func_args = flag_util.decode_flag_function(val)
     except ValueError:
         raise ValueError(val, flag_name)
     else:

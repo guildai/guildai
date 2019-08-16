@@ -94,7 +94,7 @@ is not specified by the user.
 We'll use the `op` operation, defined in the project Guild file, which
 defines a label.
 
-    >>> gf = guildfile.from_dir(sample("projects/labels"))
+    >>> gf = guildfile.from_dir(sample("projects", "labels"))
 
     >>> gf.default_model["op"].label
     'i:${i}, f:${f}, b:${b}, s:${s}'

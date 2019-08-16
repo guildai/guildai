@@ -131,6 +131,7 @@
     guild.exit_code
     guild.fail
     guild.file_util
+    guild.flag_util
     guild.guildfile
     guild.help
     guild.index2

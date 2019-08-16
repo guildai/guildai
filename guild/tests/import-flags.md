@@ -5,7 +5,7 @@ Flags can be imported from a main module by using the special
 
 We'll use the sample project `flags`:
 
-    >>> project_dir = sample("projects/flags")
+    >>> project_dir = sample("projects", "flags")
 
 Load the guild file:
 

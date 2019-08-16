@@ -348,6 +348,9 @@ Tests:
     >>> quote("D:\\foo bar") # doctest: -NORMALIZE_PATHS
     "'D:\\foo bar'"
 
+    >>> quote("'a b c'")
+    '"\'a b c\'"'
+
 ## Shlex split
 
     >>> from guild.util import shlex_split as split

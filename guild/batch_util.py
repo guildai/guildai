@@ -144,10 +144,7 @@ class Trial(object):
             sys.exit(exit_code.SIGTERM)
 
     def _flags_desc(self):
-        return ", ".join(op_util.flag_assigns(
-            self.flags,
-            quote=True,
-            truncate_floats=True))
+        return op_util.flags_desc(self.flags)
 
 ###################################################################
 # Seq trial

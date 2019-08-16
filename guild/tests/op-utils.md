@@ -200,6 +200,61 @@ Various values:
      'f': {'a': 456, 'b': 'C'},
      'g': None}
 
+## Encoding flag assignments
+
+The function `op_util.flag_assigns` is used to generate a list of flag
+assignments. These can be used as flag arguments.
+
+Here's a helper function to print assignments:
+
+    >>> def assigns(flags):
+    ...     assigns = op_util.flag_assigns(flags)
+    ...     if not assigns:
+    ...         print("<empty>")
+    ...         return
+    ...     for s in assigns:
+    ...         print(s)
+
+    >>> assigns({})
+    <empty>
+
+    >>> assigns({
+    ...     "b1": True,
+    ...     "b2": False,
+    ...     "d": {"a": 1.123, "b": "c d", "e": True},
+    ...     "e": "",
+    ...     "f1": 1.1,
+    ...     "f2": 1.,
+    ...     "f3": .1,
+    ...     "f4": 1/6,
+    ...     "f5": 0.000012345,
+    ...     "i": 312,
+    ...     "l": [1, 2, "a", "b c 'd e'"],
+    ...     "n": None,
+    ...     "s1": "a",
+    ...     "s2": "a b",
+    ...     "s3": "'1'",
+    ...     "s4": "-1.123e4",
+    ...     "s5": "123456e2",
+    ... }) # doctest: +REPORT_UDIFF
+    b1=yes
+    b2=no
+    d={a: 1.123, b: c d, e: yes}
+    e=''
+    f1=1.1
+    f2=1.0
+    f3=0.1
+    f4=0.16666666666666666
+    f5=1.2345e-05
+    i=312
+    l=[1, 2, a, b c 'd e']
+    n=null
+    s1=a
+    s2='a b'
+    s3='''1'''
+    s4='-1.123e4'
+    s5='123456e2'
+
 ## Global dest
 
 The function `global_dest` applies a dict of flags to a global
@@ -429,39 +484,3 @@ Invalid:
     >>> parse("a:b/c:d")
     Traceback (most recent call last):
     ValueError: a:b/c:d
-
-## Flag assigns
-
-    >>> flag_assigns = op_util.flag_assigns
-
-    >>> flag_assigns({})
-    []
-
-    >>> flag_assigns({
-    ...   "i": 1,
-    ...   "f": 1.123,
-    ...   "b": True,
-    ...   "s": "hello",
-    ...   "l": [1, 1.123, True, "hello"],
-    ... })
-    ['b=yes', 'f=1.123', 'i=1', 'l=[1, 1.123, yes, hello]', 's=hello']
-
-    >>> flag_assigns({"a": "a", "b": "b b"})
-    ['a=a', 'b=b b']
-
-    >>> flag_assigns({"a": "a", "b": "b b"}, quote=True)
-    ['a=a', "b='b b'"]
-
-The quoting mechanism supports decoding via YAML syntax and so strings
-that contain numeric values (i.e. values that YAML would interpret as
-numbers) must be quoted. `flag_assigns` can quote the value using
-`shlex_quote`, which applies an elaborate quoting mechanism for single
-quotes.
-
-    >>> flag_assigns({"numeric_string": "1"}, shell_safe=True)
-    ['numeric_string=\'\'"\'"\'1\'"\'"\'\'']
-
-The default behavior:
-
-    >>> flag_assigns({"numeric_string": "1"})
-    ["numeric_string='1'"]

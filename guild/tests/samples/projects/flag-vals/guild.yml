@@ -1,0 +1,31 @@
+- config: shared
+  flags:
+    b1: yes
+    b2: no
+    f1: 1.1
+    f2: 1.
+    f3: .1
+    f4: 123e2
+    f5: -0.000000678
+    f6: 654.321e+4
+    i: 456
+    l: [1, 2, "a b 'c d'"]
+    s1: a
+    s2: 'a b'
+    s3: '123e4'
+    s4: '-0.00034'
+
+- model: ''
+  disable-plugins: all
+  flags-import: no
+  operations:
+    args:
+      main: args
+      flags-dest: args
+      flags:
+        $include: shared
+    globals:
+      main: globals
+      flags-dest: global:params
+      flags:
+        $include: shared

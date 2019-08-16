@@ -17,11 +17,11 @@ from __future__ import division
 
 import logging
 import os
-import re
 
 import six
 import yaml
 
+from guild import flag_util
 from guild import util
 
 log = logging.getLogger("guild")
@@ -29,7 +29,6 @@ log = logging.getLogger("guild")
 MIN_MONITOR_INTERVAL = 5
 
 MAX_LABEL_LEN = 60
-FLOAT_TRUNCATE_LEN = 4
 
 class RunsMonitor(util.LoopingThread):
 
@@ -119,7 +118,7 @@ def format_run(run, index=None):
         "id": run.id,
         "index": _format_run_index(run, index),
         "label": _format_label(run.get("label") or ""),
-        "marked": _format_val(bool(run.get("marked"))),
+        "marked": format_attr(bool(run.get("marked"))),
         "model": run.opref.model_name,
         "op_name": run.opref.op_name,
         "operation": format_operation(run),
@@ -267,85 +266,34 @@ def _apply_batch_desc(base_desc, run, seen_protos):
     parts.append(base_desc)
     return "".join(parts)
 
-def _format_val(val):
+def format_attr(val):
     if val is None:
         return ""
-    elif val is True:
-        return "yes"
-    elif val is False:
-        return "no"
-    elif isinstance(val, (int, float, six.string_types)):
-        return str(val)
+    elif isinstance(val, (bool, int, float, six.string_types)):
+        return flag_util.encode_flag_val(val)
+    elif isinstance(val, list):
+        return _format_attr_list(val)
+    elif isinstance(val, dict):
+        return _format_attr_dict(val)
     else:
         return _format_yaml_block(val)
+
+def _format_attr_list(l):
+    return "\n%s" % "\n".join([
+        "  %s" % format_attr(item) for item in l
+    ])
+
+def _format_attr_dict(d):
+    return "\n%s" % "\n".join([
+        "  %s: %s" % (key, format_attr(d[key]))
+        for key in sorted(d)
+    ])
 
 def _format_yaml_block(val):
     formatted = yaml.dump(val, default_flow_style=False)
     lines = formatted.split("\n")
     padded = ["  " + line for line in lines]
     return "\n" + "\n".join(padded).rstrip()
-
-def format_flag_val(val, truncate_floats=False):
-    if val is True:
-        return "yes"
-    elif val is False:
-        return "no"
-    elif val is None:
-        return "null"
-    elif isinstance(val, list):
-        return _format_flag_list(val)
-    elif isinstance(val, float):
-        return _format_flag_float(val, truncate_floats)
-    elif isinstance(val, six.string_types):
-        return _yaml_format(val)
-    else:
-        return str(val)
-
-def _format_flag_list(val_list):
-    joined = ", ".join([format_flag_val(val) for val in val_list])
-    return "[%s]" % joined
-
-def _format_flag_float(val, truncate):
-    formatted = _yaml_format(val)
-    if not truncate:
-        return formatted
-    return _truncate_float(formatted)
-
-def _truncate_float(formatted):
-    parts = re.split(r"(\.[0-9]+)", formatted)
-    return "".join([_maybe_truncate_dec_part(part) for part in parts])
-
-def _maybe_truncate_dec_part(part):
-    if part[:1] != ".":
-        return part
-    if len(part) <= FLOAT_TRUNCATE_LEN: # lte to include leading '.'
-        return part
-    return part[:FLOAT_TRUNCATE_LEN + 1]
-
-def _yaml_format(val):
-    formatted = yaml.safe_dump(val).strip()
-    if formatted.endswith("\n..."):
-        formatted = formatted[:-4]
-    return formatted
-
-def format_attr(val):
-    if isinstance(val, list):
-        return _format_attr_list(val)
-    elif isinstance(val, dict):
-        return _format_attr_dict(val)
-    else:
-        return _format_val(val)
-
-def _format_attr_list(l):
-    return "\n%s" % "\n".join([
-        "  %s" % _format_val(item) for item in l
-    ])
-
-def _format_attr_dict(d):
-    return "\n%s" % "\n".join([
-        "  %s: %s" % (key, _format_val(d[key]))
-        for key in sorted(d)
-    ])
 
 def iter_output(run):
     try:

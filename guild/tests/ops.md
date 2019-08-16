@@ -163,13 +163,13 @@ If a flag value is None, the flag will not be included as an option.
     ['--batch-size', '50']
 
 If a flag value is boolean, it will be rendered as its string
-representation:
+representation of 'yes' for True and 'no' for False:
 
     >>> flag_args({"test": True, "batch-size": 50})
-    ['--batch-size', '50', '--test', 'True']
+    ['--batch-size', '50', '--test', 'yes']
 
     >>> flag_args({"test": False, "batch-size": 50})
-    ['--batch-size', '50', '--test', 'False']
+    ['--batch-size', '50', '--test', 'no']
 
 ### Flag arg switches
 
@@ -197,10 +197,10 @@ Here we'll switch the logic and use an arg value of False:
     >>> flag_args({"not-legacy": {"default": True, "arg_switch": False}})
     []
 
-When arg value is None, an arg value is passed through:
+When arg value is None, the default is used:
 
     >>> flag_args({"not-legacy": {"default": True, "arg_switch": None}})
-    ['--not-legacy', 'True']
+    ['--not-legacy', 'yes']
 
 Values are compared using Python's `==` operator. In some cases this
 might lead to a surprising result. Here we'll compare 1 and True:

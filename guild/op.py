@@ -28,6 +28,7 @@ import guild.run
 from guild import config as configlib
 from guild import deps
 from guild import exit_code
+from guild import flag_util
 from guild import op_util
 from guild import summary
 from guild import util
@@ -461,7 +462,7 @@ def _cmd_option_args(name, val):
     if val is op_util.NO_ARG_VALUE:
         return [opt]
     else:
-        return [opt, str(val)]
+        return [opt, flag_util.encode_flag_val(val)]
 
 def _init_cmd_env(opdef, gpus):
     env = util.safe_osenv()

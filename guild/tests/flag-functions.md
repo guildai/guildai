@@ -17,76 +17,76 @@ Example of a named function:
 
 ## Parsing flag functions
 
-The function `parse_function` in the `op_util` module is responsible
-for parsing functions.
+The function `decode_flag_function` in the `flag_util` module is
+responsible for parsing functions.
 
-    >>> from guild import op_util
-    >>> pf = op_util.parse_function
+    >>> from guild import flag_util
+    >>> decode = flag_util.decode_flag_function
 
 Unnamed functions:
 
-    >>> pf("[]")
+    >>> decode("[]")
     (None, ())
 
-    >>> pf("[1]")
+    >>> decode("[1]")
     (None, (1,))
 
-    >>> pf("[1:2]")
+    >>> decode("[1:2]")
     (None, (1, 2))
 
-    >>> pf("[1:2:3]")
+    >>> decode("[1:2:3]")
     (None, (1, 2, 3))
 
-    >>> pf("[1:2:3:4:5]")
+    >>> decode("[1:2:3:4:5]")
     (None, (1, 2, 3, 4, 5))
 
 Named functions:
 
-    >>> pf("uniform[-2.0:2.0]")
+    >>> decode("uniform[-2.0:2.0]")
     ('uniform', (-2.0, 2.0))
 
-    >>> pf("log-uniform[-2.0:2.0]")
+    >>> decode("log-uniform[-2.0:2.0]")
     ('log-uniform', (-2.0, 2.0))
 
-    >>> pf("foo.bar.baz[-2.0:2.0]")
+    >>> decode("foo.bar.baz[-2.0:2.0]")
     ('foo.bar.baz', (-2.0, 2.0))
 
-    >>> pf("three_args[1:2:3]")
+    >>> decode("three_args[1:2:3]")
     ('three_args', (1, 2, 3))
 
-    >>> pf("four_args[1:2:3:4]")
+    >>> decode("four_args[1:2:3:4]")
     ('four_args', (1, 2, 3, 4))
 
-    >>> pf("five_args[1:2:3:4:5]")
+    >>> decode("five_args[1:2:3:4:5]")
     ('five_args', (1, 2, 3, 4, 5))
 
 Names may contain only characters, digits, underscores, dashes, or
 dots:
 
-    >>> pf("a^z[1:2:3:4:5]")
+    >>> decode("a^z[1:2:3:4:5]")
     Traceback (most recent call last):
     ValueError: not a function
 
 Arguments may be of any type:.
 
-    >>> pf("[hello:1:1.2]")
+    >>> decode("[hello:1:1.2]")
     (None, ('hello', 1, 1.2))
 
-    >>> pf("[this has spaces:yes:[1,2,3]]")
+    >>> decode("[this has spaces:yes:[1,2,3]]")
     (None, ('this has spaces', True, [1, 2, 3]))
 
-    >>> pf("myfun[hello:1:1.2]")
+    >>> decode("myfun[hello:1:1.2]")
     ('myfun', ('hello', 1, 1.2))
 
-    >>> pf("myfun[this has spaces:no:[1, 2, null]]")
+    >>> decode("myfun[this has spaces:no:[1, 2, null]]")
     ('myfun', ('this has spaces', False, [1, 2, None]))
 
-    >>> pf("myfun[1e-1:1.1e-1:[1e-2, 1.1e-2]]")
+    >>> decode("myfun[1e-1:1.1e-1:[1e-2, 1.1e-2]]")
     ('myfun', (0.1, 0.11, [0.01, 0.011]))
 
 Functions may contain spaces:
 
-    >>> pf("[a : b : c]")
+    >>> decode("[a : b : c]")
     (None, ('a', 'b', 'c'))
 
 ## Using flag functions in runs

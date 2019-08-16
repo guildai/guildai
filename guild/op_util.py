@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+
 import csv
 import hashlib
 import logging
@@ -22,12 +25,11 @@ import sys
 import threading
 import time
 
-import six
 import yaml
 
 # Move any import that's expensive or seldom used into function
 from guild import file_util
-from guild import run_util
+from guild import flag_util
 from guild import util
 
 log = logging.getLogger("guild")
@@ -36,9 +38,6 @@ log = logging.getLogger("guild")
 from guild import _api
 NoCurrentRun = _api.NoCurrentRun
 current_run = _api.current_run
-
-function_pattern = re.compile(r"([a-zA-Z0-9_\-\.]*)\[(.*)\]\s*$")
-function_arg_delimiter = ":"
 
 NO_ARG_VALUE = object()
 
@@ -275,39 +274,7 @@ def parse_flag_arg(arg):
     if len(parts) == 1:
         raise ArgValueError(arg)
     else:
-        return parts[0], parse_arg_val(parts[1])
-
-def parse_arg_val(s):
-    if s == "":
-        return s
-    parsers = [
-        (int, ValueError),
-        (float, ValueError),
-        (_yaml_parse, (ValueError, yaml.YAMLError)),
-    ]
-    for p, e_type in parsers:
-        try:
-            return p(s)
-        except e_type:
-            pass
-    return s
-
-def _yaml_parse(s):
-    """Uses yaml module to parse s to a Python value.
-
-    First tries to parse as an unnamed flag function with at least two
-    args and, if successful, returns s unmodified. This prevents yaml
-    from attempting to parse strings like '1:1' which it considers to
-    be timestamps.
-    """
-    try:
-        name, args = parse_function(s)
-    except ValueError:
-        pass
-    else:
-        if name is None and len(args) >= 2:
-            return s
-    return yaml.safe_load(s)
+        return parts[0], flag_util.decode_flag_val(parts[1])
 
 def exit(msg, exit_status=1):
     """Exit the Python runtime with a message.
@@ -340,7 +307,7 @@ def args_to_flags(args):
             name = arg[2:]
             flags[name] = True
         elif arg[:1] == "-":
-            val = parse_arg_val(arg)
+            val = flag_util.decode_flag_val(arg)
             if isinstance(val, (int, float)):
                 flags[name] = val
             elif len(arg) == 2:
@@ -350,7 +317,7 @@ def args_to_flags(args):
                 name = None
                 flags[arg[1]] = arg[2:]
         elif name is not None:
-            flags[name] = parse_arg_val(arg)
+            flags[name] = flag_util.decode_flag_val(arg)
             name = None
         else:
             other_args.append(arg)
@@ -677,7 +644,7 @@ def _trials_table_data(trials):
         data.append(row)
         if flags:
             row.update(
-                {name: run_util.format_flag_val(flags[name])
+                {name: flag_util.encode_flag_val(flags[name])
                  for name in flags})
             names.update(flags)
     heading = {name: name for name in names}
@@ -799,7 +766,7 @@ def _coerce_run_param(name, val):
 
 def flags_hash(flags):
     flag_parts = [
-        "%s:%s" % (name, run_util.format_flag_val(val))
+        "%s:%s" % (name, flag_util.encode_flag_val(val))
         for name, val in sorted(flags.items())
     ]
     to_hash = "\n".join(flag_parts).encode()
@@ -807,21 +774,6 @@ def flags_hash(flags):
 
 def restart_needed(run, flags):
     return run.status in RESTART_NEEDED_STATUS or run.get("flags") != flags
-
-def parse_function(s):
-    if not isinstance(s, six.string_types):
-        raise ValueError("requires string")
-    m = function_pattern.match(s)
-    if not m:
-        raise ValueError("not a function")
-    name = m.group(1) or None
-    args_raw = m.group(2).strip()
-    if args_raw:
-        args_s = args_raw.split(function_arg_delimiter)
-    else:
-        args_s = []
-    args = [parse_arg_val(arg.strip()) for arg in args_s]
-    return name, tuple(args)
 
 def opdef_model_paths(opdef):
     return _opdef_paths(opdef) + _model_parent_paths(opdef.modeldef)
@@ -928,7 +880,11 @@ def default_label(opdef):
     flags = _non_default_flag_vals(opdef)
     if not flags:
         return None
-    return " ".join(flag_assigns(flags, quote=True, truncate_floats=True))
+    return flags_desc(flags, truncate_floats=True, delim=" ")
+
+def flags_desc(flags, truncate_floats=False, delim=", "):
+    formatted = flag_util.format_flags(flags, truncate_floats)
+    return delim.join(formatted)
 
 def _non_default_flag_vals(opdef):
     return {
@@ -943,27 +899,15 @@ def _is_default_flag_val(val, name, opdef):
         return False
     return val == flagdef.default
 
-def _format_default_label(flags):
-    return flag_assigns(flags, truncate_floats=True)
-
-def flag_assign(name, val, quote=False, shell_safe=False,
-                truncate_floats=False):
-    formatted = run_util.format_flag_val(val, truncate_floats)
-    if quote or shell_safe:
-        formatted = util.shlex_quote(formatted)
-        if not shell_safe:
-            formatted = _strip_shlex_single_quotes(formatted)
-    return "%s=%s" % (name, formatted)
-
-def _strip_shlex_single_quotes(s):
-    return s.replace("''\"'\"'", "'").replace("'\"'\"''", "'")
-
-def flag_assigns(flags, quote=False, shell_safe=False,
-                 truncate_floats=False):
+def flag_assigns(flags, skip_none=False):
     return [
-        flag_assign(name, val, quote, shell_safe, truncate_floats)
+        flag_assign(name, val)
         for name, val in sorted(flags.items())
+        if not skip_none or val is not None
     ]
+
+def flag_assign(name, val):
+    return "%s=%s" % (name, flag_util.format_flag(val))
 
 def write_sourcecode_digest(run, opdef):
     if opdef.sourcecode.digest is False:

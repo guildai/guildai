@@ -18,7 +18,6 @@ from __future__ import division
 import csv
 import logging
 import os
-import pipes
 import random
 import sys
 
@@ -34,6 +33,7 @@ from guild import click_util
 from guild import cmd_impl_support
 from guild import deps
 from guild import guildfile
+from guild import flag_util
 from guild import model as modellib
 from guild import model_proxy
 from guild import op as oplib
@@ -222,11 +222,7 @@ def _apply_run_flags(run, args):
     args.flags = _flag_args(flags) + args.flags
 
 def _flag_args(flags):
-    return tuple([
-        op_util.flag_assign(name, val)
-        for name, val in sorted(flags.items())
-        if val is not None
-    ])
+    return tuple(op_util.flag_assigns(flags, skip_none=True))
 
 def _apply_run_random_seed(run, args):
     if args.random_seed is None:
@@ -663,7 +659,7 @@ def _is_function(val):
     if not isinstance(val, six.string_types):
         return False
     try:
-        op_util.parse_function(val)
+        flag_util.decode_flag_function(val)
     except ValueError:
         return False
     else:
@@ -944,7 +940,7 @@ def _print_cmd(op, args):
         cli.out(formatted)
 
 def _preview_cmd(op):
-    return [pipes.quote(arg) for arg in op.cmd_args]
+    return [util.shlex_quote(arg) for arg in op.cmd_args]
 
 def _print_batch_trials_cmd(op, args):
     _run_batch_tmp_with_env(op, {"PRINT_TRIALS_CMD": "1"}, args)
@@ -1072,19 +1068,14 @@ def _format_flag(name, val, opdef):
     if val is None:
         formatted = _null_label(name, opdef)
     else:
-        formatted = _strip_quotes(run_util.format_flag_val(val))
+        formatted = flag_util.encode_flag_val(val)
     return "%s: %s" % (name, formatted)
 
 def _null_label(name, opdef):
     flag = opdef.get_flagdef(name)
     if flag and flag.null_label is not None:
-        return run_util.format_flag_val(flag.null_label)
+        return flag_util.encode_flag_val(flag.null_label)
     return "default"
-
-def _strip_quotes(s):
-    if s[:1] == "'" and s[-1:] == "'":
-        return s[1:-1]
-    return s
 
 def _format_op_resources(resources):
     if not resources:
@@ -1241,7 +1232,7 @@ def _csv_batches(path):
         ]
 
 def _flag_vals(row):
-    return [op_util.parse_arg_val(s) for s in row]
+    return [flag_util.decode_flag_val(s) for s in row]
 
 ###################################################################
 # Needed check support

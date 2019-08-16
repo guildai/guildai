@@ -19,6 +19,7 @@ import logging
 import warnings
 
 from guild import batch_util
+from guild import flag_util
 from guild import op_util
 
 from . import skopt_util
@@ -35,10 +36,10 @@ def gen_trials(flags, _runs, max_trials=None, random_seed=None,
     num_trials = max_trials or DEFAULT_TRIALS
     dim_names, dims, _initials = skopt_util.flag_dims(flags)
     if not dim_names:
-        flag_desc = ", ".join(op_util.flag_assigns(flags))
         log.error(
             "flags for batch (%s) do not contain any search "
-            "dimension - quitting", flag_desc)
+            "dimension - quitting",
+            op_util.flags_desc(flags))
         raise batch_util.StopBatch(error=True)
     trial_vals = _gen_trial_vals(dims, num_trials, random_seed)
     trial_opts = {
@@ -71,7 +72,7 @@ def _flag_dim(val, flag_name):
     if isinstance(val, list):
         return val
     try:
-        dist_name, min_max = op_util.parse_function(val)
+        dist_name, min_max = flag_util.decode_flag_function(val)
     except ValueError:
         return [val]
     else:

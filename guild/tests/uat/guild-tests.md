@@ -33,6 +33,8 @@ tests).
       entry-points:                ok
       file-utils:                  ok
       flag-functions:              ok
+      flag-utils:                  ok
+      flag-vals:                   ok
       flagdefs:                    ok
       flags-dest:                  ok
       guildfiles:                  ok

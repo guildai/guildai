@@ -610,8 +610,7 @@ class Project(object):
         }
         if flags:
             flag_vals = run.get("flags") or {}
-            flags_desc = " ".join(op_util.flag_assigns(flag_vals, quote=True))
-            row["flags"] = flags_desc
+            row["flags"] = op_util.flags_desc(flag_vals, delim=" ")
         if labels:
             row["label"] = run.get("label", "")
         if status:

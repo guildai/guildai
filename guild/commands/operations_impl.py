@@ -17,6 +17,7 @@ from __future__ import division
 
 from guild import cli
 from guild import cmd_impl_support
+from guild import flag_util
 from guild import model
 from guild import util
 
@@ -69,7 +70,7 @@ def _format_flag_desc(flag):
     return " %s" % flag.description if flag.description else ""
 
 def _format_flag_value(flag):
-    return " (default is %r)" % flag.default if flag.default is not None else ""
+    return " (default is %s)" % flag_util.encode_flag_val(flag)
 
 def _filter_op(op, args):
     filter_vals = [

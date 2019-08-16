@@ -217,7 +217,7 @@ class Batch(object):
         for trial_flags, trial_opts in trials:
             print(
                 "Running %s (%s):"
-                % (self.op.__name__, _format_flags(trial_flags)))
+                % (self.op.__name__, op_util.flags_desc(trial_flags)))
             run, result = _run(self.op, trial_flags, trial_opts)
             runs.append(run)
             results.append(result)
@@ -272,12 +272,6 @@ def uniform(low, high):
 
 def loguniform(low, high):
     return RangeFunction("loguniform", low, high)
-
-def _format_flags(flags):
-    return ", ".join([
-        op_util.flag_assign(name, flags[name])
-        for name in sorted(flags)
-    ])
 
 def run(op, *args, **kw):
     opts = _pop_opts(kw)
