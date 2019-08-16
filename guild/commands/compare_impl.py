@@ -26,6 +26,7 @@ from guild import cli
 from guild import config
 from guild import index2 as indexlib
 from guild import guildfile
+from guild import flag_util
 from guild import query
 from guild import run as runlib
 from guild import run_util
@@ -372,9 +373,22 @@ def _format_cells(rows, col_names, runs):
             elif val is None:
                 row[i] = ""
             elif isinstance(val, float):
-                row[i] = "%0.6f" % val
+                row[i] = _format_float(val)
+            elif val is True:
+                row[i] = "yes"
+            elif val is False:
+                row[i] = "no"
             else:
                 row[i] = str(val)
+
+def _format_float(f):
+    """Formats float for compare.
+
+    Uses `flag_util.format_flag` instead of Python's float formatting
+    to avoid rounding - esp values like `0.9999999` which should not
+    be represented as `1.000000`.
+    """
+    return flag_util.format_flag(f, truncate_floats=6)
 
 def _get_run_detail_cb(index):
     def f(data, y, _x):

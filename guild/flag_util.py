@@ -23,7 +23,7 @@ import six
 FUNCTION_P = re.compile(r"([a-zA-Z0-9_\-\.]*)\[(.*)\]\s*$")
 FUNCTION_ARG_DELIM = ":"
 
-FLOAT_TRUNCATE_LEN = 5
+DEFAULT_FLOAT_TRUNC_LEN = 5
 
 def encode_flag_val(val):
     if val is True:
@@ -130,8 +130,18 @@ def _flag_assign(name, val, truncate_floats):
 def format_flag(val, truncate_floats=False):
     fmt_val = encode_flag_val(val)
     if truncate_floats and isinstance(val, float):
-        fmt_val = _truncate_formatted_float(fmt_val)
+        trunc_len = _trunc_len(truncate_floats)
+        fmt_val = _truncate_formatted_float(fmt_val, trunc_len)
     return _quote_encoded(fmt_val, val)
+
+def _trunc_len(truncate_floats):
+    if truncate_floats is True:
+        return DEFAULT_FLOAT_TRUNC_LEN
+    if not isinstance(truncate_floats, int):
+        raise ValueError(
+            "invalid value for truncate_floats: %r (expected int)"
+            % truncate_floats)
+    return truncate_floats
 
 def _quote_encoded(encoded, val):
     if _needs_quote(encoded, val):
@@ -147,13 +157,15 @@ def _needs_quote(encoded, val):
 def _quote(s):
     return repr(s)
 
-def _truncate_formatted_float(s):
+def _truncate_formatted_float(s, trunc_len):
     parts = re.split(r"(\.[0-9]+)", s)
-    return "".join([_maybe_truncate_dec_part(part) for part in parts])
+    return "".join([
+        _maybe_truncate_dec_part(part, trunc_len)
+        for part in parts])
 
-def _maybe_truncate_dec_part(part):
+def _maybe_truncate_dec_part(part, trunc_len):
     if part[:1] != ".":
         return part
-    if len(part) <= FLOAT_TRUNCATE_LEN: # lte to include leading '.'
+    if len(part) <= trunc_len: # lte to include leading '.'
         return part
-    return part[:FLOAT_TRUNCATE_LEN + 1]
+    return part[:trunc_len + 1]

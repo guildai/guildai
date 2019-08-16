@@ -92,7 +92,7 @@ The operation is represented simply as the script name:
 
 The operation is like any other. We can view info:
 
-    >>> run("guild runs info")
+    >>> run("guild runs info") # doctest: +REPORT_UDIFF
     id: ...
     operation: train.py
     from: .../examples/simple-mnist
@@ -101,7 +101,7 @@ The operation is like any other. We can view info:
     stopped: ...
     marked: no
     label: epochs=1
-    sourcecode_digest: afbdf55e01c505eaf3034f4d4965a9f8
+    sourcecode_digest: 48bea560cc2c2089edf754c1bb887110
     run_dir: ...
     command: ... -um guild.op_main train
              --batch_size 100
@@ -157,7 +157,7 @@ for scripts:
 
     >>> run("guild compare -t 1")
     run  operation  started  time  status     label     batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss
-    ...  train.py   ... ...  ...   completed  epochs=1  100         data     1       False    .       False  540   0...  0...
+    ...  train.py   ... ...  ...   completed  epochs=1  100         data     1       no       .       no     540   0...  0...
     <exit 0>
 
     run  operation  started  time  status     label  step  loss  acc
@@ -168,6 +168,6 @@ When we compare the last two runs (the `train` op and the `train.py` script):
 
     >>> run("guild compare -t 1 2")
     run  operation  started  time  status     label     batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss  train_loss  train_acc
-    ...  train.py   ... ...  ...   completed  epochs=1  100         data     1       False    .       False  540   0...  0...
+    ...  train.py   ... ...  ...   completed  epochs=1  100         data     1       no       .       no     540   0...  0...
     ...  train      ... ...  ...   completed  epochs=1                                                       540               0...        0...
     <exit 0>
