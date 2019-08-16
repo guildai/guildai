@@ -292,7 +292,7 @@ def test_globals():
         "cat": cat,
         "cli": cli,
         "compare_paths": util.compare_paths,
-        "copyfile": shutil.copy2,
+        "copyfile": copyfile,
         "copytree": util.copytree,
         "dir": dir,
         "dirname": os.path.dirname,
@@ -367,27 +367,10 @@ def dir(path, ignore=None):
         or not any((fnmatch.fnmatch(name, p) for p in ignore))
     ])
 
-def _patch_py3_exception_detail():
-    import traceback
-    format_exception_only = traceback.format_exception_only
-    def patch(*args):
-        formatted = format_exception_only(*args)
-        formatted[-1] = _strip_error_module(formatted[-1])
-        return formatted
-    traceback.format_exception_only = patch
-
-def _strip_error_module(last_line):
-    m = re.match(r"([\w\.]+): (.+)", last_line)
-    if not m:
-        return _strip_class_module(last_line)
-    else:
-        return "{}: {}".format(_strip_class_module(m.group(1)), m.group(2))
-
-def _strip_class_module(class_name):
-    return class_name[class_name.rfind(".") + 1:]
-
-if sys.version_info[0] > 2:
-    _patch_py3_exception_detail()
+def copyfile(*args, **kw):
+    # No return value here to normalize differenced between python2
+    # and python3.
+    shutil.copy2(*args, **kw)
 
 class StderrCapture(object):
 
@@ -739,3 +722,27 @@ class Env(object):
 
 class Proxy(object):
     """Empty object for use as proxy."""
+
+def _patch_py3_exception_detail():
+    import traceback
+    format_exception_only = traceback.format_exception_only
+    def patch(*args):
+        formatted = format_exception_only(*args)
+        formatted[-1] = _strip_error_module(formatted[-1])
+        return formatted
+    traceback.format_exception_only = patch
+
+if sys.version_info[0] > 2:
+    _patch_py3_exception_detail()
+
+def _strip_error_module(last_line):
+    m = re.match(r"([\w\.]+): (.+)", last_line)
+    if not m:
+        return _strip_class_module(last_line)
+    else:
+        return "{}: {}".format(_strip_class_module(m.group(1)), m.group(2))
+
+def _strip_class_module(class_name):
+    return class_name[class_name.rfind(".") + 1:]
+
+Python finished at Fri Aug 16 06:23:45
