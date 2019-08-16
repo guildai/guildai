@@ -635,10 +635,10 @@ def safe_mtime(path):
     except OSError:
         return None
 
-def safe_remove(x, l):
-    safe_remove_all([x], l)
+def safe_list_remove(x, l):
+    safe_list_remove_all([x], l)
 
-def safe_remove_all(xs, l):
+def safe_list_remove_all(xs, l):
     for x in xs:
         try:
             l.remove(x)

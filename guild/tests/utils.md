@@ -528,20 +528,20 @@ Examples:
 
 ## Removing item from lists
 
-The functions `safe_remove` and `safe_remove_all` are used to safely
-remove items from lists.
+The functions `safe_list_remove` and `safe_list_remove_all` are used
+to safely remove items from lists.
 
-    >>> from guild.util import safe_remove
-    >>> from guild.util import safe_remove_all
+    >>> from guild.util import safe_list_remove
+    >>> from guild.util import safe_list_remove_all
 
 Helper functions:
 
     >>> def rm(x, l):
-    ...     safe_remove(x, l)
+    ...     safe_list_remove(x, l)
     ...     pprint(l)
 
     >>> def rm_all(xs, l):
-    ...     safe_remove_all(xs, l)
+    ...     safe_list_remove_all(xs, l)
     ...     pprint(l)
 
 Examples:

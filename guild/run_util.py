@@ -70,7 +70,7 @@ class RunsMonitor(util.LoopingThread):
         to_delete = os.listdir(self.logdir)
         for run in runs:
             link_name = self._format_run_name(run)
-            util.safe_remove(link_name, to_delete)
+            util.safe_list_remove(link_name, to_delete)
             link_path = os.path.join(self.logdir, link_name)
             if not os.path.exists(link_path):
                 self._create_run_link(link_path, run.path)
