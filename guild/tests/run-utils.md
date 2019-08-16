@@ -37,3 +37,166 @@ The `run_util` module provides various run related utility functions.
       a: A
       b: 1.1
       c: 1.0e+100
+
+## Monitoring runs
+
+The class `run_util.RunsMonitor` is responsible for monitoring runs
+and maintaining parallel directories under a log directory.
+
+The monitor gets runs from a callback function. It calls this function
+at a set interval to get the latest set of runs and updates its log
+directory accordingly.
+
+When the monitor refresh its list of runs, it uses another callback
+function to indicate that a run needs to be refreshed.
+
+For our tests we'll use a run proxy that provides the information used
+by the monitor.
+
+    >>> class RunProxy(object):
+    ...
+    ...     def __init__(self, id, op_name, started, label):
+    ...         from guild.opref import OpRef
+    ...         self.short_id = id
+    ...         self.opref = OpRef.from_string(op_name)
+    ...         self.attrs = {
+    ...             "started": started,
+    ...             "label": label,
+    ...         }
+    ...         self.get = self.attrs.get
+
+Here's a callback that returns a sample list of runs:
+
+    >>> sample_runs = [
+    ...     RunProxy("aaaa", "op-1", 1565989068985148, None),
+    ...     RunProxy("bbbb", "op-2", 1565989403019750, "a label"),
+    ... ]
+
+    >>> sample_runs_cb = lambda: sample_runs
+
+Here's our refresh run callback:
+
+    >>> def refresh_run_cb(run, path):
+    ...     print("<refresh %s in %s>" % (run.short_id, basename(path)))
+
+When an instance of `RunsMonitor` is instantiated, it runs once in the
+current thread to initialize the log directory. Subsequent monitoring
+occurs at a prescribed interval only after the monitor is started.
+
+We'll take advantage of this behavior to test the creation of runs
+within the log directory without starting the monitor.
+
+Here's a log directory:
+
+    >>> logdir = mkdtemp()
+
+And our monitor:
+
+    >>> monitor = run_util.RunsMonitor(
+    ...   logdir,
+    ...   sample_runs_cb,
+    ...   refresh_run_cb,
+    ...   interval=not_used)
+    <refresh aaaa in aaaa op-1 2019-08-16 15:57:48>
+    <refresh bbbb in bbbb op-2 2019-08-16 16:03:23 a label>
+
+The step of instantiating monitor results in runs being created in the
+log directory.
+
+    >>> names = dir(logdir)
+    >>> names
+    ['aaaa op-1 2019-08-16 15:57:48',
+     'bbbb op-2 2019-08-16 16:03:23 a label']
+
+The directory structure does not contain any files.
+
+    >>> find(logdir)
+    <empty>
+
+We can add files to any of the run directories.
+
+    >>> touch(path(logdir, names[0], "a-file"))
+    >>> touch(path(logdir, names[1], "b-file"))
+
+    >>> find(logdir)
+    aaaa op-1 2019-08-16 15:57:48/a-file
+    bbbb op-2 2019-08-16 16:03:23 a label/b-file
+
+The monitor is designed to be started as a thread, where it monitors
+the list of runs from its callback and updates the log directory
+accordingly. We can preemptively update the log directory by calling
+`run_once()`.
+
+Let's simulate the deletion of run `bbbb` by removing it from the list
+of sample runs:
+
+    >>> run_bbbb = sample_runs.pop()
+
+Next we'll call `run_once()` on our monitor to update the log
+directory.
+
+    >>> monitor.run_once()
+    <refresh aaaa in aaaa op-1 2019-08-16 15:57:48>
+
+Our new list of runs:
+
+    >>> dir(logdir)
+    ['aaaa op-1 2019-08-16 15:57:48']
+
+And files:
+
+    >>> find(logdir)
+    aaaa op-1 2019-08-16 15:57:48/a-file
+
+Let's add run `bbbb` back and repeat this process.
+
+    >>> sample_runs.append(run_bbbb)
+
+    >>> monitor.run_once()
+    <refresh aaaa in aaaa op-1 2019-08-16 15:57:48>
+    <refresh bbbb in bbbb op-2 2019-08-16 16:03:23 a label>
+
+    >>> runs = dir(logdir)
+    >>> runs
+    ['aaaa op-1 2019-08-16 15:57:48',
+     'bbbb op-2 2019-08-16 16:03:23 a label']
+
+    >>> find(logdir)
+    aaaa op-1 2019-08-16 15:57:48/a-file
+
+Note that `b-file` is not restored. The monitor permanently deletes
+directories associated with deleted runs.
+
+Let's restore `b-file`:
+
+    >>> touch(path(logdir, runs[1], "b-file"))
+
+    >>> find(logdir)
+    aaaa op-1 2019-08-16 15:57:48/a-file
+    bbbb op-2 2019-08-16 16:03:23 a label/b-file
+
+Let's now modify the label of run `bbbb`.
+
+    >>> sample_runs[1].attrs["label"] = "modified label"
+
+And update the log directory.
+
+    >>> monitor.run_once()
+    <refresh aaaa in aaaa op-1 2019-08-16 15:57:48>
+    <refresh bbbb in bbbb op-2 2019-08-16 16:03:23 modified label>
+
+Here are the new runs:
+
+    >>> dir(logdir)
+    ['aaaa op-1 2019-08-16 15:57:48',
+     'bbbb op-2 2019-08-16 16:03:23 modified label']
+
+And files:
+
+    >>> find(logdir)
+    aaaa op-1 2019-08-16 15:57:48/a-file
+
+Once again, `b-file` is deleted. The monitor identifies runs by their
+name. When we changed the label, we changed the generated name for the
+run. The model interprets that as a deleted run (the original name)
+and a new run (the new name).

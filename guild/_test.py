@@ -307,6 +307,7 @@ def test_globals():
         "mkdir": os.mkdir,
         "mkdtemp": mkdtemp,
         "mktemp_guild_dir": mktemp_guild_dir,
+        "not_used": object(),  # an uncooperative value
         "os": os,
         "path": os.path.join,
         "pprint": pprint.pprint,

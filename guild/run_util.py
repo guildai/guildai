@@ -34,7 +34,8 @@ class RunsMonitor(util.LoopingThread):
 
     STOP_TIMEOUT = 5
 
-    def __init__(self, list_runs_cb, logdir, interval):
+    def __init__(self, logdir, list_runs_cb, refresh_run_cb,
+                 interval, run_name_cb=None):
         """Create a RunsMonitor.
 
         Note that run links are created initially by this
@@ -49,6 +50,8 @@ class RunsMonitor(util.LoopingThread):
             stop_timeout=self.STOP_TIMEOUT)
         self.logdir = logdir
         self.list_runs_cb = list_runs_cb
+        self.refresh_run_cb = refresh_run_cb
+        self.run_name_cb = run_name_cb or _default_run_name
         self.run_once(exit_on_error=True)
 
     def run_once(self, exit_on_error=False):
@@ -63,47 +66,38 @@ class RunsMonitor(util.LoopingThread):
                 "Use --debug for details.")
             log.debug(e)
         else:
-            self._refresh_run_links(runs)
+            self._refresh_logdir(runs)
 
-    def _refresh_run_links(self, runs):
-        # List of links to delete - assume all to start
+    def _refresh_logdir(self, runs):
         to_delete = os.listdir(self.logdir)
         for run in runs:
-            link_name = self._format_run_name(run)
-            util.safe_list_remove(link_name, to_delete)
-            link_path = os.path.join(self.logdir, link_name)
-            if not os.path.exists(link_path):
-                self._create_run_link(link_path, run.path)
-            self._refresh_run_link(link_path, run.path)
-        for link_name in to_delete:
-            self._remove_run_link(os.path.join(self.logdir, link_name))
+            name = self.run_name_cb(run)
+            util.safe_list_remove(name, to_delete)
+            path = self._ensure_run(name)
+            self.refresh_run_cb(run, path)
+        for name in to_delete:
+            self._delete_run(name)
 
-    @staticmethod
-    def _format_run_name(run):
-        parts = [run.short_id]
-        if run.opref.model_name:
-            parts.append("%s:%s" % (run.opref.model_name, run.opref.op_name))
-        else:
-            parts.append(run.opref.op_name)
-        parts.append(util.format_timestamp(run.get("started")))
-        label = run.get("label")
-        if label:
-            parts.append(label)
-        return util.safe_filename(" ".join(parts))
+    def _ensure_run(self, name):
+        path = os.path.join(self.logdir, name)
+        util.ensure_dir(path)
+        return path
 
-    @staticmethod
-    def _create_run_link(link, run_dir):
-        log.debug("Linking %s to %s", link, run_dir)
-        util.symlink(run_dir, link)
+    def _delete_run(self, name):
+        path = os.path.join(self.logdir, name)
+        util.safe_rmtree(path)
 
-    def _refresh_run_link(self, link, run_dir):
-        """Callback to let subclass refresh links they may have created."""
-        pass
-
-    @staticmethod
-    def _remove_run_link(link):
-        log.debug("Removing %s", link)
-        os.remove(link)
+def _default_run_name(run):
+    parts = [run.short_id]
+    if run.opref.model_name:
+        parts.append("%s:%s" % (run.opref.model_name, run.opref.op_name))
+    else:
+        parts.append(run.opref.op_name)
+    parts.append(util.format_timestamp(run.get("started")))
+    label = run.get("label")
+    if label:
+        parts.append(label)
+    return util.safe_filename(" ".join(parts))
 
 def format_run(run, index=None):
     status = run.status
