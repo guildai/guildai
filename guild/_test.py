@@ -744,5 +744,3 @@ def _strip_error_module(last_line):
 
 def _strip_class_module(class_name):
     return class_name[class_name.rfind(".") + 1:]
-
-Python finished at Fri Aug 16 06:23:45
