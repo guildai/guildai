@@ -525,3 +525,41 @@ Examples:
 
     >>> ds_split("//foo//bar")
     ['//foo', '/bar']
+
+## Removing item from lists
+
+The functions `safe_remove` and `safe_remove_all` are used to safely
+remove items from lists.
+
+    >>> from guild.util import safe_remove
+    >>> from guild.util import safe_remove_all
+
+Helper functions:
+
+    >>> def rm(x, l):
+    ...     safe_remove(x, l)
+    ...     pprint(l)
+
+    >>> def rm_all(xs, l):
+    ...     safe_remove_all(xs, l)
+    ...     pprint(l)
+
+Examples:
+
+    >>> rm(1, [1])
+    []
+
+    >>> rm(1, [])
+    []
+
+    >>> rm(1, [2])
+    [2]
+
+    >>> rm_all([1, 2], [2, 1])
+    []
+
+    >>> rm_all([1, 2], [])
+    []
+
+    >>> rm_all([1, 2], [2, 3])
+    [3]
