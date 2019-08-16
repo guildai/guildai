@@ -269,7 +269,9 @@ def _apply_batch_desc(base_desc, run, seen_protos):
 def format_attr(val):
     if val is None:
         return ""
-    elif isinstance(val, (bool, int, float, six.string_types)):
+    elif isinstance(val, six.string_types):
+        return val
+    elif isinstance(val, (bool, int, float)):
         return flag_util.encode_flag_val(val)
     elif isinstance(val, list):
         return _format_attr_list(val)
