@@ -28,7 +28,6 @@ import requests
 from werkzeug.exceptions import NotFound
 from werkzeug.utils import redirect
 
-from guild import run_util
 from guild import serving_util
 from guild import util
 from guild import var
@@ -151,9 +150,9 @@ class TBServer(object):
         if self._started:
             raise RuntimeError("already started")
         self.log_dir = util.mktempdir("guild-tensorboard-")
-        self._monitor = run_util.RunsMonitor(
-            self._list_runs,
+        self._monitor = self._tb.RunsMonitor(
             self.log_dir,
+            self._list_runs,
             TB_RUNS_MONITOR_INTERVAL)
         self._monitor.start()
         self._app = self._tb.create_app(

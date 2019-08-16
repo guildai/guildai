@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import hashlib
 import logging
 import os
 import re
@@ -52,39 +53,55 @@ from guild import util
 
 DEFAULT_RELOAD_INTERVAL = 5
 
+TFEVENTS_P = re.compile(r"\.tfevents")
+
 class TensorboardError(Exception):
     pass
 
-class RunsMonitor(run_util.RunsMonitor):
+def RunsMonitor(logdir, list_runs_cb, interval):
+    return run_util.RunsMonitor(
+        logdir,
+        list_runs_cb,
+        _refresh_run,
+        interval)
 
-    tfevent_pattern = re.compile(r"\.tfevents")
+def _refresh_run(run, logdir_run_path):
+    for tfevent_path in _iter_tfevents(run.dir):
+        tfevent_relpath = os.path.relpath(tfevent_path, run.dir)
+        link = _tfevent_link_path(logdir_run_path, tfevent_relpath)
+        _ensure_tfevent_link(tfevent_path, link)
 
-    def _refresh_run_link(self, link, run_dir):
-        to_delete = [
-            os.path.relpath(p, link)
-            for p in self._iter_tfevent_paths(link)]
-        for tfevent_path in self._iter_tfevent_paths(run_dir):
-            tfevent_relpath = os.path.relpath(tfevent_path, run_dir)
-            util.safe_list_remove(tfevent_relpath, to_delete)
-            tfevent_link = os.path.join(link, tfevent_relpath)
-            if not os.path.exists(tfevent_link):
-                log.debug("Creating link %s", tfevent_link)
-                util.ensure_dir(os.path.dirname(tfevent_link))
-                util.symlink(tfevent_path, tfevent_link)
-        for path in to_delete:
-            tfevent_link = os.path.join(link, path)
-            log.debug("Removing %s", tfevent_link)
-            os.remove(tfevent_link)
+def _iter_tfevents(top):
+    for root, _dirs, files in os.walk(top):
+        for name in files:
+            if TFEVENTS_P.search(name):
+                yield os.path.join(root, name)
 
-    def _iter_tfevent_paths(self, run_dir):
-        for root, _dirs, files in os.walk(run_dir):
-            for name in files:
-                if self.tfevent_pattern.search(name):
-                    yield os.path.join(root, name)
+def _tfevent_link_path(root, tfevent_relpath):
+    dirname, basename = os.path.split(tfevent_relpath)
+    if dirname == ".guild":
+        return _guild_tfevent_link(root, basename)
+    return os.path.join(root, tfevent_relpath)
 
-    @staticmethod
-    def _remove_run_link(link):
-        os.remove(link)
+def _guild_tfevent_link(root, basename):
+    """Returns a link to a guild-generated tfevent file.
+
+    Attempts to ensure that the name is unique so it can be stored in
+    the root of the run log subdir.
+
+    The return value is always the same for the same inputs.
+    """
+    return _append_digest(os.path.join(root, basename))
+
+def _append_digest(path):
+    digest = hashlib.md5("asddsa").hexdigest()[:8]
+    return path + "." + digest
+
+def _ensure_tfevent_link(src, link):
+    if os.path.exists(link):
+        return
+    util.ensure_dir(os.path.dirname(link))
+    util.symlink(src, link)
 
 def create_app(logdir, reload_interval, path_prefix=""):
     try:
@@ -92,7 +109,9 @@ def create_app(logdir, reload_interval, path_prefix=""):
     except AttributeError:
         raise TensorboardError("tensorboard>=1.10 required")
     else:
-        tb = tb_f()
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            tb = tb_f()
         argv = (
             "",
             "--logdir", logdir,

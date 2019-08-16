@@ -20,8 +20,6 @@ import os
 import re
 import socket
 
-import click
-
 import guild
 import guild.run
 
@@ -328,29 +326,7 @@ class ViewDataImpl(view.ViewData):
             format_cells=False)
 
 def main(args):
-    if args.files:
-        _view_files(args)
-    else:
-        _start_view(args)
-
-def _view_files(args):
-    with util.TempDir("guild-view-") as logdir:
-        log.debug("Using logdir %s", logdir)
-        list_runs_cb = lambda: runs_impl.runs_for_args(args)
-        monitor = run_util.RunsMonitor(
-            list_runs_cb, logdir, VIEW_FILES_REFRESH_INTERVAL)
-        monitor.start()
-        click.launch(logdir)
-        print("Monitoring runs at %s (Press CTRL+C to quit)" % logdir)
-        try:
-            util.wait_forever()
-        except KeyboardInterrupt:
-            pass
-        log.debug("Stopping")
-        monitor.stop()
-        log.debug("Removing logdir %s", logdir) # Handled by ctx mgr
-    if util.PLATFORM != "Windows":
-        cli.out()
+    _start_view(args)
 
 def _start_view(args):
     data = ViewDataImpl(args)
