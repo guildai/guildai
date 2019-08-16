@@ -4,7 +4,62 @@ These tests exercise each of the operations defined in the
 [`copy-sourcecode`](samples/projects/copy-sourcecode/guild.yml) sample
 project.
 
-    >>> project_dir = sample("projects/copy-sourcecode")
+    >>> project_dir_src = sample("projects/copy-sourcecode")
+
+To control the files that are under the project, we copy the project
+source to a new location, taking care to copy only the following
+files:
+
+    >>> project_files = [
+    ...   ".dotdir",
+    ...   ".dotdir/a.txt",
+    ...   ".gitattributes",
+    ...   "__pycache__/hello.pyc",
+    ...   "a.txt",
+    ...   "empty",
+    ...   "env",
+    ...   "env/bin",
+    ...   "env/bin/activate",
+    ...   "env/some-env-file",
+    ...   "guild.yml",
+    ...   "hello.py",
+    ...   "hello.pyc",
+    ...   "nocopy_dir",
+    ...   "nocopy_dir/.guild-nocopy",
+    ...   "nocopy_dir/a.txt",
+    ...   "subdir",
+    ...   "subdir/b.txt",
+    ...   "subdir/logo.png",
+    ... ]
+
+    >>> project_dir = mkdtemp()
+
+    >>> for root, _dirs, names in os.walk(project_dir_src):
+    ...     for name in names:
+    ...         src = path(root, name)
+    ...         relpath = os.path.relpath(src, project_dir_src)
+    ...         if not relpath in project_files:
+    ...             continue
+    ...         dest = path(project_dir, relpath)
+    ...         ensure_dir(dirname(dest))
+    ...         copyfile(src, dest)
+
+    >>> find(project_dir)
+    .dotdir/a.txt
+    .gitattributes
+    __pycache__/hello.pyc
+    a.txt
+    empty
+    env/bin/activate
+    env/some-env-file
+    guild.yml
+    hello.py
+    hello.pyc
+    nocopy_dir/.guild-nocopy
+    nocopy_dir/a.txt
+    subdir/b.txt
+    subdir/logo.png
+
     >>> project = Project(project_dir)
 
 Here's a helper function for printing operation sourcecode config.
@@ -60,6 +115,7 @@ Here's a preview of the copy, which shows the rules that are applied:
     >>> preview("default")
     Copying from the current directory
     Rules:
+      exclude dir '__pycache__'
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
@@ -74,6 +130,10 @@ Here's a preview of the copy, which shows the rules that are applied:
     Skipped:
       ./hello.pyc
       ./subdir/logo.png
+
+Note that Guild doesn't consider files under ignored directories for
+selected/ignored preview. This is an optimization to avoid evaluating
+potentially large numbers of files in ignored directories.
 
 And the copied files:
 
@@ -96,6 +156,7 @@ Specify `root` to change the directory that files are copied from.
     >>> preview("alt-root")
     Copying from 'subdir'
     Rules:
+      exclude dir '__pycache__'
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
@@ -122,6 +183,7 @@ This rule is applied after the default rules:
     >>> preview("include-png")
     Copying from the current directory
     Rules:
+      exclude dir '__pycache__'
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
@@ -166,6 +228,7 @@ ensures that only those files matching the specified patterns are selected.
     >>> preview("only-png")
     Copying from the current directory
     Rules:
+      exclude dir '__pycache__'
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
@@ -229,6 +292,7 @@ exclude specs.
     >>> preview("exclude-py")
     Copying from the current directory
     Rules:
+      exclude dir '__pycache__'
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
@@ -250,6 +314,86 @@ exclude specs.
     a.txt
     empty
     guild.yml
+    subdir/b.txt
+
+## Excluding directories
+
+Guild does not evaluate files under excluded directories. Such files
+are neither selected nor ignored - they are not even seen.
+
+    >>> print_config("no-subdir")
+    op-sourcecode:
+    - exclude:
+        dir: subdir
+
+In the preview, 'subdir' is not mentioned:
+
+    >>> preview("no-subdir")
+    Copying from the current directory
+    Rules:
+      exclude dir '__pycache__'
+      exclude dir '.*'
+      exclude dir '*' (with '.guild-nocopy')
+      exclude dir '*' (with 'bin/activate')
+      include text '*' (size < 1048577, max match 100)
+      exclude dir 'subdir'
+    Selected for copy:
+      ./.gitattributes
+      ./a.txt
+      ./empty
+      ./guild.yml
+      ./hello.py
+    Skipped:
+      ./hello.pyc
+
+And the copied files:
+
+    >>> run("no-subdir")
+    .gitattributes
+    a.txt
+    empty
+    guild.yml
+    hello.py
+
+## Including default ignored directories
+
+By default, Guild ignores various directories (see list of excluded
+dirs in the previews above). Such directorie can be explicitly
+included.
+
+    >>> print_config("include-dotdir")
+    op-sourcecode:
+    - include:
+        dir: .dotdir
+
+    >>> preview("include-dotdir")
+    Copying from the current directory
+    Rules:
+      exclude dir '__pycache__'
+      exclude dir '.*'
+      exclude dir '*' (with '.guild-nocopy')
+      exclude dir '*' (with 'bin/activate')
+      include text '*' (size < 1048577, max match 100)
+      include dir '.dotdir'
+    Selected for copy:
+      ./.gitattributes
+      ./a.txt
+      ./empty
+      ./guild.yml
+      ./hello.py
+      ./.dotdir/a.txt
+      ./subdir/b.txt
+    Skipped:
+      ./hello.pyc
+      ./subdir/logo.png
+
+    >>> run("include-dotdir")
+    .dotdir/a.txt
+    .gitattributes
+    a.txt
+    empty
+    guild.yml
+    hello.py
     subdir/b.txt
 
 ## Disabling source code copies
@@ -293,6 +437,7 @@ Using an exclude spec:
     >>> preview("disabled3")
     Copying from the current directory
     Rules:
+      exclude dir '__pycache__'
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
@@ -324,6 +469,7 @@ Model adds png and operation excludes `*.py` and `a.*` files:
     >>> preview("m1:op")
     Copying from the current directory
     Rules:
+      exclude dir '__pycache__'
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
@@ -374,6 +520,7 @@ only py and yml files.
     >>> preview("m2:op2")
     Copying from the current directory
     Rules:
+      exclude dir '__pycache__'
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
@@ -404,6 +551,7 @@ Model enables all files to copy:
     >>> preview("m3:op1")
     Copying from the current directory
     Rules:
+      exclude dir '__pycache__'
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
@@ -467,6 +615,7 @@ that directories are not included in the copy.
     >>> preview("hello.py")
     Copying from the current directory
     Rules:
+      exclude dir '__pycache__'
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')

@@ -41,6 +41,7 @@ import os
 import platform
 import pprint
 import re
+import shutil
 import sys
 import tempfile
 import time
@@ -291,9 +292,11 @@ def test_globals():
         "cat": cat,
         "cli": cli,
         "compare_paths": util.compare_paths,
+        "copyfile": shutil.copy2,
         "copytree": util.copytree,
         "dir": dir,
         "dirname": os.path.dirname,
+        "ensure_dir": util.ensure_dir,
         "exists": os.path.exists,
         "find": find,
         "find2": find2,

@@ -555,11 +555,15 @@ def opdef_sourcecode_root(opdef):
 
 def _base_sourcecode_select_rules():
     return [
+        _rule_exclude_pycache_dirs(),
         _rule_exclude_dot_dirs(),
         _rule_exclude_nocopy_dirs(),
         _rule_exclude_venv_dirs(),
         _rule_include_limited_text_files(),
     ]
+
+def _rule_exclude_pycache_dirs():
+    return file_util.exclude("__pycache__", type="dir")
 
 def _rule_exclude_dot_dirs():
     return file_util.exclude(".*", type="dir")

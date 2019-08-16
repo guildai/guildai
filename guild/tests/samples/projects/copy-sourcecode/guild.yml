@@ -55,6 +55,16 @@
       sourcecode:
         - exclude: '*'
 
+    no-subdir:
+      main: guild.pass
+      sourcecode:
+        - exclude: {dir: subdir}
+
+    include-dotdir:
+      main: guild.pass
+      sourcecode:
+        - include: {dir: .dotdir}
+
 - model: m1
   sourcecode:
     - include: subdir/logo.png
