@@ -305,9 +305,6 @@ if __name__ == "__main__":
                 filtered_exc_lines.append(line)
         if not filtered_exc_lines:
             raise
-        log.info(
-            "Limiting traceback to user code. Use "
-            "'guild --debug run ...' for full stack.")
         sys.stderr.write(exc_lines[0])
         for line in filtered_exc_lines:
             sys.stderr.write(line)

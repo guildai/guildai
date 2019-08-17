@@ -57,7 +57,6 @@ When we run `summary1`, which uses the TF 1.0 summary API, we get an
 error because TF 1.x doesn't support that interface:
 
     >>> run("guild run -y summary1 logdir=NOT-USED")
-    INFO: [guild] Limiting traceback to user code. Use 'guild --debug run ...' for full stack.
     Traceback (most recent call last):
     ...
     AttributeError: ... has no attribute 'FileWriter'

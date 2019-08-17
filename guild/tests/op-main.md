@@ -20,8 +20,6 @@ When we run `fail.py`, the script generates an error by raising an
 exception.
 
     >>> project.run("fail.py")
-    INFO: [guild] Limiting traceback to user code. Use
-    'guild --debug run ...' for full stack.
     Traceback (most recent call last):
       File ".../samples/projects/optimizers/fail.py", line 14, in <module>
         fail()
@@ -71,8 +69,6 @@ The same behavior applies to modules run through a Guild file. In this
 case, the project defines a `fail` operation that runs `fail.py`.
 
     >>> project.run("fail")
-    INFO: [guild] Limiting traceback to user code. Use
-    'guild --debug run ...' for full stack.
     Traceback (most recent call last):
       File ".../samples/projects/optimizers/fail.py", line 14, in <module>
         fail()
