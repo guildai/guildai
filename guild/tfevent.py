@@ -156,7 +156,7 @@ def ensure_tf_logging_patched():
 def _ensure_tf_oldstyle_logging_patched():
     try:
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore", FutureWarning)
+            warnings.simplefilter("ignore", (FutureWarning, RuntimeWarning))
             from tensorflow import logging
     except ImportError:
         pass
