@@ -25,43 +25,15 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
-class BackgroundThreads(object):
-
-    def __init__(self, tensorboard, logdir, args):
-        self._args = args
-        self._runs_monitor = self._init_runs_monitor(tensorboard, logdir, args)
-
-    @staticmethod
-    def _init_runs_monitor(tensorboard, logdir, args):
-        return tensorboard.RunsMonitor(
-            logdir,
-            _list_runs_cb(args),
-            args.refresh_interval)
-
-    def start(self):
-        self._runs_monitor.start()
-
-    def stop(self):
-        self._runs_monitor.stop()
-
-def _list_runs_cb(args):
-    return lambda: _runs_for_args(args)
-
-def _runs_for_args(args):
-    runs = runs_impl.runs_for_args(args)
-    if args.include_batch:
-        return runs
-    return _remove_batch_runs(runs)
-
-def _remove_batch_runs(runs):
-    return [run for run in runs if not batch_util.is_batch(run)]
-
 def main(args):
     tensorboard = _guild_tensorboard_module()
     with util.TempDir("guild-tensorboard-") as logdir:
         log.debug("Using logdir %s", logdir)
-        bg_threads = BackgroundThreads(tensorboard, logdir, args)
-        bg_threads.start()
+        monitor = tensorboard.RunsMonitor(
+            logdir,
+            _list_runs_cb(args),
+            args.refresh_interval)
+        monitor.start()
         try:
             tensorboard.serve_forever(
                 logdir=logdir,
@@ -73,7 +45,7 @@ def main(args):
             cli.error(str(e))
         finally:
             log.debug("Stopping")
-            bg_threads.stop()
+            monitor.stop()
             log.debug("Removing logdir %s", logdir) # Handled by ctx mgr
     if util.PLATFORM != "Windows":
         cli.out()
@@ -97,6 +69,18 @@ def _handle_tensorboard_import_error(e):
     else:
         cli.out("TensorBoard could not be started: %s" % e, err=True)
     cli.error()
+
+def _list_runs_cb(args):
+    return lambda: _runs_for_args(args)
+
+def _runs_for_args(args):
+    runs = runs_impl.runs_for_args(args)
+    if args.include_batch:
+        return runs
+    return _remove_batch_runs(runs)
+
+def _remove_batch_runs(runs):
+    return [run for run in runs if not batch_util.is_batch(run)]
 
 def _open_url(url):
     util.open_url(url)
