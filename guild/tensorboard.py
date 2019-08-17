@@ -78,24 +78,15 @@ def _iter_tfevents(top):
                 yield os.path.join(root, name)
 
 def _tfevent_link_path(root, tfevent_relpath):
+    digest = _tfevent_link_digest(root, tfevent_relpath)
     dirname, basename = os.path.split(tfevent_relpath)
     if dirname == ".guild":
-        return _guild_tfevent_link(root, basename)
-    return os.path.join(root, tfevent_relpath)
+        tfevent_relpath = basename
+    return os.path.join(root, tfevent_relpath) + "." + digest
 
-def _guild_tfevent_link(root, basename):
-    """Returns a link to a guild-generated tfevent file.
-
-    Attempts to ensure that the name is unique so it can be stored in
-    the root of the run log subdir.
-
-    The return value is always the same for the same inputs.
-    """
-    return _append_digest(os.path.join(root, basename))
-
-def _append_digest(path):
-    digest = hashlib.md5("asddsa").hexdigest()[:8]
-    return path + "." + digest
+def _tfevent_link_digest(root, relpath):
+    content = os.path.join(root, relpath)
+    return hashlib.md5(content).hexdigest()[:8]
 
 def _ensure_tfevent_link(src, link):
     if os.path.exists(link):
