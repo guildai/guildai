@@ -67,14 +67,23 @@ def _page(path):
     f = _open_file(path)
     click.echo_via_pager(f.read())
 
-def _open_file(path):
+def _open_file(path, binary=False):
+    mode = "rb" if binary else "r"
     try:
-        return open(path, "r")
+        return open(path, mode)
     except IOError as e:
         cli.error(e)
 
 def _cat(path):
-    f = _open_file(path)
-    for line in f.readlines():
-        sys.stdout.write(line)
+    f = _open_file(path, binary=True)
     sys.stdout.flush()
+    try:
+        out = sys.stdout.buffer
+    except AttributeError:
+        out = sys.stdout
+    while True:
+        b = f.read(10240)
+        if not b:
+            break
+        out.write(b)
+    out.flush()
