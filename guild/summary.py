@@ -15,8 +15,9 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import re
+import io
 import logging
+import re
 import sys
 
 import six
@@ -28,12 +29,58 @@ ALIASES = [
     (re.compile(r"\\value"), "[0-9\\.e\\-]+"),
 ]
 
+class SummaryWriter(object):
+
+    def __init__(self, logdir):
+        self._logdir = logdir
+        self._writer = None
+
+    def add_scalar(self, key, val, step):
+        writer = self._get_writer()
+        writer.add_scalar(key, val, step)
+
+    def add_image(self, tag, image):
+        from PIL import Image
+        image = Image.open(image)
+        summary = ImageSummary(tag, image)
+        self._get_writer().file_writer.add_summary(summary)
+
+    def _get_writer(self):
+        if not self._writer:
+            from tensorboardX import SummaryWriter
+            self._writer = SummaryWriter(self._logdir)
+        return self._writer
+
+    def close(self):
+        if self._writer:
+            self._writer.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args):
+        self.close()
+
+def ImageSummary(tag, image):
+    from tensorboardX.proto.summary_pb2 import Summary
+    encoded = _encode_png(image)
+    summary_image = Summary.Image(
+        height=image.height,
+        width=image.width,
+        colorspace=len(image.getbands()),
+        encoded_image_string=encoded)
+    return Summary(value=[Summary.Value(tag=tag, image=summary_image)])
+
+def _encode_png(image):
+    bytes = io.BytesIO()
+    image.save(bytes, format='PNG')
+    return bytes.getvalue()
+
 class OutputScalars(object):
 
     def __init__(self, config, output_dir):
         self._patterns = _init_patterns(config)
-        self._output_dir = output_dir
-        self._writer = None
+        self._writer = SummaryWriter(output_dir)
         self._step = None
 
     def write(self, line):
@@ -42,20 +89,12 @@ class OutputScalars(object):
         if step is not None:
             self._step = step
         if vals:
-            writer = self._ensure_writer()
             for key, val in sorted(vals.items()):
                 log.debug("scalar %s val=%s step=%s", key, val, self._step)
-                writer.add_scalar(key, val, self._step)
-
-    def _ensure_writer(self):
-        import tensorboardX
-        if self._writer is None:
-            self._writer = tensorboardX.SummaryWriter(self._output_dir)
-        return self._writer
+                self._writer.add_scalar(key, val, self._step)
 
     def close(self):
-        if self._writer:
-            self._writer.close()
+        self._writer.close()
 
     def print_patterns(self):
         for key, p in self._patterns:

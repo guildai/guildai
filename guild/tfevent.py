@@ -31,13 +31,13 @@ from guild import util
 
 log = logging.getLogger("guild")
 
-class ScalarReader(object):
+class EventReader(object):
 
     def __init__(self, dir):
         self.dir = dir
 
     def __iter__(self):
-        """Yields (tag, val, step) for scalars."""
+        """Yields event for all available events in dir."""
         events = self._tf_events()
         if not events:
             log.warning(
@@ -46,17 +46,7 @@ class ScalarReader(object):
             return
         try:
             for event in events:
-                if not event.HasField("summary"):
-                    continue
-                for val in event.summary.value:
-                    try:
-                        yield util.try_apply([
-                            self._try_tfevent_v2,
-                            self._try_tfevent_v1
-                        ], event, val)
-                    except util.TryFailed:
-                        log.debug("could not read event summary %s", val)
-
+                yield event
         except RuntimeError as e:
             # PEP 479 landed in Python 3.7 and TB triggers this
             # runtime error when there are no events to read.
@@ -74,6 +64,25 @@ class ScalarReader(object):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", FutureWarning)
                 return _GeneratorFromPath(self.dir).Load()
+
+class ScalarReader(object):
+
+    def __init__(self, dir):
+        self.dir = dir
+
+    def __iter__(self):
+        """Yields (tag, val, step) for all scalars in dir."""
+        for event in EventReader(self.dir):
+            if not event.HasField("summary"):
+                continue
+            for val in event.summary.value:
+                try:
+                    yield util.try_apply([
+                        self._try_tfevent_v2,
+                        self._try_tfevent_v1
+                    ], event, val)
+                except util.TryFailed:
+                    log.debug("could not read event summary %s", val)
 
     @staticmethod
     def _try_tfevent_v2(event, val):

@@ -28,6 +28,7 @@ Classifier: Topic :: Scientific/Engineering :: Visualization
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: Utilities
+Requires-Dist: Pillow>=5.0
 Requires-Dist: PyYAML>=2.12
 Requires-Dist: Werkzeug>=0.13
 Requires-Dist: chardet>=3.0.4

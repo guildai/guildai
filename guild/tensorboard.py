@@ -22,38 +22,28 @@ import re
 import sys
 import warnings
 
-import pkg_resources
 from werkzeug import serving
 
-from tensorboard import version
+from guild import run_util
+from guild import summary
+from guild import util
 
 log = logging.getLogger("guild")
-
-# Check tensorboard version against our requirements. Indicate error
-# as ImportError with the current version and unmet requirement as
-# additional arguments.
-
-_req = pkg_resources.Requirement.parse("tensorflow-tensorboard >= 1.10.0")
-
-if version.VERSION not in _req:
-    log.warning(
-        "installed version of tensorboard (%s) does not meet the "
-        "requirement %s", version.VERSION, _req)
-
-# pylint: disable=wrong-import-position
-
-from tensorboard import program
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", FutureWarning)
-    from tensorboard.backend import application
-
-from guild import run_util
-from guild import util
 
 DEFAULT_RELOAD_INTERVAL = 5
 
 TFEVENTS_P = re.compile(r"\.tfevents")
+
+IMG_EXT = (
+    ".gif",
+    ".jpeg",
+    ".jpg",
+    ".png",
+    ".tif",
+    ".tiff",
+)
+
+MAX_IMAGE_SUMMARIES = 100
 
 class TensorboardError(Exception):
     pass
@@ -66,6 +56,11 @@ def RunsMonitor(logdir, list_runs_cb, interval):
         interval)
 
 def _refresh_run(run, logdir_run_path):
+    _refresh_tfevent_links(run, logdir_run_path)
+    with summary.SummaryWriter(logdir_run_path) as writer:
+        _refresh_summaries(run, logdir_run_path, writer)
+
+def _refresh_tfevent_links(run, logdir_run_path):
     for tfevent_path in _iter_tfevents(run.dir):
         tfevent_relpath = os.path.relpath(tfevent_path, run.dir)
         link = _tfevent_link_path(logdir_run_path, tfevent_relpath)
@@ -85,7 +80,7 @@ def _tfevent_link_path(root, tfevent_relpath):
     return os.path.join(root, tfevent_relpath) + "." + digest
 
 def _tfevent_link_digest(root, relpath):
-    content = os.path.join(root, relpath)
+    content = os.path.join(root, relpath).encode()
     return hashlib.md5(content).hexdigest()[:8]
 
 def _ensure_tfevent_link(src, link):
@@ -94,7 +89,83 @@ def _ensure_tfevent_link(src, link):
     util.ensure_dir(os.path.dirname(link))
     util.symlink(src, link)
 
+def _refresh_summaries(run, logdir_run_path, writer):
+    _refresh_hparam_summaries(run, logdir_run_path, writer)
+    _refresh_image_summaries(run, logdir_run_path, writer)
+
+def _refresh_hparam_summaries(_run, _logdir_run_path, _writer):
+    pass
+
+def _metric_scalar_tags(run):
+    from guild import index2
+    return [
+        tag for tag in [
+            s["tag"] for s in index2.iter_run_scalars(run)
+        ]
+        if "/" not in tag
+    ]
+
+def _refresh_image_summaries(run, logdir_run_path, writer):
+    n = 0
+    for path, relpath in _iter_images(run.dir):
+        if n >= MAX_IMAGE_SUMMARIES:
+            break
+        n += 1
+        digest = _image_digest_path(logdir_run_path, relpath)
+        if _image_added(digest):
+            continue
+        pending = _image_pending(digest)
+        if run.status == "running" and _image_newer(path, pending):
+            _set_image_pending(pending)
+        else:
+            _add_image_summary(writer, relpath, path)
+            _set_image_added(pending)
+
+def _iter_images(top):
+    for root, _dir, names in os.walk(top):
+        for name in names:
+            _, ext = os.path.splitext(name)
+            if ext.lower() in IMG_EXT:
+                path = os.path.join(root, name)
+                if not os.path.islink(path):
+                    yield path, os.path.relpath(path, top)
+
+def _image_digest_path(root, path):
+    digest = hashlib.md5(path.encode()).hexdigest()
+    return os.path.join(root, ".guild", "images", digest)
+
+def _image_added(digest):
+    return os.path.exists(digest)
+
+def _image_pending(digest):
+    return digest + ".pending"
+
+def _image_newer(path, pending):
+    if not os.path.exists(pending):
+        return True
+    return util.safe_mtime(path) > util.safe_mtime(pending)
+
+def _set_image_pending(pending):
+    util.ensure_dir(os.path.dirname(pending))
+    util.touch(pending)
+
+def _add_image_summary(writer, tag, path):
+    writer.add_image(tag, path)
+
+def _set_image_added(pending):
+    assert pending.endswith(".pending"), pending
+    added = pending[:-8]
+    if os.path.exists(pending):
+        os.rename(pending, added)
+    else:
+        util.ensure_dir(os.path.dirname(added))
+        util.touch(added)
+
 def create_app(logdir, reload_interval, path_prefix=""):
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", FutureWarning)
+        from tensorboard.backend import application
+        from tensorboard import program
     try:
         tb_f = program.TensorBoard
     except AttributeError:
@@ -135,6 +206,7 @@ def _silent_logger(log0):
     return f
 
 def run_simple_server(tb_app, host, port, ready_cb):
+    from tensorboard import version
     server, _ = make_simple_server(tb_app, host, port)
     url = util.local_server_url(host, port)
     sys.stderr.write(

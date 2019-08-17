@@ -26,7 +26,8 @@ from . import runs_impl
 log = logging.getLogger("guild")
 
 def main(args):
-    tensorboard = _guild_tensorboard_module()
+    from guild import tensorboard
+    tensorboard.setup_logging()
     with util.TempDir("guild-tensorboard-") as tmp:
         logdir = tmp.path
         log.debug("Using logdir %s", logdir)
@@ -52,34 +53,13 @@ def main(args):
     if util.PLATFORM != "Windows":
         cli.out()
 
-def _guild_tensorboard_module():
-    try:
-        from guild import tensorboard
-    except ImportError as e:
-        _handle_tensorboard_import_error(e)
-    else:
-        tensorboard.setup_logging()
-        return tensorboard
-
-def _handle_tensorboard_import_error(e):
-    if "tensorflow" in str(e):
-        cli.out(
-            "TensorBoard cannot not be started because TensorFlow "
-            "is not installed.\n"
-            "Refer to https://www.tensorflow.org/install/ for help "
-            "installing TensorFlow on your system.", err=True)
-    else:
-        cli.out("TensorBoard could not be started: %s" % e, err=True)
-    cli.error()
-
 def _list_runs_cb(args):
-    return lambda: _runs_for_args(args)
-
-def _runs_for_args(args):
-    runs = runs_impl.runs_for_args(args)
-    if args.include_batch:
-        return runs
-    return _remove_batch_runs(runs)
+    def f():
+        runs = runs_impl.runs_for_args(args)
+        if args.include_batch:
+            return runs
+        return _remove_batch_runs(runs)
+    return f
 
 def _remove_batch_runs(runs):
     return [run for run in runs if not batch_util.is_batch(run)]

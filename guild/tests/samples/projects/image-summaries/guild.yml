@@ -1,0 +1,4 @@
+copy-images:
+  disable-plugins: all
+  requires:
+    - file: favicon.png

@@ -39,6 +39,7 @@ tests).
       flags-dest:                  ok
       guildfiles:                  ok
       help:                        ok
+      image-summaries:             ok
       import-flags:                ok
       imports:                     ok
       includes:                    ok

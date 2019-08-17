@@ -3,6 +3,7 @@
 # NOTE: Changes to this file should be reflected in
 # guildai.dist-info/METADATA.
 
+Pillow>=5.0
 PyYAML>=2.12
 Werkzeug>=0.13
 chardet>=3.0.4

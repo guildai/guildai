@@ -44,7 +44,7 @@ class SummaryPlugin(Plugin):
         self._try_patch_tensorflow()
 
     def _patch_tensorboardX(self):
-        from tensorboardX import SummaryWriter
+        from guild.summary import SummaryWriter
         self.log.debug("wrapping tensorboardX.SummaryWriter.add_scalar")
         python_util.listen_method(
             SummaryWriter,
