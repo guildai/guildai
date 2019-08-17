@@ -299,7 +299,7 @@ def test_globals():
         "ensure_dir": util.ensure_dir,
         "exists": os.path.exists,
         "find": find,
-        "find2": find2,
+        "findl": findl,
         "gapi": gapi,
         "guild": guild,
         "guildfile": guildfile,
@@ -338,14 +338,14 @@ def mktemp_guild_dir():
     return guild_dir
 
 def find(root, followlinks=False):
-    paths = find2(root, followlinks)
+    paths = findl(root, followlinks)
     if not paths:
         print("<empty>")
     else:
         for path in paths:
             print(path)
 
-def find2(root, followlinks=False):
+def findl(root, followlinks=False):
     all = []
     relpath = lambda path, name: (
         os.path.relpath(os.path.join(path, name), root))
@@ -618,7 +618,7 @@ class Project(object):
             if sourcecode:
                 return path.startswith(os.path.join(".guild", "sourcecode"))
             return not path.startswith(".guild")
-        return [path for path in find2(run.path) if filter(path)]
+        return [path for path in findl(run.path) if filter(path)]
 
     @staticmethod
     def cat(run, path):

@@ -19,7 +19,7 @@ writes summaries using `tensorboardX`.
 
 Here are the tfevent files generated for the run:
 
-    >>> [path for path in find2(run.dir) if "tfevent" in path]
+    >>> [path for path in findl(run.dir) if "tfevent" in path]
     ['.guild/events.out.tfevents...',
      'events.out.tfevents...']
 

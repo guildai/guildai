@@ -21,7 +21,7 @@ contains both a large number of text files.
 
 Here are our 110 files:
 
-    >>> sourcecode_src = find2(project_dir)
+    >>> sourcecode_src = findl(project_dir)
     >>> len(sourcecode_src)
     110
     >>> for s in sourcecode_src:
