@@ -5,7 +5,7 @@ if [ -z "$_guild_env" ]; then
     if [ -e "bin/activate" ]; then
         _guild_env=.
     else
-        _guild_env=./env
+        _guild_env=./venv
     fi
 fi
 
@@ -14,8 +14,8 @@ if [ ! -e "$_guild_env" ]; then
     return 1
 fi
 
-if [ ! -e "$_guild_env/bin/activate" -a -e "$_guild_env/env" ]; then
-    _guild_env="$_guild_env/env"
+if [ ! -e "$_guild_env/bin/activate" -a -e "$_guild_env/venv" ]; then
+    _guild_env="$_guild_env/venv"
 fi
 
 if [ -e "$_guild_env/bin/activate" ]; then

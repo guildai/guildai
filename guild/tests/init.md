@@ -19,7 +19,7 @@ Here's a helper function to generate a Config object.
     ...   from guild import config as configlib
     ...   from guild import click_util
     ...   arg_kw = dict(
-    ...     dir=join_path(project_dir, "env"),
+    ...     dir=join_path(project_dir, "venv"),
     ...     name=None,
     ...     python=None,
     ...     guild=None,
@@ -38,8 +38,8 @@ Here's a helper function to generate a Config object.
 Here's the default prompt, assuming we're creating the environment
 within the project directory:
 
-    >>> config().prompt_params
-    [('Location', '.../samples/projects/init-env/env'),
+    >>> pprint(config().prompt_params)
+    [('Location', '.../samples/projects/init-env/venv'),
      ('Name', 'init-env'),
      ('Python interpreter', 'default'),
      ('Guild', '...'),
@@ -68,8 +68,8 @@ available on the Python path configured for the environment.
 Here's the preview when we specify the location of `pkg-a` and `pkg-b`
 using a `--path` option.
 
-    >>> config(path=(project_dir,)).prompt_params
-    [('Location', '.../samples/projects/init-env/env'),
+    >>> pprint(config(path=(project_dir,)).prompt_params)
+    [('Location', '.../samples/projects/init-env/venv'),
      ('Name', 'init-env'),
      ('Python interpreter', 'default'),
      ('Guild', '...'),

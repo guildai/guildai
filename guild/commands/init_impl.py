@@ -55,7 +55,7 @@ class Config(object):
         if name:
             return name
         basename = os.path.basename(abs_env_dir)
-        if basename != "env":
+        if basename != "venv":
             return basename
         return os.path.basename(os.path.dirname(abs_env_dir))
 
@@ -433,7 +433,7 @@ def _initialized_msg(config):
         cli.out("  source guild-env {}".format(config.env_dir))
     else:
         env_name = os.path.basename(config.env_dir)
-        if env_name != "env":
+        if env_name != "venv":
             cli.out("  source guild-env {}".format(env_name))
         else:
             cli.out("  source guild-env")
@@ -441,7 +441,7 @@ def _initialized_msg(config):
 
 def _source_cmd(env_dir):
     name = os.path.basename(env_dir)
-    if name == "env":
+    if name == "venv":
         return "source guild-env"
     else:
         return "source guild-env {}".format(name)

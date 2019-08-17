@@ -20,7 +20,7 @@ import click
 from guild import click_util
 
 @click.command()
-@click.argument("dir", default="env")
+@click.argument("dir", default="venv")
 @click.option(
     "-n", "--name", metavar="NAME",
     help="Environment name (default is env parent directory name).")
