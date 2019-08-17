@@ -631,11 +631,11 @@ class Project(object):
             guild_home=self.guild_home,
             **kw)
 
-    def run_scalars(self, run):
+    def scalars(self, run):
         self.index.refresh([run], ["scalar"])
         return self.index.run_scalars(run)
 
-    def run_scalar(self, run, prefix, tag, qual, step):
+    def scalar(self, run, prefix, tag, qual, step):
         self.index.refresh([run], ["scalar"])
         return self.index.run_scalar(run, prefix, tag, qual, step)
 

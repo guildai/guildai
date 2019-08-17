@@ -195,7 +195,7 @@ The tests below use the `summary` sample project.
     x: 4
 
     >>> last_run = project.list_runs()[0]
-    >>> scalars = project.run_scalars(last_run)
+    >>> scalars = project.scalars(last_run)
     >>> pprint(scalars) # doctest: +REPORT_UDIFF
     [{'avg_val': 2.5,
       'count': 4,

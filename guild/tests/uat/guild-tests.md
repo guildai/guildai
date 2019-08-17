@@ -77,6 +77,7 @@ tests).
       run-utils:                   ok
       runs-1:                      ok
       runs-2:                      ok
+      scalars:                     ok
       select-resources:            ok
       skopt:                       ok
       skopt-utils:                 ok

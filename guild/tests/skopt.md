@@ -177,7 +177,7 @@ And the run:
 Let's get the loss for the latest run:
 
     >>> latest_run = project.list_runs()[0]
-    >>> loss = project.run_scalar(latest_run, None, "loss", "last", False)
+    >>> loss = project.scalar(latest_run, None, "loss", "last", False)
     >>> isinstance(loss, float) and loss < 0, loss, latest_run.path
     (True, ...)
 
@@ -211,6 +211,6 @@ operation with maximize:
 And the latest loss:
 
     >>> latest_run = project.list_runs()[0]
-    >>> loss = project.run_scalar(latest_run, None, "loss", "last", False)
+    >>> loss = project.scalar(latest_run, None, "loss", "last", False)
     >>> isinstance(loss, float) and loss > 0, loss, latest_run.path
     (True, ...)
