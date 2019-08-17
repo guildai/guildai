@@ -359,8 +359,8 @@ def print_trials_cmd(trials):
         _print_trial_cmd(trial)
 
 def _print_trial_cmd(trial):
-    with util.TempDir("guild-trial-") as run_dir:
-        trial.init(run_dir, quiet=True)
+    with util.TempDir("guild-trial-") as tmp:
+        trial.init(tmp.path, quiet=True)
         trial.run(print_cmd=True, quiet=True)
 
 ###################################################################

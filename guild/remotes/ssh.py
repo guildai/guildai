@@ -151,9 +151,9 @@ class SSHRemote(remotelib.Remote):
         sys.stdout.write("%s (%s) is available\n" % (self.name, self.host))
 
     def run_op(self, opspec, flags, restart, no_wait, **opts):
-        with util.TempDir(prefix="guild-remote-pkg-") as dist_dir:
-            _build_package(dist_dir)
-            remote_run_dir = self._init_remote_run(dist_dir, opspec, restart)
+        with util.TempDir(prefix="guild-remote-pkg-") as tmp:
+            _build_package(tmp.path)
+            remote_run_dir = self._init_remote_run(tmp.path, opspec, restart)
         self._start_op(remote_run_dir, opspec, flags, **opts)
         run_id = os.path.basename(remote_run_dir)
         if no_wait:

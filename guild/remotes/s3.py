@@ -121,10 +121,10 @@ class S3Remote(remotelib.Remote):
             args = [
                 "--bucket", self.bucket,
                 "--key", _join_path(self.root, "meta-id"),
-                tmp,
+                tmp.path,
             ]
             self._s3api_output("get-object", args)
-            return open(tmp, "r").read().strip()
+            return open(tmp.path, "r").read().strip()
 
     def _s3api_output(self, name, args):
         cmd = ["aws"]
@@ -338,12 +338,12 @@ class S3Remote(remotelib.Remote):
     def _new_meta_id(self):
         meta_id = _uuid()
         with util.TempFile("guild-s3-") as tmp:
-            with open(tmp, "w") as f:
+            with open(tmp.path, "w") as f:
                 f.write(meta_id)
             args = [
                 "--bucket", self.bucket,
                 "--key", _join_path(self.root, "meta-id"),
-                "--body", tmp
+                "--body", tmp.path
             ]
             self._s3api_output("put-object", args)
 

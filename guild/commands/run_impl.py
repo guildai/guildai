@@ -971,8 +971,8 @@ def _print_or_save_batch_trials(op, args):
         _run_batch_tmp_with_env(op, {"SAVE_TRIALS": args.save_trials}, args)
 
 def _run_batch_tmp_with_env(op, cmd_env, args):
-    with util.TempDir() as batch_run_dir:
-        op.set_run_dir(batch_run_dir)
+    with util.TempDir() as tmp:
+        op.set_run_dir(tmp.path)
         op.batch_op.cmd_env.update(cmd_env)
         _init_batch_run(op)
         _run_op(op.batch_op, args)
@@ -1326,8 +1326,7 @@ def _op_pidfile(args):
     if args.pidfile:
         return args.pidfile
     elif args.background:
-        with util.TempFile("guild-pid-", keep=True) as pidfile:
-            return pidfile
+        return util.TempFile("guild-pid-").path
     else:
         return None
 

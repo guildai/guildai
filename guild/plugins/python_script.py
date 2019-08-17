@@ -283,7 +283,8 @@ class PythonScriptPlugin(pluginlib.Plugin):
             "LOG_LEVEL": str(self.log.getEffectiveLevel()),
             "PYTHONDONTWRITEBYTECODE": "1",
         })
-        with util.TempFile() as data_path:
+        with util.TempFile() as tmp:
+            data_path = tmp.path
             cmd = [
                 sys.executable,
                 "-m", "guild.plugins.import_argparse_flags_main",

@@ -291,11 +291,10 @@ class TempBase(object):
         self._prefix = prefix
         self._suffix = suffix
         self._keep = keep
-        self.path = None
+        self.path = self._init_temp(self._prefix, self._suffix)
 
     def __enter__(self):
-        self.path = self._init_temp(self._prefix, self._suffix)
-        return self.path
+        return self
 
     @staticmethod
     def _init_temp(prefix, suffix):
@@ -303,10 +302,10 @@ class TempBase(object):
 
     def __exit__(self, *_exc):
         if not self._keep:
-            self._del_temp(self.path)
+            self.delete()
 
     @staticmethod
-    def _del_temp(path):
+    def delete():
         raise NotImplementedError()
 
 class TempDir(TempBase):
@@ -315,9 +314,8 @@ class TempDir(TempBase):
     def _init_temp(prefix, suffix):
         return tempfile.mkdtemp(prefix=prefix, suffix=suffix)
 
-    @staticmethod
-    def _del_temp(path):
-        rmtempdir(path)
+    def delete(self):
+        rmtempdir(self.path)
 
 class TempFile(TempBase):
 
@@ -327,9 +325,8 @@ class TempFile(TempBase):
         os.close(f)
         return path
 
-    @staticmethod
-    def _del_temp(path):
-        os.remove(path)
+    def delete(self):
+        os.remove(self.path)
 
 def mktempdir(prefix=None):
     return tempfile.mkdtemp(prefix=prefix)

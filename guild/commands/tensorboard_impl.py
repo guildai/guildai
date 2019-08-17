@@ -27,12 +27,14 @@ log = logging.getLogger("guild")
 
 def main(args):
     tensorboard = _guild_tensorboard_module()
-    with util.TempDir("guild-tensorboard-") as logdir:
+    with util.TempDir("guild-tensorboard-") as tmp:
+        logdir = tmp.path
         log.debug("Using logdir %s", logdir)
         monitor = tensorboard.RunsMonitor(
             logdir,
             _list_runs_cb(args),
             args.refresh_interval)
+        monitor.run_once(exit_on_error=True)
         monitor.start()
         try:
             tensorboard.serve_forever(

@@ -25,7 +25,8 @@ of flags.
     >>> import csv
 
     >>> def gen_trials(op, max_trials=5, **flags):
-    ...     with TempFile() as csv_path:
+    ...     with TempFile() as tmp:
+    ...         csv_path = tmp.path
     ...         gapi.run_capture_output(
     ...             op, flags=flags,
     ...             optimizer="random",
