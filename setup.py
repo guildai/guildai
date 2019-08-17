@@ -65,7 +65,9 @@ PKG_INFO, ENTRY_POINTS = guild_dist_info()
 
 EXTERNAL = {
     "click": ("guildai/click", "1ed032b55d1d886205ec9f6f2b9893303c04b71a"),
-    "psutil": ("giampaolo/psutil", "release-5.4.2"),
+    "tensorboardX": ("guildai/tensorboardX",
+                     "900ed8725e97daaa3140751869c4807d184f968f"),
+    "psutil": ("giampaolo/psutil", "release-5.6.3"),
 }
 
 class BinaryDistribution(Distribution):
@@ -120,10 +122,11 @@ def _external_marker(name):
         ".{}-py{}".format(name, py_ver))
 
 def _install_external(name, dist_spec):
-    with util.TempDir(prefix="pip-", suffix="-download") as tmp:
-        wheel_path = _pip_wheel(name, dist_spec, tmp)
-        _install_external_wheel(wheel_path)
-        util.touch(_external_marker(name))
+    tmp = util.TempDir(prefix="pip-", suffix="-download")
+    wheel_path = _pip_wheel(name, dist_spec, tmp.path)
+    _install_external_wheel(wheel_path)
+    util.touch(_external_marker(name))
+    tmp.delete()
 
 def _pip_wheel(name, dist_spec, root):
     path, tag = dist_spec
@@ -144,7 +147,7 @@ def _pip_wheel(name, dist_spec, root):
     _reset_env_for_pip_wheel()
     _patch_pip_download_progress()
     cmd.run(options, cmd_args)
-    wheels = glob.glob(os.path.join(wheel_dir, "*.whl"))
+    wheels = glob.glob(os.path.join(wheel_dir, name + "-*.whl"))
     assert len(wheels) == 1, wheels
     return wheels[0]
 

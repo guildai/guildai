@@ -45,7 +45,6 @@ Requires-Dist: setuptools>=40.6.3
 Requires-Dist: six>=1.10.0
 Requires-Dist: tabview>=1.4.3
 Requires-Dist: tensorboard>=1.10
-Requires-Dist: tensorboardX>=1.6
 Requires-Dist: twine>=1.12.1
 Requires-Dist: virtualenv>=15.1.0
 

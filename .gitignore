@@ -4,6 +4,7 @@
 /guildai.egg-info
 /guild/external/click
 /guild/external/psutil
+/guild/external/tensorboardX
 /guild/external/.*
 /guild/external/*.dist-info
 /guild/view/node_modules

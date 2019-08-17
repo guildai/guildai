@@ -21,6 +21,5 @@ setuptools>=40.6.3
 six>=1.10.0
 tabview>=1.4.3
 tensorboard>=1.10
-tensorboardX>=1.6
 twine>=1.12.1
 virtualenv>=15.1.0
