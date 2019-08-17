@@ -359,7 +359,11 @@ def findl(root, followlinks=False):
 
 def cat(*parts):
     with open(os.path.join(*parts), "r") as f:
-        print(f.read())
+        s = f.read()
+        if not s:
+            print("<empty>")
+        else:
+            print(s)
 
 def dir(path, ignore=None):
     return sorted([
