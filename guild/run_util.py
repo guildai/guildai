@@ -52,7 +52,6 @@ class RunsMonitor(util.LoopingThread):
         self.list_runs_cb = list_runs_cb
         self.refresh_run_cb = refresh_run_cb
         self.run_name_cb = run_name_cb or _default_run_name
-        self.run_once(exit_on_error=True)
 
     def run_once(self, exit_on_error=False):
         log.debug("Refreshing runs")

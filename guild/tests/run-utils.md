@@ -79,14 +79,11 @@ Here's our refresh run callback:
     >>> def refresh_run_cb(run, path):
     ...     print("<refresh %s in %s>" % (run.short_id, basename(path)))
 
-When an instance of `RunsMonitor` is instantiated, it runs once in the
-current thread to initialize the log directory. Subsequent monitoring
-occurs at a prescribed interval only after the monitor is started.
+A run monitor is design to run automatically in a thread, however, we
+can run it preemptively by calling its `run_once` method, which runs
+in the current thread.
 
-We'll take advantage of this behavior to test the creation of runs
-within the log directory without starting the monitor.
-
-Here's a log directory:
+Let's create a log directory:
 
     >>> logdir = mkdtemp()
 
@@ -97,6 +94,10 @@ And our monitor:
     ...   sample_runs_cb,
     ...   refresh_run_cb,
     ...   interval=not_used)
+
+Let's run the monitor once:
+
+    >>> monitor.run_once()
     <refresh aaaa in aaaa op-1 2019-08-16 15:57:48>
     <refresh bbbb in bbbb op-2 2019-08-16 16:03:23 a label>
 

@@ -154,6 +154,7 @@ class TBServer(object):
             self.log_dir,
             self._list_runs,
             TB_RUNS_MONITOR_INTERVAL)
+        self._monitor.run_once(exit_on_error=True)
         self._monitor.start()
         self._app = self._tb.create_app(
             self.log_dir,
