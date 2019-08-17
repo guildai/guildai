@@ -599,7 +599,7 @@ def safe_is_text_file(path, ignore_ext=False):
         return False
 
 def touch(filename):
-    open(filename, "a").close()
+    open(filename, "ab").close()
 
 def getmtime(filename):
     try:
