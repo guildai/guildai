@@ -21,6 +21,7 @@ leaves room for false positives).
     Jinja2
     Markdown
     MarkupSafe
+    Pillow
     PyYAML
     Pygments
     Werkzeug
