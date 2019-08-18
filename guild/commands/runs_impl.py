@@ -368,7 +368,7 @@ def _op_desc(fmt_run, style=True):
     cwd = os.path.abspath(config.cwd())
     if util.compare_paths(op_dir, cwd):
         return _empty_style(style, op)
-    shortened_op_dir = _shorten_op_dir(op_dir, cwd)
+    shortened_op_dir = run_util.shorten_op_dir(op_dir, cwd)
     op_dir_suffix = " (%s)" % shortened_op_dir
     return "%s%s" % (op, _dim_style(style, op_dir_suffix))
 
@@ -385,13 +385,6 @@ def _dim_style(style, s):
 
 def _dim(s):
     return click.style(s, dim=True)
-
-def _shorten_op_dir(op_dir, cwd):
-    if op_dir.startswith(cwd):
-        op_dir = util.strip_leading_sep(op_dir[len(cwd):])
-    else:
-        op_dir = util.format_dir(op_dir)
-    return util.shorten_dir(op_dir)
 
 def _run_op_dir(run):
     opref = run.opref

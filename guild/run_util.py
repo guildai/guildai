@@ -264,6 +264,23 @@ def _apply_batch_desc(base_desc, run, seen_protos):
     parts.append(base_desc)
     return "".join(parts)
 
+def shorten_op_dir(op_dir, cwd):
+    return util.shorten_dir(_format_op_dir(op_dir, cwd))
+
+def _format_op_dir(op_dir, cwd):
+    if op_dir.startswith(cwd):
+        return _op_dir_relpath(op_dir, cwd)
+    cwd_parent = os.path.dirname(cwd)
+    if op_dir.startswith(cwd_parent):
+        return _op_dir_peer_path(op_dir, cwd_parent)
+    return util.format_dir(op_dir)
+
+def _op_dir_relpath(op_dir, cwd):
+    return util.strip_leading_sep(op_dir[len(cwd):])
+
+def _op_dir_peer_path(op_dir, cwd_parent):
+    return os.path.join("..", _op_dir_relpath(op_dir, cwd_parent))
+
 def format_attr(val):
     if val is None:
         return ""

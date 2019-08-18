@@ -88,10 +88,9 @@ subdirectory.
 Next we'll show the run from a project subdirectory.
 
     >>> project.print_runs(cwd="a")
-    train.py (.../op-desc)
+    train.py (../)
 
-Note that a path to `op-desc` is shown. The path may be the full path
-if it's short enough or a shortened version if it's too long.
+Note that a path to the parent directory is shown.
 
 Refer to [Utils - Shorten dirs](utils.md#shorten-dirs) for how
 directories are shortened.
@@ -147,27 +146,27 @@ And the results:
     >>> run_tests(tests)
     Spec          Run From  Shown From  Displayed As
     train.py      .         .           train.py
-    train.py      .         a           train.py (/.../op-desc)
+    train.py      .         a           train.py (../)
     train.py      .         a/b         train.py (/.../op-desc)
     train.py      a         a           train.py
     train.py      a         .           train.py (a)
-    train.py      a         a/b         train.py (/.../op-desc/a)
-    train.py      a         b           train.py (/.../op-desc/a)
+    train.py      a         a/b         train.py (../)
+    train.py      a         b           train.py (../a)
     train.py      a/b       a/b         train.py
     train.py      a/b       .           train.py (a/b)
     train.py      a/b       a           train.py (b)
-    train.py      a/b       b           train.py (/.../op-desc/a/b)
+    train.py      a/b       b           train.py (../a/b)
     a/train.py    .         .           a/train.py
-    a/train.py    .         a           a/train.py (/.../op-desc)
+    a/train.py    .         a           a/train.py (../)
     a/train.py    .         a/b         a/train.py (/.../op-desc)
     a/b/train.py  .         .           a/b/train.py
-    a/b/train.py  .         a           a/b/train.py (/.../op-desc)
+    a/b/train.py  .         a           a/b/train.py (../)
     a/b/train.py  .         a/b         a/b/train.py (/.../op-desc)
-    a/b/train.py  .         b           a/b/train.py (/.../op-desc)
+    a/b/train.py  .         b           a/b/train.py (../)
     a:train       .         .           a:train
-    a:train       .         a           a:train (/.../op-desc)
+    a:train       .         a           a:train (../)
     a:train       .         a/b         a:train (/.../op-desc)
-    ../train.py   a         a           train.py (/.../op-desc)
+    ../train.py   a         a           train.py (../)
     ../train.py   a         .           train.py
     ../train.py   a         a/b         train.py (/.../op-desc)
-    ../train.py   a         b           train.py (/.../op-desc)
+    ../train.py   a         b           train.py (../)
