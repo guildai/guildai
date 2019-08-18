@@ -53,7 +53,7 @@ The monitor needs a callback for listing runs. We'll use the project.
 
 And out monitor:
 
-    >>> monitor = RunsMonitor(logdir, list_runs_cb, not_used)
+    >>> monitor = RunsMonitor(logdir, list_runs_cb)
 
 The monitor is designed to run a thread but we can run it preemptively
 by calling `run_once`.

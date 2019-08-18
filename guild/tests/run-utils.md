@@ -89,11 +89,7 @@ Let's create a log directory:
 
 And our monitor:
 
-    >>> monitor = run_util.RunsMonitor(
-    ...   logdir,
-    ...   sample_runs_cb,
-    ...   refresh_run_cb,
-    ...   interval=not_used)
+    >>> monitor = run_util.RunsMonitor(logdir, sample_runs_cb, refresh_run_cb)
 
 Let's run the monitor once:
 

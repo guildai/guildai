@@ -26,6 +26,7 @@ from guild import util
 
 log = logging.getLogger("guild")
 
+DEFAULT_MONITOR_INTERVAL = 5
 MIN_MONITOR_INTERVAL = 5
 
 MAX_LABEL_LEN = 60
@@ -35,7 +36,7 @@ class RunsMonitor(util.LoopingThread):
     STOP_TIMEOUT = 5
 
     def __init__(self, logdir, list_runs_cb, refresh_run_cb,
-                 interval, run_name_cb=None):
+                 interval=None, run_name_cb=None):
         """Create a RunsMonitor.
 
         Note that run links are created initially by this
@@ -43,7 +44,11 @@ class RunsMonitor(util.LoopingThread):
         during this call. Similar errors occuring after the monitor is
         started will be logged but will not propagate.
         """
-        interval = min(interval, MIN_MONITOR_INTERVAL)
+        interval = interval or DEFAULT_MONITOR_INTERVAL
+        if interval < MIN_MONITOR_INTERVAL:
+            raise ValueError(
+                "interval %r is too low - must be at least %i"
+                % (interval, MIN_MONITOR_INTERVAL))
         super(RunsMonitor, self).__init__(
             cb=self.run_once,
             interval=interval,

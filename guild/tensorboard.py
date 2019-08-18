@@ -48,7 +48,7 @@ MAX_IMAGE_SUMMARIES = 100
 class TensorboardError(Exception):
     pass
 
-def RunsMonitor(logdir, list_runs_cb, interval):
+def RunsMonitor(logdir, list_runs_cb, interval=None):
     return run_util.RunsMonitor(
         logdir,
         list_runs_cb,
