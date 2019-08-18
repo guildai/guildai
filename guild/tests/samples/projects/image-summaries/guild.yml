@@ -2,3 +2,8 @@ copy-images:
   disable-plugins: all
   requires:
     - file: favicon.png
+
+rotate:
+  disable-plugins: all
+  requires:
+    - file: favicon.png
