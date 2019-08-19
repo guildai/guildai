@@ -38,6 +38,7 @@ from . import server_support
     help="Don't open TensorBoard in a browser.",
     is_flag=True)
 @runs_support.all_filters
+@click.option("--keep-logdir", is_flag=True, hidden=True)
 
 @click_util.use_args
 @click_util.render_doc

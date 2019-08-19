@@ -28,9 +28,9 @@ log = logging.getLogger("guild")
 def main(args):
     from guild import tensorboard
     tensorboard.setup_logging()
-    with util.TempDir("guild-tensorboard-") as tmp:
+    with util.TempDir("guild-tensorboard-", keep=args.keep_logdir) as tmp:
         logdir = tmp.path
-        log.debug("Using logdir %s", logdir)
+        (log.info if args.keep_logdir else log.debug)("Using logdir %s", logdir)
         monitor = tensorboard.RunsMonitor(
             logdir,
             _list_runs_cb(args),
