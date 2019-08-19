@@ -56,14 +56,67 @@ class _RunsMonitorOpts(object):
         self.hparams = not logspec or "hparams" in logspec
 
 def RunsMonitor(logdir, list_runs_cb, interval=None, logspec=None):
+    opts = _RunsMonitorOpts(logspec)
+    if opts.hparams:
+        list_runs_cb = _hparam_init_support(list_runs_cb, logdir)
     return run_util.RunsMonitor(
         logdir,
         list_runs_cb,
-        _refresh_run_cb(logspec),
+        _refresh_run_cb(opts),
         interval)
 
-def _refresh_run_cb(logspec):
-    opts = _RunsMonitorOpts(logspec)
+def _hparam_init_support(list_runs_cb, logdir):
+    def f():
+        runs = list_runs_cb()
+        _ensure_hparam_experiment(runs, logdir)
+        return runs
+    return f
+
+def _ensure_hparam_experiment(runs, logdir):
+    marker = _hparams_path(logdir)
+    if _hparams_added(marker):
+        return
+    _add_hparam_experiment(runs, logdir)
+    _set_hparams_added(marker)
+
+def _hparams_path(root):
+    return os.path.join(root, ".guild", "hparams")
+
+def _hparams_added(marker):
+    return os.path.exists(marker)
+
+def _add_hparam_experiment(runs, logdir):
+    hparams = _experiment_hparams(runs)
+    metrics = _experiment_metrics(runs)
+    with summary.SummaryWriter(logdir) as writer:
+        writer.add_hparam_experiment(hparams, metrics)
+
+def _experiment_hparams(runs):
+    hparams = {}
+    for run in runs:
+        for name, val in (run.get("flags") or {}).items():
+            hparams.setdefault(name, set()).add(val)
+    return hparams
+
+def _experiment_metrics(runs):
+    metrics = set()
+    for run in runs:
+        metrics.update(_run_metric_tags(run))
+    return metrics
+
+def _run_metric_tags(run):
+    return [tag for tag in _iter_scalar_tags(run.dir) if "/" not in tag]
+
+def _iter_scalar_tags(dir):
+    for _path, _digest, scalars in tfevent.scalar_readers(dir):
+        for s in scalars:
+            yield s[0]
+
+def _set_hparams_added(marker):
+    util.ensure_dir(os.path.dirname(marker))
+    util.touch(marker)
+
+def _refresh_run_cb(opts):
     def f(run, logdir_run_path):
         return _refresh_run(run, logdir_run_path, opts)
     return f
@@ -104,58 +157,25 @@ def _ensure_tfevent_link(src, link):
 
 def _refresh_summaries(run, logdir_run_path, writer, opts):
     if opts.hparams:
-        _refresh_hparam_summaries(run, logdir_run_path, writer)
+        _ensure_hparam_session(run, logdir_run_path, writer)
     if opts.images:
         _refresh_image_summaries(run, logdir_run_path, writer)
 
-def _refresh_hparam_summaries(run, logdir_run_path, writer):
-    # The HParam scheme currently supported by TB does not allow
-    # updates to metrics for a run once any are logged. We have one
-    # opportunity log HParam info so we wait until there are any root
-    # scalars to log. Ideally we'd 'refreh' metrics as more are logged
-    # for a run, but currently we use an 'ensure' spelling.
-    _ensure_hparams(run, logdir_run_path, writer)
-
-def _ensure_hparams(run, logdir_run_path, writer):
+def _ensure_hparam_session(run, logdir_run_path, writer):
     marker = _hparams_path(logdir_run_path)
-    if not _hparams_added(marker):
-        added = _try_add_hparams(run, writer)
-        if added:
-            _set_hparams_added(marker)
+    if _hparams_added(marker):
+        return
+    _add_hparam_session(run, writer)
+    _set_hparams_added(marker)
 
-def _hparams_path(root):
-    return os.path.join(root, ".guild", "hparams")
+def _add_hparam_session(run, writer):
+    session_name = _hparam_session_name(run)
+    hparams = run.get("flags") or {}
+    writer.add_hparam_session(session_name, hparams, run.status)
 
-def _hparams_added(marker):
-    return os.path.exists(marker)
-
-def _try_add_hparams(run, writer):
-    metrics = _run_metrics(run)
-    if not metrics:
-        return False
-    flags = run.get("flags") or {}
-    writer.add_hparams(_session_label(run), flags, metrics, run.status)
-    return True
-
-def _run_metrics(run):
-    metrics = set([tag for tag in _run_metric_tags(run)])
-    return list(metrics)
-
-def _run_metric_tags(run):
-    return [tag for tag in _iter_scalar_tags(run.dir) if "/" not in tag]
-
-def _iter_scalar_tags(dir):
-    for _path, _digest, scalars in tfevent.scalar_readers(dir):
-        for s in scalars:
-            yield s[0]
-
-def _session_label(run):
+def _hparam_session_name(run):
     operation = run_util.format_operation(run)
     return "%s %s" % (run.short_id, operation)
-
-def _set_hparams_added(marker):
-    util.ensure_dir(os.path.dirname(marker))
-    util.touch(marker)
 
 def _refresh_image_summaries(run, logdir_run_path, writer):
     n = 0
