@@ -35,6 +35,7 @@ def main(args):
             logdir,
             _list_runs_cb(args),
             args.refresh_interval)
+        cli.out("Preparing runs for TensorBoard")
         monitor.run_once(exit_on_error=True)
         monitor.start()
         try:
