@@ -235,7 +235,7 @@ def _set_image_added(pending):
 
 def create_app(logdir, reload_interval, path_prefix=""):
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore", FutureWarning)
+        warnings.simplefilter("ignore", Warning)
         from tensorboard.backend import application
         from tensorboard import program
     try:
@@ -244,7 +244,7 @@ def create_app(logdir, reload_interval, path_prefix=""):
         raise TensorboardError("tensorboard>=1.10 required")
     else:
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore", RuntimeWarning)
+            warnings.simplefilter("ignore", Warning)
             tb = tb_f()
         argv = (
             "",

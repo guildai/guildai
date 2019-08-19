@@ -64,7 +64,7 @@ class EventReader(object):
             return None
         else:
             with warnings.catch_warnings():
-                warnings.simplefilter("ignore", FutureWarning)
+                warnings.simplefilter("ignore", Warning)
                 return _GeneratorFromPath(self.dir).Load()
 
 class ScalarReader(object):
@@ -90,7 +90,7 @@ class ScalarReader(object):
             raise util.TryFailed()
         try:
             with warnings.catch_warnings():
-                warnings.simplefilter("ignore", FutureWarning)
+                warnings.simplefilter("ignore", Warning)
                 from tensorboard.util.tensor_util import make_ndarray
         except ImportError as e:
             log.debug("error importing make_ndarray: %s", e)
@@ -165,7 +165,7 @@ def ensure_tf_logging_patched():
 def _ensure_tf_oldstyle_logging_patched():
     try:
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore", (FutureWarning, RuntimeWarning))
+            warnings.simplefilter("ignore", Warning)
             from tensorflow import logging
     except ImportError:
         pass

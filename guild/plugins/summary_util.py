@@ -74,7 +74,7 @@ class SummaryPlugin(Plugin):
 
     def _listen_tf_v2_summary(self):
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore", FutureWarning)
+            warnings.simplefilter("ignore", Warning)
             from tensorboard.plugins.scalar import summary_v2
         self.log.debug(
             "wrapping tensorboard.plugins.scalar.summary_v2.scalar")

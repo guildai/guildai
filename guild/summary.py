@@ -19,6 +19,7 @@ import io
 import logging
 import re
 import sys
+import warnings
 
 import six
 
@@ -37,8 +38,10 @@ class SummaryWriter(object):
 
     def _get_writer(self):
         if self._writer is None:
-            # pylint: disable=no-name-in-module
-            from tensorboard.summary.writer import event_file_writer
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", Warning)
+                # pylint: disable=no-name-in-module
+                from tensorboard.summary.writer import event_file_writer
             self._writer = event_file_writer.EventFileWriter(self.logdir)
         return self._writer
 
