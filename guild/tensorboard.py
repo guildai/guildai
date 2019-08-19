@@ -26,6 +26,7 @@ from werkzeug import serving
 
 from guild import run_util
 from guild import summary
+from guild import tfevent
 from guild import util
 
 log = logging.getLogger("guild")
@@ -107,17 +108,54 @@ def _refresh_summaries(run, logdir_run_path, writer, opts):
     if opts.images:
         _refresh_image_summaries(run, logdir_run_path, writer)
 
-def _refresh_hparam_summaries(_run, _logdir_run_path, _writer):
-    pass
+def _refresh_hparam_summaries(run, logdir_run_path, writer):
+    # The HParam scheme currently supported by TB does not allow
+    # updates to metrics for a run once any are logged. We have one
+    # opportunity log HParam info so we wait until there are any root
+    # scalars to log. Ideally we'd 'refreh' metrics as more are logged
+    # for a run, but currently we use an 'ensure' spelling.
+    _ensure_hparams(run, logdir_run_path, writer)
 
-def _metric_scalar_tags(run):
-    from guild import index2
-    return [
-        tag for tag in [
-            s["tag"] for s in index2.iter_run_scalars(run)
-        ]
-        if "/" not in tag
-    ]
+def _ensure_hparams(run, logdir_run_path, writer):
+    marker = _hparams_path(logdir_run_path)
+    if not _hparams_added(marker):
+        added = _try_add_hparams(run, writer)
+        if added:
+            _set_hparams_added(marker)
+
+def _hparams_path(root):
+    return os.path.join(root, ".guild", "hparams")
+
+def _hparams_added(marker):
+    return os.path.exists(marker)
+
+def _try_add_hparams(run, writer):
+    metrics = _run_metrics(run)
+    if not metrics:
+        return False
+    flags = run.get("flags") or {}
+    writer.add_hparams(_session_label(run), flags, metrics, run.status)
+    return True
+
+def _run_metrics(run):
+    metrics = set([tag for tag in _run_metric_tags(run)])
+    return list(metrics)
+
+def _run_metric_tags(run):
+    return [tag for tag in _iter_scalar_tags(run.dir) if "/" not in tag]
+
+def _iter_scalar_tags(dir):
+    for _path, _digest, scalars in tfevent.scalar_readers(dir):
+        for s in scalars:
+            yield s[0]
+
+def _session_label(run):
+    operation = run_util.format_operation(run)
+    return "%s %s" % (run.short_id, operation)
+
+def _set_hparams_added(marker):
+    util.ensure_dir(os.path.dirname(marker))
+    util.touch(marker)
 
 def _refresh_image_summaries(run, logdir_run_path, writer):
     n = 0

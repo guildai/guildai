@@ -71,17 +71,16 @@ The monitor generated the following files in the log directory:
 
     >>> files = findl(logdir)
     >>> files
-    ['...copy-images.../.guild/images/71a365d27894b323b8d5d6ebfeed6ee9',
-     '...copy-images.../events.out.tfevents...']
+    ['... copy-images .../.guild/images/71a365d27894b323b8d5d6ebfeed6ee9',
+     '... copy-images .../events.out.tfevents...']
 
 Event summaries for the run are stored under a directory named with
-the run ID, operation namd, date, and label. Each run has it's own
-event summaries.
+the run ID, operation namd, date, and label.
 
-The first file in the list is a marker that indicates the monitor has
-written an associated image as a summary. The marker is named using an
-md5 digest of the applicable image's path relative to the run
-directory.
+The first file in the list (ending with a hash) is a marker that
+indicates the monitor has written an associated image as a
+summary. The marker is named using an md5 digest of the applicable
+image's path relative to the run directory.
 
 We can verify this by calculating an md5 digest for
 `favicon-copy.png`.

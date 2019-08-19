@@ -303,6 +303,7 @@ def test_globals():
         "gapi": gapi,
         "guild": guild,
         "guildfile": guildfile,
+        "islink": os.path.islink,
         "join_path": os.path.join,
         "mkdir": os.mkdir,
         "mkdtemp": mkdtemp,

@@ -3,6 +3,8 @@ noisy:
   main: noisy
   disable-plugins: all
   flags:
+    noise:
+      description: Level of noise added to loss
     x:
       description: Input to noisy function
       default: 0.2
