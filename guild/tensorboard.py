@@ -48,17 +48,29 @@ MAX_IMAGE_SUMMARIES = 100
 class TensorboardError(Exception):
     pass
 
-def RunsMonitor(logdir, list_runs_cb, interval=None):
+class _RunsMonitorOpts(object):
+
+    def __init__(self, logspec):
+        self.images = not logspec or "images" in logspec
+        self.hparams = not logspec or "hparams" in logspec
+
+def RunsMonitor(logdir, list_runs_cb, interval=None, logspec=None):
     return run_util.RunsMonitor(
         logdir,
         list_runs_cb,
-        _refresh_run,
+        _refresh_run_cb(logspec),
         interval)
 
-def _refresh_run(run, logdir_run_path):
+def _refresh_run_cb(logspec):
+    opts = _RunsMonitorOpts(logspec)
+    def f(run, logdir_run_path):
+        return _refresh_run(run, logdir_run_path, opts)
+    return f
+
+def _refresh_run(run, logdir_run_path, opts):
     _refresh_tfevent_links(run, logdir_run_path)
     with summary.SummaryWriter(logdir_run_path) as writer:
-        _refresh_summaries(run, logdir_run_path, writer)
+        _refresh_summaries(run, logdir_run_path, writer, opts)
 
 def _refresh_tfevent_links(run, logdir_run_path):
     for tfevent_path in _iter_tfevents(run.dir):
@@ -89,9 +101,11 @@ def _ensure_tfevent_link(src, link):
     util.ensure_dir(os.path.dirname(link))
     util.symlink(src, link)
 
-def _refresh_summaries(run, logdir_run_path, writer):
-    _refresh_hparam_summaries(run, logdir_run_path, writer)
-    _refresh_image_summaries(run, logdir_run_path, writer)
+def _refresh_summaries(run, logdir_run_path, writer, opts):
+    if opts.hparams:
+        _refresh_hparam_summaries(run, logdir_run_path, writer)
+    if opts.images:
+        _refresh_image_summaries(run, logdir_run_path, writer)
 
 def _refresh_hparam_summaries(_run, _logdir_run_path, _writer):
     pass

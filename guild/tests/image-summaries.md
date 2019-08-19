@@ -51,9 +51,9 @@ The monitor needs a callback for listing runs. We'll use the project.
 
     >>> list_runs_cb = project.list_runs
 
-And out monitor:
+And our monitor, configured to log only images:
 
-    >>> monitor = RunsMonitor(logdir, list_runs_cb)
+    >>> monitor = RunsMonitor(logdir, list_runs_cb, logspec=["images"])
 
 The monitor is designed to run a thread but we can run it preemptively
 by calling `run_once`.
@@ -92,8 +92,9 @@ We can verify this by calculating an md5 digest for
     >>> print(digest)
     71a365d27894b323b8d5d6ebfeed6ee9
 
-    >>> digest == basename(files[0])
-    True
+    >>> file0 = basename(files[0])
+    >>> digest == file0, (digest, file0)
+    (True, ...)
 
 As a marker, this file is empty.
 

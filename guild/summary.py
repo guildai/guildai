@@ -35,21 +35,23 @@ class SummaryWriter(object):
         self._logdir = logdir
         self._writer = None
 
+    def _summary_writer(self):
+        if not self._writer:
+            from tensorboardX import SummaryWriter
+            self._writer = SummaryWriter(self._logdir)
+        return self._writer
+
+    def _file_writer(self):
+        return self._summary_writer()._get_file_writer()
+
     def add_scalar(self, key, val, step):
-        writer = self._get_writer()
-        writer.add_scalar(key, val, step)
+        self._summary_writer().add_scalar(key, val, step)
 
     def add_image(self, tag, image):
         from PIL import Image
         image = Image.open(image)
         summary = ImageSummary(tag, image)
-        self._get_writer().file_writer.add_summary(summary)
-
-    def _get_writer(self):
-        if not self._writer:
-            from tensorboardX import SummaryWriter
-            self._writer = SummaryWriter(self._logdir)
-        return self._writer
+        self._file_writer().add_summary(summary)
 
     def close(self):
         if self._writer:
