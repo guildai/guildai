@@ -275,11 +275,12 @@ Print some of the more interesting columns:
 
 ### Logging scalars as TFEvents
 
-This function uses tensorboardX to write scalars.
+This function uses Guild's `SummaryWriter` to write scalars.
+
+    >>> from guild.summary import SummaryWriter
 
     >>> def op2(a, c):
-    ...     import tensorboardX
-    ...     writer = tensorboardX.SummaryWriter(".")
+    ...     writer = SummaryWriter(".")
     ...     writer.add_scalar("x", a + c, 1)
     ...     writer.add_scalar("x", a + c + 1, 2)
     ...     writer.add_scalar("x", a + c + 2, 3)

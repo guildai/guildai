@@ -2,9 +2,9 @@
 
 ## Basic event writing and reading
 
-TF events are logged using `tensorboardX.SummaryWriter`.
+We can log TF events are using `guild.summary.SummaryWriter`.
 
-    >>> import tensorboardX
+    >>> from guild.summary import SummaryWriter
 
 We'll create our events log in a temp diretory:
 
@@ -14,7 +14,7 @@ We'll create our events log in a temp diretory:
 
 Our writer:
 
-    >>> writer = tensorboardX.SummaryWriter(logdir)
+    >>> writer = SummaryWriter(logdir)
 
 We can use writer to write scalars:
 
@@ -32,8 +32,8 @@ The logdir:
     >>> logged
     ['events.out.tfevents...']
 
-The `tensorboardX` interface is write only. We can read the events
-using `guild.tfevent.ScalarReader` to read back scalars.
+We can read the events using `guild.tfevent.ScalarReader` to read back
+scalars.
 
 First let's import `tfevent` and patch TensorFlow logging to avoid
 noise in our logs.
@@ -68,7 +68,7 @@ And a subdirectory:
 
 Let's write some events into the subdirectory:
 
-    >>> subdir_writer = tensorboardX.SummaryWriter(subdir)
+    >>> subdir_writer = SummaryWriter(subdir)
     >>> subdir_writer.add_scalar("a", 4.0)
     >>> subdir_writer.add_scalar("b", 5.0)
     >>> subdir_writer.add_scalar("c", 6.0)
@@ -138,7 +138,7 @@ Let's write more scalars to subdir (we wait a second to ensure the TF
 event filename timestamp is incremented):
 
     >>> sleep(1)
-    >>> subdir_writer = tensorboardX.SummaryWriter(subdir)
+    >>> subdir_writer = SummaryWriter(subdir)
     >>> subdir_writer.add_scalar("d", 7.0)
     >>> subdir_writer.add_scalar("e", 8.0)
     >>> subdir_writer.close()

@@ -6,7 +6,7 @@ generation for an run.
     >>> project = Project(sample("projects", "scalars"))
 
 The operation `ouptut-and-summaries` uses both output scalars and
-writes summaries using `tensorboardX`.
+writes summaries using a summary writer.
 
     >>> project.run("output-and-summaries")
     min_loss: ...

@@ -29,42 +29,48 @@ ALIASES = [
     (re.compile(r"\\value"), "[0-9\\.e\\-]+"),
 ]
 
-HPARAM_PLUGIN_NAME = "hparams"
-HPARAM_DATA_VER = 0
-HPARAM_EXPERIMENT_TAG = "_hparams_/experiment"
-HPARAM_SESSION_START_INFO_TAG = '_hparams_/session_start_info'
-HPARAM_SESSION_END_INFO_TAG = '_hparams_/session_end_info'
-
 class SummaryWriter(object):
 
     def __init__(self, logdir):
-        self._logdir = logdir
+        self.logdir = logdir
         self._writer = None
 
-    def _summary_writer(self):
-        if not self._writer:
-            from tensorboardX import SummaryWriter
-            self._writer = SummaryWriter(self._logdir)
+    def _get_writer(self):
+        if self._writer is None:
+            # pylint: disable=no-name-in-module
+            from tensorboard.summary.writer import event_file_writer
+            self._writer = event_file_writer.EventFileWriter(self.logdir)
         return self._writer
 
-    def _file_writer(self):
-        return self._summary_writer()._get_file_writer()
+    def _add_summary(self, summary, step=None):
+        from tensorboard.compat.proto import event_pb2
+        if step is not None:
+            step = int(step)
+        event = event_pb2.Event(summary=summary, step=step)
+        self._get_writer().add_event(event)
 
-    def _add_summary(self, summary):
-        self._file_writer().add_summary(summary)
-
-    def add_scalar(self, key, val, step):
-        self._summary_writer().add_scalar(key, val, step)
+    def add_scalar(self, tag, val, step=None):
+        self._add_summary(_ScalarSummary(tag, val), step)
 
     def add_image(self, tag, image):
         from PIL import Image
         image = Image.open(image)
-        self._add_summary(ImageSummary(tag, image))
+        encoded = _encode_png(image)
+        summary = _ImageSummary(
+            tag,
+            image.height,
+            image.width,
+            len(image.getbands()),
+            encoded)
+        self._add_summary(summary)
 
-    def add_hparams(self, session_name, hparams, metric_names, session_status):
-        self._add_summary(ExperimentSummary(hparams, metric_names))
-        self._add_summary(SessionStartInfoSummary(session_name, hparams))
-        self._add_summary(SessionEndInfoSummary(session_status))
+    def add_hparam_experiment(self, hparams, metrics):
+        self._add_summary(_HParamExperiment(hparams, metrics))
+
+    def add_hparam_session(self, name, hparams, status=None):
+        self._add_summary(_HParamSessionStart(name, hparams))
+        if status:
+            self._add_summary(_HParamSessionEnd(status))
 
     def close(self):
         if self._writer:
@@ -76,126 +82,88 @@ class SummaryWriter(object):
     def __exit__(self, *_args):
         self.close()
 
-def ImageSummary(tag, image):
-    from tensorboardX.proto.summary_pb2 import Summary
-    encoded = _encode_png(image)
-    summary_image = Summary.Image(
-        height=image.height,
-        width=image.width,
-        colorspace=len(image.getbands()),
-        encoded_image_string=encoded)
-    return Summary(value=[Summary.Value(tag=tag, image=summary_image)])
+def _ScalarSummary(tag, val):
+    from tensorboard.compat.proto.summary_pb2 import Summary
+    return Summary(value=[Summary.Value(tag=tag, simple_value=val)])
+
+def _ImageSummary(tag, height, width, colorspace, encoded_image):
+    from tensorboard.compat.proto.summary_pb2 import Summary
+    image = Summary.Image(
+        height=height,
+        width=width,
+        colorspace=colorspace,
+        encoded_image_string=encoded_image)
+    return Summary(value=[Summary.Value(tag=tag, image=image)])
 
 def _encode_png(image):
     bytes = io.BytesIO()
     image.save(bytes, format='PNG')
     return bytes.getvalue()
 
-def ExperimentSummary(hparams, metric_names):
-    experiment = Experiment(hparams, metric_names)
-    return HParamSummary(
-        HPARAM_EXPERIMENT_TAG,
-        HParamExperimentData(experiment))
+def _HParamExperiment(hparams, metrics):
+    from tensorboard.plugins.hparams import summary_v2 as hp
+    return hp.hparams_config_pb(
+        hparams=[_HParam(key, vals) for key, vals in hparams.items()],
+        metrics=[hp.Metric(tag) for tag in metrics]
+    )
 
-def Experiment(hparams, metric_names):
-    from tensorboardX.proto.api_pb2 import Experiment
-    return Experiment(
-        hparam_infos=[HParamInfo(name, val) for name, val in hparams.items()],
-        metric_infos=[MetricInfo(name) for name in metric_names])
-
-def HParamInfo(name, val):
-    from tensorboardX.proto.api_pb2 import HParamInfo
-    interval, discrete = _hparam_domain(val)
-    return HParamInfo(
-        name=name,
-        type=HParamType(val),
-        domain_interval=interval,
-        domain_discrete=discrete)
-
-def _hparam_domain(val):
-    from tensorboardX.proto.api_pb2 import Interval
-    if isinstance(val, (int, float)):
-        return Interval(min_value=1e-123, max_value=1e123), None
-    return None, None
-
-def HParamType(val):
-    from tensorboardX.proto.types_pb2 import DT_FLOAT, DT_INT32
-    from tensorboardX.proto.types_pb2 import DT_STRING, DT_BOOL
-    if isinstance(val, int):
-        return DT_INT32
-    elif isinstance(val, float):
-        return DT_FLOAT
-    elif isinstance(val, bool):
-        return DT_BOOL
+def _HParam(name, vals):
+    from tensorboard.plugins.hparams import summary_v2 as hp
+    if _all_numbers(vals):
+        min_val = float(min(vals))
+        max_val = float(max(vals))
+        return hp.HParam(name, hp.RealInterval(min_val, max_val))
     else:
-        return DT_STRING
+        return hp.HParam(name, hp.Discrete(vals))
 
-def MetricInfo(scalar_name):
-    from tensorboardX.proto.api_pb2 import MetricInfo, MetricName
-    return MetricInfo(name=MetricName(tag=scalar_name))
+def _all_numbers(vals):
+    return all((isinstance(val, (int, float)) for val in vals))
 
-def HParamExperimentData(experiment):
-    from tensorboardX.proto.plugin_hparams_pb2 import HParamsPluginData
-    return HParamsPluginData(experiment=experiment, version=HPARAM_DATA_VER)
+def _HParamSessionStart(name, hparams):
+    from tensorboard.plugins.hparams import summary_v2 as hp
+    try:
+        # pylint: disable=unexpected-keyword-arg
+        return hp.hparams_pb(hparams, trial_id=name)
+    except TypeError:
+        return _legacy_hparams_pb(hparams, name)
 
-def HParamSummary(tag, data):
-    from tensorboardX.proto.summary_pb2 import Summary, SummaryMetadata
-    data = SummaryMetadata.PluginData(
-        plugin_name=HPARAM_PLUGIN_NAME,
-        content=data.SerializeToString())
-    metadata = SummaryMetadata(plugin_data=data)
-    return Summary(value=[Summary.Value(tag=tag, metadata=metadata)])
+def _legacy_hparams_pb(hparams, trial_id):
+    from tensorboard.plugins.hparams import summary_v2 as hp
+    hparams = hp._normalize_hparams(hparams)
+    info = hp.plugin_data_pb2.SessionStartInfo(group_name=trial_id)
+    for name in sorted(hparams):
+        val = hparams[name]
+        if isinstance(val, bool):
+            info.hparams[name].bool_value = val
+        elif isinstance(val, (float, int)):
+            info.hparams[name].number_value = val
+        elif isinstance(val, six.string_types):
+            info.hparams[name].string_value = val
+        else:
+            assert False, (name, val)
+    return hp._summary_pb(
+        hp.metadata.SESSION_START_INFO_TAG,
+        hp.plugin_data_pb2.HParamsPluginData(session_start_info=info),
+    )
 
-def SessionStartInfoSummary(group_name, hparams):
-    info = SessionStartInfo(group_name, hparams)
-    return HParamSummary(
-        HPARAM_SESSION_START_INFO_TAG,
-        HParamSessionStartInfoData(info))
+def _HParamSessionEnd(status):
+    from tensorboard.plugins.hparams import summary_v2 as hp
+    info = hp.plugin_data_pb2.SessionEndInfo(status=_Status(status))
+    return hp._summary_pb(
+        hp.metadata.SESSION_END_INFO_TAG,
+        hp.plugin_data_pb2.HParamsPluginData(session_end_info=info),
+    )
 
-def SessionStartInfo(group_name, hparams):
-    from tensorboardX.proto.plugin_hparams_pb2 import SessionStartInfo
-    session = SessionStartInfo(group_name=group_name)
-    for name, val in hparams.items():
-        _apply_session_hparam(val, name, session)
-    return session
-
-def _apply_session_hparam(val, name, session):
-    from tensorboardX.x2num import make_np
-    if isinstance(val, (int, float)):
-        session.hparams[name].number_value = make_np(val)[0]
-    elif isinstance(val, bool):
-        session.hparams[name].bool_value = val
-    else:
-        session.hparams[name].string_value = str(val)
-
-def HParamSessionStartInfoData(info):
-    from tensorboardX.proto.plugin_hparams_pb2 import HParamsPluginData
-    return HParamsPluginData(session_start_info=info, version=HPARAM_DATA_VER)
-
-def SessionEndInfoSummary(status):
-    info = SessionEndInfo(status)
-    return HParamSummary(
-        HPARAM_SESSION_END_INFO_TAG,
-        HParamSessionEndInfoData(info))
-
-def SessionEndInfo(status):
-    from tensorboardX.proto.plugin_hparams_pb2 import SessionEndInfo
-    return SessionEndInfo(status=Status(status))
-
-def Status(status):
-    from tensorboardX.proto.api_pb2 import Status
+def _Status(status):
+    from tensorboard.plugins.hparams import api_pb2
     if status in ("terminated", "completed"):
-        return Status.STATUS_SUCCESS
+        return api_pb2.Status.STATUS_SUCCESS
     elif status == "error":
-        return Status.STATUS_FAILURE
+        return api_pb2.Status.STATUS_FAILURE
     elif status == "running":
-        return Status.STATUS_RUNNING
+        return api_pb2.Status.STATUS_RUNNING
     else:
-        return Status.STATUS_UNKNOWN
-
-def HParamSessionEndInfoData(info):
-    from tensorboardX.proto.plugin_hparams_pb2 import HParamsPluginData
-    return HParamsPluginData(session_end_info=info, version=HPARAM_DATA_VER)
+        return api_pb2.Status.STATUS_UNKNOWN
 
 class OutputScalars(object):
 

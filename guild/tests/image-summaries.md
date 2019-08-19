@@ -123,10 +123,6 @@ And the logged events:
 
     >>> for event in events:
     ...     print(event)
-    wall_time: ...
-    file_version: "brain.Event:2"
-    <BLANKLINE>
-    wall_time: ...
     summary {
       value {
         tag: "favicon-copy.png"

@@ -58,7 +58,6 @@ leaves room for false positives).
     six
     tabview
     tensorboard
-    tensorboardX
     tqdm
     twine
     urllib3

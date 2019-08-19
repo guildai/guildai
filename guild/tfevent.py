@@ -33,8 +33,9 @@ log = logging.getLogger("guild")
 
 class EventReader(object):
 
-    def __init__(self, dir):
+    def __init__(self, dir, all_events=False):
         self.dir = dir
+        self.all_events = all_events
 
     def __iter__(self):
         """Yields event for all available events in dir."""
@@ -46,7 +47,8 @@ class EventReader(object):
             return
         try:
             for event in events:
-                yield event
+                if self.all_events or event.HasField("summary"):
+                    yield event
         except RuntimeError as e:
             # PEP 479 landed in Python 3.7 and TB triggers this
             # runtime error when there are no events to read.
@@ -73,8 +75,6 @@ class ScalarReader(object):
     def __iter__(self):
         """Yields (tag, val, step) for all scalars in dir."""
         for event in EventReader(self.dir):
-            if not event.HasField("summary"):
-                continue
             for val in event.summary.value:
                 try:
                     yield util.try_apply([

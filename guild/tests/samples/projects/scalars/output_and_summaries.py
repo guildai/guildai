@@ -1,6 +1,6 @@
 import numpy as np
 
-import tensorboardX
+from guild import summary
 
 noise = 0.1
 
@@ -8,7 +8,7 @@ def f(x):
     return np.sin(5 * x) * (1 - np.tanh(x ** 2)) + np.random.randn() * noise
 
 min_loss = None
-writer = tensorboardX.SummaryWriter(".")
+writer = summary.SummaryWriter(".")
 
 for step, x in enumerate(np.arange(-3.0, 3.0, 0.1)):
     loss = f(x)

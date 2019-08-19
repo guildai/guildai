@@ -44,12 +44,14 @@ class SummaryPlugin(Plugin):
         self._try_patch_tensorflow()
 
     def _patch_tensorboardX(self):
-        from guild.summary import SummaryWriter
-        self.log.debug("wrapping tensorboardX.SummaryWriter.add_scalar")
-        python_util.listen_method(
-            SummaryWriter,
-            "add_scalar",
-            self._handle_scalar)
+        try:
+            from tensorboardX import SummaryWriter
+        except ImportError:
+            self.log.debug("wrapping tensorboardX.SummaryWriter.add_scalar")
+            python_util.listen_method(
+                SummaryWriter,
+                "add_scalar",
+                self._handle_scalar)
 
     def _try_patch_tensorflow(self):
         try:
