@@ -47,6 +47,8 @@ class SummaryPlugin(Plugin):
         try:
             from tensorboardX import SummaryWriter
         except ImportError:
+            pass
+        else:
             self.log.debug("wrapping tensorboardX.SummaryWriter.add_scalar")
             python_util.listen_method(
                 SummaryWriter,
