@@ -5,6 +5,10 @@ default scalar capture mechanism and custom scalars.
 
     >>> cd("examples/custom-scalars")
 
+The sample project requires `tensorboardX`.
+
+    >>> quiet("pip install tensorboardX")
+
 ## train.py
 
 Default scalars captured when running `train.py` as a script:
