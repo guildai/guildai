@@ -49,47 +49,61 @@ MAX_IMAGE_SUMMARIES = 100
 class TensorboardError(Exception):
     pass
 
-class _RunsMonitorOpts(object):
+class _WriterContext(object):
 
-    def __init__(self, logspec):
+    def __init__(self, writer):
+        self._writer = writer
+        self.add_hparam_experiment = writer.add_hparam_experiment
+        self.add_hparam_session = writer.add_hparam_session
+        self.add_image = writer.add_image
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_exc):
+        self._writer.flush()
+
+class _RunsMonitorState(object):
+
+    hparam_experiment = None
+
+    def __init__(self, logdir, logspec):
+        self.logdir = logdir
         self.images = not logspec or "images" in logspec
         self.hparams = not logspec or "hparams" in logspec
+        self._writers = {}
+
+    def writer(self, logdir):
+        try:
+            writer = self._writers[logdir]
+        except KeyError:
+            self._writers[logdir] = writer = summary.SummaryWriter(logdir)
+        return _WriterContext(writer)
 
 def RunsMonitor(logdir, list_runs_cb, interval=None, logspec=None):
-    opts = _RunsMonitorOpts(logspec)
-    if opts.hparams:
-        list_runs_cb = _hparam_init_support(list_runs_cb, logdir)
+    state = _RunsMonitorState(logdir, logspec)
+    if state.hparams:
+        list_runs_cb = _hparam_init_support(list_runs_cb, state)
     return run_util.RunsMonitor(
         logdir,
         list_runs_cb,
-        _refresh_run_cb(opts),
+        _refresh_run_cb(state),
         interval)
 
-def _hparam_init_support(list_runs_cb, logdir):
+def _hparam_init_support(list_runs_cb, state):
     def f():
         runs = list_runs_cb()
-        _ensure_hparam_experiment(runs, logdir)
+        _refresh_hparam_experiment(runs, state)
         return runs
     return f
 
-def _ensure_hparam_experiment(runs, logdir):
-    marker = _hparams_path(logdir)
-    if _hparams_added(marker):
-        return
-    _add_hparam_experiment(runs, logdir)
-    _set_hparams_added(marker)
-
-def _hparams_path(root):
-    return os.path.join(root, ".guild", "hparams")
-
-def _hparams_added(marker):
-    return os.path.exists(marker)
-
-def _add_hparam_experiment(runs, logdir):
-    hparams = _experiment_hparams(runs)
-    metrics = _experiment_metrics(runs)
-    with summary.SummaryWriter(logdir) as writer:
-        writer.add_hparam_experiment(hparams, metrics)
+def _refresh_hparam_experiment(runs, state):
+    if runs:
+        hparams = _experiment_hparams(runs)
+        metrics = _experiment_metrics(runs)
+        state.hparam_experiment = hparams, metrics
+    else:
+        state.hparam_experiment = None
 
 def _experiment_hparams(runs):
     hparams = {}
@@ -112,24 +126,19 @@ def _iter_scalar_tags(dir):
         for s in scalars:
             yield s[0]
 
-def _set_hparams_added(marker):
-    util.ensure_dir(os.path.dirname(marker))
-    util.touch(marker)
-
-def _refresh_run_cb(opts):
-    def f(run, logdir_run_path):
-        return _refresh_run(run, logdir_run_path, opts)
+def _refresh_run_cb(state):
+    def f(run, run_logdir):
+        return _refresh_run(run, run_logdir, state)
     return f
 
-def _refresh_run(run, logdir_run_path, opts):
-    _refresh_tfevent_links(run, logdir_run_path)
-    with summary.SummaryWriter(logdir_run_path) as writer:
-        _refresh_summaries(run, logdir_run_path, writer, opts)
+def _refresh_run(run, run_logdir, state):
+    _refresh_tfevent_links(run, run_logdir)
+    _refresh_summaries(run, run_logdir, state)
 
-def _refresh_tfevent_links(run, logdir_run_path):
+def _refresh_tfevent_links(run, run_logdir):
     for tfevent_path in _iter_tfevents(run.dir):
         tfevent_relpath = os.path.relpath(tfevent_path, run.dir)
-        link = _tfevent_link_path(logdir_run_path, tfevent_relpath)
+        link = _tfevent_link_path(run_logdir, tfevent_relpath)
         _ensure_tfevent_link(tfevent_path, link)
 
 def _iter_tfevents(top):
@@ -155,18 +164,31 @@ def _ensure_tfevent_link(src, link):
     util.ensure_dir(os.path.dirname(link))
     util.symlink(src, link)
 
-def _refresh_summaries(run, logdir_run_path, writer, opts):
-    if opts.hparams:
-        _ensure_hparam_session(run, logdir_run_path, writer)
-    if opts.images:
-        _refresh_image_summaries(run, logdir_run_path, writer)
+def _refresh_summaries(run, run_logdir, state):
+    if state.hparams:
+        _ensure_hparam_session(run, run_logdir, state)
+    if state.images:
+        _refresh_image_summaries(run, run_logdir, state)
 
-def _ensure_hparam_session(run, logdir_run_path, writer):
-    marker = _hparams_path(logdir_run_path)
+def _ensure_hparam_session(run, run_logdir, state):
+    marker = _hparams_path(run_logdir)
     if _hparams_added(marker):
         return
-    _add_hparam_session(run, writer)
+    with state.writer(run_logdir) as writer:
+        if state.hparam_experiment:
+            _add_hparam_experiment(state.hparam_experiment, writer)
+        _add_hparam_session(run, writer)
     _set_hparams_added(marker)
+
+def _hparams_path(root):
+    return os.path.join(root, ".guild", "hparams")
+
+def _hparams_added(marker):
+    return os.path.exists(marker)
+
+def _add_hparam_experiment(hparam_experiment, writer):
+    hparams, metrics = hparam_experiment
+    writer.add_hparam_experiment(hparams, metrics)
 
 def _add_hparam_session(run, writer):
     session_name = _hparam_session_name(run)
@@ -177,20 +199,25 @@ def _hparam_session_name(run):
     operation = run_util.format_operation(run)
     return "%s %s" % (run.short_id, operation)
 
-def _refresh_image_summaries(run, logdir_run_path, writer):
+def _set_hparams_added(marker):
+    util.ensure_dir(os.path.dirname(marker))
+    util.touch(marker)
+
+def _refresh_image_summaries(run, run_logdir, state):
     n = 0
     for path, relpath in _iter_images(run.dir):
         if n >= MAX_IMAGE_SUMMARIES:
             break
         n += 1
-        digest = _image_digest_path(logdir_run_path, relpath)
+        digest = _image_digest_path(run_logdir, relpath)
         if _image_added(digest):
             continue
         pending = _image_pending(digest)
         if run.status == "running" and _image_newer(path, pending):
             _set_image_pending(pending)
         else:
-            _add_image_summary(writer, relpath, path)
+            with state.writer(run_logdir) as writer:
+                _add_image_summary(writer, relpath, path)
             _set_image_added(pending)
 
 def _iter_images(top):

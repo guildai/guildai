@@ -45,45 +45,46 @@ And run the monitor:
 
     >>> monitor.run_once()
 
-The monitor generates a number of files in the log directory. These
-include links to run event logs as well as hparam specific files.
-
-Because generated file names are non-deterministic (they include
-randomly generated IDs and hashes) we need a method of sorting them
-that presents the files in a consistent order.
-
-    >>> def sort_files(paths, root):
-    ...     def sort_key(subpath):
-    ...         return subpath.count(os.path.sep), subpath
-    ...     return sorted(paths, key=sort_key)
-
-Here are the generated files:
-
-    >>> files = sort_files(findl(logdir), logdir)
+The monitor generates a number of files under the log directory. These
+include links to run event logs and hparam specific files.
 
 Because '...' will match multiple lines, let's assert the file count.
 
+    >>> files = findl(logdir)
+
     >>> len(files), files
-    (4, ...)
+    (3, ...)
 
 And the files:
 
     >>> files
-    ['events.out.tfevents...',
+    ['... echo.py ... x_flag=1.123/.guild/hparams',
      '... echo.py ... x_flag=1.123/events.out.tfevents...',
-     '... echo.py ... x_flag=1.123/events.out.tfevents...',
-     '... echo.py ... x_flag=1.123/.guild/hparams']
+     '... echo.py ... x_flag=1.123/events.out.tfevents...']
 
 Experiment summaries for all of the runs first returned by the runs
 callback function - in this case, all of our project runs - are
 located in the log directory root.
 
-Let's first look at the experiment summaries. We'll use an event reader.
+Let's first look at the summaries. We'll use an event reader.
 
     >>> from guild.tfevent import EventReader
 
-    >>> for event in EventReader(logdir):
+All of the events are written under the run logdir.
+
+    >>> run_logdir = path(logdir, dirname(files[1]))
+
+The events:
+
+    >>> for event in EventReader(run_logdir):
     ...     print(event)
+    summary {
+      value {
+        tag: "x_metric"
+        simple_value: 1.123000...
+      }
+    }
+    <BLANKLINE>
     summary {
       value {
         tag: "_hparams_/experiment"
@@ -93,46 +94,6 @@ Let's first look at the experiment summaries. We'll use an event reader.
             content: "..."
           }
         }
-      }
-    }
-
-This event records the experiment info for all of the initial
-runs. This information includes the run flags as hyperparameters and
-root scalars (scalars that don't contain a '/' character) as metrics.
-
-The run specific files under the log directory, in order listed above,
-consist of:
-
- - Linked summaries log from the run directory
- - HParam session info
- - Marker that designates that the session info was written
-
- The first file is a link to the run scalars.
-
-     >>> islink(path(logdir, files[1]))
-     True
-
-The second file is the monitor-generated summary log containing the
-hparam session info.
-
-    >>> islink(path(logdir, files[2]))
-    False
-
-The third files is a marked and is empty.
-
-    >>> cat(path(logdir, files[3]))
-    <empty>
-
-The run log directly therefore contains both the run scalars and the
-hparam session info.
-
-    >>> run_logdir = path(logdir, dirname(files[1]))
-    >>> for event in EventReader(run_logdir):
-    ...     print(event)
-    summary {
-      value {
-        tag: "x_metric"
-        simple_value: 1.1230...
       }
     }
     <BLANKLINE>

@@ -75,6 +75,10 @@ class SummaryWriter(object):
         if status:
             self._add_summary(_HParamSessionEnd(status))
 
+    def flush(self):
+        if self._writer:
+            self._writer.flush()
+
     def close(self):
         if self._writer:
             self._writer.close()
