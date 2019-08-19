@@ -73,7 +73,7 @@ class RunsMonitor(util.LoopingThread):
             self._refresh_logdir(runs)
 
     def _refresh_logdir(self, runs):
-        to_delete = os.listdir(self.logdir)
+        to_delete = self._run_dirs()
         for run in runs:
             name = self.run_name_cb(run)
             util.safe_list_remove(name, to_delete)
@@ -81,6 +81,12 @@ class RunsMonitor(util.LoopingThread):
             self.refresh_run_cb(run, path)
         for name in to_delete:
             self._delete_run(name)
+
+    def _run_dirs(self):
+        return [
+            name for name in os.listdir(self.logdir)
+            if os.path.isdir(os.path.join(self.logdir, name))
+        ]
 
     def _ensure_run(self, name):
         path = os.path.join(self.logdir, name)
