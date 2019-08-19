@@ -1068,8 +1068,20 @@ def _format_flag(name, val, opdef):
     if val is None:
         formatted = _null_label(name, opdef)
     else:
-        formatted = flag_util.encode_flag_val(val)
+        formatted = util.find_apply([
+            _try_format_function,
+            flag_util.encode_flag_val], val)
     return "%s: %s" % (name, formatted)
+
+def _try_format_function(val):
+    if not isinstance(val, six.string_types):
+        return None
+    try:
+        flag_util.decode_flag_function(val)
+    except ValueError:
+        return None
+    else:
+        return val
 
 def _null_label(name, opdef):
     flag = opdef.get_flagdef(name)
