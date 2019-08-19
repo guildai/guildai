@@ -48,6 +48,7 @@ class ViewDataImpl(view.ViewData):
     @staticmethod
     def _init_compare_args(view_args):
         return click_util.Args(
+            extra_cols=False,
             cols=None,
             strict_cols=None,
             top=None,
