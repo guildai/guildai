@@ -49,14 +49,13 @@ Because '...' will match multiple lines, we assert the file count.
 
 And the files:
 
-    >>> files
-    ['... echo.py ... x_flag=1.123/events.out.tfevents.0000000000.hparams',
-     '... echo.py ... x_flag=1.123/events.out.tfevents...']
+    ['... echo.py ... x_flag=1.123/.guild/events.out.tfevents...',
+     '... echo.py ... x_flag=1.123/events.out.tfevents.0000000000.hparams']
 
 The first file contains the hparam experiment and session info. The
 second file is a link to the run summaries.
 
-    >>> islink(path(logdir, files[1]))
+    >>> islink(path(logdir, files[0]))
     True
 
 Let's first look at the summaries. We'll use an event reader.
@@ -106,7 +105,11 @@ The events:
         }
       }
     }
-    <BLANKLINE>
+
+The scalars are written to the `.guild` subdirectory.
+
+    >>> for event in EventReader(path(run_logdir, ".guild")):
+    ...     print(event)
     summary {
       value {
         tag: "x_metric"

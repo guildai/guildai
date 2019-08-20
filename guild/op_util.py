@@ -25,6 +25,7 @@ import sys
 import threading
 import time
 
+import six
 import yaml
 
 # Move any import that's expensive or seldom used into function
@@ -960,9 +961,14 @@ def _file_label(path):
 
 def _format_flags_for_label(flag_vals):
     return {
-        name: flag_util.format_flag(val, truncate_floats=True)
+        name: _format_flag_for_label(val)
         for name, val in flag_vals.items()
     }
+
+def _format_flag_for_label(val):
+    if isinstance(val, six.string_types):
+        return val
+    return flag_util.format_flag(val, truncate_floats=True)
 
 def _patch_yaml_safe_loader():
     # Credit: https://stackoverflow.com/users/1307905/anthon
