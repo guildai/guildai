@@ -71,19 +71,10 @@ The monitor generated the following files in the log directory:
 
     >>> files = findl(logdir)
     >>> files
-    ['... copy-images .../.guild/images/71a365d27894b323b8d5d6ebfeed6ee9',
-     '... copy-images .../events.out.tfevents...']
+    ['... copy-images .../.guild/...',
+     '... copy-images .../events.out.tfevents.0000000000.images']
 
-Event summaries for the run are stored under a directory named with
-the run ID, operation namd, date, and label.
-
-The first file in the list (ending with a hash) is a marker that
-indicates the monitor has written an associated image as a
-summary. The marker is named using an md5 digest of the applicable
-image's path relative to the run directory.
-
-We can verify this by calculating an md5 digest for
-`favicon-copy.png`.
+The first file is a marker corresponding to the processed image page.
 
     >>> import hashlib
     >>> digest = hashlib.md5(b"favicon-copy.png").hexdigest()
@@ -95,13 +86,8 @@ We can verify this by calculating an md5 digest for
     >>> digest == file0, (digest, file0)
     (True, ...)
 
-As a marker, this file is empty.
-
-    >>> cat(path(logdir, files[0]))
-    <empty>
-
-The second file is the TF event summary log. We can use
-`tfevent.EventReader` to read the log events.
+The second file is the TF event summary log containing run images. We
+can use `tfevent.EventReader` to read the log events.
 
     >>> from guild.tfevent import EventReader
 

@@ -17,11 +17,16 @@ from __future__ import division
 
 import io
 import logging
+import os
 import re
+import socket
 import sys
+import time
 import warnings
 
 import six
+
+from guild import util
 
 log = logging.getLogger("guild")
 
@@ -30,19 +35,58 @@ ALIASES = [
     (re.compile(r"\\value"), "[0-9\\.e\\-]+"),
 ]
 
+class EventFileWriter(object):
+
+    def __init__(
+            self,
+            logdir,
+            max_queue_size=10,
+            flush_secs=120,
+            filename_base=None,
+            filename_suffix=""):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", Warning)
+            # pylint: disable=no-name-in-module
+            from tensorboard.summary.writer import event_file_writer as writelib
+        util.ensure_dir(logdir)
+        filename_base = filename_base or ("%010d.%s.%s.%s" % (
+            time.time(),
+            socket.gethostname(),
+            os.getpid(),
+            writelib._global_uid.get()))
+        filename = (
+            os.path.join(logdir, "events.out.tfevents.%s" % filename_base) +
+            filename_suffix)
+        self._writer = writelib._AsyncWriter(
+            writelib.RecordWriter(open(filename, "wb")),
+            max_queue_size, flush_secs)
+        event = writelib.event_pb2.Event(
+            wall_time=time.time(), file_version="brain.Event:2")
+        self.add_event(event)
+        self.flush()
+
+    def add_event(self, event):
+        self._writer.write(event.SerializeToString())
+
+    def flush(self):
+        self._writer.flush()
+
+    def close(self):
+        self._writer.close()
+
 class SummaryWriter(object):
 
-    def __init__(self, logdir):
+    def __init__(self, logdir, filename_base=None, filename_suffix=""):
         self.logdir = logdir
+        self._writer_init = lambda: EventFileWriter(
+            logdir,
+            filename_base=filename_base,
+            filename_suffix=filename_suffix)
         self._writer = None
 
     def _get_writer(self):
         if self._writer is None:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", Warning)
-                # pylint: disable=no-name-in-module
-                from tensorboard.summary.writer import event_file_writer
-            self._writer = event_file_writer.EventFileWriter(self.logdir)
+            self._writer = self._writer_init()
         return self._writer
 
     def _add_summary(self, summary, step=None):

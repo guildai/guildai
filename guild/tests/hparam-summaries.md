@@ -36,35 +36,28 @@ And our monitor, configured to log only hparams:
 The monitor is designed to run a thread but we can run it preemptively
 by calling `run_once`.
 
-We wait a second to ensure that any logged summaries have a later
-timestamp.
-
-    >>> sleep(1)
-
-And run the monitor:
-
     >>> monitor.run_once()
 
-The monitor generates a number of files under the log directory. These
-include links to run event logs and hparam specific files.
+The monitor generates files under the log directory. These include
+links to run event logs and hparam specific files.
 
-Because '...' will match multiple lines, let's assert the file count.
+Because '...' will match multiple lines, we assert the file count.
 
     >>> files = findl(logdir)
-
     >>> len(files), files
-    (3, ...)
+    (2, ...)
 
 And the files:
 
     >>> files
-    ['... echo.py ... x_flag=1.123/.guild/hparams',
-     '... echo.py ... x_flag=1.123/events.out.tfevents...',
+    ['... echo.py ... x_flag=1.123/events.out.tfevents.0000000000.hparams',
      '... echo.py ... x_flag=1.123/events.out.tfevents...']
 
-Experiment summaries for all of the runs first returned by the runs
-callback function - in this case, all of our project runs - are
-located in the log directory root.
+The first file contains the hparam experiment and session info. The
+second file is a link to the run summaries.
+
+    >>> islink(path(logdir, files[1]))
+    True
 
 Let's first look at the summaries. We'll use an event reader.
 
@@ -78,13 +71,6 @@ The events:
 
     >>> for event in EventReader(run_logdir):
     ...     print(event)
-    summary {
-      value {
-        tag: "x_metric"
-        simple_value: 1.123000...
-      }
-    }
-    <BLANKLINE>
     summary {
       value {
         tag: "_hparams_/experiment"
@@ -118,5 +104,12 @@ The events:
             content: "..."
           }
         }
+      }
+    }
+    <BLANKLINE>
+    summary {
+      value {
+        tag: "x_metric"
+        simple_value: 1.12300...
       }
     }

@@ -73,11 +73,14 @@ class _RunsMonitorState(object):
         self.hparams = not logspec or "hparams" in logspec
         self._writers = {}
 
-    def writer(self, logdir):
+    def writer(self, logdir, suffix):
         try:
             writer = self._writers[logdir]
         except KeyError:
-            self._writers[logdir] = writer = summary.SummaryWriter(logdir)
+            writer = summary.SummaryWriter(
+                logdir,
+                filename_base="%010d.%s" % (0, suffix))
+            self._writers[logdir] = writer
         return _WriterContext(writer)
 
 def RunsMonitor(logdir, list_runs_cb, interval=None, logspec=None):
@@ -148,15 +151,7 @@ def _iter_tfevents(top):
                 yield os.path.join(root, name)
 
 def _tfevent_link_path(root, tfevent_relpath):
-    digest = _tfevent_link_digest(root, tfevent_relpath)
-    dirname, basename = os.path.split(tfevent_relpath)
-    if dirname == ".guild":
-        tfevent_relpath = basename
-    return os.path.join(root, tfevent_relpath) + "." + digest
-
-def _tfevent_link_digest(root, relpath):
-    content = os.path.join(root, relpath).encode()
-    return hashlib.md5(content).hexdigest()[:8]
+    return os.path.join(root, tfevent_relpath)
 
 def _ensure_tfevent_link(src, link):
     if os.path.exists(link):
@@ -168,23 +163,18 @@ def _refresh_summaries(run, run_logdir, state):
     if state.hparams:
         _ensure_hparam_session(run, run_logdir, state)
     if state.images:
-        _refresh_image_summaries(run, run_logdir, state)
+        _ensure_image_summaries(run, run_logdir, state)
 
 def _ensure_hparam_session(run, run_logdir, state):
-    marker = _hparams_path(run_logdir)
-    if _hparams_added(marker):
+    if _hparams_written(run_logdir):
         return
-    with state.writer(run_logdir) as writer:
+    with state.writer(run_logdir, "hparams") as writer:
         if state.hparam_experiment:
             _add_hparam_experiment(state.hparam_experiment, writer)
         _add_hparam_session(run, writer)
-    _set_hparams_added(marker)
 
-def _hparams_path(root):
-    return os.path.join(root, ".guild", "hparams")
-
-def _hparams_added(marker):
-    return os.path.exists(marker)
+def _hparams_written(run_logdir):
+    return any((name.endswith(".hparams") for name in os.listdir(run_logdir)))
 
 def _add_hparam_experiment(hparam_experiment, writer):
     hparams, metrics = hparam_experiment
@@ -199,66 +189,39 @@ def _hparam_session_name(run):
     operation = run_util.format_operation(run)
     return "%s %s" % (run.short_id, operation)
 
-def _set_hparams_added(marker):
-    util.ensure_dir(os.path.dirname(marker))
-    util.touch(marker)
-
-def _refresh_image_summaries(run, run_logdir, state):
+def _ensure_image_summaries(run, run_logdir, state):
     n = 0
     for path, relpath in _iter_images(run.dir):
         if n >= MAX_IMAGE_SUMMARIES:
             break
+        marker = _image_added_marker(run_logdir, relpath)
+        if _marker_exists(marker):
+            break
+        with state.writer(run_logdir, "images") as writer:
+            writer.add_image(relpath, path)
+        _add_marker(marker)
         n += 1
-        digest = _image_digest_path(run_logdir, relpath)
-        if _image_added(digest):
-            continue
-        pending = _image_pending(digest)
-        if run.status == "running" and _image_newer(path, pending):
-            _set_image_pending(pending)
-        else:
-            with state.writer(run_logdir) as writer:
-                _add_image_summary(writer, relpath, path)
-            _set_image_added(pending)
 
 def _iter_images(top):
     for root, _dir, names in os.walk(top):
         for name in names:
             _, ext = os.path.splitext(name)
-            if ext.lower() in IMG_EXT:
-                path = os.path.join(root, name)
-                if not os.path.islink(path):
-                    yield path, os.path.relpath(path, top)
+            if ext.lower() not in IMG_EXT:
+                continue
+            path = os.path.join(root, name)
+            if not os.path.islink(path):
+                yield path, os.path.relpath(path, top)
 
-def _image_digest_path(root, path):
-    digest = hashlib.md5(path.encode()).hexdigest()
-    return os.path.join(root, ".guild", "images", digest)
+def _image_added_marker(root, relpath):
+    digest = hashlib.md5(relpath.encode()).hexdigest()
+    return os.path.join(root, ".guild", digest)
 
-def _image_added(digest):
-    return os.path.exists(digest)
+def _marker_exists(marker):
+    return os.path.exists(marker)
 
-def _image_pending(digest):
-    return digest + ".pending"
-
-def _image_newer(path, pending):
-    if not os.path.exists(pending):
-        return True
-    return util.safe_mtime(path) > util.safe_mtime(pending)
-
-def _set_image_pending(pending):
-    util.ensure_dir(os.path.dirname(pending))
-    util.touch(pending)
-
-def _add_image_summary(writer, tag, path):
-    writer.add_image(tag, path)
-
-def _set_image_added(pending):
-    assert pending.endswith(".pending"), pending
-    added = pending[:-8]
-    if os.path.exists(pending):
-        os.rename(pending, added)
-    else:
-        util.ensure_dir(os.path.dirname(added))
-        util.touch(added)
+def _add_marker(marker):
+    util.ensure_dir(os.path.dirname(marker))
+    util.touch(marker)
 
 def create_app(logdir, reload_interval, path_prefix=""):
     with warnings.catch_warnings():
