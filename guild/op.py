@@ -176,7 +176,7 @@ class Operation(object):
             op_util.default_label(self.opdef))
         if not label:
             return
-        formatted = _format_label(
+        formatted = op_util.format_label(
             label,
             self.flag_vals,
             self.resource_config,
@@ -597,36 +597,6 @@ def init_run(path=None):
     else:
         run_id = os.path.basename(path)
     return guild.run.Run(run_id, path)
-
-def _format_label(template, flag_vals, resource_config, resolved_deps):
-    vals = _init_label_val_lookup(flag_vals, resource_config, resolved_deps)
-    return util.render_label(template, vals)
-
-def _init_label_val_lookup(flag_vals, resource_config, resolved_deps):
-    lookup = {}
-    # List in reverse order of precedence.
-    lookup.update(resource_config)
-    lookup.update(_resolved_dep_label_vals(resolved_deps))
-    lookup.update(flag_vals)
-    return lookup
-
-def _resolved_dep_label_vals(deps):
-    return {name: _dep_label(deps[name]) for name in deps}
-
-def _dep_label(dep_files):
-    # Use first file to infer dependency label.
-    if not dep_files:
-        return "#unknown#"
-    return util.find_apply([_run_id_label, _file_label], dep_files[0])
-
-def _run_id_label(path):
-    run_id_m = re.search(r".guild[/\\]runs/(.+?)[/\\]", path)
-    if run_id_m:
-        return run_id_m.group(1)[:8]
-    return None
-
-def _file_label(path):
-    return os.path.basename(path)
 
 def _sort_resolved(resolved):
     return {
