@@ -169,3 +169,25 @@ def _maybe_truncate_dec_part(part, trunc_len):
     if len(part) <= trunc_len: # lte to include leading '.'
         return part
     return part[:trunc_len + 1]
+
+class FormattedValue(object):
+
+    _str = None
+
+    def __init__(self, value, truncate_floats=False):
+        self._truncate_floats = truncate_floats
+        self._value = value
+
+    @property
+    def wrapped_value(self):
+        return self._value
+
+    @wrapped_value.setter
+    def wrapped_value(self, value):
+        self._value = value
+        self._str = None
+
+    def __str__(self):
+        if self._str is None:
+            self._str = format_flag(self._value, self._truncate_floats)
+        return self._str

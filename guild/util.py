@@ -797,6 +797,8 @@ def _apply_template_transform(t, val):
     else:
         name, arg = parts
     if name[:1] == "%":
+        if hasattr(val, "wrapped_value"):
+            val = val.wrapped_value
         return _t_python_format(val, name)
     elif name == "default":
         return _t_default(val, arg)

@@ -104,7 +104,7 @@ Let's run this operation without specifying flags.
     >>> run("op")
 
     >>> print_last_run()
-    op  i:1, f:2.0, b:True, s:hello
+    op  i:1, f:2.0, b:yes, s:hello
 
 When we provide flag values, the label format isn't changed - but the
 values do.
@@ -112,7 +112,7 @@ values do.
     >>> run("op", i=2, s="yo")
 
     >>> print_last_run()
-    op  i:2, f:2.0, b:True, s:yo
+    op  i:2, f:2.0, b:yes, s:yo
 
 ## Trial labels
 
@@ -133,11 +133,11 @@ trials:
 
 Here's the same result running `op`:
 
-    >>> run("op", i=[1,2], s="yello")
+    >>> run("op", i=[1,2], s="yello", b=False)
 
     >>> print_runs(3)
-    op   i:2, f:2.0, b:True, s:yello
-    op   i:1, f:2.0, b:True, s:yello
+    op   i:2, f:2.0, b:no, s:yello
+    op   i:1, f:2.0, b:no, s:yello
     op+
 
 In this case, we specify an explicit label for the trials:

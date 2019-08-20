@@ -968,7 +968,7 @@ def _format_flags_for_label(flag_vals):
 def _format_flag_for_label(val):
     if isinstance(val, six.string_types):
         return val
-    return flag_util.format_flag(val, truncate_floats=True)
+    return flag_util.FormattedValue(val, truncate_floats=True)
 
 def _patch_yaml_safe_loader():
     # Credit: https://stackoverflow.com/users/1307905/anthon
