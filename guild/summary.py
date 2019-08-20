@@ -165,10 +165,18 @@ def _HParam(name, vals):
         max_val = float(max(vals))
         return hp.HParam(name, hp.RealInterval(min_val, max_val))
     else:
-        return hp.HParam(name, hp.Discrete(vals))
+        legal_vals = [_valid_param_val(val) for val in vals]
+        return hp.HParam(name, hp.Discrete(legal_vals))
 
 def _all_numbers(vals):
     return all((isinstance(val, (int, float)) for val in vals))
+
+def _valid_param_val(val):
+    if isinstance(val, (int, float, bool, six.string_types)):
+        return val
+    if val is None:
+        return ""
+    return str(val)
 
 def _HParamSessionStart(name, hparams):
     from tensorboard.plugins.hparams import summary_v2 as hp
@@ -190,8 +198,10 @@ def _legacy_hparams_pb(hparams, trial_id):
             info.hparams[name].number_value = val
         elif isinstance(val, six.string_types):
             info.hparams[name].string_value = val
+        elif val is None:
+            info.hparams[name].string_value = ""
         else:
-            assert False, (name, val)
+            info.hparams[name].string_value = str(val)
     return hp._summary_pb(
         hp.metadata.SESSION_START_INFO_TAG,
         hp.plugin_data_pb2.HParamsPluginData(session_start_info=info),
