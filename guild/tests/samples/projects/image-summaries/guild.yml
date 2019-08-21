@@ -2,8 +2,11 @@ copy-images:
   disable-plugins: all
   requires:
     - file: favicon.png
+    - file: heart.jpg
 
-rotate:
+rotate-images:
   disable-plugins: all
+  pre-process: touch hello
   requires:
     - file: favicon.png
+    - file: heart.jpg

@@ -600,6 +600,8 @@ def safe_is_text_file(path, ignore_ext=False):
 
 def touch(filename):
     open(filename, "ab").close()
+    now = time.time()
+    os.utime(filename, (now, now))
 
 def getmtime(filename):
     try:

@@ -25,6 +25,7 @@ import warnings
 from werkzeug import serving
 
 from guild import run_util
+from guild import query
 from guild import summary
 from guild import tfevent
 from guild import util
@@ -34,6 +35,7 @@ log = logging.getLogger("guild")
 DEFAULT_RELOAD_INTERVAL = 5
 
 TFEVENTS_P = re.compile(r"\.tfevents")
+TFEVENT_TIMESTAMP_P = re.compile(r"tfevents\.([0-9]+)\.")
 
 IMG_EXT = (
     ".gif",
@@ -49,43 +51,18 @@ MAX_IMAGE_SUMMARIES = 100
 class TensorboardError(Exception):
     pass
 
-class _WriterContext(object):
-
-    def __init__(self, writer):
-        self._writer = writer
-        self.add_hparam_experiment = writer.add_hparam_experiment
-        self.add_hparam_session = writer.add_hparam_session
-        self.add_image = writer.add_image
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *_exc):
-        self._writer.flush()
-
 class _RunsMonitorState(object):
-
-    hparam_experiment = None
 
     def __init__(self, logdir, logspec):
         self.logdir = logdir
-        self.images = not logspec or "images" in logspec
-        self.hparams = not logspec or "hparams" in logspec
-        self._writers = {}
-
-    def writer(self, logdir, suffix):
-        try:
-            writer = self._writers[logdir]
-        except KeyError:
-            writer = summary.SummaryWriter(
-                logdir,
-                filename_base="%010d.%s" % (0, suffix))
-            self._writers[logdir] = writer
-        return _WriterContext(writer)
+        self.log_images = not logspec or "images" in logspec
+        self.log_hparams = not logspec or "hparams" in logspec
+        self.hparam_experiment = None
+        self.hparam_experiment_runs_digest = None
 
 def RunsMonitor(logdir, list_runs_cb, interval=None, logspec=None):
     state = _RunsMonitorState(logdir, logspec)
-    if state.hparams:
+    if state.log_hparams:
         list_runs_cb = _hparam_init_support(list_runs_cb, state)
     return run_util.RunsMonitor(
         logdir,
@@ -102,11 +79,22 @@ def _hparam_init_support(list_runs_cb, state):
 
 def _refresh_hparam_experiment(runs, state):
     if runs:
+        runs_digest = _runs_digest(runs)
+        if runs_digest == state.hparam_experiment_runs_digest:
+            return
         hparams = _experiment_hparams(runs)
         metrics = _experiment_metrics(runs)
         state.hparam_experiment = hparams, metrics
+        state.hparam_experiment_runs_digest = runs_digest
     else:
         state.hparam_experiment = None
+        state.hparam_experiment_runs_digest = None
+
+def _runs_digest(runs):
+    digest = hashlib.md5()
+    for run_id in sorted([run.id for run in runs]):
+        digest.update(run_id.encode())
+    return digest.hexdigest()
 
 def _experiment_hparams(runs):
     hparams = {}
@@ -122,6 +110,30 @@ def _experiment_metrics(runs):
     return metrics
 
 def _run_metric_tags(run):
+    return _run_compare_metrics(run) or _run_root_scalars(run)
+
+def _run_compare_metrics(run):
+    compare_specs = run_util.latest_compare(run)
+    if not compare_specs:
+        return None
+    metrics = set()
+    for spec in compare_specs:
+        try:
+            select = query.parse_colspec(spec)
+        except query.ParseError:
+            pass
+        else:
+            metrics.update([
+                col.key for col in select.cols
+                if _is_last_scalar(col)])
+    return metrics
+
+def _is_last_scalar(select_col):
+    return (
+        isinstance(select_col, query.Scalar) and
+        select_col.qualifier in (None, "last"))
+
+def _run_root_scalars(run):
     return [tag for tag in _iter_scalar_tags(run.dir) if "/" not in tag]
 
 def _iter_scalar_tags(dir):
@@ -135,14 +147,15 @@ def _refresh_run_cb(state):
     return f
 
 def _refresh_run(run, run_logdir, state):
-    _refresh_tfevent_links(run, run_logdir)
-    _refresh_summaries(run, run_logdir, state)
+    _refresh_tfevent_links(run, run_logdir, state)
+    _refresh_image_summaries(run, run_logdir, state)
 
-def _refresh_tfevent_links(run, run_logdir):
+def _refresh_tfevent_links(run, run_logdir, state):
     for tfevent_path in _iter_tfevents(run.dir):
         tfevent_relpath = os.path.relpath(tfevent_path, run.dir)
         link = _tfevent_link_path(run_logdir, tfevent_relpath)
-        _ensure_tfevent_link(tfevent_path, link)
+        if not os.path.exists(link):
+            _init_tfevent_link(tfevent_path, link, run, state)
 
 def _iter_tfevents(top):
     for root, _dirs, files in os.walk(top):
@@ -153,28 +166,21 @@ def _iter_tfevents(top):
 def _tfevent_link_path(root, tfevent_relpath):
     return os.path.join(root, tfevent_relpath)
 
-def _ensure_tfevent_link(src, link):
-    if os.path.exists(link):
-        return
-    util.ensure_dir(os.path.dirname(link))
-    util.symlink(src, link)
+def _init_tfevent_link(tfevent_src, tfevent_link, run, state):
+    link_dir = os.path.dirname(tfevent_link)
+    util.ensure_dir(link_dir)
+    if state.log_hparams:
+        _init_hparam_session(run, link_dir, state)
+    util.symlink(tfevent_src, tfevent_link)
 
-def _refresh_summaries(run, run_logdir, state):
-    if state.hparams:
-        _ensure_hparam_session(run, run_logdir, state)
-    if state.images:
-        _ensure_image_summaries(run, run_logdir, state)
-
-def _ensure_hparam_session(run, run_logdir, state):
-    if _hparams_written(run_logdir):
-        return
-    with state.writer(run_logdir, "hparams") as writer:
+def _init_hparam_session(run, run_logdir, state):
+    with _hparams_writer(run_logdir) as writer:
         if state.hparam_experiment:
             _add_hparam_experiment(state.hparam_experiment, writer)
         _add_hparam_session(run, writer)
 
-def _hparams_written(run_logdir):
-    return any((name.endswith(".hparams") for name in os.listdir(run_logdir)))
+def _hparams_writer(logdir):
+    return summary.SummaryWriter(logdir, filename_base="0000000000.hparams")
 
 def _add_hparam_experiment(hparam_experiment, writer):
     hparams, metrics = hparam_experiment
@@ -189,22 +195,23 @@ def _hparam_session_name(run):
     operation = run_util.format_operation(run)
     return "%s %s" % (run.short_id, operation)
 
-def _ensure_image_summaries(run, run_logdir, state):
-    n = 0
+def _refresh_image_summaries(run, run_logdir, state):
+    if not state.log_images:
+        return
+    images_logdir = os.path.join(run_logdir, ".images")
     for path, relpath in _iter_images(run.dir):
-        if n >= MAX_IMAGE_SUMMARIES:
+        if _count_images(images_logdir) >= MAX_IMAGE_SUMMARIES:
             break
-        marker = _image_added_marker(run_logdir, relpath)
-        if _marker_exists(marker):
-            break
-        with state.writer(run_logdir, "images") as writer:
-            writer.add_image(relpath, path)
-        _add_marker(marker)
-        n += 1
+        img_path_digest = _path_digest(relpath)
+        tfevent_path = _image_tfevent_path(images_logdir, img_path_digest)
+        if _image_updated_since_summary(path, tfevent_path):
+            util.ensure_dir(images_logdir)
+            with _image_writer(images_logdir, img_path_digest) as writer:
+                writer.add_image(relpath, path)
 
 def _iter_images(top):
     for root, _dir, names in os.walk(top):
-        for name in names:
+        for name in sorted(names):
             _, ext = os.path.splitext(name)
             if ext.lower() not in IMG_EXT:
                 continue
@@ -212,16 +219,48 @@ def _iter_images(top):
             if not os.path.islink(path):
                 yield path, os.path.relpath(path, top)
 
-def _image_added_marker(root, relpath):
-    digest = hashlib.md5(relpath.encode()).hexdigest()
-    return os.path.join(root, ".guild", digest)
+def _count_images(dir):
+    return len(_unique_digests(dir))
 
-def _marker_exists(marker):
-    return os.path.exists(marker)
+def _unique_digests(dir):
+    if not os.path.exists(dir):
+        return []
+    return set([os.path.splitext(name)[1] for name in os.listdir(dir)])
 
-def _add_marker(marker):
-    util.ensure_dir(os.path.dirname(marker))
-    util.touch(marker)
+def _path_digest(path):
+    return hashlib.md5(path.encode()).hexdigest()
+
+def _image_tfevent_path(logdir, digest):
+    if not os.path.exists(logdir):
+        return None
+    latest = None
+    for name in os.listdir(logdir):
+        if name.endswith(digest):
+            latest = max(name, latest) if latest else name
+    if not latest:
+        return None
+    return os.path.join(logdir, latest)
+
+def _image_updated_since_summary(img_path, tfevent_path):
+    if not tfevent_path:
+        return True
+    return util.safe_mtime(img_path) > util.safe_mtime(tfevent_path)
+
+def _image_writer(logdir, digest):
+    timestamp = _next_tfevent_timestamp(logdir)
+    return summary.SummaryWriter(
+        logdir,
+        filename_base="%0.10d.image" % timestamp,
+        filename_suffix="." + digest)
+
+def _next_tfevent_timestamp(dir):
+    assert os.path.exists(dir), dir
+    cur = -1
+    for name in os.listdir(dir):
+        m = TFEVENT_TIMESTAMP_P.search(name)
+        if m:
+            cur = max(cur, int(m.group(1)))
+    return cur + 1
 
 def create_app(logdir, reload_interval, path_prefix=""):
     with warnings.catch_warnings():

@@ -1,5 +1,7 @@
-import glob
+import os
 import shutil
 
-for name in glob.glob("*.png"):
-    shutil.copy(name, name[:-4] + "-copy.png")
+for name in os.listdir("."):
+    base, ext = os.path.splitext(name)
+    if ext.lower() in (".jpg", ".png"):
+        shutil.copy(name, "%s-copy%s" % (base, ext))
