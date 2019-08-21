@@ -355,46 +355,50 @@ def format_runs(runs):
 
 def _apply_op_desc(formatted):
     for fmt_run in formatted:
-        op_desc = _op_desc(fmt_run)
+        op_desc = _op_desc_base(fmt_run)
         marked_suffix = " [marked]" if fmt_run["marked"] == "yes" else ""
         fmt_run["op_desc"] = op_desc + marked_suffix
 
-def _op_desc(fmt_run, style=True):
+def _op_desc_base(fmt_run, apply_style=True):
     op = fmt_run["operation"]
-    run = fmt_run["_run"]
-    if run.opref.pkg_type not in ("guildfile", "script"):
-        return _empty_style(style, op)
-    op_dir = _run_op_dir(run)
-    cwd = os.path.abspath(config.cwd())
-    if util.compare_paths(op_dir, cwd):
-        return _empty_style(style, op)
-    shortened_op_dir = run_util.shorten_op_dir(op_dir, cwd)
-    op_dir_suffix = " (%s)" % shortened_op_dir
-    return "%s%s" % (op, _dim_style(style, op_dir_suffix))
-
-def _empty_style(style, s):
-    # Pad a string with an empty style for alignment in tables.
-    if not style:
-        return s
-    return s + _dim("")
-
-def _dim_style(style, s):
-    if not style:
-        return s
-    return _dim(s)
-
-def _dim(s):
-    return click.style(s, dim=True)
+    op_dir = _run_op_dir(fmt_run["_run"])
+    if not op_dir:
+        return _empty_style(op, apply_style)
+    return "%s%s" % (op, _styled_op_dir_suffix(op_dir, apply_style))
 
 def _run_op_dir(run):
+    run = _batch_proto(run) or run
     opref = run.opref
-    assert opref.pkg_type in ("guildfile", "script"), opref
     if opref.pkg_type == "guildfile":
-        # pkg_name referes to Guild file
-        op_dir = os.path.dirname(opref.pkg_name)
+        return os.path.dirname(opref.pkg_name)
     elif opref.pkg_type == "script":
-        op_dir = opref.pkg_name
-    return op_dir
+        return opref.pkg_name
+    else:
+        return None
+
+def _batch_proto(run):
+    proto_dir = run.guild_path("proto")
+    if os.path.exists(proto_dir):
+        return runlib.from_dir(proto_dir)
+    return None
+
+def _empty_style(s, apply_style):
+    # Pad a string with an empty style for alignment in tables.
+    if apply_style:
+        return s + click.style("", dim=True)
+    return s
+
+def _styled_op_dir_suffix(op_dir, apply_style):
+    cwd = os.path.abspath(config.cwd())
+    if util.compare_paths(op_dir, cwd):
+        return _empty_style("", apply_style)
+    shortened_op_dir = run_util.shorten_op_dir(op_dir, cwd)
+    return _dim_style(" (%s)" % shortened_op_dir, apply_style)
+
+def _dim_style(s, apply_style):
+    if apply_style:
+        return click.style(s, dim=True)
+    return s
 
 def format_run(run):
     formatted = format_runs([run])
