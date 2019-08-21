@@ -423,17 +423,19 @@ def runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
     selected = get_selected(args, ctx, default_runs_arg, force_deleted)
     if not selected:
         _no_selected_runs_exit(no_runs_help)
-    formatted = format_runs(selected)
+    formatted = None  # expensive, lazily init as needed
     if not args.yes:
+        formatted = formatted = format_runs(selected)
         cli.out(preview_msg)
         cols = [
             "short_index", "op_desc", "started",
             "status_with_remote", "label"]
         cli.table(formatted, cols=cols, indent=2)
-    formatted_confirm_prompt = confirm_prompt.format(count=len(formatted))
-    if args.yes or cli.confirm(formatted_confirm_prompt, confirm_default):
+    fmt_confirm_prompt = confirm_prompt.format(count=len(selected))
+    if args.yes or cli.confirm(fmt_confirm_prompt, confirm_default):
         # pylint: disable=deprecated-method
         if len(inspect.getargspec(op_callback).args) == 2:
+            formatted = formatted = format_runs(selected)
             op_callback(selected, formatted)
         else:
             op_callback(selected)
