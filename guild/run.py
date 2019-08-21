@@ -190,10 +190,10 @@ class Run(object):
             self.write_attr("id", self.id)
             self.write_attr("initialized", timestamp())
 
-    def guild_path(self, subpath=None):
+    def guild_path(self, *subpath):
         if subpath is None:
             return self._guild_dir
-        return os.path.join(self._guild_dir, subpath)
+        return os.path.join(*((self._guild_dir,) + tuple(subpath)))
 
     def write_attr(self, name, val, raw=False):
         if not raw:
