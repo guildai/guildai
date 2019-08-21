@@ -337,14 +337,14 @@ def _coerce_operation_attr(name, val, guildfile):
         return _coerce_flags(val, guildfile)
     elif name == "flags-import":
         return _coerce_flags_import(val, guildfile)
+    elif name == "publish":
+        return _coerce_publish(val, guildfile)
     elif name == "python-path":
         return _coerce_op_python_path(val, guildfile)
     elif name == "output-scalars":
         return _coerce_output_scalars(val, guildfile)
     elif name == "sourcecode":
         return _coerce_select_files(val, guildfile)
-    elif name == "publish":
-        return _coerce_publish(val, guildfile)
     else:
         return val
 
