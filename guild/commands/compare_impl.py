@@ -19,7 +19,6 @@ import csv
 import itertools
 import logging
 import sys
-import warnings
 
 from guild import batch_util
 from guild import cli
@@ -135,7 +134,6 @@ def _tabview(args):
 
 def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
     def f():
-        _try_init_tf_logging()
         log_capture = util.LogCapture()
         with log_capture:
             runs = _runs_for_args(args)
@@ -155,21 +153,6 @@ def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
             log = log_capture.get_all()
             return [header] + rows, log
     return f
-
-def _try_init_tf_logging():
-    """Load TensorFlow, forcing init of TF logging.
-
-    This is part of our handing of logging, which can interfere with
-    the curses display used by tabview. By forcing an init of TF logs,
-    we can patch loggers with LogCapture (see guild.tabview module)
-    for display in a curses window.
-    """
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        try:
-            import tensorflow as _
-        except ImportError:
-            pass
 
 def _runs_for_args(args):
     runs = runs_impl.runs_for_args(args)

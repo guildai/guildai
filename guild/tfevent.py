@@ -159,20 +159,6 @@ def _event_files_digest(dir):
     return hashlib.md5(to_hash.encode("utf-8")).hexdigest()
 
 def ensure_tf_logging_patched():
-    _ensure_tf_oldstyle_logging_patched()
-    _ensure_tf_newstyle_logging_patched()
-
-def _ensure_tf_oldstyle_logging_patched():
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", Warning)
-            from tensorflow import logging
-    except ImportError:
-        pass
-    else:
-        logging.info = logging.debug = lambda *_arg, **_kw: None
-
-def _ensure_tf_newstyle_logging_patched():
     try:
         from tensorboard.util import tb_logging
     except ImportError:
