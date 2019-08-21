@@ -22,6 +22,7 @@ import six
 import yaml
 
 from guild import flag_util
+from guild import guildfile
 from guild import util
 
 log = logging.getLogger("guild")
@@ -337,3 +338,30 @@ def run_scalar_key(scalar):
     if not prefix or prefix == ".guild":
         return tag
     return "%s#%s" % (prefix, tag)
+
+def latest_compare(run):
+    return util.find_apply([
+        _try_guildfile_compare,
+        _run_compare_attr
+    ], run)
+
+def _try_guildfile_compare(run):
+    try:
+        gf = guildfile.from_run(run)
+    except (guildfile.NoModels, guildfile.GuildfileMissing, TypeError):
+        return None
+    else:
+        return _try_guildfile_op_compare(
+            gf, run.opref.model_name, run.opref.op_name)
+
+def _try_guildfile_op_compare(gf, model_name, op_name):
+    try:
+        m = gf.models[model_name]
+    except KeyError:
+        return None
+    else:
+        op = m.get_operation(op_name)
+        return op.compare if op else None
+
+def _run_compare_attr(run):
+    return run.get("compare")

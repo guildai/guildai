@@ -24,7 +24,6 @@ from guild import batch_util
 from guild import cli
 from guild import config
 from guild import index2 as indexlib
-from guild import guildfile
 from guild import flag_util
 from guild import query
 from guild import run as runlib
@@ -204,7 +203,7 @@ def _colspec_cols(colspec, parse_cache):
 def _op_cols(run, args, parse_cache, index):
     if args.skip_op_cols:
         return []
-    compare = _run_op_compare(run, index)
+    compare = _op_compare(run, index)
     if not compare:
         return []
     cols = []
@@ -212,7 +211,7 @@ def _op_cols(run, args, parse_cache, index):
         cols.extend(_colspec_cols(colspec, parse_cache))
     return cols
 
-def _run_op_compare(run, index):
+def _op_compare(run, index):
     """Returns compare cols for run.
 
     If we can get the current compare cols for the run op source
@@ -220,57 +219,34 @@ def _run_op_compare(run, index):
     run "compare" attr.
     """
     return util.find_apply([
-        _try_guildfile_compare,
-        _run_compare_attr,
-        _default_run_compare], run, index)
-
-def _try_guildfile_compare(run, _index):
-    """Returns the current compare for run op if available."""
-    try:
-        gf = guildfile.from_run(run)
-    except (guildfile.NoModels, guildfile.GuildfileMissing, TypeError):
-        return None
-    else:
-        return _try_guildfile_op_compare(
-            gf, run.opref.model_name,
-            run.opref.op_name)
-
-def _try_guildfile_op_compare(gf, model_name, op_name):
-    try:
-        m = gf.models[model_name]
-    except KeyError:
-        return None
-    else:
-        op = m.get_operation(op_name)
-        return op.compare if op else None
-
-def _run_compare_attr(run, _index):
-    return run.get("compare")
+        lambda: run_util.latest_compare(run),
+        lambda: _default_run_compare(run, index)])
 
 def _default_run_compare(run, index):
     return (
-        _run_flag_compares(run) +
-        _run_scalar_compares(run, index))
+        _flag_compares(run) +
+        _scalar_compares(run, index))
 
-def _run_flag_compares(run):
+def _flag_compares(run):
     flags = run.get("flags") or {}
     return ["=%s" % name for name in sorted(flags)]
 
-def _run_scalar_compares(run, index):
+def _scalar_compares(run, index):
     # Assuming index has been refreshed to include run
-    scalars = set()
+    cols = _root_scalars(run, index)
+    if not cols:
+        return []
+    return [_step_col(cols)] + cols
+
+def _root_scalars(run, index):
+    metrics = set()
     for s in index.run_scalars(run):
         tag = str(s["tag"])
         if "/" not in tag:
-            scalars.add(tag)
-    return _apply_step_col(sorted(scalars))
+            metrics.add(tag)
+    return sorted(metrics)
 
-def _apply_step_col(cols):
-    if not cols:
-        return cols
-    return [_step_col_for_cols(cols)] + cols
-
-def _step_col_for_cols(cols):
+def _step_col(cols):
     if "loss" in cols:
         return "loss step as step"
     return "%s step as step" % cols[0]
