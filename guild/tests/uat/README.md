@@ -86,7 +86,7 @@ associated models and operations removed.
 - [mnist-package-info-after-uninstall](mnist-package-info-after-uninstall.md)
 - [packages-after-mnist-uninstall](packages-after-mnist-uninstall.md)
 
-### `hello`
+### `hello` package
 
 The `hello` package is a distributed version of the `hello`
 example.
@@ -99,7 +99,7 @@ contained in a single file file.
 
 - [run-hello-package-examples](run-hello-package-examples.md)
 
-### `keras.mnist`
+### `keras.mnist` package
 
 Guild provides Keras packages under the `keras` package
 namespace. These tests demonstrate installing and training the
@@ -173,6 +173,7 @@ demonstrate important Guild features.
 For simplicity we maintain a single test file.
 
 - [run-hello-examples](run-hello-examples.md)
+- [list-hello-examples](list-hello-examples.md)
 - [diff-hello-examples](diff-hello-examples.md)
 
 ### `keras` example

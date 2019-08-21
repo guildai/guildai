@@ -138,3 +138,14 @@ We'll use the first run for `from-file`.
     Latest from-file output:
     Hello Guild, from a required file!
     <exit 0>
+
+### Run a batch
+
+    >>> run("guild run from-flag message=[hello,hola] -y")
+    INFO: [guild] Initialized trial ... (message=hello)
+    INFO: [guild] Running trial ...: hello:from-flag (message=hello)
+    hello
+    INFO: [guild] Initialized trial ... (message=hola)
+    INFO: [guild] Running trial ...: hello:from-flag (message=hola)
+    hola
+    <exit 0>
