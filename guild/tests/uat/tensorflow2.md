@@ -19,8 +19,8 @@ Check:
 
     >>> run("guild check --offline --tensorflow")
     guild_version:             ...
-    tensorboard_version:       1.14.0a20190603
-    tensorflow_version:        2.0.0-beta1
+    tensorboard_version:       1.15.0a20190806
+    tensorflow_version:        2.0.0-rc0
     tensorflow_cuda_support:   no
     tensorflow_gpu_available:  no
     ...
