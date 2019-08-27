@@ -211,3 +211,44 @@ The tests below use the `summary` sample project.
       'run': '...',
       'tag': 'x',
       'total': 10.0}]
+
+## Status lookup
+
+Below is the mapping of Guild run status to hparam status.
+
+As a baseline, here are the int values for each of the hparam
+statuses.
+
+    >>> from tensorboard.plugins.hparams import api_pb2
+
+    >>> api_pb2.Status.Value("STATUS_SUCCESS")
+    1
+
+    >>> api_pb2.Status.Value("STATUS_FAILURE")
+    2
+
+    >>> api_pb2.Status.Value("STATUS_RUNNING")
+    3
+
+    >>> api_pb2.Status.Value("STATUS_UNKNOWN")
+    0
+
+And the status values for Guild statuses:
+
+    >>> summary._Status("terminated")
+    1
+
+    >>> summary._Status("completed")
+    1
+
+    >>> summary._Status("error")
+    2
+
+    >>> summary._Status("running")
+    3
+
+    >>> summary._Status("pending")
+    0
+
+    >>> summary._Status("some-other-thing")
+    0

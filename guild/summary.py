@@ -218,13 +218,13 @@ def _HParamSessionEnd(status):
 def _Status(status):
     from tensorboard.plugins.hparams import api_pb2
     if status in ("terminated", "completed"):
-        return api_pb2.Status.STATUS_SUCCESS
+        return api_pb2.Status.Value("STATUS_SUCCESS")
     elif status == "error":
-        return api_pb2.Status.STATUS_FAILURE
+        return api_pb2.Status.Value("STATUS_FAILURE")
     elif status == "running":
-        return api_pb2.Status.STATUS_RUNNING
+        return api_pb2.Status.Value("STATUS_RUNNING")
     else:
-        return api_pb2.Status.STATUS_UNKNOWN
+        return api_pb2.Status.Value("STATUS_UNKNOWN")
 
 class OutputScalars(object):
 
