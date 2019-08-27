@@ -17,6 +17,7 @@ from __future__ import division
 
 import collections
 import logging
+import os
 import re
 
 from guild import util
@@ -126,8 +127,10 @@ def _maybe_quote(s):
 def _opref_lt(self, compare_to):
     return str(self) < str(compare_to)
 
-def _opref_to_opspec(opref):
+def _opref_to_opspec(opref, cwd=None):
     spec_parts = []
+    if opref.pkg_type == "script":
+        return _script_path(opref, cwd)
     if opref.pkg_type == "package" and opref.pkg_name:
         spec_parts.extend([opref.pkg_name, "/"])
     if opref.model_name:
@@ -135,6 +138,12 @@ def _opref_to_opspec(opref):
     if opref.op_name:
         spec_parts.append(opref.op_name)
     return "".join(spec_parts)
+
+def _script_path(opref, cwd):
+    path = os.path.join(opref.pkg_name, opref.op_name)
+    if cwd:
+        path = os.path.relpath(path, cwd)
+    return path
 
 OpRef.from_op = staticmethod(_opref_from_op)
 OpRef.parse = staticmethod(_opref_parse)

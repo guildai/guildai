@@ -60,6 +60,7 @@ tests).
       op-desc:                     ok
       op-main:                     ok
       op-utils:                    ok
+      opref:                       ok
       ops:                         ok
       package:                     ok
       plugins:                     ok
