@@ -18,7 +18,7 @@ from __future__ import division
 import os
 import subprocess
 
-__version__ = "0.6.6.rc2"
+__version__ = "0.6.6.rc3"
 
 # Used by bootstrap_main to ensure minimum required set of modules
 # before continuing.
