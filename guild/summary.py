@@ -33,6 +33,7 @@ log = logging.getLogger("guild")
 ALIASES = [
     (re.compile(r"\\key"), "[^ \t]+"),
     (re.compile(r"\\value"), "[0-9\\.e\\-]+"),
+    (re.compile(r"\\step"), "[0-9]+"),
 ]
 
 class EventFileWriter(object):
