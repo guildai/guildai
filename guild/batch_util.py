@@ -118,8 +118,8 @@ class Trial(object):
 
     def run(self, quiet=False, **kw):
         trial_run = self.trial_run(required=True)
-        opspec = trial_run.opref.to_opspec()
         cwd = os.environ["CMD_DIR"]
+        opspec = trial_run.opref.to_opspec(cwd)
         label = trial_run.get("label")
         extra_env = {
             "NO_RESTARTING_MSG": "1"

@@ -49,7 +49,6 @@ CHECK_MODS = [
     "twine",
     "yaml",
     "werkzeug",
-    "whoosh",
 ]
 
 class Check(object):
