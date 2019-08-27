@@ -476,6 +476,19 @@ def strip_leading_sep(path):
         return path[1:]
     return path
 
+def ensure_trailing_sep(path, sep=os.path.sep):
+    if not path[-1:] == os.path.sep:
+        path += os.path.sep
+    return path
+
+def subpath(path, start, sep=None):
+    if path == start:
+        raise ValueError(path, start)
+    start_with_sep = ensure_trailing_sep(start, sep)
+    if path.startswith(start_with_sep):
+        return path[len(start_with_sep):]
+    raise ValueError(path, start)
+
 def which(cmd):
     which_cmd = "where" if PLATFORM == "Windows" else "which"
     devnull = open(os.devnull, "w")

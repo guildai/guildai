@@ -275,18 +275,30 @@ def shorten_op_dir(op_dir, cwd):
     return util.shorten_dir(_format_op_dir(op_dir, cwd))
 
 def _format_op_dir(op_dir, cwd):
-    if op_dir.startswith(cwd):
-        return _op_dir_relpath(op_dir, cwd)
+    return util.find_apply([
+        _try_format_subpath,
+        _try_format_peerpath,
+        _default_format_dir], op_dir, cwd)
+
+def _try_format_subpath(dir, cwd):
+    try:
+        return util.subpath(dir, cwd)
+    except ValueError:
+        return None
+
+def _try_format_peerpath(dir, cwd):
     cwd_parent = os.path.dirname(cwd)
-    if op_dir.startswith(cwd_parent):
-        return _op_dir_peer_path(op_dir, cwd_parent)
-    return util.format_dir(op_dir)
+    if cwd_parent == dir:
+        return "../"
+    try:
+        subpath = util.subpath(dir, cwd_parent)
+    except ValueError:
+        return None
+    else:
+        return os.path.join("..", subpath)
 
-def _op_dir_relpath(op_dir, cwd):
-    return util.strip_leading_sep(op_dir[len(cwd):])
-
-def _op_dir_peer_path(op_dir, cwd_parent):
-    return os.path.join("..", _op_dir_relpath(op_dir, cwd_parent))
+def _default_format_dir(dir, _cwd):
+    return util.format_dir(dir)
 
 def format_attr(val):
     if val is None:

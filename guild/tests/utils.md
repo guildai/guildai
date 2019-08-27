@@ -563,3 +563,29 @@ Examples:
 
     >>> rm_all([1, 2], [2, 3])
     [3]
+
+## Testing subdirectories
+
+    >>> from guild.util import subpath
+
+    >>> subpath("/foo/bar", "/foo", "/")
+    'bar'
+
+    >>> subpath("/foo/bar", "/bar", "/")
+    Traceback (most recent call last):
+    ValueError: ('/foo/bar', '/bar')
+
+    >>> subpath("/foo", "/foo", "/")
+    Traceback (most recent call last):
+    ValueError: ('/foo', '/foo')
+
+    >>> subpath("/foo/", "/foo", "/")
+    ''
+
+    >>> subpath("", "", "/")
+    Traceback (most recent call last):
+    ValueError: ('', '')
+
+    >>> subpath("/", "/", "/")
+    Traceback (most recent call last):
+    ValueError: ('/', '/')
