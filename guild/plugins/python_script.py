@@ -168,7 +168,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
         local_cache = {}
         model_paths = op_util.opdef_model_paths(opdef)
         flags_data = self._flags_data(opdef, model_paths, local_cache)
-        opdef.flags_dest = flags_data.pop("$dest", None)
+        self._apply_flags_dest(flags_data, opdef)
         import_data = {
             name: flags_data[name]
             for name in flags_data
@@ -189,25 +189,25 @@ class PythonScriptPlugin(pluginlib.Plugin):
         try:
             flags_data = local_cache[main_mod]
         except KeyError:
-            flags_data = self._flags_data_(main_mod, model_paths, opdef)
+            flags_data = self._flags_data_(main_mod, model_paths)
             local_cache[main_mod] = flags_data
         return flags_data
 
-    def _flags_data_(self, main_mod, model_paths, opdef):
+    def _flags_data_(self, main_mod, model_paths):
         try:
             sys_path, mod_path = python_util.find_module(main_mod, model_paths)
         except ImportError as e:
             self.log.warning("cannot import flags from %s: %s", main_mod, e)
             return {}
         else:
-            return self.flags_data_for_path(mod_path, sys_path, opdef)
+            return self.flags_data_for_path(mod_path, sys_path)
 
-    def flags_data_for_path(self, mod_path, sys_path, opdef=None):
+    def flags_data_for_path(self, mod_path, sys_path):
         data, cached_data_path = self._cached_data(mod_path)
         if data is not None:
             return data
         return self._load_and_cache_flags_data(
-            mod_path, sys_path, opdef, cached_data_path)
+            mod_path, sys_path, cached_data_path)
 
     def _cached_data(self, mod_path):
         cached_path = self._cached_data_path(mod_path)
@@ -232,14 +232,12 @@ class PythonScriptPlugin(pluginlib.Plugin):
             return False
         return os.path.getmtime(mod_path) <= os.path.getmtime(cache_path)
 
-    def _load_and_cache_flags_data(self, mod_path, sys_path, opdef,
-                                   cached_data_path):
+    def _load_and_cache_flags_data(self, mod_path, sys_path, cached_data_path):
         if os.getenv("NO_IMPORT_FLAGS_PROGRESS") != "1":
             cli.note_once("Refreshing flags...")
         script = python_util.Script(mod_path)
         try:
-            data = self._flags_data_for_script(
-                script, mod_path, sys_path, opdef)
+            data = self._flags_data_for_script(script, mod_path, sys_path)
         except DataLoadError:
             return {}
         else:
@@ -253,8 +251,8 @@ class PythonScriptPlugin(pluginlib.Plugin):
         with open(path, "w") as f:
             json.dump(data, f)
 
-    def _flags_data_for_script(self, script, mod_path, sys_path, opdef):
-        flags_dest = self._script_flags_dest(script, opdef)
+    def _flags_data_for_script(self, script, mod_path, sys_path):
+        flags_dest = self._script_flags_dest(script)
         if flags_dest == "args":
             data = self._load_argparse_flags_data(mod_path, sys_path)
         elif flags_dest == "globals":
@@ -264,9 +262,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
         data["$dest"] = flags_dest
         return data
 
-    def _script_flags_dest(self, script, opdef):
-        if opdef and opdef.flags_dest:
-            return opdef.flags_dest
+    def _script_flags_dest(self, script):
         if self._imports_argparse(script):
             return "args"
         else:
@@ -334,6 +330,24 @@ class PythonScriptPlugin(pluginlib.Plugin):
             abs_path = os.path.join(script_dir, default)
             if os.path.exists(abs_path):
                 flag_data["default"] = abs_path
+
+    @staticmethod
+    def _apply_flags_dest(flags_data, opdef):
+        """Applies '$dest' in flags_data to opdef.
+
+        The process of applying always removes '$dest' from
+        flags_data if it exists.
+
+        The process of applying will never modify a non-None value of
+        opdef.flags_dest.
+        """
+        try:
+            flags_dest = flags_data.pop("$dest")
+        except KeyError:
+            pass
+        else:
+            if opdef.flags_dest is None:
+                opdef.flags_dest = flags_dest
 
     @staticmethod
     def _notify_plugins_opdef_loaded(opdef):

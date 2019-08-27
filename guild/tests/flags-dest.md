@@ -38,6 +38,8 @@ And its operations:
 
     >>> gf.default_model.operations
     [<guild.guildfile.OpDef 'args'>,
+     <guild.guildfile.OpDef 'args2'>,
+     <guild.guildfile.OpDef 'args3'>,
      <guild.guildfile.OpDef 'globals'>,
      <guild.guildfile.OpDef 'params'>,
      <guild.guildfile.OpDef 'yml'>]
@@ -109,3 +111,22 @@ Let's run it:
 
     >>> run("params", i=5, s2="Whah")
     {'i': 5, 'strings': {'s1': 'Hola', 's2': 'Whah'}}
+
+## Force args dest
+
+If Guild can't detect that a script requires args, it will assume that
+the flags interface is via globals unless flags imports is disabled.
+
+If flags import is disabled and the script doesn't use argparse, the
+Guild file can explicitly define `args` as the flags dest.
+
+    >>> run("args2", i=3)
+    Global args: i=1 f=1.0
+    Command line: ['.../flags-dest/args2.py', '--f', '2.2', '--i', '3']
+
+The same script without an explicit `flags-dest` will default to using
+"globals" in the case of the `args2.py` script.
+
+    >>> run("args3", i=4)
+    Global args: i=4 f=2.2
+    Command line: ['.../flags-dest/args2.py']

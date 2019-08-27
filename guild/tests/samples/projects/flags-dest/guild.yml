@@ -37,3 +37,16 @@ yml:
     s:
       default: hi
       arg-name: strings.s1
+
+args2:
+  main: args2
+  flags:
+    i: 2
+    f: 2.2
+  flags-dest: args
+
+args3:
+  main: args2
+  flags:
+    i: 2
+    f: 2.2
