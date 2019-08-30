@@ -293,7 +293,13 @@ def _format_flag_choices_dl(choices, out):
 
 def _format_flag_choices_value_list(choices, out):
     vals = [c.value for c in choices]
-    out.write_dl([("Choices:", flag_util.encode_flag_val(vals))])
+    fmt_vals = flag_util.encode_flag_val(vals)
+    out.write_dl([("Choices:", _strip_list_brackets(fmt_vals))])
+
+def _strip_list_brackets(fmt_vals):
+    if fmt_vals[:1] == "[" and fmt_vals[-1:] == "]":
+        return fmt_vals[1:-1]
+    return fmt_vals
 
 def _write_references(refs, out):
     out.write_subheading("References")
