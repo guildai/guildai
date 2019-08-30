@@ -74,6 +74,9 @@ def _quote_float(s):
         return "'%s'" % s
 
 def decode_flag_val(s):
+    return _fix_surprising_number(_decode_flag_val(s), s)
+
+def _decode_flag_val(s):
     if s == "":
         return s
     decoders = [
@@ -95,9 +98,9 @@ def _flag_function(s):
     raise ValueError(s)
 
 def _yaml_parse(s):
-    return _fix_surprising_yaml(yaml.safe_load(s), s)
+    return yaml.safe_load(s)
 
-def _fix_surprising_yaml(val, s):
+def _fix_surprising_number(val, s):
     """Returns s in cases where val is a surprising result."""
     if (isinstance(val, (int, float)) and
         "!!" not in s and
