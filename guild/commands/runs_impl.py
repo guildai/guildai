@@ -102,6 +102,8 @@ FILTERABLE = [
     "terminated",
 ]
 
+STYLE_TABLE_WIDTH_ADJ = 8
+
 def runs_for_args(args, force_deleted=False, ctx=None):
     filtered = filtered_runs(args, force_deleted, ctx)
     return select_runs(filtered, args.runs, ctx)
@@ -328,7 +330,9 @@ def _list_formatted_runs(runs, args):
         "status_with_remote",
         "label"]
     detail = RUN_DETAIL if args.verbose else None
-    cli.table(formatted, cols=cols, detail=detail)
+    cli.table(
+        formatted, cols=cols, detail=detail,
+        max_width_adj=STYLE_TABLE_WIDTH_ADJ)
 
 def _limit_runs(runs, args):
     if args.all:

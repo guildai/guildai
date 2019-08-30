@@ -73,12 +73,14 @@ def note_once(msg):
         note(msg)
         _noted.add(msg)
 
-def table(data, cols, sort=None, detail=None, indent=0, err=False):
+def table(data, cols, sort=None, detail=None, indent=0, err=False,
+          max_width_adj=0):
     data = sorted(data, key=_table_row_sort_key(sort))
     formatted = _format_data(data, cols + (detail or []))
     col_info = _col_info(formatted, cols)
+    max_width = MAX_WIDTH + max_width_adj
     for item in formatted:
-        _item_out(item, cols, col_info, detail, indent, MAX_WIDTH, err)
+        _item_out(item, cols, col_info, detail, indent, max_width, err)
 
 def _table_row_sort_key(sort):
     if not sort:
