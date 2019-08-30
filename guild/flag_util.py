@@ -78,6 +78,7 @@ def decode_flag_val(s):
         return s
     decoders = [
         (int, ValueError),
+        (_flag_function, ValueError),
         (_yaml_parse, (ValueError, yaml.YAMLError)),
     ]
     for f, e_type in decoders:
@@ -87,22 +88,28 @@ def decode_flag_val(s):
             pass
     return s
 
-def _yaml_parse(s):
-    """Uses yaml module to parse s to a Python value.
+def _flag_function(s):
+    name, args = decode_flag_function(s)
+    if name is None and len(args) >= 2:
+        return s
+    raise ValueError(s)
 
-    First tries to parse as an unnamed flag function with at least two
-    args and, if successful, returns s unmodified. This prevents yaml
-    from attempting to parse strings like '1:1' which it considers to
-    be timestamps.
-    """
-    try:
-        name, args = decode_flag_function(s)
-    except ValueError:
-        pass
-    else:
-        if name is None and len(args) >= 2:
-            return s
-    return yaml.safe_load(s)
+def _yaml_parse(s):
+    return _fix_surprising_yaml(yaml.safe_load(s), s)
+
+def _fix_surprising_yaml(val, s):
+    """Returns s in cases where val is a surprising result."""
+    if (isinstance(val, (int, float)) and
+        "!!" not in s and
+        _contains_non_numeric_chars(s)):
+        return s
+    return val
+
+def _contains_non_numeric_chars(s):
+    for char in s:
+        if char in ("_", ":"):
+            return True
+    return False
 
 def decode_flag_function(s):
     if not isinstance(s, six.string_types):

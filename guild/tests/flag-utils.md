@@ -38,6 +38,9 @@ Strings:
     >>> encode_decode("'a b'")
     ("'''a b'''", "'a b'", True)
 
+    >>> encode_decode("2018_06_26")
+    ("'2018_06_26'", '2018_06_26', True)
+
 Numbers:
 
     >>> encode_decode(1)
@@ -218,3 +221,24 @@ lost:
 
     >>> format({"f": 1.0000012345}, truncate_floats=True)
     f=1.00000
+
+## Exceptions to YAML decoding
+
+YAML ignores underscores in integers. So '1_2_3' is parsed as the int
+123. This is surprising behavior and Guild makes an exception for such
+cases.
+
+Here's a helper to print YAML parsed and Guild decoded values:
+
+    >>> import yaml
+    >>> def compare(s):
+    ...     return yaml.safe_load(s), decode(s)
+
+    >>> compare("1_2_3")
+    (123, '1_2_3')
+
+    >>> compare("1.1_2")
+    (1.12, '1.1_2')
+
+    >>> compare("1:2")
+    (62, '1:2')
