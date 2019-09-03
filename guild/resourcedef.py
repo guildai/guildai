@@ -37,6 +37,9 @@ log = logging.getLogger("guild")
 class ResourceFormatError(ValueError):
     pass
 
+class ResourceDefValueError(ValueError):
+    pass
+
 class ResourceDef(object):
 
     source_types = [
@@ -48,6 +51,7 @@ class ResourceDef(object):
     default_source_type = "file"
 
     def __init__(self, name, data, fullname=None):
+        data = _coerce_resdef(data)
         self.name = name
         self.data = data
         self.fullname = fullname or name
@@ -144,6 +148,15 @@ class ResourceDef(object):
             name.replace("-", "_"): data[name]
             for name in data
         }
+
+def _coerce_resdef(data):
+    if isinstance(data, dict):
+        return data
+    elif isinstance(data, list):
+        return {
+            "sources": data
+        }
+    raise ResourceDefValueError()
 
 class ResourceSource(object):
 

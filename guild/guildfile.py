@@ -1335,7 +1335,13 @@ class ResourceDef(resourcedef.ResourceDef):
 
     def __init__(self, name, data, modeldef):
         fullname = "%s:%s" % (modeldef.name, name)
-        super(ResourceDef, self).__init__(name, data, fullname)
+        try:
+            super(ResourceDef, self).__init__(name, data, fullname)
+        except resourcedef.ResourceDefValueError:
+            raise GuildfileError(
+                modeldef.guildfile,
+                "invalid resource value %r: expected a mapping "
+                "or a list" % data)
         self.private = self.private
         self.modeldef = modeldef
 

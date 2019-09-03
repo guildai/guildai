@@ -949,3 +949,33 @@ defined by both the resource and the source:
 
     >>> find(test2_ctx.target_dir)
     foo/bar/a.bin
+
+## Alternative resource defs
+
+### Implicit sources
+
+If a resource is defined as a list, the list is assumed to be the
+resource sources.
+
+    >>> gf = guildfile.from_string("""
+    ... - model: ''
+    ...   resources:
+    ...     res:
+    ...       - file: foo.txt
+    ...       - operation: bar
+    ... """)
+
+    >>> gf.default_model.get_resource("res").sources
+    [<guild.resourcedef.ResourceSource 'file:foo.txt'>,
+     <guild.resourcedef.ResourceSource 'operation:bar'>]
+
+### Invalid data
+
+    >>> guildfile.from_string("""
+    ... - model: ''
+    ...   resources:
+    ...     res: 123
+    ... """)
+    Traceback (most recent call last):
+    GuildfileError: error in <string>: invalid resource value 123:
+    expected a mapping or a list
