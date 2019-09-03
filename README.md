@@ -75,7 +75,7 @@ TensorFlow requirement will be removed in future releases of Guild.
 For detailed install instructions, see [Install Guild
 AI](https://www.guild.ai/install).
 
-## Quick start
+## Quick Start
 
 In this Quick Start guide, we create a mock training script and run it
 to illustrate the following features:
@@ -270,7 +270,7 @@ Let's try to find values for `x` that minimize `loss`. Because our
 mock training script is noisy (to simulate machine learning processes
 that are inherently noisy) we cannot find a single value for `x` where
 `loss` is always lowest. Nonetheless, we can find a range of values
-that are tend to produce better results.
+that tend to produce better results.
 
 In the command console, run:
 
@@ -337,7 +337,7 @@ guild runs rm
 
 You can restore deleted runs using the `restore` command.
 
-For more complete coverage of managing runs with Guild, see [Get
+For a more complete coverage of managing runs with Guild, see [Get
 Started - Manage Runs](https://guild.ai/docs/start/manage-runs/).
 
 ## Learn more
@@ -362,4 +362,5 @@ For a complete list of commands supported by Guild, see:
 If you have questions or are facing problems, please contact us on
 [Guild AI
 Slack](https://join.slack.com/t/guildai/shared_invite/enQtNDgxNDg5ODk2MjI2LWQ5ODI3ZGE2YzljYWViNTA0NjFmNDg4NTI3ZjY2Mjk2YTkzZjAxZWM3M2EyNTcyZWU0YzgzM2IwMTI0ZjFhNTU)
+or
 [open an issue on GitHub](https://github.com/guildai/guildai/issues).
