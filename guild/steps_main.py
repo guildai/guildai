@@ -64,7 +64,8 @@ class Step(object):
         opspec_param = params["opspec"]
         self.op_spec = self._apply_default_model(opspec_param, parent_opref)
         self.name = data.get("name") or opspec_param
-        self.flags = self._init_flags(params, parent_flags)
+        self.batch_files, flag_args = self._split_batch_files(params["flags"])
+        self.flags = self._init_flags(flag_args, parent_flags)
         self.checks = self._init_checks(data)
         self.label = self._resolve_param(params, "label", parent_flags)
         self.disable_plugins = self._resolve_param(
@@ -126,9 +127,14 @@ class Step(object):
                 step_opref.op_name)
         return step_opref.to_opspec()
 
-    def _init_flags(self, params, parent_flags):
+    @staticmethod
+    def _split_batch_files(flag_args):
+        from guild.commands import run_impl
+        return run_impl.split_batch_files(flag_args)
+
+    def _init_flags(self, flag_args, parent_flags):
         try:
-            parsed = op_util.parse_flag_assigns(params["flags"])
+            parsed = op_util.parse_flag_assigns(flag_args)
         except op_util.ArgValueError as e:
             _error("invalid argument '%s' - expected NAME=VAL" % e.arg)
         else:
@@ -244,8 +250,9 @@ def _init_step_cmd(step, step_run_dir):
         "--run-dir", step_run_dir,
         step.op_spec]
     step_options = _step_options(step)
+    batch_file_args = _step_batch_file_args(step)
     flag_args = _step_flag_args(step)
-    return base_args + step_options + flag_args
+    return base_args + step_options + batch_file_args + flag_args
 
 def _step_options(step):
     opts = []
@@ -270,6 +277,9 @@ def _step_options(step):
     if step.random_seed is not None:
         opts.extend(["--random-seed", str(step.random_seed)])
     return opts
+
+def _step_batch_file_args(step):
+    return ["@%s" % file for file in step.batch_files]
 
 def _step_flag_args(step):
     if not step.flags:

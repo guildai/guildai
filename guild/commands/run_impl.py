@@ -555,12 +555,12 @@ def _init_op(opdef, args, is_batch=False):
         return op
 
 def _split_flag_args(flag_args, opdef):
-    batch_files, rest_args = _split_batch_files(flag_args)
+    batch_files, rest_args = split_batch_files(flag_args)
     assigns = _parse_assigns(rest_args)
     flags, resources = _split_flags_and_resources(assigns, opdef)
     return flags, resources, batch_files
 
-def _split_batch_files(flag_args):
+def split_batch_files(flag_args):
     batch_files = []
     rest = []
     for arg in flag_args:
