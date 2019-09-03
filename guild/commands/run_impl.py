@@ -1211,7 +1211,7 @@ def _read_batches(path):
     ext = os.path.splitext(path)[1].lower()
     if ext in (".json", ".yml", ".yaml"):
         return _yaml_batches(path)
-    elif ext in (".csv",):
+    elif ext in ("", ".csv",):
         return _csv_batches(path)
     else:
         cli.error(
