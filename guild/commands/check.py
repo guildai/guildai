@@ -23,7 +23,7 @@ from . import remote_support
 
 @click.command()
 @click.option(
-    "--tensorflow",
+    "-tf", "--tensorflow",
     help="Check TensorFlow status.",
     is_flag=True)
 @click.option(
