@@ -476,7 +476,8 @@ def strip_leading_sep(path):
         return path[1:]
     return path
 
-def ensure_trailing_sep(path, sep=os.path.sep):
+def ensure_trailing_sep(path, sep=None):
+    sep = sep or os.path.sep
     if path[-1:] != sep:
         path += sep
     return path
