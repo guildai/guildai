@@ -68,7 +68,7 @@ def label_runs(ctx, args):
 
     {{ runs_support.all_filters }}
 
-    ### Labeling remote runs
+    ### Label Remote Runs
 
     To label remote runs, use `--remote`.
 

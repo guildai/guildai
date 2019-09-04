@@ -49,13 +49,13 @@ def watch(ctx, args):
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.time_filters }}
 
-    ### Watching remote runs
+    ### Watch Remote Runs
 
     Use `--remote` to watch a remote run.
 
     {{ remote_support.remote_option }}
 
-    ### Watching run by PID
+    ### Watch Run by PID
 
     You may alternatively specify the process ID of the run to watch,
     using `--pid`. ``PID`` may be a process ID or a path to a file

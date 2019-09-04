@@ -83,18 +83,18 @@ def list_runs(ctx, args):
 
     {{ runs_support.all_filters }}
 
-    ### Show deleted runs
+    ### Show Deleted Runs
 
     Use `--deleted` to show deleted runs. You can use the listing for
     run IDs and indexes to use in ``runs restore`` (restore runs) and
     ``runs purge`` (permanently delete runs).
 
-    ### Show archives runs
+    ### Show Archived Runs
 
     Use `--archive` to show runs in an archive directory. This option
     may not be used with `--delete`.
 
-    ### Show remote runs
+    ### Show Remote Runs
 
     To list runs on a remote, specify `--remote REMOTE`. Use ``guild
     remotes`` to list available remotes.

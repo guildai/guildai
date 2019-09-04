@@ -77,7 +77,7 @@ def run_info(ctx, args):
 
     If RUN isn't specified, the latest run is selected.
 
-    ### Additional information
+    ### Additional Information
 
     You can show additional run information by specifying options. You
     may use multiple options to show more information. Refer to the
@@ -85,7 +85,7 @@ def run_info(ctx, args):
 
     {{ runs_support.all_filters }}
 
-    ### Remote runs
+    ### Remote Runs
 
     Use `--remote` to show info for a remote run.
 

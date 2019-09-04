@@ -73,7 +73,7 @@ def delete_runs(ctx, args):
 
     {{ runs_support.all_filters }}
 
-    ### Deleting remote runs
+    ### Delete Remote Runs
 
     To delete runs on a remote, use `--remote`.
 

@@ -52,7 +52,7 @@ def open_(ctx, args):
 
     If `RUN` isn't specified, the latest run is selected.
 
-    ### Run paths
+    ### Run Paths
 
     `--path` may be used to open a path within the run directory. By
     default the run directory itself is opened. PATH must be relative.
@@ -66,7 +66,7 @@ def open_(ctx, args):
     `--output` may be used to open the output for a run. This option
     may not be used with other options.
 
-    ### Open command
+    ### Open Command
 
     `--cmd` may be used to specify the command used to open the
     path. By default the system-defined program is used.

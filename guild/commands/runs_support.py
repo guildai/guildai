@@ -20,7 +20,7 @@ import click
 from guild import click_util
 
 def runs_arg(fn):
-    """### Specifying runs
+    """### Specify Runs
 
     You may use one or more `RUN` arguments to indicate which runs
     apply to the command. `RUN` may be a run ID, a run ID prefix, or a
@@ -42,7 +42,7 @@ def runs_arg(fn):
     return fn
 
 def run_arg(fn):
-    """### Specifying a run
+    """### Specify a Run
 
     You may specify a run using a run ID, a run ID prefix, or a
     one-based index corresponding to a run returned by the list
@@ -55,7 +55,7 @@ def run_arg(fn):
     return fn
 
 def op_and_label_filters(fn):
-    """### Filtering by operation and label
+    """### Filter by Operation or Label
 
     Runs may be filtered by operation using `--operation`.  A run is
     only included if any part of its full operation name, including
@@ -98,7 +98,7 @@ def op_and_label_filters(fn):
     return fn
 
 def status_filters(fn):
-    """### Filtering by run status
+    """### Filter by Run Status
 
     Runs may also be filtered by specifying one or more status
     filters: `--running`, `--completed`, `--error`, and
@@ -137,7 +137,7 @@ def status_filters(fn):
     return fn
 
 def time_filters(fn):
-    """### Filtering by run start time
+    """### Filter by Run Start Time
 
     Use `--started` to limit runs to those that have started within a
     specified time range.

@@ -63,7 +63,7 @@ def purge_runs(ctx, args):
 
     {{ runs_support.all_filters }}
 
-    ### Permanently deleting remote runs
+    ### Permanently Delete Remote Runs
 
     If a run has been deleted remotely, you can permanently delete it
     using `--remote` provided the remote type supports deleted run

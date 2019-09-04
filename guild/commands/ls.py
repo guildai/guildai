@@ -71,7 +71,7 @@ def ls(ctx, args):
 
     {{ runs_support.all_filters }}
 
-    ### Remote runs
+    ### Remote Runs
 
     Use `--remote` to list files for a remote run.
 

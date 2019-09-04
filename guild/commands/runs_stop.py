@@ -66,7 +66,7 @@ def stop_runs(ctx, args):
     {{ runs_support.op_and_label_filters }}
     {{ runs_support.time_filters }}
 
-    ### Stopping remote runs
+    ### Stop Remote Runs
 
     To stop remote runs, use `--remote`.
 

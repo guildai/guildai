@@ -102,7 +102,7 @@ def init(args):
     initialized environment. To install a different version, or to
     install a Guild wheel distribution file use the `--guild` option.
 
-    ### Resource cache
+    ### Resource Cache
 
     By default resources are cached and shared at the user level in
     `~/.guild/cache/resources` so that resources downloaded from one

@@ -57,7 +57,7 @@ def restore_runs(ctx, args):
 
     {{ runs_support.all_filters }}
 
-    ### Restoring remote runs
+    ### Restore Remote Runs
 
     If a run has been deleted remotely, you can restore it using
     `--remote` provided the remote type supports this feature.

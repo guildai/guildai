@@ -81,7 +81,7 @@ def diff_runs(ctx, args):
 
     {{ runs_support.all_filters }}
 
-    ### Diff command
+    ### Diff Command
 
     By default the ``diff`` program is used to diff run details. An
     alternative default command may be specified in

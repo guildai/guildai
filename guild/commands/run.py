@@ -204,7 +204,7 @@ def run(args):
 
     Specify `FLAG` values in the form `FLAG=VAL`.
 
-    ### Batch files
+    ### Batch Files
 
     One or more batch files can be used to run multiple trials by
     specifying the file path as `@PATH`.
@@ -233,7 +233,7 @@ def run(args):
     Use `--print-trials` to preview the trials run for the specified
     batch files.
 
-    ### Flag lists
+    ### Flag Lists
 
     A list of flag values may be specified using the syntax
     `[VAL1[,VAL2]...]`. Lists containing white space must be
@@ -268,7 +268,7 @@ def run(args):
     For details on available optimizers and their behavior, refer to
     https://guild.ai/docs/optimizers.
 
-    ### Limiting trials
+    ### Limit Trials
 
     When using flag lists or optimizers, which generate trials, you
     can limit the number of trials with `--max-trials`. By default,
@@ -281,14 +281,14 @@ def run(args):
     version of Python. When used across different versions of Python,
     the results may be inconsistent.
 
-    ### Previewing and saving trials
+    ### Preview or Save Trials
 
     When flag lists (used for grid search) or an optimizer is used,
     you can preview the generated trials using `--print-trials`. You
     can save the generated trials as a CSV batch file using
     `--save-trials`.
 
-    ### Re-running operations
+    ### Re-run an Operation
 
     If `--rerun` is specified, the operation and flags used in `RUN`
     will be applied to the new operation. You may add or redefine
@@ -297,7 +297,7 @@ def run(args):
     applied. `RUN` must be a run ID or unique run ID prefix or the
     special value ``0``, which indicates the latest run.
 
-    ### Restarting operations
+    ### Restart an Operation
 
     If `--restart` is specified, the specified `RUN` is restarted
     in-place using its operation and flags. Unlike rerun, restart does
@@ -309,7 +309,7 @@ def run(args):
 
     `--rerun` and `--restart` may not both be used.
 
-    ### Alternate run directory
+    ### Alternate Run Directory
 
     To run an operation outside of Guild's run management facility,
     use `--run-dir` or `--stage` to specify an alternative run
@@ -322,7 +322,7 @@ def run(args):
     **NOTE:** Runs started with `--run-dir` are not visible to Guild
     and will not appear in run listings.
 
-    ### Controlling visible GPU devices
+    ### Control Visible GPUs
 
     By default, operations have access to all available GPU
     devices. To limit the GPU devices available to a run, use
@@ -339,7 +339,7 @@ def run(args):
     process. If `CUDA_VISIBLE_DEVICES` is set, using either of these
     options will cause it to be redefined for the run.
 
-    ### Optimizing runs
+    ### Optimize Runs
 
     Use `--optimizer` to run the operation multiple times in attempt
     to optimize a result. Use `--minimize` or `--maximize` to indicate

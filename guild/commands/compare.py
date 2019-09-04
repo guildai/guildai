@@ -90,7 +90,7 @@ def compare(args):
 
         guild compare --csv > RUNS.csv
 
-    ### Compare columns
+    ### Compare Columns
 
     Guild Compare shows columns for each run based on the columns
     defined for each run operation. Additional columns may be
@@ -108,7 +108,7 @@ def compare(args):
     `--skip-core` and skip the operation columns with
     `--skip-op-cols`.
 
-    ### Column specs
+    ### Column Specs
 
     Each column specified in `COLUMNS` must be a valid column spec. A
     column spec is the name of a run flag or scalar key. Flag names
@@ -147,7 +147,7 @@ def compare(args):
     the `stopped` attribute, use ``--columns .stopped``. This is
     useful when using `--skip-core`.
 
-    ### Sorting
+    ### Sort Runs
 
     Use `--min` and `--max` to sort results by a particular
     column. `--min` sorts in ascending order and `--max` sorts in
@@ -159,7 +159,7 @@ def compare(args):
     By default, runs are sorted by start time in ascending order -
     i.e. the most recent runs are listed first.
 
-    ### Limting results
+    ### Limit Runs
 
     To limit the results to the top `N` runs, use `--top`.
 
@@ -170,7 +170,7 @@ def compare(args):
 
     {{ runs_support.all_filters }}
 
-    ### Batch runs
+    ### Show Batch Runs
 
     By default, batch runs are not included in comparisons. To include
     batch runs, specify `--include-batch`.
