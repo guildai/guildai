@@ -25,7 +25,6 @@ import sys
 
 import click
 import pkg_resources
-import requests
 
 import guild
 
@@ -275,18 +274,13 @@ def _print_guild_latest_versions(check):
 def _latest_version(check):
     url = _latest_version_url(check)
     log.debug("getting latest version from %s", url)
+    data = {
+        "guild-version": guild.__version__,
+        "python-version": _python_short_version(),
+        "platform": _platform(),
+    }
     try:
-        resp = requests.post(
-            url,
-            data={
-                "guild-version": guild.__version__,
-                "python-version": _python_short_version(),
-                "platform": _platform(),
-            },
-            headers={
-                "User-Agent": util.guild_user_agent(),
-            },
-            timeout=10)
+        resp = util.http_post(url, data, timeout=5)
     except Exception as e:
         log.debug("error reading latest version: %s", e)
         return None

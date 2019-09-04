@@ -23,8 +23,6 @@ import sys
 import threading
 import time
 
-import requests
-
 from werkzeug.exceptions import NotFound
 from werkzeug.utils import redirect
 
@@ -111,8 +109,8 @@ class DevServer(threading.Thread):
         while not self._ready:
             ping_url = "{}/assets/favicon.png".format(url_base)
             try:
-                requests.get(ping_url)
-            except requests.exceptions.ConnectionError:
+                util.http_get(ping_url)
+            except util.HTTPConnectionError:
                 time.sleep(0.1)
             else:
                 self._ready = True

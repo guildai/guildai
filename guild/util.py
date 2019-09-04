@@ -1203,3 +1203,49 @@ def _shorten_dir_split_path(path, sep):
     if len(blanks) > 1:
         packed.append(sep.join(blanks))
     return packed
+
+class HTTPResponse(object):
+
+    def __init__(self, resp):
+        self.status_code = resp.status
+        self.text = resp.read()
+
+class HTTPConnectionError(Exception):
+    pass
+
+def http_post(url, data, timeout=None):
+    headers = {
+        "User-Agent": guild_user_agent(),
+        "Content-type": "application/x-www-form-urlencoded",
+    }
+    return _http_request(url, headers, data, "POST", timeout)
+
+def http_get(url, timeout=None):
+    return _http_request(url, timeout=timeout)
+
+def _http_request(url, headers=None, data=None, method="GET", timeout=None):
+    import socket
+    from six.moves import urllib
+    headers = headers or {}
+    url_parts = urllib.parse.urlparse(url)
+    conn = _HTTPConnection(url_parts.scheme, url_parts.netloc, timeout)
+    params = urllib.parse.urlencode(data) if data else ""
+    try:
+        conn.request(method, url_parts.path, params, headers)
+    except socket.error as e:
+        if e.errno == errno.ECONNREFUSED:
+            raise HTTPConnectionError(url)
+        raise
+    else:
+        return HTTPResponse(conn.getresponse())
+
+def _HTTPConnection(scheme, netloc, timeout):
+    from six.moves import http_client, urllib
+    if scheme == "http":
+        return http_client.HTTPConnection(netloc, timeout=timeout)
+    elif scheme == "https":
+        return http_client.HTTPSConnection(netloc, timeout=timeout)
+    else:
+        raise ValueError(
+            "unsupported scheme '%s' - must be 'http' or 'https'"
+            % scheme)
