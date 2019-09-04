@@ -58,14 +58,5 @@ def _external_libs_path():
         sys.exit(1)
     return path
 
-def _sort_reqs(required):
-    # Make sure pip is listed first. pip is used to install other
-    # required packages and we want to check it first to direct
-    # the user to install it before checking other reqs.
-    return sorted(
-        required,
-        key=lambda spec: ("" if spec[0] == "pip" else spec[0].lower())
-    )
-
 if __name__ == "__main__":
     main()

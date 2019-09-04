@@ -50,7 +50,6 @@ tests).
       keras:                       ok
       logging:                     ok
       ls-cmd:                      ok
-      main-bootstrap:              ok
       marked-runs:                 ok
       memory-plugin:               ok
       model-proxies:               ok
