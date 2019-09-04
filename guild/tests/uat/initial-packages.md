@@ -23,34 +23,19 @@ leaves room for false positives).
     MarkupSafe
     Pillow
     PyYAML
-    Pygments
     Werkzeug
     absl-py
-    asn1crypto
-    bleach
-    certifi
-    cffi
     chardet
     click
-    cryptography
     daemonize
     docutils
     grpcio
     guildai
-    idna
     numpy
-    pandas
     pip
     pkginfo
     protobuf
     psutil
-    pyOpenSSL
-    pycparser
-    python-dateutil
-    pytz
-    readme-renderer
-    requests
-    requests-toolbelt
     scikit-learn
     scikit-optimize
     scipy
@@ -58,10 +43,6 @@ leaves room for false positives).
     six
     tabview
     tensorboard
-    tqdm
-    twine
-    urllib3
     virtualenv
-    webencodings
     wheel
     <exit 0>

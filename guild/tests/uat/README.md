@@ -9,11 +9,19 @@ These tests expect Guild to be installed.
 
 - [guild-version](guild-version.md)
 
-## Env check and unit tests
+## Check environment
 
-*Check the environment and run unit tests.*
+*Check the environment.*
 
 - [guild-check](guild-check.md)
+- [initial-packages](initial-packages.md)
+- [tensorboard-package-info](tensorboard-package-info.md)
+
+## Guild tests
+
+*Run Guild tests.*
+
+- [install-test-deps](install-test-deps.md)
 - [guild-tests](guild-tests.md)
 
 ## Command errors
@@ -30,8 +38,6 @@ Before we start using Guild to train models, we use it to example an
 empty environment. This includes demonstrating all of its list
 commands and helpfulness to the user for operations on missing models.
 
-- [initial-packages](initial-packages.md)
-- [tensorboard-package-info](tensorboard-package-info.md)
 - [initial-models](initial-models.md)
 - [initial-ops](initial-ops.md)
 - [initial-runs](initial-runs.md)

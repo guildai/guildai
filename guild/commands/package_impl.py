@@ -36,7 +36,8 @@ def main(args):
             "%s does not contain a guild.yml file\n"
             "Try specifying a different directory."
             % cmd_impl_support.cwd_desc(config.cwd()))
-    _check_upload_config(package_file, args)
+    if args.upload:
+        _check_upload_support(package_file)
     package.create_package(
         package_file,
         dist_dir=args.dist_dir,
@@ -48,9 +49,19 @@ def main(args):
         skip_existing=args.skip_existing,
         comment=args.comment)
 
-def _check_upload_config(package_file, args):
-    if not args.upload:
-        return
+def _check_upload_support(package_file):
+    _check_twine_installed()
+    _check_upload_config(package_file)
+
+def _check_twine_installed():
+    try:
+        import twine as _
+    except ImportError:
+        cli.error(
+            "Twine is required to upload packages. Install it by running "
+            "'pip install twine'.")
+
+def _check_upload_config(package_file):
     gf = guildfile.from_file(package_file)
     if not gf.package.author_email:
         cli.error(

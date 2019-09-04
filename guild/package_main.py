@@ -23,7 +23,6 @@ import sys
 
 import setuptools
 import six
-import twine.commands.upload
 import yaml
 
 import guild.help
@@ -325,10 +324,11 @@ def _maybe_upload(dist):
         _upload(dist, upload_repo)
 
 def _upload(dist, upload_repo):
+    from twine.commands import upload
     _check_wheel_metadata_version(dist)
     args = _twine_upload_args(dist, upload_repo)
     try:
-        twine.commands.upload.main(args)
+        upload.main(args)
     except Exception as e:
         _handle_twine_error(e)
 
@@ -379,7 +379,8 @@ def _twine_repo_args(repo):
         return ["--repository", repo]
 
 def _pypirc_section_for_repo(repo):
-    config = twine.utils.get_config()
+    from twine import utils
+    config = utils.get_config()
     for section in config:
         if config[section].get("repository") == repo:
             return section
