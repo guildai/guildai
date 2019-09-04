@@ -1,2 +1,1 @@
-pandas
-twine
+guild/tests/requirements.txt
