@@ -178,6 +178,7 @@ class Build(object):
         return self._run(
             "Upload to PyPI", [
                 self._activate_env(self.build_dir),
+                self._pip_install(["twine"]),
                 "twine upload --skip-existing dist/*.whl",
             ])
 
