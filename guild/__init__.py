@@ -20,19 +20,6 @@ import subprocess
 
 __version__ = "0.6.6.rc5"
 
-# Used by bootstrap_main to ensure minimum required set of modules
-# before continuing.
-__requires__ = [
-    # (<required module>, <distutils package req>)
-    ("pip", "pip"),
-    ("yaml", "PyYAML"),
-    ("setuptools", "setuptools"),
-    ("six", "six"),
-    ("tabview", "tabview"),
-    ("twine", "twine"),
-    ("werkzeug", "Werkzeug"),
-]
-
 __pkgdir__ = os.path.dirname(os.path.dirname(__file__))
 
 __git_commit__ = None

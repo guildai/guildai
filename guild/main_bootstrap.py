@@ -22,10 +22,6 @@ External dependencies in distribution mode are assumed to be located
 in a single `GUILD_PKG_HOME/external` directory where `GUILD_PKG_HOME`
 is the `guild` directory within the Guild distribution location.
 
-This module confirms that it can find each of the modules listed in
-guild.__requires__ but does not load the modules. The module exits
-with an error and a user facing message for any missing requirements.
-
 As the bootstrap process is used for every Guild command, it must
 execute as quickly as possible.
 """
@@ -33,17 +29,11 @@ execute as quickly as possible.
 from __future__ import absolute_import
 from __future__ import division
 
-import warnings
-with warnings.catch_warnings():
-    warnings.filterwarnings('ignore', category=DeprecationWarning)
-    import imp
-
 import os
 import sys
 
 def main():
     ensure_external_path()
-    _check_requires()
     import guild.main
     guild.main.main()
 
@@ -68,14 +58,6 @@ def _external_libs_path():
         sys.exit(1)
     return path
 
-def _check_requires():
-    import guild
-    for mod_name, req in _sort_reqs(guild.__requires__):
-        try:
-            imp.find_module(mod_name)
-        except ImportError:
-            _handle_missing_req(req)
-
 def _sort_reqs(required):
     # Make sure pip is listed first. pip is used to install other
     # required packages and we want to check it first to direct
@@ -84,18 +66,6 @@ def _sort_reqs(required):
         required,
         key=lambda spec: ("" if spec[0] == "pip" else spec[0].lower())
     )
-
-def _handle_missing_req(req):
-    msg_parts = ["guild: missing required package '%s'\n" % req]
-    if req.startswith("pip"):
-        msg_parts.append(
-            "Refer to https://pip.pypa.io/en/stable/installing "
-            "for help installing pip.")
-    else:
-        msg_parts.append("Try 'pip install %s' to install the package." % req)
-    sys.stderr.write("".join(msg_parts))
-    sys.stderr.write("\n")
-    sys.exit(1)
 
 if __name__ == "__main__":
     main()
