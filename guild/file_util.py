@@ -123,14 +123,21 @@ class FileSelectRule(object):
         self.max_matches = max_matches
         self._matches = 0
 
-    @staticmethod
-    def _patterns_match_f(patterns, regex):
+    def _patterns_match_f(self, patterns, regex):
         if regex:
-            compiled = [re.compile(p) for p in patterns]
-            return lambda path: any((p.match(path) for p in compiled))
+            return self._regex_match_f(patterns)
         else:
-            match = fnmatch.fnmatch
-            return lambda path: any((match(path, p) for p in patterns))
+            return self._fnmatch_f(patterns)
+
+    @staticmethod
+    def _regex_match_f(patterns):
+        compiled = [re.compile(p) for p in patterns]
+        return lambda path: any((p.match(path) for p in compiled))
+
+    @staticmethod
+    def _fnmatch_f(patterns):
+        match = fnmatch.fnmatch
+        return lambda path: any((match(path, p) for p in patterns))
 
     @staticmethod
     def _validate_type(type):

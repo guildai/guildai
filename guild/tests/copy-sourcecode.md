@@ -355,6 +355,80 @@ And the copied files:
     guild.yml
     hello.py
 
+## Including only directories
+
+Source code can be limited to only subdirectories by specifying the
+globbed subdirectory as a string.
+
+    >>> print_config("only-subdir")
+    op-sourcecode: subdir/*
+
+The preview:
+
+    >>> preview("only-subdir")
+    Copying from the current directory
+    Rules:
+      exclude dir '__pycache__'
+      exclude dir '.*'
+      exclude dir '*' (with '.guild-nocopy')
+      exclude dir '*' (with 'bin/activate')
+      include text '*' (size < 1048577, max match 100)
+      exclude '*'
+      include 'subdir/*'
+    Selected for copy:
+      ./subdir/b.txt
+      ./subdir/logo.png
+    Skipped:
+      ./.gitattributes
+      ./a.txt
+      ./empty
+      ./guild.yml
+      ./hello.py
+      ./hello.pyc
+
+And the copied files:
+
+    >>> run("only-subdir")
+    subdir/b.txt
+    subdir/logo.png
+
+Alternatively, the subdirectory glob may be omitted. Guild will assume
+the glob pattern when the pattern matches an existing directory.
+
+This is illustrated by the `only-subdir2` operation.
+
+    >>> print_config("only-subdir2")
+    op-sourcecode: subdir
+
+The preview shows that Guild modified the pattern with the glob:
+
+    >>> preview("only-subdir2")
+    Copying from the current directory
+    Rules:
+      exclude dir '__pycache__'
+      exclude dir '.*'
+      exclude dir '*' (with '.guild-nocopy')
+      exclude dir '*' (with 'bin/activate')
+      include text '*' (size < 1048577, max match 100)
+      exclude '*'
+      include 'subdir/*'
+    Selected for copy:
+      ./subdir/b.txt
+      ./subdir/logo.png
+    Skipped:
+      ./.gitattributes
+      ./a.txt
+      ./empty
+      ./guild.yml
+      ./hello.py
+      ./hello.pyc
+
+And the copied files:
+
+    >>> run("only-subdir2")
+    subdir/b.txt
+    subdir/logo.png
+
 ## Including default ignored directories
 
 By default, Guild ignores various directories (see list of excluded

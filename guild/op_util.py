@@ -538,11 +538,19 @@ def _sourcecode_select_for_opdef(opdef):
 def _select_rules_for_opdef(opdef):
     if _sourcecode_disabled(opdef):
         return [file_util.exclude("*")]
+    root = _opdef_select_rules_root(opdef)
     return (
         _base_sourcecode_select_rules() +
-        _sourcecode_config_rules(opdef.modeldef.sourcecode) +
-        _sourcecode_config_rules(opdef.sourcecode)
+        _sourcecode_config_rules(opdef.modeldef.sourcecode, root) +
+        _sourcecode_config_rules(opdef.sourcecode, root)
     )
+
+def _opdef_select_rules_root(opdef):
+    root_base = opdef.guildfile.dir
+    sourcecode_root = opdef_sourcecode_root(opdef)
+    if not sourcecode_root:
+        return root_base
+    return os.path.join(root_base, sourcecode_root)
 
 def _sourcecode_disabled(opdef):
     op_config = opdef.sourcecode
@@ -582,16 +590,39 @@ def _rule_include_limited_text_files():
         size_lt=MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1,
         max_matches=MAX_DEFAULT_SOURCECODE_COUNT)
 
-def _sourcecode_config_rules(config):
-    return [_rule_for_select_spec(spec) for spec in config.specs]
+def _sourcecode_config_rules(config, root):
+    return [_rule_for_select_spec(spec, root) for spec in config.specs]
 
-def _rule_for_select_spec(spec):
+def _rule_for_select_spec(spec, root):
     if spec.type == "include":
-        return file_util.include(spec.patterns, type=spec.patterns_type)
+        return _file_util_rule(file_util.include, spec, root)
     elif spec.type == "exclude":
-        return file_util.exclude(spec.patterns, type=spec.patterns_type)
+        return _file_util_rule(file_util.exclude, spec, root)
     else:
         assert False, spec.type
+
+def _file_util_rule(rule_f, spec, root):
+    patterns = _spec_patterns(spec, root)
+    return rule_f(patterns, type=spec.patterns_type)
+
+def _spec_patterns(spec, root):
+    """Returns patterns for spec.
+
+    If spec patterns_type is not specified, applies glob to and
+    existing patterns that reference directories relative to root. For
+    example, if a pattern is 'foo' and root is '/' and the directory
+    '/foo' exists, the pattern is returned as 'foo/*'. This is a
+    convenience so that un-globbed directories match all files as a
+    user might expect.
+    """
+    if spec.patterns_type:
+        return spec.patterns
+    return [_apply_dir_glob(root, p) for p in spec.patterns]
+
+def _apply_dir_glob(root, pattern):
+    if os.path.isdir(os.path.join(root, pattern)):
+        pattern = os.path.join(pattern, "*")
+    return pattern
 
 def split_main(main):
     if isinstance(main, list):

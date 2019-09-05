@@ -60,6 +60,14 @@
       sourcecode:
         - exclude: {dir: subdir}
 
+    only-subdir:
+      main: guild.pass
+      sourcecode: subdir/*
+
+    only-subdir2:
+      main: guild.pass
+      sourcecode: subdir
+
     include-dotdir:
       main: guild.pass
       sourcecode:
