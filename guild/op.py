@@ -288,14 +288,15 @@ class Operation(object):
         return exit_status
 
     def _output_scalars_summary(self):
-        config = self._output_scalars_config()
-        return summary.OutputScalars(config, self._run.guild_path())
+        config, ignore = self._output_scalars_config()
+        summary_path = self._run.guild_path()
+        return summary.OutputScalars(config, summary_path, ignore)
 
     def _output_scalars_config(self):
         config = self.opdef.output_scalars
         if config is None:
-            return DEFAULT_OUTPUT_SCALARS
-        return config
+            return DEFAULT_OUTPUT_SCALARS, self.flag_vals.keys()
+        return config, None
 
     def _handle_proc_interrupt(self):
         if not self.batch_op:

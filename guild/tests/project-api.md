@@ -26,6 +26,7 @@ Run without capture:
 
     >>> project.run("simple")
     x: 1.0
+    y: 2.0
 
 Run with capture:
 
@@ -36,6 +37,7 @@ Run with capture:
 
     >>> print(out)
     x: 1.0
+    y: 2.0
 
 ## Listing runs
 
@@ -166,16 +168,16 @@ And unmarked:
 Runs can be compared:
 
     >>> project.compare()
-    [['run', 'operation', 'started', 'time', 'status', 'label', 'x', 'step'],
-     ['...', 'simple', '...', '0:00:00', 'completed', None, 1.0, 0],
-     ['...', 'simple', '...', '0:00:00', 'completed', None, 1.0, 0]]
+    [['run', 'operation', 'started', 'time', 'status', 'label', 'x', 'step', 'y'],
+     ['...', 'simple', '...', '0:00:00', 'completed', None, 1.0, 0, 2.0],
+     ['...', 'simple', '...', '0:00:00', 'completed', None, 1.0, 0, 2.0]]
 
 With extra cols:
 
     >>> project.compare(extra_cols=True)
-    [['run', 'operation', 'started', 'time', 'status', 'label', 'sourcecode', 'x', 'step'],
-     ['...', 'simple', '...', '0:00:00', 'completed', None, '3adf88b4', 1.0, 0],
-     ['...', 'simple', '...', '0:00:00', 'completed', None, '3adf88b4', 1.0, 0]]
+    [['run', 'operation', 'started', 'time', 'status', 'label', 'sourcecode', 'x', 'step', 'y'],
+     ['...', 'simple', '...', '0:00:00', 'completed', None, '7a253e89', 1.0, 0, 2.0],
+     ['...', 'simple', '...', '0:00:00', 'completed', None, '7a253e89', 1.0, 0, 2.0]]
 
 ## Other functions
 

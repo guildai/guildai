@@ -229,9 +229,10 @@ def _Status(status):
 
 class OutputScalars(object):
 
-    def __init__(self, config, output_dir):
+    def __init__(self, config, output_dir, ignore=None):
         self._patterns = _init_patterns(config)
         self._writer = SummaryWriter(output_dir)
+        self._ignore = set(ignore or [])
         self._step = None
 
     def write(self, line):
@@ -242,6 +243,9 @@ class OutputScalars(object):
         if vals:
             for key, val in sorted(vals.items()):
                 log.debug("scalar %s val=%s step=%s", key, val, self._step)
+                if key in self._ignore:
+                    log.debug("skipping %s because it's in ignore list", key)
+                    continue
                 self._writer.add_scalar(key, val, self._step)
 
     def close(self):
