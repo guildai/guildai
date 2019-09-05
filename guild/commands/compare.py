@@ -51,13 +51,12 @@ from . import runs_support
     "-min", "--max", "max_col", metavar="COLUMN",
     help="Show the highest values for COLUMN first.")
 @click.option(
-    "-t", "--table", "format", flag_value="table",
-    help="Generate comparison data as a table.",
-    is_flag=True)
+    "-t", "--table", is_flag=True,
+    help="Show comparison data as a table.")
 @click.option(
-    "-csv", "--csv", "format", flag_value="csv",
-    help="Generate comparison data as a CSV file.",
-    is_flag=True)
+    "-csv", "--csv", metavar="PATH",
+    help=("Save comparison data to a CSV file. Use '-' for "
+          "standard output."))
 @click.option(
     "--include-batch", is_flag=True,
     help="Include batch runs.")
@@ -71,9 +70,10 @@ from . import runs_support
 def compare(args):
     """Compare run results.
 
-    Guild Compare is a console based application that displays a table
-    of runs with their current accuracy and loss. The application will
-    continue to run until you exit it by pressing ``q`` (for quit).
+    Guild Compare is a console based application that displays a
+    spreadsheet of runs with their current accuracy and loss. The
+    application will continue to run until you exit it by pressing
+    ``q`` (for quit).
 
     Guild Compare supports a number of commands. Commands are
     activated by pressing a letter. To view the list of commands,
@@ -83,12 +83,9 @@ def compare(args):
     available data. If you want to update the list of runs and their
     status, press ``r`` (for refresh).
 
-    You may alternative use this command to generate CSV output for
-    run. Use the `--csv` option to print data to standard output
-    instead of running as an application. You can redirect this output
-    to a file using:
-
-        guild compare --csv > RUNS.csv
+    You may alternative use the `--csv` option to write a CSV file
+    containing the compare data. To print the CSV contents to standard
+    output, use '-' for the file path.
 
     ### Compare Columns
 

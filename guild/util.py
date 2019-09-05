@@ -1249,3 +1249,14 @@ def _HTTPConnection(scheme, netloc, timeout):
         raise ValueError(
             "unsupported scheme '%s' - must be 'http' or 'https'"
             % scheme)
+
+class StdIOContextManager(object):
+
+    def __init__(self, stream):
+        self.stream = stream
+
+    def __enter__(self):
+        return self.stream
+
+    def __exit__(self, *_exc):
+        pass

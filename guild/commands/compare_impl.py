@@ -52,15 +52,20 @@ MIN_COLS = ".run"
 NO_RUNS_CAPTION = "no runs"
 
 def main(args):
+    _check_args(args)
     _apply_strict_columns(args)
     if args.print_scalars:
         _print_scalars(args)
-    elif args.format == "csv":
-        _print_csv(args)
-    elif args.format == "table":
+    elif args.csv:
+        _write_csv(args)
+    elif args.table:
         _print_table(args)
     else:
         _tabview(args)
+
+def _check_args(args):
+    if args.csv and args.table:
+        cli.error("--table and --csv cannot both be used")
 
 def _apply_strict_columns(args):
     if args.strict_cols:
@@ -85,13 +90,19 @@ def _print_scalars(args):
                 s["last_val"])
             cli.out("  %s: %f (step %i)" % (key, val, step))
 
-def _print_csv(args):
+def _write_csv(args):
     data = get_data(args, format_cells=False, skip_header_if_empty=True)
     if not data:
         return
-    writer = csv.writer(sys.stdout, lineterminator="\n")
-    for row in data:
-        writer.writerow(row)
+    with _open_file(args.csv) as out:
+        writer = csv.writer(out, lineterminator="\n")
+        for row in data:
+            writer.writerow(row)
+
+def _open_file(path):
+    if path == "-":
+        return util.StdIOContextManager(sys.stdout)
+    return open(path, "wb")
 
 def get_data(args, format_cells=True, skip_header_if_empty=False):
     index = indexlib.RunIndex()
