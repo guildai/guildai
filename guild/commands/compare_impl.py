@@ -51,6 +51,8 @@ MIN_COLS = ".run"
 
 NO_RUNS_CAPTION = "no runs"
 
+NO_TABLE_CLIP_WIDTH = pow(10, 10)
+
 def main(args):
     _check_args(args)
     _apply_strict_columns(args)
@@ -132,7 +134,7 @@ def _print_table(args):
         for col_name in cols
     }
     data = [heading] + [format_row(row) for row in data[1:]]
-    cli.table(data, cols)
+    cli.table(data, cols, max_width_adj=NO_TABLE_CLIP_WIDTH)
 
 def _tabview(args):
     config.set_log_output(True)
