@@ -394,3 +394,17 @@ def test_output(f, config, cb=None):
             for m in matches:
                 _try_apply_match(m, key, vals)
             cb.pattern_matches(p.pattern, matches, vals)
+
+class Disabled(Exception):
+    pass
+
+def check_enabled():
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", Warning)
+            # pylint: disable=no-name-in-module
+            import tensorboard.summary.writer as _
+    except ImportError:
+        raise Disabled(
+            "TensorBoard 1.14 or later is required to write "
+            "TF event summaries")

@@ -288,9 +288,15 @@ class Operation(object):
         return exit_status
 
     def _output_scalars_summary(self):
-        config, ignore = self._output_scalars_config()
-        summary_path = self._run.guild_path()
-        return summary.OutputScalars(config, summary_path, ignore)
+        try:
+            summary.check_enabled()
+        except summary.Disabled as e:
+            log.warning(e)
+            return None
+        else:
+            config, ignore = self._output_scalars_config()
+            summary_path = self._run.guild_path()
+            return summary.OutputScalars(config, summary_path, ignore)
 
     def _output_scalars_config(self):
         config = self.opdef.output_scalars
