@@ -374,9 +374,14 @@ def _node_filter(globals):
 def _compile_script(src, filename, node_filter):
     import __future__
     ast_root = ast.parse(src, filename)
-    ast_root = _filter_nodes(ast_root, node_filter)
+    filtered_ast_root = _filter_nodes(ast_root, node_filter)
     flags = __future__.absolute_import.compiler_flag
-    return compile(ast_root, filename, "exec", flags=flags, dont_inherit=True)
+    return compile(
+        filtered_ast_root,
+        filename,
+        "exec",
+        flags=flags,
+        dont_inherit=True)
 
 def _filter_nodes(root, node_filter):
     if isinstance(root, (ast.Module, ast.If)):
