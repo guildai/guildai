@@ -66,6 +66,7 @@ NORMALIZE_PATHS = doctest.register_optionflag("NORMALIZE_PATHS")
 STRIP_U = doctest.register_optionflag("STRIP_U")
 STRIP_L = doctest.register_optionflag("STRIP_L")
 WINDOWS = doctest.register_optionflag("WINDOWS")
+STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
 
 def run_all(skip=None):
     return run(all_tests(), skip)
@@ -155,7 +156,8 @@ def run_test_file(filename, globs):
             NORMALIZE_PATHS |
             WINDOWS |
             STRIP_U |
-            STRIP_L))
+            STRIP_L |
+            STRIP_ANSI_FMT))
 
 def _report_first_flag():
     if os.getenv("REPORT_ONLY_FIRST_FAILURE") == "1":
@@ -185,6 +187,8 @@ class Py23DocChecker(doctest.OutputChecker):
             got = self._strip_u(got)
         if optionflags & STRIP_L:
             got = self._strip_L(got)
+        if optionflags & STRIP_ANSI_FMT:
+            got = self._strip_ansi_fmt(got)
         return got
 
     @staticmethod
@@ -200,6 +204,10 @@ class Py23DocChecker(doctest.OutputChecker):
     def _strip_L(got):
         # Normalize long integers
         return re.sub(r"([0-9]+)L", "\\1", got)
+
+    @staticmethod
+    def _strip_ansi_fmt(got):
+        return re.sub(r"\033\[[0-9]+m", "", got)
 
     @staticmethod
     def _windows_got(got, optionflags):

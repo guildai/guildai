@@ -59,6 +59,18 @@ Let's reinit with debug enabled:
     WARNING: warning entry
     ERROR: error entry
 
+## Color
+
+If a TTY is available, output is colored. Warning are displayed in
+yellow (color code 33) and errors in red (color code 31).
+
+    >>> with guild.log._FakeTTY():
+    ...   log_capture.print_all() # doctest: -STRIP_ANSI_FMT
+    DEBUG: [test] debug entry
+    info entry
+    [33mWARNING: warning entry[0m
+    [31mERROR: error entry[0m
+
 ## Custom formats
 
 Let's specify some custom level formats:

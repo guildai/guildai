@@ -17,8 +17,42 @@ from __future__ import division
 
 import logging
 import logging.config
+import sys
 
 __last_init_kw = None
+
+_isatty = sys.stderr.isatty()
+
+class _FakeTTY(object):
+    """Context manager for forcing _isatty to True - used for tests."""
+
+    _saved = None
+
+    def __enter__(self):
+        self._saved = _isatty
+        globals()["_isatty"] = True
+
+    def __exit__(self, *_exc):
+        assert self._saved is not None
+        globals()["_isatty"] = self._saved
+
+class Formatter(logging.Formatter):
+
+    def format(self, record):
+        return self._color(
+            super(Formatter, self).format(record),
+            record.levelno)
+
+    @staticmethod
+    def _color(s, level):
+        if not _isatty:
+            return s
+        if level >= logging.ERROR:
+            return "\033[31m%s\033[0m" % s
+        elif level >= logging.WARNING:
+            return "\033[33m%s\033[0m" % s
+        else:
+            return s
 
 class ConsoleLogHandler(logging.StreamHandler):
 
@@ -32,7 +66,7 @@ class ConsoleLogHandler(logging.StreamHandler):
         super(ConsoleLogHandler, self).__init__()
         formats = formats or self.DEFAULT_FORMATS
         self._formatters = {
-            level: logging.Formatter(fmt)
+            level: Formatter(fmt)
             for level, fmt in formats.items()
         }
 
