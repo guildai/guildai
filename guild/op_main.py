@@ -88,9 +88,10 @@ def _init_sys_path():
         sys.path[0] = os.getenv("SCRIPT_DIR")
 
 def _init_logging():
-    level = int(os.getenv("LOG_LEVEL", logging.WARN))
-    format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
-    guild.log.init_logging(level, {"_": format})
+    if os.getenv("LOG_INIT_SKIP") != "1":
+        level = int(os.getenv("LOG_LEVEL", logging.WARN))
+        format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
+        guild.log.init_logging(level, {"_": format})
     globals()["log"] = logging.getLogger("guild")
 
 def _init_warnings():
