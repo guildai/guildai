@@ -1000,7 +1000,6 @@ def shlex_split(s):
 
 def shlex_quote(s):
     # If s can't be None in case where pipes.quote is used by six.
-    import six
     s = s or ""
     return _simplify_shlex_quote(six.moves.shlex_quote(s))
 
