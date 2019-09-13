@@ -481,7 +481,7 @@ def _init_cmd_env(opdef, gpus):
     env["GUILD_HOME"] = configlib.guild_home()
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
-    env["LOG_LEVEL"] = str(logging.getLogger().getEffectiveLevel())
+    env["LOG_LEVEL"] = _log_level()
     env["PYTHONPATH"] = _python_path(opdef)
     # SCRIPT_DIR is inserted by op_main at sys.path[0] - use empty string
     # here to include run dir first in sys.path
@@ -503,6 +503,12 @@ def _init_cmd_env(opdef, gpus):
             gpus or "<none>")
         env["CUDA_VISIBLE_DEVICES"] = gpus
     return env
+
+def _log_level():
+    try:
+        return os.environ["LOG_LEVEL"]
+    except KeyError:
+        return str(logging.getLogger().getEffectiveLevel())
 
 def _cmd_arg_env(args):
     flags, _other_args = op_util.args_to_flags(args)
