@@ -23,6 +23,11 @@ __last_init_kw = None
 
 _isatty = sys.stderr.isatty()
 
+NOISY_LOGGERS = (
+    "chardet",
+    "matplotlib",
+)
+
 class _FakeTTY(object):
     """Context manager for forcing _isatty to True - used for tests."""
 
@@ -111,7 +116,7 @@ def _preempt_logging_mods():
 
 def disable_noisy_loggers(level=logging.INFO):
     if level <= logging.DEBUG:
-        _set_logger_level(["chardet"], logging.INFO)
+        _set_logger_level(NOISY_LOGGERS, logging.INFO)
 
 def _set_logger_level(pkgs, level):
     for pkg in pkgs:
