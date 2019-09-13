@@ -32,6 +32,8 @@ import tempfile
 import time
 import threading
 
+import six
+
 log = logging.getLogger("guild")
 
 PLATFORM = platform.system()
@@ -1260,3 +1262,10 @@ class StdIOContextManager(object):
 
     def __exit__(self, *_exc):
         pass
+
+def check_env(env):
+    for name, val in env.items():
+        if not isinstance(name, six.string_types):
+            raise ValueError("non-string env name %r" % name)
+        if not isinstance(val, six.string_types):
+            raise ValueError("non-string env value for '%s': %r" % (name, val))

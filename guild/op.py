@@ -263,6 +263,7 @@ class Operation(object):
         env = dict(self.cmd_env)
         env["RUN_DIR"] = self._run.path
         env["RUN_ID"] = self._run.id
+        util.check_env(env)
         return env
 
     def _wait_for_proc(self, quiet, stop_after):
