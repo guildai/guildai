@@ -84,6 +84,7 @@ def _refresh_hparam_experiment(runs, state):
             return
         hparams = _experiment_hparams(runs)
         metrics = _experiment_metrics(runs)
+        _log_hparam_experiment(runs, hparams, metrics)
         state.hparam_experiment = hparams, metrics
         state.hparam_experiment_runs_digest = runs_digest
     else:
@@ -135,6 +136,13 @@ def _is_last_scalar(select_col):
 
 def _run_root_scalars(run):
     return [tag for tag in _iter_scalar_tags(run.dir) if "/" not in tag]
+
+def _log_hparam_experiment(runs, hparams, metrics):
+    # Conditional to avoid work if not debugging
+    if log.getEffectiveLevel() <= logging.DEBUG:
+        log.debug(
+            "hparam experiment:\n  runs=%s\n  hparams=%s\n  metrics=%s",
+            [run.id for run in runs], list(hparams), list(metrics))
 
 def _iter_scalar_tags(dir):
     for _path, _digest, scalars in tfevent.scalar_readers(dir):
