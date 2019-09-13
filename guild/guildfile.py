@@ -318,12 +318,14 @@ def _coerce_operations(data, guildfile):
             guildfile,
             "invalid operations value %r: expected a mapping" % data)
     return {
-        op_name: _coerce_operation(op, guildfile)
+        op_name: _coerce_operation(op_name, op, guildfile)
         for op_name, op in data.items()
     }
 
-def _coerce_operation(data, guildfile):
-    if isinstance(data, six.string_types):
+def _coerce_operation(name, data, guildfile):
+    if name == "$include":
+        return data
+    elif isinstance(data, six.string_types):
         return {
             "main": data
         }
@@ -878,7 +880,8 @@ def _dedup_parents(parents):
     return deduped
 
 def _init_ops(data, modeldef):
-    ops_data = data.get("operations") or {}
+    ops_data = _resolve_includes(
+        data, "operations", modeldef.guildfile_search_path)
     return [
         OpDef(key, ops_data[key], modeldef)
         for key in sorted(ops_data)

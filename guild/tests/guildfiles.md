@@ -524,6 +524,46 @@ An operation def can be represented as data by calling `as_data()`.
     >>> pprint(gf.models["expert"]["evaluate"].as_data())
     {'flags': {'$include': 'default-eval-flags'}, 'main': 'expert --test'}
 
+### Including operations
+
+Guild support `$includes` for operations.
+
+    >>> gf_op_incl = guildfile.from_string("""
+    ... - config: shared-ops
+    ...   operations:
+    ...     foo:
+    ...       main: guild.pass
+    ...       flags:
+    ...         i: 1
+    ...         f: 2.2
+    ...     bar: guild.pass
+    ... - model: m
+    ...   operations:
+    ...     $include: shared-ops
+    ...     baz:
+    ...       main: guild.pass
+    ...       flags:
+    ...         b: yes
+    ... """)
+
+    >>> gf_op_incl.models
+    {'m': <guild.guildfile.ModelDef 'm'>}
+
+    >>> m = gf_op_incl.models["m"]
+    >>> m.operations
+    [<guild.guildfile.OpDef 'm:bar'>,
+     <guild.guildfile.OpDef 'm:baz'>,
+     <guild.guildfile.OpDef 'm:foo'>]
+
+    >>> m.get_operation("bar").flags
+    []
+
+    >>> m.get_operation("baz").flags
+    [<guild.guildfile.FlagDef 'b'>]
+
+    >>> m.get_operation("foo").flags
+    [<guild.guildfile.FlagDef 'f'>, <guild.guildfile.FlagDef 'i'>]
+
 ## Resources
 
 Model resources are are named lists of sources that may be required by
@@ -1009,7 +1049,6 @@ defaults for an operation. Note that `b` simply redefines the values.
     >>> [(f.name, f.description, f.default)
     ...  for f in gf.models["b"]["test"].flags]
     [('f1', 'Flag f1', 3), ('f2', 'Flag f2', 4)]
-
 
 ### Parameters
 
