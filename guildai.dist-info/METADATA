@@ -42,7 +42,7 @@ Requires-Dist: scikit-optimize>=0.5.2
 Requires-Dist: setuptools>=40.6.3
 Requires-Dist: six>=1.10.0
 Requires-Dist: tabview>=1.4.3
-Requires-Dist: tensorboard>=1.14
+Requires-Dist: tensorboard>=1.15
 Requires-Dist: virtualenv>=15.1.0
 
 Guild AI is an [open source](LICENSE.txt) toolkit that automates and
