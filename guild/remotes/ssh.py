@@ -48,24 +48,25 @@ class SSHRemote(remotelib.Remote):
         self.user = config.get("user")
         self.private_key = config.get("private-key")
         self.connect_timeout = config.get("connect-timeout")
-        self.guild_home = self._init_guild_home(config)
-        self.guild_env = config.get("guild-env")
+        self.venv_path = config.get("venv-path") or config.get("guild-env")
+        self.guild_home = self._init_guild_home(config, self.venv_path)
+        self.conda_env = config.get("conda-env")
+        self.venv_activate = config.get("venv-activate")
         self.use_prerelease = config.get("use-prerelease", False)
         self.init = config.get("init")
+
+    @staticmethod
+    def _init_guild_home(config, venv_path):
+        guild_home = config.get("guild-home")
+        if guild_home is not None:
+            return guild_home
+        if venv_path is None:
+            return ".guild"
+        return util.strip_trailing_sep(venv_path) + "/.guild"
 
     @property
     def host(self):
         return self._host
-
-    @staticmethod
-    def _init_guild_home(config):
-        guild_home = config.get("guild-home")
-        if guild_home is not None:
-            return guild_home
-        guild_env = config.get("guild-env")
-        if guild_env is None:
-            return ".guild"
-        return util.strip_trailing_sep(guild_env) + "/.guild"
 
     def push(self, runs, delete=False):
         for run in runs:
@@ -306,12 +307,29 @@ class SSHRemote(remotelib.Remote):
             port=self.port)
 
     def _env_activate_cmd_lines(self):
-        if not self.guild_env:
-            return []
-        cwd = self.guild_env
-        if cwd.endswith("/venv"):
-            cwd = cwd[:-5]
-        return ["source %s/bin/activate" % self.guild_env]
+        return util.find_apply([
+            self._explicit_venv_activate,
+            self._conda_env_activate,
+            self._default_venv_activate
+        ])
+
+    def _explicit_venv_activate(self):
+        if self.venv_activate:
+            return [self.venv_activate]
+        return None
+
+    def _conda_env_activate(self):
+        if self.conda_env:
+            return [
+                "source ~/*conda*/etc/profile.d/conda.sh",
+                "conda activate '%s'" % self.conda_env,
+            ]
+        return None
+
+    def _default_venv_activate(self):
+        if self.venv_path:
+            return ["source %s/bin/activate" % self.venv_path]
+        return []
 
     def one_run(self, run_id_prefix, attrs):
         """Returns run matching id prefix as remote.RunProxy with attrs.
