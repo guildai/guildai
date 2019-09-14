@@ -1241,7 +1241,7 @@ def _http_request(url, headers=None, data=None, method="GET", timeout=None):
         return HTTPResponse(conn.getresponse())
 
 def _HTTPConnection(scheme, netloc, timeout):
-    from six.moves import http_client, urllib
+    from six.moves import http_client
     if scheme == "http":
         return http_client.HTTPConnection(netloc, timeout=timeout)
     elif scheme == "https":

@@ -221,7 +221,6 @@ def _assert_empty_kw(kw, f):
 
 def runs_delete(runs=None, permanent=False, cwd=".", guild_home=None, **kw):
     from guild import click_util
-    from guild.commands import runs_delete
     from guild.commands import runs_impl
     args = click_util.Args(
         runs=(runs or []),
@@ -275,7 +274,6 @@ def current_run():
 
 def mark(runs, clear=False, cwd=".", guild_home=None, **kw):
     from guild import click_util
-    from guild.commands import mark
     from guild.commands import runs_impl
     args = click_util.Args(
         runs=(runs or []),
@@ -300,7 +298,6 @@ def compare(
         guild_home=None,
         **kw):
     from guild import click_util
-    from guild.commands import compare
     from guild.commands import compare_impl
     args = click_util.Args(
         runs=(runs or []),
@@ -334,7 +331,6 @@ def publish(
         guild_home=None,
         **kw):
     from guild import click_util
-    from guild.commands import runs_publish
     from guild.commands import publish_impl
     args = click_util.Args(
         runs=(runs or []),
@@ -366,7 +362,6 @@ def package(
         cwd=".",
         guild_home=None):
     from guild import click_util
-    from guild.commands import package
     from guild.commands import package_impl
     args = click_util.Args(
         dist_dir=dist_dir,
