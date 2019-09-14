@@ -309,8 +309,8 @@ class SSHRemote(remotelib.Remote):
         if not self.guild_env:
             return []
         cwd = self.guild_env
-        if cwd.endswith("/env"):
-            cwd = cwd[:-4]
+        if cwd.endswith("/venv"):
+            cwd = cwd[:-5]
         return ["QUIET=1 source %s/bin/activate" % self.guild_env]
 
     def one_run(self, run_id_prefix, attrs):
