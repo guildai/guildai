@@ -311,7 +311,7 @@ class SSHRemote(remotelib.Remote):
         cwd = self.guild_env
         if cwd.endswith("/venv"):
             cwd = cwd[:-5]
-        return ["QUIET=1 source %s/bin/activate" % self.guild_env]
+        return ["source %s/bin/activate" % self.guild_env]
 
     def one_run(self, run_id_prefix, attrs):
         """Returns run matching id prefix as remote.RunProxy with attrs.
