@@ -295,7 +295,7 @@ def _list_runs_json(runs):
     cli.out(json.dumps(runs_data))
 
 def _listed_run_json_data(run):
-    return _run_data(run, (
+    run_data = _run_data(run, (
         "exit_status",
         "cmd",
         "marked",
@@ -304,6 +304,8 @@ def _listed_run_json_data(run):
         "status",
         "stopped",
     ))
+    _apply_batch_proto(run, run_data)
+    return run_data
 
 def _run_data(run, attrs):
     data = {
@@ -320,6 +322,12 @@ def _run_attr(run, name):
         return getattr(run, name)
     else:
         return run.get(name)
+
+def _apply_batch_proto(run, data):
+    proto_dir = run.guild_path("proto")
+    if os.path.exists(proto_dir):
+        proto = runlib.from_dir(proto_dir)
+        data["batch_proto"] = _listed_run_json_data(proto)
 
 def _list_formatted_runs(runs, args):
     formatted = format_runs(_limit_runs(runs, args))
@@ -371,7 +379,7 @@ def _op_desc_base(fmt_run, apply_style=True):
     return "%s%s" % (op, _styled_op_dir_suffix(op_dir, apply_style))
 
 def _run_op_dir(run):
-    run = _batch_proto(run) or run
+    run = run.batch_proto or run
     opref = run.opref
     if opref.pkg_type == "guildfile":
         return os.path.dirname(opref.pkg_name)
@@ -379,12 +387,6 @@ def _run_op_dir(run):
         return opref.pkg_name
     else:
         return None
-
-def _batch_proto(run):
-    proto_dir = run.guild_path("proto")
-    if os.path.exists(proto_dir):
-        return runlib.from_dir(proto_dir)
-    return None
 
 def _empty_style(s, apply_style):
     # Pad a string with an empty style for alignment in tables.

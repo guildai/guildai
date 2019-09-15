@@ -75,8 +75,18 @@ class RunProxy(object):
         self.pid = None
         self.status = data.get("status")
         self.remote = None
-        self._data = data
         self.opref = opref.OpRef.parse(data.get("opref"))
+        self.batch_proto = self._init_batch_proto(data)
+        self._data = data
+
+    @staticmethod
+    def _init_batch_proto(data):
+        try:
+            proto_data = data["batch-proto"]
+        except KeyError:
+            return None
+        else:
+            return RunProxy(proto_data)
 
     def get(self, key, default=None):
         return self._data.get(key, default)

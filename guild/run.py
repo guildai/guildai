@@ -120,6 +120,13 @@ class Run(object):
             lambda: None
         ])
 
+    @property
+    def batch_proto(self):
+        proto_dir = self.guild_path("proto")
+        if os.path.exists(proto_dir):
+            return from_dir(proto_dir)
+        return None
+
     def _remote_exit_status(self):
         status = self.get("exit_status.remote")
         if status == 0:
