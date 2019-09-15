@@ -57,6 +57,6 @@ Invalid diff command option - if the command can be run, Guild treats
 it as success even if the command doesn't behave as expected:
 
     >>> run("guild diff -c 'diff --invalid-opt'")
-    diff: unrecognized option '--invalid-opt'
+    diff: unrecognized option ...--invalid-opt'
     diff: Try ...diff --help' for more information.
     <exit 0>
