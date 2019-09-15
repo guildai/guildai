@@ -215,7 +215,7 @@ class SSHRemote(remotelib.Remote):
             "mkdir -p {run_dir}/.guild; "
             "touch {run_dir}/.guild/PENDING; "
             "mkdir {run_dir}/.guild/attrs; "
-            "echo 'pending:? ? ? {opspec}' > {run_dir}/.guild/attrs/opref; "
+            "echo 'pending:? ? ? {opspec}' > {run_dir}/.guild/opref; "
             "echo \"$(date +%s)000000\" > {run_dir}/.guild/attrs/started; "
             "mkdir {run_dir}/.guild/job-packages"
             .format(run_dir=run_dir, opspec=opspec)
