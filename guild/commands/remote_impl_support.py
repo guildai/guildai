@@ -388,3 +388,25 @@ def _ls_kw(args):
         "remote",
     ]
     return _arg_kw(args, names, ignore)
+
+def diff_runs(args):
+    remote = remote_support.remote_for_args(args)
+    with op_handler(remote):
+        remote.diff_runs(**_diff_kw(args))
+
+def _diff_kw(args):
+    names = _runs_filter_names() + [
+        "attrs",
+        "cmd",
+        "deps",
+        "env",
+        "flags",
+        "output",
+        "path",
+        "runs",
+        "sourcecode",
+    ]
+    ignore = [
+        "remote",
+    ]
+    return _arg_kw(args, names, ignore)

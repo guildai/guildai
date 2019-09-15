@@ -407,6 +407,9 @@ class SSHRemote(remotelib.Remote):
     def list_files(self, **opts):
         self._guild_cmd("ls", _ls_args(**opts), {"NO_PATH_HEADER": "1"})
 
+    def diff_runs(self, **opts):
+        self._guild_cmd("runs diff", _diff_args(**opts))
+
 def _list_runs_filter_opts(deleted, all, more, **filters):
     opts = []
     if all:
@@ -644,4 +647,26 @@ def _ls_args(run, all, follow_links, no_format, path, sourcecode,
         args.append("-s")
     if run:
         args.append(run)
+    return args
+
+def _diff_args(runs, output, sourcecode, env, flags, attrs, deps,
+               path, cmd, **filters):
+    args = _runs_filter_args(**filters)
+    if output:
+        args.append("--output")
+    if sourcecode:
+        args.append("--sourcecode")
+    if flags:
+        args.append("--flags")
+    if env:
+        args.append("--env")
+    if attrs:
+        args.append("--attrs")
+    if deps:
+        args.append("--deps")
+    if path:
+        args.extend(["--path"] + list(path))
+    if cmd:
+        args.extend(["--cmd", cmd])
+    args.extend(runs)
     return args

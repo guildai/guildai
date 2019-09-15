@@ -19,6 +19,7 @@ import click
 
 from guild import click_util
 
+from . import remote_support
 from . import runs_support
 
 def diff_params(fn):
@@ -60,6 +61,7 @@ def diff_params(fn):
             metavar="CMD",
             help="Command used to diff runs."),
         runs_support.all_filters,
+        remote_support.remote_option("Diff remote runs."),
     ])
     return fn
 
@@ -89,6 +91,14 @@ def diff_runs(ctx, args):
     ``diff`` section.
 
     To use a specific diff program with the command, use `--cmd`.
+
+    ### Diff Remote Runs
+
+    To diff remote runs, use `--remote`. Note that any command
+    specified by `--cmd` must be available on the remote and must show
+    differences over standard output.
+
+    {{ remote_support.remote_option }}
 
     """
     from . import diff_impl

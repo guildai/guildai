@@ -24,6 +24,7 @@ from guild import click_util
 from guild import config
 from guild import util
 
+from . import remote_impl_support
 from . import runs_impl
 
 log = logging.getLogger("guild")
@@ -39,6 +40,12 @@ class OneRunArgs(click_util.Args):
         super(OneRunArgs, self).__init__(**kw)
 
 def main(args, ctx):
+    if args.remote:
+        remote_impl_support.diff_runs(args)
+    else:
+        _diff_runs(args, ctx)
+
+def _diff_runs(args, ctx):
     if len(args.runs) == 0:
         args.runs = ("2", "1")
     elif len(args.runs) == 1:
@@ -63,7 +70,10 @@ def _diff(run1, run2, args):
         dir2 = os.path.join(run2.path, path)
         cmd = cmd_base + [dir1, dir2]
         log.debug("diff cmd: %r", cmd)
-        subprocess.call(cmd)
+        try:
+            subprocess.call(cmd)
+        except OSError as e:
+            cli.error("error running '%s': %s" % (" ".join(cmd), e))
 
 def _diff_cmd(args):
     return args.cmd or _config_diff_cmd() or DEFAULT_DIFF_CMD

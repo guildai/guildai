@@ -48,6 +48,7 @@ Here are the commands that support the `remote` param:
     ...             print(cmd.name)
     ...             break
     check
+    diff
     label
     ls
     pull
