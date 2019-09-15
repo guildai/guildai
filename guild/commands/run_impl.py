@@ -31,6 +31,7 @@ import guild.plugin
 from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
+from guild import config
 from guild import deps
 from guild import guildfile
 from guild import flag_util
@@ -1035,7 +1036,12 @@ def _action_desc(args):
     return "run"
 
 def _op_desc(op):
-    return op.opref.to_opspec()
+    return _format_opspec(op.opref.to_opspec())
+
+def _format_opspec(opspec):
+    if os.path.isabs(opspec):
+        return os.path.relpath(opspec, config.cwd())
+    return opspec
 
 def _batch_suffix(op, args):
     if not op.batch_op:
