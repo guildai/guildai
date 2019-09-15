@@ -144,7 +144,7 @@ class Operation(object):
         assert self._run is not None
         # Only copy source code for guildfile or script dist
         # (i.e. projects)
-        if self.opref.pkg_type in ("guildfile", "script"):
+        if self.opref.pkg_type in ("guildfile", "script", "package"):
             op_util.copy_run_sourcecode(self._run, self.opdef)
 
     def _init_digests(self):
