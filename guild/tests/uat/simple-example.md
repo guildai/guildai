@@ -101,7 +101,7 @@ The operation is like any other. We can view info:
     stopped: ...
     marked: no
     label: epochs=1
-    sourcecode_digest: 48bea560cc2c2089edf754c1bb887110
+    sourcecode_digest: f916ac0400292c61c1c0b13b0d03efec
     run_dir: ...
     command: ... -um guild.op_main train
              --batch_size 100
