@@ -511,6 +511,7 @@ def _format_op_flags_dl(opdef):
 ###################################################################
 
 def _dispatch_op_cmd(opdef, args):
+    _check_op_runnable(opdef, args)
     op = _init_op(opdef, args)
     if args.print_cmd:
         _print_cmd(op, args)
@@ -520,6 +521,14 @@ def _dispatch_op_cmd(opdef, args):
         _print_or_save_trials(op, args)
     else:
         _maybe_run(op, args)
+
+def _check_op_runnable(opdef, args):
+    if args.remote:
+        if opdef.opref.pkg_type == "script":
+            cli.error(
+                "cannot run scripts remotely\n"
+                "Define an operation in guild.yml that uses %s as the main "
+                "module and run that operation instead." % opdef.fullname)
 
 ###################################################################
 # Init op
