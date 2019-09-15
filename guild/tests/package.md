@@ -172,7 +172,9 @@ A project must have a Guild file to be packaged.
     >>> Project(workspace).package()
     Traceback (most recent call last):
     SystemExit: ("'...' does not contain a guild.yml
-    file\nTry specifying a different directory.", 1)
+    file\nA guild.yml file is required when creating a package.
+    Create one in this directory first or try specifying a different
+    directory.", 1)
 
 A project must exist:
 

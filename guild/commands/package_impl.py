@@ -34,7 +34,8 @@ def main(args):
     if not os.path.exists(package_file):
         cli.error(
             "%s does not contain a guild.yml file\n"
-            "Try specifying a different directory."
+            "A guild.yml file is required when creating a package. Create one "
+            "in this directory first or try specifying a different directory."
             % cmd_impl_support.cwd_desc(config.cwd()))
     if args.upload:
         _check_upload_support(package_file)
