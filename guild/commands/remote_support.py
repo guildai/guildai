@@ -64,6 +64,7 @@ def remotes():
     """
 
 def remote_for_args(args):
+    assert args.remote, args
     try:
         return guild.remote.for_name(args.remote)
     except guild.remote.NoSuchRemote:

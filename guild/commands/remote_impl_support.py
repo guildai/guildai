@@ -44,7 +44,6 @@ class op_handler(object):
             _handle_not_supported(self.remote)
 
 def list_runs(args):
-    assert args.remote
     if args.archive:
         cli.error("--archive and --remote cannot both be used")
     remote = remote_support.remote_for_args(args)
@@ -92,7 +91,6 @@ def _arg_kw(args, names, ignore):
     return kw
 
 def run(args):
-    assert args.remote
     remote = remote_support.remote_for_args(args)
     try:
         run_id = remote.run_op(**_run_kw(args))
@@ -183,7 +181,6 @@ def _run_kw(args):
     return _arg_kw(args, names, ignore)
 
 def one_run(run_id_prefix, args):
-    assert args.remote
     remote = remote_support.remote_for_args(args)
     cli.note("Getting remote run info")
     try:
@@ -194,7 +191,6 @@ def one_run(run_id_prefix, args):
         _handle_not_supported(remote)
 
 def watch_run(args):
-    assert args.remote
     remote = remote_support.remote_for_args(args)
     with op_handler(remote):
         remote.watch_run(**_watch_run_kw(args))
@@ -216,7 +212,6 @@ def _watch_run_kw(args):
     return _arg_kw(args, names, ignore)
 
 def delete_runs(args):
-    assert args.remote
     remote = remote_support.remote_for_args(args)
     with op_handler(remote):
         remote.delete_runs(**_delete_runs_kw(args))
@@ -227,7 +222,6 @@ def _delete_runs_kw(args):
     return _arg_kw(args, names, ignore)
 
 def run_info(args):
-    assert args.remote
     remote = remote_support.remote_for_args(args)
     with op_handler(remote):
         remote.run_info(**_run_info_kw(args))
@@ -254,7 +248,6 @@ def _run_select_names():
     return _runs_filter_names() + ["run"]
 
 def check(args):
-    assert args.remote
     if args.tests or args.all_tests:
         cli.error("tests are not supported for remote check")
     if args.no_info:
@@ -281,7 +274,6 @@ def _check_kw(args):
     return _arg_kw(args, names, ignore)
 
 def stop_runs(args):
-    assert args.remote
     remote = remote_support.remote_for_args(args)
     with op_handler(remote):
         remote.stop_runs(**_stop_runs_kw(args))
@@ -304,7 +296,6 @@ def _stop_runs_kw(args):
     return _arg_kw(args, names, ignore)
 
 def restore_runs(args):
-    assert args.remote
     remote = remote_support.remote_for_args(args)
     with op_handler(remote):
         remote.restore_runs(**_restore_runs_kw(args))
@@ -315,7 +306,6 @@ def _restore_runs_kw(args):
     return _arg_kw(args, names, ignore)
 
 def purge_runs(args):
-    assert args.remote
     remote = remote_support.remote_for_args(args)
     with op_handler(remote):
         remote.purge_runs(**_restore_runs_kw(args))
@@ -326,7 +316,6 @@ def _purge_runs_kw(args):
     return _arg_kw(args, names, ignore)
 
 def label_runs(args):
-    assert args.remote
     remote = remote_support.remote_for_args(args)
     with op_handler(remote):
         remote.label_runs(**_label_runs_kw(args))
@@ -370,7 +359,6 @@ def pull_runs(remote, runs, args):
         remote.pull(runs, args.delete)
 
 def list_files(args):
-    assert args.remote
     remote = remote_support.remote_for_args(args)
     with op_handler(remote):
         remote.list_files(**_ls_kw(args))
