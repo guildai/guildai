@@ -1,6 +1,7 @@
 # Runs after remote hello ops
 
     >>> run("guild runs list --remote guild-uat-ssh")
-    [1:...]  hello/hello:from-flag  ... ...  completed  message='Howdy Guild!'
-    [2:...]  hello/hello:default    ... ...  completed...
+    [1:...]  hello/hello:from-file  ...  completed
+    [2:...]  hello/hello:from-flag  ...  completed  message='Howdy Guild!'
+    [3:...]  hello/hello:default    ...  completed
     <exit 0>

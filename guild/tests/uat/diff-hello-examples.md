@@ -46,3 +46,17 @@ Run generated output file:
     ---
     > message is bar
     <exit 0>
+
+Invalid diff command:
+
+    >>> run("guild diff -c invalid-diff-cmd")
+    guild: error running 'invalid-diff-cmd ... ...': ...No such file or directory...
+    <exit 1>
+
+Invalid diff command option - if the command can be run, Guild treats
+it as success even if the command doesn't behave as expected:
+
+    >>> run("guild diff -c 'diff --invalid-opt'")
+    diff: unrecognized option '--invalid-opt'
+    diff: Try 'diff --help' for more information.
+    <exit 0>

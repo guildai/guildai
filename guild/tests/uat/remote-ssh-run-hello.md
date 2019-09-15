@@ -33,3 +33,20 @@ These tests run various hello operations remotely.
     Howdy Guild!
     Run ... stopped with a status of 'completed'
     <exit 0>
+
+## from-file
+
+    >>> run("guild run from-file -r guild-uat-ssh -y")
+    Building package
+    ...
+    Initializing remote run
+    Copying package
+    ...
+    Installing collected packages: hello
+    Successfully installed hello-0.0.0
+    Starting remote operation...
+    Resolving msg-file dependency
+    Hello Guild, from a required file!
+    <BLANKLINE>
+    Run ... stopped with a status of 'completed'
+    <exit 0>

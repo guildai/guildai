@@ -39,5 +39,9 @@ And the generated files:
     hello-default/.guild/opref
     hello-default/.guild/output
     hello-default/.guild/output.index
+    hello-default/.guild/sourcecode
+    hello-default/.guild/sourcecode/guild.yml
+    hello-default/.guild/sourcecode/msg.txt
+    hello-default/.guild/sourcecode/say.py
     hello-default/output
     <exit 0>
