@@ -29,7 +29,7 @@ from . import runs_support
     metavar="PATH",
     help="Path to list.")
 @click.option(
-    "-s", "--sourcecode",
+    "-c", "--sourcecode",
     is_flag=True,
     help="List source code files.")
 @click.option(

@@ -30,7 +30,7 @@ def diff_params(fn):
             is_flag=True,
             help="Diff run output."),
         click.Option(
-            ("-s", "--sourcecode"),
+            ("-c", "--sourcecode"),
             is_flag=True,
             help="Diff run source code."),
         click.Option(
@@ -57,7 +57,7 @@ def diff_params(fn):
             multiple=True,
             help="Diff specified path; may be used more than once."),
         click.Option(
-            ("-c", "--cmd"),
+            ("-m", "--cmd"),
             metavar="CMD",
             help="Command used to diff runs."),
         runs_support.all_filters,

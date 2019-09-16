@@ -189,7 +189,7 @@ def time_filters(fn):
     """
     click_util.append_params(fn, [
         click.Option(
-            ("-st", "--started",),
+            ("-s", "--started",),
             metavar="RANGE",
             help=(
                 "Include only runs started within RANGE. See above "

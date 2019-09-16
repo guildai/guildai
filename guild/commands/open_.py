@@ -27,7 +27,7 @@ from . import runs_support
     "-p", "--path",
     metavar="PATH", help="Path to open under run directory.")
 @click.option(
-    "-s", "--sourcecode",
+    "-c", "--sourcecode",
     is_flag=True,
     help="Open run source code directory.")
 @click.option(
@@ -35,7 +35,7 @@ from . import runs_support
     is_flag=True,
     help="Open run output. Cannot be used with other options.")
 @click.option(
-    "-c", "--cmd", metavar="CMD",
+    "-m", "--cmd", metavar="CMD",
     help="Command used to open run.")
 @runs_support.all_filters
 

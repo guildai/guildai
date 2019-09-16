@@ -28,7 +28,7 @@ from . import runs_support
     metavar="PATH",
     help="Path of file to show. Require unless --output is used.")
 @click.option(
-    "-s", "--sourcecode",
+    "-c", "--sourcecode",
     is_flag=True,
     help="Apply PATH to source code files.")
 @click.option(

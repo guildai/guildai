@@ -45,7 +45,7 @@ from . import runs_support
     help="Show resolved dependencies.",
     is_flag=True)
 @click.option(
-    "-s", "--sourcecode",
+    "-c", "--sourcecode",
     help="Show source code files.",
     is_flag=True)
 @click.option(

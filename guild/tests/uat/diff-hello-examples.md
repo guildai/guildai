@@ -22,7 +22,7 @@ Let's use Guild `diff` to compare the two runs.
 
 Run flags:
 
-    >>> run("guild diff -g -c 'diff'")
+    >>> run("guild diff -g -m 'diff'")
     1c1
     < message: message is foo
     ---
@@ -31,7 +31,7 @@ Run flags:
 
 Run output:
 
-    >>> run("guild diff -O -c 'diff'")
+    >>> run("guild diff -O -m 'diff'")
     1c1
     < message is foo
     ---
@@ -40,7 +40,7 @@ Run output:
 
 Run generated output file:
 
-    >>> run("guild diff -p output -c 'diff'")
+    >>> run("guild diff -p output -m 'diff'")
     1c1
     < message is foo
     ---
@@ -49,14 +49,14 @@ Run generated output file:
 
 Invalid diff command:
 
-    >>> run("guild diff -c invalid-diff-cmd")
+    >>> run("guild diff -m invalid-diff-cmd")
     guild: error running 'invalid-diff-cmd ... ...': ...No such file or directory...
     <exit 1>
 
 Invalid diff command option - if the command can be run, Guild treats
 it as success even if the command doesn't behave as expected:
 
-    >>> run("guild diff -c 'diff --invalid-opt'")
+    >>> run("guild diff -m 'diff --invalid-opt'")
     diff: unrecognized option ...--invalid-opt'
     diff: Try ...diff --help' for more information.
     <exit 0>
