@@ -563,7 +563,7 @@ def _run_info_args(
     if all_scalars:
         args.append("-S")
     if sourcecode:
-        args.append("-s")
+        args.append("-c")
     if follow_links:
         args.append("-L")
     if output:
