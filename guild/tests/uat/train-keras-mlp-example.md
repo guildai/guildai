@@ -36,14 +36,14 @@ Here's the run info, including files and all scalars:
       epochs: 1
       num_classes: 10
     scalars:
-      acc: ... (step 0)
+      accuracy: ... (step 0)
       loss: ... (step 0)
       sys/...
-      val_acc: ... (step 0)
+      val_accuracy: ... (step 0)
       val_loss: ... (step 0)
-      acc: ... (step 1)
+      accuracy: ... (step 1)
       loss: ... (step 1)
-      val_acc: ... (step 1)
+      val_accuracy: ... (step 1)
       val_loss: ... (step 1)
     files:
       events.out.tfevents...
