@@ -16,4 +16,5 @@
     pid:
     flags:
       file: msg.txt
+    scalars:
     <exit 0>
