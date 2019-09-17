@@ -561,9 +561,9 @@ def _run_info_args(
     if deps:
         args.append("-d")
     if all_scalars:
-        args.append("-S")
+        args.append("--all-scalars")
     if sourcecode:
-        args.append("-c")
+        args.append("--sourcecode")
     if follow_links:
         args.append("-L")
     if output:
@@ -644,7 +644,7 @@ def _ls_args(run, all, follow_links, no_format, path, sourcecode,
     if path:
         args.append("-p")
     if sourcecode:
-        args.append("-s")
+        args.append("--sourcecode")
     if run:
         args.append(run)
     return args
