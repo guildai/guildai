@@ -20,6 +20,11 @@ Use `guild runs info` to show information about the latest run:
       batch-size: 100
       epochs: 1
       learning-rate: 0.5
+    scalars:
+      acc: ... (step 550)
+      loss: ... (step 550)
+      val#acc: ... (step 550)
+      val#loss: ... (step 550)
     <exit 0>
 
 We can optionally show files and env for a run:

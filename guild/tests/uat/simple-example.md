@@ -117,6 +117,11 @@ The operation is like any other. We can view info:
       prepare: no
       rundir: .
       test: no
+    scalars:
+      acc: ... (step 540)
+      loss: ... (step 540)
+      val#acc: ... (step 540)
+      val#loss: ... (step 540)
     <exit 0>
 
 Note the command, which uses the Python intreper (not listed

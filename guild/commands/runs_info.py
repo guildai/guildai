@@ -37,16 +37,16 @@ from . import runs_support
     help="Show run environment.",
     is_flag=True)
 @click.option(
-    "-S", "--scalars",
-    help="Show run scalars.",
-    is_flag=True)
-@click.option(
     "-d", "--deps",
     help="Show resolved dependencies.",
     is_flag=True)
 @click.option(
     "-c", "--sourcecode",
     help="Show source code files.",
+    is_flag=True)
+@click.option(
+    "-S", "--all-scalars",
+    help="Show all scalars. By default only top-level scalars are shown.",
     is_flag=True)
 @click.option(
     "-p", "--page-output",

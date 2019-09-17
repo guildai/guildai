@@ -580,9 +580,9 @@ def _print_run_info(run, args):
     if args.env:
         out("environment:", nl=False)
         out(run_util.format_attr(run.get("env", "")))
-    if args.scalars:
-        out("scalars:")
-        for scalar in _iter_scalars(run):
+    out("scalars:")
+    for scalar in _iter_scalars(run):
+        if args.all_scalars or "/" not in scalar:
             out("  %s" % scalar)
     if args.deps:
         out("dependencies:")

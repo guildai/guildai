@@ -15,9 +15,9 @@ Lets run the `mnist_mlp.py` script:
     test_acc: ...
     <exit 0>
 
-Here's the run info, including files and scalars:
+Here's the run info, including files and all scalars:
 
-    >>> run("guild runs info --files --scalars")
+    >>> run("guild runs info --files --all-scalars")
     id: ...
     operation: mnist_mlp.py
     from: .../examples/keras

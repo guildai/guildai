@@ -23,7 +23,7 @@ Default scalars captured when running `train.py` as a script:
     accuracy: 0.456
     <exit 0>
 
-    >>> run("guild runs info --scalars")
+    >>> run("guild runs info")
     id: ...
     scalars:
       accuracy: 0.456000 (step 2)
@@ -67,7 +67,7 @@ Let's run it to see what's generated:
     accuracy: 0.456
     <exit 0>
 
-    >>> run("guild runs info --scalars")
+    >>> run("guild runs info")
     id: ...
     scalars:
       accuracy: 0.456000 (step 2)
@@ -123,7 +123,7 @@ Here are the other two operations:
     accuracy: 0.456
     <exit 0>
 
-    >>> run("guild runs info --scalars")
+    >>> run("guild runs info")
     id: ...
     scalars:
       accuracy: 0.456000 (step 2)
@@ -135,7 +135,7 @@ Here are the other two operations:
     Step 2: loss=1.234 accuracy=0.456
     <exit 0>
 
-    >>> run("guild runs info --scalars")
+    >>> run("guild runs info")
     id: ...
     scalars:
       accuracy: 0.456000 (step 2)

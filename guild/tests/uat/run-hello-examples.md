@@ -64,6 +64,7 @@ Guild captures project source, which we can list using `runs info`:
     pid:
     flags:
       message: Howdy Guild!
+    scalars:
     sourcecode:
       guild.yml
       msg.txt

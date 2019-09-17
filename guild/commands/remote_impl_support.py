@@ -233,9 +233,9 @@ def _run_info_kw(args):
         "env",
         "files",
         "follow_links",
+        "all_scalars",
         "output",
         "page_output",
-        "scalars",
         "sourcecode",
     ]
     ignore = [
