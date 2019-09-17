@@ -21,6 +21,7 @@ import yaml
 import six
 
 FUNCTION_P = re.compile(r"([a-zA-Z0-9_\-\.]*)\[(.*)\]\s*$")
+LIST_CONCAT_P = re.compile(r"(\[.*\])\s*\*\s*([0-9]+)$")
 FUNCTION_ARG_DELIM = ":"
 
 DEFAULT_FLOAT_TRUNC_LEN = 5
@@ -81,7 +82,8 @@ def _decode_flag_val(s):
         return s
     decoders = [
         (int, ValueError),
-        (_flag_function, ValueError),
+        (_anonymous_flag_function, ValueError),
+        (_concatenated_list, ValueError),
         (_yaml_parse, (ValueError, yaml.YAMLError)),
     ]
     for f, e_type in decoders:
@@ -91,7 +93,16 @@ def _decode_flag_val(s):
             pass
     return s
 
-def _flag_function(s):
+def _concatenated_list(s):
+    m = LIST_CONCAT_P.match(s.strip())
+    if not m:
+        raise ValueError(s)
+    maybe_list = _decode_flag_val(m.group(1))
+    if isinstance(maybe_list, list):
+        return maybe_list * int(m.group(2))
+    return s
+
+def _anonymous_flag_function(s):
     name, args = decode_flag_function(s)
     if name is None and len(args) >= 2:
         return s

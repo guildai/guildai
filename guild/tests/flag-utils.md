@@ -224,13 +224,61 @@ lost:
 
 ## Exceptions to YAML decoding
 
+### Anonymouse flag functions
+
+Guild supports a special syntax for [flag
+functions](flag-functions.md). In one case, this syntax conflicts with
+YAML --- the anonymous flag function, which YAML decodes as a list.
+
+    >>> import yaml
+
+    >>> yaml.safe_load("[1:2]")
+    [62]
+
+Guild provides an exception to let the value pass through as a string:
+
+    >>> decode("[1:2]")
+    '[1:2]'
+
+### Concatenated lists
+
+Guild provides a shorthand for generating lists that follows Pythons
+syntax for [list
+concatenation](https://docs.python.org/3/library/stdtypes.html#sequence-types-list-tuple-range).
+
+    >>> decode("[1] * 2")
+    [1, 1]
+
+White space is ignored:
+
+    >>> decode("[1]*2")
+    [1, 1]
+
+    >>> decode(" [1] * 2 ")
+    [1, 1]
+
+Other examples:
+
+    >>> decode("[] * 2")
+    []
+
+    >>> decode("[1] * 0")
+    []
+
+    >>> decode("[1] * 1")
+    [1]
+
+    >>> decode("[1,2] * 2")
+    [1, 2, 1, 2]
+
+### Integers with underscores
+
 YAML ignores underscores in integers. So '1_2_3' is parsed as the int
 123. This is surprising behavior and Guild makes an exception for such
 cases.
 
 Here's a helper to print YAML parsed and Guild decoded values:
 
-    >>> import yaml
     >>> def compare(s):
     ...     return yaml.safe_load(s), decode(s)
 

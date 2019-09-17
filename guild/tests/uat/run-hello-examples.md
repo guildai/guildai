@@ -150,3 +150,14 @@ We'll use the first run for `from-file`.
     INFO: [guild] Running trial ...: hello:from-flag (message=hola)
     hola
     <exit 0>
+
+### Run a batch using list concatenation
+
+    >>> run("guild run from-flag message=[yop]*2 -y")
+    INFO: [guild] Initialized trial ... (message=yop)
+    INFO: [guild] Running trial ...: hello:from-flag (message=yop)
+    yop
+    INFO: [guild] Initialized trial ... (message=yop)
+    INFO: [guild] Running trial ...: hello:from-flag (message=yop)
+    yop
+    <exit 0>
