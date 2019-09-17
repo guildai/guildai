@@ -90,7 +90,7 @@ Use `twine` to check the generated distribution:
     ...     workspace, "dist",
     ...     "gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl")
     >>> check.check([dist_path])
-    Checking distribution .../dist/gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl: Passed
+    Checking .../dist/gpkg.hello-0.3.0.dev4-py2.py3-none-any.whl: PASSED
     False
 
 ## Default packages
