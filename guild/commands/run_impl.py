@@ -141,8 +141,7 @@ def _apply_restart_or_rerun_args(args):
     run_desc = _run_desc_for_restart(run)
     if args.restart:
         if not args.quiet and os.getenv("NO_RESTARTING_MSG") != "1":
-            desc = "Starting" if args.start else "Restarting"
-            cli.out("{} {}".format(desc, run_desc))
+            cli.out("Starting {}".format(run_desc))
         args.restart = run.id
         args._restart_run = run
     else:
