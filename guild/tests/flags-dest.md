@@ -114,11 +114,11 @@ Let's run it:
 
 ## Force args dest
 
-If Guild can't detect that a script requires args, it will assume that
-the flags interface is via globals unless flags imports is disabled.
+If Guild can't detect that a script requires args, it assumes that the
+flags interface is via globals unless flags imports is disabled.
 
 If flags import is disabled and the script doesn't use argparse, the
-Guild file can explicitly define `args` as the flags dest.
+Guild file can specify `args` as the flags dest.
 
     >>> run("args2", i=3)
     Global args: i=1 f=1.0
