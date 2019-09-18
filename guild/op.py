@@ -146,10 +146,17 @@ class Operation(object):
 
     def _copy_sourcecode(self):
         assert self._run is not None
-        # Only copy source code for guildfile or script dist
-        # (i.e. projects)
-        if self.opref.pkg_type in ("guildfile", "script", "package"):
+        if self._run_has_sourcecode():
+            log.debug("op run already has sourcecode - skipping copy")
+            return
+        if self._opref_has_sourcecode():
             op_util.copy_run_sourcecode(self._run, self.opdef)
+
+    def _run_has_sourcecode(self):
+        return os.path.exists(self._run.guild_path("sourcecode"))
+
+    def _opref_has_sourcecode(self):
+        return self.opref.pkg_type in ("guildfile", "script", "package")
 
     def _init_digests(self):
         assert self._run is not None
@@ -488,7 +495,7 @@ def _init_cmd_env(opdef, gpus):
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["LOG_LEVEL"] = _log_level()
     env["PYTHONPATH"] = _python_path(opdef)
-    # SCRIPT_DIR is inserted by op_main at sys.path[0] - use empty string
+    # SCRIPT_DIR is set by op_main at sys.path[0] - use empty string
     # here to include run dir first in sys.path
     env["SCRIPT_DIR"] = ""
     # CMD_DIR is where the operation cmd was run
@@ -547,17 +554,21 @@ def _plugin_disabled_in_project(name, opdef):
 def _python_path(opdef):
     paths = (
         _env_paths() +
+        _run_sourcecode_paths() +
         _model_paths(opdef) +
         _guild_paths()
     )
     return os.path.pathsep.join(paths)
 
-def _model_paths(opdef):
-    return op_util.opdef_model_paths(opdef)
-
 def _env_paths():
     env = os.getenv("PYTHONPATH")
     return env.split(os.path.pathsep) if env else []
+
+def _run_sourcecode_paths():
+    return [".guild/sourcecode"]
+
+def _model_paths(opdef):
+    return op_util.opdef_model_paths(opdef)
 
 def _guild_paths():
     guild_path = os.path.dirname(os.path.dirname(__file__))
