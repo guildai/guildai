@@ -562,11 +562,12 @@ def _init_op(opdef, args, is_batch=False):
     try:
         op = oplib.Operation(
             opdef,
-            _op_run_dir(args),
-            resource_config,
-            _op_extra_attrs(args),
-            bool(args.stage or args.stage_pending),
-            _op_gpus(args)
+            run_dir=_op_run_dir(args),
+            resource_config=resource_config,
+            extra_attrs=_op_extra_attrs(args),
+            restart=bool(args.restart),
+            stage_only=bool(args.stage or args.stage_dir),
+            gpus=_op_gpus(args),
         )
     except oplib.InvalidOpSpec as e:
         _invalid_op_spec_error(e, opdef)

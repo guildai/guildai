@@ -547,7 +547,7 @@ defined in a model named 'model'.
     ...   import os
     ...   from guild.op import _init_cmd_env
     ...   opdef = OpDef("test", extra_data=data, gf_src="sample/guild.yml")
-    ...   env = _init_cmd_env(opdef, None)
+    ...   env = _init_cmd_env(opdef, restart=False, gpus=None)
     ...   to_print = to_print or (
     ...     "GUILD_HOME",
     ...     "GUILD_OP",

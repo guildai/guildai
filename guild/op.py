@@ -64,7 +64,7 @@ class Operation(object):
     batch_op = None
 
     def __init__(self, opdef, run_dir=None, resource_config=None,
-                 extra_attrs=None, stage_only=False, gpus=None):
+                 extra_attrs=None, restart=False, stage_only=False, gpus=None):
         assert opdef.opref, (opdef, "needs call to set_modelref")
         self.opref = opdef.opref
         self._validate_opdef(opdef)
@@ -72,10 +72,11 @@ class Operation(object):
         (self.cmd_args,
          self.flag_vals,
          self._flag_map) = _init_cmd_args(opdef)
-        self.cmd_env = _init_cmd_env(opdef, gpus)
+        self.cmd_env = _init_cmd_env(opdef, restart, gpus)
         self._run_dir = run_dir
         self.resource_config = resource_config or {}
         self.extra_attrs = extra_attrs
+        self.restart = restart
         self.stage_only = stage_only
         self.gpus = gpus
         self._started = None
@@ -146,14 +147,8 @@ class Operation(object):
 
     def _copy_sourcecode(self):
         assert self._run is not None
-        if self._run_has_sourcecode():
-            log.debug("op run already has sourcecode - skipping copy")
-            return
-        if self._opref_has_sourcecode():
+        if not self.restart and self._opref_has_sourcecode():
             op_util.copy_run_sourcecode(self._run, self.opdef)
-
-    def _run_has_sourcecode(self):
-        return os.path.exists(self._run.guild_path("sourcecode"))
 
     def _opref_has_sourcecode(self):
         return self.opref.pkg_type in ("guildfile", "script", "package")
@@ -484,7 +479,7 @@ def _cmd_option_args(name, val):
     else:
         return [opt, flag_util.encode_flag_val(val)]
 
-def _init_cmd_env(opdef, gpus):
+def _init_cmd_env(opdef, restart, gpus):
     env = util.safe_osenv()
     env.update({
         name: str(val)
@@ -494,7 +489,7 @@ def _init_cmd_env(opdef, gpus):
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["LOG_LEVEL"] = _log_level()
-    env["PYTHONPATH"] = _python_path(opdef)
+    env["PYTHONPATH"] = _python_path(opdef, restart)
     # SCRIPT_DIR is set by op_main at sys.path[0] - use empty string
     # here to include run dir first in sys.path
     env["SCRIPT_DIR"] = ""
@@ -551,10 +546,10 @@ def _plugin_disabled_in_project(name, opdef):
                 opdef.modeldef.disable_plugins)
     return any([disabled_name in (name, "all") for disabled_name in disabled])
 
-def _python_path(opdef):
+def _python_path(opdef, restart):
     paths = (
         _env_paths() +
-        _run_sourcecode_paths() +
+        _run_sourcecode_paths(restart) +
         _model_paths(opdef) +
         _guild_paths()
     )
@@ -564,8 +559,10 @@ def _env_paths():
     env = os.getenv("PYTHONPATH")
     return env.split(os.path.pathsep) if env else []
 
-def _run_sourcecode_paths():
-    return [".guild/sourcecode"]
+def _run_sourcecode_paths(restart):
+    if restart:
+        return [".guild/sourcecode"]
+    return []
 
 def _model_paths(opdef):
     return op_util.opdef_model_paths(opdef)
