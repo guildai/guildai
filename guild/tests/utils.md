@@ -278,6 +278,15 @@ Examples:
     >>> render("${path|basename}", {})
     ''
 
+Use of `flag_util.FormattedValue`:
+
+    >>> from guild import flag_util
+    >>> render("${a|default:A}", {"a": flag_util.FormattedValue(None)})
+    'A'
+
+    >>> render("${a|default:A}", {"a": flag_util.FormattedValue(123)})
+    '123'
+
 A typical label:
 
     >>> render("${trained-model}-${step|default:latest}", {
