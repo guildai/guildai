@@ -650,7 +650,7 @@ def _ls_args(run, all, follow_links, no_format, path, sourcecode,
     return args
 
 def _diff_args(runs, output, sourcecode, env, flags, attrs, deps,
-               path, cmd, **filters):
+               path, cmd, working, working_dir, **filters):
     args = _runs_filter_args(**filters)
     if output:
         args.append("--output")
@@ -668,5 +668,9 @@ def _diff_args(runs, output, sourcecode, env, flags, attrs, deps,
         args.extend(["--path"] + list(path))
     if cmd:
         args.extend(["--cmd", cmd])
+    if working:
+        args.append("--working")
+    if working_dir:
+        args.extend(["--working-dir", working_dir])
     args.extend(runs)
     return args

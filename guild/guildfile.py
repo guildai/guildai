@@ -1463,9 +1463,35 @@ def from_string(s, src="<string>"):
     return Guildfile(data, src)
 
 def from_run(run):
-    if run.opref is None or run.opref.pkg_type != "guildfile":
-        raise TypeError("run (%s) pkg type must be 'guildfile'" % run.path)
+    if run.opref.pkg_type == "guildfile":
+        return _from_guildfile_ref(run)
+    elif run.opref.pkg_type == "package":
+        return _from_package_ref(run.opref)
+    else:
+        raise TypeError(
+            "unsupported pkg_type for run (%s): %s"
+            % (run.dir, run.opref.pkg_type))
+
+def _from_guildfile_ref(run):
     gf_path = os.path.join(run.dir, run.opref.pkg_name)
+    if not os.path.exists(gf_path):
+        raise GuildfileMissing(gf_path)
+    return from_file(gf_path)
+
+def _from_package_ref(opref):
+    import pkg_resources
+    try:
+        dist = pkg_resources.get_distribution(opref.pkg_name)
+    except pkg_resources.DistributionNotFound:
+        raise GuildfileMissing("cannot find package '%s'" % opref.pkg_name)
+    else:
+        return _from_pkg_dist(dist, opref)
+
+def _from_pkg_dist(dist, opref):
+    gf_path = os.path.join(
+        dist.location,
+        opref.pkg_name.replace(".", os.path.sep),
+        "guild.yml")
     if not os.path.exists(gf_path):
         raise GuildfileMissing(gf_path)
     return from_file(gf_path)

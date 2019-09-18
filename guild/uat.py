@@ -36,6 +36,7 @@ from guild import util
 
 INDEX = "tests/uat/README.md"
 WORKSPACE = os.path.abspath(os.getenv("WORKSPACE") or "GUILD-UAT-WORKSPACE")
+GUILD_HOME = os.path.join(WORKSPACE, ".guild")
 TEMP = tempfile.gettempdir()
 GUILD_PKG = os.path.abspath(guild.__pkgdir__)
 REQUIREMENTS_PATH = os.path.join(GUILD_PKG, "requirements.txt")

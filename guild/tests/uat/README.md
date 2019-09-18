@@ -235,6 +235,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 *Tests covering miscellaneous behavior.*
 
 - [alt-run-dir](alt-run-dir.md)
+- [diff](diff.md)
 
 ## Error cases
 

@@ -393,6 +393,8 @@ def _diff_kw(args):
         "path",
         "runs",
         "sourcecode",
+        "working",
+        "working_dir",
     ]
     ignore = [
         "remote",

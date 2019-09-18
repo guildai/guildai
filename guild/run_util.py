@@ -358,22 +358,26 @@ def latest_compare(run):
     ], run)
 
 def _try_guildfile_compare(run):
+    opdef = run_opdef(run)
+    if opdef:
+        return opdef.compare
+    return None
+
+def run_opdef(run):
     try:
         gf = guildfile.from_run(run)
     except (guildfile.NoModels, guildfile.GuildfileMissing, TypeError):
         return None
     else:
-        return _try_guildfile_op_compare(
-            gf, run.opref.model_name, run.opref.op_name)
+        return _try_guildfile_opdef(gf, run)
 
-def _try_guildfile_op_compare(gf, model_name, op_name):
+def _try_guildfile_opdef(gf, run):
     try:
-        m = gf.models[model_name]
+        m = gf.models[run.opref.model_name]
     except KeyError:
         return None
     else:
-        op = m.get_operation(op_name)
-        return op.compare if op else None
+        return m.get_operation(run.opref.op_name)
 
 def _run_compare_attr(run):
     return run.get("compare")
