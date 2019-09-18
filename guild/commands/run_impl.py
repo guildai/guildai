@@ -84,13 +84,29 @@ def _validate_args(args):
         cli.error(
             "--rerun and --restart cannot both be used\n"
             "Try 'guild run --help' for more information.")
+    if args.rerun and args.start:
+        cli.error(
+            "--rerun and --start cannot both be used\n"
+            "Try 'guild run --help' for more information.")
     if args.run_dir and args.restart:
         cli.error(
             "--restart and --run-dir cannot both be used\n"
             "Try 'guild run --help' for more information")
+    if args.run_dir and args.start:
+        cli.error(
+            "--start and --run-dir cannot both be used\n"
+            "Try 'guild run --help' for more information")
     if args.run_dir and args.stage:
         cli.error(
             "--stage and --run-dir cannot both be used\n"
+            "Try 'guild run --help' for more information")
+    if args.run_dir and args.stage_pending:
+        cli.error(
+            "--stage-pending and --run-dir cannot both be used\n"
+            "Try 'guild run --help' for more information")
+    if args.stage and args.stage_pending:
+        cli.error(
+            "--stage and --stage-pending cannot both be used\n"
             "Try 'guild run --help' for more information")
     if args.no_gpus and args.gpus is not None:
         cli.error(
@@ -114,6 +130,9 @@ def _validate_args(args):
 ###################################################################
 
 def _apply_restart_or_rerun_args(args):
+    if args.start:
+        # --start is effectively an alias for --restart
+        args.restart = args.start
     if not args.rerun and not args.restart:
         return
     assert not (args.rerun and args.restart)
@@ -122,7 +141,8 @@ def _apply_restart_or_rerun_args(args):
     run_desc = _run_desc_for_restart(run)
     if args.restart:
         if not args.quiet and os.getenv("NO_RESTARTING_MSG") != "1":
-            cli.out("Restarting {}".format(run_desc))
+            desc = "Starting" if args.start else "Restarting"
+            cli.out("{} {}".format(desc, run_desc))
         args.restart = run.id
         args._restart_run = run
     else:
@@ -546,7 +566,7 @@ def _init_op(opdef, args, is_batch=False):
             _op_run_dir(args),
             resource_config,
             _op_extra_attrs(args),
-            bool(args.stage),
+            bool(args.stage or args.stage_pending),
             _op_gpus(args)
         )
     except oplib.InvalidOpSpec as e:
@@ -1029,7 +1049,7 @@ def _confirm_run(op, args):
     return cli.confirm(prompt, default=True)
 
 def _action_desc(args):
-    if args.stage:
+    if args.stage or args.stage_pending:
         return "stage"
     elif args.init_trials:
         return "initialize trials for"
@@ -1366,20 +1386,36 @@ def _handle_process_error(e):
 
 def _handle_run_exit(returncode, op, args):
     if op.stage_only:
-        _print_staged_info(op)
+        _print_staged_info(op, args)
     if args.init_trials:
         op.set_pending()
     if returncode != 0:
         cli.error(exit_status=returncode)
 
-def _print_staged_info(op):
+def _print_staged_info(op, args):
+    if args.stage:
+        _print_staged_instructions(op)
+    elif args.stage_pending:
+        _print_stage_pending_instructions(op)
+
+def _print_staged_instructions(op):
     cmd = " ".join(_preview_cmd(op))
     cli.out(
-        "Operation is staged in %s\n"
-        "To run the operation, use: "
-        "(cd %s && source .guild/env && %s)"
-        % (op.run_dir, op.run_dir, cmd)
+        "%s is staged in %s\n"
+        "To run the operation, use "
+        "'(cd %s && source .guild/env && %s)'"
+        % (op.opdef.fullname, op.run_dir, op.run_dir, cmd)
     )
+
+def _print_stage_pending_instructions(op):
+    run_id = op.run_id
+    cli.out(
+        "{op} is staged as {run_id}\n"
+        "To run the operation, use 'guild run --start {short_id}'"
+        .format(
+            op=op.opdef.fullname,
+            run_id=run_id,
+            short_id=run_id[:8]))
 
 class TestOutputLogger(summary.TestOutputLogger):
 

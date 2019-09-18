@@ -96,6 +96,10 @@ class Operation(object):
     def set_run_dir(self, path):
         self._run_dir = path
 
+    @property
+    def run_id(self):
+        return self._run.id if self._run else None
+
     def write_run_attr(self, name, val, raw=False):
         if self._run is None:
             raise RuntimeError("op is not intialized - call init() first")
@@ -335,7 +339,8 @@ class Operation(object):
 
     def _cleanup(self):
         assert self._run is not None
-        delete_pending(self._run)
+        if not self.stage_only:
+            delete_pending(self._run)
 
 def _init_cmd_args(opdef):
     flag_vals = util.resolve_all_refs(opdef.flag_values())

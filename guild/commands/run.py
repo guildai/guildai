@@ -36,6 +36,10 @@ def run_params(fn):
                 "Stage an operation in DIR but do not run. Cannot be used "
                 "with --run-dir.")),
         click.Option(
+            ("--stage-pending",),
+            help="Stage a pending operation.",
+            is_flag=True),
+        click.Option(
             ("--rerun",), metavar="RUN",
             help=(
                 "Use the operation and flags from RUN. Flags may "
@@ -46,6 +50,9 @@ def run_params(fn):
             help=(
                 "Restart RUN in-place without creating a new run. Cannot be "
                 "used with --rerun or --run-dir.")),
+        click.Option(
+            ("--start",), metavar="RUN",
+            help="Start a pending run."),
         click.Option(
             ("--disable-plugins",), metavar="LIST",
             help=("A comma separated list of plugin names to disable. "
