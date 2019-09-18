@@ -31,14 +31,14 @@ def run_params(fn):
                 "Use alternative run directory DIR. Cannot be used with "
                 "--stage.")),
         click.Option(
-            ("--stage",), metavar="DIR",
-            help=(
-                "Stage an operation in DIR but do not run. Cannot be used "
-                "with --run-dir.")),
-        click.Option(
-            ("--stage-pending",),
+            ("--stage",),
             help="Stage a pending operation.",
             is_flag=True),
+        click.Option(
+            ("--stage-dir",), metavar="DIR",
+            help=(
+                "Stage an operation in DIR but do not run. Cannot be used "
+                "with --run-dir or --stage.")),
         click.Option(
             ("--rerun",), metavar="RUN",
             help=(
@@ -319,9 +319,9 @@ def run(args):
     ### Alternate Run Directory
 
     To run an operation outside of Guild's run management facility,
-    use `--run-dir` or `--stage` to specify an alternative run
+    use `--run-dir` or `--stage-dir` to specify an alternative run
     directory. These options are useful when developing or debugging
-    an operation. Use `--stage` to prepare a run directory for an
+    an operation. Use `--stage-dir` to prepare a run directory for an
     operation without running the operation itself. This is useful
     when you want to verify dependency resolution and pre-processing
     or manually run an operation in a prepared directory.

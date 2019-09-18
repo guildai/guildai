@@ -100,13 +100,13 @@ def _validate_args(args):
         cli.error(
             "--stage and --run-dir cannot both be used\n"
             "Try 'guild run --help' for more information")
-    if args.run_dir and args.stage_pending:
+    if args.run_dir and args.stage_dir:
         cli.error(
-            "--stage-pending and --run-dir cannot both be used\n"
+            "--stage-dir and --run-dir cannot both be used\n"
             "Try 'guild run --help' for more information")
-    if args.stage and args.stage_pending:
+    if args.stage and args.stage_dir:
         cli.error(
-            "--stage and --stage-pending cannot both be used\n"
+            "--stage and --stage-dir cannot both be used\n"
             "Try 'guild run --help' for more information")
     if args.no_gpus and args.gpus is not None:
         cli.error(
@@ -769,8 +769,8 @@ def _op_run_dir(args):
     elif args.restart:
         assert hasattr(args, "_restart_run")
         return args._restart_run.path
-    elif args.stage:
-        return os.path.abspath(args.stage)
+    elif args.stage_dir:
+        return os.path.abspath(args.stage_dir)
     else:
         return None
 
@@ -1048,7 +1048,7 @@ def _confirm_run(op, args):
     return cli.confirm(prompt, default=True)
 
 def _action_desc(args):
-    if args.stage or args.stage_pending:
+    if args.stage or args.stage_dir:
         return "stage"
     elif args.init_trials:
         return "initialize trials for"
@@ -1393,18 +1393,9 @@ def _handle_run_exit(returncode, op, args):
 
 def _print_staged_info(op, args):
     if args.stage:
-        _print_staged_instructions(op)
-    elif args.stage_pending:
         _print_stage_pending_instructions(op)
-
-def _print_staged_instructions(op):
-    cmd = " ".join(_preview_cmd(op))
-    cli.out(
-        "%s is staged in %s\n"
-        "To run the operation, use "
-        "'(cd %s && source .guild/env && %s)'"
-        % (op.opdef.fullname, op.run_dir, op.run_dir, cmd)
-    )
+    elif args.stage_dir:
+        _print_staged_dir_instructions(op)
 
 def _print_stage_pending_instructions(op):
     run_id = op.run_id
@@ -1415,6 +1406,18 @@ def _print_stage_pending_instructions(op):
             op=op.opdef.fullname,
             run_id=run_id,
             short_id=run_id[:8]))
+
+def _print_staged_dir_instructions(op):
+    cmd = " ".join(_preview_cmd(op))
+    cli.out(
+        "{op} is staged in {dir}\n"
+        "To run the operation, use "
+        "'(cd {dir} && source .guild/env && {cmd})'"
+        .format(
+            op=op.opdef.fullname,
+            dir=op.run_dir,
+            cmd=cmd)
+    )
 
 class TestOutputLogger(summary.TestOutputLogger):
 

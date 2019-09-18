@@ -174,6 +174,7 @@ def _run_kw(args):
         "save_trials",
         "set_trace",
         "stage",
+        "stage_dir",
         "test_output_scalars",
         "test_sourcecode",
         "yes",
