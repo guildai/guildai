@@ -120,3 +120,29 @@ Confirm that the latest train op used the data prep run we specified.
     >>> train_flags = gapi.runs_list()[0].get("flags")
     >>> train_flags["prepared-data"] == first_data_prep_run
     True
+
+Run a batch where using the two prepared data runs.
+
+    >>> len(data_prep_runs)
+    2
+    >>> data_prep_1 = data_prep_runs[0].id
+    >>> data_prep_2 = data_prep_runs[1].id
+    >>> run("guild run train prepared-data=[%s,%s] -y"
+    ...     % (data_prep_1, data_prep_2))
+    INFO: [guild] Initialized trial ... (prepared-data=...)
+    INFO: [guild] Running trial ...: train (prepared-data=...)
+    Resolving prepared-data dependency
+    Using output from run ... for prepared-data resource
+    INFO: [guild] Initialized trial ... (prepared-data=...)
+    INFO: [guild] Running trial ...: train (prepared-data=...)
+    Resolving prepared-data dependency
+    Using output from run ... for prepared-data resource
+    <exit 0>
+
+Verify train runs used the expected prepare runs:
+
+    >>> train_runs = gapi.runs_list(ops=["train"])
+    >>> train_runs[1].get("flags")["prepared-data"] == data_prep_1
+    True
+    >>> train_runs[0].get("flags")["prepared-data"] == data_prep_2
+    True

@@ -18,10 +18,6 @@ List from the `examples/hello` directory:
     [11:...]  hello:from-flag                    ...  completed  message='Howdy Guild!'
     [12:...]  hello:from-flag                    ...  completed
     [13:...]  hello:default                      ...  completed
-    [14:...]  gpkg.hello/hello:from-file-output  ...  completed  test-4
-    [15:...]  gpkg.hello/hello:from-file         ...  completed  test-3
-    [16:...]  gpkg.hello/hello:from-flag         ...  completed  test-2
-    [17:...]  gpkg.hello/hello:default           ...  completed  test-1
     <exit 0>
 
 List from the `examples` directory:
@@ -42,8 +38,4 @@ List from the `examples` directory:
     [11:...]  hello:from-flag (hello)            ...  completed  message='Howdy Guild!'
     [12:...]  hello:from-flag (hello)            ...  completed
     [13:...]  hello:default (hello)              ...  completed
-    [14:...]  gpkg.hello/hello:from-file-output  ...  completed  test-4
-    [15:...]  gpkg.hello/hello:from-file         ...  completed  test-3
-    [16:...]  gpkg.hello/hello:from-flag         ...  completed  test-2
-    [17:...]  gpkg.hello/hello:default           ...  completed  test-1
     <exit 0>

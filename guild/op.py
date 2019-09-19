@@ -63,8 +63,9 @@ class Operation(object):
 
     batch_op = None
 
-    def __init__(self, opdef, run_dir=None, resource_config=None, label=None,
-                 extra_attrs=None, restart=False, stage_only=False, gpus=None):
+    def __init__(self, opdef, run_dir=None, label=None,
+                 extra_attrs=None, restart=False,
+                 stage_only=False, gpus=None):
         assert opdef.opref, (opdef, "needs call to set_modelref")
         self.opref = opdef.opref
         self._validate_opdef(opdef)
@@ -74,7 +75,6 @@ class Operation(object):
          self._flag_map) = _init_cmd_args(opdef)
         self.cmd_env = _init_cmd_env(opdef, restart, gpus)
         self._run_dir = run_dir
-        self.resource_config = resource_config or {}
         self.label = label
         self.extra_attrs = extra_attrs
         self.restart = restart
@@ -133,11 +133,7 @@ class Operation(object):
         self._run.write_attr("opdef", self.opdef.as_data())
         for name, val in (self.extra_attrs or {}).items():
             self._run.write_attr(name, val)
-        self._run.write_attr(
-            "flags",
-            _merge_flags_and_resource_config(
-                self.flag_vals,
-                self.resource_config))
+        self._run.write_attr("flags", self.flag_vals)
         self._run.write_attr("cmd", self.cmd_args)
         if self.label is not None:
             self._run.write_attr("label", self.label)
@@ -178,19 +174,16 @@ class Operation(object):
         ctx = deps.ResolutionContext(
             target_dir=self._run.path,
             opdef=self.opdef,
-            resource_config=self.resource_config)
+            resource_config=self.flag_vals)
         resolved = deps.resolve(self.opdef.dependencies, ctx)
         self._run.write_attr("deps", _sort_resolved(resolved))
         self._maybe_write_label(resolved)
 
     def _maybe_write_label(self, resolved):
-        label_vals = _merge_flags_and_resource_config(
-            self.flag_vals,
-            self.resource_config)
-        label = _run_label(self.label, self._run, self.opdef, label_vals)
+        label = _run_label(self.label, self._run, self.opdef, self.flag_vals)
         if label is None:
             return
-        formatted = op_util.format_label(label, label_vals, resolved)
+        formatted = op_util.format_label(label, self.flag_vals, resolved)
         self._run.write_attr("label", formatted)
 
     def proc(self, quiet=False, background_pidfile=None, stop_after=None):
@@ -645,9 +638,3 @@ def _run_label(explicit_label, run, opdef, flag_vals):
     if run.has_attr("label"):
         return None
     return op_util.default_label(opdef, flag_vals)
-
-def _merge_flags_and_resource_config(flags, resource_config):
-    merged = dict(flags)
-    if resource_config:
-        merged.update(resource_config)
-    return merged

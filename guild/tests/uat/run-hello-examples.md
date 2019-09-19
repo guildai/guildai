@@ -7,6 +7,10 @@ We'll run through the various operations in this test.
 
     >>> cd("examples/hello")
 
+Delete runs for these tests.
+
+    >>> quiet("guild runs rm -y")
+
 ## Models
 
     >>> run("guild models", ignore="Refreshing project")

@@ -583,15 +583,12 @@ def _check_op_runnable(opdef, args):
 ###################################################################
 
 def _init_op(opdef, args, is_batch=False):
-    (flag_vals,
-     resource_config,
-     batch_files) = _split_flag_args(args.flags, opdef)
+    flag_vals, batch_files = _split_flag_args(args.flags, opdef)
     _apply_opdef_args(flag_vals, batch_files, args, opdef, is_batch)
     try:
         op = oplib.Operation(
             opdef,
             run_dir=_op_run_dir(args),
-            resource_config=resource_config,
             label=args.label,
             extra_attrs=_op_extra_attrs(args),
             restart=bool(args.restart),
@@ -619,8 +616,7 @@ def _staged_op(args):
 def _split_flag_args(flag_args, opdef):
     batch_files, rest_args = split_batch_files(flag_args)
     assigns = _parse_assigns(rest_args)
-    flags, resources = _split_flags_and_resources(assigns, opdef)
-    return flags, resources, batch_files
+    return assigns, batch_files
 
 def split_batch_files(flag_args):
     batch_files = []
@@ -637,30 +633,6 @@ def _parse_assigns(assign_args):
         return op_util.parse_flag_assigns(assign_args)
     except op_util.ArgValueError as e:
         cli.error("invalid argument '%s' - expected NAME=VAL" % e.arg)
-
-def _split_flags_and_resources(vals, opdef):
-    ref_vars = _ref_vars_for_resource_lookup(vals, opdef)
-    flag_vals = {}
-    resource_vals = {}
-    for name, val in vals.items():
-        if _is_resource(name, opdef, ref_vars):
-            resource_vals[name] = str(val)
-        else:
-            flag_vals[name] = val
-    return flag_vals, resource_vals
-
-def _ref_vars_for_resource_lookup(parsed_run_args, opdef):
-    ref_vars = {}
-    ref_vars.update(opdef.flag_values())
-    ref_vars.update(parsed_run_args)
-    return util.resolve_all_refs(ref_vars)
-
-def _is_resource(name, opdef, ref_vars):
-    for dep in opdef.dependencies:
-        resolved_spec = util.resolve_refs(dep.name, ref_vars, undefined=None)
-        if resolved_spec == name:
-            return True
-    return False
 
 ###################################################################
 # Update opdef with flag vals and applicable args
@@ -728,18 +700,48 @@ def _is_function(val):
         return True
 
 def _apply_flag_vals(vals, opdef, args):
-    joined_vals = _join_user_vals_and_defaults(vals, opdef)
-    for name, val in sorted(joined_vals.items()):
+    vals = _join_user_vals_and_defaults(vals, opdef)
+    resource_names = _resource_names_for_flag_vals(vals, opdef)
+    for name, val in sorted(vals.items()):
         flagdef = opdef.get_flagdef(name)
-        if not args.force_flags and not flagdef:
-            cli.error(
-                "unsupported flag '%s'\n"
-                "Try 'guild run %s --help-op' for a list of "
-                "flags or use --force-flags to skip this check."
-                % (name, opdef.fullname))
-        if not args.optimizer:
+        if not flagdef and name in resource_names:
+            flagdef = _ResourceFlagDefProxy(name, opdef)
+            opdef.flags.append(flagdef)
+        if not flagdef and not args.force_flags:
+            _invalid_flag_error(name, opdef)
+        if flagdef and not args.optimizer:
             val = _coerce_flag_val(val, flagdef)
         opdef.set_flag_value(name, val)
+
+def _resource_names_for_flag_vals(vals, opdef):
+    ref_vars = _ref_vars_for_resource_lookup(vals, opdef)
+    return [name for name in vals if _is_resource(name, opdef, ref_vars)]
+
+def _ref_vars_for_resource_lookup(parsed_run_args, opdef):
+    ref_vars = {}
+    ref_vars.update(opdef.flag_values())
+    ref_vars.update(parsed_run_args)
+    return util.resolve_all_refs(ref_vars)
+
+def _is_resource(name, opdef, ref_vars):
+    for dep in opdef.dependencies:
+        resolved_spec = util.resolve_refs(dep.name, ref_vars, undefined=None)
+        if resolved_spec == name:
+            return True
+    return False
+
+def _ResourceFlagDefProxy(name, opdef):
+    data = {
+        "arg-skip": True
+    }
+    return guildfile.FlagDef(name, data, opdef)
+
+def _invalid_flag_error(name, opdef):
+    cli.error(
+        "unsupported flag '%s'\n"
+        "Try 'guild run %s --help-op' for a list of "
+        "flags or use --force-flags to skip this check."
+        % (name, opdef.fullname))
 
 def _join_user_vals_and_defaults(user_vals, opdef):
     joined = {}
@@ -1067,7 +1069,6 @@ def _confirm_run(op, args):
     prompt = (
         "You are about to {action} {op_desc}{batch_suffix}{remote_suffix}\n"
         "{flags}"
-        "{resources}"
         "Continue?"
         .format(
             action=_action_desc(args),
@@ -1075,7 +1076,7 @@ def _confirm_run(op, args):
             batch_suffix=_batch_suffix(op, args),
             remote_suffix=_remote_suffix(args),
             flags=_format_op_flags(op),
-            resources=_format_op_resources(op.resource_config)))
+        ))
     return cli.confirm(prompt, default=True)
 
 def _action_desc(args):
@@ -1153,14 +1154,6 @@ def _null_label(name, opdef):
     if flag and flag.null_label is not None:
         return flag_util.encode_flag_val(flag.null_label)
     return "default"
-
-def _format_op_resources(resources):
-    if not resources:
-        return ""
-    return "\n".join([
-        "  %s: %s" % (spec, resources[spec])
-        for spec in sorted(resources)
-    ]) + "\n"
 
 ###################################################################
 # Run dispatch - remote or local
