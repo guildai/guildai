@@ -31,24 +31,32 @@ RUN_ID = None  # Initialized in main
 
 class _State(object):
 
-    def __init__(self):
-        self.show_waiting_msg = True
+    def __init__(self, quiet=False):
+        self.quiet = quiet
+        self.show_waiting_msg = False
 
 def main():
     globals()["RUN_ID"] = os.environ["RUN_ID"]
     args = _parse_args()
     init_logging()
-    poll(args.poll_interval)
+    if args.run_once:
+        run_once()
+    else:
+        poll(args.poll_interval)
 
 def _parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--poll-interval", type=int, default=10)
+    p.add_argument("--run-once", action="store_true")
     return p.parse_args()
 
 def init_logging():
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     loglib.init_logging(level, {"_": format})
+
+def run_once():
+    _run_staged(_State(quiet=True))
 
 def poll(interval):
     state = _State()
@@ -68,7 +76,7 @@ def _run_staged(state):
 
 def _log_waiting(state):
     msg = "Waiting for staged runs"
-    if state.show_waiting_msg:
+    if not state.quiet and state.show_waiting_msg:
         log.info(msg)
         state.show_waiting_msg = False
     else:

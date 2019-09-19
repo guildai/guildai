@@ -33,6 +33,10 @@ poll-interval:
   description: Minimum number of seconds between polls
   default: 10
   type: int
+run-once:
+  default: no
+  arg-switch: yes
+  type: boolean
 """)
 
 class QueueModelProxy(object):
