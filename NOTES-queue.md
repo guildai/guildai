@@ -7,6 +7,8 @@
     - [ ] Never replace sourcecode on a restart
     - [ ] Prepend sourcecode dir to op_main Python path
 
+- [ ] Move queue op to plugin
+
 ## Notes
 
 ### --start vs --restart

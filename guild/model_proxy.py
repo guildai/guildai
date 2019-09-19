@@ -68,43 +68,10 @@ class BatchModelProxy(object):
             guild.__version__,
             self.name)
 
-class GuildModelProxy(object):
-
-    def __init__(self):
-        self.modeldef = self._init_modeldef()
-        self.reference = self._init_reference()
-
-    @staticmethod
-    def _init_modeldef():
-        data = [
-            {
-                "model": "guild",
-                "operations": {
-                    "queue": {
-                        "description": "Start a queue",
-                        "exec": "${python_exe} -um guild.queue_main",
-                    }
-                }
-            }
-        ]
-        gf = guildfile.Guildfile(data, dir=config.cwd())
-        return gf.models["guild"]
-
-    @staticmethod
-    def _init_reference():
-        return modellib.ModelRef(
-            "builtin",
-            "guildai",
-            guild.__version__,
-            "guild")
-
 def resolve_model_op(opspec):
     if opspec == "+":
         model = BatchModelProxy()
         return model, model.op_name
-    elif opspec.startswith("guild:"):
-        model = GuildModelProxy()
-        return model, opspec[6:]
     return resolve_plugin_model_op(opspec)
 
 def resolve_plugin_model_op(opspec):
