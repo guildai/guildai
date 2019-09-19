@@ -38,19 +38,19 @@ Filtered by 'evaluate' operation:
 
 Filtered by completed various status:
 
-    >>> print_runs(runs_list(status=["completed"]))
+    >>> print_runs(runs_list(completed=True))
     42803252 mnist:evaluate completed
 
-    >>> print_runs(runs_list(status=["error"]))
+    >>> print_runs(runs_list(error=True))
     7d145216 mnist:train error
 
-    >>> print_runs(runs_list(status=["pending"]))
+    >>> print_runs(runs_list(pending=True))
     360192fd mnist:train pending
 
-    >>> print_runs(runs_list(status=["pending", "error"]))
+    >>> print_runs(runs_list(pending=True, error=True))
     7d145216 mnist:train error
     360192fd mnist:train pending
 
-    >>> print_runs(runs_list(status=["foobar"]))
+    >>> runs_list(foobar=True)
     Traceback (most recent call last):
-    ValueError: unsupportd status 'foobar'
+    TypeError: runs_list() got an unexpected keyword argument 'foobar'

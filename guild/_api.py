@@ -194,20 +194,20 @@ def runs_list(all=False, deleted=False, cwd=".", guild_home=None, **kw):
         return runs_impl.filtered_runs(args)
 
 def _apply_runs_filters(kw, args):
+    from guild.commands import runs_impl
     args.ops = kw.pop("ops", [])
     args.labels = kw.pop("labels", [])
     args.unlabeled = kw.pop("unlabeled", False)
     args.marked = kw.pop("marked", False)
     args.unmarked = kw.pop("unmarked", False)
     args.started = kw.pop("started", None)
-    _apply_status_filters(kw.pop("status", []), args)
-
-def _apply_status_filters(status, args):
-    from guild.commands import runs_impl
-    for val in status:
-        if val not in runs_impl.FILTERABLE:
-            raise ValueError("unsupportd status %r" % val)
-        setattr(args, val, True)
+    for status_attr in runs_impl.FILTERABLE:
+        try:
+            status_val = kw.pop(status_attr)
+        except KeyError:
+            pass
+        else:
+            setattr(args, status_attr, status_val)
 
 def _assert_empty_kw(kw, f):
     try:
