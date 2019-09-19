@@ -101,6 +101,8 @@ class Run(object):
             return "running"
         elif os.path.exists(self.guild_path("PENDING")):
             return "pending"
+        elif os.path.exists(self.guild_path("STAGED")):
+            return "staged"
         else:
             if self.has_attr("exit_status.remote"):
                 return self._remote_exit_status()

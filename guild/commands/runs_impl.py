@@ -99,6 +99,7 @@ FILTERABLE = [
     "error",
     "pending",
     "running",
+    "staged",
     "terminated",
 ]
 

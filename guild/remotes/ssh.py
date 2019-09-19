@@ -428,7 +428,7 @@ def _filtered_runs_filter_opts(**filters):
 
 def _runs_filter_args(
         ops, labels, unlabeled, running, completed, error,
-        terminated, pending, marked, unmarked, started):
+        terminated, pending, staged, marked, unmarked, started):
     args = []
     if completed:
         args.append("-C")
@@ -444,6 +444,8 @@ def _runs_filter_args(
         args.append("-T")
     if pending:
         args.append("-P")
+    if staged:
+        args.append("-G")
     if unlabeled:
         args.append("-u")
     if marked:

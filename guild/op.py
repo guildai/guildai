@@ -234,10 +234,12 @@ class Operation(object):
         subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
 
     def _stage_proc(self):
+        assert self._run is not None
         env = self._proc_env()
-        _write_sourceable_env(env, self._run.guild_path("env"))
         log.debug("operation command: %s", self.cmd_args)
         log.debug("operation env: %s", env)
+        _write_sourceable_env(env, self._run.guild_path("env"))
+        _write_staged(self._run)
 
     def _start_proc(self):
         assert self._proc is None
@@ -250,6 +252,7 @@ class Operation(object):
         log.debug("operation command: %s", args)
         log.debug("operation env: %s", env)
         log.debug("operation cwd: %s", cwd)
+        _delete_staged(self._run)
         delete_pending(self._run)
         try:
             proc = subprocess.Popen(
@@ -341,8 +344,7 @@ class Operation(object):
 
     def _cleanup(self):
         assert self._run is not None
-        if not self.stage_only:
-            delete_pending(self._run)
+        delete_pending(self._run)
 
 def _init_cmd_args(opdef):
     flag_vals = util.resolve_all_refs(opdef.flag_values())
@@ -612,10 +614,13 @@ def write_pending(run):
     open(run.guild_path("PENDING"), "w").close()
 
 def delete_pending(run):
-    try:
-        os.remove(run.guild_path("PENDING"))
-    except OSError:
-        pass
+    util.ensure_deleted(run.guild_path("PENDING"))
+
+def _write_staged(run):
+    open(run.guild_path("STAGED"), "w").close()
+
+def _delete_staged(run):
+    util.ensure_deleted(run.guild_path("STAGED"))
 
 def init_run(path=None):
     if not path:

@@ -162,6 +162,8 @@
     guild.plugins.memory
     guild.plugins.perf
     guild.plugins.python_script
+    guild.plugins.queue
+    guild.plugins.queue_main
     guild.plugins.random_main
     guild.plugins.skopt
     guild.plugins.skopt_forest_main
@@ -176,7 +178,6 @@
     guild.query.__init__
     guild.query.qlex
     guild.query.qparse
-    guild.queue_main
     guild.remote
     guild.remote_run_support
     guild.remote_util

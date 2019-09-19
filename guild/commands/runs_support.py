@@ -133,6 +133,10 @@ def status_filters(fn):
             ("-P", "--pending"),
             help="Include only pending runs.",
             is_flag=True),
+        click.Option(
+            ("-G", "--staged"),
+            help="Include only staged runs.",
+            is_flag=True),
     ])
     return fn
 

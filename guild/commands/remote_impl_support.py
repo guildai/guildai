@@ -73,6 +73,7 @@ def _runs_filter_names():
         "ops",
         "pending",
         "running",
+        "staged",
         "started",
         "terminated",
         "unlabeled",

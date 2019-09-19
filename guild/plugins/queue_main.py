@@ -27,7 +27,7 @@ from guild import var
 
 log = logging.getLogger("queue")
 
-RUN_ID = os.environ["RUN_ID"]
+RUN_ID = None  # Initialized in main
 
 class _State(object):
 
@@ -35,6 +35,7 @@ class _State(object):
         self.show_waiting_msg = True
 
 def main():
+    globals()["RUN_ID"] = os.environ["RUN_ID"]
     args = _parse_args()
     init_logging()
     poll(args.poll_interval)
@@ -51,31 +52,32 @@ def init_logging():
 
 def poll(interval):
     state = _State()
-    util.loop(lambda: _run_pending(state), time.sleep, interval, 0)
+    util.loop(lambda: _run_staged(state), time.sleep, interval, 0)
 
-def _run_pending(state):
-    for run in _pending_runs():
-        log.info("Found pending run %s", run.id)
+def _run_staged(state):
+    for run in _staged_runs():
+        log.info("Found staged run %s", run.id)
         runs = _running_runs()
         if runs:
             log.debug(
-                "Runs in progress %s, skipping pending run %s",
+                "Runs in progress %s, skipping staged run %s",
                 [run.short_id for run in runs], run.short_id)
             break
         _run(run, state)
     _log_waiting(state)
 
 def _log_waiting(state):
+    msg = "Waiting for staged runs"
     if state.show_waiting_msg:
-        log.info("Waiting for pending runs")
+        log.info(msg)
         state.show_waiting_msg = False
     else:
-        log.debug("Checking for pending runs")
+        log.debug(msg)
 
-def _pending_runs():
+def _staged_runs():
     return var.runs(
         sort=["timestamp"],
-        filter=var.run_filter("attr", "status", "pending"))
+        filter=var.run_filter("attr", "status", "staged"))
 
 def _running_runs():
     running = var.runs(filter=var.run_filter("attr", "status", "running"))
