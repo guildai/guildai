@@ -219,14 +219,14 @@ def _apply_run_args(run, args):
     Used to sync args with run when restarting or rerunning it.
     """
     if _is_batch_run(run):
-        _apply_batch_run_args(run, args)
+        _apply_batch_proto_args(run, args)
     else:
         _gen_apply_run_args(run, args)
 
 def _is_batch_run(run):
     return os.path.exists(run.guild_path("proto"))
 
-def _apply_batch_run_args(batch_run, args):
+def _apply_batch_proto_args(batch_run, args):
     proto_path = batch_run.guild_path("proto")
     if not os.path.exists(proto_path):
         cli.error(
@@ -592,6 +592,7 @@ def _init_op(opdef, args, is_batch=False):
             opdef,
             run_dir=_op_run_dir(args),
             resource_config=resource_config,
+            label=args.label,
             extra_attrs=_op_extra_attrs(args),
             restart=bool(args.restart),
             stage_only=_staged_op(args),
@@ -814,8 +815,6 @@ def _op_extra_attrs(args):
         "user": util.user(),
         "platform": util.platform_info(),
     }
-    if args.label:
-        attrs["label"] = args.label
     if args.max_trials:
         attrs["max_trials"] = args.max_trials
     return attrs
@@ -1246,8 +1245,8 @@ def _init_batch_run(op):
     run = oplib.init_run(op.run_dir)
     run.init_skel()
     op.batch_op.set_run_dir(run.path)
-    batches = _batches_attr(op.batch_op.batch_files)
-    _write_batch_proto(run, op, batches)
+    batches_attr = _batches_attr(op.batch_op.batch_files)
+    _write_batch_proto(run, op, batches_attr)
 
 def _write_batch_proto(batch_run, proto_op, batches):
     proto_op.set_run_dir(batch_run.guild_path("proto"))

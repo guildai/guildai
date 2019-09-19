@@ -63,7 +63,7 @@ class Operation(object):
 
     batch_op = None
 
-    def __init__(self, opdef, run_dir=None, resource_config=None,
+    def __init__(self, opdef, run_dir=None, resource_config=None, label=None,
                  extra_attrs=None, restart=False, stage_only=False, gpus=None):
         assert opdef.opref, (opdef, "needs call to set_modelref")
         self.opref = opdef.opref
@@ -75,6 +75,7 @@ class Operation(object):
         self.cmd_env = _init_cmd_env(opdef, restart, gpus)
         self._run_dir = run_dir
         self.resource_config = resource_config or {}
+        self.label = label
         self.extra_attrs = extra_attrs
         self.restart = restart
         self.stage_only = stage_only
@@ -134,6 +135,8 @@ class Operation(object):
             self._run.write_attr(name, val)
         self._run.write_attr("flags", self.flag_vals)
         self._run.write_attr("cmd", self.cmd_args)
+        if self.label is not None:
+            self._run.write_attr("label", self.label)
         if self.opdef.compare is not None:
             self._run.write_attr("compare", self.opdef.compare)
         if self.opdef.steps:
@@ -177,10 +180,8 @@ class Operation(object):
         self._maybe_write_label(resolved)
 
     def _maybe_write_label(self, resolved):
-        label = (
-            self.extra_attrs.get("label") or
-            op_util.default_label(self.opdef))
-        if not label:
+        label = _run_label(self.label, self._run, self.opdef)
+        if label is None:
             return
         formatted = op_util.format_label(
             label,
@@ -634,3 +635,10 @@ def _sort_resolved(resolved):
     return {
         name: sorted(files) for name, files in resolved.items()
     }
+
+def _run_label(explicit_label, run, opdef):
+    if explicit_label:
+        return explicit_label
+    if run.has_attr("label"):
+        return None
+    return op_util.default_label(opdef)
