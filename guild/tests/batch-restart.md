@@ -111,7 +111,7 @@ We see that the batch run the last.
 Let's restart our batch run without modification:
 
     >>> run(restart=batch_run.id)
-    Restarting ...
+    Starting ...
     Initialized trial (x=1.0, y=2, z=a)
     Running trial: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
@@ -159,7 +159,7 @@ original trials. In this case, we run with just one of the two
 previous values of `x`:
 
     >>> run(restart=batch_run.id, x=1.0)
-    Restarting ...
+    Starting ...
     Initialized trial (x=1.0, y=2, z=a)
     Running trial: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
@@ -185,7 +185,7 @@ they are the most recently run.
 Next we restart using without specifying any modified flags:
 
     >>> run(restart=batch_run.id)
-    Restarting ...
+    Starting ...
     Initialized trial (x=1.0, y=2, z=a)
     Running trial: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
@@ -201,7 +201,7 @@ Next we run with flags that generate trials that include all of the
 existing trials as well as some new trials.
 
     >>> run(restart=batch_run.id, x=1.0, y=[2,3,4])
-    Restarting ...
+    Starting ...
     Initialized trial (x=1.0, y=2, z=a)
     Running trial: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
@@ -256,7 +256,7 @@ And our runs:
 Let's now restart the batch:
 
     >>> run(restart=batch_run.id)
-    Restarting ...
+    Starting ...
     Initialized trial (x=1.0, y=2, z=a)
     Running trial: echo.py (x=1.0, y=2, z=a)
     1.0 2 'a'
@@ -303,7 +303,7 @@ To illustate, let's restart one of the earlier trials:
 We first restart without flags:
 
     >>> run(restart=trial_to_restart.id)
-    Restarting ...
+    Starting ...
     2.0 2 'a'
 
 And our runs:
@@ -322,7 +322,7 @@ recently run.
 Next we restart the run with new flag values:
 
     >>> run(restart=trial_to_restart.id, x=3.0, y=5, z="b")
-    Restarting ...
+    Starting ...
     3.0 5 'b'
 
 And our runs:
@@ -383,7 +383,7 @@ generated trial:
 Let's restart the trial:
 
     >>> run(restart=trial_to_restart.id)
-    Restarting ...
+    Starting ...
     3.0 5 'b'
 
 And our runs:
@@ -407,7 +407,7 @@ Next we restart the entire batch:
     echo.py+
 
     >>> run(restart=batch_run.id)
-    Restarting ...
+    Starting ...
     Initialized trial (x=3.0, y=5, z=b)
     Running trial: echo.py (x=3.0, y=5, z=b)
     3.0 5 'b'
@@ -531,7 +531,7 @@ set of runs is the same as the original.
     '+'
 
     >>> run(restart=batch_run.id)
-    Restarting ...
+    Starting ...
 
 Here are the runs after the restart:
 

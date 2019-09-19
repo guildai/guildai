@@ -132,7 +132,7 @@ Here's our batch run:
 Let's first restart the batch without the needed option:
 
     >>> run_echo(restart=batch_run.id)
-    Restarting ...
+    Starting ...
     Initialized trial (x=1, y=2, z=a)
     Running trial: echo.py (x=1, y=2, z=a)
     1 2 'a'
@@ -152,7 +152,7 @@ Here are our runs:
 Next we'll restart with the needed option:
 
     >>> run_echo(restart=batch_run.id, needed=True)
-    Restarting ...
+    Starting ...
     Initialized trial (x=1, y=2, z=a)
     Skipping trial because flags have not changed (--needed specified)
     Initialized trial (x=2, y=2, z=a)
@@ -183,7 +183,7 @@ Our runs after deleting one trial:
 Restart the batch with needed:
 
     >>> run_echo(restart=batch_run.id, needed=True)
-    Restarting ...
+    Starting ...
     Skipping trial because flags have not changed (--needed specified)
     Initialized trial (x=2, y=2, z=a)
     Running trial: echo.py (x=2, y=2, z=a)
