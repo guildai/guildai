@@ -203,6 +203,11 @@ And test the `keras` example.
 
 - [custom-scalars-example](custom-scalars-example.md)
 
+## Staging and Queues
+
+- [stage-and-run](stage-and-run.md)
+- [stage-and-run-queue](stage-and-run-queue.md)
+
 ## Packaging
 
 *Creating and installing packages.*
