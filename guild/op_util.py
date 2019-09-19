@@ -374,6 +374,8 @@ def coerce_flag_value(val, flagdef):
         return _try_coerce_flag_val(val, int, flagdef)
     elif flagdef.type == "float":
         return _try_coerce_flag_val(val, float, flagdef)
+    elif flagdef.type == "boolean":
+        return _try_coerce_flag_val(val, bool, flagdef)
     elif flagdef.type == "number":
         if isinstance(val, (float, int)):
             return val

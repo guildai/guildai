@@ -341,6 +341,23 @@ Numbers (int or float):
     Traceback (most recent call last):
     ValueError: invalid value for type 'number'
 
+Booleans:
+
+    >>> coerce(0, type="boolean")
+    False
+
+    >>> coerce(1, type="boolean")
+    True
+
+    >>> coerce("", type="boolean")
+    False
+
+    >>> coerce("hi", type="boolean")
+    True
+
+    >>> coerce("false", type="boolean")
+    True
+
 Lists of values:
 
     >>> coerce([1, 1.0], type="number")
