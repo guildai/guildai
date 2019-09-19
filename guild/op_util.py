@@ -726,6 +726,11 @@ def op_flag_encoder(op):
     return fun
 
 def ensure_exit_status(run, exit_status):
+    """Ensures that a run is noted as having exited.
+
+    Writes `exit_status` if the run doesn't already have an exit
+    status. Also deletes PENDING status.
+    """
     from guild import op as oplib
     run_exit_status = run.get("exit_status")
     if run_exit_status is None:
