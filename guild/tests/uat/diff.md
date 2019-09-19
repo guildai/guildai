@@ -84,7 +84,7 @@ source code root.
 
     >>> src_dir = path(project.cwd, "src")
     >>> mkdir(src_dir)
-    >>> write("run2.py", "print('hello 2')")
+    >>> write(path(src_dir, "run2.py"), "print('hello 2')")
 
     >>> gf_path = path(project.cwd, "guild.yml")
     >>> write(gf_path, """
