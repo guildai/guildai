@@ -63,7 +63,7 @@ DEFAULT_OPTIMIZER = "gp"
 def main(args):
     _maybe_shift_opspec(args)
     _validate_args(args)
-    _apply_restart_or_rerun_args(args)
+    _apply_existing_run(args)
     model, op_name = _resolve_model_op(args.opspec)
     opdef = _resolve_opdef(model, op_name)
     _dispatch_cmd(args, opdef)
@@ -100,6 +100,10 @@ def _validate_args(args):
         cli.error(
             "--stage and --run-dir cannot both be used\n"
             "Try 'guild run --help' for more information")
+    if args.run_dir and args.restage:
+        cli.error(
+            "--restage and --run-dir cannot both be used\n"
+            "Try 'guild run --help' for more information")
     if args.run_dir and args.stage_dir:
         cli.error(
             "--stage-dir and --run-dir cannot both be used\n"
@@ -126,33 +130,57 @@ def _validate_args(args):
             "Try 'guild run --help' for more information.")
 
 ###################################################################
-# Apply args from existing runs (restart/rerun)
+# Apply args from existing runs (restart/rerun/restage)
 ###################################################################
 
-def _apply_restart_or_rerun_args(args):
+def _apply_existing_run(args):
     if args.start:
-        # --start is effectively an alias for --restart
+        # --start is an alias for --restart
         args.restart = args.start
-    if not args.rerun and not args.restart:
-        return
-    assert not (args.rerun and args.restart)
-    run = _find_run(args.restart or args.rerun, args)
-    _apply_run_args(run, args)
-    run_desc = _run_desc_for_restart(run)
-    if args.restart:
-        if not args.quiet and os.getenv("NO_RESTARTING_MSG") != "1":
-            cli.out("Starting {}".format(run_desc))
-        args.restart = run.id
-        args._restart_run = run
-    else:
-        cli.out("Rerunning {}".format(run_desc))
-        args.rerun = run.id
+    if args.rerun:
+        _apply_rerun(args)
+    elif args.restart:
+        _apply_restart(args)
+    elif args.restage:
+        _apply_restage(args)
 
-def _run_desc_for_restart(run):
+def _apply_rerun(args):
+    run = _gen_apply_existing_run(args.rerun, args)
+    _run_action_msg("Rerunning", run, args)
+    args.rerun = run.id
+
+def _gen_apply_existing_run(run_id_part, args):
+    run = _find_run(run_id_part, args)
+    _apply_run_args(run, args)
+    return run
+
+def _run_action_msg(action, run, args):
+    if not args.quiet:
+        cli.out("{} {}".format(action, _run_action_run_desc(run)))
+
+def _run_action_run_desc(run):
     rel_to_runs_dir = os.path.relpath(run.path, var.runs_dir())
     if rel_to_runs_dir == run.id:
         return run.id
     return "run in %s" % run.path
+
+def _apply_restart(args):
+    run = _gen_apply_existing_run(args.restart, args)
+    if os.getenv("NO_RESTARTING_MSG") != "1":
+        _run_action_msg("Starting", run, args)
+    args.restart = run.id
+    args._restart_run = run
+
+def _apply_restage(args):
+    run = _gen_apply_existing_run(args.restage, args)
+    _run_action_msg("Restaging", run, args)
+    args.restage = run.id
+    # The interface here is opportunistic. args.stage_dir is used
+    # downstream to stage again in the run dir. args.stage is used in
+    # the preview message in reference to the run, rather than the
+    # directory.
+    args.stage_dir = run.dir
+    args.stage = True
 
 def _find_run(run_spec, args):
     if args.remote:
@@ -566,7 +594,7 @@ def _init_op(opdef, args, is_batch=False):
             resource_config=resource_config,
             extra_attrs=_op_extra_attrs(args),
             restart=bool(args.restart),
-            stage_only=bool(args.stage or args.stage_dir),
+            stage_only=_staged_op(args),
             gpus=_op_gpus(args),
         )
     except oplib.InvalidOpSpec as e:
@@ -583,6 +611,9 @@ def _init_op(opdef, args, is_batch=False):
         if not op.batch_op and not args.force_flags:
             _validate_op_flags(op)
         return op
+
+def _staged_op(args):
+    return bool(args.stage or args.stage_dir)
 
 def _split_flag_args(flag_args, opdef):
     batch_files, rest_args = split_batch_files(flag_args)

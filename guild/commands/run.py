@@ -32,8 +32,11 @@ def run_params(fn):
                 "--stage.")),
         click.Option(
             ("--stage",),
-            help="Stage a pending operation.",
+            help="Stage an operation.",
             is_flag=True),
+        click.Option(
+            ("--restage",),
+            help="Update a staged operation."),
         click.Option(
             ("--stage-dir",), metavar="DIR",
             help=(
@@ -315,6 +318,13 @@ def run(args):
     `--restart`.
 
     `--rerun` and `--restart` may not both be used.
+
+    ### Staging an Operation
+
+    Use `--stage` to stage an operation. A staged operation does not
+    start when staged. It can be started later using `--start`. Use
+    `--restage` to modify a staged operation with new flag values and
+    to reset its order in the list of runs.
 
     ### Alternate Run Directory
 
