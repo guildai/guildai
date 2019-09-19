@@ -133,7 +133,11 @@ class Operation(object):
         self._run.write_attr("opdef", self.opdef.as_data())
         for name, val in (self.extra_attrs or {}).items():
             self._run.write_attr(name, val)
-        self._run.write_attr("flags", self.flag_vals)
+        self._run.write_attr(
+            "flags",
+            _merge_flags_and_resource_config(
+                self.flag_vals,
+                self.resource_config))
         self._run.write_attr("cmd", self.cmd_args)
         if self.label is not None:
             self._run.write_attr("label", self.label)
@@ -180,14 +184,13 @@ class Operation(object):
         self._maybe_write_label(resolved)
 
     def _maybe_write_label(self, resolved):
-        label = _run_label(self.label, self._run, self.opdef)
+        label_vals = _merge_flags_and_resource_config(
+            self.flag_vals,
+            self.resource_config)
+        label = _run_label(self.label, self._run, self.opdef, label_vals)
         if label is None:
             return
-        formatted = op_util.format_label(
-            label,
-            self.flag_vals,
-            self.resource_config,
-            resolved)
+        formatted = op_util.format_label(label, label_vals, resolved)
         self._run.write_attr("label", formatted)
 
     def proc(self, quiet=False, background_pidfile=None, stop_after=None):
@@ -636,9 +639,15 @@ def _sort_resolved(resolved):
         name: sorted(files) for name, files in resolved.items()
     }
 
-def _run_label(explicit_label, run, opdef):
+def _run_label(explicit_label, run, opdef, flag_vals):
     if explicit_label:
         return explicit_label
     if run.has_attr("label"):
         return None
-    return op_util.default_label(opdef)
+    return op_util.default_label(opdef, flag_vals)
+
+def _merge_flags_and_resource_config(flags, resource_config):
+    merged = dict(flags)
+    if resource_config:
+        merged.update(resource_config)
+    return merged

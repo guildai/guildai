@@ -192,7 +192,7 @@ Our runs:
 
     >>> project.print_runs(flags=True)
     serve
-    serve
+    serve  train=...
     serve
     train  lr=0.01
     serve

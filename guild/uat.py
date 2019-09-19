@@ -49,6 +49,7 @@ def run():
         sys.exit(1)
     tests = _tests_from_index()
     _init_workspace()
+    _mark_passed_tests()
     _run_tests(tests)
 
 def _tests_from_index():
@@ -60,6 +61,13 @@ def _init_workspace():
     print("Initializing workspace %s under %s" % (WORKSPACE, sys.executable))
     util.ensure_dir(os.path.join(WORKSPACE, "passed-tests"))
     util.ensure_dir(os.path.join(WORKSPACE, ".guild"))
+
+def _mark_passed_tests():
+    passed = os.getenv("PASS")
+    if not passed:
+        return
+    for name in [s.strip() for s in passed.split(",")]:
+        _mark_test_passed(name)
 
 def _run_tests(tests):
     globs = _test_globals()

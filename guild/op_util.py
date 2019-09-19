@@ -917,22 +917,22 @@ def _apply_flag_arg(flagdef, value, flag_vals, target, flag_map):
     else:
         target[arg_name] = arg_val
 
-def default_label(opdef):
+def default_label(opdef, flag_vals):
     if opdef.label:
         return opdef.label
-    flags = _non_default_flag_vals(opdef)
-    if not flags:
+    flag_vals = _non_default_flag_vals(flag_vals, opdef)
+    if not flag_vals:
         return None
-    return flags_desc(flags, truncate_floats=True, delim=" ")
+    return flags_desc(flag_vals, truncate_floats=True, delim=" ")
 
 def flags_desc(flags, truncate_floats=False, delim=", "):
     formatted = flag_util.format_flags(flags, truncate_floats)
     return delim.join(formatted)
 
-def _non_default_flag_vals(opdef):
+def _non_default_flag_vals(flag_vals, opdef):
     return {
         name: val
-        for name, val in opdef.flag_values().items()
+        for name, val in flag_vals.items()
         if not _is_default_flag_val(val, name, opdef)
     }
 
@@ -967,14 +967,13 @@ def write_sourcecode_digest(run, opdef):
     digest = file_util.files_digest(run.guild_path("sourcecode"))
     run.write_attr("sourcecode_digest", digest)
 
-def format_label(label, flag_vals, resource_config, resolved_deps):
-    vals = _init_label_val_lookup(flag_vals, resource_config, resolved_deps)
+def format_label(label, flag_vals, resolved_deps):
+    vals = _init_label_val_lookup(flag_vals, resolved_deps)
     return util.render_label(label, vals)
 
-def _init_label_val_lookup(flag_vals, resource_config, resolved_deps):
+def _init_label_val_lookup(flag_vals, resolved_deps):
     lookup = {}
     # List in reverse order of precedence.
-    lookup.update(resource_config)
     lookup.update(_resolved_dep_label_vals(resolved_deps))
     lookup.update(_format_flags_for_label(flag_vals))
     return lookup

@@ -203,6 +203,10 @@ And test the `keras` example.
 
 - [custom-scalars-example](custom-scalars-example.md)
 
+## Dependencies
+
+- [required-operation](required-operation.md)
+
 ## Staging and Queues
 
 - [stage-and-run](stage-and-run.md)
