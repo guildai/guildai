@@ -136,6 +136,27 @@ A resource `name` may be provided for any full resource definition:
      'sources': [{'url': 'http://my.co/stuff.gz'},
                  {'url': 'http://my.co/more-suff.tar'}]}
 
+## Named and unnamed operation resources
+
+Inline requirements that define an operation but not a name are
+implicitly named by their operation.
+
+    >>> gf = guildfile.from_string("""
+    ... op1:
+    ...   requires:
+    ...     - operation: foo
+    ... op2:
+    ...   requires:
+    ...     - operation: foo
+    ...       name: FOO
+    ... """)
+
+    >>> gf.default_model["op1"].dependencies[0].inline_resource.name
+    'foo'
+
+    >>> gf.default_model["op2"].dependencies[0].inline_resource.name
+    'FOO'
+
 ## Inline list
 
 An inline list can be used to list source. Each list item is converted
@@ -151,7 +172,7 @@ to a dependency where `sources` contains a list containing the item.
     >>> print_deps(gf.default_model["train"].dependencies)
     <guild.guildfile.OpDependency http://my.co/stuff.gz>
       inline-resource: {'sources': [{'url': 'http://my.co/stuff.gz'}]}
-    <guild.guildfile.OpDependency operation:foo>
+    <guild.guildfile.OpDependency foo>
       inline-resource: {'sources': [{'operation': 'foo'}]}
 
 ## Source paths
@@ -169,7 +190,7 @@ resource path, if a resource path is defined.
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies) # doctest: -NORMALIZE_PATHS
-    <guild.guildfile.OpDependency operation:foo>
+    <guild.guildfile.OpDependency foo>
       inline-resource: {'sources': [{'operation': 'foo',
                                      'path': 'bar',
                                      'select': '.+\\.txt'}]}
@@ -197,8 +218,8 @@ executables.
     INFO: [guild] comparing run ... file msg.txt to .../inline-resources/msg.txt
     INFO: [guild] 1 of 1 checks passed
     INFO: [guild] running print-msg-2: print-msg-2
-    Resolving operation:print-msg dependency
-    Using output from run ... for operation:print-msg resource
+    Resolving print-msg dependency
+    Using output from run ... for print-msg resource
     hola
     INFO: [guild] checking run ... files 'msg.txt'
     INFO: [guild] comparing run ... file msg.txt to .../inline-resources/msg.txt

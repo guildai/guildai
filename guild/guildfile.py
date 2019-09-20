@@ -1165,8 +1165,6 @@ class OpDependency(object):
 def _init_inline_resource(data, opdef):
     data = _coerce_inline_resource_data(data)
     res = ResourceDef(data.get("name"), data, opdef.modeldef)
-    if not res.name:
-        res.name = ",".join([s.name for s in res.sources])
     return res
 
 def _coerce_inline_resource_data(data):
@@ -1337,20 +1335,17 @@ class ResourceDef(resourcedef.ResourceDef):
     source_types = resourcedef.ResourceDef.source_types + ["operation"]
 
     def __init__(self, name, data, modeldef):
-        if not name:
-            name = util.try_apply([
-                lambda: data.get("name"),
-                lambda: _try_operation_name(data),
-                lambda: "",
-            ])
-        fullname = "%s:%s" % (modeldef.name, name)
         try:
-            super(ResourceDef, self).__init__(name, data, fullname)
+            super(ResourceDef, self).__init__(
+                name, data, "%s:%s" % (modeldef.name, name))
         except resourcedef.ResourceDefValueError:
             raise GuildfileError(
                 modeldef.guildfile,
                 "invalid resource value %r: expected a mapping "
                 "or a list" % data)
+        if not self.name:
+            self.name = _resdef_name_from_sources(self.sources)
+        self.fullname = "%s:%s" % (modeldef.name, self.name)
         self.private = self.private
         self.modeldef = modeldef
 
@@ -1367,18 +1362,25 @@ class ResourceDef(resourcedef.ResourceDef):
     def _source_for_type(self, type, val, data):
         data = self._coerce_source_data(data)
         if type == "operation":
-            return resourcedef.ResourceSource(
-                self, "operation:%s" % val, **data)
+            return OperationSource(self, val, **data)
         else:
             return super(ResourceDef, self)._source_for_type(type, val, data)
 
-def _try_operation_name(data):
-    for source in data.get("sources", []):
-        try:
-            return source["operation"]
-        except KeyError:
-            pass
-    return None
+class OperationSource(resourcedef.ResourceSource):
+
+    def __init__(self, resdef, opspec, **kw):
+        super(OperationSource, self).__init__(
+            resdef, "operation:%s" % opspec, **kw)
+        #import pdb;pdb.set_trace()
+        self._explicit_name = kw.get("name")
+        self.opspec = opspec
+
+    @property
+    def resource_name_part(self):
+        return self._explicit_name or self.opspec
+
+def _resdef_name_from_sources(sources):
+    return ",".join([s.resource_name_part for s in sources])
 
 ###################################################################
 # Package def

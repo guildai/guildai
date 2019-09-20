@@ -192,6 +192,10 @@ class ResourceSource(object):
             self._parsed_uri = util.parse_url(self.uri)
         return self._parsed_uri
 
+    @property
+    def resource_name_part(self):
+        return self.name
+
     def __repr__(self):
         return "<guild.resourcedef.ResourceSource '%s'>" % self.uri
 

@@ -277,14 +277,14 @@ and evaluation scenario.
     INFO: [guild] running prepare: m4:prepare --needed
     prepared data
     INFO: [guild] running train: m4:train loss=1.0
-    Resolving operation:prepare dependency
-    Using output from run ... for operation:prepare resource
+    Resolving prepare dependency
+    Using output from run ... for prepare resource
     loss=1.0
     INFO: [guild] running eval: m4:evaluate acc=0.5
-    Resolving operation:prepare dependency
-    Using output from run ... for operation:prepare resource
-    Resolving operation:train dependency
-    Using output from run ... for operation:train resource
+    Resolving prepare dependency
+    Using output from run ... for prepare resource
+    Resolving train dependency
+    Using output from run ... for train resource
     acc=0.5
 
 Here are the generated runs:
