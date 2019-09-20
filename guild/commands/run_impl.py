@@ -744,7 +744,8 @@ def _is_resource(name, opdef, ref_vars):
 
 def _ResourceFlagDefProxy(name, opdef):
     data = {
-        "arg-skip": True
+        "arg-skip": True,
+        "arg-type": "string",
     }
     return guildfile.FlagDef(name, data, opdef)
 
