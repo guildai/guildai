@@ -176,3 +176,24 @@ When we compare the last two runs (the `train` op and the `train.py` script):
     ...  train.py   ... ...  ...   completed  epochs=1  100         data     1       no       .       no     540   0...  0...
     ...  train      ... ...  ...   completed  epochs=1                                                       540               0...        0...
     <exit 0>
+
+Compare with CSV:
+
+    >>> run("guild compare --csv - 1 2")
+    run,operation,started,time,status,label,batch_size,datadir,epochs,prepare,rundir,test,step,acc,loss,train_loss,train_acc
+    ...,train.py,...,...,completed,epochs=1,100,data,1,False,.,False,540,...,...,,
+    ...,train,...,...,completed,epochs=1,,,,,,,540,,,...,...
+    <exit 0>
+
+Generate a CSV file:
+
+    >>> tmp_dir = mkdtemp()
+    >>> csv_path = path(tmp_dir, "compare.csv")
+
+    >>> run("guild compare --csv '%s' 1 2" % csv_path)
+    <exit 0>
+
+    >>> cat(csv_path)
+    run,operation,started,time,status,label,batch_size,datadir,epochs,prepare,rundir,test,step,acc,loss,train_loss,train_acc
+    ...,train.py,...,...,completed,epochs=1,100,data,1,False,.,False,540,...,...,,
+    ...,train,...,...,completed,epochs=1,,,,,,,540,,,...,...
