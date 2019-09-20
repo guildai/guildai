@@ -93,7 +93,10 @@ def _running_runs():
 
 def _run(run, state):
     log.info("Starting %s", run.id)
-    gapi.run(restart=run.id, extra_env={"NO_RESTARTING_MSG": "1"})
+    try:
+        gapi.run(restart=run.id, extra_env={"NO_RESTARTING_MSG": "1"})
+    except gapi.RunError as e:
+        log.error("%s failed with exit code %i", run.id, e.returncode)
     state.show_waiting_msg = True
 
 if __name__ == "__main__":
