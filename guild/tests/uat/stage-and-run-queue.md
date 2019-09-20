@@ -49,3 +49,22 @@ List runs:
     [3:...]   noisy.py  ...  completed  x=4
     ...
     <exit 0>
+
+Stage another run. We want to test the queue being run from another
+directory.
+
+    >>> run("guild run noisy.py x=7 --stage -y")
+    noisy.py is staged as ...
+    To run the operation, use 'guild run --start ...'
+    <exit 0>
+
+Start the queue from the workspace root.
+
+    >>> cd(WORKSPACE)
+    >>> run("guild run queue run-once=yes -y")
+    INFO: [queue] Found staged run ...
+    INFO: [queue] Starting ...
+    x: 7.000000
+    noise: 0.1
+    loss: ...
+    <exit 0>

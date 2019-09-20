@@ -364,12 +364,16 @@ def _try_guildfile_compare(run):
     return None
 
 def run_opdef(run):
+    gf = run_guildfile(run)
+    if gf:
+        return _try_guildfile_opdef(gf, run)
+    return None
+
+def run_guildfile(run):
     try:
-        gf = guildfile.from_run(run)
+        return guildfile.from_run(run)
     except (guildfile.NoModels, guildfile.GuildfileMissing, TypeError):
         return None
-    else:
-        return _try_guildfile_opdef(gf, run)
 
 def _try_guildfile_opdef(gf, run):
     try:
