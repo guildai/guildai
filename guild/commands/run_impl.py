@@ -595,7 +595,7 @@ def _check_op_runnable(opdef, args):
 ###################################################################
 
 def _init_op(opdef, args, is_batch=False):
-    flag_vals, batch_files = _split_flag_args(args.flags, opdef)
+    flag_vals, batch_files = _split_flag_args(args.flags)
     _apply_opdef_args(flag_vals, batch_files, args, opdef, is_batch)
     try:
         op = oplib.Operation(
@@ -625,7 +625,7 @@ def _init_op(opdef, args, is_batch=False):
 def _staged_op(args):
     return bool(args.stage or args.stage_dir)
 
-def _split_flag_args(flag_args, opdef):
+def _split_flag_args(flag_args):
     batch_files, rest_args = split_batch_files(flag_args)
     assigns = _parse_assigns(rest_args)
     return assigns, batch_files
