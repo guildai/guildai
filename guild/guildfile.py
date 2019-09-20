@@ -1344,7 +1344,7 @@ class ResourceDef(resourcedef.ResourceDef):
                 "invalid resource value %r: expected a mapping "
                 "or a list" % data)
         if not self.name:
-            self.name = _resdef_name_from_sources(self.sources)
+            self.name = _resdef_name_for_sources(self.sources)
         self.fullname = "%s:%s" % (modeldef.name, self.name)
         self.private = self.private
         self.modeldef = modeldef
@@ -1362,25 +1362,18 @@ class ResourceDef(resourcedef.ResourceDef):
     def _source_for_type(self, type, val, data):
         data = self._coerce_source_data(data)
         if type == "operation":
-            return OperationSource(self, val, **data)
+            return resourcedef.ResourceSource(
+                self, "operation:%s" % val, **data)
         else:
             return super(ResourceDef, self)._source_for_type(type, val, data)
 
-class OperationSource(resourcedef.ResourceSource):
+def _resdef_name_for_sources(sources):
+    return ",".join([_resdef_name_part_for_source(s) for s in sources])
 
-    def __init__(self, resdef, opspec, **kw):
-        super(OperationSource, self).__init__(
-            resdef, "operation:%s" % opspec, **kw)
-        #import pdb;pdb.set_trace()
-        self._explicit_name = kw.get("name")
-        self.opspec = opspec
-
-    @property
-    def resource_name_part(self):
-        return self._explicit_name or self.opspec
-
-def _resdef_name_from_sources(sources):
-    return ",".join([s.resource_name_part for s in sources])
+def _resdef_name_part_for_source(s):
+    if s.name.startswith("operation:"):
+        return s.name[10:]
+    return s.name
 
 ###################################################################
 # Package def
