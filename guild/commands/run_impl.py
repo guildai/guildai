@@ -343,7 +343,8 @@ def _resolve_model(model_ref):
     return util.find_apply([
         _resolve_cwd_model,
         _resolve_system_model,
-        _maybe_no_model_error], model_ref)
+        _maybe_no_model_error,
+    ], model_ref)
 
 def _resolve_cwd_model(model_ref):
     cwd_guildfile = cmd_impl_support.cwd_guildfile()
