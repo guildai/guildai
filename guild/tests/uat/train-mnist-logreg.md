@@ -1,8 +1,8 @@
 # Train `logreg`
 
-We'll train the `logreg` model with one epoch. Noe that we
-don't have to specify the full model name as long as our term refers
-to one and only one model.
+Train the `logreg` model with one epoch. Note that we don't have to
+specify the full model name as long as our term refers to one and only
+one model.
 
     >>> run("guild run -y --no-gpus logreg:train epochs=1")
     Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
