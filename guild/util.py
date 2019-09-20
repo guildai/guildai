@@ -92,14 +92,26 @@ def try_read(path, default=None, apply=None):
                 out = f(out)
         return out
 
-def pid_exists(pid):
+def pid_exists(pid, default=True):
+    return find_apply([
+        _proc_pid_exists,
+        _psutil_pid_exists,
+        lambda _: default,
+    ], pid)
+
+def _proc_pid_exists(pid):
+    if os.path.exists("/proc"):
+        return os.path.exists(os.path.join("/proc", str(pid)))
+    return None
+
+def _psutil_pid_exists(pid):
     try:
         import psutil
     except Exception as e:
-        log.warning("cannot get stat for pid %s: %s", pid, e)
+        log.warning("cannot get status for pid %s: %s", pid, e)
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("importing psutil")
-        return False
+        return None
     return psutil.pid_exists(pid)
 
 def free_port(start=None):
