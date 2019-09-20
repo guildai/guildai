@@ -104,7 +104,7 @@ def _write_csv(args):
 def _open_file(path):
     if path == "-":
         return util.StdIOContextManager(sys.stdout)
-    return open(path, "wb")
+    return open(path, "w")
 
 def get_data(args, format_cells=True, skip_header_if_empty=False):
     index = indexlib.RunIndex()

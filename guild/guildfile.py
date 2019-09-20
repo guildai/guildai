@@ -1337,6 +1337,12 @@ class ResourceDef(resourcedef.ResourceDef):
     source_types = resourcedef.ResourceDef.source_types + ["operation"]
 
     def __init__(self, name, data, modeldef):
+        if not name:
+            name = util.try_apply([
+                lambda: data.get("name"),
+                lambda: _try_operation_name(data),
+                lambda: "",
+            ])
         fullname = "%s:%s" % (modeldef.name, name)
         try:
             super(ResourceDef, self).__init__(name, data, fullname)
@@ -1365,6 +1371,14 @@ class ResourceDef(resourcedef.ResourceDef):
                 self, "operation:%s" % val, **data)
         else:
             return super(ResourceDef, self)._source_for_type(type, val, data)
+
+def _try_operation_name(data):
+    for source in data.get("sources", []):
+        try:
+            return source["operation"]
+        except KeyError:
+            pass
+    return None
 
 ###################################################################
 # Package def
