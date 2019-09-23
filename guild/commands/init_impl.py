@@ -36,6 +36,8 @@ from guild import util
 
 log = logging.getLogger("guild")
 
+PYTHON_REQ_P = re.compile(r"^\s*#\s*python(\S+?)\s*$", re.MULTILINE)
+
 class Config(object):
 
     def __init__(self, args):
@@ -380,7 +382,7 @@ def _suggest_python_interpreter(user_reqs):
     requirements.txt by default.
 
     A Python spec can be provided in a requirements file using a
-    special `guild: python<spec>` comment. E.g. `guild: python>=3.5`.
+    special `python<spec>` comment. E.g. `python>=3.5`.
     """
     python_requires = util.find_apply([
         _python_requires_for_pkg,
@@ -411,14 +413,13 @@ def _guildfile_pkg_data():
     return None
 
 def _python_requires_for_reqs(reqs):
-    p = re.compile(r"^\s*#\s*guild:\s*python(\S+?)\s*$", re.MULTILINE)
     for req_file in reqs:
         try:
             s = open(req_file, "r").read()
         except IOError:
             pass
         else:
-            m = p.search(s)
+            m = PYTHON_REQ_P.search(s)
             if m:
                 return m.groups(1)
     return None
