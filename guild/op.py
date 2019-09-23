@@ -177,14 +177,19 @@ class Operation(object):
             resource_config=self.flag_vals)
         resolved = deps.resolve(self.opdef.dependencies, ctx)
         self._run.write_attr("deps", _sort_resolved(resolved))
-        self._maybe_write_label(resolved)
+        self._maybe_refresh_label(resolved)
 
-    def _maybe_write_label(self, resolved):
-        label = _run_label(self.label, self._run, self.opdef, self.flag_vals)
-        if label is None:
-            return
-        formatted = op_util.format_label(label, self.flag_vals, resolved)
-        self._run.write_attr("label", formatted)
+    def _maybe_refresh_label(self, resolved):
+        """Refresh label with details in resolved.
+
+        The initial label is written as an attr and updated here as
+        needed to reflected resolved resource sources.
+        """
+        assert self._run is not None
+        label = self._run.get("label")
+        if label is not None:
+            formatted = op_util.format_label(label, self.flag_vals, resolved)
+            self._run.write_attr("label", formatted)
 
     def proc(self, quiet=False, background_pidfile=None, stop_after=None):
         try:
@@ -631,10 +636,3 @@ def _sort_resolved(resolved):
     return {
         name: sorted(files) for name, files in resolved.items()
     }
-
-def _run_label(explicit_label, run, opdef, flag_vals):
-    if explicit_label:
-        return explicit_label
-    if run.has_attr("label"):
-        return None
-    return op_util.default_label(opdef, flag_vals)

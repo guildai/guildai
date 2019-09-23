@@ -186,12 +186,7 @@ def _apply_restage(args):
     run = _gen_apply_existing_run(args.restage, args)
     _run_action_msg("Restaging", run, args)
     args.restage = run.id
-    # The interface here is opportunistic. args.stage_dir is used
-    # downstream to stage again in the run dir. args.stage is used in
-    # the preview message in reference to the run, rather than the
-    # directory.
-    args.stage_dir = run.dir
-    args.stage = True
+    args._restage_run = run
 
 def _find_run(run_spec, args):
     if args.remote:
@@ -601,7 +596,7 @@ def _init_op(opdef, args, is_batch=False):
         op = oplib.Operation(
             opdef,
             run_dir=_op_run_dir(args),
-            label=args.label,
+            label=_op_label(args, opdef, flag_vals),
             extra_attrs=_op_extra_attrs(args),
             restart=bool(args.restart),
             stage_only=_staged_op(args),
@@ -622,8 +617,34 @@ def _init_op(opdef, args, is_batch=False):
             _validate_op_flags(op)
         return op
 
+def _op_label(args, opdef, flag_vals):
+    if args.label:
+        return args.label
+    if opdef.batch_opspec:
+        return None
+    return (
+        _current_label(args, flag_vals) or
+        op_util.default_label(opdef, flag_vals))
+
+def _current_label(args, new_flag_vals):
+    current_run = _restart_or_restage_run(args)
+    if not current_run:
+        return None
+    if _run_flags_changed(current_run, new_flag_vals):
+        # New flag vals are different - current label not applicable.
+        return None
+    return current_run.get("label")
+
+def _restart_or_restage_run(args):
+    return (
+        getattr(args, "_restart_run", None) or
+        getattr(args, "_restage_run", None))
+
+def _run_flags_changed(run, flags):
+    return run.get("flags") != flags
+
 def _staged_op(args):
-    return bool(args.stage or args.stage_dir)
+    return bool(args.stage or args.stage_dir or args.restage)
 
 def _split_flag_args(flag_args):
     batch_files, rest_args = split_batch_files(flag_args)
@@ -817,6 +838,9 @@ def _op_run_dir(args):
     elif args.restart:
         assert hasattr(args, "_restart_run")
         return args._restart_run.path
+    elif args.restage:
+        assert hasattr(args, "_restage_run")
+        return args._restage_run.path
     elif args.stage_dir:
         return os.path.abspath(args.stage_dir)
     else:
@@ -1093,7 +1117,7 @@ def _confirm_run(op, args):
     return cli.confirm(prompt, default=True)
 
 def _action_desc(args):
-    if args.stage or args.stage_dir:
+    if _staged_op(args):
         return "stage"
     elif args.init_trials:
         return "initialize trials for"
@@ -1429,7 +1453,7 @@ def _handle_run_exit(returncode, op, args):
         cli.error(exit_status=returncode)
 
 def _print_staged_info(op, args):
-    if args.stage:
+    if args.stage or args.restage:
         _print_stage_pending_instructions(op)
     elif args.stage_dir:
         _print_staged_dir_instructions(op)
