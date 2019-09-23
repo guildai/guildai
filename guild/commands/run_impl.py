@@ -1136,7 +1136,10 @@ def _batch_suffix(op, args):
         return ""
     parts = []
     if op.batch_op.opdef.name == "+":
-        parts.append(" in a batch")
+        if _staged_op(args):
+            parts.append(" as a batch")
+        else:
+            parts.append(" in a batch")
     else:
         parts.append(" with %s" % _batch_op_desc(op.batch_op.opdef))
         max_trials = args.max_trials or op.batch_op.opdef.default_max_trials
