@@ -21,83 +21,105 @@ import os
 import time
 
 from guild import _api as gapi
-from guild import log as loglib
 from guild import util
 from guild import var
 
-log = logging.getLogger("queue")
+logging.basicConfig(
+    level=int(os.getenv("LOG_LEVEL", logging.INFO)),
+    format="%(levelname)s: [%(name)s] %(asctime)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S")
 
-RUN_ID = None  # Initialized in main
+
+log = logging.getLogger("queue")
 
 class _State(object):
 
-    def __init__(self, quiet=False):
-        self.quiet = quiet
-        self.show_waiting_msg = False
+    def __init__(self, args):
+        for name, val in args._get_kwargs():
+            setattr(self, name, val)
+        self.run_id = os.environ["RUN_ID"]
+        self.logged_waiting = False
+        self.waiting = set()
 
 def main():
-    globals()["RUN_ID"] = os.environ["RUN_ID"]
     args = _parse_args()
-    init_logging()
     if args.run_once:
-        run_once()
+        run_once(args)
     else:
-        poll(args.poll_interval)
+        poll(args)
 
 def _parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--poll-interval", type=int, default=10)
     p.add_argument("--run-once", action="store_true")
+    p.add_argument("--ignore-running", action="store_true")
+    p.add_argument("--lifo", action="store_true")
     return p.parse_args()
 
-def init_logging():
-    level = int(os.getenv("LOG_LEVEL", logging.WARN))
-    format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
-    loglib.init_logging(level, {"_": format})
+def run_once(args):
+    _run_staged(_State(args))
 
-def run_once():
-    _run_staged(_State(quiet=True))
+def poll(args):
+    state = _State(args)
+    log.info("Processing staged runs in %s order", _order_desc(state))
+    log.info("Waiting for staged runs")
+    state.logged_waiting = True
+    util.loop(
+        lambda: _run_staged(state),
+        time.sleep,
+        args.poll_interval,
+        0)
 
-def poll(interval):
-    state = _State()
-    util.loop(lambda: _run_staged(state), time.sleep, interval, 0)
+def _order_desc(state):
+    if state.lifo:
+        return "LIFO"
+    else:
+        return "FIFO"
 
 def _run_staged(state):
-    for run in _staged_runs():
-        log.info("Found staged run %s", run.id)
-        runs = _running_runs()
-        if runs:
-            log.debug(
-                "Runs in progress %s, skipping staged run %s",
-                [run.short_id for run in runs], run.short_id)
-            break
-        _run(run, state)
-    _log_waiting(state)
+    for run in _staged_runs(state):
+        if not state.ignore_running:
+            running = _running(state)
+            if running:
+                if run.id not in state.waiting:
+                    log.info(
+                        "Found staged run %s (waiting for runs "
+                        "to finish: %s)",
+                        run.short_id, _runs_desc(running))
+                    state.logged_waiting = True
+                state.waiting.add(run.id)
+                continue
+        log.info("Starting staged run %s", run.id)
+        try:
+            _run(run)
+        except gapi.RunError as e:
+            log.error("%s failed with exit code %i", run.id, e.returncode)
+        state.waiting.clear()
+        state.logged_waiting = False
+    if not state.logged_waiting:
+        log.info("Waiting for staged runs")
+        state.logged_waiting = True
 
-def _log_waiting(state):
-    msg = "Waiting for staged runs"
-    if not state.quiet and state.show_waiting_msg:
-        log.info(msg)
-        state.show_waiting_msg = False
-    else:
-        log.debug(msg)
-
-def _staged_runs():
+def _staged_runs(state):
     return var.runs(
-        sort=["timestamp"],
+        sort=_staged_sort(state),
         filter=var.run_filter("attr", "status", "staged"))
 
-def _running_runs():
-    running = var.runs(filter=var.run_filter("attr", "status", "running"))
-    return [run for run in running if run.id != RUN_ID]
+def _staged_sort(state):
+    if state.lifo:
+        return ["-timestamp"]
+    else:
+        return ["timestamp"]
 
-def _run(run, state):
-    log.info("Starting %s", run.id)
-    try:
-        gapi.run(restart=run.id, extra_env={"NO_RESTARTING_MSG": "1"})
-    except gapi.RunError as e:
-        log.error("%s failed with exit code %i", run.id, e.returncode)
-    state.show_waiting_msg = True
+def _running(state):
+    running = var.runs(filter=var.run_filter("attr", "status", "running"))
+    return [run for run in running if run.id != state.run_id]
+
+def _runs_desc(runs):
+    return ", ".join([run.short_id for run in runs])
+
+def _run(run):
+    gapi.run(restart=run.id, extra_env={"NO_RESTARTING_MSG": "1"})
 
 if __name__ == "__main__":
     main()

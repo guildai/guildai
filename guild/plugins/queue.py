@@ -26,6 +26,13 @@ from guild import plugin as pluginlib
 
 queue_description = """
 Start a queue
+
+A queue polls for staged runs and starts them in the order they were \
+staged. By default, the queue waits for other runs to stop before \
+starting any staged runs. Use `ignore-running` to bypass this check.
+
+Use `run-once` to start staged runs and stop without waiting for new \
+staged runs.
 """
 
 queue_flags_data = yaml.safe_load("""
@@ -34,6 +41,17 @@ poll-interval:
   default: 10
   type: int
 run-once:
+  description: Run all staged runs and stop without
+  default: no
+  arg-switch: yes
+  type: boolean
+ignore-running:
+  description: Start staged runs even when other runs are in-progress
+  default: no
+  arg-switch: yes
+  type: boolean
+lifo:
+  description: Start staged in LIFO order (most recently staged first)
   default: no
   arg-switch: yes
   type: boolean

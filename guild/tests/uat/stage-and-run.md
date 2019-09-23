@@ -4,6 +4,10 @@ Stage runs for the noisy example.
 
     >>> cd("examples/noisy")
 
+Delete runs in preparation for these tests.
+
+    >>> quiet("guild runs rm -y")
+
 Stage runs:
 
     >>> run("guild run noisy.py x=1 --stage -y", ignore="Refreshing")
@@ -26,7 +30,7 @@ List staged runs:
     >>> run("guild runs -o noisy")
     [1:...]  noisy.py  ...  staged  x=3
     [2:...]  noisy.py  ...  staged  x is 2
-    [3:...]  noisy.py  ...  staged  x=1...
+    [3:...]  noisy.py  ...  staged  x=1
     <exit 0>
 
 Show latest staged run:
@@ -109,5 +113,4 @@ List runs:
     [1:...]   noisy.py  ...  completed  x=1
     [2:...]   noisy.py  ...  completed  x is 2
     [3:...]   noisy.py  ...  completed  x=3
-    ...
     <exit 0>
