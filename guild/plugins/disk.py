@@ -33,7 +33,15 @@ class DiskPlugin(SummaryPlugin):
     def enabled_for_op(self, _op):
         if sys.platform == "darwin":
             return False, "disk stats not supported on darwin platform (Mac)"
-        return True, ""
+        try:
+            import psutil as _
+        except ImportError as e:
+            self.log.warning(
+                "disk stats disabled because psutil "
+                "cannot be imported (%s)", e)
+            return False, "error importing psutil: %s" % e
+        else:
+            return True, ""
 
     def read_summary_values(self, _step):
         return self._disk_stats()

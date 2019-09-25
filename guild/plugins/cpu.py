@@ -24,7 +24,15 @@ class CPUPlugin(SummaryPlugin):
         self._cpu_percent_init = False
 
     def enabled_for_op(self, _op):
-        return True, ""
+        try:
+            import psutil as _
+        except ImportError as e:
+            self.log.warning(
+                "cpu stats disabled because psutil "
+                "cannot be imported (%s)", e)
+            return False, "error importing psutil: %s" % e
+        else:
+            return True, ""
 
     def read_summary_values(self, _step):
         return self._cpu_stats()
