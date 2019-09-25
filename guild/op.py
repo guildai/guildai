@@ -240,7 +240,7 @@ class Operation(object):
         env = self._proc_env()
         log.debug("operation command: %s", self.cmd_args)
         log.debug("operation env: %s", env)
-        _write_sourceable_env(env, self._run.guild_path("env"))
+        _write_sourceable_env(env, self._run.guild_path("ENV"))
         _write_staged(self._run)
 
     def _start_proc(self):

@@ -1476,7 +1476,7 @@ def _print_staged_dir_instructions(op):
     cli.out(
         "{op} is staged in {dir}\n"
         "To run the operation, use "
-        "'(cd {dir} && source .guild/env && {cmd})'"
+        "'(cd {dir} && source .guild/ENV && {cmd})'"
         .format(
             op=op.opdef.fullname,
             dir=op.run_dir,
