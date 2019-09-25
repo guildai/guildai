@@ -547,7 +547,7 @@ defined in a model named 'model'.
     ...   import os
     ...   from guild.op import _init_cmd_env
     ...   opdef = OpDef("test", extra_data=data, gf_src="sample/guild.yml")
-    ...   env = _init_cmd_env(opdef, restart=False, gpus=None)
+    ...   env = _init_cmd_env(opdef, gpus=None)
     ...   to_print = to_print or (
     ...     "GUILD_HOME",
     ...     "GUILD_OP",
@@ -574,7 +574,7 @@ Here are values for an empty op:
     GUILD_OP: model:op
     GUILD_PLUGINS: ...
     LOG_LEVEL: 20
-    PYTHONPATH: <cwd>/sample...
+    PYTHONPATH: .guild/sourcecode:<cwd>/sample:...
     SCRIPT_DIR:
     CMD_DIR: <cwd>
     MODEL_DIR: sample
@@ -585,7 +585,7 @@ Here are values for an empty op:
 `PYTHONPATH` can be prepended to using `python-path`.
 
     >>> opdef_env({"python-path": "foo"}, ["PYTHONPATH"])
-    PYTHONPATH: <cwd>/sample/foo...
+    PYTHONPATH: .guild/sourcecode:<cwd>/sample/foo:...
 
 Additional env may be provided using `env`:
 

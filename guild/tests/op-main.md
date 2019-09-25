@@ -21,11 +21,11 @@ exception.
 
     >>> project.run("fail.py")
     Traceback (most recent call last):
-      File ".../samples/projects/optimizers/fail.py", line 14, in <module>
+      File ".../.guild/sourcecode/fail.py", line 14, in <module>
         fail()
-      File ".../samples/projects/optimizers/fail.py", line 6, in fail
+      File ".../.guild/sourcecode/fail.py", line 6, in fail
         fail2()
-      File ".../samples/projects/optimizers/fail.py", line 12, in fail2
+      File ".../.guild/sourcecode/fail.py", line 12, in fail2
         raise Exception("FAIL")
     Exception: FAIL
     <exit 1>
@@ -35,7 +35,7 @@ When we run with the debug option, we get the full stack:
     >>> project.run("fail.py", debug=True)
     DEBUG: [guild] checking '.' for model sources
     ...
-    DEBUG: [guild] loading module from '.../samples/projects/optimizers/fail.py'
+    DEBUG: [guild] loading module from '.../.guild/sourcecode/fail.py'
     Traceback (most recent call last):
       ...
       File ".../guild/op_main.py", line ..., in <module>
@@ -47,11 +47,11 @@ When we run with the debug option, we get the full stack:
         python_util.exec_script(path, globals)
       File ".../guild/python_util.py", line ..., in exec_script
         exec(code, script_globals)
-      File ".../samples/projects/optimizers/fail.py", line 14, in <module>
+      File ".../.guild/sourcecode/fail.py", line 14, in <module>
         fail()
-      File ".../samples/projects/optimizers/fail.py", line 6, in fail
+      File ".../.guild/sourcecode/fail.py", line 6, in fail
         fail2()
-      File ".../samples/projects/optimizers/fail.py", line 12, in fail2
+      File ".../.guild/sourcecode/fail.py", line 12, in fail2
         raise Exception("FAIL")
     Exception: FAIL
     <exit 1>
@@ -70,11 +70,11 @@ case, the project defines a `fail` operation that runs `fail.py`.
 
     >>> project.run("fail")
     Traceback (most recent call last):
-      File ".../samples/projects/optimizers/fail.py", line 14, in <module>
+      File ".../.guild/sourcecode/fail.py", line 14, in <module>
         fail()
-      File ".../samples/projects/optimizers/fail.py", line 6, in fail
+      File ".../.guild/sourcecode/fail.py", line 6, in fail
         fail2()
-      File ".../samples/projects/optimizers/fail.py", line 12, in fail2
+      File ".../.guild/sourcecode/fail.py", line 12, in fail2
         raise Exception("FAIL")
     Exception: FAIL
     <exit 1>

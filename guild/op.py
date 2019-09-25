@@ -73,7 +73,7 @@ class Operation(object):
         (self.cmd_args,
          self.flag_vals,
          self._flag_map) = _init_cmd_args(opdef)
-        self.cmd_env = _init_cmd_env(opdef, restart, gpus)
+        self.cmd_env = _init_cmd_env(opdef, gpus)
         self._run_dir = run_dir
         self.label = label
         self.extra_attrs = extra_attrs
@@ -483,7 +483,7 @@ def _cmd_option_args(name, val):
     else:
         return [opt, flag_util.encode_flag_val(val)]
 
-def _init_cmd_env(opdef, restart, gpus):
+def _init_cmd_env(opdef, gpus):
     env = util.safe_osenv()
     env.update({
         name: str(val)
@@ -493,11 +493,10 @@ def _init_cmd_env(opdef, restart, gpus):
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["LOG_LEVEL"] = _log_level()
-    env["PYTHONPATH"] = _python_path(opdef, restart)
+    env["PYTHONPATH"] = _python_path(opdef)
     # SCRIPT_DIR is set by op_main at sys.path[0] - use empty string
     # here to include run dir first in sys.path
     env["SCRIPT_DIR"] = ""
-    # CMD_DIR is where the operation cmd was run
     env["CMD_DIR"] = os.getcwd()
     env["MODEL_DIR"] = opdef.guildfile.dir
     env["MODEL_PATH"] = os.path.pathsep.join(_model_paths(opdef))
@@ -550,10 +549,10 @@ def _plugin_disabled_in_project(name, opdef):
                 opdef.modeldef.disable_plugins)
     return any([disabled_name in (name, "all") for disabled_name in disabled])
 
-def _python_path(opdef, restart):
+def _python_path(opdef):
     paths = (
         _env_paths() +
-        _run_sourcecode_paths(restart) +
+        _run_sourcecode_paths() +
         _model_paths(opdef) +
         _guild_paths()
     )
@@ -563,10 +562,8 @@ def _env_paths():
     env = os.getenv("PYTHONPATH")
     return env.split(os.path.pathsep) if env else []
 
-def _run_sourcecode_paths(restart):
-    if restart:
-        return [".guild/sourcecode"]
-    return []
+def _run_sourcecode_paths():
+    return [".guild/sourcecode"]
 
 def _model_paths(opdef):
     return op_util.opdef_model_paths(opdef)

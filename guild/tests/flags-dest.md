@@ -122,11 +122,11 @@ Guild file can specify `args` as the flags dest.
 
     >>> run("args2", i=3)
     Global args: i=1 f=1.0
-    Command line: ['.../flags-dest/args2.py', '--f', '2.2', '--i', '3']
+    Command line: ['.../.guild/sourcecode/args2.py', '--f', '2.2', '--i', '3']
 
 The same script without an explicit `flags-dest` will default to using
 "globals" in the case of the `args2.py` script.
 
     >>> run("args3", i=4)
     Global args: i=4 f=2.2
-    Command line: ['.../flags-dest/args2.py']
+    Command line: ['.../.guild/sourcecode/args2.py']

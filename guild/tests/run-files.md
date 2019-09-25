@@ -27,7 +27,8 @@ Our runs:
 The files generated for our run:
 
     >>> first_run = runs[0]
-    >>> first_run_files = project.ls(first_run, all=True)
+    >>> first_run_files = project.ls(first_run, all=True,
+    ...                              ignore_compiled_source=True)
     >>> for file in first_run_files:
     ...    print(file) # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
@@ -123,7 +124,8 @@ The latest run is the trial:
     >>> trial_run.opref.op_name
     'say.py'
 
-    >>> trial_run_files = project.ls(trial_run, all=True)
+    >>> trial_run_files = project.ls(trial_run, all=True,
+    ...                              ignore_compiled_source=True)
     >>> for file in trial_run_files:
     ...     print(file) # doctest: +REPORT_UDIFF
     .guild/attrs/batch

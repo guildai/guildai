@@ -624,13 +624,15 @@ class Project(object):
         print(self._run(print_trials=True, *args, **kw))
 
     @staticmethod
-    def ls(run, all=False, sourcecode=False):
+    def ls(run, all=False, sourcecode=False, ignore_compiled_source=False):
         def filter(path):
-            if all:
-                return True
-            if sourcecode:
-                return path.startswith(os.path.join(".guild", "sourcecode"))
-            return not path.startswith(".guild")
+            default_select = (
+                all or
+                not path.startswith(".guild") or
+                (sourcecode and _is_run_sourcecode(path)))
+            return (
+                default_select and
+                not (ignore_compiled_source and _is_compiled_source(path)))
         return [path for path in findl(run.path) if filter(path)]
 
     @staticmethod
@@ -675,6 +677,12 @@ class Project(object):
             cwd=self.cwd,
             guild_home=self.guild_home,
             **kw)
+
+def _is_run_sourcecode(path):
+    return path.startswith(os.path.join(".guild", "sourcecode"))
+
+def _is_compiled_source(path):
+    return _is_run_sourcecode(path) and path.endswith(".pyc")
 
 class _MockConfig(object):
 

@@ -52,7 +52,8 @@ And the output when we provide a value for the message flag:
 
 Guild captures project source, which we can list using `runs info`:
 
-    >>> run("guild runs info --sourcecode")
+    >>> run("guild runs info --sourcecode",
+    ...     ignore=["__pycache__", "say.pyc"])
     id: ...
     operation: hello:from-flag
     from: .../examples/hello/guild.yml
