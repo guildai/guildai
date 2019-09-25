@@ -60,6 +60,7 @@ List files for latest run:
     >>> run("guild ls -a")
     ???/.guild/runs/...:
       .guild/
+      .guild/ENV
       .guild/STAGED
       .guild/attrs/
       .guild/attrs/cmd
@@ -77,7 +78,6 @@ List files for latest run:
       .guild/attrs/sourcecode_digest
       .guild/attrs/started
       .guild/attrs/user
-      .guild/env
       .guild/opref
       .guild/sourcecode/
       .guild/sourcecode/README.md
