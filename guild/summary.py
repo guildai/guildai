@@ -247,6 +247,7 @@ class OutputScalars(object):
                     log.debug("skipping %s because it's in ignore list", key)
                     continue
                 self._writer.add_scalar(key, val, self._step)
+                self._writer.flush()
 
     def close(self):
         self._writer.close()
