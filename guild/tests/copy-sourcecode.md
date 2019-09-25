@@ -672,9 +672,8 @@ Model enables all files to copy, operation disables source code copy:
 ## Source code for Python scripts
 
 When running a Python script, Guild generates a model proxy that is
-used to run the script. The proxy uses a special `sourcecode` spec
-that limits the source code copied to text files in the current
-directory.
+used to run the script. The proxy uses the default rules for copying
+source code.
 
 For our sample project, there is no sourcecode configuration for
 `hello.py`:
@@ -683,8 +682,7 @@ For our sample project, there is no sourcecode configuration for
     Traceback (most recent call last):
     KeyError: 'hello.py'
 
-The script model proxy adds an exclude '*' of type 'dir' to ensure
-that directories are not included in the copy.
+Here's the preview:
 
     >>> preview("hello.py")
     Copying from the current directory
@@ -694,17 +692,18 @@ that directories are not included in the copy.
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
       include text '*' (size < 1048577, max match 100)
-      exclude dir '*'
     Selected for copy:
       ./.gitattributes
       ./a.txt
       ./empty
       ./guild.yml
       ./hello.py
+      ./subdir/b.txt
     Skipped:
       ./hello.pyc
+      ./subdir/logo.png
 
-Here are the copied files:
+And the copied files:
 
     >>> run("hello.py")
     .gitattributes
@@ -712,3 +711,4 @@ Here are the copied files:
     empty
     guild.yml
     hello.py
+    subdir/b.txt

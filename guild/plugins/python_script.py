@@ -111,9 +111,7 @@ class PythonScriptModelProxy(object):
 
     @staticmethod
     def _sourcecode():
-        return [
-            {"exclude": {"dir": "*"}},
-        ]
+        return None
 
 class ImportedFlagsOpProxy(object):
 
