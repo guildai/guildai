@@ -79,6 +79,9 @@ def _popen_args(
         label=None,
         run_dir=None,
         restart=None,
+        stage=None,
+        stage_dir=None,
+        rerun=None,
         disable_plugins=None,
         batch_files=None,
         batch_label=None,
@@ -113,6 +116,12 @@ def _popen_args(
         args.append(spec)
     if restart:
         args.extend(["--restart", restart])
+    if stage:
+        args.append("--stage")
+    if stage_dir:
+        args.extend(["--stage-dir", stage_dir])
+    if rerun:
+        args.extend(["--rerun", rerun])
     if label:
         args.extend(['--label', label])
     if batch_label:
