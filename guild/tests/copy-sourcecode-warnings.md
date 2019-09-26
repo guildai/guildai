@@ -39,7 +39,9 @@ Here's a no-op script that we can run to test an operation:
 Let's run the no-op script using a project:
 
     >>> project = Project(project_dir)
-    >>> run, out = project.run_capture("no_op.py")
+    >>> run, out = project.run_capture(
+    ...     "no_op.py",
+    ...     extra_env={"PYTHONPATH": project_dir})
     >>> print(out)
     WARNING: Found more than 100 source code files but will only
     copy 100 as a safety measure. To control which source code
@@ -70,7 +72,9 @@ We can override this behavior with explicit Guild file config.
 
 Let's run the operation again:
 
-    >>> run, _out = project.run_capture("no_op.py")
+    >>> run, _out = project.run_capture(
+    ...     "no_op.py",
+    ...     extra_env={"PYTHONPATH": project_dir})
 
 And get the list of copied soure code files:
 
@@ -191,7 +195,9 @@ Our no_op operation:
 And a run:
 
     >>> project = Project(project_dir)
-    >>> run, out = project.run_capture("no_op.py")
+    >>> run, out = project.run_capture(
+    ...     "no_op.py",
+    ...     extra_env={"PYTHONPATH": project_dir})
     >>> print(out)
     WARNING: Found more than 100 source code files but will only
     copy 100 as a safety measure. To control which source code files

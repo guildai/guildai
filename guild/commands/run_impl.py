@@ -146,7 +146,7 @@ def _apply_existing_run(args):
 
 def _apply_rerun(args):
     run = _gen_apply_existing_run(args.rerun, args)
-    _change_cwd_for_guildfile_run(run)
+    _change_cwd_for_run(run)
     _run_action_msg("Rerunning", run, args)
     args.rerun = run.id
 
@@ -155,14 +155,15 @@ def _gen_apply_existing_run(run_id_part, args):
     _apply_run_args(run, args)
     return run
 
-def _change_cwd_for_guildfile_run(run):
-    """Changes Guild cwd if run is associated with a Guild file.
+def _change_cwd_for_run(run):
+    """Changes Guild cwd if run is associated with a local directory.
 
-    Used when a restart/start needs access to cwd Guild file.
+    Used when a restart/start needs access to a project Guild and to
+    resolve relative paths for opspecs.
     """
-    gf = run_util.run_guildfile(run)
-    if gf:
-        config.set_cwd(gf.dir)
+    project_dir = run_util.run_project_dir(run)
+    if project_dir:
+        config.set_cwd(project_dir)
 
 def _run_action_msg(action, run, args):
     if not args.quiet:
@@ -176,7 +177,7 @@ def _run_action_run_desc(run):
 
 def _apply_restart(args):
     run = _gen_apply_existing_run(args.restart, args)
-    _change_cwd_for_guildfile_run(run)
+    _change_cwd_for_run(run)
     if os.getenv("NO_RESTARTING_MSG") != "1":
         _run_action_msg("Starting", run, args)
     args.restart = run.id

@@ -566,6 +566,20 @@ def _run_sourcecode_paths():
     return [".guild/sourcecode"]
 
 def _model_paths(opdef):
+    """Returns the model paths for opdef.
+
+    Guild is moving to an isolation scheme that requires these paths
+    NOT be included in a run system path. When they are, it's possible
+    that the run sourcecode dir does not contain all of the required
+    code and these model paths are relied on to silently provide
+    what's missing.
+
+    At the moment, cross package inheritance relies on these
+    paths. Until multiple packages can be merged into a single
+    sourcecode tree (tricky considering they use multiple roots that
+    share a common path to guild.yml) we rely on these paths to
+    support that functionality.
+    """
     return op_util.opdef_model_paths(opdef)
 
 def _guild_paths():

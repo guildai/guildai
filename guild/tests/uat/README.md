@@ -211,6 +211,7 @@ And test the `keras` example.
 
 - [stage-and-run](stage-and-run.md)
 - [stage-and-run-queue](stage-and-run-queue.md)
+- [stage-and-modify-queue](stage-and-modify-queue.md)
 
 ## Packaging
 

@@ -574,7 +574,7 @@ Here are values for an empty op:
     GUILD_OP: model:op
     GUILD_PLUGINS: ...
     LOG_LEVEL: 20
-    PYTHONPATH: .guild/sourcecode:<cwd>/sample:...
+    PYTHONPATH: .guild/sourcecode:...
     SCRIPT_DIR:
     CMD_DIR: <cwd>
     MODEL_DIR: sample
@@ -585,7 +585,7 @@ Here are values for an empty op:
 `PYTHONPATH` can be prepended to using `python-path`.
 
     >>> opdef_env({"python-path": "foo"}, ["PYTHONPATH"])
-    PYTHONPATH: .guild/sourcecode:<cwd>/sample/foo:...
+    PYTHONPATH: .guild/sourcecode:...
 
 Additional env may be provided using `env`:
 

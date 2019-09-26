@@ -14,7 +14,7 @@ We'll work packages defined in the `cross-package-inherits` project:
 
 Package `a` represents the root of the package hierarchy.
 
-    >>> gf_a = guildfile.from_dir(join_path(projects, "a"))
+    >>> gf_a = guildfile.from_dir(path(projects, "a"))
 
     >>> gf_a.models
     {'model': <guild.guildfile.ModelDef 'model'>}
@@ -30,7 +30,7 @@ In order to load package `b`, we must include package `a` in the
 system path. Without including it, we get an error when we try to load
 `b`:
 
-    >>> gf_b = guildfile.from_dir(join_path(projects, "b"))
+    >>> gf_b = guildfile.from_dir(path(projects, "b"))
     Traceback (most recent call last):
     GuildfileReferenceError: error in
     .../samples/projects/cross-package-inherits/b/guild.yml: cannot
@@ -44,7 +44,7 @@ our projects directory as we load models:
 We can use the project sys path now to successfully load models:
 
     >>> with projects_sys_path:
-    ...    gf_b = guildfile.from_dir(join_path(projects, "b"))
+    ...   gf_b = guildfile.from_dir(path(projects, "b"))
 
 And the models:
 
@@ -59,7 +59,7 @@ Model `b` parents include the Guildfile defining `a`:
 Package `c` in turn defines a model that extends `b/model`.
 
     >>> with projects_sys_path:
-    ...     gf_c = guildfile.from_dir(join_path(projects, "c"))
+    ...   gf_c = guildfile.from_dir(path(projects, "c"))
 
     >>> gf_c.models
     {'model': <guild.guildfile.ModelDef 'model'>}
@@ -72,13 +72,13 @@ There are two additional packages, which extend one another, creating
 a cycle:
 
     >>> with projects_sys_path:
-    ...     guildfile.from_dir(join_path(projects, "cycle_a"))
+    ...   guildfile.from_dir(path(projects, "cycle_a"))
     Traceback (most recent call last):
     GuildfileCycleError: error in .../cross-package-inherits/cycle_a/guild.yml:
     cycle in 'extends' (cycle_b/model -> cycle_a/model -> cycle_b/model)
 
     >>> with projects_sys_path:
-    ...     guildfile.from_dir(join_path(projects, "cycle_b"))
+    ...   guildfile.from_dir(path(projects, "cycle_b"))
     Traceback (most recent call last):
     GuildfileCycleError: error in .../cross-package-inherits/cycle_b/guild.yml:
     cycle in 'extends' (cycle_a/model -> cycle_b/model -> cycle_a/model)
@@ -111,10 +111,10 @@ Let's run `a/model:test`.
 
     >>> output = gapi.run_capture_output(
     ...   "model:test",
-    ...   cwd=join_path(projects, "a"),
-    ...   run_dir=a_test_run_dir)
+    ...   cwd=path(projects, "a"),
+    ...   run_dir=a_test_run_dir,
+    ...   extra_env={"NO_WARN_RUNDIR": "1"})
     >>> print(output)
-    Run directory is '...' (results will not be visible to Guild)
     Resolving msg_file dependency
     Hello from a/model
     File from model/a
@@ -128,7 +128,7 @@ Next we'll run `b/model:test`:
     >>> try:
     ...   output = gapi.run_capture_output(
     ...     "model:test",
-    ...     cwd=join_path(projects, "b"),
+    ...     cwd=path(projects, "b"),
     ...     run_dir=b_test_run_dir)
     ... except gapi.RunError as e:
     ...   print(e.output)
@@ -148,11 +148,11 @@ system path:
 
     >>> output = gapi.run_capture_output(
     ...   "model:test",
-    ...   cwd=join_path(projects, "b"),
+    ...   cwd=path(projects, "b"),
     ...   run_dir=b_test_run_dir,
-    ...   extra_env={"PYTHONPATH": ".."})
+    ...   extra_env={"PYTHONPATH": "..",
+    ...              "NO_WARN_RUNDIR": "1"})
     >>> print(output)
-    Run directory is '...' (results will not be visible to Guild)
     Resolving msg_file dependency
     Hello from b/model
     File from model/a
@@ -166,11 +166,11 @@ Next we'll run `c/model:test`:
 
     >>> output = gapi.run_capture_output(
     ...   "model:test",
-    ...   cwd=join_path(projects, "c"),
+    ...   cwd=path(projects, "c"),
     ...   run_dir=c_test_run_dir,
-    ...   extra_env={"PYTHONPATH": ".."})
+    ...   extra_env={"PYTHONPATH": "..",
+    ...              "NO_WARN_RUNDIR": "1"})
     >>> print(output)
-    Run directory is '...' (results will not be visible to Guild)
     Resolving msg_file dependency
     Hello from c/model
     File from model/c

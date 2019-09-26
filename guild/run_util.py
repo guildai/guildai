@@ -375,6 +375,13 @@ def run_guildfile(run):
     except (guildfile.NoModels, guildfile.GuildfileMissing, TypeError):
         return None
 
+def run_project_dir(run):
+    if run.opref.pkg_type == "script":
+        return run.opref.pkg_name
+    else:
+        gf = run_guildfile(run)
+        return gf.dir if gf else None
+
 def _try_guildfile_opdef(gf, run):
     try:
         m = gf.models[run.opref.model_name]
