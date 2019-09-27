@@ -24,12 +24,6 @@ These tests expect Guild to be installed.
 - [install-test-deps](install-test-deps.md)
 - [guild-tests](guild-tests.md)
 
-## Command errors
-
-*Run commands with missing arguments and other errors.*
-
-- [command-errors](command-errors.md)
-
 ## Empty environment
 
 *Guild behavior without packages, models, or runs.*
@@ -244,8 +238,10 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 
 *Tests covering miscellaneous behavior.*
 
+- [command-errors](command-errors.md)
 - [alt-run-dir](alt-run-dir.md)
 - [diff](diff.md)
+- [guild-env](guild-env.md)
 
 ## Error cases
 

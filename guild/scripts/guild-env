@@ -4,13 +4,19 @@ _guild_env="$1"
 if [ -z "$_guild_env" ]; then
     if [ -e "bin/activate" ]; then
         _guild_env=.
-    else
+    elif [ -e "venv/bin/activate" ]; then
         _guild_env=./venv
+    elif [ -e "env/bin/activate" ]; then
+        _guild_env=./env
+    else
+        echo "guild-env: cannot find a Guild environment in the current directory"
+        echo "Try 'source guild-env PATH'."
+        return 1
     fi
 fi
 
 if [ ! -e "$_guild_env" ]; then
-    echo "Guild environment $_guild_env does not exist"
+    echo "guild-env: Guild environment $_guild_env does not exist"
     return 1
 fi
 
@@ -38,6 +44,6 @@ if [ -e "$_guild_env/bin/activate" ]; then
         echo
     fi
 else
-    "Could not find a Guild environment in $_guild_env"
+    echo "guild-env: cannot find a Guild environment in $_guild_env"
     return 1
 fi
