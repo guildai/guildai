@@ -1,6 +1,6 @@
 # Install TensorFlow
 
-    >>> quiet("pip install tensorflow")
+    >>> quiet("pip install tensorflow", timeout=120)
 
     >>> run("guild check --offline --tensorflow")
     guild_version:             ...
