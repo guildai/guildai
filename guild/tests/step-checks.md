@@ -56,7 +56,7 @@ Here's `_test-output-2`:
 This test checks for two outputs: 'hello' and 'car'. Let's run it:
 
     >>> project.run("_test-output-2")
-    INFO: [guild] running gen-output: gen-output 'msg=hello car'
+    INFO: [guild] running gen-output: gen-output msg='hello car'
     hello car
     INFO: [guild] checking run ... output for 'hello'
     INFO: [guild] checking run ... output for 'car'
@@ -72,7 +72,7 @@ This test checks for two outputs: 'hello' and 'car'. Let's run it:
 And its result:
 
     >>> project.run("_test-file-1")
-    INFO: [guild] running gen-files: gen-files count=1 'msg=hello bus'
+    INFO: [guild] running gen-files: gen-files count=1 msg='hello bus'
     Resolving file:sample.txt dependency
     INFO: [guild] checking run ... files 'file-1'
     INFO: [guild] checking run ... file file-1 for 'hello bus'
@@ -109,13 +109,13 @@ does this:
     INFO: [guild] checking run ... output for 'hi'
     INFO: [guild] 1 of 1 checks passed
     INFO: [guild] running _test-output-2: _test-output-2
-    INFO: [guild] running gen-output: gen-output 'msg=hello car'
+    INFO: [guild] running gen-output: gen-output msg='hello car'
     hello car
     INFO: [guild] checking run ... output for 'hello'
     INFO: [guild] checking run ... output for 'car'
     INFO: [guild] 2 of 2 checks passed
     INFO: [guild] running _test-file-1: _test-file-1
-    INFO: [guild] running gen-files: gen-files count=1 'msg=hello bus'
+    INFO: [guild] running gen-files: gen-files count=1 msg='hello bus'
     Resolving file:sample.txt dependency
     INFO: [guild] checking run ... files 'file-1'
     INFO: [guild] checking run ... file file-1 for 'hello bus'

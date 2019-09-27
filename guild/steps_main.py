@@ -352,7 +352,7 @@ def _format_step_cmd(cmd):
         "--force-flags",
         "--run-dir"
     ], cmd
-    return " ".join([util.shlex_quote(arg) for arg in cmd[7:]])
+    return " ".join([arg for arg in cmd[8:]])
 
 def _maybe_check_step_run(step, run):
     if not step.checks:
