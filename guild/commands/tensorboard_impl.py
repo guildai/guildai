@@ -44,7 +44,7 @@ def main(args):
                 host=(args.host or "0.0.0.0"),
                 port=(args.port or util.free_port()),
                 reload_interval=args.refresh_interval,
-                ready_cb=(_open_url if not args.no_open else None))
+                ready_cb=_open_cb(args))
         except tensorboard.TensorboardError as e:
             cli.error(str(e))
         finally:
@@ -65,5 +65,11 @@ def _list_runs_cb(args):
 def _remove_batch_runs(runs):
     return [run for run in runs if not batch_util.is_batch(run)]
 
-def _open_url(url):
-    util.open_url(url)
+def _open_cb(args):
+    if args.no_open:
+        return None
+    def f(url):
+        if args.tab:
+            url += "#" + args.tab
+        util.open_url(url)
+    return f

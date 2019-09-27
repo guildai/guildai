@@ -37,6 +37,9 @@ from . import server_support
     "-n", "--no-open",
     help="Don't open TensorBoard in a browser.",
     is_flag=True)
+@click.option(
+    "--tab", metavar="TAB",
+    help="Open with an initially selected tab.")
 @runs_support.all_filters
 @click.option("--keep-logdir", is_flag=True, hidden=True)
 

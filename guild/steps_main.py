@@ -29,48 +29,44 @@ import guild.opref
 import guild.run
 
 from guild import exit_code
+from guild import flag_util
 from guild import op_util
 from guild import run_check
 from guild import util
 
 log = None # intialized in _init_logging
 
+STEP_USED_PARAMS = (
+    "disable_plugins",
+    "flags",
+    "gpus",
+    "label",
+    "max_trials",
+    "needed",
+    "no_gpus",
+    "opspec",
+    "opt_flags",
+    "optimizer",
+    "random_seed",
+    "stop_after",
+)
+
 class Step(object):
 
-    used_params = (
-        "disable_plugins",
-        "flags",
-        "gpus",
-        "label",
-        "max_trials",
-        "needed",
-        "no_gpus",
-        "opspec",
-        "opt_flags",
-        "optimizer",
-        "random_seed",
-        "stop_after",
-    )
-
     def __init__(self, data, parent_flags, parent_opref):
-        if isinstance(data, six.string_types):
-            data = {
-                "run": data
-            }
-        if not isinstance(data, dict):
-            _error("invalid step data: %r" % data)
-        params = self._parse_run(data)
+        data = _coerce_step_data(data)
+        params = _parse_run(data)
         assert params["opspec"], params
         opspec_param = params["opspec"]
-        self.op_spec = self._apply_default_model(opspec_param, parent_opref)
+        self.op_spec = _apply_default_model(opspec_param, parent_opref)
         self.name = data.get("name") or opspec_param
-        self.batch_files, flag_args = self._split_batch_files(params["flags"])
-        self.flags = self._init_flags(flag_args, parent_flags)
-        self.checks = self._init_checks(data)
-        self.label = self._resolve_param(params, "label", parent_flags)
-        self.disable_plugins = self._resolve_param(
+        self.batch_files, flag_args = _split_batch_files(params["flags"])
+        self.flags = _init_flags(flag_args, parent_flags)
+        self.checks = _init_checks(data)
+        self.label = _resolve_param(params, "label", parent_flags)
+        self.disable_plugins = _resolve_param(
             params, "disable_plugins", parent_flags)
-        self.gpus = self._resolve_param(params, "gpus", parent_flags)
+        self.gpus = _resolve_param(params, "gpus", parent_flags)
         self.no_gpus = params["no_gpus"]
         self.stop_after = params["stop_after"]
         self.needed = params["needed"]
@@ -79,106 +75,127 @@ class Step(object):
         self.max_trials = params["max_trials"]
         self.random_seed = params["random_seed"]
 
-    def _parse_run(self, data):
-        from guild.commands.run import run as run_cmd
-        run_spec = data.get("run", "").strip()
-        if not run_spec:
-            _error("invalid step %r: must define run" % data)
-        args = util.shlex_split(run_spec)
-        try:
-            ctx = run_cmd.make_context("run", args)
-        except click.exceptions.ClickException as e:
-            _error("invalid run spec %r: %s" % (run_spec, e))
-        else:
-            self._apply_data_params(data, ctx, run_spec)
-            return ctx.params
-
-    def _apply_data_params(self, data, ctx, run_spec):
-        """Apply applicable data to params.
-
-        Warns if params contains unused values.
-        """
-        defaults = {p.name: p.default for p in ctx.command.params}
-        for name, val in sorted(ctx.params.items()):
-            if name in self.used_params:
-                data_name = name.replace("_", "-")
-                try:
-                    data_val = data[data_name]
-                except KeyError:
-                    pass
-                else:
-                    if data_val != defaults[name]:
-                        ctx.params[name] = data_val
-            else:
-                if val != defaults[name]:
-                    log.warning(
-                        "run parameter %s used in %r ignored",
-                        name, run_spec)
-
-    @staticmethod
-    def _apply_default_model(step_opspec, parent_opref):
-        step_opref = guild.opref.OpRef.from_string(step_opspec)
-        if not step_opref.model_name:
-            step_opref = guild.opref.OpRef(
-                step_opref.pkg_type,
-                step_opref.pkg_name,
-                step_opref.pkg_version,
-                parent_opref.model_name,
-                step_opref.op_name)
-        return step_opref.to_opspec()
-
-    @staticmethod
-    def _split_batch_files(flag_args):
-        from guild.commands import run_impl
-        return run_impl.split_batch_files(flag_args)
-
-    def _init_flags(self, flag_args, parent_flags):
-        try:
-            parsed = op_util.parse_flag_assigns(flag_args)
-        except op_util.ArgValueError as e:
-            _error("invalid argument '%s' - expected NAME=VAL" % e.arg)
-        else:
-            resolved = self._resolve_flag_vals(parsed, parent_flags)
-            return self._remove_undefined_flags(resolved)
-
-    @staticmethod
-    def _resolve_flag_vals(flags, parent_flags):
-        return {
-            name: util.resolve_refs(val, parent_flags)
-            for name, val in flags.items()
-        }
-
-    @staticmethod
-    def _remove_undefined_flags(flag_vals):
-        return {
-            name: val for name, val in flag_vals.items()
-            if val is not None
-        }
-
-    @staticmethod
-    def _resolve_param(params, name, flags):
-        resolved = util.resolve_refs(params[name], flags)
-        if resolved is None:
-            return resolved
-        return str(resolved)
-
-    @staticmethod
-    def _init_checks(data):
-        expect = data.get("expect") or []
-        if not isinstance(expect, list):
-            expect = [expect]
-        checks = []
-        for check_data in expect:
-            try:
-                check = run_check.init_check(check_data)
-            except ValueError as e:
-                log.warning("invalid check %r: %e", data, e)
-            else:
-                checks.append(check)
-        return checks
-
     def __str__(self):
         return self.name or self.op_spec
+
+def _coerce_step_data(data):
+    if isinstance(data, six.string_types):
+        data = {
+            "run": data
+        }
+    elif isinstance(data, dict):
+        data = dict(data)
+    else:
+        _error("invalid step data: %r" % data)
+    if "flags" in data:
+        data["flags"] = _coerce_flags_data(data["flags"])
+    return data
+
+def _coerce_flags_data(data):
+    if isinstance(data, list):
+        return data
+    elif isinstance(data, dict):
+        return flag_util.format_flags(data)
+    else:
+        _error("invalid flags value %r" % data)
+
+def _parse_run(data):
+    from guild.commands.run import run as run_cmd
+    run_spec = data.get("run", "").strip()
+    if not run_spec:
+        _error("invalid step %r: must define run" % data)
+    args = util.shlex_split(run_spec)
+    try:
+        ctx = run_cmd.make_context("run", args)
+    except click.exceptions.ClickException as e:
+        _error("invalid run spec %r: %s" % (run_spec, e))
+    else:
+        _apply_data_params(data, ctx, run_spec)
+        return ctx.params
+
+def _apply_data_params(data, ctx, run_spec):
+    """Apply applicable data to params.
+
+    Warns if params contains unused values.
+    """
+    defaults = {p.name: p.default for p in ctx.command.params}
+    for name, val in sorted(ctx.params.items()):
+        if name in STEP_USED_PARAMS:
+            data_name = name.replace("_", "-")
+            try:
+                data_val = data[data_name]
+            except KeyError:
+                pass
+            else:
+                if data_val != defaults[name]:
+                    ctx.params[name] = data_val
+        else:
+            if val != defaults[name]:
+                log.warning(
+                    "run parameter %s used in %r ignored",
+                    name, run_spec)
+
+def _init_flags(flag_args, parent_flag_vals):
+    flag_vals = _parse_flag_assigns(flag_args)
+    resolved = _resolve_flag_vals(flag_vals, parent_flag_vals)
+    return _remove_undefined_flags(resolved)
+
+def _parse_flag_assigns(assigns):
+    assert isinstance(assigns, list), assigns
+    try:
+        return op_util.parse_flag_assigns(assigns)
+    except op_util.ArgValueError as e:
+        _error("invalid argument '%s' - expected NAME=VAL" % e.arg)
+
+def _format_flag_args(data):
+    return flag_util.format_flags(data)
+
+def _apply_default_model(step_opspec, parent_opref):
+    step_opref = guild.opref.OpRef.from_string(step_opspec)
+    if not step_opref.model_name:
+        step_opref = guild.opref.OpRef(
+            step_opref.pkg_type,
+            step_opref.pkg_name,
+            step_opref.pkg_version,
+            parent_opref.model_name,
+            step_opref.op_name)
+    return step_opref.to_opspec()
+
+def _split_batch_files(flag_args):
+    from guild.commands import run_impl
+    return run_impl.split_batch_files(flag_args)
+
+def _resolve_flag_vals(flags, parent_flags):
+    return {
+        name: util.resolve_refs(val, parent_flags)
+        for name, val in flags.items()
+    }
+
+def _remove_undefined_flags(flag_vals):
+    return {
+        name: val for name, val in flag_vals.items()
+        if val is not None
+    }
+
+def _resolve_param(params, name, flags):
+    resolved = util.resolve_refs(params[name], flags)
+    if resolved is None:
+        return resolved
+    return str(resolved)
+
+def _init_checks(data):
+    expect = data.get("expect") or []
+    if not isinstance(expect, list):
+        expect = [expect]
+    checks = []
+    for check_data in expect:
+        try:
+            check = run_check.init_check(check_data)
+        except ValueError as e:
+            log.warning("invalid check %r: %e", data, e)
+        else:
+            checks.append(check)
+    return checks
 
 def main():
     _init_logging()
@@ -282,12 +299,7 @@ def _step_batch_file_args(step):
     return ["@%s" % file for file in step.batch_files]
 
 def _step_flag_args(step):
-    if not step.flags:
-        return []
-    return [
-        "%s=%s" % (name, val)
-        for name, val in sorted(step.flags.items())
-    ]
+    return flag_util.format_flags(step.flags)
 
 def _link_to_step_run(step, step_run_dir, parent_run_dir):
     link_name = _step_link_name(step)
@@ -309,13 +321,16 @@ def _ensure_unique_link(path_base):
         v += 1
 
 def _format_step_cmd(cmd):
-    from six.moves import shlex_quote
     # Just show opspec on - assert front matter to catch changes to cmd.
     assert cmd[0:6] == [
-        sys.executable, "-um", "guild.main_bootstrap",
-        "run", "-y", "--run-dir"
+        sys.executable,
+        "-um",
+        "guild.main_bootstrap",
+        "run",
+        "-y",
+        "--run-dir"
     ], cmd
-    return " ".join([shlex_quote(arg) for arg in cmd[7:]])
+    return " ".join([util.shlex_quote(arg) for arg in cmd[7:]])
 
 def _maybe_check_step_run(step, run):
     if not step.checks:
