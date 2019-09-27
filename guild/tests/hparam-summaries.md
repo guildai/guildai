@@ -45,13 +45,14 @@ Because '...' will match multiple lines, we assert the file count.
 
     >>> files = findl(logdir)
     >>> len(files), files
-    (2, ...)
+    (3, ...)
 
 And the files:
 
     >>> files
     ['... echo.py ... x_flag=1.123/.guild/events.out.tfevents.0000000000.hparams',
-     '... echo.py ... x_flag=1.123/.guild/events.out.tfevents...']
+     '... echo.py ... x_flag=1.123/.guild/events.out.tfevents...',
+     '... echo.py ... x_flag=1.123/.guild/events.out.tfevents.9999999999.time']
 
 The first file contains the hparam experiment and session info.
 

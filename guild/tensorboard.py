@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import glob
 import hashlib
 import logging
 import os
@@ -105,13 +106,16 @@ def _experiment_hparams(runs):
     return hparams
 
 def _experiment_metrics(runs):
-    metrics = set()
+    metrics = set(["time"])
     for run in runs:
         metrics.update(_run_metric_tags(run))
     return metrics
 
 def _run_metric_tags(run):
-    return _run_compare_metrics(run) or _run_root_scalars(run)
+    return (
+        _run_compare_metrics(run) or
+        _run_root_scalars(run)
+    )
 
 def _run_compare_metrics(run):
     compare_specs = run_util.latest_compare(run)
@@ -157,6 +161,7 @@ def _refresh_run_cb(state):
 def _refresh_run(run, run_logdir, state):
     _refresh_tfevent_links(run, run_logdir, state)
     _refresh_image_summaries(run, run_logdir, state)
+    _maybe_time_metric(run, run_logdir)
 
 def _refresh_tfevent_links(run, run_logdir, state):
     for tfevent_path in _iter_tfevents(run.dir):
@@ -215,7 +220,12 @@ def _refresh_image_summaries(run, run_logdir, state):
         if _image_updated_since_summary(path, tfevent_path):
             util.ensure_dir(images_logdir)
             with _image_writer(images_logdir, img_path_digest) as writer:
-                writer.add_image(relpath, path)
+                try:
+                    writer.add_image(relpath, path)
+                except Exception as e:
+                    if log.getEffectiveLevel() <= logging.DEBUG:
+                        log.exception("adding image %s", path)
+                    log.error("error adding image %s: %s", path, e)
 
 def _iter_images(top):
     for root, _dir, names in os.walk(top):
@@ -269,6 +279,44 @@ def _next_tfevent_timestamp(dir):
         if m:
             cur = max(cur, int(m.group(1)))
     return cur + 1
+
+def _maybe_time_metric(run, run_logdir):
+    time = _run_time(run)
+    if time is not None:
+        # Write time metric alongside hparams logs
+        for logdir in _iter_hparams_logdirs(run_logdir):
+            _ensure_time_metric(logdir, time)
+
+def _iter_hparams_logdirs(top):
+    for path in _iter_tfevents(top):
+        if path.endswith(".hparams"):
+            yield os.path.dirname(path)
+
+def _ensure_time_metric(logdir, time):
+    if not _time_metric_exists(logdir):
+        _init_time_metric(logdir, time)
+
+def _metrics_logdir(run_logdir):
+    return os.path.join(run_logdir, ".guild")
+
+def _time_metric_exists(logdir):
+    return bool(glob.glob(os.path.join(logdir, "*.time")))
+
+def _init_time_metric(logdir, time):
+    with _time_metric_writer(logdir) as writer:
+        writer.add_scalar("time", time)
+
+def _time_metric_writer(logdir):
+    return summary.SummaryWriter(logdir, filename_base="9999999999.time")
+
+def _run_time(run):
+    stopped = run.get("stopped")
+    if stopped is None:
+        return None
+    started = run.get("started")
+    if started is None:
+        return None
+    return (stopped - started) / 1000000
 
 def create_app(logdir, reload_interval, path_prefix=""):
     with warnings.catch_warnings():
