@@ -27,6 +27,7 @@ def runs_stop_params(fn):
         runs_support.runs_arg,
         runs_support.op_and_label_filters,
         runs_support.time_filters,
+        runs_support.sourcecode_digest_filters,
         remote_support.remote_option("Stop remote runs."),
         click.Option(
             ("-y", "--yes"),

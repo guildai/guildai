@@ -46,5 +46,4 @@ Run a queue once:
     Hello v1
     INFO: [queue] ... Starting staged run ...
     Hello v2
-    INFO: [queue] ... Waiting for staged runs
     <exit 0>

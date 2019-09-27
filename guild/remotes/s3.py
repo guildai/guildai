@@ -376,7 +376,7 @@ class S3Remote(remotelib.Remote):
     def one_run(self, run_id_prefix, attrs):
         raise NotImplementedError("TODO")
 
-    def run_op(self, opspec, flags, restart, no_wait, **opts):
+    def run_op(self, opspec, flags, restart, no_wait, stage, **opts):
         raise remotelib.OperationNotSupported()
 
     def watch_run(self, **opts):

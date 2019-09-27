@@ -159,6 +159,7 @@ def _run_kw(args):
         "opspec",
         "random_seed",
         "restart",
+        "stage",
         "stop_after",
     ]
     ignore = [
@@ -176,8 +177,6 @@ def _run_kw(args):
         "run_dir",
         "save_trials",
         "set_trace",
-        "stage",
-        "stage_dir",
         "start",
         "test_output_scalars",
         "test_sourcecode",
@@ -202,6 +201,7 @@ def watch_run(args):
 
 def _watch_run_kw(args):
     names = [
+        "digest",
         "ops",
         "pid",
         "labels",
@@ -285,6 +285,7 @@ def stop_runs(args):
 
 def _stop_runs_kw(args):
     names = [
+        "digest",
         "labels",
         "marked",
         "no_wait",

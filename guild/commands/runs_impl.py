@@ -585,6 +585,8 @@ def _print_run_info(run, args):
         out("%s: %s" % (name, fmt_run[name]))
     for name in other_attr_names(run, args.private_attrs):
         out("%s: %s" % (name, run_util.format_attr(run.get(name))))
+    if args.private_attrs:
+        out("opref: %s" % str(run.opref))
     out("flags:", nl=False)
     out(run_util.format_attr(run.get("flags", "")).rstrip())
     _maybe_print_proto_flags(run, out)

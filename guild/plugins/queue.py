@@ -50,11 +50,6 @@ ignore-running:
   default: no
   arg-switch: yes
   type: boolean
-lifo:
-  description: Start staged in LIFO order (most recently staged first)
-  default: no
-  arg-switch: yes
-  type: boolean
 """)
 
 class QueueModelProxy(object):

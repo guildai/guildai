@@ -44,29 +44,28 @@ View the list of staged runs:
 
 Run `queue` once:
 
-    >>> run("guild run queue run-once=yes lifo=yes -y")
+    >>> run("guild run queue run-once=yes -y")
     INFO: [queue] ... Starting staged run ...
-    x: 6.100000
-    noise: 0
+    x: 5.000000
+    noise: 0.1
     loss: ...
     INFO: [queue] ... Starting staged run ...
     x: 6.000000
     noise: 0.1
     loss: ...
     INFO: [queue] ... Starting staged run ...
-    x: 5.000000
-    noise: 0.1
+    x: 6.100000
+    noise: 0
     loss: ...
-    INFO: [queue] ... Waiting for staged runs
     <exit 0>
 
 List runs:
 
     >>> run("guild runs")
-    [1:...]  noisy.py  ...  completed  x is 5
+    [1:...]  noisy.py  ...  completed  x is 6.1
     [2:...]  noisy.py  ...  completed  x=6
-    [3:...]  noisy.py  ...  completed  x is 6.1
-    [4:...]  queue     ...  completed  lifo=yes run-once=yes
+    [3:...]  noisy.py  ...  completed  x is 5
+    [4:...]  queue     ...  completed  run-once=yes
     <exit 0>
 
 Stage another run. We want to test the queue being run from another
@@ -85,5 +84,4 @@ Start the queue from the workspace root.
     x: 7.000000
     noise: 0.1
     loss: ...
-    INFO: [queue] ... Waiting for staged runs
     <exit 0>

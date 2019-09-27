@@ -151,13 +151,20 @@ class SSHRemote(remotelib.Remote):
             port=self.port)
         sys.stdout.write("%s (%s) is available\n" % (self.name, self.host))
 
-    def run_op(self, opspec, flags, restart, no_wait, **opts):
+    def run_op(self, opspec, flags, restart, no_wait, stage, **opts):
         with util.TempDir(prefix="guild-remote-pkg-") as tmp:
-            _build_package(tmp.path)
+            if not restart:
+                _build_package(tmp.path)
             remote_run_dir = self._init_remote_run(tmp.path, opspec, restart)
-        self._start_op(remote_run_dir, opspec, flags, **opts)
         run_id = os.path.basename(remote_run_dir)
-        if no_wait:
+        self._start_op(remote_run_dir, opspec, flags, run_id, stage, **opts)
+        if stage:
+            log.info("%s is staged as on %s as %s", opspec, self.name, run_id)
+            log.info(
+                "To run the operation, use 'guild run -r %s --start %s'",
+                self.name, run_id[:8])
+
+        if no_wait or stage:
             return run_id
         try:
             self._watch_started_op(remote_run_dir)
@@ -168,8 +175,9 @@ class SSHRemote(remotelib.Remote):
 
     def _init_remote_run(self, package_dist_dir, opspec, restart):
         remote_run_dir = self._init_remote_run_dir(opspec, restart)
-        self._copy_package_dist(package_dist_dir, remote_run_dir)
-        self._install_job_package(remote_run_dir)
+        if not restart:
+            self._copy_package_dist(package_dist_dir, remote_run_dir)
+            self._install_job_package(remote_run_dir)
         return remote_run_dir
 
     def _init_remote_run_dir(self, opspec, restart_run_id):
@@ -184,11 +192,8 @@ class SSHRemote(remotelib.Remote):
             "set -e; "
             "test ! -e {run_dir}/.guild/LOCK || exit 3; "
             "touch {run_dir}/.guild/PENDING; "
-            "echo \"$(date +%s)000000\" > {run_dir}/.guild/attrs/started; "
-            "rm -rf {run_dir}/.guild/job-packages; "
-            "mkdir {run_dir}/.guild/job-packages"
-            .format(run_dir=run_dir)
-        )
+            "echo \"$(date +%s)000000\" > {run_dir}/.guild/attrs/started"
+            .format(run_dir=run_dir))
         log.info("Initializing remote run for restart")
         try:
             self._ssh_cmd(cmd)
@@ -251,16 +256,23 @@ class SSHRemote(remotelib.Remote):
         else:
             return ""
 
-    def _start_op(self, remote_run_dir, opspec, flags, **opts):
+    def _start_op(self, remote_run_dir, opspec, flags, run_id, stage, **opts):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(
             "export PYTHONPATH=$(realpath {run_dir})/.guild/job-packages"
             ":$PYTHONPATH"
             .format(run_dir=remote_run_dir))
-        cmd_lines.append(_remote_run_cmd(remote_run_dir, opspec, flags, **opts))
+        cmd_lines.append("export NO_STAGED_MSG=1")
+        cmd_lines.append(_remote_run_cmd(
+            remote_run_dir=remote_run_dir,
+            opspec=opspec,
+            op_flags=flags,
+            stage=stage,
+            **opts))
         cmd = "; ".join(cmd_lines)
-        log.info("Starting remote operation")
+        if not stage:
+            log.info("Starting %s on %s as %s", opspec, self.name, run_id)
         self._ssh_cmd(cmd)
 
     def _watch_started_op(self, remote_run_dir):
@@ -340,7 +352,7 @@ class SSHRemote(remotelib.Remote):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(
-            "guild runs info %s --flags --private-attrs"
+            "guild runs info %s --private-attrs"
             % q(run_id_prefix))
         cmd = "; ".join(cmd_lines)
         out = self._ssh_output(cmd)
@@ -348,7 +360,8 @@ class SSHRemote(remotelib.Remote):
 
     @staticmethod
     def _run_data_from_yaml(s):
-        data = yaml.load(s)
+        s = s.replace(": ?", ": '?'")
+        data = yaml.safe_load(s)
         data["flags"] = data.get("flags") or {}
         return data
 
@@ -477,7 +490,7 @@ def _remote_run_cmd(
         disable_plugins, gpus, no_gpus, force_flags,
         needed, stop_after, optimize, optimizer, opt_flags,
         minimize, maximize, random_seed, max_trials,
-        init_trials):
+        init_trials, stage):
     cmd = [
         "NO_WARN_RUNDIR=1",
         "guild", "run", q(opspec),
@@ -518,12 +531,14 @@ def _remote_run_cmd(
         cmd.extend(["--max-trials", max_trials])
     if init_trials:
         cmd.append("--init-trials")
+    if stage:
+        cmd.append("--stage")
     cmd.extend([q(arg) for arg in op_flags])
     return " ".join(cmd)
 
 def _watch_run_args(
         run, ops, pid, labels, unlabeled, marked, unmarked,
-        started):
+        started, digest):
     if pid:
         # Ignore other opts if pid is specified
         return ["--pid", pid]
@@ -540,6 +555,8 @@ def _watch_run_args(
         args.append("--unmarked")
     if started:
         args.extend(["--started", started])
+    if digest:
+        args.extend(["--digest", digest])
     if run:
         args.append(run)
     return args
@@ -591,7 +608,7 @@ def _check_args(tensorflow, verbose, offline):
 
 def _stop_runs_args(
         runs, ops, labels, unlabeled, no_wait, marked, unmarked,
-        started, yes):
+        started, yes, digest):
     args = []
     for op in ops:
         args.extend(["-o", q(op)])
@@ -609,6 +626,8 @@ def _stop_runs_args(
         args.append("--unmarked")
     if started:
         args.extend(["--selected", started])
+    if digest:
+        args.extend(["--digest", digest])
     args.extend(runs)
     return args
 

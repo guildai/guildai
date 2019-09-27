@@ -241,7 +241,7 @@ def _format_builtin_op(opref):
     return opref.op_name
 
 def _format_pending_op(opref):
-    return "<pending %s>" % opref.op_name
+    return opref.op_name
 
 def _format_test_op(opref):
     return "%s:%s" % (opref.model_name, opref.op_name)
@@ -251,13 +251,7 @@ def _format_func_op(opref):
 
 def _apply_batch_desc(base_desc, run, seen_protos):
     import guild.run
-    try:
-        proto_dir = run.guild_path("proto")
-    except TypeError:
-        # Occurs for run proxies that don't support guild_path - punt
-        # with generic descriptor. (TODO: implement explicit behavior
-        # in run interface + proxy)
-        proto_dir = ""
+    proto_dir = _safe_guild_path(run, "proto", "")
     if not os.path.exists(proto_dir):
         return base_desc
     if proto_dir in seen_protos:
@@ -270,6 +264,18 @@ def _apply_batch_desc(base_desc, run, seen_protos):
         parts.append("+")
     parts.append(base_desc)
     return "".join(parts)
+
+def _safe_guild_path(run, path, default):
+    try:
+        return run.guild_path(path)
+    except TypeError:
+        # Occurs for run proxies that don't support guild_path - punt
+        # with generic descriptor. (TODO: implement explicit behavior
+        # in run interface + proxy)
+        return default
+
+def is_batch(run):
+    return os.path.exists(run.guild_path("proto"))
 
 def shorten_op_dir(op_dir, cwd):
     return util.shorten_dir(_format_op_dir(op_dir, cwd))

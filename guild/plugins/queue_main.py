@@ -29,7 +29,6 @@ logging.basicConfig(
     format="%(levelname)s: [%(name)s] %(asctime)s %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S")
 
-
 log = logging.getLogger("queue")
 
 class _State(object):
@@ -53,7 +52,6 @@ def _parse_args():
     p.add_argument("--poll-interval", type=int, default=10)
     p.add_argument("--run-once", action="store_true")
     p.add_argument("--ignore-running", action="store_true")
-    p.add_argument("--lifo", action="store_true")
     return p.parse_args()
 
 def run_once(args):
@@ -61,23 +59,14 @@ def run_once(args):
 
 def poll(args):
     state = _State(args)
-    log.info("Processing staged runs in %s order", _order_desc(state))
-    log.info("Waiting for staged runs")
-    state.logged_waiting = True
     util.loop(
         lambda: _run_staged(state),
         time.sleep,
         args.poll_interval,
         0)
 
-def _order_desc(state):
-    if state.lifo:
-        return "LIFO"
-    else:
-        return "FIFO"
-
 def _run_staged(state):
-    for run in _staged_runs(state):
+    for run in _staged_runs():
         if not state.ignore_running:
             running = _running(state)
             if running:
@@ -97,19 +86,14 @@ def _run_staged(state):
         state.waiting.clear()
         state.logged_waiting = False
     if not state.logged_waiting:
-        log.info("Waiting for staged runs")
+        if not state.run_once:
+            log.info("Waiting for staged runs")
         state.logged_waiting = True
 
-def _staged_runs(state):
+def _staged_runs():
     return var.runs(
-        sort=_staged_sort(state),
+        sort=["timestamp"],
         filter=var.run_filter("attr", "status", "staged"))
-
-def _staged_sort(state):
-    if state.lifo:
-        return ["-timestamp"]
-    else:
-        return ["timestamp"]
 
 def _running(state):
     running = var.runs(filter=var.run_filter("attr", "status", "running"))
@@ -119,7 +103,11 @@ def _runs_desc(runs):
     return ", ".join([run.short_id for run in runs])
 
 def _run(run):
-    gapi.run(restart=run.id, extra_env={"NO_RESTARTING_MSG": "1"})
+    env = {
+        "NO_RESTARTING_MSG": "1",
+        "PYTHONPATH": run.guild_path("job-packages"),
+    }
+    gapi.run(restart=run.id, extra_env=env)
 
 if __name__ == "__main__":
     main()

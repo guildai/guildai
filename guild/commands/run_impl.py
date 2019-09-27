@@ -96,21 +96,9 @@ def _validate_args(args):
         cli.error(
             "--start and --run-dir cannot both be used\n"
             "Try 'guild run --help' for more information")
-    if args.run_dir and args.stage:
-        cli.error(
-            "--stage and --run-dir cannot both be used\n"
-            "Try 'guild run --help' for more information")
     if args.run_dir and args.restage:
         cli.error(
             "--restage and --run-dir cannot both be used\n"
-            "Try 'guild run --help' for more information")
-    if args.run_dir and args.stage_dir:
-        cli.error(
-            "--stage-dir and --run-dir cannot both be used\n"
-            "Try 'guild run --help' for more information")
-    if args.stage and args.stage_dir:
-        cli.error(
-            "--stage and --stage-dir cannot both be used\n"
             "Try 'guild run --help' for more information")
     if args.no_gpus and args.gpus is not None:
         cli.error(
@@ -152,7 +140,8 @@ def _apply_rerun(args):
 
 def _gen_apply_existing_run(run_id_part, args):
     run = _find_run(run_id_part, args)
-    _apply_run_args(run, args)
+    if not args.remote:
+        _apply_run_args(run, args)
     return run
 
 def _change_cwd_for_run(run):
@@ -177,9 +166,10 @@ def _run_action_run_desc(run):
 
 def _apply_restart(args):
     run = _gen_apply_existing_run(args.restart, args)
-    _change_cwd_for_run(run)
-    if os.getenv("NO_RESTARTING_MSG") != "1":
-        _run_action_msg("Starting", run, args)
+    if not args.remote:
+        _change_cwd_for_run(run)
+        if os.getenv("NO_RESTARTING_MSG") != "1":
+            _run_action_msg("Starting", run, args)
     args.restart = run.id
     args._restart_run = run
 
@@ -225,13 +215,10 @@ def _apply_run_args(run, args):
 
     Used to sync args with run when restarting or rerunning it.
     """
-    if _is_batch_run(run):
+    if run_util.is_batch(run):
         _apply_batch_proto_args(run, args)
     else:
         _gen_apply_run_args(run, args)
-
-def _is_batch_run(run):
-    return os.path.exists(run.guild_path("proto"))
 
 def _apply_batch_proto_args(batch_run, args):
     proto_path = batch_run.guild_path("proto")
@@ -645,7 +632,7 @@ def _run_flags_changed(run, flags):
     return run.get("flags") != flags
 
 def _staged_op(args):
-    return bool(args.stage or args.stage_dir or args.restage)
+    return bool(args.stage or args.restage)
 
 def _split_flag_args(flag_args):
     batch_files, rest_args = split_batch_files(flag_args)
@@ -842,8 +829,6 @@ def _op_run_dir(args):
     elif args.restage:
         assert hasattr(args, "_restage_run")
         return args._restage_run.path
-    elif args.stage_dir:
-        return os.path.abspath(args.stage_dir)
     else:
         return None
 
@@ -1449,7 +1434,7 @@ def _handle_process_error(e):
     cli.error("run failed: %s" % e)
 
 def _handle_run_exit(returncode, op, args):
-    if op.stage_only:
+    if op.stage_only and os.getenv("NO_STAGED_MSG") != "1":
         _print_staged_info(op, args)
     if args.init_trials:
         op.set_pending()
@@ -1457,20 +1442,10 @@ def _handle_run_exit(returncode, op, args):
         cli.error(exit_status=returncode)
 
 def _print_staged_info(op, args):
-    if args.stage or args.restage:
-        _print_stage_pending_instructions(op)
-    elif args.stage_dir:
+    if args.run_dir:
         _print_staged_dir_instructions(op)
-
-def _print_stage_pending_instructions(op):
-    run_id = op.run_id
-    cli.out(
-        "{op} is staged as {run_id}\n"
-        "To run the operation, use 'guild run --start {short_id}'"
-        .format(
-            op=op.opdef.fullname,
-            run_id=run_id,
-            short_id=run_id[:8]))
+    else:
+        _print_stage_pending_instructions(op)
 
 def _print_staged_dir_instructions(op):
     cmd = " ".join(_preview_cmd(op))
@@ -1483,6 +1458,16 @@ def _print_staged_dir_instructions(op):
             dir=op.run_dir,
             cmd=cmd)
     )
+
+def _print_stage_pending_instructions(op):
+    run_id = op.run_id
+    cli.out(
+        "{op} is staged as {run_id}\n"
+        "To run the operation, use 'guild run --start {short_id}'"
+        .format(
+            op=op.opdef.fullname,
+            run_id=run_id,
+            short_id=run_id[:8]))
 
 class TestOutputLogger(summary.TestOutputLogger):
 

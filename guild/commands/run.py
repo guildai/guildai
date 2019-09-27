@@ -38,11 +38,6 @@ def run_params(fn):
             ("--restage",),
             help="Update a staged operation."),
         click.Option(
-            ("--stage-dir",), metavar="DIR",
-            help=(
-                "Stage an operation in DIR but do not run. Cannot be used "
-                "with --run-dir or --stage.")),
-        click.Option(
             ("--rerun",), metavar="RUN",
             help=(
                 "Use the operation and flags from RUN. Flags may "
