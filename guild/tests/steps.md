@@ -21,7 +21,8 @@ Here are the suported models:
     {'m1': <guild.guildfile.ModelDef 'm1'>,
      'm2': <guild.guildfile.ModelDef 'm2'>,
      'm3': <guild.guildfile.ModelDef 'm3'>,
-     'm4': <guild.guildfile.ModelDef 'm4'>}
+     'm4': <guild.guildfile.ModelDef 'm4'>,
+     'm5': <guild.guildfile.ModelDef 'm5'>}
 
 ## Basic steps
 
@@ -166,17 +167,17 @@ and passes that flag value through to its steps.
 Here's the default behavior of `steps-hello`:
 
     >>> project.run("m1:steps-hello")
-    INFO: [guild] running hello: m1:hello 'msg=hello steps'
+    INFO: [guild] running hello: m1:hello msg='hello steps'
     hello steps
-    INFO: [guild] running hello: m1:hello 'msg=hello steps (again)'
+    INFO: [guild] running hello: m1:hello msg='hello steps (again)'
     hello steps (again)
 
 And with an explicit message:
 
     >>> project.run("m1:steps-hello", flags={"msg": "hello from test"})
-    INFO: [guild] running hello: m1:hello 'msg=hello from test'
+    INFO: [guild] running hello: m1:hello msg='hello from test'
     hello from test
-    INFO: [guild] running hello: m1:hello 'msg=hello from test (again)'
+    INFO: [guild] running hello: m1:hello msg='hello from test (again)'
     hello from test (again)
 
 If a flag value is None/null, the flag is not passed through, in which
@@ -185,7 +186,7 @@ case the default value of the step operation is used:
     >>> project.run("m1:steps-hello", flags={"msg": None})
     INFO: [guild] running hello: m1:hello
     hello world
-    INFO: [guild] running hello: m1:hello 'msg=null (again)'
+    INFO: [guild] running hello: m1:hello msg='null (again)'
     null (again)
 
 ## Running operations across models
@@ -194,17 +195,17 @@ A stepped operation may run operations defined in other models. Model
 `m2` illustrates this with the `composite` operation.
 
     >>> project.run("m2:composite")
-    INFO: [guild] running hello: m2:hello 'msg=hello m2, from composite'
+    INFO: [guild] running hello: m2:hello msg='hello m2, from composite'
     hello m2, from composite
-    INFO: [guild] running m1:hello: m1:hello 'msg=hello m1, from composite'
+    INFO: [guild] running m1:hello: m1:hello msg='hello m1, from composite'
     hello m1, from composite
 
 And with a `name` flag:
 
     >>> project.run("m2:composite", flags={"name": "test"})
-    INFO: [guild] running hello: m2:hello 'msg=hello m2, from test'
+    INFO: [guild] running hello: m2:hello msg='hello m2, from test'
     hello m2, from test
-    INFO: [guild] running m1:hello: m1:hello 'msg=hello m1, from test'
+    INFO: [guild] running m1:hello: m1:hello msg='hello m1, from test'
     hello m1, from test
 
 ## Invalid steps
@@ -331,3 +332,73 @@ When we compare the runs:
      ['...', 'm4:end-to-end', '...',     '...',  'completed',  None,       0.5,   1.0]]
 
 Note that `end-to-end` reflects the `loss` and `acc` of its steps.
+
+## Steps and --force-flags
+
+There's currently no way to specify a step operation flag when running
+a stepped operation. The stepped operation must explicitly pass
+through its flags to steps. This is inconvenient for users who want to
+change step operation flags as they have to modify the Guild file.
+
+This will be changed in time so that users can specify operation flags
+when running a stepped operation.
+
+E.g.
+
+    $ guild run m5:steps op:msg=hello
+
+However, this is not yet supported.
+
+As a work-around, a user can specify `--force-flags` to force any
+non-stepped flags to be passed through to step operations.
+
+We'll use the `m5` model to illustrate.
+
+Let's run the `steps` opertion without flags:
+
+    >>> project.run("m5:steps")
+    INFO: [guild] running op: m5:op
+    hi from op
+
+And now with an argument for the `msg` flag for `op`:
+
+    >>> project.run("m5:steps", flags={"msg": "hi from test"})
+    guild: unsupported flag 'msg'
+    Try 'guild run m5:steps --help-op' for a list of flags or use
+    --force-flags to skip this check.
+    <exit 1>
+
+And the flag specified as `op:msg`:
+
+    >>> project.run("m5:steps", flags={"op:msg": "hi from test"})
+    guild: unsupported flag 'op:msg'
+    Try 'guild run m5:steps --help-op' for a list of flags or use
+    --force-flags to skip this check.
+    <exit 1>
+
+Now specify `op:msg` with `--force-flags`.
+
+    >>> project.run(
+    ...   "m5:steps",
+    ...   flags={"op:msg": "hi from test"},
+    ...   force_flags=True)
+    INFO: [guild] running op: m5:op msg='hi from test'
+    hi from test
+
+You can also include the model in the op qualifier.
+
+    >>> project.run(
+    ...   "m5:steps",
+    ...   flags={"m5:op:msg": "hi from test"},
+    ...   force_flags=True)
+    INFO: [guild] running op: m5:op msg='hi from test'
+    hi from test
+
+When both variants are provided, the more complete spec is used.
+
+    >>> project.run(
+    ...   "m5:steps",
+    ...   flags={"m5:op:msg": "model+op", "op:msg": "op"},
+    ...   force_flags=True)
+    INFO: [guild] running op: m5:op msg=model+op
+    model+op

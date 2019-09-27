@@ -61,7 +61,7 @@ class Step(object):
         self.op_spec = _apply_default_model(opspec_param, parent_opref)
         self.name = data.get("name") or opspec_param
         self.batch_files, flag_args = _split_batch_files(params["flags"])
-        self.flags = _init_flags(flag_args, parent_flags)
+        self.flags = _init_step_flags(flag_args, parent_flags, self)
         self.checks = _init_checks(data)
         self.label = _resolve_param(params, "label", parent_flags)
         self.disable_plugins = _resolve_param(
@@ -135,8 +135,9 @@ def _apply_data_params(data, ctx, run_spec):
                     "run parameter %s used in %r ignored",
                     name, run_spec)
 
-def _init_flags(flag_args, parent_flag_vals):
+def _init_step_flags(flag_args, parent_flag_vals, step):
     flag_vals = _parse_flag_assigns(flag_args)
+    _apply_parent_flags(parent_flag_vals, step, flag_vals)
     resolved = _resolve_flag_vals(flag_vals, parent_flag_vals)
     return _remove_undefined_flags(resolved)
 
@@ -147,8 +148,27 @@ def _parse_flag_assigns(assigns):
     except op_util.ArgValueError as e:
         _error("invalid argument '%s' - expected NAME=VAL" % e.arg)
 
-def _format_flag_args(data):
-    return flag_util.format_flags(data)
+def _apply_parent_flags(parent_flag_vals, step, flag_vals):
+    prefixes = [
+        step.op_spec + ":",
+        step.name + ":",
+    ]
+    flag_vals.update(_prefixed_flag_vals(prefixes, parent_flag_vals))
+
+def _prefixed_flag_vals(prefixes, flag_vals):
+    """Returns a dict of prefixed flag values.
+
+    Prefixes are stripped from matching flag names.
+
+    The value for the first matching prefix from prefixes is used.
+    """
+    prefixed = {}
+    for prefix in prefixes:
+        for full_name in flag_vals:
+            if full_name.startswith(prefix):
+                prefixed_name = full_name[len(prefix):]
+                prefixed.setdefault(prefixed_name, flag_vals[full_name])
+    return prefixed
 
 def _apply_default_model(step_opspec, parent_opref):
     step_opref = guild.opref.OpRef.from_string(step_opspec)
@@ -264,6 +284,7 @@ def _init_step_cmd(step, step_run_dir):
     base_args = [
         sys.executable, "-um", "guild.main_bootstrap",
         "run", "-y",
+        "--force-flags",
         "--run-dir", step_run_dir,
         step.op_spec]
     step_options = _step_options(step)
@@ -322,12 +343,13 @@ def _ensure_unique_link(path_base):
 
 def _format_step_cmd(cmd):
     # Just show opspec on - assert front matter to catch changes to cmd.
-    assert cmd[0:6] == [
+    assert cmd[0:7] == [
         sys.executable,
         "-um",
         "guild.main_bootstrap",
         "run",
         "-y",
+        "--force-flags",
         "--run-dir"
     ], cmd
     return " ".join([util.shlex_quote(arg) for arg in cmd[7:]])

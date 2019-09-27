@@ -109,3 +109,13 @@
       compare:
         - train#loss as loss
         - eval#acc as acc
+
+- model: m5
+  operations:
+    op:
+      exec: bash -c 'echo ${msg}'
+      flags:
+        msg: hi from op
+    steps:
+      steps:
+        - op
