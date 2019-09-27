@@ -22,7 +22,7 @@ Let's use Guild `diff` to compare the two runs.
 
 Run flags:
 
-    >>> run("guild diff -g -m 'diff'")
+    >>> run("guild diff -f -m 'diff'")
     1c1
     < message: message is foo
     ---
