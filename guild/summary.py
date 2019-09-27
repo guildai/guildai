@@ -103,14 +103,15 @@ class SummaryWriter(object):
     def add_image(self, tag, image):
         from PIL import Image
         image = Image.open(image)
-        encoded = _encode_png(image)
-        summary = _ImageSummary(
-            tag,
-            image.height,
-            image.width,
-            len(image.getbands()),
-            encoded)
-        self._add_summary(summary)
+        encoded = _try_encode_png(image)
+        if encoded:
+            summary = _ImageSummary(
+                tag,
+                image.height,
+                image.width,
+                len(image.getbands()),
+                encoded)
+            self._add_summary(summary)
 
     def add_hparam_experiment(self, hparams, metrics):
         self._add_summary(_HParamExperiment(hparams, metrics))
@@ -147,10 +148,20 @@ def _ImageSummary(tag, height, width, colorspace, encoded_image):
         encoded_image_string=encoded_image)
     return Summary(value=[Summary.Value(tag=tag, image=image)])
 
-def _encode_png(image):
+def _try_encode_png(image):
     bytes = io.BytesIO()
-    image.save(bytes, format='PNG')
-    return bytes.getvalue()
+    try:
+        image.save(bytes, format='PNG')
+    except Exception as e:
+        image_desc = _image_desc(image)
+        log.error("error encoding %s: %s", image_desc, e)
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("encoding %s", image_desc)
+    else:
+        return bytes.getvalue()
+
+def _image_desc(img):
+    return getattr(getattr(img, "fp", None), "name", str(img))
 
 def _HParamExperiment(hparams, metrics):
     from tensorboard.plugins.hparams import summary_v2 as hp
