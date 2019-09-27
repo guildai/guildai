@@ -36,7 +36,7 @@ by using the `file_util.files_digest` function.
 
 Let's run `op` and examine the results.
 
-    >>> run, _out = project.run_capture("op", run_dir=mkdtemp())
+    >>> run, _out = project.run_capture("op")
 
 Here's the copied source:
 
@@ -48,6 +48,16 @@ attribute:
 
     >>> run.get("sourcecode_digest")
     '38eaef56aa526c84cb706bfa550f9f41'
+
+We can list runs using this digest:
+
+    >>> project.list_runs(digest="38eaef56")
+    [<guild.run.Run '...'>]
+
+And not another digest:
+
+    >>> project.list_runs(digest="_")
+    []
 
 ## New source code file
 

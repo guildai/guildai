@@ -67,6 +67,7 @@ def _list_runs_kw(args):
 def _runs_filter_names():
     return [
         "completed",
+        "digest",
         "error",
         "labels",
         "marked",

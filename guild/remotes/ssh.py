@@ -428,7 +428,8 @@ def _filtered_runs_filter_opts(**filters):
 
 def _runs_filter_args(
         ops, labels, unlabeled, running, completed, error,
-        terminated, pending, staged, marked, unmarked, started):
+        terminated, pending, staged, marked, unmarked, started,
+        digest):
     args = []
     if completed:
         args.append("-C")
@@ -454,6 +455,8 @@ def _runs_filter_args(
         args.append("--unmarked")
     if started:
         args.append(["--started", started])
+    if digest:
+        args.append(["--digest", digest])
     return args
 
 def _build_package(dist_dir):

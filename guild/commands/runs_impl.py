@@ -131,6 +131,7 @@ def _runs_filter(args, ctx):
     _apply_labels_filter(args, filters)
     _apply_marked_filter(args, filters)
     _apply_started_filter(args, ctx, filters)
+    _apply_sourcecode_digest_filter(args, filters)
     return var.run_filter("all", filters)
 
 def _apply_status_filter(args, filters):
@@ -198,6 +199,15 @@ def _parse_timerange(spec, ctx):
         return timerange.parse_spec(spec)
     except ValueError as e:
         cli.error("invalid RANGE: %s%s" % (e, _range_help_suffix(ctx)))
+
+def _apply_sourcecode_digest_filter(args, filters):
+    if args.digest:
+        filters.append(_digest_filter(args.digest))
+
+def _digest_filter(prefix):
+    def f(run):
+        return run.get("sourcecode_digest", "").startswith(prefix)
+    return f
 
 def _range_help_suffix(ctx):
     if not ctx:

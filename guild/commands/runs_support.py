@@ -201,17 +201,34 @@ def time_filters(fn):
     ])
     return fn
 
-@click_util.render_doc
+def sourcecode_digest_filters(fn):
+    """### Filter by Source Code Digest
 
+    To show runs for a specific source code digest, use `-g` or
+    `--digest` with a complete or partial digest value.
+
+    """
+    click_util.append_params(fn, [
+        click.Option(
+            ("-g", "--digest",),
+            metavar="VAL",
+            help=(
+                "Include only runs with a matching source code digest."))
+    ])
+    return fn
+
+@click_util.render_doc
 def all_filters(fn):
     """
     {{ op_and_label_filters }}
     {{ status_filters }}
     {{ time_filters }}
+    {{ sourcecode_digest_filters }}
     """
     click_util.append_params(fn, [
         op_and_label_filters,
         status_filters,
         time_filters,
+        sourcecode_digest_filters,
     ])
     return fn

@@ -38,7 +38,7 @@ def diff_params(fn):
             is_flag=True,
             help="Diff run environment."),
         click.Option(
-            ("-g", "--flags"),
+            ("-f", "--flags"),
             is_flag=True,
             help="Diff run flags."),
         click.Option(

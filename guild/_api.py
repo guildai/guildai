@@ -210,6 +210,7 @@ def _apply_runs_filters(kw, args):
     args.marked = kw.pop("marked", False)
     args.unmarked = kw.pop("unmarked", False)
     args.started = kw.pop("started", None)
+    args.digest = kw.pop("digest", None)
     for status_attr in runs_impl.FILTERABLE:
         try:
             status_val = kw.pop(status_attr)
