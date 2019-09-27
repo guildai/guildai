@@ -49,6 +49,9 @@ IMG_EXT = (
 
 MAX_IMAGE_SUMMARIES = 100
 
+SOURCECODE_HPARAM = "sourcecode"
+TIME_METRIC = "time"
+
 class TensorboardError(Exception):
     pass
 
@@ -103,10 +106,14 @@ def _experiment_hparams(runs):
     for run in runs:
         for name, val in (run.get("flags") or {}).items():
             hparams.setdefault(name, set()).add(val)
+        hparams.setdefault(SOURCECODE_HPARAM, set()).add(_run_sourcecode(run))
     return hparams
 
+def _run_sourcecode(run):
+    return run.get("sourcecode_digest", "")[:8]
+
 def _experiment_metrics(runs):
-    metrics = set(["time"])
+    metrics = set([TIME_METRIC])
     for run in runs:
         metrics.update(_run_metric_tags(run))
     return metrics
@@ -202,6 +209,7 @@ def _add_hparam_experiment(hparam_experiment, writer):
 def _add_hparam_session(run, writer):
     session_name = _hparam_session_name(run)
     hparams = run.get("flags") or {}
+    hparams[SOURCECODE_HPARAM] = _run_sourcecode(run)
     writer.add_hparam_session(session_name, hparams, run.status)
 
 def _hparam_session_name(run):
@@ -304,7 +312,7 @@ def _time_metric_exists(logdir):
 
 def _init_time_metric(logdir, time):
     with _time_metric_writer(logdir) as writer:
-        writer.add_scalar("time", time)
+        writer.add_scalar(TIME_METRIC, time)
 
 def _time_metric_writer(logdir):
     return summary.SummaryWriter(logdir, filename_base="9999999999.time")
