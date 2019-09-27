@@ -244,7 +244,7 @@ class SSHRemote(remotelib.Remote):
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.extend([
             "cd %s/.guild/job-packages" % remote_run_dir,
-            "guild install %s --upgrade *.whl --target ." % self._pre_flag(),
+            "pip install %s --upgrade *.whl --target ." % self._pre_flag(),
         ])
         cmd = "; ".join(cmd_lines)
         log.info("Installing package and its dependencies")
