@@ -28,7 +28,7 @@ def old_where():
     warnings.warn(
         "The weak security bundle has been removed. certifi.old_where() is now an alias "
         "of certifi.where(). Please update your code to use certifi.where() instead. "
-        "certifi.old_where() will be removed in 2019.",
+        "certifi.old_where() will be removed in 2018.",
         DeprecatedBundleWarning
     )
     return where()

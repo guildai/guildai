@@ -629,7 +629,7 @@ entitiesWindows1252 = (
     381,    # 0x8E  0x017D  LATIN CAPITAL LETTER Z WITH CARON
     65533,  # 0x8F          UNDEFINED
     65533,  # 0x90          UNDEFINED
-    8216,   # 0x91  0x2019  LEFT SINGLE QUOTATION MARK
+    8216,   # 0x91  0x2018  LEFT SINGLE QUOTATION MARK
     8217,   # 0x92  0x2019  RIGHT SINGLE QUOTATION MARK
     8220,   # 0x93  0x201C  LEFT DOUBLE QUOTATION MARK
     8221,   # 0x94  0x201D  RIGHT DOUBLE QUOTATION MARK
@@ -1050,7 +1050,7 @@ entities = {
     "Omicron;": "\u039f",
     "Oopf;": "\U0001d546",
     "OpenCurlyDoubleQuote;": "\u201c",
-    "OpenCurlyQuote;": "\u2019",
+    "OpenCurlyQuote;": "\u2018",
     "Or;": "\u2a54",
     "Oscr;": "\U0001d4aa",
     "Oslash": "\xd8",
@@ -2035,7 +2035,7 @@ entities = {
     "lsime;": "\u2a8d",
     "lsimg;": "\u2a8f",
     "lsqb;": "[",
-    "lsquo;": "\u2019",
+    "lsquo;": "\u2018",
     "lsquor;": "\u201a",
     "lstrok;": "\u0142",
     "lt": "<",
@@ -2902,7 +2902,7 @@ replacementCharacters = {
     0x8E: "\u017D",
     0x8F: "\u008F",
     0x90: "\u0090",
-    0x91: "\u2019",
+    0x91: "\u2018",
     0x92: "\u2019",
     0x93: "\u201C",
     0x94: "\u201D",
