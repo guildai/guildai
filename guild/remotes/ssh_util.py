@@ -84,7 +84,7 @@ def rsync_copy_to(src, host, host_dest, user=None, private_key=None, port=None):
     dest = format_rsync_host_path(host, host_dest, user)
     cmd = (
         ["rsync", "-vr"] +
-        rsync_ssh_opts(private_key, port) +
+        rsync_ssh_opts(private_key, port=port) +
         [src, dest])
     log.debug("rsync cmd: %r", cmd)
     subprocess.check_call(cmd)
