@@ -366,6 +366,7 @@ class SSHRemote(remotelib.Remote):
         return data
 
     def watch_run(self, **opts):
+        cmd_lines.append("export GUILD_HOME=%s" % self.guild_home)
         self._guild_cmd("watch", _watch_run_args(**opts))
 
     def _guild_cmd(self, name, args, env=None):
