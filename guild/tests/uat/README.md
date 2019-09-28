@@ -266,3 +266,4 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [remote-ssh-push-hello](remote-ssh-push-hello.md)
 - [remote-ssh-runs-info-after-push](remote-ssh-runs-info-after-push.md)
 - [remote-try-run-script](remote-try-run-script.md)
+- [remote-ssh-stage-and-queue](remote-ssh-stage-and-queue.md)
