@@ -80,11 +80,12 @@ def _ssh_opts(private_key, verbose, connect_timeout, port):
         opts.extend(["-p", str(port)])
     return opts
 
-def rsync_copy_to(src, host, host_dest, user=None, private_key=None, port=None):
+def rsync_copy_to(src, host, host_dest, user=None, private_key=None,
+                  connect_timeout=DEFAULT_CONNECT_TIMEOUT, port=None):
     dest = format_rsync_host_path(host, host_dest, user)
     cmd = (
         ["rsync", "-vr"] +
-        rsync_ssh_opts(private_key, port=port) +
+        rsync_ssh_opts(private_key, connect_timeout, port) +
         [src, dest])
     log.debug("rsync cmd: %r", cmd)
     subprocess.check_call(cmd)
