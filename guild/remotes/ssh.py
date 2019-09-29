@@ -361,13 +361,13 @@ class SSHRemote(remotelib.Remote):
         return data
 
     def watch_run(self, **opts):
-        cmd_lines.append("export GUILD_HOME=%s" % self.guild_home)
         self._guild_cmd("watch", _watch_run_args(**opts))
 
     def _guild_cmd(self, name, args, env=None):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.extend(self._set_columns())
+        cmd_lines.append("export GUILD_HOME=%s" % self.guild_home)
         if env:
             cmd_lines.extend(self._cmd_env(env))
         cmd_lines.append("guild %s %s" % (name, " ".join(args)))
