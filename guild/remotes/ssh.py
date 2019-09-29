@@ -163,7 +163,6 @@ class SSHRemote(remotelib.Remote):
             log.info(
                 "To run the operation, use 'guild run -r %s --start %s'",
                 self.name, run_id[:8])
-
         if no_wait or stage:
             return run_id
         try:
