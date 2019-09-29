@@ -569,24 +569,30 @@ def _print_run_info(run, args):
         _print_run_info_ordered(data)
 
 def _run_info_data(run, args):
-    fmt_run = format_run(run)
     data = []
-    for name in RUN_DETAIL:
-        data.append((name, fmt_run[name]))
-    for name in other_attr_names(run, args.private_attrs):
-        data.append((name, run_util.format_attr(run.get(name))))
-    if args.private_attrs:
-        data.append(("opref", str(run.opref)))
+    _append_attr_data(run, args.private_attrs, data)
     data.append(("flags", run.get("flags") or {}))
-    proto_run = run_util.proto_run(run)
-    if proto_run:
-        data.append(("proto-flags", proto_run.get("flags") or {}))
+    proto = run.batch_proto
+    if proto:
+        data.append(("proto-flags", proto.get("flags") or {}))
     data.append(("scalars", _scalar_info(run, args)))
     if args.env:
         data.append(("environment", run.get("env") or {}))
     if args.deps:
         data.append(("dependencies", run.get("deps") or {}))
+    if args.private_attrs and args.json:
+        data.append(("opdef", run.get("opdef")))
+        _maybe_append_proto_data(run, data)
     return data
+
+def _append_attr_data(run, include_private, data):
+    fmt_run = format_run(run)
+    for name in RUN_DETAIL:
+        data.append((name, fmt_run[name]))
+    for name in other_attr_names(run, include_private):
+        data.append((name, run_util.format_attr(run.get(name))))
+    if include_private:
+        data.append(("opref", str(run.opref)))
 
 def other_attr_names(run, include_private=False):
     if include_private:
@@ -621,6 +627,13 @@ def _s_val(s):
 
 def _s_step(s):
     return s["last_step"]
+
+def _maybe_append_proto_data(run, data):
+    proto = run.batch_proto
+    if proto:
+        proto_data = []
+        _append_attr_data(proto, True, proto_data)
+        data.append(("proto-run", proto_data))
 
 def _print_run_info_json(data):
     data = _tuple_lists_to_dict(data)
