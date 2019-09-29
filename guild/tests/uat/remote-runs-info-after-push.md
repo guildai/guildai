@@ -1,6 +1,6 @@
 # Remote runs info
 
-    >>> run("guild runs info --remote guild-uat-ssh")
+    >>> run("guild runs info --remote guild-uat")
     id: ...
     operation: hello:from-file
     from: .../examples/hello/guild.yml

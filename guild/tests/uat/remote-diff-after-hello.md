@@ -2,11 +2,11 @@
 
 Verify that a whole-run diff exits without error:
 
-    >>> quiet("guild diff --remote guild-uat-ssh")
+    >>> quiet("guild diff --remote guild-uat")
 
 Spot check various diffs:
 
-    >>> run("guild diff --flags -r guild-uat-ssh")
+    >>> run("guild diff --flags -r guild-uat")
     --- ...
     +++ ...
     @@ -1 +1 @@
@@ -14,7 +14,7 @@ Spot check various diffs:
     +file: msg.txt
     <exit 0>
 
-    >>> run("guild diff -p output -r guild-uat-ssh")
+    >>> run("guild diff -p output -r guild-uat")
     --- .../output ...
     +++ .../output ...
     @@ -1 +1,2 @@
@@ -23,7 +23,7 @@ Spot check various diffs:
     +
     <exit 0>
 
-    >>> run("guild diff --output -r guild-uat-ssh")
+    >>> run("guild diff --output -r guild-uat")
     --- .../.guild/output ...
     +++ .../.guild/output ...
     @@ -1 +1,2 @@

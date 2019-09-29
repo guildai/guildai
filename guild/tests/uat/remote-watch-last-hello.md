@@ -6,13 +6,13 @@ operation.
 
 First, list any running ops:
 
-    >>> run("guild runs --running --remote guild-uat-ssh")
+    >>> run("guild runs --running --remote guild-uat")
     <BLANKLINE>
     <exit 0>
 
 And then try to watch an operation:
 
-    >>> run("guild watch --remote guild-uat-ssh")
+    >>> run("guild watch --remote guild-uat")
     guild: nothing to watch
     You can view the output of a specific run using 'guild watch RUN'.
     <exit 1>

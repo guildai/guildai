@@ -1,6 +1,6 @@
 # Runs info
 
-    >>> run("guild runs info -r guild-uat-ssh")
+    >>> run("guild runs info -r guild-uat")
     id: ...
     operation: hello/hello:from-file
     from: hello==0.0.0

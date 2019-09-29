@@ -6,12 +6,12 @@ operation.
 
 First, list any running ops:
 
-    >>> run("guild runs --running --remote guild-uat-ssh")
+    >>> run("guild runs --running --remote guild-uat")
     <BLANKLINE>
     <exit 0>
 
 And then try to watch an operation:
 
-    >>> run("guild stop --remote guild-uat-ssh")
+    >>> run("guild stop --remote guild-uat")
     Nothing to stop.
     <exit 0>

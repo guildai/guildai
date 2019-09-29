@@ -1,12 +1,12 @@
 # Runs ls
 
-    >>> run("guild ls --remote guild-uat-ssh")
+    >>> run("guild ls --remote guild-uat")
     ???:
       msg.txt
       output
     <exit 0>
 
-    >>> run("guild ls --remote guild-uat-ssh --all",
+    >>> run("guild ls --remote guild-uat --all",
     ...     ignore=["__pycache__", "say.pyc"]) # doctest: +REPORT_UDIFF
     ???:
       .guild/
@@ -39,7 +39,7 @@
       output
     <exit 0>
 
-    >>> run("guild ls --remote guild-uat-ssh --sourcecode",
+    >>> run("guild ls --remote guild-uat --sourcecode",
     ...     ignore=["__pycache__", "say.pyc"]) # doctest: +REPORT_UDIFF
     ???:
       .guild/sourcecode/

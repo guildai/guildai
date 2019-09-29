@@ -5,9 +5,9 @@ This test assumes that there are two remote runs, each from the
 
 We first preview the runs:
 
-    >>> run("guild pull guild-uat-ssh 1:2", timeout=5)
+    >>> run("guild pull guild-uat 1:2", timeout=5)
     Getting remote run info
-    You are about to copy (pull) the following runs from guild-uat-ssh:
+    You are about to copy (pull) the following runs from guild-uat:
       [...]  hello/hello:from-file  ...  completed  remote-run-123
       [...]  hello/hello:from-flag  ...  completed  message='Howdy Guild!'
     Continue? (Y/n)
@@ -15,7 +15,7 @@ We first preview the runs:
 
 Then pull:
 
-    >>> run("guild pull guild-uat-ssh 1:2 -y")
+    >>> run("guild pull guild-uat 1:2 -y")
     Getting remote run info
     Copying ...
     receiving incremental file list
