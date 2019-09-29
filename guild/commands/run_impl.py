@@ -80,42 +80,27 @@ def _maybe_shift_opspec(args):
 ###################################################################
 
 def _validate_args(args):
-    if args.rerun and args.restart:
-        cli.error(
-            "--rerun and --restart cannot both be used\n"
-            "Try 'guild run --help' for more information.")
-    if args.rerun and args.start:
-        cli.error(
-            "--rerun and --start cannot both be used\n"
-            "Try 'guild run --help' for more information.")
-    if args.run_dir and args.restart:
-        cli.error(
-            "--restart and --run-dir cannot both be used\n"
-            "Try 'guild run --help' for more information")
-    if args.run_dir and args.start:
-        cli.error(
-            "--start and --run-dir cannot both be used\n"
-            "Try 'guild run --help' for more information")
-    if args.run_dir and args.restage:
-        cli.error(
-            "--restage and --run-dir cannot both be used\n"
-            "Try 'guild run --help' for more information")
-    if args.no_gpus and args.gpus is not None:
-        cli.error(
-            "--gpus and --no-gpus cannot both be used\n"
-            "Try 'guild run --help' for more information.")
-    if args.print_trials and args.init_trials:
-        cli.error(
-            "--print-trials and --init-trials cannot both be used\n"
-            "Try 'guild run --help' for more information.")
-    if args.minimize and args.maximize:
-        cli.error(
-            "--minimize and --maximize cannot both be used\n"
-            "Try 'guild run --help' for more information.")
-    if args.optimize and args.optimizer:
-        cli.error(
-            "--optimize and --optimizer cannot both be used\n"
-            "Try 'guild run --help' for more information.")
+    incompatible = [
+        ("rerun", "restart"),
+        ("rerun", "start"),
+        ("run_dir", "restart"),
+        ("run_dir", "start"),
+        ("run_dir", "restage"),
+        ("no_gpus", "gpus"),
+        ("print_trials", "init_trials"),
+        ("minimize", "maximize"),
+        ("optimize", "optimizer"),
+        ("remote", "background"),
+        ("remote", "pidfile"),
+        ("stage", "background"),
+        ("stage", "pidfile"),
+    ]
+    for a, b in incompatible:
+        if getattr(args, a) and getattr(args, b):
+            cli.error(
+                "--%s and --%s cannot both be used\n"
+                "Try 'guild run --help' for more information."
+                % (a.replace("_", "-"), b.replace("_", "-")))
 
 ###################################################################
 # Apply args from existing runs (restart/rerun/restage)
