@@ -260,12 +260,15 @@ def _pkg_keywords(pkg):
     return " ".join(tags)
 
 def _pkg_install_requires(pkg):
-    if not pkg.requires:
+    if pkg.required is None:
         return _maybe_requirements_txt(pkg)
-    return [
-        _project_name(req)
-        for req in pkg.requires
-        if not _is_multi_arch_req(req)]
+    elif not pkg.requires:
+        return []
+    else:
+        return [
+            _project_name(req) for req in pkg.requires
+            if not _is_multi_arch_req(req)
+        ]
 
 def _maybe_requirements_txt(pkg):
     requirements_txt = os.path.join(pkg.guildfile.dir, "requirements.txt")
