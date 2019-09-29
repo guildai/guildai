@@ -488,7 +488,7 @@ def _build_package(dist_dir):
 
 def _remote_run_cmd(
         remote_run_dir, opspec, op_flags, label, batch_label,
-        disable_plugins, gpus, no_gpus, force_flags,
+        gpus, no_gpus, force_flags,
         needed, stop_after, optimize, optimizer, opt_flags,
         minimize, maximize, random_seed, max_trials,
         init_trials, stage):
@@ -504,8 +504,6 @@ def _remote_run_cmd(
         cmd.extend(["--label", q(label)])
     if batch_label:
         cmd.extend(["--batch-label", q(batch_label)])
-    if disable_plugins:
-        cmd.extend(["--disable_plugins", q(disable_plugins)])
     if gpus:
         cmd.extend(["--gpus", q(gpus)])
     if no_gpus:

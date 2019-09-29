@@ -111,8 +111,7 @@ or staging the run.
     >>> from guild import op_util
 
     >>> pprint(op_util.run_params_for_restart(project.list_runs()[0]))
-    {'disable_plugins': None,
-     'force_flags': False,
+    {'force_flags': False,
      'gpus': None,
      'max_trials': None,
      'maximize': None,

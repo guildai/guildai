@@ -37,7 +37,6 @@ from guild import util
 log = None # intialized in _init_logging
 
 STEP_USED_PARAMS = (
-    "disable_plugins",
     "flags",
     "gpus",
     "label",
@@ -64,8 +63,6 @@ class Step(object):
         self.flags = _init_step_flags(flag_args, parent_flags, self)
         self.checks = _init_checks(data)
         self.label = _resolve_param(params, "label", parent_flags)
-        self.disable_plugins = _resolve_param(
-            params, "disable_plugins", parent_flags)
         self.gpus = _resolve_param(params, "gpus", parent_flags)
         self.no_gpus = params["no_gpus"]
         self.stop_after = params["stop_after"]
@@ -296,8 +293,6 @@ def _step_options(step):
     opts = []
     if step.label:
         opts.extend(["--label", step.label])
-    if step.disable_plugins:
-        opts.extend(["--disable-plugins", step.disable_plugins])
     if step.gpus is not None:
         opts.extend(["--gpus", step.gpus])
     elif step.no_gpus:

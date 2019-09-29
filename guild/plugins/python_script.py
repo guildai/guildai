@@ -61,7 +61,7 @@ class PythonScriptModelProxy(object):
     fullname = ""
     output_scalars = None
     objective = "loss"
-    disable_plugins = "all"
+    plugins = []
 
     def __init__(self, script_path, op_name):
         assert script_path[-3:] == ".py", script_path
@@ -88,7 +88,7 @@ class PythonScriptModelProxy(object):
                         "flags-dest": flags_dest,
                         "output-scalars": self.output_scalars,
                         "objective": self.objective,
-                        "disable-plugins": self.disable_plugins,
+                        "plugins": self.plugins,
                         "sourcecode": self._sourcecode(),
                     }
                 }

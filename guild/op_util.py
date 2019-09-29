@@ -767,7 +767,6 @@ def run_params_for_restart(run, user_specified_params=None):
     # (e.g. opref in the case of opsec).
     #
     applicable_run_params = [
-        "disable_plugins",
         "force_flags",
         "gpus",
         "max_trials",

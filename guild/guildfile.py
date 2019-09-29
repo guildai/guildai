@@ -654,10 +654,9 @@ class ModelDef(object):
         self.references = data.get("references") or []
         self.operations = _init_ops(data, self)
         self.resources = _init_resources(data, self)
-        self.disable_plugins = _disable_plugins(data, guildfile)
+        self.plugins = _init_plugins(data.get("plugins"), guildfile)
         self.extra = data.get("extra") or {}
-        self.sourcecode = _init_sourcecode(
-            data.get("sourcecode"), self.guildfile)
+        self.sourcecode = _init_sourcecode(data.get("sourcecode"), guildfile)
         self.python_requires = data.get("python-requires")
 
     @property
@@ -891,13 +890,16 @@ def _init_resources(data, modeldef):
     data = _resolve_includes(data, "resources", modeldef.guildfile_search_path)
     return [ResourceDef(key, data[key], modeldef) for key in sorted(data)]
 
+def _init_plugins(data, gf):
+    if data is None:
+        return None
+    elif data is False:
+        return False
+    else:
+        return _coerce_str_to_list(data, gf, "plugins")
+
 def _init_sourcecode(data, gf):
     return FileSelectDef(data, gf)
-
-def _disable_plugins(data, guildfile):
-    return _coerce_str_to_list(
-        data.get("disable-plugins", []),
-        guildfile, "disable-plugins")
 
 ###################################################################
 # Op def
@@ -928,7 +930,7 @@ class OpDef(object):
         self.python_requires = data.get("python-requires")
         self.python_path = data.get("python-path")
         self.env = data.get("env") or {}
-        self.disable_plugins = _disable_plugins(data, modeldef.guildfile)
+        self.plugins = _init_plugins(data.get("plugins"), self.guildfile)
         self.dependencies = _init_dependencies(data.get("requires"), self)
         self.pre_process = data.get("pre-process")
         self.remote = data.get("remote") or False

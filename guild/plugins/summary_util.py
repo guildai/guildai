@@ -32,6 +32,8 @@ class SummaryPlugin(Plugin):
     `tensorboardX.writer.SummaryToEventTransformer`.
     """
 
+    provides = Plugin.provides + ["all", "summary"]
+
     MIN_SUMMARY_INTERVAL = 5
 
     def __init__(self, ep):

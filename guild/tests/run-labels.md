@@ -12,8 +12,7 @@ Here are some helper functions.
 
     >>> def run(op, label=None, batch_label=None, opt_flags=None, **kw):
     ...   project.run(op, flags=kw, label=label, batch_label=batch_label,
-    ...               disable_plugins="all", opt_flags=opt_flags,
-    ...               force_flags=True, quiet=True)
+    ...               opt_flags=opt_flags, force_flags=True, quiet=True)
 
     >>> def print_last_run():
     ...   print_runs(1)

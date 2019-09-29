@@ -29,6 +29,7 @@ class Plugin(object):
     """Abstract interface for a Guild plugin."""
 
     name = None
+    provides = []
 
     resolve_model_op_priority = 100
 
@@ -56,7 +57,7 @@ class Plugin(object):
 
     @staticmethod
     def enabled_for_op(_op):
-        return False, None
+        return False, "not applicable to operation"
 
     @staticmethod
     def patch_env():

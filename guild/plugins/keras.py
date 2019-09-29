@@ -38,7 +38,7 @@ class KerasScriptModelProxy(PythonScriptModelProxy):
         "maximize": "val_acc"
     }
 
-    disable_plugins = []
+    plugins = ["summary"]
 
 class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
 

@@ -528,26 +528,34 @@ def _cmd_arg_env(args):
     }
 
 def _op_plugins(opdef):
+    project_plugins = _project_plugins(opdef)
     op_plugins = []
     for name, plugin in guild.plugin.iter_plugins():
-        if _plugin_disabled_in_project(name, opdef):
-            plugin_enabled = False
-            reason = "explicitly disabled by model or user config"
-        else:
-            plugin_enabled, reason = plugin.enabled_for_op(opdef)
+        if not _plugin_selected(plugin, project_plugins):
+            log.debug("plugin '%s' not configured for operation", name)
+            continue
+        enabled, reason = plugin.enabled_for_op(opdef)
+        if not enabled:
+            log.debug(
+                "plugin '%s' configured for operation but cannot be enabled%s",
+                name, " (%s)" % reason if reason else "")
+            continue
         log.debug(
-            "plugin '%s' %s%s",
-            name,
-            "enabled" if plugin_enabled else "disabled",
-            " (%s)" % reason if reason else "")
-        if plugin_enabled:
-            op_plugins.append(name)
+            "plugin '%s' enabled for operation%s",
+            name, " (%s)" % reason if reason else "")
+        op_plugins.append(name)
     return ",".join(sorted(op_plugins))
 
-def _plugin_disabled_in_project(name, opdef):
-    disabled = (opdef.disable_plugins +
-                opdef.modeldef.disable_plugins)
-    return any([disabled_name in (name, "all") for disabled_name in disabled])
+def _project_plugins(opdef):
+    if opdef.plugins is not None:
+        return opdef.plugins or []
+    return opdef.modeldef.plugins or []
+
+def _plugin_selected(plugin, selected):
+    for name in selected:
+        if name == plugin.name or name in plugin.provides:
+            return True
+    return False
 
 def _python_path(opdef):
     paths = (

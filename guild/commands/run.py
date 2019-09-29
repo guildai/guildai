@@ -52,10 +52,6 @@ def run_params(fn):
             ("--start",), metavar="RUN",
             help="Start a pending run."),
         click.Option(
-            ("--disable-plugins",), metavar="LIST",
-            help=("A comma separated list of plugin names to disable. "
-                  "Use 'all' to disable all plugins.")),
-        click.Option(
             ("--gpus",), metavar="DEVICES",
             help=("Limit availabe GPUs to DEVICES, a comma separated list of "
                   "device IDs. By default all GPUs are available. Cannot be"

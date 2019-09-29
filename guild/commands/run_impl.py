@@ -662,7 +662,6 @@ def _parse_assigns(assign_args):
 def _apply_opdef_args(flag_vals, batch_files, args, opdef, is_batch):
     _apply_optimizer(flag_vals, opdef, args)
     _apply_flag_vals(flag_vals, opdef, args)
-    _apply_arg_disable_plugins(args, opdef)
     _apply_arg_objective(args, opdef)
     _apply_arg_set_trace(args, opdef)
     if not is_batch:
@@ -779,12 +778,6 @@ def _coerce_flag_val(val, flagdef):
         cli.error(
             "cannot apply %r to flag '%s': %s"
             % (val, flagdef.name, e))
-
-def _apply_arg_disable_plugins(args, opdef):
-    if args.disable_plugins:
-        opdef.disable_plugins.extend([
-            name.strip() for name in args.disable_plugins.split(",")
-        ])
 
 def _apply_arg_objective(args, opdef):
     if args.minimize:

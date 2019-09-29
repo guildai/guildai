@@ -81,7 +81,6 @@ def _popen_args(
         restart=None,
         stage=None,
         rerun=None,
-        disable_plugins=None,
         batch_files=None,
         batch_label=None,
         extra_env=None,
@@ -153,8 +152,6 @@ def _popen_args(
         args.append("--init-trials")
     if force_flags:
         args.append("--force-flags")
-    if disable_plugins:
-        args.extend(["--disable-plugins", disable_plugins])
     if quiet:
         args.append("--quiet")
     if test_sourcecode:
