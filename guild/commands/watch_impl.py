@@ -140,18 +140,27 @@ def _tail(run):
         return
     proc = psutil.Process(run.pid)
     output_path = run.guild_path("output")
-    f = None
+    f = _wait_for_output(proc, output_path)
+    if not f:
+        return
+    with f:
+        while True:
+            line = f.readline()
+            if line:
+                sys.stdout.write(line)
+                sys.stdout.flush()
+            elif proc.is_running():
+                time.sleep(0.1)
+            else:
+                break
+
+def _wait_for_output(proc, output_path):
     while proc.is_running():
-        f = f or _try_open(output_path)
-        if not f:
-            time.sleep(1.0)
-            continue
-        line = f.readline()
-        if not line:
-            time.sleep(0.1)
-            continue
-        sys.stdout.write(line)
-        sys.stdout.flush()
+        f = _try_open(output_path)
+        if f:
+            return f
+        time.sleep(1.0)
+    return _try_open(output_path)
 
 def _print_output(run):
     output_path = run.guild_path("output")
@@ -168,7 +177,7 @@ def _print_output(run):
 def _try_open(path):
     try:
         return open(path, "r")
-    except OSError as e:
+    except (IOError, OSError) as e:
         if e.errno != 2:
             raise
         return None
