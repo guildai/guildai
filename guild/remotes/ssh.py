@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import glob
 import json
 import os
 import logging
@@ -22,18 +23,16 @@ import subprocess
 import sys
 
 import click
-import yaml
 
 from six.moves import shlex_quote as q
 
 from guild import click_util
+from guild import config
 from guild import remote as remotelib
 from guild import remote_util
 from guild import run as runlib
 from guild import util
 from guild import var
-
-from guild.commands import package_impl
 
 from . import ssh_util
 
@@ -152,9 +151,11 @@ class SSHRemote(remotelib.Remote):
         sys.stdout.write("%s (%s) is available\n" % (self.name, self.host))
 
     def run_op(self, opspec, flags, restart, no_wait, stage, **opts):
-        with util.TempDir(prefix="guild-remote-pkg-") as tmp:
+        with util.TempDir(prefix="guild-remote-stage-") as tmp:
             if not restart:
-                _build_package(tmp.path)
+                op_src = _op_src(opspec)
+                if op_src:
+                    _build_package(op_src, tmp.path)
             remote_run_dir = self._init_remote_run(tmp.path, opspec, restart)
         run_id = os.path.basename(remote_run_dir)
         self._start_op(remote_run_dir, opspec, flags, run_id, stage, **opts)
@@ -174,7 +175,7 @@ class SSHRemote(remotelib.Remote):
 
     def _init_remote_run(self, package_dist_dir, opspec, restart):
         remote_run_dir = self._init_remote_run_dir(opspec, restart)
-        if not restart:
+        if not restart and self._contains_whl(package_dist_dir):
             self._copy_package_dist(package_dist_dir, remote_run_dir)
             self._install_job_package(remote_run_dir)
         return remote_run_dir
@@ -184,6 +185,10 @@ class SSHRemote(remotelib.Remote):
             return self._init_remote_restart_run_dir(restart_run_id)
         else:
             return self._init_remote_new_run_dir(opspec)
+
+    @staticmethod
+    def _contains_whl(dir):
+        return bool(glob.glob(os.path.join(dir, "*.whl")))
 
     def _init_remote_restart_run_dir(self, remote_run_id):
         run_dir = os.path.join(self.guild_home, "runs", remote_run_id)
@@ -343,26 +348,22 @@ class SSHRemote(remotelib.Remote):
         return []
 
     def one_run(self, run_id_prefix):
-        cmd_lines = ["set -e"]
-        cmd_lines.extend(self._env_activate_cmd_lines())
-        cmd_lines.append(
-            "guild runs info %s --private-attrs"
-            % q(run_id_prefix))
-        cmd = "; ".join(cmd_lines)
-        out = self._ssh_output(cmd)
-        return remotelib.RunProxy(self._run_data_from_yaml(out))
+        out = self._guild_cmd_output(
+            "runs info", [run_id_prefix, "--private-attrs", "--json"])
+        return remotelib.RunProxy(self._run_data_from_json(out))
 
     @staticmethod
-    def _run_data_from_yaml(s):
-        s = s.replace(": ?", ": '?'")
-        data = yaml.safe_load(s)
-        data["flags"] = data.get("flags") or {}
-        return data
+    def _run_data_from_json(s):
+        return json.loads(s.decode())
 
     def watch_run(self, **opts):
         self._guild_cmd("watch", _watch_run_args(**opts))
 
     def _guild_cmd(self, name, args, env=None):
+        cmd = self._init_guild_cmd(name, args, env)
+        self._ssh_cmd(cmd)
+
+    def _init_guild_cmd(self, name, args, env):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.extend(self._set_columns())
@@ -370,8 +371,11 @@ class SSHRemote(remotelib.Remote):
         if env:
             cmd_lines.extend(self._cmd_env(env))
         cmd_lines.append("guild %s %s" % (name, " ".join(args)))
-        cmd = "; ".join(cmd_lines)
-        self._ssh_cmd(cmd)
+        return "; ".join(cmd_lines)
+
+    def _guild_cmd_output(self, name, args, env=None):
+        cmd = self._init_guild_cmd(name, args, env)
+        return self._ssh_output(cmd)
 
     @staticmethod
     def _set_columns():
@@ -467,8 +471,26 @@ def _runs_filter_args(
         args.append(["--digest", digest])
     return args
 
-def _build_package(dist_dir):
+def _op_src(opspec):
+    from guild.commands import run_impl
+    model, _op_name = run_impl.resolve_model_op(opspec)
+    src = model.modeldef.guildfile.dir
+    if src is None:
+        return None
+    if not os.path.isdir(src):
+        raise remotelib.OperationError(
+            "cannot find source location for operation '%s'" % opspec)
+    if not os.path.exists(os.path.join(src, "guild.yml")):
+        raise remotelib.OperationError(
+            "source location for operation '%s' (%s) does not "
+            "contain guild.yml" % (opspec, src))
+    return src
+
+def _build_package(src_dir, dist_dir):
+    from guild.commands import package_impl
     log.info("Building package")
+    log.info("package src: %s", src_dir)
+    log.info("package dist: %s", dist_dir)
     args = click_util.Args(
         dist_dir=dist_dir,
         upload=False,
@@ -478,7 +500,8 @@ def _build_package(dist_dir):
         password=None,
         skip_existing=False,
         comment=None)
-    package_impl.main(args)
+    with config.SetCwd(src_dir):
+        package_impl.main(args)
 
 def _remote_run_cmd(
         remote_run_dir, opspec, op_flags, label, batch_label,

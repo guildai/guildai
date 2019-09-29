@@ -71,3 +71,7 @@ We can optionally show env for a run:
       SCRIPT_DIR: ...
       TEMP: ...
     <exit 0>
+
+JSON output:
+
+    >>> run("guild runs info --json | python -m json.tool")

@@ -28,6 +28,9 @@ log = logging.getLogger("guild")
 class NotSupported(Exception):
     pass
 
+class MissingRunOpdef(Exception):
+    pass
+
 class BatchModelProxy(object):
 
     name = ""
@@ -65,6 +68,46 @@ class BatchModelProxy(object):
             "builtin",
             "guildai",
             guild.__version__,
+            self.name)
+
+class RunModelProxy(object):
+
+    def __init__(self, run):
+        self.run = run
+        self.name = run.opref.model_name
+        self.op_name = run.opref.op_name
+        self.modeldef = self._init_modeldef()
+        self.reference = self._init_reference()
+
+    def _init_modeldef(self):
+        opdef = self.run.get("opdef")
+        if not opdef:
+            raise MissingRunOpdef(self.run)
+        self._apply_flags(self.run.get("flags"), opdef)
+        data = [
+            {
+                "model": self.name,
+                "operations": {
+                    self.op_name: opdef
+                }
+            }
+        ]
+        gf = guildfile.Guildfile(data, src="<%s>" % self.__class__.__name__)
+        return gf.models[self.name]
+
+    @staticmethod
+    def _apply_flags(flags, opdef):
+        opdef["flags"] = {
+            name: {}
+            for name in flags
+        }
+
+    def _init_reference(self):
+        opref = self.run.opref
+        return modellib.ModelRef(
+            opref.pkg_type,
+            opref.pkg_name,
+            opref.pkg_version,
             self.name)
 
 def resolve_model_op(opspec):

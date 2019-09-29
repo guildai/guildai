@@ -64,7 +64,8 @@ def main(args):
     _maybe_shift_opspec(args)
     _validate_args(args)
     _apply_existing_run(args)
-    model, op_name = _resolve_model_op(args.opspec)
+    assert args.opspec, args
+    model, op_name = _resolve_model_op(args)
     opdef = _resolve_opdef(model, op_name)
     _dispatch_cmd(args, opdef)
 
@@ -125,8 +126,7 @@ def _apply_rerun(args):
 
 def _gen_apply_existing_run(run_id_part, args):
     run = _find_run(run_id_part, args)
-    if not args.remote:
-        _apply_run_args(run, args)
+    _apply_run_args(run, args)
     return run
 
 def _change_cwd_for_run(run):
@@ -200,18 +200,13 @@ def _apply_run_args(run, args):
 
     Used to sync args with run when restarting or rerunning it.
     """
-    if run_util.is_batch(run):
-        _apply_batch_proto_args(run, args)
+    proto = run.batch_proto
+    if proto:
+        _apply_batch_proto_args(run, proto, args)
     else:
         _gen_apply_run_args(run, args)
 
-def _apply_batch_proto_args(batch_run, args):
-    proto_path = batch_run.guild_path("proto")
-    if not os.path.exists(proto_path):
-        cli.error(
-            "cannot find operation proto in %s"
-            % proto_path)
-    proto = runlib.Run("", proto_path)
+def _apply_batch_proto_args(batch_run, proto, args):
     _gen_apply_run_args(proto, args)
     if not args.optimizer:
         args.optimizer = batch_run.opref.to_opspec()
@@ -259,7 +254,18 @@ def _apply_run_random_seed(run, args):
 # Model op (model, op_name tuple) from opspec
 ###################################################################
 
-def _resolve_model_op(opspec):
+def _resolve_model_op(args):
+    # TODO: reinstate and fix issues with batch restart
+    #restart_run = getattr(args, "_restart_run", None)
+    #if restart_run:
+    #    return _restart_run_model_op(restart_run)
+    return resolve_model_op(args.opspec)
+
+def _restart_run_model_op(run):
+    model = model_proxy.RunModelProxy(run)
+    return model, model.op_name
+
+def resolve_model_op(opspec):
     try:
         model, op_name = _model_op(opspec)
     except SystemExit:
@@ -870,7 +876,7 @@ def _maybe_apply_batch_op(batch_opspec, batch_files, user_flags, args, op):
 
 def _resolve_batch_opdef(batch_opspec):
     try:
-        model, op_name = _resolve_model_op(batch_opspec)
+        model, op_name = resolve_model_op(batch_opspec)
     except SystemExit as e:
         assert e.args[0].startswith("cannot find operation"), e
         cli.error(

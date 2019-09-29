@@ -501,7 +501,7 @@ def _init_cmd_env(opdef, gpus):
     # here to include run dir first in sys.path
     env["SCRIPT_DIR"] = ""
     env["CMD_DIR"] = os.getcwd()
-    env["MODEL_DIR"] = opdef.guildfile.dir
+    env["MODEL_DIR"] = opdef.guildfile.dir or ""
     env["MODEL_PATH"] = os.path.pathsep.join(_model_paths(opdef))
     if opdef.flags_dest:
         env["FLAGS_DEST"] = opdef.flags_dest
