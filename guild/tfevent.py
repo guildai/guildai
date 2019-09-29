@@ -160,7 +160,9 @@ def _event_files_digest(dir):
 
 def ensure_tf_logging_patched():
     try:
-        from tensorboard.util import tb_logging
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", Warning)
+            from tensorboard.util import tb_logging
     except ImportError:
         pass
     else:
