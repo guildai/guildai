@@ -29,5 +29,5 @@ The latest runs:
 
     >>> run("guild runs -a")
     [1:...]   hello/hello:from-file  ...  completed  remote-run-123
-    [2:...]   hello/hello:from-flag  ...  completed  message='Howdy Guild!'
+    [2:...]   hello/hello:from-flag  ...  completed  message='Howdy Guild!'...
     <exit 0>
