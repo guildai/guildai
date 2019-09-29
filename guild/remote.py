@@ -82,7 +82,7 @@ class RunProxy(object):
     @staticmethod
     def _init_batch_proto(data):
         try:
-            proto_data = data["batch-proto"]
+            proto_data = data["proto-run"]
         except KeyError:
             return None
         else:
