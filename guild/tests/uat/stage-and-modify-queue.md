@@ -23,8 +23,8 @@ Queue an operation for v1:
 
     >>> run("guild run say.py --stage -y")
     Refreshing flags...
-    say.py is staged as ...
-    To run the operation, use 'guild run --start ...'
+    say.py staged as ...
+    To start the operation, use 'guild run --start ...'
     <exit 0>
 
 Write v2 of a script:
@@ -35,8 +35,8 @@ Queue an operation for v2:
 
     >>> run("guild run say.py --stage -y")
     Refreshing flags...
-    say.py is staged as ...
-    To run the operation, use 'guild run --start ...'
+    say.py staged as ...
+    To start the operation, use 'guild run --start ...'
     <exit 0>
 
 Run a queue once:

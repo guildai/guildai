@@ -105,7 +105,7 @@ def run(args):
         cli.out(
             "\nDetached from remote run {run_id} (still running)\n"
             "To re-attach use 'guild watch {run_id} -r {remote}'"
-            .format(run_id=run_id[:8], remote=args.remote))
+            .format(run_id=run_id, remote=args.remote))
     except remotelib.OperationError as e:
         _handle_op_error(e, remote)
     except remotelib.OperationNotSupported:
@@ -113,9 +113,9 @@ def run(args):
     else:
         if args.no_wait:
             cli.out(
-                "{run_id} is running remotely on {remote}\n"
+                "{run_id} is running on {remote}\n"
                 "To watch use 'guild watch {run_id} -r {remote}'"
-                .format(run_id=run_id[:8], remote=args.remote))
+                .format(run_id=run_id, remote=args.remote))
 
 def _handle_run_failed(e, remote):
     run_id = os.path.basename(e.remote_run_dir)

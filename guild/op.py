@@ -206,11 +206,14 @@ class Operation(object):
             return self._foreground_proc(quiet, stop_after)
 
     def _background_proc(self, pidfile, quiet, stop_after):
+        assert self._run
         import daemonize
         action = lambda: self._foreground_proc(quiet, stop_after)
         daemon = daemonize.Daemonize(app="guild_op", action=action, pid=pidfile)
         if not quiet:
-            log.info("Operation started in background (pidfile is %s)", pidfile)
+            log.info(
+                "%s started in background as %s (pidfile %s)",
+                self.opdef.opref.to_opspec(), self._run.id, pidfile)
         daemon.start()
 
     def _foreground_proc(self, quiet, stop_after):

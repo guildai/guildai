@@ -1443,8 +1443,8 @@ def _print_staged_info(op, args):
 def _print_staged_dir_instructions(op):
     cmd = " ".join(_preview_cmd(op))
     cli.out(
-        "{op} is staged in {dir}\n"
-        "To run the operation, use "
+        "{op} staged in {dir}\n"
+        "To start the operation, use "
         "'(cd {dir} && source .guild/ENV && {cmd})'"
         .format(
             op=op.opdef.fullname,
@@ -1455,12 +1455,11 @@ def _print_staged_dir_instructions(op):
 def _print_stage_pending_instructions(op):
     run_id = op.run_id
     cli.out(
-        "{op} is staged as {run_id}\n"
-        "To run the operation, use 'guild run --start {short_id}'"
+        "{op} staged as {run_id}\n"
+        "To start the operation, use 'guild run --start {run_id}'"
         .format(
             op=op.opdef.fullname,
-            run_id=run_id,
-            short_id=run_id[:8]))
+            run_id=run_id))
 
 class TestOutputLogger(summary.TestOutputLogger):
 

@@ -11,18 +11,18 @@ Delete runs in preparation for these tests.
 Stage runs:
 
     >>> run("guild run noisy.py x=1 --stage -y", ignore="Refreshing")
-    noisy.py is staged as ...
-    To run the operation, use 'guild run --start ...'
+    noisy.py staged as ...
+    To start the operation, use 'guild run --start ...'
     <exit 0>
 
     >>> run("guild run noisy.py x=2 --stage --label 'x is 2' -y")
-    noisy.py is staged as ...
-    To run the operation, use 'guild run --start ...'
+    noisy.py staged as ...
+    To start the operation, use 'guild run --start ...'
     <exit 0>
 
     >>> run("guild run noisy.py x=3 --stage -y")
-    noisy.py is staged as ...
-    To run the operation, use 'guild run --start ...'
+    noisy.py staged as ...
+    To start the operation, use 'guild run --start ...'
     <exit 0>
 
 List staged runs:

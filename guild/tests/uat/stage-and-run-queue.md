@@ -11,18 +11,18 @@ Delete runs for tests.
 Stage runs:
 
     >>> run("guild run noisy.py x=4 --stage -y", ignore="Refreshing")
-    noisy.py is staged as ...
-    To run the operation, use 'guild run --start ...'
+    noisy.py staged as ...
+    To start the operation, use 'guild run --start ...'
     <exit 0>
 
     >>> run("guild run noisy.py x=5 --stage --label 'x is 5' -y")
-    noisy.py is staged as ...
-    To run the operation, use 'guild run --start ...'
+    noisy.py staged as ...
+    To start the operation, use 'guild run --start ...'
     <exit 0>
 
     >>> run("guild run noisy.py x=6 --stage -y")
-    noisy.py is staged as ...
-    To run the operation, use 'guild run --start ...'
+    noisy.py staged as ...
+    To start the operation, use 'guild run --start ...'
     <exit 0>
 
 Restage the third run to change the order, flag, and label:
@@ -30,8 +30,8 @@ Restage the third run to change the order, flag, and label:
     >>> run_id = gapi.runs_list()[2].id
     >>> run("guild run --restage %s x=6.1 noise=0 --label 'x is 6.1' -y" % run_id)
     Restaging ...
-    noisy.py is staged as ...
-    To run the operation, use 'guild run --start ...'
+    noisy.py staged as ...
+    To start the operation, use 'guild run --start ...'
     <exit 0>
 
 View the list of staged runs:
@@ -72,8 +72,8 @@ Stage another run. We want to test the queue being run from another
 directory.
 
     >>> run("guild run noisy.py x=7 --stage -y")
-    noisy.py is staged as ...
-    To run the operation, use 'guild run --start ...'
+    noisy.py staged as ...
+    To start the operation, use 'guild run --start ...'
     <exit 0>
 
 Start the queue from the workspace root.

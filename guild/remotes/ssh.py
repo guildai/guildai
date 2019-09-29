@@ -159,10 +159,10 @@ class SSHRemote(remotelib.Remote):
         run_id = os.path.basename(remote_run_dir)
         self._start_op(remote_run_dir, opspec, flags, run_id, stage, **opts)
         if stage:
-            log.info("%s is staged as on %s as %s", opspec, self.name, run_id)
+            log.info("%s staged as on %s as %s", opspec, self.name, run_id)
             log.info(
-                "To run the operation, use 'guild run -r %s --start %s'",
-                self.name, run_id[:8])
+                "To start the operation, use 'guild run -r %s --start %s'",
+                self.name, run_id)
         if no_wait or stage:
             return run_id
         try:

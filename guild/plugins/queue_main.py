@@ -55,6 +55,7 @@ def _parse_args():
     return p.parse_args()
 
 def run_once(args):
+    log.info("Processing staged runs")
     _run_staged(_State(args))
 
 def poll(args):
