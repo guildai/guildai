@@ -260,7 +260,7 @@ def _pkg_keywords(pkg):
     return " ".join(tags)
 
 def _pkg_install_requires(pkg):
-    if pkg.required is None:
+    if pkg.requires is None:
         return _maybe_requirements_txt(pkg)
     elif not pkg.requires:
         return []
