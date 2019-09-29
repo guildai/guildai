@@ -127,7 +127,7 @@ def _watch_run(run):
         _stopped_msg(run)
 
 def _stopped_msg(run):
-    msg = "\nStopped watching %s" % run.short_id
+    msg = "\nStopped watching %s" % run.id
     if run.pid and psutil.Process(run.pid).is_running():
         msg += " (still running)"
     cli.out(msg)
@@ -185,7 +185,7 @@ def _try_open(path):
 def _print_run_status(run):
     cli.out(
         "Run %s stopped with a status of '%s'"
-        % (run.short_id, run.status), err=True)
+        % (run.id, run.status), err=True)
 
 def _watch_default_running(args):
     args.running = True
