@@ -50,32 +50,6 @@ And the output when we provide a value for the message flag:
     Howdy Guild!
     <exit 0>
 
-Guild captures project source, which we can list using `runs info`:
-
-    >>> run("guild runs info --sourcecode",
-    ...     ignore=["__pycache__", "say.pyc"])
-    id: ...
-    operation: hello:from-flag
-    from: .../examples/hello/guild.yml
-    status: completed
-    started: ...
-    stopped: ...
-    marked: no
-    label: message='Howdy Guild!'
-    sourcecode_digest: 0d5131c7879d544cbde683da86c06085
-    run_dir: ...
-    command: ... -um guild.op_main say -- --message "Howdy Guild!"
-    exit_status: 0
-    pid:
-    flags:
-      message: Howdy Guild!
-    scalars:
-    sourcecode:
-      guild.yml
-      msg.txt
-      say.py
-    <exit 0>
-
 ### `from-file`
 
 The `from-file` operation prints a message contained in a file. By

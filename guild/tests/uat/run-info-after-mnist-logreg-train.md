@@ -27,9 +27,9 @@ Use `guild runs info` to show information about the latest run:
       val#loss: ... (step 550)
     <exit 0>
 
-We can optionally show files and env for a run:
+We can optionally show env for a run:
 
-    >>> run("guild runs info --files --env") # doctest: +REPORT_UDIFF
+    >>> run("guild runs info --env") # doctest: +REPORT_UDIFF
     id: ...
     operation: gpkg.mnist/logreg:train
     from: gpkg.mnist==0.6.0
@@ -47,6 +47,11 @@ We can optionally show files and env for a run:
       batch-size: 100
       epochs: 1
       learning-rate: 0.5
+    scalars:
+      acc: ... (step 550)
+      loss: ... (step 550)
+      val#acc: ... (step 550)
+      val#loss: ... (step 550)
     environment:
       CMD_DIR: ...
       GUILD_HOME: ...
@@ -54,7 +59,7 @@ We can optionally show files and env for a run:
       GUILD_PKG: ...
       GUILD_PLUGINS: ...
       LANG: ...
-      LOG_LEVEL: 20
+      LOG_LEVEL: '20'
       MODEL_DIR: .../site-packages/gpkg/mnist
       MODEL_PATH: .../site-packages/gpkg/mnist
       PATH: ...
@@ -65,26 +70,4 @@ We can optionally show files and env for a run:
       RUN_ID: ...
       SCRIPT_DIR: ...
       TEMP: ...
-    files:
-      checkpoint
-      events.out.tfevents...
-      export
-      export/saved_model.pb
-      export/variables
-      export/variables/variables.data-00000-of-00001
-      export/variables/variables.index
-      mnist-idx-data
-      mnist-idx-data/t10k-images-idx3-ubyte
-      mnist-idx-data/t10k-images-idx3-ubyte.gz
-      mnist-idx-data/t10k-labels-idx1-ubyte
-      mnist-idx-data/t10k-labels-idx1-ubyte.gz
-      mnist-idx-data/train-images-idx3-ubyte
-      mnist-idx-data/train-images-idx3-ubyte.gz
-      mnist-idx-data/train-labels-idx1-ubyte
-      mnist-idx-data/train-labels-idx1-ubyte.gz
-      model.ckpt-550.data-00000-of-00001
-      model.ckpt-550.index
-      model.ckpt-550.meta
-      val
-      val/events.out.tfevents...
     <exit 0>

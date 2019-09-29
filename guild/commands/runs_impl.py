@@ -38,6 +38,7 @@ import guild.opref
 from guild import cli
 from guild import cmd_impl_support
 from guild import config
+from guild import flag_util
 from guild import remote_run_support
 from guild import run as runlib
 from guild import run_util
@@ -549,10 +550,7 @@ def run_info(args, ctx):
 
 def _run_info(args, ctx):
     run = one_run(args, ctx)
-    if args.page_output:
-        _page_run_output(run)
-    else:
-        _print_run_info(run, args)
+    _print_run_info(run, args)
 
 def one_run(args, ctx):
     filtered = filtered_runs(args, ctx=ctx)
@@ -563,61 +561,32 @@ def one_run(args, ctx):
     selected = select_runs(filtered, [runspec], ctx)
     return cmd_impl_support.one_run(selected, runspec, ctx)
 
-def _page_run_output(run):
-    reader = util.RunOutputReader(run.path)
-    lines = []
-    try:
-        lines = reader.read()
-    except IOError as e:
-        cli.error("error reading output for run %s: %s" % (run.id, e))
-    lines = [_format_output_line(stream, line) for _time, stream, line in lines]
-    cli.page("\n".join(lines))
-
-def _format_output_line(stream, line):
-    if stream == 1:
-        return cli.style(line, fg="red")
-    return line
-
 def _print_run_info(run, args):
+    data = _run_info_data(run, args)
+    if args.json:
+        _print_run_info_json(data)
+    else:
+        _print_run_info_ordered(data)
+
+def _run_info_data(run, args):
     fmt_run = format_run(run)
-    out = cli.out
+    data = []
     for name in RUN_DETAIL:
-        out("%s: %s" % (name, fmt_run[name]))
+        data.append((name, fmt_run[name]))
     for name in other_attr_names(run, args.private_attrs):
-        out("%s: %s" % (name, run_util.format_attr(run.get(name))))
+        data.append((name, run_util.format_attr(run.get(name))))
     if args.private_attrs:
-        out("opref: %s" % str(run.opref))
-    out("flags:", nl=False)
-    out(run_util.format_attr(run.get("flags", "")).rstrip())
-    _maybe_print_proto_flags(run, out)
+        data.append(("opref", str(run.opref)))
+    data.append(("flags", run.get("flags") or {}))
+    proto_run = run_util.proto_run(run)
+    if proto_run:
+        data.append(("proto-flags", proto_run.get("flags") or {}))
+    data.append(("scalars", _scalar_info(run, args)))
     if args.env:
-        out("environment:", nl=False)
-        out(run_util.format_attr(run.get("env", "")))
-    out("scalars:")
-    for scalar in _iter_scalars(run):
-        if args.all_scalars or "/" not in scalar:
-            out("  %s" % scalar)
+        data.append(("environment", run.get("env") or {}))
     if args.deps:
-        out("dependencies:")
-        deps = run.get("deps", {})
-        for name in sorted(deps):
-            out("  %s:" % name)
-            for path in deps[name]:
-                out("    %s" % path)
-    if args.sourcecode:
-        out("sourcecode:")
-        for path in sorted(run.iter_guild_files("sourcecode")):
-            out("  %s" % path)
-    if args.output:
-        out("output:")
-        for line in run_util.iter_output(run):
-            out("  %s" % line, nl=False)
-    if args.files or args.all_files:
-        out("files:")
-        for path in sorted(run.iter_files(args.all_files, args.follow_links)):
-            if args.files == 1:
-                path = os.path.relpath(path, run.path)
-            out("  %s" % path)
+        data.append(("dependencies", run.get("deps") or {}))
+    return data
 
 def other_attr_names(run, include_private=False):
     if include_private:
@@ -626,17 +595,23 @@ def other_attr_names(run, include_private=False):
         include = lambda x: x[0] != "_" and x not in CORE_RUN_ATTRS
     return [name for name in sorted(run.attr_names()) if include(name)]
 
-def _maybe_print_proto_flags(run, out):
-    proto_dir = run.guild_path("proto")
-    if os.path.exists(proto_dir):
-        proto_run = runlib.Run("", proto_dir)
-        out("proto-flags:", nl=False)
-        out(run_util.format_attr(proto_run.get("flags", "")))
+def _scalar_info(run, args):
+    return {
+        key: val
+        for key, val in _iter_scalars(run, args)
+        if args.all_scalars or "/" not in key
+    }
 
-def _iter_scalars(run):
+def _iter_scalars(run, args):
     from guild import index2 as indexlib # slightly expensive
     for s in indexlib.iter_run_scalars(run):
-        yield "%s: %f (step %i)" % (_s_key(s), _s_val(s), _s_step(s))
+        key = _s_key(s)
+        val = _s_val(s)
+        step = _s_step(s)
+        if args.json:
+            yield key, (val, step)
+        else:
+            yield key, "%f (step %i)" % (_s_val(s), _s_step(s))
 
 def _s_key(s):
     return run_util.run_scalar_key(s)
@@ -646,6 +621,41 @@ def _s_val(s):
 
 def _s_step(s):
     return s["last_step"]
+
+def _print_run_info_json(data):
+    data = _tuple_lists_to_dict(data)
+    cli.out(json.dumps(data))
+
+def _tuple_lists_to_dict(data):
+    if isinstance(data, list):
+        if data and isinstance(data[0], tuple):
+            return {
+                name: _tuple_lists_to_dict(val)
+                for name, val in data
+            }
+        else:
+            return [_tuple_lists_to_dict(val) for val in data]
+    else:
+        return data
+
+def _print_run_info_ordered(data):
+    fmt = flag_util.encode_flag_val
+    for name, val in data:
+        if isinstance(val, list):
+            cli.out("%s:" % name)
+            for item in val:
+                cli.out("  - %s" % fmt(item))
+        elif isinstance(val, dict):
+            cli.out("%s:" % name)
+            for item_name, item_val in sorted(val.items()):
+                if isinstance(item_val, list):
+                    cli.out("  %s:" % item_name)
+                    for item_item in item_val:
+                        cli.out("    - %s" % fmt(item_item))
+                else:
+                    cli.out("  %s: %s" % (item_name, fmt(item_val)))
+        else:
+            cli.out("%s: %s" % (name, val))
 
 def label(args, ctx):
     if args.remote:

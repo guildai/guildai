@@ -564,28 +564,16 @@ def _delete_runs_args(runs, permanent, yes, **filters):
     args.extend(runs)
     return args
 
-def _run_info_args(
-        run, files, all_files, env, deps, all_scalars, sourcecode,
-        follow_links, output, page_output, **filters):
+def _run_info_args(run, env, deps, all_scalars, json, **filters):
     args = _runs_filter_args(**filters)
-    if files:
-        args.append("-" + "f" * files)
-    if all_files:
-        args.append("-a")
     if env:
-        args.append("-e")
+        args.append("--env")
     if deps:
-        args.append("-d")
+        args.append("--deps")
     if all_scalars:
         args.append("--all-scalars")
-    if sourcecode:
-        args.append("--sourcecode")
-    if follow_links:
-        args.append("-L")
-    if output:
-        args.append("-O")
-    if page_output:
-        args.append("-p")
+    if json:
+        args.append("--json")
     if run:
         args.append(run)
     return args

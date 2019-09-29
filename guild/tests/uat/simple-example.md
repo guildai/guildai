@@ -141,10 +141,6 @@ The run writes a number of scalars, which we can view as info with the
       biases/min_1: ... (step 540)
       biases/stddev: ... (step 540)
       loss: ... (step 540)
-      weights/max_1: ... (step 540)
-      weights/mean_1: ... (step 540)
-      weights/min_1: ... (step 540)
-      weights/stddev: ... (step 540)
       val#acc: ... (step 540)
       val#biases/max_1: ... (step 540)
       val#biases/mean_1: ... (step 540)
@@ -155,6 +151,10 @@ The run writes a number of scalars, which we can view as info with the
       val#weights/mean_1: ... (step 540)
       val#weights/min_1: ... (step 540)
       val#weights/stddev: ... (step 540)
+      weights/max_1: ... (step 540)
+      weights/mean_1: ... (step 540)
+      weights/min_1: ... (step 540)
+      weights/stddev: ... (step 540)
     <exit 0>
 
 We can view the compare columns for the script op - these are default

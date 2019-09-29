@@ -15,9 +15,9 @@ Lets run the `mnist_mlp.py` script:
     test_acc: ...
     <exit 0>
 
-Here's the run info, including files and all scalars:
+Here's the run info with all scalars:
 
-    >>> run("guild runs info --files --all-scalars")
+    >>> run("guild runs info --all-scalars")
     id: ...
     operation: mnist_mlp.py
     from: .../examples/keras
@@ -36,15 +36,16 @@ Here's the run info, including files and all scalars:
       epochs: 1
       num_classes: 10
     scalars:
-      accuracy: ... (step 0)
-      loss: ... (step 0)
-      sys/...
-      val_accuracy: ... (step 0)
-      val_loss: ... (step 0)
       accuracy: ... (step 1)
       loss: ... (step 1)
+      sys/...
       val_accuracy: ... (step 1)
       val_loss: ... (step 1)
-    files:
+    <exit 0>
+
+And files:
+
+    >>> run("guild ls")
+    ???:
       events.out.tfevents...
     <exit 0>

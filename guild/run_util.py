@@ -277,6 +277,13 @@ def _safe_guild_path(run, path, default):
 def is_batch(run):
     return os.path.exists(run.guild_path("proto"))
 
+def proto_run(run):
+    import guild.run
+    proto_dir = run.guild_path("proto")
+    if os.path.exists(proto_dir):
+        return guild.run.Run("", proto_dir)
+    return None
+
 def shorten_op_dir(op_dir, cwd):
     return util.shorten_dir(_format_op_dir(op_dir, cwd))
 

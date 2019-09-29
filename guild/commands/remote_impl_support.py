@@ -232,15 +232,10 @@ def run_info(args):
 
 def _run_info_kw(args):
     names = _run_select_names() + [
-        "all_files",
+        "all_scalars",
         "deps",
         "env",
-        "files",
-        "follow_links",
-        "all_scalars",
-        "output",
-        "page_output",
-        "sourcecode",
+        "json",
     ]
     ignore = [
         "private_attrs",
