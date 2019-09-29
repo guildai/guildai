@@ -144,7 +144,7 @@ class Remote(object):
     def filtered_runs(self, **filters):
         raise NotImplementedError()
 
-    def one_run(self, run_id_prefix, attrs):
+    def one_run(self, run_id_prefix):
         raise NotImplementedError()
 
     def watch_run(self, **opts):

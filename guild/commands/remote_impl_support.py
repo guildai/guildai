@@ -187,7 +187,7 @@ def one_run(run_id_prefix, args):
     remote = remote_support.remote_for_args(args)
     cli.note("Getting remote run info")
     try:
-        return remote.one_run(run_id_prefix, ["flags"])
+        return remote.one_run(run_id_prefix)
     except remotelib.RemoteProcessError as e:
         _handle_remote_process_error(e)
     except remotelib.OperationNotSupported:

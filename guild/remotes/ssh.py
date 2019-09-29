@@ -343,12 +343,7 @@ class SSHRemote(remotelib.Remote):
             return ["source %s/bin/activate" % self.venv_path]
         return []
 
-    def one_run(self, run_id_prefix, attrs):
-        """Returns run matching id prefix as remote.RunProxy with attrs.
-
-        Currently only supports attrs as ["flags"].
-        """
-        assert len(attrs) == 1 and attrs[0] == "flags", attrs
+    def one_run(self, run_id_prefix):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(

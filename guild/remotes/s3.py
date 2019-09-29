@@ -373,7 +373,7 @@ class S3Remote(remotelib.Remote):
         args.private_attrs = False
         runs_impl.run_info(args, None)
 
-    def one_run(self, run_id_prefix, attrs):
+    def one_run(self, run_id_prefix):
         raise NotImplementedError("TODO")
 
     def run_op(self, opspec, flags, restart, no_wait, stage, **opts):
