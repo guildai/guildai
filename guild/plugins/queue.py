@@ -19,7 +19,6 @@ import yaml
 
 import guild
 
-from guild import config
 from guild import guildfile
 from guild import model as modellib
 from guild import plugin as pluginlib
@@ -74,7 +73,7 @@ class QueueModelProxy(object):
                 }
             }
         ]
-        gf = guildfile.Guildfile(data, dir=config.cwd())
+        gf = guildfile.Guildfile(data, src="<%s>" % self.__class__.__name__)
         return gf.models["queue"]
 
     @staticmethod

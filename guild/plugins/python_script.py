@@ -94,7 +94,7 @@ class PythonScriptModelProxy(object):
                 }
             }
         ]
-        gf = guildfile.Guildfile(data, dir=config.cwd())
+        gf = guildfile.Guildfile(data, dir=os.path.dirname(self.script_path))
         return gf.models[self.name]
 
     def _exec_attr(self):

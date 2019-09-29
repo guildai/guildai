@@ -19,7 +19,6 @@ import logging
 
 import guild
 
-from guild import config
 from guild import guildfile
 from guild import model as modellib
 from guild import plugin as pluginlib
@@ -58,7 +57,7 @@ class BatchModelProxy(object):
                 }
             }
         ]
-        gf = guildfile.Guildfile(data, dir=config.cwd())
+        gf = guildfile.Guildfile(data, src="<%s>" % self.__class__.__name__)
         return gf.models[self.name]
 
     def _init_reference(self):
