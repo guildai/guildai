@@ -1418,7 +1418,7 @@ def _handle_process_error(e):
     cli.error("run failed: %s" % e)
 
 def _handle_run_exit(returncode, op, args):
-    if op.stage_only and os.getenv("NO_STAGED_MSG") != "1":
+    if op.stage_only and not args.quiet and os.getenv("NO_STAGED_MSG") != "1":
         _print_staged_info(op, args)
     if args.init_trials:
         op.set_pending()
