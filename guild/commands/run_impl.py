@@ -64,7 +64,6 @@ def main(args):
     _maybe_shift_opspec(args)
     _validate_args(args)
     _apply_existing_run(args)
-    assert args.opspec, args
     model, op_name = resolve_model_op(args.opspec)
     opdef = _resolve_opdef(model, op_name)
     _dispatch_cmd(args, opdef)
