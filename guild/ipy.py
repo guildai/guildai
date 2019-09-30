@@ -27,7 +27,10 @@ import threading
 
 import six
 
-import pandas as pd
+try:
+    import pandas as pd
+except ModuleNotFoundError as e:
+    raise ModuleNotFoundError("Pandas is not part of the requirements. To use Guild in a notebook, please install pandas manually first") from e
 
 # ipy makes use of the full Guild API and so, like main_bootstrap,
 # requires the external modules.
