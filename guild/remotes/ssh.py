@@ -492,6 +492,7 @@ def _build_package(src_dir, dist_dir):
     log.info("package src: %s", src_dir)
     log.info("package dist: %s", dist_dir)
     args = click_util.Args(
+        clean=True,
         dist_dir=dist_dir,
         upload=False,
         sign=False,
