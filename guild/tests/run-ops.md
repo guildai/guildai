@@ -19,7 +19,7 @@ And the helper function:
 
     >>> def resolve_model_op(opspec, cwd):
     ...     with Chdir(cwd):
-    ...         return run_impl._resolve_model_op(opspec)
+    ...         return run_impl.resolve_model_op(opspec)
 
 ## Bad op specs
 

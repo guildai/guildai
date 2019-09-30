@@ -1,5 +1,4 @@
 - model: ''
-  disable-plugins: all
   operations:
     train:
       description: Sample op
@@ -8,7 +7,6 @@
 
 - model: a
   description: Sample model
-  disable-plugins: all
   operations:
     train:
       description: Sample op
@@ -17,7 +15,6 @@
 
 - model: b
   description: Sample model
-  disable-plugins: all
   operations:
     train:
       description: Sample op

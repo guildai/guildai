@@ -1,3 +1,2 @@
 output-and-summaries:
-  disable-plugins: all
   flags-import-skip: min_loss

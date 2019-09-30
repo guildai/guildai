@@ -4,7 +4,6 @@ gen-output:
     msg:
       default: hi
       arg-skip: yes
-  disable-plugins: all
 
 gen-files:
   main: write ${count} ${msg}
@@ -17,7 +16,6 @@ gen-files:
       arg-skip: yes
   requires:
     - file: sample.txt
-  disable-plugins: all
 
 _test-output-1:
   steps:

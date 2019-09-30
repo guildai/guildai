@@ -1,4 +1,3 @@
 - model: ''
-  disable-plugins: all
   operations:
     simple: {}

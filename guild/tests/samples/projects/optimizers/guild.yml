@@ -1,7 +1,6 @@
 noisy:
   description: A noisy function
   main: noisy
-  disable-plugins: all
   flags:
     noise:
       description: Level of noise added to loss
@@ -29,7 +28,6 @@ noisy:
 echo:
   main: echo
   description: Prints x, y, z flags
-  disable-plugins: all
   flags:
     x:
       description: X value to print
@@ -102,5 +100,4 @@ opt-test-4:
     alt-tune: tune-echo-2
 
 fail:
-  disable-plugins: all
   main: fail

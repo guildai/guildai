@@ -2,7 +2,6 @@ train:
   main: train
   flags:
     lr: [0.001,0.01,0.1]
-  disable-plugins: all
 
 serve:
   main: serve
@@ -10,4 +9,3 @@ serve:
     - name: train
       operation: train
   label: model=${train}
-  disable-plugins: all

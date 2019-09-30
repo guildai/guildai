@@ -16,7 +16,6 @@
     s4: '-0.00034'
 
 - model: ''
-  disable-plugins: all
   flags-import: no
   operations:
     args:
