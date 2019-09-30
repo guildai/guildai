@@ -41,6 +41,7 @@ def main(args):
         _check_upload_support(package_file)
     package.create_package(
         package_file,
+        clean=args.clean,
         dist_dir=args.dist_dir,
         upload_repo=args.upload,
         sign=args.sign,

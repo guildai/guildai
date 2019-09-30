@@ -1279,3 +1279,19 @@ def check_env(env):
             raise ValueError("non-string env name %r" % name)
         if not isinstance(val, six.string_types):
             raise ValueError("non-string env value for '%s': %r" % (name, val))
+
+class SysArgv(object):
+
+    def __init__(self, args):
+        self._args = args
+        self._save = None
+
+    def __enter__(self):
+        assert self._save is None, self._save
+        self._save = sys.argv[1:]
+        sys.argv[1:] = self._args
+
+    def __exit__(self, *_exc):
+        assert self._save is not None
+        sys.argv[1:] = self._save
+        self._save = None

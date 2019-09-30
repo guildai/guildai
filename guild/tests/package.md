@@ -114,8 +114,7 @@ And generate a package for it:
 
     >>> gf = guildfile.from_dir(workspace)
     >>> out = guild.package.create_package(gf.src, capture_output=True)
-    >>> print("-\n" + out.decode("UTF-8"))
-    -
+    >>> print(out.decode("UTF-8"))
     running bdist_wheel
     running build
     running build_py
@@ -137,6 +136,21 @@ And the package contents:
     >>> pprint(sorted(wheel.namelist()))
     [...
      'test/guild.yml']
+
+Use the `clean` option to delete build artifacts before creating a
+package.
+
+    >>> out = guild.package.create_package(gf.src, clean=True, capture_output=True)
+    >>> print(out.decode("UTF-8"))
+    running clean
+    removing 'build/lib...' (and everything under it)
+    removing 'build/bdist...' (and everything under it)
+    'build/scripts...' does not exist -- can't clean it
+    removing 'build'
+    running bdist_wheel
+    running build
+    running build_py
+    ...
 
 If a Guild file doesn't contain a package def or a model def, it
 creates a package named 'gpkg.anonymous_DIGEST':

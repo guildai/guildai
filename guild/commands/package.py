@@ -21,6 +21,10 @@ from guild import click_util
 
 @click.command()
 @click.option(
+    "--clean",
+    help="Clean build directories before creating package.",
+    is_flag=True)
+@click.option(
     "-d", "--dist-dir", metavar="DIR",
     help="Directory to create the package distribution in.")
 @click.option(

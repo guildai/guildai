@@ -95,14 +95,26 @@ def _gf_digest(gf):
     return hashlib.md5(path.encode()).hexdigest()[:8]
 
 def _create_dist(pkg):
-    sys.argv = _bdist_wheel_cmd_args(pkg)
     kw = _setup_kw(pkg)
     _maybe_print_kw_and_exit(kw)
     _write_package_metadata(pkg, kw)
-    return setuptools.setup(**kw)
+    if os.getenv("CLEAN_SETUP") == "1":
+        _setup_clean(kw)
+    return _setup_bdist_wheel(pkg, kw)
+
+def _setup_clean(kw):
+    with util.SysArgv(_clean_cmd_args()):
+        setuptools.setup(**kw)
+
+def _clean_cmd_args():
+    return ["clean", "--all"]
+
+def _setup_bdist_wheel(pkg, kw):
+    with util.SysArgv(_bdist_wheel_cmd_args(pkg)):
+        return setuptools.setup(**kw)
 
 def _bdist_wheel_cmd_args(pkg):
-    args = [sys.argv[0], "bdist_wheel"]
+    args = ["bdist_wheel"]
     args.extend(_python_tag_args(pkg))
     args.extend(_dist_dir_args())
     return args
