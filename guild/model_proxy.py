@@ -46,22 +46,18 @@ class BatchModelProxy(object):
         self.reference = self._init_reference()
 
     def _init_modeldef(self):
-        data = [
-            {
-                "model": self.name,
-                "operations": {
-                    self.op_name: {
-                        "description": self.op_description,
-                        "exec": "${python_exe} -um %s" % self.module_name,
-                        "flag-encoder": self.flag_encoder,
-                        "default-max-trials": self.default_max_trials,
-                        "flags": self.flags_data,
-                    }
+        data = {
+            "operations": {
+                self.op_name: {
+                    "description": self.op_description,
+                    "exec": "${python_exe} -um %s" % self.module_name,
+                    "flag-encoder": self.flag_encoder,
+                    "default-max-trials": self.default_max_trials,
+                    "flags": self.flags_data,
                 }
             }
-        ]
-        gf = guildfile.Guildfile(data, src="<%s>" % self.__class__.__name__)
-        return gf.models[self.name]
+        }
+        return modeldef(self.name, data, "<%s>" % self.__class__.__name__)
 
     def _init_reference(self):
         return modellib.ModelRef(
@@ -70,6 +66,12 @@ class BatchModelProxy(object):
             guild.__version__,
             self.name)
 
+def modeldef(model_name, model_data, src):
+    model_data = dict(model_data)
+    model_data["model"] = model_name
+    gf_data = [model_data]
+    gf = guildfile.Guildfile(gf_data, src=src)
+    return gf.models.values()[0]
 
 def resolve_model_op(opspec):
     if opspec == "+":
