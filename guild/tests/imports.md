@@ -186,7 +186,6 @@
     guild.remotes.s3
     guild.remotes.ssh
     guild.remotes.ssh_util
-    guild.remotes.tpu
     guild.resolver
     guild.resource
     guild.resourcedef
