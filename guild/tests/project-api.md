@@ -176,8 +176,8 @@ With extra cols:
 
     >>> project.compare(extra_cols=True)
     [['run', 'operation', 'started', 'time', 'status', 'label', 'sourcecode', 'x', 'step', 'y'],
-     ['...', 'simple', '...', '0:00:00', 'completed', None, '7a253e89', 1.0, 0, 2.0],
-     ['...', 'simple', '...', '0:00:00', 'completed', None, '7a253e89', 1.0, 0, 2.0]]
+     ['...', 'simple', '...', '0:00:00', 'completed', None, '1fba8f2f', 1.0, 0, 2.0],
+     ['...', 'simple', '...', '0:00:00', 'completed', None, '1fba8f2f', 1.0, 0, 2.0]]
 
 ## Other functions
 
