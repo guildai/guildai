@@ -71,7 +71,7 @@ def modeldef(model_name, model_data, src):
     model_data["model"] = model_name
     gf_data = [model_data]
     gf = guildfile.Guildfile(gf_data, src=src)
-    return gf.models.values()[0]
+    return gf.default_model
 
 def resolve_model_op(opspec):
     if opspec == "+":
