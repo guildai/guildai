@@ -74,4 +74,28 @@ We can optionally show env for a run:
 
 JSON output:
 
-    >>> run("guild runs info --json | python -m json.tool")
+    >>> run("guild runs info --json | python -c '"
+    ...     "import json, pprint, sys; "
+    ...     "data = json.load(sys.stdin); "
+    ...     "pprint.pprint(data)'")  # doctest: +REPORT_UDIFF
+    {'command': '... -um guild.op_main logreg --data-dir '
+                'mnist-idx-data --run-dir . -- --batch-size 100 --epochs 1 '
+                '--learning-rate 0.5',
+     'exit_status': 0,
+     'flags': {'batch-size': 100, 'epochs': 1, 'learning-rate': 0.5},
+     'from': 'gpkg.mnist==0.6.0',
+     'id': '...',
+     'label': 'epochs=1',
+     'marked': 'no',
+     'operation': 'gpkg.mnist/logreg:train',
+     'pid': '',
+     'run_dir': '...',
+     'scalars': {'acc': [..., 550],
+                 'loss': [..., 550],
+                 'val#acc': [..., 550],
+                 'val#loss': [..., 550]},
+     'sourcecode_digest': '...',
+     'started': '...',
+     'status': 'completed',
+     'stopped': '...'}
+    <exit 0>
