@@ -65,7 +65,7 @@ def main(args):
     _validate_args(args)
     _apply_existing_run(args)
     assert args.opspec, args
-    model, op_name = _resolve_model_op(args)
+    model, op_name = resolve_model_op(args.opspec)
     opdef = _resolve_opdef(model, op_name)
     _dispatch_cmd(args, opdef)
 
@@ -253,17 +253,6 @@ def _apply_run_random_seed(run, args):
 ###################################################################
 # Model op (model, op_name tuple) from opspec
 ###################################################################
-
-def _resolve_model_op(args):
-    # TODO: reinstate and fix issues with batch restart
-    #restart_run = getattr(args, "_restart_run", None)
-    #if restart_run:
-    #    return _restart_run_model_op(restart_run)
-    return resolve_model_op(args.opspec)
-
-def _restart_run_model_op(run):
-    model = model_proxy.RunModelProxy(run)
-    return model, model.op_name
 
 def resolve_model_op(opspec):
     try:
