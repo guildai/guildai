@@ -29,8 +29,11 @@ import six
 
 try:
     import pandas as pd
-except ModuleNotFoundError as e:
-    raise ModuleNotFoundError("Pandas is not part of the requirements. To use Guild in a notebook, please install pandas manually first") from e
+except ImportError:
+    raise RuntimeError(
+        "guild.ipy requires pandas - install it first before using "
+        "this module (see https://pandas.pydata.org/pandas-docs/stable/"
+        "install.html for help)")
 
 # ipy makes use of the full Guild API and so, like main_bootstrap,
 # requires the external modules.
