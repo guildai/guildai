@@ -1193,6 +1193,7 @@ def _run_normal(op, args):
     _run_op(op, args)
 
 def _check_normal_needed(op, args):
+    """Exit early if normal run is not needed."""
     if not args.needed:
         return
     if args.restart:
