@@ -37,6 +37,7 @@ from __future__ import print_function
 import doctest
 import fnmatch
 import glob
+import json
 import os
 import platform
 import pprint
@@ -298,6 +299,7 @@ def test_globals():
         "abspath": os.path.abspath,
         "basename": os.path.basename,
         "cat": cat,
+        "cat_json": cat_json,
         "cli": cli,
         "compare_paths": util.compare_paths,
         "copyfile": copyfile,
@@ -373,6 +375,12 @@ def cat(*parts):
             print("<empty>")
         else:
             print(s)
+
+def cat_json(*parts):
+    with open(os.path.join(*parts), "r") as f:
+        data = json.load(f)
+        json.dump(data, sys.stdout, sort_keys=True, indent=4,
+                  separators=(",", ": "))
 
 def dir(path, ignore=None):
     return sorted([
