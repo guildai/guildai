@@ -203,7 +203,7 @@ class GuildfileDistribution(pkg_resources.Distribution):
         (i.e. the value of os.getcwd() at the time they are generated) and
         always start with '.'.
         """
-        pkg_path = os.path.relpath(guildfile.dir)
+        pkg_path = os.path.relpath(guildfile.dir, config.cwd())
         if pkg_path[0] != ".":
             pkg_path = os.path.join(".", pkg_path)
         safe_path = escape_project_name(pkg_path)
