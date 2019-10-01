@@ -292,6 +292,7 @@ def test_globals():
         "Project": Project,
         "Proxy": Proxy,
         "SetCwd": configlib.SetCwd,
+        "SetGuildHome": configlib.SetGuildHome,
         "StderrCapture": StderrCapture,
         "SysPath": SysPath,
         "TempFile": util.TempFile,
