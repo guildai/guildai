@@ -370,9 +370,10 @@ def _top_level_dir(path):
 
 class LogCapture(object):
 
-    def __init__(self, use_root_handler=False):
+    def __init__(self, use_root_handler=False, stdout=False):
         self._records = []
         self._use_root_handler = use_root_handler
+        self._stdout = stdout
 
     def __enter__(self):
         for logger in self._iter_loggers():
@@ -393,6 +394,8 @@ class LogCapture(object):
 
     def filter(self, record):
         self._records.append(record)
+        if self._stdout:
+            print(self._handler().format(record))
 
     def print_all(self):
         handler = self._handler()
