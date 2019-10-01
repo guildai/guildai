@@ -82,6 +82,7 @@
     guild.commands.remotes_impl
     guild.commands.run
     guild.commands.run_impl
+    guild.commands.run_impl2
     guild.commands.runs
     guild.commands.runs_delete
     guild.commands.runs_diff
@@ -144,6 +145,7 @@
     guild.model_proxy
     guild.namespace
     guild.op
+    guild.op2
     guild.op_main
     guild.op_util
     guild.opref

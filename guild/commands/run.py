@@ -355,5 +355,10 @@ def run(args):
     number of runs the optimizer should generate.
 
     """
-    from . import run_impl
-    run_impl.main(args)
+    import os
+    if os.getenv("RUN2") == "1":
+        from . import run_impl2
+        run_impl2.main(args)
+    else:
+        from . import run_impl
+        run_impl.main(args)
