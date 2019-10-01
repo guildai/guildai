@@ -374,6 +374,23 @@ def get_path():
 def set_path(path, clear_cache=False):
     _models.set_path(path, clear_cache)
 
+class SetPath(object):
+
+    def __init__(self, path, clear_cache=False):
+        self._path = path
+        self._clear_cache = clear_cache
+        self._save = None
+
+    def __enter__(self):
+        assert self._save is None, self._save
+        self._save = get_path()
+        set_path(self._path, clear_cache=self._clear_cache)
+
+    def __exit__(self, *_exc):
+        assert self._save is not None
+        set_path(self._save)
+        self._save = None
+
 def insert_path(item, clear_cache=False):
     path = _models.path()
     try:
