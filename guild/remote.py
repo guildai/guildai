@@ -201,9 +201,6 @@ def _for_type(remote_type, name, config):
     elif remote_type == "s3":
         from guild.remotes import s3
         cls = s3.S3Remote
-    elif remote_type == "tpu":
-        from guild.remotes import tpu
-        cls = tpu.TPURemote
     elif remote_type == "mock-ssh":
         from guild.remotes import ssh
         cls = ssh.MockSSHRemote
