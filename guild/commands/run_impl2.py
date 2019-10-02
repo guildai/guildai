@@ -20,6 +20,7 @@ import os
 
 from guild import cli
 from guild import cmd_impl_support
+from guild import help as helplib
 from guild import op2 as oplib
 from guild import op_util2 as op_util
 from guild import run as runlib
@@ -36,19 +37,17 @@ log = logging.getLogger("guild")
 class State(object):
 
     def __init__(self, args):
-        _State_init(self, args)
+        self.args = args
+        self.restart_run = _state_restart_run(args.restart)
+        self.opdef = _state_opdef(args, self.restart_run)
+        assert self.opdef or self.restart_run
+        (self.flag_vals,
+         self.batch_files) = _state_split_flag_args(args.flags)
 
-def _State_init(S, args):
-    S.args = args
-    S.restart_run = _maybe_restart_run(args)
-    S.opdef = _maybe_opdef(args.opspec, S.restart_run)
-    assert S.opdef or S.restart_run
-
-def _maybe_restart_run(args):
-    restart_run_spec = args.restart or args.start
-    if not restart_run_spec:
+def _state_restart_run(restart):
+    if not restart:
         return None
-    return _run_for_spec(restart_run_spec)
+    return _run_for_spec(restart)
 
 def _run_for_spec(spec):
     return util.find_apply([
@@ -57,13 +56,13 @@ def _run_for_spec(spec):
         one_run,
     ], spec)
 
-def _maybe_opdef(opspec, restart_run):
-    if restart_run and opspec:
+def _state_opdef(args, restart_run):
+    if args.opspec and restart_run:
         _opspec_and_restart_error()
     if restart_run:
         return op_util.run_opdef(restart_run)
     else:
-        return _opdef_for_opspec(opspec)
+        return _opdef_for_opspec(args.opspec)
 
 def _opdef_for_opspec(opspec):
     try:
@@ -79,18 +78,30 @@ def _opdef_for_opspec(opspec):
     except op_util.NoSuchOperation as e:
         _no_such_opdef_error(e.model, e.op_name)
 
+def _state_split_flag_args(flag_args):
+    batch_files, rest_args = op_util.split_batch_files(flag_args)
+    assigns = _parse_assigns(rest_args)
+    return assigns, batch_files
+
+def _parse_assigns(assign_args):
+    try:
+        return op_util.parse_flag_assigns(assign_args)
+    except op_util.ArgValueError as e:
+        _invalid_flag_arg_error(e.arg)
+
 ###################################################################
 # Main
 ###################################################################
 
 def main(args):
-    state = _init_state(args)
-    op = _init_op(state)
-    _dispatch_op(state, op)
+    S = _init_state(args)
+    op = _init_op(S)
+    _dispatch_op(op, S)
 
 def _init_state(args):
     _maybe_shift_opspec(args)
     _validate_args(args)
+    _apply_start_alias(args)
     return State(args)
 
 def _maybe_shift_opspec(args):
@@ -99,6 +110,10 @@ def _maybe_shift_opspec(args):
     if args.opspec and "=" in args.opspec:
         args.flags = (args.opspec,) + args.flags
         args.opspec = None
+
+def _apply_start_alias(args):
+    if args.start:
+        args.restart = args.start
 
 def _validate_args(args):
     _check_incompatible_options(args)
@@ -136,17 +151,44 @@ def _check_opspec_and_restart(args):
 
 def _init_op(S):
     if S.opdef:
-        return oplib.from_opdef(S.opdef)
+        return _op_from_opdef(S)
     else:
         assert S.restart_run
         return oplib.from_run(S.restart_run)
+
+def _op_from_opdef(S):
+    try:
+        return oplib.from_opdef(S.opdef, S.flag_vals)
+    except oplib.InvalidOpDef as e:
+        _invalid_opdef_error(S.opdef, str(e))
 
 ###################################################################
 # Dispatch op
 ###################################################################
 
 def _dispatch_op(op, S):
-    assert False
+    if S.args.help_model:
+        _print_model_help(S)
+    elif S.args.help_op:
+        _print_op_help(S)
+    elif S.args.test_output_scalars:
+        _test_output_scalars(opdef, args)
+    elif S.args.test_sourcecode:
+        _test_sourcecode(opdef)
+    else:
+        _dispatch_op_cmd(opdef, args)
+
+def _print_model_help(S):
+    if not S.opdef:
+        assert S.restart_run
+        _restart_run_help_error(S.opdef.full_name, S.restart_run)
+    helplib.print_model_help(S.opdef.modeldef)
+
+def _print_op_help(S):
+    if not S.opdef:
+        assert S.restart_run
+        _restart_run_help_error(S.opdef.full_name, S.restart_run)
+    helplib.print_op_help(S.opdef)
 
 ###################################################################
 # Error handlers
@@ -227,6 +269,19 @@ def _no_such_opdef_error(model, op_name):
         "operation '{op}' is not defined for model '{model}'\n"
         "Try 'guild operations {model}' for a list of available operations."
         .format(op=op_name, model=model.name))
+
+def _invalid_flag_arg_error(arg):
+    cli.error("invalid argument '%s' - expected NAME=VAL" % arg)
+
+def _invalid_opdef_error(opdef, msg):
+    cli.error(
+        "invalid setting for operation '%s': %s"
+        % (opdef.fullname, msg))
+
+def _restart_run_help_error(op_name, restart_run):
+    cli.error(
+        "help is not available for '%s' (run %s)"
+        % (opspec, restart_run.id))
 
 ###################################################################
 # Cmd impl API

@@ -464,7 +464,10 @@ class ReferenceCycleError(Exception):
     pass
 
 class UndefinedReferenceError(Exception):
-    pass
+
+    def __init__(self, reference):
+        super(UndefinedReferenceError, self).__init__(reference)
+        self.reference = reference
 
 def _iter_resolved_ref_parts(parts, kv, undefined, stack):
     for part in parts:

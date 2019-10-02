@@ -120,3 +120,83 @@ Cons:
 
 1. Avoid functions that both modify an object and return a value -
    i.e. functions should be either read or write and not both
+
+### Class implementation alt - no methods
+
+Another approach is to use classes *strictly for state*. All functions
+applicable to an object must be defined in normal functions.
+
+The example above becomes:
+
+``` python
+class Foo(object):
+
+    def __init__(self, a):
+        self.a = a
+
+def init_foo(args):
+    return Foo(_foo_init_a(args))
+
+def _foo_init_a(args):
+    return args.a
+```
+
+Pros:
+
+- Trivial pattern to implement
+
+Cons:
+
+- Does not support extendible frameworks in a Pythonic way
+
+Regarding frameworks, if this pattern is used, we're talking this
+convention:
+
+    FRAMEWORK_NAMESPACE.function(COMMON_STATE_FORMAT)
+
+vs:
+
+    OBJECT.function()
+
+While this is perfectly ordinary in many languages (C, Erlang, etc.)
+ist's *weird* in Python.
+
+That said, we could fall back on the proposal above for frameworks,
+where methods were pass-throughts to normal functions.
+
+## Anti-patterns
+
+To be avoided *where it is reasonable to avoid*.
+
+### Order-dependent object methods
+
+Avoid:
+
+``` python
+class Foo(object):
+
+    def __init__(self):
+        self.a = None
+
+    def init_a(self, a):
+        self.a = a
+
+    def run(self):
+         if self.a is None:
+             raise RuntimeError("a must be set first - use init")
+         print(self.a)
+```
+
+Instead:
+
+``` python
+class Foo(object):
+
+    def __init__(self, a):
+        self.a = a
+
+def run_foo(foo):
+    if foo.a is None:
+        raise ValueError("foo.a cannot be None")
+    print(foo.a)
+```

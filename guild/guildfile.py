@@ -922,6 +922,7 @@ class OpDef(object):
         self.flags_import = data.get("flags-import")
         self.flags_import_skip = data.get("flags-import-skip")
         self._modelref = None
+        ## TODO - remove _flag_vals support once op2 is promoted
         self._flag_vals = _init_flag_values(self.flags)
         self.description = (data.get("description") or "").strip()
         self.exec_ = data.get("exec")

@@ -15,12 +15,26 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
+
 from guild import config
 from guild import guildfile
+from guild import file_util
+from guild import run as runlib
 from guild import util
+from guild import var
 
 # TEMP imports until promoted to op_util
-from .op_util import parse_opspec
+from .op_util import NO_ARG_VALUE           # pylint: disable=unused-import
+from .op_util import ArgValueError          # pylint: disable=unused-import
+from .op_util import mapped_flag_vals       # pylint: disable=unused-import
+from .op_util import parse_flag_assigns     # pylint: disable=unused-import
+from .op_util import parse_opspec           # pylint: disable=unused-import
+from .op_util import split_cmd              # pylint: disable=unused-import
+
+###################################################################
+# Error classes
+###################################################################
 
 class InvalidOpSpec(Exception):
 
@@ -61,9 +75,13 @@ class NoMatchingModel(Exception):
         super(NoMatchingModel, self).__init__(model_ref)
         self.model_ref = model_ref
 
+###################################################################
+# Resolve opspec
+###################################################################
+
 def opdef_for_opspec(opspec):
     model, op_name = _model_op(opspec)
-    opdef = model.modeldef.get_operation(op_name)
+    opdef = _opdef_for_model_op(model, op_name)
     if not opdef:
         raise NoSuchOperation(model, op_name)
     return opdef
@@ -96,12 +114,6 @@ def _resolve_cwd_model(model_ref):
         return _match_one_model(model_ref, cwd_guildfile)
 
 def _cwd_guildfile():
-    """Returns a Guild file object in cwd if a Guild file exists there.
-
-    Returns None if a Guild file is not defined in the cwd.
-
-    Raises CwdGuildfileError if a Guild file exists but is not valid.
-    """
     try:
         return guildfile.from_dir(config.cwd())
     except guildfile.GuildfileError as e:
@@ -159,3 +171,41 @@ def _maybe_no_model_error(model_ref):
     if model_ref:
         raise NoMatchingModel(model_ref)
     return None
+
+def _opdef_for_model_op(model, op_name):
+    if op_name:
+        return model.modeldef.get_operation(op_name)
+    return model.modeldef.default_operation
+
+###################################################################
+# Run support
+###################################################################
+
+def init_run(path=None):
+    if not path:
+        run_id = runlib.mkid()
+        path = os.path.join(var.runs_dir(), run_id)
+    else:
+        run_id = os.path.basename(path)
+    return runlib.Run(run_id, path)
+
+def set_run_pending(run):
+    open(run.guild_path("PENDING"), "w").close()
+
+def write_sourcecode_digest(run):
+    digest = file_util.files_digest(run.guild_path("sourcecode"))
+    run.write_attr("sourcecode_digest", digest)
+
+###################################################################
+# Utils
+###################################################################
+
+def split_batch_files(flag_args):
+    batch_files = []
+    rest = []
+    for arg in flag_args:
+        if arg[:1] == "@":
+            batch_files.append(arg[1:])
+        else:
+            rest.append(arg)
+    return batch_files, rest

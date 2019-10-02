@@ -59,6 +59,7 @@ tests).
       op-desc:                     ok
       op-main:                     ok
       op-utils:                    ok
+      op-utils2:                   ok
       opref:                       ok
       ops:                         ok
       package:                     ok
@@ -72,6 +73,7 @@ tests).
       restart-runs:                ok
       run-files:                   ok
       run-flags:                   ok
+      run-impl:                    ok
       run-labels:                  ok
       run-ops:                     ok
       run-output:                  ok
