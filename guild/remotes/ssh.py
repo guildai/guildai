@@ -631,8 +631,6 @@ def _stop_runs_args(
         args.append("--unmarked")
     if started:
         args.extend(["--selected", started])
-    if digest:
-        args.extend(["--digest", digest])
     args.extend(runs)
     return args
 
