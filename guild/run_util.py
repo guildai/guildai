@@ -504,14 +504,14 @@ def _match_one_model(model_ref, cwd_guildfile=None):
 def _iter_matching_models(model_ref, cwd_guildfile):
     from guild import model as modellib # expensive
     for model in modellib.iter_models():
-        if not model_ref:
+        if model_ref:
+            if _match_model_ref(model_ref, model):
+                yield model
+        else:
             if cwd_guildfile and _is_default_cwd_model(model, cwd_guildfile):
                 yield model
                 break
             if not model.name:
-                yield model
-        else:
-            if _match_model_ref(model_ref, model):
                 yield model
 
 def _is_default_cwd_model(model, cwd_guildfile):
@@ -522,10 +522,8 @@ def _is_default_cwd_model(model, cwd_guildfile):
 
 def _match_model_ref(model_ref, model):
     if "/" in model_ref:
-        # If user includes a '/' assume it's a complete name
-        return model_ref == model.fullname
+        return model_ref in model.fullname
     else:
-        # otherwise treat as a match term
         return model_ref in model.name
 
 def _complete_match_one_model(model_ref, matches):
