@@ -21,10 +21,8 @@ import os
 import six
 import yaml
 
-from guild import config
 from guild import flag_util
 from guild import guildfile
-from guild import op_util
 from guild import opref as opreflib
 from guild import resolver
 from guild import run as runlib
@@ -36,38 +34,6 @@ DEFAULT_MONITOR_INTERVAL = 5
 MIN_MONITOR_INTERVAL = 5
 
 MAX_LABEL_LEN = 60
-
-class NoSuchModelOp(Exception):
-
-    def __init__(self, opspec):
-        super(NoSuchModelOp, self).__init__(opspec)
-        self.opspec = opspec
-
-class InvalidOpspec(Exception):
-
-    def __init__(self, opspec):
-        super(NoSuchModelOp, self).__init__(opspec)
-        self.opspec = opspec
-
-class CwdGuildfileError(Exception):
-
-    def __init__(self, guildfile_error):
-        super(CwdGuildfileError, self).__init__(guildfile_error)
-        self.msg = guildfile_error.msg
-        self.path = guildfile_error.path
-
-class MultipleMatchingModels(Exception):
-
-    def __init__(self, model_ref, matches):
-        super(MultipleMatchingModels, self).__init__(model_ref, matches)
-        self.model_ref = model_ref
-        self.matches = matches
-
-class NoMatchingModel(Exception):
-
-    def __init__(self, model_ref):
-        super(NoMatchingModel, self).__init__(model_ref)
-        self.model_ref = model_ref
 
 class RunsMonitor(util.LoopingThread):
 
@@ -287,14 +253,13 @@ def _format_func_op(opref):
     return "%s()" % opref.op_name
 
 def _apply_batch_desc(base_desc, run, seen_protos):
-    import guild.run
     proto_dir = _safe_guild_path(run, "proto", "")
     if not os.path.exists(proto_dir):
         return base_desc
     if proto_dir in seen_protos:
         # We have a cycle - drop this proto_dir
         return base_desc
-    proto_run = guild.run.Run("", proto_dir)
+    proto_run = runlib.Run("", proto_dir)
     proto_op_desc = format_operation(proto_run, seen_protos)
     parts = [proto_op_desc]
     if not base_desc.startswith("+"):
@@ -446,99 +411,3 @@ def marked_or_latest_run_for_opspec(opspec):
         return None
     else:
         return resolver.marked_or_latest_run([opref])
-
-def opdef_for_opspec(opspec):
-    model, op_name = _model_op(opspec)
-
-def _model_op(opspec):
-    model_ref, op_name = _parse_opspec(opspec)
-    model = _resolve_model(model_ref)
-    if not model:
-        raise NoSuchModelOp(opspec)
-    return model, op_name
-
-def _parse_opspec(opspec):
-    parsed = op_util.parse_opspec(opspec)
-    if parsed is None:
-        raise InvalidOpspec(opspec)
-    return parsed
-
-def _resolve_model(model_ref):
-    return util.find_apply([
-        _resolve_cwd_model,
-        _resolve_system_model,
-        ##_maybe_no_model_error,
-    ], model_ref)
-
-def _resolve_cwd_model(model_ref):
-    from guild import model as modellib # expensive
-    cwd_guildfile = _cwd_guildfile()
-    if not cwd_guildfile:
-        return None
-    with modellib.SetPath([cwd_guildfile.dir], clear_cache=True):
-        return _match_one_model(model_ref, cwd_guildfile)
-
-def _cwd_guildfile():
-    """Returns a Guild file object in cwd if a Guild file exists there.
-
-    Returns None if a Guild file is not defined in the cwd.
-
-    Raises CwdGuildfileError if a Guild file exists but is not valid.
-    """
-    try:
-        return guildfile.from_dir(config.cwd())
-    except guildfile.GuildfileError as e:
-        raise CwdGuildfileError(e)
-
-def _resolve_system_model(model_ref):
-    return _match_one_model(model_ref)
-
-def _match_one_model(model_ref, cwd_guildfile=None):
-    matches = list(_iter_matching_models(model_ref, cwd_guildfile))
-    if len(matches) == 1:
-        return matches[0]
-    if len(matches) > 0 and model_ref:
-        return _complete_match_one_model(model_ref, matches)
-    return None
-
-def _iter_matching_models(model_ref, cwd_guildfile):
-    from guild import model as modellib # expensive
-    for model in modellib.iter_models():
-        if model_ref:
-            if _match_model_ref(model_ref, model):
-                yield model
-        else:
-            if cwd_guildfile and _is_default_cwd_model(model, cwd_guildfile):
-                yield model
-                break
-            if not model.name:
-                yield model
-
-def _is_default_cwd_model(model, cwd_guildfile):
-    default_model = cwd_guildfile.default_model
-    return (default_model and
-            default_model.guildfile.dir == model.modeldef.guildfile.dir and
-            default_model.name == model.name)
-
-def _match_model_ref(model_ref, model):
-    if "/" in model_ref:
-        return model_ref in model.fullname
-    else:
-        return model_ref in model.name
-
-def _complete_match_one_model(model_ref, matches):
-    complete_match = _model_by_name(model_ref, matches)
-    if complete_match:
-        return complete_match
-    raise MultipleMatchingModels(model_ref, matches)
-
-def _model_by_name(name, models):
-    for model in models:
-        if model.name == name:
-            return model
-    return None
-
-def _maybe_no_model_error(model_ref):
-    if model_ref:
-        raise NoMatchingModel(model_ref)
-    return None

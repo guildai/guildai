@@ -21,6 +21,7 @@ import os
 from guild import cli
 from guild import cmd_impl_support
 from guild import op2 as oplib
+from guild import op_util2 as op_util
 from guild import run as runlib
 from guild import run_util
 from guild import util
@@ -60,15 +61,23 @@ def _maybe_opdef(opspec, restart_run):
     if restart_run and opspec:
         _opspec_and_restart_error()
     if restart_run:
-        return run_util.run_opdef(restart_run)
+        return op_util.run_opdef(restart_run)
+    else:
+        return _opdef_for_opspec(opspec)
+
+def _opdef_for_opspec(opspec):
     try:
-        return run_util.opdef_for_opspec(opspec)
-    except run_util.CwdGuildfileError as e:
+        return op_util.opdef_for_opspec(opspec)
+    except op_util.InvalidOpSpec:
+        _invalid_opspec_error(opspec)
+    except op_util.CwdGuildfileError as e:
         _guildfile_error(e.path, str(e))
-    except run_util.NoSuchModelOp as e:
+    except op_util.NoSuchModel as e:
         _no_such_model_op_error(opspec)
-    except run_util.MultipleMatchingModels as e:
+    except op_util.MultipleMatchingModels as e:
         _multiple_models_error(e.model_ref, e.matches)
+    except op_util.NoSuchOperation as e:
+        _no_such_opdef_error(e.model, e.op_name)
 
 ###################################################################
 # Main
@@ -127,7 +136,7 @@ def _check_opspec_and_restart(args):
 
 def _init_op(S):
     if S.opdef:
-        return oplib.from_opdef(opdef)
+        return oplib.from_opdef(S.opdef)
     else:
         assert S.restart_run
         return oplib.from_run(S.restart_run)
@@ -153,6 +162,12 @@ def _opspec_and_restart_error(option="restart"):
     cli.error(
         "OPERATION cannot be used with --%s\n"
         "Try 'guild run --help' for more information." % option)
+
+def _invalid_opspec_error(opspec):
+    cli.error(
+        "invalid operation spec '%s'\n"
+        "Try 'guild operations' for a list of available operations."
+        % opspec)
 
 def _no_such_opspec_error(opspec):
     if opspec:
@@ -206,6 +221,12 @@ def _multiple_models_error(model_ref, models):
         "Try specifying one of the following:\n"
         "%s"
         % (model_ref, models_list))
+
+def _no_such_opdef_error(model, op_name):
+    cli.error(
+        "operation '{op}' is not defined for model '{model}'\n"
+        "Try 'guild operations {model}' for a list of available operations."
+        .format(op=op_name, model=model.name))
 
 ###################################################################
 # Cmd impl API

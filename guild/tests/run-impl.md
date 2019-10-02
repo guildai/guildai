@@ -53,6 +53,13 @@
     guildfile in '...' contains an error (see above for details)
     <exit 1>
 
+## Invalid op spec
+
+    >>> run(opspec="a/a/a")
+    invalid operation spec 'a/a/a'
+    Try 'guild operations' for a list of available operations.
+    <exit 1>
+
 ## No matching model or operation
 
     >>> cwd = mkdtemp()
@@ -69,7 +76,7 @@ No default operation:
     Try 'guild operations' for a list.
     <exit 1>
 
-Can't find operation (no model spec):
+Can't find operation - no model spec):
 
     >>> with SetCwd(cwd):
     ...     run(opspec="foo")
@@ -78,12 +85,20 @@ Can't find operation (no model spec):
     'guild operations' for a list of available operations.
     <exit 1>
 
-Can't find operation (model spec):
+Can't find operation - model spec but no such model:
 
     >>> with SetCwd(cwd):
     ...     run(opspec="bar:foo")
     cannot find operation bar:foo
     Try 'guild operations' for a list of available operations.
+    <exit 1>
+
+Can't find operation - matched model but no such op:
+
+    >>> with SetCwd(cwd):
+    ...     run(opspec="foo1:bar")
+    operation 'bar' is not defined for model 'foo1'
+    Try 'guild operations foo1' for a list of available operations.
     <exit 1>
 
 Multiple matching models:
@@ -96,7 +111,19 @@ Multiple matching models:
       foo2
     <exit 1>
 
-## Script
+## TODO
 
-    >>> guild_home = mkdtemp()
-    >>> project_dir = mkdtemp()
+- [ ] Run script
+- [ ] Run opdef
+  - [ ] Default op
+  - [ ] Named op, no modelspec
+  - [ ] Model + op Guildfile
+  - [ ] Just op package
+  - [ ] Model + op package
+  - [ ] Built-ins
+- [ ] Restart run - can find opdef
+  - [ ] No flag changes
+  - [ ] Flag changes
+- [ ] Restart run - can't find opdef
+  - [ ] No flag changes
+  - [ ] Flag changes (expect error)

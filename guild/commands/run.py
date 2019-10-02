@@ -356,7 +356,7 @@ def run(args):
 
     """
     import os
-    if os.getenv("RUN2") == "1":
+    if os.getenv("OP2") == "1":
         from . import run_impl2
         run_impl2.main(args)
     else:

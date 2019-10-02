@@ -148,6 +148,7 @@
     guild.op2
     guild.op_main
     guild.op_util
+    guild.op_util2
     guild.opref
     guild.package
     guild.package_main
