@@ -38,7 +38,7 @@ log = logging.getLogger("guild")
 
 PLATFORM = platform.system()
 
-OS_ENVIRON_BLACKLIST = set([])
+OS_ENVIRON_BLACKLIST = set(["_"])
 
 class Stop(Exception):
     """Raise to stop loops started with `loop`."""
@@ -1301,3 +1301,16 @@ class SysArgv(object):
         assert self._save is not None
         sys.argv[1:] = self._save
         self._save = None
+
+class StdinReader(object):
+
+    __enter__ = lambda *_args: None
+    __exit__ = lambda *_args: None
+
+    @staticmethod
+    def __iter__():
+        while True:
+            line = sys.stdin.readline()
+            if not line.strip():
+                break
+            yield line

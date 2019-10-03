@@ -18,3 +18,16 @@
   - [ ] Stop after
   - [ ] Background pid
   - [ ] Quiet
+  - [ ] _maybe_warn_no_wait msg
+
+- [ ] Stage op
+- [ ] Stage + start
+- [ ] Init trials
+- [ ] Restage
+
+- [ ] Null labels in preview
+
+- [ ] Pull support for opref from opdef
+
+- [ ] Error on unknown flag assign
+- [ ] Use of force_flags

@@ -15,11 +15,15 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import os
+
+import six
 
 from guild import config
 from guild import guildfile
 from guild import file_util
+from guild import flag_util
 from guild import run as runlib
 from guild import util
 from guild import var
@@ -27,10 +31,17 @@ from guild import var
 # TEMP imports until promoted to op_util
 from .op_util import NO_ARG_VALUE           # pylint: disable=unused-import
 from .op_util import ArgValueError          # pylint: disable=unused-import
+from .op_util import args_to_flags          # pylint: disable=unused-import
 from .op_util import mapped_flag_vals       # pylint: disable=unused-import
+from .op_util import opdef_model_paths      # pylint: disable=unused-import
 from .op_util import parse_flag_assigns     # pylint: disable=unused-import
 from .op_util import parse_opspec           # pylint: disable=unused-import
 from .op_util import split_cmd              # pylint: disable=unused-import
+
+log = logging.getLogger("guild")
+
+MAX_DEFAULT_SOURCECODE_FILE_SIZE = 1024 * 1024
+MAX_DEFAULT_SOURCECODE_COUNT = 100
 
 ###################################################################
 # Error classes
@@ -84,6 +95,7 @@ def opdef_for_opspec(opspec):
     opdef = _opdef_for_model_op(model, op_name)
     if not opdef:
         raise NoSuchOperation(model, op_name)
+    opdef.set_modelref(model.reference)
     return opdef
 
 def _model_op(opspec):
@@ -192,9 +204,251 @@ def init_run(path=None):
 def set_run_pending(run):
     open(run.guild_path("PENDING"), "w").close()
 
+def clear_run_pending(run):
+    util.ensure_deleted(run.guild_path("PENDING"))
+
 def write_sourcecode_digest(run):
     digest = file_util.files_digest(run.guild_path("sourcecode"))
     run.write_attr("sourcecode_digest", digest)
+
+###################################################################
+# Op preview support
+###################################################################
+
+def preview_op_kw(op, indent=2):
+    return {
+        "action": preview_op_action(op),
+        "op": preview_op_desc(op),
+        "flags": preview_flags(op, indent),
+    }
+
+def preview_op_action(op):
+    if op.stage:
+        return "stage"
+    else:
+        return "run"
+
+def preview_op_desc(op):
+    opspec = op.opref.to_opspec()
+    if os.path.isabs(opspec):
+        opspec = os.path.relpath(opspec, config.cwd())
+    return opspec
+
+def preview_flags(op, indent=2):
+    if not op.flag_vals:
+        return ""
+    return "\n".join([
+        " " * indent +_format_flag(name, val, op.flag_null_labels)
+        for name, val in sorted(op.flag_vals.items())
+    ]) + "\n"
+
+def _format_flag(name, val, null_labels):
+    if val is None:
+        formatted = _null_label(name, null_labels)
+    else:
+        formatted = util.find_apply([
+            _try_format_function,
+            flag_util.encode_flag_val], val)
+    return "%s: %s" % (name, formatted)
+
+def _try_format_function(val):
+    if not isinstance(val, six.string_types):
+        return None
+    try:
+        flag_util.decode_flag_function(val)
+    except ValueError:
+        return None
+    else:
+        return val
+
+def _null_label(name, null_labels):
+    null_label = null_labels.get(name, "default")
+    return flag_util.encode_flag_val(null_label)
+
+###################################################################
+# Source code support
+###################################################################
+
+def sourcecode_for_opdef(opdef):
+    root = _opdef_sourcecode_root(opdef)
+    rules = _select_rules_for_opdef(opdef)
+    return root, file_util.FileSelect(root, rules)
+
+def _opdef_sourcecode_root(opdef):
+    return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
+
+def _select_rules_for_opdef(opdef):
+    if _sourcecode_disabled(opdef):
+        return [file_util.exclude("*")]
+    root = _opdef_select_rules_root(opdef)
+    return (
+        _base_sourcecode_select_rules() +
+        _sourcecode_config_rules(opdef.modeldef.sourcecode, root) +
+        _sourcecode_config_rules(opdef.sourcecode, root)
+    )
+
+def _opdef_select_rules_root(opdef):
+    root_base = opdef.guildfile.dir
+    sourcecode_root = opdef_sourcecode_root(opdef)
+    if not sourcecode_root:
+        return root_base
+    return os.path.join(root_base, sourcecode_root)
+
+def _sourcecode_disabled(opdef):
+    op_config = opdef.sourcecode
+    model_config = opdef.modeldef.sourcecode
+    return (
+        op_config.disabled or
+        model_config.disabled and not op_config.specs)
+
+def opdef_sourcecode_root(opdef):
+    return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
+
+def _base_sourcecode_select_rules():
+    return [
+        _rule_exclude_pycache_dirs(),
+        _rule_exclude_dot_dirs(),
+        _rule_exclude_nocopy_dirs(),
+        _rule_exclude_venv_dirs(),
+        _rule_include_limited_text_files(),
+    ]
+
+def _rule_exclude_pycache_dirs():
+    return file_util.exclude("__pycache__", type="dir")
+
+def _rule_exclude_dot_dirs():
+    return file_util.exclude(".*", type="dir")
+
+def _rule_exclude_nocopy_dirs():
+    return file_util.exclude("*", type="dir", sentinel=".guild-nocopy")
+
+def _rule_exclude_venv_dirs():
+    return file_util.exclude("*", type="dir", sentinel="bin/activate")
+
+def _rule_include_limited_text_files():
+    return file_util.include(
+        "*",
+        type="text",
+        size_lt=MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1,
+        max_matches=MAX_DEFAULT_SOURCECODE_COUNT)
+
+def _sourcecode_config_rules(config, root):
+    return [_rule_for_select_spec(spec, root) for spec in config.specs]
+
+def _rule_for_select_spec(spec, root):
+    if spec.type == "include":
+        return _file_util_rule(file_util.include, spec, root)
+    elif spec.type == "exclude":
+        return _file_util_rule(file_util.exclude, spec, root)
+    else:
+        assert False, spec.type
+
+def _file_util_rule(rule_f, spec, root):
+    patterns = _spec_patterns(spec, root)
+    return rule_f(patterns, type=spec.patterns_type)
+
+def _spec_patterns(spec, root):
+    """Returns patterns for spec.
+
+    If spec patterns_type is not specified, applies glob to and
+    existing patterns that reference directories relative to root. For
+    example, if a pattern is 'foo' and root is '/' and the directory
+    '/foo' exists, the pattern is returned as 'foo/*'. This is a
+    convenience so that un-globbed directories match all files as a
+    user might expect.
+    """
+    if spec.patterns_type:
+        return spec.patterns
+    return [_apply_dir_glob(root, p) for p in spec.patterns]
+
+def _apply_dir_glob(root, pattern):
+    if os.path.isdir(os.path.join(root, pattern)):
+        pattern = os.path.join(pattern, "*")
+    return pattern
+
+def copy_sourcecode(op, run, handler_cls=None):
+    if os.getenv("DISABLE_SOURCECODE") == "1":
+        log.debug("DISABLE_SOURCECODE=1, skipping sourcecode copy")
+        return
+    if not op.sourcecode:
+        return
+    log.debug("copying source code files for run %s", run.id)
+    dest = run.guild_path("sourcecode")
+    root_start, select = op.sourcecode
+    if handler_cls is None:
+        config_help = _sourcecode_config_help(op)
+        handler_cls = SourceCodeCopyHandler.handler_cls(config_help)
+    file_util.copytree(dest, select, root_start, handler_cls=handler_cls)
+
+def _sourcecode_config_help(op):
+    return (
+        "To control which source code files are copied, "
+        "specify 'sourcecode' for the '%s' operation in "
+        "guild.yml." % op.opref.to_opspec())
+
+class SourceCodeCopyHandler(file_util.FileCopyHandler):
+    """Handler to log warnings when soure code files are skipped.
+
+    Only logs warnings when the default rules are in effect.
+    """
+
+    @classmethod
+    def handler_cls(cls, config_help):
+        def f(src_root, dest_root, select):
+            handler = cls(src_root, dest_root, select)
+            handler._config_help = config_help
+            return handler
+        return f
+
+    _config_help = None
+    _warned_max_matches = False
+
+    def ignore(self, path, rule_results):
+        fullpath = os.path.join(self.src_root, path)
+        if self._ignored_max_matches(rule_results):
+            self._warn_max_matches()
+        if self._ignored_max_size(fullpath, rule_results):
+            self._warn_max_size(fullpath)
+
+    def _ignored_max_matches(self, results):
+        matches_exceeded = lambda: (
+            results[0][1].matches >= results[0][1].max_matches)
+        return self._default_rules_in_effect(results) and matches_exceeded()
+
+    @staticmethod
+    def _default_rules_in_effect(results):
+        return (
+            len(results) == 1 and
+            results[0][1].result is True and
+            results[0][1].size_lt == MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1 and
+            results[0][1].max_matches == MAX_DEFAULT_SOURCECODE_COUNT)
+
+    def _warn_max_matches(self):
+        if self._warned_max_matches:
+            return
+        log.warning(
+            "Found more than %i source code files but will only "
+            "copy %i as a safety measure.%s",
+            MAX_DEFAULT_SOURCECODE_COUNT,
+            MAX_DEFAULT_SOURCECODE_COUNT,
+            self._config_help_suffix())
+        self._warned_max_matches = True
+
+    def _ignored_max_size(self, path, results):
+        if not self._default_rules_in_effect(results):
+            return False
+        size = util.safe_filesize(path)
+        return size is not None and size >= results[0][1].size_lt
+
+    def _warn_max_size(self, path):
+        log.warning(
+            "Skipping potential source code file %s because it's "
+            "too big.%s", path, self._config_help_suffix())
+
+    def _config_help_suffix(self):
+        if not self._config_help:
+            return ""
+        return " %s" % self._config_help
 
 ###################################################################
 # Utils

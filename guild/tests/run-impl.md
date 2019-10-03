@@ -108,11 +108,20 @@ Multiple matching models:
       foo2
     <exit 1>
 
+Anonymous model:
+
+    >>> cwd = init_gf("{}")
+
+    >>> run(cwd, opspec="foo")
+    operation 'foo' is not defined
+    Try 'guild operations' for a list of available operations.
+    <exit 1>
+
 ## Invalid main flag reference
 
     >>> cwd = init_gf("""
     ... op:
-    ...   main: ${foo}
+    ...   main: guild.pass ${foo}
     ... """)
     >>> run(cwd, opspec="op")
     invalid setting for operation 'op': main contains invalid reference 'foo'
@@ -120,7 +129,7 @@ Multiple matching models:
 
 ## Invalid flag arg
 
-    >>> cwd = init_gf("op: {}")
+    >>> cwd = init_gf("op: { exec: 'true' }")
     >>> run(cwd, opspec="op", flags=["foo"])
     invalid argument 'foo' - expected NAME=VAL
     <exit 1>
@@ -133,6 +142,7 @@ Multiple matching models:
     ...   operations:
     ...     op1:
     ...       description: Some op 1
+    ...       exec: 'true'
     ...       flags:
     ...         foo: 1
     ...         bar:
@@ -161,6 +171,169 @@ Multiple matching models:
       bar  Some flag bar (default is B)
       foo  (default is 1)
 
+## Test output scalars
+
+Sample Guild file with various output scalar patterns:
+
+    >>> cwd = init_gf("""
+    ... op1: { main: guild.pass }
+    ... op2:
+    ...   main: guild.pass
+    ...   output-scalars:
+    ...     foo: ' - foo=(\\value)'
+    ...     bar: 'bar is (\\value)'
+    ... op3:
+    ...   main: guild.pass
+    ...   output-scalars:
+    ...     - '(\\key) is (\\value)'
+    ...     - step: 'Epoch: (\\step)'
+    ... """)
+
+Sample output:
+
+    >>> out = path(cwd, "out.txt")
+    >>> write(out, """line-1
+    ... a: 1.123
+    ... b: 2
+    ... Epoch: 10
+    ... foo is 4.432
+    ... bar is 3.321
+    ... line-2
+    ...  - foo=1
+    ...  - bar=2
+    ... """)
+
+Output scalar test - op1:
+
+    >>> run(cwd, opspec="op1", test_output_scalars=out)
+    line-1
+      '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': <no matches>
+    a: 1.123
+      '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': [('a', '1.123')] (a=1.123)
+    b: 2
+      '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': [('b', '2')] (b=2.0)
+    Epoch: 10
+      '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': [('Epoch', '10')] (Epoch=10.0)
+    foo is 4.432
+      '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': <no matches>
+    bar is 3.321
+      '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': <no matches>
+    line-2
+      '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': <no matches>
+     - foo=1
+      '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': <no matches>
+     - bar=2
+      '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': <no matches>
+
+Output scalar test - op2:
+
+    >>> run(cwd, opspec="op2", test_output_scalars=out)
+    line-1
+      'bar is ([0-9\\.e\\-]+)': <no matches>
+      ' - foo=([0-9\\.e\\-]+)': <no matches>
+    a: 1.123
+      'bar is ([0-9\\.e\\-]+)': <no matches>
+      ' - foo=([0-9\\.e\\-]+)': <no matches>
+    b: 2
+      'bar is ([0-9\\.e\\-]+)': <no matches>
+      ' - foo=([0-9\\.e\\-]+)': <no matches>
+    Epoch: 10
+      'bar is ([0-9\\.e\\-]+)': <no matches>
+      ' - foo=([0-9\\.e\\-]+)': <no matches>
+    foo is 4.432
+      'bar is ([0-9\\.e\\-]+)': <no matches>
+      ' - foo=([0-9\\.e\\-]+)': <no matches>
+    bar is 3.321
+      'bar is ([0-9\\.e\\-]+)': [('3.321',)] (bar=3.321)
+      ' - foo=([0-9\\.e\\-]+)': <no matches>
+    line-2
+      'bar is ([0-9\\.e\\-]+)': <no matches>
+      ' - foo=([0-9\\.e\\-]+)': <no matches>
+     - foo=1
+      'bar is ([0-9\\.e\\-]+)': <no matches>
+      ' - foo=([0-9\\.e\\-]+)': [('1',)] (foo=1.0)
+     - bar=2
+      'bar is ([0-9\\.e\\-]+)': <no matches>
+      ' - foo=([0-9\\.e\\-]+)': <no matches>
+
+Output scalar test - op3:
+
+    >>> run(cwd, opspec="op3", test_output_scalars=out)
+    line-1
+      '([^ \t]+) is ([0-9\\.e\\-]+)': <no matches>
+      'Epoch: ([0-9]+)': <no matches>
+    a: 1.123
+      '([^ \t]+) is ([0-9\\.e\\-]+)': <no matches>
+      'Epoch: ([0-9]+)': <no matches>
+    b: 2
+      '([^ \t]+) is ([0-9\\.e\\-]+)': <no matches>
+      'Epoch: ([0-9]+)': <no matches>
+    Epoch: 10
+      '([^ \t]+) is ([0-9\\.e\\-]+)': <no matches>
+      'Epoch: ([0-9]+)': [('10',)] (step=10.0)
+    foo is 4.432
+      '([^ \t]+) is ([0-9\\.e\\-]+)': [('foo', '4.432')] (foo=4.432)
+      'Epoch: ([0-9]+)': <no matches>
+    bar is 3.321
+      '([^ \t]+) is ([0-9\\.e\\-]+)': [('bar', '3.321')] (bar=3.321)
+      'Epoch: ([0-9]+)': <no matches>
+    line-2
+      '([^ \t]+) is ([0-9\\.e\\-]+)': <no matches>
+      'Epoch: ([0-9]+)': <no matches>
+     - foo=1
+      '([^ \t]+) is ([0-9\\.e\\-]+)': <no matches>
+      'Epoch: ([0-9]+)': <no matches>
+     - bar=2
+      '([^ \t]+) is ([0-9\\.e\\-]+)': <no matches>
+      'Epoch: ([0-9]+)': <no matches>
+
+## Print command
+
+    >>> cwd = init_gf("""
+    ... default:
+    ...   main: guild.pass
+    ...
+    ... with-args:
+    ...   main: guild.pass --foo --bar=123
+    ...
+    ... with-flags:
+    ...   main: guild.pass
+    ...   flags:
+    ...     s: S
+    ...     i: 123
+    ...     f: 1.123
+    ...     b: no
+    ...     n:
+    ...       arg-name: N
+    ...     w:
+    ...       arg-switch: true
+    ... """)
+
+    >>> run(cwd, opspec="default", print_cmd=True)
+    ??? -um guild.op_main guild.pass --
+
+    >>> run(cwd, opspec="with-args", print_cmd=True)
+    /usr/bin/python -um guild.op_main guild.pass --foo --bar=123 --
+
+    >>> run(cwd, opspec="with-flags", print_cmd=True)
+    /usr/bin/python -um guild.op_main guild.pass -- --b no --f 1.123 --i 123 --s S
+
+    >>> run(cwd, opspec="with-flags",
+    ...     flags=["b=yes", "i=456", "w=true", "s=T", "n=hello"],
+    ...     print_cmd=True)
+    ??? -um guild.op_main guild.pass -- --N hello --b yes --f 1.123 --i 456 --s T --w
+
+## Pre-proc
+
+    >>> cwd = init_gf("""
+    ... op:
+    ...   pre-proc: echo hello
+    ...   main: guild.pass
+    ... """)
+
+    >>> run(cwd, opspec="op", yes=True)
+
+
 ## == TODO =====================================================
 
 - [ ] Run script
@@ -185,3 +358,7 @@ Multiple matching models:
   - [ ] Normal
   - [ ] Include batch files
   - [ ] Invalid
+
+- [ ] Print env
+- [ ] Print trials
+- [ ] Save trials

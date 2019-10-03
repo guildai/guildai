@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 import os
+import sys
 
 from guild import cli
 from guild import cmd_impl_support
@@ -25,6 +26,7 @@ from guild import op2 as oplib
 from guild import op_util2 as op_util
 from guild import run as runlib
 from guild import run_util
+from guild import summary
 from guild import util
 from guild import var
 
@@ -43,6 +45,7 @@ class State(object):
         assert self.opdef or self.restart_run
         (self.flag_vals,
          self.batch_files) = _state_split_flag_args(args.flags)
+        self.stage = bool(args.stage or args.restage)
 
 def _state_restart_run(restart):
     if not restart:
@@ -101,7 +104,6 @@ def main(args):
 def _init_state(args):
     _maybe_shift_opspec(args)
     _validate_args(args)
-    _apply_start_alias(args)
     return State(args)
 
 def _maybe_shift_opspec(args):
@@ -111,29 +113,27 @@ def _maybe_shift_opspec(args):
         args.flags = (args.opspec,) + args.flags
         args.opspec = None
 
-def _apply_start_alias(args):
-    if args.start:
-        args.restart = args.start
-
 def _validate_args(args):
     _check_incompatible_options(args)
     _check_opspec_and_restart(args)
 
 def _check_incompatible_options(args):
     incompatible = [
-        ("rerun", "restart"),
-        ("rerun", "start"),
-        ("run_dir", "restart"),
-        ("run_dir", "start"),
-        ("run_dir", "restage"),
-        ("no_gpus", "gpus"),
-        ("print_trials", "init_trials"),
         ("minimize", "maximize"),
+        ("no_gpus", "gpus"),
         ("optimize", "optimizer"),
+        ("print_trials", "init_trials"),
         ("remote", "background"),
         ("remote", "pidfile"),
+        ("rerun", "restart"),
+        ("rerun", "start"),
+        ("run_dir", "restage"),
+        ("run_dir", "restart"),
+        ("run_dir", "start"),
+        ("start", "restart"),
         ("stage", "background"),
         ("stage", "pidfile"),
+        ("stage", "restage"),
     ]
     for a, b in incompatible:
         if getattr(args, a) and getattr(args, b):
@@ -158,7 +158,12 @@ def _init_op(S):
 
 def _op_from_opdef(S):
     try:
-        return oplib.from_opdef(S.opdef, S.flag_vals)
+        return oplib.from_opdef(
+            S.opdef,
+            S.flag_vals,
+            stage=S.stage,
+            gpus=S.args.gpus,
+        )
     except oplib.InvalidOpDef as e:
         _invalid_opdef_error(S.opdef, str(e))
 
@@ -172,11 +177,15 @@ def _dispatch_op(op, S):
     elif S.args.help_op:
         _print_op_help(S)
     elif S.args.test_output_scalars:
-        _test_output_scalars(opdef, args)
+        _test_output_scalars(S)
     elif S.args.test_sourcecode:
-        _test_sourcecode(opdef)
+        _test_sourcecode(S)
     else:
-        _dispatch_op_cmd(opdef, args)
+        _dispatch_op_cmd(op, S)
+
+###################################################################
+# Model / op help
+###################################################################
 
 def _print_model_help(S):
     if not S.opdef:
@@ -189,6 +198,170 @@ def _print_op_help(S):
         assert S.restart_run
         _restart_run_help_error(S.opdef.full_name, S.restart_run)
     helplib.print_op_help(S.opdef)
+
+###################################################################
+# Test output scalars
+###################################################################
+
+class TestOutputLogger(summary.TestOutputLogger):
+
+    @staticmethod
+    def line(line):
+        cli.out(line)
+
+    def pattern_no_matches(self, pattern):
+        msg = self._format_pattern_no_matches(pattern)
+        cli.out(cli.style(msg, dim=True))
+
+    def pattern_matches(self, pattern, matches, vals):
+        msg = self._format_pattern_matches(pattern, matches, vals)
+        cli.out(cli.style(msg, fg="yellow"))
+
+def _test_output_scalars(S):
+    output_scalars = S.opdef.output_scalars or oplib.DEFAULT_OUTPUT_SCALARS
+    input_path = S.args.test_output_scalars
+    logger = TestOutputLogger()
+    if input_path == "-" and sys.stdin.isatty():
+        cli.note(
+            "Type patterns and press Enter to test. "
+            "Use Ctrl-c or empty line to exit.")
+    with _open_output(input_path) as f:
+        summary.test_output(f, output_scalars, logger)
+
+def _open_output(path):
+    if path == "-":
+        return util.StdinReader()
+    try:
+        return open(path, "r")
+    except (IOError, OSError) as e:
+        if e.errno == 2:
+            cli.error("%s does not exist" % path)
+        else:
+            cli.error("error opening %s: %s" % (path, e))
+
+###################################################################
+# Test source code
+###################################################################
+
+def _test_sourcecode(S):
+    if not S.opdef:
+        _missing_opdef_error("cannot test source code copy")
+    logger = _CopyLogger()
+    op_util.copy_sourcecode(S.opdef, None, handler_cls=logger.handler_cls)
+    cli.out("Copying from %s" % cmd_impl_support.cwd_desc(logger.root))
+    cli.out("Rules:")
+    for rule in logger.select.rules:
+        cli.out("  %s" % _format_file_select_rule(rule))
+    if logger.select.disabled:
+        assert not logger.selected, logger.selected
+        assert not logger.skipped, logger.skipped
+        cli.out("Source code copy disabled")
+    else:
+        cli.out("Selected for copy:")
+        for path in logger.selected:
+            cli.out(cli.style("  %s" % path, fg="yellow"))
+        cli.out("Skipped:")
+        for path in logger.skipped:
+            cli.out(cli.style("  %s" % path, dim=True))
+
+def _format_file_select_rule(rule):
+    parts = ["include" if rule.result else "exclude"]
+    if rule.type:
+        parts.append(rule.type)
+    parts.append(", ".join([repr(p) for p in rule.patterns]))
+    extras = _format_file_select_rule_extras(rule)
+    if extras:
+        parts.append("(%s)" % extras)
+    return " ".join(parts)
+
+def _format_file_select_rule_extras(rule):
+    parts = []
+    if rule.regex:
+        parts.append("regex")
+    if rule.sentinel:
+        parts.append("with %r" % rule.sentinel)
+    if rule.size_gt:
+        parts.append("size > %s" % rule.size_gt)
+    if rule.size_lt:
+        parts.append("size < %s" % rule.size_lt)
+    if rule.max_matches:
+        parts.append("max match %s" % rule.max_matches)
+    return ", ".join(parts)
+
+class _CopyLogger(object):
+
+    root = None
+    select = None
+
+    def __init__(self):
+        self.selected = []
+        self.skipped = []
+
+    def handler_cls(self, src_root, dest_root, select):
+        assert dest_root is None, dest_root
+        self.root = os.path.relpath(src_root)
+        self.select = select
+        return self
+
+    def copy(self, path, _results):
+        self.selected.append(os.path.join(self.root, path))
+
+    def ignore(self, path, _results):
+        self.skipped.append(os.path.join(self.root, path))
+
+###################################################################
+# Dispatch op command
+###################################################################
+
+def _dispatch_op_cmd(op, S):
+    if S.args.print_cmd or S.args.print_env:
+        _print_op_cmd_env(op, S)
+    elif S.args.print_trials or S.args.save_trials:
+        assert False, "TODO"
+        #_print_or_save_trials(op, args)
+    else:
+        _confirm_and_run_op(op, S)
+
+def _print_op_cmd_env(op, S):
+    if S.args.print_cmd:
+        _print_op_cmd(op)
+    if S.args.print_env:
+        _print_op_env(op)
+
+###################################################################
+# Print op info
+###################################################################
+
+def _print_op_cmd(op):
+    formatted = " ".join(_preview_cmd(op))
+    cli.out(formatted)
+
+def _preview_cmd(op):
+    return [util.shlex_quote(arg) for arg in op.cmd_args]
+
+def _print_op_env(op):
+    for name, val in sorted((op.cmd_env or {}).items()):
+        cli.out("export %s=%s" % (name, val))
+
+###################################################################
+# Run op
+###################################################################
+
+def _confirm_and_run_op(op, S):
+    if S.args.yes or _confirm_run(op):
+        _run_op(op)
+
+def _confirm_run(op):
+    prompt = (
+        "You are about to {action} {op}\n"
+        "{flags}"
+        "Continue?"
+        .format(**op_util.preview_op_kw(op))
+    )
+    return cli.confirm(prompt, default=True)
+
+def _run_op(op):
+    oplib.run(op)
 
 ###################################################################
 # Error handlers
@@ -265,10 +438,17 @@ def _multiple_models_error(model_ref, models):
         % (model_ref, models_list))
 
 def _no_such_opdef_error(model, op_name):
-    cli.error(
-        "operation '{op}' is not defined for model '{model}'\n"
-        "Try 'guild operations {model}' for a list of available operations."
-        .format(op=op_name, model=model.name))
+    if model.name:
+        cli.error(
+            "operation '{op}' is not defined for model '{model}'\n"
+            "Try 'guild operations {model}' for a list of available "
+            "operations."
+            .format(op=op_name, model=model.name))
+    else:
+        cli.error(
+            "operation '{op}' is not defined\n"
+            "Try 'guild operations' for a list of available operations."
+            .format(op=op_name))
 
 def _invalid_flag_arg_error(arg):
     cli.error("invalid argument '%s' - expected NAME=VAL" % arg)
@@ -281,7 +461,10 @@ def _invalid_opdef_error(opdef, msg):
 def _restart_run_help_error(op_name, restart_run):
     cli.error(
         "help is not available for '%s' (run %s)"
-        % (opspec, restart_run.id))
+        % (op_name, restart_run.id))
+
+def _missing_opdef_error(msg):
+    cli.error("%s - missing operation definition" % msg)
 
 ###################################################################
 # Cmd impl API
