@@ -1137,6 +1137,7 @@ class OpDependencyDef(object):
 
     def __init__(self, data, opdef):
         self.opdef = opdef
+        self.modeldef = opdef.modeldef
         if isinstance(data, six.string_types):
             self.spec = data
             self.description = ""

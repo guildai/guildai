@@ -23,6 +23,7 @@ import sys
 
 from guild import config
 from guild import flag_util
+from guild import op_dep
 from guild import op_util2 as op_util
 from guild import plugin as pluginlib
 from guild import run as runlib
@@ -66,8 +67,9 @@ class Operation(object):
 
     def __init__(self, opref, cmd_args, flag_vals=None, flag_map=None,
                  flag_null_labels=None, label=None, stage=False,
-                 extra_run_attrs=None, sourcecode=None, run_dir=None,
-                 cmd_env=None, pre_process=None):
+                 extra_run_attrs=None, sourcecode_select=None,
+                 sourcecode_src=None, run_dir=None, cmd_env=None,
+                 deps=None, pre_process=None):
         self.opref = opref
         self.cmd_args = cmd_args
         self.flag_vals = flag_vals
@@ -76,9 +78,11 @@ class Operation(object):
         self.label = label
         self.stage = stage
         self.extra_run_attrs = extra_run_attrs
-        self.sourcecode = sourcecode
+        self.sourcecode_src = sourcecode_src
+        self.sourcecode_select = sourcecode_select
         self.run_dir = run_dir
         self.cmd_env = cmd_env
+        self.deps = deps
         self.pre_process = pre_process
 
 ###################################################################
@@ -117,21 +121,59 @@ def _op_set_run_attrs(op, run):
         run.write_attr("flag_map", op.flag_map)
 
 def _op_copy_sourcecode(op, run):
-    op_util.copy_sourcecode(op, run)
+    if os.getenv("DISABLE_SOURCECODE") == "1":
+        log.debug("DISABLE_SOURCECODE=1, skipping sourcecode copy")
+        return
+    if not op.sourcecode_select:
+        return
+    log.debug("copying source code files for run %s", run.id)
+    op_util.copy_sourcecode(
+        op.sourcecode_src,
+        op.sourcecode_select,
+        run.guild_path("sourcecode"),
+        config_help=_sourcecode_config_help(op))
+
+def _sourcecode_config_help(op):
+    return (
+        "To control which source code files are copied, "
+        "specify 'sourcecode' for the '%s' operation in "
+        "guild.yml." % op.opref.to_opspec())
 
 def _op_init_sourcecode_digest(run):
     op_util.write_sourcecode_digest(run)
 
-def _op_run(op, run):
-    _op_init_started(run)
-    env = _op_run_cmd_env(op, run)
-    try:
-        _op_pre_proc(op, run, env)
-        _op_proc(op, run, env)
-    finally:
+
+class _op_running(object):
+
+    def __init__(self, run):
+        self.run = run
+
+    def __enter__(self):
+        _op_started(run)
+
+    def __exit__(self, *_exc):
         _op_clear_pending(run)
 
-def _op_init_started(run):
+def _op_run(op, run):
+    env = _op_run_cmd_env(op, run)
+    _op_resolve_deps(op, run)
+    with _op_running(run):
+        _op_pre_proc(op, run, env)
+        _op_proc(op, run, env)
+
+def _op_resolve_deps(op, run):
+    resolved = {}
+    for dep in op.deps:
+        resolved_sources = op_dep.resolve(dep, run.dir)
+        resolved.setdefault(dep.resdef.name, []).extend(resolved_sources)
+    run.write_attr("deps", resolved)
+
+def _sort_resolved(resolved):
+    return {
+        name: sorted(files) for name, files in resolved.items()
+    }
+
+def _op_started(run):
     started = runlib.timestamp()
     run.write_attr("started", started)
 
@@ -165,19 +207,32 @@ def _op_clear_pending(run):
 
 def from_opdef(opdef, flag_vals, gpus=None, **kw):
     cmd_args, flag_vals, flag_map = _op_init_cmd_args(opdef, flag_vals)
-    flag_null_labels = _op_init_flag_null_labels(opdef)
-    sourcecode = op_util.sourcecode_for_opdef(opdef)
+    sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
     cmd_env = _op_init_cmd_env(opdef, cmd_args, flag_vals, gpus)
+    deps = op_dep.deps_for_opdef(opdef, flag_vals)
+    flag_null_labels = _op_init_flag_null_labels(opdef)
     return Operation(
         opdef.opref,
         cmd_args,
         flag_vals=flag_vals,
         flag_map=flag_map,
         flag_null_labels=flag_null_labels,
-        sourcecode=sourcecode,
+        sourcecode_src=opdef.guildfile.dir,
+        sourcecode_select=sourcecode_select,
         cmd_env=cmd_env,
+        deps=deps,
         pre_process=opdef.pre_process,
         **kw)
+
+def _op_init_flag_null_labels(opdef):
+    return {
+        f.name: f.null_label
+        for f in opdef.flags
+    }
+
+# =================================================================
+# Cmd args
+# =================================================================
 
 def _op_init_cmd_args(opdef, flag_vals):
     flag_vals = _op_flag_vals(opdef, flag_vals)
@@ -230,7 +285,8 @@ def _cmd_options(args):
     return [
         m.group(1)
         for m in [CMD_OPTION_P.match(arg) for arg in args]
-        if m]
+        if m
+    ]
 
 def _cmd_option_args(name, val):
     if val is None:
@@ -330,11 +386,9 @@ def _repl_args(args, key, replacement):
             ret.append(arg)
     return ret
 
-def _op_init_flag_null_labels(opdef):
-    return {
-        f.name: f.null_label
-        for f in opdef.flags
-    }
+# =================================================================
+# Cmd env
+# =================================================================
 
 def _op_init_cmd_env(opdef, cmd_args, flag_vals, gpus):
     env = {}

@@ -40,7 +40,7 @@ class State(object):
 
     def __init__(self, args):
         self.args = args
-        self.restart_run = _state_restart_run(args.restart)
+        self.restart_run = _state_restart_run(args.restart or args.start)
         self.opdef = _state_opdef(args, self.restart_run)
         assert self.opdef or self.restart_run
         (self.flag_vals,
@@ -247,7 +247,13 @@ def _test_sourcecode(S):
     if not S.opdef:
         _missing_opdef_error("cannot test source code copy")
     logger = _CopyLogger()
-    op_util.copy_sourcecode(S.opdef, None, handler_cls=logger.handler_cls)
+    sourcecode_src = S.opdef.guildfile.dir
+    sourcecode_select = op_util.sourcecode_select_for_opdef(S.opdef)
+    op_util.copy_sourcecode(
+        sourcecode_src,
+        sourcecode_select,
+        None,
+        handler_cls=logger.handler_cls)
     cli.out("Copying from %s" % cmd_impl_support.cwd_desc(logger.root))
     cli.out("Rules:")
     for rule in logger.select.rules:

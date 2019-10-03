@@ -269,10 +269,10 @@ def _null_label(name, null_labels):
 # Source code support
 ###################################################################
 
-def sourcecode_for_opdef(opdef):
+def sourcecode_select_for_opdef(opdef):
     root = _opdef_sourcecode_root(opdef)
     rules = _select_rules_for_opdef(opdef)
-    return root, file_util.FileSelect(root, rules)
+    return file_util.FileSelect(root, rules)
 
 def _opdef_sourcecode_root(opdef):
     return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
@@ -366,25 +366,13 @@ def _apply_dir_glob(root, pattern):
         pattern = os.path.join(pattern, "*")
     return pattern
 
-def copy_sourcecode(op, run, handler_cls=None):
-    if os.getenv("DISABLE_SOURCECODE") == "1":
-        log.debug("DISABLE_SOURCECODE=1, skipping sourcecode copy")
-        return
-    if not op.sourcecode:
-        return
-    log.debug("copying source code files for run %s", run.id)
-    dest = run.guild_path("sourcecode")
-    root_start, select = op.sourcecode
+def copy_sourcecode(sourcecode_src, sourcecode_select, dest_dir,
+                    handler_cls=None, config_help=None):
     if handler_cls is None:
-        config_help = _sourcecode_config_help(op)
         handler_cls = SourceCodeCopyHandler.handler_cls(config_help)
-    file_util.copytree(dest, select, root_start, handler_cls=handler_cls)
-
-def _sourcecode_config_help(op):
-    return (
-        "To control which source code files are copied, "
-        "specify 'sourcecode' for the '%s' operation in "
-        "guild.yml." % op.opref.to_opspec())
+    file_util.copytree(
+        dest_dir, sourcecode_select, sourcecode_src,
+        handler_cls=handler_cls)
 
 class SourceCodeCopyHandler(file_util.FileCopyHandler):
     """Handler to log warnings when soure code files are skipped.
