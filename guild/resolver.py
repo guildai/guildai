@@ -663,3 +663,31 @@ def _write_unpacked(unpacked, unpack_dir, src):
     with open(_unpacked_src(unpack_dir, src), "w") as f:
         for path in unpacked:
             f.write(path + "\n")
+
+def for_resdef_source(source, resource):
+    cls = _resolver_class_for_source(source)
+    if not cls:
+        return None
+    return cls(source, resource)
+
+def _resolver_class_for_source(source):
+    scheme = source.parsed_uri.scheme
+    if scheme == "file":
+        return FileResolver
+    elif scheme in ["http", "https"]:
+        return URLResolver
+    elif scheme == "module":
+        return ModuleResolver
+    elif scheme == "operation":
+        return _operation_output_cls(source.resdef)
+    elif scheme == "config":
+        return ConfigResolver
+    else:
+        return None
+
+def _operation_output_cls(resdef):
+    if not hasattr(resdef, "modeldef"):
+        return None
+    def cls(source, resource):
+        return OperationOutputResolver(source, resource, resdef.modeldef)
+    return cls

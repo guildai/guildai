@@ -29,7 +29,6 @@ import pprint
 
 import six
 
-from guild import resolver
 from guild import util
 
 log = logging.getLogger("guild")
@@ -61,26 +60,6 @@ class ResourceDef(object):
         self.private = bool(data.get("private"))
         self.references = data.get("references", [])
         self.sources = self._init_sources(data.get("sources", []))
-
-    def get_source_resolver(self, source, resource):
-        scheme = source.parsed_uri.scheme
-        cls = self._resolver_class_for_scheme(scheme)
-        if cls:
-            return cls(source, resource)
-        return None
-
-    @staticmethod
-    def _resolver_class_for_scheme(scheme):
-        if scheme == "file":
-            return resolver.FileResolver
-        elif scheme in ["http", "https"]:
-            return resolver.URLResolver
-        elif scheme == "module":
-            return resolver.ModuleResolver
-        elif scheme == "config":
-            return resolver.ConfigResolver
-        else:
-            return None
 
     def __repr__(self):
         return ("<%s.%s '%s'>" % (

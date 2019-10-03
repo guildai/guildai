@@ -1352,16 +1352,6 @@ class ResourceDef(resourcedef.ResourceDef):
         self.private = self.private
         self.modeldef = modeldef
 
-    def get_source_resolver(self, source, resource):
-        scheme = source.parsed_uri.scheme
-        if scheme == "operation":
-            from guild import resolver # expensive
-            return resolver.OperationOutputResolver(
-                source, resource, self.modeldef)
-        else:
-            return super(ResourceDef, self).get_source_resolver(
-                source, resource)
-
     def _source_for_type(self, type, val, data):
         data = self._coerce_source_data(data)
         if type == "operation":
