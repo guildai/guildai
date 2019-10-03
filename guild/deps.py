@@ -187,7 +187,7 @@ def _dependency_resource(dep, flag_vals, ctx):
             spec, ctx)
     except DependencyError as e:
         if spec in ctx.resource_config:
-            log.warning("%s", e)
+            log.warning(str(e))
             return ResourceProxy(dep, spec, ctx.resource_config[spec], ctx)
         raise
     if res:
