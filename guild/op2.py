@@ -86,7 +86,7 @@ class Operation(object):
         self.pre_process = pre_process
 
 ###################################################################
-# Operation API
+# Op run
 ###################################################################
 
 def run(op, _quiet=False, _background_pidfile=None, _stop_after=None):
@@ -142,24 +142,19 @@ def _sourcecode_config_help(op):
 def _op_init_sourcecode_digest(run):
     op_util.write_sourcecode_digest(run)
 
-
-class _op_running(object):
-
-    def __init__(self, run):
-        self.run = run
-
-    def __enter__(self):
-        _op_started(run)
-
-    def __exit__(self, *_exc):
-        _op_clear_pending(run)
-
 def _op_run(op, run):
     env = _op_run_cmd_env(op, run)
     _op_resolve_deps(op, run)
-    with _op_running(run):
+    with _RunningContext(run):
         _op_pre_proc(op, run, env)
         _op_proc(op, run, env)
+
+def _op_run_cmd_env(op, run):
+    env = dict(op.cmd_env)
+    env["RUN_DIR"] = run.path
+    env["RUN_ID"] = run.id
+    util.check_env(env)
+    return env
 
 def _op_resolve_deps(op, run):
     resolved = {}
@@ -168,21 +163,20 @@ def _op_resolve_deps(op, run):
         resolved.setdefault(dep.resdef.name, []).extend(resolved_sources)
     run.write_attr("deps", resolved)
 
-def _sort_resolved(resolved):
-    return {
-        name: sorted(files) for name, files in resolved.items()
-    }
+class _RunningContext(object):
+
+    def __init__(self, run):
+        self.run = run
+
+    def __enter__(self):
+        _op_started(self.run)
+
+    def __exit__(self, *_exc):
+        _op_clear_pending(self.run)
 
 def _op_started(run):
     started = runlib.timestamp()
     run.write_attr("started", started)
-
-def _op_run_cmd_env(op, run):
-    env = dict(op.cmd_env)
-    env["RUN_DIR"] = run.path
-    env["RUN_ID"] = run.id
-    util.check_env(env)
-    return env
 
 def _op_pre_proc(op, run, env):
     if not op.pre_process:

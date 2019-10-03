@@ -163,11 +163,20 @@ class _ResourceProxy(object):
     current interface.
     """
 
-    def __init__(self, target_dir):
-        pass
+    def __init__(self, dep, _target_dir):
+        self.location = dep.res_location
+        self.config = _resource_proxy_config(dep)
+
+def _resource_proxy_config(dep):
+    for name in [dep.resdef.fullname, dep.resdef.name]:
+        try:
+            return dep.flag_vals[name]
+        except KeyError:
+            pass
+    return None
 
 def _resolve_source(source, dep, target_dir, unpack_dir):
-    res_proxy = _ResourceProxy(target_dir)
+    res_proxy = _ResourceProxy(dep, target_dir)
     resolver = resolverlib.for_resdef_source(source, res_proxy)
     if not resolver:
         raise OpDependencyError(
@@ -175,7 +184,7 @@ def _resolve_source(source, dep, target_dir, unpack_dir):
             % (source, dep.resdef.name))
     try:
         source_paths = resolver.resolve(unpack_dir)
-    except resolver.ResolutionError as e:
+    except resolverlib.ResolutionError as e:
         _source_resolution_error(source, dep, e)
     except Exception as e:
         _unknown_source_resolution_error(source, dep, e)
