@@ -325,13 +325,13 @@ Output scalar test - op3:
 
 ## Pre-proc
 
-    >>> cwd = init_gf("""
+    >> cwd = init_gf("""
     ... op:
-    ...   pre-proc: echo hello
+    ...   pre-process: echo hello
     ...   main: guild.pass
     ... """)
 
-    >>> run(cwd, opspec="op", yes=True)
+    >> run(cwd, opspec="op", yes=True)
 
 
 ## == TODO =====================================================

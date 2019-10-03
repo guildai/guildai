@@ -15,8 +15,8 @@ Here are the models associated with the MNIST example (using the `-C`
 option):
 
     >>> run("guild -C examples/mnist models", ignore="Refreshing")
-    ./examples/mnist/mnist-expert  MNIST model from TensorFlow expert tutorial
-    ./examples/mnist/mnist-intro   MNIST model from TensorFlow intro tutorial
+    mnist-expert  MNIST model from TensorFlow expert tutorial
+    mnist-intro   MNIST model from TensorFlow intro tutorial
     <exit 0>
 
 Note that the installed packages are not included in this list. This
@@ -26,8 +26,8 @@ installed packages, use the `-i, --installed` option:
     >>> run("guild -C examples/mnist models -i", ignore="Refreshing")
     gpkg.hello/...
     gpkg.keras.mnist/...
-    ./examples/mnist/mnist-expert  MNIST model from TensorFlow expert tutorial
-    ./examples/mnist/mnist-intro   MNIST model from TensorFlow intro tutorial
+    mnist-expert  MNIST model from TensorFlow expert tutorial
+    mnist-intro   MNIST model from TensorFlow intro tutorial
     <exit 0>
 
 Here's the same list after we've changed to that directory:

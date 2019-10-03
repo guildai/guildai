@@ -13,5 +13,3 @@
     (['file-1', 'file-2'], ['foo', 'bar=123'])
 
 ## Op preview
-
-    >>> False
