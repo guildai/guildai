@@ -30,7 +30,7 @@ We can get the list of dependencies for an operation with the
 
     >>> test_op = gf.models["sample"]["test"]
     >>> test_op.dependencies
-    [<guild.guildfile.OpDependency 'data'>]
+    [<guild.guildfile.OpDependencyDef 'data'>]
 
 The value of `requires` may be a single string or a list of
 strings. Each string must be a reference to a model resource. Multiple

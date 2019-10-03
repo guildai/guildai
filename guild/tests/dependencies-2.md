@@ -30,7 +30,7 @@ resource.
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency 'prepare'>
+    <guild.guildfile.OpDependencyDef 'prepare'>
       spec: prepare
       description: ''
 
@@ -45,13 +45,13 @@ A list of strings is treated in the same manner:
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency 'prepare-1'>
+    <guild.guildfile.OpDependencyDef 'prepare-1'>
       spec: prepare-1
       description: ''
-    <guild.guildfile.OpDependency 'prepare-2'>
+    <guild.guildfile.OpDependencyDef 'prepare-2'>
       spec: prepare-2
       description: ''
-    <guild.guildfile.OpDependency 'prepare-3'>
+    <guild.guildfile.OpDependencyDef 'prepare-3'>
       spec: prepare-3
       description: ''
 
@@ -69,7 +69,7 @@ a resource spec:
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency 'data'>
+    <guild.guildfile.OpDependencyDef 'data'>
       spec: data
       description: required data
 
@@ -87,7 +87,7 @@ attribute, it is treated as an implicit resource source:
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency http://my.co/stuff.gz>
+    <guild.guildfile.OpDependencyDef http://my.co/stuff.gz>
       inline-resource: {'sources': [{'sha256': 'abc123',
                   'unpack': False,
                   'url': 'http://my.co/stuff.gz'}]}
@@ -110,7 +110,7 @@ complete resource definition:
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency http://my.co/stuff.gz,http://my.co/more-suff.tar>
+    <guild.guildfile.OpDependencyDef http://my.co/stuff.gz,http://my.co/more-suff.tar>
       inline-resource: {'path': 'data',
      'sources': [{'sha256': 'abc123',
                   'unpack': False,
@@ -131,7 +131,7 @@ A resource `name` may be provided for any full resource definition:
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency data>
+    <guild.guildfile.OpDependencyDef data>
       inline-resource: {'name': 'data',
      'sources': [{'url': 'http://my.co/stuff.gz'},
                  {'url': 'http://my.co/more-suff.tar'}]}
@@ -170,9 +170,9 @@ to a dependency where `sources` contains a list containing the item.
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency http://my.co/stuff.gz>
+    <guild.guildfile.OpDependencyDef http://my.co/stuff.gz>
       inline-resource: {'sources': [{'url': 'http://my.co/stuff.gz'}]}
-    <guild.guildfile.OpDependency foo>
+    <guild.guildfile.OpDependencyDef foo>
       inline-resource: {'sources': [{'operation': 'foo'}]}
 
 ## Source paths
@@ -190,7 +190,7 @@ resource path, if a resource path is defined.
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies) # doctest: -NORMALIZE_PATHS
-    <guild.guildfile.OpDependency foo>
+    <guild.guildfile.OpDependencyDef foo>
       inline-resource: {'sources': [{'operation': 'foo',
                                      'path': 'bar',
                                      'select': '.+\\.txt'}]}

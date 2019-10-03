@@ -1127,9 +1127,9 @@ def _init_dependencies(requires, opdef):
         return []
     if not isinstance(requires, list):
         requires = [requires]
-    return [OpDependency(data, opdef) for data in requires]
+    return [OpDependencyDef(data, opdef) for data in requires]
 
-class OpDependency(object):
+class OpDependencyDef(object):
 
     spec = None
     description = None
@@ -1156,10 +1156,10 @@ class OpDependency(object):
 
     def __repr__(self):
         if self.inline_resource:
-            return ("<guild.guildfile.OpDependency %s>"
+            return ("<guild.guildfile.OpDependencyDef %s>"
                     % self.inline_resource.name)
         else:
-            return "<guild.guildfile.OpDependency '%s'>" % self.spec
+            return "<guild.guildfile.OpDependencyDef '%s'>" % self.spec
 
     @property
     def name(self):

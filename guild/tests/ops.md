@@ -484,7 +484,7 @@ Each file is assumed to be in the run directory (i.e. the current
 directory). 'abcdef' is resolved as a 'sample-file' resource source:
 
     >>> test_op.dependencies
-    [<guild.guildfile.OpDependency 'sample-file'>]
+    [<guild.guildfile.OpDependencyDef 'sample-file'>]
 
     >>> gf.models["sample"].resources
     [<guild.guildfile.ResourceDef 'sample-file'>]
