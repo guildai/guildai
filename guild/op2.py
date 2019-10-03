@@ -20,13 +20,16 @@ import os
 import re
 import subprocess
 import sys
+import time
 
 from guild import config
+from guild import exit_code
 from guild import flag_util
 from guild import op_dep
 from guild import op_util2 as op_util
 from guild import plugin as pluginlib
 from guild import run as runlib
+from guild import summary
 from guild import util
 
 log = logging.getLogger("guild")
@@ -36,6 +39,8 @@ OP_RUNFILE_PATHS = [
     ["org_psutil"],
     ["guild", "external"],
 ]
+
+PROC_TERM_TIMEOUT_SECONDS = 30
 
 CMD_OPTION_P = re.compile("--([^=]+)")
 
@@ -69,7 +74,8 @@ class Operation(object):
                  flag_null_labels=None, label=None, stage=False,
                  extra_run_attrs=None, sourcecode_select=None,
                  sourcecode_src=None, run_dir=None, cmd_env=None,
-                 deps=None, pre_process=None):
+                 deps=None, pre_process=None, output_scalars=None,
+                 stoppable=False):
         self.opref = opref
         self.cmd_args = cmd_args
         self.flag_vals = flag_vals
@@ -84,116 +90,8 @@ class Operation(object):
         self.cmd_env = cmd_env
         self.deps = deps
         self.pre_process = pre_process
-
-###################################################################
-# Op run
-###################################################################
-
-def run(op, _quiet=False, _background_pidfile=None, _stop_after=None):
-    run = _init_run(op)
-    _op_run(op, run)
-    return run
-
-def _init_run(op):
-    run = _op_init_run(op)
-    _op_set_run_attrs(op, run)
-    _op_copy_sourcecode(op, run)
-    _op_init_sourcecode_digest(run)
-    return run
-
-def _op_init_run(op):
-    run = op_util.init_run(op.run_dir)
-    log.debug("initializing run in %s", run.dir)
-    run.init_skel()
-    op_util.set_run_pending(run)
-    return run
-
-def _op_set_run_attrs(op, run):
-    run.write_opref(op.opref)
-    for name, val in (op.extra_run_attrs or {}).items():
-        run.write_attr(name, val)
-    run.write_attr("flags", op.flag_vals)
-    run.write_attr("cmd", op.cmd_args)
-    run.write_attr("env", op.cmd_env)
-    if op.label is not None:
-        run.write_attr("label", op.label)
-    if op.flag_map:
-        run.write_attr("flag_map", op.flag_map)
-
-def _op_copy_sourcecode(op, run):
-    if os.getenv("DISABLE_SOURCECODE") == "1":
-        log.debug("DISABLE_SOURCECODE=1, skipping sourcecode copy")
-        return
-    if not op.sourcecode_select:
-        return
-    log.debug("copying source code files for run %s", run.id)
-    op_util.copy_sourcecode(
-        op.sourcecode_src,
-        op.sourcecode_select,
-        run.guild_path("sourcecode"),
-        config_help=_sourcecode_config_help(op))
-
-def _sourcecode_config_help(op):
-    return (
-        "To control which source code files are copied, "
-        "specify 'sourcecode' for the '%s' operation in "
-        "guild.yml." % op.opref.to_opspec())
-
-def _op_init_sourcecode_digest(run):
-    op_util.write_sourcecode_digest(run)
-
-def _op_run(op, run):
-    env = _op_run_cmd_env(op, run)
-    _op_resolve_deps(op, run)
-    with _RunningContext(run):
-        _op_pre_proc(op, run, env)
-        _op_proc(op, run, env)
-
-def _op_run_cmd_env(op, run):
-    env = dict(op.cmd_env)
-    env["RUN_DIR"] = run.path
-    env["RUN_ID"] = run.id
-    util.check_env(env)
-    return env
-
-def _op_resolve_deps(op, run):
-    resolved = {}
-    for dep in op.deps:
-        resolved_sources = op_dep.resolve(dep, run.dir)
-        resolved.setdefault(dep.resdef.name, []).extend(resolved_sources)
-    run.write_attr("deps", resolved)
-
-class _RunningContext(object):
-
-    def __init__(self, run):
-        self.run = run
-
-    def __enter__(self):
-        _op_started(self.run)
-
-    def __exit__(self, *_exc):
-        _op_clear_pending(self.run)
-
-def _op_started(run):
-    started = runlib.timestamp()
-    run.write_attr("started", started)
-
-def _op_pre_proc(op, run, env):
-    if not op.pre_process:
-        return
-    cmd_unresolved = op.pre_process.strip()
-    cmd = util.resolve_refs(cmd_unresolved, op.flag_vals)
-    cwd = run.path
-    log.debug("pre-process command: %s", cmd)
-    log.debug("pre-process env: %s", env)
-    log.debug("pre-process cwd: %s", cwd)
-    subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
-
-def _op_proc(op, run, _env):
-    print("TODO: proc whaaa???", op, run)
-
-def _op_clear_pending(run):
-    op_util.clear_run_pending(run)
+        self.output_scalars = output_scalars
+        self.stoppable = stoppable
 
 ###################################################################
 # Op from opdef
@@ -216,6 +114,8 @@ def from_opdef(opdef, flag_vals, gpus=None, **kw):
         cmd_env=cmd_env,
         deps=deps,
         pre_process=opdef.pre_process,
+        output_scalars=opdef.output_scalars,
+        stoppable=opdef.stoppable,
         **kw)
 
 def _op_init_flag_null_labels(opdef):
@@ -532,3 +432,213 @@ def _is_runfile_pkg(path):
 
 def from_run(_run):
     assert False, "TODO"
+
+###################################################################
+# Run
+###################################################################
+
+def run(op, quiet=False, _background_pidfile=None, stop_after=None):
+    run = _init_run(op)
+    exit_status = _op_run(op, run, quiet, stop_after)
+    return run, exit_status
+
+def _init_run(op):
+    run = _op_init_run(op)
+    _op_init_run_attrs(op, run)
+    _op_copy_sourcecode(op, run)
+    _op_init_sourcecode_digest(run)
+    return run
+
+def _op_init_run(op):
+    run = op_util.init_run(op.run_dir)
+    log.debug("initializing run in %s", run.dir)
+    run.init_skel()
+    op_util.set_run_pending(run)
+    return run
+
+def _op_init_run_attrs(op, run):
+    run.write_opref(op.opref)
+    for name, val in (op.extra_run_attrs or {}).items():
+        run.write_attr(name, val)
+    run.write_attr("flags", op.flag_vals)
+    run.write_attr("cmd", op.cmd_args)
+    run.write_attr("env", op.cmd_env)
+    if op.label is not None:
+        run.write_attr("label", op.label)
+    if op.flag_map:
+        run.write_attr("flag_map", op.flag_map)
+
+def _op_copy_sourcecode(op, run):
+    if os.getenv("DISABLE_SOURCECODE") == "1":
+        log.debug("DISABLE_SOURCECODE=1, skipping sourcecode copy")
+        return
+    if not op.sourcecode_select:
+        return
+    log.debug("copying source code files for run %s", run.id)
+    op_util.copy_sourcecode(
+        op.sourcecode_src,
+        op.sourcecode_select,
+        run.guild_path("sourcecode"),
+        config_help=_sourcecode_config_help(op))
+
+def _sourcecode_config_help(op):
+    return (
+        "To control which source code files are copied, "
+        "specify 'sourcecode' for the '%s' operation in "
+        "guild.yml." % op.opref.to_opspec())
+
+def _op_init_sourcecode_digest(run):
+    op_util.write_sourcecode_digest(run)
+
+def _op_run(op, run, quiet, stop_after):
+    env = _op_run_cmd_env(op, run)
+    _op_resolve_deps(op, run)
+    _op_write_started(run)
+    try:
+        _op_pre_proc(op, run, env)
+        proc = _op_proc(op, run, env)
+        exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
+        _op_finalize_run_attrs(run, exit_status)
+        return exit_status
+    finally:
+        _op_clear_pending(run)
+
+def _op_run_cmd_env(op, run):
+    env = dict(op.cmd_env)
+    env["RUN_DIR"] = run.path
+    env["RUN_ID"] = run.id
+    util.check_env(env)
+    return env
+
+def _op_resolve_deps(op, run):
+    resolved = {}
+    for dep in op.deps:
+        resolved_sources = op_dep.resolve(dep, run.dir)
+        resolved.setdefault(dep.resdef.name, []).extend(resolved_sources)
+    run.write_attr("deps", resolved)
+
+def _op_write_started(run):
+    started = runlib.timestamp()
+    run.write_attr("started", started)
+
+def _op_pre_proc(op, run, env):
+    if not op.pre_process:
+        return
+    cmd_unresolved = op.pre_process.strip()
+    cmd = util.resolve_refs(cmd_unresolved, op.flag_vals)
+    cwd = run.path
+    log.debug("pre-process command: %s", cmd)
+    log.debug("pre-process env: %s", env)
+    log.debug("pre-process cwd: %s", cwd)
+    subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
+
+def _op_proc(op, run, env):
+    args = op.cmd_args
+    cwd = run.dir
+    log.debug("starting operation run %s in %s", run.id, cwd)
+    log.debug("operation command: %s", args)
+    log.debug("operation env: %s", env)
+    log.debug("operation cwd: %s", cwd)
+    try:
+        proc = subprocess.Popen(
+            args,
+            env=env,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+    except OSError as e:
+        raise ProcessError(e)
+    else:
+        _write_proc_lock(proc, run)
+        return proc
+
+def _write_proc_lock(proc, run):
+    with open(run.guild_path("LOCK"), "w") as f:
+        f.write(str(proc.pid))
+
+def _op_wait_for_proc(op, proc, run, quiet, stop_after):
+    try:
+        return _op_watch_proc(op, proc, run, quiet, stop_after)
+    except KeyboardInterrupt:
+        return _handle_proc_interrupt(proc)
+
+def _op_watch_proc(op, proc, run, quiet, stop_after):
+    output_summary = _output_scalars_summary(op, run)
+    with _RunOutput(run, proc, quiet, output_summary):
+        return _proc_wait(proc, stop_after)
+
+def _output_scalars_summary(op, run):
+    try:
+        summary.check_enabled()
+    except summary.Disabled as e:
+        log.warning(e)
+        return None
+    else:
+        config, ignore = _output_scalars_config(op)
+        summary_path = run.guild_path()
+        return summary.OutputScalars(config, summary_path, ignore)
+
+def _output_scalars_config(op):
+    if op.output_scalars is None:
+        return DEFAULT_OUTPUT_SCALARS, op.flag_vals.keys()
+    return op.output_scalars, None
+
+class _RunOutput(object):
+
+    def __init__(self, run, *args):
+        self._output = None
+        self._run = run
+        self._rest_args = args
+
+    def __enter__(self):
+        if os.getenv("DISABLE_RUN_OUTPUT") != "1":
+            self._output = op_util.RunOutput(self._run, *self._rest_args)
+
+    def __exit__(self, *_exc):
+        if self._output:
+            self._output.wait_and_close()
+        self._output = None
+
+def _proc_wait(proc, stop_after):
+    if stop_after is None:
+        return proc.wait()
+    else:
+        return op_util.wait_for_proc(proc, stop_after)
+
+def _handle_proc_interrupt(proc):
+    log.info("Operation interrupted - waiting for process to exit")
+    kill_after = time.time() + PROC_TERM_TIMEOUT_SECONDS
+    while time.time() < kill_after:
+        if proc.poll() is not None:
+            break
+        time.sleep(1)
+    if proc.poll() is None:
+        log.warning("Operation process did not exit - stopping forcefully")
+        util.kill_process_tree(proc.pid, force=True)
+    return exit_code.SIGTERM
+
+def _op_exit_status(proc_exit_status, opdef):
+    if proc_exit_status == exit_code.SIGTERM and opdef.stoppable:
+        return 0
+    return proc_exit_status
+
+def _op_finalize_run_attrs(run, exit_status):
+    if not os.path.exists(run.dir):
+        log.warning("run directory has been deleted, unable to finalize")
+        return
+    if not os.path.exists(run.guild_path()):
+        log.warning("run Guild directory has been deleted, unable to finalize")
+        return
+    stopped = runlib.timestamp()
+    run.write_attr("exit_status", exit_status)
+    run.write_attr("stopped", stopped)
+    _delete_proc_lock(run)
+
+def _delete_proc_lock(run):
+    try:
+        os.remove(run.guild_path("LOCK"))
+    except OSError:
+        pass
+
+def _op_clear_pending(run):
+    op_util.clear_run_pending(run)

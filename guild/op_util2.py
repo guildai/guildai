@@ -31,6 +31,7 @@ from guild import var
 # TEMP imports until promoted to op_util
 from .op_util import NO_ARG_VALUE           # pylint: disable=unused-import
 from .op_util import ArgValueError          # pylint: disable=unused-import
+from .op_util import RunOutput              # pylint: disable=unused-import
 from .op_util import args_to_flags          # pylint: disable=unused-import
 from .op_util import mapped_flag_vals       # pylint: disable=unused-import
 from .op_util import opdef_model_paths      # pylint: disable=unused-import

@@ -31,3 +31,5 @@
 
 - [ ] Error on unknown flag assign
 - [ ] Use of force_flags
+
+- [ ] Stoppable opdef

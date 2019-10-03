@@ -367,7 +367,9 @@ def _confirm_run(op):
     return cli.confirm(prompt, default=True)
 
 def _run_op(op):
-    oplib.run(op)
+    _run, exit_status = oplib.run(op)
+    if exit_status != 0:
+        cli.error(exit_status=exit_status)
 
 ###################################################################
 # Error handlers
