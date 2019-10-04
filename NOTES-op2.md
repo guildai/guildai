@@ -35,3 +35,5 @@
 - [ ] Stoppable opdef
 
 - [ ] Promote OP2-xxx tests
+
+- [ ] Remote OP2-xxx targets from Makefile
