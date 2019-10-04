@@ -24,6 +24,7 @@ from guild import config
 from guild import guildfile
 from guild import file_util
 from guild import flag_util
+from guild import model_proxy
 from guild import run as runlib
 from guild import util
 from guild import var
@@ -92,12 +93,32 @@ class NoMatchingModel(Exception):
 ###################################################################
 
 def opdef_for_opspec(opspec):
+    try:
+        return _model_opdef(opspec)
+    except (NoSuchModel, NoSuchOperation):
+        opdef = _try_model_proxy(opspec)
+        if opdef:
+            return opdef
+        raise
+
+def _model_opdef(opspec):
     model, op_name = _model_op(opspec)
     opdef = _opdef_for_model_op(model, op_name)
     if not opdef:
         raise NoSuchOperation(model, op_name)
     opdef.set_modelref(model.reference)
     return opdef
+
+def _try_model_proxy(opspec):
+    try:
+        model, op_name = model_proxy.resolve_model_op(opspec)
+    except model_proxy.NotSupported:
+        return None
+    else:
+        opdef = model.modeldef.get_operation(op_name)
+        if opdef:
+            opdef.set_modelref(model.reference)
+        return opdef
 
 def _model_op(opspec):
     model_ref, op_name = _parse_opspec(opspec)
