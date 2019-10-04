@@ -39,13 +39,14 @@ log = logging.getLogger("guild")
 class State(object):
 
     def __init__(self, args, restart_run, opdef, flag_vals,
-                 batch_files, stage):
+                 batch_files, stage, run_dir):
         self.args = args
         self.restart_run = restart_run
         self.opdef = opdef
         self.flag_vals = flag_vals
         self.batch_files = batch_files
         self.stage = stage
+        self.run_dir = run_dir
 
 def _state_for_args(args):
     restart_run = _state_restart_run(args.restart or args.start)
@@ -53,7 +54,9 @@ def _state_for_args(args):
     assert opdef or restart_run
     flag_vals, batch_files = _state_split_flag_args(args.flags)
     stage = bool(args.stage or args.restage)
-    return State(args, restart_run, opdef, flag_vals, batch_files, stage)
+    run_dir = _state_run_dir(args)
+    return State(args, restart_run, opdef, flag_vals, batch_files,
+                 stage, run_dir)
 
 def _state_restart_run(restart):
     if not restart:
@@ -99,6 +102,17 @@ def _parse_assigns(assign_args):
         return op_util.parse_flag_assigns(assign_args)
     except op_util.ArgValueError as e:
         _invalid_flag_arg_error(e.arg)
+
+def _state_run_dir(args):
+    if args.run_dir:
+        run_dir = os.path.abspath(args.run_dir)
+        if os.getenv("NO_WARN_RUNDIR") != "1":
+            cli.note(
+                "Run directory is '%s' (results will not be "
+                "visible to Guild)" % run_dir)
+        return run_dir
+    else:
+        return None
 
 ###################################################################
 # Main
@@ -169,7 +183,7 @@ def _op_from_opdef(S):
         op = oplib.from_opdef(
             S.opdef,
             S.flag_vals,
-            run_dir=S.args.run_dir,
+            run_dir=S.run_dir,
             stage=S.stage,
             gpus=S.args.gpus,
         )
