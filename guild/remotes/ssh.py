@@ -368,6 +368,7 @@ class SSHRemote(remotelib.Remote):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.extend(self._set_columns())
+        assert self.guild_home is not None
         cmd_lines.append("export GUILD_HOME=%s" % self.guild_home)
         if env:
             cmd_lines.extend(self._cmd_env(env))
