@@ -111,6 +111,8 @@ def _model_opdef(opspec):
     return opdef
 
 def _try_model_proxy(opspec):
+    if not opspec:
+        return None
     try:
         model, op_name = model_proxy.resolve_model_op(opspec)
     except model_proxy.NotSupported:
