@@ -50,40 +50,43 @@ MAX_DEFAULT_SOURCECODE_COUNT = 100
 # Error classes
 ###################################################################
 
-class InvalidOpSpec(Exception):
+class OpDefLookupError(LookupError):
+    pass
+
+class InvalidOpSpec(OpDefLookupError):
 
     def __init__(self, opspec):
         super(InvalidOpSpec, self).__init__(opspec)
         self.opspec = opspec
 
-class NoSuchModel(Exception):
+class NoSuchModel(OpDefLookupError):
 
     def __init__(self, opspec):
         super(NoSuchModel, self).__init__(opspec)
         self.opspec = opspec
 
-class NoSuchOperation(Exception):
+class NoSuchOperation(OpDefLookupError):
 
     def __init__(self, model, op_name):
         super(NoSuchOperation, self).__init__(model, op_name)
         self.model = model
         self.op_name = op_name
 
-class CwdGuildfileError(Exception):
+class CwdGuildfileError(OpDefLookupError):
 
     def __init__(self, guildfile_error):
         super(CwdGuildfileError, self).__init__(guildfile_error)
         self.msg = guildfile_error.msg
         self.path = guildfile_error.path
 
-class MultipleMatchingModels(Exception):
+class MultipleMatchingModels(OpDefLookupError):
 
     def __init__(self, model_ref, matches):
         super(MultipleMatchingModels, self).__init__(model_ref, matches)
         self.model_ref = model_ref
         self.matches = matches
 
-class NoMatchingModel(Exception):
+class NoMatchingModel(OpDefLookupError):
 
     def __init__(self, model_ref):
         super(NoMatchingModel, self).__init__(model_ref)
@@ -96,7 +99,7 @@ class NoMatchingModel(Exception):
 def opdef_for_opspec(opspec):
     try:
         return _model_opdef(opspec)
-    except (NoSuchModel, NoSuchOperation):
+    except OpDefLookupError:
         opdef = _try_model_proxy(opspec)
         if opdef:
             return opdef
