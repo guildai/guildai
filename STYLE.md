@@ -164,7 +164,7 @@ ist's *weird* in Python.
 That said, we could fall back on the proposal above for frameworks,
 where methods were pass-throughts to normal functions.
 
-UPDATE: This is a solid pattern that we've started using in op2. It's
+**UPDATE:** This is a solid pattern that we've started using in op2. It's
 tempting to move init logic into a class constructor like this:
 
 ``` python
@@ -198,6 +198,12 @@ There are some exceptions, which I think should be considered:
 
 2. Property methods can be used to implement reading of dynamic
    state. These should be rare.
+
+**Rule of thumb:** Avoid the use of `self` except when assigning
+`__init__` arguments to object attributes.
+
+This is basically a named tuple. It raises the question, why not just
+use named tuples?
 
 ## Anti-patterns
 

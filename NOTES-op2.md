@@ -33,3 +33,5 @@
 - [ ] Use of force_flags
 
 - [ ] Stoppable opdef
+
+- [ ] Promote OP2-xxx tests
