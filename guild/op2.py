@@ -479,17 +479,7 @@ def _op_copy_sourcecode(op, run):
     log.debug(
         "copying source code files for run %s from %s to %s",
         run.id, op.sourcecode_src, dest)
-    op_util.copy_sourcecode(
-        op.sourcecode_src,
-        op.sourcecode_select,
-        dest,
-        config_help=_sourcecode_config_help(op))
-
-def _sourcecode_config_help(op):
-    return (
-        "To control which source code files are copied, "
-        "specify 'sourcecode' for the '%s' operation in "
-        "guild.yml." % op.opref.to_opspec())
+    op_util.copy_sourcecode(op.sourcecode_src, op.sourcecode_select, dest)
 
 def _op_init_sourcecode_digest(run):
     op_util.write_sourcecode_digest(run)

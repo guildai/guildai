@@ -395,9 +395,8 @@ def _apply_dir_glob(root, pattern):
     return pattern
 
 def copy_sourcecode(sourcecode_src, sourcecode_select, dest_dir,
-                    handler_cls=None, config_help=None):
-    if handler_cls is None:
-        handler_cls = SourceCodeCopyHandler.handler_cls(config_help)
+                    handler_cls=None):
+    handler_cls = handler_cls or SourceCodeCopyHandler
     file_util.copytree(
         dest_dir, sourcecode_select, sourcecode_src,
         handler_cls=handler_cls)
@@ -408,16 +407,12 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
     Only logs warnings when the default rules are in effect.
     """
 
-    @classmethod
-    def handler_cls(cls, config_help):
-        def f(src_root, dest_root, select):
-            handler = cls(src_root, dest_root, select)
-            handler._config_help = config_help
-            return handler
-        return f
-
-    _config_help = None
     _warned_max_matches = False
+
+    _warning_help_suffix = (
+        " To control which files are copied, define 'sourcecode' "
+        "for the operation in a Guild file."
+    )
 
     def ignore(self, path, rule_results):
         fullpath = os.path.join(self.src_root, path)
@@ -447,7 +442,7 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
             "copy %i as a safety measure.%s",
             MAX_DEFAULT_SOURCECODE_COUNT,
             MAX_DEFAULT_SOURCECODE_COUNT,
-            self._config_help_suffix())
+            self._warning_help_suffix)
         self._warned_max_matches = True
 
     def _ignored_max_size(self, path, results):
@@ -459,12 +454,9 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
     def _warn_max_size(self, path):
         log.warning(
             "Skipping potential source code file %s because it's "
-            "too big.%s", path, self._config_help_suffix())
-
-    def _config_help_suffix(self):
-        if not self._config_help:
-            return ""
-        return " %s" % self._config_help
+            "too big.%s",
+            path,
+            self._warning_help_suffix)
 
 ###################################################################
 # Utils
