@@ -122,6 +122,7 @@ def _op_init_flag_null_labels(opdef):
     return {
         f.name: f.null_label
         for f in opdef.flags
+        if f.null_label is not None
     }
 
 # =================================================================
