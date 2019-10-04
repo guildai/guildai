@@ -169,6 +169,7 @@ def _op_from_opdef(S):
         op = oplib.from_opdef(
             S.opdef,
             S.flag_vals,
+            run_dir=S.args.run_dir,
             stage=S.stage,
             gpus=S.args.gpus,
         )
