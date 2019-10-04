@@ -34,6 +34,7 @@ from .op_util import NO_ARG_VALUE           # pylint: disable=unused-import
 from .op_util import ArgValueError          # pylint: disable=unused-import
 from .op_util import RunOutput              # pylint: disable=unused-import
 from .op_util import args_to_flags          # pylint: disable=unused-import
+from .op_util import flags_desc            # pylint: disable=unused-import
 from .op_util import mapped_flag_vals       # pylint: disable=unused-import
 from .op_util import opdef_model_paths      # pylint: disable=unused-import
 from .op_util import parse_flag_assigns     # pylint: disable=unused-import
@@ -473,3 +474,16 @@ def split_batch_files(flag_args):
         else:
             rest.append(arg)
     return batch_files, rest
+
+def format_label(label, flag_vals):
+    formatted_flags = _format_flags_for_label(flag_vals)
+    return util.render_label(label, formatted_flags)
+
+def _format_flags_for_label(flag_vals):
+    return {
+        name: _format_flag_for_label(val)
+        for name, val in flag_vals.items()
+    }
+
+def _format_flag_for_label(val):
+    return flag_util.FormattedValue(val, truncate_floats=True)

@@ -38,14 +38,22 @@ log = logging.getLogger("guild")
 
 class State(object):
 
-    def __init__(self, args):
+    def __init__(self, args, restart_run, opdef, flag_vals,
+                 batch_files, stage):
         self.args = args
-        self.restart_run = _state_restart_run(args.restart or args.start)
-        self.opdef = _state_opdef(args, self.restart_run)
-        assert self.opdef or self.restart_run
-        (self.flag_vals,
-         self.batch_files) = _state_split_flag_args(args.flags)
-        self.stage = bool(args.stage or args.restage)
+        self.restart_run = restart_run
+        self.opdef = opdef
+        self.flag_vals = flag_vals
+        self.batch_files = batch_files
+        self.stage = stage
+
+def _state_for_args(args):
+    restart_run = _state_restart_run(args.restart or args.start)
+    opdef = _state_opdef(args, restart_run)
+    assert opdef or restart_run
+    flag_vals, batch_files = _state_split_flag_args(args.flags)
+    stage = bool(args.stage or args.restage)
+    return State(args, restart_run, opdef, flag_vals, batch_files, stage)
 
 def _state_restart_run(restart):
     if not restart:
@@ -104,7 +112,7 @@ def main(args):
 def _init_state(args):
     _maybe_shift_opspec(args)
     _validate_args(args)
-    return State(args)
+    return _state_for_args(args)
 
 def _maybe_shift_opspec(args):
     """Moves opspec to flags if it looks like a flag assignment.
@@ -158,14 +166,34 @@ def _init_op(S):
 
 def _op_from_opdef(S):
     try:
-        return oplib.from_opdef(
+        op = oplib.from_opdef(
             S.opdef,
             S.flag_vals,
             stage=S.stage,
             gpus=S.args.gpus,
         )
+        _apply_op_label(S, op)
+        return op
     except oplib.InvalidOpDef as e:
         _invalid_opdef_error(S.opdef, str(e))
+
+def _apply_op_label(S, op):
+    label_template = _label_template(S.args, S.opdef, S.flag_vals)
+    if label_template is None:
+        return None
+    op.label = op_util.format_label(label_template, op.flag_vals)
+
+def _label_template(args, opdef, flag_vals):
+    return util.find_apply([
+        lambda: args.label,
+        lambda: opdef and opdef.label,
+        lambda: _default_label(flag_vals),
+    ])
+
+def _default_label(flag_vals):
+    if not flag_vals:
+        return None
+    return op_util.flags_desc(flag_vals, truncate_floats=True, delim=" ")
 
 ###################################################################
 # Dispatch op

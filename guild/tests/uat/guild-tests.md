@@ -6,6 +6,7 @@ tests).
 
     >>> run("guild check -nT", timeout=900) # doctest: +REPORT_UDIFF
     internal tests:
+      OP2-run-labels:              ok
       anonymous-models:            ok
       batch-basics:                ok
       batch-custom-optimizer:      ok
