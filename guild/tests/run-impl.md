@@ -316,10 +316,10 @@ Output scalar test - op3:
     ??? -um guild.op_main guild.pass --
 
     >>> _ = run(cwd, opspec="with-args", print_cmd=True)
-    /usr/bin/python -um guild.op_main guild.pass --foo --bar=123 --
+    ??? -um guild.op_main guild.pass --foo --bar=123 --
 
     >>> _ = run(cwd, opspec="with-flags", print_cmd=True)
-    /usr/bin/python -um guild.op_main guild.pass -- --b no --f 1.123 --i 123 --s S
+    ??? -um guild.op_main guild.pass -- --b no --f 1.123 --i 123 --s S
 
     >>> _ = run(cwd, opspec="with-flags",
     ...     flags=["b=yes", "i=456", "w=true", "s=T", "n=hello"],
