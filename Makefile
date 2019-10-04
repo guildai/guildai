@@ -93,7 +93,6 @@ README.html: README.md
 #
 OP2-check:
 	OP2=1 guild check -nT \
-	-s OP2-cross-package-inheritance \
 	-s run-labels \
 	-s copy-sourcecode-warnings \
 	-s cross-package-inheritance \
