@@ -92,8 +92,12 @@ README.html: README.md
 # superceded by an OP2-xxx test.
 #
 OP2-check:
-	guild check -nT \
+	OP2=1 guild check -nT \
+	-s OP2-cross-package-inheritance \
 	-s run-labels \
+	-s copy-sourcecode-warnings \
+	-s cross-package-inheritance \
+	-s sourcecode-digest \
 	\
 	-s batch-basics \
 	-s batch-custom-optimizer \
@@ -109,18 +113,11 @@ OP2-check:
 	-s batch-save-trials \
 	-s batch-skopt \
 	-s batch-skopt2 \
-	-s copy-sourcecode-warnings \
-	-s cross-package-inheritance \
 	-s dependencies-2 \
-	-s hparam-summaries \
 	-s marked-runs \
 	-s needed \
-	-s op-desc \
-	-s ops \
 	-s restart-runs \
 	-s run-files \
 	-s skopt \
-	-s sourcecode-digest \
 	-s step-checks \
-	-s steps \
-	-s summary
+	-s steps

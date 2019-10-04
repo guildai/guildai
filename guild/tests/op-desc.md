@@ -132,13 +132,14 @@ result as a table.
 Here are our tests:
 
     >>> tests = [
-    ...     (".",    "train.py",      (".", "a", "a/b")),
-    ...     ("a",    "train.py",      ("a", ".", "a/b", "b")),
-    ...     ("a/b",  "train.py",      ("a/b", ".", "a", "b")),
-    ...     (".",    "a/train.py",    (".", "a", "a/b")),
-    ...     (".",    "a/b/train.py",  (".", "a", "a/b", "b")),
-    ...     (".",    "a:train",       (".", "a", "a/b")),
-    ...     ("a",    "../train.py",   ("a", ".", "a/b", "b")),
+    ...     # run_from  # op_spec        # show_from
+    ...     (".",       "train.py",      (".", "a", "a/b")),
+    ...     ("a",       "train.py",      ("a", ".", "a/b", "b")),
+    ...     ("a/b",     "train.py",      ("a/b", ".", "a", "b")),
+    ...     (".",       "a/train.py",    (".", "a", "a/b")),
+    ...     (".",       "a/b/train.py",  (".", "a", "a/b", "b")),
+    ...     (".",       "a:train",       (".", "a", "a/b")),
+    ...     ("a",       "../train.py",   ("a", ".", "a/b", "b")),
     ... ]
 
 And the results:

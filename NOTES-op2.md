@@ -35,5 +35,6 @@
 - [ ] Stoppable opdef
 
 - [ ] Promote OP2-xxx tests
+  - [ ] Remove all refs to OP2 env var in tests
 
 - [ ] Remote OP2-xxx targets from Makefile
