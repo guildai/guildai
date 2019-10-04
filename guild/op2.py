@@ -475,11 +475,14 @@ def _op_copy_sourcecode(op, run):
         return
     if not op.sourcecode_select:
         return
-    log.debug("copying source code files for run %s", run.id)
+    dest = run.guild_path("sourcecode")
+    log.debug(
+        "copying source code files for run %s from %s to %s",
+        run.id, op.sourcecode_src, dest)
     op_util.copy_sourcecode(
         op.sourcecode_src,
         op.sourcecode_select,
-        run.guild_path("sourcecode"),
+        dest,
         config_help=_sourcecode_config_help(op))
 
 def _sourcecode_config_help(op):
