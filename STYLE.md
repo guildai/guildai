@@ -164,6 +164,41 @@ ist's *weird* in Python.
 That said, we could fall back on the proposal above for frameworks,
 where methods were pass-throughts to normal functions.
 
+UPDATE: This is a solid pattern that we've started using in op2. It's
+tempting to move init logic into a class constructor like this:
+
+``` python
+class Foo(object):
+
+    def __init__(self, args):
+        self.a = _init_a(args)
+
+def _init_a(args):
+    return args.a
+```
+
+Instead, use this:
+
+``` python
+class Foo(object):
+
+    def __init__(self, a):
+        self.a = a
+
+def _foo_init(args):
+    return Foo(args.a)
+```
+
+The run is then simple: classes are **strictly** structs in Python.
+
+There are some exceptions, which I think should be considered:
+
+1. Object init is simple enough to perform in `__init__`. What
+   consitutes "simple enough" is a judgment call.
+
+2. Property methods can be used to implement reading of dynamic
+   state. These should be rare.
+
 ## Anti-patterns
 
 To be avoided *where it is reasonable to avoid*.
