@@ -383,6 +383,77 @@ Operation:
     Resolving upstream dependency
     Using output from run ... for upstream resource
 
+## Errors
+
+Missing file dependency:
+
+    >>> cwd = init_gf("""
+    ... op:
+    ...   main: guild.pass
+    ...   requires:
+    ...     - file: file1.txt
+    ... """)
+
+    >>> _ = run(cwd, opspec="op", yes=True)
+    Resolving file:file1.txt dependency
+    run failed because a dependency was not met: could not resolve
+    'file:file1.txt' in file:file1.txt resource: cannot find source
+    file file1.txt
+    <exit 1>
+
+Missing operation dependency:
+
+    >>> cwd = init_gf("""
+    ... - model: ''
+    ...   resources:
+    ...     foo:
+    ...       - operation: foo
+    ...   operations:
+    ...     op:
+    ...       main: guild.pass
+    ...       requires: foo
+    ... """)
+
+    >>> _ = run(cwd, opspec="op", yes=True)
+    Resolving foo dependency
+    run failed because a dependency was not met: could not resolve
+    'operation:foo' in foo resource: no suitable run for foo
+    <exit 1>
+
+Process error:
+
+    >>> cwd = init_gf("""
+    ... op:
+    ...   exec: not-a-valid-cmd-xxx-yyy
+    ... """)
+
+    >>> _ = run(cwd, opspec="op", yes=True)
+    [Errno 2] No such file or directory: 'not-a-valid-cmd-xxx-yyy'
+    <exit 1>
+
+Non-zero exit:
+
+    >>> cwd = init_gf("""
+    ... op:
+    ...   exec: bash -c "exit 123"
+    ... """)
+
+    >>> _ = run(cwd, opspec="op", yes=True)
+    <exit 123>
+
+## Stage runs
+
+    >> cwd = init_gf("""
+    ... op:
+    ...   main: bash -c 'echo hello > file.2.txt'
+    ...   requires:
+    ...     - file: file1.txt
+    ... """)
+
+    >> _ = run(cwd, opspec="op", yes=True)
+
+    >> find(cwd)
+
 ## == TODO =====================================================
 
 - [ ] Run script

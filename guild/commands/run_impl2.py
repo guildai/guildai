@@ -22,6 +22,7 @@ import sys
 from guild import cli
 from guild import cmd_impl_support
 from guild import help as helplib
+from guild import op_dep
 from guild import op2 as oplib
 from guild import op_util2 as op_util
 from guild import run as runlib
@@ -410,7 +411,23 @@ def _confirm_run(op):
     return cli.confirm(prompt, default=True)
 
 def _run_op(op):
-    _run, exit_status = oplib.run(op)
+    try:
+        _run, exit_status = oplib.run(op)
+    except op_dep.OpDependencyError as e:
+        _handle_dependency_error(e)
+    except oplib.ProcessError as e:
+        _handle_process_error(e)
+    else:
+        _handle_run_exit(exit_status)
+
+def _handle_dependency_error(e):
+    cli.error(
+        "run failed because a dependency was not met: %s" % e)
+
+def _handle_process_error(e):
+    cli.error(e)
+
+def _handle_run_exit(exit_status):
     if exit_status != 0:
         cli.error(exit_status=exit_status)
 
