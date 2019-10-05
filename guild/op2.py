@@ -585,7 +585,7 @@ class _RunOutput(object):
         self._rest_args = args
 
     def __enter__(self):
-        if os.getenv("DISABLE_RUN_OUTPUT") != "1":
+        if os.getenv("DISABLE_RUN_OUTPUT_CAPTURE") != "1":
             self._output = op_util.RunOutput(self._run, *self._rest_args)
 
     def __exit__(self, *_exc):
