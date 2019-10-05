@@ -470,7 +470,7 @@ def _opspec_and_restart_error(option="restart"):
 
 def _invalid_opspec_error(opspec):
     cli.error(
-        "invalid operation spec '%s'\n"
+        "invalid operation '%s'\n"
         "Try 'guild operations' for a list of available operations."
         % opspec)
 
@@ -496,7 +496,7 @@ def _guildfile_error(gf_path, msg):
     log.error(msg)
     cli.error(
         "guildfile in %s contains an error (see above for details)"
-        % cmd_impl_support.cwd_desc(os.path.dirname(gf_path)))
+        % cmd_impl_support.cwd_desc(gf_path))
 
 def _no_such_model_op_error(opspec):
     if opspec:
