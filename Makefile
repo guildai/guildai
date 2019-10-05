@@ -95,7 +95,6 @@ OP2-check:
 	OP2=1 guild check -nT \
 	-s run-labels \
 	-s copy-sourcecode-warnings \
-	-s cross-package-inheritance \
 	-s sourcecode-digest \
 	\
 	-s batch-basics \
@@ -112,6 +111,7 @@ OP2-check:
 	-s batch-save-trials \
 	-s batch-skopt \
 	-s batch-skopt2 \
+	-s cross-package-inheritance \
 	-s dependencies-2 \
 	-s marked-runs \
 	-s needed \
