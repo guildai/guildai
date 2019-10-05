@@ -1,8 +1,8 @@
 # Run impl tests
 
-NOTE: These tests are run in-process. Because Guild runs use pipes to
+Helpers:
 
-    >>> def run(cwd=None, guild_home=None, yes=True, **kw):
+    >>> def run_gh(cwd=None, guild_home=None, yes=True, **kw):
     ...     from guild import click_util
     ...     from guild.commands import run, run_impl2
     ...     ctx = run.run.make_context("", [])
@@ -13,7 +13,8 @@ NOTE: These tests are run in-process. Because Guild runs use pipes to
     ...     guild_home = guild_home or mkdtemp()
     ...     with SetCwd(cwd):
     ...         with SetGuildHome(guild_home):
-    ...             with Env({"DISABLE_RUN_OUTPUT_CAPTURE": "1"}):
+    ...             with Env({"NO_RUN_OUTPUT_CAPTURE": "1",
+    ...                       "NO_WARN_RUNDIR": "1"}):
     ...                 with LogCapture(stdout=True, strip_ansi_format=True):
     ...                     try:
     ...                         run_impl2.main(args)
@@ -24,6 +25,9 @@ NOTE: These tests are run in-process. Because Guild runs use pipes to
     ...                               if len(e.args) > 1 else 1)
     ...     return guild_home
 
+    >>> def run(*args, **kw):
+    ...     run_gh(*args, **kw)
+
     >>> def init_gf(s):
     ...     cwd = mkdtemp()
     ...     write(path(cwd, "guild.yml"), s)
@@ -31,24 +35,24 @@ NOTE: These tests are run in-process. Because Guild runs use pipes to
 
 ## Invalid arg combinations
 
-    >>> _ = run(opspec="foo", start="bar")
+    >>> run(opspec="foo", start="bar")
     OPERATION cannot be used with --start
     Try 'guild run --help' for more information.
     <exit 1>
 
-    >>> _ = run(opspec="foo", restart="bar")
+    >>> run(opspec="foo", restart="bar")
     OPERATION cannot be used with --restart
     Try 'guild run --help' for more information.
     <exit 1>
 
 ## Invalid restart and start specs
 
-    >>> _ = run(restart="foo")
+    >>> run(restart="foo")
     could not find a run matching 'foo'
     Try 'guild runs list' for a list.
     <exit 1>
 
-    >>> _ = run(start="bar")
+    >>> run(start="bar")
     could not find a run matching 'bar'
     Try 'guild runs list' for a list.
     <exit 1>
@@ -56,7 +60,7 @@ NOTE: These tests are run in-process. Because Guild runs use pipes to
 ## Invalid cwd Guild file
 
     >>> cwd = init_gf("invalid_guildfile_contents")
-    >>> _ = run(cwd)
+    >>> run(cwd)
     ERROR: error in .../guild.yml: invalid guildfile data
     'invalid_guildfile_contents': expected a mapping
     guildfile in '...' contains an error (see above for details)
@@ -64,8 +68,8 @@ NOTE: These tests are run in-process. Because Guild runs use pipes to
 
 ## Invalid op spec
 
-    >>> _ = run(opspec="a/a/a")
-    invalid operation spec 'a/a/a'
+    >>> run(opspec="a/a/a")
+    invalid operation 'a/a/a'
     Try 'guild operations' for a list of available operations.
     <exit 1>
 
@@ -78,14 +82,14 @@ NOTE: These tests are run in-process. Because Guild runs use pipes to
 
 No default operation:
 
-    >>> _ = run(cwd)
+    >>> run(cwd)
     cannot find a default operation
     Try 'guild operations' for a list.
     <exit 1>
 
 Can't find operation - no model spec):
 
-    >>> _ = run(cwd, opspec="foo")
+    >>> run(cwd, opspec="foo")
     cannot find operation foo
     You may need to include a model in the form MODEL:OPERATION. Try
     'guild operations' for a list of available operations.
@@ -93,21 +97,21 @@ Can't find operation - no model spec):
 
 Can't find operation - model spec but no such model:
 
-    >>> _ = run(cwd, opspec="bar:foo")
+    >>> run(cwd, opspec="bar:foo")
     cannot find operation bar:foo
     Try 'guild operations' for a list of available operations.
     <exit 1>
 
 Can't find operation - matched model but no such op:
 
-    >>> _ = run(cwd, opspec="foo1:bar")
+    >>> run(cwd, opspec="foo1:bar")
     operation 'bar' is not defined for model 'foo1'
     Try 'guild operations foo1' for a list of available operations.
     <exit 1>
 
 Multiple matching models:
 
-    >>> _ = run(cwd, opspec="foo:bar")
+    >>> run(cwd, opspec="foo:bar")
     there are multiple models that match 'foo'
     Try specifying one of the following:
       foo1
@@ -117,9 +121,22 @@ Multiple matching models:
 Anonymous model:
 
     >>> cwd = init_gf("{}")
-    >>> _ = run(cwd, opspec="foo")
+    >>> run(cwd, opspec="foo")
     operation 'foo' is not defined
     Try 'guild operations' for a list of available operations.
+    <exit 1>
+
+## Invalid scripts
+
+    >>> cwd = mkdtemp()
+    >>> touch(path(cwd, "not-executable.sh"))
+
+    >>> run(cwd, opspec="not-executable.sh")
+    cannot run 'not-executable.sh': must be an executable file
+    <exit 1>
+
+    >>> run(cwd, opspec=".")
+    cannot run '.': must be an executable file
     <exit 1>
 
 ## Invalid main flag reference
@@ -128,14 +145,14 @@ Anonymous model:
     ... op:
     ...   main: guild.pass ${foo}
     ... """)
-    >>> _ = run(cwd, opspec="op")
+    >>> run(cwd, opspec="op")
     invalid setting for operation 'op': main contains invalid reference 'foo'
     <exit 1>
 
 ## Invalid flag arg
 
     >>> cwd = init_gf("op: { exec: 'true' }")
-    >>> _ = run(cwd, opspec="op", flags=["foo"])
+    >>> run(cwd, opspec="op", flags=["foo"])
     invalid argument 'foo' - expected NAME=VAL
     <exit 1>
 
@@ -155,7 +172,7 @@ Anonymous model:
     ...           default: B
     ... """)
 
-    >>> _ = run(cwd, help_model=True)
+    >>> run(cwd, help_model=True)
     Usage: guild run [OPTIONS] m1:OPERATION [FLAG]...
     <BLANKLINE>
     A sample model
@@ -165,7 +182,7 @@ Anonymous model:
     Operations:
       op1  Some op 1
 
-    >>> _ = run(cwd, help_op=True)
+    >>> run(cwd, help_op=True)
     Usage: guild run [OPTIONS] m1:op1 [FLAG]...
     <BLANKLINE>
     Some op 1
@@ -210,7 +227,7 @@ Sample output:
 
 Output scalar test - op1:
 
-    >>> _ = run(cwd, opspec="op1", test_output_scalars=out)
+    >>> run(cwd, opspec="op1", test_output_scalars=out)
     line-1
       '^([^ \t]+):\\s+([0-9\\.e\\-]+)$': <no matches>
     a: 1.123
@@ -232,7 +249,7 @@ Output scalar test - op1:
 
 Output scalar test - op2:
 
-    >>> _ = run(cwd, opspec="op2", test_output_scalars=out)
+    >>> run(cwd, opspec="op2", test_output_scalars=out)
     line-1
       'bar is ([0-9\\.e\\-]+)': <no matches>
       ' - foo=([0-9\\.e\\-]+)': <no matches>
@@ -263,7 +280,7 @@ Output scalar test - op2:
 
 Output scalar test - op3:
 
-    >>> _ = run(cwd, opspec="op3", test_output_scalars=out)
+    >>> run(cwd, opspec="op3", test_output_scalars=out)
     line-1
       '([^ \t]+) is ([0-9\\.e\\-]+)': <no matches>
       'Epoch: ([0-9]+)': <no matches>
@@ -316,21 +333,21 @@ Output scalar test - op3:
     ...   exec: bash -c 'echo hello > file.txt'
     ... """)
 
-    >>> _ = run(cwd, opspec="default", print_cmd=True)
+    >>> run(cwd, opspec="default", print_cmd=True)
     ??? -um guild.op_main guild.pass --
 
-    >>> _ = run(cwd, opspec="with-args", print_cmd=True)
+    >>> run(cwd, opspec="with-args", print_cmd=True)
     ??? -um guild.op_main guild.pass --foo --bar=123 --
 
-    >>> _ = run(cwd, opspec="with-flags", print_cmd=True)
+    >>> run(cwd, opspec="with-flags", print_cmd=True)
     ??? -um guild.op_main guild.pass -- --b no --f 1.123 --i 123 --s S
 
-    >>> _ = run(cwd, opspec="with-flags",
+    >>> run(cwd, opspec="with-flags",
     ...     flags=["b=yes", "i=456", "w=true", "s=T", "n=hello"],
     ...     print_cmd=True)
     ??? -um guild.op_main guild.pass -- --N hello --b yes --f 1.123 --i 456 --s T --w
 
-    >>> _ = run(cwd, opspec="exec", print_cmd=True)
+    >>> run(cwd, opspec="exec", print_cmd=True)
     bash -c 'echo hello > file.txt'
 
 ## Dependencies
@@ -346,7 +363,7 @@ File:
 
     >>> write(path(cwd, "file.txt"), "hello")
 
-    >>> guild_home = run(cwd, opspec="file")
+    >>> guild_home = run_gh(cwd, opspec="file")
     Resolving file:file.txt dependency
 
     >>> find(guild_home)
@@ -357,7 +374,7 @@ File override with flag:
 
     >>> file2_path = path(cwd, "file2.txt")
     >>> write(file2_path, "hello")
-    >>> guild_home = run(cwd, opspec="file",
+    >>> guild_home = run_gh(cwd, opspec="file",
     ...                  flags=["file:file.txt=%s" % file2_path])
     Resolving file:file.txt dependency
     Using .../file2.txt for file:file.txt resource
@@ -380,13 +397,13 @@ Operation:
     ...       path: upstream
     ... """)
 
-    >>> guild_home = run(cwd, opspec="upstream")
+    >>> guild_home = run_gh(cwd, opspec="upstream")
 
-    >>> _ = run(cwd, guild_home, opspec="downstream")
+    >>> run(cwd, guild_home, opspec="downstream")
     Resolving upstream dependency
     Using output from run ... for upstream resource
 
-## Errors
+## Operation errors
 
 Missing file dependency:
 
@@ -397,7 +414,7 @@ Missing file dependency:
     ...     - file: file1.txt
     ... """)
 
-    >>> _ = run(cwd, opspec="op")
+    >>> run(cwd, opspec="op")
     Resolving file:file1.txt dependency
     run failed because a dependency was not met: could not resolve
     'file:file1.txt' in file:file1.txt resource: cannot find source
@@ -417,7 +434,7 @@ Missing operation dependency:
     ...       requires: foo
     ... """)
 
-    >>> _ = run(cwd, opspec="op")
+    >>> run(cwd, opspec="op")
     Resolving foo dependency
     run failed because a dependency was not met: could not resolve
     'operation:foo' in foo resource: no suitable run for foo
@@ -430,7 +447,7 @@ Process error:
     ...   exec: not-a-valid-cmd-xxx-yyy
     ... """)
 
-    >>> _ = run(cwd, opspec="op")
+    >>> run(cwd, opspec="op")
     error running op: [Errno 2] No such file or directory...
     <exit 1>
 
@@ -441,7 +458,7 @@ Non-zero exit:
     ...   exec: bash -c "exit 123"
     ... """)
 
-    >>> _ = run(cwd, opspec="op")
+    >>> run(cwd, opspec="op")
     <exit 123>
 
 Required operation not defined:
@@ -452,11 +469,62 @@ Required operation not defined:
     ...   requires: not-defined
     ... """)
 
-    >>> _ = run(cwd)
+    >>> run(cwd)
     invalid setting for operation 'op': resource 'not-defined' required
     by operation 'op' is not defined
     <exit 1>
 
+## Stage
+
+Stage Python op:
+
+    >>> cwd = mkdtemp()
+    >>> python_script = path(cwd, "run.py")
+    >>> touch(python_script)
+
+    >>> guild_home = run_gh(cwd, opspec="run.py", stage=True)
+    run.py staged as ...
+    To start the operation, use 'guild run --start ...'
+
+    >>> find(guild_home)
+    ???
+    runs/.../.guild/ENV
+    runs/.../.guild/STAGED
+    runs/.../.guild/attrs/...
+    runs/.../.guild/opref
+    runs/.../.guild/sourcecode/run.py
+
+Staged Python op in explicit run dir:
+
+    >>> run_dir = mkdtemp()
+    >>> run(cwd, opspec="run.py", stage=True, run_dir=run_dir)
+    run.py staged in '...'
+    To start the operation, use "(cd '...' && source .guild/ENV
+    && /usr/bin/python -um guild.op_main run)"
+
+    >>> find(run_dir)
+    .guild/ENV
+    .guild/STAGED
+    .guild/attrs/...
+    .guild/opref
+    .guild/sourcecode/run.py
+
+Staged exec op:
+
+    >>> cwd = init_gf("""
+    ... op:
+    ...   exec: run.sh
+    ... """)
+
+    >>> run(cwd, opspec="op", stage=True)
+    op staged as ...
+    To start the operation, use 'guild run --start ...'
+
+Stage exec op in explicit run dir:
+
+    >>> run(cwd, opspec="op", stage=True, run_dir=mkdtemp())
+    op staged in '...'
+    To start the operation, use "(cd '...' && source .guild/ENV && run.sh)"
 
 
 ## == TODO =====================================================
