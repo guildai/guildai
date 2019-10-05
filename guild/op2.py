@@ -469,8 +469,8 @@ def _op_init_run_attrs(op, run):
         run.write_attr("flag_map", op.flag_map)
 
 def _op_copy_sourcecode(op, run):
-    if os.getenv("DISABLE_SOURCECODE") == "1":
-        log.debug("DISABLE_SOURCECODE=1, skipping sourcecode copy")
+    if os.getenv("NO_SOURCECODE") == "1":
+        log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
         return
     if not op.sourcecode_select:
         return
@@ -595,7 +595,7 @@ class _RunOutput(object):
         self._rest_args = args
 
     def __enter__(self):
-        if os.getenv("DISABLE_RUN_OUTPUT_CAPTURE") != "1":
+        if os.getenv("NO_RUN_OUTPUT_CAPTURE") != "1":
             self._output = op_util.RunOutput(self._run, *self._rest_args)
 
     def __exit__(self, *_exc):
