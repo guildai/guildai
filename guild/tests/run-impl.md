@@ -35,6 +35,25 @@ Helpers:
 
 ## Invalid arg combinations
 
+Various invalid combinations (not exhaustive):
+
+    >>> run(minimize="foo", maximize="bar")
+    --minimize and --maximize cannot both be used
+    Try 'guild run --help' for more information.
+    <exit 1>
+
+    >>> run(gpus="0,1", no_gpus=True)
+    --no-gpus and --gpus cannot both be used
+    Try 'guild run --help' for more information.
+    <exit 1>
+
+    >>> run(rerun="foo", restart="bar")
+    --rerun cannot be used with --restart
+    Try 'guild run --help' for more information.
+    <exit 1>
+
+Incomptable with start/restart:
+
     >>> run(opspec="foo", start="bar")
     OPERATION cannot be used with --start
     Try 'guild run --help' for more information.
@@ -42,6 +61,41 @@ Helpers:
 
     >>> run(opspec="foo", restart="bar")
     OPERATION cannot be used with --restart
+    Try 'guild run --help' for more information.
+    <exit 1>
+
+    >>> run(flags=["foo=123"], start="bar")
+    flags cannot be used with --start
+    Try 'guild run --help' for more information.
+    <exit 1>
+
+    >>> run(flags=["bar=456"], restart="bar")
+    flags cannot be used with --restart
+    Try 'guild run --help' for more information.
+    <exit 1>
+
+    >>> run(run_dir="foo", restart="bar")
+    --run-dir cannot be used with --restart
+    Try 'guild run --help' for more information.
+    <exit 1>
+
+    >>> run(help_model=True, restart="bar")
+    --help-model cannot be used with --restart
+    Try 'guild run --help' for more information.
+    <exit 1>
+
+    >>> run(help_op=True, restart="bar")
+    --help-op cannot be used with --restart
+    Try 'guild run --help' for more information.
+    <exit 1>
+
+    >>> run(test_sourcecode=True, restart="bar")
+    --test-sourcecode cannot be used with --restart
+    Try 'guild run --help' for more information.
+    <exit 1>
+
+    >>> run(test_output_scalars="-", restart="bar")
+    --test-output-scalars cannot be used with --restart
     Try 'guild run --help' for more information.
     <exit 1>
 
@@ -542,6 +596,42 @@ Stage exec op in explicit run dir:
     >>> run(cwd, opspec="op", stage=True, run_dir=mkdtemp())
     op staged in '...'
     To start the operation, use "(cd '...' && source .guild/ENV && run.sh)"
+
+## Restart
+
+Start a staged operation:
+
+    >>> cwd = mkdtemp()
+    >>> write(path(cwd, "run.py"), "import sys; sys.exit(34)")
+
+    >>> guild_home = run_gh(cwd, opspec="run.py", stage=True)
+    run.py staged as ...
+    To start the operation, use 'guild run --start ...'
+
+    >>> find(guild_home)
+    ???
+    .../.guild/ENV
+    .../.guild/STAGED
+    .../.guild/attrs/...
+    .../.guild/opref
+    .../.guild/sourcecode/run.py
+
+    >>> runs = dir(path(guild_home, "runs"))
+    >>> len(runs)
+    1
+    >>> run_id = runs[0]
+
+    >>> run(cwd, guild_home, restart=run_id)
+    <exit 34>
+
+    >>> find(guild_home)
+    ???
+    .../.guild/ENV
+    .../.guild/attrs/...
+    .../.guild/opref
+    .../.guild/sourcecode/run.py
+
+Restart a run:
 
 
 ## == TODO =====================================================

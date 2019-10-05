@@ -40,7 +40,7 @@ log = logging.getLogger("guild")
 class State(object):
 
     def __init__(self, args, restart_run, opdef, flag_vals,
-                 batch_files, stage, run_dir):
+                 batch_files, stage, run_dir, extra_run_attrs):
         self.args = args
         self.restart_run = restart_run
         self.opdef = opdef
@@ -48,16 +48,17 @@ class State(object):
         self.batch_files = batch_files
         self.stage = stage
         self.run_dir = run_dir
+        self.extra_run_attrs = extra_run_attrs
 
 def _state_for_args(args):
     restart_run = _state_restart_run(args.restart or args.start)
-    opdef = _state_opdef(args, restart_run)
-    assert opdef or restart_run
+    opdef = _state_opdef(args) if not restart_run else None
     flag_vals, batch_files = _state_split_flag_args(args.flags)
-    stage = bool(args.stage or args.restage)
+    stage = args.stage
     run_dir = _state_run_dir(args)
+    extra_run_attrs = _state_extra_run_attrs(args)
     return State(args, restart_run, opdef, flag_vals, batch_files,
-                 stage, run_dir)
+                 stage, run_dir, extra_run_attrs)
 
 def _state_restart_run(restart):
     if not restart:
@@ -71,13 +72,8 @@ def _run_for_spec(spec):
         one_run,
     ], spec)
 
-def _state_opdef(args, restart_run):
-    if args.opspec and restart_run:
-        _opspec_and_restart_error()
-    if restart_run:
-        return op_util.run_opdef(restart_run)
-    else:
-        return _opdef_for_opspec(args.opspec)
+def _state_opdef(args):
+    return _opdef_for_opspec(args.opspec)
 
 def _opdef_for_opspec(opspec):
     try:
@@ -117,6 +113,38 @@ def _state_run_dir(args):
     else:
         return None
 
+def _state_extra_run_attrs(args):
+    attrs = {}
+    _apply_attr_run_params(args, attrs)
+    _apply_attr_random_seed(args, attrs)
+    _apply_attr_system_info(attrs)
+    _apply_attr_max_trials(args, attrs)
+    return attrs
+
+def _apply_attr_run_params(args, attrs):
+    params = args.as_kw()
+    if args.stage:
+        attrs["stage_params"] = params
+    else:
+        attrs["run_params"] = params
+
+def _apply_attr_random_seed(args, attrs):
+    attrs["random_seed"] = _random_seed(args)
+
+def _random_seed(args):
+    if args.random_seed is not None:
+        return args.random_seed
+    return runlib.random_seed()
+
+def _apply_attr_system_info(attrs):
+    attrs["host"] = util.hostname()
+    attrs["user"] = util.user()
+    attrs["platform"] = util.platform_info()
+
+def _apply_attr_max_trials(args, attrs):
+    if args.max_trials:
+        attrs["max_trials"] = args.max_trials
+
 ###################################################################
 # Main
 ###################################################################
@@ -140,7 +168,7 @@ def _maybe_shift_opspec(args):
 
 def _validate_args(args):
     _check_incompatible_options(args)
-    _check_opspec_and_restart(args)
+    _check_incompatible_with_restart(args)
 
 def _check_incompatible_options(args):
     incompatible = [
@@ -150,44 +178,59 @@ def _check_incompatible_options(args):
         ("print_trials", "init_trials"),
         ("remote", "background"),
         ("remote", "pidfile"),
-        ("rerun", "restart"),
-        ("rerun", "start"),
-        ("run_dir", "restage"),
-        ("run_dir", "restart"),
-        ("run_dir", "start"),
         ("start", "restart"),
         ("stage", "background"),
         ("stage", "pidfile"),
-        ("stage", "restage"),
     ]
     for a, b in incompatible:
         if getattr(args, a) and getattr(args, b):
             _incompatible_options_error(a, b)
 
-def _check_opspec_and_restart(args):
-    if args.opspec and args.restart:
-        _opspec_and_restart_error()
-    elif args.opspec and args.start:
-        _opspec_and_restart_error("start")
+def _check_incompatible_with_restart(args):
+    if not (args.start or args.restart):
+        return
+    incompatible = [
+        ("opspec", "OPERATION"),
+        ("flags", "flags"),
+        ("run_dir", "--run-dir"),
+        ("rerun", "--rerun"),
+        ("help_model", "--help-model"),
+        ("help_op", "--help-op"),
+        ("test_sourcecode", "--test-sourcecode"),
+        ("test_output_scalars", "--test-output-scalars"),
+    ]
+    for name, desc in incompatible:
+        if getattr(args, name):
+            restart_option = "restart" if args.restart else "start"
+            _incompatible_with_restart_error(desc, restart_option)
 
 ###################################################################
 # Init op
 ###################################################################
 
 def _init_op(S):
-    if S.opdef:
-        return _op_from_opdef(S)
+    if S.restart_run:
+        return _op_from_run(S)
     else:
-        assert S.restart_run
-        return oplib.from_run(S.restart_run)
+        return _op_from_opdef(S)
+
+def _op_from_run(S):
+    assert S.restart_run
+    return oplib.from_run(
+        S.restart_run,
+        label=S.args.label,
+        extra_run_attrs=S.extra_run_attrs,
+        gpus=S.args.gpus)
 
 def _op_from_opdef(S):
+    assert S.opdef
     try:
         op = oplib.from_opdef(
             S.opdef,
             S.flag_vals,
             run_dir=S.run_dir,
             stage=S.stage,
+            extra_run_attrs=S.extra_run_attrs,
             gpus=S.args.gpus,
         )
         _apply_op_label(S, op)
@@ -234,15 +277,11 @@ def _dispatch_op(op, S):
 ###################################################################
 
 def _print_model_help(S):
-    if not S.opdef:
-        assert S.restart_run
-        _restart_run_help_error(S.opdef.full_name, S.restart_run)
+    assert S.opdef
     helplib.print_model_help(S.opdef.modeldef)
 
 def _print_op_help(S):
-    if not S.opdef:
-        assert S.restart_run
-        _restart_run_help_error(S.opdef.full_name, S.restart_run)
+    assert S.opdef
     helplib.print_op_help(S.opdef)
 
 ###################################################################
@@ -264,6 +303,7 @@ class TestOutputLogger(summary.TestOutputLogger):
         cli.out(cli.style(msg, fg="yellow"))
 
 def _test_output_scalars(S):
+    assert S.opdef
     output_scalars = S.opdef.output_scalars or oplib.DEFAULT_OUTPUT_SCALARS
     input_path = S.args.test_output_scalars
     logger = TestOutputLogger()
@@ -290,8 +330,7 @@ def _open_output(path):
 ###################################################################
 
 def _test_sourcecode(S):
-    if not S.opdef:
-        _missing_opdef_error("cannot test source code copy")
+    assert S.opdef
     logger = _CopyLogger()
     sourcecode_src = S.opdef.guildfile.dir
     sourcecode_select = op_util.sourcecode_select_for_opdef(S.opdef)
@@ -463,9 +502,15 @@ def _incompatible_options_error(a, b):
         "Try 'guild run --help' for more information."
         % (a.replace("_", "-"), b.replace("_", "-")))
 
-def _opspec_and_restart_error(option="restart"):
+def _incompatible_with_restart_error(option, restart_option):
     cli.error(
-        "OPERATION cannot be used with --%s\n"
+        "%s cannot be used with --%s\n"
+        "Try 'guild run --help' for more information."
+        % (option, restart_option))
+
+def _flags_with_restart_error(option="restart"):
+    cli.error(
+        "flags cannot be used with --%s\n"
         "Try 'guild run --help' for more information." % option)
 
 def _invalid_opspec_error(opspec):
@@ -473,24 +518,6 @@ def _invalid_opspec_error(opspec):
         "invalid operation '%s'\n"
         "Try 'guild operations' for a list of available operations."
         % opspec)
-
-def _no_such_opspec_error(opspec):
-    if opspec:
-        if ":" in opspec:
-            cli.error(
-                "cannot find operation %s\n"
-                "Try 'guild operations' for a list of available operations."
-                % opspec)
-        else:
-            cli.error(
-                "cannot find operation %s\n"
-                "You may need to include a model in the form MODEL:OPERATION. "
-                "Try 'guild operations' for a list of available operations."
-                % opspec)
-    else:
-        cli.error(
-            "cannot find a default operation\n"
-            "Try 'guild operations' for a list.")
 
 def _guildfile_error(gf_path, msg):
     log.error(msg)
@@ -553,14 +580,6 @@ def _invalid_opdef_error(opdef, msg):
 
 def _model_op_proxy_error(e):
     cli.error("cannot run '%s': %s" % (e.opspec, e.msg))
-
-def _restart_run_help_error(op_name, restart_run):
-    cli.error(
-        "help is not available for '%s' (run %s)"
-        % (op_name, restart_run.id))
-
-def _missing_opdef_error(msg):
-    cli.error("%s - missing operation definition" % msg)
 
 def _op_dependency_error(e):
     cli.error(

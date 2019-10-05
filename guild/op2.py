@@ -122,21 +122,8 @@ def from_opdef(opdef, flag_vals, gpus=None, **kw):
         stoppable=opdef.stoppable,
         **kw)
 
-def _op_deps_for_opdef(opdef, flag_vals):
-    try:
-        return op_dep.deps_for_opdef(opdef, flag_vals)
-    except op_dep.OpDependencyError as e:
-        raise InvalidOpDef(opdef, str(e))
-
-def _op_init_flag_null_labels(opdef):
-    return {
-        f.name: f.null_label
-        for f in opdef.flags
-        if f.null_label is not None
-    }
-
 # =================================================================
-# Cmd args
+# Cmd args for opdef
 # =================================================================
 
 def _op_init_cmd_args(opdef, flag_vals):
@@ -294,7 +281,7 @@ def _repl_args(args, key, replacement):
     return ret
 
 # =================================================================
-# Cmd env
+# Cmd env for opdef
 # =================================================================
 
 def _op_init_cmd_env(opdef, cmd_args, flag_vals, gpus):
@@ -302,53 +289,22 @@ def _op_init_cmd_env(opdef, cmd_args, flag_vals, gpus):
     _apply_opdef_env(opdef, env)
     _apply_cmd_args_env(cmd_args, env)
     _apply_flags_env(flag_vals, env)
-    _apply_os_env(env)
-    _apply_op_env(opdef, env, gpus)
+    _apply_system_env(gpus, env)
     util.check_env(env)
     return env
 
 def _apply_opdef_env(opdef, env):
     env.update({
-        name: str(val)
+        util.env_var_name(name): flag_util.encod_flag_val(val)
         for name, val in opdef.env.items()
     })
-
-def _apply_cmd_args_env(args, env):
-    flags, _other_args = op_util.args_to_flags(args)
-    env.update({
-        name.upper(): str(val)
-        for name, val in flags.items()
-    })
-
-def _apply_flags_env(flag_vals, env):
-    env.update({
-        util.env_var_name(name): flag_util.encode_flag_val(val)
-        for name, val in flag_vals.items()
-    })
-
-def _apply_os_env(env):
-    env.update(util.safe_osenv())
-
-def _apply_op_env(opdef, env, gpus):
-    env["GUILD_HOME"] = config.guild_home()
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
-    env["LOG_LEVEL"] = _log_level()
-    env["PYTHONPATH"] = _python_path()
-    env["CMD_DIR"] = os.getcwd()
     env["PROJECT_DIR"] = opdef.guildfile.dir or ""
     if opdef.flags_dest:
         env["FLAGS_DEST"] = opdef.flags_dest
-    if opdef.set_trace:
-        env["SET_TRACE"] = "1"
     if opdef.handle_keyboard_interrupt:
         env["HANDLE_KEYBOARD_INTERRUPT"] = "1"
-    util.apply_env(env, os.environ, ["PROFILE"])
-    if gpus is not None:
-        log.info(
-            "Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: %s",
-            gpus or "<none>")
-        env["CUDA_VISIBLE_DEVICES"] = gpus
 
 def _op_plugins(opdef):
     project_plugins = _project_plugins(opdef)
@@ -379,6 +335,29 @@ def _plugin_selected(plugin, selected):
         if name == plugin.name or name in plugin.provides:
             return True
     return False
+
+
+def _apply_cmd_args_env(args, env):
+    flags, _other_args = op_util.args_to_flags(args)
+    env.update({
+        name.upper(): str(val)
+        for name, val in flags.items()
+    })
+
+def _apply_flags_env(flag_vals, env):
+    env.update({
+        util.env_var_name(name): flag_util.encode_flag_val(val)
+        for name, val in flag_vals.items()
+    })
+
+def _apply_system_env(gpus, env):
+    env.update(util.safe_osenv())
+    env["GUILD_HOME"] = config.guild_home()
+    env["LOG_LEVEL"] = _log_level()
+    env["PYTHONPATH"] = _python_path()
+    env["CMD_DIR"] = os.getcwd()
+    if gpus is not None:
+        env["CUDA_VISIBLE_DEVICES"] = gpus
 
 def _log_level():
     try:
@@ -419,19 +398,57 @@ def _is_runfile_pkg(path):
             return True
     return False
 
+# =================================================================
+# Misc op init for opdef
+# =================================================================
+
+def _op_deps_for_opdef(opdef, flag_vals):
+    try:
+        return op_dep.deps_for_opdef(opdef, flag_vals)
+    except op_dep.OpDependencyError as e:
+        raise InvalidOpDef(opdef, str(e))
+
+def _op_init_flag_null_labels(opdef):
+    return {
+        f.name: f.null_label
+        for f in opdef.flags
+        if f.null_label is not None
+    }
+
 ###################################################################
 # Op from run
 ###################################################################
 
-def from_run(_run):
-    assert False, "TODO"
+def from_run(run, gpus=None, **kw):
+    cmd_args = run.get("cmd")
+    flag_vals = run.get("flags")
+    flag_map = run.get("flag_map")
+    cmd_env = _op_init_cmd_env_for_run(run, gpus)
+    output_scalars = run.get("output_scalars")
+    stoppable = run.get("stoppable")
+    return Operation(
+        run.opref,
+        cmd_args,
+        flag_vals=flag_vals,
+        flag_map=flag_map,
+        cmd_env=cmd_env,
+        output_scalars=output_scalars,
+        run_dir=run.dir,
+        stoppable=stoppable,
+        **kw)
+
+def _op_init_cmd_env_for_run(run, gpus):
+    env = run.get("env")
+    _apply_system_env(gpus, env)
+    util.check_env(env)
+    return env
 
 ###################################################################
 # Run
 ###################################################################
 
 def run(op, quiet=False, _background_pidfile=None, stop_after=None):
-    run = _init_run(op)
+    run = _op_init_run(op)
     if op.stage:
         exit_status = _op_stage(op, run)
     else:
@@ -442,14 +459,14 @@ def run(op, quiet=False, _background_pidfile=None, stop_after=None):
 # Init run
 # =================================================================
 
-def _init_run(op):
-    run = _op_init_run(op)
+def _op_init_run(op):
+    run = _op_init_pending_run(op)
     _op_init_run_attrs(op, run)
     _op_copy_sourcecode(op, run)
     _op_init_sourcecode_digest(run)
     return run
 
-def _op_init_run(op):
+def _op_init_pending_run(op):
     run = op_util.init_run(op.run_dir)
     log.debug("initializing run in %s", run.dir)
     run.init_skel()
@@ -463,6 +480,10 @@ def _op_init_run_attrs(op, run):
     run.write_attr("flags", op.flag_vals)
     run.write_attr("cmd", op.cmd_args)
     run.write_attr("env", op.cmd_env)
+    if op.output_scalars:
+        run.write_attr("output_scalars", op.output_scalars)
+    if op.stoppable:
+        run.write_attr("stoppable", op.stoppable)
     if op.label is not None:
         run.write_attr("label", op.label)
     if op.flag_map:
@@ -504,6 +525,8 @@ def _op_run_cmd_env(op, run):
     return env
 
 def _op_resolve_deps(op, run):
+    if op.deps is None:
+        return
     resolved = {}
     for dep in op.deps:
         resolved_sources = op_dep.resolve(dep, run.dir)
@@ -534,6 +557,7 @@ def _op_run(op, run, quiet, stop_after):
         _op_finalize_run_attrs(run, exit_status)
         return exit_status
     finally:
+        op_util.clear_run_marker(run, "STAGED")
         op_util.clear_run_pending(run)
 
 def _op_proc(op, run, env):

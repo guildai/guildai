@@ -100,7 +100,7 @@ class ModelOpProxyError(Exception):
         self.msg = msg
 
 ###################################################################
-# Resolve opspec
+# OpDef for spec
 ###################################################################
 
 def opdef_for_opspec(opspec):
@@ -108,9 +108,9 @@ def opdef_for_opspec(opspec):
         return _model_opdef(opspec)
     except OpDefLookupError:
         opdef = _try_model_proxy(opspec)
-        if opdef:
-            return opdef
-        raise
+        if not opdef:
+            raise
+        return opdef
 
 def _model_opdef(opspec):
     model, op_name = _model_op(opspec)

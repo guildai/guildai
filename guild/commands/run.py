@@ -302,22 +302,18 @@ def run(args):
 
     ### Restart an Operation
 
-    If `--restart` is specified, the specified `RUN` is restarted
-    in-place using its operation and flags. Unlike rerun, restart does
-    not create a new run, but instead reuses the run directory of
-    `RUN`. Like a rerun, a restart may specify a different operation
-    and additional flags and may use ``0`` for the value of `RUN` to
-    restart the latest run. `--run-dir` may not be used with
-    `--restart`.
-
-    `--rerun` and `--restart` may not both be used.
+    If `--restart` is specified, `RUN` is restarted using its
+    operation and flags. Unlike rerun, restart does not create a new
+    run. You cannot change the operation, flags or run directory when
+    restarting a run.
 
     ### Staging an Operation
 
-    Use `--stage` to stage an operation. A staged operation does not
-    start when staged. It can be started later using `--start`. Use
-    `--restage` to modify a staged operation with new flag values and
-    to reset its order in the list of runs.
+    Use `--stage` to stage an operation to be run later. Use `--start`
+    with the staged run ID to start it.
+
+    If `--start` is specified, `RUN` is started using the same rules
+    applied to `--restart` (see above).
 
     ### Alternate Run Directory
 

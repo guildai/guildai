@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import os
+import random
 import threading
 import time
 
@@ -272,3 +273,6 @@ def from_dir(run_dir, id=None):
     if not id:
         id = os.path.basename(run_dir)
     return Run(id, run_dir)
+
+def random_seed():
+    return random.randint(0, pow(2, 32))
