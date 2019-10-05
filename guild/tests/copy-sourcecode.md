@@ -117,11 +117,11 @@ Here's a preview of the copy, which shows the rules that are applied:
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
     Selected for copy:
       ./.gitattributes
       ./a.txt
@@ -160,11 +160,11 @@ Specify `root` to change the directory that files are copied from.
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
     Selected for copy:
       subdir/b.txt
     Skipped:
@@ -189,11 +189,11 @@ This rule is applied after the default rules:
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
       include '*.png'
     Selected for copy:
       ./.gitattributes
@@ -236,11 +236,11 @@ ensures that only those files matching the specified patterns are selected.
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
       exclude '*'
       include '*.png'
     Selected for copy:
@@ -302,11 +302,11 @@ exclude specs.
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
       exclude '*.py'
     Selected for copy:
       ./.gitattributes
@@ -343,11 +343,11 @@ In the preview, 'subdir' is not mentioned:
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
       exclude dir 'subdir'
     Selected for copy:
       ./.gitattributes
@@ -382,11 +382,11 @@ The preview:
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
       exclude '*'
       include 'subdir/*'
     Selected for copy:
@@ -421,11 +421,11 @@ The preview shows that Guild modified the pattern with the glob:
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
       exclude '*'
       include 'subdir/*'
     Selected for copy:
@@ -461,11 +461,11 @@ included.
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
       include dir '.dotdir'
     Selected for copy:
       ./.gitattributes
@@ -531,11 +531,11 @@ Using an exclude spec:
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
       exclude '*'
     Source code copy disabled
 
@@ -565,11 +565,11 @@ Model adds png and operation excludes `*.py` and `a.*` files:
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
       include 'subdir/logo.png'
       exclude '*.py', 'a.*'
     Selected for copy:
@@ -618,11 +618,11 @@ only py and yml files.
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
       exclude '*'
       include '*.py'
       include '*.yml'
@@ -651,11 +651,11 @@ Model enables all files to copy:
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
       exclude '*'
       include '*'
     Selected for copy:
@@ -715,11 +715,11 @@ Here's the preview:
     Rules:
       exclude dir '__pycache__'
       exclude dir '.*'
-      exclude dir '*' (with '.guild-nocopy')
-      exclude dir '*' (with 'bin/activate')
+      exclude dir '*' with '.guild-nocopy'
+      exclude dir '*' with 'bin/activate'
       exclude dir 'build'
       exclude dir '*.egg-info'
-      include text '*' (size < 1048577, max match 100)
+      include text '*' size < 1048577, max match 100
     Selected for copy:
       ./.gitattributes
       ./a.txt
