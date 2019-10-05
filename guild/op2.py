@@ -322,7 +322,7 @@ def _apply_cmd_args_env(args, env):
 
 def _apply_flags_env(flag_vals, env):
     env.update({
-        name.upper(): flag_util.encode_flag_val(val)
+        util.env_var_name(name): flag_util.encode_flag_val(val)
         for name, val in flag_vals.items()
     })
 

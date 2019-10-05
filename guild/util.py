@@ -1324,3 +1324,6 @@ class StdinReader(object):
             if not line.strip():
                 break
             yield line
+
+def env_var_name(s):
+    return re.sub("[^A-Z0-9_]", "_", s.upper())
