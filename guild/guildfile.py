@@ -27,7 +27,6 @@ import yaml
 
 from guild import config
 from guild import opref
-from guild import plugin as pluginlib
 from guild import resourcedef
 from guild import util
 
@@ -1444,10 +1443,12 @@ def _load_guildfile(src, extends_seen):
         return gf
 
 def _notify_plugins_guildfile_data(data, src):
+    from guild import plugin as pluginlib  # expensive
     for _name, plugin in pluginlib.iter_plugins():
         plugin.guildfile_data(data, src)
 
 def _notify_plugins_guildfile_loaded(gf):
+    from guild import plugin as pluginlib  # expensive
     for _name, plugin in pluginlib.iter_plugins():
         plugin.guildfile_loaded(gf)
 
