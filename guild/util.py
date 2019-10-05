@@ -370,10 +370,12 @@ def _top_level_dir(path):
 
 class LogCapture(object):
 
-    def __init__(self, use_root_handler=False, stdout=False):
+    def __init__(self, use_root_handler=False, stdout=False,
+                 strip_ansi_format=False):
         self._records = []
         self._use_root_handler = use_root_handler
         self._stdout = stdout
+        self._strip_ansi_format = strip_ansi_format
 
     def __enter__(self):
         for logger in self._iter_loggers():
@@ -395,12 +397,19 @@ class LogCapture(object):
     def filter(self, record):
         self._records.append(record)
         if self._stdout:
-            print(self._handler().format(record))
+            sys.stdout.write(self._format_record(record))
+            sys.stdout.write("\n")
+
+    def _format_record(self, r):
+        msg = self._handler().format(r)
+        if self._strip_ansi_format:
+            msg = re.sub(r"\033\[[0-9]+m", "", msg)
+        return msg
 
     def print_all(self):
-        handler = self._handler()
         for r in self._records:
-            print(handler.format(r))
+            sys.stdout.write(self._format_record(r))
+            sys.stdout.write("\n")
 
     def _handler(self):
         if self._use_root_handler:

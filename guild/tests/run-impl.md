@@ -11,11 +11,12 @@
     ...     with SetCwd(cwd):
     ...         with SetGuildHome(guild_home):
     ...             with Env({"DISABLE_RUN_OUTPUT": "1"}):
-    ...                 with LogCapture(stdout=True):
+    ...                 with LogCapture(stdout=True, strip_ansi_format=True):
     ...                     try:
     ...                         run_impl2.main(args)
     ...                     except SystemExit as e:
-    ...                         print(e.args[0])
+    ...                         if e.args[0] is not None:
+    ...                             print(e.args[0])
     ...                         print("<exit %i>" % e.args[1]
     ...                               if len(e.args) > 1 else 1)
     ...     return guild_home
@@ -53,7 +54,7 @@
 
     >>> cwd = init_gf("invalid_guildfile_contents")
     >>> _ = run(cwd)
-    ERROR: error in ...guild.yml: invalid guildfile data
+    ERROR: error in .../guild.yml: invalid guildfile data
     'invalid_guildfile_contents': expected a mapping
     guildfile in '...' contains an error (see above for details)
     <exit 1>

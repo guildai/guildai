@@ -250,7 +250,7 @@ The cmd args in this case are:
 Given this cmd, `_flag_args` prevents the `epochs` option from being
 redefined and logs a warning. Let's capture output to verify.
 
-    >>> log_capture = LogCapture()
+    >>> log_capture = LogCapture(strip_ansi_format=True)
     >>> with log_capture:
     ...   flag_args({"epochs": 100, "batch-size": 50}, cmd_args)
     ['--batch-size', '50']
