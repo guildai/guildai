@@ -38,3 +38,5 @@
   - [ ] Remove all refs to OP2 env var in tests
 
 - [ ] Remote OP2-xxx targets from Makefile
+
+- [ ] OP2-ops - uses new op module
