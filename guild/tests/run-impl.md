@@ -122,7 +122,24 @@ Anonymous model:
 
     >>> cwd = init_gf("{}")
     >>> run(cwd, opspec="foo")
-    operation 'foo' is not defined
+    operation 'foo' is not defined for this project
+    Try 'guild operations' for a list of available operations.
+    <exit 1>
+
+No default operation:
+
+    >>> cwd = init_gf("{}")
+    >>> run(cwd)
+    a default operation is not defined for this project
+    Try 'guild operations' for a list of available operations.
+    <exit 1>
+
+    >>> cwd = init_gf("""
+    ... op-1: { main: guild.pass }
+    ... op-2: { main: guild.pass }
+    ... """)
+    >>> run(cwd)
+    a default operation is not defined for this project
     Try 'guild operations' for a list of available operations.
     <exit 1>
 

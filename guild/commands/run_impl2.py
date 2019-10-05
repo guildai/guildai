@@ -528,17 +528,20 @@ def _multiple_models_error(model_ref, models):
         % (model_ref, models_list))
 
 def _no_such_opdef_error(model, op_name):
+    op = (
+        "operation '{0}'".format(op_name)
+        if op_name else "a default operation")
     if model.name:
         cli.error(
-            "operation '{op}' is not defined for model '{model}'\n"
+            "{op} is not defined for model '{model}'\n"
             "Try 'guild operations {model}' for a list of available "
             "operations."
-            .format(op=op_name, model=model.name))
+            .format(op=op, model=model.name))
     else:
         cli.error(
-            "operation '{op}' is not defined\n"
+            "{op} is not defined for this project\n"
             "Try 'guild operations' for a list of available operations."
-            .format(op=op_name))
+            .format(op=op))
 
 def _invalid_flag_arg_error(arg):
     cli.error("invalid argument '%s' - expected NAME=VAL" % arg)
