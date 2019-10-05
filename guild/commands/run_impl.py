@@ -287,6 +287,11 @@ def _proxy_model_op(opspec):
         return model_proxy.resolve_model_op(opspec)
     except model_proxy.NotSupported:
         return None
+    except model_proxy.OpSpecError as e:
+        _model_op_proxy_error(opspec, e)
+
+def _model_op_proxy_error(opspec, e):
+    cli.error("cannot run '%s': %s" % (opspec, e))
 
 def _model_op(opspec):
     model_ref, op_name = _parse_opspec(opspec)

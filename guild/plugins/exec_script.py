@@ -52,10 +52,14 @@ class ExecScriptModelProxy(object):
 
 class ExecScriptPlugin(plugin.Plugin):
 
+    resolve_model_op_priority = 100
+
     @staticmethod
     def resolve_model_op(opspec):
         path = os.path.join(config.cwd(), opspec)
-        if util.is_executable_file(path):
-            model = ExecScriptModelProxy(path, opspec)
-            return model, model.op_name
-        return None
+        if not os.path.exists(path):
+            return None
+        if not util.is_executable_file(path):
+            raise plugin.ModelOpResolutionError("must be an executable file")
+        model = ExecScriptModelProxy(path, opspec)
+        return model, model.op_name

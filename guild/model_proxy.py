@@ -31,6 +31,9 @@ class NotSupported(Exception):
 class MissingRunOpdef(Exception):
     pass
 
+class OpSpecError(Exception):
+    pass
+
 class BatchModelProxy(object):
 
     name = ""
@@ -82,12 +85,16 @@ def resolve_model_op(opspec):
 def resolve_plugin_model_op(opspec):
     for name, plugin in _plugins_by_resolve_model_op_priority():
         log.debug("resolving model op for %r with plugin %r", opspec, name)
-        model_op = plugin.resolve_model_op(opspec)
-        if model_op:
-            log.debug(
-                "got model op for %r from plugin %r: %s:%s",
-                opspec, name, model_op[0].name, model_op[1])
-            return model_op
+        try:
+            model_op = plugin.resolve_model_op(opspec)
+        except pluginlib.ModelOpResolutionError as e:
+            raise OpSpecError(e)
+        else:
+            if model_op:
+                log.debug(
+                    "got model op for %r from plugin %r: %s:%s",
+                    opspec, name, model_op[0].name, model_op[1])
+                return model_op
     raise NotSupported()
 
 def _plugins_by_resolve_model_op_priority():

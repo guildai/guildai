@@ -90,9 +90,7 @@ Windows because exe permission isn't supported):
 
     >>> resolve_model_op("train.sh", cwd) # doctest: -WINDOWS
     Traceback (most recent call last):
-    SystemExit: ("cannot find operation train.sh\nYou may need to include
-    a model in the form MODEL:OPERATION. Try 'guild operations'
-    for a list of available operations.", 1)
+    SystemExit: ("cannot run 'train.sh': must be an executable file", 1)
 
 Let's make the script executable:
 
