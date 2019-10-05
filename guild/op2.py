@@ -334,11 +334,9 @@ def _apply_op_env(opdef, env, gpus):
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["LOG_LEVEL"] = _log_level()
-    env["PYTHONPATH"] = _python_path(opdef)
-    env["SCRIPT_DIR"] = ""
+    env["PYTHONPATH"] = _python_path()
     env["CMD_DIR"] = os.getcwd()
-    env["MODEL_DIR"] = opdef.guildfile.dir or ""
-    env["MODEL_PATH"] = os.path.pathsep.join(_model_paths(opdef))
+    env["PROJECT_DIR"] = opdef.guildfile.dir or ""
     if opdef.flags_dest:
         env["FLAGS_DEST"] = opdef.flags_dest
     if opdef.set_trace:
@@ -388,11 +386,10 @@ def _log_level():
     except KeyError:
         return str(logging.getLogger().getEffectiveLevel())
 
-def _python_path(opdef):
+def _python_path():
     paths = (
         _env_paths() +
         _run_sourcecode_paths() +
-        _model_paths(opdef) +
         _guild_paths()
     )
     return os.path.pathsep.join(paths)
@@ -403,23 +400,6 @@ def _env_paths():
 
 def _run_sourcecode_paths():
     return [".guild/sourcecode"]
-
-def _model_paths(opdef):
-    """Returns the model paths for opdef.
-
-    Guild is moving to an isolation scheme that requires these paths
-    NOT be included in a run system path. When they are, it's possible
-    that the run sourcecode dir does not contain all of the required
-    code and these model paths are relied on to silently provide
-    what's missing.
-
-    At the moment, cross package inheritance relies on these
-    paths. Until multiple packages can be merged into a single
-    sourcecode tree (tricky considering they use multiple roots that
-    share a common path to guild.yml) we rely on these paths to
-    support that functionality.
-    """
-    return op_util.opdef_model_paths(opdef)
 
 def _guild_paths():
     guild_path = os.path.dirname(os.path.dirname(__file__))
