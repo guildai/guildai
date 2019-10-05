@@ -338,6 +338,8 @@ def _base_sourcecode_select_rules():
         _rule_exclude_dot_dirs(),
         _rule_exclude_nocopy_dirs(),
         _rule_exclude_venv_dirs(),
+        _rule_exclude_build_dirs(),
+        _rule_exclude_egg_info_dirs(),
         _rule_include_limited_text_files(),
     ]
 
@@ -352,6 +354,12 @@ def _rule_exclude_nocopy_dirs():
 
 def _rule_exclude_venv_dirs():
     return file_util.exclude("*", type="dir", sentinel="bin/activate")
+
+def _rule_exclude_build_dirs():
+    return file_util.exclude("build", type="dir")
+
+def _rule_exclude_egg_info_dirs():
+    return file_util.exclude("*.egg-info", type="dir")
 
 def _rule_include_limited_text_files():
     return file_util.include(

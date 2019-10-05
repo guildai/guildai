@@ -119,6 +119,8 @@ Here's a preview of the copy, which shows the rules that are applied:
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
     Selected for copy:
       ./.gitattributes
@@ -160,6 +162,8 @@ Specify `root` to change the directory that files are copied from.
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
     Selected for copy:
       subdir/b.txt
@@ -187,6 +191,8 @@ This rule is applied after the default rules:
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
       include '*.png'
     Selected for copy:
@@ -232,6 +238,8 @@ ensures that only those files matching the specified patterns are selected.
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
       exclude '*'
       include '*.png'
@@ -296,6 +304,8 @@ exclude specs.
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
       exclude '*.py'
     Selected for copy:
@@ -335,6 +345,8 @@ In the preview, 'subdir' is not mentioned:
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
       exclude dir 'subdir'
     Selected for copy:
@@ -372,6 +384,8 @@ The preview:
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
       exclude '*'
       include 'subdir/*'
@@ -409,6 +423,8 @@ The preview shows that Guild modified the pattern with the glob:
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
       exclude '*'
       include 'subdir/*'
@@ -447,6 +463,8 @@ included.
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
       include dir '.dotdir'
     Selected for copy:
@@ -515,6 +533,8 @@ Using an exclude spec:
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
       exclude '*'
     Source code copy disabled
@@ -547,6 +567,8 @@ Model adds png and operation excludes `*.py` and `a.*` files:
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
       include 'subdir/logo.png'
       exclude '*.py', 'a.*'
@@ -598,6 +620,8 @@ only py and yml files.
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
       exclude '*'
       include '*.py'
@@ -629,6 +653,8 @@ Model enables all files to copy:
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
       exclude '*'
       include '*'
@@ -691,6 +717,8 @@ Here's the preview:
       exclude dir '.*'
       exclude dir '*' (with '.guild-nocopy')
       exclude dir '*' (with 'bin/activate')
+      exclude dir 'build'
+      exclude dir '*.egg-info'
       include text '*' (size < 1048577, max match 100)
     Selected for copy:
       ./.gitattributes
