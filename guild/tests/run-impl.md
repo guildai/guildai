@@ -1,16 +1,19 @@
 # Run impl tests
 
-    >>> def run(cwd=None, guild_home=None, **kw):
+NOTE: These tests are run in-process. Because Guild runs use pipes to
+
+    >>> def run(cwd=None, guild_home=None, yes=True, **kw):
     ...     from guild import click_util
     ...     from guild.commands import run, run_impl2
     ...     ctx = run.run.make_context("", [])
     ...     ctx.params.update(kw)
+    ...     ctx.params["yes"] = yes
     ...     args = click_util.Args(**ctx.params)
     ...     cwd = cwd or mkdtemp()
     ...     guild_home = guild_home or mkdtemp()
     ...     with SetCwd(cwd):
     ...         with SetGuildHome(guild_home):
-    ...             with Env({"DISABLE_RUN_OUTPUT": "1"}):
+    ...             with Env({"DISABLE_RUN_OUTPUT_CAPTURE": "1"}):
     ...                 with LogCapture(stdout=True, strip_ansi_format=True):
     ...                     try:
     ...                         run_impl2.main(args)
@@ -343,7 +346,7 @@ File:
 
     >>> write(path(cwd, "file.txt"), "hello")
 
-    >>> guild_home = run(cwd, opdef="file", yes=True)
+    >>> guild_home = run(cwd, opspec="file")
     Resolving file:file.txt dependency
 
     >>> find(guild_home)
@@ -354,9 +357,8 @@ File override with flag:
 
     >>> file2_path = path(cwd, "file2.txt")
     >>> write(file2_path, "hello")
-    >>> guild_home = run(cwd, opdef="file",
-    ...                  flags=["file:file.txt=%s" % file2_path],
-    ...                  yes=True)
+    >>> guild_home = run(cwd, opspec="file",
+    ...                  flags=["file:file.txt=%s" % file2_path])
     Resolving file:file.txt dependency
     Using .../file2.txt for file:file.txt resource
 
@@ -378,9 +380,9 @@ Operation:
     ...       path: upstream
     ... """)
 
-    >>> guild_home = run(cwd, opspec="upstream", yes=True)
+    >>> guild_home = run(cwd, opspec="upstream")
 
-    >>> _ = run(cwd, guild_home, opspec="downstream", yes=True)
+    >>> _ = run(cwd, guild_home, opspec="downstream")
     Resolving upstream dependency
     Using output from run ... for upstream resource
 
@@ -395,7 +397,7 @@ Missing file dependency:
     ...     - file: file1.txt
     ... """)
 
-    >>> _ = run(cwd, opspec="op", yes=True)
+    >>> _ = run(cwd, opspec="op")
     Resolving file:file1.txt dependency
     run failed because a dependency was not met: could not resolve
     'file:file1.txt' in file:file1.txt resource: cannot find source
@@ -415,7 +417,7 @@ Missing operation dependency:
     ...       requires: foo
     ... """)
 
-    >>> _ = run(cwd, opspec="op", yes=True)
+    >>> _ = run(cwd, opspec="op")
     Resolving foo dependency
     run failed because a dependency was not met: could not resolve
     'operation:foo' in foo resource: no suitable run for foo
@@ -428,8 +430,8 @@ Process error:
     ...   exec: not-a-valid-cmd-xxx-yyy
     ... """)
 
-    >>> _ = run(cwd, opspec="op", yes=True)
-    [Errno 2] No such file or directory: 'not-a-valid-cmd-xxx-yyy'
+    >>> _ = run(cwd, opspec="op")
+    error running op: [Errno 2] No such file or directory...
     <exit 1>
 
 Non-zero exit:
@@ -439,27 +441,28 @@ Non-zero exit:
     ...   exec: bash -c "exit 123"
     ... """)
 
-    >>> _ = run(cwd, opspec="op", yes=True)
+    >>> _ = run(cwd, opspec="op")
     <exit 123>
 
-## Stage runs
+Required operation not defined:
 
-    >> cwd = init_gf("""
+    >>> cwd = init_gf("""
     ... op:
-    ...   main: bash -c 'echo hello > file.2.txt'
-    ...   requires:
-    ...     - file: file1.txt
+    ...   main: guild.pass
+    ...   requires: not-defined
     ... """)
 
-    >> _ = run(cwd, opspec="op", yes=True)
+    >>> _ = run(cwd)
+    invalid setting for operation 'op': resource 'not-defined' required
+    by operation 'op' is not defined
+    <exit 1>
 
-    >> find(cwd)
+
 
 ## == TODO =====================================================
 
-- [ ] Run script
-
 - [ ] Run opdef
+  - [ ] Script
   - [ ] Default op
   - [ ] Named op, no modelspec
   - [ ] Model + op Guildfile
