@@ -324,8 +324,8 @@ def run(args):
     directory. These options are useful when developing or debugging
     an operation. Use `--stage-dir` to prepare a run directory for an
     operation without running the operation itself. This is useful
-    when you want to verify dependency resolution and pre-processing
-    or manually run an operation in a prepared directory.
+    when you want to verify run directory layout or manually run an
+    operation in a prepared directory.
 
     **NOTE:** Runs started with `--run-dir` are not visible to Guild
     and will not appear in run listings.

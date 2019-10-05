@@ -1,10 +1,10 @@
-- model: sample
-  operations:
-    test:
-      main: main
-      pre-process: sed s/DEF/XYZ/ < abcdef > abcxyz
-      requires: sample-file
-  resources:
-    sample-file:
-      sources:
-        - abcdef
+prepare-sample:
+  exec: bash -c "echo Preparing sample; sed s/DEF/XYZ/ < abcdef > abcxyz"
+  requires:
+    - file: abcdef
+
+test:
+  main: main
+  pre-process: sed s/DEF/XYZ/ < abcdef > abcxyz
+  requires:
+    - operation: prepare-sample

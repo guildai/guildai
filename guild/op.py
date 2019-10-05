@@ -192,18 +192,13 @@ class Operation(object):
             self._run.write_attr("label", formatted)
 
     def proc(self, quiet=False, background_pidfile=None, stop_after=None):
-        try:
-            self._pre_proc()
-        except subprocess.CalledProcessError as e:
-            return e.returncode
-        else:
-            if self.stage_only:
-                self._stage_proc()
-                return 0
-            if background_pidfile:
-                self._background_proc(background_pidfile, quiet, stop_after)
-                return 0
-            return self._foreground_proc(quiet, stop_after)
+        if self.stage_only:
+            self._stage_proc()
+            return 0
+        if background_pidfile:
+            self._background_proc(background_pidfile, quiet, stop_after)
+            return 0
+        return self._foreground_proc(quiet, stop_after)
 
     def _background_proc(self, pidfile, quiet, stop_after):
         assert self._run
@@ -221,22 +216,6 @@ class Operation(object):
         self._wait_for_proc(quiet, stop_after)
         self._finalize_attrs()
         return self._exit_status
-
-    def _pre_proc(self):
-        assert self._run is not None
-        if not self.opdef.pre_process:
-            return
-        cmd_unresolved = self.opdef.pre_process.strip()
-        cmd = util.resolve_refs(cmd_unresolved, self.flag_vals)
-        cwd = self._run.path
-        # env init order matters - we want _proc_env() to take
-        # precedence over _cmd_arg_env()
-        env = _cmd_arg_env(self.cmd_args)
-        env.update(self._proc_env())
-        log.debug("pre-process command: %s", cmd)
-        log.debug("pre-process env: %s", env)
-        log.debug("pre-process cwd: %s", cwd)
-        subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
 
     def _stage_proc(self):
         assert self._run is not None

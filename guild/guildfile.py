@@ -933,7 +933,6 @@ class OpDef(object):
         self.env = data.get("env") or {}
         self.plugins = _init_plugins(data.get("plugins"), self.guildfile)
         self.dependencies = _init_dependencies(data.get("requires"), self)
-        self.pre_process = data.get("pre-process")
         self.remote = data.get("remote") or False
         self.stoppable = data.get("stoppable") or False
         self.set_trace = data.get("set-trace") or False
