@@ -74,8 +74,7 @@ class Operation(object):
                  flag_null_labels=None, label=None, stage=False,
                  extra_run_attrs=None, sourcecode_select=None,
                  sourcecode_src=None, run_dir=None, cmd_env=None,
-                 deps=None, pre_process=None, output_scalars=None,
-                 stoppable=False):
+                 deps=None, output_scalars=None, stoppable=False):
         self.opref = opref
         self.cmd_args = cmd_args
         self.flag_vals = flag_vals
@@ -89,7 +88,6 @@ class Operation(object):
         self.run_dir = run_dir
         self.cmd_env = cmd_env
         self.deps = deps
-        self.pre_process = pre_process
         self.output_scalars = output_scalars
         self.stoppable = stoppable
 
@@ -113,7 +111,6 @@ def from_opdef(opdef, flag_vals, gpus=None, **kw):
         sourcecode_select=sourcecode_select,
         cmd_env=cmd_env,
         deps=deps,
-        pre_process=opdef.pre_process,
         output_scalars=opdef.output_scalars,
         stoppable=opdef.stoppable,
         **kw)
@@ -489,7 +486,6 @@ def _op_run(op, run, quiet, stop_after):
     _op_resolve_deps(op, run)
     _op_write_started(run)
     try:
-        _op_pre_proc(op, run, env)
         proc = _op_proc(op, run, env)
         exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
         _op_finalize_run_attrs(run, exit_status)
@@ -514,17 +510,6 @@ def _op_resolve_deps(op, run):
 def _op_write_started(run):
     started = runlib.timestamp()
     run.write_attr("started", started)
-
-def _op_pre_proc(op, run, env):
-    if not op.pre_process:
-        return
-    cmd_unresolved = op.pre_process.strip()
-    cmd = util.resolve_refs(cmd_unresolved, op.flag_vals)
-    cwd = run.path
-    log.debug("pre-process command: %s", cmd)
-    log.debug("pre-process env: %s", env)
-    log.debug("pre-process cwd: %s", cwd)
-    subprocess.check_call(cmd, shell=True, env=env, cwd=cwd)
 
 def _op_proc(op, run, env):
     args = op.cmd_args
