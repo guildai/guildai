@@ -56,7 +56,14 @@ DEFAULT_OUTPUT_SCALARS = [
 ###################################################################
 
 class InvalidOpDef(ValueError):
-    pass
+
+    def __init__(self, opdef, msg):
+        super(InvalidOpDef, self).__init__(opdef, msg)
+        self.opdef = opdef
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
 
 class OpInitError(Exception):
     pass
@@ -99,7 +106,7 @@ def from_opdef(opdef, flag_vals, gpus=None, **kw):
     cmd_args, flag_vals, flag_map = _op_init_cmd_args(opdef, flag_vals)
     sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
     cmd_env = _op_init_cmd_env(opdef, cmd_args, flag_vals, gpus)
-    deps = op_dep.deps_for_opdef(opdef, flag_vals)
+    deps = _op_deps_for_opdef(opdef, flag_vals)
     flag_null_labels = _op_init_flag_null_labels(opdef)
     return Operation(
         opdef.opref,
@@ -114,6 +121,12 @@ def from_opdef(opdef, flag_vals, gpus=None, **kw):
         output_scalars=opdef.output_scalars,
         stoppable=opdef.stoppable,
         **kw)
+
+def _op_deps_for_opdef(opdef, flag_vals):
+    try:
+        return op_dep.deps_for_opdef(opdef, flag_vals)
+    except op_dep.OpDependencyError as e:
+        raise InvalidOpDef(opdef, str(e))
 
 def _op_init_flag_null_labels(opdef):
     return {
@@ -152,6 +165,7 @@ def _op_main_args(opdef, flag_vals):
         return _split_and_resolve_args(opdef.main, flag_vals)
     except util.UndefinedReferenceError as e:
         raise InvalidOpDef(
+            opdef,
             "main contains invalid reference '%s'"
             % e.reference)
 
@@ -196,6 +210,7 @@ def _op_exec_args(opdef, flag_vals, main_args, flag_args):
         args = _split_and_resolve_args(template, flag_vals)
     except util.UndefinedReferenceError as e:
         raise InvalidOpDef(
+            opdef,
             "exec contains invalid reference '%s'"
             % e.args[0])
     else:
