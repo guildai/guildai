@@ -321,7 +321,7 @@ def _format_file_select_rule(rule):
     parts.append(", ".join([repr(p) for p in rule.patterns]))
     extras = _format_file_select_rule_extras(rule)
     if extras:
-        parts.append("(%s)" % extras)
+        parts.append(extras)
     return " ".join(parts)
 
 def _format_file_select_rule_extras(rule):
