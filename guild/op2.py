@@ -452,8 +452,15 @@ def from_run(_run):
 
 def run(op, quiet=False, _background_pidfile=None, stop_after=None):
     run = _init_run(op)
-    exit_status = _op_run(op, run, quiet, stop_after)
+    if op.stage:
+        exit_status = _op_stage(op, run)
+    else:
+        exit_status = _op_run(op, run, quiet, stop_after)
     return run, exit_status
+
+# =================================================================
+# Init run
+# =================================================================
 
 def _init_run(op):
     run = _op_init_run(op)
@@ -496,17 +503,18 @@ def _op_copy_sourcecode(op, run):
 def _op_init_sourcecode_digest(run):
     op_util.write_sourcecode_digest(run)
 
-def _op_run(op, run, quiet, stop_after):
+# =================================================================
+# Stage op
+# =================================================================
+
+def _op_stage(op, run):
     env = _op_run_cmd_env(op, run)
     _op_resolve_deps(op, run)
-    _op_write_started(run)
-    try:
-        proc = _op_proc(op, run, env)
-        exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
-        _op_finalize_run_attrs(run, exit_status)
-        return exit_status
-    finally:
-        _op_clear_pending(run)
+    _op_write_sourceable_env(env, run)
+    op_util.set_run_started(run)
+    op_util.set_run_marker(run, "STAGED")
+    op_util.clear_run_pending(run)
+    return 0
 
 def _op_run_cmd_env(op, run):
     env = dict(op.cmd_env)
@@ -522,9 +530,31 @@ def _op_resolve_deps(op, run):
         resolved.setdefault(dep.resdef.name, []).extend(resolved_sources)
     run.write_attr("deps", resolved)
 
-def _op_write_started(run):
-    started = runlib.timestamp()
-    run.write_attr("started", started)
+def _op_write_sourceable_env(env, run):
+    skip_env = ("PWD", "_")
+    with open(run.guild_path("ENV"), "w") as out:
+        for name in sorted(env):
+            if name in skip_env:
+                continue
+            out.write(
+                "export %s=%s\n"
+                % (name, util.shlex_quote(env[name])))
+
+# =================================================================
+# Run op
+# =================================================================
+
+def _op_run(op, run, quiet, stop_after):
+    env = _op_run_cmd_env(op, run)
+    _op_resolve_deps(op, run)
+    op_util.set_run_started(run)
+    try:
+        proc = _op_proc(op, run, env)
+        exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
+        _op_finalize_run_attrs(run, exit_status)
+        return exit_status
+    finally:
+        op_util.clear_run_pending(run)
 
 def _op_proc(op, run, env):
     args = op.cmd_args
@@ -633,6 +663,3 @@ def _delete_proc_lock(run):
         os.remove(run.guild_path("LOCK"))
     except OSError:
         pass
-
-def _op_clear_pending(run):
-    op_util.clear_run_pending(run)

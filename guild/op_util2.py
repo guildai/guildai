@@ -238,15 +238,25 @@ def init_run(path=None):
         run_id = os.path.basename(path)
     return runlib.Run(run_id, path)
 
+def set_run_marker(run, marker):
+    open(run.guild_path(marker), "w").close()
+
+def clear_run_marker(run, marker):
+    util.ensure_deleted(run.guild_path(marker))
+
 def set_run_pending(run):
-    open(run.guild_path("PENDING"), "w").close()
+    set_run_marker(run, "PENDING")
 
 def clear_run_pending(run):
-    util.ensure_deleted(run.guild_path("PENDING"))
+    clear_run_marker(run, "PENDING")
 
 def write_sourcecode_digest(run):
     digest = file_util.files_digest(run.guild_path("sourcecode"))
     run.write_attr("sourcecode_digest", digest)
+
+def set_run_started(run):
+    started = runlib.timestamp()
+    run.write_attr("started", started)
 
 ###################################################################
 # Op preview support

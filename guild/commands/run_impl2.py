@@ -401,7 +401,7 @@ def _print_op_env(op):
 
 def _confirm_and_run_op(op, S):
     if S.args.yes or _confirm_run(op):
-        _run_op(op)
+        _run_op(op, S)
 
 def _confirm_run(op):
     prompt = (
@@ -412,19 +412,46 @@ def _confirm_run(op):
     )
     return cli.confirm(prompt, default=True)
 
-def _run_op(op):
+def _run_op(op, S):
     try:
-        _run, exit_status = oplib.run(op)
+        run, exit_status = oplib.run(op)
     except op_dep.OpDependencyError as e:
         _op_dependency_error(e)
     except oplib.ProcessError as e:
         _op_process_error(op, e)
     else:
-        _handle_run_exit(exit_status)
+        _handle_run_exit(run, exit_status, S)
 
-def _handle_run_exit(exit_status):
+def _handle_run_exit(run, exit_status, S):
     if exit_status != 0:
         cli.error(exit_status=exit_status)
+    if S.stage:
+        _print_staged_info(run, S)
+
+def _print_staged_info(run, S):
+    if S.args.run_dir:
+        _print_staged_dir_instructions(run, S)
+    else:
+        _print_stage_pending_instructions(run, S)
+
+def _print_staged_dir_instructions(run, S):
+    cmd = " ".join([util.shlex_quote(arg) for arg in run.get("cmd") or []])
+    cli.out(
+        "{op} staged in '{dir}'\n"
+        "To start the operation, use "
+        "\"(cd '{dir}' && source .guild/ENV && {cmd})\""
+        .format(
+            op=S.opdef.fullname,
+            dir=run.dir,
+            cmd=cmd))
+
+def _print_stage_pending_instructions(run, S):
+    cli.out(
+        "{op} staged as {run_id}\n"
+        "To start the operation, use 'guild run --start {run_id}'"
+        .format(
+            op=S.opdef.fullname,
+            run_id=run.id))
 
 ###################################################################
 # Error handlers
