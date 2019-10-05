@@ -35,8 +35,10 @@ def run_params(fn):
             help="Stage an operation.",
             is_flag=True),
         click.Option(
+            # TODO - remove when op2 is promoted
             ("--restage",),
-            help="Update a staged operation."),
+            help="Update a staged operation.",
+            hidden=True),
         click.Option(
             ("--rerun",), metavar="RUN",
             help=(

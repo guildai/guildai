@@ -40,3 +40,5 @@
 - [ ] Remote OP2-xxx targets from Makefile
 
 - [ ] OP2-ops - uses new op module
+
+- [ ] Drop restage from run args
