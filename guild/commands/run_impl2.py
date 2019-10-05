@@ -414,18 +414,11 @@ def _run_op(op):
     try:
         _run, exit_status = oplib.run(op)
     except op_dep.OpDependencyError as e:
-        _handle_dependency_error(e)
+        _op_dependency_error(e)
     except oplib.ProcessError as e:
-        _handle_process_error(e)
+        _op_process_error(op, e)
     else:
         _handle_run_exit(exit_status)
-
-def _handle_dependency_error(e):
-    cli.error(
-        "run failed because a dependency was not met: %s" % e)
-
-def _handle_process_error(e):
-    cli.error(e)
 
 def _handle_run_exit(exit_status):
     if exit_status != 0:
@@ -533,6 +526,13 @@ def _restart_run_help_error(op_name, restart_run):
 
 def _missing_opdef_error(msg):
     cli.error("%s - missing operation definition" % msg)
+
+def _op_dependency_error(e):
+    cli.error(
+        "run failed because a dependency was not met: %s" % e)
+
+def _op_process_error(op, e):
+    cli.error("error running %s: %s" % (op.opref.to_opspec(), e))
 
 ###################################################################
 # Cmd impl API
