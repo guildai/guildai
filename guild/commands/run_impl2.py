@@ -92,6 +92,8 @@ def _opdef_for_opspec(opspec):
         _multiple_models_error(e.model_ref, e.matches)
     except op_util.NoSuchOperation as e:
         _no_such_opdef_error(e.model, e.op_name)
+    except op_util.ModelOpProxyError as e:
+        _model_op_proxy_error(e)
 
 def _state_split_flag_args(flag_args):
     batch_files, rest_args = op_util.split_batch_files(flag_args)
@@ -518,6 +520,9 @@ def _invalid_opdef_error(opdef, msg):
     cli.error(
         "invalid setting for operation '%s': %s"
         % (opdef.fullname, msg))
+
+def _model_op_proxy_error(e):
+    cli.error("cannot run '%s': %s" % (e.opspec, e.msg))
 
 def _restart_run_help_error(op_name, restart_run):
     cli.error(

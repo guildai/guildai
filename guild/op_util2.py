@@ -92,6 +92,13 @@ class NoMatchingModel(OpDefLookupError):
         super(NoMatchingModel, self).__init__(model_ref)
         self.model_ref = model_ref
 
+class ModelOpProxyError(Exception):
+
+    def __init__(self, opspec, msg):
+        super(ModelOpProxyError, self).__init__(opspec, msg)
+        self.opspec = opspec
+        self.msg = msg
+
 ###################################################################
 # Resolve opspec
 ###################################################################
@@ -120,6 +127,8 @@ def _try_model_proxy(opspec):
         model, op_name = model_proxy.resolve_model_op(opspec)
     except model_proxy.NotSupported:
         return None
+    except model_proxy.OpSpecError as e:
+        raise ModelOpProxyError(opspec, str(e))
     else:
         opdef = model.modeldef.get_operation(op_name)
         if opdef:
