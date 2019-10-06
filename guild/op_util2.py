@@ -18,8 +18,6 @@ from __future__ import division
 import logging
 import os
 
-import six
-
 from guild import config
 from guild import guildfile
 from guild import file_util
@@ -259,60 +257,6 @@ def set_run_started(run):
     run.write_attr("started", started)
 
 ###################################################################
-# Op preview support
-###################################################################
-
-def preview_op_kw(op, indent=2):
-    return {
-        "action": preview_op_action(op),
-        "op": preview_op_desc(op),
-        "flags": preview_flags(op, indent),
-    }
-
-def preview_op_action(op):
-    if op.stage:
-        return "stage"
-    else:
-        return "run"
-
-def preview_op_desc(op):
-    opspec = op.opref.to_opspec()
-    if os.path.isabs(opspec):
-        opspec = os.path.relpath(opspec, config.cwd())
-    return opspec
-
-def preview_flags(op, indent=2):
-    if not op.flag_vals:
-        return ""
-    return "\n".join([
-        " " * indent +_format_flag(name, val, op.flag_null_labels)
-        for name, val in sorted(op.flag_vals.items())
-    ]) + "\n"
-
-def _format_flag(name, val, null_labels):
-    if val is None:
-        formatted = _null_label(name, null_labels)
-    else:
-        formatted = util.find_apply([
-            _try_format_function,
-            flag_util.encode_flag_val], val)
-    return "%s: %s" % (name, formatted)
-
-def _try_format_function(val):
-    if not isinstance(val, six.string_types):
-        return None
-    try:
-        flag_util.decode_flag_function(val)
-    except ValueError:
-        return None
-    else:
-        return val
-
-def _null_label(name, null_labels):
-    null_label = null_labels.get(name, "default")
-    return flag_util.encode_flag_val(null_label)
-
-###################################################################
 # Source code support
 ###################################################################
 
@@ -484,29 +428,6 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
             "too big.%s",
             path,
             self._warning_help_suffix)
-
-###################################################################
-# Restart op support
-###################################################################
-
-def apply_flags_to_restart_op(flags_src_op, restart_op):
-    """Sets flag-applicable state from flags_src_op to restart_op.
-
-    When an operation is restarted with different flags, the restart
-    operation state needs to reflect the new flag values. Flags have
-    far reaching effect on operation state including command line
-    args, environment variables, and run directory layout
-    (dependencies).
-    """
-    restart_op.cmd_args = flags_src_op.cmd_args
-    restart_op.flag_vals = flags_src_op.flag_vals
-    restart_op.flag_map = flags_src_op.flag_map
-    restart_op.flag_null_labels = flags_src_op.flag_null_labels
-    restart_op.label = flags_src_op.label
-    restart_op.deps = flags_src_op.deps
-    for name in flags_src_op.cmd_env:
-        if name.startswith("FLAG_"):
-            restart_op.cmd_env[name] = flags_src_op.cmd_env[name]
 
 ###################################################################
 # Utils

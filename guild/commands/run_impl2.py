@@ -19,11 +19,15 @@ import logging
 import os
 import sys
 
+import six
+
 from guild import cli
 from guild import cmd_impl_support
+from guild import config
+from guild import flag_util
 from guild import help as helplib
-from guild import op_dep
 from guild import op2 as oplib
+from guild import op_dep
 from guild import op_util2 as op_util
 from guild import run as runlib
 from guild import run_util
@@ -54,8 +58,10 @@ def _state_for_args(args):
     restart_run = _state_restart_run(args.restart or args.start)
     opdef = _state_opdef(args, restart_run)
     flag_vals, batch_files = _state_split_flag_args(args.flags)
+    if restart_run:
+        _apply_restart_run_flags(restart_run, flag_vals)
     stage = args.stage
-    run_dir = _state_run_dir(args)
+    run_dir = _state_run_dir(args, restart_run)
     extra_run_attrs = _state_extra_run_attrs(args)
     return State(args, restart_run, opdef, flag_vals, batch_files,
                  stage, run_dir, extra_run_attrs)
@@ -75,7 +81,8 @@ def _run_for_spec(spec):
 def _state_opdef(args, restart_run):
     if restart_run:
         opdef = _opdef_for_run(restart_run)
-        _check_restart_args_for_opdef(args, opdef, restart_run)
+        if not opdef:
+            _check_restart_args_for_missing_opdef(args, restart_run)
         return opdef
     else:
         return _opdef_for_opspec(args.opspec)
@@ -99,17 +106,9 @@ def _opdef_for_run(run):
             opspec, run.id, e)
         return None
 
-def _check_restart_args_for_opdef(args, opdef, restart_run):
-    if not opdef:
-        _check_restart_args_for_missing_opdef(args, restart_run)
-
 def _check_restart_args_for_missing_opdef(args, restart_run):
-    incompatible = [
-        ("flags", "flags"),
-    ]
-    for name, desc in incompatible:
-        if getattr(args, name, None):
-            _incompatible_with_missing_restart_opdef(desc, restart_run)
+    if args.flags:
+        _flags_with_missing_opdef_error(restart_run)
 
 def _opdef_for_opspec(opspec):
     try:
@@ -138,8 +137,16 @@ def _parse_assigns(assign_args):
     except op_util.ArgValueError as e:
         _invalid_flag_arg_error(e.arg)
 
-def _state_run_dir(args):
-    if args.run_dir:
+def _apply_restart_run_flags(restart_run, flag_vals):
+    restart_run_flags = restart_run.get("flags") or {}
+    for name in restart_run_flags:
+        if name not in flag_vals:
+            flag_vals[name] = restart_run_flags[name]
+
+def _state_run_dir(args, restart_run):
+    if restart_run:
+        return restart_run.dir
+    elif args.run_dir:
         run_dir = os.path.abspath(args.run_dir)
         if os.getenv("NO_WARN_RUNDIR") != "1":
             cli.note(
@@ -188,6 +195,7 @@ def _apply_attr_max_trials(args, attrs):
 def main(args):
     S = _init_state(args)
     op = _init_op(S)
+    _validate_op(op, S)
     _dispatch_op(op, S)
 
 def _init_state(args):
@@ -214,9 +222,11 @@ def _check_incompatible_options(args):
         ("print_trials", "init_trials"),
         ("remote", "background"),
         ("remote", "pidfile"),
-        ("start", "restart"),
         ("stage", "background"),
         ("stage", "pidfile"),
+        ("stage", "restart"),
+        ("stage", "start"),
+        ("start", "restart"),
     ]
     for a, b in incompatible:
         if getattr(args, a) and getattr(args, b):
@@ -244,25 +254,11 @@ def _check_incompatible_with_restart(args):
 ###################################################################
 
 def _init_op(S):
-    if S.restart_run:
-        op = _op_from_run(S)
-        if S.opdef:
-            _apply_opdef_to_restart_op(S, op)
-        return op
-    else:
+    if S.opdef:
         return _op_from_opdef(S)
-
-def _op_from_run(S):
-    assert S.restart_run
-    return oplib.from_run(
-        S.restart_run,
-        label=S.args.label,
-        extra_run_attrs=S.extra_run_attrs,
-        gpus=S.args.gpus)
-
-def _apply_opdef_to_restart_op(S, restart_op):
-    opdef_op = _op_from_opdef(S)
-    op_util.apply_flags_to_restart_op(opdef_op, restart_op)
+    else:
+        assert S.restart_run
+        return _op_from_restart_run(S)
 
 def _op_from_opdef(S):
     assert S.opdef
@@ -276,6 +272,7 @@ def _op_from_opdef(S):
             gpus=S.args.gpus,
         )
         _apply_op_label(S, op)
+        _apply_op_restart_run(S, op)
         return op
     except oplib.InvalidOpDef as e:
         _invalid_opdef_error(S.opdef, str(e))
@@ -297,6 +294,32 @@ def _default_label(flag_vals):
     if not flag_vals:
         return None
     return op_util.flags_desc(flag_vals, truncate_floats=True, delim=" ")
+
+def _apply_op_restart_run(S, op):
+    if S.restart_run:
+        # Disable source code copy if restarting. Restarted runs must
+        # always use their original source code.
+        op.sourcecode_src = None
+        op.sourcecode_select = None
+
+def _op_from_restart_run(S):
+    return oplib.from_run(
+        S.restart_run,
+        label=S.args.label,
+        extra_run_attrs=S.extra_run_attrs,
+        gpus=S.args.gpus)
+
+def _apply_opdef_to_restart_op(S, restart_op):
+    opdef_op = _op_from_opdef(S)
+    op_util.apply_flags_to_restart_op(opdef_op, restart_op)
+
+def _validate_op(op, S):
+    if S.restart_run:
+        assert op.opref.to_opspec() == S.restart_run.opref.to_opspec()
+        assert op.run_dir == S.restart_run.dir
+        # Important that we NOT modify sourcecode for a restart.
+        assert op.sourcecode_src is None
+        assert op.sourcecode_select is None
 
 ###################################################################
 # Dispatch op
@@ -481,17 +504,76 @@ def _print_op_env(op):
 ###################################################################
 
 def _confirm_and_run_op(op, S):
-    if S.args.yes or _confirm_run(op):
+    if S.args.yes or _confirm_run(op, S):
         _run_op(op, S)
 
-def _confirm_run(op):
+def _confirm_run(op, S):
+    action = _preview_op_action(S)
+    subject = _preview_op_subject(op, S)
+    flags = _preview_flags(op)
     prompt = (
-        "You are about to {action} {op}\n"
+        "You are about to {action} {subject}\n"
         "{flags}"
         "Continue?"
-        .format(**op_util.preview_op_kw(op))
+        .format(action=action,
+                subject=subject,
+                flags=flags)
     )
     return cli.confirm(prompt, default=True)
+
+def _preview_op_action(S):
+    if S.args.stage:
+        return "stage"
+    elif S.args.start:
+        return "start"
+    elif S.args.restart:
+        return "restart"
+    else:
+        return "run"
+
+def _preview_op_subject(op, S):
+    op_desc = _preview_op_desc(op)
+    if S.restart_run:
+        return "%s (%s)" % (S.restart_run.id, op_desc)
+    else:
+        return op_desc
+
+def _preview_op_desc(op):
+    opspec = op.opref.to_opspec()
+    if os.path.isabs(opspec):
+        opspec = os.path.relpath(opspec, config.cwd())
+    return opspec
+
+def _preview_flags(op, indent=2):
+    if not op.flag_vals:
+        return ""
+    return "\n".join([
+        " " * indent +_format_flag(name, val, op.flag_null_labels)
+        for name, val in sorted(op.flag_vals.items())
+    ]) + "\n"
+
+def _format_flag(name, val, null_labels):
+    if val is None:
+        formatted = _null_label(name, null_labels)
+    else:
+        formatted = util.find_apply([
+            _try_format_function,
+            flag_util.encode_flag_val], val)
+    return "%s: %s" % (name, formatted)
+
+def _try_format_function(val):
+    if not isinstance(val, six.string_types):
+        return None
+    try:
+        flag_util.decode_flag_function(val)
+    except ValueError:
+        return None
+    else:
+        return val
+
+def _null_label(name, null_labels):
+    null_label = null_labels.get(name, "default")
+    return flag_util.encode_flag_val(null_label)
 
 def _run_op(op, S):
     try:
@@ -630,11 +712,11 @@ def _op_dependency_error(e):
 def _op_process_error(op, e):
     cli.error("error running %s: %s" % (op.opref.to_opspec(), e))
 
-def _incompatible_with_missing_restart_opdef(a, restart_run):
+def _flags_with_missing_opdef_error(restart_run):
     cli.error(
-        "cannot use %s when restarting %s: no definition "
-        "for operation '%s'"
-        % (a, restart_run.id, restart_run.opref.to_opspec()))
+        "cannot set flags when restarting %s: configuration "
+        "for operation '%s' is not available"
+        % (restart_run.id, restart_run.opref.to_opspec()))
 
 ###################################################################
 # Cmd impl API

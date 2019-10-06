@@ -561,7 +561,7 @@ Staged Python op in explicit run dir:
     >>> run(cwd, opspec="run.py", stage=True, run_dir=run_dir)
     run.py staged in '...'
     To start the operation, use "(cd '...' && source .guild/ENV
-    && /usr/bin/python -um guild.op_main run)"
+    && ... -um guild.op_main run)"
 
     >>> find(run_dir)
     .guild/ENV

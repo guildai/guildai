@@ -37,7 +37,7 @@ Helpers (copied from `run-impl.md`):
 
 ## Restart
 
-Start a staged operation:
+Restart an operation:
 
     >>> cwd = init_gf("""
     ... op:
@@ -46,17 +46,44 @@ Start a staged operation:
     ...     code: 0
     ... """)
 
-    >>> guild_home = run_gh(cwd, flags=["code=111"])
-    <exit 111>
+    >>> guild_home = run_gh(cwd, flags=["code=11"])
+    <exit 11>
+
+    >>> run_id = dir(path(guild_home, "runs"))[0]
+    >>> R = runlib.from_dir(path(guild_home, "runs", run_id))
+    >>> R.get("env")["FLAG_CODE"]
+    '11'
+
+    >>> run(cwd, guild_home, restart=run_id, flags=["code=22"])
+    <exit 22>
+
+    >>> R.get("env")["FLAG_CODE"]
+    '22'
+
+Start a staged operation:
+
+    >>> guild_home = run_gh(cwd, flags=["code=33"], stage=True)
+    op staged as ...
+    To start the operation, use 'guild run --start ...'
+
+    >>> runs = dir(path(guild_home, "runs"))
+    >>> len(runs)
+    1
 
     >>> run_id = dir(path(guild_home, "runs"))[0]
 
-    >>> R = runlib.from_dir(path(guild_home, "runs", run_id))
-    >>> R.get("env")["FLAG_CODE"]
-    '111'
+    >>> run(cwd, guild_home, start=run_id)
+    <exit 33>
 
-    >>> run(cwd, guild_home, restart=run_id, flags=["code=222"])
-    <exit 222>
+    >>> run(cwd, guild_home, restart=run_id)
+    <exit 33>
 
-    >>> R.get("env")["FLAG_CODE"]
-    '222'
+    >>> run(cwd, guild_home, restart=run_id, flags=["code=44"])
+    <exit 44>
+
+    >>> run(cwd, guild_home, restart=run_id)
+    <exit 44>
+
+    >>> runs = dir(path(guild_home, "runs"))
+    >>> len(runs)
+    1

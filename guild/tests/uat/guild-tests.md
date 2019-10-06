@@ -77,6 +77,7 @@ tests).
       run-files:                   ok
       run-flags:                   ok
       run-impl:                    ok
+      run-impl2:                   ok
       run-labels:                  ok
       run-ops:                     ok
       run-output:                  ok
