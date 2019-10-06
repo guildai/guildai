@@ -579,7 +579,7 @@ def _init_op(opdef, args, is_batch=False):
     except oplib.OpInitError as e:
         _op_init_error(e, opdef)
     else:
-        _maybe_apply_batch_op(
+        _apply_batch_op(
             opdef.batch_opspec,
             batch_files,
             flag_vals,
@@ -870,7 +870,7 @@ def _op_init_error(e, opdef):
 # Apply batch op
 ###################################################################
 
-def _maybe_apply_batch_op(batch_opspec, batch_files, user_flags, args, op):
+def _apply_batch_op(batch_opspec, batch_files, user_flags, args, op):
     """Applies batch_op attrs to op if batch_opspec is defined.
 
     If we determine this is a batch run, resolve the batch opspec to
