@@ -52,7 +52,7 @@ class State(object):
 
 def _state_for_args(args):
     restart_run = _state_restart_run(args.restart or args.start)
-    opdef = _state_opdef(args) if not restart_run else None
+    opdef = _state_opdef(args, restart_run)
     flag_vals, batch_files = _state_split_flag_args(args.flags)
     stage = args.stage
     run_dir = _state_run_dir(args)
@@ -72,8 +72,44 @@ def _run_for_spec(spec):
         one_run,
     ], spec)
 
-def _state_opdef(args):
-    return _opdef_for_opspec(args.opspec)
+def _state_opdef(args, restart_run):
+    if restart_run:
+        opdef = _opdef_for_run(restart_run)
+        _check_restart_args_for_opdef(args, opdef, restart_run)
+        return opdef
+    else:
+        return _opdef_for_opspec(args.opspec)
+
+def _opdef_for_run(run):
+    opspec = run.opref.to_opspec()
+    try:
+        return op_util.opdef_for_opspec(opspec)
+    except op_util.OpDefLookupError as e:
+        log.debug(
+            "error finding definition for '%s' for run %s (%s): %s",
+            opspec, run.id, run.dir, e)
+        return None
+    except Exception as e:
+        if log.getEffectiveLevel() <= 20:
+            log.exception(
+                "getting opdef for '%s' for run %s (%s)",
+                opspec, run.id, run.dir)
+        log.warning(
+            "error loading definition for '%s' for run %s: %s",
+            opspec, run.id, e)
+        return None
+
+def _check_restart_args_for_opdef(args, opdef, restart_run):
+    if not opdef:
+        _check_restart_args_for_missing_opdef(args, restart_run)
+
+def _check_restart_args_for_missing_opdef(args, restart_run):
+    incompatible = [
+        ("flags", "flags"),
+    ]
+    for name, desc in incompatible:
+        if getattr(args, name, None):
+            _incompatible_with_missing_restart_opdef(desc, restart_run)
 
 def _opdef_for_opspec(opspec):
     try:
@@ -191,7 +227,6 @@ def _check_incompatible_with_restart(args):
         return
     incompatible = [
         ("opspec", "OPERATION"),
-        ("flags", "flags"),
         ("run_dir", "--run-dir"),
         ("rerun", "--rerun"),
         ("help_model", "--help-model"),
@@ -210,7 +245,10 @@ def _check_incompatible_with_restart(args):
 
 def _init_op(S):
     if S.restart_run:
-        return _op_from_run(S)
+        op = _op_from_run(S)
+        if S.opdef:
+            _apply_opdef_to_restart_op(S, op)
+        return op
     else:
         return _op_from_opdef(S)
 
@@ -221,6 +259,10 @@ def _op_from_run(S):
         label=S.args.label,
         extra_run_attrs=S.extra_run_attrs,
         gpus=S.args.gpus)
+
+def _apply_opdef_to_restart_op(S, restart_op):
+    opdef_op = _op_from_opdef(S)
+    op_util.apply_flags_to_restart_op(opdef_op, restart_op)
 
 def _op_from_opdef(S):
     assert S.opdef
@@ -587,6 +629,12 @@ def _op_dependency_error(e):
 
 def _op_process_error(op, e):
     cli.error("error running %s: %s" % (op.opref.to_opspec(), e))
+
+def _incompatible_with_missing_restart_opdef(a, restart_run):
+    cli.error(
+        "cannot use %s when restarting %s: no definition "
+        "for operation '%s'"
+        % (a, restart_run.id, restart_run.opref.to_opspec()))
 
 ###################################################################
 # Cmd impl API

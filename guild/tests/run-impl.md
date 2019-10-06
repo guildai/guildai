@@ -64,16 +64,6 @@ Incomptable with start/restart:
     Try 'guild run --help' for more information.
     <exit 1>
 
-    >>> run(flags=["foo=123"], start="bar")
-    flags cannot be used with --start
-    Try 'guild run --help' for more information.
-    <exit 1>
-
-    >>> run(flags=["bar=456"], restart="bar")
-    flags cannot be used with --restart
-    Try 'guild run --help' for more information.
-    <exit 1>
-
     >>> run(run_dir="foo", restart="bar")
     --run-dir cannot be used with --restart
     Try 'guild run --help' for more information.
@@ -222,7 +212,7 @@ No default operation:
 
 ## Invalid flag arg
 
-    >>> cwd = init_gf("op: { exec: 'true' }")
+    >>> cwd = init_gf("op: { exec: xxx }")
     >>> run(cwd, opspec="op", flags=["foo"])
     invalid argument 'foo' - expected NAME=VAL
     <exit 1>
@@ -235,7 +225,7 @@ No default operation:
     ...   operations:
     ...     op1:
     ...       description: Some op 1
-    ...       exec: 'true'
+    ...       exec: xxx
     ...       flags:
     ...         foo: 1
     ...         bar:
@@ -401,7 +391,7 @@ Output scalar test - op3:
     ...     w:
     ...       arg-switch: true
     ... exec:
-    ...   exec: bash -c 'echo hello > file.txt'
+    ...   exec: python -c 'open("file.txt", "w").write("hello")'
     ... """)
 
     >>> run(cwd, opspec="default", print_cmd=True)
@@ -419,7 +409,7 @@ Output scalar test - op3:
     ??? -um guild.op_main guild.pass -- --N hello --b yes --f 1.123 --i 456 --s T --w
 
     >>> run(cwd, opspec="exec", print_cmd=True)
-    bash -c 'echo hello > file.txt'
+    python -c 'open("file.txt", "w").write("hello")'
 
 ## Dependencies
 
@@ -458,7 +448,7 @@ Operation:
 
     >>> cwd = init_gf("""
     ... upstream:
-    ...   exec: bash -c 'echo hello > file.txt'
+    ...   exec: python -c 'open("file.txt", "w").write("hello")'
     ...
     ... downstream:
     ...   main: guild.pass
@@ -526,7 +516,7 @@ Non-zero exit:
 
     >>> cwd = init_gf("""
     ... op:
-    ...   exec: bash -c "exit 123"
+    ...   exec: python -c "import sys; sys.exit(123)"
     ... """)
 
     >>> run(cwd, opspec="op")
@@ -597,42 +587,6 @@ Stage exec op in explicit run dir:
     op staged in '...'
     To start the operation, use "(cd '...' && source .guild/ENV && run.sh)"
 
-## Restart
-
-Start a staged operation:
-
-    >>> cwd = mkdtemp()
-    >>> write(path(cwd, "run.py"), "import sys; sys.exit(34)")
-
-    >>> guild_home = run_gh(cwd, opspec="run.py", stage=True)
-    run.py staged as ...
-    To start the operation, use 'guild run --start ...'
-
-    >>> find(guild_home)
-    ???
-    .../.guild/ENV
-    .../.guild/STAGED
-    .../.guild/attrs/...
-    .../.guild/opref
-    .../.guild/sourcecode/run.py
-
-    >>> runs = dir(path(guild_home, "runs"))
-    >>> len(runs)
-    1
-    >>> run_id = runs[0]
-
-    >>> run(cwd, guild_home, restart=run_id)
-    <exit 34>
-
-    >>> find(guild_home)
-    ???
-    .../.guild/ENV
-    .../.guild/attrs/...
-    .../.guild/opref
-    .../.guild/sourcecode/run.py
-
-Restart a run:
-
 
 ## == TODO =====================================================
 
@@ -661,3 +615,5 @@ Restart a run:
 - [ ] Print env
 - [ ] Print trials
 - [ ] Save trials
+
+- [ ] Restart with flag changes that effect resolved dependencies

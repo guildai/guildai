@@ -486,6 +486,29 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
             self._warning_help_suffix)
 
 ###################################################################
+# Restart op support
+###################################################################
+
+def apply_flags_to_restart_op(flags_src_op, restart_op):
+    """Sets flag-applicable state from flags_src_op to restart_op.
+
+    When an operation is restarted with different flags, the restart
+    operation state needs to reflect the new flag values. Flags have
+    far reaching effect on operation state including command line
+    args, environment variables, and run directory layout
+    (dependencies).
+    """
+    restart_op.cmd_args = flags_src_op.cmd_args
+    restart_op.flag_vals = flags_src_op.flag_vals
+    restart_op.flag_map = flags_src_op.flag_map
+    restart_op.flag_null_labels = flags_src_op.flag_null_labels
+    restart_op.label = flags_src_op.label
+    restart_op.deps = flags_src_op.deps
+    for name in flags_src_op.cmd_env:
+        if name.startswith("FLAG_"):
+            restart_op.cmd_env[name] = flags_src_op.cmd_env[name]
+
+###################################################################
 # Utils
 ###################################################################
 

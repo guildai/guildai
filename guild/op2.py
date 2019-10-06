@@ -294,10 +294,6 @@ def _op_init_cmd_env(opdef, cmd_args, flag_vals, gpus):
     return env
 
 def _apply_opdef_env(opdef, env):
-    env.update({
-        util.env_var_name(name): flag_util.encod_flag_val(val)
-        for name, val in opdef.env.items()
-    })
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["PROJECT_DIR"] = opdef.guildfile.dir or ""
@@ -346,9 +342,12 @@ def _apply_cmd_args_env(args, env):
 
 def _apply_flags_env(flag_vals, env):
     env.update({
-        util.env_var_name(name): flag_util.encode_flag_val(val)
+        _flag_env_name(name): flag_util.encode_flag_val(val)
         for name, val in flag_vals.items()
     })
+
+def _flag_env_name(name):
+    return "FLAG_%s" % util.env_var_name(name)
 
 def _apply_system_env(gpus, env):
     env.update(util.safe_osenv())
