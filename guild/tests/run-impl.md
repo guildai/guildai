@@ -217,6 +217,25 @@ No default operation:
     invalid argument 'foo' - expected NAME=VAL
     <exit 1>
 
+## Undefined flags
+
+    >>> cwd = init_gf("""
+    ... op:
+    ...   main: guild.pass
+    ...   flags:
+    ...     a: null
+    ...     b: null
+    ... """)
+
+    >>> run(cwd, flags=["c=123"], print_cmd=True)
+    unsupported flag 'c'
+    Try 'guild run op --help-op' for a list of flags or use
+    --force-flags to skip this check.
+    <exit 1>
+
+    >>> run(cwd, flags=["c=123"], force_flags=True, print_cmd=True)
+    ??? -um guild.op_main guild.pass -- --c 123
+
 ## Model and op help
 
     >>> cwd = init_gf("""

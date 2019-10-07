@@ -28,16 +28,21 @@ from guild import util
 from guild import var
 
 # TEMP imports until promoted to op_util
-from .op_util import NO_ARG_VALUE           # pylint: disable=unused-import
 from .op_util import ArgValueError          # pylint: disable=unused-import
+from .op_util import InvalidFlagChoice      # pylint: disable=unused-import
+from .op_util import InvalidFlagValue       # pylint: disable=unused-import
+from .op_util import MissingRequiredFlags   # pylint: disable=unused-import
+from .op_util import NO_ARG_VALUE           # pylint: disable=unused-import
 from .op_util import RunOutput              # pylint: disable=unused-import
 from .op_util import args_to_flags          # pylint: disable=unused-import
+from .op_util import coerce_flag_value      # pylint: disable=unused-import
 from .op_util import flags_desc             # pylint: disable=unused-import
 from .op_util import mapped_flag_vals       # pylint: disable=unused-import
 from .op_util import opdef_model_paths      # pylint: disable=unused-import
 from .op_util import parse_flag_assigns     # pylint: disable=unused-import
 from .op_util import parse_opspec           # pylint: disable=unused-import
 from .op_util import split_cmd              # pylint: disable=unused-import
+from .op_util import validate_flag_vals     # pylint: disable=unused-import
 
 log = logging.getLogger("guild")
 
