@@ -731,7 +731,7 @@ def _iter_op_resolvers(resource_deps, opdef):
     for name, dep in resource_deps.items():
         res = deps.resources([dep], ctx)[0]
         for source in res.resdef.sources:
-            source_resolver = res.resdef.get_source_resolver(source, res)
+            source_resolver = resolver.for_resdef_source(source, res)
             if isinstance(source_resolver, resolver.OperationOutputResolver):
                 yield name, source_resolver
 
