@@ -268,6 +268,7 @@ class SSHRemote(remotelib.Remote):
             ":$PYTHONPATH"
             .format(run_dir=remote_run_dir))
         cmd_lines.append("export NO_STAGED_MSG=1")
+        cmd_lines.append("export NO_IMPORT_FLAGS_PROGRESS=1")
         cmd_lines.append(_remote_run_cmd(
             remote_run_dir=remote_run_dir,
             opspec=opspec,
