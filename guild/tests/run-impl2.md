@@ -87,3 +87,25 @@ Start a staged operation:
     >>> runs = dir(path(guild_home, "runs"))
     >>> len(runs)
     1
+
+## Batch operation errors
+
+Optimizer flag with no optimizer:
+
+    >>> cwd = init_gf("""
+    ... op: { main: guild.pass }
+    ... """)
+
+    >>> run(cwd, opt_flags=["foo=123"])
+    invalid optimizer flag foo=123: no optimizer specified
+    <exit 1>
+
+Invalid optimizer flag:
+
+    >>> run(cwd, optimizer="+", opt_flags=["baz=789"])
+    unsupported flag 'baz'
+    Try 'guild run + --help-op' for a list of flags or use
+    --force-flags to skip this check.
+    <exit 1>
+
+## Stage batch op

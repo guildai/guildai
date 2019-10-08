@@ -23,6 +23,7 @@
     guild._lex
     guild._test
     guild._yacc
+    guild.batch
     guild.batch_main
     guild.batch_util
     guild.cli

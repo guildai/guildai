@@ -1,5 +1,12 @@
 # Notes for op2 refactor
 
+## Notes re batch ops
+
+- Use of "batch" in op is a misnomer - op doesn't need to know
+  anything about batches
+
+## To Do
+
 - [ ] Batch support
 - [ ] Remote support
 - [ ] Remove mutation support from `guild.guildfile.OpDef`
@@ -44,3 +51,7 @@
 - [ ] Consider: rename `[xxx_]from_xxx` to `[xxx_]for_xxx`
 
 - [ ] Drop restage from run args
+
+- [ ] Needed flag
+
+- [ ] Custom opdef env

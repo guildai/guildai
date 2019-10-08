@@ -15,10 +15,22 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
+
 import itertools
 
+from guild import batch
 from guild import batch_util
+from guild import op_util
 
+def main():
+    op_util.init_logging()
+    proto_run = batch.proto_run()
+    proto_flags = proto_run.get("flags") or {}
+    for trial_flag_vals in batch.expand_flags(proto_flags):
+        batch.run_trial(proto_run, trial_flag_vals)
+
+# TODO: remove when promoting OP2
 def gen_trials(flags, _batch=None):
     flag_list = [
         _trial_flags(name, val)
@@ -31,4 +43,7 @@ def _trial_flags(flag_name, flag_val):
     return [(flag_name, flag_val)]
 
 if __name__ == "__main__":
-    batch_util.default_main(gen_trials, default_max_trials=None)
+    if os.getenv("OP2") == "1":
+        main()
+    else:
+        batch_util.default_main(gen_trials, default_max_trials=None)

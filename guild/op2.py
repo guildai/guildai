@@ -78,17 +78,17 @@ class ProcessError(Exception):
 class Operation(object):
 
     def __init__(self, opref, cmd_args, flag_vals=None, flag_map=None,
-                 flag_null_labels=None, label=None, stage=False,
+                 flag_null_labels=None, label=None,
                  extra_run_attrs=None, sourcecode_select=None,
                  sourcecode_src=None, run_dir=None, cmd_env=None,
-                 deps=None, output_scalars=None, stoppable=False):
+                 deps=None, output_scalars=None, stoppable=False,
+                 callbacks=None):
         self.opref = opref
         self.cmd_args = cmd_args
         self.flag_vals = flag_vals
         self.flag_map = flag_map
         self.flag_null_labels = flag_null_labels
         self.label = label
-        self.stage = stage
         self.extra_run_attrs = extra_run_attrs
         self.sourcecode_src = sourcecode_src
         self.sourcecode_select = sourcecode_select
@@ -97,6 +97,18 @@ class Operation(object):
         self.deps = deps
         self.output_scalars = output_scalars
         self.stoppable = stoppable
+        self.callbacks = callbacks
+
+class OperationCallbacks(object):
+
+    def __init__(self, run_initialized=None):
+        self.run_initialized = run_initialized
+
+def _callback(name, op, *rest_args):
+    if op.callbacks:
+        cb = getattr(op.callbacks, name, None)
+        if cb:
+            cb(op, *rest_args)
 
 ###################################################################
 # Op from opdef
@@ -294,6 +306,7 @@ def _op_init_cmd_env(opdef, cmd_args, flag_vals, gpus):
     return env
 
 def _apply_opdef_env(opdef, env):
+    env.update(opdef.env or {})
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["PROJECT_DIR"] = opdef.guildfile.dir or ""
@@ -446,9 +459,11 @@ def _op_init_cmd_env_for_run(run, gpus):
 # Run
 ###################################################################
 
-def run(op, quiet=False, _background_pidfile=None, stop_after=None):
-    run = _op_init_run(op)
-    if op.stage:
+def run(op, stage=False, quiet=False, _background_pidfile=None,
+        stop_after=None):
+    run = init_run(op)
+    _callback("run_initialized", op, run)
+    if stage:
         exit_status = _op_stage(op, run)
     else:
         exit_status = _op_run(op, run, quiet, stop_after)
@@ -458,15 +473,16 @@ def run(op, quiet=False, _background_pidfile=None, stop_after=None):
 # Init run
 # =================================================================
 
-def _op_init_run(op):
-    run = _op_init_pending_run(op)
+def init_run(op, run_dir=None):
+    run = _op_init_pending_run(op, run_dir)
     _op_init_run_attrs(op, run)
     _op_copy_sourcecode(op, run)
     _op_init_sourcecode_digest(run)
     return run
 
-def _op_init_pending_run(op):
-    run = op_util.init_run(op.run_dir)
+def _op_init_pending_run(op, run_dir):
+    run_dir = run_dir or op.run_dir
+    run = op_util.init_run(run_dir)
     log.debug("initializing run in %s", run.dir)
     run.init_skel()
     op_util.set_run_pending(run)
@@ -492,7 +508,11 @@ def _op_copy_sourcecode(op, run):
     if os.getenv("NO_SOURCECODE") == "1":
         log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
         return
+    if not op.sourcecode_src:
+        log.debug("no sourcecode source, skipping sourcecode copy")
+        return
     if not op.sourcecode_select:
+        log.debug("no sourcecode rules, skipping sourcecode copy")
         return
     dest = run.guild_path("sourcecode")
     log.debug(
