@@ -279,7 +279,6 @@ def stop_runs(args):
 
 def _stop_runs_kw(args):
     names = [
-        "digest",
         "labels",
         "marked",
         "no_wait",
@@ -291,6 +290,7 @@ def _stop_runs_kw(args):
         "yes",
     ]
     ignore = [
+        "digest",
         "remote"
     ]
     return _arg_kw(args, names, ignore)

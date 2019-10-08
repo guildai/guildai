@@ -611,9 +611,8 @@ def _check_args(tensorflow, verbose, offline):
         args.append("--offline")
     return args
 
-def _stop_runs_args(
-        runs, ops, labels, unlabeled, no_wait, marked, unmarked,
-        started, yes, digest):
+def _stop_runs_args(runs, ops, labels, unlabeled, no_wait, marked,
+                    unmarked, started, yes):
     args = []
     for op in ops:
         args.extend(["-o", q(op)])
