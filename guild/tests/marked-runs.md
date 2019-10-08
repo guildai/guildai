@@ -13,6 +13,7 @@ We'll illustrate using the `batch-deps` sample project.
 In this project, the `serve` operation requires a `train` operation.
 
     >>> project.run("serve")
+    WARNING: cannot find a suitable run for required resource 'train'
     Resolving train dependency
     guild: run failed because a dependency was not met: could not resolve
     'operation:train' in train resource: no suitable run for train
@@ -41,9 +42,9 @@ run we expect.
 Here are the current runs:
 
     >>> project.print_runs(flags=True, status=True)
-    serve          completed
-    train  lr=0.1  completed
-    serve          error
+    serve  train=...  completed
+    train  lr=0.1     completed
+    serve             error
 
 Note the first run is `error` because it failed to resolve the
 required dependency.
@@ -91,11 +92,11 @@ And run serve again:
 Our runs:
 
     >>> project.print_runs(flags=True, status=True)
-    serve           completed
-    train  lr=0.01  completed
-    serve           completed
-    train  lr=0.1   completed
-    serve           error
+    serve  train=...  completed
+    train  lr=0.01    completed
+    serve  train=...  completed
+    train  lr=0.1     completed
+    serve             error
 
 Let's confirm that the latest serve is using the latest train.
 
@@ -191,11 +192,11 @@ And the `marked` attr:
 Our runs:
 
     >>> project.print_runs(flags=True)
-    serve
     serve  train=...
-    serve
+    serve  train=...
+    serve  train=...
     train  lr=0.01
-    serve
+    serve  train=...
     train  lr=0.1
     serve
 

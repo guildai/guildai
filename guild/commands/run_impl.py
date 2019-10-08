@@ -700,10 +700,40 @@ def _is_function(val):
 
 def _apply_flag_vals(vals, opdef, args):
     vals = _join_user_vals_and_defaults(vals, opdef)
-    resource_names = _resource_names_for_flag_vals(vals, opdef)
+    resource_deps = _resource_names(opdef, vals)
+    _apply_flag_vals_(vals, opdef, resource_deps, args)
+    _resolve_and_apply_operation_deps(resource_deps, opdef, args)
+
+def _resolve_and_apply_operation_deps(resource_deps, opdef, args):
+    vals = opdef.flag_values()
+    for name, op_resolver in _iter_op_resolvers(resource_deps, opdef):
+        if vals.get(name):
+            continue
+        try:
+            run = op_resolver.resolve_op_run(include_staged=args.stage)
+        except resolver.ResolutionError:
+            _warn_op_resolution_error(name)
+        else:
+            flagdef = _ResourceFlagDefProxy(name, opdef)
+            opdef.flags.append(flagdef)
+            opdef.set_flag_value(name, run.short_id)
+
+def _warn_op_resolution_error(name):
+    log.warning("cannot find a suitable run for required resource '%s'", name)
+
+def _iter_op_resolvers(resource_deps, opdef):
+    ctx = deps.ResolutionContext(None, opdef, {})
+    for name, dep in resource_deps.items():
+        res = deps.resources([dep], ctx)[0]
+        for source in res.resdef.sources:
+            source_resolver = res.resdef.get_source_resolver(source, res)
+            if isinstance(source_resolver, resolver.OperationOutputResolver):
+                yield name, source_resolver
+
+def _apply_flag_vals_(vals, opdef, resource_deps, args):
     for name, val in sorted(vals.items()):
         flagdef = opdef.get_flagdef(name)
-        if not flagdef and name in resource_names:
+        if not flagdef and name in resource_deps:
             flagdef = _ResourceFlagDefProxy(name, opdef)
             opdef.flags.append(flagdef)
         if not flagdef and not args.force_flags:
@@ -712,22 +742,18 @@ def _apply_flag_vals(vals, opdef, args):
             val = _coerce_flag_val(val, flagdef)
         opdef.set_flag_value(name, val)
 
-def _resource_names_for_flag_vals(vals, opdef):
-    ref_vars = _ref_vars_for_resource_lookup(vals, opdef)
-    return [name for name in vals if _is_resource(name, opdef, ref_vars)]
+def _resource_names(opdef, parsed_run_args):
+    ref_vars = _ref_vars_for_resource_lookup(parsed_run_args, opdef)
+    return {
+        util.resolve_refs(dep.name, ref_vars, undefined=None): dep
+        for dep in opdef.dependencies
+    }
 
 def _ref_vars_for_resource_lookup(parsed_run_args, opdef):
     ref_vars = {}
     ref_vars.update(opdef.flag_values())
     ref_vars.update(parsed_run_args)
     return util.resolve_all_refs(ref_vars)
-
-def _is_resource(name, opdef, ref_vars):
-    for dep in opdef.dependencies:
-        resolved_spec = util.resolve_refs(dep.name, ref_vars, undefined=None)
-        if resolved_spec == name:
-            return True
-    return False
 
 def _ResourceFlagDefProxy(name, opdef):
     data = {

@@ -76,8 +76,8 @@ When we run `from-file-output`, we get the latest output from
 `from-file`:
 
     >>> run("guild run from-file-output -y")
-    Resolving file-output dependency
-    Using output from run ... for file-output resource
+    Resolving from-file-output dependency
+    Using output from run ... for from-file-output resource
     Latest from-file output:
     Yo yo, what up Guild!
     <exit 0>
@@ -88,12 +88,12 @@ the `--deps` option of `guild runs info`:
     >>> run("guild runs info --deps")
     id: ...
     operation: hello:from-file-output
-    from: .../examples/hello/guild.yml
+    from: .../hello/guild.yml
     status: completed
     ...
     dependencies:
-      file-output:
-        .../runs/.../output
+      from-file-output:
+        - .../runs/.../output
     <exit 0>
 
 We can specify an alternative run for `from-file-output` by specifying
@@ -101,9 +101,9 @@ We can specify an alternative run for `from-file-output` by specifying
 
 Here's a preview of the command:
 
-    >>> run("guild run from-file-output file-output=foobar", timeout=1)
+    >>> run("guild run from-file-output from-file-output=foobar", timeout=1)
     You are about to run hello:from-file-output
-      file-output: foobar
+      from-file-output: foobar
     Continue? (Y/n)
     <exit ...>
 
@@ -111,10 +111,10 @@ We'll use the first run for `from-file`.
 
     >>> run("""
     ... run_id=`guild runs -o hello:from-file | grep 'from-file ' | tail -n1 | cut -d: -f2 | cut -b 1-8`
-    ... guild run from-file-output file-output=$run_id -y
+    ... guild run from-file-output from-file-output=$run_id -y
     ... """)
-    Resolving file-output dependency
-    Using output from run ... for file-output resource
+    Resolving from-file-output dependency
+    Using output from run ... for from-file-output resource
     Latest from-file output:
     Hello Guild, from a required file!
     <exit 0>

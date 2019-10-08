@@ -19,6 +19,7 @@ Delete runs in preparation for our tests.
 Try to run `train` without a required run:
 
     >>> run("guild run train -y")
+    WARNING: cannot find a suitable run for required resource 'prepared-data'
     Resolving prepared-data dependency
     guild: run failed because a dependency was not met: could not
     resolve 'operation:prepare-data' in prepared-data resource: no

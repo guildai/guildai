@@ -121,7 +121,7 @@ def _rename_source(name, rename):
 def _symlink(source_path, link):
     assert os.path.isabs(link), link
     if os.path.lexists(link) or os.path.exists(link):
-        log.warning("%s already exists, skipping link", link)
+        log.debug("%s already exists, skipping link", link)
         return
     util.ensure_dir(os.path.dirname(link))
     log.debug("resolving source %s as link %s", source_path, link)

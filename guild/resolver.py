@@ -32,6 +32,12 @@ from guild import var
 
 log = logging.getLogger("guild")
 
+DEFAULT_MATCHING_RUN_STATUS = (
+    "completed",
+    "running",
+    "terminated",
+)
+
 class ResolutionError(Exception):
     pass
 
@@ -244,15 +250,16 @@ class OperationOutputResolver(FileResolver):
                 "Using output in %s for %s resource",
                 run_spec, self.source.resdef.name)
             return run_spec
-        run = self._resolve_op_run(run_spec)
+        run = self.resolve_op_run(run_spec)
         log.info(
             "Using output from run %s for %s resource",
             run.id, self.source.resdef.name)
         return run.path
 
-    def _resolve_op_run(self, run_id_prefix):
+    def resolve_op_run(self, run_id_prefix=None, include_staged=False):
         oprefs = self._source_oprefs()
-        run = marked_or_latest_run(oprefs, run_id_prefix)
+        status = _matching_run_status(include_staged)
+        run = marked_or_latest_run(oprefs, run_id_prefix, status)
         if not run:
             raise ResolutionError(
                 "no suitable run for %s"
@@ -285,8 +292,13 @@ class OperationOutputResolver(FileResolver):
             "{}:{}".format(model_spec, opref.op_name)
             if model_spec else opref.op_name)
 
-def marked_or_latest_run(oprefs, run_id_prefix=None):
-    runs = matching_runs(oprefs, run_id_prefix)
+def _matching_run_status(include_staged):
+    if include_staged:
+        return DEFAULT_MATCHING_RUN_STATUS + ("staged",)
+    return DEFAULT_MATCHING_RUN_STATUS
+
+def marked_or_latest_run(oprefs, run_id_prefix=None, status=None):
+    runs = matching_runs(oprefs, run_id_prefix, status)
     log.debug("runs for %s: %s", oprefs, runs)
     if not runs:
         return None
@@ -295,9 +307,10 @@ def marked_or_latest_run(oprefs, run_id_prefix=None):
             return run
     return runs[0]
 
-def matching_runs(oprefs, run_id_prefix=None):
+def matching_runs(oprefs, run_id_prefix=None, status=None):
+    status = status or DEFAULT_MATCHING_RUN_STATUS
     oprefs = [_resolve_opref(opref) for opref in oprefs]
-    runs_filter = _runs_filter(oprefs, run_id_prefix)
+    runs_filter = _runs_filter(oprefs, run_id_prefix, status)
     return var.runs(sort=["-started"], filter=runs_filter)
 
 def _resolve_opref(opref):
@@ -310,15 +323,14 @@ def _resolve_opref(opref):
         model_name=opref.model_name,
         op_name=opref.op_name)
 
-def _runs_filter(oprefs, run_id_prefix):
+def _runs_filter(oprefs, run_id_prefix, status):
     if run_id_prefix:
         return lambda run: run.id.startswith(run_id_prefix)
     return var.run_filter(
         "all", [
             var.run_filter("any", [
-                var.run_filter("attr", "status", "completed"),
-                var.run_filter("attr", "status", "running"),
-                var.run_filter("attr", "status", "terminated"),
+                var.run_filter("attr", "status", status_val)
+                for status_val in status
             ]),
             var.run_filter("any", [
                 opref_match_filter(opref) for opref in oprefs

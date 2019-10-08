@@ -38,7 +38,7 @@ Show latest staged run:
     >>> run("guild runs info --staged")
     id: ...
     operation: noisy.py
-    from: .../examples/noisy
+    from: .../noisy
     status: staged
     started: ...
     stopped:

@@ -291,10 +291,10 @@ and evaluation scenario.
 Here are the generated runs:
 
     >>> project.print_runs(flags=True, status=True)
-    m4:evaluate    acc=0.5           completed
-    m4:train       loss=1.0          completed
-    m4:prepare                       completed
-    m4:end-to-end  acc=0.5 loss=1.0  completed
+    m4:evaluate    acc=0.5 prepare=... train=...  completed
+    m4:train       loss=1.0 prepare=...           completed
+    m4:prepare                                    completed
+    m4:end-to-end  acc=0.5 loss=1.0               completed
 
 Let's look at each run in turn.
 
