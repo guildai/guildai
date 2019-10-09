@@ -147,6 +147,7 @@
     guild.namespace
     guild.op
     guild.op2
+    guild.op_cmd
     guild.op_dep
     guild.op_main
     guild.op_util
