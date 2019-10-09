@@ -378,7 +378,6 @@ def _check_incompatible_options(args):
         ("remote", "background"),
         ("remote", "pidfile"),
         ("stage", "background"),
-        ("stage", "pidfile"),
         ("stage", "restart"),
         ("stage", "start"),
         ("start", "restart"),

@@ -93,7 +93,6 @@ def _validate_args(args):
         ("remote", "background"),
         ("remote", "pidfile"),
         ("stage", "background"),
-        ("stage", "pidfile"),
     ]
     for a, b in incompatible:
         if getattr(args, a) and getattr(args, b):
