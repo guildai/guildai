@@ -311,7 +311,7 @@ def _sorted_table_rows(table, header, args):
 def _sort_table(table, sort_col, reverse=False):
     def key(row):
         for name, val in itertools.chain(row[0], row[1], row[2]):
-            if name == sort_col:
+            if name == sort_col and val is not None:
                 return val
         if reverse:
             return float("-inf")
