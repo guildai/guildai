@@ -376,7 +376,7 @@ def run_opdef(run):
 
 def run_guildfile(run):
     try:
-        return guildfile.from_run(run)
+        return guildfile.for_run(run)
     except (guildfile.NoModels, guildfile.GuildfileMissing, TypeError):
         return None
 
@@ -406,7 +406,7 @@ def run_for_run_dir(run_dir):
 
 def marked_or_latest_run_for_opspec(opspec):
     try:
-        opref = opreflib.OpRef.from_string(opspec)
+        opref = opreflib.OpRef.for_string(opspec)
     except opreflib.OpRefError:
         return None
     else:

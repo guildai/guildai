@@ -75,13 +75,13 @@ def run_all(skip=None):
 def all_tests():
     test_pattern = os.path.join(tests_dir(), "*.md")
     return sorted(
-        [_test_name_from_path(path)
+        [_test_name_for_path(path)
          for path in glob.glob(test_pattern)])
 
 def tests_dir():
     return os.path.join(os.path.dirname(__file__), "tests")
 
-def _test_name_from_path(path):
+def _test_name_for_path(path):
     name, _ = os.path.splitext(os.path.basename(path))
     return name
 
@@ -497,7 +497,7 @@ class Project(object):
         """Runs an operation returning a tuple of run and output."""
         run_dir = self._run_dir_apply(kw)
         out = self._run(*args, **kw)
-        return runlib.from_dir(run_dir), out
+        return runlib.for_dir(run_dir), out
 
     def _run_dir_apply(self, kw):
         """Returns a run directory for kw, optionally apply it to kw.
@@ -534,7 +534,7 @@ class Project(object):
                 from guild.commands import run_impl
                 with configlib.SetGuildHome(self.guild_home):
                     run = util.find_apply([
-                        run_impl.marked_or_latest_run_from_spec,
+                        run_impl.marked_or_latest_run_for_spec,
                         run_impl.one_run,
                     ], spec)
                     return run.dir

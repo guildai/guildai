@@ -10,7 +10,7 @@ We'll run the `say.py` script with a `tune` optimizer. Any operation
 may be specified as an optimizer. In this case, `tune` is an operation
 defined in the project Guild file.
 
-    >>> gf = guildfile.from_dir(project)
+    >>> gf = guildfile.for_dir(project)
     >>> gf.default_model["tune"]
     <guild.guildfile.OpDef 'tune'>
 

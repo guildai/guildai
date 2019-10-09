@@ -339,7 +339,7 @@ def _run_attr(run, name):
 def _apply_batch_proto(run, data):
     proto_dir = run.guild_path("proto")
     if os.path.exists(proto_dir):
-        proto = runlib.from_dir(proto_dir)
+        proto = runlib.for_dir(proto_dir)
         data["batch_proto"] = _listed_run_json_data(proto)
 
 def _list_formatted_runs(runs, args):

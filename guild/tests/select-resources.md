@@ -12,7 +12,7 @@ For our tests we'll use the samples files in `select-files`:
 
 Here's a Guild file that defines a resource `r` with multiple sources:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: m
     ...   resources:
     ...     r:

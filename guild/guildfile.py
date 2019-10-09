@@ -768,7 +768,7 @@ def _pkg_parent_data(name, guildfile, seen):
     if not pkg_guildfile_path:
         raise GuildfileReferenceError(
             guildfile, "cannot find Guild file for package '%s'" % pkg)
-    pkg_guildfile = from_file(pkg_guildfile_path, seen + [name])
+    pkg_guildfile = for_file(pkg_guildfile_path, seen + [name])
     parent_data = _modeldef_data(model_name, pkg_guildfile)
     if parent_data is None:
         raise GuildfileReferenceError(
@@ -968,7 +968,7 @@ class OpDef(object):
     @property
     def opref(self):
         if self._modelref:
-            return opref.OpRef.from_op(self.name, self._modelref)
+            return opref.OpRef.for_op(self.name, self._modelref)
         return None
 
     def get_flagdef(self, name):
@@ -1239,7 +1239,7 @@ class OptimizerDef(object):
         self.flags = data
 
     @classmethod
-    def from_name(cls, name, opdef):
+    def for_name(cls, name, opdef):
         return cls(name, {"algorithm": name}, opdef)
 
     def __repr__(self):
@@ -1399,12 +1399,12 @@ class PackageDef(object):
 # Module API
 ###################################################################
 
-def from_dir(path, no_cache=False):
+def for_dir(path, no_cache=False):
     log.debug("checking '%s' for model sources", path)
     model_file = os.path.abspath(guildfile_path(path))
     if os.path.isfile(model_file):
         log.debug("found model source '%s'", model_file)
-        return from_file(model_file, no_cache=no_cache)
+        return for_file(model_file, no_cache=no_cache)
     raise NoModels(path)
 
 def is_guildfile_dir(path):
@@ -1415,7 +1415,7 @@ def guildfile_path(*paths):
         paths = (config.cwd(),)
     return os.path.join(*(paths + (NAME,)))
 
-def from_file(src, extends_seen=None, no_cache=False):
+def for_file(src, extends_seen=None, no_cache=False):
     if not no_cache:
         cache_key = _cache_key(src)
         cached = _cache.get(cache_key)
@@ -1452,56 +1452,49 @@ def _notify_plugins_guildfile_loaded(gf):
     for _name, plugin in pluginlib.iter_plugins():
         plugin.guildfile_loaded(gf)
 
-def from_file_or_dir(src, no_cache=False):
+def for_file_or_dir(src, no_cache=False):
     try:
-        return from_file(src, no_cache=no_cache)
+        return for_file(src, no_cache=no_cache)
     except IOError as e:
         if e.errno == errno.EISDIR:
-            return from_dir(src)
+            return for_dir(src)
         raise
 
-def from_string(s, src="<string>"):
+def for_string(s, src="<string>"):
     data = yaml.safe_load(s)
     _notify_plugins_guildfile_data(data, src)
     return Guildfile(data, src)
 
-def from_run(run):
+def for_run(run):
     if run.opref.pkg_type == "guildfile":
-        return _from_guildfile_ref(run)
+        return _for_guildfile_ref(run)
     elif run.opref.pkg_type == "package":
-        return _from_package_ref(run.opref)
+        return _for_package_ref(run.opref)
     else:
         raise TypeError(
             "unsupported pkg_type for run (%s): %s"
             % (run.dir, run.opref.pkg_type))
 
-def _from_guildfile_ref(run):
+def _for_guildfile_ref(run):
     gf_path = os.path.join(run.dir, run.opref.pkg_name)
     if not os.path.exists(gf_path):
         raise GuildfileMissing(gf_path)
-    return from_file(gf_path)
+    return for_file(gf_path)
 
-def _from_package_ref(opref):
+def _for_package_ref(opref):
     import pkg_resources
     try:
         dist = pkg_resources.get_distribution(opref.pkg_name)
     except pkg_resources.DistributionNotFound:
         raise GuildfileMissing("cannot find package '%s'" % opref.pkg_name)
     else:
-        return _from_pkg_dist(dist, opref)
+        return _for_pkg_dist(dist, opref)
 
-def _from_pkg_dist(dist, opref):
+def _for_pkg_dist(dist, opref):
     gf_path = os.path.join(
         dist.location,
         opref.pkg_name.replace(".", os.path.sep),
         "guild.yml")
     if not os.path.exists(gf_path):
         raise GuildfileMissing(gf_path)
-    return from_file(gf_path)
-
-# Aliases for preferred naming convention.
-for_dir = from_dir
-for_file = from_file
-for_file_or_dir = from_file_or_dir
-for_run = from_run
-for_string = from_string
+    return for_file(gf_path)

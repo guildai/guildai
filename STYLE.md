@@ -253,6 +253,3 @@ If they return a different state, they should be named `yyy_for_xxx`
 where `yyy` is the state type.
 
 Avoid `from_xxx`.
-
-Note that `from_xxx` is used throughout the code base and should be
-phased out.

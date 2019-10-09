@@ -270,7 +270,7 @@ class OperationOutputResolver(FileResolver):
         oprefs = []
         for spec in self._split_opref_specs(self.source.parsed_uri.path):
             try:
-                oprefs.append(guild.opref.OpRef.from_string(spec))
+                oprefs.append(guild.opref.OpRef.for_string(spec))
             except guild.opref.OpRefError:
                 raise ResolutionError("inavlid operation reference %r" % spec)
         return oprefs
@@ -539,7 +539,7 @@ def _unpack(source_path, archive_type, select, unpack_dir):
     assert unpack_dir
     unpacked = _list_unpacked(source_path, unpack_dir)
     if unpacked:
-        return _from_unpacked(unpack_dir, unpacked, select)
+        return _for_unpacked(unpack_dir, unpacked, select)
     elif archive_type == "zip":
         return _unzip(source_path, select, unpack_dir)
     elif archive_type == "tar":
@@ -564,7 +564,7 @@ def _unpacked_src(unpack_dir, src):
     name = os.path.basename(src)
     return os.path.join(unpack_dir, ".guild-cache-%s.unpacked" % name)
 
-def _from_unpacked(root, unpacked, select):
+def _for_unpacked(root, unpacked, select):
     if select:
         return _selected_source_paths(root, unpacked, select)
     else:

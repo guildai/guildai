@@ -290,7 +290,7 @@ def _init_publish_run_state(run, dest, template, copy_files, include_links,
 
 def _run_opdef(run):
     try:
-        gf = guildfile.from_run(run)
+        gf = guildfile.for_run(run)
     except (guildfile.NoModels, TypeError):
         return None
     else:

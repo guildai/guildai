@@ -46,7 +46,7 @@ class RemoteProcessError(Exception):
         self.output = output
 
     @classmethod
-    def from_called_process_error(cls, e):
+    def for_called_process_error(cls, e):
         return cls(e.returncode, e.cmd, e.output)
 
 class RunFailed(Exception):

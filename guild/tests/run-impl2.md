@@ -50,7 +50,7 @@ Restart an operation:
     <exit 11>
 
     >>> run_id = dir(path(guild_home, "runs"))[0]
-    >>> R = runlib.from_dir(path(guild_home, "runs", run_id))
+    >>> R = runlib.for_dir(path(guild_home, "runs", run_id))
     >>> R.get("env")["FLAG_CODE"]
     '11'
 

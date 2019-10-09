@@ -47,12 +47,12 @@ def run():
     if not pip_util.running_under_virtualenv():
         sys.stderr.write("This command must be run in a virtual environment\n")
         sys.exit(1)
-    tests = _tests_from_index()
+    tests = _tests_for_index()
     _init_workspace()
     _mark_passed_tests()
     _run_tests(tests)
 
-def _tests_from_index():
+def _tests_for_index():
     index_path = os.path.join(os.path.dirname(__file__), INDEX)
     index = open(index_path).read()
     return re.findall(r"\((.+?)\.md\)", index)

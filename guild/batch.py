@@ -52,7 +52,7 @@ def _trial_flags(flag_name, flag_val):
     return [(flag_name, flag_val)]
 
 def run_trial(proto_run, trial_flag_vals):
-    proto_op = oplib.from_run(proto_run)
+    proto_op = oplib.for_run(proto_run)
     opdef = _proto_opdef(proto_op)
     trial_op = _init_trial_op(proto_op, opdef, trial_flag_vals)
     _log_run_trial(trial_op)
@@ -70,7 +70,7 @@ def _proto_opdef(proto_op):
 def _init_trial_op(proto_op, opdef, flag_vals):
     run = op_util.init_run()
     util.copytree(proto_op.run_dir, run.dir)
-    return oplib.from_opdef(
+    return oplib.for_opdef(
         opdef,
         flag_vals,
         run_dir=run.dir,

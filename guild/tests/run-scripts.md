@@ -23,7 +23,7 @@ Here are the files in the project:
 
 The Guild file:
 
-    >>> gf = guildfile.from_dir(project)
+    >>> gf = guildfile.for_dir(project)
 
 The Guild file in this example uses an anonymous model to define
 operations:

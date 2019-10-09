@@ -24,7 +24,7 @@ We'll use a helper to print depepdencies:
 An inline string is the traditional way to express a dependency on a
 resource.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires: prepare
     ... """)
@@ -36,7 +36,7 @@ resource.
 
 A list of strings is treated in the same manner:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     - prepare-1
@@ -61,7 +61,7 @@ An inline dict can be either a resource reference or an inline
 resource. If the dict contains a `resource` attribute, it's treated as
 a resource spec:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     resource: data
@@ -78,7 +78,7 @@ a resource spec:
 If the user provides an inline dict that does not contain a `sources`
 attribute, it is treated as an implicit resource source:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     url: http://my.co/stuff.gz
@@ -97,7 +97,7 @@ attribute, it is treated as an implicit resource source:
 If the inline dict contains a `sources` attribute, it is treated as a
 complete resource definition:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     path: data
@@ -121,7 +121,7 @@ complete resource definition:
 
 A resource `name` may be provided for any full resource definition:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     name: data
@@ -141,7 +141,7 @@ A resource `name` may be provided for any full resource definition:
 Inline requirements that define an operation but not a name are
 implicitly named by their operation.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... op1:
     ...   requires:
     ...     - operation: foo
@@ -162,7 +162,7 @@ implicitly named by their operation.
 An inline list can be used to list source. Each list item is converted
 to a dependency where `sources` contains a list containing the item.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     - url: http://my.co/stuff.gz
@@ -181,7 +181,7 @@ As of 0.6.2, a source may contain a path, which is in addition to any
 path defined in the source resource. A source path is appended to a
 resource path, if a resource path is defined.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     - operation: foo

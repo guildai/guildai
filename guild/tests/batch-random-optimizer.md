@@ -39,7 +39,7 @@ of flags.
 We can use `echo` as our operation (we won't actually run the
 operation - it's just used for generating trials).
 
-    >>> gf = guildfile.from_dir(project)
+    >>> gf = guildfile.for_dir(project)
     >>> echo_op = gf.default_model["echo"]
 
     >>> echo_op.name

@@ -167,7 +167,7 @@ def _resolve_cwd_model(model_ref):
 
 def _cwd_guildfile():
     try:
-        return guildfile.from_dir(config.cwd())
+        return guildfile.for_dir(config.cwd())
     except guildfile.NoModels as e:
         return None
     except guildfile.GuildfileError as e:

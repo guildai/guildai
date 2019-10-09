@@ -168,7 +168,7 @@ def _prefixed_flag_vals(prefixes, flag_vals):
     return prefixed
 
 def _apply_default_model(step_opspec, parent_opref):
-    step_opref = guild.opref.OpRef.from_string(step_opspec)
+    step_opref = guild.opref.OpRef.for_string(step_opspec)
     if not step_opref.model_name:
         step_opref = guild.opref.OpRef(
             step_opref.pkg_type,

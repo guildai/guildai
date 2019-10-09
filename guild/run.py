@@ -127,7 +127,7 @@ class Run(object):
     def batch_proto(self):
         proto_dir = self.guild_path("proto")
         if os.path.exists(proto_dir):
-            return from_dir(proto_dir)
+            return for_dir(proto_dir)
         return None
 
     def _remote_exit_status(self):
@@ -269,7 +269,7 @@ def timestamp_seconds(ts):
 def mkid():
     return uuid.uuid4().hex
 
-def from_dir(run_dir, id=None):
+def for_dir(run_dir, id=None):
     if not id:
         id = os.path.basename(run_dir)
     return Run(id, run_dir)

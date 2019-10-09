@@ -13,7 +13,7 @@ processing behavior.
 
 Here is a test Guild file:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: test
     ...   operations:
     ...     simplest:

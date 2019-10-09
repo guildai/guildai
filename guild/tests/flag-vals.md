@@ -17,7 +17,7 @@ variables (`globals`).
 First, the `args` operation. Here's are the default flag values for
 the operation:
 
-    >>> gf = guildfile.from_dir(project.cwd)
+    >>> gf = guildfile.for_dir(project.cwd)
 
     >>> pprint(gf.default_model.get_operation("args").flag_values())
     {'b1': True,

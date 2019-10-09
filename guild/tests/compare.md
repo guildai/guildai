@@ -31,7 +31,7 @@ And compare with extra cols:
 The project Guild file defines explicit compare cols for the `op1` operation.
 
     >>> from guild import guildfile
-    >>> gf = guildfile.from_dir(project.cwd)
+    >>> gf = guildfile.for_dir(project.cwd)
 
     >>> op1 = gf.default_model.operations[0]
     >>> op1.name

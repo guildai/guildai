@@ -351,10 +351,10 @@ class SSHRemote(remotelib.Remote):
     def one_run(self, run_id_prefix):
         out = self._guild_cmd_output(
             "runs info", [run_id_prefix, "--private-attrs", "--json"])
-        return remotelib.RunProxy(self._run_data_from_json(out))
+        return remotelib.RunProxy(self._run_data_for_json(out))
 
     @staticmethod
-    def _run_data_from_json(s):
+    def _run_data_for_json(s):
         return json.loads(s.decode())
 
     def watch_run(self, **opts):

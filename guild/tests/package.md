@@ -30,7 +30,7 @@ Our workspace:
 The package we'll build is defined in the project guildfile. Let's
 load that.
 
-    >>> gf = guildfile.from_dir(workspace)
+    >>> gf = guildfile.for_dir(workspace)
 
 We can access the package definition using the `package` attribute:
 
@@ -112,7 +112,7 @@ And create a sample Guild file in it that contains only a model def:
 
 And generate a package for it:
 
-    >>> gf = guildfile.from_dir(workspace)
+    >>> gf = guildfile.for_dir(workspace)
     >>> out = guild.package.create_package(gf.src, capture_output=True)
     >>> print(out.decode("UTF-8"))
     running bdist_wheel
@@ -162,7 +162,7 @@ creates a package named 'gpkg.anonymous_DIGEST':
     >>> write(join_path(workspace, "guild.yml"), """
     ... - config: test
     ... """)
-    >>> gf = guildfile.from_dir(workspace)
+    >>> gf = guildfile.for_dir(workspace)
 
     >>> out = guild.package.create_package(gf.src, capture_output=True)
     >>> print(out.decode())

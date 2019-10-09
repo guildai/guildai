@@ -11,7 +11,7 @@ Load the guild file:
 
     >>> with Env({"NO_IMPORT_FLAGS_CACHE": "1",
     ...           "NO_IMPORT_FLAGS_PROGRESS": "1"}):
-    ...     gf = guildfile.from_dir(project_dir, no_cache=True)
+    ...     gf = guildfile.for_dir(project_dir, no_cache=True)
 
 For our tests, we'll use a helper function to print flag attributes.
 

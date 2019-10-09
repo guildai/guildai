@@ -157,7 +157,7 @@ def path_or_package_guildfile(path_or_package, ctx=None):
 def _dir_guildfile(dir, ctx):
     from guild import guildfile
     try:
-        return guildfile.from_dir(dir)
+        return guildfile.for_dir(dir)
     except guildfile.NoModels:
         if ctx:
             help_suffix = " or '%s' for help" % click_util.cmd_help(ctx)
@@ -173,7 +173,7 @@ def _dir_guildfile(dir, ctx):
 def _guildfile(path):
     from guild import guildfile
     try:
-        return guildfile.from_file(path)
+        return guildfile.for_file(path)
     except guildfile.GuildfileError as e:
         cli.error(str(e))
 

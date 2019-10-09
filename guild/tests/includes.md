@@ -10,7 +10,7 @@ include `common.yml`.
 
 Let's look at `a.yml`.
 
-    >>> gf = guildfile.from_file(sample("projects/includes/a.yml"))
+    >>> gf = guildfile.for_file(sample("projects/includes/a.yml"))
 
 As model 'a' extends 'base' it inherits its flags:
 
@@ -38,7 +38,7 @@ expressed as a list, each item is treated as an include.
 This is illustrated by
 [samples/projects/includes/include-list.yml](samples/projects/includes/include-list.yml):
 
-    >>> gf = guildfile.from_file(sample("projects/includes/include-list.yml"))
+    >>> gf = guildfile.for_file(sample("projects/includes/include-list.yml"))
     >>> sorted(gf.models)
     ['c', 'uncommon']
 
@@ -53,7 +53,7 @@ Includes can be
 chained. [samples/projects/includes/chain.yml](samples/projects/includes/chain.yml)
 illustrates this.
 
-    >>> gf = guildfile.from_file(sample("projects/includes/chain.yml"))
+    >>> gf = guildfile.for_file(sample("projects/includes/chain.yml"))
     >>> sorted(gf.models)
     ['a', 'b', 'c']
 
@@ -63,7 +63,7 @@ Cycles are treated as an
 error. [samples/projects/includes/cycle.yml](samples/projects/includes/cycle.yml)
 introduces a cycle.
 
-    >>> guildfile.from_file(sample("projects/includes/cycle.yml"))
+    >>> guildfile.for_file(sample("projects/includes/cycle.yml"))
     Traceback (most recent call last):
     GuildfileCycleError: error in cycle in 'includes':
     .../samples/projects/includes/cycle.yml
@@ -73,7 +73,7 @@ introduces a cycle.
 
 Similarly:
 
-    >>> guildfile.from_file(sample("projects/includes/cycle-2.yml"))
+    >>> guildfile.for_file(sample("projects/includes/cycle-2.yml"))
     Traceback (most recent call last):
     GuildfileCycleError: error in cycle in 'includes':
     .../samples/projects/includes/cycle-2.yml
@@ -83,7 +83,7 @@ Similarly:
 
 As well as:
 
-    >>> guildfile.from_file(sample("projects/includes/include-self.yml"))
+    >>> guildfile.for_file(sample("projects/includes/include-self.yml"))
     Traceback (most recent call last):
     GuildfileCycleError: error in cycle in 'includes':
     .../samples/projects/includes/include-self.yml
@@ -102,7 +102,7 @@ spec.
 Initially we can't load the Guildfile because `mnist` is not on the
 system path:
 
-    >>> guildfile.from_file(sample("projects/includes/include-pkg.yml"))
+    >>> guildfile.for_file(sample("projects/includes/include-pkg.yml"))
     Traceback (most recent call last):
     GuildfileIncludeError: error in .../samples/projects/includes/include-pkg.yml:
     cannot find include 'mnist-pkg' (includes must be local to including Guild
@@ -113,7 +113,7 @@ find the `mnist` package:
 
     >>> with SysPath(prepend=[sample("projects"),
     ...                       sample("projects/mnist-pkg")]):
-    ...    gf = guildfile.from_file(sample("projects/includes/include-pkg.yml"))
+    ...    gf = guildfile.for_file(sample("projects/includes/include-pkg.yml"))
 
 And the models:
 
@@ -124,7 +124,7 @@ And the models:
 
 ## Bad includes
 
-    >>> guildfile.from_file(sample("projects/includes/bad-include.yml"))
+    >>> guildfile.for_file(sample("projects/includes/bad-include.yml"))
     Traceback (most recent call last):
     GuildfileIncludeError: error in .../projects/includes/bad-include.yml:
     cannot find include 'bad.yml' (includes must be local to including Guild

@@ -375,7 +375,7 @@ We can validate a list of flag values against an operation def using
 Here's an operation to test with:
 
     >>> from guild import guildfile
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... test:
     ...   flags:
     ...     choice:

@@ -6,7 +6,7 @@ Model help support is provided by `guild.help`.
 
 It's used to format help for a guildfile.
 
-    >>> gf = guildfile.from_dir(sample("projects/mnist-pkg"))
+    >>> gf = guildfile.for_dir(sample("projects/mnist-pkg"))
 
 The `package_description` function returns a restructured text
 formatted string:

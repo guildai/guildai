@@ -167,20 +167,20 @@ def _find_run(run_spec, args):
         return remote_impl_support.one_run(run_spec, args)
     else:
         return util.find_apply([
-            _run_from_dir,
-            marked_or_latest_run_from_spec,
+            _run_for_dir,
+            marked_or_latest_run_for_spec,
             one_run,
         ], run_spec)
 
-def _run_from_dir(run_dir):
+def _run_for_dir(run_dir):
     if not os.path.isdir(run_dir):
         return None
     run_id = os.path.basename(run_dir)
     return runlib.Run(run_id, run_dir)
 
-def marked_or_latest_run_from_spec(spec):
+def marked_or_latest_run_for_spec(spec):
     try:
-        opref = opreflib.OpRef.from_string(spec)
+        opref = opreflib.OpRef.for_string(spec)
     except opreflib.OpRefError:
         return None
     else:
@@ -663,7 +663,7 @@ def _apply_optimizer(flag_vals, opdef, args):
 def _apply_named_optimizer(opt_name, opdef, args):
     optdef = opdef.get_optimizer(opt_name)
     if not optdef:
-        optdef = guildfile.OptimizerDef.from_name(opt_name, opdef)
+        optdef = guildfile.OptimizerDef.for_name(opt_name, opdef)
     _apply_optimizer_and_flags(optdef, args)
 
 def _apply_optimizer_and_flags(optdef, args):
@@ -683,7 +683,7 @@ def _apply_default_optimizer(opdef, args):
                 "no default optimizer for %s\n"
                 "Try 'guild run %s --optimize NAME' where NAME is one of: %s"
                 % (opdef.name, opdef.fullname, optimizers_desc))
-        optdef = guildfile.OptimizerDef.from_name(DEFAULT_OPTIMIZER, opdef)
+        optdef = guildfile.OptimizerDef.for_name(DEFAULT_OPTIMIZER, opdef)
     _apply_optimizer_and_flags(optdef, args)
 
 def _maybe_apply_random_optimizer(flag_vals, args):

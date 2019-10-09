@@ -13,7 +13,7 @@ We'll use the sample project 'steps' to illustrate the behavior.
 
 Here's the project Guild file:
 
-    >>> gf = guildfile.from_dir(project.cwd)
+    >>> gf = guildfile.for_dir(project.cwd)
 
 Here are the suported models:
 

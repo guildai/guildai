@@ -154,7 +154,7 @@ def _load_dist_modeldefs(dist):
 
 def _try_acc_modeldefs(path, acc):
     try:
-        models = guildfile.from_file(path)
+        models = guildfile.for_file(path)
     except Exception as e:
         log.error("unable to load models from %s: %s", path, e)
     else:
@@ -319,7 +319,7 @@ class ModelImporter(object):
         if not os.path.isdir(self.path):
             return None
         try:
-            gf = guildfile.from_dir(self.path)
+            gf = guildfile.for_dir(self.path)
         except guildfile.NoModels:
             return None
         except Exception as e:
