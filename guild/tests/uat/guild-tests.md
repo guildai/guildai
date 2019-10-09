@@ -64,6 +64,7 @@ tests).
       op-main:                     ok
       op-utils:                    ok
       op-utils2:                   ok
+      op2:                         ok
       opref:                       ok
       ops:                         ok
       package:                     ok

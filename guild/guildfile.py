@@ -1109,13 +1109,13 @@ class FlagChoice(object):
     def __init__(self, data, flagdef):
         self.flagdef = flagdef
         if isinstance(data, dict):
-            self.value = data.get("value")
+            self.value = _required("value", data, flagdef.opdef.guildfile)
             self.description = data.get("description") or ""
-            self.args = data.get("args") or {}
+            self.flags = data.get("flags") or {}
         else:
             self.value = data
             self.description = ""
-            self.args = {}
+            self.flags = {}
 
     def __repr__(self):
         return "<guild.guildfile.FlagChoice %r>" % self.value
@@ -1498,3 +1498,10 @@ def _from_pkg_dist(dist, opref):
     if not os.path.exists(gf_path):
         raise GuildfileMissing(gf_path)
     return from_file(gf_path)
+
+# Aliases for preferred naming convention.
+for_dir = from_dir
+for_file = from_file
+for_file_or_dir = from_file_or_dir
+for_run = from_run
+for_string = from_string

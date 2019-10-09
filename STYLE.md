@@ -241,3 +241,18 @@ def run_foo(foo):
         raise ValueError("foo.a cannot be None")
     print(foo.a)
 ```
+
+## Namming conventions
+
+### Factory functions - `for_xxx` and `yyy_for_xxx`
+
+If a factory function return a module specific state type, they should
+be named `for_xxx`, where `xxx` is the type of input to the function,
+
+If they return a different state, they should be named `yyy_for_xxx`
+where `yyy` is the state type.
+
+Avoid `from_xxx`.
+
+Note that `from_xxx` is used throughout the code base and should be
+phased out.

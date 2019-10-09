@@ -61,7 +61,7 @@ def _state_for_args(args):
     restart_run = _state_restart_run(args.restart or args.start)
     opdef = _state_opdef(args, restart_run)
     decoded_flag_args, batch_files = _state_split_flag_args(args.flags)
-    flag_vals = _flag_vals_from_decoded(
+    flag_vals = _flag_vals_for_decoded(
         decoded_flag_args, opdef, args.force_flags)
     if restart_run:
         _apply_restart_run_flags(restart_run, flag_vals)
@@ -153,7 +153,7 @@ def _parse_assigns(assign_args):
     except op_util.ArgValueError as e:
         _invalid_flag_arg_error(e.arg)
 
-def _flag_vals_from_decoded(arg_decoded_flag_vals, opdef, force_flags):
+def _flag_vals_for_decoded(arg_decoded_flag_vals, opdef, force_flags):
     if not arg_decoded_flag_vals:
         return arg_decoded_flag_vals
     assert opdef, "flag args not allowed without an opdef"
@@ -314,9 +314,9 @@ def _batch_opdef_for_args(args, decoded_flag_args):
 def _optimizer_opspec_for_args(args, decoded_flag_args):
     if args.optimizer:
         return args.optimizer
-    return _implied_optimizer_from_flags(decoded_flag_args)
+    return _implied_optimizer_for_flags(decoded_flag_args)
 
-def _implied_optimizer_from_flags(flag_vals):
+def _implied_optimizer_for_flags(flag_vals):
     return (
         _any_random_functions(flag_vals) and "random"
         or _any_lists(flag_vals) and "+" or None)
@@ -341,7 +341,7 @@ def _state_batch_flag_vals(batch_flag_args, batch_opdef, force_flags):
     if not batch_opdef:
         _batch_flags_for_missing_batch_opdef_error(batch_flag_args)
     decoded_flag_args = _parse_assigns(batch_flag_args)
-    return _flag_vals_from_decoded(decoded_flag_args, batch_opdef, force_flags)
+    return _flag_vals_for_decoded(decoded_flag_args, batch_opdef, force_flags)
 
 ###################################################################
 # Main
@@ -410,20 +410,20 @@ def _check_incompatible_with_restart(args):
 
 def _init_op(S):
     if S.opdef:
-        return _op_from_opdef(S)
+        return _op_for_opdef(S)
     else:
         assert S.restart_run
-        return _op_from_restart_run(S)
+        return _op_for_restart_run(S)
 
-def _op_from_opdef(S):
+def _op_for_opdef(S):
     assert S.opdef
     if S.batch_opdef:
         return _batch_op(S)
     else:
-        return _default_op_from_opdef(S)
+        return _default_op_for_opdef(S)
 
 def _batch_op(S):
-    return _gen_op_from_opdef(
+    return _gen_op_for_opdef(
         S.batch_opdef,
         S.batch_flag_vals,
         S.run_dir,
@@ -440,14 +440,14 @@ def _batch_op_callbacks(S):
     )
 
 def _batch_run_init_cb(S):
-    proto_op = _default_op_from_opdef(S)
+    proto_op = _default_op_for_opdef(S)
     def f(_batch_op, batch_run):
         proto_dir = batch_run.guild_path("proto")
         oplib.init_run(proto_op, proto_dir)
     return f
 
-def _default_op_from_opdef(S):
-    return _gen_op_from_opdef(
+def _default_op_for_opdef(S):
+    return _gen_op_for_opdef(
         S.opdef,
         S.flag_vals,
         S.run_dir,
@@ -457,10 +457,10 @@ def _default_op_from_opdef(S):
         S.restart_run,
     )
 
-def _gen_op_from_opdef(opdef, flag_vals, run_dir, extra_run_attrs,
+def _gen_op_for_opdef(opdef, flag_vals, run_dir, extra_run_attrs,
                        gpus, label_arg, restart_run, callbacks=None):
     try:
-        op = oplib.from_opdef(
+        op = oplib.for_opdef(
             opdef,
             flag_vals,
             run_dir=run_dir,
@@ -498,15 +498,15 @@ def _disable_sourcecode_copy_for_restart_op(op):
     op.sourcecode_src = None
     op.sourcecode_select = None
 
-def _op_from_restart_run(S):
-    return oplib.from_run(
+def _op_for_restart_run(S):
+    return oplib.for_run(
         S.restart_run,
         label=S.args.label,
         extra_run_attrs=S.extra_run_attrs,
         gpus=S.args.gpus)
 
 def _apply_opdef_to_restart_op(S, restart_op):
-    opdef_op = _op_from_opdef(S)
+    opdef_op = _op_for_opdef(S)
     op_util.apply_flags_to_restart_op(opdef_op, restart_op)
 
 def _validate_op(op, S):

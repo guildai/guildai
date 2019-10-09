@@ -25,6 +25,7 @@ import time
 from guild import config
 from guild import exit_code
 from guild import flag_util
+from guild import op_cmd
 from guild import op_dep
 from guild import op_util2 as op_util
 from guild import plugin as pluginlib
@@ -77,12 +78,13 @@ class ProcessError(Exception):
 
 class Operation(object):
 
-    def __init__(self, opref, cmd_args, flag_vals=None, flag_map=None,
-                 flag_null_labels=None, label=None,
+    def __init__(self, opref, cmd_template, cmd_args, flag_vals=None,
+                 flag_map=None, flag_null_labels=None, label=None,
                  extra_run_attrs=None, sourcecode_select=None,
                  sourcecode_src=None, run_dir=None, cmd_env=None,
                  deps=None, output_scalars=None, stoppable=False,
-                 callbacks=None):
+                 python_requires=None, callbacks=None):
+        self.cmd_template = cmd_template
         self.opref = opref
         self.cmd_args = cmd_args
         self.flag_vals = flag_vals
@@ -97,6 +99,7 @@ class Operation(object):
         self.deps = deps
         self.output_scalars = output_scalars
         self.stoppable = stoppable
+        self.python_requires = python_requires
         self.callbacks = callbacks
 
 class OperationCallbacks(object):
@@ -111,17 +114,25 @@ def _callback(name, op, *rest_args):
             cb(op, *rest_args)
 
 ###################################################################
-# Op from opdef
+# Op for opdef
 ###################################################################
 
-def from_opdef(opdef, flag_vals, gpus=None, **kw):
+def for_opdef(opdef, flag_vals, gpus=None, **kw):
+    cmd_template = _op_init_cmd_template(opdef)
+
+    # TODO gpus should be in extra_env
+
     cmd_args, flag_vals, flag_map = _op_init_cmd_args(opdef, flag_vals)
+
+
     sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
     cmd_env = _op_init_cmd_env(opdef, cmd_args, flag_vals, gpus)
     deps = _op_deps_for_opdef(opdef, flag_vals)
     flag_null_labels = _op_init_flag_null_labels(opdef)
+    python_requires = opdef.python_requires or opdef.modeldef.python_requires
     return Operation(
         opdef.opref,
+        cmd_template,
         cmd_args,
         flag_vals=flag_vals,
         flag_map=flag_map,
@@ -132,7 +143,84 @@ def from_opdef(opdef, flag_vals, gpus=None, **kw):
         deps=deps,
         output_scalars=opdef.output_scalars,
         stoppable=opdef.stoppable,
+        python_requires=python_requires,
         **kw)
+
+# =================================================================
+# Cmd template
+# =================================================================
+
+def _op_init_cmd_template(opdef):
+    cmd_args = _template_cmd_args(opdef)
+    flag_args = _template_flag_args(opdef)
+    return op_cmd.CmdTemplate(cmd_args, flag_args)
+
+def _template_cmd_args(opdef):
+    main_args = op_util.split_cmd(opdef.main or "")
+    exec_args = op_util.split_cmd(_opdef_exec(opdef))
+    _apply_main_args(main_args, exec_args)
+    _apply_flag_args_marker(exec_args)
+    return exec_args
+
+def _opdef_exec(opdef):
+    """Returns exec template for opdef.
+
+    If exec is specified explicitly, it's returned, otherwise main or
+    steps are used to generate a template.
+    """
+    if opdef.exec_:
+        if opdef.main:
+            log.warning(
+                "operation 'exec' and 'main' both specified, "
+                "ignoring 'main'")
+        if opdef.steps:
+            log.warning(
+                "operation 'exec' and 'steps' both specified, "
+                "ignoring 'steps'")
+        return opdef.exec_
+    elif opdef.main:
+        if opdef.steps:
+            log.warning(
+                "operation 'main' and 'steps' both specified, "
+                "ignoring 'steps'")
+        return DEFAULT_EXEC
+    elif opdef.steps:
+        return STEPS_EXEC
+    else:
+        raise ValueError(
+            "invalid definition for %s: must define either "
+            "exec, main, or steps" % opdef.fullname)
+
+def _apply_main_args(main_args, exec_args):
+    i = 0
+    while i < len(exec_args):
+        if exec_args[i] == "${main_args}":
+            exec_args[i:i+1] = main_args
+            i += len(main_args)
+        i += 1
+
+def _apply_flag_args_marker(exec_args):
+    for i, val in enumerate(exec_args):
+        if val == "${flag_args}":
+            exec_args[i] = "__flag_args__"
+
+def _template_flag_args(opdef):
+    return {
+        flagdef.name: _template_flag_arg(flagdef)
+        for flagdef in opdef.flags
+    }
+
+def _template_flag_arg(flagdef):
+    return op_cmd.FlagArg(
+        arg_name=flagdef.arg_name,
+        arg_skip=_flagdef_arg_skip(flagdef),
+        arg_switch=flagdef.arg_switch,
+    )
+
+def _flagdef_arg_skip(flagdef):
+    if flagdef.arg_skip is not None:
+        return flagdef.arg_skip
+    return flagdef.opdef.default_flag_arg_skip
 
 # =================================================================
 # Cmd args for opdef
@@ -263,14 +351,14 @@ def _extended_flag_vals(flag_vals, opdef):
     """
     extended = dict(flag_vals)
     extended.update({
-        "python_exe": _python_exe(opdef),
+        "python_exe": _python_exe_for_opdef(opdef),
         "main_args": "__main_args__",
         "flag_args": "__flag_args__",
         "model_dir": opdef.guildfile.dir,
     })
     return extended
 
-def _python_exe(opdef):
+def _python_exe_for_opdef(opdef):
     req = opdef.python_requires or opdef.modeldef.python_requires
     if req:
         matching = util.find_python_interpreter(req)
@@ -428,10 +516,10 @@ def _op_init_flag_null_labels(opdef):
     }
 
 ###################################################################
-# Op from run
+# Op for run
 ###################################################################
 
-def from_run(run, gpus=None, **kw):
+def for_run(run, gpus=None, **kw):
     cmd_args = run.get("cmd")
     flag_vals = run.get("flags")
     flag_map = run.get("flag_map")
@@ -580,7 +668,8 @@ def _op_run(op, run, quiet, stop_after):
         op_util.clear_run_pending(run)
 
 def _op_proc(op, run, env):
-    args = op.cmd_args
+    args = proc_args(op)
+    assert args == op.cmd_args, (args, op.cmd_args)
     cwd = run.dir
     log.debug("starting operation run %s in %s", run.id, cwd)
     log.debug("operation command: %s", args)
@@ -598,6 +687,27 @@ def _op_proc(op, run, env):
     else:
         _write_proc_lock(proc, run)
         return proc
+
+def proc_args(op):
+    unresolved_args = op_cmd.cmd_args(op.cmd_template, op.flag_vals)
+    params = _proc_arg_resolve_params(op)
+    return [util.resolve_refs(arg, params) for arg in unresolved_args]
+
+def _proc_arg_resolve_params(op):
+    params = dict(op.flag_vals)
+    params["python_exe"] = _proc_python_exe(op)
+    return params
+
+def _proc_python_exe(op):
+    if op.python_requires:
+        matching = util.find_python_interpreter(op.python_requires)
+        if not matching:
+            raise ProcessError(
+                "cannot find a python interpreter for "
+                "requirement %r" % op.python_requires)
+        path, _ver = matching
+        return path
+    return sys.executable
 
 def _write_proc_lock(proc, run):
     with open(run.guild_path("LOCK"), "w") as f:

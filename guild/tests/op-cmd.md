@@ -49,13 +49,27 @@ No flag args:
     >>> cmd_args(["a", "b"], {}, {"c": 123})
     ['a', 'b']
 
-Mapped value args:
+Various flag values:
 
-    >>> cmd_args(
-    ...     ["__flag_args__"],
-    ...     {"a": FlagArg(arg_val_map={1: ["b", "c"]})},
-    ...     {"a": 1})
-    ['b', 'c']
+    >>> cmd_args(["__flag_args__"], {}, {"c": 123})
+    ['--c', '123']
+
+    >>> cmd_args(["__flag_args__"], {}, {"c": "123"})
+    ['--c', "'123'"]
+
+    >>> cmd_args(["__flag_args__"], {}, {"c": True})
+    ['--c', 'yes']
+
+    >>> cmd_args(["__flag_args__"], {}, {"c": False})
+    ['--c', 'no']
+
+    >>> cmd_args(["__flag_args__"], {}, {"c": None})
+    []
+
+Sort order:
+
+    >>> cmd_args(["__flag_args__"], {}, {"a": 1, "b": 2, "c": 3, "z": 4})
+    ['--a', '1', '--b', '2', '--c', '3', '--z', '4']
 
 Arg switches:
 
@@ -64,6 +78,12 @@ Arg switches:
     ...     {"a": FlagArg(arg_switch=1)},
     ...     {"a": 1})
     ['--a']
+
+    >>> cmd_args(
+    ...     ["__flag_args__"],
+    ...     {"a": FlagArg(arg_switch=1)},
+    ...     {"a": 2})
+    []
 
 Skip args:
 
@@ -101,20 +121,15 @@ Examples:
 
     >>> as_data(["a", "b"], {
     ...     "a": FlagArg(arg_name="A"),
-    ...     "b": FlagArg(arg_val_map={1: "X", 2: "Y", "z": "Z"}),
-    ...     "c": FlagArg(arg_skip=True),
-    ...     "d": FlagArg(arg_switch="D"),
-    ...     "e": FlagArg(arg_name="E",
-    ...                  arg_val_map={"e1": 1, "e2": "2"},
+    ...     "b": FlagArg(arg_skip=True),
+    ...     "c": FlagArg(arg_switch="C"),
+    ...     "d": FlagArg(arg_name="D",
     ...                  arg_skip=False,
     ...                  arg_switch="2"),
-    ...     "f": FlagArg(),
+    ...     "e": FlagArg(),
     ... })
     {'cmd-args': ['a', 'b'],
      'flag-args': {'a': {'arg-name': 'A'},
-                   'b': {'arg-val-map': {1: 'X', 2: 'Y', 'z': 'Z'}},
-                   'c': {'arg-skip': True},
-                   'd': {'arg-switch': 'D'},
-                   'e': {'arg-name': 'E',
-                         'arg-switch': '2',
-                         'arg-val-map': {'e1': 1, 'e2': '2'}}}}
+                   'b': {'arg-skip': True},
+                   'c': {'arg-switch': 'C'},
+                   'd': {'arg-name': 'D', 'arg-switch': '2'}}}

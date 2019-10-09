@@ -893,17 +893,17 @@ def mapped_flag_vals(flag_vals, opdef):
 def _apply_choice_args(flagdef, val, flag_vals, target):
     for choice in flagdef.choices:
         if choice.value == val:
-            if choice.args:
-                args = {
+            if choice.flags:
+                choice_flags = {
                     name: util.resolve_refs(val, flag_vals)
-                    for name, val in choice.args.items()
+                    for name, val in choice.flags.items()
                 }
                 # Choice args must not overwrite existing args
                 # (i.e. default values from other flags or values from
                 # user)
-                for name in args:
+                for name in choice_flags:
                     if name not in target:
-                        target[name] = args[name]
+                        target[name] = choice_flags[name]
             break
 
 def _skip_flag_arg(flagdef):

@@ -18,6 +18,10 @@ from __future__ import division
 from guild import flag_util
 from guild import util
 
+###################################################################
+# State
+###################################################################
+
 class CmdTemplate(object):
 
     def __init__(self, cmd_args, flag_args):
@@ -26,12 +30,44 @@ class CmdTemplate(object):
 
 class FlagArg(object):
 
-    def __init__(self, arg_name=None, arg_val_map=None,
-                 arg_skip=False, arg_switch=None):
+    def __init__(self, arg_name=None, arg_skip=False, arg_switch=None):
         self.arg_name = arg_name
         self.arg_skip = arg_skip
         self.arg_switch = arg_switch
-        self.arg_val_map = arg_val_map
+
+###################################################################
+# Generate command
+###################################################################
+
+def cmd_args(template, flag_vals):
+    args = []
+    for arg in template.cmd_args:
+        if arg == "__flag_args__":
+            args.extend(_flag_args(template.flag_args, flag_vals))
+        else:
+            args.append(arg)
+    return args
+
+def _flag_args(arg_specs, flag_vals):
+    args = []
+    for name, val in sorted(flag_vals.items()):
+        args.extend(_args_for_flag(name, val, arg_specs.get(name)))
+    return args
+
+def _args_for_flag(name, val, arg_spec):
+    arg_spec = arg_spec or FlagArg()
+    if arg_spec.arg_skip:
+        return []
+    arg_name = arg_spec.arg_name or name
+    if arg_spec.arg_switch is not None:
+        if arg_spec.arg_switch == val:
+            return ["--%s" % arg_name]
+        else:
+            return []
+    elif val is not None:
+        return ["--%s" % arg_name, flag_util.encode_flag_val(val)]
+    else:
+        return []
 
 ###################################################################
 # Data IO
@@ -57,7 +93,6 @@ def _flag_arg_for_data(data):
         raise ValueError(data)
     return FlagArg(
         arg_name=data.get("arg-name"),
-        arg_val_map=data.get("arg-val-map"),
         arg_skip=data.get("arg-skip"),
         arg_switch=data.get("arg-switch"),
     )
@@ -83,59 +118,8 @@ def _flag_arg_as_data(flag_arg):
     data = {}
     if flag_arg.arg_name:
         data["arg-name"] = flag_arg.arg_name
-    if flag_arg.arg_val_map:
-        data["arg-val-map"] = flag_arg.arg_val_map
     if flag_arg.arg_skip:
         data["arg-skip"] = flag_arg.arg_skip
     if flag_arg.arg_switch:
         data["arg-switch"] = flag_arg.arg_switch
     return data
-
-###################################################################
-# From op def
-###################################################################
-
-def from_opdef(opdef):
-    pass
-
-###################################################################
-# Generate command
-###################################################################
-
-def cmd_args(template, flag_vals):
-    args = []
-    for arg in template.cmd_args:
-        if arg == "__flag_args__":
-            args.extend(_flag_args(template.flag_args, flag_vals))
-        else:
-            args.append(arg)
-    return args
-
-def _flag_args(arg_specs, flag_vals):
-    args = []
-    for name, val in flag_vals.items():
-        args.extend(_args_for_flag(name, val, arg_specs.get(name)))
-    return args
-
-def _args_for_flag(name, val, arg_spec):
-    arg_spec = arg_spec or FlagArg()
-    return util.find_apply([
-        _skipped_args,
-        _mapped_args,
-        _flag_val_args,
-    ], name, val, arg_spec)
-
-def _skipped_args(_name, _val, arg_spec):
-    if arg_spec.arg_skip:
-        return []
-    return None
-
-def _mapped_args(_name, val, arg_spec):
-    return (arg_spec.arg_val_map or {}).get(val)
-
-def _flag_val_args(name, val, arg_spec):
-    arg_name = arg_spec.arg_name or name
-    if arg_spec.arg_switch is not None and arg_spec.arg_switch == val:
-        return ["--%s" % arg_name]
-    else:
-        return ["--%s" % arg_name, flag_util.encode_flag_val(val)]

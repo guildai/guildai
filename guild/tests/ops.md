@@ -98,9 +98,9 @@ We'll create a helper function to get the args:
 
     >>> class ChoiceProxy(object):
     ...
-    ...   def __init__(self, value=None, args=None):
+    ...   def __init__(self, value=None, flags=None):
     ...     self.value = value
-    ...     self.args = args
+    ...     self.flags = flags
 
     >>> class OpDefProxy(object):
     ...
@@ -287,8 +287,8 @@ We can however use choice `args` to modify the arguments:
     ...   "color": {
     ...      "default": "blue",
     ...      "choices": [{"value": "blue",
-    ...                   "args": {"hex": "00f",
-    ...                            "rgb": "0,0,255"}}]
+    ...                   "flags": {"hex": "00f",
+    ...                             "rgb": "0,0,255"}}]
     ...   }
     ... })
     ['--color', 'blue', '--hex', '00f', '--rgb', '0,0,255']
@@ -300,8 +300,8 @@ We can use `arg_skip` to omit the choice value:
     ...      "default": "blue",
     ...      "arg_skip": True,
     ...      "choices": [{"value": "blue",
-    ...                   "args": {"hex": "00f",
-    ...                            "rgb": "0,0,255"}}]
+    ...                   "flags": {"hex": "00f",
+    ...                             "rgb": "0,0,255"}}]
     ...   }
     ... })
     ['--hex', '00f', '--rgb', '0,0,255']
@@ -363,7 +363,7 @@ by the other flag takes precendence.
     ...     "default": "light",
     ...     "arg_skip": True,
     ...     "choices": [{"value": "light",
-    ...                  "args": {"color": "tan"}}
+    ...                  "flags": {"color": "tan"}}
     ...     ]
     ...   }
     ... })
