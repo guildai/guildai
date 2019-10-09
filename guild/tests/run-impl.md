@@ -117,6 +117,21 @@ Incomptable with start/restart:
     Try 'guild operations' for a list of available operations.
     <exit 1>
 
+## No Guildfile
+
+    >>> cwd = mkdtemp()
+
+    >>> run(cwd)
+    cannot find a default operation
+    Try 'guild operations' for a list.
+    <exit 1>
+
+    >>> run(cwd, opspec="hello.py")
+    cannot find operation hello.py
+    You may need to include a model in the form MODEL:OPERATION.
+    Try 'guild operations' for a list of available operations.
+    <exit 1>
+
 ## No matching model or operation
 
     >>> cwd = init_gf("""
