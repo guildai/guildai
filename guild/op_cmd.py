@@ -15,8 +15,12 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
+
 from guild import flag_util
 from guild import util
+
+log = logging.getLogger("guild")
 
 ###################################################################
 # State
@@ -39,26 +43,34 @@ class FlagArg(object):
 # Generate command
 ###################################################################
 
-def cmd_args(template, flag_vals):
+def cmd_args(template, flag_vals, resolve_params):
     args = []
     for arg in template.cmd_args:
         if arg == "__flag_args__":
-            args.extend(_flag_args(template.flag_args, flag_vals))
+            args.extend(_flag_args(flag_vals, template.flag_args,
+                                   args))
         else:
-            args.append(arg)
+            args.append(_resolve_arg(arg, resolve_params))
     return args
 
-def _flag_args(arg_specs, flag_vals):
+def _flag_args(flag_vals, flag_args, cmd_args):
     args = []
     for name, val in sorted(flag_vals.items()):
-        args.extend(_args_for_flag(name, val, arg_specs.get(name)))
+        args.extend(_args_for_flag(name, val, flag_args.get(name),
+                                   cmd_args))
     return args
 
-def _args_for_flag(name, val, arg_spec):
+def _args_for_flag(name, val, arg_spec, cmd_args):
     arg_spec = arg_spec or FlagArg()
     if arg_spec.arg_skip:
         return []
     arg_name = arg_spec.arg_name or name
+    if "--%s" % arg_name in cmd_args:
+        log.warning(
+            "ignoring flag '%s=%s' because it's shadowed "
+            "in the operation cmd as --%s",
+            name, flag_util.encode_flag_val(val), arg_name)
+        return []
     if arg_spec.arg_switch is not None:
         if arg_spec.arg_switch == val:
             return ["--%s" % arg_name]
@@ -68,6 +80,9 @@ def _args_for_flag(name, val, arg_spec):
         return ["--%s" % arg_name, flag_util.encode_flag_val(val)]
     else:
         return []
+
+def _resolve_arg(val, params):
+    return util.resolve_refs(val, params)
 
 ###################################################################
 # Data IO

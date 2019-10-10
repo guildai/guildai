@@ -33,7 +33,8 @@ Helper functions:
 
     >>> def cmd_args(cmd_args, flag_args, flag_vals):
     ...     template = CmdTemplate(cmd_args, flag_args)
-    ...     return op_cmd.cmd_args(template, flag_vals)
+    ...     resolve_params = flag_vals
+    ...     return op_cmd.cmd_args(template, flag_vals, resolve_params)
 
 
 Simple example:
@@ -92,6 +93,10 @@ Skip args:
     ...     {"a": FlagArg(arg_skip=True)},
     ...     {"a": 1})
     []
+
+## Shadowing
+
+I
 
 ## Data IO
 

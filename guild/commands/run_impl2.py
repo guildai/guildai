@@ -25,7 +25,6 @@ from guild import cli
 from guild import cmd_impl_support
 from guild import config
 from guild import flag_util
-from guild import guildfile
 from guild import help as helplib
 from guild import op2 as oplib
 from guild import op_dep
@@ -44,13 +43,14 @@ log = logging.getLogger("guild")
 
 class State(object):
 
-    def __init__(self, args, restart_run, opdef, flag_vals,
-                 batch_files, run_dir, extra_run_attrs, batch_opdef,
-                 batch_flag_vals):
+    def __init__(self, args, restart_run, opdef, user_flag_vals,
+                 op_flag_vals, batch_files, run_dir, extra_run_attrs,
+                 batch_opdef, batch_flag_vals):
         self.args = args
         self.restart_run = restart_run
         self.opdef = opdef
-        self.flag_vals = flag_vals
+        self.user_flag_vals = user_flag_vals
+        self.op_flag_vals = op_flag_vals
         self.batch_files = batch_files
         self.run_dir = run_dir
         self.extra_run_attrs = extra_run_attrs
@@ -60,19 +60,18 @@ class State(object):
 def _state_for_args(args):
     restart_run = _state_restart_run(args.restart or args.start)
     opdef = _state_opdef(args, restart_run)
-    decoded_flag_args, batch_files = _state_split_flag_args(args.flags)
-    flag_vals = _flag_vals_for_decoded(
-        decoded_flag_args, opdef, args.force_flags)
+    user_flag_vals, batch_files = _state_split_flag_args(args.flags)
+    op_flag_vals = _state_op_flag_vals(opdef, user_flag_vals, args.force_flags)
     if restart_run:
-        _apply_restart_run_flags(restart_run, flag_vals)
+        _apply_restart_run_flags(restart_run, user_flag_vals, op_flag_vals)
     run_dir = _state_run_dir(args, restart_run)
     extra_run_attrs = _state_extra_run_attrs(args)
-    batch_opdef = _state_batch_opdef(args, decoded_flag_args, restart_run)
+    batch_opdef = _state_batch_opdef(args, op_flag_vals, restart_run)
     batch_flag_vals = _state_batch_flag_vals(
         args.opt_flags, batch_opdef, args.force_flags)
-    return State(args, restart_run, opdef, flag_vals, batch_files,
-                 run_dir, extra_run_attrs, batch_opdef,
-                 batch_flag_vals)
+    return State(args, restart_run, opdef, user_flag_vals,
+                 op_flag_vals, batch_files, run_dir, extra_run_attrs,
+                 batch_opdef, batch_flag_vals)
 
 def _state_restart_run(restart):
     if not restart:
@@ -85,6 +84,35 @@ def _run_for_spec(spec):
         run_util.marked_or_latest_run_for_opspec,
         one_run,
     ], spec)
+
+def _state_split_flag_args(flag_args):
+    batch_files, rest_args = op_util.split_batch_files(flag_args)
+    assigns = _parse_assigns(rest_args)
+    return assigns, batch_files
+
+def _parse_assigns(assign_args):
+    try:
+        return op_util.parse_flag_assigns(assign_args)
+    except op_util.ArgValueError as e:
+        _invalid_flag_arg_error(e.arg)
+
+def _state_op_flag_vals(opdef, user_flag_vals, force_flags):
+    try:
+        return op_util.flag_vals_for_opdef(opdef, user_flag_vals, force_flags)
+    except op_util.MissingRequiredFlags as e:
+        _missing_required_flags_error(e)
+    except op_util.InvalidFlagChoice as e:
+        _invalid_flag_choice_error(e)
+    except op_util.InvalidFlagValue as e:
+        _invalid_flag_value_error(e)
+    except op_util.NoSuchFlagError as e:
+        _no_such_flag_error(e.flag_name, opdef)
+
+def _apply_restart_run_flags(restart_run, user_flag_vals, target_vals):
+    restart_run_flags = restart_run.get("flags") or {}
+    for name in restart_run_flags:
+        if name not in user_flag_vals:
+            target_vals[name] = restart_run_flags[name]
 
 # =================================================================
 # State - op def
@@ -137,99 +165,6 @@ def _opdef_for_opspec(opspec):
         _no_such_opdef_error(e.model, e.op_name)
     except op_util.ModelOpProxyError as e:
         _model_op_proxy_error(e)
-
-# =================================================================
-# State - flag vals
-# =================================================================
-
-def _state_split_flag_args(flag_args):
-    batch_files, rest_args = op_util.split_batch_files(flag_args)
-    assigns = _parse_assigns(rest_args)
-    return assigns, batch_files
-
-def _parse_assigns(assign_args):
-    try:
-        return op_util.parse_flag_assigns(assign_args)
-    except op_util.ArgValueError as e:
-        _invalid_flag_arg_error(e.arg)
-
-def _flag_vals_for_decoded(arg_decoded_flag_vals, opdef, force_flags):
-    if not arg_decoded_flag_vals:
-        return arg_decoded_flag_vals
-    assert opdef, "flag args not allowed without an opdef"
-    opdef_coerced_flag_vals = _coerce_flags(
-        arg_decoded_flag_vals, opdef.flags)
-    resource_flagdef_proxies = _resource_flagdef_proxies(
-        opdef, opdef_coerced_flag_vals)
-    final_coerced_flag_vals = _coerce_flags(
-        opdef_coerced_flag_vals, resource_flagdef_proxies)
-    if not force_flags:
-        _check_no_such_flags(
-            final_coerced_flag_vals,
-            opdef.flags + resource_flagdef_proxies,
-            opdef)
-        _validate_flag_vals(final_coerced_flag_vals, opdef)
-    return final_coerced_flag_vals
-
-def _coerce_flags(flag_vals, flagdefs):
-    flagdef_lookup = {
-        flagdef.name: flagdef
-        for flagdef in flagdefs
-    }
-    return {
-        name: _coerce_flag_val(name, val, flagdef_lookup)
-        for name, val in flag_vals.items()
-    }
-
-def _coerce_flag_val(name, val, flagdefs):
-    flagdef = flagdefs.get(name)
-    if not flagdef:
-        return val
-    try:
-        return op_util.coerce_flag_value(val, flagdef)
-    except (ValueError, TypeError) as e:
-        _coerce_flag_val_error(val, name, e)
-
-def _resource_flagdef_proxies(opdef, flag_vals):
-    return [
-        _ResourceFlagDefProxy(resource_spec, opdef)
-        for resource_spec in _resource_specs(opdef, flag_vals)
-    ]
-
-def _ResourceFlagDefProxy(name, opdef):
-    data = {
-        "arg-skip": True,
-        "type": "string",
-    }
-    return guildfile.FlagDef(name, data, opdef)
-
-def _resource_specs(opdef, flag_vals):
-    return [
-        util.resolve_refs(dep.name, flag_vals, undefined=None)
-        for dep in opdef.dependencies
-    ]
-
-def _check_no_such_flags(flag_vals, flagdefs, opdef):
-    flagdef_names = set([flagdef.name for flagdef in flagdefs])
-    for name in flag_vals:
-        if name not in flagdef_names:
-            _no_such_flag_error(name, opdef)
-
-def _validate_flag_vals(flag_vals, opdef):
-    try:
-        op_util.validate_flag_vals(flag_vals, opdef)
-    except op_util.MissingRequiredFlags as e:
-        _missing_required_flags_error(e)
-    except op_util.InvalidFlagChoice as e:
-        _invalid_flag_choice_error(e)
-    except op_util.InvalidFlagValue as e:
-        _invalid_flag_value_error(e)
-
-def _apply_restart_run_flags(restart_run, flag_vals):
-    restart_run_flags = restart_run.get("flags") or {}
-    for name in restart_run_flags:
-        if name not in flag_vals:
-            flag_vals[name] = restart_run_flags[name]
 
 # =================================================================
 # State - run dir
@@ -288,14 +223,14 @@ def _apply_attr_max_trials(args, attrs):
 # State - batch op def
 # =================================================================
 
-def _state_batch_opdef(args, decoded_flag_args, restart_run):
+def _state_batch_opdef(args, flag_vals, restart_run):
     if restart_run:
         opdef = _batch_opdef_for_run(restart_run)
         if not opdef:
             _check_restart_args_for_missing_batch_opdef(args, restart_run)
         return opdef
     else:
-        return _batch_opdef_for_args(args, decoded_flag_args)
+        return _batch_opdef_for_args(args, flag_vals)
 
 def _batch_opdef_for_run(_run):
     # TODO
@@ -305,16 +240,16 @@ def _check_restart_args_for_missing_batch_opdef(_args, _restart_run):
     # TODO
     pass
 
-def _batch_opdef_for_args(args, decoded_flag_args):
-    optimizer_opspec = _optimizer_opspec_for_args(args, decoded_flag_args)
+def _batch_opdef_for_args(args, flag_vals):
+    optimizer_opspec = _optimizer_opspec_for_args(args, flag_vals)
     if optimizer_opspec:
         return _opdef_for_opspec(optimizer_opspec)
     return None
 
-def _optimizer_opspec_for_args(args, decoded_flag_args):
+def _optimizer_opspec_for_args(args, flag_vals):
     if args.optimizer:
         return args.optimizer
-    return _implied_optimizer_for_flags(decoded_flag_args)
+    return _implied_optimizer_for_flags(flag_vals)
 
 def _implied_optimizer_for_flags(flag_vals):
     return (
@@ -340,8 +275,8 @@ def _state_batch_flag_vals(batch_flag_args, batch_opdef, force_flags):
         return {}
     if not batch_opdef:
         _batch_flags_for_missing_batch_opdef_error(batch_flag_args)
-    decoded_flag_args = _parse_assigns(batch_flag_args)
-    return _flag_vals_for_decoded(decoded_flag_args, batch_opdef, force_flags)
+    user_flag_vals = _parse_assigns(batch_flag_args)
+    return _state_op_flag_vals(batch_opdef, user_flag_vals, force_flags)
 
 ###################################################################
 # Main
@@ -422,16 +357,7 @@ def _op_for_opdef(S):
         return _default_op_for_opdef(S)
 
 def _batch_op(S):
-    return _gen_op_for_opdef(
-        S.batch_opdef,
-        S.batch_flag_vals,
-        S.run_dir,
-        S.extra_run_attrs,
-        S.args.gpus,
-        S.args.batch_label,
-        S.restart_run,
-        callbacks=_batch_op_callbacks(S),
-    )
+    return _gen_op_for_opdef(S, callbacks=_batch_op_callbacks(S))
 
 def _batch_op_callbacks(S):
     return oplib.OperationCallbacks(
@@ -446,33 +372,24 @@ def _batch_run_init_cb(S):
     return f
 
 def _default_op_for_opdef(S):
-    return _gen_op_for_opdef(
-        S.opdef,
-        S.flag_vals,
-        S.run_dir,
-        S.extra_run_attrs,
-        S.args.gpus,
-        S.args.label,
-        S.restart_run,
-    )
+    return _gen_op_for_opdef(S)
 
-def _gen_op_for_opdef(opdef, flag_vals, run_dir, extra_run_attrs,
-                       gpus, label_arg, restart_run, callbacks=None):
+def _gen_op_for_opdef(S, callbacks=None):
     try:
         op = oplib.for_opdef(
-            opdef,
-            flag_vals,
-            run_dir=run_dir,
-            extra_run_attrs=extra_run_attrs,
-            gpus=gpus,
+            S.opdef,
+            S.op_flag_vals,
+            run_dir=S.run_dir,
+            extra_run_attrs=S.extra_run_attrs,
+            gpus=S.args.gpus,
             callbacks=callbacks,
         )
-        _apply_op_label(label_arg, opdef, flag_vals, op)
-        if restart_run:
+        _apply_op_label(S.args.label, S.opdef, S.user_flag_vals, op)
+        if S.restart_run:
             _disable_sourcecode_copy_for_restart_op(op)
         return op
     except oplib.InvalidOpDef as e:
-        _invalid_opdef_error(opdef, str(e))
+        _invalid_opdef_error(S.opdef, str(e))
 
 def _apply_op_label(label_arg, opdef, flag_vals, op):
     label_template = _label_template(label_arg, opdef, flag_vals)
@@ -489,7 +406,7 @@ def _label_template(label_arg, opdef, flag_vals):
 def _default_label(flag_vals):
     if not flag_vals:
         return None
-    return op_util.flags_desc(flag_vals, truncate_floats=True, delim=" ")
+    return op_util.flags_desc(flag_vals, delim=" ")
 
 def _disable_sourcecode_copy_for_restart_op(op):
     # Disable source code copy if restarting. Restarted runs must
@@ -910,8 +827,10 @@ def _no_such_flag_error(name, opdef):
         "flags or use --force-flags to skip this check."
         % (name, opdef.fullname))
 
-def _coerce_flag_val_error(val, name, e):
-    cli.error("cannot apply %r to flag '%s': %s" % (val, name, e))
+def _coerce_flag_val_error(e):
+    cli.error(
+        "cannot apply %r to flag '%s': %s"
+        % (e.value, e.flag_name, e.error))
 
 def _missing_required_flags_error(e):
     cli.out(

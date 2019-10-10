@@ -55,20 +55,23 @@ class ArgValueError(ValueError):
         super(ArgValueError, self).__init__(arg)
         self.arg = arg
 
-class MissingRequiredFlags(ValueError):
+class FlagError(Exception):
+    pass
+
+class MissingRequiredFlags(FlagError):
 
     def __init__(self, missing):
         super(MissingRequiredFlags, self).__init__(missing)
         self.missing = missing
 
-class InvalidFlagChoice(ValueError):
+class InvalidFlagChoice(FlagError):
 
     def __init__(self, val, flag):
         super(InvalidFlagChoice, self).__init__(val, flag)
         self.val = val
         self.flag = flag
 
-class InvalidFlagValue(ValueError):
+class InvalidFlagValue(FlagError):
 
     def __init__(self, val, flag, msg):
         super(InvalidFlagValue, self).__init__(val, flag, msg)

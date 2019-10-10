@@ -29,6 +29,7 @@ from guild import var
 
 # TEMP imports until promoted to op_util
 from .op_util import ArgValueError          # pylint: disable=unused-import
+from .op_util import FlagError              # pylint: disable=unused-import
 from .op_util import InvalidFlagChoice      # pylint: disable=unused-import
 from .op_util import InvalidFlagValue       # pylint: disable=unused-import
 from .op_util import MissingRequiredFlags   # pylint: disable=unused-import
@@ -42,7 +43,6 @@ from .op_util import opdef_model_paths      # pylint: disable=unused-import
 from .op_util import parse_flag_assigns     # pylint: disable=unused-import
 from .op_util import parse_opspec           # pylint: disable=unused-import
 from .op_util import split_cmd              # pylint: disable=unused-import
-from .op_util import validate_flag_vals     # pylint: disable=unused-import
 
 log = logging.getLogger("guild")
 
@@ -101,6 +101,12 @@ class ModelOpProxyError(Exception):
         super(ModelOpProxyError, self).__init__(opspec, msg)
         self.opspec = opspec
         self.msg = msg
+
+class NoSuchFlagError(FlagError):
+
+    def __init__(self, flag_name):
+        super(NoSuchFlagError, self).__init__(flag_name)
+        self.flag_name = flag_name
 
 ###################################################################
 # OpDef for spec
@@ -435,6 +441,137 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
             "too big.%s",
             path,
             self._warning_help_suffix)
+
+###################################################################
+# Flags support
+###################################################################
+
+def flag_vals_for_opdef(opdef, user_flag_vals=None, force=False):
+    flag_vals = dict(user_flag_vals)
+    _apply_coerce_flag_vals(opdef.flags, flag_vals, force)
+    resource_flagdefs = _resource_flagdefs(opdef, flag_vals)
+    _apply_coerce_flag_vals(resource_flagdefs, flag_vals, force)
+    flagdefs = opdef.flags + resource_flagdefs
+    if not force:
+        _check_no_such_flags(flag_vals, flagdefs)
+        _check_flag_vals(flag_vals, flagdefs)
+    _apply_default_flag_vals(flagdefs, flag_vals)  # apply after check vals
+    _apply_choices_flag_vals(flagdefs, user_flag_vals, flag_vals)
+    if not force:
+        _check_required_flags(flag_vals, flagdefs)
+    return flag_vals
+
+def _apply_coerce_flag_vals(flagdefs, vals, force):
+    flagdef_lookup = {
+        flagdef.name: flagdef
+        for flagdef in flagdefs
+    }
+    for name, val in vals.items():
+        try:
+            coerced = _coerce_flag_val(name, val, flagdef_lookup)
+        except InvalidFlagValue:
+            if not force:
+                raise
+        else:
+            vals[name] = coerced
+
+def _coerce_flag_val(name, val, flagdefs):
+    flagdef = flagdefs.get(name)
+    if not flagdef:
+        return val
+    try:
+        return coerce_flag_value(val, flagdef)
+    except (ValueError, TypeError) as e:
+        raise InvalidFlagValue(name, val, str(e))
+
+def _resource_flagdefs(opdef, flag_vals):
+    return [
+        _ResourceFlagDefProxy(resource_spec, opdef)
+        for resource_spec in _resource_specs(opdef, flag_vals)
+    ]
+
+def _resource_specs(opdef, flag_vals):
+    return [
+        util.resolve_refs(dep.name, flag_vals, undefined=None)
+        for dep in opdef.dependencies
+    ]
+
+def _ResourceFlagDefProxy(name, opdef):
+    data = {
+        "arg-skip": True,
+        "type": "string",
+    }
+    return guildfile.FlagDef(name, data, opdef)
+
+def _check_no_such_flags(flag_vals, flagdefs):
+    flagdef_names = set([flagdef.name for flagdef in flagdefs])
+    for name in flag_vals:
+        if name not in flagdef_names:
+            raise NoSuchFlagError(name)
+
+def _check_flag_vals(vals, flagdefs):
+    for flag in flagdefs:
+        val = vals.get(flag.name)
+        _check_flag_choice(val, flag)
+        _check_flag_type(val, flag)
+        _check_flag_range(val, flag)
+
+def _check_flag_choice(val, flag):
+    if (val and flag.choices and not flag.allow_other and
+        val not in [choice.value for choice in flag.choices]):
+        raise InvalidFlagChoice(val, flag)
+
+def _check_flag_type(val, flag):
+    if flag.type == "existing-path":
+        if val and not os.path.exists(val):
+            raise InvalidFlagValue(val, flag, "%s does not exist" % val)
+
+def _check_flag_range(val, flag):
+    if val is None:
+        return
+    if flag.min is not None and val < flag.min:
+        raise InvalidFlagValue(
+            val, flag, "out of range (less than min %s)" % flag.min)
+    if flag.max is not None and val > flag.max:
+        raise InvalidFlagValue(
+            val, flag, "out of range (greater than max %s)" % flag.max)
+
+def _apply_choices_flag_vals(flagdefs, user_vals, target_vals):
+    for flagdef in flagdefs:
+        if not flagdef.choices:
+            continue
+        flag_val = target_vals.get(flagdef.name)
+        if flag_val is None:
+            continue
+        for choice in flagdef.choices:
+            if choice.flags and choice.value == flag_val:
+                _apply_choice_flags(choice.flags, user_vals, target_vals)
+
+def _apply_choice_flags(choice_flags, user_vals, target_vals):
+    for flag_name, flag_val in choice_flags.items():
+        if user_vals.get(flag_name) is None:
+            target_vals[flag_name] = flag_val
+
+def _check_required_flags(vals, flagdefs):
+    missing = _missing_flags(vals, flagdefs)
+    if missing:
+        raise MissingRequiredFlags(missing)
+
+def _missing_flags(vals, flagdefs):
+    return [
+        flag for flag in flagdefs
+        if flag.required and _flag_missing(vals.get(flag.name))
+    ]
+
+def _flag_missing(val):
+    if val is None or val == "":
+        return True
+    return False
+
+def _apply_default_flag_vals(flagdefs, flag_vals):
+    for flagdef in flagdefs:
+        if flag_vals.get(flagdef.name) is None:
+            flag_vals[flagdef.name] = flagdef.default
 
 ###################################################################
 # Utils

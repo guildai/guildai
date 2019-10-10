@@ -117,12 +117,12 @@ def _callback(name, op, *rest_args):
 # Op for opdef
 ###################################################################
 
-def for_opdef(opdef, flag_vals, gpus=None, **kw):
+def for_opdef(opdef, user_flag_vals, gpus=None, **kw):
     cmd_template = _op_init_cmd_template(opdef)
 
     # TODO gpus should be in extra_env
 
-    cmd_args, flag_vals, flag_map = _op_init_cmd_args(opdef, flag_vals)
+    cmd_args, flag_vals, flag_map = _op_init_cmd_args(opdef, user_flag_vals)
 
 
     sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
@@ -689,9 +689,8 @@ def _op_proc(op, run, env):
         return proc
 
 def proc_args(op):
-    unresolved_args = op_cmd.cmd_args(op.cmd_template, op.flag_vals)
-    params = _proc_arg_resolve_params(op)
-    return [util.resolve_refs(arg, params) for arg in unresolved_args]
+    resolve_params = _proc_arg_resolve_params(op)
+    return op_cmd.cmd_args(op.cmd_template, op.flag_vals, resolve_params)
 
 def _proc_arg_resolve_params(op):
     params = dict(op.flag_vals)
