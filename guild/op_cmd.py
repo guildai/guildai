@@ -26,53 +26,61 @@ log = logging.getLogger("guild")
 # State
 ###################################################################
 
-class CmdTemplate(object):
+class OpCmd(object):
 
-    def __init__(self, cmd_args, flag_args):
+    def __init__(self, cmd_args, cmd_env, cmd_flags):
         self.cmd_args = cmd_args
-        self.flag_args = flag_args
+        self.cmd_env = cmd_env
+        self.cmd_flags = cmd_flags
 
-class FlagArg(object):
+class CmdFlag(object):
 
-    def __init__(self, arg_name=None, arg_skip=False, arg_switch=None):
+    def __init__(self, arg_name=None, arg_skip=False, arg_switch=None,
+                 env_name=None):
         self.arg_name = arg_name
         self.arg_skip = arg_skip
         self.arg_switch = arg_switch
+        self.env_name = env_name
 
 ###################################################################
 # Generate command
 ###################################################################
 
-def cmd_args(template, flag_vals, resolve_params):
+def generate(op_cmd, flag_vals, resolve_params):
+    return (
+        _gen_args(op_cmd, flag_vals, resolve_params),
+        _gen_env(op_cmd, flag_vals)
+    )
+
+def _gen_args(op_cmd, flag_vals, resolve_params):
     args = []
-    for arg in template.cmd_args:
+    for arg in op_cmd.cmd_args:
         if arg == "__flag_args__":
-            args.extend(_flag_args(flag_vals, template.flag_args,
-                                   args))
+            args.extend(_flag_args(flag_vals, op_cmd.cmd_flags, args))
         else:
-            args.append(_resolve_arg(arg, resolve_params))
+            args.append(util.resolve_refs(arg, resolve_params))
     return args
 
-def _flag_args(flag_vals, flag_args, cmd_args):
+def _flag_args(flag_vals, cmd_flags, cmd_args):
     args = []
     for name, val in sorted(flag_vals.items()):
-        args.extend(_args_for_flag(name, val, flag_args.get(name),
-                                   cmd_args))
+        cmd_flag = cmd_flags.get(name)
+        args.extend(_args_for_flag(name, val, cmd_flag, cmd_args))
     return args
 
-def _args_for_flag(name, val, arg_spec, cmd_args):
-    arg_spec = arg_spec or FlagArg()
-    if arg_spec.arg_skip:
+def _args_for_flag(name, val, cmd_flag, cmd_args):
+    cmd_flag = cmd_flag or CmdFlag()
+    if cmd_flag.arg_skip:
         return []
-    arg_name = arg_spec.arg_name or name
+    arg_name = cmd_flag.arg_name or name
     if "--%s" % arg_name in cmd_args:
         log.warning(
             "ignoring flag '%s=%s' because it's shadowed "
             "in the operation cmd as --%s",
             name, flag_util.encode_flag_val(val), arg_name)
         return []
-    if arg_spec.arg_switch is not None:
-        if arg_spec.arg_switch == val:
+    if cmd_flag.arg_switch is not None:
+        if cmd_flag.arg_switch == val:
             return ["--%s" % arg_name]
         else:
             return []
@@ -81,8 +89,29 @@ def _args_for_flag(name, val, arg_spec, cmd_args):
     else:
         return []
 
-def _resolve_arg(val, params):
-    return util.resolve_refs(val, params)
+def _gen_env(op_cmd, flag_vals):
+    env = _encoded_cmd_env(op_cmd)
+    _apply_flag_env(flag_vals, op_cmd, env)
+    return env
+
+def _encoded_cmd_env(op_cmd):
+    return {
+        name: flag_util.encode_flag_val(val)
+        for name, val in op_cmd.cmd_env.items()
+    }
+
+def _apply_flag_env(flag_vals, op_cmd, env):
+    for name, val in flag_vals.items():
+        if val is not None:
+            env_name = _flag_env_name(name, op_cmd)
+            env[env_name] = flag_util.encode_flag_val(val)
+
+def _flag_env_name(flag_name, op_cmd):
+    cmd_flag = op_cmd.cmd_flags.get(flag_name)
+    return cmd_flag and cmd_flag.env_name or _default_flag_env_name(flag_name)
+
+def _default_flag_env_name(flag_name):
+    return "FLAG_%s" % util.env_var_name(flag_name)
 
 ###################################################################
 # Data IO
@@ -90,51 +119,57 @@ def _resolve_arg(val, params):
 
 def for_data(data):
     cmd_args = data.get("cmd-args") or []
-    flag_args = _flag_args_for_data(data.get("flag-args"))
-    return CmdTemplate(cmd_args, flag_args)
+    cmd_env = data.get("cmd-env") or {}
+    cmd_flags = _cmd_flags_for_data(data.get("cmd-flags"))
+    return OpCmd(cmd_args, cmd_env, cmd_flags)
 
-def _flag_args_for_data(data):
+def _cmd_flags_for_data(data):
     if not data:
         return {}
     if not isinstance(data, dict):
         raise ValueError(data)
     return {
-        flag_name: _flag_arg_for_data(flag_arg_data)
-        for flag_name, flag_arg_data in data.items()
+        flag_name: _cmd_flag_for_data(cmd_flag_data)
+        for flag_name, cmd_flag_data in data.items()
     }
 
-def _flag_arg_for_data(data):
+def _cmd_flag_for_data(data):
     if not isinstance(data, dict):
         raise ValueError(data)
-    return FlagArg(
+    return CmdFlag(
         arg_name=data.get("arg-name"),
         arg_skip=data.get("arg-skip"),
         arg_switch=data.get("arg-switch"),
+        env_name=data.get("env-name"),
     )
 
-def as_data(cmd_template):
+def as_data(op_cmd):
     data = {
-        "cmd-args": cmd_template.cmd_args,
+        "cmd-args": op_cmd.cmd_args,
     }
-    flag_args_data = _flag_args_as_data(cmd_template.flag_args)
-    if flag_args_data:
-        data["flag-args"] = flag_args_data
+    if op_cmd.cmd_env:
+        data["cmd-env"] = op_cmd.cmd_env
+    cmd_flags_data = _cmd_flags_as_data(op_cmd.cmd_flags)
+    if cmd_flags_data:
+        data["cmd-flags"] = cmd_flags_data
     return data
 
-def _flag_args_as_data(flag_args):
+def _cmd_flags_as_data(cmd_flags):
     data = {}
-    for flag_name, flag_arg in flag_args.items():
-        flag_arg_data = _flag_arg_as_data(flag_arg)
-        if flag_arg_data:
-            data[flag_name] = flag_arg_data
+    for flag_name, cmd_flag in cmd_flags.items():
+        cmd_flag_data = _cmd_flag_as_data(cmd_flag)
+        if cmd_flag_data:
+            data[flag_name] = cmd_flag_data
     return data
 
-def _flag_arg_as_data(flag_arg):
+def _cmd_flag_as_data(cmd_flag):
     data = {}
-    if flag_arg.arg_name:
-        data["arg-name"] = flag_arg.arg_name
-    if flag_arg.arg_skip:
-        data["arg-skip"] = flag_arg.arg_skip
-    if flag_arg.arg_switch:
-        data["arg-switch"] = flag_arg.arg_switch
+    if cmd_flag.arg_name:
+        data["arg-name"] = cmd_flag.arg_name
+    if cmd_flag.arg_skip:
+        data["arg-skip"] = cmd_flag.arg_skip
+    if cmd_flag.arg_switch:
+        data["arg-switch"] = cmd_flag.arg_switch
+    if cmd_flag.env_name:
+        data["env-name"] = cmd_flag.env_name
     return data
