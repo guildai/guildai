@@ -6,6 +6,13 @@
 
 ## Op from opdef
 
+Helper to print generated op command:
+
+    >>> def gen_op_cmd(op):
+    ...     args, env = oplib.generate_op_cmd(op)
+    ...     print(args)
+    ...     pprint(env)
+
 Python module:
 
     >>> gf = guildfile.for_string("""
@@ -13,17 +20,11 @@ Python module:
     ...   main: guild.pass
     ... """)
 
-    >>> op = oplib.for_opdef(gf.default_model.get_operation("op"), {})
-    >>> pprint(op_cmd.as_data(op.cmd_template))
-    {'cmd-args': ['${python_exe}',
-                  '-um',
-                  'guild.op_main',
-                  'guild.pass',
-                  '--',
-                  '__flag_args__']}
+    >>> op = oplib.for_opdef(gf.default_model["op"], {})
 
-    >>> oplib.proc_args(op)
+    >>> gen_op_cmd(op)
     ['...', '-um', 'guild.op_main', 'guild.pass', '--']
+    {'GUILD_OP': 'op', 'GUILD_PLUGINS': '', 'PROJECT_DIR': ''}
 
 Python module with args and flags:
 
@@ -34,11 +35,14 @@ Python module with args and flags:
     ...     baz: 456
     ... """)
 
-    >>> op = oplib.for_opdef(gf.default_model.get_operation("op"), {})
+    >>> op = oplib.for_opdef(gf.default_model["op"], {})
 
-    >>> oplib.proc_args(op)
+    >>> gen_op_cmd(op)
     ['...', '-um', 'guild.op_main', 'guild.pass',
      '--foo', '123', '--bar', '--', '--baz', '456']
+
+    ['...', '-um', 'guild.op_main', 'guild.pass', '--foo', '123', '--bar', '--']
+    {'GUILD_OP': 'op', 'GUILD_PLUGINS': '', 'PROJECT_DIR': ''}
 
 With modified flag value:
 
@@ -102,3 +106,16 @@ Use `op_util.flag_vals_for_opdef` to apply choice flag vals:
     >>> oplib.proc_args(op)
     ['...', '-um', 'guild.op_main', 'guild.pass',
      '--foo', '123', '--bar', '--', '--A1', 'abc', '--a2', '123']
+
+## Data IO
+
+    >>> gf = guildfile.for_string("""
+    ... op:
+    ...   main: guild.pass
+    ... """)
+
+    >>> opdef = gf.default_model["op"]
+
+    >>> op = oplib.for_opdef(opdef, {})
+
+    >>> pprint(oplib.as_data(op))

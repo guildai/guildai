@@ -1084,6 +1084,7 @@ class FlagDef(object):
         self.arg_switch = _data.pop("arg-switch", None)
         self.choices = _init_flag_choices(_data.pop("choices", None), self)
         self.allow_other = _data.pop("allow-other", False)
+        self.env_name = _data.pop("env-name", None)
         self.null_label = _data.pop("null-label", None)
         self.min = _data.pop("min", None)
         self.max = _data.pop("max", None)

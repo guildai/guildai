@@ -222,7 +222,7 @@ No default operation:
     ...   main: guild.pass ${foo}
     ... """)
     >>> run(cwd, opspec="op")
-    invalid setting for operation 'op': main contains invalid reference 'foo'
+    invalid setting for operation 'op': command contains invalid reference 'foo'
     <exit 1>
 
 ## Invalid flag arg
@@ -440,7 +440,7 @@ Output scalar test - op3:
     >>> run(cwd, opspec="with-flags",
     ...     flags=["b=yes", "i=456", "w=true", "s=T", "n=hello"],
     ...     print_cmd=True)
-    ??? -um guild.op_main guild.pass -- --N hello --b yes --f 1.123 --i 456 --s T --w
+    ??? -um guild.op_main guild.pass -- --b yes --f 1.123 --i 456 --N hello --s T --w
 
     >>> run(cwd, opspec="exec", print_cmd=True)
     python -c 'open("file.txt", "w").write("hello")'

@@ -17,6 +17,8 @@ from __future__ import division
 
 import logging
 
+import six
+
 from guild import flag_util
 from guild import util
 
@@ -96,9 +98,14 @@ def _gen_env(op_cmd, flag_vals):
 
 def _encoded_cmd_env(op_cmd):
     return {
-        name: flag_util.encode_flag_val(val)
+        name: _encode_env_val(val)
         for name, val in op_cmd.cmd_env.items()
     }
+
+def _encode_env_val(val):
+    if isinstance(val, six.string_types):
+        return val
+    return flag_util.encode_flag_val(val)
 
 def _apply_flag_env(flag_vals, op_cmd, env):
     for name, val in flag_vals.items():

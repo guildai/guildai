@@ -444,7 +444,7 @@ def resolve_all_refs(kv, undefined=_raise_error_marker):
     }
 
 def _resolve_refs_recurse(val, kv, undefined, stack):
-    if not isinstance(val, str):
+    if not isinstance(val, six.string_types):
         return val
     parts = [part for part in re.split(r"(\\?\${.+?})", val) if part != ""]
     resolved = list(_iter_resolved_ref_parts(parts, kv, undefined, stack))
@@ -1327,3 +1327,8 @@ class StdinReader(object):
 
 def env_var_name(s):
     return re.sub("[^A-Z0-9_]", "_", s.upper())
+
+def env_var_quote(s):
+    if s == "":
+        return ""
+    return shlex_quote(s)

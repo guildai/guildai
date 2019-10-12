@@ -1,5 +1,16 @@
 # Notes for op2 refactor
 
+-------------------
+
+Notes Oct 11:
+
+- GPU should be specified when operation is run - should be possible
+  to start a run on one GPU, stop it, then restart it on another.
+
+- Generate label from label template
+
+-------------------
+
 ## Notes re batch ops
 
 - Use of "batch" in op is a misnomer - op doesn't need to know

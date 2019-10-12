@@ -44,16 +44,19 @@ log = logging.getLogger("guild")
 class State(object):
 
     def __init__(self, args, restart_run, opdef, user_flag_vals,
-                 op_flag_vals, batch_files, run_dir, extra_run_attrs,
-                 batch_opdef, batch_flag_vals):
+                 op_flag_vals, label, batch_files, run_dir,
+                 extra_run_attrs, extra_cmd_env, batch_opdef,
+                 batch_flag_vals):
         self.args = args
         self.restart_run = restart_run
         self.opdef = opdef
         self.user_flag_vals = user_flag_vals
         self.op_flag_vals = op_flag_vals
+        self.label = label
         self.batch_files = batch_files
         self.run_dir = run_dir
         self.extra_run_attrs = extra_run_attrs
+        self.extra_cmd_env = extra_cmd_env
         self.batch_opdef = batch_opdef
         self.batch_flag_vals = batch_flag_vals
 
@@ -62,16 +65,19 @@ def _state_for_args(args):
     opdef = _state_opdef(args, restart_run)
     user_flag_vals, batch_files = _state_split_flag_args(args.flags)
     op_flag_vals = _state_op_flag_vals(opdef, user_flag_vals, args.force_flags)
+    label = _state_op_label(args, opdef, user_flag_vals, op_flag_vals)
     if restart_run:
         _apply_restart_run_flags(restart_run, user_flag_vals, op_flag_vals)
     run_dir = _state_run_dir(args, restart_run)
-    extra_run_attrs = _state_extra_run_attrs(args)
+    extra_run_attrs = _state_extra_run_attrs(args, opdef)
+    extra_cmd_env = _state_extra_cmd_env(args)
     batch_opdef = _state_batch_opdef(args, op_flag_vals, restart_run)
     batch_flag_vals = _state_batch_flag_vals(
         args.opt_flags, batch_opdef, args.force_flags)
     return State(args, restart_run, opdef, user_flag_vals,
-                 op_flag_vals, batch_files, run_dir, extra_run_attrs,
-                 batch_opdef, batch_flag_vals)
+                 op_flag_vals, label, batch_files, run_dir,
+                 extra_run_attrs, extra_cmd_env, batch_opdef,
+                 batch_flag_vals)
 
 def _state_restart_run(restart):
     if not restart:
@@ -107,6 +113,19 @@ def _state_op_flag_vals(opdef, user_flag_vals, force_flags):
         _invalid_flag_value_error(e)
     except op_util.NoSuchFlagError as e:
         _no_such_flag_error(e.flag_name, opdef)
+
+def _state_op_label(args, opdef, user_flag_vals, op_flag_vals):
+    label_template = args.label or opdef.label
+    if label_template:
+        resolve_vals = {
+            name: flag_util.encode_flag_val(val)
+            for name, val in op_flag_vals.items()
+        }
+        return util.resolve_refs(label_template, resolve_vals, "")
+    return _default_op_label(user_flag_vals)
+
+def _default_op_label(flag_vals):
+    return " ".join(flag_util.format_flags(flag_vals, truncate_floats=True))
 
 def _apply_restart_run_flags(restart_run, user_flag_vals, target_vals):
     restart_run_flags = restart_run.get("flags") or {}
@@ -175,7 +194,7 @@ def _state_run_dir(args, restart_run):
         return restart_run.dir
     elif args.run_dir:
         run_dir = os.path.abspath(args.run_dir)
-        if os.getenv("NO_WARN_RUNDIR") != "1":
+        if not args.stage and os.getenv("NO_WARN_RUNDIR") != "1":
             cli.note(
                 "Run directory is '%s' (results will not be "
                 "visible to Guild)" % run_dir)
@@ -187,37 +206,31 @@ def _state_run_dir(args, restart_run):
 # State - extra run attrs
 # =================================================================
 
-def _state_extra_run_attrs(args):
+def _state_extra_run_attrs(args, opdef):
     attrs = {}
-    _apply_attr_run_params(args, attrs)
-    _apply_attr_random_seed(args, attrs)
-    _apply_attr_system_info(attrs)
-    _apply_attr_max_trials(args, attrs)
-    return attrs
-
-def _apply_attr_run_params(args, attrs):
-    params = args.as_kw()
-    if args.stage:
-        attrs["stage_params"] = params
-    else:
-        attrs["run_params"] = params
-
-def _apply_attr_random_seed(args, attrs):
+    attrs["run_params"] = args.as_kw()
     attrs["random_seed"] = _random_seed(args)
+    attrs["host"] = util.hostname()
+    attrs["user"] = util.user()
+    attrs["platform"] = util.platform_info()
+    if args.max_trials:
+        attrs["max_trials"] = args.max_trials
+    return attrs
 
 def _random_seed(args):
     if args.random_seed is not None:
         return args.random_seed
     return runlib.random_seed()
 
-def _apply_attr_system_info(attrs):
-    attrs["host"] = util.hostname()
-    attrs["user"] = util.user()
-    attrs["platform"] = util.platform_info()
+# =================================================================
+# State - extra cmd env
+# =================================================================
 
-def _apply_attr_max_trials(args, attrs):
-    if args.max_trials:
-        attrs["max_trials"] = args.max_trials
+def _state_extra_cmd_env(args):
+    env = {}
+    if args.gpus is not None:
+        env["CUDA_VISIBLE_DEVICES"] = args.gpus
+    return env
 
 # =================================================================
 # State - batch op def
@@ -379,12 +392,12 @@ def _gen_op_for_opdef(S, callbacks=None):
         op = oplib.for_opdef(
             S.opdef,
             S.op_flag_vals,
-            run_dir=S.run_dir,
+            extra_cmd_env=S.extra_cmd_env,
+            label=S.label,
             extra_run_attrs=S.extra_run_attrs,
-            gpus=S.args.gpus,
+            run_dir=S.run_dir,
             callbacks=callbacks,
         )
-        _apply_op_label(S.args.label, S.opdef, S.user_flag_vals, op)
         if S.restart_run:
             _disable_sourcecode_copy_for_restart_op(op)
         return op
@@ -427,11 +440,14 @@ def _apply_opdef_to_restart_op(S, restart_op):
 
 def _validate_op(op, S):
     if S.restart_run:
-        assert op.opref.to_opspec() == S.restart_run.opref.to_opspec()
-        assert op.run_dir == S.restart_run.dir
-        # Important that we NOT modify sourcecode for a restart.
-        assert op.sourcecode_src is None
-        assert op.sourcecode_select is None
+        _validate_restart_op(op, S)
+
+def _validate_restart_op(op, S):
+    assert op.opref.to_opspec() == S.restart_run.opref.to_opspec()
+    assert op.run_dir == S.restart_run.dir
+    # Important that we NOT modify sourcecode for a restart.
+    assert op.sourcecode_src is None
+    assert op.sourcecode_select is None
 
 ###################################################################
 # Dispatch op
@@ -590,26 +606,23 @@ def _dispatch_op_cmd(op, S):
     else:
         _confirm_and_run_op(op, S)
 
-def _print_op_cmd_env(op, S):
-    if S.args.print_cmd:
-        _print_op_cmd(op)
-    if S.args.print_env:
-        _print_op_env(op)
-
 ###################################################################
 # Print op info
 ###################################################################
 
-def _print_op_cmd(op):
-    formatted = " ".join(_preview_cmd(op))
-    cli.out(formatted)
+def _print_op_cmd_env(op, S):
+    args, env = oplib.generate_op_cmd(op)
+    if S.args.print_cmd:
+        _print_op_cmd(args)
+    if S.args.print_env:
+        _print_op_env(env)
 
-def _preview_cmd(op):
-    return [util.shlex_quote(arg) for arg in op.cmd_args]
+def _print_op_cmd(args):
+    cli.out(" ".join([util.shlex_quote(arg) for arg in args]))
 
-def _print_op_env(op):
-    for name, val in sorted((op.cmd_env or {}).items()):
-        cli.out("export %s=%s" % (name, val))
+def _print_op_env(env):
+    for name, val in sorted(env.items()):
+        cli.out("%s=%s" % (name, util.env_var_quote(val)))
 
 ###################################################################
 # Run op
@@ -692,36 +705,28 @@ def _null_label(name, null_labels):
     return flag_util.encode_flag_val(null_label)
 
 # =================================================================
-# Run
+# Run / stage
 # =================================================================
 
 def _run_op(op, S):
-    try:
-        run, exit_status = oplib.run(
-            op,
-            stage=S.args.stage,
-            quiet=S.args.quiet)
-    except op_dep.OpDependencyError as e:
-        _op_dependency_error(e)
-    except oplib.ProcessError as e:
-        _op_process_error(op, e)
-    else:
-        _handle_run_exit(run, exit_status, S)
-
-def _handle_run_exit(run, exit_status, S):
-    if exit_status != 0:
-        cli.error(exit_status=exit_status)
     if S.args.stage:
-        _print_staged_info(run, S)
+        _stage_op(op, S)
+    else:
+        _run_op_(op, S)
 
-def _print_staged_info(run, S):
+def _stage_op(op, S):
+    run, cmd_args = oplib.stage(op)
+    if not S.args.quiet:
+        _print_staged_info(run, cmd_args, S)
+
+def _print_staged_info(run, cmd_args, S):
     if S.args.run_dir:
-        _print_staged_dir_instructions(run, S)
+        _print_staged_dir_instructions(run, cmd_args, S)
     else:
         _print_stage_pending_instructions(run, S)
 
-def _print_staged_dir_instructions(run, S):
-    cmd = " ".join([util.shlex_quote(arg) for arg in run.get("cmd") or []])
+def _print_staged_dir_instructions(run, cmd_args, S):
+    cmd = " ".join([util.shlex_quote(arg) for arg in cmd_args])
     cli.out(
         "{op} staged in '{dir}'\n"
         "To start the operation, use "
@@ -738,6 +743,22 @@ def _print_stage_pending_instructions(run, S):
         .format(
             op=S.opdef.fullname,
             run_id=run.id))
+
+def _run_op_(op, S):
+    try:
+        run, exit_status = oplib.run(op, quiet=S.args.quiet)
+    except oplib.OpCmdError as e:
+        _op_cmd_error(op, e)
+    except op_dep.OpDependencyError as e:
+        _op_dependency_error(e)
+    except oplib.ProcessError as e:
+        _op_process_error(op, e)
+    else:
+        _handle_run_exit(run, exit_status, S)
+
+def _handle_run_exit(run, exit_status, S):
+    if exit_status != 0:
+        cli.error(exit_status=exit_status)
 
 ###################################################################
 # Error handlers
@@ -872,6 +893,11 @@ def _invalid_opdef_error(opdef, msg):
 
 def _model_op_proxy_error(e):
     cli.error("cannot run '%s': %s" % (e.opspec, e.msg))
+
+def _op_cmd_error(op, e):
+    cli.error(
+        "invalid setting for operation '%s': %s"
+        % (op.opref.to_opspec(), e))
 
 def _op_dependency_error(e):
     cli.error(

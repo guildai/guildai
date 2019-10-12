@@ -17,15 +17,11 @@ from __future__ import division
 
 import logging
 import os
-import re
 import subprocess
 import sys
-import time
 
 from guild import config
-from guild import exit_code
-from guild import flag_util
-from guild import op_cmd
+from guild import op_cmd as op_cmd_lib
 from guild import op_dep
 from guild import op_util2 as op_util
 from guild import plugin as pluginlib
@@ -40,10 +36,6 @@ OP_RUNFILE_PATHS = [
     ["org_psutil"],
     ["guild", "external"],
 ]
-
-PROC_TERM_TIMEOUT_SECONDS = 30
-
-CMD_OPTION_P = re.compile("--([^=]+)")
 
 DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} -- ${flag_args}"
 STEPS_EXEC = "${python_exe} -um guild.steps_main"
@@ -72,30 +64,30 @@ class OpInitError(Exception):
 class ProcessError(Exception):
     pass
 
+class OpCmdError(Exception):
+    pass
+
 ###################################################################
 # Operation state
 ###################################################################
 
 class Operation(object):
 
-    def __init__(self, opref, cmd_template, cmd_args, flag_vals=None,
-                 flag_map=None, flag_null_labels=None, label=None,
-                 extra_run_attrs=None, sourcecode_select=None,
-                 sourcecode_src=None, run_dir=None, cmd_env=None,
-                 deps=None, output_scalars=None, stoppable=False,
+    def __init__(self, opref, op_cmd, flag_vals=None,
+                 flag_null_labels=None, label=None,
+                 sourcecode_select=None, sourcecode_src=None,
+                 extra_run_attrs=None, run_dir=None, deps=None,
+                 output_scalars=None, stoppable=False,
                  python_requires=None, callbacks=None):
-        self.cmd_template = cmd_template
         self.opref = opref
-        self.cmd_args = cmd_args
+        self.op_cmd = op_cmd
         self.flag_vals = flag_vals
-        self.flag_map = flag_map
         self.flag_null_labels = flag_null_labels
         self.label = label
-        self.extra_run_attrs = extra_run_attrs
-        self.sourcecode_src = sourcecode_src
         self.sourcecode_select = sourcecode_select
+        self.sourcecode_src = sourcecode_src
+        self.extra_run_attrs = extra_run_attrs
         self.run_dir = run_dir
-        self.cmd_env = cmd_env
         self.deps = deps
         self.output_scalars = output_scalars
         self.stoppable = stoppable
@@ -113,49 +105,43 @@ def _callback(name, op, *rest_args):
         if cb:
             cb(op, *rest_args)
 
+def as_config(op):
+    return {
+        "cmd": op_cmd_lib.as_data(op.op_cmd),
+        "flag-null-labels": op.flag_null_labels,
+        "output-scalars": op.output_scalars,
+        "python-requires": op.python_requires,
+        "stoppable": op.stoppable,
+    }
+
+def apply_restart_config(data, op):
+    pass
+
 ###################################################################
 # Op for opdef
 ###################################################################
 
-def for_opdef(opdef, user_flag_vals, gpus=None, **kw):
-    cmd_template = _op_init_cmd_template(opdef)
-
-    # TODO gpus should be in extra_env
-
-    cmd_args, flag_vals, flag_map = _op_init_cmd_args(opdef, user_flag_vals)
-
-
-    sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
-    cmd_env = _op_init_cmd_env(opdef, cmd_args, flag_vals, gpus)
-    deps = _op_deps_for_opdef(opdef, flag_vals)
-    flag_null_labels = _op_init_flag_null_labels(opdef)
-    python_requires = opdef.python_requires or opdef.modeldef.python_requires
+def for_opdef(opdef, flag_vals, extra_cmd_env=None, **kw):
     return Operation(
         opdef.opref,
-        cmd_template,
-        cmd_args,
+        _op_cmd_for_opdef(opdef, extra_cmd_env),
         flag_vals=flag_vals,
-        flag_map=flag_map,
-        flag_null_labels=flag_null_labels,
+        flag_null_labels=_flag_null_labels_for_opdef(opdef),
         sourcecode_src=opdef.guildfile.dir,
-        sourcecode_select=sourcecode_select,
-        cmd_env=cmd_env,
-        deps=deps,
+        sourcecode_select=_sourcecode_select_for_opdef(opdef),
+        deps=_op_deps_for_opdef(opdef, flag_vals),
         output_scalars=opdef.output_scalars,
         stoppable=opdef.stoppable,
-        python_requires=python_requires,
+        python_requires=_python_requires_for_opdef(opdef),
         **kw)
 
-# =================================================================
-# Cmd template
-# =================================================================
+def _op_cmd_for_opdef(opdef, extra_cmd_env):
+    cmd_args = _op_cmd_args(opdef)
+    cmd_env = _op_cmd_env(opdef, extra_cmd_env)
+    cmd_flags = _op_cmd_flags(opdef)
+    return op_cmd_lib.OpCmd(cmd_args, cmd_env, cmd_flags)
 
-def _op_init_cmd_template(opdef):
-    cmd_args = _template_cmd_args(opdef)
-    flag_args = _template_flag_args(opdef)
-    return op_cmd.CmdTemplate(cmd_args, flag_args)
-
-def _template_cmd_args(opdef):
+def _op_cmd_args(opdef):
     main_args = op_util.split_cmd(opdef.main or "")
     exec_args = op_util.split_cmd(_opdef_exec(opdef))
     _apply_main_args(main_args, exec_args)
@@ -204,197 +190,9 @@ def _apply_flag_args_marker(exec_args):
         if val == "${flag_args}":
             exec_args[i] = "__flag_args__"
 
-def _template_flag_args(opdef):
-    return {
-        flagdef.name: _template_flag_arg(flagdef)
-        for flagdef in opdef.flags
-    }
-
-def _template_flag_arg(flagdef):
-    return op_cmd.FlagArg(
-        arg_name=flagdef.arg_name,
-        arg_skip=_flagdef_arg_skip(flagdef),
-        arg_switch=flagdef.arg_switch,
-    )
-
-def _flagdef_arg_skip(flagdef):
-    if flagdef.arg_skip is not None:
-        return flagdef.arg_skip
-    return flagdef.opdef.default_flag_arg_skip
-
-# =================================================================
-# Cmd args for opdef
-# =================================================================
-
-def _op_init_cmd_args(opdef, flag_vals):
-    flag_vals = _op_flag_vals(opdef, flag_vals)
-    main_cmd_args = _op_main_args(opdef, flag_vals)
-    flag_args, flag_map = _op_flag_args(opdef, main_cmd_args, flag_vals)
-    exec_cmd_args = _op_exec_args(opdef, flag_vals, main_cmd_args, flag_args)
-    return exec_cmd_args, flag_vals, flag_map
-
-def _op_flag_vals(opdef, flag_vals):
-    vals = {
-        flag.name: flag.default
-        for flag in opdef.flags
-    }
-    vals.update(flag_vals)
-    return util.resolve_all_refs(vals)
-
-def _op_main_args(opdef, flag_vals):
-    """Returns a list of args per opdef.main.
-
-    Returns empty list if main is not specified.
-    """
-    if not opdef.main:
-        return []
-    try:
-        return _split_and_resolve_args(opdef.main, flag_vals)
-    except util.UndefinedReferenceError as e:
-        raise InvalidOpDef(
-            opdef,
-            "main contains invalid reference '%s'"
-            % e.reference)
-
-def _split_and_resolve_args(cmd, flag_vals):
-    """Splits and resolve args for string or list cmd."""
-    format_part = lambda part: str(util.resolve_refs(part, flag_vals))
-    return [format_part(part) for part in op_util.split_cmd(cmd)]
-
-def _op_flag_args(opdef, cmd_args, flag_vals):
-    flag_args = []
-    flag_vals, flag_map = op_util.mapped_flag_vals(flag_vals, opdef)
-    cmd_options = _cmd_options(cmd_args)
-    for name, val in sorted(flag_vals.items()):
-        if name in cmd_options:
-            log.warning(
-                "ignoring flag '%s = %s' because it's shadowed "
-                "in the operation cmd", name, val)
-            continue
-        flag_args.extend(_cmd_option_args(name, val))
-    return flag_args, flag_map
-
-def _cmd_options(args):
-    return [
-        m.group(1)
-        for m in [CMD_OPTION_P.match(arg) for arg in args]
-        if m
-    ]
-
-def _cmd_option_args(name, val):
-    if val is None:
-        return []
-    opt = "--%s" % name
-    if val is op_util.NO_ARG_VALUE:
-        return [opt]
-    else:
-        return [opt, flag_util.encode_flag_val(val)]
-
-def _op_exec_args(opdef, flag_vals, main_args, flag_args):
-    template = _exec_template(opdef)
-    flag_vals = _extended_flag_vals(flag_vals, opdef)
-    try:
-        args = _split_and_resolve_args(template, flag_vals)
-    except util.UndefinedReferenceError as e:
-        raise InvalidOpDef(
-            opdef,
-            "exec contains invalid reference '%s'"
-            % e.args[0])
-    else:
-        args = _repl_args(args, "__main_args__", main_args)
-        args = _repl_args(args, "__flag_args__", flag_args)
-        return args
-
-def _exec_template(opdef):
-    """Returns exec template for opdef.
-
-    If exec is specified explicitly, it's returned, otherwise main or
-    steps are used to generate a template.
-    """
-    if opdef.exec_:
-        if opdef.main:
-            log.warning(
-                "operation 'exec' and 'main' both specified, "
-                "ignoring 'main'")
-        if opdef.steps:
-            log.warning(
-                "operation 'exec' and 'steps' both specified, "
-                "ignoring 'steps'")
-        return opdef.exec_
-    elif opdef.main:
-        if opdef.steps:
-            log.warning(
-                "operation 'main' and 'steps' both specified, "
-                "ignoring 'steps'")
-        return DEFAULT_EXEC
-    elif opdef.steps:
-        return STEPS_EXEC
-    assert False, opdef
-
-def _extended_flag_vals(flag_vals, opdef):
-    """Extend flag_vals with special flag vals for op exec resolution.
-
-    The following flag vals are included in the extended flag vals:
-
-      'python_exe': full path to Python exe per opdef
-
-      'main_args':  special marker object designating the location of
-                    args specified in opdef main
-
-      'flag_args':  special marker object designating the location of
-                    flag args
-
-      'model_dir':  directory containing the operation guild file
-
-    If any of the extended values are defined in flag_vals, they are
-    replaced here.
-    """
-    extended = dict(flag_vals)
-    extended.update({
-        "python_exe": _python_exe_for_opdef(opdef),
-        "main_args": "__main_args__",
-        "flag_args": "__flag_args__",
-        "model_dir": opdef.guildfile.dir,
-    })
-    return extended
-
-def _python_exe_for_opdef(opdef):
-    req = opdef.python_requires or opdef.modeldef.python_requires
-    if req:
-        matching = util.find_python_interpreter(req)
-        if not matching:
-            raise OpInitError(
-                "cannot find a python interpreter for "
-                "version requirement %r" % req)
-        path, _ver = matching
-        return path
-    return sys.executable
-
-def _repl_args(args, key, replacement):
-    """Replaces occurrences of key in args with replacement."""
-    ret = []
-    for arg in args:
-        if arg == key:
-            ret.extend(replacement)
-        else:
-            ret.append(arg)
-    return ret
-
-# =================================================================
-# Cmd env for opdef
-# =================================================================
-
-def _op_init_cmd_env(opdef, cmd_args, flag_vals, gpus):
-    env = {}
-    _apply_opdef_env(opdef, env)
-    _apply_cmd_args_env(cmd_args, env)
-    _apply_flags_env(flag_vals, env)
-    _apply_system_env(gpus, env)
-    util.check_env(env)
-    return env
-
-def _apply_opdef_env(opdef, env):
-    env.update(opdef.env or {})
+def _op_cmd_env(opdef, extra_env):
+    env = dict(opdef.env or {})
+    env.update(extra_env or {})
     env["GUILD_OP"] = opdef.fullname
     env["GUILD_PLUGINS"] = _op_plugins(opdef)
     env["PROJECT_DIR"] = opdef.guildfile.dir or ""
@@ -402,6 +200,7 @@ def _apply_opdef_env(opdef, env):
         env["FLAGS_DEST"] = opdef.flags_dest
     if opdef.handle_keyboard_interrupt:
         env["HANDLE_KEYBOARD_INTERRUPT"] = "1"
+    return env
 
 def _op_plugins(opdef):
     project_plugins = _project_plugins(opdef)
@@ -433,74 +232,34 @@ def _plugin_selected(plugin, selected):
             return True
     return False
 
+def _op_cmd_flags(opdef):
+    return {
+        flagdef.name: _flag_cmd_for_flagdef(flagdef)
+        for flagdef in opdef.flags
+    }
 
-def _apply_cmd_args_env(args, env):
-    flags, _other_args = op_util.args_to_flags(args)
-    env.update({
-        name.upper(): str(val)
-        for name, val in flags.items()
-    })
-
-def _apply_flags_env(flag_vals, env):
-    env.update({
-        _flag_env_name(name): flag_util.encode_flag_val(val)
-        for name, val in flag_vals.items()
-    })
-
-def _flag_env_name(name):
-    return "FLAG_%s" % util.env_var_name(name)
-
-def _apply_system_env(gpus, env):
-    env.update(util.safe_osenv())
-    env["GUILD_HOME"] = config.guild_home()
-    env["LOG_LEVEL"] = _log_level()
-    env["PYTHONPATH"] = _python_path()
-    env["CMD_DIR"] = os.getcwd()
-    if gpus is not None:
-        env["CUDA_VISIBLE_DEVICES"] = gpus
-
-def _log_level():
-    try:
-        return os.environ["LOG_LEVEL"]
-    except KeyError:
-        return str(logging.getLogger().getEffectiveLevel())
-
-def _python_path():
-    paths = (
-        _env_paths() +
-        _run_sourcecode_paths() +
-        _guild_paths()
+def _flag_cmd_for_flagdef(flagdef):
+    return op_cmd_lib.CmdFlag(
+        arg_name=flagdef.arg_name,
+        arg_skip=_flagdef_arg_skip(flagdef),
+        arg_switch=flagdef.arg_switch,
+        env_name=flagdef.env_name,
     )
-    return os.path.pathsep.join(paths)
 
-def _env_paths():
-    env = os.getenv("PYTHONPATH")
-    return env.split(os.path.pathsep) if env else []
+def _flagdef_arg_skip(flagdef):
+    if flagdef.arg_skip is not None:
+        return flagdef.arg_skip
+    return flagdef.opdef.default_flag_arg_skip
 
-def _run_sourcecode_paths():
-    return [".guild/sourcecode"]
+def _flag_null_labels_for_opdef(opdef):
+    return {
+        f.name: f.null_label
+        for f in opdef.flags
+        if f.null_label is not None
+    }
 
-def _guild_paths():
-    guild_path = os.path.dirname(os.path.dirname(__file__))
-    abs_guild_path = os.path.abspath(guild_path)
-    return [abs_guild_path] + _runfile_paths()
-
-def _runfile_paths():
-    return [
-        os.path.abspath(path)
-        for path in sys.path if _is_runfile_pkg(path)
-    ]
-
-def _is_runfile_pkg(path):
-    for runfile_path in OP_RUNFILE_PATHS:
-        split_path = path.split(os.path.sep)
-        if split_path[-len(runfile_path):] == runfile_path:
-            return True
-    return False
-
-# =================================================================
-# Misc op init for opdef
-# =================================================================
+def _sourcecode_select_for_opdef(opdef):
+    return op_util.sourcecode_select_for_opdef(opdef)
 
 def _op_deps_for_opdef(opdef, flag_vals):
     try:
@@ -508,64 +267,50 @@ def _op_deps_for_opdef(opdef, flag_vals):
     except op_dep.OpDependencyError as e:
         raise InvalidOpDef(opdef, str(e))
 
-def _op_init_flag_null_labels(opdef):
-    return {
-        f.name: f.null_label
-        for f in opdef.flags
-        if f.null_label is not None
-    }
+def _python_requires_for_opdef(opdef):
+   return opdef.python_requires or opdef.modeldef.python_requires
 
 ###################################################################
-# Op for run
+# Generate op cmd
 ###################################################################
 
-def for_run(run, gpus=None, **kw):
-    cmd_args = run.get("cmd")
-    flag_vals = run.get("flags")
-    flag_map = run.get("flag_map")
-    cmd_env = _op_init_cmd_env_for_run(run, gpus)
-    output_scalars = run.get("output_scalars")
-    stoppable = run.get("stoppable")
-    return Operation(
-        run.opref,
-        cmd_args,
-        flag_vals=flag_vals,
-        flag_map=flag_map,
-        cmd_env=cmd_env,
-        output_scalars=output_scalars,
-        run_dir=run.dir,
-        stoppable=stoppable,
-        **kw)
+def generate_op_cmd(op):
+    try:
+        return op_cmd_lib.generate(
+            op.op_cmd,
+            op.flag_vals,
+            _op_cmd_resolve_params(op))
+    except util.UndefinedReferenceError as e:
+        raise OpCmdError(
+            "command contains invalid reference '%s'"
+            % e.args[0])
 
-def _op_init_cmd_env_for_run(run, gpus):
-    env = run.get("env")
-    _apply_system_env(gpus, env)
-    util.check_env(env)
-    return env
+def _op_cmd_resolve_params(op):
+    params = dict(op.flag_vals)
+    params["python_exe"] = _proc_python_exe(op)
+    return params
+
+def _proc_python_exe(op):
+    if op.python_requires:
+        matching = util.find_python_interpreter(op.python_requires)
+        if not matching:
+            raise ProcessError(
+                "cannot find a python interpreter for "
+                "requirement %r" % op.python_requires)
+        path, _ver = matching
+        return path
+    return sys.executable
 
 ###################################################################
-# Run
-###################################################################
-
-def run(op, stage=False, quiet=False, _background_pidfile=None,
-        stop_after=None):
-    run = init_run(op)
-    _callback("run_initialized", op, run)
-    if stage:
-        exit_status = _op_stage(op, run)
-    else:
-        exit_status = _op_run(op, run, quiet, stop_after)
-    return run, exit_status
-
-# =================================================================
 # Init run
-# =================================================================
+###################################################################
 
 def init_run(op, run_dir=None):
     run = _op_init_pending_run(op, run_dir)
     _op_init_run_attrs(op, run)
     _op_copy_sourcecode(op, run)
     _op_init_sourcecode_digest(run)
+    _callback("run_initialized", op, run)
     return run
 
 def _op_init_pending_run(op, run_dir):
@@ -581,16 +326,8 @@ def _op_init_run_attrs(op, run):
     for name, val in (op.extra_run_attrs or {}).items():
         run.write_attr(name, val)
     run.write_attr("flags", op.flag_vals)
-    run.write_attr("cmd", op.cmd_args)
-    run.write_attr("env", op.cmd_env)
-    if op.output_scalars:
-        run.write_attr("output_scalars", op.output_scalars)
-    if op.stoppable:
-        run.write_attr("stoppable", op.stoppable)
-    if op.label is not None:
-        run.write_attr("label", op.label)
-    if op.flag_map:
-        run.write_attr("flag_map", op.flag_map)
+    run.write_attr("label", op.label)
+    run.write_attr("op", as_config(op))
 
 def _op_copy_sourcecode(op, run):
     if os.getenv("NO_SOURCECODE") == "1":
@@ -611,25 +348,48 @@ def _op_copy_sourcecode(op, run):
 def _op_init_sourcecode_digest(run):
     op_util.write_sourcecode_digest(run)
 
-# =================================================================
-# Stage op
-# =================================================================
+###################################################################
+# Stage
+###################################################################
 
-def _op_stage(op, run):
-    env = _op_run_cmd_env(op, run)
-    _op_resolve_deps(op, run)
-    _op_write_sourceable_env(env, run)
+def stage(op):
+    run = init_run(op)
+    cmd_args, op_cmd_env = generate_op_cmd(op)
+    _stage_run_proc_env(op_cmd_env, run)
     op_util.set_run_started(run)
     op_util.set_run_marker(run, "STAGED")
     op_util.clear_run_pending(run)
-    return 0
+    return run, cmd_args
 
-def _op_run_cmd_env(op, run):
-    env = dict(op.cmd_env)
-    env["RUN_DIR"] = run.path
-    env["RUN_ID"] = run.id
-    util.check_env(env)
-    return env
+def _stage_run_proc_env(op_cmd_env, run):
+    env = _op_proc_env(op_cmd_env, run)
+    skip_env = ("PWD", "_")
+    with open(run.guild_path("ENV"), "w") as out:
+        for name in sorted(env):
+            if name in skip_env:
+                continue
+            out.write(
+                "export %s=%s\n"
+                % (name, util.env_var_quote(env[name])))
+
+###################################################################
+# Run
+###################################################################
+
+def run(op, quiet=False, stop_after=None):
+    run = init_run(op)
+    proc_args, op_cmd_env = generate_op_cmd(op)
+    proc_env = _op_proc_env(op_cmd_env, run)
+    _op_resolve_deps(op, run)
+    op_util.set_run_started(run)
+    try:
+        proc = _op_start_proc(proc_args, proc_env, run)
+        exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
+        _op_finalize_run_attrs(run, exit_status)
+        return run, exit_status
+    finally:
+        op_util.clear_run_marker(run, "STAGED")
+        op_util.clear_run_pending(run)
 
 def _op_resolve_deps(op, run):
     if op.deps is None:
@@ -640,46 +400,13 @@ def _op_resolve_deps(op, run):
         resolved.setdefault(dep.resdef.name, []).extend(resolved_sources)
     run.write_attr("deps", resolved)
 
-def _op_write_sourceable_env(env, run):
-    skip_env = ("PWD", "_")
-    with open(run.guild_path("ENV"), "w") as out:
-        for name in sorted(env):
-            if name in skip_env:
-                continue
-            out.write(
-                "export %s=%s\n"
-                % (name, util.shlex_quote(env[name])))
-
-# =================================================================
-# Run op
-# =================================================================
-
-def _op_run(op, run, quiet, stop_after):
-    env = _op_run_cmd_env(op, run)
-    _op_resolve_deps(op, run)
-    op_util.set_run_started(run)
-    try:
-        proc = _op_proc(op, run, env)
-        exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
-        _op_finalize_run_attrs(run, exit_status)
-        return exit_status
-    finally:
-        op_util.clear_run_marker(run, "STAGED")
-        op_util.clear_run_pending(run)
-
-def _op_proc(op, run, env):
-    args = proc_args(op)
-    assert args == op.cmd_args, (args, op.cmd_args)
-    cwd = run.dir
-    log.debug("starting operation run %s in %s", run.id, cwd)
-    log.debug("operation command: %s", args)
-    log.debug("operation env: %s", env)
-    log.debug("operation cwd: %s", cwd)
+def _op_start_proc(args, env, run):
+    log.debug("starting run %s in %s", run.id, run.dir)
     try:
         proc = subprocess.Popen(
             args,
             env=env,
-            cwd=cwd,
+            cwd=run.dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
     except OSError as e:
@@ -687,26 +414,6 @@ def _op_proc(op, run, env):
     else:
         _write_proc_lock(proc, run)
         return proc
-
-def proc_args(op):
-    resolve_params = _proc_arg_resolve_params(op)
-    return op_cmd.cmd_args(op.cmd_template, op.flag_vals, resolve_params)
-
-def _proc_arg_resolve_params(op):
-    params = dict(op.flag_vals)
-    params["python_exe"] = _proc_python_exe(op)
-    return params
-
-def _proc_python_exe(op):
-    if op.python_requires:
-        matching = util.find_python_interpreter(op.python_requires)
-        if not matching:
-            raise ProcessError(
-                "cannot find a python interpreter for "
-                "requirement %r" % op.python_requires)
-        path, _ver = matching
-        return path
-    return sys.executable
 
 def _write_proc_lock(proc, run):
     with open(run.guild_path("LOCK"), "w") as f:
@@ -795,3 +502,67 @@ def _delete_proc_lock(run):
         os.remove(run.guild_path("LOCK"))
     except OSError:
         pass
+
+# =================================================================
+# Run proc env
+# =================================================================
+
+def _op_proc_env(op_cmd_env, run):
+    env = dict(op_cmd_env)
+    env.update(op_cmd_env)
+    env.update(_run_cmd_env(run))
+    env.update(_system_cmd_env())
+    return env
+
+def _run_cmd_env(run):
+    return {
+        "RUN_DIR": run.path,
+        "RUN_ID": run.id,
+    }
+
+def _system_cmd_env():
+    env = util.safe_osenv()
+    env["GUILD_HOME"] = config.guild_home()
+    env["LOG_LEVEL"] = _log_level()
+    env["PYTHONPATH"] = _python_path()
+    env["CMD_DIR"] = os.getcwd()
+    return env
+
+def _log_level():
+    try:
+        return os.environ["LOG_LEVEL"]
+    except KeyError:
+        return str(logging.getLogger().getEffectiveLevel())
+
+def _python_path():
+    paths = (
+        _env_paths() +
+        _run_sourcecode_paths() +
+        _guild_paths()
+    )
+    return os.path.pathsep.join(paths)
+
+def _env_paths():
+    env = os.getenv("PYTHONPATH")
+    return env.split(os.path.pathsep) if env else []
+
+def _run_sourcecode_paths():
+    return [".guild/sourcecode"]
+
+def _guild_paths():
+    guild_path = os.path.dirname(os.path.dirname(__file__))
+    abs_guild_path = os.path.abspath(guild_path)
+    return [abs_guild_path] + _runfile_paths()
+
+def _runfile_paths():
+    return [
+        os.path.abspath(path)
+        for path in sys.path if _is_runfile_pkg(path)
+    ]
+
+def _is_runfile_pkg(path):
+    for runfile_path in OP_RUNFILE_PATHS:
+        split_path = path.split(os.path.sep)
+        if split_path[-len(runfile_path):] == runfile_path:
+            return True
+    return False

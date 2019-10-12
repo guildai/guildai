@@ -149,6 +149,12 @@ This warning can be avoided by explicitly skipping the flag arg.
     ['--a', '2']
     {'FLAG_A': '1'}
 
+## Undefined references
+
+    >>> generate(["${invalid-ref}"], {}, {}, {})
+    Traceback (most recent call last):
+    UndefinedReferenceError: invalid-ref
+
 ## Data IO
 
 Command templates are represented as data with `as_data` and loaded
