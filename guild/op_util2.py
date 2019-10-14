@@ -23,7 +23,10 @@ from guild import guildfile
 from guild import file_util
 from guild import flag_util
 from guild import model_proxy
+from guild import op_cmd as op_cmd_lib
+from guild import plugin as pluginlib
 from guild import run as runlib
+from guild import summary
 from guild import util
 from guild import var
 
@@ -48,6 +51,13 @@ log = logging.getLogger("guild")
 
 MAX_DEFAULT_SOURCECODE_FILE_SIZE = 1024 * 1024
 MAX_DEFAULT_SOURCECODE_COUNT = 100
+
+DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} -- ${flag_args}"
+STEPS_EXEC = "${python_exe} -um guild.steps_main"
+
+DEFAULT_OUTPUT_SCALARS = [
+    r"^(\key):\s+(\value)$",
+]
 
 ###################################################################
 # Error classes
@@ -107,6 +117,9 @@ class NoSuchFlagError(FlagError):
     def __init__(self, flag_name):
         super(NoSuchFlagError, self).__init__(flag_name)
         self.flag_name = flag_name
+
+class OpCmdError(Exception):
+    pass
 
 ###################################################################
 # OpDef for spec
@@ -443,6 +456,126 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
             self._warning_help_suffix)
 
 ###################################################################
+# Op command support
+###################################################################
+
+def op_cmd_for_opdef(opdef, extra_cmd_env):
+    cmd_args = _op_cmd_args(opdef)
+    cmd_env = _op_cmd_env(opdef, extra_cmd_env)
+    cmd_flags = _op_cmd_flags(opdef)
+    return op_cmd_lib.OpCmd(cmd_args, cmd_env, cmd_flags)
+
+def _op_cmd_args(opdef):
+    main_args = split_cmd(opdef.main or "")
+    exec_args = split_cmd(_opdef_exec(opdef))
+    _apply_main_args(main_args, exec_args)
+    _apply_flag_args_marker(exec_args)
+    return exec_args
+
+def _opdef_exec(opdef):
+    """Returns exec template for opdef.
+
+    If exec is specified explicitly, it's returned, otherwise main or
+    steps are used to generate a template.
+    """
+    if opdef.exec_:
+        if opdef.main:
+            log.warning(
+                "operation 'exec' and 'main' both specified, "
+                "ignoring 'main'")
+        if opdef.steps:
+            log.warning(
+                "operation 'exec' and 'steps' both specified, "
+                "ignoring 'steps'")
+        return opdef.exec_
+    elif opdef.main:
+        if opdef.steps:
+            log.warning(
+                "operation 'main' and 'steps' both specified, "
+                "ignoring 'steps'")
+        return DEFAULT_EXEC
+    elif opdef.steps:
+        return STEPS_EXEC
+    else:
+        raise ValueError(
+            "invalid definition for %s: must define either "
+            "exec, main, or steps" % opdef.fullname)
+
+def _apply_main_args(main_args, exec_args):
+    i = 0
+    while i < len(exec_args):
+        if exec_args[i] == "${main_args}":
+            exec_args[i:i+1] = main_args
+            i += len(main_args)
+        i += 1
+
+def _apply_flag_args_marker(exec_args):
+    for i, val in enumerate(exec_args):
+        if val == "${flag_args}":
+            exec_args[i] = "__flag_args__"
+
+def _op_cmd_env(opdef, extra_env):
+    env = dict(opdef.env or {})
+    env.update(extra_env or {})
+    env["GUILD_OP"] = opdef.fullname
+    env["GUILD_PLUGINS"] = _op_plugins(opdef)
+    env["PROJECT_DIR"] = opdef.guildfile.dir or ""
+    if opdef.flags_dest:
+        env["FLAGS_DEST"] = opdef.flags_dest
+    if opdef.handle_keyboard_interrupt:
+        env["HANDLE_KEYBOARD_INTERRUPT"] = "1"
+    return env
+
+def _op_plugins(opdef):
+    project_plugins = _project_plugins(opdef)
+    op_plugins = []
+    for name, plugin in pluginlib.iter_plugins():
+        if not _plugin_selected(plugin, project_plugins):
+            log.debug("plugin '%s' not configured for operation", name)
+            continue
+        enabled, reason = plugin.enabled_for_op(opdef)
+        if not enabled:
+            log.debug(
+                "plugin '%s' configured for operation but cannot be enabled%s",
+                name, " (%s)" % reason if reason else "")
+            continue
+        log.debug(
+            "plugin '%s' enabled for operation%s",
+            name, " (%s)" % reason if reason else "")
+        op_plugins.append(name)
+    return ",".join(sorted(op_plugins))
+
+def _project_plugins(opdef):
+    if opdef.plugins is not None:
+        return opdef.plugins or []
+    return opdef.modeldef.plugins or []
+
+def _plugin_selected(plugin, selected):
+    for name in selected:
+        if name == plugin.name or name in plugin.provides:
+            return True
+    return False
+
+def _op_cmd_flags(opdef):
+    return {
+        flagdef.name: _flag_cmd_for_flagdef(flagdef)
+        for flagdef in opdef.flags
+    }
+
+def _flag_cmd_for_flagdef(flagdef):
+    return op_cmd_lib.CmdFlag(
+        arg_name=flagdef.arg_name,
+        arg_skip=_flagdef_arg_skip(flagdef),
+        arg_switch=flagdef.arg_switch,
+        env_name=flagdef.env_name,
+    )
+
+def _flagdef_arg_skip(flagdef):
+    if flagdef.arg_skip is not None:
+        return flagdef.arg_skip
+    return flagdef.opdef.default_flag_arg_skip
+
+###################################################################
 # Flags support
 ###################################################################
 
@@ -572,6 +705,28 @@ def _apply_default_flag_vals(flagdefs, flag_vals):
     for flagdef in flagdefs:
         if flag_vals.get(flagdef.name) is None:
             flag_vals[flagdef.name] = flagdef.default
+
+###################################################################
+# Output scalars support
+###################################################################
+
+def output_scalars_summary_for_opdef(opdef, flag_vals, run):
+    try:
+        summary.check_enabled()
+    except summary.Disabled as e:
+        log.warning(e)
+        return None
+    else:
+        config, ignore = _output_scalars_summary_config(
+            opdef.output_scalars,
+            flag_vals.keys())
+        summary_path = run.guild_path()
+        return summary.OutputScalars(config, summary_path, ignore)
+
+def _output_scalars_summary_config(output_scalars, flag_names):
+    if output_scalars is None:
+        return DEFAULT_OUTPUT_SCALARS, flag_names
+    return output_scalars, None
 
 ###################################################################
 # Utils

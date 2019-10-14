@@ -580,7 +580,7 @@ def _run_info_data(run, args):
     if args.env:
         data.append(("environment", run.get("env") or {}))
     if args.deps:
-        data.append(("dependencies", _deps(run)))
+        data.append(("dependencies", _resolved_deps(run)))
     if args.private_attrs and args.json:
         data.append(("opdef", run.get("opdef")))
         _maybe_append_proto_data(run, data)
@@ -629,8 +629,8 @@ def _s_val(s):
 def _s_step(s):
     return s["last_step"]
 
-def _deps(run):
-    deps = run.get("deps") or {}
+def _resolved_deps(run):
+    deps = run.get("resolved_deps") or {}
     return {
         res_name: _format_dep_sources(sources)
         for res_name, sources in deps.items()

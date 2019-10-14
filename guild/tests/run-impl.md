@@ -179,8 +179,8 @@ Multiple matching models:
 
 Anonymous model:
 
-    >>> cwd = init_gf("{}")
-    >>> run(cwd, opspec="foo")
+    >> cwd = init_gf("{}")
+    >> run(cwd, opspec="foo")
     operation 'foo' is not defined for this project
     Try 'guild operations' for a list of available operations.
     <exit 1>
@@ -620,7 +620,6 @@ Stage exec op in explicit run dir:
     >>> run(cwd, opspec="op", stage=True, run_dir=mkdtemp())
     op staged in '...'
     To start the operation, use "(cd '...' && source .guild/ENV && run.sh)"
-
 
 ## == TODO =====================================================
 
