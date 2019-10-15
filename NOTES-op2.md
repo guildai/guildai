@@ -65,6 +65,14 @@ Notes Oct 11:
 
 - [ ] Needed flag
 
-- [ ] Custom opdef env
+- [ ] Custom opdef env - from Guildfile
 
 - [ ] --gup -> CUDA_VISIBLE_DEVICES
+
+- [ ] Batch files
+
+- [ ] Restart
+  - [ ] Normal with opdef - with and without flags
+  - [ ] Normal without opdef - with and without flags
+  - [ ] Batch with opdef - with and without flags
+  - [ ] Batch without opdef - with and without flags

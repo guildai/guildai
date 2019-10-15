@@ -222,7 +222,7 @@ No default operation:
     ...   main: guild.pass ${foo}
     ... """)
     >>> run(cwd, opspec="op")
-    invalid setting for operation 'op': command contains invalid reference 'foo'
+    invalid setting for operation: command contains invalid reference 'foo'
     <exit 1>
 
 ## Invalid flag arg

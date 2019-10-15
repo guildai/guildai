@@ -88,21 +88,42 @@ Start a staged operation:
     >>> len(runs)
     1
 
+Missing required op config:
+
+
+    >>> run_dir = path(guild_home, "runs", run_id)
+    >>> os.remove(path(run_dir, ".guild", "attrs", "op"))
+
+    >>> run(cwd, guild_home, restart=run_id)
+    cannot restart run in ...: missing op configuration
+    The run may not have been initialized correctly. Try starting the
+    operation without the --start/--restart flag.
+    <exit 1>
+
+Corrupt op config:
+
+    >>> write(path(run_dir, ".guild", "attrs", "op"), "{foo:123}")
+    >>> run(cwd, guild_home, restart=run_id)
+    cannot restart run in ...: invalid op configuration
+    This may be an internal error. Please open an issue
+    https://github.com/guildai/guildai/issues.
+    <exit 1>
+
 ## Batch operation errors
 
 Optimizer flag with no optimizer:
 
-    >>> cwd = init_gf("""
+    >> cwd = init_gf("""
     ... op: { main: guild.pass }
     ... """)
 
-    >>> run(cwd, opt_flags=["foo=123"])
+    >> run(cwd, opt_flags=["foo=123"])
     invalid optimizer flag foo=123: no optimizer specified
     <exit 1>
 
 Invalid optimizer flag:
 
-    >>> run(cwd, optimizer="+", opt_flags=["baz=789"])
+    >> run(cwd, optimizer="+", opt_flags=["baz=789"])
     unsupported flag 'baz'
     Try 'guild run + --help-op' for a list of flags or use
     --force-flags to skip this check.
@@ -110,4 +131,4 @@ Invalid optimizer flag:
 
 ## Stage batch op
 
-TODO
+    >> "TODO"

@@ -61,15 +61,14 @@ class ProcessError(Exception):
 
 class Operation(object):
 
-    def __init__(self, opref, cmd_args, cmd_env, run_dir, run_attrs,
-                 deps, callbacks=None):
-        self.opref = opref
-        self.cmd_args = cmd_args
-        self.cmd_env = cmd_env
-        self.run_dir = run_dir
-        self.run_attrs = run_attrs
-        self.deps = deps
-        self.callbacks = callbacks
+    def __init__(self):
+        self.opref = None
+        self.cmd_args = []
+        self.cmd_env = {}
+        self.run_dir = None
+        self.run_attrs = {}
+        self.deps = []
+        self.callbacks = None
 
 """
 class Operation(object):
@@ -144,11 +143,6 @@ def _op_init_run_attrs(op, run):
     run.write_opref(op.opref)
     for name, val in (op.run_attrs or {}).items():
         run.write_attr(name, val)
-    """
-    run.write_attr("flags", op.flag_vals)
-    run.write_attr("label", op.label)
-    run.write_attr("op", as_config(op))
-    """
 
 ###################################################################
 # Stage

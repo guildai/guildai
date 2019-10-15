@@ -26,7 +26,6 @@ from guild import model_proxy
 from guild import op_cmd as op_cmd_lib
 from guild import plugin as pluginlib
 from guild import run as runlib
-from guild import summary
 from guild import util
 from guild import var
 
@@ -54,10 +53,6 @@ MAX_DEFAULT_SOURCECODE_COUNT = 100
 
 DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} -- ${flag_args}"
 STEPS_EXEC = "${python_exe} -um guild.steps_main"
-
-DEFAULT_OUTPUT_SCALARS = [
-    r"^(\key):\s+(\value)$",
-]
 
 ###################################################################
 # Error classes
@@ -705,28 +700,6 @@ def _apply_default_flag_vals(flagdefs, flag_vals):
     for flagdef in flagdefs:
         if flag_vals.get(flagdef.name) is None:
             flag_vals[flagdef.name] = flagdef.default
-
-###################################################################
-# Output scalars support
-###################################################################
-
-def output_scalars_summary_for_opdef(opdef, flag_vals, run):
-    try:
-        summary.check_enabled()
-    except summary.Disabled as e:
-        log.warning(e)
-        return None
-    else:
-        config, ignore = _output_scalars_summary_config(
-            opdef.output_scalars,
-            flag_vals.keys())
-        summary_path = run.guild_path()
-        return summary.OutputScalars(config, summary_path, ignore)
-
-def _output_scalars_summary_config(output_scalars, flag_names):
-    if output_scalars is None:
-        return DEFAULT_OUTPUT_SCALARS, flag_names
-    return output_scalars, None
 
 ###################################################################
 # Utils

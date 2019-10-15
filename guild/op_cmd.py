@@ -111,7 +111,7 @@ def _apply_flag_env(flag_vals, op_cmd, env):
     for name, val in flag_vals.items():
         if val is not None:
             env_name = _flag_env_name(name, op_cmd)
-            env[env_name] = flag_util.encode_flag_val(val)
+            env[env_name] = _encode_env_val(val)
 
 def _flag_env_name(flag_name, op_cmd):
     cmd_flag = op_cmd.cmd_flags.get(flag_name)
