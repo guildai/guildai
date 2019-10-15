@@ -42,7 +42,8 @@ log = logging.getLogger("guild")
 # State
 ###################################################################
 
-class State_OLD(object):
+"""
+class State(object):
 
     def __init__(self, args, restart_run, opdef, user_flag_vals,
                  op_flag_vals, label, batch_files, run_dir,
@@ -60,73 +61,9 @@ class State_OLD(object):
         self.extra_cmd_env = extra_cmd_env
         self.batch_opdef = batch_opdef
         self.batch_flag_vals = batch_flag_vals
+"""
 
-class State(object):
-
-    def __init__(self, args, opdef, restart_run, flag_vals,
-                 flag_null_labels, op):
-        self.args = args
-        self.opdef = opdef
-        self.restart_run = restart_run
-        self.flag_vals = flag_vals
-        self.flag_null_labels = flag_null_labels
-        self.op = op
-
-def _state_for_args(args):
-    restart_run = _state_restart_run(args.restart or args.start)
-    opdef = _state_opdef(args, restart_run)
-    op_cmd = _state_op_cmd(opdef, args)
-    user_flag_vals, _batch_files = _state_split_flag_args(args.flags)
-    op_flag_vals = _state_op_flag_vals(opdef, user_flag_vals, args.force_flags)
-    if restart_run:
-        _apply_restart_run_flags(restart_run, user_flag_vals, op_flag_vals)
-    flag_null_labels = _flag_null_labels_for_opdef(opdef)
-    cmd_args, cmd_env = _state_op_generate_cmd(
-        op_cmd,
-        op_flag_vals,
-        _python_requires_for_opdef(opdef),
-        opdef.opref)
-    run_dir = _state_op_run_dir(args, restart_run)
-    run_attrs = _state_op_run_attrs()
-    deps = _state_op_deps_for_opdef(opdef, op_flag_vals)
-    callbacks = _state_op_callbacks_for_opdef(opdef, op_flag_vals)
-    op = oplib.Operation(
-        opdef.opref,
-        cmd_args,
-        cmd_env,
-        run_dir,
-        run_attrs,
-        deps,
-        callbacks)
-    return State(args, opdef, restart_run, op_flag_vals,
-                 flag_null_labels, op)
-
-    """
-    user_flag_vals, batch_files = _state_split_flag_args(args.flags)
-
-    op = _xxx()
-    batch_op = xxx()
-
-    return State(
-        args,
-        restart_run,
-        opdef,
-        user_flag_vals,
-        batch_files,
-    )
-
-    op_flag_vals = _state_op_flag_vals(opdef, user_flag_vals, args.force_flags)
-
-    label = _state_op_label(args, opdef, user_flag_vals, op_flag_vals)
-
-    if restart_run:
-        _apply_restart_run_flags(restart_run, user_flag_vals, op_flag_vals)
-
-    run_dir = _state_run_dir(args, restart_run)
-
-    extra_run_attrs = _state_extra_run_attrs(args, opdef)
-
-    extra_cmd_env = _state_extra_cmd_env(args)
+"""
 
     batch_opdef = _state_batch_opdef(args, op_flag_vals, restart_run)
 
@@ -150,9 +87,49 @@ def _state_for_args(args):
         stoppable=opdef.stoppable,
         python_requires=_python_requires_for_opdef(opdef),
         **kw)
-    """
+"""
 
-def _state_restart_run(restart):
+
+class State(object):
+
+    def __init__(self, args, opdef, restart_run, flag_vals,
+                 flag_null_labels, op, batch_op):
+        self.args = args
+        self.opdef = opdef
+        self.restart_run = restart_run
+        self.flag_vals = flag_vals
+        self.flag_null_labels = flag_null_labels
+        self.op = op
+        self.batch_op = batch_op
+
+def _state_for_args(args):
+    restart_run = _state_restart_run(args)
+    opdef = _state_opdef(args, restart_run)
+    user_flag_vals, _batch_files = _state_split_flag_args(args.flags)
+    op_flag_vals = _state_op_flag_vals(opdef, user_flag_vals, args.force_flags)
+    if restart_run:
+        _apply_restart_run_flags(restart_run, user_flag_vals, op_flag_vals)
+    flag_null_labels = _flag_null_labels_for_opdef(opdef)
+
+    op = _state_op(opdef, restart_run, user_flag_vals, op_flag_vals, args)
+
+    """
+    batch_opdef = _state_batch_opdef(restart_run, op_flag_vals, args)
+    batch_user_flag_vals = _parse_assigns(args.opt_flags)
+    batch_op_flag_vals = _state_op_flag_vals(batch_opdef,
+                                             batch_user_flag_vals,
+                                             args.force_flags)
+    batch_op = _state_op(batch_opdef, restart_run,
+                         batch_user_flag_vals, batch_op_flag_vals, etc)
+    """
+    batch_op = None
+
+
+    return State(args, opdef, restart_run, op_flag_vals,
+                 flag_null_labels, op, batch_op)
+
+def _state_restart_run(args):
+    restart = args.restart or args.start
     if not restart:
         return None
     return _run_for_spec(restart)
@@ -212,15 +189,6 @@ def _opdef_for_opspec(opspec):
     except op_util.ModelOpProxyError as e:
         _model_op_proxy_error(e)
 
-def _state_op_cmd(opdef, args):
-    return op_util.op_cmd_for_opdef(opdef, _cmd_env_for_args(args))
-
-def _cmd_env_for_args(args):
-    env = {}
-    if args.gpus is not None:
-        env["CUDA_VISIBLE_DEVICES"] = args.gpus
-    return env
-
 def _state_split_flag_args(flag_args):
     batch_files, rest_args = op_util.split_batch_files(flag_args)
     assigns = _parse_assigns(rest_args)
@@ -233,6 +201,7 @@ def _parse_assigns(assign_args):
         _invalid_flag_arg_error(e.arg)
 
 def _state_op_flag_vals(opdef, user_flag_vals, force_flags):
+    assert opdef
     try:
         return op_util.flag_vals_for_opdef(opdef, user_flag_vals, force_flags)
     except op_util.MissingRequiredFlags as e:
@@ -260,6 +229,39 @@ def _flag_null_labels_for_opdef(opdef):
         if f.null_label is not None
     }
 
+# =================================================================
+# State - op
+# =================================================================
+
+def _state_op(opdef, restart_run, user_flag_vals, op_flag_vals, args):
+    op_cmd = _state_op_cmd(opdef, args)
+    cmd_args, cmd_env = _state_op_generate_cmd(
+        op_cmd,
+        op_flag_vals,
+        _python_requires_for_opdef(opdef),
+        opdef.opref)
+    run_dir = _state_op_run_dir(args, restart_run)
+    run_attrs = _state_op_run_attrs(args, opdef, user_flag_vals, op_flag_vals)
+    deps = _state_op_deps_for_opdef(opdef, op_flag_vals)
+    callbacks = _state_op_callbacks_for_opdef(opdef, op_flag_vals)
+    return oplib.Operation(
+        opdef.opref,
+        cmd_args,
+        cmd_env,
+        run_dir,
+        run_attrs,
+        deps,
+        callbacks)
+
+def _state_op_cmd(opdef, args):
+    return op_util.op_cmd_for_opdef(opdef, _cmd_env_for_args(args))
+
+def _cmd_env_for_args(args):
+    env = {}
+    if args.gpus is not None:
+        env["CUDA_VISIBLE_DEVICES"] = args.gpus
+    return env
+
 def _state_op_generate_cmd(op_cmd, flag_vals, python_requires, opref):
     try:
         return op_cmd_lib.generate(
@@ -269,7 +271,10 @@ def _state_op_generate_cmd(op_cmd, flag_vals, python_requires, opref):
     except util.UndefinedReferenceError as e:
         _op_cmd_error(
             "invalid setting for operation '%s': command contains "
-            "invalid reference '%s'" % (opref.to_opspec(), e.args[0]))
+            "invalid reference '%s'" % (_fmt_opspec(opref), e.args[0]))
+
+def _fmt_opspec(opref):
+    return opref.to_opspec(config.cwd())
 
 def _op_cmd_resolve_params(flag_vals, python_requires):
     params = dict(flag_vals)
@@ -333,30 +338,51 @@ def _state_op_label(args, opdef, user_flag_vals, op_flag_vals):
 def _default_op_label(flag_vals):
     return " ".join(flag_util.format_flags(flag_vals, truncate_floats=True))
 
-"""
-def _state_extra_run_attrs(args, opdef):
-    attrs = {}
-    attrs["run_params"] = args.as_kw()
-    attrs["random_seed"] = _random_seed(args)
-    attrs["host"] = util.hostname()
-    attrs["user"] = util.user()
-    attrs["platform"] = util.platform_info()
-    if args.max_trials:
-        attrs["max_trials"] = args.max_trials
-    return attrs
+def _state_op_deps_for_opdef(opdef, flag_vals):
+    try:
+        return op_dep.deps_for_opdef(opdef, flag_vals)
+    except op_dep.OpDependencyError as e:
+        _invalid_opdef_error(opdef, e)
 
-def _random_seed(args):
-    if args.random_seed is not None:
-        return args.random_seed
-    return runlib.random_seed()
-"""
+def _state_op_callbacks_for_opdef(opdef, flag_vals):
+    def init_output_summary(_op, run):
+        return op_util.output_scalars_summary_for_opdef(opdef, flag_vals, run)
+
+    def run_initialized(op, run):
+        sourcecode_src = opdef.guildfile.dir
+        sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
+        _copy_run_sourcecode(sourcecode_src, sourcecode_select, run)
+        _write_run_sourcecode_digest(run)
+
+    return oplib.OperationCallbacks(
+        init_output_summary=init_output_summary,
+        run_initialized=run_initialized,
+    )
+
+def _copy_run_sourcecode(sourcecode_src, sourcecode_select, run):
+    if os.getenv("NO_SOURCECODE") == "1":
+        log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
+        return
+    if not sourcecode_src:
+        log.debug("no sourcecode source, skipping sourcecode copy")
+        return
+    if not sourcecode_select:
+        log.debug("no sourcecode rules, skipping sourcecode copy")
+        return
+    dest = run.guild_path("sourcecode")
+    log.debug(
+        "copying source code files for run %s from %s to %s",
+        run.id, sourcecode_src, dest)
+    op_util.copy_sourcecode(sourcecode_src, sourcecode_select, dest)
+
+def _write_run_sourcecode_digest(run):
+    op_util.write_sourcecode_digest(run)
 
 # =================================================================
-# State - batch op def
+# XXXXXXXXXXXXXXXXXX batch opdef and stuff XXXXXXXXXXXXXXXXXXXXXXX
 # =================================================================
 
-"""
-def _state_batch_opdef(args, flag_vals, restart_run):
+def _state_batch_opdef(restart_run, flag_vals, args):
     if restart_run:
         opdef = _batch_opdef_for_run(restart_run)
         if not opdef:
@@ -403,63 +429,12 @@ def _is_random_function(val):
 def _any_lists(flag_vals):
     return any((isinstance(val, list) for val in flag_vals.values()))
 
-def _state_batch_flag_vals(batch_flag_args, batch_opdef, force_flags):
-    if not batch_flag_args:
-        return {}
-    if not batch_opdef:
-        _batch_flags_for_missing_batch_opdef_error(batch_flag_args)
-    user_flag_vals = _parse_assigns(batch_flag_args)
-    return _state_op_flag_vals(batch_opdef, user_flag_vals, force_flags)
-
-"""
-
-def _state_op_deps_for_opdef(opdef, flag_vals):
-    try:
-        return op_dep.deps_for_opdef(opdef, flag_vals)
-    except op_dep.OpDependencyError as e:
-        _invalid_opdef_error(opdef, e)
-
-def _state_op_callbacks_for_opdef(opdef, flag_vals):
-    def init_output_summary(_op, run):
-        return op_util.output_scalars_summary_for_opdef(opdef, flag_vals, run)
-
-    def run_initialized(op, run):
-        sourcecode_src = opdef.guildfile.dir
-        sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
-        _copy_run_sourcecode(sourcecode_src, sourcecode_select, run)
-        _write_run_sourcecode_digest(run)
-
-    return oplib.OperationCallbacks(
-        init_output_summary=init_output_summary,
-        run_initialized=run_initialized,
-    )
-
-def _copy_run_sourcecode(sourcecode_src, sourcecode_select, run):
-    if os.getenv("NO_SOURCECODE") == "1":
-        log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
-        return
-    if not sourcecode_src:
-        log.debug("no sourcecode source, skipping sourcecode copy")
-        return
-    if not sourcecode_select:
-        log.debug("no sourcecode rules, skipping sourcecode copy")
-        return
-    dest = run.guild_path("sourcecode")
-    log.debug(
-        "copying source code files for run %s from %s to %s",
-        run.id, sourcecode_src, dest)
-    op_util.copy_sourcecode(sourcecode_src, sourcecode_select, dest)
-
-def _write_run_sourcecode_digest(run):
-    op_util.write_sourcecode_digest(run)
-
 ###################################################################
 # Main
 ###################################################################
 
 def main(args):
     S = _init_state(args)
-    ##_validate_op(S)
     _dispatch_op(S)
 
 def _init_state(args):
@@ -468,8 +443,7 @@ def _init_state(args):
     return _state_for_args(args)
 
 def _maybe_shift_opspec(args):
-    """Moves opspec to flags if it looks like a flag assignment.
-    """
+    # Moves opspec to flags if it looks like a flag assignment
     if args.opspec and "=" in args.opspec:
         args.flags = (args.opspec,) + args.flags
         args.opspec = None
@@ -806,16 +780,16 @@ def _confirm_and_run_op(S):
 # =================================================================
 
 def _confirm_run(S):
-    action = _preview_op_action(S)
-    subject = _preview_op_subject(S)
-    flags = _preview_flags(S)
     prompt = (
-        "You are about to {action} {subject}\n"
+        "You are about to {action} {subject}{batch_suffix}\n"
         "{flags}"
         "Continue?"
-        .format(action=action,
-                subject=subject,
-                flags=flags)
+        .format(
+            action=_preview_op_action(S),
+            subject=_preview_op_subject(S),
+            batch_suffix=_preview_batch_suffix(S),
+            flags=_preview_flags(S),
+        )
     )
     return cli.confirm(prompt, default=True)
 
@@ -830,17 +804,17 @@ def _preview_op_action(S):
         return "run"
 
 def _preview_op_subject(S):
-    op_desc = _preview_op_desc(S.op)
+    op_desc = _fmt_opspec(S.op.opref)
     if S.restart_run:
         return "%s (%s)" % (S.restart_run.id, op_desc)
     else:
         return op_desc
 
-def _preview_op_desc(op):
-    opspec = op.opref.to_opspec()
-    if os.path.isabs(opspec):
-        opspec = os.path.relpath(opspec, config.cwd())
-    return opspec
+def _preview_batch_suffix(S):
+    if not S.batch_op:
+        return ""
+    else:
+        return " TODO: some batch desc for %s" % S.batch_op.opref
 
 def _preview_flags(S, indent=2):
     if not S.flag_vals:
@@ -901,7 +875,7 @@ def _print_staged_dir_instructions(run, S):
         "To start the operation, use "
         "\"(cd '{dir}' && source .guild/ENV && {cmd})\""
         .format(
-            op=S.opdef.fullname,
+            op=_fmt_opspec(S.op.opref),
             dir=run.dir,
             cmd=cmd))
 
@@ -910,7 +884,7 @@ def _print_stage_pending_instructions(run, S):
         "{op} staged as {run_id}\n"
         "To start the operation, use 'guild run --start {run_id}'"
         .format(
-            op=S.opdef.fullname,
+            op=_fmt_opspec(S.op.opref),
             run_id=run.id))
 
 def _run_op_(S):
@@ -1069,7 +1043,7 @@ def _op_dependency_error(e):
         "run failed because a dependency was not met: %s" % e)
 
 def _op_process_error(op, e):
-    cli.error("error running %s: %s" % (op.opref.to_opspec(), e))
+    cli.error("error running %s: %s" % (_fmt_opspec(op.opref), e))
 
 def _flags_with_missing_opdef_error(restart_run):
     cli.error(

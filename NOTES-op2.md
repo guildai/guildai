@@ -66,3 +66,5 @@ Notes Oct 11:
 - [ ] Needed flag
 
 - [ ] Custom opdef env
+
+- [ ] --gup -> CUDA_VISIBLE_DEVICES
