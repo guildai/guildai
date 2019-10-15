@@ -454,7 +454,8 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
 # Op command support
 ###################################################################
 
-def op_cmd_for_opdef(opdef, extra_cmd_env):
+def op_cmd_for_opdef(opdef, extra_cmd_env=None):
+    extra_cmd_env = extra_cmd_env or {}
     cmd_args = _op_cmd_args(opdef)
     cmd_env = _op_cmd_env(opdef, extra_cmd_env)
     cmd_flags = _op_cmd_flags(opdef)
