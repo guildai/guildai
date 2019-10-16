@@ -66,32 +66,11 @@ class Operation(oplib.Operation):
         self._label = None
         self._output_scalars = None
 
-"""
-class State(object):
-
-    def __init__(self, args):
-        self.args = args
-        self.restart_run = None
-        self.opdef = None
-        self.user_flag_vals = {}
-        self.op_flag_vals = {}
-        self.flag_null_labels = {}
-        self.op = oplib.Operation()
-        self.batch = BatchState()
-
-class BatchState(object):
-
-    def __init__(self):
-        self.user_flag_vals = {}
-        self.op_flag_vals = {}
-        self.op = None
-"""
-
 def _state_for_args(args):
     S = State(args)
     _state_init_restart_run(S)
     _state_init_user_op(S)
-    ##_state_init_batch_op(S)
+    _state_init_batch_op(S)
     return S
 
 # =================================================================
@@ -115,9 +94,9 @@ def _run_for_spec(spec):
 # =================================================================
 
 def _state_init_user_op(S):
-    _user_op_init_run(S.restart_run, S.user_op)
-    _op_init_user_flags(S.args.flags, S.user_op)
+    _user_op_init_run(S)
     _op_init_opdef(S.args.opspec, S.user_op)
+    _op_init_user_flags(S.args.flags, S.user_op)
     _op_init_op_flags(S.user_op, S)
     _op_init_config(S.user_op)
     _op_init_opref(S.user_op)
@@ -127,33 +106,14 @@ def _state_init_user_op(S):
     _op_init_random_seed(S.args.random_seed, S.user_op)
     _op_init_run_attrs(S.args, S.user_op)
     _op_init_deps(S.user_op)
-    _user_op_init_callbacks(S.user_op)
+    _op_init_callbacks(S.user_op)
 
-def _user_op_init_run(restart_run, op):
-    if restart_run:
-        if restart_run.batch_proto:
-            op._run = restart_run.batch_proto
+def _user_op_init_run(S):
+    if S.restart_run:
+        if S.restart_run.batch_proto:
+            S.user_op._run = S.restart_run.batch_proto
         else:
-            op._run = restart_run
-
-# =================================================================
-# Op - user flags
-# =================================================================
-
-def _op_init_user_flags(flag_args, op):
-    op._user_flag_vals, batch_files = _state_split_flag_args(flag_args)
-    assert not batch_files, "TODO"
-
-def _state_split_flag_args(flag_args):
-    batch_files, rest_args = op_util.split_batch_files(flag_args)
-    assigns = _parse_assigns(rest_args)
-    return assigns, batch_files
-
-def _parse_assigns(assign_args):
-    try:
-        return op_util.parse_flag_assigns(assign_args)
-    except op_util.ArgValueError as e:
-        _invalid_flag_arg_error(e.arg)
+            S.user_op._run = S.restart_run
 
 # =================================================================
 # Op - opdef
@@ -161,21 +121,20 @@ def _parse_assigns(assign_args):
 
 def _op_init_opdef(opspec, op):
     if op._run:
-        op._opdef = _opdef_for_run(op._run, op._user_flag_vals)
+        assert not opspec, opspec
+        op._opdef = _opdef_for_run(op._run)
     else:
         op._opdef = _opdef_for_opspec(opspec)
 
 def _state_init_opdef_for_opspec(opspec, S):
     S.opdef = _opdef_for_opspec(opspec)
 
-def _opdef_for_run(run, user_flag_vals):
+def _opdef_for_run(run):
     opspec = run.opref.to_opspec()
     try:
         return op_util.opdef_for_opspec(opspec)
     except Exception as e:
         _log_opdef_for_run_error(e, run, opspec)
-        if user_flag_vals:
-            _restart_flags_with_missing_opdef_error(run, opspec)
         return None
 
 def _opdef_for_opspec(opspec):
@@ -207,6 +166,30 @@ def _log_opdef_for_run_error(e, run, opspec):
         log.warning(
             "error loading definition for '%s' for run %s: %s",
             opspec, run.id, e)
+
+# =================================================================
+# Op - user flags
+# =================================================================
+
+def _op_init_user_flags(flag_args, op):
+    op._user_flag_vals, batch_files = _state_split_flag_args(flag_args)
+    _check_restart_flags_with_missing_opdef(op)
+    assert not batch_files, "TODO"
+
+def _state_split_flag_args(flag_args):
+    batch_files, rest_args = op_util.split_batch_files(flag_args)
+    assigns = _parse_assigns(rest_args)
+    return assigns, batch_files
+
+def _parse_assigns(assign_args):
+    try:
+        return op_util.parse_flag_assigns(assign_args)
+    except op_util.ArgValueError as e:
+        _invalid_flag_arg_error(e.arg)
+
+def _check_restart_flags_with_missing_opdef(op):
+    if op._user_flag_vals and op._run and not op._opdef:
+        _restart_flags_with_missing_opdef_error(op._run)
 
 # =================================================================
 # Op - op flags
@@ -451,35 +434,31 @@ def _op_deps_for_opdef(opdef, flag_vals):
 # Op - run callbacks
 # =================================================================
 
-def _user_op_init_callbacks(op):
-    assert op._opdef
-    sourcecode_src = op._opdef.guildfile.dir
-    sourcecode_select = op_util.sourcecode_select_for_opdef(op._opdef)
-    output_scalars = op._output_scalars or summary.DEFAULT_OUTPUT_SCALARS
-    flag_vals = op._op_flag_vals
+def _op_init_callbacks(op):
+    if op._run:
+        _op_init_callbacks_for_restart(op)
+    else:
+        assert op._opdef
+        _op_init_callbacks_for_opdef(op._opdef, op)
 
-    def init_output_summary(_op, run):
-        return _output_scalars_summary(output_scalars, flag_vals, run)
-
-    def run_initialized(op, run):
-        _copy_run_sourcecode(sourcecode_src, sourcecode_select, run)
-        _write_run_sourcecode_digest(run)
-
+def _op_init_callbacks_for_restart(op):
     op.callbacks = oplib.OperationCallbacks(
-        init_output_summary=init_output_summary,
-        run_initialized=run_initialized,
+        init_output_summary=_init_output_summary
     )
 
-def _output_scalars_summary(output_scalars, flag_vals, run):
+def _init_output_summary(op, run):
     try:
         summary.check_enabled()
     except summary.Disabled as e:
         log.warning(e)
         return None
     else:
-        return _output_scalars_summary_(output_scalars, flag_vals, run)
+        return _output_scalars_summary(
+            op._output_scalars,
+            op._op_flag_vals,
+            run)
 
-def _output_scalars_summary_(output_scalars, flag_vals, run):
+def _output_scalars_summary(output_scalars, flag_vals, run):
     if output_scalars is None:
         output_scalars = summary.DEFAULT_OUTPUT_SCALARS
         ignore = flag_vals.keys()
@@ -487,6 +466,20 @@ def _output_scalars_summary_(output_scalars, flag_vals, run):
         ignore = None
     summary_path = run.guild_path()
     return summary.OutputScalars(output_scalars, summary_path, ignore)
+
+def _op_init_callbacks_for_opdef(opdef, op):
+    op.callbacks = oplib.OperationCallbacks(
+        init_output_summary=_init_output_summary,
+        run_initialized=_copy_sourcecode_cb_for_opdef(opdef)
+    )
+
+def _copy_sourcecode_cb_for_opdef(opdef):
+    sourcecode_src = opdef.guildfile.dir
+    sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
+    def f(op, run):
+        _copy_run_sourcecode(sourcecode_src, sourcecode_select, run)
+        _write_run_sourcecode_digest(run)
+    return f
 
 def _copy_run_sourcecode(sourcecode_src, sourcecode_select, run):
     if os.getenv("NO_SOURCECODE") == "1":
@@ -506,6 +499,36 @@ def _copy_run_sourcecode(sourcecode_src, sourcecode_select, run):
 
 def _write_run_sourcecode_digest(run):
     op_util.write_sourcecode_digest(run)
+
+# =================================================================
+# State - batch op
+# =================================================================
+
+def _state_init_batch_op(S):
+    _batch_op_init_run(S)
+
+    #_op_init_user_flags(S.args.flags, S.user_op)
+    #_op_init_opdef(S.args.opspec, S.user_op)
+    #_op_init_op_flags(S.user_op, S)
+    #_op_init_config(S.user_op)
+    #_op_init_opref(S.user_op)
+    #_op_init_cmd(S.args, S.user_op)
+    #_op_init_run_dir(S.args, S.user_op)
+    #_op_init_run_label(S.args.label, S.user_op)
+    #_op_init_random_seed(S.args.random_seed, S.user_op)
+    #_op_init_run_attrs(S.args, S.user_op)
+    #_op_init_deps(S.user_op)
+    #_user_op_init_callbacks(S.user_op)
+
+def _batch_op_init_run(S):
+    if S.restart_run and S.restart_run.batch_proto:
+        batch_op = _ensure_batch_op(S)
+        batch_op._run = S.restart_run
+
+def _ensure_batch_op(S):
+    if S.batch_op is None:
+        S.batch_op = Operation()
+    return S.batch_op
 
 """
 # =================================================================
@@ -842,13 +865,14 @@ def _check_incompatible_with_restart(args):
     if not (args.start or args.restart):
         return
     incompatible = [
-        ("opspec", "OPERATION"),
-        ("run_dir", "--run-dir"),
-        ("rerun", "--rerun"),
         ("help_model", "--help-model"),
         ("help_op", "--help-op"),
-        ("test_sourcecode", "--test-sourcecode"),
+        ("opspec", "OPERATION"),
+        ("optimizer", "--optimizer"),
+        ("rerun", "--rerun"),
+        ("run_dir", "--run-dir"),
         ("test_output_scalars", "--test-output-scalars"),
+        ("test_sourcecode", "--test-sourcecode"),
     ]
     for name, desc in incompatible:
         if getattr(args, name):
@@ -1419,11 +1443,11 @@ def _op_dependency_error(e):
 def _op_process_error(op, e):
     cli.error("error running %s: %s" % (_fmt_opspec(op.opref), e))
 
-def _restart_flags_with_missing_opdef_error(restart_run, opspec):
+def _restart_flags_with_missing_opdef_error(restart_run):
     cli.error(
         "cannot set flags when restarting %s: configuration "
         "for operation '%s' is not available"
-        % (restart_run.id, opspec))
+        % (restart_run.id, restart_run.opref.to_opspec()))
 
 def _batch_flags_for_missing_batch_opdef_error(args):
     assert args

@@ -89,6 +89,16 @@ Incomptable with start/restart:
     Try 'guild run --help' for more information.
     <exit 1>
 
+    >>> run(optimizer="foo", restart="bar")
+    --optimizer cannot be used with --restart
+    Try 'guild run --help' for more information.
+    <exit 1>
+
+    >>> run(optimizer="foo", start="bar")
+    --optimizer cannot be used with --start
+    Try 'guild run --help' for more information.
+    <exit 1>
+
 ## Invalid restart and start specs
 
     >>> run(restart="foo")
@@ -458,10 +468,10 @@ File:
 
     >>> write(path(cwd, "file.txt"), "hello")
 
-    >>> guild_home = run_gh(cwd, opspec="file")
+    >>> gh = run_gh(cwd, opspec="file")
     Resolving file:file.txt dependency
 
-    >>> find(guild_home)
+    >>> find(gh)
     ???
     runs/.../file.txt
 
@@ -469,12 +479,12 @@ File override with flag:
 
     >>> file2_path = path(cwd, "file2.txt")
     >>> write(file2_path, "hello")
-    >>> guild_home = run_gh(cwd, opspec="file",
+    >>> gh = run_gh(cwd, opspec="file",
     ...                  flags=["file:file.txt=%s" % file2_path])
     Resolving file:file.txt dependency
     Using .../file2.txt for file:file.txt resource
 
-    >>> find(guild_home)
+    >>> find(gh)
     ???
     runs/.../file2.txt
 
@@ -492,9 +502,9 @@ Operation:
     ...       path: upstream
     ... """)
 
-    >>> guild_home = run_gh(cwd, opspec="upstream")
+    >>> gh = run_gh(cwd, opspec="upstream")
 
-    >>> run(cwd, guild_home, opspec="downstream")
+    >>> run(cwd, gh, opspec="downstream")
     Resolving upstream dependency
     Using output from run ... for upstream resource
 
@@ -568,58 +578,6 @@ Required operation not defined:
     invalid setting for operation 'op': resource 'not-defined' required
     by operation 'op' is not defined
     <exit 1>
-
-## Stage
-
-Stage Python op:
-
-    >>> cwd = mkdtemp()
-    >>> python_script = path(cwd, "run.py")
-    >>> touch(python_script)
-
-    >>> guild_home = run_gh(cwd, opspec="run.py", stage=True)
-    run.py staged as ...
-    To start the operation, use 'guild run --start ...'
-
-    >>> find(guild_home)
-    ???
-    runs/.../.guild/ENV
-    runs/.../.guild/STAGED
-    runs/.../.guild/attrs/...
-    runs/.../.guild/opref
-    runs/.../.guild/sourcecode/run.py
-
-Staged Python op in explicit run dir:
-
-    >>> run_dir = mkdtemp()
-    >>> run(cwd, opspec="run.py", stage=True, run_dir=run_dir)
-    run.py staged in '...'
-    To start the operation, use "(cd '...' && source .guild/ENV
-    && ... -um guild.op_main run)"
-
-    >>> find(run_dir)
-    .guild/ENV
-    .guild/STAGED
-    .guild/attrs/...
-    .guild/opref
-    .guild/sourcecode/run.py
-
-Staged exec op:
-
-    >>> cwd = init_gf("""
-    ... op:
-    ...   exec: run.sh
-    ... """)
-
-    >>> run(cwd, opspec="op", stage=True)
-    op staged as ...
-    To start the operation, use 'guild run --start ...'
-
-Stage exec op in explicit run dir:
-
-    >>> run(cwd, opspec="op", stage=True, run_dir=mkdtemp())
-    op staged in '...'
-    To start the operation, use "(cd '...' && source .guild/ENV && run.sh)"
 
 ## == TODO =====================================================
 

@@ -14,13 +14,6 @@
 
 """No-op module that can be used for operation main.
 
-E.g.
-
-    model: test
-    operations:
-      noop:
-        main: guild.pass
-
 This is useful during development or to simply print a message.
 """
 
