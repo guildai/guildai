@@ -55,13 +55,20 @@ def generate(op_cmd, flag_vals, resolve_params):
     )
 
 def _gen_args(op_cmd, flag_vals, resolve_params):
+    encoded_resolve_params = _encode_params(resolve_params)
     args = []
     for arg in op_cmd.cmd_args:
         if arg == "__flag_args__":
             args.extend(_flag_args(flag_vals, op_cmd.cmd_flags, args))
         else:
-            args.append(util.resolve_refs(arg, resolve_params))
+            args.append(util.resolve_refs(arg, encoded_resolve_params))
     return args
+
+def _encode_params(params):
+    return {
+        name: flag_util.encode_flag_val(val)
+        for name, val in params.items()
+    }
 
 def _flag_args(flag_vals, cmd_flags, cmd_args):
     args = []

@@ -111,6 +111,14 @@ Skip args:
     []
     {'FLAG_A': '1'}
 
+Params in non-flag template:
+
+    >>> generate(
+    ...     ["${i}", "${f}", "why ${s} there"], {}, {},
+    ...     {"i": 1, "f": 2.3, "s": "hello"})
+    ['1', '2.3', 'why hello there']
+    {'FLAG_F': '2.3', 'FLAG_I': '1', 'FLAG_S': 'hello'}
+
 ## Explicit env var names
 
     >>> generate([], {}, {"a": CmdFlag(env_name="A")}, {"a": 1})
