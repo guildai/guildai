@@ -70,31 +70,6 @@ class Operation(object):
         self.deps = []
         self.callbacks = None
 
-"""
-class Operation(object):
-
-    def __init__(self, opref, op_cmd, flag_vals=None,
-                 flag_null_labels=None, label=None,
-                 sourcecode_select=None, sourcecode_src=None,
-                 extra_run_attrs=None, run_dir=None, deps=None,
-                 output_scalars=None, stoppable=False,
-                 python_requires=None, callbacks=None):
-        self.opref = opref
-        self.op_cmd = op_cmd
-        self.flag_vals = flag_vals
-        self.flag_null_labels = flag_null_labels
-        self.label = label
-        self.sourcecode_select = sourcecode_select
-        self.sourcecode_src = sourcecode_src
-        self.extra_run_attrs = extra_run_attrs
-        self.run_dir = run_dir
-        self.deps = deps
-        self.output_scalars = output_scalars
-        self.stoppable = stoppable
-        self.python_requires = python_requires
-        self.callbacks = callbacks
-"""
-
 class OperationCallbacks(object):
 
     def __init__(self, init_output_summary=None, run_initialized=None):
@@ -106,20 +81,6 @@ def _callback(name, op, *rest_args):
         cb = getattr(op.callbacks, name, None)
         if cb:
             cb(op, *rest_args)
-
-"""
-def as_config(op):
-    return {
-        "cmd": op_cmd_lib.as_data(op.op_cmd),
-        "flag-null-labels": op.flag_null_labels,
-        "output-scalars": op.output_scalars,
-        "python-requires": op.python_requires,
-        "stoppable": op.stoppable,
-    }
-
-def apply_restart_config(data, op):
-    pass
-"""
 
 ###################################################################
 # Init run
@@ -141,6 +102,7 @@ def _op_init_pending_run(op, run_dir):
 
 def _op_init_run_attrs(op, run):
     run.write_opref(op.opref)
+    run.write_attr("cmd", op.cmd_args)
     for name, val in (op.run_attrs or {}).items():
         run.write_attr(name, val)
 
@@ -187,7 +149,6 @@ def run(op, quiet=False, stop_after=None):
 
 def _op_start_proc(op, run):
     log.debug("starting run %s in %s", run.id, run.dir)
-    run.write_attr("cmd", op.cmd_args)
     proc_env = _op_proc_env(op, run)
     run.write_attr("env", proc_env)
     try:

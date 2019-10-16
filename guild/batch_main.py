@@ -24,6 +24,7 @@ from guild import batch_util
 from guild import op_util
 
 def main():
+    return
     op_util.init_logging()
     proto_run = batch.proto_run()
     proto_flags = proto_run.get("flags") or {}

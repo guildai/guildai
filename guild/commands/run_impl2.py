@@ -97,16 +97,9 @@ def _state_init_user_op(S):
     _user_op_init_run(S)
     _op_init_opdef(S.args.opspec, S.user_op)
     _op_init_user_flags(S.args.flags, S.user_op)
-    _op_init_op_flags(S.user_op, S)
+    _op_init_op_flags(S.args, S.user_op)
     _op_init_config(S.user_op)
-    _op_init_opref(S.user_op)
-    _op_init_cmd(S.args, S.user_op)
-    _op_init_run_dir(S.args, S.user_op)
-    _op_init_run_label(S.args.label, S.user_op)
-    _op_init_random_seed(S.args.random_seed, S.user_op)
-    _op_init_run_attrs(S.args, S.user_op)
-    _op_init_deps(S.user_op)
-    _op_init_callbacks(S.user_op)
+    _op_init_core(S.args, S.user_op)
 
 def _user_op_init_run(S):
     if S.restart_run:
@@ -195,14 +188,14 @@ def _check_restart_flags_with_missing_opdef(op):
 # Op - op flags
 # =================================================================
 
-def _op_init_op_flags(op, S):
+def _op_init_op_flags(args, op):
     if op._run:
         _apply_run_flags(op._run, op._op_flag_vals)
     if op._opdef:
         _apply_op_flags_for_opdef(
             op._opdef,
             op._user_flag_vals,
-            S.args.force_flags,
+            args.force_flags,
             op._op_flag_vals)
 
 def _apply_run_flags(run, target):
@@ -276,6 +269,20 @@ def _flag_null_labels_for_opdef(opdef):
 
 def _python_requires_for_opdef(opdef):
     return opdef.python_requires or opdef.modeldef.python_requires
+
+# =================================================================
+# Op - core
+# =================================================================
+
+def _op_init_core(args, op):
+    _op_init_opref(op)
+    _op_init_cmd(args, op)
+    _op_init_run_dir(args, op)
+    _op_init_run_label(args.label, op)
+    _op_init_random_seed(args.random_seed, op)
+    _op_init_run_attrs(args, op)
+    _op_init_deps(op)
+    _op_init_callbacks(op)
 
 # =================================================================
 # Op - opref
@@ -506,320 +513,76 @@ def _write_run_sourcecode_digest(run):
 
 def _state_init_batch_op(S):
     _batch_op_init_run(S)
-
-    #_op_init_user_flags(S.args.flags, S.user_op)
-    #_op_init_opdef(S.args.opspec, S.user_op)
-    #_op_init_op_flags(S.user_op, S)
-    #_op_init_config(S.user_op)
-    #_op_init_opref(S.user_op)
-    #_op_init_cmd(S.args, S.user_op)
-    #_op_init_run_dir(S.args, S.user_op)
-    #_op_init_run_label(S.args.label, S.user_op)
-    #_op_init_random_seed(S.args.random_seed, S.user_op)
-    #_op_init_run_attrs(S.args, S.user_op)
-    #_op_init_deps(S.user_op)
-    #_user_op_init_callbacks(S.user_op)
+    _batch_op_init_opdef(S)
+    _check_opt_flags_for_missing_batch_opdef(S)
+    if S.batch_op:
+        _op_init_user_flags(S.args.opt_flags, S.batch_op)
+        _op_init_op_flags(S.args, S.batch_op)
+        _op_init_config(S.batch_op)
+        _op_init_core(S.args, S.batch_op)
 
 def _batch_op_init_run(S):
     if S.restart_run and S.restart_run.batch_proto:
-        batch_op = _ensure_batch_op(S)
-        batch_op._run = S.restart_run
+        if S.batch_op is None:
+            S.batch_op = Operation()
+        S.batch_op._run = S.restart_run
 
-def _ensure_batch_op(S):
-    if S.batch_op is None:
+def _batch_op_init_opdef(S):
+    if S.batch_op and S.batch_op._run:
+        assert not S.args.optimizer and not S.args.optimize, S.args
+        op.batch_op._opdef = _opdef_for_run(op._run)
+    elif S.user_op._opdef:
+        _batch_op_init_for_opdef(S.user_op._opdef, S)
+
+def _batch_op_init_for_opdef(opdef, S):
+    if S.args.optimizer:
+        _batch_op_init_for_named_optimizer(S.args.optimizer, opdef, S)
+    elif S.args.optimize:
+        _batch_op_init_for_default_optimizer(opdef, S)
+    else:
+        _try_batch_op_init_for_flag_vals(S.user_op._op_flag_vals, S)
+
+def _batch_op_init_for_named_optimizer(optimizer, opdef, S):
+    # TODO: lookup from opdef, otherwise opdef_from_opspec
+    assert not opdef.get_optimizer(optimizer)
+    assert not S.batch_op
+    S.batch_op = Operation()
+    S.batch_op._opdef = _opdef_for_opspec(optimizer)
+
+def _batch_op_init_for_default_optimizer(opdef, S):
+    # TODO: lookup from opdef, otherwise error
+    assert False, opdef
+
+def _try_batch_op_init_for_flag_vals(flag_vals, S):
+    batch_opspec = _batch_opspec_for_flags(flag_vals)
+    if batch_opspec:
+        assert not S.batch_op
         S.batch_op = Operation()
-    return S.batch_op
+        S.batch_op._opdef = _opdef_for_opspec(batch_opspec)
 
-"""
-# =================================================================
-# State - op
-# =================================================================
-
-def _state_init_op(S):
-    if S.restart_run:
-        _state_init_op_for_restart(S.restart_run, S)
-    else:
-        assert S.opdef
-        _state_init_op_for_opdef(S.opdef, S, S.op)
-
-def _state_init_op_for_restart(restart_run, S):
-    if restart_run.batch_proto:
-        _state_init_op_for_run(restart_run.batch_proto, S, S.op)
-    else:
-        _state_init_op_for_run(restart_run, S, S.op)
-
-def _state_init_op_for_run(run, S, op):
-    op.opref = run.opref
-    op_config = run.get("op")
-    if not op_config:
-        _missing_op_config_for_restart_error(run)
-    op_cmd = _op_cmd_for_data(op_config.get("op_cmd"), run)
-    python_requires = op_config.get("python_requires")
-    op.cmd_args, op.cmd_env = _generate_op_cmd(
-        op_cmd, S.op_flag_vals, python_requires)
-    op.run_dir = run.dir
-    op.run_attrs = _op_run_attrs_for_restart(op_config, S)
-    # TODO: what to do with deps???
-    op.callbacks = _op_callbacks_for_restart(op_config, S.op_flag_vals)
-
-def _op_cmd_for_data(data, run):
-    if not data:
-        _invalid_op_config_for_restart_error(run)
-    return op_cmd_lib.for_data(data)
-
-def _generate_op_cmd(op_cmd, flag_vals, python_requires):
-    resolve_params = _op_cmd_resolve_params(flag_vals, python_requires)
-    try:
-        return op_cmd_lib.generate(op_cmd, flag_vals, resolve_params)
-    except util.UndefinedReferenceError as e:
-        _op_cmd_error(
-            "invalid setting for operation: command contains "
-            "invalid reference '%s'" % e.args[0])
-
-def _op_run_attrs_for_restart(op_config, S):
-    attrs = {}
-    label_template = S.args.label or op_config.get("label")
-    attrs["label"] = _op_label(label_template, S.user_flag_vals, S.op_flag_vals)
-    attrs["flags"] = S.op_flag_vals
-    attrs["run_params"] = S.args.as_kw()
-    if S.args.random_seed:
-        attrs["random_seed"] = S.args.random_seed
-    if S.args.max_trials:
-        attrs["max_trials"] = S.args.max_trials
-    attrs["host"] = util.hostname()
-    attrs["user"] = util.user()
-    attrs["platform"] = util.platform_info()
-    return attrs
-
-def _op_callbacks_for_restart(op_config, flag_vals):
-    def init_output_summary(_op, run):
-        output_scalars = op_config.get("output_scalars")
-        return _output_scalars_summary(output_scalars, flag_vals, run)
-
-    return oplib.OperationCallbacks(
-        init_output_summary=init_output_summary,
-    )
-
-def _output_scalars_summary(output_scalars, flag_vals, run):
-    try:
-        summary.check_enabled()
-    except summary.Disabled as e:
-        log.warning(e)
-        return None
-    else:
-        return _output_scalars_summary_(output_scalars, flag_vals, run)
-
-def _output_scalars_summary_(output_scalars, flag_vals, run):
-    if output_scalars is None:
-        output_scalars = summary.DEFAULT_OUTPUT_SCALARS
-        ignore = flag_vals.keys()
-    else:
-        ignore = None
-    summary_path = run.guild_path()
-    return summary.OutputScalars(output_scalars, summary_path, ignore)
-
-def _state_init_op_for_opdef(opdef, S, op):
-    op.opref = opdef.opref
-    args_cmd_env = _cmd_env_for_args(S.args)
-    op_cmd = op_util.op_cmd_for_opdef(opdef, args_cmd_env)
-    python_requires = _python_requires_for_opdef(opdef)
-    op.cmd_args, op.cmd_env = _generate_op_cmd(
-        op_cmd, S.op_flag_vals, python_requires)
-    op.run_dir = _op_run_dir_for_args(S.args)
-    op.run_attrs = _op_run_attrs_for_opdef(opdef, op_cmd, python_requires, S)
-    op.deps = _op_deps_for_opdef(opdef, S.op_flag_vals)
-    op.callbacks = _op_callbacks_for_opdef(opdef, S.op_flag_vals)
-
-def _cmd_env_for_args(args):
-    env = {}
-    if args.no_gpus:
-        env["CUDA_VISIBLE_DEVICES"] = ""
-    elif args.gpus is not None:
-        env["CUDA_VISIBLE_DEVICES"] = args.gpus
-    return env
-
-def _python_requires_for_opdef(opdef):
-    return opdef.python_requires or opdef.modeldef.python_requires
-
-def _op_cmd_resolve_params(flag_vals, python_requires):
-    params = dict(flag_vals)
-    params["python_exe"] = _proc_python_exe(python_requires)
-    return params
-
-def _proc_python_exe(python_requires):
-    if not python_requires:
-        return sys.executable
-    matching = util.find_python_interpreter(python_requires)
-    if not matching:
-        _op_cmd_error(
-            "cannot find a python interpreter for "
-            "requirement %r" % python_requires)
-    path, _ver = matching
-    return path
-
-def _op_run_dir_for_args(args):
-    if not args.run_dir:
-        return None
-    run_dir = os.path.abspath(args.run_dir)
-    if not args.stage and os.getenv("NO_WARN_RUNDIR") != "1":
-        cli.note(
-            "Run directory is '%s' (results will not be "
-            "visible to Guild)" % run_dir)
-    return run_dir
-
-def _op_run_attrs_for_opdef(opdef, op_cmd, python_requires, S):
-    attrs = {}
-    label_template = S.args.label or opdef.label
-    attrs["op"] = {
-        "flag_null_labels": S.flag_null_labels,
-        "op_cmd": op_cmd_lib.as_data(op_cmd),
-        "python_requires": python_requires,
-        "label": label_template,
-        "output_scalars": opdef.output_scalars,
-    }
-    attrs["label"] = _op_label(label_template, S.user_flag_vals, S.op_flag_vals)
-    attrs["flags"] = S.op_flag_vals
-    attrs["run_params"] = S.args.as_kw()
-    attrs["random_seed"] = _random_seed(S.args.random_seed)
-    if S.args.max_trials:
-        attrs["max_trials"] = S.args.max_trials
-    attrs["host"] = util.hostname()
-    attrs["user"] = util.user()
-    attrs["platform"] = util.platform_info()
-    return attrs
-
-def _op_label(label_template, user_flag_vals, op_flag_vals):
-    if label_template:
-        resolve_vals = {
-            name: flag_util.encode_flag_val(val)
-            for name, val in op_flag_vals.items()
-        }
-        return util.resolve_refs(label_template, resolve_vals, "")
-    return _default_op_label(user_flag_vals)
-
-def _default_op_label(flag_vals):
-    return " ".join(flag_util.format_flags(flag_vals, truncate_floats=True))
-
-def _random_seed(random_seed_arg):
-    if random_seed_arg is not None:
-        return random_seed_arg
-    return runlib.random_seed()
-
-def _op_deps_for_opdef(opdef, flag_vals):
-    try:
-        return op_dep.deps_for_opdef(opdef, flag_vals)
-    except op_dep.OpDependencyError as e:
-        _invalid_opdef_error(opdef, e)
-
-def _op_callbacks_for_opdef(opdef, flag_vals):
-    def init_output_summary(_op, run):
-        return _output_scalars_summary(opdef.output_scalars, flag_vals, run)
-
-    def run_initialized(op, run):
-        sourcecode_src = opdef.guildfile.dir
-        sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
-        _copy_run_sourcecode(sourcecode_src, sourcecode_select, run)
-        _write_run_sourcecode_digest(run)
-
-    return oplib.OperationCallbacks(
-        init_output_summary=init_output_summary,
-        run_initialized=run_initialized,
-    )
-
-def _copy_run_sourcecode(sourcecode_src, sourcecode_select, run):
-    if os.getenv("NO_SOURCECODE") == "1":
-        log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
-        return
-    if not sourcecode_src:
-        log.debug("no sourcecode source, skipping sourcecode copy")
-        return
-    if not sourcecode_select:
-        log.debug("no sourcecode rules, skipping sourcecode copy")
-        return
-    dest = run.guild_path("sourcecode")
-    log.debug(
-        "copying source code files for run %s from %s to %s",
-        run.id, sourcecode_src, dest)
-    op_util.copy_sourcecode(sourcecode_src, sourcecode_select, dest)
-
-def _write_run_sourcecode_digest(run):
-    op_util.write_sourcecode_digest(run)
-
-# =================================================================
-# State - batch
-# =================================================================
-
-def _state_init_batch(S):
-    if S.restart_run:
-        _state_init_batch_for_restart(S.restart_run, S)
-
-
-    _state_init_user_flags(S)
-
-    _state_init_opdef(S)
-    _state_init_op_flags(S)
-    _state_init_flag_null_labels(S)
-    _state_init_op(S)
-    _state_init_batch(S)
-
-    "TODO"
-
-"""
-
-"""
-
-# =================================================================
-# XXXXXXXXXXXXXXXX batch opdef and stuff XXXXXXXXXXXXXXXXXXXX
-# =================================================================
-
-def _state_batch_opdef(restart_run, flag_vals, args):
-    if restart_run:
-        opdef = _batch_opdef_for_run(restart_run)
-        if not opdef:
-            _check_restart_args_for_missing_batch_opdef(args, restart_run)
-        return opdef
-    else:
-        return _batch_opdef_for_args(args, flag_vals)
-
-def _batch_opdef_for_run(_run):
-    # TODO
+def _batch_opspec_for_flags(flag_vals):
+    has_list = False
+    for val in flag_vals.values():
+        if _is_flag_function(val):
+            return "random"
+        has_list = has_list or isinstance(val, list)
+    if has_list:
+        return "+"
     return None
 
-def _check_restart_args_for_missing_batch_opdef(_args, _restart_run):
-    # TODO
-    pass
-
-def _batch_opdef_for_args(args, flag_vals):
-    optimizer_opspec = _optimizer_opspec_for_args(args, flag_vals)
-    if optimizer_opspec:
-        return _opdef_for_opspec(optimizer_opspec)
-    return None
-
-def _optimizer_opspec_for_args(args, flag_vals):
-    if args.optimizer:
-        return args.optimizer
-    return _implied_optimizer_for_flags(flag_vals)
-
-def _implied_optimizer_for_flags(flag_vals):
-    return (
-        _any_random_functions(flag_vals) and "random"
-        or _any_lists(flag_vals) and "+" or None)
-
-def _any_random_functions(flag_vals):
-    return any((_is_random_function(val) for val in flag_vals.values()))
-
-def _is_random_function(val):
+def _is_flag_function(val):
+    if not isinstance(val, six.string_types):
+        return False
     try:
-        name, _args = flag_util.decode_flag_function(val)
+        flag_util.decode_flag_function(val)
     except ValueError:
         return False
     else:
-        return name in (None, "uniform", "loguniform")
+        return True
 
-def _any_lists(flag_vals):
-    return any((isinstance(val, list) for val in flag_vals.values()))
-
-"""
+def _check_opt_flags_for_missing_batch_opdef(S):
+    if S.args.opt_flags and not (S.batch_op and S.batch_op._opdef):
+        _opt_flags_for_missing_batch_opdef_error(S.args.opt_flags)
 
 ###################################################################
 # Main
@@ -868,6 +631,7 @@ def _check_incompatible_with_restart(args):
         ("help_model", "--help-model"),
         ("help_op", "--help-op"),
         ("opspec", "OPERATION"),
+        ("optimize", "--optimize"),
         ("optimizer", "--optimizer"),
         ("rerun", "--rerun"),
         ("run_dir", "--run-dir"),
@@ -878,113 +642,6 @@ def _check_incompatible_with_restart(args):
         if getattr(args, name):
             restart_option = "restart" if args.restart else "start"
             _incompatible_with_restart_error(desc, restart_option)
-
-###################################################################
-# Init op
-###################################################################
-
-"""
-def _init_op(S):
-    if S.opdef:
-        return _op_for_opdef(S)
-    else:
-        assert S.restart_run
-        return _op_for_restart_run(S)
-
-def _op_for_opdef(S):
-    assert S.opdef
-    if S.batch_opdef:
-        return _batch_op(S)
-    else:
-        return _default_op_for_opdef(S)
-
-def _batch_op(S):
-    return _gen_op_for_opdef(S, callbacks=_batch_op_callbacks(S))
-
-def _batch_op_callbacks(S):
-    return oplib.OperationCallbacks(
-        run_initialized=_batch_run_init_cb(S),
-    )
-
-def _batch_run_init_cb(S):
-    proto_op = _default_op_for_opdef(S)
-    def f(_batch_op, batch_run):
-        proto_dir = batch_run.guild_path("proto")
-        oplib.init_run(proto_op, proto_dir)
-    return f
-
-def _default_op_for_opdef(S):
-    return _gen_op_for_opdef(S)
-
-def _gen_op_for_opdef(S, callbacks=None):
-
-
-
-
-
-
-    try:
-        op = oplib.for_opdef(
-            S.opdef,
-            S.op_flag_vals,
-            extra_cmd_env=S.extra_cmd_env,
-            label=S.label,
-            extra_run_attrs=S.extra_run_attrs,
-            run_dir=S.run_dir,
-            callbacks=callbacks,
-        )
-        if S.restart_run:
-            _disable_sourcecode_copy_for_restart_op(op)
-        return op
-    except oplib.InvalidOpDef as e:
-        _invalid_opdef_error(S.opdef, str(e))
-
-def _apply_op_label(label_arg, opdef, flag_vals, op):
-    label_template = _label_template(label_arg, opdef, flag_vals)
-    if label_template is not None:
-        op.label = op_util.format_label(label_template, op.flag_vals)
-
-def _label_template(label_arg, opdef, flag_vals):
-    return util.find_apply([
-        lambda: label_arg,
-        lambda: opdef and opdef.label,
-        lambda: _default_label(flag_vals),
-    ])
-
-def _default_label(flag_vals):
-    if not flag_vals:
-        return None
-    return op_util.flags_desc(flag_vals, delim=" ")
-
-def _disable_sourcecode_copy_for_restart_op(op):
-    # Disable source code copy if restarting. Restarted runs must
-    # always use their original source code.
-    op.sourcecode_src = None
-    op.sourcecode_select = None
-
-def _op_for_restart_run(S):
-    return oplib.for_run(
-        S.restart_run,
-        label=S.args.label,
-        extra_run_attrs=S.extra_run_attrs,
-        gpus=S.args.gpus)
-
-def _apply_opdef_to_restart_op(S, restart_op):
-    opdef_op = _op_for_opdef(S)
-    op_util.apply_flags_to_restart_op(opdef_op, restart_op)
-
-
-def _validate_op(op, S):
-    if S.restart_run:
-        _validate_restart_op(op, S)
-
-def _validate_restart_op(op, S):
-    assert op.opref.to_opspec() == S.restart_run.opref.to_opspec()
-    assert op.run_dir == S.restart_run.dir
-    # Important that we NOT modify sourcecode for a restart.
-    assert op.sourcecode_src is None
-    assert op.sourcecode_select is None
-"""
 
 ###################################################################
 # Dispatch op
@@ -1140,7 +797,7 @@ def _dispatch_op_cmd(S):
         assert False, "TODO"
         #_print_or_save_trials(op, args)
     else:
-        _confirm_and_run_op(S)
+        _confirm_and_run(S)
 
 ###################################################################
 # Print op info
@@ -1160,12 +817,12 @@ def _print_op_cmd_env(env):
         cli.out("%s=%s" % (name, util.env_var_quote(val)))
 
 ###################################################################
-# Run op
+# Run
 ###################################################################
 
-def _confirm_and_run_op(S):
+def _confirm_and_run(S):
     if S.args.yes or _confirm_run(S):
-        _run_op(S)
+        _run(S)
 
 # =================================================================
 # Confirm op
@@ -1206,20 +863,25 @@ def _fmt_opspec(opref):
     return opref.to_opspec(config.cwd())
 
 def _preview_batch_suffix(S):
-    return ""
-    """ TODO ################
+    # TODO include info about max trials
     if not S.batch_op:
         return ""
+    opt_name = S.batch_op.opref.to_opspec(config.cwd())
+    if opt_name == "+":
+        return " in a batch"
+    elif opt_name == "random":
+        return " with random search"
     else:
-        return " TODO: some batch desc for %s" % S.batch_op.opref
-    ############ """
+        return " with '%s' optimizer" % op_name
 
 def _preview_flags(S, indent=2):
-    if not S.op_flag_vals:
+    flag_vals = S.user_op._op_flag_vals
+    if not flag_vals:
         return ""
+    null_labels = S.user_op._flag_null_labels
     return "\n".join([
-        " " * indent +_format_flag(name, val, S.flag_null_labels)
-        for name, val in sorted(S.op_flag_vals.items())
+        " " * indent +_format_flag(name, val, null_labels)
+        for name, val in sorted(flag_vals.items())
     ]) + "\n"
 
 def _format_flag(name, val, null_labels):
@@ -1249,53 +911,68 @@ def _null_label(name, null_labels):
 # Run / stage
 # =================================================================
 
-def _run_op(S):
+def _run(S):
+    op = _init_op_for_run(S)
     if S.args.stage:
-        _stage_op(S)
+        _stage_op(op, S.args)
     else:
-        _run_op_(S)
+        _run_op(op, S.args)
 
-def _stage_op(S):
-    run = oplib.stage(S.user_op)
-    if not S.args.quiet:
-        _print_staged_info(run, S)
+def _init_op_for_run(S):
+    if S.batch_op:
+        batch_run = _init_batch_run(S)
+        S.batch_op.run_dir = batch_run.dir
+        return S.batch_op
+    return S.user_op
 
-def _print_staged_info(run, S):
-    if S.args.run_dir:
-        _print_staged_dir_instructions(run, S)
+def _init_batch_run(S):
+    batch_run = oplib.init_run(S.batch_op)
+    proto_run_dir = batch_run.guild_path("proto")
+    oplib.init_run(S.user_op, proto_run_dir)
+    return batch_run
+
+def _stage_op(op, args):
+    run = oplib.stage(op)
+    if not args.quiet:
+        _print_staged_info(run, args)
+
+def _print_staged_info(run, args):
+    if args.run_dir:
+        _print_staged_dir_instructions(run)
     else:
-        _print_stage_pending_instructions(run, S)
+        _print_stage_pending_instructions(run)
 
-def _print_staged_dir_instructions(run, S):
-    cmd = " ".join([util.shlex_quote(arg) for arg in S.user_op.cmd_args])
+def _print_staged_dir_instructions(run):
+    cmd_args = run.get("cmd") or []
+    cmd = " ".join([util.shlex_quote(arg) for arg in cmd_args])
     cli.out(
         "{op} staged in '{dir}'\n"
         "To start the operation, use "
         "\"(cd '{dir}' && source .guild/ENV && {cmd})\""
         .format(
-            op=_fmt_opspec(S.user_op.opref),
+            op=_fmt_opspec(run.opref),
             dir=run.dir,
             cmd=cmd))
 
-def _print_stage_pending_instructions(run, S):
+def _print_stage_pending_instructions(run):
     cli.out(
         "{op} staged as {run_id}\n"
         "To start the operation, use 'guild run --start {run_id}'"
         .format(
-            op=_fmt_opspec(S.user_op.opref),
+            op=_fmt_opspec(run.opref),
             run_id=run.id))
 
-def _run_op_(S):
+def _run_op(op, args):
     try:
-        run, exit_status = oplib.run(S.user_op, quiet=S.args.quiet)
+        run, exit_status = oplib.run(op, quiet=args.quiet)
     except op_dep.OpDependencyError as e:
         _op_dependency_error(e)
     except oplib.ProcessError as e:
-        _op_process_error(S.user_op, e)
+        _op_process_error(op, e)
     else:
-        _handle_run_exit(run, exit_status, S)
+        _handle_run_exit(run, exit_status)
 
-def _handle_run_exit(run, exit_status, S):
+def _handle_run_exit(run, exit_status):
     if exit_status != 0:
         cli.error(exit_status=exit_status)
 
@@ -1449,7 +1126,7 @@ def _restart_flags_with_missing_opdef_error(restart_run):
         "for operation '%s' is not available"
         % (restart_run.id, restart_run.opref.to_opspec()))
 
-def _batch_flags_for_missing_batch_opdef_error(args):
+def _opt_flags_for_missing_batch_opdef_error(args):
     assert args
     cli.error("invalid optimizer flag %s: no optimizer specified" % args[0])
 
