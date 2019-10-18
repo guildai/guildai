@@ -853,13 +853,13 @@ def _preview_op_action(S):
         return "run"
 
 def _preview_op_subject(S):
-    op_desc = _fmt_opspec(S.user_op.opref)
+    op_desc = _fmt_opref(S.user_op.opref)
     if S.restart_run:
         return "%s (%s)" % (S.restart_run.id, op_desc)
     else:
         return op_desc
 
-def _fmt_opspec(opref):
+def _fmt_opref(opref):
     return opref.to_opspec(config.cwd())
 
 def _preview_batch_suffix(S):
@@ -868,7 +868,7 @@ def _preview_batch_suffix(S):
         return ""
     opt_name = S.batch_op.opref.to_opspec(config.cwd())
     if opt_name == "+":
-        return " in a batch"
+        return " as a batch"
     elif opt_name == "random":
         return " with random search"
     else:
@@ -950,7 +950,7 @@ def _print_staged_dir_instructions(run):
         "To start the operation, use "
         "\"(cd '{dir}' && source .guild/ENV && {cmd})\""
         .format(
-            op=_fmt_opspec(run.opref),
+            op=run_util.format_operation(run),
             dir=run.dir,
             cmd=cmd))
 
@@ -959,7 +959,7 @@ def _print_stage_pending_instructions(run):
         "{op} staged as {run_id}\n"
         "To start the operation, use 'guild run --start {run_id}'"
         .format(
-            op=_fmt_opspec(run.opref),
+            op=run_util.format_operation(run),
             run_id=run.id))
 
 def _run_op(op, args):
@@ -1118,7 +1118,7 @@ def _op_dependency_error(e):
         "run failed because a dependency was not met: %s" % e)
 
 def _op_process_error(op, e):
-    cli.error("error running %s: %s" % (_fmt_opspec(op.opref), e))
+    cli.error("error running %s: %s" % (_fmt_opref(op.opref), e))
 
 def _restart_flags_with_missing_opdef_error(restart_run):
     cli.error(
