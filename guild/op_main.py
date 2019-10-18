@@ -235,6 +235,8 @@ def _set_argv_for_module_with_args(module_info, args):
 def _module_main(module_info):
     f, path, desc = module_info
     def main():
+        if os.getenv("PYTHONWRITEBYTECODE") != "1":
+            sys.dont_write_bytecode = True
         imp.load_module("__main__", f, path, desc)
     _gen_exec(module_info, main)
 
