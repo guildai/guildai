@@ -98,7 +98,7 @@ def _state_init_user_op(S):
     _op_init_opdef(S.args.opspec, S.user_op)
     _op_init_user_flags(S.args.flags, S.user_op)
     _op_init_op_flags(S.args, S.user_op)
-    _op_init_config(S.args, S.user_op)
+    _op_init_config(S.args.label, S.user_op)
     _op_init_core(S.args, S.user_op)
 
 def _user_op_init_run(S):
@@ -231,21 +231,21 @@ def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
 # Op - config
 # =================================================================
 
-def _op_init_config(args, op):
+def _op_init_config(label_arg, op):
     if op._run:
-        _op_init_config_for_run(op._run, args, op)
+        _op_init_config_for_run(op._run, label_arg, op)
     else:
         assert op._opdef
-        _op_init_config_for_opdef(op._opdef, args, op)
+        _op_init_config_for_opdef(op._opdef, label_arg, op)
 
-def _op_init_config_for_run(run, args, op):
+def _op_init_config_for_run(run, label_arg, op):
     config = run.get("op")
     if not config:
         _missing_op_config_for_restart_error(run)
     op._flag_null_labels = config.get("flag_null_labels")
     op._op_cmd = _op_cmd_for_data(config.get("op_cmd"), run)
     op._python_requires = config.get("python_requires")
-    op._label_template = args.label or config.get("label_template")
+    op._label_template = label_arg or config.get("label_template")
     op._output_scalars = config.get("output_scalars")
 
 def _op_cmd_for_data(data, run):
@@ -253,11 +253,11 @@ def _op_cmd_for_data(data, run):
         _invalid_op_config_for_restart_error(run)
     return op_cmd_lib.for_data(data)
 
-def _op_init_config_for_opdef(opdef, args, op):
+def _op_init_config_for_opdef(opdef, label_arg, op):
     op._flag_null_labels = _flag_null_labels_for_opdef(op._opdef)
     op._op_cmd = op_util.op_cmd_for_opdef(opdef)
     op._python_requires = _python_requires_for_opdef(opdef)
-    op._label_template = args.label or opdef.label
+    op._label_template = label_arg or opdef.label
     op._output_scalars = opdef.output_scalars
 
 def _flag_null_labels_for_opdef(opdef):
@@ -278,7 +278,7 @@ def _op_init_core(args, op):
     _op_init_opref(op)
     _op_init_cmd(args, op)
     _op_init_run_dir(args, op)
-    _op_init_run_label(args.label, op)
+    _op_init_run_label(op)
     _op_init_random_seed(args.random_seed, op)
     _op_init_run_attrs(args, op)
     _op_init_deps(op)
@@ -362,10 +362,9 @@ def _op_run_dir_for_args(args):
 # Op - run label
 # =================================================================
 
-def _op_init_run_label(label_arg, op):
-    label_template = label_arg or op._label_template
+def _op_init_run_label(op):
     op._label = _run_label(
-        label_template,
+        op._label_template,
         op._user_flag_vals,
         op._op_flag_vals)
 
@@ -402,7 +401,8 @@ def _random_seed_for_run(run):
 
 def _op_init_run_attrs(args, op):
     attrs = op.run_attrs
-    attrs["label"] = op._label
+    if op._label:
+        attrs["label"] = op._label
     attrs["flags"] = op._op_flag_vals
     attrs["run_params"] = args.as_kw()
     attrs["random_seed"] = op._random_seed
@@ -518,7 +518,7 @@ def _state_init_batch_op(S):
     if S.batch_op:
         _op_init_user_flags(S.args.opt_flags, S.batch_op)
         _op_init_op_flags(S.args, S.batch_op)
-        _op_init_config(S.batch_op)
+        _op_init_config(S.args.batch_label, S.batch_op)
         _op_init_core(S.args, S.batch_op)
 
 def _batch_op_init_run(S):
