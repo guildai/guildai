@@ -19,16 +19,15 @@ import os
 
 import itertools
 
-from guild import batch
 from guild import batch_util
+from guild import batch_util2
 from guild import op_util
 
 def main():
-    return
     op_util.init_logging()
-    proto_run = batch.proto_run()
+    proto_run = batch_util2.proto_run()
     proto_flags = proto_run.get("flags") or {}
-    for trial_flag_vals in batch.expand_flags(proto_flags):
+    for trial_flag_vals in batch_util2.expand_flags(proto_flags):
         batch.run_trial(proto_run, trial_flag_vals)
 
 # TODO: remove when promoting OP2

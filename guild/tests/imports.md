@@ -23,9 +23,9 @@
     guild._lex
     guild._test
     guild._yacc
-    guild.batch
     guild.batch_main
     guild.batch_util
+    guild.batch_util2
     guild.cli
     guild.click_util
     guild.cmd_impl_support
