@@ -10,10 +10,11 @@ For our tests, we'll use the `labels` sample project:
 
 Here are some helper functions.
 
-    >>> def run(op, label=None, batch_label=None, opt_flags=None, **kw):
-    ...   project.run(op, flags=kw, label=label, batch_label=batch_label,
-    ...               opt_flags=opt_flags, force_flags=True, quiet=True,
-    ...               extra_env={"OP2": "1"})
+    >>> def run(opspec=None, label=None, batch_label=None, opt_flags=None,
+    ...         restart=None, **flags):
+    ...   project.run(opspec, flags=flags, label=label, batch_label=batch_label,
+    ...               opt_flags=opt_flags, restart=restart, force_flags=True,
+    ...               quiet=True, extra_env={"OP2": "1"})
 
     >>> def print_last_run():
     ...   print_runs(1)
@@ -112,6 +113,56 @@ values do.
 
     >>> print_last_run()
     op  i:2, f:2.0, b:yes, s:yo
+
+## Labels and restarts
+
+Labels are updated with new flag values when a run is restarted.
+
+Here's run for `op`:
+
+    >>> run("op", i=4)
+
+    >>> print_last_run()
+    op  i:4, f:2.0, b:yes, s:hello
+
+Note the custom label format, which is taken from the opdef.
+
+Let's restart the run with new flag values.
+
+    >>> last_run = project.list_runs()[0]
+
+    >>> run(restart=last_run.id, s="yello")
+
+And the label:
+
+    >>> print_last_run()
+    op  i:4, f:2.0, b:yes, s:yello
+
+Guild saves the label template in the `op` attribute.
+
+    >>> last_run.get("op").get("label_template")
+    'i:${i}, f:${f}, b:${b}, s:${s}'
+
+Next we'll restart the run with a different label template.
+
+    >>> run(restart=last_run.id, i=6, s="whoop", label="${s}-${i}")
+
+And the label:
+
+    >>> print_last_run()
+    op  whoop-6
+
+Guild has updated the label template.
+
+    >>> last_run.get("op").get("label_template")
+    '${s}-${i}'
+
+The new label template is now associated with the run.
+
+    >>> run(restart=last_run.id, i=7)
+
+    >>> print_last_run()
+    op  whoop-7
 
 ## Trial labels
 

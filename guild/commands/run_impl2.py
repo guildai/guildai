@@ -98,7 +98,7 @@ def _state_init_user_op(S):
     _op_init_opdef(S.args.opspec, S.user_op)
     _op_init_user_flags(S.args.flags, S.user_op)
     _op_init_op_flags(S.args, S.user_op)
-    _op_init_config(S.user_op)
+    _op_init_config(S.args, S.user_op)
     _op_init_core(S.args, S.user_op)
 
 def _user_op_init_run(S):
@@ -231,21 +231,21 @@ def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
 # Op - config
 # =================================================================
 
-def _op_init_config(op):
+def _op_init_config(args, op):
     if op._run:
-        _op_init_config_for_run(op._run, op)
+        _op_init_config_for_run(op._run, args, op)
     else:
         assert op._opdef
-        _op_init_config_for_opdef(op._opdef, op)
+        _op_init_config_for_opdef(op._opdef, args, op)
 
-def _op_init_config_for_run(run, op):
+def _op_init_config_for_run(run, args, op):
     config = run.get("op")
     if not config:
         _missing_op_config_for_restart_error(run)
     op._flag_null_labels = config.get("flag_null_labels")
     op._op_cmd = _op_cmd_for_data(config.get("op_cmd"), run)
     op._python_requires = config.get("python_requires")
-    op._label_template = config.get("label_template")
+    op._label_template = args.label or config.get("label_template")
     op._output_scalars = config.get("output_scalars")
 
 def _op_cmd_for_data(data, run):
@@ -253,11 +253,11 @@ def _op_cmd_for_data(data, run):
         _invalid_op_config_for_restart_error(run)
     return op_cmd_lib.for_data(data)
 
-def _op_init_config_for_opdef(opdef, op):
+def _op_init_config_for_opdef(opdef, args, op):
     op._flag_null_labels = _flag_null_labels_for_opdef(op._opdef)
     op._op_cmd = op_util.op_cmd_for_opdef(opdef)
     op._python_requires = _python_requires_for_opdef(opdef)
-    op._label = opdef.label
+    op._label_template = args.label or opdef.label
     op._output_scalars = opdef.output_scalars
 
 def _flag_null_labels_for_opdef(opdef):
