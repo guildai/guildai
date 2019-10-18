@@ -22,6 +22,7 @@ import sys
 import six
 
 from guild import cli
+from guild import click_util
 from guild import cmd_impl_support
 from guild import config
 from guild import flag_util
@@ -363,22 +364,10 @@ def _op_run_dir_for_args(args):
 # =================================================================
 
 def _op_init_run_label(op):
-    op._label = _run_label(
+    op._label = op_util.run_label(
         op._label_template,
         op._user_flag_vals,
         op._op_flag_vals)
-
-def _run_label(label_template, user_flag_vals, op_flag_vals):
-    if label_template:
-        resolve_vals = {
-            name: flag_util.encode_flag_val(val)
-            for name, val in op_flag_vals.items()
-        }
-        return util.resolve_refs(label_template, resolve_vals, "")
-    return _default_run_label(user_flag_vals)
-
-def _default_run_label(flag_vals):
-    return " ".join(flag_util.format_flags(flag_vals, truncate_floats=True))
 
 # =================================================================
 # Op - random seed
@@ -1145,6 +1134,14 @@ def _invalid_op_config_for_restart_error(run):
 ###################################################################
 # Cmd impl API
 ###################################################################
+
+def run(**kw):
+    from guild.commands import run
+    ctx = run.run.make_context("", [])
+    ctx.params.update(kw)
+    ctx.params["yes"] = True
+    args = click_util.Args(**ctx.params)
+    main(args)
 
 def one_run(run_id_prefix):
     runs = [

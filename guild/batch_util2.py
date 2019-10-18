@@ -23,13 +23,62 @@ from guild import _api as gapi
 from guild import op2 as oplib
 from guild import op_util2 as op_util
 from guild import run as runlib
+from guild import run_util
 from guild import util
 from guild import var
+
+from guild.commands import run_impl2 as run_impl
 
 log = logging.getLogger("guild")
 
 class MissingProtoError(Exception):
     pass
+
+###################################################################
+# Run trial
+###################################################################
+
+def stage_trial(proto_run, trial_flag_vals):
+    run = op_util.init_run()
+    util.copytree(proto_run.dir, run.dir)
+    run.write_attr("flags", trial_flag_vals)
+    run.write_attr("label", _trial_label(proto_run, trial_flag_vals))
+    op_util.set_run_staged(run)
+    return run
+
+def _trial_label(proto_run, trial_flag_vals):
+    user_flag_vals = {
+        name: val for name, val in trial_flag_vals.items()
+        if val is not None
+    }
+    label_template = (proto_run.get("op") or {}).get("label_template")
+    return op_util.run_label(label_template, user_flag_vals, trial_flag_vals)
+
+def start_staged_trial(run):
+    log.info(
+        "Running trial %s: %s (%s)",
+        _trial_name(run),
+        run_util.format_operation(run),
+        _trial_flags_desc(run))
+    run_impl.run(start=run.id)
+
+def _trial_name(run):
+    if util.compare_paths(os.path.dirname(run.dir), var.runs_dir()):
+        return os.path.basename(run.dir)
+    else:
+        return "in %s" % run.dir
+
+def _trial_flags_desc(run):
+    flags = {
+        name: val
+        for name, val in (run.get("flags") or {}).items()
+        if val is not None
+    }
+    return op_util.flags_desc(flags)
+
+###################################################################
+# Utils
+###################################################################
 
 def proto_run():
     current_run = gapi.current_run()
@@ -50,33 +99,3 @@ def _trial_flags(flag_name, flag_val):
     if isinstance(flag_val, list):
         return [(flag_name, trial_val) for trial_val in flag_val]
     return [(flag_name, flag_val)]
-
-def run_trial(proto_run, trial_flag_vals):
-
-    proto_op = oplib.for_run(proto_run)
-    opdef = _proto_opdef(proto_op)
-    trial_op = _init_trial_op(proto_op, opdef, trial_flag_vals)
-    _log_run_trial(trial_op)
-    oplib.run(trial_op)
-
-def _init_trial_op(proto_op, opdef, flag_vals):
-    run = op_util.init_run()
-    util.copytree(proto_op.run_dir, run.dir)
-    return oplib.for_opdef(
-        opdef,
-        flag_vals,
-        run_dir=run.dir,
-    )
-
-def _log_run_trial(op):
-    log.info(
-        "Running trial %s: %s (%s)",
-        _op_trial_name(op),
-        op.opref.to_opspec(),
-        op_util.flags_desc(op.flag_vals))
-
-def _op_trial_name(op):
-    if util.compare_paths(os.path.dirname(op.run_dir), var.runs_dir()):
-        return os.path.basename(op.run_dir)
-    else:
-        return "in %s" % op.run_dir

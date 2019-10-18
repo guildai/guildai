@@ -277,6 +277,11 @@ def set_run_started(run):
     started = runlib.timestamp()
     run.write_attr("started", started)
 
+def set_run_staged(run):
+    set_run_marker(run, "STAGED")
+    clear_run_pending(run)
+    set_run_started(run)
+
 ###################################################################
 # Source code support
 ###################################################################
@@ -701,6 +706,23 @@ def _apply_default_flag_vals(flagdefs, flag_vals):
     for flagdef in flagdefs:
         if flag_vals.get(flagdef.name) is None:
             flag_vals[flagdef.name] = flagdef.default
+
+###################################################################
+# Run attr support
+###################################################################
+
+def run_label(label_template, user_flag_vals, all_flag_vals=None):
+    all_flag_vals = all_flag_vals or user_flag_vals
+    if label_template:
+        resolve_vals = {
+            name: flag_util.encode_flag_val(val)
+            for name, val in all_flag_vals.items()
+        }
+        return util.resolve_refs(label_template, resolve_vals, "")
+    return _default_run_label(user_flag_vals)
+
+def _default_run_label(flag_vals):
+    return " ".join(flag_util.format_flags(flag_vals, truncate_floats=True))
 
 ###################################################################
 # Utils

@@ -2,13 +2,8 @@
 
 Helpers:
 
-    >>> def run_gh(cwd=None, guild_home=None, yes=True, **kw):
-    ...     from guild import click_util
-    ...     from guild.commands import run, run_impl2
-    ...     ctx = run.run.make_context("", [])
-    ...     ctx.params.update(kw)
-    ...     ctx.params["yes"] = yes
-    ...     args = click_util.Args(**ctx.params)
+    >>> def run_gh(cwd=None, guild_home=None, **kw):
+    ...     from guild.commands import run_impl2
     ...     cwd = cwd or mkdtemp()
     ...     guild_home = guild_home or mkdtemp()
     ...     with SetCwd(cwd):
@@ -17,7 +12,7 @@ Helpers:
     ...                       "NO_WARN_RUNDIR": "1"}):
     ...                 with LogCapture(stdout=True, strip_ansi_format=True):
     ...                     try:
-    ...                         run_impl2.main(args)
+    ...                         run_impl2.run(**kw)
     ...                     except SystemExit as e:
     ...                         if e.args[0] is not None:
     ...                             print(e.args[0])
