@@ -331,6 +331,7 @@ def test_globals():
         "sha256": util.file_sha256,
         "sleep": time.sleep,
         "symlink": os.symlink,
+        "sys": sys,
         "touch": util.touch,
         "write": write,
     }

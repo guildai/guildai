@@ -2,120 +2,110 @@
 
     >>> from guild import op2 as oplib
 
-    >>> from guild import op_cmd
+An operation is used to generate a run.
 
-## Op from opdef
+    >>> op = oplib.Operation()
 
-Helper to print generated op command:
+Configure the operation as needed. In this case we specify command
+args and a run directory.
 
-    >>> def gen_op_cmd(op):
-    ...     args, env = oplib.generate_op_cmd(op)
-    ...     print(args)
-    ...     pprint(env)
+    >>> op.cmd_args = [sys.executable, "-m", "guild.pass"]
+    >>> op.run_dir = mkdtemp()
 
-Python module:
+Run the operation without capturing output (tests rely on a spoofed
+stdout to test output, which we don't want to interfere with).
 
-    >>> gf = guildfile.for_string("""
-    ... op:
-    ...   main: guild.pass
-    ... """)
+    >>> with Env({"NO_RUN_OUTPUT_CAPTURE": "1"}):
+    ...     run, exit_code = oplib.run(op)
 
-    >>> op = oplib.for_opdef(gf.default_model["op"], {})
+A successful run has an exit code of 0:
 
-    >>> gen_op_cmd(op)
-    ['...', '-um', 'guild.op_main', 'guild.pass', '--']
-    {'GUILD_OP': 'op', 'GUILD_PLUGINS': '', 'PROJECT_DIR': ''}
+    >>> exit_code
+    0
 
-Python module with args and flags:
+The run is generated in the specified run directory:
 
-    >>> gf = guildfile.for_string("""
-    ... op:
-    ...   main: guild.pass --foo 123 --bar
-    ...   flags:
-    ...     baz: 456
-    ... """)
+    >>> run.dir == op.run_dir, (run.dir, op.run_dir)
+    (True, ...)
 
-    >>> op = oplib.for_opdef(gf.default_model["op"], {})
+Generated files:
 
-    >>> gen_op_cmd(op)
-    ['...', '-um', 'guild.op_main', 'guild.pass',
-     '--foo', '123', '--bar', '--', '--baz', '456']
+    >>> find(op.run_dir)
+    .guild/attrs/cmd
+    .guild/attrs/env
+    .guild/attrs/exit_status
+    .guild/attrs/id
+    .guild/attrs/initialized
+    .guild/attrs/resolved_deps
+    .guild/attrs/started
+    .guild/attrs/stopped
+    .guild/opref
 
-    ['...', '-um', 'guild.op_main', 'guild.pass', '--foo', '123', '--bar', '--']
-    {'GUILD_OP': 'op', 'GUILD_PLUGINS': '', 'PROJECT_DIR': ''}
+## Staging a run
 
-With modified flag value:
+A run can be staged.
 
-    >>> op = oplib.for_opdef(gf.default_model.get_operation("op"),
-    ...                     {"baz": 789})
+    >>> op.run_dir = mkdtemp()
 
-    >>> oplib.proc_args(op)
-    ['...', '-um', 'guild.op_main', 'guild.pass',
-    '--foo', '123', '--bar', '--', '--baz', '789']
+    >>> run = oplib.stage(op)
 
-With shadowing flag:
+Files for a staged run:
 
-    >>> op = oplib.for_opdef(gf.default_model.get_operation("op"),
-    ...                     {"foo": 321, "baz": 789})
+    >>> find(run.dir)
+    .guild/ENV
+    .guild/STAGED
+    .guild/attrs/cmd
+    .guild/attrs/id
+    .guild/attrs/initialized
+    .guild/attrs/resolved_deps
+    .guild/opref
 
-    >>> with LogCapture(stdout=True, strip_ansi_format=True):
-    ...     oplib.proc_args(op)
-    WARNING: ignoring flag 'foo=321' because it's shadowed in the
-    operation cmd as --foo
-    ['...', '-um', 'guild.op_main', 'guild.pass',
-     '--foo', '123', '--bar', '--', '--baz', '789']
+A staged run is denoted by a `STAGED` marker:
 
-Choice flags:
+    >>> cat(run.guild_path("STAGED"))
+    <empty>
 
-    >>> gf = guildfile.for_string("""
-    ... op:
-    ...   main: guild.pass --foo 123 --bar
-    ...   flags:
-    ...     choice:
-    ...       default: a
-    ...       arg-skip: yes
-    ...       choices:
-    ...         - value: a
-    ...           flags:
-    ...             a1: abc
-    ...             a2: 123
-    ...         - value: b
-    ...           flags:
-    ...             b1: 4.56
-    ...             b2: True
-    ...     a1:
-    ...       arg-name: A1
-    ... """)
+A staged run is not designated with a `started` attribute, but gets
+its timestamp from the `initialized` attribute.
 
-    >>> opdef = gf.default_model["op"]
+    >>> run.get("started") is None
+    True
 
-Args are generated from flag values provided.
+    >>> t1 = run.get("initialized")
+    >>> t2 = run.timestamp
+    >>> t1 == t2 and isinstance(t1, int), (t1, t2)
+    (True, ...)
 
-    >>> op = oplib.for_opdef(opdef, {})
+## Operation callbacks
 
-    >>> oplib.proc_args(op)
-    ['...', '-um', 'guild.op_main', 'guild.pass',
-     '--foo', '123', '--bar', '--']
+Callbacks are used to perform additional steps during operation
+phases.
 
-Use `op_util.flag_vals_for_opdef` to apply choice flag vals:
+    >>> def init_output_summary_cb(op, run):
+    ...     print("<initializing output summaries>")
+    ...     return None
 
-    >>> from guild import op_util2 as op_util
+    >>> def run_initialized_cb(op, run):
+    ...     print("<run initialized>")
+    ...     run.write_attr("msg", "hello!")
 
-    >>> op = oplib.for_opdef(opdef, op_util.flag_vals_for_opdef(opdef, {}))
+    >>> op.callbacks = oplib.OperationCallbacks(
+    ...     init_output_summary=init_output_summary_cb,
+    ...     run_initialized=run_initialized_cb,
+    ... )
 
-    >>> oplib.proc_args(op)
-    ['...', '-um', 'guild.op_main', 'guild.pass',
-     '--foo', '123', '--bar', '--', '--A1', 'abc', '--a2', '123']
+Callbacks during stage:
 
-## Data IO
+    >>> op.run_dir = mkdtemp()
+    >>> run = oplib.stage(op)
+    <run initialized>
 
-    >>> gf = guildfile.for_string("""
-    ... op:
-    ...   main: guild.pass
-    ... """)
+    >>> run.get("msg")
+    'hello!'
 
-    >>> opdef = gf.default_model["op"]
+Callbacks during run:
 
-    >>> op = oplib.for_opdef(opdef, {})
-
-    >>> pprint(oplib.as_data(op))
+    >>> with Env({"NO_RUN_OUTPUT_CAPTURE": "1"}):
+    ...     run, exit_code = oplib.run(op)
+    <run initialized>
+    <initializing output summaries>

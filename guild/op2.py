@@ -114,7 +114,6 @@ def stage(op):
     run = init_run(op)
     _stage_run_proc_env(op, run)
     _resolve_deps_for_stage(op, run)
-    op_util.set_run_started(run)
     op_util.set_run_marker(run, "STAGED")
     op_util.clear_run_pending(run)
     return run
