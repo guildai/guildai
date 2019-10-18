@@ -28,7 +28,7 @@ def main():
     proto_run = batch_util2.proto_run()
     proto_flags = proto_run.get("flags") or {}
     for trial_flag_vals in batch_util2.expand_flags(proto_flags):
-        batch.run_trial(proto_run, trial_flag_vals)
+        batch_util2.run_trial(proto_run, trial_flag_vals)
 
 # TODO: remove when promoting OP2
 def gen_trials(flags, _batch=None):
