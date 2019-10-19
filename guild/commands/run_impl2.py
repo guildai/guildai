@@ -74,6 +74,22 @@ def _state_for_args(args):
     _state_init_batch_op(S)
     return S
 
+def _op_config_data(op):
+    return {
+        "flag-null-labels": op._flag_null_labels,
+        "op-cmd": op_cmd_lib.as_data(op._op_cmd),
+        "python-requires": op._python_requires,
+        "label-template": op._label_template,
+        "output-scalars": op._output_scalars,
+    }
+
+def _apply_op_config_data(data, op):
+    op._flag_null_labels = data.get("flag-null-labels")
+    op._op_cmd = op_cmd_lib.for_data(data.get("op-cmd"))
+    op._python_requires = data.get("python-requires")
+    op._label_template = data.get("label-template")
+    op._output_scalars = data.get("output-scalars")
+
 # =================================================================
 # State - restart run
 # =================================================================
@@ -96,8 +112,8 @@ def _run_for_spec(spec):
 
 def _state_init_user_op(S):
     _user_op_init_run(S)
-    _op_init_opdef(S.args.opspec, S.user_op)
     _op_init_user_flags(S.args.flags, S.user_op)
+    _op_init_opdef(S.args.opspec, S.user_op)
     _op_init_op_flags(S.args, S.user_op)
     _op_init_config(S.args.label, S.user_op)
     _op_init_core(S.args, S.user_op)
@@ -110,26 +126,41 @@ def _user_op_init_run(S):
             S.user_op._run = S.restart_run
 
 # =================================================================
+# Op - user flags
+# =================================================================
+
+def _op_init_user_flags(flag_args, op):
+    op._user_flag_vals, batch_files = _state_split_flag_args(flag_args)
+    assert not batch_files, "TODO"
+
+def _state_split_flag_args(flag_args):
+    batch_files, rest_args = op_util.split_batch_files(flag_args)
+    assigns = _parse_assigns(rest_args)
+    return assigns, batch_files
+
+def _parse_assigns(assign_args):
+    try:
+        return op_util.parse_flag_assigns(assign_args)
+    except op_util.ArgValueError as e:
+        _invalid_flag_arg_error(e.arg)
+
+# =================================================================
 # Op - opdef
 # =================================================================
 
 def _op_init_opdef(opspec, op):
     if op._run:
-        assert not opspec, opspec
-        op._opdef = _opdef_for_run(op._run)
+        assert not opspec
+        # We want opdef for restart only when user specifies flag
+        # values. Otherwise we want isolation from config.
+        if op._user_flag_vals:
+            op._opdef = _opdef_for_run(op._run)
     else:
         op._opdef = _opdef_for_opspec(opspec)
 
-def _state_init_opdef_for_opspec(opspec, S):
-    S.opdef = _opdef_for_opspec(opspec)
-
 def _opdef_for_run(run):
     opspec = run.opref.to_opspec()
-    try:
-        return op_util.opdef_for_opspec(opspec)
-    except Exception as e:
-        _log_opdef_for_run_error(e, run, opspec)
-        return None
+    return _opdef_for_opspec(opspec)
 
 def _opdef_for_opspec(opspec):
     try:
@@ -146,44 +177,6 @@ def _opdef_for_opspec(opspec):
         _no_such_opdef_error(e.model, e.op_name)
     except op_util.ModelOpProxyError as e:
         _model_op_proxy_error(e)
-
-def _log_opdef_for_run_error(e, run, opspec):
-    if isinstance(e, op_util.OpDefLookupError):
-        log.debug(
-            "error finding definition for '%s' for run %s (%s): %s",
-            opspec, run.id, run.dir, e)
-    else:
-        if log.getEffectiveLevel() <= 20:
-            log.exception(
-                "getting opdef for '%s' for run %s (%s)",
-                opspec, run.id, run.dir)
-        log.warning(
-            "error loading definition for '%s' for run %s: %s",
-            opspec, run.id, e)
-
-# =================================================================
-# Op - user flags
-# =================================================================
-
-def _op_init_user_flags(flag_args, op):
-    op._user_flag_vals, batch_files = _state_split_flag_args(flag_args)
-    _check_restart_flags_with_missing_opdef(op)
-    assert not batch_files, "TODO"
-
-def _state_split_flag_args(flag_args):
-    batch_files, rest_args = op_util.split_batch_files(flag_args)
-    assigns = _parse_assigns(rest_args)
-    return assigns, batch_files
-
-def _parse_assigns(assign_args):
-    try:
-        return op_util.parse_flag_assigns(assign_args)
-    except op_util.ArgValueError as e:
-        _invalid_flag_arg_error(e.arg)
-
-def _check_restart_flags_with_missing_opdef(op):
-    if op._user_flag_vals and op._run and not op._opdef:
-        _restart_flags_with_missing_opdef_error(op._run)
 
 # =================================================================
 # Op - op flags
@@ -243,16 +236,11 @@ def _op_init_config_for_run(run, label_arg, op):
     config = run.get("op")
     if not config:
         _missing_op_config_for_restart_error(run)
-    op._flag_null_labels = config.get("flag_null_labels")
-    op._op_cmd = _op_cmd_for_data(config.get("op_cmd"), run)
-    op._python_requires = config.get("python_requires")
-    op._label_template = label_arg or config.get("label_template")
-    op._output_scalars = config.get("output_scalars")
-
-def _op_cmd_for_data(data, run):
-    if not data:
+    if not config.get("op-cmd"):
         _invalid_op_config_for_restart_error(run)
-    return op_cmd_lib.for_data(data)
+    _apply_op_config_data(config, op)
+    if label_arg:
+        op._label_template = label_arg
 
 def _op_init_config_for_opdef(opdef, label_arg, op):
     op._flag_null_labels = _flag_null_labels_for_opdef(op._opdef)
@@ -400,13 +388,7 @@ def _op_init_run_attrs(args, op):
     attrs["host"] = util.hostname()
     attrs["user"] = util.user()
     attrs["platform"] = util.platform_info()
-    attrs["op"] = {
-        "flag_null_labels": op._flag_null_labels,
-        "op_cmd": op_cmd_lib.as_data(op._op_cmd),
-        "python_requires": op._python_requires,
-        "label_template": op._label_template,
-        "output_scalars": op._output_scalars,
-    }
+    attrs["op"] = _op_config_data(op)
 
 # =================================================================
 # Op - run deps
@@ -443,18 +425,25 @@ def _op_init_callbacks_for_restart(op):
     )
 
 def _init_output_summary(op, run):
+    if not op._output_scalars:
+        return None
+    if _summary_disabled():
+        return None
+    return _output_scalars_summary(
+        op._output_scalars,
+        op._op_flag_vals,
+        run)
+
+def _summary_disabled():
     try:
         summary.check_enabled()
     except summary.Disabled as e:
         log.warning(e)
-        return None
+        return True
     else:
-        return _output_scalars_summary(
-            op._output_scalars,
-            op._op_flag_vals,
-            run)
+        return False
 
-def _output_scalars_summary(output_scalars, flag_vals, run):
+def _output_scalars(output_scalars, flag_vals, run):
     if output_scalars is None:
         output_scalars = summary.DEFAULT_OUTPUT_SCALARS
         ignore = flag_vals.keys()
@@ -519,7 +508,13 @@ def _batch_op_init_run(S):
 def _batch_op_init_opdef(S):
     if S.batch_op and S.batch_op._run:
         assert not S.args.optimizer and not S.args.optimize, S.args
-        op.batch_op._opdef = _opdef_for_run(op._run)
+        # As with user op, we only want opdef when user specifies
+        # flags for a batch restart. We check args here rather than
+        # S.batch_op._user_flag_vals because we can't process batch
+        # user flags until we know we have a batch op, which is
+        # determined in part by this function.
+        if S.args.opt_flags:
+            op.batch_op._opdef = _opdef_for_run(op._run)
     elif S.user_op._opdef:
         _batch_op_init_for_opdef(S.user_op._opdef, S)
 
@@ -578,10 +573,10 @@ def _check_opt_flags_for_missing_batch_opdef(S):
 ###################################################################
 
 def main(args):
-    CS = _init_cmd_state(args)
-    _dispatch_op(CS)
+    S = _init_state(args)
+    _dispatch_op(S)
 
-def _init_cmd_state(args):
+def _init_state(args):
     _maybe_shift_opspec(args)
     _validate_args(args)
     return _state_for_args(args)
@@ -1108,12 +1103,6 @@ def _op_dependency_error(e):
 
 def _op_process_error(op, e):
     cli.error("error running %s: %s" % (_fmt_opref(op.opref), e))
-
-def _restart_flags_with_missing_opdef_error(restart_run):
-    cli.error(
-        "cannot set flags when restarting %s: configuration "
-        "for operation '%s' is not available"
-        % (restart_run.id, restart_run.opref.to_opspec()))
 
 def _opt_flags_for_missing_batch_opdef_error(args):
     assert args

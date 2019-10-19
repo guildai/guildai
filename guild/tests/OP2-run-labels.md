@@ -140,7 +140,7 @@ And the label:
 
 Guild saves the label template in the `op` attribute.
 
-    >>> last_run.get("op").get("label_template")
+    >>> last_run.get("op").get("label-template")
     'i:${i}, f:${f}, b:${b}, s:${s}'
 
 Next we'll restart the run with a different label template.
@@ -154,7 +154,7 @@ And the label:
 
 Guild has updated the label template.
 
-    >>> last_run.get("op").get("label_template")
+    >>> last_run.get("op").get("label-template")
     '${s}-${i}'
 
 The new label template is now associated with the run.

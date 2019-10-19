@@ -27,12 +27,12 @@ def main():
     op_util.init_logging()
     proto_run = batch_util2.proto_run()
     proto_flags = proto_run.get("flags") or {}
-    runs = _stage_trials(proto_run, proto_flags)
+    trials = batch_util2.expand_flags(proto_flags)
+    runs = _stage_trials(trials, proto_run)
     _run_trials(runs)
 
-def _stage_trials(proto_run, proto_flags):
-    for trial_flag_vals in batch_util2.expand_flags(proto_flags):
-        yield batch_util2.stage_trial(proto_run, trial_flag_vals)
+def _stage_trials(trials, proto_run):
+    return [batch_util2.stage_trial(proto_run, trial) for trial in trials]
 
 def _run_trials(staged):
     for trial in staged:

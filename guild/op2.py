@@ -56,7 +56,7 @@ class ProcessError(Exception):
     pass
 
 ###################################################################
-# Operation state
+# State
 ###################################################################
 
 class Operation(object):

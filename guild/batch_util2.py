@@ -35,7 +35,7 @@ class MissingProtoError(Exception):
     pass
 
 ###################################################################
-# Run trial
+# Stage / run trial
 ###################################################################
 
 def stage_trial(proto_run, trial_flag_vals):
@@ -55,12 +55,15 @@ def _trial_label(proto_run, trial_flag_vals):
     return op_util.run_label(label_template, user_flag_vals, trial_flag_vals)
 
 def start_staged_trial(run):
+    _log_start_trial(run)
+    run_impl.run(start=run.id)
+
+def _log_start_trial(run):
     log.info(
         "Running trial %s: %s (%s)",
         _trial_name(run),
         run_util.format_operation(run),
         _trial_flags_desc(run))
-    run_impl.run(start=run.id)
 
 def _trial_name(run):
     if util.compare_paths(os.path.dirname(run.dir), var.runs_dir()):
@@ -92,7 +95,8 @@ def proto_run():
 def expand_flags(flag_vals):
     flag_list = [
         _trial_flags(name, val)
-        for name, val in sorted(flag_vals.items())]
+        for name, val in sorted(flag_vals.items())
+    ]
     return [dict(trial) for trial in itertools.product(*flag_list)]
 
 def _trial_flags(flag_name, flag_val):

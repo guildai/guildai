@@ -29,6 +29,8 @@ Helpers (copied from `run-impl.md`):
     ...     return cwd
 
     >>> from guild import run as runlib
+    >>> from guild import run_util
+    >>> from guild import var
 
 ## Stage
 
@@ -228,15 +230,17 @@ We can restart without flags:
 However, if we specify any flags, Guild complains.
 
     >>> run(cwd, gh, restart=run_id, flags=["foo=111"])
-    cannot set flags when restarting ...: configuration for
-    operation 'op' is not available
+    cannot find operation op
+    You may need to include a model in the form MODEL:OPERATION. Try
+    'guild operations' for a list of available operations.
     <exit 1>
 
 It doesn't matter if the flags apply to the original operation or not.
 
     >>> run(cwd, gh, restart=run_id, flags=["other_flag=111"])
-    cannot set flags when restarting ...: configuration for
-    operation 'op' is not available
+    cannot find operation op
+    You may need to include a model in the form MODEL:OPERATION. Try
+    'guild operations' for a list of available operations.
     <exit 1>
 
 ## Batch operation errors
@@ -259,6 +263,48 @@ Invalid optimizer flag:
     --force-flags to skip this check.
     <exit 1>
 
-## Stage batch op
+## Run a batch
 
-    >> "TODO"
+    >>> cwd = mkdtemp()
+    >>> touch(path(cwd, "pass.py"))
+
+    >>> gh = run_gh(cwd, opspec="pass.py", flags=["a=[1,2,3]"], force_flags=True)
+
+    >>> runs = var.runs(path(gh, "runs"), sort=["timestamp"])
+    >>> len(runs)
+    4
+
+    >>> run_util.format_operation(runs[0])
+    'pass.py+'
+
+    >>> runs[0].get("flags")
+    {}
+
+    >>> run_util.format_operation(runs[1])
+    'pass.py'
+
+    >>> runs[1].get("flags")
+    {'a': 1}
+
+    >>> run_util.format_operation(runs[2])
+    'pass.py'
+
+    >>> runs[2].get("flags")
+    {'a': 2}
+
+    >>> run_util.format_operation(runs[3])
+    'pass.py'
+
+    >>> runs[3].get("flags")
+    {'a': 3}
+
+## == TODO =====================================================
+
+- [ ] Batch files
+- [ ] Max trials
+- [ ] Print trials
+- [ ] Save trials
+
+- [ ] Deps
+- [ ] Deps and stage - difference between ops and non-ops
+- [ ] Restart with flag changes that effect resolved dependencies

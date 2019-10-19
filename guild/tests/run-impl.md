@@ -450,6 +450,31 @@ Output scalar test - op3:
     >>> run(cwd, opspec="exec", print_cmd=True)
     python -c 'open("file.txt", "w").write("hello")'
 
+## Print env
+
+    >>> cwd = init_gf("""
+    ...   op:
+    ...     main: guild.pass
+    ...     flags:
+    ...       i: 1
+    ...       f:
+    ...         default: 1.23
+    ...         env-name: F
+    ...     env:
+    ...       FOO: 123
+    ...       BAR: hello
+    ... """)
+
+    >>> run(cwd, print_env=True)
+    BAR=hello
+    F=1.23
+    FLAGS_DEST=globals
+    FLAG_I=1
+    FOO=123
+    GUILD_OP=op
+    GUILD_PLUGINS=
+    PROJECT_DIR=...
+
 ## Dependencies
 
 File:
@@ -574,32 +599,31 @@ Required operation not defined:
     by operation 'op' is not defined
     <exit 1>
 
-## == TODO =====================================================
+## Run various operations
 
-- [ ] Run opdef
-  - [ ] Script
-  - [ ] Default op
-  - [ ] Named op, no modelspec
-  - [ ] Model + op Guildfile
-  - [ ] Just op package
-  - [ ] Model + op package
-  - [ ] Built-ins
+Script:
 
-- [ ] Restart run - can find opdef
-  - [ ] No flag changes
-  - [ ] Flag changes
+    >>> cwd = mkdtemp()
+    >>> touch(path(cwd, "pass.py"))
 
-- [ ] Restart run - can't find opdef
-  - [ ] No flag changes
-  - [ ] Flag changes (expect error)
+    >>> run(cwd, opspec="pass.py")
 
-- [ ] Flag args
-  - [ ] Normal
-  - [ ] Include batch files
-  - [ ] Invalid
+Default operation:
 
-- [ ] Print env
-- [ ] Print trials
-- [ ] Save trials
+    >>> cwd = init_gf("""
+    ... op: guild.pass
+    ... """)
 
-- [ ] Restart with flag changes that effect resolved dependencies
+    >>> run(cwd)
+
+Model operations:
+
+    >>> cwd = init_gf("""
+    ... - model: m
+    ...   operations:
+    ...     op: guild.pass
+    ... """)
+
+    >>> run(cwd)
+    >>> run(cwd, opspec="op")
+    >>> run(cwd, opspec="m:op")
