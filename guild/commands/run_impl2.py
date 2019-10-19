@@ -596,6 +596,7 @@ def _check_incompatible_options(args):
         ("minimize", "maximize"),
         ("no_gpus", "gpus"),
         ("optimize", "optimizer"),
+        ("print_cmd", "print_env"),
         ("print_trials", "init_trials"),
         ("remote", "background"),
         ("remote", "pidfile"),
@@ -775,30 +776,48 @@ class _CopyLogger(object):
 ###################################################################
 
 def _dispatch_op_cmd(S):
-    if S.args.print_cmd or S.args.print_env:
-        _print_op_cmd(S)
-    elif S.args.print_trials or S.args.save_trials:
-        assert False, "TODO"
-        #_print_or_save_trials(op, args)
+    if S.args.print_cmd:
+        _print_cmd(S)
+    elif S.args.print_env:
+        _print_env(S)
+    elif S.args.print_trials:
+        _print_trials(S)
+    elif S.args.save_trials:
+        _save_trials(S)
     else:
         _confirm_and_run(S)
 
 ###################################################################
-# Print op info
+# Print op info / save trials
 ###################################################################
 
-def _print_op_cmd(S):
-    if S.args.print_cmd:
+def _print_cmd(S):
+    if S.batch_op:
+        _print_op_cmd_args(S.batch_op.cmd_args)
+        _print_batch_trials_cmd_args(S)
+    else:
         _print_op_cmd_args(S.user_op.cmd_args)
-    if S.args.print_env:
-        _print_op_cmd_env(S.user_op.cmd_env)
 
 def _print_op_cmd_args(args):
     cli.out(" ".join([util.shlex_quote(arg) for arg in args]))
 
+def _print_batch_trials_cmd_args(S):
+    _run_tmp_batch(S, {"PRINT_TRIALS_CMD": "1"})
+
+def _print_env(S):
+    _print_op_cmd_env(S.user_op.cmd_env)
+
 def _print_op_cmd_env(env):
     for name, val in sorted(env.items()):
         cli.out("%s=%s" % (name, util.env_var_quote(val)))
+
+def _print_trials(S):
+    _run_tmp_batch(S, {"PRINT_TRIALS": "1"})
+
+def _save_trials(S):
+    path = os.path.join(config.cwd(), S.args.save_trials)
+    cli.out("Saving trials to %s" % path)
+    _run_tmp_batch(S, {"SAVE_TRIALS": path})
 
 ###################################################################
 # Run
@@ -904,16 +923,14 @@ def _run(S):
 
 def _init_op_for_run(S):
     if S.batch_op:
-        batch_run = _init_batch_run(S)
-        S.batch_op.run_dir = batch_run.dir
+        _init_batch_run(S)
         return S.batch_op
     return S.user_op
 
-def _init_batch_run(S):
-    batch_run = oplib.init_run(S.batch_op)
-    proto_run_dir = batch_run.guild_path("proto")
-    oplib.init_run(S.user_op, proto_run_dir)
-    return batch_run
+def _init_batch_run(S, run_dir=None):
+    batch_run = oplib.init_run(S.batch_op, run_dir)
+    S.batch_op.run_dir = batch_run.dir
+    oplib.init_run(S.user_op, batch_run.guild_path("proto"))
 
 def _stage_op(op, args):
     run = oplib.stage(op)
@@ -946,9 +963,10 @@ def _print_stage_pending_instructions(run):
             op=run_util.format_operation(run),
             run_id=run.id))
 
-def _run_op(op, args):
+def _run_op(op, args, extra_env=None):
     try:
-        run, exit_status = oplib.run(op, quiet=args.quiet)
+        run, exit_status = oplib.run(op, quiet=args.quiet,
+                                     extra_env=extra_env)
     except op_dep.OpDependencyError as e:
         _op_dependency_error(e)
     except oplib.ProcessError as e:
@@ -959,6 +977,16 @@ def _run_op(op, args):
 def _handle_run_exit(run, exit_status):
     if exit_status != 0:
         cli.error(exit_status=exit_status)
+
+# =================================================================
+# Run temp batch
+# =================================================================
+
+def _run_tmp_batch(S, extra_env):
+    assert S.batch_op
+    with util.TempDir() as tmp:
+        _init_batch_run(S, tmp.path)
+        _run_op(S.batch_op, S.args, extra_env)
 
 ###################################################################
 # Error handlers

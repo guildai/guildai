@@ -44,6 +44,8 @@ from .op_util import mapped_flag_vals       # pylint: disable=unused-import
 from .op_util import opdef_model_paths      # pylint: disable=unused-import
 from .op_util import parse_flag_assigns     # pylint: disable=unused-import
 from .op_util import parse_opspec           # pylint: disable=unused-import
+from .op_util import print_trials           # pylint: disable=unused-import
+from .op_util import save_trials            # pylint: disable=unused-import
 from .op_util import split_cmd              # pylint: disable=unused-import
 
 log = logging.getLogger("guild")

@@ -132,12 +132,12 @@ def _stage_run_proc_env(op, run):
 # Run
 ###################################################################
 
-def run(op, quiet=False, stop_after=None):
+def run(op, quiet=False, stop_after=None, extra_env=None):
     run = init_run(op)
     _resolve_deps_for_run(op, run)
     op_util.set_run_started(run)
     try:
-        proc = _op_start_proc(op, run)
+        proc = _op_start_proc(op, run, extra_env)
         exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
         _op_finalize_run_attrs(run, exit_status)
         return run, exit_status
@@ -145,14 +145,16 @@ def run(op, quiet=False, stop_after=None):
         op_util.clear_run_marker(run, "STAGED")
         op_util.clear_run_pending(run)
 
-def _op_start_proc(op, run):
+def _op_start_proc(op, run, extra_env=None):
     log.debug("starting run %s in %s", run.id, run.dir)
-    proc_env = _op_proc_env(op, run)
-    run.write_attr("env", proc_env)
+    env = _op_proc_env(op, run)
+    if extra_env:
+        env.update(extra_env)
+    run.write_attr("env", env)
     try:
         proc = subprocess.Popen(
             op.cmd_args,
-            env=proc_env,
+            env=env,
             cwd=run.dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
@@ -184,14 +186,13 @@ def _output_summary_for_run(run, op):
 
 class _RunOutput(object):
 
-    def __init__(self, run, *args):
+    def __init__(self, *args):
         self._output = None
-        self._run = run
-        self._rest_args = args
+        self._args = args
 
     def __enter__(self):
         if os.getenv("NO_RUN_OUTPUT_CAPTURE") != "1":
-            self._output = op_util.RunOutput(self._run, *self._rest_args)
+            self._output = op_util.RunOutput(*self._args)
 
     def __exit__(self, *_exc):
         if self._output:
@@ -240,7 +241,7 @@ def _delete_proc_lock(run):
         pass
 
 # =================================================================
-# Run proc env
+# Proc env
 # =================================================================
 
 def _op_proc_env(op, run):

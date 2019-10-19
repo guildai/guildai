@@ -1,0 +1,456 @@
+# Batch runs - basics
+
+These tests illustrate batch run behavior. We'll use the `batch`
+sample project:
+
+    >>> project = Project(sample("projects", "batch"))
+
+A helper to run project ops:
+
+    >>> def run(opspec, **kw):
+    ...     with Env({"OP2": "1"}):
+    ...         project.run(opspec, **kw)
+
+## Batch runs
+
+A batch run is a run that contains either explicit or implicit batch
+specifiers.
+
+Batch runs generate one or more trial runs.
+
+There are two types of implicit batch specifiers:
+
+- Flag list value
+- A batch file
+
+A flag list value indicates that the operation should be run for each
+value in the list. If there is more tha one flag with list values, the
+operation is run over the cartesian product of all flag combinations.
+
+A batch file may contain one or more flag combinations, each of which
+is used to run the operation.
+
+If both flag list values and batch files are used, the flag values are
+applied to each flag combination in the batch files.
+
+An explicit batch specifier is made using the `--optimizer` flag,
+which indicates that the specified optimizer should be used to run the
+operation multiple times with the goal of minimizing or maximizing an
+operation result.
+
+We'll look at each of these scanarios in the tests below.
+
+## Baseline
+
+For our tests, we'll use a script that prints a message, optionally
+capitalizing it.
+
+Here are three runs:
+
+    >>> run("say.py", label="default")
+    hello
+
+    >>> run("say.py", flags={"msg": "hi"}, label="${msg}")
+    hi
+
+    >>> run("say.py", flags={"msg": "hi", "loud": True}, label="msg=hi loud=yes")
+    HI
+
+    >>> project.print_runs(labels=True)
+    say.py  msg=hi loud=yes
+    say.py  hi
+    say.py  default
+
+Let's delete them in preparation for the next set of tests.
+
+    >>> project.delete_runs()
+    Deleted 3 run(s)
+
+## Flag list values
+
+A batch is run impicitly whenever a list of values is specified for a
+flag.
+
+Let's run `say.py` with a list of one `msg` flag value:
+
+    >>> run("say.py", flags={"msg": ["hi"]})
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=hi)
+    hi
+
+Here are the trial runs:
+
+    >>> project.print_runs(flags=True)
+    say.py   loud=no msg=hi
+    say.py+
+
+Note there are two runs. The first run, listed as `+`, is the batch
+operation, which is separate from the trial run. The batch operation
+uses the special name `+`.
+
+Let's run `say-with-label` for two runs:
+
+    >>> run("say-with-label", flags={"msg": ["hi 1", "hi 2"]})
+    INFO: [guild] Running trial ...: say-with-label (loud=no, msg='hi 1')
+    hi 1
+    INFO: [guild] Running trial ...: say-with-label (loud=no, msg='hi 2')
+    hi 2
+
+    >>> project.print_runs(labels=True, limit=3)
+    say-with-label   msg is 'hi 2'
+    say-with-label   msg is 'hi 1'
+    say-with-label+
+
+We can preview the trials that will be generated using the
+`print_trials` flag:
+
+    >>> run("say.py", flags={"msg": ["hi"]}, print_trials=True)
+    #  loud  msg
+    1  no    hi
+
+Trials are run in order based on flag values.
+
+    >>> run("say.py", flags={"msg": ["c", "a", "b"]})
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=c)
+    c
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=a)
+    a
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=b)
+    b
+
+We can specify other flag values:
+
+    >>> run("say.py", flags={"msg": ["a", "b"], "loud": True})
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg=a)
+    A
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg=b)
+    B
+
+If we use multiple list values, trials are generated using the
+cartesian product of all flag combinations. The order of trials
+corresponds to the flag names in ascending order followed by the flag
+values as ordered in each flag value list.
+
+    >>> run("say.py", flags={"msg": ["b", "a"], "loud": [False, True]})
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=b)
+    b
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=a)
+    a
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg=b)
+    B
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg=a)
+    A
+
+    >>> run("say.py", flags={"msg": ["b", "a"], "loud": [False, True]},
+    ...     print_trials=True)
+    #  loud  msg
+    1  no    b
+    2  no    a
+    3  yes   b
+    4  yes   a
+
+## Batch files
+
+Batch files are used to explicitly run batches. A batch file contains
+one or more flag combinations that are each used to generate a trial
+run.
+
+Guild supports three batch file formats:
+
+- YAML
+- JSON
+- CSV
+
+Let's look at `batch.csv`, which we can use to run a batch:
+
+    >> cat(join_path(project.cwd, "batch.csv"))
+    msg,loud
+    hello 1
+    hello 2,yes
+    hello 3
+
+CSV files must have a header row that defines the flag names separated
+by commas. Each subsequent row is a list of flag values, each
+corresponding to a flag name and also separate by commas.
+
+In this case we have a batch of three flag combinations.
+
+Let's use the batch file in an operation:
+
+    >> run("say.py", batches=["batch.csv"])
+    Initialized trial (loud=no, msg='hello 1')
+    Running trial: say.py (loud=no, msg='hello 1')
+    hello 1
+    Initialized trial (loud=yes, msg='hello 2')
+    Running trial: say.py (loud=yes, msg='hello 2')
+    HELLO 2
+    Initialized trial (loud=no, msg='hello 3')
+    Running trial: say.py (loud=no, msg='hello 3')
+    hello 3
+
+    >> run("say.py", batches=["batch.csv"], print_trials=True)
+    #  loud  msg
+    1  no    hello 1
+    2  yes   hello 2
+    3  no    hello 3
+
+Here's what our runs look like after the batch operation:
+
+    >> project.print_runs(flags=True)
+    say.py   loud=no msg='hello 3'
+    say.py   loud=yes msg='hello 2'
+    say.py   loud=no msg='hello 1'
+    say.py+
+
+In cases where we explicitly define flag values, those flag values are
+applied only if they are not defined in the batch file - the batch
+file takes precedence over flags specified for the operation.
+
+    >> run("say.py", batches=["batch.csv"], loud=False)
+    Initialized trial (loud=no, msg='hello 1')
+    Running trial: say.py (loud=no, msg='hello 1')
+    hello 1
+    Initialized trial (loud=yes, msg='hello 2')
+    Running trial: say.py (loud=yes, msg='hello 2')
+    HELLO 2
+    Initialized trial (loud=no, msg='hello 3')
+    Running trial: say.py (loud=no, msg='hello 3')
+    hello 3
+
+    >> run("say.py", batches=["batch.csv"], loud=False, print_trials=True)
+    #  loud  msg
+    1  no    hello 1
+    2  yes   hello 2
+    3  no    hello 3
+
+We can additionally specify multiple flag values that are used to
+generate additional trials, in cases where the batch file doesn't
+specify a flag value.
+
+Here we'll use a list of `loud`, which is applied in cases where
+`loud` is not defined in the batch:
+
+    >> run("say.py", batches=["batch.csv"], loud=[True, False])
+    Initialized trial (loud=yes, msg='hello 1')
+    Running trial: say.py (loud=yes, msg='hello 1')
+    HELLO 1
+    Initialized trial (loud=no, msg='hello 1')
+    Running trial: say.py (loud=no, msg='hello 1')
+    hello 1
+    Initialized trial (loud=yes, msg='hello 2')
+    Running trial: say.py (loud=yes, msg='hello 2')
+    HELLO 2
+    Initialized trial (loud=yes, msg='hello 3')
+    Running trial: say.py (loud=yes, msg='hello 3')
+    HELLO 3
+    Initialized trial (loud=no, msg='hello 3')
+    Running trial: say.py (loud=no, msg='hello 3')
+    hello 3
+
+    >> run("say.py", batches=["batch.csv"], loud=[True, False],
+    ...     print_trials=True)
+    #  loud  msg
+    1  yes   hello 1
+    2  no    hello 1
+    3  yes   hello 2
+    4  yes   hello 3
+    5  no    hello 3
+
+Here's a case that further illustates the point. While we may request
+different values for `msg`, the batch file values are used when
+specified:
+
+    >> run("say.py", batches=["batch.csv"], msg=["hello 4", "hello 5"])
+    Initialized trial (loud=no, msg='hello 1')
+    Running trial: say.py (loud=no, msg='hello 1')
+    hello 1
+    Initialized trial (loud=yes, msg='hello 2')
+    Running trial: say.py (loud=yes, msg='hello 2')
+    HELLO 2
+    Initialized trial (loud=no, msg='hello 3')
+    Running trial: say.py (loud=no, msg='hello 3')
+    hello 3
+
+    >> run("say.py", batches=["batch.csv"], msg=["hello 4", "hello 5"],
+    ...     print_trials=True)
+    #  loud  msg
+    1  no    hello 1
+    2  yes   hello 2
+    3  no    hello 3
+
+Next we'll look at `batch.yaml`:
+
+    >> cat(join_path(project.cwd, "batch.yaml"))
+    - msg: hello 4
+    - msg: hello 5
+    - msg: hello 6
+      loud: yes
+
+In this case we have three flag batches as well, but with different
+values.
+
+Here's our batch using the file:
+
+    >> run("say.py", batches=["batch.yaml"])
+    Initialized trial (loud=no, msg='hello 4')
+    Running trial: say.py (loud=no, msg='hello 4')
+    hello 4
+    Initialized trial (loud=no, msg='hello 5')
+    Running trial: say.py (loud=no, msg='hello 5')
+    hello 5
+    Initialized trial (loud=yes, msg='hello 6')
+    Running trial: say.py (loud=yes, msg='hello 6')
+    HELLO 6
+
+    >> run("say.py", batches=["batch.yaml"], print_trials=True)
+    #  loud  msg
+    1  no    hello 4
+    2  no    hello 5
+    3  yes   hello 6
+
+We can apply a value for `loud` that will be used when the batch file
+doesn't define it:
+
+    >> run("say.py", batches=["batch.yaml"], loud=True)
+    Initialized trial (loud=yes, msg='hello 4')
+    Running trial: say.py (loud=yes, msg='hello 4')
+    HELLO 4
+    Initialized trial (loud=yes, msg='hello 5')
+    Running trial: say.py (loud=yes, msg='hello 5')
+    HELLO 5
+    Initialized trial (loud=yes, msg='hello 6')
+    Running trial: say.py (loud=yes, msg='hello 6')
+    HELLO 6
+
+    >> run("say.py", batches=["batch.yaml"], loud=True, print_trials=True)
+    #  loud  msg
+    1  yes   hello 4
+    2  yes   hello 5
+    3  yes   hello 6
+
+Next we'll look at JSON formatted batch files.
+
+    >> cat(join_path(project.cwd, "batch.json"))
+    [
+      {"msg": "hello 7", "loud": false},
+      {"msg": "hello 8", "loud": true},
+      {"msg": "hello 9", "loud": true}
+    ]
+
+    >> run("say.py", batches=["batch.json"])
+    Initialized trial (loud=no, msg='hello 7')
+    Running trial: say.py (loud=no, msg='hello 7')
+    hello 7
+    Initialized trial (loud=yes, msg='hello 8')
+    Running trial: say.py (loud=yes, msg='hello 8')
+    HELLO 8
+    Initialized trial (loud=yes, msg='hello 9')
+    Running trial: say.py (loud=yes, msg='hello 9')
+    HELLO 9
+
+    >> run("say.py", batches=["batch.json"], print_trials=True)
+    #  loud  msg
+    1  no    hello 7
+    2  yes   hello 8
+    3  yes   hello 9
+
+Finally, Guild supports multiple batch files, each of which being
+applied in the order specified:
+
+    >> run("say.py", batches=["batch.csv", "batch.yaml", "batch.json"])
+    Initialized trial (loud=no, msg='hello 1')
+    Running trial: say.py (loud=no, msg='hello 1')
+    hello 1
+    Initialized trial (loud=yes, msg='hello 2')
+    Running trial: say.py (loud=yes, msg='hello 2')
+    HELLO 2
+    Initialized trial (loud=no, msg='hello 3')
+    Running trial: say.py (loud=no, msg='hello 3')
+    hello 3
+    Initialized trial (loud=no, msg='hello 4')
+    Running trial: say.py (loud=no, msg='hello 4')
+    hello 4
+    Initialized trial (loud=no, msg='hello 5')
+    Running trial: say.py (loud=no, msg='hello 5')
+    hello 5
+    Initialized trial (loud=yes, msg='hello 6')
+    Running trial: say.py (loud=yes, msg='hello 6')
+    HELLO 6
+    Initialized trial (loud=no, msg='hello 7')
+    Running trial: say.py (loud=no, msg='hello 7')
+    hello 7
+    Initialized trial (loud=yes, msg='hello 8')
+    Running trial: say.py (loud=yes, msg='hello 8')
+    HELLO 8
+    Initialized trial (loud=yes, msg='hello 9')
+    Running trial: say.py (loud=yes, msg='hello 9')
+    HELLO 9
+
+    >> run("say.py", batches=["batch.csv", "batch.yaml", "batch.json"],
+    ...     print_trials=True)
+    #  loud  msg
+    1  no    hello 1
+    2  yes   hello 2
+    3  no    hello 3
+    4  no    hello 4
+    5  no    hello 5
+    6  yes   hello 6
+    7  no    hello 7
+    8  yes   hello 8
+    9  yes   hello 9
+
+Unsupported batch files generate an error:
+
+    >> run("say.py", batches=["batch.unknown"])
+    guild: unsupported batch file extension for batch.unknown
+    <exit 1>
+
+## Saving trials
+
+Batch trials can be saved to a CSV file via the `run` command using
+the `save_trials` option.
+
+Here's a directory to save trials in:
+
+    >>> save_dir = mkdtemp()
+
+And path for the saved trials:
+
+    >>> dest_path = path(save_dir, "trials.csv")
+
+Let's run with a set of flags and the `save_trials` flag.
+
+    >>> run(
+    ...     "add.py",
+    ...     flags={"x": [1, 2], "y": [3, 4], "z": [5]},
+    ...     save_trials=dest_path)
+    Saving trials to .../trials.csv
+
+The contents of our save directory:
+
+    >>> find(save_dir)
+    trials.csv
+
+And the trials file:
+
+    >>> cat(dest_path)
+    x,y,z
+    1,3,5
+    1,4,5
+    2,3,5
+    2,4,5
+
+We can use the trials file to run a batch.
+
+    >> run("add.py", batch_files=[dest_path])
+    INFO: [guild] Initialized trial ... (x=1.1, y=1, z=b)
+    INFO: [guild] Running trial ...: echo.py (x=1.1, y=1, z=b)
+    1.1 1 'b'
+    INFO: [guild] Initialized trial ... (x=1.1, y=2, z=b)
+    INFO: [guild] Running trial ...: echo.py (x=1.1, y=2, z=b)
+    1.1 2 'b'
+    INFO: [guild] Initialized trial ... (x=2.2, y=1, z=b)
+    INFO: [guild] Running trial ...: echo.py (x=2.2, y=1, z=b)
+    2.2 1 'b'
+    INFO: [guild] Initialized trial ... (x=2.2, y=2, z=b)
+    INFO: [guild] Running trial ...: echo.py (x=2.2, y=2, z=b)
+    2.2 2 'b'

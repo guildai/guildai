@@ -28,15 +28,7 @@ def main():
     proto_run = batch_util2.proto_run()
     proto_flags = proto_run.get("flags") or {}
     trials = batch_util2.expand_flags(proto_flags)
-    runs = _stage_trials(trials, proto_run)
-    _run_trials(runs)
-
-def _stage_trials(trials, proto_run):
-    return [batch_util2.stage_trial(proto_run, trial) for trial in trials]
-
-def _run_trials(staged):
-    for trial in staged:
-        batch_util2.start_staged_trial(trial)
+    batch_util2.handle_trials(proto_run, trials)
 
 # TODO: remove when promoting OP2
 def gen_trials(flags, _batch=None):

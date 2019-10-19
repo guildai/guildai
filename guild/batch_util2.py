@@ -35,11 +35,44 @@ class MissingProtoError(Exception):
     pass
 
 ###################################################################
-# Stage / run trial
+# Handle trials
 ###################################################################
 
-def stage_trial(proto_run, trial_flag_vals):
-    run = op_util.init_run()
+def handle_trials(proto_run, trials):
+    if os.getenv("PRINT_TRIALS_CMD") == "1":
+        _print_trials_cmd(proto_run, trials)
+    elif os.getenv("PRINT_TRIALS") == "1":
+        _print_trials(trials)
+    elif os.getenv("SAVE_TRIALS"):
+        _save_trials(trials, os.getenv("SAVE_TRIALS"))
+    else:
+        _run_trials(proto_run, trials)
+        #init_only = os.getenv("INIT_TRIALS_ONLY") == "1"
+        #batch.run_trials(trials, init_only)
+
+def _print_trials_cmd(proto_run, trials):
+    for trial in trials:
+        with util.TempDir() as tmp:
+            run = _stage_trial_run(proto_run, trial, tmp.path)
+            run_impl.run(start=run.dir, print_cmd=True)
+
+def _print_trials(trials):
+    if trials:
+        op_util.print_trials(trials)
+
+def _save_trials(trials, path):
+    op_util.save_trials(trials, path)
+
+def _run_trials(proto_run, trials):
+    runs = _stage_trial_runs(proto_run, trials)
+    for run in runs:
+        _start_trial_run(run)
+
+def _stage_trial_runs(proto_run, trials):
+    return [_stage_trial_run(proto_run, trial) for trial in trials]
+
+def _stage_trial_run(proto_run, trial_flag_vals, run_dir=None):
+    run = op_util.init_run(run_dir)
     util.copytree(proto_run.dir, run.dir)
     run.write_attr("flags", trial_flag_vals)
     run.write_attr("label", _trial_label(proto_run, trial_flag_vals))
@@ -54,7 +87,7 @@ def _trial_label(proto_run, trial_flag_vals):
     label_template = (proto_run.get("op") or {}).get("label_template")
     return op_util.run_label(label_template, user_flag_vals, trial_flag_vals)
 
-def start_staged_trial(run):
+def _start_trial_run(run):
     _log_start_trial(run)
     run_impl.run(start=run.id)
 

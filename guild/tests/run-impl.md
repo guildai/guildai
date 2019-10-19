@@ -94,6 +94,11 @@ Incomptable with start/restart:
     Try 'guild run --help' for more information.
     <exit 1>
 
+    >>> run(print_cmd=True, print_env=True)
+    --print-cmd and --print-env cannot both be used
+    Try 'guild run --help' for more information.
+    <exit 1>
+
 ## Invalid restart and start specs
 
     >>> run(restart="foo")
@@ -627,3 +632,7 @@ Model operations:
     >>> run(cwd)
     >>> run(cwd, opspec="op")
     >>> run(cwd, opspec="m:op")
+
+TODO:
+
+- [ ] stop_after

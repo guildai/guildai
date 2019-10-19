@@ -1,5 +1,8 @@
 # Saving batch trials
 
+TODO: Delete this when OP2 is promoted - these tests are covered by
+OP2-batch-basics.md.
+
 Batch trials can be saved to a CSV file via the `run` command using
 the `save_trial` option.
 

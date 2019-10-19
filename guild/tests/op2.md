@@ -58,23 +58,13 @@ Files for a staged run:
     .guild/attrs/id
     .guild/attrs/initialized
     .guild/attrs/resolved_deps
+    .guild/attrs/started
     .guild/opref
 
 A staged run is denoted by a `STAGED` marker:
 
     >>> cat(run.guild_path("STAGED"))
     <empty>
-
-A staged run is not designated with a `started` attribute, but gets
-its timestamp from the `initialized` attribute.
-
-    >>> run.get("started") is None
-    True
-
-    >>> t1 = run.get("initialized")
-    >>> t2 = run.timestamp
-    >>> t1 == t2 and isinstance(t1, int), (t1, t2)
-    (True, ...)
 
 ## Operation callbacks
 
