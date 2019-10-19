@@ -424,7 +424,7 @@ class SSHRemote(remotelib.Remote):
     def diff_runs(self, **opts):
         self._guild_cmd("runs diff", _diff_args(**opts))
 
-def _list_runs_filter_opts(deleted, all, more, **filters):
+def _list_runs_filter_opts(deleted, all, more, limit, **filters):
     opts = []
     if all:
         opts.append("--all")
@@ -433,6 +433,8 @@ def _list_runs_filter_opts(deleted, all, more, **filters):
         opts.append("--deleted")
     if more > 0:
         opts.append("-" + ("m" * more))
+    if limit:
+        opts.extend(["--limit", str(limit)])
     return opts
 
 def _filtered_runs_filter_opts(**filters):

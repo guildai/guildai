@@ -588,10 +588,10 @@ class Project(object):
 
     def print_runs(
             self, runs=None, flags=False, labels=False,
-            status=False, cwd=None):
+            status=False, cwd=None, limit=None):
         cwd = os.path.join(self.cwd, cwd) if cwd else self.cwd
         if runs is None:
-            runs = self.list_runs()
+            runs = self.list_runs(limit=limit)
         cols = self._cols_for_print_runs(flags, labels, status)
         rows = []
         with Chdir(cwd):

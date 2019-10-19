@@ -297,7 +297,7 @@ def _list_runs(args, ctx):
         cli.error("--archive and --deleted may not both be used")
     runs = filtered_runs(args, ctx=ctx)
     if args.json:
-        if args.more or args.all:
+        if args.limit or args.more or args.all:
             cli.note("--json option always shows all runs")
         _list_runs_json(runs)
     else:
@@ -357,7 +357,11 @@ def _list_formatted_runs(runs, args):
 
 def _limit_runs(runs, args):
     if args.all:
+        if args.limit is not None:
+            cli.error("--all and --limit cannot both be used")
         return runs
+    if args.limit and args.limit > 0:
+        return runs[:args.limit]
     limited = runs[:(args.more + 1) * RUNS_PER_GROUP]
     if len(limited) < len(runs):
         cli.note(

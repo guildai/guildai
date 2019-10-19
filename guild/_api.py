@@ -187,14 +187,18 @@ def _apply_python_path_env(env):
 def _apply_lang_env(env):
     env["LANG"] = os.getenv("LANG", "en_US.UTF-8")
 
-def runs_list(all=False, deleted=False, cwd=".", guild_home=None, **kw):
+def runs_list(all=False, deleted=False, cwd=".", guild_home=None,
+              limit=None, **kw):
     from guild import click_util
     from guild.commands import runs_impl
     args = click_util.Args(all=all, deleted=deleted)
     _apply_runs_filters(kw, args)
     _assert_empty_kw(kw, "runs_list()")
     with Env(cwd, guild_home):
-        return runs_impl.filtered_runs(args)
+        runs = runs_impl.filtered_runs(args)
+        if limit is not None:
+            runs = runs[:limit]
+        return runs
 
 def _apply_runs_filters(kw, args):
     from guild.commands import runs_impl
