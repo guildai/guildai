@@ -74,7 +74,7 @@ def run_quiet(*args, **kw):
     run_capture_output(*args, **kw)
 
 def _popen_args(
-        spec=None,
+        opspec=None,
         flags=None,
         label=None,
         run_dir=None,
@@ -110,8 +110,8 @@ def _popen_args(
     if debug:
         args.append("--debug")
     args.extend(["run", "-y"])
-    if spec:
-        args.append(spec)
+    if opspec:
+        args.append(opspec)
     if restart:
         args.extend(["--restart", restart])
     if stage:
