@@ -483,6 +483,7 @@ class ModelPath(object):
 
 class Project(object):
 
+    # TODO: remove after op2 promot
     simplify_trial_output_patterns = [
         (re.compile(r"INFO: \[guild\] "), ""),
         (re.compile(r"trial [a-f0-9]+"), "trial"),
@@ -548,6 +549,7 @@ class Project(object):
         return run_dir
 
     def _run(self, *args, **kw):
+        # TODO: remove simplify_trial_output after op2 promo
         simplify_trial_output = kw.pop("simplify_trial_output", False)
         cwd = os.path.join(self.cwd, kw.pop("cwd", "."))
         with Env({"NO_WARN_RUNDIR": "1"}):
@@ -635,6 +637,7 @@ class Project(object):
 
     @staticmethod
     def ls(run, all=False, sourcecode=False, ignore_compiled_source=False):
+        # TODO: remove ignore_compiled_source for op2 promo
         def filter(path):
             default_select = (
                 all or

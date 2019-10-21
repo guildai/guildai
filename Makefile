@@ -89,12 +89,15 @@ README.html: README.md
 # TODO Remove once OP2 is promoted
 #
 # The first list of skipped tests should be skipped because each is
-# superceded by an OP2-xxx test.
+# superceded by an OP2-xxx test. Tests in the second list should be
+# fixed or replaced with the appropriate OP2-xxx test so that the list
+# is eventually empty.
 #
 OP2-check:
 	OP2=1 guild check -nT \
 	-s batch-basics \
 	-s copy-sourcecode-warnings \
+	-s run-files \
 	-s run-labels \
 	-s sourcecode-digest \
 	\
@@ -116,7 +119,6 @@ OP2-check:
 	-s marked-runs \
 	-s needed \
 	-s restart-runs \
-	-s run-files \
 	-s skopt \
 	-s step-checks \
 	-s steps
