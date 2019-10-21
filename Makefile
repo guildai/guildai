@@ -88,16 +88,16 @@ README.html: README.md
 
 # TODO Remove once OP2 is promoted
 #
-# The first list of skipped tests should NOT pass because each is
+# The first list of skipped tests should be skipped because each is
 # superceded by an OP2-xxx test.
 #
 OP2-check:
 	OP2=1 guild check -nT \
-	-s run-labels \
+	-s batch-basics \
 	-s copy-sourcecode-warnings \
+	-s run-labels \
 	-s sourcecode-digest \
 	\
-	-s batch-basics \
 	-s batch-custom-optimizer \
 	-s batch-error-handling \
 	-s batch-grid-search \

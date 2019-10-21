@@ -126,13 +126,33 @@ def proto_run():
     return runlib.Run("__proto__", proto_path)
 
 def expand_flags(flag_vals):
-    flag_list = [
-        _trial_flags(name, val)
+    flags_list = [
+        _expand_flag(name, val)
         for name, val in sorted(flag_vals.items())
     ]
-    return [dict(trial) for trial in itertools.product(*flag_list)]
+    return [dict(flags) for flags in itertools.product(*flags_list)]
 
-def _trial_flags(flag_name, flag_val):
-    if isinstance(flag_val, list):
-        return [(flag_name, trial_val) for trial_val in flag_val]
-    return [(flag_name, flag_val)]
+def _expand_flag(name, val):
+    if isinstance(val, list):
+        return [(name, x) for x in val]
+    return [(name, val)]
+
+def batch_trials_for_proto_run(run=None):
+    run = run or proto_run()
+    flag_vals = run.get("flags") or {}
+    trials = run.get("trials")
+    if trials:
+        return expand_flags_with_trials(flag_vals, trials)
+    return expand_flags(flag_vals)
+
+def expand_flags_with_trials(flag_vals, trials):
+    expanded = []
+    for trial_flag_vals in trials:
+        merged_flags = _merged_trial_flags(trial_flag_vals, flag_vals)
+        expanded.extend(expand_flags(merged_flags))
+    return expanded
+
+def _merged_trial_flags(trial_flag_vals, flag_vals):
+    merged = dict(flag_vals)
+    merged.update(trial_flag_vals)
+    return merged

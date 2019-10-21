@@ -15,8 +15,12 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import csv
+import json
 import logging
 import os
+
+import yaml
 
 from guild import config
 from guild import guildfile
@@ -117,6 +121,16 @@ class NoSuchFlagError(FlagError):
 
 class OpCmdError(Exception):
     pass
+
+class BatchFileError(Exception):
+
+    def __init__(self, path, msg):
+        super(BatchFileError, self).__init__(path, msg)
+        self.path = path
+        self.msg = msg
+
+    def __str__(self):
+        return "cannot read trials for %s: %s" % (self.path, self.msg)
 
 ###################################################################
 # OpDef for spec
@@ -708,6 +722,62 @@ def _apply_default_flag_vals(flagdefs, flag_vals):
     for flagdef in flagdefs:
         if flag_vals.get(flagdef.name) is None:
             flag_vals[flagdef.name] = flagdef.default
+
+###################################################################
+# Trials support
+###################################################################
+
+def trials_for_batch_files(files):
+    trials = []
+    for path in files:
+        trials.extend(_read_trials(path))
+    return trials
+
+def _read_trials(path):
+    ext = os.path.splitext(path)[1].lower()
+    if ext in (".json", ".yml", ".yaml"):
+        return _yaml_trials(path)
+    elif ext in ("", ".csv",):
+        return _csv_trials(path)
+    else:
+        raise BatchFileError(path, "unsupported extension")
+
+def _yaml_trials(path):
+    try:
+        data = yaml.safe_load(open(path, "r"))
+    except Exception as e:
+        raise BatchFileError(path, str(e))
+    else:
+        _check_trials_data(data, path)
+        return data
+
+def _check_trials_data(data, path):
+    if not isinstance(data, list):
+        raise BatchFileError(
+            path,
+            "invalid data type for trials: expected list, got %s"
+            % type(data).__name__)
+    for item in data:
+        if not isinstance(item, dict):
+            raise BatchFileError(
+                path,
+                "invalid data type for trial %r: expected dict"
+                % item)
+
+def _csv_trials(path):
+    reader = csv.reader(open(path, "r"))
+    try:
+        flag_names = next(reader)
+    except StopIteration:
+        return []
+    else:
+        return [
+            dict(zip(flag_names, _flag_vals(row)))
+            for row in reader
+        ]
+
+def _flag_vals(row):
+    return [flag_util.decode_flag_val(s) for s in row]
 
 ###################################################################
 # Run attr support

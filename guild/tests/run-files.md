@@ -58,6 +58,10 @@ The files generated for our run:
     .guild/sourcecode/batch.unknown
     .guild/sourcecode/batch.yaml
     .guild/sourcecode/guild.yml
+    .guild/sourcecode/invalid-data.json
+    .guild/sourcecode/invalid-data.yml
+    .guild/sourcecode/invalid-item.json
+    .guild/sourcecode/invalid-item.yaml
     .guild/sourcecode/say.py
     .guild/sourcecode/tune.py
 
@@ -157,6 +161,10 @@ The latest run is the trial:
     .guild/sourcecode/batch.unknown
     .guild/sourcecode/batch.yaml
     .guild/sourcecode/guild.yml
+    .guild/sourcecode/invalid-data.json
+    .guild/sourcecode/invalid-data.yml
+    .guild/sourcecode/invalid-item.json
+    .guild/sourcecode/invalid-item.yaml
     .guild/sourcecode/say.py
     .guild/sourcecode/tune.py
 
@@ -217,6 +225,10 @@ Its files:
     .guild/proto/.guild/sourcecode/batch.unknown
     .guild/proto/.guild/sourcecode/batch.yaml
     .guild/proto/.guild/sourcecode/guild.yml
+    .guild/proto/.guild/sourcecode/invalid-data.json
+    .guild/proto/.guild/sourcecode/invalid-data.yml
+    .guild/proto/.guild/sourcecode/invalid-item.json
+    .guild/proto/.guild/sourcecode/invalid-item.yaml
     .guild/proto/.guild/sourcecode/say.py
     .guild/proto/.guild/sourcecode/tune.py
     ...

@@ -58,6 +58,7 @@ class Operation(oplib.Operation):
         self._run = None
         self._opdef = None
         self._user_flag_vals = {}
+        self._batch_trials = None
         self._op_flag_vals = {}
         self._flag_null_labels = {}
         self._op_cmd = None
@@ -130,10 +131,11 @@ def _user_op_init_run(S):
 # =================================================================
 
 def _op_init_user_flags(flag_args, op):
-    op._user_flag_vals, batch_files = _state_split_flag_args(flag_args)
-    assert not batch_files, "TODO"
+    op._user_flag_vals, batch_files = _split_flag_args(flag_args)
+    if batch_files:
+        op._batch_trials = _trials_for_batch_files(batch_files)
 
-def _state_split_flag_args(flag_args):
+def _split_flag_args(flag_args):
     batch_files, rest_args = op_util.split_batch_files(flag_args)
     assigns = _parse_assigns(rest_args)
     return assigns, batch_files
@@ -143,6 +145,19 @@ def _parse_assigns(assign_args):
         return op_util.parse_flag_assigns(assign_args)
     except op_util.ArgValueError as e:
         _invalid_flag_arg_error(e.arg)
+
+def _trials_for_batch_files(batch_files):
+    batch_files = [_resolve_batch_file(path) for path in batch_files]
+    try:
+        return op_util.trials_for_batch_files(batch_files)
+    except op_util.BatchFileError as e:
+        _batch_file_error(e)
+
+def _resolve_batch_file(path):
+    resolved = os.path.join(config.cwd(), path)
+    if not os.path.exists(resolved):
+        _no_such_batch_file_error(resolved)
+    return resolved
 
 # =================================================================
 # Op - opdef
@@ -189,7 +204,7 @@ def _op_init_op_flags(args, op):
         _apply_op_flags_for_opdef(
             op._opdef,
             op._user_flag_vals,
-            args.force_flags,
+            args.force_flags or op._batch_trials,
             op._op_flag_vals)
 
 def _apply_run_flags(run, target):
@@ -381,6 +396,8 @@ def _op_init_run_attrs(args, op):
     if op._label:
         attrs["label"] = op._label
     attrs["flags"] = op._op_flag_vals
+    if op._batch_trials:
+        attrs["trials"] = op._batch_trials
     attrs["run_params"] = args.as_kw()
     attrs["random_seed"] = op._random_seed
     if args.max_trials:
@@ -524,7 +541,7 @@ def _batch_op_init_for_opdef(opdef, S):
     elif S.args.optimize:
         _batch_op_init_for_default_optimizer(opdef, S)
     else:
-        _try_batch_op_init_for_flag_vals(S.user_op._op_flag_vals, S)
+        _try_batch_op_init_for_user_op(S.user_op, S)
 
 def _batch_op_init_for_named_optimizer(optimizer, opdef, S):
     # TODO: lookup from opdef, otherwise opdef_from_opspec
@@ -537,8 +554,11 @@ def _batch_op_init_for_default_optimizer(opdef, S):
     # TODO: lookup from opdef, otherwise error
     assert False, opdef
 
-def _try_batch_op_init_for_flag_vals(flag_vals, S):
-    batch_opspec = _batch_opspec_for_flags(flag_vals)
+def _try_batch_op_init_for_user_op(user_op, S):
+    batch_opspec = util.find_apply([
+        lambda: _batch_opspec_for_flags(user_op._op_flag_vals),
+        lambda: _batch_opspec_for_trials(user_op._batch_trials),
+    ])
     if batch_opspec:
         assert not S.batch_op
         S.batch_op = Operation()
@@ -563,6 +583,9 @@ def _is_flag_function(val):
         return False
     else:
         return True
+
+def _batch_opspec_for_trials(trials):
+    return "+" if trials else None
 
 def _check_opt_flags_for_missing_batch_opdef(S):
     if S.args.opt_flags and not (S.batch_op and S.batch_op._opdef):
@@ -833,13 +856,14 @@ def _confirm_and_run(S):
 
 def _confirm_run(S):
     prompt = (
-        "You are about to {action} {subject}{batch_suffix}\n"
+        "You are about to {action} {subject}{batch_suffix}{flags_note}\n"
         "{flags}"
         "Continue?"
         .format(
             action=_preview_op_action(S),
             subject=_preview_op_subject(S),
             batch_suffix=_preview_batch_suffix(S),
+            flags_note=_preview_flags_note(S),
             flags=_preview_flags(S),
         )
     )
@@ -876,6 +900,11 @@ def _preview_batch_suffix(S):
         return " with random search"
     else:
         return " with '%s' optimizer" % op_name
+
+def _preview_flags_note(S):
+    if S.user_op._op_flag_vals and S.user_op._batch_trials:
+        return " (flags below used unless specified in batch trial)"
+    return ""
 
 def _preview_flags(S, indent=2):
     flag_vals = S.user_op._op_flag_vals
@@ -1147,6 +1176,12 @@ def _invalid_op_config_for_restart_error(run):
         "cannot restart run in %s: invalid op configuration\n"
         "This may be an internal error. Please open an issue "
         "https://github.com/guildai/guildai/issues." % run.dir)
+
+def _no_such_batch_file_error(path):
+    cli.error("batch file %s does not exist" % path)
+
+def _batch_file_error(e):
+    cli.error(e)
 
 ###################################################################
 # Cmd impl API

@@ -26,8 +26,7 @@ from guild import op_util
 def main():
     op_util.init_logging()
     proto_run = batch_util2.proto_run()
-    proto_flags = proto_run.get("flags") or {}
-    trials = batch_util2.expand_flags(proto_flags)
+    trials = batch_util2.batch_trials_for_proto_run(proto_run)
     batch_util2.handle_trials(proto_run, trials)
 
 # TODO: remove when promoting OP2
