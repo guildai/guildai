@@ -722,10 +722,11 @@ def _open_output(path):
 ###################################################################
 
 def _test_sourcecode(S):
-    assert S.opdef
+    opdef = S.user_op._opdef
+    assert opdef
     logger = _CopyLogger()
-    sourcecode_src = S.opdef.guildfile.dir
-    sourcecode_select = op_util.sourcecode_select_for_opdef(S.opdef)
+    sourcecode_src = opdef.guildfile.dir
+    sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
     op_util.copy_sourcecode(
         sourcecode_src,
         sourcecode_select,
