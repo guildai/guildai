@@ -44,7 +44,7 @@ def runs_list_options(fn):
         click.Option(
             ("-n", "--limit"),
             metavar="N",
-            type=int,
+            type=click.IntRange(min=1),
             help="Limit number of runs shown."),
         click.Option(
             ("--json",),
