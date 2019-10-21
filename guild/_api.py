@@ -301,7 +301,7 @@ def compare(
         include_batch=False,
         min_col=None,
         max_col=None,
-        top=None,
+        limit=None,
         cwd=".",
         guild_home=None,
         **kw):
@@ -316,7 +316,7 @@ def compare(
         include_batch=include_batch,
         min_col=min_col,
         max_col=max_col,
-        top=top,
+        limit=limit,
     )
     _apply_runs_filters(kw, args)
     _assert_empty_kw(kw, "compare()")

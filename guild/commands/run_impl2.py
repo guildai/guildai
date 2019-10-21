@@ -442,8 +442,6 @@ def _op_init_callbacks_for_restart(op):
     )
 
 def _init_output_summary(op, run):
-    if not op._output_scalars:
-        return None
     if _summary_disabled():
         return None
     return _output_scalars_summary(
@@ -460,7 +458,7 @@ def _summary_disabled():
     else:
         return False
 
-def _output_scalars(output_scalars, flag_vals, run):
+def _output_scalars_summary(output_scalars, flag_vals, run):
     if output_scalars is None:
         output_scalars = summary.DEFAULT_OUTPUT_SCALARS
         ignore = flag_vals.keys()
