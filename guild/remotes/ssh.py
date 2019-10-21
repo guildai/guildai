@@ -53,6 +53,7 @@ class SSHRemote(remotelib.Remote):
         self.venv_activate = config.get("venv-activate")
         self.use_prerelease = config.get("use-prerelease", False)
         self.init = config.get("init")
+        self.proxy = config.get("proxy")
 
     @staticmethod
     def _init_guild_home(config, venv_path):
@@ -87,7 +88,8 @@ class SSHRemote(remotelib.Remote):
             ssh_util.rsync_ssh_opts(
                 remote_util.config_path(self.private_key),
                 self.connect_timeout,
-                self.port))
+                self.port,
+                self.proxy))
         log.info("Copying %s", run.id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
@@ -105,7 +107,8 @@ class SSHRemote(remotelib.Remote):
             ssh_util.rsync_ssh_opts(
                 remote_util.config_path(self.private_key),
                 self.connect_timeout,
-                self.port))
+                self.port,
+                self.proxy))
         log.info("Copying %s", run.id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
@@ -147,7 +150,8 @@ class SSHRemote(remotelib.Remote):
             private_key=self.private_key,
             verbose=verbose,
             connect_timeout=self.connect_timeout,
-            port=self.port)
+            port=self.port,
+            proxy=self.proxy)
         sys.stdout.write("%s (%s) is available\n" % (self.name, self.host))
 
     def run_op(self, opspec, flags, restart, no_wait, stage, **opts):
@@ -214,7 +218,8 @@ class SSHRemote(remotelib.Remote):
             user=self.user,
             private_key=remote_util.config_path(self.private_key),
             connect_timeout=self.connect_timeout,
-            port=self.port)
+            port=self.port,
+            proxy=self.proxy)
 
     def _init_remote_new_run_dir(self, opspec):
         run_id = runlib.mkid()
@@ -241,7 +246,8 @@ class SSHRemote(remotelib.Remote):
             src, self.host, host_dest,
             user=self.user,
             private_key=remote_util.config_path(self.private_key),
-            port=self.port)
+            port=self.port,
+            proxy=self.proxy)
 
     def _install_job_package(self, remote_run_dir):
         cmd_lines = []
@@ -321,7 +327,8 @@ class SSHRemote(remotelib.Remote):
             user=self.user,
             private_key=remote_util.config_path(self.private_key),
             connect_timeout=self.connect_timeout,
-            port=self.port)
+            port=self.port,
+            proxy=self.proxy)
 
     def _env_activate_cmd_lines(self):
         return util.find_apply([
