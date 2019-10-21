@@ -82,6 +82,7 @@ def _op_config_data(op):
         "python-requires": op._python_requires,
         "label-template": op._label_template,
         "output-scalars": op._output_scalars,
+        "deps": op_util.op_deps_as_data(op.deps),
     }
 
 def _apply_op_config_data(data, op):
@@ -90,6 +91,7 @@ def _apply_op_config_data(data, op):
     op._python_requires = data.get("python-requires")
     op._label_template = data.get("label-template")
     op._output_scalars = data.get("output-scalars")
+    op.deps = op_util.op_deps_for_data(data.get("deps"))
 
 # =================================================================
 # State - restart run
@@ -220,6 +222,7 @@ def _apply_op_flags_for_opdef(opdef, user_flag_vals, force_flags, target):
     restart) unless a user explicitly provides a flag value.
     """
     op_flag_vals = _flag_vals_for_opdef(opdef, user_flag_vals, force_flags)
+    _apply_default_resolved_runs(opdef, op_flag_vals)
     for name, val in op_flag_vals.items():
         if name in user_flag_vals or name not in target:
             target[name] = val
@@ -235,6 +238,34 @@ def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
         _invalid_flag_value_error(e)
     except op_util.NoSuchFlagError as e:
         _no_such_flag_error(e.flag_name, opdef)
+
+def _apply_default_resolved_runs(opdef, flag_vals):
+    for run, dep in op_dep.resolved_runs_for_opdef(opdef, flag_vals):
+        if dep.resdef.name in flag_vals:
+            flag_vals[dep.resdef.name] = run.short_id
+
+"""
+
+def _apply_resolved_operation_deps(deps, opdef, flag_vals):
+    for dep in deps:
+        for source in dep.resdef.sources:
+            if not source.uri.startswith("operation:"):
+                continue
+            resolver = op_dep.resolver_for_source(source, dep)
+            assert isinstance(resolver, resolverlib.OperationOutputResolver)
+            _apply_operation_resolver_run(resolver, flag_vals)
+
+def _apply_operation_resolver_run(resolver, flag_vals):
+    assert isinstance
+    try:
+        run = resolver.resolve_op_run(include_staged=args.stage)
+    except resolver.ResolutionError:
+            _warn_op_resolution_error(name)
+        else:
+            flagdef = _ResourceFlagDefProxy(name, opdef)
+            opdef.flags.append(flagdef)
+            opdef.set_flag_value(name, run.short_id)
+"""
 
 # =================================================================
 # Op - config
@@ -284,8 +315,8 @@ def _op_init_core(args, op):
     _op_init_run_dir(args, op)
     _op_init_run_label(op)
     _op_init_random_seed(args.random_seed, op)
-    _op_init_run_attrs(args, op)
     _op_init_deps(op)
+    _op_init_run_attrs(args, op)
     _op_init_callbacks(op)
 
 # =================================================================
@@ -388,6 +419,20 @@ def _random_seed_for_run(run):
     return run.get("random_seed") or runlib.random_seed()
 
 # =================================================================
+# Op - run deps
+# =================================================================
+
+def _op_init_deps(op):
+    if op._opdef:
+        op.deps = _op_deps_for_opdef(op._opdef, op._op_flag_vals)
+
+def _op_deps_for_opdef(opdef, flag_vals):
+    try:
+        return op_dep.deps_for_opdef(opdef, flag_vals)
+    except op_dep.OpDependencyError as e:
+        _invalid_opdef_error(opdef, e)
+
+# =================================================================
 # Op - run attrs
 # =================================================================
 
@@ -406,24 +451,6 @@ def _op_init_run_attrs(args, op):
     attrs["user"] = util.user()
     attrs["platform"] = util.platform_info()
     attrs["op"] = _op_config_data(op)
-
-# =================================================================
-# Op - run deps
-# =================================================================
-
-def _op_init_deps(op):
-    if op._run:
-        # TODO - retrieve deps
-        pass
-    else:
-        assert op._opdef
-        op.deps = _op_deps_for_opdef(op._opdef, op._op_flag_vals)
-
-def _op_deps_for_opdef(opdef, flag_vals):
-    try:
-        return op_dep.deps_for_opdef(opdef, flag_vals)
-    except op_dep.OpDependencyError as e:
-        _invalid_opdef_error(opdef, e)
 
 # =================================================================
 # Op - run callbacks
@@ -966,9 +993,13 @@ def _init_batch_run(S, run_dir=None):
     oplib.init_run(S.user_op, batch_run.guild_path("proto"))
 
 def _stage_op(op, args):
-    run = oplib.stage(op)
-    if not args.quiet:
-        _print_staged_info(run, args)
+    try:
+        run = oplib.stage(op)
+    except op_dep.OpDependencyError as e:
+        _op_dependency_error(e)
+    else:
+        if not args.quiet:
+            _print_staged_info(run, args)
 
 def _print_staged_info(run, args):
     if args.run_dir:
@@ -998,8 +1029,10 @@ def _print_stage_pending_instructions(run):
 
 def _run_op(op, args, extra_env=None):
     try:
-        run, exit_status = oplib.run(op, quiet=args.quiet,
-                                     extra_env=extra_env)
+        run, exit_status = oplib.run(
+            op,
+            quiet=args.quiet,
+            extra_env=extra_env)
     except op_dep.OpDependencyError as e:
         _op_dependency_error(e)
     except oplib.ProcessError as e:
@@ -1159,8 +1192,7 @@ def _op_cmd_error(msg):
     cli.error(msg)
 
 def _op_dependency_error(e):
-    cli.error(
-        "run failed because a dependency was not met: %s" % e)
+    cli.error("run failed because a dependency was not met: %s" % e)
 
 def _op_process_error(op, e):
     cli.error("error running %s: %s" % (_fmt_opref(op.opref), e))

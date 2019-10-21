@@ -1,5 +1,7 @@
 # Run impl tests
 
+TODO: promote from op2
+
 Helpers:
 
     >>> def run_gh(cwd=None, guild_home=None, **kw):
@@ -493,21 +495,43 @@ File:
 
     >>> write(path(cwd, "file.txt"), "hello")
 
-    >>> gh = run_gh(cwd, opspec="file")
+    >>> gh = run_gh(cwd)
     Resolving file:file.txt dependency
 
     >>> find(gh)
     ???
     runs/.../file.txt
 
-File override with flag:
+The specification of `file` above cannot be modified with flags.
+
+    >>> run(cwd, flags=["file:file.txt=foo"])
+    unsupported flag 'file:file.txt'
+    Try 'guild run file --help-op' for a list of flags or use
+    --force-flags to skip this check.
+    <exit 1>
+
+If we specify a `flag-name` for the resource, we can modify it using a
+flag.
+
+    >>> write(path(cwd, "guild.yml"), """
+    ... file:
+    ...   main: guild.pass
+    ...   requires:
+    ...     - file: file.txt
+    ...       flag-name: src
+    ... """)
+
+We need to clear the Guildfile cache for this change to be visible.
+
+    >>> guildfile._cache.clear()
+
+Specify a different file using the `src` flag:
 
     >>> file2_path = path(cwd, "file2.txt")
     >>> write(file2_path, "hello")
-    >>> gh = run_gh(cwd, opspec="file",
-    ...                  flags=["file:file.txt=%s" % file2_path])
-    Resolving file:file.txt dependency
-    Using .../file2.txt for file:file.txt resource
+    >>> gh = run_gh(cwd, flags=["src=%s" % file2_path])
+    Resolving src dependency
+    Using ...file2.txt for src resource
 
     >>> find(gh)
     ???
@@ -565,6 +589,7 @@ Missing operation dependency:
     ... """)
 
     >>> run(cwd, opspec="op")
+    WARNING: cannot find a suitable run for required resource 'foo'
     Resolving foo dependency
     run failed because a dependency was not met: could not resolve
     'operation:foo' in foo resource: no suitable run for foo

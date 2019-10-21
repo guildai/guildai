@@ -17,7 +17,7 @@ We'll use a helper to print depepdencies:
     ...             print("  description: %s" % (dep.description or "''"))
     ...         if dep.inline_resource:
     ...             print("  inline-resource: ", end="")
-    ...             pprint(dep.inline_resource.data)
+    ...             pprint(dep.inline_resource._data)
 
 ## Inline string
 

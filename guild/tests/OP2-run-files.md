@@ -6,11 +6,14 @@ We'l use the `batch` sample project for our tests.
 
     >>> project = Project(sample("projects", "batch"))
 
+TODO: remove OP2 env wrappers on op2 promote.
+
 ## Normal runs
 
 A simple run that prints a message:
 
-    >>> project.run("say.py", flags={"msg": "hi"})
+    >>> with Env({"OP2": "1"}):
+    ...     project.run("say.py", flags={"msg": "hi"})
     hi
 
 Our runs:
@@ -103,7 +106,8 @@ generate batch trials.
 Let's run a batch operation to illustrate. We can indicate a run
 should be a batch by specifying a list of values for a flag.
 
-    >>> project.run("say.py", flags={"msg": ["ho"]})
+    >>> with Env({"OP2": "1"}):
+    ...     project.run("say.py", flags={"msg": ["ho"]})
     INFO: [guild] Running trial ...: say.py (loud=no, msg=ho)
     ho
 

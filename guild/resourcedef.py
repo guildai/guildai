@@ -50,10 +50,10 @@ class ResourceDef(object):
     default_source_type = "file"
 
     def __init__(self, name, data, fullname=None):
-        data = _coerce_resdef(data)
         self.name = name
-        self.data = data
+        self._data = data = _coerce_resdef(data)
         self.fullname = fullname or name
+        self.flag_name = data.get("flag-name")
         self.description = data.get("description", "")
         self.path = data.get("path")
         self.default_unpack = data.get("default-unpack", True)

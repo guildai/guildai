@@ -636,14 +636,15 @@ def _s_step(s):
 def _resolved_deps(run):
     deps = run.get("resolved_deps") or {}
     return {
-        res_name: _format_dep_sources(sources)
+        res_name: _res_sources_paths(sources)
         for res_name, sources in deps.items()
     }
 
-def _format_dep_sources(sources):
-    return [
-        util.format_dir(s) for s in sources
-    ]
+def _res_sources_paths(sources):
+    paths = []
+    for source_paths in sources.values():
+        paths.extend(source_paths)
+    return paths
 
 def _maybe_append_proto_data(run, data):
     proto = run.batch_proto

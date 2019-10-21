@@ -113,8 +113,11 @@ def _op_init_run_attrs(op, run):
 def stage(op):
     run = init_run(op)
     _stage_run_proc_env(op, run)
-    _resolve_deps_for_stage(op, run)
-    op_util.set_run_staged(run)
+    try:
+        _resolve_deps(op, run, for_stage=True)
+        op_util.set_run_staged(run)
+    finally:
+        op_util.clear_run_pending(run)
     return run
 
 def _stage_run_proc_env(op, run):
@@ -134,9 +137,9 @@ def _stage_run_proc_env(op, run):
 
 def run(op, quiet=False, stop_after=None, extra_env=None):
     run = init_run(op)
-    _resolve_deps_for_run(op, run)
-    op_util.set_run_started(run)
     try:
+        _resolve_deps(op, run)
+        op_util.set_run_started(run)
         proc = _op_start_proc(op, run, extra_env)
         exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
         _op_finalize_run_attrs(run, exit_status)
@@ -307,18 +310,37 @@ def _is_runfile_pkg(path):
 # Resolve deps
 # =================================================================
 
-def _resolve_deps_for_stage(op, run):
-    # TODO: In case of required ops, don't resolve anything that
-    # hasn't started - wait until the run. Use resolved_deps attr to
-    # note this state.
-    _resolve_deps(op, run)
-
-def _resolve_deps(op, run):
+def _resolve_deps(op, run, for_stage=False):
     resolved = run.get("resolved_deps") or {}
     for dep in op.deps or []:
-        resolved_sources = op_dep.resolve(dep, run.dir)
+        log.info("Resolving %s dependency", dep.resdef.name)
+        resolved_sources = resolved.setdefault(dep.resdef.name, {})
+        for source in dep.resdef.sources:
+            if source.name in resolved_sources:
+                log.info(
+                    "Skipping %s because it's already resolved",
+                    source.name)
+                continue
+            if for_stage and _is_operation_source(source):
+                log.info(
+                    "Skipping operation dependency %s for stage",
+                    source.name)
+                continue
+            paths = op_dep.resolve_source(source, dep, run.dir)
+            rel_paths = [os.path.relpath(path, run.dir) for path in paths]
+            resolved_sources[source.name] = rel_paths
+    run.write_attr("resolved_deps", resolved)
+
+def _is_operation_source(source):
+    return source.uri.startswith("operation:")
+
+"""
+def _resolve_deps(op, run, for_stage=False):
+    resolved = run.get("resolved_deps") or {}
+    for dep in op.deps or []:
+        resolved_sources = op_dep.resolve(
+            dep, run.dir, skip_operations=skip_operations)
         resolved.setdefault(dep.resdef.name, []).extend(resolved_sources)
     run.write_attr("resolved_deps", resolved)
 
-def _resolve_deps_for_run(op, run):
-    _resolve_deps(op, run)
+"""

@@ -246,6 +246,13 @@ class Guildfile(object):
                 return m
         return None
 
+    @property
+    def default_operation(self):
+        model = self.default_model
+        if not model:
+            return None
+        return model.default_operation
+
     def __repr__(self):
         return "<guild.guildfile.Guildfile '%s'>" % self
 
@@ -1163,6 +1170,8 @@ class OpDependencyDef(object):
 
     @property
     def name(self):
+        # See __init__ - op dep must be a spec or inline
+        assert self.spec or self.inline_resource
         return self.spec or self.inline_resource.name
 
 def _init_inline_resource(data, opdef):
@@ -1175,9 +1184,15 @@ def _coerce_inline_resource_data(data):
         return data
     # If sources not explicitly provided in data, assume data is a
     # source.
-    return {
+    coerced = {
         "sources": [data]
     }
+    # If flag-name is defined for a source, promote it to resource
+    # level.
+    flag_name = data.pop("flag-name", None)
+    if flag_name:
+        coerced["flag-name"] = flag_name
+    return coerced
 
 class NoSuchResourceError(ValueError):
 
@@ -1347,7 +1362,7 @@ class ResourceDef(resourcedef.ResourceDef):
                 "invalid resource value %r: expected a mapping "
                 "or a list" % data)
         if not self.name:
-            self.name = _resdef_name_for_sources(self.sources)
+            self.name = self.flag_name or _resdef_name_for_sources(self.sources)
         self.fullname = "%s:%s" % (modeldef.name, self.name)
         self.private = self.private
         self.modeldef = modeldef

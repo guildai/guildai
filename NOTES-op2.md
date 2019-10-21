@@ -34,7 +34,7 @@ Notes Oct 11:
 
 - [ ] Misc
   - [ ] Stop after
-  - [ ] Background pid
+  - [ ] Background and background pid
   - [ ] Quiet
   - [ ] _maybe_warn_no_wait msg
 
@@ -76,3 +76,20 @@ Notes Oct 11:
   - [ ] Normal without opdef - with and without flags
   - [ ] Batch with opdef - with and without flags
   - [ ] Batch without opdef - with and without flags
+
+- [ ] Run and stage with missing deps
+  - [ ] Missing files
+  - [ ] Missing operations (different for stage and run)
+
+- [ ] Show pre-emptive resolution of ops and warning when can't resolve
+
+- [ ] New dep to flag scheme
+  - [ ] Operation deps always get a flag proxy
+  - [ ] Otherwise only if a flag-name attr is defined for the resource
+    (or inline source, which is applied to resource)
+
+----
+
+Short term:
+
+- [ ] Preempt the resolution of operation

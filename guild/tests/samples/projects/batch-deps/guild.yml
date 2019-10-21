@@ -6,6 +6,13 @@ train:
 serve:
   main: serve
   requires:
-    - name: train
-      operation: train
+    - operation: train
+
   label: model=${train}
+
+delme:
+  main: guild.pass
+  requires:
+    - file: guild.yml
+      flag-name: foo
+      rename: guild.yml foo.yml

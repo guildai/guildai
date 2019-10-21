@@ -45,10 +45,10 @@ class OpDependencyError(Exception):
 
 class OpDependency(object):
 
-    def __init__(self, resdef, res_location, flag_vals):
+    def __init__(self, resdef, res_location, config):
         self.resdef = resdef
         self.res_location = res_location
-        self.flag_vals = flag_vals
+        self.config = config
 
 ###################################################################
 # Deps for opdef
@@ -58,10 +58,19 @@ def deps_for_opdef(opdef, flag_vals):
     return [_init_dep(depdef, flag_vals) for depdef in opdef.dependencies]
 
 def _init_dep(depdef, flag_vals):
-    resdef, res_location = _resource_def(depdef, flag_vals)
-    return OpDependency(resdef, res_location, flag_vals)
+    resdef, res_location = resource_def(depdef, flag_vals)
+    config = _resdef_config(resdef, flag_vals)
+    return OpDependency(resdef, res_location, config)
 
-def _resource_def(depdef, flag_vals):
+def _resdef_config(resdef, flag_vals):
+    for name in [resdef.fullname, resdef.name]:
+        try:
+            return flag_vals[name]
+        except KeyError:
+            pass
+    return None
+
+def resource_def(depdef, flag_vals):
     if depdef.inline_resource:
         return depdef.inline_resource, depdef.opdef.guildfile.dir
     res_spec = util.resolve_refs(depdef.spec, flag_vals)
@@ -69,7 +78,7 @@ def _resource_def(depdef, flag_vals):
         _model_resource,
         _guildfile_resource,
         _package_resource,
-        _raise_dependency_error,
+        _invalid_dependency_error,
     ], res_spec, depdef)
 
 def _model_resource(spec, depdef):
@@ -130,7 +139,7 @@ def _package_res_location(res):
         res.dist.location,
         res.dist.key.replace(".", os.path.sep))
 
-def _raise_dependency_error(spec, depdef):
+def _invalid_dependency_error(spec, depdef):
     raise OpDependencyError(
         "invalid dependency '%s' in operation '%s'"
         % (spec, depdef.opdef.fullname))
@@ -139,6 +148,7 @@ def _raise_dependency_error(spec, depdef):
 # Resolve support
 ###################################################################
 
+"""
 def resolve(dep, target_dir, unpack_dir=None):
     log.info("Resolving %s dependency", dep.resdef.name)
     resolved = _resolve_dep(dep, target_dir, unpack_dir)
@@ -148,36 +158,15 @@ def resolve(dep, target_dir, unpack_dir=None):
     return resolved
 
 def _resolve_dep(dep, target_dir, unpack_dir):
-    resolved = []
+    resolved = {}
     for source in dep.resdef.sources:
-        paths = _resolve_source(source, dep, target_dir, unpack_dir)
-        resolved.extend(paths)
+        paths = resolve_source(source, dep, target_dir, unpack_dir)
+        resolved[source.uri] = paths
     return resolved
+"""
 
-class _ResourceProxy(object):
-    """Proxy for guild.deps.Resource, used by resolver API.
-
-    The APIs in guild.deps and guild.resolver are to be replaced by
-    this module and a new resolver interface. Until the new resolver
-    interface is created, we use a proxy resource to work with the
-    current interface.
-    """
-
-    def __init__(self, dep, _target_dir):
-        self.location = dep.res_location
-        self.config = _resource_proxy_config(dep)
-
-def _resource_proxy_config(dep):
-    for name in [dep.resdef.fullname, dep.resdef.name]:
-        try:
-            return dep.flag_vals[name]
-        except KeyError:
-            pass
-    return None
-
-def _resolve_source(source, dep, target_dir, unpack_dir):
-    res_proxy = _ResourceProxy(dep, target_dir)
-    resolver = resolverlib.for_resdef_source(source, res_proxy)
+def resolve_source(source, dep, target_dir, unpack_dir=None):
+    resolver = resolver_for_source(source, dep)
     if not resolver:
         raise OpDependencyError(
             "unsupported source '%s' in %s resource"
@@ -192,6 +181,23 @@ def _resolve_source(source, dep, target_dir, unpack_dir):
         for path in source_paths:
             _link_to_source(path, source, target_dir)
         return source_paths
+
+def resolver_for_source(source, dep):
+    res_proxy = _ResourceProxy(dep.res_location, dep.config)
+    return resolverlib.for_resdef_source(source, res_proxy)
+
+class _ResourceProxy(object):
+    """Proxy for guild.deps.Resource, used by resolver API.
+
+    The APIs in guild.deps and guild.resolver are to be replaced by
+    this module and a new resolver interface. Until the new resolver
+    interface is created, we use a proxy resource to work with the
+    current interface.
+    """
+
+    def __init__(self, location, config):
+        self.location = location
+        self.config = config
 
 def _source_resolution_error(source, dep, e):
     msg = (
@@ -256,3 +262,35 @@ def _rel_source_path(source, link):
     link_dir = os.path.dirname(real_link)
     source_rel_dir = os.path.relpath(source_dir, link_dir)
     return os.path.join(source_rel_dir, source_name)
+
+###################################################################
+# Op run resolve support
+###################################################################
+
+def resolved_runs_for_opdef(opdef, flag_vals):
+    try:
+        deps = deps_for_opdef(opdef, flag_vals)
+    except OpDependencyError as e:
+        log.debug("error resolving runs for opdef: %s", e)
+        return []
+    else:
+        return list(_iter_resolved_op_runs(deps, flag_vals))
+
+def _iter_resolved_op_runs(deps, flag_vals):
+    for dep in deps:
+        for source in dep.resdef.sources:
+            if not source.uri.startswith("operation:"):
+                continue
+            resolver = resolver_for_source(source, dep)
+            assert (
+                isinstance(resolver, resolverlib.OperationOutputResolver),
+                resolver)
+            run_id_prefix = flag_vals.get(dep.resdef.name)
+            try:
+                run = resolver.resolve_op_run(run_id_prefix)
+            except resolverlib.ResolutionError:
+                log.warning(
+                    "cannot find a suitable run for required "
+                    "resource '%s'", dep.resdef.name)
+            else:
+                yield run, dep

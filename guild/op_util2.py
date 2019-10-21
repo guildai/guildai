@@ -28,6 +28,7 @@ from guild import file_util
 from guild import flag_util
 from guild import model_proxy
 from guild import op_cmd as op_cmd_lib
+from guild import op_dep
 from guild import plugin as pluginlib
 from guild import run as runlib
 from guild import util
@@ -635,16 +636,27 @@ def _coerce_flag_val(name, val, flagdefs):
         raise InvalidFlagValue(name, val, str(e))
 
 def _resource_flagdefs(opdef, flag_vals):
-    return [
-        _ResourceFlagDefProxy(resource_spec, opdef)
-        for resource_spec in _resource_specs(opdef, flag_vals)
-    ]
+    return list(_iter_resource_flagdefs(opdef, flag_vals))
 
-def _resource_specs(opdef, flag_vals):
-    return [
-        util.resolve_refs(dep.name, flag_vals, undefined=None)
-        for dep in opdef.dependencies
-    ]
+def _iter_resource_flagdefs(opdef, flag_vals):
+    for dep in opdef.dependencies:
+        try:
+            resdef, _location = op_dep.resource_def(dep, flag_vals)
+        except op_dep.OpDependencyError:
+            pass
+        else:
+            if resdef.flag_name:
+                yield _ResourceFlagDefProxy(resdef.flag_name, opdef)
+            else:
+                op_name = _required_operation_name(resdef)
+                if op_name:
+                    yield _ResourceFlagDefProxy(op_name, opdef)
+
+def _required_operation_name(resdef):
+    for source in resdef.sources:
+        if source.uri.startswith("operation:"):
+            return resdef.name
+    return None
 
 def _ResourceFlagDefProxy(name, opdef):
     data = {
@@ -724,6 +736,43 @@ def _apply_default_flag_vals(flagdefs, flag_vals):
             flag_vals[flagdef.name] = flagdef.default
 
 ###################################################################
+# Op deps IO
+###################################################################
+
+def op_deps_as_data(deps):
+    return [_op_dep_as_data(dep) for dep in deps or []]
+
+def _op_dep_as_data(dep):
+    data = _resdef_data(dep.resdef)
+    if dep.res_location:
+        data["location"] = dep.res_location
+    if dep.config:
+        data["config"] = dep.config
+    return data
+
+def _resdef_data(resdef):
+    data = dict(resdef._data)
+    data["name"] = resdef.name
+    return data
+
+def op_deps_for_data(data):
+    return [_op_dep_for_data(item_data) for item_data in data or []]
+
+def _op_dep_for_data(data):
+    resdef = _resdef_from_data(data)
+    location = data.get("location")
+    config = data.get("config")
+    return op_dep.OpDependency(resdef, location, config)
+
+def _resdef_from_data(data):
+    name = data.get("name")
+    return guildfile.ResourceDef(name, data, _ModelDefProxy())
+
+class _ModelDefProxy(object):
+    name = ""
+    guildfile = None
+
+###################################################################
 # Trials support
 ###################################################################
 
@@ -785,16 +834,20 @@ def _flag_vals(row):
 
 def run_label(label_template, user_flag_vals, all_flag_vals=None):
     all_flag_vals = all_flag_vals or user_flag_vals
-    if label_template:
-        resolve_vals = {
-            name: flag_util.encode_flag_val(val)
-            for name, val in all_flag_vals.items()
-        }
-        return util.resolve_refs(label_template, resolve_vals, "")
-    return _default_run_label(user_flag_vals)
+    if not label_template:
+        return _default_run_label(user_flag_vals)
+    return _render_label_template(label_template, all_flag_vals)
 
 def _default_run_label(flag_vals):
     return " ".join(flag_util.format_flags(flag_vals, truncate_floats=True))
+
+def _render_label_template(label_template, flag_vals):
+    resolve_vals = {
+        name: flag_util.encode_flag_val(val)
+        for name, val in flag_vals.items()
+        if val is not None
+    }
+    return util.resolve_refs(label_template, resolve_vals, "")
 
 ###################################################################
 # Utils
