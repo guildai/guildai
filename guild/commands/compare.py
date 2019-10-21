@@ -25,6 +25,16 @@ from . import runs_support
 @runs_support.runs_arg
 @runs_support.all_filters
 @click.option(
+    "-min", "--min", "min_col", metavar="COLUMN",
+    help="Show the lowest values for COLUMN first.")
+@click.option(
+    "-min", "--max", "max_col", metavar="COLUMN",
+    help="Show the highest values for COLUMN first.")
+@click.option(
+    "-n", "--limit", "--top", metavar="N",
+    type=click.IntRange(min=1),
+    help="Only show the top N runs.")
+@click.option(
     "-e", "--extra-cols", is_flag=True,
     help="Show extra columns such as source code hash.")
 @click.option(
@@ -36,20 +46,11 @@ from . import runs_support
     "-cc", "--strict-cols", metavar="COLUMNS",
     help="Columns to compare. Cannot be used with --columns.")
 @click.option(
-    "-n", "--skip-op-cols", is_flag=True,
+    "-p", "--skip-op-cols", is_flag=True,
     help="Don't show operation columns.")
 @click.option(
     "-r", "--skip-core", is_flag=True,
     help="Don't show core columns.")
-@click.option(
-    "-top", "--top", metavar="N", type=click.IntRange(min=1),
-    help="Only show the top N runs.")
-@click.option(
-    "-min", "--min", "min_col", metavar="COLUMN",
-    help="Show the lowest values for COLUMN first.")
-@click.option(
-    "-min", "--max", "max_col", metavar="COLUMN",
-    help="Show the highest values for COLUMN first.")
 @click.option(
     "-t", "--table", is_flag=True,
     help="Show comparison data as a table.")

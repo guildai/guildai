@@ -158,8 +158,8 @@ def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
                     return [], []
                 header = [NO_RUNS_CAPTION]
             rows = _sorted_table_rows(table, header, args)
-            if args.top:
-                rows = rows[:args.top]
+            if args.limit:
+                rows = rows[:args.limit]
             if format_cells:
                 _format_cells(rows, header, runs)
             log = log_capture.get_all()
