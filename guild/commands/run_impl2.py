@@ -442,12 +442,17 @@ def _op_init_callbacks_for_restart(op):
     )
 
 def _init_output_summary(op, run):
+    if _output_scalars_disabled(op):
+        return None
     if _summary_disabled():
         return None
     return _output_scalars_summary(
         op._output_scalars,
         op._op_flag_vals,
         run)
+
+def _output_scalars_disabled(output_scalars):
+    return output_scalars is not None and not output_scalars
 
 def _summary_disabled():
     try:

@@ -9,7 +9,6 @@
     f5: -0.000000678
     f6: 654.321e+4
     i: 456
-    l: [1, 2, "a b 'c d'"]
     s1: a
     s2: 'a b'
     s3: '123e4'
@@ -28,3 +27,15 @@
       flags-dest: global:params
       flags:
         $include: shared
+    args-batch:
+      main: args
+      flags-dest: args
+      flags:
+        $include: shared
+        l: [1, 2.3, "foo"]
+    globals-batch:
+      main: globals
+      flags-dest: global:params
+      flags:
+        $include: shared
+        l: [1, 2.3, "foo"]
