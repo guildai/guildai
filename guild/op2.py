@@ -333,14 +333,3 @@ def _resolve_deps(op, run, for_stage=False):
 
 def _is_operation_source(source):
     return source.uri.startswith("operation:")
-
-"""
-def _resolve_deps(op, run, for_stage=False):
-    resolved = run.get("resolved_deps") or {}
-    for dep in op.deps or []:
-        resolved_sources = op_dep.resolve(
-            dep, run.dir, skip_operations=skip_operations)
-        resolved.setdefault(dep.resdef.name, []).extend(resolved_sources)
-    run.write_attr("resolved_deps", resolved)
-
-"""

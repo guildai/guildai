@@ -7,12 +7,4 @@ serve:
   main: serve
   requires:
     - operation: train
-
   label: model=${train}
-
-delme:
-  main: guild.pass
-  requires:
-    - file: guild.yml
-      flag-name: foo
-      rename: guild.yml foo.yml

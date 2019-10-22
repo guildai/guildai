@@ -263,6 +263,288 @@ Invalid optimizer flag:
     --force-flags to skip this check.
     <exit 1>
 
+## Dependencies
+
+    >>> cwd = init_gf("""
+    ... upstream:
+    ...   main: guild.pass
+    ...   requires:
+    ...     - file: src.txt
+    ... downstream:
+    ...   main: guild.pass
+    ...   requires:
+    ...     - operation: upstream
+    ... """)
+
+Try to start downstream without required upstream op:
+
+    >>> gh = run_gh(cwd, opspec="downstream")
+    WARNING: cannot find a suitable run for required resource 'upstream'
+    Resolving upstream dependency
+    run failed because a dependency was not met: could not resolve
+    'operation:upstream' in upstream resource: no suitable run for upstream
+    <exit 1>
+
+A run is create, but it has an error.
+
+    >>> runs = dir(path(gh, "runs"))
+    >>> len(runs)
+    1
+
+    >>> runlib.for_dir(path(gh, "runs", runs[0])).status
+    'error'
+
+Try to start upstream without required file:
+
+    >>> run(cwd, opspec="upstream")
+    Resolving file:src.txt dependency
+    run failed because a dependency was not met: could not resolve
+    'file:src.txt' in file:src.txt resource: cannot find source file src.txt
+    <exit 1>
+
+Provide required file `src.txt`.
+
+    >>> write(path(cwd, "src.txt"), "hello")
+
+Run upstream again.
+
+    >>> gh = run_gh(cwd, opspec="upstream")
+    Resolving file:src.txt dependency
+
+    >>> runs = var.runs(path(gh, "runs"))
+    >>> len(runs)
+    1
+    >>> runs[0].get("resolved_deps")
+    {'file:src.txt': {'file:src.txt': ['../../../.../src.txt']}}
+
+    >>> cat(path(runs[0].dir, "src.txt"))
+    hello
+
+Run downstream again.
+
+    >>> run(cwd, gh, opspec="downstream")
+    Resolving upstream dependency
+    Using output from run ... for upstream resource
+
+    >>> runs = var.runs(path(gh, "runs"), sort=["-timestamp"])
+    >>> len(runs)
+    2
+
+    >>> runs[0].get("resolved_deps")
+    {'upstream': {'operation:upstream': ['../.../src.txt']}}
+
+    >>> cat(path(runs[0].dir, "src.txt"))
+    hello
+
+Run upstream again - this generates a new run that is used by
+downstream by default.
+
+    >>> run(cwd, gh, opspec="upstream")
+    Resolving file:src.txt dependency
+
+Mark the upstream runs to differentiate them from the previous
+upstream run.
+
+    >>> runs = var.runs(path(gh, "runs"), sort=["-timestamp"])
+
+    >>> upstream_1 = runs[2]
+    >>> upstream_1.opref.to_opspec()
+    'upstream'
+
+    >>> write(path(upstream_1.dir, "marker"), "upstream_1")
+
+    >>> upstream_2 = runs[0]
+    >>> upstream_2.opref.to_opspec()
+    'upstream'
+
+    >>> write(path(upstream_2.dir, "marker"), "upstream_2")
+
+Run downstream with the default (second) upstream.
+
+    >>> run(cwd, gh, opspec="downstream")
+    Resolving upstream dependency
+    Using output from run ... for upstream resource
+
+Run downstream again but with the first upstream.
+
+    >>> run(cwd, gh, opspec="downstream",
+    ...     flags=["upstream=%s" % upstream_1.id])
+    Resolving upstream dependency
+    Using output from run ... for upstream resource
+
+Verify that our two downstreams are using the expected upstreams by
+looking for the markers.
+
+    >>> runs = var.runs(path(gh, "runs"), sort=["-timestamp"])
+
+The latest downstream is using upstream_1.
+
+    >>> runs[0].opref.to_opspec()
+    'downstream'
+
+    >>> cat(path(runs[0].dir, "marker"))
+    upstream_1
+
+The previous upstream is using upstream_2.
+
+    >>> runs[1].opref.to_opspec()
+    'downstream'
+
+    >>> cat(path(runs[1].dir, "marker"))
+    upstream_2
+
+## Staging dependencies
+
+Guild stages dependencies differently depending on whether or not they
+are operations. Operations are not resolved at stage time. All other
+resource types are resolved at stage time.
+
+    >>> cwd = init_gf("""
+    ... upstream:
+    ...   main: guild.pass
+    ...   requires:
+    ...     - file: src.txt
+    ... downstream:
+    ...   main: guild.pass
+    ...   requires:
+    ...     - operation: upstream
+    ... """)
+
+When we stage downstream, which requires on upstream, we succeed -
+Guild doesn't attempt to resolve operation dependencies when staging.
+
+    >>> gh = run_gh(cwd, opspec="downstream", stage=True)
+    WARNING: cannot find a suitable run for required resource 'upstream'
+    Resolving upstream dependency
+    Skipping operation dependency operation:upstream for stage
+    downstream staged as ...
+    To start the operation, use 'guild run --start ...'
+
+When we try to start the operation, however, we get an error because
+there's not suitable upstream run.
+
+    >>> runs = var.runs(path(gh, "runs"))
+    >>> len(runs)
+    1
+
+    >>> run(cwd, gh, restart=runs[0].short_id)
+    Resolving upstream dependency
+    run failed because a dependency was not met: could not resolve
+    'operation:upstream' in upstream resource: no suitable run for upstream
+    <exit 1>
+
+Let's try to stage upstream - the operation fails because other
+resources are resolved during stage.
+
+    >>> run(cwd, gh, opspec="upstream", stage=True)
+    Resolving file:src.txt dependency
+    run failed because a dependency was not met: could not resolve
+    'file:src.txt' in file:src.txt resource: cannot find source file src.txt
+    <exit 1>
+
+Let's create the required `src.txt` file:
+
+    >>> write(path(cwd, "src.txt"), "yo")
+
+And stage upstream again.
+
+    >>> run(cwd, gh, opspec="upstream", stage=True)
+    Resolving file:src.txt dependency
+    upstream staged as ...
+    To start the operation, use 'guild run --start ...'
+
+Let's stage downstream again.
+
+    >>> run(cwd, gh, opspec="downstream", stage=True)
+    Resolving upstream dependency
+    Skipping operation dependency operation:upstream for stage
+    downstream staged as ...
+    To start the operation, use 'guild run --start ...'
+
+This staged run is configured to use the currently staged upstream.
+
+    >>> runs = var.runs(path(gh, "runs"), sort=["-timestamp"])
+    >>> staged_downstream = runs[0]
+    >>> staged_upstream = runs[1]
+
+    >>> staged_downstream.get("flags")["upstream"] == staged_upstream.short_id
+    True
+
+If we run upstream, this will not effect the staged downstream.
+
+    >>> run(cwd, gh, opspec="upstream")
+    Resolving file:src.txt dependency
+
+Let's run the staged downstream.
+
+    >>> run(cwd, gh, start=staged_downstream.id)
+    Resolving upstream dependency
+    Using output from run ... for upstream resource
+
+The resolved dep for the downstream corresponds to the staged
+upstream, not the latest upstream.
+
+    >>> upstream_dep = staged_downstream.get("resolved_deps")["upstream"]["operation:upstream"][0]
+    >>> staged_upstream.id in upstream_dep
+    True
+
+## Restarts and resolved resources
+
+Once a resource is resolved for a run, Guild will not re-resolve
+it. It will fail with an error message if a resource flag is specified
+for a restart.
+
+    >>> cwd = init_gf("""
+    ... upstream:
+    ...   main: guild.pass
+    ... downstream:
+    ...   main: guild.pass
+    ...   requires:
+    ...     - operation: upstream
+    ... """)
+
+Create an upstream run.
+
+    >>> gh = run_gh(cwd, opspec="upstream")
+
+Create a downstream run.
+
+    >>> run(cwd, gh, opspec="downstream")
+    Resolving upstream dependency
+    Using output from run ... for upstream resource
+
+Restart the downstream run.
+
+    >>> runs = var.runs(path(gh, "runs"), sort=["-timestamp"])
+    >>> len(runs)
+    2
+    >>> downstream = runs[0]
+    >>> downstream.opref.to_opspec()
+    'downstream'
+
+    >>> run(cwd, gh, restart=downstream.id)
+    Resolving upstream dependency
+    Skipping operation:upstream because it's already resolved
+
+Note that a new run was NOT generated.
+
+    >>> runs = var.runs(path(gh, "runs"), sort=["-timestamp"])
+    >>> len(runs)
+    2
+    >>> runs[0].id == downstream.id
+    True
+
+Restart the downstream run with an upstream flag.
+
+    >>> upstream = runs[1]
+    >>> upstream.opref.to_opspec()
+    'upstream'
+
+    >>> run(cwd, gh, restart=downstream.id, flags=["upstream=%s" % upstream.id])
+    cannot specify a value for 'upstream' when restarting ... - resource has
+    already been resolved
+    <exit 1>
+
 ## Run a batch
 
     >>> cwd = mkdtemp()
@@ -297,14 +579,3 @@ Invalid optimizer flag:
 
     >>> runs[3].get("flags")
     {'a': 3}
-
-## == TODO =====================================================
-
-- [ ] Batch files
-- [ ] Max trials
-- [ ] Print trials
-- [ ] Save trials
-
-- [ ] Deps
-- [ ] Deps and stage - difference between ops and non-ops
-- [ ] Restart with flag changes that effect resolved dependencies

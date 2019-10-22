@@ -489,9 +489,10 @@ class Project(object):
         (re.compile(r"trial [a-f0-9]+"), "trial"),
     ]
 
-    def __init__(self, cwd, guild_home=None):
-        self.guild_home = guild_home or mkdtemp()
+    def __init__(self, cwd, guild_home=None, env=None):
         self.cwd = cwd
+        self.guild_home = guild_home or mkdtemp()
+        self._env = env
         runs_path = os.path.join(self.guild_home, "runs")
         self.index = indexlib.RunIndex(runs_path)
 
@@ -552,7 +553,7 @@ class Project(object):
         # TODO: remove simplify_trial_output after op2 promo
         simplify_trial_output = kw.pop("simplify_trial_output", False)
         cwd = os.path.join(self.cwd, kw.pop("cwd", "."))
-        with Env({"NO_WARN_RUNDIR": "1"}):
+        with self._run_env():
             out = gapi.run_capture_output(
                 guild_home=self.guild_home,
                 cwd=cwd,
@@ -560,6 +561,12 @@ class Project(object):
         if simplify_trial_output:
             out = self._simplify_trial_output(out)
         return out.strip()
+
+    def _run_env(self):
+        env = {"NO_WARN_RUNDIR": "1"}
+        if self._env:
+            env.update(self._env)
+        return Env(env)
 
     def run(self, *args, **kw):
         try:
@@ -571,7 +578,7 @@ class Project(object):
 
     def run_quiet(self, *args, **kw):
         cwd = os.path.join(self.cwd, kw.pop("cwd", "."))
-        with Env({"NO_WARN_RUNDIR": "1"}):
+        with self._run_env():
             gapi.run_quiet(
                 guild_home=self.guild_home,
                 cwd=cwd,

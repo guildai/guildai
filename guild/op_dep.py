@@ -40,7 +40,7 @@ class OpDependencyError(Exception):
     pass
 
 ###################################################################
-# OpDependency state
+# State
 ###################################################################
 
 class OpDependency(object):
@@ -148,23 +148,6 @@ def _invalid_dependency_error(spec, depdef):
 # Resolve support
 ###################################################################
 
-"""
-def resolve(dep, target_dir, unpack_dir=None):
-    log.info("Resolving %s dependency", dep.resdef.name)
-    resolved = _resolve_dep(dep, target_dir, unpack_dir)
-    log.debug("resolved sources for %s: %r", dep.resdef.name, resolved)
-    if not resolved:
-        log.warning("Nothing resolved for %s dependency", dep.resdef.name)
-    return resolved
-
-def _resolve_dep(dep, target_dir, unpack_dir):
-    resolved = {}
-    for source in dep.resdef.sources:
-        paths = resolve_source(source, dep, target_dir, unpack_dir)
-        resolved[source.uri] = paths
-    return resolved
-"""
-
 def resolve_source(source, dep, target_dir, unpack_dir=None):
     resolver = resolver_for_source(source, dep)
     if not resolver:
@@ -267,7 +250,7 @@ def _rel_source_path(source, link):
 # Op run resolve support
 ###################################################################
 
-def resolved_runs_for_opdef(opdef, flag_vals):
+def resolved_op_runs_for_opdef(opdef, flag_vals):
     try:
         deps = deps_for_opdef(opdef, flag_vals)
     except OpDependencyError as e:
@@ -283,11 +266,13 @@ def _iter_resolved_op_runs(deps, flag_vals):
                 continue
             resolver = resolver_for_source(source, dep)
             assert (
-                isinstance(resolver, resolverlib.OperationOutputResolver),
-                resolver)
+                isinstance(
+                    resolver,
+                    resolverlib.OperationOutputResolver)), resolver
             run_id_prefix = flag_vals.get(dep.resdef.name)
             try:
-                run = resolver.resolve_op_run(run_id_prefix)
+                run = resolver.resolve_op_run(
+                    run_id_prefix, include_staged=True)
             except resolverlib.ResolutionError:
                 log.warning(
                     "cannot find a suitable run for required "

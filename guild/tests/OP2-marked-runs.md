@@ -8,14 +8,15 @@ Runs are marked by users or by optimizers.
 
 We'll illustrate using the `batch-deps` sample project.
 
-    >>> project = Project(sample("projects", "batch-deps"))
+TODO: remove OP2 env on op2 promote.
+
+    >>> project = Project(sample("projects", "batch-deps"), env={"OP2": "1"})
 
 TODO: Remove Env wrappers below on promot of op2.
 
 In this project, the `serve` operation requires a `train` operation.
 
-    >>> with Env({"OP2": "1"}):
-    ...     project.run("serve")
+    >>> project.run("serve")
     WARNING: cannot find a suitable run for required resource 'train'
     Resolving train dependency
     guild: run failed because a dependency was not met: could not resolve
@@ -26,8 +27,7 @@ In this project, the `serve` operation requires a `train` operation.
 
 We satisfy the dependency by running train:
 
-    >>> with Env({"OP2": "1"}):
-    ...     project.run("train", flags={"lr": 0.1})
+    >>> project.run("train", flags={"lr": 0.1})
     params:
      lr=0.100000
     loss: ...
@@ -35,8 +35,7 @@ We satisfy the dependency by running train:
 
 And now serve again:
 
-    >>> with Env({"OP2": "1"}):
-    ...     project.run("serve")
+    >>> project.run("serve")
     Resolving train dependency
     Using output from run ... for train resource
     Serving ./trained-model
@@ -82,8 +81,7 @@ expected run.
 
 Next we'll run train again, generating a more recent train op.
 
-    >>> with Env({"OP2": "1"}):
-    ...     project.run("train", flags={"lr": 0.01})
+    >>> project.run("train", flags={"lr": 0.01})
     params:
      lr=0.010000
     loss: ...
@@ -91,8 +89,7 @@ Next we'll run train again, generating a more recent train op.
 
 And run serve again:
 
-    >>> with Env({"OP2": "1"}):
-    ...     project.run("serve")
+    >>> project.run("serve")
     Resolving train dependency
     Using output from run ... for train resource
     Serving ./trained-model
@@ -130,8 +127,7 @@ Next we explicitly specify a different train operation for serve:
     >>> explicit_train_run.get("flags")
     {'lr': 0.1}
 
-    >>> with Env({"OP2": "1"}):
-    ...     project.run("serve", flags={"train": explicit_train_run.id})
+    >>> project.run("serve", flags={"train": explicit_train_run.id})
     Resolving train dependency
     Using output from run ... for train resource
     Serving ./trained-model
@@ -166,8 +162,7 @@ And the `marked` attribute:
 
 And run serve, this time without an explicit train run:
 
-    >>> with Env({"OP2": "1"}):
-    ...     project.run("serve")
+    >>> project.run("serve")
     Resolving train dependency
     Using output from run ... for train resource
     Serving ./trained-model
@@ -224,8 +219,7 @@ earlier:
 
 Let's run the serve op:
 
-    >>> with Env({"OP2": "1"}):
-    ...     project.run("serve")
+    >>> project.run("serve")
     Resolving train dependency
     Using output from run ... for train resource
     Serving ./trained-model

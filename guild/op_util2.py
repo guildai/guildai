@@ -299,6 +299,23 @@ def set_run_staged(run):
     clear_run_pending(run)
     set_run_started(run)
 
+def run_label(label_template, user_flag_vals, all_flag_vals=None):
+    all_flag_vals = all_flag_vals or user_flag_vals
+    if not label_template:
+        return _default_run_label(user_flag_vals)
+    return _render_label_template(label_template, all_flag_vals)
+
+def _default_run_label(flag_vals):
+    return " ".join(flag_util.format_flags(flag_vals, truncate_floats=True))
+
+def _render_label_template(label_template, flag_vals):
+    resolve_vals = {
+        name: flag_util.encode_flag_val(val)
+        for name, val in flag_vals.items()
+        if val is not None
+    }
+    return util.resolve_refs(label_template, resolve_vals, "")
+
 ###################################################################
 # Source code support
 ###################################################################
@@ -829,27 +846,6 @@ def _flag_vals(row):
     return [flag_util.decode_flag_val(s) for s in row]
 
 ###################################################################
-# Run attr support
-###################################################################
-
-def run_label(label_template, user_flag_vals, all_flag_vals=None):
-    all_flag_vals = all_flag_vals or user_flag_vals
-    if not label_template:
-        return _default_run_label(user_flag_vals)
-    return _render_label_template(label_template, all_flag_vals)
-
-def _default_run_label(flag_vals):
-    return " ".join(flag_util.format_flags(flag_vals, truncate_floats=True))
-
-def _render_label_template(label_template, flag_vals):
-    resolve_vals = {
-        name: flag_util.encode_flag_val(val)
-        for name, val in flag_vals.items()
-        if val is not None
-    }
-    return util.resolve_refs(label_template, resolve_vals, "")
-
-###################################################################
 # Utils
 ###################################################################
 
@@ -875,3 +871,12 @@ def _format_flags_for_label(flag_vals):
 
 def _format_flag_for_label(val):
     return flag_util.FormattedValue(val, truncate_floats=True)
+
+def find_matching_runs(opref, flag_vals):
+    return [
+        run for run in var.runs()
+        if _is_matching_run(run, opref, flag_vals)
+    ]
+
+def _is_matching_run(run, opref, flag_vals):
+    return run.opref == opref and run.get("flags") == flag_vals

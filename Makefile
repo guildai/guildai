@@ -98,6 +98,7 @@ OP2-check:
 	-s batch-basics \
 	-s copy-sourcecode-warnings \
 	-s marked-runs \
+	-s restart-runs \
 	-s run-files \
 	-s run-labels \
 	-s sourcecode-digest \
@@ -118,7 +119,6 @@ OP2-check:
 	-s cross-package-inheritance \
 	-s dependencies-2 \
 	-s needed \
-	-s restart-runs \
 	-s skopt \
 	-s step-checks \
 	-s steps

@@ -240,32 +240,9 @@ def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
         _no_such_flag_error(e.flag_name, opdef)
 
 def _apply_default_resolved_runs(opdef, flag_vals):
-    for run, dep in op_dep.resolved_runs_for_opdef(opdef, flag_vals):
+    for run, dep in op_dep.resolved_op_runs_for_opdef(opdef, flag_vals):
         if dep.resdef.name in flag_vals:
             flag_vals[dep.resdef.name] = run.short_id
-
-"""
-
-def _apply_resolved_operation_deps(deps, opdef, flag_vals):
-    for dep in deps:
-        for source in dep.resdef.sources:
-            if not source.uri.startswith("operation:"):
-                continue
-            resolver = op_dep.resolver_for_source(source, dep)
-            assert isinstance(resolver, resolverlib.OperationOutputResolver)
-            _apply_operation_resolver_run(resolver, flag_vals)
-
-def _apply_operation_resolver_run(resolver, flag_vals):
-    assert isinstance
-    try:
-        run = resolver.resolve_op_run(include_staged=args.stage)
-    except resolver.ResolutionError:
-            _warn_op_resolution_error(name)
-        else:
-            flagdef = _ResourceFlagDefProxy(name, opdef)
-            opdef.flags.append(flagdef)
-            opdef.set_flag_value(name, run.short_id)
-"""
 
 # =================================================================
 # Op - config
@@ -423,8 +400,16 @@ def _random_seed_for_run(run):
 # =================================================================
 
 def _op_init_deps(op):
+    if op._run:
+        _check_flags_for_resolved_deps(op._user_flag_vals, op._run)
     if op._opdef:
         op.deps = _op_deps_for_opdef(op._opdef, op._op_flag_vals)
+
+def _check_flags_for_resolved_deps(flag_vals, run):
+    resolved_deps = run.get("resolved_deps") or {}
+    for name in flag_vals:
+        if name in resolved_deps:
+            _flag_for_resolved_dep_error(name, run)
 
 def _op_deps_for_opdef(opdef, flag_vals):
     try:
@@ -975,6 +960,7 @@ def _null_label(name, null_labels):
 # =================================================================
 
 def _run(S):
+    _check_needed_run(S)
     op = _init_op_for_run(S)
     if S.args.stage:
         _stage_op(op, S.args)
@@ -1045,6 +1031,28 @@ def _handle_run_exit(run, exit_status):
         cli.error(exit_status=exit_status)
 
 # =================================================================
+# Needed support
+# =================================================================
+
+def _check_needed_run(S):
+    if not S.args.needed:
+        return
+    matching_runs = op_util.find_matching_runs(
+        S.user_op.opref, S.user_op._op_flag_vals)
+    if matching_runs:
+        if _restart_run_in_matching(S.user_op, matching_runs):
+            _skip_needed_unchanged_flags_info()
+        else:
+            _skip_needed_matches_info(matching_runs)
+        raise SystemExit(0)
+
+def _restart_run_in_matching(op, matching_runs):
+    if not op._run:
+        return False
+    matching_run_ids = [run.id for run in matching_runs]
+    return op._run.id in matching_run_ids
+
+# =================================================================
 # Run temp batch
 # =================================================================
 
@@ -1055,7 +1063,7 @@ def _run_tmp_batch(S, extra_env):
         _run_op(S.batch_op, S.args, extra_env)
 
 ###################################################################
-# Error handlers
+# Error handlers / user messages
 ###################################################################
 
 def _incompatible_options_error(a, b):
@@ -1218,6 +1226,27 @@ def _no_such_batch_file_error(path):
 
 def _batch_file_error(e):
     cli.error(e)
+
+def _flag_for_resolved_dep_error(flag_name, run):
+    cli.error(
+        "cannot specify a value for '%s' when restarting %s - "
+        "resource has already been resolved" % (flag_name, run.short_id))
+
+def _skip_needed_unchanged_flags_info():
+    cli.out(
+        "Skipping run because flags have not changed "
+        "(--needed specified)")
+
+def _skip_needed_matches_info(matching_runs):
+    cli.out(
+        "Skipping because the following runs match "
+        "this operation (--needed specified):")
+    formatted = [run_util.format_run(run) for run in matching_runs]
+    cols = [
+        "index", "operation", "started",
+        "status_with_remote", "label"
+    ]
+    cli.table(formatted, cols=cols, indent=2)
 
 ###################################################################
 # Cmd impl API

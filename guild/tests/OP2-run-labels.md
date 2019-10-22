@@ -6,7 +6,9 @@ demonstrated here.
 
 For our tests, we'll use the `labels` sample project:
 
-    >>> project = Project(sample("projects/labels"))
+TODO: remove env on op2 promote.
+
+    >>> project = Project(sample("projects/labels"), env={"OP2": "1"})
 
 Here are some helper functions.
 
@@ -14,7 +16,7 @@ Here are some helper functions.
     ...         restart=None, **flags):
     ...   project.run(opspec, flags=flags, label=label, batch_label=batch_label,
     ...               opt_flags=opt_flags, restart=restart, force_flags=True,
-    ...               quiet=True, extra_env={"OP2": "1"})
+    ...               quiet=True)
 
     >>> def print_last_run():
     ...   print_runs(1)

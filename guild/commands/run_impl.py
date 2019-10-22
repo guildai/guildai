@@ -1338,7 +1338,6 @@ def _flag_vals(row):
 ###################################################################
 
 def _check_needed_restart(op, args):
-    # Assert that we're restarting something that exists.
     assert os.path.exists(op.run_dir), op.run_dir
     run_id = os.path.basename(op.run_dir)
     assert run_id.startswith(args.restart), (run_id, args.restart)
