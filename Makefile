@@ -97,11 +97,14 @@ OP2-check:
 	OP2=1 guild check -nT \
 	-s batch-basics \
 	-s copy-sourcecode-warnings \
+	-s dependencies-2 \
 	-s marked-runs \
+	-s needed \
 	-s restart-runs \
 	-s run-files \
 	-s run-labels \
 	-s sourcecode-digest \
+	-s steps \
 	\
 	-s batch-custom-optimizer \
 	-s batch-error-handling \
@@ -117,8 +120,5 @@ OP2-check:
 	-s batch-skopt \
 	-s batch-skopt2 \
 	-s cross-package-inheritance \
-	-s dependencies-2 \
-	-s needed \
 	-s skopt \
-	-s step-checks \
-	-s steps
+	-s step-checks

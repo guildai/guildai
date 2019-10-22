@@ -88,8 +88,13 @@ Notes Oct 11:
   - [ ] Otherwise only if a flag-name attr is defined for the resource
     (or inline source, which is applied to resource)
 
-----
+- [ ] Promote all v2 modules
+  - [ ] op_util
+  - [ ] op
+  - [ ] run_impl
+  - [ ] steps_main
 
-Short term:
+- [ ] Delete replaced modules
+  - [ ] deps (replaced by op_dep, verify this)
 
-- [ ] Preempt the resolution of operation
+- [ ] Run search for dead code (vulture?)

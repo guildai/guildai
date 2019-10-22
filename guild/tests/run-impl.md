@@ -625,8 +625,8 @@ Required operation not defined:
     ... """)
 
     >>> run(cwd)
-    invalid setting for operation 'op': resource 'not-defined' required
-    by operation 'op' is not defined
+    invalid definition for operation 'op': resource 'not-defined'
+    required by operation 'op' is not defined
     <exit 1>
 
 ## Run various operations

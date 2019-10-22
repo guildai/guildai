@@ -120,6 +120,18 @@ class NoSuchFlagError(FlagError):
         super(NoSuchFlagError, self).__init__(flag_name)
         self.flag_name = flag_name
 
+class InvalidOpDef(ValueError):
+
+    def __init__(self, opdef, msg):
+        super(InvalidOpDef, self).__init__(opdef, msg)
+        self.opdef = opdef
+        self.msg = msg
+
+    def __str__(self):
+        return (
+            "invalid definition for %s: %s"
+            % (self.opdef.fullname, self.msg))
+
 class OpCmdError(Exception):
     pass
 
@@ -494,21 +506,28 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
 ###################################################################
 
 def op_cmd_for_opdef(opdef, extra_cmd_env=None):
+    """Returns tuple of op cmd for opdef and associated run attrs.
+
+    Some operations require additional information from the opdef,
+    which is returned as the second element of the two-tuple.
+    """
     extra_cmd_env = extra_cmd_env or {}
-    cmd_args = _op_cmd_args(opdef)
+    cmd_args, run_attrs = _op_cmd_args_and_run_attrs(opdef)
     cmd_env = _op_cmd_env(opdef, extra_cmd_env)
     cmd_flags = _op_cmd_flags(opdef)
-    return op_cmd_lib.OpCmd(cmd_args, cmd_env, cmd_flags)
+    op_cmd = op_cmd_lib.OpCmd(cmd_args, cmd_env, cmd_flags)
+    return op_cmd, run_attrs
 
-def _op_cmd_args(opdef):
+def _op_cmd_args_and_run_attrs(opdef):
     main_args = split_cmd(opdef.main or "")
-    exec_args = split_cmd(_opdef_exec(opdef))
+    exec_str, run_attrs = _opdef_exec_and_run_attrs(opdef)
+    exec_args = split_cmd(exec_str)
     _apply_main_args(main_args, exec_args)
     _apply_flag_args_marker(exec_args)
-    return exec_args
+    return exec_args, run_attrs
 
-def _opdef_exec(opdef):
-    """Returns exec template for opdef.
+def _opdef_exec_and_run_attrs(opdef):
+    """Returns exec template for opdef with required run attrs for opdef.
 
     If exec is specified explicitly, it's returned, otherwise main or
     steps are used to generate a template.
@@ -522,19 +541,22 @@ def _opdef_exec(opdef):
             log.warning(
                 "operation 'exec' and 'steps' both specified, "
                 "ignoring 'steps'")
-        return opdef.exec_
+        return opdef.exec_, None
     elif opdef.main:
         if opdef.steps:
             log.warning(
                 "operation 'main' and 'steps' both specified, "
                 "ignoring 'steps'")
-        return DEFAULT_EXEC
+        return DEFAULT_EXEC, None
     elif opdef.steps:
-        return STEPS_EXEC
+        return STEPS_EXEC, _run_attrs_for_steps(opdef)
     else:
-        raise ValueError(
-            "invalid definition for %s: must define either "
-            "exec, main, or steps" % opdef.fullname)
+        raise InvalidOpDef(opdef, "must define either exec, main, or steps")
+
+def _run_attrs_for_steps(opdef):
+    return {
+        "steps": opdef.steps,
+    }
 
 def _apply_main_args(main_args, exec_args):
     i = 0

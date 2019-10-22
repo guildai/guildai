@@ -25,12 +25,12 @@ import click
 import six
 
 import guild.log
-import guild.opref
-import guild.run
 
 from guild import exit_code
 from guild import flag_util
 from guild import op_util
+from guild import opref as opreflib
+from guild import run as runlib
 from guild import run_check
 from guild import util
 
@@ -49,6 +49,10 @@ STEP_USED_PARAMS = (
     "random_seed",
     "stop_after",
 )
+
+###################################################################
+# State
+###################################################################
 
 class Step(object):
 
@@ -168,9 +172,9 @@ def _prefixed_flag_vals(prefixes, flag_vals):
     return prefixed
 
 def _apply_default_model(step_opspec, parent_opref):
-    step_opref = guild.opref.OpRef.for_string(step_opspec)
+    step_opref = opreflib.OpRef.for_string(step_opspec)
     if not step_opref.model_name:
-        step_opref = guild.opref.OpRef(
+        step_opref = opreflib.OpRef(
             step_opref.pkg_type,
             step_opref.pkg_name,
             step_opref.pkg_version,
@@ -214,6 +218,10 @@ def _init_checks(data):
             checks.append(check)
     return checks
 
+###################################################################
+# Main
+###################################################################
+
 def main():
     _init_logging()
     _run_steps()
@@ -236,7 +244,7 @@ def _run_steps():
 
 def _init_run():
     run_id, run_dir = _run_environ()
-    return guild.run.Run(run_id, run_dir)
+    return runlib.Run(run_id, run_dir)
 
 def _run_environ():
     try:
@@ -273,9 +281,9 @@ def _init_step_run(parent_run):
     Directory is based on a new, unique run ID but is not created.
     """
     runs_dir = os.path.dirname(parent_run.path)
-    step_run_id = guild.run.mkid()
+    step_run_id = runlib.mkid()
     step_run_dir = os.path.join(runs_dir, step_run_id)
-    return guild.run.Run(step_run_id, step_run_dir)
+    return runlib.Run(step_run_id, step_run_dir)
 
 def _init_step_cmd(step, step_run_dir):
     base_args = [
@@ -337,7 +345,8 @@ def _ensure_unique_link(path_base):
         v += 1
 
 def _format_step_cmd(cmd):
-    # Just show opspec on - assert front matter to catch changes to cmd.
+    # Show only opspec onward - assert front matter to catch changes
+    # to cmd.
     assert cmd[0:7] == [
         sys.executable,
         "-um",
@@ -388,6 +397,10 @@ def _check_step_run(step, run):
     if failed > 0:
         log.error("%i check(s) failed - see above for details", failed)
     return failed == 0
+
+###################################################################
+# Error messages
+###################################################################
 
 def _internal_error(msg):
     sys.stderr.write("guild.steps_main: %s\n" % msg)

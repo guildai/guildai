@@ -62,6 +62,7 @@ class Operation(oplib.Operation):
         self._op_flag_vals = {}
         self._flag_null_labels = {}
         self._op_cmd = None
+        self._op_cmd_run_attrs = None
         self._python_requires = None
         self._random_seed = None
         self._label_template = None
@@ -266,11 +267,17 @@ def _op_init_config_for_run(run, label_arg, op):
         op._label_template = label_arg
 
 def _op_init_config_for_opdef(opdef, label_arg, op):
-    op._flag_null_labels = _flag_null_labels_for_opdef(op._opdef)
-    op._op_cmd = op_util.op_cmd_for_opdef(opdef)
+    op._op_cmd, op._op_cmd_run_attrs = _op_cmd_for_opdef(opdef)
+    op._flag_null_labels = _flag_null_labels_for_opdef(opdef)
     op._python_requires = _python_requires_for_opdef(opdef)
     op._label_template = label_arg or opdef.label
     op._output_scalars = opdef.output_scalars
+
+def _op_cmd_for_opdef(opdef):
+    try:
+        return op_util.op_cmd_for_opdef(opdef)
+    except op_util.InvalidOpDef as e:
+        _invalid_opdef_error(opdef, e.msg)
 
 def _flag_null_labels_for_opdef(opdef):
     return {
@@ -436,6 +443,8 @@ def _op_init_run_attrs(args, op):
     attrs["user"] = util.user()
     attrs["platform"] = util.platform_info()
     attrs["op"] = _op_config_data(op)
+    if op._op_cmd_run_attrs:
+        attrs.update(op._op_cmd_run_attrs)
 
 # =================================================================
 # Op - run callbacks
@@ -1190,7 +1199,7 @@ def _invalid_flag_value_error(e):
 
 def _invalid_opdef_error(opdef, msg):
     cli.error(
-        "invalid setting for operation '%s': %s"
+        "invalid definition for operation '%s': %s"
         % (opdef.fullname, msg))
 
 def _model_op_proxy_error(e):
