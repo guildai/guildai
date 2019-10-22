@@ -73,9 +73,9 @@ class InvalidFlagChoice(FlagError):
 
 class InvalidFlagValue(FlagError):
 
-    def __init__(self, val, flag, msg):
-        super(InvalidFlagValue, self).__init__(val, flag, msg)
-        self.val = val
+    def __init__(self, value, flag, msg):
+        super(InvalidFlagValue, self).__init__(value, flag, msg)
+        self.value = value
         self.flag = flag
         self.msg = msg
 
@@ -365,7 +365,10 @@ def _model_file(path):
 
 def coerce_flag_value(val, flagdef):
     """Coerces a flag value based on flagdef settings."""
-    if val is None or not flagdef or not flagdef.type:
+    if (val is None or
+        not flagdef or
+        not flagdef.type or
+        flag_util.is_flag_function(val)):
         return val
     if isinstance(val, list):
         return [coerce_flag_value(x, flagdef) for x in val]

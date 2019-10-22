@@ -90,7 +90,8 @@ Cannot coerce, no force:
 
     >>> flag_vals(opdef, {"float": "abc"})
     Traceback (most recent call last):
-    InvalidFlagValue: ('float', 'abc', "invalid value for type 'float'")
+    InvalidFlagValue: ('abc', <guild.guildfile.FlagDef 'float'>,
+    "invalid value for type 'float'")
 
 Cannot coerce, force:
 
@@ -167,7 +168,8 @@ However, we can't set an invalid default:
 
     >>> flag_vals(opdef, {"float": "abc"})
     Traceback (most recent call last):
-    InvalidFlagValue: ('float', 'abc', "invalid value for type 'float'")
+    InvalidFlagValue: ('abc', <guild.guildfile.FlagDef 'float'>,
+    "invalid value for type 'float'")
 
 ### Choice flags
 

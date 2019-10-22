@@ -109,7 +109,6 @@ OP2-check:
 	-s step-checks \
 	-s steps \
 	\
-	-s batch-print-cmd \
 	-s batch-random-optimizer \
 	-s batch-random-seeds \
 	-s batch-restart \

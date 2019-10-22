@@ -171,6 +171,7 @@
     guild.plugins.queue
     guild.plugins.queue_main
     guild.plugins.random_main
+    guild.plugins.random_main2
     guild.plugins.skopt
     guild.plugins.skopt_forest_main
     guild.plugins.skopt_gbrt_main

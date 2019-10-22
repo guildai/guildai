@@ -438,13 +438,11 @@ def _op_init_run_attrs(args, op):
     attrs = op.run_attrs
     if op._label:
         attrs["label"] = op._label
-    attrs["flags"] = op._op_flag_vals
     if op._batch_trials:
         attrs["trials"] = op._batch_trials
+    attrs["flags"] = op._op_flag_vals
     attrs["run_params"] = args.as_kw()
     attrs["random_seed"] = op._random_seed
-    if args.max_trials:
-        attrs["max_trials"] = args.max_trials
     attrs["host"] = util.hostname()
     attrs["user"] = util.user()
     attrs["platform"] = util.platform_info()
@@ -545,6 +543,7 @@ def _state_init_batch_op(S):
         _op_init_op_flags(S.args, S.batch_op)
         _op_init_config(S.args.batch_label, S.batch_op)
         _op_init_core(S.args, S.batch_op)
+        _apply_batch_run_attrs(S.args, S.batch_op)
 
 def _batch_op_init_run(S):
     if S.restart_run and S.restart_run.batch_proto:
@@ -615,22 +614,12 @@ def _try_implied_batch_op_init(user_op, S):
 def _batch_opspec_for_flags(flag_vals):
     has_list = False
     for val in flag_vals.values():
-        if _is_flag_function(val):
+        if flag_util.is_flag_function(val):
             return "random"
         has_list = has_list or isinstance(val, list)
     if has_list:
         return "+"
     return None
-
-def _is_flag_function(val):
-    if not isinstance(val, six.string_types):
-        return False
-    try:
-        flag_util.decode_flag_function(val)
-    except ValueError:
-        return False
-    else:
-        return True
 
 def _batch_opspec_for_trials(trials):
     return "+" if trials else None
@@ -638,6 +627,11 @@ def _batch_opspec_for_trials(trials):
 def _check_opt_flags_for_missing_batch_opdef(S):
     if S.args.opt_flags and not (S.batch_op and S.batch_op._opdef):
         _opt_flags_for_missing_batch_opdef_error(S.args.opt_flags)
+
+def _apply_batch_run_attrs(args, op):
+    attrs = op.run_attrs
+    if args.max_trials:
+        attrs["max_trials"] = args.max_trials
 
 ###################################################################
 # Main
@@ -895,6 +889,8 @@ def _print_trials(S):
     _run_tmp_batch(S, {"PRINT_TRIALS": "1"})
 
 def _save_trials(S):
+    if not S.batch_op:
+        _save_trials_for_non_batch_error()
     path = os.path.join(config.cwd(), S.args.save_trials)
     cli.out("Saving trials to %s" % path)
     _run_tmp_batch(S, {"SAVE_TRIALS": path})
@@ -1232,7 +1228,7 @@ def _invalid_flag_choice_error(e):
     cli.error()
 
 def _invalid_flag_value_error(e):
-    cli.error("invalid value for %s: %s" % (e.flag.name, e.msg))
+    cli.error("invalid value %s for %s: %s" % (e.value, e.flag.name, e.msg))
 
 def _invalid_opdef_error(opdef, msg):
     cli.error(
@@ -1280,6 +1276,9 @@ def _flag_for_resolved_dep_error(flag_name, run):
 
 def _print_trials_for_non_batch_error():
     cli.error("cannot print trials for a non-batch operation")
+
+def _save_trials_for_non_batch_error():
+    cli.error("cannot save trials for a non-batch operation")
 
 def _skip_needed_unchanged_flags_info():
     cli.out(

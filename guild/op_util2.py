@@ -672,7 +672,7 @@ def _coerce_flag_val(name, val, flagdefs):
     try:
         return coerce_flag_value(val, flagdef)
     except (ValueError, TypeError) as e:
-        raise InvalidFlagValue(name, val, str(e))
+        raise InvalidFlagValue(val, flagdef, str(e))
 
 def _resource_flagdefs(opdef, flag_vals):
     return list(_iter_resource_flagdefs(opdef, flag_vals))
@@ -713,6 +713,15 @@ def _check_no_such_flags(flag_vals, flagdefs):
 def _check_flag_vals(vals, flagdefs):
     for flag in flagdefs:
         val = vals.get(flag.name)
+        _check_flag_val(val, flag)
+
+def _check_flag_val(val, flag):
+    if isinstance(val, list):
+        for x in val:
+            _check_flag_val(x, flag)
+    elif flag_util.is_flag_function(val):
+        pass
+    else:
         _check_flag_choice(val, flag)
         _check_flag_type(val, flag)
         _check_flag_range(val, flag)

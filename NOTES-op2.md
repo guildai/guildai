@@ -93,6 +93,7 @@ Notes Oct 11:
   - [ ] op
   - [ ] run_impl
   - [ ] steps_main
+  - [ ] random_main
 
 - [ ] Delete replaced modules
   - [ ] deps (replaced by op_dep, verify this)
