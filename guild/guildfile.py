@@ -1044,11 +1044,11 @@ class OpDef(object):
 
     @property
     def default_optimizer(self):
-        if len(self.optimizers) == 1:
-            return self.optimizers[0]
         for opt in self.optimizers:
             if opt.default:
                 return opt
+        if self.optimizers:
+            return self.optimizers[0]
         return None
 
 def _init_flags(data, opdef):

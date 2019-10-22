@@ -108,9 +108,6 @@ OP2-check:
 	-s step-checks \
 	-s steps \
 	\
-	-s batch-custom-optimizer \
-	-s batch-guildfile-optimizers \
-	-s batch-implied-random \
 	-s batch-needed \
 	-s batch-print-cmd \
 	-s batch-random-optimizer \

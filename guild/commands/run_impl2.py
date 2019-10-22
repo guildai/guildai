@@ -26,6 +26,7 @@ from guild import click_util
 from guild import cmd_impl_support
 from guild import config
 from guild import flag_util
+from guild import guildfile
 from guild import help as helplib
 from guild import op2 as oplib
 from guild import op_cmd as op_cmd_lib
@@ -38,6 +39,11 @@ from guild import util
 from guild import var
 
 log = logging.getLogger("guild")
+
+# Use Bayesian with gaussian process as default optimizer when opdef
+# does not contain any optimizers.
+#
+DEFAULT_OPTIMIZER = "gp"
 
 ###################################################################
 # State
@@ -563,22 +569,40 @@ def _batch_op_init_for_opdef(opdef, S):
     if S.args.optimizer:
         _batch_op_init_for_named_optimizer(S.args.optimizer, opdef, S)
     elif S.args.optimize:
-        _batch_op_init_for_default_optimizer(opdef, S)
+        _batch_op_init_for_opdef_default_optimizer(opdef, S)
     else:
-        _try_batch_op_init_for_user_op(S.user_op, S)
+        _try_implied_batch_op_init(S.user_op, S)
 
-def _batch_op_init_for_named_optimizer(optimizer, opdef, S):
-    # TODO: lookup from opdef, otherwise opdef_from_opspec
-    assert not opdef.get_optimizer(optimizer)
+def _batch_op_init_for_named_optimizer(name, opdef, S):
+    assert not S.batch_op
+    optdef = opdef.get_optimizer(name)
+    S.batch_op = Operation()
+    if optdef:
+        _op_init_for_optimizer(optdef, S.batch_op)
+    else:
+        _op_init_for_optimizer_opspec(name, S.batch_op)
+
+def _op_init_for_optimizer(optdef, op):
+    op._opdef = _opdef_for_opspec(optdef.opspec)
+    if optdef.flags:
+        op._op_flag_vals.update(optdef.flags)
+
+def _op_init_for_optimizer_opspec(opspec, op):
+    op._opdef = _opdef_for_opspec(opspec)
+
+def _batch_op_init_for_opdef_default_optimizer(opdef, S):
     assert not S.batch_op
     S.batch_op = Operation()
-    S.batch_op._opdef = _opdef_for_opspec(optimizer)
+    optdef = util.find_apply([
+        lambda: opdef.default_optimizer,
+        lambda: _default_optimizer(opdef),
+    ])
+    _op_init_for_optimizer(optdef, S.batch_op)
 
-def _batch_op_init_for_default_optimizer(opdef, S):
-    # TODO: lookup from opdef, otherwise error
-    assert False, opdef
+def _default_optimizer(opdef):
+    return guildfile.OptimizerDef.for_name(DEFAULT_OPTIMIZER, opdef)
 
-def _try_batch_op_init_for_user_op(user_op, S):
+def _try_implied_batch_op_init(user_op, S):
     batch_opspec = util.find_apply([
         lambda: _batch_opspec_for_flags(user_op._op_flag_vals),
         lambda: _batch_opspec_for_trials(user_op._batch_trials),
@@ -926,7 +950,7 @@ def _preview_batch_suffix(S):
     elif opt_name == "random":
         return " with random search"
     else:
-        return " with '%s' optimizer" % op_name
+        return " with '%s' optimizer" % opt_name
 
 def _preview_flags_note(S):
     if S.user_op._op_flag_vals and S.user_op._batch_trials:

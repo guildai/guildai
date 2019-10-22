@@ -62,16 +62,20 @@ poly:
     loss: 'loss: (.+)'
 
 tune-echo:
-  exec: ${model_dir}/tune-echo tune-echo ${flag_args}
+  exec: ./tune-echo tune-echo ${flag_args}
   flags:
     alpha: 0.1
     beta: 0.2
+  requires:
+    - file: tune-echo
 
 tune-echo-2:
-  exec: ${model_dir}/tune-echo tune-echo-2 ${flag_args}
+  exec: ./tune-echo tune-echo-2 ${flag_args}
   flags:
     beta: 0.4
     gamma: 3
+  requires:
+    - file: tune-echo
 
 opt-test-1:
   exec: 'true'
