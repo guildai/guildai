@@ -897,10 +897,10 @@ def _format_flag_for_label(val):
 def find_matching_runs(opref, flag_vals, include_pending=False):
     return [
         run for run in var.runs()
-        if _is_matching_run(run, opref, flag_vals, include_pending)
+        if is_matching_run(run, opref, flag_vals, include_pending)
     ]
 
-def _is_matching_run(run, opref, flag_vals, include_pending):
+def is_matching_run(run, opref, flag_vals, include_pending=False):
     return (
         run.opref == opref and
         run.get("flags") == flag_vals and

@@ -97,6 +97,7 @@ OP2-check:
 	OP2=1 guild check -nT \
 	-s batch-basics \
 	-s batch-grid-search \
+	-s batch-needed \
 	-s copy-sourcecode-warnings \
 	-s dependencies-2 \
 	-s marked-runs \
@@ -108,7 +109,6 @@ OP2-check:
 	-s step-checks \
 	-s steps \
 	\
-	-s batch-needed \
 	-s batch-print-cmd \
 	-s batch-random-optimizer \
 	-s batch-random-seeds \

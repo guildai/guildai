@@ -876,6 +876,12 @@ def _print_op_cmd_args(args):
 def _print_batch_trials_cmd_args(S):
     _run_tmp_batch(S, {"PRINT_TRIALS_CMD": "1"})
 
+def _run_tmp_batch(S, extra_env):
+    assert S.batch_op
+    with util.TempDir() as tmp:
+        _init_batch_run(S, tmp.path)
+        _run_op(S.batch_op, S.args, extra_env)
+
 def _print_env(S):
     _print_op_cmd_env(S.user_op.cmd_env)
 
@@ -995,12 +1001,49 @@ def _null_label(name, null_labels):
 # =================================================================
 
 def _run(S):
-    _check_needed_run(S)
+    _check_run_needed(S)
     op = _init_op_for_run(S)
     if S.args.stage:
         _stage_op(op, S.args)
     else:
         _run_op(op, S.args)
+
+def _check_run_needed(S):
+    if not S.args.needed:
+        return
+    matching = _find_matching_runs(S)
+    if matching:
+        if _restarting_match(matching, S):
+            _skip_needed_unchanged_flags_info()
+        else:
+            _skip_needed_matches_info(matching)
+        raise SystemExit(0)
+
+def _find_matching_runs(S):
+    if S.batch_op:
+        matching = op_util.find_matching_runs(
+            S.batch_op.opref,
+            S.batch_op._op_flag_vals)
+        return _filter_matching_batch_runs(matching, S.user_op)
+    else:
+        return op_util.find_matching_runs(
+            S.user_op.opref,
+            S.user_op._op_flag_vals)
+
+def _filter_matching_batch_runs(batch_runs, user_op):
+    return [
+        run for run in batch_runs
+        if (run.batch_proto and
+            op_util.is_matching_run(
+                run.batch_proto,
+                user_op.opref,
+                user_op._op_flag_vals,
+                include_pending=True))
+    ]
+
+def _restarting_match(matches, S):
+    restart_run = S.batch_op._run if S.batch_op else S.user_op._run
+    return restart_run and restart_run.id in (run.id for run in matches)
 
 def _init_op_for_run(S):
     if S.batch_op:
@@ -1064,38 +1107,6 @@ def _run_op(op, args, extra_env=None):
 def _handle_run_exit(run, exit_status):
     if exit_status != 0:
         cli.error(exit_status=exit_status)
-
-# =================================================================
-# Needed support
-# =================================================================
-
-def _check_needed_run(S):
-    if not S.args.needed:
-        return
-    matching_runs = op_util.find_matching_runs(
-        S.user_op.opref, S.user_op._op_flag_vals)
-    if matching_runs:
-        if _restart_run_in_matching(S.user_op, matching_runs):
-            _skip_needed_unchanged_flags_info()
-        else:
-            _skip_needed_matches_info(matching_runs)
-        raise SystemExit(0)
-
-def _restart_run_in_matching(op, matching_runs):
-    if not op._run:
-        return False
-    matching_run_ids = [run.id for run in matching_runs]
-    return op._run.id in matching_run_ids
-
-# =================================================================
-# Run temp batch
-# =================================================================
-
-def _run_tmp_batch(S, extra_env):
-    assert S.batch_op
-    with util.TempDir() as tmp:
-        _init_batch_run(S, tmp.path)
-        _run_op(S.batch_op, S.args, extra_env)
 
 ###################################################################
 # Error handlers / user messages
