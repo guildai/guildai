@@ -860,6 +860,8 @@ def _print_op_cmd_env(env):
         cli.out("%s=%s" % (name, util.env_var_quote(val)))
 
 def _print_trials(S):
+    if not S.batch_op:
+        _print_trials_for_non_batch_error()
     _run_tmp_batch(S, {"PRINT_TRIALS": "1"})
 
 def _save_trials(S):
@@ -1240,6 +1242,9 @@ def _flag_for_resolved_dep_error(flag_name, run):
     cli.error(
         "cannot specify a value for '%s' when restarting %s - "
         "resource has already been resolved" % (flag_name, run.short_id))
+
+def _print_trials_for_non_batch_error():
+    cli.error("cannot print trials for a non-batch operation")
 
 def _skip_needed_unchanged_flags_info():
     cli.out(

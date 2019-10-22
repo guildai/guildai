@@ -96,6 +96,7 @@ README.html: README.md
 OP2-check:
 	OP2=1 guild check -nT \
 	-s batch-basics \
+	-s batch-grid-search \
 	-s copy-sourcecode-warnings \
 	-s dependencies-2 \
 	-s marked-runs \
@@ -108,8 +109,6 @@ OP2-check:
 	-s steps \
 	\
 	-s batch-custom-optimizer \
-	-s batch-error-handling \
-	-s batch-grid-search \
 	-s batch-guildfile-optimizers \
 	-s batch-implied-random \
 	-s batch-needed \
