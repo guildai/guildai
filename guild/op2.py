@@ -19,8 +19,10 @@ import logging
 import os
 import subprocess
 import sys
+import time
 
 from guild import config
+from guild import exit_code
 from guild import op_cmd as op_cmd_lib
 from guild import op_dep
 from guild import op_util2 as op_util
@@ -34,6 +36,8 @@ OP_RUNFILE_PATHS = [
     ["org_psutil"],
     ["guild", "external"],
 ]
+
+PROC_TERM_TIMEOUT_SECONDS = 30
 
 ###################################################################
 # Exception classes
@@ -149,11 +153,13 @@ def run(op, quiet=False, stop_after=None, extra_env=None):
         op_util.clear_run_pending(run)
 
 def _op_start_proc(op, run, extra_env=None):
-    log.debug("starting run %s in %s", run.id, run.dir)
     env = _op_proc_env(op, run)
     if extra_env:
         env.update(extra_env)
     run.write_attr("env", env)
+    log.debug("starting run %s in %s", run.id, run.dir)
+    log.debug("operation command: %s", op.cmd_args)
+    log.debug("operation env: %s", env)
     try:
         proc = subprocess.Popen(
             op.cmd_args,
@@ -249,15 +255,9 @@ def _delete_proc_lock(run):
 
 def _op_proc_env(op, run):
     env = dict(op.cmd_env)
-    env.update(_run_cmd_env(run))
     env.update(_system_cmd_env())
+    env.update(_run_cmd_env(run))
     return env
-
-def _run_cmd_env(run):
-    return {
-        "RUN_DIR": run.path,
-        "RUN_ID": run.id,
-    }
 
 def _system_cmd_env():
     env = util.safe_osenv()
@@ -266,6 +266,12 @@ def _system_cmd_env():
     env["PYTHONPATH"] = _python_path()
     env["CMD_DIR"] = os.getcwd()
     return env
+
+def _run_cmd_env(run):
+    return {
+        "RUN_DIR": run.dir,
+        "RUN_ID": run.id,
+    }
 
 def _log_level():
     try:

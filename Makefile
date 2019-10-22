@@ -104,6 +104,7 @@ OP2-check:
 	-s run-files \
 	-s run-labels \
 	-s sourcecode-digest \
+	-s step-checks \
 	-s steps \
 	\
 	-s batch-custom-optimizer \
@@ -120,5 +121,4 @@ OP2-check:
 	-s batch-skopt \
 	-s batch-skopt2 \
 	-s cross-package-inheritance \
-	-s skopt \
-	-s step-checks
+	-s skopt

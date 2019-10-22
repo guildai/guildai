@@ -242,6 +242,10 @@ def _run_steps():
         step_run = _run_step(step, run)
         _maybe_check_step_run(step, step_run)
 
+# =================================================================
+# Init
+# =================================================================
+
 def _init_run():
     run_id, run_dir = _run_environ()
     return runlib.Run(run_id, run_dir)
@@ -262,15 +266,22 @@ def _init_steps(run):
     opref = run.opref
     return [Step(step_data, flags, opref) for step_data in data]
 
+# =================================================================
+# Run step
+# =================================================================
+
 def _run_step(step, parent_run):
     step_run = _init_step_run(parent_run)
     cmd = _init_step_cmd(step, step_run.path)
     _link_to_step_run(step, step_run.path, parent_run.path)
     env = dict(os.environ)
     env["NO_WARN_RUNDIR"] = "1"
+    cwd = os.getenv("CMD_DIR")
     log.info("running %s: %s", step, _format_step_cmd(cmd))
-    log.debug("cmd for %s: %s", step, cmd)
-    returncode = subprocess.call(cmd, env=env, cwd=os.getenv("CMD_DIR"))
+    log.debug("step cwd %s", cwd)
+    log.debug("step command: %s", cmd)
+    log.debug("step env: %s", env)
+    returncode = subprocess.call(cmd, env=env, cwd=cwd)
     if returncode != 0:
         sys.exit(returncode)
     return step_run
