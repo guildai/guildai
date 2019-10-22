@@ -10,7 +10,9 @@ values.
 To illustrate we'll use the `echo.py` script in the `optimizers`
 project:
 
-    >>> project = Project(sample("projects", "optimizers"), {"OP2": "1"})
+TODO: remove env on op2 promote.
+
+    >>> project = Project(sample("projects", "optimizers"), env={"OP2": "1"})
 
 Let's run `echo.py` for the first time without any options:
 
@@ -83,19 +85,16 @@ Let's restart the latest run without the needed option as a baseline:
 
     >>> latest_run = project.list_runs()[0]
     >>> project.run(restart=latest_run.id)
-    Starting ...
     2.0 2 'a'
 
 Now we'll restart it with the needed option:
 
     >>> project.run(restart=latest_run.id, needed=True)
-    Starting ...
     Skipping run because flags have not changed (--needed specified)
 
 However, when we use a different set of flags for the restart:
 
     >>> project.run(restart=latest_run.id, flags={"x": 3.0}, needed=True)
-    Starting ...
     3.0 2 'a'
 
 And our runs:
@@ -113,7 +112,6 @@ flags match:
     'pending'
 
     >>> project.run(restart=pending_run.id, needed=True)
-    Starting ...
     2.0 2 'a'
 
 And our runs:

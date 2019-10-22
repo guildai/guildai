@@ -872,11 +872,14 @@ def _format_flags_for_label(flag_vals):
 def _format_flag_for_label(val):
     return flag_util.FormattedValue(val, truncate_floats=True)
 
-def find_matching_runs(opref, flag_vals):
+def find_matching_runs(opref, flag_vals, include_pending=False):
     return [
         run for run in var.runs()
-        if _is_matching_run(run, opref, flag_vals)
+        if _is_matching_run(run, opref, flag_vals, include_pending)
     ]
 
-def _is_matching_run(run, opref, flag_vals):
-    return run.opref == opref and run.get("flags") == flag_vals
+def _is_matching_run(run, opref, flag_vals, include_pending):
+    return (
+        run.opref == opref and
+        run.get("flags") == flag_vals and
+        (include_pending or run.status != "pending"))
