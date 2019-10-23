@@ -196,7 +196,6 @@ class _ResourceProxy(object):
         self.config = config
 
 def _source_resolution_error(source, dep, e):
-    assert False
     msg = (
         "could not resolve '%s' in %s resource: %s"
         % (source, dep.resdef.name, e))

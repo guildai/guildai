@@ -177,3 +177,7 @@ Next we'll run `c/model:test`:
     Resolving lib dependency
     Hello from c/model
     File from model/c
+
+Clear the Guildfile cache for other tests.
+
+    >>> guildfile._cache.clear()

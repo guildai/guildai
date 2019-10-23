@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import logging
+import os
 import warnings
 
 from guild import batch_util
@@ -104,5 +105,9 @@ def _patch_numpy_deprecation_warnings():
     import numpy.core.umath_tests
 
 if __name__ == "__main__":
-    _patch_numpy_deprecation_warnings()
-    batch_util.default_main(_gen_batch_trials)
+    if os.getenv("OP2") == "1":
+        from guild.plugins import random_main2
+        random_main2.main()
+    else:
+        _patch_numpy_deprecation_warnings()
+        batch_util.default_main(_gen_batch_trials)

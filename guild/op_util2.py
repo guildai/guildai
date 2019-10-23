@@ -819,6 +819,7 @@ def _resdef_from_data(data):
 class _ModelDefProxy(object):
     name = ""
     guildfile = None
+    parents = []
 
 ###################################################################
 # Trials support
