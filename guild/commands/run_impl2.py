@@ -1136,6 +1136,8 @@ def _invalid_opspec_error(opspec):
 
 def _guildfile_error(gf_path, msg):
     log.error(msg)
+    if os.path.basename(gf_path) == "guild.yml":
+        gf_path = os.path.dirname(gf_path)
     cli.error(
         "guildfile in %s contains an error (see above for details)"
         % cmd_impl_support.cwd_desc(gf_path))

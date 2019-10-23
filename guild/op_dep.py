@@ -149,21 +149,35 @@ def _invalid_dependency_error(spec, depdef):
 ###################################################################
 
 def resolve_source(source, dep, target_dir, unpack_dir=None):
-    resolver = resolver_for_source(source, dep)
+    last_resolution_error = None
+    for location in _dep_resource_locations(dep):
+        try:
+            source_paths = _resolve_source_for_location(
+                source, dep, location, unpack_dir)
+        except resolverlib.ResolutionError as e:
+            last_resolution_error = e
+        except Exception as e:
+            _unknown_source_resolution_error(source, dep, e)
+        else:
+            for path in source_paths:
+                _link_to_source(path, source, target_dir)
+            return source_paths
+    assert last_resolution_error
+    _source_resolution_error(source, dep, last_resolution_error)
+
+def _dep_resource_locations(dep):
+    yield dep.res_location
+    for parent in dep.resdef.modeldef.parents:
+        yield parent.dir
+
+def _resolve_source_for_location(source, dep, location, unpack_dir):
+    res_proxy = _ResourceProxy(location, dep.config)
+    resolver = resolverlib.for_resdef_source(source, res_proxy)
     if not resolver:
         raise OpDependencyError(
             "unsupported source '%s' in %s resource"
             % (source, dep.resdef.name))
-    try:
-        source_paths = resolver.resolve(unpack_dir)
-    except resolverlib.ResolutionError as e:
-        _source_resolution_error(source, dep, e)
-    except Exception as e:
-        _unknown_source_resolution_error(source, dep, e)
-    else:
-        for path in source_paths:
-            _link_to_source(path, source, target_dir)
-        return source_paths
+    return resolver.resolve(unpack_dir)
 
 def resolver_for_source(source, dep):
     res_proxy = _ResourceProxy(dep.res_location, dep.config)
@@ -177,12 +191,12 @@ class _ResourceProxy(object):
     interface is created, we use a proxy resource to work with the
     current interface.
     """
-
     def __init__(self, location, config):
         self.location = location
         self.config = config
 
 def _source_resolution_error(source, dep, e):
+    assert False
     msg = (
         "could not resolve '%s' in %s resource: %s"
         % (source, dep.resdef.name, e))

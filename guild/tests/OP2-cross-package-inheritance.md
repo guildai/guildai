@@ -1,5 +1,7 @@
 # Cross package inheritance
 
+TODO: remove OP2 env below when promoting to op2.
+
 These tests cover the **Extending packages** topic in `guildfiles.md`
 in more depth.
 
@@ -113,7 +115,8 @@ Let's run `a/model:test`.
     ...   "model:test",
     ...   cwd=path(projects, "a"),
     ...   run_dir=a_test_run_dir,
-    ...   extra_env={"NO_WARN_RUNDIR": "1"})
+    ...   extra_env={"NO_WARN_RUNDIR": "1",
+    ...              "OP2": "1"})
     >>> print(output)
     Resolving msg_file dependency
     Resolving lib dependency
@@ -130,16 +133,17 @@ Next we'll run `b/model:test`:
     ...   output = gapi.run_capture_output(
     ...     "model:test",
     ...     cwd=path(projects, "b"),
-    ...     run_dir=b_test_run_dir)
+    ...     run_dir=b_test_run_dir,
+    ...     extra_env={"OP2": "1"})
     ... except gapi.RunError as e:
     ...   print(e.output)
     ... else:
     ...   print(output)
-    ERROR: error loading guildfile from .:
-    error in .../cross-package-inherits/b/guild.yml: cannot find
-    Guild file for package 'a'
-    guild: guildfile in the current directory contains
-    an error (see above for details)
+    ERROR: error in .../cross-package-inherits/b/guild.yml: cannot
+    find Guild file for package 'a'
+    guild: guildfile in the current directory contains an error
+    (see above for details)
+    <BLANKLINE>
 
 In this case we receive an error because Guild can't find the package
 `a` specified in the model extension spec `a/model`.
@@ -152,7 +156,8 @@ system path:
     ...   cwd=path(projects, "b"),
     ...   run_dir=b_test_run_dir,
     ...   extra_env={"PYTHONPATH": "..",
-    ...              "NO_WARN_RUNDIR": "1"})
+    ...              "NO_WARN_RUNDIR": "1",
+    ...              "OP2": "1"})
     >>> print(output)
     Resolving msg_file dependency
     Resolving lib dependency
@@ -171,7 +176,8 @@ Next we'll run `c/model:test`:
     ...   cwd=path(projects, "c"),
     ...   run_dir=c_test_run_dir,
     ...   extra_env={"PYTHONPATH": "..",
-    ...              "NO_WARN_RUNDIR": "1"})
+    ...              "NO_WARN_RUNDIR": "1",
+    ...              "OP2": "1"})
     >>> print(output)
     Resolving msg_file dependency
     Resolving lib dependency

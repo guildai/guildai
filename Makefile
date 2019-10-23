@@ -102,6 +102,7 @@ OP2-check:
 	-s batch-restart \
 	-s batch-save-trials \
 	-s copy-sourcecode-warnings \
+	-s cross-package-inheritance \
 	-s dependencies-2 \
 	-s marked-runs \
 	-s needed \
@@ -115,5 +116,4 @@ OP2-check:
 	-s batch-random-optimizer \
 	-s batch-skopt \
 	-s batch-skopt2 \
-	-s cross-package-inheritance \
 	-s skopt
