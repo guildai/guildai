@@ -38,7 +38,7 @@ def _check_ignored_remote_opts(args):
     if args.full_path:
         log.warning(
             "--full-path is not supported for remote "
-            "file lists, ignoring")
+            "file lists - ignoring")
 
 def _main(args, ctx):
     if args.path and os.path.isabs(args.path):

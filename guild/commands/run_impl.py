@@ -1084,7 +1084,7 @@ def _maybe_run(op, args):
 
 def _maybe_warn_no_wait(opdef, args):
     if args.no_wait and not (args.remote or opdef.remote):
-        cli.note("Operation is local, ignoring --no-wait")
+        cli.note("Operation is local - ignoring --no-wait")
 
 ###################################################################
 # Run confirmation prompt
