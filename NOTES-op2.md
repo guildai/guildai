@@ -99,3 +99,5 @@ Notes Oct 11:
   - [ ] deps (replaced by op_dep, verify this)
 
 - [ ] Run search for dead code (vulture?)
+
+- [ ] Remove --init-trials (replaced with --stage-trials)

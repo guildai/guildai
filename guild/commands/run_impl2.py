@@ -544,6 +544,7 @@ def _state_init_batch_op(S):
         _op_init_config(S.args.batch_label, S.batch_op)
         _op_init_core(S.args, S.batch_op)
         _apply_batch_run_attrs(S.args, S.batch_op)
+        _apply_batch_cmd_env(S.args, S.batch_op)
 
 def _batch_op_init_run(S):
     if S.restart_run and S.restart_run.batch_proto:
@@ -633,6 +634,11 @@ def _apply_batch_run_attrs(args, op):
     if args.max_trials:
         attrs["max_trials"] = args.max_trials
 
+def _apply_batch_cmd_env(args, op):
+    # TODO: rename to args.stage_trials when op2 promoted
+    if args.init_trials:
+        op.cmd_env["STAGE_TRIALS"] = "1"
+
 ###################################################################
 # Main
 ###################################################################
@@ -665,9 +671,6 @@ def _check_incompatible_options(args):
         ("print_trials", "init_trials"),
         ("remote", "background"),
         ("remote", "pidfile"),
-        ("stage", "background"),
-        ("stage", "restart"),
-        ("stage", "start"),
         ("start", "restart"),
     ]
     for a, b in incompatible:

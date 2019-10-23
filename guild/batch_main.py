@@ -19,15 +19,23 @@ import os
 
 import itertools
 
-from guild import batch_util
-from guild import batch_util2
+from guild import batch_util as batch_legacy
+from guild import batch_util2 as batch_util
 from guild import op_util
 
 def main():
     op_util.init_logging()
-    proto_run = batch_util2.proto_run()
-    trials = batch_util2.batch_trials_for_proto_run(proto_run)
-    batch_util2.handle_trials(proto_run, trials)
+    proto_run = batch_util.proto_run()
+    trials = _batch_trials(proto_run)
+    batch_util.handle_trials(proto_run, trials)
+
+def _batch_trials(proto_run):
+    all_trials = batch_util.batch_trials_for_proto_run(proto_run)
+    batch_run = batch_util.batch_run()
+    return batch_util.sample_trials(
+        all_trials,
+        batch_run.get("max_trials"),
+        batch_run.get("random_seed"))
 
 # TODO: remove when promoting OP2
 def gen_trials(flags, _batch=None):
@@ -45,4 +53,4 @@ if __name__ == "__main__":
     if os.getenv("OP2") == "1":
         main()
     else:
-        batch_util.default_main(gen_trials, default_max_trials=None)
+        batch_util_legacy.default_main(gen_trials, default_max_trials=None)

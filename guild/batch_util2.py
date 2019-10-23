@@ -18,6 +18,7 @@ from __future__ import division
 import itertools
 import logging
 import os
+import random
 
 from guild import _api as gapi
 from guild import op2 as oplib
@@ -31,7 +32,9 @@ from guild.commands import run_impl2 as run_impl
 
 log = logging.getLogger("guild")
 
-class MissingProtoError(Exception):
+DEFAULT_MAX_TRIALS = 20
+
+class CurrentRunNotBatchError(Exception):
     pass
 
 ###################################################################
@@ -47,8 +50,6 @@ def handle_trials(proto_run, trials):
         _save_trials(trials, os.getenv("SAVE_TRIALS"))
     else:
         _run_trials(proto_run, trials)
-        #init_only = os.getenv("INIT_TRIALS_ONLY") == "1"
-        #batch.run_trials(trials, init_only)
 
 def _print_trials_cmd(proto_run, trials):
     for trial in trials:
@@ -64,14 +65,15 @@ def _save_trials(trials, path):
     op_util.save_trials(trials, path)
 
 def _run_trials(proto_run, trials):
-    runs = _stage_trial_runs(proto_run, trials)
+    runs = _init_trial_runs(proto_run, trials)
+    stage = os.getenv("STAGE_TRIALS") == "1"
     for run in runs:
-        _start_trial_run(run)
+        _start_trial_run(run, stage)
 
-def _stage_trial_runs(proto_run, trials):
-    return [_stage_trial_run(proto_run, trial) for trial in trials]
+def _init_trial_runs(proto_run, trials):
+    return [_init_trial_run(proto_run, trial) for trial in trials]
 
-def _stage_trial_run(proto_run, trial_flag_vals, run_dir=None):
+def _init_trial_run(proto_run, trial_flag_vals, run_dir=None):
     run = op_util.init_run(run_dir)
     util.copytree(proto_run.dir, run.dir)
     run.write_attr("flags", trial_flag_vals)
@@ -87,13 +89,14 @@ def _trial_label(proto_run, trial_flag_vals):
     label_template = (proto_run.get("op") or {}).get("label_template")
     return op_util.run_label(label_template, user_flag_vals, trial_flag_vals)
 
-def _start_trial_run(run):
-    _log_start_trial(run)
-    run_impl.run(start=run.id)
+def _start_trial_run(run, stage):
+    _log_start_trial(run, stage)
+    run_impl.run(start=run.id, stage=stage)
 
-def _log_start_trial(run):
+def _log_start_trial(run, stage):
     log.info(
-        "Running trial %s: %s (%s)",
+        "%s trial %s: %s (%s)",
+        "Running" if not stage else "Staging",
         _trial_name(run),
         run_util.format_operation(run),
         _trial_flags_desc(run))
@@ -116,13 +119,18 @@ def _trial_flags_desc(run):
 # Utils
 ###################################################################
 
-def proto_run():
+def batch_run():
     current_run = gapi.current_run()
     if not current_run:
-        raise MissingProtoError("no current run")
+        raise CurrentRunNotBatchError("no current run")
     proto_path = current_run.guild_path("proto")
     if not os.path.exists(proto_path):
-        raise MissingProtoError("missing proto %s" % proto_path)
+        raise CurrentRunNotBatchError("missing proto %s" % proto_path)
+    return current_run
+
+def proto_run():
+    proto_path = batch_run().guild_path("proto")
+    assert os.path.exists(proto_path)
     return runlib.Run("__proto__", proto_path)
 
 def expand_flags(flag_vals):
@@ -156,3 +164,12 @@ def _merged_trial_flags(trial_flag_vals, flag_vals):
     merged = dict(flag_vals)
     merged.update(trial_flag_vals)
     return merged
+
+def sample_trials(trials, count=None, random_seed=None):
+    count = count or DEFAULT_MAX_TRIALS
+    if len(trials) <= count:
+        return trials
+    random.seed(random_seed)
+    # Sample indices and re-sort to preserve original trial order.
+    sampled_i = random.sample(range(len(trials)), count)
+    return [trials[i] for i in sorted(sampled_i)]
