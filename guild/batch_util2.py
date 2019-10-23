@@ -54,7 +54,7 @@ def handle_trials(proto_run, trials):
 def _print_trials_cmd(proto_run, trials):
     for trial in trials:
         with util.TempDir() as tmp:
-            run = _stage_trial_run(proto_run, trial, tmp.path)
+            run = _init_trial_run(proto_run, trial, tmp.path)
             run_impl.run(start=run.dir, print_cmd=True)
 
 def _print_trials(trials):

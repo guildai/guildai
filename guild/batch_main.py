@@ -19,7 +19,7 @@ import os
 
 import itertools
 
-from guild import batch_util as batch_legacy
+from guild import batch_util as batch_util_legacy
 from guild import batch_util2 as batch_util
 from guild import op_util
 

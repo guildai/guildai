@@ -99,6 +99,8 @@ OP2-check:
 	-s batch-grid-search \
 	-s batch-needed \
 	-s batch-random-seeds \
+	-s batch-restart \
+	-s batch-save-trials \
 	-s copy-sourcecode-warnings \
 	-s dependencies-2 \
 	-s marked-runs \
@@ -111,8 +113,6 @@ OP2-check:
 	-s steps \
 	\
 	-s batch-random-optimizer \
-	-s batch-restart \
-	-s batch-save-trials \
 	-s batch-skopt \
 	-s batch-skopt2 \
 	-s cross-package-inheritance \
