@@ -642,9 +642,13 @@ class Project(object):
     def print_trials(self, *args, **kw):
         print(self._run(print_trials=True, *args, **kw))
 
-    @staticmethod
-    def ls(run, all=False, sourcecode=False, ignore_compiled_source=False):
+    def ls(self, run=None, all=False, sourcecode=False, ignore_compiled_source=False):
         # TODO: remove ignore_compiled_source for op2 promo
+        if not run:
+            runs = self.list_runs()
+            if not runs:
+                raise RuntimeError("no runs")
+            run = runs[0]
         def filter(path):
             default_select = (
                 all or

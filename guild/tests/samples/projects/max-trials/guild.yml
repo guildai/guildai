@@ -1,0 +1,11 @@
+op:
+  main: guild.pass
+  optimizers: [opt-1, opt-2]
+
+opt-1:
+  main: guild.pass
+
+opt-2:
+  main: guild.pass
+  flags:
+    max_trials: 5

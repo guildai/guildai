@@ -68,9 +68,10 @@ class Operation(oplib.Operation):
         self._op_flag_vals = {}
         self._flag_null_labels = {}
         self._op_cmd = None
-        self._op_cmd_run_attrs = None
+        self._op_cmd_run_attrs = {}
         self._python_requires = None
         self._random_seed = None
+        self._max_trials = None
         self._label_template = None
         self._label = None
         self._output_scalars = None
@@ -273,7 +274,9 @@ def _op_init_config_for_run(run, label_arg, op):
         op._label_template = label_arg
 
 def _op_init_config_for_opdef(opdef, label_arg, op):
-    op._op_cmd, op._op_cmd_run_attrs = _op_cmd_for_opdef(opdef)
+    op._op_cmd, run_attrs = _op_cmd_for_opdef(opdef)
+    if run_attrs:
+        op._op_cmd_run_attrs.update(run_attrs)
     op._flag_null_labels = _flag_null_labels_for_opdef(opdef)
     op._python_requires = _python_requires_for_opdef(opdef)
     op._label_template = label_arg or opdef.label
@@ -303,7 +306,7 @@ def _op_init_core(args, op):
     _op_init_opref(op)
     _op_init_cmd(args, op)
     _op_init_run_dir(args, op)
-    _op_init_run_label(op)
+    _op_init_label(op)
     _op_init_random_seed(args.random_seed, op)
     _op_init_deps(op)
     _op_init_run_attrs(args, op)
@@ -387,7 +390,7 @@ def _op_run_dir_for_args(args):
 # Op - run label
 # =================================================================
 
-def _op_init_run_label(op):
+def _op_init_label(op):
     op._label = op_util.run_label(
         op._label_template,
         op._user_flag_vals,
@@ -443,12 +446,13 @@ def _op_init_run_attrs(args, op):
     attrs["flags"] = op._op_flag_vals
     attrs["run_params"] = args.as_kw()
     attrs["random_seed"] = op._random_seed
+    if op._max_trials:
+        attrs["max_trials"] = op._max_trials
     attrs["host"] = util.hostname()
     attrs["user"] = util.user()
     attrs["platform"] = util.platform_info()
     attrs["op"] = _op_config_data(op)
-    if op._op_cmd_run_attrs:
-        attrs.update(op._op_cmd_run_attrs)
+    attrs.update(op._op_cmd_run_attrs)
 
 # =================================================================
 # Op - run callbacks
@@ -542,9 +546,8 @@ def _state_init_batch_op(S):
         _op_init_user_flags(S.args.opt_flags, S.batch_op)
         _op_init_op_flags(S.args, S.batch_op)
         _op_init_config(S.args.batch_label, S.batch_op)
+        _op_init_batch_config(S.args, S.batch_op)
         _op_init_core(S.args, S.batch_op)
-        _apply_batch_run_attrs(S.args, S.batch_op)
-        _apply_batch_cmd_env(S.args, S.batch_op)
 
 def _batch_op_init_run(S):
     if S.restart_run and S.restart_run.batch_proto:
@@ -629,15 +632,34 @@ def _check_opt_flags_for_missing_batch_opdef(S):
     if S.args.opt_flags and not (S.batch_op and S.batch_op._opdef):
         _opt_flags_for_missing_batch_opdef_error(S.args.opt_flags)
 
-def _apply_batch_run_attrs(args, op):
-    attrs = op.run_attrs
-    if args.max_trials:
-        attrs["max_trials"] = args.max_trials
+def _op_init_batch_config(args, op):
+    _op_init_max_trials(args, op)
+    _op_init_batch_cmd_run_attrs(args, op)
 
-def _apply_batch_cmd_env(args, op):
-    # TODO: rename to args.stage_trials when op2 promoted
+def _op_init_max_trials(args, op):
+    if op._run:
+        op._max_trials = args.max_trials or op._run.get("max_trials")
+    else:
+        op._max_trials = args.max_trials or _default_max_trials_for_op(op)
+
+def _default_max_trials_for_op(op):
+    if not op._opdef:
+        return None
+    return util.find_apply([
+        _max_trials_flag_default,
+        _default_max_trials_attr,
+    ], op._opdef)
+
+def _max_trials_flag_default(opdef):
+    flagdef = opdef.get_flagdef("max_trials")
+    return flagdef.default if flagdef else None
+
+def _default_max_trials_attr(opdef):
+    return getattr(opdef, "default_max_trials", None)
+
+def _op_init_batch_cmd_run_attrs(args, op):
     if args.init_trials:
-        op.cmd_env["STAGE_TRIALS"] = "1"
+        op._op_cmd_run_attrs["STAGE_TRIALS"] = "1"
 
 ###################################################################
 # Main
@@ -946,16 +968,25 @@ def _fmt_opref(opref):
     return opref.to_opspec(config.cwd())
 
 def _preview_batch_suffix(S):
-    # TODO include info about max trials
     if not S.batch_op:
         return ""
-    opt_name = S.batch_op.opref.to_opspec(config.cwd())
+    return "".join([
+        _batch_desc_preview_part(S.batch_op),
+        _max_trials_preview_part(S.batch_op)])
+
+def _batch_desc_preview_part(op):
+    opt_name = op.opref.to_opspec(config.cwd())
     if opt_name == "+":
         return " as a batch"
-    elif opt_name == "random":
+    elif opt_name in ("random", "skopt:random"):
         return " with random search"
     else:
         return " with '%s' optimizer" % opt_name
+
+def _max_trials_preview_part(op):
+    if not op._max_trials:
+        return ""
+    return " (max %i trials)" % op._max_trials
 
 def _preview_flags_note(S):
     if S.user_op._op_flag_vals and S.user_op._batch_trials:

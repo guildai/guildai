@@ -992,6 +992,7 @@ class OpDef(object):
             if val is not None or include_none:
                 yield name, val
 
+    # TODO: remove on op2 promote
     def set_flag_value(self, name, val):
         self._flag_vals[name] = val
 
@@ -1001,6 +1002,7 @@ class OpDef(object):
         except KeyError:
             return default
 
+    # TODO: remove on op2 promote
     def merge_flags(self, op):
         """Merges flags defined in op into self
 
@@ -1033,6 +1035,7 @@ class OpDef(object):
                 return flag
         return None
 
+    # TODO: remove on op2 promote - where/how used?
     def update_dependencies(self, opdef):
         self.dependencies.extend(opdef.dependencies)
 
@@ -1221,6 +1224,15 @@ def _coerce_opts_data(data, opdef):
         lambda: data.get("optimizers"),
         lambda: _coerce_single_optimizer(data.get("optimizer"), opdef),
         lambda: {}])
+    if isinstance(opts_data, list):
+        opts_data = { name: {} for name in opts_data }
+    elif isinstance(opts_data, dict):
+        pass
+    else:
+        raise GuildfileError(
+            opdef.modeldef.guildfile,
+            "invalid optimizer config %r: expected list or mapping"
+            % data)
     return {
         name: _coerce_opt_data_item(opt_data)
         for name, opt_data in opts_data.items()

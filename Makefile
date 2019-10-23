@@ -113,6 +113,7 @@ OP2-check:
 	-s step-checks \
 	-s steps \
 	\
+	-s batch-implied-random \
 	-s batch-random-optimizer \
 	-s batch-skopt \
 	-s batch-skopt2 \

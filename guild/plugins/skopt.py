@@ -15,7 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import os
 import yaml
 
 from guild import flag_util
@@ -32,9 +31,7 @@ class RandomOptimizerModelProxy(model_proxy.BatchModelProxy):
     op_name = "random"
     op_description = (
         "Batch processor supporting random flag value generation.")
-    module_name = (
-        "guild.plugins.random_main" if os.getenv("OS2") != "1"
-        else "guild.plugins.random_main2")
+    module_name = "guild.plugins.random_main"
     flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
 
 ###################################################################
