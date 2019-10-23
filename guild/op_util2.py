@@ -45,6 +45,7 @@ from .op_util import RunOutput              # pylint: disable=unused-import
 from .op_util import args_to_flags          # pylint: disable=unused-import
 from .op_util import coerce_flag_value      # pylint: disable=unused-import
 from .op_util import flags_desc             # pylint: disable=unused-import
+from .op_util import init_logging           # pylint: disable=unused-import
 from .op_util import mapped_flag_vals       # pylint: disable=unused-import
 from .op_util import opdef_model_paths      # pylint: disable=unused-import
 from .op_util import parse_flag_assigns     # pylint: disable=unused-import

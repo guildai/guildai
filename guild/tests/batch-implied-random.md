@@ -1,5 +1,7 @@
 # Batch runs - implied random optimizer
 
+TODO: delete once OP2-batch-random-optimizer os promoted.
+
 When a range is specified for a run without otherwise specifying an
 optimizer, Guild implicitly uses the 'random' optimizer.
 

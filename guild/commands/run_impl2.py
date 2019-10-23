@@ -542,6 +542,7 @@ def _state_init_batch_op(S):
     _batch_op_init_run(S)
     _batch_op_init_opdef(S)
     _check_opt_flags_for_missing_batch_opdef(S)
+    _check_batch_args_for_missing_batch_op(S)
     if S.batch_op:
         _op_init_user_flags(S.args.opt_flags, S.batch_op)
         _op_init_op_flags(S.args, S.batch_op)
@@ -631,6 +632,12 @@ def _batch_opspec_for_trials(trials):
 def _check_opt_flags_for_missing_batch_opdef(S):
     if S.args.opt_flags and not (S.batch_op and S.batch_op._opdef):
         _opt_flags_for_missing_batch_opdef_error(S.args.opt_flags)
+
+def _check_batch_args_for_missing_batch_op(S):
+    if S.batch_op:
+        return
+    if S.args.max_trials:
+        log.warning("not a batch run - ignoring --max-trials")
 
 def _op_init_batch_config(args, op):
     _op_init_max_trials(args, op)

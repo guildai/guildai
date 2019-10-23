@@ -51,6 +51,15 @@ def gen_trials(flags, _runs, max_trials=None, random_seed=None,
         for dim_vals in trial_vals
     ]
 
+def _gen_trial_vals(dims, num_trials, random_seed):
+    import skopt
+    res = skopt.dummy_minimize(
+        lambda *args: 0,
+        dims,
+        n_calls=num_trials,
+        random_state=random_seed)
+    return res.x_iters
+
 def _trial_flags(dim_names, dim_vals, base_flags):
     trial_flags = {}
     trial_flags.update(base_flags)
@@ -60,44 +69,6 @@ def _trial_flags(dim_names, dim_vals, base_flags):
 def _gen_batch_trials(flags, batch):
     trials = gen_trials(flags, None, batch.max_trials, batch.random_seed)
     return [t[0] for t in trials]
-
-def _flag_dims(flags):
-    dims = {
-        name: _flag_dim(val, name)
-        for name, val in flags.items()
-    }
-    names = sorted(dims)
-    return names, [dims[name] for name in names]
-
-def _flag_dim(val, flag_name):
-    if isinstance(val, list):
-        return val
-    try:
-        dist_name, min_max = flag_util.decode_flag_function(val)
-    except ValueError:
-        return [val]
-    else:
-        _validate_min_max(min_max, dist_name, flag_name)
-        return min_max
-
-def _validate_min_max(val, dist_name, flag_name):
-    if dist_name not in (None, "uniform"):
-        raise batch_util.BatchError(
-            "unsupported distribution %r for flag %s - must be 'uniform'"
-            % (dist_name, flag_name))
-    if len(val) != 2:
-        raise batch_util.BatchError(
-            "unexpected arguemt list %r for flag %s - expected 2 arguments"
-            % (val, flag_name))
-
-def _gen_trial_vals(dims, num_trials, random_seed):
-    import skopt
-    res = skopt.dummy_minimize(
-        lambda *args: 0,
-        dims,
-        n_calls=num_trials,
-        random_state=random_seed)
-    return res.x_iters
 
 def _patch_numpy_deprecation_warnings():
     warnings.filterwarnings("ignore", category=Warning)

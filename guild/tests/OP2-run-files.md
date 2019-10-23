@@ -175,6 +175,7 @@ Its files:
     .guild/attrs/host
     .guild/attrs/id
     .guild/attrs/initialized
+    .guild/attrs/max_trials
     .guild/attrs/op
     .guild/attrs/platform
     .guild/attrs/random_seed

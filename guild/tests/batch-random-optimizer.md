@@ -1,5 +1,7 @@
 # Batch runs - random optimizer
 
+TODO: delete once OP2-batch-random-optimizer os promoted.
+
 These tests illustrate the behavior of the random search optimizer.
 
 The random optimizer isn't technically an optimizer as it generates

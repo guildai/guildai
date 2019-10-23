@@ -178,6 +178,7 @@
     guild.plugins.skopt_gp_main
     guild.plugins.skopt_ipy
     guild.plugins.skopt_util
+    guild.plugins.skopt_util2
     guild.plugins.summary_util
     guild.plugins.training_pkg_main
     guild.publish
