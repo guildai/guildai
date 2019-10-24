@@ -97,7 +97,9 @@ OP2-check:
 	OP2=1 guild check -nT \
 	-s batch-basics \
 	-s batch-grid-search \
+	-s batch-implied-random \
 	-s batch-needed \
+	-s batch-random-optimizer \
 	-s batch-random-seeds \
 	-s batch-restart \
 	-s batch-save-trials \
@@ -113,8 +115,6 @@ OP2-check:
 	-s step-checks \
 	-s steps \
 	\
-	-s batch-implied-random \
-	-s batch-random-optimizer \
 	-s batch-skopt \
 	-s batch-skopt2 \
 	-s skopt
