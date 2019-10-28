@@ -22,9 +22,7 @@ import random
 
 from guild import _api as gapi
 from guild import index2 as indexlib
-from guild import op2 as oplib
 from guild import op_util2 as op_util
-from guild import run as runlib
 from guild import run_util
 from guild import util
 from guild import var

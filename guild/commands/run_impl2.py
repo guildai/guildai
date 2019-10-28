@@ -513,7 +513,7 @@ def _op_init_callbacks_for_opdef(opdef, op):
 def _copy_sourcecode_cb_for_opdef(opdef):
     sourcecode_src = opdef.guildfile.dir
     sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
-    def f(op, run):
+    def f(_op, run):
         _copy_run_sourcecode(sourcecode_src, sourcecode_select, run)
         _write_run_sourcecode_digest(run)
     return f
@@ -568,7 +568,7 @@ def _batch_op_init_opdef(S):
         # user flags until we know we have a batch op, which is
         # determined in part by this function.
         if S.args.opt_flags:
-            op.batch_op._opdef = _opdef_for_run(op._run)
+            S.batch_op._opdef = _opdef_for_run(S.batch_op._run)
     elif S.user_op._opdef:
         _batch_op_init_for_opdef(S.user_op._opdef, S)
 
@@ -1147,7 +1147,7 @@ def _print_stage_pending_instructions(run):
 
 def _run_op(op, args, extra_env=None):
     try:
-        run, exit_status = oplib.run(
+        _, exit_status = oplib.run(
             op,
             quiet=args.quiet,
             extra_env=extra_env)
@@ -1156,9 +1156,9 @@ def _run_op(op, args, extra_env=None):
     except oplib.ProcessError as e:
         _op_process_error(op, e)
     else:
-        _handle_run_exit(run, exit_status)
+        _handle_run_exit(exit_status)
 
-def _handle_run_exit(run, exit_status):
+def _handle_run_exit(exit_status):
     if exit_status != 0:
         cli.error(exit_status=exit_status)
 

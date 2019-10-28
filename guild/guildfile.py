@@ -1225,7 +1225,7 @@ def _coerce_opts_data(data, opdef):
         lambda: _coerce_single_optimizer(data.get("optimizer"), opdef),
         lambda: {}])
     if isinstance(opts_data, list):
-        opts_data = { name: {} for name in opts_data }
+        opts_data = {name: {} for name in opts_data}
     elif isinstance(opts_data, dict):
         pass
     else:

@@ -20,7 +20,6 @@ import os
 import warnings
 
 from guild import batch_util
-from guild import flag_util
 from guild import op_util
 
 from . import skopt_util

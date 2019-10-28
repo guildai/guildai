@@ -23,7 +23,6 @@ import time
 
 from guild import config
 from guild import exit_code
-from guild import op_cmd as op_cmd_lib
 from guild import op_dep
 from guild import op_util2 as op_util
 from guild import run as runlib
@@ -195,13 +194,14 @@ def _output_summary_for_run(run, op):
 
 class _RunOutput(object):
 
-    def __init__(self, *args):
+    def __init__(self, run, *args):
         self._output = None
-        self._args = args
+        self._run = run
+        self._test_init_args = args
 
     def __enter__(self):
         if os.getenv("NO_RUN_OUTPUT_CAPTURE") != "1":
-            self._output = op_util.RunOutput(*self._args)
+            self._output = op_util.RunOutput(self._run, *self._rest_init_args)
 
     def __exit__(self, *_exc):
         if self._output:

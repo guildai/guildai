@@ -23,7 +23,8 @@ import six
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=Warning)
-    import numpy.core.umath_tests
+    # Preemptively import to generate warnings under catch.
+    import numpy.core.umath_tests  # pylint: disable=unused-import
 
 import skopt
 
@@ -246,7 +247,7 @@ def _trials_xy_for_prev_trials(prev_trials, names, objective_negate):
     for flags, y_scalars in prev_trials:
         assert len(y_scalars) == 1
         x0.append([flags.get(name) for name in names])
-        y0.append(y_scalars[0])
+        y0.append(objective_negate * y_scalars[0])
     return x0, y0
 
 def _suggest_random_start(x0, runs_count, wanted_random_starts):
@@ -279,9 +280,9 @@ def _suggest_x(suggest_x_cb, dims, x0, y0, suggest_random_start,
 def _apply_initial_x(initial_x, runs_count, target_x):
     if runs_count == 0:
         assert len(initial_x) == len(target_x)
-        for i in range(len(target_x)):
-            if initial_x[i] is not None:
-                target_x[i] = initial_x[i]
+        for i, x in enumerate(target_x):
+            if x is not None:
+                target_x[i] = x
 
 def _trial_flags_for_x(x, names, proto_flag_vals):
     flags = dict(proto_flag_vals)
