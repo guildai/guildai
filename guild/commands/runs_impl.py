@@ -93,6 +93,11 @@ CORE_RUN_ATTRS = [
     "user",
 ]
 
+LEGACY_RUN_ATTRS = [
+    "deps",
+    "opdef",
+]
+
 RUNS_PER_GROUP = 20
 
 FILTERABLE = [
@@ -600,10 +605,11 @@ def _append_attr_data(run, include_private, data):
         data.append(("opref", str(run.opref)))
 
 def other_attr_names(run, include_private=False):
+    core_attrs = CORE_RUN_ATTRS + LEGACY_RUN_ATTRS
     if include_private:
-        include = lambda x: x not in CORE_RUN_ATTRS
+        include = lambda x: x not in core_attrs
     else:
-        include = lambda x: x[0] != "_" and x not in CORE_RUN_ATTRS
+        include = lambda x: x[0] != "_" and x not in core_attrs
     return [name for name in sorted(run.attr_names()) if include(name)]
 
 def _scalar_info(run, args):
