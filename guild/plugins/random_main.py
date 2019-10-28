@@ -77,7 +77,7 @@ def _patch_numpy_deprecation_warnings():
 
 if __name__ == "__main__":
     if os.getenv("OP2") == "1":
-        from guild.plugins import random_main2
+        from . import random_main2
         random_main2.main()
     else:
         _patch_numpy_deprecation_warnings()

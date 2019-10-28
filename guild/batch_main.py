@@ -25,13 +25,12 @@ from guild import op_util
 
 def main():
     op_util.init_logging()
-    proto_run = batch_util.proto_run()
-    trials = _batch_trials(proto_run)
-    batch_util.handle_trials(proto_run, trials)
-
-def _batch_trials(proto_run):
-    all_trials = batch_util.batch_trials_for_proto_run(proto_run)
     batch_run = batch_util.batch_run()
+    trials = _batch_trials(batch_run)
+    batch_util.handle_trials(batch_run, trials)
+
+def _batch_trials(batch_run):
+    all_trials = batch_util.expanded_batch_trials(batch_run)
     return batch_util.sample_trials(
         all_trials,
         batch_run.get("max_trials"),

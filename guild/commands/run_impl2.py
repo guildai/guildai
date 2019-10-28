@@ -72,6 +72,7 @@ class Operation(oplib.Operation):
         self._python_requires = None
         self._random_seed = None
         self._max_trials = None
+        self._objective = None
         self._label_template = None
         self._label = None
         self._output_scalars = None
@@ -448,6 +449,8 @@ def _op_init_run_attrs(args, op):
     attrs["random_seed"] = op._random_seed
     if op._max_trials:
         attrs["max_trials"] = op._max_trials
+    if op._objective:
+        attrs["objective"] = op._objective
     attrs["host"] = util.hostname()
     attrs["user"] = util.user()
     attrs["platform"] = util.platform_info()
@@ -641,6 +644,7 @@ def _check_batch_args_for_missing_batch_op(S):
 
 def _op_init_batch_config(args, op):
     _op_init_max_trials(args, op)
+    _op_init_objective(args, op)
     _op_init_batch_cmd_run_attrs(args, op)
 
 def _op_init_max_trials(args, op):
@@ -663,6 +667,13 @@ def _max_trials_flag_default(opdef):
 
 def _default_max_trials_attr(opdef):
     return getattr(opdef, "default_max_trials", None)
+
+def _op_init_objective(args, op):
+    assert not (args.minimize and args.maximize)
+    if args.minimize:
+        op._objective = args.minimize
+    elif args.maximize:
+        op._objective = "-" + args.maximize
 
 def _op_init_batch_cmd_run_attrs(args, op):
     if args.init_trials:
@@ -923,9 +934,15 @@ def _print_trials(S):
 def _save_trials(S):
     if not S.batch_op:
         _save_trials_for_non_batch_error()
-    path = os.path.join(config.cwd(), S.args.save_trials)
-    cli.out("Saving trials to %s" % path)
+    path = _save_trials_path(S.args.save_trials)
+    cli.out("Saving trials to %s" % util.format_dir(path))
     _run_tmp_batch(S, {"SAVE_TRIALS": path})
+
+def _save_trials_path(save_trials_arg):
+    cwd = config.cwd()
+    return (
+        os.path.join(cwd, save_trials_arg) if cwd not in (".", "")
+        else save_trials_arg)
 
 ###################################################################
 # Run

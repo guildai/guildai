@@ -15,10 +15,16 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
+import sys
+
 from guild import util
 
 from . import skopt_ipy
 from . import skopt_util
+
+import logging
+log = logging.getLogger("guild")
 
 def gen_trials(flags, runs, random_starts=0, acq_func="gp_hedge",
                kappa=1.96, xi=0.01, noise="gaussian", label=None,
@@ -55,4 +61,11 @@ def _init_trial(trial, state):
     return state.next_trial_flags()
 
 if __name__ == "__main__":
-    skopt_util.default_main(_init_trial)
+    if os.getenv("OP2") == "1":
+        from . import skopt_gp_main2
+        try:
+            skopt_gp_main2.main()
+        except KeyboardInterrupt:
+            sys.exit(1)
+    else:
+        skopt_util.default_main(_init_trial, non_repeating=True)

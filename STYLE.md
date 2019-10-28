@@ -253,3 +253,21 @@ If they return a different state, they should be named `yyy_for_xxx`
 where `yyy` is the state type.
 
 Avoid `from_xxx`.
+
+## Named tuples
+
+Avoid using named tuples and instead use classes. As with other
+classes (see above) they should not have methods.
+
+Note that this convention conflicts with some integral structures in
+Guild, not the least of which is OpRefs. It's not clear that moving
+from this:
+
+    run.opref.to_opspec()
+
+to this:
+
+    opreflib.to_opspec(run.opref)
+
+provides any value. It may likely be that simple methods like this are
+preferred to functions.

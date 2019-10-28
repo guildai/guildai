@@ -16,7 +16,8 @@ from __future__ import absolute_import
 from __future__ import division
 
 import logging
-import sys
+
+import skopt
 
 from guild import batch_util2 as batch_util
 from guild import op_util2 as op_util
@@ -25,30 +26,22 @@ from . import skopt_util2 as skopt_util
 
 log = logging.getLogger("guild")
 
-DEFAULT_MAX_TRIALS = 20
-
 def main():
     op_util.init_logging()
     batch_run = batch_util.batch_run()
-    trials = _batch_trials(batch_run)
-    batch_util.handle_trials(batch_run, trials)
+    skopt_util.handle_seq_trials(batch_run, _suggest_x)
 
-def _batch_trials(batch_run):
-    proto_flag_vals = batch_run.batch_proto.get("flags")
-    batch_run = batch_util.batch_run()
-    max_trials = batch_run.get("max_trials") or DEFAULT_MAX_TRIALS
-    random_seed = batch_run.get("random_seed")
-    try:
-        return skopt_util.random_trials_for_flags(
-            proto_flag_vals, max_trials, random_seed)
-    except skopt_util.MissingSearchDimension as e:
-        skopt_util.missing_search_dim_error(proto_flag_vals)
-    except skopt_util.InvalidSearchDimension as e:
-        _search_dim_error(e)
-
-def _search_dim_error(e):
-    log.error(str(e))
-    sys.exit(1)
-
-if __name__ == "__main__":
-    main()
+def _suggest_x(dims, x0, y0, random_start, random_state, opts):
+    res = skopt.gp_minimize(
+        lambda *args: 0,
+        dims,
+        n_calls=1,
+        n_random_starts=1 if random_start else 0,
+        x0=x0,
+        y0=y0,
+        random_state=random_state,
+        acq_func=opts["acq-func"],
+        kappa=opts["kappa"],
+        xi=opts["xi"],
+        noise=opts["noise"])
+    return res.x_iters[-1], res.random_state

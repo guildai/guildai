@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
+import os
 import warnings
 
 import six
@@ -25,19 +27,27 @@ with warnings.catch_warnings():
 
 import skopt
 
+from guild import batch_util2 as batch_util
 from guild import flag_util
+from guild import op_util2 as op_util
+from guild import query as qparse
+
+log = logging.getLogger("guild")
+
+DEFAULT_MAX_TRIALS = 20
+DEFAULT_OBJECTIVE = "loss"
 
 ###################################################################
 # Exceptions
 ###################################################################
 
-class NoSearchDimensionError(Exception):
+class MissingSearchDimension(Exception):
 
     def __init__(self, flag_vals):
-        super(NoSearchDimensionError, self).__init__(flag_vals)
+        super(MissingSearchDimension, self).__init__(flag_vals)
         self.flag_vals = flag_vals
 
-class SearchDimensionError(Exception):
+class InvalidSearchDimension(Exception):
     pass
 
 ###################################################################
@@ -47,7 +57,7 @@ class SearchDimensionError(Exception):
 def random_trials_for_flags(flag_vals, count, random_seed=None):
     names, dims, _initials = flag_dims(flag_vals)
     if not names:
-        raise NoSearchDimensionError(flag_vals)
+        raise MissingSearchDimension(flag_vals)
     trials = _trials_for_dims(dims, names, count, random_seed)
     _apply_missing_flag_vals(flag_vals, trials)
     return trials
@@ -131,7 +141,7 @@ def _function_dim(func_name, args, flag_name):
     elif func_name == "loguniform":
         return _real_dim(args, "log-uniform", func_name, flag_name)
     else:
-        raise SearchDimensionError(
+        raise InvalidSearchDimension(
             "unknown function '%s' used for flag %s"
             % (func_name, flag_name))
 
@@ -152,6 +162,151 @@ def _dim_args_and_initial(args, func_name, flag_name):
     elif len(args) == 3:
         return args[:2], args[2]
     else:
-        raise SearchDimensionError(
+        raise InvalidSearchDimension(
             "%s requires 2 or 3 args, got %s for flag %s"
             % (func_name, args, flag_name))
+
+###################################################################
+# Sequential trials support
+###################################################################
+
+def handle_seq_trials(batch_run, suggest_x_cb):
+    if os.getenv("PRINT_TRIALS_CMD") == "1":
+        _print_trials_cmd_not_supported_error()
+    elif os.getenv("PRINT_TRIALS") == "1":
+        _print_trials_not_supported_error()
+    elif os.getenv("SAVE_TRIALS"):
+        _save_trials_not_supported_error()
+    else:
+        _run_seq_trials(batch_run, suggest_x_cb)
+
+def _run_seq_trials(batch_run, suggest_x_cb):
+    proto_flag_vals = batch_run.batch_proto.get("flags")
+    batch_flag_vals = suggest_opts = batch_run.get("flags")
+    max_trials = batch_run.get("max_trials") or DEFAULT_MAX_TRIALS
+    names, dims, initial_x = _flag_dims_for_search(proto_flag_vals)
+    random_state = batch_run.get("random_seed")
+    random_starts = min(
+        batch_flag_vals.get("random-starts") or 0,
+        max_trials)
+    objective_scalar, objective_negate = _objective_y_info(proto_flag_vals)
+    runs = 0
+    for _ in range(max_trials):
+        prev_trials = batch_util.trial_results(batch_run, [objective_scalar])
+        x0, y0 = _trials_xy_for_prev_trials(
+            prev_trials, names, objective_negate)
+        suggest_random_start = _suggest_random_start(x0, runs, random_starts)
+        _log_seq_trial(suggest_random_start, random_starts, runs, prev_trials)
+        suggested_x, random_state = _suggest_x(
+            suggest_x_cb,
+            dims, x0, y0,
+            suggest_random_start,
+            random_state,
+            suggest_opts)
+        _apply_initial_x(initial_x, runs, suggested_x)
+        trial_flag_vals = _trial_flags_for_x(
+            suggested_x, names, proto_flag_vals)
+        batch_util.run_trial(batch_run, trial_flag_vals)
+        runs += 1
+
+def _flag_dims_for_search(proto_flag_vals):
+    names, dims, initial_x = flag_dims(proto_flag_vals)
+    if not names:
+        # Terminal error rather than raise exception because we're in
+        # a top-level handler.
+        missing_search_dim_error(proto_flag_vals)
+    return names, dims, initial_x
+
+def _objective_y_info(batch_run):
+    objective = batch_run.get("objective") or DEFAULT_OBJECTIVE
+    if objective[0] == "-":
+        objective = objective[1:]
+        y_negate = -1
+    else:
+        y_negate = 1
+    try:
+        colspec = qparse.parse_colspec(objective)
+    except qparse.ParseError as e:
+        raise Exception("yo it went terrible (move to proper "
+                        "exception): %s" % e)
+    else:
+        if len(colspec.cols) > 1:
+            raise Exception("too many cols to optimize - "
+                            "convert to sensible exception yo")
+        col = colspec.cols[0]
+        prefix, key = col.split_key()
+        y_scalar_col = (prefix, key, col.qualifier)
+        return y_scalar_col, y_negate
+
+def _trials_xy_for_prev_trials(prev_trials, names, objective_negate):
+    if not prev_trials:
+        return None, None
+    x0 = []
+    y0 = []
+    for flags, y_scalars in prev_trials:
+        assert len(y_scalars) == 1
+        x0.append([flags.get(name) for name in names])
+        y0.append(y_scalars[0])
+    return x0, y0
+
+def _suggest_random_start(x0, runs_count, wanted_random_starts):
+    return x0 is None or runs_count < wanted_random_starts
+
+def _log_seq_trial(suggest_random_start, random_starts, runs, prev_trials):
+    if suggest_random_start:
+        assert random_starts != 0
+        log.info(
+            "Random start for optimization (%s of %s)",
+            runs + 1, random_starts)
+    else:
+        log.info(
+            "Found %i previous trial(s) for use in optimization",
+            len(prev_trials))
+
+def _suggest_x(suggest_x_cb, dims, x0, y0, suggest_random_start,
+               random_state, suggest_opts):
+    log.debug(
+        "suggestion inputs: dims=%s x0=%s y0=%s "
+        "random_start=%s random_state=%s opts=%s",
+        dims, x0, y0, suggest_random_start, random_state,
+        suggest_opts)
+    return suggest_x_cb(
+        dims, x0, y0,
+        suggest_random_start,
+        random_state,
+        suggest_opts)
+
+def _apply_initial_x(initial_x, runs_count, target_x):
+    if runs_count == 0:
+        assert len(initial_x) == len(target_x)
+        for i in range(len(target_x)):
+            if initial_x[i] is not None:
+                target_x[i] = initial_x[i]
+
+def _trial_flags_for_x(x, names, proto_flag_vals):
+    flags = dict(proto_flag_vals)
+    flags.update(dict(zip(names, _native_python_xs(x))))
+    return flags
+
+###################################################################
+# Error handlers
+###################################################################
+
+def missing_search_dim_error(flag_vals):
+    log.error(
+        "flags for batch (%s) do not contain any search dimensions\n"
+        "Try specifying a range for one or more flags as NAME=[MIN:MAX].",
+        op_util.flags_desc(flag_vals))
+    raise SystemExit(1)
+
+def _print_trials_cmd_not_supported_error():
+    log.error("optimizer does not support printing trials command")
+    raise SystemExit(1)
+
+def _print_trials_not_supported_error():
+    log.error("optimizer does not support printing trials")
+    raise SystemExit(1)
+
+def _save_trials_not_supported_error():
+    log.error("optimizer does not support saving trials")
+    raise SystemExit(1)

@@ -176,6 +176,7 @@
     guild.plugins.skopt_forest_main
     guild.plugins.skopt_gbrt_main
     guild.plugins.skopt_gp_main
+    guild.plugins.skopt_gp_main2
     guild.plugins.skopt_ipy
     guild.plugins.skopt_util
     guild.plugins.skopt_util2

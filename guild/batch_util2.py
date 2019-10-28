@@ -21,6 +21,7 @@ import os
 import random
 
 from guild import _api as gapi
+from guild import index2 as indexlib
 from guild import op2 as oplib
 from guild import op_util2 as op_util
 from guild import run as runlib
@@ -38,23 +39,23 @@ class CurrentRunNotBatchError(Exception):
     pass
 
 ###################################################################
-# Handle trials
+# Handle trials - run, print, save
 ###################################################################
 
-def handle_trials(proto_run, trials):
+def handle_trials(batch_run, trials):
     if os.getenv("PRINT_TRIALS_CMD") == "1":
-        _print_trials_cmd(proto_run, trials)
+        _print_trials_cmd(batch_run, trials)
     elif os.getenv("PRINT_TRIALS") == "1":
         _print_trials(trials)
     elif os.getenv("SAVE_TRIALS"):
         _save_trials(trials, os.getenv("SAVE_TRIALS"))
     else:
-        _run_trials(proto_run, trials)
+        _run_trials(batch_run, trials)
 
-def _print_trials_cmd(proto_run, trials):
+def _print_trials_cmd(batch_run, trials):
     for trial in trials:
         with util.TempDir() as tmp:
-            run = _init_trial_run(proto_run, trial, tmp.path)
+            run = _init_trial_run(batch_run, trial, tmp.path)
             run_impl.run(start=run.dir, print_cmd=True)
 
 def _print_trials(trials):
@@ -64,22 +65,30 @@ def _print_trials(trials):
 def _save_trials(trials, path):
     op_util.save_trials(trials, path)
 
-def _run_trials(proto_run, trials):
-    runs = _init_trial_runs(proto_run, trials)
+def _run_trials(batch_run, trials):
+    runs = _init_trial_runs(batch_run, trials)
     stage = os.getenv("STAGE_TRIALS") == "1"
     for run in runs:
         _start_trial_run(run, stage)
 
-def _init_trial_runs(proto_run, trials):
-    return [_init_trial_run(proto_run, trial) for trial in trials]
+def _init_trial_runs(batch_run, trials):
+    return [_init_trial_run(batch_run, trial) for trial in trials]
 
-def _init_trial_run(proto_run, trial_flag_vals, run_dir=None):
+def _init_trial_run(batch_run, trial_flag_vals, run_dir=None):
     run = op_util.init_run(run_dir)
+    _link_to_trial(batch_run, run)
+    proto_run = batch_run.batch_proto
     util.copytree(proto_run.dir, run.dir)
     run.write_attr("flags", trial_flag_vals)
     run.write_attr("label", _trial_label(proto_run, trial_flag_vals))
     op_util.set_run_staged(run)
     return run
+
+def _link_to_trial(batch_run, trial_run):
+    trial_link = os.path.join(batch_run.dir, trial_run.id)
+    rel_trial_path = os.path.relpath(trial_run.dir, os.path.dirname(trial_link))
+    util.ensure_deleted(trial_link)
+    os.symlink(rel_trial_path, trial_link)
 
 def _trial_label(proto_run, trial_flag_vals):
     user_flag_vals = {
@@ -89,7 +98,7 @@ def _trial_label(proto_run, trial_flag_vals):
     label_template = (proto_run.get("op") or {}).get("label_template")
     return op_util.run_label(label_template, user_flag_vals, trial_flag_vals)
 
-def _start_trial_run(run, stage):
+def _start_trial_run(run, stage=False):
     _log_start_trial(run, stage)
     run_impl.run(start=run.id, stage=stage)
 
@@ -115,6 +124,10 @@ def _trial_flags_desc(run):
     }
     return op_util.flags_desc(flags)
 
+def run_trial(batch_run, flag_vals):
+    run = _init_trial_run(batch_run, flag_vals)
+    _start_trial_run(run)
+
 ###################################################################
 # Utils
 ###################################################################
@@ -128,11 +141,6 @@ def batch_run():
         raise CurrentRunNotBatchError("missing proto %s" % proto_path)
     return current_run
 
-def proto_run():
-    proto_path = batch_run().guild_path("proto")
-    assert os.path.exists(proto_path)
-    return runlib.Run("__proto__", proto_path)
-
 def expand_flags(flag_vals):
     flags_list = [
         _expand_flag(name, val)
@@ -145,10 +153,10 @@ def _expand_flag(name, val):
         return [(name, x) for x in val]
     return [(name, val)]
 
-def batch_trials_for_proto_run(run=None):
-    run = run or proto_run()
-    flag_vals = run.get("flags") or {}
-    trials = run.get("trials")
+def expanded_batch_trials(batch_run):
+    proto_run = batch_run.batch_proto
+    flag_vals = proto_run.get("flags") or {}
+    trials = proto_run.get("trials")
     if trials:
         return expand_flags_with_trials(flag_vals, trials)
     return expand_flags(flag_vals)
@@ -173,3 +181,29 @@ def sample_trials(trials, count=None, random_seed=None):
     # Sample indices and re-sort to preserve original trial order.
     sampled_i = random.sample(range(len(trials)), count)
     return [trials[i] for i in sorted(sampled_i)]
+
+def trial_results(batch_run, scalars):
+    results = []
+    runs = trial_runs(batch_run)
+    index = _run_index_for_scalars(runs)
+    for run in runs:
+        results.append((
+            run.get("flags"),
+            _result_scalars(run, scalars, index)
+        ))
+    return results
+
+def trial_runs(batch_run):
+    return var.runs(batch_run.dir, sort=["timestamp"])
+
+def _run_index_for_scalars(runs):
+    index = indexlib.RunIndex()
+    index.refresh(runs, ["scalar"])
+    return index
+
+def _result_scalars(run, scalars, index):
+    return [_run_scalar(run, scalar, index) for scalar in scalars]
+
+def _run_scalar(run, scalar, index):
+    prefix, tag, qualifier = scalar
+    return index.run_scalar(run, prefix, tag, qualifier, False)

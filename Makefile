@@ -111,10 +111,10 @@ OP2-check:
 	-s restart-runs \
 	-s run-files \
 	-s run-labels \
+	-s skopt \
 	-s sourcecode-digest \
 	-s step-checks \
 	-s steps \
 	\
 	-s batch-skopt \
-	-s batch-skopt2 \
-	-s skopt
+	-s batch-skopt2

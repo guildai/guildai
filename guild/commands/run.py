@@ -89,7 +89,7 @@ def run_params(fn):
             metavar="FLAG=VAL", multiple=True,
             help="Flag for OPTIMIZER. May be used multiple times."),
         click.Option(
-            ("-m", "--max-trials",), metavar="N", type=int,
+            ("-m", "--max-trials",), metavar="N", type=click.IntRange(1, None),
             help=(
                 "Maximum number of trials to run in batch operations. "
                 "Default is optimizer specific. If optimizer is not "

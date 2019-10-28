@@ -214,6 +214,7 @@ Its files:
     .guild/proto/.guild/sourcecode/invalid-item.yaml
     .guild/proto/.guild/sourcecode/say.py
     .guild/proto/.guild/sourcecode/tune.py
+    ...
 
 Note the additional `proto` directory. This contains the prototype for
 the `say.py` operation, which is used by the batch operation to

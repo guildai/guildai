@@ -170,8 +170,12 @@ class SeqTrial(Trial):
         initialization after the default init process.
         """
         result = self.init_trial_cb(self, self.state)
-        assert isinstance(result, tuple) and len(result) == 2
-        self.flags, self.attrs = result
+        if isinstance(result, tuple) and len(result) == 2:
+            self.flags, self.attrs = result
+        else:
+            assert isinstance(result, dict), result
+            self.flags = result
+            self.attrs = {}
         super(SeqTrial, self).init(run_dir, quiet)
 
 class SeqState(object):
