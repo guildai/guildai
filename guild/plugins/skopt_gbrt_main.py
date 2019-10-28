@@ -15,6 +15,8 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
+
 from guild import util
 
 from . import skopt_ipy
@@ -50,4 +52,11 @@ def _init_trial(trial, state):
     return state.next_trial_flags()
 
 if __name__ == "__main__":
-    skopt_util.default_main(_init_trial)
+    if os.getenv("OP2") == "1":
+        from . import skopt_gbrt_main2
+        try:
+            skopt_gbrt_main2.main()
+        except KeyboardInterrupt:
+            sys.exit(1)
+    else:
+        skopt_util.default_main(_init_trial, non_repeating=True)

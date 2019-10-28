@@ -73,24 +73,16 @@ View unique values for the other runs.
 
 Run five trials with search over all flags.
 
-    >>> project.run("echo.py", optimizer="random", max_trials=5,
+    >>> project.run("echo.py", optimizer="random", max_trials=10,
     ...             flags={"x": "[1:100]",
     ...                    "y": "[-99.99:99.99]",
     ...                    "z": ["a", "b", "c"]})
     INFO: [guild] Running trial ...: echo.py (...)
     ...
-    INFO: [guild] Running trial ...: echo.py (...)
-    ...
-    INFO: [guild] Running trial ...: echo.py (...)
-    ...
-    INFO: [guild] Running trial ...: echo.py (...)
-    ...
-    INFO: [guild] Running trial ...: echo.py (...)
-    ...
 
     >>> runs = project.list_runs()
     >>> len(runs)
-    6
+    11
 
 The first run is the batch.
 
@@ -109,7 +101,7 @@ View unique values for the other runs.
     {'x': '<multiple>', 'y': '<multiple>', 'z': '<multiple>'}
 
     >>> project.delete_runs()
-    Deleted 6 run(s)
+    Deleted 11 run(s)
 
 ## Implicit random optimizer
 

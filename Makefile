@@ -86,23 +86,19 @@ commit-check:
 README.html: README.md
 	markdown_py README.md > README.html
 
-# TODO Remove once OP2 is promoted
-#
-# The first list of skipped tests should be skipped because each is
-# superceded by an OP2-xxx test. Tests in the second list should be
-# fixed or replaced with the appropriate OP2-xxx test so that the list
-# is eventually empty.
-#
 OP2-check:
 	OP2=1 guild check -nT \
 	-s batch-basics \
 	-s batch-grid-search \
 	-s batch-implied-random \
 	-s batch-needed \
+	-s batch-print-cmd \
 	-s batch-random-optimizer \
 	-s batch-random-seeds \
 	-s batch-restart \
 	-s batch-save-trials \
+	-s batch-skopt \
+	-s batch-skopt2 \
 	-s copy-sourcecode-warnings \
 	-s cross-package-inheritance \
 	-s dependencies-2 \
@@ -114,7 +110,4 @@ OP2-check:
 	-s skopt \
 	-s sourcecode-digest \
 	-s step-checks \
-	-s steps \
-	\
-	-s batch-skopt \
-	-s batch-skopt2
+	-s steps

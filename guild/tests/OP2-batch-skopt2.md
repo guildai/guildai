@@ -34,12 +34,14 @@ Running with fixed args (i.e. no search ranges).
 
     >>> run("forest")
     ERROR: [guild] flags for batch (b=yes, f=2.0, i=3, s=hello) do
-    not contain any search dimension - quitting
+    not contain any search dimensions
+    Try specifying a range for one or more flags as NAME=[MIN:MAX].
     <exit 1>
 
     >>> run("gbrt")
     ERROR: [guild] flags for batch (b=yes, f=2.0, i=3, s=hello) do
-    not contain any search dimension - quitting
+    not contain any search dimensions
+    Try specifying a range for one or more flags as NAME=[MIN:MAX].
     <exit 1>
 
 Running with a single category for `i`:

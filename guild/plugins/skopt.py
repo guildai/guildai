@@ -113,7 +113,7 @@ class ForestOptimizerModelProxy(model_proxy.BatchModelProxy):
     flags_data = yaml.safe_load("""
 random-starts:
   description: Number of trials using random values before optimizing
-  default: 0
+  default: 3
   type: int
 kappa:
   description:
@@ -148,7 +148,7 @@ class GBRTOptimizerModelProxy(model_proxy.BatchModelProxy):
     flags_data = yaml.safe_load("""
 random-starts:
   description: Number of trials using random values before optimizing
-  default: 0
+  default: 3
   type: int
 kappa:
   description:

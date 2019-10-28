@@ -174,7 +174,9 @@
     guild.plugins.random_main2
     guild.plugins.skopt
     guild.plugins.skopt_forest_main
+    guild.plugins.skopt_forest_main2
     guild.plugins.skopt_gbrt_main
+    guild.plugins.skopt_gbrt_main2
     guild.plugins.skopt_gp_main
     guild.plugins.skopt_gp_main2
     guild.plugins.skopt_ipy

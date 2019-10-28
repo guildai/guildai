@@ -107,7 +107,8 @@ Range without an initial value:
 
 Range with an initial value and opt flags:
 
-    >>> run("forest", "[-2.0:2.0:0.3]", 2, {"kappa": 1.3, "xi": 0.3})
+    >>> run("forest", "[-2.0:2.0:0.3]", 2, {"kappa": 1.3, "xi": 0.3,
+    ...                                     "random-starts": "0"})
     Found 0 previous trial(s) for use in optimization
     Initialized trial (noise=0.1, x=0.3)
     Running trial: noisy.py (noise=0.1, x=0.3)
@@ -130,7 +131,7 @@ Our trials:
     noisy.py         noise=0.1 x=...                     completed
     noisy.py         noise=0.1 x=...                     completed
     noisy.py         noise=0.1 x=...                     completed
-    noisy.py+forest  kappa=1.96 random-starts=0 xi=0.01  completed
+    noisy.py+forest  kappa=1.96 random-starts=3 xi=0.01  completed
 
 Cleanup for next tests:
 
@@ -157,7 +158,8 @@ Range without an initial value and an opt flag:
 
 Range with an initial value and opt flags:
 
-    >>> run("gbrt", "[-2.0:2.0:0.4]", 3, {"kappa": 1.4, "xi": 0.4})
+    >>> run("gbrt", "[-2.0:2.0:0.4]", 3, {"kappa": 1.4, "xi": 0.4,
+    ...                                   "random-starts": 0})
     Found 0 previous trial(s) for use in optimization
     Initialized trial (noise=0.1, x=0.4)
     Running trial: noisy.py (noise=0.1, x=0.4)
