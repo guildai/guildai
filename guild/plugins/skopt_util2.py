@@ -56,20 +56,23 @@ class InvalidSearchDimension(Exception):
 ###################################################################
 
 def random_trials_for_flags(flag_vals, count, random_seed=None):
-    names, dims, _initials = flag_dims(flag_vals)
+    names, dims, initial_x = flag_dims(flag_vals)
     if not names:
         raise MissingSearchDimension(flag_vals)
-    trials = _trials_for_dims(dims, names, count, random_seed)
+    trials = _trials_for_dims(names, dims, initial_x, count, random_seed)
     _apply_missing_flag_vals(flag_vals, trials)
     return trials
 
-def _trials_for_dims(dims, names, num_trials, random_seed):
+def _trials_for_dims(names, dims, initial_x, num_trials, random_seed):
     res = skopt.dummy_minimize(
         lambda *args: 0,
         dims,
         n_calls=num_trials,
         random_state=random_seed)
-    return [dict(zip(names, _native_python_xs(xs))) for xs in res.x_iters]
+    trials_xs = res.x_iters
+    if trials_xs:
+        _apply_initial_x(initial_x, trials_xs[0])
+    return [dict(zip(names, _native_python_xs(xs))) for xs in trials_xs]
 
 def _native_python_xs(xs):
     def pyval(x):
@@ -78,6 +81,12 @@ def _native_python_xs(xs):
         except AttributeError:
             return x
     return [pyval(x) for x in xs]
+
+def _apply_initial_x(initial_x, target_x):
+    assert len(initial_x) == len(target_x)
+    for i, x in enumerate(initial_x):
+        if x is not None:
+            target_x[i] = x
 
 def _apply_missing_flag_vals(flag_vals, trials):
     for trial in trials:
@@ -195,7 +204,9 @@ def _run_seq_trials(batch_run, suggest_x_cb):
     for _ in range(max_trials):
         prev_trials = batch_util.trial_results(batch_run, [objective_scalar])
         x0, y0 = _trials_xy_for_prev_trials(
-            prev_trials, names, objective_negate)
+            prev_trials,
+            names,
+            objective_negate)
         suggest_random_start = _suggest_random_start(x0, runs, random_starts)
         _log_seq_trial(suggest_random_start, random_starts, runs, prev_trials)
         suggested_x, random_state = _suggest_x(
@@ -204,9 +215,12 @@ def _run_seq_trials(batch_run, suggest_x_cb):
             suggest_random_start,
             random_state,
             suggest_opts)
-        _apply_initial_x(initial_x, runs, suggested_x)
+        if runs == 0 and suggested_x:
+            _apply_initial_x(initial_x, suggested_x)
         trial_flag_vals = _trial_flags_for_x(
-            suggested_x, names, proto_flag_vals)
+            suggested_x,
+            names,
+            proto_flag_vals)
         batch_util.run_trial(batch_run, trial_flag_vals)
         runs += 1
 
@@ -276,13 +290,6 @@ def _suggest_x(suggest_x_cb, dims, x0, y0, suggest_random_start,
         suggest_random_start,
         random_state,
         suggest_opts)
-
-def _apply_initial_x(initial_x, runs_count, target_x):
-    if runs_count == 0:
-        assert len(initial_x) == len(target_x)
-        for i, x in enumerate(target_x):
-            if x is not None:
-                target_x[i] = x
 
 def _trial_flags_for_x(x, names, proto_flag_vals):
     flags = dict(proto_flag_vals)

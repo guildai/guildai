@@ -6,9 +6,28 @@ tests).
 
     >>> run("guild check -nT", timeout=900) # doctest: +REPORT_UDIFF
     internal tests:
+      OP2-batch-basics:            ok
+      OP2-batch-grid-search:       ok
+      OP2-batch-needed:            ok
+      OP2-batch-print-cmd:         ok
+      OP2-batch-random-optimizer:  ok
+      OP2-batch-random-seeds:      ok
+      OP2-batch-restart:           ok
+      OP2-batch-skopt:             ok
+      OP2-batch-skopt2:            ok
       OP2-copy-sourcecode-warnings: ok
+      OP2-cross-package-inheritance: ok
+      OP2-dependencies-2:          ok
+      OP2-flag-vals:               ok
+      OP2-marked-runs:             ok
+      OP2-needed:                  ok
+      OP2-restart-runs:            ok
+      OP2-run-files:               ok
       OP2-run-labels:              ok
+      OP2-skopt:                   ok
       OP2-sourcecode-digest:       ok
+      OP2-step-checks:             ok
+      OP2-steps:                   ok
       anonymous-models:            ok
       batch-basics:                ok
       batch-custom-optimizer:      ok
@@ -16,6 +35,7 @@ tests).
       batch-grid-search:           ok
       batch-guildfile-optimizers:  ok
       batch-implied-random:        ok
+      batch-max-trials:            ok
       batch-needed:                ok
       batch-print-cmd:             ok
       batch-random-optimizer:      ok

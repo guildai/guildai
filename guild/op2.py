@@ -197,7 +197,7 @@ class _RunOutput(object):
     def __init__(self, run, *args):
         self._output = None
         self._run = run
-        self._test_init_args = args
+        self._rest_init_args = args
 
     def __enter__(self):
         if os.getenv("NO_RUN_OUTPUT_CAPTURE") != "1":

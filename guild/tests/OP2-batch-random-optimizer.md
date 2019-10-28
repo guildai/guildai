@@ -58,8 +58,8 @@ The first run is the batch.
 The other runs are the trials.
 
     >>> trials = runs[:-1]
-    >>> set([trial.opref.to_opspec(project.cwd) for trial in trials])
-    set(['echo.py'])
+    >>> list(set([trial.opref.to_opspec(project.cwd) for trial in trials]))
+    ['echo.py']
 
 View unique values for the other runs.
 
@@ -92,8 +92,8 @@ The first run is the batch.
 The other runs are the trials.
 
     >>> trials = runs[:-1]
-    >>> set([trial.opref.to_opspec(project.cwd) for trial in trials])
-    set(['echo.py'])
+    >>> list(set([trial.opref.to_opspec(project.cwd) for trial in trials]))
+    ['echo.py']
 
 View unique values for the other runs.
 
