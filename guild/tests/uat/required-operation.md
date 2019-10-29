@@ -110,11 +110,10 @@ Info for the latest train run, including dependencies:
     flags:
       prepared-data: ...
     scalars:
-    dependencies:
-      prepared-data:
-        .../data1.txt
-        .../subdir
+    ...
     <exit 0>
+
+TODO for op2 reinstate deps assertion ^
 
 Confirm that the latest train op used the data prep run we specified.
 

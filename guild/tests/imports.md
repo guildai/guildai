@@ -55,8 +55,6 @@
     guild.commands.mark
     guild.commands.models
     guild.commands.models_impl
-    guild.commands.new
-    guild.commands.new_impl
     guild.commands.open_
     guild.commands.open_impl
     guild.commands.operations

@@ -272,8 +272,7 @@ def _safe_guild_path(run, path, default):
         return run.guild_path(path)
     except TypeError:
         # Occurs for run proxies that don't support guild_path - punt
-        # with generic descriptor. (TODO: implement explicit behavior
-        # in run interface + proxy)
+        # with generic descriptor.
         return default
 
 def shorten_op_dir(op_dir, cwd):

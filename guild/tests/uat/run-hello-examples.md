@@ -91,10 +91,9 @@ the `--deps` option of `guild runs info`:
     from: .../hello/guild.yml
     status: completed
     ...
-    dependencies:
-      from-file-output:
-        - .../runs/.../output
     <exit 0>
+
+TODO: op2 reinstate deps assertion ^
 
 We can specify an alternative run for `from-file-output` by specifying
 `file-output` as a flag.
