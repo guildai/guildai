@@ -51,6 +51,9 @@ class MissingSearchDimension(Exception):
 class InvalidSearchDimension(Exception):
     pass
 
+class InvalidObjective(Exception):
+    pass
+
 ###################################################################
 # Random trials
 ###################################################################
@@ -188,7 +191,12 @@ def handle_seq_trials(batch_run, suggest_x_cb):
     elif os.getenv("SAVE_TRIALS"):
         _save_trials_not_supported_error()
     else:
-        _run_seq_trials(batch_run, suggest_x_cb)
+        try:
+            _run_seq_trials(batch_run, suggest_x_cb)
+        except MissingSearchDimension as e:
+            missing_search_dim_error(e.flag_vals)
+        except InvalidObjective as e:
+            _handle_general_error(e)
 
 def _run_seq_trials(batch_run, suggest_x_cb):
     proto_flag_vals = batch_run.batch_proto.get("flags")
@@ -199,7 +207,7 @@ def _run_seq_trials(batch_run, suggest_x_cb):
     random_starts = min(
         batch_flag_vals.get("random-starts") or 0,
         max_trials)
-    objective_scalar, objective_negate = _objective_y_info(proto_flag_vals)
+    objective_scalar, objective_negate = _objective_y_info(batch_run)
     runs = 0
     for _ in range(max_trials):
         prev_trials = batch_util.trial_results(batch_run, [objective_scalar])
@@ -227,9 +235,7 @@ def _run_seq_trials(batch_run, suggest_x_cb):
 def _flag_dims_for_search(proto_flag_vals):
     names, dims, initial_x = flag_dims(proto_flag_vals)
     if not names:
-        # Terminal error rather than raise exception because we're in
-        # a top-level handler.
-        missing_search_dim_error(proto_flag_vals)
+        raise MissingSearchDimension(proto_flag_vals)
     return names, dims, initial_x
 
 def _objective_y_info(batch_run):
@@ -242,12 +248,13 @@ def _objective_y_info(batch_run):
     try:
         colspec = qparse.parse_colspec(objective)
     except qparse.ParseError as e:
-        raise Exception("yo it went terrible (move to proper "
-                        "exception): %s" % e)
+        raise InvalidObjective(
+            "invalid objective %r: %s" % (objective, e))
     else:
         if len(colspec.cols) > 1:
-            raise Exception("too many cols to optimize - "
-                            "convert to sensible exception yo")
+            raise InvalidObjective(
+                "invalid objective %r: too many columns"
+                % objective)
         col = colspec.cols[0]
         prefix, key = col.split_key()
         y_scalar_col = (prefix, key, col.qualifier)
@@ -317,4 +324,8 @@ def _print_trials_not_supported_error():
 
 def _save_trials_not_supported_error():
     log.error("optimizer does not support saving trials")
+    raise SystemExit(1)
+
+def _handle_general_error(e):
+    log.error(e)
     raise SystemExit(1)

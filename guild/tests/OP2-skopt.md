@@ -171,3 +171,16 @@ And the run:
     INFO: [guild] Found 3 previous trial(s) for use in optimization
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
     ... 2 'a'
+
+## Errors
+
+    >>> project.run("echo", flags={"x": "[-2:2]"}, optimizer="gp",
+    ...             maximize="the quick brown fox")
+    ERROR: [guild] invalid objective 'the quick brown fox': unexpected
+    token 'quick', line 1, pos 11
+    <exit 1>
+
+    >>> project.run("echo", flags={"x": "[-2:2]"}, optimizer="gp",
+    ...             minimize="loss, accuracy")
+    ERROR: [guild] invalid objective 'loss, accuracy': too many columns
+    <exit 1>
