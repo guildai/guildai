@@ -44,7 +44,7 @@ files:
     ...         ensure_dir(dirname(dest))
     ...         copyfile(src, dest)
 
-    >>> find(project_dir)
+    >>> find(project_dir)  # doctest: +REPORT_UDIFF
     .dotdir/a.txt
     .gitattributes
     __pycache__/hello.pyc
@@ -112,7 +112,7 @@ Guild copies text files by default.
 
 Here's a preview of the copy, which shows the rules that are applied:
 
-    >>> preview("default")
+    >>> preview("default")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -184,7 +184,7 @@ not text files), use explicit includes.
 
 This rule is applied after the default rules:
 
-    >>> preview("include-png")
+    >>> preview("include-png")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -231,7 +231,7 @@ When only string patterns are specified for an include, Guild
 implicitly inserts an exclude '*' before adding the patterns. This
 ensures that only those files matching the specified patterns are selected.
 
-    >>> preview("only-png")
+    >>> preview("only-png")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -297,7 +297,7 @@ exclude specs.
     op-sourcecode:
     - exclude: '*.py'
 
-    >>> preview("exclude-py")
+    >>> preview("exclude-py")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -338,7 +338,7 @@ are neither selected nor ignored - they are not even seen.
 
 In the preview, 'subdir' is not mentioned:
 
-    >>> preview("no-subdir")
+    >>> preview("no-subdir")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -377,7 +377,7 @@ globbed subdirectory as a string.
 
 The preview:
 
-    >>> preview("only-subdir")
+    >>> preview("only-subdir")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -416,7 +416,7 @@ This is illustrated by the `only-subdir2` operation.
 
 The preview shows that Guild modified the pattern with the glob:
 
-    >>> preview("only-subdir2")
+    >>> preview("only-subdir2")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -456,7 +456,7 @@ included.
     - include:
         dir: .dotdir
 
-    >>> preview("include-dotdir")
+    >>> preview("include-dotdir")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -560,7 +560,7 @@ Model adds png and operation excludes `*.py` and `a.*` files:
       - '*.py'
       - a.*
 
-    >>> preview("m1:op")
+    >>> preview("m1:op")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -613,7 +613,7 @@ only py and yml files.
     - '*.py'
     - '*.yml'
 
-    >>> preview("m2:op2")
+    >>> preview("m2:op2")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -646,7 +646,7 @@ Model enables all files to copy:
     >>> print_config("m3:op1")
     model-sourcecode: '*'
 
-    >>> preview("m3:op1")
+    >>> preview("m3:op1")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'
@@ -669,7 +669,7 @@ Model enables all files to copy:
       ./subdir/logo.png
     Skipped:
 
-    >>> run("m3:op1")
+    >>> run("m3:op1")  # doctest: +REPORT_UDIFF
     <BLANKLINE>
     .gitattributes
     a.txt
@@ -710,7 +710,7 @@ For our sample project, there is no sourcecode configuration for
 
 Here's the preview:
 
-    >>> preview("hello.py")
+    >>> preview("hello.py")  # doctest: +REPORT_UDIFF
     Copying from the current directory
     Rules:
       exclude dir '__pycache__'

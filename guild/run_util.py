@@ -398,7 +398,9 @@ def _run_compare_attr(run):
     return run.get("compare")
 
 def run_for_run_dir(run_dir):
-    if not os.path.isdir(run_dir):
+    if run_dir[:1] == ".":
+        run_dir = os.path.abspath(run_dir)
+    if not os.path.isabs(run_dir):
         return None
     run_id = os.path.basename(run_dir)
     return runlib.Run(run_id, run_dir)

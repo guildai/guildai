@@ -43,7 +43,7 @@ Show runs:
     >>> run("guild runs")
     [1:...]  train         ...  completed
     [2:...]  prepare-data  ...  completed
-    [3:...]  train         ...  error
+    [3:...]  train              error
     <exit 0>
 
 List files for latest runs:
@@ -96,7 +96,7 @@ Info for the latest train run, including dependencies:
     >>> run("guild runs info -d")
     id: ...
     operation: train
-    from: .../required-operation/guild.yml
+    from: .../guild.yml
     status: completed
     started: ...
     stopped: ...
@@ -104,16 +104,17 @@ Info for the latest train run, including dependencies:
     label: prepared-data=...
     sourcecode_digest: ...
     run_dir: ...
-    command: ...
+    command: ... -um guild.op_main train --
     exit_status: 0
     pid:
     flags:
       prepared-data: ...
     scalars:
-    ...
+    dependencies:
+      prepared-data:
+        - ../.../data1.txt
+        - ../.../subdir
     <exit 0>
-
-TODO for op2 reinstate deps assertion ^
 
 Confirm that the latest train op used the data prep run we specified.
 
@@ -129,14 +130,12 @@ Run a batch where using the two prepared data runs.
     >>> data_prep_2 = data_prep_runs[1].id
     >>> run("guild run train prepared-data=[%s,%s] -y"
     ...     % (data_prep_1, data_prep_2))
-    INFO: [guild] Initialized trial ... (prepared-data=...)
     INFO: [guild] Running trial ...: train (prepared-data=...)
-    Resolving prepared-data dependency
-    Using output from run ... for prepared-data resource
-    INFO: [guild] Initialized trial ... (prepared-data=...)
+    INFO: [guild] Resolving prepared-data dependency
+    INFO: [guild] Using output from run ... for prepared-data resource
     INFO: [guild] Running trial ...: train (prepared-data=...)
-    Resolving prepared-data dependency
-    Using output from run ... for prepared-data resource
+    INFO: [guild] Resolving prepared-data dependency
+    INFO: [guild] Using output from run ... for prepared-data resource
     <exit 0>
 
 Verify train runs used the expected prepare runs:

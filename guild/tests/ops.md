@@ -1,553 +1,101 @@
 # Operations
 
-Operation support is implemented by the `op` module:
+    >>> from guild import op as oplib
 
-    >>> import guild.op
+An operation is used to generate a run.
 
-For our tests, we'll use a helper function that returns an instance of
-`guild.guildfile.OpDef`:
+    >>> op = oplib.Operation()
 
-    >>> def OpDef(main, name="op", extra_data=None, gf_src=None):
-    ...   op_data = {
-    ...     "main": main
-    ...   }
-    ...   op_data.update(extra_data or {})
-    ...   data = [
-    ...     {
-    ...       "model": "model",
-    ...       "operations": {
-    ...         name: op_data
-    ...       }
-    ...     }
-    ...   ]
-    ...   gf = guildfile.Guildfile(data, gf_src or "<string>")
-    ...   return gf.models["model"][name]
+Configure the operation as needed. In this case we specify command
+args and a run directory.
 
-We'll also create a helper function that returns and instance of
-`guild.op.Operation` given arguments to `OpDef` above:
+    >>> op.cmd_args = [sys.executable, "-m", "guild.pass"]
+    >>> op.run_dir = mkdtemp()
 
-    >>> def Operation(*args, **kw):
-    ...   opdef = OpDef(*args, **kw)
-    ...   opdef.set_modelref((None, None, None, None))
-    ...   return guild.op.Operation(opdef)
+Run the operation without capturing output (tests rely on a spoofed
+stdout to test output, which we don't want to interfere with).
 
-Note that the `"test"` argument is an operation reference, which is
-not used in our tests.
+    >>> with Env({"NO_RUN_OUTPUT_CAPTURE": "1"}):
+    ...     run, exit_code = oplib.run(op)
 
-## Representing an operation as data
+A successful run has an exit code of 0:
 
-Before looking at other operation attributes, let's look at an
-operation as data.
+    >>> exit_code
+    0
 
-    >>> op = Operation(main="test")
-    >>> pprint(op.opdef.as_data())
-    {'main': 'test'}
+The run is generated in the specified run directory:
 
-## Command specs
+    >>> run.dir == op.run_dir, (run.dir, op.run_dir)
+    (True, ...)
 
-Command specs are used to generate Python commands. The first part of
-the spec is used as the Python script or module. It can be a module
-name with or without a py extension.
+Generated files:
 
-Here's an operation that uses the "train" main module:
+    >>> find(op.run_dir)
+    .guild/attrs/cmd
+    .guild/attrs/env
+    .guild/attrs/exit_status
+    .guild/attrs/id
+    .guild/attrs/initialized
+    .guild/attrs/resolved_deps
+    .guild/attrs/started
+    .guild/attrs/stopped
+    .guild/opref
 
-    >>> op = Operation(main="train")
-    >>> op.cmd_args
-    ['...python...', '-um', 'guild.op_main', 'train', '--']
+## Staging a run
 
-NOTE: The above formatting, with the line feed after '-u' is required
-when running tests in Python 3. The regex that formats unicode refs as
-strings is fooled by the example. We need to break the line as a work
-around.
+A run can be staged.
 
-Command specs may contain additional arguments, which will be included
-in the Python command.
+    >>> op.run_dir = mkdtemp()
 
-    >>> op = Operation(main="train epoch=10 tags='tag1 tag2'")
-    >>> op.cmd_args
-    ['...python...', '-um', 'guild.op_main', 'train', 'epoch=10',
-     'tags=tag1 tag2', '--']
+    >>> run = oplib.stage(op)
 
-NOTE: The above formatting, with the line feed after '-u' is required
-when running tests in Python 3. The regex that formats unicode refs as
-strings is fooled by the example. We need to break the line as a work
-around.
+Files for a staged run:
 
-## Flag args
+    >>> find(run.dir)
+    .guild/ENV
+    .guild/STAGED
+    .guild/attrs/cmd
+    .guild/attrs/id
+    .guild/attrs/initialized
+    .guild/attrs/resolved_deps
+    .guild/attrs/started
+    .guild/opref
 
-Flags are defined in guildfiles (defaults) and also provided as
-command line arguments to the run command. `_flag_args` returns a list
-of command line arg for a map of flag values.
+A staged run is denoted by a `STAGED` marker:
 
-We'll create a helper function to get the args:
+    >>> cat(run.guild_path("STAGED"))
+    <empty>
 
-    >>> class FlagDefProxy(object):
-    ...
-    ...   def __init__(self, opdef, name, choices=None, arg_name=None,
-    ...                arg_skip=None, arg_switch=None,
-    ...                allow_other=False, default_arg_skip=None):
-    ...     self.opdef = opdef
-    ...     self.name = name
-    ...     self.choices = [
-    ...       ChoiceProxy(**choice) for choice in (choices or [])
-    ...     ]
-    ...     self.arg_name = arg_name
-    ...     self.arg_skip = arg_skip
-    ...     self.arg_switch = arg_switch
-    ...     self.allow_other = allow_other
+## Operation callbacks
 
-    >>> class ChoiceProxy(object):
-    ...
-    ...   def __init__(self, value=None, flags=None):
-    ...     self.value = value
-    ...     self.flags = flags
+Callbacks are used to perform additional steps during operation
+phases.
 
-    >>> class OpDefProxy(object):
-    ...
-    ...   def __init__(self, flags, default_flag_arg_skip=None):
-    ...     self.default_flag_arg_skip = default_flag_arg_skip
-    ...     self._flags = flags
-    ...
-    ...   def flag_values(self):
-    ...     return {
-    ...       name: self._flag_val(flag)
-    ...       for name, flag in self._flags.items()
-    ...     }
-    ...
-    ...   def _flag_val(self, flag):
-    ...     try:
-    ...       return flag["default"]
-    ...     except TypeError:
-    ...       return flag
-    ...
-    ...   def get_flagdef(self, name):
-    ...     flag = self._flags[name]
-    ...     if isinstance(flag, dict):
-    ...       flagdef_args = {
-    ...         name: flag[name] for name in flag
-    ...         if name not in ("default")
-    ...       }
-    ...       return FlagDefProxy(self, name, **flagdef_args)
-    ...     else:
-    ...       return FlagDefProxy(self, name)
+    >>> def init_output_summary_cb(op, run):
+    ...     print("<initializing output summaries>")
+    ...     return None
 
-    >>> def flag_args(flags, cmd_args=None, default_flag_arg_skip=None):
-    ...   from guild import util
-    ...   cmd_args = cmd_args or []
-    ...   opdef = OpDefProxy(flags, default_flag_arg_skip)
-    ...   resolved_flag_vals = util.resolve_all_refs(opdef.flag_values())
-    ...   flags, _flag_map = guild.op._flag_args(
-    ...     resolved_flag_vals,
-    ...     opdef,
-    ...     cmd_args)
-    ...   return flags
+    >>> def run_initialized_cb(op, run):
+    ...     print("<run initialized>")
+    ...     run.write_attr("msg", "hello!")
 
-Empty flags:
+    >>> op.callbacks = oplib.OperationCallbacks(
+    ...     init_output_summary=init_output_summary_cb,
+    ...     run_initialized=run_initialized_cb,
+    ... )
 
-    >>> flag_args({})
-    []
+Callbacks during stage:
 
-Single flag:
+    >>> op.run_dir = mkdtemp()
+    >>> run = oplib.stage(op)
+    <run initialized>
 
-    >>> flag_args({"epochs": 100})
-    ['--epochs', '100']
+    >>> run.get("msg")
+    'hello!'
 
-Multiple flags are returned in sorted order:
+Callbacks during run:
 
-    >>> flag_args({"epochs": 100, "data": "my-data"})
-    ['--data', 'my-data', '--epochs', '100']
-
-If a flag value is None, the flag will not be included as an option.
-
-    >>> flag_args({"test": None, "batch-size": 50})
-    ['--batch-size', '50']
-
-If a flag value is boolean, it will be rendered as its string
-representation of 'yes' for True and 'no' for False:
-
-    >>> flag_args({"test": True, "batch-size": 50})
-    ['--batch-size', '50', '--test', 'yes']
-
-    >>> flag_args({"test": False, "batch-size": 50})
-    ['--batch-size', '50', '--test', 'no']
-
-### Flag arg switches
-
-A flag may specify an arg switch, which will be used to determine if
-the flag option is used as an option switch--i.e. an option without a
-value.
-
-Here's a case where arg value is set to True and the corresponding
-value is also True.
-
-    >>> flag_args({"legacy": {"default": True, "arg_switch": True}})
-    ['--legacy']
-
-If the flag value is different from a non-None arg value, it won't
-appear in the arg list.
-
-    >>> flag_args({"legacy": {"default": False, "arg_switch": True}})
-    []
-
-Here we'll switch the logic and use an arg value of False:
-
-    >>> flag_args({"not-legacy": {"default": False, "arg_switch": False}})
-    ['--not-legacy']
-
-    >>> flag_args({"not-legacy": {"default": True, "arg_switch": False}})
-    []
-
-When arg value is None, the default is used:
-
-    >>> flag_args({"not-legacy": {"default": True, "arg_switch": None}})
-    ['--not-legacy', 'yes']
-
-Values are compared using Python's `==` operator. In some cases this
-might lead to a surprising result. Here we'll compare 1 and True:
-
-    >>> flag_args({"legacy": {"default": 1, "arg_switch": True}})
-    ['--legacy']
-
-But "1" is not equal to True:
-
-    >>> flag_args({"legacy": {"default": "1", "arg_switch": True}})
-    []
-
-Here are cases using string values:
-
-    >>> flag_args({"legacy": {"default": "yes", "arg_switch": "yes"}})
-    ['--legacy']
-
-    >>> flag_args({"no-legacy": {"default": "no", "arg_switch": "no"}})
-    ['--no-legacy']
-
-
-### Using a different argument name
-
-We can modify the argument name by specifying `arg_name`:
-
-    >>> flag_args({"batch-size": {"default": 50, "arg_name": "batch_size"}})
-    ['--batch_size', '50']
-
-### Shadowed flag values
-
-The second argument to the `_flag_args` function is a list of command
-arguments. The function uses this list to check for shadowed flags. A
-shadowed flag is a flag that is defined directly in the operation
-`main` spec as an option. Guild prevents redefining command options
-with flags.
-
-Consider an operation definition that looks like this:
-
-    operation:
-      train:
-        main: train --epochs=100
-
-The cmd args in this case are:
-
-    >>> cmd_args = ["train", "--epochs=1000"]
-
-Given this cmd, `_flag_args` prevents the `epochs` option from being
-redefined and logs a warning. Let's capture output to verify.
-
-    >>> log_capture = LogCapture(strip_ansi_format=True)
-    >>> with log_capture:
-    ...   flag_args({"epochs": 100, "batch-size": 50}, cmd_args)
-    ['--batch-size', '50']
-
-    >>> log_capture.print_all()
-    WARNING: ignoring flag 'epochs = 100' because it's shadowed in the operation cmd
-
-Flags args may contain references to flags.
-
-    >>> flag_args({"a": 1, "b": "b-${a}"})
-    ['--a', '1', '--b', 'b-1']
-
-### Flag choices
-
-Flag choices can be used for two purposes:
-
-- Limit available flag values
-- Define additional arguments for a command
-
-In the simple case, we're just defining the set of legal values. This
-doesn't effect the generated arguments.
-
-    >>> flag_args({
-    ...   "color": {
-    ...     "default": "blue",
-    ...     "choices": []
-    ...    }
-    ... })
-    ['--color', 'blue']
-
-We can however use choice `args` to modify the arguments:
-
-    >>> flag_args({
-    ...   "color": {
-    ...      "default": "blue",
-    ...      "choices": [{"value": "blue",
-    ...                   "flags": {"hex": "00f",
-    ...                             "rgb": "0,0,255"}}]
-    ...   }
-    ... })
-    ['--color', 'blue', '--hex', '00f', '--rgb', '0,0,255']
-
-We can use `arg_skip` to omit the choice value:
-
-    >>> flag_args({
-    ...   "color": {
-    ...      "default": "blue",
-    ...      "arg_skip": True,
-    ...      "choices": [{"value": "blue",
-    ...                   "flags": {"hex": "00f",
-    ...                             "rgb": "0,0,255"}}]
-    ...   }
-    ... })
-    ['--hex', '00f', '--rgb', '0,0,255']
-
-Alternatively, we can skip all flags by default by specifying
-`default_flag_arg_skip` attribute for the associated operation def:
-
-    >>> flag_args({"a": 1, "b": 2}, default_flag_arg_skip=True)
-    []
-
-With the default arg skip set to True, we can unskip specific flags:
-
-    >>> flag_args({
-    ...   "a": {
-    ...     "default": 1,
-    ...     "arg_skip": False
-    ...   },
-    ...   "b": 2
-    ...   }, default_flag_arg_skip=True)
-    ['--a', '1']
-
-Choices are generally used to validate user-specified values. If we
-specified a value that isn't a valid choice, Guild logs a warning.
-
-    >>> flag_args({
-    ...   "color": {
-    ...     "default": "white",
-    ...     "choices": [{"value": "blue"}]
-    ...   }
-    ... })
-    ['--color', 'white']
-
-We can indicate that the flag supports other values:
-
-    >>> with LogCapture() as log:
-    ...   flag_args({
-    ...     "color": {
-    ...       "default": "white",
-    ...       "allow_other": True,
-    ...       "choices": [{"value": "blue"}]
-    ...     }
-    ...   })
-    ['--color', 'white']
-
-The log:
-
-    >>> log.get_all()
-    []
-
-It's possible that the list of args associated with a choice overlaps
-with args provided by another flag. In this case, the value provided
-by the other flag takes precendence.
-
-    >>> flag_args({
-    ...   "color": {
-    ...     "default": "white"
-    ...   },
-    ...   "color-profile": {
-    ...     "default": "light",
-    ...     "arg_skip": True,
-    ...     "choices": [{"value": "light",
-    ...                  "flags": {"color": "tan"}}
-    ...     ]
-    ...   }
-    ... })
-    ['--color', 'white']
-
-It's possible that two flags provide the same argument. In this case,
-the flag whose name has the highest ordinal string value is used:
-
-    >>> flag_args({
-    ...   "color1": {
-    ...     "default": "blue",
-    ...     "arg_name": "color"
-    ...   },
-    ...   "color2": {
-    ...     "default": "red",
-    ...     "arg_name": "color"
-    ...   }
-    ... })
-    ['--color', 'red']
-
-## Command args
-
-Command args are created using `_split_and_resolve_args`. These are
-simply parsed parts from a command string. However, like flag values,
-command args may contain references to flag values.
-
-    >>> guild.op._split_and_resolve_args([], {})
-    []
-
-    >>> guild.op._split_and_resolve_args("", {})
-    []
-
-    >>> guild.op._split_and_resolve_args(["foo", "--bar"], {})
-    ['foo', '--bar']
-
-    >>> guild.op._split_and_resolve_args("foo --bar", {})
-    ['foo', '--bar']
-
-    >>> guild.op._split_and_resolve_args(["foo", "--a=${a}"], {"a": 1})
-    ['foo', '--a=1']
-
-    >>> guild.op._split_and_resolve_args("foo --a=${a}", {"a": 1})
-    ['foo', '--a=1']
-
-    >>> guild.op._split_and_resolve_args(
-    ...    ["foo", "--a=${a}"], {"a": "foo-${b}-bar", "b": 2})
-    ['foo', '--a=foo-2-bar']
-
-## Operation flags
-
-Operation flags may be defined in two places:
-
-- Within the operation itself
-- Within the operation model
-
-Flags defined in the operation override flags defined in the model.
-
-For our tests we'll use the train operation:
-
-    >>> opdef = OpDef("train")
-
-We can get the flags defined for this op using the `all_flag_values`
-method:
-
-    >>> opdef.flag_values()
-    {}
-
-Our sample operations aren't initialized with any flags, so we expect
-this list to be empty.
-
-Let's add some flags:
-
-    >>> opdef.set_flag_value("epochs", 200)
-    >>> opdef.flag_values()
-    {'epochs': 200}
-
-## Pre-processing
-
-NOTE: These tests are disable for Windows because they rely on shell
-scripts.
-
-Earlier versions of Guild operations supported a `pre-process`
-attribute that could be used to perform work before an operation
-script ran. This feature was removed in 0.7.
-
-Instead, operations must use other operations to prepare required
-files.
-
-The `pre-process` project illustrates the preferred method of
-pre-processing files for use in an operation.
-
-    >>> project = Project(sample("projects", "pre-process"))
-
-To "pre process" the sample file, we run `prepare-sample`:
-
-    >>> project.run("prepare-sample")  # doctest: -WINDOWS
-    Resolving file:abcdef dependency
-    Preparing sample
-
-And then `test`, which uses the prepared files:
-
-    >>> run_dir = mkdtemp()  # doctest: -WINDOWS
-
-    >>> project.run("test", run_dir=run_dir)  # doctest: -WINDOWS
-    Resolving prepare-sample dependency
-    Using output from run ... for prepare-sample resource
-    abcdef: ABCDEF
-    abcxyz: ABCXYZ
-
-Let's confirm that our run directory contains the expected files:
-
-    >>> dir(run_dir)  # doctest: -WINDOWS
-    ['.guild', 'abcdef', 'abcxyz']
-
-    >>> cat(join_path(run_dir, "abcdef"))  # doctest: -WINDOWS
-    ABCDEF
-
-    >>> cat(join_path(run_dir, "abcxyz"))  # doctest: -WINDOWS
-    ABCXYZ
-
-### Op command env
-
-Operations configure the process environment with various values. The
-env init behavior is implemented by `op._init_cmd_env`.
-
-Here's a function that prints the various values set by
-`_init_cmd_env`. It uses `OpDef` above, which is named 'op' and
-defined in a model named 'model'.
-
-    >>> def opdef_env(data, to_print=None):
-    ...   import os
-    ...   from guild.op import _init_cmd_env
-    ...   opdef = OpDef("test", extra_data=data, gf_src="sample/guild.yml")
-    ...   env = _init_cmd_env(opdef, gpus=None)
-    ...   to_print = to_print or (
-    ...     "GUILD_HOME",
-    ...     "GUILD_OP",
-    ...     "GUILD_PLUGINS",
-    ...     "LOG_LEVEL",
-    ...     "PYTHONPATH",
-    ...     "SCRIPT_DIR",
-    ...     "CMD_DIR",
-    ...     "MODEL_DIR",
-    ...     "MODEL_PATH",
-    ...     "SET_TRACE",
-    ...     "HANDLE_KEYBOARD_INTERRUPT",
-    ...   )
-    ...   for name in to_print:
-    ...     val = env.get(name)
-    ...     if val is not None:
-    ...       val = val.replace(os.getcwd(), "<cwd>")
-    ...     print("%s: %s" % (name, val))
-
-Here are values for an empty op:
-
-    >>> opdef_env({})
-    GUILD_HOME: ...
-    GUILD_OP: model:op
-    GUILD_PLUGINS:
-    LOG_LEVEL: 20
-    PYTHONPATH: .guild/sourcecode:...
-    SCRIPT_DIR:
-    CMD_DIR: <cwd>
-    MODEL_DIR: sample
-    MODEL_PATH: <cwd>/sample
-    SET_TRACE: None
-    HANDLE_KEYBOARD_INTERRUPT: None
-
-`PYTHONPATH` can be prepended to using `python-path`.
-
-    >>> opdef_env({"python-path": "foo"}, ["PYTHONPATH"])
-    PYTHONPATH: .guild/sourcecode:...
-
-Additional env may be provided using `env`:
-
-    >>> opdef_env({"env": {"foo": "FOO", "bar": "BAR"}}, ["foo", "bar"])
-    foo: FOO
-    bar: BAR
-
-`set_trace` and `handle_keyboard_interrupt`:
-
-    >>> opdef_env(
-    ...   {"set-trace": True,
-    ...    "handle-keyboard-interrupt": True},
-    ...   ["SET_TRACE", "HANDLE_KEYBOARD_INTERRUPT"])
-    SET_TRACE: 1
-    HANDLE_KEYBOARD_INTERRUPT: 1
+    >>> with Env({"NO_RUN_OUTPUT_CAPTURE": "1"}):
+    ...     run, exit_code = oplib.run(op)
+    <run initialized>
+    <initializing output summaries>

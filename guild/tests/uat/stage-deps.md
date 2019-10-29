@@ -13,8 +13,9 @@ Warning when missing required op:
     >>> run("guild run requires-file-op", timeout=2)
     WARNING: cannot find a suitable run for required resource 'file'
     You are about to run requires-file-op
+      file: default
     Continue? (Y/n)
-    <exit ...>
+    <exit -9>
 
 Stage a required op.
 
@@ -24,13 +25,13 @@ Stage a required op.
     To start the operation, use 'guild run --start ...'
     <exit 0>
 
-When running, staged runs aren't selected.
+When running, staged runs are selected.
 
     >>> run("guild run requires-file-op", timeout=2)
-    WARNING: cannot find a suitable run for required resource 'file'
     You are about to run requires-file-op
+      file: ...
     Continue? (Y/n)
-    <exit ...>
+    <exit -9>
 
 Stage downstream op.
 
@@ -40,9 +41,12 @@ Stage downstream op.
     Continue? (Y/n)
     <exit ...>
 
+When we don't preview the operation or otherwise specify a run for
+`file`, the operation staging is skipped.
+
     >>> run("guild run requires-file-op --stage --yes")
     Resolving file dependency
-    Using output from run ... for file resource
+    Skipping operation dependency operation:file for stage
     requires-file-op staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>
@@ -58,9 +62,12 @@ Start staged upstream op.
     'staged'
 
     >>> run("guild run --start %s --yes" % upstream.id)
-    Starting ...
     Resolving file:file.txt dependency
+    Skipping file:file.txt because it's already resolved
     <exit 0>
+
+Note that the file dependency is skipped because it was already
+resolved above.
 
 Start staged downstream op.
 
@@ -73,7 +80,6 @@ Start staged downstream op.
     'staged'
 
     >>> run("guild run --start %s --yes" % downstream.id)
-    Starting ...
     Resolving file dependency
     Using output from run ... for file resource
     <exit 0>

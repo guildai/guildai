@@ -73,7 +73,7 @@ However, it's run proto does not.
 
 Built-in optimizers define their own default max trials.
 
-    >>> from guild import op_util2 as op_util
+    >>> from guild import op_util
 
 Here's the random optimizer:
 
@@ -95,3 +95,10 @@ And the Gaussian Process Bayesian optimizer.
     >>> gp_opdef = op_util.opdef_for_opspec("gp")
     >>> gp_opdef.default_max_trials
     20
+
+## Warnings
+
+Run a non-batch specifying `max_trials`.
+
+    >>> project.run("op", max_trials=1)
+    WARNING: not a batch run - ignoring --max-trials

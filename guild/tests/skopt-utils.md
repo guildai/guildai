@@ -94,31 +94,31 @@ Note that normal and lognormal are not supported:
 
     >>> flag_dims({"a": "normal[1.0:2.0]"})
     Traceback (most recent call last):
-    BatchError: unsupported function 'normal' for flag a
+    InvalidSearchDimension: unknown function 'normal' used for flag a
 
     >>> flag_dims({"a": "lognormal[1.0:2.0]"})
     Traceback (most recent call last):
-    BatchError: unsupported function 'lognormal' for flag a
+    InvalidSearchDimension: unknown function 'lognormal' used for flag a
 
 If an unsupported function is specified, an error is generated:
 
     >>> flag_dims({"a": "unsupported[1.0:2.0]"})
     Traceback (most recent call last):
-    BatchError: unsupported function 'unsupported' for flag a
+    InvalidSearchDimension: unknown function 'unsupported' used for flag a
 
 If a function has the wrong arg count, an error is generated:
 
     >>> flag_dims({"a": "uniform[]"})
     Traceback (most recent call last):
-    BatchError: uniform requires 2 or 3 args, got () for flag a
+    InvalidSearchDimension: uniform requires 2 or 3 args, got () for flag a
 
     >>> flag_dims({"a": "uniform[1.0]"})
     Traceback (most recent call last):
-    BatchError: uniform requires 2 or 3 args, got (1.0,) for flag a
+    InvalidSearchDimension: uniform requires 2 or 3 args, got (1.0,) for flag a
 
     >>> flag_dims({"a": "uniform[1.0:2.0:3.0:4.0]"})
     Traceback (most recent call last):
-    BatchError: uniform requires 2 or 3 args, got (1.0, 2.0, 3.0, 4.0) for flag a
+    InvalidSearchDimension: uniform requires 2 or 3 args, got (1.0, 2.0, 3.0, 4.0) for flag a
 
 If a function doesn't meet the minimal requirement of a function
 (i.e. it must contain at least two args)

@@ -15,12 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import os
-
-import itertools
-
-from guild import batch_util as batch_util_legacy
-from guild import batch_util2 as batch_util
+from guild import batch_util
 from guild import op_util
 
 def main():
@@ -36,20 +31,8 @@ def _batch_trials(batch_run):
         batch_run.get("max_trials"),
         batch_run.get("random_seed"))
 
-# TODO: remove when promoting OP2
-def gen_trials(flags, _batch=None):
-    flag_list = [
-        _trial_flags(name, val)
-        for name, val in sorted(flags.items())]
-    return [dict(trial) for trial in itertools.product(*flag_list)]
-
-def _trial_flags(flag_name, flag_val):
-    if isinstance(flag_val, list):
-        return [(flag_name, trial_val) for trial_val in flag_val]
-    return [(flag_name, flag_val)]
-
 if __name__ == "__main__":
-    if os.getenv("OP2") == "1":
+    try:
         main()
-    else:
-        batch_util_legacy.default_main(gen_trials, default_max_trials=None)
+    except SystemExit as e:
+        batch_util.handle_system_exit(e)

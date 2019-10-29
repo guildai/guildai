@@ -5,7 +5,7 @@ run the `train` operation on the model.
 
     >>> run("guild run -y --no-gpus gpkg.keras.mnist/mlp:train epochs=1",
     ...     timeout=300)
-    Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
+    Masking available GPUs (CUDA_VISIBLE_DEVICES='')
     Resolving script dependency
     ...
     Using TensorFlow backend.

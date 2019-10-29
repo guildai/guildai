@@ -4,7 +4,7 @@ Steps can be used to check run results.
 
 For these tests we'll use the `step-checks` project.
 
-    >>> project = Project(sample("projects", "step-checks"))
+    >>> project = Project(sample("projects", "step-checks"), env={"OP2": "1"})
 
 The project has two public operations and a number of private
 operation (i.e. operations starting with `_`).
@@ -102,7 +102,7 @@ does this:
     >>> print_steps("_test-all")
     ['_test-output-1', '_test-output-2', '_test-file-1', '_test-fail-1']
 
-    >>> project.run("_test-all")
+    >> project.run("_test-all")
     INFO: [guild] running _test-output-1: _test-output-1
     INFO: [guild] running gen-output: gen-output
     hi

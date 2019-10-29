@@ -6,13 +6,17 @@ demonstrated here.
 
 For our tests, we'll use the `labels` sample project:
 
-    >>> project = Project(sample("projects/labels"))
+TODO: remove env on op2 promote.
+
+    >>> project = Project(sample("projects/labels"), env={"OP2": "1"})
 
 Here are some helper functions.
 
-    >>> def run(op, label=None, batch_label=None, opt_flags=None, **kw):
-    ...   project.run(op, flags=kw, label=label, batch_label=batch_label,
-    ...               opt_flags=opt_flags, force_flags=True, quiet=True)
+    >>> def run(opspec=None, label=None, batch_label=None, opt_flags=None,
+    ...         restart=None, **flags):
+    ...   project.run(opspec, flags=flags, label=label, batch_label=batch_label,
+    ...               opt_flags=opt_flags, restart=restart, force_flags=True,
+    ...               quiet=True)
 
     >>> def print_last_run():
     ...   print_runs(1)
@@ -60,13 +64,12 @@ Here's a broader example: we redefine all flags.
     op.py  b=no f=3.0 i=2 s=hi
 
 If we set a flag value that is equal to the default value, that value
-is NOT reflected in the default label, even though it appears in the
-run command.
+is reflected in the default label.
 
     >>> run("op.py", i=1, f=2.0, b=True, s="hi")
 
     >>> print_last_run()
-    op.py  s=hi
+    op.py  b=yes f=2.0 i=1 s=hi
 
 ## Explicit labels
 
@@ -113,37 +116,89 @@ values do.
     >>> print_last_run()
     op  i:2, f:2.0, b:yes, s:yo
 
+## Labels and restarts
+
+Labels are updated with new flag values when a run is restarted.
+
+Here's run for `op`:
+
+    >>> run("op", i=4)
+
+    >>> print_last_run()
+    op  i:4, f:2.0, b:yes, s:hello
+
+Note the custom label format, which is taken from the opdef.
+
+Let's restart the run with new flag values.
+
+    >>> last_run = project.list_runs()[0]
+
+    >>> run(restart=last_run.id, s="yello")
+
+And the label:
+
+    >>> print_last_run()
+    op  i:4, f:2.0, b:yes, s:yello
+
+Guild saves the label template in the `op` attribute.
+
+    >>> last_run.get("op").get("label-template")
+    'i:${i}, f:${f}, b:${b}, s:${s}'
+
+Next we'll restart the run with a different label template.
+
+    >>> run(restart=last_run.id, i=6, s="whoop", label="${s}-${i}")
+
+And the label:
+
+    >>> print_last_run()
+    op  whoop-6
+
+Guild has updated the label template.
+
+    >>> last_run.get("op").get("label-template")
+    '${s}-${i}'
+
+The new label template is now associated with the run.
+
+    >>> run(restart=last_run.id, i=7)
+
+    >>> print_last_run()
+    op  whoop-7
+
 ## Trial labels
+
+TODO - reinstate batch-related tests when OP2 supports batches/trials.
 
 When an operation is run as a batch trial, the same rules apply as
 described above.
 
 Let's run `op.py` in a batch to generate two trials:
 
-    >>> run("op.py", i=[1,2], s="yello")
+    >> run("op.py", i=[1,2], s="yello")
 
 Let's list the last three runs, which include the batch and the two
 trials:
 
-    >>> print_runs(3)
+    >> print_runs(3)
     op.py   i=2 s=yello
     op.py   s=yello
     op.py+
 
 Here's the same result running `op`:
 
-    >>> run("op", i=[1,2], s="yello", b=False)
+    >> run("op", i=[1,2], s="yello", b=False)
 
-    >>> print_runs(3)
+    >> print_runs(3)
     op   i:2, f:2.0, b:no, s:yello
     op   i:1, f:2.0, b:no, s:yello
     op+
 
 In this case, we specify an explicit label for the trials:
 
-    >>> run("op", i=[1,2], label="i is ${i}")
+    >> run("op", i=[1,2], label="i is ${i}")
 
-    >>> print_runs(3)
+    >> print_runs(3)
     op   i is 2
     op   i is 1
     op+
@@ -160,30 +215,30 @@ long as one is defined) to see how the default label is applied to a
 batch run. We can run an empty batch by specifying an empty list for a
 flag.
 
-    >>> run("op.py", i=[], opt_flags={"foo": 123})
+    >> run("op.py", i=[], opt_flags={"foo": 123})
 
-    >>> print_last_run()
+    >> print_last_run()
     op.py+  foo=123
 
 We can alternatively specify an explicit batch label:
 
-    >>> run("op.py", i=[], opt_flags={"foo": 123}, batch_label="empty batch")
+    >> run("op.py", i=[], opt_flags={"foo": 123}, batch_label="empty batch")
 
-    >>> print_last_run()
+    >> print_last_run()
     op.py+  empty batch
 
 ## Edge cases
 
 Quoted numbers:
 
-    >>> run("op.py", i="1")
+    >> run("op.py", i="1")
 
-    >>> print_last_run()
+    >> print_last_run()
     op.py  i='1'
 
 Values containing spaces:
 
-    >>> run("op.py", s="hello there")
+    >> run("op.py", s="hello there")
 
-    >>> print_last_run()
+    >> print_last_run()
     op.py  s='hello there'

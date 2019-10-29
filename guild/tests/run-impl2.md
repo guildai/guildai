@@ -1,9 +1,9 @@
-# Run impl tests 2
+# Run impl tests
 
 Helpers (copied from `run-impl.md`):
 
     >>> def run_gh(cwd=None, guild_home=None, **kw):
-    ...     from guild.commands import run_impl2
+    ...     from guild.commands import run_impl
     ...     cwd = cwd or mkdtemp()
     ...     guild_home = guild_home or mkdtemp()
     ...     with SetCwd(cwd):
@@ -12,7 +12,7 @@ Helpers (copied from `run-impl.md`):
     ...                       "NO_WARN_RUNDIR": "1"}):
     ...                 with LogCapture(stdout=True, strip_ansi_format=True):
     ...                     try:
-    ...                         run_impl2.run(**kw)
+    ...                         run_impl.run(**kw)
     ...                     except SystemExit as e:
     ...                         if e.args[0] is not None:
     ...                             print(e.args[0])

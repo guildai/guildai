@@ -57,23 +57,22 @@ Show latest staged run:
 
 List files for latest run:
 
-    >>> run("guild ls -a")
+    >>> run("guild ls -a")  # doctest: +REPORT_UDIFF
     ???/.guild/runs/...:
       .guild/
       .guild/ENV
       .guild/STAGED
       .guild/attrs/
       .guild/attrs/cmd
-      .guild/attrs/deps
       .guild/attrs/flags
       .guild/attrs/host
       .guild/attrs/id
       .guild/attrs/initialized
       .guild/attrs/label
-      .guild/attrs/objective
-      .guild/attrs/opdef
+      .guild/attrs/op
       .guild/attrs/platform
       .guild/attrs/random_seed
+      .guild/attrs/resolved_deps
       .guild/attrs/run_params
       .guild/attrs/sourcecode_digest
       .guild/attrs/started
@@ -91,17 +90,14 @@ Run the latest three staged runs:
     >>> staged = list(gapi.runs_list(staged=True))[:3]
     >>> for staged_run in staged:
     ...     run("guild run --start %s -y" % staged_run.id)
-    Starting ...
     x: 3.000000
     noise: 0.1
     loss: ...
     <exit 0>
-    Starting ...
     x: 2.000000
     noise: 0.1
     loss: ...
     <exit 0>
-    Starting ...
     x: 1.000000
     noise: 0.1
     loss: ...

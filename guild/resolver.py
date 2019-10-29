@@ -23,6 +23,7 @@ import re
 import subprocess
 import tempfile
 
+import six
 import yaml
 
 import guild.opref
@@ -109,10 +110,13 @@ class FileResolver(Resolver):
         return os.path.join(var.cache_dir("resources"), digest)
 
 def _resolve_config_path(config, resource_name):
-    config_path = os.path.abspath(config)
+    config_path = os.path.abspath(str(config))
     if not os.path.exists(config_path):
         raise ResolutionError("%s does not exist" % config_path)
-    log.info("Using %s for %s resource", config_path, resource_name)
+    log.info(
+        "Using %s for %s resource",
+        os.path.relpath(config_path),
+        resource_name)
     return [config_path]
 
 class URLResolver(Resolver):
@@ -244,7 +248,7 @@ class OperationOutputResolver(FileResolver):
         return resolve_source_files(source_path, self.source, unpack_dir)
 
     def _source_path(self):
-        run_spec = self.resource.config
+        run_spec = str(self.resource.config) if self.resource.config else ""
         if run_spec and os.path.isdir(run_spec):
             log.info(
                 "Using output in %s for %s resource",
@@ -324,7 +328,7 @@ def _resolve_opref(opref):
         op_name=opref.op_name)
 
 def _runs_filter(oprefs, run_id_prefix, status):
-    if run_id_prefix:
+    if run_id_prefix and isinstance(run_id_prefix, six.string_types):
         return lambda run: run.id.startswith(run_id_prefix)
     return var.run_filter(
         "all", [

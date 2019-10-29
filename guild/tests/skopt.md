@@ -148,7 +148,9 @@ Let's use the bayesian optimizer to minimize loss for the `echo`
 operation. Loss in this case is simply the value of `x` that we
 specify.
 
-    >>> project = Project(sample("projects", "optimizers"))
+TODO remove env on op2 promote.
+
+    >>> project = Project(sample("projects", "optimizers"), env={"OP2": "1"})
 
 And the run:
 
@@ -157,60 +159,28 @@ And the run:
     ...             minimize="loss",
     ...             random_seed=1,
     ...             max_trials=4)
-    INFO: [guild] Found 0 previous trial(s) for use in optimization
-    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
+    INFO: [guild] Random start for optimization (1 of 3)
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
     ... 2 'a'
-    INFO: [guild] Found 1 previous trial(s) for use in optimization
-    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
+    INFO: [guild] Random start for optimization (2 of 3)
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
     ... 2 'a'
-    INFO: [guild] Found 2 previous trial(s) for use in optimization...
-    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
-    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
-    ... 2 'a'
-    INFO: [guild] Found 3 previous trial(s) for use in optimization...
-    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
-    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
-    ... 2 'a'
-
-Let's get the loss for the latest run:
-
-    >>> latest_run = project.list_runs()[0]
-    >>> loss = project.scalar(latest_run, None, "loss", "last", False)
-    >>> isinstance(loss, float) and loss < 0, loss, latest_run.path
-    (True, ...)
-
-## Maximizing objective
-
-While we generally don't want to maximize loss, let's run the same
-operation with maximize:
-
-    >>> project.run("echo", flags={"x": "[-2.0:2.0:0.0]", "z": "a"},
-    ...             optimizer="gp",
-    ...             maximize="loss",
-    ...             random_seed=1,
-    ...             max_trials=4)
-    INFO: [guild] Found 0 previous trial(s) for use in optimization
-    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
-    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
-    ... 2 'a'
-    INFO: [guild] Found 1 previous trial(s) for use in optimization
-    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
-    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
-    ... 2 'a'
-    INFO: [guild] Found 2 previous trial(s) for use in optimization
-    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
+    INFO: [guild] Random start for optimization (3 of 3)
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
     ... 2 'a'
     INFO: [guild] Found 3 previous trial(s) for use in optimization
-    INFO: [guild] Initialized trial ... (x=..., y=2, z=a)
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
     ... 2 'a'
 
-And the latest loss:
+## Errors
 
-    >>> latest_run = project.list_runs()[0]
-    >>> loss = project.scalar(latest_run, None, "loss", "last", False)
-    >>> isinstance(loss, float) and loss > 0, loss, latest_run.path
-    (True, ...)
+    >>> project.run("echo", flags={"x": "[-2:2]"}, optimizer="gp",
+    ...             maximize="the quick brown fox")
+    ERROR: [guild] invalid objective 'the quick brown fox': unexpected
+    token 'quick', line 1, pos 11
+    <exit 1>
+
+    >>> project.run("echo", flags={"x": "[-2:2]"}, optimizer="gp",
+    ...             minimize="loss, accuracy")
+    ERROR: [guild] invalid objective 'loss, accuracy': too many columns
+    <exit 1>

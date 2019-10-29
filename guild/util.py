@@ -1314,7 +1314,7 @@ class SysArgv(object):
 
 class StdinReader(object):
 
-    __enter__ = lambda *_args: None
+    __enter__ = lambda self, *_args: self
     __exit__ = lambda *_args: None
 
     @staticmethod

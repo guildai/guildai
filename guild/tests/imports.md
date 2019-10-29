@@ -25,7 +25,7 @@
     guild._yacc
     guild.batch_main
     guild.batch_util
-    guild.batch_util2
+    guild.batch_util_legacy
     guild.cli
     guild.click_util
     guild.cmd_impl_support
@@ -81,7 +81,7 @@
     guild.commands.remotes_impl
     guild.commands.run
     guild.commands.run_impl
-    guild.commands.run_impl2
+    guild.commands.run_impl_legacy
     guild.commands.runs
     guild.commands.runs_delete
     guild.commands.runs_diff
@@ -144,12 +144,12 @@
     guild.model_proxy
     guild.namespace
     guild.op
-    guild.op2
     guild.op_cmd
     guild.op_dep
+    guild.op_legacy
     guild.op_main
     guild.op_util
-    guild.op_util2
+    guild.op_util_legacy
     guild.opref
     guild.package
     guild.package_main
@@ -169,17 +169,17 @@
     guild.plugins.queue
     guild.plugins.queue_main
     guild.plugins.random_main
-    guild.plugins.random_main2
+    guild.plugins.random_main_legacy
     guild.plugins.skopt
     guild.plugins.skopt_forest_main
-    guild.plugins.skopt_forest_main2
+    guild.plugins.skopt_forest_main_legacy
     guild.plugins.skopt_gbrt_main
-    guild.plugins.skopt_gbrt_main2
+    guild.plugins.skopt_gbrt_main_legacy
     guild.plugins.skopt_gp_main
-    guild.plugins.skopt_gp_main2
+    guild.plugins.skopt_gp_main_legacy
     guild.plugins.skopt_ipy
     guild.plugins.skopt_util
-    guild.plugins.skopt_util2
+    guild.plugins.skopt_util_legacy
     guild.plugins.summary_util
     guild.plugins.training_pkg_main
     guild.publish

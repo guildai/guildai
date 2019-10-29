@@ -40,7 +40,7 @@ We can optionally show env for a run:
     label: epochs=1
     sourcecode_digest: ...
     run_dir: ...
-    command: ... guild.op_main logreg --data-dir mnist-idx-data --run-dir . -- --batch-size 100 --epochs 1 --learning-rate 0.5
+    command: ... -um guild.op_main logreg --data-dir mnist-idx-data --run-dir . -- --batch-size 100 --epochs 1 --learning-rate 0.5
     exit_status: 0
     pid:
     flags:
@@ -54,22 +54,24 @@ We can optionally show env for a run:
       val#loss: ... (step 550)
     environment:
       CMD_DIR: ...
+      COLUMNS: '999'
+      CUDA_VISIBLE_DEVICES: ''
+      FLAG_BATCH_SIZE: '100'
+      FLAG_EPOCHS: '1'
+      FLAG_LEARNING_RATE: '0.5'
       GUILD_HOME: ...
       GUILD_OP: logreg:train
       GUILD_PKG: ...
-      GUILD_PLUGINS: ...
-      LANG: ...
+      GUILD_PKGDIR: ...
+      GUILD_PLUGINS: ''
+      ...
       LOG_LEVEL: '20'
-      MODEL_DIR: .../site-packages/gpkg/mnist
-      MODEL_PATH: .../site-packages/gpkg/mnist
-      PATH: ...
-      PWD: ...
-      PYTHONPATH: ...
-      REQUIREMENTS_PATH: ...
+      ...
+      PROJECT_DIR: ...
+      ...
       RUN_DIR: ...
       RUN_ID: ...
-      SCRIPT_DIR: ...
-      TEMP: ...
+      ...
     <exit 0>
 
 JSON output:
@@ -120,9 +122,9 @@ JSON output:
 With `--private-attrs`:
 
     >>> quiet("guild runs info --private-attrs --json > %s" % tmp)
-    >>> cat_json(tmp)  # doctest: +REPORT_UDIFF
+    >>> cat_json(tmp)  # _doctest: +REPORT_UDIFF
     {
-        "command": "...",
+        "command": "... -um guild.op_main logreg --data-dir mnist-idx-data --run-dir . -- --batch-size 100 --epochs 1 --learning-rate 0.5",
         "exit_status": 0,
         "flags": {
             "batch-size": 100,
@@ -133,36 +135,6 @@ With `--private-attrs`:
         "id": "...",
         "label": "epochs=1",
         "marked": "no",
-        "opdef": {
-            "compare": [
-                "flag:epochs",
-                "flag:batch-size",
-                "flag:learning-rate",
-                "loss step as step",
-                "loss as train_loss",
-                "acc as train_acc",
-                "val#loss as val_loss",
-                "val#acc as val_acc"
-            ],
-            "description": "Train the logistic regression",
-            "flags": {
-                "batch-size": {
-                    "default": 100,
-                    "description": "Number of images to include in a training batch"
-                },
-                "epochs": {
-                    "default": 5,
-                    "description": "Number of epochs to train"
-                },
-                "learning-rate": {
-                    "default": 0.5,
-                    "description": "Learning rate"
-                }
-            },
-            "flags-import": [],
-            "main": "logreg --data-dir mnist-idx-data --run-dir .",
-            "requires": "mnist-dataset"
-        },
         "operation": "gpkg.mnist/logreg:train",
         "opref": "package:gpkg.mnist 0.6.0 logreg train",
         "pid": "",

@@ -1,6 +1,6 @@
 # Op Utils
 
-    >>> from guild import op_util2 as op_util
+    >>> from guild import op_util
 
 ## Split batch file from args
 

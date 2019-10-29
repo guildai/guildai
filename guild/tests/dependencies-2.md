@@ -205,7 +205,9 @@ validation of the expected results.
 Note we skip running the operations on Windows because they use POSIX
 executables.
 
-    >>> project = Project(sample("projects", "inline-resources"))
+TODO: remove env on op2 promote.
+
+    >>> project = Project(sample("projects", "inline-resources"), env={"OP2": "1"})
 
 Note we skip running the operations on Windows because they use POSIX
 executables.

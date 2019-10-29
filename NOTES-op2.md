@@ -101,3 +101,7 @@ Notes Oct 11:
 - [ ] Run search for dead code (vulture?)
 
 - [ ] Remove --init-trials (replaced with --stage-trials)
+
+- [ ] Look for `    >> `, TODO, and op2 refs
+
+- [ ] Remove --restart alias - no point to this

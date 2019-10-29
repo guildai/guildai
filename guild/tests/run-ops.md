@@ -19,7 +19,8 @@ And the helper function:
 
     >>> def resolve_model_op(opspec, cwd):
     ...     with Chdir(cwd):
-    ...         return run_impl.resolve_model_op(opspec)
+    ...         from guild import op_util
+    ...         return op_util.opdef_for_opspec(opspec)
 
 ## Bad op specs
 
@@ -33,16 +34,13 @@ Running a non-existing operation with no model spec:
 
     >>> resolve_model_op("train", cwd) # doctest: -NORMALIZE_PATHS
     Traceback (most recent call last):
-    SystemExit: ("cannot find operation train\nYou may need to include
-    a model in the form MODEL:OPERATION. Try 'guild operations' for a
-    list of available operations.", 1)
+    NoSuchModel: train
 
 Running a non-existing operation with a model spec:
 
     >>> resolve_model_op("model:train", cwd) # doctest: -NORMALIZE_PATHS
     Traceback (most recent call last):
-    SystemExit: ("cannot find a model matching 'model'\nTry
-    'guild models' for a list of available models.", 1)
+    NoSuchModel: model:train
 
 ## Op for a Python script
 
@@ -54,15 +52,13 @@ specify it as the op spec.
 We'll resolve the operation, capturing any warnings:
 
     >>> with LogCapture() as log:
-    ...     model, op_name = resolve_model_op("train.py", cwd)
-    >>> model
-    <guild.plugins.python_script.PythonScriptModelProxy ...>
-    >>> op_name
-    'train.py'
-    >>> model.modeldef.name
-    ''
-    >>> model.modeldef.operations
-    [<guild.guildfile.OpDef 'train.py'>]
+    ...     opdef = resolve_model_op("train.py", cwd)
+    >>> opdef.opref
+    OpRef(pkg_type='script',
+          pkg_name='...',
+          pkg_version='',
+          model_name='',
+          op_name='train.py')
 
 Ignore any warnings:
 
@@ -90,7 +86,7 @@ Windows because exe permission isn't supported):
 
     >>> resolve_model_op("train.sh", cwd) # doctest: -WINDOWS
     Traceback (most recent call last):
-    SystemExit: ("cannot run 'train.sh': must be an executable file", 1)
+    ModelOpProxyError: ('train.sh', 'must be an executable file')
 
 Let's make the script executable:
 
@@ -99,15 +95,13 @@ Let's make the script executable:
 
 And resolve again:
 
-    >>> model, op_name = resolve_model_op("train.sh", cwd)
-    >>> model
-    <guild.plugins.exec_script.ExecScriptModelProxy ...>
-    >>> op_name
-    'train.sh'
-    >>> model.modeldef.name
-    ''
-    >>> model.modeldef.operations
-    [<guild.guildfile.OpDef 'train.sh'>]
+    >>> opdef = resolve_model_op("train.sh", cwd)
+    >>> opdef.opref
+    OpRef(pkg_type='script',
+          pkg_name='...',
+          pkg_version='',
+          model_name='',
+          op_name='train.sh')
 
 ## Op for batch spec
 
@@ -115,4 +109,4 @@ The special characeter '+' indicates that the operation should be a
 batch run.
 
     >>> resolve_model_op("+", cwd)
-    (<guild.model_proxy.BatchModelProxy ...>, '+')
+    <guild.guildfile.OpDef '+'>

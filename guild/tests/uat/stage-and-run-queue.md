@@ -25,26 +25,22 @@ Stage runs:
     To start the operation, use 'guild run --start ...'
     <exit 0>
 
-Restage the third run to change the order, flag, and label:
-
-    >>> run_id = gapi.runs_list()[2].id
-    >>> run("guild run --restage %s x=6.1 noise=0 --label 'x is 6.1' -y" % run_id)
-    Restaging ...
-    noisy.py staged as ...
-    To start the operation, use 'guild run --start ...'
-    <exit 0>
-
 View the list of staged runs:
 
     >>> run("guild runs")
-    [1:...]  noisy.py  ...  staged  x is 6.1
-    [2:...]  noisy.py  ...  staged  x=6
-    [3:...]  noisy.py  ...  staged  x is 5
+    [1:...]  noisy.py  ...  staged  x=6
+    [2:...]  noisy.py  ...  staged  x is 5
+    [3:...]  noisy.py  ...  staged  x=4
     <exit 0>
 
 Run `queue` once:
 
     >>> run("guild run queue run-once=yes -y")
+    INFO: [queue] ... Processing staged runs
+    INFO: [queue] ... Starting staged run ...
+    x: 4.000000
+    noise: 0.1
+    loss: ...
     INFO: [queue] ... Starting staged run ...
     x: 5.000000
     noise: 0.1
@@ -53,18 +49,14 @@ Run `queue` once:
     x: 6.000000
     noise: 0.1
     loss: ...
-    INFO: [queue] ... Starting staged run ...
-    x: 6.100000
-    noise: 0
-    loss: ...
     <exit 0>
 
 List runs:
 
     >>> run("guild runs")
-    [1:...]  noisy.py  ...  completed  x is 6.1
-    [2:...]  noisy.py  ...  completed  x=6
-    [3:...]  noisy.py  ...  completed  x is 5
+    [1:...]  noisy.py  ...  completed  x=6
+    [2:...]  noisy.py  ...  completed  x is 5
+    [3:...]  noisy.py  ...  completed  x=4
     [4:...]  queue     ...  completed  run-once=yes
     <exit 0>
 

@@ -26,6 +26,8 @@ sample batch project script `add.py`.
 
 Here's a helper function:
 
+TODO: remove extra_env on op2 promote.
+
     >>> from guild import _api as gapi
 
     >>> def trials(max=None, random_seed=None, capture=False,
@@ -34,7 +36,7 @@ Here's a helper function:
     ...     output = gapi.run_capture_output(
     ...       "add.py", cwd=project, flags=flags,
     ...       max_trials=max, random_seed=random_seed,
-    ...       print_trials=True)
+    ...       print_trials=True, extra_env={"OP2": "1"})
     ...   except gapi.RunError as e:
     ...     if capture:
     ...       return e
@@ -45,11 +47,11 @@ Here's a helper function:
     ...       return output.strip()
     ...     print(output.strip())
 
-Here are the trials for a single run:
+If we try to print trials for a non-batch run, we get an error.
 
     >>> trials(x=1, y=1, z=1)
-    #  x  y  z
-    1  1  1  1
+    ERROR (1)
+    guild: cannot print trials for a non-batch operation
 
 And many trials:
 

@@ -7,5 +7,4 @@ opt-1:
 
 opt-2:
   main: guild.pass
-  flags:
-    max_trials: 5
+  default-max-trials: 5

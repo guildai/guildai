@@ -1,138 +1,178 @@
-# Batch runs - random optimizer
+# Batch random optimizer
 
-TODO: delete once OP2-batch-random-optimizer os promoted.
+TODO remove env on op2 promote
 
-These tests illustrate the behavior of the random search optimizer.
+    >>> project = Project(sample("projects", "optimizers"), env={"OP2": "1"})
 
-The random optimizer isn't technically an optimizer as it generates
-random trials without respect to an objective. It's useful however for
-general exploration.
+Helper to print flag value results:
 
-We'll use the `optimizers` project, which provides test operations for
-use with optimizers.
+    >>> def unique_vals(runs):
+    ...     vals = {}
+    ...     for run in runs:
+    ...         for name, val in run.get("flags").items():
+    ...             seen = vals.get(name)
+    ...             if seen is None:
+    ...                 vals[name] = val
+    ...             elif seen != "<multiple>" and seen != val:
+    ...                 vals[name] = "<multiple>"
+    ...     pprint(vals)
 
-    >>> project = sample("projects", "optimizers")
+## Explicit optimizer
 
-For our trials, we'll use Guild's ability to save trial information to
-check the bounds of our generated trials.
+### No search dimensions
 
-Our test project is `optimizers`:
+An operation must contain at least one search dimension, otherwise
+Guild exits with an error.
 
-    >>> project = sample("projects", "optimizers")
-
-Our helper, which returns a table of trials for an operation and set
-of flags.
-
-    >>> from guild import _api as gapi
-    >>> import csv
-
-    >>> def gen_trials(op, max_trials=5, **flags):
-    ...     with TempFile() as tmp:
-    ...         csv_path = tmp.path
-    ...         gapi.run_capture_output(
-    ...             op, flags=flags,
-    ...             optimizer="random",
-    ...             max_trials=max_trials,
-    ...             save_trials=csv_path,
-    ...             cwd=project)
-    ...         rows = list(csv.reader(open(csv_path, "r")))
-    ...         return rows[0], rows[1:]
-
-We can use `echo` as our operation (we won't actually run the
-operation - it's just used for generating trials).
-
-    >>> gf = guildfile.for_dir(project)
-    >>> echo_op = gf.default_model["echo"]
-
-    >>> echo_op.name
-    'echo'
-
-    >>> pprint(echo_op.flag_values())
-    {'x': 1.0, 'y': 2, 'z': 'a'}
-
-For the tests below, note the min and max values for `x`:
-
-    >>> x_flag = echo_op.get_flagdef("x")
-    >>> x_flag.min
-    -2.0
-    >>> x_flag.max
-    2.0
-
-Note also that `z` defines choices:
-
-    >>> z_flag = echo_op.get_flagdef("z")
-    >>> z_choices = [c.value for c in z_flag.choices]
-    >>> z_choices
-    ['a', 'b', 'c', 'd']
-
-At the moment, when we run `echo` with random without additional
-information, random uses the default flags for each trial.
-
-    >>> flags, trials = gen_trials("echo")
-    >>> flags
-    ['x', 'y', 'z']
-
-    >>> len(trials)
-    5
-
-    >>> trials
-    [['...', '2', '...'],
-     ['...', '2', '...'],
-     ['...', '2', '...'],
-     ['...', '2', '...'],
-     ['...', '2', '...']]
-
-The values for `x` and `z` are not known because they are generated at
-random. However, we can check their bounds to make sure they are
-within the prescribed min and max (see above).
-
-Here's a helper function:
-
-    >>> def check_echo_trials(trials, x_min, x_max, z_vals):
-    ...     print("Checking %i trials" % (len(trials)))
-    ...     for row in trials:
-    ...         x = float(row[0])
-    ...         if x < x_min or x > x_max:
-    ...             print("x is out of range: %s" % x)
-    ...         z = row[2]
-    ...         if z not in z_vals:
-    ...             print("unexpected value for z: %s" % z)
-
-Let's check x:
-
-    >>> check_echo_trials(trials, x_flag.min, x_flag.max, z_choices)
-    Checking 5 trials
-
-We can specify flags for the run, which override those defined in the
-Guild file.
-
-Here's a run that doesn't use any random flags - each flag value is a
-scalar. It generates an error.
-
-    >>> try:
-    ...   gen_trials("echo", x=1.0, y=2.1, z="d")
-    ... except guild._api.RunError as e:
-    ...   print(e.output)
-    ...   print("<exit %i>" % e.returncode)
-    ERROR: [guild] flags for batch (x=1.0, y=2.1, z=d) do not contain any
-    search dimension - quitting
+    >>> project.run("echo.py", optimizer="random")
+    ERROR: [guild] flags for batch (x=1.0, y=2, z=a) do not contain any
+    search dimensions
+    Try specifying a range for one or more flags as NAME=[MIN:MAX].
     <exit 1>
 
-Let's experiment with some different changes, specified as flags:
+    >>> project.delete_runs()
+    Deleted 1 run(s)
 
-    >>> _, trials = gen_trials("echo", x="[-0.1:0.1]", y="hat", z=["a","b"])
+### Search over one flag
 
-    >>> len(trials)
-    5
+Run three trials with a search over `x`.
 
-    >>> trials
-    [['...', 'hat', '...'],
-     ['...', 'hat', '...'],
-     ['...', 'hat', '...'],
-     ['...', 'hat', '...'],
-     ['...', 'hat', '...']]
+    >>> project.run("echo.py", optimizer="random", max_trials=3,
+    ...             flags={"x": "[1:100]"})
+    INFO: [guild] Running trial ...: echo.py (x=..., y=2, z=a)
+    ... 2 'a'
+    INFO: [guild] Running trial ...: echo.py (x=..., y=2, z=a)
+    ... 2 'a'
+    INFO: [guild] Running trial ...: echo.py (x=..., y=2, z=a)
+    ... 2 'a'
 
-And let's check the range:
+    >>> runs = project.list_runs()
+    >>> len(runs)
+    4
 
-    >>> check_echo_trials(trials, -0.1, 0.1, ["a", "b"])
-    Checking 5 trials
+The first run is the batch.
+
+    >>> runs[-1].opref.to_opspec()
+    'skopt:random'
+
+The other runs are the trials.
+
+    >>> trials = runs[:-1]
+    >>> list(set([trial.opref.to_opspec(project.cwd) for trial in trials]))
+    ['echo.py']
+
+View unique values for the other runs.
+
+    >>> unique_vals(trials)
+    {'x': '<multiple>', 'y': 2, 'z': 'a'}
+
+    >>> project.delete_runs()
+    Deleted 4 run(s)
+
+### Search over all flags
+
+Run five trials with search over all flags.
+
+    >>> project.run("echo.py", optimizer="random", max_trials=10,
+    ...             flags={"x": "[1:100]",
+    ...                    "y": "[-99.99:99.99]",
+    ...                    "z": ["a", "b", "c"]})
+    INFO: [guild] Running trial ...: echo.py (...)
+    ...
+
+    >>> runs = project.list_runs()
+    >>> len(runs)
+    11
+
+The first run is the batch.
+
+    >>> runs[-1].opref.to_opspec()
+    'skopt:random'
+
+The other runs are the trials.
+
+    >>> trials = runs[:-1]
+    >>> list(set([trial.opref.to_opspec(project.cwd) for trial in trials]))
+    ['echo.py']
+
+View unique values for the other runs.
+
+    >>> unique_vals(trials)
+    {'x': '<multiple>', 'y': '<multiple>', 'z': '<multiple>'}
+
+    >>> project.delete_runs()
+    Deleted 11 run(s)
+
+## Implicit random optimizer
+
+If an operation is run with one or more random distribution values,
+Guild applies the random optimizer if one is not explicitly provided
+by the user.
+
+Uniform distribution short form:
+
+    >>> project.run("echo.py", flags={"x": "[1:10]"}, max_trials=5)
+    INFO: [guild] Running trial ...
+    INFO: [guild] Running trial ...
+    INFO: [guild] Running trial ...
+    INFO: [guild] Running trial ...
+    INFO: [guild] Running trial ...
+
+    >>> runs = project.list_runs()
+    >>> runs[-1].opref.to_opspec()
+    'skopt:random'
+
+    >>> trials = runs[:-1]
+    >>> unique_vals(trials)
+    {'x': '<multiple>', 'y': 2, 'z': 'a'}
+
+`uniform` function:
+
+    >>> project.run("echo.py", flags={"x": "uniform[1:10]"}, max_trials=1)
+    INFO: [guild] Running trial ...
+
+    >>> runs = project.list_runs()
+    >>> runs[0].opref.to_opspec(project.cwd)
+    'echo.py'
+
+    >>> runs[1].opref.to_opspec()
+    'skopt:random'
+
+`loguniform` function:
+
+    >>> project.run("echo.py", flags={"x": "loguniform[1:10]"}, max_trials=1)
+    INFO: [guild] Running trial ...
+
+    >>> runs = project.list_runs()
+    >>> runs[0].opref.to_opspec(project.cwd)
+    'echo.py'
+
+    >>> runs[1].opref.to_opspec()
+    'skopt:random'
+
+
+## Errors and warnings
+
+Specifying --max-trials for a normal run:
+
+    >>> project.run("echo.py", max_trials=5)
+    WARNING: not a batch run - ignoring --max-trials
+    1.0 2 'a'
+
+Invalid flag function:
+
+    >>> project.run("echo.py", flags={"x": "floop[1:10]"})
+    ERROR: [guild] unknown function 'floop' used for flag x
+    <exit 1>
+
+Too many arguments to uniform function:
+
+    >>> project.run("echo.py", flags={"x": "[1:2:3:4]"})
+    ERROR: [guild] uniform requires 2 or 3 args, got (1, 2, 3, 4) for flag x
+    <exit 1>
+
+Too many arguments to loguniform function:
+
+    >>> project.run("echo.py", flags={"x": "loguniform[1:2:3:4]"})
+    ERROR: [guild] loguniform requires 2 or 3 args, got (1, 2, 3, 4) for flag x
+    <exit 1>

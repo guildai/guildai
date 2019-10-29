@@ -35,11 +35,6 @@ def run_params(fn):
             help="Stage an operation.",
             is_flag=True),
         click.Option(
-            # TODO - remove when op2 is promoted
-            ("--restage",),
-            help="Update a staged operation.",
-            hidden=True),
-        click.Option(
             ("--rerun",), metavar="RUN",
             help=(
                 "Use the operation and flags from RUN. Flags may "
@@ -353,10 +348,5 @@ def run(args):
     number of runs the optimizer should generate.
 
     """
-    import os
-    if os.getenv("OP2") == "1":
-        from . import run_impl2
-        run_impl2.main(args)
-    else:
-        from . import run_impl
-        run_impl.main(args)
+    from . import run_impl
+    run_impl.main(args)

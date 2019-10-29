@@ -591,7 +591,6 @@ def _run_info_data(run, args):
     if args.deps:
         data.append(("dependencies", _resolved_deps(run)))
     if args.private_attrs and args.json:
-        data.append(("opdef", run.get("opdef")))
         _maybe_append_proto_data(run, data)
     return data
 
@@ -650,7 +649,7 @@ def _res_sources_paths(sources):
     paths = []
     for source_paths in sources.values():
         paths.extend(source_paths)
-    return paths
+    return sorted(paths)
 
 def _maybe_append_proto_data(run, data):
     proto = run.batch_proto

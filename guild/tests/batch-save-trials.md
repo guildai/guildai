@@ -21,7 +21,7 @@ Let's run with a set of flags and the `save_trials` flag.
     ...     "echo.py",
     ...     flags={"x": [1.1, 2.2], "y": [1, 2], "z": ["b"]},
     ...     save_trials=dest_path)
-    Saving 4 trial(s) to .../trials.csv
+    Saving trials to .../trials.csv
 
 The contents of our save directory:
 
@@ -40,15 +40,11 @@ And the trials file:
 We can use the trials file to run a batch.
 
     >>> project.run("echo.py", batch_files=[dest_path])
-    INFO: [guild] Initialized trial ... (x=1.1, y=1, z=b)
     INFO: [guild] Running trial ...: echo.py (x=1.1, y=1, z=b)
     1.1 1 'b'
-    INFO: [guild] Initialized trial ... (x=1.1, y=2, z=b)
     INFO: [guild] Running trial ...: echo.py (x=1.1, y=2, z=b)
     1.1 2 'b'
-    INFO: [guild] Initialized trial ... (x=2.2, y=1, z=b)
     INFO: [guild] Running trial ...: echo.py (x=2.2, y=1, z=b)
     2.2 1 'b'
-    INFO: [guild] Initialized trial ... (x=2.2, y=2, z=b)
     INFO: [guild] Running trial ...: echo.py (x=2.2, y=2, z=b)
     2.2 2 'b'

@@ -41,12 +41,11 @@ except ImportError:
 from guild import main_bootstrap
 main_bootstrap.ensure_external_path()
 
-from guild import batch_main
+from guild import batch_util
 from guild import click_util
 from guild import config
 from guild import index2 as indexlib
 from guild import model_proxy
-from guild import op as oplib
 from guild import op_util
 from guild import opref as opreflib
 from guild import run as runlib
@@ -258,20 +257,26 @@ def batch_gen_trials(flags, max_trials=None, label=None, **kw):
     trial_opts = {
         "label": label
     }
-    for trial_flags in batch_main.gen_trials(flags):
+    for trial_flags in batch_util.expand_flags(flags):
         if trials >= max_trials:
             return
         trials += 1
         yield trial_flags, trial_opts
 
 def optimizer_trial_generator(model_op):
-    main_mod = importlib.import_module(model_op.module_name)
+    main_mod = _optimizer_module(model_op.module_name)
     try:
         return main_mod.gen_trials
     except AttributeError:
         raise TypeError(
             "%s optimizer module does not implement gen_trials"
             % main_mod.__name__)
+
+def _optimizer_module(module_name):
+    try:
+        return importlib.import_module(module_name + "_legacy")
+    except ImportError:
+        return importlib.import_module(module_name)
 
 def uniform(low, high):
     return RangeFunction("uniform", low, high)
@@ -384,7 +389,7 @@ def _init_run_attrs(run, op, flags, opts):
         run.write_attr("label", opts["label"])
 
 def _init_output_scalars(run, opts):
-    config = opts.get("output_scalars", oplib.DEFAULT_OUTPUT_SCALARS)
+    config = opts.get("output_scalars", summary.DEFAULT_OUTPUT_SCALARS)
     if not config:
         return None
     abs_guild_path = os.path.abspath(run.guild_path())

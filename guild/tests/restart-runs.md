@@ -4,7 +4,9 @@ Runs can be restarted using the --restart option.
 
 We'll use the `optimizers` project for our tests.
 
-    >>> project = Project(sample("projects", "optimizers"))
+TODO: remove env on op2 promote.
+
+    >>> project = Project(sample("projects", "optimizers"), env={"OP2": "1"})
 
 And a helper to get the run ID for a 1-index based run:
 
@@ -35,14 +37,12 @@ And our runs:
 Let's restart the last run (run 1) without specifying any flags:
 
     >>> project.run(restart=run_id(1))
-    Starting ...
     2.0 3 'b'
 
 We can also use the operation name, which restarts the latest or
 marked run matching the name:
 
     >>> project.run(restart="echo.py")
-    Starting ...
     2.0 3 'b'
 
 Note the original flags are used and that these are not the default
@@ -51,20 +51,17 @@ flag values (which are represented in run 2).
 Let's restart run 1 with a new value for x:
 
     >>> project.run(restart=run_id(1), flags={"x": 10})
-    Starting ...
     10 3 'b'
 
 When we restart run 1 again, this time with no explicit flag values,
 it uses the last-specified flag values:
 
     >>> project.run(restart=run_id(1))
-    Starting ...
     10 3 'b'
 
 And again using the operation name:
 
     >>> project.run(restart="echo.py")
-    Starting ...
     10 3 'b'
 
 We can use the `needed` flag to instruct Guild to run the operation
@@ -72,7 +69,6 @@ only if it needs to based on the specified flag values. If the flag
 values are the same as the last run, the operation is skipped.
 
     >>> project.run(restart=run_id(1), needed=True)
-    Starting ...
     Skipping run because flags have not changed (--needed specified)
 
 Let's request a run restart with needed using the same flag values
@@ -80,25 +76,21 @@ explicitly:
 
     >>> project.run(restart=run_id(1), flags={"x": 10, "y": 3, "z": "b"},
     ...             needed=True)
-    Starting ...
     Skipping run because flags have not changed (--needed specified)
 
 If any flag value differs, the run proceeds:
 
     >>> project.run(restart=run_id(1), flags={"x": 100, "y": 3, "z": "b"},
     ...             needed=True)
-    Starting ...
     100 3 'b'
 
 Finally, let's restart run 2 twice with the same flag values and the
 needed flag.
 
     >>> project.run(restart=run_id(2), flags={"z": "d"}, needed=True)
-    Starting ...
     1.0 2 'd'
 
     >> project.run(restart=run_id(2), flags={"z": "d"}, needed=True)
-    Starting ...
     Skipping run because flags have not changed (--needed specified)
 
 ## Run params for restarts
