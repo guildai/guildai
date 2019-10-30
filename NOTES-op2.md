@@ -105,3 +105,5 @@ Notes Oct 11:
 - [ ] Look for `    >> `, TODO, and op2 refs
 
 - [ ] Remove --restart alias - no point to this
+
+- [ ] Remote support for cat

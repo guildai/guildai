@@ -33,12 +33,15 @@ from guild import op_cmd as op_cmd_lib
 from guild import op_dep
 from guild import op_util
 from guild import opref as opreflib
+from guild import remote
 from guild import resolver
 from guild import run as runlib
 from guild import run_util
 from guild import summary
 from guild import util
 from guild import var
+
+from . import remote_impl_support
 
 log = logging.getLogger("guild")
 
@@ -109,11 +112,16 @@ def _apply_op_config_data(data, op):
 # =================================================================
 
 def _state_init_restart_run(S):
-    restart = S.args.restart or S.args.start
-    if restart:
-        S.restart_run = _run_for_spec(restart)
+    if S.args.restart:
+        if S.args.remote:
+            S.restart_run = _remote_run_for_spec(S.args.restart, S.args)
+        else:
+            S.restart_run = _local_run_for_spec(S.args.restart)
 
-def _run_for_spec(spec):
+def _remote_run_for_spec(spec, args):
+    return remote_impl_support.one_run(spec, args)
+
+def _local_run_for_spec(spec):
     return util.find_apply([
         run_util.run_for_run_dir,
         run_util.marked_or_latest_run_for_opspec,
@@ -188,8 +196,26 @@ def _op_init_opdef(opspec, op):
         op._opdef = _opdef_for_opspec(opspec)
 
 def _opdef_for_run(run):
+    if isinstance(run, remote.RunProxy):
+        return _opdef_for_remote_run(run)
     opspec = run.opref.to_opspec()
     return _opdef_for_opspec(opspec)
+
+def _opdef_for_remote_run(run):
+    if _cwd_remote_run(run):
+        return _opdef_for_opspec(_cwd_opspec(run.opref))
+    return _opdef_for_opspec(run.opref.to_opspec())
+
+def _cwd_remote_run(run):
+    try:
+        gf = guildfile.for_dir(config.cwd())
+    except:
+        return False
+    else:
+        return gf.package and gf.package.name == run.opref.pkg_name
+
+def _cwd_opspec(opref):
+    return "%s:%s" % (opref.model_name, opref.op_name)
 
 def _opdef_for_opspec(opspec):
     try:
@@ -238,19 +264,19 @@ def _op_init_op_flags(args, op):
             op._op_cmd,
             op._op_flag_vals)
 
-def _apply_run_flags(run, target):
-    target.update(run.get("flags") or {})
+def _apply_run_flags(run, flag_vals):
+    flag_vals.update(run.get("flags") or {})
 
 def _apply_op_flags_for_opdef(opdef, user_flag_vals, force_flags,
-                              op_cmd, target):
-    """Applies opdef and user-provided flags to target flag vals.
+                              op_cmd, op_flag_vals):
+    """Applies opdef and user-provided flags to op flag vals.
 
     Also attempts to resolve operation runs and use resolve run short
     IDs as applicable flag values.
 
     Opdef is used to provide missing default values, coerce flag vals,
-    and validate vals. Opdef-provided flag vals are added to target
-    only if they are not already in target, or if they are in
+    and validate vals. Opdef-provided flag vals are added to op flag
+    vals only if they are not already in op flags, or if they are in
     user-provided flags. This maintains existing values (e.g. from a
     restart) unless a user explicitly provides a flag value.
 
@@ -260,11 +286,11 @@ def _apply_op_flags_for_opdef(opdef, user_flag_vals, force_flags,
     resources and should not be included in flag args unless the a
     flag def is explicitly provided.
     """
-    op_flag_vals = _flag_vals_for_opdef(opdef, user_flag_vals, force_flags)
-    _apply_default_resolved_runs(opdef, op_cmd, op_flag_vals)
-    for name, val in op_flag_vals.items():
-        if name in user_flag_vals or name not in target:
-            target[name] = val
+    opdef_flag_vals = _flag_vals_for_opdef(opdef, user_flag_vals, force_flags)
+    _apply_default_resolved_runs(opdef, op_cmd, opdef_flag_vals)
+    for name, val in opdef_flag_vals.items():
+        if name in user_flag_vals or name not in op_flag_vals:
+            op_flag_vals[name] = val
 
 def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
     try:
@@ -740,14 +766,13 @@ def _check_incompatible_options(args):
         ("print_trials", "init_trials"),
         ("remote", "background"),
         ("remote", "pidfile"),
-        ("start", "restart"),
     ]
     for a, b in incompatible:
         if getattr(args, a) and getattr(args, b):
             _incompatible_options_error(a, b)
 
 def _check_incompatible_with_restart(args):
-    if not (args.start or args.restart):
+    if not args.restart:
         return
     incompatible = [
         ("help_model", "--help-model"),
@@ -987,13 +1012,15 @@ def _confirm_and_run(S):
 
 def _confirm_run(S):
     prompt = (
-        "You are about to {action} {subject}{batch_suffix}{flags_note}\n"
+        "You are about to {action} {subject}"
+        "{batch_suffix}{remote_suffix}{flags_note}\n"
         "{flags}"
         "Continue?"
         .format(
             action=_preview_op_action(S),
             subject=_preview_op_subject(S),
             batch_suffix=_preview_batch_suffix(S),
+            remote_suffix=_preview_remote_suffix(S),
             flags_note=_preview_flags_note(S),
             flags=_preview_flags(S),
         )
@@ -1003,10 +1030,8 @@ def _confirm_run(S):
 def _preview_op_action(S):
     if S.args.stage:
         return "stage"
-    elif S.args.start:
-        return "start"
     elif S.args.restart:
-        return "restart"
+        return "start"
     else:
         return "run"
 
@@ -1040,6 +1065,11 @@ def _max_trials_preview_part(op):
     if not op._max_trials:
         return ""
     return " (max %i trials)" % op._max_trials
+
+def _preview_remote_suffix(S):
+    if S.args.remote:
+        return " on %s" % S.args.remote
+    return ""
 
 def _preview_flags_note(S):
     if S.user_op._op_flag_vals and S.user_op._batch_trials:
@@ -1084,6 +1114,22 @@ def _null_label(name, null_labels):
 # =================================================================
 
 def _run(S):
+    if S.args.remote:
+        _run_remote(S)
+    else:
+        _run_local(S)
+
+def _run_remote(S):
+    remote_impl_support.run(_remote_args(S))
+
+def _remote_args(S):
+    params = S.args.as_kw()
+    params["opspec"] = S.user_op.opref.to_opspec()
+    if S.restart_run:
+        params["restart"] = S.restart_run.id
+    return click_util.Args(**params)
+
+def _run_local(S):
     _check_run_needed(S)
     op = _init_op_for_run(S)
     if S.args.stage:
@@ -1179,6 +1225,8 @@ def _run_op(op, args, extra_env=None):
         _, exit_status = oplib.run(
             op,
             quiet=args.quiet,
+            pidfile=_op_pidfile(args),
+            stop_after=args.stop_after,
             extra_env=extra_env)
     except op_dep.OpDependencyError as e:
         _op_dependency_error(e)
@@ -1186,6 +1234,14 @@ def _run_op(op, args, extra_env=None):
         _op_process_error(op, e)
     else:
         _handle_run_exit(exit_status)
+
+def _op_pidfile(args):
+    if args.pidfile:
+        return args.pidfile
+    elif args.background:
+        return util.TempFile("guild-pid-").path
+    else:
+        return None
 
 def _handle_run_exit(exit_status):
     if exit_status != 0:
@@ -1390,8 +1446,8 @@ def _skip_needed_matches_info(matching_runs):
 ###################################################################
 
 def run(**kw):
-    from guild.commands import run
-    ctx = run.run.make_context("", [])
+    from .run import run as run_cmd
+    ctx = run_cmd.make_context("", [])
     ctx.params.update(kw)
     ctx.params["yes"] = True
     args = click_util.Args(**ctx.params)

@@ -12,16 +12,16 @@
       .guild/
       .guild/attrs/
       .guild/attrs/cmd
-      .guild/attrs/deps
       .guild/attrs/env
       .guild/attrs/exit_status
       .guild/attrs/flags
       .guild/attrs/host
       .guild/attrs/id
       .guild/attrs/initialized
-      .guild/attrs/opdef
+      .guild/attrs/op
       .guild/attrs/platform
       .guild/attrs/random_seed
+      .guild/attrs/resolved_deps
       .guild/attrs/run_params
       .guild/attrs/sourcecode_digest
       .guild/attrs/started

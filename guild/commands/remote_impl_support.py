@@ -40,7 +40,8 @@ class op_handler(object):
             _handle_op_error(e, self.remote)
         elif etype is remotelib.RemoteProcessError:
             _handle_remote_process_error(e)
-        elif etype is remotelib.OperationNotSupported:
+        elif (etype is remotelib.OperationNotSupported or
+              etype is NotImplementedError):
             _handle_not_supported(self.remote)
 
 def list_runs(args):
@@ -173,11 +174,9 @@ def _run_kw(args):
         "quiet",
         "remote",
         "rerun",
-        "restage",
         "run_dir",
         "save_trials",
         "set_trace",
-        "start",
         "test_output_scalars",
         "test_sourcecode",
         "yes",
@@ -334,7 +333,7 @@ def _handle_remote_process_error(e):
     cli.error(exit_status=e.exit_status)
 
 def _handle_not_supported(remote):
-    cli.error("%s does not support this operation" % remote.name)
+    cli.error("remote '%s' does not support this operation" % remote.name)
 
 def filtered_runs_for_pull(remote, args):
     cli.note("Getting remote run info")
@@ -398,6 +397,23 @@ def _diff_kw(args):
         "working_dir",
     ]
     ignore = [
+        "remote",
+    ]
+    return _arg_kw(args, names, ignore)
+
+def cat(args):
+    remote = remote_support.remote_for_args(args)
+    with op_handler(remote):
+        remote.cat(**_cat_kw(args))
+
+def _cat_kw(args):
+    names = _run_select_names() + [
+        "output",
+        "path",
+        "sourcecode",
+    ]
+    ignore = [
+        "page",
         "remote",
     ]
     return _arg_kw(args, names, ignore)

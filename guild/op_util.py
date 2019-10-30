@@ -646,9 +646,9 @@ def _flagdef_arg_skip(flagdef):
 
 def flag_vals_for_opdef(opdef, user_flag_vals=None, force=False):
     flag_vals = dict(user_flag_vals)
-    _apply_coerce_flag_vals(opdef.flags, flag_vals, force)
+    _apply_coerce_flag_vals(opdef.flags, force, flag_vals)
     resource_flagdefs = _resource_flagdefs(opdef, flag_vals)
-    _apply_coerce_flag_vals(resource_flagdefs, flag_vals, force)
+    _apply_coerce_flag_vals(resource_flagdefs, force, flag_vals)
     flagdefs = opdef.flags + resource_flagdefs
     if not force:
         _check_no_such_flags(flag_vals, flagdefs)
@@ -659,7 +659,7 @@ def flag_vals_for_opdef(opdef, user_flag_vals=None, force=False):
         _check_required_flags(flag_vals, flagdefs)
     return flag_vals
 
-def _apply_coerce_flag_vals(flagdefs, vals, force):
+def _apply_coerce_flag_vals(flagdefs, force, vals):
     flagdef_lookup = {
         flagdef.name: flagdef
         for flagdef in flagdefs

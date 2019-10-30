@@ -602,6 +602,7 @@ def _append_attr_data(run, include_private, data):
         data.append((name, run_util.format_attr(run.get(name))))
     if include_private:
         data.append(("opref", str(run.opref)))
+        data.append(("op", run.get("op")))
 
 def other_attr_names(run, include_private=False):
     core_attrs = CORE_RUN_ATTRS + LEGACY_RUN_ATTRS

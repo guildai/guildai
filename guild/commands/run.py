@@ -35,19 +35,16 @@ def run_params(fn):
             help="Stage an operation.",
             is_flag=True),
         click.Option(
+            ("--start", "--restart", "restart"), metavar="RUN",
+            help=(
+                "Start a staged run or restart an existing run. Cannot be "
+                "used with --rerun or --run-dir.")),
+        click.Option(
             ("--rerun",), metavar="RUN",
             help=(
                 "Use the operation and flags from RUN. Flags may "
                 "be added or redefined in this operation. Cannot "
                 "be used with --restart.")),
-        click.Option(
-            ("--restart",), metavar="RUN",
-            help=(
-                "Restart RUN in-place without creating a new run. Cannot be "
-                "used with --rerun or --run-dir.")),
-        click.Option(
-            ("--start",), metavar="RUN",
-            help="Start a pending run."),
         click.Option(
             ("--gpus",), metavar="DEVICES",
             help=("Limit availabe GPUs to DEVICES, a comma separated list of "

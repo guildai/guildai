@@ -116,11 +116,9 @@ def _op_init_run_attrs(op, run):
 def stage(op):
     run = init_run(op)
     _stage_run_proc_env(op, run)
-    try:
-        _resolve_deps(op, run, for_stage=True)
-        op_util.set_run_staged(run)
-    finally:
-        op_util.clear_run_pending(run)
+    _resolve_deps(op, run, for_stage=True)
+    op_util.set_run_staged(run)
+    op_util.clear_run_pending(run)
     return run
 
 def _stage_run_proc_env(op, run):
@@ -138,18 +136,38 @@ def _stage_run_proc_env(op, run):
 # Run
 ###################################################################
 
-def run(op, quiet=False, stop_after=None, extra_env=None):
+def run(op, quiet=False, pidfile=None, stop_after=None, extra_env=None):
     run = init_run(op)
-    try:
-        _resolve_deps(op, run)
-        op_util.set_run_started(run)
-        proc = _op_start_proc(op, run, extra_env)
-        exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
-        _op_finalize_run_attrs(run, exit_status)
+    if pidfile:
+        _start_in_background(run, op, pidfile, quiet, stop_after, extra_env)
+        return run, 0
+    else:
+        exit_status = _run(run, op, quiet, stop_after, extra_env)
         return run, exit_status
-    finally:
-        op_util.clear_run_marker(run, "STAGED")
+
+def _start_in_background(run, op, pidfile, quiet, stop_after, extra_env):
+    import daemonize
+    action = lambda: _run(run, op, quiet, stop_after, extra_env)
+    daemon = daemonize.Daemonize(app="guild_op", action=action, pid=pidfile)
+    if not quiet:
+        log.info(
+            "%s started in background as %s (pidfile %s)",
+            run.opref.to_opspec(), run.id, pidfile)
+    try:
+        daemon.start()
+    except SystemExit:
         op_util.clear_run_pending(run)
+        raise
+
+def _run(run, op, quiet, stop_after, extra_env):
+    _resolve_deps(op, run)
+    op_util.set_run_started(run)
+    op_util.clear_run_marker(run, "STAGED")
+    op_util.clear_run_pending(run)
+    proc = _op_start_proc(op, run, extra_env)
+    exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
+    _op_finalize_run_attrs(run, exit_status)
+    return exit_status
 
 def _op_start_proc(op, run, extra_env=None):
     env = _op_proc_env(op, run)
