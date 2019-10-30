@@ -1,8 +1,6 @@
 # Batch max trials
 
-TODO: remove env on op2 promote.
-
-    >>> project = Project(sample("projects", "max-trials"), env={"OP2": "1"})
+    >>> project = Project(sample("projects", "max-trials"))
 
 A helper:
 

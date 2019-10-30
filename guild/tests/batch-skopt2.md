@@ -4,9 +4,7 @@ These tests cover various ranges of dimensions that are not covered by
 `batch-skopt`. The tests use the `echo2.py` script in the `optimizers`
 sample project.
 
-TODO remove env on op2 promote.
-
-    >>> project = Project(sample("projects", "optimizers"), env={"OP2": "1"})
+    >>> project = Project(sample("projects", "optimizers"))
 
 A helper to run a batch:
 

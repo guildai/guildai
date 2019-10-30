@@ -4,7 +4,7 @@ Steps can be used to check run results.
 
 For these tests we'll use the `step-checks` project.
 
-    >>> project = Project(sample("projects", "step-checks"), env={"OP2": "1"})
+    >>> project = Project(sample("projects", "step-checks"))
 
 The project has two public operations and a number of private
 operation (i.e. operations starting with `_`).

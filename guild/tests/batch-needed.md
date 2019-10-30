@@ -8,9 +8,7 @@ For general tests on the needed option, see [needed.md](needed.md).
 
 For our tests we use the `optimizers` sample project.
 
-TODO: remove env when promoting op2.
-
-    >>> project = Project(sample("projects", "optimizers"), env={"OP2": "1"})
+    >>> project = Project(sample("projects", "optimizers"))
 
 Here's a helper for running echo:
 

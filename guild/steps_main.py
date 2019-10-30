@@ -184,7 +184,7 @@ def _apply_default_model(step_opspec, parent_opref):
 
 def _split_batch_files(flag_args):
     from guild.commands import run_impl
-    return run_impl.split_batch_files(flag_args)
+    return op_util.split_batch_files(flag_args)
 
 def _resolve_flag_vals(flags, parent_flags):
     return {

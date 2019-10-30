@@ -1,7 +1,5 @@
 # Cross package inheritance
 
-TODO: remove OP2 env below when promoting to op2.
-
 These tests cover the **Extending packages** topic in `guildfiles.md`
 in more depth.
 
@@ -115,8 +113,7 @@ Let's run `a/model:test`.
     ...   "model:test",
     ...   cwd=path(projects, "a"),
     ...   run_dir=a_test_run_dir,
-    ...   extra_env={"NO_WARN_RUNDIR": "1",
-    ...              "OP2": "1"})
+    ...   extra_env={"NO_WARN_RUNDIR": "1"})
     >>> print(output)
     Resolving msg_file dependency
     Resolving lib dependency
@@ -133,8 +130,7 @@ Next we'll run `b/model:test`:
     ...   output = gapi.run_capture_output(
     ...     "model:test",
     ...     cwd=path(projects, "b"),
-    ...     run_dir=b_test_run_dir,
-    ...     extra_env={"OP2": "1"})
+    ...     run_dir=b_test_run_dir)
     ... except gapi.RunError as e:
     ...   print(e.output)
     ... else:
@@ -156,8 +152,7 @@ system path:
     ...   cwd=path(projects, "b"),
     ...   run_dir=b_test_run_dir,
     ...   extra_env={"PYTHONPATH": "..",
-    ...              "NO_WARN_RUNDIR": "1",
-    ...              "OP2": "1"})
+    ...              "NO_WARN_RUNDIR": "1"})
     >>> print(output)
     Resolving msg_file dependency
     Resolving lib dependency
@@ -176,8 +171,7 @@ Next we'll run `c/model:test`:
     ...   cwd=path(projects, "c"),
     ...   run_dir=c_test_run_dir,
     ...   extra_env={"PYTHONPATH": "..",
-    ...              "NO_WARN_RUNDIR": "1",
-    ...              "OP2": "1"})
+    ...              "NO_WARN_RUNDIR": "1"})
     >>> print(output)
     Resolving msg_file dependency
     Resolving lib dependency

@@ -1,7 +1,5 @@
 # Copy source code warnings
 
-TODO: remove OP2 for project env below on op2 promote.
-
 By default, Guild guards against copying too many source code files or
 copying very large source code files.
 
@@ -40,7 +38,7 @@ Here's a no-op script that we can run to test an operation:
 
 Let's run the no-op script using a project:
 
-    >>> project = Project(project_dir, env={"OP2": "1"})
+    >>> project = Project(project_dir)
     >>> run, out = project.run_capture(
     ...     "no_op.py",
     ...     extra_env={"PYTHONPATH": project_dir})
@@ -132,7 +130,7 @@ Here are the project files:
 
 Let's run an operation with the default source code settings.
 
-    >>> project = Project(project_dir, env={"OP2": "1"})
+    >>> project = Project(project_dir)
     >>> run, out = project.run_capture("no_op.py")
     >>> print(out)
     WARNING: Skipping potential source code file ./too-big.txt
@@ -194,7 +192,7 @@ Our no_op operation:
 
 And a run:
 
-    >>> project = Project(project_dir, env={"OP2": "1"})
+    >>> project = Project(project_dir)
     >>> run, out = project.run_capture(
     ...     "no_op.py",
     ...     extra_env={"PYTHONPATH": project_dir})

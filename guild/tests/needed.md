@@ -10,9 +10,7 @@ values.
 To illustrate we'll use the `echo.py` script in the `optimizers`
 project:
 
-TODO: remove env on op2 promote.
-
-    >>> project = Project(sample("projects", "optimizers"), env={"OP2": "1"})
+    >>> project = Project(sample("projects", "optimizers"))
 
 Let's run `echo.py` for the first time without any options:
 

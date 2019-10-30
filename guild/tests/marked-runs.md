@@ -8,11 +8,7 @@ Runs are marked by users or by optimizers.
 
 We'll illustrate using the `batch-deps` sample project.
 
-TODO: remove OP2 env on op2 promote.
-
-    >>> project = Project(sample("projects", "batch-deps"), env={"OP2": "1"})
-
-TODO: Remove Env wrappers below on promot of op2.
+    >>> project = Project(sample("projects", "batch-deps"))
 
 In this project, the `serve` operation requires a `train` operation.
 

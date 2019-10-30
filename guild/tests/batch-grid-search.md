@@ -26,8 +26,6 @@ sample batch project script `add.py`.
 
 Here's a helper function:
 
-TODO: remove extra_env on op2 promote.
-
     >>> from guild import _api as gapi
 
     >>> def trials(max=None, random_seed=None, capture=False,
@@ -36,7 +34,7 @@ TODO: remove extra_env on op2 promote.
     ...     output = gapi.run_capture_output(
     ...       "add.py", cwd=project, flags=flags,
     ...       max_trials=max, random_seed=random_seed,
-    ...       print_trials=True, extra_env={"OP2": "1"})
+    ...       print_trials=True)
     ...   except gapi.RunError as e:
     ...     if capture:
     ...       return e

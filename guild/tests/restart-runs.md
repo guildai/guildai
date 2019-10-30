@@ -4,9 +4,7 @@ Runs can be restarted using the --restart option.
 
 We'll use the `optimizers` project for our tests.
 
-TODO: remove env on op2 promote.
-
-    >>> project = Project(sample("projects", "optimizers"), env={"OP2": "1"})
+    >>> project = Project(sample("projects", "optimizers"))
 
 And a helper to get the run ID for a 1-index based run:
 

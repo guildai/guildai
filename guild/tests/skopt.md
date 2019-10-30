@@ -148,9 +148,7 @@ Let's use the bayesian optimizer to minimize loss for the `echo`
 operation. Loss in this case is simply the value of `x` that we
 specify.
 
-TODO remove env on op2 promote.
-
-    >>> project = Project(sample("projects", "optimizers"), env={"OP2": "1"})
+    >>> project = Project(sample("projects", "optimizers"))
 
 And the run:
 

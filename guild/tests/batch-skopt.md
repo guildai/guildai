@@ -8,9 +8,7 @@ These tests run each of the skopt based optimizers:
 
 We'll use the `noisy.py` script in the `optimizers` sample project.
 
-TODO: remove env on op2 promote
-
-    >>> project = Project(sample("projects", "optimizers"), env={"OP2": "1"})
+    >>> project = Project(sample("projects", "optimizers"))
 
 A helper to run an optimizer batch:
 

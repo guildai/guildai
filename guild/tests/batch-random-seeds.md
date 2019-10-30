@@ -8,9 +8,7 @@ can use to generate consistent results.
 For our tests, we'll use the `echo.py` script in the `optimizers`
 project.
 
-TODO: remove env when promoting op2.
-
-    >>> project = Project(sample("projects", "optimizers"), env={"OP2": "1"})
+    >>> project = Project(sample("projects", "optimizers"))
 
 Some helper functions:
 

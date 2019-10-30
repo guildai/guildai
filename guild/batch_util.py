@@ -22,6 +22,7 @@ import random
 import sys
 
 from guild import _api as gapi
+from guild import exit_code
 from guild import index2 as indexlib
 from guild import op_util
 from guild import run_util

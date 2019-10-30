@@ -11,9 +11,7 @@ trial, rather than via the original batch.
 
 For our tests we work with the `optimizers` sample project:
 
-TODO: remove env when promoting op2.
-
-    >>> project = Project(sample("projects", "optimizers"), env={"OP2": "1"})
+    >>> project = Project(sample("projects", "optimizers"))
 
 ## Initial batch run
 

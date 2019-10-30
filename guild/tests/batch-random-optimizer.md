@@ -1,8 +1,6 @@
 # Batch random optimizer
 
-TODO remove env on op2 promote
-
-    >>> project = Project(sample("projects", "optimizers"), env={"OP2": "1"})
+    >>> project = Project(sample("projects", "optimizers"))
 
 Helper to print flag value results:
 

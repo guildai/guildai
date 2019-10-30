@@ -3,9 +3,7 @@
 These tests illustrate batch run behavior. We'll use the `batch`
 sample project:
 
-TODO: remove env on op2 promote
-
-    >>> project = Project(sample("projects", "batch"), env={"OP2": "1"})
+    >>> project = Project(sample("projects", "batch"))
 
 ## Batch runs
 

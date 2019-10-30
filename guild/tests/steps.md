@@ -9,9 +9,7 @@ main or exec spec.
 
 We'll use the sample project 'steps' to illustrate the behavior.
 
-TODO remove env after op2 promote
-
-    >>> project = Project(sample("projects", "steps"), env={"OP2": "1"})
+    >>> project = Project(sample("projects", "steps"))
 
 Here's the project Guild file:
 
