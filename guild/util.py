@@ -1332,3 +1332,13 @@ def env_var_quote(s):
     if s == "":
         return ""
     return shlex_quote(s)
+
+def realpath(path):
+    # Workaround for https://bugs.python.org/issue9949
+    try:
+        link = os.readlink(path)
+    except OSError:
+        return os.path.realpath(path)
+    else:
+        path_dir = os.path.dirname(path)
+        return os.path.abspath(os.path.join(path_dir, link))

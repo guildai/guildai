@@ -208,7 +208,11 @@ def trial_results(batch_run, scalars):
     return results
 
 def trial_runs(batch_run):
-    return var.runs(batch_run.dir, sort=["timestamp"])
+    runs = var.runs(batch_run.dir, sort=["timestamp"])
+    # Update run dirs to real location rather than links under batch run.
+    for run in runs:
+        run.path = util.realpath(run.path)
+    return runs
 
 def _run_index_for_scalars(runs):
     index = indexlib.RunIndex()
