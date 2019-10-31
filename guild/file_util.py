@@ -315,10 +315,10 @@ def files_digest(root):
         return None
     md5 = hashlib.md5()
     for path in files:
-        relpath = os.path.relpath(path, root)
-        md5.update(_encode_file_path_for_digest(relpath))
+        normpath = _normalize_path_for_digest(path, root)
+        md5.update(_encode_file_path_for_digest(normpath))
         md5.update(b"\x00")
-        _file_bytes_digest_update(path, md5)
+        _apply_digest_file_bytes(path, md5)
         md5.update(b"\x00")
     return md5.hexdigest()
 
@@ -330,10 +330,14 @@ def _files_for_digest(root):
     all.sort()
     return all
 
+def _normalize_path_for_digest(path, root):
+    relpath = os.path.relpath(path, root)
+    return relpath.replace(os.path.sep, "/")
+
 def _encode_file_path_for_digest(path):
     return path.encode("UTF-8")
 
-def _file_bytes_digest_update(path, d):
+def _apply_digest_file_bytes(path, d):
     BUF_SIZE = 1024 * 1024
     with open(path, "rb") as f:
         while True:

@@ -443,7 +443,11 @@ class Chdir(object):
         os.chdir(self._cwd)
 
 def write(filename, contents):
-    with open(filename, "w") as f:
+    try:
+        contents = contents.encode()
+    except AttributeError:
+        pass
+    with open(filename, "wb") as f:
         f.write(contents)
 
 class SysPath(object):
