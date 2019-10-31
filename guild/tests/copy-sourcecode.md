@@ -38,7 +38,8 @@ files:
     ...     for name in names:
     ...         src = path(root, name)
     ...         relpath = os.path.relpath(src, project_dir_src)
-    ...         if not relpath in project_files:
+    ...         normpath = relpath.replace(os.path.sep, "/")
+    ...         if not normpath in project_files:
     ...             continue
     ...         dest = path(project_dir, relpath)
     ...         ensure_dir(dirname(dest))
