@@ -13,7 +13,7 @@ We'll use the sample project 'steps' to illustrate the behavior.
 
 Here's the project Guild file:
 
-    >>> gf = guildfile.from_dir(project.cwd)
+    >>> gf = guildfile.for_dir(project.cwd)
 
 Here are the suported models:
 
@@ -180,15 +180,6 @@ And with an explicit message:
     INFO: [guild] running hello: m1:hello msg='hello from test (again)'
     hello from test (again)
 
-If a flag value is None/null, the flag is not passed through, in which
-case the default value of the step operation is used:
-
-    >>> project.run("m1:steps-hello", flags={"msg": None})
-    INFO: [guild] running hello: m1:hello
-    hello world
-    INFO: [guild] running hello: m1:hello msg='null (again)'
-    null (again)
-
 ## Running operations across models
 
 A stepped operation may run operations defined in other models. Model
@@ -218,8 +209,8 @@ The `m3` model contains various operations that have invalid step
 configuration.
 
     >>> project.run("m3:steps-invalid-no-steps")
-    guild: operation m3:steps-invalid-no-steps is not valid:
-    requires one of: main, exec, steps
+    guild: invalid definition for operation 'm3:steps-invalid-no-steps':
+    must define either exec, main, or steps
     <exit 1>
 
     >>> project.run("m3:steps-invalid-bad-type")
@@ -244,10 +235,9 @@ configuration.
 
     >>> project.run("m3:steps-invalid-bad-op")
     INFO: [guild] running not-defined: m3:not-defined
-    guild: cannot find operation m3:not-defined
-    Try 'guild operations' for a list of available operations.
+    guild: operation 'not-defined' is not defined for model 'm3'
+    Try 'guild operations m3' for a list of available operations.
     <exit 1>
-
 
 At the moment, steps do not support additional run options and any
 provided will cause Guild to print a warning message.
@@ -268,7 +258,7 @@ We'll use the operations in the `m4` model to illustate.
 First let's delete our current runs.
 
     >>> project.delete_runs()
-    Deleted 35 run(s)
+    Deleted 32 run(s)
 
 Let's run `m4:end-to-end`, which runs the sequence of `prepare`,
 `train`, and `evaluate`. This simulates a common end-to-end training

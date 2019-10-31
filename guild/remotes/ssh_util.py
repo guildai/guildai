@@ -64,7 +64,7 @@ def ssh_cmd(
     try:
         subprocess.check_call(cmd)
     except subprocess.CalledProcessError as e:
-        raise remotelib.RemoteProcessError.from_called_process_error(e)
+        raise remotelib.RemoteProcessError.for_called_process_error(e)
 
 
 def _ssh_cmd(host, cmd, user, private_key, connect_timeout, port, proxy):
@@ -91,7 +91,7 @@ def ssh_output(
     try:
         return subprocess.check_output(cmd)
     except subprocess.CalledProcessError as e:
-        raise remotelib.RemoteProcessError.from_called_process_error(e)
+        raise remotelib.RemoteProcessError.for_called_process_error(e)
 
 
 def _ssh_opts(private_key, verbose, connect_timeout, port, proxy):

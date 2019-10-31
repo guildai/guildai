@@ -20,9 +20,9 @@ import os
 import re
 
 from guild import namespace
+from guild import resolver as resolverlib
 from guild import resource
 from guild import util
-from guild.resolver import ResolutionError
 
 log = logging.getLogger("guild")
 
@@ -61,14 +61,14 @@ class Resource(object):
         return resolved_acc
 
     def resolve_source(self, source, unpack_dir=None):
-        resolver = self.resdef.get_source_resolver(source, self)
+        resolver = resolverlib.for_resdef_source(source, self)
         if not resolver:
             raise DependencyError(
                 "unsupported source '%s' in %s resource"
                 % (source, self.resdef.name))
         try:
             source_paths = resolver.resolve(unpack_dir)
-        except ResolutionError as e:
+        except resolverlib.ResolutionError as e:
             msg = (
                 "could not resolve '%s' in %s resource: %s"
                 % (source, self.resdef.name, e))
@@ -187,7 +187,7 @@ def _dependency_resource(dep, flag_vals, ctx):
             spec, ctx)
     except DependencyError as e:
         if spec in ctx.resource_config:
-            log.warning("%s", e)
+            log.warning(str(e))
             return ResourceProxy(dep, spec, ctx.resource_config[spec], ctx)
         raise
     if res:

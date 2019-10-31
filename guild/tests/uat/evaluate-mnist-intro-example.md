@@ -5,7 +5,7 @@ operation to test it against all of the test data.
 
     >>> cd("examples/mnist")
     >>> run("guild run intro:evaluate -y --no-gpus")
-    Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
+    Masking available GPUs (CUDA_VISIBLE_DEVICES='')
     Resolving data dependency...
     Resolving train dependency
     Using output from run ...

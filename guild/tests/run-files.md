@@ -6,16 +6,11 @@ We'l use the `batch` sample project for our tests.
 
     >>> project = Project(sample("projects", "batch"))
 
-Some helper functions:
-
-    >>> def run(op, **flags):
-    ...     project.run(op, flags=flags, simplify_trial_output=True)
-
 ## Normal runs
 
 A simple run that prints a message:
 
-    >>> run("say.py", msg="hi")
+    >>> project.run("say.py", flags={"msg": "hi"})
     hi
 
 Our runs:
@@ -27,12 +22,10 @@ Our runs:
 The files generated for our run:
 
     >>> first_run = runs[0]
-    >>> first_run_files = project.ls(first_run, all=True,
-    ...                              ignore_compiled_source=True)
+    >>> first_run_files = project.ls(first_run, all=True)
     >>> for file in first_run_files:
     ...    print(file) # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
-    .guild/attrs/deps
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/flags
@@ -40,10 +33,10 @@ The files generated for our run:
     .guild/attrs/id
     .guild/attrs/initialized
     .guild/attrs/label
-    .guild/attrs/objective
-    .guild/attrs/opdef
+    .guild/attrs/op
     .guild/attrs/platform
     .guild/attrs/random_seed
+    .guild/attrs/resolved_deps
     .guild/attrs/run_params
     .guild/attrs/sourcecode_digest
     .guild/attrs/started
@@ -58,6 +51,10 @@ The files generated for our run:
     .guild/sourcecode/batch.unknown
     .guild/sourcecode/batch.yaml
     .guild/sourcecode/guild.yml
+    .guild/sourcecode/invalid-data.json
+    .guild/sourcecode/invalid-data.yml
+    .guild/sourcecode/invalid-item.json
+    .guild/sourcecode/invalid-item.yaml
     .guild/sourcecode/say.py
     .guild/sourcecode/tune.py
 
@@ -74,7 +71,7 @@ files.
     - --msg
     - hi
 
-    >>> project.cat(first_run, ".guild/attrs/deps")
+    >>> project.cat(first_run, ".guild/attrs/resolved_deps")
     {}
 
     >>> project.cat(first_run, ".guild/attrs/exit_status")
@@ -106,9 +103,8 @@ generate batch trials.
 Let's run a batch operation to illustrate. We can indicate a run
 should be a batch by specifying a list of values for a flag.
 
-    >>> run("say.py", msg=["ho"])
-    Initialized trial (loud=no, msg=ho)
-    Running trial: say.py (loud=no, msg=ho)
+    >>> project.run("say.py", flags={"msg": ["ho"]})
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=ho)
     ho
 
 The batch generates two runs, one for the batch and the other for the
@@ -124,13 +120,10 @@ The latest run is the trial:
     >>> trial_run.opref.op_name
     'say.py'
 
-    >>> trial_run_files = project.ls(trial_run, all=True,
-    ...                              ignore_compiled_source=True)
+    >>> trial_run_files = project.ls(trial_run, all=True)
     >>> for file in trial_run_files:
     ...     print(file) # doctest: +REPORT_UDIFF
-    .guild/attrs/batch
     .guild/attrs/cmd
-    .guild/attrs/deps
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/flags
@@ -138,11 +131,10 @@ The latest run is the trial:
     .guild/attrs/id
     .guild/attrs/initialized
     .guild/attrs/label
-    .guild/attrs/objective
-    .guild/attrs/opdef
-    .guild/attrs/optimizer
+    .guild/attrs/op
     .guild/attrs/platform
     .guild/attrs/random_seed
+    .guild/attrs/resolved_deps
     .guild/attrs/run_params
     .guild/attrs/sourcecode_digest
     .guild/attrs/started
@@ -157,15 +149,12 @@ The latest run is the trial:
     .guild/sourcecode/batch.unknown
     .guild/sourcecode/batch.yaml
     .guild/sourcecode/guild.yml
+    .guild/sourcecode/invalid-data.json
+    .guild/sourcecode/invalid-data.yml
+    .guild/sourcecode/invalid-item.json
+    .guild/sourcecode/invalid-item.yaml
     .guild/sourcecode/say.py
     .guild/sourcecode/tune.py
-
-The trial run has an `optimizer` attribute, which contains the full
-opspec for the associated optimizer. In this case, the optimizer is
-the special name "+" for generalized batch support:
-
-    >>> project.cat(trial_run, ".guild/attrs/optimizer")
-    +
 
 The next run is the batch:
 
@@ -178,16 +167,17 @@ Its files:
     >>> for file in project.ls(batch_run, all=True):
     ...     print(file) # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
-    .guild/attrs/deps
     .guild/attrs/env
     .guild/attrs/exit_status
     .guild/attrs/flags
     .guild/attrs/host
     .guild/attrs/id
     .guild/attrs/initialized
-    .guild/attrs/opdef
+    .guild/attrs/max_trials
+    .guild/attrs/op
     .guild/attrs/platform
     .guild/attrs/random_seed
+    .guild/attrs/resolved_deps
     .guild/attrs/run_params
     .guild/attrs/sourcecode_digest
     .guild/attrs/started
@@ -202,9 +192,8 @@ Its files:
     .guild/proto/.guild/attrs/host
     .guild/proto/.guild/attrs/id
     .guild/proto/.guild/attrs/initialized
-    .guild/proto/.guild/attrs/objective
-    .guild/proto/.guild/attrs/opdef
-    .guild/proto/.guild/attrs/optimizer
+    .guild/proto/.guild/attrs/label
+    .guild/proto/.guild/attrs/op
     .guild/proto/.guild/attrs/platform
     .guild/proto/.guild/attrs/random_seed
     .guild/proto/.guild/attrs/run_params
@@ -217,6 +206,10 @@ Its files:
     .guild/proto/.guild/sourcecode/batch.unknown
     .guild/proto/.guild/sourcecode/batch.yaml
     .guild/proto/.guild/sourcecode/guild.yml
+    .guild/proto/.guild/sourcecode/invalid-data.json
+    .guild/proto/.guild/sourcecode/invalid-data.yml
+    .guild/proto/.guild/sourcecode/invalid-item.json
+    .guild/proto/.guild/sourcecode/invalid-item.yaml
     .guild/proto/.guild/sourcecode/say.py
     .guild/proto/.guild/sourcecode/tune.py
     ...

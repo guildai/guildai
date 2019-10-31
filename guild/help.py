@@ -308,3 +308,83 @@ def _write_references(refs, out):
     for ref in refs:
         out.write_text("\b\n- %s" % ref)
     out.dedent()
+
+def print_model_help(modeldef):
+    out = click.HelpFormatter()
+    out.write_usage(
+        "guild",
+        "run [OPTIONS] {}:OPERATION [FLAG]...".format(modeldef.name))
+    if modeldef.description:
+        out.write_paragraph()
+        out.write_text(modeldef.description.replace("\n", "\n\n"))
+    out.write_paragraph()
+    out.write_text(
+        "Use 'guild run {}:OPERATION --help-op' for help on "
+        "a particular operation.".format(modeldef.name))
+    ops = _format_model_ops_dl(modeldef)
+    if ops:
+        _write_dl_section("Operations", ops, out)
+    resources = _format_model_resources_dl(modeldef)
+    if resources:
+        _write_dl_section("Resources", resources, out)
+    click.echo(out.getvalue(), nl=False)
+
+def _format_model_ops_dl(modeldef):
+    line1 = lambda s: s.split("\n")[0]
+    return [
+        (op.name, line1(op.description or ""))
+        for op in modeldef.operations
+    ]
+
+def _format_model_resources_dl(modeldef):
+    return [(res.name, res.description) for res in modeldef.resources]
+
+def _write_dl_section(name, dl, out):
+    out.write_paragraph()
+    out.write_heading(name)
+    out.indent()
+    out.write_dl(dl, preserve_paragraphs=True)
+    out.dedent()
+
+def print_op_help(opdef):
+    out = click.HelpFormatter()
+    out.write_usage(
+        "guild",
+        "run [OPTIONS] {} [FLAG]...".format(opdef.fullname))
+    if opdef.description:
+        out.write_paragraph()
+        out.write_text(opdef.description.replace("\n", "\n\n"))
+    out.write_paragraph()
+    out.write_text("Use 'guild run --help' for a list of options.")
+    deps = _format_op_deps_dl(opdef)
+    if deps:
+        _write_dl_section("Dependencies", deps, out)
+    flags = _format_op_flags_dl(opdef)
+    if flags:
+        _write_dl_section("Flags", flags, out)
+    click.echo(out.getvalue(), nl=False)
+
+def _format_op_deps_dl(opdef):
+    model_resources = {
+        res.name: res.description or ""
+        for res in opdef.modeldef.resources
+    }
+    formatted = [
+        (dep.spec, _dep_description(dep, model_resources))
+        for dep in opdef.dependencies
+    ]
+    # Show only deps that have descriptions (implicit user interface)
+    return [item for item in formatted if item[1]]
+
+def _dep_description(dep, model_resources):
+    return dep.description or model_resources.get(dep.spec) or ""
+
+def _format_op_flags_dl(opdef):
+    seen = set()
+    flags = []
+    for flag in opdef.flags:
+        if flag.name in seen:
+            continue
+        seen.add(flag.name)
+        flags.append(flag)
+    return flags_dl(flags)

@@ -4,7 +4,7 @@ We can train the MNIST example model `mnist-intro` in the `mnist`
 directory:
 
     >>> run("guild -C examples/mnist run intro:train -y --no-gpus epochs=1", timeout=120)
-    Limiting available GPUs (CUDA_VISIBLE_DEVICES) to: <none>
+    Masking available GPUs (CUDA_VISIBLE_DEVICES='')
     Resolving data dependency
     ...
     Step 0: training=...

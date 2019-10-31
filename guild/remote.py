@@ -46,7 +46,7 @@ class RemoteProcessError(Exception):
         self.output = output
 
     @classmethod
-    def from_called_process_error(cls, e):
+    def for_called_process_error(cls, e):
         return cls(e.returncode, e.cmd, e.output)
 
 class RunFailed(Exception):
@@ -71,7 +71,7 @@ class RunProxy(object):
     def __init__(self, data):
         self.id = data["id"]
         self.short_id = self.id[:8]
-        self.path = data["run_dir"]
+        self.dir = self.path = data["run_dir"]
         self.pid = None
         self.status = data.get("status")
         self.remote = None
@@ -175,6 +175,9 @@ class Remote(object):
         raise NotImplementedError()
 
     def diff_runs(self, **opts):
+        raise NotImplementedError()
+
+    def cat(self, **opts):
         raise NotImplementedError()
 
 def for_name(name):

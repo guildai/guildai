@@ -42,6 +42,11 @@ def runs_list_options(fn):
                 "Show 20 more runs. Maybe used multiple times."),
             count=True),
         click.Option(
+            ("-n", "--limit"),
+            metavar="N",
+            type=click.IntRange(min=1),
+            help="Limit number of runs shown."),
+        click.Option(
             ("--json",),
             help="Format runs as JSON.",
             is_flag=True),

@@ -35,22 +35,16 @@ def run_params(fn):
             help="Stage an operation.",
             is_flag=True),
         click.Option(
-            ("--restage",),
-            help="Update a staged operation."),
+            ("--start", "--restart", "restart"), metavar="RUN",
+            help=(
+                "Start a staged run or restart an existing run. Cannot be "
+                "used with --rerun or --run-dir.")),
         click.Option(
             ("--rerun",), metavar="RUN",
             help=(
                 "Use the operation and flags from RUN. Flags may "
                 "be added or redefined in this operation. Cannot "
                 "be used with --restart.")),
-        click.Option(
-            ("--restart",), metavar="RUN",
-            help=(
-                "Restart RUN in-place without creating a new run. Cannot be "
-                "used with --rerun or --run-dir.")),
-        click.Option(
-            ("--start",), metavar="RUN",
-            help="Start a pending run."),
         click.Option(
             ("--gpus",), metavar="DEVICES",
             help=("Limit availabe GPUs to DEVICES, a comma separated list of "
@@ -87,7 +81,7 @@ def run_params(fn):
             metavar="FLAG=VAL", multiple=True,
             help="Flag for OPTIMIZER. May be used multiple times."),
         click.Option(
-            ("-m", "--max-trials",), metavar="N", type=int,
+            ("-m", "--max-trials",), metavar="N", type=click.IntRange(1, None),
             help=(
                 "Maximum number of trials to run in batch operations. "
                 "Default is optimizer specific. If optimizer is not "
@@ -96,7 +90,7 @@ def run_params(fn):
             ("--random-seed",), metavar="N", type=int,
             help="Random seed used when sampling trials or flag values."),
         click.Option(
-            ("--init-trials",), is_flag=True,
+            ("--init-trials", "--stage-trials"), is_flag=True,
             help=("For batch operations, initialize trials without "
                   "running them.")),
         click.Option(
@@ -300,22 +294,18 @@ def run(args):
 
     ### Restart an Operation
 
-    If `--restart` is specified, the specified `RUN` is restarted
-    in-place using its operation and flags. Unlike rerun, restart does
-    not create a new run, but instead reuses the run directory of
-    `RUN`. Like a rerun, a restart may specify a different operation
-    and additional flags and may use ``0`` for the value of `RUN` to
-    restart the latest run. `--run-dir` may not be used with
-    `--restart`.
-
-    `--rerun` and `--restart` may not both be used.
+    If `--restart` is specified, `RUN` is restarted using its
+    operation and flags. Unlike rerun, restart does not create a new
+    run. You cannot change the operation, flags or run directory when
+    restarting a run.
 
     ### Staging an Operation
 
-    Use `--stage` to stage an operation. A staged operation does not
-    start when staged. It can be started later using `--start`. Use
-    `--restage` to modify a staged operation with new flag values and
-    to reset its order in the list of runs.
+    Use `--stage` to stage an operation to be run later. Use `--start`
+    with the staged run ID to start it.
+
+    If `--start` is specified, `RUN` is started using the same rules
+    applied to `--restart` (see above).
 
     ### Alternate Run Directory
 
@@ -324,8 +314,8 @@ def run(args):
     directory. These options are useful when developing or debugging
     an operation. Use `--stage-dir` to prepare a run directory for an
     operation without running the operation itself. This is useful
-    when you want to verify dependency resolution and pre-processing
-    or manually run an operation in a prepared directory.
+    when you want to verify run directory layout or manually run an
+    operation in a prepared directory.
 
     **NOTE:** Runs started with `--run-dir` are not visible to Guild
     and will not appear in run listings.

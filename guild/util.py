@@ -38,7 +38,7 @@ log = logging.getLogger("guild")
 
 PLATFORM = platform.system()
 
-OS_ENVIRON_BLACKLIST = set([])
+OS_ENVIRON_BLACKLIST = set(["_"])
 
 class Stop(Exception):
     """Raise to stop loops started with `loop`."""
@@ -370,9 +370,12 @@ def _top_level_dir(path):
 
 class LogCapture(object):
 
-    def __init__(self, use_root_handler=False):
+    def __init__(self, use_root_handler=False, stdout=False,
+                 strip_ansi_format=False):
         self._records = []
         self._use_root_handler = use_root_handler
+        self._stdout = stdout
+        self._strip_ansi_format = strip_ansi_format
 
     def __enter__(self):
         for logger in self._iter_loggers():
@@ -393,11 +396,20 @@ class LogCapture(object):
 
     def filter(self, record):
         self._records.append(record)
+        if self._stdout:
+            sys.stdout.write(self._format_record(record))
+            sys.stdout.write("\n")
+
+    def _format_record(self, r):
+        msg = self._handler().format(r)
+        if self._strip_ansi_format:
+            msg = re.sub(r"\033\[[0-9]+m", "", msg)
+        return msg
 
     def print_all(self):
-        handler = self._handler()
         for r in self._records:
-            print(handler.format(r))
+            sys.stdout.write(self._format_record(r))
+            sys.stdout.write("\n")
 
     def _handler(self):
         if self._use_root_handler:
@@ -432,7 +444,7 @@ def resolve_all_refs(kv, undefined=_raise_error_marker):
     }
 
 def _resolve_refs_recurse(val, kv, undefined, stack):
-    if not isinstance(val, str):
+    if not isinstance(val, six.string_types):
         return val
     parts = [part for part in re.split(r"(\\?\${.+?})", val) if part != ""]
     resolved = list(_iter_resolved_ref_parts(parts, kv, undefined, stack))
@@ -461,7 +473,10 @@ class ReferenceCycleError(Exception):
     pass
 
 class UndefinedReferenceError(Exception):
-    pass
+
+    def __init__(self, reference):
+        super(UndefinedReferenceError, self).__init__(reference)
+        self.reference = reference
 
 def _iter_resolved_ref_parts(parts, kv, undefined, stack):
     for part in parts:
@@ -694,12 +709,13 @@ def format_duration(start_time, end_time=None):
     return "%d:%02d:%02d" % (h, m, s)
 
 def format_dir(dir):
-    abs_cwd = os.path.abspath(dir)
+    return format_user_dir(os.path.abspath(dir))
+
+def format_user_dir(s):
     user_dir = os.path.expanduser("~")
-    if abs_cwd.startswith(user_dir):
-        return os.path.join("~", abs_cwd[len(user_dir)+1:])
-    else:
-        return abs_cwd
+    if s.startswith(user_dir):
+        return os.path.join("~", s[len(user_dir)+1:])
+    return s
 
 def apply_env(target, source, names):
     for name in names:
@@ -1295,3 +1311,24 @@ class SysArgv(object):
         assert self._save is not None
         sys.argv[1:] = self._save
         self._save = None
+
+class StdinReader(object):
+
+    __enter__ = lambda self, *_args: self
+    __exit__ = lambda *_args: None
+
+    @staticmethod
+    def __iter__():
+        while True:
+            line = sys.stdin.readline()
+            if not line.strip():
+                break
+            yield line
+
+def env_var_name(s):
+    return re.sub("[^A-Z0-9_]", "_", s.upper())
+
+def env_var_quote(s):
+    if s == "":
+        return ""
+    return shlex_quote(s)

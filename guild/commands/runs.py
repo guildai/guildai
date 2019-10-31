@@ -51,7 +51,6 @@ def runs(ctx, **kw):
         ctx.invoke(list_runs, **kw)
     else:
         if _params_specified(kw):
-            # TODO: It'd be nice to move kw over to the subcommand.
             cli.error(
                 "options cannot be listed before command ('%s')"
                 % ctx.invoked_subcommand)

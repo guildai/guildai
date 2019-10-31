@@ -17,7 +17,7 @@ variables (`globals`).
 First, the `args` operation. Here's are the default flag values for
 the operation:
 
-    >>> gf = guildfile.from_dir(project.cwd)
+    >>> gf = guildfile.for_dir(project.cwd)
 
     >>> pprint(gf.default_model.get_operation("args").flag_values())
     {'b1': True,
@@ -29,7 +29,6 @@ the operation:
      'f5': -6.78e-07,
      'f6': 6543210.0,
      'i': 456,
-     'l': [1, 2, "a b 'c d'"],
      's1': 'a',
      's2': 'a b',
      's3': '123e4',
@@ -47,7 +46,6 @@ Here's the output for the default values:
     --f5 -6.78e-07
     --f6 6543210.0
     --i 456
-    --l [1, 2, a b 'c d']
     --s1 a
     --s2 a b
     --s3 '123e4'
@@ -70,7 +68,6 @@ We can change the values at the run command:
     --f5 -6.78e-07
     --f6 6543210.0
     --i 456
-    --l [1, 2, a b 'c d']
     --s1 a
     --s2 a b
     --s3 hello
@@ -94,7 +91,6 @@ same as the `args` flags):
      'f5': -6.78e-07,
      'f6': 6543210.0,
      'i': 456,
-     'l': [1, 2, "a b 'c d'"],
      's1': 'a',
      's2': 'a b',
      's3': '123e4',
@@ -112,7 +108,6 @@ And the run output:
     f5: -6.78e-07
     f6: 6543210.0
     i: 456
-    l: [1, 2, "a b 'c d'"]
     s1: 'a'
     s2: 'a b'
     s3: '123e4'
@@ -135,8 +130,85 @@ And with modified flags:
     f5: -6.78e-07
     f6: 6543210.0
     i: 456
-    l: [1, 2, "a b 'c d'"]
     s1: 'a'
     s2: 'a b'
     s3: 'hello'
     s4: '-0.00034'
+
+## Flag list values
+
+Flag list values drive batch trials.
+
+Here's the `args-batch` flags. Note the addition of `l`, which is a
+list.
+
+    >>> pprint(gf.default_model.get_operation("args-batch").flag_values())
+    {'b1': True,
+     'b2': False,
+     'f1': 1.1,
+     'f2': 1.0,
+     'f3': 0.1,
+     'f4': 12300.0,
+     'f5': -6.78e-07,
+     'f6': 6543210.0,
+     'i': 456,
+     'l': [1, 2.3, 'foo'],
+     's1': 'a',
+     's2': 'a b',
+     's3': '123e4',
+     's4': '-0.00034'}
+
+When we run this operation, it generates three trials:
+
+    >>> project.run("args-batch")
+    INFO: [guild] Running trial ...: args-batch (b1=yes, b2=no, f1=1.1, f2=1.0,
+    f3=0.1, f4=12300.0, f5=-6.78e-07, f6=6543210.0, i=456, l=1, s1=a, s2='a b',
+    s3=1230000.0, s4='-0.00034')
+    --b1 yes
+    --b2 no
+    --f1 1.1
+    --f2 1.0
+    --f3 0.1
+    --f4 12300.0
+    --f5 -6.78e-07
+    --f6 6543210.0
+    --i 456
+    --l 1
+    --s1 a
+    --s2 a b
+    --s3 1230000.0
+    --s4 '-0.00034'
+    INFO: [guild] Running trial ...: args-batch (b1=yes, b2=no, f1=1.1, f2=1.0,
+    f3=0.1, f4=12300.0, f5=-6.78e-07, f6=6543210.0, i=456, l=2.3, s1=a, s2='a b',
+    s3=1230000.0, s4='-0.00034')
+    --b1 yes
+    --b2 no
+    --f1 1.1
+    --f2 1.0
+    --f3 0.1
+    --f4 12300.0
+    --f5 -6.78e-07
+    --f6 6543210.0
+    --i 456
+    --l 2.3
+    --s1 a
+    --s2 a b
+    --s3 1230000.0
+    --s4 '-0.00034'
+    INFO: [guild] Running trial ...: args-batch (b1=yes, b2=no, f1=1.1, f2=1.0,
+    f3=0.1, f4=12300.0, f5=-6.78e-07, f6=6543210.0, i=456, l=foo, s1=a, s2='a b',
+    s3=1230000.0, s4='-0.00034')
+    --b1 yes
+    --b2 no
+    --f1 1.1
+    --f2 1.0
+    --f3 0.1
+    --f4 12300.0
+    --f5 -6.78e-07
+    --f6 6543210.0
+    --i 456
+    --l foo
+    --s1 a
+    --s2 a b
+    --s3 1230000.0
+    --s4 '-0.00034'

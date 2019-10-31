@@ -28,6 +28,7 @@ from six.moves import shlex_quote as q
 
 from guild import click_util
 from guild import config
+from guild import op_util
 from guild import remote as remotelib
 from guild import remote_util
 from guild import run as runlib
@@ -162,7 +163,9 @@ class SSHRemote(remotelib.Remote):
                     _build_package(op_src, tmp.path)
             remote_run_dir = self._init_remote_run(tmp.path, opspec, restart)
         run_id = os.path.basename(remote_run_dir)
-        self._start_op(remote_run_dir, opspec, flags, run_id, stage, **opts)
+        self._start_op(
+            remote_run_dir, opspec, restart,
+            flags, run_id, stage, **opts)
         if stage:
             log.info("%s staged as on %s as %s", opspec, self.name, run_id)
             log.info(
@@ -266,7 +269,8 @@ class SSHRemote(remotelib.Remote):
         else:
             return ""
 
-    def _start_op(self, remote_run_dir, opspec, flags, run_id, stage, **opts):
+    def _start_op(self, remote_run_dir, opspec, restart, flags,
+                  run_id, stage, **opts):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(
@@ -275,12 +279,14 @@ class SSHRemote(remotelib.Remote):
             .format(run_dir=remote_run_dir))
         cmd_lines.append("export NO_STAGED_MSG=1")
         cmd_lines.append("export NO_IMPORT_FLAGS_PROGRESS=1")
-        cmd_lines.append(_remote_run_cmd(
-            remote_run_dir=remote_run_dir,
-            opspec=opspec,
-            op_flags=flags,
-            stage=stage,
-            **opts))
+        cmd_lines.append(
+            _remote_run_cmd(
+                remote_run_dir=remote_run_dir,
+                opspec=opspec,
+                start=restart,
+                op_flags=flags,
+                stage=stage,
+                **opts))
         cmd = "; ".join(cmd_lines)
         if not stage:
             log.info("Starting %s on %s as %s", opspec, self.name, run_id)
@@ -358,10 +364,10 @@ class SSHRemote(remotelib.Remote):
     def one_run(self, run_id_prefix):
         out = self._guild_cmd_output(
             "runs info", [run_id_prefix, "--private-attrs", "--json"])
-        return remotelib.RunProxy(self._run_data_from_json(out))
+        return remotelib.RunProxy(self._run_data_for_json(out))
 
     @staticmethod
-    def _run_data_from_json(s):
+    def _run_data_for_json(s):
         return json.loads(s.decode())
 
     def watch_run(self, **opts):
@@ -375,6 +381,7 @@ class SSHRemote(remotelib.Remote):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.extend(self._set_columns())
+        assert self.guild_home is not None
         cmd_lines.append("export GUILD_HOME=%s" % self.guild_home)
         if env:
             cmd_lines.extend(self._cmd_env(env))
@@ -430,7 +437,10 @@ class SSHRemote(remotelib.Remote):
     def diff_runs(self, **opts):
         self._guild_cmd("runs diff", _diff_args(**opts))
 
-def _list_runs_filter_opts(deleted, all, more, **filters):
+    def cat(self, **opts):
+        self._guild_cmd("cat", _cat_args(**opts))
+
+def _list_runs_filter_opts(deleted, all, more, limit, **filters):
     opts = []
     if all:
         opts.append("--all")
@@ -439,6 +449,8 @@ def _list_runs_filter_opts(deleted, all, more, **filters):
         opts.append("--deleted")
     if more > 0:
         opts.append("-" + ("m" * more))
+    if limit:
+        opts.extend(["--limit", str(limit)])
     return opts
 
 def _filtered_runs_filter_opts(**filters):
@@ -480,9 +492,8 @@ def _runs_filter_args(
     return args
 
 def _op_src(opspec):
-    from guild.commands import run_impl
-    model, _op_name = run_impl.resolve_model_op(opspec)
-    src = model.modeldef.guildfile.dir
+    opdef = op_util.opdef_for_opspec(opspec)
+    src = opdef.guildfile.dir
     if src is None:
         return None
     if not os.path.isdir(src):
@@ -513,19 +524,25 @@ def _build_package(src_dir, dist_dir):
         package_impl.main(args)
 
 def _remote_run_cmd(
-        remote_run_dir, opspec, op_flags, label, batch_label,
+        remote_run_dir, opspec, start, op_flags, label, batch_label,
         gpus, no_gpus, force_flags,
         needed, stop_after, optimize, optimizer, opt_flags,
         minimize, maximize, random_seed, max_trials,
         init_trials, stage):
     cmd = [
         "NO_WARN_RUNDIR=1",
-        "guild", "run", q(opspec),
-        "--run-dir", remote_run_dir,
-        "--pidfile", "%s/.guild/JOB" % remote_run_dir,
+        "guild", "run",
         "--quiet",
         "--yes",
     ]
+    if start:
+        cmd.extend(["--start", remote_run_dir])
+    else:
+        cmd.extend([q(opspec), "--run-dir", remote_run_dir])
+    if stage:
+        cmd.append("--stage")
+    else:
+        cmd.extend(["--pidfile", "%s/.guild/JOB" % remote_run_dir])
     if label:
         cmd.extend(["--label", q(label)])
     if batch_label:
@@ -556,8 +573,6 @@ def _remote_run_cmd(
         cmd.extend(["--max-trials", max_trials])
     if init_trials:
         cmd.append("--init-trials")
-    if stage:
-        cmd.append("--stage")
     cmd.extend([q(arg) for arg in op_flags])
     return " ".join(cmd)
 
@@ -707,4 +722,16 @@ def _diff_args(runs, output, sourcecode, env, flags, attrs, deps,
     if working_dir:
         args.extend(["--working-dir", working_dir])
     args.extend(runs)
+    return args
+
+def _cat_args(run, path, sourcecode, output, **filters):
+    args = _runs_filter_args(**filters)
+    if run:
+        args.append(run)
+    if path:
+        args.extend(["-p", path])
+    if sourcecode:
+        args.append("--sourcecode")
+    if output:
+        args.append("--output")
     return args

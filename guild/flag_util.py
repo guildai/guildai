@@ -140,6 +140,16 @@ def decode_flag_function(s):
     args = [decode_flag_val(arg.strip()) for arg in args_s]
     return name, tuple(args)
 
+def is_flag_function(val):
+    if not isinstance(val, six.string_types):
+        return False
+    try:
+        decode_flag_function(val)
+    except ValueError:
+        return False
+    else:
+        return True
+
 def format_flags(flags, truncate_floats=False):
     return [
         _flag_assign(name, val, truncate_floats)

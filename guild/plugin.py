@@ -25,6 +25,9 @@ _plugins = entry_point_util.EntryPointResources("guild.plugins", "plugin")
 class NotSupported(Exception):
     pass
 
+class ModelOpResolutionError(Exception):
+    pass
+
 class Plugin(object):
     """Abstract interface for a Guild plugin."""
 

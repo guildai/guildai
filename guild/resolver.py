@@ -23,6 +23,7 @@ import re
 import subprocess
 import tempfile
 
+import six
 import yaml
 
 import guild.opref
@@ -109,10 +110,13 @@ class FileResolver(Resolver):
         return os.path.join(var.cache_dir("resources"), digest)
 
 def _resolve_config_path(config, resource_name):
-    config_path = os.path.abspath(config)
+    config_path = os.path.abspath(str(config))
     if not os.path.exists(config_path):
         raise ResolutionError("%s does not exist" % config_path)
-    log.info("Using %s for %s resource", config_path, resource_name)
+    log.info(
+        "Using %s for %s resource",
+        os.path.relpath(config_path),
+        resource_name)
     return [config_path]
 
 class URLResolver(Resolver):
@@ -244,7 +248,7 @@ class OperationOutputResolver(FileResolver):
         return resolve_source_files(source_path, self.source, unpack_dir)
 
     def _source_path(self):
-        run_spec = self.resource.config
+        run_spec = str(self.resource.config) if self.resource.config else ""
         if run_spec and os.path.isdir(run_spec):
             log.info(
                 "Using output in %s for %s resource",
@@ -270,7 +274,7 @@ class OperationOutputResolver(FileResolver):
         oprefs = []
         for spec in self._split_opref_specs(self.source.parsed_uri.path):
             try:
-                oprefs.append(guild.opref.OpRef.from_string(spec))
+                oprefs.append(guild.opref.OpRef.for_string(spec))
             except guild.opref.OpRefError:
                 raise ResolutionError("inavlid operation reference %r" % spec)
         return oprefs
@@ -324,7 +328,7 @@ def _resolve_opref(opref):
         op_name=opref.op_name)
 
 def _runs_filter(oprefs, run_id_prefix, status):
-    if run_id_prefix:
+    if run_id_prefix and isinstance(run_id_prefix, six.string_types):
         return lambda run: run.id.startswith(run_id_prefix)
     return var.run_filter(
         "all", [
@@ -539,7 +543,7 @@ def _unpack(source_path, archive_type, select, unpack_dir):
     assert unpack_dir
     unpacked = _list_unpacked(source_path, unpack_dir)
     if unpacked:
-        return _from_unpacked(unpack_dir, unpacked, select)
+        return _for_unpacked(unpack_dir, unpacked, select)
     elif archive_type == "zip":
         return _unzip(source_path, select, unpack_dir)
     elif archive_type == "tar":
@@ -564,7 +568,7 @@ def _unpacked_src(unpack_dir, src):
     name = os.path.basename(src)
     return os.path.join(unpack_dir, ".guild-cache-%s.unpacked" % name)
 
-def _from_unpacked(root, unpacked, select):
+def _for_unpacked(root, unpacked, select):
     if select:
         return _selected_source_paths(root, unpacked, select)
     else:
@@ -663,3 +667,31 @@ def _write_unpacked(unpacked, unpack_dir, src):
     with open(_unpacked_src(unpack_dir, src), "w") as f:
         for path in unpacked:
             f.write(path + "\n")
+
+def for_resdef_source(source, resource):
+    cls = _resolver_class_for_source(source)
+    if not cls:
+        return None
+    return cls(source, resource)
+
+def _resolver_class_for_source(source):
+    scheme = source.parsed_uri.scheme
+    if scheme == "file":
+        return FileResolver
+    elif scheme in ["http", "https"]:
+        return URLResolver
+    elif scheme == "module":
+        return ModuleResolver
+    elif scheme == "operation":
+        return _operation_output_cls(source.resdef)
+    elif scheme == "config":
+        return ConfigResolver
+    else:
+        return None
+
+def _operation_output_cls(resdef):
+    if not hasattr(resdef, "modeldef"):
+        return None
+    def cls(source, resource):
+        return OperationOutputResolver(source, resource, resdef.modeldef)
+    return cls

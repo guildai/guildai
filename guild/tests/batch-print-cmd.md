@@ -27,14 +27,22 @@ And using the `random` optimizer:
 Note we can't assert the values for `x` because they're randomly
 generated.
 
-And with `gp` optimizer:
+Any optimizers that are sequential don't support printing of commands.
 
     >>> project.run("echo.py", flags={"x": [1,2,3]}, optimizer="gp",
     ...             max_trials=3, print_cmd=True)
     ??? -um guild.plugins.skopt_gp_main
-    INFO: [guild] Found 0 previous trial(s) for use in optimization
-    ... -um guild.op_main echo --x ... --y 2 --z a
-    INFO: [guild] Found 0 previous trial(s) for use in optimization
-    ... -um guild.op_main echo --x ... --y 2 --z a
-    INFO: [guild] Found 0 previous trial(s) for use in optimization
-    ... -um guild.op_main echo --x ... --y 2 --z a
+    ERROR: [guild] optimizer does not support printing trials command
+    <exit 1>
+
+    >>> project.run("echo.py", flags={"x": [1,2,3]}, optimizer="forest",
+    ...             max_trials=3, print_cmd=True)
+    ??? -um guild.plugins.skopt_forest_main
+    ERROR: [guild] optimizer does not support printing trials command
+    <exit 1>
+
+    >>> project.run("echo.py", flags={"x": [1,2,3]}, optimizer="gbrt",
+    ...             max_trials=3, print_cmd=True)
+    ??? -um guild.plugins.skopt_gbrt_main
+    ERROR: [guild] optimizer does not support printing trials command
+    <exit 1>

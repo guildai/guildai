@@ -13,6 +13,7 @@ tests).
       batch-grid-search:           ok
       batch-guildfile-optimizers:  ok
       batch-implied-random:        ok
+      batch-max-trials:            ok
       batch-needed:                ok
       batch-print-cmd:             ok
       batch-random-optimizer:      ok
@@ -56,9 +57,12 @@ tests).
       models:                      ok
       namespaces:                  ok
       needed:                      ok
+      op-cmd:                      ok
       op-desc:                     ok
+      op-errors:                   ok
       op-main:                     ok
       op-utils:                    ok
+      op-utils2:                   ok
       opref:                       ok
       ops:                         ok
       package:                     ok
@@ -69,9 +73,11 @@ tests).
       python-utils:                ok
       query-parser:                ok
       remotes:                     ok
+      resource-flags:              ok
       restart-runs:                ok
       run-files:                   ok
-      run-flags:                   ok
+      run-impl:                    ok
+      run-impl2:                   ok
       run-labels:                  ok
       run-ops:                     ok
       run-output:                  ok

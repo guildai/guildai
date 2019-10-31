@@ -9,13 +9,8 @@ We'll use the `optimizers` sample project to illustrate.
 
 As a baseline, we'll run the `echo.py` script with some sample flags:
 
-    >>> project.run("echo.py", flags={"x": 5.0, "y": 6, "z": "seven"},
-    ...             max_trials=2)
+    >>> project.run("echo.py", flags={"x": 5.0, "y": 6, "z": "seven"})
     5.0 6 'seven'
-
-We specify `max_trial` as a baseline - we use the same value in our
-next run to control the number of generated trials. In this case, the
-value is ignored.
 
 And our runs:
 
@@ -27,10 +22,8 @@ value for `max_trials`:
 
     >>> project.run("echo.py", flags={"x": "[5.1:5.19]", "y": 6, "z": "seven"},
     ...             max_trials=2)
-    INFO: [guild] Initialized trial ... (x=5.1..., y=6, z=seven)
     INFO: [guild] Running trial ...: echo.py (x=5.1..., y=6, z=seven)
     5.1... 6 'seven'
-    INFO: [guild] Initialized trial ... (x=5.1..., y=6, z=seven)
     INFO: [guild] Running trial ...: echo.py (x=5.1..., y=6, z=seven)
     5.1... 6 'seven'
 

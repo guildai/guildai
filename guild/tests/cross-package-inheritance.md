@@ -14,7 +14,7 @@ We'll work packages defined in the `cross-package-inherits` project:
 
 Package `a` represents the root of the package hierarchy.
 
-    >>> gf_a = guildfile.from_dir(path(projects, "a"))
+    >>> gf_a = guildfile.for_dir(path(projects, "a"))
 
     >>> gf_a.models
     {'model': <guild.guildfile.ModelDef 'model'>}
@@ -30,7 +30,7 @@ In order to load package `b`, we must include package `a` in the
 system path. Without including it, we get an error when we try to load
 `b`:
 
-    >>> gf_b = guildfile.from_dir(path(projects, "b"))
+    >>> gf_b = guildfile.for_dir(path(projects, "b"))
     Traceback (most recent call last):
     GuildfileReferenceError: error in
     .../samples/projects/cross-package-inherits/b/guild.yml: cannot
@@ -44,7 +44,7 @@ our projects directory as we load models:
 We can use the project sys path now to successfully load models:
 
     >>> with projects_sys_path:
-    ...   gf_b = guildfile.from_dir(path(projects, "b"))
+    ...   gf_b = guildfile.for_dir(path(projects, "b"))
 
 And the models:
 
@@ -59,7 +59,7 @@ Model `b` parents include the Guildfile defining `a`:
 Package `c` in turn defines a model that extends `b/model`.
 
     >>> with projects_sys_path:
-    ...   gf_c = guildfile.from_dir(path(projects, "c"))
+    ...   gf_c = guildfile.for_dir(path(projects, "c"))
 
     >>> gf_c.models
     {'model': <guild.guildfile.ModelDef 'model'>}
@@ -72,13 +72,13 @@ There are two additional packages, which extend one another, creating
 a cycle:
 
     >>> with projects_sys_path:
-    ...   guildfile.from_dir(path(projects, "cycle_a"))
+    ...   guildfile.for_dir(path(projects, "cycle_a"))
     Traceback (most recent call last):
     GuildfileCycleError: error in .../cross-package-inherits/cycle_a/guild.yml:
     cycle in 'extends' (cycle_b/model -> cycle_a/model -> cycle_b/model)
 
     >>> with projects_sys_path:
-    ...   guildfile.from_dir(path(projects, "cycle_b"))
+    ...   guildfile.for_dir(path(projects, "cycle_b"))
     Traceback (most recent call last):
     GuildfileCycleError: error in .../cross-package-inherits/cycle_b/guild.yml:
     cycle in 'extends' (cycle_a/model -> cycle_b/model -> cycle_a/model)
@@ -116,6 +116,7 @@ Let's run `a/model:test`.
     ...   extra_env={"NO_WARN_RUNDIR": "1"})
     >>> print(output)
     Resolving msg_file dependency
+    Resolving lib dependency
     Hello from a/model
     File from model/a
 
@@ -134,11 +135,11 @@ Next we'll run `b/model:test`:
     ...   print(e.output)
     ... else:
     ...   print(output)
-    ERROR: error loading guildfile from .:
-    error in .../cross-package-inherits/b/guild.yml: cannot find
-    Guild file for package 'a'
-    guild: guildfile in the current directory contains
-    an error (see above for details)
+    ERROR: error in .../cross-package-inherits/b/guild.yml: cannot
+    find Guild file for package 'a'
+    guild: guildfile in the current directory contains an error
+    (see above for details)
+    <BLANKLINE>
 
 In this case we receive an error because Guild can't find the package
 `a` specified in the model extension spec `a/model`.
@@ -154,6 +155,7 @@ system path:
     ...              "NO_WARN_RUNDIR": "1"})
     >>> print(output)
     Resolving msg_file dependency
+    Resolving lib dependency
     Hello from b/model
     File from model/a
 
@@ -172,5 +174,10 @@ Next we'll run `c/model:test`:
     ...              "NO_WARN_RUNDIR": "1"})
     >>> print(output)
     Resolving msg_file dependency
+    Resolving lib dependency
     Hello from c/model
     File from model/c
+
+Clear the Guildfile cache for other tests.
+
+    >>> guildfile._cache.clear()

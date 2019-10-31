@@ -25,12 +25,12 @@ import click
 import six
 
 import guild.log
-import guild.opref
-import guild.run
 
 from guild import exit_code
 from guild import flag_util
 from guild import op_util
+from guild import opref as opreflib
+from guild import run as runlib
 from guild import run_check
 from guild import util
 
@@ -49,6 +49,10 @@ STEP_USED_PARAMS = (
     "random_seed",
     "stop_after",
 )
+
+###################################################################
+# State
+###################################################################
 
 class Step(object):
 
@@ -168,9 +172,9 @@ def _prefixed_flag_vals(prefixes, flag_vals):
     return prefixed
 
 def _apply_default_model(step_opspec, parent_opref):
-    step_opref = guild.opref.OpRef.from_string(step_opspec)
+    step_opref = opreflib.OpRef.for_string(step_opspec)
     if not step_opref.model_name:
-        step_opref = guild.opref.OpRef(
+        step_opref = opreflib.OpRef(
             step_opref.pkg_type,
             step_opref.pkg_name,
             step_opref.pkg_version,
@@ -179,8 +183,7 @@ def _apply_default_model(step_opspec, parent_opref):
     return step_opref.to_opspec()
 
 def _split_batch_files(flag_args):
-    from guild.commands import run_impl
-    return run_impl.split_batch_files(flag_args)
+    return op_util.split_batch_files(flag_args)
 
 def _resolve_flag_vals(flags, parent_flags):
     return {
@@ -214,6 +217,10 @@ def _init_checks(data):
             checks.append(check)
     return checks
 
+###################################################################
+# Main
+###################################################################
+
 def main():
     _init_logging()
     _run_steps()
@@ -234,9 +241,13 @@ def _run_steps():
         step_run = _run_step(step, run)
         _maybe_check_step_run(step, step_run)
 
+# =================================================================
+# Init
+# =================================================================
+
 def _init_run():
     run_id, run_dir = _run_environ()
-    return guild.run.Run(run_id, run_dir)
+    return runlib.Run(run_id, run_dir)
 
 def _run_environ():
     try:
@@ -254,15 +265,22 @@ def _init_steps(run):
     opref = run.opref
     return [Step(step_data, flags, opref) for step_data in data]
 
+# =================================================================
+# Run step
+# =================================================================
+
 def _run_step(step, parent_run):
     step_run = _init_step_run(parent_run)
     cmd = _init_step_cmd(step, step_run.path)
     _link_to_step_run(step, step_run.path, parent_run.path)
     env = dict(os.environ)
     env["NO_WARN_RUNDIR"] = "1"
+    cwd = os.getenv("CMD_DIR")
     log.info("running %s: %s", step, _format_step_cmd(cmd))
-    log.debug("cmd for %s: %s", step, cmd)
-    returncode = subprocess.call(cmd, env=env, cwd=os.getenv("CMD_DIR"))
+    log.debug("step cwd %s", cwd)
+    log.debug("step command: %s", cmd)
+    log.debug("step env: %s", env)
+    returncode = subprocess.call(cmd, env=env, cwd=cwd)
     if returncode != 0:
         sys.exit(returncode)
     return step_run
@@ -273,9 +291,9 @@ def _init_step_run(parent_run):
     Directory is based on a new, unique run ID but is not created.
     """
     runs_dir = os.path.dirname(parent_run.path)
-    step_run_id = guild.run.mkid()
+    step_run_id = runlib.mkid()
     step_run_dir = os.path.join(runs_dir, step_run_id)
-    return guild.run.Run(step_run_id, step_run_dir)
+    return runlib.Run(step_run_id, step_run_dir)
 
 def _init_step_cmd(step, step_run_dir):
     base_args = [
@@ -337,7 +355,8 @@ def _ensure_unique_link(path_base):
         v += 1
 
 def _format_step_cmd(cmd):
-    # Just show opspec on - assert front matter to catch changes to cmd.
+    # Show only opspec onward - assert front matter to catch changes
+    # to cmd.
     assert cmd[0:7] == [
         sys.executable,
         "-um",
@@ -388,6 +407,10 @@ def _check_step_run(step, run):
     if failed > 0:
         log.error("%i check(s) failed - see above for details", failed)
     return failed == 0
+
+###################################################################
+# Error messages
+###################################################################
 
 def _internal_error(msg):
     sys.stderr.write("guild.steps_main: %s\n" % msg)

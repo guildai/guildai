@@ -29,20 +29,20 @@ test-all:
     - run: print-msg
       expect:
         - file: msg.txt
-          compare-to: ${MODEL_DIR}/msg.txt
+          compare-to: ${PROJECT_DIR}/msg.txt
     - run: print-msg-2
       expect:
         - file: msg.txt
-          compare-to: ${MODEL_DIR}/msg.txt
+          compare-to: ${PROJECT_DIR}/msg.txt
     - run: print-msg-3
       expect:
         - file: msg-1.txt
-          compare-to: ${MODEL_DIR}/msg.txt
+          compare-to: ${PROJECT_DIR}/msg.txt
         - file: msg-2.txt
-          compare-to: ${MODEL_DIR}/msg-2.txt
+          compare-to: ${PROJECT_DIR}/msg-2.txt
     - run: print-msg-4
       expect:
         - file: messages/msg.txt
-          compare-to: ${MODEL_DIR}/msg.txt
+          compare-to: ${PROJECT_DIR}/msg.txt
         - file: messages/msg-2.txt
-          compare-to: ${MODEL_DIR}/msg-2.txt
+          compare-to: ${PROJECT_DIR}/msg-2.txt

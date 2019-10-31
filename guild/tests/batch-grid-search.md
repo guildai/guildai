@@ -45,11 +45,11 @@ Here's a helper function:
     ...       return output.strip()
     ...     print(output.strip())
 
-Here are the trials for a single run:
+If we try to print trials for a non-batch run, we get an error.
 
     >>> trials(x=1, y=1, z=1)
-    #  x  y  z
-    1  1  1  1
+    ERROR (1)
+    guild: cannot print trials for a non-batch operation
 
 And many trials:
 

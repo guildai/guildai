@@ -10,7 +10,7 @@ operations.
 To illustrate, we'll define a model operation that requires a
 resource:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: sample
     ...   operations:
     ...    test:
@@ -30,7 +30,7 @@ We can get the list of dependencies for an operation with the
 
     >>> test_op = gf.models["sample"]["test"]
     >>> test_op.dependencies
-    [<guild.guildfile.OpDependency 'data'>]
+    [<guild.guildfile.OpDependencyDef 'data'>]
 
 The value of `requires` may be a single string or a list of
 strings. Each string must be a reference to a model resource. Multiple
@@ -81,18 +81,18 @@ operation. These are known as *operation sources*.
 Operation sources must reference a model operation. The operation may
 be defined for the source model, another model in the guildfile, or a
 model defined in a package. Operation references must be in a format
-that can be parsed using `op.OpRef.from_string`.
+that can be parsed using `op.OpRef.for_string`.
 
     >>> from guild.opref import OpRef
 
-`OpRef.from_string` returns a `OpRef` instance if the string can be
+`OpRef.for_string` returns a `OpRef` instance if the string can be
 parsed as an op ref or raises an exception if it cannot.
 
 Below are various examples.
 
 Operation name only:
 
-    >>> OpRef.from_string("foo")
+    >>> OpRef.for_string("foo")
     OpRef(pkg_type=None,
           pkg_name=None,
           pkg_version=None,
@@ -101,7 +101,7 @@ Operation name only:
 
 Operation of a model in the same guildfile:
 
-    >>> OpRef.from_string("foo:bar")
+    >>> OpRef.for_string("foo:bar")
     OpRef(pkg_type=None,
           pkg_name=None,
           pkg_version=None,
@@ -110,7 +110,7 @@ Operation of a model in the same guildfile:
 
 Operation in a packaged model:
 
-    >>> OpRef.from_string("foo/bar:baz")
+    >>> OpRef.for_string("foo/bar:baz")
     OpRef(pkg_type=None,
           pkg_name='foo',
           pkg_version=None,
@@ -119,45 +119,45 @@ Operation in a packaged model:
 
 Some invalid op references:
 
-    >>> OpRef.from_string("")
+    >>> OpRef.for_string("")
     Traceback (most recent call last):
     OpRefError: invalid reference: ''
 
-    >>> OpRef.from_string("foo/bar")
+    >>> OpRef.for_string("foo/bar")
     Traceback (most recent call last):
     OpRefError: invalid reference: 'foo/bar'
 
 Here's a helper function to return OpRefs for a give sample run.
 
     >>> from guild import run as runlib
-    >>> def from_run(id):
+    >>> def for_run(id):
     ...     path = join_path(sample("opref-runs"), id)
     ...     return runlib.Run(id, path).opref
 
 Below are various examples.
 
-    >>> from_run("guildfile")
+    >>> for_run("guildfile")
     OpRef(pkg_type='guildfile',
           pkg_name='/foo/bar',
           pkg_version='7253deeeaeb6dc85466cf691facff24e',
           model_name='test',
           op_name='go')
 
-    >>> from_run("package")
+    >>> for_run("package")
     OpRef(pkg_type='package',
           pkg_name='fashion',
           pkg_version='1.0',
           model_name='fashion',
           op_name='train')
 
-    >>> from_run("with_space")
+    >>> for_run("with_space")
     OpRef(pkg_type='guildfile',
           pkg_name='/foo/project with spaces',
           pkg_version='7253deeeaeb6dc85466cf691facff24e',
           model_name='test',
           op_name='go')
 
-    >>> from_run("invalid")
+    >>> for_run("invalid")
     Traceback (most recent call last):
     OpRefError: invalid opref for run 'invalid'
     (.../samples/opref-runs/invalid): not a valid opref
@@ -182,13 +182,15 @@ OpRefs are compared using their string representations:
 ## Resolvers
 
 Resolvers are objects that resolve dependency sources. Resolvers can
-be obtained for a source via a resource def using the
-`get_source_resolver` method.
+be obtained for a source via a resource def using
+`guild.resolver.for_resdef_source`.
+
+    >>> from guild.resolver import for_resdef_source as get_resolver
 
 To illustrate, we'll use a sample project that defines various
 resources.
 
-    >>> gf = guildfile.from_dir(sample("projects/resources"))
+    >>> gf = guildfile.for_dir(sample("projects/resources"))
     >>> res_model = gf.models["resources"]
 
 Here are the model resources:
@@ -256,7 +258,7 @@ invalid hash.
     >>> zip_source.select
     [SelectSpec(pattern='a.txt', reduce=None)]
 
-    >>> resolver = test_resdef.get_source_resolver(zip_source, test_res)
+    >>> resolver = get_resolver(zip_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> log = LogCapture()
     >>> with log:
@@ -292,7 +294,7 @@ are selected by way of the source files returned by `resolve`.
     >>> print(tar_source.select)
     []
 
-    >>> resolver = test_resdef.get_source_resolver(tar_source, test_res)
+    >>> resolver = get_resolver(tar_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> log = LogCapture()
     >>> with log:
@@ -322,7 +324,7 @@ This source should not be unpacked:
     >>> print(nounpack_source.select)
     []
 
-    >>> resolver = test_resdef.get_source_resolver(nounpack_source, test_res)
+    >>> resolver = get_resolver(nounpack_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> resolver.resolve(unpack_dir)
     ['.../samples/projects/resources/archive3.tar']
@@ -342,7 +344,7 @@ extracted file.
     >>> plain_source.sha256
     'f33ae3bc9a22cd7564990a794789954409977013966fb1a8f43c35776b833a95'
 
-    >>> resolver = test_resdef.get_source_resolver(plain_source, test_res)
+    >>> resolver = get_resolver(plain_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> resolver.resolve(unpack_dir)
     ['.../samples/projects/resources/test.txt']
@@ -359,7 +361,7 @@ extracted file.
     >>> invalid_source.sha256
     'xxx'
 
-    >>> resolver = test_resdef.get_source_resolver(invalid_source, test_res)
+    >>> resolver = get_resolver(invalid_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> resolver.resolve(unpack_dir)
     Traceback (most recent call last):
@@ -380,7 +382,7 @@ attribute, just the directory path is resolved:
     >>> dir_source.select
     []
 
-    >>> resolver = test_resdef.get_source_resolver(dir_source, test_res)
+    >>> resolver = get_resolver(dir_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> sorted(resolver.resolve(unpack_dir))
     ['.../samples/projects/resources/files']
@@ -397,7 +399,7 @@ selected from the directory are resolved:
     >>> dir_source.select # doctest: -NORMALIZE_PATHS
     [SelectSpec(pattern='.+\\.txt', reduce=None)]
 
-    >>> resolver = test_resdef.get_source_resolver(dir_source, test_res)
+    >>> resolver = get_resolver(dir_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> sorted(resolver.resolve(unpack_dir))
     ['.../samples/projects/resources/files/e.txt',
@@ -414,7 +416,7 @@ Non-existing files generate an error when resolved:
     >>> noexist_source.uri
     'file:doesnt-exist'
 
-    >>> resolver = test_resdef.get_source_resolver(noexist_source, test_res)
+    >>> resolver = get_resolver(noexist_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> resolver.resolve(unpack_dir)
     Traceback (most recent call last):
@@ -442,7 +444,7 @@ Here's the rename spec for our source:
 
 Resolve doesn't apply renames - it just resolves the source locations.
 
-    >>> resolver = test_resdef.get_source_resolver(rename_source, test_res)
+    >>> resolver = get_resolver(rename_source, test_res)
     >>> unpack_dir = mkdtemp()
     >>> resolver.resolve(unpack_dir)
     ['.../samples/projects/resources/test.txt']
@@ -957,7 +959,7 @@ defined by both the resource and the source:
 If a resource is defined as a list, the list is assumed to be the
 resource sources.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: ''
     ...   resources:
     ...     res:
@@ -971,7 +973,7 @@ resource sources.
 
 ### Invalid data
 
-    >>> guildfile.from_string("""
+    >>> guildfile.for_string("""
     ... - model: ''
     ...   resources:
     ...     res: 123

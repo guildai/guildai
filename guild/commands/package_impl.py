@@ -64,7 +64,7 @@ def _check_twine_installed():
             "'pip install twine'.")
 
 def _check_upload_config(package_file):
-    gf = guildfile.from_file(package_file)
+    gf = guildfile.for_file(package_file)
     if not gf.package.author_email:
         cli.error(
             "missing package author-email in %s - cannot upload\n"

@@ -58,7 +58,7 @@ by the monitor.
     ...     def __init__(self, id, op_name, started, label):
     ...         from guild.opref import OpRef
     ...         self.short_id = id
-    ...         self.opref = OpRef.from_string(op_name)
+    ...         self.opref = OpRef.for_string(op_name)
     ...         self.attrs = {
     ...             "started": started,
     ...             "label": label,

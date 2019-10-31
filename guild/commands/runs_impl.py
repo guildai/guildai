@@ -72,7 +72,6 @@ LATEST_RUN_ARG = ["1"]
 CORE_RUN_ATTRS = [
     "cmd",
     "compare",
-    "deps",
     "env",
     "exit_status",
     "exit_status.remote",
@@ -83,14 +82,20 @@ CORE_RUN_ATTRS = [
     "label",
     "marked",
     "objective",
-    "opdef",
+    "op",
     "platform",
     "random_seed",
+    "resolved_deps",
     "run_params",
     "sourcecode_digest",
     "started",
     "stopped",
     "user",
+]
+
+LEGACY_RUN_ATTRS = [
+    "deps",
+    "opdef",
 ]
 
 RUNS_PER_GROUP = 20
@@ -166,7 +171,8 @@ def _apply_labels_filter(args, filters):
 
 def _labels_filter(labels):
     def f(run):
-        return any((l in run.get("label", "") for l in labels))
+        run_label = run.get("label", "")
+        return any((l in run_label for l in labels))
     return f
 
 def _unlabeled_filter():
@@ -296,7 +302,7 @@ def _list_runs(args, ctx):
         cli.error("--archive and --deleted may not both be used")
     runs = filtered_runs(args, ctx=ctx)
     if args.json:
-        if args.more or args.all:
+        if args.limit or args.more or args.all:
             cli.note("--json option always shows all runs")
         _list_runs_json(runs)
     else:
@@ -338,7 +344,7 @@ def _run_attr(run, name):
 def _apply_batch_proto(run, data):
     proto_dir = run.guild_path("proto")
     if os.path.exists(proto_dir):
-        proto = runlib.from_dir(proto_dir)
+        proto = runlib.for_dir(proto_dir)
         data["batch_proto"] = _listed_run_json_data(proto)
 
 def _list_formatted_runs(runs, args):
@@ -356,7 +362,11 @@ def _list_formatted_runs(runs, args):
 
 def _limit_runs(runs, args):
     if args.all:
+        if args.limit is not None:
+            cli.error("--all and --limit cannot both be used")
         return runs
+    if args.limit and args.limit > 0:
+        return runs[:args.limit]
     limited = runs[:(args.more + 1) * RUNS_PER_GROUP]
     if len(limited) < len(runs):
         cli.note(
@@ -579,9 +589,8 @@ def _run_info_data(run, args):
     if args.env:
         data.append(("environment", run.get("env") or {}))
     if args.deps:
-        data.append(("dependencies", run.get("deps") or {}))
+        data.append(("dependencies", _resolved_deps(run)))
     if args.private_attrs and args.json:
-        data.append(("opdef", run.get("opdef")))
         _maybe_append_proto_data(run, data)
     return data
 
@@ -593,12 +602,14 @@ def _append_attr_data(run, include_private, data):
         data.append((name, run_util.format_attr(run.get(name))))
     if include_private:
         data.append(("opref", str(run.opref)))
+        data.append(("op", run.get("op")))
 
 def other_attr_names(run, include_private=False):
+    core_attrs = CORE_RUN_ATTRS + LEGACY_RUN_ATTRS
     if include_private:
-        include = lambda x: x not in CORE_RUN_ATTRS
+        include = lambda x: x not in core_attrs
     else:
-        include = lambda x: x[0] != "_" and x not in CORE_RUN_ATTRS
+        include = lambda x: x[0] != "_" and x not in core_attrs
     return [name for name in sorted(run.attr_names()) if include(name)]
 
 def _scalar_info(run, args):
@@ -627,6 +638,19 @@ def _s_val(s):
 
 def _s_step(s):
     return s["last_step"]
+
+def _resolved_deps(run):
+    deps = run.get("resolved_deps") or {}
+    return {
+        res_name: _res_sources_paths(sources)
+        for res_name, sources in deps.items()
+    }
+
+def _res_sources_paths(sources):
+    paths = []
+    for source_paths in sources.values():
+        paths.extend(source_paths)
+    return sorted(paths)
 
 def _maybe_append_proto_data(run, data):
     proto = run.batch_proto

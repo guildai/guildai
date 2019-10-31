@@ -9,18 +9,18 @@ Support for Guild files is provided by the `guildfile` module:
 
 ## Loading a Guild file from a directory
 
-Use `from_dir` to load a guild file from a directory:
+Use `for_dir` to load a guild file from a directory:
 
     >>> project = sample("projects/mnist-pkg")
-    >>> gf = guildfile.from_dir(project)
+    >>> gf = guildfile.for_dir(project)
     >>> gf.src
     '.../samples/projects/mnist-pkg/guild.yml'
 
 ## Loading a Guild file from a file
 
-Use `from_file` to load a guildfile from a file directly:
+Use `for_file` to load a guildfile from a file directly:
 
-    >>> gf = guildfile.from_file(sample("projects/mnist-pkg/guild.yml"))
+    >>> gf = guildfile.for_file(sample("projects/mnist-pkg/guild.yml"))
 
 Models are access using the `models` attribute:
 
@@ -49,7 +49,7 @@ cases where a model is not specified explicitly.
 If a Guild file contains only one model, that model is always the
 default.
 
-    >>> gf_default_model_test = guildfile.from_string("""
+    >>> gf_default_model_test = guildfile.for_string("""
     ... - model: foo
     ... """)
     >>> gf_default_model_test.default_model
@@ -60,7 +60,7 @@ designated as default.
 
 In this case, foo is default:
 
-    >>> gf_default_model_test = guildfile.from_string("""
+    >>> gf_default_model_test = guildfile.for_string("""
     ... - model: foo
     ...   default: yes
     ... - model: bar
@@ -70,7 +70,7 @@ In this case, foo is default:
 
 In this case, bar is default:
 
-    >>> gf_default_model_test = guildfile.from_string("""
+    >>> gf_default_model_test = guildfile.for_string("""
     ... - model: foo
     ... - model: bar
     ...   default: yes
@@ -80,7 +80,7 @@ In this case, bar is default:
 
 In this case, neither are default:
 
-    >>> gf_default_model_test = guildfile.from_string("""
+    >>> gf_default_model_test = guildfile.for_string("""
     ... - model: foo
     ... - model: bar
     ... """)
@@ -89,7 +89,7 @@ In this case, neither are default:
 
 Of course, if a Guild file contains no models, there's no default.
 
-    >>> guildfile.from_string("- config: foo").default_model is None
+    >>> guildfile.for_string("- config: foo").default_model is None
     True
 
 In the case of our sample mnist project, there are two models, none of
@@ -168,7 +168,7 @@ The intro model doesn't have a default operation:
 If an operation is specified as a string, the string value is assumed
 to be the `main` attribute.
 
-    >>> gf_op_coerce = guildfile.from_string("""
+    >>> gf_op_coerce = guildfile.for_string("""
     ... - model: foo
     ...   operations:
     ...     test: test
@@ -253,7 +253,7 @@ From from one opdef can be merged into another opdef.
 
 Consider this guildfile:
 
-    >>> gf_flag_update = guildfile.from_string("""
+    >>> gf_flag_update = guildfile.for_string("""
     ... a:
     ...   exec: a
     ...   flags:
@@ -324,7 +324,7 @@ An optimizer has a name, opspec, default status, and flags:
 
 A single optimizer may be defined using the `optimizer` attribute.
 
-    >>> op = guildfile.from_string("""
+    >>> op = guildfile.for_string("""
     ... test:
     ...   optimizer: gp
     ... """).default_model.default_operation
@@ -355,7 +355,7 @@ status:
 A single optimizer may alternatively be specified as a dict, in which
 case it must contain an `algorithm` attribute:
 
-    >>> op = guildfile.from_string("""
+    >>> op = guildfile.for_string("""
     ... test:
     ...   optimizer:
     ...     algorithm: gp
@@ -369,7 +369,7 @@ case it must contain an `algorithm` attribute:
 
 If it doesn't specify an algorithm, an error is generated:
 
-    >>> guildfile.from_string("""
+    >>> guildfile.for_string("""
     ... test:
     ...   optimizer: {}
     ... """)
@@ -380,7 +380,7 @@ If it doesn't specify an algorithm, an error is generated:
 When specified as a dict, additional attributes - with the exception
 of `default` - are considered optimizer flags:
 
-    >>> op = guildfile.from_string("""
+    >>> op = guildfile.for_string("""
     ... test:
     ...   optimizer:
     ...     algorithm: gp
@@ -398,7 +398,7 @@ of `default` - are considered optimizer flags:
 
 Multiple optimizers may be defined using the `optimizers` attribute.
 
-    >>> op = guildfile.from_string("""
+    >>> op = guildfile.for_string("""
     ... test:
     ...   optimizers:
     ...     gp-1:
@@ -426,16 +426,17 @@ Multiple optimizers may be defined using the `optimizers` attribute.
     flags: {'kappa': 1.8}
 
 When multiple optimizers are specified and none have a default
-designation, there is no default optimizer:
+designation, the first optimizers is selected using lexicographical
+order.
 
     >>> print(op.default_optimizer)
-    None
+    <guild.guildfile.OptimizerDef 'gp-1'>
 
 When multiple optimizers are specified, the algorithm may be omitted
 when specifying dict values, in which case the dict name is used as
 the algorithm:
 
-    >>> op = guildfile.from_string("""
+    >>> op = guildfile.for_string("""
     ... test:
     ...   optimizers:
     ...     gp:
@@ -471,7 +472,7 @@ When specifying multiple optimizers, string values are coerced in the
 same way they with a single optimizer. This is effectively a way of
 renaming optimizer algorithms:
 
-    >>> op = guildfile.from_string("""
+    >>> op = guildfile.for_string("""
     ... test:
     ...   optimizers:
     ...     bayesian: skopt:gp
@@ -496,7 +497,7 @@ renaming optimizer algorithms:
 
 An operation may not contain both `optimizer` and `optimizers`.
 
-    >>> guildfile.from_string("""
+    >>> guildfile.for_string("""
     ... test:
     ...   optimizer: gp
     ...   optimizers:
@@ -528,7 +529,7 @@ An operation def can be represented as data by calling `as_data()`.
 
 Guild support `$includes` for operations.
 
-    >>> gf_op_incl = guildfile.from_string("""
+    >>> gf_op_incl = guildfile.for_string("""
     ... - config: shared-ops
     ...   operations:
     ...     foo:
@@ -589,7 +590,7 @@ one of three source type attributes:
 
 Here's a model definition that contains various resource sources:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: sample
     ...   resources:
     ...     sample:
@@ -613,7 +614,7 @@ file.
 
 At least one of the three type attributes is required:
 
-    >>> guildfile.from_string("""
+    >>> guildfile.for_string("""
     ... - model: sample
     ...   resources:
     ...     sample:
@@ -626,7 +627,7 @@ At least one of the three type attributes is required:
 
 However, no more than one is allowed:
 
-    >>> guildfile.from_string("""
+    >>> guildfile.for_string("""
     ... - model: sample
     ...   resources:
     ...     sample:
@@ -643,7 +644,7 @@ However, no more than one is allowed:
 A list of references may be included for each model. These can be used
 to direct users to upstream sources and papers.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: sample
     ...   references:
     ...     - https://arxiv.org/abs/1603.05027
@@ -821,7 +822,7 @@ the attributes of parent models by listing parent models in an
 
 Here's a guild file that defines a model that extends another:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: trainable
     ...   description: A trainable model
     ...   operations:
@@ -852,7 +853,7 @@ Models do not inherit name:
 Here's a more complex example with two parent models and two child
 models.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: trainable
     ...   description: A trainable model
     ...   operations:
@@ -915,7 +916,7 @@ default for the `batch-size` attribute:
 In this example, a model extends a model that in turn extends another
 model:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: a
     ...   operations:
     ...     train:
@@ -992,7 +993,7 @@ Model `c`:
 In this example, one model extends two configs, each of which extends
 one config:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - config: a
     ...   operations:
     ...     a_op: {}
@@ -1021,7 +1022,7 @@ values.
 Here's an example where model `b` extends `a` and redefines two flag
 defaults for an operation. Note that `b` simply redefines the values.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: a
     ...   operations:
     ...     test:
@@ -1056,7 +1057,7 @@ Parameters are defined in config or models. They can be used as values
 in other config using the syntax `{{NAME}}` where `NAME` is the
 parameter name.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: m
     ...   params:
     ...     n: 10
@@ -1070,7 +1071,7 @@ Param values are passed through when they can be:
 
 Here's a case with a flag value:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: m
     ...   params:
     ...     n: 10.0
@@ -1106,7 +1107,7 @@ Here's an example that uses two configs, `a` and `b`:
 
 In the first case, a model `m` extends `a` first and then `b`:
 
-    >>> gf = guildfile.from_string(base_config + """
+    >>> gf = guildfile.for_string(base_config + """
     ... - model: m
     ...   extends: [a, b]
     ...   description: foo is {{foo}}
@@ -1116,7 +1117,7 @@ In the first case, a model `m` extends `a` first and then `b`:
 
 In the second case, the order of parents is `b` first and then `a`:
 
-    >>> gf = guildfile.from_string(base_config + """
+    >>> gf = guildfile.for_string(base_config + """
     ... - model: m
     ...   extends: [b, a]
     ...   description: foo is {{foo}}
@@ -1126,7 +1127,7 @@ In the second case, the order of parents is `b` first and then `a`:
 
 Finally, `m` defines `foo` itself:
 
-    >>> gf = guildfile.from_string(base_config + """
+    >>> gf = guildfile.for_string(base_config + """
     ... - model: m
     ...   extends: [b, a]
     ...   params:
@@ -1189,7 +1190,7 @@ system path.
     >>> extend_pkg_dir in sys.path
     False
 
-    >>> gf = guildfile.from_dir(extend_pkg_dir)
+    >>> gf = guildfile.for_dir(extend_pkg_dir)
     Traceback (most recent call last):
     GuildfileReferenceError: error in .../projects/extend-pkg/guild.yml:
     cannot find Guild file for package 'pkg'
@@ -1197,7 +1198,7 @@ system path.
 Let's try again with 'extend-pkg' included in the system path:
 
     >>> with SysPath(prepend=[extend_pkg_dir]):
-    ...     gf = guildfile.from_dir(extend_pkg_dir)
+    ...     gf = guildfile.for_dir(extend_pkg_dir)
 
 The Guildfile contains the two models, which both contain properties
 inherited from the package.
@@ -1216,14 +1217,14 @@ inherited from the package.
 
 Below are some inheritance cycles:
 
-    >>> guildfile.from_string("""
+    >>> guildfile.for_string("""
     ... - model: a
     ...   extends: a
     ... """)
     Traceback (most recent call last):
     GuildfileCycleError: error in <string>: cycle in 'extends' (a -> a)
 
-    >>> guildfile.from_string("""
+    >>> guildfile.for_string("""
     ... - model: a
     ...   extends: b
     ... - model: b
@@ -1242,7 +1243,7 @@ We need to modify the system path to find a package referenced in the
 project:
 
     >>> with SysPath(prepend=[project_dir]):
-    ...     gf = guildfile.from_dir(project_dir)
+    ...     gf = guildfile.for_dir(project_dir)
 
 Models:
 
@@ -1304,7 +1305,7 @@ We expect this:
 Params may be used in model parents to define place-holder for child
 models. Here's s simple example:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: base
     ...   description: A {{type}} classifier
     ...
@@ -1332,7 +1333,7 @@ Here are the description of each model:
 
 Here's an example of a parent that provides default param values.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: base
     ...   description: A v{{version}} {{type}} classifier
     ...   params:
@@ -1361,7 +1362,7 @@ Here's an example of a parent that provides default param values.
 
 Parameters can include references to other parameters.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - config: c1
     ...   params:
     ...     p1: 1
@@ -1381,7 +1382,7 @@ Parameters can include references to other parameters.
 
 Here's a param ref cycle:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - config: c1
     ...   params:
     ...     p1: '{{p2}}'
@@ -1399,7 +1400,7 @@ Here's a param ref cycle:
 
 Param values may be numbers:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: m
     ...   params:
     ...     foo: 123
@@ -1414,7 +1415,7 @@ Param values may be numbers:
 A model named with the empty string is considered an *anonymous*
 model:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... - model: ''
     ...   operations:
     ...     foo: foo
@@ -1433,7 +1434,7 @@ model:
 
 Anonymous models may be defined using a top-level map of operations:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... foo: foo
     ... bar:
     ...   description: Bar
@@ -1482,7 +1483,7 @@ We'll use
 [samples/projects/package/guild.yml](samples/projects/package/guild.yml)
 to illustrate.
 
-    >>> gf = guildfile.from_dir(sample("projects/package"))
+    >>> gf = guildfile.for_dir(sample("projects/package"))
 
 The sample contains one model:
 
@@ -1498,14 +1499,14 @@ It does contain a package:
 
 ### Invalid format
 
-    >>> guildfile.from_dir(sample("projects/invalid-format"))
+    >>> guildfile.for_dir(sample("projects/invalid-format"))
     Traceback (most recent call last):
     GuildfileError: error in .../samples/projects/invalid-format/guild.yml:
     invalid guildfile data 'This is invalid YAML!': expected a mapping
 
 ### No models (missing guild file)
 
-    >>> guildfile.from_dir(sample("projects/missing-sources"))
+    >>> guildfile.for_dir(sample("projects/missing-sources"))
     Traceback (most recent call last):
     NoModels: ...
 
@@ -1514,7 +1515,7 @@ in Python 3 and IOError in Python 2) so we'll assert using exception
 content.
 
     >>> try:
-    ...   guildfile.from_file(sample("projects/missing-sources/guild.yml"))
+    ...   guildfile.for_file(sample("projects/missing-sources/guild.yml"))
     ... except IOError as e:
     ...   print(str(e))
     [Errno 2] No such file or directory: '.../projects/missing-sources/guild.yml'
@@ -1523,7 +1524,7 @@ content.
 
 ## flags-import
 
-    >>> guildfile.from_string("""
+    >>> guildfile.for_string("""
     ... op:
     ...   flags-import: hello
     ... """)
@@ -1533,7 +1534,7 @@ content.
 
 ## sourcecode
 
-    >>> guildfile.from_string("""
+    >>> guildfile.for_string("""
     ... op:
     ...   sourcecode: 123
     ... """)
@@ -1544,12 +1545,12 @@ content.
 ## Loading from a run
 
 If a run references a Guild file (in its `opref` attribute), the
-references Guild file can be loaded using `from_run`.
+references Guild file can be loaded using `for_run`.
 
 Let's create a run in a temporary location:
 
     >>> from guild import run as runlib
-    >>> run = runlib.from_dir(mkdtemp())
+    >>> run = runlib.for_dir(mkdtemp())
     >>> run.init_skel()
 
 Next, configure the run's opref to reference a valid Guild file:
@@ -1558,9 +1559,9 @@ Next, configure the run's opref to reference a valid Guild file:
     >>> gf_path = sample("projects", "mnist-pkg", "guild.yml")
     >>> run.write_opref(opref.OpRef("guildfile", gf_path, "", "", ""))
 
-Now we can load the referenced Guild file using `from_run`:
+Now we can load the referenced Guild file using `for_run`:
 
-    >>> gf = guildfile.from_run(run)
+    >>> gf = guildfile.for_run(run)
     >>> gf.src == gf_path
     True
 
@@ -1573,6 +1574,6 @@ file, we get an error:
     >>> exists(bad_path)
     False
 
-    >>> guildfile.from_run(run)
+    >>> guildfile.for_run(run)
     Traceback (most recent call last):
     GuildfileMissing: .../guild.yml

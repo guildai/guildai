@@ -10,9 +10,11 @@ For our tests, we'll use the `labels` sample project:
 
 Here are some helper functions.
 
-    >>> def run(op, label=None, batch_label=None, opt_flags=None, **kw):
-    ...   project.run(op, flags=kw, label=label, batch_label=batch_label,
-    ...               opt_flags=opt_flags, force_flags=True, quiet=True)
+    >>> def run(opspec=None, label=None, batch_label=None, opt_flags=None,
+    ...         restart=None, **flags):
+    ...   project.run(opspec, flags=flags, label=label, batch_label=batch_label,
+    ...               opt_flags=opt_flags, restart=restart, force_flags=True,
+    ...               quiet=True)
 
     >>> def print_last_run():
     ...   print_runs(1)
@@ -60,13 +62,12 @@ Here's a broader example: we redefine all flags.
     op.py  b=no f=3.0 i=2 s=hi
 
 If we set a flag value that is equal to the default value, that value
-is NOT reflected in the default label, even though it appears in the
-run command.
+is reflected in the default label.
 
     >>> run("op.py", i=1, f=2.0, b=True, s="hi")
 
     >>> print_last_run()
-    op.py  s=hi
+    op.py  b=yes f=2.0 i=1 s=hi
 
 ## Explicit labels
 
@@ -93,7 +94,7 @@ is not specified by the user.
 We'll use the `op` operation, defined in the project Guild file, which
 defines a label.
 
-    >>> gf = guildfile.from_dir(sample("projects", "labels"))
+    >>> gf = guildfile.for_dir(sample("projects", "labels"))
 
     >>> gf.default_model["op"].label
     'i:${i}, f:${f}, b:${b}, s:${s}'
@@ -113,6 +114,56 @@ values do.
     >>> print_last_run()
     op  i:2, f:2.0, b:yes, s:yo
 
+## Labels and restarts
+
+Labels are updated with new flag values when a run is restarted.
+
+Here's run for `op`:
+
+    >>> run("op", i=4)
+
+    >>> print_last_run()
+    op  i:4, f:2.0, b:yes, s:hello
+
+Note the custom label format, which is taken from the opdef.
+
+Let's restart the run with new flag values.
+
+    >>> last_run = project.list_runs()[0]
+
+    >>> run(restart=last_run.id, s="yello")
+
+And the label:
+
+    >>> print_last_run()
+    op  i:4, f:2.0, b:yes, s:yello
+
+Guild saves the label template in the `op` attribute.
+
+    >>> last_run.get("op").get("label-template")
+    'i:${i}, f:${f}, b:${b}, s:${s}'
+
+Next we'll restart the run with a different label template.
+
+    >>> run(restart=last_run.id, i=6, s="whoop", label="${s}-${i}")
+
+And the label:
+
+    >>> print_last_run()
+    op  whoop-6
+
+Guild has updated the label template.
+
+    >>> last_run.get("op").get("label-template")
+    '${s}-${i}'
+
+The new label template is now associated with the run.
+
+    >>> run(restart=last_run.id, i=7)
+
+    >>> print_last_run()
+    op  whoop-7
+
 ## Trial labels
 
 When an operation is run as a batch trial, the same rules apply as
@@ -126,8 +177,8 @@ Let's list the last three runs, which include the batch and the two
 trials:
 
     >>> print_runs(3)
-    op.py   i=2 s=yello
-    op.py   s=yello
+    op.py   b=yes f=2.0 i=2 s=yello
+    op.py   b=yes f=2.0 i=1 s=yello
     op.py+
 
 Here's the same result running `op`:

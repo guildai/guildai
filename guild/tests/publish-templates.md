@@ -123,7 +123,7 @@ To generate the report, we need a run. We'll use one of the sample
 runs.
 
     >>> from guild import run as runlib
-    >>> run = runlib.from_dir(
+    >>> run = runlib.for_dir(
     ...   sample("runs", "360192fdf9b74f2fad5f514e9f2fdadb"))
 
     >>> from guild import run_util

@@ -36,6 +36,10 @@ ALIASES = [
     (re.compile(r"\\step"), "[0-9]+"),
 ]
 
+DEFAULT_OUTPUT_SCALARS = [
+    r"^(\key):\s+(\value)$",
+]
+
 class EventFileWriter(object):
 
     def __init__(

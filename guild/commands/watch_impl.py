@@ -69,7 +69,7 @@ def _run_for_job_pidfile(pid_arg):
     if not m:
         return None
     run_dir = m.group(1)
-    return runlib.from_dir(run_dir)
+    return runlib.for_dir(run_dir)
 
 def _run_for_pidfile(pid_arg):
     pid = _read_pid(pid_arg)

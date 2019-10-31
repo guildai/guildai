@@ -15,39 +15,38 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from guild import util
+import logging
+import warnings
 
-from . import skopt_ipy
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=Warning)
+    import numpy.core.umath_tests  # pylint: disable=unused-import
+    import skopt
+
+from guild import batch_util
+from guild import op_util
+
 from . import skopt_util
 
-def gen_trials(flags, runs, random_starts=0, kappa=1.96,
-               xi=0.01, label=None, **kw):
-    batch_flags = {
-        "random-starts": random_starts,
-        "kappa": kappa,
-        "xi": xi,
-    }
-    label = label or "gbrt"
-    return skopt_ipy.gen_trials(
-        _init_trial, runs, flags, batch_flags,
-        label=label, **kw)
+log = logging.getLogger("guild")
 
-def _init_trial(trial, state):
-    import skopt
-    random_starts, x0, y0, dims = state.opt_inputs(trial.run_id)
-    res = util.log_apply(
-        skopt.gbrt_minimize,
+def main():
+    op_util.init_logging()
+    batch_run = batch_util.batch_run()
+    skopt_util.handle_seq_trials(batch_run, _suggest_x)
+
+def _suggest_x(dims, x0, y0, random_start, random_state, opts):
+    res = skopt.gbrt_minimize(
         lambda *args: 0,
         dims,
         n_calls=1,
-        n_random_starts=random_starts,
+        n_random_starts=1 if random_start else 0,
         x0=x0,
         y0=y0,
-        random_state=state.random_state,
-        kappa=state.batch_flags["kappa"],
-        xi=state.batch_flags["xi"])
-    state.update(res)
-    return state.next_trial_flags()
+        random_state=random_state,
+        kappa=opts["kappa"],
+        xi=opts["xi"])
+    return res.x_iters[-1], res.random_state
 
 if __name__ == "__main__":
-    skopt_util.default_main(_init_trial)
+    main()

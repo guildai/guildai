@@ -47,6 +47,8 @@ import sys
 import tempfile
 import time
 
+import six
+
 import guild
 
 from guild import _api as gapi
@@ -75,13 +77,13 @@ def run_all(skip=None):
 def all_tests():
     test_pattern = os.path.join(tests_dir(), "*.md")
     return sorted(
-        [_test_name_from_path(path)
+        [_test_name_for_path(path)
          for path in glob.glob(test_pattern)])
 
 def tests_dir():
     return os.path.join(os.path.dirname(__file__), "tests")
 
-def _test_name_from_path(path):
+def _test_name_for_path(path):
     name, _ = os.path.splitext(os.path.basename(path))
     return name
 
@@ -292,6 +294,7 @@ def test_globals():
         "Project": Project,
         "Proxy": Proxy,
         "SetCwd": configlib.SetCwd,
+        "SetGuildHome": configlib.SetGuildHome,
         "StderrCapture": StderrCapture,
         "SysPath": SysPath,
         "TempFile": util.TempFile,
@@ -330,6 +333,7 @@ def test_globals():
         "sha256": util.file_sha256,
         "sleep": time.sleep,
         "symlink": os.symlink,
+        "sys": sys,
         "touch": util.touch,
         "write": write,
     }
@@ -481,14 +485,16 @@ class ModelPath(object):
 
 class Project(object):
 
+    # TODO: remove after op2 promot
     simplify_trial_output_patterns = [
         (re.compile(r"INFO: \[guild\] "), ""),
         (re.compile(r"trial [a-f0-9]+"), "trial"),
     ]
 
-    def __init__(self, cwd, guild_home=None):
-        self.guild_home = guild_home or mkdtemp()
+    def __init__(self, cwd, guild_home=None, env=None):
         self.cwd = cwd
+        self.guild_home = guild_home or mkdtemp()
+        self._env = env
         runs_path = os.path.join(self.guild_home, "runs")
         self.index = indexlib.RunIndex(runs_path)
 
@@ -496,7 +502,7 @@ class Project(object):
         """Runs an operation returning a tuple of run and output."""
         run_dir = self._run_dir_apply(kw)
         out = self._run(*args, **kw)
-        return runlib.from_dir(run_dir), out
+        return runlib.for_dir(run_dir), out
 
     def _run_dir_apply(self, kw):
         """Returns a run directory for kw, optionally apply it to kw.
@@ -533,7 +539,7 @@ class Project(object):
                 from guild.commands import run_impl
                 with configlib.SetGuildHome(self.guild_home):
                     run = util.find_apply([
-                        run_impl.marked_or_latest_run_from_spec,
+                        run_impl.marked_or_latest_run_for_spec,
                         run_impl.one_run,
                     ], spec)
                     return run.dir
@@ -546,16 +552,26 @@ class Project(object):
         return run_dir
 
     def _run(self, *args, **kw):
+        # TODO: remove simplify_trial_output after op2 promo
         simplify_trial_output = kw.pop("simplify_trial_output", False)
+        ignore_output = kw.pop("ignore_output", False)
         cwd = os.path.join(self.cwd, kw.pop("cwd", "."))
-        with Env({"NO_WARN_RUNDIR": "1"}):
+        with self._run_env():
             out = gapi.run_capture_output(
                 guild_home=self.guild_home,
                 cwd=cwd,
                 *args, **kw)
         if simplify_trial_output:
             out = self._simplify_trial_output(out)
+        if ignore_output:
+            out = self._filter_output(out, ignore_output)
         return out.strip()
+
+    def _run_env(self):
+        env = {"NO_WARN_RUNDIR": "1"}
+        if self._env:
+            env.update(self._env)
+        return Env(env)
 
     def run(self, *args, **kw):
         try:
@@ -567,7 +583,7 @@ class Project(object):
 
     def run_quiet(self, *args, **kw):
         cwd = os.path.join(self.cwd, kw.pop("cwd", "."))
-        with Env({"NO_WARN_RUNDIR": "1"}):
+        with self._run_env():
             gapi.run_quiet(
                 guild_home=self.guild_home,
                 cwd=cwd,
@@ -578,6 +594,15 @@ class Project(object):
             out = p.sub(repl, out)
         return out
 
+    @staticmethod
+    def _filter_output(out, ignore):
+        if isinstance(ignore, six.string_types):
+            ignore = [ignore]
+        return "\n".join([
+            line for line in out.split("\n")
+            if all(s and s not in line for s in ignore)
+        ])
+
     def list_runs(self, **kw):
         return gapi.runs_list(
             cwd=self.cwd,
@@ -586,10 +611,10 @@ class Project(object):
 
     def print_runs(
             self, runs=None, flags=False, labels=False,
-            status=False, cwd=None):
+            status=False, cwd=None, limit=None):
         cwd = os.path.join(self.cwd, cwd) if cwd else self.cwd
         if runs is None:
-            runs = self.list_runs()
+            runs = self.list_runs(limit=limit)
         cols = self._cols_for_print_runs(flags, labels, status)
         rows = []
         with Chdir(cwd):
@@ -631,8 +656,13 @@ class Project(object):
     def print_trials(self, *args, **kw):
         print(self._run(print_trials=True, *args, **kw))
 
-    @staticmethod
-    def ls(run, all=False, sourcecode=False, ignore_compiled_source=False):
+    def ls(self, run=None, all=False, sourcecode=False, ignore_compiled_source=False):
+        # TODO: remove ignore_compiled_source for op2 promo
+        if not run:
+            runs = self.list_runs()
+            if not runs:
+                raise RuntimeError("no runs")
+            run = runs[0]
         def filter(path):
             default_select = (
                 all or

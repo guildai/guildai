@@ -45,7 +45,6 @@ These tests run various hello operations remotely.
     Installing collected packages: hello
     Successfully installed hello-0.0.0
     Starting hello:from-file on guild-uat as ...
-    Resolving msg-file dependency
     Hello Guild, from a required file!
     <BLANKLINE>
     Run ... stopped with a status of 'completed'

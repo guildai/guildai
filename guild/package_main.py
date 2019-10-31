@@ -63,7 +63,7 @@ def main():
 def _load_pkg():
     path = os.environ["PACKAGE_FILE"]
     try:
-        gf = guildfile.from_file(path)
+        gf = guildfile.for_file(path)
     except (IOError, guildfile.GuildfileError) as e:
         _exit("error reading %s\n%s" % (path, e))
     else:

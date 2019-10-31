@@ -25,17 +25,28 @@ leaves room for false positives).
     PyYAML
     Werkzeug
     absl-py
+    cachetools
+    certifi
     chardet
     click
     daemonize
     docutils
+    google-auth
+    google-auth-oauthlib
     grpcio
     guildai
+    idna
     numpy
+    oauthlib
     pip
     pkginfo
     protobuf
     psutil
+    pyasn1
+    pyasn1-modules
+    requests
+    requests-oauthlib
+    rsa
     scikit-learn
     scikit-optimize
     scipy
@@ -43,6 +54,7 @@ leaves room for false positives).
     six
     tabview
     tensorboard
+    urllib3
     virtualenv
     wheel
     <exit 0>

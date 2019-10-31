@@ -27,7 +27,6 @@ import yaml
 
 from guild import config
 from guild import opref
-from guild import plugin as pluginlib
 from guild import resourcedef
 from guild import util
 
@@ -246,6 +245,13 @@ class Guildfile(object):
             if m.default:
                 return m
         return None
+
+    @property
+    def default_operation(self):
+        model = self.default_model
+        if not model:
+            return None
+        return model.default_operation
 
     def __repr__(self):
         return "<guild.guildfile.Guildfile '%s'>" % self
@@ -769,7 +775,7 @@ def _pkg_parent_data(name, guildfile, seen):
     if not pkg_guildfile_path:
         raise GuildfileReferenceError(
             guildfile, "cannot find Guild file for package '%s'" % pkg)
-    pkg_guildfile = from_file(pkg_guildfile_path, seen + [name])
+    pkg_guildfile = for_file(pkg_guildfile_path, seen + [name])
     parent_data = _modeldef_data(model_name, pkg_guildfile)
     if parent_data is None:
         raise GuildfileReferenceError(
@@ -922,6 +928,7 @@ class OpDef(object):
         self.flags_import = data.get("flags-import")
         self.flags_import_skip = data.get("flags-import-skip")
         self._modelref = None
+        ## TODO - remove _flag_vals support once op2 is promoted
         self._flag_vals = _init_flag_values(self.flags)
         self.description = (data.get("description") or "").strip()
         self.exec_ = data.get("exec")
@@ -932,7 +939,6 @@ class OpDef(object):
         self.env = data.get("env") or {}
         self.plugins = _init_plugins(data.get("plugins"), self.guildfile)
         self.dependencies = _init_dependencies(data.get("requires"), self)
-        self.pre_process = data.get("pre-process")
         self.remote = data.get("remote") or False
         self.stoppable = data.get("stoppable") or False
         self.set_trace = data.get("set-trace") or False
@@ -969,7 +975,7 @@ class OpDef(object):
     @property
     def opref(self):
         if self._modelref:
-            return opref.OpRef.from_op(self.name, self._modelref)
+            return opref.OpRef.for_op(self.name, self._modelref)
         return None
 
     def get_flagdef(self, name):
@@ -986,6 +992,7 @@ class OpDef(object):
             if val is not None or include_none:
                 yield name, val
 
+    # TODO: remove on op2 promote
     def set_flag_value(self, name, val):
         self._flag_vals[name] = val
 
@@ -995,6 +1002,7 @@ class OpDef(object):
         except KeyError:
             return default
 
+    # TODO: remove on op2 promote
     def merge_flags(self, op):
         """Merges flags defined in op into self
 
@@ -1027,6 +1035,7 @@ class OpDef(object):
                 return flag
         return None
 
+    # TODO: remove on op2 promote - where/how used?
     def update_dependencies(self, opdef):
         self.dependencies.extend(opdef.dependencies)
 
@@ -1038,11 +1047,11 @@ class OpDef(object):
 
     @property
     def default_optimizer(self):
-        if len(self.optimizers) == 1:
-            return self.optimizers[0]
         for opt in self.optimizers:
             if opt.default:
                 return opt
+        if self.optimizers:
+            return self.optimizers[0]
         return None
 
 def _init_flags(data, opdef):
@@ -1085,6 +1094,7 @@ class FlagDef(object):
         self.arg_switch = _data.pop("arg-switch", None)
         self.choices = _init_flag_choices(_data.pop("choices", None), self)
         self.allow_other = _data.pop("allow-other", False)
+        self.env_name = _data.pop("env-name", None)
         self.null_label = _data.pop("null-label", None)
         self.min = _data.pop("min", None)
         self.max = _data.pop("max", None)
@@ -1110,13 +1120,13 @@ class FlagChoice(object):
     def __init__(self, data, flagdef):
         self.flagdef = flagdef
         if isinstance(data, dict):
-            self.value = data.get("value")
+            self.value = _required("value", data, flagdef.opdef.guildfile)
             self.description = data.get("description") or ""
-            self.args = data.get("args") or {}
+            self.flags = data.get("flags") or {}
         else:
             self.value = data
             self.description = ""
-            self.args = {}
+            self.flags = {}
 
     def __repr__(self):
         return "<guild.guildfile.FlagChoice %r>" % self.value
@@ -1126,9 +1136,9 @@ def _init_dependencies(requires, opdef):
         return []
     if not isinstance(requires, list):
         requires = [requires]
-    return [OpDependency(data, opdef) for data in requires]
+    return [OpDependencyDef(data, opdef) for data in requires]
 
-class OpDependency(object):
+class OpDependencyDef(object):
 
     spec = None
     description = None
@@ -1136,6 +1146,7 @@ class OpDependency(object):
 
     def __init__(self, data, opdef):
         self.opdef = opdef
+        self.modeldef = opdef.modeldef
         if isinstance(data, six.string_types):
             self.spec = data
             self.description = ""
@@ -1155,13 +1166,15 @@ class OpDependency(object):
 
     def __repr__(self):
         if self.inline_resource:
-            return ("<guild.guildfile.OpDependency %s>"
+            return ("<guild.guildfile.OpDependencyDef %s>"
                     % self.inline_resource.name)
         else:
-            return "<guild.guildfile.OpDependency '%s'>" % self.spec
+            return "<guild.guildfile.OpDependencyDef '%s'>" % self.spec
 
     @property
     def name(self):
+        # See __init__ - op dep must be a spec or inline
+        assert self.spec or self.inline_resource
         return self.spec or self.inline_resource.name
 
 def _init_inline_resource(data, opdef):
@@ -1174,9 +1187,15 @@ def _coerce_inline_resource_data(data):
         return data
     # If sources not explicitly provided in data, assume data is a
     # source.
-    return {
+    coerced = {
         "sources": [data]
     }
+    # If flag-name is defined for a source, promote it to resource
+    # level.
+    flag_name = data.pop("flag-name", None)
+    if flag_name:
+        coerced["flag-name"] = flag_name
+    return coerced
 
 class NoSuchResourceError(ValueError):
 
@@ -1205,6 +1224,15 @@ def _coerce_opts_data(data, opdef):
         lambda: data.get("optimizers"),
         lambda: _coerce_single_optimizer(data.get("optimizer"), opdef),
         lambda: {}])
+    if isinstance(opts_data, list):
+        opts_data = {name: {} for name in opts_data}
+    elif isinstance(opts_data, dict):
+        pass
+    else:
+        raise GuildfileError(
+            opdef.modeldef.guildfile,
+            "invalid optimizer config %r: expected list or mapping"
+            % data)
     return {
         name: _coerce_opt_data_item(opt_data)
         for name, opt_data in opts_data.items()
@@ -1239,7 +1267,7 @@ class OptimizerDef(object):
         self.flags = data
 
     @classmethod
-    def from_name(cls, name, opdef):
+    def for_name(cls, name, opdef):
         return cls(name, {"algorithm": name}, opdef)
 
     def __repr__(self):
@@ -1346,20 +1374,10 @@ class ResourceDef(resourcedef.ResourceDef):
                 "invalid resource value %r: expected a mapping "
                 "or a list" % data)
         if not self.name:
-            self.name = _resdef_name_for_sources(self.sources)
+            self.name = self.flag_name or _resdef_name_for_sources(self.sources)
         self.fullname = "%s:%s" % (modeldef.name, self.name)
         self.private = self.private
         self.modeldef = modeldef
-
-    def get_source_resolver(self, source, resource):
-        scheme = source.parsed_uri.scheme
-        if scheme == "operation":
-            from guild import resolver # expensive
-            return resolver.OperationOutputResolver(
-                source, resource, self.modeldef)
-        else:
-            return super(ResourceDef, self).get_source_resolver(
-                source, resource)
 
     def _source_for_type(self, type, val, data):
         data = self._coerce_source_data(data)
@@ -1409,12 +1427,12 @@ class PackageDef(object):
 # Module API
 ###################################################################
 
-def from_dir(path, no_cache=False):
+def for_dir(path, no_cache=False):
     log.debug("checking '%s' for model sources", path)
     model_file = os.path.abspath(guildfile_path(path))
     if os.path.isfile(model_file):
         log.debug("found model source '%s'", model_file)
-        return from_file(model_file, no_cache=no_cache)
+        return for_file(model_file, no_cache=no_cache)
     raise NoModels(path)
 
 def is_guildfile_dir(path):
@@ -1425,7 +1443,7 @@ def guildfile_path(*paths):
         paths = (config.cwd(),)
     return os.path.join(*(paths + (NAME,)))
 
-def from_file(src, extends_seen=None, no_cache=False):
+def for_file(src, extends_seen=None, no_cache=False):
     if not no_cache:
         cache_key = _cache_key(src)
         cached = _cache.get(cache_key)
@@ -1453,56 +1471,58 @@ def _load_guildfile(src, extends_seen):
         return gf
 
 def _notify_plugins_guildfile_data(data, src):
+    from guild import plugin as pluginlib  # expensive
     for _name, plugin in pluginlib.iter_plugins():
         plugin.guildfile_data(data, src)
 
 def _notify_plugins_guildfile_loaded(gf):
+    from guild import plugin as pluginlib  # expensive
     for _name, plugin in pluginlib.iter_plugins():
         plugin.guildfile_loaded(gf)
 
-def from_file_or_dir(src, no_cache=False):
+def for_file_or_dir(src, no_cache=False):
     try:
-        return from_file(src, no_cache=no_cache)
+        return for_file(src, no_cache=no_cache)
     except IOError as e:
         if e.errno == errno.EISDIR:
-            return from_dir(src)
+            return for_dir(src)
         raise
 
-def from_string(s, src="<string>"):
+def for_string(s, src="<string>"):
     data = yaml.safe_load(s)
     _notify_plugins_guildfile_data(data, src)
     return Guildfile(data, src)
 
-def from_run(run):
+def for_run(run):
     if run.opref.pkg_type == "guildfile":
-        return _from_guildfile_ref(run)
+        return _for_guildfile_ref(run)
     elif run.opref.pkg_type == "package":
-        return _from_package_ref(run.opref)
+        return _for_package_ref(run.opref)
     else:
         raise TypeError(
             "unsupported pkg_type for run (%s): %s"
             % (run.dir, run.opref.pkg_type))
 
-def _from_guildfile_ref(run):
+def _for_guildfile_ref(run):
     gf_path = os.path.join(run.dir, run.opref.pkg_name)
     if not os.path.exists(gf_path):
         raise GuildfileMissing(gf_path)
-    return from_file(gf_path)
+    return for_file(gf_path)
 
-def _from_package_ref(opref):
+def _for_package_ref(opref):
     import pkg_resources
     try:
         dist = pkg_resources.get_distribution(opref.pkg_name)
     except pkg_resources.DistributionNotFound:
         raise GuildfileMissing("cannot find package '%s'" % opref.pkg_name)
     else:
-        return _from_pkg_dist(dist, opref)
+        return _for_pkg_dist(dist, opref)
 
-def _from_pkg_dist(dist, opref):
+def _for_pkg_dist(dist, opref):
     gf_path = os.path.join(
         dist.location,
         opref.pkg_name.replace(".", os.path.sep),
         "guild.yml")
     if not os.path.exists(gf_path):
         raise GuildfileMissing(gf_path)
-    return from_file(gf_path)
+    return for_file(gf_path)

@@ -23,6 +23,9 @@ import yaml
 
 from guild import flag_util
 from guild import guildfile
+from guild import opref as opreflib
+from guild import resolver
+from guild import run as runlib
 from guild import util
 
 log = logging.getLogger("guild")
@@ -250,14 +253,13 @@ def _format_func_op(opref):
     return "%s()" % opref.op_name
 
 def _apply_batch_desc(base_desc, run, seen_protos):
-    import guild.run
     proto_dir = _safe_guild_path(run, "proto", "")
     if not os.path.exists(proto_dir):
         return base_desc
     if proto_dir in seen_protos:
         # We have a cycle - drop this proto_dir
         return base_desc
-    proto_run = guild.run.Run("", proto_dir)
+    proto_run = runlib.Run("", proto_dir)
     proto_op_desc = format_operation(proto_run, seen_protos)
     parts = [proto_op_desc]
     if not base_desc.startswith("+"):
@@ -270,8 +272,7 @@ def _safe_guild_path(run, path, default):
         return run.guild_path(path)
     except TypeError:
         # Occurs for run proxies that don't support guild_path - punt
-        # with generic descriptor. (TODO: implement explicit behavior
-        # in run interface + proxy)
+        # with generic descriptor.
         return default
 
 def shorten_op_dir(op_dir, cwd):
@@ -374,7 +375,7 @@ def run_opdef(run):
 
 def run_guildfile(run):
     try:
-        return guildfile.from_run(run)
+        return guildfile.for_run(run)
     except (guildfile.NoModels, guildfile.GuildfileMissing, TypeError):
         return None
 
@@ -395,3 +396,19 @@ def _try_guildfile_opdef(gf, run):
 
 def _run_compare_attr(run):
     return run.get("compare")
+
+def run_for_run_dir(run_dir):
+    if run_dir[:1] == ".":
+        run_dir = os.path.abspath(run_dir)
+    if not os.path.isabs(run_dir):
+        return None
+    run_id = os.path.basename(run_dir)
+    return runlib.Run(run_id, run_dir)
+
+def marked_or_latest_run_for_opspec(opspec):
+    try:
+        opref = opreflib.OpRef.for_string(opspec)
+    except opreflib.OpRefError:
+        return None
+    else:
+        return resolver.marked_or_latest_run([opref])

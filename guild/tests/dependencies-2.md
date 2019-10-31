@@ -17,26 +17,26 @@ We'll use a helper to print depepdencies:
     ...             print("  description: %s" % (dep.description or "''"))
     ...         if dep.inline_resource:
     ...             print("  inline-resource: ", end="")
-    ...             pprint(dep.inline_resource.data)
+    ...             pprint(dep.inline_resource._data)
 
 ## Inline string
 
 An inline string is the traditional way to express a dependency on a
 resource.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires: prepare
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency 'prepare'>
+    <guild.guildfile.OpDependencyDef 'prepare'>
       spec: prepare
       description: ''
 
 A list of strings is treated in the same manner:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     - prepare-1
@@ -45,13 +45,13 @@ A list of strings is treated in the same manner:
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency 'prepare-1'>
+    <guild.guildfile.OpDependencyDef 'prepare-1'>
       spec: prepare-1
       description: ''
-    <guild.guildfile.OpDependency 'prepare-2'>
+    <guild.guildfile.OpDependencyDef 'prepare-2'>
       spec: prepare-2
       description: ''
-    <guild.guildfile.OpDependency 'prepare-3'>
+    <guild.guildfile.OpDependencyDef 'prepare-3'>
       spec: prepare-3
       description: ''
 
@@ -61,7 +61,7 @@ An inline dict can be either a resource reference or an inline
 resource. If the dict contains a `resource` attribute, it's treated as
 a resource spec:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     resource: data
@@ -69,7 +69,7 @@ a resource spec:
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency 'data'>
+    <guild.guildfile.OpDependencyDef 'data'>
       spec: data
       description: required data
 
@@ -78,7 +78,7 @@ a resource spec:
 If the user provides an inline dict that does not contain a `sources`
 attribute, it is treated as an implicit resource source:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     url: http://my.co/stuff.gz
@@ -87,7 +87,7 @@ attribute, it is treated as an implicit resource source:
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency http://my.co/stuff.gz>
+    <guild.guildfile.OpDependencyDef http://my.co/stuff.gz>
       inline-resource: {'sources': [{'sha256': 'abc123',
                   'unpack': False,
                   'url': 'http://my.co/stuff.gz'}]}
@@ -97,7 +97,7 @@ attribute, it is treated as an implicit resource source:
 If the inline dict contains a `sources` attribute, it is treated as a
 complete resource definition:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     path: data
@@ -110,7 +110,7 @@ complete resource definition:
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency http://my.co/stuff.gz,http://my.co/more-suff.tar>
+    <guild.guildfile.OpDependencyDef http://my.co/stuff.gz,http://my.co/more-suff.tar>
       inline-resource: {'path': 'data',
      'sources': [{'sha256': 'abc123',
                   'unpack': False,
@@ -121,7 +121,7 @@ complete resource definition:
 
 A resource `name` may be provided for any full resource definition:
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     name: data
@@ -131,7 +131,7 @@ A resource `name` may be provided for any full resource definition:
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency data>
+    <guild.guildfile.OpDependencyDef data>
       inline-resource: {'name': 'data',
      'sources': [{'url': 'http://my.co/stuff.gz'},
                  {'url': 'http://my.co/more-suff.tar'}]}
@@ -141,7 +141,7 @@ A resource `name` may be provided for any full resource definition:
 Inline requirements that define an operation but not a name are
 implicitly named by their operation.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... op1:
     ...   requires:
     ...     - operation: foo
@@ -162,7 +162,7 @@ implicitly named by their operation.
 An inline list can be used to list source. Each list item is converted
 to a dependency where `sources` contains a list containing the item.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     - url: http://my.co/stuff.gz
@@ -170,9 +170,9 @@ to a dependency where `sources` contains a list containing the item.
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies)
-    <guild.guildfile.OpDependency http://my.co/stuff.gz>
+    <guild.guildfile.OpDependencyDef http://my.co/stuff.gz>
       inline-resource: {'sources': [{'url': 'http://my.co/stuff.gz'}]}
-    <guild.guildfile.OpDependency foo>
+    <guild.guildfile.OpDependencyDef foo>
       inline-resource: {'sources': [{'operation': 'foo'}]}
 
 ## Source paths
@@ -181,7 +181,7 @@ As of 0.6.2, a source may contain a path, which is in addition to any
 path defined in the source resource. A source path is appended to a
 resource path, if a resource path is defined.
 
-    >>> gf = guildfile.from_string("""
+    >>> gf = guildfile.for_string("""
     ... train:
     ...   requires:
     ...     - operation: foo
@@ -190,7 +190,7 @@ resource path, if a resource path is defined.
     ... """)
 
     >>> print_deps(gf.default_model["train"].dependencies) # doctest: -NORMALIZE_PATHS
-    <guild.guildfile.OpDependency foo>
+    <guild.guildfile.OpDependencyDef foo>
       inline-resource: {'sources': [{'operation': 'foo',
                                      'path': 'bar',
                                      'select': '.+\\.txt'}]}

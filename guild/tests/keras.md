@@ -61,7 +61,7 @@ The Guild file in `project` reference `fashion_mnist_fashion.py` as
 
     >>> from guild import guildfile
 
-    >>> gf = guildfile.from_dir(project)
+    >>> gf = guildfile.for_dir(project)
 
     >>> gf.models
     {'fashion': <guild.guildfile.ModelDef 'fashion'>}

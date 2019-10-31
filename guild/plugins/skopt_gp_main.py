@@ -15,44 +15,40 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from guild import util
+import logging
+import warnings
 
-from . import skopt_ipy
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=Warning)
+    import numpy.core.umath_tests  # pylint: disable=unused-import
+    import skopt
+
+from guild import batch_util
+from guild import op_util
+
 from . import skopt_util
 
-def gen_trials(flags, runs, random_starts=0, acq_func="gp_hedge",
-               kappa=1.96, xi=0.01, noise="gaussian", label=None,
-               **kw):
-    batch_flags = {
-        "random-starts": random_starts,
-        "acq-func": acq_func,
-        "kappa": kappa,
-        "xi": xi,
-        "noise": noise,
-    }
-    label = label or "gp"
-    return skopt_ipy.gen_trials(
-        _init_trial, runs, flags, batch_flags,
-        label=label, **kw)
+log = logging.getLogger("guild")
 
-def _init_trial(trial, state):
-    import skopt
-    inputs = state.opt_inputs(trial.run_id)
-    res = util.log_apply(
-        skopt.gp_minimize,
+def main():
+    op_util.init_logging()
+    batch_run = batch_util.batch_run()
+    skopt_util.handle_seq_trials(batch_run, _suggest_x)
+
+def _suggest_x(dims, x0, y0, random_start, random_state, opts):
+    res = skopt.gp_minimize(
         lambda *args: 0,
-        inputs.dims,
+        dims,
         n_calls=1,
-        n_random_starts=inputs.random_starts,
-        x0=inputs.x0,
-        y0=inputs.y0,
-        random_state=state.random_state,
-        acq_func=state.batch_flags["acq-func"],
-        kappa=state.batch_flags["kappa"],
-        xi=state.batch_flags["xi"],
-        noise=state.batch_flags["noise"])
-    state.update(res)
-    return state.next_trial_flags()
+        n_random_starts=1 if random_start else 0,
+        x0=x0,
+        y0=y0,
+        random_state=random_state,
+        acq_func=opts["acq-func"],
+        kappa=opts["kappa"],
+        xi=opts["xi"],
+        noise=opts["noise"])
+    return res.x_iters[-1], res.random_state
 
 if __name__ == "__main__":
-    skopt_util.default_main(_init_trial)
+    main()

@@ -36,15 +36,14 @@ And now serve again:
     Using output from run ... for train resource
     Serving ./trained-model
 
-Let's take a moment to confirm that the dependency used matches the
-run we expect.
+Let's confirm that the dependency used matches the run we expect.
 
 Here are the current runs:
 
-    >>> project.print_runs(flags=True, status=True)
-    serve  train=...  completed
-    train  lr=0.1     completed
-    serve             error
+    >>> project.print_runs(flags=True, labels=True, status=True)
+    serve  train=...    model=...  completed
+    train  lr=0.1       lr=0.1     completed
+    serve  train=null   model=     error
 
 Note the first run is `error` because it failed to resolve the
 required dependency.
@@ -52,11 +51,13 @@ required dependency.
 Here's a helper to get the run ID of the train dependency:
 
     >>> def train_dep(serve_run):
-    ...     deps = serve_run.get("deps")
+    ...     deps = serve_run.get("resolved_deps")
     ...     assert "train" in deps, deps
     ...     train_sources = deps["train"]
-    ...     assert len(train_sources) == 1, deps
-    ...     model_path = train_sources[0]
+    ...     assert "operation:train" in train_sources, deps
+    ...     train_op_paths = train_sources["operation:train"]
+    ...     assert len(train_op_paths) == 1, deps
+    ...     model_path = train_op_paths[0]
     ...     return os.path.basename(os.path.dirname(model_path))
 
 Let's confirm that the run ID of the serve train dependency equals the
@@ -91,12 +92,12 @@ And run serve again:
 
 Our runs:
 
-    >>> project.print_runs(flags=True, status=True)
-    serve  train=...  completed
-    train  lr=0.01    completed
-    serve  train=...  completed
-    train  lr=0.1     completed
-    serve             error
+    >>> project.print_runs(flags=True, labels=True, status=True)
+    serve  train=...   model=...  completed
+    train  lr=0.01     lr=0.01    completed
+    serve  train=...   model=...  completed
+    train  lr=0.1      lr=0.1     completed
+    serve  train=null  model=     error
 
 Let's confirm that the latest serve is using the latest train.
 
@@ -198,7 +199,7 @@ Our runs:
     train  lr=0.01
     serve  train=...
     train  lr=0.1
-    serve
+    serve  train=null
 
 The latest train run:
 

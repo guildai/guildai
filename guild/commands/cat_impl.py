@@ -23,6 +23,7 @@ import click
 
 from guild import cli
 
+from . import remote_impl_support
 from . import runs_impl
 
 log = logging.getLogger("guild")
@@ -32,6 +33,12 @@ def main(args, ctx):
         cli.error(
             "PATH must be relative\n"
             "Try 'guild cat --help' for more information.")
+    if args.remote:
+        remote_impl_support.cat(args)
+    else:
+        _main(args, ctx)
+
+def _main(args, ctx):
     run = runs_impl.one_run(args, ctx)
     path = _path(run, args)
     if args.page:
@@ -71,8 +78,11 @@ def _open_file(path, binary=False):
     mode = "rb" if binary else "r"
     try:
         return open(path, mode)
-    except IOError as e:
-        cli.error(e)
+    except (IOError, OSError) as e:
+        if e.errno == 2:
+            cli.error("%s does not exist" % path)
+        else:
+            cli.error(str(e))
 
 def _cat(path):
     f = _open_file(path, binary=True)

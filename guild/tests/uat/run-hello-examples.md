@@ -88,20 +88,31 @@ the `--deps` option of `guild runs info`:
     >>> run("guild runs info --deps")
     id: ...
     operation: hello:from-file-output
-    from: .../hello/guild.yml
+    from: .../guild.yml
     status: completed
-    ...
+    started: ...
+    stopped: ...
+    marked: no
+    label:
+    sourcecode_digest: ...
+    run_dir: ...
+    command: ... -um guild.op_main say --file-output --
+    exit_status: 0
+    pid:
+    flags:
+      from-file-output: ...
+    scalars:
     dependencies:
       from-file-output:
-        - .../runs/.../output
+        - ../.../output
     <exit 0>
 
-We can specify an alternative run for `from-file-output` by specifying
 `file-output` as a flag.
 
 Here's a preview of the command:
 
     >>> run("guild run from-file-output from-file-output=foobar", timeout=1)
+    WARNING: cannot find a suitable run for required resource 'from-file-output'
     You are about to run hello:from-file-output
       from-file-output: foobar
     Continue? (Y/n)
@@ -122,10 +133,8 @@ We'll use the first run for `from-file`.
 ### Run a batch
 
     >>> run("guild run from-flag message=[hello,hola] -y")
-    INFO: [guild] Initialized trial ... (message=hello)
     INFO: [guild] Running trial ...: hello:from-flag (message=hello)
     hello
-    INFO: [guild] Initialized trial ... (message=hola)
     INFO: [guild] Running trial ...: hello:from-flag (message=hola)
     hola
     <exit 0>
@@ -133,10 +142,8 @@ We'll use the first run for `from-file`.
 ### Run a batch using list concatenation
 
     >>> run("guild run from-flag message=[yop]*2 -y")
-    INFO: [guild] Initialized trial ... (message=yop)
     INFO: [guild] Running trial ...: hello:from-flag (message=yop)
     yop
-    INFO: [guild] Initialized trial ... (message=yop)
     INFO: [guild] Running trial ...: hello:from-flag (message=yop)
     yop
     <exit 0>

@@ -22,16 +22,16 @@ And the generated files:
     hello-default/.guild
     hello-default/.guild/attrs
     hello-default/.guild/attrs/cmd
-    hello-default/.guild/attrs/deps
     hello-default/.guild/attrs/env
     hello-default/.guild/attrs/exit_status
     hello-default/.guild/attrs/flags
     hello-default/.guild/attrs/host
     hello-default/.guild/attrs/id
     hello-default/.guild/attrs/initialized
-    hello-default/.guild/attrs/opdef
+    hello-default/.guild/attrs/op
     hello-default/.guild/attrs/platform
     hello-default/.guild/attrs/random_seed
+    hello-default/.guild/attrs/resolved_deps
     hello-default/.guild/attrs/run_params
     hello-default/.guild/attrs/sourcecode_digest
     hello-default/.guild/attrs/started

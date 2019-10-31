@@ -18,6 +18,7 @@ from __future__ import division
 import csv
 import itertools
 import logging
+import os
 import sys
 
 from guild import batch_util
@@ -93,18 +94,21 @@ def _print_scalars(args):
             cli.out("  %s: %f (step %i)" % (key, val, step))
 
 def _write_csv(args):
-    data = get_data(args, format_cells=False, skip_header_if_empty=True)
-    if not data:
-        return
+    data = get_data(args, format_cells=False, skip_header_if_empty=True) or []
     with _open_file(args.csv) as out:
         writer = csv.writer(out, lineterminator="\n")
         for row in data:
             writer.writerow(row)
+    cli.out("Wrote %i row(s) to %s" % (len(data), args.csv))
 
 def _open_file(path):
     if path == "-":
         return util.StdIOContextManager(sys.stdout)
-    return open(path, "w")
+    util.ensure_dir(os.path.dirname(path))
+    try:
+        return open(path, "w")
+    except (OSError, IOError) as e:
+        cli.error("error opening %s: %s" % (path, e))
 
 def get_data(args, format_cells=True, skip_header_if_empty=False):
     index = indexlib.RunIndex()
@@ -158,8 +162,8 @@ def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
                     return [], []
                 header = [NO_RUNS_CAPTION]
             rows = _sorted_table_rows(table, header, args)
-            if args.top:
-                rows = rows[:args.top]
+            if args.limit:
+                rows = rows[:args.limit]
             if format_cells:
                 _format_cells(rows, header, runs)
             log = log_capture.get_all()

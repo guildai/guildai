@@ -22,8 +22,8 @@ From file:
 From file output:
 
     >>> run("guild run -y gpkg.hello/hello:from-file-output --label test-4")
-    Resolving file-output dependency
-    Using output from run ... for file-output resource
+    Resolving from-file-run dependency
+    Using output from run ... for from-file-run resource
     Latest from-file output:
     Hello Guild, from a required file!
     <exit 0>

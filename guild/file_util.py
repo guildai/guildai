@@ -232,6 +232,7 @@ class FileCopyHandler(object):
     def copy(self, path, _rule_results):
         src = os.path.join(self.src_root, path)
         dest = os.path.join(self.dest_root, path)
+        log.debug("copying %s to %s", src, dest)
         util.ensure_dir(os.path.dirname(dest))
         self._try_copy_file(src, dest)
 

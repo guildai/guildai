@@ -154,7 +154,7 @@ def _load_dist_modeldefs(dist):
 
 def _try_acc_modeldefs(path, acc):
     try:
-        models = guildfile.from_file(path)
+        models = guildfile.for_file(path)
     except Exception as e:
         log.error("unable to load models from %s: %s", path, e)
     else:
@@ -203,7 +203,7 @@ class GuildfileDistribution(pkg_resources.Distribution):
         (i.e. the value of os.getcwd() at the time they are generated) and
         always start with '.'.
         """
-        pkg_path = os.path.relpath(guildfile.dir)
+        pkg_path = os.path.relpath(guildfile.dir, config.cwd())
         if pkg_path[0] != ".":
             pkg_path = os.path.join(".", pkg_path)
         safe_path = escape_project_name(pkg_path)
@@ -319,7 +319,7 @@ class ModelImporter(object):
         if not os.path.isdir(self.path):
             return None
         try:
-            gf = guildfile.from_dir(self.path)
+            gf = guildfile.for_dir(self.path)
         except guildfile.NoModels:
             return None
         except Exception as e:
@@ -373,6 +373,23 @@ def get_path():
 
 def set_path(path, clear_cache=False):
     _models.set_path(path, clear_cache)
+
+class SetPath(object):
+
+    def __init__(self, path, clear_cache=False):
+        self._path = path
+        self._clear_cache = clear_cache
+        self._save = None
+
+    def __enter__(self):
+        assert self._save is None, self._save
+        self._save = get_path()
+        set_path(self._path, clear_cache=self._clear_cache)
+
+    def __exit__(self, *_exc):
+        assert self._save is not None
+        set_path(self._save)
+        self._save = None
 
 def insert_path(item, clear_cache=False):
     path = _models.path()

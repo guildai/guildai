@@ -9,7 +9,7 @@ For these tests we'll use the `step-checks` project.
 The project has two public operations and a number of private
 operation (i.e. operations starting with `_`).
 
-    >>> gf = guildfile.from_dir(project.cwd)
+    >>> gf = guildfile.for_dir(project.cwd)
 
     >>> gf.models
     {'': <guild.guildfile.ModelDef ''>}
@@ -102,7 +102,7 @@ does this:
     >>> print_steps("_test-all")
     ['_test-output-1', '_test-output-2', '_test-file-1', '_test-fail-1']
 
-    >>> project.run("_test-all")
+    >> project.run("_test-all")
     INFO: [guild] running _test-output-1: _test-output-1
     INFO: [guild] running gen-output: gen-output
     hi

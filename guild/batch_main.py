@@ -15,20 +15,24 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import itertools
-
 from guild import batch_util
+from guild import op_util
 
-def gen_trials(flags, _batch=None):
-    flag_list = [
-        _trial_flags(name, val)
-        for name, val in sorted(flags.items())]
-    return [dict(trial) for trial in itertools.product(*flag_list)]
+def main():
+    op_util.init_logging()
+    batch_run = batch_util.batch_run()
+    trials = _batch_trials(batch_run)
+    batch_util.handle_trials(batch_run, trials)
 
-def _trial_flags(flag_name, flag_val):
-    if isinstance(flag_val, list):
-        return [(flag_name, trial_val) for trial_val in flag_val]
-    return [(flag_name, flag_val)]
+def _batch_trials(batch_run):
+    all_trials = batch_util.expanded_batch_trials(batch_run)
+    return batch_util.sample_trials(
+        all_trials,
+        batch_run.get("max_trials"),
+        batch_run.get("random_seed"))
 
 if __name__ == "__main__":
-    batch_util.default_main(gen_trials, default_max_trials=None)
+    try:
+        main()
+    except SystemExit as e:
+        batch_util.handle_system_exit(e)

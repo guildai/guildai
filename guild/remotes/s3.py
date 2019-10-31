@@ -138,7 +138,7 @@ class S3Remote(remotelib.Remote):
                 env=os.environ,
                 stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
-            raise remotelib.RemoteProcessError.from_called_process_error(e)
+            raise remotelib.RemoteProcessError.for_called_process_error(e)
 
     def _s3_cmd(self, name, args, to_stderr=False):
         cmd = ["aws"]
@@ -152,7 +152,7 @@ class S3Remote(remotelib.Remote):
             else:
                 subprocess.check_call(cmd, env=os.environ)
         except subprocess.CalledProcessError as e:
-            raise remotelib.RemoteProcessError.from_called_process_error(e)
+            raise remotelib.RemoteProcessError.for_called_process_error(e)
 
     def filtered_runs(self, **filters):
         self._verify_creds_and_region()
@@ -414,7 +414,7 @@ def _list(d):
             raise
         return []
 
-def _ids_from_prefixes(prefixes):
+def _ids_for_prefixes(prefixes):
     def strip(s):
         if s.endswith("/"):
             return s[:-1]

@@ -36,7 +36,7 @@ OpRef = collections.namedtuple(
         "op_name"
     ])
 
-def _opref_from_op(op_name, model_ref):
+def _opref_for_op(op_name, model_ref):
     (pkg_type,
      pkg_name,
      pkg_version,
@@ -48,7 +48,7 @@ def _opref_parse(encoded):
 
     Format: PKG_TYPE_AND_NAME PKG_VER MODEL_NAME OP_NAME
 
-    See _opref_from_string for parsing a user-provided value.
+    See _opref_for_string for parsing a user-provided value.
     """
     parts = util.shlex_split(encoded)
     if len(parts) != 4:
@@ -63,10 +63,10 @@ def _split_pkg_type_and_name(s, encoded):
         raise OpRefError(encoded)
     return parts
 
-def _opref_from_string(s):
+def _opref_for_string(s):
     """Parses user-provided string to opref.
 
-    See _opref_from_run for parsing a saved opref attr.
+    See _opref_for_run for parsing a saved opref attr.
     """
     m = re.match(r"(?:(?:([^/]+)/)?([^:]+):)?([^/:]+)$", s)
     if not m:
@@ -145,9 +145,9 @@ def _script_path(opref, cwd):
         path = os.path.relpath(path, cwd)
     return path
 
-OpRef.from_op = staticmethod(_opref_from_op)
+OpRef.for_op = staticmethod(_opref_for_op)
 OpRef.parse = staticmethod(_opref_parse)
-OpRef.from_string = staticmethod(_opref_from_string)
+OpRef.for_string = staticmethod(_opref_for_string)
 OpRef.is_op_run = _opref_is_op_run
 OpRef.__str__ = _opref_to_string
 OpRef.__lt__ = _opref_lt

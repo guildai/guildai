@@ -19,6 +19,7 @@ import click
 
 from guild import click_util
 
+from . import remote_support
 from . import runs_support
 
 @click.command("cat")
@@ -40,6 +41,7 @@ from . import runs_support
     is_flag=True,
     help="Show file in pager.")
 @runs_support.all_filters
+@remote_support.remote_option("Show contents of a remote run file.")
 
 @click.pass_context
 @click_util.use_args

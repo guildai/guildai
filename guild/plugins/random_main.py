@@ -16,93 +16,39 @@ from __future__ import absolute_import
 from __future__ import division
 
 import logging
-import warnings
+import sys
 
 from guild import batch_util
-from guild import flag_util
 from guild import op_util
 
 from . import skopt_util
 
 log = logging.getLogger("guild")
 
-DEFAULT_TRIALS = 20
+DEFAULT_MAX_TRIALS = 20
 
-def gen_trials(flags, _runs, max_trials=None, random_seed=None,
-               label=None, **kw):
-    """Public interface for ipy."""
-    if kw:
-        log.warning("ignoring configuration %s", kw)
-    num_trials = max_trials or DEFAULT_TRIALS
-    dim_names, dims, _initials = skopt_util.flag_dims(flags)
-    if not dim_names:
-        log.error(
-            "flags for batch (%s) do not contain any search "
-            "dimension - quitting",
-            op_util.flags_desc(flags))
-        raise batch_util.StopBatch(error=True)
-    trial_vals = _gen_trial_vals(dims, num_trials, random_seed)
-    trial_opts = {
-        "label": label or "random"
-    }
-    return [
-        (_trial_flags(dim_names, dim_vals, flags), trial_opts)
-        for dim_vals in trial_vals
-    ]
+def main():
+    op_util.init_logging()
+    batch_run = batch_util.batch_run()
+    trials = _batch_trials(batch_run)
+    batch_util.handle_trials(batch_run, trials)
 
-def _trial_flags(dim_names, dim_vals, base_flags):
-    trial_flags = {}
-    trial_flags.update(base_flags)
-    trial_flags.update(skopt_util.trial_flags(dim_names, dim_vals))
-    return trial_flags
-
-def _gen_batch_trials(flags, batch):
-    trials = gen_trials(flags, None, batch.max_trials, batch.random_seed)
-    return [t[0] for t in trials]
-
-def _flag_dims(flags):
-    dims = {
-        name: _flag_dim(val, name)
-        for name, val in flags.items()
-    }
-    names = sorted(dims)
-    return names, [dims[name] for name in names]
-
-def _flag_dim(val, flag_name):
-    if isinstance(val, list):
-        return val
+def _batch_trials(batch_run):
+    proto_flag_vals = batch_run.batch_proto.get("flags")
+    batch_run = batch_util.batch_run()
+    max_trials = batch_run.get("max_trials") or DEFAULT_MAX_TRIALS
+    random_seed = batch_run.get("random_seed")
     try:
-        dist_name, min_max = flag_util.decode_flag_function(val)
-    except ValueError:
-        return [val]
-    else:
-        _validate_min_max(min_max, dist_name, flag_name)
-        return min_max
+        return skopt_util.random_trials_for_flags(
+            proto_flag_vals, max_trials, random_seed)
+    except skopt_util.MissingSearchDimension as e:
+        skopt_util.missing_search_dim_error(proto_flag_vals)
+    except skopt_util.InvalidSearchDimension as e:
+        _search_dim_error(e)
 
-def _validate_min_max(val, dist_name, flag_name):
-    if dist_name not in (None, "uniform"):
-        raise batch_util.BatchError(
-            "unsupported distribution %r for flag %s - must be 'uniform'"
-            % (dist_name, flag_name))
-    if len(val) != 2:
-        raise batch_util.BatchError(
-            "unexpected arguemt list %r for flag %s - expected 2 arguments"
-            % (val, flag_name))
-
-def _gen_trial_vals(dims, num_trials, random_seed):
-    import skopt
-    res = skopt.dummy_minimize(
-        lambda *args: 0,
-        dims,
-        n_calls=num_trials,
-        random_state=random_seed)
-    return res.x_iters
-
-def _patch_numpy_deprecation_warnings():
-    warnings.filterwarnings("ignore", category=Warning)
-    # pylint: disable=unused-variable
-    import numpy.core.umath_tests
+def _search_dim_error(e):
+    log.error(str(e))
+    sys.exit(1)
 
 if __name__ == "__main__":
-    _patch_numpy_deprecation_warnings()
-    batch_util.default_main(_gen_batch_trials)
+    main()
