@@ -12,6 +12,10 @@ We'll use the `noisy.py` script in the `optimizers` sample project.
 
 A helper to run an optimizer batch:
 
+    >>> ignore_output = [
+    ...     "The objective has been evaluated at this point before",
+    ... ]
+
     >>> def run(optimizer, x, trials, opt_flags=None):
     ...     project.run(
     ...         "noisy.py",
@@ -19,7 +23,11 @@ A helper to run an optimizer batch:
     ...         opt_flags=opt_flags,
     ...         optimizer=optimizer,
     ...         max_trials=trials,
-    ...         simplify_trial_output=True)
+    ...         simplify_trial_output=True,
+    ...         ignore_output=ignore_output)
+
+We ignore messages from skopt that may be reasonably generated due to
+random effects.
 
 ## Bayesian with gaussian process
 

@@ -47,6 +47,8 @@ import sys
 import tempfile
 import time
 
+import six
+
 import guild
 
 from guild import _api as gapi
@@ -552,6 +554,7 @@ class Project(object):
     def _run(self, *args, **kw):
         # TODO: remove simplify_trial_output after op2 promo
         simplify_trial_output = kw.pop("simplify_trial_output", False)
+        ignore_output = kw.pop("ignore_output", False)
         cwd = os.path.join(self.cwd, kw.pop("cwd", "."))
         with self._run_env():
             out = gapi.run_capture_output(
@@ -560,6 +563,8 @@ class Project(object):
                 *args, **kw)
         if simplify_trial_output:
             out = self._simplify_trial_output(out)
+        if ignore_output:
+            out = self._filter_output(out, ignore_output)
         return out.strip()
 
     def _run_env(self):
@@ -588,6 +593,15 @@ class Project(object):
         for p, repl in self.simplify_trial_output_patterns:
             out = p.sub(repl, out)
         return out
+
+    @staticmethod
+    def _filter_output(out, ignore):
+        if isinstance(ignore, six.string_types):
+            ignore = [ignore]
+        return "\n".join([
+            line for line in out.split("\n")
+            if all(s and s not in line for s in ignore)
+        ])
 
     def list_runs(self, **kw):
         return gapi.runs_list(
