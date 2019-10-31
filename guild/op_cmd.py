@@ -122,7 +122,9 @@ def _apply_flag_env(flag_vals, op_cmd, env):
 
 def _flag_env_name(flag_name, op_cmd):
     cmd_flag = op_cmd.cmd_flags.get(flag_name)
-    return cmd_flag and cmd_flag.env_name or _default_flag_env_name(flag_name)
+    if cmd_flag and cmd_flag.env_name:
+        return cmd_flag.env_name
+    return _default_flag_env_name(flag_name)
 
 def _default_flag_env_name(flag_name):
     return "FLAG_%s" % util.env_var_name(flag_name)

@@ -485,7 +485,6 @@ def _runs_filter_args(
     return args
 
 def _op_src(opspec):
-    from guild.commands import run_impl
     opdef = op_util.opdef_for_opspec(opspec)
     src = opdef.guildfile.dir
     if src is None:
