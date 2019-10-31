@@ -302,13 +302,15 @@ if __name__ == "__main__":
             raise
         # Print exception start with mod (argv[0])
         filtered_exc_lines = []
-        mod_path = __argv0[1]
+        this_dir = os.path.dirname(__file__)
         for line in exc_lines[1:]:
-            if filtered_exc_lines or mod_path in line:
+            if filtered_exc_lines or this_dir not in line:
                 filtered_exc_lines.append(line)
         if not filtered_exc_lines:
             raise
         sys.stderr.write(exc_lines[0])
         for line in filtered_exc_lines:
             sys.stderr.write(line)
+        if isinstance(e, SystemExit):
+            sys.exit(e.code)
         sys.exit(1)
