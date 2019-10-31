@@ -82,7 +82,7 @@ files.
     msg: hi
 
     >>> project.cat(first_run, ".guild/opref")
-    script:.../samples/projects/batch '' '' say.py
+    script:.../samples/projects/batch... '' '' say.py
 
     >>> project.cat(first_run, ".guild/output")
     hi

@@ -243,7 +243,7 @@ class TestRunner(doctest.DocTestRunner, object):
     @staticmethod
     def _apply_skip_windows(test):
         for example in test.examples:
-            if not example.options.get(WINDOWS):
+            if example.options.get(WINDOWS) is False:
                 example.options[doctest.SKIP] = True
 
 def run_test_file_with_config(filename, globs, optionflags):

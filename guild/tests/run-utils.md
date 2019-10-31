@@ -94,16 +94,16 @@ And our monitor:
 Let's run the monitor once:
 
     >>> monitor.run_once()
-    <refresh aaaa in aaaa op-1 2019-08-16 ...:57:48>
-    <refresh bbbb in bbbb op-2 2019-08-16 ...:03:23 a label>
+    <refresh aaaa in aaaa op-1 2019-08-16 ...57...48>
+    <refresh bbbb in bbbb op-2 2019-08-16 ...03...23 a label>
 
 The step of instantiating monitor results in runs being created in the
 log directory.
 
     >>> names = dir(logdir)
     >>> names
-    ['aaaa op-1 2019-08-16 ...:57:48',
-     'bbbb op-2 2019-08-16 ...:03:23 a label']
+    ['aaaa op-1 2019-08-16 ...57...48',
+     'bbbb op-2 2019-08-16 ...03...23 a label']
 
 The directory structure does not contain any files.
 
@@ -116,8 +116,8 @@ We can add files to any of the run directories.
     >>> touch(path(logdir, names[1], "b-file"))
 
     >>> find(logdir)
-    aaaa op-1 2019-08-16 ...:57:48/a-file
-    bbbb op-2 2019-08-16 ...:03:23 a label/b-file
+    aaaa op-1 2019-08-16 ...57...48/a-file
+    bbbb op-2 2019-08-16 ...03...23 a label/b-file
 
 The monitor is designed to be started as a thread, where it monitors
 the list of runs from its callback and updates the log directory
@@ -133,33 +133,33 @@ Next we'll call `run_once()` on our monitor to update the log
 directory.
 
     >>> monitor.run_once()
-    <refresh aaaa in aaaa op-1 2019-08-16 ...:57:48>
+    <refresh aaaa in aaaa op-1 2019-08-16 ...57...48>
 
 Our new list of runs:
 
     >>> dir(logdir)
-    ['aaaa op-1 2019-08-16 ...:57:48']
+    ['aaaa op-1 2019-08-16 ...57...48']
 
 And files:
 
     >>> find(logdir)
-    aaaa op-1 2019-08-16 ...:57:48/a-file
+    aaaa op-1 2019-08-16 ...57...48/a-file
 
 Let's add run `bbbb` back and repeat this process.
 
     >>> sample_runs.append(run_bbbb)
 
     >>> monitor.run_once()
-    <refresh aaaa in aaaa op-1 2019-08-16 ...:57:48>
-    <refresh bbbb in bbbb op-2 2019-08-16 ...:03:23 a label>
+    <refresh aaaa in aaaa op-1 2019-08-16 ...57...48>
+    <refresh bbbb in bbbb op-2 2019-08-16 ...03...23 a label>
 
     >>> runs = dir(logdir)
     >>> runs
-    ['aaaa op-1 2019-08-16 ...:57:48',
-     'bbbb op-2 2019-08-16 ...:03:23 a label']
+    ['aaaa op-1 2019-08-16 ...57...48',
+     'bbbb op-2 2019-08-16 ...03...23 a label']
 
     >>> find(logdir)
-    aaaa op-1 2019-08-16 ...:57:48/a-file
+    aaaa op-1 2019-08-16 ...57...48/a-file
 
 Note that `b-file` is not restored. The monitor permanently deletes
 directories associated with deleted runs.
@@ -169,8 +169,8 @@ Let's restore `b-file`:
     >>> touch(path(logdir, runs[1], "b-file"))
 
     >>> find(logdir)
-    aaaa op-1 2019-08-16 ...:57:48/a-file
-    bbbb op-2 2019-08-16 ...:03:23 a label/b-file
+    aaaa op-1 2019-08-16 ...57...48/a-file
+    bbbb op-2 2019-08-16 ...03...23 a label/b-file
 
 Let's now modify the label of run `bbbb`.
 
@@ -179,19 +179,19 @@ Let's now modify the label of run `bbbb`.
 And update the log directory.
 
     >>> monitor.run_once()
-    <refresh aaaa in aaaa op-1 2019-08-16 ...:57:48>
-    <refresh bbbb in bbbb op-2 2019-08-16 ...:03:23 modified label>
+    <refresh aaaa in aaaa op-1 2019-08-16 ...57...48>
+    <refresh bbbb in bbbb op-2 2019-08-16 ...03...23 modified label>
 
 Here are the new runs:
 
     >>> dir(logdir)
-    ['aaaa op-1 2019-08-16 ...:57:48',
-     'bbbb op-2 2019-08-16 ...:03:23 modified label']
+    ['aaaa op-1 2019-08-16 ...57...48',
+     'bbbb op-2 2019-08-16 ...03...23 modified label']
 
 And files:
 
     >>> find(logdir)
-    aaaa op-1 2019-08-16 ...:57:48/a-file
+    aaaa op-1 2019-08-16 ...57...48/a-file
 
 Once again, `b-file` is deleted. The monitor identifies runs by their
 name. When we changed the label, we changed the generated name for the

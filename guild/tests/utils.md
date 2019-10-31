@@ -348,16 +348,16 @@ Tests:
     >>> quote("/foo bar")
     "'/foo bar'"
 
-    >>> quote("\\foo\\bar") # doctest: -NORMALIZE_PATHS
+    >>> quote("\\foo\\bar")  # doctest: -NORMALIZE_PATHS
     "'\\foo\\bar'"
 
-    >>> quote("D:\\foo\\bar") # doctest: -NORMALIZE_PATHS
+    >>> quote("D:\\foo\\bar")  # doctest: -NORMALIZE_PATHS
     "'D:\\foo\\bar'"
 
-    >>> quote("D:\\foo bar") # doctest: -NORMALIZE_PATHS
+    >>> quote("D:\\foo bar")  # doctest: -NORMALIZE_PATHS
     "'D:\\foo bar'"
 
-    >>> quote("'a b c'")
+    >>> quote("'a b c'")  # doctest: -NORMALIZE_PATHS
     '"\'a b c\'"'
 
 ## Shlex split
