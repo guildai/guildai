@@ -170,7 +170,33 @@ And the run:
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
     ... 2 'a'
 
+## Missing objective
+
+When previous trials don't have specified objective, generates a
+random trials.
+
+    >>> project = Project(sample("projects", "optimizers"))
+    >>> project.run("echo", flags={"x": "[-2.0:2.0]"},
+    ...             opt_flags={"random-starts": 2},
+    ...             optimizer="gp",
+    ...             minimize="no_such_scalar",
+    ...             max_trials=4)
+    INFO: [guild] Random start for optimization (1 of 2)
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
+    ... 2 'a'
+    INFO: [guild] Random start for optimization (2 of 2)
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
+    ... 2 'a'
+    INFO: [guild] Random start for optimization (missing previous trials)
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
+    ... 2 'a'
+    INFO: [guild] Random start for optimization (missing previous trials)
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
+    ... 2 'a'
+
 ## Errors
+
+Invalid objective specs:
 
     >>> project.run("echo", flags={"x": "[-2:2]"}, optimizer="gp",
     ...             maximize="the quick brown fox")

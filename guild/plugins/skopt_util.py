@@ -259,14 +259,18 @@ def _objective_y_info(batch_run):
         return y_scalar_col, y_negate
 
 def _trials_xy_for_prev_trials(prev_trials, names, objective_negate):
-    if not prev_trials:
-        return None, None
+    assert names
     x0 = []
     y0 = []
     for flags, y_scalars in prev_trials:
         assert len(y_scalars) == 1
+        y = y_scalars[0]
+        if y is None:
+            continue
         x0.append([flags.get(name) for name in names])
-        y0.append(objective_negate * y_scalars[0])
+        y0.append(objective_negate * y)
+    if not x0:
+        return None, None
     return x0, y0
 
 def _suggest_random_start(x0, runs_count, wanted_random_starts):
@@ -275,9 +279,13 @@ def _suggest_random_start(x0, runs_count, wanted_random_starts):
 def _log_seq_trial(suggest_random_start, random_starts, runs, prev_trials):
     if suggest_random_start:
         assert random_starts != 0
-        log.info(
-            "Random start for optimization (%s of %s)",
-            runs + 1, random_starts)
+        if runs < random_starts:
+            log.info(
+                "Random start for optimization (%s of %s)",
+                runs + 1, random_starts)
+        else:
+            log.info(
+                "Random start for optimization (missing previous trials)")
     else:
         log.info(
             "Found %i previous trial(s) for use in optimization",
