@@ -121,7 +121,7 @@ Start a staged operation:
 
     >>> run_id = dir(path(gh, "runs"))[0]
 
-    >>> run(cwd, gh, start=run_id)
+    >>> run(cwd, gh, restart=run_id)
     <exit 33>
 
     >>> run(cwd, gh, restart=run_id)
@@ -477,7 +477,7 @@ If we run upstream, this will not effect the staged downstream.
 
 Let's run the staged downstream.
 
-    >>> run(cwd, gh, start=staged_downstream.id)
+    >>> run(cwd, gh, restart=staged_downstream.id)
     Resolving upstream dependency
     Using output from run ... for upstream resource
 

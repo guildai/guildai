@@ -47,6 +47,7 @@ Here are the commands that support the `remote` param:
     ...         if param.name == "remote":
     ...             print(cmd.name)
     ...             break
+    cat
     check
     diff
     label

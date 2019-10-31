@@ -764,6 +764,8 @@ def _check_incompatible_options(args):
         ("optimize", "optimizer"),
         ("print_cmd", "print_env"),
         ("print_trials", "init_trials"),
+        ("stage", "background"),
+        ("stage", "pidfile"),
         ("remote", "background"),
         ("remote", "pidfile"),
     ]
@@ -1120,7 +1122,16 @@ def _run(S):
         _run_local(S)
 
 def _run_remote(S):
+    _check_remote_script(S.user_op.opref)
     remote_impl_support.run(_remote_args(S))
+
+def _check_remote_script(opref):
+    if opref.pkg_type == "script":
+        cli.error(
+            "cannot run scripts remotely\n"
+            "Define an operation in guild.yml that uses %s as the main "
+            "module and run that operation instead."
+            % opref.to_opspec(config.cwd()))
 
 def _remote_args(S):
     params = S.args.as_kw()
@@ -1445,8 +1456,10 @@ def _skip_needed_matches_info(matching_runs):
 # Cmd impl API
 ###################################################################
 
-def run(**kw):
+def run(start=None, **kw):
     from .run import run as run_cmd
+    if start is not None:
+        raise ValueError("start kw not supported, use restart instead")
     ctx = run_cmd.make_context("", [])
     ctx.params.update(kw)
     ctx.params["yes"] = True

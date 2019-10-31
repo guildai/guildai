@@ -15,7 +15,7 @@
 Run in background - Guild chooses a pidfile.
 
     >>> run("guild -C %s run sleep.py --background -y" % tmp, ignore="Refreshing")
-    ???/sleep.py started in background as ... (pidfile ...)
+    sleep.py started in background as ... (pidfile ...)
     <exit 0>
 
 Wait for operation to run for a few seconds.
@@ -41,7 +41,7 @@ Show the run output.
 Run with an explicit pidfile.
 
     >>> run("guild -C %s run sleep.py --pidfile %s/PIDFILE -y" % (tmp, tmp))
-    ???/sleep.py started in background as ... (pidfile .../PIDFILE)
+    sleep.py started in background as ... (pidfile .../PIDFILE)
     <exit 0>
 
 Guild uses the specified pidfile.

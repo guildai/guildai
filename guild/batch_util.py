@@ -58,7 +58,7 @@ def _print_trials_cmd(batch_run, trials):
     for trial in trials:
         with util.TempDir() as tmp:
             run = _init_trial_run(batch_run, trial, tmp.path)
-            run_impl.run(start=run.dir, print_cmd=True)
+            run_impl.run(restart=run.dir, print_cmd=True)
 
 def _print_trials(trials):
     if trials:
@@ -103,7 +103,7 @@ def _trial_label(proto_run, trial_flag_vals):
 
 def _start_trial_run(run, stage=False):
     _log_start_trial(run, stage)
-    run_impl.run(start=run.id, stage=stage)
+    run_impl.run(restart=run.id, stage=stage)
 
 def _trial_op_attr(proto_run, trial_flag_vals):
     proto_op_data = proto_run.get("op")

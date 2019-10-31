@@ -115,10 +115,12 @@ def _op_init_run_attrs(op, run):
 
 def stage(op):
     run = init_run(op)
-    _stage_run_proc_env(op, run)
-    _resolve_deps(op, run, for_stage=True)
-    op_util.set_run_staged(run)
-    op_util.clear_run_pending(run)
+    try:
+        _stage_run_proc_env(op, run)
+        _resolve_deps(op, run, for_stage=True)
+        op_util.set_run_staged(run)
+    finally:
+        op_util.clear_run_pending(run)
     return run
 
 def _stage_run_proc_env(op, run):
@@ -149,10 +151,12 @@ def _start_in_background(run, op, pidfile, quiet, stop_after, extra_env):
     import daemonize
     action = lambda: _run(run, op, quiet, stop_after, extra_env)
     daemon = daemonize.Daemonize(app="guild_op", action=action, pid=pidfile)
+    # Need to log before starting daemon, otherwise output isn't
+    # visible.
     if not quiet:
         log.info(
             "%s started in background as %s (pidfile %s)",
-            run.opref.to_opspec(), run.id, pidfile)
+            run.opref.to_opspec(config.cwd()), run.id, pidfile)
     try:
         daemon.start()
     except SystemExit:
@@ -160,10 +164,12 @@ def _start_in_background(run, op, pidfile, quiet, stop_after, extra_env):
         raise
 
 def _run(run, op, quiet, stop_after, extra_env):
-    _resolve_deps(op, run)
+    try:
+        _resolve_deps(op, run)
+    finally:
+        op_util.clear_run_pending(run)
     op_util.set_run_started(run)
     op_util.clear_run_marker(run, "STAGED")
-    op_util.clear_run_pending(run)
     proc = _op_start_proc(op, run, extra_env)
     exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
     _op_finalize_run_attrs(run, exit_status)

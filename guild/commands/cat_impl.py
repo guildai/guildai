@@ -78,8 +78,11 @@ def _open_file(path, binary=False):
     mode = "rb" if binary else "r"
     try:
         return open(path, mode)
-    except IOError as e:
-        cli.error(e)
+    except (IOError, OSError) as e:
+        if e.errno == 2:
+            cli.error("%s does not exist" % path)
+        else:
+            cli.error(str(e))
 
 def _cat(path):
     f = _open_file(path, binary=True)

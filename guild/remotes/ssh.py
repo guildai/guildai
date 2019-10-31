@@ -284,7 +284,6 @@ class SSHRemote(remotelib.Remote):
         cmd = "; ".join(cmd_lines)
         if not stage:
             log.info("Starting %s on %s as %s", opspec, self.name, run_id)
-        assert False, cmd
         self._ssh_cmd(cmd)
 
     def _watch_started_op(self, remote_run_dir):
@@ -527,7 +526,6 @@ def _remote_run_cmd(
     cmd = [
         "NO_WARN_RUNDIR=1",
         "guild", "run",
-        "--pidfile", "%s/.guild/JOB" % remote_run_dir,
         "--quiet",
         "--yes",
     ]
@@ -535,6 +533,10 @@ def _remote_run_cmd(
         cmd.extend(["--start", remote_run_dir])
     else:
         cmd.extend([q(opspec), "--run-dir", remote_run_dir])
+    if stage:
+        cmd.append("--stage")
+    else:
+        cmd.extend(["--pidfile", "%s/.guild/JOB" % remote_run_dir])
     if label:
         cmd.extend(["--label", q(label)])
     if batch_label:
@@ -565,8 +567,6 @@ def _remote_run_cmd(
         cmd.extend(["--max-trials", max_trials])
     if init_trials:
         cmd.append("--init-trials")
-    if stage:
-        cmd.append("--stage")
     cmd.extend([q(arg) for arg in op_flags])
     return " ".join(cmd)
 
