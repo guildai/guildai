@@ -1255,6 +1255,7 @@ def _op_pidfile(args):
         return None
 
 def _handle_run_exit(exit_status):
+    sys.stdout.flush()
     if exit_status != 0:
         cli.error(exit_status=exit_status)
 
