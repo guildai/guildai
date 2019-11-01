@@ -293,7 +293,7 @@ def _try_format_subpath(dir, cwd):
 def _try_format_peerpath(dir, cwd):
     cwd_parent = os.path.dirname(cwd)
     if cwd_parent == dir:
-        return "../"
+        return ".." + os.path.sep
     try:
         subpath = util.subpath(dir, cwd_parent)
     except ValueError:

@@ -1202,10 +1202,10 @@ def shorten_dir(path, max_len=28, ellipsis="...", sep=os.path.sep):
             break
         side.append(part)
         pop_r = not pop_r
-    shortened = "%s/%s/%s" % (
+    shortened = os.path.sep.join([
         os.path.sep.join(l),
         ellipsis,
-        os.path.sep.join(reversed(r)))
+        os.path.sep.join(reversed(r))])
     if len(shortened) >= len(path):
         return path
     return shortened
