@@ -1,7 +1,7 @@
 # Project API
 
 The `_test` module provides a handy interface for working with a
-project. While this is not yet released as a public API (as of 0.6) it
+project. While this is not yet released as a public API (as of 0.7) it
 will likely at some point.
 
 These tests exercise various project methods.
