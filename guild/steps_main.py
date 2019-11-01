@@ -349,7 +349,7 @@ def _ensure_unique_link(path_base):
     path = path_base
     while True:
         assert v < 1e6
-        if not os.path.exists(path):
+        if not os.path.lexists(path):
             return path
         path = "%s_%i" % (path_base, v)
         v += 1

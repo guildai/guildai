@@ -132,7 +132,7 @@ class FileSelectRule(object):
     @staticmethod
     def _regex_match_f(patterns):
         compiled = [re.compile(p) for p in patterns]
-        return lambda path: any((p.match(path) for p in compiled))
+        return lambda path: any((p.match(util.norm_path_sep(path)) for p in compiled))
 
     @staticmethod
     def _fnmatch_f(patterns):

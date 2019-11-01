@@ -183,7 +183,7 @@ A project must have a Guild file to be packaged.
     >>> dir(workspace)
     []
 
-    >>> Project(workspace).package()
+    >>> Project(workspace).package()  # doctest: -NORMALIZE_PATHS
     Traceback (most recent call last):
     SystemExit: ("'...' does not contain a guild.yml
     file\nA guild.yml file is required when creating a package.
@@ -192,7 +192,7 @@ A project must have a Guild file to be packaged.
 
 A project must exist:
 
-    >>> Project("NOT_EXISTS").package()
+    >>> Project("NOT_EXISTS").package()  # doctest: -NORMALIZE_PATHS
     Traceback (most recent call last):
     SystemExit: ("'NOT_EXISTS' does not exist\nTry specifying a
     different directory.", 1)

@@ -69,6 +69,7 @@ NORMALIZE_PATHS = doctest.register_optionflag("NORMALIZE_PATHS")
 STRIP_U = doctest.register_optionflag("STRIP_U")
 STRIP_L = doctest.register_optionflag("STRIP_L")
 WINDOWS = doctest.register_optionflag("WINDOWS")
+WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
 
 def run_all(skip=None):
@@ -237,13 +238,11 @@ class TestRunner(doctest.DocTestRunner, object):
         super(TestRunner, self).run(test, compileflags, out, clear_globs)
 
     def _apply_skip(self, test):
-        if PLATFORM == "Windows":
-            self._apply_skip_windows(test)
-
-    @staticmethod
-    def _apply_skip_windows(test):
+        is_windows = PLATFORM == "Windows"
         for example in test.examples:
-            if example.options.get(WINDOWS) is False:
+            if example.options.get(WINDOWS) is False and is_windows:
+                example.options[doctest.SKIP] = True
+            if example.options.get(WINDOWS_ONLY) is True and not is_windows:
                 example.options[doctest.SKIP] = True
 
 def run_test_file_with_config(filename, globs, optionflags):
@@ -326,7 +325,7 @@ def test_globals():
         "path": os.path.join,
         "pprint": pprint.pprint,
         "re": re,
-        "realpath": os.path.realpath,
+        "realpath": util.realpath,
         "relpath": os.path.relpath,
         "sample": sample,
         "samples_dir": samples_dir,

@@ -120,7 +120,8 @@ def _plugin_for_name(name):
     from guild import plugin # expensive
     return plugin.for_name(name)
 
-def _try_module(module_spec, args):
+def _try_module(arg1, args):
+    module_spec = arg1.replace(os.path.sep, "/")
     package_path, module = _parse_module_spec(module_spec)
     if package_path:
         package_path = _try_resolve_package_path(package_path)

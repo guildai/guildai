@@ -1,7 +1,5 @@
 Skipping Windows until remaining tests are resolved.
 
-skip-windows: yes
-
 # Operation steps
 
 Operations may be defined using a sequence of steps, rather than a
@@ -314,7 +312,7 @@ Let's look at each run in turn.
 
 When we compare the runs:
 
-    >>> project.compare()
+    >>> project.compare()  # doctest: -WINDOWS
     [['run', 'operation',     'started', 'time', 'status',    'label',    'acc', 'loss'],
      ['...', 'm4:evaluate',   '...',     '...',  'completed', 'acc=0.5',   0.5,   None],
      ['...', 'm4:train',      '...',     '...',  'completed', 'loss=1.0',  None,  1.0],
@@ -322,6 +320,19 @@ When we compare the runs:
      ['...', 'm4:end-to-end', '...',     '...',  'completed',  None,       0.5,   1.0]]
 
 Note that `end-to-end` reflects the `loss` and `acc` of its steps.
+
+BUG: On Windows, stepped runs do not roll up from their steps due to a
+bug in Python symlink traversal, which is picked up by the TensorBoard
+tfevent generator, which Guild uses.
+
+Here's the same result on Windows. Note the last line - acc and loss are both None.
+
+    >>> project.compare()  # doctest: +WINDOWS_ONLY
+    [['run', 'operation',     'started', 'time', 'status',    'label',    'acc', 'loss'],
+     ['...', 'm4:evaluate',   '...',     '...',  'completed', 'acc=0.5',   0.5,   None],
+     ['...', 'm4:train',      '...',     '...',  'completed', 'loss=1.0',  None,  1.0],
+     ['...', 'm4:prepare',    '...',     '...',  'completed',  None,       None,  None],
+     ['...', 'm4:end-to-end', '...',     '...',  'completed',  None,       None,  None]]
 
 ## Steps and --force-flags
 

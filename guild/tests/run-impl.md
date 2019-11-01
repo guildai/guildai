@@ -190,7 +190,7 @@ Run with flags:
     >>> run_dir = path(gh, "runs", run_id)
 
     >>> cat(path(run_dir, ".guild", "opref"))
-    guildfile:.../guild.yml ... '' op
+    guildfile:.../guild.yml... ... '' op
 
     >>> cat(path(run_dir, ".guild", "attrs", "cmd"))
     - ...

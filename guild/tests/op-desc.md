@@ -45,7 +45,7 @@ Let's look at this run more closely.
 Here's its opref file:
 
     >>> cat(run.guild_path("opref"))
-    script:.../samples/projects/op-desc '' '' train.py
+    script:.../samples/projects/op-desc... '' '' train.py
 
 Here's the information decoded in the run's opref attribute:
 

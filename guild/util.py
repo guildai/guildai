@@ -1342,3 +1342,6 @@ def realpath(path):
     else:
         path_dir = os.path.dirname(path)
         return os.path.abspath(os.path.join(path_dir, link))
+
+def norm_path_sep(path):
+    return path.replace(os.path.sep, "/")
