@@ -754,6 +754,7 @@ def _apply_parents_data(extends, guildfile, seen, data):
             "params",
             "references",
             "resources",
+            "sourcecode",
         ]
         _apply_parent_pkg_guildfile(parent, data)
         _apply_parent_data(parent, data, inheritable)
