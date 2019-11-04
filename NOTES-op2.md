@@ -113,3 +113,5 @@ Notes Oct 11:
   - [ ] Flag ref in source URI
   - [ ] Flag ref in source rename pattern
   - [ ] Rename spec with single name val
+
+- [ ] Fix guild view errors
