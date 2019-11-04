@@ -107,3 +107,9 @@ Notes Oct 11:
 - [ ] Remove --restart alias - no point to this
 
 - [ ] Remote support for cat
+
+- [ ] Tests for:
+  - [ ] Flag ref in resource name
+  - [ ] Flag ref in source URI
+  - [ ] Flag ref in source rename pattern
+  - [ ] Rename spec with single name val
