@@ -21,6 +21,7 @@ import logging
 
 from guild import namespace
 from guild import resolver as resolverlib
+from guild import resourcedef
 from guild import resource as reslib
 from guild import util
 
@@ -71,6 +72,11 @@ def _resdef_config(resdef, flag_vals):
     return None
 
 def resource_def(depdef, flag_vals):
+    resdef, res_location = _resdef_for_dep(depdef, flag_vals)
+    _resolve_source_refs(resdef, flag_vals)
+    return resdef, res_location
+
+def _resdef_for_dep(depdef, flag_vals):
     if depdef.inline_resource:
         return depdef.inline_resource, depdef.opdef.guildfile.dir
     res_spec = util.resolve_refs(depdef.spec, flag_vals)
@@ -143,6 +149,21 @@ def _invalid_dependency_error(spec, depdef):
     raise OpDependencyError(
         "invalid dependency '%s' in operation '%s'"
         % (spec, depdef.opdef.fullname))
+
+def _resolve_source_refs(resdef, flag_vals):
+    for source in resdef.sources:
+        source.uri = util.resolve_refs(source.uri, flag_vals)
+        source.rename = _resolve_rename_spec_refs(source.rename, flag_vals)
+
+def _resolve_rename_spec_refs(specs, flag_vals):
+    if not specs:
+        return specs
+    return [
+        resourcedef.RenameSpec(
+            util.resolve_refs(spec.pattern, flag_vals),
+            spec.repl)
+        for spec in specs
+    ]
 
 ###################################################################
 # Resolve support
