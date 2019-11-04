@@ -1373,6 +1373,8 @@ class ResourceDef(resourcedef.ResourceDef):
                 modeldef.guildfile,
                 "invalid resource value %r: expected a mapping "
                 "or a list" % data)
+        except resourcedef.ResourceFormatError as e:
+            raise GuildfileError(modeldef.guildfile, e)
         if not self.name:
             self.name = self.flag_name or _resdef_name_for_sources(self.sources)
         self.fullname = "%s:%s" % (modeldef.name, self.name)
