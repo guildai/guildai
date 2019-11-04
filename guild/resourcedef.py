@@ -256,11 +256,14 @@ def _init_rename_spec(data):
 
 def _split_rename_spec(spec):
     parts = util.shlex_split(spec)
-    if len(parts) != 2:
+    if len(parts) == 2:
+        return parts
+    elif len(parts) == 1:
+        return ".*", parts[0]
+    else:
         raise ResourceFormatError(
-            "invalid rename spec %r: expected 'PATTERN REPL'"
+            "invalid rename spec %r: expected 'PATTERN REPL' or 'NAME'"
             % spec)
-    return parts
 
 def _coerce_list(val, desc):
     if val is None:
