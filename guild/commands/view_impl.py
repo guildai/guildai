@@ -54,6 +54,7 @@ class ViewDataImpl(view.ViewData):
             top=None,
             min_col=None,
             max_col=None,
+            limit=None,
             include_batch=False,
             skip_core=False,
             skip_op_cols=False,
