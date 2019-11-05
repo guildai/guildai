@@ -13,7 +13,7 @@ We'll use the `noisy.py` script in the `optimizers` sample project.
 A helper to run an optimizer batch:
 
     >>> ignore_output = [
-    ...     "The objective has been evaluated at this point before",
+    ...     "The objective has been evaluated ",
     ... ]
 
     >>> def run(optimizer, x, trials, opt_flags=None):
