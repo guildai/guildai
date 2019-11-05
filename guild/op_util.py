@@ -647,31 +647,17 @@ def _flagdef_arg_skip(flagdef):
 def flag_vals_for_opdef(opdef, user_flag_vals=None, force=False):
     flag_vals = dict(user_flag_vals)
     _apply_coerce_flag_vals(opdef.flags, force, flag_vals)
-    _apply_default_flag_vals(opdef.flags, flag_vals)  # apply after check vals
-    _apply_choices_flag_vals(opdef.flags, user_flag_vals, flag_vals)
+    _apply_default_flag_vals(opdef.flags, flag_vals)
     resource_flagdefs = _resource_flagdefs(opdef, flag_vals)
     _apply_coerce_flag_vals(resource_flagdefs, force, flag_vals)
+    _apply_default_flag_vals(resource_flagdefs, flag_vals)
     all_flagdefs = opdef.flags + resource_flagdefs
     if not force:
         _check_no_such_flags(flag_vals, all_flagdefs)
         _check_flag_vals(flag_vals, all_flagdefs)
         _check_required_flags(flag_vals, all_flagdefs)
+    _apply_choices_flag_vals(opdef.flags, user_flag_vals, flag_vals)
     return flag_vals
-    """
-    flag_vals = dict(user_flag_vals)
-    _apply_coerce_flag_vals(opdef.flags, force, flag_vals)
-    resource_flagdefs = _resource_flagdefs(opdef, flag_vals)
-    _apply_coerce_flag_vals(resource_flagdefs, force, flag_vals)
-    flagdefs = opdef.flags + resource_flagdefs
-    if not force:
-        _check_no_such_flags(flag_vals, flagdefs)
-        _check_flag_vals(flag_vals, flagdefs)
-    _apply_default_flag_vals(flagdefs, flag_vals)  # apply after check vals
-    _apply_choices_flag_vals(flagdefs, user_flag_vals, flag_vals)
-    if not force:
-        _check_required_flags(flag_vals, flagdefs)
-    return flag_vals
-    """
 
 def _apply_coerce_flag_vals(flagdefs, force, vals):
     flagdef_lookup = {

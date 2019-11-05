@@ -17,7 +17,8 @@
 Helper:
 
     >>> def flag_vals(opdef, user_flag_vals, force=False):
-    ...     flag_vals = op_util.flag_vals_for_opdef(opdef, user_flag_vals, force)
+    ...     flag_vals = op_util.flag_vals_for_opdef(
+    ...         opdef, user_flag_vals, force)
     ...     pprint(flag_vals)
 
 Empty opdef:

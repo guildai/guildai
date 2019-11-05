@@ -622,8 +622,9 @@ At least one of the three type attributes is required:
     ...         - foo: bar.txt
     ... """)
     Traceback (most recent call last):
-    ResourceFormatError: invalid source {'foo': 'bar.txt'} in resource 'sample:sample':
-    missing required attribute (one of config, file, module, url, operation)
+    GuildfileError: error in <string>: invalid source {'foo': 'bar.txt'}
+    in resource 'sample:sample': missing required attribute (one of config,
+    file, module, url, operation)
 
 However, no more than one is allowed:
 
@@ -636,8 +637,9 @@ However, no more than one is allowed:
     ...           url: http://files.com/bar.txt
     ... """)
     Traceback (most recent call last):
-    ResourceFormatError: invalid source {'file': 'foo.txt', 'url': 'http://files.com/bar.txt'}
-    in resource 'sample:sample': conflicting attributes (file, url)
+    GuildfileError: error in <string>: invalid source {'file': 'foo.txt',
+    'url': 'http://files.com/bar.txt'} in resource 'sample:sample':
+    conflicting attributes (file, url)
 
 ## References
 
