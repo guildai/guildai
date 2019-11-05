@@ -237,7 +237,8 @@ class TestRunner(doctest.DocTestRunner, object):
         self._apply_skip(test)
         super(TestRunner, self).run(test, compileflags, out, clear_globs)
 
-    def _apply_skip(self, test):
+    @staticmethod
+    def _apply_skip(test):
         is_windows = PLATFORM == "Windows"
         for example in test.examples:
             if example.options.get(WINDOWS) is False and is_windows:

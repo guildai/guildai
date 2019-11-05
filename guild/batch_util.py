@@ -31,8 +31,6 @@ from guild import var
 
 from guild.commands import run_impl
 
-from .batch_util_legacy import is_batch  # pylint: disable=unused-import
-
 log = logging.getLogger("guild")
 
 DEFAULT_MAX_TRIALS = 20
@@ -145,6 +143,9 @@ def run_trial(batch_run, flag_vals):
 ###################################################################
 # Utils
 ###################################################################
+
+def is_batch(run):
+    return os.path.exists(run.guild_path("proto"))
 
 def batch_run():
     current_run = gapi.current_run()
