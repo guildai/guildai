@@ -1,0 +1,32 @@
+op1:
+  main: guild.pass
+  flags:
+    filename: foo
+  requires:
+    - file: ${filename}-file.txt
+      name: file
+op2:
+  main: guild.pass
+  requires:
+    - file: ${undefined}
+      name: file
+
+op3:
+  main: guild.pass
+  flags:
+    name: baz
+  requires:
+    - file: foo-file.txt
+      rename: foo-file ${name}
+
+op4:
+  main: guild.pass
+  requires:
+    - file: foo-file.txt
+      rename: foo-file.txt ${undefined}
+
+op5:
+  main: guild.pass
+  requires:
+    - file: foo-file.txt
+      rename: ${undefined} bar.txt

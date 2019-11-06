@@ -73,6 +73,7 @@ tests).
       python-utils:                ok
       query-parser:                ok
       remotes:                     ok
+      resource-flag-refs:          ok
       resource-flags:              ok
       restart-runs:                ok
       run-files:                   ok

@@ -152,16 +152,26 @@ def _invalid_dependency_error(spec, depdef):
 
 def _resolve_source_refs(resdef, flag_vals):
     for source in resdef.sources:
-        source.uri = util.resolve_refs(source.uri, flag_vals)
-        source.rename = _resolve_rename_spec_refs(source.rename, flag_vals)
+        source.uri = _resolve_dep_attr_refs(
+            source.uri, flag_vals, resdef)
+        source.rename = _resolve_rename_spec_refs(
+            source.rename, flag_vals, resdef)
 
-def _resolve_rename_spec_refs(specs, flag_vals):
+def _resolve_dep_attr_refs(attr_val, flag_vals, resdef):
+    try:
+        return util.resolve_refs(attr_val, flag_vals)
+    except util.UndefinedReferenceError as e:
+        raise OpDependencyError(
+            "invalid flag reference '%s' in dependency '%s'"
+            % (resdef.name, e.reference))
+
+def _resolve_rename_spec_refs(specs, flag_vals, resdef):
     if not specs:
         return specs
     return [
         resourcedef.RenameSpec(
-            util.resolve_refs(spec.pattern, flag_vals),
-            spec.repl)
+            _resolve_dep_attr_refs(spec.pattern, flag_vals, resdef),
+            _resolve_dep_attr_refs(spec.repl, flag_vals, resdef))
         for spec in specs
     ]
 
