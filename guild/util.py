@@ -555,20 +555,13 @@ _text_ext = set([
 ])
 
 _binary_ext = set([
-    ".bin",
-    ".gif",
-    ".gz",
-    ".jpeg",
-    ".jpg",
-    ".pickle",
-    ".png",
-    ".pyc",
-    ".rar",
-    ".tar",
-    ".tif",
-    ".tiff",
-    ".xz",
-    ".zip",
+    ".ai", ".bmp", ".gif", ".ico", ".jpeg", ".jpg", ".png", ".ps", ".psd",
+    ".svg", ".tif", ".tiff",
+    ".aif", ".mid", ".midi", ".mpa", ".mp3", ".ogg", ".wav", ".wma",
+    ".avi", ".mov", ".mp4", ".mpeg", ".swf" ".wmv",
+    ".7z", ".deb", ".gz", ".pkg", ".rar", ".rpm", ".tar", ".xz", ".z", ".zip",
+    ".doc", ".docx", ".key", ".pdf", ".ppt", ".pptx", ".xlr", ".xls", ".xlsx",
+    ".bin", ".pickle", ".pkl", ".pyc",
 ])
 
 _control_chars = b'\n\r\t\f\b'
