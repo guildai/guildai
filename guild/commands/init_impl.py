@@ -324,7 +324,7 @@ def _install_reqs(reqs, config):
             cmd_args.append(req)
     log.debug("pip cmd: %s", cmd_args)
     try:
-        subprocess.check_call(cmd_args, env={"PATH": ""})
+        subprocess.check_call(cmd_args)
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
 
