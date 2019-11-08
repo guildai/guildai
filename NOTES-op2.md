@@ -117,3 +117,15 @@ Notes Oct 11:
 - [ ] Fix guild view errors
 
 - [ ] --rerun!!
+
+- [ ] Some way to restart steps to fix issues with the config or to
+  continue where a stepped operation left off. Should be `--restart`
+  with perhaps a refresh on the stes. As it is, a stepped op saves the
+  steps and always uses the saved attr. If the opdef is available (as
+  with flags), steps should be refreshed using it. Otherwise it should
+  just use the steps attr.
+
+- [ ] Along with ^ - some way to add a run as a child of another
+  run. Maybe something as simple as `guild run ... --child-of
+  abcdef`. This would simplify step fixes and let users add trials to
+  batch runs.
