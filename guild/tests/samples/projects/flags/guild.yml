@@ -1,21 +1,49 @@
 - model: test
   operations:
 
-    implicit-args:
+    default-args:
       main: main_args
 
-    implicit-globals:
+    import-all-args:
+      main: main_args
+      flags-import: all
+
+    default-globals:
       main: main_globals
 
-    implicit-args-with-mods:
+    import-all-globals:
+      main: main_globals
+      flags-import: all
+
+    args-flags:
       main: main_args
       flags:
         foo: 2
         bar:
           description: Raised bar
 
-    implicit-globals-with-mods:
+    import-all-args-with-mods:
+      main: main_args
+      flags-import: all
+      flags:
+        foo: 2
+        bar:
+          description: Raised bar
+
+    globals-flags:
       main: main_globals
+      flags:
+        f_str:
+          default: hola
+          description: A greeting
+          choices: [hi, hola]
+        f_float:
+          description: A float
+          default: 8.8
+
+    import-all-globals-with-mods:
+      main: main_globals
+      flags-import: all
       flags:
         f_str:
           default: hola
@@ -52,17 +80,25 @@
 
     skip-imports-1:
       main: main_globals
+      flags-import: all
       flags-import-skip: [f_int]
 
     skip-imports-2:
       main: main_args
+      flags-import: all
       flags-import-skip: [foo]
 
-    implicit-args2:
-      main: main_args2
+    import-all-args2:
+      main: main_args2   # alt argparse use
+      flags-import: yes  # alt spelling of 'all'
 
     merge-by-arg-name:
       main: main_globals
+      flags-import:
+        - f_int
+        - f_float
+        - f_bool
+        - f_str
       flags:
         f_str2:
           arg-name: f_str

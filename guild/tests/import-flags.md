@@ -34,103 +34,164 @@ And for flags dest:
     >>> def flags_dest(op_name):
     ...     print(gf.models["test"][op_name].flags_dest)
 
-## Implicitly import all available flags
+## Default flags
 
-Flags for `implicit-args`:
+As of 0.7, Guild no longer automatically imports flags.
 
-    >>> gf.models["test"]["implicit-args"].flags
+Flags for `default-args`:
+
+    >>> gf.models["test"]["default-args"].flags
+    []
+
+    >>> flag_vals("default-args")
+    {}
+
+    >>> flags_dest("default-args")
+    None
+
+For `default-globals`:
+
+    >>> gf.models["test"]["default-globals"].flags
+    []
+
+    >>> flag_vals("default-globals")
+    {}
+
+    >>> flags_dest("default-globals")
+    None
+
+## Import all available flags
+
+Flags for `import-all-args`:
+
+    >>> gf.models["test"]["import-all-args"].flags
     [<guild.guildfile.FlagDef 'bar'>,
      <guild.guildfile.FlagDef 'foo'>]
 
 The import process reads flag attributes from the arg parse support in
 the main module:
 
-    >>> flag_info("implicit-args", "foo")
+    >>> flag_info("import-all-args", "foo")
     description: Foo
     choices: [1, 2]
     default: 1
 
-    >>> flag_info("implicit-args", "bar")
+    >>> flag_info("import-all-args", "bar")
     description: Bar
     default: 0.001
 
-    >>> flag_vals("implicit-args")
+    >>> flag_vals("import-all-args")
     {'bar': 0.001, 'foo': 1}
 
-    >>> flags_dest("implicit-args")
+    >>> flags_dest("import-all-args")
     args
 
-This applies equally to `implicit-globals`:
+This applies to `import-all-globals`:
 
-    >>> gf.models["test"]["implicit-globals"].flags
+    >>> gf.models["test"]["import-all-globals"].flags
     [<guild.guildfile.FlagDef 'f_bool'>,
      <guild.guildfile.FlagDef 'f_float'>,
      <guild.guildfile.FlagDef 'f_int'>,
      <guild.guildfile.FlagDef 'f_str'>]
 
-    >>> flag_info("implicit-globals", "f_bool")
+    >>> flag_info("import-all-globals", "f_bool")
     default: False
 
-    >>> flag_info("implicit-globals", "f_float")
+    >>> flag_info("import-all-globals", "f_float")
     default: 7.0
 
-    >>> flag_info("implicit-globals", "f_int")
+    >>> flag_info("import-all-globals", "f_int")
     default: 6
 
-    >>> flag_info("implicit-globals", "f_str")
+    >>> flag_info("import-all-globals", "f_str")
     default: hi
 
-    >>> flag_vals("implicit-globals")
+    >>> flag_vals("import-all-globals")
     {'f_bool': False, 'f_float': 7.0, 'f_int': 6, 'f_str': 'hi'}
 
-    >>> flags_dest("implicit-globals")
+    >>> flags_dest("import-all-globals")
     globals
+
+### Define new flags
+
+`args-flags`:
+
+    >>> gf.models["test"]["args-flags"].flags
+    [<guild.guildfile.FlagDef 'bar'>, <guild.guildfile.FlagDef 'foo'>]
+
+    >>> flag_info("args-flags", "foo")
+    default: 2
+
+    >>> flag_info("args-flags", "bar")
+    description: Raised bar
+    default: None
+
+    >>> flag_vals("args-flags")
+    {'bar': None, 'foo': 2}
+
+And for `globals-flags`:
+
+    >>> gf.models["test"]["globals-flags"].flags
+    [<guild.guildfile.FlagDef 'f_float'>,
+     <guild.guildfile.FlagDef 'f_str'>]
+
+    >>> flag_info("globals-flags", "f_float")
+    description: A float
+    default: 8.8
+
+    >>> flag_info("globals-flags", "f_str")
+    description: A greeting
+    choices: ['hi', 'hola']
+    default: hola
+
+    >>> flag_vals("globals-flags")
+    {'f_float': 8.8, 'f_str': 'hola'}
 
 ### Redefine defaults
 
 Guild files can redefine default values.
 
-Here are new defaults for `main_args`:
+`import-all-args-with-mods`:
 
-    >>> gf.models["test"]["implicit-args-with-mods"].flags
+    >>> gf.models["test"]["import-all-args-with-mods"].flags
     [<guild.guildfile.FlagDef 'bar'>, <guild.guildfile.FlagDef 'foo'>]
 
-    >>> flag_info("implicit-args-with-mods", "foo")
+    >>> flag_info("import-all-args-with-mods", "foo")
     description: Foo
     choices: [1, 2]
     default: 2
 
-    >>> flag_info("implicit-args-with-mods", "bar")
+    >>> flag_info("import-all-args-with-mods", "bar")
     description: Raised bar
     default: 0.001
 
-    >>> flag_vals("implicit-args-with-mods")
+    >>> flag_vals("import-all-args-with-mods")
     {'bar': 0.001, 'foo': 2}
 
 And for `main_globals`:
 
-    >>> gf.models["test"]["implicit-globals-with-mods"].flags
+    >>> gf.models["test"]["import-all-globals-with-mods"].flags
     [<guild.guildfile.FlagDef 'f_bool'>,
      <guild.guildfile.FlagDef 'f_float'>,
      <guild.guildfile.FlagDef 'f_int'>,
      <guild.guildfile.FlagDef 'f_str'>]
 
-    >>> flag_info("implicit-globals-with-mods", "f_bool")
+    >>> flag_info("import-all-globals-with-mods", "f_bool")
     default: False
 
-    >>> flag_info("implicit-globals-with-mods", "f_float")
+    >>> flag_info("import-all-globals-with-mods", "f_float")
     description: A float
     default: 8.8
 
-    >>> flag_info("implicit-globals-with-mods", "f_int")
+    >>> flag_info("import-all-globals-with-mods", "f_int")
     default: 6
 
-    >>> flag_info("implicit-globals-with-mods", "f_str")
+    >>> flag_info("import-all-globals-with-mods", "f_str")
     description: A greeting
     choices: ['hi', 'hola']
     default: hola
 
-    >>> flag_vals("implicit-globals-with-mods")
+    >>> flag_vals("import-all-globals-with-mods")
     {'f_bool': False, 'f_float': 8.8, 'f_int': 6, 'f_str': 'hola'}
 
 ## Explicit flag imports
@@ -218,10 +279,10 @@ flags, she can use `flags-import-skip`.
 
 ## Alt argparse usage
 
-The module `main_args2` - used by the `implicit-args2` operation - has
-a different argparse usage.
+The module `main_args2` - used by the `import-all-args2` operation -
+has a different argparse usage.
 
-    >>> gf.models["test"]["implicit-args2"].flags
+    >>> gf.models["test"]["import-all-args2"].flags
     [<guild.guildfile.FlagDef 'bar'>, <guild.guildfile.FlagDef 'foo'>]
 
 ## Marge based on arg-name

@@ -382,8 +382,8 @@ def coerce_flag_data(name, data, guildfile):
             "flag attributes or default flag value" % (name, data))
 
 def _coerce_flags_import(data, gf):
-    if data in (None, True, "all"):
-        return None
+    if data in (True, "all"):
+        return True
     elif data is False:
         return []
     elif isinstance(data, list):

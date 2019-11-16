@@ -4,3 +4,4 @@
     train:
       description: Train classifier
       main: fashion_mnist_mlp
+      flags-import: all

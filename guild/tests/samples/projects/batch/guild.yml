@@ -3,4 +3,5 @@ tune:
 
 say-with-label:
   main: say
+  flags-import: all
   label: msg is '${msg}'

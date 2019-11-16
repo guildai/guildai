@@ -38,9 +38,11 @@ Op with a reference to a missing flag:
 
 We can force the flag however.
 
-    >>> run = project.run("op2", flags={"undefined": "foo-file.txt"},
+    >>> run = project.run("op2",
+    ...                   flags={"undefined": "foo-file.txt"},
     ...                   force_flags=True)
     Resolving file dependency
+    --undefined foo-file.txt
 
     >>> project.ls(run)
     ['foo-file.txt']

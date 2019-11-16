@@ -1,6 +1,7 @@
 noisy:
   description: A noisy function
   main: noisy
+  flags-import: yes
   flags:
     noise:
       description: Level of noise added to loss
@@ -28,6 +29,7 @@ noisy:
 echo:
   main: echo
   description: Prints x, y, z flags
+  flags-import: yes
   flags:
     x:
       description: X value to print
@@ -54,6 +56,7 @@ poly:
   optimizers:
     gaussian: gp
     trees: forest
+  flags-import: yes
   flags:
     x:
       min: -6.0
@@ -63,6 +66,7 @@ poly:
 
 tune-echo:
   exec: ./tune-echo tune-echo ${flag_args}
+  flags-import: yes
   flags:
     alpha: 0.1
     beta: 0.2
@@ -71,6 +75,7 @@ tune-echo:
 
 tune-echo-2:
   exec: ./tune-echo tune-echo-2 ${flag_args}
+  flags-import: yes
   flags:
     beta: 0.4
     gamma: 3
@@ -105,3 +110,4 @@ opt-test-4:
 
 fail:
   main: fail
+  flags-import: [code]

@@ -1,4 +1,5 @@
 op:
+  flags-import: yes
   sourcecode: op.py
 
 op2:

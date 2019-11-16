@@ -1,3 +1,4 @@
 - model: ''
   operations:
-    simple: {}
+    simple:
+      flags-import: yes

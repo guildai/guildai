@@ -1,5 +1,6 @@
 args:
   main: args
+  flags-import: all
   flags-dest: args
   flags:
     i: 2
@@ -10,6 +11,7 @@ args:
 
 globals:
   main: globals
+  flags-import: all
   flags-dest: globals
   flags:
     i: 2
@@ -19,6 +21,7 @@ globals:
 
 params:
   main: params
+  flags-import: all
   flags-dest: global:params
   flags:
     i: 2
@@ -30,6 +33,7 @@ params:
 
 yml:
   main: yml
+  flags-import: all
   flags-dest: config.yml
   flags:
     i: 2
@@ -40,6 +44,7 @@ yml:
 
 args2:
   main: args2
+  flags-import: all
   flags:
     i: 2
     f: 2.2
@@ -47,6 +52,7 @@ args2:
 
 args3:
   main: args2
+  flags-import: all
   flags:
     i: 2
     f: 2.2

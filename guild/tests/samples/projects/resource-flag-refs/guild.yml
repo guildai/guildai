@@ -1,7 +1,9 @@
 op1:
   main: guild.pass
   flags:
-    filename: foo
+    filename:
+      default: foo
+      arg-skip: yes
   requires:
     - file: ${filename}-file.txt
       name: file
@@ -14,7 +16,9 @@ op2:
 op3:
   main: guild.pass
   flags:
-    name: baz
+    name:
+      default: baz
+      arg-skip: yes
   requires:
     - file: foo-file.txt
       rename: foo-file ${name}

@@ -2,7 +2,6 @@
   operations:
     train:
       description: Sample op
-      flags-import: off
       main: guild.pass
 
 - model: a
@@ -10,7 +9,6 @@
   operations:
     train:
       description: Sample op
-      flags-import: off
       main: guild.pass
 
 - model: b
@@ -18,5 +16,4 @@
   operations:
     train:
       description: Sample op
-      flags-import: off
       main: guild.pass

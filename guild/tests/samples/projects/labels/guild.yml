@@ -1,2 +1,3 @@
 op:
+  flags-import: all
   label: 'i:${i}, f:${f}, b:${b}, s:${s}'

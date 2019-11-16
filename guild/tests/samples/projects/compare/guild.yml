@@ -1,5 +1,6 @@
 op1:
   main: op1
+  flags-import: [a, b]
   compare:
     - =a as A
     - =b as B

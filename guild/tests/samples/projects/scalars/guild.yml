@@ -1,2 +1,1 @@
-output-and-summaries:
-  flags-import-skip: min_loss
+output-and-summaries: {}

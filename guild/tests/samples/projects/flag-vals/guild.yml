@@ -15,7 +15,6 @@
     s4: '-0.00034'
 
 - model: ''
-  flags-import: no
   operations:
     args:
       main: args
