@@ -24,12 +24,12 @@ import logging
 import os
 import pdb
 import sys
+import traceback
 
 # Avoid expensive imports here as load times directly add to runs.
 
-import guild.log
-
 from guild import exit_code
+from guild import log as loglib
 from guild import op_util
 from guild import util
 
@@ -90,8 +90,10 @@ def _init_sys_path():
 def _init_logging():
     if os.getenv("LOG_INIT_SKIP") != "1":
         level = int(os.getenv("LOG_LEVEL", logging.WARN))
-        format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
-        guild.log.init_logging(level, {"_": format})
+        format = os.getenv(
+            "LOG_FORMAT",
+            "%(levelname)s: [%(name)s] %(message)s")
+        loglib.init_logging(level, {"_": format})
     globals()["log"] = logging.getLogger("guild")
 
 def _init_warnings():
@@ -238,7 +240,16 @@ def _module_main(module_info):
     def main():
         if os.getenv("PYTHONWRITEBYTECODE") != "1":
             sys.dont_write_bytecode = True
-        imp.load_module("__main__", f, path, desc)
+        # imp.load_module resets globals to None - copy to restore on
+        # exception below.
+        globals_save = dict(globals())
+        try:
+            imp.load_module("__main__", f, path, desc)
+        except:
+            # Restore global vals after exception generated in module
+            # load.
+            globals().update(globals_save)
+            raise
     _gen_exec(module_info, main)
 
 def _gen_exec(module_info, exec_cb):
@@ -293,9 +304,8 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        if log is None or log.getEffectiveLevel() <= logging.DEBUG:
+        if log.getEffectiveLevel() <= logging.DEBUG:
             raise
-        import traceback
         exc_lines = traceback.format_exception(*sys.exc_info())
         if len(exc_lines) < 3 or len(__argv0) < 2:
             # Assertion failure, but we want to be defensive in
