@@ -184,7 +184,7 @@ class S3Remote(remotelib.Remote):
             self._new_meta_id()
             self._sync_runs_meta(force=True)
         try:
-            runs_impl._runs_op(
+            runs_impl.runs_op(
                 args, None, False, preview, confirm, no_runs_help,
                 delete_f, confirm_default=not args.permanent)
         except SystemExit as e:
