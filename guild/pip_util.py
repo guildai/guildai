@@ -20,22 +20,7 @@ import os
 import re
 import sys
 
-from six.moves import xmlrpc_client
-
-from pip._internal.commands.download import DownloadCommand
-from pip._internal.commands.install import InstallCommand
 from pip._internal.commands.search import SearchCommand as SearchCommandBase
-from pip._internal.commands.show import ShowCommand
-from pip._internal.commands.uninstall import UninstallCommand
-from pip._internal.download import _download_http_url
-from pip._internal.download import PipXmlrpcTransport
-from pip._internal.exceptions import InstallationError
-from pip._internal.exceptions import UninstallationError
-from pip._internal.index import Link
-from pip._internal.locations import distutils_scheme
-from pip._internal.req import req_file
-from pip._internal.utils.misc import get_installed_distributions
-from pip._internal.wheel import root_is_purelib
 
 from guild import util
 
@@ -57,6 +42,8 @@ class SearchCommand(SearchCommandBase):
         self._operator = operator
 
     def search(self, _query, options):
+        from six.moves import xmlrpc_client
+        from pip._internal.download import PipXmlrpcTransport
         index_url = options.index
         with self._build_session(options) as session:
             transport = PipXmlrpcTransport(index_url, session)
@@ -65,6 +52,8 @@ class SearchCommand(SearchCommandBase):
 
 def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
             no_cache=False, no_deps=False, reinstall=False, target=None):
+    from pip._internal.commands.install import InstallCommand
+    from pip._internal.exceptions import InstallationError
     _reset_env_for_install()
     _ensure_patch_pip_get_entry_points()
     cmd = _pip_cmd(InstallCommand)
@@ -155,6 +144,7 @@ def _pip_get_entrypoints_patch(filename):
     return console, gui
 
 def get_installed():
+    from pip._internal.utils.misc import get_installed_distributions
     user_only = not running_under_virtualenv()
     return get_installed_distributions(
         local_only=False,
@@ -183,11 +173,13 @@ def _ensure_search_logger():
             connectionpool.log = QuietLogger(connectionpool.log)
 
 def uninstall(reqs, dont_prompt=False):
+    from pip._internal.commands.uninstall import UninstallCommand
     cmd = _pip_cmd(UninstallCommand)
     for req in reqs:
         _uninstall(req, cmd, dont_prompt)
 
 def _uninstall(req, cmd, dont_prompt):
+    from pip._internal.exceptions import UninstallationError
     args = [req]
     if dont_prompt:
         args.append("--yes")
@@ -215,8 +207,8 @@ def download_url(url, download_dir, sha256=None):
     download is not, the download must be deleted before trying
     again. This behavior is designed to preserve downloads at the cost
     of requiring that invalid files be explicitly deleted.
-
     """
+    from pip._internal.index import Link
     link = Link(url)
     downloaded_path = _check_download_path(link, download_dir, sha256)
     if not downloaded_path:
@@ -266,6 +258,8 @@ def _pip_download(link, download_dir):
     #
     # https://github.com/ionrock/cachecontrol/issues/145
     #
+    from pip._internal.commands.download import DownloadCommand
+    from pip._internal.download import _download_http_url
     cmd = _pip_cmd(DownloadCommand)
     options, _ = cmd.parse_args(["--no-cache-dir"])
     session = cmd._build_session(options)
@@ -280,6 +274,7 @@ def _ensure_expected_download_path(downloaded, link):
     return expected
 
 def print_package_info(pkg, verbose=False, show_files=False):
+    from pip._internal.commands.show import ShowCommand
     _ensure_print_package_logger()
     cmd = _pip_cmd(ShowCommand)
     args = []
@@ -311,6 +306,7 @@ def _ensure_print_package_logger():
         show.logger = PrintPackageLogger()
 
 def parse_requirements(path):
+    from pip._internal.req import req_file
     return req_file.parse_requirements(path, session="unused")
 
 def is_requirements(path):
@@ -325,6 +321,8 @@ def is_requirements(path):
 
 def lib_dir(name, wheeldir, user=False, home=None, root=None,
             isolated=False, prefix=None):
+    from pip._internal.locations import distutils_scheme
+    from pip._internal.wheel import root_is_purelib
     scheme = distutils_scheme(
         "", user=user, home=home, root=root,
         isolated=isolated, prefix=prefix)
@@ -332,3 +330,14 @@ def lib_dir(name, wheeldir, user=False, home=None, root=None,
         return scheme['purelib']
     else:
         return scheme['platlib']
+
+def freeze():
+    from pip._internal.operations.freeze import freeze
+    try:
+        return list(freeze())
+    except Exception as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("reading pip freeze")
+        else:
+            log.warning("error reading pip freeze: %s", e)
+        return None

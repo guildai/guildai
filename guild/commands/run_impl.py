@@ -518,7 +518,16 @@ def _op_init_run_attrs(args, op):
     attrs["user"] = util.user()
     attrs["platform"] = util.platform_info()
     attrs["op"] = _op_config_data(op)
+    if _python_op(op):
+        attrs["pip_freeze"] = _pip_freeze()
     attrs.update(op._op_cmd_run_attrs)
+
+def _python_op(op):
+    return "python" in " ".join(op.cmd_args)
+
+def _pip_freeze():
+    from guild import pip_util
+    return pip_util.freeze()
 
 # =================================================================
 # Op - run callbacks

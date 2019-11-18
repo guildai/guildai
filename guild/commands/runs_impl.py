@@ -83,6 +83,7 @@ CORE_RUN_ATTRS = [
     "marked",
     "objective",
     "op",
+    "pip_freeze",
     "platform",
     "random_seed",
     "resolved_deps",

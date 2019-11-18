@@ -19,6 +19,7 @@
       .guild/attrs/id
       .guild/attrs/initialized
       .guild/attrs/op
+      .guild/attrs/pip_freeze
       .guild/attrs/platform
       .guild/attrs/random_seed
       .guild/attrs/resolved_deps
