@@ -39,6 +39,8 @@ from . import ssh_util
 
 log = logging.getLogger("guild.remotes.ssh")
 
+DEFAULT_DIFF_CMD = "diff -ru"
+
 class SSHRemote(remotelib.Remote):
 
     def __init__(self, name, config):
@@ -715,8 +717,7 @@ def _diff_args(runs, output, sourcecode, env, flags, attrs, deps,
         args.append("--deps")
     if path:
         args.extend(["--path"] + list(path))
-    if cmd:
-        args.extend(["--cmd", cmd])
+    args.extend(["--cmd", cmd or DEFAULT_DIFF_CMD])
     if working:
         args.append("--working")
     if working_dir:

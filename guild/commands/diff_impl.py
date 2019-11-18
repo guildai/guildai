@@ -142,10 +142,34 @@ def _diff(path1, path2, args):
         cli.error("error running '%s': %s" % (" ".join(cmd), e))
 
 def _diff_cmd(args):
-    return args.cmd or _config_diff_cmd() or DEFAULT_DIFF_CMD
+    return args.cmd or _config_diff_cmd() or _default_diff_cmd()
 
 def _config_diff_cmd():
     return config.user_config().get("diff", {}).get("command")
+
+def _default_diff_cmd():
+    if util.PLATFORM == "Linux":
+        return _find_cmd([
+            "meld",
+            "xxdiff -r",
+            "dirdiff",
+            "colordiff",
+        ])
+    elif util.PLATFORM == "Darwin":
+        return _find_cmd([
+            "Kaleidoscope",
+            "meld",
+            "DiffMerge",
+            "FileMerge",
+        ])
+    else:
+        return DEFAULT_DIFF_CMD
+
+def _find_cmd(cmds):
+    for cmd in cmds:
+        if util.which(cmd.split(" ", 1)[0]):
+            return cmd
+    return DEFAULT_DIFF_CMD
 
 def _diff_paths(args):
     paths = []
