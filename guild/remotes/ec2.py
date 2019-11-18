@@ -42,7 +42,6 @@ class EC2Remote(ssh_remote.SSHRemote):
         self.root_device_size = config.get("root-device-size")
         self.public_key = config.get("public-key")
         self.private_key = config.get("private-key")
-        self.password = config.get("password")
         self.working_dir = var.remote_dir(name)
         self.init_timeout = config.get("init-timeout")
         super(EC2Remote, self).__init__(name, self._ensure_none_host(config))
@@ -283,8 +282,6 @@ class EC2Remote(ssh_remote.SSHRemote):
                 )
             if self.user:
                 connection["user"] = self.user
-            if self.password:
-                connection["password"] = self.password
             config["resource"]["null_resource"] = {
                 "%s_init" % remote_key: {
                     "triggers": {
