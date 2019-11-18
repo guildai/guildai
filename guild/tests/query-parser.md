@@ -92,7 +92,7 @@ prefix 'attr:'.
 
 A list of selected attributes:
 
-    >> p("select .id, .started, .stopped, .time")
+    >>> p("select .id, .started, .stopped, .time")
     <guild.query.Select
       ['attr:id',
        'attr:started',

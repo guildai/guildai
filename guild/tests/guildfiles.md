@@ -32,7 +32,7 @@ Models are access using the `models` attribute:
 
 We can lookup a models using dictionary semantics:
 
-    >> gf.models["intro"]
+    >>> gf.models["intro"]
     <guild.guildfile.ModelDef 'intro'>
 
     >>> gf.models.get("intro")

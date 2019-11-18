@@ -85,11 +85,14 @@ If any flag value differs, the run proceeds:
 Finally, let's restart run 2 twice with the same flag values and the
 needed flag.
 
-    >>> project.run(restart=run_id(2), flags={"z": "d"}, needed=True)
+    >>> project.run(restart=run_id(2), flags={"x": 1.0, "y": 2, "z": "d"},
+    ...             needed=True)
     1.0 2 'd'
 
-    >> project.run(restart=run_id(2), flags={"z": "d"}, needed=True)
-    Skipping run because flags have not changed (--needed specified)
+    >>> project.run(restart=run_id(2), flags={"x": 1.0, "y": 2, "z": "d"},
+    ...             needed=True)
+    Skipping because the following runs match this operation (--needed specified):
+      [...]  echo.py  ...  completed  x=1.0 y=2 z=d
 
 ## Run params for restarts
 

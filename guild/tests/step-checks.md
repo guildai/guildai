@@ -102,7 +102,7 @@ does this:
     >>> print_steps("_test-all")
     ['_test-output-1', '_test-output-2', '_test-file-1', '_test-fail-1']
 
-    >> project.run("_test-all")
+    >>> project.run("_test-all")
     INFO: [guild] running _test-output-1: _test-output-1
     INFO: [guild] running gen-output: gen-output
     hi
