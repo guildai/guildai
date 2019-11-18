@@ -387,7 +387,8 @@ class SSHRemote(remotelib.Remote):
         cmd_lines.append("export GUILD_HOME=%s" % self.guild_home)
         if env:
             cmd_lines.extend(self._cmd_env(env))
-        cmd_lines.append("guild %s %s" % (name, " ".join(args)))
+        quoted_args = [util.shlex_quote(arg) for arg in args]
+        cmd_lines.append("guild %s %s" % (name, " ".join(quoted_args)))
         return "; ".join(cmd_lines)
 
     def _guild_cmd_output(self, name, args, env=None):
