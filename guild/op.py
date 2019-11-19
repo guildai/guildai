@@ -321,7 +321,7 @@ def _run_sourcecode_paths():
 def _guild_paths():
     guild_path = os.path.dirname(os.path.dirname(__file__))
     abs_guild_path = os.path.abspath(guild_path)
-    return [abs_guild_path] + _runfile_paths()
+    return _runfile_paths() + [abs_guild_path]
 
 def _runfile_paths():
     return [
