@@ -16,11 +16,9 @@ from __future__ import absolute_import
 from __future__ import division
 
 from guild import batch_util
-from guild import main_bootstrap
 from guild import op_util
 
 def main():
-    main_bootstrap.ensure_external_path()
     op_util.init_logging()
     batch_run = batch_util.batch_run()
     trials = _batch_trials(batch_run)

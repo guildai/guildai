@@ -39,11 +39,8 @@ def main():
 
 def ensure_external_path():
     path = _external_libs_path()
-    try:
-        sys.path.remove(path)
-    except ValueError:
-        pass
-    sys.path.insert(0, path)
+    if path not in sys.path:
+        sys.path.insert(0, path)
 
 def _external_libs_path():
     guild_pkg_dir = os.path.dirname(__file__)
