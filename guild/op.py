@@ -305,9 +305,9 @@ def _log_level():
 
 def _python_path():
     paths = (
-        _env_paths() +
         _run_sourcecode_paths() +
-        _guild_paths()
+        _guild_paths() +
+        _env_paths()
     )
     return os.path.pathsep.join(paths)
 
