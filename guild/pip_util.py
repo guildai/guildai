@@ -20,8 +20,6 @@ import os
 import re
 import sys
 
-from pip._internal.commands.search import SearchCommand as SearchCommandBase
-
 from guild import util
 
 log = logging.getLogger("guild")
@@ -29,26 +27,30 @@ log = logging.getLogger("guild")
 class InstallError(Exception):
     pass
 
-class SearchCommand(SearchCommandBase):
+def SearchCommand(spec, operator, *args, **kw):
     """Guild specific pip search implementation.
 
     This exposes the search fields and operator, which were are hard
     coded in the pip implementation.
+
+    Implemented as a function to defer import of upstream
+    implementation.
     """
+    from pip._internal.commands.search import SearchCommand
+    cmd = SearchCommand(*args, **kw)
+    cmd._spec = spec
+    cmd._operator = operator
+    util.bind_method(cmd, "search", _SearchCommand_search)
+    return cmd
 
-    def __init__(self, spec, operator, *args, **kw):
-        super(SearchCommand, self).__init__(*args, **kw)
-        self._spec = spec
-        self._operator = operator
-
-    def search(self, _query, options):
-        from six.moves import xmlrpc_client
-        from pip._internal.download import PipXmlrpcTransport
-        index_url = options.index
-        with self._build_session(options) as session:
-            transport = PipXmlrpcTransport(index_url, session)
-            pypi = xmlrpc_client.ServerProxy(index_url, transport)
-            return pypi.search(self._spec, self._operator)
+def _SearchCommand_search(cmd, _query, options):
+    from six.moves import xmlrpc_client
+    from pip._internal.download import PipXmlrpcTransport
+    index_url = options.index
+    with cmd._build_session(options) as session:
+        transport = PipXmlrpcTransport(index_url, session)
+        pypi = xmlrpc_client.ServerProxy(index_url, transport)
+        return pypi.search(cmd._spec, cmd._operator)
 
 def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
             no_cache=False, no_deps=False, reinstall=False, target=None):

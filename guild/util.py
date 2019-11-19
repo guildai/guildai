@@ -1338,3 +1338,6 @@ def realpath(path):
 
 def norm_path_sep(path):
     return path.replace(os.path.sep, "/")
+
+def bind_method(obj, method_name, function):
+    setattr(obj, method_name, function.__get__(obj, obj.__class__))
