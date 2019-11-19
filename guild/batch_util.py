@@ -114,6 +114,8 @@ def _trial_op_attr(proto_run, trial_flag_vals):
     return proto_op_data
 
 def _log_start_trial(run, stage):
+    # Flush buffered streams to avoid interleaved output.
+    sys.stdout.flush()
     log.info(
         "%s trial %s: %s (%s)",
         "Running" if not stage else "Staging",
