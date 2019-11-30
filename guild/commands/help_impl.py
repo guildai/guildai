@@ -14,9 +14,9 @@
 
 import click
 
-import guild.help
-
+from guild import cli
 from guild import cmd_impl_support
+from guild import help as helplib
 
 class Pkg(object):
     """Local structure representing a model package."""
@@ -26,10 +26,15 @@ class Pkg(object):
         self.guildfile = guildfile
 
 def main(args, ctx):
+    _check_args(args)
     gf = cmd_impl_support.path_or_package_guildfile(args.path_or_package, ctx)
     desc = _guildfile_desc(gf)
     help = _format_guildfile_help(gf, desc, args)
     _print_help(help, args)
+
+def _check_args(args):
+    if args.package_description and args.markdown:
+        cli.error("--package-description and --markdown cannot both be used")
 
 def _guildfile_desc(gf):
     pkg = gf.package
@@ -39,9 +44,14 @@ def _guildfile_desc(gf):
 
 def _format_guildfile_help(guildfile, desc, args):
     if args.package_description:
-        return guild.help.package_description(guildfile)
+        return helplib.package_description(guildfile)
+    elif args.markdown:
+        return helplib.guildfile_markdown_help(
+            guildfile,
+            args.title,
+            args.base_heading_level)
     else:
-        return guild.help.guildfile_console_help(guildfile, desc)
+        return helplib.guildfile_console_help(guildfile, desc)
 
 def _print_help(help, args):
     if args.no_pager:

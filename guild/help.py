@@ -112,13 +112,135 @@ class RstFormatter(click.HelpFormatter):
             return ""
         return "**%s**" % s
 
+class MarkdownFormatter(click.HelpFormatter):
+
+    def __init__(self, heading_level=1):
+        super(MarkdownFormatter, self).__init__()
+        self._in_section = False
+        self._heading_level = heading_level
+
+    def start_section(self, val):
+        if self._in_section:
+            self.dedent()
+            self.write_paragraph()
+        self.write_text(self._heading(val))
+        self.write_paragraph()
+        self.indent()
+        self._in_section = True
+
+    def _heading(self, val):
+        if self._heading_level <= 6:
+            return "%s %s" % ("#" * self._heading_level, val)
+        else:
+            return "<h%i>%s</h%i>" % (
+                self._heading_level, val, self._heading_level)
+
+    def write_heading(self, heading):
+        self.write_text(self._heading(heading))
+
+    def write_subheading(self, val):
+        self.write_heading(val)
+
+    def write_description(self, val):
+        for i, par in enumerate(val.split("\n")):
+            if i == 0:
+                self.write_text(self._emph(par))
+            else:
+                self.write_paragraph()
+                self.write_text(par)
+
+    def write_dl(self, rows, col_max=None, col_spacing=None,
+                 preserve_paragraphs=False):
+        self.write_text("<dl>")
+        for name, desc in rows:
+            self.write_text("<dt>%s</dt>" % name)
+            self.write_text("<dd>%s</dd>" % desc)
+        self.write_text("</dl>")
+
+    def indent(self):
+        self._heading_level += 1
+
+    def dedent(self):
+        self._heading_level -= 1
+
+    @staticmethod
+    def _emph(s):
+        if not s:
+            return ""
+        return "*%s*" % s
+
+    @staticmethod
+    def _strong(s):
+        if not s:
+            return ""
+        return "**%s**" % s
+
 def guildfile_console_help(guildfile, model_desc=None):
     out = ConsoleFormatter()
     out.start_section("OVERVIEW")
     _write_console_help_overview(guildfile, model_desc, out)
-    out.start_section("MODELS")
-    _write_models(guildfile, out)
+    _gen_write_help(guildfile, out, fmt_section_title=str.upper)
     return "".join(out.buffer)
+
+def guildfile_markdown_help(guildfile, title=None, base_heading_level=2):
+    out = MarkdownFormatter(base_heading_level)
+    if title:
+        out.write_heading(title)
+        out.indent()
+        out.write_paragraph()
+    out.start_section("Overview")
+    _write_markdown_help_overview(out)
+    _gen_write_help(guildfile, out)
+    return "".join(out.buffer)
+
+def _write_markdown_help_overview(out):
+    out.write_text(textwrap.dedent(
+        """
+
+        Guild AI supported models and operations are listed below. To
+        run an operation, you must first install Guild AI by running:
+
+        ```
+        $ pip install guildai
+        ```
+
+        Refer to [Install Guild AI](https://guild.ai/install) for
+        detailed instructions.
+
+        To run a model operation use:
+
+        ```
+        $ guild run [MODEL:]OPERATION
+        ```
+
+        `MODEL` is one of the model names listed below and `OPERATION`
+        is an associated model operation or base operation.
+
+        You may set operation flags using `FLAG=VALUE` arguments to
+        the run command. Refer to the operations below for a list of
+        supported flags.
+
+        For additional help using Guild, see [Guild AI
+        Documentation](https://guild.ai/docs).
+        """))
+
+def package_description(guildfile):
+    out = RstFormatter()
+    if guildfile.package:
+        out.start_section(guildfile.package.name)
+        _write_package_desc(guildfile.package, out)
+    _gen_write_help(guildfile, out)
+    return "".join(out.buffer)
+
+def _gen_write_help(guildfile, out, fmt_section_title=None):
+    fmt_section_title = fmt_section_title or (lambda s: s)
+    anon_model, models = _split_models(guildfile)
+    if anon_model and anon_model.operations:
+        out.start_section(fmt_section_title("Base Operations"))
+        _write_anon_model_operations(anon_model, out)
+    if models:
+        out.start_section(fmt_section_title("Models"))
+        _write_models(models, out)
 
 def _write_console_help_overview(guildfile, model_desc, out):
     model_desc = model_desc or _format_guildfile_dir(guildfile)
@@ -132,7 +254,7 @@ def _write_console_help_overview(guildfile, model_desc, out):
 
         You may set operation flags using 'FLAG=VALUE' arguments to
         the run command. Refer to the operations below for a list of
-        supported flags. Model flags apply to all operations.
+        supported flags.
 
         For more help, try 'guild run --help' or 'guild --help'.
         """
@@ -150,16 +272,6 @@ def _format_guildfile_dir(mf):
 def _is_cwd(path):
     return os.path.abspath(path) == os.path.abspath(os.getcwd())
 
-def package_description(guildfile):
-    out = RstFormatter()
-    if guildfile.package:
-        out.start_section(guildfile.package.name)
-        _write_package_desc(guildfile.package, out)
-    if guildfile.models:
-        out.start_section("Models")
-        _write_models(guildfile, out)
-    return "".join(out.buffer)
-
 def _write_package_desc(pkg, out):
     if pkg.description:
         out.write_description(pkg.description)
@@ -167,12 +279,38 @@ def _write_package_desc(pkg, out):
         out.write_paragraph()
         out.write_text("Keywords: %s" % " ".join(pkg.tags))
 
-def _write_models(guildfile, out):
+def _split_models(guildfile):
+    anon = None
+    named = []
+    for m in _sorted_models(guildfile.models):
+        if m.name:
+            named.append(m)
+        else:
+            anon = m
+    return anon, named
+
+def _write_anon_model_operations(m, out):
+    if m.description:
+        out.write_description(m.description)
+        out.write_paragraph()
+    _gen_write_operations(m.operations, out)
+
+def _gen_write_operations(operations, out):
+    prev_op = None
+    for op in operations:
+        if op.name[:1] == "_":
+            continue
+        if prev_op:
+            out.write_paragraph()
+        _write_operation(op, out)
+        prev_op = op
+
+def _write_models(models, out):
     i = 0
-    for model in _sorted_models(guildfile.models):
+    for m in models:
         if i > 0:
             out.write_paragraph()
-        _write_model(model, out)
+        _write_model(m, out)
         i += 1
 
 def _sorted_models(models):
@@ -183,7 +321,7 @@ def _sorted_models(models):
     return sorted(models.values(), key=sort_key)
 
 def _write_model(m, out):
-    out.write_heading(m.name or "Anonymous model")
+    out.write_heading(m.name)
     out.indent()
     if m.description:
         out.write_paragraph()
@@ -200,14 +338,7 @@ def _write_operations(m, out):
     out.write_paragraph()
     out.indent()
     if m.operations:
-        prev_op = None
-        for op in m.operations:
-            if op.name[:1] == "_":
-                continue
-            if prev_op:
-                out.write_paragraph()
-            _write_operation(op, out)
-            prev_op = op
+        _gen_write_operations(m.operations, out)
     else:
         out.write_text(
             "No operations defined for this model")

@@ -26,6 +26,16 @@ from guild import click_util
     help="Show the package description.",
     is_flag=True)
 @click.option(
+    "--markdown",
+    help="Show help using Markdown format",
+    is_flag=True)
+@click.option(
+    "--base-heading-level", type=int, default=1,
+    help="Base heading level for generated markdown (default is 1)")
+@click.option(
+    "--title", default="Guild AI Help",
+    help="Page title used for generating markdown")
+@click.option(
     "-n", "--no-pager",
     help="Do not use a pager when showing help.",
     is_flag=True)
