@@ -161,7 +161,9 @@ class PythonScriptPlugin(pluginlib.Plugin):
             op.main = python_util.safe_module_name(op.name)
 
     def _apply_script_flags(self, opdef):
-        if not opdef.flags_import:
+        if not opdef.flags_import and opdef.flags_dest:
+            # If we're not importing flags and we have an explicit
+            # flags dest, there's no need to look at the script.
             return
         local_cache = {}
         model_paths = op_util.opdef_model_paths(opdef)
@@ -177,6 +179,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
     @staticmethod
     def _is_import_flag(name, opdef):
         return (
+            opdef.flags_import and
             (opdef.flags_import is True or
              name in opdef.flags_import) and
             (opdef.flags_import_skip is None or

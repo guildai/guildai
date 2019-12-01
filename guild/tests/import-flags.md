@@ -46,8 +46,11 @@ Flags for `default-args`:
     >>> flag_vals("default-args")
     {}
 
+Guild still detects the flags interface even when flags aren't
+imported.
+
     >>> flags_dest("default-args")
-    None
+    args
 
 For `default-globals`:
 
@@ -58,7 +61,7 @@ For `default-globals`:
     {}
 
     >>> flags_dest("default-globals")
-    None
+    globals
 
 ## Import all available flags
 

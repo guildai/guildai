@@ -42,7 +42,6 @@ We can force the flag however.
     ...                   flags={"undefined": "foo-file.txt"},
     ...                   force_flags=True)
     Resolving file dependency
-    --undefined foo-file.txt
 
     >>> project.ls(run)
     ['foo-file.txt']

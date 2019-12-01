@@ -176,6 +176,7 @@ Its files:
     .guild/attrs/id
     .guild/attrs/initialized
     .guild/attrs/max_trials
+    .guild/attrs/objective
     .guild/attrs/op
     .guild/attrs/pip_freeze
     .guild/attrs/platform

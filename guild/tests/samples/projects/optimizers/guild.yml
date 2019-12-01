@@ -14,7 +14,6 @@ noisy:
     loss: 'loss: (\S+)'
   compare: [=x, loss]
   objective: loss
-  label: x=${x|%.4f}
   optimizers:
     gp:
       default: yes
@@ -25,6 +24,18 @@ noisy:
       kappa: 1.8
       noise: gaussian
       xi: 0.1
+
+noisy-flubber:
+  description: Noisy with a funny objective (-loss)
+  main: noisy_flubber
+  flags:
+    x:
+      min: -2.2
+      max: 2.2
+      default: 0.5
+  objective:
+    maximize: flubber
+  optimizer: forest
 
 echo:
   main: echo

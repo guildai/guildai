@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import csv
+import importlib
 import logging
 import os
 
@@ -923,3 +924,31 @@ def is_matching_run(run, opref, flag_vals, include_pending=False):
         run.opref == opref and
         run.get("flags") == flag_vals and
         (include_pending or run.status != "pending"))
+
+def op_flag_encoder(flag_encoder):
+    if not flag_encoder:
+        return None
+    parts = flag_encoder.split(":")
+    if len(parts) != 2:
+        log.warning(
+            "invalid flag decoder %r - must be MODULE:FUNCTION",
+            flag_encoder)
+        return None
+    mod_name, fun_name = parts
+    try:
+        mod = importlib.import_module(mod_name)
+    except Exception as e:
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.exception("importing %s", mod_name)
+        else:
+            log.warning(
+                "cannot load flag decoder %r: %s",
+                flag_encoder, e)
+        return None
+    fun = getattr(mod, fun_name, None)
+    if fun is None:
+        log.warning(
+            "cannot load flag decoder %r: no such attribute in %s",
+            flag_encoder, mod_name)
+        return None
+    return fun

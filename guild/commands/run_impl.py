@@ -49,6 +49,7 @@ log = logging.getLogger("guild")
 # does not contain any optimizers.
 #
 DEFAULT_OPTIMIZER = "gp"
+DEFAULT_OBJECTIVE = "loss"
 
 ###################################################################
 # State
@@ -624,7 +625,8 @@ def _state_init_batch_op(S):
         _op_init_user_flags(S.args.opt_flags, S.batch_op)
         _op_init_op_flags(S.args, S.batch_op)
         _op_init_config(S.args.batch_label, S.batch_op)
-        _op_init_batch_config(S.args, S.batch_op)
+        _op_init_batch_config(S.args, S.user_op, S.batch_op)
+        _apply_batch_flag_encoder(S.batch_op, S.user_op)
         _op_init_core(S.args, S.batch_op)
 
 def _batch_op_init_run(S):
@@ -716,10 +718,10 @@ def _check_batch_args_for_missing_batch_op(S):
     if S.args.max_trials:
         log.warning("not a batch run - ignoring --max-trials")
 
-def _op_init_batch_config(args, op):
-    _op_init_max_trials(args, op)
-    _op_init_objective(args, op)
-    _op_init_batch_cmd_run_attrs(args, op)
+def _op_init_batch_config(args, user_op, batch_op):
+    _op_init_max_trials(args, batch_op)
+    _op_init_objective(args, user_op, batch_op)
+    _op_init_batch_cmd_run_attrs(args, batch_op)
 
 def _op_init_max_trials(args, op):
     if op._run:
@@ -732,16 +734,56 @@ def _default_max_trials_for_op(op):
         return None
     return op._opdef.default_max_trials
 
-def _op_init_objective(args, op):
+def _op_init_objective(args, user_op, batch_op):
     assert not (args.minimize and args.maximize)
     if args.minimize:
-        op._objective = args.minimize
+        batch_op._objective = args.minimize
     elif args.maximize:
-        op._objective = "-" + args.maximize
+        batch_op._objective = "-" + args.maximize
+    elif user_op._opdef:
+        batch_op._objective = _objective_for_opdef(user_op._opdef)
+
+def _objective_for_opdef(opdef):
+    obj = opdef.objective
+    if isinstance(obj, six.string_types):
+        return obj
+    elif isinstance(obj, dict):
+        if "maximize" in obj:
+            return "-" + obj["maximize"]
+        elif "minimize" in obj:
+            return obj["minimize"]
+    return DEFAULT_OBJECTIVE
 
 def _op_init_batch_cmd_run_attrs(args, op):
     if args.init_trials:
         op._op_cmd_run_attrs["STAGE_TRIALS"] = "1"
+
+def _apply_batch_flag_encoder(batch_op, user_op):
+    """Allow a batch op to encode child op flag vals.
+
+    Encoded values are applies when a batch wants to represent a flag
+    value using additional configuration. For example, an optimizer
+    will encode search parameters into a value so that search spec can
+    be used downstream by the optimizer by decoding the flag value.
+
+    If a flag is specified in `user_flags` it is always accepted as
+    is - it is never encoded.
+    """
+    if (not batch_op._opdef or
+        not batch_op._opdef.flag_encoder or
+        not user_op._opdef):
+        return
+    encode_flag_val = op_util.op_flag_encoder(batch_op._opdef.flag_encoder)
+    if not encode_flag_val:
+        return
+    for flag_name, flag_val in user_op._op_flag_vals.items():
+        if flag_name in user_op._user_flag_vals:
+            continue
+        flagdef = user_op._opdef.get_flagdef(flag_name)
+        if not flagdef:
+            continue
+        encoded_val = encode_flag_val(flag_val, flagdef)
+        user_op._op_flag_vals[flag_name] = encoded_val
 
 ###################################################################
 # Main
@@ -1061,7 +1103,7 @@ def _preview_batch_suffix(S):
         return ""
     return "".join([
         _batch_desc_preview_part(S.batch_op),
-        _max_trials_preview_part(S.batch_op)])
+        _batch_qualifier_preview_part(S.batch_op)])
 
 def _batch_desc_preview_part(op):
     opt_name = op.opref.to_opspec(config.cwd())
@@ -1072,10 +1114,21 @@ def _batch_desc_preview_part(op):
     else:
         return " with '%s' optimizer" % opt_name
 
-def _max_trials_preview_part(op):
-    if not op._max_trials:
+def _batch_qualifier_preview_part(op):
+    parts = []
+    if op._max_trials:
+        parts.append("max %i trials" % op._max_trials)
+    if op._objective:
+        parts.append(_objective_preview_part(op._objective))
+    if not parts:
         return ""
-    return " (max %i trials)" % op._max_trials
+    return " (%s)" % ", ".join(parts)
+
+def _objective_preview_part(obj):
+    if obj[:1] == "-":
+        return "maximize %s" % obj[1:]
+    else:
+        return "minimize %s" % obj
 
 def _preview_remote_suffix(S):
     if S.args.remote:

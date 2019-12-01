@@ -182,17 +182,17 @@ random trials.
     ...             minimize="no_such_scalar",
     ...             max_trials=4)
     INFO: [guild] Random start for optimization (1 of 2)
-    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
-    ... 2 'a'
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=...)
+    ... 2 ...
     INFO: [guild] Random start for optimization (2 of 2)
-    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
-    ... 2 'a'
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=...)
+    ... 2 ...
     INFO: [guild] Random start for optimization (missing previous trials)
-    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
-    ... 2 'a'
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=...)
+    ... 2 ...
     INFO: [guild] Random start for optimization (missing previous trials)
-    INFO: [guild] Running trial ...: echo (x=..., y=2, z=a)
-    ... 2 'a'
+    INFO: [guild] Running trial ...: echo (x=..., y=2, z=...)
+    ... 2 ...
 
 ## Errors
 
