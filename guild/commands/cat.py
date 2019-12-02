@@ -35,9 +35,9 @@ from . import runs_support
 @click.option(
     "-O", "--output",
     is_flag=True,
-    help="Show run output. Cannot be used with other options.")
+    help="Show run output. Cannot be used with --path.")
 @click.option(
-    "--page",
+    "-pa", "--page",
     is_flag=True,
     help="Show file in pager.")
 @runs_support.all_filters
