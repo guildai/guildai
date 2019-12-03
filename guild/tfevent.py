@@ -49,11 +49,12 @@ class EventReader(object):
             for event in events:
                 if self.all_events or event.HasField("summary"):
                     yield event
-        except RuntimeError as e:
+        except Exception as e:
             # PEP 479 landed in Python 3.7 and TB triggers this
             # runtime error when there are no events to read.
-            if e.args[0] != "generator raised StopIteration":
-                raise
+            if e.args[0] == "generator raised StopIteration":
+                return
+            _log_tfevent_iter_error(self.dir, e)
 
     def _tf_events(self):
         try:
@@ -66,6 +67,12 @@ class EventReader(object):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", Warning)
                 return _GeneratorFromPath(self.dir).Load()
+
+def _log_tfevent_iter_error(dir, e):
+    if log.getEffectiveLevel() <= logging.DEBUG:
+        log.exception("reading events from %s", dir)
+    else:
+        log.warning("error reading TF event from %s: %s", dir, e)
 
 class ScalarReader(object):
 
