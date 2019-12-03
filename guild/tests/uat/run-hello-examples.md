@@ -13,7 +13,7 @@ Delete runs for these tests.
 
 ## Models
 
-    >>> run("guild models", ignore="Refreshing project")
+    >>> run("guild models", ignore="Refreshing flags")
     hello  A "hello world" sample model
     <exit 0>
 

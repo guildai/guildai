@@ -5,12 +5,17 @@ These tests use `guild.tfevent`, which requires that we call
 
     >>> guild.tfevent.ensure_tf_logging_patched()
 
-Install the latest pre-release version of 2.0 or greater):
+Install TensorFlow 2:
 
-    >>> run("pip install tensorflow>=2.0 --upgrade --pre",
+    >>> quiet("pip install tensorflow==2.0.0 --upgrade",
     ...     ignore="DEPRECATION")
-    <BLANKLINE>
-    <exit 0>
+
+NOTE: We install 2.0.0 here because `tensorflow` 2.1 appears to be
+enabling CUDA support, which introduces variability across out test
+platforms.
+
+TODO: Invetigate ways to disable CUDA support in `tensorflow` to avoid
+GPU logged messages for our tests.
 
 NOTE: This command changes the UAT runtime to use a new version of
 TensorFlow. The version does not support GPU.
@@ -19,7 +24,7 @@ Check:
 
     >>> run("guild check --offline --tensorflow")
     guild_version:             ...
-    tensorboard_version:       2.0.1
+    tensorboard_version:       2.0.2
     tensorflow_version:        2.0.0
     tensorflow_cuda_support:   no
     tensorflow_gpu_available:  no

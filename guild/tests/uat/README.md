@@ -46,6 +46,11 @@ One of Guild's main features is the ability to install and train
 models from packages. We start here with various packages that
 exercise core Guild functionality.
 
+Before training some of our models, we need to install TensorFlow as a
+prereq.
+
+- [install-tensorflow](install-tensorflow.md)
+
 ### `mnist` package
 
 The `mnist` package contains two models that roughly correspond to the
@@ -62,11 +67,6 @@ Then we confirm we have the expected models and operations.
 - [packages-after-mnist-install](packages-after-mnist-install.md)
 - [models-after-mnist-install](models-after-mnist-install.md)
 - [ops-after-mnist-install](ops-after-mnist-install.md)
-
-Before training some of our models, we need to install TensorFlow as a
-prereq.
-
-- [install-tensorflow](install-tensorflow.md)
 
 Next we train the `logreg` model and view the results.
 

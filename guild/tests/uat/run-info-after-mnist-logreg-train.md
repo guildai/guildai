@@ -56,6 +56,7 @@ We can optionally show env for a run:
       CMD_DIR: ...
       COLUMNS: '999'
       CUDA_VISIBLE_DEVICES: ''
+      FLAGS_DEST: args
       FLAG_BATCH_SIZE: '100'
       FLAG_EPOCHS: '1'
       FLAG_LEARNING_RATE: '0.5'
@@ -179,6 +180,7 @@ With `--private-attrs`:
                     "__flag_args__"
                 ],
                 "cmd-env": {
+                    "FLAGS_DEST": "args",
                     "GUILD_OP": "logreg:train",
                     "GUILD_PLUGINS": "",
                     "PROJECT_DIR": ".../gpkg/mnist"

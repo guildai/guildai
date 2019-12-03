@@ -64,7 +64,6 @@ def _gpu_available(tf, state):
     if tf.test.is_gpu_available():
         return "yes"
     elif tf.test.is_built_with_cuda():
-        state.errors = True
         return _warn("NO (CUDA support is enabled but GPU is not available)")
     else:
         return "no"
