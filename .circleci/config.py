@@ -159,6 +159,7 @@ class Build(object):
             ("guild init -y"
              " --no-progress"
              " --name guild-test"
+             " --no-reqs"
              " --guild dist/*.whl {}".format(self.test_dir)),
             "TERM=xterm-256color source guild-env {}".format(self.test_dir),
             "WORKSPACE=%s UAT_SKIP=remote-* COLUMNS=999 guild check --uat"
@@ -232,7 +233,7 @@ class MacBuild(Build):
 
     homebrew_commits = {
         "3.6": "f2a764ef944b1080be64bd88dca9a1d80130c558",
-        "3.7": "22c80fc362ac8f87c59c446a85a97cb99ff160fb"
+        "3.7": "2efdfe5519df7654ece8d70786baa298e568eafd"
     }
 
     python_cmds = {
