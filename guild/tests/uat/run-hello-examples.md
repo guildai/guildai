@@ -118,13 +118,17 @@ Here's a preview of the command:
     Continue? (Y/n)
     <exit ...>
 
-We'll use the first run for `from-file`.
+We'll use the first run for `from-file`, rather than the latest.
 
     >>> run("""
+    ... guild runs -o hello:from-file
     ... run_id=`guild runs -o hello:from-file | grep 'from-file ' | tail -n1 | cut -d: -f2 | cut -b 1-8`
     ... echo "from-file run: $run_id"
     ... guild run from-file-output from-file-output=$run_id -y
     ... """)
+    [1:...]  hello:from-file-output  ...  completed
+    [2:...]  hello:from-file         ...  completed  file=.../alt-msg
+    [3:...]  hello:from-file         ...  completed
     from-file run: ...
     Resolving from-file-output dependency
     Using output from run ... for from-file-output resource
