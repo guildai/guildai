@@ -17,7 +17,6 @@ from __future__ import division
 
 import logging
 import os
-import sys
 import warnings
 
 import six
@@ -278,8 +277,6 @@ def _suggest_random_start(x0, runs_count, wanted_random_starts):
     return x0 is None or runs_count < wanted_random_starts
 
 def _log_seq_trial(suggest_random_start, random_starts, runs, prev_trials):
-    # Flush buffered streams to avoid interleaved output.
-    sys.stdout.flush()
     if suggest_random_start:
         assert random_starts != 0
         if runs < random_starts:

@@ -230,6 +230,8 @@ class RunOutput(object):
 
     def _close(self):
         self._assert_open()
+        assert self._proc.stdout
+        self._proc.stdout.flush()
         self._output.close()
         self._index.close()
         if self._output_cb:
