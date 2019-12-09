@@ -18,7 +18,7 @@ import yaml
 
 class Build(object):
 
-    cache_scheme_version = 16
+    cache_scheme_version = 17
 
     name = None
     python = None
