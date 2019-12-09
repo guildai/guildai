@@ -237,7 +237,11 @@ ignore-mixin-members=yes
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis. It
 # supports qualified module names, as well as Unix pattern matching.
-ignored-modules=
+ignored-modules=werkzeug.wsgi
+
+# ^ Not sure why werkzeug.wsgi is causing issues with werkzeug.wsgi on
+# pylint 1.9.5- getting: E0611(no-name-in-module), ] No name
+# 'SharedDataMiddleware' in module 'werkzeug.wsgi'
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set). This supports can work
