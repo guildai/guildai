@@ -111,7 +111,7 @@ the `--deps` option of `guild runs info`:
 
 Here's a preview of the command:
 
-    >>> run("guild run from-file-output from-file-output=foobar", timeout=1)
+    >>> run("guild run from-file-output from-file-output=foobar", timeout=5)
     WARNING: cannot find a suitable run for required resource 'from-file-output'
     You are about to run hello:from-file-output
       from-file-output: foobar
