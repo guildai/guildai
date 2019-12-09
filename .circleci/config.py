@@ -229,7 +229,7 @@ class MacBuild(Build):
 
     env = "macos"
 
-    xcode_version = "10.2.0"
+    xcode_version = "11.3.0"
 
     homebrew_commits = {
         "3.6": "f2a764ef944b1080be64bd88dca9a1d80130c558",
@@ -308,10 +308,10 @@ class Config(object):
         }
 
 builds = [
-    LinuxBuild(python="2.7"),
-    LinuxBuild(python="3.5"),
-    LinuxBuild(python="3.6"),
-    LinuxBuild(python="3.7"),
+    #LinuxBuild(python="2.7"),
+    #LinuxBuild(python="3.5"),
+    #LinuxBuild(python="3.6"),
+    #LinuxBuild(python="3.7"),
 
     MacBuild(python="2.7"),
     MacBuild(python="3.6"),
