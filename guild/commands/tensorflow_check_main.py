@@ -45,7 +45,7 @@ def _print_tensorflow_info(state):
     else:
         click.echo("tensorflow_version:        %s" % _tf_version(tf, state))
         click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
-        click.echo("tensorflow_gpu_available:  %s" % _gpu_available(tf, state))
+        click.echo("tensorflow_gpu_available:  %s" % _gpu_available(tf))
 
 def _tf_version(tf, state):
     try:
@@ -60,7 +60,7 @@ def _cuda_support(tf):
     else:
         return "no"
 
-def _gpu_available(tf, state):
+def _gpu_available(tf):
     if tf.test.is_gpu_available():
         return "yes"
     elif tf.test.is_built_with_cuda():
