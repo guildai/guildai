@@ -255,6 +255,9 @@ def _venv_cmd_base_args():
     ])
 
 def _python_venv_cmd():
+    # Versions of venv prior to 3.6 don't support --prompt option.
+    if sys.version_info[0:1] < (3, 6):
+        return None
     try:
         import venv as _
     except ImportError:
