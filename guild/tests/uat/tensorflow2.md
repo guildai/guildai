@@ -7,7 +7,7 @@ These tests use `guild.tfevent`, which requires that we call
 
 Install TensorFlow 2:
 
-    >>> quiet("pip install tensorflow==2.0.0 --upgrade",
+    >>> quiet("pip install tensorflow>=2.0.0,<2.1 --upgrade",
     ...     ignore="DEPRECATION")
 
 NOTE: We install 2.0.0 here because `tensorflow` 2.1 appears to be
@@ -25,7 +25,7 @@ Check:
     >>> run("guild check --offline --tensorflow")
     guild_version:             ...
     tensorboard_version:       2.0.2
-    tensorflow_version:        2.0.0
+    tensorflow_version:        2.0...
     tensorflow_cuda_support:   no
     tensorflow_gpu_available:  no
     ...
