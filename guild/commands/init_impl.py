@@ -51,7 +51,6 @@ class Config(object):
         self.paths = args.path
         self.local_resource_cache = args.local_resource_cache
         self.prompt_params = self._init_prompt_params()
-        self.no_progress = args.no_progress
 
     @staticmethod
     def _init_env_name(name, abs_env_dir):
@@ -336,14 +335,8 @@ def _pip_bin(env_dir):
     assert os.path.exists(pip_bin), pip_bin
     return pip_bin
 
-def _pip_extra_opts(config):
-    if config.no_progress:
-        return ["--progress", "off"]
-    else:
-        return []
-
 def _install_reqs(reqs, config):
-    cmd_args = [_pip_bin(config.env_dir), "install"] + _pip_extra_opts(config)
+    cmd_args = [_pip_bin(config.env_dir), "install"]
     for req in reqs:
         if _is_requirements_file(req):
             cmd_args.extend(["-r", req])

@@ -53,9 +53,6 @@ from guild import click_util
 @click.option(
     "-y", "--yes", is_flag=True,
     help="Initialize a Guild environment without prompting.")
-@click.option(
-    "--no-progress", is_flag=True,
-    help="Don't show progress when installing environment packages.")
 
 @click_util.use_args
 
