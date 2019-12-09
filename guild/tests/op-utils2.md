@@ -149,7 +149,7 @@ Opdef with valid default:
     >>> flag_vals(opdef, {})
     {'float': 1.123}
 
-Opdef with invalid default (Guild doesn't validate):
+Opdef with invalid default:
 
     >>> gf = guildfile.for_string("""
     ... op:
@@ -163,7 +163,9 @@ Opdef with invalid default (Guild doesn't validate):
     >>> opdef = gf.default_model["op"]
 
     >>> flag_vals(opdef, {})
-    {'float': 'abc'}
+    Traceback (most recent call last):
+    InvalidFlagValue: ('abc', <guild.guildfile.FlagDef 'float'>,
+    "invalid value for type 'float'")
 
 However, we can't set an invalid default:
 

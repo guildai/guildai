@@ -647,8 +647,8 @@ def _flagdef_arg_skip(flagdef):
 
 def flag_vals_for_opdef(opdef, user_flag_vals=None, force=False):
     flag_vals = dict(user_flag_vals)
-    _apply_coerce_flag_vals(opdef.flags, force, flag_vals)
     _apply_default_flag_vals(opdef.flags, flag_vals)
+    _apply_coerce_flag_vals(opdef.flags, force, flag_vals)
     resource_flagdefs = _resource_flagdefs(opdef, flag_vals)
     _apply_coerce_flag_vals(resource_flagdefs, force, flag_vals)
     _apply_default_flag_vals(resource_flagdefs, flag_vals)
@@ -667,14 +667,14 @@ def _apply_coerce_flag_vals(flagdefs, force, vals):
     }
     for name, val in vals.items():
         try:
-            coerced = _coerce_flag_val(name, val, flagdef_lookup)
+            coerced = _coerce_flag_value(name, val, flagdef_lookup)
         except InvalidFlagValue:
             if not force:
                 raise
         else:
             vals[name] = coerced
 
-def _coerce_flag_val(name, val, flagdefs):
+def _coerce_flag_value(name, val, flagdefs):
     flagdef = flagdefs.get(name)
     if not flagdef:
         return val
