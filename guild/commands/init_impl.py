@@ -21,6 +21,7 @@ import os
 import pkg_resources
 import re
 import subprocess
+import sys
 
 import six
 import yaml
@@ -241,11 +242,37 @@ def _init_venv(config):
         cli.error(str(e), exit_status=e.returncode)
 
 def _venv_cmd_args(config):
-    args = ["virtualenv", config.env_dir]
+    args = _venv_cmd_base_args() + [config.env_dir]
     args.extend(["--prompt", "({}) ".format(config.env_name)])
     if config.venv_python:
         args.extend(["--python", config.venv_python])
     return args
+
+def _venv_cmd_base_args():
+    return util.find_apply([
+        _python_venv_cmd,
+        _virtualenv_cmd,
+        _venv_cmd_missing_error,
+    ])
+
+def _python_venv_cmd():
+    try:
+        import venv as _
+    except ImportError:
+        return None
+    else:
+        return [sys.executable, "-m", "venv"]
+
+def _virtualenv_cmd():
+    cmd = util.which("virtualenv")
+    if not cmd:
+        return None
+    return [cmd]
+
+def _venv_cmd_missing_error():
+    cli.error(
+        "cannot find virtualenv\n"
+        "Try installing it with 'pip install virtualenv'.")
 
 def _install_guild(config):
     """Install Guild into env.
