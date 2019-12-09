@@ -21,6 +21,7 @@ These tests expect Guild to be installed.
 
 *Run Guild tests.*
 
+- [upgrade-pip](upgrade-pip.md)
 - [install-test-deps](install-test-deps.md)
 - [guild-tests](guild-tests.md)
 
