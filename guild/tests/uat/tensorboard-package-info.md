@@ -7,7 +7,7 @@ installed `pypi.tensorboard` package.
 
     >>> run("guild packages info tensorboard")
     name: tensorboard
-    version: 2.0...
+    version: 2.1.0
     summary: TensorBoard lets you watch Tensors Flow
     home-page: https://github.com/tensorflow/tensorboard
     author: Google Inc.
@@ -15,4 +15,5 @@ installed `pypi.tensorboard` package.
     license: Apache 2.0
     location: ...
     requires: ...
+    required-by: guildai
     <exit 0>
