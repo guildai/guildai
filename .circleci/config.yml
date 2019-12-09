@@ -1,7 +1,7 @@
 jobs:
   macos-python-2.7:
     macos:
-      xcode: 11.3.0
+      xcode: 11.2.1
     steps:
     - checkout
     - restore_cache:
@@ -57,7 +57,7 @@ jobs:
     working_directory: ~/repo
   macos-python-3.6:
     macos:
-      xcode: 11.3.0
+      xcode: 11.2.1
     steps:
     - checkout
     - restore_cache:
@@ -119,7 +119,7 @@ jobs:
     working_directory: ~/repo
   macos-python-3.7:
     macos:
-      xcode: 11.3.0
+      xcode: 11.2.1
     steps:
     - checkout
     - restore_cache:
