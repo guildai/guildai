@@ -7,7 +7,7 @@ These tests use `guild.tfevent`, which requires that we call
 
 Install TensorFlow 2:
 
-    >>> quiet("pip install tensorflow>=2.0.0,<2.1 --upgrade",
+    >>> quiet("pip install 'tensorflow>=2.0.0,<2.1' --upgrade",
     ...     ignore="DEPRECATION")
 
 NOTE: We install 2.0.0 here because `tensorflow` 2.1 appears to be
