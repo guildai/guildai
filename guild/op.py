@@ -233,10 +233,14 @@ class _RunOutput(object):
         self._output = None
 
 def _proc_wait(proc, stop_after):
-    if stop_after is None:
-        return proc.wait()
-    else:
-        return op_util.wait_for_proc(proc, stop_after)
+    try:
+        if stop_after is None:
+            return proc.wait()
+        else:
+            return op_util.wait_for_proc(proc, stop_after)
+    finally:
+        assert proc.stdout
+        proc.stdout.flush()
 
 def _handle_proc_interrupt(proc):
     log.info("Operation interrupted - waiting for process to exit")
