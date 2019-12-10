@@ -219,6 +219,7 @@ def _confirm(config):
 def _init(config):
     _init_guild_env(config)
     _init_venv(config)
+    _upgrade_pip(config)
     _install_guild(config)
     _install_guild_pkg_reqs(config)
     _install_user_reqs(config)
@@ -276,6 +277,15 @@ def _venv_cmd_missing_error():
     cli.error(
         "cannot find virtualenv\n"
         "Try installing it with 'pip install virtualenv'.")
+
+def _upgrade_pip(config):
+    cmd_args = [_pip_bin(config.env_dir), "install", "--upgrade", "pip"]
+    cli.out("Upgrading pip")
+    log.debug("pip upgrade cmd: %s", cmd_args)
+    try:
+        subprocess.check_output(cmd_args)
+    except subprocess.CalledProcessError as e:
+        cli.error(str(e), exit_status=e.returncode)
 
 def _install_guild(config):
     """Install Guild into env.
