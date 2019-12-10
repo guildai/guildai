@@ -26,6 +26,10 @@ def run_params(fn):
             ("-l", "--label"), metavar="LABEL",
             help="Set a label for the run."),
         click.Option(
+            ("-e", "--edit-flags"),
+            help="Use an editor to review and modify flags.",
+            is_flag=True),
+        click.Option(
             ("-d", "--run-dir",), metavar="DIR",
             help=(
                 "Use alternative run directory DIR. Cannot be used with "

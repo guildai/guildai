@@ -1089,6 +1089,13 @@ def encode_yaml(val):
         encoded = encoded[:-4]
     return encoded
 
+def decode_yaml(s):
+    import yaml
+    try:
+        return yaml.safe_load(s)
+    except yaml.scanner.ScannerError as e:
+        raise ValueError(e)
+
 def dir_size(dir):
     size = 0
     for root, dirs, names in os.walk(dir):
@@ -1341,3 +1348,14 @@ def norm_path_sep(path):
 
 def bind_method(obj, method_name, function):
     setattr(obj, method_name, function.__get__(obj, obj.__class__))
+
+def editor(s):
+    import click
+    try:
+        edited = click.edit(s)
+    except click.UsageError as e:
+        raise ValueError(e)
+    else:
+        if edited is not None:
+            return edited
+        return s

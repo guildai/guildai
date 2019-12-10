@@ -264,6 +264,8 @@ def _op_init_op_flags(args, op):
             args.force_flags or op._batch_trials,
             op._op_cmd,
             op._op_flag_vals)
+    if args.edit_flags:
+        _edit_op_flags(op)
 
 def _apply_run_flags(run, flag_vals):
     flag_vals.update(run.get("flags") or {})
@@ -321,6 +323,21 @@ def _ensure_op_cmd_flag_arg_skip(flag_name, op_cmd):
     cmd_flag.flag_name = flag_name
     cmd_flag.arg_skip = True
     return cmd_flag
+
+def _edit_op_flags(op):
+    encoded_flags = util.encode_yaml(op._op_flag_vals)
+    while True:
+        # Loop to let user re-edit on error.
+        edited = util.editor(encoded_flags)
+        try:
+            flag_vals = util.decode_yaml(edited)
+        except ValueError as e:
+            cli.out("Error reading flags: %s" % e, err=True)
+            if not cli.confirm("Would you like to re-edit these flags?", default=True):
+                cli.error()
+        else:
+            op._op_flag_vals = flag_vals
+            break
 
 # =================================================================
 # Op - config

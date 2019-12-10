@@ -598,3 +598,28 @@ Examples:
     >>> subpath("/", "/", "/")
     Traceback (most recent call last):
     ValueError: ('/', '/')
+
+## YAML support
+
+### Encode
+
+    >>> from guild.util import encode_yaml
+
+    >>> encode_yaml(1)
+    '1\n'
+
+### Decode
+
+    >>> from guild.util import decode_yaml
+
+    >>> decode_yaml("1")
+    1
+
+    >>> try:
+    ...   decode_yaml("foo: 123\mbar: 456")
+    ... except ValueError as e:
+    ...   print(e)
+    mapping values are not allowed here
+      in "<...string>", line 1, column 14:
+        foo: 123\mbar: 456
+                     ^
