@@ -615,10 +615,10 @@ Examples:
     >>> decode_yaml("1")  # doctest: -WINDOWS
     1
 
-    >>> try:
+    >>> try: # doctest: -WINDOWS
     ...   decode_yaml("foo: 123\mbar: 456")
     ... except ValueError as e:
-    ...   print(e)  # doctest: -WINDOWS
+    ...   print(e)
     mapping values are not allowed here
       in "<...string>", line 1, column 14:
         foo: 123\mbar: 456
