@@ -618,7 +618,7 @@ Examples:
     >>> try:
     ...   decode_yaml("foo: 123\mbar: 456")
     ... except ValueError as e:
-    ...   print(e)
+    ...   print(e)  # doctest: -WINDOWS
     mapping values are not allowed here
       in "<...string>", line 1, column 14:
         foo: 123\mbar: 456
