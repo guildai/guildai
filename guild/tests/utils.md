@@ -605,14 +605,14 @@ Examples:
 
     >>> from guild.util import encode_yaml
 
-    >>> encode_yaml(1)
+    >>> encode_yaml(1)  # doctest: -WINDOWS
     '1\n'
 
 ### Decode
 
     >>> from guild.util import decode_yaml
 
-    >>> decode_yaml("1")
+    >>> decode_yaml("1")  # doctest: -WINDOWS
     1
 
     >>> try:
