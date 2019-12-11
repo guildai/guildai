@@ -102,8 +102,8 @@ def _trial_label(proto_run, trial_flag_vals):
 
 def _start_trial_run(run, stage=False):
     _log_start_trial(run, stage)
-    _maybe_trial_delay()
     run_impl.run(restart=run.id, stage=stage)
+    _maybe_trial_delay()
 
 def _trial_op_attr(proto_run, trial_flag_vals):
     proto_op_data = proto_run.get("op")
