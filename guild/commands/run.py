@@ -348,6 +348,13 @@ def run(args):
     what should be optimized. Use `--max-runs` to indicate the maximum
     number of runs the optimizer should generate.
 
+    ### Edit Flags
+
+    Use `--edit-flags` to use an editor to review and modify flag
+    values. Guild uses the editor defined in `VISUAL` or `EDITOR`
+    environment variables. If neither environment variable is defined,
+    Guild uses an editor suitable for the current platform.
+
     """
     from . import run_impl
     run_impl.main(args)

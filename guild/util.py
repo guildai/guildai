@@ -1352,10 +1352,35 @@ def bind_method(obj, method_name, function):
 def editor(s):
     import click
     try:
-        edited = click.edit(s)
+        edited = click.edit(s, _try_editor())
     except click.UsageError as e:
         raise ValueError(e)
     else:
         if edited is not None:
             return edited
         return s
+
+def _try_editor():
+    return find_apply([
+        _try_editor_env,
+        _try_editor_bin,
+    ])
+
+def _try_editor_env():
+    names = ("VISUAL", "EDITOR")
+    for name in names:
+        val = os.getenv(name)
+        if val:
+            return val
+    return None
+
+def _try_editor_bin():
+    """Returns /usr/bin/editor if it exists.
+
+    This is the path configured by `update-alternatives` on Ubuntu
+    systems.
+    """
+    editor_bin = "/usr/bin/editor"
+    if os.path.exists(editor_bin):
+        return editor_bin
+    return None
