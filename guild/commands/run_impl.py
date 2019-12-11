@@ -329,6 +329,8 @@ def _edit_op_flags(op):
     while True:
         # Loop to let user re-edit on error.
         edited = util.editor(encoded_flags)
+        if edited is None or not edited.strip():
+            break
         try:
             flag_vals = util.decode_yaml(edited)
         except ValueError as e:
