@@ -29,11 +29,17 @@ A helper to run an optimizer batch:
 We ignore messages from skopt that may be reasonably generated due to
 random effects.
 
+NOTE: The use of TRIAL_DELAY env below is a workaround for persistent
+test failure in some cases where trial and batch output lines are out
+of order. This would appear to be issue where stdout is buffered and
+displayed out of order following non-buffered stderr output.
+
 ## Bayesian with gaussian process
 
 Range without an initial value:
 
-    >>> run("gp", "[-2.0:2.0]", 5)
+    >>> with Env({"TRIAL_DELAY": "1"}):
+    ...    run("gp", "[-2.0:2.0]", 5)
     Random start for optimization (1 of 3)
     Running trial: noisy.py (noise=0.1, x=...)
     x: ...
@@ -62,7 +68,8 @@ Range without an initial value:
 
 Range with an initial value and opt flags:
 
-    >>> run("gp", "[-2.0:2.0:0.1]", 2, {"kappa": 1.5, "xi": 0.2})
+    >>> with Env({"TRIAL_ENV": "1"}):
+    ...     run("gp", "[-2.0:2.0:0.1]", 2, {"kappa": 1.5, "xi": 0.2})
     Random start for optimization (1 of 2)
     Running trial: noisy.py (noise=0.1, x=0.1)
     x: 0.100000
@@ -84,7 +91,8 @@ Range with a null value:
 
 Our trials:
 
-    >>> project.print_runs(flags=True, status=True)
+    >>> with Env({"TRIAL_ENV": "1"}):
+    ...     project.print_runs(flags=True, status=True)
     noisy.py+gp  acq-func=gp_hedge kappa=1.96 noise=gaussian random-starts=3 xi=0.01  error
     noisy.py     noise=0.1 x=...                                                      completed
     noisy.py     noise=0.1 x=0.1                                                      completed
@@ -105,7 +113,8 @@ Cleanup for next tests:
 
 Range without an initial value:
 
-    >>> run("forest", "[-2.0:2.0]", 4)
+    >>> with Env({"TRIAL_ENV": "1"}):
+    ...     run("forest", "[-2.0:2.0]", 4)
     Random start for optimization (1 of 3)
     Running trial: noisy.py (noise=0.1, x=...)
     x: ...
@@ -129,7 +138,8 @@ Range without an initial value:
 
 Range with an initial value and opt flags:
 
-    >>> run("forest", "[-2.0:2.0:0.3]", 2, {"kappa": 1.3, "xi": 0.3})
+    >>> with Env({"TRIAL_ENV": "1"}):
+    ...     run("forest", "[-2.0:2.0:0.3]", 2, {"kappa": 1.3, "xi": 0.3})
     Random start for optimization (1 of 2)
     Running trial: noisy.py (noise=0.1, x=0.3)
     x: 0.300000
@@ -162,7 +172,8 @@ Cleanup for next tests:
 
 Range without an initial value and an opt flag:
 
-    >>> run("gbrt", "[-2.0:2.0]", 3, {"random-starts": 2})
+    >>> with Env({"TRIAL_ENV": "1"}):
+    ...     run("gbrt", "[-2.0:2.0]", 3, {"random-starts": 2})
     Random start for optimization (1 of 2)
     Running trial: noisy.py (noise=0.1, x=...
     x: ...
@@ -181,7 +192,8 @@ Range without an initial value and an opt flag:
 
 Range with an initial value and opt flags:
 
-    >>> run("gbrt", "[-2.0:2.0:0.4]", 3, {"kappa": 1.4, "xi": 0.4})
+    >>> with Env({"TRIAL_ENV": "1"}):
+    ...     run("gbrt", "[-2.0:2.0:0.4]", 3, {"kappa": 1.4, "xi": 0.4})
     Random start for optimization (1 of 3)
     Running trial: noisy.py (noise=0.1, x=0.4)
     x: 0.400000

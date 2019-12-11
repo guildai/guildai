@@ -20,6 +20,7 @@ import logging
 import os
 import random
 import sys
+import time
 
 from guild import _api as gapi
 from guild import exit_code
@@ -101,6 +102,7 @@ def _trial_label(proto_run, trial_flag_vals):
 
 def _start_trial_run(run, stage=False):
     _log_start_trial(run, stage)
+    _maybe_trial_delay()
     run_impl.run(restart=run.id, stage=stage)
 
 def _trial_op_attr(proto_run, trial_flag_vals):
@@ -120,6 +122,11 @@ def _log_start_trial(run, stage):
         _trial_name(run),
         run_util.format_operation(run),
         _trial_flags_desc(run))
+
+def _maybe_trial_delay():
+    delay = os.getenv("TRIAL_DELAY")
+    if delay:
+        time.sleep(float(delay))
 
 def _trial_name(run):
     if util.compare_paths(os.path.dirname(run.dir), var.runs_dir()):
