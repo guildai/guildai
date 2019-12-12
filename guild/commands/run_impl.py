@@ -156,7 +156,11 @@ def _user_op_init_run(S):
 def _op_init_user_flags(flag_args, op):
     op._user_flag_vals, batch_files = _split_flag_args(flag_args)
     if batch_files:
-        op._batch_trials = _trials_for_batch_files(batch_files)
+        trials = _trials_for_batch_files(batch_files)
+        if len(trials):
+            _apply_single_trial_user_flags(trials[0], op)
+        else:
+            op._batch_trials = trials
 
 def _split_flag_args(flag_args):
     batch_files, rest_args = op_util.split_batch_files(flag_args)
@@ -181,6 +185,11 @@ def _resolve_batch_file(path):
     if not os.path.exists(resolved):
         _no_such_batch_file_error(resolved)
     return resolved
+
+def _apply_single_trial_user_flags(trial, op):
+    for name, val in trial.items():
+        if name not in op._user_flag_vals:
+            op._user_flag_vals[name] = val
 
 # =================================================================
 # Op - opdef

@@ -855,21 +855,18 @@ def _yaml_trials(path):
     except Exception as e:
         raise BatchFileError(path, str(e))
     else:
-        _check_trials_data(data, path)
-        return data
+        return _coerce_trials_data(data, path)
 
-def _check_trials_data(data, path):
+def _coerce_trials_data(data, path):
     if not isinstance(data, list):
-        raise BatchFileError(
-            path,
-            "invalid data type for trials: expected list, got %s"
-            % type(data).__name__)
+        data = [data]
     for item in data:
         if not isinstance(item, dict):
             raise BatchFileError(
                 path,
                 "invalid data type for trial %r: expected dict"
                 % item)
+    return data
 
 def _csv_trials(path):
     reader = csv.reader(open(path, "r"))
