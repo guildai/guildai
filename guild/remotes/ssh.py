@@ -559,7 +559,7 @@ def _remote_run_cmd(
     if needed:
         cmd.append("--needed")
     if stop_after:
-        cmd.extend(["--stop-after", stop_after])
+        cmd.extend(["--stop-after", str(stop_after)])
     if optimize:
         cmd.append("--optimize")
     if optimizer:
@@ -571,9 +571,9 @@ def _remote_run_cmd(
     if maximize:
         cmd.extend(["--maximize", maximize])
     if random_seed is not None:
-        cmd.extend(["--random-seed", random_seed])
+        cmd.extend(["--random-seed", str(random_seed)])
     if max_trials is not None:
-        cmd.extend(["--max-trials", max_trials])
+        cmd.extend(["--max-trials", str(max_trials)])
     if init_trials:
         cmd.append("--init-trials")
     cmd.extend([q(arg) for arg in op_flags])
