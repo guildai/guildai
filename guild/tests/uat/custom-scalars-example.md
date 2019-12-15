@@ -52,6 +52,7 @@ The project defines three operations:
     train   Example using explicit output-scalars
     train2  Example using a generalized scalar pattern
     train3  Example disabling output scalars and using TF event files
+    train4  Example using named groups to capture scalars
     <exit 0>
 
 `train` defines a different set of scalars to capture.
