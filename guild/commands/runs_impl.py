@@ -355,7 +355,8 @@ def _list_formatted_runs(runs, args):
         "op_desc",
         "started",
         "status_with_remote",
-        "label"]
+        "label",
+    ]
     detail = RUN_DETAIL if args.verbose else None
     cli.table(
         formatted, cols=cols, detail=detail,
@@ -457,8 +458,12 @@ def runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
         formatted = formatted = format_runs(selected)
         cli.out(preview_msg)
         cols = [
-            "short_index", "op_desc", "started",
-            "status_with_remote", "label"]
+            "short_index",
+            "op_desc",
+            "started",
+            "status_with_remote",
+            "label",
+        ]
         cli.table(formatted, cols=cols, indent=2)
     fmt_confirm_prompt = confirm_prompt.format(count=len(selected))
     if args.yes or cli.confirm(fmt_confirm_prompt, confirm_default):
