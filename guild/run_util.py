@@ -33,8 +33,6 @@ log = logging.getLogger("guild")
 DEFAULT_MONITOR_INTERVAL = 5
 MIN_MONITOR_INTERVAL = 5
 
-MAX_LABEL_LEN = 60
-
 class RunsMonitor(util.LoopingThread):
 
     STOP_TIMEOUT = 5
@@ -125,7 +123,7 @@ def format_run(run, index=None):
         "from": format_pkg_name(run),
         "id": run.id,
         "index": _format_run_index(run, index),
-        "label": _format_label(run.get("label") or ""),
+        "label": run.get("label") or "",
         "marked": format_attr(bool(run.get("marked"))),
         "model": run.opref.model_name,
         "op_name": run.opref.op_name,
@@ -158,11 +156,6 @@ def _status_with_remote(status, remote):
         return "{} ({})".format(status, remote)
     else:
         return status
-
-def _format_label(label):
-    if len(label) > MAX_LABEL_LEN:
-        label = label[:MAX_LABEL_LEN] + u"\u2026"
-    return label
 
 def _format_command(cmd):
     if not cmd:
