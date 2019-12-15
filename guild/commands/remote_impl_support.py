@@ -165,6 +165,7 @@ def _run_kw(args):
     ]
     ignore = [
         "background",
+        "edit_flags",
         "pidfile",
         "help_model",
         "help_op",
