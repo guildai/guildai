@@ -57,6 +57,9 @@ The files generated for our run:
     .guild/sourcecode/invalid-item.json
     .guild/sourcecode/invalid-item.yaml
     .guild/sourcecode/say.py
+    .guild/sourcecode/single-run-2.json
+    .guild/sourcecode/single-run.csv
+    .guild/sourcecode/single-run.json
     .guild/sourcecode/tune.py
 
 Let's look at some of the generated files.
@@ -156,6 +159,9 @@ The latest run is the trial:
     .guild/sourcecode/invalid-item.json
     .guild/sourcecode/invalid-item.yaml
     .guild/sourcecode/say.py
+    .guild/sourcecode/single-run-2.json
+    .guild/sourcecode/single-run.csv
+    .guild/sourcecode/single-run.json
     .guild/sourcecode/tune.py
 
 The next run is the batch:
@@ -216,6 +222,9 @@ Its files:
     .guild/proto/.guild/sourcecode/invalid-item.json
     .guild/proto/.guild/sourcecode/invalid-item.yaml
     .guild/proto/.guild/sourcecode/say.py
+    .guild/proto/.guild/sourcecode/single-run-2.json
+    .guild/proto/.guild/sourcecode/single-run.csv
+    .guild/proto/.guild/sourcecode/single-run.json
     .guild/proto/.guild/sourcecode/tune.py
     ...
 

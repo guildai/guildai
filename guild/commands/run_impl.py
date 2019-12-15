@@ -157,7 +157,7 @@ def _op_init_user_flags(flag_args, op):
     op._user_flag_vals, batch_files = _split_flag_args(flag_args)
     if batch_files:
         trials = _trials_for_batch_files(batch_files)
-        if len(trials):
+        if len(trials) == 1:
             _apply_single_trial_user_flags(trials[0], op)
         else:
             op._batch_trials = trials

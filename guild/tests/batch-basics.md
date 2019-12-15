@@ -343,6 +343,26 @@ Here's the two batch files used together:
     8  yes   hello 8
     9  yes   hello 9
 
+### Single Batch Runs
+
+When a batch file contains a single run, the flags for that run are
+used to generate a single run and not a batch.
+
+    >>> project.run("say.py", batch_files=["single-run.json"])
+    hello 10
+
+A batch file may alternatively contain a dict, rather than a list. In
+this case the dict is coerced to a list of one item run as a single
+run rather than a batch.
+
+    >>> project.run("say.py", batch_files=["single-run-2.json"])
+    HELLO 11
+
+And the same for CSV formats:
+
+    >>> project.run("say.py", batch_files=["single-run.csv"])
+    HELLO 3.1
+
 ### Errors
 
 Unsupported extension:
@@ -361,17 +381,12 @@ Invalid content:
 
     >>> project.run("say.py", batch_files=["invalid-data.json"])
     guild: cannot read trials for ./invalid-data.json: invalid data
-    type for trials: expected list, got int
+    type for trials: expected list or dict, got int
     <exit 1>
 
     >>> project.run("say.py", batch_files=["invalid-item.json"])
     guild: cannot read trials for ./invalid-item.json: invalid data
     type for trial 123: expected dict
-    <exit 1>
-
-    >>> project.run("say.py", batch_files=["invalid-data.yml"])
-    guild: cannot read trials for ./invalid-data.yml: invalid data
-    type for trials: expected list, got dict
     <exit 1>
 
     >>> project.run("say.py", batch_files=["invalid-item.yaml"])

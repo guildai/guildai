@@ -859,6 +859,11 @@ def _yaml_trials(path):
 
 def _coerce_trials_data(data, path):
     if not isinstance(data, list):
+        if not isinstance(data, dict):
+            raise BatchFileError(
+                path,
+                "invalid data type for trials: expected list or dict"
+                ", got %s" % type(data).__name__)
         data = [data]
     for item in data:
         if not isinstance(item, dict):
