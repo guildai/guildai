@@ -71,6 +71,8 @@ STRIP_L = doctest.register_optionflag("STRIP_L")
 WINDOWS = doctest.register_optionflag("WINDOWS")
 WINDOWS_ONLY = doctest.register_optionflag("WINDOWS_ONLY")
 STRIP_ANSI_FMT = doctest.register_optionflag("STRIP_ANSI_FMT")
+PY2 = doctest.register_optionflag("PY2")
+PY3 = doctest.register_optionflag("PY3")
 
 def run_all(skip=None):
     return run(all_tests(), skip)
@@ -161,7 +163,9 @@ def run_test_file(filename, globs):
             WINDOWS |
             STRIP_U |
             STRIP_L |
-            STRIP_ANSI_FMT))
+            STRIP_ANSI_FMT |
+            PY2 |
+            PY3))
 
 def _report_first_flag():
     if os.getenv("REPORT_ONLY_FIRST_FAILURE") == "1":
@@ -239,12 +243,18 @@ class TestRunner(doctest.DocTestRunner, object):
 
     @staticmethod
     def _apply_skip(test):
+        SKIP = doctest.SKIP
         is_windows = PLATFORM == "Windows"
+        py_major_ver = sys.version_info[0]
         for example in test.examples:
             if example.options.get(WINDOWS) is False and is_windows:
-                example.options[doctest.SKIP] = True
+                example.options[SKIP] = True
             if example.options.get(WINDOWS_ONLY) is True and not is_windows:
-                example.options[doctest.SKIP] = True
+                example.options[SKIP] = True
+            if example.options.get(PY2) is False and py_major_ver == 2:
+                example.options[SKIP] = True
+            if example.options.get(PY3) is False and py_major_ver == 3:
+                example.options[SKIP] = True
 
 def run_test_file_with_config(filename, globs, optionflags):
     """Modified from doctest.py to use custom checker."""
