@@ -1241,7 +1241,7 @@ def _run_local(S):
 def _check_run_needed(S):
     if not S.args.needed:
         return
-    matching = _find_matching_runs(S)
+    matching = _remove_failed_runs(_find_matching_runs(S))
     if matching:
         if _restarting_match(matching, S):
             _skip_needed_unchanged_flags_info()
@@ -1270,6 +1270,9 @@ def _filter_matching_batch_runs(batch_runs, user_op):
                 user_op._op_flag_vals,
                 include_pending=True))
     ]
+
+def _remove_failed_runs(runs):
+    return [run for run in runs if run.status != "error"]
 
 def _restarting_match(matches, S):
     restart_run = S.batch_op._run if S.batch_op else S.user_op._run
