@@ -310,14 +310,27 @@ Let's look at each run in turn.
     >>> project.ls(evaluate_run)
     ['data', 'model']
 
+Helper to format compare results:
+
+    >>> def compare():
+    ...     results = project.compare()
+    ...     if not results:
+    ...         print("<empty>")
+    ...         return
+    ...     cols = results[0]
+    ...     data = (
+    ...         [dict(zip(cols, cols))]
+    ...         + [dict(zip(cols, row)) for row in results[1:]])
+    ...     cli.table(data, cols)
+
 When we compare the runs:
 
-    >>> project.compare()  # doctest: -WINDOWS
-    [['run', 'operation',     'started', 'time', 'status',    'label',                          'acc', 'loss'],
-     ['...', 'm4:evaluate',   '...',     '...',  'completed', 'acc=0.5 prepare=... train=...',  0.5,   None],
-     ['...', 'm4:train',      '...',     '...',  'completed', 'loss=1.0 prepare=...',           None,  1.0],
-     ['...', 'm4:prepare',    '...',     '...',  'completed',  None,                            None,  None],
-     ['...', 'm4:end-to-end', '...',     '...',  'completed',  'acc=0.5 loss=1.0',              0.5,   1.0]]
+    >>> compare()  # doctest: -WINDOWS
+    run  operation      started  time  status     label                          acc   loss
+    ...  m4:evaluate    ...      ...   completed  acc=0.5 prepare=... train=...  0.5   None
+    ...  m4:train       ...      ...   completed  loss=1.0 prepare=...           None  1.0
+    ...  m4:prepare     ...      ...   completed  None                           None  None
+    ...  m4:end-to-end  ...      ...   completed  acc=0.5 loss=1.0               0.5   1.0
 
 Note that `end-to-end` reflects the `loss` and `acc` of its steps.
 
@@ -327,12 +340,12 @@ tfevent generator, which Guild uses.
 
 Here's the same result on Windows. Note the last line - acc and loss are both None.
 
-    >>> project.compare()  # doctest: +WINDOWS_ONLY
-    [['run', 'operation',     'started', 'time', 'status',    'label',                          'acc', 'loss'],
-     ['...', 'm4:evaluate',   '...',     '...',  'completed', 'acc=0.5 prepare=... train=...',  0.5,   None],
-     ['...', 'm4:train',      '...',     '...',  'completed', 'loss=1.0 prepare=...',           None,  1.0],
-     ['...', 'm4:prepare',    '...',     '...',  'completed',  None,                            None,  None],
-     ['...', 'm4:end-to-end', '...',     '...',  'completed', 'acc=0.5 loss=1.0',               None,  None]]
+    >>> compare()  # doctest: +WINDOWS_ONLY
+    run  operation      started  time  status     label                          acc   loss
+    ...  m4:evaluate    ...      ...   completed  acc=0.5 prepare=... train=...  0.5   None
+    ...  m4:train       ...      ...   completed  loss=1.0 prepare=...           None  1.0
+    ...  m4:prepare     ...      ...   completed  None                           None  None
+    ...  m4:end-to-end  ...      ...   completed  acc=0.5 loss=1.0               None   None
 
 ## Steps and --force-flags
 
