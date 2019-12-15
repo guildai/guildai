@@ -52,7 +52,7 @@ def init_guild_dir(path, local_resource_cache=False):
 def _init_resource_cache(guild_dir, local):
     env_cache = os.path.join(guild_dir, "cache", "resources")
     if os.path.exists(env_cache):
-        log.info("Resource cache %s exists, skipping")
+        log.info("Resource cache %s exists, skipping", env_cache)
         return
     if local:
         if os.path.islink(env_cache):

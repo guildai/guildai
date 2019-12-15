@@ -279,7 +279,7 @@ def _venv_cmd_missing_error():
         "Try installing it with 'pip install virtualenv'.")
 
 def _upgrade_pip(config):
-    cmd_args = [_pip_bin(config.env_dir), "install", "--upgrade", "pip"]
+    cmd_args = _pip_bin_args(config.env_dir) + ["install", "--upgrade", "pip"]
     cli.out("Upgrading pip")
     log.debug("pip upgrade cmd: %s", cmd_args)
     try:
@@ -344,10 +344,13 @@ def _install_default_guild_dist(config):
     cli.out("Installing Guild %s" % req)
     _install_reqs([req], config)
 
-def _pip_bin(env_dir):
-    pip_bin = os.path.join(env_dir, "bin", "pip")
-    assert os.path.exists(pip_bin), pip_bin
-    return pip_bin
+def _pip_bin_args(env_dir):
+    if util.PLATFORM == "Windows":
+        python_bin = os.path.join(env_dir, "Scripts", "python.exe")
+    else:
+        python_bin = os.path.join(env_dir, "bin", "python")
+    assert os.path.exists(python_bin), python_bin
+    return [python_bin, "-m", "pip"]
 
 def _pip_extra_opts(config):
     if config.no_progress:
@@ -356,7 +359,10 @@ def _pip_extra_opts(config):
         return []
 
 def _install_reqs(reqs, config):
-    cmd_args = [_pip_bin(config.env_dir), "install"] + _pip_extra_opts(config)
+    cmd_args = (
+        _pip_bin_args(config.env_dir)
+        + ["install"]
+        + _pip_extra_opts(config))
     for req in reqs:
         if _is_requirements_file(req):
             cmd_args.extend(["-r", req])
