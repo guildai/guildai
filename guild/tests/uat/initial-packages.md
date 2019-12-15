@@ -36,6 +36,7 @@ leaves room for false positives).
     grpcio
     guildai
     idna
+    joblib
     numpy
     oauthlib
     pip
