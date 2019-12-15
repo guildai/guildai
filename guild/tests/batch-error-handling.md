@@ -35,7 +35,7 @@ Here are our runs:
     trial_fail.py                trials           error
     trial_fail.py                trials           error
     trial_fail.py                trials           completed
-    trial_fail.py+batch_fail.py  trials_fail=2,3  completed
+    trial_fail.py+batch_fail.py  batch_fail=no max_trials=5 trials_fail=2,3  completed
 
 We can see that all 4 trials ran, with trials 2 and 3 failing.
 
@@ -64,11 +64,11 @@ Let's cause the batch to fail at trial 2.
 And our runs:
 
     >>> project.print_runs(status=True, labels=True)
-    trial_fail.py                batch                           error
-    trial_fail.py                batch                           completed
-    trial_fail.py+batch_fail.py  batch_fail=yes trials_fail='2'  error
-    trial_fail.py                trials                          completed
-    trial_fail.py                trials                          error
-    trial_fail.py                trials                          error
-    trial_fail.py                trials                          completed
-    trial_fail.py+batch_fail.py  trials_fail=2,3                 completed
+    trial_fail.py                batch                                        error
+    trial_fail.py                batch                                        completed
+    trial_fail.py+batch_fail.py  batch_fail=yes max_trials=5 trials_fail='2'  error
+    trial_fail.py                trials                                       completed
+    trial_fail.py                trials                                       error
+    trial_fail.py                trials                                       error
+    trial_fail.py                trials                                       completed
+    trial_fail.py+batch_fail.py  batch_fail=no max_trials=5 trials_fail=2,3   completed

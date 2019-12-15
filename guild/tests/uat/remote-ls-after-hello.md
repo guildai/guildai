@@ -18,6 +18,7 @@
       .guild/attrs/host
       .guild/attrs/id
       .guild/attrs/initialized
+      .guild/attrs/label
       .guild/attrs/op
       .guild/attrs/pip_freeze
       .guild/attrs/platform

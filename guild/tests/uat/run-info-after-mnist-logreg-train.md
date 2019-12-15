@@ -10,7 +10,7 @@ Use `guild runs info` to show information about the latest run:
     started: ...
     stopped: ...
     marked: no
-    label: epochs=1
+    label: batch-size=100 epochs=1 learning-rate=0.5
     sourcecode_digest: ...
     run_dir: ...
     command: ... guild.op_main logreg --data-dir mnist-idx-data --run-dir . -- --batch-size 100 --epochs 1 --learning-rate 0.5
@@ -37,7 +37,7 @@ We can optionally show env for a run:
     started: ...
     stopped: ...
     marked: no
-    label: epochs=1
+    label: batch-size=100 epochs=1 learning-rate=0.5
     sourcecode_digest: ...
     run_dir: ...
     command: ... -um guild.op_main logreg --data-dir mnist-idx-data --run-dir . -- --batch-size 100 --epochs 1 --learning-rate 0.5
@@ -91,7 +91,7 @@ JSON output:
         },
         "from": "gpkg.mnist==0.6.0",
         "id": "...",
-        "label": "epochs=1",
+        "label": "batch-size=100 epochs=1 learning-rate=0.5",
         "marked": "no",
         "operation": "gpkg.mnist/logreg:train",
         "pid": "",
@@ -134,7 +134,7 @@ With `--private-attrs`:
         },
         "from": "gpkg.mnist==0.6.0",
         "id": "...",
-        "label": "epochs=1",
+        "label": "batch-size=100 epochs=1 learning-rate=0.5",
         "marked": "no",
         "op": {
             "deps": [

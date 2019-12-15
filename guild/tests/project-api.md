@@ -74,7 +74,7 @@ And list runs matching that label:
 And runs that are unlabeled:
 
     >>> len(project.list_runs(unlabeled=True))
-    3
+    0
 
 Runs for various time ranges:
 
@@ -114,7 +114,7 @@ column. Each may be used separately or in a group as needed.
 
     >>> project.print_runs(runs[:2], flags=True, labels=True, status=True)
     simple  x=1.0  hello  completed
-    simple  x=1.0         completed
+    simple  x=1.0  x=1.0  completed
 
 ## Deleting runs
 
@@ -138,8 +138,8 @@ We can also delete using filters.
     Deleted 1 run(s)
 
     >>> project.print_runs(labels=True)
-    simple
-    simple
+    simple  x=1.0
+    simple  x=1.0
 
 ## Mark runs
 
@@ -169,15 +169,15 @@ Runs can be compared:
 
     >>> project.compare()
     [['run', 'operation', 'started', 'time', 'status', 'label', 'x', 'step', 'y'],
-     ['...', 'simple', '...', '0:00:00', 'completed', None, 1.0, 0, 2.0],
-     ['...', 'simple', '...', '0:00:00', 'completed', None, 1.0, 0, 2.0]]
+     ['...', 'simple', '...', '0:00:00', 'completed', 'x=1.0', 1.0, 0, 2.0],
+     ['...', 'simple', '...', '0:00:00', 'completed', 'x=1.0', 1.0, 0, 2.0]]
 
 With extra cols:
 
     >>> project.compare(extra_cols=True)
     [['run', 'operation', 'started', 'time', 'status', 'label', 'sourcecode', 'x', 'step', 'y'],
-     ['...', 'simple', '...', '0:00:00', 'completed', None, '5e909f51', 1.0, 0, 2.0],
-     ['...', 'simple', '...', '0:00:00', 'completed', None, '5e909f51', 1.0, 0, 2.0]]
+     ['...', 'simple', '...', '0:00:00', 'completed', 'x=1.0', '5e909f51', 1.0, 0, 2.0],
+     ['...', 'simple', '...', '0:00:00', 'completed', 'x=1.0', '5e909f51', 1.0, 0, 2.0]]
 
 ## Other functions
 

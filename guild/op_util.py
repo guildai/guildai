@@ -323,11 +323,15 @@ def set_run_staged(run):
 def run_label(label_template, user_flag_vals, all_flag_vals=None):
     all_flag_vals = all_flag_vals or user_flag_vals
     if not label_template:
-        return _default_run_label(user_flag_vals)
+        return _default_run_label(all_flag_vals)
     return _render_label_template(label_template, all_flag_vals)
 
 def _default_run_label(flag_vals):
-    return " ".join(flag_util.format_flags(flag_vals, truncate_floats=True))
+    non_null = {
+        name: val for name, val in flag_vals.items()
+        if val is not None
+    }
+    return " ".join(flag_util.format_flags(non_null, truncate_floats=True))
 
 def _render_label_template(label_template, flag_vals):
     resolve_vals = {

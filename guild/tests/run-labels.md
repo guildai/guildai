@@ -25,49 +25,36 @@ Here are some helper functions.
 
 ## Default labels
 
-A default label is a label that is not otherwise specified in an
-operation definition or from a command line option. Guild uses default
-labels for runs in the format:
+Guild uses flag values to generate default labels in the format:
 
     NAME1=VAL1 NAME2=VAL2 ...
 
-where name and vals are of non-default flag values.
-
-Here's an example.
+Prior to 0.7, Guild included only user specified glags. As of 0.7,
+Guild includes all flags in default labels.
 
 Let's run the `op.py` script without setting any flags.
 
     >>> run("op.py")
 
-In this case, we didn't change any flag values and so the label is
-empty.
+The default label includes the flag values, regardless if we set or
+change them.
 
     >>> print_last_run()
-    op.py
+    op.py  b=yes f=2.0 i=1 s=hello
 
-Let's specify a flag value.
+Let's specify a single flag value.
 
     >>> run("op.py", i=2)
 
-We modified one flag `i` - and this is reflected in the default label.
-
     >>> print_last_run()
-    op.py  i=2
+    op.py  b=yes f=2.0 i=2 s=hello
 
-Here's a broader example: we redefine all flags.
+And specify all flags:
 
     >>> run("op.py", i=2, f=3.0, b=False, s="hi")
 
     >>> print_last_run()
     op.py  b=no f=3.0 i=2 s=hi
-
-If we set a flag value that is equal to the default value, that value
-is reflected in the default label.
-
-    >>> run("op.py", i=1, f=2.0, b=True, s="hi")
-
-    >>> print_last_run()
-    op.py  b=yes f=2.0 i=1 s=hi
 
 ## Explicit labels
 
@@ -230,11 +217,11 @@ Quoted numbers:
     >>> run("op.py", i="1")
 
     >>> print_last_run()
-    op.py  i='1'
+    op.py  b=yes f=2.0 i='1' s=hello
 
 Values containing spaces:
 
     >>> run("op.py", s="hello there")
 
     >>> print_last_run()
-    op.py  s='hello there'
+    op.py  b=yes f=2.0 i=1 s='hello there'

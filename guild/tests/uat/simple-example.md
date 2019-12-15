@@ -100,7 +100,7 @@ The operation is like any other. We can view info:
     started: ...
     stopped: ...
     marked: no
-    label: epochs=1
+    label: batch_size=100 datadir=data epochs=1 prepare=no rundir=. tes…
     sourcecode_digest: f916ac0400292c61c1c0b13b0d03efec
     run_dir: ...
     command: ... -um guild.op_main train
@@ -161,27 +161,23 @@ We can view the compare columns for the script op - these are default
 for scripts:
 
     >>> run("guild compare -t 1")
-    run  operation  started  time  status     label     batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss
-    ...  train.py   ... ...  ...   completed  epochs=1  100         data     1       no       .       no     540   0...  0...
-    <exit 0>
-
-    run  operation  started  time  status     label  step  loss  acc
-    ...  train.py   ...      ...   completed         540   0...  0...
+    run  operation  started  time  status     label                                                             batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss
+    ...  train.py   ... ...  ...   completed  batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no  100         data     1       no       .       no     540   0...  0...
     <exit 0>
 
 When we compare the last two runs (the `train` op and the `train.py` script):
 
     >>> run("guild compare -t 1 2")
-    run  operation  started  time  status     label     batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss  train_loss  train_acc
-    ...  train.py   ... ...  ...   completed  epochs=1  100         data     1       no       .       no     540   0...  0...
-    ...  train      ... ...  ...   completed  epochs=1                                                       540               0...        0...
+    run  operation  started  time  status     label                                                             batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss  train_loss  train_acc
+    ...  train.py   ... ...  ...   completed  batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no  100         data     1       no       .       no     540   0...  0...
+    ...  train      ... ...  ...   completed  epochs=1                                                          540               0...        0...
     <exit 0>
 
 Compare with CSV:
 
     >>> run("guild compare --csv - 1 2")
     run,operation,started,time,status,label,batch_size,datadir,epochs,prepare,rundir,test,step,acc,loss,train_loss,train_acc
-    ...,train.py,...,...,completed,epochs=1,100,data,1,False,.,False,540,...,...,,
+    ...,train.py,...,...,completed,batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no,100,data,1,False,.,False,540,...,...,,
     ...,train,...,...,completed,epochs=1,,,,,,,540,,,...,...
     <exit 0>
 
@@ -196,5 +192,5 @@ Generate a CSV file:
 
     >>> cat(csv_path)
     run,operation,started,time,status,label,batch_size,datadir,epochs,prepare,rundir,test,step,acc,loss,train_loss,train_acc
-    ...,train.py,...,...,completed,epochs=1,100,data,1,False,.,False,540,...,...,,
+    ...,train.py,...,...,completed,batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no,100,data,1,False,.,False,540,...,...,,
     ...,train,...,...,completed,epochs=1,,,,,,,540,,,...,...

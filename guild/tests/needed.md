@@ -21,7 +21,7 @@ Next we'll run using the needed option:
 
     >>> project.run("echo.py", needed=True)
     Skipping because the following runs match this operation (--needed specified):
-      [...]  echo.py  ...  completed
+      [...]  echo.py  ...  completed  x=1.0 y=2 z=a
 
 When we run using a different set of flags and the needed option:
 
@@ -32,7 +32,7 @@ And again, the same command:
 
     >>> project.run("echo.py", flags={"x": 2.0}, needed=True)
     Skipping because the following runs match this operation (--needed specified):
-      [...]  echo.py  ...  completed  x=2.0
+      [...]  echo.py  ...  completed  x=2.0 y=2 z=a
 
 And our runs:
 

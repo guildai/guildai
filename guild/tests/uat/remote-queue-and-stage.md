@@ -16,7 +16,7 @@ Start a queue with no-wait (detached):
 Current runs:
 
     >>> run("guild runs --remote guild-uat")
-    [1:...]  queue  ...  running
+    [1:...]  queue  ...  running  ignore-running=no poll-interval=10 run-once=no
     <exit 0>
 
 Run some staged operations.
@@ -33,10 +33,10 @@ Wait to let runs finish.
 Show runs:
 
     >>> run("guild runs -r guild-uat")
-    [1:...]  gpkg.hello/hello:from-file  ...  completed
+    [1:...]  gpkg.hello/hello:from-file  ...  completed  file=msg.txt
     [2:...]  hello/hello:from-flag       ...  completed  message=whoop
     [3:...]  gpkg.hello/hello:default    ...  completed
-    [4:...]  queue                       ...  running
+    [4:...]  queue                       ...  running    ignore-running=no poll-interval=10 run-once=no
     <exit 0>
 
 Stop the queue:
@@ -48,8 +48,8 @@ Stop the queue:
 Show runs:
 
     >>> run("guild runs -r guild-uat")
-    [1:...]  gpkg.hello/hello:from-file  ...  completed
+    [1:...]  gpkg.hello/hello:from-file  ...  completed   file=msg.txt
     [2:...]  hello/hello:from-flag       ...  completed   message=whoop
     [3:...]  gpkg.hello/hello:default    ...  completed
-    [4:...]  queue                       ...  terminated
+    [4:...]  queue                       ...  terminated  ignore-running=no poll-interval=10 run-once=no
     <exit 0>

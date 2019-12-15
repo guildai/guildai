@@ -154,7 +154,7 @@ also redefines the `_flags.md` include.
     <BLANKLINE>
     | ID                   | Operation           | Started                  | Time                | Status           | Label                |
     | --                   | ---------           | ---------                | ----                | ------           | -----                |
-    | ... | op | ... UTC | ... | completed | &nbsp; |
+    | ... | op | ... UTC | ... | completed | a=1 b=2 |
     <BLANKLINE>
     [run.yml](run.yml)
     <BLANKLINE>

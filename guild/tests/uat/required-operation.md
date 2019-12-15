@@ -41,7 +41,7 @@ Run `train` again:
 Show runs:
 
     >>> run("guild runs")
-    [1:...]  train         ...  completed
+    [1:...]  train         ...  completed  prepared-data=...
     [2:...]  prepare-data  ...  completed
     [3:...]  train              error
     <exit 0>

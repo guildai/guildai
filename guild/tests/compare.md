@@ -18,13 +18,13 @@ Here's the default compare output:
 
     >>> project.compare()
     [['run', 'operation', 'started', 'time', 'status', 'label', 'a', 'b', 'step', 'x', 'y'],
-     ['...', 'op1.py', '...', '...', 'completed', None, 1, 2, 0, 2.0, 4.0]]
+     ['...', 'op1.py', '...', '...', 'completed', 'a=1 b=2', 1, 2, 0, 2.0, 4.0]]
 
 And compare with extra cols:
 
     >>> project.compare(extra_cols=True)
     [['run', 'operation', 'started', 'time', 'status', 'label', 'sourcecode', 'a', 'b', 'step', 'x', 'y'],
-     ['...', 'op1.py', '...', '...', 'completed', None, 'e8191416', 1, 2, 0, 2.0, 4.0]]
+     ['...', 'op1.py', '...', '...', 'completed', 'a=1 b=2', 'e8191416', 1, 2, 0, 2.0, 4.0]]
 
 ## Explicit compare columns
 
@@ -51,4 +51,4 @@ And compare the runs:
     >>> project.compare(extra_cols=True)
     [['run', 'operation', 'started', 'time', 'status', 'label', 'sourcecode', 'A', 'B', 'x_step', 'x', 'y', 'a', 'b', 'step'],
      ['...', 'op1', '...', '...', 'completed', 'a=2 b=3', 'e8191416', 2, 3, 0, 3.0, 5.0, None, None, None],
-     ['...', 'op1.py', '...', '...', 'completed', None, 'e8191416', None, None, None, 2.0, 4.0, 1, 2, 0]]
+     ['...', 'op1.py', '...', '...', 'completed', 'a=1 b=2', 'e8191416', None, None, None, 2.0, 4.0, 1, 2, 0]]
