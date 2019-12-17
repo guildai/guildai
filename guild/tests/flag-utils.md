@@ -290,3 +290,62 @@ Here's a helper to print YAML parsed and Guild decoded values:
 
     >>> compare("1:2")
     (62, '1:2')
+
+### Short run IDs that resemble scientific notation
+
+Guild run IDs may resemble floating point notation. Guild supports an
+exception to the YAML parsing in order to support 8 character short
+IDs that resemble scientific notation.
+
+Rules:
+
+- Len at least 3 chars and at most 8
+- Does not contain `[-+.]`
+- Contains only lower case `e`
+
+Examples:
+
+    >>> short_ids = [
+    ...     "67217e15",
+    ...     "1e234567",
+    ...     "1234e567",
+    ...     "1e2",
+    ...     "12e3",
+    ...     "123e4",
+    ...     "1234e5",
+    ...     "12345e6",
+    ...     "123456e7",
+    ... ]
+
+YAML parse vs Guild's `decode` - Guild treats each example as a string
+rather than a float:
+
+    >>> for val in short_ids:
+    ...     print("%.1f %s" % (yaml.safe_load(val), decode(val)))
+    67217000000000000000.0 67217e15
+    inf 1e234567
+    inf 1234e567
+    100.0 1e2
+    12000.0 12e3
+    1230000.0 123e4
+    123400000.0 1234e5
+    12345000000.0 12345e6
+    1234560000000.0 123456e7
+
+Non-examples:
+
+    >>> not_short_ids = [
+    ...     "1234567e8",   # contains more than 8 chars
+    ...     "+12345e6",    # contains '+'
+    ...     "123456E7",    # uses upper case 'E'
+    ...     "1.23455e6",   # contains '.'
+    ... ]
+
+Guild's `decode` is equivalent to YAML's:
+
+    >>> for val in not_short_ids:
+    ...     print("%.1f %.1f" % (decode(val), yaml.safe_load(val)))
+    123456700000000.0 123456700000000.0
+    12345000000.0 12345000000.0
+    1234560000000.0 1234560000000.0
+    1234550.0 1234550.0

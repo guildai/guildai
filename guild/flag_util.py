@@ -22,6 +22,7 @@ import six
 
 FUNCTION_P = re.compile(r"([a-zA-Z0-9_\-\.]*)\[(.*)\]\s*$")
 LIST_CONCAT_P = re.compile(r"(\[.*\])\s*\*\s*([0-9]+)$")
+SCIENTIFIC_NOTATION_RUN_ID_P = re.compile(r"[0-9]+e[0-9]+")
 FUNCTION_ARG_DELIM = ":"
 
 DEFAULT_FLOAT_TRUNC_LEN = 5
@@ -109,7 +110,12 @@ def _anonymous_flag_function(s):
     raise ValueError(s)
 
 def _yaml_parse(s):
+    if _is_scientific_notation_run_id(s):
+        return s
     return yaml.safe_load(s)
+
+def _is_scientific_notation_run_id(s):
+    return 3 <= len(s) <= 8 and SCIENTIFIC_NOTATION_RUN_ID_P.match(s)
 
 def _fix_surprising_number(val, s):
     """Returns s in cases where val is a surprising result."""
@@ -222,3 +228,25 @@ class FormattedValue(object):
         if self._str is None:
             self._str = format_flag(self._value, self._truncate_floats)
         return self._str
+
+def _patch_yaml_safe_loader():
+    """Patch yaml parsing to support Guild specific resolution rules.
+
+    - Support scientific notation that does not contain periods
+    - Special treatment for short form run IDs that are valid
+      scientific notation
+
+    """
+    loader = yaml.SafeLoader
+    loader.add_implicit_resolver(
+        u'tag:yaml.org,2002:float',
+        re.compile(u'''^(?:
+        [-+]?(?:[0-9][0-9_]*)\\.[0-9_]*(?:[eE][-+]?[0-9]+)?
+        |[-+]?(?:[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)
+        |\\.[0-9_]+(?:[eE][-+][0-9]+)?
+        |[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\\.[0-9_]*
+        |[-+]?\\.(?:inf|Inf|INF)
+        |\\.(?:nan|NaN|NAN))$''', re.X),
+        list(u'-+0123456789.'))
+
+_patch_yaml_safe_loader()
