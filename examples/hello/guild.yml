@@ -1,0 +1,4 @@
+hello:
+  description: Say hello to my friends.
+  main: say
+  flags-import: all
