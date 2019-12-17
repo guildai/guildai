@@ -39,6 +39,12 @@ commands and helpfulness to the user for operations on missing models.
 - [train-missing-model](train-missing-model.md)
 - [run-with-missing-default-model](run-with-missing-default-model.md)
 
+## Local examples
+
+*Test examples defined in Guild repo*
+
+- [guild-example-hello](guild-example-hello.md)
+
 ## Training Guild package models
 
 *Installing and training a model from a Guild package.*

@@ -100,6 +100,7 @@ def _test_globals():
         "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
         "abspath": os.path.abspath,
         "sample": _sample,
+        "example": _example_dir,
     })
     return globs
 
@@ -118,6 +119,9 @@ def _skip_test(name, skip_patterns):
         if fnmatch.fnmatch(name, p):
             return True
     return False
+
+def _example_dir(name):
+    return os.path.join(GUILD_PKG, "guild", "examples", name)
 
 def _test_passed(name):
     return os.path.exists(_test_passed_marker(name))
