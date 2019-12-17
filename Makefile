@@ -46,7 +46,7 @@ check:
 	    done; \
 	  fi; \
 	fi; \
-	$(guild) check $$opts; \
+	COLUMNS=999 $(guild) check $$opts; \
 
 lint:
 	PYTHONPATH=guild/external pylint -rn -f parseable setup.py guild
