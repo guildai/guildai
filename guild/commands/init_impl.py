@@ -90,7 +90,7 @@ class Config(object):
 
     def _init_prompt_params(self):
         params = []
-        params.append(("Location", _shorten_path(self.env_dir)))
+        params.append(("Location", util.format_dir(self.env_dir)))
         params.append(("Name", self.env_name))
         if self.venv_python:
             params.append(("Python interpreter", self.venv_python))
@@ -180,9 +180,6 @@ def _find_req_on_path(req, path):
             return full_path
     return None
 
-def _shorten_path(path):
-    return path.replace(os.path.expanduser("~"), "~")
-
 def _implicit_guild_version():
     reqs_file = _guild_reqs_file()
     if reqs_file:
@@ -217,6 +214,7 @@ def _confirm(config):
     return cli.confirm("Continue?", default=True)
 
 def _init(config):
+    _test_symlinks()
     _init_guild_env(config)
     _init_venv(config)
     _upgrade_pip(config)
@@ -225,6 +223,15 @@ def _init(config):
     _install_user_reqs(config)
     _install_paths(config)
     _initialized_msg(config)
+
+def _test_symlinks():
+    """If Windows, confirm that user can create symbolic links."""
+    try:
+        util.test_windows_symlinks()
+    except OSError:
+        cli.error(
+            "this command requires symbolic link privilege on Windows\n"
+            "Try running this command with administrator privileges.")
 
 def _init_guild_env(config):
     cli.out("Initializing Guild environment in {}".format(config.env_dir))
@@ -473,22 +480,27 @@ def _python_requires_for_reqs(reqs):
 def _initialized_msg(config):
     cli.out(
         "Guild environment initialized in {}."
-        "\n".format(_shorten_path(config.env_dir)))
+        "\n".format(util.format_dir(config.env_dir)))
     cli.out("To activate it " "run:\n")
-    env_parent = os.path.dirname(config.env_dir)
-    if env_parent != os.getcwd():
-        cli.out("  source guild-env {}".format(config.env_dir))
-    else:
-        env_name = os.path.basename(config.env_dir)
-        if env_name != "venv":
-            cli.out("  source guild-env {}".format(env_name))
-        else:
-            cli.out("  source guild-env")
+    cli.out("  %s" % _source_cmd(config.env_dir))
     cli.out()
 
 def _source_cmd(env_dir):
-    name = os.path.basename(env_dir)
-    if name == "venv":
-        return "source guild-env"
+    if os.path.exists(os.path.join(env_dir, "Scripts", "activate.bat")):
+        return _windows_activate_cmd(env_dir)
     else:
-        return "source guild-env {}".format(name)
+        return _default_source_cmd(env_dir)
+
+def _windows_activate_cmd(env_dir):
+    return os.path.join(env_dir, "Scripts", "activate")
+
+def _default_source_cmd(env_dir):
+    env_parent = os.path.dirname(env_dir)
+    if env_parent != os.getcwd():
+        return "source guild-env {}".format(env_dir)
+    else:
+        env_name = os.path.basename(env_dir)
+        if env_name == "venv":
+            return "source guild-env"
+        else:
+            return "source guild-env {}".format(env_name)

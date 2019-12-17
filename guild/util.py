@@ -705,6 +705,8 @@ def format_dir(dir):
     return format_user_dir(os.path.abspath(dir))
 
 def format_user_dir(s):
+    if PLATFORM == "Windows":
+        return s
     user_dir = os.path.expanduser("~")
     if s.startswith(user_dir):
         return os.path.join("~", s[len(user_dir)+1:])
@@ -1384,3 +1386,9 @@ def _try_editor_bin():
     if os.path.exists(editor_bin):
         return editor_bin
     return None
+
+def test_windows_symlinks():
+    if PLATFORM != "Windows":
+        return
+    with TempDir() as tmp:
+        os.symlink(tempfile.gettempdir(), os.path.join(tmp.path, "link"))
