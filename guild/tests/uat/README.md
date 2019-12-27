@@ -44,6 +44,7 @@ commands and helpfulness to the user for operations on missing models.
 *Test examples defined in Guild repo*
 
 - [guild-example-hello](guild-example-hello.md)
+- [clear-runs](clear-runs.md)
 
 ## Training Guild package models
 
