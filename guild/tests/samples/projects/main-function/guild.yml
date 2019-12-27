@@ -1,0 +1,7 @@
+op1:
+  main: pkg.main
+
+op2:
+  main: pkg.main
+  env:
+    MAIN_FUNCTION: pkg.main:run

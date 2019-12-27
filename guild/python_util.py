@@ -339,7 +339,7 @@ def scripts_for_dir(dir, exclude=None):
         if not any((fnmatch.fnmatch(src, pattern) for pattern in exclude))
     ]
 
-def exec_script(filename, globals):
+def exec_script(filename, globals, mod_name="__main__"):
     """Execute a Python script.
 
     This function can be used to execute a Python module as code
@@ -355,11 +355,21 @@ def exec_script(filename, globals):
     src = open(filename, "r").read()
     code = _compile_script(src, filename, _node_filter(globals))
     script_globals = dict(globals)
+    if mod_name != "__main__":
+        # Ensure parent modules loaded for relative imports.
+        _ensure_parent_mod_loaded(mod_name)
     script_globals.update({
-        "__name__": "__main__",
+        "__name__": mod_name,
         "__file__": filename,
     })
     exec(code, script_globals)
+    return script_globals
+
+def _ensure_parent_mod_loaded(mod_name):
+    parts = mod_name.rsplit(".", 1)
+    if len(parts) == 2:
+        parent_mod_name = parts[0]
+        __import__(parent_mod_name)
 
 def _node_filter(globals):
     names = globals.keys()

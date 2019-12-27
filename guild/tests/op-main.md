@@ -44,7 +44,7 @@ When we run with the debug option, we get the full stack:
         _main()
       ...
       File ".../guild/op_main.py", line ..., in exec_script
-        python_util.exec_script(path, globals)
+        path, globals, mod_name=mod_name)
       File ".../guild/python_util.py", line ..., in exec_script
         exec(code, script_globals)
       File ".../.guild/sourcecode/fail.py", line 14, in <module>
@@ -82,3 +82,35 @@ case, the project defines a `fail` operation that runs `fail.py`.
     >>> project.run("fail", flags={"code": 2})
     FAIL
     <exit 2>
+
+## Call module function
+
+A special environment `MAIN_FUNCTION` may be provided to specify how a
+main module is loaded and called.
+
+    >>> project = Project(sample("projects/main-function"))
+
+`op1` won't run because Guild tries to load it as `__main__` and it
+cannot therefore use relative imports.
+
+On Python 2:
+
+    >>> project.run("op1")  # doctest: -PY3
+    Traceback (most recent call last):
+    ...
+    ValueError: Attempted relative import in non-package
+    <exit 1>
+
+On Python 3:
+
+    >>> project.run("op1")  # doctest: -PY2
+    Traceback (most recent call last):
+    ...
+    ImportError: cannot import name 'main_impl'
+    <exit 1>
+
+`op2` solves this by defining `MAIN_FUNCTION` env, which tells Guild
+how to load the module and how to invoke the main function.
+
+    >>> project.run("op2")
+    hello

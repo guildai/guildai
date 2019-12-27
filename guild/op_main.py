@@ -243,14 +243,48 @@ def _module_main(module_info):
         # imp.load_module resets globals to None - copy to restore on
         # exception below.
         globals_save = dict(globals())
+        load_as, main_function = _env_module_name_and_function()
+        log.debug("loading module as %s", load_as)
         try:
-            imp.load_module("__main__", f, path, desc)
+            module = imp.load_module(load_as, f, path, desc)
         except:
             # Restore global vals after exception generated in module
             # load.
             globals().update(globals_save)
             raise
+        else:
+            if main_function:
+                log.debug("calling module function %s", main_function)
+                try:
+                    module_main = getattr(module, main_function)
+                except AttributeError:
+                    log.error(
+                        "function %s not defined in %s",
+                        main_function, load_as)
+                    sys.exit(1)
+                else:
+                    module_main()
     _gen_exec(module_info, main)
+
+def _env_module_name_and_function():
+    """Returns a tuple of module name and main function name for env.
+
+    The MAIN_FUNCTION env can be used to load/run a module using a
+    name other than '__main__'. This can be used to work-around the
+    problem when relative imports rely on a parent package. When the
+    module is loaded as '__main__', a parent package is not defined
+    and relative imports generate an error.
+    """
+    main_function_spec = os.getenv("MAIN_FUNCTION")
+    if not main_function_spec:
+        return "__main__", None
+    parts = main_function_spec.split(":", 1)
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        log.error(
+            "invalid MAIN_FUNCTION '%s' - must be in form MODULE:FUNCTION",
+            main_function_spec)
+        sys.exit(1)
+    return parts
 
 def _gen_exec(module_info, exec_cb):
     f, path, desc = module_info
@@ -289,7 +323,19 @@ def _module_with_globals(module_info, globals):
     from guild import python_util
     _f, path, _desc = module_info
     def exec_script():
-        python_util.exec_script(path, globals)
+        mod_name, main_function = _env_module_name_and_function()
+        script_globals = python_util.exec_script(
+            path, globals, mod_name=mod_name)
+        if main_function:
+            try:
+                module_main = script_globals[main_function]
+            except KeyError:
+                log.error(
+                    "function %s not defined in %s",
+                    main_function, mod_name)
+                sys.exit(1)
+            else:
+                module_main()
     _gen_exec(module_info, exec_script)
 
 def _internal_error(msg):
