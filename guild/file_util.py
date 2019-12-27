@@ -282,7 +282,7 @@ def copytree(
     calls to `copy()` or `ignore()` will be made.
     """
     src = _copytree_src(root_start, select)
-    # Must instantiate handler as part of the copytree contract.
+    # Instantiate handler as part of the copytree contract.
     handler = (handler_cls or FileCopyHandler)(src, dest, select)
     if select.disabled:
         return
