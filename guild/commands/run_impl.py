@@ -69,6 +69,7 @@ class Operation(oplib.Operation):
         super(Operation, self).__init__()
         self._run = None
         self._opdef = None
+        self._resource_flagdefs = []
         self._user_flag_vals = {}
         self._batch_trials = None
         self._op_flag_vals = {}
@@ -272,7 +273,8 @@ def _op_init_op_flags(args, op):
             op._user_flag_vals,
             args.force_flags or op._batch_trials,
             op._op_cmd,
-            op._op_flag_vals)
+            op._op_flag_vals,
+            op._resource_flagdefs)
     if args.edit_flags:
         _edit_op_flags(op)
 
@@ -280,10 +282,13 @@ def _apply_run_flags(run, flag_vals):
     flag_vals.update(run.get("flags") or {})
 
 def _apply_op_flags_for_opdef(opdef, user_flag_vals, force_flags,
-                              op_cmd, op_flag_vals):
-    """Applies opdef and user-provided flags to op flag vals.
+                              op_cmd, op_flag_vals, resource_flagdefs):
+    """Applies opdef and user-provided flags to `op_flag_vals`.
 
-    Also attempts to resolve operation runs and use resolve run short
+    Also applies resolved resource flag defs per flag vals
+    `resource_flagdefs`.
+
+    Attempts to resolve operation runs and use resolve run short
     IDs as applicable flag values.
 
     Opdef is used to provide missing default values, coerce flag vals,
@@ -298,7 +303,10 @@ def _apply_op_flags_for_opdef(opdef, user_flag_vals, force_flags,
     resources and should not be included in flag args unless the a
     flag def is explicitly provided.
     """
-    opdef_flag_vals = _flag_vals_for_opdef(opdef, user_flag_vals, force_flags)
+    opdef_flag_vals, resolved_resource_flagdefs = (
+        _flag_vals_for_opdef(opdef, user_flag_vals, force_flags)
+    )
+    resource_flagdefs.extend(resolved_resource_flagdefs)
     _apply_default_resolved_runs(opdef, op_cmd, opdef_flag_vals)
     for name, val in opdef_flag_vals.items():
         if name in user_flag_vals or name not in op_flag_vals:
@@ -372,15 +380,17 @@ def _op_init_config_for_run(run, label_arg, op):
         op._label_template = label_arg
 
 def _op_init_config_for_opdef(opdef, label_arg, op):
-    op._flag_null_labels = _flag_null_labels_for_opdef(opdef)
+    op._flag_null_labels = (
+        _flag_null_labels_for_opdef(opdef, op._resource_flagdefs)
+    )
     op._python_requires = _python_requires_for_opdef(opdef)
     op._label_template = label_arg or opdef.label
     op._output_scalars = opdef.output_scalars
 
-def _flag_null_labels_for_opdef(opdef):
+def _flag_null_labels_for_opdef(opdef, resource_flagdefs):
     return {
         f.name: f.null_label
-        for f in opdef.flags
+        for f in opdef.flags + resource_flagdefs
         if f.null_label is not None
     }
 

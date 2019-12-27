@@ -13,7 +13,7 @@ Warning when missing required op:
     >>> run("guild run requires-file-op", timeout=2)
     WARNING: cannot find a suitable run for required resource 'file'
     You are about to run requires-file-op
-      file: default
+      file: unspecified
     Continue? (Y/n)
     <exit -9>
 

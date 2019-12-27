@@ -680,7 +680,7 @@ def flag_vals_for_opdef(opdef, user_flag_vals=None, force=False):
         _check_flag_vals(flag_vals, all_flagdefs)
         _check_required_flags(flag_vals, all_flagdefs)
     _apply_choices_flag_vals(opdef.flags, user_flag_vals, flag_vals)
-    return flag_vals
+    return flag_vals, resource_flagdefs
 
 def _apply_coerce_flag_vals(flagdefs, force, vals):
     flagdef_lookup = {
@@ -732,6 +732,7 @@ def _ResourceFlagDefProxy(name, opdef):
     data = {
         "arg-skip": True,
         "type": "string",
+        "null-label": "unspecified",
     }
     return guildfile.FlagDef(name, data, opdef)
 
