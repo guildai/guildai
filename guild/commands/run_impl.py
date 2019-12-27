@@ -404,6 +404,7 @@ def _python_requires_for_opdef(opdef):
 def _op_init_core(args, op):
     _op_init_opref(op)
     _op_init_cmd(args, op)
+    _op_init_sourcecode_paths(args, op)
     _op_init_run_dir(args, op)
     _op_init_label(op)
     _op_init_random_seed(args.random_seed, op)
@@ -468,6 +469,27 @@ def _apply_gpu_arg_env(args, env):
             "Masking available GPUs (CUDA_VISIBLE_DEVICES='%s')",
             args.gpus)
         env["CUDA_VISIBLE_DEVICES"] = args.gpus
+
+# =================================================================
+# Op - sourcecode paths
+# =================================================================
+
+def _op_init_sourcecode_paths(args, op):
+    op.sourcecode_paths = _sourcecode_paths(args)
+
+def _sourcecode_paths(args):
+    if args.debug_sourcecode:
+        return _resolve_sourcecode_paths(args.debug_sourcecode)
+    return _default_sourcecode_paths()
+
+def _resolve_sourcecode_paths(s):
+    cwd = config.cwd()
+    return [
+        os.path.abspath(os.path.join(cwd, part)) for part in s.split(os.path.pathsep)
+    ]
+
+def _default_sourcecode_paths():
+    return [".guild/sourcecode"]
 
 # =================================================================
 # Op - run dir
