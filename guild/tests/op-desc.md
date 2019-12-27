@@ -106,7 +106,12 @@ absolute paths using leading "/" chars.
     >>> def op_desc(run, show_from_dir):
     ...     from guild.commands.runs_impl import format_run
     ...     with SetCwd(os.path.join(project.cwd, show_from_dir)):
-    ...         return format_run(run)["op_desc"].replace("~", "")
+    ...         desc = format_run(run)["op_desc"].replace("~", "")
+    ...         # Guild uses a unicode ellipses that causes errors in Python 2
+    ...         # doctest diffs - return encoded as ascii replacing errors with '?'
+    ...         if sys.version_info[0] == 2:
+    ...             desc = desc.encode("ascii", "replace")
+    ...         return desc
 
 Here's our test loop, which runs the matrix above and prints the
 result as a table.

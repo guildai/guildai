@@ -15,10 +15,13 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import os
 import re
 import yaml
 
 import six
+
+from guild import util
 
 FUNCTION_P = re.compile(r"([a-zA-Z0-9_\-\.]*)\[(.*)\]\s*$")
 LIST_CONCAT_P = re.compile(r"(\[.*\])\s*\*\s*([0-9]+)$")
@@ -26,6 +29,7 @@ SCIENTIFIC_NOTATION_RUN_ID_P = re.compile(r"[0-9]+e[0-9]+")
 FUNCTION_ARG_DELIM = ":"
 
 DEFAULT_FLOAT_TRUNC_LEN = 5
+DEFAULT_SHORTENED_PATH_LEN = 20
 
 def encode_flag_val(val):
     if val is True:
@@ -156,19 +160,22 @@ def is_flag_function(val):
     else:
         return True
 
-def format_flags(flags, truncate_floats=False):
+def format_flags(flags, truncate_floats=False, shorten_paths=False):
     return [
-        _flag_assign(name, val, truncate_floats)
+        _flag_assign(name, val, truncate_floats, shorten_paths)
         for name, val in sorted(flags.items())]
 
-def _flag_assign(name, val, truncate_floats):
-    return "%s=%s" % (name, format_flag(val, truncate_floats))
+def _flag_assign(name, val, truncate_floats, shorten_paths):
+    return "%s=%s" % (name, format_flag(val, truncate_floats, shorten_paths))
 
-def format_flag(val, truncate_floats=False):
+def format_flag(val, truncate_floats=False, shorten_paths=False):
     fmt_val = encode_flag_val(val)
     if truncate_floats and isinstance(val, float):
         trunc_len = _trunc_len(truncate_floats)
         fmt_val = _truncate_formatted_float(fmt_val, trunc_len)
+    if shorten_paths and _is_path(val):
+        path_len = _path_len(shorten_paths)
+        fmt_val = util.shorten_path(val, path_len)
     return _quote_encoded(fmt_val, val)
 
 def _trunc_len(truncate_floats):
@@ -179,6 +186,20 @@ def _trunc_len(truncate_floats):
             "invalid value for truncate_floats: %r (expected int)"
             % truncate_floats)
     return truncate_floats
+
+def _is_path(val):
+    return (
+        isinstance(val, six.string_types) and os.path.sep in val and os.path.exists(val)
+    )
+
+def _path_len(shorten_paths):
+    if shorten_paths is True:
+        return DEFAULT_SHORTENED_PATH_LEN
+    if not isinstance(shorten_paths, int):
+        raise ValueError(
+            "invalid value for shorten_paths: %r (expected int)"
+            % shorten_paths)
+    return shorten_paths
 
 def _quote_encoded(encoded, val):
     if _needs_quote(encoded, val):

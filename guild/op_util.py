@@ -345,11 +345,10 @@ def run_label(label_template, user_flag_vals, all_flag_vals=None):
     return _render_label_template(label_template, all_flag_vals)
 
 def _default_run_label(flag_vals):
-    non_null = {
-        name: val for name, val in flag_vals.items()
-        if val is not None
-    }
-    return " ".join(flag_util.format_flags(non_null, truncate_floats=True))
+    non_null = {name: val for name, val in flag_vals.items() if val is not None}
+    return " ".join(
+        flag_util.format_flags(non_null, truncate_floats=True, shorten_paths=True)
+    )
 
 def _render_label_template(label_template, flag_vals):
     resolve_vals = {
