@@ -269,7 +269,7 @@ def _safe_guild_path(run, path, default):
         return default
 
 def shorten_op_dir(op_dir, cwd):
-    return util.shorten_dir(_format_op_dir(op_dir, cwd))
+    return util.shorten_path(_format_op_dir(op_dir, cwd))
 
 def _format_op_dir(op_dir, cwd):
     return util.find_apply([

@@ -1180,10 +1180,10 @@ def _abs_path_with_cache(p):
         __abs_path[p] = abs = os.path.abspath(os.path.expanduser(p))
         return abs
 
-def shorten_dir(path, max_len=28, ellipsis="...", sep=os.path.sep):
+def shorten_path(path, max_len=28, ellipsis=u"\u2026", sep=os.path.sep):
     if len(path) <= max_len:
         return path
-    parts = _shorten_dir_split_path(path, sep)
+    parts = _shorten_path_split_path(path, sep)
     if len(parts) == 1:
         return parts[0]
     assert all(parts), parts
@@ -1212,7 +1212,7 @@ def shorten_dir(path, max_len=28, ellipsis="...", sep=os.path.sep):
         return path
     return shortened
 
-def _shorten_dir_split_path(path, sep):
+def _shorten_path_split_path(path, sep):
     """Splits path into parts.
 
     Leading and repeated '/' chars are prepended to the
