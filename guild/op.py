@@ -68,6 +68,7 @@ class Operation(object):
         self.opref = None
         self.cmd_args = []
         self.cmd_env = {}
+        self.sourcecode_paths = []
         self.run_dir = None
         self.run_attrs = {}
         self.deps = []
@@ -279,19 +280,19 @@ def _delete_proc_lock(run):
 
 def _op_proc_env(op, run):
     env = dict(op.cmd_env)
-    env.update(_system_cmd_env())
-    env.update(_run_cmd_env(run))
+    env.update(_op_proc_env_system(op))
+    env.update(_op_proc_env_run(run))
     return env
 
-def _system_cmd_env():
+def _op_proc_env_system(op):
     env = util.safe_osenv()
     env["GUILD_HOME"] = config.guild_home()
     env["LOG_LEVEL"] = _log_level()
-    env["PYTHONPATH"] = _python_path()
+    env["PYTHONPATH"] = _python_path(op)
     env["CMD_DIR"] = os.getcwd()
     return env
 
-def _run_cmd_env(run):
+def _op_proc_env_run(run):
     return {
         "RUN_DIR": run.dir,
         "RUN_ID": run.id,
@@ -303,20 +304,13 @@ def _log_level():
     except KeyError:
         return str(logging.getLogger().getEffectiveLevel())
 
-def _python_path():
+def _python_path(op):
     paths = (
-        _run_sourcecode_paths() +
+        op.sourcecode_paths +
         _guild_paths() +
         _env_paths()
     )
     return os.path.pathsep.join(paths)
-
-def _env_paths():
-    env = os.getenv("PYTHONPATH")
-    return env.split(os.path.pathsep) if env else []
-
-def _run_sourcecode_paths():
-    return [".guild/sourcecode"]
 
 def _guild_paths():
     guild_path = os.path.dirname(os.path.dirname(__file__))
@@ -335,6 +329,10 @@ def _is_runfile_pkg(path):
         if split_path[-len(runfile_path):] == runfile_path:
             return True
     return False
+
+def _env_paths():
+    env = os.getenv("PYTHONPATH")
+    return env.split(os.path.pathsep) if env else []
 
 # =================================================================
 # Resolve deps

@@ -91,6 +91,7 @@ def _popen_args(
         opt_flags=None,
         max_trials=None,
         random_seed=None,
+        debug_sourcecode=None,
         needed=False,
         init_trials=False,
         force_flags=False,
@@ -140,6 +141,8 @@ def _popen_args(
         args.extend(["--max-trials", str(max_trials)])
     if random_seed is not None:
         args.extend(["--random-seed", str(random_seed)])
+    if debug_sourcecode:
+        args.extend(["--debug-sourcecode", debug_sourcecode])
     if needed:
         args.append("--needed")
     if print_cmd:

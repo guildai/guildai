@@ -94,6 +94,11 @@ def run_params(fn):
             ("--random-seed",), metavar="N", type=int,
             help="Random seed used when sampling trials or flag values."),
         click.Option(
+            ("--debug-sourcecode",), metavar="PATH",
+            help=(
+                "Specify an alternative source code path for debugging. "
+                "See Debug Source Code below for details.")),
+        click.Option(
             ("--init-trials", "--stage-trials"), is_flag=True,
             help=("For batch operations, initialize trials without "
                   "running them.")),
@@ -354,6 +359,14 @@ def run(args):
     values. Guild uses the editor defined in `VISUAL` or `EDITOR`
     environment variables. If neither environment variable is defined,
     Guild uses an editor suitable for the current platform.
+
+    ### Debug Source Code
+
+    Use `--debug-sourcecode` to specify the location of project source
+    code for debugging. Guild uses this path instead of the location
+    of the copied soure code for the run. For example, when debugging
+    project files, use this option to ensure that modules are loaded
+    from the project location rather than the run directory.
 
     """
     from . import run_impl

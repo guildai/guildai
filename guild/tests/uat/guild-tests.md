@@ -28,6 +28,7 @@ tests).
       copy-sourcecode-warnings:    ok
       cpu-plugin:                  ok
       cross-package-inheritance:   ok
+      debug-sourcecode:            ok
       dependencies:                ok
       dependencies-2:              ok
       disk-plugin:                 ok
