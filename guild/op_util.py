@@ -33,6 +33,7 @@ from guild import plugin as pluginlib
 from guild import run as runlib
 from guild import util
 from guild import var
+from guild import vcs_util
 
 # TEMP imports until promoted to op_util
 from .op_util_legacy import ArgValueError          # pylint: disable=unused-import
@@ -310,6 +311,23 @@ def clear_run_pending(run):
 def write_sourcecode_digest(run):
     digest = file_util.files_digest(run.guild_path("sourcecode"))
     run.write_attr("sourcecode_digest", digest)
+
+def write_vcs_commit(opdef, run):
+    if not opdef.guildfile.dir:
+        return
+    try:
+        commit, status = vcs_util.commit_for_dir(opdef.guildfile.dir)
+    except vcs_util.NoCommit:
+        pass
+    except vcs_util.CommitReadError as e:
+        log.warning("error reading VCS commit: %s", e)
+    else:
+        run.write_attr("vcs_commit", _format_vcs_commit(commit, status))
+
+def _format_vcs_commit(commit, status):
+    if status:
+        return commit + "*"
+    return commit
 
 def set_run_started(run):
     started = runlib.timestamp()

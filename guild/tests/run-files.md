@@ -43,6 +43,7 @@ The files generated for our run:
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/attrs/user
+    .guild/attrs/vcs_commit
     .guild/opref
     .guild/output
     .guild/output.index
@@ -145,6 +146,7 @@ The latest run is the trial:
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/attrs/user
+    .guild/attrs/vcs_commit
     .guild/opref
     .guild/output
     .guild/output.index
@@ -210,6 +212,7 @@ Its files:
     .guild/proto/.guild/attrs/run_params
     .guild/proto/.guild/attrs/sourcecode_digest
     .guild/proto/.guild/attrs/user
+    .guild/proto/.guild/attrs/vcs_commit
     .guild/proto/.guild/opref
     .guild/proto/.guild/sourcecode/add.py
     .guild/proto/.guild/sourcecode/batch.csv

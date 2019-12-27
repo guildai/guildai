@@ -60,6 +60,7 @@ RUN_DETAIL = [
     "marked",
     "label",
     "sourcecode_digest",
+    "vcs_commit",
     "run_dir",
     "command",
     "exit_status",
@@ -92,6 +93,7 @@ CORE_RUN_ATTRS = [
     "started",
     "stopped",
     "user",
+    "vcs_commit",
 ]
 
 LEGACY_RUN_ATTRS = [

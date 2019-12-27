@@ -102,6 +102,7 @@ The operation is like any other. We can view info:
     marked: no
     label: batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no
     sourcecode_digest: f916ac0400292c61c1c0b13b0d03efec
+    vcs_commit: git:...
     run_dir: ...
     command: ... -um guild.op_main train
              --batch_size 100

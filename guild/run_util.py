@@ -134,6 +134,7 @@ def format_run(run, index=None):
         "short_id": run.short_id,
         "short_index": _format_run_index(run),
         "sourcecode_digest": run.get("sourcecode_digest", ""),
+        "vcs_commit": run.get("vcs_commit", ""),
         "started": util.format_timestamp(started),
         "status": status,
         "status_with_remote": _status_with_remote(status, run.remote),

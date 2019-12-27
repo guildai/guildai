@@ -214,4 +214,5 @@
     guild.uat
     guild.util
     guild.var
+    guild.vcs_util
     guild.view

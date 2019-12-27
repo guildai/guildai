@@ -100,4 +100,5 @@ tests).
       timerange:                   ok
       utils:                       ok
       var:                         ok
+      vcs-utils:                   ok
     <exit 0>

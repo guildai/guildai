@@ -608,18 +608,19 @@ def _output_scalars_summary(output_scalars, flag_vals, run):
 def _op_init_callbacks_for_opdef(opdef, op):
     op.callbacks = oplib.OperationCallbacks(
         init_output_summary=_init_output_summary,
-        run_initialized=_copy_sourcecode_cb_for_opdef(opdef)
+        run_initialized=_run_init_cb_for_opdef(opdef)
     )
 
-def _copy_sourcecode_cb_for_opdef(opdef):
-    sourcecode_src = opdef.guildfile.dir
-    sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
+def _run_init_cb_for_opdef(opdef):
     def f(_op, run):
-        _copy_run_sourcecode(sourcecode_src, sourcecode_select, run)
+        _copy_run_sourcecode(opdef, run)
         _write_run_sourcecode_digest(run)
+        _write_run_vcs_commit(opdef, run)
     return f
 
-def _copy_run_sourcecode(sourcecode_src, sourcecode_select, run):
+def _copy_run_sourcecode(opdef, run):
+    sourcecode_src = opdef.guildfile.dir
+    sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
     if os.getenv("NO_SOURCECODE") == "1":
         log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
         return
@@ -637,6 +638,9 @@ def _copy_run_sourcecode(sourcecode_src, sourcecode_select, run):
 
 def _write_run_sourcecode_digest(run):
     op_util.write_sourcecode_digest(run)
+
+def _write_run_vcs_commit(opdef, run):
+    op_util.write_vcs_commit(opdef, run)
 
 # =================================================================
 # State - batch op
