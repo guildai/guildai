@@ -48,11 +48,17 @@ Imports:
 
     >>> mnist_mlp.imports
     ['__future__',
+     'print_function',
      'keras',
      'keras.datasets',
+     'mnist',
      'keras.models',
+     'Sequential',
      'keras.layers',
-     'keras.optimizers']
+     'Dense',
+     'Dropout',
+     'keras.optimizers',
+     'RMSprop']
 
 Calls:
 

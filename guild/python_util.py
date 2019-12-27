@@ -107,7 +107,10 @@ class Script(object):
             self._apply_assign(node)
 
     def _apply_import_from(self, node):
-        self._imports.append(node.module)
+        if node.module:
+            self._imports.append(node.module)
+        if node.names:
+            self._apply_import(node)
 
     def _apply_import(self, node):
         for name in node.names:
