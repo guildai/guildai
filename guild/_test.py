@@ -34,6 +34,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import codecs
 import doctest
 import fnmatch
 import glob
@@ -287,13 +288,19 @@ def run_test_file_with_config(filename, globs, optionflags):
     return results
 
 def _load_testfile(filename):
-    # Wrapper to handle Python 2/3 differences
-    try:
-        # pylint: disable=no-value-for-parameter
-        return doctest._load_testfile(filename, None, True)
-    except TypeError:
-        # pylint: disable=too-many-function-args
-        return doctest._load_testfile(filename, None, True, "utf-8")
+    # Copied from Python 3.6 doctest._load_testfile to ensure utf-8
+    # encoding on Python 2.
+    package = doctest._normalize_module(None, 3)
+    filename = doctest._module_relative_path(package, filename)
+    if getattr(package, '__loader__', None) is not None:
+        if hasattr(package.__loader__, 'get_data'):
+            file_contents = package.__loader__.get_data(filename)
+            file_contents = file_contents.decode("utf-8")
+            # get_data() opens files as 'rb', so one must do the equivalent
+            # conversion as universal newlines would do.
+            return file_contents.replace(os.linesep, '\n'), filename
+    with codecs.open(filename, encoding="utf-8") as f:
+        return f.read(), filename
 
 def test_globals():
     return {
