@@ -127,7 +127,7 @@ class S3Remote(remotelib.Remote):
             return open(tmp.path, "r").read().strip()
 
     def _s3api_output(self, name, args):
-        cmd = ["aws"]
+        cmd = [_aws_cmd()]
         if self.region:
             cmd.extend(["--region", self.region])
         cmd.extend(["s3api", name] + args)
@@ -141,16 +141,13 @@ class S3Remote(remotelib.Remote):
             raise remotelib.RemoteProcessError.for_called_process_error(e)
 
     def _s3_cmd(self, name, args, to_stderr=False):
-        cmd = ["aws"]
+        cmd = [_aws_cmd()]
         if self.region:
             cmd.extend(["--region", self.region])
         cmd.extend(["s3", name] + args)
         log.debug("aws cmd: %r", cmd)
         try:
-            if to_stderr:
-                _subprocess_call_to_stderr(cmd)
-            else:
-                subprocess.check_call(cmd, env=os.environ)
+            _subprocess_call(cmd, to_stderr)
         except subprocess.CalledProcessError as e:
             raise remotelib.RemoteProcessError.for_called_process_error(e)
 
@@ -388,11 +385,25 @@ class S3Remote(remotelib.Remote):
     def stop_runs(self, **opts):
         raise remotelib.OperationNotSupported()
 
+def _aws_cmd():
+    cmd = util.which("aws")
+    if not cmd:
+        raise remotelib.OperationError(
+            "AWS Command Line Interface (CLI) is not available\n"
+            "Refer to https://docs.aws.amazon.com/cli for help installing it.")
+    return cmd
+
 def _join_path(root, *parts):
     path = [
         part for part in itertools.chain([root], parts)
         if part not in ("/", "")]
     return "/".join(path)
+
+def _subprocess_call(cmd, to_stderr):
+    if to_stderr:
+        _subprocess_call_to_stderr(cmd)
+    else:
+        subprocess.check_call(cmd, env=os.environ)
 
 def _subprocess_call_to_stderr(cmd):
     p = subprocess.Popen(
