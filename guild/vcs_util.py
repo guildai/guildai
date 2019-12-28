@@ -25,7 +25,6 @@ class Scheme(object):
     def __init__(
         self,
         name,
-        sentinel,
         commit_cmd,
         commit_pattern,
         commit_ok_errors,
@@ -34,7 +33,6 @@ class Scheme(object):
         status_ok_errors,
     ):
         self.name = name
-        self.sentinel = sentinel
         self.commit_cmd = commit_cmd
         self.commit_pattern = commit_pattern
         self.commit_ok_errors = commit_ok_errors
@@ -46,7 +44,6 @@ class Scheme(object):
 SCHEMES = [
     Scheme(
         "git",
-        sentinel=".git",
         commit_cmd=["git", "-C", "{repo}", "log", "-1", "."],
         commit_pattern=re.compile(r"commit ([a-f0-9]+)"),
         commit_ok_errors=[128],
@@ -73,28 +70,22 @@ def commit_for_dir(dir):
     Raises NoCommit if a commit is not available.
     """
     dir = os.path.abspath(dir)
-    cur = dir
-    last = None
-    while cur != last:
-        for scheme in SCHEMES:
-            if os.path.exists(os.path.join(cur, scheme.sentinel)):
-                commit = _apply_scheme(
-                    cur,
-                    scheme.commit_cmd,
-                    scheme.commit_pattern,
-                    scheme.commit_ok_errors,
-                )
-                if commit is None:
-                    raise NoCommit(cur)
-                status = _apply_scheme(
-                    cur,
-                    scheme.status_cmd,
-                    scheme.status_pattern,
-                    scheme.status_ok_errors,
-                )
-                return _format_commit(commit, scheme), _format_status(status)
-        last = cur
-        cur = os.path.dirname(cur)
+    for scheme in SCHEMES:
+        commit = _apply_scheme(
+            dir,
+            scheme.commit_cmd,
+            scheme.commit_pattern,
+            scheme.commit_ok_errors,
+        )
+        if commit is None:
+            raise NoCommit(dir)
+        status = _apply_scheme(
+            dir,
+            scheme.status_cmd,
+            scheme.status_pattern,
+            scheme.status_ok_errors,
+        )
+        return _format_commit(commit, scheme), _format_status(status)
     raise NoCommit(dir)
 
 
