@@ -46,13 +46,13 @@ class Scheme(object):
 SCHEMES = [
     Scheme(
         "git",
-        ".git",
-        ["git", "--work-tree", "{repo}", "log", "-1"],
-        re.compile(r"commit ([a-f0-9]+)"),
-        [128],
-        ["git", "-C", "{repo}", "status", "-s"],
-        re.compile(r"(.)"),
-        [],
+        sentinel=".git",
+        commit_cmd=["git", "-C", "{repo}", "log", "-1", "."],
+        commit_pattern=re.compile(r"commit ([a-f0-9]+)"),
+        commit_ok_errors=[128],
+        status_cmd=["git", "-C", "{repo}", "status", "-s"],
+        status_pattern=re.compile(r"(.)"),
+        status_ok_errors=[],
     )
 ]
 
