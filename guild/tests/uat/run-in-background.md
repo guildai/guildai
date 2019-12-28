@@ -14,7 +14,7 @@
 
 Run in background - Guild chooses a pidfile.
 
-    >>> run("guild -C %s run sleep.py --background -y" % tmp, ignore="Refreshing")
+    >>> run("guild -C '%s' run sleep.py --background -y" % tmp, ignore="Refreshing")
     sleep.py started in background as ... (pidfile ...)
     <exit 0>
 
@@ -40,7 +40,7 @@ Show the run output.
 
 Run with an explicit pidfile.
 
-    >>> run("guild -C %s run sleep.py --pidfile %s/PIDFILE -y" % (tmp, tmp))
+    >>> run("guild -C '%s' run sleep.py --pidfile %s/PIDFILE -y" % (tmp, tmp))
     sleep.py started in background as ... (pidfile .../PIDFILE)
     <exit 0>
 
@@ -65,4 +65,50 @@ Show the run output.
     0
     1
     ...
+    <exit 0>
+
+## Run steps in background
+
+Tmp project directory:
+
+    >>> tmp = mkdtemp()
+
+Guild file that defines a steps operation:
+
+    >>> write(path(tmp, "guild.yml"), """
+    ... upstream:
+    ...   main: guild.pass
+    ... downstream:
+    ...   main: guild.pass
+    ...   requires:
+    ...     - operation: upstream
+    ... steps:
+    ...   steps:
+    ...     - upstream
+    ...     - downstream
+    ... """)
+
+Run steps in the background::
+
+    >>> run("guild -C '%s' run steps --background -y" % tmp)
+    steps started in background as ... (pidfile ...)
+    <exit 0>
+
+Wait for operation:
+
+    >>> run("guild watch", timeout=10)
+    Watching run ...
+    INFO: [guild] running upstream: upstream
+    INFO: [guild] running downstream: downstream
+    Resolving upstream dependency
+    Using output from run ... for upstream resource
+    Run ... stopped with a status of 'completed'
+    <exit 0>
+
+List runs:
+
+    >>> run("guild -C '%s' runs --limit 3" % tmp)
+    [1:...]  downstream  ...  completed  upstream=...
+    [2:...]  upstream    ...  completed
+    [3:...]  steps       ...  completed
     <exit 0>

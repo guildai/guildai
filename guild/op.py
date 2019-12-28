@@ -151,7 +151,9 @@ def run(op, quiet=False, pidfile=None, stop_after=None, extra_env=None):
 def _start_in_background(run, op, pidfile, quiet, stop_after, extra_env):
     import daemonize
     action = lambda: _run(run, op, quiet, stop_after, extra_env)
-    daemon = daemonize.Daemonize(app="guild_op", action=action, pid=pidfile)
+    daemon = daemonize.Daemonize(
+        app="guild_op", action=action, pid=pidfile, chdir=config.cwd()
+    )
     # Need to log before starting daemon, otherwise output isn't
     # visible.
     if not quiet:
