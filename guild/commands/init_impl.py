@@ -326,7 +326,12 @@ def _install_guild_dist(config):
     else:
         cli.out("Installing %s" % config.guild)
         req = config.guild
-    _install_reqs([req], config)
+    # Install Guild dist ignoring installed. In some cases (behavior
+    # seems to have landed in pip 19.3.1) pip will decide not to
+    # install the Guild req if it's already installed outside the
+    # virtual env. The --ignore-installed flag in this case forces pip
+    # to actually install Guild.
+    _install_reqs([req], config, ignore_installed=True)
 
 def _guild_reqs_file():
     guild_location = pkg_resources.resource_filename("guild", "")
@@ -365,11 +370,13 @@ def _pip_extra_opts(config):
     else:
         return []
 
-def _install_reqs(reqs, config):
+def _install_reqs(reqs, config, ignore_installed=False):
     cmd_args = (
         _pip_bin_args(config.env_dir)
         + ["install"]
         + _pip_extra_opts(config))
+    if ignore_installed:
+        cmd_args.append("--ignore-installed")
     for req in reqs:
         if _is_requirements_file(req):
             cmd_args.extend(["-r", req])
