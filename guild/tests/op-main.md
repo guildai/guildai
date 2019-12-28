@@ -101,12 +101,13 @@ On Python 2:
     ValueError: Attempted relative import in non-package
     <exit 1>
 
-On Python 3:
+On Python 3 (specific error message differs across versions of Python
+but the type is ImportError):
 
     >>> project.run("op1")  # doctest: -PY2
     Traceback (most recent call last):
     ...
-    ImportError: cannot import name 'main_impl'
+    ImportError: ...
     <exit 1>
 
 `op2` solves this by defining `MAIN_FUNCTION` env, which tells Guild
