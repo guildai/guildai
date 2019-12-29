@@ -6,6 +6,15 @@ We'l use the `batch` sample project for our tests.
 
     >>> project = Project(sample("projects", "batch"))
 
+We skip printing the following list of files because they differ
+depending on the whether Guild is run from source or as an installed
+package.
+
+    >>> SKIP = [
+    ...     ".guild/attrs/vcs_commit",
+    ...     ".guild/proto/.guild/attrs/vcs_commit",
+    ... ]
+
 ## Normal runs
 
 A simple run that prints a message:
@@ -24,7 +33,7 @@ The files generated for our run:
     >>> first_run = runs[0]
     >>> first_run_files = project.ls(first_run, all=True)
     >>> for file in first_run_files:
-    ...    print(file) # doctest: +REPORT_UDIFF
+    ...    if file not in SKIP: print(file) # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
     .guild/attrs/env
     .guild/attrs/exit_status
@@ -43,7 +52,6 @@ The files generated for our run:
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/attrs/user
-    .guild/attrs/vcs_commit
     .guild/opref
     .guild/output
     .guild/output.index
@@ -127,7 +135,7 @@ The latest run is the trial:
 
     >>> trial_run_files = project.ls(trial_run, all=True)
     >>> for file in trial_run_files:
-    ...     print(file) # doctest: +REPORT_UDIFF
+    ...     if file not in SKIP: print(file) # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
     .guild/attrs/env
     .guild/attrs/exit_status
@@ -146,7 +154,6 @@ The latest run is the trial:
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/attrs/user
-    .guild/attrs/vcs_commit
     .guild/opref
     .guild/output
     .guild/output.index
@@ -175,7 +182,7 @@ The next run is the batch:
 Its files:
 
     >>> for file in project.ls(batch_run, all=True):
-    ...     print(file) # doctest: +REPORT_UDIFF
+    ...     if file not in SKIP: print(file) # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
     .guild/attrs/env
     .guild/attrs/exit_status
@@ -212,7 +219,6 @@ Its files:
     .guild/proto/.guild/attrs/run_params
     .guild/proto/.guild/attrs/sourcecode_digest
     .guild/proto/.guild/attrs/user
-    .guild/proto/.guild/attrs/vcs_commit
     .guild/proto/.guild/opref
     .guild/proto/.guild/sourcecode/add.py
     .guild/proto/.guild/sourcecode/batch.csv
