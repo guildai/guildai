@@ -39,6 +39,7 @@ tests).
       flag-vals:                   ok
       flagdefs:                    ok
       flags-dest:                  ok
+      guild-home:                  ok
       guildfiles:                  ok
       help:                        ok
       hparam-summaries:            ok

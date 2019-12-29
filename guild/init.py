@@ -44,6 +44,8 @@ def init_env(path, local_resource_cache=False):
     init_guild_dir(os.path.join(path, ".guild"), local_resource_cache)
 
 def init_guild_dir(path, local_resource_cache=False):
+    util.ensure_dir(path)
+    util.touch(os.path.join(path, ".guild-nocopy"))
     util.ensure_dir(os.path.join(path, "runs"))
     util.ensure_dir(os.path.join(path, "trash"))
     util.ensure_dir(os.path.join(path, "cache", "runs"))

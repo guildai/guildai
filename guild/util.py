@@ -639,6 +639,10 @@ def touch(filename):
     now = time.time()
     os.utime(filename, (now, now))
 
+def ensure_file(filename):
+    if not os.path.exists(filename):
+        touch(filename)
+
 def getmtime(filename):
     try:
         return os.path.getmtime(filename)

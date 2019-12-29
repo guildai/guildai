@@ -37,9 +37,9 @@ def _cwd(args):
     return _validated_dir(args.cwd)
 
 def _guild_home(args):
-    return _validated_dir(args.guild_home, abs=True, create=True)
+    return _validated_dir(args.guild_home, abs=True, create=True, guild_nocopy=True)
 
-def _validated_dir(path, abs=False, create=False):
+def _validated_dir(path, abs=False, create=False, guild_nocopy=False):
     path = os.path.expanduser(path)
     if abs:
         path = os.path.abspath(path)
@@ -50,4 +50,6 @@ def _validated_dir(path, abs=False, create=False):
             cli.error("directory '%s' does not exist" % path)
     if not os.path.isdir(path):
         cli.error("'%s' is not a directory" % path)
+    if guild_nocopy:
+        util.ensure_file(os.path.join(path, ".guild-nocopy"))
     return path
