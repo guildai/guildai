@@ -6,14 +6,14 @@ We'l use the `batch` sample project for our tests.
 
     >>> project = Project(sample("projects", "batch"))
 
-We skip printing the following list of files because they differ
-depending on the whether Guild is run from source or as an installed
-package.
+Helper to print files. The function skips printing any `vcs_commit`
+attr files as these are generated inconsistently based on whether
+tests are run from source or from an installed Guild package.
 
-    >>> SKIP = [
-    ...     ".guild/attrs/vcs_commit",
-    ...     ".guild/proto/.guild/attrs/vcs_commit",
-    ... ]
+    >>> def print_files(files):
+    ...     for file in files:
+    ...         if not file.endswith("vcs_commit"):
+    ...             print(file)
 
 ## Normal runs
 
@@ -31,9 +31,7 @@ Our runs:
 The files generated for our run:
 
     >>> first_run = runs[0]
-    >>> first_run_files = project.ls(first_run, all=True)
-    >>> for file in first_run_files:
-    ...    if file not in SKIP: print(file) # doctest: +REPORT_UDIFF
+    >>> print_files(project.ls(first_run, all=True))
     .guild/attrs/cmd
     .guild/attrs/env
     .guild/attrs/exit_status
@@ -133,9 +131,7 @@ The latest run is the trial:
     >>> trial_run.opref.op_name
     'say.py'
 
-    >>> trial_run_files = project.ls(trial_run, all=True)
-    >>> for file in trial_run_files:
-    ...     if file not in SKIP: print(file) # doctest: +REPORT_UDIFF
+    >>> print_files(project.ls(trial_run, all=True))
     .guild/attrs/cmd
     .guild/attrs/env
     .guild/attrs/exit_status
@@ -181,8 +177,7 @@ The next run is the batch:
 
 Its files:
 
-    >>> for file in project.ls(batch_run, all=True):
-    ...     if file not in SKIP: print(file) # doctest: +REPORT_UDIFF
+    >>> print_files(project.ls(batch_run, all=True))
     .guild/attrs/cmd
     .guild/attrs/env
     .guild/attrs/exit_status
