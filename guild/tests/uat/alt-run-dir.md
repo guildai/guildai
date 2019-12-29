@@ -18,7 +18,7 @@ Let's run a `hello` operation using a specific run directory.
 
 And the generated files:
 
-    >>> run("cd '%s'; find | sort" % tmp,
+    >>> run("cd '%s'; find . | sort" % tmp,
     ...     ignore=["__pycache__", "say.pyc"]) # doctest: +REPORT_UDIFF
     .
     ./.guild
