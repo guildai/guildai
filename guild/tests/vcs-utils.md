@@ -99,32 +99,27 @@ And the working dir is unchanged:
     >>> status3
     False
 
-We can test in subdirectories as well.
+A directory must be part of a repository commit history to get a commit.
 
     >>> subdir = path(repo, "subdir")
     >>> mkdir(subdir)
 
-    >>> commit4, status4 = vcs_util.commit_for_dir(subdir)
-
-    >>> commit4 == commit3
-    True
-
-    >>> status4
-    False
+    >>> vcs_util.commit_for_dir(subdir)
+    Traceback (most recent call last):
+    NoCommit: .../subdir
 
 Let's add a file to the subdirectory.
 
     >>> touch(path(subdir, "hello-3"))
 
-    >>> commit5, status5 = vcs_util.commit_for_dir(subdir)
+The file is not yet part of a commit, so we still get `NoCommit` for
+the subdir.
 
-    >>> commit5 == commit4
-    True
+    >>> vcs_util.commit_for_dir(subdir)
+    Traceback (most recent call last):
+    NoCommit: .../subdir
 
-    >>> status5
-    True
-
-And commit the change.
+Let's add the subdir file and commit.
 
     >>> run("git add .", subdir)
     >>> run("git commit -m 'third commit'", subdir)
@@ -132,22 +127,22 @@ And commit the change.
 
 And the latest commit:
 
-    >>> commit6, status6 = vcs_util.commit_for_dir(subdir)
+    >>> commit4, status4 = vcs_util.commit_for_dir(subdir)
 
-    >>> commit6
+    >>> commit4
     'git:...'
 
-    >>> len(commit6)
+    >>> len(commit4)
     44
 
 We have a new commit:
 
-    >>> commit6 == commit5
+    >>> commit4 == commit3
     False
 
 And our workspace is not change:
 
-    >>> status6
+    >>> status4
     False
 
 ## Errors
