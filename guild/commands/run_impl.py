@@ -32,9 +32,7 @@ from guild import op as oplib
 from guild import op_cmd as op_cmd_lib
 from guild import op_dep
 from guild import op_util
-from guild import opref as opreflib
 from guild import remote
-from guild import resolver
 from guild import run as runlib
 from guild import run_util
 from guild import summary
@@ -1602,11 +1600,3 @@ def one_run(run_id_prefix):
         for id, path in var.find_runs(run_id_prefix)
     ]
     return cmd_impl_support.one_run(runs, run_id_prefix)
-
-def marked_or_latest_run_for_spec(spec):
-    try:
-        opref = opreflib.OpRef.for_string(spec)
-    except opreflib.OpRefError:
-        return None
-    else:
-        return resolver.marked_or_latest_run([opref])

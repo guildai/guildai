@@ -557,10 +557,11 @@ class Project(object):
         for name in ("rerun", "restart"):
             spec = kw.get(name)
             if spec:
+                from guild import run_util
                 from guild.commands import run_impl
                 with configlib.SetGuildHome(self.guild_home):
                     run = util.find_apply([
-                        run_impl.marked_or_latest_run_for_spec,
+                        run_util.marked_or_latest_run_for_opspec,
                         run_impl.one_run,
                     ], spec)
                     return run.dir
