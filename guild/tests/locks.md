@@ -106,8 +106,13 @@ Let's release our locks:
     ...     lock.release()
     ...     assert not lock.is_locked, lock
 
-Lock files are intentionally not removed.
+Lock files are intentionally not removed on non-Windows.
 
-    >>> find(guild_home)
+    >>> find(guild_home)  # doctest: -WINDOWS
     locks/test-1
     locks/test-2
+
+They are removed on Windows:
+
+    >>> find(guild_home)  # doctest: +WINDOWS_ONLY
+    <empty>
