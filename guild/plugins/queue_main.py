@@ -134,7 +134,11 @@ def _staged_runs():
 
 def _running(state):
     running = var.runs(filter=var.run_filter("attr", "status", "running"))
-    return [run for run in running if run.id != state.run_id]
+    return [run for run in running if not _is_queue_or_self(run, state)]
+
+
+def _is_queue_or_self(run, state):
+    return run.id == state.run_id or run.opref.to_opspec() == "queue:queue"
 
 
 def _runs_desc(runs):
