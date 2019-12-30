@@ -1,5 +1,3 @@
-Skipping Windows until remaining tests are resolved.
-
 # Operation steps
 
 Operations may be defined using a sequence of steps, rather than a
@@ -20,7 +18,8 @@ Here are the suported models:
      'm2': <guild.guildfile.ModelDef 'm2'>,
      'm3': <guild.guildfile.ModelDef 'm3'>,
      'm4': <guild.guildfile.ModelDef 'm4'>,
-     'm5': <guild.guildfile.ModelDef 'm5'>}
+     'm5': <guild.guildfile.ModelDef 'm5'>,
+     'm6': <guild.guildfile.ModelDef 'm6'>}
 
 ## Basic steps
 

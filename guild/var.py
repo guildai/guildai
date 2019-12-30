@@ -15,15 +15,15 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import errno
 import functools
 import logging
 import os
 import shutil
 import tempfile
 
-import guild.run
-
 from guild import config
+from guild import run as runlib
 from guild import util
 
 log = logging.getLogger("guild")
@@ -56,12 +56,51 @@ def remote_dir(name=None):
     return os.path.join(os.path.dirname(config_path), "remotes", name)
 
 def runs(root=None, sort=None, filter=None):
-    root = root or runs_dir()
     filter = filter or (lambda _: True)
-    runs = [run for run in _all_runs(root) if filter(run)]
+    all_runs = _all_runs_f(root)
+    runs = [run for run in all_runs() if filter(run)]
     if sort:
         runs = sorted(runs, key=_run_sort_key(sort))
     return runs
+
+def _all_runs_f(root):
+    root = root or runs_dir()
+    return util.find_apply([
+        _parent_runs_override_f,
+        _default_all_runs_f,
+    ], root)
+
+def _parent_runs_override_f(root):
+    try:
+        runs_parent = os.environ["GUILD_RUNS_PARENT"]
+    except KeyError:
+        return None
+    else:
+        log.debug("limitting to runs under parent %s", runs_parent)
+        return lambda: _runs_for_parent(runs_parent, root)
+
+def _runs_for_parent(parent, root):
+    parent_path = os.path.join(root, parent)
+    try:
+        names = os.listdir(parent_path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+        return []
+    else:
+        return _runs_for_parent_links(parent_path, names, root)
+
+def _runs_for_parent_links(parent_path, names, runs_dir):
+    real_paths = [os.path.realpath(os.path.join(parent_path, name)) for name in names]
+    return [
+        runlib.for_dir(path) for path in real_paths if _is_run_path(path, runs_dir)
+    ]
+
+def _is_run_path(path, runs_dir):
+    return util.compare_paths(os.path.dirname(path), runs_dir)
+
+def _default_all_runs_f(root):
+    return lambda: _all_runs(root)
 
 def run_filter(name, *args):
     # Disabling undefined-variable check to work around
@@ -89,7 +128,7 @@ def run_filter(name, *args):
 
 def _all_runs(root):
     return [
-        guild.run.Run(name, path)
+        runlib.Run(name, path)
         for name, path in _iter_dirs(root)
     ]
 
@@ -135,7 +174,7 @@ def _run_attr_cmp(x, y, attr):
     return rev * ((x_val > y_val) - (x_val < y_val))
 
 def _run_attr(run, name):
-    if name in guild.run.Run.__properties__:
+    if name in runlib.Run.__properties__:
         return getattr(run, name)
     else:
         return run.get(name)
@@ -193,5 +232,5 @@ def get_run(run_id, root=None):
     root = root or runs_dir()
     path = os.path.join(root, run_id)
     if os.path.exists(path):
-        return guild.run.Run(run_id, path)
+        return runlib.Run(run_id, path)
     raise LookupError(run_id)

@@ -96,6 +96,7 @@ tests).
       sourcecode-digest:           ok
       step-checks:                 ok
       steps:                       ok
+      steps-run-isolation:         ok
       summary:                     ok
       tables:                      ok
       test:                        ok

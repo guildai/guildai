@@ -119,3 +119,23 @@
     steps:
       steps:
         - op
+
+- model: m6
+  operations:
+    upstream:
+      main: guild.pass
+    downstream:
+      main: guild.pass
+      requires:
+        - operation: upstream
+    steps-all:
+      steps:
+        - upstream
+        - downstream
+    steps-downstream-broken:
+      steps:
+        - downstream
+    steps-downstream-fixed:
+      steps:
+        - run: downstream
+          isolate-runs: no

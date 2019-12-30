@@ -66,6 +66,7 @@ class Step(object):
         self.batch_files, flag_args = _split_batch_files(params["flags"])
         self.flags = _init_step_flags(flag_args, parent_flags, self)
         self.checks = _init_checks(data)
+        self.isolate_runs = bool(data.get("isolate-runs", True))
         self.label = _resolve_param(params, "label", parent_flags)
         self.gpus = _resolve_param(params, "gpus", parent_flags)
         self.no_gpus = params["no_gpus"]
@@ -275,6 +276,8 @@ def _run_step(step, parent_run):
     _link_to_step_run(step, step_run.path, parent_run.path)
     env = dict(os.environ)
     env["NO_WARN_RUNDIR"] = "1"
+    if step.isolate_runs:
+        env["GUILD_RUNS_PARENT"] = parent_run.id
     cwd = os.getenv("CMD_DIR")
     log.info("running %s: %s", step, _format_step_cmd(cmd))
     log.debug("step cwd %s", cwd)
