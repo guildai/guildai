@@ -141,6 +141,7 @@
     guild.index2
     guild.init
     guild.ipy
+    guild.lock
     guild.log
     guild.main
     guild.main_bootstrap

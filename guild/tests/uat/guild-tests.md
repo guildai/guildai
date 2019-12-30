@@ -51,6 +51,7 @@ tests).
       init:                        ok
       ipy:                         ok
       keras:                       ok
+      locks:                       ok
       logging:                     ok
       ls-cmd:                      ok
       marked-runs:                 ok
