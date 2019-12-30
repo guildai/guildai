@@ -43,7 +43,6 @@ log = logging.getLogger("guild")
 CHECK_MODS = [
     "distutils",
     "pip",
-    "psutil",
     "setuptools",
     "twine",
     "yaml",
@@ -117,6 +116,7 @@ def _print_info(check):
     _print_guild_info()
     _print_python_info(check)
     _print_platform_info()
+    _print_psutil_info(check)
     _print_tensorboard_info(check)
     if check.args.tensorflow or check.args.verbose:
         _print_tensorflow_info(check)
@@ -165,6 +165,10 @@ def _print_platform_info():
 def _platform():
     system, _node, release, _ver, machine, _proc = platform.uname()
     return " ".join([system, release, machine])
+
+def _print_psutil_info(check):
+    ver = _try_module_version("psutil", check)
+    _print_module_ver("psutil", ver)
 
 def _print_tensorboard_info(check):
     try:
@@ -241,7 +245,7 @@ def _try_module_version(name, check, version_attr="__version__"):
         mod = __import__(name)
     except ImportError as e:
         check.error()
-        return _warn("NOT INSTALLED (%s)" % e)
+        return _warn("not installed (%s)" % e)
     else:
         try:
             ver = getattr(mod, version_attr)

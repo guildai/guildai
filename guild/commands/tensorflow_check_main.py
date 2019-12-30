@@ -40,8 +40,8 @@ def _print_tensorflow_info(state):
         import tensorflow as tf
     except ImportError as e:
         state.errors = True
-        click.echo("tensorflow_version:        %s" % _warn("Not installed"))
-        click.echo(_normalize_import_error_msg(e), err=True)
+        msg = _normalize_import_error_msg(e)
+        click.echo("tensorflow_version:        %s" % _warn("not installed (%s)" % msg))
     else:
         click.echo("tensorflow_version:        %s" % _tf_version(tf, state))
         click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
