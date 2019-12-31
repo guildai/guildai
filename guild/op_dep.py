@@ -285,7 +285,7 @@ def _symlink(source_path, link):
 
 def _rel_source_path(source, link):
     source_dir, source_name = os.path.split(source)
-    real_link = os.path.realpath(link)
+    real_link = util.realpath(link)
     link_dir = os.path.dirname(real_link)
     source_rel_dir = os.path.relpath(source_dir, link_dir)
     return os.path.join(source_rel_dir, source_name)

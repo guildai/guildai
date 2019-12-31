@@ -139,7 +139,7 @@ def _guild_install_location():
     return pkg_resources.resource_filename("guild", "")
 
 def _guild_resource_cache():
-    return os.path.realpath(var.cache_dir("resources"))
+    return util.realpath(var.cache_dir("resources"))
 
 def _format_plugins():
     return ", ".join([

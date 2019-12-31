@@ -215,7 +215,7 @@ class ViewDataImpl(view.ViewData):
     def _file_type_info(self, path):
         typeDesc, icon, iconTooltip, viewer = self._base_file_type_info(path)
         if os.path.islink(path):
-            target = os.path.realpath(path)
+            target = util.realpath(path)
             link_type = "directory" if os.path.isdir(target) else "file"
             if target.startswith(var.runs_dir()):
                 typeDesc = "Link to operation output"
@@ -275,7 +275,7 @@ class ViewDataImpl(view.ViewData):
     def _op_source_info(self, path):
         if not os.path.islink(path):
             return None, None
-        path = os.path.realpath(path)
+        path = util.realpath(path)
         runs_dir = var.runs_dir()
         if not path.startswith(runs_dir):
             return None, None

@@ -91,7 +91,7 @@ def _runs_for_parent(parent, root):
         return _runs_for_parent_links(parent_path, names, root)
 
 def _runs_for_parent_links(parent_path, names, runs_dir):
-    real_paths = [os.path.realpath(os.path.join(parent_path, name)) for name in names]
+    real_paths = [util.realpath(os.path.join(parent_path, name)) for name in names]
     return [
         runlib.for_dir(path)
         for path in real_paths

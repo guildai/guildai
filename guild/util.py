@@ -62,7 +62,7 @@ def try_apply(funs, *args):
     raise TryFailed(funs, args)
 
 def ensure_dir(d):
-    d = os.path.realpath(d)
+    d = realpath(d)
     try:
         os.makedirs(d)
     except OSError as e:
@@ -934,7 +934,7 @@ def _select_files_to_copy(src_dir, config, copy_filter):
     seen_dirs = set()
     log.debug("generating file list from %s", src_dir)
     for root, dirs, files in os.walk(src_dir, followlinks=True):
-        seen_dirs.add(os.path.realpath(root))
+        seen_dirs.add(realpath(root))
         _del_excluded_select_copy_dirs(
             dirs, src_dir, root, seen_dirs,
             config, copy_filter)
@@ -962,7 +962,7 @@ def _del_excluded_select_copy_dirs(dirs, src_dir, root, seen_dirs,
 
 def _del_seen_dirs(dirs, root, seen):
     for dir_name in dirs:
-        real_path = os.path.realpath(os.path.join(root, dir_name))
+        real_path = realpath(os.path.join(root, dir_name))
         if real_path in seen:
             dirs.remove(dir_name)
 
@@ -1176,7 +1176,7 @@ def compare_paths(p1, p2):
     return _resolve_path(p1) == _resolve_path(p2)
 
 def _resolve_path(p):
-    return os.path.realpath(os.path.abspath(os.path.expanduser(p)))
+    return realpath(os.path.abspath(os.path.expanduser(p)))
 
 def shorten_path(path, max_len=28, ellipsis=u"\u2026", sep=os.path.sep):
     if len(path) <= max_len:
