@@ -93,10 +93,12 @@ def _runs_for_parent(parent, root):
 def _runs_for_parent_links(parent_path, names, runs_dir):
     real_paths = [os.path.realpath(os.path.join(parent_path, name)) for name in names]
     return [
-        runlib.for_dir(path) for path in real_paths if _is_run_path(path, runs_dir)
+        runlib.for_dir(path)
+        for path in real_paths
+        if _is_parent_run_path(path, runs_dir)
     ]
 
-def _is_run_path(path, runs_dir):
+def _is_parent_run_path(path, runs_dir):
     return util.compare_paths(os.path.dirname(path), runs_dir)
 
 def _default_all_runs_f(root):
