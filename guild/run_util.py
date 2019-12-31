@@ -32,7 +32,7 @@ log = logging.getLogger("guild")
 
 DEFAULT_MONITOR_INTERVAL = 5
 MIN_MONITOR_INTERVAL = 5
-MAX_RUN_NAME_LEN = 255
+MAX_RUN_NAME_LEN = 242
 
 class RunsMonitor(util.LoopingThread):
 
