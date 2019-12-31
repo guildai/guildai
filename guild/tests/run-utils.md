@@ -212,21 +212,21 @@ to fit within `run_util.MAX_RUN_NAME_LEN`.
 Here's a run with a long label:
 
     >>> long_label = "a" * run_util.MAX_RUN_NAME_LEN + "<eol>"
-    >>> sample_runs.append(RunProxy("cccc", "op-2", 1565989403019755, long_label))
+    >>> sample_runs.append(RunProxy("cccc", "op-2", 1577806744267292, long_label))
 
 Run the monitor:
 
     >>> monitor.run_once()
-    <refresh aaaa in aaaa op-1 2019-08-16 15:57:48>
-    <refresh bbbb in bbbb op-2 2019-08-16 16:03:23 modified label>
-    <refresh cccc in cccc op-2 2019-08-16 16:03:23 ...aaaaaaaaaaa>
+    <refresh aaaa in aaaa op-1 2019-08-16 ...57...48>
+    <refresh bbbb in bbbb op-2 2019-08-16 ...03...23 modified label>
+    <refresh cccc in cccc op-2 2019-12-31 ...39...04 ...aaaaaaaaaaa>
 
 Let's confirm that the name used for our long label run is within the
 limit.
 
     >>> long_label_run_name = dir(logdir)[2]
     >>> long_label_run_name
-    'cccc op-2 2019-08-16 16:03:23 ...aaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    'cccc op-2 2019-12-31 ...39...04 ...aaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 
     >>> len(long_label_run_name) <= run_util.MAX_RUN_NAME_LEN
     True
