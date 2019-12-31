@@ -107,7 +107,7 @@ log directory.
 
 The directory structure does not contain any files.
 
-    >>> find(logdir)
+    >>> find(logdir)  # only shows files, not directories
     <empty>
 
 We can add files to any of the run directories.
@@ -123,6 +123,8 @@ The monitor is designed to be started as a thread, where it monitors
 the list of runs from its callback and updates the log directory
 accordingly. We can preemptively update the log directory by calling
 `run_once()`.
+
+### Deleted runs
 
 Let's simulate the deletion of run `bbbb` by removing it from the list
 of sample runs:
@@ -144,6 +146,8 @@ And files:
 
     >>> find(logdir)
     aaaa op-1 2019-08-16 ...57...48/a-file
+
+### Added runs
 
 Let's add run `bbbb` back and repeat this process.
 
@@ -172,6 +176,8 @@ Let's restore `b-file`:
     aaaa op-1 2019-08-16 ...57...48/a-file
     bbbb op-2 2019-08-16 ...03...23 a label/b-file
 
+### Modified run labels
+
 Let's now modify the label of run `bbbb`.
 
     >>> sample_runs[1].attrs["label"] = "modified label"
@@ -197,3 +203,30 @@ Once again, `b-file` is deleted. The monitor identifies runs by their
 name. When we changed the label, we changed the generated name for the
 run. The model interprets that as a deleted run (the original name)
 and a new run (the new name).
+
+### Max run names
+
+The default run name function shortens long names by truncating them
+to fit within `run_util.MAX_RUN_NAME_LEN`.
+
+Here's a run with a long label:
+
+    >>> long_label = "a" * run_util.MAX_RUN_NAME_LEN + "<eol>"
+    >>> sample_runs.append(RunProxy("cccc", "op-2", 1565989403019755, long_label))
+
+Run the monitor:
+
+    >>> monitor.run_once()
+    <refresh aaaa in aaaa op-1 2019-08-16 15:57:48>
+    <refresh bbbb in bbbb op-2 2019-08-16 16:03:23 modified label>
+    <refresh cccc in cccc op-2 2019-08-16 16:03:23 ...aaaaaaaaaaa>
+
+Let's confirm that the name used for our long label run is within the
+limit.
+
+    >>> long_label_run_name = dir(logdir)[2]
+    >>> long_label_run_name
+    'cccc op-2 2019-08-16 16:03:23 ...aaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    >>> len(long_label_run_name) <= run_util.MAX_RUN_NAME_LEN
+    True

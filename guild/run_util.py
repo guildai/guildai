@@ -32,6 +32,7 @@ log = logging.getLogger("guild")
 
 DEFAULT_MONITOR_INTERVAL = 5
 MIN_MONITOR_INTERVAL = 5
+MAX_RUN_NAME_LEN = 255
 
 class RunsMonitor(util.LoopingThread):
 
@@ -109,7 +110,7 @@ def _default_run_name(run):
     label = run.get("label")
     if label:
         parts.append(label)
-    return util.safe_filename(" ".join(parts))
+    return util.safe_filename(" ".join(parts))[:MAX_RUN_NAME_LEN]
 
 def format_run(run, index=None):
     status = run.status
