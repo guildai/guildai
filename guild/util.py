@@ -1173,16 +1173,10 @@ def safe_listdir(path):
         return []
 
 def compare_paths(p1, p2):
-    return _abs_path_with_cache(p1) == _abs_path_with_cache(p2)
+    return _resolve_path(p1) == _resolve_path(p2)
 
-__abs_path = {}
-
-def _abs_path_with_cache(p):
-    try:
-        return __abs_path[p]
-    except KeyError:
-        __abs_path[p] = abs = os.path.abspath(os.path.expanduser(p))
-        return abs
+def _resolve_path(p):
+    return os.path.realpath(os.path.abspath(os.path.expanduser(p)))
 
 def shorten_path(path, max_len=28, ellipsis=u"\u2026", sep=os.path.sep):
     if len(path) <= max_len:
