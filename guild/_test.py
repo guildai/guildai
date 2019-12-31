@@ -516,8 +516,8 @@ class Project(object):
         self.cwd = cwd
         self.guild_home = guild_home or mkdtemp()
         self._env = env
-        runs_path = os.path.join(self.guild_home, "runs")
-        self.index = indexlib.RunIndex(runs_path)
+        runs_cache_path = os.path.join(self.guild_home, "cache", "runs")
+        self.index = indexlib.RunIndex(runs_cache_path)
 
     def run_capture(self, *args, **kw):
         """Runs an operation returning a tuple of run and output."""
