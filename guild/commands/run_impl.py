@@ -1004,6 +1004,27 @@ def _test_sourcecode(S):
         for path in logger.skipped:
             cli.out(cli.style("  %s" % path, dim=True))
 
+class _CopyLogger(object):
+
+    root = None
+    select = None
+
+    def __init__(self):
+        self.selected = []
+        self.skipped = []
+
+    def handler_cls(self, src_root, dest_root, select):
+        assert dest_root is None, dest_root
+        self.root = os.path.relpath(src_root)
+        self.select = select
+        return self
+
+    def copy(self, path, _results):
+        self.selected.append(os.path.join(self.root, path))
+
+    def ignore(self, path, _results):
+        self.skipped.append(os.path.join(self.root, path))
+
 def _format_file_select_rule(rule):
     parts = ["include" if rule.result else "exclude"]
     if rule.type:
@@ -1027,27 +1048,6 @@ def _format_file_select_rule_extras(rule):
     if rule.max_matches:
         parts.append("max match %s" % rule.max_matches)
     return ", ".join(parts)
-
-class _CopyLogger(object):
-
-    root = None
-    select = None
-
-    def __init__(self):
-        self.selected = []
-        self.skipped = []
-
-    def handler_cls(self, src_root, dest_root, select):
-        assert dest_root is None, dest_root
-        self.root = os.path.relpath(src_root)
-        self.select = select
-        return self
-
-    def copy(self, path, _results):
-        self.selected.append(os.path.join(self.root, path))
-
-    def ignore(self, path, _results):
-        self.skipped.append(os.path.join(self.root, path))
 
 ###################################################################
 # Dispatch op command

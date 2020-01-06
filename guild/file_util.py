@@ -74,15 +74,8 @@ class FileSelect(object):
             (rule.test(src_root, relpath), rule)
             for rule in self.rules
             if rule.type != "dir"]
-        selected = self._last_non_none_result(rule_results)
-        return selected is True, rule_results
-
-    @staticmethod
-    def _last_non_none_result(results):
-        for val, _rule in reversed(results):
-            if val is not None:
-                return val
-        return None
+        result, _test = reduce_file_select_results(rule_results)
+        return result is True, rule_results
 
     def prune_dirs(self, src_root, relroot, dirs):
         for name in list(dirs):
@@ -91,12 +84,20 @@ class FileSelect(object):
             for rule in self.rules:
                 if rule.type != "dir":
                     continue
-                rule_result = rule.test(src_root, relpath)
+                rule_result, _test = rule.test(src_root, relpath)
                 if rule_result is not None:
                     last_rule_result = rule_result
             if last_rule_result is False:
                 log.debug("skipping directory %s", relpath)
                 dirs.remove(name)
+
+def reduce_file_select_results(results):
+    """Reduces a list of file select results to a single determining result.
+    """
+    for (result, test), _rule in reversed(results):
+        if result is not None:
+            return result, test
+    return None, None
 
 class FileSelectRule(object):
 
@@ -158,16 +159,16 @@ class FileSelectRule(object):
     def test(self, src_root, relpath):
         fullpath = os.path.join(src_root, relpath)
         tests = [
-            lambda: self._test_max_matches(),
-            lambda: self._test_patterns(relpath),
-            lambda: self._test_type(fullpath),
-            lambda: self._test_size(fullpath),
+            FileSelectTest("max matches", self._test_max_matches),
+            FileSelectTest("pattern", self._test_patterns, relpath),
+            FileSelectTest("type", self._test_type, fullpath),
+            FileSelectTest("size", self._test_size, fullpath),
         ]
         for test in tests:
             if not test():
-                return None
+                return None, test
         self._matches += 1
-        return self.result
+        return self.result, None
 
     def _test_max_matches(self):
         if self.max_matches is None:
@@ -215,6 +216,16 @@ class FileSelectRule(object):
         if self.size_lt and size < self.size_lt:
             return True
         return False
+
+class FileSelectTest(object):
+
+    def __init__(self, name, test_f, *test_args):
+        self.name = name
+        self.test_f = test_f
+        self.test_args = test_args
+
+    def __call__(self):
+        return self.test_f(*self.test_args)
 
 def include(patterns, **kw):
     return FileSelectRule(True, patterns, **kw)

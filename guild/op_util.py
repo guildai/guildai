@@ -489,15 +489,13 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
 
     def ignore(self, path, rule_results):
         fullpath = os.path.join(self.src_root, path)
-        if self._ignored_max_matches(rule_results):
-            self._warn_max_matches()
-        if self._ignored_max_size(fullpath, rule_results):
-            self._warn_max_size(fullpath)
-
-    def _ignored_max_matches(self, results):
-        matches_exceeded = lambda: (
-            results[0][1].matches >= results[0][1].max_matches)
-        return self._default_rules_in_effect(results) and matches_exceeded()
+        if self._default_rules_in_effect(rule_results):
+            assert len(rule_results) == 1, rule_results
+            (_path, failed_test), _rule = rule_results[0]
+            if failed_test.name == "max matches":
+                self._warn_max_matches()
+            elif failed_test.name == "size":
+                self._warn_max_size(fullpath)
 
     @staticmethod
     def _default_rules_in_effect(results):
@@ -517,12 +515,6 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
             MAX_DEFAULT_SOURCECODE_COUNT,
             self._warning_help_suffix)
         self._warned_max_matches = True
-
-    def _ignored_max_size(self, path, results):
-        if not self._default_rules_in_effect(results):
-            return False
-        size = util.safe_filesize(path)
-        return size is not None and size >= results[0][1].size_lt
 
     def _warn_max_size(self, path):
         log.warning(

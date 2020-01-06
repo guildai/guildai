@@ -200,9 +200,6 @@ And a run:
     WARNING: Found more than 100 source code files but will only
     copy 100 as a safety measure. To control which files are copied,
     define 'sourcecode' for the operation in a Guild file.
-    WARNING: Skipping potential source code file ./big.txt because
-    it's too big. To control which files are copied, define
-    'sourcecode' for the operation in a Guild file.
 
 The run source code:
 
