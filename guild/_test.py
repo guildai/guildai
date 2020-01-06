@@ -304,7 +304,7 @@ def _load_testfile(filename):
 
 def test_globals():
     return {
-        "Chdir": Chdir,
+        "Chdir": util.Chdir,
         "Env": Env,
         "LogCapture": util.LogCapture,
         "ModelPath": ModelPath,
@@ -443,21 +443,6 @@ class StderrCapture(object):
         for part in self._captured:
             sys.stdout.write(part.decode("utf-8"))
         sys.stdout.flush()
-
-class Chdir(object):
-
-    _cwd = None
-
-    def __init__(self, path):
-        self.path = path
-
-    def __enter__(self):
-        self._cwd = os.getcwd()
-        os.chdir(self.path)
-
-    def __exit__(self, *exc):
-        assert self._cwd is not None
-        os.chdir(self._cwd)
 
 def write(filename, contents):
     try:
@@ -639,7 +624,7 @@ class Project(object):
             runs = self.list_runs(limit=limit)
         cols = self._cols_for_print_runs(flags, labels, status)
         rows = []
-        with Chdir(cwd):
+        with util.Chdir(cwd):
             for run in runs:
                 rows.append(self._row_for_print_run(
                     run, flags, labels, status))

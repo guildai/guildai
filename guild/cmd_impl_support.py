@@ -207,3 +207,23 @@ def _matching_packages(ref):
         elif ref in model.fullname:
             matches[name] = gf
     return sorted(matches.items())
+
+def check_exclusive_args(exclusive_list, args):
+    for val in exclusive_list:
+        arg1_name, opt1, arg2_name, opt2 = _exclusive_arg_items(val)
+        if getattr(args, arg1_name, None) and getattr(args, arg2_name):
+            cli.error("%s and %s cannot both be specified" % (opt1, opt2))
+
+def _exclusive_arg_items(val):
+    arg1, arg2 = val
+    arg1, opt1 = _exclusive_arg_part(arg1)
+    arg2, opt2 = _exclusive_arg_part(arg2)
+    return arg1, opt1, arg2, opt2
+
+def _exclusive_arg_part(part):
+    if isinstance(part, tuple):
+        assert len(part) == 2, part
+        return part
+    else:
+        assert isinstance(part, str)
+        return part, "--" + part.replace("_", "-")

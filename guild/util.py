@@ -1056,17 +1056,18 @@ def format_bytes(n):
 
 class Chdir(object):
 
-    _save = None
+    _cwd = None
 
     def __init__(self, path):
-        self._path = path
+        self.path = path
 
     def __enter__(self):
-        self._save = os.getcwd()
-        os.chdir(self._path)
+        self._cwd = os.getcwd()
+        os.chdir(self.path)
 
-    def __exit__(self, *_args):
-        os.chdir(self._save)
+    def __exit__(self, *exc):
+        assert self._cwd is not None
+        os.chdir(self._cwd)
 
 def log_apply(f, *args, **kw):
     level = kw.pop("logging_level", logging.DEBUG)

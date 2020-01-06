@@ -17,23 +17,34 @@ from __future__ import division
 
 import logging
 import os
+import pty
 import subprocess
 import sys
 
 from guild import cli
+from guild import cmd_impl_support
+from guild import util
 
 from . import runs_impl
 
 log = logging.getLogger("guild")
 
 def main(args, ctx):
+    _check_args(args)
+    run = runs_impl.one_run(args, ctx)
+    _open(run, args)
+    _flush_streams_and_exit()
+
+def _check_args(args):
     if args.path and os.path.isabs(args.path):
         cli.error(
             "PATH must be relative\n"
             "Try 'guild open --help' for more information.")
-    run = runs_impl.one_run(args, ctx)
-    _open(run, args)
-    _flush_streams_and_exit()
+    cmd_impl_support.check_exclusive_args([
+        ("shell", "cmd"),
+        ("shell_cmd", "shell"),
+        ("shell_cmd", "cmd"),
+    ], args)
 
 def _open(run, args):
     to_open = _path(run, args)
@@ -65,13 +76,15 @@ def _path_root(args, run):
 
 def _open_f(args):
     if args.cmd:
-        return _subproc(args.cmd)
+        return _subproc_f(args.cmd)
+    elif args.shell or args.shell_cmd:
+        return _shell_f(args.shell_cmd)
     elif os.name == "nt":
         return os.startfile
     elif sys.platform.startswith("darwin"):
-        return _subproc("open")
+        return _subproc_f("open")
     elif os.name == "posix":
-        return _subproc("xdg-open")
+        return _subproc_f("xdg-open")
     else:
         cli.error(
             "unsupported platform: %s %s\n"
@@ -79,7 +92,7 @@ def _open_f(args):
             "'guild open --help' for more information."
             % (sys.platform, os.name))
 
-def _subproc(prog):
+def _subproc_f(prog):
     def f(path):
         subprocess.Popen([prog, path])
     return f
@@ -87,3 +100,16 @@ def _subproc(prog):
 def _flush_streams_and_exit():
     sys.stdout.flush()
     sys.exit(0)
+
+def _shell_f(shell_cmd):
+    shell_cmd = shell_cmd or os.getenv("SHELL", "bash")
+    def f(path):
+        if os.path.isfile(path):
+            path = os.path.dirname(path)
+        cli.note(
+            "Running a new shell in %s\n"
+            "To exit the shell, type 'exit' and press Enter."
+            % path)
+        with util.Chdir(path):
+            pty.spawn([shell_cmd])
+    return f
