@@ -25,8 +25,10 @@ from guild import util
 
 log = logging.getLogger("guild")
 
+
 class Failed(Exception):
     pass
+
 
 class FileCheck(object):
 
@@ -43,30 +45,25 @@ class FileCheck(object):
         path_glob = os.path.join(run.path, self.path)
         matches = glob.glob(path_glob)
         if not matches:
-            raise Failed(
-                "no files matching %s in run %s"
-                % (self.path, run.id))
+            raise Failed("no files matching %s in run %s" % (self.path, run.id))
         for path in matches:
             self._check_path(path, run)
 
     def _check_path(self, path, run):
         rel_path = os.path.relpath(path, run.path)
         if self.compare_to:
-            compare_to = os.path.join(
-                run.path, _apply_env_to_path(self.compare_to))
-            log.info(
-                "comparing run %s file %s to %s",
-                run.id, rel_path, compare_to)
+            compare_to = os.path.join(run.path, _apply_env_to_path(self.compare_to))
+            log.info("comparing run %s file %s to %s", run.id, rel_path, compare_to)
             _compare_files(path, compare_to)
         if self.pattern_re:
-            log.info(
-                "checking run %s file %s for %r",
-                run.id, rel_path, self.pattern)
+            log.info("checking run %s file %s for %r", run.id, rel_path, self.pattern)
             out = _read(path)
             if not self.pattern_re.search(out):
                 raise Failed(
                     "could not find pattern %r in run %s file %s"
-                    % (self.pattern, run.id, rel_path))
+                    % (self.pattern, run.id, rel_path)
+                )
+
 
 class OutputCheck(object):
 
@@ -82,8 +79,9 @@ class OutputCheck(object):
         out = _read(output_path)
         if not self.pattern_re.search(out):
             raise Failed(
-                "could not find pattern %r in run %s output"
-                % (self.pattern, run.id))
+                "could not find pattern %r in run %s output" % (self.pattern, run.id)
+            )
+
 
 def _compile_pattern(pattern):
     if pattern is None:
@@ -93,8 +91,10 @@ def _compile_pattern(pattern):
     except Exception:
         raise ValueError("invalid regular expression: %r" % pattern)
 
+
 def _compare_files(actual, expected):
     _compare(_read(actual), _read(expected), actual, expected)
+
 
 def _compare(actual, expected, actual_src, expected_src):
     a = re.split(r"\n\r?", expected)
@@ -106,17 +106,21 @@ def _compare(actual, expected, actual_src, expected_src):
         log.error("\n".join(diff))
         raise Failed("unexpected file contents - see above for details")
 
+
 def _read(path):
     try:
         return open(path, "r").read()
     except Exception:
         raise Failed("error reading run output from %s" % path)
 
+
 def _apply_env_to_path(path):
     """Replaces occurrences of ${NAME} with env values."""
     return util.resolve_refs(path, os.environ)
 
+
 check_classes = [FileCheck, OutputCheck]
+
 
 def init_check(data):
     for cls in check_classes:
@@ -124,4 +128,5 @@ def init_check(data):
             return cls(data)
     raise ValueError(
         "invalid check config - expected one of: %s"
-        % ", ".join([cls.type_attr for cls in check_classes]))
+        % ", ".join([cls.type_attr for cls in check_classes])
+    )

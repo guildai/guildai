@@ -24,8 +24,10 @@ from guild import util
 
 log = logging.getLogger("guild")
 
+
 class InstallError(Exception):
     pass
+
 
 def SearchCommand(spec, operator, *args, **kw):
     """Guild specific pip search implementation.
@@ -37,25 +39,38 @@ def SearchCommand(spec, operator, *args, **kw):
     implementation.
     """
     from pip._internal.commands.search import SearchCommand
+
     cmd = SearchCommand(*args, **kw)
     cmd._spec = spec
     cmd._operator = operator
     util.bind_method(cmd, "search", _SearchCommand_search)
     return cmd
 
+
 def _SearchCommand_search(cmd, _query, options):
     from six.moves import xmlrpc_client
     from pip._internal.download import PipXmlrpcTransport
+
     index_url = options.index
     with cmd._build_session(options) as session:
         transport = PipXmlrpcTransport(index_url, session)
         pypi = xmlrpc_client.ServerProxy(index_url, transport)
         return pypi.search(cmd._spec, cmd._operator)
 
-def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
-            no_cache=False, no_deps=False, reinstall=False, target=None):
+
+def install(
+    reqs,
+    index_urls=None,
+    upgrade=False,
+    pre_releases=False,
+    no_cache=False,
+    no_deps=False,
+    reinstall=False,
+    target=None,
+):
     from pip._internal.commands.install import InstallCommand
     from pip._internal.exceptions import InstallationError
+
     _reset_env_for_install()
     _ensure_patch_pip_get_entry_points()
     cmd = _pip_cmd(InstallCommand)
@@ -85,16 +100,20 @@ def install(reqs, index_urls=None, upgrade=False, pre_releases=False,
     except InstallationError as e:
         raise InstallError(str(e))
 
+
 def _reset_env_for_install():
     util.del_env(["PIP_REQ_TRACKER"])
+
 
 def _pip_cmd(cls, *args, **kw):
     cmd = cls(*args, **kw)
     cmd.verbosity = False
     return cmd
 
+
 def running_under_virtualenv():
     return "VIRTUAL_ENV" in os.environ or "CONDA_PREFIX" in os.environ
+
 
 def _ensure_patch_pip_get_entry_points():
     """Patch pip's get_entrypoints function.
@@ -108,8 +127,10 @@ def _ensure_patch_pip_get_entry_points():
     source.
     """
     from pip._internal import wheel
+
     if wheel.get_entrypoints != _pip_get_entrypoints_patch:
         wheel.get_entrypoints = _pip_get_entrypoints_patch
+
 
 def _pip_get_entrypoints_patch(filename):
     """See `_ensure_pip_get_entrypoints_patch` for details."""
@@ -145,12 +166,13 @@ def _pip_get_entrypoints_patch(filename):
     gui = dict(_split_ep(v) for v in gui.values())
     return console, gui
 
+
 def get_installed():
     from pip._internal.utils.misc import get_installed_distributions
+
     user_only = not running_under_virtualenv()
-    return get_installed_distributions(
-        local_only=False,
-        user_only=user_only)
+    return get_installed_distributions(local_only=False, user_only=user_only)
+
 
 def search(spec, operator):
     _ensure_search_logger()
@@ -158,12 +180,13 @@ def search(spec, operator):
     options, unused_parsed_query = cmd.parse_args([])
     return cmd.search(unused_parsed_query, options)
 
-class QuietLogger(logging.Logger):
 
+class QuietLogger(logging.Logger):
     def __init__(self, parent):
         super(QuietLogger, self).__init__(parent.name)
         self.parent = parent
         self.level = logging.WARNING
+
 
 def _ensure_search_logger():
     try:
@@ -174,14 +197,18 @@ def _ensure_search_logger():
         if not isinstance(connectionpool.log, QuietLogger):
             connectionpool.log = QuietLogger(connectionpool.log)
 
+
 def uninstall(reqs, dont_prompt=False):
     from pip._internal.commands.uninstall import UninstallCommand
+
     cmd = _pip_cmd(UninstallCommand)
     for req in reqs:
         _uninstall(req, cmd, dont_prompt)
 
+
 def _uninstall(req, cmd, dont_prompt):
     from pip._internal.exceptions import UninstallationError
+
     args = [req]
     if dont_prompt:
         args.append("--yes")
@@ -192,6 +219,7 @@ def _uninstall(req, cmd, dont_prompt):
         if "not installed" not in str(e):
             raise
         log.warning("%s is not installed, skipping", req)
+
 
 def download_url(url, download_dir, sha256=None):
     """Download and optionally verify a file.
@@ -211,6 +239,7 @@ def download_url(url, download_dir, sha256=None):
     of requiring that invalid files be explicitly deleted.
     """
     from pip._internal.index import Link
+
     link = Link(url)
     downloaded_path = _check_download_path(link, download_dir, sha256)
     if not downloaded_path:
@@ -219,6 +248,7 @@ def download_url(url, download_dir, sha256=None):
         if sha256:
             _verify_and_cache_hash(downloaded_path, sha256)
     return downloaded_path
+
 
 def _check_download_path(link, download_dir, expected_hash):
     download_path = os.path.join(download_dir, link.filename)
@@ -233,13 +263,14 @@ def _check_download_path(link, download_dir, expected_hash):
     _verify_and_cache_hash(download_path, expected_hash)
     return download_path
 
-class HashMismatch(Exception):
 
+class HashMismatch(Exception):
     def __init__(self, path, expected, actual):
         super(HashMismatch, self).__init__(path, expected, actual)
         self.path = path
         self.expected = expected
         self.actual = actual
+
 
 def _verify_and_cache_hash(path, expected_hash):
     calculated_hash = util.file_sha256(path)
@@ -247,8 +278,10 @@ def _verify_and_cache_hash(path, expected_hash):
         raise HashMismatch(path, expected_hash, calculated_hash)
     _cache_sha256(calculated_hash, path)
 
+
 def _cache_sha256(sha256, download_path):
     util.write_cached_sha(sha256, download_path)
+
 
 def _pip_download(link, download_dir):
     # We disable cache control for downloads for two reasons: First,
@@ -262,12 +295,15 @@ def _pip_download(link, download_dir):
     #
     from pip._internal.commands.download import DownloadCommand
     from pip._internal.download import _download_http_url
+
     cmd = _pip_cmd(DownloadCommand)
     options, _ = cmd.parse_args(["--no-cache-dir"])
     session = cmd._build_session(options)
-    orig_path, _ = _download_http_url(link, session, download_dir,
-                                      hashes=None, progress_bar="on")
+    orig_path, _ = _download_http_url(
+        link, session, download_dir, hashes=None, progress_bar="on"
+    )
     return orig_path
+
 
 def _ensure_expected_download_path(downloaded, link):
     expected = os.path.join(os.path.dirname(downloaded), link.filename)
@@ -275,8 +311,10 @@ def _ensure_expected_download_path(downloaded, link):
         os.rename(downloaded, expected)
     return expected
 
+
 def print_package_info(pkg, verbose=False, show_files=False):
     from pip._internal.commands.show import ShowCommand
+
     _ensure_print_package_logger()
     cmd = _pip_cmd(ShowCommand)
     args = []
@@ -287,8 +325,8 @@ def print_package_info(pkg, verbose=False, show_files=False):
     args.append(pkg)
     return cmd.run(*cmd.parse_args(args))
 
-class PrintPackageLogger(object):
 
+class PrintPackageLogger(object):
     def info(self, msg, args=None):
         args = args or []
         out = self._normalize_attr_case(msg % args)
@@ -302,14 +340,19 @@ class PrintPackageLogger(object):
             return m.group(1).lower() + m.group(2)
         return s
 
+
 def _ensure_print_package_logger():
     from pip._internal.commands import show
+
     if not isinstance(show.logger, PrintPackageLogger):
         show.logger = PrintPackageLogger()
 
+
 def parse_requirements(path):
     from pip._internal.req import req_file
+
     return req_file.parse_requirements(path, session="unused")
+
 
 def is_requirements(path):
     if not util.is_text_file(path):
@@ -321,20 +364,25 @@ def is_requirements(path):
     else:
         return True
 
-def lib_dir(name, wheeldir, user=False, home=None, root=None,
-            isolated=False, prefix=None):
+
+def lib_dir(
+    name, wheeldir, user=False, home=None, root=None, isolated=False, prefix=None
+):
     from pip._internal.locations import distutils_scheme
     from pip._internal.wheel import root_is_purelib
+
     scheme = distutils_scheme(
-        "", user=user, home=home, root=root,
-        isolated=isolated, prefix=prefix)
+        "", user=user, home=home, root=root, isolated=isolated, prefix=prefix
+    )
     if root_is_purelib(name, wheeldir):
         return scheme['purelib']
     else:
         return scheme['platlib']
 
+
 def freeze():
     from pip._internal.operations.freeze import freeze
+
     try:
         return list(freeze())
     except Exception as e:

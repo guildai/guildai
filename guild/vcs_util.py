@@ -72,18 +72,12 @@ def commit_for_dir(dir):
     dir = os.path.abspath(dir)
     for scheme in SCHEMES:
         commit = _apply_scheme(
-            dir,
-            scheme.commit_cmd,
-            scheme.commit_pattern,
-            scheme.commit_ok_errors,
+            dir, scheme.commit_cmd, scheme.commit_pattern, scheme.commit_ok_errors,
         )
         if commit is None:
             raise NoCommit(dir)
         status = _apply_scheme(
-            dir,
-            scheme.status_cmd,
-            scheme.status_pattern,
-            scheme.status_ok_errors,
+            dir, scheme.status_cmd, scheme.status_pattern, scheme.status_ok_errors,
         )
         return _format_commit(commit, scheme), _format_status(status)
     raise NoCommit(dir)

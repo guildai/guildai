@@ -34,7 +34,8 @@ Use `run-once` to start staged runs and stop without waiting for new \
 staged runs.
 """
 
-queue_flags_data = yaml.safe_load("""
+queue_flags_data = yaml.safe_load(
+    """
 poll-interval:
   description: Minimum number of seconds between polls
   default: 10
@@ -49,7 +50,9 @@ ignore-running:
   default: no
   arg-switch: yes
   type: boolean
-""")
+"""
+)
+
 
 class QueueModelProxy(object):
 
@@ -66,11 +69,12 @@ class QueueModelProxy(object):
                 "operations": {
                     "queue": {
                         "description": queue_description,
-                        "exec": ("${python_exe} -um guild.plugins.queue_main "
-                                 "${flag_args}"),
+                        "exec": (
+                            "${python_exe} -um guild.plugins.queue_main " "${flag_args}"
+                        ),
                         "flags": queue_flags_data,
                     }
-                }
+                },
             }
         ]
         gf = guildfile.Guildfile(data, src="<%s>" % self.__class__.__name__)
@@ -78,14 +82,10 @@ class QueueModelProxy(object):
 
     @staticmethod
     def _init_reference():
-        return modellib.ModelRef(
-            "builtin",
-            "guildai",
-            guild.__version__,
-            "queue")
+        return modellib.ModelRef("builtin", "guildai", guild.__version__, "queue")
+
 
 class QueuePlugin(pluginlib.Plugin):
-
     @staticmethod
     def resolve_model_op(opspec):
         if opspec in ("queue", "queue:queue"):

@@ -30,24 +30,17 @@ from guild import query
 
 log = logging.getLogger("guild")
 
-OptInputs = collections.namedtuple(
-    "OptInputs", [
-        "random_starts",
-        "x0",
-        "y0",
-        "dims"
-    ])
+OptInputs = collections.namedtuple("OptInputs", ["random_starts", "x0", "y0", "dims"])
+
 
 class State(batch_util.SeqState):
-
     def __init__(self, batch):
         super(State, self).__init__(batch)
-        (self.dim_names,
-         self.dims,
-         self.initials) = flag_dims(self.proto_flags)
+        (self.dim_names, self.dims, self.initials) = flag_dims(self.proto_flags)
         self.run_index = indexlib.RunIndex()
-        (self._run_loss,
-         self.loss_desc) = _init_run_loss_fun(self.batch, self.run_index)
+        (self._run_loss, self.loss_desc) = _init_run_loss_fun(
+            self.batch, self.run_index
+        )
         self.random_state = batch.random_seed
         self._last_res = None
 
@@ -69,9 +62,7 @@ class State(batch_util.SeqState):
 
         """
         prev_trials = self.previous_trials(trial_run_id)
-        log.info(
-            "Found %i previous trial(s) for use in optimization",
-            len(prev_trials))
+        log.info("Found %i previous trial(s) for use in optimization", len(prev_trials))
         if self.batch_flags["random-starts"] > len(prev_trials):
             # Haven't met random-starts requirement yet - use a random
             # start.
@@ -93,8 +84,8 @@ class State(batch_util.SeqState):
             loss = self._run_loss(run)
             if loss is None:
                 raise batch_util.BatchError(
-                    "could not get %r for run %s - quitting" %
-                    (self.loss_desc, run.id))
+                    "could not get %r for run %s - quitting" % (self.loss_desc, run.id)
+                )
             _try_append_prev_trial(run, self.dim_names, loss, trials)
         return trials
 
@@ -131,30 +122,33 @@ class State(batch_util.SeqState):
             flags.update(trial_flags(self.dim_names, suggestions))
         return flags
 
+
 def _init_run_loss_fun(batch, run_index):
     negate, col = _init_objective(batch)
     prefix, tag = col.split_key()
+
     def f(run):
-        loss = run_index.run_scalar(
-            run, prefix, tag, col.qualifier, col.step)
+        loss = run_index.run_scalar(run, prefix, tag, col.qualifier, col.step)
         if loss is None:
             return loss
         return loss * negate
+
     return f, str(col)
+
 
 def _init_objective(batch):
     negate, colspec = _objective_colspec(batch)
     try:
         cols = query.parse_colspec(colspec).cols
     except query.ParseError as e:
-        raise batch_util.BatchError(
-            "cannot parse objective %r: %s" % (colspec, e))
+        raise batch_util.BatchError("cannot parse objective %r: %s" % (colspec, e))
     else:
         if len(cols) > 1:
             raise batch_util.BatchError(
-                "invalid objective %r: only one column may "
-                "be specified" % colspec)
+                "invalid objective %r: only one column may " "be specified" % colspec
+            )
         return negate, cols[0]
+
 
 def _objective_colspec(batch):
     objective = batch.proto_run.get("objective")
@@ -169,31 +163,31 @@ def _objective_colspec(batch):
         maximize = objective.get("maximize")
         if maximize:
             return -1, maximize
-    raise batch_util.BatchError(
-        "unsupported objective type %r"
-        % objective)
+    raise batch_util.BatchError("unsupported objective type %r" % objective)
+
 
 def _prev_trial_candidates(batch, cur_trial_run_id):
     return [
-        run for run in batch.seq_trial_runs(status="completed")
+        run
+        for run in batch.seq_trial_runs(status="completed")
         if run.id != cur_trial_run_id
     ]
+
 
 def _try_append_prev_trial(run, flag_names, loss, trials):
     run_flags = run.get("flags", {})
     try:
-        trial = {
-            name: run_flags[name]
-            for name in flag_names
-        }
+        trial = {name: run_flags[name] for name in flag_names}
     except KeyError:
         pass
     else:
         trial["__loss__"] = loss
         trials.append(trial)
 
+
 def trial_flags(names, vals):
     return dict(zip(names, _native_python(vals)))
+
 
 def _native_python(l):
     def pyval(x):
@@ -201,7 +195,9 @@ def _native_python(l):
             return x.item()
         except AttributeError:
             return x
+
     return [pyval(x) for x in l]
+
 
 def default_main(seq_trial_cb, non_repeating=True):
     if non_repeating:
@@ -211,6 +207,7 @@ def default_main(seq_trial_cb, non_repeating=True):
     except batch_util.StopBatch as e:
         assert e.error
         sys.exit(1)
+
 
 class NonRepeatingTrials(object):
     """Wrapper to ensure that seq trial callbacks don't repeat trials.
@@ -230,28 +227,30 @@ class NonRepeatingTrials(object):
             if next_trial_flags == run.get("flags"):
                 log.warning(
                     "optimizer repeated trial (%s) - using random",
-                    op_util.flags_desc(next_trial_flags))
+                    op_util.flags_desc(next_trial_flags),
+                )
                 next_trial_flags = self._random_trial_flags(state)
         return next_trial_flags, {}
 
     @staticmethod
     def _random_trial_flags(state):
         import skopt
+
         res = skopt.dummy_minimize(
-            lambda *args: 0,
-            state.dims,
-            n_calls=1,
-            random_state=state.random_state)
+            lambda *args: 0, state.dims, n_calls=1, random_state=state.random_state
+        )
         state.update(res)
         return state.next_trial_flags()
+
 
 def _check_state_dims(state):
     if not state.dim_names:
         log.error(
-            "flags for batch (%s) do not contain any search "
-            "dimension - quitting",
-            op_util.flags_desc(state.proto_flags))
+            "flags for batch (%s) do not contain any search " "dimension - quitting",
+            op_util.flags_desc(state.proto_flags),
+        )
         raise batch_util.StopBatch(error=True)
+
 
 def flag_dims(flags):
     """Return flag names, dims, and initials for flags.
@@ -271,10 +270,8 @@ def flag_dims(flags):
             dims[name] = flag_dim
             initials[name] = initial
     names = sorted(dims)
-    return (
-        names,
-        [dims[name] for name in names],
-        [initials[name] for name in names])
+    return (names, [dims[name] for name in names], [initials[name] for name in names])
+
 
 def _flag_dim(val, flag_name):
     if isinstance(val, list):
@@ -284,9 +281,12 @@ def _flag_dim(val, flag_name):
     else:
         raise ValueError(val, flag_name)
 
+
 def _categorical_dim(vals, initial):
     from skopt.space import space
+
     return space.Categorical(vals), initial
+
 
 def _try_function_dim(val, flag_name):
     assert isinstance(val, six.string_types), val
@@ -297,6 +297,7 @@ def _try_function_dim(val, flag_name):
     else:
         return _function_dim(func_name, func_args, flag_name)
 
+
 def _function_dim(func_name, args, flag_name):
     if func_name is None:
         func_name = "uniform"
@@ -305,11 +306,13 @@ def _function_dim(func_name, args, flag_name):
     elif func_name == "loguniform":
         return _real_dim(args, "log-uniform", func_name, flag_name)
     raise batch_util.BatchError(
-        "unsupported function %r for flag %s"
-        % (func_name, flag_name))
+        "unsupported function %r for flag %s" % (func_name, flag_name)
+    )
+
 
 def _uniform_dim(args, func_name, flag_name):
     from skopt.space import space
+
     if len(args) == 2:
         dim_args = args
         initial = None
@@ -318,12 +321,14 @@ def _uniform_dim(args, func_name, flag_name):
         initial = args[2]
     else:
         raise batch_util.BatchError(
-            "%s requires 2 or 3 args, got %r for flag %s"
-            % (func_name, args, flag_name))
+            "%s requires 2 or 3 args, got %r for flag %s" % (func_name, args, flag_name)
+        )
     return space.check_dimension(dim_args), initial
+
 
 def _real_dim(args, prior, func_name, flag_name):
     from skopt.space import space
+
     if len(args) == 2:
         dim_args = args
         initial = None
@@ -332,14 +337,16 @@ def _real_dim(args, prior, func_name, flag_name):
         initial = args[2]
     else:
         raise batch_util.BatchError(
-            "%s requires 2 or 3 args, got %r for flag %s"
-            % (func_name, args, flag_name))
+            "%s requires 2 or 3 args, got %r for flag %s" % (func_name, args, flag_name)
+        )
     real_init_args = list(dim_args) + [prior]
     return space.Real(*real_init_args), initial
+
 
 def _patch_numpy_deprecation_warnings():
     warnings.filterwarnings("ignore", category=Warning)
     # pylint: disable=unused-variable
     import numpy.core.umath_tests
+
 
 _patch_numpy_deprecation_warnings()

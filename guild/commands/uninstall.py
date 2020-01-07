@@ -20,15 +20,14 @@ import click
 from guild import click_util
 from . import packages_delete
 
+
 @click.command()
-
 @packages_delete.delete_params
-
 @click_util.use_args
 @click_util.render_doc
-
 def uninstall(args):
     """{{ packages_delete.delete_packages }}"""
 
     from . import packages_impl
+
     packages_impl.uninstall_packages(args)

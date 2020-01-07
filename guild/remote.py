@@ -19,26 +19,32 @@ import guild.config
 
 from guild import opref
 
+
 class NoSuchRemote(ValueError):
     pass
+
 
 class UnsupportedRemoteType(ValueError):
     pass
 
+
 class MissingRequiredConfig(ValueError):
     pass
+
 
 class OperationNotSupported(Exception):
     pass
 
+
 class Down(Exception):
     pass
+
 
 class OperationError(Exception):
     pass
 
-class RemoteProcessError(Exception):
 
+class RemoteProcessError(Exception):
     def __init__(self, exit_status, cmd, output):
         super(RemoteProcessError, self).__init__(exit_status, cmd, output)
         self.exit_status = exit_status
@@ -49,25 +55,26 @@ class RemoteProcessError(Exception):
     def for_called_process_error(cls, e):
         return cls(e.returncode, e.cmd, e.output)
 
-class RunFailed(Exception):
 
+class RunFailed(Exception):
     def __init__(self, remote_run_dir):
         super(RunFailed, self).__init__(remote_run_dir)
         self.remote_run_dir = remote_run_dir
 
+
 class RemoteProcessDetached(Exception):
     pass
 
-class RemoteConfig(dict):
 
+class RemoteConfig(dict):
     def __getitem__(self, key):
         try:
             return super(RemoteConfig, self).__getitem__(key)
         except KeyError:
             raise MissingRequiredConfig(key)
 
-class RunProxy(object):
 
+class RunProxy(object):
     def __init__(self, data):
         self.id = data["id"]
         self.short_id = self.id[:8]
@@ -108,6 +115,7 @@ class RunProxy(object):
 
     def guild_path(self, _path):
         raise TypeError("guild_path not supported by %s" % self)
+
 
 class Remote(object):
 
@@ -180,6 +188,7 @@ class Remote(object):
     def cat(self, **opts):
         raise NotImplementedError()
 
+
 def for_name(name):
     user_config = guild.config.user_config()
     remotes = user_config.get("remotes", {})
@@ -192,20 +201,25 @@ def for_name(name):
         remote_type = remote_config["type"]
         return _for_type(remote_type, name, remote_config)
 
+
 def _for_type(remote_type, name, config):
     # Hard-code for now. If this goes anywhere we can make it an
     # entry-point or use the plugin framework.
     if remote_type == "ssh":
         from guild.remotes import ssh
+
         cls = ssh.SSHRemote
     elif remote_type == "ec2":
         from guild.remotes import ec2
+
         cls = ec2.EC2Remote
     elif remote_type == "s3":
         from guild.remotes import s3
+
         cls = s3.S3Remote
     elif remote_type == "mock-ssh":
         from guild.remotes import ssh
+
         cls = ssh.MockSSHRemote
     else:
         raise UnsupportedRemoteType(remote_type)

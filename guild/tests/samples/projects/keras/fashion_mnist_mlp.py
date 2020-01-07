@@ -31,12 +31,15 @@ model.add(Dense(10, activation='softmax'))
 model.compile(
     loss='categorical_crossentropy',
     optimizer=RMSprop(lr=lr, decay=lr_decay),
-    metrics=['accuracy'])
+    metrics=['accuracy'],
+)
 
 model.fit(
-    x_train, y_train,
+    x_train,
+    y_train,
     batch_size=batch_size,
     epochs=epochs,
     verbose=1,
     validation_data=(x_test, y_test),
-    callbacks=[keras.callbacks.TensorBoard()])
+    callbacks=[keras.callbacks.TensorBoard()],
+)

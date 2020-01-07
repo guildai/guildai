@@ -20,33 +20,37 @@ import click
 from guild import click_util
 from . import runs_support
 
+
 def import_params(fn):
-    click_util.append_params(fn, [
-        runs_support.runs_arg,
-        click.Argument(("archive",)),
-        click.Option(
-            ("-m", "--move"),
-            help="Move imported runs rather than copy.",
-            is_flag=True),
-        click.Option(
-            ("--copy-resources",),
-            help="Copy resources for each imported run.",
-            is_flag=True),
-        runs_support.all_filters,
-        click.Option(
-            ("-y", "--yes"),
-            help="Do not prompt before importing.",
-            is_flag=True),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            runs_support.runs_arg,
+            click.Argument(("archive",)),
+            click.Option(
+                ("-m", "--move"),
+                help="Move imported runs rather than copy.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("--copy-resources",),
+                help="Copy resources for each imported run.",
+                is_flag=True,
+            ),
+            runs_support.all_filters,
+            click.Option(
+                ("-y", "--yes"), help="Do not prompt before importing.", is_flag=True
+            ),
+        ],
+    )
     return fn
+
 
 @click.command("import")
 @import_params
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def import_runs(ctx, args):
     """Import one or more runs from `ARCHIVE`.
 
@@ -70,4 +74,5 @@ def import_runs(ctx, args):
     """
 
     from . import runs_impl
+
     runs_impl.import_(args, ctx)

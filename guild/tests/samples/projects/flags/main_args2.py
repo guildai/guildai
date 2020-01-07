@@ -1,8 +1,10 @@
 import argparse
 
+
 def main():
     args = _init_args()
     _print_args(args)
+
 
 def _init_args():
     p = argparse.ArgumentParser()
@@ -10,9 +12,11 @@ def _init_args():
     p.add_argument("--bar", default=0.001, help="Bar")
     return p.parse_args()
 
+
 def _print_args(args):
     print("bar: {}".format(args.bar))
     print("foo: {}".format(args.foo))
+
 
 if __name__ == "__main__":
     main()

@@ -37,6 +37,7 @@ MODULE_DIR = os.path.dirname(__file__)
 TB_RUNS_MONITOR_INTERVAL = 5
 TB_REFRESH_INTERVAL = 5
 
+
 class ViewData(object):
     """Interface for providing View related data."""
 
@@ -78,8 +79,8 @@ class ViewData(object):
         """
         raise NotImplementedError()
 
-class DevServer(threading.Thread):
 
+class DevServer(threading.Thread):
     def __init__(self, host, port, view_port):
         super(DevServer, self).__init__()
         self.host = host or socket.gethostname()
@@ -91,8 +92,10 @@ class DevServer(threading.Thread):
     def run(self):
         args = [
             self._devserver_bin(),
-            "--host", self.host,
-            "--config", self._devserver_config(),
+            "--host",
+            self.host,
+            "--config",
+            self._devserver_config(),
             "--progress",
         ]
         env = {
@@ -117,20 +120,20 @@ class DevServer(threading.Thread):
 
     @staticmethod
     def _devserver_bin():
-        path = os.path.join(
-            MODULE_DIR, "view/node_modules/.bin/webpack-dev-server")
+        path = os.path.join(MODULE_DIR, "view/node_modules/.bin/webpack-dev-server")
         if not os.path.exists(path):
             raise AssertionError(
                 "{} does not exits - did you resolve node dependencies by "
-                "running npm install?".format(path))
+                "running npm install?".format(path)
+            )
         return path
 
     @staticmethod
     def _devserver_config():
         return os.path.join(MODULE_DIR, "view/build/webpack.dev.conf.js")
 
-class TBServer(object):
 
+class TBServer(object):
     def __init__(self, tensorboard, key, data):
         self._tb = tensorboard
         self._key = key
@@ -149,15 +152,13 @@ class TBServer(object):
             raise RuntimeError("already started")
         self.log_dir = util.mktempdir("guild-tensorboard-")
         self._monitor = self._tb.RunsMonitor(
-            self.log_dir,
-            self._list_runs,
-            TB_RUNS_MONITOR_INTERVAL)
+            self.log_dir, self._list_runs, TB_RUNS_MONITOR_INTERVAL
+        )
         self._monitor.run_once(exit_on_error=True)
         self._monitor.start()
         self._app = self._tb.create_app(
-            self.log_dir,
-            TB_REFRESH_INTERVAL,
-            path_prefix=self._path_prefix())
+            self.log_dir, TB_REFRESH_INTERVAL, path_prefix=self._path_prefix()
+        )
         self._started = True
 
     def _list_runs(self):
@@ -184,8 +185,8 @@ class TBServer(object):
         self._monitor.stop()
         util.rmtempdir(self.log_dir)
 
-class TBServers(object):
 
+class TBServers(object):
     def __init__(self, data):
         self._lock = threading.Lock()
         self._servers = {}
@@ -208,13 +209,14 @@ class TBServers(object):
         server.start()
         self._servers[key] = server
         log.debug(
-            "using log dir %s for TensorBoard server (%s)",
-            server.log_dir, server)
+            "using log dir %s for TensorBoard server (%s)", server.log_dir, server
+        )
         return server
 
     def _ensure_tensorboard(self):
         if self._tb is None:
             from guild import tensorboard
+
             self._tb = tensorboard
         return self._tb
 
@@ -228,14 +230,14 @@ class TBServers(object):
                 log.debug("stopping TensorBoard server (%s)", server)
                 server.stop()
 
-class DistFiles(serving_util.StaticDir):
 
+class DistFiles(serving_util.StaticDir):
     def __init__(self):
         dist_dir = os.path.join(MODULE_DIR, "view/dist")
         super(DistFiles, self).__init__(dist_dir)
 
-class RunFiles(serving_util.StaticBase):
 
+class RunFiles(serving_util.StaticBase):
     def __init__(self):
         super(RunFiles, self).__init__({"/files": var.runs_dir()})
 
@@ -244,11 +246,13 @@ class RunFiles(serving_util.StaticBase):
             def start_resp(status, headers):
                 headers.append(("Access-Control-Allow-Origin", "*"))
                 start_resp0(status, headers)
+
             return self._app(env, start_resp)
+
         return app
 
-class RunOutput(object):
 
+class RunOutput(object):
     def __init__(self):
         self._output_run_id = None
         self._output = None
@@ -258,8 +262,7 @@ class RunOutput(object):
         start = req.args.get("s", None, int)
         end = req.args.get("e", None, int)
         lines = [
-            (time, stream, line)
-            for time, stream, line in self._output.read(start, end)
+            (time, stream, line) for time, stream, line in self._output.read(start, end)
         ]
         return serving_util.json_resp(lines)
 
@@ -272,11 +275,13 @@ class RunOutput(object):
         self._output = util.RunOutputReader(run_dir)
         self._output_run_id = run_id
 
+
 def serve_forever(data, host, port, no_open=False, dev=False, logging=False):
     if dev:
         _serve_dev(data, host, port, no_open, logging)
     else:
         _serve_prod(data, host, port, no_open, logging)
+
 
 def _serve_dev(data, host, port, no_open, logging):
     view_port = util.free_port(port + 1)
@@ -290,6 +295,7 @@ def _serve_dev(data, host, port, no_open, logging):
     _start_view(data, host, view_port, logging)
     sys.stdout.write("\n")
 
+
 def _serve_prod(data, host, port, no_open, logging):
     view_url = util.local_server_url(host, port)
     if not no_open:
@@ -301,6 +307,7 @@ def _serve_prod(data, host, port, no_open, logging):
     _start_view(data, host, port, logging)
     sys.stdout.write("\n")
 
+
 def _start_view(data, host, port, logging):
     tb_servers = TBServers(data)
     app = _view_app(data, tb_servers)
@@ -309,27 +316,32 @@ def _start_view(data, host, port, logging):
     server.serve_forever()
     tb_servers.stop_servers()
 
+
 def _view_app(data, tb_servers):
     dist_files = DistFiles()
     run_files = RunFiles()
     run_output = RunOutput()
-    routes = serving_util.Map([
-        ("/runs", _handle_runs, (data,)),
-        ("/compare", _handle_compare, (data,)),
-        ("/files/<path:_>", run_files.handle, ()),
-        ("/runs/<run>/output", run_output.handle, ()),
-        ("/config", _handle_config, (data,)),
-        ("/tb/", _route_tb, ()),
-        ("/tb/<key>/", _handle_tb_index, (tb_servers, data)),
-        ("/tb/<key>/<path:_>", _handle_tb, (tb_servers,)),
-        ("/", dist_files.handle_index, ()),
-        ("/<path:_>", dist_files.handle, ()),
-    ])
+    routes = serving_util.Map(
+        [
+            ("/runs", _handle_runs, (data,)),
+            ("/compare", _handle_compare, (data,)),
+            ("/files/<path:_>", run_files.handle, ()),
+            ("/runs/<run>/output", run_output.handle, ()),
+            ("/config", _handle_config, (data,)),
+            ("/tb/", _route_tb, ()),
+            ("/tb/<key>/", _handle_tb_index, (tb_servers, data)),
+            ("/tb/<key>/<path:_>", _handle_tb, (tb_servers,)),
+            ("/", dist_files.handle_index, ()),
+            ("/<path:_>", dist_files.handle, ()),
+        ]
+    )
     return serving_util.App(routes)
+
 
 def _handle_runs(req, data):
     runs_data = _runs_data(req, data)
     return serving_util.json_resp(runs_data)
+
 
 def _runs_data(req, data):
     try:
@@ -342,12 +354,15 @@ def _runs_data(req, data):
             raise NotFound()
         return [data]
 
+
 def _handle_compare(_req, data):
     compare_data = data.compare_data()
     return serving_util.json_resp(compare_data)
 
+
 def _handle_config(_req, data):
     return serving_util.json_resp(data.config())
+
 
 def _route_tb(req):
     if "run" in req.args:
@@ -355,6 +370,7 @@ def _route_tb(req):
     else:
         key = "0"
     return redirect("/tb/{}/".format(key), code=303)
+
 
 def _handle_tb_index(req, tb_servers, data, key):
     try:
@@ -365,12 +381,14 @@ def _handle_tb_index(req, tb_servers, data, key):
         with tb_servers:
             return tb_servers.start_server(key)
 
+
 def _handle_tb(_req, tb_servers, key):
     with tb_servers:
         try:
             return tb_servers[key]
         except KeyError:
             raise NotFound()
+
 
 def _try_run_id(key, data):
     run = data.one_run(key)

@@ -36,8 +36,8 @@ log = logging.getLogger("guild.remotes.s3")
 RUNS_PATH = ["runs"]
 DELETED_RUNS_PATH = ["trash", "runs"]
 
-class S3Remote(remotelib.Remote):
 
+class S3Remote(remotelib.Remote):
     def __init__(self, name, config):
         self.name = name
         self.bucket = config["bucket"]
@@ -89,11 +89,16 @@ class S3Remote(remotelib.Remote):
         sync_args = [
             self._s3_uri(),
             self.local_sync_dir,
-            "--exclude", "*",
-            "--include", "*/.guild/opref",
-            "--include", "*/.guild/attrs/*",
-            "--include", "*/.guild/LOCK*",
-            "--include", "meta-id",
+            "--exclude",
+            "*",
+            "--include",
+            "*/.guild/opref",
+            "--include",
+            "*/.guild/attrs/*",
+            "--include",
+            "*/.guild/LOCK*",
+            "--include",
+            "meta-id",
             "--delete",
         ]
         self._s3_cmd("sync", sync_args, to_stderr=True)
@@ -119,8 +124,10 @@ class S3Remote(remotelib.Remote):
     def _remote_meta_id(self):
         with util.TempFile("guild-s3-") as tmp:
             args = [
-                "--bucket", self.bucket,
-                "--key", _join_path(self.root, "meta-id"),
+                "--bucket",
+                self.bucket,
+                "--key",
+                _join_path(self.root, "meta-id"),
                 tmp.path,
             ]
             self._s3api_output("get-object", args)
@@ -134,9 +141,8 @@ class S3Remote(remotelib.Remote):
         log.debug("aws cmd: %r", cmd)
         try:
             return subprocess.check_output(
-                cmd,
-                env=os.environ,
-                stderr=subprocess.STDOUT)
+                cmd, env=os.environ, stderr=subprocess.STDOUT
+            )
         except subprocess.CalledProcessError as e:
             raise remotelib.RemoteProcessError.for_called_process_error(e)
 
@@ -168,22 +174,30 @@ class S3Remote(remotelib.Remote):
         if args.permanent:
             preview = (
                 "WARNING: You are about to permanently delete "
-                "the following runs on %s:" % self.name)
+                "the following runs on %s:" % self.name
+            )
             confirm = "Permanently delete these runs?"
         else:
-            preview = (
-                "You are about to delete the following runs on %s:"
-                % self.name)
+            preview = "You are about to delete the following runs on %s:" % self.name
             confirm = "Delete these runs?"
         no_runs_help = "Nothing to delete."
+
         def delete_f(selected):
             self._delete_runs(selected, args.permanent)
             self._new_meta_id()
             self._sync_runs_meta(force=True)
+
         try:
             runs_impl.runs_op(
-                args, None, False, preview, confirm, no_runs_help,
-                delete_f, confirm_default=not args.permanent)
+                args,
+                None,
+                False,
+                preview,
+                confirm,
+                no_runs_help,
+                delete_f,
+                confirm_default=not args.permanent,
+            )
         except SystemExit as e:
             self._reraise_system_exit(e)
 
@@ -193,7 +207,8 @@ class S3Remote(remotelib.Remote):
         exit_code = e.args[1]
         msg = e.args[0].replace(
             "guild runs list",
-            "guild runs list %s-r %s" % (deleted and "-d " or "", self.name))
+            "guild runs list %s-r %s" % (deleted and "-d " or "", self.name),
+        )
         raise SystemExit(msg, exit_code)
 
     def _delete_runs(self, runs, permanent):
@@ -218,19 +233,26 @@ class S3Remote(remotelib.Remote):
         self._sync_runs_meta()
         args = click_util.Args(**opts)
         args.archive = self._deleted_runs_dir
-        preview = (
-            "You are about to restore the following runs on %s:"
-            % self.name)
+        preview = "You are about to restore the following runs on %s:" % self.name
         confirm = "Restore these runs?"
         no_runs_help = "Nothing to restore."
+
         def restore_f(selected):
             self._restore_runs(selected)
             self._new_meta_id()
             self._sync_runs_meta(force=True)
+
         try:
             runs_impl._runs_op(
-                args, None, False, preview, confirm, no_runs_help,
-                restore_f, confirm_default=True)
+                args,
+                None,
+                False,
+                preview,
+                confirm,
+                no_runs_help,
+                restore_f,
+                confirm_default=True,
+            )
         except SystemExit as e:
             self._reraise_system_exit(e, deleted=True)
 
@@ -247,17 +269,27 @@ class S3Remote(remotelib.Remote):
         args.archive = self._deleted_runs_dir
         preview = (
             "WARNING: You are about to permanently delete "
-            "the following runs on %s:" % self.name)
+            "the following runs on %s:" % self.name
+        )
         confirm = "Permanently delete these runs?"
         no_runs_help = "Nothing to purge."
+
         def purge_f(selected):
             self._purge_runs(selected)
             self._new_meta_id()
             self._sync_runs_meta(force=True)
+
         try:
             runs_impl._runs_op(
-                args, None, False, preview, confirm, no_runs_help,
-                purge_f, confirm_default=False)
+                args,
+                None,
+                False,
+                preview,
+                confirm,
+                no_runs_help,
+                purge_f,
+                confirm_default=False,
+            )
         except SystemExit as e:
             self._reraise_system_exit(e, deleted=True)
 
@@ -266,30 +298,27 @@ class S3Remote(remotelib.Remote):
             uri = self._s3_uri(*(DELETED_RUNS_PATH + [run.id]))
             self._s3_rm(uri)
 
-
     def status(self, verbose=False):
         self._verify_creds_and_region()
         try:
-            self._s3api_output(
-                "get-bucket-location",
-                ["--bucket", self.bucket])
+            self._s3api_output("get-bucket-location", ["--bucket", self.bucket])
         except remotelib.RemoteProcessError as e:
             self._handle_status_error(e)
         else:
             sys.stdout.write(
-                "%s (S3 bucket %s) is available\n"
-                % (self.name, self.bucket))
+                "%s (S3 bucket %s) is available\n" % (self.name, self.bucket)
+            )
 
     def _handle_status_error(self, e):
         output = e.output.decode()
         if "NoSuchBucket" in output:
             raise remotelib.OperationError(
-                "%s is not available - %s does not exist"
-                % (self.name, self.bucket))
+                "%s is not available - %s does not exist" % (self.name, self.bucket)
+            )
         else:
             raise remotelib.OperationError(
-                "%s is not available: %s"
-                % (self.name, output))
+                "%s is not available: %s" % (self.name, output)
+            )
 
     def start(self):
         log.info("Creating S3 bucket %s", self.bucket)
@@ -309,9 +338,7 @@ class S3Remote(remotelib.Remote):
             raise remotelib.OperationError()
 
     def get_stop_details(self):
-        return (
-            "- S3 bucket %s will be deleted - THIS CANNOT BE UNDONE!"
-            % self.bucket)
+        return "- S3 bucket %s will be deleted - THIS CANNOT BE UNDONE!" % self.bucket
 
     def push(self, runs, delete=False):
         self._verify_creds_and_region()
@@ -323,10 +350,7 @@ class S3Remote(remotelib.Remote):
     def _push_run(self, run, delete):
         local_run_src = os.path.join(run.path, "")
         remote_run_dest = self._s3_uri(*RUNS_PATH + [run.id]) + "/"
-        args = [
-            "--no-follow-symlinks",
-            local_run_src,
-            remote_run_dest]
+        args = ["--no-follow-symlinks", local_run_src, remote_run_dest]
         if delete:
             args.insert(0, "--delete")
         log.info("Copying %s to %s", run.id, self.name)
@@ -338,9 +362,12 @@ class S3Remote(remotelib.Remote):
             with open(tmp.path, "w") as f:
                 f.write(meta_id)
             args = [
-                "--bucket", self.bucket,
-                "--key", _join_path(self.root, "meta-id"),
-                "--body", tmp.path
+                "--bucket",
+                self.bucket,
+                "--key",
+                _join_path(self.root, "meta-id"),
+                "--body",
+                tmp.path,
             ]
             self._s3api_output("put-object", args)
 
@@ -385,19 +412,21 @@ class S3Remote(remotelib.Remote):
     def stop_runs(self, **opts):
         raise remotelib.OperationNotSupported()
 
+
 def _aws_cmd():
     cmd = util.which("aws")
     if not cmd:
         raise remotelib.OperationError(
             "AWS Command Line Interface (CLI) is not available\n"
-            "Refer to https://docs.aws.amazon.com/cli for help installing it.")
+            "Refer to https://docs.aws.amazon.com/cli for help installing it."
+        )
     return cmd
 
+
 def _join_path(root, *parts):
-    path = [
-        part for part in itertools.chain([root], parts)
-        if part not in ("/", "")]
+    path = [part for part in itertools.chain([root], parts) if part not in ("/", "")]
     return "/".join(path)
+
 
 def _subprocess_call(cmd, to_stderr):
     if to_stderr:
@@ -405,17 +434,17 @@ def _subprocess_call(cmd, to_stderr):
     else:
         subprocess.check_call(cmd, env=os.environ)
 
+
 def _subprocess_call_to_stderr(cmd):
     p = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        env=os.environ)
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=os.environ
+    )
     while True:
         line = p.stdout.readline()
         if not line:
             break
         sys.stderr.write(line.decode())
+
 
 def _list(d):
     try:
@@ -425,12 +454,15 @@ def _list(d):
             raise
         return []
 
+
 def _ids_for_prefixes(prefixes):
     def strip(s):
         if s.endswith("/"):
             return s[:-1]
         return s
+
     return [strip(p) for p in prefixes]
+
 
 def _uuid():
     try:

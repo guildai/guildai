@@ -20,15 +20,15 @@ import click
 from guild import click_util
 from . import runs_import
 
+
 @click.command("import")
 @runs_import.import_params
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def import_(ctx, args):
     """{{ runs_import.import_runs }}"""
 
     from . import runs_impl
+
     runs_impl.import_(args, ctx)

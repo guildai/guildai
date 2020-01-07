@@ -22,31 +22,34 @@ from guild import click_util
 from . import remote_support
 from . import runs_support
 
+
 def runs_stop_params(fn):
-    click_util.append_params(fn, [
-        runs_support.runs_arg,
-        runs_support.op_and_label_filters,
-        runs_support.time_filters,
-        runs_support.sourcecode_digest_filters,
-        remote_support.remote_option("Stop remote runs."),
-        click.Option(
-            ("-y", "--yes"),
-            help="Do not prompt before stopping.",
-            is_flag=True),
-        click.Option(
-            ("-n", "--no-wait"),
-            help="Don't wait for remote runs to stop.",
-            is_flag=True),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            runs_support.runs_arg,
+            runs_support.op_and_label_filters,
+            runs_support.time_filters,
+            runs_support.sourcecode_digest_filters,
+            remote_support.remote_option("Stop remote runs."),
+            click.Option(
+                ("-y", "--yes"), help="Do not prompt before stopping.", is_flag=True
+            ),
+            click.Option(
+                ("-n", "--no-wait"),
+                help="Don't wait for remote runs to stop.",
+                is_flag=True,
+            ),
+        ],
+    )
     return fn
+
 
 @click.command(name="stop")
 @runs_stop_params
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def stop_runs(ctx, args):
     """Stop one or more runs.
 
@@ -75,4 +78,5 @@ def stop_runs(ctx, args):
 
     """
     from . import runs_impl
+
     runs_impl.stop_runs(args, ctx)

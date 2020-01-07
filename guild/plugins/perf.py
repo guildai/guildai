@@ -19,8 +19,8 @@ import time
 
 from guild.plugins.summary_util import SummaryPlugin
 
-class PerfPlugin(SummaryPlugin):
 
+class PerfPlugin(SummaryPlugin):
     def __init__(self, ep):
         super(PerfPlugin, self).__init__(ep)
         self._last_step = None

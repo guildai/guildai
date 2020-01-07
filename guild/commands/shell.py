@@ -19,10 +19,9 @@ import click
 
 from guild import click_util
 
+
 @click.command()
-
 @click_util.use_args
-
 def shell(args):
     """Start a Python shell for API use.
 
@@ -30,4 +29,5 @@ def shell(args):
 
     """
     from . import shell_impl
+
     shell_impl.main(args)

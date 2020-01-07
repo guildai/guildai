@@ -21,29 +21,32 @@ from guild import click_util
 from . import remote_support
 from . import runs_support
 
+
 def push_params(fn):
-    click_util.append_params(fn, [
-        remote_support.remote_arg,
-        runs_support.runs_arg,
-        runs_support.all_filters,
-        click.Option(
-            ("-n", "--delete",),
-            help="Delete remote files missing locally.",
-            is_flag=True),
-        click.Option(
-            ("-y", "--yes"),
-            help="Do not prompt before copying.",
-            is_flag=True),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            remote_support.remote_arg,
+            runs_support.runs_arg,
+            runs_support.all_filters,
+            click.Option(
+                ("-n", "--delete",),
+                help="Delete remote files missing locally.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-y", "--yes"), help="Do not prompt before copying.", is_flag=True
+            ),
+        ],
+    )
     return fn
+
 
 @click.command("push")
 @push_params
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def push_runs(ctx, args):
     """Copy one or more runs to a remote location.
 
@@ -65,4 +68,5 @@ def push_runs(ctx, args):
 
     """
     from . import runs_impl
+
     runs_impl.push(args, ctx)

@@ -17,16 +17,18 @@ from __future__ import division
 
 from six.moves import shlex_quote as q
 
+
 class ParseError(Exception):
     pass
 
-class Select(object):
 
+class Select(object):
     def __init__(self, cols):
         self.cols = cols
 
     def __repr__(self):
         return "<guild.query.Select %s>" % [str(c) for c in self.cols]
+
 
 class Col(object):
 
@@ -46,8 +48,8 @@ class Col(object):
     def header(self):
         return self.named_as or str(self)
 
-class Scalar(Col):
 
+class Scalar(Col):
     def __init__(self, key, qualifier=None, step=False):
         self.key = key
         self.qualifier = qualifier
@@ -72,8 +74,8 @@ class Scalar(Col):
             return parts
         return None, parts[0]
 
-class Attr(Col):
 
+class Attr(Col):
     def __init__(self, name):
         self.name = name
 
@@ -84,8 +86,8 @@ class Attr(Col):
     def header(self):
         return self.named_as or self.name
 
-class Flag(Col):
 
+class Flag(Col):
     def __init__(self, name):
         self.name = name
 
@@ -96,10 +98,13 @@ class Flag(Col):
     def header(self):
         return self.named_as or self.name
 
+
 def parse(s):
     from . import qparse
+
     p = qparse.parser()
     return p.parse(s)
+
 
 def parse_colspec(colspec):
     return parse("select %s" % colspec)

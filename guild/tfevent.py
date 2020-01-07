@@ -31,8 +31,8 @@ from guild import util
 
 log = logging.getLogger("guild")
 
-class EventReader(object):
 
+class EventReader(object):
     def __init__(self, dir, all_events=False):
         self.dir = dir
         self.all_events = all_events
@@ -42,8 +42,8 @@ class EventReader(object):
         events = self._tf_events()
         if not events:
             log.warning(
-                "TF events API not supported - cannot read events "
-                "from %r", self.dir)
+                "TF events API not supported - cannot read events " "from %r", self.dir
+            )
             return
         try:
             for event in events:
@@ -58,8 +58,9 @@ class EventReader(object):
 
     def _tf_events(self):
         try:
-            from tensorboard.backend.event_processing.event_accumulator \
-                import _GeneratorFromPath
+            from tensorboard.backend.event_processing.event_accumulator import (
+                _GeneratorFromPath,
+            )
         except ImportError as e:
             log.debug("error importing event generator: %s", e)
             return None
@@ -68,14 +69,15 @@ class EventReader(object):
                 warnings.simplefilter("ignore", Warning)
                 return _GeneratorFromPath(self.dir).Load()
 
+
 def _log_tfevent_iter_error(dir, e):
     if log.getEffectiveLevel() <= logging.DEBUG:
         log.exception("reading events from %s", dir)
     else:
         log.warning("error reading TF event from %s: %s", dir, e)
 
-class ScalarReader(object):
 
+class ScalarReader(object):
     def __init__(self, dir):
         self.dir = dir
 
@@ -84,10 +86,9 @@ class ScalarReader(object):
         for event in EventReader(self.dir):
             for val in event.summary.value:
                 try:
-                    yield util.try_apply([
-                        self._try_tfevent_v2,
-                        self._try_tfevent_v1
-                    ], event, val)
+                    yield util.try_apply(
+                        [self._try_tfevent_v2, self._try_tfevent_v1], event, val
+                    )
                 except util.TryFailed:
                     log.debug("could not read event summary %s", val)
 
@@ -110,10 +111,12 @@ class ScalarReader(object):
             raise util.TryFailed()
         return val.tag, val.simple_value, event.step
 
+
 def _is_float_tensor(t):
     # See tensorboard.compat.tensorflow_stub.dtypes for float types (1
     # and 2).
     return t.dtype in (1, 2)
+
 
 def scalar_readers(root_path):
     """Returns an iterator that yields (dir, digest, reader) tuples.
@@ -129,11 +132,13 @@ def scalar_readers(root_path):
         digest = _event_files_digest(subdir_path)
         yield subdir_path, digest, ScalarReader(subdir_path)
 
+
 def _tfevent_subdirs(dir):
     for root, dirs, files in os.walk(dir, followlinks=True):
         _del_non_run_linked_dirs(dirs, root)
         if any(_is_event_file(name) for name in files):
             yield root
+
 
 def _del_non_run_linked_dirs(dirs, root):
     """Removes dirs that are links but not runs."""
@@ -145,12 +150,15 @@ def _del_non_run_linked_dirs(dirs, root):
             continue
         dirs.remove(name)
 
+
 def _is_run(dir):
     opref_path = os.path.join(dir, ".guild", "opref")
     return os.path.exists(opref_path)
 
+
 def _is_event_file(name):
     return ".tfevents." in name
+
 
 def _event_files_digest(dir):
     """Returns a digest for dir that changes when events change.
@@ -159,11 +167,15 @@ def _event_files_digest(dir):
     sizes.
     """
     event_files = sorted(glob.glob(os.path.join(dir, "*.tfevents.*")))
-    to_hash = "\n".join([
-        "{}\n{}".format(filename, os.path.getsize(filename))
-        for filename in event_files
-        if os.path.isfile(filename)])
+    to_hash = "\n".join(
+        [
+            "{}\n{}".format(filename, os.path.getsize(filename))
+            for filename in event_files
+            if os.path.isfile(filename)
+        ]
+    )
     return hashlib.md5(to_hash.encode("utf-8")).hexdigest()
+
 
 def ensure_tf_logging_patched():
     try:

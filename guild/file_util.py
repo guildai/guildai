@@ -29,8 +29,8 @@ from guild import util
 
 log = logging.getLogger("guild")
 
-class FileSelect(object):
 
+class FileSelect(object):
     def __init__(self, root, rules):
         self.root = root
         self.rules = rules
@@ -73,7 +73,8 @@ class FileSelect(object):
         rule_results = [
             (rule.test(src_root, relpath), rule)
             for rule in self.rules
-            if rule.type != "dir"]
+            if rule.type != "dir"
+        ]
         result, _test = reduce_file_select_results(rule_results)
         return result is True, rule_results
 
@@ -91,6 +92,7 @@ class FileSelect(object):
                 log.debug("skipping directory %s", relpath)
                 dirs.remove(name)
 
+
 def reduce_file_select_results(results):
     """Reduces a list of file select results to a single determining result.
     """
@@ -99,18 +101,19 @@ def reduce_file_select_results(results):
             return result, test
     return None, None
 
-class FileSelectRule(object):
 
+class FileSelectRule(object):
     def __init__(
-            self,
-            result,
-            patterns,
-            type=None,
-            regex=False,
-            sentinel=None,
-            size_gt=None,
-            size_lt=None,
-            max_matches=None):
+        self,
+        result,
+        patterns,
+        type=None,
+        regex=False,
+        sentinel=None,
+        size_gt=None,
+        size_lt=None,
+        max_matches=None,
+    ):
         self.result = result
         if isinstance(patterns, six.string_types):
             patterns = [patterns]
@@ -146,7 +149,8 @@ class FileSelectRule(object):
         if type is not None and type not in valid:
             raise ValueError(
                 "invalid value for type %r: expected one of %s"
-                % (type, ", ".join(valid)))
+                % (type, ", ".join(valid))
+            )
         return type
 
     @property
@@ -217,8 +221,8 @@ class FileSelectRule(object):
             return True
         return False
 
-class FileSelectTest(object):
 
+class FileSelectTest(object):
     def __init__(self, name, test_f, *test_args):
         self.name = name
         self.test_f = test_f
@@ -227,14 +231,16 @@ class FileSelectTest(object):
     def __call__(self):
         return self.test_f(*self.test_args)
 
+
 def include(patterns, **kw):
     return FileSelectRule(True, patterns, **kw)
+
 
 def exclude(patterns, **kw):
     return FileSelectRule(False, patterns, **kw)
 
-class FileCopyHandler(object):
 
+class FileCopyHandler(object):
     def __init__(self, src_root, dest_root, select):
         self.src_root = src_root
         self.dest_root = dest_root
@@ -251,10 +257,10 @@ class FileCopyHandler(object):
         try:
             shutil.copyfile(src, dest)
         except IOError as e:
-            if e.errno != 2: # Ignore file not exists
+            if e.errno != 2:  # Ignore file not exists
                 if not self.handle_copy_error(e, src, dest):
                     raise
-        except OSError as e: # pylint: disable=duplicate-except
+        except OSError as e:  # pylint: disable=duplicate-except
             if not self.handle_copy_error(e, src, dest):
                 raise
 
@@ -265,12 +271,8 @@ class FileCopyHandler(object):
     def handle_copy_error(_e, _src, _dest):
         return False
 
-def copytree(
-        dest,
-        select,
-        root_start=None,
-        followlinks=True,
-        handler_cls=None):
+
+def copytree(dest, select, root_start=None, followlinks=True, handler_cls=None):
     """Copies files to dest for a FileSelect.
 
     root_start is an optional location from which select.root, if
@@ -309,16 +311,19 @@ def copytree(
             else:
                 handler.ignore(relpath, results)
 
+
 def _copytree_src(root_start, select):
     root_start = root_start or os.curdir
     if select.root:
         return os.path.join(root_start, select.root)
     return root_start
 
+
 def _relpath(path, start):
     if path == start:
         return ""
     return os.path.relpath(path, start)
+
 
 def files_digest(root):
     files = _files_for_digest(root)
@@ -333,6 +338,7 @@ def files_digest(root):
         md5.update(b"\x00")
     return md5.hexdigest()
 
+
 def _files_for_digest(root):
     all = []
     for path, _dirs, files in os.walk(root, followlinks=False):
@@ -341,12 +347,15 @@ def _files_for_digest(root):
     all.sort()
     return all
 
+
 def _normalize_path_for_digest(path, root):
     relpath = os.path.relpath(path, root)
     return relpath.replace(os.path.sep, "/")
 
+
 def _encode_file_path_for_digest(path):
     return path.encode("UTF-8")
+
 
 def _apply_digest_file_bytes(path, d):
     BUF_SIZE = 1024 * 1024

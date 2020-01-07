@@ -30,6 +30,7 @@ from guild import config
 
 log = logging.getLogger("guild")
 
+
 def cwd_desc(cwd=None):
     """Returns a description for cwd.
 
@@ -44,12 +45,14 @@ def cwd_desc(cwd=None):
     else:
         return "'%s'" % cwd
 
+
 def cwd_guildfile(cwd=None):
     """Returns the guildfile of the context cwd.
 
     Returns None if a guildfile doesn't exist in the cwd.
     """
-    import guild.model # expensive
+    import guild.model  # expensive
+
     cwd = cwd or config.cwd()
     try:
         importer = guild.model.ModelImporter(cwd)
@@ -59,12 +62,16 @@ def cwd_guildfile(cwd=None):
         _check_bad_guildfile(importer.dist)
         return getattr(importer.dist, "guildfile", None)
 
+
 def _check_bad_guildfile(dist):
-    import guild.model # expensive
+    import guild.model  # expensive
+
     if isinstance(dist, guild.model.BadGuildfileDistribution):
         cli.error(
             "guildfile in %s contains an error (see above for details)"
-            % cwd_desc(dist.location))
+            % cwd_desc(dist.location)
+        )
+
 
 def init_model_path(cwd=None):
     """Initializes the model path.
@@ -72,8 +79,10 @@ def init_model_path(cwd=None):
     If the context cwd contains a model def, the path is initialized
     to include the cwd.
     """
-    import guild.model # expensive
+    import guild.model  # expensive
+
     _init_path(guild.model, cwd)
+
 
 def init_resource_path(cwd=None):
     """Initializes the resource path.
@@ -81,13 +90,16 @@ def init_resource_path(cwd=None):
     The same rules in `init_model_path` are applied here to the
     resource path.
     """
-    import guild.resource # expensive
+    import guild.resource  # expensive
+
     _init_path(guild.resource, cwd)
+
 
 def _init_path(mod, cwd):
     cwd_gf = cwd_guildfile(cwd)
     if cwd_gf:
         mod.insert_path(cwd_gf.dir, clear_cache=True)
+
 
 def one_run(runs, spec, ctx=None):
     """Returns runs[0] if len(runs) is 1 otherwise exits with an error."""
@@ -97,20 +109,21 @@ def one_run(runs, spec, ctx=None):
         _no_matching_run_error(spec, ctx)
     _non_unique_run_id_error(runs, spec)
 
+
 def _no_matching_run_error(spec, ctx):
-    help_msg = (
-        " or '%s' for more information" % click_util.cmd_help(ctx)
-        if ctx else "")
+    help_msg = " or '%s' for more information" % click_util.cmd_help(ctx) if ctx else ""
     cli.error(
         "could not find a run matching '%s'\n"
-        "Try 'guild runs list' for a list%s."
-        % (spec, help_msg))
+        "Try 'guild runs list' for a list%s." % (spec, help_msg)
+    )
+
 
 def _non_unique_run_id_error(matches, spec):
     cli.out("'%s' matches multiple runs:" % spec, err=True)
     for m in matches:
         cli.out("  %s" % _match_short_id(m), err=True)
     cli.error()
+
 
 def _match_short_id(m):
     # A match can be a run or a tuple of run_id, path
@@ -120,12 +133,12 @@ def _match_short_id(m):
         run_id, _path = m
         return run_id[:8]
 
+
 def disallow_args(names, args, ctx, error_suffix=""):
     for name in names:
         if getattr(args, name, False):
-            cli.error(
-                "%s cannot be used%s"
-                % (_arg_desc(name, ctx), error_suffix))
+            cli.error("%s cannot be used%s" % (_arg_desc(name, ctx), error_suffix))
+
 
 def disallow_both(names, args, ctx, error_suffix=""):
     if len(names) != 2:
@@ -134,7 +147,9 @@ def disallow_both(names, args, ctx, error_suffix=""):
     if getattr(args, a, False) and getattr(args, b, False):
         cli.error(
             "%s cannot be used with %s%s"
-            % (_arg_desc(a, ctx), _arg_desc(b, ctx), error_suffix))
+            % (_arg_desc(a, ctx), _arg_desc(b, ctx), error_suffix)
+        )
+
 
 def _arg_desc(name, ctx):
     for param in ctx.command.params:
@@ -145,6 +160,7 @@ def _arg_desc(name, ctx):
             return desc
     raise AssertionError(name)
 
+
 def path_or_package_guildfile(path_or_package, ctx=None):
     path_or_package = path_or_package or config.cwd()
     if os.path.isdir(path_or_package):
@@ -154,8 +170,10 @@ def path_or_package_guildfile(path_or_package, ctx=None):
     else:
         return _package_guildfile(path_or_package)
 
+
 def _dir_guildfile(dir, ctx):
     from guild import guildfile
+
     try:
         return guildfile.for_dir(dir)
     except guildfile.NoModels:
@@ -166,16 +184,20 @@ def _dir_guildfile(dir, ctx):
         cli.error(
             "%s does not contain a Guild file (guild.yml)\n"
             "Try specifying a project path or package name%s."
-            % (cwd_desc(dir), help_suffix))
+            % (cwd_desc(dir), help_suffix)
+        )
     except guildfile.GuildfileError as e:
         cli.error(str(e))
 
+
 def _guildfile(path):
     from guild import guildfile
+
     try:
         return guildfile.for_file(path)
     except guildfile.GuildfileError as e:
         cli.error(str(e))
+
 
 def _package_guildfile(ref):
     matches = _matching_packages(ref)
@@ -185,15 +207,18 @@ def _package_guildfile(ref):
     if not matches:
         cli.error(
             "cannot find a package matching '%s'\n"
-            "Try 'guild packages' for a list of installed packages."
-            % ref)
+            "Try 'guild packages' for a list of installed packages." % ref
+        )
     cli.error(
         "multiple packages match '%s'\n"
         "Try again with one of these models: %s"
-        % (ref, ", ".join([name for name, _gf in matches])))
+        % (ref, ", ".join([name for name, _gf in matches]))
+    )
+
 
 def _matching_packages(ref):
     from guild import model as modellib
+
     matches = {}
     for model in modellib.iter_models():
         if model.reference.dist_type != "package":
@@ -208,17 +233,20 @@ def _matching_packages(ref):
             matches[name] = gf
     return sorted(matches.items())
 
+
 def check_exclusive_args(exclusive_list, args):
     for val in exclusive_list:
         arg1_name, opt1, arg2_name, opt2 = _exclusive_arg_items(val)
         if getattr(args, arg1_name, None) and getattr(args, arg2_name):
             cli.error("%s and %s cannot both be specified" % (opt1, opt2))
 
+
 def _exclusive_arg_items(val):
     arg1, arg2 = val
     arg1, opt1 = _exclusive_arg_part(arg1)
     arg2, opt2 = _exclusive_arg_part(arg2)
     return arg1, opt1, arg2, opt2
+
 
 def _exclusive_arg_part(part):
     if isinstance(part, tuple):

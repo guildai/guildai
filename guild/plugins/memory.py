@@ -17,15 +17,15 @@ from __future__ import division
 
 from guild.plugins.summary_util import SummaryPlugin
 
-class MemoryPlugin(SummaryPlugin):
 
+class MemoryPlugin(SummaryPlugin):
     def enabled_for_op(self, _op):
         try:
             import psutil as _
         except ImportError as e:
             self.log.warning(
-                "memory stats disabled because psutil "
-                "cannot be imported (%s)", e)
+                "memory stats disabled because psutil " "cannot be imported (%s)", e
+            )
             return False, "error importing psutil: %s" % e
         else:
             return True, ""
@@ -33,8 +33,10 @@ class MemoryPlugin(SummaryPlugin):
     def read_summary_values(self, _step):
         return _mem_stats()
 
+
 def _mem_stats():
     import psutil
+
     mem = psutil.virtual_memory()
     swap = psutil.swap_memory()
     return {
@@ -45,5 +47,5 @@ def _mem_stats():
         "sys/swap_total": swap.total,
         "sys/swap_free": swap.free,
         "sys/swap_used": swap.used,
-        "sys/swap_util": swap.percent / 100
+        "sys/swap_util": swap.percent / 100,
     }

@@ -22,11 +22,14 @@ from guild import entry_point_util
 
 _plugins = entry_point_util.EntryPointResources("guild.plugins", "plugin")
 
+
 class NotSupported(Exception):
     pass
 
+
 class ModelOpResolutionError(Exception):
     pass
+
 
 class Plugin(object):
     """Abstract interface for a Guild plugin."""
@@ -75,11 +78,14 @@ class Plugin(object):
         """
         return None
 
+
 def iter_plugins():
     return iter(_plugins)
 
+
 def for_name(name):
     return _plugins.one_for_name(name)
+
 
 def limit_to_builtin():
     _plugins.set_path([__pkgdir__])

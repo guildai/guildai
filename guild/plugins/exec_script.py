@@ -23,8 +23,8 @@ from guild import model as modellib
 from guild import plugin
 from guild import util
 
-class ExecScriptModelProxy(object):
 
+class ExecScriptModelProxy(object):
     def __init__(self, script_path, op_name):
         assert script_path.endswith(op_name), (script_path, op_name)
         self.script_path = script_path
@@ -32,23 +32,17 @@ class ExecScriptModelProxy(object):
         self.name = ""
         self.fullname = ""
         self.modeldef = self._init_modeldef()
-        script_base = script_path[:-len(op_name)]
+        script_base = script_path[: -len(op_name)]
         self.reference = modellib.script_model_ref(self.name, script_base)
 
     def _init_modeldef(self):
         abs_script = os.path.abspath(self.script_path)
         data = [
-            {
-                "model": self.name,
-                "operations": {
-                    self.op_name: {
-                        "exec": abs_script
-                    }
-                }
-            }
+            {"model": self.name, "operations": {self.op_name: {"exec": abs_script}}}
         ]
         gf = guildfile.Guildfile(data, dir=os.path.dirname(abs_script))
         return gf.models[self.name]
+
 
 class ExecScriptPlugin(plugin.Plugin):
 

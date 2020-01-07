@@ -19,6 +19,7 @@ import datetime
 
 from .trparse import parser
 
+
 def parse_spec(s):
     f = parser().parse(s)
     return f(datetime.datetime.now())

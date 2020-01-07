@@ -28,6 +28,7 @@ NOISY_LOGGERS = (
     "matplotlib",
 )
 
+
 class _FakeTTY(object):
     """Context manager for forcing _isatty to True - used for tests."""
 
@@ -41,12 +42,10 @@ class _FakeTTY(object):
         assert self._saved is not None
         globals()["_isatty"] = self._saved
 
-class Formatter(logging.Formatter):
 
+class Formatter(logging.Formatter):
     def format(self, record):
-        return self._color(
-            super(Formatter, self).format(record),
-            record.levelno)
+        return self._color(super(Formatter, self).format(record), record.levelno)
 
     @staticmethod
     def _color(s, level):
@@ -59,6 +58,7 @@ class Formatter(logging.Formatter):
         else:
             return s
 
+
 class ConsoleLogHandler(logging.StreamHandler):
 
     DEFAULT_FORMATS = {
@@ -70,18 +70,15 @@ class ConsoleLogHandler(logging.StreamHandler):
     def __init__(self, formats=None):
         super(ConsoleLogHandler, self).__init__()
         formats = formats or self.DEFAULT_FORMATS
-        self._formatters = {
-            level: Formatter(fmt)
-            for level, fmt in formats.items()
-        }
+        self._formatters = {level: Formatter(fmt) for level, fmt in formats.items()}
 
     def format(self, record):
-        fmt = (self._formatters.get(record.levelname) or
-               self._formatters.get("_"))
+        fmt = self._formatters.get(record.levelname) or self._formatters.get("_")
         if fmt:
             return fmt.format(record)
         else:
             return super(ConsoleLogHandler, self).format(record)
+
 
 def init_logging(level=logging.INFO, formats=None):
     _preempt_logging_mods()
@@ -89,18 +86,16 @@ def init_logging(level=logging.INFO, formats=None):
         "class": "guild.log.ConsoleLogHandler",
         "formats": formats,
     }
-    logging.config.dictConfig({
-        "version": 1,
-        "handlers": {
-            "console": console_handler
-        },
-        "root": {
-            "level": level,
-            "handlers": ["console"]
-        },
-        "disable_existing_loggers": False,
-    })
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "handlers": {"console": console_handler},
+            "root": {"level": level, "handlers": ["console"]},
+            "disable_existing_loggers": False,
+        }
+    )
     globals()["__last_init_kw"] = dict(level=level, formats=formats)
+
 
 def _preempt_logging_mods():
     """Preempt known logging mods.
@@ -114,14 +109,17 @@ def _preempt_logging_mods():
     except Exception:
         pass
 
+
 def disable_noisy_loggers(level=logging.INFO):
     if level <= logging.DEBUG:
         _set_logger_level(NOISY_LOGGERS, logging.INFO)
+
 
 def _set_logger_level(pkgs, level):
     for pkg in pkgs:
         log = logging.getLogger(pkg)
         log.setLevel(level)
+
 
 def current_settings():
     return __last_init_kw

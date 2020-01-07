@@ -19,30 +19,27 @@ import click
 
 from guild import click_util
 
+
 @click.command()
 @click.argument("path-or-package", required=False)
 @click.option(
-    "--package-description",
-    help="Show the package description.",
-    is_flag=True)
+    "--package-description", help="Show the package description.", is_flag=True
+)
+@click.option("--markdown", help="Show help using Markdown format", is_flag=True)
 @click.option(
-    "--markdown",
-    help="Show help using Markdown format",
-    is_flag=True)
+    "--base-heading-level",
+    type=int,
+    default=1,
+    help="Base heading level for generated markdown (default is 1)",
+)
 @click.option(
-    "--base-heading-level", type=int, default=1,
-    help="Base heading level for generated markdown (default is 1)")
+    "--title", default="Guild AI Help", help="Page title used for generating markdown"
+)
 @click.option(
-    "--title", default="Guild AI Help",
-    help="Page title used for generating markdown")
-@click.option(
-    "-n", "--no-pager",
-    help="Do not use a pager when showing help.",
-    is_flag=True)
-
+    "-n", "--no-pager", help="Do not use a pager when showing help.", is_flag=True
+)
 @click.pass_context
 @click_util.use_args
-
 def help(ctx, args):
     """Show help for a path or package.
 
@@ -54,4 +51,5 @@ def help(ctx, args):
 
     """
     from . import help_impl
+
     help_impl.main(args, ctx)

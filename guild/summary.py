@@ -40,33 +40,40 @@ DEFAULT_OUTPUT_SCALARS = [
     r"^(\key):\s+(\value)$",
 ]
 
-class EventFileWriter(object):
 
+class EventFileWriter(object):
     def __init__(
-            self,
-            logdir,
-            max_queue_size=10,
-            flush_secs=120,
-            filename_base=None,
-            filename_suffix=""):
+        self,
+        logdir,
+        max_queue_size=10,
+        flush_secs=120,
+        filename_base=None,
+        filename_suffix="",
+    ):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", Warning)
             # pylint: disable=no-name-in-module
             from tensorboard.summary.writer import event_file_writer as writelib
         util.ensure_dir(logdir)
-        filename_base = filename_base or ("%010d.%s.%s.%s" % (
-            time.time(),
-            socket.gethostname(),
-            os.getpid(),
-            writelib._global_uid.get()))
+        filename_base = filename_base or (
+            "%010d.%s.%s.%s"
+            % (
+                time.time(),
+                socket.gethostname(),
+                os.getpid(),
+                writelib._global_uid.get(),
+            )
+        )
         filename = (
-            os.path.join(logdir, "events.out.tfevents.%s" % filename_base) +
-            filename_suffix)
+            os.path.join(logdir, "events.out.tfevents.%s" % filename_base)
+            + filename_suffix
+        )
         self._writer = writelib._AsyncWriter(
-            writelib.RecordWriter(open(filename, "wb")),
-            max_queue_size, flush_secs)
+            writelib.RecordWriter(open(filename, "wb")), max_queue_size, flush_secs
+        )
         event = writelib.event_pb2.Event(
-            wall_time=time.time(), file_version="brain.Event:2")
+            wall_time=time.time(), file_version="brain.Event:2"
+        )
         self.add_event(event)
         self.flush()
 
@@ -79,14 +86,13 @@ class EventFileWriter(object):
     def close(self):
         self._writer.close()
 
-class SummaryWriter(object):
 
+class SummaryWriter(object):
     def __init__(self, logdir, filename_base=None, filename_suffix=""):
         self.logdir = logdir
         self._writer_init = lambda: EventFileWriter(
-            logdir,
-            filename_base=filename_base,
-            filename_suffix=filename_suffix)
+            logdir, filename_base=filename_base, filename_suffix=filename_suffix
+        )
         self._writer = None
 
     def _get_writer(self):
@@ -96,6 +102,7 @@ class SummaryWriter(object):
 
     def _add_summary(self, summary, step=None):
         from tensorboard.compat.proto import event_pb2
+
         if step is not None:
             step = int(step)
         event = event_pb2.Event(summary=summary, step=step)
@@ -106,15 +113,13 @@ class SummaryWriter(object):
 
     def add_image(self, tag, image):
         from PIL import Image
+
         image = Image.open(image)
         encoded = _try_encode_png(image)
         if encoded:
             summary = _ImageSummary(
-                tag,
-                image.height,
-                image.width,
-                len(image.getbands()),
-                encoded)
+                tag, image.height, image.width, len(image.getbands()), encoded
+            )
             self._add_summary(summary)
 
     def add_hparam_experiment(self, hparams, metrics):
@@ -139,18 +144,24 @@ class SummaryWriter(object):
     def __exit__(self, *_args):
         self.close()
 
+
 def _ScalarSummary(tag, val):
     from tensorboard.compat.proto.summary_pb2 import Summary
+
     return Summary(value=[Summary.Value(tag=tag, simple_value=val)])
+
 
 def _ImageSummary(tag, height, width, colorspace, encoded_image):
     from tensorboard.compat.proto.summary_pb2 import Summary
+
     image = Summary.Image(
         height=height,
         width=width,
         colorspace=colorspace,
-        encoded_image_string=encoded_image)
+        encoded_image_string=encoded_image,
+    )
     return Summary(value=[Summary.Value(tag=tag, image=image)])
+
 
 def _try_encode_png(image):
     bytes = io.BytesIO()
@@ -164,18 +175,23 @@ def _try_encode_png(image):
     else:
         return bytes.getvalue()
 
+
 def _image_desc(img):
     return getattr(getattr(img, "fp", None), "name", str(img))
 
+
 def _HParamExperiment(hparams, metrics):
     from tensorboard.plugins.hparams import summary_v2 as hp
+
     return hp.hparams_config_pb(
         hparams=[_HParam(key, vals) for key, vals in hparams.items()],
-        metrics=[hp.Metric(tag) for tag in metrics]
+        metrics=[hp.Metric(tag) for tag in metrics],
     )
+
 
 def _HParam(name, vals):
     from tensorboard.plugins.hparams import summary_v2 as hp
+
     if _all_numbers(vals):
         min_val = float(min(vals))
         max_val = float(max(vals))
@@ -184,8 +200,10 @@ def _HParam(name, vals):
         legal_vals = [_valid_param_val(val) for val in vals]
         return hp.HParam(name, hp.Discrete(legal_vals))
 
+
 def _all_numbers(vals):
     return all((isinstance(val, (int, float)) for val in vals))
+
 
 def _valid_param_val(val):
     if isinstance(val, (int, float, bool, six.string_types)):
@@ -194,16 +212,20 @@ def _valid_param_val(val):
         return ""
     return str(val)
 
+
 def _HParamSessionStart(name, hparams):
     from tensorboard.plugins.hparams import summary_v2 as hp
+
     try:
         # pylint: disable=unexpected-keyword-arg
         return hp.hparams_pb(hparams, trial_id=name)
     except TypeError:
         return _legacy_hparams_pb(hparams, name)
 
+
 def _legacy_hparams_pb(hparams, trial_id):
     from tensorboard.plugins.hparams import summary_v2 as hp
+
     hparams = hp._normalize_hparams(hparams)
     info = hp.plugin_data_pb2.SessionStartInfo(group_name=trial_id)
     for name in sorted(hparams):
@@ -223,16 +245,20 @@ def _legacy_hparams_pb(hparams, trial_id):
         hp.plugin_data_pb2.HParamsPluginData(session_start_info=info),
     )
 
+
 def _HParamSessionEnd(status):
     from tensorboard.plugins.hparams import summary_v2 as hp
+
     info = hp.plugin_data_pb2.SessionEndInfo(status=_Status(status))
     return hp._summary_pb(
         hp.metadata.SESSION_END_INFO_TAG,
         hp.plugin_data_pb2.HParamsPluginData(session_end_info=info),
     )
 
+
 def _Status(status):
     from tensorboard.plugins.hparams import api_pb2
+
     if status in ("terminated", "completed"):
         return api_pb2.Status.Value("STATUS_SUCCESS")
     elif status == "error":
@@ -242,8 +268,8 @@ def _Status(status):
     else:
         return api_pb2.Status.Value("STATUS_UNKNOWN")
 
-class OutputScalars(object):
 
+class OutputScalars(object):
     def __init__(self, config, output_dir, ignore=None):
         self._patterns = _init_patterns(config)
         self._writer = SummaryWriter(output_dir)
@@ -271,6 +297,7 @@ class OutputScalars(object):
         for key, p in self._patterns:
             sys.stdout.write("{}: {}\n".format(key, p.pattern))
 
+
 def _init_patterns(config):
     if not isinstance(config, list):
         raise TypeError("invalid output scalar config: %r" % config)
@@ -278,6 +305,7 @@ def _init_patterns(config):
     for item in config:
         patterns.extend(_config_item_patterns(item))
     return patterns
+
 
 def _config_item_patterns(item):
     if isinstance(item, dict):
@@ -288,14 +316,17 @@ def _config_item_patterns(item):
         log.warning("invalid item config: %r", item)
         return []
 
+
 def _map_patterns(map_config):
     patterns = []
     for key, val in sorted(map_config.items()):
         patterns.extend(_compile_patterns(val, key))
     return patterns
 
+
 def _string_patterns(s):
     return _compile_patterns(s, None)
+
 
 def _compile_patterns(val, key):
     if not isinstance(val, six.string_types):
@@ -309,10 +340,12 @@ def _compile_patterns(val, key):
     else:
         yield key, p
 
+
 def _replace_aliases(val):
     for alias, repl in ALIASES:
         val = alias.sub(repl, val)
     return val
+
 
 def _match_line(line, patterns):
     vals = {}
@@ -322,10 +355,12 @@ def _match_line(line, patterns):
             _try_apply_match(m, key, vals)
     return vals
 
+
 def _line_to_match(line):
     if isinstance(line, bytes):
         line = line.decode()
     return line.rstrip()
+
 
 def _try_apply_match(m, key, vals):
     groupdict = m.groupdict()
@@ -340,7 +375,10 @@ def _try_apply_match(m, key, vals):
     else:
         logging.warning(
             "bad unnamed group count %i for %r (expected 1 or 2) skipping",
-            m.re.groups, m.re.pattern)
+            m.re.groups,
+            m.re.pattern,
+        )
+
 
 def _try_apply_groupdict(groupdict, vals):
     try:
@@ -349,10 +387,12 @@ def _try_apply_groupdict(groupdict, vals):
         for key, s in groupdict.items():
             _try_apply_float(s, key, vals)
 
+
 def _try_apply_key_val_groupdict(groupdict, vals):
     key = groupdict["_key"]
     val = groupdict["_val"]
     _try_apply_float(val, key, vals)
+
 
 def _try_apply_float(s, key, vals):
     try:
@@ -362,8 +402,8 @@ def _try_apply_float(s, key, vals):
     else:
         vals[key] = f
 
-class TestOutputLogger(object):
 
+class TestOutputLogger(object):
     @staticmethod
     def line(line):
         sys.stdout.write(line)
@@ -385,8 +425,8 @@ class TestOutputLogger(object):
         groups = [m.groups() for m in matches]
         fmt_groups = self._strip_u(str(groups))
         fmt_vals = "(%s)" % ", ".join(
-            ["%s=%s" % (name, val)
-             for name, val in sorted(vals.items())])
+            ["%s=%s" % (name, val) for name, val in sorted(vals.items())]
+        )
         return "  %r: %s %s" % (pattern, fmt_groups, fmt_vals)
 
     @staticmethod
@@ -394,6 +434,7 @@ class TestOutputLogger(object):
         s = re.sub(r"u'(.*?)'", "'\\1'", s)
         s = re.sub(r"u\"(.*?)\"", "\"\\1\"", s)
         return s
+
 
 def test_output(f, config, cb=None):
     cb = cb or TestOutputLogger()
@@ -411,8 +452,10 @@ def test_output(f, config, cb=None):
                 _try_apply_match(m, key, vals)
             cb.pattern_matches(p.pattern, matches, vals)
 
+
 class Disabled(Exception):
     pass
+
 
 def check_enabled():
     try:
@@ -422,5 +465,5 @@ def check_enabled():
             import tensorboard.summary.writer as _
     except ImportError:
         raise Disabled(
-            "TensorBoard 1.14 or later is required to write "
-            "TF event summaries")
+            "TensorBoard 1.14 or later is required to write " "TF event summaries"
+        )

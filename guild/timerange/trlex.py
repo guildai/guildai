@@ -20,8 +20,10 @@ import sys
 
 from guild import _lex
 
+
 class LexError(ValueError):
     pass
+
 
 reserved = (
     "TODAY",
@@ -54,81 +56,91 @@ t_ignore = " \t\n"
 
 reserved_map = {name.lower(): name for name in reserved}
 
+
 def t_LONGDATE(t):
     r"([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})"
     t.value = _parse_ints(t)
     return t
 
+
 def _parse_ints(t):
     groups = [g for g in t.lexer.lexmatch.groups() if g is not None]
     return tuple([int(g) for g in groups[1:]])
+
 
 def t_MEDIUMDATE(t):
     r"([0-9]{2})-([0-9]{1,2})-([0-9]{1,2})"
     t.value = _parse_ints(t)
     return t
 
+
 def t_SHORTDATE(t):
     r"([0-9]{1,2})-([0-9]{1,2})"
     t.value = _parse_ints(t)
     return t
+
 
 def t_LONGTIME(t):
     r"([0-9]{1,2}):([0-9]{2}):([0-9]{2})"
     t.value = _parse_ints(t)
     return t
 
+
 def t_SHORTTIME(t):
     r"([0-9]{1,2}):([0-9]{2})"
     t.value = _parse_ints(t)
     return t
 
+
 def t_DAY(t):
     r"days?"
     return t
+
 
 def t_WEEK(t):
     r"weeks?"
     return t
 
+
 def t_MONTH(t):
     r"months?"
     return t
 
+
 def t_YEAR(t):
     r"years?"
     return t
+
 
 def t_NUMBER(t):
     r"[0-9]+"
     t.value = int(t.value)
     return t
 
+
 def t_HOUR(t):
     r"hours?|hr"
     return t
 
+
 def t_MINUTE(t):
     r"minutes?|min"
     return t
+
 
 def t_RESERVED(t):
     r"[a-zA-Z]+"
     try:
         t.type = reserved_map[t.value.lower()]
     except KeyError:
-        raise LexError(
-            "unexpected '%s' at position %i"
-            % (t.value, t.lexpos))
+        raise LexError("unexpected '%s' at position %i" % (t.value, t.lexpos))
     else:
         return t
 
+
 def t_error(t):
-    raise LexError(
-        "unexpected '%s' at position %s"
-        % (t.value, t.lexpos))
+    raise LexError("unexpected '%s' at position %s" % (t.value, t.lexpos))
+
 
 def lexer():
-    return _lex.lex(
-        module=sys.modules[__name__],
-        reflags=re.IGNORECASE|re.VERBOSE)
+    return _lex.lex(module=sys.modules[__name__], reflags=re.IGNORECASE | re.VERBOSE)

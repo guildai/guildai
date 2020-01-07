@@ -24,19 +24,22 @@ from guild import config
 from guild import guildfile
 from guild import package
 
+
 def main(args):
     if not os.path.exists(config.cwd()):
         cli.error(
             "%s does not exist\n"
             "Try specifying a different directory."
-            % cmd_impl_support.cwd_desc(config.cwd()))
+            % cmd_impl_support.cwd_desc(config.cwd())
+        )
     package_file = guildfile.guildfile_path()
     if not os.path.exists(package_file):
         cli.error(
             "%s does not contain a guild.yml file\n"
             "A guild.yml file is required when creating a package. Create one "
             "in this directory first or try specifying a different directory."
-            % cmd_impl_support.cwd_desc(config.cwd()))
+            % cmd_impl_support.cwd_desc(config.cwd())
+        )
     if args.upload:
         _check_upload_support(package_file)
     package.create_package(
@@ -49,11 +52,14 @@ def main(args):
         user=args.user,
         password=args.password,
         skip_existing=args.skip_existing,
-        comment=args.comment)
+        comment=args.comment,
+    )
+
 
 def _check_upload_support(package_file):
     _check_twine_installed()
     _check_upload_config(package_file)
+
 
 def _check_twine_installed():
     try:
@@ -61,7 +67,9 @@ def _check_twine_installed():
     except ImportError:
         cli.error(
             "Twine is required to upload packages. Install it by running "
-            "'pip install twine'.")
+            "'pip install twine'."
+        )
+
 
 def _check_upload_config(package_file):
     gf = guildfile.for_file(package_file)
@@ -69,13 +77,16 @@ def _check_upload_config(package_file):
         cli.error(
             "missing package author-email in %s - cannot upload\n"
             "Specify a valid email for package.author-email and try again."
-            % package_file)
+            % package_file
+        )
 
     if not _valid_email(gf.package.author_email):
         cli.error(
             "invalid package author-email %r in %s - cannot upload\n"
             "Specify a valid email for package.author-email and try again."
-            % (gf.package.author_email, package_file))
+            % (gf.package.author_email, package_file)
+        )
+
 
 def _valid_email(s):
     try:

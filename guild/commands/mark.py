@@ -20,15 +20,15 @@ import click
 from guild import click_util
 from . import runs_mark
 
+
 @click.command()
 @runs_mark.mark_params
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def mark(ctx, args):
     """{{ runs_mark.mark_runs }}"""
 
     from . import runs_impl
+
     runs_impl.mark(args, ctx)

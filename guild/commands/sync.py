@@ -20,18 +20,19 @@ import click
 from guild import click_util
 from . import runs_support
 
+
 @click.command(name="sync")
 @runs_support.runs_arg
 @click.option(
-    "-w", "--watch",
+    "-w",
+    "--watch",
     is_flag=True,
-    help="Watch a remote run and synchronize in the background.")
+    help="Watch a remote run and synchronize in the background.",
+)
 @runs_support.op_and_label_filters
 @runs_support.time_filters
-
 @click_util.use_args
 @click_util.render_doc
-
 def sync(args):
     """Synchronize remote runs.
 
@@ -65,4 +66,5 @@ def sync(args):
 
     """
     from . import sync_impl
+
     sync_impl.main(args)

@@ -31,6 +31,7 @@ FUNCTION_ARG_DELIM = ":"
 DEFAULT_FLOAT_TRUNC_LEN = 5
 DEFAULT_SHORTENED_PATH_LEN = 20
 
+
 def encode_flag_val(val):
     if val is True:
         return "yes"
@@ -49,26 +50,32 @@ def encode_flag_val(val):
     else:
         return str(val)
 
+
 def _encode_list(val_list):
     joined = ", ".join([encode_flag_val(val) for val in val_list])
     return "[%s]" % joined
 
+
 def _yaml_encode(val):
     return _strip_yaml(yaml.safe_dump(val).strip())
+
 
 def _strip_yaml(s):
     if s.endswith("\n..."):
         return s[:-4]
     return s
 
+
 def _encode_str(s):
     return _quote_float(_yaml_encode(s))
 
+
 def _encode_dict(d):
     encoded_kv = [
-        (encode_flag_val(k), encode_flag_val(v))
-        for k, v in sorted(d.items())]
+        (encode_flag_val(k), encode_flag_val(v)) for k, v in sorted(d.items())
+    ]
     return "{%s}" % ", ".join(["%s: %s" % kv for kv in encoded_kv])
+
 
 def _quote_float(s):
     """Returns s quoted if s can be coverted to a float."""
@@ -79,8 +86,10 @@ def _quote_float(s):
     else:
         return "'%s'" % s
 
+
 def decode_flag_val(s):
     return _fix_surprising_number(_decode_flag_val(s), s)
+
 
 def _decode_flag_val(s):
     if s == "":
@@ -98,6 +107,7 @@ def _decode_flag_val(s):
             pass
     return s
 
+
 def _concatenated_list(s):
     m = LIST_CONCAT_P.match(s.strip())
     if not m:
@@ -107,33 +117,41 @@ def _concatenated_list(s):
         return maybe_list * int(m.group(2))
     return s
 
+
 def _anonymous_flag_function(s):
     name, args = decode_flag_function(s)
     if name is None and len(args) >= 2:
         return s
     raise ValueError(s)
 
+
 def _yaml_parse(s):
     if _is_scientific_notation_run_id(s):
         return s
     return yaml.safe_load(s)
 
+
 def _is_scientific_notation_run_id(s):
     return 3 <= len(s) <= 8 and SCIENTIFIC_NOTATION_RUN_ID_P.match(s)
 
+
 def _fix_surprising_number(val, s):
     """Returns s in cases where val is a surprising result."""
-    if (isinstance(val, (int, float)) and
-        "!!" not in s and
-        _contains_non_numeric_chars(s)):
+    if (
+        isinstance(val, (int, float))
+        and "!!" not in s
+        and _contains_non_numeric_chars(s)
+    ):
         return s
     return val
+
 
 def _contains_non_numeric_chars(s):
     for char in s:
         if char in ("_", ":"):
             return True
     return False
+
 
 def decode_flag_function(s):
     if not isinstance(s, six.string_types):
@@ -150,6 +168,7 @@ def decode_flag_function(s):
     args = [decode_flag_val(arg.strip()) for arg in args_s]
     return name, tuple(args)
 
+
 def is_flag_function(val):
     if not isinstance(val, six.string_types):
         return False
@@ -160,13 +179,17 @@ def is_flag_function(val):
     else:
         return True
 
+
 def format_flags(flags, truncate_floats=False, shorten_paths=False):
     return [
         _flag_assign(name, val, truncate_floats, shorten_paths)
-        for name, val in sorted(flags.items())]
+        for name, val in sorted(flags.items())
+    ]
+
 
 def _flag_assign(name, val, truncate_floats, shorten_paths):
     return "%s=%s" % (name, format_flag(val, truncate_floats, shorten_paths))
+
 
 def format_flag(val, truncate_floats=False, shorten_paths=False):
     fmt_val = encode_flag_val(val)
@@ -178,55 +201,63 @@ def format_flag(val, truncate_floats=False, shorten_paths=False):
         fmt_val = util.shorten_path(val, path_len)
     return _quote_encoded(fmt_val, val)
 
+
 def _trunc_len(truncate_floats):
     if truncate_floats is True:
         return DEFAULT_FLOAT_TRUNC_LEN
     if not isinstance(truncate_floats, int):
         raise ValueError(
-            "invalid value for truncate_floats: %r (expected int)"
-            % truncate_floats)
+            "invalid value for truncate_floats: %r (expected int)" % truncate_floats
+        )
     return truncate_floats
+
 
 def _is_path(val):
     return (
         isinstance(val, six.string_types) and os.path.sep in val and os.path.exists(val)
     )
 
+
 def _path_len(shorten_paths):
     if shorten_paths is True:
         return DEFAULT_SHORTENED_PATH_LEN
     if not isinstance(shorten_paths, int):
         raise ValueError(
-            "invalid value for shorten_paths: %r (expected int)"
-            % shorten_paths)
+            "invalid value for shorten_paths: %r (expected int)" % shorten_paths
+        )
     return shorten_paths
+
 
 def _quote_encoded(encoded, val):
     if _needs_quote(encoded, val):
         return _quote(encoded)
     return encoded
 
+
 def _needs_quote(encoded, val):
     return (
-        isinstance(val, six.string_types) and
-        " " in encoded and
-        encoded[0] not in ("'", "\""))
+        isinstance(val, six.string_types)
+        and " " in encoded
+        and encoded[0] not in ("'", "\"")
+    )
+
 
 def _quote(s):
     return repr(s)
 
+
 def _truncate_formatted_float(s, trunc_len):
     parts = re.split(r"(\.[0-9]+)", s)
-    return "".join([
-        _maybe_truncate_dec_part(part, trunc_len)
-        for part in parts])
+    return "".join([_maybe_truncate_dec_part(part, trunc_len) for part in parts])
+
 
 def _maybe_truncate_dec_part(part, trunc_len):
     if part[:1] != ".":
         return part
-    if len(part) <= trunc_len: # lte to include leading '.'
+    if len(part) <= trunc_len:  # lte to include leading '.'
         return part
-    return part[:trunc_len + 1]
+    return part[: trunc_len + 1]
+
 
 class FormattedValue(object):
 
@@ -250,6 +281,7 @@ class FormattedValue(object):
             self._str = format_flag(self._value, self._truncate_floats)
         return self._str
 
+
 def _patch_yaml_safe_loader():
     """Patch yaml parsing to support Guild specific resolution rules.
 
@@ -261,13 +293,18 @@ def _patch_yaml_safe_loader():
     loader = yaml.SafeLoader
     loader.add_implicit_resolver(
         u'tag:yaml.org,2002:float',
-        re.compile(u'''^(?:
+        re.compile(
+            u'''^(?:
         [-+]?(?:[0-9][0-9_]*)\\.[0-9_]*(?:[eE][-+]?[0-9]+)?
         |[-+]?(?:[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)
         |\\.[0-9_]+(?:[eE][-+][0-9]+)?
         |[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\\.[0-9_]*
         |[-+]?\\.(?:inf|Inf|INF)
-        |\\.(?:nan|NaN|NAN))$''', re.X),
-        list(u'-+0123456789.'))
+        |\\.(?:nan|NaN|NAN))$''',
+            re.X,
+        ),
+        list(u'-+0123456789.'),
+    )
+
 
 _patch_yaml_safe_loader()

@@ -25,35 +25,40 @@ from guild import plugin as pluginlib
 # Random optimizer
 ###################################################################
 
+
 class RandomOptimizerModelProxy(model_proxy.BatchModelProxy):
 
     name = "skopt"
     op_name = "random"
-    op_description = (
-        "Batch processor supporting random flag value generation.")
+    op_description = "Batch processor supporting random flag value generation."
     module_name = "guild.plugins.random_main"
     flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
+
 
 ###################################################################
 # Bayesian with gaussian process optimizer
 ###################################################################
 
+
 class GPOptimizerModelProxy(model_proxy.BatchModelProxy):
 
     name = "skopt"
     op_name = "gp"
-    op_description = yaml.safe_load(""">
+    op_description = yaml.safe_load(
+        """>
 
   Bayesian optimizer using Gaussian processes.
 
   Refer to https://scikit-optimize.github.io/#skopt.gp_minimize for
   details on this algorithm and its flags.
-  """)
+  """
+    )
 
     module_name = "guild.plugins.skopt_gp_main"
     flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
 
-    flags_data = yaml.safe_load("""
+    flags_data = yaml.safe_load(
+        """
 random-starts:
   description: Number of trials using random values before optimizing
   default: 3
@@ -90,27 +95,33 @@ noise:
     Use 'gaussian' if the objective returns noisy observations, otherwise
     specify the expected variance of the noise.
   default: gaussian
-""")
+"""
+    )
+
 
 ###################################################################
 # Forest optimizer
 ###################################################################
 
+
 class ForestOptimizerModelProxy(model_proxy.BatchModelProxy):
 
     name = "skopt"
     op_name = "forest"
-    op_description = yaml.safe_load(""">
+    op_description = yaml.safe_load(
+        """>
 
   Sequential optimization using decision trees.
   Refer to https://scikit-optimize.github.io/#skopt.forest_minimize
   for details on this algorithm and its flags.
-  """)
+  """
+    )
 
     module_name = "guild.plugins.skopt_forest_main"
     flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
 
-    flags_data = yaml.safe_load("""
+    flags_data = yaml.safe_load(
+        """
 random-starts:
   description: Number of trials using random values before optimizing
   default: 3
@@ -124,28 +135,34 @@ xi:
   description: Improvement to seek over the previous best values
   default: 0.01
   type: float
-""")
+"""
+    )
+
 
 ###################################################################
 # Gradient boosted regression tree (GBRT) optimizer
 ###################################################################
 
+
 class GBRTOptimizerModelProxy(model_proxy.BatchModelProxy):
 
     name = "skopt"
     op_name = "gbrt"
-    op_description = yaml.safe_load(""">
+    op_description = yaml.safe_load(
+        """>
 
   Sequential optimization using gradient boosted regression trees.
 
   Refer to https://scikit-optimize.github.io/#skopt.gbrt_minimize
   for details on this algorithm and its flags.
-  """)
+  """
+    )
 
     module_name = "guild.plugins.skopt_gbrt_main"
     flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
 
-    flags_data = yaml.safe_load("""
+    flags_data = yaml.safe_load(
+        """
 random-starts:
   description: Number of trials using random values before optimizing
   default: 3
@@ -159,11 +176,14 @@ xi:
   description: Improvement to seek over the previous best values
   default: 0.01
   type: float
-""")
+"""
+    )
+
 
 ###################################################################
 # Flag encoders
 ###################################################################
+
 
 def encode_flag_for_optimizer(val, flagdef):
     """Encodes a flag def for the range of supported skopt search spaces.
@@ -173,6 +193,7 @@ def encode_flag_for_optimizer(val, flagdef):
     elif flagdef.min is not None and flagdef.max is not None:
         return _encode_function(flagdef, val)
     return val
+
 
 def _encode_function(flagdef, val):
     assert flagdef.min is not None and flagdef.max is not None
@@ -185,12 +206,13 @@ def _encode_function(flagdef, val):
         args.append(initial)
     return "%s[%s]" % (func_name, ":".join(args))
 
+
 ###################################################################
 # Plugin
 ###################################################################
 
-class SkoptPlugin(pluginlib.Plugin):
 
+class SkoptPlugin(pluginlib.Plugin):
     @staticmethod
     def resolve_model_op(opspec):
         if opspec in ("random", "skopt:random"):

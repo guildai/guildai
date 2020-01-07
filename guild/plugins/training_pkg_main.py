@@ -20,6 +20,7 @@ import sys
 
 import setuptools
 
+
 def main():
     sys.argv = [sys.argv[0], "bdist_wheel", "--universal", "--dist-dir", "."]
     kw = dict(
@@ -30,21 +31,24 @@ def main():
     )
     return setuptools.setup(**kw)
 
+
 def _find_packages():
     pkgs = setuptools.find_packages()
     if not pkgs:
         _error(
             "cannot find packages in %s\n"
             "Python scripts must be contained in valid Python "
-            "packages, which are directories containing __init__.py."
-            % os.getcwd())
+            "packages, which are directories containing __init__.py." % os.getcwd()
+        )
     return pkgs
+
 
 def _error(msg):
     sys.stderr.write("Error generating package: ")
     sys.stderr.write(msg)
     sys.stderr.write("\n")
     sys.exit(1)
+
 
 if __name__ == "__main__":
     try:

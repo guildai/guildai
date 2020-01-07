@@ -33,11 +33,14 @@ _guild_home = None
 _log_output = False
 _user_config = None
 
+
 class ConfigError(Exception):
     pass
 
+
 def set_cwd(cwd):
     globals()["_cwd"] = cwd
+
 
 class SetCwd(object):
 
@@ -55,6 +58,7 @@ class SetCwd(object):
         set_cwd(self._save)
         _cwd_lock.release()
 
+
 class SetGuildHome(object):
 
     _save = None
@@ -71,26 +75,32 @@ class SetGuildHome(object):
         set_guild_home(self._save)
         _guild_home_lock.release()
 
+
 def set_guild_home(path):
     globals()["_guild_home"] = path
+
 
 def cwd():
     return _cwd or "."
 
+
 def guild_home():
     return (
-        _guild_home or
-        os.getenv("GUILD_HOME") or
-        os.path.join(os.path.expanduser("~"), ".guild"))
+        _guild_home
+        or os.getenv("GUILD_HOME")
+        or os.path.join(os.path.expanduser("~"), ".guild")
+    )
+
 
 def set_log_output(flag):
     globals()["_log_output"] = flag
 
+
 def log_output():
     return _log_output
 
-class _Config(object):
 
+class _Config(object):
     def __init__(self, path):
         self.path = path
         self._data = None
@@ -113,18 +123,15 @@ class _Config(object):
         try:
             f = open(self.path, "r")
         except IOError as e:
-            if e.errno != 2: # file not found
-                log.warning(
-                    "cannot read user config in %s: %s",
-                    self.path, e)
+            if e.errno != 2:  # file not found
+                log.warning("cannot read user config in %s: %s", self.path, e)
         else:
             try:
                 return yaml.safe_load(f) or {}
             except Exception as e:
-                log.warning(
-                    "error loading user config in %s: %s",
-                    self.path, e)
+                log.warning("error loading user config in %s: %s", self.path, e)
         return {}
+
 
 def _apply_config_inherits(data, src):
     for name, section in data.items():
@@ -132,10 +139,12 @@ def _apply_config_inherits(data, src):
             _apply_section_inherits(section, data, src)
     data.pop("config", None)
 
+
 def _apply_section_inherits(section, data, src):
     for _name, item in sorted(section.items()):
         if isinstance(item, dict):
             _apply_section_item_inherits(item, section, data, src)
+
 
 def _apply_section_item_inherits(item, section, data, src):
     try:
@@ -149,6 +158,7 @@ def _apply_section_item_inherits(item, section, data, src):
             parent = _resolved_parent(spec, section, data, src)
             _apply_parent(parent, item)
 
+
 def _resolved_parent(spec, section, data, src):
     parent = _find_parent(spec, section, data)
     if parent is None:
@@ -157,11 +167,10 @@ def _resolved_parent(spec, section, data, src):
     _apply_section_item_inherits(parent_item, parent_section, data, src)
     return parent_item
 
+
 def _find_parent(spec, section, data):
-    return util.find_apply([
-        _section_item,
-        _config_item,
-    ], spec, section, data)
+    return util.find_apply([_section_item, _config_item,], spec, section, data)
+
 
 def _section_item(spec, section, _data=None):
     try:
@@ -171,8 +180,10 @@ def _section_item(spec, section, _data=None):
     else:
         return item, section
 
+
 def _config_item(spec, _section, data):
     return _section_item(spec, data.get("config", {}))
+
 
 def _apply_parent(parent, target):
     if not isinstance(parent, dict) or not isinstance(target, dict):
@@ -186,6 +197,7 @@ def _apply_parent(parent, target):
             if isinstance(parent_val, dict) and isinstance(target_val, dict):
                 _apply_parent(parent_val, target_val)
 
+
 def user_config():
     path = user_config_path()
     config = _user_config
@@ -193,6 +205,7 @@ def user_config():
         config = _Config(path)
         globals()["_user_config"] = config
     return config.read()
+
 
 def user_config_path():
     try:

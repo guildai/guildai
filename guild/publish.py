@@ -39,11 +39,12 @@ DEFAULT_TEMPLATE = "default"
 COPY_DEFAULT_FILES = 1
 COPY_ALL_FILES = 2
 
+
 class PublishError(Exception):
     pass
 
-class TemplateError(PublishError):
 
+class TemplateError(PublishError):
     def __init__(self, e):
         super(TemplateError, self).__init__(e)
         self._e = e
@@ -57,17 +58,16 @@ class TemplateError(PublishError):
             msg += ": " + e.message
         return msg
 
-class GenerateError(PublishError):
 
+class GenerateError(PublishError):
     def __init__(self, e, template):
         super(GenerateError, self).__init__(e)
         self._e = e
         self._template = template
 
     def __str__(self):
-        return "%s: %s" % (
-            _format_template_files(self._template),
-            self._e.message)
+        return "%s: %s" % (_format_template_files(self._template), self._e.message)
+
 
 def _format_template_files(t):
     if len(t.files) == 1:
@@ -76,28 +76,29 @@ def _format_template_files(t):
         basename = "{%s}" % ",".join(sorted(t.files))
     return os.path.join(t.path, basename)
 
+
 class RunFilters(object):
 
-    IMG_PATTERN = re.compile(
-        r"\.(png|gif|jpe?g|tiff?|bmp|webp)",
-        re.IGNORECASE)
+    IMG_PATTERN = re.compile(r"\.(png|gif|jpe?g|tiff?|bmp|webp)", re.IGNORECASE)
 
     def __init__(self, run_dest):
         self.run_dest = run_dest
 
     def install(self, env):
-        env.filters.update({
-            "csv_dict_rows": self.csv_dict_rows,
-            "empty": self.empty,
-            "file_size": self.file_size,
-            "flag_val": self.flag_val,
-            "nbhyph": self.nbhyph,
-            "nbsp": self.nbsp,
-            "runfile_link": self.runfile_link,
-            "scalar_key": self.scalar_key,
-            "short_id": self.short_id,
-            "utc_date": self.utc_date,
-        })
+        env.filters.update(
+            {
+                "csv_dict_rows": self.csv_dict_rows,
+                "empty": self.empty,
+                "file_size": self.file_size,
+                "flag_val": self.flag_val,
+                "nbhyph": self.nbhyph,
+                "nbsp": self.nbsp,
+                "runfile_link": self.runfile_link,
+                "scalar_key": self.scalar_key,
+                "short_id": self.short_id,
+                "utc_date": self.utc_date,
+            }
+        )
 
     @staticmethod
     def empty(val):
@@ -114,8 +115,8 @@ class RunFilters(object):
     def runfile_link(self, path):
         if self.run_dest is None:
             raise TemplateError(
-                "runfile_link cannot be used in this context "
-                "(not publishing a run")
+                "runfile_link cannot be used in this context " "(not publishing a run"
+            )
         if not isinstance(path, six.string_types):
             return ""
         maybe_runfile = os.path.join(self.run_dest, "runfiles", path)
@@ -139,9 +140,7 @@ class RunFilters(object):
             elif unit == "us":
                 ts = val
             else:
-                raise ValueError(
-                    "unsupported unit %r (expected s, ms, or us)"
-                    % unit)
+                raise ValueError("unsupported unit %r (expected s, ms, or us)" % unit)
             return util.utcformat_timestamp(ts)
 
     @staticmethod
@@ -182,14 +181,13 @@ class RunFilters(object):
             return s
         return s.replace("-", "&#8209;")
 
-class Template(object):
 
+class Template(object):
     def __init__(self, path, run_dest=None, filters=None):
         if not os.path.exists(path):
             raise RuntimeError("invalid template source: %s" % path)
         self.path = path
-        self._file_templates = sorted(
-            _init_file_templates(path, run_dest, filters))
+        self._file_templates = sorted(_init_file_templates(path, run_dest, filters))
 
     @property
     def files(self):
@@ -205,6 +203,7 @@ class Template(object):
             else:
                 _render_template(template, vars, file_dest)
 
+
 def _init_file_templates(path, run_dest=None, filters=None):
     ts = []
     for root, _dirs, files in os.walk(path):
@@ -217,6 +216,7 @@ def _init_file_templates(path, run_dest=None, filters=None):
             ts.append((relpath, abspath, template))
     return ts
 
+
 def _init_file_template(path, run_dest=None, filters=None):
     if not util.is_text_file(path):
         return None
@@ -224,7 +224,8 @@ def _init_file_template(path, run_dest=None, filters=None):
     templates_home = _local_path("templates")
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader([dirname, templates_home]),
-        autoescape=jinja2.select_autoescape(['html', 'xml']))
+        autoescape=jinja2.select_autoescape(['html', 'xml']),
+    )
     RunFilters(run_dest).install(env)
     if filters:
         env.filters.update(filters)
@@ -233,14 +234,17 @@ def _init_file_template(path, run_dest=None, filters=None):
     except jinja2.TemplateError as e:
         raise TemplateError(e)
 
+
 def _render_template(template, vars, dest):
     with open(dest, "w") as f:
         for part in template.generate(vars):
             f.write(part)
         f.write(os.linesep)
 
+
 PublishRunState = collections.namedtuple(
-    "PublishRunState", [
+    "PublishRunState",
+    [
         "run",
         "opdef",
         "copy_files",
@@ -250,26 +254,32 @@ PublishRunState = collections.namedtuple(
         "template",
         "run_dest",
         "md5s",
-    ])
+    ],
+)
 
-def publish_run(run, dest=None, template=None, copy_files=None,
-                include_links=False, md5s=True, formatted_run=None):
+
+def publish_run(
+    run,
+    dest=None,
+    template=None,
+    copy_files=None,
+    include_links=False,
+    md5s=True,
+    formatted_run=None,
+):
     state = _init_publish_run_state(
-        run,
-        dest,
-        template,
-        copy_files,
-        include_links,
-        md5s,
-        formatted_run)
+        run, dest, template, copy_files, include_links, md5s, formatted_run
+    )
     _init_published_run(state)
     _publish_run_guild_files(state)
     _copy_sourcecode(state)
     _copy_runfiles(state)
     _generate_template(state)
 
-def _init_publish_run_state(run, dest, template, copy_files, include_links,
-                            md5s, formatted_run):
+
+def _init_publish_run_state(
+    run, dest, template, copy_files, include_links, md5s, formatted_run
+):
     dest_home = dest or DEFAULT_DEST_HOME
     opdef = _run_opdef(run)
     run_dest = _published_run_dest(dest_home, run)
@@ -286,7 +296,8 @@ def _init_publish_run_state(run, dest, template, copy_files, include_links,
         template,
         run_dest,
         md5s,
-        )
+    )
+
 
 def _run_opdef(run):
     try:
@@ -302,44 +313,51 @@ def _run_opdef(run):
         else:
             return m.get_operation(run.opref.op_name)
 
+
 def _init_template(template, opdef, run_dest):
-    template_spec = util.find_apply([
-        lambda: template,
-        lambda: _opdef_template(opdef)
-    ])
+    template_spec = util.find_apply([lambda: template, lambda: _opdef_template(opdef)])
     template_path = _find_template(template_spec, opdef)
     return Template(template_path, run_dest)
 
+
 def _opdef_template(opdef):
-    return util.find_apply([
-        lambda: _opdef_publish_template(opdef),
-        lambda: DEFAULT_TEMPLATE
-    ])
+    return util.find_apply(
+        [lambda: _opdef_publish_template(opdef), lambda: DEFAULT_TEMPLATE]
+    )
+
 
 def _opdef_publish_template(opdef):
     if not opdef or not opdef.publish:
         return None
     return opdef.publish.template
 
+
 def _find_template(name, opdef):
-    return util.find_apply([
-        lambda: _abs_template(name),
-        lambda: _default_template(name),
-        lambda: _project_template(name, opdef),
-        lambda: _cannot_find_template_error(name)])
+    return util.find_apply(
+        [
+            lambda: _abs_template(name),
+            lambda: _default_template(name),
+            lambda: _project_template(name, opdef),
+            lambda: _cannot_find_template_error(name),
+        ]
+    )
+
 
 def _abs_template(name):
     if name[:1] == "." and os.path.exists(name):
         return name
     return None
 
+
 def _default_template(name):
     if name == "default":
         return _local_path("templates/publish-default")
     return None
 
+
 def _local_path(path):
     return os.path.join(os.path.dirname(__file__), path)
+
 
 def _project_template(name, opdef):
     path = os.path.join(opdef.guildfile.dir, name)
@@ -347,17 +365,21 @@ def _project_template(name, opdef):
         return path
     return None
 
+
 def _cannot_find_template_error(name):
     raise PublishError("cannot find template %s" % name)
 
+
 def _published_run_dest(dest_home, run):
     return os.path.join(dest_home, run.id)
+
 
 def _format_run_for_publish(run):
     frun = run_util.format_run(run)
     if not frun["stopped"]:
         frun["duration"] = ""
     return frun
+
 
 def _init_published_run(state):
     """Ensure empty target directory for published run.
@@ -372,6 +394,7 @@ def _init_published_run(state):
         util.safe_rmtree(state.run_dest)
     os.mkdir(state.run_dest)
 
+
 def _publish_run_guild_files(state):
     _publish_run_info(state)
     _publish_flags(state)
@@ -379,6 +402,7 @@ def _publish_run_guild_files(state):
     _publish_output(state)
     _publish_sourcecode_list(state)
     _publish_runfiles_list(state)
+
 
 def _publish_run_info(state):
     """Write run.yml to run publish dest.
@@ -406,24 +430,30 @@ def _publish_run_info(state):
         f.write("command: %s\n" % encode(frun["command"]))
         f.write("exit_status: %s\n" % encode(frun["exit_status"]))
 
+
 def _format_time(started, stopped):
     if started and stopped:
         return util.format_duration(started, stopped)
     return ""
+
 
 def _publish_flags(state):
     flags = state.run.get("flags") or {}
     dest = os.path.join(state.run_dest, "flags.yml")
     _save_yaml(flags, dest)
 
+
 def _save_yaml(val, path):
     with open(path, "w") as f:
         yaml.safe_dump(
-            val, f,
+            val,
+            f,
             default_flow_style=False,
             indent=2,
             encoding="utf-8",
-            allow_unicode=True)
+            allow_unicode=True,
+        )
+
 
 def _publish_scalars(state):
     cols = [
@@ -449,10 +479,12 @@ def _publish_scalars(state):
         for s in scalars:
             out.writerow([s[col] for col in cols])
 
+
 def _run_scalars(state):
     index = indexlib.RunIndex()
     index.refresh([state.run], ["scalar"])
     return list(index.run_scalars(state.run))
+
 
 def _publish_output(state):
     src = state.run.guild_path("output")
@@ -460,12 +492,14 @@ def _publish_output(state):
         dest = os.path.join(state.run_dest, "output.txt")
         shutil.copyfile(src, dest)
 
+
 def _publish_sourcecode_list(state):
     src = state.run.guild_path("sourcecode")
     dest = os.path.join(state.run_dest, "sourcecode.csv")
     paths = _dir_paths(src, skip_guildfiles=True)
     with open(dest, "w") as f:
         _write_paths_csv(paths, src, state.md5s, f)
+
 
 def _dir_paths(dir, skip_guildfiles=False):
     seen = set()
@@ -483,17 +517,20 @@ def _dir_paths(dir, skip_guildfiles=False):
     paths.sort()
     return paths
 
+
 def _remove_guild_dir(dirs):
     try:
         dirs.remove(".guild")
     except ValueError:
         pass
 
+
 def _write_paths_csv(paths, root, md5s, f):
     out = csv.writer(f, lineterminator="\n")
     out.writerow(["path", "type", "size", "mtime", "md5"])
     for path in paths:
         out.writerow(_path_row(path, root, md5s))
+
 
 def _path_row(path, root, md5):
     try:
@@ -512,6 +549,7 @@ def _path_row(path, root, md5):
         _path_md5(path, st) if md5 else "",
     ]
 
+
 def _path_type(st, lst):
     parts = []
     if st:
@@ -526,30 +564,37 @@ def _path_type(st, lst):
             parts.append("link")
     return " ".join(parts)
 
+
 def _path_mtime(st):
     if not st:
         return ""
     return int((st.st_mtime + _utc_offset()) * 1000000)
 
+
 def _utc_offset():
     try:
         return globals()["__utc_offset"]
     except KeyError:
-        globals()["__utc_offset"] = offset = int(round(
-            (datetime.datetime.now() -
-             datetime.datetime.utcnow()).total_seconds()))
+        globals()["__utc_offset"] = offset = int(
+            round(
+                (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds()
+            )
+        )
         return offset
+
 
 def _path_md5(path, st):
     if not st or not stat.S_ISREG(st.st_mode):
         return ""
     return util.file_md5(path)
 
+
 def _publish_runfiles_list(state):
     dest = os.path.join(state.run_dest, "runfiles.csv")
     paths = _dir_paths(state.run.dir, skip_guildfiles=True)
     with open(dest, "w") as f:
         _write_paths_csv(paths, state.run.dir, state.md5s, f)
+
 
 def _copy_sourcecode(state):
     src = state.run.guild_path("sourcecode")
@@ -558,8 +603,8 @@ def _copy_sourcecode(state):
     dest = os.path.join(state.run_dest, "sourcecode")
     shutil.copytree(src, dest)
 
-class PublishRunVars(object):
 
+class PublishRunVars(object):
     def __init__(self, state):
         self._state = state
         self._cache = {}
@@ -583,10 +628,7 @@ class PublishRunVars(object):
             return val
 
     def _load(self, name):
-        return util.find_apply([
-            self._load_yaml,
-            self._load_csv,
-            self._load_txt], name)
+        return util.find_apply([self._load_yaml, self._load_csv, self._load_txt], name)
 
     def _load_yaml(self, name):
         path = os.path.join(self._state.run_dest, name + ".yml")
@@ -607,8 +649,8 @@ class PublishRunVars(object):
             return None
         return open(path, "r").read()
 
-class CopyRunFilesFilter(object):
 
+class CopyRunFilesFilter(object):
     def __init__(self, state):
         self._run_dir = state.run.dir
         self._include_links = state.include_links
@@ -640,6 +682,7 @@ class CopyRunFilesFilter(object):
     def pre_copy(_to_copy):
         pass
 
+
 def _copy_runfiles(state):
     if not state.copy_files:
         return
@@ -647,15 +690,19 @@ def _copy_runfiles(state):
         state.run.dir,
         _runfiles_dest(state),
         _copy_runfiles_config(state),
-        CopyRunFilesFilter(state))
+        CopyRunFilesFilter(state),
+    )
+
 
 def _runfiles_dest(state):
     return os.path.join(state.run_dest, "runfiles")
+
 
 def _copy_runfiles_config(state):
     if state.copy_files == COPY_ALL_FILES or not state.opdef:
         return []
     return [state.opdef.publish.files]
+
 
 def _generate_template(state):
     template = state.template
@@ -668,14 +715,13 @@ def _generate_template(state):
         e.message = "template not found: %s" % e.message
         raise GenerateError(e, template)
 
+
 def _template_config(opdef):
     if not opdef or not opdef.publish:
         return {}
     config = opdef.publish.get("config") or {}
-    return {
-        name.replace("-", "_"): val
-        for name, val in config.items()
-    }
+    return {name.replace("-", "_"): val for name, val in config.items()}
+
 
 def refresh_index(dest):
     dest_home = dest or DEFAULT_DEST_HOME
@@ -685,6 +731,7 @@ def refresh_index(dest):
     index_path = os.path.join(dest_home, "README.md")
     runs = _published_runs(dest_home)
     _render_template(index_template, {"runs": runs}, index_path)
+
 
 def _published_runs(dest_home):
     runs = []

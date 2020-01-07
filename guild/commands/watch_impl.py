@@ -33,6 +33,7 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
+
 def main(args, ctx):
     if args.pid:
         _check_non_pid_args(args)
@@ -45,24 +46,28 @@ def main(args, ctx):
     else:
         _watch_default_running(args)
 
+
 def _check_non_pid_args(args):
-    if (args.run or
-        args.ops or
-        args.labels or
-        args.unlabeled):
+    if args.run or args.ops or args.labels or args.unlabeled:
         cli.error("--pid may not be used with other options")
+
 
 def _watch_pid(args):
     run = _run_for_pid_arg(args.pid)
     _watch_run(run)
 
+
 def _run_for_pid_arg(pid):
-    return util.find_apply([
-        _run_for_job_pidfile,
-        _run_for_pidfile,
-        _run_for_pid,
-        _handle_no_run_for_pid_arg
-    ], pid)
+    return util.find_apply(
+        [
+            _run_for_job_pidfile,
+            _run_for_pidfile,
+            _run_for_pid,
+            _handle_no_run_for_pid_arg,
+        ],
+        pid,
+    )
+
 
 def _run_for_job_pidfile(pid_arg):
     m = re.search(r"(.+)/\.guild/JOB$", pid_arg)
@@ -71,11 +76,13 @@ def _run_for_job_pidfile(pid_arg):
     run_dir = m.group(1)
     return runlib.for_dir(run_dir)
 
+
 def _run_for_pidfile(pid_arg):
     pid = _read_pid(pid_arg)
     if pid is None:
         return None
     return _run_for_pid(pid)
+
 
 def _read_pid(path):
     try:
@@ -91,6 +98,7 @@ def _read_pid(path):
         except ValueError:
             cli.error("pidfile %s does not contain a valid pid" % path)
 
+
 def _run_for_pid(pid):
     pid = _try_int(pid)
     if pid is None:
@@ -101,11 +109,13 @@ def _run_for_pid(pid):
             return run
     cli.error("cannot find run for pid %i" % pid)
 
+
 def _try_int(pid):
     try:
         return int(pid)
     except ValueError:
         return None
+
 
 def _parent_pid(pid):
     try:
@@ -115,9 +125,11 @@ def _parent_pid(pid):
     else:
         return p.parent().pid
 
+
 def _handle_no_run_for_pid_arg(pid_arg):
     # Assume pid_arg is a pidfile path.
     cli.error("%s does not exist" % pid_arg)
+
 
 def _watch_run(run):
     try:
@@ -126,11 +138,13 @@ def _watch_run(run):
     except KeyboardInterrupt:
         _stopped_msg(run)
 
+
 def _stopped_msg(run):
     msg = "\nStopped watching %s" % run.id
     if run.pid and psutil.Process(run.pid).is_running():
         msg += " (still running)"
     cli.out(msg)
+
 
 def _tail(run):
     if os.getenv("NO_WATCHING_MSG") != "1":
@@ -154,6 +168,7 @@ def _tail(run):
             else:
                 break
 
+
 def _wait_for_output(proc, output_path):
     while proc.is_running():
         f = _try_open(output_path)
@@ -161,6 +176,7 @@ def _wait_for_output(proc, output_path):
             return f
         time.sleep(1.0)
     return _try_open(output_path)
+
 
 def _print_output(run):
     output_path = run.guild_path("output")
@@ -174,6 +190,7 @@ def _print_output(run):
         sys.stdout.write(line)
         sys.stdout.flush()
 
+
 def _try_open(path):
     try:
         return open(path, "r")
@@ -182,10 +199,10 @@ def _try_open(path):
             raise
         return None
 
+
 def _print_run_status(run):
-    cli.out(
-        "Run %s stopped with a status of '%s'"
-        % (run.id, run.status), err=True)
+    cli.out("Run %s stopped with a status of '%s'" % (run.id, run.status), err=True)
+
 
 def _watch_default_running(args):
     args.running = True
@@ -194,8 +211,10 @@ def _watch_default_running(args):
         cli.error(
             "nothing to watch\n"
             "You can view the output of a specific run using "
-            "'guild watch RUN'.")
+            "'guild watch RUN'."
+        )
     _watch_run(runs[0])
+
 
 def _watch_remote(args):
     try:

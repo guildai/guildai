@@ -29,22 +29,23 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
+
 def main(args, ctx):
     _check_args(args)
     run = runs_impl.one_run(args, ctx)
     _open(run, args)
     _flush_streams_and_exit()
 
+
 def _check_args(args):
     if args.path and os.path.isabs(args.path):
         cli.error(
-            "PATH must be relative\n"
-            "Try 'guild open --help' for more information.")
-    cmd_impl_support.check_exclusive_args([
-        ("shell", "cmd"),
-        ("shell_cmd", "shell"),
-        ("shell_cmd", "cmd"),
-    ], args)
+            "PATH must be relative\n" "Try 'guild open --help' for more information."
+        )
+    cmd_impl_support.check_exclusive_args(
+        [("shell", "cmd"), ("shell_cmd", "shell"), ("shell_cmd", "cmd"),], args
+    )
+
 
 def _open(run, args):
     to_open = _path(run, args)
@@ -56,23 +57,28 @@ def _open(run, args):
             log.exception("opening %s", to_open)
         cli.error(e)
 
+
 def _path(run, args):
     if args.output:
         _check_non_output_args(args)
         return run.guild_path("output")
     return os.path.join(_path_root(args, run), args.path or "")
 
+
 def _check_non_output_args(args):
     if args.path or args.sourcecode:
         cli.out(
-            "--output cannot be used with other options - "
-            "ignorning other options", err=True)
+            "--output cannot be used with other options - " "ignorning other options",
+            err=True,
+        )
+
 
 def _path_root(args, run):
     if args.sourcecode:
         return run.guild_path("sourcecode")
     else:
         return run.path
+
 
 def _open_f(args):
     if args.cmd:
@@ -89,27 +95,33 @@ def _open_f(args):
         cli.error(
             "unsupported platform: %s %s\n"
             "Try --cmd to explicitly provide a command or "
-            "'guild open --help' for more information."
-            % (sys.platform, os.name))
+            "'guild open --help' for more information." % (sys.platform, os.name)
+        )
+
 
 def _subproc_f(prog):
     def f(path):
         subprocess.Popen([prog, path])
+
     return f
+
 
 def _flush_streams_and_exit():
     sys.stdout.flush()
     sys.exit(0)
 
+
 def _shell_f(shell_cmd):
     shell_cmd = shell_cmd or os.getenv("SHELL", "bash")
+
     def f(path):
         if os.path.isfile(path):
             path = os.path.dirname(path)
         cli.note(
             "Running a new shell in %s\n"
-            "To exit the shell, type 'exit' and press Enter."
-            % path)
+            "To exit the shell, type 'exit' and press Enter." % path
+        )
         with util.Chdir(path):
             pty.spawn([shell_cmd])
+
     return f

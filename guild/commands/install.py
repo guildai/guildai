@@ -19,27 +19,30 @@ import click
 
 from guild import click_util
 
+
 @click.command()
 @click.argument("packages", metavar="PACKAGE...", nargs=-1, required=True)
 @click.option(
-    "-U", "--upgrade",
+    "-U",
+    "--upgrade",
     help="Upgrade specified packages to the newest available version.",
-    is_flag=True)
+    is_flag=True,
+)
 @click.option(
     "--reinstall",
     help="Resinstall the package if it's already installed. Implies --upgrade.",
-    is_flag=True)
+    is_flag=True,
+)
 @click.option("--no-cache", help="Don't use cached packages.", is_flag=True)
 @click.option("--no-deps", help="Don't install dependencies.", is_flag=True)
 @click.option("--pre", help="Install pre-release versions.", is_flag=True)
 @click.option(
-    "--target", metavar="DIR",
-    help="Install package and requirements in DIR.")
-
+    "--target", metavar="DIR", help="Install package and requirements in DIR."
+)
 @click_util.use_args
-
 def install(args):
     """Install one or more packages.
     """
     from . import packages_impl
+
     packages_impl.install_packages(args)

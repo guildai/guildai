@@ -30,10 +30,12 @@ from . import skopt_util
 
 log = logging.getLogger("guild")
 
+
 def main():
     op_util.init_logging()
     batch_run = batch_util.batch_run()
     skopt_util.handle_seq_trials(batch_run, _suggest_x)
+
 
 def _suggest_x(dims, x0, y0, random_start, random_state, opts):
     res = skopt.gp_minimize(
@@ -47,8 +49,10 @@ def _suggest_x(dims, x0, y0, random_start, random_state, opts):
         acq_func=opts["acq-func"],
         kappa=opts["kappa"],
         xi=opts["xi"],
-        noise=opts["noise"])
+        noise=opts["noise"],
+    )
     return res.x_iters[-1], res.random_state
+
 
 if __name__ == "__main__":
     main()

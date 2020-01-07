@@ -21,6 +21,7 @@ from guild import cli
 
 from . import remote_support
 
+
 def start(args):
     remote = remote_support.remote_for_args(args)
     if args.reinit:
@@ -29,6 +30,7 @@ def start(args):
     else:
         prompt = "You are about to start %s" % remote.name
         _remote_op(remote.start, prompt, True, args)
+
 
 def stop(args):
     remote = remote_support.remote_for_args(args)
@@ -41,6 +43,7 @@ def stop(args):
         prompt += "\nThis action may result in permanent loss of data."
     _remote_op(remote.stop, prompt, False, args)
 
+
 def _remote_op(op, prompt, default_resp, args):
     if not args.yes:
         cli.out(prompt)
@@ -52,13 +55,12 @@ def _remote_op(op, prompt, default_resp, args):
         except guild.remote.OperationError as e:
             cli.error(e)
 
+
 def status(args):
     remote = remote_support.remote_for_args(args)
     try:
         remote.status(args.verbose)
     except guild.remote.Down as e:
-        cli.error(
-            "remote %s is not available (%s)" % (remote.name, e),
-            exit_status=2)
+        cli.error("remote %s is not available (%s)" % (remote.name, e), exit_status=2)
     except guild.remote.OperationError as e:
         cli.error(e)

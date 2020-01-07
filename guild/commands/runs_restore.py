@@ -22,19 +22,15 @@ from guild import click_util
 from . import remote_support
 from . import runs_support
 
+
 @click.command("restore")
 @runs_support.runs_arg
 @runs_support.all_filters
 @remote_support.remote_option("Restore remote runs.")
-@click.option(
-    "-y", "--yes",
-    help="Do not prompt before restoring.",
-    is_flag=True)
-
+@click.option("-y", "--yes", help="Do not prompt before restoring.", is_flag=True)
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def restore_runs(ctx, args):
     """Restore one or more deleted runs.
 
@@ -66,4 +62,5 @@ def restore_runs(ctx, args):
 
     """
     from . import runs_impl
+
     runs_impl.restore_runs(args, ctx)

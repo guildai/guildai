@@ -28,6 +28,7 @@ from guild import util
 
 log = logging.getLogger("guild")
 
+
 def list_packages(args):
     installed = pip_util.get_installed()
     packages = [pkg for pkg in installed if args.all or _is_gpkg(pkg)]
@@ -35,9 +36,11 @@ def list_packages(args):
     filtered = [pkg for pkg in formatted if _filter_model(pkg, args)]
     cli.table(filtered, cols=["name", "version", "summary"], sort=["name"])
 
+
 def _is_gpkg(pkg):
     keywords = _pkg_metadata(pkg, "Keywords") or ""
     return "gpkg" in keywords.split(" ")
+
 
 def _pkg_metadata(pkg, name):
     try:
@@ -52,6 +55,7 @@ def _pkg_metadata(pkg, name):
             return line[len_line_prefix:]
     return None
 
+
 def _format_pkg(pkg):
     return {
         "name": pkg.project_name,
@@ -59,15 +63,15 @@ def _format_pkg(pkg):
         "version": pkg.version,
     }
 
+
 def _strip_guildai_suffix(summary):
     return re.sub(r" \(Guild AI\)$", "", summary)
 
+
 def _filter_model(pkg, args):
-    to_search = [
-        six.u(pkg["name"]),
-        six.u(pkg["summary"])
-    ]
+    to_search = [six.u(pkg["name"]), six.u(pkg["summary"])]
     return util.match_filters(args.terms, to_search)
+
 
 def install_packages(args):
     for reqs, index_urls in _installs(args.packages):
@@ -80,9 +84,11 @@ def install_packages(args):
                 no_cache=args.no_cache,
                 no_deps=args.no_deps,
                 reinstall=args.reinstall,
-                target=args.target)
+                target=args.target,
+            )
         except pip_util.InstallError as e:
             cli.error(str(e))
+
 
 def _installs(pkgs):
     index_urls = {}
@@ -98,6 +104,7 @@ def _installs(pkgs):
         for urls_key, reqs in index_urls.items()
     ]
 
+
 def _pip_info(pkg):
     try:
         return namespace.pip_info(pkg)
@@ -106,21 +113,24 @@ def _pip_info(pkg):
         cli.error(
             "unsupported namespace %s in '%s'\n"
             "Try 'guild search %s -a' to find matching packages."
-            % (e.value, pkg, terms))
+            % (e.value, pkg, terms)
+        )
+
 
 def uninstall_packages(args):
     pip_util.uninstall(args.packages, dont_prompt=args.yes)
+
 
 def package_info(args):
     for i, (project, pkg) in enumerate(_iter_project_names(args.packages)):
         if i > 0:
             cli.out("---")
         exit_status = pip_util.print_package_info(
-            project,
-            verbose=args.verbose,
-            show_files=args.files)
+            project, verbose=args.verbose, show_files=args.files
+        )
         if exit_status != 0:
             log.warning("unknown package %s", pkg)
+
 
 def _iter_project_names(pkgs):
     for pkg in pkgs:

@@ -21,10 +21,11 @@ from guild import click_util
 
 from .tensorflow_inspect import inspect
 
-@click.group(name="tensorflow", cls=click_util.Group)
 
+@click.group(name="tensorflow", cls=click_util.Group)
 def tensorflow():
     """Collection of TensorFlow tools.
     """
+
 
 tensorflow.add_command(inspect)

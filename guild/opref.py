@@ -24,24 +24,20 @@ from guild import util
 
 log = logging.getLogger("guild")
 
+
 class OpRefError(ValueError):
     pass
 
+
 OpRef = collections.namedtuple(
-    "OpRef", [
-        "pkg_type",
-        "pkg_name",
-        "pkg_version",
-        "model_name",
-        "op_name"
-    ])
+    "OpRef", ["pkg_type", "pkg_name", "pkg_version", "model_name", "op_name"]
+)
+
 
 def _opref_for_op(op_name, model_ref):
-    (pkg_type,
-     pkg_name,
-     pkg_version,
-     model_name) = model_ref
+    (pkg_type, pkg_name, pkg_version, model_name) = model_ref
     return OpRef(pkg_type, pkg_name, pkg_version, model_name, op_name)
+
 
 def _opref_parse(encoded):
     """Parses encoded opref.
@@ -57,11 +53,13 @@ def _opref_parse(encoded):
     pkg_type, pkg_name = _split_pkg_type_and_name(pkg_type_and_name, encoded)
     return OpRef(pkg_type, pkg_name, pkg_ver, model_name, op_name)
 
+
 def _split_pkg_type_and_name(s, encoded):
     parts = s.split(":", 1)
     if len(parts) != 2:
         raise OpRefError(encoded)
     return parts
+
 
 def _opref_for_string(s):
     """Parses user-provided string to opref.
@@ -73,6 +71,7 @@ def _opref_for_string(s):
         raise OpRefError("invalid reference: %r" % s)
     pkg_name, model_name, op_name = m.groups()
     return OpRef(None, pkg_name, None, model_name, op_name)
+
 
 def _opref_is_op_run(opref, run, match_regex=False):
     try:
@@ -86,19 +85,21 @@ def _opref_is_op_run(opref, run, match_regex=False):
             return False
         return _cmp_oprefs(run_opref, opref, match_regex)
 
+
 def _cmp_oprefs(run_opref, opref, match_regex):
     assert run_opref.op_name
     assert opref.op_name
     return (
-        (opref.pkg_type is None or
-         run_opref.pkg_type == opref.pkg_type) and
-        (opref.pkg_name is None or
-         run_opref.pkg_name == opref.pkg_name) and
-        (opref.pkg_version is None or
-         run_opref.pkg_version == opref.pkg_version) and
-        (opref.model_name is None or
-         _cmp(run_opref.model_name, opref.model_name, match_regex)) and
-        _cmp(run_opref.op_name, opref.op_name, match_regex))
+        (opref.pkg_type is None or run_opref.pkg_type == opref.pkg_type)
+        and (opref.pkg_name is None or run_opref.pkg_name == opref.pkg_name)
+        and (opref.pkg_version is None or run_opref.pkg_version == opref.pkg_version)
+        and (
+            opref.model_name is None
+            or _cmp(run_opref.model_name, opref.model_name, match_regex)
+        )
+        and _cmp(run_opref.op_name, opref.op_name, match_regex)
+    )
+
 
 def _cmp(val, compare_to, regex):
     log.debug("opref comparing %r to %r (regex=%r)", val, compare_to, regex)
@@ -110,6 +111,7 @@ def _cmp(val, compare_to, regex):
         log.warning("error comparing %s using %s: %s", val, compare_to, e)
         return False
 
+
 def _opref_to_string(opref):
     q = util.shlex_quote
     return "%s:%s %s %s %s" % (
@@ -117,15 +119,19 @@ def _opref_to_string(opref):
         q(opref.pkg_name),
         q(opref.pkg_version),
         q(opref.model_name),
-        q(opref.op_name))
+        q(opref.op_name),
+    )
+
 
 def _maybe_quote(s):
     if s and re.search(r"\s", s):
         return "'{}'".format(s)
     return s
 
+
 def _opref_lt(self, compare_to):
     return str(self) < str(compare_to)
+
 
 def _opref_to_opspec(opref, cwd=None):
     spec_parts = []
@@ -139,11 +145,13 @@ def _opref_to_opspec(opref, cwd=None):
         spec_parts.append(opref.op_name)
     return "".join(spec_parts)
 
+
 def _script_path(opref, cwd):
     path = os.path.join(opref.pkg_name, opref.op_name)
     if cwd:
         path = os.path.relpath(path, cwd)
     return path
+
 
 OpRef.for_op = staticmethod(_opref_for_op)
 OpRef.parse = staticmethod(_opref_parse)

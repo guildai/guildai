@@ -23,6 +23,7 @@ from guild import util
 
 from guild.plugin import Plugin
 
+
 class SummaryPlugin(Plugin):
     """Summary plugin base class.
 
@@ -52,10 +53,7 @@ class SummaryPlugin(Plugin):
             pass
         else:
             self.log.debug("wrapping tensorboardX.SummaryWriter.add_scalar")
-            python_util.listen_method(
-                SummaryWriter,
-                "add_scalar",
-                self._handle_scalar)
+            python_util.listen_method(SummaryWriter, "add_scalar", self._handle_scalar)
 
     def _try_patch_tensorflow(self):
         try:
@@ -63,12 +61,14 @@ class SummaryPlugin(Plugin):
         except ImportError:
             pass
         else:
-            util.try_apply([
-                self._try_listen_tf_v2,
-                self._try_listen_tf_v1,
-                self._try_listen_tf_legacy,
-                self._listen_tf_failed,
-            ])
+            util.try_apply(
+                [
+                    self._try_listen_tf_v2,
+                    self._try_listen_tf_v1,
+                    self._try_listen_tf_legacy,
+                    self._listen_tf_failed,
+                ]
+            )
 
     def _try_listen_tf_v2(self):
         if not _tf_version().startswith("2."):
@@ -80,13 +80,13 @@ class SummaryPlugin(Plugin):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", Warning)
             from tensorboard.plugins.scalar import summary_v2
-        self.log.debug(
-            "wrapping tensorboard.plugins.scalar.summary_v2.scalar")
+        self.log.debug("wrapping tensorboard.plugins.scalar.summary_v2.scalar")
         python_util.listen_function(summary_v2, "scalar", self._handle_scalar)
 
     def _listen_tf_summary(self):
         # pylint: disable=import-error,no-name-in-module
         from tensorflow import summary
+
         self.log.debug("wrapping tensorflow.summary.scalar")
         python_util.listen_function(summary, "scalar", self._handle_scalar)
 
@@ -98,15 +98,14 @@ class SummaryPlugin(Plugin):
             from tensorflow.compat.v1.summary import FileWriter
         except Exception as e:
             self.log.debug(
-                "error importing tensorflow.compat.v1.summary.FileWriter: %s",
-                e)
+                "error importing tensorflow.compat.v1.summary.FileWriter: %s", e
+            )
             raise util.TryFailed()
         else:
             self.log.debug(
-                "wrapping tensorflow.compat.v1.summary.FileWriter.add_summary")
-            python_util.listen_method(
-                FileWriter, "add_summary",
-                self._handle_summary)
+                "wrapping tensorflow.compat.v1.summary.FileWriter.add_summary"
+            )
+            python_util.listen_method(FileWriter, "add_summary", self._handle_summary)
 
     def _try_listen_tf_legacy(self):
         if not _tf_version().startswith("1."):
@@ -115,20 +114,17 @@ class SummaryPlugin(Plugin):
             # pylint: disable=import-error,no-name-in-module
             from tensorflow.summary import FileWriter
         except Exception as e:
-            self.log.debug(
-                "error importing tensorflow.summary.FileWriter: %s", e)
+            self.log.debug("error importing tensorflow.summary.FileWriter: %s", e)
             raise util.TryFailed()
         else:
-            self.log.debug(
-                "wrapping tensorflow.summary.FileWriter.add_summary")
-            python_util.listen_method(
-                FileWriter, "add_summary",
-                self._handle_summary)
+            self.log.debug("wrapping tensorflow.summary.FileWriter.add_summary")
+            python_util.listen_method(FileWriter, "add_summary", self._handle_summary)
 
     def _listen_tf_failed(self):
         self.log.warning(
-            "unable to find TensorFlow summary writer, skipping "
-            "summaries for %s", self.name)
+            "unable to find TensorFlow summary writer, skipping " "summaries for %s",
+            self.name,
+        )
 
     def _handle_summary(self, add_summary, _summary, global_step=None):
         """Callback to apply summary values via add_summary callback.
@@ -173,6 +169,7 @@ class SummaryPlugin(Plugin):
         """Overridden by subclasses."""
         return {}
 
+
 def _tf_version():
     try:
         import tensorflow
@@ -181,16 +178,17 @@ def _tf_version():
     else:
         return tensorflow.__version__
 
+
 def tf_scalar_summary(vals):
     # pylint: disable=import-error,no-name-in-module
     from tensorflow.core.framework.summary_pb2 import Summary
-    return Summary(value=[
-        Summary.Value(tag=key, simple_value=val)
-        for key, val in vals.items()
-    ])
+
+    return Summary(
+        value=[Summary.Value(tag=key, simple_value=val) for key, val in vals.items()]
+    )
+
 
 class SummaryCache(object):
-
     def __init__(self, timeout):
         self._timeout = timeout
         self._expires = None

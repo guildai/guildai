@@ -39,11 +39,12 @@ DEFAULT_MATCHING_RUN_STATUS = (
     "terminated",
 )
 
+
 class ResolutionError(Exception):
     pass
 
-class Resolver(object):
 
+class Resolver(object):
     def __init__(self, source, resource):
         self.source = source
         self.resource = resource
@@ -51,23 +52,18 @@ class Resolver(object):
     def resolve(self, unpack_dir=None):
         raise NotImplementedError()
 
-class FileResolver(Resolver):
 
+class FileResolver(Resolver):
     def resolve(self, unpack_dir=None):
         if self.resource.config:
-            return _resolve_config_path(
-                self.resource.config,
-                self.source.resdef.name)
+            return _resolve_config_path(self.resource.config, self.source.resdef.name)
         source_path = self._abs_source_path()
         unpack_dir = self._unpack_dir(source_path, unpack_dir)
         if os.path.isdir(source_path) and not self.source.select:
             resolved = [source_path]
         else:
-            resolved = resolve_source_files(
-                source_path, self.source, unpack_dir)
-        post_process(
-            self.source,
-            unpack_dir or os.path.dirname(source_path))
+            resolved = resolve_source_files(source_path, self.source, unpack_dir)
+        post_process(self.source, unpack_dir or os.path.dirname(source_path))
         return resolved
 
     def _abs_source_path(self):
@@ -109,52 +105,48 @@ class FileResolver(Resolver):
         digest = hashlib.sha224(key).hexdigest()
         return os.path.join(var.cache_dir("resources"), digest)
 
+
 def _resolve_config_path(config, resource_name):
     config_path = os.path.abspath(str(config))
     if not os.path.exists(config_path):
         raise ResolutionError("%s does not exist" % config_path)
-    log.info(
-        "Using %s for %s resource",
-        os.path.relpath(config_path),
-        resource_name)
+    log.info("Using %s for %s resource", os.path.relpath(config_path), resource_name)
     return [config_path]
 
-class URLResolver(Resolver):
 
+class URLResolver(Resolver):
     def resolve(self, unpack_dir=None):
-        from guild import pip_util # expensive
+        from guild import pip_util  # expensive
+
         if self.resource.config:
-            return _resolve_config_path(
-                self.resource.config,
-                self.source.resdef.name)
+            return _resolve_config_path(self.resource.config, self.source.resdef.name)
         download_dir = url_source_download_dir(self.source)
         util.ensure_dir(download_dir)
         try:
             source_path = pip_util.download_url(
-                self.source.uri,
-                download_dir,
-                self.source.sha256)
+                self.source.uri, download_dir, self.source.sha256
+            )
         except pip_util.HashMismatch as e:
             raise ResolutionError(
                 "bad sha256 for '%s' (expected %s but got %s)"
-                % (e.path, e.expected, e.actual))
+                % (e.path, e.expected, e.actual)
+            )
         else:
             unpack_dir = self._unpack_dir(source_path, unpack_dir)
-            resolved = resolve_source_files(
-                source_path, self.source, unpack_dir)
-            post_process(
-                self.source,
-                unpack_dir or os.path.dirname(source_path))
+            resolved = resolve_source_files(source_path, self.source, unpack_dir)
+            post_process(self.source, unpack_dir or os.path.dirname(source_path))
             return resolved
 
     @staticmethod
     def _unpack_dir(source_path, explicit_unpack_dir):
         return explicit_unpack_dir or os.path.dirname(source_path)
 
+
 def url_source_download_dir(source):
     key = "\n".join(source.parsed_uri).encode("utf-8")
     digest = hashlib.sha224(key).hexdigest()
     return os.path.join(var.cache_dir("resources"), digest)
+
 
 def post_process(source, cwd, use_cache=True):
     if not source.post_process:
@@ -163,21 +155,19 @@ def post_process(source, cwd, use_cache=True):
     cmd = _apply_source_script_functions(cmd_in, source)
     if use_cache:
         cmd_digest = hashlib.sha1(cmd.encode()).hexdigest()
-        process_marker = os.path.join(
-            cwd, ".guild-cache-{}.post".format(cmd_digest))
+        process_marker = os.path.join(cwd, ".guild-cache-{}.post".format(cmd_digest))
         if os.path.exists(process_marker):
             return
-    log.info(
-        "Post processing %s resource in %s: %r",
-        source.resdef.name, cwd, cmd)
+    log.info("Post processing %s resource in %s: %r", source.resdef.name, cwd, cmd)
     try:
         subprocess.check_call(cmd, shell=True, cwd=cwd)
     except subprocess.CalledProcessError as e:
         raise ResolutionError(
-            "error post processing %s resource: %s"
-            % (source.resdef.name, e))
+            "error post processing %s resource: %s" % (source.resdef.name, e)
+        )
     else:
         util.touch(process_marker)
+
 
 def _apply_source_script_functions(script, source):
     funs = [("project-src", (_project_src_source_script, [source]))]
@@ -185,13 +175,19 @@ def _apply_source_script_functions(script, source):
         script = _apply_source_script_function(name, fun, script)
     return script
 
+
 def _apply_source_script_function(name, fun, script):
-    return "".join([
-        _apply_source_script_function_to_part(part, name, fun)
-        for part in _split_source_script(name, script)])
+    return "".join(
+        [
+            _apply_source_script_function_to_part(part, name, fun)
+            for part in _split_source_script(name, script)
+        ]
+    )
+
 
 def _split_source_script(fun_name, script):
     return re.split(r"(\$\(%s .*?\))" % fun_name, script)
+
 
 def _apply_source_script_function_to_part(part, fun_name, fun):
     m = re.match(r"\$\(%s (.*?)\)" % fun_name, part)
@@ -202,6 +198,7 @@ def _apply_source_script_function_to_part(part, fun_name, fun):
     log.debug("Applying %s to %s", fun_name, args)
     return fun(*(args + extra_args))
 
+
 def _project_src_source_script(path, source):
     roots = [_resdef_dir(source.resdef)] + _resdef_parent_dirs(source.resdef)
     for root in roots:
@@ -211,7 +208,9 @@ def _project_src_source_script(path, source):
             return full_path
     raise ResolutionError(
         "project-src failed: could not find '%s' in path '%s'"
-        % (path, os.path.pathsep.join(roots)))
+        % (path, os.path.pathsep.join(roots))
+    )
+
 
 def _resdef_dir(resdef):
     """Return directory for a resource definition.
@@ -228,6 +227,7 @@ def _resdef_dir(resdef):
     else:
         raise AssertionError(resdef)
 
+
 def _resdef_parent_dirs(resdef):
     try:
         modeldef = resdef.modeldef
@@ -236,8 +236,8 @@ def _resdef_parent_dirs(resdef):
     else:
         return [parent.dir for parent in modeldef.parents]
 
-class OperationOutputResolver(FileResolver):
 
+class OperationOutputResolver(FileResolver):
     def __init__(self, source, resource, modeldef):
         super(OperationOutputResolver, self).__init__(source, resource)
         self.modeldef = modeldef
@@ -251,13 +251,13 @@ class OperationOutputResolver(FileResolver):
         run_spec = str(self.resource.config) if self.resource.config else ""
         if run_spec and os.path.isdir(run_spec):
             log.info(
-                "Using output in %s for %s resource",
-                run_spec, self.source.resdef.name)
+                "Using output in %s for %s resource", run_spec, self.source.resdef.name
+            )
             return run_spec
         run = self.resolve_op_run(run_spec)
         log.info(
-            "Using output from run %s for %s resource",
-            run.id, self.source.resdef.name)
+            "Using output from run %s for %s resource", run.id, self.source.resdef.name
+        )
         return run.path
 
     def resolve_op_run(self, run_id_prefix=None, include_staged=False):
@@ -267,7 +267,8 @@ class OperationOutputResolver(FileResolver):
         if not run:
             raise ResolutionError(
                 "no suitable run for %s"
-                % ",".join([self._opref_desc(opref) for opref in oprefs]))
+                % ",".join([self._opref_desc(opref) for opref in oprefs])
+            )
         return run
 
     def _source_oprefs(self):
@@ -293,13 +294,15 @@ class OperationOutputResolver(FileResolver):
             pkg = ""
         model_spec = pkg + (opref.model_name or "")
         return (
-            "{}:{}".format(model_spec, opref.op_name)
-            if model_spec else opref.op_name)
+            "{}:{}".format(model_spec, opref.op_name) if model_spec else opref.op_name
+        )
+
 
 def _matching_run_status(include_staged):
     if include_staged:
         return DEFAULT_MATCHING_RUN_STATUS + ("staged",)
     return DEFAULT_MATCHING_RUN_STATUS
+
 
 def marked_or_latest_run(oprefs, run_id_prefix=None, status=None):
     runs = matching_runs(oprefs, run_id_prefix, status)
@@ -311,11 +314,13 @@ def marked_or_latest_run(oprefs, run_id_prefix=None, status=None):
             return run
     return runs[0]
 
+
 def matching_runs(oprefs, run_id_prefix=None, status=None):
     status = status or DEFAULT_MATCHING_RUN_STATUS
     oprefs = [_resolve_opref(opref) for opref in oprefs]
     runs_filter = _runs_filter(oprefs, run_id_prefix, status)
     return var.runs(sort=["-started"], filter=runs_filter)
+
 
 def _resolve_opref(opref):
     if not opref.op_name:
@@ -325,32 +330,34 @@ def _resolve_opref(opref):
         pkg_name=opref.pkg_name,
         pkg_version=None,
         model_name=opref.model_name,
-        op_name=opref.op_name)
+        op_name=opref.op_name,
+    )
+
 
 def _runs_filter(oprefs, run_id_prefix, status):
     if run_id_prefix and isinstance(run_id_prefix, six.string_types):
         return lambda run: run.id.startswith(run_id_prefix)
     return var.run_filter(
-        "all", [
-            var.run_filter("any", [
-                var.run_filter("attr", "status", status_val)
-                for status_val in status
-            ]),
-            var.run_filter("any", [
-                opref_match_filter(opref) for opref in oprefs
-            ])
-        ])
+        "all",
+        [
+            var.run_filter(
+                "any",
+                [var.run_filter("attr", "status", status_val) for status_val in status],
+            ),
+            var.run_filter("any", [opref_match_filter(opref) for opref in oprefs]),
+        ],
+    )
+
 
 class opref_match_filter(object):
-
     def __init__(self, opref):
         self.opref = opref
 
     def __call__(self, run):
         return self.opref.is_op_run(run, match_regex=True)
 
-class ModuleResolver(Resolver):
 
+class ModuleResolver(Resolver):
     def resolve(self, unpack_dir=None):
         module_name = self.source.parsed_uri.path
         try:
@@ -359,6 +366,7 @@ class ModuleResolver(Resolver):
             raise ResolutionError(str(e))
         else:
             return []
+
 
 class ConfigResolver(FileResolver):
     """Resolves config sources.
@@ -387,9 +395,7 @@ class ConfigResolver(FileResolver):
         try:
             config = self._load_config(path)
         except Exception as e:
-            raise ResolutionError(
-                "error loading config from %s: %s"
-                % (path, e))
+            raise ResolutionError("error loading config from %s: %s" % (path, e))
         else:
             self._apply_params(config)
             self._apply_flags(config)
@@ -406,9 +412,7 @@ class ConfigResolver(FileResolver):
         params = self.source.params
         if params:
             if not isinstance(params, dict):
-                log.warning(
-                    "unexpected params %r - cannot apply to config",
-                    params)
+                log.warning("unexpected params %r - cannot apply to config", params)
                 return
             util.nested_config(params, config)
 
@@ -419,6 +423,7 @@ class ConfigResolver(FileResolver):
     def _ctx_flags(self):
         # Steps copied from guild.op
         from guild import op_util
+
         opdef = self.resource.ctx.opdef
         if not opdef:
             return {}
@@ -427,10 +432,7 @@ class ConfigResolver(FileResolver):
         return flags
 
     def _init_target_path(self, path):
-        generated = os.path.join(
-            self.resource.ctx.target_dir,
-            ".guild",
-            "generated")
+        generated = os.path.join(self.resource.ctx.target_dir, ".guild", "generated")
         util.ensure_dir(generated)
         target_dir = tempfile.mkdtemp(suffix="", prefix="", dir=generated)
         basename = os.path.basename(path)
@@ -441,11 +443,13 @@ class ConfigResolver(FileResolver):
         with open(path, "w") as f:
             f.write(util.encode_yaml(config))
 
+
 def resolve_source_files(source_path, source, unpack_dir):
     if not unpack_dir:
         raise ValueError("unpack_dir required")
     _verify_path(source_path, source.sha256)
     return _resolve_source_files(source_path, source, unpack_dir)
+
 
 def _verify_path(path, sha256):
     if not os.path.exists(path):
@@ -456,12 +460,15 @@ def _verify_path(path, sha256):
             return
         _verify_file_hash(path, sha256)
 
+
 def _verify_file_hash(path, sha256):
     actual = util.file_sha256(path, use_cache=True)
     if actual != sha256:
         raise ResolutionError(
             "'%s' has an unexpected sha256 (expected %s but got %s)"
-            % (path, sha256, actual))
+            % (path, sha256, actual)
+        )
+
 
 def _resolve_source_files(source_path, source, unpack_dir):
     if os.path.isdir(source_path):
@@ -473,12 +480,13 @@ def _resolve_source_files(source_path, source, unpack_dir):
         else:
             return [source_path]
 
+
 def _dir_source_files(dir, source):
     if source.select:
-        return _selected_source_paths(
-            dir, _all_dir_files(dir), source.select)
+        return _selected_source_paths(dir, _all_dir_files(dir), source.select)
     else:
         return _all_source_paths(dir, os.listdir(dir))
+
 
 def _all_dir_files(dir):
     all = []
@@ -490,6 +498,7 @@ def _all_dir_files(dir):
             all.append(normalized_path)
     return all
 
+
 def _selected_source_paths(root, paths, select):
     selected = set()
     paths = sorted(paths)
@@ -500,6 +509,7 @@ def _selected_source_paths(root, paths, select):
         selected.update([os.path.join(root, m.string) for m in matches])
     return sorted(selected)
 
+
 def _match_paths(paths, pattern_str):
     try:
         p = re.compile(pattern_str + "$")
@@ -509,12 +519,15 @@ def _match_paths(paths, pattern_str):
     else:
         return [m for m in [p.match(path) for path in paths] if m]
 
+
 def _all_source_paths(root, files):
     root_names = [path.split("/")[0] for path in sorted(files)]
     return [
-        os.path.join(root, name) for name in set(root_names)
+        os.path.join(root, name)
+        for name in set(root_names)
         if not name.startswith(".guild")
     ]
+
 
 def _maybe_unpack(source_path, source, unpack_dir):
     if not source.unpack:
@@ -524,20 +537,20 @@ def _maybe_unpack(source_path, source, unpack_dir):
         return None
     return _unpack(source_path, archive_type, source.select, unpack_dir)
 
+
 def _archive_type(source_path, source):
     if source.type:
         return source.type
     parts = source_path.lower().split(".")
     if parts[-1] == "zip":
         return "zip"
-    elif (parts[-1] == "tar" or
-          parts[-1] == "tgz" or
-          parts[-2:-1] == ["tar"]):
+    elif parts[-1] == "tar" or parts[-1] == "tgz" or parts[-2:-1] == ["tar"]:
         return "tar"
     elif parts[-1] == "gz":
         return "gzip"
     else:
         return None
+
 
 def _unpack(source_path, archive_type, select, unpack_dir):
     assert unpack_dir
@@ -553,8 +566,9 @@ def _unpack(source_path, archive_type, select, unpack_dir):
     else:
         raise ResolutionError(
             "'%s' cannot be unpacked "
-            "(unsupported archive type '%s')"
-            % (source_path, type))
+            "(unsupported archive type '%s')" % (source_path, type)
+        )
+
 
 def _list_unpacked(src, unpack_dir):
     unpacked_src = _unpacked_src(unpack_dir, src)
@@ -564,9 +578,11 @@ def _list_unpacked(src, unpack_dir):
     lines = open(unpacked_src, "r").readlines()
     return [l.rstrip() for l in lines]
 
+
 def _unpacked_src(unpack_dir, src):
     name = os.path.basename(src)
     return os.path.join(unpack_dir, ".guild-cache-%s.unpacked" % name)
+
 
 def _for_unpacked(root, unpacked, select):
     if select:
@@ -574,37 +590,37 @@ def _for_unpacked(root, unpacked, select):
     else:
         return _all_source_paths(root, unpacked)
 
+
 def _unzip(src, select, unpack_dir):
     import zipfile
+
     zf = zipfile.ZipFile(src)
     log.info("Unpacking %s", src)
     return _gen_unpack(
-        unpack_dir,
-        src,
-        zf.namelist,
-        lambda name: name,
-        zf.extractall,
-        select)
+        unpack_dir, src, zf.namelist, lambda name: name, zf.extractall, select
+    )
+
 
 def _untar(src, select, unpack_dir):
     import tarfile
+
     tf = tarfile.open(src)
     log.info("Unpacking %s", src)
     return _gen_unpack(
-        unpack_dir,
-        src,
-        _tar_members_fun(tf),
-        _tar_member_name,
-        tf.extractall,
-        select)
+        unpack_dir, src, _tar_members_fun(tf), _tar_member_name, tf.extractall, select
+    )
+
 
 def _tar_members_fun(tf):
     def f():
         return [m for m in tf.getmembers() if m.name != "."]
+
     return f
+
 
 def _tar_member_name(tfinfo):
     return _strip_leading_dotdir(tfinfo.name)
+
 
 def _gunzip(src, select, unpack_dir):
     return _gen_unpack(
@@ -613,20 +629,26 @@ def _gunzip(src, select, unpack_dir):
         _gzip_list_members_fun(src),
         _gzip_member_name_fun,
         _gzip_extract_fun(src),
-        select)
+        select,
+    )
+
 
 def _gzip_list_members_fun(src):
     return lambda: [_gzip_member_name(src)]
+
 
 def _gzip_member_name(src):
     assert src[-3:] == ".gz", src
     return os.path.basename(src)[:-3]
 
+
 def _gzip_member_name_fun(m):
     return m
 
+
 def _gzip_extract_fun(src):
     import gzip
+
     def extract(unpack_dir, members):
         if not members:
             return
@@ -641,7 +663,9 @@ def _gzip_extract_fun(src):
                     if not block:
                         break
                     f_out.write(block)
+
     return extract
+
 
 def _strip_leading_dotdir(path):
     if path[:2] == "./":
@@ -649,13 +673,15 @@ def _strip_leading_dotdir(path):
     else:
         return path
 
-def _gen_unpack(unpack_dir, src, list_members, member_name, extract,
-                select):
+
+def _gen_unpack(unpack_dir, src, list_members, member_name, extract, select):
     members = list_members()
     names = [member_name(m) for m in members]
     to_extract = [
-        m for m, name in zip(members, names)
-        if not os.path.exists(os.path.join(unpack_dir, name))]
+        m
+        for m, name in zip(members, names)
+        if not os.path.exists(os.path.join(unpack_dir, name))
+    ]
     extract(unpack_dir, to_extract)
     _write_unpacked(names, unpack_dir, src)
     if select:
@@ -663,16 +689,19 @@ def _gen_unpack(unpack_dir, src, list_members, member_name, extract,
     else:
         return _all_source_paths(unpack_dir, names)
 
+
 def _write_unpacked(unpacked, unpack_dir, src):
     with open(_unpacked_src(unpack_dir, src), "w") as f:
         for path in unpacked:
             f.write(path + "\n")
+
 
 def for_resdef_source(source, resource):
     cls = _resolver_class_for_source(source)
     if not cls:
         return None
     return cls(source, resource)
+
 
 def _resolver_class_for_source(source):
     scheme = source.parsed_uri.scheme
@@ -689,9 +718,12 @@ def _resolver_class_for_source(source):
     else:
         return None
 
+
 def _operation_output_cls(resdef):
     if not hasattr(resdef, "modeldef"):
         return None
+
     def cls(source, resource):
         return OperationOutputResolver(source, resource, resdef.modeldef)
+
     return cls

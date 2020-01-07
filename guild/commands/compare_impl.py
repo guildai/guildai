@@ -37,14 +37,7 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
-BASE_COLS = ",".join([
-    ".run",
-    ".operation",
-    ".started",
-    ".time",
-    ".status",
-    ".label",
-])
+BASE_COLS = ",".join([".run", ".operation", ".started", ".time", ".status", ".label",])
 
 EXTRA_COLS = ".sourcecode"
 
@@ -53,6 +46,7 @@ MIN_COLS = ".run"
 NO_RUNS_CAPTION = "no runs"
 
 NO_TABLE_CLIP_WIDTH = pow(10, 10)
+
 
 def main(args):
     _check_args(args)
@@ -66,9 +60,11 @@ def main(args):
     else:
         _tabview(args)
 
+
 def _check_args(args):
     if args.csv and args.table:
         cli.error("--table and --csv cannot both be used")
+
 
 def _apply_strict_columns(args):
     if args.strict_cols:
@@ -78,20 +74,17 @@ def _apply_strict_columns(args):
         args.skip_core = True
         args.skip_op_cols = True
 
+
 def _print_scalars(args):
     runs = runs_impl.runs_for_args(args)
     index = indexlib.RunIndex()
     index.refresh(runs, ["scalar"])
     for run in runs:
-        cli.out("[%s] %s" % (
-            run.short_id,
-            run_util.format_operation(run, nowarn=True)))
+        cli.out("[%s] %s" % (run.short_id, run_util.format_operation(run, nowarn=True)))
         for s in index.run_scalars(run):
-            key, step, val = (
-                run_util.run_scalar_key(s),
-                s["last_step"],
-                s["last_val"])
+            key, step, val = (run_util.run_scalar_key(s), s["last_step"], s["last_val"])
             cli.out("  %s: %f (step %i)" % (key, val, step))
+
 
 def _write_csv(args):
     data = get_data(args, format_cells=False, skip_header_if_empty=True) or []
@@ -100,6 +93,7 @@ def _write_csv(args):
         for row in data:
             writer.writerow(row)
     cli.out("Wrote %i row(s) to %s" % (len(data), args.csv))
+
 
 def _open_file(path):
     if path == "-":
@@ -110,17 +104,20 @@ def _open_file(path):
     except (OSError, IOError) as e:
         cli.error("error opening %s: %s" % (path, e))
 
+
 def get_data(args, format_cells=True, skip_header_if_empty=False):
     index = indexlib.RunIndex()
     cb = _get_data_cb(
         args,
         index,
         format_cells=format_cells,
-        skip_header_if_empty=skip_header_if_empty)
+        skip_header_if_empty=skip_header_if_empty,
+    )
     data, logs = cb()
     for record in logs:
         log.handle(record)
     return data
+
 
 def _print_table(args):
     data = get_data(args, skip_header_if_empty=True)
@@ -128,25 +125,22 @@ def _print_table(args):
         return
     cols = data[0]
     col_indexes = list(zip(cols, range(len(cols))))
+
     def format_row(row):
-        return {
-            col_name: row[i]
-            for col_name, i in col_indexes
-        }
-    heading = {
-        col_name: col_name
-        for col_name in cols
-    }
+        return {col_name: row[i] for col_name, i in col_indexes}
+
+    heading = {col_name: col_name for col_name in cols}
     data = [heading] + [format_row(row) for row in data[1:]]
     cli.table(data, cols, max_width_adj=NO_TABLE_CLIP_WIDTH)
+
 
 def _tabview(args):
     config.set_log_output(True)
     index = indexlib.RunIndex()
     tabview.view_runs(
-        _get_data_cb(args, index),
-        _get_run_detail_cb(index),
-        _tabview_actions())
+        _get_data_cb(args, index), _get_run_detail_cb(index), _tabview_actions()
+    )
+
 
 def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
     def f():
@@ -163,12 +157,14 @@ def _get_data_cb(args, index, format_cells=True, skip_header_if_empty=False):
                 header = [NO_RUNS_CAPTION]
             rows = _sorted_table_rows(table, header, args)
             if args.limit:
-                rows = rows[:args.limit]
+                rows = rows[: args.limit]
             if format_cells:
                 _format_cells(rows, header, runs)
             log = log_capture.get_all()
             return [header] + rows, log
+
     return f
+
 
 def _runs_for_args(args):
     runs = runs_impl.runs_for_args(args)
@@ -176,34 +172,39 @@ def _runs_for_args(args):
         runs = [run for run in runs if not batch_util.is_batch(run)]
     return runs
 
+
 def _cols_table(runs, args, index):
     parse_cache = {}
-    return [
-        (run, _run_cols(run, args, parse_cache, index))
-        for run in runs]
+    return [(run, _run_cols(run, args, parse_cache, index)) for run in runs]
+
 
 def _run_cols(run, args, parse_cache, index):
     return (
         _core_cols(args, parse_cache),
         _op_cols(run, args, parse_cache, index),
-        _user_cols(args, parse_cache)
+        _user_cols(args, parse_cache),
     )
+
 
 def _core_cols(args, parse_cache):
     return _colspec_cols(_core_colspec(args), parse_cache)
 
+
 def _core_colspec(args):
     return _base_colspec(args) + _extra_colspec(args)
+
 
 def _base_colspec(args):
     if args.skip_core:
         return MIN_COLS
     return BASE_COLS
 
+
 def _extra_colspec(args):
     if args.extra_cols:
         return "," + EXTRA_COLS
     return ""
+
 
 def _colspec_cols(colspec, parse_cache):
     try:
@@ -217,6 +218,7 @@ def _colspec_cols(colspec, parse_cache):
         parse_cache[colspec] = cols
         return cols
 
+
 def _op_cols(run, args, parse_cache, index):
     if args.skip_op_cols:
         return []
@@ -228,6 +230,7 @@ def _op_cols(run, args, parse_cache, index):
         cols.extend(_colspec_cols(colspec, parse_cache))
     return cols
 
+
 def _op_compare(run, index):
     """Returns compare cols for run.
 
@@ -235,18 +238,19 @@ def _op_compare(run, index):
     definition (in the Guild file) we use that, otherwise we use the
     run "compare" attr.
     """
-    return util.find_apply([
-        lambda: run_util.latest_compare(run),
-        lambda: _default_run_compare(run, index)])
+    return util.find_apply(
+        [lambda: run_util.latest_compare(run), lambda: _default_run_compare(run, index)]
+    )
+
 
 def _default_run_compare(run, index):
-    return (
-        _flag_compares(run) +
-        _scalar_compares(run, index))
+    return _flag_compares(run) + _scalar_compares(run, index)
+
 
 def _flag_compares(run):
     flags = run.get("flags") or {}
     return ["=%s" % name for name in sorted(flags)]
+
 
 def _scalar_compares(run, index):
     # Assuming index has been refreshed to include run
@@ -254,6 +258,7 @@ def _scalar_compares(run, index):
     if not cols:
         return []
     return [_step_col(cols)] + cols
+
 
 def _root_scalars(run, index):
     metrics = set()
@@ -263,27 +268,30 @@ def _root_scalars(run, index):
             metrics.add(tag)
     return sorted(metrics)
 
+
 def _step_col(cols):
     if "loss" in cols:
         return "loss step as step"
     return "%s step as step" % cols[0]
+
 
 def _user_cols(args, parse_cache):
     if not args.cols:
         return []
     return _colspec_cols(args.cols, parse_cache)
 
+
 def _resolve_table_cols(table, index):
-    return [
-        _resolve_table_section(run, section, index)
-        for run, section in table
-    ]
+    return [_resolve_table_section(run, section, index) for run, section in table]
+
 
 def _resolve_table_section(run, section, index):
     return tuple([_resolve_run_cols(run, cols, index) for cols in section])
 
+
 def _resolve_run_cols(run, cols, index):
     return [(col.header, _col_data(run, col, index)) for col in cols]
+
 
 def _col_data(run, col, index):
     if isinstance(col, query.Flag):
@@ -296,6 +304,7 @@ def _col_data(run, col, index):
     else:
         assert False, col
 
+
 def _table_header(table):
     header = []
     for section in zip(*table):
@@ -305,12 +314,14 @@ def _table_header(table):
                     header.append(name)
     return header
 
+
 def _sorted_table_rows(table, header, args):
     if args.min_col:
         table = _sort_table(table, args.min_col)
     elif args.max_col:
         table = _sort_table(table, args.max_col, reverse=True)
     return _table_rows(table, header)
+
 
 def _sort_table(table, sort_col, reverse=False):
     def key(row):
@@ -321,13 +332,17 @@ def _sort_table(table, sort_col, reverse=False):
             return float("-inf")
         else:
             return float("inf")
+
     return sorted(table, key=key, reverse=reverse)
+
 
 def _table_rows(table, header):
     return [_table_row(row, header) for row in table]
 
+
 def _table_row(row, header):
     return [_row_val(col_name, row) for col_name in header]
+
 
 def _row_val(col_name, sections):
     val = None
@@ -336,6 +351,7 @@ def _row_val(col_name, sections):
             if cell_name == col_name and cell_val is not None:
                 val = cell_val
     return val
+
 
 def _format_cells(rows, col_names, runs):
     runs_lookup = {run.short_id: run for run in runs}
@@ -357,6 +373,7 @@ def _format_cells(rows, col_names, runs):
             else:
                 row[i] = str(val)
 
+
 def _format_float(f):
     """Formats float for compare.
 
@@ -366,13 +383,15 @@ def _format_float(f):
     """
     return flag_util.format_flag(f, truncate_floats=6)
 
+
 def _get_run_detail_cb(index):
     def f(data, y, _x):
         run_short_id = data[y][0]
         if run_short_id == NO_RUNS_CAPTION:
             return (
                 "\nPress 'r' in the main screen to refresh the list.",
-                "There are no matching runs currently")
+                "There are no matching runs currently",
+            )
         title = "Run {}".format(run_short_id)
         try:
             run_id, path = next(var.find_runs(run_short_id))
@@ -383,7 +402,9 @@ def _get_run_detail_cb(index):
             index.refresh([run], ["scalar"])
             detail = _format_run_detail(run, index)
             return detail, title
+
     return f
+
 
 def _format_run_detail(run, index):
     lines = [
@@ -408,17 +429,21 @@ def _format_run_detail(run, index):
             lines.append("  %s" % run_util.run_scalar_key(s))
     return "\n".join(lines)
 
+
 def _tabview_actions():
     return [
         (("m", "Mark run"), _mark),
         (("u", "Unmark run"), _unmark),
     ]
 
+
 def _mark(view):
     _mark_impl(view, True)
 
+
 def _unmark(view):
     _mark_impl(view, False)
+
 
 def _mark_impl(view, flag):
     if not view.data:
@@ -432,17 +457,20 @@ def _mark_impl(view, flag):
             "\n"
             "Press 'q' to exist this screen and then press 'r' to "
             "refresh the list.",
-            run_short_id)
+            run_short_id,
+        )
     else:
         run = runlib.Run(run_id, path)
         _mark_run(run, flag)
         _try_mark_operation(view, flag)
+
 
 def _mark_run(run, flag):
     if flag:
         run.write_attr("marked", True)
     else:
         run.del_attr("marked")
+
 
 def _try_mark_operation(view, flag):
     try:
@@ -456,14 +484,14 @@ def _try_mark_operation(view, flag):
         else:
             new_op = _strip_marked(op)
         view.data[view.y][op_index] = new_op
-        view.column_width[op_index] = max(
-            view.column_width[op_index],
-            len(new_op))
+        view.column_width[op_index] = max(view.column_width[op_index], len(new_op))
+
 
 def _ensure_marked(op):
     if not op.endswith(" [marked]"):
         op += " [marked]"
     return op
+
 
 def _strip_marked(op):
     if op.endswith(" [marked]"):

@@ -22,23 +22,26 @@ from guild import click_util
 from . import remote_support
 from . import runs_support
 
-@click.command()
 
+@click.command()
 @runs_support.run_arg
 @runs_support.op_and_label_filters
 @runs_support.time_filters
 @runs_support.sourcecode_digest_filters
 @remote_support.remote_option("Watch a remote run.")
 @click.option(
-    "-p", "--pid", metavar="PID",
-    help=("Watch the run associated with the specified process. "
-          "PID may be a process ID or a path to a file containing "
-          "a process ID."))
-
+    "-p",
+    "--pid",
+    metavar="PID",
+    help=(
+        "Watch the run associated with the specified process. "
+        "PID may be a process ID or a path to a file containing "
+        "a process ID."
+    ),
+)
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def watch(ctx, args):
     """Watch run output.
 
@@ -66,4 +69,5 @@ def watch(ctx, args):
 
     """
     from . import watch_impl
+
     watch_impl.main(args, ctx)

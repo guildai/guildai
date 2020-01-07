@@ -35,11 +35,10 @@ from .runs_push import push_runs
 from .runs_restore import restore_runs
 from .runs_stop import stop_runs
 
+
 @click.group(invoke_without_command=True, cls=click_util.Group)
 @runs_list_options
-
 @click.pass_context
-
 def runs(ctx, **kw):
     """Show or manage runs.
 
@@ -53,10 +52,13 @@ def runs(ctx, **kw):
         if _params_specified(kw):
             cli.error(
                 "options cannot be listed before command ('%s')"
-                % ctx.invoked_subcommand)
+                % ctx.invoked_subcommand
+            )
+
 
 def _params_specified(kw):
     return any((kw[key] for key in kw))
+
 
 runs.add_command(delete_runs)
 runs.add_command(diff_runs)

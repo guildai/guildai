@@ -22,39 +22,22 @@ from guild import click_util
 from . import remote_support
 from . import runs_support
 
+
 @click.command("ls")
 @runs_support.run_arg
+@click.option("-p", "--path", metavar="PATH", help="Path to list.")
+@click.option("-c", "--sourcecode", is_flag=True, help="List source code files.")
+@click.option("-a", "--all", is_flag=True, help="Show all files including Guild files.")
+@click.option("-f", "--full-path", is_flag=True, help="Show full path for files.")
+@click.option("-L", "--follow-links", is_flag=True, help="Follow links.")
 @click.option(
-    "-p", "--path",
-    metavar="PATH",
-    help="Path to list.")
-@click.option(
-    "-c", "--sourcecode",
-    is_flag=True,
-    help="List source code files.")
-@click.option(
-    "-a", "--all",
-    is_flag=True,
-    help="Show all files including Guild files.")
-@click.option(
-    "-f", "--full-path",
-    is_flag=True,
-    help="Show full path for files.")
-@click.option(
-    "-L", "--follow-links",
-    is_flag=True,
-    help="Follow links.")
-@click.option(
-    "-n", "--no-format",
-    is_flag=True,
-    help="Show files without additional formatting.")
+    "-n", "--no-format", is_flag=True, help="Show files without additional formatting."
+)
 @runs_support.all_filters
 @remote_support.remote_option("List files for for remote run.")
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def ls(ctx, args):
     """List run files.
 
@@ -79,4 +62,5 @@ def ls(ctx, args):
 
     """
     from . import ls_impl
+
     ls_impl.main(args, ctx)

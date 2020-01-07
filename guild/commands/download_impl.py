@@ -25,6 +25,7 @@ from guild import util
 
 log = logging.getLogger("guild")
 
+
 def main(args):
     resdef = resourcedef.ResourceDef("download", {})
     source = resourcedef.ResourceSource(resdef, args.url)
@@ -37,6 +38,7 @@ def main(args):
     else:
         sha256 = util.file_sha256(source_path, use_cache=False)
         print("{}  {}".format(sha256, source_path))
+
 
 def _handle_download_error(e, source):
     if log.getEffectiveLevel() <= logging.DEBUG:

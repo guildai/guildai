@@ -29,8 +29,8 @@ log = logging.getLogger("guild")
 VERSION = 1
 DB_NAME = "index_v%i.db" % VERSION
 
-class AttrReader(object):
 
+class AttrReader(object):
     def __init__(self):
         self._data = {}
 
@@ -74,19 +74,17 @@ class AttrReader(object):
         except KeyError:
             return run.get(attr)
 
-class FlagReader(object):
 
+class FlagReader(object):
     def __init__(self):
         self._data = {}
 
     def refresh(self, runs):
-        self._data = {
-            run.id: run.get("flags", {})
-            for run in runs
-        }
+        self._data = {run.id: run.get("flags", {}) for run in runs}
 
     def read(self, run, flag):
         return self._data.get(run.id, {}).get(flag)
+
 
 class ScalarReader(object):
 
@@ -119,13 +117,12 @@ class ScalarReader(object):
         if cur_digest != last_digest:
             log.debug(
                 "last digest for %s (%s) is stale, refreshing scalars",
-                path, last_digest or 'unset')
-            self._refresh_run_scalars(
-                run, prefix, cur_digest,
-                last_digest, scalars)
+                path,
+                last_digest or 'unset',
+            )
+            self._refresh_run_scalars(run, prefix, cur_digest, last_digest, scalars)
 
-    def _refresh_run_scalars(self, run, prefix, cur_digest, last_digest,
-                             scalars):
+    def _refresh_run_scalars(self, run, prefix, cur_digest, last_digest, scalars):
         summarized = self._summarize_scalars(scalars)
         if last_digest:
             self._del_scalars(run.id, prefix)
@@ -140,10 +137,13 @@ class ScalarReader(object):
         return rel_path.replace(os.sep, "/")
 
     def _scalar_source_digest(self, run_id, prefix):
-        cur = self._db.execute("""
+        cur = self._db.execute(
+            """
           SELECT path_digest FROM scalar_source
           WHERE run = ? AND prefix = ?
-        """, (run_id, prefix))
+        """,
+            (run_id, prefix),
+        )
         row = cur.fetchone()
         if not row:
             return None
@@ -163,63 +163,81 @@ class ScalarReader(object):
         return summarized
 
     def _del_scalars(self, run_id, prefix):
-        self._db.execute("""
+        self._db.execute(
+            """
           DELETE from scalar
           WHERE run = ? AND prefix = ?
-        """, (run_id, prefix))
+        """,
+            (run_id, prefix),
+        )
 
     def _write_summarized(self, run_id, prefix, summarized):
         cur = self._db.cursor()
         for tag in summarized:
             tsum = summarized[tag]
-            cur.execute("""
+            cur.execute(
+                """
               INSERT INTO scalar
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                run_id,
-                prefix,
-                tag,
-                tsum.first_val,
-                tsum.first_step,
-                tsum.last_val,
-                tsum.last_step,
-                tsum.min_val,
-                tsum.min_step,
-                tsum.max_val,
-                tsum.max_step,
-                tsum.avg_val,
-                tsum.total,
-                tsum.count
-            ))
+            """,
+                (
+                    run_id,
+                    prefix,
+                    tag,
+                    tsum.first_val,
+                    tsum.first_step,
+                    tsum.last_val,
+                    tsum.last_step,
+                    tsum.min_val,
+                    tsum.min_step,
+                    tsum.max_val,
+                    tsum.max_step,
+                    tsum.avg_val,
+                    tsum.total,
+                    tsum.count,
+                ),
+            )
         self._db.commit()
 
     def _write_source_digest(self, run_id, prefix, path_digest):
         cur = self._db.cursor()
-        cur.execute("""
+        cur.execute(
+            """
           UPDATE scalar_source
             SET path_digest = ?
             WHERE run = ? AND prefix = ?
-        """, (path_digest, run_id, prefix))
-        cur.execute("""
+        """,
+            (path_digest, run_id, prefix),
+        )
+        cur.execute(
+            """
           INSERT OR IGNORE INTO scalar_source
           VALUES (?, ?, ?)
-        """, (run_id, prefix, path_digest))
+        """,
+            (run_id, prefix, path_digest),
+        )
         self._db.commit()
 
     def read(self, run, prefix, tag, qual, step):
         col_index = self._read_col_index(qual, step)
         cur = self._db.cursor()
         if prefix is None:
-            cur.execute("""
+            cur.execute(
+                """
               SELECT * FROM scalar
               WHERE run = ? AND tag = ?
-            """, (run.id, tag))
+            """,
+                (run.id, tag),
+            )
         else:
-            cur.execute("""
+            cur.execute(
+                """
               SELECT * FROM scalar
               WHERE run = ? AND prefix LIKE ? AND tag = ?
               ORDER BY prefix, tag
-            """, (run.id, "%s%%" % prefix, tag))
+            """,
+                (run.id, "%s%%" % prefix, tag),
+            )
         row = cur.fetchone()
         if not row:
             return None
@@ -229,24 +247,22 @@ class ScalarReader(object):
         try:
             return self._col_index_map[(qual or "last", step)]
         except KeyError:
-            raise ValueError(
-                "unsupported scalar type qual=%r step=%s"
-                % (qual, step))
+            raise ValueError("unsupported scalar type qual=%r step=%s" % (qual, step))
 
     def iter_scalars(self, run):
-        cur = self._db.execute("""
+        cur = self._db.execute(
+            """
           SELECT * FROM scalar
           WHERE run = ?
           ORDER BY 'prefix', 'tag'
-        """, (run.id,))
+        """,
+            (run.id,),
+        )
         for row in cur.fetchall():
-            yield {
-                col[0]: row[i]
-                for i, col in enumerate(cur.description)
-            }
+            yield {col[0]: row[i] for i, col in enumerate(cur.description)}
+
 
 class TagSummary(object):
-
     def __init__(self):
         self.first_val = None
         self.first_step = None
@@ -289,6 +305,7 @@ class TagSummary(object):
             self.max_val = val
             self.max_step = step
 
+
 class RunIndex(object):
     """Interface for using a run index."""
 
@@ -311,7 +328,8 @@ class RunIndex(object):
 
     @staticmethod
     def _init_tables(db):
-        db.execute("""
+        db.execute(
+            """
           CREATE TABLE IF NOT EXISTS scalar (
             run,
             prefix,
@@ -328,22 +346,29 @@ class RunIndex(object):
             total,
             count
           )
-        """)
-        db.execute("""
+        """
+        )
+        db.execute(
+            """
           CREATE INDEX IF NOT EXISTS scalar_i
           ON scalar (run, prefix, tag)
-        """)
-        db.execute("""
+        """
+        )
+        db.execute(
+            """
           CREATE TABLE IF NOT EXISTS scalar_source (
             run,
             prefix,
             path_digest
           )
-        """)
-        db.execute("""
+        """
+        )
+        db.execute(
+            """
           CREATE UNIQUE INDEX IF NOT EXISTS scalar_source_pk
           ON scalar_source (run, prefix)
-        """)
+        """
+        )
 
     def refresh(self, runs, types=None):
         """Refreshes the index for the specified runs.
@@ -373,6 +398,7 @@ class RunIndex(object):
 
     def run_scalars(self, run):
         return list(self._scalar_reader.iter_scalars(run))
+
 
 def iter_run_scalars(run):
     index = RunIndex()

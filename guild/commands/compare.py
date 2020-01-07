@@ -21,53 +21,65 @@ from guild import click_util
 
 from . import runs_support
 
+
 @click.command()
 @runs_support.runs_arg
 @runs_support.all_filters
 @click.option(
-    "-min", "--min", "min_col", metavar="COLUMN",
-    help="Show the lowest values for COLUMN first.")
+    "-min",
+    "--min",
+    "min_col",
+    metavar="COLUMN",
+    help="Show the lowest values for COLUMN first.",
+)
 @click.option(
-    "-min", "--max", "max_col", metavar="COLUMN",
-    help="Show the highest values for COLUMN first.")
+    "-min",
+    "--max",
+    "max_col",
+    metavar="COLUMN",
+    help="Show the highest values for COLUMN first.",
+)
 @click.option(
-    "-n", "--limit", "--top", metavar="N",
+    "-n",
+    "--limit",
+    "--top",
+    metavar="N",
     type=click.IntRange(min=1),
-    help="Only show the top N runs.")
+    help="Only show the top N runs.",
+)
 @click.option(
-    "-e", "--extra-cols", is_flag=True,
-    help="Show extra columns such as source code hash.")
+    "-e",
+    "--extra-cols",
+    is_flag=True,
+    help="Show extra columns such as source code hash.",
+)
 @click.option(
-    "-c", "--cols", metavar="COLUMNS",
-    help=(
-        "Additional columns to compare. "
-        "Cannot be used with --strict-columns."))
+    "-c",
+    "--cols",
+    metavar="COLUMNS",
+    help=("Additional columns to compare. " "Cannot be used with --strict-columns."),
+)
 @click.option(
-    "-cc", "--strict-cols", metavar="COLUMNS",
-    help="Columns to compare. Cannot be used with --columns.")
+    "-cc",
+    "--strict-cols",
+    metavar="COLUMNS",
+    help="Columns to compare. Cannot be used with --columns.",
+)
 @click.option(
-    "-p", "--skip-op-cols", is_flag=True,
-    help="Don't show operation columns.")
+    "-p", "--skip-op-cols", is_flag=True, help="Don't show operation columns."
+)
+@click.option("-r", "--skip-core", is_flag=True, help="Don't show core columns.")
+@click.option("-t", "--table", is_flag=True, help="Show comparison data as a table.")
 @click.option(
-    "-r", "--skip-core", is_flag=True,
-    help="Don't show core columns.")
-@click.option(
-    "-t", "--table", is_flag=True,
-    help="Show comparison data as a table.")
-@click.option(
-    "-csv", "--csv", metavar="PATH",
-    help=("Save comparison data to a CSV file. Use '-' for "
-          "standard output."))
-@click.option(
-    "--include-batch", is_flag=True,
-    help="Include batch runs.")
-@click.option(
-    "--print-scalars", is_flag=True,
-    help="Show available scalars and exit.")
-
+    "-csv",
+    "--csv",
+    metavar="PATH",
+    help=("Save comparison data to a CSV file. Use '-' for " "standard output."),
+)
+@click.option("--include-batch", is_flag=True, help="Include batch runs.")
+@click.option("--print-scalars", is_flag=True, help="Show available scalars and exit.")
 @click_util.use_args
 @click_util.render_doc
-
 def compare(args):
     """Compare run results.
 
@@ -175,4 +187,5 @@ def compare(args):
 
     """
     from . import compare_impl
+
     compare_impl.main(args)

@@ -17,13 +17,13 @@ from guild import namespace
 
 _resources = entry_point_util.EntryPointResources("guild.resources", "resource")
 
-class Resource(object):
 
+class Resource(object):
     def __init__(self, ep):
         self.name = ep.name
         self.dist = ep.dist
         self.resdef = self._init_resdef()
-        self._fullname = None # lazy
+        self._fullname = None  # lazy
 
     def __repr__(self):
         return "<guild.resource.Resource '%s'>" % self.fullname
@@ -38,8 +38,10 @@ class Resource(object):
     def _init_resdef(self):
         raise NotImplementedError()
 
+
 def set_path(path):
     _resources.set_path(path)
+
 
 def insert_path(item):
     path = _resources.path()
@@ -50,10 +52,12 @@ def insert_path(item):
     path.insert(0, item)
     _resources.set_path(path)
 
+
 def iter_resources():
     for _name, res in _resources:
         if not res.resdef.private:
             yield res
+
 
 def for_name(name):
     return _resources.for_name(name)

@@ -22,6 +22,7 @@ import guild.remote
 from guild import cli
 from guild import click_util
 
+
 def remote_arg(fn):
     """`REMOTE` is the name of a configured remote. Use ``guild remotes``
     to list available remotes.
@@ -30,10 +31,9 @@ def remote_arg(fn):
     --help``.
 
     """
-    click_util.append_params(fn, [
-        click.Argument(("remote",))
-    ])
+    click_util.append_params(fn, [click.Argument(("remote",))])
     return fn
+
 
 def remote_option(help):
     """`REMOTE` is the name of a configured remote. Use ``guild remotes``
@@ -44,12 +44,15 @@ def remote_option(help):
 
     """
     assert isinstance(help, str), "@remote_option must be called with help"
+
     def wrapper(fn):
-        click_util.append_params(fn, [
-            click.Option(("-r", "--remote"), metavar="REMOTE", help=help),
-        ])
+        click_util.append_params(
+            fn, [click.Option(("-r", "--remote"), metavar="REMOTE", help=help),]
+        )
         return fn
+
     return wrapper
+
 
 def remotes():
     """### Remotes
@@ -63,6 +66,7 @@ def remotes():
 
     """
 
+
 def remote_for_args(args):
     assert args.remote, args
     try:
@@ -71,13 +75,15 @@ def remote_for_args(args):
         cli.error(
             "remote '%s' is not defined\n"
             "Show remotes by running 'guild remotes' or "
-            "'guild remotes --help' for more information."
-            % args.remote)
+            "'guild remotes --help' for more information." % args.remote
+        )
     except guild.remote.UnsupportedRemoteType as e:
         cli.error(
             "remote '%s' in ~/.guild/config.yml has unsupported "
-            "type: %s" % (args.remote, e.args[0]))
+            "type: %s" % (args.remote, e.args[0])
+        )
     except guild.remote.MissingRequiredConfig as e:
         cli.error(
             "remote '%s' in ~/.guild/config.yml is missing required "
-            "config: %s" % (args.remote, e.args[0]))
+            "config: %s" % (args.remote, e.args[0])
+        )

@@ -26,6 +26,7 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
+
 def main(args):
     runs = runs_impl.runs_for_args(args)
     if args.watch:
@@ -34,11 +35,13 @@ def main(args):
         for run in runs:
             _maybe_sync_run(run, False)
 
+
 def _watch(runs):
     if not runs:
         cli.error(
             "cannot find any runs to watch\n"
-            "Try 'guild runs list' for a list of runs.")
+            "Try 'guild runs list' for a list of runs."
+        )
     for run in runs:
         if run.status == "running":
             cli.out("Watching %s" % run.id)
@@ -47,10 +50,12 @@ def _watch(runs):
     else:
         cli.error("there are no active runs to watch")
 
+
 def _maybe_sync_run(run, watch):
     remote_lock = remote_run_support.lock_for_run(run)
     if remote_lock:
         _try_sync(run, remote_lock, watch)
+
 
 def _try_sync(run, remote_lock, watch):
     try:
@@ -58,6 +63,8 @@ def _try_sync(run, remote_lock, watch):
     except LookupError:
         log.warning(
             "error syncing run '%s': plugin '%s' not available",
-            run.id, remote_lock.plugin_name)
+            run.id,
+            remote_lock.plugin_name,
+        )
     else:
         plugin.sync_run(run, dict(watch=watch))

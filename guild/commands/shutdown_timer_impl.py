@@ -28,22 +28,26 @@ TITLE = "Shutdown timer"
 INTERVAL = 5
 LOG_HEARTBEAT = 60
 
+
 def start(args):
     run = lambda log: _run(args, log)
     service_impl_support.start(NAME, run, args, TITLE)
 
+
 def stop():
     service_impl_support.stop(NAME, TITLE)
 
+
 def status():
     service_impl_support.status(NAME, TITLE)
+
 
 def _run(args, log):
     log.info("%s started with timeout = %im", TITLE, args.timeout)
     if args.dont_shutdown:
         log.info(
-            "%s WILL NOT SHUTDOWN system because "
-            "--dont-shutdown was used", TITLE)
+            "%s WILL NOT SHUTDOWN system because " "--dont-shutdown was used", TITLE
+        )
     last_activity = _now()
     while True:
         try:
@@ -56,6 +60,7 @@ def _run(args, log):
             break
     log.info("Stopping")
 
+
 def _check_activity(last_activity, log):
     pids = _guild_ops()
     now = _now()
@@ -67,11 +72,13 @@ def _check_activity(last_activity, log):
         log_f("No runs for %s", _format_duration(now - last_activity))
         return last_activity
 
+
 def _format_duration(seconds):
     if seconds < 60:
         return "%i second(s)" % seconds
     else:
         return "%i minute(s)" % (seconds // 60)
+
 
 def _log_function(log, now, pids):
     # Tricky function that decides whether to log as info or debug.
@@ -96,16 +103,22 @@ def _log_function(log, now, pids):
     else:
         return log.debug
 
+
 def _guild_ops():
     return [
-        p.pid for p in psutil.process_iter(attrs=["cmdline"])
-        if "guild.op_main" in p.info["cmdline"]]
+        p.pid
+        for p in psutil.process_iter(attrs=["cmdline"])
+        if "guild.op_main" in p.info["cmdline"]
+    ]
+
 
 def _timeout(last, timeout):
     return _now() >= (last + (timeout * 60))
 
+
 def _now():
     return int(time.time())
+
 
 def _shutdown(args, log):
     log.info("RUN ACTIVITY TIMEOUT - SHUTTING DOWN SYSTEM")

@@ -21,35 +21,32 @@ from guild import click_util
 
 from . import runs_support
 
+
 @click.command("open")
 @runs_support.run_arg
+@click.option("-p", "--path", metavar="PATH", help="Path to open under run directory.")
 @click.option(
-    "-p", "--path",
-    metavar="PATH", help="Path to open under run directory.")
+    "-c", "--sourcecode", is_flag=True, help="Open run source code directory."
+)
 @click.option(
-    "-c", "--sourcecode",
+    "-O",
+    "--output",
     is_flag=True,
-    help="Open run source code directory.")
+    help="Open run output. Cannot be used with other options.",
+)
+@click.option("-m", "--cmd", metavar="CMD", help="Command used to open run.")
 @click.option(
-    "-O", "--output",
-    is_flag=True,
-    help="Open run output. Cannot be used with other options.")
+    "--shell", is_flag=True, help="Open a new shell in run directory or PATH."
+)
 @click.option(
-    "-m", "--cmd", metavar="CMD",
-    help="Command used to open run.")
-@click.option(
-    "--shell",
-    is_flag=True,
-    help="Open a new shell in run directory or PATH.")
-@click.option(
-    "--shell-cmd", metavar="CMD",
-    help="Open a new shell in run directory or PATH using CMD.")
+    "--shell-cmd",
+    metavar="CMD",
+    help="Open a new shell in run directory or PATH using CMD.",
+)
 @runs_support.all_filters
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def open_(ctx, args):
     """Open a run path.
 
@@ -82,4 +79,5 @@ def open_(ctx, args):
 
     """
     from . import open_impl
+
     open_impl.main(args, ctx)

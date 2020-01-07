@@ -52,11 +52,12 @@ MAX_IMAGE_SUMMARIES = 100
 SOURCECODE_HPARAM = "sourcecode"
 TIME_METRIC = "time"
 
+
 class TensorboardError(Exception):
     pass
 
-class _RunsMonitorState(object):
 
+class _RunsMonitorState(object):
     def __init__(self, logdir, logspec):
         self.logdir = logdir
         self.log_images = not logspec or "images" in logspec
@@ -64,22 +65,22 @@ class _RunsMonitorState(object):
         self.hparam_experiment = None
         self.hparam_experiment_runs_digest = None
 
+
 def RunsMonitor(logdir, list_runs_cb, interval=None, logspec=None):
     state = _RunsMonitorState(logdir, logspec)
     if state.log_hparams:
         list_runs_cb = _hparam_init_support(list_runs_cb, state)
-    return run_util.RunsMonitor(
-        logdir,
-        list_runs_cb,
-        _refresh_run_cb(state),
-        interval)
+    return run_util.RunsMonitor(logdir, list_runs_cb, _refresh_run_cb(state), interval)
+
 
 def _hparam_init_support(list_runs_cb, state):
     def f():
         runs = list_runs_cb()
         _refresh_hparam_experiment(runs, state)
         return runs
+
     return f
+
 
 def _refresh_hparam_experiment(runs, state):
     if runs:
@@ -95,11 +96,13 @@ def _refresh_hparam_experiment(runs, state):
         state.hparam_experiment = None
         state.hparam_experiment_runs_digest = None
 
+
 def _runs_digest(runs):
     digest = hashlib.md5()
     for run_id in sorted([run.id for run in runs]):
         digest.update(run_id.encode())
     return digest.hexdigest()
+
 
 def _experiment_hparams(runs):
     hparams = {}
@@ -109,8 +112,10 @@ def _experiment_hparams(runs):
         hparams.setdefault(SOURCECODE_HPARAM, set()).add(_run_sourcecode(run))
     return hparams
 
+
 def _run_sourcecode(run):
     return run.get("sourcecode_digest", "")[:8]
+
 
 def _experiment_metrics(runs):
     metrics = set([TIME_METRIC])
@@ -118,11 +123,10 @@ def _experiment_metrics(runs):
         metrics.update(_run_metric_tags(run))
     return metrics
 
+
 def _run_metric_tags(run):
-    return (
-        _run_compare_metrics(run) or
-        _run_root_scalars(run)
-    )
+    return _run_compare_metrics(run) or _run_root_scalars(run)
+
 
 def _run_compare_metrics(run):
     compare_specs = run_util.latest_compare(run)
@@ -135,40 +139,50 @@ def _run_compare_metrics(run):
         except query.ParseError:
             pass
         else:
-            metrics.update([
-                col.key for col in select.cols
-                if _is_last_scalar(col)])
+            metrics.update([col.key for col in select.cols if _is_last_scalar(col)])
     return metrics
 
+
 def _is_last_scalar(select_col):
-    return (
-        isinstance(select_col, query.Scalar) and
-        select_col.qualifier in (None, "last"))
+    return isinstance(select_col, query.Scalar) and select_col.qualifier in (
+        None,
+        "last",
+    )
+
 
 def _run_root_scalars(run):
     return [tag for tag in _iter_scalar_tags(run.dir) if "/" not in tag]
+
 
 def _log_hparam_experiment(runs, hparams, metrics):
     # Conditional to avoid work if not debugging
     if log.getEffectiveLevel() <= logging.DEBUG:
         log.debug(
             "hparam experiment:\n  runs=%s\n  hparams=%s\n  metrics=%s",
-            [run.id for run in runs], list(hparams), list(metrics))
+            [run.id for run in runs],
+            list(hparams),
+            list(metrics),
+        )
+
 
 def _iter_scalar_tags(dir):
     for _path, _digest, scalars in tfevent.scalar_readers(dir):
         for s in scalars:
             yield s[0]
 
+
 def _refresh_run_cb(state):
     def f(run, run_logdir):
         return _refresh_run(run, run_logdir, state)
+
     return f
+
 
 def _refresh_run(run, run_logdir, state):
     _refresh_tfevent_links(run, run_logdir, state)
     _refresh_image_summaries(run, run_logdir, state)
     _maybe_time_metric(run, run_logdir)
+
 
 def _refresh_tfevent_links(run, run_logdir, state):
     for tfevent_path in _iter_tfevents(run.dir):
@@ -177,14 +191,17 @@ def _refresh_tfevent_links(run, run_logdir, state):
         if not os.path.exists(link):
             _init_tfevent_link(tfevent_path, link, run, state)
 
+
 def _iter_tfevents(top):
     for root, _dirs, files in os.walk(top):
         for name in files:
             if TFEVENTS_P.search(name):
                 yield os.path.join(root, name)
 
+
 def _tfevent_link_path(root, tfevent_relpath):
     return os.path.join(root, tfevent_relpath)
+
 
 def _init_tfevent_link(tfevent_src, tfevent_link, run, state):
     link_dir = os.path.dirname(tfevent_link)
@@ -193,18 +210,22 @@ def _init_tfevent_link(tfevent_src, tfevent_link, run, state):
         _init_hparam_session(run, link_dir, state)
     util.symlink(tfevent_src, tfevent_link)
 
+
 def _init_hparam_session(run, run_logdir, state):
     with _hparams_writer(run_logdir) as writer:
         if state.hparam_experiment:
             _add_hparam_experiment(state.hparam_experiment, writer)
         _add_hparam_session(run, writer)
 
+
 def _hparams_writer(logdir):
     return summary.SummaryWriter(logdir, filename_base="0000000000.hparams")
+
 
 def _add_hparam_experiment(hparam_experiment, writer):
     hparams, metrics = hparam_experiment
     writer.add_hparam_experiment(hparams, metrics)
+
 
 def _add_hparam_session(run, writer):
     session_name = _hparam_session_name(run)
@@ -212,9 +233,11 @@ def _add_hparam_session(run, writer):
     hparams[SOURCECODE_HPARAM] = _run_sourcecode(run)
     writer.add_hparam_session(session_name, hparams, run.status)
 
+
 def _hparam_session_name(run):
     operation = run_util.format_operation(run)
     return "%s %s" % (run.short_id, operation)
+
 
 def _refresh_image_summaries(run, run_logdir, state):
     if not state.log_images:
@@ -235,6 +258,7 @@ def _refresh_image_summaries(run, run_logdir, state):
                         log.exception("adding image %s", path)
                     log.error("error adding image %s: %s", path, e)
 
+
 def _iter_images(top):
     for root, _dir, names in os.walk(top):
         for name in sorted(names):
@@ -245,16 +269,20 @@ def _iter_images(top):
             if not os.path.islink(path):
                 yield path, os.path.relpath(path, top)
 
+
 def _count_images(dir):
     return len(_unique_digests(dir))
+
 
 def _unique_digests(dir):
     if not os.path.exists(dir):
         return []
     return set([os.path.splitext(name)[1] for name in os.listdir(dir)])
 
+
 def _path_digest(path):
     return hashlib.md5(path.encode()).hexdigest()
+
 
 def _image_tfevent_path(logdir, digest):
     if not os.path.exists(logdir):
@@ -267,17 +295,19 @@ def _image_tfevent_path(logdir, digest):
         return None
     return os.path.join(logdir, latest)
 
+
 def _image_updated_since_summary(img_path, tfevent_path):
     if not tfevent_path:
         return True
     return util.safe_mtime(img_path) > util.safe_mtime(tfevent_path)
 
+
 def _image_writer(logdir, digest):
     timestamp = _next_tfevent_timestamp(logdir)
     return summary.SummaryWriter(
-        logdir,
-        filename_base="%0.10d.image" % timestamp,
-        filename_suffix="." + digest)
+        logdir, filename_base="%0.10d.image" % timestamp, filename_suffix="." + digest
+    )
+
 
 def _next_tfevent_timestamp(dir):
     assert os.path.exists(dir), dir
@@ -288,6 +318,7 @@ def _next_tfevent_timestamp(dir):
             cur = max(cur, int(m.group(1)))
     return cur + 1
 
+
 def _maybe_time_metric(run, run_logdir):
     time = _run_time(run)
     if time is not None:
@@ -295,27 +326,34 @@ def _maybe_time_metric(run, run_logdir):
         for logdir in _iter_hparams_logdirs(run_logdir):
             _ensure_time_metric(logdir, time)
 
+
 def _iter_hparams_logdirs(top):
     for path in _iter_tfevents(top):
         if path.endswith(".hparams"):
             yield os.path.dirname(path)
 
+
 def _ensure_time_metric(logdir, time):
     if not _time_metric_exists(logdir):
         _init_time_metric(logdir, time)
 
+
 def _metrics_logdir(run_logdir):
     return os.path.join(run_logdir, ".guild")
 
+
 def _time_metric_exists(logdir):
     return bool(glob.glob(os.path.join(logdir, "*.time")))
+
 
 def _init_time_metric(logdir, time):
     with _time_metric_writer(logdir) as writer:
         writer.add_scalar(TIME_METRIC, time)
 
+
 def _time_metric_writer(logdir):
     return summary.SummaryWriter(logdir, filename_base="9999999999.time")
+
 
 def _run_time(run):
     stopped = run.get("stopped")
@@ -325,6 +363,7 @@ def _run_time(run):
     if started is None:
         return None
     return (stopped - started) / 1000000
+
 
 def create_app(logdir, reload_interval, path_prefix=""):
     with warnings.catch_warnings():
@@ -341,46 +380,58 @@ def create_app(logdir, reload_interval, path_prefix=""):
             tb = tb_f()
         argv = (
             "",
-            "--logdir", logdir,
-            "--reload_interval", str(reload_interval),
-            "--path_prefix", path_prefix,
+            "--logdir",
+            logdir,
+            "--reload_interval",
+            str(reload_interval),
+            "--path_prefix",
+            path_prefix,
         )
         tb.configure(argv)
         return application.standard_tensorboard_wsgi(
-            tb.flags,
-            tb.plugin_loaders,
-            tb.assets_zip_provider)
+            tb.flags, tb.plugin_loaders, tb.assets_zip_provider
+        )
+
 
 def setup_logging():
     _setup_tensorboard_logging()
     _setup_werkzeug_logging()
 
+
 def _setup_tensorboard_logging():
     from tensorboard.util import tb_logging
+
     tb_logging.get_logger().info = lambda *_args, **_kw: None
+
 
 def _setup_werkzeug_logging():
     from werkzeug._internal import _log as log0
+
     serving._log = _silent_logger(log0)
+
 
 def _silent_logger(log0):
     def f(type, msg, *args):
         if type == "info":
             return
         log0(type, msg, *args)
+
     return f
+
 
 def run_simple_server(tb_app, host, port, ready_cb):
     from tensorboard import version
+
     server, _ = make_simple_server(tb_app, host, port)
     url = util.local_server_url(host, port)
     sys.stderr.write(
-        "TensorBoard %s at %s (Press CTRL+C to quit)\n"
-        % (version.VERSION, url))
+        "TensorBoard %s at %s (Press CTRL+C to quit)\n" % (version.VERSION, url)
+    )
     sys.stderr.flush()
     if ready_cb:
         ready_cb(url)
     server.serve_forever()
+
 
 def make_simple_server(app, host, port):
     server = serving.make_server(host, port, app, threaded=True)
@@ -389,12 +440,14 @@ def make_simple_server(app, host, port):
     tensorboard_url = "http://%s:%s" % (host, port)
     return server, tensorboard_url
 
+
 def _handle_error(request, _client_address):
     log.exception("HTTP serving error: %s", request)
 
-def serve_forever(logdir, host, port,
-         reload_interval=DEFAULT_RELOAD_INTERVAL,
-         ready_cb=None):
+
+def serve_forever(
+    logdir, host, port, reload_interval=DEFAULT_RELOAD_INTERVAL, ready_cb=None
+):
     app = create_app(logdir, reload_interval)
     setup_logging()
     run_simple_server(app, host, port, ready_cb)

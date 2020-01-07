@@ -114,15 +114,19 @@ FILTERABLE = [
 
 STYLE_TABLE_WIDTH_ADJ = 8
 
+
 def runs_for_args(args, force_deleted=False, ctx=None):
     filtered = filtered_runs(args, force_deleted, ctx)
     return select_runs(filtered, args.runs, ctx)
+
 
 def filtered_runs(args, force_deleted=False, ctx=None):
     return var.runs(
         _runs_root_for_args(args, force_deleted),
         sort=["-timestamp"],
-        filter=_runs_filter(args, ctx))
+        filter=_runs_filter(args, ctx),
+    )
+
 
 def _runs_root_for_args(args, force_deleted):
     archive = getattr(args, "archive", None)
@@ -132,6 +136,7 @@ def _runs_root_for_args(args, force_deleted):
         return archive
     deleted = force_deleted or getattr(args, "deleted", False)
     return var.runs_dir(deleted=deleted)
+
 
 def _runs_filter(args, ctx):
     filters = []
@@ -143,6 +148,7 @@ def _runs_filter(args, ctx):
     _apply_sourcecode_digest_filter(args, filters)
     return var.run_filter("all", filters)
 
+
 def _apply_status_filter(args, filters):
     status_filters = [
         var.run_filter("attr", "status", status)
@@ -152,9 +158,11 @@ def _apply_status_filter(args, filters):
     if status_filters:
         filters.append(var.run_filter("any", status_filters))
 
+
 def _apply_ops_filter(args, filters):
     if args.ops:
         filters.append(_op_run_filter(args.ops))
+
 
 def _op_run_filter(op_refs):
     def f(run):
@@ -162,7 +170,9 @@ def _op_run_filter(op_refs):
         pkg = run_util.format_pkg_name(run)
         full_op = "%s/%s" % (pkg, op)
         return any((ref in full_op for ref in op_refs))
+
     return f
+
 
 def _apply_labels_filter(args, filters):
     if args.labels and args.unlabeled:
@@ -172,16 +182,21 @@ def _apply_labels_filter(args, filters):
     elif args.unlabeled:
         filters.append(_unlabeled_filter())
 
+
 def _labels_filter(labels):
     def f(run):
         run_label = run.get("label", "")
         return any((l in run_label for l in labels))
+
     return f
+
 
 def _unlabeled_filter():
     def f(run):
         return not run.get("label", "").strip()
+
     return f
+
 
 def _apply_marked_filter(args, filters):
     if args.marked and args.unmarked:
@@ -191,11 +206,14 @@ def _apply_marked_filter(args, filters):
     if args.unmarked:
         filters.append(_marked_filter(False))
 
+
 def _marked_filter(test_for=True):
     def f(run):
         marked = bool(run.get("marked"))
         return marked if test_for is True else not marked
+
     return f
+
 
 def _apply_started_filter(args, ctx, filters):
     if args.started:
@@ -203,28 +221,33 @@ def _apply_started_filter(args, ctx, filters):
         log.debug("time range filter: %s to %s", start, end)
         filters.append(_started_filter(start, end))
 
+
 def _parse_timerange(spec, ctx):
     from guild import timerange
+
     try:
         return timerange.parse_spec(spec)
     except ValueError as e:
         cli.error("invalid RANGE: %s%s" % (e, _range_help_suffix(ctx)))
 
+
 def _apply_sourcecode_digest_filter(args, filters):
     if args.digest:
         filters.append(_digest_filter(args.digest))
 
+
 def _digest_filter(prefix):
     def f(run):
         return run.get("sourcecode_digest", "").startswith(prefix)
+
     return f
+
 
 def _range_help_suffix(ctx):
     if not ctx:
         return ""
-    return (
-        "\nTry '%s --help' for help specifying time ranges."
-        % ctx.command_path)
+    return "\nTry '%s --help' for help specifying time ranges." % ctx.command_path
+
 
 def _started_filter(start, end):
     def f(run):
@@ -241,7 +264,9 @@ def _started_filter(start, end):
             return False
         log.debug("%s timestamp %s in range", run.id, started)
         return True
+
     return f
+
 
 def select_runs(runs, select_specs, ctx=None):
     if not select_specs:
@@ -259,6 +284,7 @@ def select_runs(runs, select_specs, ctx=None):
                 selected.append(_find_run_by_id(spec, runs, ctx))
     return selected
 
+
 def _parse_slice(spec):
     try:
         index = int(spec)
@@ -266,15 +292,13 @@ def _parse_slice(spec):
         m = re.match("(\\d+)?:(\\d+)?", spec)
         if m:
             try:
-                return (
-                    _slice_part(m.group(1), decr=True),
-                    _slice_part(m.group(2))
-                )
+                return (_slice_part(m.group(1), decr=True), _slice_part(m.group(2)))
             except ValueError:
                 pass
         raise ValueError(spec)
     else:
         return index - 1, index
+
 
 def _slice_part(s, decr=False):
     if s is None:
@@ -284,21 +308,24 @@ def _slice_part(s, decr=False):
     else:
         return int(s)
 
+
 def _find_run_by_id(id_part, runs, ctx):
     matches = [run for run in runs if run.id.startswith(id_part)]
     return cmd_impl_support.one_run(matches, id_part, ctx)
 
+
 def _in_range(slice_start, slice_end, l):
-    return (
-        (slice_start is None or slice_start >= 0) and
-        (slice_end is None or slice_end <= len(l))
+    return (slice_start is None or slice_start >= 0) and (
+        slice_end is None or slice_end <= len(l)
     )
+
 
 def list_runs(args, ctx=None):
     if args.remote:
         remote_impl_support.list_runs(args)
     else:
         _list_runs(args, ctx)
+
 
 def _list_runs(args, ctx):
     if args.archive and args.deleted:
@@ -311,22 +338,19 @@ def _list_runs(args, ctx):
     else:
         _list_formatted_runs(runs, args)
 
+
 def _list_runs_json(runs):
     runs_data = [_listed_run_json_data(run) for run in runs]
     cli.out(json.dumps(runs_data))
 
+
 def _listed_run_json_data(run):
-    run_data = _run_data(run, (
-        "exit_status",
-        "cmd",
-        "marked",
-        "label",
-        "started",
-        "status",
-        "stopped",
-    ))
+    run_data = _run_data(
+        run, ("exit_status", "cmd", "marked", "label", "started", "status", "stopped",)
+    )
     _apply_batch_proto(run, run_data)
     return run_data
+
 
 def _run_data(run, attrs):
     data = {
@@ -337,6 +361,7 @@ def _run_data(run, attrs):
     data.update({name: _run_attr(run, name) for name in attrs})
     return data
 
+
 def _run_attr(run, name):
     base_attrs = ("status",)
     if name in base_attrs:
@@ -344,11 +369,13 @@ def _run_attr(run, name):
     else:
         return run.get(name)
 
+
 def _apply_batch_proto(run, data):
     proto_dir = run.guild_path("proto")
     if os.path.exists(proto_dir):
         proto = runlib.for_dir(proto_dir)
         data["batch_proto"] = _listed_run_json_data(proto)
+
 
 def _list_formatted_runs(runs, args):
     formatted = format_runs(_limit_runs(runs, args))
@@ -360,9 +387,8 @@ def _list_formatted_runs(runs, args):
         "label",
     ]
     detail = RUN_DETAIL if args.verbose else None
-    cli.table(
-        formatted, cols=cols, detail=detail,
-        max_width_adj=STYLE_TABLE_WIDTH_ADJ)
+    cli.table(formatted, cols=cols, detail=detail, max_width_adj=STYLE_TABLE_WIDTH_ADJ)
+
 
 def _limit_runs(runs, args):
     if args.all:
@@ -370,14 +396,15 @@ def _limit_runs(runs, args):
             cli.error("--all and --limit cannot both be used")
         return runs
     if args.limit and args.limit > 0:
-        return runs[:args.limit]
-    limited = runs[:(args.more + 1) * RUNS_PER_GROUP]
+        return runs[: args.limit]
+    limited = runs[: (args.more + 1) * RUNS_PER_GROUP]
     if len(limited) < len(runs):
         cli.note(
             "Showing the first %i runs (%i total) - use --all "
-            "to show all or -m to show more"
-            % (len(limited), len(runs)))
+            "to show all or -m to show more" % (len(limited), len(runs))
+        )
     return limited
+
 
 def format_runs(runs):
     formatted = []
@@ -391,11 +418,13 @@ def format_runs(runs):
     _apply_op_desc(formatted)
     return formatted
 
+
 def _apply_op_desc(formatted):
     for fmt_run in formatted:
         op_desc = _op_desc_base(fmt_run)
         marked_suffix = " [marked]" if fmt_run["marked"] == "yes" else ""
         fmt_run["op_desc"] = op_desc + marked_suffix
+
 
 def _op_desc_base(fmt_run, apply_style=True):
     op = fmt_run["operation"]
@@ -403,6 +432,7 @@ def _op_desc_base(fmt_run, apply_style=True):
     if not op_dir:
         return _empty_style(op, apply_style)
     return "%s%s" % (op, _styled_op_dir_suffix(op_dir, apply_style))
+
 
 def _run_op_dir(run):
     run = run.batch_proto or run
@@ -414,11 +444,13 @@ def _run_op_dir(run):
     else:
         return None
 
+
 def _empty_style(s, apply_style):
     # Pad a string with an empty style for alignment in tables.
     if apply_style:
         return s + click.style("", dim=True)
     return s
+
 
 def _styled_op_dir_suffix(op_dir, apply_style):
     cwd = os.path.abspath(config.cwd())
@@ -427,10 +459,12 @@ def _styled_op_dir_suffix(op_dir, apply_style):
     shortened_op_dir = run_util.shorten_op_dir(op_dir, cwd)
     return _dim_style(" (%s)" % shortened_op_dir, apply_style)
 
+
 def _dim_style(s, apply_style):
     if apply_style:
         return click.style(s, dim=True)
     return s
+
 
 def format_run(run):
     formatted = format_runs([run])
@@ -439,18 +473,27 @@ def format_run(run):
     assert len(formatted) == 1, formatted
     return formatted[0]
 
+
 def _no_selected_runs_exit(help_msg=None):
     help_msg = (
-        help_msg or
-        "No matching runs\n"
-        "Try 'guild runs list' to list available runs."
+        help_msg or "No matching runs\n" "Try 'guild runs list' to list available runs."
     )
     cli.out(help_msg, err=True)
     raise SystemExit(0)
 
-def runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
-            no_runs_help, op_callback, default_runs_arg=None,
-            confirm_default=False, runs_callback=None):
+
+def runs_op(
+    args,
+    ctx,
+    force_deleted,
+    preview_msg,
+    confirm_prompt,
+    no_runs_help,
+    op_callback,
+    default_runs_arg=None,
+    confirm_default=False,
+    runs_callback=None,
+):
     get_selected = runs_callback or runs_op_selected
     selected = get_selected(args, ctx, default_runs_arg, force_deleted)
     if not selected:
@@ -476,11 +519,13 @@ def runs_op(args, ctx, force_deleted, preview_msg, confirm_prompt,
         else:
             op_callback(selected)
 
+
 def runs_op_selected(args, ctx, default_runs_arg, force_deleted):
     default_runs_arg = default_runs_arg or ALL_RUNS_ARG
     runs_arg = _remove_duplicates(args.runs or default_runs_arg)
     filtered = filtered_runs(args, force_deleted, ctx)
     return select_runs(filtered, runs_arg, ctx)
+
 
 def _remove_duplicates(vals):
     deduped = []
@@ -489,30 +534,32 @@ def _remove_duplicates(vals):
             deduped.append(val)
     return deduped
 
+
 def delete_runs(args, ctx=None):
     if args.remote:
         remote_impl_support.delete_runs(args)
     else:
         _delete_runs(args, ctx)
 
+
 def _delete_runs(args, ctx):
     if args.permanent:
-        preview = (
-            "WARNING: You are about to permanently delete "
-            "the following runs:")
+        preview = "WARNING: You are about to permanently delete " "the following runs:"
         confirm = "Permanently delete {count} run(s)?"
     else:
         preview = "You are about to delete the following runs:"
         confirm = "Delete {count} run(s)?"
     no_runs_help = "Nothing to delete."
+
     def delete(selected):
         stoppable = [
-            run for run in selected
-            if run.status == "running" and not run.remote]
+            run for run in selected if run.status == "running" and not run.remote
+        ]
         if stoppable and not args.yes:
             cli.out(
                 "WARNING: one or more runs are still running "
-                "and will be stopped before being deleted.")
+                "and will be stopped before being deleted."
+            )
             if not cli.confirm("Really delete these runs?"):
                 return
         for run in stoppable:
@@ -522,9 +569,18 @@ def _delete_runs(args, ctx):
             cli.out("Permanently deleted %i run(s)" % len(selected))
         else:
             cli.out("Deleted %i run(s)" % len(selected))
+
     runs_op(
-        args, ctx, False, preview, confirm, no_runs_help,
-        delete, confirm_default=not args.permanent)
+        args,
+        ctx,
+        False,
+        preview,
+        confirm,
+        no_runs_help,
+        delete,
+        confirm_default=not args.permanent,
+    )
+
 
 def purge_runs(args, ctx):
     if args.remote:
@@ -532,16 +588,18 @@ def purge_runs(args, ctx):
     else:
         _purge_runs(args, ctx)
 
+
 def _purge_runs(args, ctx):
-    preview = (
-        "WARNING: You are about to permanently delete "
-        "the following runs:")
+    preview = "WARNING: You are about to permanently delete " "the following runs:"
     confirm = "Permanently delete {count} run(s)?"
     no_runs_help = "Nothing to purge."
+
     def purge(selected):
         var.purge_runs(selected)
         cli.out("Permanently deleted %i run(s)" % len(selected))
+
     runs_op(args, ctx, True, preview, confirm, no_runs_help, purge)
+
 
 def restore_runs(args, ctx):
     if args.remote:
@@ -549,16 +607,20 @@ def restore_runs(args, ctx):
     else:
         _restore_runs(args, ctx)
 
+
 def _restore_runs(args, ctx):
     preview = "You are about to restore the following runs:"
     confirm = "Restore {count} run(s)?"
     no_runs_help = "Nothing to restore."
+
     def restore(selected):
         var.restore_runs(selected)
         cli.out("Restored %i run(s)" % len(selected))
+
     runs_op(
-        args, ctx, True, preview, confirm, no_runs_help,
-        restore, confirm_default=True)
+        args, ctx, True, preview, confirm, no_runs_help, restore, confirm_default=True
+    )
+
 
 def run_info(args, ctx):
     if args.remote:
@@ -566,9 +628,11 @@ def run_info(args, ctx):
     else:
         _run_info(args, ctx)
 
+
 def _run_info(args, ctx):
     run = one_run(args, ctx)
     _print_run_info(run, args)
+
 
 def one_run(args, ctx):
     filtered = filtered_runs(args, ctx=ctx)
@@ -579,12 +643,14 @@ def one_run(args, ctx):
     selected = select_runs(filtered, [runspec], ctx)
     return cmd_impl_support.one_run(selected, runspec, ctx)
 
+
 def _print_run_info(run, args):
     data = _run_info_data(run, args)
     if args.json:
         _print_run_info_json(data)
     else:
         _print_run_info_ordered(data)
+
 
 def _run_info_data(run, args):
     data = []
@@ -602,6 +668,7 @@ def _run_info_data(run, args):
         _maybe_append_proto_data(run, data)
     return data
 
+
 def _append_attr_data(run, include_private, data):
     fmt_run = format_run(run)
     for name in RUN_DETAIL:
@@ -612,6 +679,7 @@ def _append_attr_data(run, include_private, data):
         data.append(("opref", str(run.opref)))
         data.append(("op", run.get("op")))
 
+
 def other_attr_names(run, include_private=False):
     core_attrs = CORE_RUN_ATTRS + LEGACY_RUN_ATTRS
     if include_private:
@@ -620,6 +688,7 @@ def other_attr_names(run, include_private=False):
         include = lambda x: x[0] != "_" and x not in core_attrs
     return [name for name in sorted(run.attr_names()) if include(name)]
 
+
 def _scalar_info(run, args):
     return {
         key: val
@@ -627,8 +696,10 @@ def _scalar_info(run, args):
         if args.all_scalars or "/" not in key
     }
 
+
 def _iter_scalars(run, args):
-    from guild import index2 as indexlib # slightly expensive
+    from guild import index2 as indexlib  # slightly expensive
+
     for s in indexlib.iter_run_scalars(run):
         key = _s_key(s)
         val = _s_val(s)
@@ -638,27 +709,30 @@ def _iter_scalars(run, args):
         else:
             yield key, "%f (step %i)" % (_s_val(s), _s_step(s))
 
+
 def _s_key(s):
     return run_util.run_scalar_key(s)
+
 
 def _s_val(s):
     return s["last_val"]
 
+
 def _s_step(s):
     return s["last_step"]
 
+
 def _resolved_deps(run):
     deps = run.get("resolved_deps") or {}
-    return {
-        res_name: _res_sources_paths(sources)
-        for res_name, sources in deps.items()
-    }
+    return {res_name: _res_sources_paths(sources) for res_name, sources in deps.items()}
+
 
 def _res_sources_paths(sources):
     paths = []
     for source_paths in sources.values():
         paths.extend(source_paths)
     return sorted(paths)
+
 
 def _maybe_append_proto_data(run, data):
     proto = run.batch_proto
@@ -667,21 +741,21 @@ def _maybe_append_proto_data(run, data):
         _append_attr_data(proto, True, proto_data)
         data.append(("proto-run", proto_data))
 
+
 def _print_run_info_json(data):
     data = _tuple_lists_to_dict(data)
     cli.out(json.dumps(data))
 
+
 def _tuple_lists_to_dict(data):
     if isinstance(data, list):
         if data and isinstance(data[0], tuple):
-            return {
-                name: _tuple_lists_to_dict(val)
-                for name, val in data
-            }
+            return {name: _tuple_lists_to_dict(val) for name, val in data}
         else:
             return [_tuple_lists_to_dict(val) for val in data]
     else:
         return data
+
 
 def _print_run_info_ordered(data):
     fmt = flag_util.encode_flag_val
@@ -702,11 +776,13 @@ def _print_run_info_ordered(data):
         else:
             cli.out("%s: %s" % (name, val))
 
+
 def label(args, ctx):
     if args.remote:
         remote_impl_support.label_runs(args)
     else:
         _label(args, ctx)
+
 
 def _label(args, ctx):
     if args.clear:
@@ -716,6 +792,7 @@ def _label(args, ctx):
     else:
         cli.error("specify a label")
 
+
 def _clear_labels(args, ctx):
     # if a label arg is provided, assume it's a run spec
     if args.label:
@@ -723,28 +800,32 @@ def _clear_labels(args, ctx):
     preview = "You are about to clear the labels for the following runs:"
     confirm = "Continue?"
     no_runs = "No runs to modify."
+
     def clear_labels(selected):
         for run in selected:
             run.del_attr("label")
         cli.out("Cleared label for %i run(s)" % len(selected))
+
     runs_op(
-        args, ctx, False, preview, confirm, no_runs,
-        clear_labels, LATEST_RUN_ARG, True)
+        args, ctx, False, preview, confirm, no_runs, clear_labels, LATEST_RUN_ARG, True
+    )
+
 
 def _set_labels(args, ctx):
-    preview = (
-        "You are about to label the following runs with '%s':"
-        % args.label)
+    preview = "You are about to label the following runs with '%s':" % args.label
     confirm = "Continue?"
     no_runs = "No runs to modify."
+
     def set_labels(selected):
         for run in selected:
             formatted = format_run_label(args.label, run)
             run.write_attr("label", formatted)
         cli.out("Labeled %i run(s)" % len(selected))
+
     runs_op(
-        args, ctx, False, preview, confirm, no_runs,
-        set_labels, LATEST_RUN_ARG, True)
+        args, ctx, False, preview, confirm, no_runs, set_labels, LATEST_RUN_ARG, True
+    )
+
 
 def format_run_label(template, run):
     vals = {}
@@ -752,10 +833,12 @@ def format_run_label(template, run):
     vals.update(_attrs_for_render_label(run))
     return util.render_label(template, vals).strip()
 
+
 def _attrs_for_render_label(run):
     return {
         "label": run.get("label"),
     }
+
 
 def stop_runs(args, ctx):
     if args.remote:
@@ -763,20 +846,34 @@ def stop_runs(args, ctx):
     else:
         _stop_runs(args, ctx)
 
+
 def _stop_runs(args, ctx):
     preview = "WARNING: You are about to stop the following runs:"
     confirm = "Stop {count} run(s)?"
     no_runs_help = "Nothing to stop."
     args.running = True
+
     def stop_f(selected):
         for run in selected:
             _stop_run(run, args.no_wait)
+
     def select_runs_f(args, ctx, default_runs_arg, force_deleted):
         runs = runs_op_selected(args, ctx, default_runs_arg, force_deleted)
         return [run for run in runs if not run.remote]
+
     runs_op(
-        args, ctx, False, preview, confirm, no_runs_help, stop_f,
-        None, False, select_runs_f)
+        args,
+        ctx,
+        False,
+        preview,
+        confirm,
+        no_runs_help,
+        stop_f,
+        None,
+        False,
+        select_runs_f,
+    )
+
 
 def _stop_run(run, no_wait):
     remote_lock = remote_run_support.lock_for_run(run)
@@ -785,16 +882,20 @@ def _stop_run(run, no_wait):
     else:
         _try_stop_local_run(run)
 
+
 def _try_stop_remote_run(run, remote_lock, no_wait):
     try:
         plugin = guild.plugin.for_name(remote_lock.plugin_name)
     except LookupError:
         log.warning(
             "error syncing run '%s': plugin '%s' not available",
-            run.id, remote_lock.plugin_name)
+            run.id,
+            remote_lock.plugin_name,
+        )
     else:
         cli.out("Stopping %s (remote)" % run.id)
         plugin.stop_run(run, dict(no_wait=no_wait))
+
 
 def _try_stop_local_run(run):
     pid = run.pid
@@ -802,18 +903,22 @@ def _try_stop_local_run(run):
         cli.out("Stopping %s (pid %i)" % (run.id, run.pid))
         os.kill(pid, signal.SIGTERM)
 
+
 def export(args, ctx):
-    preview = (
-        "You are about to %s the following runs to '%s':" %
-        (args.move and "move" or "copy", args.location))
+    preview = "You are about to %s the following runs to '%s':" % (
+        args.move and "move" or "copy",
+        args.location,
+    )
     confirm = "Continue?"
     no_runs = "No runs to export."
+
     def export(selected):
         if args.copy_resources and not args.yes:
             cli.out(
                 "WARNING: you have specified --copy-resources, which will "
                 "copy resources used by each run!"
-                "")
+                ""
+            )
             if not cli.confirm("Really copy resources exported runs?"):
                 return
         util.ensure_dir(args.location)
@@ -837,24 +942,27 @@ def export(args, ctx):
                 shutil.copytree(run.path, dest, symlinks)
             exported += 1
         cli.out("Exported %i run(s)" % exported)
-    runs_op(
-        args, ctx, False, preview, confirm, no_runs,
-        export, ALL_RUNS_ARG, True)
+
+    runs_op(args, ctx, False, preview, confirm, no_runs, export, ALL_RUNS_ARG, True)
+
 
 def import_(args, ctx):
     if not os.path.isdir(args.archive):
         cli.error("directory '{}' does not exist".format(args.archive))
-    preview = (
-        "You are about to import (%s) the following runs from '%s':" %
-        (args.move and "move" or "copy", args.archive))
+    preview = "You are about to import (%s) the following runs from '%s':" % (
+        args.move and "move" or "copy",
+        args.archive,
+    )
     confirm = "Continue?"
     no_runs = "No runs to import."
+
     def export(selected):
         if args.copy_resources and not args.yes:
             cli.out(
                 "WARNING: you have specified --copy-resources, which will "
                 "copy resources used by each run!"
-                "")
+                ""
+            )
             if not cli.confirm("Really copy resources exported runs?"):
                 return
         imported = 0
@@ -876,22 +984,24 @@ def import_(args, ctx):
                 shutil.copytree(run.path, dest, symlinks)
             imported += 1
         cli.out("Imported %i run(s)" % imported)
-    runs_op(
-        args, ctx, False, preview, confirm, no_runs,
-        export, ALL_RUNS_ARG, True)
+
+    runs_op(args, ctx, False, preview, confirm, no_runs, export, ALL_RUNS_ARG, True)
+
 
 def push(args, ctx):
     remote = remote_support.remote_for_args(args)
-    preview = (
-        "You are about to copy (push%s) the following runs to %s:" %
-        (_delete_clause(args), remote.name))
+    preview = "You are about to copy (push%s) the following runs to %s:" % (
+        _delete_clause(args),
+        remote.name,
+    )
     confirm = "Continue?"
     no_runs = "No runs to copy."
+
     def push_f(runs):
         remote_impl_support.push_runs(remote, runs, args)
-    runs_op(
-        args, ctx, False, preview, confirm, no_runs,
-        push_f, ALL_RUNS_ARG, True)
+
+    runs_op(args, ctx, False, preview, confirm, no_runs, push_f, ALL_RUNS_ARG, True)
+
 
 def _delete_clause(args):
     if args.delete:
@@ -899,22 +1009,36 @@ def _delete_clause(args):
     else:
         return ""
 
+
 def pull(args, ctx):
     remote = remote_support.remote_for_args(args)
-    preview = (
-        "You are about to copy (pull%s) the following runs from %s:"
-        % (_delete_clause(args), remote.name))
+    preview = "You are about to copy (pull%s) the following runs from %s:" % (
+        _delete_clause(args),
+        remote.name,
+    )
     confirm = "Continue?"
     no_runs = "No runs to copy."
+
     def pull_f(runs):
         remote_impl_support.pull_runs(remote, runs, args)
+
     def filtered_runs_f(args, _ctx, _default_runs_arg, _force_deleted):
         filtered = remote_impl_support.filtered_runs_for_pull(remote, args)
         return select_runs(filtered, args.runs, ctx)
+
     runs_op(
-        args, ctx, False, preview, confirm,
-        no_runs, pull_f, ALL_RUNS_ARG, True,
-        filtered_runs_f)
+        args,
+        ctx,
+        False,
+        preview,
+        confirm,
+        no_runs,
+        pull_f,
+        ALL_RUNS_ARG,
+        True,
+        filtered_runs_f,
+    )
+
 
 def mark(args, ctx=None):
     if args.clear:
@@ -922,28 +1046,30 @@ def mark(args, ctx=None):
     else:
         _mark(args, ctx)
 
+
 def _clear_marked(args, ctx):
     preview = "You are about to unmark the following runs:"
     confirm = "Continue?"
     no_runs = "No runs to unmark."
+
     def clear(selected):
         for run in selected:
             run.del_attr("marked")
         cli.out("Unmarked %i run(s)" % len(selected))
+
     args.marked = True
-    runs_op(
-        args, ctx, False, preview, confirm, no_runs,
-        clear, ALL_RUNS_ARG, True)
+    runs_op(args, ctx, False, preview, confirm, no_runs, clear, ALL_RUNS_ARG, True)
+
 
 def _mark(args, ctx):
     preview = "You are about to mark the following runs:"
     confirm = "Continue?"
     no_runs = "No runs to mark."
+
     def mark(selected):
         for run in selected:
             run.write_attr("marked", True)
         cli.out("Marked %i run(s)" % len(selected))
+
     args.unmarked = True
-    runs_op(
-        args, ctx, False, preview, confirm, no_runs,
-        mark, LATEST_RUN_ARG, True)
+    runs_op(args, ctx, False, preview, confirm, no_runs, mark, LATEST_RUN_ARG, True)

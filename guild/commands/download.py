@@ -19,11 +19,10 @@ import click
 
 from guild import click_util
 
+
 @click.command()
 @click.argument("url")
-
 @click_util.use_args
-
 def download(args):
     """Download a file resource.
 
@@ -49,4 +48,5 @@ def download(args):
     """
 
     from . import download_impl
+
     download_impl.main(args)

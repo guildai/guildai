@@ -27,8 +27,8 @@ log = logging.getLogger("guild")
 
 DEFAULT_TRIALS = 20
 
-def gen_trials(flags, _runs, max_trials=None, random_seed=None,
-               label=None, **kw):
+
+def gen_trials(flags, _runs, max_trials=None, random_seed=None, label=None, **kw):
     """Public interface for ipy."""
     if kw:
         log.warning("ignoring configuration %s", kw)
@@ -36,27 +36,26 @@ def gen_trials(flags, _runs, max_trials=None, random_seed=None,
     dim_names, dims, _initials = skopt_util.flag_dims(flags)
     if not dim_names:
         log.error(
-            "flags for batch (%s) do not contain any search "
-            "dimension - quitting",
-            op_util.flags_desc(flags))
+            "flags for batch (%s) do not contain any search " "dimension - quitting",
+            op_util.flags_desc(flags),
+        )
         raise batch_util.StopBatch(error=True)
     trial_vals = _gen_trial_vals(dims, num_trials, random_seed)
-    trial_opts = {
-        "label": label or "random"
-    }
+    trial_opts = {"label": label or "random"}
     return [
         (_trial_flags(dim_names, dim_vals, flags), trial_opts)
         for dim_vals in trial_vals
     ]
 
+
 def _gen_trial_vals(dims, num_trials, random_seed):
     import skopt
+
     res = skopt.dummy_minimize(
-        lambda *args: 0,
-        dims,
-        n_calls=num_trials,
-        random_state=random_seed)
+        lambda *args: 0, dims, n_calls=num_trials, random_state=random_seed
+    )
     return res.x_iters
+
 
 def _trial_flags(dim_names, dim_vals, base_flags):
     trial_flags = {}
@@ -64,14 +63,17 @@ def _trial_flags(dim_names, dim_vals, base_flags):
     trial_flags.update(skopt_util.trial_flags(dim_names, dim_vals))
     return trial_flags
 
+
 def _gen_batch_trials(flags, batch):
     trials = gen_trials(flags, None, batch.max_trials, batch.random_seed)
     return [t[0] for t in trials]
+
 
 def _patch_numpy_deprecation_warnings():
     warnings.filterwarnings("ignore", category=Warning)
     # pylint: disable=unused-variable
     import numpy.core.umath_tests
+
 
 if __name__ == "__main__":
     _patch_numpy_deprecation_warnings()

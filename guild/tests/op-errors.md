@@ -16,13 +16,13 @@ associated with Guild.
 
     >>> project.run("stack.py")  # doctest: +REPORT_UDIFF
     Traceback (most recent call last):
-      File ".../.guild/sourcecode/stack.py", line 12, in <module>
+      File ".../.guild/sourcecode/stack.py", line 16, in <module>
         fail()
-      File ".../.guild/sourcecode/stack.py", line 4, in fail
+      File ".../.guild/sourcecode/stack.py", line 5, in fail
         c1()
-      File ".../.guild/sourcecode/stack.py", line 7, in c1
+      File ".../.guild/sourcecode/stack.py", line 9, in c1
         c2()
-      File ".../.guild/sourcecode/stack.py", line 10, in c2
+      File ".../.guild/sourcecode/stack.py", line 13, in c2
         import exception
       File ".../.guild/sourcecode/exception.py", line 1, in <module>
         raise Exception("big time fail")

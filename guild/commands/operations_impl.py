@@ -23,6 +23,7 @@ from guild import util
 
 from guild.commands import models_impl
 
+
 def main(args):
     cmd_impl_support.init_model_path()
     dirs = models_impl.models_iter_dirs(args)
@@ -31,13 +32,15 @@ def main(args):
     cli.table(
         sorted(filtered, key=_op_sort_key),
         cols=["fullname", "description"],
-        detail=(["main", "flags", "details"] if args.verbose else [])
+        detail=(["main", "flags", "details"] if args.verbose else []),
     )
+
 
 def _iter_ops(dirs):
     for model in models_impl.iter_models(dirs, include_anonymous=True):
         for op in model.modeldef.operations:
             yield op, model
+
 
 def _format_op(op, model):
     description, details = util.split_description(op.description)
@@ -50,14 +53,12 @@ def _format_op(op, model):
         "name": op.name,
         "main": op.main,
         "flags": [
-            "%s:%s%s" % (
-                flag.name,
-                _format_flag_desc(flag),
-                _format_flag_value(flag))
+            "%s:%s%s" % (flag.name, _format_flag_desc(flag), _format_flag_value(flag))
             for flag in op.flags
         ],
         "_model": model,
     }
+
 
 def format_op_fullname(op_name, model_fullname):
     if model_fullname:
@@ -66,11 +67,14 @@ def format_op_fullname(op_name, model_fullname):
         return "%s:%s" % (model_fullname, op_name)
     return op_name
 
+
 def _format_flag_desc(flag):
     return " %s" % flag.description if flag.description else ""
 
+
 def _format_flag_value(flag):
     return " (default is %s)" % flag_util.encode_flag_val(flag)
+
 
 def _filter_op(op, args):
     filter_vals = [
@@ -78,12 +82,15 @@ def _filter_op(op, args):
         op["description"],
     ]
     return (
-        (op["name"][:1] != "_" or args.all) and
-        (op["model_name"][:1] != "_" or args.all) and
-        util.match_filters(args.filters, filter_vals))
+        (op["name"][:1] != "_" or args.all)
+        and (op["model_name"][:1] != "_" or args.all)
+        and util.match_filters(args.filters, filter_vals)
+    )
+
 
 def _op_sort_key(op):
     return (_op_type_key(op), op["model"], op["name"])
+
 
 def _op_type_key(op):
     if isinstance(op["_model"], model.GuildfileModel):

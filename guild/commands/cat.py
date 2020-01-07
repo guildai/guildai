@@ -22,31 +22,27 @@ from guild import click_util
 from . import remote_support
 from . import runs_support
 
+
 @click.command("cat")
 @runs_support.run_arg
 @click.option(
-    "-p", "--path",
+    "-p",
+    "--path",
     metavar="PATH",
-    help="Path of file to show. Require unless --output is used.")
+    help="Path of file to show. Require unless --output is used.",
+)
 @click.option(
-    "-c", "--sourcecode",
-    is_flag=True,
-    help="Apply PATH to source code files.")
+    "-c", "--sourcecode", is_flag=True, help="Apply PATH to source code files."
+)
 @click.option(
-    "-O", "--output",
-    is_flag=True,
-    help="Show run output. Cannot be used with --path.")
-@click.option(
-    "-pa", "--page",
-    is_flag=True,
-    help="Show file in pager.")
+    "-O", "--output", is_flag=True, help="Show run output. Cannot be used with --path."
+)
+@click.option("-pa", "--page", is_flag=True, help="Show file in pager.")
 @runs_support.all_filters
 @remote_support.remote_option("Show contents of a remote run file.")
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def cat(ctx, args):
     """Show contents of a run file.
 
@@ -67,4 +63,5 @@ def cat(ctx, args):
 
     """
     from . import cat_impl
+
     cat_impl.main(args, ctx)

@@ -20,8 +20,8 @@ from guild import util
 from . import skopt_ipy
 from . import skopt_util_legacy as skopt_util
 
-def gen_trials(flags, runs, random_starts=0, kappa=1.96,
-               xi=0.01, label=None, **kw):
+
+def gen_trials(flags, runs, random_starts=0, kappa=1.96, xi=0.01, label=None, **kw):
     batch_flags = {
         "random-starts": random_starts,
         "kappa": kappa,
@@ -29,11 +29,13 @@ def gen_trials(flags, runs, random_starts=0, kappa=1.96,
     }
     label = label or "forest"
     return skopt_ipy.gen_trials(
-        _init_trial, runs, flags, batch_flags,
-        label=label, **kw)
+        _init_trial, runs, flags, batch_flags, label=label, **kw
+    )
+
 
 def _init_trial(trial, state):
     import skopt
+
     random_starts, x0, y0, dims = state.opt_inputs(trial.run_id)
     res = util.log_apply(
         skopt.forest_minimize,
@@ -45,9 +47,11 @@ def _init_trial(trial, state):
         y0=y0,
         random_state=state.random_state,
         kappa=state.batch_flags["kappa"],
-        xi=state.batch_flags["xi"])
+        xi=state.batch_flags["xi"],
+    )
     state.update(res)
     return state.next_trial_flags()
+
 
 if __name__ == "__main__":
     skopt_util.default_main(_init_trial, non_repeating=True)

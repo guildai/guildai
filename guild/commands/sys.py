@@ -22,11 +22,12 @@ from guild import click_util
 from .shutdown_timer import shutdown_timer
 from .s3_sync import s3_sync
 
-@click.group(cls=click_util.Group)
 
+@click.group(cls=click_util.Group)
 def sys():
     """System utilities.
     """
+
 
 sys.add_command(shutdown_timer)
 sys.add_command(s3_sync)

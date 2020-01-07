@@ -18,18 +18,20 @@ from __future__ import division
 from guild import batch_util
 from guild import op_util
 
+
 def main():
     op_util.init_logging()
     batch_run = batch_util.batch_run()
     trials = _batch_trials(batch_run)
     batch_util.handle_trials(batch_run, trials)
 
+
 def _batch_trials(batch_run):
     all_trials = batch_util.expanded_batch_trials(batch_run)
     return batch_util.sample_trials(
-        all_trials,
-        batch_run.get("max_trials"),
-        batch_run.get("random_seed"))
+        all_trials, batch_run.get("max_trials"), batch_run.get("random_seed")
+    )
+
 
 if __name__ == "__main__":
     try:

@@ -27,6 +27,7 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
+
 def main(args, ctx):
     if args.remote:
         _check_ignored_remote_opts(args)
@@ -34,25 +35,27 @@ def main(args, ctx):
     else:
         _main(args, ctx)
 
+
 def _check_ignored_remote_opts(args):
     if args.full_path:
-        log.warning(
-            "--full-path is not supported for remote "
-            "file lists - ignoring")
+        log.warning("--full-path is not supported for remote " "file lists - ignoring")
+
 
 def _main(args, ctx):
     if args.path and os.path.isabs(args.path):
         cli.error(
-            "PATH must be relative\n"
-            "Try 'guild ls --help' for more information.")
+            "PATH must be relative\n" "Try 'guild ls --help' for more information."
+        )
     run = runs_impl.one_run(args, ctx)
     _print_header(run.path, args)
     for val in sorted(_list(run.path, args)):
         _print_file(val, args)
 
+
 def _print_header(run_dir, args):
     if not args.full_path and not args.no_format:
         cli.out("%s:" % _run_dir_header(run_dir, args))
+
 
 def _run_dir_header(run_dir, args):
     if os.getenv("NO_PATH_HEADER") == "1":
@@ -62,11 +65,12 @@ def _run_dir_header(run_dir, args):
     else:
         return run_dir
 
+
 def _list(run_dir, args):
     match_path_pattern = _match_path_pattern(args)
     for root, dirs, files in os.walk(run_dir, followlinks=args.follow_links):
         _maybe_rm_guild_dir(dirs, args)
-        for name in (dirs + files):
+        for name in dirs + files:
             full_path = os.path.join(root, name)
             rel_path = os.path.relpath(full_path, run_dir)
             if not _match_path(rel_path, match_path_pattern):
@@ -80,6 +84,7 @@ def _list(run_dir, args):
             else:
                 yield rel_path + suffix
 
+
 def _match_path_pattern(args):
     pattern = args.path
     if args.sourcecode:
@@ -90,6 +95,7 @@ def _match_path_pattern(args):
             pattern = source_base
     return pattern
 
+
 def _maybe_rm_guild_dir(dirs, args):
     if args.all or args.sourcecode:
         return
@@ -98,12 +104,12 @@ def _maybe_rm_guild_dir(dirs, args):
     except ValueError:
         pass
 
+
 def _match_path(filename, pattern):
     if not pattern:
         return True
-    return (
-        filename.startswith(pattern) or
-        fnmatch.fnmatch(filename, pattern))
+    return filename.startswith(pattern) or fnmatch.fnmatch(filename, pattern)
+
 
 def _print_file(path, args):
     if args.full_path:

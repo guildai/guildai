@@ -23,10 +23,9 @@ from guild import click_util
 # pylint: disable=unused-import
 from . import remote_support
 
+
 @click.command()
-
 @click_util.render_doc
-
 def remotes():
     """Show available remotes.
 
@@ -35,4 +34,5 @@ def remotes():
     """
 
     from . import remotes_impl
+
     remotes_impl.main()

@@ -22,19 +22,15 @@ from guild import click_util
 from . import remote_support
 from . import runs_support
 
+
 @click.command("purge")
 @runs_support.runs_arg
 @runs_support.all_filters
 @remote_support.remote_option("Permanently delete remote runs.")
-@click.option(
-    "-y", "--yes",
-    help="Do not prompt before purging.",
-    is_flag=True)
-
+@click.option("-y", "--yes", help="Do not prompt before purging.", is_flag=True)
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def purge_runs(ctx, args):
     """Permanentaly delete one or more deleted runs.
 
@@ -74,4 +70,5 @@ def purge_runs(ctx, args):
     """
 
     from . import runs_impl
+
     runs_impl.purge_runs(args, ctx)

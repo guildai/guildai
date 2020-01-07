@@ -21,23 +21,21 @@ from guild import click_util
 from . import remote_support
 from . import runs_support
 
+
 @click.command("delete, rm")
 @runs_support.runs_arg
 @runs_support.all_filters
 @remote_support.remote_option("Delete remote runs.")
+@click.option("-y", "--yes", help="Do not prompt before deleting.", is_flag=True)
 @click.option(
-    "-y", "--yes",
-    help="Do not prompt before deleting.",
-    is_flag=True)
-@click.option(
-    "-p", "--permanent",
+    "-p",
+    "--permanent",
     help="Permanentaly delete runs so they cannot be recovered.",
-    is_flag=True)
-
+    is_flag=True,
+)
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def delete_runs(ctx, args):
     """Delete one or more runs.
 
@@ -82,4 +80,5 @@ def delete_runs(ctx, args):
     """
 
     from . import runs_impl
+
     runs_impl.delete_runs(args, ctx)

@@ -20,15 +20,15 @@ import click
 from guild import click_util
 from . import runs_label
 
+
 @click.command()
 @runs_label.label_params
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def label(ctx, args):
     """{{ runs_label.label_runs }}"""
 
     from . import runs_impl
+
     runs_impl.label(args, ctx)

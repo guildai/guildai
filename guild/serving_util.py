@@ -27,14 +27,14 @@ from werkzeug.wsgi import SharedDataMiddleware
 
 log = logging.getLogger("guild")
 
-class QuietRequestHandler(serving.WSGIRequestHandler):
 
+class QuietRequestHandler(serving.WSGIRequestHandler):
     def log(self, type, message, *args):
         if type != 'info':
             super(QuietRequestHandler, self).log(type, message, *args)
 
-class StaticBase(object):
 
+class StaticBase(object):
     def __init__(self, exports):
         self._app = SharedDataMiddleware(self._not_found, exports)
 
@@ -45,8 +45,8 @@ class StaticBase(object):
     def _not_found(_env, _start_resp):
         raise NotFound()
 
-class StaticDir(StaticBase):
 
+class StaticDir(StaticBase):
     def __init__(self, dir):
         super(StaticDir, self).__init__({"/": dir})
 
@@ -54,7 +54,9 @@ class StaticDir(StaticBase):
         def app(env, start_resp):
             env["PATH_INFO"] = "/index.html"
             return self._app(env, start_resp)
+
         return app
+
 
 def make_server(host, port, app, logging=True):
     if host is None:
@@ -67,32 +69,36 @@ def make_server(host, port, app, logging=True):
         request_handler = QuietRequestHandler
     try:
         return serving.make_server(
-            host, port, app, threaded=True,
-            request_handler=request_handler)
+            host, port, app, threaded=True, request_handler=request_handler
+        )
     except socket.error as e:
         if host:
             raise
         log.debug(
-            "error starting server on %s:%s (%s), "
-            "trying IPv6 default host '::'",
-            host, port, e)
+            "error starting server on %s:%s (%s), " "trying IPv6 default host '::'",
+            host,
+            port,
+            e,
+        )
         return serving.make_server("::", port, app, threaded=True)
+
 
 def json_resp(data, status=200):
     return Response(
         json.dumps(data),
         status=status,
         content_type="application/json",
-        headers=[("Access-Control-Allow-Origin", "*")])
+        headers=[("Access-Control-Allow-Origin", "*")],
+    )
+
 
 def Rule(path, handler, *args):
     return routing.Rule(path, endpoint=(handler, args))
 
+
 def Map(rules):
-    return routing.Map([
-        Rule(path, handler, *args)
-        for path, handler, args, in rules
-    ])
+    return routing.Map([Rule(path, handler, *args) for path, handler, args, in rules])
+
 
 def dispatch(routes, env, start_resp):
     urls = routes.bind_to_environ(env)
@@ -108,12 +114,13 @@ def dispatch(routes, env, start_resp):
         except HTTPException as e:
             return e(env, start_resp)
 
+
 def _del_underscore_vars(kw):
-    return {
-        k: kw[k] for k in kw if k[0] != "_"
-    }
+    return {k: kw[k] for k in kw if k[0] != "_"}
+
 
 def App(routes):
     def app(env, start_resp):
         return dispatch(routes, env, start_resp)
+
     return app

@@ -32,21 +32,17 @@ log = logging.getLogger("guild")
 _models = entry_point_util.EntryPointResources("guild.models", "model")
 
 ModelRef = collections.namedtuple(
-    "ModelRef", [
-        "dist_type",
-        "dist_name",
-        "dist_version",
-        "model_name"
-    ])
+    "ModelRef", ["dist_type", "dist_name", "dist_version", "model_name"]
+)
+
 
 class Model(object):
-
     def __init__(self, ep):
         self.name = self._ep_model_name(ep)
         self.dist = ep.dist
         self.modeldef = self._init_modeldef()
-        self._fullname = None # lazy
-        self._reference = None # lazy
+        self._fullname = None  # lazy
+        self._reference = None  # lazy
 
     @staticmethod
     def _ep_model_name(ep):
@@ -58,7 +54,8 @@ class Model(object):
         return "<%s.%s '%s'>" % (
             self.__class__.__module__,
             self.__class__.__name__,
-            self.name)
+            self.name,
+        )
 
     @property
     def fullname(self):
@@ -82,6 +79,7 @@ class Model(object):
     def _init_reference(self):
         raise NotImplementedError()
 
+
 class GuildfileModel(Model):
     """A model associated with a guildfile.
 
@@ -104,6 +102,7 @@ class GuildfileModel(Model):
             src = os.path.abspath(src)
         return ModelRef("guildfile", src, version, self.name)
 
+
 class PackageModel(Model):
     """A model associated with a package.
 
@@ -113,17 +112,13 @@ class PackageModel(Model):
     def _init_modeldef(self):
         modeldef = _find_dist_modeldef(self.name, self.dist)
         if modeldef is None:
-            raise ValueError(
-                "undefined model '%s' in %s" % (self.name, self.dist))
+            raise ValueError("undefined model '%s' in %s" % (self.name, self.dist))
         return modeldef
 
     def _init_reference(self):
         pkg_name = namespace.apply_namespace(self.dist.project_name)
-        return ModelRef(
-            "package",
-            pkg_name,
-            self.dist.version,
-            self.name)
+        return ModelRef("package", pkg_name, self.dist.version, self.name)
+
 
 def _find_dist_modeldef(name, dist):
     for modeldef in _ensure_dist_modeldefs(dist):
@@ -131,10 +126,12 @@ def _find_dist_modeldef(name, dist):
             return modeldef
     return None
 
+
 def _ensure_dist_modeldefs(dist):
     if not hasattr(dist, "_modelefs"):
         dist._modeldefs = _load_dist_modeldefs(dist)
     return dist._modeldefs
+
 
 def _load_dist_modeldefs(dist):
     modeldefs = []
@@ -142,8 +139,8 @@ def _load_dist_modeldefs(dist):
         record = dist.get_metadata_lines("RECORD")
     except IOError:
         log.warning(
-            "distribution %s missing RECORD metadata - unable to find models",
-            dist)
+            "distribution %s missing RECORD metadata - unable to find models", dist
+        )
     else:
         for line in record:
             path = line.split(",", 1)[0]
@@ -151,6 +148,7 @@ def _load_dist_modeldefs(dist):
                 fullpath = os.path.join(dist.location, path)
                 _try_acc_modeldefs(fullpath, modeldefs)
     return modeldefs
+
 
 def _try_acc_modeldefs(path, acc):
     try:
@@ -161,12 +159,12 @@ def _try_acc_modeldefs(path, acc):
         for modeldef in models.models.values():
             acc.append(modeldef)
 
-class GuildfileDistribution(pkg_resources.Distribution):
 
+class GuildfileDistribution(pkg_resources.Distribution):
     def __init__(self, guildfile):
         super(GuildfileDistribution, self).__init__(
-            guildfile.dir,
-            project_name=self._init_project_name(guildfile))
+            guildfile.dir, project_name=self._init_project_name(guildfile)
+        )
         self.guildfile = guildfile
         self._entry_map = self._init_entry_map()
 
@@ -218,7 +216,7 @@ class GuildfileDistribution(pkg_resources.Distribution):
             "guild.resources": {
                 res.fullname: self._resource_entry_point(res.fullname)
                 for res in self._guildfile_resources()
-            }
+            },
         }
 
     def _model_entry_point(self, model):
@@ -226,7 +224,8 @@ class GuildfileDistribution(pkg_resources.Distribution):
             name=model.name,
             module_name="guild.model",
             attrs=("GuildfileModel",),
-            dist=self)
+            dist=self,
+        )
 
     def _guildfile_resources(self):
         for modeldef in self.guildfile.models.values():
@@ -238,18 +237,21 @@ class GuildfileDistribution(pkg_resources.Distribution):
             name=name,
             module_name="guild.model",
             attrs=("GuildfileResource",),
-            dist=self)
+            dist=self,
+        )
+
 
 def escape_project_name(name):
     """Escapes name for use as a valie pkg_resources project name."""
     return str(base64.b16encode(name.encode("utf-8")).decode("utf-8"))
 
+
 def unescape_project_name(escaped_name):
     """Unescapes names escaped with `escape_project_name`."""
     return str(base64.b16decode(escaped_name).decode("utf-8"))
 
-class GuildfileResource(resource.Resource):
 
+class GuildfileResource(resource.Resource):
     def _init_resdef(self):
         assert isinstance(self.dist, GuildfileDistribution), self.dist
         model_name, res_name = _split_res_name(self.name)
@@ -259,30 +261,31 @@ class GuildfileResource(resource.Resource):
         assert resdef, (self.name, self.dist)
         return resdef
 
+
 def _split_res_name(name):
     parts = name.split(":", 1)
     if len(parts) != 2:
         raise ValueError("invalid resource name: %s" % name)
     return parts
 
-class PackageModelResource(resource.Resource):
 
+class PackageModelResource(resource.Resource):
     def _init_resdef(self):
         model_name, res_name = _split_res_name(self.name)
         modeldef = _find_dist_modeldef(model_name, self.dist)
         if modeldef is None:
-            raise ValueError(
-                "undefined model '%s' in %s"
-                % (model_name, self.dist))
+            raise ValueError("undefined model '%s' in %s" % (model_name, self.dist))
         resdef = modeldef.get_resource(res_name)
         if resdef is None:
             raise ValueError(
-                "undefined resource '%s%s' in %s"
-                % (model_name, res_name, self.dist))
+                "undefined resource '%s%s' in %s" % (model_name, res_name, self.dist)
+            )
         return resdef
+
 
 class ModelImportError(ImportError):
     pass
+
 
 class BadGuildfileDistribution(pkg_resources.Distribution):
     """Distribution for a guildfile that can't be read."""
@@ -293,6 +296,7 @@ class BadGuildfileDistribution(pkg_resources.Distribution):
     def get_entry_map(self, group=None):
         return {}
 
+
 class ModelImporter(object):
 
     undef = object()
@@ -301,13 +305,13 @@ class ModelImporter(object):
         if not self._is_guildfile_dir(path):
             raise ModelImportError(path)
         self.path = path
-        self._dist = self.undef # lazy
+        self._dist = self.undef  # lazy
 
     @staticmethod
     def _is_guildfile_dir(path):
-        return (
-            os.path.abspath(path) == os.path.abspath(config.cwd()) or
-            guildfile.is_guildfile_dir(path))
+        return os.path.abspath(path) == os.path.abspath(
+            config.cwd()
+        ) or guildfile.is_guildfile_dir(path)
 
     @property
     def dist(self):
@@ -334,11 +338,13 @@ class ModelImporter(object):
     def find_module(_fullname, _path=None):
         return None
 
+
 def _model_finder(importer, path, _only=False):
     assert isinstance(importer, ModelImporter)
     assert importer.path == path, (importer.path, path)
     if importer.dist:
         yield importer.dist
+
 
 class GuildfileNamespace(namespace.PrefixNamespace):
 
@@ -355,27 +361,30 @@ class GuildfileNamespace(namespace.PrefixNamespace):
         rest = "/" + parts[1] if len(parts) == 2 else ""
         return decoded_project_name + rest
 
+
 def file_hash(path):
     try:
         path_bytes = open(path, "rb").read()
     except IOError:
-        log.warning(
-            "unable to read %s to calculate guildfile hash", path)
+        log.warning("unable to read %s to calculate guildfile hash", path)
         return "unknown"
     else:
         return hashlib.md5(path_bytes).hexdigest()
 
+
 def script_model_ref(model_name, script_base):
     return ModelRef("script", os.path.abspath(script_base), "", model_name)
+
 
 def get_path():
     return _models.path()
 
+
 def set_path(path, clear_cache=False):
     _models.set_path(path, clear_cache)
 
-class SetPath(object):
 
+class SetPath(object):
     def __init__(self, path, clear_cache=False):
         self._path = path
         self._clear_cache = clear_cache
@@ -391,6 +400,7 @@ class SetPath(object):
         set_path(self._save)
         self._save = None
 
+
 def insert_path(item, clear_cache=False):
     path = _models.path()
     try:
@@ -400,19 +410,24 @@ def insert_path(item, clear_cache=False):
     path.insert(0, item)
     _models.set_path(path, clear_cache)
 
+
 def iter_models():
     for _name, model in _models:
         yield model
 
+
 def for_name(name):
     return _models.for_name(name)
+
 
 def iter_():
     for _name, model in _models:
         yield model
 
+
 def _register_model_finder():
     sys.path_hooks.insert(0, ModelImporter)
     pkg_resources.register_finder(ModelImporter, _model_finder)
+
 
 _register_model_finder()

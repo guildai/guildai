@@ -19,8 +19,8 @@ import sys
 
 log = logging.getLogger("guild")
 
-class Resource(object):
 
+class Resource(object):
     def __init__(self, ep):
         self._ep = ep
         self._inst = None
@@ -33,8 +33,8 @@ class Resource(object):
     def __str__(self):
         return "'%s' in %s" % (self._ep, self._ep.dist)
 
-class EntryPointResources(object):
 
+class EntryPointResources(object):
     def __init__(self, group, desc="resource"):
         self._group = group
         self._desc = desc

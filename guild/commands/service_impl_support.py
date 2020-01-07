@@ -18,9 +18,17 @@ from __future__ import division
 from guild import cli
 from guild import service
 
-def start(name, f, args, title=None, status_cmd=None, stop_cmd=None,
-          log_max_size=service.DEFAULT_LOG_MAX_SIZE,
-          log_backups=service.DEFAULT_LOG_BACKUPS):
+
+def start(
+    name,
+    f,
+    args,
+    title=None,
+    status_cmd=None,
+    stop_cmd=None,
+    log_max_size=service.DEFAULT_LOG_MAX_SIZE,
+    log_backups=service.DEFAULT_LOG_BACKUPS,
+):
     title = title or name
     status_cmd = status_cmd or "guild sys %s status" % name
     stop_cmd = stop_cmd or "guild sys %s stop" % name
@@ -29,15 +37,15 @@ def start(name, f, args, title=None, status_cmd=None, stop_cmd=None,
     try:
         service.start(name, f, args.foreground, log_max_size, log_backups)
     except service.Running:
-        cli.error(
-            "%s is already running (use '%s' to verify)"
-            % (title, status_cmd))
+        cli.error("%s is already running (use '%s' to verify)" % (title, status_cmd))
+
 
 def stop(name, title):
     try:
         service.stop(name, title)
     except service.NotRunning:
         cli.out("%s is not running" % title)
+
 
 def status(name, title, stop_cmd=None):
     stop_cmd = stop_cmd or "guild sys %s stop" % name
@@ -48,8 +56,8 @@ def status(name, title, stop_cmd=None):
     except service.OrphanedProcess as e:
         cli.out(
             "Shutdown timer is NOT running (orphaned pid in "
-            "%s - use '%s' to cleanup)"
-            % (e.pidfile, stop_cmd))
+            "%s - use '%s' to cleanup)" % (e.pidfile, stop_cmd)
+        )
     else:
         if status.running:
             cli.out("%s is running (pid %i)" % (title, status.pid))

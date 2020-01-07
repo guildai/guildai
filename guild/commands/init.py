@@ -19,46 +19,74 @@ import click
 
 from guild import click_util
 
+
 @click.command()
 @click.argument("dir", default="venv")
 @click.option(
-    "-n", "--name", metavar="NAME",
-    help="Environment name (default is env parent directory name).")
+    "-n",
+    "--name",
+    metavar="NAME",
+    help="Environment name (default is env parent directory name).",
+)
 @click.option(
-    "-p", "--python", metavar="VERSION",
-    help="Version of Python to use for the environment.")
+    "-p",
+    "--python",
+    metavar="VERSION",
+    help="Version of Python to use for the environment.",
+)
 @click.option(
-    "-g", "--guild", metavar="VERSION_OR_PATH",
+    "-g",
+    "--guild",
+    metavar="VERSION_OR_PATH",
     help=(
         "Version of Guild AI to use for the environment. "
         "By default, the active version of Guild is installed. This "
-        "value may alternatively be a path to a Guild wheel distribution.")
-    )
+        "value may alternatively be a path to a Guild wheel distribution."
+    ),
+)
 @click.option(
-    "-r", "--requirement", metavar="REQ", multiple=True,
+    "-r",
+    "--requirement",
+    metavar="REQ",
+    multiple=True,
     help=(
         "Install required package or packages defined in a file. May be "
-        "used multiple times."))
+        "used multiple times."
+    ),
+)
 @click.option(
-    "-P", "--path", metavar="DIR", multiple=True,
-    help="Include DIR as a Python path in the environment.")
+    "-P",
+    "--path",
+    metavar="DIR",
+    multiple=True,
+    help="Include DIR as a Python path in the environment.",
+)
 @click.option(
-    "--no-reqs", is_flag=True,
+    "--no-reqs",
+    is_flag=True,
     help=(
         "Don't install from requirements.txt or guild.yml in environment "
-        "parent directory."))
+        "parent directory."
+    ),
+)
 @click.option(
-    "-l", "--local-resource-cache", is_flag=True,
-    help="Use a local cache when initializing an environment.")
+    "-l",
+    "--local-resource-cache",
+    is_flag=True,
+    help="Use a local cache when initializing an environment.",
+)
 @click.option(
-    "-y", "--yes", is_flag=True,
-    help="Initialize a Guild environment without prompting.")
+    "-y",
+    "--yes",
+    is_flag=True,
+    help="Initialize a Guild environment without prompting.",
+)
 @click.option(
-    "--no-progress", is_flag=True,
-    help="Don't show progress when installing environment packages.")
-
+    "--no-progress",
+    is_flag=True,
+    help="Don't show progress when installing environment packages.",
+)
 @click_util.use_args
-
 def init(args):
     """Initialize a Guild environment.
 
@@ -112,4 +140,5 @@ def init(args):
 
     """
     from . import init_impl
+
     init_impl.main(args)

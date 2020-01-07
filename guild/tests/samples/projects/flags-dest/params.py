@@ -1,7 +1,5 @@
 import pprint
 
-params = {
-    "i": 3
-}
+params = {"i": 3}
 
 pprint.pprint(params)

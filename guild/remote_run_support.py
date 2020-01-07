@@ -15,11 +15,12 @@
 from __future__ import absolute_import
 from __future__ import division
 
-class RemoteLock(object):
 
+class RemoteLock(object):
     def __init__(self, plugin_name, config):
         self.plugin_name = plugin_name
         self.config = config
+
 
 def lock_for_run(run):
     raw = _raw_lock_for_run(run)
@@ -28,6 +29,7 @@ def lock_for_run(run):
     plugin_name, config = _parse_lock(raw)
     return RemoteLock(plugin_name, config)
 
+
 def _raw_lock_for_run(run):
     try:
         f = open(run.guild_path("LOCK.remote"), "r")
@@ -35,6 +37,7 @@ def _raw_lock_for_run(run):
         return None
     else:
         return f.read().rstrip()
+
 
 def _parse_lock(raw):
     parts = raw.split(":", 1)

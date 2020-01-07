@@ -49,8 +49,8 @@ CHECK_MODS = [
     "werkzeug",
 ]
 
-class Check(object):
 
+class Check(object):
     def __init__(self, args):
         self.args = args
         self._errors = False
@@ -71,14 +71,17 @@ class Check(object):
     def has_error(self):
         return self._errors
 
+
 def _check_config():
     return config.user_config().get("check") or {}
+
 
 def main(args):
     if args.remote:
         remote_impl_support.check(args)
     else:
         _check(args)
+
 
 def _check(args):
     if args.uat:
@@ -91,10 +94,12 @@ def _check(args):
     if check.has_error:
         _print_error_and_exit(args)
 
+
 def _uat_and_exit():
     os.environ["NO_IMPORT_FLAGS_PROGRESS"] = "1"
     uat.run()
     sys.exit(0)
+
 
 def _run_tests(check):
     os.environ["NO_IMPORT_FLAGS_PROGRESS"] = "1"
@@ -104,15 +109,16 @@ def _run_tests(check):
         if check.args.tests:
             log.warning(
                 "running all tests (--all-tests specified) - "
-                "ignoring individual tests")
+                "ignoring individual tests"
+            )
         success = _test.run_all(skip=check.args.skip)
     elif check.args.tests:
         if check.args.skip:
-            log.warning(
-                "running individual tests - ignoring --skip")
+            log.warning("running individual tests - ignoring --skip")
         success = _test.run(check.args.tests)
     if not success:
         check.error()
+
 
 def _print_info(check):
     _print_guild_info()
@@ -130,6 +136,7 @@ def _print_info(check):
     if check.newer_version_available:
         _notify_newer_version()
 
+
 def _print_guild_info():
     cli.out("guild_version:             %s" % guild.version())
     cli.out("guild_install_location:    %s" % _guild_install_location())
@@ -137,17 +144,18 @@ def _print_guild_info():
     cli.out("guild_resource_cache:      %s" % _guild_resource_cache())
     cli.out("installed_plugins:         %s" % _format_plugins())
 
+
 def _guild_install_location():
     return pkg_resources.resource_filename("guild", "")
+
 
 def _guild_resource_cache():
     return util.realpath(var.cache_dir("resources"))
 
+
 def _format_plugins():
-    return ", ".join([
-        name
-        for name, _ in sorted(plugin.iter_plugins())
-    ])
+    return ", ".join([name for name, _ in sorted(plugin.iter_plugins())])
+
 
 def _print_python_info(check):
     cli.out("python_version:            %s" % _python_version())
@@ -155,22 +163,28 @@ def _print_python_info(check):
     if check.args.verbose:
         cli.out("python_path:           %s" % _python_path())
 
+
 def _python_version():
     return sys.version.replace("\n", "")
+
 
 def _python_path():
     return os.path.pathsep.join(sys.path)
 
+
 def _print_platform_info():
     cli.out("platform:                  %s" % _platform())
+
 
 def _platform():
     system, _node, release, _ver, machine, _proc = platform.uname()
     return " ".join([system, release, machine])
 
+
 def _print_psutil_info(check):
     ver = _try_module_version("psutil", check)
     _print_module_ver("psutil", ver)
+
 
 def _print_tensorboard_info(check):
     try:
@@ -182,6 +196,7 @@ def _print_tensorboard_info(check):
             cli.out("                           %s" % _warn(str(e)))
     else:
         cli.out("tensorboard_version:       %s" % version.VERSION)
+
 
 def _print_tensorflow_info(check):
     # Run externally to avoid tf logging to our stderr
@@ -197,8 +212,10 @@ def _print_tensorflow_info(check):
     if exit_status != 0:
         check.error()
 
+
 def _print_cuda_info():
     cli.out("cuda_version:              %s" % _cuda_version())
+
 
 def _cuda_version():
     nvcc = util.which("nvcc")
@@ -217,8 +234,10 @@ def _cuda_version():
             log.debug("Unexpected output from nvidia-smi: %s", out)
             return "unknown (error)"
 
+
 def _print_nvidia_tools_info():
     cli.out("nvidia_smi_version:        %s" % _nvidia_smi_version())
+
 
 def _nvidia_smi_version():
     cmd = util.which("nvidia-smi")
@@ -237,10 +256,12 @@ def _nvidia_smi_version():
             log.debug("Unexpected output from nvidia-smi: %s", out)
             return "unknown (error)"
 
+
 def _print_mods_info(check):
     for mod in CHECK_MODS:
         ver = _try_module_version(mod, check)
         _print_module_ver(mod, ver)
+
 
 def _try_module_version(name, check, version_attr="__version__"):
     try:
@@ -256,15 +277,18 @@ def _try_module_version(name, check, version_attr="__version__"):
         else:
             return _format_version(ver)
 
+
 def _format_version(ver):
     if isinstance(ver, tuple):
         return ".".join([str(part) for part in ver])
     else:
         return str(ver)
 
+
 def _print_module_ver(mod, ver):
     space = " " * (18 - len(mod))
     cli.out("%s_version:%s%s" % (mod, space, ver))
+
 
 def _print_guild_latest_versions(check):
     if check.offline:
@@ -276,6 +300,7 @@ def _print_guild_latest_versions(check):
         cli.out("latest_guild_version:      %s" % latest_ver_desc)
         if latest_ver:
             check.newer_version_available = _is_newer(latest_ver, cur_ver)
+
 
 def _latest_version(check):
     url = _latest_version_url(check)
@@ -299,11 +324,14 @@ def _latest_version(check):
             return None
         return _parse_latest_version(resp.text)
 
+
 def _latest_version_url(check):
     return _check_config().get("check-url") or check.args.check_url
 
+
 def _python_short_version():
     return sys.version.split(" ", 1)[0]
+
 
 def _parse_latest_version(s):
     try:
@@ -314,18 +342,21 @@ def _parse_latest_version(s):
     else:
         return decoded.get("latest-version", "unknown")
 
+
 def _is_newer(latest, cur):
-    return (
-        pkg_resources.parse_version(latest) >
-        pkg_resources.parse_version(cur))
+    return pkg_resources.parse_version(latest) > pkg_resources.parse_version(cur)
+
 
 def _notify_newer_version():
     cli.out(
         click.style(
             "A newer version of Guild AI is available. Run "
             "'pip install guildai --upgrade' to install it.",
-            bold=True),
-        err=True)
+            bold=True,
+        ),
+        err=True,
+    )
+
 
 def _print_error_and_exit(args):
     if args.all_tests or args.tests:
@@ -334,8 +365,10 @@ def _print_error_and_exit(args):
         msg = _general_error_msg(args)
     cli.error(msg)
 
+
 def _tests_failed_msg():
     return "one or more tests failed - see above for details"
+
 
 def _general_error_msg(args):
     msg = (
@@ -345,6 +378,7 @@ def _general_error_msg(args):
     if not args.verbose:
         msg += " or rerun check with the --verbose option."
     return msg
+
 
 def _warn(msg):
     return click.style(msg, fg="red", bold=True)

@@ -24,8 +24,8 @@ from guild.plugins.summary_util import SummaryPlugin
 
 PLATFORM = platform.system()
 
-class DiskPlugin(SummaryPlugin):
 
+class DiskPlugin(SummaryPlugin):
     def __init__(self, ep):
         super(DiskPlugin, self).__init__(ep)
         self._last_disk = None
@@ -37,8 +37,8 @@ class DiskPlugin(SummaryPlugin):
             import psutil as _
         except ImportError as e:
             self.log.warning(
-                "disk stats disabled because psutil "
-                "cannot be imported (%s)", e)
+                "disk stats disabled because psutil " "cannot be imported (%s)", e
+            )
             return False, "error importing psutil: %s" % e
         else:
             return True, ""
@@ -51,14 +51,17 @@ class DiskPlugin(SummaryPlugin):
         cur_disk = _timed_disk_io_counters()
         if self._last_disk:
             for dev_name, last, cur in _zip_physical_disk_stats(
-                    self._last_disk, cur_disk):
+                self._last_disk, cur_disk
+            ):
                 for stat_name, val in _calc_disk_stats(last, cur).items():
                     stats[_dev_stat_key(dev_name, stat_name)] = val
         self._last_disk = cur_disk
         return stats
 
+
 def _timed_disk_io_counters():
     import psutil
+
     counters = {}
     now = time.time()
     for key, counts in psutil.disk_io_counters(True).items():
@@ -67,8 +70,10 @@ def _timed_disk_io_counters():
         counters[key] = counts_dict
     return counters
 
+
 def _zip_physical_disk_stats(all_last, all_cur):
     import psutil
+
     for device in psutil.disk_partitions():
         fullname = device.device
         if PLATFORM == "Windows":
@@ -81,6 +86,7 @@ def _zip_physical_disk_stats(all_last, all_cur):
         dev_cur = all_cur.get(name)
         if dev_last and dev_cur:
             yield name, dev_last, dev_cur
+
 
 def _calc_disk_stats(last, cur):
     stats = {}
@@ -100,6 +106,7 @@ def _calc_disk_stats(last, cur):
     else:
         stats["util"] = busy_time_ms / (seconds * 1000)
     return stats
+
 
 def _dev_stat_key(dev_name, stat_name):
     return "sys/dev%s/%s" % (dev_name, stat_name)

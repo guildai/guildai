@@ -20,20 +20,17 @@ import click
 from guild import click_util
 from . import remote_support
 
+
 @click.command("status")
 @remote_support.remote_arg
-@click.option(
-    "-v", "--verbose",
-    is_flag=True,
-    help="Show more status information.")
+@click.option("-v", "--verbose", is_flag=True, help="Show more status information.")
 @click_util.use_args
-
 @click_util.render_doc
-
 def remote_status(args):
     """Show remote status.
 
     {{ remote_support.remote_arg }}
     """
     from . import remote_impl
+
     remote_impl.status(args)

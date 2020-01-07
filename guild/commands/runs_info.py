@@ -22,32 +22,24 @@ from guild import click_util
 from . import remote_support
 from . import runs_support
 
+
 @click.command("info")
 @runs_support.run_arg
+@click.option("-e", "--env", help="Show run environment.", is_flag=True)
+@click.option("-d", "--deps", help="Show resolved dependencies.", is_flag=True)
 @click.option(
-    "-e", "--env",
-    help="Show run environment.",
-    is_flag=True)
-@click.option(
-    "-d", "--deps",
-    help="Show resolved dependencies.",
-    is_flag=True)
-@click.option(
-    "-S", "--all-scalars",
+    "-S",
+    "--all-scalars",
     help="Show all scalars. By default only top-level scalars are shown.",
-    is_flag=True)
-@click.option(
-    "--json",
-    help="Format information as JSON.",
-    is_flag=True)
+    is_flag=True,
+)
+@click.option("--json", help="Format information as JSON.", is_flag=True)
 @click.option("--private-attrs", is_flag=True, hidden=True)
 @runs_support.all_filters
 @remote_support.remote_option("Show info for remote run.")
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def run_info(ctx, args):
     """Show run information.
 
@@ -73,4 +65,5 @@ def run_info(ctx, args):
 
     """
     from . import runs_impl
+
     runs_impl.run_info(args, ctx)

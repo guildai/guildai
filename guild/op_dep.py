@@ -37,31 +37,37 @@ PACKAGE_RES_P = re.compile(r"(%s)/(%s)$" % (RES_TERM, RES_TERM))
 # Exception classes
 ###################################################################
 
+
 class OpDependencyError(Exception):
     pass
+
 
 ###################################################################
 # State
 ###################################################################
 
-class OpDependency(object):
 
+class OpDependency(object):
     def __init__(self, resdef, res_location, config):
         self.resdef = resdef
         self.res_location = res_location
         self.config = config
 
+
 ###################################################################
 # Deps for opdef
 ###################################################################
 
+
 def deps_for_opdef(opdef, flag_vals):
     return [_init_dep(depdef, flag_vals) for depdef in opdef.dependencies]
+
 
 def _init_dep(depdef, flag_vals):
     resdef, res_location = resource_def(depdef, flag_vals)
     config = _resdef_config(resdef, flag_vals)
     return OpDependency(resdef, res_location, config)
+
 
 def _resdef_config(resdef, flag_vals):
     for name in [resdef.fullname, resdef.name]:
@@ -71,21 +77,28 @@ def _resdef_config(resdef, flag_vals):
             pass
     return None
 
+
 def resource_def(depdef, flag_vals):
     resdef, res_location = _resdef_for_dep(depdef, flag_vals)
     _resolve_source_refs(resdef, flag_vals)
     return resdef, res_location
 
+
 def _resdef_for_dep(depdef, flag_vals):
     if depdef.inline_resource:
         return depdef.inline_resource, depdef.opdef.guildfile.dir
     res_spec = util.resolve_refs(depdef.spec, flag_vals)
-    return util.find_apply([
-        _model_resource,
-        _guildfile_resource,
-        _package_resource,
-        _invalid_dependency_error,
-    ], res_spec, depdef)
+    return util.find_apply(
+        [
+            _model_resource,
+            _guildfile_resource,
+            _package_resource,
+            _invalid_dependency_error,
+        ],
+        res_spec,
+        depdef,
+    )
+
 
 def _model_resource(spec, depdef):
     m = MODEL_RES_P.match(spec)
@@ -94,13 +107,16 @@ def _model_resource(spec, depdef):
     res_name = m.group(1)
     return _modeldef_resource(depdef.modeldef, res_name, depdef.opdef)
 
+
 def _modeldef_resource(modeldef, res_name, opdef):
     resdef = modeldef.get_resource(res_name)
     if resdef is None:
         raise OpDependencyError(
             "resource '%s' required by operation '%s' is not defined"
-            % (res_name, opdef.fullname))
+            % (res_name, opdef.fullname)
+        )
     return resdef, modeldef.guildfile.dir
+
 
 def _guildfile_resource(spec, depdef):
     m = GUILDFILE_RES_P.match(spec)
@@ -111,10 +127,11 @@ def _guildfile_resource(spec, depdef):
     if modeldef is None:
         raise OpDependencyError(
             "model '%s' in resource '%s' required by operation "
-            "'%s' is not defined"
-            % (model_name, spec, depdef.opdef.fullname))
+            "'%s' is not defined" % (model_name, spec, depdef.opdef.fullname)
+        )
     res_name = m.group(2)
     return _modeldef_resource(modeldef, res_name, depdef.opdef)
+
 
 def _package_resource(spec, depdef):
     m = PACKAGE_RES_P.match(spec)
@@ -126,8 +143,10 @@ def _package_resource(spec, depdef):
     if not res:
         raise OpDependencyError(
             "resource '%s' required by operation '%s' is not installed"
-            % (spec, depdef.opdef.fullname))
+            % (spec, depdef.opdef.fullname)
+        )
     return res.resdef, _package_res_location(res)
+
 
 def _find_package_resource(pkg_name, res_name):
     try:
@@ -140,22 +159,22 @@ def _find_package_resource(pkg_name, res_name):
                 return res
         return None
 
+
 def _package_res_location(res):
-    return os.path.join(
-        res.dist.location,
-        res.dist.key.replace(".", os.path.sep))
+    return os.path.join(res.dist.location, res.dist.key.replace(".", os.path.sep))
+
 
 def _invalid_dependency_error(spec, depdef):
     raise OpDependencyError(
-        "invalid dependency '%s' in operation '%s'"
-        % (spec, depdef.opdef.fullname))
+        "invalid dependency '%s' in operation '%s'" % (spec, depdef.opdef.fullname)
+    )
+
 
 def _resolve_source_refs(resdef, flag_vals):
     for source in resdef.sources:
-        source.uri = _resolve_dep_attr_refs(
-            source.uri, flag_vals, resdef)
-        source.rename = _resolve_rename_spec_refs(
-            source.rename, flag_vals, resdef)
+        source.uri = _resolve_dep_attr_refs(source.uri, flag_vals, resdef)
+        source.rename = _resolve_rename_spec_refs(source.rename, flag_vals, resdef)
+
 
 def _resolve_dep_attr_refs(attr_val, flag_vals, resdef):
     try:
@@ -163,7 +182,9 @@ def _resolve_dep_attr_refs(attr_val, flag_vals, resdef):
     except util.UndefinedReferenceError as e:
         raise OpDependencyError(
             "invalid flag reference '%s' in dependency '%s'"
-            % (resdef.name, e.reference))
+            % (resdef.name, e.reference)
+        )
+
 
 def _resolve_rename_spec_refs(specs, flag_vals, resdef):
     if not specs:
@@ -171,20 +192,24 @@ def _resolve_rename_spec_refs(specs, flag_vals, resdef):
     return [
         resourcedef.RenameSpec(
             _resolve_dep_attr_refs(spec.pattern, flag_vals, resdef),
-            _resolve_dep_attr_refs(spec.repl, flag_vals, resdef))
+            _resolve_dep_attr_refs(spec.repl, flag_vals, resdef),
+        )
         for spec in specs
     ]
+
 
 ###################################################################
 # Resolve support
 ###################################################################
+
 
 def resolve_source(source, dep, target_dir, unpack_dir=None):
     last_resolution_error = None
     for location in _dep_resource_locations(dep):
         try:
             source_paths = _resolve_source_for_location(
-                source, dep, location, unpack_dir)
+                source, dep, location, unpack_dir
+            )
         except resolverlib.ResolutionError as e:
             last_resolution_error = e
         except Exception as e:
@@ -196,23 +221,27 @@ def resolve_source(source, dep, target_dir, unpack_dir=None):
     assert last_resolution_error
     _source_resolution_error(source, dep, last_resolution_error)
 
+
 def _dep_resource_locations(dep):
     yield dep.res_location
     for parent in dep.resdef.modeldef.parents:
         yield parent.dir
+
 
 def _resolve_source_for_location(source, dep, location, unpack_dir):
     res_proxy = _ResourceProxy(location, dep.config)
     resolver = resolverlib.for_resdef_source(source, res_proxy)
     if not resolver:
         raise OpDependencyError(
-            "unsupported source '%s' in %s resource"
-            % (source, dep.resdef.name))
+            "unsupported source '%s' in %s resource" % (source, dep.resdef.name)
+        )
     return resolver.resolve(unpack_dir)
+
 
 def resolver_for_source(source, dep):
     res_proxy = _ResourceProxy(dep.res_location, dep.config)
     return resolverlib.for_resdef_source(source, res_proxy)
+
 
 class _ResourceProxy(object):
     """Proxy for guild.deps.Resource, used by resolver API.
@@ -222,30 +251,34 @@ class _ResourceProxy(object):
     interface is created, we use a proxy resource to work with the
     current interface.
     """
+
     def __init__(self, location, config):
         self.location = location
         self.config = config
 
+
 def _source_resolution_error(source, dep, e):
-    msg = (
-        "could not resolve '%s' in %s resource: %s"
-        % (source, dep.resdef.name, e))
+    msg = "could not resolve '%s' in %s resource: %s" % (source, dep.resdef.name, e)
     if source.help:
         msg += "\n%s" % source.help
     raise OpDependencyError(msg)
 
+
 def _unknown_source_resolution_error(source, dep, e):
     log.exception(
-        "resolving required source '%s' in %s resource",
-        source, dep.resdef.name)
+        "resolving required source '%s' in %s resource", source, dep.resdef.name
+    )
     raise OpDependencyError(
         "unexpected error resolving '%s' in %s resource: %r"
-        % (source, dep.resdef.name, e))
+        % (source, dep.resdef.name, e)
+    )
+
 
 def _link_to_source(source_path, source, target_dir):
     source_path = util.strip_trailing_sep(source_path)
     link = _link_path(source_path, source, target_dir)
     _symlink(source_path, link)
+
 
 def _link_path(source_path, source, target_dir):
     basename = os.path.basename(source_path)
@@ -255,10 +288,12 @@ def _link_path(source_path, source, target_dir):
     if os.path.isabs(res_path):
         raise OpDependencyError(
             "invalid path '%s' in %s resource (path must be relative)"
-            % (res_path, source.resdef.name))
+            % (res_path, source.resdef.name)
+        )
     if source.rename:
         basename = _rename_source(basename, source.rename)
     return os.path.join(target_dir, res_path, basename)
+
 
 def _rename_source(name, rename):
     for spec in rename:
@@ -267,11 +302,13 @@ def _rename_source(name, rename):
         except Exception as e:
             raise OpDependencyError(
                 "error renaming source %s (%r %r): %s"
-                % (name, spec.pattern, spec.repl, e))
+                % (name, spec.pattern, spec.repl, e)
+            )
         else:
             if renamed != name:
                 return renamed
     return name
+
 
 def _symlink(source_path, link):
     assert os.path.isabs(link), link
@@ -283,6 +320,7 @@ def _symlink(source_path, link):
     rel_source_path = _rel_source_path(source_path, link)
     util.symlink(rel_source_path, link)
 
+
 def _rel_source_path(source, link):
     source_dir, source_name = os.path.split(source)
     real_link = util.realpath(link)
@@ -290,9 +328,11 @@ def _rel_source_path(source, link):
     source_rel_dir = os.path.relpath(source_dir, link_dir)
     return os.path.join(source_rel_dir, source_name)
 
+
 ###################################################################
 # Op run resolve support
 ###################################################################
+
 
 def resolved_op_runs_for_opdef(opdef, flag_vals):
     try:
@@ -303,23 +343,21 @@ def resolved_op_runs_for_opdef(opdef, flag_vals):
     else:
         return list(_iter_resolved_op_runs(deps, flag_vals))
 
+
 def _iter_resolved_op_runs(deps, flag_vals):
     for dep in deps:
         for source in dep.resdef.sources:
             if not source.uri.startswith("operation:"):
                 continue
             resolver = resolver_for_source(source, dep)
-            assert (
-                isinstance(
-                    resolver,
-                    resolverlib.OperationOutputResolver)), resolver
+            assert isinstance(resolver, resolverlib.OperationOutputResolver), resolver
             run_id_prefix = flag_vals.get(dep.resdef.name)
             try:
-                run = resolver.resolve_op_run(
-                    run_id_prefix, include_staged=True)
+                run = resolver.resolve_op_run(run_id_prefix, include_staged=True)
             except resolverlib.ResolutionError:
                 log.warning(
-                    "cannot find a suitable run for required "
-                    "resource '%s'", dep.resdef.name)
+                    "cannot find a suitable run for required " "resource '%s'",
+                    dep.resdef.name,
+                )
             else:
                 yield run, dep

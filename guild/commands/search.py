@@ -19,15 +19,11 @@ import click
 
 from guild import click_util
 
+
 @click.command()
 @click.argument("terms", metavar="TERM...", nargs=-1, required=True)
-@click.option(
-    "-a", "--all",
-    is_flag=True,
-    help="Search all packages.")
-
+@click.option("-a", "--all", is_flag=True, help="Search all packages.")
 @click_util.use_args
-
 def search(args):
     """Search for a package.
 
@@ -38,4 +34,5 @@ def search(args):
 
     """
     from . import search_impl
+
     search_impl.main(args)

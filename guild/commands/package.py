@@ -19,47 +19,53 @@ import click
 
 from guild import click_util
 
+
 @click.command()
 @click.option(
-    "--clean",
-    help="Clean build directories before creating package.",
-    is_flag=True)
+    "--clean", help="Clean build directories before creating package.", is_flag=True
+)
 @click.option(
-    "-d", "--dist-dir", metavar="DIR",
-    help="Directory to create the package distribution in.")
+    "-d",
+    "--dist-dir",
+    metavar="DIR",
+    help="Directory to create the package distribution in.",
+)
 @click.option(
-    "--upload", "upload",
+    "--upload",
+    "upload",
     help="Upload to PyPI after creating the package.",
-    flag_value="https://upload.pypi.org/legacy/")
+    flag_value="https://upload.pypi.org/legacy/",
+)
 @click.option(
-    "--upload-test", "upload",
+    "--upload-test",
+    "upload",
     help="Upload to the PyPI test site after creating the package.",
-    flag_value="https://test.pypi.org/legacy/")
+    flag_value="https://test.pypi.org/legacy/",
+)
 @click.option(
-    "--repo", "upload", metavar="REPO",
-    help="Upload to `REPO` after creating the package.")
+    "--repo",
+    "upload",
+    metavar="REPO",
+    help="Upload to `REPO` after creating the package.",
+)
 @click.option(
-    "-s", "--sign",
-    help="Sign a package distribution upload with gpg.",
-    is_flag=True)
+    "-s", "--sign", help="Sign a package distribution upload with gpg.", is_flag=True
+)
 @click.option(
-    "-i", "--identity", metavar="IDENTITY",
-    help="GPG identity used to sign upload.")
+    "-i", "--identity", metavar="IDENTITY", help="GPG identity used to sign upload."
+)
+@click.option("-u", "--user", metavar="USERNAME", help="PyPI user name for upload.")
+@click.option("-p", "--password", metavar="PASSWORD", help="PyPI password for upload.")
 @click.option(
-    "-u", "--user", metavar="USERNAME",
-    help="PyPI user name for upload.")
+    "-e",
+    "--skip-existing",
+    is_flag=True,
+    help="Don't upload if package already exists.",
+)
 @click.option(
-    "-p", "--password", metavar="PASSWORD",
-    help="PyPI password for upload.")
-@click.option(
-    "-e", "--skip-existing", is_flag=True,
-    help="Don't upload if package already exists.")
-@click.option(
-    "-c", "--comment", metavar="COMMENT",
-    help="Comment to include with upload.")
-
+    "-c", "--comment", metavar="COMMENT", help="Comment to include with upload."
+)
 @click_util.use_args
-
 def package(args):
     """Create a package for distribution.
 
@@ -78,4 +84,5 @@ def package(args):
 
     """
     from . import package_impl
+
     package_impl.main(args)

@@ -20,18 +20,17 @@ import click
 from guild import click_util
 from . import remote_support
 
+
 @click.command("stop")
 @remote_support.remote_arg
 @click.option("-y", "--yes", is_flag=True, help="Stop without prompting.")
-
 @click_util.use_args
-
 @click_util.render_doc
-
 def remote_stop(args):
     """Stop a remote.
 
     {{ remote_support.remote_arg }}
     """
     from . import remote_impl
+
     remote_impl.stop(args)

@@ -33,24 +33,27 @@ DEFAULT_MAX_TRIALS = 20
 
 init_logging = op_util.init_logging
 
+
 class BatchError(Exception):
     pass
+
 
 class MissingProtoError(BatchError):
     pass
 
-class StopBatch(Exception):
 
+class StopBatch(Exception):
     def __init__(self, error=False):
         super(StopBatch, self).__init__(error)
         self.error = error
+
 
 ###################################################################
 # Default trial
 ###################################################################
 
-class Trial(object):
 
+class Trial(object):
     def __init__(self, batch, flags=None, run_id=None, attrs=None):
         self.batch = batch
         self.flags = flags
@@ -76,7 +79,8 @@ class Trial(object):
             log.info(
                 "Initialized trial %s (%s)",
                 self._run_desc(trial_run),
-                self._flags_desc())
+                self._flags_desc(),
+            )
 
     def _init_trial_run(self, run_dir=None):
         assert isinstance(self.flags, dict), self.flags
@@ -104,9 +108,7 @@ class Trial(object):
     def _make_trial_link(self, trial_run):
         """Creates a link in batch run dir to trial."""
         trial_link = self._trial_link()
-        rel_trial_path = os.path.relpath(
-            trial_run.path,
-            os.path.dirname(trial_link))
+        rel_trial_path = os.path.relpath(trial_run.path, os.path.dirname(trial_link))
         util.ensure_deleted(trial_link)
         os.symlink(rel_trial_path, trial_link)
 
@@ -121,14 +123,14 @@ class Trial(object):
         cwd = os.environ["CMD_DIR"]
         opspec = trial_run.opref.to_opspec(cwd)
         label = trial_run.get("label")
-        extra_env = {
-            "NO_RESTARTING_MSG": "1"
-        }
+        extra_env = {"NO_RESTARTING_MSG": "1"}
         if not quiet:
             log.info(
                 "Running trial %s: %s (%s)",
                 self._run_desc(trial_run),
-                opspec, self._flags_desc())
+                opspec,
+                self._flags_desc(),
+            )
         try:
             gapi.run(
                 restart=trial_run.path,
@@ -136,7 +138,8 @@ class Trial(object):
                 label=label,
                 extra_env=extra_env,
                 quiet=quiet,
-                **kw)
+                **kw
+            )
         except gapi.RunError as e:
             op_util.ensure_exit_status(trial_run, e.returncode)
             log.error("Run %s failed - see logs for details", trial_run.id)
@@ -146,9 +149,11 @@ class Trial(object):
     def _flags_desc(self):
         return op_util.flags_desc(self.flags)
 
+
 ###################################################################
 # Seq trial
 ###################################################################
+
 
 class SeqTrial(Trial):
     """Variant of Trial used in sequential optimization.
@@ -178,6 +183,7 @@ class SeqTrial(Trial):
             self.attrs = {}
         super(SeqTrial, self).init(run_dir, quiet)
 
+
 class SeqState(object):
     """Default state used by sequential optimizers."""
 
@@ -188,12 +194,13 @@ class SeqState(object):
         for name in attrs:
             setattr(self, name, attrs[name])
 
+
 ###################################################################
 # Batch
 ###################################################################
 
-class Batch(object):
 
+class Batch(object):
     def __init__(self, batch_run, new_trial_cb=None):
         self.batch_run = batch_run
         self._new_trial_cb = new_trial_cb or Trial
@@ -205,8 +212,7 @@ class Batch(object):
     def _init_proto_run(self):
         proto_path = self.batch_run.guild_path("proto")
         if not os.path.exists(proto_path):
-            raise MissingProtoError(
-                "missing operation proto in %s" % proto_path)
+            raise MissingProtoError("missing operation proto in %s" % proto_path)
         return runlib.Run("", proto_path)
 
     @property
@@ -223,8 +229,8 @@ class Batch(object):
             opdef_data = self.proto_run.get_opdef_data({})
             if not isinstance(opdef_data, dict):
                 log.warning(
-                    "unexpected opdef data for %s: %r",
-                    self.proto_run.id, opdef_data)
+                    "unexpected opdef data for %s: %r", self.proto_run.id, opdef_data
+                )
             self._proto_opdef_data = opdef_data
         return self._proto_opdef_data
 
@@ -266,10 +272,7 @@ class Batch(object):
         return [trials[i] for i in sorted(sampled_i)]
 
     def run_trials(self, trials, init_only=False):
-        trial_runs = [
-            (run.id, run.get("flags"))
-            for run in self.seq_trial_runs()
-        ]
+        trial_runs = [(run.id, run.get("flags")) for run in self.seq_trial_runs()]
         for trial in trials:
             try:
                 self._run_trial(trial, trial_runs, init_only)
@@ -285,7 +288,9 @@ class Batch(object):
         if self.needed and not trial.run_needed():
             log.info(
                 "Skipping trial %s because flags have not "
-                "changed (--needed specified)", trial.run_id)
+                "changed (--needed specified)",
+                trial.run_id,
+            )
             return
         trial.run()
 
@@ -302,19 +307,23 @@ class Batch(object):
         if isinstance(status, six.string_types):
             status = [status]
         batch_run_id = self.batch_run.id
+
         def filter(run):
-            return (
-                run.get("batch") == batch_run_id and
-                (status is None or run.status in status))
+            return run.get("batch") == batch_run_id and (
+                status is None or run.status in status
+            )
+
         return var.runs(filter=filter)
+
 
 ###################################################################
 # Default main
 ###################################################################
 
-def default_main(gen_trials_cb,
-                 new_trial_cb=None,
-                 default_max_trials=DEFAULT_MAX_TRIALS):
+
+def default_main(
+    gen_trials_cb, new_trial_cb=None, default_max_trials=DEFAULT_MAX_TRIALS
+):
     init_logging()
     try:
         _default_main_impl(gen_trials_cb, default_max_trials, new_trial_cb)
@@ -323,6 +332,7 @@ def default_main(gen_trials_cb,
             sys.exit(1)
     except BatchError as e:
         op_util.exit(str(e))
+
 
 def _default_main_impl(gen_trials_cb, default_max_trials, new_trial_cb):
     batch = init_batch(new_trial_cb)
@@ -337,12 +347,15 @@ def _default_main_impl(gen_trials_cb, default_max_trials, new_trial_cb):
         init_only = os.getenv("INIT_TRIALS_ONLY") == "1"
         batch.run_trials(trials, init_only)
 
+
 def init_batch(new_trial_cb=None):
     return Batch(op_util.current_run(), new_trial_cb)
+
 
 def print_trials(trials):
     if trials:
         op_util.print_trials([t.flags for t in trials])
+
 
 def save_trials(trials, path):
     if not trials:
@@ -352,50 +365,62 @@ def save_trials(trials, path):
     cli.out("Saving %i trial(s) to %s" % (len(trials), path))
     op_util.save_trials(trials, _save_trials_path(path))
 
+
 def _save_trials_path(path):
     cmd_dir = os.getenv("CMD_DIR")
     if not cmd_dir:
         return path
     return os.path.join(cmd_dir, path)
 
+
 def print_trials_cmd(trials):
     for trial in trials:
         _print_trial_cmd(trial)
+
 
 def _print_trial_cmd(trial):
     with util.TempDir("guild-trial-") as tmp:
         trial.init(tmp.path, quiet=True)
         trial.run(print_cmd=True, quiet=True)
 
+
 ###################################################################
 # Seq trials main
 ###################################################################
 
-def seq_trials_main(init_trial_cb,
-                    init_state_cb=None,
-                    default_max_trials=DEFAULT_MAX_TRIALS):
+
+def seq_trials_main(
+    init_trial_cb, init_state_cb=None, default_max_trials=DEFAULT_MAX_TRIALS
+):
     if init_state_cb is None:
         init_state_cb = SeqState
     default_main(
         _gen_seq_trials_cb(init_state_cb, default_max_trials),
         _new_seq_trial_cb(init_trial_cb),
-        default_max_trials)
+        default_max_trials,
+    )
+
 
 def _gen_seq_trials_cb(init_state_cb, default_max_trials):
     def f(_flags, batch):
         batch._seq_trials_state = init_state_cb(batch)
         num_trials = batch.max_trials or default_max_trials
         return [None] * num_trials
+
     return f
+
 
 def _new_seq_trial_cb(init_trial_cb):
     def f(batch, **kw):
         return SeqTrial(init_trial_cb, batch, **kw)
+
     return f
+
 
 ###################################################################
 # Other API
 ###################################################################
+
 
 def is_batch(run):
     return os.path.exists(run.guild_path("proto"))

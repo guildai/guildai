@@ -43,6 +43,7 @@ REQUIREMENTS_PATH = os.path.join(GUILD_PKG, "requirements.txt")
 
 _cwd = None
 
+
 def run():
     if not pip_util.running_under_virtualenv():
         sys.stderr.write("This command must be run in a virtual environment\n")
@@ -52,15 +53,18 @@ def run():
     _mark_passed_tests()
     _run_tests(tests)
 
+
 def _tests_for_index():
     index_path = os.path.join(os.path.dirname(__file__), INDEX)
     index = open(index_path).read()
     return re.findall(r"\((.+?)\.md\)", index)
 
+
 def _init_workspace():
     print("Initializing workspace %s under %s" % (WORKSPACE, sys.executable))
     util.ensure_dir(os.path.join(WORKSPACE, "passed-tests"))
     util.ensure_dir(os.path.join(WORKSPACE, ".guild"))
+
 
 def _mark_passed_tests():
     passed = os.getenv("PASS")
@@ -68,6 +72,7 @@ def _mark_passed_tests():
         return
     for name in [s.strip() for s in passed.split(",")]:
         _mark_test_passed(name)
+
 
 def _run_tests(tests):
     globs = _test_globals()
@@ -89,20 +94,24 @@ def _run_tests(tests):
         else:
             sys.exit(1)
 
+
 def _test_globals():
     globs = guild._test.test_globals()
     globs.update(_global_vars())
-    globs.update({
-        "cd": _cd,
-        "cwd": _get_cwd,
-        "pprint": pprint.pprint,
-        "run": _run,
-        "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
-        "abspath": os.path.abspath,
-        "sample": _sample,
-        "example": _example_dir,
-    })
+    globs.update(
+        {
+            "cd": _cd,
+            "cwd": _get_cwd,
+            "pprint": pprint.pprint,
+            "run": _run,
+            "quiet": lambda cmd, **kw: _run(cmd, quiet=True, **kw),
+            "abspath": os.path.abspath,
+            "sample": _sample,
+            "example": _example_dir,
+        }
+    )
     return globs
+
 
 def _global_vars():
     return {
@@ -111,8 +120,10 @@ def _global_vars():
         if name[0] != "_" and isinstance(val, str)
     }
 
+
 def _sample(path):
     return os.path.abspath(guild._test.sample(path))
+
 
 def _skip_test(name, skip_patterns):
     for p in skip_patterns:
@@ -120,30 +131,38 @@ def _skip_test(name, skip_patterns):
             return True
     return False
 
+
 def _example_dir(name):
     return os.path.join(GUILD_PKG, "guild", "examples", name)
+
 
 def _test_passed(name):
     return os.path.exists(_test_passed_marker(name))
 
+
 def _test_passed_marker(name):
     return os.path.join(WORKSPACE, "passed-tests", name)
+
 
 def _mark_test_passed(name):
     open(_test_passed_marker(name), "w").close()
 
+
 def _reset_cwd():
     globals()["_cwd"] = None
+
 
 def _cd(path):
     if not os.path.isdir(os.path.join(WORKSPACE, path)):
         raise ValueError("'%s' does not exist" % path)
     globals()["_cwd"] = path
 
+
 def _get_cwd():
     if _cwd:
         return os.path.join(WORKSPACE, _cwd)
     return WORKSPACE
+
 
 def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None):
     cmd = "set -eu && %s" % cmd
@@ -169,7 +188,8 @@ def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None):
         cwd=cmd_cwd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        preexec_fn=os.setsid)
+        preexec_fn=os.setsid,
+    )
     with _kill_after(p, timeout):
         exit_code = p.wait()
         out = p.stdout.read()
@@ -182,6 +202,7 @@ def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None):
         print(out)
         print("<exit %i>" % exit_code)
 
+
 def _apply_ssh_env(env):
     ssh_env = (
         "SSH_AUTH_SOCK",
@@ -193,8 +214,8 @@ def _apply_ssh_env(env):
         except KeyError:
             pass
 
-class _kill_after(object):
 
+class _kill_after(object):
     def __init__(self, p, timeout):
         self._p = p
         self._timer = threading.Timer(timeout, self._kill)
@@ -203,7 +224,7 @@ class _kill_after(object):
         try:
             os.killpg(os.getpgid(self._p.pid), signal.SIGKILL)
         except OSError as e:
-            if e.errno != errno.ESRCH: # no such process
+            if e.errno != errno.ESRCH:  # no such process
                 raise
 
     def __enter__(self):
@@ -212,23 +233,27 @@ class _kill_after(object):
     def __exit__(self, _type, _val, _tb):
         self._timer.cancel()
 
+
 def _strip_lines(out, patterns):
     if isinstance(patterns, str):
         patterns = [patterns]
     stripped_lines = [
-        line for line in out.split("\n")
+        line
+        for line in out.split("\n")
         if not any((re.search(p, line) for p in patterns))
     ]
     return "\n".join(stripped_lines)
+
 
 def _cut_cols(out, to_cut):
     assert isinstance(to_cut, list) and to_cut, to_cut
     cut_lines = [_cut_line(line, to_cut) for line in out.split("\n")]
     return "\n".join([" ".join(cut_line) for cut_line in cut_lines])
 
+
 def _cut_line(line, to_cut):
     cut_line = []
     cols = line.split()
     for i in to_cut:
-        cut_line.extend(cols[i:i+1])
+        cut_line.extend(cols[i : i + 1])
     return cut_line

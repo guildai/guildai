@@ -30,15 +30,15 @@ log = logging.getLogger("guild")
 
 GPKG_PREFIX = "gpkg."
 
-class Package(object):
 
+class Package(object):
     def __init__(self, ns, name, version):
         self.ns = ns
         self.name = name
         self.version = version
 
-class PackageResource(resource.Resource):
 
+class PackageResource(resource.Resource):
     def _init_resdef(self):
         pkg = yaml.safe_load(self.dist.get_metadata("PACKAGE"))
         if pkg:
@@ -46,36 +46,46 @@ class PackageResource(resource.Resource):
         else:
             data = None
         if not data:
-            raise ValueError(
-                "undefined resource '%s' in %s"
-                % (self.name, self.dist))
+            raise ValueError("undefined resource '%s' in %s" % (self.name, self.dist))
         fullname = pkg["package"] + "/" + self.name
         resdef = resourcedef.ResourceDef(self.name, data, fullname)
         resdef.dist = self.dist
         return resdef
 
-def create_package(package_file, clean=False, dist_dir=None,
-                   upload_repo=False, sign=False, identity=None,
-                   user=None, password=None, skip_existing=False,
-                   comment=None, capture_output=False):
+
+def create_package(
+    package_file,
+    clean=False,
+    dist_dir=None,
+    upload_repo=False,
+    sign=False,
+    identity=None,
+    user=None,
+    password=None,
+    skip_existing=False,
+    comment=None,
+    capture_output=False,
+):
     # Use a separate OS process as setup assumes it's running as a
     # command line op.
     cmd = [sys.executable, "-um", "guild.package_main"]
     env = {}
     env.update(util.safe_osenv())
-    env.update({
-        "PYTHONPATH": _python_path(),
-        "PACKAGE_FILE": package_file,
-        "DIST_DIR": dist_dir or "",
-        "UPLOAD_REPO": upload_repo or "",
-        "SIGN": "1" if sign else "",
-        "IDENTITY": identity or "",
-        "USER": user or "",
-        "PASSWORD": password or "",
-        "SKIP_EXISTING": skip_existing and "1" or "",
-        "COMMENT": comment or "",
-        "DEBUG": log.getEffectiveLevel() <= logging.DEBUG and "1" or "",
-    })
+    env.update(
+        {
+            "PYTHONPATH": _python_path(),
+            "PACKAGE_FILE": package_file,
+            "DIST_DIR": dist_dir or "",
+            "UPLOAD_REPO": upload_repo or "",
+            "SIGN": "1" if sign else "",
+            "IDENTITY": identity or "",
+            "USER": user or "",
+            "PASSWORD": password or "",
+            "SKIP_EXISTING": skip_existing and "1" or "",
+            "COMMENT": comment or "",
+            "DEBUG": log.getEffectiveLevel() <= logging.DEBUG and "1" or "",
+        }
+    )
     if clean:
         env["CLEAN_SETUP"] = "1"
     _apply_twine_env_creds(env)
@@ -98,8 +108,10 @@ def create_package(package_file, clean=False, dist_dir=None,
             raise SystemExit(p.returncode)
     return out
 
+
 def _python_path():
     return os.path.pathsep.join([os.path.abspath(path) for path in sys.path])
+
 
 def _apply_twine_env_creds(env):
     try:
@@ -110,6 +122,7 @@ def _apply_twine_env_creds(env):
         env["TWINE_PASSWORD"] = os.environ["TWINE_PASSWORD"]
     except KeyError:
         pass
+
 
 def is_gpkg(project_name):
     return project_name.startswith(GPKG_PREFIX)

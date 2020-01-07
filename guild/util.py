@@ -40,11 +40,14 @@ PLATFORM = platform.system()
 
 OS_ENVIRON_BLACKLIST = set(["_"])
 
+
 class Stop(Exception):
     """Raise to stop loops started with `loop`."""
 
+
 class TryFailed(RuntimeError):
     """Raise to indicate an attempt in try_apply failed."""
+
 
 def find_apply(funs, *args, **kw):
     for f in funs:
@@ -52,6 +55,7 @@ def find_apply(funs, *args, **kw):
         if result is not None:
             return result
     return kw.get("default")
+
 
 def try_apply(funs, *args):
     for f in funs:
@@ -61,6 +65,7 @@ def try_apply(funs, *args):
             continue
     raise TryFailed(funs, args)
 
+
 def ensure_dir(d):
     d = realpath(d)
     try:
@@ -69,12 +74,14 @@ def ensure_dir(d):
         if e.errno != errno.EEXIST:
             raise
 
+
 def ensure_deleted(path):
     try:
         os.remove(path)
     except OSError as e:
         if e.errno != errno.ENOENT:
             raise
+
 
 def try_read(path, default=None, apply=None):
     try:
@@ -92,17 +99,16 @@ def try_read(path, default=None, apply=None):
                 out = f(out)
         return out
 
+
 def pid_exists(pid, default=True):
-    return find_apply([
-        _proc_pid_exists,
-        _psutil_pid_exists,
-        lambda _: default,
-    ], pid)
+    return find_apply([_proc_pid_exists, _psutil_pid_exists, lambda _: default,], pid)
+
 
 def _proc_pid_exists(pid):
     if os.path.exists("/proc"):
         return os.path.exists(os.path.join("/proc", str(pid)))
     return None
+
 
 def _psutil_pid_exists(pid):
     try:
@@ -114,9 +120,11 @@ def _psutil_pid_exists(pid):
         return None
     return psutil.pid_exists(pid)
 
+
 def free_port(start=None):
     import random
     import socket
+
     min_port = 49152
     max_port = 65535
     max_attempts = 100
@@ -144,14 +152,17 @@ def free_port(start=None):
         attempts += 1
         port = next_port(port)
 
+
 def open_url(url):
     try:
         _open_url_with_cmd(url)
     except (OSError, URLOpenError):
         _open_url_with_webbrowser(url)
 
+
 class URLOpenError(Exception):
     pass
+
 
 def _open_url_with_cmd(url):
     if sys.platform == "darwin":
@@ -164,9 +175,12 @@ def _open_url_with_cmd(url):
         except subprocess.CalledProcessError as e:
             raise URLOpenError(url, e)
 
+
 def _open_url_with_webbrowser(url):
     import webbrowser
+
     webbrowser.open(url)
+
 
 def loop(cb, wait, interval, first_interval=None):
     try:
@@ -175,6 +189,7 @@ def loop(cb, wait, interval, first_interval=None):
         pass
     except KeyboardInterrupt:
         pass
+
 
 def _loop(cb, wait, interval, first_interval):
     loop_interval = first_interval if first_interval is not None else interval
@@ -187,6 +202,7 @@ def _loop(cb, wait, interval, first_interval):
             break
         cb()
 
+
 def _sleep_interval(interval, start):
     if interval <= 0:
         return 0
@@ -194,12 +210,12 @@ def _sleep_interval(interval, start):
     interval_ms = int(interval * 1000)
     start_ms = int(start * 1000)
     sleep_ms = (
-        ((now_ms - start_ms) // interval_ms + 1)
-        * interval_ms + start_ms - now_ms)
+        ((now_ms - start_ms) // interval_ms + 1) * interval_ms + start_ms - now_ms
+    )
     return sleep_ms / 1000
 
-class LoopingThread(threading.Thread):
 
+class LoopingThread(threading.Thread):
     def __init__(self, cb, interval, first_interval=None, stop_timeout=0):
         super(LoopingThread, self).__init__()
         self._cb = cb
@@ -214,12 +230,14 @@ class LoopingThread(threading.Thread):
             cb=self._cb,
             wait=self._stop.wait,
             interval=self._interval,
-            first_interval=self._first_interval)
+            first_interval=self._first_interval,
+        )
         self._stopped.set()
 
     def stop(self):
         self._stop.set()
         self._stopped.wait(self._stop_timeout)
+
 
 def safe_osenv():
     return {
@@ -228,18 +246,18 @@ def safe_osenv():
         if name not in OS_ENVIRON_BLACKLIST
     }
 
+
 def match_filters(filters, vals, match_any=False):
     test_fun = any if match_any else all
     vals_lower = [val.lower() for val in vals]
     filters_lower = [f.lower() for f in filters]
-    return test_fun(
-        (any((f in val for val in vals_lower))
-         for f in filters_lower)
-    )
+    return test_fun((any((f in val for val in vals_lower)) for f in filters_lower))
+
 
 def split_description(s):
     lines = s.split("\n")
     return lines[0], _format_details(lines[1:])
+
 
 def _format_details(details):
     lines = []
@@ -249,12 +267,14 @@ def _format_details(details):
         lines.append(line)
     return lines
 
+
 def file_sha256(path, use_cache=True):
     if use_cache:
         cached_sha = try_cached_sha(path)
         if cached_sha:
             return cached_sha
     import hashlib
+
     hash = hashlib.sha256()
     with open(path, "rb") as f:
         while True:
@@ -264,6 +284,7 @@ def file_sha256(path, use_cache=True):
             hash.update(data)
     return hash.hexdigest()
 
+
 def try_cached_sha(for_file):
     try:
         f = open(_cached_sha_filename(for_file), "r")
@@ -272,16 +293,20 @@ def try_cached_sha(for_file):
     else:
         return f.read().rstrip()
 
+
 def _cached_sha_filename(for_file):
     parent, name = os.path.split(for_file)
     return os.path.join(parent, ".guild-cache-%s.sha" % name)
+
 
 def write_cached_sha(sha, for_file):
     with open(_cached_sha_filename(for_file), "w") as f:
         f.write(sha)
 
+
 def file_md5(path):
     import hashlib
+
     hash = hashlib.md5()
     with open(path, "rb") as f:
         while True:
@@ -291,6 +316,7 @@ def file_md5(path):
             hash.update(data)
     return hash.hexdigest()
 
+
 def parse_url(url):
     try:
         from urlparse import urlparse
@@ -299,8 +325,8 @@ def parse_url(url):
         from urllib.parse import urlparse
     return urlparse(url)
 
-class TempBase(object):
 
+class TempBase(object):
     def __init__(self, prefix="guild-", suffix="", keep=False):
         self._prefix = prefix
         self._suffix = suffix
@@ -322,8 +348,8 @@ class TempBase(object):
     def delete():
         raise NotImplementedError()
 
-class TempDir(TempBase):
 
+class TempDir(TempBase):
     @staticmethod
     def _init_temp(prefix, suffix):
         return tempfile.mkdtemp(prefix=prefix, suffix=suffix)
@@ -331,8 +357,8 @@ class TempDir(TempBase):
     def delete(self):
         rmtempdir(self.path)
 
-class TempFile(TempBase):
 
+class TempFile(TempBase):
     @staticmethod
     def _init_temp(prefix, suffix):
         f, path = tempfile.mkstemp(prefix=prefix, suffix=suffix)
@@ -342,8 +368,10 @@ class TempFile(TempBase):
     def delete(self):
         os.remove(self.path)
 
+
 def mktempdir(prefix=None):
     return tempfile.mkdtemp(prefix=prefix)
+
 
 def rmtempdir(path):
     assert os.path.dirname(path) == tempfile.gettempdir(), path
@@ -355,11 +383,13 @@ def rmtempdir(path):
         else:
             log.error("error removing %s: %s", path, e)
 
+
 def safe_rmtree(path):
     """Removes path if it's not top level or user dir."""
     assert not _top_level_dir(path), path
     assert path != os.path.expanduser("~"), path
     shutil.rmtree(path)
+
 
 def _top_level_dir(path):
     abs_path = os.path.abspath(path)
@@ -368,10 +398,9 @@ def _top_level_dir(path):
         return len(parts) <= 2
     return len(parts) <= 1
 
-class LogCapture(object):
 
-    def __init__(self, use_root_handler=False, stdout=False,
-                 strip_ansi_format=False):
+class LogCapture(object):
+    def __init__(self, use_root_handler=False, stdout=False, strip_ansi_format=False):
         self._records = []
         self._use_root_handler = use_root_handler
         self._stdout = stdout
@@ -415,10 +444,12 @@ class LogCapture(object):
         if self._use_root_handler:
             return logging.root.handlers[0]
         from guild import log
+
         return log.ConsoleLogHandler()
 
     def get_all(self):
         return self._records
+
 
 def format_timestamp(ts, fmt=None):
     if not ts:
@@ -426,22 +457,26 @@ def format_timestamp(ts, fmt=None):
     dt = datetime.datetime.fromtimestamp(ts / 1000000)
     return dt.strftime(fmt or "%Y-%m-%d %H:%M:%S")
 
+
 def utcformat_timestamp(ts, fmt=None):
     if not ts:
         return None
     dt = datetime.datetime.utcfromtimestamp(ts / 1000000)
     return dt.strftime(fmt or "%Y-%m-%d %H:%M:%S UTC")
 
+
 _raise_error_marker = object()
+
 
 def resolve_refs(val, kv, undefined=_raise_error_marker):
     return _resolve_refs_recurse(val, kv, undefined, [])
 
+
 def resolve_all_refs(kv, undefined=_raise_error_marker):
     return {
-        name: _resolve_refs_recurse(kv[name], kv, undefined, [])
-        for name in sorted(kv)
+        name: _resolve_refs_recurse(kv[name], kv, undefined, []) for name in sorted(kv)
     }
+
 
 def _resolve_refs_recurse(val, kv, undefined, stack):
     if not isinstance(val, six.string_types):
@@ -453,30 +488,32 @@ def _resolve_refs_recurse(val, kv, undefined, stack):
     else:
         return "".join([_resolved_part_str(part) for part in resolved])
 
+
 def _resolved_part_str(part):
     if part is None:
         return "null"
     return str(part)
 
+
 def resolve_rel_paths(kv):
-    return {
-        name: _resolve_rel_path(kv[name])
-        for name in kv
-    }
+    return {name: _resolve_rel_path(kv[name]) for name in kv}
+
 
 def _resolve_rel_path(maybe_path):
     if os.path.exists(maybe_path) and not os.path.isabs(maybe_path):
         return os.path.abspath(maybe_path)
     return maybe_path
 
+
 class ReferenceCycleError(Exception):
     pass
 
-class UndefinedReferenceError(Exception):
 
+class UndefinedReferenceError(Exception):
     def __init__(self, reference):
         super(UndefinedReferenceError, self).__init__(reference)
         self.reference = reference
+
 
 def _iter_resolved_ref_parts(parts, kv, undefined, stack):
     for part in parts:
@@ -495,15 +532,18 @@ def _iter_resolved_ref_parts(parts, kv, undefined, stack):
         else:
             yield part
 
+
 def strip_trailing_sep(path):
     if path and path[-1] in ("/", "\\"):
         return path[:-1]
     return path
 
+
 def strip_leading_sep(path):
     if path and path[0] in ("/", "\\"):
         return path[1:]
     return path
+
 
 def ensure_trailing_sep(path, sep=None):
     sep = sep or os.path.sep
@@ -511,13 +551,15 @@ def ensure_trailing_sep(path, sep=None):
         path += sep
     return path
 
+
 def subpath(path, start, sep=None):
     if path == start:
         raise ValueError(path, start)
     start_with_sep = ensure_trailing_sep(start, sep)
     if path.startswith(start_with_sep):
-        return path[len(start_with_sep):]
+        return path[len(start_with_sep) :]
     raise ValueError(path, start)
+
 
 def which(cmd):
     which_cmd = "where" if PLATFORM == "Windows" else "which"
@@ -529,11 +571,13 @@ def which(cmd):
     else:
         return out.strip().decode("utf-8")
 
+
 def symlink(target, link):
     if PLATFORM == "Windows":
         _windows_symlink(target, link)
     else:
         os.symlink(target, link)
+
 
 def _windows_symlink(target, link):
     if os.path.isdir(target):
@@ -546,33 +590,70 @@ def _windows_symlink(target, link):
         log.error(e.output)
         raise
 
-_text_ext = set([
-    ".csv",
-    ".md",
-    ".py",
-    ".sh",
-    ".txt",
-])
 
-_binary_ext = set([
-    ".ai", ".bmp", ".gif", ".ico", ".jpeg", ".jpg", ".png", ".ps", ".psd",
-    ".svg", ".tif", ".tiff",
-    ".aif", ".mid", ".midi", ".mpa", ".mp3", ".ogg", ".wav", ".wma",
-    ".avi", ".mov", ".mp4", ".mpeg", ".swf" ".wmv",
-    ".7z", ".deb", ".gz", ".pkg", ".rar", ".rpm", ".tar", ".xz", ".z", ".zip",
-    ".doc", ".docx", ".key", ".pdf", ".ppt", ".pptx", ".xlr", ".xls", ".xlsx",
-    ".bin", ".pickle", ".pkl", ".pyc",
-])
+_text_ext = set([".csv", ".md", ".py", ".sh", ".txt",])
+
+_binary_ext = set(
+    [
+        ".ai",
+        ".bmp",
+        ".gif",
+        ".ico",
+        ".jpeg",
+        ".jpg",
+        ".png",
+        ".ps",
+        ".psd",
+        ".svg",
+        ".tif",
+        ".tiff",
+        ".aif",
+        ".mid",
+        ".midi",
+        ".mpa",
+        ".mp3",
+        ".ogg",
+        ".wav",
+        ".wma",
+        ".avi",
+        ".mov",
+        ".mp4",
+        ".mpeg",
+        ".swf" ".wmv",
+        ".7z",
+        ".deb",
+        ".gz",
+        ".pkg",
+        ".rar",
+        ".rpm",
+        ".tar",
+        ".xz",
+        ".z",
+        ".zip",
+        ".doc",
+        ".docx",
+        ".key",
+        ".pdf",
+        ".ppt",
+        ".pptx",
+        ".xlr",
+        ".xls",
+        ".xlsx",
+        ".bin",
+        ".pickle",
+        ".pkl",
+        ".pyc",
+    ]
+)
 
 _control_chars = b'\n\r\t\f\b'
 if bytes is str:
-    _printable_ascii = _control_chars + b"".join(
-        [chr(x) for x in range(32, 127)])
-    _printable_high_ascii = b"".join(
-        [chr(x) for x in range(127, 256)])
+    _printable_ascii = _control_chars + b"".join([chr(x) for x in range(32, 127)])
+    _printable_high_ascii = b"".join([chr(x) for x in range(127, 256)])
 else:
     _printable_ascii = _control_chars + bytes(range(32, 127))
     _printable_high_ascii = bytes(range(127, 256))
+
 
 def is_text_file(path, ignore_ext=False):
     # Adapted from https://github.com/audreyr/binaryornot under the
@@ -598,14 +679,15 @@ def is_text_file(path, ignore_ext=False):
     nontext_ratio1 = float(len(low_chars)) / float(len(sample))
     high_chars = sample.translate(None, _printable_high_ascii)
     nontext_ratio2 = float(len(high_chars)) / float(len(sample))
-    likely_binary = (
-        (nontext_ratio1 > 0.3 and nontext_ratio2 < 0.05) or
-        (nontext_ratio1 > 0.8 and nontext_ratio2 > 0.8)
+    likely_binary = (nontext_ratio1 > 0.3 and nontext_ratio2 < 0.05) or (
+        nontext_ratio1 > 0.8 and nontext_ratio2 > 0.8
     )
     detected_encoding = chardet.detect(sample)
     decodable_as_unicode = False
-    if (detected_encoding["confidence"] > 0.9 and
-        detected_encoding["encoding"] != "ascii"):
+    if (
+        detected_encoding["confidence"] > 0.9
+        and detected_encoding["encoding"] != "ascii"
+    ):
         try:
             try:
                 sample.decode(encoding=detected_encoding["encoding"])
@@ -627,6 +709,7 @@ def is_text_file(path, ignore_ext=False):
                 return False
         return True
 
+
 def safe_is_text_file(path, ignore_ext=False):
     try:
         return is_text_file(path, ignore_ext)
@@ -634,14 +717,17 @@ def safe_is_text_file(path, ignore_ext=False):
         log.warning("could not check for text file %s: %s", path, e)
         return False
 
+
 def touch(filename):
     open(filename, "ab").close()
     now = time.time()
     os.utime(filename, (now, now))
 
+
 def ensure_file(filename):
     if not os.path.exists(filename):
         touch(filename)
+
 
 def getmtime(filename):
     try:
@@ -649,9 +735,11 @@ def getmtime(filename):
     except OSError:
         return None
 
+
 def kill_process_tree(pid, force=False, timeout=None):
     import psutil
     import signal
+
     if force:
         sig = signal.SIGKILL
     else:
@@ -662,11 +750,13 @@ def kill_process_tree(pid, force=False, timeout=None):
         proc.send_signal(sig)
     return psutil.wait_procs(procs, timeout=timeout)
 
+
 def safe_filesize(path):
     try:
         return os.path.getsize(path)
     except OSError:
         return None
+
 
 def safe_mtime(path):
     try:
@@ -674,8 +764,10 @@ def safe_mtime(path):
     except OSError:
         return None
 
+
 def safe_list_remove(x, l):
     safe_list_remove_all([x], l)
+
 
 def safe_list_remove_all(xs, l):
     for x in xs:
@@ -684,8 +776,10 @@ def safe_list_remove_all(xs, l):
         except ValueError:
             pass
 
+
 def local_server_url(host, port):
     import socket
+
     if not host or host == "0.0.0.0":
         host = socket.gethostname()
         try:
@@ -694,6 +788,7 @@ def local_server_url(host, port):
         except socket.gaierror:
             host = "localhost"
     return "http://{}:{}".format(host, port)
+
 
 def format_duration(start_time, end_time=None):
     if start_time is None:
@@ -705,16 +800,19 @@ def format_duration(start_time, end_time=None):
     h, m = divmod(m, 60)
     return "%d:%02d:%02d" % (h, m, s)
 
+
 def format_dir(dir):
     return format_user_dir(os.path.abspath(dir))
+
 
 def format_user_dir(s):
     if PLATFORM == "Windows":
         return s
     user_dir = os.path.expanduser("~")
     if s.startswith(user_dir):
-        return os.path.join("~", s[len(user_dir)+1:])
+        return os.path.join("~", s[len(user_dir) + 1 :])
     return s
+
 
 def apply_env(target, source, names):
     for name in names:
@@ -723,17 +821,19 @@ def apply_env(target, source, names):
         except KeyError:
             pass
 
+
 def safe_filename(s):
     if PLATFORM == "Windows":
         return s.replace(":", "_")
     return re.sub(r"[/\\]+", "_", s)
 
+
 def wait_forever(sleep_interval=0.1):
     while True:
         time.sleep(sleep_interval)
 
-class RunOutputReader(object):
 
+class RunOutputReader(object):
     def __init__(self, run_dir):
         self.run_dir = run_dir
         self._lines = []
@@ -796,8 +896,10 @@ class RunOutputReader(object):
         except IOError:
             pass
 
+
 def gpu_available():
     import ctypes
+
     if "linux" in sys.platform:
         lib = "libcublas.so"
     elif sys.platform == "darwin":
@@ -818,9 +920,11 @@ def gpu_available():
             return True
     return False
 
+
 def render_label(template, vals):
     tokens = re.split(r"(\${.+?})", template)
     return "".join([_rendered_str(_render_token(t, vals)) for t in tokens])
+
 
 def _render_token(token, vals):
     m = re.match(r"\${(.+?)}", token)
@@ -833,6 +937,7 @@ def _render_token(token, vals):
     for t in transforms:
         val = _apply_template_transform(t, val)
     return val
+
 
 def _apply_template_transform(t, val):
     if hasattr(val, "wrapped_value"):
@@ -854,6 +959,7 @@ def _apply_template_transform(t, val):
         log.warning("unsupported template transform: %r", t)
         return "#error#"
 
+
 def _t_python_format(val, fmt):
     try:
         return fmt % val
@@ -861,20 +967,24 @@ def _t_python_format(val, fmt):
         log.warning("error formatting %r with %r: %s", val, fmt, e)
         return val
 
+
 def _t_default(val, arg):
     if val is None:
         return arg or ""
     return val
+
 
 def _t_basename(val):
     if not val:
         return ""
     return os.path.basename(strip_trailing_sep(val))
 
+
 def _rendered_str(s):
     if s is None:
         return ""
     return str(s)
+
 
 def del_env(names):
     for name in names:
@@ -883,8 +993,10 @@ def del_env(names):
         except KeyError:
             pass
 
+
 def python_interpreters():
     import glob
+
     bin_dir = os.path.dirname(sys.executable)
     ret = []
     for path in glob.glob(os.path.join(bin_dir, "python*")):
@@ -893,8 +1005,10 @@ def python_interpreters():
             ret.append((path, m.group(1)))
     return ret
 
+
 def find_python_interpreter(version_spec):
     import pkg_resources
+
     try:
         # Requirement.parse wants a package name, so we use 'python'
         # here, but anything would do.
@@ -908,12 +1022,16 @@ def find_python_interpreter(version_spec):
         return python_interps[matching_ver], matching_ver
     return None
 
+
 def is_executable_file(path):
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
+
 def copytree(src, dest, preserve_links=True):
     from distutils import dir_util
+
     dir_util.copy_tree(src, dest, preserve_symlinks=preserve_links)
+
 
 def select_copytree(src, dest, config, copy_filter=None):
     if not isinstance(config, list):
@@ -929,6 +1047,7 @@ def select_copytree(src, dest, config, copy_filter=None):
         ensure_dir(os.path.dirname(file_dest))
         _try_copy_file(file_src, file_dest)
 
+
 def _select_files_to_copy(src_dir, config, copy_filter):
     to_copy = []
     seen_dirs = set()
@@ -936,8 +1055,8 @@ def _select_files_to_copy(src_dir, config, copy_filter):
     for root, dirs, files in os.walk(src_dir, followlinks=True):
         seen_dirs.add(realpath(root))
         _del_excluded_select_copy_dirs(
-            dirs, src_dir, root, seen_dirs,
-            config, copy_filter)
+            dirs, src_dir, root, seen_dirs, config, copy_filter
+        )
         for name in files:
             path = os.path.join(root, name)
             if not os.path.isfile(path):
@@ -953,12 +1072,13 @@ def _select_files_to_copy(src_dir, config, copy_filter):
         copy_filter.pre_copy(to_copy)
     return to_copy
 
-def _del_excluded_select_copy_dirs(dirs, src_dir, root, seen_dirs,
-                                   config, copy_filter):
+
+def _del_excluded_select_copy_dirs(dirs, src_dir, root, seen_dirs, config, copy_filter):
     _del_seen_dirs(dirs, root, seen_dirs)
     _del_config_excluded_dirs(dirs, src_dir, root, config)
     if copy_filter:
         copy_filter.delete_excluded_dirs(root, dirs)
+
 
 def _del_seen_dirs(dirs, root, seen):
     for dir_name in dirs:
@@ -966,12 +1086,14 @@ def _del_seen_dirs(dirs, root, seen):
         if real_path in seen:
             dirs.remove(dir_name)
 
+
 def _del_config_excluded_dirs(dirs, src_dir, root, config):
     for name in list(dirs):
         path = os.path.join(root, name)
         rel_path = os.path.relpath(path, src_dir)
         if not _select_to_copy(path, rel_path, config):
             dirs.remove(name)
+
 
 def _select_to_copy(path, rel_path, config, copy_filter=None):
     assert isinstance(config, list)
@@ -986,11 +1108,14 @@ def _select_to_copy(path, rel_path, config, copy_filter=None):
         return copy_filter.default_select_path(path)
     return True
 
+
 def _select_file_match(rel_path, spec):
     return any((fnmatch.fnmatch(rel_path, p) for p in spec.patterns))
 
+
 def _select_to_copy_for_spec(spec):
     return spec.type == "include"
+
 
 def _try_copy_file(src, dest):
     try:
@@ -1003,11 +1128,14 @@ def _try_copy_file(src, dest):
         else:
             log.warning("could not copy source code file %s: %s", src, e)
 
+
 def hostname():
     return os.getenv("HOST") or _real_hostname()
 
+
 def _real_hostname():
     import socket
+
     try:
         return socket.gethostname()
     except Exception:
@@ -1015,8 +1143,10 @@ def _real_hostname():
             log.exception("socket.gethostname()")
         return ""
 
+
 def user():
     return os.getenv("USER") or ""
+
 
 def shlex_split(s):
     # If s is None, this call will block (see
@@ -1024,10 +1154,12 @@ def shlex_split(s):
     s = s or ""
     return shlex.split(s)
 
+
 def shlex_quote(s):
     # If s can't be None in case where pipes.quote is used by six.
     s = s or ""
     return _simplify_shlex_quote(six.moves.shlex_quote(s))
+
 
 def _simplify_shlex_quote(s):
     repls = [
@@ -1040,9 +1172,10 @@ def _simplify_shlex_quote(s):
         if not s.endswith(pattern_end):
             continue
         repl_end = "".join(reversed(repl_start))
-        stripped = s[len(pattern_start):-len(pattern_end)]
+        stripped = s[len(pattern_start) : -len(pattern_end)]
         return repl_start + stripped + repl_end
     return s
+
 
 def format_bytes(n):
     units = [None, "K", "M", "G", "T", "P", "E", "Z"]
@@ -1053,6 +1186,7 @@ def format_bytes(n):
             return "%3.1f%s" % (n, unit)
         n /= 1024.0
     return "%.1f%s" % (n, units[-1])
+
 
 class Chdir(object):
 
@@ -1069,39 +1203,41 @@ class Chdir(object):
         assert self._cwd is not None
         os.chdir(self._cwd)
 
+
 def log_apply(f, *args, **kw):
     level = kw.pop("logging_level", logging.DEBUG)
     prefix = kw.pop("logging_prefix", "CALLING")
     log.log(level, "%s %s", prefix, _log_apply_msg(f, args, kw))
     return f(*args, **kw)
 
-class _log_apply_msg(object):
 
+class _log_apply_msg(object):
     def __init__(self, f, args, kw):
         self.f = f
         self.args = args
         self.kw = kw
 
     def __str__(self):
-        return "%s %s %s %s" % (
-            self.f.__module__, self.f.__name__, self.args, self.kw)
+        return "%s %s %s %s" % (self.f.__module__, self.f.__name__, self.args, self.kw)
+
 
 def encode_yaml(val):
     import yaml
-    encoded = yaml.safe_dump(
-        val,
-        default_flow_style=False,
-        indent=2)
+
+    encoded = yaml.safe_dump(val, default_flow_style=False, indent=2)
     if encoded.endswith("\n...\n"):
         encoded = encoded[:-4]
     return encoded
 
+
 def decode_yaml(s):
     import yaml
+
     try:
         return yaml.safe_load(s)
     except yaml.scanner.ScannerError as e:
         raise ValueError(e)
+
 
 def dir_size(dir):
     size = 0
@@ -1110,11 +1246,13 @@ def dir_size(dir):
             size += os.path.getsize(os.path.join(root, name))
     return size
 
+
 def platform_info():
     """Returns a dict of system info."""
     info = _platform_base_info()
     info.update(_platform_psutil_info())
     return info
+
 
 def _platform_base_info():
     return {
@@ -1123,6 +1261,7 @@ def _platform_base_info():
         "python_version": sys.version.replace("\n", ""),
         "uname": " ".join(platform.uname()),
     }
+
 
 def _platform_psutil_info():
     try:
@@ -1134,15 +1273,18 @@ def _platform_psutil_info():
             "cpus": psutil.cpu_count(),
         }
 
+
 def guild_user_agent():
     import guild
+
     system, _node, release, _ver, machine, _proc = platform.uname()
-    return (
-        "python-guildai/%s (%s; %s; %s)" % (
-            guild.__version__,
-            system,
-            machine,
-            release))
+    return "python-guildai/%s (%s; %s; %s)" % (
+        guild.__version__,
+        system,
+        machine,
+        release,
+    )
+
 
 def nested_config(kv, nested=None):
     nested = nested or {}
@@ -1150,22 +1292,26 @@ def nested_config(kv, nested=None):
         _apply_nested(name, val, nested)
     return nested
 
+
 def _apply_nested(name, val, nested):
     parts = name.split(".")
     cur = nested
     for i in range(0, len(parts) - 1):
         cur = cur.setdefault(parts[i], {})
         if not isinstance(cur, dict):
-            conflicts_with = ".".join(parts[0:i + 1])
+            conflicts_with = ".".join(parts[0 : i + 1])
             raise ValueError(
                 "%r cannot be nested: conflicts with {%r: %s}"
-                % (name, conflicts_with, cur))
+                % (name, conflicts_with, cur)
+            )
     cur[parts[-1]] = val
+
 
 def short_digest(s):
     if not s:
         return ""
     return s[:8]
+
 
 def safe_listdir(path):
     try:
@@ -1173,11 +1319,14 @@ def safe_listdir(path):
     except OSError:
         return []
 
+
 def compare_paths(p1, p2):
     return _resolve_path(p1) == _resolve_path(p2)
 
+
 def _resolve_path(p):
     return realpath(os.path.abspath(os.path.expanduser(p)))
+
 
 def shorten_path(path, max_len=28, ellipsis=u"\u2026", sep=os.path.sep):
     if len(path) <= max_len:
@@ -1186,7 +1335,7 @@ def shorten_path(path, max_len=28, ellipsis=u"\u2026", sep=os.path.sep):
     if len(parts) == 1:
         return parts[0]
     assert all(parts), parts
-    r = [parts.pop()] # Always include rightmost part
+    r = [parts.pop()]  # Always include rightmost part
     if parts[0][0] == sep:
         l = []
         pop_r = False
@@ -1203,13 +1352,13 @@ def shorten_path(path, max_len=28, ellipsis=u"\u2026", sep=os.path.sep):
             break
         side.append(part)
         pop_r = not pop_r
-    shortened = os.path.sep.join([
-        os.path.sep.join(l),
-        ellipsis,
-        os.path.sep.join(reversed(r))])
+    shortened = os.path.sep.join(
+        [os.path.sep.join(l), ellipsis, os.path.sep.join(reversed(r))]
+    )
     if len(shortened) >= len(path):
         return path
     return shortened
+
 
 def _shorten_path_split_path(path, sep):
     """Splits path into parts.
@@ -1233,14 +1382,16 @@ def _shorten_path_split_path(path, sep):
         packed.append(sep.join(blanks))
     return packed
 
-class HTTPResponse(object):
 
+class HTTPResponse(object):
     def __init__(self, resp):
         self.status_code = resp.status
         self.text = resp.read()
 
+
 class HTTPConnectionError(Exception):
     pass
+
 
 def http_post(url, data, timeout=None):
     headers = {
@@ -1249,12 +1400,15 @@ def http_post(url, data, timeout=None):
     }
     return _http_request(url, headers, data, "POST", timeout)
 
+
 def http_get(url, timeout=None):
     return _http_request(url, timeout=timeout)
+
 
 def _http_request(url, headers=None, data=None, method="GET", timeout=None):
     import socket
     from six.moves import urllib
+
     headers = headers or {}
     url_parts = urllib.parse.urlparse(url)
     conn = _HTTPConnection(url_parts.scheme, url_parts.netloc, timeout)
@@ -1268,19 +1422,19 @@ def _http_request(url, headers=None, data=None, method="GET", timeout=None):
     else:
         return HTTPResponse(conn.getresponse())
 
+
 def _HTTPConnection(scheme, netloc, timeout):
     from six.moves import http_client
+
     if scheme == "http":
         return http_client.HTTPConnection(netloc, timeout=timeout)
     elif scheme == "https":
         return http_client.HTTPSConnection(netloc, timeout=timeout)
     else:
-        raise ValueError(
-            "unsupported scheme '%s' - must be 'http' or 'https'"
-            % scheme)
+        raise ValueError("unsupported scheme '%s' - must be 'http' or 'https'" % scheme)
+
 
 class StdIOContextManager(object):
-
     def __init__(self, stream):
         self.stream = stream
 
@@ -1290,6 +1444,7 @@ class StdIOContextManager(object):
     def __exit__(self, *_exc):
         pass
 
+
 def check_env(env):
     for name, val in env.items():
         if not isinstance(name, six.string_types):
@@ -1297,8 +1452,8 @@ def check_env(env):
         if not isinstance(val, six.string_types):
             raise ValueError("non-string env value for '%s': %r" % (name, val))
 
-class SysArgv(object):
 
+class SysArgv(object):
     def __init__(self, args):
         self._args = args
         self._save = None
@@ -1313,6 +1468,7 @@ class SysArgv(object):
         sys.argv[1:] = self._save
         self._save = None
 
+
 class StdinReader(object):
 
     __enter__ = lambda self, *_args: self
@@ -1326,13 +1482,16 @@ class StdinReader(object):
                 break
             yield line
 
+
 def env_var_name(s):
     return re.sub("[^A-Z0-9_]", "_", s.upper())
+
 
 def env_var_quote(s):
     if s == "":
         return ""
     return shlex_quote(s)
+
 
 def realpath(path):
     # Workaround for https://bugs.python.org/issue9949
@@ -1344,14 +1503,18 @@ def realpath(path):
         path_dir = os.path.dirname(path)
         return os.path.abspath(os.path.join(path_dir, link))
 
+
 def norm_path_sep(path):
     return path.replace(os.path.sep, "/")
+
 
 def bind_method(obj, method_name, function):
     setattr(obj, method_name, function.__get__(obj, obj.__class__))
 
+
 def editor(s):
     import click
+
     try:
         edited = click.edit(s, _try_editor())
     except click.UsageError as e:
@@ -1361,11 +1524,10 @@ def editor(s):
             return edited
         return s
 
+
 def _try_editor():
-    return find_apply([
-        _try_editor_env,
-        _try_editor_bin,
-    ])
+    return find_apply([_try_editor_env, _try_editor_bin,])
+
 
 def _try_editor_env():
     names = ("VISUAL", "EDITOR")
@@ -1374,6 +1536,7 @@ def _try_editor_env():
         if val:
             return val
     return None
+
 
 def _try_editor_bin():
     """Returns /usr/bin/editor if it exists.
@@ -1385,6 +1548,7 @@ def _try_editor_bin():
     if os.path.exists(editor_bin):
         return editor_bin
     return None
+
 
 def test_windows_symlinks():
     if PLATFORM != "Windows":

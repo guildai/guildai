@@ -22,64 +22,58 @@ from guild import click_util
 from . import remote_support
 from . import runs_support
 
+
 def diff_params(fn):
-    click_util.append_params(fn, [
-        click.Argument(("runs",), metavar="[RUN1 [RUN2]]", nargs=-1),
-        click.Option(
-            ("-O", "--output"),
-            is_flag=True,
-            help="Diff run output."),
-        click.Option(
-            ("-c", "--sourcecode"),
-            is_flag=True,
-            help="Diff run source code."),
-        click.Option(
-            ("-e", "--env"),
-            is_flag=True,
-            help="Diff run environment."),
-        click.Option(
-            ("-f", "--flags"),
-            is_flag=True,
-            help="Diff run flags."),
-        click.Option(
-            ("-a", "--attrs"),
-            is_flag=True,
-            help=(
-                "Diff all run attributes; if specified other "
-                "attribute options are ignored.")),
-        click.Option(
-            ("-d", "--deps"),
-            is_flag=True,
-            help="Diff run dependencies."),
-        click.Option(
-            ("-p", "--path"),
-            metavar="PATH",
-            multiple=True,
-            help="Diff specified path; may be used more than once."),
-        click.Option(
-            ("-w", "--working"),
-            is_flag=True,
-            help="Diff run sourcecode to the associated working directory."),
-        click.Option(
-            ("-W", "--working-dir"),
-            metavar="PATH",
-            help="Diff run sourcecode to the specified directory."),
-        click.Option(
-            ("-m", "--cmd"),
-            metavar="CMD",
-            help="Command used to diff runs."),
-        runs_support.all_filters,
-        remote_support.remote_option("Diff remote runs."),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            click.Argument(("runs",), metavar="[RUN1 [RUN2]]", nargs=-1),
+            click.Option(("-O", "--output"), is_flag=True, help="Diff run output."),
+            click.Option(
+                ("-c", "--sourcecode"), is_flag=True, help="Diff run source code."
+            ),
+            click.Option(("-e", "--env"), is_flag=True, help="Diff run environment."),
+            click.Option(("-f", "--flags"), is_flag=True, help="Diff run flags."),
+            click.Option(
+                ("-a", "--attrs"),
+                is_flag=True,
+                help=(
+                    "Diff all run attributes; if specified other "
+                    "attribute options are ignored."
+                ),
+            ),
+            click.Option(("-d", "--deps"), is_flag=True, help="Diff run dependencies."),
+            click.Option(
+                ("-p", "--path"),
+                metavar="PATH",
+                multiple=True,
+                help="Diff specified path; may be used more than once.",
+            ),
+            click.Option(
+                ("-w", "--working"),
+                is_flag=True,
+                help="Diff run sourcecode to the associated working directory.",
+            ),
+            click.Option(
+                ("-W", "--working-dir"),
+                metavar="PATH",
+                help="Diff run sourcecode to the specified directory.",
+            ),
+            click.Option(
+                ("-m", "--cmd"), metavar="CMD", help="Command used to diff runs."
+            ),
+            runs_support.all_filters,
+            remote_support.remote_option("Diff remote runs."),
+        ],
+    )
     return fn
+
 
 @click.command("diff")
 @diff_params
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def diff_runs(ctx, args):
     """Diff two runs.
 
@@ -122,4 +116,5 @@ def diff_runs(ctx, args):
 
     """
     from . import diff_impl
+
     diff_impl.main(args, ctx)

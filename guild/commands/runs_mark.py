@@ -21,28 +21,33 @@ from guild import click_util
 
 from . import runs_support
 
+
 def mark_params(fn):
-    click_util.append_params(fn, [
-        runs_support.runs_arg,
-        runs_support.all_filters,
-        click.Option(
-            ("-c", "--clear"),
-            help="Clear the run's selected designation.",
-            is_flag=True),
-        click.Option(
-            ("-y", "--yes"),
-            help="Do not prompt before modifying runs.",
-            is_flag=True),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            runs_support.runs_arg,
+            runs_support.all_filters,
+            click.Option(
+                ("-c", "--clear"),
+                help="Clear the run's selected designation.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-y", "--yes"),
+                help="Do not prompt before modifying runs.",
+                is_flag=True,
+            ),
+        ],
+    )
     return fn
+
 
 @click.command("mark")
 @mark_params
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def mark_runs(ctx, args):
     """Mark a run.
 
@@ -65,4 +70,5 @@ def mark_runs(ctx, args):
 
     """
     from . import runs_impl
+
     runs_impl.mark(args, ctx)

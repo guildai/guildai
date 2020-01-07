@@ -21,15 +21,15 @@ from guild import click_util
 
 from . import runs_stop
 
+
 @click.command(name="stop")
 @runs_stop.runs_stop_params
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def stop(ctx, args):
     """{{ runs_stop.stop_runs }}"""
 
     from . import runs_impl
+
     runs_impl.stop_runs(args, ctx)

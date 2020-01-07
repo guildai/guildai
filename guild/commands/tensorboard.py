@@ -22,30 +22,26 @@ from guild import click_util
 from . import runs_support
 from . import server_support
 
+
 @click.command(name="tensorboard")
 @runs_support.runs_arg
 @server_support.host_and_port_options
+@click.option("--include-batch", is_flag=True, help="Include batch runs.")
 @click.option(
-    "--include-batch", is_flag=True,
-    help="Include batch runs.")
-@click.option(
-    "--refresh-interval", metavar="SECONDS",
+    "--refresh-interval",
+    metavar="SECONDS",
     help="Refresh interval (defaults to 5 seconds).",
     type=click.IntRange(1, None),
-    default=5)
+    default=5,
+)
 @click.option(
-    "-n", "--no-open",
-    help="Don't open TensorBoard in a browser.",
-    is_flag=True)
-@click.option(
-    "--tab", metavar="TAB",
-    help="Open with an initially selected tab.")
+    "-n", "--no-open", help="Don't open TensorBoard in a browser.", is_flag=True
+)
+@click.option("--tab", metavar="TAB", help="Open with an initially selected tab.")
 @runs_support.all_filters
 @click.option("--keep-logdir", is_flag=True, hidden=True)
-
 @click_util.use_args
 @click_util.render_doc
-
 def tensorboard(args):
     """Visualize runs with TensorBoard.
 
@@ -78,4 +74,5 @@ def tensorboard(args):
     {{ runs_support.all_filters }}
     """
     from . import tensorboard_impl
+
     tensorboard_impl.main(args)

@@ -41,8 +41,8 @@ log = logging.getLogger("guild.remotes.ssh")
 
 DEFAULT_DIFF_CMD = "diff -ru"
 
-class SSHRemote(remotelib.Remote):
 
+class SSHRemote(remotelib.Remote):
     def __init__(self, name, config):
         self.name = name
         self._host = config["host"]
@@ -92,7 +92,9 @@ class SSHRemote(remotelib.Remote):
                 remote_util.config_path(self.private_key),
                 self.connect_timeout,
                 self.port,
-                self.proxy))
+                self.proxy,
+            )
+        )
         log.info("Copying %s", run.id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
@@ -111,7 +113,9 @@ class SSHRemote(remotelib.Remote):
                 remote_util.config_path(self.private_key),
                 self.connect_timeout,
                 self.port,
-                self.proxy))
+                self.proxy,
+            )
+        )
         log.info("Copying %s", run.id)
         log.debug("rsync cmd: %r", cmd)
         subprocess.check_call(cmd)
@@ -122,8 +126,11 @@ class SSHRemote(remotelib.Remote):
         opts = [
             "-al",
             "--inplace",
-            "--exclude", ".guild/job-packages",
-            "--exclude", ".guild/LOCK*"]
+            "--exclude",
+            ".guild/job-packages",
+            "--exclude",
+            ".guild/LOCK*",
+        ]
         if delete:
             opts.append("--delete")
         if log.getEffectiveLevel() <= logging.DEBUG:
@@ -133,18 +140,15 @@ class SSHRemote(remotelib.Remote):
         return opts
 
     def start(self):
-        raise remotelib.OperationNotSupported(
-            "start is not supported for ssh remotes")
+        raise remotelib.OperationNotSupported("start is not supported for ssh remotes")
 
     def reinit(self):
         if not self.init:
-            raise remotelib.OperationNotSupported(
-                "init is not defined for this remote")
+            raise remotelib.OperationNotSupported("init is not defined for this remote")
         self._ssh_cmd(self.init)
 
     def stop(self):
-        raise remotelib.OperationNotSupported(
-            "stop is not supported for ssh remotes")
+        raise remotelib.OperationNotSupported("stop is not supported for ssh remotes")
 
     def status(self, verbose=False):
         ssh_util.ssh_ping(
@@ -154,7 +158,8 @@ class SSHRemote(remotelib.Remote):
             verbose=verbose,
             connect_timeout=self.connect_timeout,
             port=self.port,
-            proxy=self.proxy)
+            proxy=self.proxy,
+        )
         sys.stdout.write("%s (%s) is available\n" % (self.name, self.host))
 
     def run_op(self, opspec, flags, restart, no_wait, stage, **opts):
@@ -165,14 +170,14 @@ class SSHRemote(remotelib.Remote):
                     _build_package(op_src, tmp.path)
             remote_run_dir = self._init_remote_run(tmp.path, opspec, restart)
         run_id = os.path.basename(remote_run_dir)
-        self._start_op(
-            remote_run_dir, opspec, restart,
-            flags, run_id, stage, **opts)
+        self._start_op(remote_run_dir, opspec, restart, flags, run_id, stage, **opts)
         if stage:
             log.info("%s staged as on %s as %s", opspec, self.name, run_id)
             log.info(
                 "To start the operation, use 'guild run -r %s --start %s'",
-                self.name, run_id)
+                self.name,
+                run_id,
+            )
         if no_wait or stage:
             return run_id
         try:
@@ -205,8 +210,10 @@ class SSHRemote(remotelib.Remote):
             "set -e; "
             "test ! -e {run_dir}/.guild/LOCK || exit 3; "
             "touch {run_dir}/.guild/PENDING; "
-            "echo \"$(date +%s)000000\" > {run_dir}/.guild/attrs/started"
-            .format(run_dir=run_dir))
+            "echo \"$(date +%s)000000\" > {run_dir}/.guild/attrs/started".format(
+                run_dir=run_dir
+            )
+        )
         log.info("Initializing remote run for restart")
         try:
             self._ssh_cmd(cmd)
@@ -219,12 +226,14 @@ class SSHRemote(remotelib.Remote):
 
     def _ssh_cmd(self, cmd):
         ssh_util.ssh_cmd(
-            self.host, [cmd],
+            self.host,
+            [cmd],
             user=self.user,
             private_key=remote_util.config_path(self.private_key),
             connect_timeout=self.connect_timeout,
             port=self.port,
-            proxy=self.proxy)
+            proxy=self.proxy,
+        )
 
     def _init_remote_new_run_dir(self, opspec):
         run_id = runlib.mkid()
@@ -236,8 +245,7 @@ class SSHRemote(remotelib.Remote):
             "mkdir {run_dir}/.guild/attrs; "
             "echo 'pending:? ? ? {opspec}' > {run_dir}/.guild/opref; "
             "echo \"$(date +%s)000000\" > {run_dir}/.guild/attrs/started; "
-            "mkdir {run_dir}/.guild/job-packages"
-            .format(run_dir=run_dir, opspec=opspec)
+            "mkdir {run_dir}/.guild/job-packages".format(run_dir=run_dir, opspec=opspec)
         )
         log.info("Initializing remote run")
         self._ssh_cmd(cmd)
@@ -248,19 +256,24 @@ class SSHRemote(remotelib.Remote):
         host_dest = "{}/.guild/job-packages/".format(remote_run_dir)
         log.info("Copying package")
         ssh_util.rsync_copy_to(
-            src, self.host, host_dest,
+            src,
+            self.host,
+            host_dest,
             user=self.user,
             private_key=remote_util.config_path(self.private_key),
             port=self.port,
-            proxy=self.proxy)
+            proxy=self.proxy,
+        )
 
     def _install_job_package(self, remote_run_dir):
         cmd_lines = []
         cmd_lines.extend(self._env_activate_cmd_lines())
-        cmd_lines.extend([
-            "cd %s/.guild/job-packages" % remote_run_dir,
-            "pip install %s --upgrade *.whl --target ." % self._pre_flag(),
-        ])
+        cmd_lines.extend(
+            [
+                "cd %s/.guild/job-packages" % remote_run_dir,
+                "pip install %s --upgrade *.whl --target ." % self._pre_flag(),
+            ]
+        )
         cmd = "; ".join(cmd_lines)
         log.info("Installing package and its dependencies")
         self._ssh_cmd(cmd)
@@ -271,14 +284,13 @@ class SSHRemote(remotelib.Remote):
         else:
             return ""
 
-    def _start_op(self, remote_run_dir, opspec, restart, flags,
-                  run_id, stage, **opts):
+    def _start_op(self, remote_run_dir, opspec, restart, flags, run_id, stage, **opts):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(
             "export PYTHONPATH=$(realpath {run_dir})/.guild/job-packages"
-            ":$PYTHONPATH"
-            .format(run_dir=remote_run_dir))
+            ":$PYTHONPATH".format(run_dir=remote_run_dir)
+        )
         cmd_lines.append("export NO_STAGED_MSG=1")
         cmd_lines.append("export NO_IMPORT_FLAGS_PROGRESS=1")
         cmd_lines.append(
@@ -288,7 +300,9 @@ class SSHRemote(remotelib.Remote):
                 start=restart,
                 op_flags=flags,
                 stage=stage,
-                **opts))
+                **opts
+            )
+        )
         cmd = "; ".join(cmd_lines)
         if not stage:
             log.info("Starting %s on %s as %s", opspec, self.name, run_id)
@@ -298,8 +312,10 @@ class SSHRemote(remotelib.Remote):
         cmd_lines = ["set -e"]
         cmd_lines.extend(self._env_activate_cmd_lines())
         cmd_lines.append(
-            "NO_WATCHING_MSG=1 guild watch --pid {run_dir}/.guild/JOB"
-            .format(run_dir=remote_run_dir))
+            "NO_WATCHING_MSG=1 guild watch --pid {run_dir}/.guild/JOB".format(
+                run_dir=remote_run_dir
+            )
+        )
         cmd = "; ".join(cmd_lines)
         log.debug("watching remote run")
         try:
@@ -331,19 +347,23 @@ class SSHRemote(remotelib.Remote):
 
     def _ssh_output(self, cmd):
         return ssh_util.ssh_output(
-            self.host, [cmd],
+            self.host,
+            [cmd],
             user=self.user,
             private_key=remote_util.config_path(self.private_key),
             connect_timeout=self.connect_timeout,
             port=self.port,
-            proxy=self.proxy)
+            proxy=self.proxy,
+        )
 
     def _env_activate_cmd_lines(self):
-        return util.find_apply([
-            self._explicit_venv_activate,
-            self._conda_env_activate,
-            self._default_venv_activate
-        ])
+        return util.find_apply(
+            [
+                self._explicit_venv_activate,
+                self._conda_env_activate,
+                self._default_venv_activate,
+            ]
+        )
 
     def _explicit_venv_activate(self):
         if self.venv_activate:
@@ -365,7 +385,8 @@ class SSHRemote(remotelib.Remote):
 
     def one_run(self, run_id_prefix):
         out = self._guild_cmd_output(
-            "runs info", [run_id_prefix, "--private-attrs", "--json"])
+            "runs info", [run_id_prefix, "--private-attrs", "--json"]
+        )
         return remotelib.RunProxy(self._run_data_for_json(out))
 
     @staticmethod
@@ -402,10 +423,7 @@ class SSHRemote(remotelib.Remote):
 
     @staticmethod
     def _cmd_env(env):
-        return [
-            "export %s=%s" % (name, val)
-            for name, val in sorted(env.items())
-        ]
+        return ["export %s=%s" % (name, val) for name, val in sorted(env.items())]
 
     def delete_runs(self, **opts):
         self._guild_cmd("runs delete", _delete_runs_args(**opts))
@@ -443,6 +461,7 @@ class SSHRemote(remotelib.Remote):
     def cat(self, **opts):
         self._guild_cmd("cat", _cat_args(**opts))
 
+
 def _list_runs_filter_opts(deleted, all, more, limit, **filters):
     opts = []
     if all:
@@ -456,15 +475,28 @@ def _list_runs_filter_opts(deleted, all, more, limit, **filters):
         opts.extend(["--limit", str(limit)])
     return opts
 
+
 def _filtered_runs_filter_opts(**filters):
     opts = _runs_filter_args(**filters)
     opts.append("--json")
     return opts
 
+
 def _runs_filter_args(
-        ops, labels, unlabeled, running, completed, error,
-        terminated, pending, staged, marked, unmarked, started,
-        digest):
+    ops,
+    labels,
+    unlabeled,
+    running,
+    completed,
+    error,
+    terminated,
+    pending,
+    staged,
+    marked,
+    unmarked,
+    started,
+    digest,
+):
     args = []
     if completed:
         args.append("-C")
@@ -494,6 +526,7 @@ def _runs_filter_args(
         args.append(["--digest", digest])
     return args
 
+
 def _op_src(opspec):
     opdef = op_util.opdef_for_opspec(opspec)
     src = opdef.guildfile.dir
@@ -501,15 +534,19 @@ def _op_src(opspec):
         return None
     if not os.path.isdir(src):
         raise remotelib.OperationError(
-            "cannot find source location for operation '%s'" % opspec)
+            "cannot find source location for operation '%s'" % opspec
+        )
     if not os.path.exists(os.path.join(src, "guild.yml")):
         raise remotelib.OperationError(
             "source location for operation '%s' (%s) does not "
-            "contain guild.yml" % (opspec, src))
+            "contain guild.yml" % (opspec, src)
+        )
     return src
+
 
 def _build_package(src_dir, dist_dir):
     from guild.commands import package_impl
+
     log.info("Building package")
     log.info("package src: %s", src_dir)
     log.info("package dist: %s", dist_dir)
@@ -522,19 +559,38 @@ def _build_package(src_dir, dist_dir):
         user=None,
         password=None,
         skip_existing=False,
-        comment=None)
+        comment=None,
+    )
     with config.SetCwd(src_dir):
         package_impl.main(args)
 
+
 def _remote_run_cmd(
-        remote_run_dir, opspec, start, op_flags, label, batch_label,
-        gpus, no_gpus, force_flags,
-        needed, stop_after, optimize, optimizer, opt_flags,
-        minimize, maximize, random_seed, max_trials,
-        init_trials, stage):
+    remote_run_dir,
+    opspec,
+    start,
+    op_flags,
+    label,
+    batch_label,
+    gpus,
+    no_gpus,
+    force_flags,
+    needed,
+    stop_after,
+    optimize,
+    optimizer,
+    opt_flags,
+    minimize,
+    maximize,
+    random_seed,
+    max_trials,
+    init_trials,
+    stage,
+):
     cmd = [
         "NO_WARN_RUNDIR=1",
-        "guild", "run",
+        "guild",
+        "run",
         "--quiet",
         "--yes",
     ]
@@ -579,9 +635,10 @@ def _remote_run_cmd(
     cmd.extend([q(arg) for arg in op_flags])
     return " ".join(cmd)
 
+
 def _watch_run_args(
-        run, ops, pid, labels, unlabeled, marked, unmarked,
-        started, digest):
+    run, ops, pid, labels, unlabeled, marked, unmarked, started, digest
+):
     if pid:
         # Ignore other opts if pid is specified
         return ["--pid", pid]
@@ -604,6 +661,7 @@ def _watch_run_args(
         args.append(run)
     return args
 
+
 def _delete_runs_args(runs, permanent, yes, **filters):
     args = _runs_filter_args(**filters)
     if permanent:
@@ -612,6 +670,7 @@ def _delete_runs_args(runs, permanent, yes, **filters):
         args.append("-y")
     args.extend(runs)
     return args
+
 
 def _run_info_args(run, env, deps, all_scalars, json, **filters):
     args = _runs_filter_args(**filters)
@@ -627,6 +686,7 @@ def _run_info_args(run, env, deps, all_scalars, json, **filters):
         args.append(run)
     return args
 
+
 def _check_args(tensorflow, verbose, offline):
     args = []
     if tensorflow:
@@ -637,8 +697,10 @@ def _check_args(tensorflow, verbose, offline):
         args.append("--offline")
     return args
 
-def _stop_runs_args(runs, ops, labels, unlabeled, no_wait, marked,
-                    unmarked, started, yes):
+
+def _stop_runs_args(
+    runs, ops, labels, unlabeled, no_wait, marked, unmarked, started, yes
+):
     args = []
     for op in ops:
         args.extend(["-o", q(op)])
@@ -659,6 +721,7 @@ def _stop_runs_args(runs, ops, labels, unlabeled, no_wait, marked,
     args.extend(runs)
     return args
 
+
 def _restore_runs_args(runs, yes, **filters):
     args = _runs_filter_args(**filters)
     if yes:
@@ -666,12 +729,14 @@ def _restore_runs_args(runs, yes, **filters):
     args.extend(runs)
     return args
 
+
 def _purge_runs_args(runs, yes, **filters):
     args = _runs_filter_args(**filters)
     if yes:
         args.append("-y")
     args.extend(runs)
     return args
+
 
 def _label_runs_args(runs, label, clear, yes, **filters):
     args = _runs_filter_args(**filters)
@@ -684,8 +749,8 @@ def _label_runs_args(runs, label, clear, yes, **filters):
         args.append(q(label))
     return args
 
-def _ls_args(run, all, follow_links, no_format, path, sourcecode,
-             **filters):
+
+def _ls_args(run, all, follow_links, no_format, path, sourcecode, **filters):
     args = _runs_filter_args(**filters)
     if all:
         args.append("-a")
@@ -701,8 +766,21 @@ def _ls_args(run, all, follow_links, no_format, path, sourcecode,
         args.append(run)
     return args
 
-def _diff_args(runs, output, sourcecode, env, flags, attrs, deps,
-               path, cmd, working, working_dir, **filters):
+
+def _diff_args(
+    runs,
+    output,
+    sourcecode,
+    env,
+    flags,
+    attrs,
+    deps,
+    path,
+    cmd,
+    working,
+    working_dir,
+    **filters
+):
     args = _runs_filter_args(**filters)
     if output:
         args.append("--output")
@@ -725,6 +803,7 @@ def _diff_args(runs, output, sourcecode, env, flags, attrs, deps,
         args.extend(["--working-dir", working_dir])
     args.extend(runs)
     return args
+
 
 def _cat_args(run, path, sourcecode, output, **filters):
     args = _runs_filter_args(**filters)

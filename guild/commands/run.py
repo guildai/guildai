@@ -19,176 +19,237 @@ import click
 
 from guild import click_util
 
+
 def run_params(fn):
-    click_util.append_params(fn, [
-        click.Argument(("flags",), metavar="[FLAG=VAL...]", nargs=-1),
-        click.Option(
-            ("-l", "--label"), metavar="LABEL",
-            help="Set a label for the run."),
-        click.Option(
-            ("-e", "--edit-flags"),
-            help="Use an editor to review and modify flags.",
-            is_flag=True),
-        click.Option(
-            ("-d", "--run-dir",), metavar="DIR",
-            help=(
-                "Use alternative run directory DIR. Cannot be used with "
-                "--stage.")),
-        click.Option(
-            ("--stage",),
-            help="Stage an operation.",
-            is_flag=True),
-        click.Option(
-            ("--start", "--restart", "restart"), metavar="RUN",
-            help=(
-                "Start a staged run or restart an existing run. Cannot be "
-                "used with --rerun or --run-dir.")),
-        click.Option(
-            ("--rerun",), metavar="RUN",
-            help=(
-                "Use the operation and flags from RUN. Flags may "
-                "be added or redefined in this operation. Cannot "
-                "be used with --restart.")),
-        click.Option(
-            ("--gpus",), metavar="DEVICES",
-            help=("Limit availabe GPUs to DEVICES, a comma separated list of "
-                  "device IDs. By default all GPUs are available. Cannot be"
-                  "used with --no-gpus.")),
-        click.Option(
-            ("--no-gpus",), is_flag=True,
-            help="Disable GPUs for run. Cannot be used with --gpu."),
-        click.Option(
-            ("--batch-label",), metavar="LABEL",
-            help="Label to use for batch runs. Ignored for non-batch runs."),
-        click.Option(
-            ("-o", "--optimizer",), metavar="ALGORITHM",
-            help=(
-                "Optimize the run using the specified algorithm. See "
-                "Optimizing Runs for more information.")),
-        click.Option(
-            ("-O", "--optimize",), is_flag=True,
-            help="Optimize the run using the default optimizer."),
-        click.Option(
-            ("-N", "--minimize",), metavar="COLUMN",
-            help=(
-                "Column to minimize when running with an optimizer. See "
-                "help for compare command for details specifying a column. "
-                "May not be used with --maximize.")),
-        click.Option(
-            ("-X", "--maximize",), metavar="COLUMN",
-            help=(
-                "Column to maximize when running with an optimizer. See "
-                "help for compare command for details specifying a column. "
-                "May not be used with --minimize.")),
-        click.Option(
-            ("-Fo", "--opt-flag", "opt_flags"),
-            metavar="FLAG=VAL", multiple=True,
-            help="Flag for OPTIMIZER. May be used multiple times."),
-        click.Option(
-            ("-m", "--max-trials",), metavar="N", type=click.IntRange(1, None),
-            help=(
-                "Maximum number of trials to run in batch operations. "
-                "Default is optimizer specific. If optimizer is not "
-                "specified, default is 20.")),
-        click.Option(
-            ("--random-seed",), metavar="N", type=int,
-            help="Random seed used when sampling trials or flag values."),
-        click.Option(
-            ("--debug-sourcecode",), metavar="PATH",
-            help=(
-                "Specify an alternative source code path for debugging. "
-                "See Debug Source Code below for details.")),
-        click.Option(
-            ("--init-trials", "--stage-trials"), is_flag=True,
-            help=("For batch operations, initialize trials without "
-                  "running them.")),
-        click.Option(
-            ("-r", "--remote"), metavar="REMOTE",
-            help="Run the operation remotely."),
-        click.Option(
-            ("-y", "--yes"),
-            help="Do not prompt before running operation.",
-            is_flag=True),
-        click.Option(
-            ("-f", "--force-flags"),
-            help=(
-                "Accept all flag assignments, even for undefined or "
-                "invalid flags."),
-            is_flag=True),
-        click.Option(
-            ("--stop-after",), metavar="N", type=int,
-            help="Stop operation after N minutes."),
-        click.Option(
-            ("--needed",), is_flag=True,
-            help=(
-                "Run only if there is not an available matching run. "
-                "A matching run is of the same operation with the same "
-                "flag values that is not stopped due to an error.")),
-        click.Option(
-            ("-b", "--background",), is_flag=True,
-            help="Run operation in background."),
-        click.Option(
-            ("--pidfile",), metavar="PIDFILE",
-            help=(
-                "Run operation in background, writing the background process "
-                "ID to PIDFILE.")),
-        click.Option(
-            ("-n", "--no-wait",),
-            help=("Don't wait for a remote operation to complete. Ignored "
-                  "if run is local."),
-            is_flag=True),
-        click.Option(
-            ("--save-trials",), metavar="PATH",
-            help=(
-                "Saves generated trials to a CSV batch file. See BATCH FILES "
-                "for more information.")),
-        click.Option(
-            ("--set-trace",),
-            help="Enter the Python debugger at the operation entry point.",
-            is_flag=True),
-        click.Option(
-            ("-q", "--quiet",),
-            help="Do not show output.",
-            is_flag=True),
-        click.Option(
-            ("--print-cmd",),
-            help="Show operation command and exit.",
-            is_flag=True),
-        click.Option(
-            ("--print-env",),
-            help="Show operation environment and exit.",
-            is_flag=True),
-        click.Option(
-            ("--print-trials",),
-            help="Show generated trials and exit.",
-            is_flag=True),
-        click.Option(
-            ("--help-model",),
-            help="Show model help and exit.",
-            is_flag=True),
-        click.Option(
-            ("--help-op",),
-            help="Show operation help and exit.",
-            is_flag=True),
-        click.Option(
-            ("--test-output-scalars",),
-            metavar="OUTPUT",
-            help=(
-                "Test output scalars on output. Use '-' to read from standard "
-                "intput.")),
-        click.Option(
-            ("--test-sourcecode",),
-            help="Test source code selection.",
-            is_flag=True),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            click.Argument(("flags",), metavar="[FLAG=VAL...]", nargs=-1),
+            click.Option(
+                ("-l", "--label"), metavar="LABEL", help="Set a label for the run."
+            ),
+            click.Option(
+                ("-e", "--edit-flags"),
+                help="Use an editor to review and modify flags.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-d", "--run-dir",),
+                metavar="DIR",
+                help=(
+                    "Use alternative run directory DIR. Cannot be used with " "--stage."
+                ),
+            ),
+            click.Option(("--stage",), help="Stage an operation.", is_flag=True),
+            click.Option(
+                ("--start", "--restart", "restart"),
+                metavar="RUN",
+                help=(
+                    "Start a staged run or restart an existing run. Cannot be "
+                    "used with --rerun or --run-dir."
+                ),
+            ),
+            click.Option(
+                ("--rerun",),
+                metavar="RUN",
+                help=(
+                    "Use the operation and flags from RUN. Flags may "
+                    "be added or redefined in this operation. Cannot "
+                    "be used with --restart."
+                ),
+            ),
+            click.Option(
+                ("--gpus",),
+                metavar="DEVICES",
+                help=(
+                    "Limit availabe GPUs to DEVICES, a comma separated list of "
+                    "device IDs. By default all GPUs are available. Cannot be"
+                    "used with --no-gpus."
+                ),
+            ),
+            click.Option(
+                ("--no-gpus",),
+                is_flag=True,
+                help="Disable GPUs for run. Cannot be used with --gpu.",
+            ),
+            click.Option(
+                ("--batch-label",),
+                metavar="LABEL",
+                help="Label to use for batch runs. Ignored for non-batch runs.",
+            ),
+            click.Option(
+                ("-o", "--optimizer",),
+                metavar="ALGORITHM",
+                help=(
+                    "Optimize the run using the specified algorithm. See "
+                    "Optimizing Runs for more information."
+                ),
+            ),
+            click.Option(
+                ("-O", "--optimize",),
+                is_flag=True,
+                help="Optimize the run using the default optimizer.",
+            ),
+            click.Option(
+                ("-N", "--minimize",),
+                metavar="COLUMN",
+                help=(
+                    "Column to minimize when running with an optimizer. See "
+                    "help for compare command for details specifying a column. "
+                    "May not be used with --maximize."
+                ),
+            ),
+            click.Option(
+                ("-X", "--maximize",),
+                metavar="COLUMN",
+                help=(
+                    "Column to maximize when running with an optimizer. See "
+                    "help for compare command for details specifying a column. "
+                    "May not be used with --minimize."
+                ),
+            ),
+            click.Option(
+                ("-Fo", "--opt-flag", "opt_flags"),
+                metavar="FLAG=VAL",
+                multiple=True,
+                help="Flag for OPTIMIZER. May be used multiple times.",
+            ),
+            click.Option(
+                ("-m", "--max-trials",),
+                metavar="N",
+                type=click.IntRange(1, None),
+                help=(
+                    "Maximum number of trials to run in batch operations. "
+                    "Default is optimizer specific. If optimizer is not "
+                    "specified, default is 20."
+                ),
+            ),
+            click.Option(
+                ("--random-seed",),
+                metavar="N",
+                type=int,
+                help="Random seed used when sampling trials or flag values.",
+            ),
+            click.Option(
+                ("--debug-sourcecode",),
+                metavar="PATH",
+                help=(
+                    "Specify an alternative source code path for debugging. "
+                    "See Debug Source Code below for details."
+                ),
+            ),
+            click.Option(
+                ("--init-trials", "--stage-trials"),
+                is_flag=True,
+                help=(
+                    "For batch operations, initialize trials without " "running them."
+                ),
+            ),
+            click.Option(
+                ("-r", "--remote"), metavar="REMOTE", help="Run the operation remotely."
+            ),
+            click.Option(
+                ("-y", "--yes"),
+                help="Do not prompt before running operation.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-f", "--force-flags"),
+                help=(
+                    "Accept all flag assignments, even for undefined or "
+                    "invalid flags."
+                ),
+                is_flag=True,
+            ),
+            click.Option(
+                ("--stop-after",),
+                metavar="N",
+                type=int,
+                help="Stop operation after N minutes.",
+            ),
+            click.Option(
+                ("--needed",),
+                is_flag=True,
+                help=(
+                    "Run only if there is not an available matching run. "
+                    "A matching run is of the same operation with the same "
+                    "flag values that is not stopped due to an error."
+                ),
+            ),
+            click.Option(
+                ("-b", "--background",),
+                is_flag=True,
+                help="Run operation in background.",
+            ),
+            click.Option(
+                ("--pidfile",),
+                metavar="PIDFILE",
+                help=(
+                    "Run operation in background, writing the background process "
+                    "ID to PIDFILE."
+                ),
+            ),
+            click.Option(
+                ("-n", "--no-wait",),
+                help=(
+                    "Don't wait for a remote operation to complete. Ignored "
+                    "if run is local."
+                ),
+                is_flag=True,
+            ),
+            click.Option(
+                ("--save-trials",),
+                metavar="PATH",
+                help=(
+                    "Saves generated trials to a CSV batch file. See BATCH FILES "
+                    "for more information."
+                ),
+            ),
+            click.Option(
+                ("--set-trace",),
+                help="Enter the Python debugger at the operation entry point.",
+                is_flag=True,
+            ),
+            click.Option(("-q", "--quiet",), help="Do not show output.", is_flag=True),
+            click.Option(
+                ("--print-cmd",), help="Show operation command and exit.", is_flag=True
+            ),
+            click.Option(
+                ("--print-env",),
+                help="Show operation environment and exit.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("--print-trials",),
+                help="Show generated trials and exit.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("--help-model",), help="Show model help and exit.", is_flag=True
+            ),
+            click.Option(
+                ("--help-op",), help="Show operation help and exit.", is_flag=True
+            ),
+            click.Option(
+                ("--test-output-scalars",),
+                metavar="OUTPUT",
+                help=(
+                    "Test output scalars on output. Use '-' to read from standard "
+                    "intput."
+                ),
+            ),
+            click.Option(
+                ("--test-sourcecode",), help="Test source code selection.", is_flag=True
+            ),
+        ],
+    )
     return fn
+
 
 @click.command()
 @click.argument("opspec", metavar="[[MODEL:]OPERATION]", required=False)
 @run_params
-
 @click_util.use_args
-
 def run(args):
     """Run a model operation.
 
@@ -370,4 +431,5 @@ def run(args):
 
     """
     from . import run_impl
+
     run_impl.main(args)

@@ -53,16 +53,16 @@ DEFAULT_OBJECTIVE = "loss"
 # State
 ###################################################################
 
-class State(object):
 
+class State(object):
     def __init__(self, args):
         self.args = args
         self.restart_run = None
         self.user_op = Operation()
         self.batch_op = None
 
-class Operation(oplib.Operation):
 
+class Operation(oplib.Operation):
     def __init__(self):
         super(Operation, self).__init__()
         self._run = None
@@ -82,12 +82,14 @@ class Operation(oplib.Operation):
         self._label = None
         self._output_scalars = None
 
+
 def _state_for_args(args):
     S = State(args)
     _state_init_restart_run(S)
     _state_init_user_op(S)
     _state_init_batch_op(S)
     return S
+
 
 def _op_config_data(op):
     return {
@@ -99,6 +101,7 @@ def _op_config_data(op):
         "deps": op_util.op_deps_as_data(op.deps),
     }
 
+
 def _apply_op_config_data(data, op):
     op._flag_null_labels = data.get("flag-null-labels")
     op._op_cmd = op_cmd_lib.for_data(data.get("op-cmd"))
@@ -107,9 +110,11 @@ def _apply_op_config_data(data, op):
     op._output_scalars = data.get("output-scalars")
     op.deps = op_util.op_deps_for_data(data.get("deps"))
 
+
 # =================================================================
 # State - restart run
 # =================================================================
+
 
 def _state_init_restart_run(S):
     if S.args.restart:
@@ -118,19 +123,22 @@ def _state_init_restart_run(S):
         else:
             S.restart_run = _local_run_for_spec(S.args.restart)
 
+
 def _remote_run_for_spec(spec, args):
     return remote_impl_support.one_run(spec, args)
 
+
 def _local_run_for_spec(spec):
-    return util.find_apply([
-        run_util.run_for_run_dir,
-        run_util.marked_or_latest_run_for_opspec,
-        one_run,
-    ], spec)
+    return util.find_apply(
+        [run_util.run_for_run_dir, run_util.marked_or_latest_run_for_opspec, one_run,],
+        spec,
+    )
+
 
 # =================================================================
 # State - user op
 # =================================================================
+
 
 def _state_init_user_op(S):
     _user_op_init_run(S)
@@ -141,6 +149,7 @@ def _state_init_user_op(S):
     _op_init_config(S.args.label, S.user_op)
     _op_init_core(S.args, S.user_op)
 
+
 def _user_op_init_run(S):
     if S.restart_run:
         if S.restart_run.batch_proto:
@@ -148,9 +157,11 @@ def _user_op_init_run(S):
         else:
             S.user_op._run = S.restart_run
 
+
 # =================================================================
 # Op - user flags
 # =================================================================
+
 
 def _op_init_user_flags(flag_args, op):
     op._user_flag_vals, batch_files = _split_flag_args(flag_args)
@@ -161,16 +172,19 @@ def _op_init_user_flags(flag_args, op):
         else:
             op._batch_trials = trials
 
+
 def _split_flag_args(flag_args):
     batch_files, rest_args = op_util.split_batch_files(flag_args)
     assigns = _parse_assigns(rest_args)
     return assigns, batch_files
+
 
 def _parse_assigns(assign_args):
     try:
         return op_util.parse_flag_assigns(assign_args)
     except op_util.ArgValueError as e:
         _invalid_flag_arg_error(e.arg)
+
 
 def _trials_for_batch_files(batch_files):
     batch_files = [_resolve_batch_file(path) for path in batch_files]
@@ -179,20 +193,24 @@ def _trials_for_batch_files(batch_files):
     except op_util.BatchFileError as e:
         _batch_file_error(e)
 
+
 def _resolve_batch_file(path):
     resolved = os.path.join(config.cwd(), path)
     if not os.path.exists(resolved):
         _no_such_batch_file_error(resolved)
     return resolved
 
+
 def _apply_single_trial_user_flags(trial, op):
     for name, val in trial.items():
         if name not in op._user_flag_vals:
             op._user_flag_vals[name] = val
 
+
 # =================================================================
 # Op - opdef
 # =================================================================
+
 
 def _op_init_opdef(opspec, op):
     if op._run:
@@ -204,16 +222,19 @@ def _op_init_opdef(opspec, op):
     else:
         op._opdef = _opdef_for_opspec(opspec)
 
+
 def _opdef_for_run(run):
     if isinstance(run, remote.RunProxy):
         return _opdef_for_remote_run(run)
     opspec = run.opref.to_opspec()
     return _opdef_for_opspec(opspec)
 
+
 def _opdef_for_remote_run(run):
     if _cwd_remote_run(run):
         return _opdef_for_opspec(_cwd_opspec(run.opref))
     return _opdef_for_opspec(run.opref.to_opspec())
+
 
 def _cwd_remote_run(run):
     try:
@@ -223,8 +244,10 @@ def _cwd_remote_run(run):
     else:
         return gf.package and gf.package.name == run.opref.pkg_name
 
+
 def _cwd_opspec(opref):
     return "%s:%s" % (opref.model_name, opref.op_name)
+
 
 def _opdef_for_opspec(opspec):
     try:
@@ -242,9 +265,11 @@ def _opdef_for_opspec(opspec):
     except op_util.ModelOpProxyError as e:
         _model_op_proxy_error(e)
 
+
 # =================================================================
 # Op - op cmd
 # =================================================================
+
 
 def _op_init_op_cmd(op):
     if op._opdef:
@@ -252,15 +277,18 @@ def _op_init_op_cmd(op):
         if run_attrs:
             op._op_cmd_run_attrs.update(run_attrs)
 
+
 def _op_cmd_for_opdef(opdef):
     try:
         return op_util.op_cmd_for_opdef(opdef)
     except op_util.InvalidOpDef as e:
         _invalid_opdef_error(opdef, e.msg)
 
+
 # =================================================================
 # Op - op flags
 # =================================================================
+
 
 def _op_init_op_flags(args, op):
     if op._run:
@@ -272,15 +300,19 @@ def _op_init_op_flags(args, op):
             args.force_flags or op._batch_trials,
             op._op_cmd,
             op._op_flag_vals,
-            op._resource_flagdefs)
+            op._resource_flagdefs,
+        )
     if args.edit_flags:
         _edit_op_flags(op)
+
 
 def _apply_run_flags(run, flag_vals):
     flag_vals.update(run.get("flags") or {})
 
-def _apply_op_flags_for_opdef(opdef, user_flag_vals, force_flags,
-                              op_cmd, op_flag_vals, resource_flagdefs):
+
+def _apply_op_flags_for_opdef(
+    opdef, user_flag_vals, force_flags, op_cmd, op_flag_vals, resource_flagdefs
+):
     """Applies opdef and user-provided flags to `op_flag_vals`.
 
     Also applies resolved resource flag defs per flag vals
@@ -301,14 +333,15 @@ def _apply_op_flags_for_opdef(opdef, user_flag_vals, force_flags,
     resources and should not be included in flag args unless the a
     flag def is explicitly provided.
     """
-    opdef_flag_vals, resolved_resource_flagdefs = (
-        _flag_vals_for_opdef(opdef, user_flag_vals, force_flags)
+    opdef_flag_vals, resolved_resource_flagdefs = _flag_vals_for_opdef(
+        opdef, user_flag_vals, force_flags
     )
     resource_flagdefs.extend(resolved_resource_flagdefs)
     _apply_default_resolved_runs(opdef, op_cmd, opdef_flag_vals)
     for name, val in opdef_flag_vals.items():
         if name in user_flag_vals or name not in op_flag_vals:
             op_flag_vals[name] = val
+
 
 def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
     try:
@@ -322,6 +355,7 @@ def _flag_vals_for_opdef(opdef, user_flag_vals, force_flags):
     except op_util.NoSuchFlagError as e:
         _no_such_flag_error(e.flag_name, opdef)
 
+
 def _apply_default_resolved_runs(opdef, op_cmd, flag_vals):
     for run, dep in op_dep.resolved_op_runs_for_opdef(opdef, flag_vals):
         flag_name = _dep_flag_name(dep)
@@ -330,14 +364,17 @@ def _apply_default_resolved_runs(opdef, op_cmd, flag_vals):
         if flag_name in flag_vals and flag_vals.get(flag_name) is None:
             flag_vals[flag_name] = run.short_id
 
+
 def _dep_flag_name(dep):
     return dep.resdef.flag_name or dep.resdef.name
+
 
 def _ensure_op_cmd_flag_arg_skip(flag_name, op_cmd):
     cmd_flag = op_cmd.cmd_flags.setdefault(flag_name, op_cmd_lib.CmdFlag())
     cmd_flag.flag_name = flag_name
     cmd_flag.arg_skip = True
     return cmd_flag
+
 
 def _edit_op_flags(op):
     encoded_flags = util.encode_yaml(op._op_flag_vals)
@@ -356,9 +393,11 @@ def _edit_op_flags(op):
             op._op_flag_vals = flag_vals
             break
 
+
 # =================================================================
 # Op - config
 # =================================================================
+
 
 def _op_init_config(label_arg, op):
     if op._run:
@@ -366,6 +405,7 @@ def _op_init_config(label_arg, op):
     else:
         assert op._opdef
         _op_init_config_for_opdef(op._opdef, label_arg, op)
+
 
 def _op_init_config_for_run(run, label_arg, op):
     config = run.get("op")
@@ -377,13 +417,13 @@ def _op_init_config_for_run(run, label_arg, op):
     if label_arg:
         op._label_template = label_arg
 
+
 def _op_init_config_for_opdef(opdef, label_arg, op):
-    op._flag_null_labels = (
-        _flag_null_labels_for_opdef(opdef, op._resource_flagdefs)
-    )
+    op._flag_null_labels = _flag_null_labels_for_opdef(opdef, op._resource_flagdefs)
     op._python_requires = _python_requires_for_opdef(opdef)
     op._label_template = label_arg or opdef.label
     op._output_scalars = opdef.output_scalars
+
 
 def _flag_null_labels_for_opdef(opdef, resource_flagdefs):
     return {
@@ -392,12 +432,15 @@ def _flag_null_labels_for_opdef(opdef, resource_flagdefs):
         if f.null_label is not None
     }
 
+
 def _python_requires_for_opdef(opdef):
     return opdef.python_requires or opdef.modeldef.python_requires
+
 
 # =================================================================
 # Op - core
 # =================================================================
+
 
 def _op_init_core(args, op):
     _op_init_opref(op)
@@ -410,9 +453,11 @@ def _op_init_core(args, op):
     _op_init_run_attrs(args, op)
     _op_init_callbacks(op)
 
+
 # =================================================================
 # Op - opref
 # =================================================================
+
 
 def _op_init_opref(op):
     if op._run:
@@ -421,17 +466,19 @@ def _op_init_opref(op):
         assert op._opdef
         op.opref = op._opdef.opref
 
+
 # =================================================================
 # Op - cmd args / env
 # =================================================================
 
+
 def _op_init_cmd(args, op):
     assert op._op_cmd
     op.cmd_args, op.cmd_env = _generate_op_cmd(
-        op._op_cmd,
-        op._op_flag_vals,
-        op._python_requires)
+        op._op_cmd, op._op_flag_vals, op._python_requires
+    )
     _apply_gpu_arg_env(args, op.cmd_env)
+
 
 def _generate_op_cmd(op_cmd, flag_vals, python_requires):
     resolve_params = _op_cmd_resolve_params(flag_vals, python_requires)
@@ -440,12 +487,15 @@ def _generate_op_cmd(op_cmd, flag_vals, python_requires):
     except util.UndefinedReferenceError as e:
         _op_cmd_error(
             "invalid setting for operation: command contains "
-            "invalid reference '%s'" % e.args[0])
+            "invalid reference '%s'" % e.args[0]
+        )
+
 
 def _op_cmd_resolve_params(flag_vals, python_requires):
     params = dict(flag_vals)
     params["python_exe"] = _proc_python_exe(python_requires)
     return params
+
 
 def _proc_python_exe(python_requires):
     if not python_requires:
@@ -453,32 +503,35 @@ def _proc_python_exe(python_requires):
     matching = util.find_python_interpreter(python_requires)
     if not matching:
         _op_cmd_error(
-            "cannot find a python interpreter for "
-            "requirement %r" % python_requires)
+            "cannot find a python interpreter for " "requirement %r" % python_requires
+        )
     path, _ver = matching
     return path
+
 
 def _apply_gpu_arg_env(args, env):
     if args.no_gpus:
         log.info("Masking available GPUs (CUDA_VISIBLE_DEVICES='')")
         env["CUDA_VISIBLE_DEVICES"] = ""
     elif args.gpus is not None:
-        log.info(
-            "Masking available GPUs (CUDA_VISIBLE_DEVICES='%s')",
-            args.gpus)
+        log.info("Masking available GPUs (CUDA_VISIBLE_DEVICES='%s')", args.gpus)
         env["CUDA_VISIBLE_DEVICES"] = args.gpus
+
 
 # =================================================================
 # Op - sourcecode paths
 # =================================================================
 
+
 def _op_init_sourcecode_paths(args, op):
     op.sourcecode_paths = _sourcecode_paths(args)
+
 
 def _sourcecode_paths(args):
     if args.debug_sourcecode:
         return _resolve_sourcecode_paths(args.debug_sourcecode)
     return _default_sourcecode_paths()
+
 
 def _resolve_sourcecode_paths(s):
     cwd = config.cwd()
@@ -486,12 +539,15 @@ def _resolve_sourcecode_paths(s):
         os.path.abspath(os.path.join(cwd, part)) for part in s.split(os.path.pathsep)
     ]
 
+
 def _default_sourcecode_paths():
     return [".guild/sourcecode"]
+
 
 # =================================================================
 # Op - run dir
 # =================================================================
+
 
 def _op_init_run_dir(args, op):
     if op._run:
@@ -499,29 +555,33 @@ def _op_init_run_dir(args, op):
     else:
         op.run_dir = _op_run_dir_for_args(args)
 
+
 def _op_run_dir_for_args(args):
     if not args.run_dir:
         return None
     run_dir = os.path.abspath(args.run_dir)
     if not args.stage and os.getenv("NO_WARN_RUNDIR") != "1":
         cli.note(
-            "Run directory is '%s' (results will not be "
-            "visible to Guild)" % run_dir)
+            "Run directory is '%s' (results will not be " "visible to Guild)" % run_dir
+        )
     return run_dir
+
 
 # =================================================================
 # Op - run label
 # =================================================================
 
+
 def _op_init_label(op):
     op._label = op_util.run_label(
-        op._label_template,
-        op._user_flag_vals,
-        op._op_flag_vals)
+        op._label_template, op._user_flag_vals, op._op_flag_vals
+    )
+
 
 # =================================================================
 # Op - random seed
 # =================================================================
+
 
 def _op_init_random_seed(random_seed_arg, op):
     if random_seed_arg:
@@ -531,12 +591,15 @@ def _op_init_random_seed(random_seed_arg, op):
     else:
         op._random_seed = runlib.random_seed()
 
+
 def _random_seed_for_run(run):
     return run.get("random_seed") or runlib.random_seed()
+
 
 # =================================================================
 # Op - run deps
 # =================================================================
+
 
 def _op_init_deps(op):
     if op._run:
@@ -544,11 +607,13 @@ def _op_init_deps(op):
     if op._opdef:
         op.deps = _op_deps_for_opdef(op._opdef, op._op_flag_vals)
 
+
 def _check_flags_for_resolved_deps(flag_vals, run):
     resolved_deps = run.get("resolved_deps") or {}
     for name in flag_vals:
         if name in resolved_deps:
             _flag_for_resolved_dep_error(name, run)
+
 
 def _op_deps_for_opdef(opdef, flag_vals):
     try:
@@ -556,9 +621,11 @@ def _op_deps_for_opdef(opdef, flag_vals):
     except op_dep.OpDependencyError as e:
         _invalid_opdef_error(opdef, e)
 
+
 # =================================================================
 # Op - run attrs
 # =================================================================
+
 
 def _op_init_run_attrs(args, op):
     attrs = op.run_attrs
@@ -581,16 +648,21 @@ def _op_init_run_attrs(args, op):
         attrs["pip_freeze"] = _pip_freeze()
     attrs.update(op._op_cmd_run_attrs)
 
+
 def _python_op(op):
     return "python" in " ".join(op.cmd_args)
 
+
 def _pip_freeze():
     from guild import pip_util
+
     return pip_util.freeze()
+
 
 # =================================================================
 # Op - run callbacks
 # =================================================================
+
 
 def _op_init_callbacks(op):
     if op._run:
@@ -599,23 +671,22 @@ def _op_init_callbacks(op):
         assert op._opdef
         _op_init_callbacks_for_opdef(op._opdef, op)
 
+
 def _op_init_callbacks_for_restart(op):
-    op.callbacks = oplib.OperationCallbacks(
-        init_output_summary=_init_output_summary
-    )
+    op.callbacks = oplib.OperationCallbacks(init_output_summary=_init_output_summary)
+
 
 def _init_output_summary(op, run):
     if _output_scalars_disabled(op):
         return None
     if _summary_disabled():
         return None
-    return _output_scalars_summary(
-        op._output_scalars,
-        op._op_flag_vals,
-        run)
+    return _output_scalars_summary(op._output_scalars, op._op_flag_vals, run)
+
 
 def _output_scalars_disabled(output_scalars):
     return output_scalars is not None and not output_scalars
+
 
 def _summary_disabled():
     try:
@@ -626,6 +697,7 @@ def _summary_disabled():
     else:
         return False
 
+
 def _output_scalars_summary(output_scalars, flag_vals, run):
     if output_scalars is None:
         output_scalars = summary.DEFAULT_OUTPUT_SCALARS
@@ -635,18 +707,22 @@ def _output_scalars_summary(output_scalars, flag_vals, run):
     summary_path = run.guild_path()
     return summary.OutputScalars(output_scalars, summary_path, ignore)
 
+
 def _op_init_callbacks_for_opdef(opdef, op):
     op.callbacks = oplib.OperationCallbacks(
         init_output_summary=_init_output_summary,
-        run_initialized=_run_init_cb_for_opdef(opdef)
+        run_initialized=_run_init_cb_for_opdef(opdef),
     )
+
 
 def _run_init_cb_for_opdef(opdef):
     def f(_op, run):
         _copy_run_sourcecode(opdef, run)
         _write_run_sourcecode_digest(run)
         _write_run_vcs_commit(opdef, run)
+
     return f
+
 
 def _copy_run_sourcecode(opdef, run):
     sourcecode_src = opdef.guildfile.dir
@@ -663,18 +739,25 @@ def _copy_run_sourcecode(opdef, run):
     dest = run.guild_path("sourcecode")
     log.debug(
         "copying source code files for run %s from %s to %s",
-        run.id, sourcecode_src, dest)
+        run.id,
+        sourcecode_src,
+        dest,
+    )
     op_util.copy_sourcecode(sourcecode_src, sourcecode_select, dest)
+
 
 def _write_run_sourcecode_digest(run):
     op_util.write_sourcecode_digest(run)
 
+
 def _write_run_vcs_commit(opdef, run):
     op_util.write_vcs_commit(opdef, run)
+
 
 # =================================================================
 # State - batch op
 # =================================================================
+
 
 def _state_init_batch_op(S):
     _batch_op_init_run(S)
@@ -691,11 +774,13 @@ def _state_init_batch_op(S):
         _apply_batch_flag_encoder(S.batch_op, S.user_op)
         _op_init_core(S.args, S.batch_op)
 
+
 def _batch_op_init_run(S):
     if S.restart_run and S.restart_run.batch_proto:
         if S.batch_op is None:
             S.batch_op = Operation()
         S.batch_op._run = S.restart_run
+
 
 def _batch_op_init_opdef(S):
     if S.batch_op and S.batch_op._run:
@@ -710,6 +795,7 @@ def _batch_op_init_opdef(S):
     elif S.user_op._opdef:
         _batch_op_init_for_opdef(S.user_op._opdef, S)
 
+
 def _batch_op_init_for_opdef(opdef, S):
     if S.args.optimizer:
         _batch_op_init_for_named_optimizer(S.args.optimizer, opdef, S)
@@ -717,6 +803,7 @@ def _batch_op_init_for_opdef(opdef, S):
         _batch_op_init_for_opdef_default_optimizer(opdef, S)
     else:
         _try_implied_batch_op_init(S.user_op, S)
+
 
 def _batch_op_init_for_named_optimizer(name, opdef, S):
     assert not S.batch_op
@@ -727,35 +814,42 @@ def _batch_op_init_for_named_optimizer(name, opdef, S):
     else:
         _op_init_for_optimizer_opspec(name, S.batch_op)
 
+
 def _op_init_for_optimizer(optdef, op):
     op._opdef = _opdef_for_opspec(optdef.opspec)
     if optdef.flags:
         op._op_flag_vals.update(optdef.flags)
 
+
 def _op_init_for_optimizer_opspec(opspec, op):
     op._opdef = _opdef_for_opspec(opspec)
+
 
 def _batch_op_init_for_opdef_default_optimizer(opdef, S):
     assert not S.batch_op
     S.batch_op = Operation()
-    optdef = util.find_apply([
-        lambda: opdef.default_optimizer,
-        lambda: _default_optimizer(opdef),
-    ])
+    optdef = util.find_apply(
+        [lambda: opdef.default_optimizer, lambda: _default_optimizer(opdef),]
+    )
     _op_init_for_optimizer(optdef, S.batch_op)
+
 
 def _default_optimizer(opdef):
     return guildfile.OptimizerDef.for_name(DEFAULT_OPTIMIZER, opdef)
 
+
 def _try_implied_batch_op_init(user_op, S):
-    batch_opspec = util.find_apply([
-        lambda: _batch_opspec_for_flags(user_op._op_flag_vals),
-        lambda: _batch_opspec_for_trials(user_op._batch_trials),
-    ])
+    batch_opspec = util.find_apply(
+        [
+            lambda: _batch_opspec_for_flags(user_op._op_flag_vals),
+            lambda: _batch_opspec_for_trials(user_op._batch_trials),
+        ]
+    )
     if batch_opspec:
         assert not S.batch_op
         S.batch_op = Operation()
         S.batch_op._opdef = _opdef_for_opspec(batch_opspec)
+
 
 def _batch_opspec_for_flags(flag_vals):
     has_list = False
@@ -767,12 +861,15 @@ def _batch_opspec_for_flags(flag_vals):
         return "+"
     return None
 
+
 def _batch_opspec_for_trials(trials):
     return "+" if trials else None
+
 
 def _check_opt_flags_for_missing_batch_opdef(S):
     if S.args.opt_flags and not (S.batch_op and S.batch_op._opdef):
         _opt_flags_for_missing_batch_opdef_error(S.args.opt_flags)
+
 
 def _check_batch_args_for_missing_batch_op(S):
     if S.batch_op:
@@ -780,10 +877,12 @@ def _check_batch_args_for_missing_batch_op(S):
     if S.args.max_trials:
         log.warning("not a batch run - ignoring --max-trials")
 
+
 def _op_init_batch_config(args, user_op, batch_op):
     _op_init_max_trials(args, batch_op)
     _op_init_objective(args, user_op, batch_op)
     _op_init_batch_cmd_run_attrs(args, batch_op)
+
 
 def _op_init_max_trials(args, op):
     if op._run:
@@ -791,10 +890,12 @@ def _op_init_max_trials(args, op):
     else:
         op._max_trials = args.max_trials or _default_max_trials_for_op(op)
 
+
 def _default_max_trials_for_op(op):
     if not op._opdef:
         return None
     return op._opdef.default_max_trials
+
 
 def _op_init_objective(args, user_op, batch_op):
     assert not (args.minimize and args.maximize)
@@ -804,6 +905,7 @@ def _op_init_objective(args, user_op, batch_op):
         batch_op._objective = "-" + args.maximize
     elif user_op._opdef:
         batch_op._objective = _objective_for_opdef(user_op._opdef)
+
 
 def _objective_for_opdef(opdef):
     obj = opdef.objective
@@ -816,9 +918,11 @@ def _objective_for_opdef(opdef):
             return obj["minimize"]
     return DEFAULT_OBJECTIVE
 
+
 def _op_init_batch_cmd_run_attrs(args, op):
     if args.init_trials:
         op._op_cmd_run_attrs["STAGE_TRIALS"] = "1"
+
 
 def _apply_batch_flag_encoder(batch_op, user_op):
     """Allow a batch op to encode child op flag vals.
@@ -831,9 +935,7 @@ def _apply_batch_flag_encoder(batch_op, user_op):
     If a flag is specified in `user_flags` it is always accepted as
     is - it is never encoded.
     """
-    if (not batch_op._opdef or
-        not batch_op._opdef.flag_encoder or
-        not user_op._opdef):
+    if not batch_op._opdef or not batch_op._opdef.flag_encoder or not user_op._opdef:
         return
     encode_flag_val = op_util.op_flag_encoder(batch_op._opdef.flag_encoder)
     if not encode_flag_val:
@@ -847,18 +949,22 @@ def _apply_batch_flag_encoder(batch_op, user_op):
         encoded_val = encode_flag_val(flag_val, flagdef)
         user_op._op_flag_vals[flag_name] = encoded_val
 
+
 ###################################################################
 # Main
 ###################################################################
+
 
 def main(args):
     S = _init_state(args)
     _dispatch_op(S)
 
+
 def _init_state(args):
     _maybe_shift_opspec(args)
     _validate_args(args)
     return _state_for_args(args)
+
 
 def _maybe_shift_opspec(args):
     # Moves opspec to flags if it looks like a flag assignment
@@ -866,9 +972,11 @@ def _maybe_shift_opspec(args):
         args.flags = (args.opspec,) + args.flags
         args.opspec = None
 
+
 def _validate_args(args):
     _check_incompatible_options(args)
     _check_incompatible_with_restart(args)
+
 
 def _check_incompatible_options(args):
     incompatible = [
@@ -885,6 +993,7 @@ def _check_incompatible_options(args):
     for a, b in incompatible:
         if getattr(args, a) and getattr(args, b):
             _incompatible_options_error(a, b)
+
 
 def _check_incompatible_with_restart(args):
     if not args.restart:
@@ -905,9 +1014,11 @@ def _check_incompatible_with_restart(args):
             restart_option = "restart" if args.restart else "start"
             _incompatible_with_restart_error(desc, restart_option)
 
+
 ###################################################################
 # Dispatch op
 ###################################################################
+
 
 def _dispatch_op(S):
     if S.args.help_model:
@@ -921,24 +1032,28 @@ def _dispatch_op(S):
     else:
         _dispatch_op_cmd(S)
 
+
 ###################################################################
 # Model / op help
 ###################################################################
+
 
 def _print_model_help(S):
     assert S.user_op._opdef
     helplib.print_model_help(S.user_op._opdef.modeldef)
 
+
 def _print_op_help(S):
     assert S.user_op._opdef
     helplib.print_op_help(S.user_op._opdef)
+
 
 ###################################################################
 # Test output scalars
 ###################################################################
 
-class TestOutputLogger(summary.TestOutputLogger):
 
+class TestOutputLogger(summary.TestOutputLogger):
     @staticmethod
     def line(line):
         cli.out(line)
@@ -951,6 +1066,7 @@ class TestOutputLogger(summary.TestOutputLogger):
         msg = self._format_pattern_matches(pattern, matches, vals)
         cli.out(cli.style(msg, fg="yellow"))
 
+
 def _test_output_scalars(S):
     output_scalars = S.user_op._output_scalars or summary.DEFAULT_OUTPUT_SCALARS
     input_path = S.args.test_output_scalars
@@ -958,9 +1074,11 @@ def _test_output_scalars(S):
     if input_path == "-" and sys.stdin.isatty():
         cli.note(
             "Type patterns and press Enter to test. "
-            "Use Ctrl-c or empty line to exit.")
+            "Use Ctrl-c or empty line to exit."
+        )
     with _open_output(input_path) as f:
         summary.test_output(f, output_scalars, logger)
+
 
 def _open_output(path):
     if path == "-":
@@ -973,9 +1091,11 @@ def _open_output(path):
         else:
             cli.error("error opening %s: %s" % (path, e))
 
+
 ###################################################################
 # Test source code
 ###################################################################
+
 
 def _test_sourcecode(S):
     opdef = S.user_op._opdef
@@ -984,10 +1104,8 @@ def _test_sourcecode(S):
     sourcecode_src = opdef.guildfile.dir
     sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
     op_util.copy_sourcecode(
-        sourcecode_src,
-        sourcecode_select,
-        None,
-        handler_cls=logger.handler_cls)
+        sourcecode_src, sourcecode_select, None, handler_cls=logger.handler_cls
+    )
     cli.out("Copying from %s" % cmd_impl_support.cwd_desc(logger.root))
     cli.out("Rules:")
     for rule in logger.select.rules:
@@ -1003,6 +1121,7 @@ def _test_sourcecode(S):
         cli.out("Skipped:")
         for path in logger.skipped:
             cli.out(cli.style("  %s" % path, dim=True))
+
 
 class _CopyLogger(object):
 
@@ -1025,6 +1144,7 @@ class _CopyLogger(object):
     def ignore(self, path, _results):
         self.skipped.append(os.path.join(self.root, path))
 
+
 def _format_file_select_rule(rule):
     parts = ["include" if rule.result else "exclude"]
     if rule.type:
@@ -1034,6 +1154,7 @@ def _format_file_select_rule(rule):
     if extras:
         parts.append(extras)
     return " ".join(parts)
+
 
 def _format_file_select_rule_extras(rule):
     parts = []
@@ -1049,9 +1170,11 @@ def _format_file_select_rule_extras(rule):
         parts.append("max match %s" % rule.max_matches)
     return ", ".join(parts)
 
+
 ###################################################################
 # Dispatch op command
 ###################################################################
+
 
 def _dispatch_op_cmd(S):
     if S.args.print_cmd:
@@ -1065,9 +1188,11 @@ def _dispatch_op_cmd(S):
     else:
         _confirm_and_run(S)
 
+
 ###################################################################
 # Print op info / save trials
 ###################################################################
+
 
 def _print_cmd(S):
     if S.batch_op:
@@ -1076,11 +1201,14 @@ def _print_cmd(S):
     else:
         _print_op_cmd_args(S.user_op.cmd_args)
 
+
 def _print_op_cmd_args(args):
     cli.out(" ".join([util.shlex_quote(arg) for arg in args]))
 
+
 def _print_batch_trials_cmd_args(S):
     _run_tmp_batch(S, {"PRINT_TRIALS_CMD": "1"})
+
 
 def _run_tmp_batch(S, extra_env):
     assert S.batch_op
@@ -1088,17 +1216,21 @@ def _run_tmp_batch(S, extra_env):
         _init_batch_run(S, tmp.path)
         _run_op(S.batch_op, S.args, extra_env)
 
+
 def _print_env(S):
     _print_op_cmd_env(S.user_op.cmd_env)
+
 
 def _print_op_cmd_env(env):
     for name, val in sorted(env.items()):
         cli.out("%s=%s" % (name, util.env_var_quote(val)))
 
+
 def _print_trials(S):
     if not S.batch_op:
         _print_trials_for_non_batch_error()
     _run_tmp_batch(S, {"PRINT_TRIALS": "1"})
+
 
 def _save_trials(S):
     if not S.batch_op:
@@ -1107,31 +1239,35 @@ def _save_trials(S):
     cli.out("Saving trials to %s" % util.format_dir(path))
     _run_tmp_batch(S, {"SAVE_TRIALS": path})
 
+
 def _save_trials_path(save_trials_arg):
     cwd = config.cwd()
     return (
-        os.path.join(cwd, save_trials_arg) if cwd not in (".", "")
-        else save_trials_arg)
+        os.path.join(cwd, save_trials_arg) if cwd not in (".", "") else save_trials_arg
+    )
+
 
 ###################################################################
 # Run
 ###################################################################
 
+
 def _confirm_and_run(S):
     if S.args.yes or _confirm_run(S):
         _run(S)
 
+
 # =================================================================
 # Confirm op
 # =================================================================
+
 
 def _confirm_run(S):
     prompt = (
         "You are about to {action} {subject}"
         "{batch_suffix}{remote_suffix}{flags_note}\n"
         "{flags}"
-        "Continue?"
-        .format(
+        "Continue?".format(
             action=_preview_op_action(S),
             subject=_preview_op_subject(S),
             batch_suffix=_preview_batch_suffix(S),
@@ -1142,6 +1278,7 @@ def _confirm_run(S):
     )
     return cli.confirm(prompt, default=True)
 
+
 def _preview_op_action(S):
     if S.args.stage:
         return "stage"
@@ -1150,6 +1287,7 @@ def _preview_op_action(S):
     else:
         return "run"
 
+
 def _preview_op_subject(S):
     op_desc = _fmt_opref(S.user_op.opref)
     if S.restart_run:
@@ -1157,15 +1295,21 @@ def _preview_op_subject(S):
     else:
         return op_desc
 
+
 def _fmt_opref(opref):
     return opref.to_opspec(config.cwd())
+
 
 def _preview_batch_suffix(S):
     if not S.batch_op:
         return ""
-    return "".join([
-        _batch_desc_preview_part(S.batch_op),
-        _batch_qualifier_preview_part(S.batch_op)])
+    return "".join(
+        [
+            _batch_desc_preview_part(S.batch_op),
+            _batch_qualifier_preview_part(S.batch_op),
+        ]
+    )
+
 
 def _batch_desc_preview_part(op):
     opt_name = op.opref.to_opspec(config.cwd())
@@ -1175,6 +1319,7 @@ def _batch_desc_preview_part(op):
         return " with random search"
     else:
         return " with '%s' optimizer" % opt_name
+
 
 def _batch_qualifier_preview_part(op):
     parts = []
@@ -1186,40 +1331,51 @@ def _batch_qualifier_preview_part(op):
         return ""
     return " (%s)" % ", ".join(parts)
 
+
 def _objective_preview_part(obj):
     if obj[:1] == "-":
         return "maximize %s" % obj[1:]
     else:
         return "minimize %s" % obj
 
+
 def _preview_remote_suffix(S):
     if S.args.remote:
         return " on %s" % S.args.remote
     return ""
+
 
 def _preview_flags_note(S):
     if S.user_op._op_flag_vals and S.user_op._batch_trials:
         return " (flags below used unless specified in batch trial)"
     return ""
 
+
 def _preview_flags(S, indent=2):
     flag_vals = S.user_op._op_flag_vals
     if not flag_vals:
         return ""
     null_labels = S.user_op._flag_null_labels
-    return "\n".join([
-        " " * indent +_format_flag(name, val, null_labels)
-        for name, val in sorted(flag_vals.items())
-    ]) + "\n"
+    return (
+        "\n".join(
+            [
+                " " * indent + _format_flag(name, val, null_labels)
+                for name, val in sorted(flag_vals.items())
+            ]
+        )
+        + "\n"
+    )
+
 
 def _format_flag(name, val, null_labels):
     if val is None:
         formatted = _null_label(name, null_labels)
     else:
-        formatted = util.find_apply([
-            _try_format_function,
-            flag_util.encode_flag_val], val)
+        formatted = util.find_apply(
+            [_try_format_function, flag_util.encode_flag_val], val
+        )
     return "%s: %s" % (name, formatted)
+
 
 def _try_format_function(val):
     if not isinstance(val, six.string_types):
@@ -1231,13 +1387,16 @@ def _try_format_function(val):
     else:
         return val
 
+
 def _null_label(name, null_labels):
     null_label = null_labels.get(name, "default")
     return flag_util.encode_flag_val(null_label)
 
+
 # =================================================================
 # Run / stage
 # =================================================================
+
 
 def _run(S):
     if S.args.remote:
@@ -1245,17 +1404,20 @@ def _run(S):
     else:
         _run_local(S)
 
+
 def _run_remote(S):
     _check_remote_script(S.user_op.opref)
     remote_impl_support.run(_remote_args(S))
+
 
 def _check_remote_script(opref):
     if opref.pkg_type == "script":
         cli.error(
             "cannot run scripts remotely\n"
             "Define an operation in guild.yml that uses %s as the main "
-            "module and run that operation instead."
-            % opref.to_opspec(config.cwd()))
+            "module and run that operation instead." % opref.to_opspec(config.cwd())
+        )
+
 
 def _remote_args(S):
     params = S.args.as_kw()
@@ -1264,6 +1426,7 @@ def _remote_args(S):
         params["restart"] = S.restart_run.id
     return click_util.Args(**params)
 
+
 def _run_local(S):
     _check_run_needed(S)
     op = _init_op_for_run(S)
@@ -1271,6 +1434,7 @@ def _run_local(S):
         _stage_op(op, S.args)
     else:
         _run_op(op, S.args)
+
 
 def _check_run_needed(S):
     if not S.args.needed:
@@ -1283,34 +1447,41 @@ def _check_run_needed(S):
             _skip_needed_matches_info(matching)
         raise SystemExit(0)
 
+
 def _find_matching_runs(S):
     if S.batch_op:
         matching = op_util.find_matching_runs(
-            S.batch_op.opref,
-            S.batch_op._op_flag_vals)
+            S.batch_op.opref, S.batch_op._op_flag_vals
+        )
         return _filter_matching_batch_runs(matching, S.user_op)
     else:
-        return op_util.find_matching_runs(
-            S.user_op.opref,
-            S.user_op._op_flag_vals)
+        return op_util.find_matching_runs(S.user_op.opref, S.user_op._op_flag_vals)
+
 
 def _filter_matching_batch_runs(batch_runs, user_op):
     return [
-        run for run in batch_runs
-        if (run.batch_proto and
-            op_util.is_matching_run(
+        run
+        for run in batch_runs
+        if (
+            run.batch_proto
+            and op_util.is_matching_run(
                 run.batch_proto,
                 user_op.opref,
                 user_op._op_flag_vals,
-                include_pending=True))
+                include_pending=True,
+            )
+        )
     ]
+
 
 def _remove_failed_runs(runs):
     return [run for run in runs if run.status != "error"]
 
+
 def _restarting_match(matches, S):
     restart_run = S.batch_op._run if S.batch_op else S.user_op._run
     return restart_run and restart_run.id in (run.id for run in matches)
+
 
 def _init_op_for_run(S):
     if S.batch_op:
@@ -1318,10 +1489,12 @@ def _init_op_for_run(S):
         return S.batch_op
     return S.user_op
 
+
 def _init_batch_run(S, run_dir=None):
     batch_run = oplib.init_run(S.batch_op, run_dir)
     S.batch_op.run_dir = batch_run.dir
     oplib.init_run(S.user_op, batch_run.guild_path("proto"))
+
 
 def _stage_op(op, args):
     try:
@@ -1332,11 +1505,13 @@ def _stage_op(op, args):
         if not args.quiet:
             _print_staged_info(run, args)
 
+
 def _print_staged_info(run, args):
     if args.run_dir:
         _print_staged_dir_instructions(run)
     else:
         _print_stage_pending_instructions(run)
+
 
 def _print_staged_dir_instructions(run):
     cmd_args = run.get("cmd") or []
@@ -1344,19 +1519,20 @@ def _print_staged_dir_instructions(run):
     cli.out(
         "{op} staged in '{dir}'\n"
         "To start the operation, use "
-        "\"(cd '{dir}' && source .guild/ENV && {cmd})\""
-        .format(
-            op=run_util.format_operation(run),
-            dir=run.dir,
-            cmd=cmd))
+        "\"(cd '{dir}' && source .guild/ENV && {cmd})\"".format(
+            op=run_util.format_operation(run), dir=run.dir, cmd=cmd
+        )
+    )
+
 
 def _print_stage_pending_instructions(run):
     cli.out(
         "{op} staged as {run_id}\n"
-        "To start the operation, use 'guild run --start {run_id}'"
-        .format(
-            op=run_util.format_operation(run),
-            run_id=run.id))
+        "To start the operation, use 'guild run --start {run_id}'".format(
+            op=run_util.format_operation(run), run_id=run.id
+        )
+    )
+
 
 def _run_op(op, args, extra_env=None):
     try:
@@ -1365,13 +1541,15 @@ def _run_op(op, args, extra_env=None):
             quiet=args.quiet,
             pidfile=_op_pidfile(args),
             stop_after=args.stop_after,
-            extra_env=extra_env)
+            extra_env=extra_env,
+        )
     except op_dep.OpDependencyError as e:
         _op_dependency_error(e)
     except oplib.ProcessError as e:
         _op_process_error(op, e)
     else:
         _handle_run_exit(exit_status)
+
 
 def _op_pidfile(args):
     if args.pidfile:
@@ -1381,37 +1559,46 @@ def _op_pidfile(args):
     else:
         return None
 
+
 def _handle_run_exit(exit_status):
     sys.stdout.flush()
     if exit_status != 0:
         cli.error(exit_status=exit_status)
 
+
 ###################################################################
 # Error handlers / user messages
 ###################################################################
+
 
 def _incompatible_options_error(a, b):
     cli.error(
         "--%s and --%s cannot both be used\n"
         "Try 'guild run --help' for more information."
-        % (a.replace("_", "-"), b.replace("_", "-")))
+        % (a.replace("_", "-"), b.replace("_", "-"))
+    )
+
 
 def _incompatible_with_restart_error(option, restart_option):
     cli.error(
         "%s cannot be used with --%s\n"
-        "Try 'guild run --help' for more information."
-        % (option, restart_option))
+        "Try 'guild run --help' for more information." % (option, restart_option)
+    )
+
 
 def _flags_with_restart_error(option="restart"):
     cli.error(
         "flags cannot be used with --%s\n"
-        "Try 'guild run --help' for more information." % option)
+        "Try 'guild run --help' for more information." % option
+    )
+
 
 def _invalid_opspec_error(opspec):
     cli.error(
         "invalid operation '%s'\n"
-        "Try 'guild operations' for a list of available operations."
-        % opspec)
+        "Try 'guild operations' for a list of available operations." % opspec
+    )
+
 
 def _guildfile_error(gf_path, msg):
     log.error(msg)
@@ -1419,173 +1606,192 @@ def _guildfile_error(gf_path, msg):
         gf_path = os.path.dirname(gf_path)
     cli.error(
         "guildfile in %s contains an error (see above for details)"
-        % cmd_impl_support.cwd_desc(gf_path))
+        % cmd_impl_support.cwd_desc(gf_path)
+    )
+
 
 def _no_such_model_op_error(opspec):
     if opspec:
         if ":" in opspec:
             cli.error(
                 "cannot find operation %s\n"
-                "Try 'guild operations' for a list of available operations."
-                % opspec)
+                "Try 'guild operations' for a list of available operations." % opspec
+            )
         else:
             cli.error(
                 "cannot find operation %s\n"
                 "You may need to include a model in the form MODEL:OPERATION. "
-                "Try 'guild operations' for a list of available operations."
-                % opspec)
+                "Try 'guild operations' for a list of available operations." % opspec
+            )
     else:
         cli.error(
-            "cannot find a default operation\n"
-            "Try 'guild operations' for a list.")
+            "cannot find a default operation\n" "Try 'guild operations' for a list."
+        )
+
 
 def _multiple_models_error(model_ref, models):
-    models_list = "\n".join([
-        "  %s" % name
-        for name in sorted([m.fullname for m in models])
-    ])
+    models_list = "\n".join(
+        ["  %s" % name for name in sorted([m.fullname for m in models])]
+    )
     cli.error(
         "there are multiple models that match '%s'\n"
         "Try specifying one of the following:\n"
-        "%s"
-        % (model_ref, models_list))
+        "%s" % (model_ref, models_list)
+    )
+
 
 def _no_such_opdef_error(model, op_name):
-    op = (
-        "operation '{0}'".format(op_name)
-        if op_name else "a default operation")
+    op = "operation '{0}'".format(op_name) if op_name else "a default operation"
     if model.name:
         cli.error(
             "{op} is not defined for model '{model}'\n"
             "Try 'guild operations {model}' for a list of available "
-            "operations."
-            .format(op=op, model=model.name))
+            "operations.".format(op=op, model=model.name)
+        )
     else:
         cli.error(
             "{op} is not defined for this project\n"
-            "Try 'guild operations' for a list of available operations."
-            .format(op=op))
+            "Try 'guild operations' for a list of available operations.".format(op=op)
+        )
+
 
 def _invalid_flag_arg_error(arg):
     cli.error("invalid argument '%s' - expected NAME=VAL" % arg)
+
 
 def _no_such_flag_error(name, opdef):
     cli.error(
         "unsupported flag '%s'\n"
         "Try 'guild run %s --help-op' for a list of "
-        "flags or use --force-flags to skip this check."
-        % (name, opdef.fullname))
+        "flags or use --force-flags to skip this check." % (name, opdef.fullname)
+    )
+
 
 def _coerce_flag_val_error(e):
-    cli.error(
-        "cannot apply %r to flag '%s': %s"
-        % (e.value, e.flag_name, e.error))
+    cli.error("cannot apply %r to flag '%s': %s" % (e.value, e.flag_name, e.error))
+
 
 def _missing_required_flags_error(e):
-    cli.out(
-        "Operation requires the following missing flags:\n",
-        err=True)
+    cli.out("Operation requires the following missing flags:\n", err=True)
     cli.table(
-        [{"name": flag.name, "desc": flag.description}
-         for flag in e.missing],
+        [{"name": flag.name, "desc": flag.description} for flag in e.missing],
         ["name", "desc"],
         indent=2,
-        err=True)
+        err=True,
+    )
     cli.out(
-        "\nRun the command again with these flags specified "
-        "as NAME=VAL.", err=True)
+        "\nRun the command again with these flags specified " "as NAME=VAL.", err=True
+    )
     cli.error()
+
 
 def _invalid_flag_choice_error(e):
     cli.out(
-        "Unsupported value for '%s' - supported values are:\n"
-        % e.flag.name, err=True)
+        "Unsupported value for '%s' - supported values are:\n" % e.flag.name, err=True
+    )
     cli.table(
-        [{"val": choice.value, "desc": choice.description}
-         for choice in e.flag.choices],
+        [
+            {"val": choice.value, "desc": choice.description}
+            for choice in e.flag.choices
+        ],
         ["val", "desc"],
         indent=2,
-        err=True)
-    cli.out(
-        "\nRun the command again using one of these options.",
-        err=True)
+        err=True,
+    )
+    cli.out("\nRun the command again using one of these options.", err=True)
     cli.error()
+
 
 def _invalid_flag_value_error(e):
     cli.error("invalid value %s for %s: %s" % (e.value, e.flag.name, e.msg))
 
+
 def _invalid_opdef_error(opdef, msg):
-    cli.error(
-        "invalid definition for operation '%s': %s"
-        % (opdef.fullname, msg))
+    cli.error("invalid definition for operation '%s': %s" % (opdef.fullname, msg))
+
 
 def _model_op_proxy_error(e):
     cli.error("cannot run '%s': %s" % (e.opspec, e.msg))
 
+
 def _op_cmd_error(msg):
     cli.error(msg)
+
 
 def _op_dependency_error(e):
     cli.error("run failed because a dependency was not met: %s" % e)
 
+
 def _op_process_error(op, e):
     cli.error("error running %s: %s" % (_fmt_opref(op.opref), e))
+
 
 def _opt_flags_for_missing_batch_opdef_error(args):
     assert args
     cli.error("invalid optimizer flag %s: no optimizer specified" % args[0])
 
+
 def _missing_op_config_for_restart_error(run):
     cli.error(
         "cannot restart run in %s: missing op configuration\n"
         "The run may not have been initialized correctly. Try starting "
-        "the operation without the --start/--restart flag." % run.dir)
+        "the operation without the --start/--restart flag." % run.dir
+    )
+
 
 def _invalid_op_config_for_restart_error(run):
     cli.error(
         "cannot restart run in %s: invalid op configuration\n"
         "This may be an internal error. Please open an issue "
-        "https://github.com/guildai/guildai/issues." % run.dir)
+        "https://github.com/guildai/guildai/issues." % run.dir
+    )
+
 
 def _no_such_batch_file_error(path):
     cli.error("batch file %s does not exist" % path)
 
+
 def _batch_file_error(e):
     cli.error(e)
+
 
 def _flag_for_resolved_dep_error(flag_name, run):
     cli.error(
         "cannot specify a value for '%s' when restarting %s - "
-        "resource has already been resolved" % (flag_name, run.short_id))
+        "resource has already been resolved" % (flag_name, run.short_id)
+    )
+
 
 def _print_trials_for_non_batch_error():
     cli.error("cannot print trials for a non-batch operation")
 
+
 def _save_trials_for_non_batch_error():
     cli.error("cannot save trials for a non-batch operation")
 
+
 def _skip_needed_unchanged_flags_info():
-    cli.out(
-        "Skipping run because flags have not changed "
-        "(--needed specified)")
+    cli.out("Skipping run because flags have not changed " "(--needed specified)")
+
 
 def _skip_needed_matches_info(matching_runs):
     cli.out(
         "Skipping because the following runs match "
-        "this operation (--needed specified):")
+        "this operation (--needed specified):"
+    )
     formatted = [run_util.format_run(run) for run in matching_runs]
-    cols = [
-        "index", "operation", "started",
-        "status_with_remote", "label"
-    ]
+    cols = ["index", "operation", "started", "status_with_remote", "label"]
     cli.table(formatted, cols=cols, indent=2)
+
 
 ###################################################################
 # Cmd impl API
 ###################################################################
 
+
 def run(start=None, **kw):
     from .run import run as run_cmd
+
     if start is not None:
         raise ValueError("start kw not supported, use restart instead")
     ctx = run_cmd.make_context("", [])
@@ -1594,9 +1800,7 @@ def run(start=None, **kw):
     args = click_util.Args(**ctx.params)
     main(args)
 
+
 def one_run(run_id_prefix):
-    runs = [
-        runlib.Run(id, path)
-        for id, path in var.find_runs(run_id_prefix)
-    ]
+    runs = [runlib.Run(id, path) for id, path in var.find_runs(run_id_prefix)]
     return cmd_impl_support.one_run(runs, run_id_prefix)

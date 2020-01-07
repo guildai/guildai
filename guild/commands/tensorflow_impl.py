@@ -19,6 +19,7 @@ import sys
 
 from guild import cli
 
+
 def inspect_checkpoint(args):
     _check_tensorflow()
     if args.file_name.endswith(".pb"):
@@ -26,18 +27,22 @@ def inspect_checkpoint(args):
     else:
         _inspect_checkpoint(args)
 
+
 def _check_tensorflow():
     try:
         import tensorflow as _
     except ImportError as e:
         _handle_tensorflow_import_error(e)
 
+
 def _handle_tensorflow_import_error(e):
     if "tensorflow" in str(e):
         cli.out(
             "TensorFlow is not installed.\n"
             "Refer to https://www.tensorflow.org/install/ for help "
-            "installing TensorFlow on your system.", err=True)
+            "installing TensorFlow on your system.",
+            err=True,
+        )
     else:
         cli.out("Error loading TensorBoard: %s" % e, err=True)
     cli.error()
@@ -50,9 +55,11 @@ def _inspect_graph(args):
         for out in op.outputs:
             sys.stdout.write("%s\n" % out.name)
 
+
 def _load_graph(filename):
     # pylint: disable=import-error
     import tensorflow as tf
+
     graph = tf.Graph()
     sess = tf.Session(graph=graph)
     with tf.gfile.FastGFile(filename, "rb") as f:
@@ -62,8 +69,10 @@ def _load_graph(filename):
             tf.import_graph_def(graph_def)
     return graph
 
+
 def _inspect_checkpoint(args):
     # pylint: disable=import-error,no-name-in-module
     from tensorflow.python.tools import inspect_checkpoint as inspect
+
     inspect.FLAGS = args
     inspect.main([])

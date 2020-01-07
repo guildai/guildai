@@ -21,11 +21,11 @@ exception.
 
     >>> project.run("fail.py")
     Traceback (most recent call last):
-      File ".../.guild/sourcecode/fail.py", line 14, in <module>
+      File ".../.guild/sourcecode/fail.py", line 17, in <module>
         fail()
-      File ".../.guild/sourcecode/fail.py", line 6, in fail
+      File ".../.guild/sourcecode/fail.py", line 7, in fail
         fail2()
-      File ".../.guild/sourcecode/fail.py", line 12, in fail2
+      File ".../.guild/sourcecode/fail.py", line 14, in fail2
         raise Exception("FAIL")
     Exception: FAIL
     <exit 1>
@@ -44,14 +44,14 @@ When we run with the debug option, we get the full stack:
         _main()
       ...
       File ".../guild/op_main.py", line ..., in exec_script
-        path, globals, mod_name=mod_name)
+        script_globals = python_util.exec_script(path, globals, mod_name=mod_name)
       File ".../guild/python_util.py", line ..., in exec_script
         exec(code, script_globals)
-      File ".../.guild/sourcecode/fail.py", line 14, in <module>
+      File ".../.guild/sourcecode/fail.py", line 17, in <module>
         fail()
-      File ".../.guild/sourcecode/fail.py", line 6, in fail
+      File ".../.guild/sourcecode/fail.py", line 7, in fail
         fail2()
-      File ".../.guild/sourcecode/fail.py", line 12, in fail2
+      File ".../.guild/sourcecode/fail.py", line 14, in fail2
         raise Exception("FAIL")
     Exception: FAIL
     <exit 1>
@@ -70,11 +70,11 @@ case, the project defines a `fail` operation that runs `fail.py`.
 
     >>> project.run("fail")
     Traceback (most recent call last):
-      File ".../.guild/sourcecode/fail.py", line 14, in <module>
+      File ".../.guild/sourcecode/fail.py", line 17, in <module>
         fail()
-      File ".../.guild/sourcecode/fail.py", line 6, in fail
+      File ".../.guild/sourcecode/fail.py", line 7, in fail
         fail2()
-      File ".../.guild/sourcecode/fail.py", line 12, in fail2
+      File ".../.guild/sourcecode/fail.py", line 14, in fail2
         raise Exception("FAIL")
     Exception: FAIL
     <exit 1>

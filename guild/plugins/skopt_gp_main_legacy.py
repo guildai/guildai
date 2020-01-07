@@ -21,11 +21,21 @@ from . import skopt_ipy
 from . import skopt_util_legacy as skopt_util
 
 import logging
+
 log = logging.getLogger("guild")
 
-def gen_trials(flags, runs, random_starts=0, acq_func="gp_hedge",
-               kappa=1.96, xi=0.01, noise="gaussian", label=None,
-               **kw):
+
+def gen_trials(
+    flags,
+    runs,
+    random_starts=0,
+    acq_func="gp_hedge",
+    kappa=1.96,
+    xi=0.01,
+    noise="gaussian",
+    label=None,
+    **kw
+):
     batch_flags = {
         "random-starts": random_starts,
         "acq-func": acq_func,
@@ -35,11 +45,13 @@ def gen_trials(flags, runs, random_starts=0, acq_func="gp_hedge",
     }
     label = label or "gp"
     return skopt_ipy.gen_trials(
-        _init_trial, runs, flags, batch_flags,
-        label=label, **kw)
+        _init_trial, runs, flags, batch_flags, label=label, **kw
+    )
+
 
 def _init_trial(trial, state):
     import skopt
+
     inputs = state.opt_inputs(trial.run_id)
     res = util.log_apply(
         skopt.gp_minimize,
@@ -53,9 +65,11 @@ def _init_trial(trial, state):
         acq_func=state.batch_flags["acq-func"],
         kappa=state.batch_flags["kappa"],
         xi=state.batch_flags["xi"],
-        noise=state.batch_flags["noise"])
+        noise=state.batch_flags["noise"],
+    )
     state.update(res)
     return state.next_trial_flags()
+
 
 if __name__ == "__main__":
     skopt_util.default_main(_init_trial, non_repeating=True)

@@ -37,8 +37,8 @@ log = logging.getLogger("guild")
 
 MULTI_ARCH_PACKAGES = ("tensorflow-any",)
 
-class Pkg(object):
 
+class Pkg(object):
     def __init__(self, src, data):
         self.src = src
         self.data = data
@@ -47,18 +47,18 @@ class Pkg(object):
         try:
             return self.data[attr]
         except KeyError:
-            _exit(
-                "%s is missing required '%s' attribute"
-                % (self.src, attr))
+            _exit("%s is missing required '%s' attribute" % (self.src, attr))
 
     def get(self, attr, default=None):
         return self.data.get(attr, default)
+
 
 def main():
     guild.log.init_logging()
     pkg = _load_pkg()
     dist = _create_dist(pkg)
     _maybe_upload(dist)
+
 
 def _load_pkg():
     path = os.environ["PACKAGE_FILE"]
@@ -72,10 +72,12 @@ def _load_pkg():
         else:
             return gf.package
 
+
 def _default_package(gf):
     # Use the name of the default model
     package_name = _default_package_name(gf)
     return guildfile.PackageDef(package_name, {}, gf)
+
 
 def _default_package_name(gf):
     default_model = gf.default_model
@@ -83,16 +85,17 @@ def _default_package_name(gf):
         return default_model.name
     return _anonymous_package_name(gf)
 
+
 def _anonymous_package_name(gf):
     name = "gpkg.anonymous_%s" % _gf_digest(gf)
-    log.warning(
-        "package name not defined in %s - using %s",
-        gf.src, name)
+    log.warning("package name not defined in %s - using %s", gf.src, name)
     return name
+
 
 def _gf_digest(gf):
     path = os.path.abspath(gf.src)
     return hashlib.md5(path.encode()).hexdigest()[:8]
+
 
 def _create_dist(pkg):
     kw = _setup_kw(pkg)
@@ -102,16 +105,20 @@ def _create_dist(pkg):
         _setup_clean(kw)
     return _setup_bdist_wheel(pkg, kw)
 
+
 def _setup_clean(kw):
     with util.SysArgv(_clean_cmd_args()):
         setuptools.setup(**kw)
 
+
 def _clean_cmd_args():
     return ["clean", "--all"]
+
 
 def _setup_bdist_wheel(pkg, kw):
     with util.SysArgv(_bdist_wheel_cmd_args(pkg)):
         return setuptools.setup(**kw)
+
 
 def _bdist_wheel_cmd_args(pkg):
     args = ["bdist_wheel"]
@@ -119,11 +126,13 @@ def _bdist_wheel_cmd_args(pkg):
     args.extend(_dist_dir_args())
     return args
 
+
 def _python_tag_args(pkg):
     if pkg.python_tag:
         return ["--python-tag", pkg.python_tag]
     else:
         return ["--universal"]
+
 
 def _dist_dir_args():
     dist_dir = os.getenv("DIST_DIR")
@@ -132,13 +141,13 @@ def _dist_dir_args():
     else:
         return []
 
+
 def _setup_kw(pkg):
     project_dir = os.path.dirname(pkg.guildfile.src)
     summary, help_desc = _pkg_description(pkg)
     project_name = pkg.name
     python_pkg_name = _python_pkg_name(pkg)
-    packages, package_dir = _python_packages(
-        pkg, python_pkg_name, project_dir)
+    packages, package_dir = _python_packages(pkg, python_pkg_name, project_dir)
     return dict(
         name=project_name,
         version=pkg.version,
@@ -155,11 +164,10 @@ def _setup_kw(pkg):
         packages=packages,
         package_dir=package_dir,
         namespace_packages=_namespace_packages(python_pkg_name),
-        package_data={
-            python_pkg_name: _package_data(pkg)
-        },
+        package_data={python_pkg_name: _package_data(pkg)},
         entry_points=_entry_points(pkg),
     )
+
 
 def _pkg_description(pkg):
     """Returns a tuple of the package summary and long description.
@@ -174,16 +182,16 @@ def _pkg_description(pkg):
     help_desc = guild.help.package_description(pkg.guildfile)
     return summary, help_desc
 
+
 def _python_pkg_name(pkg):
     return pkg.name.replace("-", "_")
 
+
 def _python_packages(pkg, base_pkg, project_dir):
     if pkg.packages is not None:
-        return (
-            pkg.packages.keys(),
-            pkg.packages
-        )
+        return (pkg.packages.keys(), pkg.packages)
     return _default_python_packages(base_pkg, project_dir)
+
 
 def _default_python_packages(base_pkg, project_dir):
     found_pkgs = setuptools.find_packages()
@@ -191,20 +199,21 @@ def _default_python_packages(base_pkg, project_dir):
     pkg_dirs = _all_pkg_dirs(project_dir, base_pkg, found_pkgs)
     return all_pkgs, pkg_dirs
 
+
 def _apply_base_pkg(base_pkg, found_pkgs):
     return ["%s.%s" % (base_pkg, pkg) for pkg in found_pkgs]
 
+
 def _all_pkg_dirs(project_dir, base_pkg, found_pkgs):
-    pkg_dirs = {
-        base_pkg: project_dir
-    }
-    pkg_dirs.update({
-        found_pkg: os.path.join(
-            project_dir,
-            found_pkg.replace(".", os.path.sep))
-        for found_pkg in found_pkgs
-    })
+    pkg_dirs = {base_pkg: project_dir}
+    pkg_dirs.update(
+        {
+            found_pkg: os.path.join(project_dir, found_pkg.replace(".", os.path.sep))
+            for found_pkg in found_pkgs
+        }
+    )
     return pkg_dirs
+
 
 def _namespace_packages(python_pkg_name):
     parts = python_pkg_name.rsplit(".", 1)
@@ -213,14 +222,17 @@ def _namespace_packages(python_pkg_name):
     else:
         return [parts[0]]
 
+
 def _package_data(pkg):
     return _pkg_data_files(pkg) + _default_pkg_files()
+
 
 def _pkg_data_files(pkg):
     matches = []
     for pattern in pkg.data_files:
         matches.extend(glob.glob(pattern))
     return matches
+
 
 def _default_pkg_files():
     return [
@@ -231,14 +243,17 @@ def _default_pkg_files():
         "README.*",
     ]
 
+
 def _entry_points(pkg):
     return {
         name: eps
         for name, eps in [
             ("guild.models", _model_entry_points(pkg)),
-            ("guild.resources", _resource_entry_points(pkg))
-        ] if eps
+            ("guild.resources", _resource_entry_points(pkg)),
+        ]
+        if eps
     }
+
 
 def _model_entry_points(pkg):
     models = sorted(pkg.guildfile.models.values(), key=lambda m: m.name)
@@ -247,29 +262,37 @@ def _model_entry_points(pkg):
         for model in models
     ]
 
+
 def _model_entry_point_name(model):
     return model.name or "__anonymous__"
+
 
 def _resource_entry_points(pkg):
     return _model_resource_entry_points(pkg)
 
+
 def _model_resource_entry_points(pkg):
     return [
-        ("%s:%s = guild.model:PackageModelResource"
-         % (resdef.modeldef.name, resdef.name))
+        (
+            "%s:%s = guild.model:PackageModelResource"
+            % (resdef.modeldef.name, resdef.name)
+        )
         for resdef in _iter_guildfile_resdefs(pkg)
     ]
+
 
 def _iter_guildfile_resdefs(pkg):
     for modeldef in pkg.guildfile.models.values():
         for resdef in modeldef.resources:
             yield resdef
 
+
 def _pkg_keywords(pkg):
     tags = list(pkg.tags)
     if "gpkg" not in tags:
         tags.append("gpkg")
     return " ".join(tags)
+
 
 def _pkg_install_requires(pkg):
     if pkg.requires is None:
@@ -278,9 +301,9 @@ def _pkg_install_requires(pkg):
         return []
     else:
         return [
-            _project_name(req) for req in pkg.requires
-            if not _is_multi_arch_req(req)
+            _project_name(req) for req in pkg.requires if not _is_multi_arch_req(req)
         ]
+
 
 def _maybe_requirements_txt(pkg):
     requirements_txt = os.path.join(pkg.guildfile.dir, "requirements.txt")
@@ -288,14 +311,17 @@ def _maybe_requirements_txt(pkg):
         return []
     return _parse_requirements(requirements_txt)
 
+
 def _parse_requirements(path):
     parsed = pip_util.parse_requirements(path)
     return [str(req.req) for req in parsed]
+
 
 def _project_name(req):
     ns, project_name = namespace.split_name(req)
     pip_info = ns.pip_info(project_name)
     return pip_info.project_name
+
 
 def _is_multi_arch_req(req):
     for multi_arch_pkg in MULTI_ARCH_PACKAGES:
@@ -303,11 +329,14 @@ def _is_multi_arch_req(req):
             return True
     return False
 
+
 def _maybe_print_kw_and_exit(kw):
     if os.getenv("DUMP_SETUP_KW") == "1":
         import pprint
+
         pprint.pprint(kw)
         sys.exit(0)
+
 
 def _write_package_metadata(pkg, setup_kw):
     egg_info_dir = "%s.egg-info" % setup_kw["name"]
@@ -316,36 +345,40 @@ def _write_package_metadata(pkg, setup_kw):
     with open(dest, "w") as f:
         yaml.dump(_pkg_metadata(pkg), f, default_flow_style=False, width=9999)
 
+
 def _pkg_metadata(pkg):
     for item in pkg.guildfile.data:
         if "package" in item:
             return _coerce_pkg_data(item)
     return {}
 
+
 def _coerce_pkg_data(data):
-    return {
-        attr: _coerce_pkg_attr(attr, val)
-        for attr, val in data.items()
-    }
+    return {attr: _coerce_pkg_attr(attr, val) for attr, val in data.items()}
+
 
 def _coerce_pkg_attr(name, val):
     if name == "requires" and isinstance(val, six.string_types):
         return [val]
     return val
 
+
 def _maybe_upload(dist):
     upload_repo = os.getenv("UPLOAD_REPO")
     if upload_repo:
         _upload(dist, upload_repo)
 
+
 def _upload(dist, upload_repo):
     from twine.commands import upload
+
     _check_wheel_metadata_version(dist)
     args = _twine_upload_args(dist, upload_repo)
     try:
         upload.main(args)
     except Exception as e:
         _handle_twine_error(e)
+
 
 def _check_wheel_metadata_version(dist):
     """Confirm that metadata generated by wheel is supported by pkginfo.
@@ -362,6 +395,7 @@ def _check_wheel_metadata_version(dist):
     """
     from pkginfo import distribution
     from wheel import metadata
+
     egg_info_path = dist.get_name() + ".egg-info"
     pkginfo_path = os.path.join(egg_info_path, "PKG-INFO")
     msg = metadata.pkginfo_to_metadata(egg_info_path, pkginfo_path)
@@ -372,7 +406,9 @@ def _check_wheel_metadata_version(dist):
             "wheel metadata version '%s' is not supported by pkginfo "
             "(should be one of %s)\n"
             "Try upgrading pkginfo to the latest version."
-            % (metadata_ver, ", ".join(map(repr, supported_vers))))
+            % (metadata_ver, ", ".join(map(repr, supported_vers)))
+        )
+
 
 def _twine_upload_args(dist, repo):
     args = []
@@ -382,6 +418,7 @@ def _twine_upload_args(dist, repo):
     if os.getenv("SKIP_EXISTING"):
         args.append("--skip-existing")
     return args
+
 
 def _twine_repo_args(repo):
     if util.parse_url(repo).scheme:
@@ -393,13 +430,16 @@ def _twine_repo_args(repo):
     else:
         return ["--repository", repo]
 
+
 def _pypirc_section_for_repo(repo):
     from twine import utils
+
     config = utils.get_config()
     for section in config:
         if config[section].get("repository") == repo:
             return section
     return None
+
 
 def _twine_sign_args():
     args = []
@@ -410,8 +450,10 @@ def _twine_sign_args():
             args.extend(["--identity", sign_id])
     return args
 
+
 def _twine_dist_file_args(dist):
     return [df[2] for df in dist.dist_files]
+
 
 def _handle_twine_error(e):
     if os.getenv("DEBUG"):
@@ -422,10 +464,12 @@ def _handle_twine_error(e):
         msg = str(e)
     _exit(msg)
 
+
 def _exit(msg, exit_code=1):
     sys.stderr.write(msg)
     sys.stderr.write("\n")
     sys.exit(exit_code)
+
 
 if __name__ == "__main__":
     try:

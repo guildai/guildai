@@ -33,12 +33,14 @@ except ImportError:
     raise RuntimeError(
         "guild.ipy requires pandas - install it first before using "
         "this module (see https://pandas.pydata.org/pandas-docs/stable/"
-        "install.html for help)")
+        "install.html for help)"
+    )
 
 # ipy makes use of the full Guild API and so, like main_bootstrap,
 # requires the external modules.
 
 from guild import main_bootstrap
+
 main_bootstrap.ensure_external_path()
 
 from guild import batch_util
@@ -70,15 +72,15 @@ RUN_DETAIL = [
 
 DEFAULT_MAX_TRIALS = 20
 
-class RunError(Exception):
 
+class RunError(Exception):
     def __init__(self, run, e):
         super(RunError, self).__init__(run, e)
         self.run = run
         self.e = e
 
-class OutputTee(object):
 
+class OutputTee(object):
     def __init__(self, fs, lock):
         self._fs = fs
         self._lock = lock
@@ -88,8 +90,8 @@ class OutputTee(object):
             for f in self._fs:
                 f.write(s)
 
-class RunOutput(object):
 
+class RunOutput(object):
     def __init__(self, run, summary=None):
         self.run = run
         self.summary = summary
@@ -120,9 +122,9 @@ class RunOutput(object):
         sys.stdout = self._stdout
         sys.stderr = self._stderr
 
+
 @functools.total_ordering
 class RunIndex(object):
-
     def __init__(self, run, fmt):
         self.run = run
         self.fmt = fmt
@@ -144,8 +146,8 @@ class RunIndex(object):
             return x.run.id
         return None
 
-class RunsSeries(pd.Series):
 
+class RunsSeries(pd.Series):
     @property
     def _constructor(self):
         return RunsSeries
@@ -169,8 +171,8 @@ class RunsSeries(pd.Series):
     def compare(self):
         return _runs_compare([self[0]])
 
-class RunsDataFrame(pd.DataFrame):
 
+class RunsDataFrame(pd.DataFrame):
     @property
     def _constructor(self):
         return RunsDataFrame
@@ -207,8 +209,8 @@ class RunsDataFrame(pd.DataFrame):
     def compare(self):
         return _runs_compare(self._items())
 
-class Batch(object):
 
+class Batch(object):
     def __init__(self, gen_trials, op, flags, opts):
         self.gen_trials = gen_trials
         self.op = op
@@ -221,26 +223,25 @@ class Batch(object):
         trials = self.gen_trials(self.flags, runs, **self.opts)
         for trial_flags, trial_opts in trials:
             print(
-                "Running %s (%s):"
-                % (self.op.__name__, op_util.flags_desc(trial_flags)))
+                "Running %s (%s):" % (self.op.__name__, op_util.flags_desc(trial_flags))
+            )
             run, result = _run(self.op, trial_flags, trial_opts)
             runs.append(run)
             results.append(result)
         return runs, results
 
+
 def _coerce_range_functions(flags):
-    return {
-        name: _coerce_range_function(val)
-        for name, val in flags.items()
-    }
+    return {name: _coerce_range_function(val) for name, val in flags.items()}
+
 
 def _coerce_range_function(val):
     if isinstance(val, RangeFunction):
         return str(val)
     return val
 
-class RangeFunction(object):
 
+class RangeFunction(object):
     def __init__(self, name, *args):
         self.name = name
         self.args = args
@@ -249,19 +250,19 @@ class RangeFunction(object):
         args = ":".join([str(arg) for arg in self.args])
         return "%s[%s]" % (self.name, args)
 
+
 def batch_gen_trials(flags, max_trials=None, label=None, **kw):
     if kw:
         log.warning("ignoring batch config: %s", kw)
     max_trials = max_trials or DEFAULT_MAX_TRIALS
     trials = 0
-    trial_opts = {
-        "label": label
-    }
+    trial_opts = {"label": label}
     for trial_flags in batch_util.expand_flags(flags):
         if trials >= max_trials:
             return
         trials += 1
         yield trial_flags, trial_opts
+
 
 def optimizer_trial_generator(model_op):
     main_mod = _optimizer_module(model_op.module_name)
@@ -269,8 +270,9 @@ def optimizer_trial_generator(model_op):
         return main_mod.gen_trials
     except AttributeError:
         raise TypeError(
-            "%s optimizer module does not implement gen_trials"
-            % main_mod.__name__)
+            "%s optimizer module does not implement gen_trials" % main_mod.__name__
+        )
+
 
 def _optimizer_module(module_name):
     try:
@@ -278,17 +280,21 @@ def _optimizer_module(module_name):
     except ImportError:
         return importlib.import_module(module_name)
 
+
 def uniform(low, high):
     return RangeFunction("uniform", low, high)
 
+
 def loguniform(low, high):
     return RangeFunction("loguniform", low, high)
+
 
 def run(op, *args, **kw):
     opts = _pop_opts(kw)
     flags = _init_flags(op, args, kw)
     run = _init_runner(op, flags, opts)
     return run()
+
 
 def _pop_opts(kw):
     opts = {}
@@ -297,27 +303,28 @@ def _pop_opts(kw):
             opts[name[1:]] = kw.pop(name)
     return opts
 
+
 def _init_flags(op, args, kw):
     # pylint: disable=deprecated-method
     op_flags = inspect.getcallargs(op, *args, **kw)
     return _coerce_slice_vals(op_flags)
 
+
 def _coerce_slice_vals(flags):
-    return {
-        name: _coerce_slice_val(val)
-        for name, val in flags.items()
-    }
+    return {name: _coerce_slice_val(val) for name, val in flags.items()}
+
 
 def _coerce_slice_val(val):
     if isinstance(val, slice):
         return uniform(val.start, val.stop)
     return val
 
+
 def _init_runner(op, flags, opts):
-    return util.find_apply([
-        _optimize_runner,
-        _batch_runner,
-        _single_runner], op, flags, opts)
+    return util.find_apply(
+        [_optimize_runner, _batch_runner, _single_runner], op, flags, opts
+    )
+
 
 def _optimize_runner(op, flags, opts):
     optimizer = opts.get("optimizer")
@@ -326,11 +333,10 @@ def _optimize_runner(op, flags, opts):
     opts = _filter_kw(opts, ["optimizer"])
     return Batch(_init_gen_trials(optimizer), op, flags, opts)
 
+
 def _filter_kw(opts, keys):
-    return {
-        k: v for k, v in opts.items()
-        if k not in keys
-    }
+    return {k: v for k, v in opts.items() if k not in keys}
+
 
 def _maybe_random_runner(op, flags, opts):
     assert not opts.get("optimizer"), opts
@@ -338,6 +344,7 @@ def _maybe_random_runner(op, flags, opts):
         if isinstance(val, RangeFunction):
             return Batch(_init_gen_trials("random"), op, flags, opts)
     return None
+
 
 def _init_gen_trials(optimizer):
     try:
@@ -347,14 +354,17 @@ def _init_gen_trials(optimizer):
     else:
         return optimizer_trial_generator(model_op)
 
+
 def _batch_runner(op, flags, opts):
     for val in flags.values():
         if isinstance(val, list):
             return Batch(batch_gen_trials, op, flags, opts)
     return None
 
+
 def _single_runner(op, flags, opts):
     return lambda: _run(op, flags, opts)
+
 
 def _run(op, flags, opts):
     run = _init_run()
@@ -373,12 +383,14 @@ def _run(op, flags, opts):
     finally:
         _finalize_run_attrs(run, exit_status)
 
+
 def _init_run():
     run_id = runlib.mkid()
     run_dir = os.path.join(var.runs_dir(), run_id)
     run = runlib.Run(run_id, run_dir)
     run.init_skel()
     return run
+
 
 def _init_run_attrs(run, op, flags, opts):
     opref = opreflib.OpRef("func", "", "", "", op.__name__)
@@ -388,6 +400,7 @@ def _init_run_attrs(run, op, flags, opts):
     if "label" in opts:
         run.write_attr("label", opts["label"])
 
+
 def _init_output_scalars(run, opts):
     config = opts.get("output_scalars", summary.DEFAULT_OUTPUT_SCALARS)
     if not config:
@@ -395,29 +408,33 @@ def _init_output_scalars(run, opts):
     abs_guild_path = os.path.abspath(run.guild_path())
     return summary.OutputScalars(config, abs_guild_path)
 
+
 def _finalize_run_attrs(run, exit_status):
     run.write_attr("exit_status", exit_status)
     run.write_attr("stopped", runlib.timestamp())
+
 
 def runs(**kw):
     runs = runs_impl.filtered_runs(_runs_cmd_args(**kw))
     data, cols = _format_runs(runs)
     return RunsDataFrame(data=data, columns=cols)
 
+
 def _runs_cmd_args(
-        operations=None,
-        labels=None,
-        running=False,
-        completed=False,
-        error=False,
-        terminated=False,
-        pending=False,
-        staged=False,
-        unlabeled=None,
-        marked=False,
-        unmarked=False,
-        started=None,
-        digest=None):
+    operations=None,
+    labels=None,
+    running=False,
+    completed=False,
+    error=False,
+    terminated=False,
+    pending=False,
+    staged=False,
+    unlabeled=None,
+    marked=False,
+    unmarked=False,
+    started=None,
+    digest=None,
+):
     return click_util.Args(
         ops=operations,
         labels=labels,
@@ -431,7 +448,9 @@ def _runs_cmd_args(
         marked=marked,
         unmarked=unmarked,
         started=started,
-        digest=digest)
+        digest=digest,
+    )
+
 
 def _format_runs(runs):
     cols = (
@@ -444,11 +463,11 @@ def _format_runs(runs):
     data = [_format_run(run, cols) for run in runs]
     return data, cols
 
+
 def _format_run(run, cols):
     fmt = run_util.format_run(run)
-    return [
-        _run_attr(run, name, fmt) for name in cols
-    ]
+    return [_run_attr(run, name, fmt) for name in cols]
+
 
 def _run_attr(run, name, fmt):
     if name == "run":
@@ -460,16 +479,16 @@ def _run_attr(run, name, fmt):
     elif name in ("label",):
         return run.get(name, "")
     elif name == "time":
-        return util.format_duration(
-            run.get("started"),
-            run.get("stopped"))
+        return util.format_duration(run.get("started"), run.get("stopped"))
     else:
         return getattr(run, name)
+
 
 def _datetime(ts):
     if ts is None:
         return None
     return datetime.datetime.fromtimestamp(int(ts / 1000000))
+
 
 def _print_run_info(item, output=False, scalars=False):
     for name in RUN_DETAIL:
@@ -479,13 +498,12 @@ def _print_run_info(item, output=False, scalars=False):
     if scalars:
         print("scalars:")
         for s in indexlib.iter_run_scalars(item.run):
-            print(
-                "  %s: %f (step %i)"
-                % (s["tag"], s["last_val"], s["last_step"]))
+            print("  %s: %f (step %i)" % (s["tag"], s["last_val"], s["last_step"]))
     if output:
         print("output:")
         for line in run_util.iter_output(item.run):
             print("  %s" % line, end="")
+
 
 def _runs_scalars(runs):
     data = []
@@ -510,20 +528,24 @@ def _runs_scalars(runs):
             data.append(s)
     return pd.DataFrame(data, columns=cols)
 
+
 def _runs_flags(runs):
     data = [_run_flags_data(run) for run in runs]
     return pd.DataFrame(data)
+
 
 def _run_flags_data(run):
     data = run.get("flags") or {}
     data[_run_flags_key(data)] = run.id
     return data
 
+
 def _run_flags_key(flags):
     run_key = "run"
     while run_key in flags:
         run_key = "_" + run_key
     return run_key
+
 
 def _runs_compare(items):
     core_cols = ["run", "operation", "started", "time", "status", "label"]
@@ -538,16 +560,15 @@ def _runs_compare(items):
         _apply_scalar_data(item.run, scalar_cols, row_data)
         _apply_flag_data(item.run, flag_cols, row_data)
         _apply_run_core_data(item, core_cols, row_data)
-    cols = (
-        core_cols +
-        sorted(flag_cols) +
-        _sort_scalar_cols(scalar_cols, flag_cols))
+    cols = core_cols + sorted(flag_cols) + _sort_scalar_cols(scalar_cols, flag_cols)
     return pd.DataFrame(data, columns=cols)
+
 
 def _apply_scalar_data(run, cols, data):
     for name, val in _run_scalar_data(run).items():
         cols.add(name)
         data[name] = val
+
 
 def _run_scalar_data(run):
     data = {}
@@ -565,6 +586,7 @@ def _run_scalar_data(run):
         data["step"] = step
     return data
 
+
 def _apply_flag_data(run, cols, data):
     for name, val in _run_flags_data(run).items():
         if name == "run":
@@ -572,9 +594,11 @@ def _apply_flag_data(run, cols, data):
         cols.add(name)
         data[name] = val
 
+
 def _apply_run_core_data(item, cols, data):
     for name in cols:
         data[name] = _run_attr(item.run, name, item.fmt)
+
 
 def _sort_scalar_cols(scalar_cols, flag_cols):
     # - List step first if it exists
@@ -587,6 +611,7 @@ def _sort_scalar_cols(scalar_cols, flag_cols):
             continue
         cols.append(col)
     return cols
+
 
 def set_guild_home(path):
     config.set_guild_home(path)

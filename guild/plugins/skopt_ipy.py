@@ -28,6 +28,7 @@ log = logging.getLogger("guild")
 
 DEFAULT_MAX_TRIALS = 20
 
+
 class RunProxy(object):
 
     # Run proxies are used for both batch runs and trial runs. In both
@@ -41,14 +42,22 @@ class RunProxy(object):
     def get(self, name, _default=None):
         return getattr(self, name)
 
+
 class BatchProxy(object):
 
     # ipy doesn't use batch runs so we have to proxy batch information
     # when using skopt_util facilities for skopt optimizers in ipy.
 
-    def __init__(self, proto_flags, batch_flags, prev_runs,
-                 random_seed=None, minimize=None, maximize=None,
-                 **kw):
+    def __init__(
+        self,
+        proto_flags,
+        batch_flags,
+        prev_runs,
+        random_seed=None,
+        minimize=None,
+        maximize=None,
+        **kw
+    ):
         if kw:
             log.warning("ignoring batch config: %s", kw)
         self.batch_run = RunProxy(batch_flags)
@@ -58,18 +67,16 @@ class BatchProxy(object):
         self.random_seed = random_seed
 
     def seq_trial_runs(self, status=None):
-        return [
-            run for run in self.prev_runs
-            if status is None or run.status == status]
+        return [run for run in self.prev_runs if status is None or run.status == status]
+
 
 def _init_objective(minimize, maximize):
     if minimize and maximize:
         raise ValueError("minimize and maximize cannot both be specified")
     if maximize:
-        return {
-            "maximize": maximize
-        }
+        return {"maximize": maximize}
     return minimize
+
 
 class TrialProxy(object):
 
@@ -81,8 +88,10 @@ class TrialProxy(object):
 
     run_id = None
 
-def gen_trials(init_trial, prev_runs, proto_flags, batch_flags,
-               max_trials, label=None, **kw):
+
+def gen_trials(
+    init_trial, prev_runs, proto_flags, batch_flags, max_trials, label=None, **kw
+):
 
     # Function used by skopt optimizers to implement their get_trials
     # module callback. To generate suggested trials in ipy, which
@@ -90,15 +99,9 @@ def gen_trials(init_trial, prev_runs, proto_flags, batch_flags,
     # proxy. See above for more information.
 
     max_trials = max_trials or DEFAULT_MAX_TRIALS
-    state = skopt_util.State(BatchProxy(
-        proto_flags,
-        batch_flags,
-        prev_runs,
-        **kw))
+    state = skopt_util.State(BatchProxy(proto_flags, batch_flags, prev_runs, **kw))
     trials = 0
-    trial_opts = {
-        "label": label
-    }
+    trial_opts = {"label": label}
     while trials < max_trials:
         trials += 1
         yield (init_trial(TrialProxy(), state), trial_opts)

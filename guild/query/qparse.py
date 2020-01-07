@@ -26,21 +26,26 @@ from . import qlex
 
 tokens = qlex.tokens
 
+
 def p_query(p):
     """query : select_stmt"""
     p[0] = p[1]
+
 
 def p_select_stmt(p):
     """select_stmt : SELECT col_list"""
     p[0] = Select(cols=p[2])
 
+
 def p_col_list_head(p):
     """col_list : col"""
     p[0] = [p[1]]
 
+
 def p_col_list(p):
     """col_list : col_list COMMA col"""
     p[0] = p[1] + [p[3]]
+
 
 def p_col(p):
     """col : scalar_col
@@ -50,11 +55,13 @@ def p_col(p):
     """
     p[0] = p[1]
 
+
 def p_named_col(p):
     """col : col AS col_name"""
     col = p[1]
     col.named_as = p[3]
     p[0] = col
+
 
 def p_col_name(p):
     """col_name : term
@@ -63,17 +70,21 @@ def p_col_name(p):
     """
     p[0] = p[1]
 
+
 def p_implicit_scalar_col(p):
     """scalar_col : scalar_key"""
     p[0] = Scalar(p[1])
+
 
 def p_explicit_scalar_col(p):
     """scalar_col : SCALAR_PREFIX scalar_key"""
     p[0] = Scalar(p[2])
 
+
 def p_qualified_implicit_scalar_col(p):
     """scalar_col : scalar_qualifier scalar_key"""
     p[0] = Scalar(p[2], p[1])
+
 
 def p_scalar_step_col(p):
     """scalar_step_col : scalar_col STEP"""
@@ -81,9 +92,11 @@ def p_scalar_step_col(p):
     scalar.step = True
     p[0] = scalar
 
+
 def p_scalar_key(p):
     """scalar_key : term"""
     p[0] = p[1]
+
 
 def p_scalar_qualifier(p):
     """scalar_qualifier : MIN
@@ -96,47 +109,56 @@ def p_scalar_qualifier(p):
     """
     p[0] = p[1]
 
+
 def p_dot_attr_col(p):
     "attr_col : DOT attr_name"
     p[0] = Attr(p[2])
+
 
 def p_attr_col(p):
     "attr_col : ATTR_PREFIX attr_name"
     p[0] = Attr(p[2])
 
+
 def p_attr_name(p):
     "attr_name : term"
     p[0] = p[1]
+
 
 def p_equals_flag_col(p):
     "flag_col : EQUALS flag_name"
     p[0] = Flag(p[2])
 
+
 def p_flag_col(p):
     "flag_col : FLAG_PREFIX flag_name"
     p[0] = Flag(p[2])
+
 
 def p_flag_name(p):
     "flag_name : UNQUOTED"
     p[0] = p[1]
 
+
 def p_unquoted_term(p):
     """term : UNQUOTED"""
     p[0] = p[1]
+
 
 def p_quoted_term(p):
     """term : QUOTED"""
     p[0] = yaml.safe_load(p[1])
 
+
 def p_error(t):
     if t is None:
         raise ParseError("query string cannot be empty")
     raise ParseError(
-        "unexpected token %r, line %i, pos %i"
-        % (t.value, t.lineno, t.lexpos))
+        "unexpected token %r, line %i, pos %i" % (t.value, t.lineno, t.lexpos)
+    )
+
 
 class parser(object):
-
     def __init__(self):
         self._l = qlex.lexer()
         self._p = _yacc.yacc(debug=False, write_tables=False)

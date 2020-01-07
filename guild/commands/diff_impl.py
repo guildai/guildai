@@ -32,19 +32,21 @@ log = logging.getLogger("guild")
 
 DEFAULT_DIFF_CMD = "diff -ru"
 
-class OneRunArgs(click_util.Args):
 
+class OneRunArgs(click_util.Args):
     def __init__(self, base_args, run):
         kw = base_args.as_kw()
         kw.pop("runs")
         kw["run"] = run
         super(OneRunArgs, self).__init__(**kw)
 
+
 def main(args, ctx):
     if args.remote:
         remote_impl_support.diff_runs(args)
     else:
         _main(args, ctx)
+
 
 def _main(args, ctx):
     _validate_args(args)
@@ -54,11 +56,13 @@ def _main(args, ctx):
     else:
         _diff_runs(args, ctx)
 
+
 def _validate_args(args):
     if args.path and args.sourcecode:
         cli.error("--path and --sourcecode cannot both be specified")
     if args.working and args.working_dir:
         cli.error("--working and --working-dir cannot both be specified")
+
 
 def _apply_default_runs(args):
     if len(args.runs) == 0:
@@ -73,18 +77,21 @@ def _apply_default_runs(args):
             cli.error(
                 "diff requires two runs\n"
                 "Try specifying a second run or 'guild diff --help' "
-                "for more information.")
+                "for more information."
+            )
     elif len(args.runs) > 2:
         cli.error(
             "cannot compare more than two runs\n"
             "Try specifying just two runs or 'guild diff --help' for "
-            "more information.")
+            "more information."
+        )
     else:
         assert len(args.runs) == 2, args
         if args.working:
             cli.error("cannot specify RUN2 and --working")
         if args.working_dir:
             cli.error("cannot specify RUN2 and --working-dir")
+
 
 def _diff_working(args, ctx):
     assert len(args.runs) == 2, args
@@ -98,17 +105,17 @@ def _diff_working(args, ctx):
         working_dir = _find_run_working_dir(run)
     _diff(run_sourcecode_dir, working_dir, args)
 
+
 def _find_run_working_dir(run):
-    working_dir = util.find_apply([
-        _opdef_sourcecode_root,
-        _script_source,
-    ], run)
+    working_dir = util.find_apply([_opdef_sourcecode_root, _script_source,], run)
     if not working_dir:
         cli.error(
             "cannot find working source code directory for run {run_id}\n"
             "Try specifying the directory with 'guild diff {run_id} "
-            "--working-dir DIR'.".format(run_id=run.short_id))
+            "--working-dir DIR'.".format(run_id=run.short_id)
+        )
     return working_dir
+
 
 def _opdef_sourcecode_root(run):
     opdef = run_util.run_opdef(run)
@@ -116,10 +123,12 @@ def _opdef_sourcecode_root(run):
         return os.path.join(opdef.guildfile.dir, opdef.sourcecode.root or "")
     return None
 
+
 def _script_source(run):
     if run.opref.pkg_type == "script":
         return run.opref.pkg_name
     return None
+
 
 def _diff_runs(args, ctx):
     assert len(args.runs) == 2, args
@@ -127,10 +136,8 @@ def _diff_runs(args, ctx):
     run1 = runs_impl.one_run(OneRunArgs(args, args.runs[0]), ctx)
     run2 = runs_impl.one_run(OneRunArgs(args, args.runs[1]), ctx)
     for path in _diff_paths(args):
-        _diff(
-            os.path.join(run1.dir, path),
-            os.path.join(run2.dir, path),
-            args)
+        _diff(os.path.join(run1.dir, path), os.path.join(run2.dir, path), args)
+
 
 def _diff(path1, path2, args):
     cmd_base = util.shlex_split(_diff_cmd(args))
@@ -141,35 +148,30 @@ def _diff(path1, path2, args):
     except OSError as e:
         cli.error("error running '%s': %s" % (" ".join(cmd), e))
 
+
 def _diff_cmd(args):
     return args.cmd or _config_diff_cmd() or _default_diff_cmd()
+
 
 def _config_diff_cmd():
     return config.user_config().get("diff", {}).get("command")
 
+
 def _default_diff_cmd():
     if util.PLATFORM == "Linux":
-        return _find_cmd([
-            "meld",
-            "xxdiff -r",
-            "dirdiff",
-            "colordiff",
-        ])
+        return _find_cmd(["meld", "xxdiff -r", "dirdiff", "colordiff",])
     elif util.PLATFORM == "Darwin":
-        return _find_cmd([
-            "Kaleidoscope",
-            "meld",
-            "DiffMerge",
-            "FileMerge",
-        ])
+        return _find_cmd(["Kaleidoscope", "meld", "DiffMerge", "FileMerge",])
     else:
         return DEFAULT_DIFF_CMD
+
 
 def _find_cmd(cmds):
     for cmd in cmds:
         if util.which(cmd.split(" ", 1)[0]):
             return cmd
     return DEFAULT_DIFF_CMD
+
 
 def _diff_paths(args):
     paths = []

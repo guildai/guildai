@@ -36,6 +36,7 @@ log = logging.getLogger("guild")
 
 # Legacy support for functionality moved to _api
 from guild import _api
+
 NoCurrentRun = _api.NoCurrentRun
 current_run = _api.current_run
 
@@ -48,35 +49,37 @@ MAX_DEFAULT_SOURCECODE_COUNT = 100
 
 RUN_OUTPUT_STREAM_BUFFER = 4096
 
-class ArgValueError(ValueError):
 
+class ArgValueError(ValueError):
     def __init__(self, arg):
         super(ArgValueError, self).__init__(arg)
         self.arg = arg
 
+
 class FlagError(Exception):
     pass
 
-class MissingRequiredFlags(FlagError):
 
+class MissingRequiredFlags(FlagError):
     def __init__(self, missing):
         super(MissingRequiredFlags, self).__init__(missing)
         self.missing = missing
 
-class InvalidFlagChoice(FlagError):
 
+class InvalidFlagChoice(FlagError):
     def __init__(self, val, flag):
         super(InvalidFlagChoice, self).__init__(val, flag)
         self.val = val
         self.flag = flag
 
-class InvalidFlagValue(FlagError):
 
+class InvalidFlagValue(FlagError):
     def __init__(self, value, flag, msg):
         super(InvalidFlagValue, self).__init__(value, flag, msg)
         self.value = value
         self.flag = flag
         self.msg = msg
+
 
 try:
     bytes('')
@@ -89,8 +92,10 @@ else:
     LF = b"\n"
     BYTES_JOIN = lambda l: b"".join(l)
 
+
 class ProcessError(Exception):
     pass
+
 
 class RunOutput(object):
 
@@ -178,23 +183,22 @@ class RunOutput(object):
                 if stream_fileno is not None:
                     os_write(stream_fileno, buf)
                 for b in buf:
-                    if b < 9: # non-printable
+                    if b < 9:  # non-printable
                         continue
                     line.append(b)
                     if b == LF:
                         line_bytes = BYTES_JOIN(line)
                         os_write(output_fileno, line_bytes)
                         line = []
-                        entry = struct.pack(
-                            "!QB", int(time_() * 1000), stream_type)
+                        entry = struct.pack("!QB", int(time_() * 1000), stream_type)
                         os_write(index_fileno, entry)
                         if self._output_cb:
                             try:
                                 self._output_cb.write(line_bytes)
                             except Exception:
                                 log.exception(
-                                    "error in output callback (will be "
-                                    "removed)")
+                                    "error in output callback (will be " "removed)"
+                                )
                                 self._output_cb = None
 
     def wait(self, timeout=DEFAULT_WAIT_TIMEOUT):
@@ -249,18 +253,16 @@ class RunOutput(object):
         self.wait(timeout)
         self.close()
 
+
 def resolve_file(filename):
-    return util.find_apply([
-        _abs_file,
-        _cmd_file,
-        _model_file,
-        _cwd_file
-    ], filename)
+    return util.find_apply([_abs_file, _cmd_file, _model_file, _cwd_file], filename)
+
 
 def _abs_file(filename):
     if os.path.isabs(filename):
         return filename
     return None
+
 
 def _cmd_file(filename):
     assert "CMD_DIR" in os.environ
@@ -269,8 +271,10 @@ def _cmd_file(filename):
         return filename
     return None
 
+
 def parse_flag_assigns(args):
     return dict([parse_flag_arg(os.path.expanduser(arg)) for arg in args])
+
 
 def parse_flag_arg(arg):
     parts = arg.split("=", 1)
@@ -278,6 +282,7 @@ def parse_flag_arg(arg):
         raise ArgValueError(arg)
     else:
         return parts[0], flag_util.decode_flag_val(parts[1])
+
 
 def exit(msg, exit_status=1):
     """Exit the Python runtime with a message.
@@ -288,10 +293,12 @@ def exit(msg, exit_status=1):
     sys.stderr.write("\n")
     sys.exit(exit_status)
 
+
 def parse_op_args(args):
     if len(args) < 2:
         exit("usage: %s COMMAND [ARG...]" % args[0])
     return args[1], args[2:]
+
 
 def args_to_flags(args):
     """Returns `flags, other_args` for `args`.
@@ -326,6 +333,7 @@ def args_to_flags(args):
             other_args.append(arg)
     return flags, other_args
 
+
 def split_args_for_flags(args):
     """Returns `split_args, other_args` for `args`.
 
@@ -335,8 +343,9 @@ def split_args_for_flags(args):
     """
     for i in range(len(args) - 1, -1, -1):
         if args[i] == "--":
-            return args[i + 1:], args[:i]
+            return args[i + 1 :], args[:i]
     return args, []
+
 
 def global_dest(global_name, flags):
     dest = cur = {}
@@ -345,13 +354,16 @@ def global_dest(global_name, flags):
     cur.update(flags)
     return dest
 
+
 def find_file(path):
     return util.find_apply([_cwd_file, _model_file], path)
+
 
 def _cwd_file(path):
     if os.path.exists(path):
         return path
     return None
+
 
 def _model_file(path):
     model_path = os.getenv("MODEL_PATH")
@@ -362,12 +374,15 @@ def _model_file(path):
                 return full_path
     return None
 
+
 def coerce_flag_value(val, flagdef):
     """Coerces a flag value based on flagdef settings."""
-    if (val is None or
-        not flagdef or
-        not flagdef.type or
-        flag_util.is_flag_function(val)):
+    if (
+        val is None
+        or not flagdef
+        or not flagdef.type
+        or flag_util.is_flag_function(val)
+    ):
         return val
     if isinstance(val, list):
         return [coerce_flag_value(x, flagdef) for x in val]
@@ -389,9 +404,10 @@ def coerce_flag_value(val, flagdef):
         return _resolve_rel_path(val)
     else:
         log.warning(
-            "unknown flag type '%s' for %s - cannot coerce",
-            flagdef.type, flagdef.name)
+            "unknown flag type '%s' for %s - cannot coerce", flagdef.type, flagdef.name
+        )
         return val
+
 
 def _try_coerce_flag_val(val, funs, flagdef):
     if not isinstance(funs, tuple):
@@ -403,30 +419,37 @@ def _try_coerce_flag_val(val, funs, flagdef):
             log.debug("value error applying %s to %r: %s", f, val, e)
     raise ValueError("invalid value for type '%s'" % flagdef.type)
 
+
 def _resolve_rel_path(val):
     if val and not os.path.isabs(val):
         return os.path.abspath(val)
     return val
 
+
 def validate_flag_vals(vals, opdef):
     _check_missing_flags(vals, opdef)
     _check_flag_vals(vals, opdef)
+
 
 def _check_missing_flags(vals, opdef):
     missing = _missing_flags(vals, opdef)
     if missing:
         raise MissingRequiredFlags(missing)
 
+
 def _missing_flags(vals, opdef):
     return [
-        flag for flag in opdef.flags
+        flag
+        for flag in opdef.flags
         if flag.required and _flag_missing(vals.get(flag.name))
     ]
+
 
 def _flag_missing(val):
     if val is None or val == "":
         return True
     return False
+
 
 def _check_flag_vals(vals, opdef):
     for flag in opdef.flags:
@@ -435,32 +458,40 @@ def _check_flag_vals(vals, opdef):
         _check_flag_type(val, flag)
         _check_flag_range(val, flag)
 
+
 def _check_flag_choice(val, flag):
-    if (val and flag.choices and not flag.allow_other and
-        val not in [choice.value for choice in flag.choices]):
+    if (
+        val
+        and flag.choices
+        and not flag.allow_other
+        and val not in [choice.value for choice in flag.choices]
+    ):
         raise InvalidFlagChoice(val, flag)
+
 
 def _check_flag_type(val, flag):
     if flag.type == "existing-path":
         if val and not os.path.exists(val):
             raise InvalidFlagValue(val, flag, "%s does not exist" % val)
 
+
 def _check_flag_range(val, flag):
     if val is None:
         return
     if flag.min is not None and val < flag.min:
-        raise InvalidFlagValue(
-            val, flag, "out of range (less than min %s)" % flag.min)
+        raise InvalidFlagValue(val, flag, "out of range (less than min %s)" % flag.min)
     if flag.max is not None and val > flag.max:
         raise InvalidFlagValue(
-            val, flag, "out of range (greater than max %s)" % flag.max)
+            val, flag, "out of range (greater than max %s)" % flag.max
+        )
+
 
 def copy_run_sourcecode(run, opdef):
     log.debug("copying source code files for run %s", run.id)
     copy_sourcecode(
-        opdef,
-        run.guild_path("sourcecode"),
-        SourceCodeCopyHandler.handler_cls(opdef))
+        opdef, run.guild_path("sourcecode"), SourceCodeCopyHandler.handler_cls(opdef)
+    )
+
 
 class SourceCodeCopyHandler(file_util.FileCopyHandler):
     """Handler to log warnings when soure code files are skipped.
@@ -474,6 +505,7 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
             handler = cls(src_root, dest_root, select)
             handler.opdef = opdef
             return handler
+
         return f
 
     opdef = None
@@ -487,17 +519,17 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
             self._warn_max_size(fullpath)
 
     def _ignored_max_matches(self, results):
-        matches_exceeded = lambda: (
-            results[0][1].matches >= results[0][1].max_matches)
+        matches_exceeded = lambda: (results[0][1].matches >= results[0][1].max_matches)
         return self._default_rules_in_effect(results) and matches_exceeded()
 
     @staticmethod
     def _default_rules_in_effect(results):
         return (
-            len(results) == 1 and
-            results[0][1].result is True and
-            results[0][1].size_lt == MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1 and
-            results[0][1].max_matches == MAX_DEFAULT_SOURCECODE_COUNT)
+            len(results) == 1
+            and results[0][1].result is True
+            and results[0][1].size_lt == MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1
+            and results[0][1].max_matches == MAX_DEFAULT_SOURCECODE_COUNT
+        )
 
     def _warn_max_matches(self):
         if self._warned_max_matches:
@@ -507,7 +539,8 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
             "copy %i as a safety measure.%s",
             MAX_DEFAULT_SOURCECODE_COUNT,
             MAX_DEFAULT_SOURCECODE_COUNT,
-            self._opdef_help_suffix())
+            self._opdef_help_suffix(),
+        )
         self._warned_max_matches = True
 
     def _opdef_help_suffix(self):
@@ -515,7 +548,8 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
             return (
                 " To control which source code files are copied, "
                 "specify 'sourcecode' for the '%s' operation in "
-                "guild.yml." % self.opdef.fullname)
+                "guild.yml." % self.opdef.fullname
+            )
         return ""
 
     def _ignored_max_size(self, path, results):
@@ -526,8 +560,11 @@ class SourceCodeCopyHandler(file_util.FileCopyHandler):
 
     def _warn_max_size(self, path):
         log.warning(
-            "Skipping potential source code file %s because it's "
-            "too big.%s", path, self._opdef_help_suffix())
+            "Skipping potential source code file %s because it's " "too big.%s",
+            path,
+            self._opdef_help_suffix(),
+        )
+
 
 def copy_sourcecode(opdef, dest, handler_cls=None):
     if os.getenv("NO_SOURCECODE") == "1":
@@ -537,20 +574,23 @@ def copy_sourcecode(opdef, dest, handler_cls=None):
     root_start = opdef.guildfile.dir
     file_util.copytree(dest, select, root_start, handler_cls=handler_cls)
 
+
 def _sourcecode_select_for_opdef(opdef):
     root = opdef_sourcecode_root(opdef)
     rules = _select_rules_for_opdef(opdef)
     return file_util.FileSelect(root, rules)
+
 
 def _select_rules_for_opdef(opdef):
     if _sourcecode_disabled(opdef):
         return [file_util.exclude("*")]
     root = _opdef_select_rules_root(opdef)
     return (
-        _base_sourcecode_select_rules() +
-        _sourcecode_config_rules(opdef.modeldef.sourcecode, root) +
-        _sourcecode_config_rules(opdef.sourcecode, root)
+        _base_sourcecode_select_rules()
+        + _sourcecode_config_rules(opdef.modeldef.sourcecode, root)
+        + _sourcecode_config_rules(opdef.sourcecode, root)
     )
+
 
 def _opdef_select_rules_root(opdef):
     root_base = opdef.guildfile.dir
@@ -559,15 +599,16 @@ def _opdef_select_rules_root(opdef):
         return root_base
     return os.path.join(root_base, sourcecode_root)
 
+
 def _sourcecode_disabled(opdef):
     op_config = opdef.sourcecode
     model_config = opdef.modeldef.sourcecode
-    return (
-        op_config.disabled or
-        model_config.disabled and not op_config.specs)
+    return op_config.disabled or model_config.disabled and not op_config.specs
+
 
 def opdef_sourcecode_root(opdef):
     return opdef.sourcecode.root or opdef.modeldef.sourcecode.root
+
 
 def _base_sourcecode_select_rules():
     return [
@@ -580,33 +621,43 @@ def _base_sourcecode_select_rules():
         _rule_include_limited_text_files(),
     ]
 
+
 def _rule_exclude_pycache_dirs():
     return file_util.exclude("__pycache__", type="dir")
+
 
 def _rule_exclude_dot_dirs():
     return file_util.exclude(".*", type="dir")
 
+
 def _rule_exclude_nocopy_dirs():
     return file_util.exclude("*", type="dir", sentinel=".guild-nocopy")
+
 
 def _rule_exclude_venv_dirs():
     return file_util.exclude("*", type="dir", sentinel="bin/activate")
 
+
 def _rule_exclude_build_dirs():
     return file_util.exclude("build", type="dir")
 
+
 def _rule_exclude_egg_info_dirs():
     return file_util.exclude("*.egg-info", type="dir")
+
 
 def _rule_include_limited_text_files():
     return file_util.include(
         "*",
         type="text",
         size_lt=MAX_DEFAULT_SOURCECODE_FILE_SIZE + 1,
-        max_matches=MAX_DEFAULT_SOURCECODE_COUNT)
+        max_matches=MAX_DEFAULT_SOURCECODE_COUNT,
+    )
+
 
 def _sourcecode_config_rules(config, root):
     return [_rule_for_select_spec(spec, root) for spec in config.specs]
+
 
 def _rule_for_select_spec(spec, root):
     if spec.type == "include":
@@ -616,9 +667,11 @@ def _rule_for_select_spec(spec, root):
     else:
         assert False, spec.type
 
+
 def _file_util_rule(rule_f, spec, root):
     patterns = _spec_patterns(spec, root)
     return rule_f(patterns, type=spec.patterns_type)
+
 
 def _spec_patterns(spec, root):
     """Returns patterns for spec.
@@ -634,18 +687,22 @@ def _spec_patterns(spec, root):
         return spec.patterns
     return [_apply_dir_glob(root, p) for p in spec.patterns]
 
+
 def _apply_dir_glob(root, pattern):
     if os.path.isdir(os.path.join(root, pattern)):
         pattern = os.path.join(pattern, "*")
     return pattern
+
 
 def split_main(main):
     if isinstance(main, list):
         return main
     return util.shlex_split(main or "")
 
+
 # Alias
 split_cmd = split_main
+
 
 def wait_for_proc(p, stop_after_min, poll_interval=5, kill_delay=30):
     stop_at = time.time() + stop_after_min * 60
@@ -655,9 +712,10 @@ def wait_for_proc(p, stop_after_min, poll_interval=5, kill_delay=30):
         if returncode is not None:
             return returncode
     log.info(
-        "Stopping process early (pid %i) - %i minute(s) elapsed",
-        p.pid, stop_after_min)
+        "Stopping process early (pid %i) - %i minute(s) elapsed", p.pid, stop_after_min
+    )
     return _terminate(p, poll_interval, kill_delay)
+
 
 def _terminate(p, poll_interval, kill_delay):
     kill_at = time.time() + kill_delay
@@ -670,22 +728,25 @@ def _terminate(p, poll_interval, kill_delay):
         time.sleep(poll_interval)
     returncode = p.poll()
     if returncode not in (0, -15):
-        raise ProcessError(
-            "Process did not terminate gracefully (pid %i)"
-            % p.pid)
+        raise ProcessError("Process did not terminate gracefully (pid %i)" % p.pid)
     return returncode
+
 
 def init_logging():
     import guild.log
+
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     guild.log.init_logging(level, {"_": format})
     globals()["log"] = logging.getLogger("guild")
 
+
 def print_trials(trials):
     from guild import cli
+
     data, cols = _trials_table_data(trials)
     cli.table(data, cols)
+
 
 def _trials_table_data(trials):
     names = set()
@@ -694,32 +755,31 @@ def _trials_table_data(trials):
         row = {"_trial": i + 1}
         data.append(row)
         if flags:
-            row.update(
-                {name: flag_util.encode_flag_val(flags[name])
-                 for name in flags})
+            row.update({name: flag_util.encode_flag_val(flags[name]) for name in flags})
             names.update(flags)
     heading = {name: name for name in names}
     heading["_trial"] = "#"
     return [heading] + data, ["_trial"] + sorted(names)
 
+
 def save_trials(trials, path):
     data, cols = _trials_table_data(trials)
-    cols.remove("_trial") # Don't include trial number in CSV
+    cols.remove("_trial")  # Don't include trial number in CSV
     with open(path, "w") as f:
         out = csv.writer(f, lineterminator="\n")
         for row in data:
             out.writerow([row.get(name, "") for name in cols])
 
+
 def op_flag_encoder(op):
     import importlib
+
     spec = op.opdef.flag_encoder
     if not spec:
         return None
     parts = spec.split(":")
     if len(parts) != 2:
-        log.warning(
-            "invalid flag decoder %r - must be MODULE:FUNCTION",
-            spec)
+        log.warning("invalid flag decoder %r - must be MODULE:FUNCTION", spec)
         return None
     mod_name, fun_name = parts
     try:
@@ -728,17 +788,16 @@ def op_flag_encoder(op):
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("importing %s", mod_name)
         else:
-            log.warning(
-                "cannot load flag decoder %r: %s",
-                spec, e)
+            log.warning("cannot load flag decoder %r: %s", spec, e)
         return None
     fun = getattr(mod, fun_name, None)
     if fun is None:
         log.warning(
-            "cannot load flag decoder %r: no such attribute in %s",
-            spec, mod_name)
+            "cannot load flag decoder %r: no such attribute in %s", spec, mod_name
+        )
         return None
     return fun
+
 
 def ensure_exit_status(run, exit_status):
     """Ensures that a run is noted as having exited.
@@ -747,10 +806,12 @@ def ensure_exit_status(run, exit_status):
     status. Also deletes PENDING status.
     """
     from guild import op as oplib
+
     run_exit_status = run.get("exit_status")
     if run_exit_status is None:
         run.write_attr("exit_status", exit_status)
     oplib.delete_pending(run)
+
 
 def run_params_for_restart(run, user_specified_params=None):
     """Returns params for use in run command for a restart of run.
@@ -791,6 +852,7 @@ def run_params_for_restart(run, user_specified_params=None):
         "random_seed",
     ]
     from guild.commands.run import run as run_cmd
+
     run_params = run.get("run_params", {})
     if not isinstance(run_params, dict):
         return
@@ -813,11 +875,13 @@ def run_params_for_restart(run, user_specified_params=None):
         result[name] = val
     return result
 
+
 def _coerce_run_param(name, val):
     """Ensures that named param is valid for the run command."""
     if name == "flags":
         return tuple(val)
     return val
+
 
 def flags_hash(flags):
     flag_parts = [
@@ -827,11 +891,14 @@ def flags_hash(flags):
     to_hash = "\n".join(flag_parts).encode()
     return hashlib.md5(to_hash).hexdigest()
 
+
 def restart_needed(run, flags):
     return run.status in RESTART_NEEDED_STATUS or run.get("flags") != flags
 
+
 def opdef_model_paths(opdef):
     return _opdef_paths(opdef) + _model_parent_paths(opdef.modeldef)
+
 
 def _opdef_paths(opdef):
     if not opdef.guildfile.dir:
@@ -841,27 +908,35 @@ def _opdef_paths(opdef):
         return [os.path.join(abs_gf_dir, p) for p in opdef.python_path]
     return [abs_gf_dir]
 
+
 def _model_parent_paths(modeldef):
     return [os.path.abspath(parent.dir) for parent in modeldef.parents]
 
+
 def parse_opspec(spec):
-    return util.find_apply([
-        _empty_spec,
-        _op_spec,
-        _model_op_spec,
-        _package_model_op_spec,
-        _package_op_spec,
-    ], spec)
+    return util.find_apply(
+        [
+            _empty_spec,
+            _op_spec,
+            _model_op_spec,
+            _package_model_op_spec,
+            _package_op_spec,
+        ],
+        spec,
+    )
+
 
 def _empty_spec(spec):
     if spec:
         return None
     return None, None
 
+
 def _op_spec(spec):
     if "/" in spec or ":" in spec:
         return None
     return None, spec
+
 
 def _model_op_spec(spec):
     m = re.match(r"([^/:]*):([^/:]+)$", spec)
@@ -869,17 +944,20 @@ def _model_op_spec(spec):
         return None
     return m.groups()
 
+
 def _package_model_op_spec(spec):
     m = re.match(r"([^/:]+/[^/:?]+):([^/:]+)$", spec)
     if not m:
         return None
     return m.groups()
 
+
 def _package_op_spec(spec):
     m = re.match(r"([^/:]+/):?([^/:]+)$", spec)
     if not m:
         return None
     return m.groups()
+
 
 def mapped_flag_vals(flag_vals, opdef):
     vals = {}
@@ -894,6 +972,7 @@ def mapped_flag_vals(flag_vals, opdef):
         else:
             vals[name] = val
     return vals, flag_map
+
 
 def _apply_choice_args(flagdef, val, flag_vals, target):
     for choice in flagdef.choices:
@@ -911,10 +990,12 @@ def _apply_choice_args(flagdef, val, flag_vals, target):
                         target[name] = choice_flags[name]
             break
 
+
 def _skip_flag_arg(flagdef):
     if flagdef.arg_skip is not None:
         return flagdef.arg_skip
     return flagdef.opdef.default_flag_arg_skip
+
 
 def _apply_flag_arg(flagdef, value, flag_vals, target, flag_map):
     if flagdef.arg_name:
@@ -929,6 +1010,7 @@ def _apply_flag_arg(flagdef, value, flag_vals, target, flag_map):
     else:
         target[arg_name] = arg_val
 
+
 def default_label(opdef, flag_vals):
     if opdef.label:
         return opdef.label
@@ -937,9 +1019,11 @@ def default_label(opdef, flag_vals):
         return None
     return flags_desc(flag_vals, truncate_floats=True, delim=" ")
 
+
 def flags_desc(flags, truncate_floats=False, delim=", "):
     formatted = flag_util.format_flags(flags, truncate_floats)
     return delim.join(formatted)
+
 
 def _non_default_flag_vals(flag_vals, opdef):
     return {
@@ -948,11 +1032,13 @@ def _non_default_flag_vals(flag_vals, opdef):
         if not _is_default_flag_val(val, name, opdef)
     }
 
+
 def _is_default_flag_val(val, name, opdef):
     flagdef = opdef.get_flagdef(name)
     if not flagdef:
         return False
     return val == flagdef.default
+
 
 def flag_assigns(flags, skip_none=False):
     return [
@@ -961,27 +1047,33 @@ def flag_assigns(flags, skip_none=False):
         if not skip_none or val is not None
     ]
 
+
 def flag_assign(name, val):
     return "%s=%s" % (name, flag_util.format_flag(val))
+
 
 def write_sourcecode_digest(run, opdef):
     if opdef.sourcecode.digest is False:
         log.info(
-            "sourcecode digest disabled for operation '%s' - skipping",
-            opdef.fullname)
+            "sourcecode digest disabled for operation '%s' - skipping", opdef.fullname
+        )
         return
-    if (opdef.sourcecode.digest is not True and
-        opdef.modeldef.sourcecode.digest is False):
+    if (
+        opdef.sourcecode.digest is not True
+        and opdef.modeldef.sourcecode.digest is False
+    ):
         log.info(
-            "sourcecode digest disabled for model '%s' - skipping",
-            opdef.modeldef.name)
+            "sourcecode digest disabled for model '%s' - skipping", opdef.modeldef.name
+        )
         return
     digest = file_util.files_digest(run.guild_path("sourcecode"))
     run.write_attr("sourcecode_digest", digest)
 
+
 def format_label(label, flag_vals, resolved_deps):
     vals = _init_label_val_lookup(flag_vals, resolved_deps)
     return util.render_label(label, vals)
+
 
 def _init_label_val_lookup(flag_vals, resolved_deps):
     lookup = {}
@@ -990,8 +1082,10 @@ def _init_label_val_lookup(flag_vals, resolved_deps):
     lookup.update(_format_flags_for_label(flag_vals))
     return lookup
 
+
 def _resolved_dep_label_vals(deps):
     return {name: _dep_label(deps[name]) for name in deps}
+
 
 def _dep_label(dep_files):
     # Use first file to infer dependency label.
@@ -999,20 +1093,21 @@ def _dep_label(dep_files):
         return "#unknown#"
     return util.find_apply([_run_id_label, _file_label], dep_files[0])
 
+
 def _run_id_label(path):
     run_id_m = re.search(r".guild[/\\]runs/(.+?)[/\\]", path)
     if run_id_m:
         return run_id_m.group(1)[:8]
     return None
 
+
 def _file_label(path):
     return os.path.basename(path)
 
+
 def _format_flags_for_label(flag_vals):
-    return {
-        name: _format_flag_for_label(val)
-        for name, val in flag_vals.items()
-    }
+    return {name: _format_flag_for_label(val) for name, val in flag_vals.items()}
+
 
 def _format_flag_for_label(val):
     if isinstance(val, six.string_types):

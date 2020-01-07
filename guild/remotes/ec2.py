@@ -32,8 +32,8 @@ from . import ssh_util
 
 log = logging.getLogger("guild.remotes.ec2")
 
-class EC2Remote(ssh_remote.SSHRemote):
 
+class EC2Remote(ssh_remote.SSHRemote):
     def __init__(self, name, config):
         self.name = name
         self.region = config["region"]
@@ -71,11 +71,7 @@ class EC2Remote(ssh_remote.SSHRemote):
         self.start()
 
     def _taint_init(self):
-        cmd = [
-            "terraform",
-            "taint",
-            "null_resource.guild_%s_init" % self._safe_name()
-        ]
+        cmd = ["terraform", "taint", "null_resource.guild_%s_init" % self._safe_name()]
         subprocess.check_call(cmd, cwd=self.working_dir)
 
     def _safe_name(self):
@@ -92,7 +88,8 @@ class EC2Remote(ssh_remote.SSHRemote):
             raise remotelib.OperationError(
                 "Terraform is required for this operation - refer to "
                 "https://www.terraform.io/intro/getting-started/install.html "
-                "for more information.")
+                "for more information."
+            )
 
     def stop(self):
         self._verify_aws_creds()
@@ -138,7 +135,8 @@ class EC2Remote(ssh_remote.SSHRemote):
                 private_key=self.private_key,
                 verbose=verbose,
                 connect_timeout=self.connect_timeout,
-                port=self.port)
+                port=self.port,
+            )
             sys.stdout.write("%s (%s) is available\n" % (self.name, host))
 
     def _has_state(self):
@@ -160,8 +158,8 @@ class EC2Remote(ssh_remote.SSHRemote):
             out = subprocess.check_output(cmd, cwd=self.working_dir)
         except subprocess.CalledProcessError:
             raise remotelib.OperationError(
-                "unable to get Terraform output in %s"
-                % self.working_dir)
+                "unable to get Terraform output in %s" % self.working_dir
+            )
         else:
             output = json.loads(out.decode())
             return output[name]["value"]
@@ -175,14 +173,11 @@ class EC2Remote(ssh_remote.SSHRemote):
     def _init_config(self):
         remote_name = self._safe_name()
         remote_key = "guild_%s" % remote_name
-        vpc = {
-            remote_key: {}
-        }
+        vpc = {remote_key: {}}
         security_group = {
             remote_key: {
                 "name": "guild-%s" % remote_name,
-                "description": ("Security group for Guild remote %s"
-                                % remote_name),
+                "description": ("Security group for Guild remote %s" % remote_name),
                 "vpc_id": "${aws_default_vpc.%s.id}" % remote_key,
                 "ingress": [
                     {
@@ -206,7 +201,7 @@ class EC2Remote(ssh_remote.SSHRemote):
                         "prefix_list_ids": None,
                         "security_groups": None,
                         "self": None,
-                    }
+                    },
                 ],
                 "egress": [
                     {
@@ -220,48 +215,34 @@ class EC2Remote(ssh_remote.SSHRemote):
                         "security_groups": None,
                         "self": None,
                     }
-                ]
+                ],
             }
         }
         instance = {
             remote_key: {
                 "instance_type": self.instance_type,
                 "ami": self.ami,
-                "vpc_security_group_ids": [
-                    "${aws_security_group.%s.id}" % remote_key
-                ]
+                "vpc_security_group_ids": ["${aws_security_group.%s.id}" % remote_key],
             }
         }
         if self.root_device_size:
             instance[remote_key]["root_block_device"] = {
                 "volume_size": self.root_device_size
             }
-        output = {
-            "host": {
-                "value": "${aws_instance.%s.public_dns}" % remote_key
-            }
-        }
+        output = {"host": {"value": "${aws_instance.%s.public_dns}" % remote_key}}
         config = {
-            "provider": {
-                "aws": {
-                    "region": self.region
-                },
-                "null": {}
-            },
+            "provider": {"aws": {"region": self.region}, "null": {}},
             "resource": {
                 "aws_default_vpc": vpc,
                 "aws_security_group": security_group,
-                "aws_instance": instance
+                "aws_instance": instance,
             },
-            "output": output
+            "output": output,
         }
         public_key = self._public_key()
         if public_key:
             config["resource"]["aws_key_pair"] = {
-                remote_key: {
-                    "key_name": remote_key,
-                    "public_key": public_key
-                }
+                remote_key: {"key_name": remote_key, "public_key": public_key}
             }
             instance[remote_key]["key_name"] = remote_key
         init_script = self._init_script()
@@ -269,7 +250,7 @@ class EC2Remote(ssh_remote.SSHRemote):
             init_script_path = self._write_init_script(init_script)
             connection = {
                 "type": "ssh",
-                "host": "${aws_instance.%s.public_ip}" % remote_key
+                "host": "${aws_instance.%s.public_ip}" % remote_key,
             }
             if self.init_timeout:
                 if isinstance(self.init_timeout, int):
@@ -277,25 +258,19 @@ class EC2Remote(ssh_remote.SSHRemote):
                 else:
                     connection["timeout"] = self.init_timeout
             if self.private_key:
-                connection["private_key"] = (
-                    "${file(\"%s\")}" % remote_util.config_path(self.private_key)
+                connection["private_key"] = "${file(\"%s\")}" % remote_util.config_path(
+                    self.private_key
                 )
             if self.user:
                 connection["user"] = self.user
             config["resource"]["null_resource"] = {
-                "%s_init" % remote_key: {
+                "%s_init"
+                % remote_key: {
                     "triggers": {
-                        "cluster_instance_ids":
-                        "${aws_instance.%s.id}" % remote_key
+                        "cluster_instance_ids": "${aws_instance.%s.id}" % remote_key
                     },
                     "connection": connection,
-                    "provisioner": [
-                        {
-                            "remote-exec": {
-                                "script": init_script_path
-                            }
-                        }
-                    ]
+                    "provisioner": [{"remote-exec": {"script": init_script_path}}],
                 }
             }
         return config
@@ -325,36 +300,36 @@ class EC2Remote(ssh_remote.SSHRemote):
         result = subprocess.call(cmd, cwd=self.working_dir)
         if result != 0:
             raise remotelib.OperationError(
-                "unable to initialize Terraform in %s"
-                % self.working_dir)
+                "unable to initialize Terraform in %s" % self.working_dir
+            )
 
     def _terraform_apply(self):
         cmd = ["terraform", "apply", "-auto-approve"]
         result = subprocess.call(cmd, cwd=self.working_dir)
         if result != 0:
             raise remotelib.OperationError(
-                "error applying Terraform config in %s"
-                % self.working_dir)
+                "error applying Terraform config in %s" % self.working_dir
+            )
 
     def _terraform_destroy(self):
         cmd = ["terraform", "destroy", "-auto-approve"]
         result = subprocess.call(cmd, cwd=self.working_dir)
         if result != 0:
             raise remotelib.OperationError(
-                "error destroying Terraform state in %s"
-                % self.working_dir)
+                "error destroying Terraform state in %s" % self.working_dir
+            )
 
     def _ssh_host(self):
         try:
             host = self._output("host")
         except LookupError:
             raise remotelib.OperationError(
-                "cannot get host for %s - is the remote started?"
-                % self.name)
+                "cannot get host for %s - is the remote started?" % self.name
+            )
         else:
             if not host:
                 raise remotelib.OperationError(
                     "cannot get host for %s - the instance "
-                    "appears to be stopped"
-                    % self.name)
+                    "appears to be stopped" % self.name
+                )
             return host

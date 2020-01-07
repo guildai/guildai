@@ -25,14 +25,18 @@ from guild import plugin as pluginlib
 
 log = logging.getLogger("guild")
 
+
 class NotSupported(Exception):
     pass
+
 
 class MissingRunOpdef(Exception):
     pass
 
+
 class OpSpecError(Exception):
     pass
+
 
 class BatchModelProxy(object):
 
@@ -63,11 +67,8 @@ class BatchModelProxy(object):
         return modeldef(self.name, data, "<%s>" % self.__class__.__name__)
 
     def _init_reference(self):
-        return modellib.ModelRef(
-            "builtin",
-            "guildai",
-            guild.__version__,
-            self.name)
+        return modellib.ModelRef("builtin", "guildai", guild.__version__, self.name)
+
 
 def modeldef(model_name, model_data, src):
     model_data = dict(model_data)
@@ -76,11 +77,13 @@ def modeldef(model_name, model_data, src):
     gf = guildfile.Guildfile(gf_data, src=src)
     return gf.default_model
 
+
 def resolve_model_op(opspec):
     if opspec == "+":
         model = BatchModelProxy()
         return model, model.op_name
     return resolve_plugin_model_op(opspec)
+
 
 def resolve_plugin_model_op(opspec):
     for name, plugin in _plugins_by_resolve_model_op_priority():
@@ -93,11 +96,16 @@ def resolve_plugin_model_op(opspec):
             if model_op:
                 log.debug(
                     "got model op for %r from plugin %r: %s:%s",
-                    opspec, name, model_op[0].name, model_op[1])
+                    opspec,
+                    name,
+                    model_op[0].name,
+                    model_op[1],
+                )
                 return model_op
     raise NotSupported()
 
+
 def _plugins_by_resolve_model_op_priority():
     return sorted(
-        pluginlib.iter_plugins(),
-        key=lambda x: x[1].resolve_model_op_priority)
+        pluginlib.iter_plugins(), key=lambda x: x[1].resolve_model_op_priority
+    )

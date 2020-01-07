@@ -20,33 +20,37 @@ import click
 from guild import click_util
 from . import runs_support
 
+
 def export_params(fn):
-    click_util.append_params(fn, [
-        runs_support.runs_arg,
-        click.Argument(("location",)),
-        click.Option(
-            ("-m", "--move"),
-            help="Move exported runs rather than copy.",
-            is_flag=True),
-        click.Option(
-            ("--copy-resources",),
-            help="Copy resources for each exported run.",
-            is_flag=True),
-        runs_support.all_filters,
-        click.Option(
-            ("-y", "--yes"),
-            help="Do not prompt before exporting.",
-            is_flag=True),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            runs_support.runs_arg,
+            click.Argument(("location",)),
+            click.Option(
+                ("-m", "--move"),
+                help="Move exported runs rather than copy.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("--copy-resources",),
+                help="Copy resources for each exported run.",
+                is_flag=True,
+            ),
+            runs_support.all_filters,
+            click.Option(
+                ("-y", "--yes"), help="Do not prompt before exporting.", is_flag=True
+            ),
+        ],
+    )
     return fn
+
 
 @click.command("export")
 @export_params
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def export_runs(ctx, args):
     """Export one or more runs.
 
@@ -72,4 +76,5 @@ def export_runs(ctx, args):
     """
 
     from . import runs_impl
+
     runs_impl.export(args, ctx)

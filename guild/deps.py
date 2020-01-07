@@ -28,18 +28,19 @@ log = logging.getLogger("guild")
 
 RESOURCE_TERM = r"[a-zA-Z0-9_\-\.]+"
 
+
 class DependencyError(Exception):
     pass
 
-class ResolutionContext(object):
 
+class ResolutionContext(object):
     def __init__(self, target_dir, opdef, resource_config):
         self.target_dir = target_dir
         self.opdef = opdef
         self.resource_config = resource_config
 
-class Resource(object):
 
+class Resource(object):
     def __init__(self, resdef, location, ctx):
         self.resdef = resdef
         self.location = location
@@ -64,24 +65,29 @@ class Resource(object):
         resolver = resolverlib.for_resdef_source(source, self)
         if not resolver:
             raise DependencyError(
-                "unsupported source '%s' in %s resource"
-                % (source, self.resdef.name))
+                "unsupported source '%s' in %s resource" % (source, self.resdef.name)
+            )
         try:
             source_paths = resolver.resolve(unpack_dir)
         except resolverlib.ResolutionError as e:
-            msg = (
-                "could not resolve '%s' in %s resource: %s"
-                % (source, self.resdef.name, e))
+            msg = "could not resolve '%s' in %s resource: %s" % (
+                source,
+                self.resdef.name,
+                e,
+            )
             if source.help:
                 msg += "\n%s" % source.help
             raise DependencyError(msg)
         except Exception as e:
             log.exception(
                 "resolving required source '%s' in %s resource",
-                source, self.resdef.name)
+                source,
+                self.resdef.name,
+            )
             raise DependencyError(
                 "unexpected error resolving '%s' in %s resource: %r"
-                % (source, self.resdef.name, e))
+                % (source, self.resdef.name, e)
+            )
         else:
             for path in source_paths:
                 self._link_to_source(path, source)
@@ -100,10 +106,12 @@ class Resource(object):
         if os.path.isabs(res_path):
             raise DependencyError(
                 "invalid path '%s' in %s resource (path must be relative)"
-                % (res_path, self.resdef.name))
+                % (res_path, self.resdef.name)
+            )
         if source.rename:
             basename = _rename_source(basename, source.rename)
         return os.path.join(self.ctx.target_dir, res_path, basename)
+
 
 def _rename_source(name, rename):
     for spec in rename:
@@ -112,11 +120,13 @@ def _rename_source(name, rename):
         except Exception as e:
             raise DependencyError(
                 "error renaming source %s (%r %r): %s"
-                % (name, spec.pattern, spec.repl, e))
+                % (name, spec.pattern, spec.repl, e)
+            )
         else:
             if renamed != name:
                 return renamed
     return name
+
 
 def _symlink(source_path, link):
     assert os.path.isabs(link), link
@@ -128,6 +138,7 @@ def _symlink(source_path, link):
     rel_source_path = _rel_source_path(source_path, link)
     util.symlink(rel_source_path, link)
 
+
 def _rel_source_path(source, link):
     source_dir, source_name = os.path.split(source)
     real_link = util.realpath(link)
@@ -135,8 +146,8 @@ def _rel_source_path(source, link):
     source_rel_dir = os.path.relpath(source_dir, link_dir)
     return os.path.join(source_rel_dir, source_name)
 
-class ResourceProxy(object):
 
+class ResourceProxy(object):
     def __init__(self, dependency, name, config, ctx):
         self.dependency = dependency
         self.name = name
@@ -144,36 +155,38 @@ class ResourceProxy(object):
         self.ctx = ctx
 
     def resolve(self):
-        source_path = self.config # the only type of config supported
+        source_path = self.config  # the only type of config supported
         if not os.path.exists(source_path):
             raise DependencyError(
-                "could not resolve %s: %s does not exist"
-                % (self.name, source_path))
+                "could not resolve %s: %s does not exist" % (self.name, source_path)
+            )
         log.info("Using %s for %s resource", source_path, self.name)
         basename = os.path.basename(source_path)
         link = os.path.join(self.ctx.target_dir, basename)
         _symlink(source_path, link)
         return [source_path]
 
+
 def _dep_desc(dep):
     return "%s:%s" % (dep.opdef.modeldef.name, dep.opdef.name)
+
 
 def resolve(dependencies, ctx):
     resolved = {}
     for res in resources(dependencies, ctx):
         log.info("Resolving %s dependency", res.resdef.name)
         resolved_sources = res.resolve()
-        log.debug(
-            "resolved sources for %s: %r",
-            res.dependency, resolved_sources)
+        log.debug("resolved sources for %s: %r", res.dependency, resolved_sources)
         if not resolved_sources:
             log.warning("Nothing resolved for %s dependency", res.resdef.name)
         resolved.setdefault(res.resdef.name, []).extend(resolved_sources)
     return resolved
 
+
 def resources(dependencies, ctx):
     flag_vals = util.resolve_all_refs(ctx.opdef.flag_values())
     return [_dependency_resource(dep, flag_vals, ctx) for dep in dependencies]
+
 
 def _dependency_resource(dep, flag_vals, ctx):
     if dep.inline_resource:
@@ -181,10 +194,8 @@ def _dependency_resource(dep, flag_vals, ctx):
     spec = util.resolve_refs(dep.spec, flag_vals)
     try:
         res = util.find_apply(
-            [_model_resource,
-             _guildfile_resource,
-             _packaged_resource],
-            spec, ctx)
+            [_model_resource, _guildfile_resource, _packaged_resource], spec, ctx
+        )
     except DependencyError as e:
         if spec in ctx.resource_config:
             log.warning(str(e))
@@ -194,11 +205,13 @@ def _dependency_resource(dep, flag_vals, ctx):
         res.dependency = spec
         return res
     raise DependencyError(
-        "invalid dependency '%s' in operation '%s'"
-        % (spec, ctx.opdef.fullname))
+        "invalid dependency '%s' in operation '%s'" % (spec, ctx.opdef.fullname)
+    )
+
 
 def _inline_resource(resdef, ctx):
     return Resource(resdef, resdef.modeldef.guildfile.dir, ctx)
+
 
 def _model_resource(spec, ctx):
     m = re.match(r"(%s)$" % RESOURCE_TERM, spec)
@@ -207,13 +220,16 @@ def _model_resource(spec, ctx):
     res_name = m.group(1)
     return _modeldef_resource(ctx.opdef.modeldef, res_name, ctx)
 
+
 def _modeldef_resource(modeldef, res_name, ctx):
     resdef = modeldef.get_resource(res_name)
     if resdef is None:
         raise DependencyError(
             "resource '%s' required by operation '%s' is not defined"
-            % (res_name, ctx.opdef.fullname))
+            % (res_name, ctx.opdef.fullname)
+        )
     return Resource(resdef, modeldef.guildfile.dir, ctx)
+
 
 def _guildfile_resource(spec, ctx):
     m = re.match(r"(%s):(%s)$" % (RESOURCE_TERM, RESOURCE_TERM), spec)
@@ -224,10 +240,11 @@ def _guildfile_resource(spec, ctx):
     if modeldef is None:
         raise DependencyError(
             "model '%s' in resource '%s' required by operation "
-            "'%s' is not defined"
-            % (model_name, spec, ctx.opdef.fullname))
+            "'%s' is not defined" % (model_name, spec, ctx.opdef.fullname)
+        )
     res_name = m.group(2)
     return _modeldef_resource(modeldef, res_name, ctx)
+
 
 def _packaged_resource(spec, ctx):
     m = re.match(r"(%s)/(%s)$" % (RESOURCE_TERM, RESOURCE_TERM), spec)
@@ -243,9 +260,10 @@ def _packaged_resource(spec, ctx):
         for res in resources:
             if namespace.apply_namespace(res.dist.project_name) == pkg_name:
                 location = os.path.join(
-                    res.dist.location,
-                    res.dist.key.replace(".", os.path.sep))
+                    res.dist.location, res.dist.key.replace(".", os.path.sep)
+                )
                 return Resource(res.resdef, location, ctx)
     raise DependencyError(
         "resource '%s' required by operation '%s' is not installed"
-        % (spec, ctx.opdef.fullname))
+        % (spec, ctx.opdef.fullname)
+    )

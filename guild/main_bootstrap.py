@@ -32,31 +32,39 @@ from __future__ import division
 import os
 import sys
 
+
 def main():
     ensure_external_path()
     import guild.main
+
     guild.main.main()
+
 
 def ensure_external_path():
     path = _external_libs_path()
     if path not in sys.path:
         sys.path.insert(0, path)
 
+
 def _external_libs_path():
     guild_pkg_dir = os.path.dirname(__file__)
     path = os.path.abspath(os.path.join(guild_pkg_dir, "external"))
     if not os.path.exists(path):
         import textwrap
+
         sys.stderr.write("guild: {} does not exist\n".format(path))
         sys.stderr.write(
             textwrap.fill(
                 "If you're a Guild developer, run 'python setup.py build' "
                 "in the Guild project directory and try again. Otherwise "
                 "please report this as a bug at "
-                "https://github.com/guildai/guildai/issues."))
+                "https://github.com/guildai/guildai/issues."
+            )
+        )
         sys.stderr.write("\n")
         sys.exit(1)
     return path
+
 
 if __name__ == "__main__":
     main()

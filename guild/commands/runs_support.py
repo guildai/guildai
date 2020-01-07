@@ -19,6 +19,7 @@ import click
 
 from guild import click_util
 
+
 def runs_arg(fn):
     """### Specify Runs
 
@@ -36,10 +37,11 @@ def runs_arg(fn):
     selected.
 
     """
-    click_util.append_params(fn, [
-        click.Argument(("runs",), metavar="[RUN...]", nargs=-1)
-    ])
+    click_util.append_params(
+        fn, [click.Argument(("runs",), metavar="[RUN...]", nargs=-1)]
+    )
     return fn
+
 
 def run_arg(fn):
     """### Specify a Run
@@ -49,10 +51,9 @@ def run_arg(fn):
     command.
 
     """
-    click_util.append_params(fn, [
-        click.Argument(("run",), required=False)
-    ])
+    click_util.append_params(fn, [click.Argument(("run",), required=False)])
     return fn
+
 
 def op_and_label_filters(fn):
     """### Filter by Operation or Label
@@ -73,29 +74,36 @@ def op_and_label_filters(fn):
     Use `--marked` to only include marked runs.
 
     """
-    click_util.append_params(fn, [
-        click.Option(
-            ("-o", "--operation", "ops"), metavar="VAL",
-            help="Include runs with operations matching `VAL`.",
-            multiple=True),
-        click.Option(
-            ("-l", "--label", "labels"), metavar="VAL",
-            help="Include runs with labels matching `VAL`.",
-            multiple=True),
-        click.Option(
-            ("-u", "--unlabeled",),
-            help="Include only runs without labels.",
-            is_flag=True),
-        click.Option(
-            ("-M", "--marked",),
-            help="Include only marked runs.",
-            is_flag=True),
-        click.Option(
-            ("-U", "--unmarked",),
-            help="Include only unmarked runs.",
-            is_flag=True),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            click.Option(
+                ("-o", "--operation", "ops"),
+                metavar="VAL",
+                help="Include runs with operations matching `VAL`.",
+                multiple=True,
+            ),
+            click.Option(
+                ("-l", "--label", "labels"),
+                metavar="VAL",
+                help="Include runs with labels matching `VAL`.",
+                multiple=True,
+            ),
+            click.Option(
+                ("-u", "--unlabeled",),
+                help="Include only runs without labels.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-M", "--marked",), help="Include only marked runs.", is_flag=True
+            ),
+            click.Option(
+                ("-U", "--unmarked",), help="Include only unmarked runs.", is_flag=True
+            ),
+        ],
+    )
     return fn
+
 
 def status_filters(fn):
     """### Filter by Run Status
@@ -112,33 +120,37 @@ def status_filters(fn):
     status filters.
 
     """
-    click_util.append_params(fn, [
-        click.Option(
-            ("-R", "--running"),
-            help="Include only runs that are still running.",
-            is_flag=True),
-        click.Option(
-            ("-C", "--completed"),
-            help="Include only completed runs.",
-            is_flag=True),
-        click.Option(
-            ("-E", "--error"),
-            help="Include only runs that exited with an error.",
-            is_flag=True),
-        click.Option(
-            ("-T", "--terminated"),
-            help="Include only runs terminated by the user.",
-            is_flag=True),
-        click.Option(
-            ("-P", "--pending"),
-            help="Include only pending runs.",
-            is_flag=True),
-        click.Option(
-            ("-G", "--staged"),
-            help="Include only staged runs.",
-            is_flag=True),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            click.Option(
+                ("-R", "--running"),
+                help="Include only runs that are still running.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-C", "--completed"), help="Include only completed runs.", is_flag=True
+            ),
+            click.Option(
+                ("-E", "--error"),
+                help="Include only runs that exited with an error.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-T", "--terminated"),
+                help="Include only runs terminated by the user.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-P", "--pending"), help="Include only pending runs.", is_flag=True
+            ),
+            click.Option(
+                ("-G", "--staged"), help="Include only staged runs.", is_flag=True
+            ),
+        ],
+    )
     return fn
+
 
 def time_filters(fn):
     """### Filter by Run Start Time
@@ -191,15 +203,21 @@ def time_filters(fn):
       `3 weeks ago`
 
     """
-    click_util.append_params(fn, [
-        click.Option(
-            ("-s", "--started",),
-            metavar="RANGE",
-            help=(
-                "Include only runs started within RANGE. See above "
-                "for valid time ranges."))
-    ])
+    click_util.append_params(
+        fn,
+        [
+            click.Option(
+                ("-s", "--started",),
+                metavar="RANGE",
+                help=(
+                    "Include only runs started within RANGE. See above "
+                    "for valid time ranges."
+                ),
+            )
+        ],
+    )
     return fn
+
 
 def sourcecode_digest_filters(fn):
     """### Filter by Source Code Digest
@@ -208,14 +226,18 @@ def sourcecode_digest_filters(fn):
     `--digest` with a complete or partial digest value.
 
     """
-    click_util.append_params(fn, [
-        click.Option(
-            ("-g", "--digest",),
-            metavar="VAL",
-            help=(
-                "Include only runs with a matching source code digest."))
-    ])
+    click_util.append_params(
+        fn,
+        [
+            click.Option(
+                ("-g", "--digest",),
+                metavar="VAL",
+                help=("Include only runs with a matching source code digest."),
+            )
+        ],
+    )
     return fn
+
 
 @click_util.render_doc
 def all_filters(fn):
@@ -225,10 +247,13 @@ def all_filters(fn):
     {{ time_filters }}
     {{ sourcecode_digest_filters }}
     """
-    click_util.append_params(fn, [
-        op_and_label_filters,
-        status_filters,
-        time_filters,
-        sourcecode_digest_filters,
-    ])
+    click_util.append_params(
+        fn,
+        [
+            op_and_label_filters,
+            status_filters,
+            time_filters,
+            sourcecode_digest_filters,
+        ],
+    )
     return fn

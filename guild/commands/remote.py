@@ -23,11 +23,12 @@ from .remote_start import remote_start
 from .remote_status import remote_status
 from .remote_stop import remote_stop
 
-@click.group(cls=click_util.Group)
 
+@click.group(cls=click_util.Group)
 def remote():
     """Manage remote status.
     """
+
 
 remote.add_command(remote_start)
 remote.add_command(remote_status)

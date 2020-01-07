@@ -27,11 +27,13 @@ log = logging.getLogger("guild")
 
 DEFAULT_MAX_TRIALS = 20
 
+
 def main():
     op_util.init_logging()
     batch_run = batch_util.batch_run()
     trials = _batch_trials(batch_run)
     batch_util.handle_trials(batch_run, trials)
+
 
 def _batch_trials(batch_run):
     proto_flag_vals = batch_run.batch_proto.get("flags")
@@ -40,15 +42,18 @@ def _batch_trials(batch_run):
     random_seed = batch_run.get("random_seed")
     try:
         return skopt_util.random_trials_for_flags(
-            proto_flag_vals, max_trials, random_seed)
+            proto_flag_vals, max_trials, random_seed
+        )
     except skopt_util.MissingSearchDimension as e:
         skopt_util.missing_search_dim_error(proto_flag_vals)
     except skopt_util.InvalidSearchDimension as e:
         _search_dim_error(e)
 
+
 def _search_dim_error(e):
     log.error(str(e))
     sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

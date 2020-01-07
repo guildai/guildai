@@ -19,12 +19,11 @@ import click
 
 from guild import click_util
 
+
 @click.command("list, ls")
 @click.argument("terms", metavar="[TERM]...", nargs=-1)
 @click.option("-a", "--all", help="Show all packages.", is_flag=True)
-
 @click_util.use_args
-
 def list_packages(args):
     """List installed packages.
 
@@ -33,4 +32,5 @@ def list_packages(args):
 
     """
     from . import packages_impl
+
     packages_impl.list_packages(args)

@@ -21,56 +21,58 @@ from guild import click_util
 
 from . import runs_support
 
+
 def publish_params(fn):
-    click_util.append_params(fn, [
-        runs_support.runs_arg,
-        click.Option(
-            ("-d", "--dest"),
-            metavar="DIR",
-            help="Destination to publish runs."),
-        click.Option(
-            ("-t", "--template"),
-            metavar="VAL",
-            help="Template used to publish runs."),
-        click.Option(
-            ("-f", "--files"),
-            help="Publish default run files.",
-            is_flag=True),
-        click.Option(
-            ("-a", "--all-files"),
-            help="Publish all run files.",
-            is_flag=True),
-        click.Option(
-            ("-L", "--include-links"),
-            help="Include links when publishing files. Implies --files.",
-            is_flag=True),
-        click.Option(
-            ("--no-md5",),
-            help="Do not calculate MD5 digests for run files.",
-            is_flag=True),
-        click.Option(
-            ("--include-batch",),
-            help="Include batch runs.",
-            is_flag=True),
-        click.Option(
-            ("-r", "--refresh-index"),
-            help="Refresh runs index without publishing anything.",
-            is_flag=True),
-        runs_support.all_filters,
-        click.Option(
-            ("-y", "--yes"),
-            help="Do not prompt before publishing.",
-            is_flag=True),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            runs_support.runs_arg,
+            click.Option(
+                ("-d", "--dest"), metavar="DIR", help="Destination to publish runs."
+            ),
+            click.Option(
+                ("-t", "--template"),
+                metavar="VAL",
+                help="Template used to publish runs.",
+            ),
+            click.Option(
+                ("-f", "--files"), help="Publish default run files.", is_flag=True
+            ),
+            click.Option(
+                ("-a", "--all-files"), help="Publish all run files.", is_flag=True
+            ),
+            click.Option(
+                ("-L", "--include-links"),
+                help="Include links when publishing files. Implies --files.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("--no-md5",),
+                help="Do not calculate MD5 digests for run files.",
+                is_flag=True,
+            ),
+            click.Option(
+                ("--include-batch",), help="Include batch runs.", is_flag=True
+            ),
+            click.Option(
+                ("-r", "--refresh-index"),
+                help="Refresh runs index without publishing anything.",
+                is_flag=True,
+            ),
+            runs_support.all_filters,
+            click.Option(
+                ("-y", "--yes"), help="Do not prompt before publishing.", is_flag=True
+            ),
+        ],
+    )
     return fn
+
 
 @click.command("publish")
 @publish_params
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def publish_runs(ctx, args):
     """Publish one or more runs.
 
@@ -102,4 +104,5 @@ def publish_runs(ctx, args):
 
     """
     from . import runs_impl
+
     runs_impl.publish(args, ctx)

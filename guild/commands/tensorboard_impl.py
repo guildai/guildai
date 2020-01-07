@@ -25,16 +25,17 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
+
 def main(args):
     from guild import tensorboard
+
     tensorboard.setup_logging()
     with util.TempDir("guild-tensorboard-", keep=args.keep_logdir) as tmp:
         logdir = tmp.path
         (log.info if args.keep_logdir else log.debug)("Using logdir %s", logdir)
         monitor = tensorboard.RunsMonitor(
-            logdir,
-            _list_runs_cb(args),
-            args.refresh_interval)
+            logdir, _list_runs_cb(args), args.refresh_interval
+        )
         cli.out("Preparing runs for TensorBoard")
         monitor.run_once(exit_on_error=True)
         monitor.start()
@@ -44,15 +45,17 @@ def main(args):
                 host=(args.host or "0.0.0.0"),
                 port=(args.port or util.free_port()),
                 reload_interval=args.refresh_interval,
-                ready_cb=_open_cb(args))
+                ready_cb=_open_cb(args),
+            )
         except tensorboard.TensorboardError as e:
             cli.error(str(e))
         finally:
             log.debug("Stopping")
             monitor.stop()
-            log.debug("Removing logdir %s", logdir) # Handled by ctx mgr
+            log.debug("Removing logdir %s", logdir)  # Handled by ctx mgr
     if util.PLATFORM != "Windows":
         cli.out()
+
 
 def _list_runs_cb(args):
     def f():
@@ -60,16 +63,21 @@ def _list_runs_cb(args):
         if args.include_batch:
             return runs
         return _remove_batch_runs(runs)
+
     return f
+
 
 def _remove_batch_runs(runs):
     return [run for run in runs if not batch_util.is_batch(run)]
 
+
 def _open_cb(args):
     if args.no_open:
         return None
+
     def f(url):
         if args.tab:
             url += "#" + args.tab
         util.open_url(url)
+
     return f

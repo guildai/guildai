@@ -42,8 +42,8 @@ PROC_TERM_TIMEOUT_SECONDS = 30
 # Exception classes
 ###################################################################
 
-class InvalidOpDef(ValueError):
 
+class InvalidOpDef(ValueError):
     def __init__(self, opdef, msg):
         super(InvalidOpDef, self).__init__(opdef, msg)
         self.opdef = opdef
@@ -52,18 +52,21 @@ class InvalidOpDef(ValueError):
     def __str__(self):
         return self.msg
 
+
 class OpInitError(Exception):
     pass
 
+
 class ProcessError(Exception):
     pass
+
 
 ###################################################################
 # State
 ###################################################################
 
-class Operation(object):
 
+class Operation(object):
     def __init__(self):
         self.opref = None
         self.cmd_args = []
@@ -74,11 +77,12 @@ class Operation(object):
         self.deps = []
         self.callbacks = None
 
-class OperationCallbacks(object):
 
+class OperationCallbacks(object):
     def __init__(self, init_output_summary=None, run_initialized=None):
         self.init_output_summary = init_output_summary
         self.run_initialized = run_initialized
+
 
 def _callback(name, op, *rest_args):
     if op.callbacks:
@@ -86,15 +90,18 @@ def _callback(name, op, *rest_args):
         if cb:
             cb(op, *rest_args)
 
+
 ###################################################################
 # Init run
 ###################################################################
+
 
 def init_run(op, run_dir=None):
     run = _op_init_pending_run(op, run_dir)
     _op_init_run_attrs(op, run)
     _callback("run_initialized", op, run)
     return run
+
 
 def _op_init_pending_run(op, run_dir):
     run_dir = run_dir or op.run_dir
@@ -104,15 +111,18 @@ def _op_init_pending_run(op, run_dir):
     op_util.set_run_pending(run)
     return run
 
+
 def _op_init_run_attrs(op, run):
     run.write_opref(op.opref)
     run.write_attr("cmd", op.cmd_args)
     for name, val in (op.run_attrs or {}).items():
         run.write_attr(name, val)
 
+
 ###################################################################
 # Stage
 ###################################################################
+
 
 def stage(op):
     run = init_run(op)
@@ -124,6 +134,7 @@ def stage(op):
         op_util.clear_run_pending(run)
     return run
 
+
 def _stage_run_proc_env(op, run):
     env = _op_proc_env(op, run)
     skip_env = ("PWD", "_")
@@ -131,13 +142,13 @@ def _stage_run_proc_env(op, run):
         for name in sorted(env):
             if name in skip_env:
                 continue
-            out.write(
-                "export %s=%s\n"
-                % (name, util.env_var_quote(env[name])))
+            out.write("export %s=%s\n" % (name, util.env_var_quote(env[name])))
+
 
 ###################################################################
 # Run
 ###################################################################
+
 
 def run(op, quiet=False, pidfile=None, stop_after=None, extra_env=None):
     run = init_run(op)
@@ -148,8 +159,10 @@ def run(op, quiet=False, pidfile=None, stop_after=None, extra_env=None):
         exit_status = _run(run, op, quiet, stop_after, extra_env)
         return run, exit_status
 
+
 def _start_in_background(run, op, pidfile, quiet, stop_after, extra_env):
     import daemonize
+
     action = lambda: _run(run, op, quiet, stop_after, extra_env)
     daemon = daemonize.Daemonize(
         app="guild_op", action=action, pid=pidfile, chdir=config.cwd()
@@ -159,12 +172,16 @@ def _start_in_background(run, op, pidfile, quiet, stop_after, extra_env):
     if not quiet:
         log.info(
             "%s started in background as %s (pidfile %s)",
-            run.opref.to_opspec(config.cwd()), run.id, pidfile)
+            run.opref.to_opspec(config.cwd()),
+            run.id,
+            pidfile,
+        )
     try:
         daemon.start()
     except SystemExit:
         op_util.clear_run_pending(run)
         raise
+
 
 def _run(run, op, quiet, stop_after, extra_env):
     try:
@@ -177,6 +194,7 @@ def _run(run, op, quiet, stop_after, extra_env):
     exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
     _op_finalize_run_attrs(run, exit_status)
     return exit_status
+
 
 def _op_start_proc(op, run, extra_env=None):
     env = _op_proc_env(op, run)
@@ -192,16 +210,19 @@ def _op_start_proc(op, run, extra_env=None):
             env=env,
             cwd=run.dir,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
+            stderr=subprocess.PIPE,
+        )
     except OSError as e:
         raise ProcessError(e)
     else:
         _write_proc_lock(proc, run)
         return proc
 
+
 def _write_proc_lock(proc, run):
     with open(run.guild_path("LOCK"), "w") as f:
         f.write(str(proc.pid))
+
 
 def _op_wait_for_proc(op, proc, run, quiet, stop_after):
     try:
@@ -209,18 +230,20 @@ def _op_wait_for_proc(op, proc, run, quiet, stop_after):
     except KeyboardInterrupt:
         return _handle_proc_interrupt(proc)
 
+
 def _op_watch_proc(op, proc, run, quiet, stop_after):
     output_summary = _output_summary_for_run(run, op)
     with _RunOutput(run, proc, quiet, output_summary):
         return _proc_wait(proc, stop_after)
+
 
 def _output_summary_for_run(run, op):
     if not op.callbacks or not op.callbacks.init_output_summary:
         return None
     return op.callbacks.init_output_summary(op, run)
 
-class _RunOutput(object):
 
+class _RunOutput(object):
     def __init__(self, run, *args):
         self._output = None
         self._run = run
@@ -235,11 +258,13 @@ class _RunOutput(object):
             self._output.wait_and_close()
         self._output = None
 
+
 def _proc_wait(proc, stop_after):
     if stop_after is None:
         return proc.wait()
     else:
         return op_util.wait_for_proc(proc, stop_after)
+
 
 def _handle_proc_interrupt(proc):
     log.info("Operation interrupted - waiting for process to exit")
@@ -253,10 +278,12 @@ def _handle_proc_interrupt(proc):
         util.kill_process_tree(proc.pid, force=True)
     return exit_code.SIGTERM
 
+
 def _op_exit_status(proc_exit_status, opdef):
     if proc_exit_status == exit_code.SIGTERM and opdef.stoppable:
         return 0
     return proc_exit_status
+
 
 def _op_finalize_run_attrs(run, exit_status):
     if not os.path.exists(run.dir):
@@ -270,21 +297,25 @@ def _op_finalize_run_attrs(run, exit_status):
     run.write_attr("stopped", stopped)
     _delete_proc_lock(run)
 
+
 def _delete_proc_lock(run):
     try:
         os.remove(run.guild_path("LOCK"))
     except OSError:
         pass
 
+
 # =================================================================
 # Proc env
 # =================================================================
+
 
 def _op_proc_env(op, run):
     env = dict(op.cmd_env)
     env.update(_op_proc_env_system(op))
     env.update(_op_proc_env_run(run))
     return env
+
 
 def _op_proc_env_system(op):
     env = util.safe_osenv()
@@ -294,11 +325,13 @@ def _op_proc_env_system(op):
     env["CMD_DIR"] = os.getcwd()
     return env
 
+
 def _op_proc_env_run(run):
     return {
         "RUN_DIR": run.dir,
         "RUN_ID": run.id,
     }
+
 
 def _log_level():
     try:
@@ -306,39 +339,39 @@ def _log_level():
     except KeyError:
         return str(logging.getLogger().getEffectiveLevel())
 
+
 def _python_path(op):
-    paths = (
-        op.sourcecode_paths +
-        _guild_paths() +
-        _env_paths()
-    )
+    paths = op.sourcecode_paths + _guild_paths() + _env_paths()
     return os.path.pathsep.join(paths)
+
 
 def _guild_paths():
     guild_path = os.path.dirname(os.path.dirname(__file__))
     abs_guild_path = os.path.abspath(guild_path)
     return _runfile_paths() + [abs_guild_path]
 
+
 def _runfile_paths():
-    return [
-        os.path.abspath(path)
-        for path in sys.path if _is_runfile_pkg(path)
-    ]
+    return [os.path.abspath(path) for path in sys.path if _is_runfile_pkg(path)]
+
 
 def _is_runfile_pkg(path):
     for runfile_path in OP_RUNFILE_PATHS:
         split_path = path.split(os.path.sep)
-        if split_path[-len(runfile_path):] == runfile_path:
+        if split_path[-len(runfile_path) :] == runfile_path:
             return True
     return False
+
 
 def _env_paths():
     env = os.getenv("PYTHONPATH")
     return env.split(os.path.pathsep) if env else []
 
+
 # =================================================================
 # Resolve deps
 # =================================================================
+
 
 def _resolve_deps(op, run, for_stage=False):
     resolved = run.get("resolved_deps") or {}
@@ -347,19 +380,16 @@ def _resolve_deps(op, run, for_stage=False):
         resolved_sources = resolved.setdefault(dep.resdef.name, {})
         for source in dep.resdef.sources:
             if source.name in resolved_sources:
-                log.info(
-                    "Skipping %s because it's already resolved",
-                    source.name)
+                log.info("Skipping %s because it's already resolved", source.name)
                 continue
             if for_stage and _is_operation_source(source):
-                log.info(
-                    "Skipping operation dependency %s for stage",
-                    source.name)
+                log.info("Skipping operation dependency %s for stage", source.name)
                 continue
             paths = op_dep.resolve_source(source, dep, run.dir)
             rel_paths = [os.path.relpath(path, run.dir) for path in paths]
             resolved_sources[source.name] = rel_paths
     run.write_attr("resolved_deps", resolved)
+
 
 def _is_operation_source(source):
     return source.uri.startswith("operation:")

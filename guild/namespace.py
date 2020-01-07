@@ -26,12 +26,15 @@ _namespaces = EntryPointResources("guild.namespaces", "namespace")
 
 DEFAULT_NAMESPACE = "pypi"
 
+
 class Membership(object):
     yes = "yes"
     no = "no"
     maybe = "maybe"
 
+
 PipInfo = namedtuple("PipInfo", ["project_name", "install_urls"])
+
 
 class NamespaceError(LookupError):
     """Raised if a namespace doesn't exist."""
@@ -39,6 +42,7 @@ class NamespaceError(LookupError):
     def __init__(self, value):
         super(NamespaceError, self).__init__(value)
         self.value = value
+
 
 class Namespace(object):
 
@@ -73,6 +77,7 @@ class Namespace(object):
         """
         raise NotImplementedError()
 
+
 class PypiNamespace(Namespace):
 
     INDEX_INSTALL_URL = "https://pypi.python.org/simple"
@@ -86,14 +91,14 @@ class PypiNamespace(Namespace):
     def package_name(self, project_name):
         return project_name
 
+
 class PrefixNamespace(Namespace):
 
     prefix = None
     pip_install_urls = [PypiNamespace.INDEX_INSTALL_URL]
 
     def project_name_membership(self, name):
-        return (Membership.yes if name.startswith(self.prefix)
-                else Membership.no)
+        return Membership.yes if name.startswith(self.prefix) else Membership.no
 
     def pip_info(self, req):
         return PipInfo(self.prefix + req, self.pip_install_urls)
@@ -101,18 +106,21 @@ class PrefixNamespace(Namespace):
     def package_name(self, project_name):
         if not project_name.startswith(self.prefix):
             raise TypeError(
-                "%s is not a member of %s namespace"
-                % (project_name, self.name))
-        return project_name[len(self.prefix):]
+                "%s is not a member of %s namespace" % (project_name, self.name)
+            )
+        return project_name[len(self.prefix) :]
+
 
 def iter_namespaces():
     return iter(_namespaces)
+
 
 def for_name(name):
     try:
         return _namespaces.one_for_name(name)
     except LookupError:
         raise NamespaceError(name)
+
 
 def for_project_name(project_name):
     ns = None
@@ -126,8 +134,10 @@ def for_project_name(project_name):
     assert ns, project_name
     return ns
 
+
 def apply_namespace(project_name):
     return for_project_name(project_name).package_name(project_name)
+
 
 def split_name(name):
     """Returns a tuple of namespace and split name.
@@ -143,8 +153,10 @@ def split_name(name):
                 return ns, m.group(2)
     return for_name(DEFAULT_NAMESPACE), name
 
+
 def limit_to_builtin():
     _namespaces.set_path([guild.__pkgdir__])
+
 
 def pip_info(pkg):
     ns, req = split_name(pkg)

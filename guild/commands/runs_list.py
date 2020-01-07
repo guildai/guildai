@@ -21,52 +21,49 @@ from guild import click_util
 
 from . import runs_support
 
+
 def runs_list_options(fn):
-    click_util.append_params(fn, [
-        runs_support.all_filters,
-        click.Option(
-            ("-d", "--deleted"),
-            help="Show deleted runs.",
-            is_flag=True),
-        click.Option(
-            ("-A", "--archive",),
-            metavar="DIR",
-            help="Show archived runs in DIR."),
-        click.Option(
-            ("-a", "--all"),
-            help="Show all runs (by default only the last 20 runs are shown).",
-            is_flag=True),
-        click.Option(
-            ("-m", "--more"),
-            help=(
-                "Show 20 more runs. Maybe used multiple times."),
-            count=True),
-        click.Option(
-            ("-n", "--limit"),
-            metavar="N",
-            type=click.IntRange(min=1),
-            help="Limit number of runs shown."),
-        click.Option(
-            ("--json",),
-            help="Format runs as JSON.",
-            is_flag=True),
-        click.Option(
-            ("-v", "--verbose"),
-            help="Show run details.",
-            is_flag=True),
-        click.Option(
-            ("-r", "--remote",), metavar="REMOTE",
-            help="List runs on REMOTE rather than local runs."),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            runs_support.all_filters,
+            click.Option(("-d", "--deleted"), help="Show deleted runs.", is_flag=True),
+            click.Option(
+                ("-A", "--archive",), metavar="DIR", help="Show archived runs in DIR."
+            ),
+            click.Option(
+                ("-a", "--all"),
+                help="Show all runs (by default only the last 20 runs are shown).",
+                is_flag=True,
+            ),
+            click.Option(
+                ("-m", "--more"),
+                help=("Show 20 more runs. Maybe used multiple times."),
+                count=True,
+            ),
+            click.Option(
+                ("-n", "--limit"),
+                metavar="N",
+                type=click.IntRange(min=1),
+                help="Limit number of runs shown.",
+            ),
+            click.Option(("--json",), help="Format runs as JSON.", is_flag=True),
+            click.Option(("-v", "--verbose"), help="Show run details.", is_flag=True),
+            click.Option(
+                ("-r", "--remote",),
+                metavar="REMOTE",
+                help="List runs on REMOTE rather than local runs.",
+            ),
+        ],
+    )
     return fn
+
 
 @click.command("list")
 @runs_list_options
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def list_runs(ctx, args):
     """List runs.
 
@@ -109,4 +106,5 @@ def list_runs(ctx, args):
 
     """
     from . import runs_impl
+
     runs_impl.list_runs(args, ctx)

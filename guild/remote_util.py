@@ -22,11 +22,13 @@ from guild import remote as remotelib
 from guild import util
 from guild import var
 
+
 def require_env(name):
     if name not in os.environ:
         raise remotelib.OperationError(
-            "missing required %s environment variable"
-            % name)
+            "missing required %s environment variable" % name
+        )
+
 
 def set_remote_lock(remote_run, remote_name, runs_dir=None):
     runs_dir = runs_dir or var.runs_dir()
@@ -41,6 +43,7 @@ def set_remote_lock(remote_run, remote_name, runs_dir=None):
     elif remote_run.status == "terminated":
         with open(lock_file, "w") as f:
             f.write("0")
+
 
 def config_path(path):
     """Returns an absolute path for a config-relative path.

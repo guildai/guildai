@@ -39,8 +39,8 @@ log = logging.getLogger("guild")
 
 VIEW_FILES_REFRESH_INTERVAL = 3
 
-class ViewDataImpl(view.ViewData):
 
+class ViewDataImpl(view.ViewData):
     def __init__(self, args):
         self._args = args
         self._compare_args = self._init_compare_args(args)
@@ -58,7 +58,8 @@ class ViewDataImpl(view.ViewData):
             include_batch=False,
             skip_core=False,
             skip_op_cols=False,
-            **view_args.as_kw())
+            **view_args.as_kw()
+        )
 
     def runs(self):
         return runs_impl.runs_for_args(self._args)
@@ -135,10 +136,7 @@ class ViewDataImpl(view.ViewData):
 
     @staticmethod
     def _other_attrs(run):
-        return {
-            name: run.get(name)
-            for name in runs_impl.other_attr_names(run)
-        }
+        return {name: run.get(name) for name in runs_impl.other_attr_names(run)}
 
     @staticmethod
     def _run_scalars(run, index):
@@ -151,7 +149,7 @@ class ViewDataImpl(view.ViewData):
             for path in paths:
                 if not path.startswith(runs_dir):
                     continue
-                subdir = path[len(runs_dir)+1:]
+                subdir = path[len(runs_dir) + 1 :]
                 parts = subdir.split(os.path.sep)
                 run_id = parts[0]
                 try:
@@ -167,10 +165,7 @@ class ViewDataImpl(view.ViewData):
                     else:
                         runs[run_id] = run, run_paths
                 run_paths.append(os.path.join(*parts[1:]))
-        formatted = [
-            self._format_dep(run, paths)
-            for run, paths in runs.values()
-        ]
+        formatted = [self._format_dep(run, paths) for run, paths in runs.values()]
         return sorted(formatted, key=lambda x: x["operation"])
 
     @staticmethod
@@ -182,13 +177,12 @@ class ViewDataImpl(view.ViewData):
         return {
             "run": run.short_id,
             "operation": run_util.format_operation(run, nowarn=True),
-            "paths": paths
+            "paths": paths,
         }
 
     def _format_files(self, files, root):
         filtered = [
-            path for path in files
-            if os.path.islink(path) or os.path.isfile(path)
+            path for path in files if os.path.islink(path) or os.path.isfile(path)
         ]
         formatted = [self._format_file(path, root) for path in filtered]
         return sorted(formatted, key=lambda x: x["path"])
@@ -196,7 +190,7 @@ class ViewDataImpl(view.ViewData):
     def _format_file(self, path, root):
         typeDesc, icon, iconTooltip, viewer = self._file_type_info(path)
         opDesc, opRun = self._op_source_info(path)
-        relpath = path[len(root)+1:]
+        relpath = path[len(root) + 1 :]
         mtime = util.safe_mtime(path)
         if mtime:
             mtime = int(mtime * 1000)
@@ -236,13 +230,9 @@ class ViewDataImpl(view.ViewData):
         elif re.search(r"graph\.pb$", path_lower):
             return "GraphDef protocol buffer", "file", "File", None
         elif re.search(r"saved_model\.pbtxt$", path_lower):
-            return (
-                "SavedModel protocol buffer", "file-document", "Text file",
-                "text")
+            return ("SavedModel protocol buffer", "file-document", "Text file", "text")
         elif re.search(r"graph\.pbtxt$", path_lower):
-            return (
-                "GraphDef protocol buffer", "file-document", "Text file",
-                "text")
+            return ("GraphDef protocol buffer", "file-document", "Text file", "text")
         elif re.search(r"\.index$", path_lower):
             return "Checkpoint index", "file", "File", None
         elif re.search(r"\.meta$", path_lower):
@@ -279,7 +269,7 @@ class ViewDataImpl(view.ViewData):
         runs_dir = var.runs_dir()
         if not path.startswith(runs_dir):
             return None, None
-        subdir = path[len(runs_dir)+1:]
+        subdir = path[len(runs_dir) + 1 :]
         parts = subdir.split(os.path.sep, 1)
         try:
             run = self._run_for_id(parts[0])
@@ -323,12 +313,12 @@ class ViewDataImpl(view.ViewData):
             return os.path.join(*parts[-2:])
 
     def compare_data(self):
-        return compare_impl.get_data(
-            self._compare_args,
-            format_cells=False)
+        return compare_impl.get_data(self._compare_args, format_cells=False)
+
 
 def main(args):
     _start_view(args)
+
 
 def _start_view(args):
     data = ViewDataImpl(args)
@@ -338,15 +328,10 @@ def _start_view(args):
         _start_tester(host, port)
         args.no_open = True
     try:
-        view.serve_forever(
-            data,
-            host,
-            port,
-            args.no_open,
-            args.dev,
-            args.logging)
+        view.serve_forever(data, host, port, args.no_open, args.dev, args.logging)
     except socket.gaierror as e:
         cli.error(str(e))
+
 
 def _host(args):
     if args.host:
@@ -355,6 +340,8 @@ def _host(args):
         return "localhost"
     return "0.0.0.0"
 
+
 def _start_tester(host, port):
     from . import view_tester
+
     view_tester.start_tester(host, port, os._exit)

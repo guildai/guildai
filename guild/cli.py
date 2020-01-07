@@ -28,11 +28,13 @@ log = logging.getLogger("guild")
 
 TABLE_COL_SPACING = 2
 
+
 def _max_width():
     try:
         return int(os.environ["COLUMNS"])
     except (KeyError, ValueError):
         return click.get_terminal_size()[0]
+
 
 MAX_WIDTH = _max_width()
 
@@ -43,18 +45,22 @@ except NameError:
 
 _noted = set()
 
+
 def error(msg=None, exit_status=1):
     raise SystemExit(msg, exit_status)
+
 
 def out(s="", wrap=False, **kw):
     if wrap:
         s = _wrap(s)
     _echo(s, **kw)
 
+
 def _wrap(s):
     terminal_width = click.get_terminal_size()[0]
     width = max(min(terminal_width, 78), 40)
     return click.wrap_text(s, width)
+
 
 def _echo(s, err=False, **kw):
     if config.log_output():
@@ -65,16 +71,18 @@ def _echo(s, err=False, **kw):
     else:
         click.echo(s, err=err, **kw)
 
+
 def note(msg, err=True, **kw):
     _echo(click.style(msg, dim=True), err=err, **kw)
+
 
 def note_once(msg):
     if msg not in _noted:
         note(msg)
         _noted.add(msg)
 
-def table(data, cols, sort=None, detail=None, indent=0, err=False,
-          max_width_adj=0):
+
+def table(data, cols, sort=None, detail=None, indent=0, err=False, max_width_adj=0):
     data = sorted(data, key=_table_row_sort_key(sort))
     formatted = _format_data(data, cols + (detail or []))
     col_info = _col_info(formatted, cols)
@@ -82,11 +90,13 @@ def table(data, cols, sort=None, detail=None, indent=0, err=False,
     for item in formatted:
         _item_out(item, cols, col_info, detail, indent, max_width, err)
 
+
 def _table_row_sort_key(sort):
     if not sort:
         return lambda _: 0
     else:
         return functools.cmp_to_key(lambda x, y: _item_cmp(x, y, sort))
+
 
 def _item_cmp(x, y, sort):
     if isinstance(sort, str):
@@ -98,6 +108,7 @@ def _item_cmp(x, y, sort):
                 return part_cmp
         return 0
 
+
 def _val_cmp(x, y, sort):
     if sort.startswith("-"):
         sort = sort[1:]
@@ -108,6 +119,7 @@ def _val_cmp(x, y, sort):
     y_val = y.get(sort)
     return rev * ((x_val > y_val) - (x_val < y_val))
 
+
 def _format_data(data, cols):
     formatted = []
     for item0 in data:
@@ -117,6 +129,7 @@ def _format_data(data, cols):
             item[col] = _str_or_list(item0.get(col, ""))
     return formatted
 
+
 def _str_or_list(x):
     if isinstance(x, list):
         return x
@@ -125,6 +138,7 @@ def _str_or_list(x):
     else:
         return str(x)
 
+
 def _col_info(data, cols):
     info = {}
     for item in data:
@@ -132,6 +146,7 @@ def _col_info(data, cols):
             coli = info.setdefault(col, {})
             coli["width"] = max(coli.get("width", 0), len(item[col]))
     return info
+
 
 def _item_out(item, cols, col_info, detail, indent, max_col_width, err):
     indent_padding = " " * indent
@@ -143,49 +158,51 @@ def _item_out(item, cols, col_info, detail, indent, max_col_width, err):
         val = _pad_col_val(val, col, col_info) if not last_col else val
         line_pos = line_pos + len(val)
         if line_pos > max_col_width:
-            click.echo(val[:-(line_pos-max_col_width)], nl=False, err=err)
+            click.echo(val[: -(line_pos - max_col_width)], nl=False, err=err)
             break
         else:
             click.echo(val, nl=False, err=err)
     click.echo(err=err)
     terminal_width = click.get_terminal_size()[0]
-    for key in (detail or []):
+    for key in detail or []:
         click.echo(indent_padding, nl=False, err=err)
         formatted = _format_detail_val(item[key], indent, terminal_width)
         click.echo("  %s:%s" % (key, formatted), err=err)
+
 
 def _format_detail_val(val, indent, terminal_width):
     if isinstance(val, list):
         if val:
             val_indent = " " * (indent + 4)
             val_width = terminal_width - len(val_indent)
-            return "\n" + "\n".join([
-                click.wrap_text(x, val_width, val_indent, val_indent)
-                for x in val
-            ])
+            return "\n" + "\n".join(
+                [click.wrap_text(x, val_width, val_indent, val_indent) for x in val]
+            )
         else:
             return " -"
     else:
-        return (" %s" % val)
+        return " %s" % val
+
 
 def _pad_col_val(val, col, col_info):
     return val.ljust(col_info[col]["width"] + TABLE_COL_SPACING)
+
 
 def confirm(prompt, default=False, wrap=False):
     if wrap:
         prompt = _wrap(prompt)
     click.echo(prompt, nl=False, err=True)
-    click.echo(
-        " %s " % ("(Y/n)" if default else "(y/N)"),
-        nl=False, err=True)
+    click.echo(" %s " % ("(Y/n)" if default else "(y/N)"), nl=False, err=True)
     c = input()
     yes_vals = ["y", "yes"]
     if default:
         yes_vals.append("")
     return c.lower().strip() in yes_vals
 
+
 def page(text):
     click.echo_via_pager(text)
+
 
 def style(text, **kw):
     return click.style(text, **kw)

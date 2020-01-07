@@ -22,11 +22,14 @@ import sys
 
 import click
 
+
 class State(object):
     errors = False
 
+
 def _warn(msg):
     return click.style(msg, fg="red", bold=True)
+
 
 def print_info():
     state = State()
@@ -34,6 +37,7 @@ def print_info():
     _print_cuda_info()
     if state.errors:
         sys.exit(1)
+
 
 def _print_tensorflow_info(state):
     try:
@@ -47,6 +51,7 @@ def _print_tensorflow_info(state):
         click.echo("tensorflow_cuda_support:   %s" % _cuda_support(tf))
         click.echo("tensorflow_gpu_available:  %s" % _gpu_available(tf))
 
+
 def _tf_version(tf, state):
     try:
         return tf.__version__
@@ -54,11 +59,13 @@ def _tf_version(tf, state):
         state.errors = True
         return _warn("ERROR (%s)" % e)
 
+
 def _cuda_support(tf):
     if tf.test.is_built_with_cuda():
         return "yes"
     else:
         return "no"
+
 
 def _gpu_available(tf):
     if tf.test.is_gpu_available():
@@ -68,11 +75,13 @@ def _gpu_available(tf):
     else:
         return "no"
 
+
 def _print_cuda_info():
     if sys.platform == "darwin":
         _print_macos_cuda_info()
     else:
         _print_linux_cuda_info()
+
 
 def _print_macos_cuda_info():
     patterns = [
@@ -84,6 +93,7 @@ def _print_macos_cuda_info():
     except OSError:
         raw = ""
     _gen_print_lib_info(patterns, raw)
+
 
 def _print_linux_cuda_info():
     patterns = [
@@ -99,6 +109,7 @@ def _print_linux_cuda_info():
         raw = ""
     _gen_print_lib_info(patterns, raw)
 
+
 def _gen_print_lib_info(patterns, raw):
     for name, pattern in patterns:
         m = re.search(pattern, raw)
@@ -108,12 +119,14 @@ def _gen_print_lib_info(patterns, raw):
         else:
             click.echo("%s_version:%snot loaded" % (name, space))
 
+
 def _normalize_import_error_msg(e):
     msg = str(e)
     m = re.match("No module named ([^']+)", msg)
     if m:
         return "No module named '%s'" % m.group(1)
     return msg
+
 
 if __name__ == "__main__":
     print_info()

@@ -20,15 +20,15 @@ import click
 from guild import click_util
 from . import runs_export
 
+
 @click.command()
 @runs_export.export_params
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def export(ctx, args):
     """{{ runs_export.export_runs }}"""
 
     from . import runs_impl
+
     runs_impl.export(args, ctx)

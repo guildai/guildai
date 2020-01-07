@@ -33,8 +33,9 @@ STATS = [
     "utilization.gpu",
     "utilization.memory",
     "temperature.gpu",
-    "power.draw"
+    "power.draw",
 ]
+
 
 class GPUPlugin(SummaryPlugin):
 
@@ -83,9 +84,10 @@ class GPUPlugin(SummaryPlugin):
             ("mem_util", _parse_raw(raw[6], _parse_percent)),
             ("util", _parse_raw(raw[5], _parse_percent)),
             ("temp", _parse_raw(raw[7], _parse_int)),
-            ("powerdraw", _parse_raw(raw[8], _parse_watts))
+            ("powerdraw", _parse_raw(raw[8], _parse_watts)),
         ]
         return dict([(_gpu_val_key(index, name), val) for name, val in vals])
+
 
 def _stats_cmd():
     nvidia_smi = util.which("nvidia-smi")
@@ -94,13 +96,15 @@ def _stats_cmd():
     else:
         return [
             nvidia_smi,
-             "--format=csv,noheader",
-             "--query-gpu=%s" % ",".join(STATS),
+            "--format=csv,noheader",
+            "--query-gpu=%s" % ",".join(STATS),
         ]
+
 
 def _read_csv_lines(raw_in):
     csv_in = raw_in if sys.version_info[0] == 2 else io.TextIOWrapper(raw_in)
     return list(csv.reader(csv_in))
+
 
 def _parse_raw(raw, parser):
     stripped = raw.strip()
@@ -109,24 +113,30 @@ def _parse_raw(raw, parser):
     else:
         return parser(stripped)
 
+
 def _parse_pstate(val):
     assert val.startswith("P"), val
     return int(val[1:])
 
+
 def _parse_int(val):
     return int(val)
+
 
 def _parse_percent(val):
     assert val.endswith(" %"), val
     return float(val[0:-2]) / 100
 
+
 def _parse_bytes(val):
     assert val.endswith(" MiB"), val
     return int(val[0:-4]) * 1024 * 1024
 
+
 def _parse_watts(val):
     assert val.endswith(" W"), val
     return float(val[0:-2])
+
 
 def _gpu_val_key(index, name):
     return "sys/gpu%s/%s" % (index, name)

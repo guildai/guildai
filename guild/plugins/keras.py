@@ -25,20 +25,17 @@ from guild import python_util
 from .python_script import PythonScriptModelProxy
 from .python_script import PythonScriptOpdefSupport
 
-KERAS_OUTPUT_SCALARS = [
-    r"Epoch (?P<step>[0-9]+)",
-    r" - ([a-z_]+): (\value)"
-]
+KERAS_OUTPUT_SCALARS = [r"Epoch (?P<step>[0-9]+)", r" - ([a-z_]+): (\value)"]
+
 
 class KerasScriptModelProxy(PythonScriptModelProxy):
 
     output_scalars = KERAS_OUTPUT_SCALARS
 
-    objective = {
-        "maximize": "val_acc"
-    }
+    objective = {"maximize": "val_acc"}
 
     plugins = ["summary"]
+
 
 class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
 
@@ -62,17 +59,22 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
         op_method = self._op_method(script)
         self.log.debug(
             "%s imports keras = %s, op_method = %s",
-            script.src, imports_keras,
-            op_method.name if op_method else "None")
+            script.src,
+            imports_keras,
+            op_method.name if op_method else "None",
+        )
         return imports_keras and op_method
 
     @staticmethod
     def _imports_keras(script):
         return any(
-            (name == "keras" or
-             name.startswith("keras.") or
-             name.startswith("tensorflow.keras"))
-             for name in script.imports)
+            (
+                name == "keras"
+                or name.startswith("keras.")
+                or name.startswith("tensorflow.keras")
+            )
+            for name in script.imports
+        )
 
     @staticmethod
     def _op_method(script):

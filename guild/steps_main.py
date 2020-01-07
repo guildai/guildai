@@ -34,7 +34,7 @@ from guild import run as runlib
 from guild import run_check
 from guild import util
 
-log = None # intialized in _init_logging
+log = None  # intialized in _init_logging
 
 STEP_USED_PARAMS = (
     "flags",
@@ -54,8 +54,8 @@ STEP_USED_PARAMS = (
 # State
 ###################################################################
 
-class Step(object):
 
+class Step(object):
     def __init__(self, data, parent_flags, parent_opref):
         data = _coerce_step_data(data)
         params = _parse_run(data)
@@ -80,11 +80,10 @@ class Step(object):
     def __str__(self):
         return self.name or self.op_spec
 
+
 def _coerce_step_data(data):
     if isinstance(data, six.string_types):
-        data = {
-            "run": data
-        }
+        data = {"run": data}
     elif isinstance(data, dict):
         data = dict(data)
     else:
@@ -92,6 +91,7 @@ def _coerce_step_data(data):
     if "flags" in data:
         data["flags"] = _coerce_flags_data(data["flags"])
     return data
+
 
 def _coerce_flags_data(data):
     if isinstance(data, list):
@@ -101,8 +101,10 @@ def _coerce_flags_data(data):
     else:
         _error("invalid flags value %r" % data)
 
+
 def _parse_run(data):
     from guild.commands.run import run as run_cmd
+
     run_spec = data.get("run", "").strip()
     if not run_spec:
         _error("invalid step %r: must define run" % data)
@@ -114,6 +116,7 @@ def _parse_run(data):
     else:
         _apply_data_params(data, ctx, run_spec)
         return ctx.params
+
 
 def _apply_data_params(data, ctx, run_spec):
     """Apply applicable data to params.
@@ -133,15 +136,15 @@ def _apply_data_params(data, ctx, run_spec):
                     ctx.params[name] = data_val
         else:
             if val != defaults[name]:
-                log.warning(
-                    "run parameter %s used in %r ignored",
-                    name, run_spec)
+                log.warning("run parameter %s used in %r ignored", name, run_spec)
+
 
 def _init_step_flags(flag_args, parent_flag_vals, step):
     flag_vals = _parse_flag_assigns(flag_args)
     _apply_parent_flags(parent_flag_vals, step, flag_vals)
     resolved = _resolve_flag_vals(flag_vals, parent_flag_vals)
     return _remove_undefined_flags(resolved)
+
 
 def _parse_flag_assigns(assigns):
     assert isinstance(assigns, list), assigns
@@ -150,12 +153,14 @@ def _parse_flag_assigns(assigns):
     except op_util.ArgValueError as e:
         _error("invalid argument '%s' - expected NAME=VAL" % e.arg)
 
+
 def _apply_parent_flags(parent_flag_vals, step, flag_vals):
     prefixes = [
         step.op_spec + ":",
         step.name + ":",
     ]
     flag_vals.update(_prefixed_flag_vals(prefixes, parent_flag_vals))
+
 
 def _prefixed_flag_vals(prefixes, flag_vals):
     """Returns a dict of prefixed flag values.
@@ -168,9 +173,10 @@ def _prefixed_flag_vals(prefixes, flag_vals):
     for prefix in prefixes:
         for full_name in flag_vals:
             if full_name.startswith(prefix):
-                prefixed_name = full_name[len(prefix):]
+                prefixed_name = full_name[len(prefix) :]
                 prefixed.setdefault(prefixed_name, flag_vals[full_name])
     return prefixed
+
 
 def _apply_default_model(step_opspec, parent_opref):
     step_opref = opreflib.OpRef.for_string(step_opspec)
@@ -180,29 +186,29 @@ def _apply_default_model(step_opspec, parent_opref):
             step_opref.pkg_name,
             step_opref.pkg_version,
             parent_opref.model_name,
-            step_opref.op_name)
+            step_opref.op_name,
+        )
     return step_opref.to_opspec()
+
 
 def _split_batch_files(flag_args):
     return op_util.split_batch_files(flag_args)
 
+
 def _resolve_flag_vals(flags, parent_flags):
-    return {
-        name: util.resolve_refs(val, parent_flags)
-        for name, val in flags.items()
-    }
+    return {name: util.resolve_refs(val, parent_flags) for name, val in flags.items()}
+
 
 def _remove_undefined_flags(flag_vals):
-    return {
-        name: val for name, val in flag_vals.items()
-        if val is not None
-    }
+    return {name: val for name, val in flag_vals.items() if val is not None}
+
 
 def _resolve_param(params, name, flags):
     resolved = util.resolve_refs(params[name], flags)
     if resolved is None:
         return resolved
     return str(resolved)
+
 
 def _init_checks(data):
     expect = data.get("expect") or []
@@ -218,19 +224,23 @@ def _init_checks(data):
             checks.append(check)
     return checks
 
+
 ###################################################################
 # Main
 ###################################################################
 
+
 def main():
     _init_logging()
     _run_steps()
+
 
 def _init_logging():
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     guild.log.init_logging(level, {"_": format})
     globals()["log"] = logging.getLogger("guild")
+
 
 def _run_steps():
     run = _init_run()
@@ -242,19 +252,23 @@ def _run_steps():
         step_run = _run_step(step, run)
         _maybe_check_step_run(step, step_run)
 
+
 # =================================================================
 # Init
 # =================================================================
 
+
 def _init_run():
     run_id, run_dir = _run_environ()
     return runlib.Run(run_id, run_dir)
+
 
 def _run_environ():
     try:
         return os.environ["RUN_ID"], os.environ["RUN_DIR"]
     except KeyError as e:
         _internal_error("missing required env %s" % e.args[0])
+
 
 def _init_steps(run):
     data = run.get("steps")
@@ -266,9 +280,11 @@ def _init_steps(run):
     opref = run.opref
     return [Step(step_data, flags, opref) for step_data in data]
 
+
 # =================================================================
 # Run step
 # =================================================================
+
 
 def _run_step(step, parent_run):
     step_run = _init_step_run(parent_run)
@@ -288,6 +304,7 @@ def _run_step(step, parent_run):
         sys.exit(returncode)
     return step_run
 
+
 def _init_step_run(parent_run):
     """Returns the run dir for a step run.
 
@@ -298,17 +315,24 @@ def _init_step_run(parent_run):
     step_run_dir = os.path.join(runs_dir, step_run_id)
     return runlib.Run(step_run_id, step_run_dir)
 
+
 def _init_step_cmd(step, step_run_dir):
     base_args = [
-        sys.executable, "-um", "guild.main_bootstrap",
-        "run", "-y",
+        sys.executable,
+        "-um",
+        "guild.main_bootstrap",
+        "run",
+        "-y",
         "--force-flags",
-        "--run-dir", step_run_dir,
-        step.op_spec]
+        "--run-dir",
+        step_run_dir,
+        step.op_spec,
+    ]
     step_options = _step_options(step)
     batch_file_args = _step_batch_file_args(step)
     flag_args = _step_flag_args(step)
     return base_args + step_options + batch_file_args + flag_args
+
 
 def _step_options(step):
     opts = []
@@ -332,11 +356,14 @@ def _step_options(step):
         opts.extend(["--random-seed", str(step.random_seed)])
     return opts
 
+
 def _step_batch_file_args(step):
     return ["@%s" % file for file in step.batch_files]
 
+
 def _step_flag_args(step):
     return flag_util.format_flags(step.flags)
+
 
 def _link_to_step_run(step, step_run_dir, parent_run_dir):
     link_name = _step_link_name(step)
@@ -344,8 +371,10 @@ def _link_to_step_run(step, step_run_dir, parent_run_dir):
     link_path = _ensure_unique_link(link_path_base)
     os.symlink(step_run_dir, link_path)
 
+
 def _step_link_name(step):
     return re.sub(r"[ :/\\]", "_", str(step))
+
 
 def _ensure_unique_link(path_base):
     v = 2
@@ -357,6 +386,7 @@ def _ensure_unique_link(path_base):
         path = "%s_%i" % (path_base, v)
         v += 1
 
+
 def _format_step_cmd(cmd):
     # Show only opspec onward - assert front matter to catch changes
     # to cmd.
@@ -367,9 +397,10 @@ def _format_step_cmd(cmd):
         "run",
         "-y",
         "--force-flags",
-        "--run-dir"
+        "--run-dir",
     ], cmd
     return " ".join([arg for arg in cmd[8:]])
+
 
 def _maybe_check_step_run(step, run):
     if not step.checks:
@@ -379,9 +410,8 @@ def _maybe_check_step_run(step, run):
         return
     checks_passed = _check_step_run(step, run)
     if not checks_passed:
-        _error(
-            "stopping because a check failed",
-            exit_code.TEST_FAILED)
+        _error("stopping because a check failed", exit_code.TEST_FAILED)
+
 
 def _run_skipped(run):
     """Returns True if run was skipped.
@@ -392,6 +422,7 @@ def _run_skipped(run):
     skipped.
     """
     return not os.path.exists(run.path)
+
 
 def _check_step_run(step, run):
     if not step.checks:
@@ -411,17 +442,21 @@ def _check_step_run(step, run):
         log.error("%i check(s) failed - see above for details", failed)
     return failed == 0
 
+
 ###################################################################
 # Error messages
 ###################################################################
+
 
 def _internal_error(msg):
     sys.stderr.write("guild.steps_main: %s\n" % msg)
     sys.exit(exit_code.INTERNAL_ERROR)
 
+
 def _error(msg, exit_code=exit_code.DEFAULT):
     sys.stderr.write("guild: %s\n" % msg)
     sys.exit(exit_code)
+
 
 if __name__ == "__main__":
     main()

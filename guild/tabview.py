@@ -61,6 +61,7 @@ p                        Move to previous search result
 
 viewer_help_key_width = 25
 
+
 class Viewer(ViewerBase):
 
     get_data = None
@@ -112,10 +113,12 @@ class Viewer(ViewerBase):
         self.keys["!"] = self.sort_by_column_numeric_reverse
         self.keys["2"] = self.sort_by_column_numeric_reverse
         self.keys["`"] = self.show_logs
-        self.keys.update({
-            key: self._action_handler(action_cb)
-            for (key, _), action_cb in self.actions
-        })
+        self.keys.update(
+            {
+                key: self._action_handler(action_cb)
+                for (key, _), action_cb in self.actions
+            }
+        )
 
     def show_logs(self):
         self.text_box(self._format_logs(), "Logs")
@@ -138,28 +141,33 @@ class Viewer(ViewerBase):
         self.resize()
 
     def _insert_actions_help(self, text):
-        actions_help = "\n".join([
-            key.ljust(viewer_help_key_width) + help_text
-            for (key, help_text), _ in self.actions
-        ])
+        actions_help = "\n".join(
+            [
+                key.ljust(viewer_help_key_width) + help_text
+                for (key, help_text), _ in self.actions
+            ]
+        )
         if actions_help:
             actions_help += "\n"
         return text.replace("{{actions}}\n", actions_help)
 
     def sort_by_column_numeric(self):
         from operator import itemgetter
+
         xp = self.x + self.win_x
         self.data = sorted(
-            self.data,
-            key=lambda x: self.float_key(itemgetter(xp)(x), float('inf')))
+            self.data, key=lambda x: self.float_key(itemgetter(xp)(x), float('inf'))
+        )
 
     def sort_by_column_numeric_reverse(self):
         from operator import itemgetter
+
         xp = self.x + self.win_x
         self.data = sorted(
             self.data,
             key=lambda x: self.float_key(itemgetter(xp)(x), float('-inf')),
-            reverse=True)
+            reverse=True,
+        )
 
     @staticmethod
     def float_key(value, default):
@@ -178,8 +186,8 @@ class Viewer(ViewerBase):
         tabview.TextBox(self.scr, content, title)()
         self.resize()
 
-class StatusWin(object):
 
+class StatusWin(object):
     def __init__(self, msg):
         self.msg = msg
 
@@ -198,29 +206,33 @@ class StatusWin(object):
     def __exit__(self, *_):
         curses.endwin()
 
+
 def view_runs(get_data_cb, get_detail_cb, actions):
     Viewer.get_data = staticmethod(get_data_cb)
     Viewer.get_detail = staticmethod(get_detail_cb)
     Viewer.actions = actions
     tabview.Viewer = Viewer
     tabview.view(
-        [[]],
-        column_width="max",
-        info="Guild run comparison",
+        [[]], column_width="max", info="Guild run comparison",
     )
+
 
 def _patch_for_tabview():
     _patch_os_unsetenv()
     _patch_curses_resizeterm()
 
+
 def _patch_os_unsetenv():
     import os
+
     if not hasattr(os, "unsetenv"):
         os.unsetenv = lambda _val: None
+
 
 def _patch_curses_resizeterm():
     if not hasattr(curses, "resizeterm"):
         assert hasattr(curses, "resize_term")
         curses.resizeterm = curses.resize_term
+
 
 _patch_for_tabview()

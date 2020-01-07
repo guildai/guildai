@@ -23,11 +23,10 @@ from .packages_delete import delete_packages
 from .packages_info import package_info
 from .packages_list import list_packages
 
+
 @click.group(invoke_without_command=True, cls=click_util.Group)
 @click.option("-a", "--all", help="Show all packages.", is_flag=True)
-
 @click.pass_context
-
 def packages(ctx, **kw):
     """Show or manage packages.
 
@@ -36,6 +35,7 @@ def packages(ctx, **kw):
     """
     if not ctx.invoked_subcommand:
         ctx.invoke(list_packages, **kw)
+
 
 packages.add_command(delete_packages)
 packages.add_command(list_packages)

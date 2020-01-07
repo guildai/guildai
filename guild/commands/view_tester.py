@@ -31,11 +31,13 @@ from guild import util
 
 log = logging.getLogger("guild")
 
+
 def start_tester(host, port, exit=None):
     if exit is None:
         exit = lambda _code: None
     tester = threading.Thread(target=_test_view, args=(host, port, exit))
     tester.start()
+
 
 def _test_view(host, port, exit):
     view_url = util.local_server_url(host, port)
@@ -49,8 +51,10 @@ def _test_view(host, port, exit):
     else:
         exit(0)
 
+
 def _wait_for(url):
     _urlread(url)
+
 
 def _test_runs(view_url):
     runs_url = "{}/runs".format(view_url)
@@ -59,6 +63,7 @@ def _test_runs(view_url):
     runs = json.loads(runs_str.decode())
     sys.stdout.write(" - Got %i Guild run(s)\n" % len(runs))
     sys.stdout.flush()
+
 
 def _test_tensorboard(view_url):
     tb_init_url = "{}/tb/0/".format(view_url)
@@ -71,8 +76,9 @@ def _test_tensorboard(view_url):
     sys.stdout.write(" - Got %i TensorBoard run(s)\n" % len(runs))
     sys.stdout.flush()
 
+
 def _urlread(url):
-    timeout = time.time() + 5 # 5 seconds to connect
+    timeout = time.time() + 5  # 5 seconds to connect
     while time.time() < timeout:
         try:
             f = urlopen(url)

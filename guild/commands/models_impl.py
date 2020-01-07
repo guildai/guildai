@@ -24,6 +24,7 @@ from guild import guildfile
 from guild import model
 from guild import util
 
+
 def main(args):
     cmd_impl_support.init_model_path()
     dirs = models_iter_dirs(args)
@@ -32,14 +33,16 @@ def main(args):
     cli.table(
         sorted(filtered, key=_model_sort_key),
         cols=["fullname", "description"],
-        detail=(["source", "operations", "details"] if args.verbose else [])
+        detail=(["source", "operations", "details"] if args.verbose else []),
     )
+
 
 def models_iter_dirs(args):
     cwd = config.cwd()
     if not args.installed and guildfile.is_guildfile_dir(cwd):
         return [cwd]
     return []
+
 
 def iter_models(dirs=None, include_anonymous=False):
     dirs = dirs or []
@@ -48,12 +51,17 @@ def iter_models(dirs=None, include_anonymous=False):
         if (m.modeldef.name or include_anonymous) and _match_dirs(m, abs_dirs):
             yield m
 
+
 def _match_dirs(model, abs_dirs):
     if not abs_dirs:
         return True
     return any(
-        (os.path.abspath(model.modeldef.guildfile.dir) == abs_dir
-         for abs_dir in abs_dirs))
+        (
+            os.path.abspath(model.modeldef.guildfile.dir) == abs_dir
+            for abs_dir in abs_dirs
+        )
+    )
+
 
 def _format_model(model):
     modeldef = model.modeldef
@@ -68,17 +76,20 @@ def _format_model(model):
         "_model": model,
     }
 
+
 def _filter_model(model, args):
     filter_vals = [
         model["fullname"],
         model["description"],
     ]
-    return (
-        (model["name"][:1] != "_" or args.all) and
-        util.match_filters(args.filters, filter_vals))
+    return (model["name"][:1] != "_" or args.all) and util.match_filters(
+        args.filters, filter_vals
+    )
+
 
 def _model_sort_key(m):
     return (_model_type_key(m), m["fullname"])
+
 
 def _model_type_key(m):
     if isinstance(m["_model"], model.GuildfileModel):

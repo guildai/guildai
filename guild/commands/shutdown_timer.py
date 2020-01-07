@@ -19,58 +19,64 @@ import click
 
 from guild import click_util
 
-@click.group("shutdown-timer", cls=click_util.Group)
 
+@click.group("shutdown-timer", cls=click_util.Group)
 def shutdown_timer():
     """Manager shutdown timer.
     """
 
+
 @click.command()
 @click.option(
-    "-t", "--timeout", metavar="MINUTES",
+    "-t",
+    "--timeout",
+    metavar="MINUTES",
     default=60,
-    help="Shutdown timeout in minutes (default is 60).")
+    help="Shutdown timeout in minutes (default is 60).",
+)
 @click.option(
-    "-s", "--su",
-    is_flag=True,
-    help="Run shutdown command as privileged user.")
+    "-s", "--su", is_flag=True, help="Run shutdown command as privileged user."
+)
+@click.option("-f", "--foreground", is_flag=True, help="Run in the foreground.")
 @click.option(
-    "-f", "--foreground",
-    is_flag=True,
-    help="Run in the foreground.")
-@click.option(
-    "-g", "--grace-period",
+    "-g",
+    "--grace-period",
     type=click.IntRange(0, None),
     default=1,
-    help="Number of minutes used in shutdown command (default 1).")
+    help="Number of minutes used in shutdown command (default 1).",
+)
 @click.option(
-    "-d", "--dont-shutdown",
+    "-d",
+    "--dont-shutdown",
     is_flag=True,
-    help="Don't issue a system shutdown command (use for testing).")
-
+    help="Don't issue a system shutdown command (use for testing).",
+)
 @click_util.use_args
-
 def start(args):
     """Start shutdown timer.
     """
     from . import shutdown_timer_impl
+
     shutdown_timer_impl.start(args)
 
-@click.command()
 
+@click.command()
 def stop():
     """Stop shutdown timer.
     """
     from . import shutdown_timer_impl
+
     shutdown_timer_impl.stop()
 
-@click.command()
 
+@click.command()
 def status():
     """Show shutdown timer status.
     """
     from . import shutdown_timer_impl
+
     shutdown_timer_impl.status()
+
 
 shutdown_timer.add_command(start)
 shutdown_timer.add_command(stop)

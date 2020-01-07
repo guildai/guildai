@@ -39,8 +39,8 @@ log = logging.getLogger("guild")
 
 PYTHON_REQ_P = re.compile(r"^\s*#\s*python(\S+?)\s*$", re.MULTILINE)
 
-class Config(object):
 
+class Config(object):
     def __init__(self, args):
         self.env_dir = os.path.abspath(args.dir)
         self.env_name = self._init_env_name(args.name, self.env_dir)
@@ -119,6 +119,7 @@ class Config(object):
     def as_kw(self):
         return self.__dict__
 
+
 def _iter_all_guild_pkg_reqs(dir, search_path, seen=None):
     seen = seen or set()
     src = os.path.abspath(guildfile.guildfile_path(dir))
@@ -135,11 +136,13 @@ def _iter_all_guild_pkg_reqs(dir, search_path, seen=None):
         else:
             yield req
 
+
 def _guild_pkg_reqs(src):
     pkg = _guildfile_pkg(src)
     if not pkg:
         return []
     return _pkg_requires(pkg, src)
+
 
 def _guildfile_pkg(src):
     data = _guildfile_data(src)
@@ -150,6 +153,7 @@ def _guildfile_pkg(src):
             return item
     return None
 
+
 def _guildfile_data(src):
     # Use low level parsing to bypass path-related errors.
     try:
@@ -157,9 +161,10 @@ def _guildfile_data(src):
         return yaml.safe_load(f)
     except Exception as e:
         log.warning(
-            "cannot read Guild package requirements for %s (%s) - ignoring",
-            src, e)
+            "cannot read Guild package requirements for %s (%s) - ignoring", src, e
+        )
         return []
+
 
 def _pkg_requires(pkg_data, src):
     requires = pkg_data.get("requires") or []
@@ -167,10 +172,11 @@ def _pkg_requires(pkg_data, src):
         requires = [requires]
     if not isinstance(requires, list):
         log.warning(
-            "invalid package requires list in %s (%r) - ignoring",
-            src, pkg_data)
+            "invalid package requires list in %s (%r) - ignoring", src, pkg_data
+        )
         return []
     return requires
+
 
 def _find_req_on_path(req, path):
     req_subpath = req.replace(".", os.path.sep)
@@ -180,6 +186,7 @@ def _find_req_on_path(req, path):
             return full_path
     return None
 
+
 def _implicit_guild_version():
     reqs_file = _guild_reqs_file()
     if reqs_file:
@@ -187,11 +194,13 @@ def _implicit_guild_version():
     else:
         return guild.__version__
 
+
 def main(args):
     _error_if_active_env()
     config = Config(args)
     if args.yes or _confirm(config):
         _init(config)
+
 
 def _error_if_active_env():
     active_env = os.getenv("VIRTUAL_ENV")
@@ -199,8 +208,9 @@ def _error_if_active_env():
         cli.error(
             "cannot run init from an activate environment (%s)\n"
             "Deactivate the environment by running 'deactivate' "
-            "and try again."
-            % active_env)
+            "and try again." % active_env
+        )
+
 
 def _confirm(config):
     cli.out("You are about to initialize a Guild environment:")
@@ -213,6 +223,7 @@ def _confirm(config):
             cli.out("  {}: {}".format(name, val))
     return cli.confirm("Continue?", default=True)
 
+
 def _init(config):
     _test_symlinks()
     _init_guild_env(config)
@@ -224,6 +235,7 @@ def _init(config):
     _install_paths(config)
     _initialized_msg(config)
 
+
 def _test_symlinks():
     """If Windows, confirm that user can create symbolic links."""
     try:
@@ -231,11 +243,14 @@ def _test_symlinks():
     except OSError:
         cli.error(
             "this command requires symbolic link privilege on Windows\n"
-            "Try running this command with administrator privileges.")
+            "Try running this command with administrator privileges."
+        )
+
 
 def _init_guild_env(config):
     cli.out("Initializing Guild environment in {}".format(config.env_dir))
     init.init_env(config.env_dir, config.local_resource_cache)
+
 
 def _init_venv(config):
     cmd_args = _venv_cmd_args(config)
@@ -249,6 +264,7 @@ def _init_venv(config):
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
 
+
 def _venv_cmd_args(config):
     args = _venv_cmd_base_args() + [config.env_dir]
     args.extend(["--prompt", "({}) ".format(config.env_name)])
@@ -256,12 +272,12 @@ def _venv_cmd_args(config):
         args.extend(["--python", config.venv_python])
     return args
 
+
 def _venv_cmd_base_args():
-    return util.find_apply([
-        _python_venv_cmd,
-        _virtualenv_cmd,
-        _venv_cmd_missing_error,
-    ])
+    return util.find_apply(
+        [_python_venv_cmd, _virtualenv_cmd, _venv_cmd_missing_error,]
+    )
+
 
 def _python_venv_cmd():
     # Versions of venv prior to 3.6 don't support --prompt option.
@@ -274,16 +290,19 @@ def _python_venv_cmd():
     else:
         return [sys.executable, "-m", "venv"]
 
+
 def _virtualenv_cmd():
     cmd = util.which("virtualenv")
     if not cmd:
         return None
     return [cmd]
 
+
 def _venv_cmd_missing_error():
     cli.error(
-        "cannot find virtualenv\n"
-        "Try installing it with 'pip install virtualenv'.")
+        "cannot find virtualenv\n" "Try installing it with 'pip install virtualenv'."
+    )
+
 
 def _upgrade_pip(config):
     cmd_args = _pip_bin_args(config.env_dir) + ["install", "--upgrade", "pip"]
@@ -293,6 +312,7 @@ def _upgrade_pip(config):
         subprocess.check_output(cmd_args)
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
+
 
 def _install_guild(config):
     """Install Guild into env.
@@ -316,6 +336,7 @@ def _install_guild(config):
         else:
             _install_default_guild_dist(config)
 
+
 def _install_guild_dist(config):
     assert config.guild
     # If config.guild can be parsed as a version, use as
@@ -333,6 +354,7 @@ def _install_guild_dist(config):
     # to actually install Guild.
     _install_reqs([req], config, ignore_installed=True)
 
+
 def _guild_reqs_file():
     guild_location = pkg_resources.resource_filename("guild", "")
     guild_parent = os.path.dirname(guild_location)
@@ -347,14 +369,17 @@ def _guild_reqs_file():
                 return path
     return None
 
+
 def _install_guild_reqs(req_files, config):
     cli.out("Installing Guild requirements")
     _install_reqs([req_files], config)
+
 
 def _install_default_guild_dist(config):
     req = "guildai==%s" % guild.__version__
     cli.out("Installing Guild %s" % req)
     _install_reqs([req], config)
+
 
 def _pip_bin_args(env_dir):
     if util.PLATFORM == "Windows":
@@ -364,17 +389,16 @@ def _pip_bin_args(env_dir):
     assert os.path.exists(python_bin), python_bin
     return [python_bin, "-m", "pip"]
 
+
 def _pip_extra_opts(config):
     if config.no_progress:
         return ["--progress", "off"]
     else:
         return []
 
+
 def _install_reqs(reqs, config, ignore_installed=False):
-    cmd_args = (
-        _pip_bin_args(config.env_dir)
-        + ["install"]
-        + _pip_extra_opts(config))
+    cmd_args = _pip_bin_args(config.env_dir) + ["install"] + _pip_extra_opts(config)
     if ignore_installed:
         cmd_args.append("--ignore-installed")
     for req in reqs:
@@ -388,20 +412,24 @@ def _install_reqs(reqs, config, ignore_installed=False):
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
 
+
 def _is_requirements_file(path):
     if not os.path.isfile(path):
         return False
     return pip_util.is_requirements(path)
+
 
 def _install_guild_pkg_reqs(config):
     if config.guild_pkg_reqs:
         cli.out("Installing Guild package requirements")
         _install_reqs(config.guild_pkg_reqs, config)
 
+
 def _install_user_reqs(config):
     if config.user_reqs:
         cli.out("Installing Python requirements")
         _install_reqs(config.user_reqs, config)
+
 
 def _install_paths(config):
     if not config.paths:
@@ -409,6 +437,7 @@ def _install_paths(config):
     site_packages = _env_site_packages(config.env_dir)
     for path in config.paths:
         _write_path(path, site_packages)
+
 
 def _env_site_packages(env_dir):
     python_bin = os.path.join(env_dir, "bin", "python")
@@ -418,21 +447,25 @@ def _env_site_packages(env_dir):
     assert m, out
     return m.group(1)
 
+
 def _write_path(path, target_dir):
     path = os.path.abspath(path)
     with open(_pth_filename(target_dir, path), "w") as f:
         f.write(path)
+
 
 def _pth_filename(target_dir, path):
     digest = hashlib.md5(path).hexdigest()[:8]
     pth_name = "%s-%s.pth" % (os.path.basename(path), digest)
     return os.path.join(target_dir, pth_name)
 
+
 def _python_interpreter_for_arg(arg):
     if arg.startswith("python"):
         return arg
     # Assume arg is a version
     return "python{}".format(arg)
+
 
 def _suggest_python_interpreter(user_reqs):
     """Returns best guess Python interpreter.
@@ -444,10 +477,9 @@ def _suggest_python_interpreter(user_reqs):
     A Python spec can be provided in a requirements file using a
     special `python<spec>` comment. E.g. `python>=3.5`.
     """
-    python_requires = util.find_apply([
-        _python_requires_for_pkg,
-        lambda: _python_requires_for_reqs(user_reqs),
-    ])
+    python_requires = util.find_apply(
+        [_python_requires_for_pkg, lambda: _python_requires_for_reqs(user_reqs),]
+    )
     if not python_requires:
         return None
     matching = util.find_python_interpreter(python_requires)
@@ -456,11 +488,13 @@ def _suggest_python_interpreter(user_reqs):
         return "python%s" % ver
     return None
 
+
 def _python_requires_for_pkg():
     pkg_data = _guildfile_pkg_data()
     if not pkg_data:
         return None
     return pkg_data.get("python-requires")
+
 
 def _guildfile_pkg_data():
     src = guildfile.guildfile_path()
@@ -471,6 +505,7 @@ def _guildfile_pkg_data():
         if isinstance(top_level, dict) and "package" in top_level:
             return top_level
     return None
+
 
 def _python_requires_for_reqs(reqs):
     for req_file in reqs:
@@ -484,13 +519,16 @@ def _python_requires_for_reqs(reqs):
                 return m.groups(1)
     return None
 
+
 def _initialized_msg(config):
     cli.out(
         "Guild environment initialized in {}."
-        "\n".format(util.format_dir(config.env_dir)))
+        "\n".format(util.format_dir(config.env_dir))
+    )
     cli.out("To activate it " "run:\n")
     cli.out("  %s" % _source_cmd(config.env_dir))
     cli.out()
+
 
 def _source_cmd(env_dir):
     if os.path.exists(os.path.join(env_dir, "Scripts", "activate.bat")):
@@ -498,8 +536,10 @@ def _source_cmd(env_dir):
     else:
         return _default_source_cmd(env_dir)
 
+
 def _windows_activate_cmd(env_dir):
     return os.path.join(env_dir, "Scripts", "activate")
+
 
 def _default_source_cmd(env_dir):
     env_parent = os.path.dirname(env_dir)

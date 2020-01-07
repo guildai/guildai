@@ -20,19 +20,18 @@ import click
 from guild import click_util
 from . import remote_support
 
+
 @click.command("start")
 @remote_support.remote_arg
 @click.option("--reinit", is_flag=True, help="Reinitialize a started remote.")
 @click.option("-y", "--yes", is_flag=True, help="Start without prompting.")
-
 @click_util.use_args
-
 @click_util.render_doc
-
 def remote_start(args):
     """Start a remote.
 
     {{ remote_support.remote_arg }}
     """
     from . import remote_impl
+
     remote_impl.start(args)

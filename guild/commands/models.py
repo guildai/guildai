@@ -19,20 +19,26 @@ import click
 
 from guild import click_util
 
+
 @click.command()
 @click.argument("filters", metavar="[FILTER]...", required=False, nargs=-1)
 @click.option(
-    "-a", "--all", is_flag=True,
-    help="Show all models including those designated as private.")
+    "-a",
+    "--all",
+    is_flag=True,
+    help="Show all models including those designated as private.",
+)
 @click.option(
-    "-i", "--installed", is_flag=True,
+    "-i",
+    "--installed",
+    is_flag=True,
     help=(
         "Include operations installed from packages when running "
-        "command from a project directory."))
+        "command from a project directory."
+    ),
+)
 @click.option("-v", "--verbose", help="Show model details.", is_flag=True)
-
 @click_util.use_args
-
 def models(args):
     """Show available models.
 
@@ -50,4 +56,5 @@ def models(args):
 
     """
     from . import models_impl
+
     models_impl.main(args)

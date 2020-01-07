@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import warnings
+
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
     import imp
@@ -31,14 +32,16 @@ try:
     # pylint: disable=ungrouped-imports
     from ast import NameConstant
 except ImportError:
+
     class FakeType(object):
         pass
+
     NameConstant = FakeType
 
 log = logging.getLogger("guild")
 
-class Script(object):
 
+class Script(object):
     def __init__(self, src):
         self.src = src
         self.name = _script_name(src)
@@ -89,7 +92,8 @@ class Script(object):
         msg = "error applying AST node %s from %s:%s:" % (
             node.__class__.__name__,
             self.src,
-            node.lineno)
+            node.lineno,
+        )
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception(msg)
         else:
@@ -137,6 +141,7 @@ class Script(object):
                     continue
                 self._params[target.id] = val
 
+
 def _try_param_val(val):
     if isinstance(val, ast.Num):
         return val.n
@@ -153,8 +158,8 @@ def _try_param_val(val):
             return None
     raise TypeError(val)
 
-class Call(object):
 
+class Call(object):
     def __init__(self, node):
         self.node = node
         self.name = self._func_name(node.func)
@@ -180,19 +185,20 @@ class Call(object):
                     return None
         return None
 
+
 def _script_name(src):
     basename = os.path.basename(src)
     name, _ = os.path.splitext(basename)
     return name
 
-class Result(Exception):
 
+class Result(Exception):
     def __init__(self, value):
         super(Result, self).__init__(value)
         self.value = value
 
-class MethodWrapper(object):
 
+class MethodWrapper(object):
     @staticmethod
     def for_method(method):
         return getattr(method, "__wrapper__", None)
@@ -226,6 +232,7 @@ class MethodWrapper(object):
                 return wrapped_bound(*args, **kw)
             else:
                 return result
+
         return wrapper
 
     def _bind(self, wrapped_self):
@@ -245,6 +252,7 @@ class MethodWrapper(object):
     def unwrap(self):
         setattr(self._cls, self._name, self._func)
 
+
 def listen_method(cls, method_name, cb):
     method = getattr(cls, method_name)
     wrapper = MethodWrapper.for_method(method)
@@ -252,18 +260,20 @@ def listen_method(cls, method_name, cb):
         wrapper = MethodWrapper(method, cls, method_name)
     wrapper.add_cb(cb)
 
+
 def remove_method_listener(method, cb):
     wrapper = MethodWrapper.for_method(method)
     if wrapper is not None:
         wrapper.remove_cb(cb)
+
 
 def remove_method_listeners(method):
     wrapper = MethodWrapper.for_method(method)
     if wrapper is not None:
         wrapper.unwrap()
 
-class FunctionWrapper(object):
 
+class FunctionWrapper(object):
     @staticmethod
     def for_function(function):
         return getattr(function, "__wrapper__", None)
@@ -296,6 +306,7 @@ class FunctionWrapper(object):
                 return self._func(*args, **kw)
             else:
                 return result
+
         return wrapper
 
     def add_cb(self, cb):
@@ -312,6 +323,7 @@ class FunctionWrapper(object):
     def unwrap(self):
         setattr(self._mod, self._name, self._func)
 
+
 def listen_function(module, function_name, cb):
     function = getattr(module, function_name)
     wrapper = FunctionWrapper.for_function(function)
@@ -319,25 +331,30 @@ def listen_function(module, function_name, cb):
         wrapper = FunctionWrapper(function, module, function_name)
     wrapper.add_cb(cb)
 
+
 def remove_function_listener(function, cb):
     wrapper = FunctionWrapper.for_function(function)
     if wrapper is not None:
         wrapper.remove_cb(cb)
+
 
 def remove_function_listeners(function):
     wrapper = FunctionWrapper.for_function(function)
     if wrapper is not None:
         wrapper.unwrap()
 
+
 def scripts_for_dir(dir, exclude=None):
     import glob
     import fnmatch
+
     exclude = [] if exclude is None else exclude
     return [
         Script(src)
         for src in glob.glob(os.path.join(dir, "*.py"))
         if not any((fnmatch.fnmatch(src, pattern) for pattern in exclude))
     ]
+
 
 def exec_script(filename, globals, mod_name="__main__"):
     """Execute a Python script.
@@ -358,12 +375,12 @@ def exec_script(filename, globals, mod_name="__main__"):
     if mod_name != "__main__":
         # Ensure parent modules loaded for relative imports.
         _ensure_parent_mod_loaded(mod_name)
-    script_globals.update({
-        "__name__": mod_name,
-        "__file__": filename,
-    })
+    script_globals.update(
+        {"__name__": mod_name, "__file__": filename,}
+    )
     exec(code, script_globals)
     return script_globals
+
 
 def _ensure_parent_mod_loaded(mod_name):
     parts = mod_name.rsplit(".", 1)
@@ -371,38 +388,38 @@ def _ensure_parent_mod_loaded(mod_name):
         parent_mod_name = parts[0]
         __import__(parent_mod_name)
 
+
 def _node_filter(globals):
     names = globals.keys()
+
     def f(node):
         if isinstance(node, ast.Assign):
             return not any(
-                t.id in names
-                for t in node.targets
-                if isinstance(t, ast.Name))
+                t.id in names for t in node.targets if isinstance(t, ast.Name)
+            )
         elif isinstance(node, ast.FunctionDef):
             return node.name not in names
         return True
+
     return f
+
 
 def _compile_script(src, filename, node_filter):
     import __future__
+
     ast_root = ast.parse(src, filename)
     filtered_ast_root = _filter_nodes(ast_root, node_filter)
     flags = __future__.absolute_import.compiler_flag
-    return compile(
-        filtered_ast_root,
-        filename,
-        "exec",
-        flags=flags,
-        dont_inherit=True)
+    return compile(filtered_ast_root, filename, "exec", flags=flags, dont_inherit=True)
+
 
 def _filter_nodes(root, node_filter):
     if isinstance(root, (ast.Module, ast.If)):
         root.body = [
-            _filter_nodes(node, node_filter)
-            for node in root.body
-            if node_filter(node)]
+            _filter_nodes(node, node_filter) for node in root.body if node_filter(node)
+        ]
     return root
+
 
 def update_refs(module, ref_spec, new_val, recurse=False, seen=None):
     seen = seen or set()
@@ -415,30 +432,38 @@ def update_refs(module, ref_spec, new_val, recurse=False, seen=None):
         elif recurse and isinstance(val, types.ModuleType):
             update_refs(val, ref_spec, new_val, recurse, seen)
 
+
 def _match_ref(name, val, ref_spec):
     target_name, target_type, target_attrs = ref_spec
     return (
-        name == target_name and
-        isinstance(val, target_type) and
-        _match_ref_attrs(val, target_attrs))
+        name == target_name
+        and isinstance(val, target_type)
+        and _match_ref_attrs(val, target_attrs)
+    )
+
 
 def _match_ref_attrs(val, attrs):
     undef = object()
     return all((getattr(val, name, undef) == attrs[name] for name in attrs))
 
+
 def is_python_script(opspec):
     return os.path.isfile(opspec) and opspec[-3:] == ".py"
+
 
 def script_module(script_path, cwd="."):
     mod_path = os.path.splitext(script_path)[0]
     return os.path.relpath(mod_path, cwd)
+
 
 def safe_module_name(s):
     if s.lower().endswith(".py"):
         s = s[:-3]
     return re.sub("-", "_", s)
 
+
 __modules = {}
+
 
 def find_module(main_mod, model_paths):
     cache_key = (main_mod, tuple(model_paths))
@@ -447,6 +472,7 @@ def find_module(main_mod, model_paths):
     except KeyError:
         __modules[cache_key] = result = _find_module(main_mod, model_paths)
         return result
+
 
 def _find_module(main_mod, model_paths):
     for model_path in model_paths:
@@ -468,6 +494,7 @@ def _find_module(main_mod, model_paths):
                 if os.path.isfile(found_path) and found_path.endswith(".py"):
                     return main_mod_sys_path, found_path
     raise ImportError("No module named %s" % main_mod)
+
 
 def _split_module(main_mod, gf_dir):
     parts = main_mod.rsplit("/", 1)

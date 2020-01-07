@@ -22,30 +22,33 @@ from guild import click_util
 from . import remote_support
 from . import runs_support
 
+
 def label_params(fn):
-    click_util.append_params(fn, [
-        runs_support.runs_arg,
-        click.Argument(("label",), required=False),
-        runs_support.all_filters,
-        click.Option(
-            ("-c", "--clear"),
-            help="Clear the run's label.",
-            is_flag=True),
-        remote_support.remote_option("Label remote runs."),
-        click.Option(
-            ("-y", "--yes"),
-            help="Do not prompt before modifying labels.",
-            is_flag=True),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            runs_support.runs_arg,
+            click.Argument(("label",), required=False),
+            runs_support.all_filters,
+            click.Option(
+                ("-c", "--clear"), help="Clear the run's label.", is_flag=True
+            ),
+            remote_support.remote_option("Label remote runs."),
+            click.Option(
+                ("-y", "--yes"),
+                help="Do not prompt before modifying labels.",
+                is_flag=True,
+            ),
+        ],
+    )
     return fn
+
 
 @click.command("label")
 @label_params
-
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
-
 def label_runs(ctx, args):
     """Set run labels.
 
@@ -76,4 +79,5 @@ def label_runs(ctx, args):
 
     """
     from . import runs_impl
+
     runs_impl.label(args, ctx)

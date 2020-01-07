@@ -16,6 +16,7 @@
 # colliding with symbols in the imported module.
 
 import warnings as ___warnings
+
 with ___warnings.catch_warnings():
     ___warnings.filterwarnings('ignore', category=DeprecationWarning)
     import imp as ___imp
@@ -36,13 +37,16 @@ ___action_types = (
     ___argparse._StoreFalseAction,
 )
 
+
 def ___init_log():
     level = int(___os.getenv("LOG_LEVEL", ___logging.WARN))
     format = ___os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
     ___logging.basicConfig(level=level, format=format)
     return ___logging.getLogger("import_flags_main")
 
+
 ___log = ___init_log()
+
 
 def ___main():
     args = ___init_args()
@@ -51,29 +55,32 @@ def ___main():
     # patched argparse
     ___exec_module(args.mod_path)
 
+
 def ___init_args():
     p = ___argparse.ArgumentParser()
     p.add_argument("mod_path")
     p.add_argument("output_path")
     return p.parse_args()
 
+
 def ___patch_argparse(output_path):
     ___python_util.listen_method(
-        ___argparse.ArgumentParser,
-        "add_argument", ___handle_add_argument)
+        ___argparse.ArgumentParser, "add_argument", ___handle_add_argument
+    )
     ___handle_parse = lambda *args, **kw: ___write_flags_and_exit(output_path)
     # parse_known_args is called by parse_args, so this handled both
     # cases.
     ___python_util.listen_method(
-        ___argparse.ArgumentParser,
-        "parse_known_args",
-        ___handle_parse)
+        ___argparse.ArgumentParser, "parse_known_args", ___handle_parse
+    )
+
 
 def ___handle_add_argument(add_argument, *args, **kw):
     ___log.debug("handling add_argument: %s %s", args, kw)
     action = add_argument(*args, **kw)
     ___maybe_flag(action)
     raise ___python_util.Result(action)
+
 
 def ___maybe_flag(action):
     flag_name = ___flag_name(action)
@@ -98,16 +105,19 @@ def ___maybe_flag(action):
         attrs["arg-switch"] = False
     ___log.debug("added flag %s", attrs)
 
+
 def ___flag_name(action):
     for opt in action.option_strings:
         if opt.startswith("--"):
             return opt[2:]
     return None
 
+
 def ___write_flags_and_exit(output_path):
     ___log.debug("writing flags to %s: %s", output_path, ___FLAGS)
     with open(output_path, "w") as f:
         ___json.dump(___FLAGS, f)
+
 
 def ___exec_module(mod_path):
     assert mod_path.endswith(".py")
@@ -119,6 +129,7 @@ def ___exec_module(mod_path):
         ___imp.load_module("__main__", f, mod_path, details)
     except Exception as e:
         raise SystemExit(e)
+
 
 if __name__ == "__main__":
     ___main()

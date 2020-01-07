@@ -26,50 +26,57 @@ from guild import util
 DEFAULT_LOG_MAX_SIZE = 102400
 DEFAULT_LOG_BACKUPS = 1
 
+
 class ServiceError(Exception):
     pass
 
-class Running(ServiceError):
 
+class Running(ServiceError):
     def __init__(self, name, pidfile):
         super(Running, self).__init__(name, pidfile)
         self.name = name
         self.pidfile = pidfile
 
-class NotRunning(ServiceError):
 
+class NotRunning(ServiceError):
     def __init__(self, name):
         super(NotRunning, self).__init__(name)
         self.name = name
 
-class PidfileError(ServiceError):
 
+class PidfileError(ServiceError):
     def __init__(self, pidfile, error):
         super(PidfileError, self).__init__(pidfile, error)
         self.pidfile = pidfile
         self.error = error
 
-class OrphanedProcess(ServiceError):
 
+class OrphanedProcess(ServiceError):
     def __init__(self, pid, pidfile):
         super(OrphanedProcess, self).__init__(pid, pidfile)
         self.pid = pid
         self.pidfile = pidfile
 
-class Status(object):
 
+class Status(object):
     def __init__(self, running, pid=None):
         self.running = running
         self.pid = pid
 
-def start(name, f, foreground,
-          log_max_size=DEFAULT_LOG_MAX_SIZE,
-          log_backups=DEFAULT_LOG_BACKUPS):
+
+def start(
+    name,
+    f,
+    foreground,
+    log_max_size=DEFAULT_LOG_MAX_SIZE,
+    log_backups=DEFAULT_LOG_BACKUPS,
+):
     log = _init_log(name, log_max_size, log_backups, foreground)
     if foreground:
         _run(f, log)
     else:
         _start(name, f, log)
+
 
 def _init_log(name, max_size, backups, foreground):
     if foreground:
@@ -78,16 +85,16 @@ def _init_log(name, max_size, backups, foreground):
         logfile = var.logfile(name)
         util.ensure_dir(os.path.dirname(logfile))
         handler = logging.handlers.RotatingFileHandler(
-            logfile,
-            maxBytes=max_size,
-            backupCount=backups)
-    handler.setFormatter(logging.Formatter(
-        "%(asctime)s %(message)s",
-        "%Y-%m-%d %H:%M:%S"))
+            logfile, maxBytes=max_size, backupCount=backups
+        )
+    handler.setFormatter(
+        logging.Formatter("%(asctime)s %(message)s", "%Y-%m-%d %H:%M:%S")
+    )
     log = logging.getLogger("guild." + name)
     log.propagate = False
     log.addHandler(handler)
     return log
+
 
 def _run(f, log, log_level=None):
     # When daemonized, log.level is 10 for some reason - reset to
@@ -99,8 +106,10 @@ def _run(f, log, log_level=None):
     except:
         log.exception("service callback")
 
+
 def _start(name, f, log):
     import daemonize
+
     pidfile = var.pidfile(name)
     if os.path.exists(pidfile):
         raise Running(name, pidfile)
@@ -112,11 +121,14 @@ def _start(name, f, log):
         app=name,
         action=lambda: _run(f, log, log_level),
         pid=pidfile,
-        keep_fds=_log_fds(log))
+        keep_fds=_log_fds(log),
+    )
     daemon.start()
+
 
 def _log_fds(log):
     return [h.stream.fileno() for h in log.handlers if hasattr(h, "stream")]
+
 
 def stop(name, title=None):
     log = logging.getLogger("guild")
@@ -129,9 +141,7 @@ def stop(name, title=None):
     except Exception:
         if log.getEffectiveLevel() <= logging.DEBUG:
             log.exception("reading %s", pidfile)
-        log.info(
-            "%s has an invalid pidfile (%s) - deleting",
-            title, pidfile)
+        log.info("%s has an invalid pidfile (%s) - deleting", title, pidfile)
         util.ensure_deleted(pidfile)
     else:
         try:
@@ -142,6 +152,7 @@ def stop(name, title=None):
         else:
             log.info("Stopping %s (pid %i)", title, proc.pid)
             proc.terminate()
+
 
 def status(name):
     pidfile = var.pidfile(name)
@@ -159,6 +170,7 @@ def status(name):
                 return Status(proc.is_running(), pid)
     else:
         return Status(False)
+
 
 def _read_pid(pidfile):
     raw = open(pidfile, "r").read()

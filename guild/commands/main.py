@@ -69,34 +69,39 @@ except KeyError:
 
 DEFAULT_GUILD_HOME = os.path.join(_home, ".guild")
 
+
 @click.group(cls=click_util.Group)
 @click.version_option(
-    version=guild_version(),
-    prog_name="guild",
-    message="%(prog)s %(version)s"
+    version=guild_version(), prog_name="guild", message="%(prog)s %(version)s"
 )
 @click.option(
-    "-C", "cwd", metavar="PATH",
-    help=(
-        "Use PATH as current directory for referencing guild "
-        "files (guild.yml)."),
-    default=".")
+    "-C",
+    "cwd",
+    metavar="PATH",
+    help=("Use PATH as current directory for referencing guild " "files (guild.yml)."),
+    default=".",
+)
 @click.option(
-    "-H", "guild_home", metavar="PATH",
+    "-H",
+    "guild_home",
+    metavar="PATH",
     help="Use PATH as Guild home (default is {}).".format(DEFAULT_GUILD_HOME),
     default=DEFAULT_GUILD_HOME,
-    envvar="GUILD_HOME")
+    envvar="GUILD_HOME",
+)
 @click.option(
-    "--debug", "log_level",
+    "--debug",
+    "log_level",
     help="Log more information during command.",
-    flag_value=logging.DEBUG)
-
+    flag_value=logging.DEBUG,
+)
 @click_util.use_args
-
 def main(args):
     """Guild AI command line interface."""
     from . import main_impl
+
     main_impl.main(args)
+
 
 main.add_command(cat)
 main.add_command(check)

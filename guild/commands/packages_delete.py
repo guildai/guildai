@@ -19,25 +19,30 @@ import click
 
 from guild import click_util
 
+
 def delete_params(fn):
-    click_util.append_params(fn, [
-        click.Argument(
-            ("packages",), metavar="PACKAGE...",
-            nargs=-1, required=True),
-        click.Option(
-            ("-y", "--yes",),
-            help="Do not prompt before uninstalling.",
-            is_flag=True),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            click.Argument(
+                ("packages",), metavar="PACKAGE...", nargs=-1, required=True
+            ),
+            click.Option(
+                ("-y", "--yes",),
+                help="Do not prompt before uninstalling.",
+                is_flag=True,
+            ),
+        ],
+    )
     return fn
+
 
 @click.command("delete, rm")
 @delete_params
-
 @click_util.use_args
-
 def delete_packages(args):
     """Uninstall one or more packages.
     """
     from . import packages_impl
+
     packages_impl.uninstall_packages(args)

@@ -22,21 +22,19 @@ from guild import click_util
 from . import runs_support
 from . import server_support
 
+
 @click.command(name="view")
 @runs_support.runs_arg
 @server_support.host_and_port_options
 @click.option(
-    "-n", "--no-open",
-    help="Don't open Guild View in a browser.",
-    is_flag=True)
+    "-n", "--no-open", help="Don't open Guild View in a browser.", is_flag=True
+)
 @click.option("--logging", help="Log requests.", is_flag=True)
 @runs_support.all_filters
 @click.option("--dev", is_flag=True, hidden=True)
 @click.option("--test", is_flag=True, hidden=True)
-
 @click_util.use_args
 @click_util.render_doc
-
 def view(args):
     """Visualize runs in a local web application.
 
@@ -62,4 +60,5 @@ def view(args):
 
     """
     from . import view_impl
+
     view_impl.main(args)

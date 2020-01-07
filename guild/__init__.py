@@ -25,6 +25,7 @@ __pkgdir__ = os.path.dirname(os.path.dirname(__file__))
 __git_commit__ = None
 __git_status__ = None
 
+
 def _try_init_git_attrs():
     try:
         _init_git_commit()
@@ -36,6 +37,7 @@ def _try_init_git_attrs():
         except (OSError, subprocess.CalledProcessError):
             pass
 
+
 def _init_git_commit():
     repo = _guild_repo()
     if repo:
@@ -45,11 +47,13 @@ def _init_git_commit():
         commit = None
     globals()["__git_commit__"] = commit
 
+
 def _guild_repo():
     repo = os.path.dirname(os.path.dirname(__file__))
     if os.path.isdir(os.path.join(repo, ".git")):
         return repo
     return None
+
 
 def _init_git_status():
     repo = _guild_repo()
@@ -59,18 +63,19 @@ def _init_git_status():
         raw = None
     globals()["__git_status__"] = raw.split("\n") if raw else []
 
+
 def _cmd_out(cmd):
     null = open(os.devnull, "w")
     out = subprocess.check_output(cmd, stderr=null, shell=True)
     return out.decode("utf-8").strip()
 
+
 def version():
     if __git_commit__:
         workspace_changed_marker = "*" if __git_status__ else ""
-        return "%s (dev %s%s)" % (
-            __version__, __git_commit__,
-            workspace_changed_marker)
+        return "%s (dev %s%s)" % (__version__, __git_commit__, workspace_changed_marker)
     else:
         return __version__
+
 
 _try_init_git_attrs()

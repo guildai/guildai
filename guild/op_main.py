@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import warnings
+
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
     import imp
@@ -33,12 +34,12 @@ from guild import log as loglib
 from guild import op_util
 from guild import util
 
-log = None # initialized in _init_logging
+log = None  # initialized in _init_logging
 
 __argv0 = sys.argv
 
-class Debugger(pdb.Pdb):
 
+class Debugger(pdb.Pdb):
     def __init__(self):
         pdb.Pdb.__init__(self)
         # Setting skip to True violates the Pdb interface, which is to
@@ -50,15 +51,18 @@ class Debugger(pdb.Pdb):
     def is_skipped_module(self, module_name):
         return module_name != "__main__"
 
+
 def main():
     if os.getenv("PROFILE"):
         _profile_main()
     else:
         _main()
 
+
 def _profile_main():
     import cProfile
     import tempfile
+
     p = cProfile.Profile()
     sys.stderr.write("Profiling operation\n")
     p.enable()
@@ -70,8 +74,9 @@ def _profile_main():
         sys.stderr.write("Writing guild.op_main profile stats to %s\n" % tmp)
         p.dump_stats(tmp)
         sys.stderr.write(
-            "Use 'python -m pstats %s' or 'snakeviz %s' "
-            "to view stats\n" % (tmp, tmp))
+            "Use 'python -m pstats %s' or 'snakeviz %s' " "to view stats\n" % (tmp, tmp)
+        )
+
 
 def _main():
     _init_sys_path()
@@ -83,18 +88,19 @@ def _main():
     _apply_plugins()
     _try_module(arg1, rest_args)
 
+
 def _init_sys_path():
     if os.getenv("SCRIPT_DIR") is not None:
         sys.path[0] = os.getenv("SCRIPT_DIR")
 
+
 def _init_logging():
     if os.getenv("LOG_INIT_SKIP") != "1":
         level = int(os.getenv("LOG_LEVEL", logging.WARN))
-        format = os.getenv(
-            "LOG_FORMAT",
-            "%(levelname)s: [%(name)s] %(message)s")
+        format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
         loglib.init_logging(level, {"_": format})
     globals()["log"] = logging.getLogger("guild")
+
 
 def _init_warnings():
     if log.getEffectiveLevel() > logging.DEBUG:
@@ -102,10 +108,12 @@ def _init_warnings():
         warnings.filterwarnings("ignore", message="numpy.dtype size changed")
         warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
+
 def _parse_args():
     if len(sys.argv) < 2:
         _internal_error("missing required arg\n")
     return sys.argv[1], sys.argv[2:]
+
 
 def _apply_plugins():
     plugins = os.getenv("GUILD_PLUGINS")
@@ -113,14 +121,18 @@ def _apply_plugins():
         for name in plugins.split(","):
             _apply_plugin(name)
 
+
 def _apply_plugin(name):
     plugin = _plugin_for_name(name)
     log.debug("patching env with plugin %r", name)
     plugin.patch_env()
 
+
 def _plugin_for_name(name):
-    from guild import plugin # expensive
+    from guild import plugin  # expensive
+
     return plugin.for_name(name)
+
 
 def _try_module(arg1, args):
     module_spec = arg1.replace(os.path.sep, "/")
@@ -137,6 +149,7 @@ def _try_module(arg1, args):
     else:
         _dispatch_module_exec(_flags_dest(args), module_info)
 
+
 def _parse_module_spec(spec):
     parts = spec.rsplit("/", 1)
     if len(parts) == 2:
@@ -144,12 +157,14 @@ def _parse_module_spec(spec):
     else:
         return None, parts[0]
 
+
 def _try_resolve_package_path(package_path):
     for path in sys.path:
         maybe_resolved = os.path.join(path, package_path)
         if os.path.exists(maybe_resolved):
             return maybe_resolved
     return package_path
+
 
 def _find_module(module):
     """Find module using imp.find_module.
@@ -180,6 +195,7 @@ def _find_module(module):
             pass
     raise ImportError("No module named %s" % module)
 
+
 def _flags_dest(args):
     dest = os.getenv("FLAGS_DEST", "args")
     if dest == "args":
@@ -191,24 +207,29 @@ def _flags_dest(args):
     else:
         _error("unsupported flags dest: %s" % dest)
 
+
 def _args_dest(args):
     # Strip last occurring `--` from args
     flag_args, base_args = op_util.split_args_for_flags(args)
     return "args", base_args + flag_args, {}
 
+
 def _globals_dest(args):
     base_args, flags = _split_args_and_flags(args)
     return "globals", base_args, flags
 
+
 def _split_args_and_flags(args):
     flags, other_args = op_util.args_to_flags(args)
     return other_args, flags
+
 
 def _global_dest(args, global_name):
     base_args, flags = _split_args_and_flags(args)
     flags = util.nested_config(flags)
     global_dest = op_util.global_dest(global_name, flags)
     return "globals", base_args, global_dest
+
 
 def _dispatch_module_exec(flags_interface, module_info):
     _maybe_test_internal_error()
@@ -220,23 +241,28 @@ def _dispatch_module_exec(flags_interface, module_info):
     else:
         assert False, flags_interface
 
+
 def _maybe_test_internal_error():
     # Simulate an internal error by checking env for a special
     # variable. This is used by Guild tests to verify internal error
     # handling.
     assert os.getenv("__GUILD_OP_MAIN_INTERNAL_ERROR") != "1"
 
+
 def _exec_module_with_args(module_info, args):
     _set_argv_for_module_with_args(module_info, args)
     _module_main(module_info)
+
 
 def _set_argv_for_module_with_args(module_info, args):
     _, path, _ = module_info
     sys.argv = [path] + args
     log.debug("argv: %s", sys.argv)
 
+
 def _module_main(module_info):
     f, path, desc = module_info
+
     def main():
         if os.getenv("PYTHONWRITEBYTECODE") != "1":
             sys.dont_write_bytecode = True
@@ -258,13 +284,13 @@ def _module_main(module_info):
                 try:
                     module_main = getattr(module, main_function)
                 except AttributeError:
-                    log.error(
-                        "function %s not defined in %s",
-                        main_function, load_as)
+                    log.error("function %s not defined in %s", main_function, load_as)
                     sys.exit(1)
                 else:
                     module_main()
+
     _gen_exec(module_info, main)
+
 
 def _env_module_name_and_function():
     """Returns a tuple of module name and main function name for env.
@@ -282,9 +308,11 @@ def _env_module_name_and_function():
     if len(parts) != 2 or not parts[0] or not parts[1]:
         log.error(
             "invalid MAIN_FUNCTION '%s' - must be in form MODULE:FUNCTION",
-            main_function_spec)
+            main_function_spec,
+        )
         sys.exit(1)
     return parts
+
 
 def _gen_exec(module_info, exec_cb):
     f, path, desc = module_info
@@ -303,6 +331,7 @@ def _gen_exec(module_info, exec_cb):
                 raise
             handle_interrupt()
 
+
 def _interrupt_handler():
     """Returns interrupt handler that's independent of module namespace."""
     if os.getenv("HANDLE_KEYBOARD_INTERRUPT"):
@@ -310,41 +339,48 @@ def _interrupt_handler():
     # Save everything we need to handle interrupt.
     log_exception = log.getEffectiveLevel() <= logging.DEBUG
     log_exception_f = log.exception
+
     def handler():
         if log_exception:
             log_exception_f("interrupted")
+
     return handler
+
 
 def _exec_module_with_globals(module_info, globals, args):
     _set_argv_for_module_with_args(module_info, args)
     _module_with_globals(module_info, globals)
 
+
 def _module_with_globals(module_info, globals):
     from guild import python_util
+
     _f, path, _desc = module_info
+
     def exec_script():
         mod_name, main_function = _env_module_name_and_function()
-        script_globals = python_util.exec_script(
-            path, globals, mod_name=mod_name)
+        script_globals = python_util.exec_script(path, globals, mod_name=mod_name)
         if main_function:
             try:
                 module_main = script_globals[main_function]
             except KeyError:
-                log.error(
-                    "function %s not defined in %s",
-                    main_function, mod_name)
+                log.error("function %s not defined in %s", main_function, mod_name)
                 sys.exit(1)
             else:
                 module_main()
+
     _gen_exec(module_info, exec_script)
+
 
 def _internal_error(msg):
     sys.stderr.write("guild.op_main: %s\n" % msg)
     sys.exit(exit_code.INTERNAL_ERROR)
 
+
 def _error(msg):
     sys.stderr.write("guild: %s\n" % msg)
     sys.exit(exit_code.DEFAULT)
+
 
 if __name__ == "__main__":
     try:

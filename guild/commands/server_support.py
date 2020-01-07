@@ -19,14 +19,22 @@ import click
 
 from guild import click_util
 
+
 def host_and_port_options(fn):
-    click_util.append_params(fn, [
-        click.Option(
-            ("-h", "--host",), metavar="HOST",
-            help="Name of host interface to listen on."),
-        click.Option(
-            ("-p", "--port",), metavar="PORT",
-            help="Port to listen on.",
-            type=click.IntRange(0, 65535)),
-    ])
+    click_util.append_params(
+        fn,
+        [
+            click.Option(
+                ("-h", "--host",),
+                metavar="HOST",
+                help="Name of host interface to listen on.",
+            ),
+            click.Option(
+                ("-p", "--port",),
+                metavar="PORT",
+                help="Port to listen on.",
+                type=click.IntRange(0, 65535),
+            ),
+        ],
+    )
     return fn
