@@ -85,28 +85,5 @@ commit-check:
 README.html: README.md
 	markdown_py README.md > README.html
 
-OP2-check:
-	OP2=1 guild check -nT \
-	-s batch-basics \
-	-s batch-grid-search \
-	-s batch-implied-random \
-	-s batch-needed \
-	-s batch-print-cmd \
-	-s batch-random-optimizer \
-	-s batch-random-seeds \
-	-s batch-restart \
-	-s batch-save-trials \
-	-s batch-skopt \
-	-s batch-skopt2 \
-	-s copy-sourcecode-warnings \
-	-s cross-package-inheritance \
-	-s dependencies-2 \
-	-s marked-runs \
-	-s needed \
-	-s restart-runs \
-	-s run-files \
-	-s run-labels \
-	-s skopt \
-	-s sourcecode-digest \
-	-s step-checks \
-	-s steps
+black:
+	black guild
