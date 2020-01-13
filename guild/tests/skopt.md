@@ -187,10 +187,10 @@ random trials.
     INFO: [guild] Random start for optimization (2 of 2)
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=...)
     ... 2 ...
-    INFO: [guild] Random start for optimization (missing previous trials)
+    INFO: [guild] Random start for optimization (cannot find objective 'no_such_scalar')
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=...)
     ... 2 ...
-    INFO: [guild] Random start for optimization (missing previous trials)
+    INFO: [guild] Random start for optimization (cannot find objective 'no_such_scalar')
     INFO: [guild] Running trial ...: echo (x=..., y=2, z=...)
     ... 2 ...
 

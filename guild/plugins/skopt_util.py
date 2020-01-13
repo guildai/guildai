@@ -219,21 +219,28 @@ def _run_seq_trials(batch_run, suggest_x_cb):
     names, dims, initial_x = _flag_dims_for_search(proto_flag_vals)
     random_state = batch_run.get("random_seed")
     random_starts = min(batch_flag_vals.get("random-starts") or 0, max_trials)
-    objective_scalar, objective_negate = _objective_y_info(batch_run)
-    runs = 0
+    objective_spec, objective_scalar, objective_negate = _objective_y_info(batch_run)
+    runs_count = 0
     for _ in range(max_trials):
         prev_trials = batch_util.trial_results(batch_run, [objective_scalar])
         x0, y0 = _trials_xy_for_prev_trials(prev_trials, names, objective_negate)
-        suggest_random_start = _suggest_random_start(x0, runs, random_starts)
-        _log_seq_trial(suggest_random_start, random_starts, runs, prev_trials)
+        suggest_random_start = _suggest_random_start(x0, runs_count, random_starts)
+        _log_seq_trial(
+            suggest_random_start,
+            random_starts,
+            runs_count,
+            x0,
+            prev_trials,
+            objective_spec,
+        )
         suggested_x, random_state = _suggest_x(
             suggest_x_cb, dims, x0, y0, suggest_random_start, random_state, suggest_opts
         )
-        if runs == 0 and suggested_x:
+        if runs_count == 0 and suggested_x:
             _apply_initial_x(initial_x, suggested_x)
         trial_flag_vals = _trial_flags_for_x(suggested_x, names, proto_flag_vals)
         batch_util.run_trial(batch_run, trial_flag_vals)
-        runs += 1
+        runs_count += 1
 
 
 def _flag_dims_for_search(proto_flag_vals):
@@ -244,23 +251,25 @@ def _flag_dims_for_search(proto_flag_vals):
 
 
 def _objective_y_info(batch_run):
-    objective = batch_run.get("objective") or DEFAULT_OBJECTIVE
-    if objective[0] == "-":
-        objective = objective[1:]
+    objective_spec = batch_run.get("objective") or DEFAULT_OBJECTIVE
+    if objective_spec[0] == "-":
+        objective_spec = objective_spec[1:]
         y_negate = -1
     else:
         y_negate = 1
     try:
-        colspec = qparse.parse_colspec(objective)
+        colspec = qparse.parse_colspec(objective_spec)
     except qparse.ParseError as e:
-        raise InvalidObjective("invalid objective %r: %s" % (objective, e))
+        raise InvalidObjective("invalid objective %r: %s" % (objective_spec, e))
     else:
         if len(colspec.cols) > 1:
-            raise InvalidObjective("invalid objective %r: too many columns" % objective)
+            raise InvalidObjective(
+                "invalid objective %r: too many columns" % objective_spec
+            )
         col = colspec.cols[0]
         prefix, key = col.split_key()
         y_scalar_col = (prefix, key, col.qualifier)
-        return y_scalar_col, y_negate
+        return objective_spec, y_scalar_col, y_negate
 
 
 def _trials_xy_for_prev_trials(prev_trials, names, objective_negate):
@@ -283,17 +292,34 @@ def _suggest_random_start(x0, runs_count, wanted_random_starts):
     return x0 is None or runs_count < wanted_random_starts
 
 
-def _log_seq_trial(suggest_random_start, random_starts, runs, prev_trials):
+def _log_seq_trial(
+    suggest_random_start, random_starts, runs_count, x0, prev_trials, objective
+):
+    """Logs whether trial is random or based on previous trials.
+
+    suggest_random_start is the authoritative flag that indicates
+    whether or not a random trial is used. The remaining args are used
+    to infer the explanation.
+
+    """
     if suggest_random_start:
-        assert random_starts != 0
-        if runs < random_starts:
-            log.info(
-                "Random start for optimization (%s of %s)", runs + 1, random_starts
-            )
-        else:
-            log.info("Random start for optimization (missing previous trials)")
+        explanation = _random_start_explanation(
+            random_starts, runs_count, x0, prev_trials, objective
+        )
+        log.info("Random start for optimization (%s)", explanation)
     else:
         log.info("Found %i previous trial(s) for use in optimization", len(prev_trials))
+
+
+def _random_start_explanation(random_starts, runs_count, x0, prev_trials, objective):
+    if runs_count < random_starts:
+        return "%s of %s" % (runs_count + 1, random_starts)
+    elif not prev_trials:
+        return "missing previous trials"
+    elif not x0:
+        return "cannot find objective '%s'" % objective
+    else:
+        assert False, (random_starts, runs_count, x0, prev_trials, objective)
 
 
 def _suggest_x(
