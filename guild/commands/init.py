@@ -93,7 +93,9 @@ def init(args):
     `init` initializes a Guild environment in `DIR`, which is the
     current directory by default.
 
-    `init` creates a virtual environment in `DIR` using `virtualenv`.
+    `init` creates a virtual environment in `DIR` using the `venv`
+    module if available or the `virtualenv` program if `venv` is not
+    available.
 
     Use `--python` to specify the Python interpreter to use within the
     generated virtual environment. By default, the default Python
@@ -124,7 +126,7 @@ def init(args):
     not automatically install packages in `requirements.txt` -- that
     file must be specified explicitly in the command.
 
-    ### Guild AI
+    ### Guild AI Version
 
     By default `init` installs the active version of Guild AI in the
     initialized environment. To install a different version, or to
