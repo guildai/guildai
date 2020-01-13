@@ -59,7 +59,7 @@ confidence=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-disable=missing-docstring,redefined-builtin,global-statement,invalid-name,superfluous-parens,too-few-public-methods,locally-disabled,too-many-arguments,cyclic-import,unnecessary-lambda,too-many-instance-attributes,duplicate-code,no-init,redefined-outer-name,broad-except,bad-continuation,fixme,bare-except,exec-used,no-else-return,len-as-condition,wrong-import-order,protected-access,too-many-ancestors,too-many-return-statements,no-member,too-many-branches,redefined-variable-type,too-many-locals,bad-builtin,wrong-import-position,inconsistent-return-statements,too-many-function-args,too-many-lines,file-ignored,c-extension-no-member,too-many-statements,too-many-public-methods
+disable=missing-docstring,redefined-builtin,global-statement,invalid-name,superfluous-parens,too-few-public-methods,locally-disabled,too-many-arguments,cyclic-import,unnecessary-lambda,too-many-instance-attributes,duplicate-code,no-init,redefined-outer-name,broad-except,bad-continuation,fixme,bare-except,exec-used,no-else-return,len-as-condition,wrong-import-order,protected-access,too-many-ancestors,too-many-return-statements,no-member,too-many-branches,redefined-variable-type,too-many-locals,bad-builtin,wrong-import-position,inconsistent-return-statements,too-many-function-args,too-many-lines,file-ignored,c-extension-no-member,too-many-statements,too-many-public-methods,keyword-arg-before-vararg
 
 [REPORTS]
 

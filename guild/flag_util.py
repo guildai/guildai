@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
 import os
 import re
 import yaml
@@ -23,10 +24,13 @@ import six
 
 from guild import util
 
+log = logging.getLogger("guild")
+
 FUNCTION_P = re.compile(r"([a-zA-Z0-9_\-\.]*)\[(.*)\]\s*$")
 LIST_CONCAT_P = re.compile(r"(\[.*\])\s*\*\s*([0-9]+)$")
 SCIENTIFIC_NOTATION_RUN_ID_P = re.compile(r"[0-9]+e[0-9]+")
 FUNCTION_ARG_DELIM = ":"
+SEQUENCE_FLAG_FUNCTIONS = ("range", "linspace", "geomspace", "logspace")
 
 DEFAULT_FLOAT_TRUNC_LEN = 5
 DEFAULT_SHORTENED_PATH_LEN = 20
@@ -96,7 +100,7 @@ def _decode_flag_val(s):
         return s
     decoders = [
         (int, ValueError),
-        (_anonymous_flag_function, ValueError),
+        (_special_flag_function, ValueError),
         (_concatenated_list, ValueError),
         (_yaml_parse, (ValueError, yaml.YAMLError)),
     ]
@@ -108,7 +112,103 @@ def _decode_flag_val(s):
     return s
 
 
+def _special_flag_function(s):
+    """Tries to decode s as a special flag function.
+
+    A test for special flag function is applied before YAML parsing. A
+    special flag function is one of: anonymous flag function or range
+    function.
+
+    If s can be decoded as an anonymous flag function it is returned
+    as a string value to prevent it from being decoded by YAML, which
+    can accidentally decode it as a list (see below for details).
+
+    If s can be expanded to a sequence, the return value is a list
+    containing the expanded items.
+
+    Guild treats "[1:2]" as an anonymous flag function, which is
+    passed along as a string to be decoded downstream. However, YAML
+    treats "[1:2]" as a list containing a time value (one minute, two
+    seconds), and therefore returns the value `[62]`. This function
+    ensures that anonymous flag functions are returned as decoded
+    string values. Provided this function is used prior to YAML
+    decoding, the value is decoded correctly.
+
+    Raises ValueError if s is not a special flag function.
+
+    """
+    name, args = decode_flag_function(s)
+    if _is_anonymous_flag_function(name, args):
+        return s
+    elif _is_sequence_flag_function(name):
+        return _expand_sequence(name, args)
+    else:
+        raise ValueError(s)
+
+
+def _is_anonymous_flag_function(name, args):
+    return name is None and len(args) >= 2
+
+
+def _is_sequence_flag_function(name):
+    return name in SEQUENCE_FLAG_FUNCTIONS
+
+
+def _expand_sequence(name, args):
+    f = globals().get("_expand_%s" % name)
+    assert f, name
+    return f(*args)
+
+
+def _expand_range(start, end, increment=1, *rest):
+    import numpy as np
+
+    if rest:
+        log.warning("unsupported arguments for range function: %s - ignoring", rest)
+    return [x.item() for x in np.arange(start, end, increment)]
+
+
+def _expand_linspace(start, end, count=5, *rest):
+    import numpy as np
+
+    if rest:
+        log.warning("unsupported arguments for linspace function: %s - ignoring", rest)
+
+    return [x.item() for x in np.linspace(start, end, count)]
+
+
+def _expand_logspace(start, end, count=5, base=10, *rest):
+    import numpy as np
+
+    if rest:
+        log.warning("unsupported arguments for logspace function: %s - ignoring", rest)
+
+    return [x.item() for x in np.logspace(start, end, count, base=base)]
+
+
+def _anonymous_flag_function(s):
+    """Returns s as a string if s is an anonymous flag function.
+
+    An anonymous flag function is in the form `[N:M...]`. This
+    function can be applied before attempt a conversion to YAML to
+    avoid accidentally converting time values to integers. E.g. YAML
+    decodes the string "1:1" as a time value of 1 minute + 1 second
+    and returns an integer of 61. The value "[1:1]", which Guild
+    treats an anonymous flag function, is therefore decoded as a list
+    containing a single integer of 61.
+    """
+    name, args = decode_flag_function(s)
+    if name is None and len(args) >= 2:
+        return s
+    raise ValueError(s)
+
+
 def _concatenated_list(s):
+    """Expands list concatantion syntax to a list of repeating values.
+
+    For example, the value "[1]*3" is expanded to `[1,1,1]`, the value
+    "[1,2]*2" to `[1,2,1,2]` and so on.
+    """
     m = LIST_CONCAT_P.match(s.strip())
     if not m:
         raise ValueError(s)
@@ -116,13 +216,6 @@ def _concatenated_list(s):
     if isinstance(maybe_list, list):
         return maybe_list * int(m.group(2))
     return s
-
-
-def _anonymous_flag_function(s):
-    name, args = decode_flag_function(s)
-    if name is None and len(args) >= 2:
-        return s
-    raise ValueError(s)
 
 
 def _yaml_parse(s):

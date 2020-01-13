@@ -271,6 +271,100 @@ Other examples:
     >>> decode("[1,2] * 2")
     [1, 2, 1, 2]
 
+### Sequences
+
+Guild provides a number of flag functions that are expanded to
+sequences. These include `range`, `linspace`, and `logspace`.
+
+#### `range` function
+
+`range` is used to define a sequence of values that fall within a
+range.
+
+    >>> decode("range[0:5]")
+    [0, 1, 2, 3, 4]
+
+An increment can be provided:
+
+    >>> decode("range[0:5:2]")
+    [0, 2, 4]
+
+Reverse order:
+
+    >>> decode("range[5:0:-1]")
+    [5, 4, 3, 2, 1]
+
+Non-integer increments:
+
+    >>> decode("range[0:5:0.5]")
+    [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5]
+
+    >>> decode("range[1e-5:1e-4:1e-5]")
+    [1...e-05, 2...e-05, 3...e-05, 4...e-05,
+     5...e-05, 6...e-05, 7...e-05, 8...e-05, 9...e-05]
+
+Additional arguments are ignored.
+
+    >>> with LogCapture(strip_ansi_format=True) as logs:
+    ...     decode("range[1:5:1:2:3]")
+    [1, 2, 3, 4]
+
+    >>> logs.print_all()
+    WARNING: unsupported arguments for range function: (2, 3) - ignoring
+
+#### `linspace` function
+
+The `linspace` function is used to generate a sequence given a start,
+stop and optional count. By default, Guild expands to a count of 10.
+
+    >>> decode("linspace[1:5]")
+    [1.0, 2.0, 3.0, 4.0, 5.0]
+
+    >>> decode("linspace[1:10]")
+    [1.0, 3.25, 5.5, 7.75, 10.0]
+
+    >>> decode("linspace[1:10:10]")
+    [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+
+    >>> decode("linspace[1e-2:1e-1:10]")
+    [0.01, 0.02..., 0.03..., 0.04..., 0.05...,
+     0.06..., 0.07, 0.08, 0.09..., 0.1]
+
+Addition arguments are ignored.
+
+    >>> with LogCapture(strip_ansi_format=True) as logs:
+    ...     decode("linspace[1:5:5:hello:456]")
+    [1.0, 2.0, 3.0, 4.0, 5.0]
+
+    >>> logs.print_all()
+    WARNING: unsupported arguments for linspace function: ('hello', 456) - ignoring
+
+#### `logspace` function
+
+`logspace` is like `linspace` but spaces values on a log scale.
+
+`start` and `end` args are applied to a base 10 by default.
+
+    >>> decode("logspace[1:5]")
+    [10.0, 100.0, 1000.0, 10000.0, 100000.0]
+
+    >>> decode("logspace[-5:0:6]")
+    [1e-05, 0.0001, 0.001, 0.01, 0.1, 1.0]
+
+An alternative base can be provided as a 4th argument.
+
+    >>> decode("logspace[0:3:4:2]")
+    [1.0, 2.0, 4.0, 8.0]
+
+Additional arguments are ignored.
+
+    >>> with LogCapture(strip_ansi_format=True) as logs:
+    ...    decode("logspace[0:3:4:2:456:hello]")
+    [1.0, 2.0, 4.0, 8.0]
+
+    >>> logs.print_all()
+    WARNING: unsupported arguments for logspace function: (456, 'hello') - ignoring
+
 ### Integers with underscores
 
 YAML ignores underscores in integers. So '1_2_3' is parsed as the int
