@@ -160,12 +160,13 @@ def _expand_sequence(name, args):
     return f(*args)
 
 
-def _expand_range(start, end, increment=1, *rest):
+def _expand_range(start, end, step=1, *rest):
     import numpy as np
 
     if rest:
         log.warning("unsupported arguments for range function: %s - ignoring", rest)
-    return [x.item() for x in np.arange(start, end, increment)]
+    end = end + min(step, 1)
+    return [x.item() for x in np.arange(start, end, step)]
 
 
 def _expand_linspace(start, end, count=5, *rest):

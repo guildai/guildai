@@ -281,8 +281,8 @@ sequences. These include `range`, `linspace`, and `logspace`.
 `range` is used to define a sequence of values that fall within a
 range.
 
-    >>> decode("range[0:5]")
-    [0, 1, 2, 3, 4]
+    >>> decode("range[1:5]")
+    [1, 2, 3, 4, 5]
 
 An increment can be provided:
 
@@ -291,23 +291,24 @@ An increment can be provided:
 
 Reverse order:
 
-    >>> decode("range[5:0:-1]")
+    >>> decode("range[5:1:-1]")
     [5, 4, 3, 2, 1]
 
 Non-integer increments:
 
-    >>> decode("range[0:5:0.5]")
-    [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5]
+    >>> decode("range[1:5:0.5]")
+    [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]
 
     >>> decode("range[1e-5:1e-4:1e-5]")
     [1...e-05, 2...e-05, 3...e-05, 4...e-05,
-     5...e-05, 6...e-05, 7...e-05, 8...e-05, 9...e-05]
+     5...e-05, 6...e-05, 7...e-05, 8...e-05, 9...e-05,
+     0.0001]
 
 Additional arguments are ignored.
 
     >>> with LogCapture(strip_ansi_format=True) as logs:
     ...     decode("range[1:5:1:2:3]")
-    [1, 2, 3, 4]
+    [1, 2, 3, 4, 5]
 
     >>> logs.print_all()
     WARNING: unsupported arguments for range function: (2, 3) - ignoring
