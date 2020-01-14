@@ -17,7 +17,6 @@ from __future__ import division
 
 import logging
 import os
-import pty
 import subprocess
 import sys
 
@@ -112,6 +111,11 @@ def _flush_streams_and_exit():
 
 
 def _shell_f(shell_cmd):
+    try:
+        import pty
+    except ImportError:
+        cli.error("shell is not supported on this platform (%s)" % util.PLATFORM)
+
     shell_cmd = shell_cmd or os.getenv("SHELL", "bash")
 
     def f(path):
