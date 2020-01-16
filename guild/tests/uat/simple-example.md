@@ -176,7 +176,7 @@ When we compare the last two runs (the `train` op and the `train.py` script):
 
 Compare with CSV:
 
-    >>> run("guild compare --csv - 1 2", ignore="Wrote 3 rows(s)")
+    >>> run("guild compare --csv - 1 2", ignore="Wrote")
     run,operation,started,time,status,label,batch_size,datadir,epochs,prepare,rundir,test,step,acc,loss,train_loss,train_acc
     ...,train.py,...,...,completed,batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no,100,data,1,False,.,False,540,...,...,,
     ...,train,...,...,completed,epochs=1,,,,,,,540,,,...,...
