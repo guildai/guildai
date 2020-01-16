@@ -356,7 +356,8 @@ def _label_runs_kw(args):
 
 
 def _handle_remote_process_error(e):
-    cli.error(exit_status=e.exit_status)
+    msg = e.output.decode().strip() if e.output else None
+    cli.error(msg, exit_status=e.exit_status)
 
 
 def _handle_not_supported(remote):
