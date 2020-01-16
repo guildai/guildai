@@ -123,3 +123,7 @@ def _set_logger_level(pkgs, level):
 
 def current_settings():
     return __last_init_kw
+
+
+def dim(text):
+    return "\x1b[2m%s\x1b[0m" % text

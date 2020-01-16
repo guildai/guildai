@@ -24,8 +24,8 @@ import sys
 import uuid
 
 from guild import click_util
+from guild import log as loglib
 from guild import remote as remotelib
-from guild import remote_util
 from guild import util
 from guild import var
 
@@ -43,6 +43,7 @@ class S3Remote(remotelib.Remote):
         self.bucket = config["bucket"]
         self.root = config.get("root", "/")
         self.region = config.get("region")
+        self.env = _init_env(config.get("env"))
         self.local_sync_dir = lsd = self._local_sync_dir()
         self._runs_dir = os.path.join(lsd, *RUNS_PATH)
         self._deleted_runs_dir = os.path.join(lsd, *DELETED_RUNS_PATH)
@@ -57,7 +58,6 @@ class S3Remote(remotelib.Remote):
         return "s3://%s/%s" % (self.bucket, joined_path)
 
     def list_runs(self, verbose=False, **filters):
-        self._verify_creds_and_region()
         self._sync_runs_meta()
         runs_dir = self._runs_dir_for_filters(**filters)
         if not os.path.exists(runs_dir):
@@ -75,14 +75,8 @@ class S3Remote(remotelib.Remote):
         else:
             return self._runs_dir
 
-    def _verify_creds_and_region(self):
-        remote_util.require_env("AWS_ACCESS_KEY_ID")
-        remote_util.require_env("AWS_SECRET_ACCESS_KEY")
-        if not self.region:
-            remote_util.require_env("AWS_DEFAULT_REGION")
-
     def _sync_runs_meta(self, force=False):
-        log.info("Synchronizing runs with %s", self.name)
+        log.info(loglib.dim("Synchronizing runs with %s"), self.name)
         if not force and self._meta_current():
             return
         self._clear_local_meta_id()
@@ -141,10 +135,16 @@ class S3Remote(remotelib.Remote):
         log.debug("aws cmd: %r", cmd)
         try:
             return subprocess.check_output(
-                cmd, env=os.environ, stderr=subprocess.STDOUT
+                cmd, env=self._cmd_env(), stderr=subprocess.STDOUT
             )
         except subprocess.CalledProcessError as e:
             raise remotelib.RemoteProcessError.for_called_process_error(e)
+
+    def _cmd_env(self):
+        env = dict(os.environ)
+        if self.env:
+            env.update(self.env)
+        return env
 
     def _s3_cmd(self, name, args, to_stderr=False):
         cmd = [_aws_cmd()]
@@ -153,12 +153,11 @@ class S3Remote(remotelib.Remote):
         cmd.extend(["s3", name] + args)
         log.debug("aws cmd: %r", cmd)
         try:
-            _subprocess_call(cmd, to_stderr)
+            _subprocess_call(cmd, to_stderr, self._cmd_env())
         except subprocess.CalledProcessError as e:
             raise remotelib.RemoteProcessError.for_called_process_error(e)
 
     def filtered_runs(self, **filters):
-        self._verify_creds_and_region()
         self._sync_runs_meta()
         args = click_util.Args(**filters)
         args.archive = self._runs_dir
@@ -167,7 +166,6 @@ class S3Remote(remotelib.Remote):
         return runs_impl.runs_for_args(args)
 
     def delete_runs(self, **opts):
-        self._verify_creds_and_region()
         self._sync_runs_meta()
         args = click_util.Args(**opts)
         args.archive = self._runs_dir
@@ -229,7 +227,6 @@ class S3Remote(remotelib.Remote):
         self._s3_cmd("mv", mv_args)
 
     def restore_runs(self, **opts):
-        self._verify_creds_and_region()
         self._sync_runs_meta()
         args = click_util.Args(**opts)
         args.archive = self._deleted_runs_dir
@@ -243,7 +240,7 @@ class S3Remote(remotelib.Remote):
             self._sync_runs_meta(force=True)
 
         try:
-            runs_impl._runs_op(
+            runs_impl.runs_op(
                 args,
                 None,
                 False,
@@ -263,7 +260,6 @@ class S3Remote(remotelib.Remote):
             self._s3_mv(deleted_uri, restored_uri)
 
     def purge_runs(self, **opts):
-        self._verify_creds_and_region()
         self._sync_runs_meta()
         args = click_util.Args(**opts)
         args.archive = self._deleted_runs_dir
@@ -280,7 +276,7 @@ class S3Remote(remotelib.Remote):
             self._sync_runs_meta(force=True)
 
         try:
-            runs_impl._runs_op(
+            runs_impl.runs_op(
                 args,
                 None,
                 False,
@@ -299,7 +295,6 @@ class S3Remote(remotelib.Remote):
             self._s3_rm(uri)
 
     def status(self, verbose=False):
-        self._verify_creds_and_region()
         try:
             self._s3api_output("get-bucket-location", ["--bucket", self.bucket])
         except remotelib.RemoteProcessError as e:
@@ -341,7 +336,6 @@ class S3Remote(remotelib.Remote):
         return "- S3 bucket %s will be deleted - THIS CANNOT BE UNDONE!" % self.bucket
 
     def push(self, runs, delete=False):
-        self._verify_creds_and_region()
         for run in runs:
             self._push_run(run, delete)
             self._new_meta_id()
@@ -372,7 +366,6 @@ class S3Remote(remotelib.Remote):
             self._s3api_output("put-object", args)
 
     def pull(self, runs, delete=False):
-        self._verify_creds_and_region()
         for run in runs:
             self._pull_run(run, delete)
 
@@ -389,7 +382,6 @@ class S3Remote(remotelib.Remote):
         raise NotImplementedError("TODO")
 
     def run_info(self, **opts):
-        self._verify_creds_and_region()
         self._sync_runs_meta()
         args = click_util.Args(**opts)
         args.archive = self._runs_dir
@@ -413,6 +405,69 @@ class S3Remote(remotelib.Remote):
         raise remotelib.OperationNotSupported()
 
 
+def _init_env(env_config):
+    if isinstance(env_config, dict):
+        return env_config
+    elif isinstance(env_config, str):
+        return _env_from_file(env_config)
+    else:
+        log.warning("invalid value for remote env %r - ignoring", env_config)
+        return {}
+
+
+def _env_from_file(path):
+    if path.lower().endswith(".gpg"):
+        env_str = _try_read_gpg(path)
+    else:
+        env_str = util.try_read(path)
+    if not env_str:
+        log.warning("cannot read remote env from %s - ignorning", path)
+        return {}
+    return _decode_env(env_str)
+
+
+def _try_read_gpg(path):
+    path = os.path.expanduser(path)
+    cmd = _gpg_cmd() + [path]
+    try:
+        p = subprocess.Popen(
+            cmd, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+    except OSError as e:
+        log.error("cannot decode %s with command '%s' (%s)", path, " ".join(cmd), e)
+    else:
+        out, err = p.communicate()
+        if p.returncode != 0:
+            log.error(err.strip())
+            return None
+        return out.decode()
+
+
+def _gpg_cmd():
+    gpg_env = os.getenv("GPG_CMD")
+    if gpg_env:
+        return util.shlex_split(gpg_env)
+    return ["gpg", "-d"]
+
+
+def _decode_env(s):
+    return dict([_split_env_line(line) for line in s.split("\n")])
+
+
+def _split_env_line(s):
+    parts = s.split("=", 1)
+    if len(parts) == 1:
+        parts.append("")
+    return _strip_export(parts[0]), parts[1]
+
+
+def _strip_export(s):
+    s = s.strip()
+    if s.startswith("export "):
+        s = s[7:]
+    return s
+
+
 def _aws_cmd():
     cmd = util.which("aws")
     if not cmd:
@@ -428,17 +483,15 @@ def _join_path(root, *parts):
     return "/".join(path)
 
 
-def _subprocess_call(cmd, to_stderr):
+def _subprocess_call(cmd, to_stderr, env):
     if to_stderr:
-        _subprocess_call_to_stderr(cmd)
+        _subprocess_call_to_stderr(cmd, env)
     else:
-        subprocess.check_call(cmd, env=os.environ)
+        subprocess.check_call(cmd, env=env)
 
 
-def _subprocess_call_to_stderr(cmd):
-    p = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=os.environ
-    )
+def _subprocess_call_to_stderr(cmd, env):
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
     while True:
         line = p.stdout.readline()
         if not line:

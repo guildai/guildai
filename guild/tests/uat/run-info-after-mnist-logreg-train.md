@@ -53,6 +53,9 @@ We can optionally show env for a run:
       val#acc: ... (step 550)
       val#loss: ... (step 550)
     environment:
+      AWS_ACCESS_KEY_ID: ''
+      AWS_DEFAULT_REGION: ''
+      AWS_SECRET_ACCESS_KEY: ''
       CMD_DIR: ...
       COLUMNS: '999'
       CUDA_VISIBLE_DEVICES: ''

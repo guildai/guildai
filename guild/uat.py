@@ -176,6 +176,9 @@ def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None):
         cmd_env["VIRTUAL_ENV"] = os.environ["VIRTUAL_ENV"]
     cmd_env["COLUMNS"] = "999"
     cmd_env["LANG"] = os.getenv("LANG", "en_US.UTF-8")
+    cmd_env["AWS_ACCESS_KEY_ID"] = os.getenv("AWS_ACCESS_KEY_ID", "")
+    cmd_env["AWS_SECRET_ACCESS_KEY"] = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+    cmd_env["AWS_DEFAULT_REGION"] = os.getenv("AWS_DEFAULT_REGION", "")
     if _cwd:
         cmd_cwd = os.path.join(WORKSPACE, _cwd)
     else:

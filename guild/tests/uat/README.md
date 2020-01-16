@@ -281,3 +281,8 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [remote-try-run-script](remote-try-run-script.md)
 - [remote-ssh-stage-and-queue](remote-stage-and-start.md)
 - [remote-ssh-stage-and-queue](remote-queue-and-stage.md)
+
+### s3
+
+- [remote-s3-local-runs](remote-s3-local-runs.md)
+- [remote-s3-push-pull](remote-s3-push-pull.md)
