@@ -131,8 +131,6 @@ def filtered_runs(args, force_deleted=False, ctx=None):
 def _runs_root_for_args(args, force_deleted):
     archive = getattr(args, "archive", None)
     if archive:
-        if not os.path.exists(archive):
-            cli.error("archive directory '%s' does not exist" % archive)
         return archive
     deleted = force_deleted or getattr(args, "deleted", False)
     return var.runs_dir(deleted=deleted)
@@ -330,6 +328,8 @@ def list_runs(args, ctx=None):
 def _list_runs(args, ctx):
     if args.archive and args.deleted:
         cli.error("--archive and --deleted may not both be used")
+    if args.archive and not os.path.exists(args.archive):
+        cli.error("%s does not exist" % args.archive)
     runs = filtered_runs(args, ctx=ctx)
     if args.json:
         if args.limit or args.more or args.all:
