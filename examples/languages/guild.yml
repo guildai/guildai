@@ -1,0 +1,11 @@
+R-noisy:
+  description: Sample training function in R
+  exec: Rscript noisy.r ${flag_args}
+  requires:
+    - file: noisy.r
+  flags-dest: arg
+  flags:
+    x: 0.1
+    noise: 0.1
+  output-scalars:
+    loss: 'loss: (\value)'
