@@ -21,7 +21,6 @@ import os
 import pkg_resources
 import re
 import subprocess
-import sys
 
 import six
 import yaml
@@ -274,21 +273,7 @@ def _venv_cmd_args(config):
 
 
 def _venv_cmd_base_args():
-    return util.find_apply(
-        [_python_venv_cmd, _virtualenv_cmd, _venv_cmd_missing_error,]
-    )
-
-
-def _python_venv_cmd():
-    # Versions of venv prior to 3.6 don't support --prompt option.
-    if sys.version_info[0:2] < (3, 6):
-        return None
-    try:
-        import venv as _
-    except ImportError:
-        return None
-    else:
-        return [sys.executable, "-m", "venv"]
+    return util.find_apply([_virtualenv_cmd, _virtualenv_missing_error,])
 
 
 def _virtualenv_cmd():
@@ -298,7 +283,7 @@ def _virtualenv_cmd():
     return [cmd]
 
 
-def _venv_cmd_missing_error():
+def _virtualenv_missing_error():
     cli.error(
         "cannot find virtualenv\n" "Try installing it with 'pip install virtualenv'."
     )
