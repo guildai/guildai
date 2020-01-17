@@ -133,7 +133,7 @@ def _skip_test(name, skip_patterns):
 
 
 def _example_dir(name):
-    return os.path.join(GUILD_PKG, "guild", "examples", name)
+    return os.path.join(GUILD_PKG, "examples", name)
 
 
 def _test_passed(name):
