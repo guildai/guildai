@@ -166,7 +166,14 @@ def _expand_range(start, end, step=1, *rest):
     if rest:
         log.warning("unsupported arguments for range function: %s - ignoring", rest)
     end = end + min(step, 1)
-    return [x.item() for x in np.arange(start, end, step)]
+    return [_np_seq_val(x) for x in np.arange(start, end, step)]
+
+
+def _np_seq_val(x):
+    x = x.item()
+    if isinstance(x, float):
+        return round(x, 8)
+    return x
 
 
 def _expand_linspace(start, end, count=5, *rest):
@@ -175,7 +182,7 @@ def _expand_linspace(start, end, count=5, *rest):
     if rest:
         log.warning("unsupported arguments for linspace function: %s - ignoring", rest)
 
-    return [x.item() for x in np.linspace(start, end, count)]
+    return [_np_seq_val(x) for x in np.linspace(start, end, count)]
 
 
 def _expand_logspace(start, end, count=5, base=10, *rest):
@@ -184,7 +191,7 @@ def _expand_logspace(start, end, count=5, base=10, *rest):
     if rest:
         log.warning("unsupported arguments for logspace function: %s - ignoring", rest)
 
-    return [x.item() for x in np.logspace(start, end, count, base=base)]
+    return [_np_seq_val(x) for x in np.logspace(start, end, count, base=base)]
 
 
 def _anonymous_flag_function(s):
