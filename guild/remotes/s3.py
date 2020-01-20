@@ -438,9 +438,9 @@ def _try_read_gpg(path):
     else:
         out, err = p.communicate()
         if p.returncode != 0:
-            log.error(err.strip())
+            log.error(err.decode(errors="replace").strip())
             return None
-        return out.decode()
+        return out.decode(errors="replace")
 
 
 def _gpg_cmd():
