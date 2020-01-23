@@ -1336,11 +1336,19 @@ def _batch_qualifier_preview_part(S):
 
 
 def _preview_trials_count(user_op):
-    trials = len(batch_util.expand_flags(user_op._op_flag_vals))
-    if trials == 1:
+    trials_count = len(_op_trials(user_op))
+    if trials_count == 1:
         return "1 trial"
     else:
-        return "%i trials" % trials
+        return "%i trials" % trials_count
+
+
+def _op_trials(op):
+    if op._batch_trials:
+        return batch_util.expand_flags_with_trials(op._op_flag_vals, op._batch_trials)
+
+    else:
+        return batch_util.expand_flags(op._op_flag_vals)
 
 
 def _is_likey_optimizer(op):
