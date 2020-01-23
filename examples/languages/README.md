@@ -1,6 +1,6 @@
 # Guild Example: `languages`
 
-This examples shows how Guild works with various runtime languages.
+This example shows how Guild works with various runtime languages.
 
 - [guild.yml](guild.yml) - Project Guild file
 - [noisy.r](noisy.r) - R example

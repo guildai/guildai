@@ -1,11 +1,11 @@
 # Guild Example: `hello`
 
-This examples shows basic flag usage. It also demonstrates simple file
+This example shows basic flag usage. It also demonstrates simple file
 dependencies.
 
 - [guild.yml](guild.yml) - Project Guild file
-- [say.py](say.py) - Prints a greeting.
-- [cat.py](cat.py) - Prints contents of a file.
+- [say.py](say.py) - Prints a greeting
+- [cat.py](cat.py) - Prints contents of a file
 
 Operations:
 

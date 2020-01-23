@@ -1,0 +1,13 @@
+- model: mlp-mnist
+  description: Multilayer Perceptron (MLP) for MNIST
+  operations:
+    train:
+      description: Train MLP on MNIST
+      main: mnist_mlp
+      flags:
+        epochs:
+          description: Number of epochs to train
+          default: 5
+        batch_size:
+          description: Size of each training batch
+          default: 128
