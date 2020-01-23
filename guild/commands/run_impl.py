@@ -21,6 +21,7 @@ import sys
 
 import six
 
+from guild import batch_util
 from guild import cli
 from guild import click_util
 from guild import cmd_impl_support
@@ -1266,14 +1267,16 @@ def _confirm_run(S):
     prompt = (
         "You are about to {action} {subject}"
         "{batch_suffix}{remote_suffix}{flags_note}\n"
-        "{flags}"
+        "{user_flags}"
+        "{optimizer_flags}"
         "Continue?".format(
             action=_preview_op_action(S),
             subject=_preview_op_subject(S),
             batch_suffix=_preview_batch_suffix(S),
             remote_suffix=_preview_remote_suffix(S),
             flags_note=_preview_flags_note(S),
-            flags=_preview_flags(S),
+            user_flags=_preview_user_flags(S),
+            optimizer_flags=_preview_optimizer_flags(S),
         )
     )
     return cli.confirm(prompt, default=True)
@@ -1304,10 +1307,7 @@ def _preview_batch_suffix(S):
     if not S.batch_op:
         return ""
     return "".join(
-        [
-            _batch_desc_preview_part(S.batch_op),
-            _batch_qualifier_preview_part(S.batch_op),
-        ]
+        [_batch_desc_preview_part(S.batch_op), _batch_qualifier_preview_part(S),]
     )
 
 
@@ -1321,15 +1321,26 @@ def _batch_desc_preview_part(op):
         return " with '%s' optimizer" % opt_name
 
 
-def _batch_qualifier_preview_part(op):
+def _batch_qualifier_preview_part(S):
+    batch_op = S.batch_op
     parts = []
-    if op._max_trials:
-        parts.append("max %i trials" % op._max_trials)
-    if op._objective:
-        parts.append(_objective_preview_part(op._objective))
+    if batch_op.opref.op_name == "+":
+        parts.append(_preview_trials_count(S.user_op))
+    elif batch_op._max_trials:
+        parts.append("max %i trials" % batch_op._max_trials)
+    if batch_op._objective:
+        parts.append(_objective_preview_part(batch_op._objective))
     if not parts:
         return ""
     return " (%s)" % ", ".join(parts)
+
+
+def _preview_trials_count(user_op):
+    trials = len(batch_util.expand_flags(user_op._op_flag_vals))
+    if trials == 1:
+        return "1 trial"
+    else:
+        return "%i trials" % trials
 
 
 def _objective_preview_part(obj):
@@ -1351,15 +1362,17 @@ def _preview_flags_note(S):
     return ""
 
 
-def _preview_flags(S, indent=2):
-    flag_vals = S.user_op._op_flag_vals
+def _preview_user_flags(S):
+    return _preview_flags(S.user_op._op_flag_vals, S.user_op._flag_null_labels)
+
+
+def _preview_flags(flag_vals, null_labels):
     if not flag_vals:
         return ""
-    null_labels = S.user_op._flag_null_labels
     return (
         "\n".join(
             [
-                " " * indent + _format_flag(name, val, null_labels)
+                "  %s" % _format_flag(name, val, null_labels)
                 for name, val in sorted(flag_vals.items())
             ]
         )
@@ -1391,6 +1404,16 @@ def _try_format_function(val):
 def _null_label(name, null_labels):
     null_label = null_labels.get(name, "default")
     return flag_util.encode_flag_val(null_label)
+
+
+def _preview_optimizer_flags(S):
+    if not S.batch_op or not S.batch_op._op_flag_vals:
+        return ""
+    flags_preview = _preview_flags(
+        S.batch_op._op_flag_vals, S.batch_op._flag_null_labels
+    )
+    preview = "Optimizer flags:\n%s" % flags_preview
+    return cli.style(preview, dim=True)
 
 
 # =================================================================

@@ -30,8 +30,6 @@ from guild import run_util
 from guild import util
 from guild import var
 
-from guild.commands import run_impl
-
 log = logging.getLogger("guild")
 
 DEFAULT_MAX_TRIALS = 20
@@ -58,6 +56,8 @@ def handle_trials(batch_run, trials):
 
 
 def _print_trials_cmd(batch_run, trials):
+    from guild.commands import run_impl
+
     for trial in trials:
         with util.TempDir() as tmp:
             run = _init_trial_run(batch_run, trial, tmp.path)
@@ -112,6 +112,8 @@ def _trial_label(proto_run, trial_flag_vals):
 
 
 def _start_trial_run(run, stage=False):
+    from guild.commands import run_impl
+
     _log_start_trial(run, stage)
     run_impl.run(restart=run.id, stage=stage)
     _maybe_trial_delay()
