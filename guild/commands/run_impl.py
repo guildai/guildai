@@ -1328,7 +1328,7 @@ def _batch_qualifier_preview_part(S):
         parts.append(_preview_trials_count(S.user_op))
     elif batch_op._max_trials:
         parts.append("max %i trials" % batch_op._max_trials)
-    if batch_op._objective:
+    if _is_likey_optimizer(batch_op) and batch_op._objective:
         parts.append(_objective_preview_part(batch_op._objective))
     if not parts:
         return ""
@@ -1341,6 +1341,18 @@ def _preview_trials_count(user_op):
         return "1 trial"
     else:
         return "%i trials" % trials
+
+
+def _is_likey_optimizer(op):
+    """Return True if op is likely an optimizer.
+
+    All operations are considered likely except those known to NOT be
+    optimizers. These are '+' (the general batch op) and 'random'.
+
+    Ideally the operation would indicate if it is an optimizer but
+    Guild doesn't support an interface for this.
+    """
+    return op.opref.op_name not in ("+", "random")
 
 
 def _objective_preview_part(obj):
