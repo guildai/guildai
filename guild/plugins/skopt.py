@@ -86,7 +86,7 @@ kappa:
   type: float
 xi:
   description: Improvement to seek over the previous best values
-  default: 0.01
+  default: 0.05
   type: float
 noise:
   description:
@@ -133,7 +133,7 @@ kappa:
   type: float
 xi:
   description: Improvement to seek over the previous best values
-  default: 0.01
+  default: 0.05
   type: float
 """
     )
@@ -174,7 +174,7 @@ kappa:
   type: float
 xi:
   description: Improvement to seek over the previous best values
-  default: 0.01
+  default: 0.05
   type: float
 """
     )

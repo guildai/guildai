@@ -93,7 +93,7 @@ Our trials:
 
     >>> with Env({"TRIAL_ENV": "1"}):
     ...     project.print_runs(flags=True, status=True)
-    noisy.py+gp  acq-func=gp_hedge kappa=1.96 noise=gaussian random-starts=3 xi=0.01  error
+    noisy.py+gp  acq-func=gp_hedge kappa=1.96 noise=gaussian random-starts=3 xi=0.05  error
     noisy.py     noise=0.1 x=...                                                      completed
     noisy.py     noise=0.1 x=0.1                                                      completed
     noisy.py+gp  acq-func=gp_hedge kappa=1.5 noise=gaussian random-starts=3 xi=0.2    completed
@@ -102,7 +102,7 @@ Our trials:
     noisy.py     noise=0.1 x=...                                                      completed
     noisy.py     noise=0.1 x=...                                                      completed
     noisy.py     noise=0.1 x=...                                                      completed
-    noisy.py+gp  acq-func=gp_hedge kappa=1.96 noise=gaussian random-starts=3 xi=0.01  completed
+    noisy.py+gp  acq-func=gp_hedge kappa=1.96 noise=gaussian random-starts=3 xi=0.05  completed
 
 Cleanup for next tests:
 
@@ -161,7 +161,7 @@ Our trials:
     noisy.py         noise=0.1 x=...                     completed
     noisy.py         noise=0.1 x=...                     completed
     noisy.py         noise=0.1 x=...                     completed
-    noisy.py+forest  kappa=1.96 random-starts=3 xi=0.01  completed
+    noisy.py+forest  kappa=1.96 random-starts=3 xi=0.05  completed
 
 Cleanup for next tests:
 
@@ -220,4 +220,4 @@ Our trials:
     noisy.py       noise=0.1 x=...                     completed
     noisy.py       noise=0.1 x=...                     completed
     noisy.py       noise=0.1 x=...                     completed
-    noisy.py+gbrt  kappa=1.96 random-starts=2 xi=0.01  completed
+    noisy.py+gbrt  kappa=1.96 random-starts=2 xi=0.05  completed
