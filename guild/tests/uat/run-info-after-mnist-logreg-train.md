@@ -59,6 +59,7 @@ We can optionally show env for a run:
       CMD_DIR: ...
       COLUMNS: '999'
       CUDA_VISIBLE_DEVICES: ''
+      EXAMPLES: ...
       FLAGS_DEST: args
       FLAG_BATCH_SIZE: '100'
       FLAG_EPOCHS: '1'
