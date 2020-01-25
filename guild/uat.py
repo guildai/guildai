@@ -40,6 +40,7 @@ GUILD_HOME = os.path.join(WORKSPACE, ".guild")
 TEMP = tempfile.gettempdir()
 GUILD_PKG = os.path.abspath(guild.__pkgdir__)
 REQUIREMENTS_PATH = os.path.join(GUILD_PKG, "requirements.txt")
+EXAMPLES = os.getenv("EXAMPLES") or os.path.join(GUILD_PKG, "examples")
 
 _cwd = None
 
@@ -133,7 +134,7 @@ def _skip_test(name, skip_patterns):
 
 
 def _example_dir(name):
-    return os.path.join(GUILD_PKG, "examples", name)
+    return os.path.join(EXAMPLES, name)
 
 
 def _test_passed(name):

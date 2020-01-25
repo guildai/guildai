@@ -16,6 +16,7 @@
 
 import yaml
 
+
 class Build(object):
 
     cache_scheme_version = 17
@@ -29,6 +30,7 @@ class Build(object):
 
     build_dir = "build-env"
     test_dir = "test-env"
+    examples_dir = "examples"
 
     cache_dep_files = [
         "requirements.txt",
@@ -40,7 +42,7 @@ class Build(object):
         return {
             self.env: self.env_config(),
             "working_directory": "~/repo",
-            "steps": self.steps()
+            "steps": self.steps(),
         }
 
     def steps(self):
@@ -61,11 +63,7 @@ class Build(object):
         return "checkout"
 
     def restore_cache(self):
-        return {
-            "restore_cache": {
-                "keys": [self._cache_key()]
-            }
-        }
+        return {"restore_cache": {"keys": [self._cache_key()]}}
 
     def _cache_key(self):
         assert self.name
@@ -75,9 +73,7 @@ class Build(object):
         return "%s-%i-%s" % (self.name, self.cache_scheme_version, checksums)
 
     def install_build_deps(self):
-        return self._run(
-            "Install build dependencies",
-            self._install_build_deps_cmd())
+        return self._run("Install build dependencies", self._install_build_deps_cmd())
 
     def _install_build_deps_cmd(self):
         return [
@@ -93,12 +89,9 @@ class Build(object):
         sudo_part = "sudo -H " if sudo else ""
         # pipe to cat effectively disables progress bar
         pkgs_part = " ".join([self._pkg_spec(pkg) for pkg in pkgs])
-        return (
-            "{sudo}{pip} install --upgrade {pkgs} | cat"
-            .format(
-                sudo=sudo_part,
-                pip=self.pip_cmd,
-                pkgs=pkgs_part))
+        return "{sudo}{pip} install --upgrade {pkgs} | cat".format(
+            sudo=sudo_part, pip=self.pip_cmd, pkgs=pkgs_part
+        )
 
     @staticmethod
     def _pkg_spec(pkg):
@@ -113,9 +106,9 @@ class Build(object):
         return self._pip_install(["virtualenv"], sudo=True)
 
     def _init_env(self, path):
-        return (
-            "rm -rf {path} && {venv_init}"
-            .format(path=path, venv_init=self._venv_init_cmd(path)))
+        return "rm -rf {path} && {venv_init}".format(
+            path=path, venv_init=self._venv_init_cmd(path)
+        )
 
     def _venv_init_cmd(self, path):
         return "%s -m virtualenv %s" % (self.python_cmd, path)
@@ -132,56 +125,54 @@ class Build(object):
         return "cd guild/view && npm install"
 
     def save_cache(self):
-        return {
-            "save_cache": {
-                "paths": [self.build_dir],
-                "key": self._cache_key()
-            }
-        }
+        return {"save_cache": {"paths": [self.build_dir], "key": self._cache_key()}}
 
     def build(self):
         return self._run(
-            "Build", [
-                ". %s/bin/activate" % self.build_dir,
-                self._bdist_wheel_cmd(),
-            ])
+            "Build", [". %s/bin/activate" % self.build_dir, self._bdist_wheel_cmd(),]
+        )
 
     def _bdist_wheel_cmd(self):
         return "%s setup.py bdist_wheel" % self.python_cmd
 
     def install_dist(self):
-        return self._run("Install dist", [
-            self._pip_install(["dist/*.whl"], sudo=True)
-        ])
+        return self._run("Install dist", [self._pip_install(["dist/*.whl"], sudo=True)])
 
     def test(self):
-        return self._run("Test", [
-            ("guild init -y"
-             " --no-progress"
-             " --name guild-test"
-             " --no-reqs"
-             " --guild dist/*.whl {}".format(self.test_dir)),
-            "TERM=xterm-256color source guild-env {}".format(self.test_dir),
-            "WORKSPACE=%s UAT_SKIP=remote-* COLUMNS=999 guild check --uat"
-            % self.test_dir,
-        ])
+        return self._run(
+            "Test",
+            [
+                (
+                    "guild init -y"
+                    " --no-progress"
+                    " --name guild-test"
+                    " --no-reqs"
+                    " --guild dist/*.whl {}".format(self.test_dir)
+                ),
+                "TERM=xterm-256color source guild-env {}".format(self.test_dir),
+                "WORKSPACE={workspace} "
+                "UAT_SKIP=remote-* "
+                "COLUMNS=999 "
+                "EXAMPLES={examples} "
+                "guild check --uat".format(
+                    workspace=self.test_dir, examples=self.examples_dir
+                ),
+            ],
+        )
 
     @staticmethod
     def store_artifacts():
-        return {
-            "store_artifacts": {
-                "path": "dist",
-                "destination": "dist"
-            }
-        }
+        return {"store_artifacts": {"path": "dist", "destination": "dist"}}
 
     def upload_to_pypi(self):
         return self._run(
-            "Upload to PyPI", [
+            "Upload to PyPI",
+            [
                 self._activate_env(self.build_dir),
                 self._pip_install(["twine"]),
                 "twine upload --skip-existing dist/*.whl",
-            ])
+            ],
+        )
 
     @staticmethod
     def _run(name, cmd_lines):
@@ -195,14 +186,9 @@ class Build(object):
 
     def workflow_job(self):
         return {
-            self.name: {
-                "filters": {
-                    "branches": {
-                        "only": ["release", "pre-release"]
-                    }
-                }
-            }
+            self.name: {"filters": {"branches": {"only": ["release", "pre-release"]}}}
         }
+
 
 class LinuxBuild(Build):
 
@@ -212,7 +198,7 @@ class LinuxBuild(Build):
         "linux-python-2.7": "circleci/python:2.7-stretch-node",
         "linux-python-3.5": "circleci/python:3.5-stretch-node",
         "linux-python-3.6": "circleci/python:3.6-stretch-node",
-        "linux-python-3.7": "circleci/python:3.7-stretch-node"
+        "linux-python-3.7": "circleci/python:3.7-stretch-node",
     }
 
     def __init__(self, python):
@@ -225,6 +211,7 @@ class LinuxBuild(Build):
     def _bdist_wheel_cmd(self):
         return "%s setup.py bdist_wheel -p manylinux1_x86_64" % self.python_cmd
 
+
 class MacBuild(Build):
 
     env = "macos"
@@ -233,7 +220,7 @@ class MacBuild(Build):
 
     homebrew_commits = {
         "3.6": "f2a764ef944b1080be64bd88dca9a1d80130c558",
-        "3.7": "2efdfe5519df7654ece8d70786baa298e568eafd"
+        "3.7": "2efdfe5519df7654ece8d70786baa298e568eafd",
     }
 
     python_cmds = {
@@ -255,9 +242,7 @@ class MacBuild(Build):
         self.pip_cmd = self.pip_cmds.get(self.python, self.pip_cmd)
 
     def env_config(self):
-        return {
-            "xcode": self.xcode_version
-        }
+        return {"xcode": self.xcode_version}
 
     def _install_build_deps_cmd(self):
         default_lines = super(MacBuild, self)._install_build_deps_cmd()
@@ -272,11 +257,14 @@ class MacBuild(Build):
         commit = self.homebrew_commits[self.python]
         return [
             "brew unlink python",
-            ("brew install --ignore-dependencies "
-             "https://raw.githubusercontent.com/Homebrew/homebrew-core/%s/"
-             "Formula/python.rb > /dev/null" % commit),
+            (
+                "brew install --ignore-dependencies "
+                "https://raw.githubusercontent.com/Homebrew/homebrew-core/%s/"
+                "Formula/python.rb > /dev/null" % commit
+            ),
             "brew link python",
         ]
+
 
 class Config(object):
 
@@ -286,41 +274,35 @@ class Config(object):
         self.builds = builds
 
     def write(self):
-        config = {
-            "version": 2,
-            "jobs": self._jobs(),
-            "workflows": self._workflows()
-        }
+        config = {"version": 2, "jobs": self._jobs(), "workflows": self._workflows()}
         with open("config.yml", "w") as out:
             yaml.dump(config, out, default_flow_style=False, width=9999)
 
     def _jobs(self):
-        return {
-            build.name: build.job() for build in self.builds
-        }
+        return {build.name: build.job() for build in self.builds}
 
     def _workflows(self):
         return {
             "version": self.version,
-            "all": {
-                "jobs": [build.workflow_job() for build in self.builds]
-            }
+            "all": {"jobs": [build.workflow_job() for build in self.builds]},
         }
+
 
 builds = [
     LinuxBuild(python="2.7"),
     LinuxBuild(python="3.5"),
     LinuxBuild(python="3.6"),
     LinuxBuild(python="3.7"),
-
     MacBuild(python="2.7"),
     MacBuild(python="3.6"),
     MacBuild(python="3.7"),
 ]
 
+
 def main():
     config = Config(builds)
     config.write()
+
 
 if __name__ == "__main__":
     main()
