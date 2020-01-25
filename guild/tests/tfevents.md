@@ -1,5 +1,27 @@
 # TF Events
 
+## Patching tb.compat
+
+TensorBoard is now independent of TensorFlow. However, TensorBoard
+prefers to use TensorFlow when it's available. Guild relies the on the
+TensorBoard API for reading TF events and we want to avoid the high
+price of loading the `tensorflow` module.
+
+The function `tfevents._ensure_tb_compat_patched` is responsible for
+patching the TensorBoard library to loading of `tensorflow`.
+
+    >>> from guild import tfevent
+
+    >>> tfevent._ensure_tb_compat_patched()
+
+We can confirm the patch is working by reading the version of
+`tensorboard.compat.tf`.
+
+    >>> from tensorboard import compat
+
+    >>> compat.tf.__version__
+    'stub'
+
 ## Basic event writing and reading
 
 We can log TF events are using `guild.summary.SummaryWriter`.
@@ -35,11 +57,10 @@ The logdir:
 We can read the events using `guild.tfevent.ScalarReader` to read back
 scalars.
 
-First let's import `tfevent` and patch TensorFlow logging to avoid
+First let's import `tfevent` and patch TensorBoard logging to avoid
 noise in our logs.
 
-    >>> from guild import tfevent
-    >>> tfevent.ensure_tf_logging_patched()
+    >>> tfevent._ensure_tb_logging_patched()
 
 Here's a scalar reader for our log dir:
 

@@ -3,7 +3,7 @@
     >>> from guild import summary
 
     >>> from guild import tfevent
-    >>> tfevent.ensure_tf_logging_patched()
+    >>> tfevent._ensure_tb_logging_patched()
 
 ## Output scalars
 

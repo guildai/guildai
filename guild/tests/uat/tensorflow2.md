@@ -1,9 +1,9 @@
 # TensorFlow 2.0
 
 These tests use `guild.tfevent`, which requires that we call
-`ensure_tf_logging_patched` to supress TensorFlow logging noise.
+`_ensure_tb_logging_patched` to supress TensorFlow logging noise.
 
-    >>> guild.tfevent.ensure_tf_logging_patched()
+    >>> guild.tfevent._ensure_tb_logging_patched()
 
 Install TensorFlow 2:
 

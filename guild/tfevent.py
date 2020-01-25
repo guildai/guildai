@@ -52,11 +52,12 @@ class EventReader(object):
         except Exception as e:
             # PEP 479 landed in Python 3.7 and TB triggers this
             # runtime error when there are no events to read.
-            if e.args[0] == "generator raised StopIteration":
+            if e.args and e.args[0] == "generator raised StopIteration":
                 return
             _log_tfevent_iter_error(self.dir, e)
 
     def _tf_events(self):
+        _ensure_tb_compat_patched()
         try:
             from tensorboard.backend.event_processing.event_accumulator import (
                 _GeneratorFromPath,
@@ -127,7 +128,7 @@ def scalar_readers(root_path):
     `reader` is an instance of ScalarReader that can be used to read
     scalars in dir.
     """
-    ensure_tf_logging_patched()
+    _ensure_tb_logging_patched()
     for subdir_path in _tfevent_subdirs(root_path):
         digest = _event_files_digest(subdir_path)
         yield subdir_path, digest, ScalarReader(subdir_path)
@@ -177,7 +178,12 @@ def _event_files_digest(dir):
     return hashlib.md5(to_hash.encode("utf-8")).hexdigest()
 
 
-def ensure_tf_logging_patched():
+def _ensure_tb_logging_patched():
+    """Patch tb logging to supress noisy info and debug logs.
+
+    TB has become very chatty and we want to control our logs. We
+    disable outright info and debug logs here.
+    """
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", Warning)
@@ -186,4 +192,24 @@ def ensure_tf_logging_patched():
         pass
     else:
         logger = tb_logging.get_logger()
-        logger.info = logger.debug = lambda *_arg, **_kw: None
+        if logger.info != _null_logger:
+            logger.info = logger.debug = _null_logger
+
+
+def _null_logger(*_args, **_kw):
+    pass
+
+
+def _ensure_tb_compat_patched():
+    """Patch tb compat to avoid loading tensorflow.
+
+    TB relies heavily on a tensorflow compatibility layer, which
+    prefers to load tensorflow if available. We patch this to force TB
+    to use it's own tf-like API to avoid the heavy price of loading
+    TF.
+    """
+    from tensorboard import compat
+
+    # See tensorboard.compat.tf() - uses `notf` to force loading of
+    # compat stub rather than tensorflow
+    compat.notf = True

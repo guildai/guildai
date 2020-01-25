@@ -1,9 +1,9 @@
 # TensorFlow 1.x tests
 
 These tests use `guild.tfevent`, which requires that we call
-`ensure_tf_logging_patched` to supress TensorFlow logging noise.
+`_ensure_tb_logging_patched` to supress TensorFlow logging noise.
 
-    >>> guild.tfevent.ensure_tf_logging_patched()
+    >>> guild.tfevent._ensure_tb_logging_patched()
 
 Assert that we're starting with TensorFlow 1.x:
 
