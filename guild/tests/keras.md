@@ -52,7 +52,9 @@ Operation details:
 
     >>> pprint(opdef.output_scalars) # doctest: -NORMALIZE_PATHS
     ['Epoch (?P<step>[0-9]+)',
-     ' - ([a-z_]+): (\\value)']
+     ' - ([a-z_]+): (\\value)',
+     'Test loss: (?P<test_loss>\\value)',
+     'Test accuracy: (?P<test_accuracy>\\value)']
 
 ## Keras model from Guild file
 
@@ -113,7 +115,9 @@ Output scalars:
 
     >>> pprint(opdef2.output_scalars) # doctest: -NORMALIZE_PATHS
     ['Epoch (?P<step>[0-9]+)',
-     ' - ([a-z_]+): (\\value)']
+     ' - ([a-z_]+): (\\value)',
+     'Test loss: (?P<test_loss>\\value)',
+     'Test accuracy: (?P<test_accuracy>\\value)']
 
     >>> opdef.output_scalars == opdef2.output_scalars
     True

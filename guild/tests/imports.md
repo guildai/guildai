@@ -107,6 +107,7 @@
     guild.commands.s3_sync_impl
     guild.commands.search
     guild.commands.search_impl
+    guild.commands.select
     guild.commands.server_support
     guild.commands.service_impl_support
     guild.commands.shell
