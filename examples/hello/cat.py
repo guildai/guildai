@@ -4,5 +4,5 @@ import sys
 
 file = "hello.txt"
 
-print("Reading message from %s" % file, file=sys.stderr)
+sys.stderr.write("Reading message from %s\n" % file)
 print(open(file).read())
