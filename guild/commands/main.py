@@ -48,6 +48,7 @@ from .remotes import remotes
 from .run import run
 from .runs import runs
 from .search import search
+from .select import select
 from .mark import mark
 from .shell import shell
 from .stop import stop
@@ -128,6 +129,7 @@ main.add_command(remotes)
 main.add_command(run)
 main.add_command(runs)
 main.add_command(search)
+main.add_command(select)
 main.add_command(mark)
 main.add_command(shell)
 main.add_command(stop)

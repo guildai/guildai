@@ -1073,3 +1073,11 @@ def _mark(args, ctx):
 
     args.unmarked = True
     runs_op(args, ctx, False, preview, confirm, no_runs, mark, LATEST_RUN_ARG, True)
+
+
+def select_run(args, ctx):
+    run = one_run(args, ctx)
+    if args.short:
+        print(run.short_id)
+    else:
+        print(run.id)
