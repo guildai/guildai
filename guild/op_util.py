@@ -26,7 +26,6 @@ from guild import config
 from guild import guildfile
 from guild import file_util
 from guild import flag_util
-from guild import model_proxy
 from guild import op_cmd as op_cmd_lib
 from guild import op_dep
 from guild import plugin as pluginlib
@@ -181,6 +180,8 @@ def _model_opdef(opspec):
 
 
 def _try_model_proxy(opspec):
+    from guild import model_proxy
+
     if not opspec:
         return None
     try:

@@ -271,6 +271,7 @@ def _module_main(module_info):
         globals_save = dict(globals())
         load_as, main_function = _env_module_name_and_function()
         log.debug("loading module as %s", load_as)
+        _check_path_hooks()
         try:
             module = imp.load_module(load_as, f, path, desc)
         except:
@@ -290,6 +291,19 @@ def _module_main(module_info):
                     module_main()
 
     _gen_exec(module_info, main)
+
+
+def _check_path_hooks():
+    """Check path hooks for Guild model importer.
+
+    Guild installs a model importer in `guild.model` that can effect
+    normal Python module loading in cases where a Guild file is in the
+    same directory. `guild.model` should not be imported at this
+    point.
+    """
+    assert (
+        "guild.model" not in sys.modules
+    ), "guild.model should not be loaded at this point"
 
 
 def _env_module_name_and_function():
