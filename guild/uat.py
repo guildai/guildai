@@ -40,7 +40,7 @@ GUILD_HOME = os.path.join(WORKSPACE, ".guild")
 TEMP = tempfile.gettempdir()
 GUILD_PKG = os.path.abspath(guild.__pkgdir__)
 REQUIREMENTS_PATH = os.path.join(GUILD_PKG, "requirements.txt")
-EXAMPLES = os.getenv("EXAMPLES") or os.path.join(GUILD_PKG, "examples")
+EXAMPLES = os.path.abspath(os.getenv("EXAMPLES") or os.path.join(GUILD_PKG, "examples"))
 
 _cwd = None
 
