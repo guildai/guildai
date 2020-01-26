@@ -6,7 +6,7 @@ Delete remote runs as baseline.
 
 Start a queue with no-wait (detached):
 
-    \>>> run("guild run queue -y -r guild-uat --no-wait")
+    >>> run("guild run queue -y -r guild-uat --no-wait")
     Initializing remote run
     Starting queue:queue on guild-uat as ...
     ... is running on guild-uat
@@ -22,8 +22,8 @@ Current runs:
 Run some staged operations.
 
     >>> quiet("guild run -y -r guild-uat --stage gpkg.hello/hello:default")
-    >>> cd("examples/hello")
-    >>> quiet("guild run -y -r guild-uat --stage from-flag message=whoop")
+    >>> quiet("guild -C %s run -y -r guild-uat --stage hello msg=whoop"
+    ...       % example("hello-package"))
     >>> quiet("guild run -y -r guild-uat --stage gpkg.hello/hello:from-file")
 
 Wait to let runs finish.
@@ -34,7 +34,7 @@ Show runs:
 
     >>> run("guild runs -r guild-uat")
     [1:...]  gpkg.hello/hello:from-file  ...  completed  file=msg.txt
-    [2:...]  hello/hello:from-flag       ...  completed  message=whoop
+    [2:...]  hello/hello                 ...  completed  msg=whoop
     [3:...]  gpkg.hello/hello:default    ...  completed
     [4:...]  queue                       ...  running    ignore-running=no poll-interval=10 run-once=no
     <exit 0>
@@ -49,7 +49,7 @@ Show runs:
 
     >>> run("guild runs -r guild-uat")
     [1:...]  gpkg.hello/hello:from-file  ...  completed   file=msg.txt
-    [2:...]  hello/hello:from-flag       ...  completed   message=whoop
+    [2:...]  hello/hello                 ...  completed   msg=whoop
     [3:...]  gpkg.hello/hello:default    ...  completed
     [4:...]  queue                       ...  terminated  ignore-running=no poll-interval=10 run-once=no
     <exit 0>

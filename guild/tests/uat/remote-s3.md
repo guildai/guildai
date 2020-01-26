@@ -2,23 +2,23 @@
 
 Generate sample runs for S3 tests.
 
-    >>> cd("examples/hello")
+    >>> cd(example("hello"))
 
     >>> quiet("guild runs rm -y")
 
-    >>> run("guild run -y from-flag message='hello run-1' --label run-1")
+    >>> run("guild run -y hello msg='hello run-1' --label run-1")
     hello run-1
     <exit 0>
 
-    >>> run("guild run -y from-flag message='hello run-2' --label run-2")
+    >>> run("guild run -y hello msg='hello run-2' --label run-2")
     hello run-2
     <exit 0>
 
 Assert locally available runs:
 
     >> run("guild runs")
-    [1:...]  hello:from-flag  ...  completed  run-2
-    [2:...]  hello:from-flag  ...  completed  run-1
+    [1:...]  hello:hello  ...  completed  run-2
+    [2:...]  hello:hello  ...  completed  run-1
     <exit 0>
 
 Ensure that all runs are cleared on S3:
@@ -47,17 +47,17 @@ List remote runs:
 
     >>> run("guild runs -r guild-uat-s3")
     [2mSynchronizing runs with guild-uat-s3[0m
-    [1:...]  hello:from-flag  ...  completed  run-2
-    [2:...]  hello:from-flag  ...  completed  run-1
+    [1:...]  hello  ...  completed  run-2
+    [2:...]  hello  ...  completed  run-1
     <exit 0>
 
 Prompt to delete remote runs:
 
-    >>> run("guild runs rm -r guild-uat-s3", timeout=15)
+    >>> run("guild runs rm -r guild-uat-s3", timeout=10)
     ???Synchronizing runs with guild-uat-s3...
     You are about to delete the following runs on guild-uat-s3:
-      [...]  hello:from-flag  ...  completed  run-2
-      [...]  hello:from-flag  ...  completed  run-1
+      [...]  hello  ...  completed  run-2
+      [...]  hello  ...  completed  run-1
     Delete these runs? (Y/n)
     <exit -9>
 
@@ -76,8 +76,8 @@ List deleted remote runs:
 
     >>> run("guild runs -d -r guild-uat-s3")
     [2mSynchronizing runs with guild-uat-s3[0m
-    [1:...]  hello:from-flag  ...  completed  run-2
-    [2:...]  hello:from-flag  ...  completed  run-1
+    [1:...]  hello  ...  completed  run-2
+    [2:...]  hello  ...  completed  run-1
     <exit 0>
 
 Restore deleted remote runs:
@@ -91,8 +91,8 @@ Show remote runs:
 
     >>> run("guild runs -r guild-uat-s3")
     [2mSynchronizing runs with guild-uat-s3[0m
-    [1:...]  hello:from-flag  ...  completed  run-2
-    [2:...]  hello:from-flag  ...  completed  run-1
+    [1:...]  hello  ...  completed  run-2
+    [2:...]  hello  ...  completed  run-1
     <exit 0>
 
 Confirm we don't have any deleted runs:
@@ -117,8 +117,8 @@ Pull remote runs prompt:
     Getting remote run info
     [2mSynchronizing runs with guild-uat-s3[0m
     You are about to copy (pull) the following runs from guild-uat-s3:
-      [...]  hello:from-flag  ...  completed  run-2
-      [...]  hello:from-flag  ...  completed  run-1
+      [...]  hello  ...  completed  run-2
+      [...]  hello  ...  completed  run-1
     Continue? (Y/n)
     <exit -9>
 
@@ -132,8 +132,8 @@ Pull remote runs:
     <exit 0>
 
     >>> run("guild runs")
-    [1:...]  hello:from-flag  ...  completed  run-2
-    [2:...]  hello:from-flag  ...  completed  run-1
+    [1:...]  hello  ...  completed  run-2
+    [2:...]  hello  ...  completed  run-1
     <exit 0>
 
 Delete and purge remote runs:

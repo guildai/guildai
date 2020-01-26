@@ -27,7 +27,6 @@ Stage hello package from example dir:
     >>> run("guild run -y gpkg.hello/hello:from-flag "
     ...     "message='staged package from examples dir' "
     ...     "--stage -r guild-uat")
-    ???
     Building package
     ...
     gpkg.hello/hello:from-flag staged as on guild-uat as ...
@@ -41,7 +40,6 @@ Stage hello package from an empty temp dir:
     >>> run("guild run -y hello:from-flag "
     ...     "message='staged package from empty dir' "
     ...     "--stage -r guild-uat")
-    ???
     Building package
     ...
     gpkg.hello/hello:from-flag staged as on guild-uat as ...

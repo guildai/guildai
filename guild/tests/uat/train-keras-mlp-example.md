@@ -26,7 +26,7 @@ Here's the run info with all scalars:
     stopped: ...
     marked: no
     label: batch_size=128 epochs=1 num_classes=10
-    sourcecode_digest: 6f26ba25761b228e68d87efba8fca329
+    sourcecode_digest: 300881a146e716c461f5f0276daac288
     vcs_commit: git:...
     run_dir: ...
     command: ...
@@ -39,6 +39,8 @@ Here's the run info with all scalars:
     scalars:
       accuracy: ... (step 1)
       loss: ... (step 1)
+      test_accuracy: ... (step 1)
+      test_loss: ... (step 1)
       val_accuracy: ... (step 1)
       val_loss: ... (step 1)
     <exit 0>

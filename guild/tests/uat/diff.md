@@ -14,7 +14,9 @@ Run the script twice:
     >>> project.run("run.py")
     hello
 
-Diff the last two runs:
+Show various diff args using `--cmd echo`.
+
+Run directory:
 
     >>> run("guild diff --cmd echo")
     ???/.guild/runs/.../ .../.guild/runs/.../
@@ -26,26 +28,26 @@ Source code:
     ???/.guild/runs/.../.guild/sourcecode .../.guild/runs/.../.guild/sourcecode
     <exit 0>
 
-Path:
+`foo` path:
 
     >>> run("guild diff --path foo --cmd echo")
     ???/.guild/runs/.../foo .../.guild/runs/.../foo
     <exit 0>
 
-Paths:
+`foo` and `bar` paths:
 
     >>> run("guild diff --path foo --path bar --cmd echo")
     ???/.guild/runs/.../foo .../.guild/runs/.../foo
     .../.guild/runs/.../bar .../.guild/runs/.../bar
     <exit 0>
 
-Working:
+Source code to project dir (`--working` option):
 
     >>> run("guild diff --working --cmd echo")
     ???/.guild/runs/.../.guild/sourcecode .../diff-project
     <exit 0>
 
-Working dir:
+Source code to project subdir (`--working-dir` option):
 
     >>> run("guild diff --working-dir foobar --cmd echo")
     ???/.guild/runs/.../.guild/sourcecode ./foobar
@@ -89,7 +91,7 @@ source code root.
     >>> gf_path = path(project.cwd, "guild.yml")
     >>> write(gf_path, """
     ... run2:
-    ...   main: src/run2
+    ...   main: run2
     ...   sourcecode:
     ...     root: src
     ... """)
