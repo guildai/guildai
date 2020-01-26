@@ -298,7 +298,7 @@ def _link_path(source_path, source, target_dir):
 def _rename_source(name, rename):
     for spec in rename:
         try:
-            renamed = re.sub(spec.pattern, spec.repl, name)
+            renamed = re.sub(spec.pattern, spec.repl, name, count=1)
         except Exception as e:
             raise OpDependencyError(
                 "error renaming source %s (%r %r): %s"
