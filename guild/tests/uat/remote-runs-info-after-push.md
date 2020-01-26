@@ -2,19 +2,20 @@
 
     >>> run("guild runs info --remote guild-uat")
     id: ...
-    operation: hello:from-file
-    from: .../examples/hello/guild.yml
+    operation: hello-file
+    from: .../hello/guild.yml
     status: completed
     started: ...
     stopped: ...
     marked: no
-    label: file=msg.txt
+    label: file=hello.txt
     sourcecode_digest: ...
+    vcs_commit: git:...
     run_dir: ...
-    command: ... -um guild.op_main say -- --file msg.txt
+    command: ... -um guild.op_main cat -- --file hello.txt
     exit_status: 0
     pid:
     flags:
-      file: msg.txt
+      file: hello.txt
     scalars:
     <exit 0>

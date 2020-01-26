@@ -6,7 +6,7 @@ Delete remote runs as baseline.
 
 Start a queue with no-wait (detached):
 
-    >>> run("guild run queue -y -r guild-uat --no-wait")
+    \>>> run("guild run queue -y -r guild-uat --no-wait")
     Initializing remote run
     Starting queue:queue on guild-uat as ...
     ... is running on guild-uat

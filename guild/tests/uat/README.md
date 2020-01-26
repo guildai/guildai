@@ -127,13 +127,7 @@ Next we'll train the `mnist-mlp` model.
 
 ## Training Guild example models
 
-*Installing and training Guild examples.*
-
-Guild examples are similar to package source, but they are indepedent
-and may have different features and behavior. We test them here as a
-matter of coverage and to take advantage of any differences.
-
-- [install-examples](install-examples.md)
+*Run Guild examples.*
 
 ### Simple example
 

@@ -5,11 +5,11 @@ Guild file.
 
 The example is in the `keras` directory.
 
-    >>> cd("examples/keras")
+    >>> cd(example("keras"))
 
 Here are the operations available:
 
-    >>> run("guild ops mlp-mnist", ignore="Refreshing")
+    >>> run("guild ops mlp-mnist")
     mlp-mnist:train  Train MLP on MNIST
     <exit 0>
 
@@ -19,8 +19,8 @@ Train `mlp-mnist`:
     Masking available GPUs (CUDA_VISIBLE_DEVICES='')
     Using TensorFlow backend...
     60000/60000 ...
-    test_loss: ...
-    test_acc: ...
+    Test loss: ...
+    Test accuracy: ...
     <exit 0>
 
 Run info:
@@ -34,7 +34,7 @@ Run info:
     stopped: ...
     marked: no
     label: batch_size=128 epochs=1
-    sourcecode_digest: 42195c08fbf5b0260fe629ff8add7413
+    sourcecode_digest: 300881a146e716c461f5f0276daac288
     vcs_commit: git:...
     run_dir: ...
     command: ...
@@ -44,17 +44,16 @@ Run info:
       batch_size: 128
       epochs: 1
     scalars:
-      accuracy: ... (step 0)
-      loss: ... (step 0)
-      test_acc: ... (step 0)
-      test_loss: ... (step 0)
-      val_accuracy: ... (step 0)
-      val_loss: ... (step 0)
+      accuracy: ... (step 1)
+      loss: ... (step 1)
+      test_accuracy: ... (step 1)
+      test_loss: ... (step 1)
+      val_accuracy: ... (step 1)
+      val_loss: ... (step 1)
     <exit 0>
 
 Files:
 
     >>> run("guild ls")
     ???:
-      events.out.tfevents...
     <exit 0>

@@ -2,7 +2,7 @@
 
 Use required-operation project.
 
-    >>> cd("examples/required-operation")
+    >>> cd(example("required-operation"))
 
 Available operations:
 

@@ -2,13 +2,15 @@
 
 This test runs a local hello operation and pushes the run to a remote.
 
-    >>> cd("examples/hello")
+    >>> cd(example("hello"))
 
 Run the op locally:
 
-    >>> run("guild run hello:from-file -y")
-    Resolving msg-file dependency
-    Hello Guild, from a required file!
+    >>> run("guild run hello-file -y")
+    Resolving file dependency
+    Using hello.txt for file resource
+    Reading message from hello.txt
+    Hello, from a file!
     <exit 0>
 
 Push the latest run to the remote:
@@ -21,7 +23,6 @@ Push the latest run to the remote:
 
 List remote runs:
 
-    >>> run("guild runs -r guild-uat")
-    [1:...]  hello:from-file (.../examples/hello)  ...  completed
-    ...
+    >>> run("guild runs -r guild-uat -n 1")
+    [1:...]  hello-file (.../hello)  ...  completed  file=hello.txt
     <exit 0>

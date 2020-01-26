@@ -34,8 +34,8 @@
 
 ## run
 
-    >>> cd("examples/hello")
-    >>> run("guild run -y -r invalid-remote-abcd1234 default")
+    >>> cd(example("hello"))
+    >>> run("guild run -y -r invalid-remote-abcd1234 hello")
     guild: remote 'invalid-remote-abcd1234' is not defined
     Show remotes by running 'guild remotes' or 'guild remotes --help'
     for more information.

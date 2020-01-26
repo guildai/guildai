@@ -1,9 +1,9 @@
 # Custom Scalars examples
 
-The example in `custom-scalars` can be used to illustrate both the
-default scalar capture mechanism and custom scalars.
+The example in `custom-scalars` illustrate both the default scalar
+capture mechanism and custom scalars.
 
-    >>> cd("examples/custom-scalars")
+    >>> cd(example("scalars"))
 
 The sample project requires `tensorboardX`.
 

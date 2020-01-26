@@ -3,7 +3,7 @@
 Guild doesn't support running scripts on a remote. The operation must
 be defined in a Guild file.
 
-    >>> cd("examples/hello")
+    >>> cd(example("hello"))
 
     >>> run("guild run say.py -r guild-uat -y", ignore="Refreshing")
     guild: cannot run scripts remotely

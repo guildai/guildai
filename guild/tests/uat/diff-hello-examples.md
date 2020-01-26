@@ -4,19 +4,19 @@ These tests use the Guild `diff` command to compare runs.
 
 We'll run them against the `hello` example:
 
-    >>> cd("examples/hello")
+    >>> cd(example("hello"))
 
-Let's run `from-flag` twice, each time with a different message.
+Let's run `hello` twice, each time with a different msg.
 
-    >>> quiet("guild run -y from-flag message='message is foo'")
-    >>> quiet("guild run -y from-flag message='message is bar'")
+    >>> quiet("guild run -y hello msg='msg is foo'")
+    >>> quiet("guild run -y hello msg='msg is bar'")
 
 Here are our last two:
 
-    >>> run("guild runs", ignore="Showing the first 20")
-    [1:...]   hello:from-flag  ...  completed  message='message is bar'
-    [2:...]   hello:from-flag  ...  completed  message='message is foo'
-    ...<exit 0>
+    >>> run("guild runs -n 2")
+    [1:...]   hello  ...  completed  msg='msg is bar'
+    [2:...]   hello  ...  completed  msg='msg is foo'
+    <exit 0>
 
 Let's use Guild `diff` to compare the two runs.
 
@@ -24,27 +24,27 @@ Run flags:
 
     >>> run("guild diff -f -m 'diff'")
     1c1
-    < message: message is foo
+    < msg: msg is foo
     ---
-    > message: message is bar
+    > msg: msg is bar
     <exit 0>
 
 Run output:
 
     >>> run("guild diff -O -m 'diff'")
     1c1
-    < message is foo
+    < msg is foo
     ---
-    > message is bar
+    > msg is bar
     <exit 0>
 
 Run generated output file:
 
-    >>> run("guild diff -p output -m 'diff'")
+    >>> run("guild diff --output -m 'diff'")
     1c1
-    < message is foo
+    < msg is foo
     ---
-    > message is bar
+    > msg is bar
     <exit 0>
 
 Invalid diff command:

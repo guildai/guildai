@@ -1,8 +1,8 @@
 # Stage runs
 
-Stage runs for the noisy example.
+Stage runs for the train example.
 
-    >>> cd("examples/noisy")
+    >>> cd(example("get-started"))
 
 Delete runs in preparation for these tests.
 
@@ -10,35 +10,35 @@ Delete runs in preparation for these tests.
 
 Stage runs:
 
-    >>> run("guild run noisy.py x=1 --stage -y", ignore="Refreshing")
-    noisy.py staged as ...
+    >>> run("guild run train.py x=1 --stage -y", ignore="Refreshing")
+    train.py staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>
 
-    >>> run("guild run noisy.py x=2 --stage --label 'x is 2' -y")
-    noisy.py staged as ...
+    >>> run("guild run train.py x=2 --stage --label 'x is 2' -y")
+    train.py staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>
 
-    >>> run("guild run noisy.py x=3 --stage -y")
-    noisy.py staged as ...
+    >>> run("guild run train.py x=3 --stage -y")
+    train.py staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>
 
 List staged runs:
 
-    >>> run("guild runs -o noisy")
-    [1:...]  noisy.py  ...  staged  noise=0.1 x=3
-    [2:...]  noisy.py  ...  staged  x is 2
-    [3:...]  noisy.py  ...  staged  noise=0.1 x=1
+    >>> run("guild runs -o train")
+    [1:...]  train.py  ...  staged  noise=0.1 x=3
+    [2:...]  train.py  ...  staged  x is 2
+    [3:...]  train.py  ...  staged  noise=0.1 x=1
     <exit 0>
 
 Show latest staged run:
 
     >>> run("guild runs info --staged")
     id: ...
-    operation: noisy.py
-    from: .../noisy
+    operation: train.py
+    from: .../get-started
     status: staged
     started: ...
     stopped:
@@ -46,7 +46,7 @@ Show latest staged run:
     label: noise=0.1 x=3
     sourcecode_digest: ...
     run_dir: .../.guild/runs/...
-    command: ... -um guild.op_main noisy --noise 0.1 --x 3
+    command: ... -um guild.op_main train --noise 0.1 --x 3
     exit_status:
     pid:
     flags:
@@ -82,9 +82,7 @@ List files for latest run:
       .guild/opref
       .guild/sourcecode/
       .guild/sourcecode/README.md
-      .guild/sourcecode/noisy.py
-      .guild/sourcecode/noisy2.py
-      .guild/sourcecode/requirements.txt
+      .guild/sourcecode/train.py
     <exit 0>
 
 Run the latest three staged runs:
@@ -93,22 +91,22 @@ Run the latest three staged runs:
     >>> for staged_run in staged:
     ...     run("guild run --start %s -y" % staged_run.id)
     x: 3.000000
-    noise: 0.1
+    noise: 0.100000
     loss: ...
     <exit 0>
     x: 2.000000
-    noise: 0.1
+    noise: 0.100000
     loss: ...
     <exit 0>
     x: 1.000000
-    noise: 0.1
+    noise: 0.100000
     loss: ...
     <exit 0>
 
 List runs:
 
     >>> run("guild runs", ignore="Showing")
-    [1:...]   noisy.py  ...  completed  noise=0.1 x=1
-    [2:...]   noisy.py  ...  completed  x is 2
-    [3:...]   noisy.py  ...  completed  noise=0.1 x=3
+    [1:...]   train.py  ...  completed  noise=0.1 x=1
+    [2:...]   train.py  ...  completed  x is 2
+    [3:...]   train.py  ...  completed  noise=0.1 x=3
     <exit 0>

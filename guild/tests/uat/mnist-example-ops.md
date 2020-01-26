@@ -11,7 +11,7 @@ For more information on this logic, see
 In this test, we'll limit our operations by changing the current
 directory to the MNIST example:
 
-    >>> cd("examples/mnist")
+    >>> cd(example("multiple-models"))
 
 The ops available in this context example are:
 

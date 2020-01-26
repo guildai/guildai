@@ -2,7 +2,7 @@
 
 Keras models can be trained simply by running them.
 
-    >>> cd("examples/keras")
+    >>> cd(example("keras"))
 
 Lets run the `mnist_mlp.py` script:
 
@@ -11,8 +11,8 @@ Lets run the `mnist_mlp.py` script:
     Masking available GPUs (CUDA_VISIBLE_DEVICES='')
     Using TensorFlow backend...
     60000/60000 ...
-    test_loss: ...
-    test_acc: ...
+    Test loss: ...
+    Test accuracy: ...
     <exit 0>
 
 Here's the run info with all scalars:
@@ -26,7 +26,7 @@ Here's the run info with all scalars:
     stopped: ...
     marked: no
     label: batch_size=128 epochs=1 num_classes=10
-    sourcecode_digest: 42195c08fbf5b0260fe629ff8add7413
+    sourcecode_digest: 6f26ba25761b228e68d87efba8fca329
     vcs_commit: git:...
     run_dir: ...
     command: ...
@@ -39,14 +39,12 @@ Here's the run info with all scalars:
     scalars:
       accuracy: ... (step 1)
       loss: ... (step 1)
-      sys/...
       val_accuracy: ... (step 1)
       val_loss: ... (step 1)
     <exit 0>
 
-And files:
+And files (empty list):
 
     >>> run("guild ls")
     ???:
-      events.out.tfevents...
     <exit 0>

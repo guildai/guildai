@@ -2,40 +2,38 @@
 
 List from the `examples/hello` directory:
 
-    >>> cd("examples/hello")
+    >>> cd(example("hello"))
 
     >>> run("guild runs -o hello")
-    [1:...]   hello:from-flag                    ...  completed  message=yop
-    [2:...]   hello:from-flag                    ...  completed  message=yop
-    [3:...]   hello:from-flag+                   ...  completed
-    [4:...]   hello:from-flag                    ...  completed  message=hola
-    [5:...]   hello:from-flag                    ...  completed  message=hello
-    [6:...]   hello:from-flag+                   ...  completed
-    [7:...]   hello:from-file-output             ...  completed  from-file-output=...
-    [8:...]   hello:from-file-output             ...  completed  from-file-output=...
-    [9:...]   hello:from-file                    ...  completed  file=.../alt-msg
-    [10:...]  hello:from-file                    ...  completed  file=msg.txt
-    [11:...]  hello:from-flag                    ...  completed  message='Howdy Guild!'
-    [12:...]  hello:from-flag                    ...  completed  message='Hello Guild, from a flag!'
-    [13:...]  hello:default                      ...  completed
+    [1:...]   hello       ...  completed  msg=yop
+    [2:...]   hello       ...  completed  msg=yop
+    [3:...]   hello+      ...  completed
+    [4:...]   hello       ...  completed  msg=hola
+    [5:...]   hello       ...  completed  msg=hello
+    [6:...]   hello+      ...  completed
+    [7:...]   hello-op    ...  completed  hello-file=...
+    [8:...]   hello-op    ...  completed  hello-file=...
+    [9:...]   hello-file  ...  completed  file=.../alt-msg
+    [10:...]  hello-file  ...  completed  file=hello.txt
+    [11:...]  hello       ...  completed  msg='Howdy Guild!'
+    [12:...]  hello       ...  completed  msg='Hello Guild!'
     <exit 0>
 
 List from the `examples` directory:
 
-    >>> cd("examples")
+    >>> cd(example(""))
 
     >>> run("guild runs -o hello")
-    [1:...]   hello:from-flag (hello)            ...  completed  message=yop
-    [2:...]   hello:from-flag (hello)            ...  completed  message=yop
-    [3:...]   hello:from-flag+ (hello)           ...  completed
-    [4:...]   hello:from-flag (hello)            ...  completed  message=hola
-    [5:...]   hello:from-flag (hello)            ...  completed  message=hello
-    [6:...]   hello:from-flag+ (hello)           ...  completed
-    [7:...]   hello:from-file-output (hello)     ...  completed  from-file-output=...
-    [8:...]   hello:from-file-output (hello)     ...  completed  from-file-output=...
-    [9:...]   hello:from-file (hello)            ...  completed  file=.../alt-msg
-    [10:...]  hello:from-file (hello)            ...  completed  file=msg.txt
-    [11:...]  hello:from-flag (hello)            ...  completed  message='Howdy Guild!'
-    [12:...]  hello:from-flag (hello)            ...  completed  message='Hello Guild, from a flag!'
-    [13:...]  hello:default (hello)              ...  completed
+    [1:...]   hello (hello)         ...  completed  msg=yop
+    [2:...]   hello (hello)         ...  completed  msg=yop
+    [3:...]   hello+ (hello)        ...  completed
+    [4:...]   hello (hello)         ...  completed  msg=hola
+    [5:...]   hello (hello)         ...  completed  msg=hello
+    [6:...]   hello+ (hello)        ...  completed
+    [7:...]   hello-op (hello)      ...  completed  hello-file=...
+    [8:...]   hello-op (hello)      ...  completed  hello-file=...
+    [9:...]   hello-file (hello)    ...  completed  file=.../alt-msg
+    [10:...]  hello-file (hello)    ...  completed  file=hello.txt
+    [11:...]  hello (hello)         ...  completed  msg='Howdy Guild!'
+    [12:...]  hello (hello)         ...  completed  msg='Hello Guild!'
     <exit 0>

@@ -2,9 +2,9 @@
 
 These tests illustrate Guild's various simplifications.
 
-The code we'll be testing is in the `simple-mnist` example:
+The code we'll be testing is in the `tensorflow` example:
 
-    >>> cd("examples/simple-mnist")
+    >>> cd(example("tensorflow"))
 
 Let's examine the project models and operation.
 
@@ -39,8 +39,8 @@ anonymous models merely make operations available.
 However, we do see the operations:
 
     >>> run("guild ops")
-    evaluate  Evaluate a trained model
-    train     Train on MNIST
+    evaluate  Evaluate a trained MNIST classifier
+    train     Train MNIST classifier
     <exit 0>
 
 The project has a default operation, which is defined in
@@ -69,15 +69,15 @@ for one epoch.
 The `train` operation, defined in the Guild file, defines non-default columns:
 
     >>> run("guild compare --table 1")
-    run  operation  started  time  status     label     step  train_loss  train_acc
-    ...  train      ...      ...   completed  epochs=1  540   0...        0...
+    run  operation  started  time  status     label                    step  train_loss  train_acc
+    ...  train      ...      ...   completed  batch_size=100 epochs=1  540   0...        0...
     <exit 0>
 
 ## Running scripts directly
 
 We can run a Python script directly as an operation:
 
-    >>> run("guild run train.py --no-gpus epochs=1 -y", timeout=120)
+    >>> run("guild run mnist.py --no-gpus epochs=1 -y", timeout=120)
     ???
     Step 20:...
     Step 540:...
@@ -85,8 +85,8 @@ We can run a Python script directly as an operation:
 
 The operation is represented simply as the script name:
 
-    >>> run("guild runs")
-    [1:...]   train.py  ... ...  completed
+    >>> run("guild runs --limit 1")
+    [1:...]   mnist.py  ... ...  completed
     ...
     <exit 0>
 
@@ -94,17 +94,17 @@ The operation is like any other. We can view info:
 
     >>> run("guild runs info") # doctest: +REPORT_UDIFF
     id: ...
-    operation: train.py
-    from: .../examples/simple-mnist
+    operation: mnist.py
+    from: .../examples/tensorflow
     status: completed
     started: ...
     stopped: ...
     marked: no
     label: batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no
-    sourcecode_digest: f916ac0400292c61c1c0b13b0d03efec
-    vcs_commit: git:...
+    sourcecode_digest: ...
+    vcs_commit:...
     run_dir: ...
-    command: ... -um guild.op_main train
+    command: ... -um guild.op_main mnist
              --batch_size 100
              --datadir data
              --epochs 1
@@ -133,7 +133,7 @@ The run writes a number of scalars, which we can view as info with the
 
     >>> run("guild runs info -S")
     id: ...
-    operation: train.py
+    operation: mnist.py
     ...
     scalars:
       acc: ... (step 540)
@@ -163,23 +163,23 @@ for scripts:
 
     >>> run("guild compare -t 1")
     run  operation  started  time  status     label                                                             batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss
-    ...  train.py   ... ...  ...   completed  batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no  100         data     1       no       .       no     540   0...  0...
+    ...  mnist.py   ... ...  ...   completed  batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no  100         data     1       no       .       no     540   0...  0...
     <exit 0>
 
-When we compare the last two runs (the `train` op and the `train.py` script):
+When we compare the last two runs (the `train` op and the `mnist.py` script):
 
     >>> run("guild compare -t 1 2")
     run  operation  started  time  status     label                                                             batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss  train_loss  train_acc
-    ...  train.py   ... ...  ...   completed  batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no  100         data     1       no       .       no     540   0...  0...
-    ...  train      ... ...  ...   completed  epochs=1                                                          540               0...        0...
+    ...  mnist.py   ... ...  ...   completed  batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no  100         data     1       no       .       no     540   0...  0...
+    ...  train      ... ...  ...   completed  batch_size=100 epochs=1                                           540                                                                    0...        0...
     <exit 0>
 
 Compare with CSV:
 
     >>> run("guild compare --csv - 1 2", ignore="Wrote")
     run,operation,started,time,status,label,batch_size,datadir,epochs,prepare,rundir,test,step,acc,loss,train_loss,train_acc
-    ...,train.py,...,...,completed,batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no,100,data,1,False,.,False,540,...,...,,
-    ...,train,...,...,completed,epochs=1,,,,,,,540,,,...,...
+    ...,mnist.py,...,...,completed,batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no,100,data,1,False,.,False,540,...,...,,
+    ...,train,...,...,completed,batch_size=100 epochs=1,,,,,,,540,,,...,...
     <exit 0>
 
 Generate a CSV file:
@@ -193,5 +193,5 @@ Generate a CSV file:
 
     >>> cat(csv_path)
     run,operation,started,time,status,label,batch_size,datadir,epochs,prepare,rundir,test,step,acc,loss,train_loss,train_acc
-    ...,train.py,...,...,completed,batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no,100,data,1,False,.,False,540,...,...,,
-    ...,train,...,...,completed,epochs=1,,,,,,,540,,,...,...
+    ...,mnist.py,...,...,completed,batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no,100,data,1,False,.,False,540,...,...,,
+    ...,train,...,...,completed,batch_size=100 epochs=1,,,,,,,540,,,...,...

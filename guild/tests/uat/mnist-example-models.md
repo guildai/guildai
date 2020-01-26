@@ -14,7 +14,7 @@ We can reference a guildfile in one of two ways:
 Here are the models associated with the MNIST example (using the `-C`
 option):
 
-    >>> run("guild -C examples/mnist models", ignore="Refreshing")
+    >>> run("guild -C %s models" % example("multiple-models"))
     mnist-expert  MNIST model from TensorFlow expert tutorial
     mnist-intro   MNIST model from TensorFlow intro tutorial
     <exit 0>
@@ -23,7 +23,7 @@ Note that the installed packages are not included in this list. This
 is because the list is shown from the project directory. To include
 installed packages, use the `-i, --installed` option:
 
-    >>> run("guild -C examples/mnist models -i", ignore="Refreshing")
+    >>> run("guild -C %s models -i" % example("multiple-models"))
     gpkg.hello/...
     gpkg.keras.mnist/...
     mnist-expert  MNIST model from TensorFlow expert tutorial
@@ -32,7 +32,7 @@ installed packages, use the `-i, --installed` option:
 
 Here's the same list after we've changed to that directory:
 
-    >>> cd("examples/mnist")
+    >>> cd(example("multiple-models"))
     >>> run("guild models")
     mnist-expert  MNIST model from TensorFlow expert tutorial
     mnist-intro   MNIST model from TensorFlow intro tutorial

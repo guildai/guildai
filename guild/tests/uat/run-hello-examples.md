@@ -5,7 +5,7 @@ it operations.
 
 We'll run through the various operations in this test.
 
-    >>> cd("examples/hello")
+    >>> cd(example("hello"))
 
 Delete runs for these tests.
 
@@ -13,72 +13,65 @@ Delete runs for these tests.
 
 ## Models
 
+The `hello` uses operation-only format.
+
     >>> run("guild models", ignore="Refreshing flags")
-    hello  A "hello world" sample model
     <exit 0>
 
 ## Operations
 
     >>> run("guild operations")
-    hello:default           Print a default message
-    hello:from-file         Print a message from a file
-    hello:from-file-output  Print output from last file-output operation
-    hello:from-flag         Print a message
+    hello       Say hello to my friends
+    hello-file  Shows a message from a file
+    hello-op    Show a message from a hello-file operation
     <exit 0>
 
-### `default`
+### `hello`
 
-The `default` operation simply prints a hard-coded message.
-
-    >>> run("guild run default -y", ignore="RuntimeWarning")
-    Hello Guild!
-    <exit 0>
-
-### `from-flag`
-
-The `from-flag` operation prints a message defined by a flag.
+The `hello` operation prints a message defined by a flag.
 
 Here's the default output:
 
-    >>> run("guild run from-flag -y")
-    Hello Guild, from a flag!
+    >>> run("guild run hello -y")
+    Hello Guild!
     <exit 0>
 
 And the output when we provide a value for the message flag:
 
-    >>> run("guild run from-flag message='Howdy Guild!' -y")
+    >>> run("guild run hello msg='Howdy Guild!' -y")
     Howdy Guild!
     <exit 0>
 
-### `from-file`
+### `hello-file`
 
-The `from-file` operation prints a message contained in a file. By
+The `hello-file` operation prints a message contained in a file. By
 default it will print the contents of a default file:
 
-    >>> run("guild run from-file -y")
-    Resolving msg-file dependency
-    Hello Guild, from a required file!
+    >>> run("guild run hello-file -y")
+    Resolving file dependency
+    Using hello.txt for file resource
+    Reading message from hello.txt
+    Hello, from a file!
     <exit 0>
 
-Note that this file is specified as a required resource in the model.
-
-We can provide an alternative.
+We can provide an alternative file.
 
     >>> quiet("echo 'Yo yo, what up Guild!' > $WORKSPACE/alt-msg")
-    >>> run("guild run from-file file=$WORKSPACE/alt-msg -y")
-    Resolving msg-file dependency
+    >>> run("guild run hello-file file=$WORKSPACE/alt-msg -y")
+    Resolving file dependency
+    Using .../alt-msg for file resource
+    Reading message from .../alt-msg
     Yo yo, what up Guild!
     <exit 0>
 
-### `from-file-output`
+### `hello-op`
 
-When we run `from-file-output`, we get the latest output from
-`from-file`:
+When we run `hello-op`, we get the latest output from `hello-file`:
 
-    >>> run("guild run from-file-output -y")
-    Resolving from-file-output dependency
-    Using output from run ... for from-file-output resource
-    Latest from-file output:
+    >>> run("guild run hello-op -y")
+    Resolving hello-file dependency
+    Using output from run ... for hello-file resource
+    Reading message from hello.txt
     Yo yo, what up Guild!
     <exit 0>
 
@@ -87,69 +80,59 @@ the `--deps` option of `guild runs info`:
 
     >>> run("guild runs info --deps")
     id: ...
-    operation: hello:from-file-output
+    operation: hello-op
     from: .../guild.yml
     status: completed
     started: ...
     stopped: ...
     marked: no
-    label: from-file-output=...
+    label: hello-file=...
     sourcecode_digest: ...
+    vcs_commit: ...
     run_dir: ...
-    command: ... -um guild.op_main say --file-output --
+    command: ... -um guild.op_main cat --
     exit_status: 0
     pid:
     flags:
-      from-file-output: ...
+      hello-file: ...
     scalars:
     dependencies:
-      from-file-output:
-        - ../.../output
+      hello-file:
+        - ../.../alt-msg
     <exit 0>
-
-`file-output` as a flag.
 
 Here's a preview of the command:
 
-    >>> run("guild run from-file-output from-file-output=foobar", timeout=5)
-    WARNING: cannot find a suitable run for required resource 'from-file-output'
-    You are about to run hello:from-file-output
-      from-file-output: foobar
+    >>> run("guild run hello-op hello-file=foobar", timeout=5)
+    WARNING: cannot find a suitable run for required resource 'hello-file'
+    You are about to run hello-op
+      hello-file: foobar
     Continue? (Y/n)
     <exit ...>
 
-We'll use the first run for `from-file`, rather than the latest.
+Let's use the first run for `hello-file`, rather than the latest.
 
-    >>> run("""
-    ... guild runs -o hello:from-file
-    ... run_id=`guild runs -o hello:from-file | grep 'from-file ' | tail -n1 | cut -d: -f2 | cut -b 1-8`
-    ... echo "from-file run: $run_id"
-    ... guild run from-file-output from-file-output=$run_id -y
-    ... """)
-    [1:...]  hello:from-file-output  ...  completed  from-file-output=...
-    [2:...]  hello:from-file         ...  completed  file=.../alt-msg
-    [3:...]  hello:from-file         ...  completed  file=msg.txt
-    from-file run: ...
-    Resolving from-file-output dependency
-    Using output from run ... for from-file-output resource
-    Latest from-file output:
-    Hello Guild, from a required file!
+    >>> run("guild run hello-op hello-file=`guild select -o hello-file 2` -y")
+    Resolving hello-file dependency
+    Using output from run ... for hello-file resource
+    Reading message from hello.txt
+    Hello, from a file!
     <exit 0>
 
 ### Run a batch
 
-    >>> run("guild run from-flag message=[hello,hola] -y")
-    INFO: [guild] Running trial ...: hello:from-flag (message=hello)
+    >>> run("guild run hello msg=[hello,hola] -y")
+    INFO: [guild] Running trial ...: hello (msg=hello)
     hello
-    INFO: [guild] Running trial ...: hello:from-flag (message=hola)
+    INFO: [guild] Running trial ...: hello (msg=hola)
     hola
     <exit 0>
 
 ### Run a batch using list concatenation
 
-    >>> run("guild run from-flag message=[yop]*2 -y")
-    INFO: [guild] Running trial ...: hello:from-flag (message=yop)
+    >>> run("guild run hello msg=[yop]*2 -y")
+    INFO: [guild] Running trial ...: hello (msg=yop)
     yop
-    INFO: [guild] Running trial ...: hello:from-flag (message=yop)
+    INFO: [guild] Running trial ...: hello (msg=yop)
     yop
     <exit 0>

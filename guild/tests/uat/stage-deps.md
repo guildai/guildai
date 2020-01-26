@@ -6,7 +6,7 @@ Delete runs as baseline.
 
 Use `dependencies` example.
 
-    >>> cd("examples/dependencies")
+    >>> cd(example("dependencies"))
 
 Warning when missing required op:
 

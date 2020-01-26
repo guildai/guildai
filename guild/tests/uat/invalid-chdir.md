@@ -11,6 +11,6 @@ If the specified value doesn't exist:
 
 If the specified value isn't a directory:
 
-    >>> run("guild -C examples/mnist/guild.yml models")
-    guild: 'examples/mnist/guild.yml' is not a directory
+    >>> run("guild -C %s/guild.yml models" % example("hello"))
+    guild: '.../hello/guild.yml' is not a directory
     <exit 1>

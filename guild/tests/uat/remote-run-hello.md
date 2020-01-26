@@ -2,11 +2,11 @@
 
 These tests run various hello operations remotely.
 
-    >>> cd("examples/hello")
+    >>> cd(example("hello-package-legacy"))
 
 ## default
 
-    >>> run("guild run default -r guild-uat -y")
+    >>> run("guild run default -r guild-uat -y", ignore="Refreshing")
     Building package
     ...
     Initializing remote run

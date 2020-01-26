@@ -33,7 +33,7 @@ Check:
 
 We'll use the `tensorflow-vers` example project for our tests.
 
-    >>> cd("examples/tensorflow-vers")
+    >>> cd(example("tensorflow-versions"))
 
 ## Log system summaries with scalars
 
