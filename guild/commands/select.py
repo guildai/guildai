@@ -27,7 +27,6 @@ from . import runs_support
 @runs_support.run_arg
 @click.option("-S", "--short", help="Use short ID.", is_flag=True)
 @runs_support.all_filters
-@remote_support.remote_option("Apply select to remote.")
 @click.pass_context
 @click_util.use_args
 @click_util.render_doc
@@ -45,12 +44,6 @@ def select(ctx, args):
     If RUN isn't specified, the latest matching run is selected.
 
     {{ runs_support.all_filters }}
-
-    ### Selecting Remote Runs
-
-    Use `--remote` to select a run on the specified remote.
-
-    {{ remote_support.remote_option }}
 
     """
     from . import runs_impl
