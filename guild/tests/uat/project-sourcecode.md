@@ -494,8 +494,7 @@ Run op:
 
     >>> run("guild run exclude-dir -y")
     Traceback (most recent call last):
-    ...
-    ModuleNotFoundError: No module named 'subproject'
+    ...No module named ...subproject...
     <exit 1>
 
 Verify source code:
@@ -605,8 +604,7 @@ Run op:
 
     >>> run("guild run parent-root-exclude-subproject -y")
     Traceback (most recent call last):
-    ...
-    ModuleNotFoundError: No module named 'subproject'
+    ...No module named ...subproject...
     <exit 1>
 
 Verify source code files:
