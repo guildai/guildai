@@ -25,7 +25,12 @@ from guild import python_util
 from .python_script import PythonScriptModelProxy
 from .python_script import PythonScriptOpdefSupport
 
-KERAS_OUTPUT_SCALARS = [r"Epoch (?P<step>[0-9]+)", r" - ([a-z_]+): (\value)"]
+KERAS_OUTPUT_SCALARS = [
+    r"Epoch (?P<step>[0-9]+)",
+    r" - ([a-z_]+): (\value)",
+    r"Test loss: (?P<test_loss>\value)",
+    r"Test accuracy: (?P<test_accuracy>\value)",
+]
 
 
 class KerasScriptModelProxy(PythonScriptModelProxy):
