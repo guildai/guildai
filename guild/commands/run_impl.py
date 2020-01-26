@@ -525,13 +525,13 @@ def _apply_gpu_arg_env(args, env):
 
 
 def _op_init_sourcecode_paths(args, op):
-    op.sourcecode_paths = _sourcecode_paths(args)
+    op.sourcecode_paths = _sourcecode_paths(op._opdef, args)
 
 
-def _sourcecode_paths(args):
+def _sourcecode_paths(opdef, args):
     if args.debug_sourcecode:
         return _resolve_sourcecode_paths(args.debug_sourcecode)
-    return _default_sourcecode_paths()
+    return _default_sourcecode_paths(opdef)
 
 
 def _resolve_sourcecode_paths(s):
@@ -541,8 +541,22 @@ def _resolve_sourcecode_paths(s):
     ]
 
 
-def _default_sourcecode_paths():
-    return [".guild/sourcecode"]
+def _default_sourcecode_paths(opdef):
+    if not opdef:
+        return [_guild_sourcecode_path()]
+    return [_opdef_rel_sourcecode_dest(opdef)]
+
+
+def _opdef_rel_sourcecode_dest(opdef):
+    return (
+        opdef.sourcecode.dest
+        or opdef.modeldef.sourcecode.dest
+        or _guild_sourcecode_path()
+    )
+
+
+def _guild_sourcecode_path():
+    return os.path.join(".guild", "sourcecode")
 
 
 # =================================================================
@@ -726,18 +740,18 @@ def _run_init_cb_for_opdef(opdef):
 
 
 def _copy_run_sourcecode(opdef, run):
-    sourcecode_src = opdef.guildfile.dir
-    sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
     if os.getenv("NO_SOURCECODE") == "1":
         log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
         return
+    sourcecode_src = opdef.guildfile.dir
     if not sourcecode_src:
         log.debug("no sourcecode source, skipping sourcecode copy")
         return
+    sourcecode_select = op_util.sourcecode_select_for_opdef(opdef)
     if not sourcecode_select:
         log.debug("no sourcecode rules, skipping sourcecode copy")
         return
-    dest = run.guild_path("sourcecode")
+    dest = _sourcecode_dest(run, opdef)
     log.debug(
         "copying source code files for run %s from %s to %s",
         run.id,
@@ -745,6 +759,10 @@ def _copy_run_sourcecode(opdef, run):
         dest,
     )
     op_util.copy_sourcecode(sourcecode_src, sourcecode_select, dest)
+
+
+def _sourcecode_dest(run, opdef):
+    return os.path.join(run.dir, _opdef_rel_sourcecode_dest(opdef))
 
 
 def _write_run_sourcecode_digest(run):

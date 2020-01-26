@@ -117,7 +117,7 @@ class FileSelectRule(object):
         self.result = result
         if isinstance(patterns, six.string_types):
             patterns = [patterns]
-        self.patterns = patterns
+        self.patterns = _normalize_patterns(patterns)
         self.regex = regex
         self._patterns_match = self._patterns_match_f(patterns, regex)
         self.type = self._validate_type(type)
@@ -140,8 +140,7 @@ class FileSelectRule(object):
 
     @staticmethod
     def _fnmatch_f(patterns):
-        match = fnmatch.fnmatch
-        return lambda path: any((match(path, p) for p in patterns))
+        return lambda path: any((_fnmatch(path, p) for p in patterns))
 
     @staticmethod
     def _validate_type(type):
@@ -220,6 +219,29 @@ class FileSelectRule(object):
         if self.size_lt and size < self.size_lt:
             return True
         return False
+
+
+def _normalize_patterns(patterns):
+    return [_normalize_pattern(p) for p in patterns]
+
+
+def _normalize_pattern(p):
+    return p.replace("/", os.path.sep).replace("\\", os.path.sep)
+
+
+def _fnmatch(path, pattern):
+    if os.path.sep not in pattern:
+        path = os.path.basename(path)
+    pattern = _strip_leading_path_sep(pattern)
+    return fnmatch.fnmatch(path, pattern)
+
+
+def _strip_leading_path_sep(pattern):
+    while pattern:
+        if pattern[0] != os.path.sep:
+            break
+        pattern = pattern[1:]
+    return pattern
 
 
 class FileSelectTest(object):

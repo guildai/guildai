@@ -15,6 +15,8 @@
   languages with Guild
 - [multiple-models](multiple-models/README.md) - Example of defining
   multiple models in a Guild file
+- [project-sourcecode](project-sourcecode/README.md) - Various
+  patterns for configuring project source code used for an operation
 - [required-operation](required-operation/README.md) - A deeper
   coverage of operation dependencies
 - [scalars](scalars/README.md) - Example showing various ways

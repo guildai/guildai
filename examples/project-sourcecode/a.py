@@ -1,0 +1,3 @@
+import b
+
+print("a")

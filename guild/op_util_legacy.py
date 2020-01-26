@@ -906,6 +906,8 @@ def _opdef_paths(opdef):
     abs_gf_dir = os.path.abspath(opdef.guildfile.dir)
     if opdef.python_path is not None:
         return [os.path.join(abs_gf_dir, p) for p in opdef.python_path]
+    if opdef.sourcecode and opdef.sourcecode.root:
+        return [os.path.join(abs_gf_dir, opdef.sourcecode.root)]
     return [abs_gf_dir]
 
 

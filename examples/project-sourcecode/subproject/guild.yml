@@ -1,0 +1,11 @@
+parent-root:
+  main: a
+  sourcecode:
+    root: ..
+
+parent-root-exclude-subproject:
+  main: a
+  sourcecode:
+    root: ..
+    select:
+      - exclude: subproject

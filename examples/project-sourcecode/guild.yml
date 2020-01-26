@@ -1,0 +1,61 @@
+default:
+  description: No sourcecode configuration - shows default copy behavior
+  main: a
+
+include-png:
+  description: Extend default behavior to include png files
+  main: a
+  sourcecode:
+    - include: '*.png'
+
+exclude-paths:
+  description: Extend default behavior to exclude README.md and CSV files
+  main: a
+  sourcecode:
+    - exclude: README.md
+    - exclude: '*.csv'
+
+disable-sourcecode:
+  description: Disable source code copies
+  main: a
+  sourcecode: no
+
+all-sourcecode:
+  description: Include all files as source code
+  main: a
+  sourcecode:
+    - include: '*'
+
+select-patterns:
+  description: Only copy files matching specified patterns
+  main: a
+  sourcecode:
+    - guild.yml
+    - '*.py'
+
+select-patterns-2:
+  description: Alternative of select-patterns that selects root guild.yml
+  main: a
+  sourcecode:
+    - /guild.yml
+    - '*.py'
+
+copy-to-alt-dir:
+  description: Copy source code files to src under run directory
+  main: a
+  sourcecode:
+    dest: src
+
+copy-all-to-run-dir:
+  description: Copy all projects to the run directory
+  main: a
+  sourcecode:
+    dest: .
+    select: '*'
+
+exclude-dir:
+  description: Exclude a directory explicitly for optimized copies
+  main: a
+  sourcecode:
+    - exclude:
+        dir: subproject
