@@ -150,12 +150,14 @@ class Build(object):
                     " --guild dist/*.whl {}".format(self.test_dir)
                 ),
                 "TERM=xterm-256color source guild-env {}".format(self.test_dir),
-                "WORKSPACE={workspace} "
-                "UAT_SKIP=remote-* "
-                "COLUMNS=999 "
-                "EXAMPLES={examples} "
-                "guild check --uat".format(
-                    workspace=self.test_dir, examples=self.examples_dir
+                (
+                    "WORKSPACE={workspace} "
+                    "UAT_SKIP=remote-* "
+                    "COLUMNS=999 "
+                    "EXAMPLES={examples} "
+                    "guild check --uat".format(
+                        workspace=self.test_dir, examples=self.examples_dir
+                    )
                 ),
             ],
         )
