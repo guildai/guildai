@@ -1,11 +1,11 @@
 # Guild Example: `hello`
 
-This example shows basic flag usage. It also demonstrates simple file
-dependencies.
+This example illustrates basic flag usage and dependencies.
 
 - [guild.yml](guild.yml) - Project Guild file
 - [say.py](say.py) - Prints a greeting
 - [cat.py](cat.py) - Prints contents of a file
+- [hello.txt](hello.txt) - Sample file used by `hello-file` operation
 
 Operations:
 
@@ -25,7 +25,7 @@ illustrates Guild's integration with global variables.
 
 ``` yaml
 hello:
-  description: Say hello to my friends.
+  description: Say hello to my friends
   main: say
   flags-import:
     - msg
@@ -68,8 +68,6 @@ hello:
   flags-import: all  # will detect `msg` as the only supported flag
 ```
 
-### Sample Usage
-
 Run using the default flag value:
 
 ```
@@ -99,8 +97,6 @@ Output:
 ```
 Hello custom flag!
 ```
-
-### View Results
 
 The `hello` prints a message but does not create any files or log
 scalars.
@@ -141,4 +137,85 @@ Hello Guild!
 
 ## `hello-file`
 
+The `hello-file` operation prints a message from a file. It
+illustrates the use of a user defined file as input to an operation.
+
+Here's the operation configuration:
+
+``` yaml
+hello-file:
+  description: Shows a message from a file
+  main: cat
+  flags-import:
+    - file
+  requires:
+    - file: ${file}
+      name: file
+```
+
+The operation is implemented in [cat.py](cat.py).
+
+The `file` flag is used to specify the file used as input to the
+operation. The file is a *required resource* and must be configured in
+the `requires` operation attribute.
+
+From the example directory, run:
+
+    $ guild run hello-file
+
+You can specify the file to use:
+
+    $ guild run hello-file file=hello.txt
+
+The file requirement is named `file` to improve the message printed
+when resolving the resource.
+
+For example:
+
+```
+Resolving file dependency
+Using hello.txt for file resource
+Reading message from hello.txt
+Hello, from a file!
+```
+
 ## `hello-op`
+
+The `hello-op` operation shows how the result from an operation can be
+used by another operation.
+
+By convention Guild refers to the required operation as _upstream_ and
+the requiring operation as _downstream_.
+
+`hello-op` requires output from `hello-file`. In this case,
+`hello-file` is the _upstream_ operation and `hello-op` is the
+_downstream_ operation.
+
+Here's the operation definition:
+
+``` yaml
+hello-op:
+  description: Show a message from a hello-file operation
+  main: cat
+  requires:
+    - operation: hello-file
+      rename: '.* hello.txt'
+```
+
+When you run `hello-op`, Guild looks for a `hello-file` run. Guild
+creates links from `hello-file` in the run directory for the
+`hello-op` run.
+
+To use a standard file name for input, the operation renames the
+upstream file to `hello.txt`. (This scheme assumes that `hello-file`
+contains a single file. If the run happens has more than one file, the
+first file, sorted in lexiconigraphic ascending order, is renamed and
+subsequent files are skipped with a warning message.)
+
+By default, Guild selects the latest non-error run for
+`hello-file`. You can specify an alternative run using the
+`hello-file` resource name:
+
+```
+$ guild run hello-op hello-file=<run ID>
+```

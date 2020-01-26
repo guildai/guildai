@@ -1,0 +1,32 @@
+train:
+  description: Train MNIST classifier
+  main: mnist
+  default: yes
+  requires:
+    path: data
+    default-unpack: no
+    sources:
+      - url: http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+      - url: http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
+      - url: http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+      - url: http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
+  flags-import:
+    - batch_size
+    - epochs
+  compare:
+    - loss step as step
+    - loss as train_loss
+    - acc as train_acc
+
+evaluate:
+  description: Evaluate a trained MNIST classifier
+  main: mnist --test
+  requires:
+    - operation: train
+      select:
+        - model
+        - data
+  flags-import: no
+  compare:
+    - loss as val_loss
+    - acc as val_acc

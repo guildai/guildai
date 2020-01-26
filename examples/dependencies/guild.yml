@@ -1,0 +1,43 @@
+- model: ''
+  sourcecode:
+    - exclude: file.txt
+
+  operations:
+    file:
+      description: Requires a single project file
+      main: guild.pass
+      requires:
+        - file: file.txt
+
+    requires-file-op:
+      description: Requires file provided by file operation
+      main: guild.pass
+      requires:
+        - operation: file
+          select: file.txt
+
+    requires-any-file:
+      description: Requires file provided by various options
+      main: guild.pass
+      requires:
+        - operation: file,gen_file
+          name: from-run
+          select: file.txt
+
+    gen-file:
+      description: Generate an empty file
+      exec: bash -c 'echo hello > file.txt'
+
+    missing-dep:
+      description: Illustrates an error for missing file
+      main: guild.pass
+      requires:
+        - file: not-exist.txt
+
+    exit-123:
+      description: Generates an error with exit code 123
+      exec: bash -c "exit 123"
+
+    process-error:
+      description: Generates a process error for an invalid command
+      exec: invalid-cmd-xxx-yyy

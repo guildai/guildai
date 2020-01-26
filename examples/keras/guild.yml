@@ -4,6 +4,7 @@
     train:
       description: Train MLP on MNIST
       main: mnist_mlp
+      flags-dest: globals
       flags:
         epochs:
           description: Number of epochs to train

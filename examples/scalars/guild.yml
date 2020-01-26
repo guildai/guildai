@@ -1,0 +1,46 @@
+train:
+  # main module defaults to 'train' because of operation name.
+  #
+  #main: train
+
+  description: Example using explicit output-scalars
+
+  # Output scalars can be explicitly defined as map of scalar key to
+  # pattern. Use a group in the pattern to capture the scalar value.
+  # The special key `step` is used to set the global step that is
+  # applied to logged scalars.
+
+  output-scalars:
+    step: 'step: (\value)'
+    loss: 'loss: (\value)'
+    accuracy: 'accuracy: (\value)'
+
+train2:
+  description: Example using a generalized scalar pattern
+
+  main: train
+
+  # Specify a pattern with two groups. Guild uses the first group as
+  # key and the second as value. Values must be parseable as numbers.
+  # Guild supports special escape values \key and \value to specify
+  # regex patterns for keys and values respectively. (Note that you
+  # can change the order of the groups to make keys second by using
+  # named groups 'key' and 'value'. This is an unusual case however
+  # and not illustrated here).
+
+  output-scalars: '^(\key): (\value)'
+
+train3:
+  description: Example disabling output scalars and using TF event files
+  main: train_with_tensorboardX
+
+  # This example disables output scalars altogether. Note that the
+  # training script uses tensorboardX to log scalars directly. In this
+  # case there's no need for Guild to look at script output at all.
+
+  output-scalars: no
+
+train4:
+  description: Example using named groups to capture scalars
+  main: train_single_line_scalars
+  output-scalars: 'epoch (?P<step>\step)  train loss (?P<loss>\value)  val loss (?P<val_loss>\value)'

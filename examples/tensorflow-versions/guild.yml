@@ -1,0 +1,37 @@
+beginner-workaround:
+  description: >
+    Workaround for Guild 0.6.3 and earlier on TensorFlow 2.x
+
+    Versions of Guild prior to 0.6.4 did not support TensorFlow 2.x
+    and would terminate with an error `AttributeError: module
+    'tensorboard.summary._tf.summary' has no attribute 'FileWriter'`.
+
+    This operation disables the plugins that rely on TensorFlow 1.x
+    APIs and explicitly define the output scalars for step, loss, and
+    accuracy that correspond to TF 2.0 Keras output.
+
+    Update `output-scalars` as needed to capture scalars for your
+    operation.
+
+  main: beginner2
+  disable-plugins: all
+  output-scalars:
+    step: 'Epoch (\S+)/'
+    loss: '- loss: (\S+)'
+    accuracy: '- accuracy: (\S+)'
+
+summary1:
+  main: summary1 ${logdir}
+  flags:
+    logdir:
+      required: yes
+      arg-skip: yes
+  plugins: summary
+
+summary2:
+  main: summary2 ${logdir}
+  flags:
+    logdir:
+      required: yes
+      arg-skip: yes
+  plugins: summary

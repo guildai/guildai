@@ -1,11 +1,12 @@
 hello:
-  description: Say hello to my friends.
+  description: Say hello to my friends
   main: say
+  default: yes
   flags-import:
     - msg
 
 hello-file:
-  description: Shows a message from a file.
+  description: Shows a message from a file
   main: cat
   flags-import:
     - file
@@ -14,7 +15,7 @@ hello-file:
       name: file
 
 hello-op:
-  description: Show a message from a hello-file operation.
+  description: Show a message from a hello-file operation
   main: cat
   requires:
     - operation: hello-file

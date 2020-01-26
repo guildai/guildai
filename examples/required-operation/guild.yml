@@ -1,0 +1,65 @@
+prepare-data:
+  description: Prepare data for training
+  main: prepare_data
+
+train:
+  description: Train a model on prepared data
+  main: train
+  requires:
+
+    # Operation requires a run from prepare-data. By default, Guild
+    # selects the latest non-error run of the specified operation. If
+    # a prepare-data run is marked (i.e. using `guild mark ...`) it
+    # will be used instead.
+
+    - operation: prepare-data
+
+      # The `path` attribute is used to store selected files in a path
+      # under the run directory. This is useful for strucuting the run
+      # directory - especially if the train operation expects files in
+      # a specific location.
+
+      path: data
+
+      # Name must be defined to let users specify specific runs to be
+      # used for the required operation. E.g. here we define the name
+      # as `prepared-data` so that the user can specify a specific run
+      # using `guild run prepared-data=RUN-ID`. (Future releases of
+      # Guild will use the operation name by default - in the
+      # meantime, this attribute is required to let users specify a
+      # run explicitly.)
+
+      name: prepared-data
+
+train2:
+  description: Alternative train using different data structure
+  main: train2
+  requires:
+
+    # This is a similar requirement to that of `train` above, but
+    # structures the prepare-data output differently. Specifically, it
+    # selects a single file from the two that are generated and stores
+    # it directly in the train run directory (rather than a `data`
+    # subdirectory as above).
+
+    - operation: prepare-data
+
+      # A `select` attribute may be used to select specific files from
+      # the prepare-data file. In this case, `data2.txt` will be
+      # selected and included in the train run directory. Note there
+      # is no `path` attribute, so the selected files will be linked
+      # in the run directory root.
+
+      select:
+        - subdir/data2.txt
+
+      # Selected files can be renamed using `PATTERN REPLACE` where
+      # `PATTERN` is a regular expression to match and `REPLACE` is
+      # the replacement.
+
+      rename: data2 data
+
+      # As with the previous requires example, we use a name to let
+      # users specify alternative prepare-data runs.
+
+      name: prepared-data

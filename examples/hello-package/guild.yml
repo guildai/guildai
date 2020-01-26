@@ -1,0 +1,31 @@
+- package: hello
+  data-files:
+    - hello.txt
+
+- model: ''
+  operations:
+    hello:
+      description: Say hello to my friends
+      main: say
+      default: yes
+      flags-import:
+        - msg
+
+    hello-file:
+      description: Shows a message from a file
+      main: cat
+      flags-import:
+        - file
+      flags:
+        file:
+          default: hello.txt
+      requires:
+        - file: ${file}
+          name: file
+
+    hello-op:
+      description: Show a message from a hello-file operation
+      main: cat
+      requires:
+        - operation: hello-file
+          rename: '.* hello.txt'

@@ -1,0 +1,124 @@
+- package: hello
+  data-files:
+    - msg.txt
+
+- model: hello
+  default: yes
+  description: >
+    A "hello world" sample model
+
+    This is a sample model that provides various operations for printing
+    hello world messages.
+
+    The message provided, either by default, by a flag, or a file (see
+    each operation for the applicable interface) is printed to standard
+    output and written to a file named `output` in the run directory.
+
+  operations:
+    default:
+      default: yes
+      description: >
+        Print a default message
+
+        This operation does not support a user-defined message. Use
+        the from-flag operation with the 'message' flag to print an
+        alternative message.
+
+      main: say
+      flags-import: no
+
+    from-flag:
+      description: >
+        Print a message
+
+        Use the 'message' flag to specify the message to print.
+
+      main: say
+      flags-import: no
+      flags:
+        message:
+          description: Message to print
+          default: Hello Guild, from a flag!
+          env-name: MESSAGE
+
+    from-file:
+      description: >
+        Print a message from a file
+
+        Use the 'file' flag to specify the file to print.
+
+      main: say
+      requires: msg-file
+      flags-import: no
+      flags:
+        file:
+          description: File containing the message to print
+          default: msg.txt
+
+    from-file-output:
+      description: >
+        Print output from last file-output operation
+
+        This operation requires a completed file-output run.
+
+      main: say --file-output
+      flags-import: no
+      requires: from-file-output
+
+  sourcecode:
+    - say.py
+    - msg.txt
+    - guild.yml
+
+  resources:
+    msg-file:
+      sources:
+        - file: msg.txt
+          sha256: 0bc96b4f4757a80c0a3f9b9bc14de789e5eb1d75659904de68241cfc7030e7de
+
+    from-file-output:
+      path: from-file
+      sources:
+        - operation: from-file
+          select: output
+
+- model: _check
+  operations:
+    default:
+      steps:
+        - run: hello:default
+          expect:
+            - output: Hello Guild!
+            - file: output
+              contains: Hello Guild!
+    from-flag:
+      steps:
+        - run: hello:from-flag
+          expect:
+            - output: Hello Guild, from a flag!
+            - file: output
+              contains: Hello Guild, from a flag!
+        - run: hello:from-flag message=whoop
+          expect:
+            - output: whoop
+            - file: output
+              contains: whoop
+    from-file:
+      steps:
+        - run: hello:from-file
+          expect:
+            - file: output
+              compare-to: msg.txt
+    from-file-output:
+      steps:
+        - run: hello:from-file
+        - run: hello:from-file-output
+          expect:
+            - file: from-file/output
+              compare-to: ${MODEL_DIR}/msg.txt
+    all:
+      steps:
+        - default
+        - from-flag
+        - from-file
+        - from-file-output
