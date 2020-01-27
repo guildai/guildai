@@ -393,9 +393,28 @@ def _install_reqs(reqs, config, ignore_installed=False):
             cmd_args.append(req)
     log.debug("pip cmd: %s", cmd_args)
     try:
-        subprocess.check_call(cmd_args)
+        _check_call_with_empty_env(cmd_args)
     except subprocess.CalledProcessError as e:
         cli.error(str(e), exit_status=e.returncode)
+
+
+def _check_call_with_empty_env(args):
+    """Pass through to subprocess.check_call with empty env.
+
+    There is surprising behavior on macOS Python 3x during init where
+    a pip install command from outside a virtual environment - which
+    should install a package correctly in the environment - installs
+    the package but uses the wrong path to Python in installed package
+    shell command shebangs. The result is that package shell scripts
+    (e.g. the `guild` command) will use the wrong Python version. This
+    surprising behavior appears to be related to something in the
+    environment.
+
+    Setting the command env to an empty dict corrects this problem and
+    ensures that pip installed packages use the correct Python
+    path. Note that setting env to None does not correct the problem.
+    """
+    subprocess.check_call(args, env={})
 
 
 def _is_requirements_file(path):
