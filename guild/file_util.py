@@ -117,7 +117,8 @@ class FileSelectRule(object):
         self.result = result
         if isinstance(patterns, six.string_types):
             patterns = [patterns]
-        patterns = _native_paths(patterns)
+        if not regex:
+            patterns = _native_paths(patterns)
         self.patterns = patterns
         self.regex = regex
         self._patterns_match = self._patterns_match_f(patterns, regex)
