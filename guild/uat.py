@@ -193,6 +193,7 @@ def _run(cmd, quiet=False, ignore=None, timeout=60, cut=None):
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         preexec_fn=os.setsid,
+        bufsize=0,
     )
     with _kill_after(p, timeout):
         exit_code = p.wait()
