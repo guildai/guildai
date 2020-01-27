@@ -1,9 +1,9 @@
 - model: m1
   operations:
     step-1:
-      exec: bash -c "echo hello step-1 && touch step-1"
+      main: step --msg "hello step-1" --touch step-1
     step-2:
-      exec: bash -c "echo hello step-2 && touch step-2"
+      main: step --msg "hello step-2" --touch step-2
     steps-basic:
       steps:
         - step-1
@@ -20,7 +20,7 @@
         - step-1
         - step-1
     hello:
-      exec: echo ${msg}
+      main: step
       flags:
         msg: hello world
     steps-hello:
@@ -33,7 +33,7 @@
 - model: m2
   operations:
     hello:
-      exec: echo ${msg}
+      main: step
       flags:
         msg: hello m2
     composite:
@@ -71,12 +71,14 @@
 - model: m4
   operations:
     prepare:
-      exec: bash -c "touch data && echo prepared data"
+      main: step --touch data --msg "prepared data"
       compare: []
     train:
-      exec: bash -c "touch model && echo loss=${loss}"
+      main: step --touch model --msg "loss=${loss}"
       flags:
-        loss: 1.234
+        loss:
+          default: 1.234
+          arg-skip: yes
       requires:
         - operation: prepare
           select: data
@@ -85,9 +87,11 @@
       compare:
         - loss
     evaluate:
-      exec: bash -c "echo acc=${acc}"
+      main: step --msg "acc=${acc}"
       flags:
-        acc: 0.789
+        acc:
+          default: 0.789
+          arg-skip: yes
       requires:
         - operation: prepare
           select: data
@@ -113,7 +117,7 @@
 - model: m5
   operations:
     op:
-      exec: bash -c 'echo ${msg}'
+      main: step
       flags:
         msg: hi from op
     steps:
