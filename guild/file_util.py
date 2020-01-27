@@ -117,6 +117,7 @@ class FileSelectRule(object):
         self.result = result
         if isinstance(patterns, six.string_types):
             patterns = [patterns]
+        patterns = _native_paths(patterns)
         self.patterns = patterns
         self.regex = regex
         self._patterns_match = self._patterns_match_f(patterns, regex)
@@ -219,6 +220,10 @@ class FileSelectRule(object):
         if self.size_lt and size < self.size_lt:
             return True
         return False
+
+
+def _native_paths(patterns):
+    return [p.replace("/", os.path.sep) for p in patterns]
 
 
 def _fnmatch(path, pattern):
