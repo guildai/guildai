@@ -40,7 +40,7 @@ Let's create a project to test staged runs using queues.
     ... time.sleep(seconds)
     ... """)
 
-Start four runs - three will be started within one second (poll
+Stage four runs - three will be started within one second (poll
 interval of each of the queues) and the fourth started when a queue is
 empty, 10 seconds later.
 

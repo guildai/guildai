@@ -32,6 +32,15 @@ starting any staged runs. Use `ignore-running` to bypass this check.
 
 Use `run-once` to start staged runs and stop without waiting for new \
 staged runs.
+
+To associate runs with one or more GPUs, set `gpus` to a comma-separated \
+list of GPU IDs. This value is used when starting staged runs. For \
+example, to support parallel runs on all available GPUs, start one \
+queue for each GPU ID. Staged runs would then be assigned to a GPU \
+according to the queue that starts it.
+
+Note that when running multiple queues to process runs in parallel, you \
+must set `ignore-running` to `yes` on each queue.
 """
 
 queue_flags_data = yaml.safe_load(
@@ -50,6 +59,8 @@ ignore-running:
   default: no
   arg-switch: yes
   type: boolean
+gpus:
+  description: Value used for gpus option when starting staged runs
 """
 )
 

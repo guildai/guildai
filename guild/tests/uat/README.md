@@ -209,7 +209,9 @@ And test the `keras` example.
 - [stage-and-run-queue](stage-and-run-queue.md)
 - [stage-and-modify-queue](stage-and-modify-queue.md)
 - [stage-deps](stage-deps.md)
+- [blocking-queues](blocking-queues.md)
 - [concurrent-queues](concurrent-queues.md)
+- [gpu-queues](gpu-queues.md)
 
 ## Packaging
 

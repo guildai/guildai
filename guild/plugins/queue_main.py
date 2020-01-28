@@ -42,8 +42,9 @@ class _State(object):
         for name, val in args._get_kwargs():
             setattr(self, name, val)
         self.run_id = os.environ["RUN_ID"]
-        self.logged_waiting = False
+        self.gpu_mismatch = set()
         self.waiting = set()
+        self.logged_waiting = False
         self.lock = locklib.Lock(locklib.RUN_STATUS, timeout=RUN_STATUS_LOCK_TIMEOUT)
 
 
@@ -60,6 +61,7 @@ def _parse_args():
     p.add_argument("--poll-interval", type=int, default=10)
     p.add_argument("--run-once", action="store_true")
     p.add_argument("--ignore-running", action="store_true")
+    p.add_argument("--gpus")
     return p.parse_args()
 
 
@@ -108,22 +110,26 @@ def _next_run(state):
     instances. Use `safe_next_run` to ensure that multiple queues is
     proper locking.
     """
-    for run in _staged_runs():
-        if not state.ignore_running:
-            running = _running(state)
-            if running:
-                if run.id not in state.waiting:
-                    log.info(
-                        "Found staged run %s (waiting for runs " "to finish: %s)",
-                        run.short_id,
-                        _runs_desc(running),
-                    )
-                    state.logged_waiting = True
-                state.waiting.add(run.id)
-                continue
-        op_util.set_run_pending(run)
-        return run
+    blocking = _blocking_runs(state)
+    staged = _staged_runs()
+    _sync_state(blocking, staged, state)
+    _log_state(state)
+    for run in staged:
+        if _can_start(run, blocking, state):
+            op_util.set_run_pending(run)
+            return run
     return None
+
+
+def _blocking_runs(state):
+    if state.ignore_running:
+        return []
+    running = var.runs(filter=var.run_filter("attr", "status", "running"))
+    return [run for run in running if not _is_queue_or_self(run, state)]
+
+
+def _is_queue_or_self(run, state):
+    return run.id == state.run_id or run.opref.to_opspec() == "queue:queue"
 
 
 def _staged_runs():
@@ -132,13 +138,82 @@ def _staged_runs():
     )
 
 
-def _running(state):
-    running = var.runs(filter=var.run_filter("attr", "status", "running"))
-    return [run for run in running if not _is_queue_or_self(run, state)]
+def _sync_state(blocking, staged, state):
+    waiting_count0 = len(state.waiting)
+    state.waiting.intersection_update(_run_ids(blocking))
+    state.gpu_mismatch.intersection_update(_run_ids(staged))
+    if waiting_count0 and not state.waiting:
+        state.logged_waiting = False
 
 
-def _is_queue_or_self(run, state):
-    return run.id == state.run_id or run.opref.to_opspec() == "queue:queue"
+def _run_ids(runs):
+    return [run.id for run in runs]
+
+
+def _log_state(state):
+    if state.waiting:
+        log.debug("waiting on: %s", state.waiting)
+    if state.gpu_mismatch:
+        log.debug("gpu mismatch: %s", state.gpu_mismatch)
+
+
+def _can_start(run, blocking, state):
+    return util.find_apply(
+        [
+            lambda: _check_gpu_mismatch(run, state),
+            lambda: _check_blocking(run, blocking, state),
+            lambda: True,
+        ]
+    )
+
+
+def _check_gpu_mismatch(run, state):
+    gpu_mismatch = _gpu_mismatch(run, state)
+    if gpu_mismatch:
+        _handle_gpu_mismatch(run, gpu_mismatch, state)
+        return False
+    return None
+
+
+def _check_blocking(run, blocking, state):
+    if blocking:
+        _handle_blocking(run, blocking, state)
+        return False
+    return None
+
+
+def _gpu_mismatch(run, state):
+    if not state.gpus:
+        return None
+    run_gpus = _run_gpus(run)
+    if run_gpus and run_gpus != state.gpus:
+        return run_gpus
+    return None
+
+
+def _run_gpus(run):
+    params = run.get("run_params") or {}
+    return params.get("gpus")
+
+
+def _handle_gpu_mismatch(run, run_gpus, state):
+    if run.id not in state.gpu_mismatch:
+        log.info(
+            "Ignorning staged run %s (GPU spec mismatch: run is %s, queue is %s)"
+            % (run.id, run_gpus, state.gpus)
+        )
+        state.gpu_mismatch.add(run.id)
+
+
+def _handle_blocking(run, blocking, state):
+    if run.id not in state.waiting:
+        log.info(
+            "Found staged run %s (waiting for runs to finish: %s)",
+            run.short_id,
+            _runs_desc(blocking),
+        )
+        state.logged_waiting = True
+        state.waiting.add(run.id)
 
 
 def _runs_desc(runs):
@@ -148,19 +223,18 @@ def _runs_desc(runs):
 def _start_run(run, state):
     log.info("Starting staged run %s", run.id)
     try:
-        _run(run)
+        _run(run, state)
     except gapi.RunError as e:
         log.error("%s failed with exit code %i", run.id, e.returncode)
-    state.waiting.clear()
     state.logged_waiting = False
 
 
-def _run(run):
+def _run(run, state):
     env = {
         "NO_RESTARTING_MSG": "1",
         "PYTHONPATH": run.guild_path("job-packages"),
     }
-    gapi.run(restart=run.id, extra_env=env)
+    gapi.run(restart=run.id, extra_env=env, gpus=state.gpus)
 
 
 def _log_waiting(state):

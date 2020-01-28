@@ -107,6 +107,7 @@ def _popen_args(
     quiet=False,
     debug=False,
     test_sourcecode=False,
+    gpus=None,
 ):
     from guild import op_util
 
@@ -169,6 +170,8 @@ def _popen_args(
         args.append("--quiet")
     if test_sourcecode:
         args.append("--test-sourcecode")
+    if gpus:
+        args.extend(["--gpus", str(gpus)])
     env = dict(os.environ)
     env["NO_IMPORT_FLAGS_PROGRESS"] = "1"
     if extra_env:
