@@ -29,7 +29,7 @@ import sys as ___sys
 
 from guild import python_util as ___python_util
 
-___FLAGS = {}
+___P_FLAGS = {}
 
 ___action_types = (
     ___argparse._StoreAction,
@@ -67,7 +67,9 @@ def ___patch_argparse(output_path):
     ___python_util.listen_method(
         ___argparse.ArgumentParser, "add_argument", ___handle_add_argument
     )
-    ___handle_parse = lambda *args, **kw: ___write_flags_and_exit(output_path)
+    ___handle_parse = lambda parse_args, *_args, **_kw: ___write_flags_and_exit(
+        parse_args, output_path
+    )
     # parse_known_args is called by parse_args, so this handled both
     # cases.
     ___python_util.listen_method(
@@ -75,14 +77,37 @@ def ___patch_argparse(output_path):
     )
 
 
-def ___handle_add_argument(add_argument, *args, **kw):
+def ___handle_add_argument(add_argument_f, *args, **kw):
     ___log.debug("handling add_argument: %s %s", args, kw)
-    action = add_argument(*args, **kw)
-    ___maybe_flag(action)
+    parser = ___wrapped_parser(add_argument_f)
+    action = add_argument_f(*args, **kw)
+    ___maybe_flag(parser, action)
     raise ___python_util.Result(action)
 
 
-def ___maybe_flag(action):
+def ___wrapped_parser(f):
+    return ___closure_parser(___f_closure(f))
+
+
+def ___f_closure(f):
+    try:
+        return f.__closure__
+    except AttributeError:
+        try:
+            return f.func_closure
+        except AttributeError:
+            assert False, (type(f), dir(f))
+
+
+def ___closure_parser(closure):
+    assert isinstance(closure, tuple), (type(closure), closure)
+    assert len(closure) == 2, closure
+    parser = closure[1].cell_contents
+    assert isinstance(parser, ___argparse.ArgumentParser), (type(parser), parser)
+    return parser
+
+
+def ___maybe_flag(parser, action):
     flag_name = ___flag_name(action)
     if not flag_name:
         ___log.debug("skipping %s - not a flag option", action)
@@ -90,7 +115,8 @@ def ___maybe_flag(action):
     if not isinstance(action, ___action_types):
         ___log.debug("skipping %s - not an action type", action)
         return
-    ___FLAGS[flag_name] = attrs = {}
+    flags = ___P_FLAGS.setdefault(parser, {})
+    flags[flag_name] = attrs = {}
     if action.help:
         attrs["description"] = action.help
     if action.default is not None:
@@ -113,10 +139,13 @@ def ___flag_name(action):
     return None
 
 
-def ___write_flags_and_exit(output_path):
-    ___log.debug("writing flags to %s: %s", output_path, ___FLAGS)
+def ___write_flags_and_exit(parse_args_f, output_path):
+    parser = ___wrapped_parser(parse_args_f)
+    flags = ___P_FLAGS.get(parser, {})
+    assert isinstance(flags, dict), flags
+    ___log.debug("writing flags to %s: %s", output_path, flags)
     with open(output_path, "w") as f:
-        ___json.dump(___FLAGS, f)
+        ___json.dump(flags, f)
 
 
 def ___exec_module(mod_path):
@@ -125,10 +154,7 @@ def ___exec_module(mod_path):
     details = (".py", "r", 1)
     ___sys.argv = [mod_path, "--help"]
     ___log.debug("loading module from '%s'", mod_path)
-    try:
-        ___imp.load_module("__main__", f, mod_path, details)
-    except Exception as e:
-        raise SystemExit(e)
+    ___imp.load_module("__main__", f, mod_path, details)
 
 
 if __name__ == "__main__":

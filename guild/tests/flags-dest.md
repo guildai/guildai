@@ -130,3 +130,11 @@ The same script without an explicit `flags-dest` will default to using
     >>> run("args3", i=4)
     Global args: i=4 f=2.2
     Command line: ['.../.guild/sourcecode/args2.py']
+
+## Handle two parsers
+
+The `multi_argparse` module causes two parsers to be defined. Guild
+should only read flags from the parser that calls `parse_args`.
+
+    >>> run("multi_argparse.py")
+    foo: 123

@@ -257,7 +257,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
         elif flags_dest == "globals":
             data = self._global_assigns_flags_data(script)
         else:
-            data = {}
+            assert False, flags_dest
         data["$dest"] = flags_dest
         return data
 
