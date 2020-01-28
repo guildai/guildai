@@ -147,7 +147,7 @@ def _state_init_user_op(S):
     _op_init_opdef(S.args.opspec, S.user_op)
     _op_init_op_cmd(S.user_op)
     _op_init_op_flags(S.args, S.user_op)
-    _op_init_config(S.args.label, S.user_op)
+    _op_init_config(S.args.label, S.args.tag, S.user_op)
     _op_init_core(S.args, S.user_op)
 
 
@@ -400,7 +400,10 @@ def _edit_op_flags(op):
 # =================================================================
 
 
-def _op_init_config(label_arg, op):
+def _op_init_config(label_arg, tag_arg, op):
+    if tag_arg:
+        assert not label_arg, label_arg
+        label_arg = "%s ${default_label}" % tag_arg
     if op._run:
         _op_init_config_for_run(op._run, label_arg, op)
     else:
@@ -788,7 +791,7 @@ def _state_init_batch_op(S):
         _op_init_op_cmd(S.batch_op)
         _op_init_user_flags(S.args.opt_flags, S.batch_op)
         _op_init_op_flags(S.args, S.batch_op)
-        _op_init_config(S.args.batch_label, S.batch_op)
+        _op_init_config(S.args.batch_label, S.args.batch_tag, S.batch_op)
         _op_init_batch_config(S.args, S.user_op, S.batch_op)
         _apply_batch_flag_encoder(S.batch_op, S.user_op)
         _op_init_core(S.args, S.batch_op)
@@ -1008,6 +1011,8 @@ def _check_incompatible_options(args):
         ("stage", "pidfile"),
         ("remote", "background"),
         ("remote", "pidfile"),
+        ("tag", "label"),
+        ("batch_tag", "batch_label"),
     ]
     for a, b in incompatible:
         if getattr(args, a) and getattr(args, b):

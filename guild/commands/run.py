@@ -29,6 +29,11 @@ def run_params(fn):
                 ("-l", "--label"), metavar="LABEL", help="Set a label for the run."
             ),
             click.Option(
+                ("-t", "--tag"),
+                metavar="TAG",
+                help="Prepend TAG to the default label. Cannot be used with --label.",
+            ),
+            click.Option(
                 ("-e", "--edit-flags"),
                 help="Use an editor to review and modify flags.",
                 is_flag=True,
@@ -76,6 +81,11 @@ def run_params(fn):
                 ("--batch-label",),
                 metavar="LABEL",
                 help="Label to use for batch runs. Ignored for non-batch runs.",
+            ),
+            click.Option(
+                ("--batch-tag",),
+                metavar="TAG",
+                help="Tag to use for batch runs. Ignored for non-batch runs.",
             ),
             click.Option(
                 ("-o", "--optimizer",),

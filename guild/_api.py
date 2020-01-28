@@ -79,12 +79,14 @@ def _popen_args(
     opspec=None,
     flags=None,
     label=None,
+    tag=None,
     run_dir=None,
     restart=None,
     stage=None,
     rerun=None,
     batch_files=None,
     batch_label=None,
+    batch_tag=None,
     extra_env=None,
     optimize=False,
     optimizer=None,
@@ -124,9 +126,13 @@ def _popen_args(
     if rerun:
         args.extend(["--rerun", rerun])
     if label:
-        args.extend(['--label', label])
+        args.extend(["--label", label])
+    if tag:
+        args.extend(["--tag", tag])
     if batch_label:
         args.extend(['--batch-label', batch_label])
+    if batch_tag:
+        args.extend(["--batch-tag", batch_tag])
     args.extend(op_util.flag_assigns(flags))
     args.extend(["@%s" % path for path in (batch_files or [])])
     if run_dir:

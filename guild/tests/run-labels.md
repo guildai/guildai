@@ -10,11 +10,11 @@ For our tests, we'll use the `labels` sample project:
 
 Here are some helper functions.
 
-    >>> def run(opspec=None, label=None, batch_label=None, opt_flags=None,
-    ...         restart=None, **flags):
+    >>> def run(opspec=None, label=None, batch_label=None, tag=None, batch_tag=None,
+    ...         opt_flags=None, restart=None, **flags):
     ...   project.run(opspec, flags=flags, label=label, batch_label=batch_label,
-    ...               opt_flags=opt_flags, restart=restart, force_flags=True,
-    ...               quiet=True)
+    ...               tag=tag, batch_tag=batch_tag, opt_flags=opt_flags, restart=restart,
+    ...               force_flags=True, quiet=True)
 
     >>> def print_last_run():
     ...   print_runs(1)
@@ -72,6 +72,27 @@ We can include a reference to the flag value in the label.
 
     >>> print_last_run()
     op.py  i equals 2
+
+The special reference `${default_label` refers to the default label.
+
+    >>> run("op.py", label="${default_label}", i=1, s="hi")
+
+    >>> print_last_run()
+    op.py  b=yes f=2.0 i=1 s=hi
+
+    >>> run("op.py", label="prefix ${default_label} suffix", i=2, s="bye")
+
+    >>> print_last_run()
+    op.py  prefix b=yes f=2.0 i=2 s=bye suffix
+
+## Tags
+
+Tags are short-hand for a label `TAG ${default_label}`.
+
+    >>> run("op.py", tag="green", s="color", b=True)
+
+    >>> print_last_run()
+    op.py  green b=yes f=2.0 i=1 s=color
 
 ## Operation defined labels
 
@@ -209,6 +230,21 @@ We can alternatively specify an explicit batch label:
 
     >>> print_last_run()
     op.py+  empty batch
+
+The special value `${default_label}` can be used in batch labels.
+
+    >>> run("op.py", i=[], opt_flags={"foo": 123}, batch_label="${default_label}")
+
+    >>> print_last_run()
+    op.py+  foo=123
+
+
+Use `batch_tag` for batch tags:
+
+    >>> run("op.py", i=[], opt_flags={"foo": 456}, batch_tag="bar")
+
+    >>> print_last_run()
+    op.py+  bar foo=456
 
 ## Edge cases
 

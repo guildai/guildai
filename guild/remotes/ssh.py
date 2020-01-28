@@ -571,7 +571,9 @@ def _remote_run_cmd(
     start,
     op_flags,
     label,
+    tag,
     batch_label,
+    batch_tag,
     gpus,
     no_gpus,
     force_flags,
@@ -604,8 +606,12 @@ def _remote_run_cmd(
         cmd.extend(["--pidfile", "%s/.guild/JOB" % remote_run_dir])
     if label:
         cmd.extend(["--label", q(label)])
+    if tag:
+        cmd.extend(["--tag", q(tag)])
     if batch_label:
         cmd.extend(["--batch-label", q(batch_label)])
+    if batch_tag:
+        cmd.extend(["--batch-tag", q(batch_tag)])
     if gpus:
         cmd.extend(["--gpus", q(gpus)])
     if no_gpus:

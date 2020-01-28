@@ -372,9 +372,10 @@ def set_run_staged(run):
 
 def run_label(label_template, user_flag_vals, all_flag_vals=None):
     all_flag_vals = all_flag_vals or user_flag_vals
+    default_label = _default_run_label(all_flag_vals)
     if not label_template:
-        return _default_run_label(all_flag_vals)
-    return _render_label_template(label_template, all_flag_vals)
+        return default_label
+    return _render_label_template(label_template, default_label, all_flag_vals)
 
 
 def _default_run_label(flag_vals):
@@ -384,12 +385,17 @@ def _default_run_label(flag_vals):
     )
 
 
-def _render_label_template(label_template, flag_vals):
+def _render_label_template(label_template, default_label, flag_vals):
     resolve_vals = {
-        name: flag_util.encode_flag_val(val)
-        for name, val in flag_vals.items()
-        if val is not None
+        "default_label": default_label,
     }
+    resolve_vals.update(
+        {
+            name: flag_util.encode_flag_val(val)
+            for name, val in flag_vals.items()
+            if val is not None
+        }
+    )
     return util.resolve_refs(label_template, resolve_vals, "")
 
 

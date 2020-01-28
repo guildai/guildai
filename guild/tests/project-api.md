@@ -90,6 +90,17 @@ Providing an supported filter generates an error:
     Traceback (most recent call last):
     TypeError: runs_list() got an unexpected keyword argument 'foo'
 
+Use a tag for a label.
+
+    >>> project.run_quiet("simple", tag="a_tag")
+
+    >>> runs = project.list_runs(labels=["a_tag"])
+
+    >>> len(runs)
+    1
+    >>> runs[0].get("label")
+    'a_tag x=1.0'
+
 ## Printing runs
 
 The project API supports a simple function for printing runs.
@@ -97,6 +108,7 @@ The project API supports a simple function for printing runs.
 By default, the function prints the operation name for all runs:
 
     >>> project.print_runs()
+    simple
     simple
     simple
     simple
@@ -112,9 +124,10 @@ You can alternatively specify a list of runs:
 The function supports a list of options for including additional
 column. Each may be used separately or in a group as needed.
 
-    >>> project.print_runs(runs[:2], flags=True, labels=True, status=True)
-    simple  x=1.0  hello  completed
-    simple  x=1.0  x=1.0  completed
+    >>> project.print_runs(runs[:3], flags=True, labels=True, status=True)
+    simple  x=1.0  a_tag x=1.0  completed
+    simple  x=1.0  hello        completed
+    simple  x=1.0  x=1.0        completed
 
 ## Deleting runs
 
@@ -138,6 +151,7 @@ We can also delete using filters.
     Deleted 1 run(s)
 
     >>> project.print_runs(labels=True)
+    simple  a_tag x=1.0
     simple  x=1.0
     simple  x=1.0
 

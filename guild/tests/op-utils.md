@@ -506,3 +506,62 @@ Invalid:
     >>> parse("a:b/c:d")
     Traceback (most recent call last):
     ValueError: a:b/c:d
+
+## Run labels
+
+    >>> from guild.op_util import run_label
+
+Missing template:
+
+    >>> run_label("", {})
+    ''
+
+    >>> run_label(None, {})
+    ''
+
+    >>> run_label(None, {"foo": "FOO"})
+    'foo=FOO'
+
+    >>> run_label("", {"foo": "FOO", "bar": "BAR"})
+    'bar=BAR foo=FOO'
+
+Templates:
+
+    >>> run_label("foo", {})
+    'foo'
+
+    >>> run_label("foo", {"foo": "FOO"})
+    'foo'
+
+Flag references:
+
+    >>> run_label("${foo}", {})
+    ''
+
+    >>> run_label("${foo}", {"foo": "FOO"})
+    'FOO'
+
+    >>> run_label("foo: ${foo}", {"foo": "FOO"})
+    'foo: FOO'
+
+Use of default label:
+
+    >>> run_label("${default_label}", {})
+    ''
+
+    >>> run_label("${default_label}", {"foo": "FOO", "bar": "BAR"})
+    'bar=BAR foo=FOO'
+
+    >>> run_label("prefix ${default_label}", {"foo": "FOO", "bar": "BAR"})
+    'prefix bar=BAR foo=FOO'
+
+    >>> run_label("${default_label} suffix", {"foo": "FOO", "bar": "BAR"})
+    'bar=BAR foo=FOO suffix'
+
+    >>> run_label("prefix ${default_label} suffix", {"foo": "FOO", "bar": "BAR"})
+    'prefix bar=BAR foo=FOO suffix'
+
+Value formatting:
+
+    >>> run_label(None, {"f1": 1.0, "f2": 1.0/3.0, "b1": True, "b2": False, "i": 123})
+    'b1=yes b2=no f1=1.0 f2=0.33333 i=123'
