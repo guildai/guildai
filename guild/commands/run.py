@@ -42,7 +42,7 @@ def run_params(fn):
                 ("-d", "--run-dir",),
                 metavar="DIR",
                 help=(
-                    "Use alternative run directory DIR. Cannot be used with " "--stage."
+                    "Use alternative run directory DIR. Cannot be used with --stage."
                 ),
             ),
             click.Option(("--stage",), help="Stage an operation.", is_flag=True),
