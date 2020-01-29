@@ -394,6 +394,16 @@ Invalid content:
     type for trial [1, 2, 3]: expected dict
     <exit 1>
 
+YAML format is also supported:
+
+    >>> project.run("say.py", batch_files=["batch.yml"])
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 77')
+    hello 77
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 88')
+    HELLO 88
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 99')
+    hello 99
+
 ## Saving trials
 
 Batch trials can be saved to a CSV file via the `run` command using
