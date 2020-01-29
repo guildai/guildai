@@ -283,6 +283,25 @@ And the corresponding run:
     2  no    hello 5
     3  yes   hello 6
 
+And `batch.yml` (different extension):
+
+    >>> cat(join_path(project.cwd, "batch.yml"))
+    - msg: hello 77
+    - msg: hello 88
+      loud: yes
+    - msg: hello 99
+      loud: no
+
+And the run:
+
+    >>> project.run("say.py", batch_files=["batch.yml"])
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 77')
+    hello 77
+    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 88')
+    HELLO 88
+    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 99')
+    hello 99
+
 Here's `batch.json`:
 
     >>> cat(join_path(project.cwd, "batch.json"))
@@ -393,16 +412,6 @@ Invalid content:
     guild: cannot read trials for ./invalid-item.yaml: invalid data
     type for trial [1, 2, 3]: expected dict
     <exit 1>
-
-YAML format is also supported:
-
-    >>> project.run("say.py", batch_files=["batch.yml"])
-    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 77')
-    hello 77
-    INFO: [guild] Running trial ...: say.py (loud=yes, msg='hello 88')
-    HELLO 88
-    INFO: [guild] Running trial ...: say.py (loud=no, msg='hello 99')
-    hello 99
 
 ## Saving trials
 
