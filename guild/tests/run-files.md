@@ -31,7 +31,7 @@ Our runs:
 The files generated for our run:
 
     >>> first_run = runs[0]
-    >>> print_files(project.ls(first_run, all=True))
+    >>> print_files(project.ls(first_run, all=True))  # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
     .guild/attrs/env
     .guild/attrs/exit_status
@@ -58,6 +58,7 @@ The files generated for our run:
     .guild/sourcecode/batch.json
     .guild/sourcecode/batch.unknown
     .guild/sourcecode/batch.yaml
+    .guild/sourcecode/batch.yml
     .guild/sourcecode/guild.yml
     .guild/sourcecode/invalid-data.json
     .guild/sourcecode/invalid-data.yml
@@ -131,7 +132,7 @@ The latest run is the trial:
     >>> trial_run.opref.op_name
     'say.py'
 
-    >>> print_files(project.ls(trial_run, all=True))
+    >>> print_files(project.ls(trial_run, all=True))  # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
     .guild/attrs/env
     .guild/attrs/exit_status
@@ -158,6 +159,7 @@ The latest run is the trial:
     .guild/sourcecode/batch.json
     .guild/sourcecode/batch.unknown
     .guild/sourcecode/batch.yaml
+    .guild/sourcecode/batch.yml
     .guild/sourcecode/guild.yml
     .guild/sourcecode/invalid-data.json
     .guild/sourcecode/invalid-data.yml
@@ -177,7 +179,7 @@ The next run is the batch:
 
 Its files:
 
-    >>> print_files(project.ls(batch_run, all=True))
+    >>> print_files(project.ls(batch_run, all=True))  # doctest: +REPORT_UDIFF
     .guild/attrs/cmd
     .guild/attrs/env
     .guild/attrs/exit_status
@@ -220,6 +222,7 @@ Its files:
     .guild/proto/.guild/sourcecode/batch.json
     .guild/proto/.guild/sourcecode/batch.unknown
     .guild/proto/.guild/sourcecode/batch.yaml
+    .guild/proto/.guild/sourcecode/batch.yml
     .guild/proto/.guild/sourcecode/guild.yml
     .guild/proto/.guild/sourcecode/invalid-data.json
     .guild/proto/.guild/sourcecode/invalid-data.yml
