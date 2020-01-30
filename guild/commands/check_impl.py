@@ -31,6 +31,7 @@ import guild
 from guild import _test
 from guild import cli
 from guild import config
+from guild import file_util
 from guild import plugin
 from guild import uat
 from guild import util
@@ -135,6 +136,8 @@ def _print_info(check):
     _print_guild_latest_versions(check)
     if check.newer_version_available:
         _notify_newer_version()
+    if check.args.space:
+        _print_space()
 
 
 def _print_guild_info():
@@ -356,6 +359,24 @@ def _notify_newer_version():
         ),
         err=True,
     )
+
+
+def _print_space():
+    cli.out("disk_space:")
+    _print_disk_usage("guild_home", config.guild_home())
+    _print_disk_usage("runs", var.runs_dir())
+    _print_disk_usage("deleted_runs", var.runs_dir(deleted=True))
+    _print_disk_usage("remote_state", var.remote_dir())
+    _print_disk_usage("cache", var.cache_dir())
+
+
+def _print_disk_usage(name, path):
+    if os.path.exists(path):
+        size = file_util.disk_usage(path)
+    else:
+        size = 0
+    ws = " " * max(1, 24 - len(name))
+    cli.out("  %s:%s%s in %s" % (name, ws, util.format_bytes(size), path))
 
 
 def _print_error_and_exit(args):

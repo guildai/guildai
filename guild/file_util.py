@@ -385,3 +385,21 @@ def _apply_digest_file_bytes(path, d):
             if not buf:
                 break
             d.update(buf)
+
+
+def disk_usage(path):
+    total = _file_size(path)
+    for root, dirs, names in os.walk(path, followlinks=False):
+        for name in dirs + names:
+            path = os.path.join(root, name)
+            total += _file_size(os.path.join(root, name))
+    return total
+
+
+def _file_size(path):
+    stat = os.lstat if os.path.islink(path) else os.stat
+    try:
+        return stat(path).st_size
+    except (OSError, IOError) as e:
+        log.warning("could not read size of %s: %s", path, e)
+        return 0

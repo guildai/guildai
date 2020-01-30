@@ -47,6 +47,7 @@ from . import remote_support
     multiple=True,
 )
 @click.option("-v", "--verbose", help="Show more information.", is_flag=True)
+@click.option("--space", help="Show disk space usage for.", is_flag=True)
 @remote_support.remote_option("Check remote environment.")
 @click.option(
     "--offline/--no-offline",
