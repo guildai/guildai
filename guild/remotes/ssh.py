@@ -693,7 +693,7 @@ def _run_info_args(run, env, deps, all_scalars, json, **filters):
     return args
 
 
-def _check_args(tensorflow, verbose, offline):
+def _check_args(tensorflow, verbose, offline, space):
     args = []
     if tensorflow:
         args.append("--tensorflow")
@@ -701,6 +701,8 @@ def _check_args(tensorflow, verbose, offline):
         args.append("-v")
     if offline:
         args.append("--offline")
+    if space:
+        args.append("--space")
     return args
 
 

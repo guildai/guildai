@@ -284,6 +284,7 @@ def check(args):
 def _check_kw(args):
     names = [
         "offline",
+        "space",
         "tensorflow",
         "verbose",
     ]
