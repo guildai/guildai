@@ -28,11 +28,25 @@ def label_params(fn):
         fn,
         [
             runs_support.runs_arg,
-            click.Argument(("label",), required=False),
-            runs_support.all_filters,
+            click.Option(("-s", "--set"), metavar="VAL", help="Set VAL as label."),
             click.Option(
-                ("-c", "--clear"), help="Clear the run's label.", is_flag=True
+                ("-p", "-t", "--prepend", "--tag"),
+                metavar="VAL",
+                help="Prepend VAL to existing label.",
             ),
+            click.Option(
+                ("-a", "--append"), metavar="VAL", help="Append VAL to existing label.",
+            ),
+            click.Option(
+                ("-rm", "-u", "--remove", "--untag"),
+                metavar="VAL",
+                multiple=True,
+                help="Remove VAL from existing label. Maybe used multiple times.",
+            ),
+            click.Option(
+                ("-c", "--clear"), help="Clear the entire run label.", is_flag=True
+            ),
+            runs_support.all_filters,
             remote_support.remote_option("Label remote runs."),
             click.Option(
                 ("-y", "--yes"),
@@ -52,13 +66,22 @@ def label_params(fn):
 def label_runs(ctx, args):
     """Set run labels.
 
-    If `LABEL` is provided, the command will label the selected
-    runs. To clear a run label, use the ``--clear`` option.
+    The label action may be specified using one of three mutually
+    exclusive options: `--label`, `--prepend`, or
+    `--append`. `--label` sets the entire run label. `--prepend`
+    appends the specified value to the existing label, and `--append`
+    appends the value.
+
+    Use `--remove` to remove the specified value from a label, if it
+    exists. Use `--clear` to remove the entire label.
+
+    `--tag` and `--untag` are aliases for `--prepend` and `--remove`
+    respectively.
 
     Specify runs to modify using one or more `RUN` arguments. See
     SPECIFYING RUNS for more information.
 
-    If `RUN` isn't specified, the most recent run is selected.
+    If `RUN` is not specified, the most recent run is selected.
 
     By default Guild will prompt you before making any changes. If you
     want to apply the changes without being prompted, use the

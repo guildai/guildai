@@ -353,7 +353,14 @@ def label_runs(args):
 
 
 def _label_runs_kw(args):
-    names = _runs_select_names() + ["label", "clear", "yes"]
+    names = _runs_select_names() + [
+        "set",
+        "prepend",
+        "append",
+        "remove",
+        "clear",
+        "yes",
+    ]
     ignore = ["remote"]
     return _arg_kw(args, names, ignore)
 

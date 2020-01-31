@@ -252,6 +252,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [run-stop-after](run-stop-after.md)
 - [batch-preview](batch-preview.md)
 - [project-sourcecode](project-sourcecode.md)
+- [labels](labels.md)
 
 ## Error cases
 

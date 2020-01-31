@@ -746,15 +746,23 @@ def _purge_runs_args(runs, yes, **filters):
     return args
 
 
-def _label_runs_args(runs, label, clear, yes, **filters):
+def _label_runs_args(runs, set, prepend, append, remove, clear, yes, **filters):
     args = _runs_filter_args(**filters)
     if yes:
         args.append("-y")
-    if clear:
+    if set:
+        args.extend(["-s", set])
+    elif prepend:
+        args.extend(["-p", prepend])
+    elif append:
+        args.extend(["-a", append])
+    elif remove:
+        args.extend(["-m", remove])
+    elif clear:
         args.append("-c")
+    else:
+        assert False, "expected one of: set, prepend, append, remove, or clear"
     args.extend(runs)
-    if label:
-        args.append(q(label))
     return args
 
 

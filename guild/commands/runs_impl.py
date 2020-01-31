@@ -778,66 +778,113 @@ def _print_run_info_ordered(data):
 
 
 def label(args, ctx):
+    _check_label_args(args, ctx)
     if args.remote:
         remote_impl_support.label_runs(args)
     else:
-        _label(args, ctx)
-
-
-def _label(args, ctx):
-    if args.clear:
-        _clear_labels(args, ctx)
-    elif args.label:
         _set_labels(args, ctx)
-    else:
-        cli.error("specify a label")
 
 
-def _clear_labels(args, ctx):
-    # if a label arg is provided, assume it's a run spec
-    if args.label:
-        args.runs += (args.label,)
-    preview = "You are about to clear the labels for the following runs:"
-    confirm = "Continue?"
-    no_runs = "No runs to modify."
-
-    def clear_labels(selected):
-        for run in selected:
-            run.del_attr("label")
-        cli.out("Cleared label for %i run(s)" % len(selected))
-
-    runs_op(
-        args, ctx, False, preview, confirm, no_runs, clear_labels, LATEST_RUN_ARG, True
+def _check_label_args(args, ctx):
+    cmd_impl_support.check_required_args(
+        ["set", "append", "prepend", "remove", "clear",], args, ctx
+    )
+    cmd_impl_support.check_incompatible_args(
+        [
+            ("set", "append"),
+            ("set", "prepend"),
+            ("set", "remove"),
+            ("set", "clear"),
+            ("append", "prepend"),
+            ("append", "clear"),
+            ("append", "remove"),
+            ("prepend", "clear"),
+            ("prepend", "remove"),
+        ],
+        args,
+        ctx,
     )
 
 
 def _set_labels(args, ctx):
-    preview = "You are about to label the following runs with '%s':" % args.label
+    preview = _set_labels_preview(args)
     confirm = "Continue?"
     no_runs = "No runs to modify."
 
     def set_labels(selected):
         for run in selected:
-            formatted = format_run_label(args.label, run)
-            run.write_attr("label", formatted)
-        cli.out("Labeled %i run(s)" % len(selected))
+            if args.clear:
+                run.del_attr("label")
+            else:
+                run.write_attr("label", _label_for_run(run, args).strip())
+        if args.clear:
+            cli.out("Cleared label for %i run(s)" % len(selected))
+        else:
+            cli.out("Labeled %i run(s)" % len(selected))
 
     runs_op(
         args, ctx, False, preview, confirm, no_runs, set_labels, LATEST_RUN_ARG, True
     )
 
 
+def _set_labels_preview(args):
+    if args.set:
+        return "You are about to label the following runs with '%s':" % args.set
+    elif args.prepend:
+        return (
+            "You are about to prepend '%s' to the label of the following runs:"
+            % args.prepend
+        )
+    elif args.append:
+        return (
+            "You are about to append '%s' to the label of the following runs:"
+            % args.append
+        )
+    elif args.remove:
+        return (
+            "You are about to remove '%s' from the label of the following runs:"
+            % args.remove
+        )
+    elif args.clear:
+        return "You are about to clear the label of the following runs:"
+    else:
+        assert False, args
+
+
+def _label_for_run(run, args):
+    if args.set:
+        return format_run_label(args.set, run)
+    elif args.prepend:
+        return "%s %s" % (format_run_label(args.prepend, run), _run_label(run))
+    elif args.append:
+        return "%s %s" % (_run_label(run), format_run_label(args.append, run))
+    elif args.remove:
+        return _remove_label_parts(args.remove, _run_label(run))
+
+
 def format_run_label(template, run):
-    vals = {}
-    vals.update(run.get("flags", {}))
-    vals.update(_attrs_for_render_label(run))
-    return util.render_label(template, vals).strip()
+    fmt_params = run.get("flags") or {}
+    fmt_params["label"] = _run_label(run)
+    return util.render_label(template, fmt_params).strip()
 
 
-def _attrs_for_render_label(run):
-    return {
-        "label": run.get("label"),
-    }
+def _run_label(run):
+    return run.get("label") or ""
+
+
+def _remove_label_parts(parts, label):
+    for part in parts:
+        label = _remove_label_part(part, label)
+    return label
+
+
+def _remove_label_part(part, label):
+    try:
+        split_parts = re.split(r"(^|\s)%s($|\s)" % part, label)
+    except Exception as e:
+        cli.error("cannot remove label part %r: %s" % e)
+    else:
+        return " ".join([s for s in [t.strip() for t in split_parts] if s])
 
 
 def stop_runs(args, ctx):
