@@ -341,7 +341,7 @@ def run(args):
     to `--max-trials` runs using flag values and flag configuration.
 
     For details on available optimizers and their behavior, refer to
-    https://guild.ai/docs/optimizers.
+    https://guild.ai/optimizers/.
 
     ### Limit Trials
 
