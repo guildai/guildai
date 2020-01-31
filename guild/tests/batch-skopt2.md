@@ -13,8 +13,7 @@ A helper to run a batch:
     ...         "echo2.py",
     ...         flags=flags,
     ...         optimizer=optimizer,
-    ...         max_trials=max_trials,
-    ...         simplify_trial_output=True)
+    ...         max_trials=max_trials)
 
 Running with fixed args (i.e. no search ranges).
 
@@ -44,16 +43,16 @@ Running with fixed args (i.e. no search ranges).
 
 Running with a single category for `i`:
 
-    >>> run("gp", i=[3]) # doctest: +REPORT_UDIFF
-    Random start for optimization (1 of 2)
-    Running trial: echo2.py (b=yes, f=2.0, i=3, s=hello)
+    >>> run("gp", i=[3])
+    INFO: [guild] Random start for optimization (1 of 2)
+    INFO: [guild] Running trial ...: echo2.py (b=yes, f=2.0, i=3, s=hello)
     i: 3
     f: 2.000000
     b: True
     s: hello
     loss: 1.000000
-    Random start for optimization (2 of 2)
-    Running trial: echo2.py (b=yes, f=2.0, i=3, s=hello)
+    INFO: [guild] Random start for optimization (2 of 2)
+    INFO: [guild] Running trial ...: echo2.py (b=yes, f=2.0, i=3, s=hello)
     i: 3
     f: 2.000000
     b: True

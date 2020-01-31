@@ -522,12 +522,6 @@ class ModelPath(object):
 
 class Project(object):
 
-    # TODO: remove after op2 promot
-    simplify_trial_output_patterns = [
-        (re.compile(r"INFO: \[guild\] "), ""),
-        (re.compile(r"trial [a-f0-9]+"), "trial"),
-    ]
-
     def __init__(self, cwd, guild_home=None, env=None):
         self.cwd = cwd
         self.guild_home = guild_home or mkdtemp()
@@ -593,16 +587,12 @@ class Project(object):
         return run_dir
 
     def _run(self, *args, **kw):
-        # TODO: remove simplify_trial_output after op2 promo
-        simplify_trial_output = kw.pop("simplify_trial_output", False)
         ignore_output = kw.pop("ignore_output", False)
         cwd = os.path.join(self.cwd, kw.pop("cwd", "."))
         with self._run_env():
             out = gapi.run_capture_output(
                 guild_home=self.guild_home, cwd=cwd, *args, **kw
             )
-        if simplify_trial_output:
-            out = self._simplify_trial_output(out)
         if ignore_output:
             out = self._filter_output(out, ignore_output)
         return out.strip()
@@ -625,11 +615,6 @@ class Project(object):
         cwd = os.path.join(self.cwd, kw.pop("cwd", "."))
         with self._run_env():
             gapi.run_quiet(guild_home=self.guild_home, cwd=cwd, *args, **kw)
-
-    def _simplify_trial_output(self, out):
-        for p, repl in self.simplify_trial_output_patterns:
-            out = p.sub(repl, out)
-        return out
 
     @staticmethod
     def _filter_output(out, ignore):

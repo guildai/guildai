@@ -20,8 +20,7 @@ Some helper functions:
     ...                 restart=restart,
     ...                 max_trials=max_trials,
     ...                 init_trials=init_trials,
-    ...                 optimizer=optimizer,
-    ...                 simplify_trial_output=True)
+    ...                 optimizer=optimizer)
 
     >>> def assert_random_seed(val):
     ...     assert isinstance(val, int), val
@@ -60,9 +59,9 @@ When running a batch operation, any specified seed is used for the
 batch, the batch proto, and all generated trials.
 
     >>> run("echo.py", x=[1, 2], random_seed=1)
-    Running trial: echo.py (x=1, y=2, z=a)
+    INFO: [guild] Running trial ...: echo.py (x=1, y=2, z=a)
     1 2 'a'
-    Running trial: echo.py (x=2, y=2, z=a)
+    INFO: [guild] Running trial ...: echo.py (x=2, y=2, z=a)
     2 2 'a'
 
 The batch random seed:
@@ -91,9 +90,9 @@ the batch and the proto.
     Deleted 3 run(s)
 
     >>> run("echo.py", x=[1, 2])
-    Running trial: echo.py (x=1, y=2, z=a)
+    INFO: [guild] Running trial ...: echo.py (x=1, y=2, z=a)
     1 2 'a'
-    Running trial: echo.py (x=2, y=2, z=a)
+    INFO: [guild] Running trial ...: echo.py (x=2, y=2, z=a)
     2 2 'a'
 
 The batch and proto seeds are different.

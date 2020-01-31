@@ -14,8 +14,7 @@ Here's a helper for running echo:
 
     >>> def run_echo(needed=False, restart=None, **flags):
     ...     op = "echo.py" if not restart else None
-    ...     project.run(op, restart=restart, needed=needed,
-    ...                 flags=flags, simplify_trial_output=True)
+    ...     project.run(op, restart=restart, needed=needed, flags=flags)
 
 ## Needed for non-restarts
 
@@ -23,7 +22,7 @@ Let's run an initial batch of a single `echo.py` operation using the
 needed option:
 
     >>> run_echo(x=[1], needed=True)
-    Running trial: echo.py (x=1, y=2, z=a)
+    INFO: [guild] Running trial ...: echo.py (x=1, y=2, z=a)
     1 2 'a'
 
 Here are our runs:
@@ -48,7 +47,7 @@ Next we'll run with a different set of flags, again with the needed
 option:
 
     >>> run_echo(x=[2], needed=True)
-    Running trial: echo.py (x=2, y=2, z=a)
+    INFO: [guild] Running trial ...: echo.py (x=2, y=2, z=a)
     2 2 'a'
 
 As expected we have a new batch run and trial:
@@ -71,9 +70,9 @@ the specified flag values correspond to existing trials, we get a new
 batch run. Here we run a batch using both previous values for `x`:
 
     >>> run_echo(x=[1,2], needed=True)
-    Running trial: echo.py (x=1, y=2, z=a)
+    INFO: [guild] Running trial ...: echo.py (x=1, y=2, z=a)
     1 2 'a'
-    Running trial: echo.py (x=2, y=2, z=a)
+    INFO: [guild] Running trial ...: echo.py (x=2, y=2, z=a)
     2 2 'a'
 
 Flags have to match previous batch runs. So if we run again with both
@@ -87,7 +86,7 @@ If we have two matching batch runs, both are listed in the skipping
 message. Let's run with `x=[1]` again so we have two such runs:
 
     >>> run_echo(x=[1])
-    Running trial: echo.py (x=1, y=2, z=a)
+    INFO: [guild] Running trial ...: echo.py (x=1, y=2, z=a)
     1 2 'a'
 
 When we specify needed, there are two runs that match:

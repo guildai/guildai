@@ -23,7 +23,6 @@ A helper to run an optimizer batch:
     ...         opt_flags=opt_flags,
     ...         optimizer=optimizer,
     ...         max_trials=trials,
-    ...         simplify_trial_output=True,
     ...         ignore_output=ignore_output)
 
 We ignore messages from skopt that may be reasonably generated due to
@@ -40,28 +39,28 @@ Range without an initial value:
 
     >>> with Env({"TRIAL_DELAY": "1"}):
     ...    run("gp", "[-2.0:2.0]", 5)
-    Random start for optimization (1 of 3)
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Random start for optimization (1 of 3)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
-    Random start for optimization (2 of 3)
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Random start for optimization (2 of 3)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
-    Random start for optimization (3 of 3)
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Random start for optimization (3 of 3)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
-    Found 3 previous trial(s) for use in optimization
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Found 3 previous trial(s) for use in optimization
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
-    Found 4 previous trial(s) for use in optimization
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Found 4 previous trial(s) for use in optimization
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
@@ -70,13 +69,13 @@ Range with an initial value and opt flags:
 
     >>> with Env({"TRIAL_ENV": "1"}):
     ...     run("gp", "[-2.0:2.0:0.1]", 2, {"kappa": 1.5, "xi": 0.2})
-    Random start for optimization (1 of 2)
-    Running trial: noisy.py (noise=0.1, x=0.1)
+    INFO: [guild] Random start for optimization (1 of 2)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=0.1)
     x: 0.100000
     noise: 0.1
     loss: ...
-    Random start for optimization (2 of 2)
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Random start for optimization (2 of 2)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
@@ -115,23 +114,23 @@ Range without an initial value:
 
     >>> with Env({"TRIAL_ENV": "1"}):
     ...     run("forest", "[-2.0:2.0]", 4)
-    Random start for optimization (1 of 3)
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Random start for optimization (1 of 3)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
-    Random start for optimization (2 of 3)
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Random start for optimization (2 of 3)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
-    Random start for optimization (3 of 3)
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Random start for optimization (3 of 3)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
-    Found 3 previous trial(s) for use in optimization
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Found 3 previous trial(s) for use in optimization
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
@@ -140,13 +139,13 @@ Range with an initial value and opt flags:
 
     >>> with Env({"TRIAL_ENV": "1"}):
     ...     run("forest", "[-2.0:2.0:0.3]", 2, {"kappa": 1.3, "xi": 0.3})
-    Random start for optimization (1 of 2)
-    Running trial: noisy.py (noise=0.1, x=0.3)
+    INFO: [guild] Random start for optimization (1 of 2)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=0.3)
     x: 0.300000
     noise: 0.1
     loss: ...
-    Random start for optimization (2 of 2)
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Random start for optimization (2 of 2)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
@@ -174,18 +173,18 @@ Range without an initial value and an opt flag:
 
     >>> with Env({"TRIAL_ENV": "1"}):
     ...     run("gbrt", "[-2.0:2.0]", 3, {"random-starts": 2})
-    Random start for optimization (1 of 2)
-    Running trial: noisy.py (noise=0.1, x=...
+    INFO: [guild] Random start for optimization (1 of 2)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
-    Random start for optimization (2 of 2)
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Random start for optimization (2 of 2)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
-    Found 2 previous trial(s) for use in optimization
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Found 2 previous trial(s) for use in optimization
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
@@ -194,18 +193,18 @@ Range with an initial value and opt flags:
 
     >>> with Env({"TRIAL_ENV": "1"}):
     ...     run("gbrt", "[-2.0:2.0:0.4]", 3, {"kappa": 1.4, "xi": 0.4})
-    Random start for optimization (1 of 3)
-    Running trial: noisy.py (noise=0.1, x=0.4)
+    INFO: [guild] Random start for optimization (1 of 3)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=0.4)
     x: 0.400000
     noise: 0.1
     loss: ...
-    Random start for optimization (2 of 3)
-    Running trial: noisy.py (noise=0.1, ...)
+    INFO: [guild] Random start for optimization (2 of 3)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
-    Random start for optimization (3 of 3)
-    Running trial: noisy.py (noise=0.1, x=...)
+    INFO: [guild] Random start for optimization (3 of 3)
+    INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...
     noise: 0.1
     loss: ...
