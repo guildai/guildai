@@ -27,12 +27,12 @@ def mark_params(fn):
         fn,
         [
             runs_support.runs_arg,
-            runs_support.all_filters,
             click.Option(
                 ("-c", "--clear"),
                 help="Clear the run's selected designation.",
                 is_flag=True,
             ),
+            runs_support.all_filters,
             click.Option(
                 ("-y", "--yes"),
                 help="Do not prompt before modifying runs.",

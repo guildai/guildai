@@ -26,11 +26,6 @@ def runs_list_options(fn):
     click_util.append_params(
         fn,
         [
-            runs_support.all_filters,
-            click.Option(("-d", "--deleted"), help="Show deleted runs.", is_flag=True),
-            click.Option(
-                ("-A", "--archive",), metavar="DIR", help="Show archived runs in DIR."
-            ),
             click.Option(
                 ("-a", "--all"),
                 help="Show all runs (by default only the last 20 runs are shown).",
@@ -47,6 +42,11 @@ def runs_list_options(fn):
                 type=click.IntRange(min=1),
                 help="Limit number of runs shown.",
             ),
+            click.Option(("-d", "--deleted"), help="Show deleted runs.", is_flag=True),
+            click.Option(
+                ("-A", "--archive",), metavar="DIR", help="Show archived runs in DIR."
+            ),
+            runs_support.all_filters,
             click.Option(("--json",), help="Format runs as JSON.", is_flag=True),
             click.Option(("-v", "--verbose"), help="Show run details.", is_flag=True),
             click.Option(
