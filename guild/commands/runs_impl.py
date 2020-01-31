@@ -1104,7 +1104,8 @@ def _clear_marked(args, ctx):
             run.del_attr("marked")
         cli.out("Unmarked %i run(s)" % len(selected))
 
-    args.marked = True
+    if not args.runs:
+        args.marked = True
     runs_op(args, ctx, False, preview, confirm, no_runs, clear, ALL_RUNS_ARG, True)
 
 
@@ -1118,7 +1119,8 @@ def _mark(args, ctx):
             run.write_attr("marked", True)
         cli.out("Marked %i run(s)" % len(selected))
 
-    args.unmarked = True
+    if not args.runs:
+        args.marked = True
     runs_op(args, ctx, False, preview, confirm, no_runs, mark, LATEST_RUN_ARG, True)
 
 

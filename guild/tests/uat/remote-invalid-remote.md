@@ -10,7 +10,7 @@
 
 ## label
 
-    >>> run("guild label -r invalid-remote-abcd1234 foobar -y")
+    >>> run("guild label -r invalid-remote-abcd1234 -s foobar -y")
     guild: remote 'invalid-remote-abcd1234' is not defined
     Show remotes by running 'guild remotes' or 'guild remotes --help'
     for more information.
