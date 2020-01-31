@@ -60,7 +60,12 @@ def run(*args, **kw):
 def run_capture_output(*args, **kw):
     args, cwd, env = _popen_args(*args, **kw)
     p = subprocess.Popen(
-        args, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        args,
+        cwd=cwd,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        bufsize=0,
     )
     out, _err = p.communicate()
     out = out.decode()
