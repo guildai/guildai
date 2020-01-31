@@ -521,7 +521,6 @@ class ModelPath(object):
 
 
 class Project(object):
-
     def __init__(self, cwd, guild_home=None, env=None):
         self.cwd = cwd
         self.guild_home = guild_home or mkdtemp()

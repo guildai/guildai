@@ -234,24 +234,41 @@ def _matching_packages(ref):
     return sorted(matches.items())
 
 
-def check_exclusive_args(exclusive_list, args):
-    for val in exclusive_list:
-        arg1_name, opt1, arg2_name, opt2 = _exclusive_arg_items(val)
+def check_incompatible_args(incompatible, args, ctx):
+    for val in incompatible:
+        arg1_name, opt1, arg2_name, opt2 = _incompatible_arg_items(val)
         if getattr(args, arg1_name, None) and getattr(args, arg2_name):
-            cli.error("%s and %s cannot both be specified" % (opt1, opt2))
+            cli.error(
+                "%s and %s cannot both be specified\n"
+                "Try '%s --help' for more information." % (opt1, opt2, ctx.command_path)
+            )
 
 
-def _exclusive_arg_items(val):
+def _incompatible_arg_items(val):
     arg1, arg2 = val
-    arg1, opt1 = _exclusive_arg_part(arg1)
-    arg2, opt2 = _exclusive_arg_part(arg2)
+    arg1, opt1 = _arg_parts(arg1)
+    arg2, opt2 = _arg_parts(arg2)
     return arg1, opt1, arg2, opt2
 
 
-def _exclusive_arg_part(part):
+def _arg_parts(part):
     if isinstance(part, tuple):
         assert len(part) == 2, part
         return part
     else:
         assert isinstance(part, str)
         return part, "--" + part.replace("_", "-")
+
+
+def check_required_args(required, args, ctx):
+    missing_args = []
+    for val in required:
+        arg_name, arg = _arg_parts(val)
+        if getattr(args, arg_name, None):
+            return
+        missing_args.append(arg)
+    cli.error(
+        "missing one of: %s\n"
+        "Try `%s --help` for more information."
+        % (", ".join(missing_args), ctx.command_path)
+    )

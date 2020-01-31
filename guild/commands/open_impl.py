@@ -30,19 +30,19 @@ log = logging.getLogger("guild")
 
 
 def main(args, ctx):
-    _check_args(args)
+    _check_args(args, ctx)
     run = runs_impl.one_run(args, ctx)
     _open(run, args)
     _flush_streams_and_exit()
 
 
-def _check_args(args):
+def _check_args(args, ctx):
     if args.path and os.path.isabs(args.path):
         cli.error(
             "PATH must be relative\n" "Try 'guild open --help' for more information."
         )
-    cmd_impl_support.check_exclusive_args(
-        [("shell", "cmd"), ("shell_cmd", "shell"), ("shell_cmd", "cmd"),], args
+    cmd_impl_support.check_incompatible_args(
+        [("shell", "cmd"), ("shell_cmd", "shell"), ("shell_cmd", "cmd"),], args, ctx
     )
 
 
