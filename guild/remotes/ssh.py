@@ -499,23 +499,23 @@ def _runs_filter_args(
 ):
     args = []
     if completed:
-        args.append("-C")
+        args.append("--completed")
     if error:
-        args.append("-E")
+        args.append("--error")
     for label in labels:
         args.extend(["--label", q(label)])
     for op in ops:
-        args.extend(["-o", op])
+        args.extend(["--operation", op])
     if running:
-        args.append("-R")
+        args.append("--running")
     if terminated:
-        args.append("-T")
+        args.append("--terminated")
     if pending:
-        args.append("-P")
+        args.append("--pending")
     if staged:
-        args.append("-G")
+        args.append("--staged")
     if unlabeled:
-        args.append("-u")
+        args.append("--unlabled")
     if marked:
         args.append("--marked")
     if unmarked:

@@ -131,7 +131,7 @@ explicitly above) to run the script directly.
 The run writes a number of scalars, which we can view as info with the
 `-S` option:
 
-    >>> run("guild runs info -S")
+    >>> run("guild runs info -s")
     id: ...
     operation: mnist.py
     ...

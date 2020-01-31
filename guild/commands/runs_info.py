@@ -28,7 +28,7 @@ from . import runs_support
 @click.option("-e", "--env", help="Show run environment.", is_flag=True)
 @click.option("-d", "--deps", help="Show resolved dependencies.", is_flag=True)
 @click.option(
-    "-S",
+    "-s",
     "--all-scalars",
     help="Show all scalars. By default only top-level scalars are shown.",
     is_flag=True,
