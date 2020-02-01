@@ -1,2 +1,3 @@
+hiplot
 pandas
 twine

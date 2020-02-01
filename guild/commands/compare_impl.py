@@ -23,6 +23,7 @@ import sys
 
 from guild import batch_util
 from guild import cli
+from guild import cmd_impl_support
 from guild import config
 from guild import index2 as indexlib
 from guild import flag_util
@@ -48,8 +49,8 @@ NO_RUNS_CAPTION = "no runs"
 NO_TABLE_CLIP_WIDTH = pow(10, 10)
 
 
-def main(args):
-    _check_args(args)
+def main(args, ctx):
+    _check_args(args, ctx)
     _apply_strict_columns(args)
     if args.print_scalars:
         _print_scalars(args)
@@ -57,13 +58,16 @@ def main(args):
         _write_csv(args)
     elif args.table:
         _print_table(args)
+    elif args.tool:
+        _compare_with_tool(args)
     else:
         _tabview(args)
 
 
-def _check_args(args):
-    if args.csv and args.table:
-        cli.error("--table and --csv cannot both be used")
+def _check_args(args, ctx):
+    cmd_impl_support.check_incompatible_args(
+        [("table", "csv"), ("table", "tool"), ("csv", "tool"),], args, ctx
+    )
 
 
 def _apply_strict_columns(args):
@@ -497,3 +501,24 @@ def _strip_marked(op):
     if op.endswith(" [marked]"):
         op = op[:-9]
     return op
+
+
+def _compare_with_tool(args):
+    # If tools becomes a generalized facility, this lookup should go
+    # through entry points. For now we hardcode the tools and
+    # handlers.
+    if args.tool == "hiplot":
+        _compare_with_hiplot(args)
+    else:
+        cli.error(
+            "unknown compare tool '%s'\n"
+            "Refer to TOOLS in 'guild compare --help' for list of supported tools."
+            % args.tool
+        )
+
+
+def _compare_with_hiplot(args):
+    from guild.plugins import hiplot
+
+    get_data_cb = lambda: get_data(args, format_cells=False)
+    hiplot.compare_runs(get_data_cb)

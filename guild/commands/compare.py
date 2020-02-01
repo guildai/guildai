@@ -24,7 +24,6 @@ from . import runs_support
 
 @click.command()
 @runs_support.runs_arg
-@runs_support.all_filters
 @click.option(
     "-min",
     "--min",
@@ -74,13 +73,20 @@ from . import runs_support
     "-csv",
     "--csv",
     metavar="PATH",
-    help=("Save comparison data to a CSV file. Use '-' for " "standard output."),
+    help="Save comparison data to a CSV file. Use '-' for standard output.",
+)
+@click.option(
+    "--tool",
+    metavar="TOOL",
+    help="Use TOOL to compare runs. See TOOLS for a list of supported tools",
 )
 @click.option("--include-batch", is_flag=True, help="Include batch runs.")
 @click.option("--print-scalars", is_flag=True, help="Show available scalars and exit.")
+@runs_support.all_filters
+@click.pass_context
 @click_util.use_args
 @click_util.render_doc
-def compare(args):
+def compare(ctx, args):
     """Compare run results.
 
     Guild Compare is a console based application that displays a
@@ -180,6 +186,18 @@ def compare(args):
 
     {{ runs_support.all_filters }}
 
+    ### Tools
+
+    Guild provides support for comparing runs using different
+    tools. To use a different tool, specify its name with the `--tool`
+    option.
+
+    Supported tools:
+
+    \b
+      hiplot   Facebook's HiPlot high dimensionality viewer
+               for evaluating hyperparameters.
+
     ### Show Batch Runs
 
     By default, batch runs are not included in comparisons. To include
@@ -188,4 +206,4 @@ def compare(args):
     """
     from . import compare_impl
 
-    compare_impl.main(args)
+    compare_impl.main(args, ctx)

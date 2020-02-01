@@ -85,6 +85,7 @@ Next we train the `logreg` model and view the results.
 - [run-info-after-mnist-logreg-train](run-info-after-mnist-logreg-train.md)
 - [tmp-mnist-data-after-logreg-train](tmp-mnist-data-after-logreg-train.md)
 - [compare-after-logreg-train](compare-after-logreg-train.md)
+- [hiplot-after-logreg-train](hiplot-after-logreg-train.md)
 - [view-after-logreg-train](view-after-logreg-train.md)
 
 Finally we'll uninstall the `mnist` package and verify that its
