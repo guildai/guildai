@@ -276,6 +276,10 @@ Other examples:
 Guild provides a number of flag functions that are expanded to
 sequences. These include `range`, `linspace`, and `logspace`.
 
+To log convert warnings, we use a log capture:
+
+    >>> logs = LogCapture(strip_ansi_format=True)
+
 #### `range` function
 
 `range` is used to define a sequence of values that fall within a
@@ -304,12 +308,36 @@ Non-integer increments:
 
 Additional arguments are ignored.
 
-    >>> with LogCapture(strip_ansi_format=True) as logs:
+    >>> with logs:
     ...     decode("range[1:5:1:2:3]")
     [1, 2, 3, 4, 5]
 
     >>> logs.print_all()
     WARNING: unsupported arguments for range function: (2, 3) - ignoring
+
+Single arg to range:
+
+    >>> decode("range[10]")
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+String args:
+
+    >>> with logs:
+    ...     decode("range[foo:bar]")
+    'range[foo:bar]'
+
+    >>> logs.print_all()
+    WARNING: error decoding 'range[foo:bar]': invalid arg 'foo': expected a number
+
+Not enough args:
+
+    >>> with logs:
+    ...     decode("range[]")
+    'range[]'
+
+    >>> logs.print_all()
+    WARNING: error decoding 'range[]': function requires at least 1 arg(s)
+
 
 #### `linspace` function
 
@@ -330,12 +358,30 @@ stop and optional count. By default, Guild expands to a count of 10.
 
 Addition arguments are ignored.
 
-    >>> with LogCapture(strip_ansi_format=True) as logs:
+    >>> with logs:
     ...     decode("linspace[1:5:5:hello:456]")
     [1.0, 2.0, 3.0, 4.0, 5.0]
 
     >>> logs.print_all()
     WARNING: unsupported arguments for linspace function: ('hello', 456) - ignoring
+
+Not enough args:
+
+    >>> with logs:
+    ...     decode("linspace[]")
+    'linspace[]'
+
+    >>> logs.print_all()
+    WARNING: error decoding 'linspace[]': function requires at least 2 arg(s)
+
+Invalid args:
+
+    >>> with logs:
+    ...     decode("linspace[1:bar]")
+    'linspace[1:bar]'
+
+    >>> logs.print_all()
+    WARNING: error decoding 'linspace[1:bar]': invalid arg 'bar': expected a number
 
 #### `logspace` function
 
@@ -362,6 +408,24 @@ Additional arguments are ignored.
 
     >>> logs.print_all()
     WARNING: unsupported arguments for logspace function: (456, 'hello') - ignoring
+
+Not enough args:
+
+    >>> with logs:
+    ...     decode("logspace[]")
+    'logspace[]'
+
+    >>> logs.print_all()
+    WARNING: error decoding 'logspace[]': function requires at least 2 arg(s)
+
+Invalid args:
+
+    >>> with logs:
+    ...     decode("logspace[1:bar]")
+    'logspace[1:bar]'
+
+    >>> logs.print_all()
+    WARNING: error decoding 'logspace[1:bar]': invalid arg 'bar': expected a number
 
 ### Integers with underscores
 

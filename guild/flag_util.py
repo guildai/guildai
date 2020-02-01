@@ -109,6 +109,8 @@ def _decode_flag_val(s):
             return f(s)
         except e_type:
             pass
+        except Exception as e:
+            log.warning("error decoding %r: %s", s, e)
     return s
 
 
@@ -136,6 +138,9 @@ def _special_flag_function(s):
 
     Raises ValueError if s is not a special flag function.
 
+    Raises TypeError if the arguments provided to flag function are
+    invalid.
+
     """
     name, args = decode_flag_function(s)
     if _is_anonymous_flag_function(name, args):
@@ -160,13 +165,34 @@ def _expand_sequence(name, args):
     return f(*args)
 
 
-def _expand_range(start, end, step=1, *rest):
+def _expand_range(*args):
     import numpy as np
 
+    start, end, step = _expand_range_args(*args)
+    return [_np_seq_val(x) for x in np.arange(start, end, step)]
+
+
+def _expand_range_args(start=None, end=None, step=1, *rest):
     if rest:
         log.warning("unsupported arguments for range function: %s - ignoring", rest)
-    end = end + min(step, 1)
-    return [_np_seq_val(x) for x in np.arange(start, end, step)]
+    _assert_required_function_args(start)
+    _assert_numeric_function_args(start, step)
+    if end is not None:
+        _assert_numeric_function_args(end)
+        end = end + min(step, 1)
+    return start, end, step
+
+
+def _assert_required_function_args(*args):
+    for arg in args:
+        if arg is None:
+            raise TypeError("function requires at least %i arg(s)" % len(args))
+
+
+def _assert_numeric_function_args(*args):
+    for arg in args:
+        if not isinstance(arg, (int, float)):
+            raise TypeError("invalid arg %r: expected a number" % arg)
 
 
 def _np_seq_val(x):
@@ -176,23 +202,34 @@ def _np_seq_val(x):
     return x
 
 
-def _expand_linspace(start, end, count=5, *rest):
+def _expand_linspace(*args):
     import numpy as np
 
-    if rest:
-        log.warning("unsupported arguments for linspace function: %s - ignoring", rest)
-
+    start, end, count = _expand_linspace_args(*args)
     return [_np_seq_val(x) for x in np.linspace(start, end, count)]
 
 
-def _expand_logspace(start, end, count=5, base=10, *rest):
+def _expand_linspace_args(start=None, end=None, count=5, *rest):
+    if rest:
+        log.warning("unsupported arguments for linspace function: %s - ignoring", rest)
+    _assert_required_function_args(start, end)
+    _assert_numeric_function_args(start, end, count)
+    return start, end, count
+
+
+def _expand_logspace(*args):
     import numpy as np
 
-    if rest:
-        log.warning("unsupported arguments for logspace function: %s - ignoring", rest)
-
+    start, end, count, base = _expand_logspace_args(*args)
     return [_np_seq_val(x) for x in np.logspace(start, end, count, base=base)]
 
+
+def _expand_logspace_args(start=None, end=None, count=5, base=10, *rest):
+    if rest:
+        log.warning("unsupported arguments for logspace function: %s - ignoring", rest)
+    _assert_required_function_args(start, end)
+    _assert_numeric_function_args(start, end, count, base)
+    return start, end, count, base
 
 def _anonymous_flag_function(s):
     """Returns s as a string if s is an anonymous flag function.
