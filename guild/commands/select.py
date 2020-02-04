@@ -24,6 +24,20 @@ from . import runs_support
 
 @click.command()
 @runs_support.run_arg
+@click.option(
+    "-min",
+    "--min",
+    "min",
+    metavar="SCALAR",
+    help="Select the run with the lowest value for SCALAR.",
+)
+@click.option(
+    "-min",
+    "--max",
+    "max",
+    metavar="SCALAR",
+    help="Select the run with the highest value for SCALAR.",
+)
 @click.option("-S", "--short", help="Use short ID.", is_flag=True)
 @runs_support.all_filters
 @click.pass_context
@@ -42,9 +56,18 @@ def select(ctx, args):
 
     If RUN isn't specified, the latest matching run is selected.
 
+    ### Selecting Min or Max Scalar
+
+    To select the run with the lowest or highest scalar value, use
+    `--min` or `--max` respectively. For example, to select the run
+    with the lowest `loss` scalar value, use `--min loss`.
+
+    Other run filters are applied before selecting a minimum or
+    maximium scalar value.
+
     {{ runs_support.all_filters }}
 
     """
     from . import runs_impl
 
-    runs_impl.select_run(args, ctx)
+    runs_impl.select(args, ctx)

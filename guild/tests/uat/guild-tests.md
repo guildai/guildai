@@ -91,6 +91,7 @@ tests).
       runs-2:                      ok
       scalars:                     ok
       select-resources:            ok
+      select-runs:                 ok
       skopt:                       ok
       skopt-utils:                 ok
       sourcecode-digest:           ok

@@ -637,8 +637,7 @@ def _run_info(args, ctx):
 def one_run(args, ctx):
     filtered = filtered_runs(args, ctx=ctx)
     if not filtered:
-        cli.out("No matching runs", err=True)
-        cli.error()
+        cli.error("no matching runs")
     runspec = args.run or "1"
     selected = select_runs(filtered, [runspec], ctx)
     return cmd_impl_support.one_run(selected, runspec, ctx)
@@ -698,7 +697,7 @@ def _scalar_info(run, args):
 
 
 def _iter_scalars(run, args):
-    from guild import index2 as indexlib  # slightly expensive
+    from guild import index2 as indexlib  # expensive
 
     for s in indexlib.iter_run_scalars(run):
         key = _s_key(s)
@@ -1124,9 +1123,73 @@ def _mark(args, ctx):
     runs_op(args, ctx, False, preview, confirm, no_runs, mark, LATEST_RUN_ARG, True)
 
 
-def select_run(args, ctx):
-    run = one_run(args, ctx)
+def select(args, ctx):
+    run = select_run(args, ctx)
     if args.short:
         print(run.short_id)
     else:
         print(run.id)
+
+
+def select_run(args, ctx=None):
+    _check_select_args(args, ctx)
+    if args.min:
+        return _select_min_run(args, ctx, args.min)
+    elif args.max:
+        return _select_min_run(args, ctx, args.max, reverse=True)
+    else:
+        return one_run(args, ctx)
+
+
+def _check_select_args(args, ctx):
+    cmd_impl_support.check_incompatible_args([("min", "max"),], args, ctx)
+
+
+def _select_min_run(args, ctx, scalar, reverse=False):
+    runs = _select_runs(args, ctx)
+    assert runs
+    return _sort_selected_runs(runs, scalar, reverse)[0]
+
+
+def _select_runs(args, ctx):
+    args.runs = [args.run] if args.run else []
+    return runs_for_args(args, ctx=ctx)
+
+
+def _sort_selected_runs(runs, scalar, reverse):
+    from guild import index2 as indexlib
+
+    run_scalar_args = _run_scalar_args_for_select(scalar)
+    index = indexlib.RunIndex()
+    index.refresh(runs, ["scalar"])
+    factor = -1 if reverse else 1
+    inf = float('inf')
+
+    def key(run):
+        scalar = index.run_scalar(run, *run_scalar_args)
+        if scalar is None:
+            return inf
+        return factor * scalar
+
+    return sorted(runs, key=key)
+
+
+def _run_scalar_args_for_select(scalar_spec):
+    from guild import query
+
+    try:
+        cols = query.parse_colspec(scalar_spec).cols
+    except query.ParseError as e:
+        cli.error("invalid scalar '%s': %s" % (scalar_spec, e))
+    else:
+        assert cols, scalar_spec
+        if len(cols) > 1:
+            cli.error(
+                "invalid scalar '%s': multiple scalars not supported" % scalar_spec
+            )
+        col = cols[0]
+        # 'header', 'key', 'named_as', 'qualifier', 'split_key', 'step'
+        if col.named_as:
+            log.warning("ignoring 'as %s' in scalar", col.named_as)
+        prefix, tag = col.split_key()
+        return prefix, tag, col.qualifier, col.step

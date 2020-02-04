@@ -234,14 +234,16 @@ def _matching_packages(ref):
     return sorted(matches.items())
 
 
-def check_incompatible_args(incompatible, args, ctx):
+def check_incompatible_args(incompatible, args, ctx=None):
     for val in incompatible:
         arg1_name, opt1, arg2_name, opt2 = _incompatible_arg_items(val)
         if getattr(args, arg1_name, None) and getattr(args, arg2_name):
-            cli.error(
-                "%s and %s cannot both be specified\n"
-                "Try '%s --help' for more information." % (opt1, opt2, ctx.command_path)
+            err_help = (
+                ("\nTry '%s --help' for more information." % ctx.command_path)
+                if ctx
+                else ""
             )
+            cli.error("%s and %s cannot both be specified%s" % (opt1, opt2, err_help))
 
 
 def _incompatible_arg_items(val):

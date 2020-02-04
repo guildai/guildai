@@ -631,21 +631,30 @@ class Project(object):
         return gapi.runs_list(cwd=self.cwd, guild_home=self.guild_home, **kw)
 
     def print_runs(
-        self, runs=None, flags=False, labels=False, status=False, cwd=None, limit=None
+        self,
+        runs=None,
+        ids=False,
+        flags=False,
+        labels=False,
+        status=False,
+        cwd=None,
+        limit=None,
     ):
         cwd = os.path.join(self.cwd, cwd) if cwd else self.cwd
         if runs is None:
             runs = self.list_runs(limit=limit)
-        cols = self._cols_for_print_runs(flags, labels, status)
+        cols = self._cols_for_print_runs(ids, flags, labels, status)
         rows = []
         with util.Chdir(cwd):
             for run in runs:
-                rows.append(self._row_for_print_run(run, flags, labels, status))
+                rows.append(self._row_for_print_run(run, ids, flags, labels, status))
         cli.table(rows, cols)
 
     @staticmethod
-    def _cols_for_print_runs(flags, labels, status):
+    def _cols_for_print_runs(ids, flags, labels, status):
         cols = ["opspec"]
+        if ids:
+            cols.append("id")
         if flags:
             cols.append("flags")
         if labels:
@@ -655,11 +664,13 @@ class Project(object):
         return cols
 
     @staticmethod
-    def _row_for_print_run(run, flags, labels, status):
+    def _row_for_print_run(run, ids, flags, labels, status):
         from guild.commands import runs_impl
 
         fmt_run = runs_impl.format_run(run)
         row = {"opspec": fmt_run["op_desc"]}
+        if ids:
+            row["id"] = run.id
         if flags:
             flag_vals = run.get("flags") or {}
             row["flags"] = op_util.flags_desc(flag_vals, delim=" ")
@@ -721,6 +732,9 @@ class Project(object):
 
     def label(self, runs=None, **kw):
         gapi.label(runs, cwd=self.cwd, guild_home=self.guild_home, **kw)
+
+    def select(self, run=None, **kw):
+        return gapi.select(run, cwd=self.cwd, guild_home=self.guild_home, **kw)
 
 
 def _is_run_sourcecode(path):

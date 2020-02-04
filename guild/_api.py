@@ -415,3 +415,17 @@ def package(
     )
     with Env(cwd, guild_home):
         package_impl.main(args)
+
+
+def select(run=None, min=None, max=None, cwd=".", guild_home=None, **kw):
+    from guild import click_util
+    from guild.commands import runs_impl
+
+    args = click_util.Args(run=run, min=min, max=max)
+    _apply_runs_filters(kw, args)
+    _assert_empty_kw(kw, "select()")
+    with Env(cwd, guild_home):
+        try:
+            return runs_impl.select_run(args)
+        except SystemExit as e:
+            raise ValueError(e)
