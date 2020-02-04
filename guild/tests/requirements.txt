@@ -1,6 +1,2 @@
 pandas
 twine
-
-# hiplot packages aren't generally available across platforms so we
-# use source
-https://github.com/facebookresearch/hiplot/archive/0.1.2.zip

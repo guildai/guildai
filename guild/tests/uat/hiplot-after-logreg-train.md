@@ -1,5 +1,9 @@
 # Compare using hiplot tool
 
+Install `hiplot`:
+
+    >>> quiet("pip install hiplot")
+
 Confirm we have runs to compare:
 
     >>> run("guild runs")
