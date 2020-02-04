@@ -25,14 +25,12 @@ from . import runs_support
 @click.command()
 @runs_support.runs_arg
 @click.option(
-    "-min",
     "--min",
     "min_col",
     metavar="COLUMN",
     help="Show the lowest values for COLUMN first.",
 )
 @click.option(
-    "-min",
     "--max",
     "max_col",
     metavar="COLUMN",
@@ -70,7 +68,6 @@ from . import runs_support
 @click.option("-r", "--skip-core", is_flag=True, help="Don't show core columns.")
 @click.option("-t", "--table", is_flag=True, help="Show comparison data as a table.")
 @click.option(
-    "-csv",
     "--csv",
     metavar="PATH",
     help="Save comparison data to a CSV file. Use '-' for standard output.",
