@@ -58,8 +58,8 @@ Here are our runs:
 
     >>> run("guild runs")
     [1:...]  sleep.py  ...  completed  seconds=5
-    [2:...]  queue     ...  running    q2 ignore-running=no poll-interval=1 run-once=no
-    [3:...]  sleep.py  ...  completed  seconds=5
+    [2:...]  sleep.py  ...  completed  seconds=5
+    [3:...]  queue     ...  running    q2 ignore-running=no poll-interval=1 run-once=no
     [4:...]  queue     ...  running    q1 ignore-running=no poll-interval=1 run-once=no
     <exit 0>
 
