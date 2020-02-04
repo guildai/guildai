@@ -231,6 +231,7 @@ def _expand_logspace_args(start=None, end=None, count=5, base=10, *rest):
     _assert_numeric_function_args(start, end, count, base)
     return start, end, count, base
 
+
 def _anonymous_flag_function(s):
     """Returns s as a string if s is an anonymous flag function.
 
