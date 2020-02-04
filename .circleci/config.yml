@@ -40,7 +40,7 @@ jobs:
 
           TERM=xterm-256color source guild-env test-env
 
-          WORKSPACE=test-env UAT_SKIP=remote-* COLUMNS=999 EXAMPLES=examples guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=''remote-* hiplot-*'' COLUMNS=999 EXAMPLES=examples guild check --uat'
         name: Test
         no_output_timeout: 1200
     - store_artifacts:
@@ -96,7 +96,7 @@ jobs:
 
           TERM=xterm-256color source guild-env test-env
 
-          WORKSPACE=test-env UAT_SKIP=remote-* COLUMNS=999 EXAMPLES=examples guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=''remote-* hiplot-*'' COLUMNS=999 EXAMPLES=examples guild check --uat'
         name: Test
         no_output_timeout: 1200
     - store_artifacts:
@@ -152,7 +152,7 @@ jobs:
 
           TERM=xterm-256color source guild-env test-env
 
-          WORKSPACE=test-env UAT_SKIP=remote-* COLUMNS=999 EXAMPLES=examples guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=''remote-* hiplot-*'' COLUMNS=999 EXAMPLES=examples guild check --uat'
         name: Test
         no_output_timeout: 1200
     - store_artifacts:
@@ -208,7 +208,7 @@ jobs:
 
           TERM=xterm-256color source guild-env test-env
 
-          WORKSPACE=test-env UAT_SKIP=remote-* COLUMNS=999 EXAMPLES=examples guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=''remote-* hiplot-*'' COLUMNS=999 EXAMPLES=examples guild check --uat'
         name: Test
         no_output_timeout: 1200
     - store_artifacts:
@@ -264,7 +264,7 @@ jobs:
 
           TERM=xterm-256color source guild-env test-env
 
-          WORKSPACE=test-env UAT_SKIP=remote-* COLUMNS=999 EXAMPLES=examples guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=''remote-* hiplot-*'' COLUMNS=999 EXAMPLES=examples guild check --uat'
         name: Test
         no_output_timeout: 1200
     - store_artifacts:
@@ -326,7 +326,7 @@ jobs:
 
           TERM=xterm-256color source guild-env test-env
 
-          WORKSPACE=test-env UAT_SKIP=remote-* COLUMNS=999 EXAMPLES=examples guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=''remote-* hiplot-*'' COLUMNS=999 EXAMPLES=examples guild check --uat'
         name: Test
         no_output_timeout: 1200
     - store_artifacts:
@@ -388,7 +388,7 @@ jobs:
 
           TERM=xterm-256color source guild-env test-env
 
-          WORKSPACE=test-env UAT_SKIP=remote-* COLUMNS=999 EXAMPLES=examples guild check --uat'
+          WORKSPACE=test-env UAT_SKIP=''remote-* hiplot-*'' COLUMNS=999 EXAMPLES=examples guild check --uat'
         name: Test
         no_output_timeout: 1200
     - store_artifacts:
