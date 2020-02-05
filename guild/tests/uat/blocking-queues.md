@@ -1,10 +1,11 @@
 # Blocking Queues
 
 By default a queue will only start a staged run if there are no other
-non-queue runs in progress. The rationale is that it's safer to assume
-that any given run requires the full system than to assume otherwise.
+(non-queue) runs in progress. The rationale is that it's safer to
+assume that any given run requires the full system than to assume
+otherwise.
 
-Therefore `ignore-running` is `no` by default --- i.e. a queue waits
+`ignore-running` is therefore `no` by default --- i.e. a queue waits
 for runs to complete before starting available staged runs.
 
 Delete runs in preparation for these tests.
@@ -43,8 +44,28 @@ Stage two runs.
 
 At this point our queue will start one of the two runs.
 
-Let's start a second queue with label `q2` so we can explicitly
-reference it later.
+Wait to let the queue start one of the staged runs:
+
+    >>> sleep(2)
+
+The runs:
+
+    >>> run("guild runs")
+    [1:...]  sleep.py  ...  running  seconds=5
+    [2:...]  sleep.py  ...  staged   seconds=5
+    [3:...]  queue     ...  running  q1 ignore-running=no poll-interval=1 run-once=no
+    <exit 0>
+
+Note that only of the two `sleep.py` operations is running.
+
+Here's the log output for the queue:
+
+    >>> run("guild cat --output -l q1")
+    INFO: [queue] ... Waiting for staged runs
+    INFO: [queue] ... Starting staged run ...
+    <exit 0>
+
+Start a second queue:
 
     >>> run("guild run queue poll-interval=1 --tag q2 --background -y")
     queue:queue started in background as ... (pidfile ...)
@@ -58,8 +79,8 @@ Here are our runs:
 
     >>> run("guild runs")
     [1:...]  sleep.py  ...  completed  seconds=5
-    [2:...]  sleep.py  ...  completed  seconds=5
-    [3:...]  queue     ...  running    q2 ignore-running=no poll-interval=1 run-once=no
+    [2:...]  queue     ...  running    q2 ignore-running=no poll-interval=1 run-once=no
+    [3:...]  sleep.py  ...  completed  seconds=5
     [4:...]  queue     ...  running    q1 ignore-running=no poll-interval=1 run-once=no
     <exit 0>
 
