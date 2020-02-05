@@ -152,7 +152,7 @@ class Build(object):
                 "TERM=xterm-256color source guild-env {}".format(self.test_dir),
                 (
                     "WORKSPACE={workspace} "
-                    "UAT_SKIP='remote-* hiplot-*' "
+                    "UAT_SKIP=remote-*,hiplot-* "
                     "COLUMNS=999 "
                     "EXAMPLES={examples} "
                     "guild check --uat".format(
