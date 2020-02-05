@@ -255,17 +255,21 @@ def _write_console_help_overview(guildfile, model_desc, out):
     out.write_text(
         textwrap.dedent(
             """
-        You are viewing help for models defined in %s.
+        You are viewing help for operations defined in %s.
 
-        To run a model operation use 'guild run MODEL:OPERATION' where
-        MODEL is one of the model names listed below and OPERATION is
-        an associated operation.
+        To run an operation use 'guild run OPERATION' where OPERATION
+        is one of options listed below. If an operation is associated
+        with a model, include the model name as MODEL:OPERATION when
+        running the operation.
 
-        You may set operation flags using 'FLAG=VALUE' arguments to
-        the run command. Refer to the operations below for a list of
-        supported flags.
+        To list available operations, run 'guild operations'.
 
-        For more help, try 'guild run --help' or 'guild --help'.
+        Set operation flags using 'FLAG=VALUE' arguments to the run
+        command. Refer to the operations below for a list of supported
+        flags.
+
+        For more information on running operations, try 'guild run
+        --help'. For general information, try 'guild --help'.
         """
             % model_desc
         )
