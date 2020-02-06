@@ -1,0 +1,46 @@
+- model: iris-svm
+  description: Iris classifier using a SVM
+  operations:
+    fit:
+      description: Fit SVM model
+      default: yes
+      main: plot_iris_exercise
+      flags:
+        kernel:
+          description: SVM kernel type
+          default: rbf
+          choices: [linear, poly, rbf]
+        test_split:
+          description: Percentage of examples held out for test
+          default: 0.2
+        random_seed:
+          description: Seed used for shuffling data
+          default: 0
+        degree:
+          description: Degree of the poly kernel function
+          default: 3
+        gamma:
+          description: Kernel coefficient for rbf and poly
+          default: 10
+      output-scalars:
+        train_accuracy: 'Train accuracy: (\value)'
+        test_accuracy: 'Test accuracy: (\value)'
+      plugins: [cpu]
+
+    search:
+      description: Run a grid search
+      steps:
+        - run: fit
+          flags:
+            kernel: [linear, poly, rbf]
+            gamma: [0.1, 0.5, 1, 5, 10, 25]
+            random_seed: ${random_seed}
+        - run: fit
+          flags:
+            kernel: poly
+            degree: [2, 3, 4]
+            random_seed: ${random_seed}
+      flags:
+        random_seed:
+          description: Random seed used for trials
+          default: 0
