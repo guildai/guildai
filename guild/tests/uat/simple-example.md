@@ -184,6 +184,10 @@ View using runs info:
       biases/min_1: ... (step 540)
       biases/stddev: ... (step 540)
       loss: ... (step 540)
+      weights/max_1: ... (step 540)
+      weights/mean_1: ... (step 540)
+      weights/min_1: ... (step 540)
+      weights/stddev: ... (step 540)
       val#acc: ... (step 540)
       val#biases/max_1: ... (step 540)
       val#biases/mean_1: ... (step 540)
@@ -194,10 +198,6 @@ View using runs info:
       val#weights/mean_1: ... (step 540)
       val#weights/min_1: ... (step 540)
       val#weights/stddev: ... (step 540)
-      weights/max_1: ... (step 540)
-      weights/mean_1: ... (step 540)
-      weights/min_1: ... (step 540)
-      weights/stddev: ... (step 540)
     <exit 0>
 
 Note the command, which uses the Python intreper (not listed

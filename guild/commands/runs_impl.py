@@ -775,7 +775,7 @@ def _print_run_info_ordered(data):
                 cli.out("  - %s" % fmt(item))
         elif isinstance(val, dict):
             cli.out("%s:" % name)
-            for item_name, item_val in sorted(val.items()):
+            for item_name, item_val in _sort_run_info_attr(name, val):
                 if isinstance(item_val, list):
                     cli.out("  %s:" % item_name)
                     for item_item in item_val:
@@ -784,6 +784,18 @@ def _print_run_info_ordered(data):
                     cli.out("  %s: %s" % (item_name, fmt(item_val)))
         else:
             cli.out("%s: %s" % (name, val))
+
+
+def _sort_run_info_attr(name, val):
+    if name == "scalars":
+        return _sort_run_info_scalars(val)
+    else:
+        return sorted(val.items())
+
+
+def _sort_run_info_scalars(val):
+    key = lambda item: _split_scalar_key(item[0])
+    return sorted(val.items(), key=key)
 
 
 def label(args, ctx):
