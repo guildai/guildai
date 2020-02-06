@@ -692,8 +692,18 @@ def _scalar_info(run, args):
     return {
         key: val
         for key, val in _iter_scalars(run, args)
-        if args.all_scalars or "/" not in key
+        if args.all_scalars or filter_default_scalar(key)
     }
+
+
+def filter_default_scalar(key):
+    _prefix, tag = _split_scalar_key(key)
+    return not tag.startswith("sys/")
+
+
+def _split_scalar_key(key):
+    parts = key.split("#", 1)
+    return ("", parts[0]) if len(parts) == 1 else (parts[0], parts[1])
 
 
 def _iter_scalars(run, args):

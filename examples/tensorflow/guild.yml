@@ -17,6 +17,7 @@ train:
     - loss step as step
     - loss as train_loss
     - acc as train_acc
+  plugins: all
 
 evaluate:
   description: Evaluate a trained MNIST classifier
@@ -30,3 +31,4 @@ evaluate:
   compare:
     - loss as val_loss
     - acc as val_acc
+  plugins: all
