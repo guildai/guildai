@@ -226,7 +226,7 @@ def _colspec_cols(colspec, parse_cache):
 def _op_cols(run, args, parse_cache, index):
     if args.skip_op_cols:
         return []
-    compare = _op_compare(run, index)
+    compare = _op_compare(run, index, args)
     if not compare:
         return []
     cols = []
@@ -235,7 +235,7 @@ def _op_cols(run, args, parse_cache, index):
     return cols
 
 
-def _op_compare(run, index):
+def _op_compare(run, index, args):
     """Returns compare cols for run.
 
     If we can get the current compare cols for the run op source
@@ -243,12 +243,15 @@ def _op_compare(run, index):
     run "compare" attr.
     """
     return util.find_apply(
-        [lambda: run_util.latest_compare(run), lambda: _default_run_compare(run, index)]
+        [
+            lambda: run_util.latest_compare(run),
+            lambda: _default_run_compare(run, index, args),
+        ]
     )
 
 
-def _default_run_compare(run, index):
-    return _flag_compares(run) + _scalar_compares(run, index)
+def _default_run_compare(run, index, args):
+    return _flag_compares(run) + _scalar_compares(run, index, args)
 
 
 def _flag_compares(run):
@@ -256,19 +259,20 @@ def _flag_compares(run):
     return ["=%s" % name for name in sorted(flags)]
 
 
-def _scalar_compares(run, index):
-    # Assuming index has been refreshed to include run
-    cols = _root_scalars(run, index)
+def _scalar_compares(run, index, args):
+    # Assuming index has been refreshed to include run. Not asserting
+    # for performance.
+    cols = _scalar_cols(run, index, args)
     if not cols:
         return []
     return [_step_col(cols)] + cols
 
 
-def _root_scalars(run, index):
+def _scalar_cols(run, index, args):
     metrics = set()
     for s in index.run_scalars(run):
         tag = str(s["tag"])
-        if "/" not in tag:
+        if args.all_scalars or runs_impl.filter_default_scalar(tag):
             metrics.add(tag)
     return sorted(metrics)
 

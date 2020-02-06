@@ -53,7 +53,7 @@ guild.yml. Let's see what it wants to run by looking at a run preview:
     Continue? (Y/n)
     <exit ...>
 
-## Running the default operation
+## Run the default operation
 
 We've see that we can run the train operation by default. Let's run it
 for one epoch.
@@ -207,24 +207,24 @@ We can view the compare columns for the script op - these are default
 for scripts:
 
     >>> run("guild compare -t 1")
-    run  operation  started  time  status     label                                                             batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss
-    ...  mnist.py   ... ...  ...   completed  batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no  100         data     1       no       .       no     540   0...  0...
+    run  operation  started  time  status     label                                                             batch_size  datadir  epochs  prepare  rundir  test  step  acc  biases/max_1  biases/mean_1  biases/min_1  biases/stddev  loss  weights/max_1  weights/mean_1  weights/min_1  weights/stddev
+    ...  mnist.py   ... ...  ...   completed  batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no  100         data     1       no       .       no    540   ...
     <exit 0>
 
 When we compare the last two runs (the `train` op and the `mnist.py` script):
 
     >>> run("guild compare -t 1 2")
-    run  operation  started  time  status     label                                                             batch_size  datadir  epochs  prepare  rundir  test   step  acc   loss  train_loss  train_acc
-    ...  mnist.py   ... ...  ...   completed  batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no  100         data     1       no       .       no     540   0...  0...
-    ...  train      ... ...  ...   completed  batch_size=100 epochs=1                                           540                                                                    0...        0...
+    run  operation  started  time  status     label                                                             batch_size  datadir  epochs  prepare  rundir  test  step  acc  biases/max_1  biases/mean_1  biases/min_1  biases/stddev  loss  weights/max_1  weights/mean_1  weights/min_1  weights/stddev  train_loss  train_acc
+    ...  mnist.py   ... ...  ...   completed  batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no  100         data     1       no       .       no    540   ...
+    ...  train      ... ...  ...   completed  batch_size=100 epochs=1                                                                                               540   ...
     <exit 0>
 
 Compare with CSV:
 
     >>> run("guild compare --csv - 1 2", ignore="Wrote")
-    run,operation,started,time,status,label,batch_size,datadir,epochs,prepare,rundir,test,step,acc,loss,train_loss,train_acc
-    ...,mnist.py,...,...,completed,batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no,100,data,1,False,.,False,540,...,...,,
-    ...,train,...,...,completed,batch_size=100 epochs=1,,,,,,,540,,,...,...
+    run,operation,started,time,status,label,batch_size,datadir,epochs,prepare,rundir,test,step,acc,biases/max_1,biases/mean_1,biases/min_1,biases/stddev,loss,weights/max_1,weights/mean_1,weights/min_1,weights/stddev,train_loss,train_acc
+    ...,mnist.py,...,...,completed,batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no,100,data,1,False,.,False,540,...
+    ...,train,...,...,completed,batch_size=100 epochs=1,,,,,,,540,...
     <exit 0>
 
 Generate a CSV file:
@@ -237,6 +237,6 @@ Generate a CSV file:
     <exit 0>
 
     >>> cat(csv_path)
-    run,operation,started,time,status,label,batch_size,datadir,epochs,prepare,rundir,test,step,acc,loss,train_loss,train_acc
-    ...,mnist.py,...,...,completed,batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no,100,data,1,False,.,False,540,...,...,,
-    ...,train,...,...,completed,batch_size=100 epochs=1,,,,,,,540,,,...,...
+    run,operation,started,time,status,label,batch_size,datadir,epochs,prepare,rundir,test,step,acc,biases/max_1,biases/mean_1,biases/min_1,biases/stddev,loss,weights/max_1,weights/mean_1,weights/min_1,weights/stddev,train_loss,train_acc
+    ...,mnist.py,...,...,completed,batch_size=100 datadir=data epochs=1 prepare=no rundir=. test=no,100,data,1,False,.,False,540,...
+    ...,train,...,...,completed,batch_size=100 epochs=1,,,,,,,540,...

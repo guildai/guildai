@@ -319,6 +319,7 @@ def compare(
     runs=None,
     cols=None,
     extra_cols=False,
+    all_scalars=False,
     skip_op_cols=False,
     skip_core=False,
     include_batch=False,
@@ -335,6 +336,7 @@ def compare(
     args = click_util.Args(
         runs=(runs or []),
         extra_cols=extra_cols,
+        all_scalars=all_scalars,
         cols=cols,
         skip_op_cols=skip_op_cols,
         skip_core=skip_core,

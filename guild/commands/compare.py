@@ -51,6 +51,12 @@ from . import runs_support
     help="Show extra columns such as source code hash.",
 )
 @click.option(
+    "-s",
+    "--all-scalars",
+    is_flag=True,
+    help="Include all scalars. By default system scalars are omitted.",
+)
+@click.option(
     "-c",
     "--cols",
     metavar="COLUMNS",
