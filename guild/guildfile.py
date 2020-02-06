@@ -423,7 +423,7 @@ def _coerce_output_scalars(data, guildfile):
     else:
         raise GuildfileError(
             guildfile,
-            "invalid output-scalars %r: expected a mapping, " "list, or string" % data,
+            "invalid output-scalars %r: expected a mapping, list, or string" % data,
         )
 
 
@@ -493,7 +493,7 @@ def _coerce_select_files_list(data, guildfile):
         else:
             raise GuildfileError(
                 guildfile,
-                "invalid sourcecode %r: expected a string " "or mapping" % item,
+                "invalid sourcecode %r: expected a string or mapping" % item,
             )
     if all_strings:
         items.insert(0, {"exclude": "*"})
@@ -508,7 +508,7 @@ def _coerce_select_files_item(item, guildfile):
     else:
         raise GuildfileError(
             guildfile,
-            "invalid sourcecode item %r: expected a " "string or mapping" % item,
+            "invalid sourcecode item %r: expected a string or mapping" % item,
         )
 
 
@@ -519,7 +519,7 @@ def _coerce_str_to_list(val, guildfile, name):
         return val
     else:
         raise GuildfileError(
-            guildfile, "invalid %s value %r: expected a string or " "list" % (name, val)
+            guildfile, "invalid %s value %r: expected a string or list" % (name, val)
         )
 
 
@@ -779,7 +779,7 @@ def _pkg_parent_data(name, guildfile, seen):
     if not model_name:
         raise GuildfileReferenceError(
             guildfile,
-            "invalid model or config reference '%s': " "missing model name" % name,
+            "invalid model or config reference '%s': missing model name" % name,
         )
     pkg_guildfile_path = _find_pkg_guildfile(pkg)
     if not pkg_guildfile_path:
@@ -1179,7 +1179,7 @@ class OpDependencyDef(object):
         else:
             raise GuildfileError(
                 self,
-                "invalid dependency value %r: expected a string or " "mapping" % data,
+                "invalid dependency value %r: expected a string or mapping" % data,
             )
         # Op dependency must always be a spec or an inline resource.
         assert self.spec or self.inline_resource
@@ -1406,7 +1406,7 @@ class ResourceDef(resourcedef.ResourceDef):
         except resourcedef.ResourceDefValueError:
             raise GuildfileError(
                 modeldef.guildfile,
-                "invalid resource value %r: expected a mapping " "or a list" % data,
+                "invalid resource value %r: expected a mapping or a list" % data,
             )
         except resourcedef.ResourceFormatError as e:
             raise GuildfileError(modeldef.guildfile, e)
