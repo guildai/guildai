@@ -211,6 +211,7 @@ def _op_start_proc(op, run, extra_env=None):
             cwd=run.dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            bufsize=0,
         )
     except OSError as e:
         raise ProcessError(e)

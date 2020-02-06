@@ -51,7 +51,7 @@ class Env(object):
 
 def run(*args, **kw):
     args, cwd, env = _popen_args(*args, **kw)
-    p = subprocess.Popen(args, cwd=cwd, env=env)
+    p = subprocess.Popen(args, cwd=cwd, env=env, bufsize=0)
     returncode = p.wait()
     if returncode != 0:
         raise RunError((args, cwd, env), returncode)
