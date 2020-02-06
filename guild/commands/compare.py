@@ -54,13 +54,21 @@ from . import runs_support
     "-c",
     "--cols",
     metavar="COLUMNS",
-    help=("Additional columns to compare. " "Cannot be used with --strict-columns."),
+    help=(
+        "Comma delimited list of additional columns to compare. "
+        "See Column Specs for information on column format. "
+        "Cannot be used with --strict-columns."
+    ),
 )
 @click.option(
     "-cc",
     "--strict-cols",
     metavar="COLUMNS",
-    help="Columns to compare. Cannot be used with --columns.",
+    help=(
+        "Comma delimited list of the columns to compare. "
+        "See Column Specs for information on column format. "
+        "Cannot be used with --columns."
+    ),
 )
 @click.option(
     "-p", "--skip-op-cols", is_flag=True, help="Don't show operation columns."
