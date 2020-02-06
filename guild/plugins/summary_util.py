@@ -43,10 +43,18 @@ class SummaryPlugin(Plugin):
 
     def patch_env(self):
         self.log.debug("patching tensorflow")
-        self._patch_tensorboardX()
+        self._patch_guild_summary()
+        self._try_patch_tensorboardX()
         self._try_patch_tensorflow()
 
-    def _patch_tensorboardX(self):
+    def _patch_guild_summary(self):
+        from guild import summary
+
+        python_util.listen_method(
+            summary.SummaryWriter, "add_scalar", self._handle_guild_scalar
+        )
+
+    def _try_patch_tensorboardX(self):
         try:
             from tensorboardX import SummaryWriter
         except ImportError:
@@ -73,15 +81,26 @@ class SummaryPlugin(Plugin):
     def _try_listen_tf_v2(self):
         if not _tf_version().startswith("2."):
             raise util.TryFailed()
+        self._listen_tb_v2_summary()
         self._listen_tf_v2_summary()
         self._listen_tf_summary()
 
-    def _listen_tf_v2_summary(self):
+    def _listen_tb_v2_summary(self):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", Warning)
             from tensorboard.plugins.scalar import summary_v2
         self.log.debug("wrapping tensorboard.plugins.scalar.summary_v2.scalar")
         python_util.listen_function(summary_v2, "scalar", self._handle_scalar)
+
+    def _listen_tf_v2_summary(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", Warning)
+            # pylint: disable=import-error,no-name-in-module
+            from tensorflow.python.ops import summary_ops_v2
+        self.log.debug("wrapping tensorflow.python.ops summary_ops_v2.scalar")
+        python_util.listen_function(
+            summary_ops_v2, "scalar", self._handle_scalar_ops_v2
+        )
 
     def _listen_tf_summary(self):
         # pylint: disable=import-error,no-name-in-module
@@ -126,6 +145,16 @@ class SummaryPlugin(Plugin):
             self.name,
         )
 
+    def _handle_guild_scalar(self, add_scalar, _tag, _value, step=None):
+        """Handler for guild.summary.SummaryWriter.add_scalar.
+        """
+        vals = self._summary_values(step)
+        if vals:
+            self.log.debug("summary values via add_scalar: %s", vals)
+            for tag, val in vals.items():
+                if val is not None:
+                    add_scalar(tag, val, step)
+
     def _handle_summary(self, add_summary, _summary, global_step=None):
         """Callback to apply summary values via add_summary callback.
 
@@ -150,7 +179,7 @@ class SummaryPlugin(Plugin):
             self._summary_cache.reset_for_step(global_step, vals)
         return self._summary_cache.for_step(global_step)
 
-    def _handle_scalar(self, scalar, name, data, step=None, description=None):
+    def _handle_scalar(self, scalar, _name, _data, step=None, description=None):
         """Callback to apply summary values via scalars API.
 
         This is the TF 2.x and tensorboardX API for logging scalars.
@@ -163,6 +192,18 @@ class SummaryPlugin(Plugin):
                 if val is None:
                     continue
                 scalar(tag, val, step)
+
+    def _handle_scalar_ops_v2(self, scalar, _name, _tensor, family=None, step=None):
+        """Callback to apply summary values from summary_ops_v2.
+        """
+        # pylint: disable=unused-argument
+        vals = self._summary_values(step)
+        if vals:
+            self.log.debug("summary values via scalar: %s", vals)
+            for tag, val in vals.items():
+                if val is None:
+                    continue
+                scalar(tag, val, step=step)
 
     @staticmethod
     def read_summary_values(_global_step):
