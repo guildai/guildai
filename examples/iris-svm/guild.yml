@@ -1,9 +1,8 @@
 - model: iris-svm
-  description: Iris classifier using a SVM
+  description: Iris classifier using a support vector machine (SVM)
   operations:
-    fit:
-      description: Fit SVM model
-      default: yes
+    train:
+      description: Train SVM model on Iris data set
       main: plot_iris_exercise
       flags:
         kernel:
@@ -25,22 +24,28 @@
       output-scalars:
         train_accuracy: 'Train accuracy: (\value)'
         test_accuracy: 'Test accuracy: (\value)'
-      plugins: [cpu]
-
-    search:
-      description: Run a grid search
+    grid-search:
+      description: Grid search
       steps:
-        - run: fit
+        - run: train
           flags:
-            kernel: [linear, poly, rbf]
-            gamma: [0.1, 0.5, 1, 5, 10, 25]
-            random_seed: ${random_seed}
-        - run: fit
+            kernel: [linear, rbf]
+            gamma: logspace[-9:3:13]
+          tag: grid
+        - run: train
           flags:
             kernel: poly
-            degree: [2, 3, 4]
-            random_seed: ${random_seed}
-      flags:
-        random_seed:
-          description: Random seed used for trials
-          default: 0
+            degree: range[1:5]
+            gamma: logspace[-9:3:13]
+          tag: grid
+    gp-optimize:
+      description: Bayesian optimization
+      steps:
+        - run: train
+          tag: gp
+          optimizer: gp
+          maximize: test_accuracy
+          flags:
+            kernel: [linear, rbf]
+            gamma: loguniform[1e-9:1e3]
+          max-trials: 100

@@ -8,12 +8,12 @@ Exercise](https://scikit-learn.org/stable/auto_examples/exercises/plot_iris_exer
 
 Operations:
 
-- [`fit`](#fit) - Fit SVM model
-- [`search`](#search) - Run a search for optimal hyperparameters
+- [`train`](#fit) - Train SVM model on Iris data set
+- [`search`](#search) - Generate runs to find optimal hyperparameters
 
-## `fit`
+## `train`
 
-The `fit` operation runs the
+The `train` operation runs the
 [`plot_iris_exercise`](plot_iris_exercise.py) module, which is a
 modified version of the code from [SVM
 Exercise](https://scikit-learn.org/stable/auto_examples/exercises/plot_iris_exercise.html).
@@ -31,16 +31,17 @@ Modifications:
   runs and, importantly, save the plot artifacts so that we have a
   record corresponding to each run.
 
+Run `train`:
+
+```
+$ guild run train
+```
+
+Press `Enter` to start the operation.
+
+Guild runs `train` with the default flag values.
+
+Experiment with different values and use `guild compare`, `guild
+tensorboard`, or `guild view` to study the results.
+
 ## `search`
-
-To run the default operations:
-
-    $ guild run fit
-
-To search for optimal hyperparamters, run `search`:
-
-    $ guild run search
-
-To explore results visually, use the HParams tab of TensorBoard.
-
-    $ guild tensorboard
