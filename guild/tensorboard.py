@@ -151,7 +151,9 @@ def _is_last_scalar(select_col):
 
 
 def _run_root_scalars(run):
-    return [tag for tag in _iter_scalar_tags(run.dir) if "/" not in tag]
+    from guild.commands.runs_impl import filter_default_scalar
+
+    return [tag for tag in _iter_scalar_tags(run.dir) if filter_default_scalar(tag)]
 
 
 def _log_hparam_experiment(runs, hparams, metrics):
