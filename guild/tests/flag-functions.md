@@ -84,6 +84,14 @@ Arguments may be of any type:.
     >>> decode("myfun[1e-1:1.1e-1:[1e-2, 1.1e-2]]")
     ('myfun', (0.1, 0.11, [0.01, 0.011]))
 
+Float args:
+
+    >>> decode("f[1.0]")
+    ('f', (1.0,))
+
+    >>> decode("f[1e3]")
+    ('f', (1000.0,))
+
 Functions may contain spaces:
 
     >>> decode("[a : b : c]")

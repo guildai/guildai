@@ -91,18 +91,21 @@ def _quote_float(s):
         return "'%s'" % s
 
 
-def decode_flag_val(s):
-    return _fix_surprising_number(_decode_flag_val(s), s)
+def decode_flag_val(s, nofix=False):
+    decoded = _decode_flag_val(s, nofix)
+    if nofix:
+        return decoded
+    return _fix_surprising_number(decoded, s)
 
 
-def _decode_flag_val(s):
+def _decode_flag_val(s, nofix=False):
     if s == "":
         return s
     decoders = [
         (int, ValueError),
         (_special_flag_function, ValueError),
         (_concatenated_list, ValueError),
-        (_yaml_parse, (ValueError, yaml.YAMLError)),
+        (yaml.safe_load if nofix else _yaml_parse, (ValueError, yaml.YAMLError)),
     ]
     for f, e_type in decoders:
         try:
@@ -304,7 +307,7 @@ def decode_flag_function(s):
         args_s = args_raw.split(FUNCTION_ARG_DELIM)
     else:
         args_s = []
-    args = [decode_flag_val(arg.strip()) for arg in args_s]
+    args = [decode_flag_val(arg.strip(), nofix=True) for arg in args_s]
     return name, tuple(args)
 
 
