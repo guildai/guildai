@@ -48,6 +48,7 @@ STEP_USED_PARAMS = (
     "optimizer",
     "random_seed",
     "stop_after",
+    "tag",
 )
 
 ###################################################################
@@ -56,9 +57,10 @@ STEP_USED_PARAMS = (
 
 
 class Step(object):
-    def __init__(self, data, parent_flags, parent_opref):
+    def __init__(self, data, parent_flags, parent_opref, parent_run_params):
         data = _coerce_step_data(data)
-        params = _parse_run(data)
+        params = _run_params_for_step_data(data)
+        _apply_parent_run_params(parent_run_params, params)
         assert params["opspec"], params
         opspec_param = params["opspec"]
         self.op_spec = _apply_default_model(opspec_param, parent_opref)
@@ -68,6 +70,7 @@ class Step(object):
         self.checks = _init_checks(data)
         self.isolate_runs = bool(data.get("isolate-runs", True))
         self.label = _resolve_param(params, "label", parent_flags)
+        self.tag = _resolve_param(params, "tag", parent_flags)
         self.gpus = _resolve_param(params, "gpus", parent_flags)
         self.no_gpus = params["no_gpus"]
         self.stop_after = params["stop_after"]
@@ -102,7 +105,7 @@ def _coerce_flags_data(data):
         _error("invalid flags value %r" % data)
 
 
-def _parse_run(data):
+def _run_params_for_step_data(data):
     from guild.commands.run import run as run_cmd
 
     run_spec = data.get("run", "").strip()
@@ -137,6 +140,16 @@ def _apply_data_params(data, ctx, run_spec):
         else:
             if val != defaults[name]:
                 log.warning("run parameter %s used in %r ignored", name, run_spec)
+
+
+def _apply_parent_run_params(parent_params, target_params):
+    """Applies parent run params to target params.
+
+    A parent param is applied if it isn't defined in target.
+    """
+    for name in parent_params:
+        if target_params.get(name) is None:
+            target_params[name] = parent_params[name]
 
 
 def _init_step_flags(flag_args, parent_flag_vals, step):
@@ -278,7 +291,8 @@ def _init_steps(run):
         _error("invalid steps data %r: expected list" % data)
     flags = run.get("flags")
     opref = run.opref
-    return [Step(step_data, flags, opref) for step_data in data]
+    params = run.get("run_params") or {}
+    return [Step(step_data, flags, opref, params) for step_data in data]
 
 
 # =================================================================
@@ -354,6 +368,8 @@ def _step_options(step):
         opts.extend(["--max-trials", str(step.max_trials)])
     if step.random_seed is not None:
         opts.extend(["--random-seed", str(step.random_seed)])
+    if step.tag:
+        opts.extend(["--tag", step.tag])
     return opts
 
 

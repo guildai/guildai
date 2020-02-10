@@ -415,3 +415,36 @@ When both variants are provided, the more complete spec is used.
     ...   force_flags=True)
     INFO: [guild] running op: m5:op msg=model+op
     model+op
+
+## Steps and labels
+
+Labels specified with `--label` are applied to the parent and the step
+runs.
+
+    >>> project.run("m2:composite", label="a label")
+    INFO: [guild] running hello: m2:hello --label a label msg='hello m2, from composite'
+    hello m2, from composite
+    INFO: [guild] running m1:hello: m1:hello --label a label msg='hello m1, from composite'
+    hello m1, from composite
+
+The runs:
+
+    >>> project.print_runs(project.list_runs()[:3], labels=True)
+    m1:hello      a label
+    m2:hello      a label
+    m2:composite  a label
+
+The same is true for `--tag`.
+
+    >>> project.run("m2:composite", tag="a tag")
+    INFO: [guild] running hello: m2:hello --tag a tag msg='hello m2, from composite'
+    hello m2, from composite
+    INFO: [guild] running m1:hello: m1:hello --tag a tag msg='hello m1, from composite'
+    hello m1, from composite
+
+The runs:
+
+    >>> project.print_runs(project.list_runs()[:3], labels=True)
+    m1:hello      a tag msg='hello m1, from composite'
+    m2:hello      a tag msg='hello m2, from composite'
+    m2:composite  a tag name=composite
