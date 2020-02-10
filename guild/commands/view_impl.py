@@ -58,6 +58,7 @@ class ViewDataImpl(view.ViewData):
             include_batch=False,
             skip_core=False,
             skip_op_cols=False,
+            all_scalars=False,
             **view_args.as_kw()
         )
 
