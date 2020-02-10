@@ -200,7 +200,7 @@ def _assert_numeric_function_args(*args):
 
 def _np_seq_val(x):
     x = x.item()
-    if isinstance(x, float):
+    if isinstance(x, float) and x > 1e-8:
         return round(x, 8)
     return x
 
