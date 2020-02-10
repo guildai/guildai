@@ -410,6 +410,8 @@ def _init_env(env_config):
         return env_config
     elif isinstance(env_config, str):
         return _env_from_file(env_config)
+    elif env_config is None:
+        return {}
     else:
         log.warning("invalid value for remote env %r - ignoring", env_config)
         return {}
