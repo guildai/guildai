@@ -8,7 +8,6 @@ PyYAML>=2.12
 Werkzeug>=0.13
 chardet>=3.0.4
 daemonize>=2.4.7
-docutils>=0.15.2
 filelock>=3.0.12
 jinja2>=2.10
 numpy>=1.16

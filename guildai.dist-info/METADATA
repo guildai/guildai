@@ -33,7 +33,6 @@ Requires-Dist: PyYAML>=2.12
 Requires-Dist: Werkzeug>=0.13
 Requires-Dist: chardet>=3.0.4
 Requires-Dist: daemonize>=2.4.7
-Requires-Dist: docutils>=0.15.2
 Requires-Dist: filelock>=3.0.12
 Requires-Dist: jinja2>=2.10
 Requires-Dist: numpy>=1.16
