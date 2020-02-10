@@ -22,8 +22,8 @@ import socket
 from werkzeug import routing
 from werkzeug import serving
 from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug.middleware.shared_data import SharedDataMiddleware
 from werkzeug.wrappers import Request, Response
-from werkzeug.wsgi import SharedDataMiddleware
 
 log = logging.getLogger("guild")
 
