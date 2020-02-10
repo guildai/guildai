@@ -427,7 +427,7 @@ def run_simple_server(tb_app, host, port, ready_cb):
     server, _ = make_simple_server(tb_app, host, port)
     url = util.local_server_url(host, port)
     sys.stderr.write(
-        "TensorBoard %s at %s (Press CTRL+C to quit)\n" % (version.VERSION, url)
+        "Running TensorBoard %s at %s (Type Ctrl+C to quit)\n" % (version.VERSION, url)
     )
     sys.stderr.flush()
     if ready_cb:

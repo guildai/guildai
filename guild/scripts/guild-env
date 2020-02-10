@@ -32,7 +32,7 @@ if [ -e "$_guild_env/bin/activate" ]; then
         echo
         echo "To deactivate the environment, run:"
         echo
-        echo "  deactivate    Deactivate the environment"
+        echo "  deactivate"
         echo
         echo "Common commands:"
         echo

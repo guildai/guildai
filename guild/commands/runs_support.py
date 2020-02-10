@@ -47,7 +47,7 @@ def run_arg(fn):
     """### Specify a Run
 
     You may specify a run using a run ID, a run ID prefix, or a
-    one-based index corresponding to a run returned by the list
+    one-based index corresponding to a run returned by the `list`
     command.
 
     """

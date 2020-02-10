@@ -36,7 +36,7 @@ Looking for `venv` and `env`.
     <BLANKLINE>
     To deactivate the environment, run:
     <BLANKLINE>
-      deactivate    Deactivate the environment
+      deactivate
     <BLANKLINE>
     Common commands:
     <BLANKLINE>

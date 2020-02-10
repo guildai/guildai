@@ -259,8 +259,7 @@ def _write_console_help_overview(guildfile, model_desc, out):
 
         To run an operation use 'guild run OPERATION' where OPERATION
         is one of options listed below. If an operation is associated
-        with a model, include the model name as MODEL:OPERATION when
-        running the operation.
+        with a model, include the model name as MODEL:OPERATION.
 
         To list available operations, run 'guild operations'.
 

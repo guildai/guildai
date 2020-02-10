@@ -84,7 +84,10 @@ from . import runs_support
 @click.option(
     "--csv",
     metavar="PATH",
-    help="Save comparison data to a CSV file. Use '-' for standard output.",
+    help=(
+        "Save comparison data to a CSV file. Use '-' for PATH to print to "
+        "standard output."
+    ),
 )
 @click.option(
     "--tool",

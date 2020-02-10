@@ -78,12 +78,12 @@ def run_params(fn):
                 help="Disable GPUs for run. Cannot be used with --gpu.",
             ),
             click.Option(
-                ("--batch-label",),
+                ("-bl", "--batch-label",),
                 metavar="LABEL",
                 help="Label to use for batch runs. Ignored for non-batch runs.",
             ),
             click.Option(
-                ("--batch-tag",),
+                ("-bt", "--batch-tag",),
                 metavar="TAG",
                 help="Tag to use for batch runs. Ignored for non-batch runs.",
             ),
