@@ -5,8 +5,7 @@
 Guild file reference:
 
     >>> cat(path(project.cwd, "guild.yml"))  # doctest: +REPORT_UDIFF
-    - model: ''
-      operations:
+    - operations:
         flag:
           main: guild.pass hello flag
           flags-dest: args

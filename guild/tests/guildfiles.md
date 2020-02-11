@@ -1522,7 +1522,35 @@ content.
     ...   print(str(e))
     [Errno 2] No such file or directory: '.../projects/missing-sources/guild.yml'
 
-### Values
+### Missing required type attr
+
+    >>> guildfile.for_string("""
+    ... - foo: bar
+    ... """)
+    Traceback (most recent call last):
+    GuildfileError: error in <string>: missing required type (one of: config,
+    include, model, package) in {'foo': 'bar'}
+
+## Implicit anonymous model
+
+If a top-level item defines `operations` but does not provide a
+required type attribute of `model` or `config`, Guild coerces the
+object to an anomyous model - i.e. a model named with the empty
+string.
+
+    >>> gf = guildfile.for_string("""
+    ... - operations:
+    ...     test: guild.pass
+    ... """)
+
+    >>> gf.models
+    {'': <guild.guildfile.ModelDef ''>}
+
+    >>> gf.models[''].operations
+    [<guild.guildfile.OpDef 'test'>]
+
+    >>> gf.default_operation
+    <guild.guildfile.OpDef 'test'>
 
 ## flags-import
 

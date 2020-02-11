@@ -1,5 +1,4 @@
-- model: ''
-  operations:
+- operations:
     flag:
       main: guild.pass hello flag
       flags-dest: args

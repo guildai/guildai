@@ -297,9 +297,11 @@ def _anonymous_model_data(ops_data):
 def _coerce_guildfile_item_data(data, guildfile):
     if not isinstance(data, dict):
         return data
-    return {
+    coerced = {
         name: _coerce_top_level_attr(name, val, guildfile) for name, val in data.items()
     }
+    _maybe_apply_anonymous_model(coerced)
+    return coerced
 
 
 def _coerce_top_level_attr(name, val, guildfile):
@@ -341,9 +343,17 @@ def _coerce_operation(name, data, guildfile):
         return data
     elif isinstance(data, six.string_types):
         return {"main": data}
-    return {
-        name: _coerce_operation_attr(name, val, guildfile) for name, val in data.items()
-    }
+    elif isinstance(data, dict):
+        return {
+            name: _coerce_operation_attr(name, val, guildfile)
+            for name, val in data.items()
+        }
+    else:
+        raise GuildfileError(
+            guildfile,
+            "invalid value for operation '%s' %r: expected a string or a mapping"
+            % (data, name),
+        )
 
 
 def _coerce_operation_attr(name, val, guildfile):
@@ -1582,3 +1592,14 @@ def _for_pkg_dist(dist, opref):
     if not os.path.exists(gf_path):
         raise GuildfileMissing(gf_path)
     return for_file(gf_path)
+
+
+def _maybe_apply_anonymous_model(data):
+    assert isinstance(data, dict), data
+    # Only apply anonymous model if data contains operations.
+    if not "operations" in data:
+        return
+    for name in MODEL_TYPES:
+        if name in data:
+            return
+    data["model"] = ""
