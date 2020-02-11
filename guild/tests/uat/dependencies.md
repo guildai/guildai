@@ -225,7 +225,7 @@ JSON format with flags:
     Resolving module:missing.module dependency
     guild: run failed because a dependency was not met: could not
     resolve 'module:missing.module' in module:missing.module resource:
-    No module named 'missing'
+    ...
     <exit 1>
 
 ## All
