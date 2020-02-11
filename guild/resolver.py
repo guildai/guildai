@@ -131,6 +131,10 @@ class URLResolver(Resolver):
                 "bad sha256 for '%s' (expected %s but got %s)"
                 % (e.path, e.expected, e.actual)
             )
+        except Exception as e:
+            if log.getEffectiveLevel() <= logging.DEBUG:
+                log.exception(self.source.uri)
+            raise ResolutionError(e)
         else:
             unpack_dir = self._unpack_dir(source_path, unpack_dir)
             resolved = resolve_source_files(source_path, self.source, unpack_dir)
