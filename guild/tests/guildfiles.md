@@ -1418,8 +1418,7 @@ A model named with the empty string is considered an *anonymous*
 model:
 
     >>> gf = guildfile.for_string("""
-    ... - model: ''
-    ...   operations:
+    ... - operations:
     ...     foo: foo
     ...     bar: bar
     ... """)

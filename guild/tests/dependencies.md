@@ -960,7 +960,7 @@ If a resource is defined as a list, the list is assumed to be the
 resource sources.
 
     >>> gf = guildfile.for_string("""
-    ... - model: ''
+    ... - model: m
     ...   resources:
     ...     res:
     ...       - file: foo.txt
@@ -974,7 +974,7 @@ resource sources.
 ### Invalid data
 
     >>> guildfile.for_string("""
-    ... - model: ''
+    ... - model: m
     ...   resources:
     ...     res: 123
     ... """)

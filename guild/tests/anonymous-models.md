@@ -26,6 +26,37 @@ file is a map of operations:
      <guild.guildfile.OpDef 'op2'>,
      <guild.guildfile.OpDef 'op3'>]
 
+An anonymous model can also be defined implicitly by defining
+`operations` in a top-level and NOT defining `model` or `config`.
+
+    >>> gf = guildfile.for_string("""
+    ... - operations:
+    ...     op1: guild.pass
+    ...     op2: guild.pass
+    ...     op3: guild.pass
+    ... """)
+
+    >>> gf.models
+    {'': <guild.guildfile.ModelDef ''>}
+
+    >>> gf.default_model.operations
+    [<guild.guildfile.OpDef 'op1'>,
+     <guild.guildfile.OpDef 'op2'>,
+     <guild.guildfile.OpDef 'op3'>]
+
+Defining `config` with `operations`:
+
+    >>> gf = guildfile.for_string("""
+    ... - operations:
+    ...     op1: guild.pass
+    ...     op2: guild.pass
+    ...     op3: guild.pass
+    ...   config: foo
+    ... """)
+
+    >>> gf.models
+    {}
+
 ## Iterating anonymous models
 
 Anonymous models are still visible via `guild.model.iter_models`.
