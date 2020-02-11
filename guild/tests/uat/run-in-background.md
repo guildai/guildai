@@ -96,7 +96,7 @@ Run steps in the background::
 
 Wait for operation:
 
-    >>> run("guild watch", timeout=10)
+    >>> run("guild watch", timeout=10, ignore="Refreshing")
     Watching run ...
     INFO: [guild] running upstream: upstream
     INFO: [guild] running downstream: downstream

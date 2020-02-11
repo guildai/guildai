@@ -1,43 +1,143 @@
-- model: ''
-  sourcecode:
-    - exclude: file.txt
+- operations:
 
-  operations:
+    # Dependency types
+
     file:
-      description: Requires a single project file
+      description: File dependency
       main: guild.pass
       requires:
         - file: file.txt
 
-    requires-file-op:
-      description: Requires file provided by file operation
+    dir:
+      description: Directory dependency
+      main: guild.pass
+      requires:
+        - file: dir
+          # name is used when referencing the dependency
+          name: data
+
+    url:
+      description: URL dependency
+      main: guild.pass
+      requires:
+        - url: https://guild-pub.s3.amazonaws.com/uat/file.txt
+
+    file-op:
+      description: Operation file dependency
       main: guild.pass
       requires:
         - operation: file
           select: file.txt
 
-    requires-any-file:
-      description: Requires file provided by various options
+    dir-op:
+      description: Operation directory dependency
       main: guild.pass
       requires:
-        - operation: file,gen_file
-          name: from-run
-          select: file.txt
+        - operation: dir
 
-    gen-file:
-      description: Generate an empty file
-      exec: bash -c 'echo hello > file.txt'
-
-    missing-dep:
-      description: Illustrates an error for missing file
+    config:
+      description: Configuration file dependency
       main: guild.pass
       requires:
-        - file: not-exist.txt
+        - config: config.yml
+      flags:
+        lr: null
+        batch-size: null
+        dropout: null
 
-    exit-123:
-      description: Generates an error with exit code 123
-      exec: bash -c "exit 123"
+    modules:
+      description: Module dependency
+      main: guild.pass
+      requires:
+        - module: pandas
+        - module: sklearn
 
-    process-error:
-      description: Generates a process error for an invalid command
-      exec: invalid-cmd-xxx-yyy
+    # Alternate resource names
+
+    downstream:
+      description: Downstream operation with upstream dependency
+      main: guild.pass
+      requires:
+        - operation: file
+          name: upstream
+
+    # Other
+
+    customizable-file:
+      description:
+        File dependency that can be customized with flag
+
+        Use 'guild run named-file src=<path>'
+
+      main: guild.pass
+      requires:
+        - file: file.txt
+          flag-name: src
+
+    modified-config:
+      description: Config dependency with modified values
+      main: guild.pass
+      requires:
+        - config: config.yml
+          params:
+            lr: 0.001
+            dropout: 0.4
+      flags:
+        lr: null
+        batch-size: null
+        dropout: null
+
+    json-config:
+      description: Config dependency using JSON config format
+      main: guild.pass
+      requires:
+        - config: config.json
+      flags:
+        lr: null
+        batch-size: null
+        dropout: null
+
+    # Broken dependencies
+
+    missing-file:
+      description: Broken file dependency
+      main: guild.pass
+      requires:
+        - file: missing.txt
+
+    missing-named-file:
+      description:
+        Broken file dependency with alternative name
+
+        Named resource is used in messages.
+      main: guild.pass
+      requires:
+        - file: missing.txt
+          name: missing-file
+
+    unsupported-config-format:
+      description: Broken dependency using unsupported config format
+      main: guild.pass
+      requires:
+        - config: file.txt
+
+    missing-module:
+      description: Broken module dependency
+      main: guild.pass
+      requires:
+        - module: missing.module
+
+    all:
+      description: Run all non-broken depepdency operations
+      steps:
+        - file
+        - dir
+        - url
+        - file-op
+        - dir-op
+        - config
+        - modules
+        - downstream
+        - customizable-file src=guild.yml
+        - modified-config
+        - json-config

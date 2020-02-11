@@ -203,6 +203,7 @@ And test the `keras` example.
 ## Dependencies
 
 - [required-operation](required-operation.md)
+- [dependencies.md](dependencies.md)
 
 ## Staging and Queues
 

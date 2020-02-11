@@ -32,7 +32,7 @@ train:
       name: prepared-data
 
 train2:
-  description: Alternative train using different data structure
+  description: Alternative train using different file layout
   main: train2
   requires:
 

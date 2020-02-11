@@ -10,9 +10,9 @@ Use `dependencies` example.
 
 Warning when missing required op:
 
-    >>> run("guild run requires-file-op", timeout=2, ignore="Refreshing")
+    >>> run("guild run file-op", timeout=2, ignore="Refreshing")
     WARNING: cannot find a suitable run for required resource 'file'
-    You are about to run requires-file-op
+    You are about to run file-op
       file: unspecified
     Continue? (Y/n)
     <exit -9>
@@ -27,16 +27,16 @@ Stage a required op.
 
 When running, staged runs are selected.
 
-    >>> run("guild run requires-file-op", timeout=2)
-    You are about to run requires-file-op
+    >>> run("guild run file-op", timeout=2)
+    You are about to run file-op
       file: ...
     Continue? (Y/n)
     <exit -9>
 
 Stage downstream op.
 
-    >>> run("guild run requires-file-op --stage", timeout=2)
-    You are about to stage requires-file-op
+    >>> run("guild run file-op --stage", timeout=2)
+    You are about to stage file-op
       file: ...
     Continue? (Y/n)
     <exit ...>
@@ -44,10 +44,10 @@ Stage downstream op.
 When we don't preview the operation or otherwise specify a run for
 `file`, the operation staging is skipped.
 
-    >>> run("guild run requires-file-op --stage --yes")
+    >>> run("guild run file-op --stage --yes")
     Resolving file dependency
     Skipping operation dependency operation:file for stage
-    requires-file-op staged as ...
+    file-op staged as ...
     To start the operation, use 'guild run --start ...'
     <exit 0>
 
@@ -74,7 +74,7 @@ Start staged downstream op.
     >>> downstream = gapi.runs_list()[1]
 
     >>> downstream.opref.to_opspec()
-    'requires-file-op'
+    'file-op'
 
     >>> downstream.status
     'staged'

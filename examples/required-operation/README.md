@@ -11,6 +11,9 @@
 This example illustrates how an operation can require the output from
 another operation.
 
+For an example of other dependencies, see [Guild Example -
+`dependencies`](../dependencies/README.md).
+
 ## Basics
 
 To run the example, first try to run `train`:

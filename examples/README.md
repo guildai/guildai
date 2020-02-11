@@ -17,6 +17,8 @@
 - [multiple-models](multiple-models/README.md) - Defining multiple
   models in a Guild file
 - [notebooks](notebooks/README.md) - Use of `guild.ipy` in a Notebook
+- [packages](packages/README.md) - Use packages to distribute
+  operations
 - [project-sourcecode](project-sourcecode/README.md) - Configuring
   project source code used for an operation
 - [required-operation](required-operation/README.md) - Use of

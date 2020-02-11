@@ -1,0 +1,3 @@
+lr: 0.1
+batch-size: 100
+dropout: 0.2
