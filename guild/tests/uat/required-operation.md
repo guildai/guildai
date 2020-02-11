@@ -9,7 +9,7 @@ Available operations:
     >>> run("guild ops", ignore="Refreshing")
     prepare-data  Prepare data for training
     train         Train a model on prepared data
-    train2        Alternative train using different data structure
+    train2        Alternative train using different file layout
     <exit 0>
 
 Delete runs in preparation for our tests.
