@@ -7,8 +7,6 @@
 - [get-started](get-started/README.md) - Example from [Guild Get
   Started](https://guild.ai/start/)
 - [hello](hello/README.md) - Use of flags and required files
-- [hello-package](hello-package/README.md) - Version of `hello`
-  example that can be packaged
 - [iris-svm](iris-svm/README.md) - Source code for `iris-svm` used in
   [Guild Get Started](https://guild.ai/start/guildfile/)
 - [keras](keras/README.md) - Simple Keras script
@@ -17,8 +15,8 @@
 - [multiple-models](multiple-models/README.md) - Defining multiple
   models in a Guild file
 - [notebooks](notebooks/README.md) - Use of `guild.ipy` in a Notebook
-- [packages](packages/README.md) - Use packages to distribute
-  operations
+- [package](package/README.md) - Package version of
+  [hello](hello/README.md) example
 - [project-sourcecode](project-sourcecode/README.md) - Configuring
   project source code used for an operation
 - [required-operation](required-operation/README.md) - Use of

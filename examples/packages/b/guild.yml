@@ -1,7 +1,0 @@
-- package: gpkg.b
-  description: Sample package
-  version: 0.0.0
-
-- model: b
-  operations:
-    train: {}

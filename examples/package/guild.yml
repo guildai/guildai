@@ -1,9 +1,10 @@
-- package: hello
+- package: gpkg.hello
+  description: Sample package
+  version: 0.1
   data-files:
     - hello.txt
 
-- model: ''
-  operations:
+- operations:
     hello:
       description: Say hello to my friends
       main: say

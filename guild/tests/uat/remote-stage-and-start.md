@@ -6,7 +6,7 @@ Delete remote runs as baseline.
 
 Stage hello example:
 
-    >>> cd(example("hello-package"))
+    >>> cd(example("package"))
     >>> run("guild run -y hello msg='staged example' --stage -r guild-uat",
     ...     ignore="Refreshing")
     Building package
