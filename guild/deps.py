@@ -54,21 +54,21 @@ class Resource(object):
                 return config
         return None
 
-    def resolve(self, unpack_dir=None):
+    def resolve(self, resolve_context):
         resolved_acc = []
         for source in self.resdef.sources:
-            paths = self.resolve_source(source, unpack_dir)
+            paths = self.resolve_source(source, resolve_context)
             resolved_acc.extend(paths)
         return resolved_acc
 
-    def resolve_source(self, source, unpack_dir=None):
+    def resolve_source(self, source, resolve_context):
         resolver = resolverlib.for_resdef_source(source, self)
         if not resolver:
             raise DependencyError(
                 "unsupported source '%s' in %s resource" % (source, self.resdef.name)
             )
         try:
-            source_paths = resolver.resolve(unpack_dir)
+            source_paths = resolver.resolve(resolve_context)
         except resolverlib.ResolutionError as e:
             msg = "could not resolve '%s' in %s resource: %s" % (
                 source,

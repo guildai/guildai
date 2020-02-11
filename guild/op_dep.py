@@ -203,12 +203,21 @@ def _resolve_rename_spec_refs(specs, flag_vals, resdef):
 ###################################################################
 
 
-def resolve_source(source, dep, target_dir, unpack_dir=None):
+def ResolveContext(run):
+    """Interface between op resolution and resolve context.
+
+    We maintain this interface keep op_dep and its implementation
+    separate.
+    """
+    return resolverlib.ResolveContext(run=run, unpack_dir=None)
+
+
+def resolve_source(source, dep, resolve_context):
     last_resolution_error = None
     for location in _dep_resource_locations(dep):
         try:
             source_paths = _resolve_source_for_location(
-                source, dep, location, unpack_dir
+                source, dep, location, resolve_context
             )
         except resolverlib.ResolutionError as e:
             last_resolution_error = e
@@ -216,7 +225,7 @@ def resolve_source(source, dep, target_dir, unpack_dir=None):
             _unknown_source_resolution_error(source, dep, e)
         else:
             for path in source_paths:
-                _link_to_source(path, source, target_dir)
+                _link_to_source(path, source, resolve_context.run.dir)
             return source_paths
     assert last_resolution_error
     _source_resolution_error(source, dep, last_resolution_error)
@@ -228,14 +237,14 @@ def _dep_resource_locations(dep):
         yield parent.dir
 
 
-def _resolve_source_for_location(source, dep, location, unpack_dir):
+def _resolve_source_for_location(source, dep, location, resolve_context):
     res_proxy = _ResourceProxy(location, dep.config)
     resolver = resolverlib.for_resdef_source(source, res_proxy)
     if not resolver:
         raise OpDependencyError(
             "unsupported source '%s' in %s resource" % (source, dep.resdef.name)
         )
-    return resolver.resolve(unpack_dir)
+    return resolver.resolve(resolve_context)
 
 
 def resolver_for_source(source, dep):

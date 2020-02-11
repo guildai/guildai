@@ -44,21 +44,27 @@ class ResolutionError(Exception):
     pass
 
 
+class ResolveContext(object):
+    def __init__(self, run=None, unpack_dir=None):
+        self.run = run
+        self.unpack_dir = unpack_dir
+
+
 class Resolver(object):
     def __init__(self, source, resource):
         self.source = source
         self.resource = resource
 
-    def resolve(self, unpack_dir=None):
+    def resolve(self, resolve_context):
         raise NotImplementedError()
 
 
 class FileResolver(Resolver):
-    def resolve(self, unpack_dir=None):
+    def resolve(self, resolve_context):
         if self.resource.config:
             return _resolve_config_path(self.resource.config, self.source.resdef.name)
         source_path = self._abs_source_path()
-        unpack_dir = self._unpack_dir(source_path, unpack_dir)
+        unpack_dir = self._unpack_dir(source_path, resolve_context.unpack_dir)
         if os.path.isdir(source_path) and not self.source.select:
             resolved = [source_path]
         else:
@@ -115,7 +121,7 @@ def _resolve_config_path(config, resource_name):
 
 
 class URLResolver(Resolver):
-    def resolve(self, unpack_dir=None):
+    def resolve(self, resolve_context):
         from guild import pip_util  # expensive
 
         if self.resource.config:
@@ -136,7 +142,7 @@ class URLResolver(Resolver):
                 log.exception(self.source.uri)
             raise ResolutionError(e)
         else:
-            unpack_dir = self._unpack_dir(source_path, unpack_dir)
+            unpack_dir = self._unpack_dir(source_path, resolve_context.unpack_dir)
             resolved = resolve_source_files(source_path, self.source, unpack_dir)
             post_process(self.source, unpack_dir or os.path.dirname(source_path))
             return resolved
@@ -246,9 +252,9 @@ class OperationOutputResolver(FileResolver):
         super(OperationOutputResolver, self).__init__(source, resource)
         self.modeldef = modeldef
 
-    def resolve(self, unpack_dir=None):
+    def resolve(self, resolve_context):
         source_path = self._source_path()
-        unpack_dir = self._unpack_dir(source_path, unpack_dir)
+        unpack_dir = self._unpack_dir(source_path, resolve_context.unpack_dir)
         return resolve_source_files(source_path, self.source, unpack_dir)
 
     def _source_path(self):
@@ -362,7 +368,7 @@ class opref_match_filter(object):
 
 
 class ModuleResolver(Resolver):
-    def resolve(self, unpack_dir=None):
+    def resolve(self, resolve_context):
         module_name = self.source.parsed_uri.path
         try:
             importlib.import_module(module_name)
@@ -391,26 +397,37 @@ class ConfigResolver(FileResolver):
     Resolves sources are linked to link other resolved resources.
     """
 
-    def resolve(self, unpack_dir=None):
-        resolved = super(ConfigResolver, self).resolve(unpack_dir)
-        return [self._generate_config(path) for path in resolved]
+    YAML_EXT = (".yml", ".yaml")
+    JSON_EXT = (".json",)
+    ALL_EXT = YAML_EXT + JSON_EXT
 
-    def _generate_config(self, path):
+    def resolve(self, resolve_context):
+        if not resolve_context.run:
+            raise TypeError("config resolver requires run for resolve context")
+        resolved = super(ConfigResolver, self).resolve(resolve_context)
+        return [self._generate_config(path, resolve_context) for path in resolved]
+
+    def _generate_config(self, path, resolve_context):
         try:
             config = self._load_config(path)
         except Exception as e:
             raise ResolutionError("error loading config from %s: %s" % (path, e))
         else:
             self._apply_params(config)
-            self._apply_flags(config)
-            target_path = self._init_target_path(path)
+            self._apply_run_flags(config, resolve_context.run)
+            target_path = self._init_target_path(path, resolve_context.run)
             self._write_config(config, target_path)
             return target_path
 
-    @staticmethod
-    def _load_config(path):
+    def _load_config(self, path):
+        if not self._supported_config(path):
+            raise ResolutionError("unsupported file type for '%s'" % path)
         with open(path, "r") as f:
             return yaml.safe_load(f)
+
+    @classmethod
+    def _supported_config(cls, path):
+        return os.path.splitext(path)[1] in cls.ALL_EXT
 
     def _apply_params(self, config):
         params = self.source.params
@@ -420,32 +437,43 @@ class ConfigResolver(FileResolver):
                 return
             util.nested_config(params, config)
 
-    def _apply_flags(self, config):
-        flags = self._ctx_flags()
+    @staticmethod
+    def _apply_run_flags(config, run):
+        flags = {
+            name: val
+            for name, val in (run.get("flags") or {}).items()
+            if val is not None
+        }
         util.nested_config(flags, config)
 
-    def _ctx_flags(self):
-        # Steps copied from guild.op
-        from guild import op_util
-
-        opdef = self.resource.ctx.opdef
-        if not opdef:
-            return {}
-        flags = util.resolve_all_refs(opdef.flag_values())
-        flags, _map = op_util.mapped_flag_vals(flags, opdef)
-        return flags
-
-    def _init_target_path(self, path):
-        generated = os.path.join(self.resource.ctx.target_dir, ".guild", "generated")
-        util.ensure_dir(generated)
-        target_dir = tempfile.mkdtemp(suffix="", prefix="", dir=generated)
+    @staticmethod
+    def _init_target_path(path, run):
+        generated_dir = run.guild_path("generated")
+        util.ensure_dir(generated_dir)
+        target_dir = tempfile.mkdtemp(suffix="", prefix="", dir=generated_dir)
         basename = os.path.basename(path)
         return os.path.join(target_dir, basename)
 
-    @staticmethod
-    def _write_config(config, path):
+    def _write_config(self, config, path):
+        encode = self._encoder_for_path(path)
         with open(path, "w") as f:
-            f.write(util.encode_yaml(config))
+            f.write(encode(config))
+
+    @classmethod
+    def _encoder_for_path(cls, path):
+        ext = os.path.splitext(path)[1].lower()
+        if ext in cls.YAML_EXT:
+            return util.encode_yaml
+        elif ext in cls.JSON_EXT:
+            return cls._encode_json
+        else:
+            assert False, path
+
+    @staticmethod
+    def _encode_json(s):
+        import json
+
+        return json.dumps(s, sort_keys=True)
 
 
 def resolve_source_files(source_path, source, unpack_dir):
