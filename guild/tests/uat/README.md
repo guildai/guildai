@@ -235,6 +235,10 @@ identical to the distributed package we tested earlier.
 - [install-generated-mnist-package](install-generated-mnist-package.md)
 - [verify-installed-generate-mnist-package](verify-installed-generate-mnist-package.md)
 
+Package example:
+
+- [package-example](package-example.md)
+
 ## TensorFlow versions
 
 Tests addressing various versions of TensorFlow, API changes, etc.
