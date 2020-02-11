@@ -21,6 +21,7 @@ import os
 import pkg_resources
 import re
 import subprocess
+import sys
 
 import six
 import yaml
@@ -277,6 +278,19 @@ def _venv_cmd_base_args():
 
 
 def _virtualenv_cmd():
+    return util.find_apply([_virtualenv_module_cmd, _virtualenv_script_cmd])
+
+
+def _virtualenv_module_cmd():
+    try:
+        import virtualenv as _
+    except ImportError:
+        return None
+    else:
+        return [sys.executable, "-m", "virtualenv"]
+
+
+def _virtualenv_script_cmd():
     cmd = util.which("virtualenv")
     if not cmd:
         return None
