@@ -216,9 +216,11 @@ class LinuxBuild(Build):
 
 class MacBuild(Build):
 
+    cache_scheme_version = 18
+
     env = "macos"
 
-    xcode_version = "11.2.1"
+    xcode_version = "11.3.1"
 
     homebrew_commits = {
         "3.6": "f2a764ef944b1080be64bd88dca9a1d80130c558",
