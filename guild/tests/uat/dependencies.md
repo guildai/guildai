@@ -230,7 +230,7 @@ JSON format with flags:
 
 ## All
 
-    >>> run("guild run all -y") # doctest: +REPORT_UDIFF
+    >>> run("guild run all -y", ignore="Refreshing") # doctest: +REPORT_UDIFF
     INFO: [guild] running file: file
     Resolving file:file.txt dependency
     INFO: [guild] running dir: dir
