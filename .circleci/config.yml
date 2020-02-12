@@ -225,12 +225,12 @@ jobs:
     working_directory: ~/repo
   macos-python-2.7:
     macos:
-      xcode: 11.3.1
+      xcode: 11.2.1
     steps:
     - checkout
     - restore_cache:
         keys:
-        - macos-python-2.7-18-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos-python-2.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'sudo -H pip2 install --upgrade pip | cat
 
@@ -246,7 +246,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1200
     - save_cache:
-        key: macos-python-2.7-18-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos-python-2.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
     - run:
@@ -281,12 +281,12 @@ jobs:
     working_directory: ~/repo
   macos-python-3.6:
     macos:
-      xcode: 11.3.1
+      xcode: 11.2.1
     steps:
     - checkout
     - restore_cache:
         keys:
-        - macos-python-3.6-18-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos-python-3.6-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'brew unlink python
 
@@ -308,7 +308,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1200
     - save_cache:
-        key: macos-python-3.6-18-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos-python-3.6-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
     - run:
@@ -343,12 +343,12 @@ jobs:
     working_directory: ~/repo
   macos-python-3.7:
     macos:
-      xcode: 11.3.1
+      xcode: 11.2.1
     steps:
     - checkout
     - restore_cache:
         keys:
-        - macos-python-3.7-18-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        - macos-python-3.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
         command: 'brew unlink python
 
@@ -370,7 +370,7 @@ jobs:
         name: Install build dependencies
         no_output_timeout: 1200
     - save_cache:
-        key: macos-python-3.7-18-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
+        key: macos-python-3.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
         paths:
         - build-env
     - run:
