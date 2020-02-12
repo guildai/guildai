@@ -34,7 +34,7 @@ Show runs:
 
     >>> run("guild runs -r guild-uat")
     [1:...]  gpkg.hello/hello:from-file  ...  completed  file=msg.txt
-    [2:...]  hello/hello                 ...  completed  msg=whoop
+    [2:...]  gpkg.hello/hello            ...  completed  msg=whoop
     [3:...]  gpkg.hello/hello:default    ...  completed
     [4:...]  queue                       ...  running    ignore-running=no poll-interval=10 run-once=no
     <exit 0>
@@ -49,7 +49,7 @@ Show runs:
 
     >>> run("guild runs -r guild-uat")
     [1:...]  gpkg.hello/hello:from-file  ...  completed   file=msg.txt
-    [2:...]  hello/hello                 ...  completed   msg=whoop
+    [2:...]  gpkg.hello/hello            ...  completed   msg=whoop
     [3:...]  gpkg.hello/hello:default    ...  completed
     [4:...]  queue                       ...  terminated  ignore-running=no poll-interval=10 run-once=no
     <exit 0>
