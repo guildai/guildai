@@ -351,7 +351,7 @@ def _install_guild_dist(config):
     # install the Guild req if it's already installed outside the
     # virtual env. The --ignore-installed flag in this case forces pip
     # to actually install Guild.
-    _install_reqs([req], config, ignore_installed=True, prefix=config.env_dir)
+    _install_reqs([req], config, ignore_installed=True)
 
 
 def _guild_reqs_file():
@@ -396,7 +396,7 @@ def _pip_extra_opts(config):
         return []
 
 
-def _install_reqs(reqs, config, ignore_installed=False, prefix=None):
+def _install_reqs(reqs, config, ignore_installed=False):
     cmd_args = (
         _pip_bin_args(config.env_dir)
         + ["install", "--no-warn-script-location"]
@@ -404,8 +404,6 @@ def _install_reqs(reqs, config, ignore_installed=False, prefix=None):
     )
     if ignore_installed:
         cmd_args.append("--ignore-installed")
-    if prefix:
-        cmd_args.extend(["--prefix", prefix])
     for req in reqs:
         if _is_requirements_file(req):
             cmd_args.extend(["-r", req])
