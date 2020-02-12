@@ -151,9 +151,12 @@ def run_params(fn):
             click.Option(
                 ("--init-trials", "--stage-trials"),
                 is_flag=True,
-                help=(
-                    "For batch operations, initialize trials without " "running them."
-                ),
+                # TODO: clean this up - we have --stage now, which is
+                # what we're using to stage trials. This should be
+                # deleted but we need to make sure it doesn't break
+                # anything.
+                hidden=True,
+                help=("For batch operations, initialize trials without running them."),
             ),
             click.Option(
                 ("-r", "--remote"), metavar="REMOTE", help="Run the operation remotely."

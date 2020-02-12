@@ -26,7 +26,7 @@ from . import runs_support
 @click.command("ls")
 @runs_support.run_arg
 @click.option("-p", "--path", metavar="PATH", help="Path to list.")
-@click.option("-c", "--sourcecode", is_flag=True, help="List source code files.")
+@click.option("-s", "--sourcecode", is_flag=True, help="List source code files.")
 @click.option("-a", "--all", is_flag=True, help="Show all files including Guild files.")
 @click.option("-f", "--full-path", is_flag=True, help="Show full path for files.")
 @click.option("-L", "--follow-links", is_flag=True, help="Follow links.")

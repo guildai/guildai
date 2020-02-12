@@ -26,7 +26,7 @@ from . import runs_support
 @runs_support.run_arg
 @click.option("-p", "--path", metavar="PATH", help="Path to open under run directory.")
 @click.option(
-    "-c", "--sourcecode", is_flag=True, help="Open run source code directory."
+    "-s", "--sourcecode", is_flag=True, help="Open run source code directory."
 )
 @click.option(
     "-O",

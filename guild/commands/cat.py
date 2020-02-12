@@ -32,7 +32,7 @@ from . import runs_support
     help="Path of file to show. Require unless --output is used.",
 )
 @click.option(
-    "-c", "--sourcecode", is_flag=True, help="Apply PATH to source code files."
+    "-s", "--sourcecode", is_flag=True, help="Apply PATH to source code files."
 )
 @click.option(
     "-O", "--output", is_flag=True, help="Show run output. Cannot be used with --path."

@@ -30,7 +30,7 @@ def diff_params(fn):
             click.Argument(("runs",), metavar="[RUN1 [RUN2]]", nargs=-1),
             click.Option(("-O", "--output"), is_flag=True, help="Diff run output."),
             click.Option(
-                ("-c", "--sourcecode"), is_flag=True, help="Diff run source code."
+                ("-s", "--sourcecode"), is_flag=True, help="Diff run source code."
             ),
             click.Option(("-e", "--env"), is_flag=True, help="Diff run environment."),
             click.Option(("-f", "--flags"), is_flag=True, help="Diff run flags."),
@@ -60,7 +60,7 @@ def diff_params(fn):
                 help="Diff run sourcecode to the specified directory.",
             ),
             click.Option(
-                ("-m", "--cmd"), metavar="CMD", help="Command used to diff runs."
+                ("-c", "--cmd"), metavar="CMD", help="Command used to diff runs."
             ),
             runs_support.all_filters,
             remote_support.remote_option("Diff remote runs."),
