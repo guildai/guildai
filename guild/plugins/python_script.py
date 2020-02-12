@@ -162,10 +162,11 @@ class PythonScriptPlugin(pluginlib.Plugin):
             op.main = python_util.safe_module_name(op.name)
 
     def _apply_script_flags(self, opdef):
-        if not opdef.flags_import and opdef.flags_dest:
-            # If we're not importing flags and we have an explicit
-            # flags dest, there's no need to look at the script.
+        if _flags_import_disabled(opdef):
             return
+        import_all_marker = object()
+        to_import = _flags_to_import(opdef, import_all_marker)
+        to_skip = _flags_to_skip(opdef)
         local_cache = {}
         model_paths = op_util.opdef_model_paths(opdef)
         flags_data = self._flags_data(opdef, model_paths, local_cache)
@@ -173,17 +174,12 @@ class PythonScriptPlugin(pluginlib.Plugin):
         import_data = {
             name: flags_data[name]
             for name in flags_data
-            if self._is_import_flag(name, opdef)
+            if (
+                (to_import is import_all_marker or name in to_import)
+                and not name in to_skip
+            )
         }
         opdef.merge_flags(ImportedFlagsOpProxy(import_data, opdef, self.log))
-
-    @staticmethod
-    def _is_import_flag(name, opdef):
-        return (
-            opdef.flags_import
-            and (opdef.flags_import is True or name in opdef.flags_import)
-            and (opdef.flags_import_skip is None or name not in opdef.flags_import_skip)
-        )
 
     def _flags_data(self, opdef, model_paths, local_cache):
         main_mod = op_util.split_main(opdef.main)[0]
@@ -362,3 +358,25 @@ class PythonScriptPlugin(pluginlib.Plugin):
         for _name, plugin in pluginlib.iter_plugins():
             if isinstance(plugin, PythonScriptOpdefSupport):
                 plugin.python_script_opdef_loaded(opdef)
+
+
+def _flags_import_disabled(opdef):
+    return opdef.flags_import in (False, [])
+
+
+def _flags_to_import(opdef, all_marker):
+    if opdef.flags_import in (True, "all"):
+        return all_marker
+    if opdef.flags_import is None:
+        # If flags-import is not configured, import all defined flags.
+        return set([flag.name for flag in opdef.flags])
+    elif isinstance(opdef.flags_import, list):
+        return set(opdef.flags_import)
+    else:
+        return set([opdef.flags_import])
+
+
+def _flags_to_skip(opdef):
+    if opdef.flags_import_skip:
+        return set(opdef.flags_import_skip)
+    return set()

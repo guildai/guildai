@@ -122,15 +122,20 @@ This applies to `import-all-globals`:
     >>> gf.models["test"]["args-flags"].flags
     [<guild.guildfile.FlagDef 'bar'>, <guild.guildfile.FlagDef 'foo'>]
 
+Guild implicitly imports info for defined flags when `flags-import` is
+not specified.
+
     >>> flag_info("args-flags", "foo")
+    description: Foo
+    choices: [1, 2]
     default: 2
 
     >>> flag_info("args-flags", "bar")
     description: Raised bar
-    default: None
+    default: 0.001
 
     >>> flag_vals("args-flags")
-    {'bar': None, 'foo': 2}
+    {'bar': 0.001, 'foo': 2}
 
 And for `globals-flags`:
 
@@ -267,12 +272,44 @@ be imported.
      <guild.guildfile.FlagDef 'f_int'>,
      <guild.guildfile.FlagDef 'f_str'>]
 
+## Implicit imports
+
+If `flags-import` is not specified, Guild implicitly imports flags
+defined in config.
+
+    >>> gf.models["test"]["implicit-imports"].flags
+    [<guild.guildfile.FlagDef 'bar'>, <guild.guildfile.FlagDef 'foo'>]
+
+Each flag imports attributes from the module.
+
+    >>> flag_info("implicit-imports", "foo")
+    description: Foo
+    choices: [1, 2]
+    default: 1
+
+    >>> flag_info("implicit-imports", "bar")
+    description: Bar
+    default: 0.001
+
+The first variant uses `flags-import-skip` to skip import of 'bar'.
+
+    >>> gf.models["test"]["implicit-imports-2"].flags
+    [<guild.guildfile.FlagDef 'bar'>, <guild.guildfile.FlagDef 'foo'>]
+
+    >>> flag_info("implicit-imports-2", "foo")
+    description: Foo
+    choices: [1, 2]
+    default: 2
+
+    >>> flag_info("implicit-imports-2", "bar")
+    default: 0.1
+
 ## Don't import specific flags
 
 In cases where a user wants to import all flags *except* certain
 flags, she can use `flags-import-skip`.
 
-    >>> gf.models["test"]["skip-imports-1"].flags
+    >>> gf.models["test"]["skip-imports"].flags
     [<guild.guildfile.FlagDef 'f_bool'>,
      <guild.guildfile.FlagDef 'f_float'>,
      <guild.guildfile.FlagDef 'f_str'>]
