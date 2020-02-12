@@ -254,6 +254,13 @@ class MacBuild(Build):
         mac_lines.extend(self._python_install_cmd())
         return mac_lines + default_lines
 
+    def _ensure_virtual_env_cmd(self):
+        # Workaround issue with Python 2.7 virtualenv 20.x, which
+        # doesn't isolate environments from system packages.
+        if self.python == "2.7":
+            return self._pip_install(["virtualenv==16.7.9"], sudo=True)
+        return super(MacBuild, self)._ensure_virtual_env_cmd()
+
     def _python_install_cmd(self):
         if self.python == "2.7":
             # 2.7 is default on OSX

@@ -234,7 +234,7 @@ jobs:
     - run:
         command: 'sudo -H pip2 install --upgrade pip | cat
 
-          sudo -H pip2 install --upgrade virtualenv | cat
+          sudo -H pip2 install --upgrade virtualenv==16.7.9 | cat
 
           rm -rf build-env && python2 -m virtualenv build-env
 
