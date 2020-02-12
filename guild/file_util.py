@@ -276,6 +276,7 @@ class FileCopyHandler(object):
     def _try_copy_file(self, src, dest):
         try:
             shutil.copyfile(src, dest)
+            shutil.copymode(src, dest)
         except IOError as e:
             if e.errno != 2:  # Ignore file not exists
                 if not self.handle_copy_error(e, src, dest):
