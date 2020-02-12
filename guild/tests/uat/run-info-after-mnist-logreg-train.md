@@ -12,33 +12,7 @@ Use `guild runs info` to show information about the latest run:
     marked: no
     label: batch-size=100 epochs=1 learning-rate=0.5
     sourcecode_digest: ...
-    run_dir: ...
-    command: ... guild.op_main logreg --data-dir mnist-idx-data --run-dir . -- --batch-size 100 --epochs 1 --learning-rate 0.5
-    exit_status: 0
-    pid:
-    flags:
-      batch-size: 100
-      epochs: 1
-      learning-rate: 0.5
-    scalars:
-      acc: ... (step 550)
-      loss: ... (step 550)
-      val#acc: ... (step 550)
-      val#loss: ... (step 550)
-    <exit 0>
-
-We can optionally show env for a run:
-
-    >>> run("guild runs info --env") # doctest: +REPORT_UDIFF
-    id: ...
-    operation: gpkg.mnist/logreg:train
-    from: gpkg.mnist==0.6.0
-    status: completed
-    started: ...
-    stopped: ...
-    marked: no
-    label: batch-size=100 epochs=1 learning-rate=0.5
-    sourcecode_digest: ...
+    vcs_commit:
     run_dir: ...
     command: ... -um guild.op_main logreg --data-dir mnist-idx-data --run-dir . -- --batch-size 100 --epochs 1 --learning-rate 0.5
     exit_status: 0
@@ -49,18 +23,38 @@ We can optionally show env for a run:
       learning-rate: 0.5
     scalars:
       acc: ... (step 550)
+      biases/max_1: ...
+      biases/mean_1: ...
+      biases/min_1: ...
+      biases/stddev: ...
       loss: ... (step 550)
-      val#acc: ... (step 550)
+      weights/max_1: ...
+      weights/mean_1: ...
+      weights/min_1: ...
+      weights/stddev: ...
+      val#acc: 0.916000 ...
+      val#biases/max_1: ...
+      val#biases/mean_1: ...
+      val#biases/min_1: ...
+      val#biases/stddev: ...
       val#loss: ... (step 550)
+      val#weights/max_1: ...
+      val#weights/mean_1: ...
+      val#weights/min_1: ...
+      val#weights/stddev: ...
+    <exit 0>
+
+We can optionally show env for a run:
+
+    >>> run("guild runs info --env")
+    id: ...
+    ...
     environment:
-      AWS_ACCESS_KEY_ID: ''
-      AWS_DEFAULT_REGION: ''
-      AWS_SECRET_ACCESS_KEY: ''
+      ...
       CMD_DIR: ...
-      COLUMNS: '999'
+      ...
       CUDA_VISIBLE_DEVICES: ''
-      EXAMPLES: ...
-      FLAGS_DEST: args
+      ...
       FLAG_BATCH_SIZE: '100'
       FLAG_EPOCHS: '1'
       FLAG_LEARNING_RATE: '0.5'
@@ -72,62 +66,18 @@ We can optionally show env for a run:
       ...
       LOG_LEVEL: '20'
       ...
-      PROJECT_DIR: ...
+      PROJECT_DIR: .../gpkg/mnist
       ...
       RUN_DIR: ...
       RUN_ID: ...
       ...
     <exit 0>
 
-JSON output:
+JSON output, including private attrs:
 
     >>> tmp = path(mkdtemp(), "info.json")
-    >>> quiet("guild runs info --json > %s" % tmp)
-    >>> cat_json(tmp)  # doctest: +REPORT_UDIFF
-    {
-        "command": "... -um guild.op_main logreg --data-dir mnist-idx-data
-                    --run-dir . -- --batch-size 100 --epochs 1 --learning-rate 0.5",
-        "exit_status": 0,
-        "flags": {
-            "batch-size": 100,
-            "epochs": 1,
-            "learning-rate": 0.5
-        },
-        "from": "gpkg.mnist==0.6.0",
-        "id": "...",
-        "label": "batch-size=100 epochs=1 learning-rate=0.5",
-        "marked": "no",
-        "operation": "gpkg.mnist/logreg:train",
-        "pid": "",
-        "run_dir": "...",
-        "scalars": {
-            "acc": [
-                ...,
-                550
-            ],
-            "loss": [
-                ...,
-                550
-            ],
-            "val#acc": [
-                ...,
-                550
-            ],
-            "val#loss": [
-                ...,
-                550
-            ]
-        },
-        "sourcecode_digest": "...",
-        "started": "...",
-        "status": "completed",
-        "stopped": "..."
-    }
-
-With `--private-attrs`:
-
     >>> quiet("guild runs info --private-attrs --json > %s" % tmp)
-    >>> cat_json(tmp)  # doctest: +REPORT_UDIFF
+    >>> cat_json(tmp)
     {
         "command": "... -um guild.op_main logreg --data-dir mnist-idx-data --run-dir . -- --batch-size 100 --epochs 1 --learning-rate 0.5",
         "exit_status": 0,
@@ -184,7 +134,6 @@ With `--private-attrs`:
                     "__flag_args__"
                 ],
                 "cmd-env": {
-                    "FLAGS_DEST": "args",
                     "GUILD_OP": "logreg:train",
                     "GUILD_PLUGINS": "",
                     "PROJECT_DIR": ".../gpkg/mnist"
@@ -202,6 +151,22 @@ With `--private-attrs`:
                 ...,
                 550
             ],
+            "biases/max_1": [
+                ...,
+                550
+            ],
+            "biases/mean_1": [
+                ...,
+                550
+            ],
+            "biases/min_1": [
+                ...,
+                550
+            ],
+            "biases/stddev": [
+                ...,
+                550
+            ],
             "loss": [
                 ...,
                 550
@@ -210,7 +175,55 @@ With `--private-attrs`:
                 ...,
                 550
             ],
+            "val#biases/max_1": [
+                ...,
+                550
+            ],
+            "val#biases/mean_1": [
+                ...,
+                550
+            ],
+            "val#biases/min_1": [
+                ...,
+                550
+            ],
+            "val#biases/stddev": [
+                ...,
+                550
+            ],
             "val#loss": [
+                ...,
+                550
+            ],
+            "val#weights/max_1": [
+                ...,
+                550
+            ],
+            "val#weights/mean_1": [
+                ...,
+                550
+            ],
+            "val#weights/min_1": [
+                ...,
+                550
+            ],
+            "val#weights/stddev": [
+                ...,
+                550
+            ],
+            "weights/max_1": [
+                ...,
+                550
+            ],
+            "weights/mean_1": [
+                ...,
+                550
+            ],
+            "weights/min_1": [
+                ...,
+                550
+            ],
+            "weights/stddev": [
                 ...,
                 550
             ]
@@ -218,5 +231,6 @@ With `--private-attrs`:
         "sourcecode_digest": "...",
         "started": "...",
         "status": "completed",
-        "stopped": "..."
+        "stopped": "...",
+        "vcs_commit": ""
     }
