@@ -22,6 +22,7 @@ import click
 
 from guild import version as guild_version
 from guild import click_util
+from guild import util
 
 from .cat import cat
 from .check import check
@@ -86,7 +87,9 @@ DEFAULT_GUILD_HOME = os.path.join(_home, ".guild")
     "-H",
     "guild_home",
     metavar="PATH",
-    help="Use PATH as Guild home (default is {}).".format(DEFAULT_GUILD_HOME),
+    help="Use PATH as Guild home (default is {}).".format(
+        util.format_dir(DEFAULT_GUILD_HOME)
+    ),
     default=DEFAULT_GUILD_HOME,
     envvar="GUILD_HOME",
 )
