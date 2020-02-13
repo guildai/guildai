@@ -153,6 +153,7 @@ class Build(object):
                     " --guild dist/*.whl {}".format(self.test_dir)
                 ),
                 "TERM=xterm-256color source guild-env {}".format(self.test_dir),
+                "guild check --offline",
                 (
                     "WORKSPACE={workspace} "
                     "UAT_SKIP={uat_skip},remote-*,hiplot-* "
@@ -327,14 +328,14 @@ class Config(object):
 
 
 builds = [
-    #LinuxBuild(python="2.7"),
-    #LinuxBuild(python="3.5"),
-    #LinuxBuild(python="3.6"),
-    #LinuxBuild(python="3.7"),
+    LinuxBuild(python="2.7"),
+    LinuxBuild(python="3.5"),
+    LinuxBuild(python="3.6"),
+    LinuxBuild(python="3.7"),
     LinuxBuild(python="3.8"),
-    #MacBuild(python="2.7"),
-    #MacBuild(python="3.6"),
-    #MacBuild(python="3.7"),
+    MacBuild(python="2.7"),
+    MacBuild(python="3.6"),
+    MacBuild(python="3.7"),
     MacBuild(python="3.8"),
 ]
 
