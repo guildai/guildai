@@ -33,6 +33,7 @@ Start a queue in the background.
 Stage two runs.
 
     >>> for _ in range(2):
+    ...     sleep(1)
     ...     run("guild run sleep.py --stage -y")
     Refreshing flags...
     sleep.py staged as ...

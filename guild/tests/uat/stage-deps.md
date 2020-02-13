@@ -15,7 +15,7 @@ Warning when missing required op:
     You are about to run file-op
       file: unspecified
     Continue? (Y/n)
-    <exit -9>
+    <exit ...>
 
 Stage a required op.
 
