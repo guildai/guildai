@@ -240,7 +240,7 @@ class MacBuild(Build):
         "2.7": "pip2",
         "3.6": "pip3",
         "3.7": "pip3",
-        "3.8": "pip3.8",
+        "3.8": "pip",
     }
 
     def __init__(self, python):

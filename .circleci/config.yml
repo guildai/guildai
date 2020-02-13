@@ -14,15 +14,15 @@ jobs:
 
           brew link python@3.8 --force --overwrite
 
-          sudo -H pip3.8 install --upgrade pip | cat
+          sudo -H pip install --upgrade pip | cat
 
-          sudo -H pip3.8 install --upgrade virtualenv | cat
+          sudo -H pip install --upgrade virtualenv | cat
 
           rm -rf build-env && python3.8 -m virtualenv build-env
 
           . build-env/bin/activate
 
-          pip3.8 install --upgrade -r requirements.txt | cat
+          pip install --upgrade -r requirements.txt | cat
 
           cd guild/view && npm install'
         name: Install build dependencies
@@ -38,7 +38,7 @@ jobs:
         name: Build
         no_output_timeout: 1200
     - run:
-        command: sudo -H pip3.8 install --upgrade dist/*.whl | cat
+        command: sudo -H pip install --upgrade dist/*.whl | cat
         name: Install dist
         no_output_timeout: 1200
     - run:
@@ -55,7 +55,7 @@ jobs:
     - run:
         command: '. build-env/bin/activate
 
-          pip3.8 install --upgrade twine | cat
+          pip install --upgrade twine | cat
 
           twine upload --skip-existing dist/*.whl'
         name: Upload to PyPI
