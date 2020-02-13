@@ -16,8 +16,9 @@ and off for each feature.
 $ guild run switch.py a=[on,off] b=[on,off] c=[on,off]
 ```
 
-This approach is intuitive but doesn't handle large numbers of
-features well.
+This approach is intuitive and has the advantage of showing enabled
+features as flags for comparison. However, it doesn't scale for large
+numbers of features.
 
 ## Bitmap
 
@@ -34,8 +35,11 @@ For example, to run a full search with each feature combination for 3
 features, use:
 
 ```
-$ guild run bitmap feature_count=3 features=range[8]
+$ guild run bitmap.py feature_count=3 features=range[8]
 ```
 
 `range[8]` generates a sequence of integers from 0 to 7, representing
 each of the possible feature bitmaps for three features (2 ^ 3).
+
+This approach scales well for large numbers of features. However, it's
+not easy to compare selected features across runs.

@@ -2,6 +2,6 @@ a = False
 b = False
 c = False
 
-print("feature a: %" a)
-print("feature b: %" b)
-print("feature c: %" c)
+print("feature a: %s" % a)
+print("feature b: %s" % b)
+print("feature c: %s" % c)
