@@ -1,5 +1,9 @@
 # Run `gpkg.hello` package examples
 
+Delete runs for test:
+
+    >>> quiet("guild runs rm -y")
+
 Default (using model ref):
 
     >>> run("guild run -y hello:default --label test-1")
