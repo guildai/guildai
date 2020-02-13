@@ -233,14 +233,14 @@ class MacBuild(Build):
         "2.7": "python2",
         "3.6": "python3",
         "3.7": "python3",
-        "3.8": "python3",
+        "3.8": "python3.8",
     }
 
     pip_cmds = {
         "2.7": "pip2",
         "3.6": "pip3",
         "3.7": "pip3",
-        "3.8": "pip3",
+        "3.8": "pip3.8",
     }
 
     def __init__(self, python):
@@ -277,7 +277,7 @@ class MacBuild(Build):
                 "https://raw.githubusercontent.com/Homebrew/homebrew-core/%s/"
                 "Formula/%s.rb > /dev/null" % (commit, pkg)
             ),
-            "brew link python",
+            "brew link %s --force --overwrite" % pkg,
         ]
 
 
@@ -308,7 +308,7 @@ builds = [
     #LinuxBuild(python="3.5"),
     #LinuxBuild(python="3.6"),
     #LinuxBuild(python="3.7"),
-    LinuxBuild(python="3.8"),
+    #LinuxBuild(python="3.8"),
     #MacBuild(python="2.7"),
     #MacBuild(python="3.6"),
     #MacBuild(python="3.7"),
