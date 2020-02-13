@@ -1,7 +1,7 @@
 jobs:
   linux-python-3.8:
     docker:
-    - image: circleci/python:3.8-stretch-node
+    - image: circleci/python:3.8.1-node
     steps:
     - checkout
     - restore_cache:

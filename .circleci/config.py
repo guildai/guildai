@@ -201,7 +201,7 @@ class LinuxBuild(Build):
         "linux-python-3.5": "circleci/python:3.5-stretch-node",
         "linux-python-3.6": "circleci/python:3.6-stretch-node",
         "linux-python-3.7": "circleci/python:3.7-stretch-node",
-        "linux-python-3.8": "circleci/python:3.8-stretch-node",
+        "linux-python-3.8": "circleci/python:3.8.1-node",
     }
 
     def __init__(self, python):
