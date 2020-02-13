@@ -3,19 +3,39 @@
 This is an experimental example to show how one might use flags to
 enable features for testing.
 
-- [test.py](test.py) - Test script
+- [switch.py](switch.py) - Uses boolean switches to enable features
+- [bitmap.py](bitmap.py) - Uses a bitmap to enable features
 
-Use:
+## Switches
+
+[switch.py](switch.py) defines each feature as a boolean switch. A
+full search over all feature combinations is run by specifying both on
+and off for each feature.
 
 ```
-$ guild run test.py a=[0,1] b=[0,1] c=[0,1] --print-trials
-#  a  b  c
-1  0  0  0
-2  0  0  1
-3  0  1  0
-4  0  1  1
-5  1  0  0
-6  1  0  1
-7  1  1  0
-8  1  1  1
+$ guild run switch.py a=[on,off] b=[on,off] c=[on,off]
 ```
+
+This approach is intuitive but doesn't handle large numbers of
+features well.
+
+## Bitmap
+
+[bitmap.py](bitmap.py) uses a single `features` flag that is a bitmap
+of enabled features.
+
+Features are selected by specifying a value for `features` that
+enables the feature bit (little-endian in this case).
+
+Use the `range` function to generate a sequence of integers for each
+bitmap value.
+
+For example, to run a full search with each feature combination for 3
+features, use:
+
+```
+$ guild run bitmap feature_count=3 features=range[8]
+```
+
+`range[8]` generates a sequence of integers from 0 to 7, representing
+each of the possible feature bitmaps for three features (2 ^ 3).
