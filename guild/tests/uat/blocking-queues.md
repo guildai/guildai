@@ -52,8 +52,8 @@ Wait to let the queue start one of the staged runs:
 The runs:
 
     >>> run("guild runs")
-    [1:...]  sleep.py  ...  running  seconds=5
-    [2:...]  sleep.py  ...  staged   seconds=5
+    [1:...]  sleep.py  ...  staged   seconds=5
+    [2:...]  sleep.py  ...  running  seconds=5
     [3:...]  queue     ...  running  q1 ignore-running=no poll-interval=1 run-once=no
     <exit 0>
 
