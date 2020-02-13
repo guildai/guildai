@@ -201,6 +201,7 @@ class LinuxBuild(Build):
         "linux-python-3.5": "circleci/python:3.5-stretch-node",
         "linux-python-3.6": "circleci/python:3.6-stretch-node",
         "linux-python-3.7": "circleci/python:3.7-stretch-node",
+        "linux-python-3.8": "circleci/python:3.8-stretch-node",
     }
 
     def __init__(self, python):
@@ -223,20 +224,23 @@ class MacBuild(Build):
     xcode_version = "11.2.1"
 
     homebrew_commits = {
-        "3.6": "f2a764ef944b1080be64bd88dca9a1d80130c558",
-        "3.7": "2efdfe5519df7654ece8d70786baa298e568eafd",
+        "3.6": ("python", "f2a764ef944b1080be64bd88dca9a1d80130c558"),
+        "3.7": ("python", "f02346bd482426677211eb289cccb472602dd6db"),
+        "3.8": ("python@3.8", "a4ae4d46b34a94414188518335e5dd96e4ae4ea9"),
     }
 
     python_cmds = {
         "2.7": "python2",
         "3.6": "python3",
         "3.7": "python3",
+        "3.8": "python3",
     }
 
     pip_cmds = {
         "2.7": "pip2",
         "3.6": "pip3",
         "3.7": "pip3",
+        "3.8": "pip3",
     }
 
     def __init__(self, python):
@@ -265,13 +269,13 @@ class MacBuild(Build):
         if self.python == "2.7":
             # 2.7 is default on OSX
             return []
-        commit = self.homebrew_commits[self.python]
+        pkg, commit = self.homebrew_commits[self.python]
         return [
             "brew unlink python",
             (
                 "brew install --ignore-dependencies "
                 "https://raw.githubusercontent.com/Homebrew/homebrew-core/%s/"
-                "Formula/python.rb > /dev/null" % commit
+                "Formula/%s.rb > /dev/null" % (commit, pkg)
             ),
             "brew link python",
         ]
@@ -300,13 +304,15 @@ class Config(object):
 
 
 builds = [
-    LinuxBuild(python="2.7"),
-    LinuxBuild(python="3.5"),
-    LinuxBuild(python="3.6"),
-    LinuxBuild(python="3.7"),
-    MacBuild(python="2.7"),
-    MacBuild(python="3.6"),
-    MacBuild(python="3.7"),
+    #LinuxBuild(python="2.7"),
+    #LinuxBuild(python="3.5"),
+    #LinuxBuild(python="3.6"),
+    #LinuxBuild(python="3.7"),
+    LinuxBuild(python="3.8"),
+    #MacBuild(python="2.7"),
+    #MacBuild(python="3.6"),
+    #MacBuild(python="3.7"),
+    MacBuild(python="3.8"),
 ]
 
 
