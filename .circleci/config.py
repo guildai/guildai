@@ -32,6 +32,8 @@ class Build(object):
     test_dir = "test-env"
     examples_dir = "examples"
 
+    uat_skip = []
+
     cache_dep_files = [
         "requirements.txt",
         "guild/view/package.json",
@@ -81,16 +83,17 @@ class Build(object):
             self._ensure_virtual_env_cmd(),
             self._init_env(self.build_dir),
             self._activate_env(self.build_dir),
-            self._install_guild_reqs(),
+            self._install_guild_reqs(self.build_dir),
             self._install_guild_view_reqs(),
         ]
 
-    def _pip_install(self, pkgs, sudo=False):
+    def _pip_install(self, pkgs, sudo=False, venv=None):
         sudo_part = "sudo -H " if sudo else ""
         # pipe to cat effectively disables progress bar
         pkgs_part = " ".join([self._pkg_spec(pkg) for pkg in pkgs])
+        pip_cmd = self.pip_cmd if not venv else "%s/bin/pip" % venv
         return "{sudo}{pip} install --upgrade {pkgs} | cat".format(
-            sudo=sudo_part, pip=self.pip_cmd, pkgs=pkgs_part
+            sudo=sudo_part, pip=pip_cmd, pkgs=pkgs_part
         )
 
     @staticmethod
@@ -117,8 +120,8 @@ class Build(object):
     def _activate_env(path):
         return ". %s/bin/activate" % path
 
-    def _install_guild_reqs(self):
-        return self._pip_install(["requirements.txt"])
+    def _install_guild_reqs(self, venv):
+        return self._pip_install(["requirements.txt"], venv=venv)
 
     @staticmethod
     def _install_guild_view_reqs():
@@ -152,11 +155,13 @@ class Build(object):
                 "TERM=xterm-256color source guild-env {}".format(self.test_dir),
                 (
                     "WORKSPACE={workspace} "
-                    "UAT_SKIP=remote-*,hiplot-* "
+                    "UAT_SKIP={uat_skip},remote-*,hiplot-* "
                     "COLUMNS=999 "
                     "EXAMPLES={examples} "
                     "guild check --uat".format(
-                        workspace=self.test_dir, examples=self.examples_dir
+                        workspace=self.test_dir,
+                        examples=self.examples_dir,
+                        uat_skip=",".join(self.uat_skip),
                     )
                 ),
             ],
@@ -192,6 +197,14 @@ class Build(object):
         }
 
 
+TENSORFLOW_UAT_SKIP = [
+    "*keras*",
+    "*logreg*",
+    "*mnist*",
+    "*tensorflow*",
+    "simple-example",
+]
+
 class LinuxBuild(Build):
 
     env = "docker"
@@ -204,9 +217,14 @@ class LinuxBuild(Build):
         "linux-python-3.8": "circleci/python:3.8.1-node",
     }
 
+    uat_skips = {
+        "3.8": TENSORFLOW_UAT_SKIP
+    }
+
     def __init__(self, python):
         self.python = python
         self.name = "linux-python-%s" % python
+        self.uat_skip = self.uat_skips.get(python) or []
 
     def env_config(self):
         return [{"image": self.images[self.name]}]
@@ -240,7 +258,11 @@ class MacBuild(Build):
         "2.7": "pip2",
         "3.6": "pip3",
         "3.7": "pip3",
-        "3.8": "pip",
+        "3.8": "pip3.8",
+    }
+
+    uat_skips = {
+        "3.8": TENSORFLOW_UAT_SKIP
     }
 
     def __init__(self, python):
@@ -248,6 +270,7 @@ class MacBuild(Build):
         self.name = "macos-python-%s" % python
         self.python_cmd = self.python_cmds.get(self.python, self.python_cmd)
         self.pip_cmd = self.pip_cmds.get(self.python, self.pip_cmd)
+        self.uat_skip = self.uat_skips.get(python) or []
 
     def env_config(self):
         return {"xcode": self.xcode_version}
@@ -308,7 +331,7 @@ builds = [
     #LinuxBuild(python="3.5"),
     #LinuxBuild(python="3.6"),
     #LinuxBuild(python="3.7"),
-    #LinuxBuild(python="3.8"),
+    LinuxBuild(python="3.8"),
     #MacBuild(python="2.7"),
     #MacBuild(python="3.6"),
     #MacBuild(python="3.7"),
