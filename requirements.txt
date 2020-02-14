@@ -5,7 +5,7 @@
 
 Pillow>=5.0
 PyYAML>=2.12
-Werkzeug>=0.13
+Werkzeug>=0.15
 chardet>=3.0.4
 daemonize>=2.4.7
 filelock>=3.0.12
