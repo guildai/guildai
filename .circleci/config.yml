@@ -356,23 +356,7 @@ jobs:
         keys:
         - macos-python-3.6-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'brew unlink python
-
-          brew install --ignore-dependencies https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb > /dev/null
-
-          brew link python --force --overwrite
-
-          sudo -H pip3 install --upgrade pip | cat
-
-          sudo -H pip3 install --upgrade virtualenv | cat
-
-          rm -rf build-env && python3 -m virtualenv build-env
-
-          . build-env/bin/activate
-
-          build-env/bin/pip install --upgrade -r requirements.txt | cat
-
-          cd guild/view && npm install'
+        command: "brew unlink python\nbrew install --ignore-dependencies https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb > /dev/null\nbrew link python \nsudo -H pip3 install --upgrade pip | cat\nsudo -H pip3 install --upgrade virtualenv | cat\nrm -rf build-env && python3 -m virtualenv build-env\n. build-env/bin/activate\nbuild-env/bin/pip install --upgrade -r requirements.txt | cat\ncd guild/view && npm install"
         name: Install build dependencies
         no_output_timeout: 1200
     - save_cache:
@@ -420,23 +404,7 @@ jobs:
         keys:
         - macos-python-3.7-19-{{ checksum "requirements.txt" }}-{{ checksum "guild/view/package.json" }}
     - run:
-        command: 'brew unlink python
-
-          brew install --ignore-dependencies https://raw.githubusercontent.com/Homebrew/homebrew-core/f02346bd482426677211eb289cccb472602dd6db/Formula/python.rb > /dev/null
-
-          brew link python --force --overwrite
-
-          sudo -H pip3 install --upgrade pip | cat
-
-          sudo -H pip3 install --upgrade virtualenv | cat
-
-          rm -rf build-env && python3 -m virtualenv build-env
-
-          . build-env/bin/activate
-
-          build-env/bin/pip install --upgrade -r requirements.txt | cat
-
-          cd guild/view && npm install'
+        command: "brew unlink python\nbrew install --ignore-dependencies https://raw.githubusercontent.com/Homebrew/homebrew-core/f02346bd482426677211eb289cccb472602dd6db/Formula/python.rb > /dev/null\nbrew link python \nsudo -H pip3 install --upgrade pip | cat\nsudo -H pip3 install --upgrade virtualenv | cat\nrm -rf build-env && python3 -m virtualenv build-env\n. build-env/bin/activate\nbuild-env/bin/pip install --upgrade -r requirements.txt | cat\ncd guild/view && npm install"
         name: Install build dependencies
         no_output_timeout: 1200
     - save_cache:
@@ -488,7 +456,7 @@ jobs:
 
           brew install --ignore-dependencies https://raw.githubusercontent.com/Homebrew/homebrew-core/a4ae4d46b34a94414188518335e5dd96e4ae4ea9/Formula/python@3.8.rb > /dev/null
 
-          brew link python@3.8 --force --overwrite
+          brew link python@3.8 --overwrite --force
 
           sudo -H pip3.8 install --upgrade pip | cat
 

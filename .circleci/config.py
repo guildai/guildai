@@ -206,6 +206,7 @@ TENSORFLOW_UAT_SKIP = [
     "simple-example",
 ]
 
+
 class LinuxBuild(Build):
 
     env = "docker"
@@ -218,9 +219,7 @@ class LinuxBuild(Build):
         "linux-python-3.8": "circleci/python:3.8.1-node",
     }
 
-    uat_skips = {
-        "3.8": TENSORFLOW_UAT_SKIP
-    }
+    uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
 
     def __init__(self, python):
         self.python = python
@@ -262,9 +261,9 @@ class MacBuild(Build):
         "3.8": "pip3.8",
     }
 
-    uat_skips = {
-        "3.8": TENSORFLOW_UAT_SKIP
-    }
+    python_link_options = {"3.8": "--overwrite --force"}
+
+    uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
 
     def __init__(self, python):
         self.python = python
@@ -294,6 +293,7 @@ class MacBuild(Build):
             # 2.7 is default on OSX
             return []
         pkg, commit = self.homebrew_commits[self.python]
+        pkg_link_options = self.python_link_options.get(self.python, "")
         return [
             "brew unlink python",
             (
@@ -301,7 +301,7 @@ class MacBuild(Build):
                 "https://raw.githubusercontent.com/Homebrew/homebrew-core/%s/"
                 "Formula/%s.rb > /dev/null" % (commit, pkg)
             ),
-            "brew link %s --force --overwrite" % pkg,
+            "brew link %s %s" % (pkg, pkg_link_options),
         ]
 
 
