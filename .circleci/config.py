@@ -223,7 +223,7 @@ class LinuxBuild(Build):
 
     def __init__(self, python):
         self.python = python
-        self.name = "linux-python-%s" % python
+        self.name = "linux-python_%s" % python
         self.uat_skip = self.uat_skips.get(python) or []
 
     def env_config(self):
@@ -239,7 +239,10 @@ class MacBuild(Build):
 
     env = "macos"
 
-    xcode_version = "11.2.1"
+    xcode_versions = {
+        "10.14": "11.1.0",
+        "10.15": "11.2.1",
+    }
 
     homebrew_commits = {
         "3.6": ("python", "f2a764ef944b1080be64bd88dca9a1d80130c558"),
@@ -263,9 +266,10 @@ class MacBuild(Build):
 
     uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
 
-    def __init__(self, python):
+    def __init__(self, os_version, python):
+        self.xcode_version = self.xcode_versions[os_version]
         self.python = python
-        self.name = "macos-python-%s" % python
+        self.name = "macos_%s-python_%s" % (os_version, python)
         self.python_cmd = self.python_cmds.get(self.python, self.python_cmd)
         self.pip_cmd = self.pip_cmds.get(self.python, self.pip_cmd)
         self.uat_skip = self.uat_skips.get(python) or []
@@ -330,10 +334,16 @@ builds = [
     #LinuxBuild(python="3.6"),
     #LinuxBuild(python="3.7"),
     #LinuxBuild(python="3.8"),
-    #MacBuild(python="2.7"),
-    #MacBuild(python="3.6"),
-    MacBuild(python="3.7"),
-    #MacBuild(python="3.8"),
+    #MacBuild("10.14", python="2.7"),
+    #MacBuild("10.15", python="2.7"),
+    #MacBuild("10.14", python="3.6"),
+    #MacBuild("10.15", python="3.6"),
+    MacBuild("10.14", python="3.7"),
+    MacBuild("10.15", python="3.7"),
+    #MacBuild("10.14", python="3.7"),
+    #MacBuild("10.14", python="3.7"),
+    #MacBuild("10.14", python="3.8"),
+    #MacBuild("10.15", python="3.8"),
 ]
 
 
