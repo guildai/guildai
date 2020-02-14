@@ -243,7 +243,7 @@ class MacBuild(Build):
 
     homebrew_commits = {
         "3.6": ("python", "f2a764ef944b1080be64bd88dca9a1d80130c558"),
-        "3.7": ("python", "f02346bd482426677211eb289cccb472602dd6db"),
+        "3.7": ("python", "2efdfe5519df7654ece8d70786baa298e568eafd"),
         "3.8": ("python@3.8", "a4ae4d46b34a94414188518335e5dd96e4ae4ea9"),
     }
 
@@ -260,8 +260,6 @@ class MacBuild(Build):
         "3.7": "pip3",
         "3.8": "pip3.8",
     }
-
-    python_link_options = {"3.8": "--overwrite --force"}
 
     uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
 
@@ -293,7 +291,6 @@ class MacBuild(Build):
             # 2.7 is default on OSX
             return []
         pkg, commit = self.homebrew_commits[self.python]
-        pkg_link_options = self.python_link_options.get(self.python, "")
         return [
             "brew unlink python",
             (
@@ -301,7 +298,7 @@ class MacBuild(Build):
                 "https://raw.githubusercontent.com/Homebrew/homebrew-core/%s/"
                 "Formula/%s.rb > /dev/null" % (commit, pkg)
             ),
-            "brew link %s %s" % (pkg, pkg_link_options),
+            "brew link %s --overwrite --force" % pkg,
         ]
 
 
@@ -336,7 +333,7 @@ builds = [
     #MacBuild(python="2.7"),
     #MacBuild(python="3.6"),
     MacBuild(python="3.7"),
-    MacBuild(python="3.8"),
+    #MacBuild(python="3.8"),
 ]
 
 
