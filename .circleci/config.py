@@ -212,11 +212,11 @@ class LinuxBuild(Build):
     env = "docker"
 
     images = {
-        "linux-python-2.7": "circleci/python:2.7-stretch-node",
-        "linux-python-3.5": "circleci/python:3.5-stretch-node",
-        "linux-python-3.6": "circleci/python:3.6-stretch-node",
-        "linux-python-3.7": "circleci/python:3.7-stretch-node",
-        "linux-python-3.8": "circleci/python:3.8.1-node",
+        "linux-python_2.7": "circleci/python:2.7-stretch-node",
+        "linux-python_3.5": "circleci/python:3.5-stretch-node",
+        "linux-python_3.6": "circleci/python:3.6-stretch-node",
+        "linux-python_3.7": "circleci/python:3.7-stretch-node",
+        "linux-python_3.8": "circleci/python:3.8.1-node",
     }
 
     uat_skips = {"3.8": TENSORFLOW_UAT_SKIP}
@@ -329,21 +329,19 @@ class Config(object):
 
 
 builds = [
-    #LinuxBuild(python="2.7"),
-    #LinuxBuild(python="3.5"),
-    #LinuxBuild(python="3.6"),
-    #LinuxBuild(python="3.7"),
-    #LinuxBuild(python="3.8"),
-    #MacBuild("10.14", python="2.7"),
-    #MacBuild("10.15", python="2.7"),
-    #MacBuild("10.14", python="3.6"),
-    #MacBuild("10.15", python="3.6"),
+    LinuxBuild(python="2.7"),
+    LinuxBuild(python="3.5"),
+    LinuxBuild(python="3.6"),
+    LinuxBuild(python="3.7"),
+    LinuxBuild(python="3.8"),
+    MacBuild("10.14", python="2.7"),
+    MacBuild("10.15", python="2.7"),
+    MacBuild("10.14", python="3.6"),
+    MacBuild("10.15", python="3.6"),
     MacBuild("10.14", python="3.7"),
     MacBuild("10.15", python="3.7"),
-    #MacBuild("10.14", python="3.7"),
-    #MacBuild("10.14", python="3.7"),
-    #MacBuild("10.14", python="3.8"),
-    #MacBuild("10.15", python="3.8"),
+    MacBuild("10.14", python="3.8"),
+    MacBuild("10.15", python="3.8"),
 ]
 
 
