@@ -16,7 +16,6 @@ install:
   - "%PYTHON%\\python.exe -m pip install wheel"
   - "%PYTHON%\\python.exe -m pip install twine"
   - "%PYTHON%\\python.exe -m pip install -r requirements-windows.txt"
-  - "%PYTHON%\\python.exe -m pip install tensorflow"
   - "%PYTHON%\\python.exe -m pip install pandas"
 
 build: off
