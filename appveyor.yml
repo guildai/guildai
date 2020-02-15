@@ -6,10 +6,12 @@ branches:
 environment:
   COLUMNS: 999
   matrix:
-    - PYTHON: "C:\\Python35-x64"
-    - PYTHON: "C:\\Python36-x64"
-    - PYTHON: "C:\\Python37-x64"
-    - PYTHON: "C:\\Python38-x64"
+    #- PYTHON: "C:\\Python35-x64"
+    #- PYTHON: "C:\\Python36-x64"
+    #- PYTHON: "C:\\Python37-x64"
+    #- PYTHON: "C:\\Python37-x86"
+    #- PYTHON: "C:\\Python38-x64"
+    - PYTHON: "C:\\Python38-x86"
 
 install:
   - "%PYTHON%\\python.exe -m pip install -U setuptools"
