@@ -52,7 +52,7 @@ def ___main():
     args = ___init_args()
     ___patch_argparse(args.output_path)
     # Importing module has the side-effect of writing flag data due to
-    # patched argparse
+    # patched argparse.
     ___exec_module(args.mod_path)
 
 
@@ -120,9 +120,9 @@ def ___maybe_flag(parser, action):
     if action.help:
         attrs["description"] = action.help
     if action.default is not None:
-        attrs["default"] = action.default
+        attrs["default"] = ___ensure_json_encodable(action.default, flag_name)
     if action.choices:
-        attrs["choices"] = action.choices
+        attrs["choices"] = ___ensure_json_encodable(action.choices, flag_name)
     if action.required:
         attrs["required"] = True
     if isinstance(action, ___argparse._StoreTrueAction):
@@ -137,6 +137,18 @@ def ___flag_name(action):
         if opt.startswith("--"):
             return opt[2:]
     return None
+
+
+def ___ensure_json_encodable(x, flag_name):
+    try:
+        ___json.dumps(x)
+    except TypeError:
+        ___log.warning(
+            "cannot serialize value %r for flag %s - coercing to string", x, flag_name
+        )
+        return str(x)
+    else:
+        return x
 
 
 def ___write_flags_and_exit(parse_args_f, output_path):

@@ -344,3 +344,29 @@ has a different argparse usage.
 
     >>> flag_info("merge-by-arg-name", "f_str2")
     default: hi2
+
+## Error decoding flags
+
+If Guild can't serialize argparse defined values as JSON, it prints a
+warning message and coerces the value to a string.
+
+    >>> project_dir = sample("projects", "flags-2")
+
+    >>> with Env({"NO_IMPORT_FLAGS_CACHE": "1",
+    ...           "NO_IMPORT_FLAGS_PROGRESS": "1"}):
+    ...     with LogCapture(strip_ansi_format=True) as logs:
+    ...         gf = guildfile.for_dir(project_dir, no_cache=True)
+
+    >>> logs.print_all()
+    WARNING: [import_flags_main] cannot serialize value <object object at ...>
+    for flag foo - coercing to string
+
+    >>> gf.default_model.operations
+    [<guild.guildfile.OpDef 'json-decodable'>]
+
+    >>> op = gf.default_model.get_operation("json-decodable")
+    >>> op.flags
+    [<guild.guildfile.FlagDef 'foo'>]
+
+    >>> op.get_flagdef("foo").default
+    '<object object at ...>'

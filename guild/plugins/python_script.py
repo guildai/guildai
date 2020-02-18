@@ -297,7 +297,9 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 )
                 raise DataLoadError()
             else:
+                out = out.decode()
                 self.log.debug("import_argparse_flags_main output: %s", out)
+                _log_warnings(out, self.log)
                 return self._load_data(data_path)
 
     @staticmethod
@@ -380,3 +382,9 @@ def _flags_to_skip(opdef):
     if opdef.flags_import_skip:
         return set(opdef.flags_import_skip)
     return set()
+
+
+def _log_warnings(out, log):
+    for line in out.split("\n"):
+        if line.startswith("WARNING:"):
+            log.warning(line[9:])
