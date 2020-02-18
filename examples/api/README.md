@@ -27,7 +27,7 @@ $ guild run summary
 creates symlinks to those runs. View the links:
 
 ```
-$ guild runs ls
+$ guild ls
 ```
 
 Use a modified version of [`summary.py`](summary.py) as needed:
