@@ -1,0 +1,7 @@
+op:
+  flags-import: [x]
+
+summary:
+  flags-import:
+    - use-marked
+    - min-loss

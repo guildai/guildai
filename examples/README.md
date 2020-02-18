@@ -2,6 +2,7 @@
 
 ## Basic Examples
 
+- [api](api/README.md) - Use Guild API from a sample operation
 - [dependencies](dependencies/README.md) - File and operation
   dependencies
 - [get-started](get-started/README.md) - Example from [Guild Get
