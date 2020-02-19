@@ -126,24 +126,24 @@ class RunOutput(object):
 @functools.total_ordering
 class RunIndex(object):
     def __init__(self, run, fmt):
-        self.run = run
+        self.value = run
         self.fmt = fmt
 
     def __str__(self):
-        return self.run.short_id
+        return self.value.short_id
 
     def __eq__(self, x):
-        return self._x_id(x) == self.run.id
+        return self._x_id(x) == self.value.id
 
     def __lt__(self, x):
-        return self.run.id < self._x_id(x)
+        return self.value.id < self._x_id(x)
 
     @staticmethod
     def _x_id(x):
         if isinstance(x, six.string_types):
             return x
         elif isinstance(x, RunIndex):
-            return x.run.id
+            return x.value.id
         return None
 
 
@@ -163,10 +163,10 @@ class RunsSeries(pd.Series):
         _print_run_info(self[0], **kw)
 
     def scalars(self):
-        return _runs_scalars([self[0].run])
+        return _runs_scalars([self[0].value])
 
     def flags(self):
-        return _runs_flags([self[0].run])
+        return _runs_flags([self[0].value])
 
     def compare(self):
         return _runs_compare([self[0]])
@@ -191,7 +191,7 @@ class RunsDataFrame(pd.DataFrame):
         return [run.id for run in runs]
 
     def _runs(self):
-        return [row[1][0].run for row in self.iterrows()]
+        return [row[1][0].value for row in self.iterrows()]
 
     def _items(self):
         return [row[1][0] for row in self.iterrows()]
@@ -494,14 +494,14 @@ def _print_run_info(item, output=False, scalars=False):
     for name in RUN_DETAIL:
         print("%s: %s" % (name, item.fmt.get(name, "")))
     print("flags:", end="")
-    print(run_util.format_attr(item.run.get("flags", "")))
+    print(run_util.format_attr(item.value.get("flags", "")))
     if scalars:
         print("scalars:")
-        for s in indexlib.iter_run_scalars(item.run):
+        for s in indexlib.iter_run_scalars(item.value):
             print("  %s: %f (step %i)" % (s["tag"], s["last_val"], s["last_step"]))
     if output:
         print("output:")
-        for line in run_util.iter_output(item.run):
+        for line in run_util.iter_output(item.value):
             print("  %s" % line, end="")
 
 
@@ -557,8 +557,8 @@ def _runs_compare(items):
         data.append(row_data)
         # Order matters here - we want flag vals to take precedence
         # over scalar vals with the same name.
-        _apply_scalar_data(item.run, scalar_cols, row_data)
-        _apply_flag_data(item.run, flag_cols, row_data)
+        _apply_scalar_data(item.value, scalar_cols, row_data)
+        _apply_flag_data(item.value, flag_cols, row_data)
         _apply_run_core_data(item, core_cols, row_data)
     cols = core_cols + sorted(flag_cols) + _sort_scalar_cols(scalar_cols, flag_cols)
     return pd.DataFrame(data, columns=cols)
@@ -597,7 +597,7 @@ def _apply_flag_data(run, cols, data):
 
 def _apply_run_core_data(item, cols, data):
     for name in cols:
-        data[name] = _run_attr(item.run, name, item.fmt)
+        data[name] = _run_attr(item.value, name, item.fmt)
 
 
 def _sort_scalar_cols(scalar_cols, flag_cols):
