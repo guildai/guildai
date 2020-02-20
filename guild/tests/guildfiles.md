@@ -1496,81 +1496,6 @@ It does contain a package:
     >>> gf.package
     <guild.guildfile.PackageDef 'gpkg.hello'>
 
-## Errors
-
-### Invalid format
-
-    >>> guildfile.for_dir(sample("projects/invalid-format"))
-    Traceback (most recent call last):
-    GuildfileError: error in .../samples/projects/invalid-format/guild.yml:
-    invalid guildfile data 'This is invalid YAML!': expected a mapping
-
-### No models (missing guild file)
-
-    >>> guildfile.for_dir(sample("projects/missing-sources"))
-    Traceback (most recent call last):
-    NoModels: ...
-
-A file not found error is Python version specific (FileNotFoundError
-in Python 3 and IOError in Python 2) so we'll assert using exception
-content.
-
-    >>> try:
-    ...   guildfile.for_file(sample("projects/missing-sources/guild.yml"))
-    ... except IOError as e:
-    ...   print(str(e))
-    [Errno 2] No such file or directory: '.../projects/missing-sources/guild.yml'
-
-### Missing required type attr
-
-    >>> guildfile.for_string("""
-    ... - foo: bar
-    ... """)
-    Traceback (most recent call last):
-    GuildfileError: error in <string>: missing required type (one of: config,
-    include, model, package) in {'foo': 'bar'}
-
-## Implicit anonymous model
-
-If a top-level item defines `operations` but does not provide a
-required type attribute of `model` or `config`, Guild coerces the
-object to an anomyous model - i.e. a model named with the empty
-string.
-
-    >>> gf = guildfile.for_string("""
-    ... - operations:
-    ...     test: guild.pass
-    ... """)
-
-    >>> gf.models
-    {'': <guild.guildfile.ModelDef ''>}
-
-    >>> gf.models[''].operations
-    [<guild.guildfile.OpDef 'test'>]
-
-    >>> gf.default_operation
-    <guild.guildfile.OpDef 'test'>
-
-## flags-import
-
-    >>> guildfile.for_string("""
-    ... op:
-    ...   flags-import: hello
-    ... """)
-    Traceback (most recent call last):
-    GuildfileError: error in <string>: invalid flags-import value 'hello':
-    expected yes/all, no, or a list of flag names
-
-## sourcecode
-
-    >>> guildfile.for_string("""
-    ... op:
-    ...   sourcecode: 123
-    ... """)
-    Traceback (most recent call last):
-    GuildfileError: error in <string>: invalid select files spec 123:
-    expected a string, list, or mapping
-
 ## Loading from a run
 
 If a run references a Guild file (in its `opref` attribute), the
@@ -1606,3 +1531,78 @@ file, we get an error:
     >>> guildfile.for_run(run)
     Traceback (most recent call last):
     GuildfileMissing: .../guild.yml
+
+## Errors
+
+### Invalid format
+
+    >>> guildfile.for_dir(sample("projects/invalid-format"))
+    Traceback (most recent call last):
+    GuildfileError: error in .../samples/projects/invalid-format/guild.yml:
+    invalid guildfile data 'This is invalid YAML!': expected a mapping
+
+### No models (missing guild file)
+
+    >>> guildfile.for_dir(sample("projects/missing-sources"))
+    Traceback (most recent call last):
+    NoModels: ...
+
+A file not found error is Python version specific (FileNotFoundError
+in Python 3 and IOError in Python 2) so we'll assert using exception
+content.
+
+    >>> try:
+    ...   guildfile.for_file(sample("projects/missing-sources/guild.yml"))
+    ... except IOError as e:
+    ...   print(str(e))
+    [Errno 2] No such file or directory: '.../projects/missing-sources/guild.yml'
+
+### Missing required type attr
+
+    >>> guildfile.for_string("""
+    ... - foo: bar
+    ... """)
+    Traceback (most recent call last):
+    GuildfileError: error in <string>: missing required type (one of: config,
+    include, model, package) in {'foo': 'bar'}
+
+### Implicit anonymous model
+
+If a top-level item defines `operations` but does not provide a
+required type attribute of `model` or `config`, Guild coerces the
+object to an anomyous model - i.e. a model named with the empty
+string.
+
+    >>> gf = guildfile.for_string("""
+    ... - operations:
+    ...     test: guild.pass
+    ... """)
+
+    >>> gf.models
+    {'': <guild.guildfile.ModelDef ''>}
+
+    >>> gf.models[''].operations
+    [<guild.guildfile.OpDef 'test'>]
+
+    >>> gf.default_operation
+    <guild.guildfile.OpDef 'test'>
+
+### flags-import
+
+    >>> guildfile.for_string("""
+    ... op:
+    ...   flags-import: hello
+    ... """)
+    Traceback (most recent call last):
+    GuildfileError: error in <string>: invalid flags-import value 'hello':
+    expected yes/all, no, or a list of flag names
+
+## sourcecode
+
+    >>> guildfile.for_string("""
+    ... op:
+    ...   sourcecode: 123
+    ... """)
+    Traceback (most recent call last):
+    GuildfileError: error in <string>: invalid select files spec 123:
+    expected a string, list, or mapping
