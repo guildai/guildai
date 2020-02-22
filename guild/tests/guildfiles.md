@@ -1532,6 +1532,84 @@ file, we get an error:
     Traceback (most recent call last):
     GuildfileMissing: .../guild.yml
 
+## Operation Defaults
+
+A model may provide defaults for operations using `operation-defaults`.
+
+    >>> gf = guildfile.for_string("""
+    ... - model: m
+    ...   operation-defaults:
+    ...     flags-dest: args
+    ...     flags-import: no
+    ...     sourcecode: no
+    ...     flags:
+    ...       f1: 1
+    ...       f2: 2
+    ...   operations:
+    ...     op1: guild.pass
+    ...     op2:
+    ...       main: guild.pass
+    ...       flags-import: all
+    ...       sourcecode: ['*.py']
+    ...       flags: {}
+    ... """)
+
+    >>> gf.default_model.operations
+    [<guild.guildfile.OpDef 'm:op1'>, <guild.guildfile.OpDef 'm:op2'>]
+
+`op1` takes all of its attrs from the defaults:
+
+    >>> op1 = gf.default_model.get_operation("op1")
+    >>> op1.flags_dest
+    'args'
+
+    >>> op1.flags_import
+    []
+
+    >>> op1.sourcecode.specs
+    []
+
+    >>> [(f.name, f.default) for f in op1.flags]
+    [('f1', 1), ('f2', 2)]
+
+`op2` redefines `flags-import` and `sourcecode`:
+
+    >>> op2 = gf.default_model.get_operation("op2")
+    >>> op2.flags_dest
+    'args'
+
+    >>> op2.flags_import
+    True
+
+    >>> op2.sourcecode.specs
+    [<guild.guildfile.FileSelectSpec exclude *>,
+     <guild.guildfile.FileSelectSpec include *.py>]
+
+    >>> [(f.name, f.default) for f in op2.flags]
+    []
+
+Operation defaults can be inherited:
+
+    >>> gf = guildfile.for_string("""
+    ... - config: base
+    ...   operation-defaults:
+    ...     flags:
+    ...       f1: 1
+    ...       f2: 2
+    ... - model: m
+    ...   extends: base
+    ...   operations:
+    ...     op1: guild.pass
+    ... """)
+
+    >>> gf.default_model.operations
+    [<guild.guildfile.OpDef 'm:op1'>]
+
+    >>> op1 = gf.default_model.get_operation("op1")
+
+    >>> [(f.name, f.default) for f in op1.flags]
+    [('f1', 1), ('f2', 2)]
+
 ## Errors
 
 ### Invalid format

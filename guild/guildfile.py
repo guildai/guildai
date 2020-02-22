@@ -672,6 +672,7 @@ class ModelDef(object):
         data = _extended_data(data, guildfile, extends_seen or [])
         self.guildfile = guildfile
         self.name = name
+        self.op_default_config = _init_op_default_config(data, guildfile)
         self.default = bool(data.get("default"))
         self.parents = _dedup_parents(data.get("__parents__", []))
         self.description = (data.get("description") or "").strip()
@@ -766,6 +767,7 @@ def _apply_parents_data(extends, guildfile, seen, data):
             "description",
             "extra",
             "flags",
+            "operation-defaults",
             "operations",
             "params",
             "references",
@@ -901,6 +903,13 @@ def _resolve_param_ref(val, params):
         return val
 
 
+def _init_op_default_config(data, guildfile):
+    config = data.get("operation-defaults")
+    if not config:
+        return {}
+    return _coerce_operation("operation-defaults", config, guildfile)
+
+
 def _dedup_parents(parents):
     seen = set()
     deduped = []
@@ -947,6 +956,7 @@ class OpDef(object):
                 modeldef.guildfile,
                 "invalid operation def %r: expected a mapping" % data,
             )
+        _apply_op_default_config(modeldef, data)
         self.name = name
         self._data = data
         self.modeldef = modeldef
@@ -1079,6 +1089,15 @@ class OpDef(object):
         if self.optimizers:
             return self.optimizers[0]
         return None
+
+
+def _apply_op_default_config(modeldef, data):
+    config = modeldef.op_default_config
+    if not config or not isinstance(config, dict):
+        return
+    for key in config:
+        if key not in data:
+            data[key] = copy.copy(config[key])
 
 
 def _init_flags(data, opdef):
@@ -1396,6 +1415,10 @@ class FileSelectSpec(object):
             if type in data:
                 return (_coerce_str_to_list(data[type], gf, name), type)
         raise GuildfileError(gf, "unsupported %s value: %r" % (name, config))
+
+    def __repr__(self):
+        patterns = ",".join(self.patterns)
+        return "<guild.guildfile.FileSelectSpec %s %s>" % (self.type, patterns)
 
 
 ###################################################################

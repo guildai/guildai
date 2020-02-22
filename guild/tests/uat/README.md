@@ -255,6 +255,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [batch-preview](batch-preview.md)
 - [project-sourcecode](project-sourcecode.md)
 - [labels](labels.md)
+- [api-example](api-example.md)
 
 ## Error cases
 

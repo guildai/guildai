@@ -30,6 +30,28 @@ creates symlinks to those runs. View the links:
 $ guild ls
 ```
 
+Use `mark` to mark some runs:
+
+```
+$ guild mark 1 2
+```
+
+Set `use-marked` to `yes` to summarize only the marked runs:
+
+```
+$ guild run summary use-marked=yes
+```
+
+You can alternatively set `min-loss` to change the threshold used for
+the summary:
+
+```
+$ guild run summary use-marked=yes min-loss=-0.3
+```
+
+This illustrates how a Guild operation can evaluate and perform
+actions on runs using the `guild.ipy` API.
+
 Use a modified version of [`summary.py`](summary.py) as needed:
 
 - Change the operations and selection criteria

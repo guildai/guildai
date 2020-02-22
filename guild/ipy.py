@@ -127,6 +127,7 @@ class RunOutput(object):
 class RunIndex(object):
     def __init__(self, run, fmt):
         self.value = run
+        self.run = run  # backward compatible alias
         self.fmt = fmt
 
     def __str__(self):
