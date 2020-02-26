@@ -31,5 +31,7 @@ attrs except those defined in `SKIPPED`.
 
 Missed attrs:
 
-    >>> set(public_attrs) - set(SKIPPED) - set(FLAG_TEST_ATTRS)
-    set([])
+    >>> missing = set(public_attrs) - set(SKIPPED) - set(FLAG_TEST_ATTRS)
+
+    >>> len(missing)
+    0
