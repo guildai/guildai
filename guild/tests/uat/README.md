@@ -256,6 +256,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [project-sourcecode](project-sourcecode.md)
 - [labels](labels.md)
 - [api-example](api-example.md)
+- [guild-open](guild-open.md)
 
 ## Error cases
 

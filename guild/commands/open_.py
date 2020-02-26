@@ -34,7 +34,7 @@ from . import runs_support
     is_flag=True,
     help="Open run output. Cannot be used with other options.",
 )
-@click.option("-m", "--cmd", metavar="CMD", help="Command used to open run.")
+@click.option("-c", "--cmd", metavar="CMD", help="Command used to open run.")
 @click.option(
     "--shell", is_flag=True, help="Open a new shell in run directory or PATH."
 )

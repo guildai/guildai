@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 import os
+import shlex
 import subprocess
 import sys
 
@@ -99,8 +100,10 @@ def _open_f(args):
 
 
 def _subproc_f(prog):
+    cmd = shlex.split(prog)
     def f(path):
-        subprocess.Popen([prog, path])
+        p = subprocess.Popen(cmd + [path], bufsize=0)
+        p.wait()
 
     return f
 
