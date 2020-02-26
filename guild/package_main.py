@@ -189,7 +189,7 @@ def _python_pkg_name(pkg):
 
 def _python_packages(pkg, base_pkg, project_dir):
     if pkg.packages is not None:
-        return (pkg.packages.keys(), pkg.packages)
+        return pkg.packages.keys(), pkg.packages
     return _default_python_packages(base_pkg, project_dir)
 
 

@@ -376,7 +376,7 @@ def exec_script(filename, globals, mod_name="__main__"):
         # Ensure parent modules loaded for relative imports.
         _ensure_parent_mod_loaded(mod_name)
     script_globals.update(
-        {"__name__": mod_name, "__file__": filename,}
+        {"__name__": mod_name, "__file__": filename}
     )
     exec(code, script_globals)
     return script_globals
