@@ -193,6 +193,7 @@ def _run_kw(args):
         "run_dir",
         "save_trials",
         "set_trace",
+        "test_flags",
         "test_output_scalars",
         "test_sourcecode",
         "yes",

@@ -101,6 +101,7 @@ tests).
       summary:                     ok
       tables:                      ok
       test:                        ok
+      test-flags:                  ok
       tfevents:                    ok
       timerange:                   ok
       utils:                       ok

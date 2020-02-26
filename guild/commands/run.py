@@ -254,6 +254,9 @@ def run_params(fn):
             click.Option(
                 ("--test-sourcecode",), help="Test source code selection.", is_flag=True
             ),
+            click.Option(
+                ("--test-flags",), help="Test flag configuration.", is_flag=True
+            ),
         ],
     )
     return fn

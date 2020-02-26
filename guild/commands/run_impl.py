@@ -50,6 +50,23 @@ log = logging.getLogger("guild")
 DEFAULT_OPTIMIZER = "gp"
 DEFAULT_OBJECTIVE = "loss"
 
+FLAG_TEST_ATTRS = [
+    "default",
+    "type",
+    "required",
+    "arg_name",
+    "arg_skip",
+    "arg_switch",
+    "env_name",
+    "choices",
+    "allow_other",
+    "distribution",
+    "max",
+    "min",
+    "null_label",
+]
+
+
 ###################################################################
 # State
 ###################################################################
@@ -978,8 +995,15 @@ def _apply_batch_flag_encoder(batch_op, user_op):
 
 
 def main(args):
+    _init_env(args)
     S = _init_state(args)
     _dispatch_op(S)
+
+
+def _init_env(args):
+    if args.test_flags:
+        os.environ["FLAGS_TEST"] = "1"
+        os.environ["NO_IMPORT_FLAGS_CACHE"] = "1"
 
 
 def _init_state(args):
@@ -1032,6 +1056,7 @@ def _check_incompatible_with_restart(args):
         ("run_dir", "--run-dir"),
         ("test_output_scalars", "--test-output-scalars"),
         ("test_sourcecode", "--test-sourcecode"),
+        ("test_flags", "--test-flags"),
     ]
     for name, desc in incompatible:
         if getattr(args, name):
@@ -1053,6 +1078,8 @@ def _dispatch_op(S):
         _test_output_scalars(S)
     elif S.args.test_sourcecode:
         _test_sourcecode(S)
+    elif S.args.test_flags:
+        _test_flags(S)
     else:
         _dispatch_op_cmd(S)
 
@@ -1193,6 +1220,32 @@ def _format_file_select_rule_extras(rule):
     if rule.max_matches:
         parts.append("max match %s" % rule.max_matches)
     return ", ".join(parts)
+
+
+###################################################################
+# Test flags
+###################################################################
+
+
+def _test_flags(S):
+    opdef = S.user_op._opdef
+    assert opdef
+
+    def out(parent, attr, indent=0):
+        val = getattr(parent, attr)
+        prefix = "%s%s:" % (" " * indent, attr.replace("_", "-"))
+        if val is None:
+            cli.out(prefix)
+        else:
+            cli.out("%s %s" % (prefix, flag_util.encode_flag_val(val)))
+
+    out(opdef, "flags_dest")
+    out(opdef, "flags_import")
+    cli.out("flags:")
+    for f in opdef.flags:
+        cli.out("  %s:" % f.name)
+        for attr in FLAG_TEST_ATTRS:
+            out(f, attr, 4)
 
 
 ###################################################################
