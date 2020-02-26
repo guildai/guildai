@@ -44,7 +44,7 @@ When we run with the debug option, we get the full stack:
         _main()
       ...
       File ".../guild/op_main.py", line ..., in exec_script
-        script_globals = python_util.exec_script(path, globals, mod_name=mod_name)
+        python_util.exec_script(path, globals, mod_name=mod_name)
       File ".../guild/python_util.py", line ..., in exec_script
         exec(code, script_globals)
       File ".../.guild/sourcecode/fail.py", line 17, in <module>
@@ -83,35 +83,24 @@ case, the project defines a `fail` operation that runs `fail.py`.
     FAIL
     <exit 2>
 
-## Call module function
+## Relative imports
 
-A special environment `MAIN_FUNCTION` may be provided to specify how a
-main module is loaded and called.
+Guild loads modules using their package name so that `__package__` is
+correctly defined.
 
-    >>> project = Project(sample("projects/main-function"))
+    >>> project = Project(sample("projects/op-main-package"))
 
-`op1` won't run because Guild tries to load it as `__main__` and it
-cannot therefore use relative imports.
+Guild uses different methods of loading modules depending on whether
+the module is loaded with global flag assignments.
 
-On Python 2:
+Here's the case where globals are not used (i.e. dest args):
 
-    >>> project.run("op1")  # doctest: -PY3
-    Traceback (most recent call last):
-    ...
-    ValueError: Attempted relative import in non-package
-    <exit 1>
+    >>> project.run("op-args")
+    hello from __main__ in pkg
+    hello from pkg.main_impl in pkg
 
-On Python 3 (specific error message differs across versions of Python
-but the type is ImportError):
+Here's the case where globals are used:
 
-    >>> project.run("op1")  # doctest: -PY2
-    Traceback (most recent call last):
-    ...
-    ImportError: ...
-    <exit 1>
-
-`op2` solves this by defining `MAIN_FUNCTION` env, which tells Guild
-how to load the module and how to invoke the main function.
-
-    >>> project.run("op2")
-    hello
+    >>> project.run("op-globals")
+    hello from __main__ in pkg
+    hello from pkg.main_impl in pkg

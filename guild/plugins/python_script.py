@@ -20,11 +20,11 @@ import json
 import os
 import subprocess
 import sys
-import yaml
 
 import six
-
 from six.moves import shlex_quote
+
+import yaml
 
 from guild import cli
 from guild import config
@@ -250,8 +250,18 @@ class PythonScriptPlugin(pluginlib.Plugin):
         flags_dest = self._script_flags_dest(script)
         if flags_dest == "args":
             data = self._load_argparse_flags_data(mod_path, sys_path)
+            _flags_test(
+                "%s found args:\n%s",
+                (_script_desc, script),
+                (_assigns_flag_data_desc, data),
+            )
         elif flags_dest == "globals":
             data = self._global_assigns_flags_data(script)
+            _flags_test(
+                "%s found global assigns:\n%s",
+                (_script_desc, script),
+                (_assigns_flag_data_desc, data),
+            )
         else:
             assert False, flags_dest
         data["$dest"] = flags_dest
@@ -259,8 +269,15 @@ class PythonScriptPlugin(pluginlib.Plugin):
 
     def _script_flags_dest(self, script):
         if self._imports_argparse(script):
+            _flags_test(
+                "%s imports argparse - assuming args", (_script_desc, script),
+            )
             return "args"
         else:
+            _flags_test(
+                "%s does not import argparse - assuming globals",
+                (_script_desc, script),
+            )
             return "globals"
 
     @staticmethod
@@ -388,3 +405,24 @@ def _log_warnings(out, log):
     for line in out.split("\n"):
         if line.startswith("WARNING:"):
             log.warning(line[9:])
+
+
+def _script_desc(script):
+    return os.path.relpath(script.src)
+
+
+def _flags_test(fmt, *args):
+    if os.getenv("FLAGS_TEST") == "1":
+        fmt_args = tuple([call[0](*call[1:]) for call in args])
+        cli.note_once(fmt % fmt_args)
+
+
+def _assigns_flag_data_desc(data, indent=2):
+    desc = yaml.safe_dump(data).strip()
+    return _indent(desc, indent)
+
+
+def _indent(s, indent):
+    lines = s.split("\n")
+    prefix = " " * indent
+    return "\n".join([prefix + line for line in lines])

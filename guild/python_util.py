@@ -369,23 +369,27 @@ def exec_script(filename, globals, mod_name="__main__"):
     https://docs.python.org/2/library/threading.html#importing-in-threaded-code
 
     """
+    if not globals:
+        globals = {}
     src = open(filename, "r").read()
     code = _compile_script(src, filename, _node_filter(globals))
     script_globals = dict(globals)
-    if mod_name != "__main__":
-        # Ensure parent modules loaded for relative imports.
-        _ensure_parent_mod_loaded(mod_name)
+    package_name, mod_name = _split_mod_name(mod_name)
+    _ensure_parent_mod_loaded(package_name)
     script_globals.update(
-        {"__name__": mod_name, "__file__": filename}
+        {"__package__": package_name, "__name__": mod_name, "__file__": filename}
     )
     exec(code, script_globals)
     return script_globals
 
 
-def _ensure_parent_mod_loaded(mod_name):
-    parts = mod_name.rsplit(".", 1)
-    if len(parts) == 2:
-        parent_mod_name = parts[0]
+def _split_mod_name(mod_name):
+    parts = mod_name.split(".")
+    return ".".join(parts[:-1]), parts[-1]
+
+
+def _ensure_parent_mod_loaded(parent_mod_name):
+    if parent_mod_name:
         __import__(parent_mod_name)
 
 

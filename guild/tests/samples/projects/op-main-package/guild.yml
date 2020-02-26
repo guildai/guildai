@@ -1,0 +1,7 @@
+op-globals:
+  flags-dest: globals
+  main: pkg.main
+
+op-args:
+  flags-dest: args
+  main: pkg.main

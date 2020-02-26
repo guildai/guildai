@@ -1,2 +1,0 @@
-def run():
-    print("hello")

@@ -52,6 +52,12 @@ class Debugger(pdb.Pdb):
         return module_name != "__main__"
 
 
+class ModuleInfo(object):
+    def __init__(self, info_tuple, package):
+        self.info_tuple = info_tuple
+        self.package = package
+
+
 def main():
     if os.getenv("PROFILE"):
         _profile_main()
@@ -185,14 +191,17 @@ def _find_module(module):
     """
     parts = module.split(".")
     module_path = parts[0:-1]
+    package = ".".join(module_path)
     module_name_part = parts[-1]
     # See function docstring for the rationale of this algorithm.
     for sys_path_item in sys.path:
         cur_path = os.path.join(sys_path_item, *module_path)
         try:
-            return imp.find_module(module_name_part, [cur_path])
+            info_tuple = imp.find_module(module_name_part, [cur_path])
         except ImportError:
             pass
+        else:
+            return ModuleInfo(info_tuple, package)
     raise ImportError("No module named %s" % module)
 
 
@@ -235,9 +244,9 @@ def _dispatch_module_exec(flags_interface, module_info):
     _maybe_test_internal_error()
     dest, args, flags = flags_interface
     if dest == "args":
-        _exec_module_with_args(module_info, args)
+        _exec_module(module_info, args)
     elif dest == "globals":
-        _exec_module_with_globals(module_info, flags, args)
+        _exec_module(module_info, args, flags)
     else:
         assert False, flags_interface
 
@@ -249,87 +258,8 @@ def _maybe_test_internal_error():
     assert os.getenv("__GUILD_OP_MAIN_INTERNAL_ERROR") != "1"
 
 
-def _exec_module_with_args(module_info, args):
-    _set_argv_for_module_with_args(module_info, args)
-    _module_main(module_info)
-
-
-def _set_argv_for_module_with_args(module_info, args):
-    _, path, _ = module_info
-    sys.argv = [path] + args
-    log.debug("argv: %s", sys.argv)
-
-
-def _module_main(module_info):
-    f, path, desc = module_info
-
-    def main():
-        if os.getenv("PYTHONWRITEBYTECODE") != "1":
-            sys.dont_write_bytecode = True
-        # imp.load_module resets globals to None - copy to restore on
-        # exception below.
-        globals_save = dict(globals())
-        load_as, main_function = _env_module_name_and_function()
-        log.debug("loading module as %s", load_as)
-        _check_path_hooks()
-        try:
-            module = imp.load_module(load_as, f, path, desc)
-        except:
-            # Restore global vals after exception generated in module
-            # load.
-            globals().update(globals_save)
-            raise
-        else:
-            if main_function:
-                log.debug("calling module function %s", main_function)
-                try:
-                    module_main = getattr(module, main_function)
-                except AttributeError:
-                    log.error("function %s not defined in %s", main_function, load_as)
-                    sys.exit(1)
-                else:
-                    module_main()
-
-    _gen_exec(module_info, main)
-
-
-def _check_path_hooks():
-    """Check path hooks for Guild model importer.
-
-    Guild installs a model importer in `guild.model` that can effect
-    normal Python module loading in cases where a Guild file is in the
-    same directory. `guild.model` should not be imported at this
-    point.
-    """
-    assert (
-        "guild.model" not in sys.modules
-    ), "guild.model should not be loaded at this point"
-
-
-def _env_module_name_and_function():
-    """Returns a tuple of module name and main function name for env.
-
-    The MAIN_FUNCTION env can be used to load/run a module using a
-    name other than '__main__'. This can be used to work-around the
-    problem when relative imports rely on a parent package. When the
-    module is loaded as '__main__', a parent package is not defined
-    and relative imports generate an error.
-    """
-    main_function_spec = os.getenv("MAIN_FUNCTION")
-    if not main_function_spec:
-        return "__main__", None
-    parts = main_function_spec.split(":", 1)
-    if len(parts) != 2 or not parts[0] or not parts[1]:
-        log.error(
-            "invalid MAIN_FUNCTION '%s' - must be in form MODULE:FUNCTION",
-            main_function_spec,
-        )
-        sys.exit(1)
-    return parts
-
-
 def _gen_exec(module_info, exec_cb):
-    f, path, desc = module_info
+    f, path, desc = module_info.info_tuple
     log.debug("loading module from '%s'", path)
     if os.getenv("SET_TRACE"):
         debugger = Debugger()
@@ -361,29 +291,38 @@ def _interrupt_handler():
     return handler
 
 
-def _exec_module_with_globals(module_info, globals, args):
-    _set_argv_for_module_with_args(module_info, args)
-    _module_with_globals(module_info, globals)
-
-
-def _module_with_globals(module_info, globals):
+def _exec_module(module_info, args, globals=None):
     from guild import python_util
 
-    _f, path, _desc = module_info
+    _set_argv_for_module_with_args(module_info, args)
+    _f, path, _desc = module_info.info_tuple
 
     def exec_script():
-        mod_name, main_function = _env_module_name_and_function()
-        script_globals = python_util.exec_script(path, globals, mod_name=mod_name)
-        if main_function:
-            try:
-                module_main = script_globals[main_function]
-            except KeyError:
-                log.error("function %s not defined in %s", main_function, mod_name)
-                sys.exit(1)
-            else:
-                module_main()
+        mod_name = _module_name_for_info(module_info)
+        python_util.exec_script(path, globals, mod_name=mod_name)
 
     _gen_exec(module_info, exec_script)
+
+
+def _set_argv_for_module_with_args(module_info, args):
+    _, path, _ = module_info.info_tuple
+    sys.argv = [path] + args
+    log.debug("argv: %s", sys.argv)
+
+
+def _module_name_for_info(module_info):
+    """Returns name used by `imp.load_module` for module info.
+
+    If module info contains a package, returns `<package.__main__`,
+    otherwise returns `__main__`.
+
+    This function assumes use of
+    `_patch_importlib_spec_from_file_location` to support loading main
+    modules with non-empty packages.
+    """
+    if not module_info.package:
+        return "__main__"
+    return "%s.__main__" % module_info.package
 
 
 def _internal_error(msg):
