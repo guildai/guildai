@@ -101,6 +101,7 @@ def _open_f(args):
 
 def _subproc_f(prog):
     cmd = shlex.split(prog)
+
     def f(path):
         p = subprocess.Popen(cmd + [path], bufsize=0)
         p.wait()
