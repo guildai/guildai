@@ -50,6 +50,12 @@ class TemplateError(PublishError):
         self._e = e
 
     def __str__(self):
+        if hasattr(self._e, "filename"):
+            return self._default_str()
+        else:
+            return super(TemplateError, self).__str__()
+
+    def _default_str(self):
         e = self._e
         msg = e.filename
         if hasattr(e, "lineno"):
@@ -218,6 +224,13 @@ def _init_file_templates(path, run_dest=None, filters=None):
 
 
 def _init_file_template(path, run_dest=None, filters=None):
+    """Returns template for path or None if path is not a text file.
+
+    Raises TemplateError if path does not exist or cannot be parsed as
+    a template.
+    """
+    if not os.path.exists(path):
+        raise TemplateError("%s does not exist" % path)
     if not util.is_text_file(path):
         return None
     dirname, basename = os.path.split(path)
@@ -302,7 +315,7 @@ def _init_publish_run_state(
 def _run_opdef(run):
     try:
         gf = guildfile.for_run(run)
-    except (guildfile.NoModels, TypeError):
+    except (guildfile.NoModels, guildfile.GuildfileMissing, TypeError):
         return None
     else:
         assert run.opref, run.path
@@ -723,14 +736,14 @@ def _template_config(opdef):
     return {name.replace("-", "_"): val for name, val in config.items()}
 
 
-def refresh_index(dest):
+def refresh_index(dest, index_template_path=None):
     dest_home = dest or DEFAULT_DEST_HOME
-    index_template_path = _local_path("templates/runs-index/README.md")
-    index_template = _init_file_template(index_template_path)
-    assert index_template, index_template_path
+    if not index_template_path:
+        index_template_path = _local_path("templates/runs-index/README.md")
+    template = _init_file_template(index_template_path)
     index_path = os.path.join(dest_home, "README.md")
     runs = _published_runs(dest_home)
-    _render_template(index_template, {"runs": runs}, index_path)
+    _render_template(template, {"runs": runs}, index_path)
 
 
 def _published_runs(dest_home):

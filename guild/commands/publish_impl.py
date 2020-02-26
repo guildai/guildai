@@ -19,6 +19,7 @@ import os
 
 from guild import batch_util
 from guild import cli
+from guild import config
 from guild import publish as publishlib
 from guild import util
 
@@ -102,7 +103,31 @@ def _refresh_index(args, no_dest=False):
     else:
         dest_suffix = " in %s" % (args.dest or publishlib.DEFAULT_DEST_HOME)
     print("Refreshing runs index%s" % dest_suffix)
-    publishlib.refresh_index(args.dest)
+    index_template = _index_template(args)
+    try:
+        publishlib.refresh_index(args.dest, index_template)
+    except publishlib.TemplateError as e:
+        cli.error("error refreshing index: %s" % e)
+
+
+def _index_template(args):
+    if not args.index_template:
+        return None
+    index_template = os.path.join(config.cwd(), args.index_template)
+    if not os.path.exists(index_template):
+        cli.error("index template '%s' does not exist" % index_template)
+    if os.path.isdir(index_template):
+        return _index_template_readme(index_template)
+    else:
+        return index_template
+
+
+def _index_template_readme(dir):
+    assert os.path.isdir(dir), dir
+    path = os.path.join(dir, "README.md")
+    if not os.path.exists(path):
+        cli.error("index template '%s' is missing README.md" % dir)
+    return path
 
 
 def _report_dir_size(args):

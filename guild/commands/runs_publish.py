@@ -33,7 +33,12 @@ def publish_params(fn):
             click.Option(
                 ("-t", "--template"),
                 metavar="VAL",
-                help="Template used to publish runs.",
+                help="Run template used to publish runs.",
+            ),
+            click.Option(
+                ("-i", "--index-template"),
+                metavar="VAL",
+                help="Index template used to publish runs.",
             ),
             click.Option(
                 ("-f", "--files"), help="Publish default run files.", is_flag=True
