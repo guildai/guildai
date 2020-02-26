@@ -29,7 +29,7 @@ def publish(args, ctx=None):
     if args.files and args.all_files:
         cli.error("--files and --all-files cannot both be used")
     if args.refresh_index:
-        _refresh_publish_index(args)
+        _refresh_index(args)
     else:
         _publish(args, ctx)
     _report_dir_size(args)
@@ -44,7 +44,7 @@ def _publish(args, ctx):
 
     def publish_f(runs, formatted):
         _publish_runs(runs, formatted, args)
-        _refresh_publish_index(args, no_dest=True)
+        _refresh_index(args, no_dest=True)
 
     def select_runs_f(args, ctx, default_runs_arg, force_deleted):
         runs = runs_impl.runs_op_selected(args, ctx, default_runs_arg, force_deleted)
@@ -96,7 +96,7 @@ def _publish_runs(runs, formatted, args):
             cli.out("using %s" % util.format_bytes(size))
 
 
-def _refresh_publish_index(args, no_dest=False):
+def _refresh_index(args, no_dest=False):
     if no_dest:
         dest_suffix = ""
     else:
