@@ -33,6 +33,8 @@ from . import runs_impl
 
 log = logging.getLogger("guild")
 
+TAIL_BUFFER = 4096
+
 
 def main(args, ctx):
     if args.pid:
@@ -159,9 +161,9 @@ def _tail(run):
         return
     with f:
         while True:
-            line = f.readline()
-            if line:
-                sys.stdout.write(line)
+            out = f.read(TAIL_BUFFER)
+            if out:
+                sys.stdout.write(out)
                 sys.stdout.flush()
             elif proc.is_running():
                 time.sleep(0.1)

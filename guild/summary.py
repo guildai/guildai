@@ -358,7 +358,7 @@ def _match_line(line, patterns):
 
 def _line_to_match(line):
     if isinstance(line, bytes):
-        line = line.decode()
+        line = line.decode(errors="ignore")
     return line.rstrip()
 
 

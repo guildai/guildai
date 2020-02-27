@@ -182,13 +182,13 @@ class RunOutput(object):
             with lock:
                 if stream_fileno is not None:
                     os_write(stream_fileno, buf)
+                os_write(output_fileno, buf)
                 for b in buf:
                     if b < 9:  # non-printable
                         continue
                     line.append(b)
                     if b == LF:
                         line_bytes = BYTES_JOIN(line)
-                        os_write(output_fileno, line_bytes)
                         line = []
                         entry = struct.pack("!QB", int(time_() * 1000), stream_type)
                         os_write(index_fileno, entry)
