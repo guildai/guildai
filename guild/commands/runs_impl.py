@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import datetime
+import errno
 import inspect
 import json
 import logging
@@ -989,8 +990,7 @@ def export(args, ctx):
             )
             if not cli.confirm("Really copy resources exported runs?"):
                 return
-        util.ensure_dir(args.location)
-        util.touch(os.path.join(args.location, ".guild-nocopy"))
+        _init_export_dir(args.location)
         exported = 0
         for run in selected:
             dest = os.path.join(args.location, run.id)
@@ -1014,9 +1014,22 @@ def export(args, ctx):
     runs_op(args, ctx, False, preview, confirm, no_runs, export, ALL_RUNS_ARG, True)
 
 
+def _init_export_dir(dir):
+    util.ensure_dir(dir)
+    try:
+        util.touch(os.path.join(dir, ".guild-nocopy"))
+    except IOError as e:
+        if e.errno == errno.ENOTDIR:
+            cli.error("'%s' is not a directory" % dir)
+        else:
+            cli.error("error initializing export directory '%s': %s" % (dir, e))
+
+
 def import_(args, ctx):
+    if not os.path.exists(args.archive):
+        cli.error("archive '%s' does not exist" % args.archive)
     if not os.path.isdir(args.archive):
-        cli.error("directory '{}' does not exist".format(args.archive))
+        cli.error("invalid archive '%s' - expected a directory" % args.archive)
     preview = "You are about to import (%s) the following runs from '%s':" % (
         args.move and "move" or "copy",
         args.archive,
@@ -1029,7 +1042,6 @@ def import_(args, ctx):
             cli.out(
                 "WARNING: you have specified --copy-resources, which will "
                 "copy resources used by each run!"
-                ""
             )
             if not cli.confirm("Really copy resources exported runs?"):
                 return

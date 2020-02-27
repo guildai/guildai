@@ -54,6 +54,9 @@ def import_params(fn):
 def import_runs(ctx, args):
     """Import one or more runs from `ARCHIVE`.
 
+    `ARCHIVE` must be a directory that contains exported runs. Archive
+    directories can be created using ``guild export``.
+
     You may use ``guild runs list --archive ARCHIVE`` to view runs in
     `ARCHIVE`.
 

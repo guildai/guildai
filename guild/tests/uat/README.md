@@ -258,6 +258,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [api-example](api-example.md)
 - [flags-test](flags-test.md)
 - [guild-open](guild-open.md)
+- [export-import](export-import.md)
 
 ## Error cases
 
