@@ -151,7 +151,7 @@ system path:
     ...   "model:test",
     ...   cwd=path(projects, "b"),
     ...   run_dir=b_test_run_dir,
-    ...   extra_env={"PYTHONPATH": "..",
+    ...   extra_env={"PYTHONPATH": projects,
     ...              "NO_WARN_RUNDIR": "1"})
     >>> print(output)
     Resolving msg_file dependency
@@ -170,7 +170,7 @@ Next we'll run `c/model:test`:
     ...   "model:test",
     ...   cwd=path(projects, "c"),
     ...   run_dir=c_test_run_dir,
-    ...   extra_env={"PYTHONPATH": "..",
+    ...   extra_env={"PYTHONPATH": projects,
     ...              "NO_WARN_RUNDIR": "1"})
     >>> print(output)
     Resolving msg_file dependency
