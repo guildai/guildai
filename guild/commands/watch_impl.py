@@ -159,10 +159,13 @@ def _tail(run):
     f = _wait_for_output(proc, output_path)
     if not f:
         return
+    read = 0
     with f:
         while True:
+            f.seek(read)
             out = f.read(TAIL_BUFFER)
             if out:
+                read += len(out)
                 sys.stdout.write(out)
                 sys.stdout.flush()
             elif proc.is_running():
@@ -186,10 +189,10 @@ def _print_output(run):
     if not f:
         return
     while True:
-        line = f.readline()
-        if not line:
+        out = f.read(TAIL_BUFFER)
+        if not out:
             break
-        sys.stdout.write(line)
+        sys.stdout.write(out)
         sys.stdout.flush()
 
 
