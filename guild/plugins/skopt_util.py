@@ -28,6 +28,7 @@ with warnings.catch_warnings():
 
 from guild import batch_util
 from guild import flag_util
+from guild import log as loglib
 from guild import op_util
 from guild import query as qparse
 
@@ -309,7 +310,7 @@ def _log_seq_trial(
         log.info("Random start for optimization (%s)", explanation)
     else:
         log.info("Found %i previous trial(s) for use in optimization", len(prev_trials))
-
+    loglib.flush(log)
 
 def _random_start_explanation(random_starts, runs_count, x0, prev_trials, objective):
     if runs_count < random_starts:

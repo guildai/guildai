@@ -25,6 +25,7 @@ import time
 from guild import _api as gapi
 from guild import exit_code
 from guild import index2 as indexlib
+from guild import log as loglib
 from guild import op_util
 from guild import run_util
 from guild import util
@@ -138,6 +139,7 @@ def _log_start_trial(run, stage):
         run_util.format_operation(run),
         _trial_flags_desc(run),
     )
+    loglib.flush(log)
 
 
 def _maybe_trial_delay():
