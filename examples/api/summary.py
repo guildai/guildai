@@ -1,6 +1,8 @@
 import argparse
 import os
 
+import pandas as pd
+
 from guild import ipy as guild
 
 
@@ -27,7 +29,8 @@ def _best_runs(args):
 
 
 def _summarize(runs):
-    print(runs)
+    with pd.option_context("display.max_columns", None, "display.width", None):
+        print(runs)
 
 
 def _link_runs(runs, args):
@@ -37,6 +40,7 @@ def _link_runs(runs, args):
 
 def _link_run(run, args):
     os.symlink(run.dir, os.path.join(args.output, run.id))
+
 
 if __name__ == "__main__":
     main()
