@@ -22,7 +22,6 @@ import six
 from guild import _api as gapi
 from guild import cli
 from guild import exit_code
-from guild import log as loglib
 from guild import op_util
 from guild import run as runlib
 from guild import util
@@ -82,7 +81,6 @@ class Trial(object):
                 self._run_desc(trial_run),
                 self._flags_desc(),
             )
-            loglib.flush(log)
 
     def _init_trial_run(self, run_dir=None):
         assert isinstance(self.flags, dict), self.flags
@@ -133,7 +131,6 @@ class Trial(object):
                 opspec,
                 self._flags_desc(),
             )
-            loglib.flush(log)
         try:
             gapi.run(
                 restart=trial_run.path,
@@ -294,7 +291,6 @@ class Batch(object):
                 "changed (--needed specified)",
                 trial.run_id,
             )
-            loglib.flush(log)
             return
         trial.run()
 

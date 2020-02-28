@@ -25,7 +25,6 @@ import time
 from guild import _api as gapi
 from guild import exit_code
 from guild import index2 as indexlib
-from guild import log as loglib
 from guild import op_util
 from guild import run_util
 from guild import util
@@ -117,7 +116,7 @@ def _start_trial_run(run, stage=False):
 
     _log_start_trial(run, stage)
     run_impl.run(restart=run.id, stage=stage)
-    _maybe_trial_delay()
+    sys.stdout.flush()
 
 
 def _trial_op_attr(proto_run, trial_flag_vals):
@@ -139,13 +138,6 @@ def _log_start_trial(run, stage):
         run_util.format_operation(run),
         _trial_flags_desc(run),
     )
-    loglib.flush(log)
-
-
-def _maybe_trial_delay():
-    delay = os.getenv("TRIAL_DELAY")
-    if delay:
-        time.sleep(float(delay))
 
 
 def _trial_name(run):

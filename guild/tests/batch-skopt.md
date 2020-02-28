@@ -28,17 +28,11 @@ A helper to run an optimizer batch:
 We ignore messages from skopt that may be reasonably generated due to
 random effects.
 
-NOTE: The use of TRIAL_DELAY env below is a workaround for persistent
-test failure in some cases where trial and batch output lines are out
-of order. This would appear to be issue where stdout is buffered and
-displayed out of order following non-buffered stderr output.
-
 ## Bayesian with gaussian process
 
 Range without an initial value:
 
-    >>> with Env({"TRIAL_DELAY": "1"}):
-    ...    run("gp", "[-2.0:2.0]", 5)
+    >>> run("gp", "[-2.0:2.0]", 5)
     INFO: [guild] Random start for optimization (1 of 3)
     INFO: [guild] Running trial ...: noisy.py (noise=0.1, x=...)
     x: ...

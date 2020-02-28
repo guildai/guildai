@@ -127,10 +127,3 @@ def current_settings():
 
 def dim(text):
     return "\x1b[2m%s\x1b[0m" % text
-
-
-def flush(log):
-    for h in log.handlers:
-        h.flush()
-    if log.parent:
-        flush(log.parent)
