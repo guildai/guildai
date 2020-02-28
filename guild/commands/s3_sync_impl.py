@@ -96,7 +96,7 @@ def _sync_once(state):
         state.s3_uri + "/runs/",
     ]
     p = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
     )
     while True:
         line = p.stdout.readline()

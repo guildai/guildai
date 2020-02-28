@@ -116,7 +116,6 @@ def _start_trial_run(run, stage=False):
 
     _log_start_trial(run, stage)
     run_impl.run(restart=run.id, stage=stage)
-    sys.stdout.flush()
 
 
 def _trial_op_attr(proto_run, trial_flag_vals):

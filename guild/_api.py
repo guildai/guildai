@@ -51,7 +51,7 @@ class Env(object):
 
 def run(*args, **kw):
     args, cwd, env = _popen_args(*args, **kw)
-    p = subprocess.Popen(args, cwd=cwd, env=env, bufsize=0)
+    p = subprocess.Popen(args, cwd=cwd, env=env)
     returncode = p.wait()
     if returncode != 0:
         raise RunError((args, cwd, env), returncode)
@@ -65,7 +65,6 @@ def run_capture_output(*args, **kw):
         env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        bufsize=0,
     )
     out, _err = p.communicate()
     out = out.decode()
