@@ -9,7 +9,9 @@ environment:
     - PYTHON: "C:\\Python35-x64"
     - PYTHON: "C:\\Python36-x64"
     - PYTHON: "C:\\Python37-x64"
-    - PYTHON: "C:\\Python38-x64"
+    # Disable for 0.7 pre-release
+    # See https://ci.appveyor.com/project/GuildAI/guildai/builds/31131417/job/g9r6vucfl0cnmhba
+    #- PYTHON: "C:\\Python38-x64"
 
 install:
   - "%PYTHON%\\python.exe -m pip install -U setuptools"
