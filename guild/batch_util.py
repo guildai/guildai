@@ -20,7 +20,6 @@ import logging
 import os
 import random
 import sys
-import time
 
 from guild import _api as gapi
 from guild import exit_code
