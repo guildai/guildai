@@ -356,7 +356,7 @@ def scripts_for_dir(dir, exclude=None):
     ]
 
 
-def exec_script(filename, globals, mod_name="__main__"):
+def exec_script(filename, globals=None, mod_name="__main__"):
     """Execute a Python script.
 
     This function can be used to execute a Python module as code
@@ -371,10 +371,11 @@ def exec_script(filename, globals, mod_name="__main__"):
     """
     if not globals:
         globals = {}
+    node_filter = _node_filter(globals) if globals else None
     src = open(filename, "r").read()
-    code = _compile_script(src, filename, _node_filter(globals))
+    code = _compile_script(src, filename, node_filter)
     script_globals = dict(globals)
-    package_name, mod_name = _split_mod_name(mod_name)
+    package_name, mod_name = split_mod_name(mod_name)
     _ensure_parent_mod_loaded(package_name)
     script_globals.update(
         {"__package__": package_name, "__name__": mod_name, "__file__": filename}
@@ -383,14 +384,17 @@ def exec_script(filename, globals, mod_name="__main__"):
     return script_globals
 
 
-def _split_mod_name(mod_name):
+def split_mod_name(mod_name):
     parts = mod_name.split(".")
     return ".".join(parts[:-1]), parts[-1]
 
 
 def _ensure_parent_mod_loaded(parent_mod_name):
     if parent_mod_name:
-        __import__(parent_mod_name)
+        try:
+            __import__(parent_mod_name)
+        except ValueError:
+            assert False, parent_mod_name
 
 
 def _node_filter(globals):
@@ -408,13 +412,14 @@ def _node_filter(globals):
     return f
 
 
-def _compile_script(src, filename, node_filter):
+def _compile_script(src, filename, node_filter=None):
     import __future__
 
     ast_root = ast.parse(src, filename)
-    filtered_ast_root = _filter_nodes(ast_root, node_filter)
+    if node_filter:
+        ast_root = _filter_nodes(ast_root, node_filter)
     flags = __future__.absolute_import.compiler_flag
-    return compile(filtered_ast_root, filename, "exec", flags=flags, dont_inherit=True)
+    return compile(ast_root, filename, "exec", flags=flags, dont_inherit=True)
 
 
 def _filter_nodes(root, node_filter):

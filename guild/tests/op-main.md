@@ -44,7 +44,7 @@ When we run with the debug option, we get the full stack:
         _main()
       ...
       File ".../guild/op_main.py", line ..., in exec_script
-        python_util.exec_script(path, globals, mod_name=mod_name)
+        python_util.exec_script(module_info.mod_path, globals, mod_name=mod_name)
       File ".../guild/python_util.py", line ..., in exec_script
         exec(code, script_globals)
       File ".../.guild/sourcecode/fail.py", line 17, in <module>

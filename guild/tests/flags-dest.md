@@ -54,10 +54,12 @@ And our run helper:
     >>> from guild import _api as gapi
 
     >>> def run(op, **flags):
-    ...   out = gapi.run_capture_output(
-    ...           op, cwd=project, guild_home=workspace,
-    ...           flags=flags)
-    ...   print(out.strip())
+    ...   with Env({"NO_IMPORT_FLAGS_CACHE": "1",
+    ...             "NO_IMPORT_FLAGS_PROGRESS": "1"}):
+    ...       out = gapi.run_capture_output(
+    ...               op, cwd=project, guild_home=workspace,
+    ...               flags=flags)
+    ...       print(out.strip())
 
 ## Flags as args
 

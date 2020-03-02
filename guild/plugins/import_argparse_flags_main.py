@@ -15,81 +15,74 @@
 # The odd naming convention below is to minimize the changes of
 # colliding with symbols in the imported module.
 
-import warnings as ___warnings
+import argparse as argparse
+import json as json
+import logging as logging
+import os as os
+import sys as sys
 
-with ___warnings.catch_warnings():
-    ___warnings.filterwarnings('ignore', category=DeprecationWarning)
-    import imp as ___imp
+from guild import python_util as python_util
 
-import argparse as ___argparse
-import json as ___json
-import logging as ___logging
-import os as ___os
-import sys as ___sys
+P_FLAGS = {}
 
-from guild import python_util as ___python_util
-
-___P_FLAGS = {}
-
-___action_types = (
-    ___argparse._StoreAction,
-    ___argparse._StoreTrueAction,
-    ___argparse._StoreFalseAction,
+action_types = (
+    argparse._StoreAction,
+    argparse._StoreTrueAction,
+    argparse._StoreFalseAction,
 )
 
 
-def ___init_log():
-    level = int(___os.getenv("LOG_LEVEL", ___logging.WARN))
-    format = ___os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
-    ___logging.basicConfig(level=level, format=format)
-    return ___logging.getLogger("import_flags_main")
+def _init_log():
+    level = int(os.getenv("LOG_LEVEL", logging.WARN))
+    format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
+    logging.basicConfig(level=level, format=format)
+    return logging.getLogger("import_flags_main")
 
 
-___log = ___init_log()
+log = _init_log()
 
 
-def ___main():
-    args = ___init_args()
-    ___patch_argparse(args.output_path)
+def main():
+    args = _init_args()
+    _patch_argparse(args.output_path)
     # Importing module has the side-effect of writing flag data due to
     # patched argparse.
-    ___exec_module(args.mod_path)
+    _exec_module(args.mod_path, args.package)
 
 
-def ___init_args():
-    p = ___argparse.ArgumentParser()
+def _init_args():
+    p = argparse.ArgumentParser()
     p.add_argument("mod_path")
+    p.add_argument("package")
     p.add_argument("output_path")
     return p.parse_args()
 
 
-def ___patch_argparse(output_path):
-    ___python_util.listen_method(
-        ___argparse.ArgumentParser, "add_argument", ___handle_add_argument
+def _patch_argparse(output_path):
+    python_util.listen_method(
+        argparse.ArgumentParser, "add_argument", _handle_add_argument
     )
-    ___handle_parse = lambda parse_args, *_args, **_kw: ___write_flags_and_exit(
+    handle_parse = lambda parse_args, *_args, **_kw: _write_flags_and_exit(
         parse_args, output_path
     )
     # parse_known_args is called by parse_args, so this handled both
     # cases.
-    ___python_util.listen_method(
-        ___argparse.ArgumentParser, "parse_known_args", ___handle_parse
-    )
+    python_util.listen_method(argparse.ArgumentParser, "parse_known_args", handle_parse)
 
 
-def ___handle_add_argument(add_argument_f, *args, **kw):
-    ___log.debug("handling add_argument: %s %s", args, kw)
-    parser = ___wrapped_parser(add_argument_f)
+def _handle_add_argument(add_argument_f, *args, **kw):
+    log.debug("handling add_argument: %s %s", args, kw)
+    parser = _wrapped_parser(add_argument_f)
     action = add_argument_f(*args, **kw)
-    ___maybe_flag(parser, action)
-    raise ___python_util.Result(action)
+    _maybe_flag(parser, action)
+    raise python_util.Result(action)
 
 
-def ___wrapped_parser(f):
-    return ___closure_parser(___f_closure(f))
+def _wrapped_parser(f):
+    return _closure_parser(_f_closure(f))
 
 
-def ___f_closure(f):
+def _f_closure(f):
     try:
         return f.__closure__
     except AttributeError:
@@ -99,51 +92,51 @@ def ___f_closure(f):
             assert False, (type(f), dir(f))
 
 
-def ___closure_parser(closure):
+def _closure_parser(closure):
     assert isinstance(closure, tuple), (type(closure), closure)
     assert len(closure) == 2, closure
     parser = closure[1].cell_contents
-    assert isinstance(parser, ___argparse.ArgumentParser), (type(parser), parser)
+    assert isinstance(parser, argparse.ArgumentParser), (type(parser), parser)
     return parser
 
 
-def ___maybe_flag(parser, action):
-    flag_name = ___flag_name(action)
+def _maybe_flag(parser, action):
+    flag_name = _flag_name(action)
     if not flag_name:
-        ___log.debug("skipping %s - not a flag option", action)
+        log.debug("skipping %s - not a flag option", action)
         return
-    if not isinstance(action, ___action_types):
-        ___log.debug("skipping %s - not an action type", action)
+    if not isinstance(action, action_types):
+        log.debug("skipping %s - not an action type", action)
         return
-    flags = ___P_FLAGS.setdefault(parser, {})
+    flags = P_FLAGS.setdefault(parser, {})
     flags[flag_name] = attrs = {}
     if action.help:
         attrs["description"] = action.help
     if action.default is not None:
-        attrs["default"] = ___ensure_json_encodable(action.default, flag_name)
+        attrs["default"] = _ensure_json_encodable(action.default, flag_name)
     if action.choices:
-        attrs["choices"] = ___ensure_json_encodable(action.choices, flag_name)
+        attrs["choices"] = _ensure_json_encodable(action.choices, flag_name)
     if action.required:
         attrs["required"] = True
-    if isinstance(action, ___argparse._StoreTrueAction):
+    if isinstance(action, argparse._StoreTrueAction):
         attrs["arg-switch"] = True
-    elif isinstance(action, ___argparse._StoreFalseAction):
+    elif isinstance(action, argparse._StoreFalseAction):
         attrs["arg-switch"] = False
-    ___log.debug("added flag %s", attrs)
+    log.debug("added flag %s", attrs)
 
 
-def ___flag_name(action):
+def _flag_name(action):
     for opt in action.option_strings:
         if opt.startswith("--"):
             return opt[2:]
     return None
 
 
-def ___ensure_json_encodable(x, flag_name):
+def _ensure_json_encodable(x, flag_name):
     try:
-        ___json.dumps(x)
+        json.dumps(x)
     except TypeError:
-        ___log.warning(
+        log.warning(
             "cannot serialize value %r for flag %s - coercing to string", x, flag_name
         )
         return str(x)
@@ -151,23 +144,27 @@ def ___ensure_json_encodable(x, flag_name):
         return x
 
 
-def ___write_flags_and_exit(parse_args_f, output_path):
-    parser = ___wrapped_parser(parse_args_f)
-    flags = ___P_FLAGS.get(parser, {})
+def _write_flags_and_exit(parse_args_f, output_path):
+    parser = _wrapped_parser(parse_args_f)
+    flags = P_FLAGS.get(parser, {})
     assert isinstance(flags, dict), flags
-    ___log.debug("writing flags to %s: %s", output_path, flags)
+    log.debug("writing flags to %s: %s", output_path, flags)
     with open(output_path, "w") as f:
-        ___json.dump(flags, f)
+        json.dump(flags, f)
 
 
-def ___exec_module(mod_path):
+def _exec_module(mod_path, package):
     assert mod_path.endswith(".py")
-    f = open(mod_path, "r")
-    details = (".py", "r", 1)
-    ___sys.argv = [mod_path, "--help"]
-    ___log.debug("loading module from '%s'", mod_path)
-    ___imp.load_module("__main__", f, mod_path, details)
+    sys.argv = [mod_path, "--help"]
+    log.debug("loading module from '%s'", mod_path)
+    python_util.exec_script(mod_path, mod_name=_exec_mod_name(package))
+
+
+def _exec_mod_name(package):
+    if package:
+        return "%s.__main__" % package
+    return "__main__"
 
 
 if __name__ == "__main__":
-    ___main()
+    main()

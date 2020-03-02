@@ -110,7 +110,7 @@ class PythonScriptModelProxy(object):
 
     def _flags_data(self):
         plugin = pluginlib.for_name("python_script")
-        return plugin.flags_data_for_path(self.script_path, ".")
+        return plugin._flags_data_for_path(self.script_path, "", ".")
 
     @staticmethod
     def _sourcecode():
@@ -186,24 +186,27 @@ class PythonScriptPlugin(pluginlib.Plugin):
         try:
             flags_data = local_cache[main_mod]
         except KeyError:
-            flags_data = self._flags_data_(main_mod, model_paths)
+            flags_data = self._flags_data_(main_mod, model_paths, opdef.flags_dest)
             local_cache[main_mod] = flags_data
         return flags_data
 
-    def _flags_data_(self, main_mod, model_paths):
+    def _flags_data_(self, main_mod, model_paths, flags_dest):
         try:
             sys_path, mod_path = python_util.find_module(main_mod, model_paths)
         except ImportError as e:
             self.log.warning("cannot import flags from %s: %s", main_mod, e)
             return {}
         else:
-            return self.flags_data_for_path(mod_path, sys_path)
+            package = python_util.split_mod_name(main_mod)[0]
+            return self._flags_data_for_path(mod_path, package, sys_path, flags_dest)
 
-    def flags_data_for_path(self, mod_path, sys_path):
+    def _flags_data_for_path(self, mod_path, mod_package, sys_path, flags_dest=None):
         data, cached_data_path = self._cached_data(mod_path)
         if data is not None:
             return data
-        return self._load_and_cache_flags_data(mod_path, sys_path, cached_data_path)
+        return self._load_and_cache_flags_data(
+            mod_path, mod_package, sys_path, flags_dest, cached_data_path
+        )
 
     def _cached_data(self, mod_path):
         cached_path = self._cached_data_path(mod_path)
@@ -227,12 +230,16 @@ class PythonScriptPlugin(pluginlib.Plugin):
             return False
         return os.path.getmtime(mod_path) <= os.path.getmtime(cache_path)
 
-    def _load_and_cache_flags_data(self, mod_path, sys_path, cached_data_path):
+    def _load_and_cache_flags_data(
+        self, mod_path, mod_package, sys_path, flags_dest, cached_data_path
+    ):
         if os.getenv("NO_IMPORT_FLAGS_PROGRESS") != "1":
             cli.note_once("Refreshing flags...")
         script = python_util.Script(mod_path)
         try:
-            data = self._flags_data_for_script(script, mod_path, sys_path)
+            data = self._flags_data_for_script(
+                script, mod_path, mod_package, sys_path, flags_dest
+            )
         except DataLoadError:
             return {}
         else:
@@ -246,16 +253,18 @@ class PythonScriptPlugin(pluginlib.Plugin):
         with open(path, "w") as f:
             json.dump(data, f)
 
-    def _flags_data_for_script(self, script, mod_path, sys_path):
-        flags_dest = self._script_flags_dest(script)
+    def _flags_data_for_script(
+        self, script, mod_path, mod_package, sys_path, flags_dest
+    ):
+        flags_dest = flags_dest or self._script_flags_dest(script)
         if flags_dest == "args":
-            data = self._load_argparse_flags_data(mod_path, sys_path)
+            data = self._load_argparse_flags_data(mod_path, mod_package, sys_path)
             _flags_test(
                 "%s found args:\n%s",
                 (_script_desc, script),
                 (_assigns_flag_data_desc, data),
             )
-        elif flags_dest == "globals":
+        elif flags_dest == "globals" or flags_dest.startswith("global"):
             data = self._global_assigns_flags_data(script)
             _flags_test(
                 "%s found global assigns:\n%s",
@@ -263,7 +272,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 (_assigns_flag_data_desc, data),
             )
         else:
-            assert False, flags_dest
+            data = {}
         data["$dest"] = flags_dest
         return data
 
@@ -284,7 +293,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
     def _imports_argparse(script):
         return "argparse" in script.imports
 
-    def _load_argparse_flags_data(self, mod_path, sys_path):
+    def _load_argparse_flags_data(self, mod_path, mod_package, sys_path):
         env = dict(os.environ)
         env.update(
             {
@@ -294,13 +303,13 @@ class PythonScriptPlugin(pluginlib.Plugin):
             }
         )
         with util.TempFile() as tmp:
-            data_path = tmp.path
             cmd = [
                 sys.executable,
                 "-m",
                 "guild.plugins.import_argparse_flags_main",
                 mod_path,
-                data_path,
+                mod_package,
+                tmp.path,
             ]
             self.log.debug("import_argparse_flags_main env: %s", env)
             self.log.debug("import_argparse_flags_main cmd: %s", cmd)
@@ -317,7 +326,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 out = out.decode()
                 self.log.debug("import_argparse_flags_main output: %s", out)
                 _log_warnings(out, self.log)
-                return self._load_data(data_path)
+                return self._load_data(tmp.path)
 
     @staticmethod
     def _load_data(path):

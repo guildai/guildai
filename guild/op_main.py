@@ -53,8 +53,8 @@ class Debugger(pdb.Pdb):
 
 
 class ModuleInfo(object):
-    def __init__(self, info_tuple, package):
-        self.info_tuple = info_tuple
+    def __init__(self, mod_path, package):
+        self.mod_path = mod_path
         self.package = package
 
 
@@ -197,11 +197,12 @@ def _find_module(module):
     for sys_path_item in sys.path:
         cur_path = os.path.join(sys_path_item, *module_path)
         try:
-            info_tuple = imp.find_module(module_name_part, [cur_path])
+            f, path, _desc = imp.find_module(module_name_part, [cur_path])
         except ImportError:
             pass
         else:
-            return ModuleInfo(info_tuple, package)
+            f.close()
+            return ModuleInfo(path, package)
     raise ImportError("No module named %s" % module)
 
 
@@ -258,24 +259,6 @@ def _maybe_test_internal_error():
     assert os.getenv("__GUILD_OP_MAIN_INTERNAL_ERROR") != "1"
 
 
-def _gen_exec(module_info, exec_cb):
-    f, path, desc = module_info.info_tuple
-    log.debug("loading module from '%s'", path)
-    if os.getenv("SET_TRACE"):
-        debugger = Debugger()
-        debugger.runcall(imp.load_module, "__main__", f, path, desc)
-    else:
-        # Use a closure to handle anything post load_module, which
-        # effectively refefines the current module namespace.
-        handle_interrupt = _interrupt_handler()
-        try:
-            exec_cb()
-        except KeyboardInterrupt:
-            if not handle_interrupt:
-                raise
-            handle_interrupt()
-
-
 def _interrupt_handler():
     """Returns interrupt handler that's independent of module namespace."""
     if os.getenv("HANDLE_KEYBOARD_INTERRUPT"):
@@ -295,34 +278,45 @@ def _exec_module(module_info, args, globals=None):
     from guild import python_util
 
     _set_argv_for_module_with_args(module_info, args)
-    _f, path, _desc = module_info.info_tuple
 
     def exec_script():
         mod_name = _module_name_for_info(module_info)
-        python_util.exec_script(path, globals, mod_name=mod_name)
+        log.debug("loading module from '%s'", module_info.mod_path)
+        python_util.exec_script(module_info.mod_path, globals, mod_name=mod_name)
 
-    _gen_exec(module_info, exec_script)
+    _gen_exec(exec_script)
+
+
+def _gen_exec(exec_cb):
+    if os.getenv("SET_TRACE") == "1":
+        debugger = Debugger()
+        debugger.runcall(exec_cb)
+    else:
+        # Use a closure to handle anything post load_module, which
+        # effectively refefines the current module namespace.
+        handle_interrupt = _interrupt_handler()
+        try:
+            exec_cb()
+        except KeyboardInterrupt:
+            if not handle_interrupt:
+                raise
+            handle_interrupt()
 
 
 def _set_argv_for_module_with_args(module_info, args):
-    _, path, _ = module_info.info_tuple
-    sys.argv = [path] + args
+    sys.argv = [module_info.mod_path] + args
     log.debug("argv: %s", sys.argv)
 
 
 def _module_name_for_info(module_info):
-    """Returns name used by `imp.load_module` for module info.
+    """Returns module name for module info.
 
     If module info contains a package, returns `<package.__main__`,
     otherwise returns `__main__`.
-
-    This function assumes use of
-    `_patch_importlib_spec_from_file_location` to support loading main
-    modules with non-empty packages.
     """
-    if not module_info.package:
-        return "__main__"
-    return "%s.__main__" % module_info.package
+    if module_info.package:
+        return "%s.__main__" % module_info.package
+    return "__main__"
 
 
 def _internal_error(msg):
