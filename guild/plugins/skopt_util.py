@@ -310,6 +310,7 @@ def _log_seq_trial(
     else:
         log.info("Found %i previous trial(s) for use in optimization", len(prev_trials))
 
+
 def _random_start_explanation(random_starts, runs_count, x0, prev_trials, objective):
     if runs_count < random_starts:
         return "%s of %s" % (runs_count + 1, random_starts)
