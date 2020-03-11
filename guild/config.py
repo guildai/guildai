@@ -28,8 +28,8 @@ log = logging.getLogger("guild")
 
 _cwd = None
 _cwd_lock = threading.Lock()
-_guild_home_lock = threading.Lock()
 _guild_home = None
+_guild_home_lock = threading.Lock()
 _log_output = False
 _user_config = None
 
@@ -67,17 +67,16 @@ class SetGuildHome(object):
         self.path = path
 
     def __enter__(self):
-        _guild_home_lock.acquire()
         self._save = guild_home()
         set_guild_home(self.path)
 
     def __exit__(self, *_args):
         set_guild_home(self._save)
-        _guild_home_lock.release()
 
 
 def set_guild_home(path):
-    globals()["_guild_home"] = path
+    with _guild_home_lock:
+        globals()["_guild_home"] = path
 
 
 def cwd():
@@ -85,11 +84,33 @@ def cwd():
 
 
 def guild_home():
-    return (
-        _guild_home
-        or os.getenv("GUILD_HOME")
-        or os.path.join(os.path.expanduser("~"), ".guild")
-    )
+    with _guild_home_lock:
+        maybe_home =_guild_home
+    return maybe_home or default_guild_home()
+
+
+def default_guild_home():
+    try:
+        return os.environ["GUILD_HOME"]
+    except KeyError:
+        base = _default_guild_home_base()
+        return os.path.join(base, ".guild")
+
+
+def _default_guild_home_base():
+    return util.find_apply([_conda_home, _virtualenv_home, _user_home])
+
+
+def _conda_home():
+    return os.getenv("CONDA_PREFIX")
+
+
+def _virtualenv_home():
+    return os.getenv("VIRTUAL_ENV")
+
+
+def _user_home():
+    return os.path.expanduser("~")
 
 
 def set_log_output(flag):

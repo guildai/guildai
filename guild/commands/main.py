@@ -22,6 +22,7 @@ import click
 
 from guild import version as guild_version
 from guild import click_util
+from guild import config
 from guild import util
 
 from .cat import cat
@@ -61,15 +62,8 @@ from .uninstall import uninstall
 from .view import view
 from .watch import watch
 
-try:
-    _home = os.environ["CONDA_PREFIX"]
-except KeyError:
-    try:
-        _home = os.environ["VIRTUAL_ENV"]
-    except KeyError:
-        _home = os.path.expanduser("~")
 
-DEFAULT_GUILD_HOME = os.path.join(_home, ".guild")
+DEFAULT_GUILD_HOME = config.default_guild_home()
 
 
 @click.group(cls=click_util.Group)
