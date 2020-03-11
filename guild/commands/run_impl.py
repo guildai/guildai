@@ -675,16 +675,27 @@ def _op_init_run_attrs(args, op):
         attrs["max_trials"] = op._max_trials
     if op._objective:
         attrs["objective"] = op._objective
+    attrs["op"] = _op_config_data(op)
+    _apply_system_attrs(op, attrs)
+    attrs.update(op._op_cmd_run_attrs)
+
+def _apply_system_attrs(op, attrs):
+    # Don't reapply system attrs to existing runs
+    if op._run:
+        return
+    assert op._opdef
     attrs["host"] = util.hostname()
     attrs["user"] = util.user()
     attrs["platform"] = util.platform_info()
-    attrs["op"] = _op_config_data(op)
-    if _python_op(op):
+    if _pip_freeze_required(op):
         attrs["pip_freeze"] = _pip_freeze()
-    attrs.update(op._op_cmd_run_attrs)
 
 
-def _python_op(op):
+def _pip_freeze_required(op):
+    return op._opdef.pip_freeze is not False and _is_python_op(op)
+
+
+def _is_python_op(op):
     return "python" in " ".join(op.cmd_args)
 
 
@@ -719,8 +730,8 @@ def _init_output_summary(op, run):
     return _output_scalars_summary(op._output_scalars, op._op_flag_vals, run)
 
 
-def _output_scalars_disabled(output_scalars):
-    return output_scalars is not None and not output_scalars
+def _output_scalars_disabled(op):
+    return op._output_scalars is not None and not op._output_scalars
 
 
 def _summary_disabled():
@@ -1119,6 +1130,9 @@ class TestOutputLogger(summary.TestOutputLogger):
 
 
 def _test_output_scalars(S):
+    if _output_scalars_disabled(S.user_op):
+        cli.out("Output scalars disabled, nothing to test", err=True)
+        return
     output_scalars = S.user_op._output_scalars or summary.DEFAULT_OUTPUT_SCALARS
     input_path = S.args.test_output_scalars
     logger = TestOutputLogger()

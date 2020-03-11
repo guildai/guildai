@@ -992,6 +992,7 @@ class OpDef(object):
         self.publish = _init_publish(data.get("publish"), self)
         self.sourcecode = _init_sourcecode(data.get("sourcecode"), self.guildfile)
         self.default_flag_arg_skip = data.get("default-flag-arg-skip") or False
+        self.pip_freeze = data.get("pip-freeze")
 
     def __repr__(self):
         return "<guild.guildfile.OpDef '%s'>" % self.fullname

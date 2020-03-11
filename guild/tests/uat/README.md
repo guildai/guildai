@@ -259,6 +259,7 @@ Tests addressing various versions of TensorFlow, API changes, etc.
 - [flags-test](flags-test.md)
 - [guild-open](guild-open.md)
 - [export-import](export-import.md)
+- [pip-freeze](pip-freeze.md)
 
 ## Error cases
 
