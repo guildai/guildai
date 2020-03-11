@@ -1675,7 +1675,7 @@ string.
     GuildfileError: error in <string>: invalid flags-import value 'hello':
     expected yes/all, no, or a list of flag names
 
-## sourcecode
+### sourcecode
 
     >>> guildfile.for_string("""
     ... op:
@@ -1684,3 +1684,17 @@ string.
     Traceback (most recent call last):
     GuildfileError: error in <string>: invalid select files spec 123:
     expected a string, list, or mapping
+
+### choices
+
+    >>> guildfile.for_string("""
+    ... op:
+    ...   flags:
+    ...     foo:
+    ...       choices:
+    ...         a: 1
+    ...         b: 2
+    ... """)
+    Traceback (most recent call last):
+    GuildfileError: error in <string>: invalid flag choice data {'a': 1, 'b': 2}:
+    expected a list of values or mappings

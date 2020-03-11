@@ -1160,6 +1160,11 @@ def _init_flag_values(flagdefs):
 def _init_flag_choices(data, flagdef):
     if not data:
         return []
+    if not isinstance(data, list):
+        raise GuildfileError(
+            flagdef.opdef.guildfile,
+            "invalid flag choice data %r: expected a list of values or mappings" % data,
+        )
     return [FlagChoice(choice_data, flagdef) for choice_data in data]
 
 
