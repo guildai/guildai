@@ -428,17 +428,21 @@ Script in a package:
 If a module attempts to import a package-relative module, it fails
 unless an explicit package is specified:
 
-    >>> exec_sample("pkg/hello2.py")
-    Traceback (most recent call last):
-    ValueError: Attempted relative import in non-package
+    >>> try:
+    ...     exec_sample("pkg/hello2.py")
+    ... except Exception as e:
+    ...     "relative import" in str(e), e
+    (True, ...)
 
 We can specify a package using `mod_name` to provide a
 package-qualified module name. However, this fails unless the package
 is in the system path.
 
-    >>> exec_sample("pkg/hello2.py", mod_name="pkg.hello2")
-    Traceback (most recent call last):
-    ImportError: No module named pkg
+    >>> try:
+    ...     exec_sample("pkg/hello2.py", mod_name="pkg.hello2")
+    ... except Exception as e:
+    ...     "No module named" in str(e), e
+    (True, ...)
 
 When we specified the package and also make the package available, we
 can execute the script.
