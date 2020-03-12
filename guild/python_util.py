@@ -364,6 +364,9 @@ def exec_script(filename, globals=None, mod_name="__main__"):
     option if importing has a side-effect of starting threads, in
     which case this function can be used.
 
+    `mod_name` is ``__main__`` by default but may be an alternative
+    module name. `mod_name` may include a package.
+
     Reference:
 
     https://docs.python.org/2/library/threading.html#importing-in-threaded-code
@@ -371,12 +374,12 @@ def exec_script(filename, globals=None, mod_name="__main__"):
     """
     if not globals:
         globals = {}
+    package_name, mod_name = split_mod_name(mod_name)
+    _ensure_parent_mod_loaded(package_name)
     node_filter = _node_filter(globals) if globals else None
     src = open(filename, "r").read()
     code = _compile_script(src, filename, node_filter)
     script_globals = dict(globals)
-    package_name, mod_name = split_mod_name(mod_name)
-    _ensure_parent_mod_loaded(package_name)
     script_globals.update(
         {"__package__": package_name, "__name__": mod_name, "__file__": filename}
     )

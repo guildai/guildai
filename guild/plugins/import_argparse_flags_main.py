@@ -154,7 +154,7 @@ def _write_flags_and_exit(parse_args_f, output_path):
 
 
 def _exec_module(mod_path, package):
-    assert mod_path.endswith(".py")
+    assert mod_path.endswith(".py"), mod_path
     sys.argv = [mod_path, "--help"]
     log.debug("loading module from '%s'", mod_path)
     python_util.exec_script(mod_path, mod_name=_exec_mod_name(package))

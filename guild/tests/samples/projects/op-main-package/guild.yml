@@ -1,7 +1,14 @@
 op-globals:
   flags-dest: globals
+  flags-import: all
   main: pkg.main
 
 op-args:
   flags-dest: args
+  flags-import: all
   main: pkg.main
+
+op-args-2:
+  flags-dest: args
+  flags-import: all
+  main: src/pkg.main

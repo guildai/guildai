@@ -20,14 +20,14 @@ Let's sort by name:
 The scripts:
 
     >>> [script.name for script in scripts]
-    ['flag_imports', 'mnist_mlp', 'sample_run']
+    ['flag_imports', 'hello', 'mnist_mlp', 'sample_run']
 
 ## Script properties
 
 Scripts can be inspected for various declarations. Let's example the
 'mnist_mlp' script:
 
-    >>> mnist_mlp = scripts[1]
+    >>> mnist_mlp = scripts[2]
     >>> mnist_mlp.name
     'mnist_mlp'
 
@@ -390,3 +390,60 @@ module without reimporting it.
 
     >>> python_util.safe_module_name("train.py")
     'train'
+
+## Executing scripts
+
+`exec_script` is used to execute Python scripts. Scripts are specified
+as file names with an optional global dict and module
+name. `exec_script` returns the script globals dict used when
+executing the script, which contains `__package__`, `__name__`, and
+`__file__` items.
+
+Here's a helper to execute a sample script:
+
+    >>> def exec_sample(name, *args, **kw):
+    ...     script = sample("scripts", name)
+    ...     globals = python_util.exec_script(script, *args, **kw)
+    ...     assert globals["__file__"] == script, (globals, script)
+    ...     print((globals["__package__"], globals["__name__"]))
+
+    >>> from guild.python_util import exec_script
+
+Simple hello script:
+
+    >>> exec_sample("hello.py")
+    hello
+    ('', '__main__')
+
+    >>> exec_sample("hello.py", {"msg": "hola"})
+    hola
+    ('', '__main__')
+
+Script in a package:
+
+    >>> exec_sample("pkg/hello.py")
+    hi from pkg
+    ('', '__main__')
+
+If a module attempts to import a package-relative module, it fails
+unless an explicit package is specified:
+
+    >>> exec_sample("pkg/hello2.py")
+    Traceback (most recent call last):
+    ValueError: Attempted relative import in non-package
+
+We can specify a package using `mod_name` to provide a
+package-qualified module name. However, this fails unless the package
+is in the system path.
+
+    >>> exec_sample("pkg/hello2.py", mod_name="pkg.hello2")
+    Traceback (most recent call last):
+    ImportError: No module named pkg
+
+When we specified the package and also make the package available, we
+can execute the script.
+
+    >>> with SysPath(prepend=[sample("scripts")]):
+    ...     exec_sample("pkg/hello2.py", mod_name="pkg.hello2")
+    hi from pkg
+    ('pkg', 'hello2')

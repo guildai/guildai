@@ -182,23 +182,28 @@ class PythonScriptPlugin(pluginlib.Plugin):
         opdef.merge_flags(ImportedFlagsOpProxy(import_data, opdef, self.log))
 
     def _flags_data(self, opdef, model_paths, local_cache):
-        main_mod = op_util.split_main(opdef.main)[0]
+        main_spec = op_util.split_main(opdef.main)[0]
         try:
-            flags_data = local_cache[main_mod]
+            flags_data = local_cache[main_spec]
         except KeyError:
-            flags_data = self._flags_data_(main_mod, model_paths, opdef.flags_dest)
-            local_cache[main_mod] = flags_data
+            flags_data = self._flags_data_(main_spec, model_paths, opdef.flags_dest)
+            local_cache[main_spec] = flags_data
         return flags_data
 
-    def _flags_data_(self, main_mod, model_paths, flags_dest):
+    def _flags_data_(self, main_spec, model_paths, flags_dest):
         try:
-            sys_path, mod_path = python_util.find_module(main_mod, model_paths)
+            sys_path, mod_path = python_util.find_module(main_spec, model_paths)
         except ImportError as e:
-            self.log.warning("cannot import flags from %s: %s", main_mod, e)
+            self.log.warning("cannot import flags from %s: %s", main_spec, e)
             return {}
         else:
-            package = python_util.split_mod_name(main_mod)[0]
+            package = self._main_spec_package(main_spec)
             return self._flags_data_for_path(mod_path, package, sys_path, flags_dest)
+
+    @staticmethod
+    def _main_spec_package(main_spec):
+        parts = main_spec.rsplit("/", 1)
+        return python_util.split_mod_name(parts[-1])[0]
 
     def _flags_data_for_path(self, mod_path, mod_package, sys_path, flags_dest=None):
         data, cached_data_path = self._cached_data(mod_path)

@@ -104,3 +104,11 @@ Here's the case where globals are used:
     >>> project.run("op-globals")
     hello from __main__ in pkg
     hello from pkg.main_impl in pkg
+
+The same scheme applies when `main` contains a path to the package, as
+is the case with `op-args-2`.
+
+    >>> with Env({"NO_IMPORT_FLAGS_CACHE": "1"}):
+    ...     project.run("op-args-2")
+    hello from __main__ in pkg
+    hello from pkg.main_impl in pkg
