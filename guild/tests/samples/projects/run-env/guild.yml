@@ -1,0 +1,12 @@
+all-env:
+  main: echo
+  env:
+    foo: 123
+    bar: hello
+
+hide-bar:
+  main: echo
+  env:
+    foo: 456
+    bar: hi
+  env-secrets: [bar]

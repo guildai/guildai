@@ -71,6 +71,7 @@ class Operation(object):
         self.opref = None
         self.cmd_args = []
         self.cmd_env = {}
+        self.private_env = []
         self.sourcecode_paths = []
         self.run_dir = None
         self.run_attrs = {}
@@ -200,7 +201,7 @@ def _op_start_proc(op, run, extra_env=None):
     env = _op_proc_env(op, run)
     if extra_env:
         env.update(extra_env)
-    run.write_attr("env", env)
+    run.write_attr("env", _remove_private_env(env, op))
     log.debug("starting run %s in %s", run.id, run.dir)
     log.debug("operation command: %s", op.cmd_args)
     log.debug("operation env: %s", env)
@@ -315,6 +316,10 @@ def _op_proc_env(op, run):
     env.update(_op_proc_env_system(op))
     env.update(_op_proc_env_run(run))
     return env
+
+
+def _remove_private_env(env, op):
+    return {name: val for name, val in env.items() if name not in op.private_env}
 
 
 def _op_proc_env_system(op):

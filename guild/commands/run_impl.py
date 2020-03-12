@@ -466,6 +466,7 @@ def _python_requires_for_opdef(opdef):
 def _op_init_core(args, op):
     _op_init_opref(op)
     _op_init_cmd(args, op)
+    _op_init_private_env(op)
     _op_init_sourcecode_paths(args, op)
     _op_init_run_dir(args, op)
     _op_init_label(op)
@@ -537,6 +538,11 @@ def _apply_gpu_arg_env(args, env):
     elif args.gpus is not None:
         log.info("Masking available GPUs (CUDA_VISIBLE_DEVICES='%s')", args.gpus)
         env["CUDA_VISIBLE_DEVICES"] = args.gpus
+
+
+def _op_init_private_env(op):
+    if op._opdef:
+        op.private_env = op._opdef.env_secrets or []
 
 
 # =================================================================

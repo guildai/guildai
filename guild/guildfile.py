@@ -976,6 +976,7 @@ class OpDef(object):
         self.python_requires = data.get("python-requires")
         self.python_path = data.get("python-path")
         self.env = data.get("env") or {}
+        self.env_secrets = data.get("env-secrets")
         self.plugins = _init_plugins(data.get("plugins"), self.guildfile)
         self.dependencies = _init_dependencies(data.get("requires"), self)
         self.remote = data.get("remote") or False
