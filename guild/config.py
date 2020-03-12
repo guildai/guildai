@@ -85,7 +85,7 @@ def cwd():
 
 def guild_home():
     with _guild_home_lock:
-        maybe_home =_guild_home
+        maybe_home = _guild_home
     return maybe_home or default_guild_home()
 
 
