@@ -1693,8 +1693,10 @@ string.
     ...     foo:
     ...       choices:
     ...         a: 1
-    ...         b: 2
     ... """)
     Traceback (most recent call last):
-    GuildfileError: error in <string>: invalid flag choice data {'a': 1, 'b': 2}:
+    GuildfileError: error in <string>: invalid flag choice data {'a': 1}:
     expected a list of values or mappings
+
+NOTE: Using a single flag above to avoid inconsistencies in dict key
+ordering across platforms.
