@@ -33,3 +33,12 @@ java:
   flags:
     learning-rate: 0.1
     batch-size: 100
+
+julia:
+  description: Sample using Julia
+  exec: julia .guild/sourcecode/train.jl ${flag_args}
+  flags:
+    x: 0.1
+    noise: 0.1
+  output-scalars:
+    loss: 'loss: (\value)'

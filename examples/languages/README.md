@@ -4,9 +4,10 @@ This example shows how Guild works with various runtime languages.
 
 - [guild.yml](guild.yml) - Project Guild file
 - [Train.java](Train.java) - Java example
+- [train.jl](train.jl) - Julia example
+- [train-2.sh](train-2.sh) - Alternative Bash example using environment variables
 - [train.r](train.r) - R example
 - [train.sh](train.sh) - Bash example
-- [train-2.sh](train-2.sh) - Alternative Bash example using environment variables
 
 ## Flag Interfaces
 
@@ -80,4 +81,20 @@ To run the Java example, use:
 
 ```
 $ guild run java
+```
+
+## Julia Example
+
+The Julia example requires the `ArgParse` modules. If it's not
+installed, you can install it from the Julia command line by running:
+
+```
+julia> import Pkg
+julia> Pkg.add("ArgParse")
+```
+
+To run the Julia example:
+
+```
+$ guild run julia
 ```
