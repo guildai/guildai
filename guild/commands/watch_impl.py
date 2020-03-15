@@ -166,8 +166,8 @@ def _tail(run):
             out = f.read(TAIL_BUFFER)
             if out:
                 read += len(out)
-                sys.stdout.write(out)
-                sys.stdout.flush()
+                sys.stdout.buffer.write(out)
+                sys.stdout.buffer.flush()
             elif proc.is_running():
                 time.sleep(0.1)
             else:
@@ -192,13 +192,13 @@ def _print_output(run):
         out = f.read(TAIL_BUFFER)
         if not out:
             break
-        sys.stdout.write(out)
-        sys.stdout.flush()
+        sys.stdout.buffer.write(out)
+        sys.stdout.buffer.flush()
 
 
 def _try_open(path):
     try:
-        return open(path, "r")
+        return open(path, "rb")
     except (IOError, OSError) as e:
         if e.errno != 2:
             raise
