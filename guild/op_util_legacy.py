@@ -421,6 +421,7 @@ def _try_coerce_flag_val(val, funs, flagdef):
 
 
 def _resolve_rel_path(val):
+    val = os.path.expanduser(val)
     if val and not os.path.isabs(val):
         return os.path.abspath(val)
     return val
