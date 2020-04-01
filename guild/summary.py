@@ -382,22 +382,19 @@ def _try_apply_match(m, key, vals):
 
 def _try_apply_groupdict(groupdict, vals):
     try:
-        _try_apply_key_val_groupdict(groupdict, vals)
+        key = groupdict["_key"]
+        val = groupdict["_val"]
     except KeyError:
         for key, s in groupdict.items():
             _try_apply_float(s, key, vals)
-
-
-def _try_apply_key_val_groupdict(groupdict, vals):
-    key = groupdict["_key"]
-    val = groupdict["_val"]
-    _try_apply_float(val, key, vals)
+    else:
+        _try_apply_float(val, key, vals)
 
 
 def _try_apply_float(s, key, vals):
     try:
         f = float(s)
-    except ValueError:
+    except (TypeError, ValueError):
         pass
     else:
         vals[key] = f

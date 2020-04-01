@@ -140,6 +140,30 @@ Named groups:
     s_val 4.0 3
     x 4.0 3
 
+Named group - error in config (using pipe as literal but it's applied
+as OR):
+
+    >>> match(["iter (?P<step>\\step) | loss: (?P<loss>\\value)",
+    ...       {"score": "Total loss: (\\value)"}],
+    ... ["iter 0 | loss: 0.6",
+    ...  "iter 1 | loss: 0.4",
+    ...  "Total loss: 1.1"])
+    loss 0.600... 0
+    loss 0.400... 1
+    loss 1.100... 1
+    score 1.100... 1
+
+With correction:
+
+    >>> match(["iter (?P<step>\\step) \\| loss: (?P<loss>\\value)",
+    ...       {"score": "Total loss: (\\value)"}],
+    ... ["iter 0 | loss: 0.6",
+    ...  "iter 1 | loss: 0.4",
+    ...  "Total loss: 1.1"])
+    loss 0.600... 0
+    loss 0.400... 1
+    score 1.100... 1
+
 Two group patterns:
 
     >>> match(["(\S+):\s+([\d\.eE\-+]+)"],
