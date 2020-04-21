@@ -98,7 +98,7 @@ class Viewer(ViewerBase):
     @staticmethod
     def _update_column_widths(widths, vals, max_width):
         for col, val in zip(range(len(vals)), vals):
-            widths[col] = min(max(len(val), widths.get(col, 0)), max_width)
+            widths[col] = min(max(len(val or ""), widths.get(col, 0)), max_width)
 
     def location_string(self, yp, xp):
         lstr = ViewerBase.location_string(self, yp, xp)
