@@ -151,8 +151,9 @@ def _stopped_msg(run):
 def _tail(run):
     if os.getenv("NO_WATCHING_MSG") != "1":
         cli.out("Watching run %s" % run.id, err=True)
+    out = _stream_buffer(sys.stdout)
     if run.pid is None:
-        _print_output(run)
+        _print_run_output(run, out)
         return
     proc = psutil.Process(run.pid)
     output_path = run.guild_path("output")
@@ -163,37 +164,35 @@ def _tail(run):
     with f:
         while True:
             f.seek(read)
-            out = f.read(TAIL_BUFFER)
-            if out:
-                read += len(out)
-                sys.stdout.buffer.write(out)
-                sys.stdout.buffer.flush()
+            tail = f.read(TAIL_BUFFER)
+            if tail:
+                read += len(tail)
+                out.write(tail)
+                out.flush()
             elif proc.is_running():
                 time.sleep(0.1)
             else:
                 break
 
 
-def _wait_for_output(proc, output_path):
-    while proc.is_running():
-        f = _try_open(output_path)
-        if f:
-            return f
-        time.sleep(1.0)
-    return _try_open(output_path)
+def _stream_buffer(f):
+    try:
+        return f.buffer
+    except AttributeError:
+        return f
 
 
-def _print_output(run):
+def _print_run_output(run, out):
     output_path = run.guild_path("output")
     f = _try_open(output_path)
     if not f:
         return
     while True:
-        out = f.read(TAIL_BUFFER)
-        if not out:
+        tail = f.read(TAIL_BUFFER)
+        if not tail:
             break
-        sys.stdout.buffer.write(out)
-        sys.stdout.buffer.flush()
+        out.write(tail)
+        out.flush()
 
 
 def _try_open(path):
@@ -203,6 +202,15 @@ def _try_open(path):
         if e.errno != 2:
             raise
         return None
+
+
+def _wait_for_output(proc, output_path):
+    while proc.is_running():
+        f = _try_open(output_path)
+        if f:
+            return f
+        time.sleep(1.0)
+    return _try_open(output_path)
 
 
 def _print_run_status(run):
