@@ -78,7 +78,7 @@ The events:
     ...     print(event)
     summary {
       value {
-        tag: "_hparams_/experiment"
+        tag: "_hparams_/experiment"...
         metadata {
           plugin_data {
             plugin_name: "hparams"
@@ -90,7 +90,7 @@ The events:
     <BLANKLINE>
     summary {
       value {
-        tag: "_hparams_/session_start_info"
+        tag: "_hparams_/session_start_info"...
         metadata {
           plugin_data {
             plugin_name: "hparams"
@@ -102,7 +102,7 @@ The events:
     <BLANKLINE>
     summary {
       value {
-        tag: "_hparams_/session_end_info"
+        tag: "_hparams_/session_end_info"...
         metadata {
           plugin_data {
             plugin_name: "hparams"
