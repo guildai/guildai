@@ -536,7 +536,7 @@ Long paths are shortened to use an ellipsis:
 
     >>> long_path = path(mkdtemp(), "abc/def/ghi/jkl/mno/pqr/stu/vwx/yz")
     >>> ensure_dir(long_path)
-    >>> run_label("", {"p": long_path})
+    >>> run_label("", {"p": long_path})  # doctest: -WINDOWS
     'p=.../\u2026/vwx/yz'
 
 Templates:
