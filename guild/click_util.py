@@ -25,6 +25,16 @@ import click
 import guild
 
 
+def NUMBER(s):
+    try:
+        return int(s)
+    except ValueError:
+        try:
+            return float(s)
+        except ValueError:
+            raise ValueError("%s is not a valid number")
+
+
 class Args(object):
     def __init__(self, **kw):
         for name in kw:

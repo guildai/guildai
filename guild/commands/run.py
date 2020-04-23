@@ -177,7 +177,7 @@ def run_params(fn):
             click.Option(
                 ("--stop-after",),
                 metavar="N",
-                type=int,
+                type=click_util.NUMBER,
                 help="Stop operation after N minutes.",
             ),
             click.Option(

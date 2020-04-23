@@ -63,6 +63,7 @@ from .op_util_legacy import split_args_for_flags  # pylint: disable=unused-impor
 from .op_util_legacy import split_cmd  # pylint: disable=unused-import
 from .op_util_legacy import split_main  # pylint: disable=unused-import
 from .op_util_legacy import validate_flag_vals  # pylint: disable=unused-import
+from .op_util_legacy import wait_for_proc  # pylint: disable=unused-import
 
 log = logging.getLogger("guild")
 

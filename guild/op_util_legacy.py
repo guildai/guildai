@@ -25,8 +25,6 @@ import sys
 import threading
 import time
 
-import six
-
 # Move any import that's expensive or seldom used into function
 from guild import file_util
 from guild import flag_util
@@ -706,14 +704,16 @@ split_cmd = split_main
 
 
 def wait_for_proc(p, stop_after_min, poll_interval=5, kill_delay=30):
+    started = time.time()
     stop_at = time.time() + stop_after_min * 60
     while time.time() < stop_at:
         time.sleep(poll_interval)
         returncode = p.poll()
         if returncode is not None:
             return returncode
+    elapsed = (time.time() - started) / 60
     log.info(
-        "Stopping process early (pid %i) - %i minute(s) elapsed", p.pid, stop_after_min
+        "Stopping process early (pid %i) - %.1f minute(s) elapsed", p.pid, elapsed,
     )
     return _terminate(p, poll_interval, kill_delay)
 
