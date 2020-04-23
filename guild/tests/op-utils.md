@@ -509,6 +509,8 @@ Invalid:
 
 ## Run labels
 
+Run labels are generated using the function `run_label`.
+
     >>> from guild.op_util import run_label
 
 Missing template:
@@ -525,6 +527,18 @@ Missing template:
     >>> run_label("", {"foo": "FOO", "bar": "BAR"})
     'bar=BAR foo=FOO'
 
+Floats are truncated:
+
+    >>> run_label("", {"f": 1.123456789})
+    'f=1.12345'
+
+Long paths are shortened to use an ellipsis:
+
+    >>> long_path = path(mkdtemp(), "abc/def/ghi/jkl/mno/pqr/stu/vwx/yz")
+    >>> ensure_dir(long_path)
+    >>> run_label("", {"p": long_path})
+    'p=.../\u2026/vwx/yz'
+
 Templates:
 
     >>> run_label("foo", {})
@@ -532,8 +546,6 @@ Templates:
 
     >>> run_label("foo", {"foo": "FOO"})
     'foo'
-
-Flag references:
 
     >>> run_label("${foo}", {})
     ''
@@ -543,6 +555,39 @@ Flag references:
 
     >>> run_label("foo: ${foo}", {"foo": "FOO"})
     'foo: FOO'
+
+    >>> run_label(
+    ...     "${i} ${f} ${b} ${s} ${l}",
+    ...     {"i": 1234, "f": 9.87654321, "b": True, "s": "hello",
+    ...      "l": [1, 1.123, "hola"]})
+    '1234 9.87654 yes hello [1, 1.123, hola]'
+
+    >>> run_label("a-${b}-c", {})
+    'a--c'
+
+    >>> run_label("${b}-c", {})
+    '-c'
+
+    >>> run_label("a-${b}", {})
+    'a-'
+
+    >>> run_label("a-${b|default:b}-c", {})
+    'a-b-c'
+
+    >>> run_label("${b|default:b}-c", {})
+    'b-c'
+
+    >>> run_label("a-${b|default:b}", {})
+    'a-b'
+
+    >>> run_label("a-${b}-c", {"b": "b"})
+    'a-b-c'
+
+    >>> run_label("${b}-c", {"b": "b"})
+    'b-c'
+
+    >>> run_label("a-${b}", {"b": "b"})
+    'a-b'
 
 Use of default label:
 
@@ -565,3 +610,89 @@ Value formatting:
 
     >>> run_label(None, {"f1": 1.0, "f2": 1.0/3.0, "b1": True, "b2": False, "i": 123})
     'b1=yes b2=no f1=1.0 f2=0.33333 i=123'
+
+### Run label filters
+
+Run label filters are used to modify label values. They are applied
+using the format ``${NAME|FILTER:ARG1,ARG2}``.
+
+#### basename
+
+`basename` returns the base name for a path.
+
+    >>> run_label("${file|basename}", {"file": path("foo", "bar.txt")})
+    'bar.txt'
+
+#### default
+
+`default` provides a value in case a flag is not defined or is `None`.
+
+    >>> run_label("${foo|default:123}", {})
+    '123'
+
+    >>> run_label("${foo|default:456}", {"foo": None})
+    '456'
+
+    >>> run_label("${foo|default:456}", {"foo": '789'})
+    '789'
+
+#### Python formatting strings
+
+The `%` symbol applies Python formatting to a value.
+
+    >>> run_label("${f|%.2f} ${i|%05d}", {"f": 1.123456789, "i": 12})
+    '1.12 00012'
+
+An invalid formatting string returns the original value with a
+warning:
+
+    >>> with LogCapture(strip_ansi_format=True) as logs:
+    ...     run_label("${s|%z}", {"s": "hello"})
+    'hello'
+
+    >>> logs.print_all()
+    WARNING: error formatting 'hello' with '%z': unsupported
+    format character 'z' (0x7a) at index 1
+
+However, an invalid type for the specified formatting string is
+silently ignored:
+
+    >>> with LogCapture(strip_ansi_format=True) as logs:
+    ...     run_label("${s|%.2f}", {"s": "hello"})
+    'hello'
+
+    >>> logs.get_all()
+    []
+
+#### unquote
+
+`unquote` removes leading and trailing single quotes. This is used for
+values that might otherwise appear quoted in a label.
+
+First, a quoted value:
+
+    >>> run_label("ver=${ver}", {"ver": "12345"})
+    "ver='12345'"
+
+Use `unquote` to remove the quotes:
+
+    >>> run_label("ver=${ver|unquote}", {"ver": "12345"})
+    'ver=12345'
+
+Double quotes are not removed:
+
+    >>> run_label("ver=${ver|unquote}", {"ver": '"12345"'})
+    'ver="12345"'
+
+Empty strings and single quote chars are not altered:
+
+    >>> run_label("ver=${ver|unquote}", {"ver": ""})
+    'ver='
+
+    >>> run_label("ver=${ver|unquote}", {"ver": "'"})
+    "ver='"
+
+None values return empty strings:
+
+    >>> run_label("ver=${ver|unquote}", {"ver": None})
+    'ver='

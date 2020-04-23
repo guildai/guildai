@@ -19,7 +19,9 @@ import csv
 import importlib
 import logging
 import os
+import re
 
+import six
 import yaml
 
 from guild import config
@@ -28,7 +30,6 @@ from guild import file_util
 from guild import flag_util
 from guild import op_cmd as op_cmd_lib
 from guild import op_dep
-
 from guild import plugin as pluginlib
 from guild import run as runlib
 from guild import util
@@ -70,6 +71,9 @@ MAX_DEFAULT_SOURCECODE_COUNT = 100
 
 DEFAULT_EXEC = "${python_exe} -um guild.op_main ${main_args} -- ${flag_args}"
 STEPS_EXEC = "${python_exe} -um guild.steps_main"
+
+LABEL_TOKENS_P = re.compile(r"(\${.+?})")
+LABEL_FLAG_REF_P = re.compile(r"\${(.+?)}")
 
 ###################################################################
 # Error classes
@@ -371,33 +375,174 @@ def set_run_staged(run):
     set_run_started(run)
 
 
-def run_label(label_template, user_flag_vals, all_flag_vals=None):
-    all_flag_vals = all_flag_vals or user_flag_vals
-    default_label = _default_run_label(all_flag_vals)
+###################################################################
+# Run labels
+###################################################################
+
+
+def run_label(label_template, flag_vals):
+    """Returns a run label for template and flag vals.
+    """
+    default_label = _default_run_label(flag_vals)
     if not label_template:
         return default_label
-    return _render_label_template(label_template, default_label, all_flag_vals)
+    return _render_label_template(label_template, flag_vals, default_label)
 
 
 def _default_run_label(flag_vals):
+    """Returns a default run label for a map of flag values.
+
+    The default label is a string containing flag assign as NAME=VALUE.
+    """
     non_null = {name: val for name, val in flag_vals.items() if val is not None}
     return " ".join(
-        flag_util.format_flags(non_null, truncate_floats=True, shorten_paths=True)
+        flag_util.format_flag_assigns(
+            non_null, truncate_floats=True, shorten_paths=True
+        )
     )
 
 
-def _render_label_template(label_template, default_label, flag_vals):
-    resolve_vals = {
+def _render_label_template(label_template, flag_vals, default_label):
+    """Returns a rendered label template.
+
+    `label_template` is a string containing flag references. Flag
+    references are resolved with values defined in `flag_values.`
+
+    `default_label` is provided as an additional supported value,
+    which may be referenced using the name 'default_label' in the
+    template.
+    """
+    formatted_vals = _render_template_formatted_vals(flag_vals, default_label)
+    return _render_label_template_formatted(label_template, formatted_vals)
+
+
+def _render_template_formatted_vals(flag_vals, default_label):
+    formatted_vals = {
         "default_label": default_label,
     }
-    resolve_vals.update(
+    formatted_vals.update(
         {
-            name: flag_util.encode_flag_val(val)
+            name: FormattedValue(val)
             for name, val in flag_vals.items()
             if val is not None
         }
     )
-    return util.resolve_refs(label_template, resolve_vals, "")
+    return formatted_vals
+
+
+class FormattedValue(object):
+    def __init__(self, value):
+        self._value = value
+        self._str = None
+
+    @property
+    def wrapped_value(self):
+        return self._value
+
+    @wrapped_value.setter
+    def wrapped_value(self, value):
+        self._value = value
+        self._str = None
+
+    def __str__(self):
+        if self._str is None:
+            self._str = flag_util.format_flag(
+                self._value, truncate_floats=True, shorten_paths=True
+            )
+        return self._str
+
+
+def _render_label_template_formatted(label_template, formatted_vals):
+    """Renders a label template with formatted values.
+
+    `formatted_vals` is a map of names to formatted values. A
+    formatted value is a value wrapped as a `FormattedValue` instance.
+
+    This function supports value filters in form
+    ``${NAME|FILTER:ARG1,ARG2}``, which require values to be be
+    wrapped with `FormattedValue`.
+    """
+    tokens = LABEL_TOKENS_P.split(label_template)
+    return "".join([_rendered_str(_render_token(t, formatted_vals)) for t in tokens])
+
+
+def _render_token(token, vals):
+    m = LABEL_FLAG_REF_P.match(token)
+    if not m:
+        return token
+    ref_parts = m.group(1).split("|")
+    name = ref_parts[0]
+    transforms = ref_parts[1:]
+    val = vals.get(name)
+    for t in transforms:
+        val = _apply_template_transform(t, val)
+    return val
+
+
+def _apply_template_transform(t, val):
+    if hasattr(val, "wrapped_value"):
+        val = val.wrapped_value
+    parts = t.split(":", 1)
+    if len(parts) == 1:
+        name, arg = parts[0], None
+    else:
+        name, arg = parts
+    if name[:1] == "%":
+        return _t_python_format(val, name)
+    elif name == "default":
+        return _t_default(val, arg)
+    elif name == "basename":
+        if arg:
+            log.warning("ignoring argment to baseline in %r", t)
+        return _t_basename(val)
+    elif name == "unquote":
+        return _t_unquote(val)
+    else:
+        log.warning("unsupported template transform: %r", t)
+        return "#error#"
+
+
+def _t_python_format(val, fmt):
+    try:
+        return fmt % val
+    except ValueError as e:
+        log.warning("error formatting %r with %r: %s", val, fmt, e)
+        return val
+    except TypeError:
+        # Silently ignore type errors. ValueErrors (logged above)
+        # indicate an invalid formatting string, which is of
+        # interest. Running into an unexpected value type should let
+        # that value pass through.
+        return val
+
+
+def _t_default(val, arg):
+    if val is None:
+        return arg or ""
+    return val
+
+
+def _t_basename(val):
+    if not val:
+        return ""
+    return os.path.basename(util.strip_trailing_sep(val))
+
+
+def _t_unquote(val):
+    if (
+        isinstance(val, six.string_types)
+        and len(val) >= 2
+        and val[0] == "'"
+        and val[-1] == "'"
+    ):
+        return val[1:-1]
+    return val
+
+
+def _rendered_str(s):
+    if s is None:
+        return ""
+    return str(s)
 
 
 ###################################################################
@@ -1029,19 +1174,6 @@ def split_batch_files(flag_args):
         else:
             rest.append(arg)
     return batch_files, rest
-
-
-def format_label(label, flag_vals):
-    formatted_flags = _format_flags_for_label(flag_vals)
-    return util.render_label(label, formatted_flags)
-
-
-def _format_flags_for_label(flag_vals):
-    return {name: _format_flag_for_label(val) for name, val in flag_vals.items()}
-
-
-def _format_flag_for_label(val):
-    return flag_util.FormattedValue(val, truncate_floats=True)
 
 
 def find_matching_runs(opref, flag_vals, include_pending=False):

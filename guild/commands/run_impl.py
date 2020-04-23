@@ -614,9 +614,7 @@ def _op_run_dir_for_args(args):
 
 
 def _op_init_label(op):
-    op._label = op_util.run_label(
-        op._label_template, op._user_flag_vals, op._op_flag_vals
-    )
+    op._label = op_util.run_label(op._label_template, op._op_flag_vals)
 
 
 # =================================================================
@@ -817,7 +815,6 @@ def _write_run_vcs_commit(opdef, run):
 
 def _state_init_batch_op(S):
     _batch_op_init_run(S)
-    # opdef initialized before user flags, differs from user op init
     _batch_op_init_opdef(S)
     _check_opt_flags_for_missing_batch_opdef(S)
     _check_batch_args_for_missing_batch_op(S)

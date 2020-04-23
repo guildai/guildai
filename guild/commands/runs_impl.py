@@ -40,6 +40,7 @@ from guild import cli
 from guild import cmd_impl_support
 from guild import config
 from guild import flag_util
+from guild import op_util
 from guild import remote_run_support
 from guild import run as runlib
 from guild import run_util
@@ -887,7 +888,7 @@ def _label_for_run(run, args):
 def format_run_label(template, run):
     fmt_params = run.get("flags") or {}
     fmt_params["label"] = _run_label(run)
-    return util.render_label(template, fmt_params).strip()
+    return op_util.run_label(template, fmt_params).strip()
 
 
 def _run_label(run):

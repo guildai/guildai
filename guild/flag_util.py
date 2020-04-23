@@ -322,7 +322,12 @@ def is_flag_function(val):
         return True
 
 
-def format_flags(flags, truncate_floats=False, shorten_paths=False):
+def format_flag_assigns(flags, truncate_floats=False, shorten_paths=False):
+    """Returns a list of formatted flags for a map of flags.
+
+    Formatted flags are sorted by flag name and have the form
+    NAME=FORMATTED_VALUE.
+    """
     return [
         _flag_assign(name, val, truncate_floats, shorten_paths)
         for name, val in sorted(flags.items())
@@ -399,29 +404,6 @@ def _maybe_truncate_dec_part(part, trunc_len):
     if len(part) <= trunc_len:  # lte to include leading '.'
         return part
     return part[: trunc_len + 1]
-
-
-class FormattedValue(object):
-
-    _str = None
-
-    def __init__(self, value, truncate_floats=False):
-        self._truncate_floats = truncate_floats
-        self._value = value
-
-    @property
-    def wrapped_value(self):
-        return self._value
-
-    @wrapped_value.setter
-    def wrapped_value(self, value):
-        self._value = value
-        self._str = None
-
-    def __str__(self):
-        if self._str is None:
-            self._str = format_flag(self._value, self._truncate_floats)
-        return self._str
 
 
 def _patch_yaml_safe_loader():

@@ -131,7 +131,7 @@ Capture result to pprint the decoded value:
 
 ### Formatting flags
 
-Flags can be formatted using the `format_flags` function.
+Flags can be formatted using the `format_flag_assigns` function.
 
 Formatted flags are returned as a sorted list of `NAME=VALUE` where
 `VALUE` is the formatted flag value for `NAME`.
@@ -139,7 +139,7 @@ Formatted flags are returned as a sorted list of `NAME=VALUE` where
 Here's a function to print the formatted flags:
 
     >>> def format(flags, truncate_floats=False):
-    ...     formatted = flag_util.format_flags(flags, truncate_floats)
+    ...     formatted = flag_util.format_flag_assigns(flags, truncate_floats)
     ...     for s in formatted:
     ...         print(s)
 

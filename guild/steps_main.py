@@ -100,7 +100,7 @@ def _coerce_flags_data(data):
     if isinstance(data, list):
         return data
     elif isinstance(data, dict):
-        return flag_util.format_flags(data)
+        return flag_util.format_flag_assigns(data)
     else:
         _error("invalid flags value %r" % data)
 
@@ -378,7 +378,7 @@ def _step_batch_file_args(step):
 
 
 def _step_flag_args(step):
-    return flag_util.format_flags(step.flags)
+    return flag_util.format_flag_assigns(step.flags)
 
 
 def _link_to_step_run(step, step_run_dir, parent_run_dir):

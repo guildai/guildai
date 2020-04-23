@@ -103,11 +103,8 @@ def _link_to_trial(batch_run, trial_run):
 
 
 def _trial_label(proto_run, trial_flag_vals):
-    user_flag_vals = {
-        name: val for name, val in trial_flag_vals.items() if val is not None
-    }
     label_template = (proto_run.get("op") or {}).get("label_template")
-    return op_util.run_label(label_template, user_flag_vals, trial_flag_vals)
+    return op_util.run_label(label_template, trial_flag_vals)
 
 
 def _start_trial_run(run, stage=False):
