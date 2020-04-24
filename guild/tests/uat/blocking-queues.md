@@ -18,7 +18,7 @@ Let's create a project to test staged runs using queues.
 
     >>> write(path(project_dir, "sleep.py"), """
     ... import time
-    ... seconds = 5
+    ... seconds = 10
     ... time.sleep(seconds)
     ... """)
 
@@ -52,8 +52,8 @@ Wait to let the queue start one of the staged runs:
 The runs:
 
     >>> run("guild runs")
-    [1:...]  sleep.py  ...  staged   seconds=5
-    [2:...]  sleep.py  ...  running  seconds=5
+    [1:...]  sleep.py  ...  staged   seconds=10
+    [2:...]  sleep.py  ...  running  seconds=10
     [3:...]  queue     ...  running  q1 ignore-running=no poll-interval=1 run-once=no
     <exit 0>
 
@@ -72,18 +72,24 @@ Start a second queue:
     queue:queue started in background as ... (pidfile ...)
     <exit 0>
 
-Wait for the runs to complete.
+At this point, the second run will look for staged runs to
+start. However, because `sleep.py` is still running, it will wait
+until it's finished.
 
-    >>> sleep(15)
+Wait to let the second queue poll for available staged runs:
 
-Here are our runs:
+    >>> sleep(2)
+
+The runs:
 
     >>> run("guild runs")
-    [1:...]  sleep.py  ...  completed  seconds=5
-    [2:...]  queue     ...  running    q2 ignore-running=no poll-interval=1 run-once=no
-    [3:...]  sleep.py  ...  completed  seconds=5
-    [4:...]  queue     ...  running    q1 ignore-running=no poll-interval=1 run-once=no
+    [1:...]  queue     ...  running  q2 ignore-running=no poll-interval=1 run-once=no
+    [2:...]  sleep.py  ...  staged   seconds=10
+    [3:...]  sleep.py  ...  running  seconds=10
+    [4:...]  queue     ...  running  q1 ignore-running=no poll-interval=1 run-once=no
     <exit 0>
+
+Note that only one `sleep.py` operation is running.
 
 The logs of our second queue should indicate that it was waiting on
 runs to complete.
@@ -91,6 +97,19 @@ runs to complete.
     >>> run("guild cat --output -l q2")
     INFO: [queue] ... Found staged run ... (waiting for runs to finish: ...)
     ...
+    <exit 0>
+
+Wait for the runs to complete.
+
+    >>> sleep(20)
+
+Here are our runs:
+
+    >>> run("guild runs")
+    [1:...]  sleep.py  ...  completed  seconds=10
+    [2:...]  queue     ...  running    q2 ignore-running=no poll-interval=1 run-once=no
+    [3:...]  sleep.py  ...  completed  seconds=10
+    [4:...]  queue     ...  running    q1 ignore-running=no poll-interval=1 run-once=no
     <exit 0>
 
 Stop the queues:
