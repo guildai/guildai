@@ -94,10 +94,10 @@ Here's a helper function for printing operation sourcecode config.
 Here's a helper function that runs the specified operation and prints
 the list of copied source code files for the generated run.
 
-    >>> def run(op):
+    >>> def run(op, sourcecode_root=".guild/sourcecode"):
     ...     run_dir = mkdtemp()
     ...     project.run_quiet(op, run_dir=run_dir)
-    ...     find(join_path(run_dir, ".guild/sourcecode"))
+    ...     find(join_path(run_dir, sourcecode_root))
 
 And a helper for previewing source code copies:
 
@@ -735,6 +735,28 @@ Here's the preview:
 And the copied files:
 
     >>> run("hello.py")
+    .gitattributes
+    a.txt
+    empty
+    guild.yml
+    hello.py
+    subdir/b.txt
+
+## Alt Sourcecode Destination
+
+The `hello-alt-dest` operation defines an alternative destination for
+source code.
+
+Here's the list of source code saved to the default location
+(`./guild/sourcecode`):
+
+    >>> run("hello-alt-dest")
+    <empty>
+
+Here's the list saved to the configured source code dest for the
+operation (`src`):
+
+    >>> run("hello-alt-dest", sourcecode_root="src")
     .gitattributes
     a.txt
     empty

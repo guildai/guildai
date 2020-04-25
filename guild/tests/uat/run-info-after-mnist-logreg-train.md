@@ -140,7 +140,8 @@ JSON output, including private attrs:
                 }
             },
             "output-scalars": null,
-            "python-requires": null
+            "python-requires": null,
+            "sourcecode-root": ".guild/sourcecode"
         },
         "operation": "gpkg.mnist/logreg:train",
         "opref": "package:gpkg.mnist 0.6.0 logreg train",

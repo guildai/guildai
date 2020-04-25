@@ -538,9 +538,9 @@ class Project(object):
         """Returns a run directory for kw, optionally apply it to kw.
 
         If kw contains an explicit run directory, returns
-        it. Otherwise checks if kw is a restart/rerun and if so
-        returns the run directory associated with the
-        rerun/restart. If it's a normal run, creates a new run ID and
+        it. Otherwise checks if kw is a restart/proto and if so
+        returns the run directory associated with the specified
+        restart/proto. If it's a normal run, creates a new run ID and
         applies it to kw.
 
         This scheme is used so that we know the run directory prior to
@@ -550,33 +550,34 @@ class Project(object):
         return util.find_apply(
             [
                 lambda: kw.get("run_dir"),
-                lambda: self._maybe_restart_rerun_run_dir(kw),
+                lambda: self._restart_proto_run_dir(kw),
                 lambda: self._init_run_dir_apply(kw),
             ]
         )
 
-    def _maybe_restart_rerun_run_dir(self, kw):
-        """Return the run dir for a rerun or restart kw.
+    def _restart_proto_run_dir(self, kw):
+        """Return the run dir for a restart or proto kw if specified.
 
-        If kw contains either a rerun or restart spec, performs a
-        lookup within the project Guild home for a single matching run
-        and returns its directory.
+        If kw contains either restart or proto spec, performs a lookup
+        within the project Guild home for a single matching run and
+        returns its directory. Otherwise, returns None.
 
         This is used to identify the run directory prior to passing
         rerunning/restarting it.
         """
-        for name in ("rerun", "restart"):
+        for name in ("restart", "proto"):
             spec = kw.get(name)
-            if spec:
-                from guild import run_util
-                from guild.commands import run_impl
+            if not spec:
+                continue
+            from guild import run_util
+            from guild.commands import run_impl
 
-                with configlib.SetGuildHome(self.guild_home):
-                    run = util.find_apply(
-                        [run_util.marked_or_latest_run_for_opspec, run_impl.one_run],
-                        spec,
-                    )
-                    return run.dir
+            with configlib.SetGuildHome(self.guild_home):
+                run = util.find_apply(
+                    [run_util.marked_or_latest_run_for_opspec, run_impl.one_run],
+                    spec,
+                )
+                return run.dir
         return None
 
     def _init_run_dir_apply(self, kw):

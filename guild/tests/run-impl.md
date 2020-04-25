@@ -1,6 +1,6 @@
 # Run impl tests
 
-Helpers (copied from `run-impl.md`):
+Helpers:
 
     >>> def run_gh(cwd=None, guild_home=None, **kw):
     ...     from guild.commands import run_impl

@@ -83,7 +83,8 @@ def _popen_args(
     run_dir=None,
     restart=None,
     stage=None,
-    rerun=None,
+    proto=None,
+    force_sourcecode=False,
     batch_files=None,
     batch_label=None,
     batch_tag=None,
@@ -124,8 +125,10 @@ def _popen_args(
         args.extend(["--restart", restart])
     if stage:
         args.append("--stage")
-    if rerun:
-        args.extend(["--rerun", rerun])
+    if proto:
+        args.extend(["--proto", proto])
+    if force_sourcecode:
+        args.append("--force-sourcecode")
     if label:
         args.extend(["--label", label])
     if tag:

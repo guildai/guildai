@@ -51,16 +51,24 @@ def run_params(fn):
                 metavar="RUN",
                 help=(
                     "Start a staged run or restart an existing run. Cannot be "
-                    "used with --rerun or --run-dir."
+                    "used with --proto or --run-dir."
                 ),
             ),
             click.Option(
-                ("--rerun",),
+                ("--proto",),
                 metavar="RUN",
                 help=(
-                    "Use the operation and flags from RUN. Flags may "
+                    "Use the operation, flags and source code from RUN. Flags may "
                     "be added or redefined in this operation. Cannot "
                     "be used with --restart."
+                ),
+            ),
+            click.Option(
+                ("--force-sourcecode",),
+                is_flag=True,
+                help=(
+                    "Use working source code when --restart or --proto is specified. "
+                    "Ignored otherwise."
                 ),
             ),
             click.Option(
@@ -269,10 +277,10 @@ def run_params(fn):
 def run(args):
     """Run a model operation.
 
-    By default Guild will try to run `OPERATION` for the default model
+    By default Guild tries to run `OPERATION` for the default model
     defined in the current project.
 
-    If `MODEL` is specified, Guild will use it instead of the default
+    If `MODEL` is specified, Guild uses it instead of the default
     model.
 
     `OPERATION` may alternatively be a Python script. In this case any
@@ -280,8 +288,8 @@ def run(args):
     in the format ``--NAME=VAL`` can be passed to the script using
     flags (see below).
 
-    `[MODEL]:OPERATION` may be omitted if `--rerun` is specified, in
-    which case the operation used in `RUN` will be used.
+    `[MODEL]:OPERATION` may be omitted if `--restart` or `--proto` is
+    specified, in which case the operation used in `RUN` is used.
 
     Specify `FLAG` values in the form `FLAG=VAL`.
 
@@ -305,8 +313,8 @@ def run(args):
     Each entry in the file is used as a set of flags for a trial run.
 
     CSV files must have a header row containing the flag names. Each
-    subsequent row is a corresponding list of flag values that will be
-    used for a generated trial.
+    subsequent row is a corresponding list of flag values that Guild
+    uses for a generated trial.
 
     JSON and YAML files must contain a top-level list of flag-to-value
     maps.
@@ -318,10 +326,9 @@ def run(args):
 
     A list of flag values may be specified using the syntax
     `[VAL1[,VAL2]...]`. Lists containing white space must be
-    quoted. When a list of values is provided, Guild will generate a
-    trial run for each value. When multiple flags have list values,
-    Guild generates the cartesian product of all possible flag
-    combinations.
+    quoted. When a list of values is provided, Guild generates a trial
+    run for each value. When multiple flags have list values, Guild
+    generates the cartesian product of all possible flag combinations.
 
     Flag lists may be used to perform grid search operations.
 
@@ -337,7 +344,7 @@ def run(args):
 
     When `--optimizer` is specified, flag lists may take on different
     meaning depending on the type of optimizer. For example, the
-    `random` optimizer will randomly select values from a flag list,
+    `random` optimizer randomly selects values from a flag list,
     rather than generate trials for each value. See OPTIMIZERS for
     more information.
 
@@ -369,21 +376,20 @@ def run(args):
     can save the generated trials as a CSV batch file using
     `--save-trials`.
 
-    ### Re-run an Operation
+    ### Start an Operation Using a Prototype Run
 
-    If `--rerun` is specified, the operation and flags used in `RUN`
-    will be applied to the new operation. You may add or redefine
-    flags in the new operation. You may also use an alternative
-    operation, in which case only the flag values from `RUN` will be
-    applied. `RUN` must be a run ID or unique run ID prefix or the
-    special value ``0``, which indicates the latest run.
+    If `--proto` is specified, Guild applies the operation, flags, and
+    source code used in `RUN` to the new operation. You may add or
+    redefine flags in the new operation. You may use an alternative
+    operation, in which case only the flag values and source code from
+    `RUN` are applied. `RUN` must be a run ID or unique run ID prefix.
 
     ### Restart an Operation
 
     If `--restart` is specified, `RUN` is restarted using its
-    operation and flags. Unlike rerun, restart does not create a new
-    run. You cannot change the operation, flags or run directory when
-    restarting a run.
+    operation and flags. Unlike `--proto`, restart does not create a
+    new run. You cannot change the operation, flags, source code, or
+    run directory when restarting a run.
 
     ### Staging an Operation
 
@@ -404,7 +410,7 @@ def run(args):
     operation in a prepared directory.
 
     **NOTE:** Runs started with `--run-dir` are not visible to Guild
-    and will not appear in run listings.
+    and do not appear in run listings.
 
     ### Control Visible GPUs
 
@@ -421,7 +427,7 @@ def run(args):
     **NOTE:** `--gpus` and `--no-gpus` are used to construct the
     `CUDA_VISIBLE_DEVICES` environment variable used for the run
     process. If `CUDA_VISIBLE_DEVICES` is set, using either of these
-    options will cause it to be redefined for the run.
+    options redefines that environment variable for the run.
 
     ### Optimize Runs
 

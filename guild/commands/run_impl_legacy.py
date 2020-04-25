@@ -85,8 +85,8 @@ def _maybe_shift_opspec(args):
 
 def _validate_args(args):
     incompatible = [
-        ("rerun", "restart"),
-        ("rerun", "start"),
+        ("proto", "restart"),
+        ("proto", "start"),
         ("run_dir", "restart"),
         ("run_dir", "start"),
         ("run_dir", "restage"),
@@ -108,7 +108,7 @@ def _validate_args(args):
 
 
 ###################################################################
-# Apply args from existing runs (restart/rerun/restage)
+# Apply args from existing runs (restart/proto/restage)
 ###################################################################
 
 
@@ -116,19 +116,19 @@ def _apply_existing_run(args):
     if args.start:
         # --start is an alias for --restart
         args.restart = args.start
-    if args.rerun:
-        _apply_rerun(args)
+    if args.proto:
+        _apply_proto(args)
     elif args.restart:
         _apply_restart(args)
     elif args.restage:
         _apply_restage(args)
 
 
-def _apply_rerun(args):
-    run = _gen_apply_existing_run(args.rerun, args)
+def _apply_proto(args):
+    run = _gen_apply_existing_run(args.proto, args)
     _change_cwd_for_run(run)
-    _run_action_msg("Rerunning", run, args)
-    args.rerun = run.id
+    _run_action_msg("Starting from prototype", run, args)
+    args.proto = run.id
 
 
 def _gen_apply_existing_run(run_id_part, args):
@@ -210,7 +210,7 @@ def one_run(run_id_prefix):
 def _apply_run_args(run, args):
     """Applies run property to args.
 
-    Used to sync args with run when restarting or rerunning it.
+    Used to sync args with run when restarting or running with prototype.
     """
     proto = run.batch_proto
     if proto:
@@ -999,7 +999,7 @@ def _batch_op_init_args(opdef, args):
     params["opt_flags"] = ()
     params["yes"] = True
     params["restart"] = None
-    params["rerun"] = None
+    params["proto"] = None
     params["optimizer"] = None
     params["label"] = args.batch_label
     args = click_util.Args(**params)

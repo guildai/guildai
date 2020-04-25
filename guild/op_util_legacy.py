@@ -832,7 +832,7 @@ def run_params_for_restart(run, user_specified_params=None):
     # would reasonably assume applicability and never in cases where
     # the use of the parameter would be clearly surprising to the user
     # (e.g. reusing the 'yes' param, which would alter the expected
-    # behavior of the command on a restart/rerun).
+    # behavior of the command on a restart).
     #
     # Params that are saved as run attrs or otherwise available under
     # the run guild path (e.g. opspec, label, flags) should NOT be

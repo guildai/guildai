@@ -72,6 +72,11 @@
       sourcecode:
         - include: {dir: .dotdir}
 
+    hello-alt-dest:
+      main: hello
+      sourcecode:
+        dest: src
+
 - model: m1
   sourcecode:
     - include: subdir/logo.png

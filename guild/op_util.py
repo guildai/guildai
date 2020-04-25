@@ -341,8 +341,9 @@ def clear_run_pending(run):
     clear_run_marker(run, "PENDING")
 
 
-def write_sourcecode_digest(run):
-    digest = file_util.files_digest(run.guild_path("sourcecode"))
+def write_sourcecode_digest(run, sourcecode_root):
+    src = os.path.join(run.dir, sourcecode_root)
+    digest = file_util.files_digest(src)
     run.write_attr("sourcecode_digest", digest)
 
 

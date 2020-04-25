@@ -76,6 +76,7 @@ class State(object):
     def __init__(self, args):
         self.args = args
         self.restart_run = None
+        self.proto_run = None
         self.user_op = Operation()
         self.batch_op = None
 
@@ -84,6 +85,8 @@ class Operation(oplib.Operation):
     def __init__(self):
         super(Operation, self).__init__()
         self._run = None
+        self._run_is_proto = False
+        self._force_sourcecode = False
         self._opdef = None
         self._resource_flagdefs = []
         self._user_flag_vals = {}
@@ -99,11 +102,12 @@ class Operation(oplib.Operation):
         self._label_template = None
         self._label = None
         self._output_scalars = None
+        self._sourcecode_root = None
 
 
 def _state_for_args(args):
     S = State(args)
-    _state_init_restart_run(S)
+    _state_init_restart_or_proto_run(S)
     _state_init_user_op(S)
     _state_init_batch_op(S)
     return S
@@ -117,6 +121,7 @@ def _op_config_data(op):
         "label-template": op._label_template,
         "output-scalars": op._output_scalars,
         "deps": op_util.op_deps_as_data(op.deps),
+        "sourcecode-root": op._sourcecode_root,
     }
 
 
@@ -126,20 +131,35 @@ def _apply_op_config_data(data, op):
     op._python_requires = data.get("python-requires")
     op._label_template = data.get("label-template")
     op._output_scalars = data.get("output-scalars")
+    op._sourcecode_root = data.get("sourcecode-root")
     op.deps = op_util.op_deps_for_data(data.get("deps"))
 
 
 # =================================================================
-# State - restart run
+# State - restart / proto run
 # =================================================================
 
 
-def _state_init_restart_run(S):
+def _state_init_restart_or_proto_run(S):
+    assert not (S.args.restart and S.args.proto)
     if S.args.restart:
-        if S.args.remote:
-            S.restart_run = _remote_run_for_spec(S.args.restart, S.args)
-        else:
-            S.restart_run = _local_run_for_spec(S.args.restart)
+        _state_init_restart_run(S)
+    elif S.args.proto:
+        _state_init_proto_run(S)
+
+
+def _state_init_restart_run(S):
+    if S.args.remote:
+        S.restart_run = _remote_run_for_spec(S.args.restart, S.args)
+    else:
+        S.restart_run = _local_run_for_spec(S.args.restart)
+
+
+def _state_init_proto_run(S):
+    if S.args.remote:
+        S.proto_run = _remote_run_for_spec(S.args.proto, S.args)
+    else:
+        S.proto_run = _local_run_for_spec(S.args.proto)
 
 
 def _remote_run_for_spec(spec, args):
@@ -160,6 +180,7 @@ def _local_run_for_spec(spec):
 
 def _state_init_user_op(S):
     _user_op_init_run(S)
+    _op_init_force_sourcecode(S.args.force_sourcecode, S.user_op)
     _op_init_user_flags(S.args.flags, S.user_op)
     _op_init_opdef(S.args.opspec, S.user_op)
     _op_init_op_cmd(S.user_op)
@@ -169,11 +190,23 @@ def _state_init_user_op(S):
 
 
 def _user_op_init_run(S):
+    assert not (S.restart_run and S.proto_run)
     if S.restart_run:
-        if S.restart_run.batch_proto:
-            S.user_op._run = S.restart_run.batch_proto
-        else:
-            S.user_op._run = S.restart_run
+        _user_op_init_run_(S, S.restart_run)
+    elif S.proto_run:
+        _user_op_init_run_(S, S.proto_run)
+        S.user_op._run_is_proto = True
+
+
+def _user_op_init_run_(S, run):
+    if run.batch_proto:
+        S.user_op._run = run.batch_proto
+    else:
+        S.user_op._run = run
+
+
+def _op_init_force_sourcecode(force_sourcecode_arg, op):
+    op._force_sourcecode = force_sourcecode_arg
 
 
 # =================================================================
@@ -231,14 +264,15 @@ def _apply_single_trial_user_flags(trial, op):
 
 
 def _op_init_opdef(opspec, op):
-    if op._run:
-        assert not opspec
-        # We want opdef for restart only when user specifies flag
-        # values. Otherwise we want isolation from config.
-        if op._user_flag_vals:
+    if opspec:
+        op._opdef = _opdef_for_opspec(opspec)
+    elif op._run:
+        if op._user_flag_vals or op._force_sourcecode:
+            # We need opdef for restart/run-with-proto when user specifies
+            # flag values or when force-sourcecode is specified.
             op._opdef = _opdef_for_run(op._run)
     else:
-        op._opdef = _opdef_for_opspec(opspec)
+        op._opdef = _default_opdef()
 
 
 def _opdef_for_run(run):
@@ -282,6 +316,10 @@ def _opdef_for_opspec(opspec):
         _no_such_opdef_error(e.model, e.op_name)
     except op_util.ModelOpProxyError as e:
         _model_op_proxy_error(e)
+
+
+def _default_opdef():
+    return _opdef_for_opspec(None)
 
 
 # =================================================================
@@ -444,6 +482,7 @@ def _op_init_config_for_opdef(opdef, label_arg, op):
     op._python_requires = _python_requires_for_opdef(opdef)
     op._label_template = label_arg or opdef.label
     op._output_scalars = opdef.output_scalars
+    op._sourcecode_root = _opdef_rel_sourcecode_dest(opdef)
 
 
 def _flag_null_labels_for_opdef(opdef, resource_flagdefs):
@@ -456,6 +495,18 @@ def _flag_null_labels_for_opdef(opdef, resource_flagdefs):
 
 def _python_requires_for_opdef(opdef):
     return opdef.python_requires or opdef.modeldef.python_requires
+
+
+def _opdef_rel_sourcecode_dest(opdef):
+    return (
+        opdef.sourcecode.dest
+        or opdef.modeldef.sourcecode.dest
+        or _guild_sourcecode_path()
+    )
+
+
+def _guild_sourcecode_path():
+    return os.path.join(".guild", "sourcecode")
 
 
 # =================================================================
@@ -482,11 +533,11 @@ def _op_init_core(args, op):
 
 
 def _op_init_opref(op):
-    if op._run:
-        op.opref = op._run.opref
-    else:
-        assert op._opdef
+    if op._opdef:
         op.opref = op._opdef.opref
+    else:
+        assert op._run
+        op.opref = op._run.opref
 
 
 # =================================================================
@@ -551,13 +602,13 @@ def _op_init_private_env(op):
 
 
 def _op_init_sourcecode_paths(args, op):
-    op.sourcecode_paths = _sourcecode_paths(op._opdef, args)
+    op.sourcecode_paths = _sourcecode_paths(op, args)
 
 
-def _sourcecode_paths(opdef, args):
+def _sourcecode_paths(op, args):
     if args.debug_sourcecode:
         return _resolve_sourcecode_paths(args.debug_sourcecode)
-    return _default_sourcecode_paths(opdef)
+    return _op_sourcecode_paths(op)
 
 
 def _resolve_sourcecode_paths(s):
@@ -567,22 +618,8 @@ def _resolve_sourcecode_paths(s):
     ]
 
 
-def _default_sourcecode_paths(opdef):
-    if not opdef:
-        return [_guild_sourcecode_path()]
-    return [_opdef_rel_sourcecode_dest(opdef)]
-
-
-def _opdef_rel_sourcecode_dest(opdef):
-    return (
-        opdef.sourcecode.dest
-        or opdef.modeldef.sourcecode.dest
-        or _guild_sourcecode_path()
-    )
-
-
-def _guild_sourcecode_path():
-    return os.path.join(".guild", "sourcecode")
+def _op_sourcecode_paths(op):
+    return [op._sourcecode_root or _guild_sourcecode_path()]
 
 
 # =================================================================
@@ -591,7 +628,7 @@ def _guild_sourcecode_path():
 
 
 def _op_init_run_dir(args, op):
-    if op._run:
+    if op._run and not op._run_is_proto:
         op.run_dir = op._run.dir
     else:
         op.run_dir = _op_run_dir_for_args(args)
@@ -648,6 +685,10 @@ def _op_init_deps(op):
 
 
 def _check_flags_for_resolved_deps(flag_vals, run):
+    """Generate an error if flags contain vals for resolved deps in run.
+
+    Used to prevent redefinition of dependencies for a run.
+    """
     resolved_deps = run.get("resolved_deps") or {}
     for name in flag_vals:
         if name in resolved_deps:
@@ -683,8 +724,9 @@ def _op_init_run_attrs(args, op):
     _apply_system_attrs(op, attrs)
     attrs.update(op._op_cmd_run_attrs)
 
+
 def _apply_system_attrs(op, attrs):
-    # Don't reapply system attrs to existing runs
+    # Don't reapply system attrs to existing runs.
     if op._run:
         return
     assert op._opdef
@@ -716,7 +758,10 @@ def _pip_freeze():
 
 def _op_init_callbacks(op):
     if op._run:
-        _op_init_callbacks_for_restart(op)
+        if op._run_is_proto:
+            _op_init_callbacks_for_run_with_proto(op)
+        else:
+            _op_init_callbacks_for_restart(op)
     else:
         assert op._opdef
         _op_init_callbacks_for_opdef(op._opdef, op)
@@ -766,15 +811,15 @@ def _op_init_callbacks_for_opdef(opdef, op):
 
 
 def _run_init_cb_for_opdef(opdef):
-    def f(_op, run):
-        _copy_run_sourcecode(opdef, run)
-        _write_run_sourcecode_digest(run)
+    def f(op, run):
+        _copy_opdef_sourcecode(opdef, op, run)
+        _write_run_sourcecode_digest(op, run)
         _write_run_vcs_commit(opdef, run)
 
     return f
 
 
-def _copy_run_sourcecode(opdef, run):
+def _copy_opdef_sourcecode(opdef, op, run):
     if os.getenv("NO_SOURCECODE") == "1":
         log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
         return
@@ -786,7 +831,7 @@ def _copy_run_sourcecode(opdef, run):
     if not sourcecode_select:
         log.debug("no sourcecode rules, skipping sourcecode copy")
         return
-    dest = _sourcecode_dest(run, opdef)
+    dest = _sourcecode_dest(run, op)
     log.debug(
         "copying source code files for run %s from %s to %s",
         run.id,
@@ -796,16 +841,66 @@ def _copy_run_sourcecode(opdef, run):
     op_util.copy_sourcecode(sourcecode_src, sourcecode_select, dest)
 
 
-def _sourcecode_dest(run, opdef):
-    return os.path.join(run.dir, _opdef_rel_sourcecode_dest(opdef))
+def _sourcecode_dest(run, op):
+    return os.path.join(run.dir, op._sourcecode_root or _guild_sourcecode_path())
 
 
-def _write_run_sourcecode_digest(run):
-    op_util.write_sourcecode_digest(run)
+def _write_run_sourcecode_digest(op, run):
+    assert op._sourcecode_root
+    op_util.write_sourcecode_digest(run, op._sourcecode_root)
 
 
 def _write_run_vcs_commit(opdef, run):
     op_util.write_vcs_commit(opdef, run)
+
+
+def _op_init_callbacks_for_run_with_proto(op):
+    if op._force_sourcecode:
+        assert op._opdef
+        _op_init_callbacks_for_opdef(op._opdef, op)
+    else:
+        op.callbacks = oplib.OperationCallbacks(
+            init_output_summary=_init_output_summary,
+            run_initialized=_run_init_cb_for_run_with_proto(op),
+        )
+
+
+def _run_init_cb_for_run_with_proto(op):
+    def f(_op, run):
+        _copy_run_proto_sourcecode(op._run, op, run)
+        _copy_run_proto_attrs(op._run, run)
+
+    return f
+
+
+def _copy_run_proto_sourcecode(proto_run, proto_op, dest_run):
+    if os.getenv("NO_SOURCECODE") == "1":
+        log.debug("NO_SOURCECODE=1, skipping sourcecode copy")
+        return
+    src = os.path.join(proto_run.dir, proto_op._sourcecode_root)
+    if not os.path.exists(src):
+        log.debug("no sourcecode source (%s), skipping sourcecode copy", src)
+        return
+    dest = os.path.join(dest_run.dir, proto_op._sourcecode_root)
+    log.debug(
+        "copying source code files for run %s from %s to %s", dest_run.id, src, dest,
+    )
+    util.copytree(src, dest)
+
+
+def _copy_run_proto_attrs(proto_run, dest_run):
+    run_proto_attrs = [
+        "sourcecode_digest",
+        "vcs_commit",
+        "host",
+        "user",
+        "platform",
+        "pip_freeze",
+    ]
+    for attr in run_proto_attrs:
+        if not proto_run.has_attr(attr):
+            continue
+        dest_run.write_attr(attr, proto_run.get(attr))
 
 
 # =================================================================
@@ -829,21 +924,29 @@ def _state_init_batch_op(S):
 
 
 def _batch_op_init_run(S):
+    assert not (S.restart_run and S.proto_run)
     if S.restart_run and S.restart_run.batch_proto:
-        if S.batch_op is None:
-            S.batch_op = Operation()
-        S.batch_op._run = S.restart_run
+        _batch_op_init_run_(S, S.restart_run)
+    elif S.proto_run and S.proto_run.batch_proto:
+        _batch_op_init_run_(S, S.proto_run)
+        S.batch_op._run_is_proto = True
+
+
+def _batch_op_init_run_(S, run):
+    if S.batch_op is None:
+        S.batch_op = Operation()
+    S.batch_op._run = run
 
 
 def _batch_op_init_opdef(S):
     if S.batch_op and S.batch_op._run:
-        assert not S.args.optimizer and not S.args.optimize, S.args
-        # As with user op, we only want opdef when user specifies
-        # flags for a batch restart. We check args here rather than
-        # S.batch_op._user_flag_vals because we can't process batch
-        # user flags until we know we have a batch op, which is
-        # determined in part by this function.
-        if S.args.opt_flags:
+        assert not S.args.optimizer and not S.args.optimize
+        # As with user op, we need opdef for restart/run-with-proto
+        # when user specifies flags valuesor when force-sourcecode is
+        # specified. We check args here rather than S.batch_op because
+        # we can't process batch user flags until we know we have a
+        # batch op, which is determined in part by this function.
+        if S.args.opt_flags or S.args.force_sourcecode:
             S.batch_op._opdef = _opdef_for_run(S.batch_op._run)
     elif S.user_op._opdef:
         _batch_op_init_for_opdef(S.user_op._opdef, S)
@@ -980,6 +1083,10 @@ def _op_init_batch_cmd_run_attrs(args, op):
 def _apply_batch_flag_encoder(batch_op, user_op):
     """Allow a batch op to encode child op flag vals.
 
+    Applies only when starting a new run (i.e. is not a restart or
+    run-with-proto) and opdefs are available for the batch and user
+    ops.
+
     Encoded values are applies when a batch wants to represent a flag
     value using additional configuration. For example, an optimizer
     will encode search parameters into a value so that search spec can
@@ -988,7 +1095,12 @@ def _apply_batch_flag_encoder(batch_op, user_op):
     If a flag is specified in `user_flags` it is always accepted as
     is - it is never encoded.
     """
-    if not batch_op._opdef or not batch_op._opdef.flag_encoder or not user_op._opdef:
+    if (
+        batch_op._run
+        or not batch_op._opdef
+        or not batch_op._opdef.flag_encoder
+        or not user_op._opdef
+    ):
         return
     encode_flag_val = op_util.op_flag_encoder(batch_op._opdef.flag_encoder)
     if not encode_flag_val:
@@ -1066,7 +1178,7 @@ def _check_incompatible_with_restart(args):
         ("opspec", "OPERATION"),
         ("optimize", "--optimize"),
         ("optimizer", "--optimizer"),
-        ("rerun", "--rerun"),
+        ("proto", "--proto"),
         ("run_dir", "--run-dir"),
         ("test_output_scalars", "--test-output-scalars"),
         ("test_sourcecode", "--test-sourcecode"),

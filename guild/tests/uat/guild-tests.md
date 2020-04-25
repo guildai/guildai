@@ -87,6 +87,7 @@ tests).
       run-output:                  ok
       run-scripts:                 ok
       run-utils:                   ok
+      run-with-proto:              ok
       runs-1:                      ok
       runs-2:                      ok
       scalars:                     ok

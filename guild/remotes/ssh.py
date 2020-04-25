@@ -566,28 +566,30 @@ def _build_package(src_dir, dist_dir):
 
 
 def _remote_run_cmd(
-    remote_run_dir,
-    opspec,
-    start,
-    op_flags,
-    label,
-    tag,
     batch_label,
     batch_tag,
-    gpus,
-    no_gpus,
     force_flags,
+    force_sourcecode,
+    gpus,
+    init_trials,
+    label,
+    max_trials,
+    maximize,
+    minimize,
     needed,
-    stop_after,
+    no_gpus,
+    op_flags,
+    opspec,
+    opt_flags,
     optimize,
     optimizer,
-    opt_flags,
-    minimize,
-    maximize,
+    proto,
     random_seed,
-    max_trials,
-    init_trials,
+    remote_run_dir,
     stage,
+    start,
+    stop_after,
+    tag,
 ):
     cmd = [
         "NO_WARN_RUNDIR=1",
@@ -604,6 +606,10 @@ def _remote_run_cmd(
         cmd.append("--stage")
     else:
         cmd.extend(["--pidfile", "%s/.guild/JOB" % remote_run_dir])
+    if proto:
+        cmd.extend(["--proto", proto])
+    if force_sourcecode:
+        cmd.extend(["--force-sourcecode", force_sourcecode])
     if label:
         cmd.extend(["--label", q(label)])
     if tag:
