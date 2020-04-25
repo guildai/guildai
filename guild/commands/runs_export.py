@@ -33,7 +33,7 @@ def export_params(fn):
                 is_flag=True,
             ),
             click.Option(
-                ("--copy-resources",),
+                ("-r", "--copy-resources",),
                 help="Copy resources for each exported run.",
                 is_flag=True,
             ),
