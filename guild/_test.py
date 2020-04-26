@@ -574,8 +574,7 @@ class Project(object):
 
             with configlib.SetGuildHome(self.guild_home):
                 run = util.find_apply(
-                    [run_util.marked_or_latest_run_for_opspec, run_impl.one_run],
-                    spec,
+                    [run_util.marked_or_latest_run_for_opspec, run_impl.one_run], spec,
                 )
                 return run.dir
         return None
