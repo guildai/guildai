@@ -23,8 +23,6 @@ import sys as sys
 
 from guild import python_util as python_util
 
-P_FLAGS = {}
-
 action_types = (
     argparse._StoreAction,
     argparse._StoreTrueAction,
@@ -59,23 +57,22 @@ def _init_args():
 
 
 def _patch_argparse(output_path):
-    python_util.listen_method(
-        argparse.ArgumentParser, "add_argument", _handle_add_argument
-    )
-    handle_parse = lambda parse_args, *_args, **_kw: _write_flags_and_exit(
+    handle_parse = lambda parse_args, *_args, **_kw: _write_flags(
         parse_args, output_path
     )
-    # parse_known_args is called by parse_args, so this handled both
+    # parse_known_args is called by parse_args, so this handles both
     # cases.
     python_util.listen_method(argparse.ArgumentParser, "parse_known_args", handle_parse)
 
 
-def _handle_add_argument(add_argument_f, *args, **kw):
-    log.debug("handling add_argument: %s %s", args, kw)
-    parser = _wrapped_parser(add_argument_f)
-    action = add_argument_f(*args, **kw)
-    _maybe_flag(parser, action)
-    raise python_util.Result(action)
+def _write_flags(parse_args_f, output_path):
+    parser = _wrapped_parser(parse_args_f)
+    flags = {}
+    for action in parser._actions:
+        _maybe_apply_flag(action, flags)
+    log.debug("writing flags to %s: %s", output_path, flags)
+    with open(output_path, "w") as f:
+        json.dump(flags, f)
 
 
 def _wrapped_parser(f):
@@ -100,7 +97,7 @@ def _closure_parser(closure):
     return parser
 
 
-def _maybe_flag(parser, action):
+def _maybe_apply_flag(action, flags):
     flag_name = _flag_name(action)
     if not flag_name:
         log.debug("skipping %s - not a flag option", action)
@@ -108,7 +105,6 @@ def _maybe_flag(parser, action):
     if not isinstance(action, action_types):
         log.debug("skipping %s - not an action type", action)
         return
-    flags = P_FLAGS.setdefault(parser, {})
     flags[flag_name] = attrs = {}
     if action.help:
         attrs["description"] = action.help
@@ -122,7 +118,7 @@ def _maybe_flag(parser, action):
         attrs["arg-switch"] = True
     elif isinstance(action, argparse._StoreFalseAction):
         attrs["arg-switch"] = False
-    log.debug("added flag %s", attrs)
+    log.debug("added flag %r: %r", flag_name, attrs)
 
 
 def _flag_name(action):
@@ -142,15 +138,6 @@ def _ensure_json_encodable(x, flag_name):
         return str(x)
     else:
         return x
-
-
-def _write_flags_and_exit(parse_args_f, output_path):
-    parser = _wrapped_parser(parse_args_f)
-    flags = P_FLAGS.get(parser, {})
-    assert isinstance(flags, dict), flags
-    log.debug("writing flags to %s: %s", output_path, flags)
-    with open(output_path, "w") as f:
-        json.dump(flags, f)
 
 
 def _exec_module(mod_path, package):

@@ -1,130 +1,131 @@
-- model: test
-  operations:
+default-args:
+  main: main_args
 
-    default-args:
-      main: main_args
+import-all-args:
+  main: main_args
+  flags-import: all
 
-    import-all-args:
-      main: main_args
-      flags-import: all
+default-globals:
+  main: main_globals
 
-    default-globals:
-      main: main_globals
+import-all-globals:
+  main: main_globals
+  flags-import: all
 
-    import-all-globals:
-      main: main_globals
-      flags-import: all
+args-flags:
+  main: main_args
+  flags:
+    foo: 2
+    bar:
+      description: Raised bar
 
-    args-flags:
-      main: main_args
-      flags:
-        foo: 2
-        bar:
-          description: Raised bar
+import-all-args-with-mods:
+  main: main_args
+  flags-import: all
+  flags:
+    foo: 2
+    bar:
+      description: Raised bar
 
-    import-all-args-with-mods:
-      main: main_args
-      flags-import: all
-      flags:
-        foo: 2
-        bar:
-          description: Raised bar
+globals-flags:
+  main: main_globals
+  flags:
+    f_str:
+      default: hola
+      description: A greeting
+      choices: [hi, hola]
+    f_float:
+      description: A float
+      default: 8.8
 
-    globals-flags:
-      main: main_globals
-      flags:
-        f_str:
-          default: hola
-          description: A greeting
-          choices: [hi, hola]
-        f_float:
-          description: A float
-          default: 8.8
+import-all-globals-with-mods:
+  main: main_globals
+  flags-import: all
+  flags:
+    f_str:
+      default: hola
+      description: A greeting
+      choices: [hi, hola]
+    f_float:
+      description: A float
+      default: 8.8
 
-    import-all-globals-with-mods:
-      main: main_globals
-      flags-import: all
-      flags:
-        f_str:
-          default: hola
-          description: A greeting
-          choices: [hi, hola]
-        f_float:
-          description: A float
-          default: 8.8
+explicit-args:
+  main: main_args
+  flags-import: [foo]
 
-    explicit-args:
-      main: main_args
-      flags-import: [foo]
+explicit-globals:
+  main: main_globals
+  flags-import: [f_str]
 
-    explicit-globals:
-      main: main_globals
-      flags-import: [f_str]
+no-imports-1:
+  main: main_globals
+  flags-import: no
 
-    no-imports-1:
-      main: main_globals
-      flags-import: no
+no-imports-2:
+  main: main_globals
+  flags-import: []
 
-    no-imports-2:
-      main: main_globals
-      flags-import: []
+no-imports-3:
+  main: main_args
+  flags-import: no
+  flags:
+    foo:
+      description: New def of foo
+      choices: [3, 4]
+      default: 3
 
-    no-imports-3:
-      main: main_args
-      flags-import: no
-      flags:
-        foo:
-          description: New def of foo
-          choices: [3, 4]
-          default: 3
+implicit-imports:
+  main: main_args
+  flags:
+    foo: null
+    bar: null
 
-    implicit-imports:
-      main: main_args
-      flags:
-        foo: null
-        bar: null
+implicit-imports-2:
+  main: main_args
+  flags:
+    foo: 2
+    bar: 0.1
+  flags-import-skip: [bar]
 
-    implicit-imports-2:
-      main: main_args
-      flags:
-        foo: 2
-        bar: 0.1
-      flags-import-skip: [bar]
+skip-imports:
+  main: main_globals
+  flags-import: all
+  flags-import-skip: [f_int]
 
-    skip-imports:
-      main: main_globals
-      flags-import: all
-      flags-import-skip: [f_int]
+skip-imports-2:
+  main: main_args
+  flags-import: all
+  flags-import-skip: [foo]
 
-    skip-imports-2:
-      main: main_args
-      flags-import: all
-      flags-import-skip: [foo]
+import-all-args2:
+  main: main_args2   # alt argparse use
+  flags-import: yes  # alt spelling of 'all'
 
-    import-all-args2:
-      main: main_args2   # alt argparse use
-      flags-import: yes  # alt spelling of 'all'
+merge-by-arg-name:
+  main: main_globals
+  flags-import:
+    - f_int
+    - f_float
+    - f_bool
+    - f_str
+  flags:
+    f_str2:
+      arg-name: f_str
+      default: hi2
+    f_bool2:
+      arg-name: f_bool
+    f_float:
+      default: 8.0
 
-    merge-by-arg-name:
-      main: main_globals
-      flags-import:
-        - f_int
-        - f_float
-        - f_bool
-        - f_str
-      flags:
-        f_str2:
-          arg-name: f_str
-          default: hi2
-        f_bool2:
-          arg-name: f_bool
-        f_float:
-          default: 8.0
+all-imports-1:
+  main: main_globals
+  flags-import: yes
 
-    all-imports-1:
-      main: main_globals
-      flags-import: yes
+all-imports-2:
+  main: main_globals
+  flags-import: all
 
-    all-imports-2:
-      main: main_globals
-      flags-import: all
+parser-parents:
+  main: parser_parents
+  flags-import: all
