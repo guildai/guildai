@@ -249,7 +249,7 @@ def run_params(fn):
                 ("--help-model",), help="Show model help and exit.", is_flag=True
             ),
             click.Option(
-                ("--help-op",), help="Show operation help and exit.", is_flag=True
+                ("-h", "--help-op"), help="Show operation help and exit.", is_flag=True
             ),
             click.Option(
                 ("--test-output-scalars",),
