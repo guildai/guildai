@@ -8,7 +8,7 @@ Helpers:
     ...     guild_home = guild_home or mkdtemp()
     ...     with SetCwd(cwd):
     ...         with SetGuildHome(guild_home):
-    ...             with Env({"NO_RUN_OUTPUT_CAPTURE": "1",
+    ...             with Env({"NO_RUN_OUTPUT": "1",
     ...                       "NO_WARN_RUNDIR": "1"}):
     ...                 with LogCapture(echo_to_stdout=True, strip_ansi_format=True):
     ...                     try:
@@ -550,7 +550,8 @@ Restart the downstream run with an upstream flag.
     >>> cwd = mkdtemp()
     >>> touch(path(cwd, "pass.py"))
 
-    >>> gh = run_gh(cwd, opspec="pass.py", flags=["a=[1,2,3]"], force_flags=True)
+    >>> gh = run_gh(cwd, opspec="pass.py", flags=["a=[1,2,3]"],
+    ...             force_flags=True, quiet=True)
 
     >>> runs = var.runs(path(gh, "runs"), sort=["timestamp"])
     >>> len(runs)

@@ -15,7 +15,7 @@ args and a run directory.
 Run the operation without capturing output (tests rely on a spoofed
 stdout to test output, which we don't want to interfere with).
 
-    >>> with Env({"NO_RUN_OUTPUT_CAPTURE": "1"}):
+    >>> with Env({"NO_RUN_OUTPUT": "1"}):
     ...     run, exit_code = oplib.run(op)
 
 A successful run has an exit code of 0:
@@ -95,7 +95,7 @@ Callbacks during stage:
 
 Callbacks during run:
 
-    >>> with Env({"NO_RUN_OUTPUT_CAPTURE": "1"}):
+    >>> with Env({"NO_RUN_OUTPUT": "1"}):
     ...     run, exit_code = oplib.run(op)
     <run initialized>
     <initializing output summaries>

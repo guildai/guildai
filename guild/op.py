@@ -191,13 +191,13 @@ def _run(run, op, quiet, stop_after, extra_env):
         op_util.clear_run_pending(run)
     op_util.set_run_started(run)
     op_util.clear_run_marker(run, "STAGED")
-    proc = _op_start_proc(op, run, extra_env)
+    proc = _op_start_proc(op, run, quiet, extra_env)
     exit_status = _op_wait_for_proc(op, proc, run, quiet, stop_after)
     _op_finalize_run_attrs(run, exit_status)
     return exit_status
 
 
-def _op_start_proc(op, run, extra_env=None):
+def _op_start_proc(op, run, quiet, extra_env):
     env = _op_proc_env(op, run)
     if extra_env:
         env.update(extra_env)
@@ -205,19 +205,40 @@ def _op_start_proc(op, run, extra_env=None):
     log.debug("starting run %s in %s", run.id, run.dir)
     log.debug("operation command: %s", op.cmd_args)
     log.debug("operation env: %s", env)
+    stdout, stderr = _proc_streams(quiet)
     try:
         proc = subprocess.Popen(
             op.cmd_args,
             env=env,
             cwd=run.dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=stdout,
+            stderr=stderr,
         )
     except OSError as e:
         raise ProcessError(e)
     else:
         _write_proc_lock(proc, run)
         return proc
+
+
+def _proc_streams(quiet):
+    if os.getenv("NO_RUN_OUTPUT") == "1":
+        if quiet:
+            devnull = _devnull()
+            return devnull, devnull
+        else:
+            return None, None
+    else:
+        return subprocess.PIPE, subprocess.PIPE
+
+
+def _devnull():
+    try:
+        from subprocess import DEVNULL
+    except ImportError:
+        return open(os.devnull, 'wb')
+    else:
+        return DEVNULL
 
 
 def _write_proc_lock(proc, run):
@@ -251,13 +272,13 @@ class _RunOutput(object):
         self._rest_init_args = args
 
     def __enter__(self):
-        if os.getenv("NO_RUN_OUTPUT_CAPTURE") != "1":
+        if os.getenv("NO_RUN_OUTPUT") != "1":
             self._output = op_util.RunOutput(self._run, *self._rest_init_args)
 
     def __exit__(self, *_exc):
         if self._output:
             self._output.wait_and_close()
-        self._output = None
+            self._output = None
 
 
 def _proc_wait(proc, stop_after):
