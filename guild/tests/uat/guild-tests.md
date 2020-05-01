@@ -81,7 +81,6 @@ tests).
       restart-runs:                ok
       run-files:                   ok
       run-impl:                    ok
-      run-impl2:                   ok
       run-labels:                  ok
       run-ops:                     ok
       run-output:                  ok
