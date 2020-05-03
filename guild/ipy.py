@@ -379,6 +379,7 @@ def _run(op, flags, opts):
         exit_status = 1
         raise RunError(run, e)
     except KeyboardInterrupt as e:
+        log.warning("Run terminated by KeyboardInterrupt")
         exit_status = -1
         return run, None
     else:
