@@ -378,6 +378,9 @@ def _run(op, flags, opts):
     except Exception as e:
         exit_status = 1
         raise RunError(run, e)
+    except KeyboardInterrupt as e:
+        exit_status = -1
+        return run, None
     else:
         exit_status = 0
         return run, result
