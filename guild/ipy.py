@@ -300,6 +300,8 @@ def loguniform(low, high):
 
 
 def run(op, *args, **kw):
+    if not callable(op):
+        raise ValueError("op must be callable")
     opts = _pop_opts(kw)
     flags = _init_flags(op, args, kw)
     run = _init_runner(op, flags, opts)
@@ -316,8 +318,32 @@ def _pop_opts(kw):
 
 def _init_flags(op, args, kw):
     # pylint: disable=deprecated-method
-    op_flags = inspect.getcallargs(op, *args, **kw)
+    op_f = _op_f(op)
+    op_flags = inspect.getcallargs(op_f, *args, **kw)
+    _remove_bound_method_self(op_f, op_flags)
     return _coerce_slice_vals(op_flags)
+
+
+def _op_f(op):
+    assert callable(op), repr(op)
+    if inspect.isfunction(op) or inspect.ismethod(op):
+        return op
+    assert hasattr(op, "__call__")
+    return op.__call__
+
+
+def _remove_bound_method_self(op, op_flags):
+    im_self = util.find_apply([
+        lambda: getattr(op, "__self__", None),
+        lambda: getattr(op, "im_self", None),
+    ])
+    if im_self:
+        for key, val in op_flags.items():
+            if val is im_self:
+                del op_flags[key]
+                break
+        else:
+            assert False, (op_flags, im_self)
 
 
 def _coerce_slice_vals(flags):
@@ -383,6 +409,7 @@ def _run(op, flags, opts):
     try:
         with RunOutput(run, summary):
             with util.Chdir(run.path):
+                _write_proc_lock(run)
                 result = op(**flags)
     except KeyboardInterrupt as e:
         exit_status = exit_code.SIGTERM
@@ -394,7 +421,7 @@ def _run(op, flags, opts):
         exit_status = 0
         return run, result
     finally:
-        _finalize_run_attrs(run, exit_status)
+        _finalize_run(run, exit_status)
 
 
 def _init_run():
@@ -406,12 +433,25 @@ def _init_run():
 
 
 def _init_run_attrs(run, op, flags, opts):
-    opref = opreflib.OpRef("func", "", "", "", op.__name__)
+    opref = opreflib.OpRef("func", "", "", "", _op_name(op, opts))
     run.write_opref(opref)
     run.write_attr("started", runlib.timestamp())
     run.write_attr("flags", flags)
     if "label" in opts:
         run.write_attr("label", opts["label"])
+
+
+def _op_name(op, opts):
+    try:
+        return opts["op_name"]
+    except KeyError:
+        return _default_op_name(op)
+
+
+def _default_op_name(op):
+    if inspect.isfunction(op) or inspect.ismethod(op):
+        return op.__name__
+    return op.__class__.__name__
 
 
 def _init_output_scalars(run, opts):
@@ -422,16 +462,14 @@ def _init_output_scalars(run, opts):
     return summary.OutputScalars(config, abs_guild_path)
 
 
-def _run_exception_info(e):
-    if isinstance(e, KeyboardInterrupt):
-        return RunTerminated, exit_code.SIGTERM
-    else:
-        return RunError, exit_code.DEFAULT_ERROR
+def _write_proc_lock(run):
+    op_util.write_proc_lock(os.getpid(), run)
 
 
-def _finalize_run_attrs(run, exit_status):
+def _finalize_run(run, exit_status):
     run.write_attr("exit_status", exit_status)
     run.write_attr("stopped", runlib.timestamp())
+    op_util.delete_proc_lock(run)
 
 
 def runs(**kw):

@@ -537,7 +537,7 @@ optimizer:
     >>> [runs[i].get("label") for i in range(3)]
     ['gp', 'gp', 'gp']
 
-### Other optimizers
+### Other Optimizers
 
 Random forest:
 
@@ -591,9 +591,109 @@ Gradient boosted regression trees:
 
 Unsupported optimizer:
 
-    >>> ipy.run(op1, a=1, b=2, _optimizer="not supported")
+    >>> with guild_home:
+    ...     ipy.run(op1, a=1, b=2, _optimizer="not supported")
     Traceback (most recent call last):
     TypeError: optimizer 'not supported' is not supported
+
+## Alternative Operation Implementations
+
+Operations may be bound methods.
+
+    >>> class Trainer:
+    ...     def train(self, lr):
+    ...         print("Training with lr=%s" % lr)
+
+    >>> with guild_home:
+    ...     ipy.run(Trainer().train, 0.1)
+    Training with lr=0.1
+    (<guild.run.Run '...'>, None)
+
+    >>> with guild_home:
+    ...     ipy.runs().info()
+    id: ...
+    operation: train()
+    status: completed
+    started: ...
+    stopped: ...
+    label:
+    run_dir: ...
+    flags:
+      lr: 0.1
+
+Operations may be implemented as Python callables.
+
+    >>> class Op:
+    ...     def __call__(self, a, b, c=3):
+    ...         return a, b, c
+
+    >>> with guild_home:
+    ...     ipy.run(Op(), 1, 2)
+    (<guild.run.Run '...'>, (1, 2, 3))
+
+    >>> with guild_home:
+    ...     ipy.runs().info()
+    id: ...
+    operation: Op()
+    status: completed
+    started: ...
+    stopped: ...
+    label:
+    run_dir: ...
+    flags:
+      a: 1
+      b: 2
+      c: 3
+
+Operation implemented as static method:
+
+    >>> class Trainer2:
+    ...     @staticmethod
+    ...     def train(dropout=0.2):
+    ...         print("Training with dropout=%s" % dropout)
+
+    >>> with guild_home:
+    ...     ipy.run(Trainer2().train)
+    Training with dropout=0.2
+    (<guild.run.Run '...'>, None)
+
+    >>> with guild_home:
+    ...     ipy.runs().info()
+    id: ...
+    operation: train()
+    status: completed
+    started: ...
+    stopped: ...
+    label:
+    run_dir: ...
+    flags:
+      dropout: 0.2
+
+Implemented as a class method:
+
+    >>> class Trainer3:
+    ...     model_name = "ze model"
+    ...
+    ...     @classmethod
+    ...     def train(cls, batch_size):
+    ...         print("Train %s with batch_size=%s" % (cls.model_name, batch_size))
+
+    >>> with guild_home:
+    ...     ipy.run(Trainer3().train, 200)
+    Train ze model with batch_size=200
+    (<guild.run.Run '...'>, None)
+
+    >>> with guild_home:
+    ...     ipy.runs().info()
+    id: ...
+    operation: train()
+    status: completed
+    started: ...
+    stopped: ...
+    label:
+    run_dir: ...
+    flags:
+      batch_size: 200
 
 ## Run Exceptions
 
@@ -609,7 +709,8 @@ Here's an operation that raises an error:
 When we run the operation, we get a traceback from the original error
 with `RunError`.
 
-    >>> ipy.run(error)
+    >>> with guild_home:
+    ...     ipy.run(error)
     Traceback (most recent call last):
       ...
       File "<doctest ipy.md[69]>", line 2, in error
@@ -618,24 +719,27 @@ with `RunError`.
 
 Let's run again and catch the error to inspect it.
 
-    >>> try:
-    ...     ipy.run(error)
-    ... except ipy.RunError as e:
-    ...     print(e.run)
-    ...     print(repr(e.from_exc))
+    >>> with guild_home:
+    ...     try:
+    ...         ipy.run(error)
+    ...     except ipy.RunError as e:
+    ...         print(e.run)
+    ...         print(repr(e.from_exc))
     <guild.run.Run '...'>
     Exception('boom',)
 
 Here are the last two runs and their status:
 
-    >>> ipy.runs()[:2]
+    >>> with guild_home:
+    ...     ipy.runs()[:2]
        run operation started status label
     0  ... error()       ...  error
     1  ... error()       ...  error
 
 And the exit status for the last run:
 
-    >>> ipy.runs().iloc[0][0].run.get("exit_status")
+    >>> with guild_home:
+    ...     ipy.runs().iloc[0][0].run.get("exit_status")
     1
 
 When KeyboardInterrupt is raised - as it the case when the user types
@@ -649,7 +753,8 @@ A function that simulated Ctrl-C by the user:
 
 The exception:
 
-    >>> ipy.run(ctrl_c)
+    >>> with guild_home:
+    ...     ipy.run(ctrl_c)
     Traceback (most recent call last):
       ...
       File "<doctest ipy.md[73]>", line 2, in ctrl_c
@@ -658,11 +763,83 @@ The exception:
 
 The generated run:
 
-    >>> ipy.runs()[:1]
+    >>> with guild_home:
+    ...     ipy.runs()[:1]
        run operation started status     label
     0  ... ctrl_c()      ... terminated
 
 The generated run exit status:
 
-    >>> ipy.runs().iloc[0][0].run.get("exit_status")
+    >>> with guild_home:
+    ...     ipy.runs().iloc[0][0].run.get("exit_status")
     -15
+
+## Run Process
+
+Runs started using `ipy` use the Python interpreter pid as process
+lock.
+
+Let's start an operation in a separate thread.
+
+    >> import threading
+
+    >> class BackgroundOp(threading.Thread):
+    ...     def __init__(self, in_q, out_q):
+    ...         super(BackgroundOp, self).__init__()
+    ...         self.in_q = in_q
+    ...         self.out_q = out_q
+    ...
+    ...     def run(self):
+    ...         with guild_home:
+    ...             ipy.run(self._op, _op_name="op-in-thread")
+    ...
+    ...     def _op(self):
+    ...         self.out_q.put("started")
+    ...         self.in_q.get()
+
+Use a queues to communicate with the thread.
+
+    >> from six.moves import queue
+    >> in_q = queue.Queue()
+    >> out_q = queue.Queue()
+
+Start the operation in the background as a thread.
+
+    >> op = BackgroundOp(in_q, out_q)
+    >> op.start()
+
+Wait for the operation to start.
+
+    >> out_q.get()
+    'started'
+
+The run latest run status is 'running':
+
+    >> with guild_home:
+    ...     ipy.runs().info()
+    id: ...
+    operation: op-in-thread()
+    status: running
+    started: ...
+    stopped:
+    label:
+    run_dir: ...
+    flags:
+
+Notify the op to finish.
+
+    >> in_q.put("stop")
+    >> op.join(0.1)
+
+And the run status after stopping:
+
+    >> with guild_home:
+    ...     ipy.runs().info()
+    id: ...
+    operation: op-in-thread()
+    status: completed
+    started: ...
+    stopped: ...
+    label:
+    run_dir: ...
+    flags:

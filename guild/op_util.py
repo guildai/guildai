@@ -1219,3 +1219,15 @@ def op_flag_encoder(flag_encoder):
         )
         return None
     return fun
+
+
+def write_proc_lock(pid, run):
+    with open(run.guild_path("LOCK"), "w") as f:
+        f.write(str(pid))
+
+
+def delete_proc_lock(run):
+    try:
+        os.remove(run.guild_path("LOCK"))
+    except OSError:
+        pass

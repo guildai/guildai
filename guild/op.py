@@ -213,7 +213,7 @@ def _op_start_proc(op, run, quiet, extra_env):
     except OSError as e:
         raise ProcessError(e)
     else:
-        _write_proc_lock(proc, run)
+        op_util.write_proc_lock(proc.pid, run)
         return proc
 
 
@@ -235,11 +235,6 @@ def _devnull():
         return open(os.devnull, 'wb')
     else:
         return DEVNULL
-
-
-def _write_proc_lock(proc, run):
-    with open(run.guild_path("LOCK"), "w") as f:
-        f.write(str(proc.pid))
 
 
 def _op_wait_for_proc(op, proc, run, quiet, stop_after):
@@ -313,14 +308,7 @@ def _op_finalize_run_attrs(run, exit_status):
     stopped = runlib.timestamp()
     run.write_attr("exit_status", exit_status)
     run.write_attr("stopped", stopped)
-    _delete_proc_lock(run)
-
-
-def _delete_proc_lock(run):
-    try:
-        os.remove(run.guild_path("LOCK"))
-    except OSError:
-        pass
+    op_util.delete_proc_lock(run)
 
 
 # =================================================================
