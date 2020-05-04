@@ -851,6 +851,10 @@ def _write_run_sourcecode_digest(op, run):
 
 
 def _write_run_vcs_commit(opdef, run):
+    if os.getenv("NO_VCS_COMMIT") == "1":
+        log.debug("NO_VCS_COMMIT=1, skipping VCS commit")
+        return
+
     op_util.write_vcs_commit(opdef, run)
 
 

@@ -12,7 +12,8 @@ Some helper function:
 
     >>> def run(*args, **kw):
     ...     runs0 = project.list_runs()
-    ...     project.run(*args, **kw)
+    ...     with Env({"NO_VCS_COMMIT": "1"}):
+    ...         project.run(*args, **kw)
     ...     runs1 = project.list_runs()
     ...     # Return the first generated run from command (will
     ...     # be batch when running a batch).
@@ -60,7 +61,7 @@ Let's compare the files generated for the two runs.
 
 Files that are the same:
 
-    >>> sorted(same)  # doctest: +REPORT_UDIFF
+    >>> pprint(sorted(same))  # doctest: +REPORT_UDIFF
     ['.guild/attrs/cmd',
      '.guild/attrs/exit_status',
      '.guild/attrs/flags',
@@ -73,7 +74,6 @@ Files that are the same:
      '.guild/attrs/resolved_deps',
      '.guild/attrs/sourcecode_digest',
      '.guild/attrs/user',
-     '.guild/attrs/vcs_commit',
      '.guild/opref',
      '.guild/output',
      '.guild/sourcecode/batch_fail.py',
