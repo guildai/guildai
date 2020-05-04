@@ -143,7 +143,7 @@ class Run(object):
         if pid is None:
             exit_status = self.get("exit_status")
             if exit_status is None:
-                return "error"
+                return "running"
             elif exit_status == 0:
                 return "completed"
             elif exit_status < 0:
