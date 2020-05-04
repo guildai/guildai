@@ -208,11 +208,7 @@ def _op_start_proc(op, run, quiet, extra_env):
     stdout, stderr = _proc_streams(quiet)
     try:
         proc = subprocess.Popen(
-            op.cmd_args,
-            env=env,
-            cwd=run.dir,
-            stdout=stdout,
-            stderr=stderr,
+            op.cmd_args, env=env, cwd=run.dir, stdout=stdout, stderr=stderr,
         )
     except OSError as e:
         raise ProcessError(e)

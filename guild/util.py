@@ -400,7 +400,9 @@ def _top_level_dir(path):
 
 
 class LogCapture(object):
-    def __init__(self, use_root_handler=False, echo_to_stdout=False, strip_ansi_format=False):
+    def __init__(
+        self, use_root_handler=False, echo_to_stdout=False, strip_ansi_format=False
+    ):
         self._records = []
         self._use_root_handler = use_root_handler
         self._echo_to_stdout = echo_to_stdout
