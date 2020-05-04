@@ -469,7 +469,7 @@ def _internal_error(msg):
     sys.exit(exit_code.INTERNAL_ERROR)
 
 
-def _error(msg, exit_code=exit_code.DEFAULT):
+def _error(msg, exit_code=exit_code.DEFAULT_ERROR):
     sys.stderr.write("guild: %s\n" % msg)
     sys.exit(exit_code)
 

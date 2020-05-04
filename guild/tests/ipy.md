@@ -594,3 +594,76 @@ Unsupported optimizer:
     >>> ipy.run(op1, a=1, b=2, _optimizer="not supported")
     Traceback (most recent call last):
     TypeError: optimizer 'not supported' is not supported
+
+## Run Exceptions
+
+If a run operation raises an exception, Guild handles the exception by
+logging an error and raises RunError, which contains a reference to
+the run and the original exception.
+
+Here's an operation that raises an error:
+
+    >>> def error():
+    ...     raise Exception("boom")
+
+
+When we run the operation, we get a traceback from the original error
+with `RunError`.
+
+    >>> ipy.run(error)
+    Traceback (most recent call last):
+      ...
+      File "<doctest ipy.md[69]>", line 2, in error
+        raise Exception("boom")
+    RunError: (<guild.run.Run '...'>, Exception('boom',))
+
+Let's run again and catch the error to inspect it.
+
+    >>> try:
+    ...     ipy.run(error)
+    ... except ipy.RunError as e:
+    ...     print(e.run)
+    ...     print(repr(e.from_exc))
+    <guild.run.Run '...'>
+    Exception('boom',)
+
+Here are the last two runs and their status:
+
+    >>> ipy.runs()[:2]
+       run operation started status label
+    0  ... error()       ...  error
+    1  ... error()       ...  error
+
+And the exit status for the last run:
+
+    >>> ipy.runs().iloc[0][0].run.get("exit_status")
+    1
+
+When KeyboardInterrupt is raised - as it the case when the user types
+Ctrl-C during an operation, Guild handles the exception as a SIGTERM
+result and raises RunTerminated.
+
+A function that simulated Ctrl-C by the user:
+
+    >>> def ctrl_c():
+    ...     raise KeyboardInterrupt()
+
+The exception:
+
+    >>> ipy.run(ctrl_c)
+    Traceback (most recent call last):
+      ...
+      File "<doctest ipy.md[73]>", line 2, in ctrl_c
+        raise KeyboardInterrupt()
+    RunTerminated: (<guild.run.Run '...'>, KeyboardInterrupt())
+
+The generated run:
+
+    >>> ipy.runs()[:1]
+       run operation started status     label
+    0  ... ctrl_c()      ... terminated
+
+The generated run exit status:
+
+    >>> ipy.runs().iloc[0][0].run.get("exit_status")
+    -15

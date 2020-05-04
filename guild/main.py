@@ -82,7 +82,7 @@ def _handle_system_exit(e):
     elif isinstance(e.code, int):
         msg, code = None, e.code
     else:
-        msg, code = e.message, exit_code.DEFAULT
+        msg, code = e.message, exit_code.DEFAULT_ERROR
     _print_error_and_exit(msg, code)
 
 

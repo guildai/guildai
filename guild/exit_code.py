@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DEFAULT = 1
+DEFAULT_ERROR = 1
 INTERNAL_ERROR = 2
 TEST_FAILED = 3
 SIGTERM = -15

@@ -326,7 +326,7 @@ def _internal_error(msg):
 
 def _error(msg):
     sys.stderr.write("guild: %s\n" % msg)
-    sys.exit(exit_code.DEFAULT)
+    sys.exit(exit_code.DEFAULT_ERROR)
 
 
 if __name__ == "__main__":

@@ -46,6 +46,7 @@ main_bootstrap.ensure_external_path()
 from guild import batch_util
 from guild import click_util
 from guild import config
+from guild import exit_code
 from guild import index2 as indexlib
 from guild import model_proxy
 from guild import op_util
@@ -73,11 +74,19 @@ RUN_DETAIL = [
 DEFAULT_MAX_TRIALS = 20
 
 
-class RunError(Exception):
-    def __init__(self, run, e):
-        super(RunError, self).__init__(run, e)
+class RunException(Exception):
+    def __init__(self, run, from_exc):
+        super(RunException, self).__init__(run, from_exc)
         self.run = run
-        self.e = e
+        self.from_exc = from_exc
+
+
+class RunError(RunException):
+    pass
+
+
+class RunTerminated(RunException):
+    pass
 
 
 class OutputTee(object):
@@ -375,13 +384,12 @@ def _run(op, flags, opts):
         with RunOutput(run, summary):
             with util.Chdir(run.path):
                 result = op(**flags)
-    except Exception as e:
-        exit_status = 1
-        raise RunError(run, e)
     except KeyboardInterrupt as e:
-        log.warning("Run terminated by KeyboardInterrupt")
-        exit_status = -1
-        return run, None
+        exit_status = exit_code.SIGTERM
+        six.raise_from(RunTerminated(run, e), e)
+    except Exception as e:
+        exit_status = exit_code.DEFAULT_ERROR
+        six.raise_from(RunError(run, e), e)
     else:
         exit_status = 0
         return run, result
@@ -412,6 +420,13 @@ def _init_output_scalars(run, opts):
         return None
     abs_guild_path = os.path.abspath(run.guild_path())
     return summary.OutputScalars(config, abs_guild_path)
+
+
+def _run_exception_info(e):
+    if isinstance(e, KeyboardInterrupt):
+        return RunTerminated, exit_code.SIGTERM
+    else:
+        return RunError, exit_code.DEFAULT_ERROR
 
 
 def _finalize_run_attrs(run, exit_status):
