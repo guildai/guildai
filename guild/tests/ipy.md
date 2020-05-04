@@ -606,7 +606,6 @@ Here's an operation that raises an error:
     >>> def error():
     ...     raise Exception("boom")
 
-
 When we run the operation, we get a traceback from the original error
 with `RunError`.
 
