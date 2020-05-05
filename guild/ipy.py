@@ -413,10 +413,10 @@ def _run(op, flags, opts):
                 result = op(**flags)
     except KeyboardInterrupt as e:
         exit_status = exit_code.SIGTERM
-        six.raise_from(RunTerminated(run, e), e)
+        util.raise_from(RunTerminated(run, e), e)
     except Exception as e:
         exit_status = exit_code.DEFAULT_ERROR
-        six.raise_from(RunError(run, e), e)
+        util.raise_from(RunError(run, e), e)
     else:
         exit_status = 0
         return run, result

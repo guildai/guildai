@@ -713,9 +713,10 @@ with `RunError`.
     ...     ipy.run(error)
     Traceback (most recent call last):
       ...
-      File "<doctest ipy.md[69]>", line 2, in error
+      File "<doctest ipy.md[...]>", line 2, in error
         raise Exception("boom")
-    RunError: (<guild.run.Run '...'>, Exception('boom',))
+    ...
+    RunError: (<guild.run.Run '...'>, Exception('boom'...))
 
 Let's run again and catch the error to inspect it.
 
@@ -726,7 +727,7 @@ Let's run again and catch the error to inspect it.
     ...         print(e.run)
     ...         print(repr(e.from_exc))
     <guild.run.Run '...'>
-    Exception('boom',)
+    Exception('boom'...)
 
 Here are the last two runs and their status:
 
@@ -759,6 +760,7 @@ The exception:
       ...
       File "<doctest ipy.md[73]>", line 2, in ctrl_c
         raise KeyboardInterrupt()
+    ...
     RunTerminated: (<guild.run.Run '...'>, KeyboardInterrupt())
 
 The generated run:

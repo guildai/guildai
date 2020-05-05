@@ -1492,3 +1492,13 @@ def test_windows_symlinks():
         return
     with TempDir() as tmp:
         os.symlink(tempfile.gettempdir(), os.path.join(tmp.path, "link"))
+
+
+def raise_from(raise_exc, from_exc):
+    # pylint: disable=unused-variable,unused-argument
+    if six.PY3:
+        exec("raise raise_exc from from_exc")
+    else:
+        raise_exc_type = raise_exc.__class__
+        tb = sys.exc_info()[2]
+        exec("raise raise_exc_type, raise_exc, tb")
