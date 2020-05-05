@@ -31,3 +31,8 @@ The latest runs:
     [1:...]   hello/hello:from-file  ...  completed  remote-run-123
     [2:...]   hello/hello:from-flag  ...  completed  message='Howdy Guild!'...
     <exit 0>
+
+Sync the latest run:
+
+    >>> run("guild sync `guild select`")
+    <exit 0>

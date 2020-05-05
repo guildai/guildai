@@ -31,6 +31,7 @@ from . import runs_support
 )
 @runs_support.op_and_label_filters
 @runs_support.time_filters
+@runs_support.sourcecode_digest_filters
 @click_util.use_args
 @click_util.render_doc
 def sync(args):
