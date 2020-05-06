@@ -136,7 +136,7 @@ values as ordered in each flag value list.
     A
 
     >>> project.run("say.py", flags={"msg": ["b", "a"], "loud": [False, True]},
-    ...     print_trials=True)
+    ...              print_trials=True)
     #  loud  msg
     1  no    b
     2  no    a
