@@ -1,6 +1,6 @@
 # Guild Example: `hello`
 
-This example illustrates basic flag usage and dependencies.
+This example illustrates basic Guild configuration.
 
 - [guild.yml](guild.yml) - Project Guild file
 - [say.py](say.py) - Prints a greeting
