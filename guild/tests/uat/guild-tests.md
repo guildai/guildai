@@ -22,6 +22,7 @@ tests).
       batch-save-trials:           ok
       batch-skopt:                 ok
       batch-skopt2:                ok
+      batch-stage-trials:          ok
       compare:                     ok
       config:                      ok
       copy-sourcecode:             ok

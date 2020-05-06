@@ -571,7 +571,7 @@ def _remote_run_cmd(
     force_flags,
     force_sourcecode,
     gpus,
-    init_trials,
+    stage_trials,
     label,
     max_trials,
     maximize,
@@ -642,8 +642,8 @@ def _remote_run_cmd(
         cmd.extend(["--random-seed", str(random_seed)])
     if max_trials is not None:
         cmd.extend(["--max-trials", str(max_trials)])
-    if init_trials:
-        cmd.append("--init-trials")
+    if stage_trials:
+        cmd.append("--stage-trials")
     cmd.extend([q(arg) for arg in op_flags])
     return " ".join(cmd)
 

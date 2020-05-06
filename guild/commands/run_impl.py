@@ -1080,8 +1080,20 @@ def _objective_for_opdef(opdef):
 
 
 def _op_init_batch_cmd_run_attrs(args, op):
-    if args.init_trials:
-        op._op_cmd_run_attrs["STAGE_TRIALS"] = "1"
+    if op._run:
+        _apply_stage_trials(
+            args.stage_trials or op._run.get("stage_trials"), op._op_cmd_run_attrs
+        )
+        op._op_cmd_run_attrs["stage_trials"] = args.stage_trials or op._run.get(
+            "stage_trials"
+        )
+    else:
+        _apply_stage_trials(args.stage_trials, op._op_cmd_run_attrs)
+
+
+def _apply_stage_trials(flag, attrs):
+    if flag:
+        attrs["stage_trials"] = flag
 
 
 def _apply_batch_flag_encoder(batch_op, user_op):
@@ -1160,7 +1172,7 @@ def _check_incompatible_options(args):
         ("no_gpus", "gpus"),
         ("optimize", "optimizer"),
         ("print_cmd", "print_env"),
-        ("print_trials", "init_trials"),
+        ("print_trials", "stage_trials"),
         ("stage", "background"),
         ("stage", "pidfile"),
         ("remote", "background"),

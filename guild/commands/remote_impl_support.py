@@ -160,7 +160,7 @@ def _run_kw(args):
         "force_flags",
         "force_sourcecode",
         "gpus",
-        "init_trials",
+        "stage_trials",
         "label",
         "max_trials",
         "maximize",

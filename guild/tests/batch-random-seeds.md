@@ -13,13 +13,11 @@ project.
 Some helper functions:
 
     >>> def run(op=None, restart=None, random_seed=None,
-    ...         max_trials=None, init_trials=False,
-    ...         optimizer=None, **flags):
+    ...         max_trials=None, optimizer=None, **flags):
     ...     project.run(op, flags=flags,
     ...                 random_seed=random_seed,
     ...                 restart=restart,
     ...                 max_trials=max_trials,
-    ...                 init_trials=init_trials,
     ...                 optimizer=optimizer)
 
     >>> def assert_random_seed(val):
