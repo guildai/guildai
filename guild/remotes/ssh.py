@@ -136,6 +136,7 @@ class SSHRemote(remotelib.Remote):
         src_path = "{}/runs/{}/".format(self.guild_home, run.id)
         src = ssh_util.format_rsync_host_path(self.host, src_path, self.user)
         dest = os.path.join(var.runs_dir(), run.id + "/")
+        util.ensure_dir(os.path.dirname(dest))
         cmd = ["rsync"] + self._pull_rsync_opts(delete) + [src, dest]
         cmd.extend(
             ssh_util.rsync_ssh_opts(
