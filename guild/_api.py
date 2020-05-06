@@ -82,6 +82,7 @@ def _popen_args(
     tag=None,
     run_dir=None,
     restart=None,
+    start=None,
     stage=None,
     proto=None,
     force_sourcecode=False,
@@ -98,7 +99,7 @@ def _popen_args(
     random_seed=None,
     debug_sourcecode=None,
     needed=False,
-    init_trials=False,
+    stage_trials=False,
     force_flags=False,
     print_cmd=False,
     print_trials=False,
@@ -123,6 +124,9 @@ def _popen_args(
         args.append(opspec)
     if restart:
         args.extend(["--restart", restart])
+    # start is a synonym for restart - pass this through as provided.
+    if start:
+        args.extend(["--start", start])
     if stage:
         args.append("--stage")
     if proto:
@@ -165,8 +169,8 @@ def _popen_args(
         args.append("--print-trials")
     if save_trials:
         args.extend(["--save-trials", save_trials])
-    if init_trials:
-        args.append("--init-trials")
+    if stage_trials:
+        args.append("--stage-trials")
     if force_flags:
         args.append("--force-flags")
     if quiet:

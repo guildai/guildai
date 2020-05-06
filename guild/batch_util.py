@@ -74,7 +74,7 @@ def _save_trials(trials, path):
 
 def _run_trials(batch_run, trials):
     runs = _init_trial_runs(batch_run, trials)
-    stage = os.getenv("STAGE_TRIALS") == "1"
+    stage = batch_run.get("stage_trials")
     for run in runs:
         _start_trial_run(run, stage)
 

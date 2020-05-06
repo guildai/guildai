@@ -565,7 +565,7 @@ class Project(object):
         This is used to identify the run directory prior to passing
         rerunning/restarting it.
         """
-        for name in ("restart", "proto"):
+        for name in ("restart", "start", "proto"):
             spec = kw.get(name)
             if not spec:
                 continue
