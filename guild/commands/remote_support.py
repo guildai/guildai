@@ -86,3 +86,8 @@ def remote_for_args(args):
             "remote '%s' in ~/.guild/config.yml is missing required "
             "config: %s" % (args.remote, e.args[0])
         )
+    except guild.remote.ConfigError as e:
+        cli.error(
+            "remote '%s' in ~/.guild/config.yml has a configuration "
+            "error: %s" % (args.remote, e.args[0])
+        )

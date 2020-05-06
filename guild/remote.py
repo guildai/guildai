@@ -28,7 +28,11 @@ class UnsupportedRemoteType(ValueError):
     pass
 
 
-class MissingRequiredConfig(ValueError):
+class ConfigError(ValueError):
+    pass
+
+
+class MissingRequiredConfig(ConfigError):
     pass
 
 

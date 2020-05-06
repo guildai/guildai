@@ -51,21 +51,50 @@ class SSHRemote(remotelib.Remote):
         self.private_key = config.get("private-key")
         self.connect_timeout = config.get("connect-timeout")
         self.venv_path = config.get("venv-path") or config.get("guild-env")
-        self.guild_home = self._init_guild_home(config, self.venv_path)
         self.conda_env = config.get("conda-env")
+        self.guild_home = self._init_guild_home(config)
         self.venv_activate = config.get("venv-activate")
         self.use_prerelease = config.get("use-prerelease", False)
         self.init = config.get("init")
         self.proxy = config.get("proxy")
 
+    def _init_guild_home(self, config):
+        return util.find_apply(
+            [
+                self._explicit_guild_home,
+                self._guild_home_from_conda_env,
+                self._guild_home_from_venv,
+                self._default_guild_home,
+            ],
+            config,
+        )
+
     @staticmethod
-    def _init_guild_home(config, venv_path):
-        guild_home = config.get("guild-home")
-        if guild_home is not None:
-            return guild_home
-        if venv_path is None:
-            return ".guild"
-        return util.strip_trailing_sep(venv_path) + "/.guild"
+    def _explicit_guild_home(config):
+        return config.get("guild-home")
+
+    @staticmethod
+    def _guild_home_from_conda_env(config):
+        val = config.get("conda-env")
+        if val is None:
+            return None
+        if "/" not in val:
+            raise remotelib.ConfigError(
+                "cannot determine Guild home from conda-env %r - "
+                "specify a path for conda-env or specify guild-home" % val
+            )
+        return util.strip_trailing_sep(val) + "/.guild"
+
+    @staticmethod
+    def _guild_home_from_venv(config):
+        val = config.get("venv-path") or config.get("guild-env")
+        if val is None:
+            return None
+        return util.strip_trailing_sep(val) + "/.guild"
+
+    @staticmethod
+    def _default_guild_home(_config):
+        return ".guild"
 
     @property
     def host(self):

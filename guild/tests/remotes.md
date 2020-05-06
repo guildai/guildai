@@ -58,3 +58,157 @@ Here are the commands that support the `remote` param:
     runs
     stop
     watch
+
+## ssh configuration
+
+The ssh remote supports a number of configuration attributes. These
+tests highlight some of the important nuances.
+
+Helper function to return a remote for ssh config:
+
+    >>> def ssh_remote(attrs, include_host=True):
+    ...     ssh_config = {
+    ...         "type": "ssh"
+    ...     }
+    ...     ssh_config.update(attrs)
+    ...     if include_host and "host" not in attrs:
+    ...         ssh_config["host"] = "a_host"
+    ...     config = {
+    ...         "remotes": {
+    ...             "ssh": ssh_config
+    ...         }
+    ...     }
+    ...     with UserConfig(config):
+    ...         return guild.remote.for_name("ssh")
+
+### Required ssh attrs
+
+Host is required:
+
+    >>> ssh_remote({}, include_host=False)
+    Traceback (most recent call last):
+    MissingRequiredConfig: host
+
+    >>> ssh = ssh_remote({"host": "foo"})
+    >>> ssh.host
+    'foo'
+
+### venv path
+
+A virtual environment may be specified using either `venv-path` or
+`guild-env`, which are synonymous.
+
+    >>> ssh = ssh_remote({
+    ...     "venv-path": "foo"
+    ... })
+
+    >>> ssh.venv_path
+    'foo'
+
+    >>> ssh = ssh_remote({
+    ...     "guild-env": "foo"
+    ... })
+
+    >>> ssh.venv_path
+    'foo'
+
+### conda env
+
+A Conda env may be specified as a path or as a name.
+
+If specified as a path, it is used as specified.
+
+    >>> ssh = ssh_remote({
+    ...     "conda-env": "foo/bar"
+    ... })
+
+    >>> ssh.conda_env
+    'foo/bar'
+
+If specified as a name, then `guild-path` must also be specified.
+
+    >>> ssh = ssh_remote({
+    ...     "conda-env": "foo"
+    ... })
+    Traceback (most recent call last):
+    ConfigError: cannot determine Guild home from conda-env 'foo' - specify
+    a path for conda-env or specify guild-home
+
+    >>> ssh = ssh_remote({
+    ...     "conda-env": "foo",
+    ...     "guild-home": "bar"
+    ... })
+
+    >>> ssh.conda_env
+    'foo'
+
+### Guild home
+
+Guild home is `.guild` by default.
+
+    >>> ssh = ssh_remote({})
+
+    >>> ssh.guild_home
+    '.guild'
+
+Guild home may be specified using `guild-home`.
+
+    >>> ssh = ssh_remote({
+    ...     "guild-home": "foo"
+    ... })
+
+    >>> ssh.guild_home
+    'foo'
+
+If `venv-path` or `guild-env` is specified, and `guild-home` is not
+specified, Guild home is derrived from the venv path.
+
+    >>> ssh = ssh_remote({
+    ...     "venv-path": "foo"
+    ... })
+
+    >>> ssh.guild_home
+    'foo/.guild'
+
+    >>> ssh = ssh_remote({
+    ...     "guild-env": "foo"
+    ... })
+
+    >>> ssh.guild_home
+    'foo/.guild'
+
+    >>> ssh = ssh_remote({
+    ...     "guild-env": "foo",
+    ...     "guild-home": "bar"
+    ... })
+
+    >>> ssh.guild_home
+    'bar'
+
+If `conda-env` is specified and `guild-home` is not specified, Guild
+home is derrived from `conda-env`.
+
+    >>> ssh = ssh_remote({
+    ...     "conda-env": "foo/bar"
+    ... })
+
+    >>> ssh.guild_home
+    'foo/bar/.guild'
+
+Note, as shown above, an error is raised if `conda-env` is not a path
+with `guild-home` is not specified.
+
+    >>> ssh_remote({
+    ...     "conda-env": "bar"
+    ... })
+    Traceback (most recent call last):
+    ConfigError: cannot determine Guild home from conda-env 'bar' - specify
+    a path for conda-env or specify guild-home
+
+    >>> ssh = ssh_remote({
+    ...     "conda-env": "bar",
+    ...     "guild-home": "foo"
+    ... })
+
+    >>> ssh.guild_home
+    'foo'
