@@ -5,6 +5,8 @@
 - [api](api/README.md) - Use Guild API from a sample operation
 - [dependencies](dependencies/README.md) - File and operation
   dependencies
+- [flags](flags/README.md) - Various methods of defining and using
+  flags
 - [get-started](get-started/README.md) - Example from [Guild Get
   Started](https://guild.ai/start/)
 - [hello](hello/README.md) - Use of flags and required files

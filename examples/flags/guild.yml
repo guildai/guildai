@@ -1,0 +1,34 @@
+disabled:
+  description: Disable flag imports
+  flags-import: no
+
+globals-default:
+  description: Use all global variables
+  main: globals
+  flags-import: all
+
+globals-2:
+  description: Use some global variables and redefine defaults
+  main: globals
+  flags-import: [i, f]
+  flags:
+    i: 2
+    f: 2.2
+
+args-default:
+  description: Use all CLI options
+  main: args
+  flags-import: all
+
+args-2:
+  description: Use some CLI options and define defaults
+  main: args
+  flags-import: [f, b, s]
+  flags:
+    s: hola
+
+args-click-default:
+  description: Use Click API to define CLI
+  main: args_click
+  flags-dest: args:click
+  flags-import: all

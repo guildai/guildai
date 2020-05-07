@@ -28,6 +28,7 @@ import yaml
 
 from guild import cli
 from guild import config
+from guild import entry_point_util
 from guild import guildfile
 from guild import model as modellib
 from guild import op_util
@@ -37,6 +38,11 @@ from guild import util
 from guild import var
 
 IMPLICIT_ALL_FLAGS = object()
+
+
+_flag_importers = entry_point_util.EntryPointResources(
+    "guild.python.flags", "Python flag importer"
+)
 
 
 class DataLoadError(Exception):
@@ -55,6 +61,17 @@ class PythonScriptOpdefSupport(object):
 
         Gives implementor an opportunity to modify the opdef.
         """
+        pass
+
+
+class PythonFlagsImporter(object):
+    """Interface for Python flags importer."""
+
+    def __init__(self, ep):
+        self.ep = ep
+
+    def flags_for_script(self, script, log):
+        """Returns Guild flag config for a Python script."""
         pass
 
 
@@ -149,11 +166,12 @@ class PythonScriptPlugin(pluginlib.Plugin):
         return model, model.op_name
 
     def guildfile_loaded(self, gf):
+        local_cache = {}
         for m in gf.models.values():
             for opdef in m.operations:
                 self._maybe_apply_main(opdef)
                 if opdef.main:
-                    self._apply_script_flags(opdef)
+                    self._apply_script_flags(opdef, local_cache)
                     self._notify_plugins_opdef_loaded(opdef)
 
     @staticmethod
@@ -161,13 +179,14 @@ class PythonScriptPlugin(pluginlib.Plugin):
         if not (op.main is not None or op.exec_ is not None or op.steps is not None):
             op.main = python_util.safe_module_name(op.name)
 
-    def _apply_script_flags(self, opdef):
+    def _apply_script_flags(self, opdef, local_cache):
+        _log_flags_info("### Script flags for %s", opdef.fullname)
         if _flags_import_disabled(opdef):
+            _log_flags_info("flags import disabled - skipping")
             return
         import_all_marker = object()
         to_import = _flags_to_import(opdef, import_all_marker)
         to_skip = _flags_to_skip(opdef)
-        local_cache = {}
         model_paths = op_util.opdef_model_paths(opdef)
         flags_data = self._flags_data(opdef, model_paths, local_cache)
         self._apply_flags_dest(flags_data, opdef)
@@ -183,11 +202,15 @@ class PythonScriptPlugin(pluginlib.Plugin):
 
     def _flags_data(self, opdef, model_paths, local_cache):
         main_spec = op_util.split_main(opdef.main)[0]
+        flags_dest = opdef.flags_dest
         try:
-            flags_data = local_cache[main_spec]
+            flags_data = local_cache[(main_spec, flags_dest)]
         except KeyError:
+            _log_flags_info("reading flags for main spec %r", main_spec)
             flags_data = self._flags_data_(main_spec, model_paths, opdef.flags_dest)
-            local_cache[main_spec] = flags_data
+        else:
+            local_cache[(main_spec, flags_dest)] = flags_data
+            _log_flags_info("using cached flags for main spec %r", main_spec)
         return flags_data
 
     def _flags_data_(self, main_spec, model_paths, flags_dest):
@@ -238,13 +261,14 @@ class PythonScriptPlugin(pluginlib.Plugin):
     def _load_and_cache_flags_data(
         self, mod_path, mod_package, sys_path, flags_dest, cached_data_path
     ):
-        if os.getenv("NO_IMPORT_FLAGS_PROGRESS") != "1":
+        if (
+            os.getenv("NO_IMPORT_FLAGS_PROGRESS") != "1"
+            and os.getenv("FLAGS_TEST") != "1"
+        ):
             cli.note_once("Refreshing flags...")
-        script = python_util.Script(mod_path)
+        script = python_util.Script(mod_path, mod_package, sys_path)
         try:
-            data = self._flags_data_for_script(
-                script, mod_path, mod_package, sys_path, flags_dest
-            )
+            data = self._flags_data_for_script(script, flags_dest)
         except DataLoadError:
             return {}
         else:
@@ -258,37 +282,35 @@ class PythonScriptPlugin(pluginlib.Plugin):
         with open(path, "w") as f:
             json.dump(data, f)
 
-    def _flags_data_for_script(
-        self, script, mod_path, mod_package, sys_path, flags_dest
-    ):
+    def _flags_data_for_script(self, script, flags_dest):
         flags_dest = flags_dest or self._script_flags_dest(script)
         if flags_dest == "args":
-            data = self._load_argparse_flags_data(mod_path, mod_package, sys_path)
-            _flags_test(
-                "%s found args:\n%s",
-                (_script_desc, script),
-                (_assigns_flag_data_desc, data),
-            )
+            data = self._argparse_flags_data(script)
         elif flags_dest == "globals" or flags_dest.startswith("global"):
             data = self._global_assigns_flags_data(script)
-            _flags_test(
-                "%s found global assigns:\n%s",
+        elif flags_dest.startswith("args:"):
+            data = self._entry_point_args_flags_data(flags_dest, script)
+        else:
+            self.log.warning("unsupported flags dest: %r", flags_dest)
+            data = {}
+        if flags_dest:
+            _log_flags_info(
+                "%s flags imported for dest %r:\n%s",
                 (_script_desc, script),
+                flags_dest,
                 (_assigns_flag_data_desc, data),
             )
-        else:
-            data = {}
         data["$dest"] = flags_dest
         return data
 
     def _script_flags_dest(self, script):
         if self._imports_argparse(script):
-            _flags_test(
+            _log_flags_info(
                 "%s imports argparse - assuming args", (_script_desc, script),
             )
             return "args"
         else:
-            _flags_test(
+            _log_flags_info(
                 "%s does not import argparse - assuming globals",
                 (_script_desc, script),
             )
@@ -298,11 +320,11 @@ class PythonScriptPlugin(pluginlib.Plugin):
     def _imports_argparse(script):
         return "argparse" in script.imports
 
-    def _load_argparse_flags_data(self, mod_path, mod_package, sys_path):
+    def _argparse_flags_data(self, script):
         env = dict(os.environ)
         env.update(
             {
-                "PYTHONPATH": os.path.pathsep.join([sys_path] + sys.path),
+                "PYTHONPATH": os.path.pathsep.join([script.sys_path or ''] + sys.path),
                 "LOG_LEVEL": str(self.log.getEffectiveLevel()),
                 "PYTHONDONTWRITEBYTECODE": "1",
             }
@@ -312,8 +334,8 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 sys.executable,
                 "-m",
                 "guild.plugins.import_argparse_flags_main",
-                mod_path,
-                mod_package,
+                script.src,
+                script.mod_package or '',
                 tmp.path,
             ]
             self.log.debug("import_argparse_flags_main env: %s", env)
@@ -323,7 +345,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
             except subprocess.CalledProcessError as e:
                 self.log.warning(
                     "cannot import flags from %s: %s",
-                    mod_path,
+                    script.mod_path,
                     e.output.decode().strip(),
                 )
                 raise DataLoadError()
@@ -331,14 +353,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
                 out = out.decode()
                 self.log.debug("import_argparse_flags_main output: %s", out)
                 _log_warnings(out, self.log)
-                return self._load_data(tmp.path)
-
-    @staticmethod
-    def _load_data(path):
-        out = open(path, "r").read().strip()
-        if not out:
-            return {}
-        return yaml.safe_load(out)
+                return _load_data(tmp.path)
 
     def _global_assigns_flags_data(self, script):
         params = script.params
@@ -351,6 +366,21 @@ class PythonScriptPlugin(pluginlib.Plugin):
     @staticmethod
     def _is_global_assign_flag(name):
         return name[:1] != "_"
+
+    def _entry_point_args_flags_data(self, flags_dest, script):
+        assert flags_dest.startswith("args:")
+        ep_name = flags_dest[5:]
+        try:
+            importer = _flag_importers.one_for_name(ep_name)
+        except LookupError:
+            self.log.warning(
+                "cannot find flag import support for flag-dest %r - unable "
+                "to import flags",
+                ep_name,
+            )
+            return {}
+        else:
+            return importer.flags_for_script(script, self.log)
 
     @staticmethod
     def _apply_abs_paths(data, script_dir):
@@ -425,10 +455,16 @@ def _script_desc(script):
     return os.path.relpath(script.src)
 
 
-def _flags_test(fmt, *args):
+def _log_flags_info(fmt, *args):
     if os.getenv("FLAGS_TEST") == "1":
-        fmt_args = tuple([call[0](*call[1:]) for call in args])
-        cli.note_once(fmt % fmt_args)
+        fmt_args = tuple([_fmt_arg(arg) for arg in args])
+        cli.note(fmt % fmt_args)
+
+
+def _fmt_arg(arg):
+    if isinstance(arg, tuple):
+        return arg[0](*arg[1:])
+    return arg
 
 
 def _assigns_flag_data_desc(data, indent=2):
@@ -440,3 +476,10 @@ def _indent(s, indent):
     lines = s.split("\n")
     prefix = " " * indent
     return "\n".join([prefix + line for line in lines])
+
+
+def _load_data(path):
+    out = open(path, "r").read().strip()
+    if not out:
+        return {}
+    return yaml.safe_load(out)

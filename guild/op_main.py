@@ -208,7 +208,7 @@ def _find_module(module):
 
 def _flags_dest(args):
     dest = os.getenv("FLAGS_DEST", "args")
-    if dest == "args":
+    if dest == "args" or dest.startswith("args:"):
         return _args_dest(args)
     elif dest == "globals":
         return _globals_dest(args)

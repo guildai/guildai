@@ -19,3 +19,7 @@ skopt = guild.plugins.skopt:SkoptPlugin
 
 pypi = guild.namespace:PypiNamespace
 guildfile = guild.model:GuildfileNamespace
+
+[guild.python.flags]
+
+click = guild.plugins.click_flags:ClickFlags

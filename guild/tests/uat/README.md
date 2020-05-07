@@ -196,9 +196,10 @@ And test the `keras` example.
 - [train-keras-mlp-example](train-keras-mlp-example.md)
 - [train-keras-mlp-example-2](train-keras-mlp-example-2.md)
 
-### `custom-scalars` example
+### Other examples
 
 - [custom-scalars-example](custom-scalars-example.md)
+- [flags-example](flags-example.md)
 
 ## Dependencies
 

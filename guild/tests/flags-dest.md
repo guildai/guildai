@@ -41,8 +41,7 @@ And its operations:
      <guild.guildfile.OpDef 'args2'>,
      <guild.guildfile.OpDef 'args3'>,
      <guild.guildfile.OpDef 'globals'>,
-     <guild.guildfile.OpDef 'params'>,
-     <guild.guildfile.OpDef 'yml'>]
+     <guild.guildfile.OpDef 'params'>]
 
 We'll illustrate the various interfaces by running operations in a
 temporary workspace.

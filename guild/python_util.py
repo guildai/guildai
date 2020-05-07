@@ -42,9 +42,11 @@ log = logging.getLogger("guild")
 
 
 class Script(object):
-    def __init__(self, src):
+    def __init__(self, src, mod_package=None, sys_path=None):
         self.src = src
         self.name = _script_name(src)
+        self.mod_package = mod_package
+        self.sys_path = sys_path
         self._parsed = False
         self._imports = []
         self._calls = []

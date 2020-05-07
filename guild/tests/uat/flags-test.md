@@ -3,12 +3,15 @@
     >>> cd(example("api"))
 
     >>> run("guild run op --test-flags")  # doctest: +REPORT_UDIFF
-    Refreshing flags...
+    ### Script flags for op
+    reading flags for main spec 'op'
     op.py does not import argparse - assuming globals
-    op.py found global assigns:
+    op.py flags imported for dest 'globals':
       x: 1.0
+    ### Script flags for summary
+    reading flags for main spec 'summary'
     summary.py imports argparse - assuming args
-    summary.py found args:
+    summary.py flags imported for dest 'args':
       min-loss:
         default: -0.2
       output:
@@ -36,12 +39,15 @@
     <exit 0>
 
     >>> run("guild run summary --test-flags")  # doctest: +REPORT_UDIFF
-    Refreshing flags...
+    ### Script flags for op
+    reading flags for main spec 'op'
     op.py does not import argparse - assuming globals
-    op.py found global assigns:
+    op.py flags imported for dest 'globals':
       x: 1.0
+    ### Script flags for summary
+    reading flags for main spec 'summary'
     summary.py imports argparse - assuming args
-    summary.py found args:
+    summary.py flags imported for dest 'args':
       min-loss:
         default: -0.2
       output:
