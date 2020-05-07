@@ -107,8 +107,8 @@ def _flags_for_click_params(params):
 
 def _maybe_apply_flag(param, flags):
     arg_name = _param_arg_name(param)
-    if not arg_name:
-        log.debug("skipping %s - not a flag option", param)
+    if not arg_name or not isinstance(param, click.Option):
+        log.debug("skipping %s - not a flag option", param.name)
         return
     flag_name = param.name
     flags[flag_name] = attrs = {}
