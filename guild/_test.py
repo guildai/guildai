@@ -763,7 +763,7 @@ class UserConfig(object):
 
     def __exit__(self, *exc):
         # None forces a lazy re-reread from disk, which is the correct
-        # behavior for a reset here
+        # behavior for a reset here.
         configlib._user_config = None
 
 
