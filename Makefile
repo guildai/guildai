@@ -61,6 +61,7 @@ clean:
 	rm -rf guildai.egg-info/
 	find -name *.pyc | grep -v guild/tests/samples | xargs rm
 	rm -rf guild/view/node_modules
+	rm -rf .coverage coverage
 
 UAT_PYTHON = python3
 
@@ -87,3 +88,22 @@ README.html: README.md
 
 black:
 	black guild
+
+coverage-check:
+	@if [ -z "$(TESTS)" ]; then \
+	  tests="-T"; \
+	else \
+	  for test in $(TESTS); do \
+	    tests="$$tests -t $$test"; \
+	  done; \
+	fi; \
+	coverage run -a -m guild.main_bootstrap check -n $$tests
+
+coverage-report:
+	coverage report -m --include=guild/* --omit=guild/_lex.py,guild/_yacc.py,guild/external/*
+
+coverage-annotate:
+	coverage annotate -d coverage --include=guild/* --omit=guild/_lex.py,guild/_yacc.py,guild/external/*
+
+coverage-clean:
+	rm -rf .coverage coverage

@@ -1,5 +1,6 @@
 *.pyc
 /build
+/coverage
 /dist
 /guildai.egg-info
 /guild/external/click
@@ -8,6 +9,7 @@
 /guild/external/.*
 /guild/external/*.dist-info
 /guild/view/node_modules
+/.coverage
 /.pypi-creds
 /README.html
 published-results

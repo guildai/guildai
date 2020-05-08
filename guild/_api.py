@@ -19,8 +19,6 @@ import os
 import subprocess
 import sys
 
-import six
-
 # Consider all Guild imports expensive and move to functions
 
 
@@ -50,11 +48,18 @@ class Env(object):
 
 
 def run(*args, **kw):
+    stdout = kw.pop("stdout", None)
+    stderr = kw.pop("stderr", None)
     args, cwd, env = _popen_args(*args, **kw)
-    p = subprocess.Popen(args, cwd=cwd, env=env)
-    returncode = p.wait()
-    if returncode != 0:
-        raise RunError((args, cwd, env), returncode)
+    p = subprocess.Popen(args, cwd=cwd, env=env, stdout=stdout, stderr=stderr)
+    out, err = p.communicate()
+    if out is not None:
+        out = out.decode()
+    if err is not None:
+        err = err.decode()
+    if p.returncode != 0:
+        raise RunError((args, cwd, env), p.returncode, (out, err))
+    return out, err
 
 
 def run_capture_output(*args, **kw):
@@ -270,22 +275,6 @@ def runs_delete(runs=None, permanent=False, cwd=".", guild_home=None, **kw):
         runs_impl.delete_runs(args)
 
 
-def guild_cmd(command, args, cwd=None, guild_home=None, capture_output=False):
-    if isinstance(command, six.string_types):
-        command = [command]
-    cmd_args = [sys.executable, "-um", "guild.main_bootstrap",] + command + args
-    env = dict(os.environ)
-    _apply_guild_home_env(env, guild_home)
-    _apply_python_path_env(env)
-    _apply_lang_env(env)
-    if capture_output:
-        return subprocess.check_output(
-            cmd_args, stderr=subprocess.STDOUT, cwd=cwd, env=env
-        )
-    else:
-        return subprocess.call(cmd_args, cwd=cwd, env=env)
-
-
 class NoCurrentRun(Exception):
     pass
 
@@ -296,7 +285,6 @@ def current_run():
     The current run directory must be specified with the RUN_DIR
     environment variable. If this variable is not defined, raised
     NoCurrentRun.
-
     """
     import guild.run
 
@@ -401,6 +389,7 @@ def package(
     password=None,
     skip_existing=False,
     comment=None,
+    clean=False,
     cwd=".",
     guild_home=None,
 ):
@@ -418,9 +407,12 @@ def package(
         password=password,
         skip_existing=skip_existing,
         comment=comment,
+        clean=clean,
+        capture_output=True,
     )
     with Env(cwd, guild_home):
-        package_impl.main(args)
+        out = package_impl.main(args)
+        print(out.decode())
 
 
 def select(run=None, min=None, max=None, cwd=".", guild_home=None, **kw):

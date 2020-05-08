@@ -65,6 +65,7 @@ from guild import click_util
 @click.option(
     "-c", "--comment", metavar="COMMENT", help="Comment to include with upload."
 )
+@click.option("--capture-output", hidden=True)
 @click_util.use_args
 def package(args):
     """Create a package for distribution.

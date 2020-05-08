@@ -590,6 +590,7 @@ def _build_package(src_dir, dist_dir):
         password=None,
         skip_existing=False,
         comment=None,
+        capture_output=False,
     )
     with config.SetCwd(src_dir):
         package_impl.main(args)

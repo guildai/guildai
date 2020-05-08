@@ -42,7 +42,7 @@ def main(args):
         )
     if args.upload:
         _check_upload_support(package_file)
-    package.create_package(
+    out = package.create_package(
         package_file,
         clean=args.clean,
         dist_dir=args.dist_dir,
@@ -53,7 +53,9 @@ def main(args):
         password=args.password,
         skip_existing=args.skip_existing,
         comment=args.comment,
+        capture_output=args.capture_output,
     )
+    return out
 
 
 def _check_upload_support(package_file):

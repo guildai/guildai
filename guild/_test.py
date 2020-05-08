@@ -86,7 +86,7 @@ def all_tests():
 
 
 def tests_dir():
-    return os.path.join(os.path.dirname(__file__), "tests")
+    return os.path.join(os.path.abspath(os.path.dirname(__file__)), "tests")
 
 
 def _test_name_for_path(path):
