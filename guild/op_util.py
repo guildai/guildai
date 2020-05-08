@@ -20,6 +20,10 @@ import importlib
 import logging
 import os
 import re
+import struct
+import sys
+import threading
+import time
 
 import six
 import yaml
@@ -28,6 +32,7 @@ from guild import config
 from guild import guildfile
 from guild import file_util
 from guild import flag_util
+from guild import log as loglib
 from guild import op_cmd as op_cmd_lib
 from guild import op_dep
 from guild import plugin as pluginlib
@@ -35,35 +40,6 @@ from guild import run as runlib
 from guild import util
 from guild import var
 from guild import vcs_util
-
-# TEMP imports until promoted to op_util
-from .op_util_legacy import ArgValueError  # pylint: disable=unused-import
-from .op_util_legacy import FlagError  # pylint: disable=unused-import
-from .op_util_legacy import InvalidFlagChoice  # pylint: disable=unused-import
-from .op_util_legacy import InvalidFlagValue  # pylint: disable=unused-import
-from .op_util_legacy import MissingRequiredFlags  # pylint: disable=unused-import
-from .op_util_legacy import NO_ARG_VALUE  # pylint: disable=unused-import
-from .op_util_legacy import RunOutput  # pylint: disable=unused-import
-from .op_util_legacy import args_to_flags  # pylint: disable=unused-import
-from .op_util_legacy import coerce_flag_value  # pylint: disable=unused-import
-from .op_util_legacy import flag_assign  # pylint: disable=unused-import
-from .op_util_legacy import flag_assigns  # pylint: disable=unused-import
-from .op_util_legacy import flags_desc  # pylint: disable=unused-import
-from .op_util_legacy import global_dest  # pylint: disable=unused-import
-from .op_util_legacy import init_logging  # pylint: disable=unused-import
-from .op_util_legacy import mapped_flag_vals  # pylint: disable=unused-import
-from .op_util_legacy import opdef_model_paths  # pylint: disable=unused-import
-from .op_util_legacy import parse_flag_assigns  # pylint: disable=unused-import
-from .op_util_legacy import parse_opspec  # pylint: disable=unused-import
-from .op_util_legacy import print_trials  # pylint: disable=unused-import
-from .op_util_legacy import restart_needed  # pylint: disable=unused-import
-from .op_util_legacy import run_params_for_restart  # pylint: disable=unused-import
-from .op_util_legacy import save_trials  # pylint: disable=unused-import
-from .op_util_legacy import split_args_for_flags  # pylint: disable=unused-import
-from .op_util_legacy import split_cmd  # pylint: disable=unused-import
-from .op_util_legacy import split_main  # pylint: disable=unused-import
-from .op_util_legacy import validate_flag_vals  # pylint: disable=unused-import
-from .op_util_legacy import wait_for_proc  # pylint: disable=unused-import
 
 log = logging.getLogger("guild")
 
@@ -76,9 +52,57 @@ STEPS_EXEC = "${python_exe} -um guild.steps_main"
 LABEL_TOKENS_P = re.compile(r"(\${.+?})")
 LABEL_FLAG_REF_P = re.compile(r"\${(.+?)}")
 
+RUN_OUTPUT_STREAM_BUFFER = 4096
+
+RESTART_NEEDED_STATUS = ("pending",)
+
+
+try:
+    bytes('')
+except TypeError:
+    # Python 3
+    LF = 10
+    BYTES_JOIN = bytes
+else:
+    # Python 2
+    LF = b"\n"
+    BYTES_JOIN = lambda l: b"".join(l)
+
+
 ###################################################################
 # Error classes
 ###################################################################
+
+
+class ArgValueError(ValueError):
+    def __init__(self, arg):
+        super(ArgValueError, self).__init__(arg)
+        self.arg = arg
+
+
+class FlagError(Exception):
+    pass
+
+
+class MissingRequiredFlags(FlagError):
+    def __init__(self, missing):
+        super(MissingRequiredFlags, self).__init__(missing)
+        self.missing = missing
+
+
+class InvalidFlagChoice(FlagError):
+    def __init__(self, val, flag):
+        super(InvalidFlagChoice, self).__init__(val, flag)
+        self.val = val
+        self.flag = flag
+
+
+class InvalidFlagValue(FlagError):
+    def __init__(self, value, flag, msg):
+        super(InvalidFlagValue, self).__init__(value, flag, msg)
+        self.value = value
+        self.flag = flag
+        self.msg = msg
 
 
 class OpDefLookupError(LookupError):
@@ -161,6 +185,172 @@ class BatchFileError(Exception):
         return "cannot read trials for %s: %s" % (self.path, self.msg)
 
 
+class ProcessError(Exception):
+    pass
+
+
+###################################################################
+# Run output
+###################################################################
+
+
+class RunOutput(object):
+
+    DEFAULT_WAIT_TIMEOUT = 10
+
+    def __init__(self, run, proc=None, quiet=False, output_cb=None):
+        assert run
+        self._run = run
+        self._quiet = quiet
+        self._output_cb = output_cb
+        self._output_lock = threading.Lock()
+        self._open = False
+        self._proc = None
+        self._output = None
+        self._index = None
+        self._out_tee = None
+        self._err_tee = None
+        if proc:
+            self.open(proc)
+
+    @property
+    def closed(self):
+        return not self._open
+
+    def open(self, proc):
+        self._assert_closed()
+        if proc.stdout is None:
+            raise RuntimeError("proc stdout must be a PIPE")
+        if proc.stderr is None:
+            raise RuntimeError("proc stderr must be a PIPE")
+        self._proc = proc
+        self._output = self._open_output()
+        self._index = self._open_index()
+        self._out_tee = threading.Thread(target=self._out_tee_run)
+        self._err_tee = threading.Thread(target=self._err_tee_run)
+        self._out_tee.start()
+        self._err_tee.start()
+        self._open = True
+
+    def _assert_closed(self):
+        if self._open:
+            raise RuntimeError("already open")
+        assert self._proc is None
+        assert self._output is None
+        assert self._index is None
+        assert self._out_tee is None
+        assert self._err_tee is None
+
+    def _open_output(self):
+        path = self._run.guild_path("output")
+        return open(path, "wb")
+
+    def _open_index(self):
+        path = self._run.guild_path("output.index")
+        return open(path, "wb")
+
+    def _out_tee_run(self):
+        assert self._proc
+        self._gen_tee_run(self._proc.stdout, sys.stdout, 0)
+
+    def _err_tee_run(self):
+        assert self._proc
+        self._gen_tee_run(self._proc.stderr, sys.stderr, 1)
+
+    def _gen_tee_run(self, input_stream, output_stream, stream_type):
+        assert self._output
+        assert self._index
+        os_read = os.read
+        os_write = os.write
+        input_fileno = input_stream.fileno()
+        if not self._quiet:
+            stream_fileno = output_stream.fileno()
+        else:
+            stream_fileno = None
+        output_fileno = self._output.fileno()
+        index_fileno = self._index.fileno()
+        time_ = time.time
+        lock = self._output_lock
+        line = []
+        while True:
+            buf = os_read(input_fileno, RUN_OUTPUT_STREAM_BUFFER)
+            if not buf:
+                break
+            with lock:
+                if stream_fileno is not None:
+                    os_write(stream_fileno, buf)
+                os_write(output_fileno, buf)
+                for b in buf:
+                    if b < 9:  # non-printable
+                        continue
+                    line.append(b)
+                    if b == LF:
+                        line_bytes = BYTES_JOIN(line)
+                        line = []
+                        entry = struct.pack("!QB", int(time_() * 1000), stream_type)
+                        os_write(index_fileno, entry)
+                        if self._output_cb:
+                            try:
+                                self._output_cb.write(line_bytes)
+                            except Exception:
+                                log.exception(
+                                    "error in output callback (will be " "removed)"
+                                )
+                                self._output_cb = None
+
+    def wait(self, timeout=DEFAULT_WAIT_TIMEOUT):
+        self._assert_open()
+        self._out_tee.join(timeout)
+        self._err_tee.join(timeout)
+
+    def _assert_open(self):
+        if not self._open:
+            raise RuntimeError("not open")
+        assert self._proc
+        assert self._output
+        assert self._index
+        assert self._out_tee
+        assert self._err_tee
+
+    def close(self):
+        lock = self._acquire_output_lock()
+        try:
+            self._close()
+        finally:
+            lock.release()
+
+    def _acquire_output_lock(self, timeout=60):
+        """Polling verison of acquire to support timeouts on Python 2."""
+        timeout_at = time.time() + timeout
+        while time.time() < timeout_at:
+            if self._output_lock.acquire(False):
+                return self._output_lock
+            time.sleep(1)
+        raise RuntimeError("timeout")
+
+    def _close(self):
+        self._assert_open()
+        self._output.close()
+        self._index.close()
+        if self._output_cb:
+            try:
+                self._output_cb.close()
+            except Exception:
+                log.exception("closing output callback")
+        assert not self._out_tee.is_alive()
+        assert not self._err_tee.is_alive()
+        self._proc = None
+        self._output = None
+        self._index = None
+        self._out_tee = None
+        self._err_tee = None
+        self._open = False
+
+    def wait_and_close(self, timeout=DEFAULT_WAIT_TIMEOUT):
+        self.wait(timeout)
+        self.close()
+
+
 ###################################################################
 # OpDef for spec
 ###################################################################
@@ -204,18 +394,93 @@ def _try_model_proxy(opspec):
 
 
 def _model_op(opspec):
-    model_ref, op_name = _parse_opspec(opspec)
+    model_ref, op_name = _parsed_opspec(opspec)
     model = _resolve_model(model_ref)
     if not model:
         raise NoSuchModel(opspec)
     return model, op_name
 
 
-def _parse_opspec(opspec):
+def _parsed_opspec(opspec):
     parsed = parse_opspec(opspec)
     if parsed is None:
         raise InvalidOpSpec(opspec)
     return parsed
+
+
+###################################################################
+# Opdef for model paths
+###################################################################
+
+
+def opdef_model_paths(opdef):
+    return _opdef_paths(opdef) + _model_parent_paths(opdef.modeldef)
+
+
+def _opdef_paths(opdef):
+    if not opdef.guildfile.dir:
+        return []
+    abs_gf_dir = os.path.abspath(opdef.guildfile.dir)
+    if opdef.python_path is not None:
+        return [os.path.join(abs_gf_dir, p) for p in opdef.python_path]
+    if opdef.sourcecode and opdef.sourcecode.root:
+        return [os.path.join(abs_gf_dir, opdef.sourcecode.root)]
+    return [abs_gf_dir]
+
+
+def _model_parent_paths(modeldef):
+    return [os.path.abspath(parent.dir) for parent in modeldef.parents]
+
+
+###################################################################
+# Parse opspec
+###################################################################
+
+
+def parse_opspec(spec):
+    return util.find_apply(
+        [
+            _empty_spec,
+            _op_spec,
+            _model_op_spec,
+            _package_model_op_spec,
+            _package_op_spec,
+        ],
+        spec,
+    )
+
+
+def _empty_spec(spec):
+    if spec:
+        return None
+    return None, None
+
+
+def _op_spec(spec):
+    if "/" in spec or ":" in spec:
+        return None
+    return None, spec
+
+
+def _model_op_spec(spec):
+    m = re.match(r"([^/:]*):([^/:]+)$", spec)
+    if not m:
+        return None
+    return m.groups()
+
+
+def _package_model_op_spec(spec):
+    m = re.match(r"([^/:]+/[^/:?]+):([^/:]+)$", spec)
+    if not m:
+        return None
+    return m.groups()
+
+
+def _package_op_spec(spec):
+    m = re.match(r"([^/:]+/):?([^/:]+)$", spec)
+    if not m:
+        return None
+    return m.groups()
 
 
 def _resolve_model(model_ref):
@@ -762,6 +1027,12 @@ def _op_cmd_args_and_run_attrs(opdef):
     return exec_args, run_attrs
 
 
+def split_cmd(cmd):
+    if isinstance(cmd, list):
+        return cmd
+    return util.shlex_split(cmd or "")
+
+
 def _opdef_exec_and_run_attrs(opdef):
     """Returns exec template for opdef with required run attrs for opdef.
 
@@ -881,7 +1152,7 @@ def _flagdef_arg_skip(flagdef):
 
 
 ###################################################################
-# Flags support
+# Flag vals for opdef
 ###################################################################
 
 
@@ -905,7 +1176,7 @@ def _apply_coerce_flag_vals(flagdefs, force, vals):
     flagdef_lookup = {flagdef.name: flagdef for flagdef in flagdefs}
     for name, val in vals.items():
         try:
-            coerced = _coerce_flag_value(name, val, flagdef_lookup)
+            coerced = _coerced_flag_value(name, val, flagdef_lookup)
         except InvalidFlagValue:
             if not force:
                 raise
@@ -913,7 +1184,7 @@ def _apply_coerce_flag_vals(flagdefs, force, vals):
             vals[name] = coerced
 
 
-def _coerce_flag_value(name, val, flagdefs):
+def _coerced_flag_value(name, val, flagdefs):
     flagdef = flagdefs.get(name)
     if not flagdef:
         return val
@@ -921,6 +1192,58 @@ def _coerce_flag_value(name, val, flagdefs):
         return coerce_flag_value(val, flagdef)
     except (ValueError, TypeError) as e:
         raise InvalidFlagValue(val, flagdef, str(e))
+
+
+def coerce_flag_value(val, flagdef):
+    """Coerces a flag value based on flagdef settings."""
+    if (
+        val is None
+        or not flagdef
+        or not flagdef.type
+        or flag_util.is_flag_function(val)
+    ):
+        return val
+    if isinstance(val, list):
+        return [coerce_flag_value(x, flagdef) for x in val]
+    elif flagdef.type == "string":
+        return _try_coerce_flag_val(val, str, flagdef)
+    elif flagdef.type == "int":
+        if isinstance(val, float):
+            raise ValueError("invalid value for type 'int'")
+        return _try_coerce_flag_val(val, int, flagdef)
+    elif flagdef.type == "float":
+        return _try_coerce_flag_val(val, float, flagdef)
+    elif flagdef.type == "boolean":
+        return _try_coerce_flag_val(val, bool, flagdef)
+    elif flagdef.type == "number":
+        if isinstance(val, (float, int)):
+            return val
+        return _try_coerce_flag_val(val, (int, float), flagdef)
+    elif flagdef.type in ("path", "existing-path"):
+        return _resolve_rel_path(val)
+    else:
+        log.warning(
+            "unknown flag type '%s' for %s - cannot coerce", flagdef.type, flagdef.name
+        )
+        return val
+
+
+def _try_coerce_flag_val(val, funs, flagdef):
+    if not isinstance(funs, tuple):
+        funs = (funs,)
+    for f in funs:
+        try:
+            return f(val)
+        except ValueError as e:
+            log.debug("value error applying %s to %r: %s", f, val, e)
+    raise ValueError("invalid value for type '%s'" % flagdef.type)
+
+
+def _resolve_rel_path(val):
+    val = os.path.expanduser(val)
+    if val and not os.path.isabs(val):
+        return os.path.abspath(val)
+    return val
 
 
 def _resource_flagdefs(opdef, flag_vals):
@@ -1054,6 +1377,90 @@ def _apply_default_flag_vals(flagdefs, flag_vals):
             flag_vals[flagdef.name] = flagdef.default
 
 
+def flag_assigns(flags, skip_none=False):
+    return [
+        flag_assign(name, val)
+        for name, val in sorted(flags.items())
+        if not skip_none or val is not None
+    ]
+
+
+def flag_assign(name, val):
+    return "%s=%s" % (name, flag_util.format_flag(val))
+
+
+def parse_flag_assigns(args):
+    return dict([parse_flag_arg(os.path.expanduser(arg)) for arg in args])
+
+
+def parse_flag_arg(arg):
+    parts = arg.split("=", 1)
+    if len(parts) == 1:
+        raise ArgValueError(arg)
+    else:
+        return parts[0], flag_util.decode_flag_val(parts[1])
+
+
+def args_to_flags(args):
+    """Returns `flags, other_args` for `args`.
+
+    `other_args` is a list of args that cannot be converted to flag
+    values.
+
+    If args contains `--` then all args before the last occuring `--`
+    are included in `other_args`.
+    """
+    flags = {}
+    args, other_args = split_args_for_flags(args)
+    name = None
+    for arg in args:
+        if arg[:2] == "--":
+            name = arg[2:]
+            flags[name] = True
+        elif arg[:1] == "-":
+            val = flag_util.decode_flag_val(arg)
+            if isinstance(val, (int, float)):
+                flags[name] = val
+            elif len(arg) == 2:
+                name = arg[1]
+                flags[name] = True
+            elif len(arg) > 2:
+                name = None
+                flags[arg[1]] = arg[2:]
+        elif name is not None:
+            flags[name] = flag_util.decode_flag_val(arg)
+            name = None
+        else:
+            other_args.append(arg)
+    return flags, other_args
+
+
+def split_args_for_flags(args):
+    """Returns `split_args, other_args` for `args`.
+
+    Split occurs using the last occurrence of `--` in `args`.
+
+    If `arg` does not contain `--` returns `args, []`.
+    """
+    for i in range(len(args) - 1, -1, -1):
+        if args[i] == "--":
+            return args[i + 1 :], args[:i]
+    return args, []
+
+
+def global_dest(global_name, flags):
+    dest = cur = {}
+    for name in global_name.split("."):
+        cur = cur.setdefault(name, {})
+    cur.update(flags)
+    return dest
+
+
+def flags_desc(flags, truncate_floats=False, delim=", "):
+    formatted = flag_util.format_flag_assigns(flags, truncate_floats)
+    return delim.join(formatted)
+
+
 ###################################################################
 # Op deps IO
 ###################################################################
@@ -1163,6 +1570,120 @@ def _flag_vals(row):
 
 
 ###################################################################
+# Restart support
+###################################################################
+
+
+def restart_needed(run, flags):
+    return run.status in RESTART_NEEDED_STATUS or run.get("flags") != flags
+
+
+def run_params_for_restart(run, user_specified_params=None):
+    """Returns params for use in run command for a restart of run.
+
+    The set of applicable params in the run "run_params" attribute are
+    considered. If user_specified_params contains a non-default value
+    (i.e. the user has indicated she wants to use a specific value)
+    that param will not be included in the result. If
+    user_specified_params is None (default) then all applicable params
+    for a restart that are defined in run are returned.
+    """
+    # Note about applicable run params:
+    #
+    # A limited number of params could possibly apply to args - those
+    # are listed here. This list has to be maintained as new args are
+    # added to the run command. Params must be included where the user
+    # would reasonably assume applicability and never in cases where
+    # the use of the parameter would be clearly surprising to the user
+    # (e.g. reusing the 'yes' param, which would alter the expected
+    # behavior of the command on a restart).
+    #
+    # Params that are saved as run attrs or otherwise available under
+    # the run guild path (e.g. opspec, label, flags) should NOT be
+    # returned in this value in the interest of elimiting redundancy
+    # and potential mismtach bugs. Anyone needing those values MUST
+    # read them via run attrs or applicable run interface
+    # (e.g. opref in the case of opsec).
+    #
+    applicable_run_params = [
+        "force_flags",
+        "gpus",
+        "max_trials",
+        "maximize",
+        "minimize",
+        "no_gpus",
+        "opt_flags",
+        "optimizer",
+        "random_seed",
+    ]
+    from guild.commands.run import run as run_cmd
+
+    run_params = run.get("run_params", {})
+    if not isinstance(run_params, dict):
+        return
+    baseline_params = run_cmd.make_context("", []).params
+    result = {}
+    for name in run_params:
+        val = _coerce_run_param(name, run_params[name])
+        if name not in applicable_run_params:
+            continue
+        if user_specified_params is None:
+            result[name] = val
+            continue
+        try:
+            user_specified_val = user_specified_params[name]
+        except KeyError:
+            result[name] = val
+            continue
+        if user_specified_val != baseline_params[name]:
+            continue
+        result[name] = val
+    return result
+
+
+def _coerce_run_param(name, val):
+    """Ensures that named param is valid for the run command."""
+    if name == "flags":
+        return tuple(val)
+    return val
+
+
+###################################################################
+# Wait for proc
+###################################################################
+
+
+def wait_for_proc(p, stop_after_min, poll_interval=5, kill_delay=30):
+    started = time.time()
+    stop_at = time.time() + stop_after_min * 60
+    while time.time() < stop_at:
+        time.sleep(poll_interval)
+        returncode = p.poll()
+        if returncode is not None:
+            return returncode
+    elapsed = (time.time() - started) / 60
+    log.info(
+        "Stopping process early (pid %i) - %.1f minute(s) elapsed", p.pid, elapsed,
+    )
+    return _terminate(p, poll_interval, kill_delay)
+
+
+def _terminate(p, poll_interval, kill_delay):
+    kill_at = time.time() + kill_delay
+    p.terminate()
+    while p.poll() is None and time.time() < kill_at:
+        time.sleep(poll_interval)
+    if p.poll() is None:
+        log.warning("Process did not terminate (pid %i), killing", p.pid)
+        p.kill()
+        time.sleep(poll_interval)
+    returncode = p.poll()
+    if returncode not in (0, -15):
+        raise ProcessError("Process did not terminate gracefully (pid %i)" % p.pid)
+    return returncode
+
+
+###################################################################
 # Utils
 ###################################################################
 
@@ -1231,3 +1752,11 @@ def delete_proc_lock(run):
         os.remove(run.guild_path("LOCK"))
     except OSError:
         pass
+
+
+def init_logging():
+    if os.getenv("LOG_INIT_SKIP") == "1":
+        return
+    level = int(os.getenv("LOG_LEVEL", logging.WARN))
+    format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
+    loglib.init_logging(level, {"_": format})

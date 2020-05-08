@@ -67,7 +67,6 @@ tests).
       op-errors:                   ok
       op-main:                     ok
       op-utils:                    ok
-      op-utils2:                   ok
       opref:                       ok
       ops:                         ok
       package:                     ok
@@ -97,6 +96,7 @@ tests).
       skopt:                       ok
       skopt-utils:                 ok
       sourcecode-digest:           ok
+      startup-time:                ok
       step-checks:                 ok
       steps:                       ok
       steps-run-isolation:         ok

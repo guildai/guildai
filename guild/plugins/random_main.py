@@ -19,7 +19,6 @@ import logging
 import sys
 
 from guild import batch_util
-from guild import op_util
 
 from . import skopt_util
 
@@ -29,7 +28,7 @@ DEFAULT_MAX_TRIALS = 20
 
 
 def main():
-    op_util.init_logging()
+    batch_util.init_logging()
     batch_run = batch_util.batch_run()
     trials = _batch_trials(batch_run)
     batch_util.handle_trials(batch_run, trials)
@@ -53,6 +52,15 @@ def _batch_trials(batch_run):
 def _search_dim_error(e):
     log.error(str(e))
     sys.exit(1)
+
+
+def gen_trials(flags, _runs, max_trials=None, random_seed=None, **opts):
+    if opts:
+        log.warning("ignoring configuration %s", opts)
+
+    return skopt_util.random_trials_for_flags(
+        flags, max_trials, random_seed
+    )
 
 
 if __name__ == "__main__":

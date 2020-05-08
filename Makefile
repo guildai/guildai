@@ -107,3 +107,9 @@ coverage-annotate:
 
 coverage-clean:
 	rm -rf .coverage coverage
+
+coverage:
+	make coverage-clean
+	make coverage-check
+	make coverage-annotate
+	make coverage-report

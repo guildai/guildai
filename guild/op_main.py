@@ -30,7 +30,6 @@ import traceback
 # Avoid expensive imports here as load times directly add to runs.
 
 from guild import exit_code
-from guild import log as loglib
 from guild import op_util
 from guild import util
 
@@ -101,10 +100,7 @@ def _init_sys_path():
 
 
 def _init_logging():
-    if os.getenv("LOG_INIT_SKIP") != "1":
-        level = int(os.getenv("LOG_LEVEL", logging.WARN))
-        format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
-        loglib.init_logging(level, {"_": format})
+    op_util.init_logging()
     globals()["log"] = logging.getLogger("guild")
 
 

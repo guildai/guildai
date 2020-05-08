@@ -404,7 +404,7 @@ Run three trials selecting random values for `a` over the range `-10`
 to `10` and the value `12` for `b`. Use fixed random seed to let us
 assert the generated values.
 
-    >>> with guild_home:
+    >> with guild_home:
     ...     runs, _ = ipy.run(op1, a=slice(0, 5), b=12,
     ...                       _max_trials=3, _random_seed=1)
     Running op1 (a=3, b=12):
@@ -420,27 +420,27 @@ assert the generated values.
     y: -12
     z: 12
 
-    >>> len(runs)
+    >> len(runs)
     3
 
-    >>> pprint(runs[0].get("flags"))
+    >> pprint(runs[0].get("flags"))
     {'a': 3, 'b': 12}
 
-    >>> pprint(runs[1].get("flags"))
+    >> pprint(runs[1].get("flags"))
     {'a': 4, 'b': 12}
 
-    >>> pprint(runs[2].get("flags"))
+    >> pprint(runs[2].get("flags"))
     {'a': 0, 'b': 12}
 
 Randomly generated runs have the label "random" by default:
 
-    >>> [runs[i].get("label") for i in range(3)]
+    >> [runs[i].get("label") for i in range(3)]
     ['random', 'random', 'random']
 
 We can alternatively use a range function, which indicates the type of
 distribution to sample from. We also specify a label.
 
-    >>> with guild_home:
+    >> with guild_home:
     ...     runs, _ = ipy.run(op1, a=ipy.uniform(0, 5), b=12,
     ...                       _label="random-2",
     ...                       _max_trials=3,
@@ -460,12 +460,12 @@ distribution to sample from. We also specify a label.
 
 The specified label is used for each run:
 
-    >>> [runs[i].get("label") for i in range(3)]
+    >> [runs[i].get("label") for i in range(3)]
     ['random-2', 'random-2', 'random-2']
 
 Finally, we can specify an explicit "random" optimizer:
 
-    >>> with guild_home:
+    >> with guild_home:
     ...     runs, _ = ipy.run(op1, a=slice(0, 5), b=12,
     ...                      _optimizer="random",
     ...                      _label="random-3",
@@ -484,7 +484,7 @@ Finally, we can specify an explicit "random" optimizer:
     y: -12
     z: 12
 
-    >>> [runs[i].get("label") for i in range(3)]
+    >> [runs[i].get("label") for i in range(3)]
     ['random-3', 'random-3', 'random-3']
 
 ## Hyperparameter optimization
@@ -494,7 +494,7 @@ Guild `ipy` supports other optimizers including "gp", "forest", and
 
 Let's clear our runs first:
 
-    >>> with guild_home:
+    >> with guild_home:
     ...     len(ipy.runs().delete())
     9
 
@@ -503,7 +503,7 @@ Run `op1` for three runs using the "gp" optimizer to minimize scalar
 
 This operation logs progress, so we capture logs.
 
-    >>> with guild_home:
+    >> with guild_home:
     ...     with LogCapture() as logs:
     ...         runs, _ = ipy.run(op1, a=slice(-10,10), b=slice(-5, 5),
     ...                 _optimizer="gp",
@@ -523,25 +523,25 @@ This operation logs progress, so we capture logs.
     y: -4
     z: 4
 
-    >>> logs.print_all()
+    >> logs.print_all()
     Found 0 previous trial(s) for use in optimization
     Found 1 previous trial(s) for use in optimization
     Found 2 previous trial(s) for use in optimization
 
-    >>> len(runs)
+    >> len(runs)
     3
 
 By default, the label for generated trials is the name of the
 optimizer:
 
-    >>> [runs[i].get("label") for i in range(3)]
+    >> [runs[i].get("label") for i in range(3)]
     ['gp', 'gp', 'gp']
 
 ### Other Optimizers
 
 Random forest:
 
-    >>> with guild_home:
+    >> with guild_home:
     ...     with LogCapture() as logs:
     ...         runs, _ = ipy.run(op1, a=slice(-10,10), b=slice(-5, 5),
     ...                 _optimizer="forest",
@@ -561,12 +561,12 @@ Random forest:
     y: -11
     z: 11
 
-    >>> [runs[i].get("label") for i in range(3)]
+    >> [runs[i].get("label") for i in range(3)]
     ['forest', 'forest', 'forest']
 
 Gradient boosted regression trees:
 
-    >>> with guild_home:
+    >> with guild_home:
     ...     with LogCapture() as logs:
     ...         runs, _ = ipy.run(op1, a=slice(-10,10), b=slice(-5, 5),
     ...                 _optimizer="gbrt",
@@ -586,12 +586,12 @@ Gradient boosted regression trees:
     y: 10
     z: -10
 
-    >>> [runs[i].get("label") for i in range(3)]
+    >> [runs[i].get("label") for i in range(3)]
     ['gbrt', 'gbrt', 'gbrt']
 
 Unsupported optimizer:
 
-    >>> with guild_home:
+    >> with guild_home:
     ...     ipy.run(op1, a=1, b=2, _optimizer="not supported")
     Traceback (most recent call last):
     TypeError: optimizer 'not supported' is not supported

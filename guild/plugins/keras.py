@@ -100,7 +100,7 @@ class KerasPlugin(pluginlib.Plugin, PythonScriptOpdefSupport):
         if opdef.output_scalars is not None:
             return
         assert opdef.main, opdef
-        main_mod = op_util.split_main(opdef.main)[0]
+        main_mod = op_util.split_cmd(opdef.main)[0]
         model_paths = op_util.opdef_model_paths(opdef)
         try:
             _path, mod_path = python_util.find_module(main_mod, model_paths)

@@ -24,7 +24,6 @@ with warnings.catch_warnings():
     import skopt
 
 from guild import batch_util
-from guild import op_util
 
 from . import skopt_util
 
@@ -32,7 +31,7 @@ log = logging.getLogger("guild")
 
 
 def main():
-    op_util.init_logging()
+    batch_util.init_logging()
     batch_run = batch_util.batch_run()
     skopt_util.handle_seq_trials(batch_run, _suggest_x)
 

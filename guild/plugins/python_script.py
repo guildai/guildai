@@ -201,7 +201,7 @@ class PythonScriptPlugin(pluginlib.Plugin):
         opdef.merge_flags(ImportedFlagsOpProxy(import_data, opdef, self.log))
 
     def _flags_data(self, opdef, model_paths, local_cache):
-        main_spec = op_util.split_main(opdef.main)[0]
+        main_spec = op_util.split_cmd(opdef.main)[0]
         flags_dest = opdef.flags_dest
         try:
             flags_data = local_cache[(main_spec, flags_dest)]

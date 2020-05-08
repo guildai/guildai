@@ -13,7 +13,7 @@ import time
 #
 # See the error message below for help resolving a failed test.
 
-START_THRESHOLD = 0.08
+START_THRESHOLD = 0.15
 
 t0 = time.time()
 subprocess.check_call("guild/scripts/guild", stdout=open(os.devnull, "w"))
@@ -24,11 +24,11 @@ print("Guild took %s seconds to start: " % run_time, end="")
 if run_time > START_THRESHOLD:
     print("FAILED")
     print(
-        "\nThis fails the start threshold of %.3f seconds! Check recently added import\n"
-        "statements or other code that is being executed in the startup chain (i.e. \n"
-        "main_bootstrap -> main -> main_cmd -> commands.xxx_cmd). None of this code\n"
-        "should do anything beyond setting up sys.path, very basic and fast env checks,\n"
-        "and CLI interface buildout."
+        "\nThis fails the start threshold of %.3f seconds! Check recently added\n"
+        "import statements or other code that is being executed in the startup chain\n"
+        "(i.e. main_bootstrap -> main -> main_cmd -> commands.xxx_cmd). None of this\n"
+        "code should do anything beyond setting up sys.path, very basic and fast env\n"
+        "checks, and CLI interface init."
         % START_THRESHOLD
     )
     sys.exit(1)

@@ -120,7 +120,7 @@ def _run_test(name):
     try:
         failures, _tests = run_test_file(filename, globs)
     except IOError:
-        _log_test_not_found()
+        _log_test_not_found(name)
         return False
     else:
         if not failures:
@@ -152,8 +152,8 @@ def _log_skipped_windows_test(name):
     sys.stdout.flush()
 
 
-def _log_test_not_found():
-    sys.stdout.write(" ERROR test not found\n")
+def _log_test_not_found(name):
+    sys.stdout.write("%sTEST NOT FOUND\n" % (" " * (TEST_NAME_WIDTH - len(name))))
 
 
 def _log_test_ok(name):
@@ -365,6 +365,7 @@ def test_globals():
         "sleep": time.sleep,
         "symlink": os.symlink,
         "sys": sys,
+        "tests_dir": tests_dir,
         "touch": util.touch,
         "write": write,
     }

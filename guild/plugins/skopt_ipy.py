@@ -22,7 +22,7 @@ from __future__ import division
 
 import logging
 
-from . import skopt_util_legacy as skopt_util
+from . import skopt_util
 
 log = logging.getLogger("guild")
 

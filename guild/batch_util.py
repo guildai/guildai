@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import csv
 import itertools
 import logging
 import os
@@ -22,7 +23,9 @@ import random
 import sys
 
 from guild import _api as gapi
+from guild import cli
 from guild import exit_code
+from guild import flag_util
 from guild import index2 as indexlib
 from guild import op_util
 from guild import run_util
@@ -65,11 +68,31 @@ def _print_trials_cmd(batch_run, trials):
 
 def _print_trials(trials):
     if trials:
-        op_util.print_trials(trials)
+        data, cols = _trials_table_data(trials)
+        cli.table(data, cols)
+
+
+def _trials_table_data(trials):
+    names = set()
+    data = []
+    for i, flags in enumerate(trials):
+        row = {"_trial": i + 1}
+        data.append(row)
+        if flags:
+            row.update({name: flag_util.encode_flag_val(flags[name]) for name in flags})
+            names.update(flags)
+    heading = {name: name for name in names}
+    heading["_trial"] = "#"
+    return [heading] + data, ["_trial"] + sorted(names)
 
 
 def _save_trials(trials, path):
-    op_util.save_trials(trials, path)
+    data, cols = _trials_table_data(trials)
+    cols.remove("_trial")  # Don't include trial number in CSV
+    with open(path, "w") as f:
+        out = csv.writer(f, lineterminator="\n")
+        for row in data:
+            out.writerow([row.get(name, "") for name in cols])
 
 
 def _run_trials(batch_run, trials):
@@ -260,3 +283,7 @@ def handle_system_exit(e):
     if msg:
         sys.stderr.write("guild: %s\n" % msg)
     sys.exit(code)
+
+
+def init_logging():
+    op_util.init_logging()

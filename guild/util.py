@@ -15,7 +15,6 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import chardet
 import datetime
 import errno
 import fnmatch
@@ -33,6 +32,8 @@ import time
 import threading
 
 import six
+
+# Avoid expensive imports.
 
 log = logging.getLogger("guild")
 
@@ -658,6 +659,8 @@ else:
 
 
 def is_text_file(path, ignore_ext=False):
+    import chardet
+
     # Adapted from https://github.com/audreyr/binaryornot under the
     # BSD 3-clause License
     if not os.path.exists(path):

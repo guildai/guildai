@@ -19,10 +19,8 @@ import logging
 import os
 import threading
 
-import six
-import yaml
-
-from guild import util
+# Avoid expensive imports - config is used by commands.main and any
+# time here is applied to all commands.
 
 log = logging.getLogger("guild")
 
@@ -98,7 +96,7 @@ def default_guild_home():
 
 
 def _default_guild_home_base():
-    return util.find_apply([_conda_home, _virtualenv_home, _user_home])
+    return _find_apply([_conda_home, _virtualenv_home, _user_home])
 
 
 def _conda_home():
@@ -141,6 +139,8 @@ class _Config(object):
             return 0
 
     def _parse(self):
+        import yaml  # somewhat expensive
+
         try:
             f = open(self.path, "r")
         except IOError as e:
@@ -168,6 +168,8 @@ def _apply_section_inherits(section, data, src):
 
 
 def _apply_section_item_inherits(item, section, data, src):
+    import six  # See note above about imports.
+
     try:
         parent_specs = item.pop("extends")
     except KeyError:
@@ -190,7 +192,7 @@ def _resolved_parent(spec, section, data, src):
 
 
 def _find_parent(spec, section, data):
-    return util.find_apply([_section_item, _config_item,], spec, section, data)
+    return _find_apply([_section_item, _config_item,], spec, section, data)
 
 
 def _section_item(spec, section, _data=None):
@@ -233,3 +235,11 @@ def user_config_path():
         return os.environ["GUILD_CONFIG"]
     except KeyError:
         return os.path.join(os.path.expanduser("~"), ".guild", "config.yml")
+
+
+def _find_apply(funs, *args):
+    # Move util.find_apply here to defer import of util - see note
+    # above about imports.
+    from guild import util
+
+    return util.find_apply(funs, *args)
