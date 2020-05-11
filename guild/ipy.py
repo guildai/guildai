@@ -221,28 +221,39 @@ class RunsDataFrame(pd.DataFrame):
 
 
 class Batch(object):
-    def __init__(self, gen_trials, op, flags, opts):
+    def __init__(self, gen_trials, op, flag_vals, opts):
         self.gen_trials = gen_trials
         self.op = op
-        self.flags = _coerce_range_functions(flags)
+        self.flag_vals = _coerce_range_functions(flag_vals)
         self.opts = opts
 
     def __call__(self):
         runs = []
         results = []
-        trials = self.gen_trials(self.flags, runs, **self.opts)
-        for trial_flags, trial_opts in trials:
+        prev_results_cb = lambda: (runs, results)
+        trials = self.gen_trials(self.flag_vals, prev_results_cb, **self.opts)
+        for trial in trials:
+            trial_flag_vals, trial_attrs = _split_gen_trial(trial)
             print(
-                "Running %s (%s):" % (self.op.__name__, op_util.flags_desc(trial_flags))
+                "Running %s (%s):"
+                % (self.op.__name__, op_util.flags_desc(trial_flag_vals))
             )
-            run, result = _run(self.op, trial_flags, trial_opts)
+            run, result = _run(self.op, trial_flag_vals, self.opts, trial_attrs)
             runs.append(run)
             results.append(result)
         return runs, results
 
 
-def _coerce_range_functions(flags):
-    return {name: _coerce_range_function(val) for name, val in flags.items()}
+def _split_gen_trial(trial):
+    if isinstance(trial, tuple):
+        assert len(trial) == 2, ("generated trial must be a two-tuple or a dict", trial)
+        return trial
+    else:
+        return trial, {}
+
+
+def _coerce_range_functions(flag_vals):
+    return {name: _coerce_range_function(val) for name, val in flag_vals.items()}
 
 
 def _coerce_range_function(val):
@@ -261,17 +272,16 @@ class RangeFunction(object):
         return "%s[%s]" % (self.name, args)
 
 
-def batch_gen_trials(flags, max_trials=None, label=None, **kw):
+def batch_gen_trials(flag_vals, max_trials=None, **kw):
     if kw:
         log.warning("ignoring batch config: %s", kw)
     max_trials = max_trials or DEFAULT_MAX_TRIALS
     trials = 0
-    trial_opts = {"label": label}
-    for trial_flags in batch_util.expand_flags(flags):
+    for trial_flag_vals in batch_util.expand_flags(flag_vals):
         if trials >= max_trials:
             return
         trials += 1
-        yield trial_flags, trial_opts
+        yield trial_flag_vals
 
 
 def optimizer_trial_generator(model_op):
@@ -285,10 +295,7 @@ def optimizer_trial_generator(model_op):
 
 
 def _optimizer_module(module_name):
-    try:
-        return importlib.import_module(module_name + "_legacy")
-    except ImportError:
-        return importlib.import_module(module_name)
+    return importlib.import_module(module_name)
 
 
 def uniform(low, high):
@@ -303,8 +310,8 @@ def run(op, *args, **kw):
     if not callable(op):
         raise ValueError("op must be callable")
     opts = _pop_opts(kw)
-    flags = _init_flags(op, args, kw)
-    run = _init_runner(op, flags, opts)
+    flag_vals = _init_flag_vals(op, args, kw)
+    run = _init_runner(op, flag_vals, opts)
     return run()
 
 
@@ -316,12 +323,12 @@ def _pop_opts(kw):
     return opts
 
 
-def _init_flags(op, args, kw):
+def _init_flag_vals(op, args, kw):
     # pylint: disable=deprecated-method
     op_f = _op_f(op)
-    op_flags = inspect.getcallargs(op_f, *args, **kw)
-    _remove_bound_method_self(op_f, op_flags)
-    return _coerce_slice_vals(op_flags)
+    op_flag_vals = inspect.getcallargs(op_f, *args, **kw)
+    _remove_bound_method_self(op_f, op_flag_vals)
+    return _coerce_slice_vals(op_flag_vals)
 
 
 def _op_f(op):
@@ -332,22 +339,21 @@ def _op_f(op):
     return op.__call__
 
 
-def _remove_bound_method_self(op, op_flags):
-    im_self = util.find_apply([
-        lambda: getattr(op, "__self__", None),
-        lambda: getattr(op, "im_self", None),
-    ])
+def _remove_bound_method_self(op, op_flag_vals):
+    im_self = util.find_apply(
+        [lambda: getattr(op, "__self__", None), lambda: getattr(op, "im_self", None),]
+    )
     if im_self:
-        for key, val in op_flags.items():
+        for key, val in op_flag_vals.items():
             if val is im_self:
-                del op_flags[key]
+                del op_flag_vals[key]
                 break
         else:
-            assert False, (op_flags, im_self)
+            assert False, (op_flag_vals, im_self)
 
 
-def _coerce_slice_vals(flags):
-    return {name: _coerce_slice_val(val) for name, val in flags.items()}
+def _coerce_slice_vals(flag_vals):
+    return {name: _coerce_slice_val(val) for name, val in flag_vals.items()}
 
 
 def _coerce_slice_val(val):
@@ -356,29 +362,29 @@ def _coerce_slice_val(val):
     return val
 
 
-def _init_runner(op, flags, opts):
+def _init_runner(op, flag_vals, opts):
     return util.find_apply(
-        [_optimize_runner, _batch_runner, _single_runner], op, flags, opts
+        [_optimize_runner, _batch_runner, _single_runner], op, flag_vals, opts
     )
 
 
-def _optimize_runner(op, flags, opts):
+def _optimize_runner(op, flag_vals, opts):
     optimizer = opts.get("optimizer")
     if not optimizer:
-        return _maybe_random_runner(op, flags, opts)
+        return _maybe_random_runner(op, flag_vals, opts)
     opts = _filter_kw(opts, ["optimizer"])
-    return Batch(_init_gen_trials(optimizer), op, flags, opts)
+    return Batch(_init_gen_trials(optimizer), op, flag_vals, opts)
 
 
 def _filter_kw(opts, keys):
     return {k: v for k, v in opts.items() if k not in keys}
 
 
-def _maybe_random_runner(op, flags, opts):
+def _maybe_random_runner(op, flag_vals, opts):
     assert not opts.get("optimizer"), opts
-    for val in flags.values():
+    for val in flag_vals.values():
         if isinstance(val, RangeFunction):
-            return Batch(_init_gen_trials("random"), op, flags, opts)
+            return Batch(_init_gen_trials("random"), op, flag_vals, opts)
     return None
 
 
@@ -391,26 +397,26 @@ def _init_gen_trials(optimizer):
         return optimizer_trial_generator(model_op)
 
 
-def _batch_runner(op, flags, opts):
-    for val in flags.values():
+def _batch_runner(op, flag_vals, opts):
+    for val in flag_vals.values():
         if isinstance(val, list):
-            return Batch(batch_gen_trials, op, flags, opts)
+            return Batch(batch_gen_trials, op, flag_vals, opts)
     return None
 
 
-def _single_runner(op, flags, opts):
-    return lambda: _run(op, flags, opts)
+def _single_runner(op, flag_vals, opts):
+    return lambda: _run(op, flag_vals, opts)
 
 
-def _run(op, flags, opts):
+def _run(op, flag_vals, opts, extra_attrs=None):
     run = _init_run()
-    _init_run_attrs(run, op, flags, opts)
+    _init_run_attrs(run, op, flag_vals, opts, extra_attrs)
     summary = _init_output_scalars(run, opts)
     try:
         with RunOutput(run, summary):
             with util.Chdir(run.path):
                 _write_proc_lock(run)
-                result = op(**flags)
+                result = op(**flag_vals)
     except KeyboardInterrupt as e:
         exit_status = exit_code.SIGTERM
         util.raise_from(RunTerminated(run, e), e)
@@ -432,26 +438,46 @@ def _init_run():
     return run
 
 
-def _init_run_attrs(run, op, flags, opts):
+def _init_run_attrs(run, op, flag_vals, opts, extra_attrs):
     opref = opreflib.OpRef("func", "", "", "", _op_name(op, opts))
     run.write_opref(opref)
     run.write_attr("started", runlib.timestamp())
-    run.write_attr("flags", flags)
-    if "label" in opts:
-        run.write_attr("label", opts["label"])
+    run.write_attr("flags", flag_vals)
+    run.write_attr("label", _run_label(flag_vals, opts))
+    if extra_attrs:
+        for name, val in extra_attrs.items():
+            run.write_attr(name, val)
 
 
 def _op_name(op, opts):
-    try:
-        return opts["op_name"]
-    except KeyError:
-        return _default_op_name(op)
+    return opts.get("op_name") or _default_op_name(op)
 
 
 def _default_op_name(op):
     if inspect.isfunction(op) or inspect.ismethod(op):
         return op.__name__
     return op.__class__.__name__
+
+
+def _run_label(flag_vals, opts):
+    return op_util.run_label(_label_template(opts), flag_vals)
+
+
+def _label_template(opts):
+    return util.find_apply([_explicit_label, _tagged_label], opts)
+
+
+def _explicit_label(opts):
+    return opts.get("label")
+
+
+def _tagged_label(opts):
+    try:
+        tag = opts["tag"]
+    except KeyError:
+        return None
+    else:
+        return "%s ${default_label}" % tag
 
 
 def _init_output_scalars(run, opts):
@@ -598,9 +624,9 @@ def _run_flags_data(run):
     return data
 
 
-def _run_flags_key(flags):
+def _run_flags_key(flag_vals):
     run_key = "run"
-    while run_key in flags:
+    while run_key in flag_vals:
         run_key = "_" + run_key
     return run_key
 

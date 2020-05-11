@@ -242,12 +242,12 @@ def sample_trials(trials, count=None, random_seed=None):
 
 
 def trial_results(batch_run, scalars):
-    results = []
-    runs = trial_runs(batch_run)
+    return trial_results_for_runs(trial_runs(batch_run), scalars)
+
+
+def trial_results_for_runs(runs, scalars):
     index = _run_index_for_scalars(runs)
-    for run in runs:
-        results.append((run.get("flags"), _result_scalars(run, scalars, index)))
-    return results
+    return [(run.get("flags"), _result_scalars(run, scalars, index)) for run in runs]
 
 
 def trial_runs(batch_run):

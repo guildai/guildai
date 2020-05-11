@@ -46,6 +46,7 @@ Files:
     .guild/attrs/flags
     .guild/attrs/id
     .guild/attrs/initialized
+    .guild/attrs/label
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/opref
@@ -70,15 +71,22 @@ run2 occurs after run:
     >>> run2.timestamp > run.timestamp, run2.timestamp, run.timestamp
     (True, ...)
 
+Another operation using tag for label:
+
+    >>> with guild_home:
+    ...     run3, _ = ipy.run(hello, msg="Ya", n=1, _tag="run3")
+    Ya 1!
+
 ## List runs
 
 List runs:
 
     >>> with guild_home:
     ...     ipy.runs()
-       run  operation  started     status label
-    0  ...    hello()      ...  completed run2
-    1  ...    hello()      ...  completed
+       run  operation  started     status            label
+    0  ...    hello()      ...  completed  run3 msg=Ya n=1
+    1  ...    hello()      ...  completed             run2
+    2  ...    hello()      ...  completed    msg=Hello n=3
 
 Filter using a label:
 
@@ -99,9 +107,10 @@ With operation:
 
     >>> with guild_home:
     ...     ipy.runs(operations=["hello"], completed=True)
-            run operation             started     status label
-    0  ...    hello()      ...  completed run2
-    1  ...    hello()      ...  completed
+       run  operation  started     status            label
+    0  ...    hello()      ...  completed  run3 msg=Ya n=1
+    1  ...    hello()      ...  completed             run2
+    2  ...    hello()      ...  completed    msg=Hello n=3
 
     >>> with guild_home:
     ...     ipy.runs(operations=["bye"])
@@ -120,12 +129,11 @@ Print latest run info:
     status: completed
     started: ...
     stopped: ...
-    label: run2
+    label: run3 msg=Ya n=1
     run_dir: ...
     flags:
-      msg: Hola
-      n: 2
-    <BLANKLINE>
+      msg: Ya
+      n: 1
 
 Info for a specific run:
 
@@ -136,11 +144,11 @@ Info for a specific run:
     status: completed
     started: ...
     stopped: ...
-    label:
+    label: run2
     run_dir: ...
     flags:
-      msg: Hello
-      n: 3
+      msg: Hola
+      n: 2
 
 Info with output:
 
@@ -149,9 +157,8 @@ Info with output:
     id: ...
     ...
     output:
-      Hello 1!
-      Hello 2!
-      Hello 3!
+      Hola 1!
+      Hola 2!
 
 Info with scalars (no scalars for this run, so list is empty):
 
@@ -172,11 +179,13 @@ Flags can be read as a data frame using the `flags()` function on runs.
 
     >>> flags
          msg  n  run
-    0   Hola  2  ...
-    1  Hello  3  ...
+    0     Ya  1  ...
+    1   Hola  2  ...
+    2  Hello  3  ...
 
     >>> pprint(flags.to_dict("records"))
-    [{'msg': 'Hola', 'n': 2, 'run': '...'},
+    [{'msg': 'Ya', 'n': 1, 'run': '...'},
+     {'msg': 'Hola', 'n': 2, 'run': '...'},
      {'msg': 'Hello', 'n': 3, 'run': '...'}]
 
 ## Delete runs
@@ -246,6 +255,7 @@ Files:
     .guild/attrs/flags
     .guild/attrs/id
     .guild/attrs/initialized
+    .guild/attrs/label
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/events.out.tfevents...
@@ -298,6 +308,7 @@ The run files:
     .guild/attrs/flags
     .guild/attrs/id
     .guild/attrs/initialized
+    .guild/attrs/label
     .guild/attrs/started
     .guild/attrs/stopped
     .guild/opref
@@ -334,9 +345,9 @@ data frame that has both flags and scalars.
     ...     compare = ipy.runs().compare()
 
     >>> compare
-       run operation started     time     status label    a    b    c  step    x    y    z
-    0  ...     op2()     ...  0:00:00  completed        1.0  NaN  0.0     3  3.0  NaN  NaN
-    1  ...     op1()     ...  0:00:00  completed        1.0  2.0  NaN     0  3.0 -1.0  1.0
+       run operation started     time     status        label    a    b    c  step    x    y    z
+    0  ...     op2()     ...  0:00:00  completed  a=1.0 c=0.0  1.0  NaN  0.0     3  3.0  NaN  NaN
+    1  ...     op1()     ...  0:00:00  completed      a=1 b=2  1.0  2.0  NaN     0  3.0 -1.0  1.0
 
 ## Grid search
 
@@ -404,7 +415,7 @@ Run three trials selecting random values for `a` over the range `-10`
 to `10` and the value `12` for `b`. Use fixed random seed to let us
 assert the generated values.
 
-    >> with guild_home:
+    >>> with guild_home:
     ...     runs, _ = ipy.run(op1, a=slice(0, 5), b=12,
     ...                       _max_trials=3, _random_seed=1)
     Running op1 (a=3, b=12):
@@ -420,27 +431,27 @@ assert the generated values.
     y: -12
     z: 12
 
-    >> len(runs)
+    >>> len(runs)
     3
 
-    >> pprint(runs[0].get("flags"))
+    >>> pprint(runs[0].get("flags"))
     {'a': 3, 'b': 12}
 
-    >> pprint(runs[1].get("flags"))
+    >>> pprint(runs[1].get("flags"))
     {'a': 4, 'b': 12}
 
-    >> pprint(runs[2].get("flags"))
+    >>> pprint(runs[2].get("flags"))
     {'a': 0, 'b': 12}
 
-Randomly generated runs have the label "random" by default:
+If a `_label` arg is not specified, each run has gets a default label.
 
-    >> [runs[i].get("label") for i in range(3)]
-    ['random', 'random', 'random']
+    >>> [runs[i].get("label") for i in range(3)]
+    ['a=3 b=12', 'a=4 b=12', 'a=0 b=12']
 
 We can alternatively use a range function, which indicates the type of
 distribution to sample from. We also specify a label.
 
-    >> with guild_home:
+    >>> with guild_home:
     ...     runs, _ = ipy.run(op1, a=ipy.uniform(0, 5), b=12,
     ...                       _label="random-2",
     ...                       _max_trials=3,
@@ -460,12 +471,12 @@ distribution to sample from. We also specify a label.
 
 The specified label is used for each run:
 
-    >> [runs[i].get("label") for i in range(3)]
+    >>> [runs[i].get("label") for i in range(3)]
     ['random-2', 'random-2', 'random-2']
 
 Finally, we can specify an explicit "random" optimizer:
 
-    >> with guild_home:
+    >>> with guild_home:
     ...     runs, _ = ipy.run(op1, a=slice(0, 5), b=12,
     ...                      _optimizer="random",
     ...                      _label="random-3",
@@ -484,7 +495,7 @@ Finally, we can specify an explicit "random" optimizer:
     y: -12
     z: 12
 
-    >> [runs[i].get("label") for i in range(3)]
+    >>> [runs[i].get("label") for i in range(3)]
     ['random-3', 'random-3', 'random-3']
 
 ## Hyperparameter optimization
@@ -494,7 +505,7 @@ Guild `ipy` supports other optimizers including "gp", "forest", and
 
 Let's clear our runs first:
 
-    >> with guild_home:
+    >>> with guild_home:
     ...     len(ipy.runs().delete())
     9
 
@@ -503,13 +514,14 @@ Run `op1` for three runs using the "gp" optimizer to minimize scalar
 
 This operation logs progress, so we capture logs.
 
-    >> with guild_home:
+    >>> with guild_home:
     ...     with LogCapture() as logs:
     ...         runs, _ = ipy.run(op1, a=slice(-10,10), b=slice(-5, 5),
     ...                 _optimizer="gp",
     ...                 _minimize="x",
     ...                 _max_trials=3,
-    ...                 _random_seed=1)
+    ...                 _random_seed=1,
+    ...                 _opt_xi=0.02)
     Running op1 (a=10, b=4):
     x: 14
     y: 6
@@ -523,75 +535,101 @@ This operation logs progress, so we capture logs.
     y: -4
     z: 4
 
-    >> logs.print_all()
-    Found 0 previous trial(s) for use in optimization
+    >>> logs.print_all()
+    Random start for optimization (missing previous trials)
     Found 1 previous trial(s) for use in optimization
     Found 2 previous trial(s) for use in optimization
 
-    >> len(runs)
+    >>> len(runs)
     3
 
-By default, the label for generated trials is the name of the
-optimizer:
+We can see the generated runs in Guild home:
 
-    >> [runs[i].get("label") for i in range(3)]
-    ['gp', 'gp', 'gp']
+    >>> with guild_home:
+    ...     ipy.runs()
+       run operation  started     status       label
+    0  ...     op1()      ...  completed   a=-9 b=-5
+    1  ...     op1()      ...  completed  a=-10 b=-5
+    2  ...     op1()      ...  completed    a=10 b=4
 
 ### Other Optimizers
 
 Random forest:
 
-    >> with guild_home:
+    >>> with guild_home:
     ...     with LogCapture() as logs:
     ...         runs, _ = ipy.run(op1, a=slice(-10,10), b=slice(-5, 5),
     ...                 _optimizer="forest",
     ...                 _minimize="x",
     ...                 _max_trials=3,
-    ...                 _random_seed=1)
+    ...                 _random_seed=1,
+    ...                 _opt_random_starts=2,
+    ...                 _opt_kappa=2.0,
+    ...                 _opt_xi=0.05)
     Running op1 (a=1, b=3):
     x: 4
     y: -2
     z: 2
-    Running op1 (a=8, b=5):
-    x: 13
-    y: 3
-    z: -3
-    Running op1 (a=-10, b=1):
-    x: -9
-    y: -11
-    z: 11
+    Running op1 (a=8, b=3):
+    x: 11
+    y: 5
+    z: -5
+    Running op1 (a=10, b=-4):
+    x: 6
+    y: 14
+    z: -14
 
-    >> [runs[i].get("label") for i in range(3)]
-    ['forest', 'forest', 'forest']
+    >>> logs.print_all()
+    Random start for optimization (1 of 2)
+    Random start for optimization (2 of 2)
+    Found 2 previous trial(s) for use in optimization
 
 Gradient boosted regression trees:
 
-    >> with guild_home:
+    >>> with guild_home:
     ...     with LogCapture() as logs:
     ...         runs, _ = ipy.run(op1, a=slice(-10,10), b=slice(-5, 5),
     ...                 _optimizer="gbrt",
     ...                 _minimize="x",
-    ...                 _max_trials=3,
-    ...                 _random_seed=1)
-    Running op1 (a=-5, b=3):
-    x: -2
-    y: -8
-    z: 8
-    Running op1 (a=-2, b=-1):
-    x: -3
-    y: -1
-    z: 1
-    Running op1 (a=8, b=-2):
-    x: 6
-    y: 10
-    z: -10
+    ...                 _max_trials=4,
+    ...                 _random_seed=2,
+    ...                 _opt_random_starts=2,
+    ...                 _tag="gbrt",
+    ...                 _opt_kappa=2.0)
+    Running op1 (a=-2, b=3):
+    x: 1
+    y: -5
+    z: 5
+    Running op1 (a=4, b=0):
+    x: 4
+    y: 4
+    z: -4
+    Running op1 (a=-4, b=3):
+    x: -1
+    y: -7
+    z: 7
+    Running op1 (a=-9, b=-5):
+    x: -14
+    y: -4
+    z: 4
 
-    >> [runs[i].get("label") for i in range(3)]
-    ['gbrt', 'gbrt', 'gbrt']
+    >>> logs.print_all()
+    Random start for optimization (1 of 2)
+    Random start for optimization (2 of 2)
+    Found 2 previous trial(s) for use in optimization
+    Found 3 previous trial(s) for use in optimization
+
+    >>> with guild_home:
+    ...     ipy.runs(labels=["gbrt"])
+       run  operation  started     status           label
+    0  ...      op1() ...  completed  gbrt a=-9 b=-5
+    1  ...      op1() ...  completed   gbrt a=-4 b=3
+    2  ...      op1() ...  completed    gbrt a=4 b=0
+    3  ...      op1() ...  completed   gbrt a=-2 b=3
 
 Unsupported optimizer:
 
-    >> with guild_home:
+    >>> with guild_home:
     ...     ipy.run(op1, a=1, b=2, _optimizer="not supported")
     Traceback (most recent call last):
     TypeError: optimizer 'not supported' is not supported
@@ -616,7 +654,7 @@ Operations may be bound methods.
     status: completed
     started: ...
     stopped: ...
-    label:
+    label: lr=0.1
     run_dir: ...
     flags:
       lr: 0.1
@@ -638,7 +676,7 @@ Operations may be implemented as Python callables.
     status: completed
     started: ...
     stopped: ...
-    label:
+    label: a=1 b=2 c=3
     run_dir: ...
     flags:
       a: 1
@@ -664,7 +702,7 @@ Operation implemented as static method:
     status: completed
     started: ...
     stopped: ...
-    label:
+    label: dropout=0.2
     run_dir: ...
     flags:
       dropout: 0.2
@@ -690,7 +728,7 @@ Implemented as a class method:
     status: completed
     started: ...
     stopped: ...
-    label:
+    label: batch_size=200
     run_dir: ...
     flags:
       batch_size: 200
@@ -783,9 +821,9 @@ lock.
 
 Let's start an operation in a separate thread.
 
-    >> import threading
+    >>> import threading
 
-    >> class BackgroundOp(threading.Thread):
+    >>> class BackgroundOp(threading.Thread):
     ...     def __init__(self, in_q, out_q):
     ...         super(BackgroundOp, self).__init__()
     ...         self.in_q = in_q
@@ -801,23 +839,23 @@ Let's start an operation in a separate thread.
 
 Use a queues to communicate with the thread.
 
-    >> from six.moves import queue
-    >> in_q = queue.Queue()
-    >> out_q = queue.Queue()
+    >>> from six.moves import queue
+    >>> in_q = queue.Queue()
+    >>> out_q = queue.Queue()
 
 Start the operation in the background as a thread.
 
-    >> op = BackgroundOp(in_q, out_q)
-    >> op.start()
+    >>> op = BackgroundOp(in_q, out_q)
+    >>> op.start()
 
 Wait for the operation to start.
 
-    >> out_q.get()
+    >>> out_q.get()
     'started'
 
 The run latest run status is 'running':
 
-    >> with guild_home:
+    >>> with guild_home:
     ...     ipy.runs().info()
     id: ...
     operation: op-in-thread()
@@ -830,12 +868,12 @@ The run latest run status is 'running':
 
 Notify the op to finish.
 
-    >> in_q.put("stop")
-    >> op.join(0.1)
+    >>> in_q.put("stop")
+    >>> op.join(0.1)
 
 And the run status after stopping:
 
-    >> with guild_home:
+    >>> with guild_home:
     ...     ipy.runs().info()
     id: ...
     operation: op-in-thread()

@@ -53,5 +53,30 @@ def _suggest_x(dims, x0, y0, random_start, random_state, opts):
     return res.x_iters[-1], res.random_state
 
 
+def gen_trials(
+    flags,
+    prev_results_cb,
+    opt_random_starts=0,
+    opt_acq_func="gp_hedge",
+    opt_kappa=1.96,
+    opt_xi=0.01,
+    opt_noise="gaussian",
+    **kw
+):
+    """ipy interface for trials."""
+    return skopt_util.ipy_gen_trials(
+        flags,
+        prev_results_cb,
+        _suggest_x,
+        random_starts=opt_random_starts,
+        suggest_x_opts={
+            "acq-func": opt_acq_func,
+            "kappa": opt_kappa,
+            "xi": opt_xi,
+            "noise": opt_noise,
+        },
+        **kw)
+
+
 if __name__ == "__main__":
     main()

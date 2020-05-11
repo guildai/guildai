@@ -54,13 +54,9 @@ def _search_dim_error(e):
     sys.exit(1)
 
 
-def gen_trials(flags, _runs, max_trials=None, random_seed=None, **opts):
-    if opts:
-        log.warning("ignoring configuration %s", opts)
-
-    return skopt_util.random_trials_for_flags(
-        flags, max_trials, random_seed
-    )
+def gen_trials(flags, _prev_results, max_trials=None, random_seed=None, **_opts):
+    """ipy interface for randomly generated trials."""
+    return skopt_util.random_trials_for_flags(flags, max_trials, random_seed)
 
 
 if __name__ == "__main__":

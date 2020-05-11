@@ -36,6 +36,7 @@ log = logging.getLogger("guild")
 DEFAULT_MAX_TRIALS = 20
 DEFAULT_OBJECTIVE = "loss"
 
+
 ###################################################################
 # Exceptions
 ###################################################################
@@ -192,7 +193,7 @@ def _dim_args_and_initial(args, func_name, flag_name):
 
 
 ###################################################################
-# Sequential trials support
+# Sequential trials handler
 ###################################################################
 
 
@@ -214,32 +215,58 @@ def handle_seq_trials(batch_run, suggest_x_cb):
 
 def _run_seq_trials(batch_run, suggest_x_cb):
     proto_flag_vals = batch_run.batch_proto.get("flags")
-    batch_flag_vals = suggest_opts = batch_run.get("flags")
+    batch_flag_vals = batch_run.get("flags")
     max_trials = batch_run.get("max_trials") or DEFAULT_MAX_TRIALS
-    names, dims, initial_x = _flag_dims_for_search(proto_flag_vals)
     random_state = batch_run.get("random_seed")
     random_starts = min(batch_flag_vals.get("random-starts") or 0, max_trials)
-    objective_spec, objective_scalar, objective_negate = _objective_y_info(batch_run)
-    runs_count = 0
-    for _ in range(max_trials):
-        prev_trials = batch_util.trial_results(batch_run, [objective_scalar])
-        x0, y0 = _trials_xy_for_prev_trials(prev_trials, names, objective_negate)
-        suggest_random_start = _suggest_random_start(x0, runs_count, random_starts)
+    objective_scalar, objective_negate = _objective_y_info(batch_run)
+    prev_trials_cb = lambda: batch_util.trial_results(batch_run, [objective_scalar])
+    trials_count = 0
+    for trial_flag_vals, is_trial_random_start, prev_trials, x0 in _iter_seq_trials(
+        proto_flag_vals,
+        objective_negate,
+        max_trials,
+        random_state,
+        random_starts,
+        prev_trials_cb,
+        suggest_x_cb,
+        batch_flag_vals,
+    ):
         _log_seq_trial(
-            suggest_random_start,
+            is_trial_random_start,
             random_starts,
-            runs_count,
+            trials_count,
             x0,
             prev_trials,
-            objective_spec,
+            objective_scalar,
         )
+        batch_util.run_trial(batch_run, trial_flag_vals)
+        trials_count += 1
+
+
+def _iter_seq_trials(
+    proto_flag_vals,
+    objective_negate,
+    max_trials,
+    random_state,
+    random_starts,
+    prev_trials_cb,
+    suggest_x_cb,
+    suggest_x_opts,
+):
+    names, dims, initial_x = _flag_dims_for_search(proto_flag_vals)
+    runs_count = 0
+    for _ in range(max_trials):
+        prev_trials = prev_trials_cb()
+        x0, y0 = _trials_xy_for_prev_trials(prev_trials, names, objective_negate)
+        is_random_start = _is_random_start(x0, runs_count, random_starts)
         suggested_x, random_state = _suggest_x(
-            suggest_x_cb, dims, x0, y0, suggest_random_start, random_state, suggest_opts
+            suggest_x_cb, dims, x0, y0, is_random_start, random_state, suggest_x_opts,
         )
         if runs_count == 0 and suggested_x:
             _apply_initial_x(initial_x, suggested_x)
         trial_flag_vals = _trial_flags_for_x(suggested_x, names, proto_flag_vals)
-        batch_util.run_trial(batch_run, trial_flag_vals)
+        yield trial_flag_vals, is_random_start, prev_trials, x0
         runs_count += 1
 
 
@@ -269,7 +296,7 @@ def _objective_y_info(batch_run):
         col = colspec.cols[0]
         prefix, key = col.split_key()
         y_scalar_col = (prefix, key, col.qualifier)
-        return objective_spec, y_scalar_col, y_negate
+        return y_scalar_col, y_negate
 
 
 def _trials_xy_for_prev_trials(prev_trials, names, objective_negate):
@@ -288,21 +315,21 @@ def _trials_xy_for_prev_trials(prev_trials, names, objective_negate):
     return x0, y0
 
 
-def _suggest_random_start(x0, runs_count, wanted_random_starts):
+def _is_random_start(x0, runs_count, wanted_random_starts):
     return x0 is None or runs_count < wanted_random_starts
 
 
 def _log_seq_trial(
-    suggest_random_start, random_starts, runs_count, x0, prev_trials, objective
+    is_random_start, random_starts, runs_count, x0, prev_trials, objective
 ):
     """Logs whether trial is random or based on previous trials.
 
-    suggest_random_start is the authoritative flag that indicates
+    is_random_start is the authoritative flag that indicates
     whether or not a random trial is used. The remaining args are used
     to infer the explanation.
 
     """
-    if suggest_random_start:
+    if is_random_start:
         explanation = _random_start_explanation(
             random_starts, runs_count, x0, prev_trials, objective
         )
@@ -317,31 +344,113 @@ def _random_start_explanation(random_starts, runs_count, x0, prev_trials, object
     elif not prev_trials:
         return "missing previous trials"
     elif not x0:
-        return "cannot find objective '%s'" % objective
+        return "cannot find objective '%s'" % _format_objective(objective)
     else:
         assert False, (random_starts, runs_count, x0, prev_trials, objective)
 
 
-def _suggest_x(
-    suggest_x_cb, dims, x0, y0, suggest_random_start, random_state, suggest_opts
-):
+def _format_objective(objective):
+    prefix, tag, _qual = objective
+    if not prefix:
+        return tag
+    return "%s#%s" % (prefix, tag)
+
+
+def _suggest_x(suggest_x_cb, dims, x0, y0, is_random_start, random_state, suggest_opts):
     log.debug(
         "suggestion inputs: dims=%s x0=%s y0=%s "
         "random_start=%s random_state=%s opts=%s",
         dims,
         x0,
         y0,
-        suggest_random_start,
+        is_random_start,
         random_state,
         suggest_opts,
     )
-    return suggest_x_cb(dims, x0, y0, suggest_random_start, random_state, suggest_opts)
+    return suggest_x_cb(dims, x0, y0, is_random_start, random_state, suggest_opts)
 
 
 def _trial_flags_for_x(x, names, proto_flag_vals):
     flags = dict(proto_flag_vals)
     flags.update(dict(zip(names, _native_python_xs(x))))
     return flags
+
+
+###################################################################
+# Sequential trials ipy support
+###################################################################
+
+
+def ipy_gen_trials(
+    proto_flag_vals,
+    prev_results_cb,
+    suggest_x_cb,
+    max_trials=None,
+    random_seed=None,
+    random_starts=None,
+    minimize=None,
+    maximize=None,
+    suggest_x_opts=None,
+    **_kw
+):
+    objective_scalar, objective_negate = _ipy_objective(minimize, maximize)
+    prev_trials_cb = _ipy_prev_trials_cb(prev_results_cb, objective_scalar)
+    trials_count = 0
+    for trial_flag_vals, is_trial_random_start, prev_trials, x0 in _iter_seq_trials(
+        proto_flag_vals,
+        objective_negate,
+        max_trials,
+        random_seed,
+        random_starts,
+        prev_trials_cb,
+        suggest_x_cb,
+        suggest_x_opts,
+    ):
+        _log_seq_trial(
+            is_trial_random_start,
+            random_starts,
+            trials_count,
+            x0,
+            prev_trials,
+            objective_scalar,
+        )
+        yield trial_flag_vals
+        trials_count += 1
+
+
+def _ipy_objective(minimize, maximize):
+    colspec, negate = _ipy_objective_colspec(minimize, maximize)
+    try:
+        cols = qparse.parse_colspec(colspec).cols
+    except qparse.ParseError as e:
+        raise ValueError("cannot parse objective %r: %s" % (colspec, e))
+    else:
+        if len(cols) > 1:
+            raise ValueError(
+                "invalid objective %r: only one column may " "be specified" % colspec
+            )
+        scalar = cols[0]
+        prefix, tag = scalar.split_key()
+        return (prefix, tag, scalar.qualifier), negate
+
+
+def _ipy_objective_colspec(minimize, maximize):
+    if minimize and maximize:
+        raise ValueError("minimize and maximize cannot both be specified")
+    if not minimize and not maximize:
+        return DEFAULT_OBJECTIVE, 1
+    if minimize:
+        return minimize, 1
+    assert maximize
+    return maximize, -1
+
+
+def _ipy_prev_trials_cb(prev_results_cb, objective_scalar):
+    def f():
+        runs, _results = prev_results_cb()
+        return batch_util.trial_results_for_runs(runs, [objective_scalar])
+
+    return f
 
 
 ###################################################################

@@ -44,13 +44,13 @@ class SetCwd(object):
 
     _save = None
 
-    def __init__(self, cwd):
-        self._cwd = cwd
+    def __init__(self, path):
+        self.path = path
 
     def __enter__(self):
         _cwd_lock.acquire()
         self._save = cwd()
-        set_cwd(self._cwd)
+        set_cwd(self.path)
 
     def __exit__(self, *_args):
         set_cwd(self._save)
