@@ -31,12 +31,12 @@ In such cases, we rely on the generated console script.
 Run `guild` command with no arguments:
 
     >>> time0 = time.time()
-    >>> out = subprocess.check_output(guild_script, stderr=subprocess.STDOUT)
+    >>> out = subprocess.check_output(guild_script, stderr=subprocess.STDOUT)  # doctest: -WINDOWS
     >>> time1 = time.time()
 
 Expected output (Guidl help):
 
-    >>> print(out.decode())  # doctest: +REPORT_UDIFF
+    >>> print(out.decode())  # doctest: +REPORT_UDIFF -WINDOWS
     Usage: guild [OPTIONS] COMMAND [ARGS]...
     <BLANKLINE>
       Guild AI command line interface.
