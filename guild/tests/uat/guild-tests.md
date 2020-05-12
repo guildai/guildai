@@ -5,7 +5,7 @@ Guild tests can be run with the `check` command using the `-T` option
 tests).
 
     >>> run("GUILD_START_THRESHOLD=2.0 "
-    ...     "guild check -nT", timeout=1200) # doctest: +REPORT_UDIFF
+    ...     "guild check -nT", timeout=1800) # doctest: +REPORT_UDIFF
     internal tests:
       anonymous-models:            ok
       api:                         ok

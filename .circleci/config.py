@@ -188,7 +188,7 @@ class Build(object):
             "run": {
                 "name": name,
                 "command": "\n".join(cmd_lines),
-                "no_output_timeout": 1200,
+                "no_output_timeout": 1800,
             }
         }
 
