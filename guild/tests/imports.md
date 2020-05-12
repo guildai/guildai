@@ -137,7 +137,7 @@
     guild.flag_util
     guild.guildfile
     guild.help
-    guild.index2
+    guild.index
     guild.init
     guild.ipy
     guild.lock

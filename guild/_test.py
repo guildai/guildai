@@ -56,7 +56,6 @@ from guild import _api as gapi
 from guild import cli
 from guild import config as configlib
 from guild import guildfile
-from guild import index2 as indexlib
 from guild import init
 from guild import op_util
 from guild import run as runlib
@@ -523,6 +522,8 @@ class ModelPath(object):
 
 class Project(object):
     def __init__(self, cwd, guild_home=None, env=None):
+        from guild import index as indexlib  # expensive
+
         self.cwd = cwd
         self.guild_home = guild_home or mkdtemp()
         self._env = env

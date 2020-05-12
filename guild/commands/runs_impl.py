@@ -709,7 +709,7 @@ def _split_scalar_key(key):
 
 
 def _iter_scalars(run, args):
-    from guild import index2 as indexlib  # expensive
+    from guild import index as indexlib  # expensive
 
     for s in indexlib.iter_run_scalars(run):
         key = _s_key(s)
@@ -1192,7 +1192,7 @@ def _select_runs(args, ctx):
 
 
 def _sort_selected_runs(runs, scalar, reverse):
-    from guild import index2 as indexlib
+    from guild import index as indexlib  # expensive
 
     run_scalar_args = _run_scalar_args_for_select(scalar)
     index = indexlib.RunIndex()

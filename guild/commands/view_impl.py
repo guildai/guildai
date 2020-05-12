@@ -26,7 +26,7 @@ import guild.run
 from guild import cli
 from guild import click_util
 from guild import config
-from guild import index2 as indexlib
+from guild import index as indexlib
 from guild import run_util
 from guild import util
 from guild import var

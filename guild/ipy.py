@@ -47,7 +47,7 @@ from guild import batch_util
 from guild import click_util
 from guild import config
 from guild import exit_code
-from guild import index2 as indexlib
+from guild import index as indexlib
 from guild import model_proxy
 from guild import op_util
 from guild import opref as opreflib

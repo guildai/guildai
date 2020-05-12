@@ -49,7 +49,7 @@ tests).
       import-flags:                ok
       imports:                     ok
       includes:                    ok
-      index2:                      ok
+      index:                       ok
       init:                        ok
       ipy:                         ok
       keras:                       ok

@@ -26,7 +26,6 @@ from guild import _api as gapi
 from guild import cli
 from guild import exit_code
 from guild import flag_util
-from guild import index2 as indexlib
 from guild import op_util
 from guild import run_util
 from guild import util
@@ -259,6 +258,8 @@ def trial_runs(batch_run):
 
 
 def _run_index_for_scalars(runs):
+    from guild import index as indexlib  # expensive
+
     index = indexlib.RunIndex()
     index.refresh(runs, ["scalar"])
     return index

@@ -29,7 +29,6 @@ import six
 import yaml
 
 from guild import guildfile
-from guild import index2 as indexlib
 from guild import run_util
 from guild import util
 
@@ -494,6 +493,8 @@ def _publish_scalars(state):
 
 
 def _run_scalars(state):
+    from guild import index as indexlib  # expensive
+
     index = indexlib.RunIndex()
     index.refresh([state.run], ["scalar"])
     return list(index.run_scalars(state.run))

@@ -25,7 +25,7 @@ from guild import batch_util
 from guild import cli
 from guild import cmd_impl_support
 from guild import config
-from guild import index2 as indexlib
+from guild import index as indexlib
 from guild import flag_util
 from guild import query
 from guild import run as runlib
