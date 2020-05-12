@@ -13,7 +13,7 @@ jinja2>=2.10
 numpy>=1.16
 pkginfo
 scikit-learn>=0.19.1
-scikit-optimize==0.5.2
+scikit-optimize>=0.7.1
 setuptools>=40.6.3
 six>=1.10.0
 tabview>=1.4.3

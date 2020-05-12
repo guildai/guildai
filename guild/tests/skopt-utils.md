@@ -59,12 +59,12 @@ A third argument may be provided, which is used as the initial value:
 If two integers are provided, the range is over integer values:
 
     >>> flag_dims({"a": "[1:100]"})
-    (['a'], [Integer(low=1, high=100)], [None])
+    (['a'], [Integer(low=1, high=100, prior='uniform', transform='identity')], [None])
 
 Two integers with an initial value:
 
     >>> flag_dims({"a": "[1:100:50]"})
-    (['a'], [Integer(low=1, high=100)], [50])
+    (['a'], [Integer(low=1, high=100, prior='uniform', transform='identity')], [50])
 
 We can name functions, provided the function is supported:
 
@@ -74,10 +74,10 @@ We can name functions, provided the function is supported:
     (['a'], [Real(low=1.0, high=2.0, prior='uniform', transform='identity')], [None])
 
     >>> flag_dims({"a": "uniform[1:100]"})
-    (['a'], [Integer(low=1, high=100)], [None])
+    (['a'], [Integer(low=1, high=100, prior='uniform', transform='identity')], [None])
 
     >>> flag_dims({"a": "uniform[1:100:25]"})
-    (['a'], [Integer(low=1, high=100)], [25])
+    (['a'], [Integer(low=1, high=100, prior='uniform', transform='identity')], [25])
 
 - loguniform
 
