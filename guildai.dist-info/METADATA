@@ -37,7 +37,7 @@ Requires-Dist: filelock>=3.0.12
 Requires-Dist: jinja2>=2.10
 Requires-Dist: numpy>=1.16
 Requires-Dist: pkginfo
-Requires-Dist: scikit-learn>=0.19.1
+Requires-Dist: scikit-learn>=0.19.1,<0.23.0
 Requires-Dist: scikit-optimize>=0.7.1
 Requires-Dist: setuptools>=40.6.3
 Requires-Dist: six>=1.10.0
