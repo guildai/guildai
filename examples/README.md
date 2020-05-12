@@ -25,6 +25,8 @@
 - [required-operation](required-operation/README.md) - Use of
   dependencies to chain operations
 - [scalars](scalars/README.md) - Ways to log scalar values
+- [tensorboard](tensorboard/README.md) - TensorBoard integration
+  examples
 - [tensorflow](tensorflow/README.md) - TensorFlow training script
   showing the separation of train and validate operations
 - [tensorflow-versions](tensorflow-versions/README.md) - Guild
