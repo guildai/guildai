@@ -66,11 +66,13 @@ class _RunsMonitorState(object):
         self.hparam_experiment_runs_digest = None
 
 
-def RunsMonitor(logdir, list_runs_cb, interval=None, logspec=None):
+def RunsMonitor(logdir, list_runs_cb, interval=None, logspec=None, run_name_cb=None):
     state = _RunsMonitorState(logdir, logspec)
     if state.log_hparams:
         list_runs_cb = _hparam_init_support(list_runs_cb, state)
-    return run_util.RunsMonitor(logdir, list_runs_cb, _refresh_run_cb(state), interval)
+    return run_util.RunsMonitor(
+        logdir, list_runs_cb, _refresh_run_cb(state), interval, run_name_cb
+    )
 
 
 def _hparam_init_support(list_runs_cb, state):
@@ -189,7 +191,7 @@ def _refresh_run(run, run_logdir, state):
 def _refresh_tfevent_links(run, run_logdir, state):
     for tfevent_path in _iter_tfevents(run.dir):
         tfevent_relpath = os.path.relpath(tfevent_path, run.dir)
-        link = _tfevent_link_path(run_logdir, tfevent_relpath)
+        link = os.path.join(run_logdir, tfevent_relpath)
         if not os.path.exists(link):
             _init_tfevent_link(tfevent_path, link, run, state)
 
@@ -199,10 +201,6 @@ def _iter_tfevents(top):
         for name in files:
             if TFEVENTS_P.search(name):
                 yield os.path.join(root, name)
-
-
-def _tfevent_link_path(root, tfevent_relpath):
-    return os.path.join(root, tfevent_relpath)
 
 
 def _init_tfevent_link(tfevent_src, tfevent_link, run, state):
@@ -367,7 +365,7 @@ def _run_time(run):
     return (stopped - started) / 1000000
 
 
-def create_app(logdir, reload_interval, path_prefix=""):
+def create_app(logdir, reload_interval, path_prefix="", tensorboard_options=None):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", Warning)
         from tensorboard.backend import application
@@ -380,19 +378,35 @@ def create_app(logdir, reload_interval, path_prefix=""):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", Warning)
             tb = tb_f()
-        argv = (
-            "",
-            "--logdir",
-            logdir,
-            "--reload_interval",
-            str(reload_interval),
-            "--path_prefix",
-            path_prefix,
+        argv = _base_tb_args(logdir, reload_interval, path_prefix) + _extra_tb_args(
+            tensorboard_options
         )
+        log.debug("TensorBoard args: %r", argv)
         tb.configure(argv)
         return application.standard_tensorboard_wsgi(
             tb.flags, tb.plugin_loaders, tb.assets_zip_provider
         )
+
+
+def _base_tb_args(logdir, reload_interval, path_prefix):
+    return (
+        "",
+        "--logdir",
+        logdir,
+        "--reload_interval",
+        str(reload_interval),
+        "--path_prefix",
+        path_prefix,
+    )
+
+
+def _extra_tb_args(options):
+    if not options:
+        return ()
+    args = []
+    for name, val in sorted(options.items()):
+        args.extend(["--%s" % name, str(val)])
+    return tuple(args)
 
 
 def setup_logging():
@@ -448,8 +462,13 @@ def _handle_error(request, _client_address):
 
 
 def serve_forever(
-    logdir, host, port, reload_interval=DEFAULT_RELOAD_INTERVAL, ready_cb=None
+    logdir,
+    host,
+    port,
+    reload_interval=DEFAULT_RELOAD_INTERVAL,
+    tensorboard_options=None,
+    ready_cb=None,
 ):
-    app = create_app(logdir, reload_interval)
+    app = create_app(logdir, reload_interval, tensorboard_options=tensorboard_options)
     setup_logging()
     run_simple_server(app, host, port, ready_cb)

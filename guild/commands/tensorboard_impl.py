@@ -16,9 +16,12 @@ from __future__ import absolute_import
 from __future__ import division
 
 import logging
+import re
 
 from guild import batch_util
 from guild import cli
+from guild import op_util
+from guild import run_util
 from guild import util
 
 from . import runs_impl
@@ -33,8 +36,12 @@ def main(args):
     with util.TempDir("guild-tensorboard-", keep=args.keep_logdir) as tmp:
         logdir = tmp.path
         (log.info if args.keep_logdir else log.debug)("Using logdir %s", logdir)
+        tensorboard_options = _tensorboard_options(args)
         monitor = tensorboard.RunsMonitor(
-            logdir, _list_runs_cb(args), args.refresh_interval
+            logdir,
+            _list_runs_cb(args),
+            args.refresh_interval,
+            run_name_cb=_run_name_cb(args),
         )
         cli.out("Preparing runs for TensorBoard")
         monitor.run_once(exit_on_error=True)
@@ -45,6 +52,7 @@ def main(args):
                 host=(args.host or "0.0.0.0"),
                 port=(args.port or util.free_port()),
                 reload_interval=args.refresh_interval,
+                tensorboard_options=tensorboard_options,
                 ready_cb=_open_cb(args),
             )
         except tensorboard.TensorboardError as e:
@@ -55,6 +63,45 @@ def main(args):
             log.debug("Removing logdir %s", logdir)  # Handled by ctx mgr
     if util.PLATFORM != "Windows":
         cli.out()
+
+
+def _tensorboard_options(args):
+    return dict([_parse_tensorboard_opt(opt) for opt in args.tensorboard_options])
+
+
+def _parse_tensorboard_opt(opt):
+    parts = opt.split("=")
+    if len(parts) != 2:
+        cli.error("invalid TensorBoard option %r - must be OPTION=VALUE" % opt)
+    return parts
+
+
+def _run_name_cb(args):
+    if args.run_name_flags is None:
+        return None
+
+    label_template = _run_label_template(args.run_name_flags)
+
+    def f(run):
+        flags = run.get("flags")
+        return run_util.run_name(run, _run_label(label_template, flags))
+
+    return f
+
+
+def _run_label(label_template, flags):
+    if not label_template:
+        return ""
+    return op_util.run_label(label_template, flags)
+
+
+def _run_label_template(flags_arg):
+    flags = _split_flags(flags_arg)
+    return " ".join(["%s=${%s}" % (flag, flag) for flag in flags])
+
+
+def _split_flags(flags_arg):
+    return [arg.strip() for arg in re.split(r" ,", flags_arg) if arg]
 
 
 def _list_runs_cb(args):

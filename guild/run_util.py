@@ -112,13 +112,16 @@ def _windows_safe_len_path(p):
 
 
 def _default_run_name(run):
+    return run_name(run, run.get("label"))
+
+
+def run_name(run, label):
     parts = [run.short_id]
     if run.opref.model_name:
         parts.append("%s:%s" % (run.opref.model_name, run.opref.op_name))
     else:
         parts.append(run.opref.op_name)
     parts.append(util.format_timestamp(run.get("started")))
-    label = run.get("label")
     if label:
         parts.append(label)
     return util.safe_filename(" ".join(parts))[:MAX_RUN_NAME_LEN]

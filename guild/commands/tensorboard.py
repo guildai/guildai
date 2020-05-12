@@ -35,7 +35,22 @@ from . import server_support
     default=5,
 )
 @click.option(
+    "--run-name-flags",
+    metavar="FLAGS",
+    help="Comma or space delimited list of flags used for run names.",
+)
+@click.option(
     "-n", "--no-open", help="Don't open TensorBoard in a browser.", is_flag=True
+)
+@click.option(
+    "-O",
+    "tensorboard_options",
+    metavar="OPTION=VALUE",
+    multiple=True,
+    help=(
+        "An option that is passed through to TensorBoard as --OPTION=VALUE. May be "
+        "used multiple times."
+    ),
 )
 @click.option("--tab", metavar="TAB", help="Open with an initially selected tab.")
 @runs_support.all_filters
