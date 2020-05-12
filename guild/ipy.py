@@ -231,8 +231,7 @@ class Batch(object):
         runs = []
         results = []
         prev_results_cb = lambda: (runs, results)
-        trials = self.gen_trials(self.flag_vals, prev_results_cb, **self.opts)
-        for trial in trials:
+        for trial in self.gen_trials(self.flag_vals, prev_results_cb, **self.opts):
             trial_flag_vals, trial_attrs = _split_gen_trial(trial)
             print(
                 "Running %s (%s):"
@@ -272,7 +271,7 @@ class RangeFunction(object):
         return "%s[%s]" % (self.name, args)
 
 
-def batch_gen_trials(flag_vals, max_trials=None, **kw):
+def batch_gen_trials(flag_vals, _prev_trials_cb, max_trials=None, **kw):
     if kw:
         log.warning("ignoring batch config: %s", kw)
     max_trials = max_trials or DEFAULT_MAX_TRIALS
