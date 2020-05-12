@@ -27,7 +27,7 @@ Preview a normal batch.
 
 Random batch:
 
-    >>> run("guild run test.py x=[1:100] --max-trials 5", timeout=2)
+    >>> run("guild run test.py x=[1:100] --max-trials 5", timeout=3)
     You are about to run test.py with random search (max 5 trials)
       x: [1:100]
       y: 2
@@ -36,7 +36,7 @@ Random batch:
 
 Optimizer with default objective:
 
-    >>> run("guild run test.py x=[1:100] -o gp", timeout=2)
+    >>> run("guild run test.py x=[1:100] -o gp", timeout=3)
     You are about to run test.py with 'skopt:gp' optimizer (max 20 trials, minimize loss)
       x: [1:100]
       y: 2
@@ -51,7 +51,7 @@ Optimizer with default objective:
 
 Optimizer with explict objective:
 
-    >>> run("guild run test.py x=[1:100] -o gbrt -X foo -m10", timeout=2)
+    >>> run("guild run test.py x=[1:100] -o gbrt -X foo -m10", timeout=3)
     You are about to run test.py with 'skopt:gbrt' optimizer (max 10 trials, maximize foo)
       x: [1:100]
       y: 2
@@ -70,7 +70,7 @@ Preview batch files:
     ... 3
     ... """)
 
-    >>> run("guild run test.py @trials-1.csv", timeout=2)
+    >>> run("guild run test.py @trials-1.csv", timeout=3)
     You are about to run test.py as a batch (3 trials) (flags below
     used unless specified in batch trial)
       x: 1
@@ -80,7 +80,7 @@ Preview batch files:
 
 Preview with batch file and flag list:
 
-    >>> run("guild run test.py @trials-1.csv y=[4,5]", timeout=2)
+    >>> run("guild run test.py @trials-1.csv y=[4,5]", timeout=3)
     You are about to run test.py as a batch (6 trials) (flags below
     used unless specified in batch trial)
       x: 1
@@ -95,7 +95,7 @@ Preview with two batch files:
     ... 5,6
     ... """)
 
-    >>> run("guild run test.py @trials-1.csv @trials-2.csv", timeout=2)
+    >>> run("guild run test.py @trials-1.csv @trials-2.csv", timeout=3)
     You are about to run test.py as a batch (5 trials) (flags below
     used unless specified in batch trial)
       x: 1
