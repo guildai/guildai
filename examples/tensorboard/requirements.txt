@@ -1,0 +1,5 @@
+# python>=3.6
+
+matplotlib
+packaging
+tensorflow

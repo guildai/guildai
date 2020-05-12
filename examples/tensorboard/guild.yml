@@ -1,13 +1,67 @@
-- model: mnist
-  operations:
-    train:
-      main: mnist
+loss-scalar:
+  description: 'Part 1 of TensorBoard Scalars: Logging training metrics in Keras'
+  flags-import:
+    - lr
+    - train_pct
+    - epochs
+  env:
+    LOGDIR: .
+
+custom-scalar:
+  description: 'Part 2 of TensorBoard Scalars: Logging training metrics in Keras'
+  flags-import:
+    - train_pct
+    - epochs
+  env:
+    LOGDIR: .
+
+images:
+  description: Displaying image data in TensorBoard
+  flags-import:
+    - train_epochs
+  env:
+    TRAIN_DATA_LOGDIR: .
+    PLOTS_LOGDIR: .
+    IMAGE_LOGDIR: .
+
+graphs:
+  description: Examining the TensorFlow Graph
+  flags-import:
+    - train_epochs
+    - batch_size
+    - dropout
+  env:
+    TRAIN_LOGDIR: train
+    FUNC_LOGDIR: func
+
+hparams:
+  description: Hyperparameter Tuning with the HParams Dashboard
+  flags-import:
+    - num_units
+    - dropout
+    - train_epochs
+    - optimizer
+  objective:
+    maximize: accuracy
+  env:
+    LOGDIR: .
+
+hparams-grid-search:
+  description: Search over ranges used in Hyperparameter Tuning with the HParams Dashboard
+  steps:
+    - run: hparams
       flags:
-        epochs:
-          description: Number of epochs to train
-          default: 5
-        dropout:
-          description: Dropout rate
-          default: 0.2
-        log_dir:
-          default: .
+        num_units: [16, 32]
+        dropout: [0.1, 0.2]
+        optimizer: [adam, sgd]
+
+hparams-optimize:
+  description: Optimization of hparams with Gaussian Processes
+  steps:
+    - run: hparams
+      flags:
+        num_units: [1, 2, 4, 8, 16, 32, 64]
+        dropout: [0.1, 0.2, 0.3, 0.4, 0.5]
+        optimizer: [adam, sgd]
+      optimizer: gp
+      max-trials: 20

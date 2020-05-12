@@ -1,38 +1,85 @@
 # Guild Example: `tensorboard`
 
-This example shows various TensorBoard integrations.
+This example shows various TensorBoard integrations. Examples are
+copied from [*Get started with
+TensorBoard*](https://www.tensorflow.org/tensorboard/get_started).
+
+Project files:
 
 - [guild.yml](guild.yml) - Project Guild file
-- [mnist.py](mnist.py) - MNIST example
+- [loss_scalar.py](loss_scalar.py) - Script for `loss-scalar` operation
+- [custom_scalar.py](custom_scalar.py) - Script for `custom-scalar` operation
+- [images.py](images.py) - Script for `images` operation
+- [graphs.py](graphs.py) - Script for `graphs` operation
+- [hparams.py](hparams.py) - Script for `hparams` operation
 
-To run the sample [MNIST
-trainer](https://www.tensorflow.org/tensorboard/get_started), change
-to this directory and run:
+To run the examples, first create an environment.
 
-    $ guild run mnist:train
+    $ cd examples/tesnorboard
+    $ guild init
 
-Press `Enter` to confirm. Guild runs `mnist.py` according to the
-defintiion in [guild.yml](guild.yml). Results are written to a unique
-run directory.
+Press `Enter` to create a virtual environment that is configured with
+the required Python packages for this example.
 
-When the operation finished, view the generated files:
+Activate the environment:
 
-    $ guild ls
+    $ source guild-env
 
-Open the run in TensorBoard:
+Run any of operations below. Each operation implements one of the
+examples from [*Get started with
+TensorBoard*](https://www.tensorflow.org/tensorboard/get_started).
 
-    $ guild tensorboard 1
+- `loss-scalar` - Implementation of part 1 of [*TensorBoard Scalars:
+  Logging training metrics in
+  Keras*](https://www.tensorflow.org/tensorboard/scalars_and_keras)
+- `custom-scalar` - Implementation of part 2 of [*TensorBoard Scalars:
+  Logging training metrics in
+  Keras*](https://www.tensorflow.org/tensorboard/scalars_and_keras)
+- `images` - Implementation fo [*Displaying image data in
+  TensorBoard*](https://www.tensorflow.org/tensorboard/image_summaries)
+- `graphs` - Implementation of [*Examining the TensorFlow
+  Graph*](https://www.tensorflow.org/tensorboard/graphs)
+- `hparams` - Implementation of [*Hyperparameter Tuning with the
+  HParams
+  Dashboard*](https://www.tensorflow.org/tensorboard/hyperparameter_tuning_with_hparams) -
+  (see [Hyperparameter Tuning](#hyperparameter-tuning) below for more
+  on this operation)
+- `hparams-grid-search` - Grid search of `hparams` operation over the
+  range used in the TensorBoard hyperparameter tuning example
+- `hparams-optimize` - Bayesian optimization of `hparams` operation
+  using Gaussian Processes
 
-The argument `1` indicates that you want to view the latest run in
-TensorBoard. This corresponds to the index shown when you list runs:
+To run one of these operations, use:
 
-    $ guild runs
+    $ guild run <operation>
 
-You can view the run directly using TensorBoard. First, get the latest
-run directory:
+Review the default flags and press `Enter` to run the operation.
 
-    $ guild runs info
+## Hyperparameter Tuning
 
-Note the value for `run_dir` in the output and use it in the command:
+The implementation of the [TensorBoard hyperparameter tuning
+example](https://www.tensorflow.org/tensorboard/hyperparameter_tuning_with_hparams)
+highlights one of Guild's primary design differentiators: *the
+separation of model training code from hyperparameter tuning code*.
 
-    $ tensorboard --logdir <run_dir>
+The Guild implementation in [hparams.py](hparams.py) is free from any
+hyperparameter tuning code. The [TensorBoard
+example](https://github.com/tensorflow/tensorboard/blob/master/docs/hyperparameter_tuning_with_hparams.ipynb)
+combines both model training code and hyperparameter tuning code.
+
+There are advantages to Guild's approach:
+
+- Code that is free from hyperparameter tuning related code is simpler
+  and easier to read and therefore easier debug, improve, etc.
+
+- Moving hyperparameter code outside of model training code lets you
+  run different tuning operations without changing model code.
+
+- Separating hyperparameter tuning concerns lets you use different
+  tuning frameworks to optimize your models.
+
+Guild automatically manages TensorBoard hparam summaries for all
+runs. This lets you use TensorBoard's **HPARAMS** plugin with any run,
+whether it was designed for hyperparameter tuning or not. This works
+for runs implemented in frameworks other then TensorFlow - and even in
+languages other than Python.
