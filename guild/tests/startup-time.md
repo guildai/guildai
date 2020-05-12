@@ -6,7 +6,7 @@ arguments.
 
 Our test limit:
 
-    >>> START_THRESHOLD = 0.2
+    >>> START_THRESHOLD = float(os.getenv("GUILD_START_THRESHOLD") or 0.2)
 
 Imports used below:
 
@@ -17,6 +17,16 @@ Guild script:
 
     >>> scripts_dir = path(tests_dir(), "..", "scripts")
     >>> guild_script = path(scripts_dir, "guild")
+
+Oddly, for some versions of Python, the `guild` script is *not*
+installed under the `scripts` directory. This could be a misguided
+attempt to avoid conflicts when `console_scripts` are generated for
+installed packages.
+
+In such cases, we rely on the generated console script.
+
+    >>> if not os.path.exists(guild_script):
+    ...     guild_script = which("guild")
 
 Run `guild` command with no arguments:
 

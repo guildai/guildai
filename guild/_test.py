@@ -366,6 +366,7 @@ def test_globals():
         "sys": sys,
         "tests_dir": tests_dir,
         "touch": util.touch,
+        "which": util.which,
         "write": write,
     }
 
