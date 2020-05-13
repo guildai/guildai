@@ -186,9 +186,9 @@ def _refresh_run_cb(state):
 
 def _refresh_run(run, run_logdir, state):
     _refresh_tfevent_links(run, run_logdir, state)
-    _refresh_projector_links(run, run_logdir)
     _refresh_image_summaries(run, run_logdir, state)
     _maybe_time_metric(run, run_logdir)
+    _sync_run_file_links(run, run_logdir)
 
 
 def _refresh_tfevent_links(run, run_logdir, state):
@@ -241,61 +241,6 @@ def _add_hparam_session(run, writer):
 def _hparam_session_name(run):
     operation = run_util.format_operation(run)
     return "%s %s" % (run.short_id, operation)
-
-
-def _refresh_projector_links(run, run_logdir):
-    for projector_config_path in _iter_projector_configs(run.dir):
-        projector_config_relpath = os.path.relpath(projector_config_path, run.dir)
-        link = os.path.join(run_logdir, projector_config_relpath)
-        if not os.path.exists(link):
-            _init_projector_links(projector_config_path, link, run)
-
-
-def _iter_projector_configs(top):
-    for root, _dirs, files in os.walk(top):
-        if PROJECTOR_CONFIG_NAME in files:
-            yield os.path.join(root, PROJECTOR_CONFIG_NAME)
-
-
-def _init_projector_links(config_src, config_link, run):
-    link_dir = os.path.dirname(config_link)
-    util.ensure_dir(link_dir)
-    _init_projector_embeddings_links(config_src, link_dir)
-    log.debug("Creating link from '%s' to '%s'", config_src, config_link)
-    util.symlink(config_src, config_link)
-
-
-def _init_projector_embeddings_links(config_src, link_dir):
-    config_src_dir = os.path.dirname(config_src)
-    for embedding_metadata_src in _projector_config_embeddings(config_src):
-        if not os.path.isabs(embedding_metadata_src):
-            metadata_link = os.path.join(link_dir, embedding_metadata_src)
-            if os.path.exists(metadata_link):
-                log.warning("unexpected embeddings metadata link '%s'", metadata_link)
-                continue
-            metadata_src = os.path.join(config_src_dir, embedding_metadata_src)
-            log.debug("Creating link from '%s' to '%s'", metadata_src, metadata_link)
-            util.symlink(metadata_src, metadata_link)
-
-
-def _projector_config_embeddings(config_src):
-    try:
-        config = _load_projector_config(config_src)
-    except Exception as e:
-        log.warning("unable to load projector config from '%s': %s", config_src, e)
-    else:
-        for embedding in config.embeddings:
-            yield embedding.metadata_path
-
-
-def _load_projector_config(config_src):
-    from tensorboard.plugins.projector import projector_config_pb2
-    from google.protobuf import text_format
-
-    config = projector_config_pb2.ProjectorConfig()
-    config_text = open(config_src, "r").read()
-    text_format.Merge(config_text, config)
-    return config
 
 
 def _refresh_image_summaries(run, run_logdir, state):
@@ -424,19 +369,77 @@ def _run_time(run):
     return (stopped - started) / 1000000
 
 
+def _sync_run_file_links(run, run_logdir):
+    _add_missing_run_file_links(run, run_logdir)
+    _remove_orphaned_run_file_links(run_logdir)
+
+
+def _add_missing_run_file_links(run, run_logdir):
+    for src, link, link_dir in _iter_linkable_run_files(run, run_logdir):
+        _ensure_run_file_link(src, link, link_dir)
+
+
+def _iter_linkable_run_files(run, run_logdir):
+    """Yields tuples of src, link, and link_dir for linkable run files.
+
+    The odd interface is for efficiency to avoid re-processing paths
+    needed for downstream links. In particular, link_dir is provided
+    so downstream doesn't have to re-calculate it when ensuring the
+    link parent dir.
+    """
+    top_level = True
+    for root, dirs, files in os.walk(run.dir, followlinks=True):
+        _maybe_remove_guild_dir(top_level, dirs)
+        top_level = False
+        rel_root = os.path.relpath(root, run.dir)
+        for name in files:
+            src = os.path.join(root, name)
+            link_dir = os.path.join(run_logdir, rel_root)
+            link = os.path.join(link_dir, name)
+            yield src, link, link_dir
+
+
+def _maybe_remove_guild_dir(remove, dirs):
+    if remove:
+        try:
+            dirs.remove(".guild")
+        except ValueError:
+            pass
+
+
+def _ensure_run_file_link(src, link, link_dir):
+    if not os.path.exists(link):
+        log.debug("Creating link from '%s' to '%s'", src, link)
+        util.ensure_dir(link_dir)
+        util.symlink(src, link)
+
+
+def _remove_orphaned_run_file_links(run_logdir):
+    for root, _dirs, files in os.walk(run_logdir, followlinks=True):
+        for name in files:
+            path = os.path.join(root, name)
+            if os.path.islink(path) and not os.path.exists(path):
+                log.debug("Deleting orphaned path '%s'" % path)
+                try:
+                    os.remove(path)
+                except OSError as e:
+                    log.warning("error deleting orphaned link '%s': %s", path, e)
+
+
 def create_app(logdir, reload_interval, path_prefix="", tensorboard_options=None):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", Warning)
-        from tensorboard.backend import application
+        from tensorboard import default
         from tensorboard import program
+        from tensorboard.backend import application
     try:
-        tb_f = program.TensorBoard
+        TensorBoard = program.TensorBoard
     except AttributeError:
         raise TensorboardError("tensorboard>=1.10 required")
     else:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", Warning)
-            tb = tb_f()
+            tb = TensorBoard(default.get_plugins() + default.get_dynamic_plugins(),)
         argv = _base_tb_args(logdir, reload_interval, path_prefix) + _extra_tb_args(
             tensorboard_options
         )

@@ -3,15 +3,13 @@
 Guild supports ephemeral image summaries when viewing runs in
 TensorBoard.
 
-It works like this:
-
 1. A run generates one or more images.
 
 2. While running, Guild TensorBoard scans run dirs for generated images
    and includs them in an ephemeral summary log so they appear in
    TensorBoard for the applicable run.
 
-To illustrate we'll use the `image-summaries` project.
+To illustrate we use the `image-summaries` project.
 
     >>> project = Project(sample("projects", "image-summaries"))
 
@@ -71,16 +69,24 @@ The monitor generated the following files in the log directory:
 
     >>> files = findl(logdir)
     >>> len(files)
-    2
+    6
 
-    >>> files
+    >>> pprint(files)
     ['... copy-images .../.images/events.out.tfevents.0000000000.image.71a365d27894b323b8d5d6ebfeed6ee9',
-     '... copy-images .../.images/events.out.tfevents.0000000001.image.6eba6ff0fe3882f00774e289ff61c3e2']
+     '... copy-images .../.images/events.out.tfevents.0000000001.image.6eba6ff0fe3882f00774e289ff61c3e2',
+     '... copy-images .../favicon-copy.png',
+     '... copy-images .../favicon.png',
+     '... copy-images .../heart-copy.jpg',
+     '... copy-images .../heart.jpg']
 
-The two files represent the logged image summaries. Each time is named
-using an incrementing timestamp starting with 0 and a digest
-suffix. The digest corresponds to the logged image path, relative to
-the run directory.
+The TensorBoard runs monitor mirrors the run directory structure by
+creating the appropriate symlinks to run files. This ensures that
+TensorBoard plugins have full access to run files.
+
+The monitor also generates Guild specific TF event files for each
+image it finds. Each event file is named using an incrementing
+timestamp starting with 0 and a digest suffix. The digest corresponds
+to the logged image path, relative to the run directory.
 
 Let's confirm each of the suffixes.
 
@@ -154,12 +160,16 @@ The log directory now contains three files.
 
     >>> files = findl(logdir)
     >>> len(files)
-    3
+    7
 
-    >>> files
+    >>> pprint(files)
     ['... copy-images .../.images/events.out.tfevents.0000000000.image.71a365d27894b323b8d5d6ebfeed6ee9',
      '... copy-images .../.images/events.out.tfevents.0000000001.image.6eba6ff0fe3882f00774e289ff61c3e2',
-     '... copy-images .../.images/events.out.tfevents.0000000002.image.71a365d27894b323b8d5d6ebfeed6ee9']
+     '... copy-images .../.images/events.out.tfevents.0000000002.image.71a365d27894b323b8d5d6ebfeed6ee9',
+     '... copy-images .../favicon-copy.png',
+     '... copy-images .../favicon.png',
+     '... copy-images .../heart-copy.jpg',
+     '... copy-images .../heart.jpg']
 
 And has a second image summary for `favicon-copy.png`:
 
