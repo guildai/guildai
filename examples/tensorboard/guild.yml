@@ -72,10 +72,19 @@
           max-trials: 20
 
     projector:
-      description: Visualizing Data using the Embedding Projector in TensorBoard
+      description: >
+        Visualizing Data using the Embedding Projector in TensorBoard
+
+        NOTE: This demo does not work as expected. See README.md for
+        details. Use projector2 operation as an alternative.
+
       flags-import:
         - train_epochs
         - validation_steps
+      env:
+        LOGDIR: .
 
+    projector2:
+      description: Alternative projector demo
       env:
         LOGDIR: .

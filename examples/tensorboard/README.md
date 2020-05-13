@@ -13,6 +13,7 @@ Project files:
 - [graphs.py](graphs.py) - Script for `graphs` operation
 - [hparams.py](hparams.py) - Script for `hparams` operation
 - [projector.py](projector.py) - Script for `projector` operation
+- [projector2.py](projector2.py) - Script for `projector2` operation
 
 To run the examples, first create an environment.
 
@@ -51,6 +52,14 @@ TensorBoard*](https://www.tensorflow.org/tensorboard/get_started).
   using Gaussian Processes
 - `projector` - [*Visualizing Data using the Embedding Projector in
   TensorBoard*](https://www.tensorflow.org/tensorboard/tensorboard_projector_plugin)
+  (this demo does not work as expected - see [Projector
+  Demo](#projector-demo) below for details)
+- `projector2` - Alternative projector demo
+  ([credit](https://stackoverflow.com/a/41177133/5854947)) using
+  [`tensorboardX`](https://github.com/lanpa/tensorboardX) to write
+  embedding summaries (this operation is an alternative to `projector`
+  that works as expected - seee [Projector Demo](#projector-demo)
+  below for details)
 
 To run one of these operations, use:
 
@@ -89,3 +98,26 @@ languages other than Python.
 
 To run tuning operations on `hparams`, see `hparams-grid-search` and
 `hparams-optimize` operations.
+
+## Projector Demo
+
+Google's [projector
+demo](https://www.tensorflow.org/tensorboard/tensorboard_projector_plugin)
+does not work as expected with Guild. This demo requires that
+TensorBoard's log directory be specified as the demo directory rather
+than as the demo directory parent. Guild arranges the TensorBoard log
+directory as a container of runs. However, this demo does not work
+with this arrangement.
+
+See [this issue on
+GitHub](https://github.com/tensorflow/tensorboard/issues/3629) for
+status on this.
+
+The `projector` operation uses Google's demo code as
+provided. Therefore the `projector` operation does not work as
+expected: when you run `guild tensorboard`, any associated runs will
+not display the expected embeddings.
+
+The `projector2` operation, however, does show embeddings per run as
+expected. This is a simplified demo that uses `tensorboardX` to write
+embedding summaries.

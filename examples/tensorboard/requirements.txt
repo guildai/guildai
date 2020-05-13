@@ -2,5 +2,6 @@
 
 matplotlib
 packaging
+tensorboardX
 tensorflow-cpu
 tensorflow-datasets
