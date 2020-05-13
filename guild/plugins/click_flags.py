@@ -30,6 +30,7 @@ from guild import util
 from . import import_argparse_flags_main
 from . import python_script
 
+
 def _init_log():
     level = int(os.getenv("LOG_LEVEL", logging.WARN))
     format = os.getenv("LOG_FORMAT", "%(levelname)s: [%(name)s] %(message)s")
@@ -41,7 +42,6 @@ log = _init_log()
 
 
 class ClickFlags(python_script.PythonFlagsImporter):
-
     def flags_for_script(self, script, log):
         env = dict(os.environ)
         env.update(
@@ -87,7 +87,9 @@ def main():
 
 
 def _patch_click(output_path):
-    handle_cmd_init = lambda _init, *_args, **kw: _write_flags(kw["params"], output_path)
+    handle_cmd_init = lambda _init, *_args, **kw: _write_flags(
+        kw["params"], output_path
+    )
     python_util.listen_method(click.Command, "__init__", handle_cmd_init)
 
 

@@ -75,7 +75,8 @@ def gen_trials(
             "xi": opt_xi,
             "noise": opt_noise,
         },
-        **kw)
+        **kw
+    )
 
 
 if __name__ == "__main__":
