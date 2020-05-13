@@ -87,16 +87,21 @@ class ScalarReader(object):
         for event in EventReader(self.dir):
             for val in event.summary.value:
                 try:
-                    yield util.try_apply(
+                    scalar_info = util.try_apply(
                         [self._try_tfevent_v2, self._try_tfevent_v1], event, val
                     )
                 except util.TryFailed:
                     log.debug("could not read event summary %s", val)
+                else:
+                    if scalar_info:
+                        yield scalar_info
 
     @staticmethod
     def _try_tfevent_v2(event, val):
-        if not val.HasField("tensor") or not _is_float_tensor(val.tensor):
+        if not val.HasField("tensor"):
             raise util.TryFailed()
+        if not _is_float_tensor(val.tensor):
+            return None
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", Warning)
@@ -109,7 +114,7 @@ class ScalarReader(object):
     @staticmethod
     def _try_tfevent_v1(event, val):
         if not val.HasField("simple_value"):
-            raise util.TryFailed()
+            return None
         return val.tag, val.simple_value, event.step
 
 
