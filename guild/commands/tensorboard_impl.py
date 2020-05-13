@@ -60,7 +60,8 @@ def main(args):
         finally:
             log.debug("Stopping")
             monitor.stop()
-            log.debug("Removing logdir %s", logdir)  # Handled by ctx mgr
+            if not args.keep_logdir:
+                log.debug("Removing logdir %s", logdir)  # Handled by ctx mgr
     if util.PLATFORM != "Windows":
         cli.out()
 

@@ -38,6 +38,8 @@ DEFAULT_RELOAD_INTERVAL = 5
 TFEVENTS_P = re.compile(r"\.tfevents")
 TFEVENT_TIMESTAMP_P = re.compile(r"tfevents\.([0-9]+)\.")
 
+PROJECTOR_CONFIG_NAME = "projector_config.pbtxt"
+
 IMG_EXT = (
     ".gif",
     ".jpeg",
@@ -184,6 +186,7 @@ def _refresh_run_cb(state):
 
 def _refresh_run(run, run_logdir, state):
     _refresh_tfevent_links(run, run_logdir, state)
+    _refresh_projector_links(run, run_logdir)
     _refresh_image_summaries(run, run_logdir, state)
     _maybe_time_metric(run, run_logdir)
 
@@ -208,6 +211,7 @@ def _init_tfevent_link(tfevent_src, tfevent_link, run, state):
     util.ensure_dir(link_dir)
     if state.log_hparams:
         _init_hparam_session(run, link_dir, state)
+    log.debug("Creating link from '%s' to '%s'", tfevent_src, tfevent_link)
     util.symlink(tfevent_src, tfevent_link)
 
 
@@ -237,6 +241,61 @@ def _add_hparam_session(run, writer):
 def _hparam_session_name(run):
     operation = run_util.format_operation(run)
     return "%s %s" % (run.short_id, operation)
+
+
+def _refresh_projector_links(run, run_logdir):
+    for projector_config_path in _iter_projector_configs(run.dir):
+        projector_config_relpath = os.path.relpath(projector_config_path, run.dir)
+        link = os.path.join(run_logdir, projector_config_relpath)
+        if not os.path.exists(link):
+            _init_projector_links(projector_config_path, link, run)
+
+
+def _iter_projector_configs(top):
+    for root, _dirs, files in os.walk(top):
+        if PROJECTOR_CONFIG_NAME in files:
+            yield os.path.join(root, PROJECTOR_CONFIG_NAME)
+
+
+def _init_projector_links(config_src, config_link, run):
+    link_dir = os.path.dirname(config_link)
+    util.ensure_dir(link_dir)
+    _init_projector_embeddings_links(config_src, link_dir)
+    log.debug("Creating link from '%s' to '%s'", config_src, config_link)
+    util.symlink(config_src, config_link)
+
+
+def _init_projector_embeddings_links(config_src, link_dir):
+    config_src_dir = os.path.dirname(config_src)
+    for embedding_metadata_src in _projector_config_embeddings(config_src):
+        if not os.path.isabs(embedding_metadata_src):
+            metadata_link = os.path.join(link_dir, embedding_metadata_src)
+            if os.path.exists(metadata_link):
+                log.warning("unexpected embeddings metadata link '%s'", metadata_link)
+                continue
+            metadata_src = os.path.join(config_src_dir, embedding_metadata_src)
+            log.debug("Creating link from '%s' to '%s'", metadata_src, metadata_link)
+            util.symlink(metadata_src, metadata_link)
+
+
+def _projector_config_embeddings(config_src):
+    try:
+        config = _load_projector_config(config_src)
+    except Exception as e:
+        log.warning("unable to load projector config from '%s': %s", config_src, e)
+    else:
+        for embedding in config.embeddings:
+            yield embedding.metadata_path
+
+
+def _load_projector_config(config_src):
+    from tensorboard.plugins.projector import projector_config_pb2
+    from google.protobuf import text_format
+
+    config = projector_config_pb2.ProjectorConfig()
+    config_text = open(config_src, "r").read()
+    text_format.Merge(config_text, config)
+    return config
 
 
 def _refresh_image_summaries(run, run_logdir, state):

@@ -12,6 +12,7 @@ Project files:
 - [images.py](images.py) - Script for `images` operation
 - [graphs.py](graphs.py) - Script for `graphs` operation
 - [hparams.py](hparams.py) - Script for `hparams` operation
+- [projector.py](projector.py) - Script for `projector` operation
 
 To run the examples, first create an environment.
 
@@ -48,6 +49,8 @@ TensorBoard*](https://www.tensorflow.org/tensorboard/get_started).
   range used in the TensorBoard hyperparameter tuning example
 - `hparams-optimize` - Bayesian optimization of `hparams` operation
   using Gaussian Processes
+- `projector` - [*Visualizing Data using the Embedding Projector in
+  TensorBoard*](https://www.tensorflow.org/tensorboard/tensorboard_projector_plugin)
 
 To run one of these operations, use:
 
@@ -83,3 +86,6 @@ runs. This lets you use TensorBoard's **HPARAMS** plugin with any run,
 whether it was designed for hyperparameter tuning or not. This works
 for runs implemented in frameworks other then TensorFlow - and even in
 languages other than Python.
+
+To run tuning operations on `hparams`, see `hparams-grid-search` and
+`hparams-optimize` operations.
