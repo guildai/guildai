@@ -14,6 +14,7 @@ Project files:
 - [hparams.py](hparams.py) - Script for `hparams` operation
 - [projector.py](projector.py) - Script for `projector` operation
 - [projector2.py](projector2.py) - Script for `projector2` operation
+- [audio.py](audio.py) - Script for `audio` operation
 
 To run the examples, first create an environment.
 
@@ -60,6 +61,8 @@ TensorBoard*](https://www.tensorflow.org/tensorboard/get_started).
   embedding summaries (this operation is an alternative to `projector`
   that works as expected - seee [Projector Demo](#projector-demo)
   below for details)
+- `audio` - TensorBoard audio demo
+  ([credit](https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/audio/audio_demo.py))
 
 To run one of these operations, use:
 

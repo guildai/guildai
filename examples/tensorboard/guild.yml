@@ -88,3 +88,11 @@
       description: Alternative projector demo
       env:
         LOGDIR: .
+
+    audio:
+      description: TensorBoard audio demo
+      main: audio --logdir .
+      flags:
+        duration: 2.0
+        sample_rate: 44100
+        steps: 50
