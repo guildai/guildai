@@ -109,7 +109,13 @@ class ScalarReader(object):
         except ImportError as e:
             log.debug("error importing make_ndarray: %s", e)
             raise util.TryFailed()
-        return val.tag, make_ndarray(val.tensor).item(), event.step
+        ndarray =  make_ndarray(val.tensor)
+        try:
+            scalar_val = ndarray.item()
+        except ValueError:
+            return None
+        else:
+            return val.tag, scalar_val, event.step
 
     @staticmethod
     def _try_tfevent_v1(event, val):
