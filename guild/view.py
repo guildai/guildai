@@ -134,8 +134,8 @@ class DevServer(threading.Thread):
 
 
 class TBServer(object):
-    def __init__(self, tensorboard, key, data):
-        self._tb = tensorboard
+    def __init__(self, tensorboard_mod, key, data):
+        self._tb_mod = tensorboard_mod
         self._key = key
         self._data = data
         self.log_dir = None
@@ -151,12 +151,12 @@ class TBServer(object):
         if self._started:
             raise RuntimeError("already started")
         self.log_dir = util.mktempdir("guild-tensorboard-")
-        self._monitor = self._tb.RunsMonitor(
+        self._monitor = self._tb_mod.RunsMonitor(
             self.log_dir, self._list_runs, TB_RUNS_MONITOR_INTERVAL
         )
         self._monitor.run_once(exit_on_error=True)
         self._monitor.start()
-        self._app = self._tb.create_app(
+        self._app = self._tb_mod.create_app(
             self.log_dir, TB_REFRESH_INTERVAL, path_prefix=self._path_prefix()
         )
         self._started = True
@@ -191,7 +191,7 @@ class TBServers(object):
         self._lock = threading.Lock()
         self._servers = {}
         self._data = data
-        self._tb = None
+        self._tb_mod = None
 
     def __enter__(self):
         self._lock.acquire()
@@ -203,8 +203,8 @@ class TBServers(object):
         return self._servers[key]
 
     def start_server(self, key, _run=None):
-        tensorboard = self._ensure_tensorboard()
-        server = TBServer(tensorboard, key, self._data)
+        tb_mod = self._ensure_tensorboard()
+        server = TBServer(tb_mod, key, self._data)
         log.debug("starting TensorBoard server (%s)", server)
         server.start()
         self._servers[key] = server
@@ -214,11 +214,11 @@ class TBServers(object):
         return server
 
     def _ensure_tensorboard(self):
-        if self._tb is None:
+        if self._tb_mod is None:
             from guild import tensorboard
 
-            self._tb = tensorboard
-        return self._tb
+            self._tb_mod = tensorboard
+        return self._tb_mod
 
     def iter_servers(self):
         for key in self._servers:

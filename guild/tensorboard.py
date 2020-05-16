@@ -439,7 +439,7 @@ def create_app(logdir, reload_interval, path_prefix="", tensorboard_options=None
     else:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", Warning)
-            tb = TensorBoard(default.get_plugins() + default.get_dynamic_plugins(),)
+            tb = TensorBoard(default.get_plugins())
         argv = _base_tb_args(logdir, reload_interval, path_prefix) + _extra_tb_args(
             tensorboard_options
         )
