@@ -1240,9 +1240,7 @@ def _apply_step_flags(data, opdef, target):
 
 
 def _step_flag_values(flags_data):
-    return {
-        key: _step_flag_value(val) for key, val in flags_data.items()
-    }
+    return {key: _step_flag_value(val) for key, val in flags_data.items()}
 
 
 def _step_flag_value(val):

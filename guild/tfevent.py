@@ -109,7 +109,7 @@ class ScalarReader(object):
         except ImportError as e:
             log.debug("error importing make_ndarray: %s", e)
             raise util.TryFailed()
-        ndarray =  make_ndarray(val.tensor)
+        ndarray = make_ndarray(val.tensor)
         try:
             scalar_val = ndarray.item()
         except ValueError:
