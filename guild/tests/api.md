@@ -25,9 +25,14 @@ outside the doctest framework.
 
     >>> import subprocess
 
-    >>> gapi.run("echo.py", cwd=project_dir, guild_home=gh,
-    ...          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    ("1.0 2 'a'\n", '')
+    >>> out, err = gapi.run("echo.py", cwd=project_dir, guild_home=gh,
+    ...                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    >>> out.rstrip()  # rstrip to normalize line endings
+    "1.0 2 'a'"
+
+    >>> err
+    ''
 
 An generates a `RunError`.
 
@@ -41,8 +46,10 @@ An generates a `RunError`.
 `run_capture_output` always captures output. stderr uses stdout to
 provide a single `output` return value.
 
-    >>> gapi.run_capture_output("echo.py", cwd=project_dir, guild_home=gh)
-    "1.0 2 'a'\n"
+    >>> out = gapi.run_capture_output("echo.py", cwd=project_dir, guild_home=gh)
+
+    >>> out.rstrip()  # rstrip to normalize line endings
+    "1.0 2 'a'"
 
 Errors are similarly denoted by `RunError`.
 
