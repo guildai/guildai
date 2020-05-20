@@ -96,3 +96,7 @@
         duration: 2.0
         sample_rate: 44100
         steps: 50
+
+    pr-curve:
+      description: TensorBoard PR curve demo
+      main: pr_curve --logdir .

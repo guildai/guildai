@@ -15,6 +15,7 @@ Project files:
 - [projector.py](projector.py) - Script for `projector` operation
 - [projector2.py](projector2.py) - Script for `projector2` operation
 - [audio.py](audio.py) - Script for `audio` operation
+- [pr_curve.py](pr_curve.py) - Script for 'pr-curve' operation
 
 To run the examples, first create an environment.
 
@@ -63,6 +64,8 @@ TensorBoard*](https://www.tensorflow.org/tensorboard/get_started).
   below for details)
 - `audio` - TensorBoard audio demo
   ([credit](https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/audio/audio_demo.py))
+- `pr-curve` - TensorBoard PR Curve demo
+  ([credit](https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/pr_curve/pr_curve_demo.py))
 
 To run one of these operations, use:
 
