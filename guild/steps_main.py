@@ -302,7 +302,7 @@ def _init_steps(run):
 
 def _run_step(step, parent_run):
     step_run = _init_step_run(parent_run)
-    cmd = _init_step_cmd(step, step_run.path)
+    cmd = _init_step_cmd(step, step_run.path, parent_run)
     _link_to_step_run(step, step_run.path, parent_run.path)
     env = dict(os.environ)
     env["NO_WARN_RUNDIR"] = "1"
@@ -330,7 +330,7 @@ def _init_step_run(parent_run):
     return runlib.Run(step_run_id, step_run_dir)
 
 
-def _init_step_cmd(step, step_run_dir):
+def _init_step_cmd(step, step_run_dir, parent_run):
     base_args = [
         sys.executable,
         "-um",
@@ -342,10 +342,19 @@ def _init_step_cmd(step, step_run_dir):
         step_run_dir,
         step.op_spec,
     ]
+    parent_run_options = _parent_run_options(parent_run)
     step_options = _step_options(step)
     batch_file_args = _step_batch_file_args(step)
     flag_args = _step_flag_args(step)
-    return base_args + step_options + batch_file_args + flag_args
+    return base_args + parent_run_options + step_options + batch_file_args + flag_args
+
+
+def _parent_run_options(parent_run):
+    opts = []
+    params = parent_run.get("run_params")
+    if params.get("stage_trials"):
+        opts.append("--stage-trials")
+    return opts
 
 
 def _step_options(step):

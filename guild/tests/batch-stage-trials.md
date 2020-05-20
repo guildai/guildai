@@ -95,3 +95,64 @@ And our runs:
     say.py   loud=no msg=b  staged
     say.py   loud=no msg=a  staged
     say.py+                 completed
+
+## Stage trials via steps
+
+If a stepped operation generates a batch and `--stage-trials` is
+specified, the generated batch will stage the trials rather than run
+them.
+
+For our tests, we delete the current runs.
+
+    >>> project.delete_runs()
+    Deleted 4 run(s)
+
+The `say-many` operation uses `steps` to run `say.py` in a batch.
+
+First, the operation first without `--stage-trials`:
+
+    >>> project.run("say-many")
+    INFO: [guild] running say.py: say.py msg=[hi, hello, hola]
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=hi)
+    hi
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=hello)
+    hello
+    INFO: [guild] Running trial ...: say.py (loud=no, msg=hola)
+    hola
+
+The runs are complete:
+
+    >>> project.print_runs(status=True, labels=True)
+    say.py    loud=no msg=hola   completed
+    say.py    loud=no msg=hello  completed
+    say.py    loud=no msg=hi     completed
+    say.py+                      completed
+    say-many                     completed
+
+Next, use `--stage-trials`:
+
+    >>> project.run("say-many", stage_trials=True)
+    INFO: [guild] running say.py: say.py --stage-trials msg=[hi, hello, hola]
+    INFO: [guild] Staging trial ...: say.py (loud=no, msg=hi)
+    say.py staged as ...
+    To start the operation, use 'guild run --start ...'
+    INFO: [guild] Staging trial ...: say.py (loud=no, msg=hello)
+    say.py staged as ...
+    To start the operation, use 'guild run --start ...'
+    INFO: [guild] Staging trial ...: say.py (loud=no, msg=hola)
+    say.py staged as ...
+    To start the operation, use 'guild run --start ...'
+
+And the runs:
+
+    >>> project.print_runs(status=True, labels=True)
+    say.py    loud=no msg=hola   staged
+    say.py    loud=no msg=hello  staged
+    say.py    loud=no msg=hi     staged
+    say.py+                      completed
+    say-many                     completed
+    say.py    loud=no msg=hola   completed
+    say.py    loud=no msg=hello  completed
+    say.py    loud=no msg=hi     completed
+    say.py+                      completed
+    say-many                     completed

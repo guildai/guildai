@@ -5,3 +5,9 @@ say-with-label:
   main: say
   flags-import: all
   label: msg is '${msg|unquote}'
+
+say-many:
+  steps:
+    - run: say.py
+      flags:
+        msg: [hi, hello, hola]
