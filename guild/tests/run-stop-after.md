@@ -1,3 +1,9 @@
+skip-windows: yes
+
+NOTE: There is an issue with stop-after on Windows with the sample
+script used below (sleep) that causes the process to require SIGKILL
+(the Windows equivalent) and therefore to fail on Windows.
+
 # Stopping a run after N seconds
 
 The `--stop-after` option is used to stop a run after a number of
