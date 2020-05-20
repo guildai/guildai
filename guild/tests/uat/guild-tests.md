@@ -88,6 +88,7 @@ tests).
       run-ops:                     ok
       run-output:                  ok
       run-scripts:                 ok
+      run-stop-after:              ok
       run-utils:                   ok
       run-with-proto:              ok
       runs-1:                      ok

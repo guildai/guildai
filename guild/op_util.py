@@ -56,6 +56,8 @@ RUN_OUTPUT_STREAM_BUFFER = 4096
 
 RESTART_NEEDED_STATUS = ("pending",)
 
+DEFAULT_PROC_POLL_INTERVAL = 5
+DEFAULT_PROC_KILL_DELAY = 30
 
 try:
     bytes('')
@@ -1653,14 +1655,16 @@ def _coerce_run_param(name, val):
 ###################################################################
 
 
-def wait_for_proc(p, stop_after_min, poll_interval=5, kill_delay=30):
+def wait_for_proc(p, stop_after_min, poll_interval=None, kill_delay=None):
+    poll_interval = poll_interval or DEFAULT_PROC_POLL_INTERVAL
+    kill_delay = kill_delay or DEFAULT_PROC_KILL_DELAY
     started = time.time()
     stop_at = time.time() + stop_after_min * 60
     while time.time() < stop_at:
-        time.sleep(poll_interval)
         returncode = p.poll()
         if returncode is not None:
             return returncode
+        time.sleep(poll_interval)
     elapsed = (time.time() - started) / 60
     log.info(
         "Stopping process early (pid %i) - %.1f minute(s) elapsed", p.pid, elapsed,

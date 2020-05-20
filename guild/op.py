@@ -276,7 +276,15 @@ def _proc_wait(proc, stop_after):
     if stop_after is None:
         return proc.wait()
     else:
-        return op_util.wait_for_proc(proc, stop_after)
+        return _proc_wait_minutes(proc, stop_after)
+
+
+def _proc_wait_minutes(proc, minutes):
+    poll_interval = util.get_env("STOP_AFTER_POLL_INTERVAL", float)
+    kill_delay = util.get_env("STOP_AFTER_KILL_DELAY", float)
+    return op_util.wait_for_proc(
+        proc, minutes, poll_interval=poll_interval, kill_delay=kill_delay
+    )
 
 
 def _handle_proc_interrupt(proc):

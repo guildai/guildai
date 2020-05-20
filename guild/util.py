@@ -926,6 +926,19 @@ def gpu_available():
     return False
 
 
+def get_env(name, type, default=None):
+    try:
+        val = os.environ[name]
+    except KeyError:
+        return default
+    else:
+        try:
+            return type(val)
+        except Exception as e:
+            log.warning("error converting env %s to %s: %s", name, type, e)
+            return None
+
+
 def del_env(names):
     for name in names:
         try:
