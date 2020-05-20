@@ -99,6 +99,11 @@ class OutputTee(object):
             for f in self._fs:
                 f.write(s)
 
+    def flush(self):
+        with self._lock:
+            for f in self._fs:
+                f.flush()
+
 
 class RunOutput(object):
     def __init__(self, run, summary=None):

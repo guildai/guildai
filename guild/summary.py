@@ -293,6 +293,9 @@ class OutputScalars(object):
     def close(self):
         self._writer.close()
 
+    def flush(self):
+        self._writer.flush()
+
     def print_patterns(self):
         for key, p in self._patterns:
             sys.stdout.write("{}: {}\n".format(key, p.pattern))
