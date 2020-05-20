@@ -96,7 +96,8 @@ def _write_csv(args):
         writer = csv.writer(out, lineterminator="\n")
         for row in data:
             writer.writerow(row)
-    cli.out("Wrote %i row(s) to %s" % (len(data), args.csv), err=True)
+    if args.csv != "-":
+        cli.out("Wrote %i row(s) to %s" % (len(data) - 1, args.csv), err=True)
 
 
 def _open_file(path):

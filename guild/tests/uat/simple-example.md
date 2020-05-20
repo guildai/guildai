@@ -233,7 +233,7 @@ Generate a CSV file:
     >>> csv_path = path(tmp_dir, "compare.csv")
 
     >>> run("guild compare --csv '%s' 1 2" % csv_path)
-    Wrote 3 row(s) to .../compare.csv
+    Wrote 2 row(s) to .../compare.csv
     <exit 0>
 
     >>> cat(csv_path)
