@@ -295,6 +295,10 @@ def _anonymous_model_data(ops_data):
 
 
 def _coerce_guildfile_item_data(data, guildfile):
+    """Coerces top-level object attributes based on name.
+
+    Refer to _coerce_top_level_attr for coerced attributes.
+    """
     if not isinstance(data, dict):
         return data
     coerced = {
@@ -305,6 +309,15 @@ def _coerce_guildfile_item_data(data, guildfile):
 
 
 def _coerce_top_level_attr(name, val, guildfile):
+    """Coerces top-level object attributes by name.
+
+    This function is unaware of context so an attribute "flags" under
+    an operation is coerced using the same rules as a "flags"
+    attribute under "config". This scheme relies on common rules
+    applied to object attributes with the same name. This is not
+    necessarily the case (e.g. "flags" for a step defines values, not
+    flag defs) and so is a limitation of this approach.
+    """
     if name == "include":
         return _coerce_include(val, guildfile)
     elif name == "extends":
@@ -972,7 +985,7 @@ class OpDef(object):
         self.description = (data.get("description") or "").strip()
         self.exec_ = data.get("exec")
         self.main = data.get("main")
-        self.steps = data.get("steps")
+        self.steps = _steps_data(data, self)
         self.python_requires = data.get("python-requires")
         self.python_path = data.get("python-path")
         self.env = data.get("env") or {}
@@ -983,7 +996,6 @@ class OpDef(object):
         self.stoppable = data.get("stoppable") or False
         self.set_trace = data.get("set-trace") or False
         self.label = data.get("label")
-
         self.compare = data.get("compare")
         self.handle_keyboard_interrupt = data.get("handle-keyboard-interrupt") or False
         self.flag_encoder = data.get("flag-encoder")
@@ -1184,6 +1196,59 @@ class FlagChoice(object):
 
     def __repr__(self):
         return "<guild.guildfile.FlagChoice %r>" % self.value
+
+
+def _steps_data(data, opdef):
+    """Return steps data for opdef data.
+
+    Supports `$include` for flag mappings, where used.
+
+    We don't parse steps data to a structure the way other data values
+    are parsed by this module. Instead we pass data through to be
+    saved in its raw format for `batch_main` to parse. This is
+    less-than-ideal as we should validate the data before a workflow
+    operation starts.
+
+    This is an opportunistic implementation that purportedly saves
+    development effort and reduces the double-effort of re-parsing the
+    `steps` run attribute, which is used as the interface for stepped
+    runs.
+    """
+    steps_data = data.get("steps")
+    if not steps_data:
+        return None
+    if not isinstance(steps_data, list):
+        raise GuildfileError(
+            opdef.guildfile, "invalid steps data %r: expected a list" % steps_data
+        )
+    return [_step_data(step, opdef) for step in steps_data]
+
+
+def _step_data(data, opdef):
+    if not isinstance(data, dict):
+        return data
+    _apply_step_flags(data, opdef, data)
+    return data
+
+
+def _apply_step_flags(data, opdef, target):
+    if not data:
+        return
+    flags_data = _resolve_includes(data, "flags", opdef.modeldef.guildfile_search_path)
+    if flags_data:
+        target["flags"] = _step_flag_values(flags_data)
+
+
+def _step_flag_values(flags_data):
+    return {
+        key: _step_flag_value(val) for key, val in flags_data.items()
+    }
+
+
+def _step_flag_value(val):
+    if isinstance(val, dict):
+        return val.get("default")
+    return val
 
 
 def _init_dependencies(requires, opdef):

@@ -205,15 +205,6 @@ with an error.
 The `m3` model contains various operations that have invalid step
 configuration.
 
-    >>> project.run("m3:steps-invalid-no-steps")
-    guild: invalid definition for operation 'm3:steps-invalid-no-steps':
-    must define either exec, main, or steps
-    <exit 1>
-
-    >>> project.run("m3:steps-invalid-bad-type")
-    guild: invalid steps data 123: expected list
-    <exit 1>
-
     >>> project.run("m3:steps-invalid-bad-opspec-1")
     guild: invalid step data: [1, 2, 3]
     <exit 1>
@@ -255,7 +246,7 @@ We'll use the operations in the `m4` model to illustate.
 First let's delete our current runs.
 
     >>> project.delete_runs()
-    Deleted 32 run(s)
+    Deleted 31 run(s)
 
 Let's run `m4:end-to-end`, which runs the sequence of `prepare`,
 `train`, and `evaluate`. This simulates a common end-to-end training

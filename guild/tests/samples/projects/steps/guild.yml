@@ -45,10 +45,6 @@
 
 - model: m3
   operations:
-    steps-invalid-no-steps:
-      steps: {}
-    steps-invalid-bad-type:
-      steps: 123
     steps-invalid-bad-opspec-1:
       steps:
         - [1, 2, 3]

@@ -657,7 +657,95 @@ to direct users to upstream sources and papers.
 
 ## Includes
 
-See [includes.md](includes.md) for guildfile include tests.
+See also [includes.md](includes.md) for guildfile include tests.
+
+Some Guild file mappings support use of a special attribute
+`$include`, which includes attributes defined in other Guild file
+objects.
+
+Here's an example of including flags defined in a `config` object.
+
+    >>> gf = guildfile.for_string("""
+    ... - config: shared-flags
+    ...   flags:
+    ...     foo: 123
+    ...     bar: 456
+    ...
+    ... - operations:
+    ...     op:
+    ...       flags:
+    ...         $include: shared-flags
+    ... """)
+
+    >>> gf.default_model.get_operation("op").flags
+    [<guild.guildfile.FlagDef 'bar'>, <guild.guildfile.FlagDef 'foo'>]
+
+Operations may be similarly included.
+
+    >>> gf = guildfile.for_string("""
+    ... - config: shared-ops
+    ...   operations:
+    ...     op1: guild.pass
+    ...     op2: guild.pass
+    ...
+    ... - operations:
+    ...     $include: shared-ops
+    ... """)
+
+    >>> gf.default_model.operations
+    [<guild.guildfile.OpDef 'op1'>, <guild.guildfile.OpDef 'op2'>]
+
+Resources:
+
+    >>> gf = guildfile.for_string("""
+    ... - config: shared-resources
+    ...   resources:
+    ...     r1:
+    ...       - file: a.txt
+    ...     r2:
+    ...       - url: http://my.co/b.txt
+    ...
+    ... - model: ''
+    ...   resources:
+    ...     $include: shared-resources
+    ... """)
+
+    >>> gf.default_model.resources
+    [<guild.guildfile.ResourceDef 'r1'>, <guild.guildfile.ResourceDef 'r2'>]
+
+Flag values defined for steps can also be included.
+
+In the following example, we define a `steps` operation that runs an
+`op` operation as a single step. The steo includes flag values defined
+in config `shared-flag-vals`.
+
+    >>> gf = guildfile.for_string("""
+    ... - config: shared-flag-vals
+    ...   flags:
+    ...     foo: 123
+    ...     bar: 345
+    ...
+    ... - operations:
+    ...     op:
+    ...       main: guild.pass
+    ...       flags:
+    ...         foo: null
+    ...         bar: null
+    ...     steps:
+    ...       steps:
+    ...        - run: op
+    ...          flags:
+    ...            $include: shared-flag-vals
+    ...            bar: 456
+    ... """)
+
+The values for an operation `steps` attribute is the config data,
+which is used downstream by `guild.steps_main`. `guildfile` provides
+special support for includes to resolve included flag values in the
+config.
+
+    >>> pprint(gf.default_model.get_operation("steps").steps)
+    [{'flags': {'bar': 456, 'foo': 123}, 'run': 'op'}]
 
 ## Model inheritance
 
