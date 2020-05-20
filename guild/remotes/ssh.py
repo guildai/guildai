@@ -599,6 +599,7 @@ def _build_package(src_dir, dist_dir):
 def _remote_run_cmd(
     batch_label,
     batch_tag,
+    fail_on_trial_error,
     force_flags,
     force_sourcecode,
     gpus,
@@ -659,6 +660,8 @@ def _remote_run_cmd(
         cmd.append("--needed")
     if stop_after:
         cmd.extend(["--stop-after", str(stop_after)])
+    if fail_on_trial_error:
+        cmd.append("--fail-on-trial-error")
     if optimize:
         cmd.append("--optimize")
     if optimizer:

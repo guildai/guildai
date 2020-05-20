@@ -37,10 +37,27 @@ associated with Guild.
     (3, 'yop')
     <exit 1>
 
+In the case of batches, a batch run succeeds even when a trial
+fails. The trial in this case shows the abbreviated tracback.
+
     >>> project.run("exception.py", flags={"dummy": [1]}, force_flags=True)
     INFO: [guild] Running trial ...: exception.py (dummy=1)
     Traceback (most recent call last):
       File ".../.guild/sourcecode/exception.py", line 1, in <module>
         raise Exception("big time fail")
     Exception: big time fail
+    ERROR: [guild] trial ... exited with an error (see log for details)
+
+If we run with `fail_on_trial_error` the batch will also fail.
+
+    >>> project.run("exception.py", flags={"dummy": [1]}, force_flags=True,
+    ...             fail_on_trial_error=True)
+    INFO: [guild] Running trial ...: exception.py (dummy=1)
+    Traceback (most recent call last):
+      File ".../.guild/sourcecode/exception.py", line 1, in <module>
+        raise Exception("big time fail")
+    Exception: big time fail
+    ERROR: [guild] trial ... exited with an error (see log for details)
+    ERROR: [guild] stopping batch because a trial failed (remaining staged
+    trials may be started as needed)
     <exit 1>

@@ -156,6 +156,7 @@ def _run_kw(args):
     names = [
         "batch_label",
         "batch_tag",
+        "fail_on_trial_error",
         "flags",
         "force_flags",
         "force_sourcecode",

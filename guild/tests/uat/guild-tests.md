@@ -12,6 +12,7 @@ tests).
       batch-basics:                ok
       batch-custom-optimizer:      ok
       batch-error-handling:        ok
+      batch-fail-on-trial-error:   ok
       batch-grid-search:           ok
       batch-guildfile-optimizers:  ok
       batch-implied-random:        ok

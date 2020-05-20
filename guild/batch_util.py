@@ -95,10 +95,13 @@ def _save_trials(trials, path):
 
 
 def _run_trials(batch_run, trials):
-    runs = _init_trial_runs(batch_run, trials)
+    trial_runs = _init_trial_runs(batch_run, trials)
     stage = batch_run.get("stage_trials")
-    for run in runs:
-        _start_trial_run(run, stage)
+    for trial_run in trial_runs:
+        try:
+            _start_trial_run(trial_run, stage)
+        except SystemExit:
+            _handle_trial_run_error(batch_run, trial_run)
 
 
 def _init_trial_runs(batch_run, trials):
@@ -148,9 +151,10 @@ def _trial_op_attr(proto_run, trial_flag_vals):
 
 
 def _log_start_trial(run, stage):
+    desc = "Running" if not stage else "Staging"
     log.info(
         "%s trial %s: %s (%s)",
-        "Running" if not stage else "Staging",
+        desc,
         _trial_name(run),
         run_util.format_operation(run),
         _trial_flags_desc(run),
@@ -169,6 +173,23 @@ def _trial_flags_desc(run):
         name: val for name, val in (run.get("flags") or {}).items() if val is not None
     }
     return op_util.flags_desc(flags)
+
+
+def _handle_trial_run_error(batch_run, trial_run):
+    log.error(
+        "trial %s exited with an error (see log for details)", _trial_name(trial_run)
+    )
+    if _fail_on_trial_error(batch_run):
+        log.error(
+            "stopping batch because a trial failed (remaining staged trials "
+            "may be started as needed)"
+        )
+        raise SystemExit(exit_code.DEFAULT_ERROR)
+
+
+def _fail_on_trial_error(batch_run):
+    params = batch_run.get("run_params") or {}
+    return params.get("fail_on_trial_error")
 
 
 def run_trial(batch_run, flag_vals):

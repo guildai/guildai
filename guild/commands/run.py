@@ -184,6 +184,11 @@ def run_params(fn):
                 help="Stop operation after N minutes.",
             ),
             click.Option(
+                ("--fail-on-trial-error",),
+                is_flag=True,
+                help="Stop batch operations when a trial exits with an error.",
+            ),
+            click.Option(
                 ("--needed",),
                 is_flag=True,
                 help=(
