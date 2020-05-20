@@ -1,116 +1,85 @@
 # Blocking Queues
 
-By default a queue will only start a staged run if there are no other
-(non-queue) runs in progress. The rationale is that it's safer to
-assume that any given run requires the full system than to assume
-otherwise.
+By default, a queue starts staged runs even when other runs are in
+progress. Queues may be started, however, with the flag
+`wait-for-running`, which causes them to block until other runs have
+stopped. (This does not apply to running queues, which are ignored
+when considering in in progress runs.)
 
-`ignore-running` is therefore `no` by default --- i.e. a queue waits
-for runs to complete before starting available staged runs.
-
-Delete runs in preparation for these tests.
+For our tests, we delete existing runs.
 
     >>> quiet("guild runs rm -y")
 
-Let's create a project to test staged runs using queues.
+Here's a project with a sample operation that waits for 5 seconds.
 
     >>> project_dir = mkdtemp()
 
     >>> write(path(project_dir, "sleep.py"), """
     ... import time
-    ... seconds = 10
+    ... seconds = 5
     ... time.sleep(seconds)
     ... """)
 
     >>> cd(project_dir)
 
-Start a queue in the background.
+To illustrate the default behavior, we stage two runs"
+
+    >>> run("guild run sleep.py --stage -y", ignore="Refreshing")
+    sleep.py staged as ...
+    To start the operation, use 'guild run --start ...'
+    <exit 0>
+
+    >>> run("guild run sleep.py --stage -y")
+    sleep.py staged as ...
+    To start the operation, use 'guild run --start ...'
+    <exit 0>
+
+The staged runs:
+
+    >>> run("guild runs")
+    [1:...]  sleep.py  ...  staged  seconds=5
+    [2:...]  sleep.py  ...  staged  seconds=5
+    <exit 0>
+
+Next, start two queues. We use tags to identify each queue.
 
     >>> run("guild run queue poll-interval=1 --tag q1 --background -y")
     queue:queue started in background as ... (pidfile ...)
     <exit 0>
 
-Stage two runs.
-
-    >>> for _ in range(2):
-    ...     sleep(1)
-    ...     run("guild run sleep.py --stage -y")
-    Refreshing flags...
-    sleep.py staged as ...
-    To start the operation, use 'guild run --start ...'
-    <exit 0>
-    sleep.py staged as ...
-    To start the operation, use 'guild run --start ...'
-    <exit 0>
-
-At this point our queue will start one of the two runs.
-
-Wait to let the queue start one of the staged runs:
-
-    >>> sleep(2)
-
-The runs:
-
-    >>> run("guild runs")
-    [1:...]  sleep.py  ...  staged   seconds=10
-    [2:...]  sleep.py  ...  running  seconds=10
-    [3:...]  queue     ...  running  q1 ignore-running=no poll-interval=1 run-once=no
-    <exit 0>
-
-Note that only of the two `sleep.py` operations is running.
-
-Here's the log output for the queue:
-
-    >>> run("guild cat --output -l q1")
-    INFO: [queue] ... Waiting for staged runs
-    INFO: [queue] ... Starting staged run ...
-    <exit 0>
-
-Start a second queue:
-
     >>> run("guild run queue poll-interval=1 --tag q2 --background -y")
     queue:queue started in background as ... (pidfile ...)
     <exit 0>
 
-At this point, the second run will look for staged runs to
-start. However, because `sleep.py` is still running, it will wait
-until it's finished.
+Wait to let the queues start the staged runs.
 
-Wait to let the second queue poll for available staged runs:
+    >>> sleep(8)
 
-    >>> sleep(2)
-
-The runs:
+The current runs:
 
     >>> run("guild runs")
-    [1:...]  queue     ...  running  q2 ignore-running=no poll-interval=1 run-once=no
-    [2:...]  sleep.py  ...  staged   seconds=10
-    [3:...]  sleep.py  ...  running  seconds=10
-    [4:...]  queue     ...  running  q1 ignore-running=no poll-interval=1 run-once=no
+    [1:...]  sleep.py  ...  completed  seconds=5
+    [2:...]  queue     ...  running    q2 poll-interval=1 run-once=no wait-for-running=no
+    [3:...]  sleep.py  ...  completed  seconds=5
+    [4:...]  queue     ...  running    q1 poll-interval=1 run-once=no wait-for-running=no
     <exit 0>
 
-Note that only one `sleep.py` operation is running.
+And the logs for each queue.
 
-The logs of our second queue should indicate that it was waiting on
-runs to complete.
+    >>> run("guild cat --output -l q1")
+    INFO: [queue] ... Starting staged run ...
+    INFO: [queue] ... Waiting for staged runs
+    <exit 0>
 
     >>> run("guild cat --output -l q2")
-    INFO: [queue] ... Found staged run ... (waiting for runs to finish: ...)
-    ...
+    INFO: [queue] ... Starting staged run ...
+    INFO: [queue] ... Waiting for staged runs
     <exit 0>
 
-Wait for the runs to complete.
+Note that each queue starts a staged run without waiting.
 
-    >>> sleep(20)
-
-Here are our runs:
-
-    >>> run("guild runs")
-    [1:...]  sleep.py  ...  completed  seconds=10
-    [2:...]  queue     ...  running    q2 ignore-running=no poll-interval=1 run-once=no
-    [3:...]  sleep.py  ...  completed  seconds=10
-    [4:...]  queue     ...  running    q1 ignore-running=no poll-interval=1 run-once=no
-    <exit 0>
+Next, we demonstrate queue behavior when `wait-for-running` is enabled
+for queues.
 
 Stop the queues:
 
@@ -119,7 +88,87 @@ Stop the queues:
     Stopping ... (pid ...)
     <exit 0>
 
-Confirm there are no active runs:
+Delete the runs:
 
-    >>> run("guild runs --running")
+    >>> run("guild runs rm -y")
+    Deleted 4 run(s)
+    <exit 0>
+
+Stage two runs:
+
+    >>> run("guild run sleep.py --stage -y", ignore="Refreshing")
+    sleep.py staged as ...
+    To start the operation, use 'guild run --start ...'
+    <exit 0>
+
+    >>> run("guild run sleep.py --stage -y")
+    sleep.py staged as ...
+    To start the operation, use 'guild run --start ...'
+    <exit 0>
+
+Start two queues, this time using `wait-for-running`. We delay
+slightly after starting the first queue to let it start one of the
+staged runs.
+
+    >>> run("guild run queue poll-interval=1 wait-for-running=yes --tag q1 --background -y")
+    queue:queue started in background as ... (pidfile ...)
+    <exit 0>
+
+Wait a moment to let the queue start one of the staged runs:
+
+    >>> sleep(2)
+
+At this point we have one run in progress and the other staged:
+
+    >>> run("guild runs")
+    [1:...]  sleep.py  ...  running  seconds=5
+    [2:...]  queue     ...  running  q1 poll-interval=1 run-once=no wait-for-running=yes
+    [3:...]  sleep.py  ...  staged   seconds=5
+    <exit 0>
+
+Output for the first queue:
+
+    >>> run("guild cat --output -l q1")
+    INFO: [queue] ... Starting staged run ...
+    <exit 0>
+
+Start the second queue:
+
+    >>> run("guild run queue poll-interval=1 wait-for-running=yes --tag q2 --background -y")
+    queue:queue started in background as ... (pidfile ...)
+    <exit 0>
+
+Wait a moment for the second queue to start and check for staged runs.
+
+    >>> sleep(2)
+
+At this point, the second queue will have detected that a run is
+in-progress and defer starting the pending staged run until it's next
+check.
+
+    >>> run("guild cat --output -l q2")
+    INFO: [queue] ... Found staged run ... (waiting for runs to finish: ...)
+    ...
+    <exit 0>
+
+As we have a race condition for which queue starts the second staged
+run, we can't assert which queue starts it. We wait, however, to
+confirm that the second staged run is eventually started and finishes.
+
+    >>> sleep(10)
+
+Our runs:
+
+    >>> run("guild runs")
+    [1:...]  sleep.py  ...  completed  seconds=5
+    [2:...]  queue     ...  running    q2 poll-interval=1 run-once=no wait-for-running=yes
+    [3:...]  sleep.py  ...  completed  seconds=5
+    [4:...]  queue     ...  running    q1 poll-interval=1 run-once=no wait-for-running=yes
+    <exit 0>
+
+Finally, stop the queues:
+
+    >>> run("guild stop -y")
+    Stopping ... (pid ...)
+    Stopping ... (pid ...)
     <exit 0>

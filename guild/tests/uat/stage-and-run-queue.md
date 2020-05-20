@@ -57,7 +57,7 @@ List runs:
     [1:...]  train.py  ...  completed  noise=0.1 x=6
     [2:...]  train.py  ...  completed  x is 5
     [3:...]  train.py  ...  completed  noise=0.1 x=4
-    [4:...]  queue     ...  completed  ignore-running=no poll-interval=10 run-once=yes
+    [4:...]  queue     ...  completed  poll-interval=10 run-once=yes wait-for-running=no
     <exit 0>
 
 Stage another run. We want to test the queue being run from another

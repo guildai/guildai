@@ -29,7 +29,7 @@ Here's the run info for the queue:
     started: ...
     stopped:
     marked: no
-    label: q1 gpus=1 ignore-running=no poll-interval=1 run-once=no
+    label: q1 gpus=1 poll-interval=1 run-once=no wait-for-running=no
     sourcecode_digest:
     vcs_commit:
     run_dir: ...
@@ -38,9 +38,9 @@ Here's the run info for the queue:
     pid: ...
     flags:
       gpus: 1
-      ignore-running: no
       poll-interval: 1
       run-once: no
+      wait-for-running: no
     scalars:
     <exit 0>
 
@@ -73,7 +73,7 @@ The runs:
 
     >>> run("guild runs")
     [1:...]  hello  ...  completed   default-gpus
-    [2:...]  queue  ...  running     q1 gpus=1 ignore-running=no poll-interval=1 run-once=no
+    [2:...]  queue  ...  running     q1 gpus=1 poll-interval=1 run-once=no wait-for-running=no
     <exit 0>
 
 Confirm that the run used the expected `gpus` option:
@@ -113,7 +113,7 @@ List the runs:
     >>> run("guild runs")
     [1:...]  hello  ...  completed  gpus-1
     [2:...]  hello  ...  completed  default-gpus
-    [3:...]  queue  ...  running    q1 gpus=1 ignore-running=no poll-interval=1 run-once=no
+    [3:...]  queue  ...  running    q1 gpus=1 poll-interval=1 run-once=no wait-for-running=no
     <exit 0>
 
 If a staged run specifies a different GPU spec, the queue will refuse
@@ -136,7 +136,7 @@ Show runs:
     [1:...]  hello  ...  staged     gpus-2
     [2:...]  hello  ...  completed  gpus-1
     [3:...]  hello  ...  completed  default-gpus
-    [4:...]  queue  ...  running    q1 gpus=1 ignore-running=no poll-interval=1 run-once=no
+    [4:...]  queue  ...  running    q1 gpus=1 poll-interval=1 run-once=no wait-for-running=no
     <exit 0>
 
 Confirm that the queue refused to start the run for the right reason:
@@ -171,10 +171,10 @@ Show runs:
 
     >>> run("guild runs")
     [1:...]  hello  ...  completed  gpus-2
-    [2:...]  queue  ...  running    q2 gpus=2 ignore-running=no poll-interval=1 run-once=no
+    [2:...]  queue  ...  running    q2 gpus=2 poll-interval=1 run-once=no wait-for-running=no
     [3:...]  hello  ...  completed  gpus-1
     [4:...]  hello  ...  completed  default-gpus
-    [5:...]  queue  ...  running    q1 gpus=1 ignore-running=no poll-interval=1 run-once=no
+    [5:...]  queue  ...  running    q1 gpus=1 poll-interval=1 run-once=no wait-for-running=no
     <exit 0>
 
 Stop the queues:

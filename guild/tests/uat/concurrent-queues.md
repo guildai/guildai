@@ -1,17 +1,15 @@
 # Concurrent Queues
 
-Multiple queues may be started to process runs concurrently. Each
-queue must be started with the `ignore-running` flag.
+Multiple queues may be started to process runs concurrently.
 
 Delete runs in preparation for these tests.
 
     >>> quiet("guild runs rm -y")
 
-Start three queues in the background, each with `ignore-running` set
-to `yes`:
+Start three queues in the background:
 
     >>> for _ in range(3):
-    ...     run("guild run queue ignore-running=yes poll-interval=1 --background -y")
+    ...     run("guild run queue poll-interval=1 --background -y")
     queue:queue started in background as ... (pidfile ...)
     <exit 0>
     queue:queue started in background as ... (pidfile ...)
@@ -26,9 +24,9 @@ Wait a moment for the queues:
 Current runs:
 
     >>> run("guild runs")
-    [1:...]  queue  ...  running  ignore-running=yes poll-interval=1 run-once=no
-    [2:...]  queue  ...  running  ignore-running=yes poll-interval=1 run-once=no
-    [3:...]  queue  ...  running  ignore-running=yes poll-interval=1 run-once=no
+    [1:...]  queue  ...  running  poll-interval=1 run-once=no wait-for-running=no
+    [2:...]  queue  ...  running  poll-interval=1 run-once=no wait-for-running=no
+    [3:...]  queue  ...  running  poll-interval=1 run-once=no wait-for-running=no
     <exit 0>
 
 Let's create a project to test staged runs using queues.
@@ -79,9 +77,9 @@ Now the running runs:
     [1:...]  sleep.py (...)  ...  running  seconds=10
     [2:...]  sleep.py (...)  ...  running  seconds=10
     [3:...]  sleep.py (...)  ...  running  seconds=10
-    [4:...]  queue  ...  running  ignore-running=yes poll-interval=1 run-once=no
-    [5:...]  queue  ...  running  ignore-running=yes poll-interval=1 run-once=no
-    [6:...]  queue  ...  running  ignore-running=yes poll-interval=1 run-once=no
+    [4:...]  queue  ...  running  poll-interval=1 run-once=no wait-for-running=no
+    [5:...]  queue  ...  running  poll-interval=1 run-once=no wait-for-running=no
+    [6:...]  queue  ...  running  poll-interval=1 run-once=no wait-for-running=no
     <exit 0>
 
 Wait the duration of the sleep operation.
@@ -102,9 +100,9 @@ Our list of runs:
     [2:...]  sleep.py (...)  ...  completed  seconds=10
     [3:...]  sleep.py (...)  ...  completed  seconds=10
     [4:...]  sleep.py (...)  ...  completed  seconds=10
-    [5:...]  queue           ...  running  ignore-running=yes poll-interval=1 run-once=no
-    [6:...]  queue           ...  running  ignore-running=yes poll-interval=1 run-once=no
-    [7:...]  queue           ...  running  ignore-running=yes poll-interval=1 run-once=no
+    [5:...]  queue           ...  running  poll-interval=1 run-once=no wait-for-running=no
+    [6:...]  queue           ...  running  poll-interval=1 run-once=no wait-for-running=no
+    [7:...]  queue           ...  running  poll-interval=1 run-once=no wait-for-running=no
     <exit 0>
 
 Stop all runs:

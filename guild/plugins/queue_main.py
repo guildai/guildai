@@ -60,7 +60,7 @@ def _parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--poll-interval", type=int, default=10)
     p.add_argument("--run-once", action="store_true")
-    p.add_argument("--ignore-running", action="store_true")
+    p.add_argument("--wait-for-running", action="store_true")
     p.add_argument("--gpus")
     return p.parse_args()
 
@@ -122,7 +122,7 @@ def _next_run(state):
 
 
 def _blocking_runs(state):
-    if state.ignore_running:
+    if not state.wait_for_running:
         return []
     running = var.runs(filter=var.run_filter("attr", "status", "running"))
     return [run for run in running if not _is_queue_or_self(run, state)]

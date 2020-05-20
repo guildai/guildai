@@ -41,11 +41,11 @@ Use a `queue` to run the staged trials.
 Our runs after the queue finished.
 
     >>> project.print_runs(status=True, flags=True)
-    say.py   loud=no msg=c                                              completed
-    say.py   loud=no msg=b                                              completed
-    say.py   loud=no msg=a                                              completed
-    queue    gpus=null ignore-running=no poll-interval=10 run-once=yes  completed
-    say.py+                                                             completed
+    say.py   loud=no msg=c                                                completed
+    say.py   loud=no msg=b                                                completed
+    say.py   loud=no msg=a                                                completed
+    queue    gpus=null poll-interval=10 run-once=yes wait-for-running=no  completed
+    say.py+                                                               completed
 
 ## Staging batch runs that stage trials
 

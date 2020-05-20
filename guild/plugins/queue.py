@@ -27,8 +27,10 @@ queue_description = """
 Start a queue
 
 A queue polls for staged runs and starts them in the order they were \
-staged. By default, the queue waits for other runs to stop before \
-starting any staged runs. Use `ignore-running` to bypass this check.
+staged. By default, a queue runs staged runs even if there are other \
+runs in progress. To force a queue to wait until other runs finish \
+before starting a queued run, set `wait-for-running` to `true` when \
+starting the run.
 
 Use `run-once` to start staged runs and stop without waiting for new \
 staged runs.
@@ -38,9 +40,6 @@ list of GPU IDs. This value is used when starting staged runs. For \
 example, to support parallel runs on all available GPUs, start one \
 queue for each GPU ID. Staged runs would then be assigned to a GPU \
 according to the queue that starts it.
-
-Note that when running multiple queues to process runs in parallel, you \
-must set `ignore-running` to `yes` on each queue.
 """
 
 queue_flags_data = yaml.safe_load(
@@ -54,8 +53,8 @@ run-once:
   default: no
   arg-switch: yes
   type: boolean
-ignore-running:
-  description: Start staged runs even when other runs are in-progress
+wait-for-running:
+  description: Wait for other runs to stop before starting staged runs
   default: no
   arg-switch: yes
   type: boolean
