@@ -65,8 +65,12 @@ Various flag values:
     {'FLAG_C': '123'}
 
     >>> generate(["__flag_args__"], {}, {}, {"c": "123"})
-    ['--c', "'123'"]
+    ['--c', '123']
     {'FLAG_C': '123'}
+
+    >>> generate(["__flag_args__"], {}, {}, {"c": ""})
+    ['--c', '']
+    {'FLAG_C': ''}
 
     >>> generate(["__flag_args__"], {}, {}, {"c": True})
     ['--c', 'yes']

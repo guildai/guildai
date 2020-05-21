@@ -1,3 +1,4 @@
+
 # Copyright 2017-2020 TensorHub, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +22,9 @@ from __future__ import print_function
 
 import sys
 
+
 if __name__ == "__main__":
     to_print = sys.argv[1:]
     if to_print:
-        print(*to_print)
+        from guild import util
+        print(*[util.shlex_quote(x) for x in to_print])

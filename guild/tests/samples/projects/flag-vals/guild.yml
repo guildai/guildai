@@ -13,6 +13,7 @@
     s2: 'a b'
     s3: '123e4'
     s4: '-0.00034'
+    s5: ''
 
 - model: ''
   operations:

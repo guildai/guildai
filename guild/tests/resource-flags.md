@@ -169,7 +169,7 @@ We can force a lookup by setting `foo` to an empty string.
     >>> project.run("requires-flag-4", {"foo": ""})
     Resolving foo dependency
     Using output from run ... for foo resource
-    hello requires-flag-4 --FOO ...
+    hello requires-flag-4 --FOO ''
 
 Note that the argument `--FOO` is provided as specified by the `foo`
 flag def for the operation.

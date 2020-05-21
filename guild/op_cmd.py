@@ -96,9 +96,15 @@ def _args_for_flag(name, val, cmd_flag, cmd_args):
         else:
             return []
     elif val is not None:
-        return ["--%s" % arg_name, flag_util.encode_flag_val(val)]
+        return ["--%s" % arg_name, _encode_arg_val(val)]
     else:
         return []
+
+
+def _encode_arg_val(val):
+    if isinstance(val, six.string_types):
+        return val
+    return flag_util.encode_flag_val(val)
 
 
 def _gen_env(op_cmd, flag_vals):
