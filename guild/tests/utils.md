@@ -573,7 +573,7 @@ Examples:
     '2010-01-01 00:00:00'
 
     >>> normlf(encode_yaml([1, "a", 1e2, datetime.datetime(2010, 5, 15),
-    ...                     True, False]))
+    ...                     True, False]))  # doctest: -NORMALIZE_PATHS
     '- 1\n- a\n- 100.0\n- 2010-05-15 00:00:00\n- true\n- false'
 
 ### Decode
