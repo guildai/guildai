@@ -185,7 +185,7 @@ def _apply_labels_filter(args, filters):
 
 def _labels_filter(labels):
     def f(run):
-        run_label = run.get("label", "")
+        run_label = str(run.get("label", ""))
         return any((l in run_label for l in labels))
 
     return f
