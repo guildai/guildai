@@ -480,6 +480,7 @@ def resolve_source_files(source_path, source, unpack_dir):
     if not unpack_dir:
         raise ValueError("unpack_dir required")
     _verify_path(source_path, source.sha256)
+    log.debug("resolving source files for '%s' from %s", source, source_path)
     return _resolve_source_files(source_path, source, unpack_dir)
 
 
