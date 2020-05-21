@@ -199,7 +199,8 @@ def _default_python_packages(base_pkg, project_dir):
         _exit(
             "guild: package name '%s' in guild.yml conflicts with Python package '%s'\n"
             "Provide a unique package name in guild.yml and try again."
-            % (base_pkg, base_pkg))
+            % (base_pkg, base_pkg)
+        )
     all_pkgs = [base_pkg] + _apply_base_pkg(base_pkg, found_pkgs)
     pkg_dirs = _all_pkg_dirs(project_dir, base_pkg, found_pkgs)
     return all_pkgs, pkg_dirs

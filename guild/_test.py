@@ -784,12 +784,10 @@ class Env(object):
         else:
             self._merge_env()
 
-
     def _replace_env(self):
         self._save_env = dict(os.environ)
         os.environ.clear()
         os.environ.update(self._vals)
-
 
     def _merge_env(self):
         env = os.environ
@@ -824,7 +822,6 @@ class Env(object):
             self._restore_env()
         else:
             self._unmerge_env()
-
 
     def _restore_env(self):
         assert self._save_env is not None
