@@ -195,6 +195,11 @@ def _python_packages(pkgdef, base_pkg, project_dir):
 
 def _default_python_packages(base_pkg, project_dir):
     found_pkgs = setuptools.find_packages()
+    if base_pkg in found_pkgs:
+        _exit(
+            "guild: package name '%s' in guild.yml conflicts with Python package '%s'\n"
+            "Provide a unique package name in guild.yml and try again."
+            % (base_pkg, base_pkg))
     all_pkgs = [base_pkg] + _apply_base_pkg(base_pkg, found_pkgs)
     pkg_dirs = _all_pkg_dirs(project_dir, base_pkg, found_pkgs)
     return all_pkgs, pkg_dirs

@@ -196,3 +196,19 @@ A project must exist:
     Traceback (most recent call last):
     SystemExit: ("'NOT_EXISTS' does not exist\nTry specifying a
     different directory.", 1)
+
+## Name conflicts with local Python packages
+
+The package name in the Guild file generates a unique Python package,
+which contains the project data files. If a local Python package
+exists with the same name, Guild `package` fails with an error
+message.
+
+We use the `package-name-conflict` project to illustrate.
+
+    >>> project = Project(sample("projects/package-name-conflict"))
+    >>> project.package()
+    Traceback (most recent call last):
+    SystemExit: (1, "guild: package name 'foo' in guild.yml conflicts with
+    Python package 'foo'\nProvide a unique package name in guild.yml and
+    try again.\n")
