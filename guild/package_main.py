@@ -55,12 +55,12 @@ class Pkg(object):
 
 def main():
     guild.log.init_logging()
-    pkg = _load_pkg()
-    dist = _create_dist(pkg)
+    pkgdef = _load_pkgdef()
+    dist = _create_dist(pkgdef)
     _maybe_upload(dist)
 
 
-def _load_pkg():
+def _load_pkgdef():
     path = os.environ["PACKAGE_FILE"]
     try:
         gf = guildfile.for_file(path)
@@ -68,12 +68,12 @@ def _load_pkg():
         _exit("error reading %s\n%s" % (path, e))
     else:
         if not gf.package:
-            return _default_package(gf)
+            return _default_pkgdef(gf)
         else:
             return gf.package
 
 
-def _default_package(gf):
+def _default_pkgdef(gf):
     # Use the name of the default model
     package_name = _default_package_name(gf)
     return guildfile.PackageDef(package_name, {}, gf)
@@ -97,13 +97,13 @@ def _gf_digest(gf):
     return hashlib.md5(path.encode()).hexdigest()[:8]
 
 
-def _create_dist(pkg):
-    kw = _setup_kw(pkg)
+def _create_dist(pkgdef):
+    kw = _setup_kw(pkgdef)
     _maybe_print_kw_and_exit(kw)
-    _write_package_metadata(pkg, kw)
+    _write_package_metadata(pkgdef, kw)
     if os.getenv("CLEAN_SETUP") == "1":
         _setup_clean(kw)
-    return _setup_bdist_wheel(pkg, kw)
+    return _setup_bdist_wheel(pkgdef, kw)
 
 
 def _setup_clean(kw):
@@ -115,21 +115,21 @@ def _clean_cmd_args():
     return ["clean", "--all"]
 
 
-def _setup_bdist_wheel(pkg, kw):
-    with util.SysArgv(_bdist_wheel_cmd_args(pkg)):
+def _setup_bdist_wheel(pkgdef, kw):
+    with util.SysArgv(_bdist_wheel_cmd_args(pkgdef)):
         return setuptools.setup(**kw)
 
 
-def _bdist_wheel_cmd_args(pkg):
+def _bdist_wheel_cmd_args(pkgdef):
     args = ["bdist_wheel"]
-    args.extend(_python_tag_args(pkg))
+    args.extend(_python_tag_args(pkgdef))
     args.extend(_dist_dir_args())
     return args
 
 
-def _python_tag_args(pkg):
-    if pkg.python_tag:
-        return ["--python-tag", pkg.python_tag]
+def _python_tag_args(pkgdef):
+    if pkgdef.python_tag:
+        return ["--python-tag", pkgdef.python_tag]
     else:
         return ["--universal"]
 
@@ -142,34 +142,34 @@ def _dist_dir_args():
         return []
 
 
-def _setup_kw(pkg):
-    project_dir = os.path.dirname(pkg.guildfile.src)
-    summary, help_desc = _pkg_description(pkg)
-    project_name = pkg.name
-    python_pkg_name = _python_pkg_name(pkg)
-    packages, package_dir = _python_packages(pkg, python_pkg_name, project_dir)
+def _setup_kw(pkgdef):
+    project_dir = os.path.dirname(pkgdef.guildfile.src)
+    summary, help_desc = _pkg_description(pkgdef)
+    project_name = pkgdef.name
+    python_pkg_name = _python_pkg_name(pkgdef)
+    packages, package_dir = _python_packages(pkgdef, python_pkg_name, project_dir)
     return dict(
         name=project_name,
-        version=pkg.version,
+        version=pkgdef.version,
         description=summary,
         long_description=help_desc,
         long_description_content_type="text/x-rst",
-        url=pkg.url,
-        author=pkg.author,
-        author_email=pkg.author_email,
-        license=pkg.license,
-        keywords=_pkg_keywords(pkg),
-        python_requires=pkg.python_requires,
-        install_requires=_pkg_install_requires(pkg),
+        url=pkgdef.url,
+        author=pkgdef.author,
+        author_email=pkgdef.author_email,
+        license=pkgdef.license,
+        keywords=_pkg_keywords(pkgdef),
+        python_requires=pkgdef.python_requires,
+        install_requires=_pkg_install_requires(pkgdef),
         packages=packages,
         package_dir=package_dir,
         namespace_packages=_namespace_packages(python_pkg_name),
-        package_data={python_pkg_name: _package_data(pkg)},
-        entry_points=_entry_points(pkg),
+        package_data={python_pkg_name: _package_data(pkgdef)},
+        entry_points=_entry_points(pkgdef),
     )
 
 
-def _pkg_description(pkg):
+def _pkg_description(pkgdef):
     """Returns a tuple of the package summary and long description.
 
     The summary is the first line of the package description
@@ -177,19 +177,19 @@ def _pkg_description(pkg):
     the package description (restructured text format).
 
     """
-    pkg_desc_lines = pkg.description.split("\n")
+    pkg_desc_lines = pkgdef.description.split("\n")
     summary = pkg_desc_lines[0]
-    help_desc = guild.help.package_description(pkg.guildfile)
+    help_desc = guild.help.package_description(pkgdef.guildfile)
     return summary, help_desc
 
 
-def _python_pkg_name(pkg):
-    return pkg.name.replace("-", "_")
+def _python_pkg_name(pkgdef):
+    return pkgdef.name.replace("-", "_")
 
 
-def _python_packages(pkg, base_pkg, project_dir):
-    if pkg.packages is not None:
-        return pkg.packages.keys(), pkg.packages
+def _python_packages(pkgdef, base_pkg, project_dir):
+    if pkgdef.packages is not None:
+        return pkgdef.packages.keys(), pkgdef.packages
     return _default_python_packages(base_pkg, project_dir)
 
 
@@ -223,13 +223,13 @@ def _namespace_packages(python_pkg_name):
         return [parts[0]]
 
 
-def _package_data(pkg):
-    return _pkg_data_files(pkg) + _default_pkg_files()
+def _package_data(pkgdef):
+    return _pkg_data_files(pkgdef) + _default_pkg_files()
 
 
-def _pkg_data_files(pkg):
+def _pkg_data_files(pkgdef):
     matches = []
-    for pattern in pkg.data_files:
+    for pattern in pkgdef.data_files:
         matches.extend(glob.glob(pattern))
     return matches
 
@@ -244,19 +244,19 @@ def _default_pkg_files():
     ]
 
 
-def _entry_points(pkg):
+def _entry_points(pkgdef):
     return {
         name: eps
         for name, eps in [
-            ("guild.models", _model_entry_points(pkg)),
-            ("guild.resources", _resource_entry_points(pkg)),
+            ("guild.models", _model_entry_points(pkgdef)),
+            ("guild.resources", _resource_entry_points(pkgdef)),
         ]
         if eps
     }
 
 
-def _model_entry_points(pkg):
-    models = sorted(pkg.guildfile.models.values(), key=lambda m: m.name)
+def _model_entry_points(pkgdef):
+    models = sorted(pkgdef.guildfile.models.values(), key=lambda m: m.name)
     return [
         "%s = guild.model:PackageModel" % _model_entry_point_name(model)
         for model in models
@@ -267,46 +267,46 @@ def _model_entry_point_name(model):
     return model.name or "__anonymous__"
 
 
-def _resource_entry_points(pkg):
-    return _model_resource_entry_points(pkg)
+def _resource_entry_points(pkgdef):
+    return _model_resource_entry_points(pkgdef)
 
 
-def _model_resource_entry_points(pkg):
+def _model_resource_entry_points(pkgdef):
     return [
         (
             "%s:%s = guild.model:PackageModelResource"
             % (resdef.modeldef.name, resdef.name)
         )
-        for resdef in _iter_guildfile_resdefs(pkg)
+        for resdef in _iter_guildfile_resdefs(pkgdef)
     ]
 
 
-def _iter_guildfile_resdefs(pkg):
-    for modeldef in pkg.guildfile.models.values():
+def _iter_guildfile_resdefs(pkgdef):
+    for modeldef in pkgdef.guildfile.models.values():
         for resdef in modeldef.resources:
             yield resdef
 
 
-def _pkg_keywords(pkg):
-    tags = list(pkg.tags)
+def _pkg_keywords(pkgdef):
+    tags = list(pkgdef.tags)
     if "gpkg" not in tags:
         tags.append("gpkg")
     return " ".join(tags)
 
 
-def _pkg_install_requires(pkg):
-    if pkg.requires is None:
-        return _maybe_requirements_txt(pkg)
-    elif not pkg.requires:
+def _pkg_install_requires(pkgdef):
+    if pkgdef.requires is None:
+        return _maybe_requirements_txt(pkgdef)
+    elif not pkgdef.requires:
         return []
     else:
         return [
-            _project_name(req) for req in pkg.requires if not _is_multi_arch_req(req)
+            _project_name(req) for req in pkgdef.requires if not _is_multi_arch_req(req)
         ]
 
 
-def _maybe_requirements_txt(pkg):
-    requirements_txt = os.path.join(pkg.guildfile.dir, "requirements.txt")
+def _maybe_requirements_txt(pkgdef):
+    requirements_txt = os.path.join(pkgdef.guildfile.dir, "requirements.txt")
     if not os.path.exists(requirements_txt):
         return []
     return _parse_requirements(requirements_txt)
@@ -338,16 +338,16 @@ def _maybe_print_kw_and_exit(kw):
         sys.exit(0)
 
 
-def _write_package_metadata(pkg, setup_kw):
+def _write_package_metadata(pkgdef, setup_kw):
     egg_info_dir = "%s.egg-info" % setup_kw["name"]
     util.ensure_dir(egg_info_dir)
     dest = os.path.join(egg_info_dir, "PACKAGE")
     with open(dest, "w") as f:
-        yaml.dump(_pkg_metadata(pkg), f, default_flow_style=False, width=9999)
+        yaml.dump(_pkg_metadata(pkgdef), f, default_flow_style=False, width=9999)
 
 
-def _pkg_metadata(pkg):
-    for item in pkg.guildfile.data:
+def _pkg_metadata(pkgdef):
+    for item in pkgdef.guildfile.data:
         if "package" in item:
             return _coerce_pkg_data(item)
     return {}
