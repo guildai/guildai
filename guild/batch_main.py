@@ -28,8 +28,11 @@ def main():
 
 def _batch_trials(batch_run):
     all_trials = batch_util.expanded_batch_trials(batch_run)
+    max_trials = batch_run.get("max_trials")
+    if max_trials is None:
+        return all_trials
     return batch_util.sample_trials(
-        all_trials, batch_run.get("max_trials"), batch_run.get("random_seed")
+        all_trials, max_trials, batch_run.get("random_seed")
     )
 
 

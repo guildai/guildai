@@ -1,5 +1,7 @@
 op:
   main: guild.pass
+  flags:
+    x: null
   optimizers: [opt-1, opt-2]
 
 opt-1:

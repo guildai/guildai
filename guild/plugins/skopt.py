@@ -21,12 +21,17 @@ from guild import flag_util
 from guild import model_proxy
 from guild import plugin as pluginlib
 
+
 ###################################################################
 # Random optimizer
 ###################################################################
 
 
-class RandomOptimizerModelProxy(model_proxy.BatchModelProxy):
+class ProxyBase(model_proxy.BatchModelProxy):
+    default_max_trials = 20
+
+
+class RandomOptimizerModelProxy(ProxyBase):
 
     name = "skopt"
     op_name = "random"
@@ -40,7 +45,7 @@ class RandomOptimizerModelProxy(model_proxy.BatchModelProxy):
 ###################################################################
 
 
-class GPOptimizerModelProxy(model_proxy.BatchModelProxy):
+class GPOptimizerModelProxy(ProxyBase):
 
     name = "skopt"
     op_name = "gp"
@@ -56,6 +61,7 @@ class GPOptimizerModelProxy(model_proxy.BatchModelProxy):
 
     module_name = "guild.plugins.skopt_gp_main"
     flag_encoder = "guild.plugins.skopt:encode_flag_for_optimizer"
+    default_max_trials = 20
 
     flags_data = yaml.safe_load(
         """
@@ -104,7 +110,7 @@ noise:
 ###################################################################
 
 
-class ForestOptimizerModelProxy(model_proxy.BatchModelProxy):
+class ForestOptimizerModelProxy(ProxyBase):
 
     name = "skopt"
     op_name = "forest"
@@ -144,7 +150,7 @@ xi:
 ###################################################################
 
 
-class GBRTOptimizerModelProxy(model_proxy.BatchModelProxy):
+class GBRTOptimizerModelProxy(ProxyBase):
 
     name = "skopt"
     op_name = "gbrt"

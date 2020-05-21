@@ -82,17 +82,34 @@ They provide the value as via a `default_max_trials` attribute.
     >>> random_opdef.default_max_trials
     20
 
-And the default batch (grid) optimizer.
+The default batch (grid) optimizer is None. This means that there is
+no limit - the total generated trials list is used without sampling.
 
     >>> batch_opdef = op_util.opdef_for_opspec("+")
-    >>> batch_opdef.default_max_trials
+    >>> print(batch_opdef.default_max_trials)
+    None
+
+Other optimizers:
+
+    >>> op_util.opdef_for_opspec("gp").default_max_trials
     20
 
-And the Gaussian Process Bayesian optimizer.
-
-    >>> gp_opdef = op_util.opdef_for_opspec("gp")
-    >>> gp_opdef.default_max_trials
+    >>> op_util.opdef_for_opspec("forest").default_max_trials
     20
+
+    >>> op_util.opdef_for_opspec("gbrt").default_max_trials
+    20
+
+## Max trials and default batch ops
+
+Default batch ops generate as many trials as needed based on flag
+values.
+
+    >>> project.run("op", flags={"x": "range[1:30]"})
+    INFO: [guild] Running trial ...: op (x=1)
+    INFO: [guild] Running trial ...: op (x=2)
+    ...
+    INFO: [guild] Running trial ...: op (x=30)
 
 ## Warnings
 
