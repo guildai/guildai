@@ -1,0 +1,12 @@
+#!/bin/bash -e
+
+url=$1
+if [ -z "$url" ]; then
+    echo "usage: get-s3-file <s3 url>"
+    exit 1
+fi
+
+aws s3 cp "$url" .
+
+echo "Unpacking $(basename $url)"
+tar xvf * | sed 's/^/  /'

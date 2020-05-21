@@ -1,0 +1,19 @@
+raw-data:
+  description: Download raw data for processing
+  exec: .guild/sourcecode/get-s3-file s3://${bucket}/${path}
+  flags:
+    path:
+      description: Path of raw data file to download
+      default: titanic.tar.gz
+      required: yes
+    bucket:
+      description: Bucket containing raw data file
+      default: guild-pub
+      required: yes
+
+process:
+  description: Process raw data (requires 'raw-data' run)
+  main: process --input-dir raw --output-dir processed
+  requires:
+    - operation: raw-data
+      path: raw

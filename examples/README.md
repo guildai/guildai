@@ -24,6 +24,8 @@
   project source code used for an operation
 - [required-operation](required-operation/README.md) - Use of
   dependencies to chain operations
+- [s3-resource](s3-resource/README.md) - Simple method of using S3
+  resources in operations
 - [scalars](scalars/README.md) - Ways to log scalar values
 - [tensorboard](tensorboard/README.md) - TensorBoard integration
   examples
