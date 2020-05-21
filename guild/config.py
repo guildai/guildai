@@ -17,6 +17,7 @@ from __future__ import division
 
 import logging
 import os
+import sys
 import threading
 
 # Avoid expensive imports - config is used by commands.main and any

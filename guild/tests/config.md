@@ -98,3 +98,104 @@ The class `config._Config` can be used to read config data.
                             'instance-type': 'p3.16xlarge',
                             'region': 'us-east-2',
                             'type': 'ec2'}}}
+
+## Python Executable
+
+When running a Python program on behalf of a user (as opposed to
+running a Python program to implement an internal Guild task, usually
+to provide process isolation), the Python interpreter is provide by
+`config.python_exe()`.
+
+The logic used to select the appropriate Python interpreter is as
+follows:
+
+- Use `GUILD_PYTHON_EXE` env var if available
+- Use `CONDA_PYTHON_EXE` env var if available
+- Use `bin/python` under `VIRTUAL_ENV` if exists
+- Use value returned by `which python` (emulates /usr/bin/env python)
+- Use `sys.interpreter`
+
+To test the complete logic, we need to replace `util.which` with a
+function that always returns None.
+
+    >>> from guild import util
+    >>> which_save = util.which
+    >>> util.which = lambda _: None
+
+    >>> with Env({}, replace=True):
+    ...     exe = config.python_exe()
+
+Without any environment and with `util.which` returning None, the
+Python exe is the same as `sys.exectuable`.
+
+    >>> exe == sys.executable, (exe, sys.executable)
+    (True, ...)
+
+Next, we use a function for `guild.which` that returns a marker.
+
+    >>> marker = object()
+    >>> util.which = lambda _: marker
+
+    >>> with Env({}, replace=True):
+    ...     exe = config.python_exe()
+
+    >>> exe is marker, exe
+    (True, ...)
+
+If `VIRTUAL_ENV` is defined in the environment, `bin/python` in that
+directory is returned, provided it exists. Otherwise, `which python`
+is returned.
+
+    >>> venv_dir = mkdtemp()
+
+    >>> with Env({"VIRTUAL_ENV": venv_dir}, replace=True):
+    ...     exe = config.python_exe()
+
+In this case, `bin/python` doesn't exist in the environment, so the
+exe is our marker.
+
+    >>> exe is marker, exe
+    (True, ...)
+
+Let's create `bin/python` in the env.
+
+    >>> mkdir(path(venv_dir, "bin"))
+    >>> venv_python_exe = path(venv_dir, "bin", "python")
+    >>> touch(venv_python_exe)
+
+    >>> with Env({"VIRTUAL_ENV": venv_dir}, replace=True):
+    ...     exe = config.python_exe()
+
+This time, the Python exe is the venv exe.
+
+    >>> exe == venv_python_exe, (exe, venv_python_exe)
+    (True, ...)
+
+If `CONDA_PYTHON_EXE` is defined in the environment, it is always
+provided, even if the exe doesn't exist.
+
+    >>> conda_python_exe = path(venv_dir, "conda-exe")
+
+    >>> with Env({"CONDA_PYTHON_EXE": conda_python_exe,
+    ...           "VIRTUAL_ENV": venv_dir}, replace=True):
+    ...     exe = config.python_exe()
+
+    >>> exe == conda_python_exe, (exe, conda_python_exe)
+    (True, ...)
+
+Finally, if `GUILD_PYTHON_EXE` is defined, it is always used,
+regardless of other environment variables.
+
+    >>> guild_python_exe = path(venv_dir, "guild-exe")
+
+    >>> with Env({"GUILD_PYTHON_EXE": guild_python_exe,
+    ...           "CONDA_PYTHON_EXE": conda_python_exe,
+    ...           "VIRTUAL_ENV": venv_dir}, replace=True):
+    ...     exe = config.python_exe()
+
+    >>> exe == guild_python_exe, (exe, guild_python_exe)
+    (True, ...)
+
+Restore `util.which`:
+
+    >>> util.which = which_save
