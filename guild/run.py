@@ -206,14 +206,11 @@ class Run(object):
 
     def write_attr(self, name, val, raw=False):
         if not raw:
-            val = self._encode_attr_val(val)
+            val = util.encode_yaml(val)
         with open(self._attr_path(name), "w") as f:
             f.write(val)
+            f.write(os.linesep)
             f.close()
-
-    @staticmethod
-    def _encode_attr_val(val):
-        return util.encode_yaml(val)
 
     def del_attr(self, name):
         try:

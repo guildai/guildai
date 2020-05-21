@@ -468,7 +468,7 @@ def _fmt_arg(arg):
 
 
 def _assigns_flag_data_desc(data, indent=2):
-    desc = yaml.safe_dump(data).strip()
+    desc = util.encode_yaml(data)
     return _indent(desc, indent)
 
 

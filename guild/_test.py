@@ -351,6 +351,7 @@ def test_globals():
         "mkdir": os.mkdir,
         "mkdtemp": mkdtemp,
         "mktemp_guild_dir": mktemp_guild_dir,
+        "normlf": _normlf,
         "not_used": object(),  # an uncooperative value
         "os": os,
         "path": os.path.join,
@@ -771,11 +772,26 @@ class UserConfig(object):
 
 
 class Env(object):
-    def __init__(self, vals):
+    def __init__(self, vals, replace=False):
         self._vals = vals
+        self._replace = replace
         self._revert_ops = []
+        self._save_env = None
 
     def __enter__(self):
+        if self._replace:
+            self._replace_env()
+        else:
+            self._merge_env()
+
+
+    def _replace_env(self):
+        self._save_env = dict(os.environ)
+        os.environ.clear()
+        os.environ.update(self._vals)
+
+
+    def _merge_env(self):
         env = os.environ
         for name, val in self._vals.items():
             try:
@@ -804,6 +820,18 @@ class Env(object):
         return f
 
     def __exit__(self, *exc):
+        if self._replace:
+            self._restore_env()
+        else:
+            self._unmerge_env()
+
+
+    def _restore_env(self):
+        assert self._save_env is not None
+        os.environ.clear()
+        os.environ.update(self._save_env)
+
+    def _unmerge_env(self):
         for op in self._revert_ops:
             op()
 
@@ -839,3 +867,7 @@ def _strip_error_module(last_line):
 
 def _strip_class_module(class_name):
     return class_name[class_name.rfind(".") + 1 :]
+
+
+def _normlf(s):
+    return s.replace("\r", "")

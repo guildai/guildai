@@ -18,9 +18,9 @@ from __future__ import division
 import logging
 import os
 import re
-import yaml
 
 import six
+import yaml
 
 from guild import util
 
@@ -46,7 +46,7 @@ def encode_flag_val(val):
     elif isinstance(val, list):
         return _encode_list(val)
     elif isinstance(val, float):
-        return _yaml_encode(val)
+        return util.encode_yaml(val)
     elif isinstance(val, six.string_types):
         return _encode_str(val)
     elif isinstance(val, dict):
@@ -60,18 +60,8 @@ def _encode_list(val_list):
     return "[%s]" % joined
 
 
-def _yaml_encode(val):
-    return _strip_yaml(yaml.safe_dump(val).strip())
-
-
-def _strip_yaml(s):
-    if s.endswith("\n..."):
-        return s[:-4]
-    return s
-
-
 def _encode_str(s):
-    return _quote_float(_yaml_encode(s))
+    return _quote_float(util.encode_yaml(s))
 
 
 def _encode_dict(d):
@@ -105,7 +95,10 @@ def _decode_flag_val(s, nofix=False):
         (int, ValueError),
         (_special_flag_function, ValueError),
         (_concatenated_list, ValueError),
-        (yaml.safe_load if nofix else _yaml_parse, (ValueError, yaml.YAMLError)),
+        (
+            util.decode_yaml if nofix else _decode_yaml_with_fix,
+            (ValueError, yaml.YAMLError),
+        ),
     ]
     for f, e_type in decoders:
         try:
@@ -267,10 +260,11 @@ def _concatenated_list(s):
     return s
 
 
-def _yaml_parse(s):
+def _decode_yaml_with_fix(s):
+    """Skips yaml decode if s looks like a run ID."""
     if _is_scientific_notation_run_id(s):
         return s
-    return yaml.safe_load(s)
+    return util.decode_yaml(s)
 
 
 def _is_scientific_notation_run_id(s):
@@ -404,31 +398,3 @@ def _maybe_truncate_dec_part(part, trunc_len):
     if len(part) <= trunc_len:  # lte to include leading '.'
         return part
     return part[: trunc_len + 1]
-
-
-def _patch_yaml_safe_loader():
-    """Patch yaml parsing to support Guild specific resolution rules.
-
-    - Support scientific notation that does not contain periods
-    - Special treatment for short form run IDs that are valid
-      scientific notation
-
-    """
-    loader = yaml.SafeLoader
-    loader.add_implicit_resolver(
-        u'tag:yaml.org,2002:float',
-        re.compile(
-            u'''^(?:
-        [-+]?(?:[0-9][0-9_]*)\\.[0-9_]*(?:[eE][-+]?[0-9]+)?
-        |[-+]?(?:[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)
-        |\\.[0-9_]+(?:[eE][-+][0-9]+)?
-        |[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\\.[0-9_]*
-        |[-+]?\\.(?:inf|Inf|INF)
-        |\\.(?:nan|NaN|NAN))$''',
-            re.X,
-        ),
-        list(u'-+0123456789.'),
-    )
-
-
-_patch_yaml_safe_loader()
