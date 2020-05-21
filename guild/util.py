@@ -949,8 +949,9 @@ def del_env(names):
 
 def python_interpreters():
     import glob
+    from guild import config
 
-    bin_dir = os.path.dirname(sys.executable)
+    bin_dir = os.path.dirname(config.python_exe())
     ret = []
     for path in glob.glob(os.path.join(bin_dir, "python*")):
         m = re.match(r"python([0-9\.]+)$", os.path.basename(path))

@@ -237,6 +237,46 @@ def user_config_path():
         return os.path.join(os.path.expanduser("~"), ".guild", "config.yml")
 
 
+def python_exe():
+    return _find_apply(
+        [
+            _guild_python_exe,
+            _conda_python_exe,
+            _virtualenv_python_exe,
+            _which_python,
+            _sys_executable,
+        ]
+    )
+
+
+def _guild_python_exe():
+    return os.getenv("GUILD_PYTHON_EXE")
+
+
+def _conda_python_exe():
+    return os.getenv("CONDA_PYTHON_EXE")
+
+
+def _virtualenv_python_exe():
+    try:
+        env_path = os.environ["VIRTUAL_ENV"]
+    except KeyError:
+        return None
+    else:
+        maybe_python_exe = os.path.join(env_path, "bin", "python")
+        return maybe_python_exe if os.path.exists(maybe_python_exe) else None
+
+
+def _which_python():
+    from guild import util
+
+    return util.which("python")
+
+
+def _sys_executable():
+    return sys.executable
+
+
 def _find_apply(funs, *args):
     # Move util.find_apply here to defer import of util - see note
     # above about imports.

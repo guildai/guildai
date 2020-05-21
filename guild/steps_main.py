@@ -26,6 +26,7 @@ import six
 
 import guild.log
 
+from guild import config
 from guild import exit_code
 from guild import flag_util
 from guild import op_util
@@ -332,7 +333,7 @@ def _init_step_run(parent_run):
 
 def _init_step_cmd(step, step_run_dir, parent_run):
     base_args = [
-        sys.executable,
+        config.python_exe(),
         "-um",
         "guild.main_bootstrap",
         "run",
@@ -416,7 +417,7 @@ def _format_step_cmd(cmd):
     # Show only opspec onward - assert front matter to catch changes
     # to cmd.
     assert cmd[0:7] == [
-        sys.executable,
+        config.python_exe(),
         "-um",
         "guild.main_bootstrap",
         "run",

@@ -572,7 +572,7 @@ def _op_cmd_resolve_params(flag_vals, python_requires):
 
 def _proc_python_exe(python_requires):
     if not python_requires:
-        return sys.executable
+        return config.python_exe()
     matching = util.find_python_interpreter(python_requires)
     if not matching:
         _op_cmd_error(
