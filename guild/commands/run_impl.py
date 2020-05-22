@@ -107,9 +107,12 @@ class Operation(oplib.Operation):
 
 def _state_for_args(args):
     S = State(args)
-    _state_init_restart_or_proto_run(S)
-    _state_init_user_op(S)
-    _state_init_batch_op(S)
+    if S.args.help_op:
+        _op_init_opdef(S.args.opspec, S.user_op)
+    else:
+        _state_init_restart_or_proto_run(S)
+        _state_init_user_op(S)
+        _state_init_batch_op(S)
     return S
 
 

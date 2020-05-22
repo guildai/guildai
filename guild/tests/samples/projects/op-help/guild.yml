@@ -1,0 +1,33 @@
+op:
+  description: >
+    Sample operation
+
+    Another line of op description.
+
+  main: guild.pass
+
+  flags:
+    s:
+      description: a string
+      required: yes
+
+    i:
+      description: an int
+      default: 123
+      type: int
+
+    c1:
+      description: color choices
+      default: blue
+      choices:
+        - red
+        - blue
+        - green
+
+    c2:
+      description: number choices
+      choices:
+        - value: 1
+          description: 2 minus 1
+        - value: 2
+          description: 1 plus 1

@@ -46,6 +46,7 @@ tests).
       guild-home:                  ok
       guildfiles:                  ok
       help:                        ok
+      help-op:                     ok
       hparam-summaries:            ok
       image-summaries:             ok
       import-flags:                ok
