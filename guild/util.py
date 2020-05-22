@@ -1552,5 +1552,5 @@ def patch_yaml_resolver():
     )
 
 
-if os.getenv("SKIP_PATCH_YAML") != "1":
+if os.getenv("NO_PATCH_YAML") != "1":
     patch_yaml_resolver()
