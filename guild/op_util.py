@@ -1343,7 +1343,11 @@ def _apply_choices_flag_vals(flagdefs, user_vals, target_vals):
         if flag_val is None:
             continue
         for choice in flagdef.choices:
-            if choice.flags and choice.value == flag_val:
+            if choice.value != flag_val:
+                continue
+            if choice.arg_value is not None:
+                target_vals[flagdef.name] = choice.arg_value
+            if choice.flags:
                 _apply_choice_flags(choice.flags, user_vals, target_vals)
 
 

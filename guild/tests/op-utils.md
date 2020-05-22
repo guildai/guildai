@@ -751,24 +751,63 @@ Opdef with valid default choice:
     ... op:
     ...   main: guild.pass
     ...   flags:
+    ...     s: hi
+    ...     i: 123
     ...     choice:
     ...       default: a
-    ...       choices: [a, b, c]
+    ...       choices:
+    ...        - a
+    ...        - b
+    ...        - value: c
+    ...          arg-value: see
+    ...        - value: d
+    ...          flags:
+    ...            s: hola
+    ...            i: 456
+    ...        - value: e
+    ...          arg-value: eee
+    ...          flags:
+    ...            s: ya
+    ...            i: 789
     ... """)
 
     >>> opdef = gf.default_model["op"]
 
+Default:
+
     >>> flag_vals(opdef, {})
-    {'choice': 'a'}
+    {'choice': 'a', 'i': 123, 's': 'hi'}
+
+Explicit choice:
+
+    >>> flag_vals(opdef, {"choice": "b"})
+    {'choice': 'b', 'i': 123, 's': 'hi'}
+
+Choice with an alternative arg value:
+
+    >>> flag_vals(opdef, {"choice": "c"})
+    {'choice': 'see', 'i': 123, 's': 'hi'}
+
+Choice that defines other flag values:
+
+    >>> flag_vals(opdef, {"choice": "d"})
+    {'choice': 'd', 'i': 456, 's': 'hola'}
+
+Choice with both an alternative arg value and other flag values:
+
+    >>> flag_vals(opdef, {"choice": "e"})
+    {'choice': 'eee', 'i': 789, 's': 'ya'}
 
 Invalid choice, no force:
 
-    >>> flag_vals(opdef, {"choice": "d"})
+    >>> flag_vals(opdef, {"choice": "z"})
     Traceback (most recent call last):
-    InvalidFlagChoice: ('d', <guild.guildfile.FlagDef 'choice'>)
+    InvalidFlagChoice: ('z', <guild.guildfile.FlagDef 'choice'>)
 
-    >>> flag_vals(opdef, {"choice": "d"}, force=True)
-    {'choice': 'd'}
+Invalid choice, withforce:
+
+    >>> flag_vals(opdef, {"choice": "z"}, force=True)
+    {'choice': 'z', 'i': 123, 's': 'hi'}
 
 ### Defaults
 
