@@ -758,14 +758,14 @@ Opdef with valid default choice:
     ...       choices:
     ...        - a
     ...        - b
-    ...        - value: c
-    ...          arg-value: see
+    ...        - value: see
+    ...          alias: c
     ...        - value: d
     ...          flags:
     ...            s: hola
     ...            i: 456
-    ...        - value: e
-    ...          arg-value: eee
+    ...        - value: eee
+    ...          alias: e
     ...          flags:
     ...            s: ya
     ...            i: 789
@@ -783,9 +783,12 @@ Explicit choice:
     >>> flag_vals(opdef, {"choice": "b"})
     {'choice': 'b', 'i': 123, 's': 'hi'}
 
-Choice with an alternative arg value:
+Choice with alias:
 
     >>> flag_vals(opdef, {"choice": "c"})
+    {'choice': 'see', 'i': 123, 's': 'hi'}
+
+    >>> flag_vals(opdef, {"choice": "see"})
     {'choice': 'see', 'i': 123, 's': 'hi'}
 
 Choice that defines other flag values:
@@ -793,10 +796,13 @@ Choice that defines other flag values:
     >>> flag_vals(opdef, {"choice": "d"})
     {'choice': 'd', 'i': 456, 's': 'hola'}
 
-Choice with both an alternative arg value and other flag values:
+Choice with both alias and other flag values:
 
     >>> flag_vals(opdef, {"choice": "e"})
     {'choice': 'eee', 'i': 789, 's': 'ya'}
+
+    >>> flag_vals(opdef, {"choice": "eee"})
+    {'choice': 'eee', 'i': 123, 's': 'hi'}
 
 Invalid choice, no force:
 

@@ -1182,7 +1182,7 @@ def flag_vals_for_opdef(opdef, user_flag_vals=None, force=False):
         _check_no_such_flags(flag_vals, all_flagdefs)
         _check_flag_vals(flag_vals, all_flagdefs)
         _check_required_flags(flag_vals, all_flagdefs)
-    _apply_choices_flag_vals(opdef.flags, user_flag_vals, flag_vals)
+    _apply_choice_vals(opdef.flags, user_flag_vals, flag_vals)
     return flag_vals, resource_flagdefs
 
 
@@ -1321,13 +1321,14 @@ def _check_flag_val(val, flag):
 
 
 def _check_flag_choice(val, flag):
-    if (
-        val
-        and flag.choices
-        and not flag.allow_other
-        and val not in [choice.value for choice in flag.choices]
-    ):
-        raise InvalidFlagChoice(val, flag)
+    if not val or flag.allow_other or not flag.choices:
+        return
+    for choice in flag.choices:
+        if choice.alias and val == choice.alias:
+            return
+        if choice.value == val:
+            return
+    raise InvalidFlagChoice(val, flag)
 
 
 def _check_flag_type(val, flag):
@@ -1347,7 +1348,7 @@ def _check_flag_range(val, flag):
         )
 
 
-def _apply_choices_flag_vals(flagdefs, user_vals, target_vals):
+def _apply_choice_vals(flagdefs, user_vals, target_vals):
     for flagdef in flagdefs:
         if not flagdef.choices:
             continue
@@ -1355,10 +1356,10 @@ def _apply_choices_flag_vals(flagdefs, user_vals, target_vals):
         if flag_val is None:
             continue
         for choice in flagdef.choices:
-            if choice.value != flag_val:
+            if (choice.alias or choice.value) != flag_val:
                 continue
-            if choice.arg_value is not None:
-                target_vals[flagdef.name] = choice.arg_value
+            if choice.alias:
+                target_vals[flagdef.name] = choice.value
             if choice.flags:
                 _apply_choice_flags(choice.flags, user_vals, target_vals)
 

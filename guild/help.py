@@ -446,7 +446,7 @@ def _format_flag_choices_dl(choices, out):
     out.write_dl(
         [
             (
-                flag_util.encode_flag_val(choice.value),
+                flag_util.encode_flag_val(choice.alias or choice.value),
                 "\n\n".join(choice.description.split("\n")),
             )
             for choice in choices
@@ -457,7 +457,7 @@ def _format_flag_choices_dl(choices, out):
 
 
 def _format_flag_choices_value_list(choices, out):
-    vals = [c.value for c in choices]
+    vals = [c.alias or c.value for c in choices]
     fmt_vals = flag_util.encode_flag_val(vals)
     out.write_dl([("Choices:", _strip_list_brackets(fmt_vals))])
 

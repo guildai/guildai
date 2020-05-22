@@ -31,3 +31,13 @@ op:
           description: 2 minus 1
         - value: 2
           description: 1 plus 1
+
+    c3:
+      description: aliases choices
+      choices:
+        - value: aaa
+          alias: a
+          description: option a
+        - value: bbb
+          alias: b
+          description: option b

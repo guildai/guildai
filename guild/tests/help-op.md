@@ -28,6 +28,12 @@ Use `help_op` to print help for the operation rather than run it:
             1  2 minus 1
             2  1 plus 1
     <BLANKLINE>
+      c3  aliases choices
+    <BLANKLINE>
+          Choices:
+            a  option a
+            b  option b
+    <BLANKLINE>
       i   an int (default is 123)
       s   a string (required)
 
@@ -55,3 +61,8 @@ When `--help-op` is not specified, normal validation applies.
     <BLANKLINE>
     Run the command again with these flags specified as NAME=VAL.
     <exit 1>
+
+The op args:
+
+    >>> project.run("op", flags={"s": "hi", "c3": "a"}, print_cmd=True)
+    ??? -um guild.op_main guild.pass -- --c1 blue --c3 aaa --i 123 --s hi

@@ -1189,12 +1189,12 @@ class FlagChoice(object):
             self.value = _required("value", data, flagdef.opdef.guildfile)
             self.description = data.get("description") or ""
             self.flags = data.get("flags") or {}
-            self.arg_value = data.get("arg-value")
+            self.alias = data.get("alias")
         else:
             self.value = data
             self.description = ""
             self.flags = {}
-            self.arg_value = None
+            self.alias = None
 
     def __repr__(self):
         return "<guild.guildfile.FlagChoice %r>" % self.value
