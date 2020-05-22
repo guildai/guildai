@@ -569,7 +569,7 @@ def which(cmd):
     which_cmd = "where" if PLATFORM == "Windows" else "which"
     devnull = open(os.devnull, "w")
     try:
-        out = subprocess.check_output([which_cmd, cmd], env={}, stderr=devnull)
+        out = subprocess.check_output([which_cmd, cmd], stderr=devnull)
     except subprocess.CalledProcessError:
         return None
     else:
