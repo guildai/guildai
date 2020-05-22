@@ -245,8 +245,10 @@ def _op_wait_for_proc(op, proc, run, quiet, stop_after):
 
 
 def _op_watch_proc(op, proc, run, quiet, stop_after):
-    output_summary = _output_summary_for_run(run, op)
-    with _RunOutput(run, proc, quiet, output_summary):
+    if os.getenv("NO_RUN_OUTPUT") != "1":
+        output_summary = _output_summary_for_run(run, op)
+        return _proc_wait_with_run_output(proc, run, quiet, output_summary, stop_after)
+    else:
         return _proc_wait(proc, stop_after)
 
 
@@ -256,20 +258,27 @@ def _output_summary_for_run(run, op):
     return op.callbacks.init_output_summary(op, run)
 
 
+def _proc_wait_with_run_output(proc, run, quiet, output_summary, stop_after):
+    with _RunOutput(run, proc, quiet, output_summary):
+        return _proc_wait(proc, stop_after)
+
+
 class _RunOutput(object):
-    def __init__(self, run, *args):
+    def __init__(self, run, proc, quiet, output_summary):
         self._output = None
         self._run = run
-        self._rest_init_args = args
+        self._proc = proc
+        self._quiet = quiet
+        self._output_summary = output_summary
 
     def __enter__(self):
-        if os.getenv("NO_RUN_OUTPUT") != "1":
-            self._output = op_util.RunOutput(self._run, *self._rest_init_args)
+        self._output = op_util.RunOutput(self._run, self._quiet, self._output_summary)
+        self._output.open(self._proc)
 
     def __exit__(self, *_exc):
-        if self._output:
-            self._output.wait_and_close()
-            self._output = None
+        assert self._output
+        self._output.wait_and_close()
+        self._output = None
 
 
 def _proc_wait(proc, stop_after):

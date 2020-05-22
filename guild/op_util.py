@@ -200,7 +200,12 @@ class RunOutput(object):
 
     DEFAULT_WAIT_TIMEOUT = 10
 
-    def __init__(self, run, proc=None, quiet=False, output_cb=None):
+    def __init__(self, run, quiet=False, output_cb=None):
+        """Creates a run output object.
+
+        Run output is not automatically opened. Use `open(proc)` to
+        open output for a process.
+        """
         assert run
         self._run = run
         self._quiet = quiet
@@ -212,14 +217,21 @@ class RunOutput(object):
         self._index = None
         self._out_tee = None
         self._err_tee = None
-        if proc:
-            self.open(proc)
 
     @property
     def closed(self):
         return not self._open
 
     def open(self, proc):
+        """Opens output.
+
+        When open, threads are started for reading from proc.stdout
+        and proc.stderr and writing to sys.stdout and sys.stderr
+        respectively.
+
+        Generates an error if run output is closed.
+
+        """
         self._assert_closed()
         if proc.stdout is None:
             raise RuntimeError("proc stdout must be a PIPE")
@@ -288,7 +300,7 @@ class RunOutput(object):
                     line.append(b)
                     if b == LF:
                         line_bytes = BYTES_JOIN(line)
-                        line = []
+                        del line[:]
                         entry = struct.pack("!QB", int(time_() * 1000), stream_type)
                         os_write(index_fileno, entry)
                         if self._output_cb:

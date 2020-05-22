@@ -98,4 +98,3 @@ Callbacks during run:
     >>> with Env({"NO_RUN_OUTPUT": "1"}):
     ...     run, exit_code = oplib.run(op)
     <run initialized>
-    <initializing output summaries>
