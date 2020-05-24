@@ -199,7 +199,7 @@ be obtained for a source via a resource def using
 To illustrate, we'll use a sample project that defines various
 resources.
 
-    >>> gf = guildfile.for_dir(sample("projects/resources"))
+    >>> gf = guildfile.for_dir(sample("projects", "resources"))
     >>> res_model = gf.models["resources"]
 
 Here are the model resources:
@@ -209,6 +209,8 @@ Here are the model resources:
      <guild.guildfile.ResourceDef 'test2'>,
      <guild.guildfile.ResourceDef 'test3'>,
      <guild.guildfile.ResourceDef 'test4'>]
+
+### test resource
 
 The test resource has the following sources:
 
@@ -222,7 +224,10 @@ The test resource has the following sources:
      <guild.resourcedef.ResourceSource 'file:files'>,
      <guild.resourcedef.ResourceSource 'file:files'>,
      <guild.resourcedef.ResourceSource 'file:doesnt-exist'>,
-     <guild.resourcedef.ResourceSource 'file:test.txt'>]
+     <guild.resourcedef.ResourceSource 'file:test.txt'>,
+     <guild.resourcedef.ResourceSource 'file:foo'>,
+     <guild.resourcedef.ResourceSource 'file:foo.zip'>,
+     <guild.resourcedef.ResourceSource 'file:foo.zip'>]
 
 In the tests below, we'll use a resolver to resolve each source.
 
@@ -237,15 +242,28 @@ Let's create a resource for our resolvers. The resource requires a
 resource def, a location, which is the sample project directory, and a
 context.
 
-    >>> test_location = sample("projects/resources")
-    >>> test_ctx = deps.ResolutionContext(
-    ...   target_dir=None,
-    ...   opdef=None,
-    ...   resource_config={})
+Helper to resolve a source:
 
-    >>> test_res = deps.Resource(test_resdef, test_location, test_ctx)
+    >>> def resolve(source, context_run=None):
+    ...     target_dir = context_run.dir if context_run else mkdtemp()
+    ...     ctx = deps.ResolutionContext(
+    ...         target_dir=target_dir,
+    ...         opdef=None,
+    ...         resource_config={})
+    ...     project_dir = sample("projects", "resources")
+    ...     res = deps.Resource(source.resdef, project_dir, ctx)
+    ...     resolve_context = ResolveContext(context_run)
+    ...     resolved = res.resolve_source(source, resolve_context)
+    ...     for i, val in enumerate(resolved):
+    ...         resolved[i] = val.replace(resolve_context.unpack_dir, "<unpack-dir>") \
+    ...                          .replace(project_dir, "<project-dir>")
+    ...         if context_run:
+    ...             resolved[i] = resolved[i].replace(context_run.dir, "<run-dir>")
+    ...     staged = findl(target_dir)
+    ...     unpacked = findl(resolve_context.unpack_dir)
+    ...     pprint({"resolved": resolved, "staged": staged, "unpacked": unpacked})
 
-### Zip source file
+#### Zip source file
 
     >>> zip_source = test_resdef.sources[0]
     >>> zip_source.uri
@@ -267,32 +285,33 @@ invalid hash.
     >>> zip_source.select
     [SelectSpec(pattern='a.txt', reduce=None)]
 
-    >>> resolver = get_resolver(zip_source, test_res)
-    >>> resolve_context = ResolveContext()
-    >>> log = LogCapture()
-    >>> with log:
-    ...   resolver.resolve(resolve_context)
-    ['/.../a.txt']
+    >>> with LogCapture() as log:
+    ...     resolve(zip_source)
+    {'resolved': ['<unpack-dir>/a.txt'],
+     'staged': ['a.txt'],
+     'unpacked': ['.guild-cache-archive1.zip.unpacked', 'a.txt', 'b.txt']}
 
     >>> log.print_all()
     Unpacking .../samples/projects/resources/archive1.zip
 
-    >>> dir(resolve_context.unpack_dir)
-    ['.guild-cache-archive1.zip.unpacked', 'a.txt', 'b.txt']
+`.guild-cache-<filename>.unpacked` is used by Guild to avoid
+re-scanning the archive `FILE` for members. For large archives, this
+saves a lot of time.
 
-`.guild-cache-FILE.unpacked` is used by Guild to avoid re-scanning the
-archive `FILE` for members. For large archives, this saves a lot of
-time.
+Note that `b.txt` is also unpacked. This is by design - a resource is
+always fully unpacked when resolved. Resolved files are selected from
+the unpacked location..
 
-Note that `b.txt` was also extracted into the temp directory. This is
-by design - a resource is always fully unpacked when resolved. Files
-are selected by way of the source files returned by `resolve`.
+#### Tar source file
 
-### Tar source file
+The source in this example unpacks and selects all of the files in
+`archive2.tar`.
 
     >>> tar_source = test_resdef.sources[1]
     >>> tar_source.uri
     'file:archive2.tar'
+
+By default, archives are unpacked.
 
     >>> tar_source.unpack
     True
@@ -300,29 +319,35 @@ are selected by way of the source files returned by `resolve`.
     >>> print(tar_source.sha256)
     None
 
+An empty select spec implies 'select everything'.
+
     >>> print(tar_source.select)
     []
 
-    >>> resolver = get_resolver(tar_source, test_res)
-    >>> resolve_context = ResolveContext()
-    >>> log = LogCapture()
-    >>> with log:
-    ...   sorted(resolver.resolve(resolve_context))
-    ['/.../c.txt', '/.../d.txt']
+    >>> with LogCapture() as log:
+    ...     resolve(tar_source)
+    {'resolved': ['<unpack-dir>/a.txt', '<unpack-dir>/b.txt', '<unpack-dir>/ccc'],
+     'staged': ['a.txt', 'b.txt', 'ccc'],
+     'unpacked': ['.guild-cache-archive2.tar.unpacked',
+                  'a.txt',
+                  'b.txt',
+                  'ccc/c.txt',
+                  'ccc/ddd/d.txt']}
 
     >>> log.print_all()
     Unpacking .../samples/projects/resources/archive2.tar
 
-    >>> dir(resolve_context.unpack_dir)
-    ['.guild-cache-archive2.tar.unpacked', 'c.txt', 'd.txt']
+#### No unpack archive
 
-### No unpack archive
+The source in this example is like the previous source but specifies
+`unpack` as false to ensure that the file is resolved as-is without
+unpacking. `unpack` is only needed for known archives.
 
     >>> nounpack_source = test_resdef.sources[2]
     >>> nounpack_source.uri
     'file:archive3.tar'
 
-This source should not be unpacked:
+`unpack` is False.
 
     >>> nounpack_source.unpack
     False
@@ -333,18 +358,18 @@ This source should not be unpacked:
     >>> print(nounpack_source.select)
     []
 
-    >>> resolver = get_resolver(nounpack_source, test_res)
-    >>> resolve_context = ResolveContext()
-    >>> resolver.resolve(resolve_context)
-    ['.../samples/projects/resources/archive3.tar']
-
-    >>> dir(resolve_context.unpack_dir)
-    []
+    >>> resolve(nounpack_source)
+    {'resolved': ['<project-dir>/archive3.tar'],
+     'staged': ['archive3.tar'],
+     'unpacked': []}
 
 Note the source file is a path directly to the archive and not an
 extracted file.
 
-### Plain source file
+#### Plain source file
+
+In this example, the source is a text file that can be checked using a
+sha.
 
     >>> plain_source = test_resdef.sources[3]
     >>> plain_source.uri
@@ -353,15 +378,15 @@ extracted file.
     >>> plain_source.sha256
     'f33ae3bc9a22cd7564990a794789954409977013966fb1a8f43c35776b833a95'
 
-    >>> resolver = get_resolver(plain_source, test_res)
-    >>> resolve_context = ResolveContext()
-    >>> resolver.resolve(resolve_context)
-    ['.../samples/projects/resources/test.txt']
+    >>> resolve(plain_source)
+    {'resolved': ['<project-dir>/test.txt'],
+     'staged': ['test.txt'],
+     'unpacked': []}
 
-    >>> dir(resolve_context.unpack_dir)
-    []
+#### Invalid source file
 
-### Invalid source file
+This example illustrates a resolution failure because a sha doesn't
+match.
 
     >>> invalid_source = test_resdef.sources[4]
     >>> invalid_source.uri
@@ -370,17 +395,13 @@ extracted file.
     >>> invalid_source.sha256
     'xxx'
 
-    >>> resolver = get_resolver(invalid_source, test_res)
-    >>> resolve_context = ResolveContext()
-    >>> resolver.resolve(resolve_context)
+    >>> resolve(invalid_source)
     Traceback (most recent call last):
-    ResolutionError: '.../samples/projects/resources/badhash.txt' has an unexpected
-    sha256 (expected xxx but got ...)
+    DependencyError: could not resolve 'file:badhash.txt' in test resource:
+    '.../samples/projects/resources/badhash.txt' has an unexpected sha256
+    (expected xxx but got ...)
 
-    >>> dir(resolve_context.unpack_dir)
-    []
-
-### Directory source file
+#### Directory source file
 
 When a file is a directory and it doesn't specify a `select`
 attribute, just the directory path is resolved:
@@ -388,36 +409,29 @@ attribute, just the directory path is resolved:
     >>> dir_source = test_resdef.sources[5]
     >>> dir_source.uri
     'file:files'
+
     >>> dir_source.select
     []
 
-    >>> resolver = get_resolver(dir_source, test_res)
-    >>> resolve_context = ResolveContext()
-    >>> sorted(resolver.resolve(resolve_context))
-    ['.../samples/projects/resources/files']
-
-    >>> dir(resolve_context.unpack_dir)
-    []
+    >>> resolve(dir_source)
+    {'resolved': ['<project-dir>/files'], 'staged': ['files'], 'unpacked': []}
 
 When a file is a directory and specifies a `select`, files that are
 selected from the directory are resolved:
 
-    >>> dir_source = test_resdef.sources[6]
-    >>> dir_source.uri
+    >>> dir_source_2 = test_resdef.sources[6]
+    >>> dir_source_2.uri
     'file:files'
-    >>> dir_source.select # doctest: -NORMALIZE_PATHS
+
+    >>> dir_source_2.select # doctest: -NORMALIZE_PATHS
     [SelectSpec(pattern='.+\\.txt', reduce=None)]
 
-    >>> resolver = get_resolver(dir_source, test_res)
-    >>> resolve_context = ResolveContext()
-    >>> sorted(resolver.resolve(resolve_context))
-    ['.../samples/projects/resources/files/e.txt',
-     '.../samples/projects/resources/files/f.txt']
+    >>> resolve(dir_source_2)
+    {'resolved': ['<project-dir>/files/e.txt', '<project-dir>/files/f.txt'],
+     'staged': ['e.txt', 'f.txt'],
+     'unpacked': []}
 
-    >>> dir(resolve_context.unpack_dir)
-    []
-
-### Non existing source file
+#### Non existing source file
 
 Non-existing files generate an error when resolved:
 
@@ -425,16 +439,12 @@ Non-existing files generate an error when resolved:
     >>> noexist_source.uri
     'file:doesnt-exist'
 
-    >>> resolver = get_resolver(noexist_source, test_res)
-    >>> resolve_context = ResolveContext()
-    >>> resolver.resolve(resolve_context)
+    >>> resolve(noexist_source)
     Traceback (most recent call last):
-    ResolutionError: cannot find source file doesnt-exist
+    DependencyError: could not resolve 'file:doesnt-exist' in test resource:
+    cannot find source file doesnt-exist
 
-    >>> dir(resolve_context.unpack_dir)
-    []
-
-### Renaming sources
+#### Renaming sources
 
 The `rename` attribute can be used to rename resolved sources.
 
@@ -451,15 +461,131 @@ Here's the rename spec for our source:
     >>> rename_source.rename # doctest: -NORMALIZE_PATHS
     [RenameSpec(pattern='(.+)\\.txt', repl='\\1.config')]
 
-Resolve doesn't apply renames - it just resolves the source locations.
+    >>> resolve(rename_source)
+    {'resolved': ['<project-dir>/test.txt'],
+     'staged': ['test.config'],
+     'unpacked': []}
 
-    >>> resolver = get_resolver(rename_source, test_res)
-    >>> resolve_context = ResolveContext()
-    >>> resolver.resolve(resolve_context)
-    ['.../samples/projects/resources/test.txt']
+#### Selecting from dirs
 
-    >>> dir(resolve_context.unpack_dir)
-    []
+If a directory is specified using a `file` source, the `select`
+attribute can specify paths within that directory to link to.
+
+    >>> dir_source_2 = test_resdef.sources[9]
+    >>> dir_source_2.uri
+    'file:foo'
+
+    >>> dir_source_2.select
+    [SelectSpec(pattern='bar', reduce=None),
+     SelectSpec(pattern='a.txt', reduce=None)]
+
+    >>> resolve(dir_source_2)
+    {'resolved': ['<project-dir>/foo/a.txt', '<project-dir>/foo/bar'],
+     'staged': ['a.txt', 'bar'],
+     'unpacked': []}
+
+#### Selecting from archive
+
+This example shows selecting a directory (really a prefix within the
+archive) from an archive.
+
+    >>> zip_source_2 = test_resdef.sources[10]
+    >>> zip_source_2.uri
+    'file:foo.zip'
+
+The pattern `foo/bar` specifies that the unpacked directory should be
+resolved.
+
+    >>> zip_source_2.select
+    [SelectSpec(pattern='foo/bar', reduce=None),
+     SelectSpec(pattern='foo/a.txt', reduce=None)]
+
+TODO: FIX
+
+    >> with LogCapture() as log:
+    ...     resolve(zip_source_2, test_resdef)
+    {'resolved': ['<unpack-dir>/foo/a.txt', '<unpack-dir>/foo/bar'],
+     'unpacked': ['.guild-cache-foo.zip.unpacked',
+                  'foo/a.txt',
+                  'foo/bar/a.txt',
+                  'foo/bar/b.txt']}
+
+    >> log.print_all()
+    Unpacking .../samples/projects/resources/foo.zip
+
+In this example, the same archive is used to select `*.txt` files
+from.
+
+    >>> zip_source_3 = test_resdef.sources[11]
+    >>> zip_source_3.uri
+    'file:foo.zip'
+
+    >>> zip_source_3.select
+    [SelectSpec(pattern='.+\\.txt', reduce=None)]
+
+TODO: FIX
+
+    >> with LogCapture() as log:
+    ...     resolve(zip_source_2, test_resdef)
+    {'resolved': ['<unpack-dir>/foo/a.txt',
+                  '<unpack-dir>/foo/bar/a.txt',
+                  '<unpack-dir>/foo/bar/b.txt'],
+     'unpacked': ['.guild-cache-foo.zip.unpacked',
+                  'foo/a.txt',
+                  'foo/bar/a.txt',
+                  'foo/bar/b.txt']}
+
+    >> log.print_all()
+    Unpacking .../samples/projects/resources/foo.zip
+
+### test2 resource
+
+The `test2` resource uses paths to save resolved sources under a
+directory.
+
+    >>> test2_resdef = res_model.get_resource("test2")
+    >>> test2_resdef.sources
+    [<guild.resourcedef.ResourceSource 'file:test.txt'>,
+     <guild.resourcedef.ResourceSource 'file:files/a.bin'>]
+
+The default path is defined at the resource level:
+
+    >>> test2_resdef.path
+    'foo'
+
+#### Resource path
+
+The first source doesn't specify a path and therefore uses the
+resource path.
+
+    >>> file_nopath = test2_resdef.sources[0]
+    >>> file_nopath.uri
+    'file:test.txt'
+
+    >>> print(file_nopath.path)
+    None
+
+    >>> resolve(file_nopath)
+    {'resolved': ['<project-dir>/test.txt'],
+     'staged': ['foo/test.txt'],
+     'unpacked': []}
+
+#### Source path
+
+The second resource does specify a path. This path is appended to the
+resource path.
+
+    >>> file_path = test2_resdef.sources[1]
+    >>> file_path.uri
+    'file:files/a.bin'
+
+    >>> file_path.path
+    'bar'
+
+    >>> resolve(file_path)
+    {'resolved': ['<project-dir>/files/a.bin'],
+     'staged': ['foo/bar/a.bin'],
+     'unpacked': []}
 
 ### test3 resource
 
@@ -472,18 +598,14 @@ The `test3` resource contains a more complex rename spec.
      <guild.resourcedef.ResourceSource 'file:archive1.zip'>,
      <guild.resourcedef.ResourceSource 'file:archive2.tar'>]
 
-A resource to resolve sources with:
-
-    >>> test3_res = deps.Resource(test3_resdef, test_location, test_ctx)
-
-### Renamed directory
+#### Renamed directory
 
 The first source specifies the `files` directory but renames it to
 `all_files`.
 
     >>> all_files = test3_resdef.sources[0]
-    >>> all_files
-    <guild.resourcedef.ResourceSource 'file:files'>
+    >>> all_files.uri
+    'file:files'
 
     >>> print(all_files.path)
     None
@@ -494,25 +616,21 @@ The first source specifies the `files` directory but renames it to
     >>> all_files.rename
     [RenameSpec(pattern='files', repl='all_files')]
 
-    >>> test_ctx.target_dir = mkdtemp()
-    >>> test3_res.resolve_source(all_files, ResolveContext())
-    ['.../samples/projects/resources/files']
+    >>> resolve(all_files)
+    {'resolved': ['<project-dir>/files'], 'staged': ['all_files'], 'unpacked': []}
 
-    >>> find(test_ctx.target_dir)
-    all_files
-
-### bin files
+#### bin files
 
 The second source selects *.bin files from `files` and renames them to
 strip off the `.bin` suffix. The files are additionally stored in a
 `bin` directory (path).
 
     >>> bin_files = test3_resdef.sources[1]
-    >>> bin_files
-    <guild.resourcedef.ResourceSource 'file:files'>
+    >>> bin_files.uri
+    'file:files'
 
-    >>> print(bin_files.path)
-    bin
+    >>> bin_files.path
+    'bin'
 
     >>> bin_files.select # doctest: -NORMALIZE_PATHS
     [SelectSpec(pattern='.+\\.bin', reduce=None)]
@@ -520,24 +638,22 @@ strip off the `.bin` suffix. The files are additionally stored in a
     >>> bin_files.rename
     [RenameSpec(pattern='.bin', repl='')]
 
-    >>> test_ctx.target_dir = mkdtemp()
-    >>> test3_res.resolve_source(bin_files, ResolveContext())
-    ['.../samples/projects/resources/files/a.bin']
+    >>> resolve(bin_files)
+    {'resolved': ['<project-dir>/files/a.bin'],
+     'staged': ['bin/a'],
+     'unpacked': []}
 
-    >>> find(test_ctx.target_dir)
-    bin/a
-
-### archive1 text files
+#### archive1 text files
 
 The third source selects text files from `archive1.zip`, stores them
 in an `archive1` directory (path) and adds a `2` to their basename.
 
     >>> archive1_txt_files = test3_resdef.sources[2]
-    >>> archive1_txt_files
-    <guild.resourcedef.ResourceSource 'file:archive1.zip'>
+    >>> archive1_txt_files.uri
+    'file:archive1.zip'
 
-    >>> print(archive1_txt_files.path)
-    archive1
+    >>> archive1_txt_files.path
+    'archive1'
 
     >>> archive1_txt_files.select # doctest: -NORMALIZE_PATHS
     [SelectSpec(pattern='.+\\.txt', reduce=None)]
@@ -545,26 +661,23 @@ in an `archive1` directory (path) and adds a `2` to their basename.
     >>> archive1_txt_files.rename # doctest: -NORMALIZE_PATHS
     [RenameSpec(pattern='(.+)\\.txt', repl='\\g<1>2.txt')]
 
-    >>> test_ctx.target_dir = mkdtemp()
-    >>> with LogCapture() as logs:
-    ...   test3_res.resolve_source(archive1_txt_files, ResolveContext())
-    ['.../a.txt', '.../b.txt']
+    >>> with LogCapture() as log:
+    ...     resolve(archive1_txt_files)
+    {'resolved': ['<unpack-dir>/a.txt', '<unpack-dir>/b.txt'],
+     'staged': ['archive1/a2.txt', 'archive1/b2.txt'],
+     'unpacked': ['.guild-cache-archive1.zip.unpacked', 'a.txt', 'b.txt']}
 
-    >>> logs.print_all()
+    >>> log.print_all()
     Unpacking .../samples/projects/resources/archive1.zip
 
-    >>> find(test_ctx.target_dir)
-    archive1/a2.txt
-    archive1/b2.txt
-
-### All archive2 files
+#### All archive2 files
 
 The fourth source selects all of the files from `archive2.tar` and
 renames them with an `archive2_` prefix.
 
     >>> archive2_files = test3_resdef.sources[3]
-    >>> archive2_files
-    <guild.resourcedef.ResourceSource 'file:archive2.tar'>
+    >>> archive2_files.uri
+    'file:archive2.tar'
 
     >>> print(archive2_files.path)
     None
@@ -575,23 +688,22 @@ renames them with an `archive2_` prefix.
     >>> archive2_files.rename # doctest: -NORMALIZE_PATHS
     [RenameSpec(pattern='(.+)', repl='archive2_\\1')]
 
-    >>> test_ctx.target_dir = mkdtemp()
-    >>> with LogCapture() as logs:
-    ...   resolved = test3_res.resolve_source(archive2_files, ResolveContext())
-    ...   sorted(resolved)
-    ['.../c.txt', '.../d.txt']
+    >>> with LogCapture() as log:
+    ...     resolve(archive2_files)
+    {'resolved': ['<unpack-dir>/a.txt', '<unpack-dir>/b.txt', '<unpack-dir>/ccc'],
+     'staged': ['archive2_a.txt', 'archive2_b.txt', 'archive2_ccc'],
+     'unpacked': ['.guild-cache-archive2.tar.unpacked',
+                  'a.txt',
+                  'b.txt',
+                  'ccc/c.txt',
+                  'ccc/ddd/d.txt']}
 
-    >>> logs.print_all()
+    >>> log.print_all()
     Unpacking .../samples/projects/resources/archive2.tar
 
-    >>> find(test_ctx.target_dir)
-    archive2_c.txt
-    archive2_d.txt
+### test4 resource
 
-### Config sources
-
-The test4 resource contains a config sources. We'll use those to
-illustrate the config source type.
+The test4 resource contains config sources.
 
     >>> test4_resdef = res_model.get_resource("test4")
     >>> test4_resdef.sources
@@ -599,48 +711,31 @@ illustrate the config source type.
      <guild.resourcedef.ResourceSource 'config:config.yml'>,
      <guild.resourcedef.ResourceSource 'config:config.yml'>]
 
-A resource to resolve sources with:
-
-    >>> test4_res = deps.Resource(test4_resdef, test_location, test_ctx)
-
-Let's resolve each source in turn. First we need a target directory.
-
-    >>> test_ctx.target_dir = mkdtemp()
-
 #### Simple config
 
 The first config source simply resolves the source file as is.
 
     >>> simple_config = test4_resdef.sources[0]
+    >>> simple_config.uri
+    'config:config.yml'
 
 Config resolves require a run, which is used for storing generated
-files and for reading run falgs.
+files and for reading run flags.
 
-    >>> run = runlib.for_dir(test_ctx.target_dir)
+    >>> run = runlib.for_dir(mkdtemp())
     >>> run.init_skel()
 
-Resolve config sources:
-
-    >>> resolved = test4_res.resolve_source(simple_config, ResolveContext(run))
-    >>> resolved
-    ['.../.guild/generated/.../config.yml']
-
-The resolved source is generated under the run directory:
-
-    >>> resolved[0].startswith(test_ctx.target_dir)
-    True
-
-Here's another view with the resolved link to the generated config:
-
-    >>> find(run.dir)
-    .guild/attrs/id
-    .guild/attrs/initialized
-    .guild/generated/.../config.yml
-    config.yml
+    >>> resolve(simple_config, run)
+    {'resolved': ['<run-dir>/.guild/generated/.../config.yml'],
+     'staged': ['.guild/attrs/id',
+                '.guild/attrs/initialized',
+                '.guild/generated/.../config.yml',
+                'config.yml'],
+     'unpacked': []}
 
 And the config:
 
-    >>> cat(join_path(test_ctx.target_dir, "config.yml"))
+    >>> cat(join_path(run.dir, "config.yml"))
     a: 1
     b: 2
     c:
@@ -648,7 +743,7 @@ And the config:
 
 Here the config is the same as the source:
 
-    >>> cat(sample("projects/resources/config.yml"))
+    >>> cat(sample("projects", "resources", "config.yml"))
     a: 1
     b: 2
     c:
@@ -659,61 +754,31 @@ Here the config is the same as the source:
 The second config is renamed:
 
     >>> renamed_config = test4_resdef.sources[1]
+    >>> renamed_config.uri
+    'config:config.yml'
+
     >>> renamed_config.rename
     [RenameSpec(pattern='config', repl='c2')]
 
 When we resolve this source, we'll apply flag values. Flag values are
-provided by way of the resource context.
+defined by the context run. Let's create one with some flag vals:
 
-In our previous tests, the context does not provide an operation def:
-
-    >>> print(test_ctx.opdef)
-    None
-
-Let's provide an operation def that has some flag values. We'll use a
-proxy.
-
-    >>> class OpDefProxy(object):
-    ...
-    ...   def __init__(self, flags):
-    ...     self._flags = flags
-    ...
-    ...   def flag_values(self):
-    ...     return self._flags
-    ...
-    ...   @staticmethod
-    ...   def get_flagdef(_name):
-    ...     return None
-
-And set some flag values that will be used when resolving the config
-file:
-
+    >>> run = runlib.for_dir(mkdtemp())
+    >>> run.init_skel()
     >>> run.write_attr("flags", {"a": 11, "b": "22", "c.d": 33})
 
-Let's resolve the config source:
-
-    >>> resolved = test4_res.resolve_source(renamed_config, ResolveContext(run))
-    >>> resolved
-    ['.../.guild/generated/.../config.yml']
-
-Here's the target dir:
-
-    >>> find(test_ctx.target_dir)
-    .guild/attrs/flags
-    .guild/attrs/id
-    .guild/attrs/initialized
-    .guild/generated/.../config.yml
-    .guild/generated/.../config.yml
-    c2.yml
-    config.yml
-
-Note the second generated config. Generated config files are created
-under a unique directory of `.guild/generated` to ensure that their
-base names are preserved.
+    >>> resolve(renamed_config, run)
+    {'resolved': ['<run-dir>/.guild/generated/.../config.yml'],
+     'staged': ['.guild/attrs/flags',
+                '.guild/attrs/id',
+                '.guild/attrs/initialized',
+                '.guild/generated/.../config.yml',
+                'c2.yml'],
+     'unpacked': []}
 
 Here's the resolved and renamed config file:
 
-    >>> cat(join_path(test_ctx.target_dir, "c2.yml"))
+    >>> cat(join_path(run.dir, "c2.yml"))
     a: 11
     b: '22'
     c:
@@ -728,6 +793,9 @@ config levels (see flag names above).
 Out third source defines params that are applied to config.
 
     >>> param_config = test4_resdef.sources[2]
+    >>> param_config.uri
+    'config:config.yml'
+
     >>> pprint(param_config.params)
     {'a': 111, 'c.d': 333}
 
@@ -736,33 +804,22 @@ This source is also stored under a path:
     >>> param_config.path
     'c3'
 
-To see how params are applied, let's first reset our run with no flags.
+Resolve in the context of a run without flags:
 
-    >>> run.del_attr("flags")
+    >>> run = runlib.for_dir(mkdtemp())
+    >>> run.init_skel()
 
-Let's resolve the config source:
+    >>> resolve(param_config, run)
+    {'resolved': ['<run-dir>/.guild/generated/.../config.yml'],
+     'staged': ['.guild/attrs/id',
+                '.guild/attrs/initialized',
+                '.guild/generated/.../config.yml',
+                'c3/config.yml'],
+     'unpacked': []}
 
-    >>> resolved = test4_res.resolve_source(param_config, ResolveContext(run))
-    >>> resolved
-    ['.../.guild/generated/.../config.yml']
+The resolved config under a path:
 
-Here's the target dir:
-
-    >>> find(test_ctx.target_dir)
-    .guild/attrs/id
-    .guild/attrs/initialized
-    .guild/generated/.../config.yml
-    .guild/generated/.../config.yml
-    .guild/generated/.../config.yml
-    c2.yml
-    c3/config.yml
-    config.yml
-
-Again, note the third generated config.
-
-Here's the resolved config under a path:
-
-    >>> cat(join_path(test_ctx.target_dir, "c3/config.yml"))
+    >>> cat(join_path(run.dir, "c3/config.yml"))
     a: 111
     b: 2
     c:
@@ -771,206 +828,27 @@ Here's the resolved config under a path:
 Note the new values for `a` and `c.d` -- these values are provided by
 the params (see above).
 
-Let's create a new run/target dir, since we've already resolve the
-current source.
+Let's resolve with a run that has flags.
 
-    >>> test_ctx.target_dir = mkdtemp()
-    >>> run = runlib.for_dir(test_ctx.target_dir)
+    >>> run = runlib.for_dir(mkdtemp())
     >>> run.init_skel()
+    >>> run.write_attr("flags", {"b": 222, "c.d": 444, "e": "hello"})
 
-Set run flags:
+    >>> resolve(param_config, run)
+    {'resolved': ['<run-dir>/.guild/generated/.../config.yml'],
+     'staged': ['.guild/attrs/flags',
+                '.guild/attrs/id',
+                '.guild/attrs/initialized',
+                '.guild/generated/.../config.yml',
+                'c3/config.yml'],
+     'unpacked': []}
 
-    >>> run.write_attr("flags", {"b": 222, "c.d": 444})
-
-Sesolve the source:
-
-    >>> test4_res.resolve_source(param_config, ResolveContext(run))
-    [...]
-
-Here's our target directory:
-
-    >>> find(test_ctx.target_dir)
-    .guild/attrs/flags
-    .guild/attrs/id
-    .guild/attrs/initialized
-    .guild/generated/.../config.yml
-    c3/config.yml
-
-And the resolved config:
-
-    >>> cat(join_path(test_ctx.target_dir, "c3/config.yml"))
+    >>> cat(join_path(run.dir, "c3/config.yml"))
     a: 111
     b: 222
     c:
       d: 444
-
-## Resolving sources
-
-NOTE: These tests modify `test_resdef` sources (defined above) in
-place. Any tests on the original source list should be run before
-these tests.
-
-In these tests we'll resolve some sources to our target
-directory. We'll modify `test_resdef` with resolvable sources and
-modify `test_ctx` with new target directories so we can see the
-resolution results.
-
-### Plain source file
-
-Here's `plain_source` resolved:
-
-    >>> test_resdef.sources = [plain_source]
-    >>> test_ctx.target_dir = mkdtemp()
-    >>> test_res.resolve(ResolveContext())
-    ['.../samples/projects/resources/test.txt']
-
-The target directory contains a link to the resolved file.
-
-    >>> dir(test_ctx.target_dir)
-    ['test.txt']
-
-    >>> realpath(join_path(test_ctx.target_dir, "test.txt")) # doctest: -WINDOWS
-    '.../samples/projects/resources/test.txt'
-
-Note that under Windows os.path.realpath doesn't reliably resolve
-symlink paths (see https://bugs.python.org/issue9949).
-
-### Tar source file
-
-Resolve the archive source:
-
-    >>> test_resdef.sources = [tar_source]
-    >>> test_ctx.target_dir = mkdtemp()
-    >>> with log:
-    ...   files = sorted(test_res.resolve(ResolveContext()))
-
-    >>> len(files)
-    2
-    >>> files
-    ['.../guild-test-unpack-dir-.../c.txt',
-     '.../guild-test-unpack-dir-.../d.txt']
-
-    >>> log.print_all()
-    Unpacking .../samples/projects/resources/archive2.tar
-
-The target directory contains links to unpacked files:
-
-    >>> dir(test_ctx.target_dir)
-    ['c.txt', 'd.txt']
-
-    >>> realpath(join_path(test_ctx.target_dir, "c.txt")) # doctest: -WINDOWS
-    '.../guild-test-.../c.txt'
-
-    >>> realpath(join_path(test_ctx.target_dir, "d.txt")) # doctest: -WINDOWS
-    '.../guild-test-.../d.txt'
-
-### No unpack archive
-
-The unpack archive source resolves to the unpacked archive.
-
-    >>> test_resdef.sources = [nounpack_source]
-    >>> test_ctx.target_dir = mkdtemp()
-    >>> test_res.resolve(ResolveContext())
-    ['.../samples/projects/resources/archive3.tar']
-
-And the target directory:
-
-    >>> dir(test_ctx.target_dir)
-    ['archive3.tar']
-
-    >>> realpath(join_path(test_ctx.target_dir, "archive3.tar")) # doctest: -WINDOWS
-    '.../samples/projects/resources/archive3.tar'
-
-### Renamed file
-
-In this test we'll resolve `rename_source`.
-
-    >>> test_resdef.sources = [rename_source]
-    >>> test_ctx.target_dir = mkdtemp()
-    >>> test_res.resolve(ResolveContext())
-    ['.../samples/projects/resources/test.txt']
-
-Unlike the previous test, the link is renamed using the source
-`rename` spec.
-
-    >>> dir(test_ctx.target_dir)
-    ['test.config']
-
-    >>> realpath(join_path(test_ctx.target_dir, "test.config")) # doctest: -WINDOWS
-    '.../samples/projects/resources/test.txt'
-
-## Resolving sources - part 2
-
-These tests continue testing resource resolution, but use the `test2`
-resource, which specifically tests `path`
-
-    >>> test2_resdef = res_model.get_resource("test2")
-    >>> test2_resdef.sources
-    [<guild.resourcedef.ResourceSource 'file:test.txt'>,
-     <guild.resourcedef.ResourceSource 'file:files/a.bin'>]
-
-To illustrate how paths are used, we'll resolve each source.
-
-Here's the resource we'll use to resolve sources:
-
-    >>> test2_ctx = deps.ResolutionContext(
-    ...   target_dir=None,
-    ...   opdef=None,
-    ...   resource_config={})
-    >>> test2_res = deps.Resource(test2_resdef, test_location, test2_ctx)
-
-### Resource paths
-
-A path may be defined for a resource:
-
-    >>> test2_resdef.path
-    'foo'
-
-This path is used when resolving any resource sources.
-
-Our first source:
-
-    >>> source1 = test2_resdef.sources[0]
-    >>> source1
-    <guild.resourcedef.ResourceSource 'file:test.txt'>
-    >>> print(source1.path)
-    None
-
-Let's resolve the source to a new temp dir:
-
-    >>> test2_ctx.target_dir = mkdtemp()
-    >>> test2_res.resolve_source(source1, ResolveContext())
-    ['.../samples/projects/resources/test.txt']
-
-The resolved files are under the resource path `foo`:
-
-    >>> find(test2_ctx.target_dir)
-    foo/test.txt
-
-### Source paths
-
-A source may also have a path, in which case that path is appended to
-any resource path.
-
-Here's the second source:
-
-    >>> source2 = test2_resdef.sources[1]
-    >>> source2
-    <guild.resourcedef.ResourceSource 'file:files/a.bin'>
-    >>> source2.path
-    'bar'
-
-Let's resolve the source:
-
-    >>> test2_ctx.target_dir = mkdtemp()
-    >>> test2_res.resolve_source(source2, ResolveContext())
-    ['.../samples/projects/resources/files/a.bin']
-
-The resolved files are under the resource path `foo/bar`, which is
-defined by both the resource and the source:
-
-    >>> find(test2_ctx.target_dir)
-    foo/bar/a.bin
+    e: hello
 
 ## Alternative resource defs
 
